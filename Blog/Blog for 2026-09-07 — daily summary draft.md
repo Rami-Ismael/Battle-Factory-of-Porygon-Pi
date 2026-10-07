@@ -1,0 +1,9 @@
+> On 2026-09-07, I challenged the relevance of Scalable Discrete Diffusion Samplers and Learning the Travelling Salesperson Problem Requires Rethinking Generalization; Codex removed their entries from Reading List.md. I also rejected paying for Intuitive Bayes, and Codex removed its links from the math curriculum and Teaching/RESOURCES.md. These were content removals, not deleted notes.
+>
+> I asked Codex to reorganize the reading list, rejected successive layouts, and proposed subtopics; it produced ten topics with 44 subtopics. I requested paper explanations, and Codex created diagrams and reading guides for diffusion retraining, DIFUSCO, DDEA, DiBO, and masked diffusion tree search. I questioned their relevance to costly Pokémon battle evaluations and discussed local search, ILP recombination, Gaussian processes, and tree search.
+>
+> I asked for a table separating objective, selection, and sampling temperatures, which Codex put in a temperature blog. I then requested a controlled comparison of annealed, fixed, and adaptive Boltzmann selection temperatures. Codex implemented and launched it; the last record before midnight showed five completed runs with the study still running.
+>
+> I directed Codex to finish defining diversity measurements before changing training to address mode collapse. I proposed initial training data as an experiment axis and requested tasks for team similarity, matchup win rates, diffusion uncertainty, and tree search. I questioned epiplexity’s usefulness and excluded deep-surrogate MAP-Elites from the tasks copied into my new todo note.
+>
+> I asked Codex to tailor the math curriculum to my UTD introductory ML background and repeatedly requested clearer, more relevant prose. It revised the note and created a free-resource study-flow drawing. I discussed submodularity and whether changing a Pokémon could worsen performance. This account covers the afternoon and evening records I could verify.

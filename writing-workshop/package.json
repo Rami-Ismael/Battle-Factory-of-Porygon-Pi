@@ -1,0 +1,25 @@
+{
+  "name": "margin-writing-workshop",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "tailwindcss -i frontend/styles.css -o static/app.css --minify",
+    "build:js": "esbuild frontend/editor.js --bundle --minify --outfile=static/app.js",
+    "watch:css": "tailwindcss -i frontend/styles.css -o static/app.css --watch",
+    "watch:js": "esbuild frontend/editor.js --bundle --outfile=static/app.js --watch"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.0.0",
+    "@tiptap/pm": "^3.0.0",
+    "@tiptap/starter-kit": "^3.0.0",
+    "@tiptap/extension-placeholder": "^3.0.0",
+    "htmx.org": "^2.0.0",
+    "lucide": "^0.468.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "esbuild": "^0.25.0",
+    "@playwright/test": "^1.51.0"
+  }
+}

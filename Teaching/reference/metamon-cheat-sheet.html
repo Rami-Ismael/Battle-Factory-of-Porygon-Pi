@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — Metamon cheat sheet</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<h1>Metamon — cheat sheet</h1>
+<p class="subtitle">Grigsby, Xie, Sasek, Zheng, Zhu (UT Austin RPL). RLC / RLJ 2025. 🟢 <a href="https://arxiv.org/abs/2504.04395">arXiv 2504.04395 v2</a> · 🟢 <a href="https://github.com/UT-Austin-RPL/metamon">code</a> · 🟢 <a href="https://huggingface.co/jakegrigsby/metamon">data</a></p>
+<p class="meta">Reference sheet · 2026-08-19 · compressed from <a href="../lessons/0003-metamon-offline-rl-from-human-replays.html">Lesson 0003</a> · all numbers from the v2 PDF</p>
+
+<h3>Setting</h3>
+<p>Competitive Pokémon <b>Singles</b>, Showdown, Gen 1–4 OU (+UU/NU/Ubers; 16 rulesets). No team preview → maximal partial observability, longest battles. Evaluation focus: OU.</p>
+
+<h3>Dataset (Sec. 3, App. D)</h3>
+<table class="compare">
+<tr><td>source</td><td>public spectator replays, 2014 → Sept 2024 cutoff</td></tr>
+<tr><td>reconstruction</td><td>simulate PS protocol → estimate both initial teams from revealed info → infer never-revealed parts from usage data + similar replays → backfill POV knowledge → emit agent format; ambiguous cases discarded</td></tr>
+<tr><td>size</td><td>475k battles → 950k POV trajectories → 38M timesteps ("RPS 950k"); pipeline now 3.5M traj incl. Gen 9 OU</td></tr>
+<tr><td>missing actions</td><td>unrevealed choices (e.g. full paralysis) filled by a small BC model; better filler helped IL, not RL (App. D.1)</td></tr>
+</table>
+
+<h3>POMDP (Sec. 4, App. E)</h3>
+<table class="compare">
+<tr><td>obs</td><td>87 text tokens + 48 numeric features; only the opponent's <em>active</em> Pokémon — memory must carry the rest</td></tr>
+<tr><td>actions</td><td>9 discrete: 4 moves + 5 switches, turn-dependent meaning, fixed order in text</td></tr>
+<tr><td>reward</td><td>R = r<sub>hp</sub> + ½ r<sub>stat</sub> + r<sub>faint</sub> + 100·r<sub>win</sub></td></tr>
+<tr><td>framing</td><td>opponent policy π<sub>o</sub> and team c<sub>o</sub> are latent variables of T; Bayesian-RL / meta-RL; black-box sequence model infers them in-context</td></tr>
+</table>
+
+<h3>Actor loss (Eq. 2, Table 1)</h3>
+<p style="font-family:var(--mono);font-size:.9em;max-width:none">L = E<sub>D</sub>[ (1/T) Σ<sub>t</sub> ( −w(h<sub>t</sub>,a<sub>t</sub>) log π(a<sub>t</sub>|h<sub>t</sub>) − λ E<sub>a∼π</sub> Q(h<sub>t</sub>,a) ) ], &nbsp; A = Q(h,a) − E<sub>a'∼π</sub>Q(h,a')</p>
+<table class="compare">
+<tr><th>row</th><th>w</th><th>λ</th><th>lineage</th></tr>
+<tr><td>IL</td><td>1</td><td>0</td><td>BC</td></tr>
+<tr><td>Exp / "RL"</td><td>exp(βA), clipped</td><td>0</td><td>AWAC</td></tr>
+<tr><td>Binary</td><td>𝟙[A&gt;0]</td><td>0</td><td>CRR</td></tr>
+<tr><td>Binary+MaxQ</td><td>𝟙[A&gt;0]</td><td>&gt;0</td><td>CRR + actor term</td></tr>
+</table>
+<p class="note">Finding: any RL row ≫ IL; RL rows ≈ each other. Critic: 4-ensemble, TD, multi-γ heads (act on γ = 0.999). SynRL-V2 uses two-hot classification critic → more pessimistic Binary filter.</p>
+
+<h3>Critic loss (from AMAGO / AMAGO-2, not printed in Metamon)</h3>
+<p style="font-family:var(--mono);font-size:.9em;max-width:none">y<sub>t</sub> = r<sub>t</sub> + γ Q̄(h<sub>t+1</sub>, a'∼π̄(h<sub>t+1</sub>)); &nbsp; L<sub>Critic</sub> = (Q(h<sub>t</sub>,a<sub>t</sub>) − y<sub>t</sub>)²; &nbsp; joint = Σ L<sub>actor</sub> + 10·L<sub>Critic</sub></p>
+<p class="note">Target heads τ = 0.004 (no target sequence model); critic blocked from actor gradient; 4-critic ensemble, mean → V(h); multi-γ heads, act on .999; PopArt on y. SynRL-V2: two-hot CE, L = −twohot<sub>B</sub>(y)<sup>T</sup> log Q<sub>B</sub>(h,a), 96 bins on [−110,110]. 🟢 <a href="https://arxiv.org/abs/2310.09971">AMAGO</a> App. A · 🟢 <a href="https://arxiv.org/abs/2411.11188">AMAGO-2</a> Sec. 3.</p>
+
+<h3>Architecture / compute (Table 3)</h3>
+<table class="compare">
+<tr><th></th><th>Small</th><th>Medium</th><th>Large</th></tr>
+<tr><td>params</td><td>15M</td><td>50M</td><td>200M</td></tr>
+<tr><td>causal Transformer</td><td>3 L / 512 d</td><td>6 L / 768 d</td><td>9 L / 1280 d</td></tr>
+<tr><td>context (turns)</td><td>200</td><td>200</td><td>128</td></tr>
+<tr><td>batch (seqs)</td><td>32</td><td>40</td><td>48 (96 synthetic)</td></tr>
+</table>
+<p class="note">Per-turn encoder: BERT-style summary tokens over text + numeric tokens → causal Transformer → actor + critic heads. AMAGO framework. One 8×A5000 machine, ≥1M gradient steps, checkpoints every 50k.</p>
+
+<h3>Self-play data (Sec. 5.3)</h3>
+<table class="compare">
+<tr><td>Variety Set</td><td>1k deliberately diverse procedurally generated teams per gen/tier — the OOD watermark for self-play</td></tr>
+<tr><td>SynRL-V0 → V1</td><td>2M → 3M traj, 200M Binary+MaxQ from scratch; consistent gains</td></tr>
+<tr><td>SynRL-V1+SP</td><td>realistic (Replay Set) self-play to 5M; better vs itself, inconsistent vs humans — "believes it is playing SynRL-V1"</td></tr>
+<tr><td>SynRL-V1++</td><td>unrealistic teams + IL opponents to 5M; recovered</td></tr>
+<tr><td>SynRL-V2</td><td>V1++ data + 50k new human replays, from scratch, binary filter, two-hot critic — best by every metric</td></tr>
+</table>
+
+<h3>Results</h3>
+<table class="compare">
+<tr><td>ladder GXE</td><td>Large-RL 41–58%; SynRL-V2 64–80% (Gen1OU peak 79.9%, Glicko-1 1761±35, global #31); ≥400 battles per model-gen, Dec 2024–Mar 2025</td></tr>
+<tr><td>percentile</td><td>authors' estimate from 14k reconstructed usernames: ≈96 / 91 / 90 / 89th in Gen 1/2/3/4 OU</td></tr>
+<tr><td>Foul Play</td><td>expectiminimax &amp; MCTS, poke-engine v0.31, 300 battles/gen: win Gens 1–2, draw 3–4</td></tr>
+<tr><td>PokéLLMon (GPT-4o)</td><td>74-1 / 72-3 / 69-6 / 70-5</td></tr>
+<tr><td>memory ablation</td><td>shorter context → monotonically lower win rate (Fig. 13)</td></tr>
+<tr><td>failure modes</td><td>long-battle error accumulation, rare opponent teams; invalid actions 2–5%; shaping exploited ("cling to life")</td></tr>
+</table>
+
+<h3>Transfer to this project — verdict</h3>
+<p><b>HIGH</b> for the battle-policy strand: BC floor → filtered-BC step → self-play with an OOD watermark; cross-play can hide self-modelling, keep an external column. <b>LOW–MED</b> for f / team search: no team building; singles, no preview; one line — team design "converges to an equilibrium that helps narrow the search to perhaps many thousands of meaningfully distinct teams".</p>
+
+<nav class="lesson-nav"><a href="../lessons/0003-metamon-offline-rl-from-human-replays.html">← Lesson 0003</a> <a href="self-play-framework-glossary.html">Self-play glossary</a></nav>
+</body>
+</html>

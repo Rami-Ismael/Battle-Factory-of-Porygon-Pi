@@ -1,0 +1,59 @@
+/* Shared stylesheet for every lesson and reference sheet in this workspace.
+   Tufte-flavoured: generous measure, serif body, restrained colour, sidenotes. */
+:root {
+  --ink: #1d1d1b;
+  --ink-soft: #55534d;
+  --paper: #fbfaf6;
+  --rule: #d9d5c9;
+  --accent: #8a3b12;      /* burnt sienna — links, key terms */
+  --cover: #2c6e49;       /* max coverage green */
+  --setc: #3d5a80;        /* set cover blue */
+  --warn: #9c4a1a;
+  --ok-bg: #e5f1e9;
+  --bad-bg: #f5e3dc;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ink:#e8e4da; --ink-soft:#b3ada0; --paper:#17171a; --rule:#3a3a40;
+          --accent:#e0855a; --cover:#6cc496; --setc:#8fb3e0; --ok-bg:#1f3328; --bad-bg:#3d241b; }
+}
+html { background: var(--paper); color: var(--ink); font: 19px/1.55 var(--serif); }
+body { max-width: 68rem; margin: 0 auto; padding: 3rem 4rem 6rem; }
+@media (max-width: 800px) { body { padding: 1.5rem 1.2rem 4rem; } html { font-size: 17px; } }
+h1 { font-weight: 400; font-size: 2.4rem; line-height: 1.1; margin: 0 0 .3rem; letter-spacing: -.01em; }
+h2 { font-weight: 400; font-style: italic; font-size: 1.55rem; margin: 3rem 0 .8rem; }
+h3 { font-weight: 600; font-size: 1.05rem; margin: 2rem 0 .5rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+p, li { max-width: 40rem; }
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--rule); }
+a:hover { border-bottom-color: var(--accent); }
+.subtitle { color: var(--ink-soft); font-style: italic; margin: 0 0 2.5rem; }
+.meta { font-size: .85rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+.meta a { border: 0; }
+.mission { border-left: 3px solid var(--accent); padding: .4rem 1.2rem; margin: 1.5rem 0 2rem; color: var(--ink-soft); font-style: italic; }
+.mission strong { color: var(--ink); font-style: normal; }
+code, .m { font-family: var(--mono); font-size: .85em; }
+.k { font-family: var(--mono); font-size: .8em; padding: .05em .35em; border: 1px solid var(--rule); border-radius: 3px; }
+.mc { color: var(--cover); font-weight: 600; }
+.sc { color: var(--setc); font-weight: 600; }
+blockquote { margin: 1.5rem 0; padding: 0 0 0 1.2rem; border-left: 2px solid var(--rule); color: var(--ink-soft); font-size: .95em; }
+blockquote cite { display: block; margin-top: .4rem; font-style: normal; font-size: .85em; }
+/* side-by-side table */
+table.compare { border-collapse: collapse; width: 100%; margin: 1.5rem 0 2rem; font-size: .92em; }
+table.compare th, table.compare td { text-align: left; vertical-align: top; padding: .55rem .8rem; border-top: 1px solid var(--rule); }
+table.compare th { font-weight: 600; font-size: .8em; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); border-top: 0; }
+table.compare td:first-child { color: var(--ink-soft); font-style: italic; width: 11rem; }
+table.compare th.mc, table.compare th.sc { font-size: .95em; text-transform: none; letter-spacing: 0; }
+/* callouts */
+.callout { border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 1.3rem; margin: 1.6rem 0; max-width: 42rem; background: color-mix(in srgb, var(--paper) 85%, var(--rule)); }
+.callout.trap { border-color: var(--warn); }
+.callout h4 { margin: 0 0 .4rem; font-size: .8em; text-transform: uppercase; letter-spacing: .06em; color: var(--warn); }
+.callout p:last-child { margin-bottom: 0; }
+/* sidenote-lite */
+.note { font-size: .82em; color: var(--ink-soft); }
+/* footer nav */
+nav.lesson-nav { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: .9em; display: flex; gap: 2rem; flex-wrap: wrap; }
+.ask { margin-top: 3rem; padding: 1rem 1.3rem; background: var(--ok-bg); border-radius: 6px; max-width: 42rem; }
+.tag { display: inline-block; font-size: .7em; text-transform: uppercase; letter-spacing: .08em; padding: .1em .5em; border-radius: 3px; border: 1px solid currentColor; margin-right: .4em; }
+/* print */
+@media print { html { font-size: 12pt; background: #fff; color: #000; } body { max-width: none; padding: 0; } .ask, nav.lesson-nav, .noprint { display: none; } a { color: inherit; border: 0; } }

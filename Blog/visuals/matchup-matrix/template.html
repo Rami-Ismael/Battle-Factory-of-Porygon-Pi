@@ -1,0 +1,275 @@
+<meta charset="utf-8">
+<title>Every Pair Once</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the live matrix (rows = tested teams as six sprites, columns = the top-50 as stacked sprites, a score column) with a caption and stepper beneath; a cost panel replaces the matrix on the last step. Same system as the project's other blog figures. */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --accent:#0E7C7B; --accent-soft:#DDF0EF; --flash:#F2E3B3;
+  --w0:#B8412F; --w1:#C9614F; --w2:#D98877; --w3:#E8B3A6; --w4:#E6E9EC; --w5:#A9D7D3; --w6:#6DBDB8; --w7:#2E9C97; --w8:#0E6E6C;
+  --unk:#E9EDF1; --unk2:#DCE2E8;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1); --ease-io:cubic-bezier(0.77,0,0.175,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --accent:#4FC2BF; --accent-soft:#16312F; --flash:#4A3F1C;
+    --w0:#F08A76; --w1:#D46F5D; --w2:#B25A4B; --w3:#86493F; --w4:#4A5561; --w5:#2F6E6A; --w6:#3A938E; --w7:#4DB5AF; --w8:#6FD6CF;
+    --unk:#1C252F; --unk2:#232E39;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --accent:#4FC2BF; --accent-soft:#16312F; --flash:#4A3F1C;
+  --w0:#F08A76; --w1:#D46F5D; --w2:#B25A4B; --w3:#86493F; --w4:#4A5561; --w5:#2F6E6A; --w6:#3A938E; --w7:#4DB5AF; --w8:#6FD6CF;
+  --unk:#1C252F; --unk2:#232E39;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:22px}
+header{display:grid;gap:10px;max-width:72ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{border-top:1px solid var(--rule);padding-top:8px;display:grid;gap:2px}
+.tile .n{font:500 22px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.tile .l{font-size:12.5px;color:var(--muted)}
+.stage{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:14px;display:grid;gap:10px;position:relative}
+.scroll{overflow-x:auto}
+.mx{display:grid;gap:2px;width:max-content;position:relative}
+.hrow,.row{display:flex;align-items:center;gap:10px}
+.lab{width:140px;flex:none;display:flex;gap:1px}
+.lab img{width:22px;height:22px;image-rendering:pixelated}
+.cells{display:flex;gap:2px}
+.colh{width:14px;display:flex;flex-direction:column;align-items:center;position:relative}
+.colh img{width:14px;height:14px;image-rendering:pixelated}
+.colh .x2{position:absolute;top:-14px;font:600 9px/1 var(--mono);color:var(--accent)}
+.c{width:14px;height:22px;border-radius:3px;background:repeating-linear-gradient(45deg,var(--unk) 0 3px,var(--unk2) 3px 6px);transition:background-color 180ms ease}
+.c.k0{background:var(--w0)} .c.k1{background:var(--w1)} .c.k2{background:var(--w2)} .c.k3{background:var(--w3)} .c.k4{background:var(--w4)}
+.c.k5{background:var(--w5)} .c.k6{background:var(--w6)} .c.k7{background:var(--w7)} .c.k8{background:var(--w8)}
+.row.hot .lab{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.row.flash .cells{animation:flash 900ms var(--ease)}
+@keyframes flash{0%{filter:none}30%{filter:brightness(1.25) saturate(1.3)}100%{filter:none}}
+.sc{width:130px;flex:none;display:flex;align-items:center;gap:8px;font:500 12.5px/1 var(--mono);font-variant-numeric:tabular-nums}
+.bar{flex:1;height:10px;border-radius:99px;background:var(--unk);position:relative;overflow:hidden}
+.bar span{position:absolute;left:0;top:0;bottom:0;background:var(--accent);transition:width 500ms var(--ease)}
+.bar i{position:absolute;top:-2px;bottom:-2px;width:1px;left:50%;background:var(--ink);opacity:.35}
+.sc .v{width:3.2em;text-align:right;opacity:0;transition:opacity 300ms ease}
+.sc.on .v{opacity:1}
+.hdr-lab{width:140px;flex:none;font:600 11px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);align-self:flex-end}
+.counter{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;font:500 13px/1.3 var(--mono);color:var(--muted)}
+.counter b{font:600 18px/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.badge{font:600 12px/1 var(--mono);background:var(--flash);color:var(--ink);border-radius:99px;padding:5px 9px;opacity:0;transition:opacity 250ms ease}
+.badge.on{opacity:1}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12.5px;color:var(--muted)}
+.ramp{display:flex;gap:2px} .ramp i{width:16px;height:12px;border-radius:2px}
+.unkbox{display:inline-block;width:16px;height:12px;border-radius:2px;vertical-align:middle;margin-right:6px;background:repeating-linear-gradient(45deg,var(--unk) 0 3px,var(--unk2) 3px 6px)}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:8px 10px;font-size:12.5px;display:grid;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:3;opacity:0;transition:opacity 120ms ease}
+.tip.on{opacity:1}
+.tip .t{display:flex;gap:1px} .tip img{width:22px;height:22px;image-rendering:pixelated}
+.cost{display:none;gap:14px}
+.cost.on{display:grid;animation:fade 360ms var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.cbar{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(0,2fr) 9em;gap:12px;align-items:center;font-size:13.5px}
+.cbar .track{height:18px;position:relative;border-left:1px solid var(--rule)}
+.cbar .fill{position:absolute;left:0;top:2px;bottom:2px;background:var(--accent);border-radius:0 4px 4px 0;width:0;transition:width 900ms var(--ease-io)}
+.cbar .v{font:500 12.5px/1.3 var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.cbar .v small{display:block;color:var(--faint)}
+.axis{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(0,2fr) 9em;gap:12px;font:11px/1 var(--mono);color:var(--faint)}
+.axis .tk{position:relative;height:14px} .axis .tk span{position:absolute;transform:translateX(-50%)}
+.never{border:1px dashed var(--rule);border-radius:10px;padding:10px 12px;font-size:14px}
+.never b{font-family:var(--mono)}
+.caption{display:grid;gap:6px;min-height:6.5em;max-width:78ch}
+.term{font:700 19px/1.25 var(--display)}
+.term small{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:8px}
+.def{color:var(--ink)} .ex{color:var(--muted);font-size:14px}
+.stepper{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:500 14px/1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;min-height:40px;cursor:pointer;transition:transform 120ms var(--ease),background-color 150ms ease}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.dots{display:flex;gap:6px;margin-left:6px}
+.dots button{width:12px;height:12px;min-height:0;padding:0;border-radius:50%;background:var(--rule);border:0}
+.dots button[aria-current="step"]{background:var(--accent)}
+.note{color:var(--muted);font-size:13px;max-width:78ch}
+@media (max-width:640px){ .lab,.sc,.hdr-lab{width:120px} .lab img{width:19px;height:19px} .cbar,.axis{grid-template-columns:110px minmax(0,1fr) 6.5em} }
+@media (prefers-reduced-motion:reduce){ .c,.bar span,.sc .v,.badge,.cbar .fill,.tip{transition:none} .row.flash .cells,.cost.on{animation:none} button{transition:none} button:active{transform:none} }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Regulation M-B · sparse matchup matrix · built from the live database</span>
+    <h1>Every pair once</h1>
+    <p class="lede">Every team that has been battled gets a row; the top-50 meta teams are the columns. A cell holds the row team's record against the column team. Cells never battled stay empty, battles are never repeated, and a team's score is its row averaged across.</p>
+  </header>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="stage">
+    <div class="counter"><span>battles run <b id="cnt">0</b></span><span>cells filled <b id="cells">0</b></span><span class="badge" id="badge"></span></div>
+    <div class="scroll" id="mxwrap"><div class="mx" id="mx"></div></div>
+    <div class="cost" id="cost"></div>
+    <div class="legend" id="legend"></div>
+    <div class="tip" id="tip" role="tooltip"></div>
+  </div>
+
+  <div class="caption" aria-live="polite" id="caption"></div>
+  <div class="stepper">
+    <button type="button" id="back" aria-label="Previous step">←</button>
+    <button type="button" id="play">Play</button>
+    <button type="button" id="next" aria-label="Next step">→</button>
+    <div class="dots" id="dots"></div>
+  </div>
+  <p class="note" id="method"></p>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const NC = D.cols.length, ROWS = D.rows;
+const img = (m, cls = "") => D.sprites[m.key] ? `<img src="${D.sprites[m.key]}" alt="${m.name}" class="${cls}">` : `<span style="font:9px var(--mono)">${m.name.slice(0,3)}</span>`;
+const fmt = n => n.toLocaleString("en-US");
+
+// score: weighted row mean over the top-50 columns, as matchup_db.score
+function score(r){
+  let W = 0, s = 0, v = 0;
+  for (const [ci, [w, n]] of Object.entries(r.cells)) { const wt = D.cols[ci].weight; W += wt; s += wt * w / n; }
+  for (const [ci, [w, n]] of Object.entries(r.cells)) { const wt = D.cols[ci].weight / W, p = w / n; v += wt * wt * p * (1 - p) / n; }
+  return {s: s / W, se: Math.sqrt(v), battles: Object.values(r.cells).reduce((a, [, n]) => a + n, 0)};
+}
+ROWS.forEach(r => r.sc = score(r));
+
+// ---------------- tiles, legend, method
+const totalB = D.stats.battles;
+$("tiles").innerHTML = [[fmt(D.stats.files), "VGCPastes files imported"], [fmt(D.stats.teams), "distinct legal teams (rows that can exist)"],
+  [`${ROWS.length} × ${NC}`, "rows tested × top-50 columns shown"], [fmt(totalB), "battles stored, 0 unattributed"]]
+  .map(([n, l]) => `<div class="tile"><span class="n">${n}</span><span class="l">${l}</span></div>`).join("");
+$("legend").innerHTML = `<span><i class="unkbox"></i>never battled: unknown, not 0</span>
+  <span style="display:flex;gap:8px;align-items:center">row loses <span class="ramp">${[0,1,2,3,4,5,6,7,8].map(k => `<i style="background:var(--w${k})"></i>`).join("")}</span> row wins</span>
+  <span>each cell: 8 battles, so 0/8 … 8/8</span><span>right column: score = row mean</span>`;
+$("method").textContent = `Win rate = wins ÷ battles against each top-50 team, behaviour-cloning battle policy on both sides, 8 battles per cell. The score is the row's weighted mean over ${NC} distinct top-50 teams (MB493 and MB494 are the same team and count twice, so weights sum to 50). Data: ${fmt(totalB)} battles in ${D.batches.length} batches from the project's SQLite matchup database, 2026-09-30.`;
+
+// ---------------- matrix DOM
+function buildMatrix(){
+  const h = [`<div class="hrow"><span class="hdr-lab">tested team ↓ · top-50 →</span><div class="cells">` +
+    D.cols.map((c, i) => `<div class="colh" data-c="${i}">${c.weight > 1 ? `<span class="x2">×${c.weight}</span>` : ""}${c.mons.map(m => img(m)).join("")}</div>`).join("") +
+    `</div><span class="hdr-lab">score</span></div>`];
+  ROWS.forEach((r, ri) => h.push(`<div class="row" data-r="${ri}" id="row${ri}"><div class="lab">${r.mons.map(m => img(m)).join("")}</div><div class="cells">` +
+    D.cols.map((_, ci) => `<div class="c" data-r="${ri}" data-c="${ci}"></div>`).join("") +
+    `</div><div class="sc" id="sc${ri}"><span class="bar"><span style="width:0"></span><i></i></span><span class="v"></span></div></div>`));
+  $("mx").innerHTML = h.join("");
+}
+buildMatrix();
+const cellEl = (ri, ci) => $("row" + ri).querySelector(`.c[data-c="${ci}"]`);
+let battles = 0, filled = 0;
+function setCounter(){ $("cnt").textContent = fmt(battles); $("cells").textContent = fmt(filled); }
+function fillCell(ri, ci){ const x = ROWS[ri].cells[ci]; if (!x) return; const [w, n] = x;
+  cellEl(ri, ci).className = "c k" + Math.round(8 * w / n); battles += n; filled++; }
+function showScore(ri){ const s = ROWS[ri].sc, el = $("sc" + ri);
+  el.querySelector(".bar span").style.width = (100 * s.s) + "%"; el.querySelector(".v").textContent = s.s.toFixed(3); el.classList.add("on"); }
+function reset(){ buildMatrix(); battles = 0; filled = 0; setCounter(); $("badge").classList.remove("on"); bindTip(); }
+function fillRowNow(ri){ for (let ci = 0; ci < NC; ci++) fillCell(ri, ci); }
+
+// ---------------- tooltip
+function bindTip(){
+  $("mx").onmousemove = e => {
+    const c = e.target.closest(".c"); const tip = $("tip");
+    if (!c || !/k\d/.test(c.className)) { tip.classList.remove("on"); return; }
+    const ri = +c.dataset.r, ci = +c.dataset.c, [w, n] = ROWS[ri].cells[ci];
+    tip.innerHTML = `<div class="t">${ROWS[ri].mons.map(m => img(m)).join("")}</div><div>won <b>${w} of ${n}</b> against</div><div class="t">${D.cols[ci].mons.map(m => img(m)).join("")}</div>`;
+    const box = document.querySelector(".stage").getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX - box.left + 14, box.width - 190) + "px"; tip.style.top = (e.clientY - box.top + 14) + "px"; tip.classList.add("on");
+  };
+  $("mx").onmouseleave = () => $("tip").classList.remove("on");
+}
+bindTip();
+
+// ---------------- cost panel
+function buildCost(){
+  const rows = D.cost.rows, rate = D.cost.battles_per_sec;
+  const lo = -3, hi = 3;   // log10 hours axis: 0.001 h … 1,000 h
+  const pos = h => Math.max(0, Math.min(100, (Math.log10(h) - lo) / (hi - lo) * 100));
+  const ticks = [-3,-2,-1,0,1,2,3].map(e => `<span style="left:${(e - lo) / (hi - lo) * 100}%">${e < 0 ? (10 ** e).toString() : fmt(10 ** e)} h</span>`).join("");
+  $("cost").innerHTML = `<div class="axis"><span></span><div class="tk">${ticks}</div><span style="text-align:right">8 battles / cell</span></div>` +
+    rows.map(r => `<div class="cbar"><span>${r.scope}</span><div class="track"><div class="fill" data-w="${pos(r.hours_at_8)}"></div></div>
+      <span class="v">${r.hours_at_8 < 0.1 ? (r.hours_at_8 * 3600).toFixed(0) + " s" : r.hours_at_8.toFixed(1) + " h"}<small>${fmt(r.cells)} cells · ${r.storage_MB < 1 ? (r.storage_MB * 1000).toFixed(0) + " kB" : r.storage_MB.toFixed(1) + " MB"}</small></span></div>`).join("") +
+    `<div class="never">Every legal team against every other: about <b>10^${D.cost.full_legal_space.log10_cells.toFixed(0)}</b> cells and <b>10^${D.cost.full_legal_space.log10_battles_at_8.toFixed(0)}</b> battles. Off any chart: full coverage is a cost statement, not a plan.</div>
+    <p class="note">Log scale. Measured on this machine: ${D.cost.bytes_per_cell.toFixed(1)} bytes per cell plus ${D.cost.bytes_per_contribution.toFixed(1)} per provenance row, ${rate} battles per second on 7 Showdown servers. Storage is never the limit; battles are.</p>`;
+}
+buildCost();
+
+// ---------------- steps
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+let runId = 0;
+const STEPS = [
+  {term:"Unknown is not zero", def:"A cell exists only once its pair has been battled.",
+   ex:`${fmt(D.stats.teams)} legal teams are seeded from VGCPastes. Before any battle, every cell is empty: "never battled" is stored as no record at all, never as a 0% win rate.`,
+   run: async () => { reset(); }},
+  {term:"Battle one row", def:"To score a team, battle it against every top-50 column.",
+   ex:"Each cell gets 8 battles under the same battle policy on both sides. Every finished battle is credited to the column team it was played against.",
+   run: async id => { reset(); $("row0").classList.add("hot");
+     for (let ci = 0; ci < NC && id === runId; ci++) { fillCell(0, ci); setCounter(); await wait(45); } }},
+  {term:"The score is the row average", def:"A team's objective value is its row averaged over the top-50 columns.",
+   ex:() => `This team: ${ROWS[0].sc.s.toFixed(3)} ± ${ROWS[0].sc.se.toFixed(3)} from ${fmt(ROWS[0].sc.battles)} battles. The two top-50 entries that are the same team count twice, so the weights sum to 50.`,
+   run: async () => { reset(); $("row0").classList.add("hot"); fillRowNow(0); setCounter(); showScore(0); }},
+  {term:"Ask again: zero battles", def:"The matrix is a cache: a pair is never battled twice.",
+   ex:"Asking for the same team again, even with its Pokémon listed in another order, finds all 49 cells already filled: 0 new battles, answered in 0.1 seconds. Asking for more battles per cell would run only the difference.",
+   run: async id => { reset(); fillRowNow(0); setCounter(); showScore(0);
+     const lab = $("row0").querySelector(".lab"), order = [...lab.children];
+     if (!reduce) { for (const k of [3,5,1,0,4,2]) lab.appendChild(order[k]); await wait(500); order.forEach(n => lab.appendChild(n)); }
+     $("row0").classList.add("flash"); $("badge").textContent = "+0 battles · served from the cache · 0.1 s"; $("badge").classList.add("on"); }},
+  {term:"Fill more rows", def:"Rows are battled in parallel across the servers.",
+   ex:() => { const b = D.batches[D.batches.length - 1]; return `${ROWS.length - 1} more teams: ${fmt(b.battles)} battles in ${b.seconds.toFixed(0)} seconds (${(b.battles / b.seconds).toFixed(1)} per second), none unattributed.`; },
+   run: async id => { reset(); fillRowNow(0); showScore(0); setCounter();
+     for (let ri = 1; ri < ROWS.length && id === runId; ri++) { fillRowNow(ri); setCounter(); showScore(ri); await wait(160); } }},
+  {term:"Labels for the surrogate", def:"Each fully covered row is one training label: a team and its score.",
+   ex:"Sorted by score, the rows become the surrogate's training set. Each label carries its battle count and standard error, so the surrogate can weight noisy labels less.",
+   run: async () => { reset(); ROWS.forEach((_, ri) => { fillRowNow(ri); showScore(ri); }); setCounter();
+     const order = ROWS.map((r, i) => i).sort((a, b) => ROWS[b].sc.s - ROWS[a].sc.s);
+     const els = order.map(i => $("row" + i)), first = new Map(els.map(e => [e, e.getBoundingClientRect().top]));
+     const mx = $("mx"); els.forEach(e => mx.appendChild(e));
+     if (!reduce) els.forEach(e => { const d = first.get(e) - e.getBoundingClientRect().top;
+       e.animate([{transform:`translateY(${d}px)`}, {transform:"none"}], {duration:900, easing:"cubic-bezier(0.77,0,0.175,1)"}); }); }},
+  {term:"What full coverage costs", def:"Storage is cheap; battles are the cost.",
+   ex:"Bars show battle time at 8 battles per cell. Scoring a new team takes seconds; every pair in the seed pool takes a night; every legal team is out of reach.",
+   cost:true, run: async () => { $("cost").querySelectorAll(".fill").forEach(f => f.style.width = "0"); await wait(60);
+     $("cost").querySelectorAll(".fill").forEach(f => f.style.width = f.dataset.w + "%"); }},
+];
+let step = 0, playing = false, timer = null;
+async function apply(){
+  const id = ++runId, s = STEPS[step];
+  $("mxwrap").hidden = !!s.cost; $("legend").hidden = !!s.cost; $("cost").classList.toggle("on", !!s.cost);
+  document.querySelector(".counter").hidden = !!s.cost;
+  $("caption").innerHTML = `<div class="term"><small>${step + 1} / ${STEPS.length}</small>${s.term}</div><p class="def">${s.def}</p><p class="ex">${typeof s.ex === "function" ? s.ex() : s.ex}</p>`;
+  $("dots").innerHTML = STEPS.map((_, i) => `<button type="button" aria-label="Step ${i + 1}" ${i === step ? 'aria-current="step"' : ""}></button>`).join("");
+  [...$("dots").children].forEach((b, i) => b.addEventListener("click", () => { stop(); step = i; apply(); }));
+  $("back").disabled = step === 0; $("next").disabled = step === STEPS.length - 1;
+  await s.run(id);
+}
+function stop(){ playing = false; clearTimeout(timer); $("play").textContent = "Play"; }
+function tick(){ if (!playing) return; if (step >= STEPS.length - 1) return stop(); step++; apply(); timer = setTimeout(tick, 5200); }
+$("play").addEventListener("click", () => { if (playing) return stop(); if (step >= STEPS.length - 1 || step < 0) { step = 0; apply(); }
+  playing = true; $("play").textContent = "Pause"; timer = setTimeout(tick, 4200); });
+$("next").addEventListener("click", () => { stop(); step = Math.min(STEPS.length - 1, step + 1); apply(); });
+$("back").addEventListener("click", () => { stop(); step = Math.max(0, step - 1); apply(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight" && step < STEPS.length - 1) { stop(); step++; apply(); }
+  if (e.key === "ArrowLeft" && step > 0) { stop(); step--; apply(); } });
+document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
+// resting state: the filled matrix (complete at rest), then the stepper takes over on first interaction
+ROWS.forEach((_, ri) => { fillRowNow(ri); showScore(ri); }); setCounter();
+$("caption").innerHTML = `<div class="term"><small>overview</small>The matrix so far</div><p class="def">${ROWS.length} tested teams against the ${NC} distinct top-50 teams, ${fmt(totalB)} battles. Press Play to build it step by step.</p><p class="ex">Hover a cell to see the two teams and the record.</p>`;
+$("dots").innerHTML = STEPS.map((_, i) => `<button type="button" aria-label="Step ${i + 1}"></button>`).join("");
+[...$("dots").children].forEach((b, i) => b.addEventListener("click", () => { stop(); step = i; apply(); }));
+$("back").disabled = true;
+step = -1;                                  // overview first; Next or Play starts at step 1
+</script>

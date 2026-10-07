@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Same team. Different interactions.</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<header><p class="eyebrow">THE SEARCH SPACE / INTERACTIONS</p><h1>A Pokémon’s value<br>depends on <em>who it plays with.</em></h1><p class="lede">One weather change helps some teammates and holds others back. The useful unit of search is the combination.</p></header>
+<div class="explainer">
+ <section class="network" aria-label="Weather interactions in a six-Pokémon team">
+  <div class="toolbar"><div class="mode-switch" aria-label="Field weather"><button data-mode="sun" aria-pressed="false">☀ Sun</button><button data-mode="rain" aria-pressed="true">☂ Rain</button></div><button id="play" class="play" aria-label="Play weather change animation">▶ Watch the change</button></div>
+  <div class="map" data-mode="rain">
+   <svg class="connections" viewBox="0 0 760 550" preserveAspectRatio="none" aria-hidden="true">
+    <defs><marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/></marker></defs>
+    <path class="source sun-source" d="M 160 157 C 160 242 284 241 322 250"/>
+    <path class="source rain-source" d="M 600 157 C 600 242 476 241 438 250"/>
+    <path class="edge" data-edge="venusaur" d="M 341 279 C 283 314 130 285 130 362" marker-end="url(#tip)"/>
+    <path class="edge" data-edge="archaludon" d="M 380 294 L 380 362" marker-end="url(#tip)"/>
+    <path class="edge" data-edge="basculegion" d="M 419 279 C 477 314 630 285 630 362" marker-end="url(#tip)"/>
+   </svg>
+   <div class="setter charizard"><img src="charizardmegay.png" alt="Mega Charizard Y"><strong>Mega Charizard Y</strong><span>Drought → sun</span><div class="setter-effect" id="charizard-effect">Heat Wave ×0.5</div></div>
+   <div class="setter pelipper"><img src="pelipper.png" alt="Pelipper"><strong>Pelipper</strong><span>Drizzle → rain</span><div class="setter-effect" id="pelipper-effect">Water Weather Ball ×1.5</div></div>
+   <div class="weather" aria-live="polite"><span class="weather-icon" aria-hidden="true">☂</span><strong id="weather-name">Rain</strong><small>ONE SHARED FIELD</small></div>
+   <button class="member venusaur" data-pokemon="venusaur" aria-pressed="false"><img src="venusaur.png" alt=""><strong>Venusaur</strong><span class="mechanism">Chlorophyll</span><span class="effect" id="venusaur-effect">Speed ×1</span></button>
+   <button class="member archaludon" data-pokemon="archaludon" aria-pressed="false"><img src="archaludon.png" alt=""><strong>Archaludon</strong><span class="mechanism">Electro Shot</span><span class="effect" id="archaludon-effect">No charging turn</span></button>
+   <button class="member basculegion" data-pokemon="basculegion" aria-pressed="true"><img src="basculegion.png" alt=""><strong>Basculegion</strong><span class="mechanism">Wave Crash</span><span class="effect" id="basculegion-effect">Water damage ×1.5</span></button>
+  </div>
+  <div class="legend"><span><i class="solid"></i>Weather enables or boosts</span><span><i class="dashed"></i>No bonus / a cost</span><span class="tap-hint">Select a teammate ↗</span></div>
+  <div class="support"><img src="grimmsnarl.png" alt="Grimmsnarl"><p><b>Grimmsnarl supports either mode.</b><span>Reflect + Light Screen help protect teammates in sun or rain.</span></p></div>
+ </section>
+ <aside class="reading" aria-label="Selected interaction explained">
+  <div class="reading-top"><span class="kicker">FOLLOW ONE CONNECTION</span><span id="context-tag">RAIN</span></div>
+  <div class="detail" id="detail"><h2 id="detail-title">A rain setter changes<br>a teammate’s attack.</h2><div class="chain"><span id="chain-setter">Pelipper</span><span>↓</span><span id="chain-weather">Drizzle → rain</span><span>↓</span><strong id="chain-result">Basculegion’s Wave Crash ×1.5</strong></div><p id="detail-body">The weather multiplier comes from Pelipper’s ability. Basculegion does not create this advantage alone.</p></div>
+  <div class="contrast"><span class="kicker">THE TRADE-OFF</span><p id="tradeoff">The same rain halves Charizard’s Fire-type damage. A useful combination can still contain a conflict.</p></div>
+ </aside>
+</div>
+<section class="argument"><div class="argument-number">↳</div><div><h2>Why keep both weather setters?</h2><p>One roster can offer different plans. You choose four of six for a match, and switching can change the weather during battle. Sun supports Venusaur; rain supports Archaludon and Basculegion. Which plan is useful depends on the opponent and how you play it.</p></div><div class="term"><span class="kicker">OPTIMIZATION VOCABULARY</span><strong>Nonseparability</strong><p>A choice’s contribution depends on the other choices around it. Scoring each Pokémon in isolation can miss that.</p></div></section>
+<footer><p>Illustrative mechanics for the linked team; not measured win-rate effects or a complete interaction graph. Multipliers are the weather contribution relative to no weather, with other modifiers held fixed. Only selected Pokémon participate in a battle; arrows show possible relationships in the roster.</p><div><a href="https://pokepast.es/d9deb312ec0355ee" target="_blank" rel="noopener">Example team ↗</a><a href="https://www.youtube.com/watch?v=6ZvxF-HV0f4" target="_blank" rel="noopener">Team showcase ↗</a><a href="https://github.com/smogon/pokemon-showdown/blob/master/data/conditions.ts" target="_blank" rel="noopener">Weather mechanics ↗</a></div></footer>
+<p class="sr-only" id="status" role="status"></p>
+</main><script src="script.js"></script></body></html>

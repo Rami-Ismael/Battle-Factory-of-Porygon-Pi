@@ -1,0 +1,2 @@
+
+1. I just realize random legal pokemon team will just crated by the [[hierarchical product sampling]] only a few will actually can beat the meta team the solution will be usinsg active learning with a surrogate model 

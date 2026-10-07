@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retrieval practice — self-play survey</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e;
+    --muted: #898781; --border: rgba(11,11,11,0.10); --accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7;
+      --muted: #898781; --border: rgba(255,255,255,0.10); --accent: #3987e5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.45; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 34px; margin: 0 0 6px; letter-spacing: -0.4px; }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 10px; }
+  p.lede { font-size: 18px; color: var(--ink-2); margin: 0 0 24px; }
+  details {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 22px; margin: 0 0 14px;
+  }
+  summary { cursor: pointer; font-size: 19px; font-weight: 600; }
+  summary::marker { color: var(--accent); }
+  .answer { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 17px; color: var(--ink-2); }
+  .answer strong { color: var(--ink); }
+  .src { display: block; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  footer { margin-top: 28px; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Questionnaire · retrieval practice · no peeking</p>
+  <h1>Self-play survey — can you still recall it?</h1>
+  <p class="lede">Answer out loud or on paper <em>before</em> opening the answer. If a question feels fuzzy, that is the one to re-read.</p>
+
+  <details><summary>1 · In one sentence: what is the single design question every self-play method answers?</summary>
+    <div class="answer"><strong>Which copy do you practice against?</strong> Everything else (gates, pruning, priority weights) is detail hanging off that choice.<span class="src">ELI5 §1</span></div>
+  </details>
+
+  <details><summary>2 · A friend says "fictitious play trains you against the average of all your past networks." Two things are wrong with that?</summary>
+    <div class="answer"><strong>(a)</strong> No averaged network is ever built — you pull <strong>one whole frozen snapshot</strong> per practice session and fight it. <strong>(b)</strong> The past versions are <strong>frozen</strong>: they were created after their battles, then never learn again — unlike vanilla self-play's opponent, which is still changing. The "average" only describes the box of snapshots statistically, after many pulls.<span class="src">Lesson 0008 · ELI5 §4</span></div>
+  </details>
+
+  <details><summary>3 · Why can pure vanilla self-play <em>forget</em>?</summary>
+    <div class="answer">It only ever fights its newest self. Old weaknesses have no opponent left to expose them, so counter-tricks to old strategies quietly rot.<span class="src">ELI5 §3</span></div>
+  </details>
+
+  <details><summary>4 · What does the survey mean by "uniform over all earlier — Eq. (6)"?</summary>
+    <div class="answer">Each practice session, the next opponent is picked with <strong>equal probability from every frozen snapshot saved so far</strong> — Monday's version is exactly as likely as this morning's. "Earlier" means earlier checkpoints in the box, nothing vaguer than that.<span class="src">Paper note table · ELI5 §4</span></div>
+  </details>
+
+  <details><summary>5 · δ-uniform and PFSP both keep FP's box but change one thing each. What?</summary>
+    <div class="answer"><strong>δ-uniform:</strong> sample uniformly only from the <strong>newest slice</strong> of history (old enough not to forget, new enough not to waste time). <strong>PFSP:</strong> sample weighted by a priority function — opponents that <strong>still beat you</strong> get picked more often.<span class="src">ELI5 §5</span></div>
+  </details>
+
+  <details><summary>6 · What is an MSS (meta-strategy solver), stated as a function?</summary>
+    <div class="answer">A function from the performance matrix 𝒫 (who beats whom) to the interaction matrix Σ (<strong>how every policy samples its opponents next round</strong>). It never plays; it only sets the opponent-selection rule.<span class="src">Paper note §MSS · survey Algo. 1</span></div>
+  </details>
+
+  <details><summary>7 · Match each MSS to its method: uniform-over-history / SOLVE-NASH-on-restricted-game / priority function f(P).</summary>
+    <div class="answer">Uniform over history → naive fictitious play. SOLVE-NASH → double oracle (opponent sampled from the Nash strategy of the restricted game). Priority function → prioritized fictitious self-play.<span class="src">Survey Algo. 5–6 · paper note §MSS</span></div>
+  </details>
+
+  <details><summary>8 · Where does the double-oracle convergence guarantee live — and what happens to it when the oracle is PPO?</summary>
+    <div class="answer">In the <strong>oracle</strong>, not the MSS: DO reaches the full game's equilibrium only if the oracle computes an <strong>exact best response</strong>. With PPO (an approximate-best-response oracle, like every VGC-Bench arm) the guarantee evaporates — claims become empirical only.<span class="src">Record 0002 · lesson 0002</span></div>
+  </details>
+
+  <details><summary>9 · Why does chasing-your-newest-self work in Go but fail in rock-paper-scissors-shaped games? Name the property.</summary>
+    <div class="answer"><strong>Transitivity.</strong> Go is a ladder (if A beats B and B beats C, A beats C), so the newest self really is the hardest opponent so far. RPS is cyclic — strength chases itself in a circle and training runs forever without progress.<span class="src">ELI5 §2, §7 · survey §5.2</span></div>
+  </details>
+
+  <details><summary>10 · Which side of that split is Pokémon VGC on, and what does this project therefore measure instead of one score?</summary>
+    <div class="answer">The <strong>cyclic side</strong> — team matchups form who-beats-whom circles. So the project measures a <strong>matchup table</strong> (who beats whom) rather than a single Elo-style number.<span class="src">ELI5 §7 foot</span></div>
+  </details>
+
+  <details><summary>11 · The famous Go/Dota bots are often summarised as "just vanilla self-play." Give two reasons that summary is wrong.</summary>
+    <div class="answer">(1) The family used <strong>different recipes across generations</strong> — one drew random frozen opponents (fictitious play), one kept a <strong>55% promotion gate</strong>, later ones dropped the gate. (2) Their wins leaned on ingredients outside opponent selection — a lookahead search that generates better-than-policy targets — plus transitive game structure Pokémon lacks.<span class="src">ELI5 §7</span></div>
+  </details>
+
+  <details><summary>12 · Bonus: name one thing the survey says nothing about, that this project also needs.</summary>
+    <div class="answer">Team search — which team to bring. The survey maps battle-<em>policy</em> training only; synergy measurement and the $f$ predictor strand live entirely outside it.<span class="src">Research report self-play-survey-vs-vault-gap.md</span></div>
+  </details>
+
+  <footer>Answers written 2026-08-23 from arXiv:2408.01072v4 and the vault's own lessons/records. Re-test anything scored wrong after 48 h.</footer>
+</main>
+</body>
+</html>

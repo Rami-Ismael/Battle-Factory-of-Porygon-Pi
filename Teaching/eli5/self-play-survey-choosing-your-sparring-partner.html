@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — Self-play: choosing your sparring partner</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --muted:       #898781;
+    --hairline:    #e1e0d9;
+    --border:      rgba(11,11,11,0.10);
+    --you:         #2a78d6;   /* the learner            */
+    --mirror:      #eb6834;   /* the opponent copies    */
+    --good-text:   #006300;
+    --bad-text:    #b00020;
+    --card:        #eef3fa;
+    --note:        #faf3d9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --ink:         #ffffff;
+      --ink-2:       #c3c2b7;
+      --muted:       #898781;
+      --hairline:    #2c2c2a;
+      --border:      rgba(255,255,255,0.10);
+      --you:         #3987e5;
+      --mirror:      #d95926;
+      --good-text:   #0ca30c;
+      --bad-text:    #ff6b6b;
+      --card:        #1f2a38;
+      --note:        #33301f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 32px 36px;
+    margin: 0 0 28px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.3px; }
+  p  { font-size: 19px; color: var(--ink-2); margin: 8px 0 0; }
+  p strong { color: var(--ink); }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 10px; }
+  figure { margin: 24px 0 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .svg-label  { font-family: system-ui, sans-serif; font-size: 15px; fill: var(--ink); }
+  .svg-small  { font-family: system-ui, sans-serif; font-size: 12.5px; fill: var(--ink-2); }
+  .svg-tiny   { font-family: ui-monospace, monospace; font-size: 10.5px; fill: var(--ink-2); }
+  .svg-big    { font-family: system-ui, sans-serif; font-size: 20px; font-weight: 700; fill: var(--ink); }
+  .foot { font-size: 14px; color: var(--muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+
+<section>
+  <p class="kicker">ELI5 · arXiv survey · Zhang et al.</p>
+  <h1>Self-play</h1>
+  <p><strong>A player gets strong by practicing against copies of itself.</strong> The whole survey is a map of one question: <strong>which copy do you practice against?</strong></p>
+</section>
+
+<section>
+  <h2>1 · The perfect sparring partner is you</h2>
+  <p>To learn a two-player game you need an opponent. Humans are slow and computers playing badly teach you nothing. But a <strong>copy of yourself</strong> is always exactly your level — every time you improve, your opponent improves too. Practice difficulty goes up on its own, like a ladder that builds itself.</p>
+  <figure>
+    <svg viewBox="0 0 720 200" role="img" aria-label="A player facing a mirror copy of itself, both climbing steps together">
+      <circle cx="120" cy="110" r="44" fill="var(--card)" stroke="var(--you)" stroke-width="3"/>
+      <text x="120" y="105" text-anchor="middle" class="svg-big">YOU</text>
+      <text x="120" y="127" text-anchor="middle" class="svg-small">the learner</text>
+      <text x="250" y="105" text-anchor="middle" class="svg-label">vs</text>
+      <circle cx="380" cy="110" r="44" fill="none" stroke="var(--mirror)" stroke-width="3" stroke-dasharray="7 6"/>
+      <text x="380" y="105" text-anchor="middle" class="svg-big">YOU</text>
+      <text x="380" y="127" text-anchor="middle" class="svg-small">a copy</text>
+      <rect x="490" y="140" width="50" height="20" fill="var(--hairline)"/>
+      <rect x="540" y="115" width="50" height="45" fill="var(--hairline)"/>
+      <rect x="590" y="90"  width="50" height="70" fill="var(--hairline)"/>
+      <rect x="640" y="65"  width="50" height="95" fill="var(--hairline)"/>
+      <text x="590" y="185" text-anchor="middle" class="svg-small">difficulty climbs by itself</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>2 · The catch: your opponent keeps moving</h2>
+  <p>Both players change every day, so nothing you learned yesterday is guaranteed to work today — the survey calls this <strong>non-stationarity</strong>. Worst case, training runs in circles: rock learns to beat scissors, then paper beats rock, then scissors beats paper, <strong>forever, with no real progress.</strong></p>
+  <figure>
+    <svg viewBox="0 0 720 210" role="img" aria-label="Rock, paper and scissors chasing each other in a circle">
+      <circle cx="360" cy="110" r="70" fill="none" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="5 6"/>
+      <circle cx="360" cy="35"  r="26" fill="var(--card)" stroke="var(--you)" stroke-width="2.5"/>
+      <text x="360" y="41" text-anchor="middle" class="svg-label">✊</text>
+      <circle cx="295" cy="148" r="26" fill="var(--card)" stroke="var(--you)" stroke-width="2.5"/>
+      <text x="295" y="154" text-anchor="middle" class="svg-label">✌️</text>
+      <circle cx="425" cy="148" r="26" fill="var(--card)" stroke="var(--you)" stroke-width="2.5"/>
+      <text x="425" y="154" text-anchor="middle" class="svg-label">✋</text>
+      <path d="M390 55 Q440 85 435 118" fill="none" stroke="var(--mirror)" stroke-width="2.5"/>
+      <path d="M435 118 l-9 -8 l12 -3 z" fill="var(--mirror)"/>
+      <path d="M398 160 L322 160" fill="none" stroke="var(--mirror)" stroke-width="2.5"/>
+      <path d="M322 160 l10 -6 v12 z" fill="var(--mirror)"/>
+      <path d="M285 118 Q280 85 330 55" fill="none" stroke="var(--mirror)" stroke-width="2.5"/>
+      <path d="M330 55 l-12 3 l9 8 z" fill="var(--mirror)"/>
+      <text x="360" y="200" text-anchor="middle" class="svg-small">each beats the last — the circle never ends</text>
+    </svg>
+  </figure>
+  <p class="foot">Every method below is a different way to stop the circle.</p>
+</section>
+
+<section>
+  <h2>3 · Vanilla self-play: fight only today's you</h2>
+  <p>The simplest recipe: always play against your <strong>newest self</strong> — the one that is <em>still learning right now</em>, changing a little after every practice session. Fast, and it is also the recipe behind the famous game-playing AIs you are about to see explained in <a href="https://www.youtube.com/watch?v=ro3zpqEmGEc">that YouTube video</a> — but those versions bolt on two extra ingredients, so hold that thought until §7. Nothing here requires having read any of those papers; §7 explains everything on its own. On its own, vanilla self-play can <strong>forget</strong>. If today's you never meets last month's you, tricks that beat last month's you quietly rot.</p>
+  <figure>
+    <svg viewBox="0 0 720 190" role="img" aria-label="A row of past selves faded out, only the newest one being fought">
+      <circle cx="110" cy="85" r="34" fill="none" stroke="var(--hairline)" stroke-width="2.5"/>
+      <text x="110" y="91" text-anchor="middle" class="svg-small">Mon</text>
+      <circle cx="220" cy="85" r="34" fill="none" stroke="var(--hairline)" stroke-width="2.5"/>
+      <text x="220" y="91" text-anchor="middle" class="svg-small">Tue</text>
+      <circle cx="330" cy="85" r="34" fill="none" stroke="var(--hairline)" stroke-width="2.5"/>
+      <text x="330" y="91" text-anchor="middle" class="svg-small">Wed</text>
+      <circle cx="470" cy="85" r="44" fill="var(--card)" stroke="var(--mirror)" stroke-width="3"/>
+      <text x="470" y="80" text-anchor="middle" class="svg-big">NOW</text>
+      <text x="470" y="102" text-anchor="middle" class="svg-small">only opponent</text>
+      <path d="M560 85 L620 85" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M620 85 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <text x="655" y="80" text-anchor="middle" class="svg-label">⚔️</text>
+      <text x="220" y="155" text-anchor="middle" class="svg-small">old selves are never met again → forgetting</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>4 · Fictitious play: fight everyone you've ever been</h2>
+  <p>Fix the forgetting by keeping <strong>every past self in a box</strong> — each one a photograph, <strong>frozen</strong>, that never learns anything again — and drawing opponents from all of them equally. Nothing can rot, because everything old still shows up. The cost: the box grows forever, and most of it is weak old versions that waste your practice time.</p>
+  <p class="foot">Careful: this is <em>not</em> "blend all your past selves into one average player." You never build that player. You pull <strong>one</strong> photograph out of the box and fight it, whole. The "average" is only what the box looks like after a thousand pulls.</p>
+  <figure>
+    <svg viewBox="0 0 720 200" role="img" aria-label="A box of all past selves, one drawn at random as opponent">
+      <rect x="60" y="35" width="330" height="130" rx="12" fill="none" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="225" y="24" text-anchor="middle" class="svg-small">the box: every self you ever were</text>
+      <circle cx="110" cy="80"  r="22" fill="var(--card)" stroke="var(--mirror)" stroke-width="2"/>
+      <circle cx="170" cy="125" r="22" fill="var(--card)" stroke="var(--mirror)" stroke-width="2"/>
+      <circle cx="230" cy="75"  r="22" fill="var(--card)" stroke="var(--mirror)" stroke-width="2"/>
+      <circle cx="290" cy="125" r="22" fill="var(--card)" stroke="var(--mirror)" stroke-width="2"/>
+      <circle cx="345" cy="80"  r="22" fill="var(--card)" stroke="var(--mirror)" stroke-width="2"/>
+      <text x="110" y="86" text-anchor="middle" class="svg-tiny">v1</text>
+      <text x="170" y="131" text-anchor="middle" class="svg-tiny">v2</text>
+      <text x="230" y="81" text-anchor="middle" class="svg-tiny">v3</text>
+      <text x="290" y="131" text-anchor="middle" class="svg-tiny">v4</text>
+      <text x="345" y="86" text-anchor="middle" class="svg-tiny">v5</text>
+      <path d="M410 100 L480 100" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M480 100 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <text x="445" y="88" text-anchor="middle" class="svg-small">pick one, all equal</text>
+      <circle cx="560" cy="100" r="44" fill="var(--card)" stroke="var(--you)" stroke-width="3"/>
+      <text x="560" y="95" text-anchor="middle" class="svg-big">YOU</text>
+      <text x="560" y="117" text-anchor="middle" class="svg-small">train vs it</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>5 · Smarter picks from the same box</h2>
+  <p>Two refinements keep the box but change the draw. <strong>δ-uniform</strong>: only draw from the <strong>newest slice</strong> of the box — old enough to not forget, new enough to not waste time. <strong>Prioritized fictitious self-play</strong>: draw most often the past selves that <strong>still beat you</strong> — practice where you actually lose.</p>
+  <figure>
+    <svg viewBox="0 0 720 220" role="img" aria-label="Two draw rules: newest slice of the shelf, and the opponents that beat you most">
+      <text x="180" y="28" text-anchor="middle" class="svg-label">δ-uniform: newest slice</text>
+      <rect x="50"  y="50" width="60" height="60" rx="8" fill="none" stroke="var(--hairline)" stroke-width="2"/>
+      <rect x="115" y="50" width="60" height="60" rx="8" fill="none" stroke="var(--hairline)" stroke-width="2"/>
+      <rect x="180" y="50" width="60" height="60" rx="8" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+      <rect x="245" y="50" width="60" height="60" rx="8" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+      <text x="80"  y="85" text-anchor="middle" class="svg-tiny">old</text>
+      <text x="145" y="85" text-anchor="middle" class="svg-tiny">old</text>
+      <text x="210" y="85" text-anchor="middle" class="svg-tiny">new</text>
+      <text x="275" y="85" text-anchor="middle" class="svg-tiny">newest</text>
+      <text x="180" y="140" text-anchor="middle" class="svg-small">draw only from the recent part</text>
+      <line x1="380" y1="20" x2="380" y2="200" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="555" y="28" text-anchor="middle" class="svg-label">prioritized: who beats you?</text>
+      <rect x="440" y="55"  width="200" height="24" rx="6" fill="var(--mirror)"/>
+      <text x="430" y="72" text-anchor="end" class="svg-small">v4 beats you a lot</text>
+      <rect x="440" y="95"  width="110" height="24" rx="6" fill="var(--mirror)" opacity="0.55"/>
+      <text x="430" y="112" text-anchor="end" class="svg-small">v2 sometimes</text>
+      <rect x="440" y="135" width="40"  height="24" rx="6" fill="var(--mirror)" opacity="0.3"/>
+      <text x="430" y="152" text-anchor="end" class="svg-small">v1 never</text>
+      <text x="540" y="190" text-anchor="middle" class="svg-small">longer bar = picked more often</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>6 · Double oracle: hire a specialist for every weakness</h2>
+  <p>The population-play branch goes further. Keep a <strong>small squad</strong> of very different players. On each round, ask: "what one new player would beat this squad's current best mix?" — train exactly that player, add it, repeat. The squad only grows when a real weakness is found, so it stays small but hard to exploit from any direction.</p>
+  <figure>
+    <svg viewBox="0 0 720 210" role="img" aria-label="A small squad, a new specialist trained against it, then added to the squad">
+      <rect x="45" y="45" width="230" height="120" rx="12" fill="none" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="160" y="34" text-anchor="middle" class="svg-small">the squad</text>
+      <circle cx="105" cy="90"  r="24" fill="var(--card)" stroke="var(--you)" stroke-width="2.5"/>
+      <circle cx="165" cy="125" r="24" fill="var(--card)" stroke="var(--you)" stroke-width="2.5"/>
+      <circle cx="225" cy="90"  r="24" fill="var(--card)" stroke="var(--you)" stroke-width="2.5"/>
+      <text x="105" y="96" text-anchor="middle" class="svg-tiny">A</text>
+      <text x="165" y="131" text-anchor="middle" class="svg-tiny">B</text>
+      <text x="225" y="96" text-anchor="middle" class="svg-tiny">C</text>
+      <path d="M300 105 L370 105" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M370 105 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <text x="335" y="92" text-anchor="middle" class="svg-small">find its weakness</text>
+      <circle cx="440" cy="105" r="34" fill="var(--note)" stroke="var(--mirror)" stroke-width="3"/>
+      <text x="440" y="111" text-anchor="middle" class="svg-label">D</text>
+      <text x="440" y="165" text-anchor="middle" class="svg-small">new specialist,</text>
+      <text x="440" y="182" text-anchor="middle" class="svg-small">trained to beat A+B+C</text>
+      <path d="M510 105 Q560 60 600 92" fill="none" stroke="var(--ink-2)" stroke-width="2.5" stroke-dasharray="6 5"/>
+      <path d="M600 92 l-12 -1 l6 -10 z" fill="var(--ink-2)"/>
+      <text x="600" y="120" text-anchor="middle" class="svg-small">joins the</text>
+      <text x="600" y="137" text-anchor="middle" class="svg-small">squad, repeat</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>7 · The famous success story — decoded, no papers required</h2>
+  <p>You have not read the AlphaGo/AlphaZero papers and you do not need to — this section assumes nothing. When you watch <a href="https://www.youtube.com/watch?v=ro3zpqEmGEc">the video</a>, you will meet four names from one research family. Here is the part the video's "self-play!" headline skips: those four programs are <strong>four different recipes from the menu above</strong>, and the family changed its mind between generations:</p>
+  <figure>
+    <svg viewBox="0 0 720 205" role="img" aria-label="Four generations of the AlphaGo family and which self-play recipe each used">
+      <g>
+        <rect x="8" y="24" width="164" height="86" rx="12" fill="var(--card)" stroke="var(--you)" stroke-width="2.5"/>
+        <text x="90" y="50" text-anchor="middle" class="svg-label">AlphaGo</text>
+        <text x="90" y="72" text-anchor="middle" class="svg-small">a random pick from</text>
+        <text x="90" y="89" text-anchor="middle" class="svg-small">the box of old selves</text>
+        <text x="90" y="129" text-anchor="middle" class="svg-tiny">= FICTITIOUS PLAY (§4)</text>
+      </g>
+      <g>
+        <rect x="188" y="24" width="164" height="86" rx="12" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+        <text x="270" y="50" text-anchor="middle" class="svg-label">AlphaGo Zero</text>
+        <text x="270" y="72" text-anchor="middle" class="svg-small">newest self only —</text>
+        <text x="270" y="89" text-anchor="middle" class="svg-small">but must win 55% first</text>
+        <text x="270" y="129" text-anchor="middle" class="svg-tiny">= VANILLA + A GATE (§6)</text>
+      </g>
+      <g>
+        <rect x="368" y="24" width="164" height="86" rx="12" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+        <text x="450" y="50" text-anchor="middle" class="svg-label">AlphaZero</text>
+        <text x="450" y="72" text-anchor="middle" class="svg-small">newest self only —</text>
+        <text x="450" y="89" text-anchor="middle" class="svg-small">gate deleted</text>
+        <text x="450" y="129" text-anchor="middle" class="svg-tiny">= PURE VANILLA (§3)</text>
+      </g>
+      <g>
+        <rect x="548" y="24" width="164" height="86" rx="12" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+        <text x="630" y="50" text-anchor="middle" class="svg-label">MuZero</text>
+        <text x="630" y="72" text-anchor="middle" class="svg-small">same as AlphaZero,</text>
+        <text x="630" y="89" text-anchor="middle" class="svg-small">learns the rules too</text>
+        <text x="630" y="129" text-anchor="middle" class="svg-tiny">= PURE VANILLA (§3)</text>
+      </g>
+      <path d="M176 67 L184 67" stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M356 67 L364 67" stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M536 67 L544 67" stroke="var(--ink-2)" stroke-width="2"/>
+      <text x="360" y="180" text-anchor="middle" class="svg-small">the famous "self-play" story is four different answers to §1's question</text>
+    </svg>
+  </figure>
+  <p class="foot">Note the middle one. AlphaGo Zero kept a <strong>promotion gate</strong> — a new brain only replaced the old one after beating it 55 times out of 100. AlphaZero threw that gate away and just used the newest brain. Gates are a real dial, and people turn them both ways.</p>
+
+  <p>So why could the last two get away with the <em>simplest</em> recipe on the menu? <strong>Two ingredients that have nothing to do with picking a sparring partner</strong> — and both are in the video, so you will recognise them:</p>
+
+  <p><strong>Ingredient one: it does not trust its own brain to pick a move.</strong> Before every move it runs a big lookahead search — it imagines thousands of continuations and counts which move came out best. Then it trains the brain to <em>copy what the search decided</em>. The search is always a bit smarter than the raw brain, so there is always something better to copy. That is a treadmill that runs uphill by itself. Take the search away and vanilla self-play is a much weaker thing.</p>
+
+  <p><strong>Ingredient two: Go has no circle.</strong> Remember rock-paper-scissors from §2? Go does not work that way. In Go, strength is a <strong>ladder</strong> — if A beats B and B beats C, then A beats C, almost always. The survey says it plainly: vanilla self-play "is effective in transitive games, but it can lead the agent to cyclic learning patterns in non-transitive games." On a ladder, chasing your newest self is <em>exactly right</em>, because your newest self is genuinely the hardest opponent you have ever had. Fighting old selves would just be slower.</p>
+
+  <figure>
+    <svg viewBox="0 0 720 190" role="img" aria-label="Go is a ladder, Pokemon is a circle">
+      <text x="180" y="24" text-anchor="middle" class="svg-label">Go — a ladder</text>
+      <g stroke="var(--you)" stroke-width="2.5" fill="none">
+        <rect x="80" y="120" width="60" height="26" rx="5" fill="var(--card)"/>
+        <rect x="150" y="88" width="60" height="26" rx="5" fill="var(--card)"/>
+        <rect x="220" y="56" width="60" height="26" rx="5" fill="var(--card)"/>
+      </g>
+      <text x="110" y="138" text-anchor="middle" class="svg-small">C</text>
+      <text x="180" y="106" text-anchor="middle" class="svg-small">B</text>
+      <text x="250" y="74" text-anchor="middle" class="svg-small">A</text>
+      <text x="180" y="172" text-anchor="middle" class="svg-small">newest = strongest. Just climb.</text>
+
+      <line x1="360" y1="30" x2="360" y2="160" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+
+      <text x="540" y="24" text-anchor="middle" class="svg-label">Pokémon — a circle</text>
+      <circle cx="540" cy="98" r="46" fill="none" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="5 6"/>
+      <circle cx="540" cy="52" r="19" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+      <text x="540" y="58" text-anchor="middle" class="svg-small">A</text>
+      <circle cx="500" cy="123" r="19" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+      <text x="500" y="129" text-anchor="middle" class="svg-small">B</text>
+      <circle cx="580" cy="123" r="19" fill="var(--card)" stroke="var(--mirror)" stroke-width="2.5"/>
+      <text x="580" y="129" text-anchor="middle" class="svg-small">C</text>
+      <text x="540" y="172" text-anchor="middle" class="svg-small">newest ≠ strongest. Climbing goes nowhere.</text>
+    </svg>
+  </figure>
+
+  <p class="foot"><strong>The lesson to import, and the one not to.</strong> The video's takeaway will sound like "vanilla self-play works." It does not transfer here. Pokémon is the circle, not the ladder — that is the whole reason this project measures a table of who-beats-whom instead of a single score. And the plan has no lookahead search bolted on top. Strip both ingredients out and vanilla self-play is not the champion recipe; it is the baseline the other recipes on this menu exist to beat.</p>
+</section>
+
+<section>
+  <h2>8 · Why this paper matters here</h2>
+  <p>The survey is a <strong>menu, not a winner</strong> — it organizes all of these (and more) into one family tree and shows where each got famous: the four Go programs from §7, prioritized fictitious self-play in StarCraft, fictitious-play descendants in poker, and δ-uniform in Honor of Kings. Nobody famous runs one recipe straight, either — the Dota bot in that same lineage played against its newest self 80% of the time and against a prioritized pick 20% of the time. For this project it maps the <strong>battle policy</strong> arm only: it's the catalogue of ways a battle policy can be trained against itself. It says nothing about which team to build.</p>
+  <p class="foot">Source: Zhang et al., “A Survey on Self-play Methods in Reinforcement Learning,” arXiv:2408.01072.</p>
+</section>
+
+</main>
+</body>
+</html>

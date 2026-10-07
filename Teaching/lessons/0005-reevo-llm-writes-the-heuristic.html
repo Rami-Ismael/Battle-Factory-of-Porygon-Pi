@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0005 — ReEvo: the LLM writes the heuristic, evolution scores it</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>ReEvo — the LLM writes the heuristic, evolution scores it</h1>
+<p class="subtitle">One reframe carries the whole paper: the search does not run over solutions to your problem — it runs over <em>programs</em>, small pieces of heuristic code, and the best program is the product.</p>
+<p class="meta">Lesson 0005 · 2026-08-19 · ~10 minutes · <a href="../reference/reevo-loop.html">reference: the ReEvo loop card</a> · <a href="../MISSION.md">mission</a> · serves the ReEvo/TIDE item (§ Papers &amp; venues to chase), child 5: evolved pruning rules · previous: <a href="0004-deep-surrogate-assisted-map-elites.html">0004</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> Your live idea from today's design session: use ReEvo (🟢 <a href="https://arxiv.org/abs/2402.01145">Ye et al., NeurIPS 2024, arXiv 2402.01145</a>) to evolve <em>pruning rules</em> — code that focuses the team search — scored battle-free against ranked top teams. After this lesson you should be able to (1) name the two LLM roles and what each one outputs, (2) walk the five-step loop from memory, and (3) write the meta-objective for your own pruning-rule application in one line.</div>
+
+<h2>1. The reframe: a search over programs</h2>
+
+<p>A <strong>hyper-heuristic</strong> is a search one level up: instead of searching the space of solutions (teams, tours, decks), it searches the space of <em>heuristics</em> — the rules that guide a lower-level search. ReEvo's version uses an LLM as the thing that produces candidate heuristics, which the paper names <em>Language Hyper-Heuristics</em>: <q>an emerging variant of Hyper-Heuristics that leverages LLMs for heuristic generation, featuring minimal manual intervention and open-ended heuristic spaces</q>. "Open-ended" is the point — a classical hyper-heuristic recombines operators from a fixed hand-built menu; an LLM can write code nobody put on any menu.</p>
+
+<p>Concretely, each individual in the population is a short Python function (in the 🟢 <a href="https://github.com/ai4co/reevo">repo</a>, literally the file <code>gpt.py</code>): a penalty function for guided local search, a desirability measure for ant colony optimization, a scoring rule for a constructive builder. In your application, an individual is a <em>team filter</em> — code that reads one team and returns keep/skip or a penalty number.</p>
+
+<h2>2. The two LLM roles</h2>
+
+<table class="compare">
+<tr><th>role</th><th>input</th><th>output</th></tr>
+<tr><td><strong>generator</strong></td><td>task specification, parent heuristics, reflections</td><td>a new heuristic — runnable code</td></tr>
+<tr><td><strong>reflector</strong></td><td>two parent heuristics + which one scored better</td><td>a <em>verbal</em> analysis of why — text, not code</td></tr>
+</table>
+
+<p>The paper's phrase for the reflector's output is <q>verbal gradients</q>: <q>a novel integration of evolutionary search for efficiently exploring the heuristic space, and LLM reflections to provide verbal gradients within the space</q>. Where gradient descent asks "in which numeric direction does the score improve?", ReEvo asks the reflector "in which <em>describable</em> direction?" — and feeds the answer into the next generation's prompt.</p>
+
+<h2>3. The five-step loop</h2>
+
+<ol>
+<li><strong>Initialize.</strong> <q>ReEvo initializes a heuristic population by prompting the generator LLM with a task specification.</q> The specification holds the problem description (if any), what the heuristic must do, and its function signature.</li>
+<li><strong>Select parents.</strong> Random pairs among heuristics that run without crashing, <q>while avoiding pairing heuristics with an identical meta-objective value</q> — a pair with equal scores gives the reflector nothing to explain.</li>
+<li><strong>Reflect (short-term).</strong> The reflector compares the pair — told explicitly which performed better — and writes the why.</li>
+<li><strong>Crossover.</strong> The generator writes an offspring <q>given task specifications, a pair of parent heuristics, explicit indications of their relative performance, short-term reflections over the pair, and generation instructions</q>.</li>
+<li><strong>Reflect (long-term) + elitist mutation.</strong> The reflector <q>given previous long-term reflections and newly gained short-term ones, summarizes them and gives hints for improved heuristic design</q>; then <q>based on long-term reflections, the generator LLM samples multiple heuristics to improve the current best one</q>. Short-term reflection is per-pair and local; long-term reflection is the accumulated cross-generation memory.</li>
+</ol>
+
+<h2>4. The meta-objective — where your idea plugs in</h2>
+
+<p>What scores an individual: <q>The meta-objective function F is the expected performance of a heuristic h for certain COP. It is estimated by the average performance on a dataset of problem instances.</q> Mechanically the repo just runs the candidate code and reads the score off stdout. Everything rides on that instance dataset being <em>cheap to evaluate</em> — ReEvo's benchmarks (TSP, CVRP, orienteering, knapsack, bin packing, chip decap placement, across <q>five heterogeneous algorithmic types</q>) all score a candidate in milliseconds-to-seconds.</p>
+
+<p>That is exactly why your pruning-rule application fits and the "evolve the whole team-builder" application did not. Your meta-objective for a filter, in one line:</p>
+
+<p><strong>F(rule) = weighted share of ranked top teams the rule keeps</strong> (weight falling with placement, e.g. 1/rank) <strong>× share of sampled teams it prunes</strong> — every term a membership check, zero battles.</p>
+
+<table class="compare">
+<tr><th>ReEvo's slot</th><th>your pruning-rule application</th></tr>
+<tr><td>individual: heuristic code in <code>gpt.py</code></td><td>a filter/penalty function over one team</td></tr>
+<tr><td>instance dataset (TSP instances, …)</td><td>ranked top teams (to keep) + sampled teams (to prune)</td></tr>
+<tr><td>meta-objective F: mean performance on instances</td><td>rank-weighted retention × prune fraction</td></tr>
+<tr><td>task specification</td><td>Reg M-B description + the filter's signature</td></tr>
+<tr><td>white-box vs black-box problem view</td><td>white-box — the LLM knows Pokémon; use that</td></tr>
+</table>
+
+<p>On that last row: ReEvo's black-box mode (no problem description, score feedback only) exists for domains the LLM cannot describe. VGC is the opposite case — the generator can propose domain-aware rules ("every team needs speed control") no blind mutation would find. The white-box setting is your advantage; take it.</p>
+
+<h2>5. Claims to carry with the right size</h2>
+
+<p>The headline — <q>ReEvo yields state-of-the-art and competitive meta-heuristics, evolutionary algorithms, heuristics, and neural solvers, while being more sample-efficient than prior LHHs</q> — is against FunSearch and EoH, on cheap-evaluation benchmarks, and "sample-efficient" means fewer LLM-generated candidates to reach a given score. Two honest limits for your case: nothing in the paper touches games or team selection (verified — no such domain appears in paper, repo, or project page), and every benchmark has the cheap evaluator you only get by choosing the pruning-rule application. The paper earns the loop; your scoring design earns the fit.</p>
+
+<h2>6. Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+<p class="q">ReEvo's evolutionary search runs over…</p>
+<button data-opt="a">solutions to one problem instance</button>
+<button data-opt="b">programs implementing a heuristic function</button>
+<button data-opt="c">parameters of a neural solver</button>
+<div class="why">The population is code. Solutions and solver parameters are what the <em>evolved heuristic</em> later helps produce — §1.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">The reflector LLM outputs…</p>
+<button data-opt="a">a numeric gradient over parameters</button>
+<button data-opt="b">a mutated copy of parents</button>
+<button data-opt="c">a verbal analysis of comparisons</button>
+<div class="why">"Verbal gradients": text about why the better parent won, fed into the generator's next prompt — §2. Mutation is the generator's job.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">The meta-objective F of a heuristic is estimated by…</p>
+<button data-opt="a">average performance across problem instances</button>
+<button data-opt="b">the reflector's assessment of quality</button>
+<button data-opt="c">its single best run anywhere</button>
+<div class="why">Quoted definition in §4 — an average over an instance dataset, which is why cheap instances decide everything.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">In your pruning-rule mapping, ReEvo's instance dataset becomes…</p>
+<button data-opt="a">the six candidates inside one team</button>
+<button data-opt="b">battles played by the battle policy</button>
+<button data-opt="c">ranked top teams plus sampled teams</button>
+<div class="why">Retention is checked on ranked top teams, prune fraction on sampled teams — all membership tests, no battles. Option b is exactly the cost the design avoids.</div>
+</div>
+
+<div class="quiz-summary"></div>
+
+<h2>7. Read next, then decide</h2>
+
+<p>Primary source: the paper itself, 🟢 <a href="https://arxiv.org/abs/2402.01145">arXiv 2402.01145</a> — read §3 (the loop) and the prompt appendix; skim one benchmark. Then the 🟢 <a href="https://github.com/ai4co/reevo">repo</a>'s README to see how little glue a new problem needs (<code>gpt.py</code> + an evaluator script). Companion links: 🟢 <a href="https://ai4co.github.io/reevo/">project page</a>, 🟢 <a href="https://openreview.net/forum?id=483IPG0HWL">OpenReview</a>.</p>
+
+<p><strong>The open decision this lesson feeds</strong> (still on the table from today's design session): when an evolved rule condemns a team, is that a wall (hard filter — never examined) or a nudge (soft penalty — examined last)? Answer it and the scoring loop above is fully specified.</p>
+
+<p class="meta">Anything unclear — the reflector/generator split, why the meta-objective must be cheap, how the retention weights work — ask your teacher in chat; that is what the agent is for.</p>
+
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

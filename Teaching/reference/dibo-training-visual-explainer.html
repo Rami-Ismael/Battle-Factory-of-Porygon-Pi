@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>DiBO — teaching a diffusion model to propose better designs</title>
+  <style>
+    :root {
+      --paper: #f4f7fc;
+      --white: #fff;
+      --ink: #182b48;
+      --muted: #58708c;
+      --line: #cbd8e8;
+      --blue: #3158d4;
+      --blue-dark: #233fa2;
+      --teal: #087f91;
+      --teal-pale: #daf3f2;
+      --orange: #d5603b;
+      --orange-pale: #fff0e8;
+      --mask: #c4d0e0;
+      --ease-out: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+    .shell { max-width: 1440px; margin: auto; padding: 0 clamp(22px, 4.5vw, 76px) 90px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 25px 0 24px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 800; letter-spacing: -.035em; font-size: 21px; }
+    .brand-mark { width: 25px; height: 25px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; transform: rotate(-8deg); }
+    .brand-mark i { background: var(--blue); border-radius: 3px; }
+    .brand-mark i:nth-child(2) { opacity: .35; }
+    .brand-mark i:nth-child(3) { background: var(--teal); }
+    .brand-mark i:nth-child(4) { background: var(--orange); opacity: .8; }
+    .toplink { font-size: 14px; font-weight: 700; color: var(--blue-dark); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px; }
+    .toplink:hover { color: var(--orange); }
+    .hero { padding: clamp(50px, 7vw, 104px) 0 54px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, .6fr); align-items: end; gap: 40px; }
+    .hero h1 { margin: 0; max-width: 920px; font-size: clamp(48px, 6.4vw, 98px); line-height: .99; letter-spacing: -.072em; font-weight: 780; }
+    .hero p { margin: 0 0 7px; max-width: 360px; color: var(--muted); line-height: 1.56; font-size: clamp(16px, 1.5vw, 20px); }
+    .hero p strong { color: var(--ink); }
+    .artifact { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+    .artifact-head { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 19px 0; }
+    .artifact-head h2 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+    .artifact-head p { margin: 0; font-size: 13px; color: var(--muted); }
+    .workspace { display: grid; grid-template-columns: 276px minmax(0, 1fr); border-top: 1px solid var(--line); min-height: 590px; }
+    .rail { border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 25px 23px 24px 0; }
+    .rail-intro { margin: 0 0 27px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .stages { display: grid; gap: 7px; }
+    .stage-button { display: grid; grid-template-columns: 35px 1fr; align-items: center; gap: 8px; width: 100%; padding: 13px 10px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; text-align: left; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+    .stage-button .index { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; font-weight: 700; }
+    .stage-button span:last-child { font-size: 15px; font-weight: 700; }
+    .stage-button[aria-current="step"] { color: var(--blue-dark); background: #e5ecfc; border-color: #cad7f7; }
+    @media (hover: hover) and (pointer: fine) { .stage-button:hover { background: #e9effa; color: var(--blue-dark); } }
+    .rail-note { margin: auto 3px 0; padding-top: 28px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .board { min-width: 0; padding: clamp(22px, 3vw, 43px); background: var(--white); }
+    .board-heading { display: flex; align-items: start; justify-content: space-between; gap: 20px; min-height: 88px; }
+    .board-heading h3 { margin: 0; font-size: clamp(23px, 2.4vw, 34px); line-height: 1.12; letter-spacing: -.045em; }
+    .stage-count { flex: none; color: var(--blue); font: 700 13px ui-monospace, SFMono-Regular, Menlo, monospace; padding-top: 7px; }
+    .stage-description { max-width: 680px; min-height: 55px; margin: 4px 0 17px; color: var(--muted); line-height: 1.55; font-size: 15px; }
+    .scene-frame { position: relative; min-height: 322px; border: 1px solid var(--line); border-radius: 15px; overflow: hidden; background: linear-gradient(90deg, transparent 23px, #e8eef7 24px, transparent 25px), linear-gradient(transparent 23px, #e8eef7 24px, transparent 25px), #f8faff; background-size: 25px 25px; }
+    .scene { position: absolute; inset: 0; padding: 26px clamp(16px, 3vw, 32px); opacity: 0; transform: translateY(12px); pointer-events: none; visibility: hidden; transition: opacity 280ms var(--ease-out), transform 280ms var(--ease-out), visibility 280ms; }
+    .scene.active { opacity: 1; transform: translateY(0); pointer-events: auto; visibility: visible; }
+    .scene-label { margin: 0 0 13px; color: var(--muted); font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .025em; }
+    .example-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 9px 0; }
+    .field { display: inline-flex; gap: 4px; align-items: center; padding: 6px 8px; border-radius: 6px; font: 700 12px ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+    .field.design { background: #e1e8ff; color: var(--blue-dark); }
+    .field.score { background: var(--teal-pale); color: #076b75; }
+    .field.literal { color: var(--muted); padding-inline: 2px; font-weight: 500; }
+    .token-row { display: flex; align-items: center; gap: clamp(5px, 1.2vw, 12px); margin: 15px 0 18px; flex-wrap: wrap; }
+    .token { width: clamp(38px, 5vw, 59px); height: clamp(44px, 5vw, 59px); display: grid; place-items: center; border: 1px solid #aabfe7; border-radius: 9px; background: #e2e9fa; color: var(--blue-dark); font: 800 clamp(18px, 2vw, 25px) ui-monospace, SFMono-Regular, Menlo, monospace; transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out), background-color 240ms ease, color 240ms ease; }
+    .token.mask { background: var(--mask); border-color: #abbad0; color: #6c819c; }
+    .scene.active .token { animation: token-enter 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 55ms); }
+    @keyframes token-enter { from { opacity: .25; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .direction { display: flex; align-items: center; gap: 14px; margin: 17px 0; color: var(--blue); font-size: 13px; font-weight: 800; }
+    .direction::before { content: "→"; font-size: 23px; line-height: 1; }
+    .mini-note { max-width: 610px; margin: 12px 0 0; font-size: 13px; color: var(--muted); line-height: 1.48; }
+    .callout { display: inline-flex; gap: 9px; align-items: center; border: 1px solid #c9d5e8; background: white; border-radius: 8px; padding: 9px 11px; color: var(--ink); font-size: 13px; font-weight: 700; }
+    .callout.orange { border-color: #efbfae; background: var(--orange-pale); color: #a9472b; }
+    .formula { font: 700 clamp(17px, 2vw, 25px) ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink); letter-spacing: -.04em; padding: 12px 0; }
+    .reward-track { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; }
+    .reward-case { background: white; border: 1px solid var(--line); border-radius: 9px; padding: 13px 15px; min-width: 185px; }
+    .reward-case strong { display: block; font-size: 20px; margin-top: 5px; }
+    .reward-case.positive strong { color: var(--teal); }
+    .reward-case.negative strong { color: var(--orange); }
+    .reward-case span { font-size: 12px; color: var(--muted); }
+    .decode .token.mask { color: transparent; }
+    .decode .token.unmasked { background: #e2e9fa; color: var(--blue-dark); border-color: #aabfe7; }
+    .board-foot { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 22px; }
+    .progress { display: flex; gap: 6px; flex: 1; max-width: 290px; }
+    .progress i { height: 4px; flex: 1; border-radius: 3px; background: #d8e0ed; transition: background-color 160ms ease; }
+    .progress i.on { background: var(--blue); }
+    .controls { display: flex; align-items: center; gap: 8px; }
+    .control { border: 1px solid var(--line); background: var(--white); color: var(--ink); border-radius: 8px; padding: 9px 13px; font-size: 13px; font-weight: 750; cursor: pointer; transition: background-color 160ms ease, border-color 160ms ease; }
+    .control.primary { background: var(--blue); color: white; border-color: var(--blue); padding-inline: 17px; }
+    .control:disabled { opacity: .45; cursor: not-allowed; }
+    @media (hover: hover) and (pointer: fine) { .control:not(:disabled):hover { background: #e7edfa; border-color: var(--blue); } .control.primary:not(:disabled):hover { background: var(--blue-dark); } }
+    .reading-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin: 41px 0 76px; background: var(--line); border: 1px solid var(--line); }
+    .reading-strip > div { padding: 19px 23px; background: var(--paper); }
+    .reading-strip strong { display: block; margin-bottom: 5px; font-size: 14px; }
+    .reading-strip p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .results { display: grid; grid-template-columns: minmax(230px, .58fr) minmax(0, 1.42fr); gap: clamp(32px, 5vw, 88px); align-items: start; }
+    .results h2 { margin: 0 0 13px; font-size: clamp(34px, 3.9vw, 58px); line-height: 1.04; letter-spacing: -.065em; }
+    .results .section-copy { max-width: 390px; margin: 0; color: var(--muted); line-height: 1.58; font-size: 15px; }
+    .result-list { border-top: 2px solid var(--ink); }
+    .result { display: grid; grid-template-columns: 150px minmax(0, 1fr) 90px; align-items: center; gap: 15px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+    .result-name { font-size: 14px; font-weight: 750; }
+    .result-name small { display: block; margin-top: 3px; font-size: 11px; font-weight: 500; color: var(--muted); }
+    .bars { display: grid; gap: 5px; }
+    .bar-line { display: flex; align-items: center; gap: 8px; height: 12px; }
+    .bar-label { width: 36px; flex: none; color: var(--muted); font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .bar-track { flex: 1; height: 10px; background: #e1e8f2; border-radius: 5px; }
+    .bar-fill { display: block; height: 100%; width: var(--value); border-radius: inherit; background: var(--blue); transform-origin: left; }
+    .bar-line.comparator .bar-fill { background: #9aaac0; }
+    .bar-value { width: 37px; flex: none; text-align: right; color: var(--muted); font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .result-delta { text-align: right; color: var(--teal); font: 700 14px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .result-delta.lower { color: var(--orange); }
+    .results-caption { grid-column: 2; margin: -9px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .closing { margin-top: 78px; padding: 25px 0; border-top: 2px solid var(--ink); display: grid; grid-template-columns: minmax(160px, .42fr) minmax(0, 1fr); gap: 34px; }
+    .closing h2 { margin: 0; font-size: 18px; }
+    .closing p { max-width: 790px; margin: 0; color: var(--muted); line-height: 1.55; font-size: 15px; }
+    .footer { margin-top: 43px; border-top: 1px solid var(--line); padding-top: 18px; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .footer a { color: var(--blue-dark); }
+    @media (max-width: 980px) { .workspace { grid-template-columns: 220px minmax(0, 1fr); } .rail { padding-right: 13px; } .result { grid-template-columns: 125px minmax(0, 1fr) 68px; gap: 10px; } }
+    @media (max-width: 720px) {
+      .hero { display: block; padding: 58px 0 45px; }
+      .hero p { margin-top: 24px; max-width: 590px; }
+      .artifact-head p { display: none; }
+      .workspace { display: block; }
+      .rail { border-right: 0; border-bottom: 1px solid var(--line); padding: 15px 0; }
+      .rail-intro, .rail-note { display: none; }
+      .stages { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; }
+      .stage-button { min-width: max-content; display: flex; gap: 6px; padding: 10px; }
+      .stage-button span:last-child { font-size: 13px; }
+      .board { padding: 24px 0; }
+      .scene-frame { min-height: 333px; }
+      .reading-strip, .results, .closing { display: block; }
+      .reading-strip > div + div { border-top: 1px solid var(--line); }
+      .results .section-copy { margin-bottom: 30px; }
+      .results-caption { margin-top: 12px; }
+      .closing h2 { margin-bottom: 15px; }
+    }
+    @media (max-width: 460px) {
+      .topbar { padding-block: 18px; }
+      .toplink { font-size: 12px; }
+      .hero h1 { font-size: 47px; }
+      .board-heading { min-height: 75px; }
+      .stage-description { min-height: 78px; font-size: 14px; }
+      .scene-frame { min-height: 430px; }
+      .scene { padding: 21px 15px; }
+      .field { font-size: 10px; }
+      .result { grid-template-columns: 96px minmax(0, 1fr) 53px; gap: 8px; }
+      .result-name { font-size: 12px; }
+      .result-delta { font-size: 11px; }
+      .bar-label { width: 31px; font-size: 9px; }
+      .footer { display: block; }
+      .footer span { display: block; margin-top: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .scene { transform: none; transition: opacity 180ms ease, visibility 180ms; }
+      .scene.active .token { animation: none; }
+      .token { transition: opacity 180ms ease, background-color 180ms ease, color 180ms ease; }
+      .bar-fill { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="DiBO visual explainer, back to top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DiBO / visual note</a>
+      <a class="toplink" href="https://arxiv.org/html/2603.17919v1" target="_blank" rel="noopener noreferrer">Read the paper ↗</a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <h1 id="hero-title">Teach the sampler what better means.</h1>
+        <p><strong>DiBO</strong> trains a diffusion language model to propose improved designs from a small, fixed set of scored examples. Its key move is to steer generation through training, beyond examples in a prompt.</p>
+      </section>
+
+      <section class="artifact" aria-labelledby="artifact-title">
+        <div class="artifact-head"><h2 id="artifact-title">Inside the training sequence</h2><p>Use the stages to inspect what changes in the model.</p></div>
+        <div class="workspace">
+          <aside class="rail" aria-label="Training stages">
+            <p class="rail-intro">One corpus feeds three successive training objectives, then the model proposes candidates.</p>
+            <div class="stages" id="stage-buttons">
+              <button class="stage-button" data-stage="0" aria-current="step"><span class="index">01</span><span>Domain adaptation</span></button>
+              <button class="stage-button" data-stage="1"><span class="index">02</span><span>Supervised tuning</span></button>
+              <button class="stage-button" data-stage="2"><span class="index">03</span><span>Reward training</span></button>
+              <button class="stage-button" data-stage="3"><span class="index">04</span><span>Generate designs</span></button>
+            </div>
+            <p class="rail-note">The DNA letters and label values below are schematic. The paper trains on DNA sequences and robot morphology tasks.</p>
+          </aside>
+
+          <div class="board">
+            <div class="board-heading"><h3 id="stage-title">First, learn the language of the task.</h3><span class="stage-count" id="stage-count">01 / 04</span></div>
+            <p class="stage-description" id="stage-description">Special delimiter tokens tell the model which text is a design and which value is its label.</p>
+            <div class="scene-frame" aria-live="polite">
+              <div class="scene active" data-scene="0" aria-hidden="false">
+                <p class="scene-label">A unified prompt + response</p>
+                <div class="example-line"><span class="field literal">task: maximize binding</span><span class="field design">|design-start| A C G T… |design-end|</span><span class="field score">|label-start| 0.62 |label-end|</span></div>
+                <div class="example-line"><span class="field literal">response:</span><span class="field design">|design-start| A C [M] T… |design-end|</span><span class="field score">|label-start| 0.74 |label-end|</span></div>
+                <div class="direction">reconstruct masked tokens throughout</div>
+                <div class="token-row" aria-label="Masked prompt and response tokens"><span class="token" style="--i:0">A</span><span class="token mask" style="--i:1">?</span><span class="token" style="--i:2">G</span><span class="token mask" style="--i:3">?</span><span class="token" style="--i:4">T</span></div>
+                <span class="callout">Learns field boundaries + domain structure</span>
+              </div>
+              <div class="scene" data-scene="1" aria-hidden="true">
+                <p class="scene-label">Prompt stays visible · improved response is masked</p>
+                <div class="example-line"><span class="field literal">best prompt label</span><span class="field score">0.62</span><span class="field literal">target response label</span><span class="field score">0.74</span></div>
+                <div class="direction">predict only response tokens</div>
+                <div class="token-row" aria-label="Masked response sequence"><span class="token mask" style="--i:0">?</span><span class="token mask" style="--i:1">?</span><span class="token mask" style="--i:2">?</span><span class="token mask" style="--i:3">?</span><span class="token mask" style="--i:4">?</span></div>
+                <span class="callout">Supervised target: a design that beats prompt examples</span>
+                <p class="mini-note">The paper selects nearby examples for each target response, so the improvement is grounded in a similar local context.</p>
+              </div>
+              <div class="scene" data-scene="2" aria-hidden="true">
+                <p class="scene-label">Offline reward from known labels</p>
+                <div class="formula">reward = label(response) − best label(prompt)</div>
+                <div class="reward-track">
+                  <div class="reward-case positive"><span>0.74 − 0.62</span><strong>+0.12</strong><span>reinforce the response</span></div>
+                  <div class="reward-case negative"><span>0.54 − 0.62</span><strong>−0.08</strong><span>discourage the response</span></div>
+                </div>
+                <p class="mini-note">Unlike the supervised stage, these training pairs include both positive and negative label differences. The labels come from the offline dataset.</p>
+              </div>
+              <div class="scene" data-scene="3" aria-hidden="true">
+                <p class="scene-label">At inference: refine a masked design</p>
+                <div class="example-line"><span class="field literal">task + scored examples</span><span class="field score">best observed: 0.62</span></div>
+                <div class="direction">iterative unmasking</div>
+                <div class="token-row decode" id="decode" aria-label="Design tokens progressively revealed"><span class="token mask" style="--i:0">A</span><span class="token mask" style="--i:1">C</span><span class="token mask" style="--i:2">G</span><span class="token mask" style="--i:3">T</span><span class="token mask" style="--i:4">A</span></div>
+                <span class="callout orange">Candidate design → external oracle evaluation</span>
+                <p class="mini-note">The sequence above illustrates unmasking, not a measured candidate or score. The benchmark evaluates 128 generated candidates per task.</p>
+              </div>
+            </div>
+            <div class="board-foot"><div class="progress" id="progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div><div class="controls"><button class="control" id="previous" disabled>Back</button><button class="control primary" id="next">Next stage</button></div></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="reading-strip" aria-label="Key distinctions"><div><strong>Prompting supplies examples.</strong><p>A frozen model only sees the examples when it is asked to generate.</p></div><div><strong>DiBO changes the model.</strong><p>Domain adaptation, supervised tuning, and reward training update its parameters using the offline corpus.</p></div></div>
+
+      <section class="results" aria-labelledby="results-title">
+        <div><h2 id="results-title">The evidence is mixed by task.</h2><p class="section-copy">DiBO beats the strongest reported baseline on three of four Design-Bench tasks. D’Kitty is the exception. Values are normalized best-of-128 oracle scores, averaged across eight random seeds.</p></div>
+        <div class="result-list" aria-label="DiBO versus the strongest baseline on each task">
+          <div class="result"><div class="result-name">Ant morphology<small>best baseline: ExPT</small></div><div class="bars"><div class="bar-line"><span class="bar-label">DiBO</span><span class="bar-track"><span class="bar-fill" style="--value:94.4%"></span></span><span class="bar-value">0.944</span></div><div class="bar-line comparator"><span class="bar-label">ExPT</span><span class="bar-track"><span class="bar-fill" style="--value:92.9%"></span></span><span class="bar-value">0.929</span></div></div><span class="result-delta">+0.015</span></div>
+          <div class="result"><div class="result-name">D’Kitty morphology<small>best baseline: ExPT</small></div><div class="bars"><div class="bar-line"><span class="bar-label">DiBO</span><span class="bar-track"><span class="bar-fill" style="--value:92.3%"></span></span><span class="bar-value">0.923</span></div><div class="bar-line comparator"><span class="bar-label">ExPT</span><span class="bar-track"><span class="bar-fill" style="--value:95%"></span></span><span class="bar-value">0.950</span></div></div><span class="result-delta lower">−0.027</span></div>
+          <div class="result"><div class="result-name">TF Bind 8<small>best baseline: MCTS-transfer</small></div><div class="bars"><div class="bar-line"><span class="bar-label">DiBO</span><span class="bar-track"><span class="bar-fill" style="--value:96.5%"></span></span><span class="bar-value">0.965</span></div><div class="bar-line comparator"><span class="bar-label">MCTS</span><span class="bar-track"><span class="bar-fill" style="--value:85.7%"></span></span><span class="bar-value">0.857</span></div></div><span class="result-delta">+0.108</span></div>
+          <div class="result"><div class="result-name">TF Bind 10<small>best baseline: GTG</small></div><div class="bars"><div class="bar-line"><span class="bar-label">DiBO</span><span class="bar-track"><span class="bar-fill" style="--value:75.5%"></span></span><span class="bar-value">0.755</span></div><div class="bar-line comparator"><span class="bar-label">GTG</span><span class="bar-track"><span class="bar-fill" style="--value:73%"></span></span><span class="bar-value">0.730</span></div></div><span class="result-delta">+0.025</span></div>
+        </div>
+        <p class="results-caption">Scores and comparator values: Table 1 of the March 2026 arXiv preprint. Differences here are computed from the reported mean scores; uncertainty and significance are not encoded in the bars.</p>
+      </section>
+
+      <section class="closing" aria-labelledby="takeaway-title"><h2 id="takeaway-title">What to carry forward</h2><p>DiBO shows a way to train a diffusion generator on a scarce, labeled offline design pool. The paper’s ablations support the sequence of domain adaptation → supervised tuning → reward training, plus explicit design/label delimiters and similarity-selected prompt examples. That is a research direction for structured search, not direct evidence that the method works for Pokémon team building.</p></section>
+    </main>
+    <footer class="footer"><div>Visual interpretation of Sun et al., <em>Training Diffusion Language Models for Black-Box Optimization</em> (2026, arXiv preprint).</div><span><a href="https://arxiv.org/html/2603.17919v1" target="_blank" rel="noopener noreferrer">Source paper</a> · schematic examples are illustrative</span></footer>
+  </div>
+  <script>
+    const stages = [
+      { title: 'First, learn the language of the task.', description: 'Special delimiter tokens tell the model which text is a design and which value is its label.' },
+      { title: 'Then, imitate improvements.', description: 'Given similar scored examples, the model reconstructs a response whose label exceeds every example in the prompt.' },
+      { title: 'Now, learn the size of the improvement.', description: 'Offline reinforcement learning uses the response label minus the best prompt label as its reward signal.' },
+      { title: 'Finally, propose a new candidate.', description: 'With the task and examples as context, the trained diffusion model progressively unmasks a design.' }
+    ];
+    const buttons = [...document.querySelectorAll('.stage-button')];
+    const scenes = [...document.querySelectorAll('.scene')];
+    const progress = [...document.querySelectorAll('#progress i')];
+    const previous = document.getElementById('previous');
+    const next = document.getElementById('next');
+    const decode = document.getElementById('decode');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let current = 0;
+    let revealTimers = [];
+    function showStage(index) {
+      revealTimers.forEach(clearTimeout);
+      revealTimers = [];
+      current = Math.max(0, Math.min(index, stages.length - 1));
+      document.getElementById('stage-title').textContent = stages[current].title;
+      document.getElementById('stage-description').textContent = stages[current].description;
+      document.getElementById('stage-count').textContent = `0${current + 1} / 04`;
+      buttons.forEach((button, i) => {
+        if (i === current) button.setAttribute('aria-current', 'step');
+        else button.removeAttribute('aria-current');
+      });
+      scenes.forEach((scene, i) => {
+        const active = i === current;
+        scene.classList.toggle('active', active);
+        scene.setAttribute('aria-hidden', String(!active));
+        scene.inert = !active;
+      });
+      progress.forEach((segment, i) => segment.classList.toggle('on', i <= current));
+      previous.disabled = current === 0;
+      next.textContent = current === stages.length - 1 ? 'Replay reveal' : 'Next stage';
+      const decodeTokens = [...decode.querySelectorAll('.token')];
+      decodeTokens.forEach(token => token.classList.remove('unmasked'));
+      if (current === 3) {
+        if (reduceMotion.matches) decodeTokens.forEach(token => token.classList.add('unmasked'));
+        else decodeTokens.forEach((token, i) => revealTimers.push(setTimeout(() => token.classList.add('unmasked'), 210 + i * 180)));
+      }
+    }
+    buttons.forEach(button => button.addEventListener('click', () => showStage(Number(button.dataset.stage))));
+    previous.addEventListener('click', () => showStage(current - 1));
+    next.addEventListener('click', () => showStage(current === stages.length - 1 ? current : current + 1));
+    reduceMotion.addEventListener('change', () => showStage(current));
+    scenes.forEach((scene, i) => { if (i !== 0) scene.inert = true; });
+  </script>
+</body>
+</html>

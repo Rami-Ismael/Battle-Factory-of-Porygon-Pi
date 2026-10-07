@@ -1,0 +1,31 @@
+# Matchup matrix: format and legality sources
+
+Checked 2026-09-16. Chosen reproducible example: **Scarlet/Violet VGC 2024 Regulation H**, single games, registered teams of **4–6 Pokémon**, selecting **four** to battle. This is a historical choice, not a claim about today's tournament format.
+
+## Official regulation
+
+The [official Regulation H announcement](https://sv-news.pokemon.co.jp/en/page/245.html) gives its initial ranked-battle dates (2024-09-01 through 2025-01-05), eligibility by regional Pokédex ranges plus an explicit list of additional forms/species, automatic level 50, and no duplicate held items. It also gives timers (20 minutes total, seven minutes player time, 90 seconds preview, 45 seconds per turn). This page describes ranked battles; simulator sources below specify the selected VGC implementation and its team sizes.
+
+## Frozen simulator contract
+
+Pin Pokémon Showdown to **`d0152f53b4185cb27c87e6593b1737cad170daae`**, resolved as the last GitHub commit on or before 2024-12-31 23:59:59 UTC. The [immutable format definition](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/config/formats.ts) names `[Gen 9] VGC 2024 Reg H`, normalized ID **`gen9vgc2024regh`**, `mod: gen9`, `gameType: doubles`. It includes Flat Rules, an override adjusting all levels to 50, minimum source generation nine, VGC Timer, and Open Team Sheets. Its explicit additional bans cover Sub-Legendary, Paradox, Gouging Fire, Iron Boulder, Iron Crown, and Raging Bolt.
+
+[Flat Rules and clauses](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/data/rulesets.ts) include Obtainable, Team Preview, Species Clause, Nickname Clause, Item Clause = 1, and automatic picked-team size; they also ban Mythical, Restricted Legendary, and Greninja-Bond. Species Clause compares National Pokédex numbers, so different forms do not evade it. Item Clause skips an empty item: multiple itemless Pokémon are permitted.
+
+[Rule-table resolution](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/sim/dex-formats.ts#L219) defaults the maximum registered size to six. Automatic picked size resolves to four for doubles (around line 264); the default minimum registered size includes the picked size (around line 315). Hence this chosen validator admits **4, 5, or 6 registered members**, not exclusively six. A six-member-only experiment must explicitly narrow its universe.
+
+**Open Team Sheets is opt-in in this simulator.** The [rule handlers](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/data/rulesets.ts#L1853) request acceptance; Force Open Team Sheets calls the sheet-display function. A fixed OTS experiment must force sheets with custom rules `!Open Team Sheets`, `Force Open Team Sheets`, or implement and record both players' acceptance. Record this override as part of the format manifest. Preserve the single-game target; do not silently substitute a best-of-three format. Timer behavior must also be specified because a local simulation stream is not a timed tournament server.
+
+[TeamValidator](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/sim/team-validator.ts) validates the assembled team and its sets. Legality cannot be recovered by multiplying independent species, move, item, and ability counts. Explicitly provide species/form, ability, item or empty item, moves, nature, six EVs, six IVs, gender where variable, Tera type, level, and any other retained battle-relevant fields; do not let randomized/default filling make identity nondeterministic. The validator can normalize sets, so hash the documented normalized representation.
+
+## Constructive lower bound, not an exact count
+
+Fix six distinct ordinary species: **Raichu, Arcanine, Gyarados, Garchomp, Pelipper, Amoonguss**. Use their ordinary abilities Static, Intimidate, Intimidate, Sand Veil, Keen Eye, and Effect Spore respectively; fix male gender, Hardy nature, level 50, zero EVs, no held item, their first native type as Tera type, and the single move Protect. Single-move sets are intentionally legal but not competitive.
+
+The pinned [Pokédex](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/data/pokedex.ts) supplies these ordinary abilities and non-Undiscovered egg groups. Its [learnsets](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/data/learnsets.ts) give Protect a `9M` source for all six. This construction requires no event-only source, legendary perfect-IV rule, Hidden Power constraint, or item conflict. The [validator's IV and source checks](https://github.com/smogon/pokemon-showdown/blob/d0152f53b4185cb27c87e6593b1737cad170daae/sim/team-validator.ts#L1088) distinguish such exceptional restrictions.
+
+Vary each of the six IVs of each of the six members over 0–31, retaining raw IV configurations as distinct identities. This constructs **32^36 = 2^180 ≈ 1.5325 × 10^54** team configurations from one fixed roster alone. This is a source-based constructive bound, not an executed exhaustive validation or an exact universe count. The argument depends on raw IV identity: level-50 stat rounding can make different IV values battle-equivalent. If quotienting by equivalent effective stats, recompute the bound rather than reusing it. Before production enumeration, run the fixture and IV boundary cases through the pinned executable validator; source inspection here does not claim that runtime check has been executed.
+
+## Current-source cross-check
+
+The separately observed current commit **`c23d2e942c9c0daadb13a7162a385bf78e3c9353`** contains [Champions VGC 2026 Reg M-B and M-C definitions](https://github.com/smogon/pokemon-showdown/blob/c23d2e942c9c0daadb13a7162a385bf78e3c9353/config/formats.ts). M-B uses `championsregmb` and is hidden from search; M-C uses `champions`. Reg H is absent from that current format configuration. Therefore a floating `master` checkout is unsuitable for reproducing this Reg H study, and claims that Showdown lacks all Champions support would be incorrect. Champions should be treated as a different format/game universe rather than mixed into the Scarlet/Violet count.

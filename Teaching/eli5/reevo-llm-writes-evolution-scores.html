@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — ReEvo: the LLM writes the rule, evolution grades it</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --muted:       #898781;
+    --hairline:    #e1e0d9;
+    --border:      rgba(11,11,11,0.10);
+    --writer:      #2a78d6;   /* the LLM, writing code   */
+    --scorer:      #eb6834;   /* the evaluator, scoring  */
+    --good-text:   #006300;
+    --bad-text:    #b00020;
+    --card:        #eef3fa;
+    --note:        #faf3d9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --ink:         #ffffff;
+      --ink-2:       #c3c2b7;
+      --muted:       #898781;
+      --hairline:    #2c2c2a;
+      --border:      rgba(255,255,255,0.10);
+      --writer:      #3987e5;
+      --scorer:      #d95926;
+      --good-text:   #0ca30c;
+      --bad-text:    #ff6b6b;
+      --card:        #1f2a38;
+      --note:        #33301f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 32px 36px;
+    margin: 0 0 28px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.3px; }
+  p  { font-size: 19px; color: var(--ink-2); margin: 8px 0 0; }
+  p strong { color: var(--ink); }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 10px; }
+  figure { margin: 24px 0 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .svg-label  { font-family: system-ui, sans-serif; font-size: 15px; fill: var(--ink); }
+  .svg-small  { font-family: system-ui, sans-serif; font-size: 12.5px; fill: var(--ink-2); }
+  .svg-tiny   { font-family: ui-monospace, monospace; font-size: 10.5px; fill: var(--ink-2); }
+  .svg-big    { font-family: system-ui, sans-serif; font-size: 20px; font-weight: 700; fill: var(--ink); }
+  .foot { font-size: 14px; color: var(--muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+
+<section>
+  <p class="kicker">ELI5 · NeurIPS 2024</p>
+  <h1>ReEvo</h1>
+  <p><strong>The LLM writes little pieces of code. A contest scores them. The best code survives and gets rewritten better.</strong> That's the whole paper.</p>
+</section>
+
+<section>
+  <h2>1 · Hard puzzles run on a "rule of thumb"</h2>
+  <p>For puzzles too big to solve perfectly — like routing a delivery truck — the solver leans on one tiny function that says <strong>"try this next."</strong> That function is called a <strong>heuristic</strong>. Humans used to write it by hand, and writing a good one is hard.</p>
+  <figure>
+    <svg viewBox="0 0 720 200" role="img" aria-label="A big puzzle being steered by one small piece of code">
+      <rect x="30" y="35" width="300" height="130" rx="12" fill="none" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="180" y="24" text-anchor="middle" class="svg-small">a huge puzzle (millions of choices)</text>
+      <circle cx="80"  cy="80"  r="7" fill="var(--muted)"/>
+      <circle cx="150" cy="140" r="7" fill="var(--muted)"/>
+      <circle cx="210" cy="70"  r="7" fill="var(--muted)"/>
+      <circle cx="280" cy="120" r="7" fill="var(--muted)"/>
+      <circle cx="120" cy="100" r="7" fill="var(--muted)"/>
+      <path d="M80 80 L120 100 L150 140 L210 70 L280 120" fill="none" stroke="var(--writer)" stroke-width="3" stroke-dasharray="6 5"/>
+      <path d="M370 100 L430 100" stroke="var(--ink-2)" stroke-width="2.5" marker-end="none"/>
+      <path d="M430 100 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <text x="400" y="88" text-anchor="middle" class="svg-small">steered by</text>
+      <rect x="450" y="45" width="240" height="110" rx="12" fill="var(--card)" stroke="var(--writer)" stroke-width="2"/>
+      <text x="570" y="78" text-anchor="middle" class="svg-tiny">def pick_next(options):</text>
+      <text x="570" y="100" text-anchor="middle" class="svg-tiny">score = distance + hunch</text>
+      <text x="570" y="122" text-anchor="middle" class="svg-tiny">return best(score)</text>
+      <text x="570" y="178" text-anchor="middle" class="svg-small">the heuristic — one small function</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>2 · The LLM is a chef who writes recipes</h2>
+  <p>ReEvo asks the LLM to write <strong>many versions</strong> of that function — like a chef scribbling a stack of recipe cards. The LLM never solves the puzzle itself. It only writes the rule.</p>
+  <figure>
+    <svg viewBox="0 0 720 210" role="img" aria-label="LLM writing a stack of code cards">
+      <circle cx="110" cy="95" r="46" fill="var(--card)" stroke="var(--writer)" stroke-width="3"/>
+      <text x="110" y="90" text-anchor="middle" class="svg-big">LLM</text>
+      <text x="110" y="112" text-anchor="middle" class="svg-small">the writer</text>
+      <text x="110" y="180" text-anchor="middle" class="svg-small">writes code, never battles the puzzle</text>
+      <path d="M175 95 L245 95" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M245 95 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <g>
+        <rect x="290" y="70" width="150" height="90" rx="10" fill="var(--surface)" stroke="var(--hairline)" stroke-width="2" transform="rotate(-4 365 115)"/>
+        <rect x="300" y="55" width="150" height="90" rx="10" fill="var(--surface)" stroke="var(--hairline)" stroke-width="2" transform="rotate(3 375 100)"/>
+        <rect x="310" y="42" width="150" height="90" rx="10" fill="var(--card)" stroke="var(--writer)" stroke-width="2"/>
+        <text x="385" y="72" text-anchor="middle" class="svg-tiny">recipe A: greedy + tie-break</text>
+        <text x="385" y="94" text-anchor="middle" class="svg-tiny">recipe B: distance × urgency</text>
+        <text x="385" y="116" text-anchor="middle" class="svg-tiny">recipe C: weird but maybe?</text>
+      </g>
+      <text x="385" y="185" text-anchor="middle" class="svg-small">a population of candidate heuristics</text>
+      <text x="580" y="100" text-anchor="middle" class="svg-label">10–20 at a time,</text>
+      <text x="580" y="122" text-anchor="middle" class="svg-label">all different</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>3 · A taste test gives every recipe a number</h2>
+  <p>Each piece of code is <strong>actually run</strong> on real puzzle instances. Shorter truck route → better score. No opinions, no vibes — the score comes from execution.</p>
+  <figure>
+    <svg viewBox="0 0 720 220" role="img" aria-label="Scoreboard ranking three code cards">
+      <rect x="60" y="30" width="600" height="160" rx="12" fill="none" stroke="var(--scorer)" stroke-width="2.5"/>
+      <text x="360" y="20" text-anchor="middle" class="svg-small">the evaluator — runs the code, measures the result</text>
+      <rect x="90"  y="60" width="150" height="46" rx="8" fill="var(--card)" stroke="var(--hairline)"/>
+      <text x="165" y="88" text-anchor="middle" class="svg-tiny">recipe B</text>
+      <text x="280" y="88" class="svg-label" fill="var(--good-text)" style="font-weight:700">route: 812 km ★ best</text>
+      <rect x="90"  y="118" width="150" height="46" rx="8" fill="var(--surface)" stroke="var(--hairline)"/>
+      <text x="165" y="146" text-anchor="middle" class="svg-tiny">recipe A</text>
+      <text x="280" y="146" class="svg-label">route: 951 km</text>
+      <text x="470" y="88"  class="svg-small">recipe C: crashed ✗</text>
+      <text x="470" y="112" class="svg-small" fill="var(--bad-text)">thrown out</text>
+      <text x="360" y="212" text-anchor="middle" class="svg-small">a real number for every candidate — this is the selection pressure</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>4 · Evolution, but the LLM does the breeding</h2>
+  <p>Keep the winners, drop the losers — classic evolution. But <strong>crossover and mutation are done by the LLM</strong>: it reads two good recipes and writes a child that combines their ideas, then tweaks it.</p>
+  <figure>
+    <svg viewBox="0 0 720 230" role="img" aria-label="Two parent code cards combined into a child card">
+      <rect x="60" y="40" width="180" height="80" rx="10" fill="var(--card)" stroke="var(--writer)" stroke-width="2"/>
+      <text x="150" y="72" text-anchor="middle" class="svg-tiny">parent 1 (better)</text>
+      <text x="150" y="96" text-anchor="middle" class="svg-tiny">good: urgency term</text>
+      <rect x="60" y="140" width="180" height="80" rx="10" fill="var(--surface)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="150" y="172" text-anchor="middle" class="svg-tiny">parent 2 (worse)</text>
+      <text x="150" y="196" text-anchor="middle" class="svg-tiny">good: clever tie-break</text>
+      <path d="M250 80 C 310 80, 310 130, 360 130" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M250 180 C 310 180, 310 130, 360 130" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M360 130 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <circle cx="415" cy="130" r="40" fill="var(--card)" stroke="var(--writer)" stroke-width="3"/>
+      <text x="415" y="127" text-anchor="middle" class="svg-label" style="font-weight:700">LLM</text>
+      <text x="415" y="146" text-anchor="middle" class="svg-small">rewrites</text>
+      <path d="M465 130 L520 130" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M520 130 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <rect x="530" y="88" width="170" height="84" rx="10" fill="var(--card)" stroke="var(--good-text)" stroke-width="2.5"/>
+      <text x="615" y="120" text-anchor="middle" class="svg-tiny">child recipe</text>
+      <text x="615" y="144" text-anchor="middle" class="svg-tiny">urgency + tie-break</text>
+      <text x="615" y="196" text-anchor="middle" class="svg-small">best of both, in new code</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>5 · The special trick: it writes itself notes</h2>
+  <p>This is the "Re" in ReEvo. Before breeding, the LLM compares the better parent to the worse one and writes a short note: <strong>"the winner won because…"</strong> The notes pile up into a notebook that steers every later rewrite. The authors call it a <strong>gradient made of words</strong> — direction to improve in, without any math derivative.</p>
+  <figure>
+    <svg viewBox="0 0 720 220" role="img" aria-label="A notebook of reflections feeding back into the LLM">
+      <rect x="80" y="40" width="270" height="150" rx="10" fill="var(--note)" stroke="var(--hairline)" stroke-width="2"/>
+      <line x1="110" y1="40" x2="110" y2="190" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="230" y="78"  text-anchor="middle" class="svg-small">"urgency term helped"</text>
+      <text x="230" y="108" text-anchor="middle" class="svg-small">"plain greedy gets stuck"</text>
+      <text x="230" y="138" text-anchor="middle" class="svg-small">"normalize before mixing"</text>
+      <text x="215" y="212" text-anchor="middle" class="svg-small">the notebook — lessons kept across generations</text>
+      <path d="M370 115 L440 115" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M440 115 l-10 -6 v12 z" fill="var(--ink-2)"/>
+      <circle cx="500" cy="115" r="48" fill="var(--card)" stroke="var(--writer)" stroke-width="3"/>
+      <text x="500" y="110" text-anchor="middle" class="svg-big">LLM</text>
+      <text x="500" y="132" text-anchor="middle" class="svg-small">reads first,</text>
+      <text x="500" y="148" text-anchor="middle" class="svg-small">then writes</text>
+      <text x="625" y="105" text-anchor="middle" class="svg-label">next recipes</text>
+      <text x="625" y="127" text-anchor="middle" class="svg-label">start smarter</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>6 · The whole loop</h2>
+  <p>Write → score → pick parents → reflect → breed → tweak → score again. Around and around, until the code is better than what a human expert wrote by hand.</p>
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="The ReEvo cycle as a ring of five steps">
+      <ellipse cx="360" cy="150" rx="270" ry="110" fill="none" stroke="var(--hairline)" stroke-width="2.5" stroke-dasharray="8 7"/>
+      <rect x="290" y="16" width="140" height="44" rx="10" fill="var(--card)" stroke="var(--writer)" stroke-width="2"/>
+      <text x="360" y="43" text-anchor="middle" class="svg-label">LLM writes code</text>
+      <rect x="560" y="90" width="130" height="44" rx="10" fill="var(--surface)" stroke="var(--scorer)" stroke-width="2"/>
+      <text x="625" y="117" text-anchor="middle" class="svg-label">run &amp; score</text>
+      <rect x="510" y="216" width="150" height="44" rx="10" fill="var(--surface)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="585" y="243" text-anchor="middle" class="svg-label">keep winners</text>
+      <rect x="70" y="216" width="160" height="44" rx="10" fill="var(--note)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="150" y="243" text-anchor="middle" class="svg-label">reflect: why?</text>
+      <rect x="34" y="90" width="170" height="44" rx="10" fill="var(--surface)" stroke="var(--writer)" stroke-width="2"/>
+      <text x="119" y="117" text-anchor="middle" class="svg-label">breed &amp; tweak</text>
+      <path d="M445 45 C 540 55, 590 70, 612 86" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M612 86 l-12 -2 6 11 z" fill="var(--ink-2)"/>
+      <path d="M632 138 C 640 170, 625 195, 605 212" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M605 212 l4 -11 -12 3 z" fill="var(--ink-2)"/>
+      <path d="M505 245 L240 245" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M240 245 l11 -6 v12 z" fill="var(--ink-2)"/>
+      <path d="M120 212 C 100 190, 90 165, 100 138" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M100 138 l-8 9 12 2 z" fill="var(--ink-2)"/>
+      <path d="M140 86 C 180 62, 230 48, 282 42" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M282 42 l-11 -4 3 12 z" fill="var(--ink-2)"/>
+      <text x="360" y="145" text-anchor="middle" class="svg-big">repeat ~10s of rounds</text>
+      <text x="360" y="172" text-anchor="middle" class="svg-small">code evolves; the puzzle never changes</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>Why this is in the vault</h2>
+  <p>Not for building teams. The reuse here is <strong>letting the LLM evolve pruning rules</strong> — filter code judged with no battles at all: how much of the search space it cuts × how many collected meta teams it keeps. The paper note's verdict: <em>"MED for the owner's pruning-rule application … LOW for the paper's own construction-heuristic loop."</em></p>
+  <p class="foot">Paper: ReEvo — Large Language Models as Hyper-Heuristics with Reflective Evolution, NeurIPS 2024. 🟢 open access.</p>
+</section>
+
+</main>
+</body>
+</html>

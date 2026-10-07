@@ -1,0 +1,50 @@
+{
+  "format": "gen9championsvgc2026regmb",
+  "revision": "913da3602a3aa1db79f9fdc5d5222eaf8d39569d",
+  "species": 208,
+  "forms": 232,
+  "items": 148,
+  "alignments": 21,
+  "itemAssignments": "9889059373669",
+  "fullySpentSpreads": 10008272,
+  "partialSpreads": 136663185,
+  "stages": [
+    {
+      "name": "Six distinct species",
+      "count": "104579959848",
+      "log10": 11.01944847075243
+    },
+    {
+      "name": "Choose their forms",
+      "count": "198700517666",
+      "log10": 11.298198998560215
+    },
+    {
+      "name": "Add abilities",
+      "count": "39288136225780",
+      "log10": 13.594261426977802
+    },
+    {
+      "name": "Assign held items",
+      "count": "388522711817534316370986820",
+      "log10": 26.58941641137046
+    },
+    {
+      "name": "Choose movesets",
+      "count": "48428424969677306260084348144749268787693661701232980235232846",
+      "log10": 61.68510034478263
+    },
+    {
+      "name": "Choose stat alignments",
+      "count": "4153518155788765179656451673188691301506857900401013632045588733210366",
+      "log10": 69.61841611318614
+    },
+    {
+      "name": "Allocate Stat Points",
+      "count": "4174175575433252568649495295141474255078002177845451477567275661558292619812647159041309920689700262348129828864",
+      "log10": 111.62057071253925
+    }
+  ],
+  "withPartialSpreads": "27059847257404126126591364356752516144104656791585218156804103123829932160459922757042312215233077253070907606295218750",
+  "scope": "Conservative model: direct 9M moves, exactly four where possible, 66 SP spent, fixed gender/defaults; ordering and cosmetic variants omitted."
+}

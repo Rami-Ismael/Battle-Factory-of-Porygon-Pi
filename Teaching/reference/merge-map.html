@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Merge Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0EA;--ink:#17201B;--muted:#5E6B63;--slot:#DCE2D8;--rule:#C9D1C5;--card:#F6F8F4;
+  --mine:#9A5B13;--mine-bg:#F3E6D2;--bench:#2E5E8C;--bench-bg:#DCE7F2;--focus:#2E5E8C;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--mono:"Martian Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;
+  --mine:#E2A857;--mine-bg:#3A2A14;--bench:#7FA8D6;--bench-bg:#1A2A3B;--focus:#7FA8D6}}
+:root[data-theme="dark"]{--paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;--mine:#E2A857;--mine-bg:#3A2A14;--bench:#7FA8D6;--bench-bg:#1A2A3B;--focus:#7FA8D6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+main{max-width:1040px;margin:0 auto;padding:44px 16px 64px}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,48px);line-height:1.04;letter-spacing:-.02em;margin:0 0 12px}
+h1 .m{color:var(--mine)}h1 .b{color:var(--bench)}
+.dek{max-width:66ch;color:var(--muted);margin:0 0 22px}
+.key{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;color:var(--muted);margin:0 0 18px;align-items:center}
+.key svg{vertical-align:middle;margin-right:6px}
+.braid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,.8fr) 72px minmax(0,1.1fr);row-gap:22px;border-top:1.5px solid var(--ink);padding-top:14px}
+.cell{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.cell.t{justify-content:center}
+.none{font-size:12.5px;color:var(--muted);font-style:italic}
+.colh{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:0 0 8px}
+.col{display:flex;flex-direction:column;gap:6px}
+.item{font:inherit;text-align:left;border:1px solid transparent;border-radius:8px;padding:6px 9px;cursor:pointer;line-height:1.3;font-size:13.5px;transition:opacity 180ms ease,border-color 160ms ease,transform 160ms var(--ease-out)}
+.item b{font-family:var(--mono);font-size:11px;font-weight:600;margin-right:6px}
+.item.p{background:var(--mine-bg);color:var(--ink)}.item.p b{color:var(--mine)}
+.item.d{background:var(--bench-bg);color:var(--ink)}.item.d b{color:var(--bench)}
+.item:active{transform:scale(.98)}
+.tag{display:inline-block;font-size:10.5px;font-family:var(--mono);color:var(--muted);margin-left:4px}
+.theme{font:inherit;text-align:center;background:var(--card);border:1.5px solid var(--ink);border-radius:999px;padding:8px 12px;cursor:pointer;transition:opacity 180ms ease,background-color 160ms ease}
+.theme strong{display:block;font-family:var(--display);font-weight:500;font-size:15px;line-height:1.2}
+.theme span{display:block;font-size:11.5px;color:var(--muted)}
+.theme.soft{border-style:dashed}
+svg.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.links path{fill:none;stroke-width:1.6;transition:opacity 180ms ease,stroke-width 160ms ease}
+.links path.p{stroke:var(--mine)}.links path.d{stroke:var(--bench)}
+.links path.partial{stroke-dasharray:5 4}.links path.shared{stroke:var(--muted);stroke-dasharray:1.5 4;stroke-linecap:round}
+.dim{opacity:.18}
+.links path.hot{stroke-width:2.6}
+.item.hot{border-color:currentColor}
+.detail{margin-top:22px;border-top:1px dashed var(--rule);padding-top:14px;min-height:112px}
+.detail .k{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 4px}
+.detail h2{font-family:var(--display);font-weight:500;font-size:22px;line-height:1.2;margin:0 0 6px}
+.detail p{margin:0 0 6px;max-width:72ch}
+.foot{border-top:1px solid var(--rule);margin-top:26px;padding-top:12px;font-size:13px;color:var(--muted);max-width:76ch}
+@media (hover:hover) and (pointer:fine){.item:hover{border-color:var(--rule)}.theme:hover{background:var(--slot)}}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.stack{display:none}
+@media (max-width:760px){
+  .braid{display:none}.stack{display:block}
+  .grp{border-top:1.5px solid var(--ink);padding:12px 0 16px}
+  .grp h3{font-family:var(--display);font-weight:500;font-size:18px;margin:0 0 2px}
+  .grp .s{font-size:13px;color:var(--muted);margin:0 0 10px}
+  .grp .col{margin-bottom:8px}}
+@media (prefers-reduced-motion:reduce){.item:active{transform:none}.links path{transition:opacity 180ms ease}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Search Perspective × bo-benchmarks-vs-vgc-team-building</p>
+<h1>Merging <span class="m">my 13 points</span> with <span class="b">19 benchmark differences</span></h1>
+<p class="dek">Each line joins a point to a theme, and the themes in the middle are where the two lists meet. Select a point, a difference or a theme to see what it pairs with.</p>
+<div class="key">
+  <span><svg width="34" height="8"><path d="M1 4H33" stroke="var(--mine)" stroke-width="2"/></svg>same mechanism</span>
+  <span><svg width="34" height="8"><path d="M1 4H33" stroke="var(--mine)" stroke-width="2" stroke-dasharray="5 4"/></svg>partial match</span>
+  <span><svg width="34" height="8"><path d="M1 4H33" stroke="var(--muted)" stroke-width="2" stroke-dasharray="1.5 4" stroke-linecap="round"/></svg>shared with the benchmarks, so not a difference</span>
+</div>
+
+<div class="braid" id="braid">
+  <p class="colh" style="margin:0">My points</p><div></div><p class="colh" style="margin:0;text-align:center">Themes</p><div></div><p class="colh" style="margin:0">Benchmark differences</p>
+  <svg class="links" id="links" aria-hidden="true"></svg>
+</div>
+<div class="stack" id="stack"></div>
+
+<section class="detail" id="detail" aria-live="polite">
+  <p class="k">Nothing selected</p>
+  <h2>Pick anything to start</h2>
+  <p>The dotted lines are the two points the benchmarks already share. The "Mine only" theme has no benchmark on its right.</p>
+</section>
+
+<p class="foot">The grouping is a proposal from the merge grilling (Q2–Q5 are still open). Point 2 uses "sign epistasis", adopted 2026-09-24. Point texts are paraphrased from "What makes Pokémon a unique problem set"; the originals are unchanged.</p>
+</main>
+<script>
+const P={
+ 1:["Similarity is not numeric distance","Changing a species is not a small numeric step. Similarity should follow legal edits and relevant features.","partial"],
+ 2:["Sign epistasis (rain + sun)","Adding a Pokémon can help one team and hurt another, and can contradict the obvious rule: a rain setter beside a sun setter looks self-cancelling yet is a real ladder strategy. That a model adding up each Pokémon separately fails is shared with the benchmarks; that expert rules get the sign wrong is not.","mine"],
+ 3:["Outcomes are noisy","Randomness and hidden information mean a team does not always win.","same"],
+ 4:["No known best team","The best legal team is unknown, even with many people looking.","same"],
+ 5:["Variable types","A heading with no text yet. The benchmark differences on structure could fill it.","partial"],
+ 6:["Good parts ≠ good team","A member's value depends on its teammates. The benchmarks are built on interactions too (pest control, contamination), so as written this is shared.","shared"],
+ 7:["What matters depends on context","Which choices are influential changes with the rest of the team and the opponent.","mine"],
+ 8:["Unequal edits","Swapping a Pokémon is a huge change; adjusting a stat is a small one.","partial"],
+ 9:["Shared budgets, exclusive slots","Stat Points compete within a budget, moves compete for four slots, items compete across the team.","same"],
+ 10:["Situational options","An item is worth more on one teammate than another.","mine"],
+ 11:["Joint effects","A choice's effect depends on the other choices and has to be learned from whole-team evaluations. Shared with the benchmarks as written.","shared"],
+ 12:["Evaluation budget","Battles spent building new teams compete with battles spent testing them.","same"],
+ 13:["The meta moves","Counters create new weaknesses, so the target keeps shifting.","same"]};
+const D={1:"One fixed target vs a weighted mixture of opponents",2:"The target plays back; benchmarks are passive",3:"A battle policy sits inside the objective",4:"Only four of the six count in a battle",5:"Noisy win/loss outcome vs a deterministic value",6:"You can buy precision per team with more battles",7:"No reference optimum, only reference teams",8:"Some benchmarks plant the optimum at a special point",9:"Benchmark positions are ordered; a team is not",10:"One choice decides which other choices are legal",11:"Legality couples all six Pokémon",12:"Categorical choices with hundreds of values, not 2–20",13:"The numeric part is an integer budget, not a box",14:"Latent-space noise comes from the decoder; VGC's from the objective too",15:"The natural training corpus is the opponent set",16:"Win rate is a bounded proxy, gameable differently",17:"Black-box by nature, not a closed white box",18:"Evaluation returns results per opponent",19:"The objective is a snapshot of something that moves"};
+const T=[
+ {id:"obj",n:"The objective",s:"who you are scored against",p:[],d:[1,2,3,4,18]},
+ {id:"ev",n:"Evaluation",s:"noise and cost",p:[3,12],d:[5,6,14]},
+ {id:"st",n:"Structure and legality",s:"what a team is made of",p:[1,5,8,9],d:[9,10,11,12,13]},
+ {id:"op",n:"What the optimum means",s:"what 'best' is checked against",p:[4],d:[7,8,16,17]},
+ {id:"ch",n:"Change over time",s:"the target moves",p:[13],d:[15,19]},
+ {id:"mine",n:"Mine only",s:"no benchmark shows these",p:[2,7,10],d:[]},
+ {id:"sh",n:"Shared, not a difference",s:"the benchmarks have this too",p:[6,11],d:[],soft:true}];
+const PAIR={1:[12,10],2:[],3:[5],4:[7,8],5:[12,13,10],6:[],7:[],8:[12,10],9:[11,13],10:[],11:[],12:[6],13:[19,1]};
+const STL={same:"same mechanism",partial:"partial match",shared:"shared, not a difference",mine:"mine only"};
+const themeOf={};T.forEach(t=>{t.p.forEach(i=>themeOf["p"+i]=t.id);t.d.forEach(i=>themeOf["d"+i]=t.id)});
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const svg=document.getElementById("links"),braid=document.getElementById("braid");
+function btn(cls,key,html){const b=document.createElement("button");b.type="button";b.className=cls;b.dataset.k=key;b.innerHTML=html;return b}
+T.forEach(t=>{const cp=document.createElement("div"),ct=document.createElement("div"),cd=document.createElement("div");
+ cp.className="cell p";ct.className="cell t";cd.className="cell d";
+ t.p.forEach(i=>cp.appendChild(btn("item p","p"+i,`<b>P${i}</b>${P[i][0]}`)));
+ t.d.forEach(i=>cd.appendChild(btn("item d","d"+i,`<b>D${i}</b>${D[i]}`)));
+ if(!t.p.length)cp.innerHTML='<span class="none">none of my points</span>';
+ if(!t.d.length)cd.innerHTML='<span class="none">no benchmark shows this</span>';
+ ct.appendChild(btn("theme"+(t.soft?" soft":""),"t"+t.id,`<strong>${t.n}</strong><span>${t.s}</span>`));
+ braid.insertBefore(cp,svg);braid.insertBefore(document.createElement("div"),svg);braid.insertBefore(ct,svg);braid.insertBefore(document.createElement("div"),svg);braid.insertBefore(cd,svg)});
+const stack=document.getElementById("stack");
+T.forEach(t=>{const g=document.createElement("div");g.className="grp";g.innerHTML=`<h3>${t.n}</h3><p class="s">${t.s}</p>`;
+ const a=document.createElement("div");a.className="col";t.p.forEach(i=>a.appendChild(btn("item p","p"+i,`<b>P${i}</b>${P[i][0]}<span class="tag">${STL[P[i][2]]}</span>`)));
+ t.d.forEach(i=>a.appendChild(btn("item d","d"+i,`<b>D${i}</b>${D[i]}`)));g.appendChild(a);stack.appendChild(g)});
+let paths=[];
+function draw(animate){if(!braid.clientWidth)return;svg.innerHTML="";paths=[];const B=braid.getBoundingClientRect();
+ const box=el=>{const r=el.getBoundingClientRect();return{l:r.left-B.left,r:r.right-B.left,y:r.top-B.top+r.height/2}};
+ const tb={};braid.querySelectorAll(".theme").forEach(e=>tb[e.dataset.k.slice(1)]=box(e));
+ const add=(k,a,b,cls)=>{const mx=(a.x+b.x)/2;const p=document.createElementNS("http://www.w3.org/2000/svg","path");
+  p.setAttribute("d",`M${a.x} ${a.y} C${mx} ${a.y} ${mx} ${b.y} ${b.x} ${b.y}`);p.setAttribute("class",cls);p.dataset.k=k;p.dataset.t=themeOf[k];svg.appendChild(p);paths.push(p);return p};
+ braid.querySelectorAll(".item.p").forEach(e=>{const k=e.dataset.k,i=+k.slice(1),s=P[i][2],a=box(e),t=tb[themeOf[k]];
+  add(k,{x:a.r,y:a.y},{x:t.l,y:t.y},"p"+(s==="partial"?" partial":s==="shared"?" shared":""))});
+ braid.querySelectorAll(".item.d").forEach(e=>{const k=e.dataset.k,a=box(e),t=tb[themeOf[k]];add(k,{x:a.l,y:a.y},{x:t.r,y:t.y},"d")});
+ if(animate&&!reduce){paths.forEach((p,n)=>{const L=p.getTotalLength();p.style.strokeDasharray=p.classList.contains("partial")||p.classList.contains("shared")?"":`${L}`;
+  if(!p.style.strokeDasharray){p.style.opacity=0;p.animate([{opacity:0},{opacity:1}],{duration:500,delay:240+n*28,easing:"cubic-bezier(0.23,1,0.32,1)",fill:"forwards"});return}
+  p.animate([{strokeDashoffset:L},{strokeDashoffset:0}],{duration:700,delay:240+n*28,easing:"cubic-bezier(0.23,1,0.32,1)",fill:"both"}).finished.then(()=>{p.style.strokeDasharray=""})})}
+ applySel()}
+let sel=null;
+function related(k){const out=new Set([k]);const t=k[0];
+ if(t==="t"){const th=T.find(x=>"t"+x.id===k);th.p.forEach(i=>out.add("p"+i));th.d.forEach(i=>out.add("d"+i));return out}
+ out.add("t"+themeOf[k]);
+ if(t==="p")PAIR[+k.slice(1)].forEach(j=>{out.add("d"+j);out.add("t"+themeOf["d"+j])});
+ else Object.keys(PAIR).filter(p=>PAIR[p].includes(+k.slice(1))).forEach(p=>{out.add("p"+p);out.add("t"+themeOf["p"+p])});
+ return out}
+function applySel(){const R=sel?related(sel):null;
+ document.querySelectorAll("[data-k]").forEach(e=>{if(e.tagName==="path"){const on=!R||R.has(e.dataset.k)&&R.has("t"+e.dataset.t);e.classList.toggle("dim",!on);e.classList.toggle("hot",!!R&&on);return}
+  const on=!R||R.has(e.dataset.k);e.classList.toggle("dim",!on);e.classList.toggle("hot",!!R&&e.dataset.k===sel)});
+ const d=document.getElementById("detail");if(!sel){return}
+ const k=sel,t=k[0],i=k.slice(1);
+ if(t==="p"){const pr=PAIR[+i];d.innerHTML=`<p class="k">P${i} · ${STL[P[i][2]]} · theme: ${T.find(x=>x.id===themeOf[k]).n}</p><h2>${P[i][0]}</h2><p>${P[i][1]}</p><p class="k">${pr.length?"Pairs with "+pr.map(j=>"D"+j+" ("+D[j]+")").join("; "):"No benchmark difference pairs with this point."}</p>`}
+ else if(t==="d"){const ps=Object.keys(PAIR).filter(p=>PAIR[p].includes(+i));d.innerHTML=`<p class="k">D${i} · benchmark difference · theme: ${T.find(x=>x.id===themeOf[k]).n}</p><h2>${D[i]}</h2><p class="k">${ps.length?"Pairs with "+ps.map(p=>"P"+p+" ("+P[p][0]+")").join("; "):"New: none of my 13 points covers this."}</p>`}
+ else{const th=T.find(x=>"t"+x.id===k);d.innerHTML=`<p class="k">Theme · ${th.p.length} of my points · ${th.d.length} benchmark differences</p><h2>${th.n}</h2><p>${th.s[0].toUpperCase()+th.s.slice(1)}.${th.d.length?"":" No benchmark difference sits here, so a blog subsection on it would have no footnote benchmark."}${th.p.length?"":" None of my 13 points sits here: everything in it comes from the benchmarks."}</p>`}}
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-k]");if(!b)return;const k=b.dataset.k;sel=sel===k?null:k;applySel();
+ if(!sel){document.getElementById("detail").innerHTML=`<p class="k">Nothing selected</p><h2>Pick anything to start</h2><p>The dotted lines are the two points the benchmarks already share. The "Mine only" theme has no benchmark on its right.</p>`}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&sel){sel=null;applySel();document.getElementById("detail").innerHTML=`<p class="k">Nothing selected</p><h2>Pick anything to start</h2><p>Selection cleared.</p>`}});
+let drawn=false,rt;
+new ResizeObserver(()=>{if(!braid.clientWidth)return;clearTimeout(rt);rt=setTimeout(()=>{draw(!drawn);drawn=true},drawn?120:60)}).observe(braid);
+</script>
+</body>
+</html>

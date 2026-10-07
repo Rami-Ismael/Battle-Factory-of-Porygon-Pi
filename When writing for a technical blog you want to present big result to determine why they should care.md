@@ -1,0 +1,3 @@
+
+- [ ] Can you write down my what is the strongest result so far in my project, this ideas cames from this blog https://huggingface.co/blog/joelniklaus/technical-writing-in-the-agentic-era
+- [ ] I think a good result to take a pokemon that is novel and unique that is not presented in the meta pokemon team push the pokemon team to pokemon showdown use the current battle policy that will select the moves and see what it rank and compare the rank with a current meta pokemon team use the current which policy are we using in this situation will be 

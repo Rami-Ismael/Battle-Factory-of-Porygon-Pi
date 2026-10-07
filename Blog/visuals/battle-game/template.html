@@ -1,0 +1,331 @@
+<meta charset="utf-8">
+<title>Turn One</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the doubles field (their two leads on top, yours below) stays put; the band under it changes per step; caption names the term; stepper below. Sibling of "Four of six". */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --you:#0E7C7B; --you-soft:#DDF0EF; --them:#A2405A; --them-soft:#F6E3E8; --veil:#E6EAEE; --chip:#EEF2F5;
+  --rain:#2F6FB3; --sun:#C07A12; --tr:#7A55B0; --hp:#2E9E5B;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --veil:#222C36; --chip:#1F2A35;
+    --rain:#6FA8E8; --sun:#E3A443; --tr:#AE8BE0; --hp:#5BC48A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --veil:#222C36; --chip:#1F2A35;
+  --rain:#6FA8E8; --sun:#E3A443; --tr:#AE8BE0; --hp:#5BC48A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:22px}
+header{display:grid;gap:10px;max-width:70ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.seg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.seg .lbl{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px/1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;min-height:40px;cursor:pointer;transition:transform 120ms var(--ease),background-color 150ms ease,border-color 150ms ease}
+button:active{transform:scale(.97)}
+button[aria-pressed="true"]{background:var(--you-soft);border-color:var(--you)}
+button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.stage{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:14px;display:grid;gap:12px;overflow:hidden}
+.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:560px;width:100%;justify-self:center}
+.mon{position:relative;border:1px solid var(--rule);border-radius:12px;padding:8px 10px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 10px;align-items:center;min-width:0}
+.them .mon{border-color:var(--them);background:var(--them-soft)} .you .mon{border-color:var(--you);background:var(--you-soft)}
+.mon img{width:72px;height:72px;image-rendering:pixelated;grid-row:span 2}
+.mon .nm{font:600 14px/1.2 var(--body);overflow-wrap:anywhere}
+.hpbar{height:6px;border-radius:99px;background:var(--rule);overflow:hidden}
+.hpbar span{display:block;height:100%;background:var(--hp);transition:width 500ms var(--ease)}
+.pick{grid-column:1 / -1;min-height:26px;display:flex;align-items:center;justify-content:center;font:500 12.5px/1.2 var(--mono);border-radius:8px;border:1px dashed var(--rule);padding:4px 6px;text-align:center;transition:background-color 200ms ease,border-color 200ms ease}
+.pick.locked{border-style:solid;background:var(--surface)}
+.pick.shown{border-style:solid;background:var(--surface);color:var(--ink)}
+.who{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;text-align:center}
+.who.t{color:var(--them)} .who.y{color:var(--you)}
+.band{min-height:250px;border-top:1px dashed var(--rule);padding-top:14px;display:grid;place-items:center}
+.panel{display:none;width:100%;justify-items:center;gap:12px;text-align:center}
+.panel.on{display:grid;animation:fade 360ms var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sub{color:var(--muted);font-size:13.5px;max-width:62ch}
+.big{font:700 clamp(24px,4vw,36px)/1.15 var(--display);font-variant-numeric:tabular-nums}
+.eq{font:500 14.5px/1.6 var(--mono);font-variant-numeric:tabular-nums}
+.tug{width:min(520px,100%);height:34px;border-radius:8px;overflow:hidden;display:flex;font:600 13px/34px var(--mono)}
+.tug .a{background:var(--you);color:var(--surface);transition:flex-basis 900ms var(--ease);text-align:left;padding-left:10px;white-space:nowrap}
+.tug .b{background:var(--them);color:var(--surface);flex:1;text-align:right;padding-right:10px;white-space:nowrap}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:min(640px,100%);text-align:left}
+.opts h4{margin:0 0 6px;font:600 12px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font:12px/1 var(--body);background:var(--chip);border:1px solid var(--rule);border-radius:6px;padding:5px 7px;opacity:0;transform:translateY(3px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.chip.in{opacity:1;transform:none}
+.chip.sw{border-style:dashed}
+.lockrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.lockrow img{width:72px;height:72px;image-rendering:pixelated}
+.mv{font:500 13px/1 var(--body);border:1px solid var(--rule);background:var(--chip);border-radius:8px;padding:9px 10px;transition:opacity 300ms ease,background-color 300ms ease,border-color 300ms ease}
+.mv.used{border-color:var(--you);background:var(--you-soft)}
+.mv.masked{opacity:.35;text-decoration:line-through}
+.meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(720px,100%)}
+.meter{border:1px solid var(--rule);border-radius:10px;padding:10px;display:grid;gap:6px;justify-items:center;min-width:0}
+.meter h4{margin:0;font:600 11px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.meter .v{font:700 26px/1 var(--display);font-variant-numeric:tabular-nums}
+.meter .s{font-size:12px;color:var(--muted)}
+.cells{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;width:100%}
+.cells i{height:10px;border-radius:2px;background:var(--rule)}
+.cells i.hit{background:var(--them)}
+.acc{width:100%;height:10px;border-radius:99px;background:var(--rule);overflow:hidden}
+.acc span{display:block;height:100%;background:var(--rain);transition:width 600ms var(--ease),background-color 300ms ease}
+.tl{display:grid;grid-template-columns:7em repeat(5,minmax(0,1fr));gap:4px;width:min(640px,100%);font:12px/1 var(--mono);align-items:center;position:relative}
+.tl .h{color:var(--faint);text-align:center}
+.tl .l{color:var(--muted);text-align:left}
+.tl .c{height:18px;border-radius:4px;background:var(--chip)}
+.tl .c.rain{background:var(--rain)} .tl .c.trr{background:var(--tr)} .tl .c.tw{background:var(--you)}
+.tl .c.now{outline:2px solid var(--ink);outline-offset:1px}
+.see{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:6px 14px;width:min(640px,100%);text-align:left;font-size:13.5px;align-items:baseline}
+.see .hd{font:600 11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.see .k{color:var(--muted)}
+.see .q{color:var(--faint);font-family:var(--mono)}
+.log{list-style:none;margin:0;padding:0;width:min(640px,100%);text-align:left;display:grid;gap:4px;font:13px/1.45 var(--mono)}
+.log li{opacity:0;transform:translateX(-4px);transition:opacity 260ms var(--ease),transform 260ms var(--ease);border-left:2px solid var(--rule);padding-left:8px}
+.log li.in{opacity:1;transform:none}
+.log li b{font-weight:500;color:var(--you)}
+.pen{display:grid;grid-template-columns:auto repeat(2,minmax(0,150px));gap:6px;font-size:13px;align-items:stretch}
+.pen .hd{font:600 11px/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.pen .cell{border:1px solid var(--rule);border-radius:8px;padding:10px 8px;display:grid;gap:2px;transition:background-color 300ms ease,border-color 300ms ease}
+.pen .cell b{font:700 20px/1 var(--display)}
+.pen .cell.pos b{color:var(--you)} .pen .cell.neg b{color:var(--them)}
+.pen .cell.hot{border-color:var(--ink);background:var(--chip)}
+.caption{display:grid;gap:6px;min-height:6.5em;max-width:74ch}
+.term{font:700 19px/1.25 var(--display)}
+.term small{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:8px}
+.def{color:var(--ink)} .ex{color:var(--muted);font-size:14px}
+.stepper{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dots{display:flex;gap:6px;margin-left:6px;flex-wrap:wrap}
+.dots button{width:12px;height:12px;min-height:0;padding:0;border-radius:50%;background:var(--rule);border:0}
+.dots button[aria-current="step"]{background:var(--you)}
+.note{color:var(--muted);font-size:13px;max-width:74ch}
+@media (max-width:620px){
+  .mon{grid-template-columns:48px minmax(0,1fr)} .mon img{width:48px;height:48px}
+  .meters,.opts{grid-template-columns:1fr} .tl{grid-template-columns:5.5em repeat(5,minmax(0,1fr))}
+  .see{grid-template-columns:auto minmax(0,1fr)} .see .tv{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .panel.on{animation:none} .chip,.log li,.tug .a,.hpbar span,.acc span,.mv{transition:none} button{transition:none} button:active{transform:none}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Pokémon Champions · Regulation M-B · the battle</span>
+    <h1>Turn one</h1>
+    <p class="lede">After team preview, the battle itself is a game: two players, one winner, moves chosen at the same time, dice everywhere, and much of the board hidden. Step through each property on the first turn of a real matchup.</p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Team sheets">
+      <span class="lbl">Team sheet</span>
+      <button type="button" id="sh-closed" aria-pressed="true">Closed</button>
+      <button type="button" id="sh-open" aria-pressed="false">Open</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="who t">Opponent · <span id="themId"></span></div>
+    <div class="side them" id="them"></div>
+    <div class="side you" id="you"></div>
+    <div class="who y">You · <span id="youId"></span></div>
+    <div class="band">
+      <div class="panel" id="p-zero"><div class="tug"><span class="a" id="tugA" style="flex-basis:50%">you 50%</span><span class="b" id="tugB">them 50%</span></div><p class="sub">Whatever one side's chance of winning, the other side has the rest. The split moves as the battle goes; the total never does. (The moving numbers are an illustration.)</p></div>
+      <div class="panel" id="p-simul"><div class="big" id="simulBig">Choosing…</div><p class="sub">Each of the four Pokémon on the field gets an order. Nothing happens until both players have locked in, and neither sees the other's orders first.</p></div>
+      <div class="panel" id="p-count"><div class="opts" id="opts"></div><div class="eq" id="countEq"></div><p class="sub">A move aimed at one Pokémon can target either opponent or your own partner, so it counts three times. Your two Pokémon can't both switch into the same back Pokémon, hence the −2.</p></div>
+      <div class="panel" id="p-mask"><div class="lockrow"><img id="bascImg" alt="Basculegion"><div class="chips" id="bascMoves" style="gap:6px"></div></div><p class="sub" id="maskSub"></p></div>
+      <div class="panel" id="p-chance"><div class="meters">
+        <div class="meter"><h4>Damage roll</h4><div class="v" id="roll">100%</div><div class="s">16 equally likely values, 85% to 100%</div></div>
+        <div class="meter"><h4>Critical hit</h4><div class="cells" id="crit"></div><div class="s">1 chance in 24</div></div>
+        <div class="meter"><h4>Hurricane accuracy</h4><div class="v" id="accV">70%</div><div class="acc"><span id="acc" style="width:70%"></span></div><div class="s" id="accS">no weather</div></div>
+      </div><p class="sub">Think of these as moves by a third player, "nature", who rolls dice after both players choose.</p></div>
+      <div class="panel" id="p-stage"><div class="tl" id="tl"></div><p class="sub">Each turn starts from where the last one ended. Weather, Trick Room and Tailwind all run on counters that the players can plan around.</p></div>
+      <div class="panel" id="p-see"><div class="see" id="see"></div><p class="sub" id="seeSub"></p></div>
+      <div class="panel" id="p-log"><ul class="log" id="log"></ul><p class="sub">Every revealed move, item and ability stays in the battle log. Nothing seen is forgotten.</p></div>
+      <div class="panel" id="p-pen"><div class="pen" id="pen"></div><p class="sub" id="penSub"></p></div>
+    </div>
+  </div>
+
+  <div class="caption" aria-live="polite" id="caption"></div>
+
+  <div class="stepper">
+    <button type="button" id="back" aria-label="Previous step">←</button>
+    <button type="button" id="play">Play</button>
+    <button type="button" id="next" aria-label="Next step">→</button>
+    <div class="dots" id="dots"></div>
+  </div>
+  <p class="note">Teams are real Regulation M-B meta teams from the project's top-50 pool; the leads continue the example from "Four of six". Mechanics (accuracy, damage rolls, critical hits, targets, turn counters) are read from Pokémon Showdown's code. The chosen orders, the battle log and the payoff signs are illustrations, not a recorded game.</p>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const M = (side, n) => D[side].mons.find(m => m.name === n);
+const LEADS = {them:["Incineroar","Farigiraf"], you:["Pelipper","Archaludon"]};
+const ORDERS = {Incineroar:"Fake Out → Pelipper", Farigiraf:"Trick Room", Pelipper:"Hurricane → Farigiraf", Archaludon:"Electro Shot → Incineroar"};
+let sheet = "closed", step = 0, playing = false, timer = null, loops = [];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+$("themId").textContent = D.them.id; $("youId").textContent = D.you.id;
+
+function field(){
+  for (const side of ["them","you"]) $(side).innerHTML = LEADS[side].map(n =>
+    `<div class="mon" data-name="${n}"><img src="${M(side,n).img}" alt=""><span class="nm">${n}</span><div class="hpbar"><span style="width:100%"></span></div><div class="pick" id="pk-${n}"></div></div>`).join("");
+}
+function setPick(n, text, cls){ const el = $("pk-" + n); el.className = "pick" + (cls ? " " + cls : ""); el.textContent = text; }
+function every(ms, fn){ if (reduce) { fn(); return; } fn(); const h = setInterval(fn, ms); loops.push(() => clearInterval(h)); }
+function later(ms, fn){ const h = setTimeout(fn, reduce ? 0 : ms); loops.push(() => clearTimeout(h)); }
+function clearLoops(){ loops.forEach(f => f()); loops = []; }
+
+// ---- per-step scenes
+function sZero(){
+  const seq = [50, 58, 44, 63, 50]; let i = 0;
+  every(1400, () => { const a = seq[i++ % seq.length]; $("tugA").style.flexBasis = a + "%"; $("tugA").textContent = `you ${a}%`; $("tugB").textContent = `them ${100 - a}%`; });
+}
+function sSimul(){
+  const all = [...LEADS.them, ...LEADS.you];
+  all.forEach(n => setPick(n, "choosing…"));
+  $("simulBig").textContent = "Choosing…";
+  later(900, () => { all.forEach(n => setPick(n, "locked", "locked")); $("simulBig").textContent = "Both locked in"; });
+  later(2000, () => { all.forEach(n => setPick(n, ORDERS[n], "shown")); $("simulBig").textContent = "Revealed together"; });
+}
+function sCount(){
+  const opt = (mon, back) => {
+    const T = {normal:3, any:3};
+    const target = {"Weather Ball":"normal","Hurricane":"any","Tailwind":"allySide","Wide Guard":"allySide","Flash Cannon":"normal","Dragon Pulse":"any","Electro Shot":"normal","Protect":"self",
+      "Fake Out":"normal","Parting Shot":"normal","Darkest Lariat":"normal","Flare Blitz":"normal","Psyshock":"normal","Trick Room":"all","Helping Hand":"adjacentAlly"};
+    const chips = [];
+    for (const mv of mon.moves) { const k = T[target[mv]] || 1; for (let t = 0; t < k; t++) chips.push(k > 1 ? `${mv} → ${["foe L","foe R","partner"][t]}` : mv); }
+    back.forEach(b => chips.push(`switch → ${b}`));
+    return chips;
+  };
+  const yb = ["Charizard","Venusaur"], tb = ["2 unseen", "back Pokémon"];
+  const P = opt(M("you","Pelipper"), yb), A = opt(M("you","Archaludon"), yb);
+  $("opts").innerHTML = [["Pelipper", P], ["Archaludon", A]].map(([n, c]) =>
+    `<div><h4>${n} · ${c.length} options</h4><div class="chips">${c.map(x => `<span class="chip${x.startsWith("switch") ? " sw" : ""}">${x}</span>`).join("")}</div></div>`).join("");
+  const chips = [...$("opts").querySelectorAll(".chip")];
+  chips.forEach((c, i) => later(60 * i, () => c.classList.add("in")));
+  const you = P.length * A.length - 2;
+  $("countEq").innerHTML = `you: ${P.length} × ${A.length} − 2 = <b>${you}</b> &nbsp;·&nbsp; them: 14 × 8 − 2 = <b>110</b> &nbsp;·&nbsp; one turn: ${you} × 110 = <b>${(you * 110).toLocaleString("en-US")}</b> pairs`;
+}
+function sMask(){
+  const b = M("you","Basculegion"); $("bascImg").src = b.img;
+  $("bascMoves").innerHTML = b.moves.map(m => `<span class="mv" data-m="${m}">${m}</span>`).join("");
+  $("maskSub").textContent = `Basculegion holds a Choice Scarf. Before it moves, all four moves are legal. After it uses ${b.moves[0]}, the other three are masked until it switches out.`;
+  const mv = [...$("bascMoves").children];
+  every(3200, () => { mv.forEach(x => x.className = "mv"); later(900, () => { mv[0].classList.add("used"); mv.slice(1).forEach(x => x.classList.add("masked")); }); });
+}
+function sChance(){
+  $("crit").innerHTML = Array.from({length:24}, () => "<i></i>").join("");
+  const cells = [...$("crit").children];
+  every(160, () => { $("roll").textContent = (85 + Math.floor(Math.random() * 16)) + "%"; cells.forEach(c => c.classList.remove("hit")); cells[Math.floor(Math.random() * 24)].classList.add("hit"); });
+  const W = [["no weather", 70, "--rain"], ["rain (Pelipper's Drizzle)", 100, "--rain"], ["sun (Charizard-Y's Drought)", 50, "--sun"]]; let i = 0;
+  every(1800, () => { const [s, a, c] = W[i++ % 3]; $("accV").textContent = a + "%"; $("acc").style.width = a + "%"; $("acc").style.background = `var(${c})`; $("accS").textContent = s; });
+  if (reduce) { $("roll").textContent = "85–100%"; }
+}
+function sStage(){
+  const rows = [["Rain", "rain", 5], ["Trick Room", "trr", 5], ["Tailwind", "tw", 4]];
+  let h = `<span></span>${[1,2,3,4,5].map(t => `<span class="h">turn ${t}</span>`).join("")}`;
+  for (const [lab, cls, n] of rows) h += `<span class="l">${lab}</span>` + [1,2,3,4,5].map(t => `<span class="c ${t <= n ? cls : ""}" data-t="${t}"></span>`).join("");
+  $("tl").innerHTML = h;
+  let t = 0;
+  every(900, () => { t = t % 5 + 1; $("tl").querySelectorAll(".c").forEach(c => c.classList.toggle("now", +c.dataset.t === t)); });
+}
+function sSee(){
+  const closed = sheet === "closed";
+  const rows = [
+    ["Farigiraf's HP", "63% of a bar", "an exact number of hit points"],
+    ["Farigiraf's item", closed ? "?" : "Sitrus Berry", "Sitrus Berry"],
+    ["Farigiraf's moves", closed ? "Trick Room, once used" : "Psyshock, Trick Room, Helping Hand, Protect", "Psyshock, Trick Room, Helping Hand, Protect"],
+    ["Its stat spread", "?", "set by the opponent"],
+    ["Their two in the back", "2 of Charizard, Garchomp, Sylveon, Aerodactyl: 6 possibilities", "known only to them"],
+    ["Your own four", "everything", "everything"],
+  ];
+  $("see").innerHTML = `<span></span><span class="hd">what you see</span><span class="hd tv">what is true</span>` +
+    rows.map(([k, a, b]) => `<span class="k">${k}</span><span class="${a === "?" ? "q" : ""}">${a}</span><span class="tv">${b}</span>`).join("");
+  $("seeSub").textContent = closed
+    ? "Closed sheet: much of the opponent's side is hidden, and your own sets are private information they don't have."
+    : "Open sheet: items, abilities and moves are shown, but hit points, stat spreads and the back two stay hidden.";
+}
+function sLog(){
+  const L = ["Start: Pelipper's <b>Drizzle</b> makes it rain. Incineroar's <b>Intimidate</b> lowers your leads' Attack.",
+    "Incineroar uses <b>Fake Out</b> on Pelipper (it moves first). Pelipper flinches.",
+    "Archaludon uses <b>Electro Shot</b> on Incineroar: in rain it fires at once, and raises Archaludon's Sp. Atk.",
+    "Farigiraf uses <b>Trick Room</b> (it moves last). For five turns, slower Pokémon move first.",
+    "Now known about them: Intimidate, Fake Out, Trick Room."];
+  $("log").innerHTML = L.map(x => `<li>${x}</li>`).join("");
+  const li = [...$("log").children]; li.forEach((x, i) => later(650 * i, () => x.classList.add("in")));
+  setPick("Pelipper", "flinched", "shown"); setPick("Archaludon", "Electro Shot → Incineroar", "shown");
+  setPick("Incineroar", "Fake Out → Pelipper", "shown"); setPick("Farigiraf", "Trick Room", "shown");
+}
+function sPen(){
+  const C = [["Archaludon Protects", [["+", "they hit a wall", "pos"], ["−", "wasted turn; Pelipper takes the hit", "neg"]]],
+             ["Archaludon attacks", [["−", "Archaludon takes the hit", "neg"], ["+", "free attack", "pos"]]]];
+  $("pen").innerHTML = `<span></span><span class="hd">they target Archaludon</span><span class="hd">they target Pelipper</span>` +
+    C.map(([r, cs]) => `<span class="hd">${r}</span>` + cs.map(([s, t, c]) => `<div class="cell ${c}"><b>${s}</b><span>${t}</span></div>`).join("")).join("");
+  const cells = [...$("pen").querySelectorAll(".cell")];
+  const cyc = [0, 1, 3, 2]; let i = 0;   // best responses chase each other: you match, they mismatch
+  const say = ["You Protect; they hit the wall.", "So they aim at Pelipper instead.", "So you attack instead of Protecting.", "So they aim at Archaludon again. The loop never settles."];
+  every(1500, () => { cells.forEach(c => c.classList.remove("hot")); cells[cyc[i % 4]].classList.add("hot"); $("penSub").textContent = say[i % 4] + " The stable answer is to mix: Protect about half the time, at random."; i++; });
+}
+
+const STEPS = [
+  {scene:sZero, panel:"p-zero", term:["Two-player, zero-sum game", "Two decision-makers, and whatever one wins the other loses."], ex:"Each player commands two Pokémon on the field but still counts as one player. A battle ends with one winner."},
+  {scene:sSimul, panel:"p-simul", term:["Simultaneous moves", "Each turn, both players choose without seeing the other's choice."], ex:"Your orders for Pelipper and Archaludon are sealed before theirs for Incineroar and Farigiraf are revealed."},
+  {scene:sCount, panel:"p-count", term:["Finite, combinatorial action set", "There are only finitely many choices each turn, and one turn's choice is a combination of smaller choices."], ex:"Your turn is Pelipper's order combined with Archaludon's order, each a move with its target or a switch."},
+  {scene:sMask, panel:"p-mask", term:["State-dependent action sets", "Which choices are legal changes with the situation. Learning agents handle this with action masking."], ex:"Choice items lock a move; Taunt blocks status moves; a fainted Pokémon forces a switch; Mega Evolution is once per battle."},
+  {scene:sChance, panel:"p-chance", term:["Stochastic game (chance moves)", "Some outcomes are decided by chance after the players choose."], ex:"The same orders can produce different turns: a lower damage roll, a critical hit, a Hurricane that misses outside rain."},
+  {scene:sStage, panel:"p-stage", term:["Multi-stage (dynamic) game", "The game runs over many rounds, and each round's result changes the next."], ex:"If rain, Trick Room and Tailwind all start on turn 1, they end on different turns, and each turn's options depend on which are still running."},
+  {scene:sSee, panel:"p-see", term:() => ["Partially observable, with private information", "You can't see the whole state, and each side knows things the other doesn't."], ex:"Hidden choices, hidden sets, hidden numbers: you decide from what you can see and what you can infer."},
+  {scene:sLog, panel:"p-log", term:["Perfect recall", "Players remember everything that happened earlier in the game."], ex:"Once Incineroar has used Fake Out, you know it has Fake Out for the rest of the battle."},
+  {scene:sPen, panel:"p-pen", term:["Matching pennies and mixed strategies", "A choice where you want to match the opponent and they want to mismatch you. No fixed choice is safe, so you randomise."], ex:"Protect against attack: if you always Protect they aim elsewhere; if you never Protect they aim at you."},
+];
+
+function apply(){
+  clearLoops();
+  const s = STEPS[step];
+  field(); for (const n of [...LEADS.them, ...LEADS.you]) setPick(n, "");
+  for (const p of document.querySelectorAll(".panel")) p.classList.toggle("on", p.id === s.panel);
+  s.scene();
+  const term = typeof s.term === "function" ? s.term() : s.term;
+  $("caption").innerHTML = `<div class="term"><small>${step + 1} / ${STEPS.length}</small>${term[0]}</div><p class="def">${term[1]}</p><p class="ex">${s.ex}</p>`;
+  $("dots").innerHTML = STEPS.map((_, i) => `<button type="button" aria-label="Step ${i + 1}" ${i === step ? 'aria-current="step"' : ""}></button>`).join("");
+  [...$("dots").children].forEach((b, i) => b.addEventListener("click", () => { stop(); step = i; apply(); }));
+  $("back").disabled = step === 0; $("next").disabled = step === STEPS.length - 1;
+}
+function stop(){ playing = false; clearTimeout(timer); $("play").textContent = "Play"; }
+function tick(){ if (!playing) return; if (step >= STEPS.length - 1) return stop(); step++; apply(); timer = setTimeout(tick, 4200); }
+$("play").addEventListener("click", () => {
+  if (playing) return stop();
+  if (step >= STEPS.length - 1) { step = 0; apply(); }
+  playing = true; $("play").textContent = "Pause"; timer = setTimeout(tick, 4200);
+});
+$("next").addEventListener("click", () => { stop(); step = Math.min(STEPS.length - 1, step + 1); apply(); });
+$("back").addEventListener("click", () => { stop(); step = Math.max(0, step - 1); apply(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight" && step < STEPS.length - 1) { stop(); step++; apply(); }
+  if (e.key === "ArrowLeft" && step > 0) { stop(); step--; apply(); }
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden) { stop(); clearLoops(); } else apply(); });
+for (const [id, v] of [["sh-closed","closed"],["sh-open","open"]]) $(id).addEventListener("click", () => {
+  sheet = v; $("sh-closed").setAttribute("aria-pressed", v === "closed"); $("sh-open").setAttribute("aria-pressed", v === "open"); apply();
+});
+apply();
+</script>

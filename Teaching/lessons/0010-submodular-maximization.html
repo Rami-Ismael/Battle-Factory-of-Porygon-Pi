@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../assets/course.css"><title>Lesson 0010 — Choose what adds value</title><body>
+<h1>Choose what adds value</h1><p class="subtitle">Submodular maximization · one greedy decision at a time</p>
+<p class="meta">Lesson 0010 · 2026-09-07 · 5 minutes · <a href="../reference/submodular-maximization.html">Reference</a> · <a href="0001-max-coverage-vs-set-cover.html">Earlier coverage lesson</a></p>
+<div class="mission"><strong>Your win:</strong> calculate a candidate’s added coverage and choose the next candidate. This serves your counter-team project’s coverage formulation of f.</div>
+<h2>1. What does this candidate add?</h2>
+<p>Here is an invented coverage model. Each candidate covers a fixed set of opposing meta teams. Coverage is a modeling assumption here, not a claim that one Pokémon defeats an entire team.</p>
+<table class="compare"><tr><th>Candidate</th><th>Meta teams covered</th></tr><tr><td>A</td><td>1, 2, 3, 4</td></tr><tr><td>B</td><td>1, 2, 3</td></tr><tr><td>C</td><td>4, 5, 6</td></tr></table>
+<p>Let f(S) count distinct covered meta teams. Starting empty, A adds four. After choosing A, B adds zero and C adds two. Count <em>newly</em> covered opponents; count each opponent once.</p>
+<p class="m">Δ(x | S) = f(S ∪ {x}) − f(S)</p>
+<p>This is the <strong>marginal gain</strong>: value after adding x minus value before. <a href="https://www.cs.cmu.edu/~dgolovin/papers/submodular_survey12.pdf#page=2">🟢 Definition 1.1</a>.</p>
+<div class="quiz" data-answer="b"><p class="q">You already selected C. What does adding A contribute?</p><button data-opt="a">2 opponents</button><button data-opt="b">3 opponents</button><button data-opt="c">4 opponents</button><div class="why">C covers {4,5,6}. A adds {1,2,3}. The total rises from 3 to 6, so the gain is 3.</div></div>
+<h2>2. The rule behind the overlap</h2>
+<p><strong>Submodular</strong> means Δ(x | P) ≥ Δ(x | Q) whenever P ⊆ Q and x ∉ Q. The same candidate cannot add more to a larger existing set. Equality is allowed. <a href="https://www.cs.cmu.edu/~dgolovin/papers/submodular_survey12.pdf#page=2">🟢 Definition 1.2</a>.</p>
+<p>Compare adding B to the empty set (+3) with adding B after A (+0). A has already covered everything B offers. This example illustrates the rule; proving submodularity requires it for <em>every</em> eligible comparison.</p>
+<div class="quiz" data-answer="c"><p class="q">For nested sets P ⊆ Q, which gains violate diminishing returns?</p><button data-opt="a">Small: 4; large: 2</button><button data-opt="b">Small: 3; large: 3</button><button data-opt="c">Small: 1; large: 5</button><div class="why">The last case increases the same candidate’s marginal gain from 1 to 5. A hypothetical combo bonus could create this pattern.</div></div>
+<h2>3. Maximize with a selection limit</h2>
+<p class="m">maximize f(S), subject to S ⊆ V and |S| ≤ k</p>
+<p><strong>Greedy:</strong> start empty; repeatedly add the candidate with greatest current marginal gain, recalculating each round. <a href="https://www.cs.cmu.edu/~dgolovin/papers/submodular_survey12.pdf#page=6">🟢 §2</a>.</p>
+<p>With two slots in our example, A is the first pick. The second slot goes to C: two new opponents versus B’s zero. Selecting the two largest standalone scores would leave a tie between B and C and could waste the slot.</p>
+<div class="callout"><strong>When the guarantee applies.</strong><p>If f(∅)=0, f is monotone (adding candidates never lowers value), and f is submodular, exact greedy under a size limit achieves at least 1−1/e ≈ 63.2% of optimal value. <a href="https://www.cs.cmu.edu/~dgolovin/papers/submodular_survey12.pdf#page=6">🟢 Theorem 1.5</a>.</p></div>
+<p>In this toy instance greedy achieves 6 out of the best possible 6. The 63.2% figure is a lower bound on objective value, not a predicted battle win rate. A learned team-level matchup predictor needs its own justification; it does not inherit these properties from the coverage example.</p>
+<div class="quiz" data-answer="a"><p class="q">A combo makes x add 0 alone but 8 after its partner. What follows?</p><button data-opt="a">Submodularity is violated</button><button data-opt="b">Submodularity is established</button><div class="why">Take P empty and Q containing the partner. Then 0 ≥ 8 is false. This one counterexample rules out submodularity for that objective.</div></div>
+<p class="quiz-summary" aria-live="polite"></p>
+<h2>Recall tomorrow</h2><p>Without the table, explain why “pick the strongest remaining candidate” needs a definition of <em>strongest given what is already selected</em>. Then reconstruct the marginal-gain formula.</p>
+<p class="note">Read next: <a href="https://www.cs.cmu.edu/~dgolovin/papers/submodular_survey12.pdf">🟢 Krause &amp; Golovin, Submodular Function Maximization</a>, Definitions 1.1–1.3 and Theorem 1.5. Read the proof after the marginal-gain exercise feels comfortable.</p>
+<div class="ask">Ask me about any unclear step. Send your first exercise answer here and explain what you counted; we can work through it together. Quiz results stay in this page and are not sent to the agent.</div>
+<nav class="lesson-nav"><a href="0001-max-coverage-vs-set-cover.html">Coverage foundations</a><a href="../reference/submodular-maximization.html">Keep the reference sheet</a></nav><script src="../assets/quiz.js"></script></body></html>

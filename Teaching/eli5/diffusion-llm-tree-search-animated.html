@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masked Diffusion Tree Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0EA;--ink:#17201B;--muted:#5E6B63;--slot:#DCE2D8;--rule:#C9D1C5;--card:#F6F8F4;
+  --mon:#2E5E8C;--team:#C8372D;--focus:#2E5E8C;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--mono:"Martian Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;--mon:#7FA8D6;--team:#F0705F;--focus:#7FA8D6}}
+:root[data-theme="dark"]{--paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;--mon:#7FA8D6;--team:#F0705F;--focus:#7FA8D6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+main{max-width:940px;margin:0 auto;padding:44px 16px 64px}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.4vw,50px);line-height:1.03;letter-spacing:-.02em;margin:0 0 12px}
+h1 .n{color:var(--mon)}
+.dek{max-width:64ch;color:var(--muted);margin:0 0 22px}
+.chapters{list-style:none;padding:0;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px}
+.chapters button{font:inherit;font-size:13.5px;color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:999px;padding:4px 12px;cursor:pointer;transition:border-color 160ms ease,color 160ms ease,background-color 160ms ease}
+.chapters button[aria-current="step"]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+.stage{border-top:1.5px solid var(--ink);padding-top:8px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.nbox{fill:var(--card);stroke:var(--ink);stroke-width:1.2}
+.cell{fill:var(--slot)}
+.lt{font-family:var(--mono);font-size:12px;font-weight:600;fill:var(--ink)}
+.lt.fill{fill:var(--muted);font-weight:400}
+.stat{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.nlab{font-family:var(--display);font-weight:500;font-size:13px;fill:var(--ink)}
+.edge{stroke:var(--rule);stroke-width:1.6;fill:none}
+.hot{stroke:var(--mon);stroke-width:3.2;fill:none}
+.hotx{stroke:var(--team);stroke-width:3.2;fill:none}
+.ring{fill:none;stroke:var(--mon);stroke-width:2.4}
+.ringx{fill:none;stroke:var(--team);stroke-width:2.4}
+.pt{font-family:var(--display);font-weight:500;font-size:16px;fill:var(--ink)}
+.pm{font-family:var(--mono);font-size:13px;fill:var(--ink)}
+.ps{font-family:var(--body);font-size:13px;fill:var(--muted)}
+.win{fill:var(--mon)}.winx{fill:var(--team)}
+.band{fill:var(--card);stroke:var(--rule)}
+.dot{fill:var(--mon)}
+.captions{position:relative;min-height:156px;border-top:1px dashed var(--rule);margin-top:8px}
+.cap{position:absolute;inset:12px 0 0 0;visibility:hidden}
+.cap .f{font-family:var(--display);font-weight:500;font-size:clamp(18px,2.6vw,22px);line-height:1.25;margin:0 0 4px}
+.cap .p{color:var(--muted);margin:0;max-width:70ch;font-size:16px}
+.controls{display:flex;align-items:center;gap:12px;margin:10px 0 40px}
+.controls button{font:inherit;font-size:15px;color:var(--paper);background:var(--ink);border:1.5px solid var(--ink);border-radius:999px;padding:7px 18px;cursor:pointer;min-width:92px;transition:transform 120ms cubic-bezier(0.23,1,0.32,1)}
+.controls button:active{transform:scale(.97)}
+.controls input{flex:1;accent-color:var(--ink);min-width:0}
+@media (hover:hover) and (pointer:fine){.chapters button:not([aria-current]):hover{border-color:var(--ink);color:var(--ink)}}
+button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.foot{border-top:1px solid var(--rule);padding-top:12px;font-size:13px;color:var(--muted);max-width:76ch}
+.foot p{margin:0 0 8px}
+@media (max-width:640px){.captions{min-height:250px}}
+@media (prefers-reduced-motion:reduce){.controls button:active{transform:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Yuan, Chen, Sun, Zhang, Pal &amp; Liu · Diffusion Large Language Models for Black-Box Optimization · arXiv 2601.14446 · §3.2</p>
+<h1>How the <span class="n">tree search</span> picks which half-written design to finish</h1>
+<p class="dek">A pretrained diffusion language model learns the task in context from 10 examples, then a tree search decides which half-written answers to finish. Three rounds on an 8-letter DNA design, the paper's TF Bind 8 task. Press play, or drag the slider to go at your own pace.</p>
+
+<ol class="chapters" id="chapters"></ol>
+<div class="stage"><svg id="svg" viewBox="0 0 900 480" role="img" aria-label="Animated masked diffusion tree search over an 8-letter DNA design"></svg></div>
+<div class="captions" id="captions" aria-live="polite"></div>
+<div class="controls">
+  <button type="button" id="play">Play</button>
+  <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Position in the animation">
+</div>
+
+<div class="foot">
+<p>What follows the paper (§3.1, §3.2, §4.3, §4.5): the model is LLaDA-8B-Instruct, used without task training; it is conditioned in context on a task description, the 10 offline examples and an instruction; each node is a partly masked design; expansion is one denoising step with remasking; each child is completed J = 5 times; the child's reward is the average expected improvement under a Gaussian process fitted to the 10 offline examples; values are running averages; selection uses V + ω · p · √(ln N(parent) / N(child)) with ω = 1; the search runs 16 rounds to depth 4 and returns the 128 finished designs with the highest expected improvement.</p>
+<p>What is simplified: the drawing uses 3 children per node where the paper uses 5, and shows 2 letters fixed per level. Every sequence, probability and score is made up to illustrate the arithmetic; none is from the paper's data.</p>
+</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+<script>
+gsap.registerPlugin(CustomEase);
+CustomEase.create("out","M0,0 C0.23,1 0.32,1 1,1");
+CustomEase.create("inOut","M0,0 C0.77,0 0.175,1 1,1");
+const NS="http://www.w3.org/2000/svg",svg=document.getElementById("svg");
+function el(tag,a,p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+function tx(s,a,p){const e=el("text",a,p);e.textContent=s;return e}
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function seq(str,x,y,p,cw=14,base){const g=el("g",{},p);const w=cw*8;
+ [...str].forEach((c,i)=>{const cx=x-w/2+i*cw+cw/2;el("rect",{x:cx-cw/2+1.5,y:y-9,width:cw-3,height:18,rx:2,class:"cell"},g);
+  if(c!=="·"){const fixed=!base||base[i]!=="·";tx(c,{x:cx,y:y+4.5,"text-anchor":"middle",class:"lt"+(fixed?"":" fill")},g)}});return g}
+const edgesG=el("g",{}),hotG=el("g",{}),nodesG=el("g",{}),dotsG=el("g",{});
+const N={};
+function node(id,x,y,str,label){const g=el("g",{},nodesG);el("rect",{x:x-66,y:y-15,width:132,height:30,rx:6,class:"nbox"},g);
+ seq(str,x,y,g);tx(label,{x:x-64,y:y-21,class:"nlab"},g);
+ N[id]={x,y,g,str,stats:[]};return N[id]}
+function stats(id,s){const n=N[id];const t=tx(s,{x:n.x,y:n.y+30,"text-anchor":"middle",class:"stat"},n.g);n.stats.push(t);return t}
+function edge(a,b,cls="edge"){const A=N[a],B=N[b];const d=`M${A.x} ${A.y+15} C${A.x} ${(A.y+B.y)/2} ${B.x} ${(A.y+B.y)/2} ${B.x} ${B.y-15}`;
+ const e=el("path",{d,class:cls},cls==="edge"?edgesG:hotG);const L=e.getTotalLength();gsap.set(e,{strokeDasharray:L,strokeDashoffset:L});return e}
+function ring(id,cls="ring"){const n=N[id];return el("rect",{x:n.x-70,y:n.y-19,width:140,height:38,rx:8,class:cls},nodesG)}
+
+node("R",450,44,"········","root");
+node("A",230,140,"·A··T···","A");node("B",450,140,"··G····C","B");node("C",670,140,"T·····A·","C");
+node("A1",82,244,"GA··TC··","A1");node("A2",230,244,"·AT·T··A","A2");node("A3",378,244,"·A·GTA··","A3");
+const eRA=edge("R","A"),eRB=edge("R","B"),eRC=edge("R","C"),eA1=edge("A","A1"),eA2=edge("A","A2"),eA3=edge("A","A3");
+const hRA=edge("R","A","hot"),hRB=edge("R","B","hotx");
+const sR0=stats("R","V – · N 0"),sR1=stats("R","V 0.26 · N 3"),sR2=stats("R","V 0.30 · N 6");
+const sA0=stats("A","p 0.40"),sA1=stats("A","p 0.40 · V 0.30 · N 1"),sA2=stats("A","p 0.40 · V 0.34 · N 4");
+const sB0=stats("B","p 0.35"),sB1=stats("B","p 0.35 · V 0.22 · N 1");
+const sC0=stats("C","p 0.25"),sC1=stats("C","p 0.25 · V 0.26 · N 1");
+const sA10=stats("A1","p 0.50"),sA11=stats("A1","V 0.41 · N 1");
+const sA20=stats("A2","p 0.30"),sA21=stats("A2","V 0.28 · N 1");
+const sA30=stats("A3","p 0.20"),sA31=stats("A3","V 0.35 · N 1");
+const rgA=ring("A"),rgB=ring("B"),rgC=ring("C"),rgA1=ring("A1"),rgA2=ring("A2"),rgA3=ring("A3"),rgBx=ring("B","ringx");
+svg.appendChild(hotG);svg.appendChild(nodesG);svg.appendChild(dotsG);
+
+/* bottom panels */
+const PY=300;
+function panel(title,sub){const g=el("g",{});el("rect",{x:40,y:PY,width:820,height:168,rx:10,class:"band"},g);tx(title,{x:60,y:PY+26,class:"pt"},g);if(sub)tx(sub,{x:60,y:PY+46,class:"ps"},g);return g}
+const judge=panel("Gaussian-process judge","Finish child A five times (J = 5) and score each finished design by expected improvement (EI)");
+const ROLL=[["GACCTAGT",.42],["TAGCTCAA",.25],["CATGTTCG",.31],["AAACTGGT",.18],["GAGATCCA",.34]];
+const rolls=ROLL.map(([s,ei],j)=>{const g=el("g",{},judge);const x=130+j*160;seq(s,x,PY+86,g,12,"·A··T···");tx("EI "+ei.toFixed(2),{x,y:PY+116,"text-anchor":"middle",class:"pm"},g);return g});
+const mean=tx("reward r = average EI = (0.42 + 0.25 + 0.31 + 0.18 + 0.34) ÷ 5 = 0.30",{x:450,y:PY+150,"text-anchor":"middle",class:"pm"},judge);
+function uctPanel(title,rows,win,cls){const g=panel(title,"UCT = V + ω · p · √(ln N(parent) ÷ N(child)),  ω = 1");
+ const rs=rows.map((r,i)=>{const t=tx(r,{x:80,y:PY+84+i*26,class:"pm"},g);return t});
+ const w=el("rect",{x:66,y:PY+84+win*26-17,width:780,height:24,rx:5,class:cls,opacity:.14},g);g.insertBefore(w,rs[0]);return {g,rs,w}}
+const u1=uctPanel("Select: which child of the root to open next",["A:  0.30 + 1 × 0.40 × √(ln 3 ÷ 1) = 0.72","B:  0.22 + 1 × 0.35 × √(ln 3 ÷ 1) = 0.59","C:  0.26 + 1 × 0.25 × √(ln 3 ÷ 1) = 0.52"],0,"win");
+const u2=uctPanel("Select again, after A was opened",["A:  0.34 + 1 × 0.40 × √(ln 6 ÷ 4) = 0.60","B:  0.22 + 1 × 0.35 × √(ln 6 ÷ 1) = 0.69","C:  0.26 + 1 × 0.25 × √(ln 6 ÷ 1) = 0.60"],1,"winx");
+const out=panel("Output: rank every finished design by EI, return the top 128","Only now does the real objective score them, once each");
+const OUT=[["GAGCTCAT",.52,"from A1"],["GACCTAGT",.42,"from A"],["TAGATCGC",.38,"from B"],["GAGATCCA",.34,"from A"]];
+const outs=OUT.map(([s,ei,f],j)=>{const g=el("g",{},out);const x=130+j*205;tx("#"+(j+1),{x:x-80,y:PY+96,class:"pm"},g);seq(s,x,PY+92,g,13);tx("EI "+ei.toFixed(2)+"  ·  "+f,{x,y:PY+124,"text-anchor":"middle",class:"ps"},g);return g});
+
+/* the prompt: in-context learning */
+const pr=el("g",{});el("rect",{x:40,y:282,width:820,height:190,rx:10,class:"band"},pr);
+tx("The prompt LLaDA-8B reads (no weights are trained)",{x:60,y:306,class:"pt"},pr);
+tx("Task: design an 8-letter DNA sequence over A, C, G, T. Goal: maximise the binding score.",{x:60,y:328,class:"ps"},pr);
+const EX=[["ACGTTGCA",.31],["TTAGCCGA",.12],["GATCTACG",.44],["CCGTAAGT",.27],["AGGTCTTA",.19],["TCAGGCAT",.36],["GGATCCTA",.08],["CATTGACG",.23],["ATCGTAGC",.40],["GTACCTGA",.15]];
+const exRows=EX.map(([q,v],i)=>{const g=el("g",{},pr);const x=130+(i>=5?250:0),y=356+(i%5)*22;seq(q,x,y,g,12);tx("score "+v.toFixed(2),{x:x+58,y:y+4,class:"pm"},g);return g});
+const instr=el("g",{},pr);tx("Instruction: propose a sequence",{x:620,y:352,class:"ps"},instr);tx("with a higher score.",{x:620,y:370,class:"ps"},instr);tx("Answer slot, fully masked:",{x:620,y:396,class:"ps"},instr);
+const chip=el("g",{});el("rect",{x:28,y:30,width:190,height:28,rx:14,class:"band"},chip);tx("reads the prompt every step",{x:123,y:49,"text-anchor":"middle",class:"ps"},chip);
+const lnk=id=>{const n=N[id];return el("path",{d:`M218 44 C${(218+n.x-66)/2} 44 ${(218+n.x-66)/2} ${n.y} ${n.x-66} ${n.y}`,fill:"none",stroke:"var(--muted)","stroke-width":1.2,"stroke-dasharray":"3 4"},chip.parentNode)};
+const lnR=lnk("R"),lnA=lnk("A"),lnB=el("path",{d:"M218 44 C330 44 330 100 384 125",fill:"none",stroke:"var(--muted)","stroke-width":1.2,"stroke-dasharray":"3 4"});
+
+svg.appendChild(nodesG);svg.appendChild(dotsG);
+/* dots for backup */
+function dot(from,to){const a=N[from],b=N[to];const c=el("circle",{cx:a.x,cy:a.y-15,r:5,class:"dot"},dotsG);return {c,a,b}}
+
+/* timeline */
+const tl=gsap.timeline({paused:true,defaults:{ease:"out",duration:.5}});
+const capBox=document.getElementById("captions");let lastCap=null;
+function cap(f,p){const d=document.createElement("div");d.className="cap";d.innerHTML=`<p class="f">${f}</p><p class="p">${p}</p>`;capBox.appendChild(d);
+ if(lastCap)tl.to(lastCap,{autoAlpha:0,duration:.25});tl.fromTo(d,{autoAlpha:0,y:6},{autoAlpha:1,y:0,duration:.4});lastCap=d}
+const hold=s=>tl.to({},{duration:s});
+const swap=(a,b)=>{tl.to(a,{autoAlpha:0,duration:.2});tl.to(b,{autoAlpha:1,duration:.3},"<.1")};
+function travel(pairs,pos){const ds=pairs.map(([f,t])=>dot(f,t));gsap.set(ds.map(d=>d.c),{autoAlpha:0});
+ ds.forEach((d,i)=>{tl.set(d.c,{autoAlpha:1,attr:{cx:d.a.x,cy:d.a.y-15}},i?"<.12":pos);tl.to(d.c,{attr:{cx:d.b.x,cy:d.b.y+15},duration:.7,ease:"inOut"},"<");tl.to(d.c,{autoAlpha:0,duration:.2})});}
+
+const all=[...Object.values(N).map(n=>n.g)];
+gsap.set(all,{autoAlpha:0});gsap.set([pr,...exRows,instr,chip,lnR,lnA,lnB],{autoAlpha:0});gsap.set(N.R.g,{x:290,y:392});gsap.set(Object.values(N).flatMap(n=>n.stats),{autoAlpha:0});
+gsap.set([judge,u1.g,u2.g,out,...rolls,mean,rgA,rgB,rgC,rgA1,rgA2,rgA3,rgBx,...outs,...u1.rs,...u2.rs,u1.w,u2.w],{autoAlpha:0});
+
+tl.addLabel("In context");
+cap("In-context learning: the model is never trained on this task","LLaDA-8B is a general pretrained diffusion language model. It learns what a good sequence looks like only from what it reads: a task description, 10 scored examples and an instruction. No weights change. The ablations back this up: without the task description, or with a diffusion model trained from scratch on the task instead, results drop (§4.5).");
+tl.to(pr,{autoAlpha:1,duration:.35});tl.to(exRows,{autoAlpha:1,stagger:.12,duration:.3});tl.to(instr,{autoAlpha:1});tl.to(N.R.g,{autoAlpha:1},"<.2");hold(3.4);
+
+tl.addLabel("Setup");
+cap("The masked answer becomes the root of the tree","The answer slot, 8 masked letters, is where the search starts. The prompt stays attached: every denoising step and every completion below is the same model reading the same task description and 10 examples.");
+tl.to(N.R.g,{x:0,y:0,duration:.9,ease:"inOut"});tl.to(pr,{autoAlpha:0,duration:.35},"<.2");tl.to([chip,lnR],{autoAlpha:1},"<.4");tl.to(sR0,{autoAlpha:1});hold(2.4);
+
+tl.addLabel("Expand");
+cap("Expand: one denoising step, three different ways","Reading the prompt, the model guesses every masked letter, keeps the 2 it is surest of and masks the rest again. Random draws give different children. p is how likely the model finds each child, given the examples it has read.");
+[[eRA,"A",sA0],[eRB,"B",sB0],[eRC,"C",sC0]].forEach(([e,id,s],i)=>{tl.to(e,{strokeDashoffset:0,duration:.6},i?"<.15":">");tl.fromTo(N[id].g,{autoAlpha:0,y:-8},{autoAlpha:1,y:0,duration:.45},"<.25");tl.to(s,{autoAlpha:1,duration:.3},"<.2")});
+hold(2.4);
+
+tl.addLabel("Judge");
+tl.to(rgA,{autoAlpha:1,duration:.3});tl.to(judge,{autoAlpha:1,duration:.35},"<");
+cap("Judge: finish the child five times and score each","The model, still reading the prompt, completes each child J = 5 times. A separate judge, a Gaussian process fitted to the same 10 examples, gives each finished sequence an expected improvement: how much it might beat the best example, counting uncertainty. So the 10 examples are used twice: read in context to write, and fitted to judge.");
+tl.to(rolls,{autoAlpha:1,stagger:.22,duration:.35});tl.to(mean,{autoAlpha:1});
+swap(sA0,sA1);hold(1.8);
+tl.to(rgA,{autoAlpha:0,duration:.2});tl.to([rgB,rgC],{autoAlpha:1,duration:.25,stagger:.3});
+cap("B and C are judged the same way","B averages 0.22 and C averages 0.26. Every child now has a value V from one visit (N = 1).");
+swap(sB0,sB1);swap(sC0,sC1);tl.to([rgB,rgC],{autoAlpha:0,duration:.2});hold(1.6);
+
+tl.addLabel("Back up");
+tl.to(judge,{autoAlpha:0,duration:.3});
+cap("Back up: every ancestor learns the scores","Each child's reward travels up and joins the running average of every node above it, and each visit count goes up by one. The root now averages 0.26 over 3 visits.");
+travel([["A","R"],["B","R"],["C","R"]],">");swap(sR0,sR1);hold(1.8);
+
+tl.addLabel("Select");
+tl.to(u1.g,{autoAlpha:1,duration:.35});
+cap("Select: best value plus a bonus for the unexplored","UCT adds to each child's average value a bonus that is large when the model finds the child likely (p) and when it has had few visits (N). A scores highest, so A is opened next.");
+tl.to(u1.rs,{autoAlpha:1,stagger:.25,duration:.3});tl.to(u1.w,{autoAlpha:.14,duration:.3});
+tl.to(hRA,{strokeDashoffset:0,duration:.6},"<");tl.to(rgA,{autoAlpha:1,duration:.3},"<");hold(2.4);
+
+tl.addLabel("Expand A");
+tl.to(u1.g,{autoAlpha:0,duration:.3});
+cap("Expand A, then judge its children","Each grandchild fixes 2 more letters, keeping A's. Each is completed 5 times and scored the same way: A1 averages 0.41, A2 0.28, A3 0.35.");
+[[eA1,"A1",sA10],[eA2,"A2",sA20],[eA3,"A3",sA30]].forEach(([e,id,s],i)=>{tl.to(e,{strokeDashoffset:0,duration:.6},i?"<.15":">");tl.fromTo(N[id].g,{autoAlpha:0,y:-8},{autoAlpha:1,y:0,duration:.45},"<.25");tl.to(s,{autoAlpha:1,duration:.3},"<.2")});
+hold(1);
+[[rgA1,sA10,sA11],[rgA2,sA20,sA21],[rgA3,sA30,sA31]].forEach(([r,a,b])=>{tl.to(r,{autoAlpha:1,duration:.2});swap(a,b);tl.to(r,{autoAlpha:0,duration:.2},"+=.25")});
+hold(1.2);
+
+tl.addLabel("Back up again");
+cap("Back up again, along the chosen path","The three rewards pass through A to the root. A now averages (0.30 + 0.41 + 0.28 + 0.35) ÷ 4 = 0.34; the root averages 0.30 over 6 visits.");
+travel([["A1","A"],["A2","A"],["A3","A"]],">");swap(sA1,sA2);travel([["A","R"]],">");swap(sR1,sR2);hold(2);
+
+tl.addLabel("Select again");
+tl.to([hRA,rgA],{autoAlpha:0,duration:.3});tl.to(u2.g,{autoAlpha:1,duration:.35},"<");
+cap("Select again: this time exploration wins","A has 4 visits now, so its bonus shrank. B has only 1, so its bonus is large enough to beat A despite a lower value. This is how the search avoids digging a single branch.");
+tl.to(u2.rs,{autoAlpha:1,stagger:.25,duration:.3});tl.to(u2.w,{autoAlpha:.14,duration:.3});
+tl.to(hRB,{strokeDashoffset:0,duration:.6},"<");tl.to(rgBx,{autoAlpha:1,duration:.3},"<");hold(2.6);
+
+tl.addLabel("Output");
+tl.to(u2.g,{autoAlpha:0,duration:.3});tl.to(out,{autoAlpha:1,duration:.35});
+cap("After 16 rounds: return the best finished designs","The search runs 16 rounds to depth 4. Every finished design produced along the way is ranked by expected improvement and the top 128 are returned. Only then are they scored by the real objective, once each: the setting is offline, so no new scores are asked for during the search.");
+tl.to(outs,{autoAlpha:1,stagger:.2,duration:.35});hold(3);
+
+/* controls */
+const scrub=document.getElementById("scrub"),playB=document.getElementById("play"),chaps=document.getElementById("chapters");
+const LABELS=Object.entries(tl.labels).sort((a,b)=>a[1]-b[1]);
+let dragging=false;
+function chapEnd(i){return (i+1<LABELS.length?LABELS[i+1][1]:tl.duration())-.01}
+function setPlay(){playB.textContent=tl.isActive()?"Pause":(tl.progress()>=1?"Replay":"Play")}
+function sync(){if(!dragging)scrub.value=Math.round(tl.progress()*1000);const t=tl.time();let cur=0;LABELS.forEach(([n,lt],i)=>{if(t>=lt-.001)cur=i});
+ chaps.querySelectorAll("button").forEach((b,i)=>{if(i===cur)b.setAttribute("aria-current","step");else b.removeAttribute("aria-current")})}
+function seek(t){tl.seek(t,false);sync();setPlay()}
+tl.eventCallback("onUpdate",sync);tl.eventCallback("onComplete",setPlay);
+LABELS.forEach(([name,t],i)=>{const li=document.createElement("li"),b=document.createElement("button");b.type="button";b.textContent=name;
+ b.onclick=()=>{if(reduce){tl.pause();seek(chapEnd(i))}else{tl.seek(t,false);tl.play();setPlay()}};li.appendChild(b);chaps.appendChild(li)});
+playB.onclick=()=>{if(reduce){const t=tl.time();const i=LABELS.findIndex((_,k)=>chapEnd(k)>t+.02);seek(chapEnd(i<0?0:i));return}
+ if(tl.isActive())tl.pause();else{if(tl.progress()>=1)tl.seek(0,false);tl.play()}setPlay()};
+scrub.addEventListener("pointerdown",()=>{dragging=true;tl.pause();setPlay()});
+scrub.addEventListener("input",()=>{tl.pause();tl.progress(scrub.value/1000,false);sync();setPlay()});
+["change","pointerup"].forEach(ev=>scrub.addEventListener(ev,()=>{dragging=false}));
+seek(reduce?chapEnd(0):0.001);
+</script>
+</body>
+</html>

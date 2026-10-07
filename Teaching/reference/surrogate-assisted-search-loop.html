@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — the surrogate-assisted search loop (DSA-ME)</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>The surrogate-assisted search loop</h1>
+<p class="meta">Reference sheet · compressed from <a href="../lessons/0004-deep-surrogate-assisted-map-elites.html">Lesson 0004</a> · source: 🟢 <a href="https://arxiv.org/abs/2112.03534">Zhang et al., GECCO 2022</a></p>
+
+<h2>The loop</h2>
+<pre>
+data D ← a few real-evaluated candidates
+repeat until real budget (N evaluations) exhausted:
+  1. TRAIN    surrogate ŝ on D            # ŝ : encoding → (objective, measure₁, measure₂)
+  2. SEARCH   run the optimiser on ŝ only  # ~10⁶ iterations, zero simulated games
+              → surrogate archive of predicted-good, predicted-diverse candidates
+  3. GROUND   evaluate chosen candidates on the simulator   # the ONLY expensive arrow
+              → insert into the real archive, append labels to D
+return the real archive
+</pre>
+
+<h2>Price of each arrow</h2>
+<table class="compare">
+<tr><th>arrow</th><th>cost in DSA-ME</th><th>cost in the VGC analogue</th></tr>
+<tr><td>train ŝ</td><td>MLP 128/32/16, minutes</td><td>same order — an estimator of 𝑓, e.g. the ridge with pairwise terms</td></tr>
+<tr><td>search on ŝ</td><td>~10⁶ archive iterations, free</td><td>free — this is where annealing / any subset search runs</td></tr>
+<tr><td>ground</td><td>200 games per candidate, 10,000 candidates total</td><td>a batch of simulated battles per team — the budget that rules everything</td></tr>
+</table>
+
+<h2>The three facts to keep</h2>
+<ul>
+<li><b>Same budget, more quality.</b> At an identical 10,000-evaluation budget: QD-score 338.52 vs 136.89, best win rate 98.4% vs 90.6%, cells filled 31.86% vs 14.36% (DSA-ME vs plain MAP-Elites). QD-score (§4.2.2) = "the sum of the objective values of all solutions in the ground-truth archive" — simulator-evaluated elites only, never the surrogate archive.</li>
+<li><b>Train the estimator on search-generated, diverse candidates.</b> The same surrogate trained on random candidates (Offline DSA-ME) drops to 194.9 — the search must feed the estimator the region it exploits.</li>
+<li><b>The surrogate predicts a smoothed proxy + the measures, not win rate</b> — average end-of-game health difference carries more signal per game than a win/loss bit.</li>
+</ul>
+
+<h2>The unpublished step</h2>
+<p>DSA-ME's opponents are six decks weighted <em>evenly</em>. Re-aiming this loop at a frequency-weighted meta-team list — 𝑓's opponent structure — appears in no published paper (verified by two sweeps, 2026-08-19).</p>
+
+</body>
+</html>

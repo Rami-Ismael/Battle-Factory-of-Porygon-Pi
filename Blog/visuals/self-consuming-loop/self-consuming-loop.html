@@ -1,0 +1,276 @@
+<meta charset="utf-8">
+<title>Eating Its Own Teams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: strategy tabs → a canvas of team archetypes (sprites mark the real archetypes; dots are the model's samples) beside three generation-by-generation charts → the papers behind the chosen fix → a three-step plan for the team loop. Same system as the project's other blog figures. */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --accent:#0E7C7B; --accent-soft:#DDF0EF; --warn:#B8412F; --ghost:#C3CBD3;
+  --a0:#2F6FB3; --a1:#C07A12; --a2:#7A55B0; --a3:#1F7A4D; --a4:#B8412F;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --accent:#4FC2BF; --accent-soft:#16312F; --warn:#E07A68; --ghost:#3A4653;
+    --a0:#6FA8E8; --a1:#E3A443; --a2:#AE8BE0; --a3:#5BC48A; --a4:#E07A68;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --accent:#4FC2BF; --accent-soft:#16312F; --warn:#E07A68; --ghost:#3A4653;
+  --a0:#6FA8E8; --a1:#E3A443; --a2:#AE8BE0; --a3:#5BC48A; --a4:#E07A68;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:24px}
+header{display:grid;gap:10px;max-width:72ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+h2{font:700 21px/1.2 var(--display);margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.note{color:var(--muted);font-size:13px;max-width:78ch}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+button{font:500 14px/1.1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:9px;padding:9px 12px;min-height:40px;cursor:pointer;transition:transform 120ms var(--ease),background-color 150ms ease,border-color 150ms ease}
+button:active{transform:scale(.97)}
+button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:16px;display:grid;gap:14px}
+.lab{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+.canvasbox{position:relative;aspect-ratio:1/1;max-width:100%;border-radius:10px;overflow:hidden;background:var(--bg)}
+canvas{display:block;width:100%;height:100%}
+.arch{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:0;pointer-events:none}
+.arch .pair{display:flex}
+.arch img{width:34px;height:34px;image-rendering:pixelated}
+.arch span{font:600 11px/1 var(--mono);letter-spacing:.03em;background:var(--surface);border-radius:99px;padding:3px 6px;border:1px solid var(--rule)}
+.arch.dead span{text-decoration:line-through;color:var(--warn);border-color:var(--warn)}
+.side{display:grid;gap:12px;min-width:0}
+.gen{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.gen b{font:700 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.gen span{color:var(--muted);font-size:13px}
+.chart{display:grid;gap:4px}
+.chart h4{margin:0;font:600 11.5px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.chart h4 b{color:var(--ink);font-variant-numeric:tabular-nums}
+.chart svg{width:100%;height:auto;display:block}
+.ln{fill:none;stroke-width:1.4;stroke:var(--ghost)}
+.ln.on{stroke:var(--accent);stroke-width:2.6}
+.ax{stroke:var(--rule);stroke-width:1}
+.axt{fill:var(--faint);font:10px var(--mono)}
+.dot{fill:var(--accent)}
+.what{font-size:14.5px;max-width:72ch}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap}
+.papers{display:grid;gap:8px}
+.paper{display:grid;gap:2px;font-size:14px}
+.paper a{color:var(--accent);font-weight:500}
+.paper .m{font:12px/1.4 var(--mono);color:var(--muted)}
+.plan{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.step{border:1px solid var(--rule);border-radius:12px;padding:12px;display:grid;gap:6px;background:var(--surface)}
+.step b{font:700 16px/1.2 var(--display)}
+.step span{color:var(--muted);font-size:14px}
+.neon{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font:12px/1.3 var(--mono);color:var(--muted);text-align:center}
+.neon.on{display:grid}
+.neon div{border:1px solid var(--rule);border-radius:8px;padding:6px}
+.neon div.on{border-color:var(--accent);color:var(--ink)}
+@media (max-width:820px){ .lab{grid-template-columns:1fr} .plan{grid-template-columns:1fr} .arch img{width:26px;height:26px} }
+@media (prefers-reduced-motion:reduce){ button{transition:none} button:active{transform:none} }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Self-consuming retraining · what the literature does about model collapse · toy simulation</span>
+    <h1>Eating its own teams</h1>
+    <p class="lede">Retrain a team generator on its own output and, round after round, it forgets the archetypes it rarely makes. Pick a strategy from the papers and watch twelve rounds of retraining on a map of five Regulation M-B archetypes.</p>
+  </header>
+
+  <div class="tabs" id="tabs" role="group" aria-label="Strategy"></div>
+
+  <section class="card" aria-live="polite">
+    <div class="lab">
+      <div>
+        <div class="canvasbox" id="box"><canvas id="cv" width="640" height="640" aria-label="Samples from the generator on a map of team archetypes"></canvas></div>
+        <div class="neon" id="neonSteps"><div id="n0">1 · base model</div><div id="n1">2 · fine-tuned on its own samples</div><div id="n2">3 · moved the opposite way</div></div>
+      </div>
+      <div class="side">
+        <div class="gen"><b id="gen">0</b><span id="genLab">round of retraining</span></div>
+        <p class="what" id="what"></p>
+        <div class="chart"><h4>archetypes still made <b id="vCov"></b></h4><svg id="chCov" viewBox="0 0 300 90"></svg></div>
+        <div class="chart"><h4>spread vs the real teams <b id="vSpr"></b></h4><svg id="chSpr" viewBox="0 0 300 90"></svg></div>
+        <div class="chart"><h4>mean reward (win-rate stand-in) <b id="vRew"></b></h4><svg id="chRew" viewBox="0 0 300 90"></svg></div>
+        <div class="ctrl"><button type="button" id="play">Replay</button><button type="button" id="reseed">New random seed</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:10px">
+    <h2 id="pTitle">The papers behind this strategy</h2>
+    <div class="papers" id="papers"></div>
+  </section>
+
+  <section style="display:grid;gap:10px">
+    <h2>For the team generator's self-training loop</h2>
+    <p class="note">That loop retrains the generator on its own best teams, selected by battles: a curated self-consuming loop. It stopped at round 2 on a concentration alarm (2026-08-29).</p>
+    <div class="plan">
+      <div class="step"><b>1 · Keep the real teams in</b><span>Refit on the meta teams plus the selected teams every round, never on selected teams alone. The cheapest fix and the best supported.</span></div>
+      <div class="step"><b>2 · Treat battles as curation</b><span>The loop optimises whatever the battles reward and amplifies their errors. Re-battle a team before admitting it: 24-battle labels were winner's-cursed (0.79 → 0.57).</span></div>
+      <div class="step"><b>3 · Try Neon once</b><span>Fine-tune on ~1k of the generator's own teams, then move the weights the other way. Measure legality, distance to the meta teams and win rate.</span></div>
+    </div>
+  </section>
+
+  <p class="note">This is a toy: a five-component Gaussian mixture refitted to 120 samples per round, with a sampler that slightly favours typical outputs (the papers' sampling bias). It shows the mechanisms the papers analyse, not their experiments. The reward is a smooth stand-in for win rate. Full reference with grades: docs/self-consuming-loop-fixes.md in the code repository.</p>
+</div>
+
+<script>
+const SP = {"pelipper": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAQEBCLQTHNQVLFezH2tDH/3kr//6z////N1e6k5v97ze5apM1zc4MxYovieTafAAAAAXRSTlMAQObYZgAAAj5JREFUeNrtlAeW4zgMBf3RpE22SNz/uItPBewkP0uGJqo6B1cJULj9S1xcXFxcXKgB4DR9+/ycmqHAOXoyCmyE+4eegUpaQ7B/Wvx1JbiAysJkfie20GszSgFwTgBlBFCsUcL9BLO/o7NCfzAQYQDAPMYtGrnfpfRCQgPuN6SOCXqoPxEZ/pznc1CDAmlw38iSrDCDCP3j4fLFnzMgMQXTL/7szD9BJCAgMCST9Vuv5YjCAGR8k9hwJNX3ZzC2Dq+kj62RUpb6ZkFk286slw8Cwot2FOZENw7cVzk51G9Y+j4CBoxejL7bP7Rk1WKB+i1ADt0Y8qB+XKgCIrxqHQ+QAw9X81H/Y7IHyJGA639xoJ8SyAx0D9SE2+7C84AkU3vh7EA6Eng831BONBP4ABEjeKD2sgRSDgu43wMVOYUHEj9QyhKgP6jgfg9USGQgr7Dg93FYITsZpZwfiC1kvkUFWHjiDy/Q7IWIAIHb3e8wEFDIjhM1Qkd+UhB44GChF+BHBUFrKO8VlK+HNxwBmqFg4HBBJ7WXa2XjCzfMhaYeOFbQaZpUtanR4Jh4DfiOVLUqdvup4AeNZFiXgK4jDDe/bQ26w982v+oSYAFrD+P3KNrYJGBl5wCqPsAAbGD+FvxJt+OYOzi4IIdiZwQOFNT9iqdzg6v0Lb1aGMflC3oGpgMF+NzD/1IBOwrw/wVeOhwv6EsB3fyv7FO98OprYNz86Pct6RaOF9x/TmEMfg6ABfQsu5+2i4uLi4uLX8l/Cd43EaPQnVQAAAAASUVORK5CYII=", "archaludon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAVFRUQHToeLFkkPHkpUJhEcshoYoSKhpuppbng4O3/3527eUTJR0d6PT4QKO1VAAAAAXRSTlMAQObYZgAABJVJREFUeNrt1oma5CoIBeAgMaC1vP/jXjAnreWkFu2++/BNOfv5BWpbfte/q+7dr388/0YPv+7rN8C3Ghput58XeK2RYV1Pgeu3gNgAMYJ7zL+MtHXt8ytA8fhND1zp8/yLdIDdOYRXwPUyBlyrEPYJhW3jNwCEQSBswRoIns8iSzjP15TSNLCFaMfGK2eVZ0DOmj4HRCpAbMK2RV5XtphzQLMD8nF+VqnAaoLnB+sghfgM0JRoAEgNsHJkDmvgizqwnuWPAQrgEHi/PzmwMj9pYGRCDwATlwVcrpbPViTTDZwDkbyDlNJNHSDNctLA4ArOgPvtXoAMoWtAlpEVJGnyHVjD7QuAMD+hDlh3gIgCF+BRkNrAHLCtkayi1dGA31k6gL4DoLYClHgINX8A0BbwfAArgAwAwuSEWiAXYc1lQiHnKiAfE5oHTLCjAhD0Ks2E5gHPWv3YAOiRf70K5dEJLQqgbaB0sDoQEC8omplQD5Qt20+lAcX096I8OaEWsOwiYEJ6BsgyByA/F+FrBacNzAOWX4QC4DkEQPLMhHoAFWN9DrUAFjYDiBU/NsDB4sVqvgG1KvkiKed+BaFEppydIOSPT0hTSQdggikdkGxKpFYyNiEMVSwBQHZhdaO+T+wGGpCJFUsG0LwPrVsLKPJHATSQCyAiBchrBuD5ZUcA8BqbA0RUDSgLLgcADzSj5AMYzk8l3oDgDZQtYwUAkqg2TyEZB0SthEL9rDkm5HbJzCfA9X0+mvZ8oiU0n5YAQLT5SQn5F/msgVTyF8+PbOnsROAKLPIAIB/ABw24QDvAN47+iNsDUPMngSRpB24O2GFAl38KvBQkp6+t2YP2BgA8TKjm94C+BFI8BbZyAED+A/AVqprlZQMx4b13fQKox1p++qUBOUYsrxowQNMLwAQt+TF1gGR5CaCByAxAftnBihmV/IhtARCxYHkDEKM8fwcW2oFyAij5FZDysDPnJA5gI2dAFQwoMzKgZFeAkb8vCwD5oZqSWDyA18QZcAPAXgCOZXm+J0sC8JIIZLHtjABgRriE7GkAVBEP4SXh8S1AEGgH1AQYnl+AJv6Dz+dg6Wz1NSMqgJ2BITSA2tHcXl0I4TXAddly+XVGSQnLEjRQb19+BKY3LRwELTsAAUBJMqMCze01BeS/J8jyRdrnkaUXQMvwfVsA6u018Pt87BqvfMzIzjszZmT5KAWgmD7yPysAzHS3bL7faQe8AbYCQIlw+73xZQyA4ICfwQGr9pkEIAVG/jhwv3t2ObBmByAAOPY2Digh2xgALhBBKEDA9cfzAfQt+N/BMADxtMwBiZgAEADF35HVMS/EzwGhXbML0n4oE64/DSTq1twDiJ/KBxAAQOgAxM8Dibo1S34Alm8CfQs9kOi7+b3wwwDWSFWgFtCfAVSVUBbXAjIBID+1gJc84vWbEU0BKaYKQDgBSL8PCP8wgHwD0ACRA3I6ImIIE4AJxyuJrLr9fBNIsQXOx1eBcYGIDoBoeQ3MtADDAMT3+Q1ALDSTD+PFfgAsA/Fj+6kL+uEiKwAj+eOIAaPTGd/Q7/rn1x+MD2QnZDsM9QAAAABJRU5ErkJggg==", "charizard": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC", "venusaur": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACDMQD/vb3/e3PevSneQUG9ajEQEBD/7lIQUkFanDkQe2qD3nta1cUgtJz////Qs62tAAAAAXRSTlMAQObYZgAABKBJREFUeNrtlAFvozgYROOmZjJxgP//b+/7xgxJlULJ9lbSSnk92ADmPWxLd/onePPmzZsS7N/+pf3j4+O8yIqOfv8c/DoiTQQki8vPokP3zR8nrFGg1hAPn5+fOuJ3ref8+1XCX1lDXwd8PoK4pfKS+KX/46MOlyysx6UGEaiaoAqv+4s5KxAFrMelrCjwekFvinOVZ7gM5RLiPIZLLpE3P1Hg1e114FyT4SIGHQpUBRJV/mT5vYtVk7jcAaJg+fItShz1+2V/nYpu9EsEXwLHE6VWvWP7l9aQ19auDS9mORjobwB4tKmIUr/eAe5X8QiH/EHqT9L3mHWl9Pk5EKzbUfMPBwMV+WPxOID0O2Gc6IWKl/x1DUhTDFwwOOn/HMub+6BmAktIgUc/8sA3hVONQDkyBWiUApqDDShAwYBs4KQHjsfF8kY5HLC/+v0UDxiGAV4kB4J1zpH+GUCj5V/OyG4pQ6doCt4djXABp0PAW+BZKIBQyz88BCTXL+i9o9jfgaIFRfKhAFry1FYVPhLZfxEoy+frjBOXXQoUKK8FgFrvEZBEqg3Jqx/3ALQ+ryWIdOdxDdqyBblMvF5J9gI8yddgcM1ZOEAiVz8PfX+wBEocAPma/io8CxnJNA+D2rzPgIAGk0cjBJbxauSVgqroZu8XJHYvQw5+vscb3ZPZaWO3b/84D+J2Jb9o6PPd+9j7OoNbsFeIAddrDLm7vCo3h/gc8Djpc1W3/dJfH7DW/pvr8EPjxwmw6dcMgnyZ3/gTNAqN4EOmv3bbXiYJEgovkP039rfBsQPE0JDi5nYAMNjcAP2HaQzI5sqNXZAJdv00sQF5K4sp1m8v0K7/BqowatfsV8Lx0LM0NMByF8T3BYCLH9UFDWeX64w2TeEna81A4inoRMq/AQHqsQvaufzrkOmfwl/qPYCgeR5oJE57ABmqZ97XSH6dwi9aK6UHjAIkW+PpR9gaKr1C/n46oEIkmgKGAJrgAX9Dn4DsjtB+J1wwhj/7G8eERPd7gRxwIouvBjjJP6kAywkFbF4TWEpGwd0C8wX7uS4+G+RvYzdPBjrT396fcs+fcGyhbz0ABfpy5G2rnwvyu7Dvn5gmFTDliZq9AvGQfCrAAbEfYDhGjtIB8S/QHvyM5+0pkIV7lnt+BeZC+UTXLwGWMs8OaEtdWP1tP8BRgY+4WAJ3W/o/HgPtIeB7Iydu+x2Yz98EcuXm8zyPDtABF6jjx4AKI5/8KRzl3wqM/HkLYOv4FPCiPPubC20nQI+z2f4NyLYGRi6B/Qm0bsOhwKJfrJxcaG17Bp470Lb9TT7SehNjvUabgRXMLjzZ29xCP4980kdA+obTfoBZ4NSe9WmnPl5+N1MvkPU2z9wvjL0wN9d89soIgN0/2q/AnIGtgjUyAyR14WWX3cDj2+LPMzDPEN8HussQrakhLBc20MuftAicuOEW1AK6ELME1BDPdhfGNbDptn8NNAUSKGI8++eA2AvYNbuCrw+2VpbH/SICaMjz6Rik3E2nA+MB+HwMzi3Vc8sTT/87nLs6/2nzXygAaIAC3qS/AjDb/fcSp3+aN2/evHnzHxDriT4zBlC+AAAAAElFTkSuQmCC", "farigiraf": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAYh0lEQVR42u3aA4Bkx8Kw4bfqsPu0p0dYzNpSjI20ybWlDxe5tm3btoXNlSIsorUxi0EPWjh9VH/+2Rtho0/qZ2y8h1VFS0tLy/89EugFZgEpHpgRi8Wems1k/9Te0b4nm8veYMfslwBp/heR/CcTQvamc+3v7+jq/XVvT+9ve7q7fxB34k8GDO6mp7Ppl/X09nxhzpw5FyyYv2B2f3//aT3dPR9LZVIfBJKtAI9ORzqd/kxfT88bli1ZvGL+/Plze/p6L+vo7PhKMpV8Dv9gWuY52Wz2zd2d3dmuri7ybXlymRydnZ12R3vHPzuO87RWgEfBsI1ntOVz63LZNKahYxgGTsyhq6MrnU6mXwH0AsRj8cty6VybpmnU63Vc18X3fXSp05Zp0+Px+OWA2QrwCJmmeWE6nTYFUCqVqNVqAFiGhWmaUzRdmw6gaVpGIFCRotFoUC6XCcMQACEFmmacZscT7xG6fSogWwEevmYYhKBARYoojAiDEK/pgUJJoa2KJxJv9oNwaaPewK27Jz4viCZfAvhek+Uz2trPWTLt9f3d2Z/aMeep/A8m+E9k2uaze3p6vpDL5RyBQFMaYRTiei5DI2Nh2tbqM3vSSSklQyWfUOnYVow7NXyPmPBY1msTs4zJz9mw5/jWgcGRy4GBVoCH5mRymXdlspmX2ZZtmsIkUhEjEyNFLcQ5fV6P4egKTUJDCW4/UkcKA4VCCEFcj+hNgi0hQhKPx9hyZKx+276jT44Cf33rEPTQasXx4juGB4f/ebQwel0QBKhIqXqlcSgdN2ta5OM2PWoND+X7WKZGpCnqzTrFygRdCXB0EIBSEeW6ixcopBCtc8AjUGvUG99pNpqfjKLIlZoUMdueU20GlhsqBCCAuqcIlUDTNIIwKNTqtY1FN8SLQAmBEIKSGzBR9/YFgb+tFeAR8gP/eD2ou6EIcRxHFqvVm7eP1KqjTcWoK9gz3sQPI0QIgRdsKU6U33J4tDbYDDUGaxEHyj57C5WBiVLpvSg1wP9QOv9FXNcduONpyIk7GdM0rVQyNb1Wb2qVuI0fBoxOlJjWNxUiCKNwu2GZvdmYkW76IXuOj91Wc/1fNJvuVU3X3dy6CnrkbMdxnpHL596Tz+V7Ek4Cy7KQmsRvepQrFTzPI5fLUalWou27tn8slUieuXJa52nD5Ya/fWDon71G/dutG7FHIZ1Kx3PZ3PuSydRn821dPYlkmrjjEIvHSSSSZLJZUqkUyUQSFSnCICSbzj+/M5deg4RC1R3wAnU9j07rEOT53tOzTvbKZz3z2dYTn/gk/vyXP/PDH/2AbK4NpSCTTgIgpUQpRcJJyCgib+JTdn1qdfda/MYA/0to/Oc6bd68eR8777zzOp74+Cdw7NhRfvPbX9OWy/GmN70JKQU7duz4xz8fFAohBXIyHFQbbjRernzd97ybWoNxj0IikXjFvPnzZtXrda6++mo+9OEPsWvnLpqeh+M4nLt2LYuXLKFQGCEIAkARhhFrzx5nzswGbamYTMTjl4CZaQV4FOy4vXD7zu3cftvt/OhHP8J3fQzDwq0N8tPvv5v1v/gg3dkjzOq3afoNFIqY6bF0us+apQmSqYBcJneebujntgI8Co1640+e50VSSnRNJ4wiclmLf33BSp73zDk8+fJ+1qzo4KmPX8iiuRlKpTqaVChsCpV+DCMiZuqxeEy76FH87q0AQoijQAiglKLpuzz9Wafw1GdfzPRFs+iY2YaTS5LOOTzhsl7ashq1hk6pWmH7jh0k4hFCQiIZXwrEWwEeoSAIDoRB2NR1HYDu7gwXXLQETbfQNYO9uyYY3uny918c5batE3R2xKlWQ44VdObPrBEqRagkhmF1APMszVobN2P5VoCHyW24t3med8iKWRimSb49QUenA9QImi4KydYtBQ7sL/Pj3w4wPt5AEz63bkmxckmN3q4mni9RSvTOmNHznWnT8j8yTf2U1n3AwzdQq9b+UKvVFiXiSQwpEdEYhBBLmMyb18GXv76H/bUGZ69cTLo6QAOPawsWP//9FGpVHxX6nHrq9NjjnzB/3oc/8IcDxQO13a094OGLSqXStwtjowd9z8OxDHSlQJhsu2WYH33+OtYsWMa5py6nr6uL7qlz8YMAoUUMjsQZGrFQUciiRZ0UChV27x3+A6iDrQCPhGJLsVb/5fjYKB1xh6HdDTZvOsbVX7+RxxtN6vs3s2P7rSRNn0LT4/ZxD8IQpUCpCKQiUor16/cU6jX3u6DCVoBHQrPO7Uqlr3jVBefzlCVL+d23d/CXr17PpVNsZuRjrMwKzu+L89e//pXNt21BJNsIlcCtu0RE2DGDa64+oG7ZfPTbEO2T6I+PGfa/mJrltAI8JC3XmUu96a2Xrpt15RlrmR92km80ee4Uiz5CCuMNrts7xPj4GMvTgnxHH098/NMAQRiGKKHww5AtWw4fGx8rNKb2dPzgnLPm/aCtLflCL/TirZPwQxIJ2zS6EkHI0QOHGCqWODoxQqkYMdIMKDcCzu3QGGvCkBth1kf569V/xfM9TM3ERKFpEQ3b7Fx7+bI3POPZq43Dh8u8892/uw7UaCvAQwqOHhsvfeWDV//9fY+bMTu1MJun2rD49tYhMpbGlomIhC7YXgw55gZ0OwHj9RKGbgCQMRW6AJVJGDKSTIzXuWnjgWqxVPkDoHhoraugwA+/fOvx48/75OYNGz6883b+NlbiN8cE3z0IN49Lrh4RDLuCdRdeSrZnJgINUBjSJ2tFRAg0ceKfv2XHMJtuPnIbhNcDbVKTi4RAb82IPQzSchZk0ukP5dKpS2KmqQvBXYIwIJPN0KjXCZs+QkT0OJC1YaIJVR8aCpQe+lu2HHuL77k78u3JVwUB2eJE6TGgjrUCPCwi6zjxf87lcy+NxWNTNV1jkoLQC1FhgGNKelMmSV0B4EdQDzVqYcTth4brqYS547y1s+YumN+R/NznbrhhYGDwCmC8FeARsGxr1R0BnnPH0xlSSCcMw6oK1XCj4R5uyyYfN78n3Z3WFEopLFPHRcMNFPvHG5x7+lQe9/h5DI7XedlLf/H5YnHiytYh6NHRgDbAAHygBriZXPaLi6d1/HNv0iBuaiSTFkIIBksex4tNbE2xclU3I27gf/3rNzxL09mg6/o5vuf9KoqiUusq6OELgRHuo14p/2K87Dx9UUe7g6ljGTqCCNsQpGMaw6Umh4/X2bZ3eAeoSns+/3U/CGaOjTY3AKXWVdC/keeHGyYawe1L2m0MJQgiRagUmZhOOqYTt3Ru3T7C3n1j4zNndL/vxS88/bwpvblxUBOty9B/H2ODxebvrto9TqAiNMkkQxckYzq9GZMwVKxeNe3s97zvMcuXr5zGyEhtACgCU4Fka1XEv5Uwa5EQj+vK2IkIkJpECIGpCRxLp9gIkFKTBCGF8RrXXLv/x1EkmomE/V2EKIdBeFtrD/i38Bo7h4rVG5fmdS7vj1Oqh4AAAWGkmJ6P0ah6HN49wuab9pWrldpof3/nhy++eMkS04718W/UCoDfqFQb628cqIZdcR1LglLcRQjoyVocLdTZu7dQ7mxPPvXNbzzntPPWTqfZcHUgKaXsB0QrwKNkauE1Vw/Uj3x20zi6riEFk2KmhhSCTFzH1hTlSrPncY9deMapa3oQkQdR0HScxL9mM9lv6pre3grw6K+GDka+v2k0iKg0fEI/QCCJFGQdnWozZE53gnn9HfLQviKf/sj1HDlaU2GoZ/r68s+ZOatrURjpHcB8KeUprQCPnFcu1v40UaxFz16QoNMWNHw1GcDQBW0Jg1ozYnZnAtXwGRwY5/abjweGYTzpGU9fuWj+/A5TqeaMXDb7zkwm+yEg3QrwCHnNxsZm3R1ZkLU4f1qCsusDoBSkYgYhTAaZ1ZWg7in2HZgw+npy/bVKU6owFAJj6dLF3adPn5afDXY3EAO0VoCHLThwZKy244aBKpECQwrupIDutIUXKqQUTG+L0dsWJ+VY3HrrMXbtHtENQ79i+fK+zqVLulLAskTC+YJpWee2xoIegXgq8Z7VM3vfumpKCldqxAyBIuJOUQQK0DWB3/Q5UmhwpBZQavgUyzXOOWMmjVqj/pe/7/1GV2/22cWJymcmxktvbe0BD1O9GWyOgqDhegETdZ8gVPf6M6QETUDTC4kQTG2PMzNn05My6cwlGRmscvhI1bJs/SlLF3SnUglrNqC3Ajxcvtx2ZLQ2PDujs7bPplj38EJ1r525GUTU3ZCRss+egksURmRMjY6ETbUaUm8qLZ9PtufSNlKofiDbCvBwRWKo0gx3zs1a/PPCFE+Z6VBr+KAUAKEfUawHnD0lRtLWSMd12hydK+akWJjSyOsRSd0gaSXYuW0E35c5INUK8LDVaiU32HpgvAFAXJf4oQIUAihUA07pjrF2msPqntjkDVpnwuBJ89O856w8r1uZ4YIeg6QGdR+EkDEQdivAIxB63p7f7SuH6w/X+MORBgnbQJOS4YpPZ1yj3Iz42OYJys2Q5y9I8pLFGZIKUpbBuf2pO96X4CXzTJZlBElDdmRTyWcAZms09OFIdtttjn5lOhlbfsyFUAjipqRQ85mW1JmdMdlacHHiBsfKHkldcmq3jYiYJIREahoyDJif1snETVloRqtqAYVm09vc2gMeggyrq6Z1Zy6/aE4OXymUihgpNydPyK9Zk2NNr4UU4AbgK4muS7jPwF0uYZKI20gpWdtt8oTZ6VjKsd+smbFTWgEenHA0Hhcp1eZYghXtFrPSOq9YlSUIIz6yYYyBks+F0+MkRcCp7TrrpsbvFQClkChycRNdCMJIcmpnnLX9mb5sW/ZK4STMVoCT67Qt84JpbTG8MOLJ85I8d3GapCn480CDUiD5xe4KC9ot3nlWO/+8OENCAJHiXpTCsQSahEgJLKlxYW+cbEy7RPnu0laAk5HOzKlZZ2p3XGLrkg9vKPL5W0o0AkVCEzRdj2YEfgBmqNAjxUNRRAQqojcuWZDW2k1dntsKcDJKZKdnzPjbzmwnY0hG3YjBWkjK0LhyRYbTu22evSjNgjYTAgWKk1KKuz4eobA1yeKcia3Llf+ZV0Q6/5OoZq3RDJtphPX4GQ4BMCdlMC2mozkay7IWk0LFgxLg+SFRqJBCcKKFzox0nHwyOb1cDrIQDLf2gPsJD45UGsMjtYCUKXnKbIcFORMpBSoEInXiSfHgooiiG9AIonvsEYqYoaFJPY/QMzyQVoDo6O6xxtXrD1XxlaBabvL7vWVKvgLBnU8PQVF2PX5/qMrRho+U6q4oSUMjZVkZdDPXOgQ9sKDSjL73o60jj1mV1TvaDShVPf50oMqpHQZGGKCEIOtY2IbgLioCFADFQHLDUEipHDC320YpJinA1iBpSAtIt/aAk9HYtH2ovOnPe8YZDA2mzurCyDgMFD0OjzSoNAICxb1UQsGQr3HA1dnnm3jpFHN609iahkJwJ12AJZFAqrUHnJxuaiKRNk2CrhxF22LrrmFmh3Beu0NvysTUJaBACjwF3zvWpJF1sDWBpglmLWwHR6AOFkBwgpBIIYhpSoDQWnvAyVm2LrMZW0elbLrntrH09GkcjcVRhoGuCQSKSUJQqIdsG2syGiiqhkZRCW4+UCSWiaGU4C5CIBBoggfVCqCiuClFKpawIGUjUfR1xGgaGn7MQdMkd1FwvOzTMS3DYy6YwRmre1kwv53Dw1UqMYtAWkThvT4dxUNozYiFmbylO3bGhpSJQKFJQXvKYm8zAk1yT1tHm+TyDlGo8IOITNqi0fA53ghR07KEmoZEcCcBClTYCnAyQZiJSWnG4wZCFwgUUgoGCjVuK7pEuuROgVIMuxEdKZMgihAC3EbI3r1j/P0v+4m6koQxE4m8xz4gIhSVVoCTkXrGjMVM1zIJVISuCwqjNX73l93ctm+MumlDFAJQckNGq00SQKgkmtQYGa1x9PjEkav+tm/btdtH0DvSBL6ASKEAP8JDUW4FOBkhE+lkzJgzt51YUidSEX/4+0EODIz/ec/hseMFZYAmQUChFnBozKU5VIUIpBBs312gVK7+baTqXfnd3+7cs8NVhG2pyQBBpBh1gxphNNEKcDJhkE+kTH3K0iksXzWF/cdq/Gr93oORz1uODZZu3TZYReXbQGrsHve5/mBRbdwzTqLmUXM9Nt8+GFQq7l9RtWsOHBx80Td+fvuhY5kEOBYoSBikSciVrQAPRI/N625znrP2jOmYeYex8SY/+flO9/hQ+aNE1Y0TVf+av++dwJc6CthTqIXDZfe2jTsLbrXiIQQIBFJITgj2+JqsaXGDSAgcXXLe1GQqa8krWwHuz0rErTf+6/mzlz/5KfOgw2b77iIbbjm2UUXVHwAghaaUIkIhNEGEEkBHJh3TSdg4lsmSBR26blirmKSljZiZN1OTn4sQ4NgGhq63twLcj+zqyzqnXry6jyhrEfg+9aqHUKoINIC2KR3OY684rQ/pNgE4pz8tOxNmb6np675URCpiqFAjDMPjTNKOHTxS+tNVfzsQITXKvuKPh8vNiqe+0QpwX7pdq/iUdw7V2LltkFs2HuGXv9xGtezuBlygK59L9HV3xGkWirgNn7St0Z40vNv2j5b3HStxZLDMhluOH/V8/3dM8koThdHP3Xj70Fg97jCsNG45Xt7TmCh+txXgPiSqUqt7o8ekxkRD4zs/2M5v1m+/2vPCr3DCscJIeds11x9mZx02Hanwix3jjNf8TaEfbm80fIoTHuVycDSKxCHuYuen9GaTiVOm4i/qRmhUIKq1AtxHFDQ6Mxlr+trLF9AxNcffrjs6ODFWfGMUVfdyQvFoofbVH2443iiZFk1D56rdE5XjY9Xv53Nxq6criRQSoQSoiDtZlrl6Zn/OjmVNwrh+sv9IKwBoa+Yv7Jq5dFkPBw+UKAyVdoHYxj0FTdU+o02e8ZIz6H7qKYxEYpioeSyeMKa1ZQyEYJKQOv/gWPHYmiWrpjBnaSf5rgQRUoFqBbg3y0ilnMesu2yOmUxZ7Ns7QrXc2AlBlXsSYnn/zKwV70yisg6RJl0Q8+bMyKazaQulFMBdL4HFCxe0rbriirmk2+LkuxyEED4QtALci3b6nNndl65bN5dQNRk6PorvNvZxb5l8W/qsc86aAoSgFCpEWqZ98bKFXXoQQhgqJqlQAQLNftras6bme7tsICKK1OTn3ENrQkYg84lU7I3PeMaK/JQpaQI/ZGioonzlF7gX+/xly/pWrlrdA0CkIAyiqX092f45M3MEYYQQAkCAUBBbOLM//7jHPm4BaAKAWs0nCCMP8FsBTpC6oV95ySWzL3r2c5ajSYEbRLhu4IMqcreck0i8+OnPXOnk80kiBH6oUEokFs7toiPvIKWYjKBQPkJEAu2itefOm7Z0eR8RComiXPXwvKBxV4DWIcjunjKl4ymveuWZMp+3QYWEXkCtETRB1fgHKY3HX3TBjHMeu24miggBFIsutUqdutsgUgoE7D5QoFqqbEG5daWQqbSFZggAvFBj883DlMvuZqDZCjBJ2d1dGbuvLwMoEIIbbzjC1h3DAyAOAZimJU1TP/v8tdP1tnwMFJPKxQae5+8/cmy8sHPPGPv2F9mybbBRbVT/xKTowNGjZbdS9gkCwe23j/CbX+8eIvTXc0IrQDqeMMZH69qWLSMMDFT4218GeM/7ri4OHB7/MKiDAJ7XjEBVlBAgTKQwKE24/OyHm91Go/Z319fDb/xwL1/7wUEOHa0XxT++TtfDYNeOkei979zEO99yE+995585NDByFYRbWgFOkJqpnqvr5pQvf2kLr3n1tbzyVevDjZsGPmTq5ve4hyji2N69JY4dq3F8sMGXvryJq9Zv/4Np64VkMtUFBnEnjWnatqbJJKAnk/Gn5LLt8f8f98iRJoXRJioKtwNBKwCAxhIn7Tw75qSk43STb+snCJSrVP2GplcOuVsmmXDO3LRhgte+6u+85EW/40uf33x8vFz5qGVanUIIdF2j4TaQmoxLKR2gP5/Ln22ZcerNJlY8i6Gn0EKlOKF1GRqPxde1Zdt6LdvCsAyUUIRh5IdhWOceYnbskr6+7vOdRIwg0sjm2tH0o2VgoF6v/3ZoaGi2aZidpmk61Vr11jAK98g7uE13/NDAofaISBNKGKOjoxUl1B5aTkgmky+d0T9jbOWKlWrdunXqvLXnqa7O7o1AF3cT6VTq8+ecfbo664wz1RVXPEY99/nPU7P6Z+0A+jghJRBTdV2fB6QBTNMUuq4vNQzjijtCPzeVTL3JsqwnSk3GaTlBSmkZunF+OpX+ciad+U46kX5fPBZfAwjuwYnHXz9z5ozGwoULgzVr1qgVK1f47R3t3wNitPy7EA9xrsratv2KWCz2XTtm32ba5nvQmUZLS0tLy0P5f7RXBd6Wp/20AAAAAElFTkSuQmCC", "sinistcha": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAjIyY5OT0mVzM7gE1WsF6Hf2+1plu61Fvm3X7//2vl39C0rJR9VilSNhUexholAAAAAXRSTlMAQObYZgAAAlVJREFUeNrtlIey3CAQBBmSuKDl///WswJdKlc6FkdaybG75l1wi8VisVj8WcjBTH8hgmn+6xWkFEwLkEImBsgKrMCfHZAWEJk2QA44YfICTFuAqQs4AGyUwsSUAK4CQVsgUxYAOoH6Y8WMV7jgoByIrZ168FIK3670W45QM+jXQ/W9YDgCQFE7b+DZChC7AnURaPbMC1fBUYCVXyTebkDOPBlItgUaXbxd8i3nfOOtTWAEDgVmgXyhWzPHBLmKWUBFGqA8M9MClhPUUxlQNPMaqEaBWqOaNUA0oPazUOuQv/ZAow3IH4EYB/wiNHgGLu199JNAqhUDfqle/SzcLt3/DHgG6P++UNXfAh1BfgQKfOJZZSwQI/3vMFCan+jKgUCzt0TSs/uRgENf79/7SdNHeltHG0TlpFJP6B8JRIjQ1AIxdbpd2cPgAAjRhtbqg/uDoUDiAWloQOT+RghhJOBAPWqlnLz7932n/67XQMAhIxC0N1CsdT/RyLbdhxYQDwQFSRMItAay9R8QjyE/A6GDjBY45Ft4BpAMAgQBoHzjGbRjHiBNrBMCQz2wxwTjQH91ewCpwA2AV//WA+3RhqDYBegLL4E+BIMB/xroP31evcPT029V6G8gPf35VeH30UDwPM6XoOl5aWBXNGBQONgPAs+gvzbxE/jOKeWUvf9O73BmhW0/oXfzZOsDbAvnlk1/D2cBmFDr5xArfx9B33l1AGcGUOt7oFY4U1DqG4V+68IbcObgJQG4CUQ8iG5KIKUU+3NaIT6eUwDeQsrUUGexWCwWPwAlmC+GrqHtSAAAAABJRU5ErkJggg==", "whimsicott": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAYShhSOSlqWkFzUkGUakGsSmKslFrFtIvm3s3///9SpEpBe0GsahDmgwBMwSnpAAAAAXRSTlMAQObYZgAAAiVJREFUeNrtmMFu3SAQRXuZa56hJvn/v+0wRnpMFFcK0E3FSVBYnWOPbRb5tXFsNpvNZrM5yfuv8Q/8OSdWfTaWJ8zLpneJpYGUexYVWLkD6l9eIE1FnuZfXTiZH2kFcnbwf6VeARf7Haxrub97WZMujAb45K+/b0jO+90HZssxlqBzuqmcQPZwIvB00ZMFF6C3G+dcwQWYvwPzgWf/6QKzBTZj6t59ZoYwHWhGuqfciiilfElwzK/QBRRaQAkTgW7yAfRPgrf/uq6+gNGDKJSC0wWAaP6JgPMrADpTVEoIwQpjAX4JSIxw/mADGg24G1CT+hWgjUfE/IrGMRRgF7iUGlAtFN18HBKulYGgmDYa8vvzuwAn/DqkoNoWwOcnLFDUH2ZvANcFu9aqbYHjwwJaKAWrAiWoNt5AN+HBPxGA+Q9RaiRU/dufhgNF3eovIUapvF4v1EACkCqmN//Ed2b+iNeNVL+HHA6gBRAjRaguOVMSJTk4eFS3QkgJ7UhNVpcYJwt3IinBpn0w90g80Ml14acBJevPjRyxu6szIwpSB6D+HxfyuwB7/dNtz8DcEzDQCg1YQgsE4OefRwIKkBxAO04r6P32GYwAJoeY2wXaFAcDTI8BSY3lfl8wZgInngKY9isE+BA4lgT8mOQ4jmZXsMLvCzh6BKlB9S8p4HCAnNcbTUT4gIqhLPt3iOp0LgJDLLAaDcDtlwO4/X/GZrPZbDabzR/ZkkXJiXR+yAAAAABJRU5ErkJggg==", "aerodactyl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACUg6SsrNVzUpQAAABSQXOUYs0xGGrNzeaDIEHmi5zNOUqsg97Nzc3///8xcyl8rC/7AAAAAXRSTlMAQObYZgAAAxdJREFUeNrtltFu4jAQRX2He4lTSvv/f7sZe9gEVwSD+7Ar5bwhWed4bINIBwcHBwcH/waA1Ls0eMmOnLM6l1rwZL20tT/xK1ZXOyYuTPt+5szkyBYAyHkwuHI2esYMJE/n85npCTSLAgnYSjSagIFlK4v9tOdHoZwPYbrFFBNE6GcCImmG0J8fHY9yAcqZhIwpIAHPSZFobyCb+yf37wV8KWmZGQZlbQYVGSt+DFHtJuOeP/A1IiVAOe65oR2CfsMyg9wfgd2CQwH0p/G4oM0AgAB2+KPgEKD7OwpUBM49gekUEMbUUXAI96+BroLkhr6Cuv3bAs20HzBtA+eXA3g6AuoC+hPqDqwFPQ7wFmB84jsB2rMC8EbAC50BoBZk7R2Pn5HWgMfaKxg/Iy+gwNdPKAr774gImPRewKFBzwKgmbn/9cD5vHNGwg2VK/h8ObAsnQjgZwGohXUATqfPz9cu2fW3n+3WX/9hcB0APE2e6A+E3uFaIJOjNVD98rWR6CpMoW8KNMYA2VgDcQFObXiiIxD6phABLX4Ta6C+0CASTwvTwtoQdfu+roEFScWPjT4SnQ8pKjKKAFWfrITshWgY2OgLqZclUQ6BZbMG+v7/Bu4PKMyv4gV4gSWw9ZtsHeAddxQEQGLd8tYPmHFQ70jKCiMY/giA1Z9GEKpTAmA02wTCzxE/LTvUFbgrIAKD/sTq/75+ocCb/rcC5WLBb5WAwGoPpsUPDt6wbZSEcMc0DQQk3/1WL6AtgO/7s7PqxZkuRMO7AVnRK+TkPJeAfi/gMPZeYUm1Cb0XoDkuoxR+AVQzhJnS+4XbDnWZ58uFANO9XmZDhXrGHnBUWtCaoI0EErUJfHx8CPQAIiGyHNHIN41k8V/d/+UBocCFRBTohTH04QibQPsHdQhdSoD1CrZCUoKjscDs/i8Wr5odc3wEXUvgqqqh9LsB2mVezmimRQDaCjUaIK/zwpcUAUHanrkgjhRo9ABpgMJI3Y3ApKGAccHC75CJq5BgGhzBWQMtxHBBuz/LUeDQQyL3BCLTwcHBwcHBwf/AH8rTHrYEVKitAAAAAElFTkSuQmCC", "incineroar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAXFhUBAQFZCwNEQTrxNSElIyGqFxD/7gYctFT+/v5cYWOHlZpLQUf/cQEaNs1QAAAAAXRSTlMAQObYZgAABERJREFUeNrtmdtym1AQBNmZ3R0HsP7/c5Nz08WUAiLKm9rlQq5auuFg4EHThw8fPrwbw3QH8W6vuePOH+8LJHqgFdj8gbf5M9H8tUBhIuO9ASu4k56UwIh3BcDJ0iwiPJ0Bl8Q3+ieIlkXvXv0eRf/vAZJ9K6X7ze8Rj34710FEbSCo5iQDoU3AHNMp2KREkB7hjMDXfQDW/GcDiIqECAar/yvCdfU7xp1xvqACuvHXry+G9y7q2pjXwEmgBhFU4AsloKonSXNHD/xjgV9wwgts+rIpbjT/aYCWMDOvmMegHry1gOFsIBOgilbVP1t0sJh3YInzgaRk7nRPM5tnNT2Wa8AyEy/cveTUMKsFSrTCvJYfRRBYqr9F7aifZIQY0QtIMyQkqi6MChGKwNICaZREGo7euAyJwdtD2hIAJMaAjFYwT1MPHw6IEmfeXYG6wPr+ZgNYV7IHTFHRsTUiqaLHDHKcQuX7e13XZa0sZUsUfzIq7nmkwAiRKn4o2jyav6ubvnM7AfdDBUZBWGdglfq4Ff9QNv3A3Jq/khKOPDo1A8A8o1cxAlvgdvMfuNIIkdI6Q0AftYB1/xakDX9U9gtBAoDGpHkE/hZQC0RnPyBREjH8JVD8zwtZ/UcLPQAb/seA7wTcE9NuQUKmtUArPAm0Qubwl2mS3Hu9kJm1wNgJLMtSCyp6kk5GhHYKzIJkxnaHShh+93t9BTCTNB6ScaDQ/FKaRfsM3wbclw6gptY6r+1UdgsqVPd9wQuj5MsAE7jOEYF5niOOrJIeAyn4T5Y7/zRxrgGg+Auc9gojMAqLu2eh6x8DmCMgSWBbJmG/UMV9CyxL3rj3f9d5AKpwnmcdeP3gFlAC04Qia/ZHqomhTiuR3C3kCKCNogVG4VrCeBGKHI364VCh628FbdZJIwCgq7lG7AcmoPgfk7po6Du6aMJ6+78BwHleW2A/8TAkpC6t0OXFXwOPk6SK/2V0QQtUd5FLlxrAzqEdDujyVQrF3Y4+Ln/Ycb3gL4FSKOp29O8PtIIuQ87y+7ZAoQQ6fw8YXvQzpOLfFCj8dE+TmYPkS/4/6CEQ1wAf/W7mnogIvuaPegr9EkhksZOCyPtAevdLOOxvqNA29U9SBeg+Ye6ZCRXwgn+LBlVGs+bPiplJwst+kj/sI6AiJZlXzIRX/MOLgrQpZGF8GIkz/qmAxwCqdltI7PrNPW4M/7aA3AYATEcCvvFvCpgm4Bo4ah/+a0Jln2eFkuj+BqajgcFVvy10GzqZOFpApnfK/JPCTxsShWOBQvc/KWTlwQdMR8FfVxR5Q5jOAKkHdgrS6ULjWQHd/38CI6FKnizs7ow+cjZw4L7BGMLpAo4MJYTTgUNT+s8BnQmQ8Qdhd4yUXi6w6vcLY+zVAKOg3cDQt7njsO7C2A9UuU4EGCHtBxDVHa8GEOwnIGBvsE9iegVcOTz4+ar3w4dn/Ab180pwLQf8DgAAAABJRU5ErkJggg==", "garchomp": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII="};
+const ARCH = [
+  {name:"Rain", mons:["pelipper","archaludon"], mu:[.24,.30], w:.32},
+  {name:"Sun", mons:["charizard","venusaur"], mu:[.74,.27], w:.26},
+  {name:"Trick Room", mons:["farigiraf","sinistcha"], mu:[.50,.60], w:.20},
+  {name:"Tailwind", mons:["whimsicott","aerodactyl"], mu:[.20,.78], w:.14},
+  {name:"Fake Out balance", mons:["incineroar","garchomp"], mu:[.80,.78], w:.08},
+];
+const K = ARCH.length, SIG = .065, N = 120, TAU = .9, GENS = 12;
+const reward = x => Math.exp(-((x[0] - .64) ** 2 + (x[1] - .42) ** 2) / (2 * .2 ** 2));
+
+const PAPERS = {
+  mad:[["Self-Consuming Generative Models Go MAD","ICLR 2024 · the problem: synthetic-only loops lose quality or diversity; cherry-picking speeds the diversity loss","https://arxiv.org/abs/2307.01850"],
+       ["On the Stability of Iterative Retraining of Generative Models on their own Data","ICLR 2024 spotlight · stable only with a good start and a large enough real share","https://arxiv.org/abs/2310.00429"],
+       ["AI models collapse when trained on recursively generated data","Nature 2024 · the tails disappear first","https://www.nature.com/articles/s41586-024-07566-y"]],
+  real:[["Is Model Collapse Inevitable? Breaking the Curse of Recursion by Accumulating Real and Synthetic Data","COLM 2024 · accumulate, never replace: error stays bounded","https://arxiv.org/abs/2404.01413"],
+        ["Collapse or Thrive? Perils and Promises of Synthetic Data in a Self-Generating World","NeurIPS 2024 workshops · replace collapses, accumulate is stable","https://arxiv.org/abs/2410.16713"],
+        ["A Tale of Tails: Model Collapse as a Change of Scaling Laws","ICML 2024 · mixing real data restores the scaling trend","https://arxiv.org/abs/2402.07043"],
+        ["A Theoretical Perspective: How to Prevent Model Collapse in Self-consuming Training Loops","ICLR 2025 · architecture and real share decide convergence","https://arxiv.org/abs/2502.18865"]],
+  curate:[["Self-Consuming Generative Models with Curated Data Provably Optimize Human Preferences","NeurIPS 2024 spotlight · curation = implicit preference optimisation: reward rises, its biases are amplified","https://arxiv.org/abs/2407.09499"],
+          ["Self-Consuming Generative Models with Adversarially Curated Data","ICML 2025 · when the curator is noisy or adversarial","https://arxiv.org/abs/2505.09768"]],
+  verify:[["Beyond Model Collapse: Scaling Up with Synthesized Data Requires Verification","ICLR 2025 · a verifier that ranks well prevents collapse","https://arxiv.org/abs/2406.07515"],
+          ["Escaping Model Collapse via Synthetic Data Verification: Near-Term Improvements and Long-Term Convergence","ICLR 2026 (OpenReview PDF: DATA-FM workshop) · converges to the verifier's knowledge centre","https://arxiv.org/abs/2510.16657"],
+          ["Self-Correcting Self-Consuming Loops for Generative Model Training","ICML 2024 · correct samples before retraining","https://arxiv.org/abs/2402.07087"],
+          ["Stabilizing Self-Consuming Diffusion Models with Latent Space Filtering","AAAI 2026 · filter out less realistic samples","https://arxiv.org/abs/2511.12742"]],
+  neon:[["Neon: Negative Extrapolation From Self-Training Improves Image Generation","ICLR 2026 oral · fine-tune on own samples, then extrapolate the weights away; ~1k samples, < 1% compute","https://arxiv.org/abs/2510.03597"],
+        ["Self-Improving Diffusion Models with Synthetic Data (SIMS)","ICLR 2025 workshop · a model of the synthetic data used as negative guidance at sampling time","https://arxiv.org/abs/2408.16333"],
+        ["Guiding a Diffusion Model with a Bad Version of Itself","NeurIPS 2024 · related: guide away from a weaker copy","https://arxiv.org/abs/2406.02507"]],
+};
+const STRATS = [
+  {id:"mad", label:"Synthetic only", what:"Each round trains only on the last round's samples. Every archetype narrows round after round, and a small archetype that drifts to zero never comes back. Try a new seed: whether one dies within twelve rounds is luck; the narrowing is not."},
+  {id:"real", label:"Keep real teams in", what:"Each round trains on half fresh samples, half real meta teams. The real half pulls the model back every round, so nothing is forgotten."},
+  {id:"curate", label:"Curate by reward", what:"Each round keeps only the highest-reward third of three times as many samples. Reward climbs fast, but the model narrows onto whatever the reward favours and the rest dies."},
+  {id:"verify", label:"Verify with noisy battles + real teams", what:"Selection by a noisy verifier, plus half real teams. Reward climbs more slowly and diversity is held; the model drifts toward what the verifier likes, not toward the truth."},
+  {id:"neon", label:"Negative signal (Neon / SIMS)", what:"A base model that slightly over-favours common archetypes is fine-tuned on its own samples, which makes it worse; moving the weights the opposite way repairs it. SIMS applies the same idea at sampling time."},
+];
+
+// ---------------- seeded randomness and the toy model
+let seed = 7;
+function rng(s){ return () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let R = rng(seed);
+const gauss = () => { let u = 0, v = 0; while (!u) u = R(); v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const pick = w => { let r = R(), a = 0; for (let k = 0; k < w.length; k++) { a += w[k]; if (r <= a) return k; } return w.length - 1; };
+const realModel = () => ({w:ARCH.map(a => a.w), mu:ARCH.map(a => a.mu.slice()), s:ARCH.map(() => SIG)});
+function sample(m, n, tau = 1){ const out = []; for (let i = 0; i < n; i++) { const k = pick(m.w);
+  out.push({k, x:[m.mu[k][0] + m.s[k] * tau * gauss(), m.mu[k][1] + m.s[k] * tau * gauss()]}); } return out; }
+function fit(data, prev){ const c = Array(K).fill(0), mu = ARCH.map(() => [0, 0]), ss = Array(K).fill(0);
+  for (const d of data) { c[d.k]++; mu[d.k][0] += d.x[0]; mu[d.k][1] += d.x[1]; }
+  for (let k = 0; k < K; k++) if (c[k]) { mu[k][0] /= c[k]; mu[k][1] /= c[k]; }
+  for (const d of data) ss[d.k] += (d.x[0] - mu[d.k][0]) ** 2 + (d.x[1] - mu[d.k][1]) ** 2;
+  return {w:c.map(v => v / data.length), mu:mu.map((m, k) => c[k] ? m : prev.mu[k]), s:ss.map((v, k) => c[k] > 1 ? Math.sqrt(v / (2 * (c[k] - 1))) : (c[k] ? .004 : 0))}; }
+function metrics(m){ const xs = sample(m, 400);
+  const alive = m.w.map((w, k) => w > .03 ? k : -1).filter(k => k >= 0);
+  return {cov:alive.length, spr:alive.reduce((a, k) => a + m.s[k], 0) / Math.max(alive.length, 1) / SIG,
+          rew:xs.reduce((a, d) => a + reward(d.x), 0) / xs.length}; }
+function step(m, id){
+  if (id === "mad") return fit(sample(m, N, TAU), m);
+  if (id === "real") return fit([...sample(m, N / 2, TAU), ...sample(realModel(), N / 2)], m);
+  if (id === "curate") return fit(sample(m, 3 * N, TAU).sort((a, b) => reward(b.x) - reward(a.x)).slice(0, N), m);
+  if (id === "verify") { const c = sample(m, 3 * N, TAU).map(d => ({...d, v:reward(d.x) + .25 * gauss()})).sort((a, b) => b.v - a.v).slice(0, N / 2);
+    return fit([...c, ...sample(realModel(), N / 2)], m); }
+}
+function runLoop(id){ R = rng(seed); let m = fit(sample(realModel(), 400), realModel()); const hist = [{m, ...metrics(m)}];
+  for (let g = 1; g <= GENS; g++) { m = step(m, id); hist.push({m, ...metrics(m)}); } return hist; }
+function runNeon(){ R = rng(seed);
+  const real = fit(sample(realModel(), 2000), realModel());
+  const sharpen = (w, p) => { const z = w.map(v => v ** p), t = z.reduce((a, b) => a + b, 0); return z.map(v => v / t); };
+  const base = {w:sharpen(real.w, 1.35), mu:real.mu, s:real.s.map(v => v * .86)};
+  const self = fit(sample(base, 3000, .86), base);
+  const W = 1.1, neon = {w:base.w.map((v, k) => Math.max(0, v + W * (v - self.w[k]))), mu:base.mu, s:base.s.map((v, k) => v + W * (v - self.s[k]))};
+  const t = neon.w.reduce((a, b) => a + b, 0); neon.w = neon.w.map(v => v / t);
+  return [base, self, neon].map(m => ({m, ...metrics(m)})); }
+let ALL = {};
+function computeAll(){ ALL = {}; for (const s of STRATS) ALL[s.id] = s.id === "neon" ? runNeon() : runLoop(s.id); }
+
+// ---------------- drawing
+const cv = document.getElementById("cv"), g = cv.getContext("2d"), box = document.getElementById("box");
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function drawModel(m){
+  const W = cv.width, H = cv.height; g.clearRect(0, 0, W, H);
+  R = rng(seed + 99); const pts = sample(m, 700);
+  for (const d of pts) { g.fillStyle = css("--a" + d.k); g.globalAlpha = .55; g.beginPath(); g.arc(d.x[0] * W, d.x[1] * H, 3, 0, 7); g.fill(); }
+  g.globalAlpha = 1;
+  ARCH.forEach((a, k) => { g.strokeStyle = css("--a" + k); g.setLineDash([4, 4]); g.lineWidth = 1.2;
+    g.beginPath(); g.arc(a.mu[0] * W, a.mu[1] * H, 2 * SIG * W, 0, 7); g.stroke(); g.setLineDash([]); });
+  ARCH.forEach((a, k) => document.getElementById("arch" + k).classList.toggle("dead", m.w[k] <= .03));
+}
+box.insertAdjacentHTML("beforeend", ARCH.map((a, k) => `<div class="arch" id="arch${k}" style="left:${a.mu[0] * 100}%;top:${(a.mu[1] - .12) * 100}%"><div class="pair">${a.mons.map(n => `<img src="${SP[n]}" alt="${n}">`).join("")}</div><span>${a.name}</span></div>`).join(""));
+function chart(svgId, key, max, upto, cur){
+  const svg = document.getElementById(svgId), X = i => 26 + i * (266 / GENS), Y = v => 80 - Math.min(v / max, 1) * 70;
+  let h = `<line class="ax" x1="26" y1="80" x2="292" y2="80"/><line class="ax" x1="26" y1="10" x2="26" y2="80"/>
+    <text class="axt" x="22" y="14" text-anchor="end">${max}</text><text class="axt" x="22" y="83" text-anchor="end">0</text>
+    <text class="axt" x="26" y="90">round 0</text><text class="axt" x="292" y="90" text-anchor="end">${GENS}</text>`;
+  for (const s of STRATS) { if (s.id === "neon") continue; const hist = ALL[s.id], on = s.id === cur;
+    const n = on ? upto : GENS; const d = hist.slice(0, n + 1).map((p, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(p[key]).toFixed(1)}`).join("");
+    h += `<path class="ln${on ? " on" : ""}" d="${d}"/>`;
+    if (on) h += `<circle class="dot" r="3.5" cx="${X(n)}" cy="${Y(hist[n][key])}"/>`; }
+  svg.innerHTML = h;
+}
+function neonBars(svgId, key, max, upto){
+  const svg = document.getElementById(svgId), h0 = ALL.neon, lab = ["base", "self-trained", "Neon"];
+  svg.innerHTML = h0.map((p, i) => { const w = Math.min(p[key] / max, 1) * 190;
+    return `<text class="axt" x="0" y="${22 + i * 26}">${lab[i]}</text><rect x="86" y="${12 + i * 26}" width="${i <= upto ? w : 0}" height="14" rx="3" fill="var(--${i === 2 ? "accent" : "ghost"})"/>
+      <text class="axt" x="${92 + (i <= upto ? w : 0)}" y="${23 + i * 26}">${i <= upto ? p[key].toFixed(2) : ""}</text>`; }).join("");
+}
+
+// ---------------- playback
+let cur = "mad", runId = 0;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function setMetrics(p){ document.getElementById("vCov").textContent = `${p.cov} of ${K}`;
+  document.getElementById("vSpr").textContent = `${(p.spr * 100).toFixed(0)}%`; document.getElementById("vRew").textContent = p.rew.toFixed(3); }
+async function play(){
+  const id = ++runId, S = STRATS.find(s => s.id === cur);
+  document.getElementById("what").textContent = S.what;
+  document.getElementById("neonSteps").classList.toggle("on", cur === "neon");
+  document.getElementById("papers").innerHTML = PAPERS[cur].map(([t, m, u]) => `<div class="paper"><a href="${u}" target="_blank" rel="noopener">${t}</a><span class="m">🟢 · ${m}</span></div>`).join("");
+  if (cur === "neon") {
+    document.getElementById("genLab").textContent = "step of the Neon repair";
+    for (let i = 0; i < 3 && id === runId; i++) {
+      const p = ALL.neon[i]; drawModel(p.m); setMetrics(p); document.getElementById("gen").textContent = i + 1;
+      ["n0","n1","n2"].forEach((n, j) => document.getElementById(n).classList.toggle("on", j === i));
+      neonBars("chCov", "cov", K, i); neonBars("chSpr", "spr", 1.2, i); neonBars("chRew", "rew", 1, i);
+      await wait(reduce ? 0 : 1700);
+    }
+    return;
+  }
+  document.getElementById("genLab").textContent = "round of retraining";
+  const hist = ALL[cur];
+  for (let gi = 0; gi <= GENS && id === runId; gi++) {
+    const p = hist[gi]; drawModel(p.m); setMetrics(p); document.getElementById("gen").textContent = gi;
+    chart("chCov", "cov", K, gi, cur); chart("chSpr", "spr", 1.2, gi, cur); chart("chRew", "rew", 1, gi, cur);
+    if (!reduce) await wait(gi === 0 ? 900 : 650); else if (gi < GENS) continue;
+  }
+}
+document.getElementById("tabs").innerHTML = STRATS.map(s => `<button type="button" id="t-${s.id}" aria-pressed="${s.id === cur}">${s.label}</button>`).join("");
+STRATS.forEach(s => document.getElementById("t-" + s.id).addEventListener("click", () => {
+  cur = s.id; STRATS.forEach(t => document.getElementById("t-" + t.id).setAttribute("aria-pressed", t.id === cur));
+  document.getElementById("pTitle").textContent = `The papers behind "${s.label}"`; play(); }));
+document.getElementById("play").addEventListener("click", play);
+document.getElementById("reseed").addEventListener("click", () => { seed = (Math.random() * 1e9) | 0; computeAll(); play(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) runId++; });
+computeAll();
+document.getElementById("pTitle").textContent = `The papers behind "${STRATS[0].label}"`;
+play();
+</script>

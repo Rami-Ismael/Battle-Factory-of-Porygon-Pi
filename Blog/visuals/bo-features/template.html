@@ -1,0 +1,791 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Not a Benchmark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script type="module">import 'https://cdn.jsdelivr.net/npm/number-flow@0.6.2/+esm';</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same Distill article system as team-preview-figure: one reading column, figures set into the prose,
+   margin notes in a right gutter, numbered grey captions, reader-driven controls. Tokens extended, not forked:
+   --you = VGC, --them = broken / the benchmarks' contrast, --back = the third state. */
+:root{
+  --bg:#FFFFFF; --ink:#1F2328; --body:#2E3338; --muted:#6A7178; --faint:#9AA1A8; --rule:#E3E6EA; --panel:#F6F7F9;
+  --you:#0E7C7B; --you-soft:#E3F2F1; --them:#B23A5A; --them-soft:#F7E6EB; --back:#B7791F; --back-soft:#F7EEDD; --cell:#E5E8EC;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);          /* ease-out: things entering */
+  --ease-move:cubic-bezier(0.77,0,0.175,1);    /* ease-in-out: things moving on screen */
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+    --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+  --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--body);font:17px/1.7 var(--sans);margin:0;-webkit-font-smoothing:antialiased}
+.page{display:grid;grid-template-columns:minmax(16px,1fr) minmax(0,660px) minmax(16px,240px) minmax(16px,1fr);column-gap:32px;padding-block:48px 80px}
+.page > *{grid-column:2}
+.wide{grid-column:2 / 4}
+aside{grid-column:3;font-size:13px;line-height:1.55;color:var(--muted);align-self:start;border-top:1px solid var(--rule);padding-top:6px;margin-top:6px}
+aside b{color:var(--ink);font-weight:600}
+h1{font:700 clamp(34px,5vw,46px)/1.12 var(--sans);color:var(--ink);margin:0 0 10px;letter-spacing:-0.015em;text-wrap:balance}
+.dek{font-size:20px;line-height:1.5;color:var(--muted);margin:0 0 24px;max-width:36em}
+.byline{display:flex;flex-wrap:wrap;gap:6px 36px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding-block:12px;margin-bottom:28px;font-size:13px;color:var(--muted)}
+.byline b{display:block;font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+h2{font:600 26px/1.3 var(--sans);color:var(--ink);margin:48px 0 4px;text-wrap:balance}
+h2 + .sub{font-size:15px;color:var(--muted);margin:0 0 18px}
+h3{font:600 19px/1.35 var(--sans);color:var(--ink);margin:30px 0 6px}
+p{margin:0 0 18px}
+.term{font-weight:600;color:var(--ink)}
+.math{font-family:var(--mono);font-size:.92em;white-space:nowrap;color:var(--ink)}
+.toc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:4px 0 26px}
+.toc a{display:block;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;text-decoration:none;color:var(--body);font-size:13.5px;line-height:1.45;transition:border-color 160ms ease}
+.toc a b{display:block;color:var(--ink);font-size:14.5px;margin-bottom:2px}
+.toc a span{font:600 10.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+@media (hover:hover) and (pointer:fine){ .toc a:hover{border-color:var(--ink)} }
+figure{margin:12px 0 30px;display:grid;gap:12px}
+.fig{background:var(--panel);border-radius:6px;padding:18px;display:grid;gap:14px;min-width:0}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);max-width:44em}
+figcaption b{color:var(--ink);font-weight:600}
+.lab{font:600 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.ctrl label{font:600 11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--you)}
+button{font:500 13px/1 var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:7px 12px;min-height:34px;cursor:pointer;transition:transform 120ms var(--ease),border-color 160ms ease,background-color 160ms ease}
+button:active{transform:scale(0.97)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.read{font-size:14.5px;color:var(--ink);line-height:1.55;margin:0;min-height:1.6em}
+.read .y{color:var(--you);font-weight:600} .read .t{color:var(--them);font-weight:600} .read .b{color:var(--back);font-weight:600}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+/* predict-before-reveal */
+.predict{border:1px solid var(--rule);border-radius:8px;padding:14px 16px;display:grid;gap:10px;margin:4px 0 14px}
+.predict .q{font-weight:600;color:var(--ink);font-size:15.5px}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choices button.right{background:var(--you-soft);border-color:var(--you)}
+.choices button.wrong{background:var(--them-soft);border-color:var(--them)}
+.choices .skip{border-style:dashed;color:var(--muted)}
+.verdict{font-size:15px;line-height:1.55;color:var(--ink);margin:0}
+.verdict:empty{display:none}
+.gated{transition:filter 400ms var(--ease),opacity 400ms var(--ease)}
+.gated.veiled{filter:blur(6px);opacity:.35;pointer-events:none;user-select:none}
+/* team strip */
+.team{display:flex;gap:2px;align-items:center}
+.team img,.team .ph{width:34px;height:34px;image-rendering:pixelated;flex:none}
+.team .ph{display:grid;place-items:center;font:600 12px var(--mono);color:var(--faint);background:var(--cell);border-radius:4px}
+.team6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.mon{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:6px 4px;display:grid;justify-items:center;gap:0;min-width:0;position:relative;transition:border-color 200ms ease,background-color 200ms ease,opacity 200ms ease}
+.mon img{width:52px;height:52px;image-rendering:pixelated}
+/* row 1 — crossfade: the replaced Pokémon fades out while the real replacement fades in, in the same spot */
+.mon .pic{position:relative;display:grid;place-items:center}
+.mon .pic > *{grid-area:1/1;transition:opacity 200ms var(--ease),transform 200ms var(--ease)}
+.mon .pic .in{opacity:0;transform:scale(0.95)}
+.mon.gone .pic .out{opacity:0;transform:scale(0.95)}
+.mon.gone .pic .in{opacity:1;transform:none}
+.mon .nm{font-size:11.5px;line-height:1.25;color:var(--ink);text-align:center;font-weight:500}
+.mon .tag{font:600 9.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--back);min-height:11px;margin-top:3px}
+.mon.hit{border-color:var(--back);background:var(--back-soft)}
+.mon.all{border-color:var(--back)}
+/* fig 1: unit glyphs */
+.units{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:2px;max-width:640px}
+.units i{display:block;aspect-ratio:1;border-radius:1.5px;background:var(--cell);transition:background-color 220ms ease}
+.units i.ok{background:var(--you)} .units i.item{background:var(--them)} .units i.spc{background:var(--back)} .units i.bad{background:var(--them);opacity:.55}
+.units.pop i{animation:pop 260ms var(--ease) both}
+@keyframes pop{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+.key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.key span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.cmp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 12px;align-items:center;font-size:13px}
+.cmp .bar{height:8px;background:var(--cell);border-radius:4px;overflow:hidden}
+.cmp .bar i{display:block;height:100%;background:var(--c,var(--faint));transform-origin:left;transition:transform 300ms var(--ease-move)}
+.cmp .v{font:12px var(--mono);color:var(--muted);text-align:right}
+.cmp .me{color:var(--ink);font-weight:600}
+/* fig 2: log bars */
+.logbars{display:grid;grid-template-columns:minmax(120px,auto) minmax(0,1fr);gap:7px 12px;align-items:center;font-size:13px}
+.logbars .track{position:relative;height:18px}
+.logbars .fill{position:absolute;inset:0;background:var(--faint);border-radius:3px;transform-origin:left;transition:transform 300ms var(--ease-move)}
+.logbars .me .fill{background:var(--you)}
+.logbars .ghost{position:absolute;inset:0;border:1px dashed var(--you);border-radius:3px;transform-origin:left;opacity:.6}
+.logbars .lbl{position:absolute;top:0;font:12px/18px var(--mono);color:var(--ink);padding-left:6px;white-space:nowrap;transition:transform 300ms var(--ease-move)}
+.logbars .lbl.in{color:var(--bg);padding:0 6px 0 0}
+.logbars .nm{color:var(--muted)} .logbars .nm.me{color:var(--ink);font-weight:600}
+.axis{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--faint);grid-column:2}
+.checks{display:grid;gap:6px}
+.checks label{display:flex;gap:8px;align-items:baseline;font-size:14px;color:var(--ink);cursor:pointer}
+.checks input{accent-color:var(--you)}
+/* fig 3: noise dial */
+.dial{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 14px;align-items:center}
+.dial .scale{position:relative;height:30px}
+.dial .zone{position:absolute;top:0;bottom:0;left:0;right:0}
+.dial .ci{position:absolute;top:11px;height:8px;width:100%;left:0;background:var(--c);opacity:.28;border-radius:4px;transform-origin:left;transition:transform 220ms var(--ease-move)}
+.dial .pt{position:absolute;top:8px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--c);border:2px solid var(--bg)}
+.dial .grid50{position:absolute;top:0;bottom:0;width:1px;background:var(--rule)}
+.dial .best{position:absolute;top:-4px;bottom:-4px;width:0;border-left:1px dashed var(--ink);opacity:.45}
+.dial .tix{grid-column:2;position:relative;height:16px;font:11px var(--mono);color:var(--faint)}
+.dial .tix span{position:absolute;transform:translateX(-50%)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
+.stat b{display:block;font:600 20px/1.2 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);line-height:1.4;display:block}
+/* fig 4: edit types */
+.rho{position:relative;height:74px;margin:0 8px}
+.rho .ln{position:absolute;left:0;right:0;top:36px;height:1px;background:var(--rule)}
+.rho .tk{position:absolute;top:22px;left:0;height:28px;width:0;border-left:1px solid var(--faint);transition:transform 240ms var(--ease-move)}
+.rho .tk span{position:absolute;top:30px;left:0;transform:translateX(-50%);font:10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.rho .tk.up span{top:-18px;color:var(--ink);transform:translateX(-85%)}
+.rho .band{position:absolute;top:30px;height:12px;left:0;width:100%;background:var(--you);opacity:.22;border-radius:6px;transform-origin:left;transition:transform 240ms var(--ease-move)}
+.rho .dot{position:absolute;top:29px;left:0;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--you);border:2px solid var(--bg);transition:transform 240ms var(--ease-move)}
+.rho .ax{position:absolute;bottom:-4px;font:10.5px var(--mono);color:var(--faint);transform:translateX(-50%)}
+.hund{display:grid;grid-template-columns:repeat(25,minmax(0,1fr));gap:2px;max-width:420px}
+.hund i{display:block;aspect-ratio:1;border-radius:1.5px;background:var(--cell);transition:background-color 200ms ease}
+.hund i.on{background:var(--you)} .hund i.rep{box-shadow:inset 0 0 0 1.5px var(--faint)}
+/* fig 5: stacked */
+.stack{display:grid;grid-template-columns:minmax(130px,auto) minmax(0,1fr) 4.5em;gap:7px 12px;align-items:center;font-size:13px}
+.stack .track{position:relative;height:16px;overflow:hidden;border-radius:3px;background:var(--cell)}
+.stack .s{position:absolute;inset:0;transform-origin:left;transition:transform 420ms var(--ease-move),opacity 300ms ease}
+.stack .s1{background:var(--faint)} .stack .s2{background:var(--you)} .stack .s3{background:var(--back)}
+.stack .me{color:var(--ink);font-weight:600}
+.stack .v{font:12px var(--mono);color:var(--muted);text-align:right}
+.stack .axis{grid-column:2;display:grid}
+.stack .axl{grid-area:1/1;display:flex;justify-content:space-between;transition:opacity 200ms var(--ease)}
+.stack .axl.off{opacity:0}
+/* fig 6: climbs */
+.climbs{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 12px;align-items:center}
+.ticks{display:flex;gap:2px;flex-wrap:nowrap;min-width:0}
+.ticks i{flex:1 1 0;max-width:7px;height:16px;border-radius:1.5px;background:var(--cell);transition:background-color 120ms ease}
+.ticks i.no{background:var(--faint);opacity:.55} .ticks i.yes{background:var(--you)}
+.climbs .v{font:12px var(--mono);color:var(--muted);white-space:nowrap}
+.chip{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:5px 7px;border-radius:999px;white-space:nowrap}
+.chip.differs{background:var(--you-soft);color:var(--you)}
+.chip.same{background:var(--cell);color:var(--muted)}
+.chip.unknown{background:var(--back-soft);color:var(--back)}
+/* ── Variant 1: Scorecard ── */
+.sc{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.2fr) minmax(0,1.3fr) auto;font-size:13.5px;line-height:1.45}
+.sc .gh{grid-column:1/-1;display:flex;align-items:baseline;gap:10px;padding:16px 0 6px;border-bottom:1px solid var(--ink)}
+.sc .gh b{font:600 15px var(--sans);color:var(--ink)} .sc .gh span{font-size:12.5px;color:var(--muted)}
+.sc .hd{font:600 10.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:0 10px 6px 0}
+.sc .row{display:contents}
+.sc .row > *{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule);cursor:pointer}
+.sc .row .nm{color:var(--ink);font-weight:500}
+.sc .row .vg{color:var(--ink)}
+.sc .row .bn{color:var(--muted)}
+.sc .row .ch{text-align:right;padding-right:0}
+.sc .row:focus-visible > *{background:var(--bg)}
+.sc .row[aria-expanded="true"] > *{border-bottom-color:transparent}
+.sc .more{grid-column:1/-1;display:grid;grid-template-rows:0fr;transition:grid-template-rows 200ms var(--ease)}
+.sc .more > div{overflow:hidden}
+.sc .more p{margin:0;padding:0 0 12px;font-size:13.5px;color:var(--body);border-bottom:1px solid var(--rule)}
+.sc .row[aria-expanded="true"] + .more{grid-template-rows:1fr}
+@media (hover:hover) and (pointer:fine){ .sc .row:hover > *{background:color-mix(in srgb,var(--bg) 60%,transparent)} }
+.tally{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+
+.sc .more a{color:var(--you);font-weight:500;text-decoration:none;white-space:nowrap}
+@media (max-width:640px){
+  .sc{grid-template-columns:minmax(0,1fr) auto}
+  .sc .hd:nth-child(n+2):nth-child(-n+3),.sc .row .bn{display:none}
+  .sc .row .vg{grid-column:1;padding-top:0}
+  .sc .row .nm{grid-column:1} .sc .row .ch{grid-row:span 2}
+}
+@media (prefers-reduced-motion:reduce){ .sc .more{transition:none} }
+.notes{border-top:1px solid var(--rule);margin-top:24px;padding-top:12px;font-size:13px;color:var(--muted)}
+.notes ol{padding-left:1.2em;margin:0}
+@media (max-width:980px){
+  .page{grid-template-columns:16px minmax(0,1fr) 16px;column-gap:0}
+  .page > *,.wide,aside{grid-column:2}
+  aside{margin:-6px 0 18px}
+}
+@media (max-width:600px){
+  body{font-size:16px}
+  .toc{grid-template-columns:1fr}
+  .units{grid-template-columns:repeat(20,minmax(0,1fr))}
+  .mon img{width:38px;height:38px} .mon .nm{font-size:10px}
+  .team img,.team .ph{width:24px;height:24px}
+  .stats{grid-template-columns:1fr}
+  .logbars,.stack{grid-template-columns:minmax(84px,auto) minmax(0,1fr)} .stack .v{display:none}
+  .climbs{grid-template-columns:minmax(0,1fr)} .climbs .v{margin-bottom:8px}
+}
+number-flow{font-variant-numeric:tabular-nums}
+
+/* pick, then place (Figures 1 and 3) */
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(156px,1fr));gap:6px}
+.pick button{display:flex;gap:0;align-items:center;justify-content:center;padding:3px 4px;min-height:34px}
+.pick button img{width:24px;height:24px;image-rendering:pixelated}
+.pick button{border-radius:8px}
+.pick button[aria-pressed="true"]{background:var(--you-soft);border-color:var(--you)}
+.dial .mine{animation:none}
+.dial .mine.enter{animation:rise 200ms var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.dial .mk{position:absolute;top:0;width:0;height:0;margin-left:-7px;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid var(--ink);pointer-events:none}
+.dial .scale.mine{overflow:hidden}
+.dial .guess{position:absolute;inset:0;width:100%;margin:0;padding:0;opacity:0;cursor:ew-resize}
+.dial .guess:disabled{cursor:default}
+.dial .scale.mine:focus-within{outline:2px solid var(--ink);outline-offset:3px}
+.dial .scale.mine .pt{transition:opacity 200ms var(--ease),transform 200ms var(--ease)}
+.dial .scale.mine.pre .pt{opacity:0;transform:scale(0.9)}
+.dial .scale.mine.pre .ci{opacity:0}
+.pick button .id{font:10.5px var(--mono);margin-left:4px;color:var(--muted)}
+.place{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+@media (prefers-reduced-motion:reduce){ .dial .mine.enter{animation:none} }
+@media (max-width:600px){ .pick{grid-template-columns:repeat(2,minmax(0,1fr))} .pick button img{width:18px;height:18px} .pick button .id{display:none} }
+@media (prefers-reduced-motion:reduce){
+  .mon .pic > *{transform:none !important}
+  *,*::before,*::after{transition-property:opacity,background-color,border-color,color !important;animation:none !important}
+}
+</style>
+
+<article class="page">
+  <h1>Not a benchmark</h1>
+  <p class="dek">Bayesian optimisation papers test their methods on a short list of standard problems. Here is how Pokémon VGC team building compares with them, property by property, with the same measurement on both sides.</p>
+  <div class="byline wide">
+    <div><b>Objective <span class="math">f</span></b>win rate vs the top-50 Reg M-B meta teams</div>
+    <div><b>Battle policy</b>behaviour cloning, both sides</div>
+    <div><b>Compared with</b>contamination control, Ising, pest control, MaxSAT-60, LABS-50, Ackley-53, molecules</div>
+  </div>
+
+  <p>A search problem has three kinds of properties. Some describe the space before anything is scored, some describe how a score can be observed, and some describe how the score changes as you move. The table summarises all thirteen; the rest of the page takes them in order, one figure at a time.</p>
+  <figure class="wide" id="summary">
+    <div class="fig"><div class="sc" id="sc"></div><div class="tally" id="tally"></div></div>
+    <figcaption><b>Summary.</b> Thirteen properties, measured with the same statistic on VGC and on the collected Bayesian optimisation benchmarks. Click a row for what it means and where its figure is.</figcaption>
+  </figure>
+  <nav class="toc wide" aria-label="Property groups">
+    <a href="#space"><span>Group 1</span><b>Search space</b>what a team is, before any win rate</a>
+    <a href="#eval"><span>Group 2</span><b>Evaluation</b>how <span class="math">f</span> can be observed</a>
+    <a href="#land"><span>Group 3</span><b>Landscape</b>the shape of <span class="math">f</span> over the space, given an edit</a>
+  </nav>
+
+  <!-- ───────── GROUP 1 ───────── -->
+  <h2 id="space">1 · Search space</h2>
+  <p class="sub">What a team is, before any win rate.</p>
+
+  <h3>Most random teams are illegal</h3>
+  <p>Every benchmark on the list accepts any input: flip any of the 25 bits of contamination control and you still have a valid query. A team does not work that way. Each Pokémon's ability, item and moves must come from what that species can legally have, and two clauses act across the whole team: no two Pokémon of the same species, no two holding the same item.</p>
+
+  <div class="predict" id="p1">
+    <div class="q">Fill every field of a team at random, 2,000 times. How many come out legal? Drag to place your guess.</div>
+    <div class="ctrl"><input type="range" id="g1" min="0" max="2000" step="10" value="1000" aria-label="Your guess: legal teams out of 2,000"><span class="num" id="g1v" style="min-width:5ch">1,000</span></div>
+    <div class="choices"><button id="go1">Reveal</button><button class="skip" id="sk1">Just show me</button></div>
+    <p class="verdict" aria-live="polite"></p>
+  </div>
+
+  <figure class="wide gated veiled" id="f1">
+    <div class="fig">
+      <div class="seg" role="group" aria-label="How the team is drawn">
+        <button data-k="uniform" aria-pressed="true">Every field at random</button>
+        <button data-k="member" aria-pressed="false">Each Pokémon from its own legal options</button>
+        <button data-k="clauses" aria-pressed="false">…and the team clauses while drawing</button>
+      </div>
+      <div class="units" id="units" aria-hidden="true"></div>
+      <div class="key">
+        <span style="--c:var(--you)">legal</span>
+        <span style="--c:var(--them)">two Pokémon hold the same item</span>
+        <span style="--c:var(--back)">same species twice</span>
+        <span style="--c:color-mix(in srgb,var(--them) 55%,transparent)">an illegal field</span>
+      </div>
+      <p class="read" id="r1" aria-live="polite"></p>
+      <div class="lab">Same test on a molecule benchmark</div>
+      <div class="cmp" id="cmp1"></div>
+    </div>
+    <figcaption><b>Figure 1.</b> Each square is 1 of 2,000 random draws (the third encoding was run on 500 draws and is shown at the same rate). Picking every field independently never gave a legal team. Drawing each Pokémon from its own legal options fixes most of it; the failures that remain are the team-level clauses, which concern <em>pairs</em> of Pokémon. The molecule string encodings show the same pattern: random SMILES characters are never valid, the SELFIES grammar is always valid.</figcaption>
+  </figure>
+  <aside><b>Known and cheap.</b> Unlike the one collected benchmark with black-box constraints (welded beam), a team's legality is checked by a fast, exact validator. The problem is the encoding, not the check.</aside>
+
+  <h3>The space is huge, and most of the size is padding</h3>
+  <p>The largest combinatorial benchmark in the set has about 10<sup>18</sup> points. A VGC team has 84 fields and up to 10<sup>112</sup> combinations. Two adjustments shrink that, and the reader can apply both.</p>
+
+  <figure class="wide" id="f2">
+    <div class="fig">
+      <div class="checks">
+        <label><input type="checkbox" id="c-sym"> Count each team once, whatever order its Pokémon and their moves are listed in</label>
+        <label><input type="checkbox" id="c-sp"> Hold the Stat Point spreads fixed (their edits stay inside battle noise; Figure 4)</label>
+      </div>
+      <div class="logbars" id="bars2"></div>
+      <p class="read" id="r2" aria-live="polite"></p>
+    </div>
+    <figcaption><b>Figure 2.</b> Size of each search space, as the number of digits in its point count (log<sub>10</sub>). The dashed outline keeps the full VGC count in view after an adjustment. One team can be written 6!·(4!)<sup>6</sup> ≈ 1.4 × 10<sup>11</sup> ways; Stat Point allocations supply 10<sup>8.1</sup> of each Pokémon's 10<sup>16.7</sup> configurations.</figcaption>
+  </figure>
+  <aside><b>Neighbours.</b> A one-bit benchmark has 24–100 single-edit neighbours. A VGC team has 10<sup>8.9</sup> without replacing a whole Pokémon and 10<sup>19.9</sup> with it, so no local search can try every edit.</aside>
+
+  <!-- ───────── GROUP 2 ───────── -->
+  <h2 id="eval">2 · Evaluation</h2>
+  <p class="sub">How <span class="math">f</span> can be observed.</p>
+
+  <h3>Noise is a dial you set, and it costs time</h3>
+  <p>Ten of the eleven benchmark implementations measured here return the same number every time you ask. A team's win rate is an average of battles, each one a coin flip weighted by the team's strength, so every score comes with binomial noise of variance <span class="math">p(1 − p)/n</span>. The experimenter chooses <span class="math">n</span>, and pays for it in seconds.</p>
+
+  <figure class="wide" id="f3">
+    <div class="fig">
+      <div class="lab">Your turn: pick a team, drag ▼ to where you think it scores, then reveal</div>
+      <div class="pick" id="pick3" role="group" aria-label="Pick a team to test"></div>
+      <div class="lab" style="text-transform:none;letter-spacing:0">Teams that look alike are the same six Pokémon with different moves, items and Stat Points.</div>
+      <div class="ctrl">
+        <label for="n3">Battles per team</label>
+        <input type="range" id="n3" min="0" max="7" step="1" value="0" aria-describedby="r3">
+        <span class="num" id="n3v" style="min-width:4ch;color:var(--ink);font-weight:600"></span>
+      </div>
+      <div class="dial" id="dial"></div>
+      <div class="stats">
+        <div class="stat"><b><number-flow id="s-noise"></number-flow></b><span>share of the spread between teams that is noise</span></div>
+        <div class="stat"><b><number-flow id="s-cost"></number-flow></b><span>to score one team (50 battles/s, 12 cores)</span></div>
+        <div class="stat"><b id="s-bench">0.01–1.7 ms</b><span>to score one point on any measured benchmark, noise 0</span></div>
+      </div>
+      <div class="place" id="go3" hidden><button id="rev3">Reveal</button><span class="read" id="g3v" aria-live="polite"></span></div>
+      <p class="read" id="r3" aria-live="polite"></p>
+    </div>
+    <figcaption><b>Figure 3.</b> Pick any of the other 20 teams to test your own guess. Four teams scored against all 50 meta teams, with 95% intervals for the chosen number of battles. The dots are fixed at each team's 2,400-battle score; only the uncertainty changes. The dashed line is the best known team. The noise share uses the between-team variance implied by the measured share of 0.061 at 384 battles.</figcaption>
+  </figure>
+  <aside><b>No known optimum.</b> MaxSAT-60, LABS-50 and Ackley-53 have known best values, so papers report regret. VGC has none and no bound below 1.0. What it has instead is a bar: the best human-built team, which the search has not beaten.</aside>
+  <aside><b>Stationary, for now.</b> Ranking 176 teams against the June meta teams or the August ones agrees at Spearman 0.904; two random halves of the same opponents agree at 0.908. Within one regulation, no measurable drift.</aside>
+
+  <!-- ───────── GROUP 3 ───────── -->
+  <h2 id="land">3 · Landscape</h2>
+  <p class="sub">The shape of <span class="math">f</span> over the space, given an edit operator.</p>
+
+  <h3>One edit, six kinds</h3>
+  <p>Smoothness depends on what counts as one step. For a bit string there is one kind of step. For a team there are six, and they behave very differently. The statistic <span class="math">ρ</span> asks how much one edit moves <span class="math">f</span> compared with jumping to an unrelated team, after removing battle noise: 1 is perfectly smooth, 0 is no better than a random jump.</p>
+
+  <figure class="wide" id="f4">
+    <div class="fig">
+      <div class="seg" role="group" aria-label="Edit type" id="ops"></div>
+      <div class="seg" role="group" aria-label="Starting teams" id="starts">
+        <button data-s="meta" aria-pressed="true">Start from real meta teams</button>
+        <button data-s="search" aria-pressed="false">Start from search-found teams</button>
+      </div>
+      <div class="team6" id="t4"></div>
+      <div class="lab">Smoothness ρ, same statistic on every landscape</div>
+      <div class="rho" id="rho"></div>
+      <div class="key" id="benchlist"></div>
+      <div class="lab">Edits that moved win rate beyond battle noise <span id="pct4" class="num" style="color:var(--ink)"></span></div>
+      <div class="hund" id="hund" aria-hidden="true"></div>
+      <p class="read" id="r4" aria-live="polite"></p>
+    </div>
+    <figcaption><b>Figure 4.</b> 40 starting teams, three edits of each type, 384 battles per team. The band is the 95% interval for VGC's <span class="math">ρ</span>; ticks are the benchmarks at the matching start points. In the grid, filled squares are edits whose change cleared battle noise; outlined squares are the 8% that an unchanged team, battled again, also clears. Only replacing a whole Pokémon beats both noise and pest control.</figcaption>
+  </figure>
+  <aside><b>Which field matters depends on the team.</b> Among search-found teams, the ranking of edit types reproduces at the same team (0.28) and shifts between teams (gap −0.20, interval below zero). At real meta teams battle noise hides it. Every benchmark shows this shift too.</aside>
+
+  <h3>Pokémon work in pairs, and that is about it</h3>
+  <p>Take four edits around a team and try all 16 on/off combinations. The variation splits into what each edit does alone, what pairs do together, and what three or four do together.</p>
+
+  <figure class="wide" id="f5">
+    <div class="fig">
+      <div class="seg" role="group" aria-label="Zoom">
+        <button data-z="full" aria-pressed="true">Whole bar</button>
+        <button data-z="zoom" aria-pressed="false">Zoom on the interactions</button>
+      </div>
+      <div class="stack" id="stack"></div>
+      <div class="key">
+        <span style="--c:var(--faint)">single edits</span>
+        <span style="--c:var(--you)">pairs</span>
+        <span style="--c:var(--back)">three or more together</span>
+      </div>
+    </div>
+    <figcaption><b>Figure 5.</b> Share of variation by interaction order, random starts, corrected for noise. VGC's four edits are whole-Pokémon swaps. Its pair share, 11.6%, is the largest in the set; its three-or-more share, 1.3% [−0.1%, 2.6%], cannot be told from zero at this battle budget. VGC's four edits touch four of six team slots; the benchmarks' touch four of 24–60 coordinates.</figcaption>
+  </figure>
+
+  <h3>A hill climb that can barely take a step</h3>
+  <p>One way to count local optima is to run many hill climbs and count where they stop. The same climb ran on every landscape: propose a random single edit, accept it only if it is better, stop after 40 rejections in a row.</p>
+
+  <figure class="wide" id="f6">
+    <div class="fig">
+      <div class="ctrl"><button id="play6">Run the six climbs</button><span class="read" id="r6" aria-live="polite"></span></div>
+      <div class="climbs" id="climbs"></div>
+      <div class="lab">The benchmarks, 24 climbs each</div>
+      <div class="cmp" id="cmp6"></div>
+    </div>
+    <figcaption><b>Figure 6.</b> Six climbs from real meta teams, 196 battles per evaluated team. Each square is one proposed edit: grey rejected, teal accepted. At 196 battles an edit must beat its parent by about 0.10 win rate to count, so no climb took more than one step. The six endpoints are six starting points, not six local optima. On the benchmarks, converged climbs end on many different optima (contamination control: 24 endpoints from 24 climbs; Ising: 14).</figcaption>
+  </figure>
+
+  <div class="notes">
+    <ol>
+      <li>All VGC numbers: win rate against the top-50 Reg M-B meta teams, behaviour-cloning battle policy on both sides; battle counts are in each caption. The Figure 4 and 5 runs scored against 36 of the 50 files (a script bug since fixed); comparisons hold, absolute win rates are against 36 teams.</li>
+      <li>Benchmark numbers come from running each benchmark's reference code with the same statistic; molecule tasks have no fixed coordinates and are left out of Figures 4–6.</li>
+    </ol>
+  </div>
+</article>
+
+<script>
+const D = /*DATA*/null;
+/* ── Summary scorecard (the prototype's chosen variant) ── */
+const GROUPS = { space: ['Search space', 'what a team is, before any win rate'], eval: ['Evaluation', 'how f can be observed'], land: ['Landscape', 'the shape of f, given an edit'] };
+const VERDICT = { differs: 'VGC differs', same: 'within range', unknown: "can't tell" };
+
+/* Every value: Teaching/reference/bo-benchmark-derived-vgc-research-comparison.md, Versions 2–3. */
+const F = [
+  { g:'space', k:'legal', name:'Constraint type', bench:'every input valid; random SMILES 0%, SELFIES 100%', vgc:'0 of 2,000 random teams legal', v:'differs',
+    why:'Drawing each Pokémon from its own legal options gives 68% legal teams; the rest break the Item or Species Clause, which concern pairs of Pokémon. A per-token grammar like SELFIES cannot express that.' },
+  { g:'space', k:'size', name:'Size', bench:'10⁵·⁶ to 10¹⁸·¹ points', vgc:'up to 10¹¹² teams', v:'differs',
+    why:'Most of it is padding: Stat Point allocations supply 10⁸·¹ of each Pokémon\'s 10¹⁶·⁷ configurations, and those edits stay inside battle noise.' },
+  { g:'space', k:'nbr', name:'Single-edit neighbourhood', bench:'24 to 100 neighbours', vgc:'10⁸·⁹ to 10¹⁹·⁹ neighbours', v:'differs',
+    why:'A hill climb on a benchmark can try every neighbour. On a team it can only sample them.' },
+  { g:'space', k:'sym', name:'Encodings per point', bench:'1', vgc:'≈ 1.4 × 10¹¹ per team', v:'differs',
+    why:'Six Pokémon in any order, four moves each in any order: 6!·(4!)⁶. Unless the encoding is canonicalised, every team is counted that many times.' },
+  { g:'eval', k:'noise', name:'Noise', bench:'none in 10 of 11 implementations', vgc:'6% of variance at 384 battles, 51% at 24', v:'differs',
+    why:'Binomial with known variance p(1 − p)/n, and the experimenter sets n. Largest at p = 0.5, exactly where the best teams sit.' },
+  { g:'eval', k:'cost', name:'Evaluation cost', bench:'0.01 to 1.7 ms (docking ≈ 15 s)', vgc:'7.7 s at 384 battles', v:'differs',
+    why:'About 4,500 times the slowest measured benchmark, and tied to noise through the battle count, so budgets should be counted in battles.' },
+  { g:'eval', k:'opt', name:'Known optimum', bench:'known for MaxSAT-60, LABS-50, Ackley-53', vgc:'none; best known 0.691, built by a human', v:'differs',
+    why:'No regret can be computed. The bar is the best human-built team, which the search has not beaten (best found 0.611).' },
+  { g:'eval', k:'drift', name:'Stationarity', bench:'fixed per run', vgc:'no measurable drift, June to August', v:'same',
+    why:'Ranking 176 teams against June or August meta teams agrees at 0.904; random halves agree at 0.908. A new regulation is a different question.' },
+  { g:'land', k:'rho', name:'Smoothness ρ', bench:'0.93 to 0.998', vgc:'0.96 overall; 0.86 for species edits', v:'same',
+    why:'Inside the benchmark range overall, and far smoother than molecules (penalised logP −4.2). What is unusual is the mix: species edits are rough, Stat Point edits are flat.' },
+  { g:'land', k:'pairs', name:'Pair interactions', bench:'0% to 8.8% of variation', vgc:'11.6%, the largest in the set', v:'differs',
+    why:'Measured from four whole-Pokémon swaps and all 16 combinations. Three-or-more interactions, 1.3%, cannot be told from zero.' },
+  { g:'land', k:'cond', name:'Edit types beyond noise', bench:'every variable measurable', vgc:'1 of 6: replacing a whole Pokémon', v:'differs',
+    why:'Move, item, ability, alignment and Stat Point edits all stay inside battle noise at 384 battles, so local search below the species level is mostly blind.' },
+  { g:'land', k:'rel', name:'Relevance shifts by start', bench:'gap −0.22 to −0.98', vgc:'−0.20 among search-found teams', v:'same',
+    why:'Every benchmark shows it too. At real meta teams, battle noise hides it entirely.' },
+  { g:'land', k:'modes', name:'Multimodality', bench:'Ising: 14 ends from 24 climbs', vgc:'unmeasurable: no climb took a second step', v:'unknown',
+    why:'At 196 battles an edit must beat its parent by about 0.10 to be accepted. The six climbs ended where they started, plus at most one step.' },
+];
+const FIG = {"legal": "#f1", "size": "#f2", "nbr": "#f2", "sym": "#f2", "noise": "#f3", "cost": "#f3", "opt": "#f3", "drift": "#f3", "rho": "#f4", "cond": "#f4", "rel": "#f4", "pairs": "#f5", "modes": "#f6"};
+(() => {
+  const label = id => id === '#f2' ? 'Figure 2' : 'Figure ' + id.slice(2);
+  let h = '';
+  for (const g in GROUPS) {
+    h += `<div class="gh"><b>${GROUPS[g][0]}</b><span>${GROUPS[g][1]}</span></div>
+      <span class="hd">Property</span><span class="hd">Benchmarks</span><span class="hd">VGC</span><span class="hd"></span>`;
+    F.filter(f => f.g === g).forEach(f => {
+      h += `<div class="row" role="button" tabindex="0" aria-expanded="false"><span class="nm">${f.name}</span><span class="bn">${f.bench}</span><span class="vg">${f.vgc}</span><span class="ch"><span class="chip ${f.v}">${VERDICT[f.v]}</span></span></div>
+        <div class="more"><div><p>${f.why} <a href="${FIG[f.k]}">${label(FIG[f.k])} →</a></p></div></div>`;
+    });
+  }
+  document.getElementById('sc').innerHTML = h;
+  const n = v => F.filter(f => f.v === v).length;
+  document.getElementById('tally').innerHTML = `<span><span class="chip differs">VGC differs</span> ${n('differs')}</span><span><span class="chip same">within range</span> ${n('same')}</span><span><span class="chip unknown">can't tell</span> ${n('unknown')}</span>`;
+  document.querySelectorAll('#sc .row').forEach(r => {
+    const t = () => r.setAttribute('aria-expanded', r.getAttribute('aria-expanded') !== 'true');
+    r.addEventListener('click', t);
+    r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t(); } });
+  });
+})();
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const el = (t, cls, html) => { const e = document.createElement(t); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const sid = n => n.toLowerCase().replace(/[^a-z0-9]/g, '');
+function sprite(name, cls) {
+  const src = D.sprites[sid(name)];
+  if (!src) { const p = el('span', 'ph', name[0]); p.title = name; return p; }
+  const i = new Image(); i.src = src; i.alt = name; i.title = name; if (cls) i.className = cls; return i;
+}
+const nfFmt = o => new Intl.NumberFormat('en-US', o.format);
+function flow(e, v, o) {
+  if (customElements.get('number-flow') && typeof e.update === 'function') { Object.assign(e, o); e.update(v); }
+  else e.textContent = (o.numberPrefix || '') + nfFmt(o).format(v) + (o.numberSuffix || '');
+}
+const T_MOVE = (ms) => ({ duration: ms, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
+function teamStrip(species) { const t = el('div', 'team'); species.forEach(s => t.append(sprite(s))); return t; }
+function pressOne(group, btn) { group.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === btn)); }
+
+/* ── Figure 1: unit glyphs ── */
+(() => {
+  const N = 200, box = $('#units');
+  for (let i = 0; i < N; i++) box.append(el('i'));
+  // per 2,000: uniform 0 legal; per-member 1,354 legal, 435 Item Clause, 203 Species Clause, 8 other; clauses 471/500
+  const mixes = {
+    uniform: { ok: 0, item: 0, spc: 0, bad: 200 },
+    member:  { ok: 135, item: 44, spc: 20, bad: 1 },
+    clauses: { ok: 188, item: 0, spc: 0, bad: 12 },
+  };
+  const reads = {
+    uniform: '<span class="t">0 of 2,000</span> legal. Some field is always wrong for its species.',
+    member: '<span class="y">1,354 of 2,000</span> legal. Of the rest, <span class="t">435</span> break the Item Clause and <span class="b">203</span> the Species Clause.',
+    clauses: '<span class="y">471 of 500</span> legal. The 29 failures are errors in our own ability table, not the method.',
+  };
+  function show(k, animate) {
+    const m = mixes[k], cells = box.children; let i = 0;
+    for (const [c, n] of [['ok', m.ok], ['item', m.item], ['spc', m.spc], ['bad', m.bad]])
+      for (let j = 0; j < n; j++, i++) cells[i].className = c;
+    if (animate && !reduce) {
+      box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
+      [...cells].forEach((c, j) => c.style.animationDelay = (Math.floor(j / 40) * 50) + 'ms');  // row-by-row stagger, 50ms
+    }
+    $('#r1').innerHTML = reads[k];
+  }
+  const seg = $('#f1 .seg');
+  seg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pressOne(seg, b); show(b.dataset.k, false); });
+  show('uniform', false);
+  const cmp = $('#cmp1');
+  [['Random SMILES characters', 0, 'var(--them)'], ['Random SELFIES tokens', 1, 'var(--faint)'], ['Any binary benchmark', 1, 'var(--faint)']]
+    .forEach(([n, v, c]) => { cmp.append(el('span', '', n)); const b = el('div', 'bar'); const f = el('i'); f.style.setProperty('--c', c); f.style.transform = `scaleX(${v})`; b.append(f); cmp.append(b); cmp.append(el('span', 'v', v ? '100%' : '0%')); });
+  const g1 = $('#g1');
+  g1.addEventListener('input', () => { $('#g1v').textContent = (+g1.value).toLocaleString(); });
+  let done = false;
+  function reveal1(guess) {
+    $('#p1 .verdict').innerHTML = guess == null ? ''
+      : `You placed it at <b>${guess.toLocaleString()}</b>. The answer is <b>none</b> of 2,000: every one breaks at least one field.`;
+    $('#f1').classList.remove('veiled');
+    if (done) return; done = true;
+    g1.disabled = true; $('#go1').disabled = true;
+    show(seg.querySelector('[aria-pressed=true]').dataset.k, true);   // the reveal is a one-time moment: fill in row by row
+  }
+  $('#go1').addEventListener('click', () => reveal1(+g1.value));
+  $('#sk1').addEventListener('click', () => reveal1(null));
+})();
+
+/* ── Figure 2: log-size bars ── */
+(() => {
+  const MAX = 115;
+  const rows = [['NAS-Bench-101', 5.6], ['Ising sparsification', 7.2], ['Contamination control', 7.5], ['LABS-50', 15.1], ['Pest control', 17.5], ['Weighted MaxSAT-60', 18.1], ['VGC full team', 112, true]];
+  const box = $('#bars2'); let me;
+  // the VGC label sits inside its own bar's end, so it never runs past the page edge
+  const place = v => `translateX(calc(${(v / MAX) * 100}cqw - 100%))`;
+  rows.forEach(([n, v, isMe]) => {
+    const nm = el('span', 'nm' + (isMe ? ' me' : ''), n), tr = el('div', 'track' + (isMe ? ' me' : ''));
+    if (isMe) { const g = el('i', 'ghost'); g.style.transform = `scaleX(${v / MAX})`; tr.append(g); }
+    const f = el('i', 'fill'); f.style.transform = `scaleX(${v / MAX})`; tr.append(f);
+    const l = el('span', 'lbl' + (isMe ? ' in' : ''), `10<sup>${v}</sup>`); l.style.transform = isMe ? place(v) : `translateX(${(v / MAX) * 100}cqw)`; tr.style.containerType = 'inline-size'; tr.append(l);
+    box.append(nm, tr); if (isMe) me = { f, l };
+  });
+  const ax = el('div', 'axis'); [0, 20, 40, 60, 80, 100].forEach(t => ax.append(el('span', '', t))); box.append(el('span'), ax);
+  function upd() {
+    const sym = $('#c-sym').checked, sp = $('#c-sp').checked;
+    let v = 112 - (sym ? 11.1 : 0) - (sp ? 48.6 : 0);
+    me.f.style.transform = `scaleX(${v / MAX})`;
+    me.l.style.transform = place(v);
+    if (!me.nf) { me.l.innerHTML = '10<sup><number-flow></number-flow></sup>'; me.nf = me.l.querySelector('number-flow'); }
+    flow(me.nf, v, { format: { minimumFractionDigits: 1, maximumFractionDigits: 1 }, transformTiming: T_MOVE(300), spinTiming: T_MOVE(300) });
+    const parts = [];
+    if (sym) parts.push('removing duplicate listings takes off 11 digits');
+    if (sp) parts.push('fixing Stat Points takes off 49');
+    $('#r2').innerHTML = parts.length
+      ? `Still <span class="y">10<sup>${v.toFixed(0)}</sup></span>: ${parts.join(' and ')}, and VGC remains far larger than any benchmark (largest 10<sup>18</sup>).`
+      : 'Up to <span class="y">10<sup>112</sup></span> encodings, with the Species Clause applied and the Item Clause ignored.';
+  }
+  $('#c-sym').addEventListener('change', upd); $('#c-sp').addEventListener('change', upd); upd();
+  customElements.whenDefined('number-flow').then(upd);
+})();
+
+/* ── Figure 3: the noise dial ── */
+(() => {
+  const STOPS = [24, 48, 96, 192, 300, 384, 768, 2400];
+  const ids = ['MB607', 'MB373', 'S03', 'MB65'];
+  const colour = { MB607: 'var(--ink)', MB373: 'var(--faint)', S03: 'var(--you)', MB65: 'var(--faint)' };
+  const lo = 0.2, hi = 0.9, X = p => ((p - lo) / (hi - lo)) * 100;
+  const dial = $('#dial'), rows = [];
+  ids.forEach(id => {
+    const t = D.teams[id];
+    const left = el('div'); left.append(teamStrip(t.species));
+    left.append(el('div', 'lab', `${t.kind === 'meta' ? 'human-built' : 'search-found'} · ${t.p.toFixed(3)}`));
+    const sc = el('div', 'scale'); sc.style.setProperty('--c', colour[id]);
+    const g = el('i', 'grid50'); g.style.left = X(0.5) + '%'; sc.append(g);
+    const b = el('i', 'best'); b.style.left = X(D.teams.MB607.p) + '%'; sc.append(b);
+    const ci = el('i', 'ci'); sc.append(ci);
+    const pt = el('i', 'pt'); pt.style.left = X(t.p) + '%'; sc.append(pt);
+    dial.append(left, sc); rows.push({ t, ci });
+  });
+  // the reader's own row: hidden until a team is picked
+  const mineL = el('div', 'mine'), mineS = el('div', 'scale mine pre');
+  mineS.style.setProperty('--c', 'var(--ink)');
+  { const g = el('i', 'grid50'); g.style.left = X(0.5) + '%'; const b = el('i', 'best'); b.style.left = X(D.teams.MB607.p) + '%'; mineS.append(g, b); }
+  const mineCi = el('i', 'ci'), minePt = el('i', 'pt'), mk = el('i', 'mk');
+  const guess = el('input', 'guess'); Object.assign(guess, { type: 'range', min: lo, max: hi, step: 0.01, value: 0.55 });
+  guess.setAttribute('aria-label', 'Your guess for this team\'s win rate');
+  mineS.append(mineCi, minePt, mk, guess);
+  mineL.hidden = mineS.hidden = true;
+  dial.append(mineL, mineS);
+  const tix = el('div', 'tix'); [0.3, 0.5, 0.7, 0.9].forEach(v => { const s = el('span', '', v.toFixed(1)); s.style.left = X(v) + '%'; tix.append(s); });
+  dial.append(tix);
+  let mine = null, revealed = false;
+  const placeMk = () => { mk.style.left = X(+guess.value) + '%'; if (!revealed) $('#g3v').textContent = `Your guess: ${(+guess.value).toFixed(2)}`; };
+  guess.addEventListener('input', placeMk);
+  function pick(id, btn) {
+    mine = D.teams[id]; revealed = false;
+    $('#pick3').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === btn));
+    mineL.innerHTML = ''; mineL.append(teamStrip(mine.species), el('div', 'lab', `${mine.kind === 'meta' ? 'human-built' : 'search-found'} · your pick · ?`));
+    const first = mineS.hidden;
+    mineL.hidden = mineS.hidden = false; $('#go3').hidden = false;
+    if (first && !reduce) { mineL.classList.add('enter'); mineS.classList.add('enter'); }
+    mineS.classList.add('pre'); guess.disabled = false; $('#rev3').disabled = false;
+    minePt.style.left = X(mine.p) + '%';
+    mineCi.style.transform = `translateX(${X(mine.p)}%) scaleX(0)`;   // the interval grows out of the dot on reveal
+    placeMk(); guess.focus({ preventScroll: true });
+  }
+  $('#rev3').addEventListener('click', () => {
+    if (!mine) return;
+    revealed = true; mineS.classList.remove('pre'); guess.disabled = true; $('#rev3').disabled = true;
+    mineL.querySelector('.lab').textContent = `${mine.kind === 'meta' ? 'human-built' : 'search-found'} · ${mine.p.toFixed(3)}`;
+    upd();
+  });
+  const pickBox = $('#pick3');
+  Object.values(D.teams).filter(t => !ids.includes(t.id)).forEach(t => {
+    const b = el('button'); b.setAttribute('aria-pressed', 'false');
+    b.setAttribute('aria-label', `${t.kind === 'meta' ? 'Human-built' : 'Search-found'} team: ${t.species.join(', ')}`);
+    // sorted, so teams with the same six species look the same; the ID tells them apart
+    [...t.species].sort().forEach(sp => b.append(sprite(sp))); b.append(el('span', 'id', t.id));
+    b.addEventListener('click', () => pick(t.id, b)); pickBox.append(b);
+  });
+  const VARF = 0.25 * (1 - 0.061) / (384 * 0.061);  // between-team variance implied by noise share 0.061 at 384 battles
+  function upd() {
+    const n = STOPS[+$('#n3').value];
+    $('#n3v').textContent = n.toLocaleString();
+    rows.forEach(({ t, ci }) => {
+      const h = 1.96 * Math.sqrt(t.p * (1 - t.p) / n);
+      const a = Math.max(lo, t.p - h), z = Math.min(hi, t.p + h);
+      ci.style.transform = `translateX(${X(a)}%) scaleX(${(X(z) - X(a)) / 100})`;
+    });
+    const s2 = 0.25 / n;
+    const t = { transformTiming: T_MOVE(220), spinTiming: T_MOVE(220) };
+    flow($('#s-noise'), s2 / (s2 + VARF), { ...t, format: { minimumFractionDigits: 2, maximumFractionDigits: 2 } });
+    const sec = n / 50, d = sec < 10 ? 1 : 0;
+    flow($('#s-cost'), sec, { ...t, numberSuffix: ' s', format: { minimumFractionDigits: d, maximumFractionDigits: d } });
+    if (mine && revealed) {
+      const h = 1.96 * Math.sqrt(mine.p * (1 - mine.p) / n), a = Math.max(lo, mine.p - h), z = Math.min(hi, mine.p + h);
+      mineCi.style.transform = `translateX(${X(a)}%) scaleX(${(X(z) - X(a)) / 100})`;
+      const g = +guess.value, inside = Math.abs(g - mine.p) <= h;
+      $('#g3v').innerHTML = `You placed it at <b>${g.toFixed(2)}</b>; it scores <b>${mine.p.toFixed(3)}</b> over 2,400 battles. ` +
+        (inside ? `At ${n.toLocaleString()} battles your guess is <span class="y">inside its interval</span> (±${h.toFixed(3)}): the battles could not tell you apart.`
+                : `At ${n.toLocaleString()} battles your guess is <span class="t">outside its interval</span> (±${h.toFixed(3)}).`);
+    }
+    const a = D.teams.MB607.p, b = D.teams.S03.p;
+    const apart = (a - b) > 1.96 * Math.sqrt((a * (1 - a) + b * (1 - b)) / n);
+    $('#r3').innerHTML = apart
+      ? `At ${n.toLocaleString()} battles the <span class="y">search-found</span> team is reliably below the best human-built one.`
+      : `At ${n.toLocaleString()} battles the two best teams <span class="t">cannot be ranked</span>: their difference is inside the noise.`;
+  }
+  $('#n3').addEventListener('input', upd); upd();
+  customElements.whenDefined('number-flow').then(upd);
+})();
+
+/* ── Figure 4: six edit types ── */
+(() => {
+  const OPS = [
+    ['F_candidate_copy', 'Replace a whole Pokémon', 'all'],
+    ['A_move_swap', 'Swap one move', 'move'],
+    ['C_item_swap', 'Swap the item', 'item'],
+    ['B_ability_swap', 'Swap the ability', 'ability'],
+    ['D_alignment_swap', 'Change the stat alignment', 'alignment'],
+    ['E_spread_copy', 'Copy another Stat Point spread', 'stat points'],
+  ];
+  const BENCH = { meta: [['Ising', 0.93], ['Contam.', 0.96], ['LABS', 0.98], ['Pest', 0.99], ['MaxSAT', 0.995]],
+                  search: [['LABS', 0.67], ['Ising', 0.92], ['Contam.', 0.95], ['Pest', 0.99], ['MaxSAT', 0.999]] };
+  const TEAM = { meta: D.teams.MB373, search: D.teams.S03 };
+  // the slot each start team's recorded whole-Pokémon replacement touched, and what came in (ruggedness2 edits m00_F0, s02_F0)
+  const SWAP = { meta: { slot: 2, to: 'Eelektross' }, search: { slot: 5, to: 'Clefable' } };
+  const lo = 0.6, hi = 1.0, X = r => ((Math.max(lo, Math.min(hi, r)) - lo) / (hi - lo)) * 100;
+  let op = OPS[0], start = 'meta';
+  const ops = $('#ops');
+  OPS.forEach((o, i) => { const b = el('button', '', o[1]); b.setAttribute('aria-pressed', i === 0); b.onclick = () => { op = o; pressOne(ops, b); draw(); }; ops.append(b); });
+  const sts = $('#starts');
+  sts.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; start = b.dataset.s; pressOne(sts, b); buildTeam(); buildTicks(); draw(); });
+  const rho = $('#rho'), band = el('i', 'band'), dot = el('i', 'dot'), ln = el('i', 'ln');
+  rho.append(ln, band, dot);
+  [0.6, 0.7, 0.8, 0.9, 1.0].forEach(v => { const s = el('span', 'ax', v.toFixed(1)); s.style.left = X(v) + '%'; rho.append(s); });
+  // one tick per benchmark, kept across start switches so each slides to its new value (LABS travels 0.98 → 0.67)
+  // ticks crowd at 0.93–1.0, so only pest control (the pre-registered comparison) carries a label; the rest are listed below
+  const ticks = {};
+  BENCH.meta.forEach(([n]) => { ticks[n] = el('i', 'tk up', n === 'Pest' ? '<span></span>' : ''); rho.append(ticks[n]); });
+  function buildTicks() {
+    BENCH[start].forEach(([n, v]) => { const t = ticks[n]; t.title = `${n} ${v}`; if (n === 'Pest') t.firstChild.textContent = `pest control ${v}`; });
+    $('#benchlist').textContent = 'Benchmark ticks: ' + BENCH[start].map(([n, v]) => `${n} ${v}`).join(' · ');
+  }
+  function placeTicks() { BENCH[start].forEach(([n, v]) => { ticks[n].style.transform = `translateX(${(X(v) / 100) * rho.clientWidth}px)`; }); }
+  const hund = $('#hund'); for (let i = 0; i < 100; i++) hund.append(el('i'));
+  let cards = [];
+  function buildTeam() {
+    const t = $('#t4'); t.innerHTML = ''; cards = [];
+    TEAM[start].species.forEach((s, i) => {
+      const c = el('div', 'mon'), pic = el('span', 'pic'), out = sprite(s); out.classList.add('out'); pic.append(out);
+      if (i === SWAP[start].slot) { const inn = sprite(SWAP[start].to); inn.classList.add('in'); pic.append(inn); }
+      c.append(pic, el('span', 'nm', s.replace('-Eternal', '-E')), el('span', 'tag', '')); t.append(c); cards.push(c);
+    });
+  }
+  function draw() {
+    const v = D.edits[op[0]][start];
+    // every edit type points at the same slot (the one the recorded replacement touched), so the reader's eye stays put
+    const S = SWAP[start], name = TEAM[start].species[S.slot].replace('-Eternal', '-E');
+    cards.forEach((c, i) => {
+      const hit = i === S.slot, all = hit && op[2] === 'all';
+      c.classList.toggle('hit', hit); c.classList.toggle('gone', all);
+      if (hit) c.querySelector('.nm').textContent = all ? S.to : name;
+      c.querySelector('.tag').textContent = hit ? (all ? `was ${name}` : op[2]) : '';
+    });
+    placeTicks();
+    dot.style.transform = `translateX(${(X(v.rho) / 100) * rho.clientWidth}px)`;
+    band.style.transform = `translateX(${X(v.ci[0])}%) scaleX(${(X(v.ci[1]) - X(v.ci[0])) / 100})`;
+    const on = Math.round(v.beyond * 100), rep = Math.round(v.repeat * 100);
+    [...hund.children].forEach((c, i) => { c.classList.toggle('on', i < on); c.classList.toggle('rep', i < rep); });
+    $('#pct4').textContent = `${on}% (noise alone: ${rep}%)`;
+    const pass = v.T1 && v.T2;
+    $('#r4').innerHTML = `<b>${op[1]}</b>: ρ = <span class="num">${v.rho.toFixed(2)}</span>, typical change ${v.delta.toFixed(3)} win rate. ` +
+      (pass ? '<span class="y">Rougher than pest control and beyond battle noise.</span>'
+            : v.T2 ? '<span class="b">Rougher than pest control, but not clearly beyond battle noise.</span>'
+                   : '<span class="t">Lost in battle noise</span>, and no rougher than pest control.');
+  }
+  buildTeam(); buildTicks();
+  new ResizeObserver(draw).observe(rho);
+})();
+
+/* ── Figure 5: interaction order ── */
+(() => {
+  const R = [['Contamination control', .967, .032, .001], ['Ising sparsification', .997, .003, 0], ['Pest control (COMBO)', .978, .023, 0],
+             ['Pest control (Bounce)', .916, .068, .015], ['Weighted MaxSAT-60', 1, 0, 0], ['LABS-50', .906, .088, .006], ['Ackley-53', 1, 0, 0],
+             ['VGC full team', .871, .116, .013, true]];
+  const box = $('#stack'), segs = [];
+  R.forEach(([n, a, b, c, me]) => {
+    box.append(el('span', me ? 'me' : '', n));
+    const tr = el('div', 'track'), s1 = el('i', 's s1'), s2 = el('i', 's s2'), s3 = el('i', 's s3');
+    tr.append(s1, s2, s3); box.append(tr, el('span', 'v', (b * 100).toFixed(1) + '%'));
+    segs.push({ a, b, c, s1, s2, s3 });
+  });
+  const ax = el('div', 'axis'), full = el('div', 'axl'), zoomed = el('div', 'axl off');
+  [0, 25, 50, 75, 100].forEach(t => full.append(el('span', '', t + '%'))); [0, 5, 10, 15].forEach(t => zoomed.append(el('span', '', t + '%')));
+  ax.append(full, zoomed); box.append(el('span'), ax, el('span', 'v', 'pairs'));
+  function draw(zoom) {
+    const W = zoom ? 0.15 : 1;  // zoom: hide single edits, rescale the axis to 0–15%
+    segs.forEach(({ a, b, c, s1, s2, s3 }) => {
+      const off = zoom ? 0 : a;
+      s1.style.transform = `scaleX(${zoom ? 0 : a})`; s1.style.opacity = zoom ? 0 : 1;
+      s2.style.transform = `translateX(${(off / W) * 100}%) scaleX(${b / W})`;
+      s3.style.transform = `translateX(${((off + b) / W) * 100}%) scaleX(${c / W})`;
+    });
+    full.classList.toggle('off', zoom); zoomed.classList.toggle('off', !zoom);
+    full.setAttribute('aria-hidden', zoom); zoomed.setAttribute('aria-hidden', !zoom);
+  }
+  const seg = $('#f5 .seg');
+  seg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pressOne(seg, b); draw(b.dataset.z === 'zoom'); });
+  draw(false);
+})();
+
+/* ── Figure 6: noise-limited hill climbs ── */
+(() => {
+  const box = $('#climbs'), rows = [];
+  D.climbs.forEach(c => {
+    box.append(teamStrip(c.species));
+    const tk = el('div', 'ticks');
+    const acc = c.accepted ? c.proposals - 40 : -1;  // the climb stops 40 rejections after its last accepted edit
+    for (let i = 0; i < c.proposals; i++) tk.append(el('i'));
+    box.append(tk, el('span', 'v', `${c.accepted} of ${c.proposals} accepted`));
+    rows.push({ tk, acc });
+  });
+  const fill = (k) => rows.forEach(({ tk, acc }) => [...tk.children].forEach((t, i) => t.className = i < k ? (i === acc - 1 ? 'yes' : 'no') : ''));
+  const MAXP = Math.max(...D.climbs.map(c => c.proposals));
+  let raf = 0;
+  fill(MAXP);
+  $('#r6').textContent = '5 climbs accepted one edit, 1 accepted none.';
+  $('#play6').onclick = () => {
+    cancelAnimationFrame(raf);
+    if (reduce) { fill(MAXP); return; }
+    const t0 = performance.now(), per = 24;  // linear: one proposal every 24ms, every climb in step
+    const step = now => { const k = Math.min(MAXP, Math.floor((now - t0) / per) + 1); fill(k); if (k < MAXP) raf = requestAnimationFrame(step); else $('#play6').textContent = 'Run again'; };
+    fill(0); raf = requestAnimationFrame(step);
+  };
+  const names = { contamination: 'Contamination control', ising: 'Ising sparsification', pest_combo: 'Pest control (COMBO)', labs50: 'LABS-50', ackley53: 'Ackley-53', maxsat60: 'Weighted MaxSAT-60' };
+  const cmp = $('#cmp6');
+  Object.entries(names).forEach(([k, n]) => {
+    const m = D.bench_multi[k];
+    cmp.append(el('span', '', n));
+    const b = el('div', 'bar'), f = el('i'); f.style.transform = `scaleX(${m.true})`; f.style.setProperty('--c', 'var(--you)'); b.append(f); cmp.append(b);
+    cmp.append(el('span', 'v', `${m.ends} ends · ${Math.round(m.true * 100)}% true optima`));
+  });
+})();
+</script>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0007 — Coupling: the marginals are fixed, the joint is yours</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>Coupling — the marginals are fixed, the joint is yours</h1>
+<p class="subtitle">The prerequisite nobody teaches: two random quantities can each keep their own distribution while <em>how they move together</em> is entirely your engineering decision.</p>
+<p class="meta">Lesson 0007 · 2026-08-20 · ~7 minutes · prerequisite for <a href="0006-common-random-numbers-for-paired-battles.html">lesson 0006 (CRN)</a> · <a href="../MISSION.md">mission</a> · requested in chat 2026-08-20 (gap found in 0006 §1) · reference: <a href="../reference/crn-estimators.html">CRN estimator card</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> Lesson 0006's opening paragraph — "run both sides on the same random draws and the luck cancels" — silently assumed you already saw randomness as something you <em>allocate</em>, not something that just happens. This lesson installs that idea. After it you should be able to (1) say what a marginal and a joint distribution are and which one a coupling changes, (2) build the shared-draw coupling by hand, and (3) explain why the estimate of the difference stays unbiased no matter how the draws are shared.</div>
+
+<h2>1. Two words: marginal, joint</h2>
+
+<p>Take one paired battle: X = 1 if team T₁ wins its battle, Y = 1 if team T₂ wins its battle. Two vocabulary items describe the pair (X, Y):</p>
+
+<table class="compare">
+<tr><th>word</th><th>what it answers</th><th>here</th></tr>
+<tr><td><strong>marginal</strong> of X</td><td>how does X behave, looked at alone?</td><td>P(X = 1) = p₁ — T₁'s true win rate</td></tr>
+<tr><td><strong>joint</strong> of (X, Y)</td><td>how do they behave <em>together</em>?</td><td>the 2×2 table: P(both win), P(only T₁), P(only T₂), P(neither)</td></tr>
+</table>
+
+<p>The marginals do not determine the joint. Knowing p₁ = 0.55 and p₂ = 0.50 pins down the row and column totals of the 2×2 table — but many different tables have those same totals. Covariance lives in the joint: cov(X, Y) = E[XY] − E[X]E[Y], and E[XY] = P(both win) is a <em>joint</em> cell the marginals leave free.</p>
+
+<h2>2. The knob nobody tells you about</h2>
+
+<p>In a probability course the joint distribution is <em>given</em> and you compute from it. In simulation the situation is reversed: <strong>you write the program that generates the randomness, so you choose the joint.</strong> A choice of joint distribution with prescribed marginals is called a <strong>coupling</strong> of those marginals.</p>
+
+<p>Two couplings of the same pair of Bernoulli marginals:</p>
+
+<ul>
+<li><strong>Independent coupling</strong> — draw U and V as separate uniforms; X = 1{U &lt; p₁}, Y = 1{V &lt; p₂}. Joint = product of marginals; cov = 0. This is what you get by default when each battle asks the RNG for fresh numbers.</li>
+<li><strong>Shared-draw coupling</strong> — draw <em>one</em> uniform U and reuse it: X = 1{U &lt; p₁}, Y = 1{U &lt; p₂}. Same marginals — U alone is still uniform from each side's point of view — but now the outcomes are chained: since p₂ &lt; p₁, every T₂ win forces a T₁ win. The disagreement (X = 1, Y = 0) happens only when U lands in the sliver [p₂, p₁); the cell (X = 0, Y = 1) has probability exactly zero.</li>
+</ul>
+
+<p>Under the shared draw, the per-pair difference X − Y is 1 on that sliver and 0 everywhere else: var(X − Y) = 0.05 · 0.95 ≈ <strong>0.047</strong>. Independent, it's p₁(1−p₁) + p₂(1−p₂) ≈ <strong>0.497</strong>. Ten times less variance from the same two marginal coins — nothing changed except which joint you built. (Aside for the shape of the field: the coupling that <em>maximises</em> P(X = Y), which this shared-U trick achieves, is the classic optimal-coupling construction; CRN is that idea deployed as a variance tool. There is also an opposite knob — antithetic variates use U and 1−U to force covariance <em>negative</em>, which is what you want when <em>summing</em> instead of differencing.)</p>
+
+<h2>3. Why nothing biases</h2>
+
+<p>The worry: "if I rig the draws, don't I rig the answer?" No — and the reason is one line. Expectation is linear <em>unconditionally</em>: E[X − Y] = E[X] − E[Y] holds for any dependence whatsoever, because each expectation is computed from its own marginal, and the coupling left both marginals untouched. Averaged over many paired battles, the estimate of the gap p₁ − p₂ lands in the same place under any coupling. What the coupling moves is only the <em>spread</em> around that place — via the cov term in var(X − Y) = var X + var Y − 2 cov(X, Y). Coupling is a variance knob with the bias bolted at zero.</p>
+
+<h2>4. Turn the knob yourself</h2>
+
+<p>Part A: one shared U, dragged by hand — watch both outcomes flip together and find the one sliver where they part. Part B: the same marginals sampled under both couplings — compare the 2×2 joints, the (T₁ loss, T₂ win) cell, and the covariance:</p>
+
+<div id="coupling-sim"></div>
+
+<h2>5. Hook back into CRN</h2>
+
+<p>Reread 0006 §1 with today's vocabulary and it collapses to three sentences. A battle simulator's randomness is an input you allocate, so estimating two win rates means <em>choosing a coupling</em> of the two estimates. Independent seeding chooses the product coupling (cov = 0); common random numbers choose a shared-draw coupling to force cov &gt; 0, which the identity then subtracts from var(Δ̂). The paper's whole contribution (X<sub>DD</sub>) is about <em>where in a trajectory</em> the shared-draw choice is provably the right one.</p>
+
+<h2>6. Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+<p class="q">A coupling changes…</p>
+<button data-opt="a">the marginals of the two estimates</button>
+<button data-opt="b">the joint of the two estimates</button>
+<button data-opt="c">the mean of the estimated difference</button>
+<div class="why">Marginals are prescribed and preserved; the mean follows from the marginals by linearity (§3). The joint — how the pair co-moves — is the only thing being designed (§2).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">The marginals survive the shared draw because…</p>
+<button data-opt="a">each side alone still sees uniform randomness</button>
+<button data-opt="b">both sides always produce the same outcome</button>
+<button data-opt="c">sharing draws makes the outcomes become independent</button>
+<div class="why">U is a perfectly good uniform from either side's solo point of view — 1{U &lt; p} is Bernoulli(p) regardless of who else reads U (§2). Options b and c are both false as stated.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">With one shared U and thresholds 0.55 (T₁) and 0.50 (T₂), the pair (T₁ loses, T₂ wins) happens…</p>
+<button data-opt="a">never, because every T₂ win includes T₁</button>
+<button data-opt="b">only when U falls between the two thresholds</button>
+<button data-opt="c">roughly a quarter of the time, by independence</button>
+<div class="why">U &lt; 0.50 implies U &lt; 0.55: that joint cell is exactly zero (§2 — see it stay empty in Part B). Option b describes the opposite disagreement, (T₁ wins, T₂ loses).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">Coupling leaves the estimated difference unbiased because…</p>
+<button data-opt="a">variance is linear regardless of any dependence</button>
+<button data-opt="b">covariance is zero regardless of any dependence</button>
+<button data-opt="c">expectation is linear regardless of any dependence</button>
+<div class="why">E[X − Y] = E[X] − E[Y] needs no independence; each term reads only its own untouched marginal (§3). Variance is not linear (that's the whole identity), and covariance being nonzero is the goal, not a problem.</div>
+</div>
+
+<div class="quiz-summary"></div>
+
+<h2>7. Read next</h2>
+
+<p>Primary source for the vocabulary: Blitzstein &amp; Hwang, <em>Introduction to Probability</em> — free official copy at 🟢 <a href="https://probabilitybook.net">probabilitybook.net</a> — Chapter 7 <em>Joint distributions</em>, especially §7.3 <em>Covariance and correlation</em>. Read it asking one question the book never poses: "who picked this joint?" — then return to 🟢 <a href="https://arxiv.org/abs/2605.04732">Yadav et al. (arXiv 2605.04732)</a>, where the answer is "you do".</p>
+
+<p class="meta">Anything unclear — why 1{U &lt; p} keeps its marginal when U is reused, what antithetic variates are for, how this maps onto Showdown's PRNG — ask your teacher in chat; that is what the agent is for.</p>
+
+<script src="../assets/quiz.js"></script>
+<script src="../assets/coupling-sim.js"></script>
+<script>CouplingSim.mount('#coupling-sim', {p1: 0.55, p2: 0.50});</script>
+</body>
+</html>

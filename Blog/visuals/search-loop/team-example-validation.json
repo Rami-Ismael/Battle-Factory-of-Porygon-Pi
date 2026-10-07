@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-09-13",
+  "format": "gen9championsvgc2026regmb",
+  "source": "/Users/ramiismael/.local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2/teams/reg_mb/MB1.txt",
+  "sourceSha256": "8caebf4945f875ac59038ab40958fc5a92bf3068ab13934c144a4c06b357340b",
+  "showdownSourceRevision": "913da3602a3aa1db79f9fdc5d5222eaf8d39569d",
+  "revisionEvidence": "Pinned runtime unpack directory and existing campaign runtime; compiled validator file hashed below.",
+  "runtimeDirectory": "/Users/ramiismael/.local/share/vgc-pilot-runtime/servers/diversity-baseline/8150",
+  "validatorSha256": "8c750afbe41540bedd6e31d1bb2584a85629596838ab3c2c4a961c40c42ddd56",
+  "wrapperSha256": "4a3deb2bb13f30339487ea66c3ce40b9504c338a4940e12bf3530dbe8e6c41a1",
+  "command": [
+    "node",
+    "validate-teams-batch.js"
+  ],
+  "environment": {
+    "NODE_PATH": "/tmp/pokemon-visual-validator-deps/node_modules"
+  },
+  "dependencyNote": "Restored ts-chacha20 1.2.0 to isolated temporary prefix from exact existing package-lock version. No simulator source or corpus modified.",
+  "request": {
+    "format": "gen9championsvgc2026regmb",
+    "teamFile": "team-example.txt"
+  },
+  "exitCode": 0,
+  "stdout": "{\"valid\":true,\"errors\":[]}\n",
+  "stderr": "",
+  "result": {
+    "valid": true,
+    "errors": []
+  }
+}

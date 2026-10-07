@@ -1,0 +1,300 @@
+<title>Who gets selected for the next training round?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one Distill reading column; the figure breaks wider; margin notes sit in a right gutter, inline on phones. */
+:root{
+  --bg:#fbfbfa; --ink:#1d2127; --muted:#5d6570; --rule:#dfe2e6; --track:#eceef1;
+  --score:#8a929c;          /* win rate: a quiet neutral */
+  --pick:#2b55c4;           /* selection probability and temperature: the one accent */
+  --pick-soft:#dfe7fb; --real:#b0b6be;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14171c; --ink:#e6e8eb; --muted:#9aa2ad; --rule:#2c3139; --track:#232830;
+  --score:#7d8794; --pick:#7c9cf2; --pick-soft:#24304d; --real:#56606c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14171c; --ink:#e6e8eb; --muted:#9aa2ad; --rule:#2c3139; --track:#232830;
+  --score:#7d8794; --pick:#7c9cf2; --pick-soft:#24304d; --real:#56606c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.65 var(--sans);margin:0;padding-inline:16px;padding-block:40px 64px}
+.page{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:minmax(0,660px) minmax(0,1fr);column-gap:40px}
+.page>*{grid-column:1}
+.wide{grid-column:1 / -1}
+.note{grid-column:2;font-size:13px;line-height:1.5;color:var(--muted);align-self:start;margin-top:4px;padding-left:12px;border-left:1px solid var(--rule)}
+@media (max-width:860px){.page{grid-template-columns:minmax(0,1fr)}.note{grid-column:1;margin-block:0 16px}}
+h1{font-weight:600;font-size:clamp(28px,4.4vw,40px);line-height:1.15;text-wrap:balance;margin:0 0 12px}
+.dek{font-size:19px;color:var(--muted);margin:0 0 20px;text-wrap:pretty}
+.byline{font-size:13px;color:var(--muted);border-block:1px solid var(--rule);padding-block:10px;margin-bottom:28px;display:flex;gap:24px;flex-wrap:wrap}
+.byline b{display:block;font-weight:500;color:var(--ink);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+p{margin:0 0 18px;text-wrap:pretty}
+strong{font-weight:600}
+.v-s{color:var(--score);font-weight:600}.v-t,.v-p{color:var(--pick);font-weight:600}
+.math{font-family:var(--mono);font-size:15px;text-align:center;padding-block:10px 22px;overflow-x:auto}
+.math .frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center}
+.math .frac span:first-child{border-bottom:1px solid var(--ink);padding:0 6px 2px}
+.math .frac span:last-child{padding:2px 6px 0}
+
+figure{margin:12px 0 28px}
+figcaption{font-size:13px;color:var(--muted);line-height:1.5;margin-top:12px;max-width:760px}
+figcaption b{color:var(--ink);font-weight:600}
+
+/* predict */
+.predict{border:1px solid var(--rule);border-radius:6px;padding:16px;display:grid;gap:12px}
+.predict .q{font-weight:500}
+.scale{position:relative;height:44px;cursor:pointer;touch-action:none;outline:none}
+.scale:focus-visible{box-shadow:0 0 0 2px var(--pick);border-radius:4px}
+.scale .line{position:absolute;left:0;right:0;top:20px;height:4px;background:var(--track);border-radius:2px}
+.scale .tick{position:absolute;top:30px;font:11px var(--mono);color:var(--muted);transform:translateX(-50%)}
+.marker{position:absolute;top:8px;width:2px;height:28px;transform:translateX(-1px)}
+.marker.guess{background:var(--ink)}
+.marker.truth{background:var(--pick)}
+.marker span{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);font:11px var(--mono);white-space:nowrap}
+.marker.truth span{color:var(--pick)}
+.row-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{font:500 14px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--pick);outline-offset:2px}
+button.primary{background:var(--pick);border-color:var(--pick);color:var(--bg)}
+button:disabled{opacity:.45;cursor:default}
+.feedback{font-size:14px;color:var(--muted);min-height:1.5em}
+
+/* figure 1 */
+.controls{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 14px;align-items:center;margin-bottom:10px}
+.controls label{font-weight:500}
+.controls output{font:500 15px var(--mono);color:var(--pick);min-width:7ch;text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--pick)}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.presets button{font-size:13px;padding:4px 10px}
+.presets button[aria-pressed=true]{border-color:var(--pick);color:var(--pick)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border-block:1px solid var(--rule);padding-block:12px;margin-bottom:8px}
+.stat .k{font-size:12px;color:var(--muted);line-height:1.35}
+.stat .n{font:500 22px var(--mono);font-variant-numeric:tabular-nums;color:var(--pick)}
+.stat .n small{font-size:13px;color:var(--muted)}
+@media (max-width:520px){.stats{grid-template-columns:1fr}}
+
+.head,.team{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:center}
+.head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-block:8px 4px}
+.team{padding-block:3px;border-radius:4px;transition:background-color .25s}
+.team.picked{background:var(--pick-soft)}
+.mons{display:flex;gap:0}
+.mons img{width:31px;height:31px;image-rendering:auto;object-fit:contain}
+.bar{position:relative;height:16px;background:var(--track);border-radius:2px}
+.bar .fill{position:absolute;inset:0 auto 0 0;border-radius:2px}
+.bar.s .fill{background:var(--score)}
+.bar.p .fill{background:var(--pick);transition:width .35s cubic-bezier(.2,.7,.2,1)}
+.bar .band{position:absolute;top:-3px;bottom:-3px;background:var(--real);opacity:.45}
+.cell{display:flex;align-items:center;gap:8px;min-width:0}
+.cell .bar{flex:1}
+.cell .num{font:12px var(--mono);font-variant-numeric:tabular-nums;width:5ch;text-align:right;color:var(--muted)}
+.cell .num.p{color:var(--pick);width:5.5ch}
+.chip{font:500 11px var(--mono);color:var(--pick);width:3ch}
+@media (max-width:600px){
+  .head{display:none}
+  .team{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 12px;padding-block:8px;border-bottom:1px solid var(--rule)}
+  .team .mons{grid-column:1 / -1}
+  .cell .num::before{content:attr(data-l);margin-right:4px}
+}
+.draw{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.draw .out{font-size:14px;color:var(--muted)}
+.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin-top:20px}
+@media (prefers-reduced-motion:reduce){.bar.p .fill,.team{transition:none}}
+</style>
+
+<main class="page">
+  <h1>Who gets selected for the next training round?</h1>
+  <p class="dek">One number, the temperature, decides whether the next round trains on the single best team or on everything the model just made.</p>
+  <div class="byline">
+    <div><b>Data</b>16 teams from the masked diffusion model</div>
+    <div><b>Scored</b>Battles against the top-50 meta teams</div>
+    <div><b>Date</b>2026-10-04</div>
+  </div>
+
+  <p>The self-training loop runs in rounds. The diffusion model samples a batch of teams, each team is battled and scored, and some of those teams go back into the training data for the next round. <strong>Selection</strong> is the rule that decides which ones go back.</p>
+
+  <p>The rule shown here gives every team a <strong>selection probability</strong>. It depends on the team's <span class="v-s">win rate&nbsp;s<sub>i</sub></span> and on a single setting, the <span class="v-t">temperature&nbsp;T</span>:</p>
+  <aside class="note"><strong>Win rate</strong> is the share of battles a team wins against the top-50 meta teams from VGCPastes, with the VGC-Bench behaviour-cloning policy playing both sides. Each team here has 392 or 1,176 battles, so a win rate is good to about ±0.02 to ±0.025. A typical real tournament team scores 0.47 to 0.49.</aside>
+
+  <div class="math" aria-label="p sub i equals e to the s sub i over T, divided by the sum over j of e to the s sub j over T">
+    <span class="v-p">p<sub>i</sub></span> =
+    <span class="frac"><span>e<sup><span class="v-s">s<sub>i</sub></span> / <span class="v-t">T</span></sup></span><span>Σ<sub>j</sub> e<sup><span class="v-s">s<sub>j</sub></span> / <span class="v-t">T</span></sup></span></span>
+  </div>
+
+  <p>The temperature uses the same units as win rate. When one team's win rate is higher than another's by exactly <span class="v-t">T</span>, it is e&nbsp;≈&nbsp;2.7 times as likely to be picked. A small T turns small differences in win rate into large differences in selection. A large T flattens them.</p>
+
+  <section class="predict wide" aria-labelledby="pq">
+    <div class="q" id="pq">Before you touch the slider: at <span class="v-t">T = 0.05</span>, what share of the selection probability goes to the best team (win rate 0.349)? Click the scale to place your guess.</div>
+    <div class="scale" id="scale" tabindex="0" role="slider" aria-label="Your guess for the best team's share" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+      <div class="line"></div>
+      <div class="marker guess" id="guess" hidden><span id="guessLbl"></span></div>
+      <div class="marker truth" id="truth" hidden><span id="truthLbl"></span></div>
+    </div>
+    <div class="row-actions">
+      <button class="primary" id="reveal" disabled>Reveal</button>
+      <span class="feedback" id="feedback">Uniform selection would give each team 1/16, which is 6.3%.</span>
+    </div>
+  </section>
+
+  <figure class="wide" id="fig1">
+    <div class="controls">
+      <label for="temp">Temperature</label>
+      <input type="range" id="temp" min="0" max="1000" step="1" value="560" aria-describedby="tempOut">
+      <output id="tempOut" for="temp">0.050</output>
+    </div>
+    <div class="presets" id="presets">
+      <button data-t="0.003">0.003 · near hard cut</button>
+      <button data-t="0.05">0.05</button>
+      <button data-t="0.10">0.10</button>
+      <button data-t="0.30">0.30</button>
+      <button data-t="3">3 · near uniform</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Best team's share</div><div class="n" id="stTop">–</div></div>
+      <div class="stat"><div class="k">Effective number of teams (e<sup>entropy</sup>)</div><div class="n" id="stEff">– <small>of 16</small></div></div>
+      <div class="stat"><div class="k">Species expected in a draw of 4 teams</div><div class="n" id="stSp">– <small>of 49</small></div></div>
+    </div>
+    <div class="head" aria-hidden="true"><div>Team</div><div>Win rate</div><div>Selection probability</div></div>
+    <div id="rows"></div>
+    <div class="draw">
+      <button class="primary" id="drawBtn">Draw 4 teams</button>
+      <span class="out" id="drawOut">Draws are with replacement, so one team can be picked more than once.</span>
+    </div>
+    <figcaption><b>Figure 1.</b> Sixteen teams sampled directly from the masked diffusion model, in one batch from the direct-sampling arm of the 2026-10-01 tree-search experiment (seed 1101). They are sorted by win rate. The grey band on the win-rate bars marks a typical real team, 0.47 to 0.49; no team in this batch reaches it. Drag the temperature and watch the blue bars move. The grey bars never change, because selection only redistributes probability and never changes a score.</figcaption>
+  </figure>
+
+  <p>At the low end, nearly all of the probability lands on the top team. The next round trains on one team copied over and over, and the species it doesn't use stop appearing in the data. At the high end, the scores stop mattering and every team is equally likely, so the round learns nothing about what wins. The two readouts under the slider show this trade-off. <strong>Effective number of teams</strong> counts how many teams the probability is really spread over. <strong>Species expected</strong> counts how many different Pokémon a draw of four teams would carry into training.</p>
+
+  <p>The change happens over a narrow range. In this batch, T = 0.10 still spreads the probability over about 11 teams, while T = 0.05 puts 87% of it on the top five. How hard a given temperature bites depends on how spread out the batch's win rates are. The same T concentrates harder on a batch where one team clearly leads.</p>
+  <aside class="note">On 2026-09-02 this exact rule, with T lowered from 0.30 to 0.10 over 11 rounds, was tested against a hard top-k cut. Win rate did not differ (−0.009 ± 0.011), and the number of distinct species sets collapsed just as fast.</aside>
+
+  <p>Temperature is therefore a dial between concentration and variety, not a way to raise win rate on its own. Keeping more variety only helps if the extra teams lead somewhere new. In the runs so far, the diverse arms found the same best core as the concentrated ones and then spent their remaining battles exploring.</p>
+
+  <div class="foot">Data: <code>~/vgc-data/matchup_regmb.sqlite</code>, the teams with origin <code>mdts:direct:1101</code>, summed over the top-50 columns. Rebuild with <code>python3 build.py</code>. No new battles were run for this page.</div>
+</main>
+
+<script>
+const D = /*__DATA__*/null;
+const K = 4, TMIN = 0.003, TMAX = 3, PROBE_T = 0.05;
+const NAMES = {decidueyehisui:"Hisuian Decidueye",ninetalesalola:"Alolan Ninetales",floetteeternal:"Eternal Floette",kommoo:"Kommo-o"};
+const nice = s => NAMES[s] || s.charAt(0).toUpperCase() + s.slice(1);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const teams = D.teams.map(t => ({...t, s: t.wins / t.battles})).sort((a, b) => b.s - a.s);
+const SMAX = 0.6;
+
+function probs(T) {
+  const m = Math.max(...teams.map(t => t.s));
+  const w = teams.map(t => Math.exp((t.s - m) / T));
+  const z = w.reduce((a, b) => a + b, 0);
+  return w.map(x => x / z);
+}
+const sliderToT = v => TMIN * Math.pow(TMAX / TMIN, v / 1000);
+const tToSlider = T => Math.round(1000 * Math.log(T / TMIN) / Math.log(TMAX / TMIN));
+const pct = x => (100 * x).toFixed(x < 0.1 ? 1 : 0) + "%";
+
+// rows
+const rowsEl = document.getElementById("rows");
+const rowEls = teams.map(t => {
+  const r = document.createElement("div");
+  r.className = "team";
+  const names = t.members.map(nice).join(", ");
+  r.innerHTML =
+    `<div class="mons" title="${names}" aria-label="${names}">${t.members.map(m => `<img src="${D.sprites[m]}" alt="" width="31" height="31">`).join("")}</div>` +
+    `<div class="cell"><div class="bar s"><div class="band" style="left:${0.47/SMAX*100}%;width:${0.02/SMAX*100}%"></div><div class="fill" style="width:${t.s/SMAX*100}%"></div></div><span class="num" data-l="win">${t.s.toFixed(3)}</span></div>` +
+    `<div class="cell"><div class="bar p"><div class="fill"></div></div><span class="num p" data-l="pick"></span><span class="chip"></span></div>`;
+  rowsEl.appendChild(r);
+  return {r, fill: r.querySelector(".bar.p .fill"), num: r.querySelector(".num.p"), chip: r.querySelector(".chip")};
+});
+
+const temp = document.getElementById("temp"), out = document.getElementById("tempOut");
+const presetBtns = [...document.querySelectorAll("#presets button")];
+
+function render() {
+  const T = sliderToT(+temp.value);
+  out.value = T < 0.1 ? T.toFixed(3) : T.toFixed(2);
+  const p = probs(T);
+  const pmax = Math.max(...p);
+  rowEls.forEach((e, i) => {
+    e.fill.style.width = (p[i] / Math.max(pmax, 0.0001) * 100) + "%";
+    e.num.textContent = pct(p[i]);
+  });
+  const H = -p.reduce((a, x) => a + (x > 0 ? x * Math.log(x) : 0), 0);
+  const q = {};
+  teams.forEach((t, i) => t.members.forEach(m => q[m] = (q[m] || 0) + p[i]));
+  const sp = Object.values(q).reduce((a, x) => a + 1 - Math.pow(1 - x, K), 0);
+  document.getElementById("stTop").textContent = pct(p[0]);
+  document.getElementById("stEff").innerHTML = Math.exp(H).toFixed(1) + " <small>of 16</small>";
+  document.getElementById("stSp").innerHTML = sp.toFixed(1) + ` <small>of ${Object.keys(q).length}</small>`;
+  presetBtns.forEach(b => b.setAttribute("aria-pressed", String(tToSlider(+b.dataset.t) === +temp.value)));
+  clearPicks();
+}
+temp.addEventListener("input", render);
+presetBtns.forEach(b => b.addEventListener("click", () => { temp.value = tToSlider(+b.dataset.t); render(); }));
+
+// draw
+let drawTimer = [];
+function clearPicks() {
+  drawTimer.forEach(clearTimeout); drawTimer = [];
+  rowEls.forEach(e => { e.r.classList.remove("picked"); e.chip.textContent = ""; });
+}
+document.getElementById("drawBtn").addEventListener("click", () => {
+  clearPicks();
+  const p = probs(sliderToT(+temp.value));
+  const counts = new Array(teams.length).fill(0);
+  const picks = [];
+  for (let k = 0; k < K; k++) {
+    let u = Math.random(), i = 0;
+    while (i < p.length - 1 && (u -= p[i]) > 0) i++;
+    picks.push(i);
+  }
+  picks.forEach((i, k) => {
+    const show = () => {
+      counts[i]++;
+      rowEls[i].r.classList.add("picked");
+      rowEls[i].chip.textContent = "×" + counts[i];
+    };
+    reduce ? show() : drawTimer.push(setTimeout(show, 220 * k));
+  });
+  const distinct = new Set(picks).size;
+  const species = new Set(picks.flatMap(i => teams[i].members)).size;
+  document.getElementById("drawOut").textContent = `${distinct} different team${distinct > 1 ? "s" : ""}, ${species} different species go into the next round.`;
+});
+
+// predict, then reveal
+const scale = document.getElementById("scale"), guessEl = document.getElementById("guess");
+const truthEl = document.getElementById("truth"), revealBtn = document.getElementById("reveal");
+[0, 25, 50, 75, 100].forEach(v => {
+  const t = document.createElement("span"); t.className = "tick"; t.style.left = v + "%"; t.textContent = v + "%";
+  scale.appendChild(t);
+});
+let guess = null;
+function setGuess(v) {
+  guess = Math.max(0, Math.min(100, v));
+  guessEl.hidden = false; guessEl.style.left = guess + "%";
+  document.getElementById("guessLbl").textContent = "you: " + guess.toFixed(0) + "%";
+  scale.setAttribute("aria-valuenow", guess.toFixed(0));
+  revealBtn.disabled = false;
+}
+function fromPointer(e) { const r = scale.getBoundingClientRect(); setGuess((e.clientX - r.left) / r.width * 100); }
+scale.addEventListener("pointerdown", e => { scale.setPointerCapture(e.pointerId); fromPointer(e); });
+scale.addEventListener("pointermove", e => { if (scale.hasPointerCapture(e.pointerId)) fromPointer(e); });
+scale.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight" || e.key === "ArrowUp") { setGuess((guess ?? 50) + 1); e.preventDefault(); }
+  if (e.key === "ArrowLeft" || e.key === "ArrowDown") { setGuess((guess ?? 50) - 1); e.preventDefault(); }
+});
+revealBtn.addEventListener("click", () => {
+  const truth = probs(PROBE_T)[0] * 100;
+  truthEl.hidden = false; truthEl.style.left = truth + "%";
+  document.getElementById("truthLbl").textContent = "actual: " + truth.toFixed(0) + "%";
+  const d = guess - truth;
+  const fb = Math.abs(d) < 5 ? "Close. A gap of 0.05 in win rate already gives the top team a large edge."
+    : d > 0 ? "Too high. The runner-up (0.298) is only one temperature step behind, so it keeps a real share."
+    : "Too low. At this temperature, a lead of 0.05 in win rate multiplies the odds by e ≈ 2.7.";
+  document.getElementById("feedback").textContent = fb + " The slider below is now set to T = 0.05.";
+  temp.value = tToSlider(PROBE_T); render();
+});
+
+render();
+</script>

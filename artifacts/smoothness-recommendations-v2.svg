@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+<defs><style>text{font-family:'Comic Sans MS','Chalkboard',sans-serif;fill:#243247;font-size:17px}.title{font-size:29px;font-weight:bold}.heading{font-size:22px;font-weight:bold}.small{font-size:14px}.muted{fill:#566477}.ink{fill:none;stroke:#243247;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.soft{fill:none;stroke:#a9b3c2;stroke-width:1.5}.violet{fill:none;stroke:#7c46aa;stroke-width:2.5}.base{fill:#243247}.edit{fill:#7c46aa}.panel{fill:white;stroke:#a9b3c2;stroke-width:1.5}</style></defs>
+<rect width="1200" height="1200" fill="#f7f9fc"/>
+<text x="35" y="45" class="title">Smoothness → inspect edits → compare benchmarks</text>
+<text x="35" y="77" class="muted">Revised wireframe · search and scroll through evaluated edits · invented example scores</text>
+<path d="M35 99 L1164 100" class="soft"/>
+<!-- first figure -->
+<path d="M35 117 L1163 120 L1162 340 L36 338 Z" class="panel"/>
+<text x="56" y="153" class="heading">1. Introduce smoothness</text>
+<text x="56" y="190">Do nearby teams have nearby scores?</text>
+<text x="56" y="224" class="small">Define one legal edit.</text><text x="56" y="252" class="small">Keep the score scales identical.</text><text x="56" y="280" class="small">Each dot is a discrete team.</text>
+<text x="502" y="153" class="small">Smaller changes</text><text x="831" y="153" class="small">Larger changes</text>
+<path d="M501 177 L501 296 L767 297 M831 177 L830 296 L1101 297" class="ink"/>
+<path d="M502 235 L767 235 M832 235 L1101 235" class="soft"/>
+<circle cx="541" cy="235" r="6" class="base"/><circle cx="598" cy="230" r="6" class="edit"/><circle cx="658" cy="240" r="6" class="edit"/><circle cx="720" cy="226" r="6" class="edit"/>
+<circle cx="870" cy="235" r="6" class="base"/><circle cx="927" cy="278" r="6" class="edit"/><circle cx="986" cy="190" r="6" class="edit"/><circle cx="1050" cy="261" r="6" class="edit"/>
+<text x="516" y="321" class="small">Original + single-edit neighbors</text><text x="842" y="321" class="small">Original + single-edit neighbors</text>
+<!-- sensitivity -->
+<path d="M36 362 L1162 365 L1164 817 L35 815 Z" class="panel"/>
+<text x="56" y="402" class="heading">2. Inspect local sensitivity</text>
+<text x="56" y="431">Find an edit. Scroll to compare alternatives. Select one for detail.</text>
+<path d="M58 455 L601 456 L600 504 L58 503 Z" class="ink"/>
+<circle cx="80" cy="477" r="8" class="ink"/><path d="M86 483 L94 491" class="ink"/>
+<text x="108" y="486">Search Pokémon or move…</text><text x="559" y="487" class="small">Clear</text>
+<text x="60" y="531" class="small muted">3 evaluated edits · illustrative examples</text>
+<path d="M59 547 L601 548 L601 723 L59 723 Z" class="soft"/>
+<rect x="61" y="550" width="521" height="60" fill="#f0e8f8"/>
+<path d="M62 550 L62 609" class="violet"/>
+<text x="75" y="575">Incineroar: Fake Out → Protect</text>
+<text x="75" y="598" class="small">Selected</text><text x="342" y="598" class="small">42% score</text><text x="463" y="598" class="small">−18 pp</text>
+<path d="M64 612 L578 613 M64 668 L578 669" class="soft"/>
+<text x="75" y="639">Rillaboom: one move replacement</text><text x="343" y="660" class="small">63% score</text><text x="464" y="660" class="small">+3 pp</text>
+<text x="75" y="695">Farigiraf: one move replacement</text><text x="343" y="715" class="small">59% score</text><text x="463" y="715" class="small">−1 pp</text>
+<path d="M590 558 L590 710" class="soft"/><path d="M590 561 L590 616" style="stroke:#566477;stroke-width:5;stroke-linecap:round"/>
+<text x="60" y="751" class="small">Scroll the list; keep the comparison fixed.</text>
+<path d="M624 455 L624 762" class="soft"/>
+<text x="650" y="482" class="heading">Original team stays visible</text>
+<text x="650" y="512" class="small">Six Pokémon · selected slot highlighted</text>
+<g class="soft"><rect x="650" y="526" width="68" height="40"/><rect x="728" y="526" width="68" height="40"/><rect x="806" y="526" width="68" height="40"/><rect x="884" y="526" width="68" height="40"/><rect x="962" y="526" width="68" height="40"/><rect x="1040" y="526" width="68" height="40"/></g>
+<rect x="650" y="526" width="68" height="40" class="violet"/>
+<text x="651" y="596">Fake Out → Protect</text>
+<text x="650" y="635" class="small">Original</text><rect x="733" y="620" width="222" height="18" class="base"/><text x="1040" y="635">60%</text>
+<text x="650" y="672" class="small">Edited</text><rect x="733" y="657" width="155" height="18" class="edit"/><text x="1040" y="672">42%</text>
+<path d="M733 690 L1103 690" class="soft"/><text x="733" y="713" class="small">0%</text><text x="1065" y="713" class="small">100%</text>
+<text x="650" y="750" class="heading">Change: −18 percentage points</text>
+<text x="58" y="787" class="small muted">Measured version: include paired uncertainty. Unmeasured edits say “Not evaluated.”</text>
+<!-- benchmarks -->
+<path d="M35 837 L1164 840 L1163 1142 L36 1141 Z" class="panel"/>
+<text x="57" y="877" class="heading">3. Compare benchmarks</text>
+<text x="57" y="910">How do measured score changes differ?</text>
+<text x="57" y="947">Pokémon</text><text x="57" y="1004">Combinatorial</text><text x="57" y="1061">Continuous</text>
+<path d="M254 924 L1107 924 L1106 962 L255 962 Z M254 981 L1107 981 L1106 1019 L255 1019 Z M254 1038 L1107 1038 L1106 1076 L255 1076 Z" class="soft"/>
+<text x="278" y="949" class="small muted">Measured distribution goes here · state the legal-edit protocol</text>
+<text x="278" y="1006" class="small muted">Measured distribution goes here · state the component-edit protocol</text>
+<text x="278" y="1063" class="small muted">Measured distribution goes here · state the step size and directions</text>
+<path d="M255 1093 L1108 1093" class="ink"/><text x="255" y="1118" class="small">Smaller absolute normalized change</text><text x="1036" y="1118" class="small">Larger</text>
+<text x="35" y="1176" class="small muted">Keep search strategy in the prose between figures. All plotted examples above are illustrative, not battle results.</text>
+</svg>

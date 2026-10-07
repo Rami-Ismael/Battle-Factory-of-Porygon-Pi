@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0009 — MAP-Elites: the two gates, and what goes on the VGC behaviour axes</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>The two gates of MAP-Elites</h1>
+<p class="subtitle">Your attack–defense framing, corrected into the machinery — plus the second behaviour axis defined for you, in VGC terms.</p>
+<p class="meta">Lesson 0009 · 2026-08-26 · ~10 minutes · serves the same strand as <a href="0004-deep-surrogate-assisted-map-elites.html">lesson 0004</a> (black-box optimisation families vs 𝑓) · new component: <code>assets/archive-sim.js</code> · previous: <a href="0008-fictitious-play-is-a-mixture-not-a-mean.html">0008</a> · <a href="../MISSION.md">mission</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> You came back to quality-diversity with four claims. Two are right, one needs sharpening, and one — the replacement rule — has now missed twice (the grill of 2026-08-20, and today). So this lesson does what the 2026-08-20 note promised: no more prose questions about insertion, a widget where you <em>watch</em> the rule run. After it you should be able to (1) say what decides WHERE a child goes and what decides WHETHER it stays, (2) name a defensible VGC measure pair, and (3) explain why a child weaker than its parent can still enter the archive.</p></div>
+
+<h2>1. Your four claims, corrected</h2>
+
+<p><strong>Claim 1 — "there are two styles of battle, attack and defense, with balance between."</strong> Right intuition, wrong data type. MAP-Elites never receives a style as input. Styles are not declared; they are <em>recovered</em>: you define numeric measurements taken from simulated battles, discretise them into a grid, and the archetype spectrum re-emerges on its own as regions of that grid. The original paper's promise is exactly this: MAP-Elites creates "a map of high-performing solutions at each point in a space defined by dimensions of variation that a user gets to choose" (🟢 <a href="https://arxiv.org/abs/1504.04909">Mouret &amp; Clune 2015, abstract</a>). Your job is choosing dimensions whose spread reproduces attack↔defense automatically — see §5.</p>
+
+<p><strong>Claim 2 — "an N×N matrix, one axis how long the battle takes, another you define."</strong> Correct structure, correct name: that matrix is the <em>archive</em>. And battle length is not just acceptable, it is literally one of the Hearthstone paper's two measures — "average game length in turns", range 5–15; their other was average hand size, range 1–7 (🟢 <a href="https://arxiv.org/abs/2112.03534">Zhang et al., GECCO 2022</a>, §4.2.2). Hand size has no VGC analogue, so the axis you asked me to define is below in §5.</p>
+
+<p><strong>Claim 3 — "you want a diverse set of metas."</strong> Sharpen this: diversity alone is worthless — random teams are maximally diverse and terrible. What quality-diversity buys is diversity among candidates that have already passed a quality bar. Every cell holds the strongest team <em>found so far</em> that behaves like its cell. Bonus you get for free: because MAP-Elites explores more of the space, "it also tends to find a better overall solution than state-of-the-art search algorithms" (Mouret &amp; Clune, same abstract) — relevant to your counter-team hunt, where the single best team is the deliverable.</p>
+
+<p><strong>Claim 4 — "the best performing candidate on [a] grid behavior axis will replace the old."</strong> This is the one to fix, and the fix is one phrase: <em>a candidate only ever competes inside the single cell its own measurements land it in</em>. Not against the grid. Not against its parent. Against at most one occupant. That is §3.</p>
+
+<h2>2. Your words → the standard words</h2>
+
+<table class="compare">
+<tr><th>your phrasing</th><th>standard term</th><th>in DSA-ME</th></tr>
+<tr><td>"N×N matrix"</td><td><b>archive</b>; each cell a <b>niche</b>, each occupant an <b>elite</b></td><td>grid over hand size × game length</td></tr>
+<tr><td>"style of battle"</td><td><b>measure</b> (behaviour descriptor): a number computed from simulated battles, then binned</td><td>average hand size 1–7; average game length 5–15 turns</td></tr>
+<tr><td>"best performing"</td><td><b>objective</b> (fitness): the thing maximised — separate from measures</td><td>mean end-of-game health difference, range −30…+30, "a smooth approximation of winning percentage"</td></tr>
+<tr><td>"candidate replaces the old"</td><td><b>insertion rule</b> — the two gates of §3</td><td>stays only if it beats its own cell's incumbent</td></tr>
+<tr><td>"diverse set of metas"</td><td><b>illumination</b>; whole-archive score = <b>QD-score</b> = "the sum of the objective values of all solutions in the ground-truth archive" (§4.2.2, verbatim)</td><td>338.52 vs 136.89 for plain MAP-Elites, same 10,000 evaluations</td></tr>
+</table>
+
+<h2>3. The two gates</h2>
+
+<ol>
+<li><b>Gate 1 — WHERE.</b> The child's <em>measures</em> decide which cell it lands in. This is not a choice and not a strategy — the simulator produced those numbers, and they place the child mechanically, the way a coordinate places a pin in a map.</li>
+<li><b>Gate 2 — WHETHER.</b> The child's <em>objective</em> decides whether it stays there. If Gate 1 dropped it into an empty niche, it stays unconditionally — any objective qualifies. If the niche is occupied, it survives only by beating that one incumbent's objective. Lose, and it is discarded entirely.</li>
+</ol>
+
+<p class="note"><strong>The division of labour, verbatim from <a href="0004-deep-surrogate-assisted-map-elites.html">lesson 0004</a>:</strong> "the measures decide <em>where</em> a child competes (which cell it lands in — not a choice, determined by how it behaved); the objective decides <em>whether</em> it wins there." And the consequence that makes quality-diversity work: a mediocre defensive team never has to beat the best aggressive team — only the best defensive team found so far. A child <em>worse than its own parent</em> can still enter the archive, if its mutations carried its behaviour into a weak or empty region. That sentence is the entire mechanism.</p>
+
+<h2>4. Watch it run</h2>
+
+<div id="sim"></div>
+<script src="../assets/archive-sim.js"></script>
+<script>ArchiveSim.mount(document.getElementById('sim'));</script>
+
+<p>The toy archive: x-axis mean battle length (turns), y-axis KO spread — how many of your four battlers scored at least one knockout. Cell numbers are win rate vs the meta suite. Breed children until the pattern is boring: admission without comparison (empty niche), replacement (won its cell), or discard (lost its cell) — and watch coverage and the Σ-objectives counter move. That counter is the QD-score reading: fill more cells, raise the occupants, do either.</p>
+
+<h2>5. The axis you asked me to define — a VGC menu</h2>
+
+<table class="compare">
+<tr><th>measure (per battle, then averaged)</th><th>from the Showdown log</th><th>spectrum it spans</th></tr>
+<tr><td>mean battle length (turns)</td><td>count turns</td><td>fast aggro ↔ slow stall — your pick, kept: it mirrors Hearthstone's own axis</td></tr>
+<tr><td><b>KO spread</b> — number of your four battlers with ≥1 knockout</td><td>count distinct KOs</td><td>hypercarry (one mon does everything) ↔ balanced pressure across four</td></tr>
+<tr><td>aggression ratio — damage dealt ÷ damage taken</td><td>sum both quantities</td><td>this is your attack–defense idea made numeric; balance lands mid-ratio</td></tr>
+<tr><td>switches per game</td><td>count switch actions</td><td>proactive/tempo ↔ reactive/positioning play</td></tr>
+<tr><td>comeback share — fraction of KOs earned after your first two faints</td><td>replay the log</td><td>front-runner ↔ comeback team</td></tr>
+</table>
+
+<p><strong>Recommended default pair:</b> battle length × KO spread. Reasons: (1) both read straight off a battle log with no interpretation; (2) they are roughly <em>decorrelated</em> — beware pairing the aggression ratio with battle length, since fast sweeps are short by definition and the grid collapses onto a diagonal; (3) together they name styles you actually have to counter: fast hypercarry, slow hypercarry, balanced tempo, full stall.</p>
+
+<p>Two cautions. First, measures and the objective are different jobs — do not reuse the same quantity in both roles (DSA-ME uses end-of-game health difference as its <em>objective</em>; putting margin-of-victory on a measure axis would double-count it). Second, choose ranges before running anything, wide enough that the styles you care about land in visibly different cells — the grid is a claim about what variation matters, and you are the one who gets to choose.</p>
+
+<h2>Retrieval practice</h2>
+
+<div class="quiz" data-answer="a">
+<p class="q">A child lands in an occupied cell and its objective is lower than the incumbent's. What happens?</p>
+<button data-opt="a">The child is discarded</button>
+<button data-opt="b">The incumbent is discarded</button>
+<button data-opt="c">Both candidates are discarded</button>
+<button data-opt="d">The whole grid resets</button>
+<div class="why">Gate 2 compares the child against exactly one occupant — the elite of the cell Gate 1 chose. Losing means discarding the child; nothing else in the archive was ever consulted.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q">What decides which cell a child competes in?</p>
+<button data-opt="a">its objective value alone</button>
+<button data-opt="b">its two measured behaviours</button>
+<button data-opt="c">its parent's archive position</button>
+<button data-opt="d">the emptiest grid region</button>
+<div class="why">Measures decide placement (Gate 1), the objective decides survival (Gate 2). The parent only donated genes; the child's own simulated battles produced its coordinates.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">DSA-ME's archive axes were…</p>
+<button data-opt="a">hand size and game length</button>
+<button data-opt="b">win rate and mana cost</button>
+<button data-opt="c">card count and deck class</button>
+<button data-opt="d">damage dealt and damage taken</button>
+<div class="why">Average hand size (range 1–7) and average game length in turns (range 5–15), §4.2.2. Win rate itself is never a measure there — even the objective is the smoothed health-difference proxy, range −30…+30.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Why can a child worse than its parent still enter the archive?</p>
+<button data-opt="a">empty niches admit any child, however weak</button>
+<button data-opt="b">weak children mutate into stronger ones later</button>
+<button data-opt="c">the grid must be full before selection</button>
+<button data-opt="d">each candidate is scored against every elite</button>
+<div class="why">Gate 2 has a free pass: an unoccupied niche has no incumbent to beat. This is the mechanism that keeps diversity alive — exploration pays even when the child is bad.</div>
+</div>
+
+<h2>Primary source</h2>
+<p>The original algorithm, short and readable: 🟢 <a href="https://arxiv.org/abs/1504.04909">Mouret &amp; Clune, "Illuminating search spaces by mapping elites" (arXiv 1504.04909)</a> — read the abstract and §2 only; everything else is robot demos. Then back to the application paper you started from, 🟢 <a href="https://arxiv.org/abs/2112.03534">Zhang et al., GECCO 2022 (arXiv 2112.03534)</a>, §4.2, now able to name what the surrogate predicts and why it must predict the <em>measures too</em>. The deck-application predecessor remains 🟢 <a href="https://arxiv.org/abs/1904.10656">Fontaine et al., GECCO 2019</a>.</p>
+
+<div class="ask"><strong>Ask me.</strong> Anything unclear — why the surrogate must predict measures as well as the objective, how to bin a measure whose distribution is lopsided, whether your opponent suite should change per niche — ask in chat; that is what I am for. When breeding children feels obvious, the next decision on this strand is still the open one from lesson 0004: does a surrogate join annealing and Bayesian optimisation in the methods compared against 𝑓?</div>
+
+<nav class="lesson-nav noprint">
+<a href="0004-deep-surrogate-assisted-map-elites.html">← 0004 DSA-ME</a>
+<a href="0008-fictitious-play-is-a-mixture-not-a-mean.html">← 0008 fictitious play</a>
+<a href="../MISSION.md">mission ↑</a>
+</nav>
+
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

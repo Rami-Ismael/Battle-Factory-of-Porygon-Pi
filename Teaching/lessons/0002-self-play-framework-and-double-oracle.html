@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 — The self-play loop, BR vs ABR, and Double Oracle</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>The self-play loop, BR vs ABR, and Double Oracle</h1>
+<p class="subtitle">One loop, five symbols. The ORACLE is the step that makes the next battle policy; Double Oracle is what happens when that step is an <em>exact</em> best response.</p>
+<p class="meta">Lesson 0002 · 2026-08-19 · ~12 minutes · <a href="../reference/self-play-framework-glossary.html">glossary sheet</a> · <a href="../MISSION.md">mission</a> · serves the battle-policy experiment in <code>Why Self-Play is consider Multi-Agent.md</code> (the SP / FP / DO arms) · previous: <a href="0001-max-coverage-vs-set-cover.html">0001</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> Your battle-policy plan ranks three self-play arms — pure self-play, fictitious play, "double oracle" — in a cross-play matrix. The survey you are reading gives every such arm the same skeleton. After this lesson you should be able to say, in one breath, which box each arm sits in, why the "double oracle" arm is not actually Double Oracle, and why that matters for what you can claim. One vocabulary warning up front: <b>the survey's ORACLE is not the matchup predictor.</b> <code>CONTEXT.md</code> bans "oracle" as a name for the predictor; the survey's ORACLE is the <em>battle-policy training step</em>. Different slot, no conflict.</div>
+
+<h2>1. The loop — five symbols</h2>
+
+<p>The survey (🟢 <a href="https://arxiv.org/html/2408.01072v4">Zhang, Xu et al., arXiv 2408.01072 v4</a>, Sec. 3.1, Algorithm 1) says every self-play method is this, repeated for each epoch <span class="k">e</span> and each policy <span class="k">k</span>:</p>
+
+<p style="font-family:var(--mono);font-size:.9em;max-width:none">initialise π<sub>[k]</sub><sup>h</sup> &nbsp;→&nbsp; π<sub>[k]</sub><sup>h</sup> ← <b>ORACLE</b>(π<sub>[k]</sub><sup>h</sup>, σ<sub>[k]</sub>, Π) &nbsp;→&nbsp; 𝒫 ← <b>EVAL</b>(Π) &nbsp;→&nbsp; Σ ← <b>MSS</b>(𝒫)</p>
+
+<table class="compare">
+<tr><th>Symbol</th><th>The paper's sentence</th><th>Your word for it</th></tr>
+<tr><td><span class="k">Π</span></td><td>"Each policy π<sub>[k]</sub> in the policy population Π … K denotes the policy population size."</td><td>the pool of battle-policy checkpoints (plus the random and BC baselines) that enter the cross-play matrix</td></tr>
+<tr><td><span class="k">σ<sub>[k]</sub></span></td><td>"in our framework, σ<sub>[k]</sub> is the opponent sampling strategy" — a distribution over Π</td><td>whom the next checkpoint trains against</td></tr>
+<tr><td><span class="k">ORACLE</span></td><td>"an abstract computational entity that returns a new policy adhering to specific criteria"</td><td>the training step — PPO in every VGC-Bench arm</td></tr>
+<tr><td><span class="k">EVAL → 𝒫</span></td><td>"performance matrix" — an Elo column, or the whole payoff matrix</td><td>the cross-play win-rate matrix; Glicko</td></tr>
+<tr><td><span class="k">MSS</span></td><td>"takes the performance matrix 𝒫 as its input and produces a new interaction matrix Σ … If the MSS produces a constant matrix … the evaluation step can be skipped."</td><td>the rule that tells the three arms apart</td></tr>
+</table>
+
+<p>Read the arrows: <span class="k">ORACLE</span> <em>reads</em> one row of Σ (who to train against) and <em>writes</em> a policy into Π; <span class="k">MSS</span> closes the loop by turning the scoreboard 𝒫 into the next Σ. The survey's own summary of where the action is: "most previous work has concentrated on the ORACLE and MSS" (Sec. 3.6.3).</p>
+
+<h2>2. What the ORACLE returns — BR vs ABR</h2>
+
+<blockquote>"(1) One type is the BR oracle, which is designed to identify the optimal counter-strategies against an opponent's strategy, including finding NE (McMahan et al. 2003). However, it often requires considerable computational effort. (2) To alleviate the computational demands, the approximate best response (ABR) oracle is introduced, using techniques such as RL (Algo. 2), evolution-theory-based methods (Algo. 3) or regret minimization methods (Algo. 4). (3) Other specially crafted ORACLEs are either tailored to specific meta-strategy solvers (MSSs) … or introduced to enhance diversity."
+<cite>🟢 Survey, Sec. 3.1.</cite></blockquote>
+
+<p><b>BR</b> is the true arg-max: given the opponent mixture σ, the policy that maximises expected payoff against exactly σ. In a matrix game that is one column scan. In Pokémon it is a search over every possible policy — not computable. <b>ABR</b> aims at the same target but stops at "better than before": run RL against opponents sampled from σ (Algo. 2), or replicator dynamics, or regret matching. Lanctot et al. describe the swap in one line: "instead of computing exact best responses, we compute approximate best responses using reinforcement learning" (🟢 <a href="https://arxiv.org/abs/1711.00832">PSRO, arXiv 1711.00832</a>, Sec. 2).</p>
+
+<div class="callout trap">
+<h4>The trap: the guarantee lives in the oracle, not the MSS</h4>
+<p>Double Oracle's "converges to Nash" is proved <em>from</em> the oracle being exact ("Since r<sub>i</sub> is a best response we conclude that ∀p V(p, q<sub>i</sub>) ≥ v<sub>ℓ</sub>" — 🟢 <a href="https://www.aaai.org/Papers/ICML/2003/ICML03-071.pdf">McMahan, Gordon &amp; Blum 2003</a>, Sec. 4.2). Keep the Nash MSS and swap in PPO and the theorem is gone; what is left is the PSRO heuristic. The survey files the result accordingly: "the oracle in DO is a BR rather than an ABR" (Sec. 3.3.2), and "PSRO (Lanctot et al. 2017) extends DO … the oracle is computed using RL techniques" (Sec. 3.3.3).</p>
+</div>
+
+<h2>3. Watch Double Oracle run</h2>
+
+<p>The survey walks rock-paper-scissors through its framework (Sec. 3.3.2, Equ. 9). Here it is live. Payoff is to the row player: +1 win, −1 loss. Press <b>DO step</b> and read the log: each step is one MSS call (Nash of the shaded restricted game) followed by two ORACLE calls (exact best responses over <em>all</em> rows/columns).</p>
+
+<div id="do-rps"></div>
+
+<ol>
+<li>After iteration 1 the restricted game is just Rock vs Rock; Nash is trivially "Rock"; the best response is Paper. Compare the survey: "Assume that in the first iteration, the policy π<sub>1</sub> is set to rock. Obviously, the NE-based MSS returns σ<sub>2</sub> = (1,0,0). In the second iteration, the BR oracle adds paper."</li>
+<li>Watch the bounds <span class="k">v<sub>ℓ</sub> ≤ value ≤ v<sub>u</sub></span>. They only meet when both oracles return something already in Π — that is the stopping rule, and Theorem 1 says the restricted-game Nash is then a Nash of the full game.</li>
+<li>RPS is the worst case Lanctot et al. name: "the entire strategy space may have to be enumerated … Rock-Paper-Scissors, whose only equilibrium has full support." Every strategy entered Π.</li>
+</ol>
+
+<p>Now a four-strategy game. Same rock-paper-scissors cycle plus a fourth strategy that loses to all three by 0.6 — a badly piloted team, say. Start from Rock again.</p>
+
+<div id="do-four"></div>
+
+<p>The fourth strategy never enters Π: no best response ever points at it. That is the point of Double Oracle — McMahan et al.: "it is reasonable to expect in practice that many pure strategies will never enter R̄ and C̄." The MSS never has to price it, and the payoff matrix the MSS solves stays 3 × 3. In your setting the "strategies" are battle-policy checkpoints, so the analogue is: a checkpoint that nothing needs to beat never has to be sampled as an opponent.</p>
+
+<h2>4. Your three arms in the survey's boxes</h2>
+
+<p>VGC-Bench's <code>train.py</code> builds a stable-baselines3 PPO in every arm (🟢 <a href="https://github.com/cameronangliss/VGC-Bench">repo</a>), so the ORACLE is <b>ABR via RL (Algo. 2)</b> in all three. They differ only in the MSS:</p>
+
+<table class="compare">
+<tr><th>Arm</th><th>MSS (survey)</th><th>Σ constant?</th><th>Survey's name</th></tr>
+<tr><td>pure self-play — one PPO steps both seats</td><td>vanilla, Equ. (5): train against the latest policy</td><td>yes — no EVAL needed</td><td>vanilla self-play</td></tr>
+<tr><td>fictitious play — uniform over saved checkpoints</td><td>FP, Equ. (6): 1/(m−1) over all earlier policies</td><td>yes — no EVAL needed</td><td>fictitious play</td></tr>
+<tr><td>"double oracle" — checkpoints weighted by Nash over a win-rate matrix (nashpy)</td><td>NE-based, Algo. 6: σ<sub>[k+1]</sub> ← SOLVE-NASH(𝒫<sub>1:k,1:k</sub>)</td><td>no — needs the payoff matrix</td><td><b>PSRO with a Nash MSS</b> — not DO, because the oracle is PPO</td></tr>
+</table>
+
+<p class="note">One more deviation: the survey's DO/FP rows are E = 1 with a fresh π<sub>[k]</sub> each iteration; VGC-Bench keeps training one network and snapshots it. Allowed ("More often, π<sub>[k]</sub><sup>h</sup> is initialized by π<sub>[k−1]</sub>") but it is the ongoing-training regime, and no source read gives a convergence theorem for it. The honest claim for the arm is empirical — the cross-play matrix, nothing more.</p>
+
+<h2>5. Retrieval practice</h2>
+<p class="note">Answer from memory before scrolling back. Options are equal length on purpose.</p>
+
+<div class="quiz" data-answer="b">
+<p class="q">In the survey's loop, which component reads a row σ<sub>[k]</sub> of Σ and writes a policy into Π?</p>
+<button data-opt="a">EVAL</button>
+<button data-opt="b">ORACLE</button>
+<button data-opt="c">MSS</button>
+<div class="why">ORACLE(π<sub>[k]</sub><sup>h</sup>, σ<sub>[k]</sub>, Π) takes the opponent-sampling row and returns a new policy. EVAL reads Π and writes 𝒫; MSS reads 𝒫 and writes Σ.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">Which oracle type does the survey assign to Double Oracle?</p>
+<button data-opt="a">approximate best response</button>
+<button data-opt="b">specially crafted oracle</button>
+<button data-opt="c">exact best response oracle</button>
+<div class="why">Sec. 3.3.2: "the oracle in DO is a BR rather than an ABR, computing the BR against the current NE opponent strategy of the restricted game."</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Double Oracle stops when —</p>
+<button data-opt="a">both best responses are already in the restricted sets</button>
+<button data-opt="b">the restricted game has grown to the full game's size</button>
+<button data-opt="c">the Nash of the restricted game has a full support</button>
+<div class="why">McMahan et al.: "If on some iteration i, r<sub>i</sub> is already in R̄ and c<sub>i</sub> ∈ C̄, then the algorithm terminates" — equivalently v<sub>ℓ</sub> = v<sub>u</sub>. Growing to full size is the worst case, not the rule; full support is what RPS happens to need, not a criterion.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q">VGC-Bench's "double oracle" arm keeps DO's Nash MSS but trains with PPO. In the survey's taxonomy it is —</p>
+<button data-opt="a">Double Oracle, with a slower oracle</button>
+<button data-opt="b">PSRO, with an approximate oracle</button>
+<button data-opt="c">fictitious play, with Nash weights</button>
+<div class="why">Survey Sec. 3.3.3: PSRO "extends DO … the oracle is computed using RL techniques"; Lanctot et al.: "Double Oracle is an instance of PSRO with n = 2 and σ<sup>T</sup> set to a Nash equilibrium profile." Swap BR for ABR and it is PSRO-Nash.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">What happens to DO's finite-iteration Nash guarantee when the oracle is PPO?</p>
+<button data-opt="a">it holds, because the Nash MSS is unchanged</button>
+<button data-opt="b">it holds, but only after the buffer is full</button>
+<button data-opt="c">it does not transfer; the claim is empirical</button>
+<div class="why">The proof uses "Since r<sub>i</sub> is a best response…" and a finite strategy set. PPO breaks both. Lanctot et al. state convergence for DO only and describe PSRO as "trading convergence precision". No source read gives a theorem for a PPO oracle.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Does CONTEXT.md's ban on "oracle" collide with the survey's ORACLE?</p>
+<button data-opt="a">No — the ban covers the predictor slot only</button>
+<button data-opt="b">Yes — the survey's ORACLE is the predictor</button>
+<button data-opt="c">Yes — both words name the objective f</button>
+<div class="why">CONTEXT.md lists "oracle" under <em>Avoid</em> for the matchup predictor. The survey's ORACLE produces battle policies and never touches f. Write "the survey's ORACLE (= the battle-policy training step)" in the vault and nobody is confused.</div>
+</div>
+
+<p class="quiz-summary"></p>
+
+<h2>6. Read the source</h2>
+<p>Primary reading, in this order, all 🟢: (1) the survey's Sec. 3.1 and 3.3.2 — <a href="https://arxiv.org/html/2408.01072v4">arXiv 2408.01072 v4</a>, twenty minutes; (2) McMahan, Gordon &amp; Blum, <a href="https://www.aaai.org/Papers/ICML/2003/ICML03-071.pdf">ICML 2003</a>, Sec. 4.2 and Theorem 1 only — one page; (3) Lanctot et al., <a href="https://arxiv.org/abs/1711.00832">PSRO</a>, Sec. 2–3. No venue is listed for the survey on arXiv; do not cite one.</p>
+
+<div class="ask"><b>Ask me.</b> Anything unclear — why fictitious play's Σ is still "constant", what Algo. 2's buffer B is for, how the survey would classify the BC arm (it is not self-play at all) — ask in chat. I can also re-run the stepper on a payoff matrix you type in.</div>
+
+<nav class="lesson-nav">
+<a href="0001-max-coverage-vs-set-cover.html">← 0001 Max coverage vs set cover</a>
+<a href="../reference/self-play-framework-glossary.html">Glossary sheet</a>
+</nav>
+
+<script src="../assets/quiz.js"></script>
+<script src="../assets/do-sim.js"></script>
+<script>
+DOSim.mount('#do-rps', { names: ['Rock','Paper','Scissors'], start: 0,
+  M: [[0,-1,1],[1,0,-1],[-1,1,0]] });
+DOSim.mount('#do-four', { names: ['Rock','Paper','Scissors','Dull'], start: 0,
+  M: [[0,-1,1,0.6],[1,0,-1,0.6],[-1,1,0,0.6],[-0.6,-0.6,-0.6,0]] });
+</script>
+</body>
+</html>

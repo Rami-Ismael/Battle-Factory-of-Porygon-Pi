@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — the ReEvo loop card</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>The ReEvo loop — reference card</h1>
+<p class="meta">Compressed from <a href="../lessons/0005-reevo-llm-writes-the-heuristic.html">Lesson 0005</a> · Ye et al., NeurIPS 2024 · 🟢 <a href="https://arxiv.org/abs/2402.01145">arXiv 2402.01145</a> · 🟢 <a href="https://github.com/ai4co/reevo">repo</a></p>
+
+<h2>One line</h2>
+<p>Evolutionary search over <strong>heuristic code</strong>; a generator LLM writes candidates, a reflector LLM writes text about why one beat another, and the meta-objective F — average performance on a cheap instance dataset — does the selecting.</p>
+
+<h2>The loop</h2>
+<ol>
+<li><strong>Initialize</strong> — generator + task specification (problem description, heuristic's job, signature) → population of code.</li>
+<li><strong>Select</strong> — random parent pairs among crash-free heuristics; never pair equal F values.</li>
+<li><strong>Short-term reflection</strong> — reflector sees the pair + which won → verbal why (per-pair, local).</li>
+<li><strong>Crossover</strong> — generator: task spec + parents + relative performance + short-term reflection → offspring code.</li>
+<li><strong>Long-term reflection → elitist mutation</strong> — reflector accumulates hints across generations; generator mutates the current best under those hints.</li>
+</ol>
+
+<h2>Definitions</h2>
+<ul>
+<li><strong>Language Hyper-Heuristic</strong>: LLM-generated heuristics, open-ended heuristic space, minimal manual intervention.</li>
+<li><strong>Meta-objective F</strong>: expected performance of heuristic h, estimated as average performance on a dataset of problem instances. Must be cheap — it runs once per candidate.</li>
+<li><strong>Verbal gradient</strong>: the reflector's text explaining a score comparison, used as the improvement direction.</li>
+<li><strong>White-box / black-box view</strong>: with / without a problem description in the prompts; black-box = signature + score feedback only.</li>
+</ul>
+
+<h2>Repo mechanics</h2>
+<ul>
+<li>Evolved code lives in <code>./problems/&lt;problem&gt;/gpt.py</code>; the evaluator prints F as the last stdout line.</li>
+<li>Adding a problem = a task specification + an evaluator script; the loop is problem-agnostic.</li>
+</ul>
+
+<h2>The project mapping (pruning rules)</h2>
+<ul>
+<li>individual = filter/penalty function over one team</li>
+<li>instance data = ranked top teams (retention) + sampled teams (prune fraction)</li>
+<li>F(rule) = rank-weighted retention × prune fraction — battle-free</li>
+<li>view = white-box (the LLM knows Pokémon; give it the Reg M-B description)</li>
+<li>open decision: hard filter vs soft penalty</li>
+</ul>
+
+</body>
+</html>

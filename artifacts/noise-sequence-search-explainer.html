@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Noise sequence search · visual explainer</title>
+  <style>
+    :root { color-scheme: light dark; --bg:light-dark(#f6f8fb,#111419); --surface:light-dark(#ffffff,#1a2028); --ink:light-dark(#18222f,#f0f4f8); --muted:light-dark(#586879,#a6b3c0); --line:light-dark(#d6dee7,#38434f); --blue:light-dark(#2563eb,#74a6ff); --blue-soft:light-dark(#e7efff,#1f3456); --green:light-dark(#12805c,#67d7a9); --green-soft:light-dark(#e6f6ef,#183d31); --orange:light-dark(#a9560a,#f7ab6b); --orange-soft:light-dark(#fff0e3,#483021); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { width:min(100% - 32px,900px); margin:0 auto; padding:36px 0 56px; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { font-size:clamp(1.8rem,4vw,2.6rem); line-height:1.13; letter-spacing:-.04em; margin-bottom:.55rem; }
+    h2 { font-size:1.25rem; letter-spacing:-.02em; margin-bottom:.35rem; }
+    h3 { font-size:1rem; margin-bottom:.35rem; }
+    p { max-width:70ch; }
+    .eyebrow { color:var(--blue); font-size:.78rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; margin-bottom:.65rem; }
+    .lede { color:var(--muted); font-size:1.05rem; margin-bottom:1.7rem; }
+    .key { color:var(--ink); font-weight:650; }
+    .tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+    .tabs button,.replay { appearance:none; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font:inherit; font-size:.9rem; padding:8px 13px; cursor:pointer; }
+    .tabs button[aria-selected="true"] { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+    .tabs button:hover,.replay:hover { border-color:var(--blue); }
+    .tabs button:focus-visible,.replay:focus-visible,a:focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
+    .stage { background:var(--surface); border:1px solid var(--line); border-radius:22px; padding:clamp(18px,4vw,32px); box-shadow:0 12px 40px light-dark(#18334b0c,#00000033); }
+    [hidden] { display:none !important; }
+    .stage-header { display:flex; flex-wrap:wrap; gap:8px 20px; align-items:start; justify-content:space-between; margin-bottom:24px; }
+    .stage-header p { color:var(--muted); margin:0; }
+    .replay { white-space:nowrap; }
+    .diagram { min-height:220px; display:grid; align-content:center; }
+    .route { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; align-items:center; }
+    .stop { text-align:center; min-width:0; position:relative; }
+    .stop:not(:last-child)::after { content:"→"; position:absolute; top:18px; right:-12px; color:var(--muted); }
+    .orb { display:grid; place-items:center; width:58px; height:58px; margin:0 auto 9px; border-radius:50%; background:var(--blue-soft); color:var(--blue); font-size:1.45rem; font-weight:650; animation:arrive .65s ease-out both; }
+    .stop:nth-child(2) .orb { animation-delay:.22s; }
+    .stop:nth-child(3) .orb { animation-delay:.44s; }
+    .stop:nth-child(4) .orb { animation-delay:.66s; background:var(--green-soft); color:var(--green); }
+    .stop strong { display:block; font-size:.9rem; }
+    .stop small,.noise-tag { display:block; color:var(--muted); font-size:.78rem; }
+    .noise-tag { margin-top:4px; color:var(--orange); }
+    .legend { display:flex; flex-wrap:wrap; gap:7px 18px; color:var(--muted); font-size:.85rem; margin-top:20px; }
+    .legend b { color:var(--orange); }
+    .smc { display:grid; grid-template-columns:80px repeat(4,minmax(0,1fr)); gap:12px 7px; align-items:center; }
+    .smc-head { color:var(--muted); font-size:.75rem; text-align:center; }
+    .candidate-label { color:var(--muted); font-size:.78rem; }
+    .candidate { display:grid; place-items:center; min-height:42px; border-radius:12px; background:var(--blue-soft); color:var(--blue); font-weight:650; position:relative; animation:appear .5s both; }
+    .candidate:not(.last)::after { content:"→"; position:absolute; right:-12px; color:var(--muted); }
+    .candidate.dim { opacity:.32; }
+    .candidate.keep { background:var(--green-soft); color:var(--green); }
+    .candidate:nth-child(n+11) { animation-delay:.4s; }
+    .smc-key { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:16px; font-size:.8rem; color:var(--muted); }
+    .tree { display:grid; gap:18px; justify-items:center; }
+    .tree-level { display:flex; width:100%; justify-content:space-around; gap:12px; }
+    .tree-node { min-width:88px; text-align:center; border-radius:14px; background:var(--blue-soft); color:var(--blue); padding:9px; animation:appear .55s both; }
+    .tree-level:nth-child(2) .tree-node { animation-delay:.25s; }
+    .tree-level:nth-child(3) .tree-node { animation-delay:.5s; }
+    .tree-node.chosen { background:var(--green-soft); color:var(--green); }
+    .tree-node.faded { opacity:.38; }
+    .tree-arrow { color:var(--muted); line-height:1; }
+    .gp { display:grid; grid-template-columns:1.2fr auto 1fr auto 1fr; align-items:center; gap:12px; }
+    .gp-box { background:var(--blue-soft); color:var(--blue); padding:14px; border-radius:14px; text-align:center; animation:appear .6s both; }
+    .gp-box:nth-of-type(3) { animation-delay:.25s; }
+    .gp-box:nth-of-type(5) { animation-delay:.5s; }
+    .gp-box strong { display:block; font-size:.92rem; }
+    .gp-box small { display:block; color:var(--muted); font-size:.78rem; }
+    .gp-arrow { color:var(--muted); font-size:1.3rem; }
+    .gp-loop { text-align:center; color:var(--green); margin-top:16px; font-weight:650; }
+    .tradeoffs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+    .tradeoff { border-top:4px solid var(--orange); padding-top:12px; }
+    .tradeoff b { display:block; color:var(--orange); font-size:1.35rem; line-height:1; margin-bottom:11px; }
+    .tradeoff p { color:var(--muted); font-size:.9rem; margin:0; }
+    .meaning { border-top:1px solid var(--line); margin-top:24px; padding-top:20px; display:grid; grid-template-columns:minmax(110px,.3fr) 1fr; gap:15px; }
+    .meaning strong { color:var(--green); }
+    .meaning p { margin:0; }
+    .source { margin-top:20px; color:var(--muted); font-size:.8rem; }
+    a { color:var(--blue); }
+    @keyframes arrive { from { opacity:.3; transform:translateX(-16px) scale(.86); } to { opacity:1; transform:translateX(0) scale(1); } }
+    @keyframes appear { from { opacity:.15; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    @media (max-width:620px) { .gp { grid-template-columns:1fr; gap:5px; } .gp-arrow { transform:rotate(90deg); text-align:center; } .tradeoffs { grid-template-columns:1fr; } .diagram { min-height:260px; } }
+    @media (max-width:420px) { .smc { grid-template-columns:53px repeat(4,minmax(0,1fr)); gap:8px 4px; } .candidate { min-height:34px; font-size:.8rem; } .candidate-label,.smc-head { font-size:.68rem; } .orb { width:44px; height:44px; font-size:1.1rem; } .stop:not(:last-child)::after { top:10px; right:-10px; } .stop strong { font-size:.76rem; } .stop small,.noise-tag { font-size:.68rem; } .tree-node { min-width:65px; font-size:.76rem; padding:7px 4px; } .meaning { grid-template-columns:1fr; gap:5px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Diffusion paper · paragraph explainer</div>
+  <h1>Noise sequence search</h1>
+  <p class="lede">The earlier method tuned the <span class="key">starting noise</span>. These methods make decisions about the <span class="key">random choices along the generation path</span>.</p>
+
+  <div class="tabs" role="tablist" aria-label="Explanation sections">
+    <button type="button" role="tab" id="tab-idea" aria-controls="panel-idea" aria-selected="true" data-panel="idea">1 The idea</button>
+    <button type="button" role="tab" id="tab-smc" aria-controls="panel-smc" aria-selected="false" data-panel="smc">2 SMC</button>
+    <button type="button" role="tab" id="tab-tree" aria-controls="panel-tree" aria-selected="false" data-panel="tree">3 Tree search</button>
+    <button type="button" role="tab" id="tab-gp" aria-controls="panel-gp" aria-selected="false" data-panel="gp">4 Fast Direct</button>
+    <button type="button" role="tab" id="tab-limits" aria-controls="panel-limits" aria-selected="false" data-panel="limits">5 Tradeoffs</button>
+  </div>
+
+  <section class="stage" id="panel-idea" role="tabpanel" aria-labelledby="tab-idea">
+    <div class="stage-header"><div><h2>One generation can take many possible routes</h2><p>At stochastic sampling steps, new random noise can change the next state.</p></div><button type="button" class="replay">↻ Replay</button></div>
+    <div class="diagram">
+      <div class="route" aria-label="Start noise, intermediate states, finished sample">
+        <div class="stop"><div class="orb" aria-hidden="true">∿</div><strong>start</strong><small>x<sub>T</sub></small></div>
+        <div class="stop"><div class="orb" aria-hidden="true">⁘</div><strong>partial state</strong><small>x<sub>2</sub></small><span class="noise-tag">+ ε<sub>2</sub></span></div>
+        <div class="stop"><div class="orb" aria-hidden="true">≋</div><strong>partial state</strong><small>x<sub>1</sub></small><span class="noise-tag">+ ε<sub>1</sub></span></div>
+        <div class="stop"><div class="orb" aria-hidden="true">▧</div><strong>result</strong><small>x<sub>0</sub></small></div>
+      </div>
+      <div class="legend"><span><b>ε</b> = random choice injected during sampling</span><span>Different choices → different final results</span></div>
+    </div>
+    <div class="meaning"><strong>Plain English</strong><p>Search over the route the sampler takes, either by selecting promising partial routes or by choosing a whole noise sequence.</p></div>
+  </section>
+
+  <section class="stage" id="panel-smc" role="tabpanel" aria-labelledby="tab-smc" hidden>
+    <div class="stage-header"><div><h2>SMC: keep promising partial paths</h2><p>FK-Steering and DAS use a population of candidates and resampling.</p></div><button type="button" class="replay">↻ Replay</button></div>
+    <div class="diagram">
+      <div class="smc" aria-label="Three candidate paths are sampled. Weak paths fade; a promising path is copied and continued.">
+        <span></span><span class="smc-head">start</span><span class="smc-head">step 1</span><span class="smc-head">resample</span><span class="smc-head">finish</span>
+        <span class="candidate-label">path A</span><span class="candidate">A</span><span class="candidate">A₁</span><span class="candidate keep">keep</span><span class="candidate keep last">▧</span>
+        <span class="candidate-label">path B</span><span class="candidate">B</span><span class="candidate dim">B₁</span><span class="candidate dim">drop</span><span class="candidate keep last">▧</span>
+        <span class="candidate-label">path C</span><span class="candidate">C</span><span class="candidate dim">C₁</span><span class="candidate dim">drop</span><span class="candidate keep last">▧</span>
+      </div>
+      <div class="smc-key"><span>Partial paths are scored along the way</span><span>Promising paths get more descendants</span></div>
+    </div>
+    <div class="meaning"><strong>Plain English</strong><p>Run several unfinished generations. At checkpoints, favor the ones that look promising and continue sampling from them. The “keep/drop” picture is schematic; actual SMC uses weighted resampling.</p></div>
+  </section>
+
+  <section class="stage" id="panel-tree" role="tabpanel" aria-labelledby="tab-tree" hidden>
+    <div class="stage-header"><div><h2>Tree search: branch and explore</h2><p>DSearch and DTS consider alternative next steps from partial states.</p></div><button type="button" class="replay">↻ Replay</button></div>
+    <div class="diagram tree" aria-label="A starting state branches into candidate partial paths. A promising branch is expanded further.">
+      <div class="tree-level"><div class="tree-node">current state</div></div>
+      <div class="tree-arrow" aria-hidden="true">↙ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
+      <div class="tree-level"><div class="tree-node chosen">branch A</div><div class="tree-node faded">branch B</div></div>
+      <div class="tree-arrow" aria-hidden="true">↙ &nbsp;&nbsp;&nbsp; ↘</div>
+      <div class="tree-level"><div class="tree-node chosen">A → A₁</div><div class="tree-node">A → A₂</div><div class="tree-node faded">B → B₁</div></div>
+    </div>
+    <div class="meaning"><strong>Plain English</strong><p>Try several possible next moves, estimate which partial route is likely to end well, and spend more search effort on promising branches.</p></div>
+  </section>
+
+  <section class="stage" id="panel-gp" role="tabpanel" aria-labelledby="tab-gp" hidden>
+    <div class="stage-header"><div><h2>Fast Direct: search the whole sequence</h2><p>A Gaussian process learns which noise sequences are worth trying next.</p></div><button type="button" class="replay">↻ Replay</button></div>
+    <div class="diagram">
+      <div class="gp" aria-label="Choose a noise sequence, run the sampler, score the result, then use a Gaussian process model to choose another sequence.">
+        <div class="gp-box"><strong>ε<sub>T</sub>, ε<sub>T−1</sub>, …, ε<sub>1</sub></strong><small>one full noise sequence</small></div><div class="gp-arrow" aria-hidden="true">→</div>
+        <div class="gp-box"><strong>Run sampler</strong><small>produce final sample</small></div><div class="gp-arrow" aria-hidden="true">→</div>
+        <div class="gp-box"><strong>Reward</strong><small>score finished result</small></div>
+      </div>
+      <div class="gp-loop">↩ Fit GP surrogate → propose the next sequence</div>
+    </div>
+    <div class="meaning"><strong>Plain English</strong><p>Treat the entire list of random choices as one search input. Try sequences, observe final rewards, then use the Gaussian process to suggest another candidate without differentiating through the sampler.</p></div>
+  </section>
+
+  <section class="stage" id="panel-limits" role="tabpanel" aria-labelledby="tab-limits" hidden>
+    <div class="stage-header"><div><h2>Why the paragraph lists limitations</h2><p>These are method-dependent tradeoffs, not claims about every method equally.</p></div><button type="button" class="replay">↻ Replay</button></div>
+    <div class="diagram tradeoffs">
+      <div class="tradeoff"><b>01</b><h3>Incomplete images need a proxy</h3><p>To choose a partial path early, a method may estimate its eventual reward before the final sample exists. That estimate can be wrong.</p></div>
+      <div class="tradeoff"><b>02</b><h3>Adaptive search complicates batching</h3><p>The next candidates depend on earlier scores or branches, making large fixed batches less convenient.</p></div>
+      <div class="tradeoff"><b>03</b><h3>SMC calls the reward often</h3><p>As described here, FKS and DAS use SDE sampling and many score evaluations, so cheap reward models are more practical.</p></div>
+    </div>
+    <div class="meaning"><strong>Plain English</strong><p>Guiding a stochastic trajectory can work well, but decisions along the way add scoring and coordination costs.</p></div>
+  </section>
+
+  <p class="source">Schematic explanation of the paper’s “Noise sequence search” paragraph. <a href="https://openreview.net/pdf/7786a1896902526c69b5b7cd08fcf10a85c088be.pdf">Read the source paper</a>.</p>
+</main>
+<script>
+  (() => {
+    const tabs = [...document.querySelectorAll('[data-panel]')];
+    const panels = [...document.querySelectorAll('[role="tabpanel"]')];
+    function show(name) {
+      tabs.forEach(tab => { const active = tab.dataset.panel === name; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
+      panels.forEach(panel => { panel.hidden = panel.id !== 'panel-' + name; });
+    }
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => show(tab.dataset.panel));
+      tab.addEventListener('keydown', event => {
+        const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!delta) return;
+        event.preventDefault();
+        const next = tabs[(index + delta + tabs.length) % tabs.length];
+        show(next.dataset.panel); next.focus();
+      });
+    });
+    document.querySelectorAll('.replay').forEach(button => button.addEventListener('click', () => {
+      const panel = button.closest('.stage');
+      panel.querySelectorAll('.orb,.candidate,.tree-node,.gp-box').forEach(node => { node.style.animation = 'none'; void node.offsetWidth; node.style.animation = ''; });
+    }));
+    show('idea');
+  })();
+</script>
+</body>
+</html>

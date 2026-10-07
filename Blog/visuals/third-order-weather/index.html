@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Third-Order Weather</title>
+<style>
+:root{--paper:#f6f3eb;--ink:#202c32;--muted:#68777c;--line:#cdd2cc;--navy:#152b36;--sun:#e9a94a;--good:#3f8f6b;--bad:#b4533a;--card:#fffdf8;--ease:cubic-bezier(.23,1,.32,1);--spring:cubic-bezier(.34,1.56,.64,1);color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:940px;margin:auto;padding:32px 20px 40px}
+.eyebrow{font:10px ui-monospace,monospace;letter-spacing:.12em;color:var(--muted);margin:0 0 12px;text-transform:uppercase}
+h1{font:normal clamp(28px,4vw,42px)/1.1 Georgia,serif;letter-spacing:-.03em;margin:0 0 18px}
+img.sp{image-rendering:pixelated;object-fit:contain}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #ee9156;outline-offset:3px}
+
+.stage{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 20px;overflow:hidden}
+.rain{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s var(--ease);background-image:repeating-linear-gradient(105deg,transparent 0 16px,rgba(61,134,168,.22) 16px 17px);background-size:44px 44px;animation:rainfall .7s linear infinite}
+.rain.on{opacity:1}
+@keyframes rainfall{to{background-position:-12px 44px}}
+.turnlbl{font:11px ui-monospace,monospace;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;min-height:16px;margin-bottom:8px;position:relative}
+.zones{display:grid;grid-template-columns:2fr 1fr;gap:14px;position:relative}
+.zone{border:1px dashed var(--line);border-radius:12px;padding:10px;min-height:178px;background:rgba(255,255,255,.45)}
+.zone.back{background:rgba(236,238,233,.6)}
+.zl{display:block;font:10px ui-monospace,monospace;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.slots{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.pcard{text-align:center;width:150px}
+.pcard img{width:88px;height:88px}
+.pcard b{display:block;font-size:14px}
+.pcard.absent{opacity:.25;filter:grayscale(1)}
+.zone.back .pcard img{width:64px;height:64px}
+.chip{display:inline-block;margin-top:6px;font:12px ui-monospace,monospace;padding:4px 9px;border-radius:6px;background:#eceee9;color:#4c5a5e;transition:background .4s,color .4s}
+.chip.water{background:#3d86a8;color:#fff}.chip.elec{background:#7b6fc9;color:#fff}.chip.rainc{background:#d9ebf2;color:#22566b}
+.chip.charging{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.4}}
+
+.target{margin-top:26px;position:relative}
+.tl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin-bottom:6px}
+.tl .right{display:flex;align-items:center;gap:10px}
+.tl .hpnum{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.hp{height:18px;background:#e3e6e1;border-radius:9px;overflow:hidden}
+.hpfill{height:100%;background:var(--good);width:100%;transition:width .9s var(--ease),background .3s}
+.faint{font:500 12px sans-serif;background:var(--bad);color:#fff;padding:3px 10px;border-radius:12px;opacity:0;transform:scale(.6);transition:opacity .2s,transform .45s var(--spring)}
+.faint.on{opacity:1;transform:scale(1)}
+.target.hit{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+
+.minis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px;position:relative}
+.mini{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;background:var(--card);opacity:0;transform:translateY(10px);transition:opacity .35s var(--ease),transform .45s var(--ease)}
+.mini.on{opacity:1;transform:none}
+.mini .ms img{width:30px;height:30px}
+.mini .hp{height:9px;margin:6px 0 4px}
+.mini b{font-size:13px}
+
+.ematwrap{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;margin-top:22px;position:relative;animation:rise .5s var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.emat{display:grid;grid-template-columns:auto repeat(3,72px);gap:4px;align-items:center}
+.emat .h{font-size:10px;color:var(--muted);text-align:center;padding-right:4px}.emat .h img{width:30px;height:30px;display:block;margin:auto}
+.emat .c{height:52px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#eceee9;font:18px Georgia,serif;color:#7c888b;animation:rise .4s var(--ease) both}
+.emat .c.d{background:transparent;border:1px dashed var(--line)}
+.eqn{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.eqn i{font-style:normal;color:var(--muted);font-size:16px}
+.eqn .term{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;text-align:center}
+.eqn .term span{display:block;font-size:10px;color:var(--muted)}
+.eqn .term b{font:20px Georgia,serif}
+.eqn .pred{border-color:var(--muted)}.eqn .act b{color:var(--bad)}
+.eqn .third{background:#fbe7c4;border-color:var(--sun)}
+
+.caption{margin-top:16px;font-size:16px;line-height:1.65;min-height:110px;max-width:720px;transition:opacity .2s}
+.caption .stepno{font:11px ui-monospace,monospace;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:4px}
+.nav{display:flex;align-items:center;gap:12px}
+.nav button{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:8px 18px;font-size:14px;min-height:40px;transition:transform .14s var(--ease)}
+.nav button:active{transform:scale(.97)}
+.nav button:disabled{opacity:.35;cursor:default}
+#next{background:var(--navy);color:#fff;border-color:var(--navy)}
+.dots{display:flex;gap:2px}
+.dots button{width:14px;height:14px;padding:0;border:0;background:none;min-height:0;display:grid;place-items:center}
+.dots button::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .2s,transform .2s}
+.dots button[aria-current=step]::before{background:var(--navy);transform:scale(1.3)}
+.note{margin-top:22px;font-size:11px;line-height:1.6;color:var(--muted);max-width:720px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+
+@media(max-width:700px){.zones,.ematwrap{grid-template-columns:1fr}.minis{grid-template-columns:1fr}.pcard{width:120px}.pcard img{width:64px;height:64px}.emat{grid-template-columns:auto repeat(3,56px)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Third-order interaction · Pokémon Champions doubles</p>
+<h1>Rain, Electro Shot, and Weather Ball</h1>
+
+<div class="stage" aria-describedby="caption">
+  <div class="rain" id="rain"></div>
+  <div class="turnlbl" id="turn"></div>
+  <div class="zones">
+    <div class="zone"><span class="zl">On the field</span><div class="slots" id="field"></div></div>
+    <div class="zone back"><span class="zl">Waiting in the back</span><div class="slots" id="back"></div></div>
+  </div>
+  <div hidden id="hold">
+    <div class="pcard" data-s="P"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAQEBCLQTHNQVLFezH2tDH/3kr//6z////N1e6k5v97ze5apM1zc4MxYovieTafAAAAAXRSTlMAQObYZgAAAj5JREFUeNrtlAeW4zgMBf3RpE22SNz/uItPBewkP0uGJqo6B1cJULj9S1xcXFxcXKgB4DR9+/ycmqHAOXoyCmyE+4eegUpaQ7B/Wvx1JbiAysJkfie20GszSgFwTgBlBFCsUcL9BLO/o7NCfzAQYQDAPMYtGrnfpfRCQgPuN6SOCXqoPxEZ/pznc1CDAmlw38iSrDCDCP3j4fLFnzMgMQXTL/7szD9BJCAgMCST9Vuv5YjCAGR8k9hwJNX3ZzC2Dq+kj62RUpb6ZkFk286slw8Cwot2FOZENw7cVzk51G9Y+j4CBoxejL7bP7Rk1WKB+i1ADt0Y8qB+XKgCIrxqHQ+QAw9X81H/Y7IHyJGA639xoJ8SyAx0D9SE2+7C84AkU3vh7EA6Eng831BONBP4ABEjeKD2sgRSDgu43wMVOYUHEj9QyhKgP6jgfg9USGQgr7Dg93FYITsZpZwfiC1kvkUFWHjiDy/Q7IWIAIHb3e8wEFDIjhM1Qkd+UhB44GChF+BHBUFrKO8VlK+HNxwBmqFg4HBBJ7WXa2XjCzfMhaYeOFbQaZpUtanR4Jh4DfiOVLUqdvup4AeNZFiXgK4jDDe/bQ26w982v+oSYAFrD+P3KNrYJGBl5wCqPsAAbGD+FvxJt+OYOzi4IIdiZwQOFNT9iqdzg6v0Lb1aGMflC3oGpgMF+NzD/1IBOwrw/wVeOhwv6EsB3fyv7FO98OprYNz86Pct6RaOF9x/TmEMfg6ABfQsu5+2i4uLi4uLX8l/Cd43EaPQnVQAAAAASUVORK5CYII=" alt=""><b>Pelipper</b><span class="chip" id="chipP"></span></div>
+    <div class="pcard" data-s="A"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAVFRUQHToeLFkkPHkpUJhEcshoYoSKhpuppbng4O3/3527eUTJR0d6PT4QKO1VAAAAAXRSTlMAQObYZgAABJVJREFUeNrt1oma5CoIBeAgMaC1vP/jXjAnreWkFu2++/BNOfv5BWpbfte/q+7dr388/0YPv+7rN8C3Ghput58XeK2RYV1Pgeu3gNgAMYJ7zL+MtHXt8ytA8fhND1zp8/yLdIDdOYRXwPUyBlyrEPYJhW3jNwCEQSBswRoIns8iSzjP15TSNLCFaMfGK2eVZ0DOmj4HRCpAbMK2RV5XtphzQLMD8nF+VqnAaoLnB+sghfgM0JRoAEgNsHJkDmvgizqwnuWPAQrgEHi/PzmwMj9pYGRCDwATlwVcrpbPViTTDZwDkbyDlNJNHSDNctLA4ArOgPvtXoAMoWtAlpEVJGnyHVjD7QuAMD+hDlh3gIgCF+BRkNrAHLCtkayi1dGA31k6gL4DoLYClHgINX8A0BbwfAArgAwAwuSEWiAXYc1lQiHnKiAfE5oHTLCjAhD0Ks2E5gHPWv3YAOiRf70K5dEJLQqgbaB0sDoQEC8omplQD5Qt20+lAcX096I8OaEWsOwiYEJ6BsgyByA/F+FrBacNzAOWX4QC4DkEQPLMhHoAFWN9DrUAFjYDiBU/NsDB4sVqvgG1KvkiKed+BaFEppydIOSPT0hTSQdggikdkGxKpFYyNiEMVSwBQHZhdaO+T+wGGpCJFUsG0LwPrVsLKPJHATSQCyAiBchrBuD5ZUcA8BqbA0RUDSgLLgcADzSj5AMYzk8l3oDgDZQtYwUAkqg2TyEZB0SthEL9rDkm5HbJzCfA9X0+mvZ8oiU0n5YAQLT5SQn5F/msgVTyF8+PbOnsROAKLPIAIB/ABw24QDvAN47+iNsDUPMngSRpB24O2GFAl38KvBQkp6+t2YP2BgA8TKjm94C+BFI8BbZyAED+A/AVqprlZQMx4b13fQKox1p++qUBOUYsrxowQNMLwAQt+TF1gGR5CaCByAxAftnBihmV/IhtARCxYHkDEKM8fwcW2oFyAij5FZDysDPnJA5gI2dAFQwoMzKgZFeAkb8vCwD5oZqSWDyA18QZcAPAXgCOZXm+J0sC8JIIZLHtjABgRriE7GkAVBEP4SXh8S1AEGgH1AQYnl+AJv6Dz+dg6Wz1NSMqgJ2BITSA2tHcXl0I4TXAddly+XVGSQnLEjRQb19+BKY3LRwELTsAAUBJMqMCze01BeS/J8jyRdrnkaUXQMvwfVsA6u018Pt87BqvfMzIzjszZmT5KAWgmD7yPysAzHS3bL7faQe8AbYCQIlw+73xZQyA4ICfwQGr9pkEIAVG/jhwv3t2ObBmByAAOPY2Digh2xgALhBBKEDA9cfzAfQt+N/BMADxtMwBiZgAEADF35HVMS/EzwGhXbML0n4oE64/DSTq1twDiJ/KBxAAQOgAxM8Dibo1S34Alm8CfQs9kOi7+b3wwwDWSFWgFtCfAVSVUBbXAjIBID+1gJc84vWbEU0BKaYKQDgBSL8PCP8wgHwD0ACRA3I6ImIIE4AJxyuJrLr9fBNIsQXOx1eBcYGIDoBoeQ3MtADDAMT3+Q1ALDSTD+PFfgAsA/Fj+6kL+uEiKwAj+eOIAaPTGd/Q7/rn1x+MD2QnZDsM9QAAAABJRU5ErkJggg==" alt=""><b>Archaludon</b><span class="chip" id="chipA"></span></div>
+    <div class="pcard" data-s="C"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC" alt=""><b>Charizard</b><span class="chip" id="chipC"></span></div>
+  </div>
+  <div class="target" id="target">
+    <div class="tl"><b>The target</b><span class="right"><span class="faint" id="faint">Fainted!</span><span class="hpnum" id="hpnum">250 / 250 HP</span></span></div>
+    <div class="hp"><div class="hpfill" id="fill"></div></div>
+  </div>
+  <div id="extra"></div>
+</div>
+<div class="caption" id="caption" aria-live="polite"></div>
+<div class="nav">
+  <button id="prev">← Back</button>
+  <span class="dots" id="dots"></span>
+  <button id="next">Next →</button>
+</div>
+<p class="note">Illustrative: “power” is move power only (Electro Shot 130; Weather Ball 50, or 100 × 1.5 rain boost as a Water move). Stats, type matchups and Pelipper's own attacks are left out. The 250-HP target is made up so the maths stays simple.</p>
+</main>
+
+<script>
+const SP={P:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAQEBCLQTHNQVLFezH2tDH/3kr//6z////N1e6k5v97ze5apM1zc4MxYovieTafAAAAAXRSTlMAQObYZgAAAj5JREFUeNrtlAeW4zgMBf3RpE22SNz/uItPBewkP0uGJqo6B1cJULj9S1xcXFxcXKgB4DR9+/ycmqHAOXoyCmyE+4eegUpaQ7B/Wvx1JbiAysJkfie20GszSgFwTgBlBFCsUcL9BLO/o7NCfzAQYQDAPMYtGrnfpfRCQgPuN6SOCXqoPxEZ/pznc1CDAmlw38iSrDCDCP3j4fLFnzMgMQXTL/7szD9BJCAgMCST9Vuv5YjCAGR8k9hwJNX3ZzC2Dq+kj62RUpb6ZkFk286slw8Cwot2FOZENw7cVzk51G9Y+j4CBoxejL7bP7Rk1WKB+i1ADt0Y8qB+XKgCIrxqHQ+QAw9X81H/Y7IHyJGA639xoJ8SyAx0D9SE2+7C84AkU3vh7EA6Eng831BONBP4ABEjeKD2sgRSDgu43wMVOYUHEj9QyhKgP6jgfg9USGQgr7Dg93FYITsZpZwfiC1kvkUFWHjiDy/Q7IWIAIHb3e8wEFDIjhM1Qkd+UhB44GChF+BHBUFrKO8VlK+HNxwBmqFg4HBBJ7WXa2XjCzfMhaYeOFbQaZpUtanR4Jh4DfiOVLUqdvup4AeNZFiXgK4jDDe/bQ26w982v+oSYAFrD+P3KNrYJGBl5wCqPsAAbGD+FvxJt+OYOzi4IIdiZwQOFNT9iqdzg6v0Lb1aGMflC3oGpgMF+NzD/1IBOwrw/wVeOhwv6EsB3fyv7FO98OprYNz86Pct6RaOF9x/TmEMfg6ABfQsu5+2i4uLi4uLX8l/Cd43EaPQnVQAAAAASUVORK5CYII=',A:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAVFRUQHToeLFkkPHkpUJhEcshoYoSKhpuppbng4O3/3527eUTJR0d6PT4QKO1VAAAAAXRSTlMAQObYZgAABJVJREFUeNrt1oma5CoIBeAgMaC1vP/jXjAnreWkFu2++/BNOfv5BWpbfte/q+7dr388/0YPv+7rN8C3Ghput58XeK2RYV1Pgeu3gNgAMYJ7zL+MtHXt8ytA8fhND1zp8/yLdIDdOYRXwPUyBlyrEPYJhW3jNwCEQSBswRoIns8iSzjP15TSNLCFaMfGK2eVZ0DOmj4HRCpAbMK2RV5XtphzQLMD8nF+VqnAaoLnB+sghfgM0JRoAEgNsHJkDmvgizqwnuWPAQrgEHi/PzmwMj9pYGRCDwATlwVcrpbPViTTDZwDkbyDlNJNHSDNctLA4ArOgPvtXoAMoWtAlpEVJGnyHVjD7QuAMD+hDlh3gIgCF+BRkNrAHLCtkayi1dGA31k6gL4DoLYClHgINX8A0BbwfAArgAwAwuSEWiAXYc1lQiHnKiAfE5oHTLCjAhD0Ks2E5gHPWv3YAOiRf70K5dEJLQqgbaB0sDoQEC8omplQD5Qt20+lAcX096I8OaEWsOwiYEJ6BsgyByA/F+FrBacNzAOWX4QC4DkEQPLMhHoAFWN9DrUAFjYDiBU/NsDB4sVqvgG1KvkiKed+BaFEppydIOSPT0hTSQdggikdkGxKpFYyNiEMVSwBQHZhdaO+T+wGGpCJFUsG0LwPrVsLKPJHATSQCyAiBchrBuD5ZUcA8BqbA0RUDSgLLgcADzSj5AMYzk8l3oDgDZQtYwUAkqg2TyEZB0SthEL9rDkm5HbJzCfA9X0+mvZ8oiU0n5YAQLT5SQn5F/msgVTyF8+PbOnsROAKLPIAIB/ABw24QDvAN47+iNsDUPMngSRpB24O2GFAl38KvBQkp6+t2YP2BgA8TKjm94C+BFI8BbZyAED+A/AVqprlZQMx4b13fQKox1p++qUBOUYsrxowQNMLwAQt+TF1gGR5CaCByAxAftnBihmV/IhtARCxYHkDEKM8fwcW2oFyAij5FZDysDPnJA5gI2dAFQwoMzKgZFeAkb8vCwD5oZqSWDyA18QZcAPAXgCOZXm+J0sC8JIIZLHtjABgRriE7GkAVBEP4SXh8S1AEGgH1AQYnl+AJv6Dz+dg6Wz1NSMqgJ2BITSA2tHcXl0I4TXAddly+XVGSQnLEjRQb19+BKY3LRwELTsAAUBJMqMCze01BeS/J8jyRdrnkaUXQMvwfVsA6u018Pt87BqvfMzIzjszZmT5KAWgmD7yPysAzHS3bL7faQe8AbYCQIlw+73xZQyA4ICfwQGr9pkEIAVG/jhwv3t2ObBmByAAOPY2Digh2xgALhBBKEDA9cfzAfQt+N/BMADxtMwBiZgAEADF35HVMS/EzwGhXbML0n4oE64/DSTq1twDiJ/KBxAAQOgAxM8Dibo1S34Alm8CfQs9kOi7+b3wwwDWSFWgFtCfAVSVUBbXAjIBID+1gJc84vWbEU0BKaYKQDgBSL8PCP8wgHwD0ACRA3I6ImIIE4AJxyuJrLr9fBNIsQXOx1eBcYGIDoBoeQ3MtADDAMT3+Q1ALDSTD+PFfgAsA/Fj+6kL+uEiKwAj+eOIAaPTGd/Q7/rn1x+MD2QnZDsM9QAAAABJRU5ErkJggg==',C:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC'};
+const NAME={P:'Pelipper',A:'Archaludon',C:'Charizard'};
+const KO=250;
+const $=id=>document.getElementById(id);
+const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Turn-1 power of a team's attacks, given whether Pelipper's rain is up.
+function outcome(team){
+  const rain=team.includes('P');
+  const es=team.includes('A')?(rain?130:0):0, wb=team.includes('C')?(rain?150:50):0;
+  return {rain,power:es+wb};
+}
+// Score: 1 if the team's attacks reach the KO line, else 0.
+const norm=x=>['P','A','C'].filter(k=>x.includes(k)).join('');
+const F=x=>outcome(norm(x)).power>=KO?1:0;
+const single=i=>F(i)-F('');
+const pair=(i,j)=>F(i+j)-F(i)-F(j)+F('');
+const sgn=v=>(v>0?'+':'')+String(v).replace('-','−');
+const label=x=>x.split('').map(k=>NAME[k]).join(' + ');
+
+const STEPS=[
+ {field:[],back:['P','A','C'],hp:250,turn:'',chips:{},cap:'Meet the <b>target</b>: <b>250 HP</b>. To make it faint in one turn, your attacks that turn need <b>250 power</b> between them. This is a <b>doubles</b> battle: two of your Pokémon are on the field, the rest wait in the back.'},
+ {field:['A','C'],back:[],absent:['P'],hp:200,turn:'Battle 1 · no Pelipper',chips:{A:['Electro Shot · charging…','charging'],C:['Weather Ball · Normal · 50','']},cap:'First, a team <b>without Pelipper</b>. Archaludon and Charizard attack. With no rain, <b>Electro Shot</b> spends the turn <i>charging</i> (0 this turn) and <b>Weather Ball</b> is a plain 50-power Normal move. The target survives on 200 HP.'},
+ {field:['P','C'],back:['A'],hp:250,turn:'Battle 2 · start',rain:1,chips:{P:['Drizzle → rain, 5 turns','rainc'],A:['waiting','']},cap:'A new battle, now with Pelipper. Lead <b>Pelipper + Charizard</b>, with Archaludon in the back. Pelipper\'s Ability <b>Drizzle</b> starts rain the moment it lands, and the rain lasts <b>5 turns</b>.'},
+ {field:['A','C'],back:['P'],hp:250,turn:'Battle 2 · turn 1',rain:1,chips:{P:['switched out','rainc'],A:['switched in','elec'],C:['Protect','']},cap:'Turn 1. <b>Pelipper switches out and Archaludon switches in</b>: that is the only way a Pokémon in the back gets onto the field. Switching uses up Pelipper\'s turn. Charizard uses <b>Protect</b> to stay safe. The key point: <b>the rain stays</b> after Pelipper leaves.'},
+ {field:['A','C'],back:['P'],hp:0,turn:'Battle 2 · turn 2',rain:1,chips:{P:['still made the rain','rainc'],A:['Electro Shot · 130 now','elec'],C:['Weather Ball · Water · 150','water']},cap:'Turn 2, still raining. <b>Electro Shot</b> fires straight away for <b>130</b>. <b>Weather Ball</b> is now a <b>Water</b> move worth <b>150</b>. 130 + 150 = 280 in one turn, more than 250. The target faints. Pelipper isn\'t even on the field, but the faint still needed it.'},
+ {field:['A','C'],back:['P'],hp:0,turn:'Was it a pair?',rain:1,minis:['PA','PC','AC'],chips:{P:['made the rain','rainc'],A:['Electro Shot · 130','elec'],C:['Weather Ball · 150','water']},cap:'Was it really all three? Try each <b>pair</b> as a team on its own. Pelipper + Archaludon: 130. Pelipper + Charizard: 150. Archaludon + Charizard: no rain, only 50. <b>No pair makes the target faint.</b>'},
+ {field:['A','C'],back:['P'],hp:0,turn:'The interaction matrix',rain:1,matrix:1,chips:{P:['made the rain','rainc'],A:['Electro Shot · 130','elec'],C:['Weather Ball · 150','water']},cap:'Score every team 1 if the target faints, 0 if not. The <b>interaction matrix</b> shows what each pair adds beyond its two members: every cell is <b>0</b>. Adding up singles and pairs predicts <b>0</b> for the trio, but the trio scores <b>1</b>. The leftover <b>+1</b> belongs to no pair: it is the <b>third-order effect</b>.'}
+];
+
+let step=0,hpShown=250;
+function tick(el,from,to){
+  if(RM()||from===to){el.textContent=`${to} / 250 HP`;return}
+  const t0=performance.now(),d=800;
+  const f=now=>{const k=Math.min(1,(now-t0)/d),e=1-Math.pow(1-k,3);el.textContent=`${Math.round(from+(to-from)*e)} / 250 HP`;if(k<1)requestAnimationFrame(f)};
+  requestAnimationFrame(f);
+}
+// Layout animation (FLIP): cards glide between the field and the back instead of snapping.
+function place(field,back){
+  const cards=[...document.querySelectorAll('.pcard')],first=new Map(cards.map(c=>[c,c.getBoundingClientRect()]));
+  field.forEach(k=>$('field').appendChild(document.querySelector(`.pcard[data-s=${k}]`)));
+  back.forEach(k=>$('back').appendChild(document.querySelector(`.pcard[data-s=${k}]`)));
+  if(RM())return;
+  cards.forEach(c=>{const f=first.get(c),l=c.getBoundingClientRect();if(!f.width)return;
+    const dx=f.left-l.left,dy=f.top-l.top;
+    if(Math.abs(dx)+Math.abs(dy)>1)c.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:650,easing:'cubic-bezier(.23,1,.32,1)'})});
+}
+function minis(list){
+  return `<div class="minis">${list.map(x=>{const p=outcome(x).power,h=Math.max(0,KO-p);
+    return `<div class="mini"><div class="ms">${x.split('').map(k=>`<img class="sp" src="${SP[k]}" alt="">`).join('')}</div>${label(x)}<div class="hp"><div class="hpfill" style="width:100%" data-w="${h/KO*100}"></div></div><b>${p}</b> power · ${h===0?'<b style="color:var(--bad)">faints</b>':'survives'}</div>`}).join('')}</div>`;
+}
+function matrix(){
+  const ids=['P','A','C'];
+  let h='<div></div>'+ids.map(p=>`<div class="h"><img class="sp" src="${SP[p]}" alt="">${NAME[p]}</div>`).join('');
+  ids.forEach((r,ri)=>{h+=`<div class="h"><img class="sp" src="${SP[r]}" alt="">${NAME[r]}</div>`;
+    ids.forEach((c,ci)=>{const v=r===c?single(r):pair(r,c);h+=`<div class="c${r===c?' d':''}" style="animation-delay:${(ri*3+ci)*70}ms">${sgn(v)}</div>`})});
+  const singles=single('P')+single('A')+single('C'),pairs=pair('P','A')+pair('P','C')+pair('A','C'),pred=F('')+singles+pairs,act=F('PAC');
+  return `<div class="ematwrap"><div class="emat" role="table" aria-label="Pairwise interaction matrix">${h}</div><div class="eqn"><div class="term"><span>singles</span><b>${singles}</b></div><i>+</i><div class="term"><span>pairs</span><b>${pairs}</b></div><i>=</i><div class="term pred"><span>pairs predict</span><b>${pred}</b></div><i>vs</i><div class="term act"><span>actual trio</span><b>${act}</b></div><i>→</i><div class="term third"><span>third-order effect</span><b>${sgn(act-pred)}</b></div></div></div>`;
+}
+function render(){
+  const s=STEPS[step],absent=s.absent||[];
+  place(s.field,[...s.back,...absent]);
+  document.querySelectorAll('.pcard').forEach(c=>c.classList.toggle('absent',absent.includes(c.dataset.s)));
+  $('rain').classList.toggle('on',!!s.rain);
+  $('turn').textContent=s.turn;
+  const base={P:'Drizzle',A:'Electro Shot',C:'Weather Ball'};
+  ['P','A','C'].forEach(k=>{const c=s.chips[k]||[absent.includes(k)?'not on this team':base[k],''];$('chip'+k).textContent=c[0];$('chip'+k).className='chip '+c[1]});
+  const hp=s.hp;
+  $('fill').style.width=hp/KO*100+'%';
+  $('fill').style.background=hp===0?'var(--bad)':hp<125?'var(--sun)':'var(--good)';
+  if(hp<hpShown&&!RM()){const t=$('target');t.classList.remove('hit');void t.offsetWidth;t.classList.add('hit')}
+  tick($('hpnum'),hpShown,hp);hpShown=hp;
+  $('faint').classList.toggle('on',hp===0);
+  $('extra').innerHTML=s.matrix?matrix():s.minis?minis(s.minis):'';
+  // stagger the pair cards in, then drain their HP bars
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.mini').forEach((el,i)=>{
+    el.style.transitionDelay=i*140+'ms';el.classList.add('on');
+    const f=el.querySelector('.hpfill');f.style.transitionDelay=(i*140+250)+'ms';f.style.width=f.dataset.w+'%';if(f.dataset.w==='0')f.style.background='var(--bad)'})));
+  const cap=$('caption');cap.style.opacity=0;
+  setTimeout(()=>{cap.innerHTML=`<span class="stepno">STEP ${step+1} OF ${STEPS.length}</span>${s.cap}`;cap.style.opacity=1},RM()?0:160);
+  $('dots').innerHTML=STEPS.map((_,i)=>`<button data-i="${i}" aria-label="Step ${i+1}"${i===step?' aria-current="step"':''}></button>`).join('');
+  $('prev').disabled=step===0;$('next').disabled=step===STEPS.length-1;
+}
+const go=i=>{if(i<0||i>=STEPS.length||i===step)return;step=i;render()};
+$('prev').onclick=()=>go(step-1);$('next').onclick=()=>go(step+1);
+$('dots').onclick=e=>{const b=e.target.closest('[data-i]');if(b)go(+b.dataset.i)};
+document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,[contenteditable]'))return;if(e.key==='ArrowLeft')go(step-1);if(e.key==='ArrowRight')go(step+1)});
+render();
+</script>
+</body>
+</html>

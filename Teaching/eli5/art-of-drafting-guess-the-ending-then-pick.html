@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — The Art of Drafting: guess the ending, then pick</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:      #f7f8f6;
+    --surface:   #fdfdfc;
+    --ink:       #0b0b0b;
+    --ink-2:     #52514e;
+    --muted:     #8b8a84;
+    --hairline:  #e2e1da;
+    --border:    rgba(11,11,11,0.10);
+    --green:     #1f8a4c;   /* team that picks first */
+    --red:       #c8442e;   /* the other team        */
+    --oracle:    #6b4fd8;   /* the win-rate guesser  */
+    --card:      #eef0fa;
+    --note:      #faf3d9;
+    --dim:       #f0efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:      #0d0d0d;
+      --surface:   #1a1a19;
+      --ink:       #ffffff;
+      --ink-2:     #c4c3b8;
+      --muted:     #8b8a84;
+      --hairline:  #2d2d2b;
+      --border:    rgba(255,255,255,0.10);
+      --green:     #2fb567;
+      --red:       #e2614a;
+      --oracle:    #9a83ff;
+      --card:      #23213a;
+      --note:      #33301f;
+      --dim:       #232322;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 32px 36px;
+    margin: 0 0 28px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.3px; }
+  p  { font-size: 19px; color: var(--ink-2); margin: 8px 0 0; }
+  p strong { color: var(--ink); }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 10px; }
+  figure { margin: 24px 0 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .svg-label { font-family: system-ui, sans-serif; font-size: 15px; fill: var(--ink); }
+  .svg-small { font-family: system-ui, sans-serif; font-size: 12.5px; fill: var(--ink-2); }
+  .svg-tiny  { font-family: ui-monospace, monospace; font-size: 10.5px; fill: var(--ink-2); }
+  .svg-big   { font-family: system-ui, sans-serif; font-size: 20px; font-weight: 700; fill: var(--ink); }
+  .svg-huge  { font-family: system-ui, sans-serif; font-size: 30px; font-weight: 700; fill: var(--ink); }
+  .foot { font-size: 14px; color: var(--muted); margin-top: 14px; }
+  .warn { background: var(--note); border-radius: 12px; padding: 18px 20px; margin-top: 22px; }
+  .warn p { margin: 0; font-size: 17px; }
+</style>
+</head>
+<body>
+<main>
+
+<section>
+  <p class="kicker">ELI5 · Chen et al. · RecSys 2018</p>
+  <h1>The Art of Drafting</h1>
+  <p><strong>Before the game starts, two teams take turns choosing characters. This paper picks for you: it imagines every way the rest of the choosing could go, and takes the one that ends best.</strong></p>
+</section>
+
+<section>
+  <h2>1 · The game before the game</h2>
+  <p>In DOTA 2, two teams of five choose their characters — <strong>heroes</strong> — one at a time, turn by turn, out loud, where everyone can see. You take turns in the order <strong>1&#8209;2&#8209;2&#8209;2&#8209;2&#8209;1</strong>. Nobody can take a hero someone already took.</p>
+  <figure>
+    <svg viewBox="0 0 720 190" role="img" aria-label="Ten picks alternating between a green team and a red team in the order one two two two two one">
+      <text x="20" y="34" class="svg-small">turn order →</text>
+      <g>
+        <rect x="20"  y="50" width="60" height="60" rx="10" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+        <rect x="90"  y="50" width="60" height="60" rx="10" fill="var(--dim)" stroke="var(--red)" stroke-width="3"/>
+        <rect x="160" y="50" width="60" height="60" rx="10" fill="var(--dim)" stroke="var(--red)" stroke-width="3"/>
+        <rect x="230" y="50" width="60" height="60" rx="10" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+        <rect x="300" y="50" width="60" height="60" rx="10" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+        <rect x="370" y="50" width="60" height="60" rx="10" fill="var(--dim)" stroke="var(--red)" stroke-width="3"/>
+        <rect x="440" y="50" width="60" height="60" rx="10" fill="var(--dim)" stroke="var(--red)" stroke-width="3"/>
+        <rect x="510" y="50" width="60" height="60" rx="10" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+        <rect x="580" y="50" width="60" height="60" rx="10" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+        <rect x="650" y="50" width="60" height="60" rx="10" fill="var(--dim)" stroke="var(--red)" stroke-width="3"/>
+      </g>
+      <text x="50"  y="87" text-anchor="middle" class="svg-label">1</text>
+      <text x="120" y="87" text-anchor="middle" class="svg-label">2</text>
+      <text x="190" y="87" text-anchor="middle" class="svg-label">3</text>
+      <text x="260" y="87" text-anchor="middle" class="svg-label">4</text>
+      <text x="330" y="87" text-anchor="middle" class="svg-label">5</text>
+      <text x="400" y="87" text-anchor="middle" class="svg-label">6</text>
+      <text x="470" y="87" text-anchor="middle" class="svg-label">7</text>
+      <text x="540" y="87" text-anchor="middle" class="svg-label">8</text>
+      <text x="610" y="87" text-anchor="middle" class="svg-label">9</text>
+      <text x="680" y="87" text-anchor="middle" class="svg-label">10</text>
+      <text x="120" y="146" text-anchor="middle" class="svg-small" fill="var(--green)">green team</text>
+      <text x="120" y="164" text-anchor="middle" class="svg-small">picks 1, 4, 5, 8, 9</text>
+      <text x="560" y="146" text-anchor="middle" class="svg-small" fill="var(--red)">red team</text>
+      <text x="560" y="164" text-anchor="middle" class="svg-small">picks 2, 3, 6, 7, 10</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>2 · Why the choosing is hard</h2>
+  <p>There are <strong>111 heroes</strong>. Some heroes make each other stronger. Some heroes shut each other down. So the right pick depends on your four teammates <em>and</em> on the five heroes on the other side — <strong>including the ones nobody has picked yet</strong>.</p>
+  <figure>
+    <svg viewBox="0 0 720 210" role="img" aria-label="Heroes helping and countering each other, and the number of possible line-ups">
+      <circle cx="90"  cy="70"  r="30" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <circle cx="220" cy="70"  r="30" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <path d="M120 70 L190 70" stroke="var(--green)" stroke-width="3"/>
+      <text x="155" y="58" text-anchor="middle" class="svg-small" fill="var(--green)">helps</text>
+      <circle cx="90"  cy="160" r="30" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <circle cx="220" cy="160" r="30" fill="var(--dim)"  stroke="var(--red)" stroke-width="3"/>
+      <path d="M120 160 L190 160" stroke="var(--red)" stroke-width="3"/>
+      <text x="155" y="148" text-anchor="middle" class="svg-small" fill="var(--red)">shuts down</text>
+
+      <line x1="300" y1="20" x2="300" y2="195" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+
+      <text x="515" y="70" text-anchor="middle" class="svg-small">number of ways ten heroes can be arranged</text>
+      <text x="515" y="122" text-anchor="middle" class="svg-huge">1.56 × 10¹⁶</text>
+      <text x="515" y="160" text-anchor="middle" class="svg-small">15,600,000,000,000,000</text>
+      <text x="515" y="184" text-anchor="middle" class="svg-small">you cannot look at them all</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>3 · Step one: teach a guesser</h2>
+  <p>First they read <strong>3 million real matches</strong> that already happened. From those they train a guesser: <em>show it the ten heroes, it tells you the chance the green team wins.</em> It never watches the fight. It only looks at the ten names.</p>
+  <figure>
+    <svg viewBox="0 0 720 230" role="img" aria-label="Three million matches train a model that outputs a win chance from ten hero names">
+      <rect x="20" y="60" width="180" height="110" rx="12" fill="var(--dim)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="110" y="100" text-anchor="middle" class="svg-big">3,056,596</text>
+      <text x="110" y="124" text-anchor="middle" class="svg-small">old matches</text>
+      <text x="110" y="146" text-anchor="middle" class="svg-small">who played, who won</text>
+      <path d="M215 115 L275 115" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M275 115 l-11 -6 v12 z" fill="var(--ink-2)"/>
+      <text x="245" y="103" text-anchor="middle" class="svg-tiny">train</text>
+
+      <rect x="290" y="55" width="160" height="120" rx="14" fill="var(--card)" stroke="var(--oracle)" stroke-width="3"/>
+      <text x="370" y="105" text-anchor="middle" class="svg-big">the guesser</text>
+      <text x="370" y="130" text-anchor="middle" class="svg-small">a small neural net</text>
+      <text x="370" y="150" text-anchor="middle" class="svg-small">10 names in, 1 number out</text>
+
+      <path d="M465 115 L525 115" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M525 115 l-11 -6 v12 z" fill="var(--ink-2)"/>
+      <rect x="540" y="70" width="160" height="90" rx="12" fill="var(--surface)" stroke="var(--oracle)" stroke-width="2"/>
+      <text x="620" y="112" text-anchor="middle" class="svg-huge" fill="var(--oracle)">63%</text>
+      <text x="620" y="140" text-anchor="middle" class="svg-small">green wins, probably</text>
+      <text x="360" y="208" text-anchor="middle" class="svg-small">It is right about 65% of the time. Better than a coin, far from a crystal ball.</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>4 · Step two: daydream the rest of the draft</h2>
+  <p>Now it's your turn to pick. The trick: <strong>don't judge the hero, judge the ending it leads to.</strong> So the computer daydreams. It picks a hero, then rushes through all the remaining picks at random until the draft is full, then asks the guesser <em>"how did that turn out?"</em> — and carries the answer back up.</p>
+  <figure>
+    <svg viewBox="0 0 720 320" role="img" aria-label="A search tree: pick a hero, roll out the rest of the draft randomly, score the ending, carry the score back up">
+      <circle cx="360" cy="40" r="22" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <text x="360" y="46" text-anchor="middle" class="svg-small">now</text>
+      <text x="360" y="16" text-anchor="middle" class="svg-small">your turn to pick</text>
+
+      <path d="M345 58 L200 105" stroke="var(--hairline)" stroke-width="2.5"/>
+      <path d="M360 62 L360 105" stroke="var(--hairline)" stroke-width="2.5"/>
+      <path d="M375 58 L520 105" stroke="var(--hairline)" stroke-width="2.5"/>
+
+      <circle cx="190" cy="120" r="20" fill="var(--surface)" stroke="var(--hairline)" stroke-width="2.5"/>
+      <circle cx="360" cy="120" r="20" fill="var(--surface)" stroke="var(--hairline)" stroke-width="2.5"/>
+      <circle cx="530" cy="120" r="20" fill="var(--surface)" stroke="var(--hairline)" stroke-width="2.5"/>
+      <text x="190" y="126" text-anchor="middle" class="svg-small">A</text>
+      <text x="360" y="126" text-anchor="middle" class="svg-small">B</text>
+      <text x="530" y="126" text-anchor="middle" class="svg-small">C</text>
+      <text x="640" y="126" class="svg-small">… 100+ more</text>
+
+      <path d="M190 142 C 175 175, 180 200, 190 232" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5" fill="none"/>
+      <path d="M360 142 C 348 175, 352 200, 360 232" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5" fill="none"/>
+      <path d="M530 142 C 518 175, 522 200, 530 232" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5" fill="none"/>
+      <text x="270" y="190" text-anchor="middle" class="svg-tiny">fill the rest at random</text>
+
+      <rect x="140" y="234" width="100" height="42" rx="10" fill="var(--surface)" stroke="var(--oracle)" stroke-width="2"/>
+      <rect x="310" y="234" width="100" height="42" rx="10" fill="var(--card)"    stroke="var(--oracle)" stroke-width="3"/>
+      <rect x="480" y="234" width="100" height="42" rx="10" fill="var(--surface)" stroke="var(--oracle)" stroke-width="2"/>
+      <text x="190" y="262" text-anchor="middle" class="svg-label" fill="var(--oracle)">48%</text>
+      <text x="360" y="262" text-anchor="middle" class="svg-label" fill="var(--oracle)">61%</text>
+      <text x="530" y="262" text-anchor="middle" class="svg-label" fill="var(--oracle)">53%</text>
+      <text x="360" y="300" text-anchor="middle" class="svg-small">the guesser scores each finished draft — the score climbs back up the tree</text>
+    </svg>
+  </figure>
+  <p>Do that daydream a few hundred times and something smart happens on its own: it stops wasting time on picks that keep coming back bad, and spends more daydreams on the picks that keep coming back good. That's the whole algorithm — it's called <strong>Monte Carlo Tree Search</strong>.</p>
+</section>
+
+<section>
+  <h2>5 · Both sides play their best</h2>
+  <p>Here's the part a greedy pick misses. When the daydream reaches <em>the other team's</em> turn, the search assumes <strong>they will also pick well</strong>. So it won't fall for a hero that looks amazing now and gets punished two picks later.</p>
+  <figure>
+    <svg viewBox="0 0 720 200" role="img" aria-label="Greedy picking looks one step ahead and gets countered; search looks to the end of the draft">
+      <text x="180" y="26" text-anchor="middle" class="svg-label">greedy: "best hero right now"</text>
+      <circle cx="70"  cy="90" r="24" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <text x="70" y="96" text-anchor="middle" class="svg-small">you</text>
+      <path d="M100 90 L145 90" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M145 90 l-11 -6 v12 z" fill="var(--ink-2)"/>
+      <circle cx="185" cy="90" r="24" fill="var(--dim)" stroke="var(--red)" stroke-width="3"/>
+      <text x="185" y="96" text-anchor="middle" class="svg-small">them</text>
+      <path d="M215 90 L260 90" stroke="var(--red)" stroke-width="2.5"/>
+      <path d="M260 90 l-11 -6 v12 z" fill="var(--red)"/>
+      <text x="300" y="96" text-anchor="middle" class="svg-label" fill="var(--red)">countered</text>
+      <text x="180" y="160" text-anchor="middle" class="svg-small">sees one step. Walks into the punish.</text>
+
+      <line x1="380" y1="14" x2="380" y2="180" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+
+      <text x="550" y="26" text-anchor="middle" class="svg-label">search: "best ending"</text>
+      <circle cx="440" cy="90" r="18" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <circle cx="495" cy="90" r="18" fill="var(--dim)"  stroke="var(--red)" stroke-width="2.5"/>
+      <circle cx="550" cy="90" r="18" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <circle cx="605" cy="90" r="18" fill="var(--dim)"  stroke="var(--red)" stroke-width="2.5"/>
+      <circle cx="660" cy="90" r="18" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <path d="M458 90 L477 90" stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M513 90 L532 90" stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M568 90 L587 90" stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M623 90 L642 90" stroke="var(--ink-2)" stroke-width="2"/>
+      <text x="550" y="160" text-anchor="middle" class="svg-small">sees to the last pick. Both sides play well.</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>6 · Does it work? More daydreams, better picks</h2>
+  <p>They ran <strong>1000 drafts</strong> of every strategy against every other. Score = the guesser's win chance for the finished line-up.</p>
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="Bar chart: search with more iterations wins more against the best simple rule">
+      <text x="20" y="24" class="svg-small">win rate against “just pick the hero with the best record”</text>
+      <line x1="150" y1="248" x2="700" y2="248" stroke="var(--hairline)" stroke-width="2"/>
+      <line x1="425" y1="50" x2="425" y2="256" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5"/>
+      <text x="425" y="274" text-anchor="middle" class="svg-tiny">50% = a tie</text>
+
+      <text x="140" y="76"  text-anchor="end" class="svg-small">100 daydreams</text>
+      <rect x="150" y="60" width="129" height="30" rx="6" fill="var(--dim)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="292" y="81" class="svg-label">28.5%</text>
+
+      <text x="140" y="122" text-anchor="end" class="svg-small">200 daydreams</text>
+      <rect x="150" y="106" width="266" height="30" rx="6" fill="var(--dim)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="429" y="127" class="svg-label">48.4%</text>
+
+      <text x="140" y="168" text-anchor="end" class="svg-small">400 daydreams</text>
+      <rect x="150" y="152" width="306" height="30" rx="6" fill="var(--card)" stroke="var(--oracle)" stroke-width="2"/>
+      <text x="469" y="173" class="svg-label">55.6%</text>
+
+      <text x="140" y="214" text-anchor="end" class="svg-small">800 daydreams</text>
+      <rect x="150" y="198" width="326" height="30" rx="6" fill="var(--card)" stroke="var(--oracle)" stroke-width="2"/>
+      <text x="489" y="219" class="svg-label">59.3%</text>
+
+      <text x="140" y="260" text-anchor="end" class="svg-small">1600 daydreams</text>
+      <rect x="150" y="244" width="336" height="30" rx="6" fill="var(--card)" stroke="var(--oracle)" stroke-width="3"/>
+      <text x="499" y="265" class="svg-label" fill="var(--oracle)">61.1%</text>
+    </svg>
+  </figure>
+  <p>Against <strong>random</strong> picking, the strongest version wins <strong>93%</strong>. But look at the top of the chart: doubling from 800 to 1600 daydreams only buys <strong>1.8 points</strong>. Thinking twice as long stops paying.</p>
+  <figure>
+    <svg viewBox="0 0 720 130" role="img" aria-label="Time per pick: 1.12 seconds used out of 25 seconds allowed">
+      <rect x="20" y="40" width="680" height="46" rx="10" fill="var(--dim)" stroke="var(--hairline)" stroke-width="2"/>
+      <rect x="20" y="40" width="30"  height="46" rx="10" fill="var(--card)" stroke="var(--oracle)" stroke-width="3"/>
+      <text x="20" y="30" class="svg-small">1.12 s of thinking</text>
+      <text x="700" y="30" text-anchor="end" class="svg-small">25 s the game gives a human</text>
+      <text x="360" y="115" text-anchor="middle" class="svg-small">it is fast enough to sit inside a real match</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>7 · It also handles bans</h2>
+  <p>Some matches let you <strong>ban</strong> heroes — nobody may take them. That turns 10 turns into 22 and makes the puzzle nastier. The method doesn't change at all; a ban is just another kind of move. And the harder the puzzle got, the <strong>bigger</strong> the search's lead: 61.1% → <strong>62.7%</strong>.</p>
+  <figure>
+    <svg viewBox="0 0 720 150" role="img" aria-label="A ban crosses a hero out for both teams">
+      <text x="130" y="30" text-anchor="middle" class="svg-small">a pick</text>
+      <rect x="70" y="45" width="120" height="60" rx="12" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <text x="130" y="82" text-anchor="middle" class="svg-label">mine</text>
+
+      <text x="360" y="30" text-anchor="middle" class="svg-small">a ban</text>
+      <rect x="300" y="45" width="120" height="60" rx="12" fill="var(--dim)" stroke="var(--muted)" stroke-width="3" stroke-dasharray="7 5"/>
+      <path d="M312 57 L408 93" stroke="var(--red)" stroke-width="3"/>
+      <path d="M408 57 L312 93" stroke="var(--red)" stroke-width="3"/>
+      <text x="360" y="130" text-anchor="middle" class="svg-small">nobody gets it</text>
+
+      <text x="590" y="30" text-anchor="middle" class="svg-small">turns in a draft</text>
+      <text x="590" y="90" text-anchor="middle" class="svg-huge">10 → 22</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>8 · The catch</h2>
+  <p><strong>Not one real game was played.</strong> Every number in the paper is the guesser's opinion — and the guesser is also the thing the search is trying to make happy. So the search is being graded by its own examiner. Two other honest gaps the authors name: the guesser knows nothing about <em>who is holding the controller</em>, so it may hand you a hero you personally can't play; and its raw skill is modest — 65% accuracy, barely above the much simpler model it beat.</p>
+  <figure>
+    <svg viewBox="0 0 720 180" role="img" aria-label="The search is optimized against the same model that scores it; no real matches were played">
+      <rect x="60" y="45" width="200" height="80" rx="14" fill="var(--card)" stroke="var(--oracle)" stroke-width="3"/>
+      <text x="160" y="80" text-anchor="middle" class="svg-label">the search</text>
+      <text x="160" y="102" text-anchor="middle" class="svg-small">tries to score high</text>
+      <rect x="460" y="45" width="200" height="80" rx="14" fill="var(--card)" stroke="var(--oracle)" stroke-width="3"/>
+      <text x="560" y="80" text-anchor="middle" class="svg-label">the guesser</text>
+      <text x="560" y="102" text-anchor="middle" class="svg-small">hands out the scores</text>
+      <path d="M265 70 C 340 45, 385 45, 455 70" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M455 70 l-12 -3 4 12 z" fill="var(--ink-2)"/>
+      <path d="M455 102 C 385 128, 340 128, 265 102" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M265 102 l12 3 -4 -12 z" fill="var(--ink-2)"/>
+      <text x="360" y="168" text-anchor="middle" class="svg-small">a closed loop — no actual match ever decides who was right</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>9 · Why it sits in this vault</h2>
+  <p>Because of its <strong>shape</strong>, not its rules. The shape is: <em>learn a cheap scorer from past results, then search against it.</em> Same two moving parts this project has.</p>
+  <figure>
+    <svg viewBox="0 0 720 200" role="img" aria-label="Side by side: DOTA draft is sequential and visible, VGC team building is simultaneous and hidden">
+      <text x="175" y="26" text-anchor="middle" class="svg-label">their draft</text>
+      <circle cx="70"  cy="80" r="17" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <circle cx="122" cy="80" r="17" fill="var(--dim)"  stroke="var(--red)" stroke-width="2.5"/>
+      <circle cx="174" cy="80" r="17" fill="var(--dim)"  stroke="var(--red)" stroke-width="2.5"/>
+      <circle cx="226" cy="80" r="17" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <circle cx="278" cy="80" r="17" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <path d="M87 80 L105 80"   stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M139 80 L157 80"  stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M191 80 L209 80"  stroke="var(--ink-2)" stroke-width="2"/>
+      <path d="M243 80 L261 80"  stroke="var(--ink-2)" stroke-width="2"/>
+      <text x="175" y="132" text-anchor="middle" class="svg-small">one at a time, taking turns</text>
+      <text x="175" y="154" text-anchor="middle" class="svg-small">everyone sees every pick</text>
+      <text x="175" y="180" text-anchor="middle" class="svg-small">so you can search the turns</text>
+
+      <line x1="360" y1="14" x2="360" y2="190" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+
+      <text x="545" y="26" text-anchor="middle" class="svg-label">this project</text>
+      <rect x="420" y="52" width="110" height="56" rx="12" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <text x="475" y="86" text-anchor="middle" class="svg-small">your six</text>
+      <rect x="560" y="52" width="110" height="56" rx="12" fill="var(--dim)" stroke="var(--muted)" stroke-width="2.5" stroke-dasharray="7 5"/>
+      <text x="615" y="86" text-anchor="middle" class="svg-small">theirs — hidden</text>
+      <text x="545" y="132" text-anchor="middle" class="svg-small">both sides commit at once</text>
+      <text x="545" y="154" text-anchor="middle" class="svg-small">you never see them choose</text>
+      <text x="545" y="180" text-anchor="middle" class="svg-small">there are no turns to search</text>
+    </svg>
+  </figure>
+  <div class="warn">
+    <p><strong>The caveat, quoted from the vault:</strong> <em>“MOBA pick/ban is sequential-alternating, unlike VGC's simultaneous blind 6-pick — HIGH for the learn-then-search shape, not the draft structure.”</em></p>
+  </div>
+  <p class="foot">Chen, Nguyen, Xu, Amato, Cooper, Sun &amp; Seif El-Nasr — “The Art of Drafting: A Team-Oriented Hero Recommendation System for Multiplayer Online Battle Arena Games,” RecSys 2018. 🟢 arXiv:1806.10130.</p>
+</section>
+
+</main>
+</body>
+</html>

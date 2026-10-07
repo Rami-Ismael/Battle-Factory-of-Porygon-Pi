@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eaf2f0">
+  <title>Particle steering · an interactive SMC explainer</title>
+  <style>
+    :root { color-scheme: light; --paper:#eaf2f0; --surface:#f9fbfa; --ink:#143940; --muted:#567177; --line:#bfd0ce; --grid:#dce7e4; --teal:#087f78; --teal-soft:#d6efea; --coral:#c96140; --coral-soft:#f8e4da; --gold:#a87621; --gold-soft:#f5edd7; --ease-out:cubic-bezier(.23,1,.32,1); --ease-move:cubic-bezier(.77,0,.175,1); }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:"Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif; line-height:1.48; }
+    button,input,select { font:inherit; }
+    button { cursor:pointer; }
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible { outline:3px solid var(--coral); outline-offset:3px; }
+    .shell { max-width:1260px; margin:auto; padding:22px clamp(16px,3vw,38px) 48px; }
+    .mast { display:flex; justify-content:space-between; align-items:center; gap:15px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:750; letter-spacing:-.03em; }
+    .brand-mark { width:23px; height:23px; border-radius:50%; background:var(--teal); box-shadow:13px -5px 0 -6px var(--coral),-9px 10px 0 -7px var(--gold); }
+    .mast-link { color:var(--muted); font-size:.87rem; text-decoration:none; border-bottom:1px solid currentColor; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(225px,.6fr); gap:24px; align-items:end; padding:30px 0 27px; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { font-size:clamp(2.25rem,5.5vw,5rem); line-height:.98; letter-spacing:-.07em; margin-bottom:17px; font-weight:750; max-width:13ch; }
+    .hero p { max-width:63ch; font-size:1.03rem; color:var(--muted); margin-bottom:0; }
+    .hero p strong { color:var(--ink); font-weight:700; }
+    .hero-aside { border-left:3px solid var(--coral); padding-left:16px; color:var(--muted); font-size:.87rem; }
+    .hero-aside b { color:var(--ink); display:block; margin-bottom:6px; }
+    .lab { display:grid; grid-template-columns:minmax(0,1fr) 280px; border:1px solid var(--line); background:var(--surface); min-height:628px; }
+    .lab-main { min-width:0; border-right:1px solid var(--line); }
+    .lab-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:15px; padding:17px 20px; border-bottom:1px solid var(--line); }
+    .phase-name { font-size:1.04rem; font-weight:730; letter-spacing:-.025em; }
+    .phase-index { color:var(--coral); font-size:.8rem; font-weight:750; margin-right:10px; font-variant-numeric:tabular-nums; }
+    .phase-caption { color:var(--muted); font-size:.83rem; margin-top:2px; }
+    .controls { display:flex; flex-wrap:wrap; gap:7px; }
+    .control { border:1px solid var(--line); background:transparent; color:var(--ink); padding:8px 12px; border-radius:8px; font-size:.85rem; font-weight:680; transition:background-color .16s ease,color .16s ease,border-color .16s ease; }
+    .control:hover { border-color:var(--teal); }
+    .control.primary { background:var(--teal); color:white; border-color:var(--teal); }
+    .control.primary:hover { background:#086e69; }
+    .control:disabled { opacity:.4; cursor:default; }
+    .plot-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:9px; padding:14px 20px 0; }
+    .plot-head strong { font-size:.87rem; }
+    .plot-head span { font-size:.77rem; color:var(--muted); }
+    .plot-scroll { overflow-x:auto; padding:8px 12px 2px; scrollbar-color:var(--line) transparent; }
+    #field { width:100%; min-width:630px; height:auto; display:block; overflow:visible; }
+    .field-grid { stroke:var(--grid); stroke-width:1; }
+    .field-axis { stroke:var(--line); stroke-width:1.5; }
+    .field-band { fill:var(--coral-soft); }
+    .field-band-edge { stroke:var(--coral); stroke-width:1; stroke-dasharray:4 5; opacity:.6; }
+    .field-text { fill:var(--muted); font-size:12px; font-family:inherit; }
+    .field-text.accent { fill:var(--coral); font-weight:700; }
+    .trail { fill:none; stroke:var(--teal); stroke-width:2; opacity:.29; stroke-linecap:round; stroke-linejoin:round; }
+    .trail.selected { stroke:var(--ink); stroke-width:3; opacity:1; }
+    .particle { fill:var(--teal); stroke:var(--surface); stroke-width:2; cursor:pointer; }
+    .particle.low { opacity:.35; }
+    .particle.selected { fill:var(--ink); stroke:var(--gold); stroke-width:4; }
+    .particle-halo { fill:var(--gold-soft); opacity:.75; pointer-events:none; }
+    .plot-foot { display:flex; flex-wrap:wrap; gap:8px 20px; color:var(--muted); font-size:.78rem; padding:0 20px 17px; }
+    .swatch { display:inline-block; vertical-align:middle; width:11px; height:11px; border-radius:50%; margin-right:5px; background:var(--teal); }
+    .swatch.target { background:var(--coral); }
+    .swatch.weight { background:var(--gold); }
+    .readout { border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .metric { padding:17px 20px 16px; }
+    .metric:not(:last-child) { border-right:1px solid var(--line); }
+    .metric span { display:block; color:var(--muted); font-size:.75rem; min-height:2.2em; }
+    .metric strong { display:block; font-size:1.7rem; letter-spacing:-.05em; line-height:1.05; font-variant-numeric:tabular-nums; }
+    .note { padding:15px 20px 20px; border-top:1px solid var(--line); color:var(--ink); min-height:90px; }
+    .note strong { color:var(--coral); }
+    .sidebar { min-width:0; display:flex; flex-direction:column; }
+    .side-section { padding:18px 18px 20px; border-bottom:1px solid var(--line); }
+    .side-section h2 { font-size:.9rem; letter-spacing:-.02em; margin-bottom:12px; }
+    .side-section p { color:var(--muted); font-size:.82rem; margin-bottom:0; }
+    .setting { margin-top:14px; }
+    .setting label { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:.8rem; color:var(--ink); font-weight:680; margin-bottom:7px; }
+    .setting output { color:var(--coral); font-variant-numeric:tabular-nums; }
+    select { width:100%; border:1px solid var(--line); border-radius:7px; padding:7px 9px; background:var(--surface); color:var(--ink); }
+    input[type="range"] { width:100%; accent-color:var(--coral); }
+    .weight-head { display:flex; justify-content:space-between; gap:7px; align-items:baseline; }
+    .weight-head small { color:var(--muted); font-size:.72rem; }
+    .weights { display:grid; gap:6px; }
+    .weight-row { display:grid; grid-template-columns:28px minmax(0,1fr) 34px; align-items:center; gap:7px; border:0; background:transparent; padding:1px 0; text-align:left; color:var(--muted); font-size:.73rem; cursor:pointer; }
+    .weight-row[aria-pressed="true"] { color:var(--ink); font-weight:750; }
+    .weight-track { height:7px; border-radius:99px; background:var(--grid); overflow:hidden; }
+    .weight-fill { height:100%; background:var(--teal); border-radius:99px; }
+    .weight-row[aria-pressed="true"] .weight-fill { background:var(--gold); }
+    .offspring { display:flex; flex-wrap:wrap; gap:5px; min-height:28px; }
+    .child { border-radius:5px; background:var(--teal-soft); color:var(--teal); padding:3px 6px; font-size:.68rem; font-weight:700; font-variant-numeric:tabular-nums; animation:child-in .35s var(--ease-out) both; }
+    .side-footer { margin-top:auto; padding:16px 18px; color:var(--muted); font-size:.74rem; }
+    .timeline { display:grid; grid-template-columns:repeat(9,1fr); gap:4px; margin-top:10px; }
+    .timeline span { height:5px; border-radius:99px; background:var(--line); }
+    .timeline span.done { background:var(--teal); }
+    .timeline span.current { background:var(--coral); }
+    .below { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; padding:30px 0; }
+    .below article { border-top:2px solid var(--line); padding-top:12px; }
+    .below h3 { font-size:.9rem; margin-bottom:5px; }
+    .below p { color:var(--muted); font-size:.84rem; margin-bottom:0; }
+    .sources { border-top:1px solid var(--line); padding-top:15px; color:var(--muted); font-size:.78rem; }
+    .sources a { color:var(--teal); text-underline-offset:3px; }
+    @keyframes child-in { from { opacity:0; transform:translateY(9px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @media (max-width:900px) { .lab { grid-template-columns:1fr; } .lab-main { border-right:0; } .sidebar { border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .side-section:nth-child(odd) { border-right:1px solid var(--line); } .side-footer { grid-column:1/-1; } }
+    @media (max-width:650px) { .hero { grid-template-columns:1fr; gap:14px; } .hero-aside { max-width:60ch; } .sidebar { grid-template-columns:1fr; } .side-section:nth-child(odd) { border-right:0; } .below { grid-template-columns:1fr; gap:18px; } .metric { padding:12px 11px; } .metric strong { font-size:1.35rem; } .metric span { font-size:.7rem; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .child { animation:child-fade .2s var(--ease-out) both; } }
+    @keyframes child-fade { from { opacity:.45; } to { opacity:1; } }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header class="mast"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>Particle steering</div><a class="mast-link" href="#sources">Paper sources</a></header>
+  <section class="hero">
+    <div><h1>Watch SMC steer a diffusion path.</h1><p>A population of partial samples moves through stochastic steps. At each checkpoint, an <strong>intermediate potential</strong> gives each particle an importance weight. Resampling makes promising paths more likely to continue.</p></div>
+    <div class="hero-aside"><b>What this demonstrates</b>A small toy projection of the SMC pattern shared by FK-Steering and DAS. The particles are not actual images, and the displayed potential is illustrative.</div>
+  </section>
+
+  <section class="lab" aria-label="Interactive sequential Monte Carlo simulation">
+    <div class="lab-main">
+      <div class="lab-bar">
+        <div><div class="phase-name"><span class="phase-index" id="phase-index">START</span><span id="phase-name">Prepare particles</span></div><div class="phase-caption" id="phase-caption">Eight possible trajectories begin.</div></div>
+        <div class="controls"><button class="control primary" id="play" type="button">▶ Play</button><button class="control" id="next" type="button">Next phase</button><button class="control" id="restart" type="button">↺ Restart</button></div>
+      </div>
+      <div class="plot-head"><strong id="plot-title">Toy feature space</strong><span>Three checkpoints represent a longer diffusion trajectory</span></div>
+      <div class="plot-scroll"><svg id="field" viewBox="0 0 720 390" role="group" aria-labelledby="field-title field-desc"><title id="field-title">SMC particle trajectories</title><desc id="field-desc">Particles move through stochastic proposals, receive weights, and are resampled toward a desired feature band. Select a particle to highlight its path.</desc></svg></div>
+      <div class="plot-foot"><span><i class="swatch target" aria-hidden="true"></i>desired property band</span><span><i class="swatch" aria-hidden="true"></i>particle trajectory</span><span><i class="swatch weight" aria-hidden="true"></i>selected particle</span><span>Scroll chart sideways on a narrow screen</span></div>
+      <div class="readout" aria-live="polite"><div class="metric"><span>Particles</span><strong id="metric-particles">8</strong></div><div class="metric"><span>Potential evaluations in this toy run</span><strong id="metric-evals">0</strong></div><div class="metric"><span>Distinct surviving founders</span><strong id="metric-founders">8</strong></div></div>
+      <div class="note" id="note" aria-live="polite"><strong>Start:</strong> Each particle is a separate candidate trajectory. Press Play or Next phase.</div>
+    </div>
+    <aside class="sidebar">
+      <div class="side-section"><h2>Change the experiment</h2><p>Changing a setting restarts the same seeded run.</p><div class="setting"><label for="count">Particle count <output id="count-value">8</output></label><select id="count"><option value="8">8 particles</option><option value="16">16 particles</option><option value="32">32 particles</option></select></div><div class="setting"><label for="selectivity">Reward selectivity <output id="selectivity-value">3 / 5</output></label><input id="selectivity" type="range" min="1" max="5" value="3"><p>A sharper potential concentrates weight on fewer candidates.</p></div></div>
+      <div class="side-section"><div class="weight-head"><h2>Intermediate weights</h2><small id="weight-hint">Awaiting first score</small></div><div class="weights" id="weights"></div></div>
+      <div class="side-section"><h2>Resampled descendants</h2><div class="offspring" id="offspring"><span class="side-placeholder">Copies appear after resampling.</span></div><p id="offspring-note">Higher weight means a greater chance of being copied, not a guaranteed win.</p></div>
+      <div class="side-footer"><span id="timeline-label">Cycle 0 of 3</span><div class="timeline" id="timeline" aria-hidden="true"></div></div>
+    </aside>
+  </section>
+
+  <section class="below" aria-label="How this connects to the paragraph">
+    <article><h3>Propose</h3><p>The stochastic sampler supplies new candidate states. The animation uses toy random steps; it does not reproduce a diffusion model.</p></article>
+    <article><h3>Weight and resample</h3><p>An intermediate potential estimates which partial paths are promising. Importance-weighted resampling duplicates some paths and may remove others.</p></article>
+    <article><h3>Why it costs more</h3><p>Several particles need repeated potential evaluations. In its continuous-sampling comparison, the paper says FKS and DAS use SDE-based sampling and favor cheap reward models in practice.</p></article>
+  </section>
+  <footer class="sources" id="sources">Sources: <a href="https://openreview.net/pdf/7786a1896902526c69b5b7cd08fcf10a85c088be.pdf">comparison paper</a> · <a href="https://proceedings.mlr.press/v267/singhal25b.html">FK-Steering</a> · <a href="https://arxiv.org/abs/2501.05803">DAS</a>. This is a teaching simulation of their shared SMC pattern; their actual proposal and weighting rules differ.</footer>
+</main>
+<script type="module">
+  const $ = (id) => document.getElementById(id);
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const phases = ['start','propose','weight','resample','propose','weight','resample','propose','weight','complete'];
+  const target = 0.76;
+  let seed = 1701;
+  let rng, particles, phase, round, evaluations, weights, resampledFrom, selectedId, timer, serial;
+  const motionReduced = matchMedia('(prefers-reduced-motion: reduce)');
+  function random() { seed = (seed + 0x6D2B79F5) | 0; let t = seed; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+  function gaussian() { return Math.sqrt(-2 * Math.log(Math.max(1e-9,random()))) * Math.cos(2 * Math.PI * random()); }
+  const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+  function node(tag, attrs = {}, parent) { const el = document.createElementNS(svgNS,tag); for (const [k,v] of Object.entries(attrs)) el.setAttribute(k,String(v)); if(parent)parent.append(el); return el; }
+  function pos(step,feature) { return {x:66 + step * 195,y:344 - feature * 275}; }
+  function reset() {
+    clearInterval(timer); timer = null; $('play').textContent = '▶ Play';
+    seed = 1701; rng = random; serial = 0; round = 0; phase = 'start'; evaluations = 0; weights = null; resampledFrom = null; selectedId = null;
+    const n = Number($('count').value);
+    particles = Array.from({length:n}, (_,i) => { const value = clamp(0.1 + rng() * 0.8,0.03,.97); return {id:++serial,founder:i+1,feature:value,path:[value],parent:null}; });
+    $('count-value').textContent = String(n); $('selectivity-value').textContent = $('selectivity').value + ' / 5';
+    render();
+  }
+  function propose() {
+    round++;
+    const prev = particles.map(p=>p.feature);
+    particles = particles.map(p => { const feature=clamp(.82*p.feature+.18*.52+gaussian()*.13,.03,.97); return {...p,feature,path:[...p.path,feature]}; });
+    weights = null; resampledFrom = null; selectedId = null; phase = 'propose'; render(prev);
+  }
+  function weigh() {
+    const sharpness = Number($('selectivity').value);
+    const raw=particles.map(p=>Math.exp(-(2.5+sharpness*3)*Math.pow(p.feature-target,2)));
+    const total=raw.reduce((a,b)=>a+b,0);
+    weights=raw.map(v=>v/total); evaluations += particles.length; phase='weight'; render();
+  }
+  function resample() {
+    const n=particles.length; const chosen=[]; const u0=rng()/n; let cumulative=weights[0],index=0;
+    for(let i=0;i<n;i++) { const u=u0+i/n; while(u>cumulative && index<n-1) cumulative+=weights[++index]; chosen.push(index); }
+    resampledFrom=chosen.map(i=>i+1);
+    particles=chosen.map((i,slot)=>({...particles[i],id:++serial,parent:particles[i].id,slot}));
+    weights=null; selectedId=null; phase='resample'; render();
+  }
+  function next() {
+    if(phase==='complete') return;
+    if(phase==='start'||phase==='resample') propose();
+    else if(phase==='propose') weigh();
+    else if(phase==='weight') { if(round===3) { phase='complete'; render(); } else resample(); }
+    if(phase==='complete') pause();
+  }
+  function play() {
+    if(timer) { pause(); return; }
+    if(phase==='complete') reset();
+    $('play').textContent='Ⅱ Pause';
+    next();
+    if(phase!=='complete') timer=setInterval(next,motionReduced.matches?950:1600);
+  }
+  function pause() { clearInterval(timer); timer=null; $('play').textContent='▶ Play'; }
+  function phaseCopy() {
+    const copy={
+      start:['START','Prepare particles',`${particles.length} separate candidate paths begin.`,`Each particle is a possible partial generation. Press Play to watch propose → weight → resample.`],
+      propose:[`C${round} · 1/3`,'Propose stochastic continuations','Noise makes the candidates spread into new states.',`<strong>Propose:</strong> The toy sampler adds random variation. No reward gradient is used.`],
+      weight:[`C${round} · 2/3`,'Assign importance weights','An intermediate potential favors paths near the desired feature.',`<strong>Weight:</strong> Larger dots have higher normalized weights. This checkpoint used ${particles.length} potential evaluations.`],
+      resample:[`C${round} · 3/3`,'Resample the population','Higher-weight parents are more likely to have descendants.',`<strong>Resample:</strong> Some paths were copied; others disappeared. Copies take fresh stochastic steps in the next cycle.`],
+      complete:['END','A reward-tilted population remains','Several final candidates survive, rather than one guaranteed winner.',`<strong>Result:</strong> SMC shifts the sample population toward promising paths. This toy run used ${evaluations} intermediate potential evaluations.`]
+    }; return copy[phase];
+  }
+  function render(previous) {
+    const [index,name,caption,message]=phaseCopy();
+    $('phase-index').textContent=index; $('phase-name').textContent=name; $('phase-caption').textContent=caption; $('note').innerHTML=message;
+    $('metric-particles').textContent=String(particles.length); $('metric-evals').textContent=String(evaluations);
+    $('metric-founders').textContent=String(new Set(particles.map(p=>p.founder)).size);
+    $('next').disabled=phase==='complete'; $('timeline-label').textContent=`Checkpoint ${round} of 3`;
+    $('timeline').replaceChildren();
+    const at=phases.findIndex((p,i)=>i>=Math.max(0,(round-1)*3+1)&&p===phase);
+    const progress=phase==='start'?0:phase==='complete'?9:at;
+    for(let i=1;i<=9;i++){const el=document.createElement('span');el.className=i<progress?'done':i===progress?'current':'';$('timeline').append(el);}
+    drawField(previous); drawWeights(); drawOffspring();
+  }
+  function drawField(previous) {
+    const svg=$('field'); svg.querySelectorAll(':scope > :not(title):not(desc)').forEach(el=>el.remove());
+    const plot=node('g',{},svg);
+    const yTop=pos(0,target+.08).y, yBottom=pos(0,target-.08).y;
+    node('rect',{x:48,y:yTop,width:632,height:yBottom-yTop,rx:4,class:'field-band'},plot);
+    node('line',{x1:48,y1:yTop,x2:680,y2:yTop,class:'field-band-edge'},plot);
+    node('line',{x1:48,y1:yBottom,x2:680,y2:yBottom,class:'field-band-edge'},plot);
+    for(let i=0;i<=3;i++){const x=pos(i,.5).x;node('line',{x1:x,y1:54,x2:x,y2:345,class:'field-grid'},plot);const label=node('text',{x,y:371,'text-anchor':'middle',class:'field-text'},plot);label.textContent=i===0?'start':`checkpoint ${i}`;}
+    for(const f of [.25,.5,.75]){const y=pos(0,f).y;node('line',{x1:48,y1:y,x2:680,y2:y,class:'field-grid'},plot);}
+    node('line',{x1:48,y1:345,x2:680,y2:345,class:'field-axis'},plot);
+    const label=node('text',{x:57,y:50,class:'field-text accent'},plot);label.textContent='desired feature band';
+    const currentStep=round;
+    particles.forEach((p,i)=>{
+      const selected=p.id===selectedId;
+      const d=p.path.map((feature,j)=>{const point=pos(j,feature);return `${j?'L':'M'}${point.x.toFixed(1)} ${point.y.toFixed(1)}`;}).join(' ');
+      if(p.path.length>1) node('path',{d,class:'trail'+(selected?' selected':'')},plot);
+      const point=pos(currentStep,p.feature);
+      const shared=particles.filter(q=>Math.abs(q.feature-p.feature)<1e-8).length;
+      const offset=shared>1 ? ((i%3)-1)*5 : 0;
+      const g=node('g',{},plot);
+      if(selected) node('circle',{cx:point.x+offset,cy:point.y,r:13,class:'particle-halo'},g);
+      const weight=weights?.[i]; const radius=weight ? 5+Math.min(10,weight*particles.length*3.2) : 6;
+      const circle=node('circle',{cx:point.x+offset,cy:point.y,r:radius,class:'particle'+(selected?' selected':'')+(weight!==undefined && weight<1/particles.length*.4?' low':''),'data-particle-id':p.id,tabindex:0,role:'button','aria-label':`Particle ${i+1}, founder ${p.founder}, feature ${p.feature.toFixed(2)}${weight===undefined?'':`, weight ${(weight*100).toFixed(1)} percent`}`},g);
+      const title=node('title',{},circle);title.textContent=`Particle ${i+1} · founder ${p.founder}${weight===undefined?'':` · weight ${(weight*100).toFixed(1)}%`}`;
+      if(previous && !motionReduced.matches) {
+        const old=pos(currentStep-1,previous[i]);
+        g.animate([{transform:`translate(${old.x-point.x}px,${old.y-point.y}px)`,opacity:.6},{transform:'translate(0,0)',opacity:1}],{duration:750,easing:'cubic-bezier(.77,0,.175,1)'});
+      }
+    });
+  }
+  function drawWeights() {
+    const box=$('weights'); box.replaceChildren();
+    $('weight-hint').textContent=weights?'normalized shares':'Awaiting next score';
+    if(!weights){const p=document.createElement('p');p.textContent='Weights appear after each potential evaluation.';box.append(p);return;}
+    const ranking=weights.map((w,i)=>({w,i})).sort((a,b)=>b.w-a.w).slice(0,Math.min(8,weights.length));
+    const maxWeight=ranking[0].w;
+    for(const {w,i} of ranking){const row=document.createElement('button');row.type='button';row.className='weight-row';row.setAttribute('aria-pressed',String(particles[i].id===selectedId));row.innerHTML=`<span>P${i+1}</span><span class="weight-track"><span class="weight-fill" style="display:block;width:${Math.max(3,w/maxWeight*100)}%"></span></span><span>${(w*100).toFixed(0)}%</span>`;row.addEventListener('click',()=>select(particles[i].id));box.append(row);}
+    if(weights.length>8){const p=document.createElement('p');p.textContent=`Top 8 of ${weights.length} shown`;box.append(p);}
+  }
+  function drawOffspring() {
+    const box=$('offspring');box.replaceChildren();
+    if(!resampledFrom){const span=document.createElement('span');span.className='side-placeholder';span.textContent='Copies appear after resampling.';box.append(span);$('offspring-note').textContent='Higher weight means a greater chance of being copied, not a guaranteed win.';return;}
+    resampledFrom.forEach((id,i)=>{const el=document.createElement('span');el.className='child';el.textContent=`child ${i+1} ← P${id}`;el.style.animationDelay=`${Math.min(i,12)*45}ms`;box.append(el);});
+    $('offspring-note').textContent=`${new Set(resampledFrom).size} of ${resampledFrom.length} parents contributed descendants at this checkpoint.`;
+  }
+  function select(id) { selectedId=selectedId===id?null:id; render(); }
+  $('field').addEventListener('click',e=>{const id=e.target.getAttribute('data-particle-id');if(id)select(Number(id));});
+  $('field').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.hasAttribute('data-particle-id')){e.preventDefault();select(Number(e.target.getAttribute('data-particle-id')));}});
+  $('play').addEventListener('click',play); $('next').addEventListener('click',()=>{pause();next();}); $('restart').addEventListener('click',reset);
+  $('count').addEventListener('change',reset); $('selectivity').addEventListener('input',reset);
+  reset();
+</script>
+</body>
+</html>

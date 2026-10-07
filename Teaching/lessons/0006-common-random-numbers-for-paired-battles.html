@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0006 — Common random numbers: pay battles for differences, not for luck</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>Common random numbers — pay battles for differences, not for luck</h1>
+<p class="subtitle">When two alternatives are compared by simulation, what you care about is the variance of the <em>difference</em> — and shared randomness buys down exactly that.</p>
+<p class="meta">Lesson 0006 · 2026-08-20 · ~10 minutes · <a href="../reference/crn-estimators.html">reference: CRN estimator card</a> · <a href="../MISSION.md">mission</a> · serves the HIGH item in Todo Section § "the rest of RLC 2026" (Yadav et al., RLJ 2026 Paper 52) · previous: <a href="0005-reevo-llm-writes-the-heuristic.html">0005</a> · stuck on §1? prerequisite: <a href="0007-coupling-marginals-fixed-joint-is-yours.html">0007 (coupling)</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> Your own TODO line already states the payoff: <q>run team A and team B against the same opponent under the same PRNG seeds; directly cuts the battle count</q>. This lesson gives you the theory under that sentence — 🟢 <a href="https://rlj.cs.umass.edu/2026/papers/Paper52.pdf">Yadav, Maliakkal, Khadilkar &amp; Kalyanakrishnan, RLJ 2026</a> (🟢 <a href="https://arxiv.org/abs/2605.04732">arXiv 2605.04732</a>) — including the one case where naive seed-sharing backfires and the refinement that is provably safe. After it you should be able to (1) write the covariance identity from memory, (2) name the three estimators and when each wins, and (3) say precisely where CRN plugs into battle-based comparisons in this project.</div>
+
+<h2>1. One identity carries the whole idea</h2>
+
+<p>Say you estimate two win rates by simulation — T̂₁ and T̂₂ — and act on the difference Δ̂ = T̂₁ − T̂₂ (which team to keep, which action to play). Then:</p>
+
+<p style="text-align:center"><strong>var(Δ̂) = var(T̂₁) + var(T̂₂) − 2 cov(T̂₁, T̂₂)</strong></p>
+
+<p>Simulate the two sides independently and the covariance term is zero. But nothing forces you to: run both sides on the <em>same</em> random draws and a lucky stream lifts both estimates together, an unlucky one sinks both — cov goes positive, and it is <em>subtracted</em>. The luck cancels out of the difference; only the real gap between the alternatives is left to pay for. That is the entire trick called <strong>common random numbers</strong> (CRN), and it costs zero extra battles.</p>
+
+<p>The catch, equally visible in the identity: if coupling ever makes cov <em>negative</em>, sharing randomness <em>inflates</em> var(Δ̂). CRN is a bet on positive covariance, not a free lunch — which is exactly what the paper sharpens.</p>
+
+<h2>2. The paper's three estimators</h2>
+
+<p>The paper compares policies π₁, π₂ by simulated trajectories in a finite-horizon MDP, and names three ways to seed the simulations:</p>
+
+<table class="compare">
+<tr><th>estimator</th><th>seeding</th><th>guarantee</th></tr>
+<tr><td><strong>X<sub>I</sub></strong> — independent</td><td>every trajectory its own randomness</td><td>unbiased; cov term is zero</td></tr>
+<tr><td><strong>X<sub>D</sub></strong> — fully dependent</td><td>same randomness for both policies everywhere</td><td>usually better; <em>can be worse</em> (Prop. 1)</td></tr>
+<tr><td><strong>X<sub>DD</sub></strong> — depth-dependent</td><td>independent up to depth <em>d</em>, shared after</td><td>provably ≤ var(X<sub>I</sub>) (Thm. 2)</td></tr>
+</table>
+
+<p>X<sub>DD</sub> is the contribution, and it fits one specific — but extremely common — planning shape: lookahead with rollouts. The compared policies <em>differ</em> only in their first <em>d</em> decisions (the actions under consideration); beyond depth <em>d</em> both hand control to the same fixed <strong>rollout policy</strong>. So couple exactly where they agree: <q>However, for time steps d+1 and after, both policies are evaluated on the same transitions (like in X<sub>D</sub>).</q> Where they differ, stay independent.</p>
+
+<p>Implementation is a one-line seeding discipline, not infrastructure: derive each transition's seed from <code>string(s) + string(a) + string(t) + string(simulationIndex)</code>, and append the policy's identifier to the seed <em>only for steps t ≤ d</em>. Same state, same step, same simulation index beyond the lookahead → same sampled transition for every candidate action.</p>
+
+<h2>3. What is proved, and the one warning</h2>
+
+<p><strong>Theorem 2, informally:</strong> if π₁ and π₂ agree after step <em>d</em>, then var(X<sub>DD</sub>) ≤ var(X<sub>I</sub>) — strictly less whenever both policies can reach some state after depth <em>d</em> whose remaining return has positive variance. The mechanism: once the trajectories run the same policy on the same sampled transitions, the coupled covariance is itself a variance, hence never negative. The variance X<sub>DD</sub> deletes is precisely the noise generated <em>after</em> the decisions being compared stopped differing — noise that carried no information about the comparison.</p>
+
+<p><strong>Proposition 1, the warning:</strong> full coupling X<sub>D</sub> has no such guarantee. The paper constructs an MDP where the coupled returns move in <em>opposite</em> directions — cov turns negative and X<sub>D</sub> is worse than independent seeding. They judge the construction pathological — <q>This sort of structure is not common in practical tasks—typically, the order between two states' values stays the same for different policies</q> — but the honest reading is: X<sub>D</sub> is a default that usually pays, X<sub>DD</sub> is the version you can defend.</p>
+
+<p>Empirically (synthetic MDPs, a pension-disbursement task, and depth-limited UCT for Ludo, win percentage across 5000 games): coupled seeding clearly dominates independent seeding, and the gap is <em>largest at small simulation budgets</em> — precision per battle is exactly what a tight battle budget buys with CRN. One wrinkle worth carrying: in the Ludo deployment plain X<sub>D</sub> beat X<sub>DD</sub>; the theory models fixed policy pairs, not UCT's adaptive tree growth, and the authors flag that as open.</p>
+
+<h2>4. See the variance leave</h2>
+
+<p>Below, two teams are compared against a small meta (three opponents, weighted draw). Same battle budget in all three columns; only the seeding changes. Watch the histogram of Δ̂ tighten around the true gap:</p>
+
+<div id="crn-sim"></div>
+
+<p>Note what the middle column shows: even pairing <em>only the opponent draw</em> — before any within-battle coupling — already buys a real variance cut, because a hard opponent is hard for both teams. Positive covariance has more than one entry point.</p>
+
+<h2>5. Where this lands in your project</h2>
+
+<p>Two distinct slots, and the distinction is the lesson:</p>
+
+<p><strong>(a) Comparing teams by simulated battles — X<sub>D</sub> territory, no theorem cover.</strong> Whenever two candidate teams are compared against the meta (whatever estimator of <em>f</em> that comparison serves), pair everything pairable: battle <em>i</em> of T₁ and of T₂ faces the <em>same</em> drawn meta team, under the same fixed battle seed — your TODO line notes Showdown battles accept one. But notice Theorem 2's condition fails here: two different teams diverge from turn 1, there is no depth beyond which they "agree", so this is X<sub>D</sub>, a bet — a well-founded one (opponent difficulty correlates strongly), not a guarantee. Also be sober about the seed itself: two diverging battles consume the PRNG stream differently, so a shared Showdown seed couples less than the simulator column above; the reliably coupled draw is <em>which opponent you face</em>.</p>
+
+<p><strong>(b) Inside a battle policy that plans by rollouts — X<sub>DD</sub>'s exact home.</strong> If any battle-policy arm ever plans by lookahead + rollouts (the paper's own UCT-for-Ludo shape), the recipe applies literally: candidate actions differ at the root, the shared rollout policy takes over beyond depth <em>d</em>, so drop the action identifier from the seed beyond <em>d</em> and the variance reduction is the proven kind.</p>
+
+<p>One number to remember from the widget: at this meta's gap sizes, pairing cuts the battles needed for equal precision by roughly an order of magnitude. That is not a marginal implementation detail; it changes what a fixed battle budget can resolve.</p>
+
+<h2>6. Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+<p class="q">Sharing random numbers across the two estimates helps exactly when it makes their covariance…</p>
+<button data-opt="a">negative</button>
+<button data-opt="b">positive</button>
+<button data-opt="c">vanish</button>
+<div class="why">var(Δ̂) = var(T̂₁) + var(T̂₂) − 2 cov(T̂₁, T̂₂): positive covariance is subtracted; negative covariance (Prop. 1's trap) inflates it; zero is just X<sub>I</sub> — §1, §3.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">In the depth-dependent estimator X<sub>DD</sub>, random numbers are shared…</p>
+<button data-opt="a">at every step of every simulated trajectory</button>
+<button data-opt="b">only at steps where the policies differ</button>
+<button data-opt="c">only at steps after the policies agree</button>
+<div class="why">Independent through depth d (where the compared decisions differ), coupled beyond it (where the shared rollout policy runs) — §2. Option a is X<sub>D</sub>; option b is backwards.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Proposition 1 warns that the fully coupled estimator X<sub>D</sub> can…</p>
+<button data-opt="a">raise variance when the covariance turns negative</button>
+<button data-opt="b">lower variance in every task without exception</button>
+<button data-opt="c">lose unbiasedness once any seeds are reused</button>
+<div class="why">The constructed MDP flips the covariance's sign — coupling then adds variance. Reusing seeds never biases the estimate; it only changes the variance — §3.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">Comparing teams T₁ and T₂ against a meta, the coupling you can rely on most is…</p>
+<button data-opt="a">sharing damage rolls after the battles diverge</button>
+<button data-opt="b">running extra battles for the weaker team</button>
+<button data-opt="c">drawing the same opponent for both teams</button>
+<div class="why">Opponent difficulty correlates across teams, and the draw happens before any divergence. Diverged battles consume the PRNG stream differently, so option a decays; option b changes the budget, not the covariance — §5.</div>
+</div>
+
+<div class="quiz-summary"></div>
+
+<h2>7. Read next</h2>
+
+<p>Primary source: the paper itself — 🟢 <a href="https://rlj.cs.umass.edu/2026/papers/Paper52.pdf">RLJ 2026, Paper 52 (PDF)</a> · 🟢 <a href="https://arxiv.org/abs/2605.04732">arXiv 2605.04732</a> · 🟢 <a href="https://arxiv.org/html/2605.04732v1">HTML version</a>. Read §2 for the three estimators and Theorem 2, §1.2 for the Proposition 1 counterexample, then skim the Ludo deployment (§4) — it is the closest thing in print to your use case. Classical backdrop if you want it: CRN is decades old in the simulation literature; the paper's contribution is knowing <em>where in a rollout</em> the coupling is provably safe.</p>
+
+<p class="meta">Anything unclear — why coupling never biases the estimate, what the seed discipline looks like in poke-env, how the widget's middle column maps to opponent sampling — ask your teacher in chat; that is what the agent is for.</p>
+
+<script src="../assets/quiz.js"></script>
+<script src="../assets/crn-sim.js"></script>
+<script>CRNSim.mount('#crn-sim');</script>
+</body>
+</html>

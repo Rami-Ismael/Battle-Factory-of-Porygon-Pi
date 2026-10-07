@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — common random numbers for simulated comparisons</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .card { border:1px solid var(--rule); border-radius:6px; padding:1rem 1.4rem; margin:1.2rem 0; }
+  .card h4 { margin:.2rem 0 .6rem; }
+  @media print { a { border-bottom:none; } }
+</style>
+</head>
+<body>
+
+<h1>Common random numbers — the card</h1>
+<p class="meta">Reference · source: Yadav, Maliakkal, Khadilkar &amp; Kalyanakrishnan, <em>Using Common Random Numbers for Simulation-based Planning with Rollouts</em>, RLJ 2026 — 🟢 <a href="https://rlj.cs.umass.edu/2026/papers/Paper52.pdf">PDF</a> · 🟢 <a href="https://arxiv.org/abs/2605.04732">arXiv 2605.04732</a> · lesson: <a href="../lessons/0006-common-random-numbers-for-paired-battles.html">0006</a></p>
+
+<div class="card">
+<h4>The identity</h4>
+<p style="text-align:center"><strong>var(Δ̂) = var(T̂₁) + var(T̂₂) − 2 cov(T̂₁, T̂₂)</strong></p>
+<p>Coupling the simulations helps iff it makes cov &gt; 0. It never biases the estimate — it only moves variance. Negative cov (rare, but constructible: Prop. 1) makes coupling worse than independence.</p>
+</div>
+
+<div class="card">
+<h4>The three estimators</h4>
+<table class="compare">
+<tr><th>name</th><th>seeding</th><th>use when</th></tr>
+<tr><td>X<sub>I</sub> independent</td><td>fresh randomness everywhere</td><td>you suspect negative covariance</td></tr>
+<tr><td>X<sub>D</sub> fully dependent</td><td>same randomness everywhere</td><td>compared alternatives never converge (e.g. two whole teams) — usually pays, no guarantee</td></tr>
+<tr><td>X<sub>DD</sub> depth-dependent</td><td>independent for t ≤ d, shared for t &gt; d</td><td>alternatives differ only in the first d decisions, then a shared rollout policy — provably var ≤ X<sub>I</sub> (Thm. 2)</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h4>The seed discipline</h4>
+<p><code>seed = string(s) + string(a) + string(t) + string(simulationIndex)</code> — and append the policy/action identifier <em>only for t ≤ d</em>. Beyond the lookahead, identical (state, step, simulation) → identical sampled transition for every candidate.</p>
+</div>
+
+<div class="card">
+<h4>Project mapping</h4>
+<ul>
+<li><strong>Team vs team against a meta</strong> → X<sub>D</sub>: battle i of both teams faces the same drawn meta team, same fixed Showdown battle seed. Teams diverge from turn 1, so no theorem — the dependable coupling channel is the shared opponent draw.</li>
+<li><strong>Rollout-based battle-policy planning (UCT shape)</strong> → X<sub>DD</sub> literally: actions differ at the root, shared rollout policy beyond depth d.</li>
+<li><strong>Payoff</strong>: gains are largest at small simulation budgets; in the lesson's toy meta, roughly an order of magnitude fewer battles for equal precision.</li>
+</ul>
+</div>
+
+</body>
+</html>

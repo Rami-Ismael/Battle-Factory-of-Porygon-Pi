@@ -1,0 +1,372 @@
+[
+  {
+    "auditId": "S075",
+    "title": "SymmetricDiffusers: Learning Discrete Diffusion on Finite Symmetric Groups",
+    "citationCount": 7,
+    "decision": "DEFER",
+    "reason": "Learns distributions over permutations of a fixed item set using riffle shuffles. The team generator chooses categorical contents, not just their order; slot-order invariance is already a planned diagnostic.",
+    "source": "https://arxiv.org/abs/2410.02942",
+    "evidence_level": "methods inspected",
+    "grade": null
+  },
+  {
+    "auditId": "S076",
+    "title": "Enhancing GNNs Performance on Combinatorial Optimization by Recurrent Feature Update",
+    "citationCount": 7,
+    "decision": "SKIP",
+    "reason": "Recurrent GNN features optimize an explicit differentiable QUBO loss; no such battle-strength objective is available and QUBO is parked.",
+    "source": "https://arxiv.org/abs/2407.16468",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S077",
+    "title": "RouteExplainer: An Explanation Framework for Vehicle Routing Problem",
+    "citationCount": 7,
+    "decision": "SKIP",
+    "reason": "Explains route edges through counterfactual route costs and a route-intention classifier; does not validate a team-strength surrogate or team-edit effect.",
+    "source": "https://arxiv.org/abs/2403.03585",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S078",
+    "title": "A Hierarchical Destroy and Repair Approach for Solving Very Large-Scale Travelling Salesman Problem",
+    "citationCount": 7,
+    "decision": "SKIP",
+    "reason": "Hierarchical compression of retained tour edges targets millions of cities. There is no equivalent safe compression of six interacting Pokemon sets.",
+    "source": "https://arxiv.org/abs/2308.04639",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S079",
+    "title": "ML4CO-Bench-101: Benchmark Machine Learning for Classic Combinatorial Problems on Graphs",
+    "citationCount": 7,
+    "decision": "DEFER",
+    "reason": "Useful benchmark code for classic graph problems, but not a team-generation evaluation method. Existing Unify ML4TSP covers the live learned-versus-search attribution question.",
+    "source": "https://github.com/Thinklab-SJTU/ML4CO-Bench-101",
+    "evidence_level": "primary repository",
+    "grade": null
+  },
+  {
+    "auditId": "S080",
+    "title": "GOAL: A Generalist Combinatorial Optimization Agent Learning",
+    "citationCount": 7,
+    "decision": "DUPLICATE",
+    "reason": "GOAL anonymous-title variant; inventory independently resolves identity with S022. Generalist routing/subproblem learning is not a new queue addition.",
+    "source": "https://github.com/naver/goal-co",
+    "evidence_level": "primary identity check",
+    "grade": null
+  },
+  {
+    "auditId": "S081",
+    "title": "Multi-Task Vehicle Routing Solver via Mixture of Specialized Experts under State-Decomposable MDP",
+    "citationCount": 6,
+    "decision": "SKIP",
+    "reason": "Reuses optimal basis routing policies through LoRA experts under a state-decomposable MDP; team synergy is not decomposed into those basis routing constraints.",
+    "source": "https://arxiv.org/abs/2510.21453",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S082",
+    "title": "Learning to Segment for Vehicle Routing Problems",
+    "citationCount": 6,
+    "decision": "SKIP",
+    "reason": "Aggregates stable subtours to speed routing search. Retaining a team core is an analogy, without the required safe segment aggregation or a new experiment beyond partial regeneration.",
+    "source": "https://arxiv.org/abs/2507.01037",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S083",
+    "title": "Combinatorial optimization: From deep learning to large language models",
+    "citationCount": 6,
+    "decision": "SKIP",
+    "reason": "Broad review of deep-learning and LLM combinatorial optimization; owner explicitly excludes surveys.",
+    "source": "https://www.sciengine.com/SCM/doi/10.1007/s11425-023-2364-2",
+    "evidence_level": "primary publisher summary",
+    "grade": null
+  },
+  {
+    "auditId": "S084",
+    "title": "Survey on Neural Routing Solvers",
+    "citationCount": 5,
+    "decision": "SKIP",
+    "reason": "Survey/taxonomy of routing solvers; outside the owner's no-surveys preference and current six-set generator experiments.",
+    "source": "https://arxiv.org/abs/2602.21761",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S085",
+    "title": "LocalEscaper: A Weakly-supervised Framework with Regional Reconstruction for Scalable Neural TSP Solvers",
+    "citationCount": 5,
+    "decision": "DEFER",
+    "reason": "Weak-label training plus regional TSP reconstruction could motivate low-quality-data use, but existing label-quality/data-source axes already test that. No concrete categorical-team training rule established.",
+    "source": "https://arxiv.org/abs/2502.12484",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S086",
+    "title": "Memory-Enhanced Neural Solvers for Routing Problems",
+    "citationCount": 5,
+    "decision": "DEFER",
+    "reason": "MEMENTO updates an autoregressive action distribution from per-instance trajectory memory. Requires new prefix/decision memory and adaptation to noisy battle outcomes; not equivalent to existing elite replay in diffusion.",
+    "source": "https://arxiv.org/abs/2406.16424",
+    "evidence_level": "methods inspected",
+    "grade": null
+  },
+  {
+    "auditId": "S087",
+    "title": "Fractional Langevin Dynamics for Combinatorial Optimization via Polynomial-Time Escape",
+    "citationCount": 5,
+    "decision": "SKIP",
+    "reason": "Levy-noise Langevin proposals exploit explicit graph energies. Polynomial escape analysis is not a guarantee for categorical teams evaluated with noisy battles.",
+    "source": "https://doi.org/10.52202/085713-3542",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S088",
+    "title": "Solving NP-hard Min-max Routing Problems as Sequential Generation with Equity Context",
+    "citationCount": 5,
+    "decision": "SKIP",
+    "reason": "Equity-Transformer optimizes min-max workloads across vehicle routes, not robustness against opponents or team-generator diversity.",
+    "source": "https://ojs.aaai.org/index.php/AAAI/article/view/30007",
+    "evidence_level": "primary abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S089",
+    "title": "ADAPT: Lightweight, Long-Range Machine Learning Force Fields Without Graphs",
+    "citationCount": 4,
+    "decision": "SKIP",
+    "reason": "Atom-coordinate force-field prediction for silicon defects; neither categorical team generation nor the search/update mechanism is studied.",
+    "source": "https://arxiv.org/abs/2509.24115",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S090",
+    "title": "A Scalable Lift-and-Project Differentiable Approach For the Maximum Cut Problem",
+    "citationCount": 4,
+    "decision": "SKIP",
+    "reason": "Lift-and-project gradients for a MaxCut quadratic objective require a known analytic graph objective. This is not a transferable battle-based optimizer without a new validated formulation.",
+    "source": "https://arxiv.org/abs/2509.18612",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S091",
+    "title": "Obstacle-aware Simultaneous Task and Energy Planning with Ordering Constraints",
+    "citationCount": 4,
+    "decision": "SKIP",
+    "reason": "Obstacle-aware robotic task/energy planning with ordering constraints; scheduling a route is different from choosing full team contents or learning a battle policy.",
+    "source": "https://doi.org/10.1109/ICoICT58202.2023.10262644",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S092",
+    "title": "Neural Cluster First, Route Second: One-Shot Capacitated Vehicle Routing via Differentiable Optimal Transport",
+    "citationCount": 3,
+    "decision": "SKIP",
+    "reason": "Differentiable transport assigns customers to capacity-limited routes. It does not provide a validity-preserving representation for species/moves/items/stat constraints.",
+    "source": "https://arxiv.org/abs/2605.09301",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S093",
+    "title": "Geometric Algorithms for Neural Combinatorial Optimization with Constraints",
+    "citationCount": 3,
+    "decision": "DEFER",
+    "reason": "Polytope decompositions and rounding can enforce cardinality/matroid constraints, but the project has no tractable feasible-team polytope and no differentiable true objective.",
+    "source": "https://arxiv.org/abs/2510.24039",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S094",
+    "title": "Enhancing the Cross-Size Generalization for Solving Vehicle Routing Problems via Continual Learning",
+    "citationCount": 3,
+    "decision": "SKIP",
+    "reason": "Continual learning across ascending route sizes uses regularization/replay. Six-set team generation has no analogous size curriculum; original-data replay is already planned.",
+    "source": "https://arxiv.org/abs/2510.10262",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S095",
+    "title": "Towards Unsupervised Training of Matching-based Graph Edit Distance Solver via Preference-aware GAN",
+    "citationCount": 3,
+    "decision": "SKIP",
+    "reason": "Preference GAN computes graph edit distance using known edit-path costs. It does not establish strategic team similarity or noisy win-rate preference learning.",
+    "source": "https://arxiv.org/abs/2506.01977",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S096",
+    "title": "Boosting Cross-problem Generalization in Diffusion-Based Neural Combinatorial Solver via Inference Time Adaptation",
+    "citationCount": 3,
+    "decision": "DEFER",
+    "reason": "DIFU-Ada steers a diffusion solver between routing tasks using explicit task energies. Requires a credible differentiable team objective/surrogate and enters deferred reward integration.",
+    "source": "https://arxiv.org/abs/2502.12188",
+    "evidence_level": "methods inspected",
+    "grade": null
+  },
+  {
+    "auditId": "S097",
+    "title": "Unrealized Expectations: Comparing AI Methods vs Classical Algorithms for Maximum Independent Set",
+    "citationCount": 3,
+    "decision": "DEFER",
+    "reason": "Strong evidence that MIS neural methods can lose to KaMIS/greedy; useful context for reading DIFUSCO, but a general baseline warning adds little beyond current attribution checks and existing Unify ML4TSP.",
+    "source": "https://arxiv.org/abs/2502.03669",
+    "evidence_level": "methods/results inspected",
+    "grade": null
+  },
+  {
+    "auditId": "S098",
+    "title": "Unsupervised Training of Diffusion Models for Feasible Solution Generation in Neural Combinatorial Optimization",
+    "citationCount": 3,
+    "decision": "DEFER",
+    "reason": "IC/DC learns cost-minimizing feasible bipartite assignments for scheduling/ATSP. This neither supplies a team legality decoder nor avoids the missing evaluable task objective.",
+    "source": "https://arxiv.org/abs/2411.00003",
+    "evidence_level": "methods inspected",
+    "grade": null
+  },
+  {
+    "auditId": "S099",
+    "title": "Learning to Solve Combinatorial Optimization under Positive Linear Constraints via Non-Autoregressive Neural Networks",
+    "citationCount": 3,
+    "decision": "SKIP",
+    "reason": "Positive linear constraints and differentiable search fit analytic facility-location/coverage/routing objectives. Those assumptions do not describe the current team generator and battle oracle.",
+    "source": "https://arxiv.org/abs/2409.04495",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S100",
+    "title": "Dynamic Job Shop Scheduling via Deep Reinforcement Learning",
+    "citationCount": 3,
+    "decision": "SKIP",
+    "reason": "Dynamic job-shop dispatching policy with dense-reward or evolutionary training; no new team-proposal or noisy selection mechanism is demonstrated.",
+    "source": "https://doi.org/10.1109/ICTAI59109.2023.00060",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S101",
+    "title": "Boosting Generalization in Diffusion-Based Neural Combinatorial Solver via Energy-guided Sampling",
+    "citationCount": 3,
+    "decision": "DUPLICATE",
+    "reason": "Earlier energy-guided-sampling title for arxiv2502.12188, canonical S096. Do not count as a separate addition.",
+    "source": "https://arxiv.org/abs/2502.12188",
+    "evidence_level": "primary identity check",
+    "grade": null
+  },
+  {
+    "auditId": "S102",
+    "title": "Dataless Quadratic Neural Networks for the Maximum Independent Set Problem",
+    "citationCount": 3,
+    "decision": "SKIP",
+    "reason": "Current title Differentiable Quadratic Optimization For The Maximum Independent Set Problem; multiple initializations optimize a specific MIS quadratic objective, outside the active formulation.",
+    "source": "https://arxiv.org/abs/2406.19532",
+    "evidence_level": "primary abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S103",
+    "title": "Boosting Generalization in Diffusion-Based Neural Combinatorial Solver via Inference Time Adaptation",
+    "citationCount": 3,
+    "decision": "DUPLICATE",
+    "reason": "Earlier inference-time-adaptation title for arxiv2502.12188, canonical S096. Do not count as a separate addition.",
+    "source": "https://www.semanticscholar.org/paper/bb20db9c3a71c1a606adc5ec6a872ba73392ffda",
+    "evidence_level": "primary identity check",
+    "grade": null
+  },
+  {
+    "auditId": "S104",
+    "title": "Large Neighborhood Search meets Iterative Neural Constraint Heuristics",
+    "citationCount": 2,
+    "decision": "MAYBE",
+    "reason": "Selective MED only when partial regeneration becomes active: separate random/confidence-based slot removal from greedy/stochastic refill. Paper retrains a separate ConsFormer per operator pairing and optimizes constraint penalties; results do not show frozen diffusion achieves stronger or more diverse teams.",
+    "source": "https://arxiv.org/abs/2603.20801",
+    "evidence_level": "methods/results inspected",
+    "grade": "MED (conditional)"
+  },
+  {
+    "auditId": "S105",
+    "title": "Pheromone learning-enhanced neural ant colony optimization",
+    "citationCount": 2,
+    "decision": "DEFER",
+    "reason": "Learns ACO pheromone increments from elites plus graph features. A different search-state update is possible, but it requires a new ACO representation and does not improve the current diffusion/CEM loop directly.",
+    "source": "https://www.sciencedirect.com/science/article/pii/S0925231226007721",
+    "evidence_level": "primary publisher methods summary",
+    "grade": null
+  },
+  {
+    "auditId": "S106",
+    "title": "Graph homophily booster: Reimagining the role of discrete features in heterophilic graph learning",
+    "citationCount": 2,
+    "decision": "SKIP",
+    "reason": "Transforms heterophilic graphs for node prediction. There is no demonstrated graph-homophily bottleneck in this categorical team generator.",
+    "source": "https://arxiv.org/abs/2602.07256",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S107",
+    "title": "Multi-Action Self-Improvement for Neural Combinatorial Optimization",
+    "citationCount": 2,
+    "decision": "DEFER",
+    "reason": "Joint assignment/set-prediction loss avoids agent-order penalties in multi-agent routing/scheduling. Not merely slot shuffling: adopting it requires an assignment-based generator/training objective. First run the existing team-order sensitivity diagnostic.",
+    "source": "https://arxiv.org/abs/2510.12273",
+    "evidence_level": "methods inspected",
+    "grade": null
+  },
+  {
+    "auditId": "S108",
+    "title": "N(CO)2 : Neural Combinatorial Optimization with Chance Constraints to Solve Stochastic Orienteering",
+    "citationCount": 2,
+    "decision": "SKIP",
+    "reason": "Chance-constrained stochastic orienteering handles uncertain route costs, not finite-battle estimation uncertainty or learning reliable team rankings.",
+    "source": "https://arxiv.org/abs/2606.18514",
+    "evidence_level": "abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S109",
+    "title": "Breaking the Performance Ceiling in Reinforcement Learning requires Inference Strategies",
+    "citationCount": 2,
+    "decision": "DEFER",
+    "reason": "Tests inference strategies on cooperative multi-agent tasks with repeated attempts. Potential battle-policy reference later, but this does not establish safe search on partially observed adversarial Pokemon states or a new team-generation experiment.",
+    "source": "https://arxiv.org/abs/2505.21236",
+    "evidence_level": "methods/results inspected",
+    "grade": null
+  },
+  {
+    "auditId": "S110",
+    "title": "Solving method of traveling salesman problem based on performer graph self-attention mechanism",
+    "citationCount": 2,
+    "decision": "SKIP",
+    "reason": "Performer graph attention and TSP route refactoring target neural routing architecture/scaling; unrelated to current categorical proposer decisions.",
+    "source": "https://link.springer.com/article/10.1007/s11760-024-03709-w",
+    "evidence_level": "primary publisher abstract",
+    "grade": null
+  },
+  {
+    "auditId": "S111",
+    "title": "Beyond the Heatmap: A Rigorous Evaluation of Component Impact in MCTS-Based TSP Solvers",
+    "citationCount": 2,
+    "decision": "DEFER",
+    "reason": "Shows MCTS tuning can dominate learned heatmap quality; method-attribution check already motivated by active Unify ML4TSP. Keep as corroborating evidence, not another active reading.",
+    "source": "https://arxiv.org/abs/2411.09238",
+    "evidence_level": "primary abstract",
+    "grade": null
+  }
+]

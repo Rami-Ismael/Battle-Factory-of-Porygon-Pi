@@ -1,0 +1,455 @@
+{
+  "checkedAt": "2026-09-13T21:51:22.122Z",
+  "format": "gen9championsvgc2026regmb",
+  "offline": true,
+  "results": [
+    {
+      "case": "valid",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "empty",
+      "pass": true,
+      "expected": [
+        "You must bring at least 6 Pokémon (your team has 0)."
+      ],
+      "actual": [
+        "You must bring at least 6 Pokémon (your team has 0)."
+      ]
+    },
+    {
+      "case": "unknownSpecies",
+      "pass": true,
+      "expected": [
+        "The Pokemon \"notapokemon\" does not exist."
+      ],
+      "actual": [
+        "The Pokemon \"notapokemon\" does not exist."
+      ]
+    },
+    {
+      "case": "unknownMove",
+      "pass": true,
+      "expected": [
+        "\"notamove\" is an invalid move."
+      ],
+      "actual": [
+        "\"notamove\" is an invalid move."
+      ]
+    },
+    {
+      "case": "illegalMove",
+      "pass": true,
+      "expected": [
+        "Excadrill can't learn Spore."
+      ],
+      "actual": [
+        "Excadrill can't learn Spore."
+      ]
+    },
+    {
+      "case": "duplicateSpecies",
+      "pass": true,
+      "expected": [
+        "Excadrill can't have Lightning Rod.",
+        "Excadrill can't learn Fake Out.",
+        "You are limited to one of each Pokémon by Species Clause.",
+        "(You have more than one Excadrill)"
+      ],
+      "actual": [
+        "Excadrill can't have Lightning Rod.",
+        "Excadrill can't learn Fake Out.",
+        "You are limited to one of each Pokémon by Species Clause.",
+        "(You have more than one Excadrill)"
+      ]
+    },
+    {
+      "case": "duplicateItem",
+      "pass": true,
+      "expected": [
+        "You are limited to 1 of each item by Item Clause.",
+        "(You have more than 1 Focus Sash)"
+      ],
+      "actual": [
+        "You are limited to 1 of each item by Item Clause.",
+        "(You have more than 1 Focus Sash)"
+      ]
+    },
+    {
+      "case": "illegalAbility",
+      "pass": true,
+      "expected": [
+        "Excadrill can't have Wonder Guard."
+      ],
+      "actual": [
+        "Excadrill can't have Wonder Guard."
+      ]
+    },
+    {
+      "case": "excessStats",
+      "pass": true,
+      "expected": [
+        "Excadrill has 192 total Stat Points, which is more than this format's limit of 66."
+      ],
+      "actual": [
+        "Excadrill has 192 total Stat Points, which is more than this format's limit of 66."
+      ]
+    },
+    {
+      "case": "tooMany",
+      "pass": true,
+      "expected": [
+        "You may only bring up to 6 Pokémon (your team has 7)."
+      ],
+      "actual": [
+        "You may only bring up to 6 Pokémon (your team has 7)."
+      ]
+    },
+    {
+      "case": "disallowedSpecies",
+      "pass": true,
+      "expected": [
+        "Mewtwo is tagged Restricted Legendary, which is banned by Flat Rules.",
+        "Mewtwo can't have Sand Rush.",
+        "Mewtwo can't learn Iron Head."
+      ],
+      "actual": [
+        "Mewtwo is tagged Restricted Legendary, which is banned by Flat Rules.",
+        "Mewtwo can't have Sand Rush.",
+        "Mewtwo can't learn Iron Head."
+      ]
+    },
+    {
+      "case": "corpus-MB1.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB108.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB117.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB126.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB136.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB145.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB154.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB163.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB172.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB181.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB190.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB204.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB213.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB222.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB231.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB240.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB25.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB26.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB27.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB279.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB288.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB297.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB305.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB314.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB323.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB332.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB341.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB350.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB362.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB371.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB380.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB390.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB4.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB42.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB43.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB439.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB448.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB457.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB466.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB475.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB484.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB493.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB502.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB511.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB520.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB53.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB54.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB549.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB558.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB567.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB59.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB68.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB77.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB86.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "case": "corpus-MB95.txt",
+      "pass": true,
+      "expected": [],
+      "actual": []
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+- ranked top teams of the selected regulation, pulled from the verified sources (LabMaus API and the Limitless play API for integer placings

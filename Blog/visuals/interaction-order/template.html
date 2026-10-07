@@ -1,0 +1,230 @@
+<meta charset="utf-8">
+<title>Order by Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; a stacked-share chart, then a sign table of eight teams per cycle. Same system as "Edit by edit". */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --accent:#0E7C7B; --accent-soft:#DDF0EF;
+  --o1:#C9DEDD; --o2:#5FA8A6; --o3:#B8412F;
+  --plus:#1F7A4D; --minus:#B8412F; --swap:#F2E3B3; --swap-edge:#D9BE6A;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --accent:#4FC2BF; --accent-soft:#16312F;
+    --o1:#274543; --o2:#3E8C8A; --o3:#E07A68;
+    --plus:#5BC48A; --minus:#E07A68; --swap:#3A331C; --swap-edge:#8A7433;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --accent:#4FC2BF; --accent-soft:#16312F;
+  --o1:#274543; --o2:#3E8C8A; --o3:#E07A68;
+  --plus:#5BC48A; --minus:#E07A68; --swap:#3A331C; --swap-edge:#8A7433;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:30px}
+header{display:grid;gap:10px;max-width:70ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+h2{font:700 21px/1.2 var(--display);margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.verdict{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:18px 20px;display:grid;gap:14px}
+.verdict p{max-width:72ch}
+.verdict .claim{font:500 18px/1.4 var(--body)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.tile{border-top:1px solid var(--rule);padding-top:10px;display:grid;gap:2px}
+.tile .n{font:500 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.tile .l{font-size:13px;color:var(--muted)}
+section{display:grid;gap:12px;min-width:0}
+.note{color:var(--muted);font-size:13.5px;max-width:74ch}
+.picker{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:500 14px/1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;min-height:40px;cursor:pointer;transition:transform 120ms var(--ease-out),background-color 150ms ease,border-color 150ms ease}
+button:active{transform:scale(.97)}
+button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chart{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px 14px 10px;overflow-x:auto}
+.plot{min-width:560px;display:grid;gap:4px}
+.srow{display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,2.2fr) 9.5em;gap:12px;align-items:center;padding:5px 4px}
+.srow.vgc .lab b{color:var(--accent)}
+.lab{font-size:13.5px;line-height:1.3;min-width:0}
+.lab small{display:block;color:var(--faint);font:12px/1.3 var(--body)}
+.chip{font:600 10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border:1px solid var(--rule);border-radius:99px;padding:3px 6px;margin-left:6px;vertical-align:1px}
+.bar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--bg)}
+.bar span{height:100%;transition:flex-grow 260ms var(--ease-out)}
+.bar .s1{background:var(--o1)} .bar .s2{background:var(--o2)} .bar .s3{background:var(--o3)}
+.val{font:12.5px/1.3 var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.val small{display:block;color:var(--faint)}
+.axis{display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,2.2fr) 9.5em;gap:12px;font:12px/1 var(--mono);color:var(--faint);padding:0 4px 6px}
+.ticks{position:relative;height:14px}
+.ticks span{position:absolute;transform:translateX(-50%)}
+.ticks span:first-child{transform:none} .ticks span:last-child{transform:translateX(-100%)}
+.grp{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 4px 2px;border-top:1px solid var(--rule)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:14px;height:12px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.cyc{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px;overflow-x:auto}
+.ctable{min-width:560px;display:grid;gap:2px}
+.crow{display:grid;grid-template-columns:2.4em 1fr 5.5em;gap:10px;align-items:center;padding:3px 4px;border-radius:6px}
+.crow.head{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-bottom:6px}
+.sign{font:600 18px/1 var(--mono);text-align:center}
+.sign.p{color:var(--plus)} .sign.m{color:var(--minus)}
+.six{display:flex;gap:2px;flex-wrap:nowrap}
+.mon{width:52px;height:52px;border-radius:8px;display:grid;place-items:center;position:relative;flex:none}
+.mon img{width:52px;height:52px;image-rendering:pixelated}
+.mon.sw{background:var(--swap);outline:1px dashed var(--swap-edge);outline-offset:-1px}
+.mon.fixed{opacity:.45}
+.wr{font:500 14px/1 var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.factors{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13.5px}
+.factor{display:flex;align-items:center;gap:6px}
+.factor img{width:40px;height:40px;image-rendering:pixelated}
+.factor .ar{color:var(--faint);font-family:var(--mono)}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;border-top:1px solid var(--rule);padding-top:12px;margin-top:8px}
+.sum .n{font:500 20px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.sum .l{font-size:12.5px;color:var(--muted)}
+.sum .big .n{color:var(--o3)}
+footer{border-top:1px solid var(--rule);padding-top:14px;display:grid;gap:8px}
+@media (max-width:560px){ .mon,.mon img{width:40px;height:40px} }
+@media (prefers-reduced-motion:reduce){ .bar span{transition:none} button{transition:none} button:active{transform:none} }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow" id="eyebrow">Regulation M-B · pre-registered 2026-09-30</span>
+    <h1>Order by order</h1>
+    <p class="lede">Swap four Pokémon on a meta team and try all 16 combinations. How much of the change in win rate comes from single swaps, from pairs, and from three or more swaps that only matter together?</p>
+  </header>
+
+  <div class="verdict" id="verdict"></div>
+
+  <section aria-labelledby="h-a">
+    <h2 id="h-a">Where the variation comes from</h2>
+    <p class="note">Each bar splits the variation of <i>f</i> over a 2×2×2×2 cube of edits into what single edits explain (order 1), what pairs add (order 2), and what three or four edits add together (order 3+). Averaged over starting points and corrected for battle noise. The benchmarks get the same four-edit cube.</p>
+    <div class="picker" role="group" aria-label="Benchmark starting points">
+      <span class="note" style="margin:0">Benchmark starting points</span>
+      <button type="button" id="st-random" aria-pressed="true">Random</button>
+      <button type="button" id="st-search" aria-pressed="false">After a hill climb</button>
+    </div>
+    <div class="chart"><div class="plot" id="plot"></div></div>
+    <div class="legend">
+      <span><i style="background:var(--o1)"></i>order 1: single edits</span>
+      <span><i style="background:var(--o2)"></i>order 2: pairs</span>
+      <span><i style="background:var(--o3)"></i>order 3+: three or four edits together</span>
+      <span>Right column: order-3+ share, 95% interval</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-b">
+    <h2 id="h-b">A mutant cycle, team by team</h2>
+    <p class="note" id="cycNote"></p>
+    <div class="picker" id="cycPick" role="group" aria-label="Cycle"></div>
+    <div class="cyc" id="cyc"></div>
+  </section>
+
+  <footer><p class="note" id="method"></p></footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const R = DATA.R, SP = DATA.sprites;
+const pct = x => (100*x).toFixed(1) + "%";
+const sgn = x => (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(3);
+const BENCH = [
+  ["pest_control", "Pest Control", "COMBO benchmark, 25 stages × 5 choices"],
+  ["nk_k4", "NK landscape", "random instance, N = 25, K = 4"],
+  ["max3sat", "Weighted Max-3-SAT", "random instance, 25 variables"],
+  ["spin_glass", "Spin glass", "random instance; pairs only by construction"],
+  ["sphere", "Sphere", "Σx²; single edits only by construction"],
+];
+function row(label, sub, d, cls, chip){
+  const c = v => Math.max(0, v);
+  const a = c(d.o1.est), b = c(d.o2.est), e = c(d.o3plus.est), t = a + b + e || 1;
+  return `<div class="srow ${cls||""}"><div class="lab"><b>${label}</b>${chip?`<span class="chip">${chip}</span>`:""}<small>${sub}</small></div>
+    <div class="bar" role="img" aria-label="${label}: order 1 ${pct(d.o1.est)}, order 2 ${pct(d.o2.est)}, order 3+ ${pct(d.o3plus.est)}">
+      <span class="s1" style="flex-grow:${a/t}"></span><span class="s2" style="flex-grow:${b/t}"></span><span class="s3" style="flex-grow:${e/t}"></span></div>
+    <div class="val">${pct(d.o3plus.est)}<small>[${pct(d.o3plus.ci95[0])}, ${pct(d.o3plus.ci95[1])}]</small><small>pairs ${pct(d.o2.est)}</small></div></div>`;
+}
+function drawChart(start){
+  const ticks = [0,25,50,75,100].map(v=>`<span style="left:${v}%">${v}%</span>`).join("");
+  let h = `<div class="axis"><span></span><div class="ticks">${ticks}</div><span style="text-align:right">order 3+</span></div>`;
+  h += `<div class="grp">Pokémon win rate</div>`;
+  h += row("Four random species swaps", `${R.design.vgc_anchors.primary} top-50 meta teams`, R.vgc.primary, "vgc");
+  h += row("Weather core swapped out", "Pelipper, Charizard-Y, Venusaur, Archaludon", R.vgc.weather, "vgc", "chosen");
+  h += `<div class="grp">Benchmarks, ${start === "random" ? "random" : "hill-climbed"} starting points</div>`;
+  for (const [k, lab, sub] of BENCH) h += row(lab, sub, R.benchmarks[k][start]);
+  document.getElementById("plot").innerHTML = h;
+}
+for (const s of ["random","search"]) document.getElementById("st-"+s).addEventListener("click", e => {
+  for (const t of ["random","search"]) document.getElementById("st-"+t).setAttribute("aria-pressed", t===s);
+  drawChart(s);
+});
+drawChart("random");
+
+// ---------------------------------------------------------------- verdict, notes
+const P = R.vgc.primary, W = R.vgc.weather, PC = R.benchmarks.pest_control.random;
+const battles = 2 * (R.design.vgc_anchors.primary * 16 * R.design.battles_per_rep.primary + R.design.vgc_anchors.weather * 16 * R.design.battles_per_rep.weather);
+document.getElementById("eyebrow").textContent = `Regulation M-B · pre-registered 2026-09-30 · ${battles.toLocaleString("en-US")} battles`;
+document.getElementById("verdict").innerHTML = `
+  <p class="claim">Under four species swaps, win rate is single swaps and pairs. What three or four swaps add together is ${pct(P.o3plus.est)} of the variation, and its interval includes zero.</p>
+  <p>Pairs are where Pokémon stands out: ${pct(P.o2.est)} of the variation, about as much as an NK landscape with K = 4 and far more than Pest Control's ${pct(PC.o2.est)}. Three-way effects exist in the rules (Electro Shot fires at once only in rain, and Charizard-Y's sun replaces rain), but at 768 battles per team they are too small to separate from battle noise.</p>
+  <div class="tiles">
+    <div class="tile"><span class="n">${pct(P.o1.est)}</span><span class="l">order 1: single swaps</span></div>
+    <div class="tile"><span class="n">${pct(P.o2.est)}</span><span class="l">order 2: pairs [${pct(P.o2.ci95[0])}, ${pct(P.o2.ci95[1])}]</span></div>
+    <div class="tile"><span class="n">${pct(P.o3plus.est)}</span><span class="l">order 3+: [${pct(P.o3plus.ci95[0])}, ${pct(P.o3plus.ci95[1])}], includes 0</span></div>
+    <div class="tile"><span class="n">${pct(PC.o2.est)}</span><span class="l">Pest Control's pairs share, same design</span></div>
+  </div>`;
+document.getElementById("cycNote").innerHTML = `A mutant cycle takes three swaps and battles all eight on/off combinations. Add the win rates with the signs shown: the result, the three-way interaction ε, is zero when the three swaps are fully explained by their single and pairwise effects. <b>Weather</b> cycles swap out Pelipper, Charizard-Y and Venusaur from real weather teams (a + row has an even number of the three swapped out, so the real team counts +). <b>Largest</b> cycles are the two that looked biggest on the first replicate, re-measured on the second: they shrink from about +0.17 to +0.03, which is what selecting on noise does.`;
+document.getElementById("method").innerHTML = `Win rate = share of battles won against the top-50 Regulation M-B meta teams, with the behaviour-cloning battle policy playing both sides; the ${R.design.vgc_anchors.primary} meta starting teams average ${(R.vgc.primary.anchor_mean_win_rate).toFixed(3)}. Each cube of 16 teams was battled twice with independent seeds (${R.design.battles_per_rep.primary} battles per team per replicate; ${R.design.battles_per_rep.weather} for the weather cubes), every team facing the same ordered opponent list within a replicate. Squared Walsh coefficients are estimated as the product of the two replicates' coefficients, which removes battle noise on average; 95% intervals bootstrap over starting teams. Every team passed Showdown's validator. Benchmarks use the same four-edit cube on 24 starting points each; the spin glass, Max-3-SAT and NK landscape are random instances of their classes, not published instances. One asymmetry: benchmark edits touch 4 of 25 coordinates, VGC swaps touch 4 of 6 team slots. Pre-registration: docs/interaction-order.md in the project repository.`;
+
+// ---------------------------------------------------------------- cycles
+const cyc = [...DATA.cycles.weather.map(c => ({...c, kind:"weather"})), ...DATA.cycles.primary.map(c => ({...c, kind:"primary"}))];
+const pick = document.getElementById("cycPick");
+cyc.forEach((c, i) => {
+  const b = document.createElement("button"); b.type = "button"; b.id = "cy"+i;
+  b.textContent = (c.kind === "weather" ? "Weather · " : "Largest · ") + c.anchor;
+  b.addEventListener("click", () => drawCycle(i)); pick.appendChild(b);
+});
+function img(n, alt){ return SP[n] ? `<img src="${SP[n]}" alt="${alt}">` : `<span style="font-size:10px">${alt}</span>`; }
+function drawCycle(i){
+  cyc.forEach((_, j) => document.getElementById("cy"+j).setAttribute("aria-pressed", i===j));
+  const c = cyc[i], trio = c.trio_idx, other = [0,1,2,3].find(k => !trio.includes(k));
+  const slotOf = f => c.slots[f];
+  const rows = [];
+  for (let n = 3; n >= 0; n--) for (let m = 0; m < 8; m++) {
+    const on = trio.filter((_, q) => (m >> q) & 1); if (on.length !== n) continue;
+    const bits = [0,1,2,3].map(f => on.includes(f) ? 1 : 0).join("");
+    // weather: presence coding (+ when an even number of core members is swapped out); primary: edit coding
+    const s = c.kind === "weather" ? (n % 2 === 0 ? 1 : -1) : ((3 - n) % 2 === 0 ? 1 : -1);
+    rows.push({on, bits, wr: c.points_pooled[bits], s});
+  }
+  const factors = trio.map(f => `<span class="factor">${img(c.base[slotOf(f)], c.out_names[f])}<span class="ar">→</span>${img(c.donors[f], c.in_names[f])}<span>${c.out_names[f]} → ${c.in_names[f]}</span></span>`).join("");
+  let h = `<div class="factors">${factors}</div><div class="ctable" style="margin-top:12px">
+    <div class="crow head"><span>sign</span><span>team (shaded = swapped in)</span><span style="text-align:right">win rate</span></div>`;
+  for (const r of rows) {
+    const six = c.base.map((n, s) => {
+      const f = c.slots.indexOf(s);
+      if (f >= 0 && r.on.includes(f)) return `<span class="mon sw">${img(c.donors[f], c.in_names[f])}</span>`;
+      return `<span class="mon${f === other ? " fixed" : ""}">${img(n, n)}</span>`;
+    }).join("");
+    h += `<div class="crow"><span class="sign ${r.s>0?"p":"m"}">${r.s>0?"+":"−"}</span><div class="six">${six}</div><span class="wr">${r.wr.toFixed(3)}</span></div>`;
+  }
+  const pairs = Object.entries(c.eps2_pooled).map(([k, v]) => {
+    return `<div><div class="n">${sgn(v)}</div><div class="l">pair: ${c.out_names[+k[0]]} & ${c.out_names[+k[1]]} swaps</div></div>`;
+  }).join("");
+  const flip = c.kind === "weather" ? -1 : 1;
+  const rep = c.kind === "primary" ? `<div><div class="n">${sgn(c.eps3_rep2)}</div><div class="l">three-way, replicate 2 only (not used to pick it) ± ${c.se_rep2.toFixed(3)}</div></div>` : "";
+  h += `</div><div class="sum"><div class="big"><div class="n">${sgn(flip * c.eps3_pooled)}</div><div class="l">three-way ε = signed sum of the eight win rates. ± ${c.se_pooled.toFixed(3)} if battles were independent; ± ${c.se_empirical_posthoc.toFixed(3)} from replicate agreement</div></div>${rep}${pairs}</div>`;
+  document.getElementById("cyc").innerHTML = h;
+}
+drawCycle(0);
+</script>

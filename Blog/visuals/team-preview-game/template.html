@@ -1,0 +1,301 @@
+<meta charset="utf-8">
+<title>Four of Six</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a battle-screen stage (opponent's six on top, yours below, a centre band that changes per step), a caption naming the game-theory term, a stepper. Same system as the project's other blog figures. */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --you:#0E7C7B; --you-soft:#DDF0EF; --them:#A2405A; --them-soft:#F6E3E8; --veil:#E6EAEE; --cell:#DCE2E8;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1); --ease-io:cubic-bezier(0.77,0,0.175,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --veil:#222C36; --cell:#2C3845;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --veil:#222C36; --cell:#2C3845;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:22px}
+header{display:grid;gap:10px;max-width:70ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.seg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.seg .lbl{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px/1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;min-height:40px;cursor:pointer;transition:transform 120ms var(--ease),background-color 150ms ease,border-color 150ms ease}
+button:active{transform:scale(.97)}
+button[aria-pressed="true"]{background:var(--you-soft);border-color:var(--you)}
+button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.stage{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:14px;display:grid;gap:10px;overflow:hidden}
+.side{display:grid;gap:6px}
+.side .who{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;display:flex;gap:10px;align-items:baseline}
+.side.them .who{color:var(--them)} .side.you .who{color:var(--you)}
+.who span{color:var(--faint);font-weight:500;letter-spacing:.02em;text-transform:none;font-family:var(--body)}
+.row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.card{position:relative;border:1px solid var(--rule);border-radius:10px;padding:6px 6px 8px;display:grid;justify-items:center;gap:2px;min-width:0;background:var(--surface);
+  transition:transform 320ms var(--ease),opacity 320ms var(--ease),border-color 200ms ease,background-color 200ms ease}
+.card img{width:64px;height:64px;image-rendering:pixelated}
+.card .nm{font:600 12.5px/1.2 var(--body);text-align:center;overflow-wrap:anywhere}
+.card .set{font:11px/1.35 var(--body);color:var(--muted);text-align:center;overflow-wrap:anywhere;display:grid;gap:1px}
+.card .set b{font-weight:500;color:var(--ink)}
+.card .hid{font:11px/1.35 var(--mono);color:var(--faint)}
+.you .card.brought{border-color:var(--you);background:var(--you-soft);transform:translateY(-6px)}
+.them .card.brought{border-color:var(--them);background:var(--them-soft);transform:translateY(6px)}
+.card.home{opacity:.38;transform:scale(.94)}
+.badge{position:absolute;top:6px;left:6px;font:600 10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;border-radius:99px;padding:3px 6px;opacity:0;transform:scale(.8);transition:opacity 200ms var(--ease),transform 200ms var(--ease)}
+.you .badge{background:var(--you);color:var(--surface)} .them .badge{background:var(--them);color:var(--surface)}
+.card.lead .badge{opacity:1;transform:none}
+.veil{position:absolute;inset:0;border-radius:10px;background:var(--veil);display:grid;place-items:center;font:700 26px/1 var(--display);color:var(--faint);opacity:0;transition:opacity 260ms var(--ease);pointer-events:none}
+.them.veiled .veil{opacity:1}
+.centre{min-height:220px;border-block:1px dashed var(--rule);display:grid;place-items:center;padding:14px 6px;position:relative}
+.panel{display:none;width:100%;justify-items:center;gap:10px;text-align:center}
+.panel.on{display:grid;animation:fade 360ms var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.big{font:700 clamp(26px,4.4vw,40px)/1.1 var(--display);font-variant-numeric:tabular-nums}
+.big .you-c{color:var(--you)}
+.sub{color:var(--muted);font-size:13.5px;max-width:60ch}
+.eq{font:500 15px/1.5 var(--mono);font-variant-numeric:tabular-nums}
+.field{display:grid;grid-template-rows:auto auto;gap:6px;justify-items:center}
+.field .pair{display:flex;gap:18px}
+.field img{width:72px;height:72px;image-rendering:pixelated}
+.field .t img{filter:none}
+.vs{font:600 11px/1 var(--mono);letter-spacing:.08em;color:var(--faint)}
+canvas{width:min(360px,100%);height:auto;border-radius:6px;display:block}
+.learn{display:grid;gap:6px;text-align:left;max-width:62ch;font-size:13.5px}
+.learn li{color:var(--ink)}
+.caption{display:grid;gap:6px;min-height:6.5em;max-width:74ch}
+.term{font:700 19px/1.25 var(--display)}
+.term small{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:8px}
+.def{color:var(--ink)} .ex{color:var(--muted);font-size:14px}
+.stepper{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dots{display:flex;gap:6px;margin-left:6px}
+.dots button{width:12px;height:12px;min-height:0;padding:0;border-radius:50%;background:var(--rule);border:0}
+.dots button[aria-current="step"]{background:var(--you)}
+.note{color:var(--muted);font-size:13px;max-width:74ch}
+@media (max-width:620px){
+  .card img{width:44px;height:44px} .card .set{display:none} .card .hid{display:none}
+  .field img{width:56px;height:56px}
+}
+@media (prefers-reduced-motion:reduce){
+  .card,.badge,.veil{transition:none} .panel.on{animation:none} button{transition:none} button:active{transform:none}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Pokémon Champions · Regulation M-B · team preview</span>
+    <h1>Four of six</h1>
+    <p class="lede">Before every VGC battle, both players see each other's six Pokémon and secretly choose four to bring and two to lead. That choice is a small game of its own. Step through it with two real meta teams.</p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Team sheets">
+      <span class="lbl">Team sheet</span>
+      <button type="button" id="sh-closed" aria-pressed="true">Closed</button>
+      <button type="button" id="sh-open" aria-pressed="false">Open</button>
+    </div>
+    <div class="seg" role="group" aria-label="Series length">
+      <span class="lbl">Series</span>
+      <button type="button" id="bo-1" aria-pressed="true">Best of one</button>
+      <button type="button" id="bo-3" aria-pressed="false">Best of three</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="side them" id="them"><div class="who">Opponent <span id="themId"></span></div><div class="row" id="themRow"></div></div>
+    <div class="centre" id="centre">
+      <div class="panel" id="p-preview"><div class="big">6 <span class="sub">vs</span> 6</div><p class="sub" id="previewSub"></p></div>
+      <div class="panel" id="p-count"><div class="eq">choose 4 of 6 &nbsp;×&nbsp; choose 2 leads of 4</div><div class="big">15 × 6 = <span class="you-c">90</span> plans</div><p class="sub">Picking leads is a split into two groups, not an ordering: two start, two wait in the back, two stay home. 6! ÷ (2!·2!·2!) = 90.</p></div>
+      <div class="panel" id="p-sym"><div class="eq">Showdown's ordered input: 6 · 5 · 4 · 3 = 360</div><div class="big">360 ÷ <span class="you-c">4</span> = 90</div><p class="sub">Swapping your two leads between left and right, or your two back Pokémon, gives the same plan. Each plan appears 4 times among the 360 orderings. (Illusion on Zoroark-Hisui is the one exception.)</p></div>
+      <div class="panel" id="p-matrix"><canvas id="mx" width="360" height="360" aria-label="A 90 by 90 grid: your plan is one row, the opponent's plan is one column"></canvas><p class="sub">You pick a row, they pick a column, at the same moment. 90 × 90 = 8,100 pairings; each cell is a chance to win. Cells are left blank: this matrix has not been measured.</p></div>
+      <div class="panel" id="p-field"><div class="field"><div class="pair t" id="fThem"></div><span class="vs">TURN 1</span><div class="pair" id="fYou"></div></div></div>
+      <div class="panel" id="p-learn"><div class="big" style="font-size:24px">Game 2</div><ul class="learn" id="learnList"></ul></div>
+    </div>
+    <div class="side you" id="you"><div class="who">You <span id="youId"></span></div><div class="row" id="youRow"></div></div>
+  </div>
+
+  <div class="caption" aria-live="polite" id="caption"></div>
+
+  <div class="stepper">
+    <button type="button" id="back" aria-label="Previous step">←</button>
+    <button type="button" id="play">Play</button>
+    <button type="button" id="next" aria-label="Next step">→</button>
+    <div class="dots" id="dots"></div>
+  </div>
+  <p class="note">Teams are real Regulation M-B meta teams from the project's top-50 pool (the opponent's placed first at Talon's Fight Club #98). The four brought and the leads are an example for illustration, not a recorded game. Open team sheets show ability, item and moves; stat spreads stay hidden.</p>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const PICK = {
+  you:  {bring:["Pelipper","Archaludon","Charizard","Venusaur"], lead:["Pelipper","Archaludon"], lead2:["Charizard","Venusaur"]},
+  them: {bring:["Incineroar","Farigiraf","Garchomp","Charizard"], lead:["Incineroar","Farigiraf"], lead2:["Garchomp","Charizard"]},
+};
+let sheet = "closed", bo = 1, step = 0, playing = false, timer = null, raf = null;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+$("themId").textContent = D.them.id; $("youId").textContent = D.you.id;
+
+function cardHTML(m, side){
+  const showSet = side === "you" || sheet === "open";
+  const set = showSet ? `<div class="set"><b>${m.item}</b><span>${m.ability}</span><span>${m.moves.join(" · ")}</span></div>`
+                      : `<div class="hid">item · ability · moves hidden</div>`;
+  return `<div class="card" data-name="${m.name}"><span class="badge">lead</span><img src="${m.img}" alt=""><div class="nm">${m.name}</div>${set}<div class="veil" aria-hidden="true">?</div></div>`;
+}
+function renderRows(){
+  $("youRow").innerHTML = D.you.mons.map(m => cardHTML(m, "you")).join("");
+  $("themRow").innerHTML = D.them.mons.map(m => cardHTML(m, "them")).join("");
+}
+function sprite(side, name){ return D[side].mons.find(m => m.name === name).img; }
+
+// step definitions: state applied to the stage + caption
+const STEPS = [
+  {id:"preview", panel:"p-preview", you:"all", them:"all",
+   term:["Simultaneous-move game", "Both players choose at the same time, without seeing the other's choice."],
+   ex:() => sheet === "closed"
+     ? "Closed sheet: you see their six species and nothing else. Items, abilities and moves are unknown, which makes this a game of incomplete information."
+     : "Open sheet: their abilities, items and moves are printed for both players. The sets are common knowledge; only the choice itself stays secret."},
+  {id:"bring", panel:"p-count", you:"bring", them:"veil",
+   term:["Imperfect information", "You cannot see a choice the other player has already made."],
+   ex:() => "You bring Pelipper, Archaludon, Charizard and Venusaur. Their four are locked in too, but hidden from you until the battle starts."},
+  {id:"leads", panel:"p-sym", you:"lead", them:"veil", swap:true,
+   term:["Counting up to symmetry", "When two arrangements play out identically, count them once."],
+   ex:() => "Your leads swap sides and nothing changes. That is why a player has 90 real plans, not 180 or 360."},
+  {id:"matrix", panel:"p-matrix", you:"lead", them:"veil",
+   term:["Normal-form game, zero-sum", "A table of every plan against every plan. What one player wins, the other loses."],
+   ex:() => "No row wins in every column, so strong players mix: they vary their plans at random so the opponent cannot aim at one column. That is a mixed strategy."},
+  {id:"reveal", panel:"p-field", you:"lead", them:"lead", field:"lead",
+   term:() => bo === 1
+     ? ["One-shot game against a population", "You play one game against a stranger, so the best plan is the one that does well against the meta as a whole."]
+     : ["Repeated game", "The same two players meet again, and each game carries information into the next."],
+   ex:() => bo === 1
+     ? "On the ladder you will likely never see this player again. This is the setting the project's search scores teams in: win rate against the top-50 meta."
+     : "Game 1 begins: Incineroar and Farigiraf against Pelipper and Archaludon. Whatever happens now shapes game 2."},
+  {id:"learn", panel:"p-learn", bo3:true, you:"lead2", them:"lead2", field:"lead2",
+   term:["Belief updating", "Changing your estimate of the opponent after seeing new evidence."],
+   ex:() => "Both players re-choose from all six. The leads shown here are an example of a changed plan, not a recorded game."},
+];
+const steps = () => STEPS.filter(s => !s.bo3 || bo === 3);
+
+function apply(){
+  const S = steps(); step = Math.min(step, S.length - 1); const s = S[step];
+  for (const side of ["you","them"]) {
+    const mode = s[side], p = PICK[side];
+    const el = $(side); el.classList.toggle("veiled", side === "them" && mode === "veil");
+    for (const c of el.querySelectorAll(".card")) {
+      const n = c.dataset.name;
+      const leads = mode === "lead2" ? p.lead2 : p.lead;
+      const inBring = mode === "lead2" ? true : p.bring.includes(n);
+      const active = mode !== "all";
+      c.classList.toggle("brought", active && mode !== "veil" && inBring && (mode !== "lead2" || true));
+      c.classList.toggle("home", active && mode !== "veil" && !inBring && mode !== "lead2");
+      c.classList.toggle("lead", (mode === "lead" || mode === "lead2") && leads.includes(n));
+      if (mode === "lead2") { c.classList.toggle("brought", leads.includes(n)); c.classList.remove("home"); }
+    }
+  }
+  for (const p of document.querySelectorAll(".panel")) p.classList.toggle("on", p.id === s.panel);
+  $("previewSub").textContent = sheet === "closed" ? "Each side sees the other's species. Nothing more." : "Each side sees the other's species, items, abilities and moves.";
+  if (s.field) {
+    const L = s.field === "lead2" ? "lead2" : "lead";
+    $("fThem").innerHTML = PICK.them[L].map(n => `<img src="${sprite("them", n)}" alt="${n}">`).join("");
+    $("fYou").innerHTML = PICK.you[L].map(n => `<img src="${sprite("you", n)}" alt="${n}">`).join("");
+  }
+  if (s.id === "learn") {
+    $("learnList").innerHTML = (sheet === "closed"
+      ? ["You now know part of their sets: anything that showed up in game 1, such as a Fake Out, Trick Room, or an item that activated.",
+         "You know which four they brought and which two they led.",
+         "They learned the same about you. Both of you update, then choose again."]
+      : ["Their sets were already known. What game 1 adds is their habits: which four they bring and which two they lead against you.",
+         "Being predictable now costs something, so mixing plans matters more than in a single game.",
+         "They learned the same about you. Both of you update, then choose again."]).map(t => `<li>${t}</li>`).join("");
+  }
+  const term = typeof s.term === "function" ? s.term() : s.term;
+  $("caption").innerHTML = `<div class="term"><small>${step + 1} / ${S.length}</small>${term[0]}</div><p class="def">${term[1]}</p><p class="ex">${s.ex()}</p>`;
+  $("dots").innerHTML = S.map((_, i) => `<button type="button" aria-label="Step ${i + 1}" ${i === step ? 'aria-current="step"' : ""}></button>`).join("");
+  [...$("dots").children].forEach((b, i) => b.addEventListener("click", () => { stop(); step = i; apply(); }));
+  $("back").disabled = step === 0; $("next").disabled = step === S.length - 1;
+  cancelAnimationFrame(raf);
+  if (s.panel === "p-matrix") drawMatrix();
+  if (s.swap && !reduce) swapLeads();
+}
+
+function swapLeads(){
+  const [a, b] = PICK.you.lead.map(n => $("youRow").querySelector(`[data-name="${n}"]`));
+  const dx = b.getBoundingClientRect().left - a.getBoundingClientRect().left;
+  const kf = d => [{transform:"translateY(-6px)"},{transform:`translate(${d}px,-6px)`,offset:.4},{transform:`translate(${d}px,-6px)`,offset:.6},{transform:"translateY(-6px)"}];
+  const o = {duration:1600, easing:"cubic-bezier(0.77,0,0.175,1)", delay:350};
+  a.animate(kf(dx), o); b.animate(kf(-dx), o);
+}
+
+// plan index: enumerate (bring set, lead pair) in a fixed order so "your plan" is a real row
+function planIndex(p, mons){
+  const names = mons.map(m => m.name); let i = 0;
+  for (let a = 0; a < 6; a++) for (let b = a + 1; b < 6; b++) for (let c = b + 1; c < 6; c++) for (let d = c + 1; d < 6; d++) {
+    const four = [a, b, c, d].map(k => names[k]);
+    for (let x = 0; x < 4; x++) for (let y = x + 1; y < 4; y++) {
+      if (four.every(n => p.bring.includes(n)) && p.lead.includes(four[x]) && p.lead.includes(four[y])) return i;
+      i++;
+    }
+  }
+  return 0;
+}
+function drawMatrix(){
+  const cv = $("mx"), g = cv.getContext("2d"), n = 90, px = 4, cs = getComputedStyle(document.documentElement);
+  const col = k => cs.getPropertyValue(k).trim();
+  const row = planIndex(PICK.you, D.you.mons), target = planIndex(PICK.them, D.them.mons);
+  const t0 = performance.now();
+  const frame = now => {
+    g.fillStyle = col("--surface"); g.fillRect(0, 0, 360, 360);
+    g.fillStyle = col("--cell");
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) g.fillRect(c * px, r * px, px - 1, px - 1);
+    g.fillStyle = col("--you"); g.globalAlpha = .75;
+    for (let c = 0; c < n; c++) g.fillRect(c * px, row * px, px - 1, px - 1);
+    const k = reduce ? target : Math.floor(((now - t0) / 22) % n);
+    g.fillStyle = col("--them"); g.globalAlpha = .75;
+    for (let r = 0; r < n; r++) g.fillRect(k * px, r * px, px - 1, px - 1);
+    g.globalAlpha = 1; g.fillStyle = col("--ink"); g.fillRect(k * px - 1, row * px - 1, px + 1, px + 1);
+    if (!reduce && !document.hidden) raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+}
+
+function stop(){ playing = false; clearTimeout(timer); $("play").textContent = "Play"; }
+function tick(){
+  if (!playing) return;
+  if (step >= steps().length - 1) { stop(); return; }
+  step++; apply(); timer = setTimeout(tick, steps()[step].swap ? 3200 : 2800);
+}
+$("play").addEventListener("click", () => {
+  if (playing) return stop();
+  if (step >= steps().length - 1) { step = 0; apply(); }
+  playing = true; $("play").textContent = "Pause"; timer = setTimeout(tick, 2400);
+});
+$("next").addEventListener("click", () => { stop(); step++; apply(); });
+$("back").addEventListener("click", () => { stop(); step = Math.max(0, step - 1); apply(); });
+document.addEventListener("keydown", e => {
+  if (e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
+  if (e.key === "ArrowRight") { stop(); if (step < steps().length - 1) { step++; apply(); } }
+  if (e.key === "ArrowLeft") { stop(); if (step > 0) { step--; apply(); } }
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
+function seg(ids, set){ ids.forEach(([id, v]) => $(id).addEventListener("click", () => {
+  ids.forEach(([j]) => $(j).setAttribute("aria-pressed", j === id)); set(v); renderRows(); apply(); })); }
+seg([["sh-closed","closed"],["sh-open","open"]], v => sheet = v);
+seg([["bo-1",1],["bo-3",3]], v => { bo = v; });
+renderRows(); apply();
+</script>

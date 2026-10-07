@@ -1,0 +1,2 @@
+35. [Optimal Sampling for Simulated Annealing under Noise](https://wrap.warwick.ac.uk/id/eprint/89590/7/WRAP-optimal-sampling-annealing-noise-Ball-2017.pdf)
+36. [Simulated Annealing with Noisy or Imprecise Energy Measurements](https://dspace.mit.edu/handle/1721.1/3081)

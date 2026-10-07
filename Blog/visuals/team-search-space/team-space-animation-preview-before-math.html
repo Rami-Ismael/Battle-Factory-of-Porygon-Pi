@@ -1,0 +1,1498 @@
+<!doctype html>
+<html lang="en" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Team Space Animation</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Team Space Animation" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-visualize-standalone&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Team Space Animation&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 10px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover,
+.nav-link:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled=&quot;true&quot;] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .nav-link,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;team-space-film&quot;&gt;
+  &lt;div class=&quot;film-heading&quot;&gt;&lt;span class=&quot;text-small text-muted&quot;&gt;THE MAKING OF A TEAM&lt;/span&gt;&lt;span class=&quot;text-small tabular-nums&quot; data-chapter&gt;01 / 08&lt;/span&gt;&lt;/div&gt;
+  &lt;h2 data-title&gt;Start with six species&lt;/h2&gt;
+  &lt;div class=&quot;film-total&quot;&gt;&lt;span class=&quot;text-small text-muted&quot;&gt;Configurations in the model&lt;/span&gt;&lt;h2 class=&quot;tabular-nums&quot; data-count&gt;1.05 × 10¹¹&lt;/h2&gt;&lt;/div&gt;
+  &lt;svg class=&quot;film-scene&quot; role=&quot;img&quot; aria-label=&quot;Animated construction of a six-member Pokémon team&quot;&gt;&lt;title&gt;From species selection to fully configured teams&lt;/title&gt;&lt;/svg&gt;
+  &lt;div class=&quot;film-caption&quot; aria-live=&quot;polite&quot; data-caption&gt;208 species. Six different members. Already over 100 billion combinations.&lt;/div&gt;
+  &lt;div class=&quot;film-controls&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;btn btn-primary&quot; data-play&gt;Play animation&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; data-replay&gt;Replay&lt;/button&gt;&lt;span class=&quot;text-small tabular-nums&quot; data-time&gt;0:00 / 1:04&lt;/span&gt;&lt;/div&gt;
+  &lt;label class=&quot;form-label film-seek&quot;&gt;Animation timeline&lt;input class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;64&quot; step=&quot;0.05&quot; value=&quot;0&quot; aria-label=&quot;Animation time in seconds&quot;&gt;&lt;/label&gt;
+  &lt;div class=&quot;text-small text-muted&quot;&gt;Champions · frozen M-B model · roster order excluded · all 66 SP spent. Counts describe modeled configurations, not distinct strategies or a complete live-game census.&lt;/div&gt;
+&lt;/div&gt;
+&lt;style&gt;
+#team-space-film{width:100%;color:var(--foreground)}
+#team-space-film .film-heading,#team-space-film .film-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#team-space-film .film-heading{margin-bottom:8px}
+#team-space-film h2{margin:0}
+#team-space-film .film-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:16px;flex-wrap:wrap}
+#team-space-film .film-scene{display:block;width:100%;height:310px;overflow:hidden;margin:8px 0}
+#team-space-film .film-scene text{fill:var(--foreground);font-size:12px;font-weight:400;font-family:inherit}
+#team-space-film .film-caption{min-height:52px;margin-bottom:12px}
+#team-space-film .film-controls{justify-content:flex-start}
+#team-space-film .film-controls [data-time]{margin-left:auto}
+#team-space-film .film-seek{display:block;margin:12px 0}
+#team-space-film .film-scene .wire{fill:none;stroke:var(--border);stroke-width:1.3}
+#team-space-film .film-scene .node{fill:var(--background);stroke:var(--border);stroke-width:1}
+#team-space-film .film-scene .mark{fill:var(--viz-series-1)}
+@media(max-width:420px){#team-space-film .film-scene{height:340px}#team-space-film .film-caption{min-height:76px}}
+&lt;/style&gt;
+&lt;script&gt;
+(()=&gt;{
+const root=document.getElementById(&#x27;team-space-film&#x27;),svg=root.querySelector(&#x27;.film-scene&#x27;),seek=root.querySelector(&#x27;input&#x27;),play=root.querySelector(&#x27;[data-play]&#x27;);
+const sprites=[&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII=&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAXFhUBAQFZCwNEQTrxNSElIyGqFxD/7gYctFT+/v5cYWOHlZpLQUf/cQEaNs1QAAAAAXRSTlMAQObYZgAABERJREFUeNrtmdtym1AQBNmZ3R0HsP7/c5Nz08WUAiLKm9rlQq5auuFg4EHThw8fPrwbw3QH8W6vuePOH+8LJHqgFdj8gbf5M9H8tUBhIuO9ASu4k56UwIh3BcDJ0iwiPJ0Bl8Q3+ieIlkXvXv0eRf/vAZJ9K6X7ze8Rj34710FEbSCo5iQDoU3AHNMp2KREkB7hjMDXfQDW/GcDiIqECAar/yvCdfU7xp1xvqACuvHXry+G9y7q2pjXwEmgBhFU4AsloKonSXNHD/xjgV9wwgts+rIpbjT/aYCWMDOvmMegHry1gOFsIBOgilbVP1t0sJh3YInzgaRk7nRPM5tnNT2Wa8AyEy/cveTUMKsFSrTCvJYfRRBYqr9F7aifZIQY0QtIMyQkqi6MChGKwNICaZREGo7euAyJwdtD2hIAJMaAjFYwT1MPHw6IEmfeXYG6wPr+ZgNYV7IHTFHRsTUiqaLHDHKcQuX7e13XZa0sZUsUfzIq7nmkwAiRKn4o2jyav6ubvnM7AfdDBUZBWGdglfq4Ff9QNv3A3Jq/khKOPDo1A8A8o1cxAlvgdvMfuNIIkdI6Q0AftYB1/xakDX9U9gtBAoDGpHkE/hZQC0RnPyBREjH8JVD8zwtZ/UcLPQAb/seA7wTcE9NuQUKmtUArPAm0Qubwl2mS3Hu9kJm1wNgJLMtSCyp6kk5GhHYKzIJkxnaHShh+93t9BTCTNB6ScaDQ/FKaRfsM3wbclw6gptY6r+1UdgsqVPd9wQuj5MsAE7jOEYF5niOOrJIeAyn4T5Y7/zRxrgGg+Auc9gojMAqLu2eh6x8DmCMgSWBbJmG/UMV9CyxL3rj3f9d5AKpwnmcdeP3gFlAC04Qia/ZHqomhTiuR3C3kCKCNogVG4VrCeBGKHI364VCh628FbdZJIwCgq7lG7AcmoPgfk7po6Du6aMJ6+78BwHleW2A/8TAkpC6t0OXFXwOPk6SK/2V0QQtUd5FLlxrAzqEdDujyVQrF3Y4+Ln/Ycb3gL4FSKOp29O8PtIIuQ87y+7ZAoQQ6fw8YXvQzpOLfFCj8dE+TmYPkS/4/6CEQ1wAf/W7mnogIvuaPegr9EkhksZOCyPtAevdLOOxvqNA29U9SBeg+Ye6ZCRXwgn+LBlVGs+bPiplJwst+kj/sI6AiJZlXzIRX/MOLgrQpZGF8GIkz/qmAxwCqdltI7PrNPW4M/7aA3AYATEcCvvFvCpgm4Bo4ah/+a0Jln2eFkuj+BqajgcFVvy10GzqZOFpApnfK/JPCTxsShWOBQvc/KWTlwQdMR8FfVxR5Q5jOAKkHdgrS6ULjWQHd/38CI6FKnizs7ow+cjZw4L7BGMLpAo4MJYTTgUNT+s8BnQmQ8Qdhd4yUXi6w6vcLY+zVAKOg3cDQt7njsO7C2A9UuU4EGCHtBxDVHa8GEOwnIGBvsE9iegVcOTz4+ar3w4dn/Ab180pwLQf8DgAAAABJRU5ErkJggg==&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAjIyY5OT0mVzM7gE1WsF6Hf2+1plu61Fvm3X7//2vl39C0rJR9VilSNhUexholAAAAAXRSTlMAQObYZgAAAlVJREFUeNrtlIey3CAQBBmSuKDl///WswJdKlc6FkdaybG75l1wi8VisVj8WcjBTH8hgmn+6xWkFEwLkEImBsgKrMCfHZAWEJk2QA44YfICTFuAqQs4AGyUwsSUAK4CQVsgUxYAOoH6Y8WMV7jgoByIrZ168FIK3670W45QM+jXQ/W9YDgCQFE7b+DZChC7AnURaPbMC1fBUYCVXyTebkDOPBlItgUaXbxd8i3nfOOtTWAEDgVmgXyhWzPHBLmKWUBFGqA8M9MClhPUUxlQNPMaqEaBWqOaNUA0oPazUOuQv/ZAow3IH4EYB/wiNHgGLu199JNAqhUDfqle/SzcLt3/DHgG6P++UNXfAh1BfgQKfOJZZSwQI/3vMFCan+jKgUCzt0TSs/uRgENf79/7SdNHeltHG0TlpFJP6B8JRIjQ1AIxdbpd2cPgAAjRhtbqg/uDoUDiAWloQOT+RghhJOBAPWqlnLz7932n/67XQMAhIxC0N1CsdT/RyLbdhxYQDwQFSRMItAay9R8QjyE/A6GDjBY45Ft4BpAMAgQBoHzjGbRjHiBNrBMCQz2wxwTjQH91ewCpwA2AV//WA+3RhqDYBegLL4E+BIMB/xroP31evcPT029V6G8gPf35VeH30UDwPM6XoOl5aWBXNGBQONgPAs+gvzbxE/jOKeWUvf9O73BmhW0/oXfzZOsDbAvnlk1/D2cBmFDr5xArfx9B33l1AGcGUOt7oFY4U1DqG4V+68IbcObgJQG4CUQ8iG5KIKUU+3NaIT6eUwDeQsrUUGexWCwWPwAlmC+GrqHtSAAAAABJRU5ErkJggg==&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAADecznunDn2vVruvYv/7r3Nzc3///+si0GcWkpiYmIYamIgpHsQQTFaOSAAAAAf1c/vAAAAAXRSTlMAQObYZgAAA09JREFUeNrsluFuszoQRJkNgJ3223n/t73LgINJqdQY8ucqR6ZSqXoOtpFM97/kwwd/t3+4quD+3oAPw28FXuNn5ffLA3uLG6tf+ssDbmb+5gDIS/3y0H3152xmdCH/FbAP5gQtiEYv5L8GBpGg3W7hn2Oc6S7FZ3+QQ28Bu8tZA26Cb/BbFKyA5wLFqYA4DHhghsBbGlwpbrIKyK7i14waL9odgRnH4h9HGsCiz5JvAC8UZP9aoC1MrAK0Jz0D+J/9q124LdAnogrEn76/v4tdN/lHv4NBCSBe0iUwogpA/rkg70uU51GD4VcBCyxT/Pe9wK4dUn4FHgmWwHm/Eia/8BLQHqlwKiBoGw4vgfCrsPO7aAqg+BWgHQXcYQHcXy/48o8Osfj1hsq/6QVengMRuPd9lt+4+KPw74vFj2J3bz14clYgLPx6FLj6baHFLhj2SNQBiid/14izDxQwBYr6Kr+xX5fo6FhzXOBfl8gOAybgzf4IiHx4rHHNtvtLYFBAXBdw+bP8KeGgQLQHpA+0BSkNQ7ICWAVUANv08gdDMAdoC7uAYIteUP46UBeItoJbgbnoU7KtAJ4KOKrnTwt9vwuAJwL+CIDDRrKLCpwIrJL+DQFOI7HC4TlQCjI2Bsi7Q7BPDx4BQP4t0LJGE90dzjQU5pTJzNpINAVGcoyLw550WYBzo+sOAsBWcCfREBCU/zgAuiPGOBKtAcFQFtYABKfxHvazAWdKfbXFKX6CZhYB2Xku4MahRhHazGzWdaVfCdoCAdlPBW784e9ZPrVPBuR/Cshvt18Lmd3LgX5IG33A26+BnPiq/8aU9jucngPtfgWMfV/0glYH6kJuCVgE9tBM/h+BnDIbvrd+BmAF1IHcEKAsTJU+JaIUIPjQJ3YNgf15Ey0J5d8CucEvuCie12gHZ3vS+jQHUu1PzwHZU5L/dCEF+wJlz2TXHFBhI+fM54D05wrMhf0cWJ7+bAFkquB2W/orCnJVCQh2Z3E4NhcfdH5JwN2Rt0DFJQHSzH7xE/l0gdMdZpv/6gAnjioc+wELzhR4nziNi/6HhbCVM1PgNI33I70CMA2cKYhDAYFpHezeAqcJk673BRgBKvCmApfRvQuW8eHDh/82OAAARCI/tslFcmgAAAAASUVORK5CYII=&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAADe1d7/9v+9rL20i72Uc7R7YqRaSpxqYntKKUoQEBD/Wlr/lJQQTNuPAAAAAXRSTlMAQObYZgAAAk9JREFUeNrtlYFq4zAUBH3JW233xf//vZeuLSNiUmrLAe7Q0LgphRlvYtA0GAwGg8Hgv4Af1jPys/rAxQGqeR8RKNcGiC3Axc+81g81tx/AaT/Zfip+2Y/lD67+0wMEsDYY8msiHCDEMAA7AoigI4oQA7LfvxTROaAWnpCKgABiw19voA7oLIQQtrcs/nJVYE/1O9BTgANvqP7ewroEgZY6oLcAMAx2BbYBnQ4ojAv7AdWbOFvIqABvB2TiWCD948LbQOE3st7/lH7dUKRCfpd446+BzNwe5fx94Bv57oC9nr58Ux80hew/VoCU2CNhC6z+iKMBwHddEkJDBKDHg03ABXPIbwIU2oJXPdZAqQvW8mG/HQAfagLIeV4ChAMbRwKTtPodeIhbIJ+B2QF5QsHK0aNf9i+BeU7BUI8aENBMOHHuqNSnkM/Aoxbm6s81UE6fCuKTBD1hJha4fMW614Cx/1QhIUuJFul+awN59twXE5CAnd5+0Cg7Dv4EeG8Tkr5utxqoaDpLAuDtSyu++a/qL9cFbtaul/ufOqAzYASAbcDXxGUBq+j79sWBxV+uC0DtBAmG3QGjpaAakIDdgJ5AYkErAPYD+ifsKWwD1PkV+Qu/ydOF8rO/P8Dyo58dfiOS5a1eV/hNebUXmLQ+p76A+EpBJa3vDFCvCZgIoE/vgMncD4hwYepDQFkTWWPCtYE1oSkXJmGhBroLTrSirYArFhAE4MCucEEgBQGZ+dLt91cyq31f8LAP4QABTp9CmYA87mOk9f8Eg8FgMBgM/gLNci4zZlHn4QAAAABJRU5ErkJggg==&quot;];
+const names=[&#x27;Garchomp&#x27;,&#x27;Charizard&#x27;,&#x27;Incineroar&#x27;,&#x27;Sinistcha&#x27;,&#x27;Dragonite&#x27;,&#x27;Gengar&#x27;];
+const chapters=[
+ [&#x27;Start with six species&#x27;,&#x27;1.05 × 10¹¹&#x27;,&#x27;208 species. Six different members. Already over 100 billion combinations.&#x27;],
+ [&#x27;A species is only the beginning&#x27;,&#x27;1.99 × 10¹¹&#x27;,&#x27;Forms add choices. Now follow Garchomp into the configuration of a single member.&#x27;],
+ [&#x27;Choose an ability&#x27;,&#x27;3.93 × 10¹³&#x27;,&#x27;Garchomp branches into two abilities. Other species have their own eligible options.&#x27;],
+ [&#x27;Give each member an item&#x27;,&#x27;3.89 × 10²⁶&#x27;,&#x27;148 held items, or no item. A held item cannot be repeated across the team.&#x27;],
+ [&#x27;Choose four moves together&#x27;,&#x27;4.84 × 10⁶¹&#x27;,&#x27;Garchomp’s 58 eligible moves make 424,270 four-move sets. Each species has a different move pool.&#x27;],
+ [&#x27;Choose a stat alignment&#x27;,&#x27;4.15 × 10⁶⁹&#x27;,&#x27;21 distinct alignments per member: 20 stat-changing choices and one neutral representative.&#x27;],
+ [&#x27;Distribute the stat budget&#x27;,&#x27;4.17 × 10¹¹¹&#x27;,&#x27;66 Stat Points, at most 32 per stat: 10,008,272 fully spent allocations for each member.&#x27;],
+ [&#x27;Every member needs every choice&#x27;,&#x27;4.17 × 10¹¹¹&#x27;,&#x27;The search is over complete teams. The goal: find a legal configuration that beats one known opponent.&#x27;]
+];
+let t=0,running=false,last=0,raf=0,width=600,height=310,active=-1;
+const reduced=matchMedia(&#x27;(prefers-reduced-motion: reduce)&#x27;);
+const clamp=x=&gt;Math.max(0,Math.min(1,x)),ease=x=&gt;{x=clamp(x);return x*x*(3-2*x)},mix=(a,b,p)=&gt;a+(b-a)*p;
+const text=(x,y,s,anchor=&#x27;middle&#x27;,extra=&#x27;&#x27;)=&gt;`&lt;text x=&quot;${x}&quot; y=&quot;${y}&quot; text-anchor=&quot;${anchor}&quot; ${extra}&gt;${s}&lt;/text&gt;`;
+const line=(x,y,xx,yy,p=1)=&gt;`&lt;path class=&quot;wire&quot; d=&quot;M${x},${y} C${x},${mix(y,yy,.5)} ${xx},${mix(y,yy,.5)} ${xx},${yy}&quot; opacity=&quot;${p}&quot;/&gt;`;
+const dot=(x,y,r,alpha=.3)=&gt;`&lt;circle class=&quot;mark&quot; cx=&quot;${x}&quot; cy=&quot;${y}&quot; r=&quot;${r}&quot; opacity=&quot;${alpha}&quot;/&gt;`;
+function portrait(i,x,y,size=60,alpha=1,label=true){return `&lt;g opacity=&quot;${alpha}&quot;&gt;&lt;image href=&quot;${sprites[i]}&quot; x=&quot;${x-size/2}&quot; y=&quot;${y-size/2}&quot; width=&quot;${size}&quot; height=&quot;${size}&quot;/&gt;${label?text(x,y+size/2+15,names[i]):&#x27;&#x27;}&lt;/g&gt;`}
+function box(x,y,w,label,alpha=1){return `&lt;g opacity=&quot;${alpha}&quot;&gt;&lt;rect class=&quot;node&quot; x=&quot;${x-w/2}&quot; y=&quot;${y-17}&quot; rx=&quot;7&quot; width=&quot;${w}&quot; height=&quot;34&quot;/&gt;${text(x,y+4,label)}&lt;/g&gt;`}
+function draw(){
+ const chapter=Math.min(7,Math.floor(t/8)),u=reduced.matches?1:(t-chapter*8)/8,narrow=width&lt;450,cx=width/2;
+ if(chapter!==active){active=chapter;root.querySelector(&#x27;[data-title]&#x27;).textContent=chapters[chapter][0];root.querySelector(&#x27;[data-count]&#x27;).textContent=chapters[chapter][1];root.querySelector(&#x27;[data-caption]&#x27;).textContent=chapters[chapter][2];root.querySelector(&#x27;[data-chapter]&#x27;).textContent=`0${chapter+1} / 08`;}
+ let out=&#x27;&lt;title&gt;&#x27;+chapters[chapter][0]+&#x27;&lt;/title&gt;&lt;desc&gt;&#x27;+chapters[chapter][2]+&#x27;&lt;/desc&gt;&#x27;;
+ const row=(i)=&gt;({x:narrow?width*(.18+(i%3)*.32):width*(.09+i*.164),y:narrow?45+Math.floor(i/3)*80:52});
+ if(chapter===0){
+  for(let j=0;j&lt;72;j++){const x=16+(j%18)*(width-32)/17,y=30+Math.floor(j/18)*17;out+=dot(x,y,2.5, .12*(1-ease(u*1.5)));}
+  for(let i=0;i&lt;6;i++){const p=ease(u*2.2-i*.14),end=row(i),x=mix(cx+(i-2.5)*15,end.x,p),y=mix(55,narrow?end.y+90:170,p);out+=portrait(i,x,y,narrow?54:70,.25+.75*p);}
+  out+=text(cx,height-25,&#x27;Choose 6 distinct species&#x27;);
+ }else if(chapter===1){
+  const p=ease(u*1.7);
+  for(let i=0;i&lt;6;i++){const a=row(i);out+=portrait(i,mix(a.x,cx,p),mix(narrow?a.y+90:170,i===0?85:55,p),mix(narrow?54:70,i===0?90:40,p),i===0?1:1-p,i===0);}
+  const q=ease((u-.3)*2);out+=line(cx,140,cx,208,q)+box(cx,226,Math.min(260,width-24),&#x27;232 retained form representatives&#x27;,q);
+ }else if(chapter&gt;=2&amp;&amp;chapter&lt;=5){
+  out+=portrait(0,cx,44,64,1,false)+text(cx,89,&#x27;Garchomp · one member&#x27;);
+  const p=ease(u*2.4),cy=chapter===4?194:195;
+  let labels=chapter===2?[&#x27;Sand Veil&#x27;,&#x27;Rough Skin&#x27;]:chapter===3?[&#x27;Clear Amulet&#x27;,&#x27;Life Orb&#x27;,&#x27;No item&#x27;]:chapter===4?[&#x27;Earthquake&#x27;,&#x27;Dragon Claw&#x27;,&#x27;Protect&#x27;,&#x27;Swords Dance&#x27;]:[&#x27;Jolly&#x27;,&#x27;Modest&#x27;,&#x27;Neutral&#x27;];
+  const cols=chapter===4?2:(narrow&amp;&amp;labels.length===3?1:labels.length);
+  labels.forEach((s,i)=&gt;{
+   const col=i%cols,r=Math.floor(i/cols),x=cols===1?cx:width*(col+1)/(cols+1),y=cols===1?143+i*47:cy+r*49-((chapter===4)?35:0),q=ease(u*2.8-i*.14);
+   const xx=mix(cx,x,q),yy=mix(106,y,q);out+=line(cx,104,xx,yy-17,q);out+=box(xx,yy,chapter===4?Math.min(136,width*.43):Math.min(130,width/cols-12),s,q);
+   const travel=clamp((u-.35-i*.06)*2);if(travel&gt;0&amp;&amp;travel&lt;1){const mid=(104+yy-17)/2,inv=1-travel,tx=cx*inv*inv*inv+3*cx*inv*inv*travel+3*xx*inv*travel*travel+xx*travel*travel*travel,ty=104*inv*inv*inv+3*mid*inv*inv*travel+3*mid*inv*travel*travel+(yy-17)*travel*travel*travel;out+=dot(tx,ty,4,.85);}
+  });
+  if(chapter===2)out+=text(cx,height-22,&#x27;2 ability branches&#x27;);
+  if(chapter===3)out+=text(cx,height-22,&#x27;149 options here · shared item restriction&#x27;);
+  if(chapter===4){for(let k=0;k&lt;18;k++){const q=ease((u-.4)*2),x=18+(k%9)*(width-36)/8,y=height-51-Math.floor(k/9)*10;out+=dot(x,y,2,q*.35)}out+=text(cx,height-16,&#x27;58 moves → 424,270 sets of four&#x27;);}
+  if(chapter===5)out+=text(cx,height-22,&#x27;21 distinct alignments per member&#x27;);
+ }else if(chapter===6){
+  out+=portrait(0,cx,35,60,1,false);
+  const sets=[[2,32,0,0,0,32],[32,0,32,0,2,0],[20,20,4,0,2,20]],v=Math.min(1.999,u*2.2),a=Math.floor(v),p=ease(v-a),labels=[&#x27;HP&#x27;,&#x27;Attack&#x27;,&#x27;Defense&#x27;,&#x27;Sp. Atk&#x27;,&#x27;Sp. Def&#x27;,&#x27;Speed&#x27;];
+  const raw=sets[a].map((v,i)=&gt;mix(v,sets[a+1][i],p)),values=raw.map(Math.floor),order=raw.map((v,i)=&gt;i).sort((i,j)=&gt;(raw[j]-values[j])-(raw[i]-values[i]));for(let j=0,left=66-values.reduce((s,v)=&gt;s+v,0);j&lt;left;j++)values[order[j]]++;
+  for(let i=0;i&lt;6;i++){const value=values[i],y=93+i*31,start=narrow?83:135,end=width-42;out+=text(start-10,y+4,labels[i],&#x27;end&#x27;);out+=`&lt;rect x=&quot;${start}&quot; y=&quot;${y-7}&quot; width=&quot;${end-start}&quot; height=&quot;12&quot; fill=&quot;var(--border)&quot; opacity=&quot;.4&quot;/&gt;&lt;rect class=&quot;mark&quot; x=&quot;${start}&quot; y=&quot;${y-7}&quot; width=&quot;${(end-start)*value/32}&quot; height=&quot;12&quot;/&gt;`;out+=text(end+10,y+4,String(value),&#x27;start&#x27;);}
+  out+=text(cx,height-9,&#x27;10,008,272 allocations · 66 SP in total&#x27;);
+ }else{
+  const p=ease(u*2);
+  for(let i=0;i&lt;6;i++){const r=row(i),x=mix(cx,r.x,p),y=mix(35,r.y,p);out+=portrait(i,x,y,narrow?47:58,1,p&gt;.7);for(let b=0;b&lt;5;b++){let xx=x+(b-2)*(narrow?10:13),yy=y+(narrow?67:86);out+=line(x,y+30,xx,yy,.55*p)+dot(xx,yy,2,p*.6);}}
+  const base=narrow?225:174;
+  for(let j=0;j&lt;144;j++){const col=j%24,r=Math.floor(j/24),q=ease((u-.18)*2.6-r*.09),x=mix(cx,12+col*(width-24)/23,q),y=mix(base-10,base+r*13,q);out+=dot(x,y,2.2,.5*q);}
+  out+=text(cx,height-12,&#x27;≈ 4.17 × 10¹¹¹ complete configurations&#x27;);
+ }
+ svg.innerHTML=out;
+ seek.value=t;const sec=Math.floor(t);root.querySelector(&#x27;[data-time]&#x27;).textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,&#x27;0&#x27;)} / 1:04`;
+ seek.setAttribute(&#x27;aria-valuetext&#x27;,`${sec} seconds: ${chapters[chapter][0]}`);
+}
+function stop(){running=false;cancelAnimationFrame(raf);play.textContent=t&gt;=64?&#x27;Play again&#x27;:&#x27;Play animation&#x27;;}
+function frame(now){if(!running)return;t=Math.min(64,t+(now-last)/1000);last=now;draw();if(t&gt;=64)stop();else raf=requestAnimationFrame(frame);}
+function start(){if(t&gt;=64)t=0;running=true;last=performance.now();play.textContent=&#x27;Pause&#x27;;raf=requestAnimationFrame(frame);}
+play.addEventListener(&#x27;click&#x27;,()=&gt;running?stop():start());
+root.querySelector(&#x27;[data-replay]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{stop();t=0;draw();start()});
+seek.addEventListener(&#x27;input&#x27;,()=&gt;{stop();t=Number(seek.value);draw()});
+new ResizeObserver(()=&gt;{width=svg.clientWidth;height=width&lt;450?340:310;svg.setAttribute(&#x27;viewBox&#x27;,`0 0 ${width} ${height}`);draw()}).observe(svg);
+document.addEventListener(&#x27;visibilitychange&#x27;,()=&gt;{if(document.hidden)stop()});
+draw();
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerdown&quot;, handlePointer);
+    document.removeEventListener(&quot;pointercancel&quot;, handlePointer);
+    document.removeEventListener(&quot;click&quot;, handleTouchClick);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerdown&quot;, handlePointer);
+  document.addEventListener(&quot;pointercancel&quot;, handlePointer);
+  document.addEventListener(&quot;click&quot;, handleTouchClick);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-tabs&quot;&gt;
+(() =&gt; {
+  const selector = &#x27;.nav[role=&quot;tablist&quot;] [role=&quot;tab&quot;]&#x27;;
+  const disabled = &#x27;:disabled,[aria-disabled=&quot;true&quot;]&#x27;;
+  const selectTab = (selected) =&gt; {
+    const panelId = selected.getAttribute(&quot;aria-controls&quot;);
+    for (const tab of selected.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;)) {
+      const active = tab === selected;
+      tab.classList.toggle(&quot;active&quot;, active);
+      tab.setAttribute(&quot;aria-selected&quot;, String(active));
+      const id = tab.getAttribute(&quot;aria-controls&quot;);
+      const panel = id &amp;&amp; document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden &amp;&amp; selected.id) {
+          panel.setAttribute(&quot;aria-labelledby&quot;, selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) =&gt; {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === &quot;click&quot;) {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;),
+    ).filter((candidate) =&gt; !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === &quot;ArrowRight&quot; || event.key === &quot;ArrowDown&quot;) {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === &quot;ArrowLeft&quot; || event.key === &quot;ArrowUp&quot;) {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === &quot;Home&quot;) {
+      next = 0;
+    } else if (event.key === &quot;End&quot;) {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll(&#x27;.nav[role=&quot;tablist&quot;]&#x27;)) {
+    const selected =
+      list.querySelector(&#x27;[role=&quot;tab&quot;][aria-selected=&quot;true&quot;]&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;].active&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;]&#x27;);
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener(&quot;click&quot;, interact);
+  document.addEventListener(&quot;keydown&quot;, interact);
+  window.addEventListener(&quot;pagehide&quot;, () =&gt; {
+    document.removeEventListener(&quot;click&quot;, interact);
+    document.removeEventListener(&quot;keydown&quot;, interact);
+  }, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>

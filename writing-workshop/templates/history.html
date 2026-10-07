@@ -1,0 +1,8 @@
+<div class="history-list">
+{% for rev in revisions %}
+  <div class="history-row">
+    <button class="revision-open" data-revision="{{ rev.id }}"><span>{{ rev.label }}{% if rev.major %}<em>Major</em>{% endif %}</span><small>{{ rev.created_at[:10] }} at {{ rev.created_at[11:16] }} UTC</small></button>
+    <button class="icon-button revision-flag {{ 'flagged' if rev.major }}" data-flag="{{ rev.id }}" aria-label="{{ 'Unflag' if rev.major else 'Flag' }} major revision" title="{{ 'Unflag' if rev.major else 'Flag' }} major revision"><i data-lucide="flag"></i></button>
+  </div>
+{% endfor %}
+</div>

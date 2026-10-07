@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — the same-dice trick</title>
+<style>
+  :root { --ink:#2b2540; --paper:#fffdf6; --a:#ff8a5c; --b:#5ca8ff; --good:#3fb56b; --bad:#e0564f; }
+  html { background:var(--paper); color:var(--ink); font: 22px/1.4 "Avenir Next", "Trebuchet MS", Verdana, sans-serif; }
+  body { max-width: 46rem; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+  h1 { font-size: 2.2rem; text-align:center; margin:.5rem 0 0; }
+  .sub { text-align:center; color:#7a7490; margin:0 0 2rem; font-size:1rem; }
+  .card { background:#fff; border-radius:20px; box-shadow:0 3px 14px rgba(43,37,64,.10); padding:1.4rem 1.6rem; margin:1.6rem 0; }
+  .card h2 { font-size:1.25rem; margin:.1rem 0 .6rem; }
+  .big { font-size:1.5rem; font-weight:700; text-align:center; margin:.6rem 0; }
+  svg { display:block; margin:.8rem auto; max-width:100%; height:auto; }
+  .cap { text-align:center; font-size:.95rem; color:#7a7490; margin:.2rem 0 0; }
+  .huge { font-size:4rem; font-weight:800; text-align:center; color:var(--good); margin:.2rem 0; }
+  .foot { font-size:.85rem; color:#7a7490; text-align:center; margin-top:2.5rem; }
+  .foot a { color:var(--a); }
+  em { font-style:normal; background:#fff3c9; border-radius:6px; padding:0 .25em; }
+</style>
+</head>
+<body>
+
+<h1>🎲 The Same-Dice Trick</h1>
+<p class="sub">what that paper is really about, in pictures</p>
+
+<div class="card">
+<h2>1. Which toy team is stronger?</h2>
+<svg viewBox="0 0 600 150" role="img" aria-label="Two teams and a question mark">
+  <circle cx="110" cy="75" r="52" fill="#ff8a5c"/>
+  <text x="110" y="88" font-size="40" text-anchor="middle">🦊</text>
+  <text x="110" y="145" font-size="18" text-anchor="middle" fill="#2b2540">Team A</text>
+  <text x="300" y="92" font-size="52" text-anchor="middle" fill="#2b2540">VS ❓</text>
+  <circle cx="490" cy="75" r="52" fill="#5ca8ff"/>
+  <text x="490" y="88" font-size="40" text-anchor="middle">🐢</text>
+  <text x="490" y="145" font-size="18" text-anchor="middle" fill="#2b2540">Team B</text>
+</svg>
+<p class="big">Let them play pretend battles and count wins!</p>
+</div>
+
+<div class="card">
+<h2>2. But battles have LUCK in them</h2>
+<svg viewBox="0 0 600 170" role="img" aria-label="Two different dice give unfair luck">
+  <rect x="60" y="30" width="90" height="90" rx="16" fill="#fff" stroke="#ff8a5c" stroke-width="5"/>
+  <circle cx="105" cy="75" r="9" fill="#2b2540"/>
+  <text x="105" y="155" font-size="17" text-anchor="middle">A's dice ☀️ lucky!</text>
+  <rect x="450" y="30" width="90" height="90" rx="16" fill="#fff" stroke="#5ca8ff" stroke-width="5"/>
+  <circle cx="475" cy="55" r="8" fill="#2b2540"/><circle cx="495" cy="75" r="8" fill="#2b2540"/>
+  <circle cx="515" cy="95" r="8" fill="#2b2540"/><circle cx="475" cy="95" r="8" fill="#2b2540"/>
+  <circle cx="515" cy="55" r="8" fill="#2b2540"/><circle cx="495" cy="55" r="8" fill="#2b2540"/>
+  <text x="495" y="155" font-size="17" text-anchor="middle">B's dice 🌧️ unlucky!</text>
+  <text x="300" y="90" font-size="30" text-anchor="middle" fill="#e0564f" font-weight="bold">NOT FAIR</text>
+</svg>
+<p class="big">Maybe A only won because A rolled better dice. 😠</p>
+</div>
+
+<div class="card">
+<h2>3. The trick: make them share ONE dice</h2>
+<svg viewBox="0 0 600 190" role="img" aria-label="Both teams share one die, same luck for both">
+  <rect x="255" y="20" width="90" height="90" rx="16" fill="#fff3c9" stroke="#3fb56b" stroke-width="6"/>
+  <circle cx="280" cy="45" r="8" fill="#2b2540"/><circle cx="320" cy="85" r="8" fill="#2b2540"/><circle cx="300" cy="65" r="8" fill="#2b2540"/>
+  <path d="M250 70 L150 110" stroke="#3fb56b" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M350 70 L450 110" stroke="#3fb56b" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="120" cy="135" r="40" fill="#ff8a5c"/><text x="120" y="147" font-size="30" text-anchor="middle">🦊</text>
+  <circle cx="480" cy="135" r="40" fill="#5ca8ff"/><text x="480" y="147" font-size="30" text-anchor="middle">🐢</text>
+  <text x="300" y="165" font-size="22" text-anchor="middle" fill="#3fb56b" font-weight="bold">same luck for both!</text>
+</svg>
+<p class="big">Now luck can't pick the winner. Only <em>being better</em> can.</p>
+</div>
+
+<div class="card">
+<h2>4. So you need WAY fewer battles</h2>
+<div class="huge">~10× fewer</div>
+<p class="cap">same sureness about who's stronger, with a tenth of the battles</p>
+</div>
+
+<div class="card">
+<h2>5. The paper's grown-up rule</h2>
+<svg viewBox="0 0 600 130" role="img" aria-label="Separate dice while plans differ, shared dice after they match">
+  <rect x="40" y="45" width="220" height="40" rx="10" fill="#f2d8ce"/>
+  <text x="150" y="71" font-size="17" text-anchor="middle">plans are DIFFERENT</text>
+  <rect x="270" y="45" width="290" height="40" rx="10" fill="#d4ecdc"/>
+  <text x="415" y="71" font-size="17" text-anchor="middle">plans become the SAME</text>
+  <text x="150" y="30" font-size="20" text-anchor="middle">🎲🎲 own dice</text>
+  <text x="415" y="30" font-size="20" text-anchor="middle">🎲 shared dice</text>
+  <text x="150" y="112" font-size="15" text-anchor="middle" fill="#7a7490">(the choosing part)</text>
+  <text x="415" y="112" font-size="15" text-anchor="middle" fill="#7a7490">(the autopilot part)</text>
+</svg>
+<p class="big">Share the dice only where the two plans act the same.<br>That version is <em>proven</em> to never make things noisier.</p>
+</div>
+
+<p class="foot">The real paper: 🟢 <a href="https://arxiv.org/abs/2605.04732">Yadav, Maliakkal, Khadilkar &amp; Kalyanakrishnan, RLJ 2026</a> · the grown-up version of this page: <a href="../lessons/0006-common-random-numbers-for-paired-battles.html">lesson 0006</a> · and one honest note for YOUR project: in real Pokémon battles the "share the dice" part mostly can't be done — but "make both teams fight the <em>same opponent</em>" can, and that's most of the magic.</p>
+
+</body>
+</html>

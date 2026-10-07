@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-09-13T21:53:19.720Z",
+  "backend": "ONNX Runtime Web WASM single-thread CPU",
+  "fixtures": [
+    {
+      "step": 0,
+      "col": 0,
+      "maxError": 0.0000021457672119140625,
+      "maskMatch": true
+    },
+    {
+      "step": 6,
+      "col": 1,
+      "maxError": 0.00000286102294921875,
+      "maskMatch": true
+    },
+    {
+      "step": 18,
+      "col": 3,
+      "maxError": 0.000002384185791015625,
+      "maskMatch": true
+    },
+    {
+      "step": 42,
+      "col": 7,
+      "maxError": 0.00000286102294921875,
+      "maskMatch": true
+    },
+    {
+      "step": 47,
+      "col": 47,
+      "maxError": 0.000003337860107421875,
+      "maskMatch": true
+    }
+  ]
+}

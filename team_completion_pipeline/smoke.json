@@ -1,0 +1,24 @@
+{
+  "mode": "smoke",
+  "format": "gen9championsvgc2026regmb",
+  "spread_system": "Champions Stat Points. Preserve the format's allocation rules; these are not conventional EVs.",
+  "showdown_runtime": "/Users/ramiismael/.local/share/vgc-pilot-runtime/servers/8134",
+  "starting_teams": "../Blog/visuals/search-loop/team-example.json",
+  "meta_teams": "../Blog/visuals/search-loop/team-example.json",
+  "proposal_pool": "../Blog/visuals/search-loop/team-example.json",
+  "selection": "sample",
+  "team_limit": 1,
+  "seed": 20261001,
+  "mask_repetitions": 1,
+  "attempts": 2,
+  "timeout_seconds": 60,
+  "tasks": [
+    {"task": "items", "k": [1, 6]},
+    {"task": "stats", "k": [1, 6]},
+    {"task": "moves", "k": [1, 24]},
+    {"task": "pokemon", "k": [1, 6]}
+  ],
+  "methods": [{"name": "random-donor-smoke", "type": "random"}],
+  "battle": {"type": "showdown-random", "policy_version": "showdown-random-v1", "max_turns": 300, "seeds": [101, 202]},
+  "output_dir": "runs/smoke"
+}

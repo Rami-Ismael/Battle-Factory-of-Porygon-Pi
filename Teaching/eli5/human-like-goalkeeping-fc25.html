@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — How a video game grew a human-like goalkeeper</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --muted:       #898781;
+    --hairline:    #e1e0d9;
+    --baseline:    #c3c2b7;
+    --border:      rgba(11,11,11,0.10);
+    --agent:       #2a78d6;   /* the learned keeper  */
+    --builtin:     #eb6834;   /* the built-in keeper */
+    --good-text:   #006300;
+    --grass:       #cfe6cf;
+    --grass-line:  #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --ink:         #ffffff;
+      --ink-2:       #c3c2b7;
+      --muted:       #898781;
+      --hairline:    #2c2c2a;
+      --baseline:    #383835;
+      --border:      rgba(255,255,255,0.10);
+      --agent:       #3987e5;
+      --builtin:     #d95926;
+      --good-text:   #0ca30c;
+      --grass:       #23392a;
+      --grass-line:  #4a5f50;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 32px 36px;
+    margin: 0 0 28px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.3px; }
+  p  { font-size: 19px; color: var(--ink-2); margin: 8px 0 0; }
+  p strong { color: var(--ink); }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 14px; }
+  figure { margin: 20px 0 8px; }
+  svg { display: block; width: 100%; height: auto; }
+  .svg-label  { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; fill: var(--ink-2); }
+  .svg-label-strong { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; font-weight: 700; fill: var(--ink); }
+  .svg-big { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 26px; font-weight: 800; fill: var(--ink); }
+
+  /* ---- bar chart ---- */
+  .chart { margin-top: 22px; }
+  .chart-title { font-size: 16px; font-weight: 700; color: var(--ink); margin: 0 0 2px; }
+  .chart-sub   { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+  .row { display: grid; grid-template-columns: 150px 1fr 64px; align-items: center; gap: 12px; margin: 10px 0; }
+  .row .name { font-size: 15px; color: var(--ink-2); text-align: right; }
+  .row .val  { font-size: 16px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .track { position: relative; height: 28px; border-left: 2px solid var(--baseline); }
+  .bar {
+    position: absolute; left: 0; top: 0; height: 28px;
+    border-radius: 0 4px 4px 0;
+    cursor: default;
+  }
+  .bar.agent   { background: var(--agent); }
+  .bar.builtin { background: var(--builtin); }
+  .tooltip {
+    position: fixed; pointer-events: none; z-index: 10;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    padding: 8px 12px; font-size: 14px;
+    opacity: 0; transition: opacity 0.1s;
+  }
+  .tooltip.show { opacity: 1; }
+  .tooltip .tt-name { font-weight: 700; }
+  .tooltip .tt-detail { color: var(--ink-2); }
+
+  /* ---- stat tiles ---- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 22px; }
+  .tile {
+    border: 1px solid var(--hairline); border-radius: 12px;
+    padding: 18px 18px 16px;
+  }
+  .tile .big  { font-size: 34px; font-weight: 800; color: var(--ink); line-height: 1.1; }
+  .tile .why  { font-size: 14px; color: var(--ink-2); margin-top: 6px; }
+
+  blockquote {
+    margin: 20px 0 0; padding: 18px 22px;
+    border-left: 4px solid var(--agent); border-radius: 0 10px 10px 0;
+    background: color-mix(in srgb, var(--agent) 7%, var(--surface));
+    font-size: 20px; color: var(--ink);
+  }
+  blockquote cite { display: block; margin-top: 8px; font-size: 14px; font-style: normal; color: var(--muted); }
+
+  footer { font-size: 14px; color: var(--muted); padding: 0 12px; }
+  footer a { color: var(--agent); }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- ================= HERO ================= -->
+  <section>
+    <p class="kicker">ELI5 · a research paper, in pictures</p>
+    <h1>How a video game grew a goalkeeper that plays like a person</h1>
+    <p>EA's researchers taught the goalkeeper in <strong>EA SPORTS FC 25</strong> to learn its job by practicing — and made the practice cheap enough for a real game studio.</p>
+    <figure aria-label="A goalkeeper in front of a goal, diving toward a ball">
+      <svg viewBox="0 0 720 300" role="img">
+        <!-- grass -->
+        <rect x="0" y="235" width="720" height="65" fill="var(--grass)"/>
+        <line x1="0" y1="235" x2="720" y2="235" stroke="var(--grass-line)" stroke-width="3"/>
+        <!-- goal net -->
+        <g stroke="var(--hairline)" stroke-width="1.5">
+          <line x1="180" y1="90" x2="180" y2="235"/><line x1="240" y1="90" x2="240" y2="235"/>
+          <line x1="300" y1="90" x2="300" y2="235"/><line x1="360" y1="90" x2="360" y2="235"/>
+          <line x1="420" y1="90" x2="420" y2="235"/><line x1="480" y1="90" x2="480" y2="235"/>
+          <line x1="540" y1="90" x2="540" y2="235"/>
+          <line x1="130" y1="125" x2="590" y2="125"/><line x1="130" y1="160" x2="590" y2="160"/>
+          <line x1="130" y1="195" x2="590" y2="195"/>
+        </g>
+        <!-- goal frame -->
+        <g fill="var(--baseline)">
+          <rect x="122" y="82" width="10" height="153" rx="4"/>
+          <rect x="588" y="82" width="10" height="153" rx="4"/>
+          <rect x="122" y="82" width="476" height="10" rx="4"/>
+        </g>
+        <!-- keeper: diving figure -->
+        <g>
+          <circle cx="322" cy="150" r="20" fill="var(--agent)"/>
+          <rect x="330" y="158" width="78" height="26" rx="13" fill="var(--agent)" transform="rotate(18 330 158)"/>
+          <!-- reaching arm -->
+          <rect x="396" y="166" width="82" height="13" rx="6.5" fill="var(--agent)" transform="rotate(-28 396 166)"/>
+          <!-- legs -->
+          <rect x="300" y="196" width="60" height="13" rx="6.5" fill="var(--agent)" transform="rotate(38 300 196)"/>
+          <rect x="316" y="204" width="56" height="13" rx="6.5" fill="var(--agent)" transform="rotate(58 316 204)"/>
+        </g>
+        <!-- ball with motion lines -->
+        <g>
+          <line x1="640" y1="96" x2="600" y2="102" stroke="var(--muted)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="648" y1="116" x2="606" y2="118" stroke="var(--muted)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="536" cy="112" r="18" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+          <path d="M536 100 l10 8 -4 12 h-12 l-4 -12 z" fill="var(--ink)"/>
+        </g>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- ================= THE OLD WAY ================= -->
+  <section>
+    <h2>Game keepers used to follow a rulebook</h2>
+    <p>Somebody typed the rules by hand: <em>if the ball goes left, dive left.</em> Thousands of them. Miss a rule, and the keeper does something silly.</p>
+    <figure aria-label="A long list of if-then rules next to a confused goalkeeper">
+      <svg viewBox="0 0 720 250" role="img">
+        <!-- rulebook -->
+        <rect x="60" y="25" width="290" height="200" rx="10" fill="var(--surface)" stroke="var(--baseline)" stroke-width="2"/>
+        <text x="80" y="60" class="svg-label-strong">THE RULEBOOK</text>
+        <g font-family="ui-monospace, monospace" font-size="13" fill="var(--muted)">
+          <text x="80" y="90">IF ball left  → dive left</text>
+          <text x="80" y="112">IF ball high  → jump</text>
+          <text x="80" y="134">IF striker close → rush out</text>
+          <text x="80" y="156">IF … → …</text>
+          <text x="80" y="178">IF … → …</text>
+          <text x="80" y="200">… ×  thousands more</text>
+        </g>
+        <!-- arrow -->
+        <line x1="380" y1="125" x2="440" y2="125" stroke="var(--muted)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M440 125 l-12 -7 v14 z" fill="var(--muted)"/>
+        <!-- keeper missing an easy ball -->
+        <rect x="470" y="180" width="200" height="45" fill="var(--grass)"/>
+        <circle cx="530" cy="115" r="18" fill="var(--builtin)"/>
+        <rect x="516" y="132" width="28" height="52" rx="12" fill="var(--builtin)"/>
+        <text x="565" y="90" class="svg-big">?</text>
+        <circle cx="635" cy="196" r="14" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+        <text x="470" y="245" class="svg-label">the ball rolls past anyway</text>
+      </svg>
+    </figure>
+    <p><strong>Learning by practice</strong> (reinforcement learning) fixes this — but normally it needs a mountain of computer time, and it learns to play like a weird superhuman. Studios want <strong>cheap</strong> and <strong>human-looking</strong>.</p>
+  </section>
+
+  <!-- ================= TRICK 1 ================= -->
+  <section>
+    <h2>Trick 1 — watch tapes before you play</h2>
+    <p>Before practicing, the keeper gets recordings of the old rulebook keeper playing. Every practice session is <strong>half old tapes, half its own fresh tries</strong>.</p>
+    <figure aria-label="A practice plate split half into old tapes and half into own tries">
+      <svg viewBox="0 0 720 260" role="img">
+        <!-- film reel -->
+        <g>
+          <circle cx="120" cy="110" r="52" fill="none" stroke="var(--ink-2)" stroke-width="4"/>
+          <circle cx="120" cy="110" r="10" fill="var(--ink-2)"/>
+          <circle cx="120" cy="78" r="9" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
+          <circle cx="120" cy="142" r="9" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
+          <circle cx="88"  cy="110" r="9" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
+          <circle cx="152" cy="110" r="9" fill="none" stroke="var(--ink-2)" stroke-width="3"/>
+          <text x="120" y="195" text-anchor="middle" class="svg-label">old game tapes</text>
+        </g>
+        <text x="230" y="120" class="svg-big">+</text>
+        <!-- ball = own play -->
+        <g>
+          <circle cx="330" cy="110" r="46" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/>
+          <path d="M330 82 l22 17 -8 27 h-28 l-8 -27 z" fill="var(--ink)"/>
+          <text x="330" y="195" text-anchor="middle" class="svg-label">its own tries</text>
+        </g>
+        <text x="425" y="120" class="svg-big">=</text>
+        <!-- half/half plate -->
+        <g>
+          <path d="M560 40 a70 70 0 0 0 0 140 z" fill="var(--ink-2)" opacity="0.55"/>
+          <path d="M560 40 a70 70 0 0 1 0 140 z" fill="var(--agent)"/>
+          <circle cx="560" cy="110" r="70" fill="none" stroke="var(--baseline)" stroke-width="3"/>
+          <text x="560" y="195" text-anchor="middle" class="svg-label">every practice batch: 50 / 50</text>
+        </g>
+      </svg>
+    </figure>
+    <p>So it never starts from zero — it starts from "what the old keeper already knew," then gets better on its own.</p>
+  </section>
+
+  <!-- ================= TRICK 2 ================= -->
+  <section>
+    <h2>Trick 2 — keep the brain fresh</h2>
+    <p>A brain that practices too long on the same stuff gets <strong>stiff</strong> — it stops being able to learn new things. So every 100,000 steps they <strong>wipe the network and speed-relearn</strong> everything from its notebook of saved memories.</p>
+    <figure aria-label="A stiff brain gets erased and comes back fresh and able to learn">
+      <svg viewBox="0 0 720 240" role="img">
+        <!-- stiff brain -->
+        <g>
+          <path d="M110 60 c-30 0 -45 25 -38 48 c-8 20 8 42 30 44 c8 14 32 18 46 8 c22 6 44 -8 44 -28 c16 -14 12 -44 -8 -52 c-2 -20 -28 -32 -44 -20 c-10 -8 -22 -8 -30 0 z" fill="none" stroke="var(--ink-2)" stroke-width="4"/>
+          <!-- cracks -->
+          <path d="M100 90 l14 14 -8 12 M140 78 l-4 18 12 10 M158 120 l-14 8" fill="none" stroke="var(--ink-2)" stroke-width="3" stroke-linecap="round"/>
+          <text x="122" y="200" text-anchor="middle" class="svg-label">stiff — can't learn</text>
+        </g>
+        <!-- reset arrow -->
+        <g>
+          <path d="M270 105 a45 45 0 1 1 12 42" fill="none" stroke="var(--muted)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M282 152 l-20 2 10 -18 z" fill="var(--muted)"/>
+          <text x="312" y="60" text-anchor="middle" class="svg-label-strong">wipe + relearn</text>
+          <text x="312" y="80" text-anchor="middle" class="svg-label">from the notebook, fast</text>
+        </g>
+        <!-- fresh brain -->
+        <g>
+          <path d="M520 60 c-30 0 -45 25 -38 48 c-8 20 8 42 30 44 c8 14 32 18 46 8 c22 6 44 -8 44 -28 c16 -14 12 -44 -8 -52 c-2 -20 -28 -32 -44 -20 c-10 -8 -22 -8 -30 0 z" fill="var(--agent)" opacity="0.9"/>
+          <!-- sparkles -->
+          <g stroke="var(--ink)" stroke-width="3" stroke-linecap="round">
+            <path d="M610 52 v16 M602 60 h16"/>
+            <path d="M492 40 v12 M486 46 h12"/>
+          </g>
+          <text x="552" y="200" text-anchor="middle" class="svg-label">fresh — learns fast again</text>
+        </g>
+      </svg>
+    </figure>
+    <p>Together, the two tricks make training <strong>about 50% faster</strong> than normal — the whole keeper trains in <strong>18–24 hours</strong>.</p>
+  </section>
+
+  <!-- ================= WHAT IT SEES / DOES ================= -->
+  <section>
+    <h2>What the keeper sees and does</h2>
+    <p>No screen, no rulebook — just <strong>110 numbers</strong>: where am I, where's the ball, the 5 nearest attackers, my 4 nearest teammates.</p>
+    <figure aria-label="Top-down pitch: the keeper watches the ball, five attackers and four teammates">
+      <svg viewBox="0 0 720 300" role="img">
+        <!-- pitch -->
+        <rect x="30" y="20" width="660" height="240" rx="8" fill="var(--grass)"/>
+        <rect x="30" y="60" width="150" height="160" fill="none" stroke="var(--grass-line)" stroke-width="3"/>
+        <line x1="30" y1="20" x2="30" y2="260" stroke="var(--grass-line)" stroke-width="3"/>
+        <!-- keeper -->
+        <circle cx="75" cy="140" r="17" fill="var(--agent)"/>
+        <!-- sight lines -->
+        <g stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5">
+          <line x1="92" y1="140" x2="300" y2="105"/>
+          <line x1="92" y1="132" x2="255" y2="60"/>
+          <line x1="92" y1="148" x2="265" y2="210"/>
+          <line x1="92" y1="140" x2="390" y2="160"/>
+        </g>
+        <!-- ball -->
+        <circle cx="310" cy="103" r="12" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/>
+        <!-- attackers (5) -->
+        <g fill="var(--builtin)">
+          <circle cx="262" cy="58" r="11"/><circle cx="272" cy="212" r="11"/>
+          <circle cx="398" cy="162" r="11"/><circle cx="420" cy="70" r="11"/>
+          <circle cx="470" cy="228" r="11"/>
+        </g>
+        <!-- teammates (4) -->
+        <g fill="var(--agent)" opacity="0.45">
+          <circle cx="215" cy="130" r="11"/><circle cx="330" cy="240" r="11"/>
+          <circle cx="360" cy="35" r="11"/><circle cx="480" cy="120" r="11"/>
+        </g>
+        <!-- legend (text carries identity) -->
+        <g>
+          <circle cx="52" cy="284" r="8" fill="var(--agent)"/>
+          <text x="68" y="289" class="svg-label">the keeper</text>
+          <circle cx="185" cy="284" r="8" fill="var(--builtin)"/>
+          <text x="201" y="289" class="svg-label">5 nearest attackers</text>
+          <circle cx="370" cy="284" r="8" fill="var(--agent)" opacity="0.45"/>
+          <text x="386" y="289" class="svg-label">4 teammates</text>
+          <circle cx="500" cy="284" r="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="516" y="289" class="svg-label">the ball</text>
+        </g>
+      </svg>
+    </figure>
+    <p>And it only decides two things: <strong>where to stand</strong> and <strong>how fast to get there</strong>. It gets treats for saving shots and covering the goal — and loses treats for twitchy, robot-looking moves. That last treat is why it ends up moving like a person.</p>
+  </section>
+
+  <!-- ================= REPORT CARD ================= -->
+  <section>
+    <h2>The report card</h2>
+    <p>Same game, same shots — learned keeper vs the hand-written rulebook keeper.</p>
+
+    <div class="chart" id="chart-saves">
+      <p class="chart-title">Shots saved</p>
+      <p class="chart-sub">higher is better</p>
+      <div class="row">
+        <span class="name">Learned keeper</span>
+        <div class="track"><div class="bar agent" data-name="Learned keeper" data-detail="saved 54.12% of shots" style="width: 90.2%"></div></div>
+        <span class="val">54.1%</span>
+      </div>
+      <div class="row">
+        <span class="name">Rulebook keeper</span>
+        <div class="track"><div class="bar builtin" data-name="Rulebook keeper" data-detail="saved 48.27% of shots" style="width: 80.5%"></div></div>
+        <span class="val">48.3%</span>
+      </div>
+    </div>
+
+    <div class="chart" id="chart-human">
+      <p class="chart-title">Goals let in against a skilled human player <span style="color: var(--muted); font-weight: 400;">(400 games each)</span></p>
+      <p class="chart-sub">lower is better</p>
+      <div class="row">
+        <span class="name">Learned keeper</span>
+        <div class="track"><div class="bar agent" data-name="Learned keeper" data-detail="let in 25.25% of chances" style="width: 60.7%"></div></div>
+        <span class="val">25.3%</span>
+      </div>
+      <div class="row">
+        <span class="name">Rulebook keeper</span>
+        <div class="track"><div class="bar builtin" data-name="Rulebook keeper" data-detail="let in 29.10% of chances" style="width: 70%"></div></div>
+        <span class="val">29.1%</span>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile">
+        <div class="big" style="color: var(--good-text);">+10%</div>
+        <div class="why">more saves than the rulebook keeper</div>
+      </div>
+      <div class="tile">
+        <div class="big">50% faster</div>
+        <div class="why">to train than standard practice-only learning</div>
+      </div>
+      <div class="tile">
+        <div class="big">18–24 h</div>
+        <div class="why">total training time — studio-affordable</div>
+      </div>
+    </div>
+
+    <blockquote>
+      "The goalkeeper plays it really well! Keeper looks for opportunities to steal ground as the striker enters the box."
+      <cite>— a professional goalkeeper, watching the learned agent</cite>
+    </blockquote>
+  </section>
+
+  <!-- ================= ONE LINE ================= -->
+  <section>
+    <h2>The whole paper in one line</h2>
+    <p><strong>Start from tapes of existing play, wipe the brain before it goes stiff</strong> — and practice-based learning becomes cheap enough, and human-looking enough, for a real shipped video game.</p>
+    <p style="margin-top: 16px;">Sound familiar? It's the same recipe as the battle-policy work: behavior cloning from existing play first, online learning after — and the wipe trick is the "plasticity loss" idea from <em>When learning stops — stagnation or plasticity loss</em>.</p>
+  </section>
+
+  <footer>
+    <p>Paper 🟢 <a href="https://arxiv.org/abs/2510.23216">Human-Like Goalkeeping in a Realistic Football Simulation: a Sample-Efficient Reinforcement Learning Approach</a> — Sestini, Bergdahl, Barrette-LaPierre, Fuchs, Chen, Jones, Gisslén (EA / SEED), arXiv 2510.23216, October 2025. Method: Soft Actor-Critic + RLPD-style 50/50 offline sampling + periodic full network resets with a high-replay-ratio offline phase.</p>
+  </footer>
+
+</main>
+
+<div class="tooltip" id="tooltip" role="status"></div>
+<script>
+  const tt = document.getElementById('tooltip');
+  document.querySelectorAll('.bar').forEach(bar => {
+    bar.addEventListener('mousemove', e => {
+      tt.innerHTML = '<span class="tt-name">' + bar.dataset.name + '</span><br><span class="tt-detail">' + bar.dataset.detail + '</span>';
+      tt.style.left = Math.min(e.clientX + 14, window.innerWidth - 200) + 'px';
+      tt.style.top = (e.clientY + 14) + 'px';
+      tt.classList.add('show');
+    });
+    bar.addEventListener('mouseleave', () => tt.classList.remove('show'));
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<meta charset="utf-8">
+<title>Turn One</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the doubles field (their two leads on top, yours below) stays put; the band under it changes per step; caption names the term; stepper below. Sibling of "Four of six". */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --you:#0E7C7B; --you-soft:#DDF0EF; --them:#A2405A; --them-soft:#F6E3E8; --veil:#E6EAEE; --chip:#EEF2F5;
+  --rain:#2F6FB3; --sun:#C07A12; --tr:#7A55B0; --hp:#2E9E5B;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --veil:#222C36; --chip:#1F2A35;
+    --rain:#6FA8E8; --sun:#E3A443; --tr:#AE8BE0; --hp:#5BC48A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --veil:#222C36; --chip:#1F2A35;
+  --rain:#6FA8E8; --sun:#E3A443; --tr:#AE8BE0; --hp:#5BC48A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:22px}
+header{display:grid;gap:10px;max-width:70ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.seg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.seg .lbl{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px/1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;min-height:40px;cursor:pointer;transition:transform 120ms var(--ease),background-color 150ms ease,border-color 150ms ease}
+button:active{transform:scale(.97)}
+button[aria-pressed="true"]{background:var(--you-soft);border-color:var(--you)}
+button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.stage{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:14px;display:grid;gap:12px;overflow:hidden}
+.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:560px;width:100%;justify-self:center}
+.mon{position:relative;border:1px solid var(--rule);border-radius:12px;padding:8px 10px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 10px;align-items:center;min-width:0}
+.them .mon{border-color:var(--them);background:var(--them-soft)} .you .mon{border-color:var(--you);background:var(--you-soft)}
+.mon img{width:72px;height:72px;image-rendering:pixelated;grid-row:span 2}
+.mon .nm{font:600 14px/1.2 var(--body);overflow-wrap:anywhere}
+.hpbar{height:6px;border-radius:99px;background:var(--rule);overflow:hidden}
+.hpbar span{display:block;height:100%;background:var(--hp);transition:width 500ms var(--ease)}
+.pick{grid-column:1 / -1;min-height:26px;display:flex;align-items:center;justify-content:center;font:500 12.5px/1.2 var(--mono);border-radius:8px;border:1px dashed var(--rule);padding:4px 6px;text-align:center;transition:background-color 200ms ease,border-color 200ms ease}
+.pick.locked{border-style:solid;background:var(--surface)}
+.pick.shown{border-style:solid;background:var(--surface);color:var(--ink)}
+.who{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;text-align:center}
+.who.t{color:var(--them)} .who.y{color:var(--you)}
+.band{min-height:250px;border-top:1px dashed var(--rule);padding-top:14px;display:grid;place-items:center}
+.panel{display:none;width:100%;justify-items:center;gap:12px;text-align:center}
+.panel.on{display:grid;animation:fade 360ms var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sub{color:var(--muted);font-size:13.5px;max-width:62ch}
+.big{font:700 clamp(24px,4vw,36px)/1.15 var(--display);font-variant-numeric:tabular-nums}
+.eq{font:500 14.5px/1.6 var(--mono);font-variant-numeric:tabular-nums}
+.tug{width:min(520px,100%);height:34px;border-radius:8px;overflow:hidden;display:flex;font:600 13px/34px var(--mono)}
+.tug .a{background:var(--you);color:var(--surface);transition:flex-basis 900ms var(--ease);text-align:left;padding-left:10px;white-space:nowrap}
+.tug .b{background:var(--them);color:var(--surface);flex:1;text-align:right;padding-right:10px;white-space:nowrap}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:min(640px,100%);text-align:left}
+.opts h4{margin:0 0 6px;font:600 12px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font:12px/1 var(--body);background:var(--chip);border:1px solid var(--rule);border-radius:6px;padding:5px 7px;opacity:0;transform:translateY(3px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.chip.in{opacity:1;transform:none}
+.chip.sw{border-style:dashed}
+.lockrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.lockrow img{width:72px;height:72px;image-rendering:pixelated}
+.mv{font:500 13px/1 var(--body);border:1px solid var(--rule);background:var(--chip);border-radius:8px;padding:9px 10px;transition:opacity 300ms ease,background-color 300ms ease,border-color 300ms ease}
+.mv.used{border-color:var(--you);background:var(--you-soft)}
+.mv.masked{opacity:.35;text-decoration:line-through}
+.meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(720px,100%)}
+.meter{border:1px solid var(--rule);border-radius:10px;padding:10px;display:grid;gap:6px;justify-items:center;min-width:0}
+.meter h4{margin:0;font:600 11px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.meter .v{font:700 26px/1 var(--display);font-variant-numeric:tabular-nums}
+.meter .s{font-size:12px;color:var(--muted)}
+.cells{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;width:100%}
+.cells i{height:10px;border-radius:2px;background:var(--rule)}
+.cells i.hit{background:var(--them)}
+.acc{width:100%;height:10px;border-radius:99px;background:var(--rule);overflow:hidden}
+.acc span{display:block;height:100%;background:var(--rain);transition:width 600ms var(--ease),background-color 300ms ease}
+.tl{display:grid;grid-template-columns:7em repeat(5,minmax(0,1fr));gap:4px;width:min(640px,100%);font:12px/1 var(--mono);align-items:center;position:relative}
+.tl .h{color:var(--faint);text-align:center}
+.tl .l{color:var(--muted);text-align:left}
+.tl .c{height:18px;border-radius:4px;background:var(--chip)}
+.tl .c.rain{background:var(--rain)} .tl .c.trr{background:var(--tr)} .tl .c.tw{background:var(--you)}
+.tl .c.now{outline:2px solid var(--ink);outline-offset:1px}
+.see{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:6px 14px;width:min(640px,100%);text-align:left;font-size:13.5px;align-items:baseline}
+.see .hd{font:600 11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.see .k{color:var(--muted)}
+.see .q{color:var(--faint);font-family:var(--mono)}
+.log{list-style:none;margin:0;padding:0;width:min(640px,100%);text-align:left;display:grid;gap:4px;font:13px/1.45 var(--mono)}
+.log li{opacity:0;transform:translateX(-4px);transition:opacity 260ms var(--ease),transform 260ms var(--ease);border-left:2px solid var(--rule);padding-left:8px}
+.log li.in{opacity:1;transform:none}
+.log li b{font-weight:500;color:var(--you)}
+.pen{display:grid;grid-template-columns:auto repeat(2,minmax(0,150px));gap:6px;font-size:13px;align-items:stretch}
+.pen .hd{font:600 11px/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.pen .cell{border:1px solid var(--rule);border-radius:8px;padding:10px 8px;display:grid;gap:2px;transition:background-color 300ms ease,border-color 300ms ease}
+.pen .cell b{font:700 20px/1 var(--display)}
+.pen .cell.pos b{color:var(--you)} .pen .cell.neg b{color:var(--them)}
+.pen .cell.hot{border-color:var(--ink);background:var(--chip)}
+.caption{display:grid;gap:6px;min-height:6.5em;max-width:74ch}
+.term{font:700 19px/1.25 var(--display)}
+.term small{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:8px}
+.def{color:var(--ink)} .ex{color:var(--muted);font-size:14px}
+.stepper{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dots{display:flex;gap:6px;margin-left:6px;flex-wrap:wrap}
+.dots button{width:12px;height:12px;min-height:0;padding:0;border-radius:50%;background:var(--rule);border:0}
+.dots button[aria-current="step"]{background:var(--you)}
+.note{color:var(--muted);font-size:13px;max-width:74ch}
+@media (max-width:620px){
+  .mon{grid-template-columns:48px minmax(0,1fr)} .mon img{width:48px;height:48px}
+  .meters,.opts{grid-template-columns:1fr} .tl{grid-template-columns:5.5em repeat(5,minmax(0,1fr))}
+  .see{grid-template-columns:auto minmax(0,1fr)} .see .tv{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .panel.on{animation:none} .chip,.log li,.tug .a,.hpbar span,.acc span,.mv{transition:none} button{transition:none} button:active{transform:none}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Pokémon Champions · Regulation M-B · the battle</span>
+    <h1>Turn one</h1>
+    <p class="lede">After team preview, the battle itself is a game: two players, one winner, moves chosen at the same time, dice everywhere, and much of the board hidden. Step through each property on the first turn of a real matchup.</p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Team sheets">
+      <span class="lbl">Team sheet</span>
+      <button type="button" id="sh-closed" aria-pressed="true">Closed</button>
+      <button type="button" id="sh-open" aria-pressed="false">Open</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="who t">Opponent · <span id="themId"></span></div>
+    <div class="side them" id="them"></div>
+    <div class="side you" id="you"></div>
+    <div class="who y">You · <span id="youId"></span></div>
+    <div class="band">
+      <div class="panel" id="p-zero"><div class="tug"><span class="a" id="tugA" style="flex-basis:50%">you 50%</span><span class="b" id="tugB">them 50%</span></div><p class="sub">Whatever one side's chance of winning, the other side has the rest. The split moves as the battle goes; the total never does. (The moving numbers are an illustration.)</p></div>
+      <div class="panel" id="p-simul"><div class="big" id="simulBig">Choosing…</div><p class="sub">Each of the four Pokémon on the field gets an order. Nothing happens until both players have locked in, and neither sees the other's orders first.</p></div>
+      <div class="panel" id="p-count"><div class="opts" id="opts"></div><div class="eq" id="countEq"></div><p class="sub">A move aimed at one Pokémon can target either opponent or your own partner, so it counts three times. Your two Pokémon can't both switch into the same back Pokémon, hence the −2.</p></div>
+      <div class="panel" id="p-mask"><div class="lockrow"><img id="bascImg" alt="Basculegion"><div class="chips" id="bascMoves" style="gap:6px"></div></div><p class="sub" id="maskSub"></p></div>
+      <div class="panel" id="p-chance"><div class="meters">
+        <div class="meter"><h4>Damage roll</h4><div class="v" id="roll">100%</div><div class="s">16 equally likely values, 85% to 100%</div></div>
+        <div class="meter"><h4>Critical hit</h4><div class="cells" id="crit"></div><div class="s">1 chance in 24</div></div>
+        <div class="meter"><h4>Hurricane accuracy</h4><div class="v" id="accV">70%</div><div class="acc"><span id="acc" style="width:70%"></span></div><div class="s" id="accS">no weather</div></div>
+      </div><p class="sub">Think of these as moves by a third player, "nature", who rolls dice after both players choose.</p></div>
+      <div class="panel" id="p-stage"><div class="tl" id="tl"></div><p class="sub">Each turn starts from where the last one ended. Weather, Trick Room and Tailwind all run on counters that the players can plan around.</p></div>
+      <div class="panel" id="p-see"><div class="see" id="see"></div><p class="sub" id="seeSub"></p></div>
+      <div class="panel" id="p-log"><ul class="log" id="log"></ul><p class="sub">Every revealed move, item and ability stays in the battle log. Nothing seen is forgotten.</p></div>
+      <div class="panel" id="p-pen"><div class="pen" id="pen"></div><p class="sub" id="penSub"></p></div>
+    </div>
+  </div>
+
+  <div class="caption" aria-live="polite" id="caption"></div>
+
+  <div class="stepper">
+    <button type="button" id="back" aria-label="Previous step">←</button>
+    <button type="button" id="play">Play</button>
+    <button type="button" id="next" aria-label="Next step">→</button>
+    <div class="dots" id="dots"></div>
+  </div>
+  <p class="note">Teams are real Regulation M-B meta teams from the project's top-50 pool; the leads continue the example from "Four of six". Mechanics (accuracy, damage rolls, critical hits, targets, turn counters) are read from Pokémon Showdown's code. The chosen orders, the battle log and the payoff signs are illustrations, not a recorded game.</p>
+</div>
+
+<script>
+const D = {"you": {"id": "MB522", "mons": [{"name": "Charizard", "item": "Charizardite Y", "ability": "Blaze", "moves": ["Heat Wave", "Weather Ball", "Solar Beam", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC"}, {"name": "Grimmsnarl", "item": "Light Clay", "ability": "Prankster", "moves": ["Spirit Break", "Reflect", "Light Screen", "Parting Shot"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABdRpRDNWgQEBAvGE5HvmI1KVRAlVU1ajz9C0L9/f3Jycn3XJDpN2F8gIkKtcJLAAAAAXRSTlMAQObYZgAABH1JREFUeNrt14di2zAaA+D+ADiy+v6PeyIhlpTPaSU7vRl4D+LLL6ojP/6T853vfKf+7f70FUL9MuB6SU3rh+JXAzWtgOJRINUzgOJLAPWMT8oB0GN7wDRbpOiRDLwsH0XwaUAxAvUBNoBfAZQm1Dr6LdSUXo6ArpdL80jUVEf5dnN/MeD+B0bwvjG1osoB4A0Rav0e4HFAsQOlV22I+xsQ2vrLc4D7u7CVwUDvN3DsfwLwCHirTcBW/2qh9YeeGcCABQXY9hrg62vJ0XeB7UGj/1HAgqKwHZPy+vJaUgNCjB5JsQPSBYCxChvwaqFsd+if+YydoYIPjiBF5MS2ry05BhCYhBTXAI/g+gaUwpdaUikGdiEwjSv90hAkd+G1bJd+xQrEZHjpx5cYjvvfXt9I8uf2uAIz0BWBPqgO+gDc9gAA+YpwGMfg2ghzXZ+AwZ9tgpLIFXhaAMbBYNuEt5IUnwBXzyJGCOv5wn4O3Qe0xcIVQocmof/rRigc6nAaQLoIKI5AoKYKYMzVK1v80AgDV/dZHOcSE4FWbbZhLQY7wUuAj6sEuj9Ii4DHQiOA9rgLugJk/4QQmqAAlkNOuBFCoD25OoKBnOE9teAiA3ul35/CtWOUIzI4gF6Rfw0wAMY6gi4BaOvYK0HXfOQBDAEMbwIuC25pAun+yO8ZEZoAANBQ6g9JugqAQPYz6H0TEOpehkOy9WcDCScFEj5xACKjXZE34ENoyfvNJw5JGUDCKYGKSBinHuk24eP9A8qLQN7+9XgKkKdtghvYDQIfaKWjfa+fgAmd6nc0G1pvX58LW9z+LLCW1Bw9uRQf+vuApDP9uAMU7BuZ7gFp7484AyDdARL2/lQgkkfBS3RiBrUS3AJkTQk7kEIADgajJPTB8achFEjlpp8ESpojRKBnIYj1v5X6fX+6+duRAHzeDqAF0Eow0n6APh9B2m5IHgCzX23lMkCZpwywCNrdz4D2wb4Dff6hqpeVIfhxElzXA+JnG737vh+zu30t9g6tBGcBSIB9/X3AK471U8B0jsQEeni332W+40LOlIQ5wCqHlv5Wznv9EPox7MKhH5gj+O6O4C1w/92o7z5hZ+kHZlGJKId+p69gH510/z1A8hd0AGaf9M/Nuw4Duls+t2Cfju7n2p/RIvbcGMsIvwEEknv/AsD1vZ9k7ukGJjGBzwXNzSEs8FdFXtuHEcAU0Kupz4F1c0hMwf17u45Evv0Fhw04E2v0FnpraGB1mjrqYcD9p0M4AxBlYExCNGF85Xo4+zvAft+gARDOClwXvJh5OIb8iPw8kG+AFbLg/ocFAxbcu0LQ04DGanIdgNy/kA08LOQyhL3Yj5xfcP/DgErd16/Nk4QeB9xfqm6B4zfy4wClsmVZztsq1vKgUFtSMfBJDKQkqV7vdv4ksOzf25ac7i+plrbkBMA0U04KW2+rrsX9Z4HS1p0D3O96tvzpCHnYUk4JBtq1l5/5p6MR1bdTAllTu54+8xpR+40nDxLZrhfSins5+ePvhOy3f1O+853v/AM7XSSoHxEOngAAAABJRU5ErkJggg=="}, {"name": "Pelipper", "item": "Sitrus Berry", "ability": "Drizzle", "moves": ["Weather Ball", "Hurricane", "Tailwind", "Wide Guard"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAQEBCLQTHNQVLFezH2tDH/3kr//6z////N1e6k5v97ze5apM1zc4MxYovieTafAAAAAXRSTlMAQObYZgAAAj5JREFUeNrtlAeW4zgMBf3RpE22SNz/uItPBewkP0uGJqo6B1cJULj9S1xcXFxcXKgB4DR9+/ycmqHAOXoyCmyE+4eegUpaQ7B/Wvx1JbiAysJkfie20GszSgFwTgBlBFCsUcL9BLO/o7NCfzAQYQDAPMYtGrnfpfRCQgPuN6SOCXqoPxEZ/pznc1CDAmlw38iSrDCDCP3j4fLFnzMgMQXTL/7szD9BJCAgMCST9Vuv5YjCAGR8k9hwJNX3ZzC2Dq+kj62RUpb6ZkFk286slw8Cwot2FOZENw7cVzk51G9Y+j4CBoxejL7bP7Rk1WKB+i1ADt0Y8qB+XKgCIrxqHQ+QAw9X81H/Y7IHyJGA639xoJ8SyAx0D9SE2+7C84AkU3vh7EA6Eng831BONBP4ABEjeKD2sgRSDgu43wMVOYUHEj9QyhKgP6jgfg9USGQgr7Dg93FYITsZpZwfiC1kvkUFWHjiDy/Q7IWIAIHb3e8wEFDIjhM1Qkd+UhB44GChF+BHBUFrKO8VlK+HNxwBmqFg4HBBJ7WXa2XjCzfMhaYeOFbQaZpUtanR4Jh4DfiOVLUqdvup4AeNZFiXgK4jDDe/bQ26w982v+oSYAFrD+P3KNrYJGBl5wCqPsAAbGD+FvxJt+OYOzi4IIdiZwQOFNT9iqdzg6v0Lb1aGMflC3oGpgMF+NzD/1IBOwrw/wVeOhwv6EsB3fyv7FO98OprYNz86Pct6RaOF9x/TmEMfg6ABfQsu5+2i4uLi4uLX8l/Cd43EaPQnVQAAAAASUVORK5CYII="}, {"name": "Archaludon", "item": "Leftovers", "ability": "Stamina", "moves": ["Flash Cannon", "Dragon Pulse", "Electro Shot", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAVFRUQHToeLFkkPHkpUJhEcshoYoSKhpuppbng4O3/3527eUTJR0d6PT4QKO1VAAAAAXRSTlMAQObYZgAABJVJREFUeNrt1oma5CoIBeAgMaC1vP/jXjAnreWkFu2++/BNOfv5BWpbfte/q+7dr388/0YPv+7rN8C3Ghput58XeK2RYV1Pgeu3gNgAMYJ7zL+MtHXt8ytA8fhND1zp8/yLdIDdOYRXwPUyBlyrEPYJhW3jNwCEQSBswRoIns8iSzjP15TSNLCFaMfGK2eVZ0DOmj4HRCpAbMK2RV5XtphzQLMD8nF+VqnAaoLnB+sghfgM0JRoAEgNsHJkDmvgizqwnuWPAQrgEHi/PzmwMj9pYGRCDwATlwVcrpbPViTTDZwDkbyDlNJNHSDNctLA4ArOgPvtXoAMoWtAlpEVJGnyHVjD7QuAMD+hDlh3gIgCF+BRkNrAHLCtkayi1dGA31k6gL4DoLYClHgINX8A0BbwfAArgAwAwuSEWiAXYc1lQiHnKiAfE5oHTLCjAhD0Ks2E5gHPWv3YAOiRf70K5dEJLQqgbaB0sDoQEC8omplQD5Qt20+lAcX096I8OaEWsOwiYEJ6BsgyByA/F+FrBacNzAOWX4QC4DkEQPLMhHoAFWN9DrUAFjYDiBU/NsDB4sVqvgG1KvkiKed+BaFEppydIOSPT0hTSQdggikdkGxKpFYyNiEMVSwBQHZhdaO+T+wGGpCJFUsG0LwPrVsLKPJHATSQCyAiBchrBuD5ZUcA8BqbA0RUDSgLLgcADzSj5AMYzk8l3oDgDZQtYwUAkqg2TyEZB0SthEL9rDkm5HbJzCfA9X0+mvZ8oiU0n5YAQLT5SQn5F/msgVTyF8+PbOnsROAKLPIAIB/ABw24QDvAN47+iNsDUPMngSRpB24O2GFAl38KvBQkp6+t2YP2BgA8TKjm94C+BFI8BbZyAED+A/AVqprlZQMx4b13fQKox1p++qUBOUYsrxowQNMLwAQt+TF1gGR5CaCByAxAftnBihmV/IhtARCxYHkDEKM8fwcW2oFyAij5FZDysDPnJA5gI2dAFQwoMzKgZFeAkb8vCwD5oZqSWDyA18QZcAPAXgCOZXm+J0sC8JIIZLHtjABgRriE7GkAVBEP4SXh8S1AEGgH1AQYnl+AJv6Dz+dg6Wz1NSMqgJ2BITSA2tHcXl0I4TXAddly+XVGSQnLEjRQb19+BKY3LRwELTsAAUBJMqMCze01BeS/J8jyRdrnkaUXQMvwfVsA6u018Pt87BqvfMzIzjszZmT5KAWgmD7yPysAzHS3bL7faQe8AbYCQIlw+73xZQyA4ICfwQGr9pkEIAVG/jhwv3t2ObBmByAAOPY2Digh2xgALhBBKEDA9cfzAfQt+N/BMADxtMwBiZgAEADF35HVMS/EzwGhXbML0n4oE64/DSTq1twDiJ/KBxAAQOgAxM8Dibo1S34Alm8CfQs9kOi7+b3wwwDWSFWgFtCfAVSVUBbXAjIBID+1gJc84vWbEU0BKaYKQDgBSL8PCP8wgHwD0ACRA3I6ImIIE4AJxyuJrLr9fBNIsQXOx1eBcYGIDoBoeQ3MtADDAMT3+Q1ALDSTD+PFfgAsA/Fj+6kL+uEiKwAj+eOIAaPTGd/Q7/rn1x+MD2QnZDsM9QAAAABJRU5ErkJggg=="}, {"name": "Basculegion", "item": "Choice Scarf", "ability": "Adaptability", "moves": ["Wave Crash", "Aqua Jet", "Last Respects", "Flip Turn"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAIj76UH43jFnGNVIQEBB5GjLm5uakpKQiYD1BUlJiYmIgMTn+p8hjPikVQCKYDWH3AAAAAXRSTlMAQObYZgAAA0hJREFUeNrtloeimzAMRZHvFbg05f8/t7KQYh5dDl2Lk73OwY7emG5ubm5ubm5u/j34k/3r/IWC6o8MrJ/6RVS/P2P+eWZUzoGWEE4d+Z7AeRUU5xiQB17OrMtsWGW1uzwvAe4/BSIzvgDDKsu6eED1uAS+bSKuXw0YquoBFVHPZGHSSKJ7r/jNZQlagLE79AD2V8z/sJ0RuRhQcbQH/IbN72gE7DLJxQDgU+nq6BDQ/bmHWuAhjwc9MgxnZ9kHRsXJJVDhAVExNR76cPelQCtkQBvYl4T9K4D4wT/s8uIQMfxewK6Xzl6Aovl1ovkHeA76+8a6WsALfREdGKoALMDBgEJD/i4Bnjo9+QMlm3vUH/K0p6uUEtMUdP00ipr/s/ayQ/8m8Dag0zAKdP3JLj0g+vSrB1RHA6lPO6BaHBGxSzn8QKDBqHDIf9DHxJuQJQqlBSiNltlh3HBg9/Wsh0j6O/RXEg3/0O53fR4lKRnokN0Pciigart/1AMtoM0W2xMoGT9cKSa/HTDVtPvzd0ypsABRTqjXBQro08uRgPtVxQw+NrVkQORTfwRSy2/6fXq0ySUT1W4pOATEA6ro/kHi8GP64r+dqv7I1RnR3B6yXRaOB8JfUJtlTwglCmL0HSJYq+mNdSyRC2ApW5OAhBjEOQARgM2/BBz1W8D8swU8RFLgGfQtqorGwU9y1A+yVJk39UCDdpMB1xva/S9uEARVKIuKCuouLIdADUj3j+sjAKkmEfiYsDibB9DtgN9sjM0fZat5vBsFbwIQcWkGQv+a3wMBTQipWxbxvmHazJDLy34r5JZ7QVi2WEAV91nC2Ux/xR9LIKNAl2+lVgi4RMLtyTq9xMymnxdu2dncXwFU185zU67rtQVMnMgPH2a70MwtkH4LtMJsrJG44HdM/qGx7YHw74PvgUxcDFjBGg7T73pzcU68cM3vCa4ZyKlx1blwKcC1bdLcClsEyJyWDGThSsDdbZB8iEIf/lPhGqy0AGtxTL8u58D3F1iefnv8uQAb1/zKJgfCb6zpz8Jq7ssowBYQS4SHbwNr2C/7wRr/dWpKjwFO3wUJndgQQ/vo/jjA3SlCcvoJpJUyrL9eurm5ubm5ufmlfATfaCf9iOvmnQAAAABJRU5ErkJggg=="}, {"name": "Venusaur", "item": "Focus Sash", "ability": "Chlorophyll", "moves": ["Sludge Bomb", "Earth Power", "Sleep Powder", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACDMQD/vb3/e3PevSneQUG9ajEQEBD/7lIQUkFanDkQe2qD3nta1cUgtJz////Qs62tAAAAAXRSTlMAQObYZgAABKBJREFUeNrtlAFvozgYROOmZjJxgP//b+/7xgxJlULJ9lbSSnk92ADmPWxLd/onePPmzZsS7N/+pf3j4+O8yIqOfv8c/DoiTQQki8vPokP3zR8nrFGg1hAPn5+fOuJ3ref8+1XCX1lDXwd8PoK4pfKS+KX/46MOlyysx6UGEaiaoAqv+4s5KxAFrMelrCjwekFvinOVZ7gM5RLiPIZLLpE3P1Hg1e114FyT4SIGHQpUBRJV/mT5vYtVk7jcAaJg+fItShz1+2V/nYpu9EsEXwLHE6VWvWP7l9aQ19auDS9mORjobwB4tKmIUr/eAe5X8QiH/EHqT9L3mHWl9Pk5EKzbUfMPBwMV+WPxOID0O2Gc6IWKl/x1DUhTDFwwOOn/HMub+6BmAktIgUc/8sA3hVONQDkyBWiUApqDDShAwYBs4KQHjsfF8kY5HLC/+v0UDxiGAV4kB4J1zpH+GUCj5V/OyG4pQ6doCt4djXABp0PAW+BZKIBQyz88BCTXL+i9o9jfgaIFRfKhAFry1FYVPhLZfxEoy+frjBOXXQoUKK8FgFrvEZBEqg3Jqx/3ALQ+ryWIdOdxDdqyBblMvF5J9gI8yddgcM1ZOEAiVz8PfX+wBEocAPma/io8CxnJNA+D2rzPgIAGk0cjBJbxauSVgqroZu8XJHYvQw5+vscb3ZPZaWO3b/84D+J2Jb9o6PPd+9j7OoNbsFeIAddrDLm7vCo3h/gc8Djpc1W3/dJfH7DW/pvr8EPjxwmw6dcMgnyZ3/gTNAqN4EOmv3bbXiYJEgovkP039rfBsQPE0JDi5nYAMNjcAP2HaQzI5sqNXZAJdv00sQF5K4sp1m8v0K7/BqowatfsV8Lx0LM0NMByF8T3BYCLH9UFDWeX64w2TeEna81A4inoRMq/AQHqsQvaufzrkOmfwl/qPYCgeR5oJE57ABmqZ97XSH6dwi9aK6UHjAIkW+PpR9gaKr1C/n46oEIkmgKGAJrgAX9Dn4DsjtB+J1wwhj/7G8eERPd7gRxwIouvBjjJP6kAywkFbF4TWEpGwd0C8wX7uS4+G+RvYzdPBjrT396fcs+fcGyhbz0ABfpy5G2rnwvyu7Dvn5gmFTDliZq9AvGQfCrAAbEfYDhGjtIB8S/QHvyM5+0pkIV7lnt+BeZC+UTXLwGWMs8OaEtdWP1tP8BRgY+4WAJ3W/o/HgPtIeB7Iydu+x2Yz98EcuXm8zyPDtABF6jjx4AKI5/8KRzl3wqM/HkLYOv4FPCiPPubC20nQI+z2f4NyLYGRi6B/Qm0bsOhwKJfrJxcaG17Bp470Lb9TT7SehNjvUabgRXMLjzZ29xCP4980kdA+obTfoBZ4NSe9WmnPl5+N1MvkPU2z9wvjL0wN9d89soIgN0/2q/AnIGtgjUyAyR14WWX3cDj2+LPMzDPEN8HussQrakhLBc20MuftAicuOEW1AK6ELME1BDPdhfGNbDptn8NNAUSKGI8++eA2AvYNbuCrw+2VpbH/SICaMjz6Rik3E2nA+MB+HwMzi3Vc8sTT/87nLs6/2nzXygAaIAC3qS/AjDb/fcSp3+aN2/evHnzHxDriT4zBlC+AAAAAElFTkSuQmCC"}]}, "them": {"id": "MB763", "mons": [{"name": "Charizard", "item": "Charizardite Y", "ability": "Blaze", "moves": ["Heat Wave", "Weather Ball", "Solar Beam", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC"}, {"name": "Garchomp", "item": "Life Orb", "ability": "Rough Skin", "moves": ["Earthquake", "Stomping Tantrum", "Dragon Claw", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII="}, {"name": "Incineroar", "item": "Expert Belt", "ability": "Intimidate", "moves": ["Fake Out", "Parting Shot", "Darkest Lariat", "Flare Blitz"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAXFhUBAQFZCwNEQTrxNSElIyGqFxD/7gYctFT+/v5cYWOHlZpLQUf/cQEaNs1QAAAAAXRSTlMAQObYZgAABERJREFUeNrtmdtym1AQBNmZ3R0HsP7/c5Nz08WUAiLKm9rlQq5auuFg4EHThw8fPrwbw3QH8W6vuePOH+8LJHqgFdj8gbf5M9H8tUBhIuO9ASu4k56UwIh3BcDJ0iwiPJ0Bl8Q3+ieIlkXvXv0eRf/vAZJ9K6X7ze8Rj34710FEbSCo5iQDoU3AHNMp2KREkB7hjMDXfQDW/GcDiIqECAar/yvCdfU7xp1xvqACuvHXry+G9y7q2pjXwEmgBhFU4AsloKonSXNHD/xjgV9wwgts+rIpbjT/aYCWMDOvmMegHry1gOFsIBOgilbVP1t0sJh3YInzgaRk7nRPM5tnNT2Wa8AyEy/cveTUMKsFSrTCvJYfRRBYqr9F7aifZIQY0QtIMyQkqi6MChGKwNICaZREGo7euAyJwdtD2hIAJMaAjFYwT1MPHw6IEmfeXYG6wPr+ZgNYV7IHTFHRsTUiqaLHDHKcQuX7e13XZa0sZUsUfzIq7nmkwAiRKn4o2jyav6ubvnM7AfdDBUZBWGdglfq4Ff9QNv3A3Jq/khKOPDo1A8A8o1cxAlvgdvMfuNIIkdI6Q0AftYB1/xakDX9U9gtBAoDGpHkE/hZQC0RnPyBREjH8JVD8zwtZ/UcLPQAb/seA7wTcE9NuQUKmtUArPAm0Qubwl2mS3Hu9kJm1wNgJLMtSCyp6kk5GhHYKzIJkxnaHShh+93t9BTCTNB6ScaDQ/FKaRfsM3wbclw6gptY6r+1UdgsqVPd9wQuj5MsAE7jOEYF5niOOrJIeAyn4T5Y7/zRxrgGg+Auc9gojMAqLu2eh6x8DmCMgSWBbJmG/UMV9CyxL3rj3f9d5AKpwnmcdeP3gFlAC04Qia/ZHqomhTiuR3C3kCKCNogVG4VrCeBGKHI364VCh628FbdZJIwCgq7lG7AcmoPgfk7po6Du6aMJ6+78BwHleW2A/8TAkpC6t0OXFXwOPk6SK/2V0QQtUd5FLlxrAzqEdDujyVQrF3Y4+Ln/Ycb3gL4FSKOp29O8PtIIuQ87y+7ZAoQQ6fw8YXvQzpOLfFCj8dE+TmYPkS/4/6CEQ1wAf/W7mnogIvuaPegr9EkhksZOCyPtAevdLOOxvqNA29U9SBeg+Ye6ZCRXwgn+LBlVGs+bPiplJwst+kj/sI6AiJZlXzIRX/MOLgrQpZGF8GIkz/qmAxwCqdltI7PrNPW4M/7aA3AYATEcCvvFvCpgm4Bo4ah/+a0Jln2eFkuj+BqajgcFVvy10GzqZOFpApnfK/JPCTxsShWOBQvc/KWTlwQdMR8FfVxR5Q5jOAKkHdgrS6ULjWQHd/38CI6FKnizs7ow+cjZw4L7BGMLpAo4MJYTTgUNT+s8BnQmQ8Qdhd4yUXi6w6vcLY+zVAKOg3cDQt7njsO7C2A9UuU4EGCHtBxDVHa8GEOwnIGBvsE9iegVcOTz4+ar3w4dn/Ab180pwLQf8DgAAAABJRU5ErkJggg=="}, {"name": "Farigiraf", "item": "Sitrus Berry", "ability": "Armor Tail", "moves": ["Psyshock", "Trick Room", "Helping Hand", "Protect"], "img": "data:image/png;base64,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"}, {"name": "Sylveon", "item": "Fairy Feather", "ability": "Pixilate", "moves": ["Hyper Voice", "Yawn", "Quick Attack", "Detect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAACKKEMjWpn6jKpkyPMQEBBSj8zYWnqJXHL/9fXZw8PxiniojYxn8J9sAAAAAXRSTlMAQObYZgAAAmpJREFUeNrtlVliwyAMBS2UFwnF9z9vHyJ2s/2B/5ju20xFbGVbLBaLxWIxCRG+K6Vc5leVUm43XBeg/lr/nf7rjkjsfmeBXFQw1SwAl/lb4Sr95rUygJ9+I+N+ojDDD7sSmRHA/StAe0em+DPwoZ8WoP8zINP8G2qNr4Boo5RhPwH9Vt4DknpW1dI/tgj9PeC+yVNfVJ7+oUUIBowBHA+JND0xNVV0/YC/FcQKA8dD7odfu19yjYwsQsCsZEAy0I+H9O/lohpahCIsmJDmD+96M3Q/YQAYejqjXgkDwfcJjeeiGlyEogdd56qc5OknOqD/uG89wqB6Bug/UiPI8z8nAFohUusvfhkr1FJq0xJrgVoD7vHi16ExnHdSpZ+dEgHjGyJe/AzIUOBeb5Wwcy9hoJ6kHud1gJHArQf44cYRqIIzcOrpHwo41e8BArJtswIEUVvnHhn4gAEbDPCt8xkYH6AXwv2RkfkDkHY8/ng83gLurzc6tiHgtT4e0fw7nno2D7+ZjAUoA5re3XHod8BPvxkGA1WApg10PYsZpD8ZnqCqSB4RM/khaiO86+kfLKiK9kOKpu/+LDW2URDaaL40Rj2hfByn16QFzi13Epjgr+EAlLJTP3OEvOIRO4DUXxEAA0m9INBvWXz4Y9/jKMwK7Ayc9jywOQEwAIB6fxp93x2tEVOuI2o8IhBnAcCGnQDNH+OFYAF7K5xnkgV2EOOBw3IE4iWwzQgQkDNA3RnIgmGbwVege5G7elLBWkCfAZsfMBNN/5UB/RigfzIHvPnl4gHIS2nqAB9kaQ6AGgNXAlzoXywWi8Vi8QcC6iNLXYTIxAAAAABJRU5ErkJggg=="}, {"name": "Aerodactyl", "item": "Aerodactylite", "ability": "Unnerve", "moves": ["Rock Slide", "Dual Wingbeat", "Tailwind", "Wide Guard"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACUg6SsrNVzUpQAAABSQXOUYs0xGGrNzeaDIEHmi5zNOUqsg97Nzc3///8xcyl8rC/7AAAAAXRSTlMAQObYZgAAAxdJREFUeNrtltFu4jAQRX2He4lTSvv/f7sZe9gEVwSD+7Ar5bwhWed4bINIBwcHBwcH/waA1Ls0eMmOnLM6l1rwZL20tT/xK1ZXOyYuTPt+5szkyBYAyHkwuHI2esYMJE/n85npCTSLAgnYSjSagIFlK4v9tOdHoZwPYbrFFBNE6GcCImmG0J8fHY9yAcqZhIwpIAHPSZFobyCb+yf37wV8KWmZGQZlbQYVGSt+DFHtJuOeP/A1IiVAOe65oR2CfsMyg9wfgd2CQwH0p/G4oM0AgAB2+KPgEKD7OwpUBM49gekUEMbUUXAI96+BroLkhr6Cuv3bAs20HzBtA+eXA3g6AuoC+hPqDqwFPQ7wFmB84jsB2rMC8EbAC50BoBZk7R2Pn5HWgMfaKxg/Iy+gwNdPKAr774gImPRewKFBzwKgmbn/9cD5vHNGwg2VK/h8ObAsnQjgZwGohXUATqfPz9cu2fW3n+3WX/9hcB0APE2e6A+E3uFaIJOjNVD98rWR6CpMoW8KNMYA2VgDcQFObXiiIxD6phABLX4Ta6C+0CASTwvTwtoQdfu+roEFScWPjT4SnQ8pKjKKAFWfrITshWgY2OgLqZclUQ6BZbMG+v7/Bu4PKMyv4gV4gSWw9ZtsHeAddxQEQGLd8tYPmHFQ70jKCiMY/giA1Z9GEKpTAmA02wTCzxE/LTvUFbgrIAKD/sTq/75+ocCb/rcC5WLBb5WAwGoPpsUPDt6wbZSEcMc0DQQk3/1WL6AtgO/7s7PqxZkuRMO7AVnRK+TkPJeAfi/gMPZeYUm1Cb0XoDkuoxR+AVQzhJnS+4XbDnWZ58uFANO9XmZDhXrGHnBUWtCaoI0EErUJfHx8CPQAIiGyHNHIN41k8V/d/+UBocCFRBTohTH04QibQPsHdQhdSoD1CrZCUoKjscDs/i8Wr5odc3wEXUvgqqqh9LsB2mVezmimRQDaCjUaIK/zwpcUAUHanrkgjhRo9ABpgMJI3Y3ApKGAccHC75CJq5BgGhzBWQMtxHBBuz/LUeDQQyL3BCLTwcHBwcHBwf/AH8rTHrYEVKitAAAAAElFTkSuQmCC"}]}};
+const $ = id => document.getElementById(id);
+const M = (side, n) => D[side].mons.find(m => m.name === n);
+const LEADS = {them:["Incineroar","Farigiraf"], you:["Pelipper","Archaludon"]};
+const ORDERS = {Incineroar:"Fake Out → Pelipper", Farigiraf:"Trick Room", Pelipper:"Hurricane → Farigiraf", Archaludon:"Electro Shot → Incineroar"};
+let sheet = "closed", step = 0, playing = false, timer = null, loops = [];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+$("themId").textContent = D.them.id; $("youId").textContent = D.you.id;
+
+function field(){
+  for (const side of ["them","you"]) $(side).innerHTML = LEADS[side].map(n =>
+    `<div class="mon" data-name="${n}"><img src="${M(side,n).img}" alt=""><span class="nm">${n}</span><div class="hpbar"><span style="width:100%"></span></div><div class="pick" id="pk-${n}"></div></div>`).join("");
+}
+function setPick(n, text, cls){ const el = $("pk-" + n); el.className = "pick" + (cls ? " " + cls : ""); el.textContent = text; }
+function every(ms, fn){ if (reduce) { fn(); return; } fn(); const h = setInterval(fn, ms); loops.push(() => clearInterval(h)); }
+function later(ms, fn){ const h = setTimeout(fn, reduce ? 0 : ms); loops.push(() => clearTimeout(h)); }
+function clearLoops(){ loops.forEach(f => f()); loops = []; }
+
+// ---- per-step scenes
+function sZero(){
+  const seq = [50, 58, 44, 63, 50]; let i = 0;
+  every(1400, () => { const a = seq[i++ % seq.length]; $("tugA").style.flexBasis = a + "%"; $("tugA").textContent = `you ${a}%`; $("tugB").textContent = `them ${100 - a}%`; });
+}
+function sSimul(){
+  const all = [...LEADS.them, ...LEADS.you];
+  all.forEach(n => setPick(n, "choosing…"));
+  $("simulBig").textContent = "Choosing…";
+  later(900, () => { all.forEach(n => setPick(n, "locked", "locked")); $("simulBig").textContent = "Both locked in"; });
+  later(2000, () => { all.forEach(n => setPick(n, ORDERS[n], "shown")); $("simulBig").textContent = "Revealed together"; });
+}
+function sCount(){
+  const opt = (mon, back) => {
+    const T = {normal:3, any:3};
+    const target = {"Weather Ball":"normal","Hurricane":"any","Tailwind":"allySide","Wide Guard":"allySide","Flash Cannon":"normal","Dragon Pulse":"any","Electro Shot":"normal","Protect":"self",
+      "Fake Out":"normal","Parting Shot":"normal","Darkest Lariat":"normal","Flare Blitz":"normal","Psyshock":"normal","Trick Room":"all","Helping Hand":"adjacentAlly"};
+    const chips = [];
+    for (const mv of mon.moves) { const k = T[target[mv]] || 1; for (let t = 0; t < k; t++) chips.push(k > 1 ? `${mv} → ${["foe L","foe R","partner"][t]}` : mv); }
+    back.forEach(b => chips.push(`switch → ${b}`));
+    return chips;
+  };
+  const yb = ["Charizard","Venusaur"], tb = ["2 unseen", "back Pokémon"];
+  const P = opt(M("you","Pelipper"), yb), A = opt(M("you","Archaludon"), yb);
+  $("opts").innerHTML = [["Pelipper", P], ["Archaludon", A]].map(([n, c]) =>
+    `<div><h4>${n} · ${c.length} options</h4><div class="chips">${c.map(x => `<span class="chip${x.startsWith("switch") ? " sw" : ""}">${x}</span>`).join("")}</div></div>`).join("");
+  const chips = [...$("opts").querySelectorAll(".chip")];
+  chips.forEach((c, i) => later(60 * i, () => c.classList.add("in")));
+  const you = P.length * A.length - 2;
+  $("countEq").innerHTML = `you: ${P.length} × ${A.length} − 2 = <b>${you}</b> &nbsp;·&nbsp; them: 14 × 8 − 2 = <b>110</b> &nbsp;·&nbsp; one turn: ${you} × 110 = <b>${(you * 110).toLocaleString("en-US")}</b> pairs`;
+}
+function sMask(){
+  const b = M("you","Basculegion"); $("bascImg").src = b.img;
+  $("bascMoves").innerHTML = b.moves.map(m => `<span class="mv" data-m="${m}">${m}</span>`).join("");
+  $("maskSub").textContent = `Basculegion holds a Choice Scarf. Before it moves, all four moves are legal. After it uses ${b.moves[0]}, the other three are masked until it switches out.`;
+  const mv = [...$("bascMoves").children];
+  every(3200, () => { mv.forEach(x => x.className = "mv"); later(900, () => { mv[0].classList.add("used"); mv.slice(1).forEach(x => x.classList.add("masked")); }); });
+}
+function sChance(){
+  $("crit").innerHTML = Array.from({length:24}, () => "<i></i>").join("");
+  const cells = [...$("crit").children];
+  every(160, () => { $("roll").textContent = (85 + Math.floor(Math.random() * 16)) + "%"; cells.forEach(c => c.classList.remove("hit")); cells[Math.floor(Math.random() * 24)].classList.add("hit"); });
+  const W = [["no weather", 70, "--rain"], ["rain (Pelipper's Drizzle)", 100, "--rain"], ["sun (Charizard-Y's Drought)", 50, "--sun"]]; let i = 0;
+  every(1800, () => { const [s, a, c] = W[i++ % 3]; $("accV").textContent = a + "%"; $("acc").style.width = a + "%"; $("acc").style.background = `var(${c})`; $("accS").textContent = s; });
+  if (reduce) { $("roll").textContent = "85–100%"; }
+}
+function sStage(){
+  const rows = [["Rain", "rain", 5], ["Trick Room", "trr", 5], ["Tailwind", "tw", 4]];
+  let h = `<span></span>${[1,2,3,4,5].map(t => `<span class="h">turn ${t}</span>`).join("")}`;
+  for (const [lab, cls, n] of rows) h += `<span class="l">${lab}</span>` + [1,2,3,4,5].map(t => `<span class="c ${t <= n ? cls : ""}" data-t="${t}"></span>`).join("");
+  $("tl").innerHTML = h;
+  let t = 0;
+  every(900, () => { t = t % 5 + 1; $("tl").querySelectorAll(".c").forEach(c => c.classList.toggle("now", +c.dataset.t === t)); });
+}
+function sSee(){
+  const closed = sheet === "closed";
+  const rows = [
+    ["Farigiraf's HP", "63% of a bar", "an exact number of hit points"],
+    ["Farigiraf's item", closed ? "?" : "Sitrus Berry", "Sitrus Berry"],
+    ["Farigiraf's moves", closed ? "Trick Room, once used" : "Psyshock, Trick Room, Helping Hand, Protect", "Psyshock, Trick Room, Helping Hand, Protect"],
+    ["Its stat spread", "?", "set by the opponent"],
+    ["Their two in the back", "2 of Charizard, Garchomp, Sylveon, Aerodactyl: 6 possibilities", "known only to them"],
+    ["Your own four", "everything", "everything"],
+  ];
+  $("see").innerHTML = `<span></span><span class="hd">what you see</span><span class="hd tv">what is true</span>` +
+    rows.map(([k, a, b]) => `<span class="k">${k}</span><span class="${a === "?" ? "q" : ""}">${a}</span><span class="tv">${b}</span>`).join("");
+  $("seeSub").textContent = closed
+    ? "Closed sheet: much of the opponent's side is hidden, and your own sets are private information they don't have."
+    : "Open sheet: items, abilities and moves are shown, but hit points, stat spreads and the back two stay hidden.";
+}
+function sLog(){
+  const L = ["Start: Pelipper's <b>Drizzle</b> makes it rain. Incineroar's <b>Intimidate</b> lowers your leads' Attack.",
+    "Incineroar uses <b>Fake Out</b> on Pelipper (it moves first). Pelipper flinches.",
+    "Archaludon uses <b>Electro Shot</b> on Incineroar: in rain it fires at once, and raises Archaludon's Sp. Atk.",
+    "Farigiraf uses <b>Trick Room</b> (it moves last). For five turns, slower Pokémon move first.",
+    "Now known about them: Intimidate, Fake Out, Trick Room."];
+  $("log").innerHTML = L.map(x => `<li>${x}</li>`).join("");
+  const li = [...$("log").children]; li.forEach((x, i) => later(650 * i, () => x.classList.add("in")));
+  setPick("Pelipper", "flinched", "shown"); setPick("Archaludon", "Electro Shot → Incineroar", "shown");
+  setPick("Incineroar", "Fake Out → Pelipper", "shown"); setPick("Farigiraf", "Trick Room", "shown");
+}
+function sPen(){
+  const C = [["Archaludon Protects", [["+", "they hit a wall", "pos"], ["−", "wasted turn; Pelipper takes the hit", "neg"]]],
+             ["Archaludon attacks", [["−", "Archaludon takes the hit", "neg"], ["+", "free attack", "pos"]]]];
+  $("pen").innerHTML = `<span></span><span class="hd">they target Archaludon</span><span class="hd">they target Pelipper</span>` +
+    C.map(([r, cs]) => `<span class="hd">${r}</span>` + cs.map(([s, t, c]) => `<div class="cell ${c}"><b>${s}</b><span>${t}</span></div>`).join("")).join("");
+  const cells = [...$("pen").querySelectorAll(".cell")];
+  const cyc = [0, 1, 3, 2]; let i = 0;   // best responses chase each other: you match, they mismatch
+  const say = ["You Protect; they hit the wall.", "So they aim at Pelipper instead.", "So you attack instead of Protecting.", "So they aim at Archaludon again. The loop never settles."];
+  every(1500, () => { cells.forEach(c => c.classList.remove("hot")); cells[cyc[i % 4]].classList.add("hot"); $("penSub").textContent = say[i % 4] + " The stable answer is to mix: Protect about half the time, at random."; i++; });
+}
+
+const STEPS = [
+  {scene:sZero, panel:"p-zero", term:["Two-player, zero-sum game", "Two decision-makers, and whatever one wins the other loses."], ex:"Each player commands two Pokémon on the field but still counts as one player. A battle ends with one winner."},
+  {scene:sSimul, panel:"p-simul", term:["Simultaneous moves", "Each turn, both players choose without seeing the other's choice."], ex:"Your orders for Pelipper and Archaludon are sealed before theirs for Incineroar and Farigiraf are revealed."},
+  {scene:sCount, panel:"p-count", term:["Finite, combinatorial action set", "There are only finitely many choices each turn, and one turn's choice is a combination of smaller choices."], ex:"Your turn is Pelipper's order combined with Archaludon's order, each a move with its target or a switch."},
+  {scene:sMask, panel:"p-mask", term:["State-dependent action sets", "Which choices are legal changes with the situation. Learning agents handle this with action masking."], ex:"Choice items lock a move; Taunt blocks status moves; a fainted Pokémon forces a switch; Mega Evolution is once per battle."},
+  {scene:sChance, panel:"p-chance", term:["Stochastic game (chance moves)", "Some outcomes are decided by chance after the players choose."], ex:"The same orders can produce different turns: a lower damage roll, a critical hit, a Hurricane that misses outside rain."},
+  {scene:sStage, panel:"p-stage", term:["Multi-stage (dynamic) game", "The game runs over many rounds, and each round's result changes the next."], ex:"If rain, Trick Room and Tailwind all start on turn 1, they end on different turns, and each turn's options depend on which are still running."},
+  {scene:sSee, panel:"p-see", term:() => ["Partially observable, with private information", "You can't see the whole state, and each side knows things the other doesn't."], ex:"Hidden choices, hidden sets, hidden numbers: you decide from what you can see and what you can infer."},
+  {scene:sLog, panel:"p-log", term:["Perfect recall", "Players remember everything that happened earlier in the game."], ex:"Once Incineroar has used Fake Out, you know it has Fake Out for the rest of the battle."},
+  {scene:sPen, panel:"p-pen", term:["Matching pennies and mixed strategies", "A choice where you want to match the opponent and they want to mismatch you. No fixed choice is safe, so you randomise."], ex:"Protect against attack: if you always Protect they aim elsewhere; if you never Protect they aim at you."},
+];
+
+function apply(){
+  clearLoops();
+  const s = STEPS[step];
+  field(); for (const n of [...LEADS.them, ...LEADS.you]) setPick(n, "");
+  for (const p of document.querySelectorAll(".panel")) p.classList.toggle("on", p.id === s.panel);
+  s.scene();
+  const term = typeof s.term === "function" ? s.term() : s.term;
+  $("caption").innerHTML = `<div class="term"><small>${step + 1} / ${STEPS.length}</small>${term[0]}</div><p class="def">${term[1]}</p><p class="ex">${s.ex}</p>`;
+  $("dots").innerHTML = STEPS.map((_, i) => `<button type="button" aria-label="Step ${i + 1}" ${i === step ? 'aria-current="step"' : ""}></button>`).join("");
+  [...$("dots").children].forEach((b, i) => b.addEventListener("click", () => { stop(); step = i; apply(); }));
+  $("back").disabled = step === 0; $("next").disabled = step === STEPS.length - 1;
+}
+function stop(){ playing = false; clearTimeout(timer); $("play").textContent = "Play"; }
+function tick(){ if (!playing) return; if (step >= STEPS.length - 1) return stop(); step++; apply(); timer = setTimeout(tick, 4200); }
+$("play").addEventListener("click", () => {
+  if (playing) return stop();
+  if (step >= STEPS.length - 1) { step = 0; apply(); }
+  playing = true; $("play").textContent = "Pause"; timer = setTimeout(tick, 4200);
+});
+$("next").addEventListener("click", () => { stop(); step = Math.min(STEPS.length - 1, step + 1); apply(); });
+$("back").addEventListener("click", () => { stop(); step = Math.max(0, step - 1); apply(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight" && step < STEPS.length - 1) { stop(); step++; apply(); }
+  if (e.key === "ArrowLeft" && step > 0) { stop(); step--; apply(); }
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden) { stop(); clearLoops(); } else apply(); });
+for (const [id, v] of [["sh-closed","closed"],["sh-open","open"]]) $(id).addEventListener("click", () => {
+  sheet = v; $("sh-closed").setAttribute("aria-pressed", v === "closed"); $("sh-open").setAttribute("aria-pressed", v === "open"); apply();
+});
+apply();
+</script>

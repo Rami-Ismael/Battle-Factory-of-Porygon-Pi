@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — Generative model-based optimization: move the cloud, not the point</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:      #f7f8f6;
+    --surface:   #fdfdfc;
+    --ink:       #0b0b0b;
+    --ink-2:     #52514e;
+    --muted:     #8b8a84;
+    --hairline:  #e2e1da;
+    --border:    rgba(11,11,11,0.10);
+    --fwd:       #c8442e;   /* forward approach   */
+    --gen:       #1f8a4c;   /* generative approach */
+    --prior:     #6b4fd8;   /* the prior / leash   */
+    --good:      #d99a1e;   /* high win-rate zone  */
+    --note:      #faf3d9;
+    --dim:       #f0efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:      #0d0d0d;
+      --surface:   #1a1a19;
+      --ink:       #ffffff;
+      --ink-2:     #c4c3b8;
+      --muted:     #8b8a84;
+      --hairline:  #2d2d2b;
+      --border:    rgba(255,255,255,0.10);
+      --fwd:       #e2614a;
+      --gen:       #2fb567;
+      --prior:     #9a83ff;
+      --good:      #f0b93a;
+      --note:      #33301f;
+      --dim:       #232322;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+         font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.45; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 16px 80px; }
+  section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            padding: 32px 28px 36px; margin: 0 0 28px; }
+  h1 { font-size: 38px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 26px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.3px; }
+  p  { font-size: 18px; color: var(--ink-2); margin: 8px 0 0; }
+  p strong { color: var(--ink); }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 10px; }
+  figure { margin: 22px 0 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .l  { font-family: system-ui, sans-serif; font-size: 15px; fill: var(--ink); }
+  .s  { font-family: system-ui, sans-serif; font-size: 12.5px; fill: var(--ink-2); }
+  .b  { font-family: system-ui, sans-serif; font-size: 18px; font-weight: 700; fill: var(--ink); }
+  .foot { font-size: 14px; color: var(--muted); margin-top: 14px; }
+  .warn { background: var(--note); border-radius: 12px; padding: 16px 18px; margin-top: 20px; }
+  .warn p { margin: 0; font-size: 16px; }
+  .punch { font-size: 20px; color: var(--ink); font-weight: 600; margin-top: 20px; padding-left: 16px; border-left: 4px solid var(--gen); }
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 16px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+  td:first-child { color: var(--ink); font-weight: 600; width: 38%; }
+  td { color: var(--ink-2); }
+  ul.refs { padding-left: 18px; margin: 12px 0 0; }
+  ul.refs li { font-size: 15px; color: var(--ink-2); margin: 6px 0; }
+  a { color: var(--prior); }
+  @media (max-width: 520px) { h1 { font-size: 30px; } section { padding: 24px 18px 28px; } }
+</style>
+</head>
+<body>
+<main>
+
+<section>
+  <p class="kicker">ELI5 · Generative model-based optimization</p>
+  <h1>Move the cloud, not the point</h1>
+  <p><strong>Testing a team is expensive: it takes hundreds of battles. So you learn a model from the teams you've already tested. There are two ways to use that model. You can learn a scorecard and climb it, which is the forward approach. Or you can learn a cloud of plausible teams and keep sliding the cloud toward the teams that win. That second way is generative model-based optimization.</strong></p>
+</section>
+
+<section>
+  <h2>1 · Two roads from the same data</h2>
+  <p>Both roads start with the teams you have already battled and their win rates. What differs is what you learn from them.</p>
+  <figure>
+    <svg viewBox="0 0 700 330" role="img" aria-label="Forward road climbs a learned score to one point; generative road shifts a cloud of samples toward the good zone">
+      <!-- forward panel -->
+      <text x="20" y="26" class="b" style="fill:var(--fwd)">Forward: learn a scorecard f̂(x)</text>
+      <rect x="20" y="40" width="320" height="220" rx="12" fill="var(--dim)"/>
+      <!-- true good zone -->
+      <ellipse cx="120" cy="120" rx="55" ry="38" fill="var(--good)" opacity="0.35"/>
+      <text x="85" y="124" class="s">really good</text>
+      <!-- f-hat surface fake peak outside data -->
+      <path d="M40 230 C 120 200, 200 160, 250 110 S 320 60, 330 55" fill="none" stroke="var(--fwd)" stroke-width="2.5" stroke-dasharray="6 5"/>
+      <circle cx="315" cy="62" r="8" fill="var(--fwd)"/>
+      <text x="200" y="92" class="s" style="fill:var(--fwd)">f̂ says: best here!</text>
+      <text x="180" y="250" class="s">no data out here → f̂ is guessing</text>
+      <text x="20" y="286" class="l">Climb f̂ to one point.</text>
+      <text x="20" y="306" class="s">Risk: f̂ is most confident where it has never looked,</text>
+      <text x="20" y="322" class="s">and in team space that point is often an illegal team.</text>
+
+      <!-- generative panel -->
+      <text x="370" y="26" class="b" style="fill:var(--gen)">Generative: learn a cloud p(x)</text>
+      <rect x="370" y="40" width="310" height="220" rx="12" fill="var(--dim)"/>
+      <ellipse cx="470" cy="120" rx="55" ry="38" fill="var(--good)" opacity="0.35"/>
+      <!-- cloud gen 0 -->
+      <ellipse cx="600" cy="210" rx="60" ry="32" fill="none" stroke="var(--gen)" stroke-width="1.5" opacity="0.35"/>
+      <text x="610" y="252" class="s">gen 0</text>
+      <!-- cloud gen 1 -->
+      <ellipse cx="545" cy="170" rx="52" ry="30" fill="none" stroke="var(--gen)" stroke-width="1.8" opacity="0.6"/>
+      <!-- cloud gen 2 -->
+      <ellipse cx="490" cy="130" rx="46" ry="28" fill="var(--gen)" fill-opacity="0.12" stroke="var(--gen)" stroke-width="2.5"/>
+      <text x="420" y="176" class="s" style="fill:var(--gen)">gen 2</text>
+      <g fill="var(--gen)">
+        <circle cx="480" cy="122" r="3.5"/><circle cx="505" cy="135" r="3.5"/><circle cx="470" cy="140" r="3.5"/>
+        <circle cx="498" cy="115" r="3.5"/><circle cx="515" cy="124" r="3.5"/>
+      </g>
+      <text x="370" y="286" class="l">Sample, keep the winners, refit, repeat.</text>
+      <text x="370" y="306" class="s">Every sample comes from a model of real teams,</text>
+      <text x="370" y="322" class="s">so the search stays where teams look legal.</text>
+    </svg>
+  </figure>
+  <p class="punch">The forward road learns <em>where the good teams are</em>. The generative road learns <em>what good teams look like</em>.</p>
+</section>
+
+<section>
+  <h2>2 · The generative loop, one turn</h2>
+  <p>This is the cross-entropy-method loop wearing a generative model. Design by adaptive sampling (DbAS) is exactly this.</p>
+  <figure>
+    <svg viewBox="0 0 700 200" role="img" aria-label="Loop: sample from p, score, keep top, refit p">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-2)"/></marker></defs>
+      <g>
+        <rect x="10"  y="60" width="140" height="70" rx="12" fill="var(--dim)" stroke="var(--gen)" stroke-width="2"/>
+        <text x="80" y="90" text-anchor="middle" class="l">1 · Sample</text>
+        <text x="80" y="110" text-anchor="middle" class="s">512 teams from p(x)</text>
+
+        <rect x="185" y="60" width="140" height="70" rx="12" fill="var(--dim)" stroke="var(--fwd)" stroke-width="2"/>
+        <text x="255" y="90" text-anchor="middle" class="l">2 · Score</text>
+        <text x="255" y="110" text-anchor="middle" class="s">battles (expensive)</text>
+
+        <rect x="360" y="60" width="140" height="70" rx="12" fill="var(--dim)" stroke="var(--good)" stroke-width="2"/>
+        <text x="430" y="90" text-anchor="middle" class="l">3 · Keep elites</text>
+        <text x="430" y="110" text-anchor="middle" class="s">top slice only</text>
+
+        <rect x="535" y="60" width="150" height="70" rx="12" fill="var(--dim)" stroke="var(--gen)" stroke-width="2"/>
+        <text x="610" y="90" text-anchor="middle" class="l">4 · Refit p(x)</text>
+        <text x="610" y="110" text-anchor="middle" class="s">on the elites</text>
+      </g>
+      <path d="M150 95 H183" stroke="var(--ink-2)" stroke-width="2" marker-end="url(#ar)"/>
+      <path d="M325 95 H358" stroke="var(--ink-2)" stroke-width="2" marker-end="url(#ar)"/>
+      <path d="M500 95 H533" stroke="var(--ink-2)" stroke-width="2" marker-end="url(#ar)"/>
+      <path d="M610 130 V170 H80 V132" fill="none" stroke="var(--ink-2)" stroke-width="2" marker-end="url(#ar)"/>
+      <text x="345" y="188" text-anchor="middle" class="s">the cloud is now a little closer to the good zone, so go again</text>
+    </svg>
+  </figure>
+  <div class="warn"><p><strong>The failure mode:</strong> refit only on elites and the cloud keeps shrinking and drifting. After a few turns it has collapsed onto a handful of teams, or it has wandered to a place your scores can't be trusted.</p></div>
+</section>
+
+<section>
+  <h2>3 · CbAS adds a leash</h2>
+  <p>Conditioning by adaptive sampling (CbAS) makes one change to DbAS. When it refits, each elite is weighted by how plausible it was under the <strong style="color:var(--prior)">original prior</strong>, compared with the current cloud. Elites that only the drifted cloud likes count less.</p>
+  <figure>
+    <svg viewBox="0 0 700 190" role="img" aria-label="Prior cloud anchors the moving cloud with a leash">
+      <rect x="10" y="10" width="680" height="170" rx="12" fill="var(--dim)"/>
+      <ellipse cx="170" cy="100" rx="120" ry="60" fill="var(--prior)" fill-opacity="0.12" stroke="var(--prior)" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="90" y="104" class="l" style="fill:var(--prior)">prior p₀ (real teams)</text>
+      <ellipse cx="470" cy="80" rx="60" ry="34" fill="var(--good)" opacity="0.35"/>
+      <text x="436" y="84" class="s">good zone</text>
+      <ellipse cx="400" cy="100" rx="55" ry="32" fill="var(--gen)" fill-opacity="0.15" stroke="var(--gen)" stroke-width="2.5"/>
+      <text x="370" y="150" class="s" style="fill:var(--gen)">current cloud</text>
+      <path d="M288 100 C 310 100, 320 100, 345 100" stroke="var(--prior)" stroke-width="3" fill="none"/>
+      <text x="300" y="90" class="s" style="fill:var(--prior)">leash</text>
+      <ellipse cx="600" cy="55" rx="40" ry="22" fill="none" stroke="var(--fwd)" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="540" y="95" class="s" style="fill:var(--fwd)">where DbAS can drift</text>
+    </svg>
+  </figure>
+  <p>What changes is that the cloud still moves toward the winners, but only as far as the evidence stays trustworthy.</p>
+</section>
+
+<section>
+  <h2>4 · Your project is already on the generative road</h2>
+  <table>
+    <tr><th>Generative MBO piece</th><th>Your version</th></tr>
+    <tr><td>The cloud p(x)</td><td>The discrete diffusion model trained on legal Reg M-B teams</td></tr>
+    <tr><td>Score</td><td>Win rate against the top-50 meta teams, with the behaviour-cloning policy piloting both sides</td></tr>
+    <tr><td>Refit on elites</td><td>The re-steer step: finetune on the elite teams</td></tr>
+    <tr><td>A forward model <em>inside</em> the loop</td><td>Ridge-surrogate gradient guidance, which tilts each denoising step toward high predicted win rate</td></tr>
+    <tr><td>The CbAS-style leash</td><td>Refit-from-p₀ with an archive of elites. It has the same spirit (stay anchored to the prior) but a different mechanism (CbAS uses importance weights).</td></tr>
+  </table>
+  <p>So your method is a hybrid: <strong>a generative cloud, steered by a forward model</strong>. The best team it found scored <strong>0.589 ± 0.036</strong> over 192 battles, above the <strong>0.4625</strong> mean for real meta teams on the same test.</p>
+  <p class="punch">Take the prior away and legality collapses: unconstrained decoding produced 0 valid teams in 80,000.</p>
+</section>
+
+<section>
+  <p class="kicker">Sources</p>
+  <ul class="refs">
+    <li>🟢 <a href="https://arxiv.org/abs/1901.10060">Conditioning by adaptive sampling for robust design</a> by Brookes, Park &amp; Listgarten, ICML 2019 (CbAS)</li>
+    <li>🟢 <a href="https://arxiv.org/abs/1810.03714">Design by adaptive sampling</a> by Brookes &amp; Listgarten, 2018 preprint, no venue listed (DbAS)</li>
+    <li>🟢 <a href="https://arxiv.org/abs/2503.17286">Offline Model-Based Optimization: Comprehensive Review</a>, TMLR 2026 (forward vs inverse taxonomy)</li>
+  </ul>
+  <p class="foot">Project numbers come from the vault's gradient-guidance runs of 2026-09-01 and the decoding-scheme results of 2026-08-27.</p>
+</section>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" data-input="pointer">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>One move, a different team · VGC sensitivity</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="experiment">
+    <header class="masthead">
+      <a class="wordmark" href="#edit" aria-label="One move, a different team — start">One move, a different team<span class="wordmark-dot" aria-hidden="true"></span></a>
+      <span class="data-note" id="data-note">Saved measured results</span>
+    </header>
+    <nav class="tabs" role="tablist" aria-label="Explore local sensitivity">
+      <button type="button" id="tab-edit" role="tab" aria-selected="true" aria-controls="panel-edit" data-tab="edit">Try one edit</button>
+      <button type="button" id="tab-compare" role="tab" aria-selected="false" aria-controls="panel-compare" tabindex="-1" data-tab="compare">Compare the teams</button>
+      <button type="button" id="tab-benchmarks" role="tab" aria-selected="false" aria-controls="panel-benchmarks" tabindex="-1" data-tab="benchmarks">Benchmarks</button>
+    </nav>
+
+    <section id="panel-edit" role="tabpanel" aria-labelledby="tab-edit">
+      <div class="intro"><h1>What happens if you change one move?</h1><p>The rest of the team stays fixed. Choose any of the six Pokémon to explore a measured edit.</p></div>
+      <div class="controls">
+        <label>Starting region<select id="cohort"><option value="tournament">Frozen top placements</option><option value="random">Random legal teams</option></select></label>
+        <label>Original team<select id="team"></select></label>
+        <span class="count-note" id="team-count"></span>
+      </div>
+      <div class="roster" id="roster" aria-label="Choose a Pokémon"></div>
+      <p class="roster-note">Items shown were held at battle start.</p>
+      <div class="edit-area">
+        <div class="edit-context"><h2 id="pokemon-name"></h2><span id="edit-count"></span></div>
+        <div id="edit-controls" class="move-row">
+          <div class="move-original"><span class="field-caption">Original move</span><strong id="old-move"></strong></div>
+          <span class="move-arrow" aria-hidden="true">→</span>
+          <label class="move-replacement">Recorded replacement<select id="replacement"></select></label>
+          <button type="button" id="undo" class="text-button">Undo edit</button>
+        </div>
+        <p id="unmeasured" class="empty-note" hidden>No move replacement was measured for this Pokémon. Choose a teammate marked with a blue dot.</p>
+      </div>
+      <section class="effect" aria-labelledby="effect-heading">
+        <div class="section-top"><h2 id="effect-heading">Effect of this edit</h2><span id="effect-mode">Edited − original</span></div>
+        <div id="effect-content">
+          <div class="effect-grid">
+            <div class="effect-plot">
+              <p class="plot-label">Change in win rate <span>(percentage points)</span></p>
+              <div class="delta-chart" id="delta-chart" role="img" aria-label="">
+                <div class="delta-axis" aria-hidden="true">
+                  <div class="grid-line" style="--position:0%"><span>−30</span></div><div class="grid-line" style="--position:25%"><span>−15</span></div><div class="grid-line zero" style="--position:50%"><span>0</span></div><div class="grid-line" style="--position:75%"><span>+15</span></div><div class="grid-line" style="--position:100%"><span>+30</span></div>
+                  <div class="interval" id="delta-interval"></div><div class="ci-cap" id="ci-low"></div><div class="ci-cap" id="ci-high"></div><div class="baseline-dot"></div><div class="estimate-dot" id="delta-dot"></div>
+                </div>
+              </div>
+              <div class="plot-key"><span><i class="key-dot"></i>Observed change</span><span><i class="key-line"></i>95% interval</span></div>
+            </div>
+            <div class="reading"><div id="delta-value" class="big-number"></div><div id="win-rate" class="win-rate"></div><p id="interval-label"></p></div>
+          </div>
+          <p class="interpretation" id="interpretation"></p>
+          <div class="comparison-prompt"><button type="button" class="text-button" id="noise-toggle" aria-pressed="false">Show an unchanged-team repeat</button><span>What can battle noise alone look like?</span></div>
+        </div>
+        <p id="effect-empty" class="empty-note" hidden>No result for this selection. Missing measurements are not zero change.</p>
+      </section>
+      <details class="methods"><summary>Battle counts, opponent pool and interval method</summary><div id="edit-methods"></div></details>
+    </section>
+
+    <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+      <div class="intro"><h1>Does the starting region matter?</h1><p>Each dot summarizes a team's original two sampled edits. Extra member edits stay separate.</p></div>
+      <div class="controls"><label>What to compare<select id="metric"><option value="corrected">Noise-corrected squared change</option><option value="absolute">Observed absolute change</option></select></label><span class="count-note">4 random + 4 top-placement teams</span></div>
+      <p class="chart-description" id="metric-explanation"></p>
+      <div class="group-chart" id="group-chart"></div>
+      <div class="group-summary" id="group-summary"></div>
+      <p class="interaction-hint">Select a team dot to inspect its move replacements.</p>
+      <div class="takeaway"><h2>Eight teams are a pilot, not the full study.</h2><p>The larger study has 50 random originals and 50 frozen placement entries. These first four placement entries cannot establish what happens across the full cohort. The extra edits let you explore every displayed Pokémon; they do not change this original two-edit sampling comparison.</p></div>
+      <details class="methods"><summary>What the statistic removes—and what it keeps</summary><p>For each edit, the recorded estimator is mean(d)² − sample variance(d) / 3, where d is edited minus original win rate in each independent battle panel. We average the two edits within each original team, then give each original equal weight.</p><p>The correction removes the expected sampling-noise contribution under independent panels. A corrected estimate can be negative; it is retained rather than clipped or square-rooted. The observed absolute-change statistic still contains battle noise.</p><p>The random originals average only 2% win rate in this pilot. That floor constrains how far a replacement can reduce their win rate. The difference between groups therefore needs to be interpreted alongside their baseline performance.</p><p>The 95% intervals resample original-team identity clusters. They are exploratory with only four clusters per group. The random teams came from the frozen HPS corpus, not a uniform sample of all legal teams. The full placement snapshot includes ranked-season and ladder entries as well as tournaments.</p></details>
+    </section>
+
+    <section id="panel-benchmarks" role="tabpanel" aria-labelledby="tab-benchmarks" hidden>
+      <div class="intro"><h1>How local is a “small” change?</h1><p>Keep the Pokémon reference fixed. Change the benchmark’s neighborhood.</p></div>
+      <div class="controls benchmark-controls">
+        <label>Pokémon reference<select id="benchmark-cohort"><option value="tournament">Frozen top placements</option><option value="random">Random legal teams</option></select></label>
+        <label>Benchmark<select id="benchmark"><option value="pest_control">Pest Control · combinatorial</option><option value="hartmann6">Hartmann-6 · smooth continuous</option></select></label>
+        <label>Benchmark step<select id="benchmark-step"></select></label>
+      </div>
+      <div class="benchmark-chart" id="benchmark-chart"></div>
+      <p class="benchmark-caption">Noise-corrected squared change ÷ fixed objective bound². Whiskers show 95% cluster intervals.</p>
+      <div class="benchmark-definitions" id="benchmark-definitions"></div>
+      <div class="takeaway"><h2>A common scale does not make the edits equivalent.</h2><p>One move, one categorical stage and a coordinate step define different neighborhoods. These results describe the sampled regions and edit rules; they are not a universal ranking of smoothness.</p></div>
+      <details class="methods"><summary>Objective bounds, reference regions and uncertainty</summary><p>The recorded analysis uses fixed objective bounds of 1 for win probability, 50 for Pest Control and 8.4 for Hartmann-6. Values here are already normalized in the source data; no sample-dependent rescaling is applied.</p><p>Both benchmarks have four reference points and two neighbors per point for each displayed step. Pest Control uses independent replicate evaluations with 100 simulated trajectories per evaluation. Hartmann-6 is deterministic, so its interval describes variation across reference points rather than evaluation noise. The benchmark points are random reference regions, not analogues of top placements.</p><p>Hartmann-6 points are sampled inside [0.05, 0.95]⁶. Each edit changes one coordinate by the selected signed step, without boundary clipping. Pest Control has 25 categorical stages with five choices per stage.</p><p>Benchmark implementations: <a href="https://github.com/QUVA-Lab/COMBO/blob/master/COMBO/experiments/test_functions/multiple_categorical.py" target="_blank" rel="noreferrer">COMBO Pest Control</a> · <a href="https://www.sfu.ca/~ssurjano/hart6.html" target="_blank" rel="noreferrer">Hartmann-6</a>.</p></details>
+    </section>
+
+    <footer><span id="storage-note">Saved database results · no battles run by these controls</span><a href="README.md">Data & design notes</a></footer>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+  </main>
+</body>
+</html>

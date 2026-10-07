@@ -1,0 +1,368 @@
+<meta charset="utf-8">
+<title>Team Preview, Counted</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a Distill-style article. One reading column; figures set into the prose and allowed wider than the text; margin notes in a right gutter on wide screens (inline on phones); numbered grey captions; sliders the reader drives. Quiet palette: ink, greys, one teal accent for "you", one rose for the opponent. */
+:root{
+  --bg:#FFFFFF; --ink:#1F2328; --body:#2E3338; --muted:#6A7178; --faint:#9AA1A8; --rule:#E3E6EA; --panel:#F6F7F9;
+  --you:#0E7C7B; --you-soft:#E3F2F1; --them:#B23A5A; --them-soft:#F7E6EB; --back:#B7791F; --back-soft:#F7EEDD; --cell:#E5E8EC;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+    --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+  --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--body);font:17px/1.7 var(--sans);margin:0;-webkit-font-smoothing:antialiased}
+.page{display:grid;grid-template-columns:minmax(16px,1fr) minmax(0,660px) minmax(16px,240px) minmax(16px,1fr);column-gap:32px;padding-block:48px 80px}
+.page > *{grid-column:2}
+.wide{grid-column:2 / 4}
+aside{grid-column:3;font-size:13px;line-height:1.55;color:var(--muted);align-self:start;border-top:1px solid var(--rule);padding-top:6px;margin-top:6px}
+aside b{color:var(--ink);font-weight:600}
+h1{font:700 clamp(34px,5vw,46px)/1.12 var(--sans);color:var(--ink);margin:0 0 10px;letter-spacing:-0.015em;text-wrap:balance}
+.dek{font-size:20px;line-height:1.5;color:var(--muted);margin:0 0 24px;max-width:36em}
+.byline{display:flex;flex-wrap:wrap;gap:6px 36px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding-block:12px;margin-bottom:28px;font-size:13px;color:var(--muted)}
+.byline b{display:block;font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+h2{font:600 24px/1.3 var(--sans);color:var(--ink);margin:36px 0 8px;text-wrap:balance}
+p{margin:0 0 18px}
+em{font-style:italic}
+.term{font-weight:600;color:var(--ink)}
+/* math */
+.math{font-family:var(--mono);font-size:.95em;white-space:nowrap;color:var(--ink)}
+.binom{display:inline-flex;align-items:center;vertical-align:middle;margin:0 2px}
+.binom::before,.binom::after{font-size:2.1em;font-weight:300;line-height:1;color:var(--muted)}
+.binom::before{content:"("} .binom::after{content:")"}
+.binom .st{display:inline-flex;flex-direction:column;align-items:center;font-size:.8em;line-height:1.1;padding:0 2px}
+.display-math{text-align:center;margin:6px 0 22px;font-size:20px}
+/* figures */
+figure{margin:12px 0 30px;display:grid;gap:12px}
+.fig{background:var(--panel);border-radius:6px;padding:18px;display:grid;gap:14px;min-width:0}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);max-width:44em}
+figcaption b{color:var(--ink);font-weight:600}
+.lab{font:600 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.row6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.mon{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:6px 4px;display:grid;justify-items:center;gap:2px;min-width:0;transition:border-color 160ms ease,background-color 160ms ease,opacity 200ms ease}
+.mon img{width:56px;height:56px;image-rendering:pixelated}
+.mon .nm{font-size:12px;line-height:1.25;color:var(--ink);text-align:center;font-weight:500}
+.mon .set{font-size:10.5px;line-height:1.35;color:var(--muted);text-align:center}
+.mon .set b{font-weight:500;color:var(--ink)}
+.mon .q{font:10.5px/1.35 var(--mono);color:var(--faint)}
+.mon .badge{font:600 9.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;min-height:12px;color:var(--faint)}
+.mon.lead{border-color:var(--you);background:var(--you-soft)} .mon.lead .badge{color:var(--you)}
+.mon.back{border-color:var(--back);background:var(--back-soft)} .mon.back .badge{color:var(--back)}
+.mon.home{opacity:.4}
+.sheets{display:grid;gap:14px}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.ctrl label{font:600 11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--you)}
+input[type=range].them{accent-color:var(--them)}
+.read{font-size:14.5px;color:var(--ink);min-height:1.6em}
+.read .y{color:var(--you);font-weight:600} .read .t{color:var(--them);font-weight:600} .read .b{color:var(--back);font-weight:600}
+button{font:500 13px/1 var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:7px 12px;min-height:34px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.steps button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.narr{font-size:15px;line-height:1.55;color:var(--ink);min-height:3.1em;margin:0}
+.narr .y{color:var(--you);font-weight:600} .narr .b{color:var(--back);font-weight:600} .narr .h{color:var(--muted);font-weight:600}
+.gridwrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 8px;max-width:640px}
+.gridwrap .ax{font:600 10.5px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.plans{display:grid;grid-template-columns:auto repeat(6,minmax(0,1fr));gap:3px;font:10.5px/1 var(--mono);color:var(--muted);grid-column:1 / 3}
+.plans .rl{padding-right:8px;text-align:right;align-self:center;white-space:nowrap;opacity:0;transition:opacity 300ms ease}
+.plans .rl.in{opacity:1}
+.plans .rl.cur{color:var(--you);font-weight:600}
+.plans i{display:flex;align-items:center;justify-content:center;height:22px;border-radius:3px;border:1px dashed transparent;background:transparent;cursor:pointer;font-style:normal;font-size:10px;color:transparent;transition:background-color 250ms ease,border-color 250ms ease,color 250ms ease}
+.plans i.slot{border-color:var(--rule)}
+.plans i.fill{background:var(--back-soft);border-style:solid;border-color:transparent;color:var(--back)}
+.plans i.on{background:var(--you);color:var(--bg)}
+.colh{display:contents}
+.colh span{font:600 10px/1.2 var(--mono);color:var(--faint);text-align:center;opacity:0;transition:opacity 300ms ease}
+.colh span.in{opacity:1}
+.ctrl.locked{opacity:.45;pointer-events:none}
+@media (max-width:600px){ .plans i{font-size:0} .plans{font-size:9.5px} }
+.duo{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:20px;align-items:start}
+canvas{width:100%;max-width:330px;height:auto;display:block;border-radius:4px;cursor:crosshair}
+.leads{display:grid;gap:8px}
+.mini{display:flex;gap:4px;align-items:center}
+.mini img{width:40px;height:40px;image-rendering:pixelated;border-radius:4px}
+.mini.y img{background:var(--you-soft)} .mini.t img{background:var(--them-soft)}
+.mini span{font-size:12.5px;color:var(--muted);margin-left:6px}
+.fn{font-size:12px;vertical-align:super;line-height:0;color:var(--you);text-decoration:none}
+.notes{border-top:1px solid var(--rule);margin-top:24px;padding-top:12px;font-size:13px;color:var(--muted)}
+.notes ol{padding-left:1.2em;margin:0}
+.predict{border:1px solid var(--rule);border-radius:8px;padding:14px 16px;display:grid;gap:10px;margin:4px 0 22px}
+.predict .q{font-weight:600;color:var(--ink)}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choices button[aria-pressed="true"]{border-color:var(--ink)}
+.choices button.right{background:var(--you-soft);border-color:var(--you);color:var(--ink)}
+.choices button.wrong{background:var(--them-soft);border-color:var(--them)}
+.verdict{font-size:15px;line-height:1.55;color:var(--ink);margin:0}
+.verdict:empty{display:none}
+.gated{transition:filter 400ms ease,opacity 400ms ease}
+.gated.veiled{filter:blur(6px);opacity:.35;pointer-events:none;user-select:none}
+.mterm{font:inherit;border:0;background:none;padding:2px 4px;border-radius:6px;cursor:help;color:inherit;min-height:0}
+.mterm.lead{box-shadow:inset 0 -2px 0 var(--you)} .mterm.back{box-shadow:inset 0 -2px 0 var(--back)}
+.mterm.lead:hover,.mterm.lead:focus-visible{background:var(--you-soft)} .mterm.back:hover,.mterm.back:focus-visible{background:var(--back-soft)}
+.mathnote{font-size:13px;color:var(--muted);text-align:center;margin:-14px 0 20px}
+.plans .rl.hl{color:var(--you);font-weight:700}
+.plans i.hl{outline:2px solid var(--back);outline-offset:-2px}
+.colh span.hl{color:var(--back)}
+.teams{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.teams .lab{margin-right:4px}
+.teams button{display:inline-flex;align-items:center;gap:2px;padding:4px 10px 4px 6px}
+.teams button img{width:26px;height:26px;image-rendering:pixelated}
+.teams button[aria-pressed="true"]{border-color:var(--you);background:var(--you-soft)}
+@media (max-width:980px){
+  .page{grid-template-columns:16px minmax(0,1fr) 16px;column-gap:0}
+  .page > *,.wide,aside{grid-column:2}
+  aside{margin:-6px 0 18px}
+}
+@media (max-width:600px){ .mon img{width:40px;height:40px} .mon .nm{font-size:10.5px} .mon .set{display:none} .duo{grid-template-columns:1fr} body{font-size:16px} }
+@media (prefers-reduced-motion:reduce){ .mon{transition:none} }
+</style>
+
+<article class="page">
+  <h1>Team preview, counted</h1>
+  <p class="dek">Before a Pokémon VGC battle starts, both players look at each other's six Pokémon and secretly pick four. How much they see, how many plans they have, and what kind of game that makes.</p>
+  <div class="byline wide"><div><b>Format</b>Pokémon Champions, Regulation M-B</div><div><b>Teams shown</b>two real top-50 meta teams</div><div><b>Published</b>October 1, 2026</div></div>
+
+  <p>In competitive Pokémon you don't bring your whole team. At <span class="term">team preview</span> each player sees the other's six Pokémon, then picks four to bring, two of which start on the field. Both players choose at the same moment.</p>
+  <p>How much you see of the other team depends on the <span class="term">team-sheet rule</span>. With a closed sheet you see only the six species. With an open sheet you see the same six Pokémon with their ability, held item and moves; their Stat Points and nature stay hidden either way.<a class="fn" href="#n1">1</a></p>
+
+  <figure class="wide">
+    <div class="fig sheets" id="fig1"></div>
+    <figcaption><b>Figure 1.</b> The same opponent team (a tournament winner's team from the top-50 meta) under the two rules. An open sheet adds information about each Pokémon; it never adds Pokémon.</figcaption>
+  </figure>
+  <aside><b>What stays hidden.</b> Under both rules: Stat Points and nature. Under a closed sheet, also ability, item and moves.</aside>
+
+  <h2>Your plans: two lead, two wait</h2>
+  <p>A plan is a choice of two Pokémon to lead and two to wait in the back; the remaining two stay home. Pick the leads from six, then the back pair from the four that are left:</p>
+  <div class="predict" id="predict">
+    <span class="q">Before reading on: how many different plans does one player have?</span>
+    <div class="choices" id="choices" role="group" aria-label="Your guess"></div>
+    <p class="verdict" id="verdict" aria-live="polite"></p>
+    <div><button type="button" id="skip">Skip and show the count</button></div>
+  </div>
+  <div class="gated veiled" id="gate">
+  <p class="display-math"><span class="math"><button type="button" class="mterm lead" data-hl="lead" aria-label="6 choose 2: the 15 lead pairs"><span class="binom"><span class="st"><span>6</span><span>2</span></span></span></button> × <button type="button" class="mterm back" data-hl="back" aria-label="4 choose 2: the 6 ways to fill the back"><span class="binom"><span class="st"><span>4</span><span>2</span></span></span></button> = 15 × 6 = 90</span></p>
+  <p class="mathnote">Point at either term to see what it counts in Figure 2.</p>
+  <p>Which lead stands on the left and which on the right does not make a different plan, and neither does the order of the two in the back, so neither is counted.</p>
+
+  <figure class="wide">
+    <div class="fig">
+      <div class="teams" id="teams" role="group" aria-label="Count with a different team"><span class="lab">count with</span></div>
+      <div class="steps" role="group" aria-label="Build the count step by step">
+        <button type="button" id="s1" aria-pressed="false">1 · Pick the leads</button>
+        <button type="button" id="s2" aria-pressed="false">2 · Fill the back</button>
+        <button type="button" id="s3" aria-pressed="false">3 · All 90 plans</button>
+      </div>
+      <p class="narr" id="narr" aria-live="polite"></p>
+      <div class="row6" id="youRow"></div>
+      <div class="gridwrap">
+        <span class="ax" style="grid-column:2">ways to fill the back →</span>
+        <div class="plans" id="plans" aria-label="All 90 plans: 15 lead pairs down, 6 ways to fill the back across"></div>
+      </div>
+      <div class="ctrl locked" id="explore"><label for="plan">plan</label><input type="range" id="plan" min="1" max="90" value="1"><span class="read" id="planRead"></span></div>
+    </div>
+    <figcaption><b>Figure 2.</b> The count, built step by step for one of the project's teams. Each row is one of the 15 lead pairs; each row has 6 cells because every lead pair leaves four Pokémon, and there are 6 ways to pick two of them for the back. After step 3, drag the slider or click any cell.</figcaption>
+  </figure>
+  </div>
+
+  <h2>Both players at once</h2>
+  <p>Your opponent has 90 plans as well, so a single team preview has 90 × 90 = 8,100 possible pairs of plans. For one opponent you know well, memorising good answers to their 90 plans is feasible. Memorising plans against every team you might meet is not, which is why players reason about likely plans instead of looking them up.</p>
+
+  <figure class="wide">
+    <div class="fig">
+      <div class="duo">
+        <canvas id="mx" width="360" height="360" aria-label="The 90 by 90 grid of plan pairs"></canvas>
+        <div class="leads">
+          <div class="ctrl"><label for="py">your plan</label><input type="range" id="py" min="1" max="90" value="23"></div>
+          <div class="ctrl"><label for="pt">their plan</label><input type="range" id="pt" class="them" min="1" max="90" value="61"></div>
+          <div class="mini y" id="ly"></div>
+          <div class="mini t" id="lt"></div>
+          <p class="read" id="pairRead"></p>
+        </div>
+      </div>
+    </div>
+    <figcaption><b>Figure 3.</b> Every cell is one pair of plans. You choose the row, your opponent the column, and neither can see the other's slider. The result of the cell is decided in the battle that follows.</figcaption>
+  </figure>
+
+  <h2>What kind of game this is</h2>
+  <p>Game theory has names for each property. Team preview is a <span class="term">simultaneous-move game</span>: both players choose at the same time. It has <span class="term">imperfect information</span>: you cannot see the choice your opponent has already made. And under a closed sheet it also has <span class="term">incomplete information</span>: you do not know everything about your opponent's side, such as their items and moves.</p>
+  <aside><b>Imperfect vs incomplete.</b> Imperfect: you can't see a move already made. Incomplete: you don't know facts about the other side. An open sheet removes most of the second, none of the first.</aside>
+  <p>An open sheet changes only the last of the three. It removes most of the incomplete information, and leaves the simultaneous choice, and the hidden plan, exactly as they were.</p>
+
+  <div class="notes" id="n1"><ol><li>On Pokémon Showdown, the Regulation M-B best-of-three format forces open team sheets and the best-of-one format offers them to both players. In-game rules may differ.</li></ol></div>
+</article>
+
+<script>
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+// ---- Figure 1: closed and open, side by side
+const card = (m, open) => `<div class="mon"><img src="${m.img}" alt=""><span class="nm">${m.name}</span>${open
+  ? `<span class="set"><b>${m.ability}</b><br>${m.item}<br>${m.moves.join(" · ")}</span>`
+  : `<span class="q">? ? ?</span>`}</div>`;
+$("fig1").innerHTML = `<span class="lab">closed sheet: species only</span><div class="row6">${D.them.mons.map(m => card(m, false)).join("")}</div>
+  <span class="lab">open sheet: species, ability, item, moves</span><div class="row6">${D.them.mons.map(m => card(m, true)).join("")}</div>`;
+
+// ---- plans (shared by figures 2 and 3)
+function plansOf(n){ const out = [];
+  for (let a = 0; a < 6; a++) for (let b = a + 1; b < 6; b++) { const rest = [0,1,2,3,4,5].filter(i => i !== a && i !== b);
+    for (let c = 0; c < 4; c++) for (let d = c + 1; d < 4; d++) out.push({lead:[a, b], back:[rest[c], rest[d]]}); }
+  return out; }
+const PLANS = plansOf(6);
+
+// ---- Figure 2: build the 15 x 6 grid in front of the reader, for a team the reader picks
+let you = D.you.mons, cells = [];
+const nm = i => you[i].name, sh = i => you[i].name.slice(0, 4);
+function buildFig2(){
+  $("youRow").innerHTML = you.map((m, i) => `<div class="mon" id="y${i}"><span class="badge"></span><img src="${m.img}" alt=""><span class="nm">${m.name}</span></div>`).join("");
+  let html = `<span></span><div class="colh">${[1,2,3,4,5,6].map(c => `<span id="ch${c}">way ${c}</span>`).join("")}</div>`;
+  for (let r = 0; r < 15; r++) { const p = PLANS[r * 6];
+    html += `<span class="rl" id="rl${r}">${sh(p.lead[0])} + ${sh(p.lead[1])}</span>`;
+    for (let c = 0; c < 6; c++) { const q = PLANS[r * 6 + c]; html += `<i id="c${r * 6 + c + 1}" data-k="${r * 6 + c + 1}" title="${nm(q.back[0])} + ${nm(q.back[1])} in the back">${sh(q.back[0])}+${sh(q.back[1])}</i>`; } }
+  $("plans").innerHTML = html; cells = [...$("plans").querySelectorAll("i")];
+}
+function cards(lead, back, rest){
+  you.forEach((_, i) => { const el = $("y" + i), L = lead.includes(i), B = back.includes(i), H = rest && !L && !B;
+    el.className = "mon" + (L ? " lead" : B ? " back" : H ? " home" : "");
+    el.querySelector(".badge").textContent = L ? "lead" : B ? "back" : H ? "home" : ""; });
+}
+const narr = t => $("narr").innerHTML = t;
+const beat = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+let runId = 0;
+function pressed(n){ ["s1","s2","s3"].forEach((id, i) => $(id).setAttribute("aria-pressed", i + 1 === n)); }
+function clearGrid(){ cells.forEach(c => c.className = ""); document.querySelectorAll(".rl,.colh span").forEach(x => x.classList.remove("in","cur")); $("explore").classList.add("locked"); }
+async function step1(){
+  const id = ++runId; pressed(1); clearGrid(); cards([], [], false);
+  narr("First choose the two Pokémon that start on the field. From six Pokémon there are 15 different pairs.");
+  await beat(1600);
+  for (let r = 0; r < 15 && id === runId; r++) {
+    const p = PLANS[r * 6]; cards(p.lead, [], false);
+    document.querySelectorAll(".rl").forEach(x => x.classList.remove("cur"));
+    $("rl" + r).classList.add("in", "cur");
+    narr(`Lead pair <span class="y">${r + 1} of 15</span>: <span class="y">${nm(p.lead[0])}</span> and <span class="y">${nm(p.lead[1])}</span>. Each lead pair gets its own row.`);
+    await beat(r < 4 ? 1300 : 550);
+  }
+  return id === runId;
+}
+async function step2(){
+  const id = ++runId; pressed(2);
+  document.querySelectorAll(".rl").forEach(x => { x.classList.add("in"); x.classList.remove("cur"); });
+  cells.forEach(c => c.className = "slot"); $("rl0").classList.add("cur");
+  const p0 = PLANS[0], rest = [0,1,2,3,4,5].filter(i => !p0.lead.includes(i));
+  cards(p0.lead, [], false);
+  narr(`Take the first row: <span class="y">${nm(p0.lead[0])}</span> and <span class="y">${nm(p0.lead[1])}</span> lead. That leaves four: ${rest.map(nm).join(", ")}. Two of them wait in the back.`);
+  await beat(2600);
+  for (let c = 0; c < 6 && id === runId; c++) {
+    const q = PLANS[c]; cards(q.lead, q.back, true);
+    $("ch" + (c + 1)).classList.add("in"); $("c" + (c + 1)).className = "fill on";
+    if (c) $("c" + c).className = "fill";
+    narr(`Way <span class="b">${c + 1} of 6</span>: <span class="b">${nm(q.back[0])}</span> and <span class="b">${nm(q.back[1])}</span> wait in the back, so the other two <span class="h">stay home</span>.`);
+    await beat(1700);
+  }
+  if (id !== runId) return false;
+  $("c6").className = "fill";
+  narr("Every lead pair leaves four Pokémon, so every row has the same 6 ways to fill the back.");
+  await beat(2400);
+  return id === runId;
+}
+async function step3(){
+  const id = ++runId; pressed(3);
+  document.querySelectorAll(".rl,.colh span").forEach(x => x.classList.add("in")); document.querySelectorAll(".rl").forEach(x => x.classList.remove("cur"));
+  narr("Fill every row the same way: 15 rows × 6 ways = <b>90 plans</b>.");
+  for (let r = 0; r < 15 && id === runId; r++) {
+    for (let c = 0; c < 6; c++) cells[r * 6 + c].className = "fill";
+    $("rl" + r).classList.add("cur"); if (r) $("rl" + (r - 1)).classList.remove("cur");
+    await beat(180);
+  }
+  if (id !== runId) return false;
+  $("rl14").classList.remove("cur");
+  $("explore").classList.remove("locked"); setPlan(+$("plan").value || 1, true);
+  return true;
+}
+function setPlan(k, quiet){
+  const p = PLANS[k - 1];
+  cards(p.lead, p.back, true);
+  cells.forEach(c => c.className = +c.dataset.k === k ? "fill on" : "fill");
+  $("plan").value = k;
+  narr(quiet ? "All 90 plans are on the grid. Drag the slider or click a cell to look at any of them."
+    : `Plan ${k} of 90: <span class="y">${nm(p.lead[0])}</span> and <span class="y">${nm(p.lead[1])}</span> lead; <span class="b">${nm(p.back[0])}</span> and <span class="b">${nm(p.back[1])}</span> wait in the back.`);
+}
+const playAll = async () => { if (await step1() && await step2()) await step3(); };
+$("s1").addEventListener("click", playAll);
+$("s2").addEventListener("click", async () => { if (await step2()) await step3(); });
+$("s3").addEventListener("click", () => step3());
+$("plan").addEventListener("input", e => { runId++; pressed(3); setPlan(+e.target.value); });
+$("plans").addEventListener("click", e => { const c = e.target.closest("i"); if (c && !$("explore").classList.contains("locked")) setPlan(+c.dataset.k); });
+function restingState(){ document.querySelectorAll(".rl,.colh span").forEach(x => x.classList.add("in")); cells.forEach(c => c.className = "fill");
+  $("explore").classList.remove("locked"); setPlan(1, true); pressed(3); }
+// personalising: count with another real meta team
+$("teams").insertAdjacentHTML("beforeend", D.picks.map((t, i) => `<button type="button" data-i="${i}" aria-pressed="${i === 0}" aria-label="Team ${t.id}: ${t.mons.map(m => m.name).join(", ")}">${t.mons.slice(0, 3).map(m => `<img src="${m.img}" alt="">`).join("")}<span class="lab" style="margin-left:4px">${t.id}</span></button>`).join(""));
+$("teams").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (!b) return;
+  [...$("teams").querySelectorAll("button")].forEach(x => x.setAttribute("aria-pressed", x === b));
+  runId++; you = D.picks[+b.dataset.i].mons; buildFig2(); restingState(); drawPair(); });
+// reducing cognitive load: the two terms of the formula point at what they count
+function hl(kind, on){
+  document.querySelectorAll(".rl").forEach(x => x.classList.toggle("hl", on && kind === "lead"));
+  cells.slice(0, 6).forEach(c => c.classList.toggle("hl", on && kind === "back"));
+  document.querySelectorAll(".colh span").forEach(x => x.classList.toggle("hl", on && kind === "back"));
+}
+document.querySelectorAll(".mterm").forEach(t => { const k = t.dataset.hl;
+  ["mouseenter","focus"].forEach(ev => t.addEventListener(ev, () => hl(k, true)));
+  ["mouseleave","blur"].forEach(ev => t.addEventListener(ev, () => hl(k, false))); });
+// prompting self-reflection: predict before the count is shown
+const GUESS = [[15, "That counts only the lead pairs. Each lead pair still has 6 ways to fill the back."],
+  [90, "Right: 15 lead pairs, each with 6 ways to fill the back."],
+  [180, "That counts left and right separately. Swapping the two leads is the same plan, so halve it."],
+  [360, "That counts every order of the four (6 × 5 × 4 × 3). Order matters only between leading and waiting, so divide by 2 × 2."],
+  [720, "That orders all six Pokémon. Two stay home and are never ordered; within the leads and the back, order doesn't matter either."]];
+$("choices").innerHTML = GUESS.map(([n]) => `<button type="button" data-n="${n}" aria-pressed="false">${n}</button>`).join("");
+function reveal(){ $("gate").classList.remove("veiled"); $("skip").parentElement.hidden = true; }
+$("choices").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  const n = +b.dataset.n, [, why] = GUESS.find(g => g[0] === n);
+  [...$("choices").children].forEach(x => { x.setAttribute("aria-pressed", x === b); x.className = +x.dataset.n === 90 ? "right" : x === b ? "wrong" : ""; });
+  $("verdict").textContent = (n === 90 ? "" : `${n} is a common answer. `) + why; reveal();
+  if (!started) { started = true; io.disconnect(); if (!reduce) setTimeout(playAll, 600); } });
+$("skip").addEventListener("click", () => { reveal(); if (!started) { started = true; io.disconnect(); if (!reduce) playAll(); } });
+buildFig2(); restingState();
+let started = false;
+const io = new IntersectionObserver(es => { if (!started && es.some(e => e.isIntersecting) && !$("gate").classList.contains("veiled")) { started = true; io.disconnect(); if (!reduce) playAll(); } }, {threshold: .45});
+io.observe($("plans"));
+if (!window.IntersectionObserver) reveal();
+
+// ---- Figure 3
+const them = D.them.mons, cv = $("mx"), g = cv.getContext("2d"), N = 90, px = 4;
+function drawPair(){
+  const r = +$("py").value - 1, c = +$("pt").value - 1;
+  g.fillStyle = css("--bg"); g.fillRect(0, 0, 360, 360);
+  g.fillStyle = css("--cell"); for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) g.fillRect(j * px, i * px, px - 1, px - 1);
+  g.fillStyle = css("--you-soft"); for (let j = 0; j < N; j++) g.fillRect(j * px, r * px, px - 1, px - 1);
+  g.fillStyle = css("--them-soft"); for (let i = 0; i < N; i++) g.fillRect(c * px, i * px, px - 1, px - 1);
+  g.fillStyle = css("--ink"); g.fillRect(c * px - 1, r * px - 1, px + 1, px + 1);
+  const py = PLANS[r], pt = PLANS[c];
+  const leads = (mons, p) => p.lead.map(i => `<img src="${mons[i].img}" alt="${mons[i].name}">`).join("") + `<span>leads; back: ${p.back.map(i => mons[i].name).join(", ")}</span>`;
+  $("ly").innerHTML = leads(you, py); $("lt").innerHTML = leads(them, pt);
+  $("pairRead").innerHTML = `Cell ${(r * N + c + 1).toLocaleString("en-US")} of 8,100: <span class="y">your plan ${r + 1}</span> against <span class="t">their plan ${c + 1}</span>.`;
+}
+["py", "pt"].forEach(id => $(id).addEventListener("input", drawPair));
+cv.addEventListener("click", e => { const b = cv.getBoundingClientRect();
+  $("pt").value = Math.min(N, Math.floor((e.clientX - b.left) / b.width * N) + 1);
+  $("py").value = Math.min(N, Math.floor((e.clientY - b.top) / b.height * N) + 1); drawPair(); });
+drawPair();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawPair);
+</script>

@@ -1,0 +1,1479 @@
+<!doctype html>
+<html lang="en" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Real Diffusion</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Real Diffusion" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-visualize-standalone&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Real Diffusion&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 10px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover,
+.nav-link:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled=&quot;true&quot;] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .nav-link,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;section id=&quot;actual-team-diffusion&quot;&gt;
+ &lt;div class=&quot;trace-kicker text-small&quot;&gt;REAL CHECKPOINT · RECORDED INFERENCE&lt;/div&gt;
+ &lt;h2&gt;Watch the model build a team.&lt;/h2&gt;
+ &lt;p class=&quot;trace-intro&quot;&gt;Empty fields become Pokémon, abilities, items and moves. Replay the actual choices of your trained model, starting with six empty slots.&lt;/p&gt;
+ &lt;div class=&quot;trace-heading&quot;&gt;&lt;span data-stage&gt;48 masked fields&lt;/span&gt;&lt;span class=&quot;tabular-nums&quot; data-count&gt;0 / 48 revealed&lt;/span&gt;&lt;/div&gt;
+ &lt;div class=&quot;trace-roster&quot; role=&quot;img&quot; aria-label=&quot;Six masked Pokémon slots&quot;&gt;&lt;/div&gt;
+ &lt;div class=&quot;trace-detail&quot;&gt;
+  &lt;h3 data-member&gt;Member 1 · masked&lt;/h3&gt;
+  &lt;div class=&quot;trace-fields&quot;&gt;
+   &lt;div&gt;&lt;span class=&quot;trace-label text-small&quot;&gt;ABILITY&lt;/span&gt;&lt;span data-ability&gt;MASK&lt;/span&gt;&lt;/div&gt;
+   &lt;div&gt;&lt;span class=&quot;trace-label text-small&quot;&gt;ITEM&lt;/span&gt;&lt;span data-item&gt;MASK&lt;/span&gt;&lt;/div&gt;
+   &lt;div class=&quot;trace-moves&quot;&gt;&lt;span class=&quot;trace-label text-small&quot;&gt;MOVES&lt;/span&gt;&lt;div data-moves&gt;&lt;/div&gt;&lt;/div&gt;
+   &lt;div&gt;&lt;span class=&quot;trace-label text-small&quot;&gt;ALIGNMENT&lt;/span&gt;&lt;span data-nature&gt;MASK&lt;/span&gt;&lt;/div&gt;
+   &lt;div&gt;&lt;span class=&quot;trace-label text-small&quot;&gt;STAT POINTS&lt;/span&gt;&lt;span data-stats&gt;Assigned after decoding&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class=&quot;trace-decision&quot; aria-live=&quot;polite&quot;&gt;&lt;div data-decision&gt;Start with a fully masked 6 × 8 categorical grid.&lt;/div&gt;&lt;div class=&quot;text-small trace-muted&quot; data-note&gt;The sampler chooses a field in dependency order, applies legality masks, then samples a value.&lt;/div&gt;&lt;/div&gt;
+ &lt;div class=&quot;trace-probabilities&quot; aria-label=&quot;Top model sampling probabilities&quot;&gt;&lt;/div&gt;
+ &lt;div class=&quot;trace-controls&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;btn btn-primary&quot; data-play&gt;Play recorded run&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; data-back&gt;Previous&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; data-next&gt;Next&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; data-reset&gt;Restart&lt;/button&gt;&lt;/div&gt;
+ &lt;label class=&quot;form-label trace-timeline&quot;&gt;Inference step &lt;span class=&quot;tabular-nums&quot; data-step&gt;0 / 50&lt;/span&gt;&lt;input class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;50&quot; step=&quot;1&quot; value=&quot;0&quot; aria-label=&quot;Recorded inference step&quot;&gt;&lt;/label&gt;
+ &lt;div class=&quot;text-small trace-muted&quot;&gt;Replay of actual CPU inference, not live browser inference. Masked-diffusion training; dependency-order constrained sampling. Stat spreads are copied separately from corpus sets. No matchup win rate has been evaluated.&lt;/div&gt;
+ &lt;details&gt;&lt;summary&gt;Full generated team and recording details&lt;/summary&gt;&lt;div class=&quot;text-small&quot; data-provenance&gt;&lt;/div&gt;&lt;pre data-paste&gt;&lt;/pre&gt;&lt;/details&gt;
+&lt;/section&gt;
+&lt;style&gt;
+#actual-team-diffusion{background:#0b1220;color:#edf3ff;padding:22px;border-radius:12px;color-scheme:dark;--background:#0b1220;--foreground:#edf3ff;--primary:#e8f0ff;--primary-foreground:#0e182a;--border:#33435d;--input:#33435d;--ring:#9ecbff;--muted:#213149;--muted-foreground:#afbed5}
+#actual-team-diffusion h2{margin:10px 0}
+#actual-team-diffusion h3{margin:0 0 12px}
+#actual-team-diffusion .trace-kicker{letter-spacing:.08em;color:#96c5ff}
+#actual-team-diffusion .trace-intro{margin:10px 0 24px;color:#b8c6db}
+#actual-team-diffusion .trace-heading{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;color:#b8d7ff}
+#actual-team-diffusion .trace-roster{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0 0 20px}
+#actual-team-diffusion .trace-slot{position:relative;background:#152136;border-radius:8px;min-width:0;text-align:center;padding:10px 4px;box-shadow:inset 0 0 0 1px #2b3d58}
+#actual-team-diffusion .trace-slot.active{box-shadow:inset 0 0 0 2px #92c4ff}
+#actual-team-diffusion .trace-image{height:66px;display:flex;align-items:center;justify-content:center}
+#actual-team-diffusion .trace-image img{width:66px;height:66px;image-rendering:auto;animation:trace-arrive .3s ease-out}
+#actual-team-diffusion .trace-name{min-height:32px;overflow-wrap:anywhere}
+#actual-team-diffusion .trace-dots{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin-top:6px}
+#actual-team-diffusion .trace-dots i{height:4px;background:#35425a}
+#actual-team-diffusion .trace-dots i.done{background:#8cbbf9}
+#actual-team-diffusion .trace-detail{border-top:1px solid #2b3d58;border-bottom:1px solid #2b3d58;padding:16px 0}
+#actual-team-diffusion .trace-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+#actual-team-diffusion .trace-label{display:block;color:#8fa5c1;margin-bottom:4px}
+#actual-team-diffusion .trace-moves{grid-column:1/-1}
+#actual-team-diffusion [data-moves]{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+#actual-team-diffusion .trace-new{color:#ffd48a}
+#actual-team-diffusion .trace-muted{color:#afbed5}
+#actual-team-diffusion .trace-decision{margin:16px 0 10px;min-height:64px}
+#actual-team-diffusion [data-note]{margin-top:5px}
+#actual-team-diffusion .trace-probabilities{min-height:97px;margin-bottom:18px}
+#actual-team-diffusion .trace-prob-row{display:grid;grid-template-columns:minmax(90px,1fr) 2fr 48px;align-items:center;gap:8px;margin:7px 0}
+#actual-team-diffusion .trace-bar{height:6px;background:#20314b}
+#actual-team-diffusion .trace-bar span{display:block;height:100%;background:#94c8ff}
+#actual-team-diffusion .trace-controls{display:flex;gap:8px;flex-wrap:wrap}
+#actual-team-diffusion .trace-timeline{display:block;margin:14px 0}
+#actual-team-diffusion details{margin-top:16px;color:#b8c6db}
+#actual-team-diffusion summary{cursor:pointer}
+#actual-team-diffusion pre{white-space:pre-wrap;overflow-wrap:anywhere}
+#actual-team-diffusion [data-provenance]{margin:10px 0;overflow-wrap:anywhere}
+@keyframes trace-arrive{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){#actual-team-diffusion .trace-roster{grid-template-columns:repeat(3,minmax(0,1fr))}#actual-team-diffusion{padding:16px}#actual-team-diffusion .trace-name{min-height:20px}#actual-team-diffusion .trace-decision{min-height:94px}}
+@media(prefers-reduced-motion:reduce){#actual-team-diffusion .trace-image img{animation:none}}
+&lt;/style&gt;
+&lt;script&gt;
+(()=&gt;{
+const root=document.getElementById(&#x27;actual-team-diffusion&#x27;),trace={&quot;kind&quot;:&quot;Recorded trained-model inference&quot;,&quot;checkpoint&quot;:&quot;/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/temperature_p0.pt&quot;,&quot;checkpointSha256&quot;:&quot;432b7ffee6a362044b77df7f069d3712a338bdd4ce53e7d6c842cad8a7482b64&quot;,&quot;seed&quot;:91826,&quot;device&quot;:&quot;cpu&quot;,&quot;trainingCorpusSize&quot;:692,&quot;conditioning&quot;:&quot;unconditional WNULL&quot;,&quot;guidance&quot;:1,&quot;temperature&quot;:1,&quot;sampler&quot;:&quot;hpsdiffusion.sample_constrained&quot;,&quot;note&quot;:&quot;Masked-diffusion-trained Transformer; dependency-order constrained decoding. Stats copied separately from species-matched corpus sets. No battles evaluated.&quot;,&quot;format&quot;:&quot;gen9championsvgc2026regmb&quot;,&quot;sourceHashes&quot;:{&quot;corpus.py&quot;:&quot;2099397302f96cc1110d3b7cba37cc394427ff666658f23f134207e23edb7b7c&quot;,&quot;encode.py&quot;:&quot;c4eb13ed2137cc789f700771fdb30e5e210804133cf6f7520af0007f938494f2&quot;,&quot;diffusion.py&quot;:&quot;29636253fa6ed6f3695e517a1677fb960810c0f13baa34e356e3f6fae24770df&quot;,&quot;hpsdiffusion.py&quot;:&quot;57c107acb18e508ebf7a1955f3a7a3930fd2fb40cb12ad086c990d5726dee60e&quot;},&quot;validatorSha256&quot;:&quot;06cd0ddf5119b93f5a309d0174dd42c720ebd5f8fd2e9c0022fbecc624da6502&quot;,&quot;attempts&quot;:[{&quot;seed&quot;:91826,&quot;errors&quot;:[]}],&quot;samplerParity&quot;:true,&quot;events&quot;:[{&quot;step&quot;:1,&quot;column&quot;:0,&quot;slot&quot;:0,&quot;field&quot;:&quot;species&quot;,&quot;value&quot;:&quot;Archaludon&quot;,&quot;probability&quot;:0.018730631098151207,&quot;top&quot;:[{&quot;value&quot;:&quot;Basculegion&quot;,&quot;probability&quot;:0.057751208543777466},{&quot;value&quot;:&quot;Garchomp&quot;,&quot;probability&quot;:0.055606815963983536},{&quot;value&quot;:&quot;Kingambit&quot;,&quot;probability&quot;:0.05309908092021942},{&quot;value&quot;:&quot;Sinistcha&quot;,&quot;probability&quot;:0.04495186731219292},{&quot;value&quot;:&quot;Incineroar&quot;,&quot;probability&quot;:0.043958015739917755}],&quot;state&quot;:[&quot;Archaludon&quot;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{&quot;step&quot;:2,&quot;column&quot;:8,&quot;slot&quot;:1,&quot;field&quot;:&quot;species&quot;,&quot;value&quot;:&quot;Swampert&quot;,&quot;probability&quot;:0.13289521634578705,&quot;top&quot;:[{&quot;value&quot;:&quot;Pelipper&quot;,&quot;probability&quot;:0.19319427013397217},{&quot;value&quot;:&quot;Swampert&quot;,&quot;probability&quot;:0.13289521634578705},{&quot;value&quot;:&quot;Basculegion&quot;,&quot;probability&quot;:0.08592108637094498},{&quot;value&quot;:&quot;Grimmsnarl&quot;,&quot;probability&quot;:0.05904208496212959},{&quot;value&quot;:&quot;Sinistcha&quot;,&quot;probability&quot;:0.05594892427325249}],&quot;state&quot;:[&quot;Archaludon&quot;,null,null,null,null,null,null,null,&quot;Swampert&quot;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{&quot;step&quot;:3,&quot;column&quot;:16,&quot;slot&quot;:2,&quot;field&quot;:&quot;species&quot;,&quot;value&quot;:&quot;Sinistcha&quot;,&quot;probability&quot;:0.14363785088062286,&quot;top&quot;:[{&quot;value&quot;:&quot;Pelipper&quot;,&quot;probability&quot;:0.3452337086200714},{&quot;value&quot;:&quot;Sinistcha&quot;,&quot;probability&quot;:0.14363785088062286},{&quot;value&quot;:&quot;Sableye&quot;,&quot;probability&quot;:0.08237577229738235},{&quot;value&quot;:&quot;Grimmsnarl&quot;,&quot;probability&quot;:0.07227229326963425},{&quot;value&quot;:&quot;Basculegion&quot;,&quot;probability&quot;:0.05126344412565231}],&quot;state&quot;:[&quot;Archaludon&quot;,null,null,null,null,null,null,null,&quot;Swampert&quot;,null,null,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{&quot;step&quot;:4,&quot;column&quot;:24,&quot;slot&quot;:3,&quot;field&quot;:&quot;species&quot;,&quot;value&quot;:&quot;Grimmsnarl&quot;,&quot;probability&quot;:0.09703434258699417,&quot;top&quot;:[{&quot;value&quot;:&quot;Pelipper&quot;,&quot;probability&quot;:0.3726113438606262},{&quot;value&quot;:&quot;Sableye&quot;,&quot;probability&quot;:0.1293851137161255},{&quot;value&quot;:&quot;Grimmsnarl&quot;,&quot;probability&quot;:0.09703434258699417},{&quot;value&quot;:&quot;Basculegion&quot;,&quot;probability&quot;:0.05798223242163658},{&quot;value&quot;:&quot;Mawile&quot;,&quot;probability&quot;:0.039722129702568054}],&quot;state&quot;:[&quot;Archaludon&quot;,null,null,null,null,null,null,null,&quot;Swampert&quot;,null,null,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{&quot;step&quot;:5,&quot;column&quot;:32,&quot;slot&quot;:4,&quot;field&quot;:&quot;species&quot;,&quot;value&quot;:&quot;Pelipper&quot;,&quot;probability&quot;:0.5631373524665833,&quot;top&quot;:[{&quot;value&quot;:&quot;Pelipper&quot;,&quot;probability&quot;:0.5631373524665833},{&quot;value&quot;:&quot;Basculegion&quot;,&quot;probability&quot;:0.060555655509233475},{&quot;value&quot;:&quot;Sableye&quot;,&quot;probability&quot;:0.04509973153471947},{&quot;value&quot;:&quot;Metagross&quot;,&quot;probability&quot;:0.027546877041459084},{&quot;value&quot;:&quot;Mawile&quot;,&quot;probability&quot;:0.024627147242426872}],&quot;state&quot;:[&quot;Archaludon&quot;,null,null,null,null,null,null,null,&quot;Swampert&quot;,null,null,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{&quot;step&quot;:6,&quot;column&quot;:40,&quot;slot&quot;:5,&quot;field&quot;:&quot;species&quot;,&quot;value&quot;:&quot;Basculegion&quot;,&quot;probability&quot;:0.20728154480457306,&quot;top&quot;:[{&quot;value&quot;:&quot;Basculegion&quot;,&quot;probability&quot;:0.20728154480457306},{&quot;value&quot;:&quot;Sableye&quot;,&quot;probability&quot;:0.08726555854082108},{&quot;value&quot;:&quot;Metagross&quot;,&quot;probability&quot;:0.05789411813020706},{&quot;value&quot;:&quot;Venusaur&quot;,&quot;probability&quot;:0.05165613815188408},{&quot;value&quot;:&quot;Overqwil&quot;,&quot;probability&quot;:0.04813794791698456}],&quot;state&quot;:[&quot;Archaludon&quot;,null,null,null,null,null,null,null,&quot;Swampert&quot;,null,null,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:7,&quot;column&quot;:1,&quot;slot&quot;:0,&quot;field&quot;:&quot;ability&quot;,&quot;value&quot;:&quot;Stamina&quot;,&quot;probability&quot;:0.9990110397338867,&quot;top&quot;:[{&quot;value&quot;:&quot;Stamina&quot;,&quot;probability&quot;:0.9990110397338867},{&quot;value&quot;:&quot;Sturdy&quot;,&quot;probability&quot;:0.00098891812376678},{&quot;value&quot;:&quot;Analytic&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Armor Tail&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Aroma Veil&quot;,&quot;probability&quot;:0.0}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,null,null,null,null,null,null,&quot;Swampert&quot;,null,null,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:8,&quot;column&quot;:2,&quot;slot&quot;:0,&quot;field&quot;:&quot;item&quot;,&quot;value&quot;:&quot;Leftovers&quot;,&quot;probability&quot;:0.3456430733203888,&quot;top&quot;:[{&quot;value&quot;:&quot;Leftovers&quot;,&quot;probability&quot;:0.3456430733203888},{&quot;value&quot;:&quot;Sitrus Berry&quot;,&quot;probability&quot;:0.1516886055469513},{&quot;value&quot;:&quot;Light Clay&quot;,&quot;probability&quot;:0.1373126059770584},{&quot;value&quot;:&quot;Choice Scarf&quot;,&quot;probability&quot;:0.08553460985422134},{&quot;value&quot;:&quot;Focus Sash&quot;,&quot;probability&quot;:0.06582995504140854}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,null,null,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:9,&quot;column&quot;:9,&quot;slot&quot;:1,&quot;field&quot;:&quot;ability&quot;,&quot;value&quot;:&quot;Damp&quot;,&quot;probability&quot;:0.7223766446113586,&quot;top&quot;:[{&quot;value&quot;:&quot;Damp&quot;,&quot;probability&quot;:0.7223766446113586},{&quot;value&quot;:&quot;Torrent&quot;,&quot;probability&quot;:0.18764127790927887},{&quot;value&quot;:&quot;Swift Swim&quot;,&quot;probability&quot;:0.0899820402264595},{&quot;value&quot;:&quot;Armor Tail&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Aroma Veil&quot;,&quot;probability&quot;:0.0}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,null,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:10,&quot;column&quot;:10,&quot;slot&quot;:1,&quot;field&quot;:&quot;item&quot;,&quot;value&quot;:&quot;Swampertite&quot;,&quot;probability&quot;:0.5621742010116577,&quot;top&quot;:[{&quot;value&quot;:&quot;Swampertite&quot;,&quot;probability&quot;:0.5621742010116577},{&quot;value&quot;:&quot;Light Clay&quot;,&quot;probability&quot;:0.09933435916900635},{&quot;value&quot;:&quot;Sitrus Berry&quot;,&quot;probability&quot;:0.0813772976398468},{&quot;value&quot;:&quot;Choice Scarf&quot;,&quot;probability&quot;:0.057442158460617065},{&quot;value&quot;:&quot;Coba Berry&quot;,&quot;probability&quot;:0.03928070887923241}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,null,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:11,&quot;column&quot;:17,&quot;slot&quot;:2,&quot;field&quot;:&quot;ability&quot;,&quot;value&quot;:&quot;Hospitality&quot;,&quot;probability&quot;:1.0,&quot;top&quot;:[{&quot;value&quot;:&quot;Hospitality&quot;,&quot;probability&quot;:1.0},{&quot;value&quot;:&quot;Adaptability&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Analytic&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Armor Tail&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Aroma Veil&quot;,&quot;probability&quot;:0.0}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,null,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:12,&quot;column&quot;:18,&quot;slot&quot;:2,&quot;field&quot;:&quot;item&quot;,&quot;value&quot;:&quot;Sitrus Berry&quot;,&quot;probability&quot;:0.22847212851047516,&quot;top&quot;:[{&quot;value&quot;:&quot;Sitrus Berry&quot;,&quot;probability&quot;:0.22847212851047516},{&quot;value&quot;:&quot;Light Clay&quot;,&quot;probability&quot;:0.22666895389556885},{&quot;value&quot;:&quot;Focus Sash&quot;,&quot;probability&quot;:0.1306885927915573},{&quot;value&quot;:&quot;Coba Berry&quot;,&quot;probability&quot;:0.0966113731265068},{&quot;value&quot;:&quot;Choice Scarf&quot;,&quot;probability&quot;:0.09597449749708176}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,null,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:13,&quot;column&quot;:25,&quot;slot&quot;:3,&quot;field&quot;:&quot;ability&quot;,&quot;value&quot;:&quot;Prankster&quot;,&quot;probability&quot;:0.9989653825759888,&quot;top&quot;:[{&quot;value&quot;:&quot;Prankster&quot;,&quot;probability&quot;:0.9989653825759888},{&quot;value&quot;:&quot;Pickpocket&quot;,&quot;probability&quot;:0.0006795218214392662},{&quot;value&quot;:&quot;Frisk&quot;,&quot;probability&quot;:0.00035507907159626484},{&quot;value&quot;:&quot;Armor Tail&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Aroma Veil&quot;,&quot;probability&quot;:0.0}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,null,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:14,&quot;column&quot;:26,&quot;slot&quot;:3,&quot;field&quot;:&quot;item&quot;,&quot;value&quot;:&quot;Choice Scarf&quot;,&quot;probability&quot;:0.09377491474151611,&quot;top&quot;:[{&quot;value&quot;:&quot;Light Clay&quot;,&quot;probability&quot;:0.401537150144577},{&quot;value&quot;:&quot;Focus Sash&quot;,&quot;probability&quot;:0.13262587785720825},{&quot;value&quot;:&quot;Coba Berry&quot;,&quot;probability&quot;:0.1118435263633728},{&quot;value&quot;:&quot;Choice Scarf&quot;,&quot;probability&quot;:0.09377491474151611},{&quot;value&quot;:&quot;Roseli Berry&quot;,&quot;probability&quot;:0.0673203244805336}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,null,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:15,&quot;column&quot;:33,&quot;slot&quot;:4,&quot;field&quot;:&quot;ability&quot;,&quot;value&quot;:&quot;Drizzle&quot;,&quot;probability&quot;:0.9992819428443909,&quot;top&quot;:[{&quot;value&quot;:&quot;Drizzle&quot;,&quot;probability&quot;:0.9992819428443909},{&quot;value&quot;:&quot;Rain Dish&quot;,&quot;probability&quot;:0.0007181341643445194},{&quot;value&quot;:&quot;Analytic&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Armor Tail&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Aroma Veil&quot;,&quot;probability&quot;:0.0}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,null,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:16,&quot;column&quot;:34,&quot;slot&quot;:4,&quot;field&quot;:&quot;item&quot;,&quot;value&quot;:&quot;Light Clay&quot;,&quot;probability&quot;:0.3796733021736145,&quot;top&quot;:[{&quot;value&quot;:&quot;Light Clay&quot;,&quot;probability&quot;:0.3796733021736145},{&quot;value&quot;:&quot;Coba Berry&quot;,&quot;probability&quot;:0.1712156981229782},{&quot;value&quot;:&quot;Focus Sash&quot;,&quot;probability&quot;:0.1389217972755432},{&quot;value&quot;:&quot;Kasib Berry&quot;,&quot;probability&quot;:0.10232601314783096},{&quot;value&quot;:&quot;Roseli Berry&quot;,&quot;probability&quot;:0.05190186947584152}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,null,null,null,null,null,null,null]},{&quot;step&quot;:17,&quot;column&quot;:41,&quot;slot&quot;:5,&quot;field&quot;:&quot;ability&quot;,&quot;value&quot;:&quot;Swift Swim&quot;,&quot;probability&quot;:0.38911324739456177,&quot;top&quot;:[{&quot;value&quot;:&quot;Adaptability&quot;,&quot;probability&quot;:0.6084134578704834},{&quot;value&quot;:&quot;Swift Swim&quot;,&quot;probability&quot;:0.38911324739456177},{&quot;value&quot;:&quot;Mold Breaker&quot;,&quot;probability&quot;:0.0024732749443501234},{&quot;value&quot;:&quot;Armor Tail&quot;,&quot;probability&quot;:0.0},{&quot;value&quot;:&quot;Aroma Veil&quot;,&quot;probability&quot;:0.0}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,null,null,null,null,null,null]},{&quot;step&quot;:18,&quot;column&quot;:42,&quot;slot&quot;:5,&quot;field&quot;:&quot;item&quot;,&quot;value&quot;:&quot;Coba Berry&quot;,&quot;probability&quot;:0.2570638358592987,&quot;top&quot;:[{&quot;value&quot;:&quot;Focus Sash&quot;,&quot;probability&quot;:0.29095277190208435},{&quot;value&quot;:&quot;Coba Berry&quot;,&quot;probability&quot;:0.2570638358592987},{&quot;value&quot;:&quot;Kasib Berry&quot;,&quot;probability&quot;:0.11616078019142151},{&quot;value&quot;:&quot;Life Orb&quot;,&quot;probability&quot;:0.07181833684444427},{&quot;value&quot;:&quot;Roseli Berry&quot;,&quot;probability&quot;:0.06728316843509674}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,null,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:19,&quot;column&quot;:3,&quot;slot&quot;:0,&quot;field&quot;:&quot;m0&quot;,&quot;value&quot;:&quot;Draco Meteor&quot;,&quot;probability&quot;:0.01923588290810585,&quot;top&quot;:[{&quot;value&quot;:&quot;Dragon Pulse&quot;,&quot;probability&quot;:0.48261746764183044},{&quot;value&quot;:&quot;Light Screen&quot;,&quot;probability&quot;:0.2116996794939041},{&quot;value&quot;:&quot;Earthquake&quot;,&quot;probability&quot;:0.16295425593852997},{&quot;value&quot;:&quot;Foul Play&quot;,&quot;probability&quot;:0.04302498698234558},{&quot;value&quot;:&quot;Draco Meteor&quot;,&quot;probability&quot;:0.01923588290810585}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,null,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:20,&quot;column&quot;:4,&quot;slot&quot;:0,&quot;field&quot;:&quot;m1&quot;,&quot;value&quot;:&quot;Electro Shot&quot;,&quot;probability&quot;:0.6639284491539001,&quot;top&quot;:[{&quot;value&quot;:&quot;Electro Shot&quot;,&quot;probability&quot;:0.6639284491539001},{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.21496382355690002},{&quot;value&quot;:&quot;Light Screen&quot;,&quot;probability&quot;:0.06346672773361206},{&quot;value&quot;:&quot;Iron Head&quot;,&quot;probability&quot;:0.010724999010562897},{&quot;value&quot;:&quot;Dragon Pulse&quot;,&quot;probability&quot;:0.008652472868561745}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,null,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:21,&quot;column&quot;:5,&quot;slot&quot;:0,&quot;field&quot;:&quot;m2&quot;,&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.5570250153541565,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.5570250153541565},{&quot;value&quot;:&quot;Flash Cannon&quot;,&quot;probability&quot;:0.26489487290382385},{&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.14296004176139832},{&quot;value&quot;:&quot;Iron Head&quot;,&quot;probability&quot;:0.005526906810700893},{&quot;value&quot;:&quot;Rock Slide&quot;,&quot;probability&quot;:0.00505768321454525}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,null,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:22,&quot;column&quot;:6,&quot;slot&quot;:0,&quot;field&quot;:&quot;m3&quot;,&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.5627988576889038,&quot;top&quot;:[{&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.5627988576889038},{&quot;value&quot;:&quot;Thunderbolt&quot;,&quot;probability&quot;:0.10566912591457367},{&quot;value&quot;:&quot;Rock Slide&quot;,&quot;probability&quot;:0.09314244240522385},{&quot;value&quot;:&quot;Snarl&quot;,&quot;probability&quot;:0.06071942672133446},{&quot;value&quot;:&quot;Swords Dance&quot;,&quot;probability&quot;:0.05409351736307144}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,null,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:23,&quot;column&quot;:11,&quot;slot&quot;:1,&quot;field&quot;:&quot;m0&quot;,&quot;value&quot;:&quot;Flip Turn&quot;,&quot;probability&quot;:0.1054215207695961,&quot;top&quot;:[{&quot;value&quot;:&quot;Earthquake&quot;,&quot;probability&quot;:0.5004176497459412},{&quot;value&quot;:&quot;High Horsepower&quot;,&quot;probability&quot;:0.15375424921512604},{&quot;value&quot;:&quot;Flip Turn&quot;,&quot;probability&quot;:0.1054215207695961},{&quot;value&quot;:&quot;Earth Power&quot;,&quot;probability&quot;:0.05113467946648598},{&quot;value&quot;:&quot;Ice Punch&quot;,&quot;probability&quot;:0.025919083505868912}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,null,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:24,&quot;column&quot;:12,&quot;slot&quot;:1,&quot;field&quot;:&quot;m1&quot;,&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.5912445783615112,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.5912445783615112},{&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.13185380399227142},{&quot;value&quot;:&quot;Ice Punch&quot;,&quot;probability&quot;:0.1081223264336586},{&quot;value&quot;:&quot;High Horsepower&quot;,&quot;probability&quot;:0.035831302404403687},{&quot;value&quot;:&quot;Muddy Water&quot;,&quot;probability&quot;:0.029986906796693802}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,null,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:25,&quot;column&quot;:13,&quot;slot&quot;:1,&quot;field&quot;:&quot;m2&quot;,&quot;value&quot;:&quot;Weather Ball&quot;,&quot;probability&quot;:0.3363984525203705,&quot;top&quot;:[{&quot;value&quot;:&quot;Weather Ball&quot;,&quot;probability&quot;:0.3363984525203705},{&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.30721256136894226},{&quot;value&quot;:&quot;Wave Crash&quot;,&quot;probability&quot;:0.06555360555648804},{&quot;value&quot;:&quot;Muddy Water&quot;,&quot;probability&quot;:0.057499296963214874},{&quot;value&quot;:&quot;Ice Punch&quot;,&quot;probability&quot;:0.04114912822842598}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,null,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:26,&quot;column&quot;:14,&quot;slot&quot;:1,&quot;field&quot;:&quot;m3&quot;,&quot;value&quot;:&quot;Wave Crash&quot;,&quot;probability&quot;:0.9244597554206848,&quot;top&quot;:[{&quot;value&quot;:&quot;Wave Crash&quot;,&quot;probability&quot;:0.9244597554206848},{&quot;value&quot;:&quot;Wide Guard&quot;,&quot;probability&quot;:0.023713871836662292},{&quot;value&quot;:&quot;Sludge Bomb&quot;,&quot;probability&quot;:0.02241610176861286},{&quot;value&quot;:&quot;Rock Slide&quot;,&quot;probability&quot;:0.0075462209060788155},{&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.0058650062419474125}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,null,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:27,&quot;column&quot;:19,&quot;slot&quot;:2,&quot;field&quot;:&quot;m0&quot;,&quot;value&quot;:&quot;Calm Mind&quot;,&quot;probability&quot;:0.10291390866041183,&quot;top&quot;:[{&quot;value&quot;:&quot;Life Dew&quot;,&quot;probability&quot;:0.3363078832626343},{&quot;value&quot;:&quot;Foul Play&quot;,&quot;probability&quot;:0.2717079520225525},{&quot;value&quot;:&quot;Matcha Gotcha&quot;,&quot;probability&quot;:0.15452033281326294},{&quot;value&quot;:&quot;Calm Mind&quot;,&quot;probability&quot;:0.10291390866041183},{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.04410114511847496}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,null,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:28,&quot;column&quot;:20,&quot;slot&quot;:2,&quot;field&quot;:&quot;m1&quot;,&quot;value&quot;:&quot;Rage Powder&quot;,&quot;probability&quot;:0.041675157845020294,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.5648462772369385},{&quot;value&quot;:&quot;Matcha Gotcha&quot;,&quot;probability&quot;:0.268961638212204},{&quot;value&quot;:&quot;Rage Powder&quot;,&quot;probability&quot;:0.041675157845020294},{&quot;value&quot;:&quot;Foul Play&quot;,&quot;probability&quot;:0.031489357352256775},{&quot;value&quot;:&quot;Giga Drain&quot;,&quot;probability&quot;:0.029958931729197502}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,null,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:29,&quot;column&quot;:21,&quot;slot&quot;:2,&quot;field&quot;:&quot;m2&quot;,&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.30171191692352295,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.6547515392303467},{&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.30171191692352295},{&quot;value&quot;:&quot;Solar Beam&quot;,&quot;probability&quot;:0.011107943952083588},{&quot;value&quot;:&quot;Shadow Ball&quot;,&quot;probability&quot;:0.010161619633436203},{&quot;value&quot;:&quot;Matcha Gotcha&quot;,&quot;probability&quot;:0.006494517438113689}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,null,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:30,&quot;column&quot;:22,&quot;slot&quot;:2,&quot;field&quot;:&quot;m3&quot;,&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.8497989177703857,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.8497989177703857},{&quot;value&quot;:&quot;Trick Room&quot;,&quot;probability&quot;:0.13815194368362427},{&quot;value&quot;:&quot;Shadow Ball&quot;,&quot;probability&quot;:0.004688968416303396},{&quot;value&quot;:&quot;Substitute&quot;,&quot;probability&quot;:0.002821447094902396},{&quot;value&quot;:&quot;Foul Play&quot;,&quot;probability&quot;:0.0006584131624549627}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,null,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:31,&quot;column&quot;:27,&quot;slot&quot;:3,&quot;field&quot;:&quot;m0&quot;,&quot;value&quot;:&quot;Light Screen&quot;,&quot;probability&quot;:0.885489821434021,&quot;top&quot;:[{&quot;value&quot;:&quot;Light Screen&quot;,&quot;probability&quot;:0.885489821434021},{&quot;value&quot;:&quot;Foul Play&quot;,&quot;probability&quot;:0.038737956434488297},{&quot;value&quot;:&quot;Dark Pulse&quot;,&quot;probability&quot;:0.018602726981043816},{&quot;value&quot;:&quot;Fake Out&quot;,&quot;probability&quot;:0.010246051475405693},{&quot;value&quot;:&quot;Dazzling Gleam&quot;,&quot;probability&quot;:0.007942820899188519}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,null,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:32,&quot;column&quot;:28,&quot;slot&quot;:3,&quot;field&quot;:&quot;m1&quot;,&quot;value&quot;:&quot;Parting Shot&quot;,&quot;probability&quot;:0.3331317603588104,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.40953657031059265},{&quot;value&quot;:&quot;Parting Shot&quot;,&quot;probability&quot;:0.3331317603588104},{&quot;value&quot;:&quot;Ice Punch&quot;,&quot;probability&quot;:0.11830680072307587},{&quot;value&quot;:&quot;Dazzling Gleam&quot;,&quot;probability&quot;:0.04514884948730469},{&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.02192019112408161}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,null,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:33,&quot;column&quot;:29,&quot;slot&quot;:3,&quot;field&quot;:&quot;m2&quot;,&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.48355117440223694,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.48355117440223694},{&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.44658032059669495},{&quot;value&quot;:&quot;Ice Punch&quot;,&quot;probability&quot;:0.013063565827906132},{&quot;value&quot;:&quot;Fake Out&quot;,&quot;probability&quot;:0.011881653219461441},{&quot;value&quot;:&quot;Spirit Break&quot;,&quot;probability&quot;:0.006827636621892452}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,null,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:34,&quot;column&quot;:30,&quot;slot&quot;:3,&quot;field&quot;:&quot;m3&quot;,&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.2497207522392273,&quot;top&quot;:[{&quot;value&quot;:&quot;Spirit Break&quot;,&quot;probability&quot;:0.6567094922065735},{&quot;value&quot;:&quot;Reflect&quot;,&quot;probability&quot;:0.2497207522392273},{&quot;value&quot;:&quot;Throat Chop&quot;,&quot;probability&quot;:0.026994647458195686},{&quot;value&quot;:&quot;Swagger&quot;,&quot;probability&quot;:0.020309647545218468},{&quot;value&quot;:&quot;Sucker Punch&quot;,&quot;probability&quot;:0.01720503345131874}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,null,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:35,&quot;column&quot;:35,&quot;slot&quot;:4,&quot;field&quot;:&quot;m0&quot;,&quot;value&quot;:&quot;Hurricane&quot;,&quot;probability&quot;:0.9562444686889648,&quot;top&quot;:[{&quot;value&quot;:&quot;Hurricane&quot;,&quot;probability&quot;:0.9562444686889648},{&quot;value&quot;:&quot;Brave Bird&quot;,&quot;probability&quot;:0.008716831915080547},{&quot;value&quot;:&quot;Ice Beam&quot;,&quot;probability&quot;:0.00639638677239418},{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.004978547338396311},{&quot;value&quot;:&quot;Helping Hand&quot;,&quot;probability&quot;:0.004508719779551029}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,null,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:36,&quot;column&quot;:36,&quot;slot&quot;:4,&quot;field&quot;:&quot;m1&quot;,&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.11734939366579056,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.4095991253852844},{&quot;value&quot;:&quot;Tailwind&quot;,&quot;probability&quot;:0.3278973400592804},{&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.11734939366579056},{&quot;value&quot;:&quot;Muddy Water&quot;,&quot;probability&quot;:0.03780166432261467},{&quot;value&quot;:&quot;Ice Beam&quot;,&quot;probability&quot;:0.0294125247746706}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,null,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:37,&quot;column&quot;:37,&quot;slot&quot;:4,&quot;field&quot;:&quot;m2&quot;,&quot;value&quot;:&quot;Tailwind&quot;,&quot;probability&quot;:0.5297580361366272,&quot;top&quot;:[{&quot;value&quot;:&quot;Tailwind&quot;,&quot;probability&quot;:0.5297580361366272},{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.3276885747909546},{&quot;value&quot;:&quot;Weather Ball&quot;,&quot;probability&quot;:0.0654752254486084},{&quot;value&quot;:&quot;Soak&quot;,&quot;probability&quot;:0.017027197405695915},{&quot;value&quot;:&quot;Liquidation&quot;,&quot;probability&quot;:0.015909532085061073}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,null,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:38,&quot;column&quot;:38,&quot;slot&quot;:4,&quot;field&quot;:&quot;m3&quot;,&quot;value&quot;:&quot;U-turn&quot;,&quot;probability&quot;:0.010426850989460945,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.6346768736839294},{&quot;value&quot;:&quot;Wide Guard&quot;,&quot;probability&quot;:0.247391015291214},{&quot;value&quot;:&quot;Weather Ball&quot;,&quot;probability&quot;:0.07601732760667801},{&quot;value&quot;:&quot;Roost&quot;,&quot;probability&quot;:0.013038315810263157},{&quot;value&quot;:&quot;U-turn&quot;,&quot;probability&quot;:0.010426850989460945}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,null,null,null,null,null]},{&quot;step&quot;:39,&quot;column&quot;:43,&quot;slot&quot;:5,&quot;field&quot;:&quot;m0&quot;,&quot;value&quot;:&quot;Aqua Jet&quot;,&quot;probability&quot;:0.88337641954422,&quot;top&quot;:[{&quot;value&quot;:&quot;Aqua Jet&quot;,&quot;probability&quot;:0.88337641954422},{&quot;value&quot;:&quot;Flip Turn&quot;,&quot;probability&quot;:0.05782882496714592},{&quot;value&quot;:&quot;Ice Beam&quot;,&quot;probability&quot;:0.012158838100731373},{&quot;value&quot;:&quot;Crunch&quot;,&quot;probability&quot;:0.0084920022636652},{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.007206347305327654}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,null,null,null,null]},{&quot;step&quot;:40,&quot;column&quot;:44,&quot;slot&quot;:5,&quot;field&quot;:&quot;m1&quot;,&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.5997703671455383,&quot;top&quot;:[{&quot;value&quot;:&quot;Protect&quot;,&quot;probability&quot;:0.5997703671455383},{&quot;value&quot;:&quot;Last Respects&quot;,&quot;probability&quot;:0.10655676573514938},{&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.10629939287900925},{&quot;value&quot;:&quot;Flip Turn&quot;,&quot;probability&quot;:0.07251138985157013},{&quot;value&quot;:&quot;Muddy Water&quot;,&quot;probability&quot;:0.03808720409870148}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,null,null,null]},{&quot;step&quot;:41,&quot;column&quot;:45,&quot;slot&quot;:5,&quot;field&quot;:&quot;m2&quot;,&quot;value&quot;:&quot;Last Respects&quot;,&quot;probability&quot;:0.8296604752540588,&quot;top&quot;:[{&quot;value&quot;:&quot;Last Respects&quot;,&quot;probability&quot;:0.8296604752540588},{&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.06344092637300491},{&quot;value&quot;:&quot;Shadow Ball&quot;,&quot;probability&quot;:0.031319234520196915},{&quot;value&quot;:&quot;Soak&quot;,&quot;probability&quot;:0.018554186448454857},{&quot;value&quot;:&quot;Liquidation&quot;,&quot;probability&quot;:0.014195866882801056}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,null,null]},{&quot;step&quot;:42,&quot;column&quot;:46,&quot;slot&quot;:5,&quot;field&quot;:&quot;m3&quot;,&quot;value&quot;:&quot;Wave Crash&quot;,&quot;probability&quot;:0.938061535358429,&quot;top&quot;:[{&quot;value&quot;:&quot;Wave Crash&quot;,&quot;probability&quot;:0.938061535358429},{&quot;value&quot;:&quot;Shadow Ball&quot;,&quot;probability&quot;:0.024066725745797157},{&quot;value&quot;:&quot;Psychic Fangs&quot;,&quot;probability&quot;:0.011507430113852024},{&quot;value&quot;:&quot;Rain Dance&quot;,&quot;probability&quot;:0.009989384561777115},{&quot;value&quot;:&quot;Waterfall&quot;,&quot;probability&quot;:0.0034358901903033257}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;,null]},{&quot;step&quot;:43,&quot;column&quot;:7,&quot;slot&quot;:0,&quot;field&quot;:&quot;nature&quot;,&quot;value&quot;:&quot;Calm&quot;,&quot;probability&quot;:0.11470578610897064,&quot;top&quot;:[{&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.3351147770881653},{&quot;value&quot;:&quot;Adamant&quot;,&quot;probability&quot;:0.21182909607887268},{&quot;value&quot;:&quot;Calm&quot;,&quot;probability&quot;:0.11470578610897064},{&quot;value&quot;:&quot;Bold&quot;,&quot;probability&quot;:0.10016359388828278},{&quot;value&quot;:&quot;Timid&quot;,&quot;probability&quot;:0.08245078474283218}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Calm&quot;,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,null,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;,null]},{&quot;step&quot;:44,&quot;column&quot;:15,&quot;slot&quot;:1,&quot;field&quot;:&quot;nature&quot;,&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.327257364988327,&quot;top&quot;:[{&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.327257364988327},{&quot;value&quot;:&quot;Adamant&quot;,&quot;probability&quot;:0.2200128585100174},{&quot;value&quot;:&quot;Calm&quot;,&quot;probability&quot;:0.11561615020036697},{&quot;value&quot;:&quot;Bold&quot;,&quot;probability&quot;:0.10078611224889755},{&quot;value&quot;:&quot;Timid&quot;,&quot;probability&quot;:0.08620899170637131}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Calm&quot;,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,&quot;Modest&quot;,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,null,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;,null]},{&quot;step&quot;:45,&quot;column&quot;:23,&quot;slot&quot;:2,&quot;field&quot;:&quot;nature&quot;,&quot;value&quot;:&quot;Jolly&quot;,&quot;probability&quot;:0.1523979902267456,&quot;top&quot;:[{&quot;value&quot;:&quot;Adamant&quot;,&quot;probability&quot;:0.44211748242378235},{&quot;value&quot;:&quot;Jolly&quot;,&quot;probability&quot;:0.1523979902267456},{&quot;value&quot;:&quot;Calm&quot;,&quot;probability&quot;:0.11753630638122559},{&quot;value&quot;:&quot;Bold&quot;,&quot;probability&quot;:0.08453454077243805},{&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.07670821994543076}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Calm&quot;,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,&quot;Modest&quot;,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,&quot;Jolly&quot;,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,null,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;,null]},{&quot;step&quot;:46,&quot;column&quot;:31,&quot;slot&quot;:3,&quot;field&quot;:&quot;nature&quot;,&quot;value&quot;:&quot;Adamant&quot;,&quot;probability&quot;:0.28418946266174316,&quot;top&quot;:[{&quot;value&quot;:&quot;Adamant&quot;,&quot;probability&quot;:0.28418946266174316},{&quot;value&quot;:&quot;Calm&quot;,&quot;probability&quot;:0.17665328085422516},{&quot;value&quot;:&quot;Bold&quot;,&quot;probability&quot;:0.14934830367565155},{&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.14899702370166779},{&quot;value&quot;:&quot;Timid&quot;,&quot;probability&quot;:0.06728489696979523}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Calm&quot;,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,&quot;Modest&quot;,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,&quot;Jolly&quot;,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Adamant&quot;,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,null,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;,null]},{&quot;step&quot;:47,&quot;column&quot;:39,&quot;slot&quot;:4,&quot;field&quot;:&quot;nature&quot;,&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.35808321833610535,&quot;top&quot;:[{&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.35808321833610535},{&quot;value&quot;:&quot;Calm&quot;,&quot;probability&quot;:0.2013963758945465},{&quot;value&quot;:&quot;Bold&quot;,&quot;probability&quot;:0.16238988935947418},{&quot;value&quot;:&quot;Timid&quot;,&quot;probability&quot;:0.109000064432621},{&quot;value&quot;:&quot;Careful&quot;,&quot;probability&quot;:0.05152563378214836}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Calm&quot;,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,&quot;Modest&quot;,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,&quot;Jolly&quot;,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Adamant&quot;,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,&quot;Modest&quot;,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;,null]},{&quot;step&quot;:48,&quot;column&quot;:47,&quot;slot&quot;:5,&quot;field&quot;:&quot;nature&quot;,&quot;value&quot;:&quot;Bold&quot;,&quot;probability&quot;:0.178437277674675,&quot;top&quot;:[{&quot;value&quot;:&quot;Modest&quot;,&quot;probability&quot;:0.2478022575378418},{&quot;value&quot;:&quot;Calm&quot;,&quot;probability&quot;:0.24613602459430695},{&quot;value&quot;:&quot;Bold&quot;,&quot;probability&quot;:0.178437277674675},{&quot;value&quot;:&quot;Timid&quot;,&quot;probability&quot;:0.09045609831809998},{&quot;value&quot;:&quot;Adamant&quot;,&quot;probability&quot;:0.08083949238061905}],&quot;state&quot;:[&quot;Archaludon&quot;,&quot;Stamina&quot;,&quot;Leftovers&quot;,&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Calm&quot;,&quot;Swampert&quot;,&quot;Damp&quot;,&quot;Swampertite&quot;,&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;,&quot;Modest&quot;,&quot;Sinistcha&quot;,&quot;Hospitality&quot;,&quot;Sitrus Berry&quot;,&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;,&quot;Jolly&quot;,&quot;Grimmsnarl&quot;,&quot;Prankster&quot;,&quot;Choice Scarf&quot;,&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;,&quot;Adamant&quot;,&quot;Pelipper&quot;,&quot;Drizzle&quot;,&quot;Light Clay&quot;,&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;,&quot;Modest&quot;,&quot;Basculegion&quot;,&quot;Swift Swim&quot;,&quot;Coba Berry&quot;,&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;,&quot;Bold&quot;]}],&quot;finalTeam&quot;:[{&quot;species&quot;:&quot;Archaludon&quot;,&quot;ability&quot;:&quot;Stamina&quot;,&quot;item&quot;:&quot;Leftovers&quot;,&quot;moves&quot;:[&quot;Draco Meteor&quot;,&quot;Electro Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;],&quot;nature&quot;:&quot;Calm&quot;,&quot;statPoints&quot;:{&quot;HP&quot;:27,&quot;Atk&quot;:0,&quot;Def&quot;:0,&quot;SpA&quot;:32,&quot;SpD&quot;:2,&quot;Spe&quot;:5},&quot;spreadSourceIndex&quot;:48},{&quot;species&quot;:&quot;Swampert&quot;,&quot;ability&quot;:&quot;Damp&quot;,&quot;item&quot;:&quot;Swampertite&quot;,&quot;moves&quot;:[&quot;Flip Turn&quot;,&quot;Protect&quot;,&quot;Weather Ball&quot;,&quot;Wave Crash&quot;],&quot;nature&quot;:&quot;Modest&quot;,&quot;statPoints&quot;:{&quot;HP&quot;:2,&quot;Atk&quot;:32,&quot;Def&quot;:0,&quot;SpA&quot;:0,&quot;SpD&quot;:0,&quot;Spe&quot;:32},&quot;spreadSourceIndex&quot;:7},{&quot;species&quot;:&quot;Sinistcha&quot;,&quot;ability&quot;:&quot;Hospitality&quot;,&quot;item&quot;:&quot;Sitrus Berry&quot;,&quot;moves&quot;:[&quot;Calm Mind&quot;,&quot;Rage Powder&quot;,&quot;Reflect&quot;,&quot;Protect&quot;],&quot;nature&quot;:&quot;Jolly&quot;,&quot;statPoints&quot;:{&quot;HP&quot;:32,&quot;Atk&quot;:0,&quot;Def&quot;:14,&quot;SpA&quot;:0,&quot;SpD&quot;:20,&quot;Spe&quot;:0},&quot;spreadSourceIndex&quot;:96},{&quot;species&quot;:&quot;Grimmsnarl&quot;,&quot;ability&quot;:&quot;Prankster&quot;,&quot;item&quot;:&quot;Choice Scarf&quot;,&quot;moves&quot;:[&quot;Light Screen&quot;,&quot;Parting Shot&quot;,&quot;Protect&quot;,&quot;Reflect&quot;],&quot;nature&quot;:&quot;Adamant&quot;,&quot;statPoints&quot;:{&quot;HP&quot;:32,&quot;Atk&quot;:10,&quot;Def&quot;:12,&quot;SpA&quot;:0,&quot;SpD&quot;:12,&quot;Spe&quot;:0},&quot;spreadSourceIndex&quot;:47},{&quot;species&quot;:&quot;Pelipper&quot;,&quot;ability&quot;:&quot;Drizzle&quot;,&quot;item&quot;:&quot;Light Clay&quot;,&quot;moves&quot;:[&quot;Hurricane&quot;,&quot;Rain Dance&quot;,&quot;Tailwind&quot;,&quot;U-turn&quot;],&quot;nature&quot;:&quot;Modest&quot;,&quot;statPoints&quot;:{&quot;HP&quot;:32,&quot;Atk&quot;:0,&quot;Def&quot;:0,&quot;SpA&quot;:25,&quot;SpD&quot;:6,&quot;Spe&quot;:3},&quot;spreadSourceIndex&quot;:59},{&quot;species&quot;:&quot;Basculegion&quot;,&quot;ability&quot;:&quot;Swift Swim&quot;,&quot;item&quot;:&quot;Coba Berry&quot;,&quot;moves&quot;:[&quot;Aqua Jet&quot;,&quot;Protect&quot;,&quot;Last Respects&quot;,&quot;Wave Crash&quot;],&quot;nature&quot;:&quot;Bold&quot;,&quot;statPoints&quot;:{&quot;HP&quot;:0,&quot;Atk&quot;:32,&quot;Def&quot;:1,&quot;SpA&quot;:0,&quot;SpD&quot;:1,&quot;Spe&quot;:32},&quot;spreadSourceIndex&quot;:105}],&quot;paste&quot;:&quot;Archaludon @ Leftovers\nAbility: Stamina\nLevel: 50\nEVs: 27 HP / 32 SpA / 2 SpD / 5 Spe\nCalm Nature\n- Draco Meteor\n- Electro Shot\n- Protect\n- Reflect\n\nSwampert @ Swampertite\nAbility: Damp\nLevel: 50\nEVs: 2 HP / 32 Atk / 32 Spe\nModest Nature\n- Flip Turn\n- Protect\n- Weather Ball\n- Wave Crash\n\nSinistcha @ Sitrus Berry\nAbility: Hospitality\nLevel: 50\nEVs: 32 HP / 14 Def / 20 SpD\nJolly Nature\n- Calm Mind\n- Rage Powder\n- Reflect\n- Protect\n\nGrimmsnarl @ Choice Scarf\nAbility: Prankster\nLevel: 50\nEVs: 32 HP / 10 Atk / 12 Def / 12 SpD\nAdamant Nature\n- Light Screen\n- Parting Shot\n- Protect\n- Reflect\n\nPelipper @ Light Clay\nAbility: Drizzle\nLevel: 50\nEVs: 32 HP / 25 SpA / 6 SpD / 3 Spe\nModest Nature\n- Hurricane\n- Rain Dance\n- Tailwind\n- U-turn\n\nBasculegion @ Coba Berry\nAbility: Swift Swim\nLevel: 50\nEVs: 32 Atk / 1 Def / 1 SpD / 32 Spe\nBold Nature\n- Aqua Jet\n- Protect\n- Last Respects\n- Wave Crash\n&quot;,&quot;validationErrors&quot;:[]},sprites=[&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAVFRUQHToeLFkkPHkpUJhEcshoYoSKhpuppbng4O3/3527eUTJR0d6PT4QKO1VAAAAAXRSTlMAQObYZgAABJVJREFUeNrt1oma5CoIBeAgMaC1vP/jXjAnreWkFu2++/BNOfv5BWpbfte/q+7dr388/0YPv+7rN8C3Ghput58XeK2RYV1Pgeu3gNgAMYJ7zL+MtHXt8ytA8fhND1zp8/yLdIDdOYRXwPUyBlyrEPYJhW3jNwCEQSBswRoIns8iSzjP15TSNLCFaMfGK2eVZ0DOmj4HRCpAbMK2RV5XtphzQLMD8nF+VqnAaoLnB+sghfgM0JRoAEgNsHJkDmvgizqwnuWPAQrgEHi/PzmwMj9pYGRCDwATlwVcrpbPViTTDZwDkbyDlNJNHSDNctLA4ArOgPvtXoAMoWtAlpEVJGnyHVjD7QuAMD+hDlh3gIgCF+BRkNrAHLCtkayi1dGA31k6gL4DoLYClHgINX8A0BbwfAArgAwAwuSEWiAXYc1lQiHnKiAfE5oHTLCjAhD0Ks2E5gHPWv3YAOiRf70K5dEJLQqgbaB0sDoQEC8omplQD5Qt20+lAcX096I8OaEWsOwiYEJ6BsgyByA/F+FrBacNzAOWX4QC4DkEQPLMhHoAFWN9DrUAFjYDiBU/NsDB4sVqvgG1KvkiKed+BaFEppydIOSPT0hTSQdggikdkGxKpFYyNiEMVSwBQHZhdaO+T+wGGpCJFUsG0LwPrVsLKPJHATSQCyAiBchrBuD5ZUcA8BqbA0RUDSgLLgcADzSj5AMYzk8l3oDgDZQtYwUAkqg2TyEZB0SthEL9rDkm5HbJzCfA9X0+mvZ8oiU0n5YAQLT5SQn5F/msgVTyF8+PbOnsROAKLPIAIB/ABw24QDvAN47+iNsDUPMngSRpB24O2GFAl38KvBQkp6+t2YP2BgA8TKjm94C+BFI8BbZyAED+A/AVqprlZQMx4b13fQKox1p++qUBOUYsrxowQNMLwAQt+TF1gGR5CaCByAxAftnBihmV/IhtARCxYHkDEKM8fwcW2oFyAij5FZDysDPnJA5gI2dAFQwoMzKgZFeAkb8vCwD5oZqSWDyA18QZcAPAXgCOZXm+J0sC8JIIZLHtjABgRriE7GkAVBEP4SXh8S1AEGgH1AQYnl+AJv6Dz+dg6Wz1NSMqgJ2BITSA2tHcXl0I4TXAddly+XVGSQnLEjRQb19+BKY3LRwELTsAAUBJMqMCze01BeS/J8jyRdrnkaUXQMvwfVsA6u018Pt87BqvfMzIzjszZmT5KAWgmD7yPysAzHS3bL7faQe8AbYCQIlw+73xZQyA4ICfwQGr9pkEIAVG/jhwv3t2ObBmByAAOPY2Digh2xgALhBBKEDA9cfzAfQt+N/BMADxtMwBiZgAEADF35HVMS/EzwGhXbML0n4oE64/DSTq1twDiJ/KBxAAQOgAxM8Dibo1S34Alm8CfQs9kOi7+b3wwwDWSFWgFtCfAVSVUBbXAjIBID+1gJc84vWbEU0BKaYKQDgBSL8PCP8wgHwD0ACRA3I6ImIIE4AJxyuJrLr9fBNIsQXOx1eBcYGIDoBoeQ3MtADDAMT3+Q1ALDSTD+PFfgAsA/Fj+6kL+uEiKwAj+eOIAaPTGd/Q7/rn1x+MD2QnZDsM9QAAAABJRU5ErkJggg==&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAABSSlIYGBhag8WDpN5qaouDSinug0FaWov2tEGsvbRqe3Pe7uZqKUHFYnucxd663rU+AAAAAXRSTlMAQObYZgAAA2ZJREFUeNrtl9liGyEQBEMPmmW1Ov7/bzPDtDEmF9jWU7ZyI6dKveT8cXJycnJycvJFEoDhJAHfp0+XCyhsJ7AzfJPfXCkhpeaz4MUP0pcLtLmLPp7wIOH7ApxA/7cFqGsTRn9fSM63Bdqo7gMdJtYDrYDq/2NgPcE3PAToHwNMrAUG4eXFgWHA7wLpgsVCkw+B5h8DrbA8oT2hPw1ggIX1wMwABj5VABgY/OMTWiyAUkCkC9D/9QALgLg/AvDEGEh9IGE5IC1QUxj9Q2C1YNKcM+p6qWAckOj/WkAZMP4WSIsBDX+GbprCDvw1sFJQxQ7JDnb/rqGbAah+NaDGhhbQHRvCT9So/g+BNBvQfTeJP5gcATO++/UtUgcYHwdMBQDz52z+ZxRUamDf3Y7A/Qz0AxJmb0Cy+WtAnGJ+Q+sc3gClXQCTl+AWSJFnLkLgAUehUpq/AqANmF6woSDMhgge942FHYAl0J4KbCToZ2DmmlnA/f54AI/H3WYBHAJ592fzrwW0+l1XzO8B535V1euhADfBAwh/FFAjk2/f8K/vBv2VQyqlOo1Mv4D+mQD4B4IlcMSE+/1mci9IABkAkBhYADiuAEwffk6gUHqonw+oohQRHLfK1VsVOyVMEMwHeM+7hiXwOdcA71LGPIolv9l11/z200scs3DzQtwuWioCAOb8jqopaCdwvQFRrYVujCqAuQWqXtg2D1Q7KQWmd6D+qoGYkkU3O1n441ppQK8XYQBqfaU/0M3QSf/m718/BFSLOEcENlV7fQioMRlw4iHj7aj6GcBubMoAsaIx4y/q+sEPYeDqgToxFpT8fD45wdB/60vOYTcEDEC6ADzPQPFAK6jxL3+YB3+RnFvhCrUBvKKjD9Tp//YLv2S0G67ZFuiu4DiiwF+pDv7qN3Fp/mGWsICsvAEGiIjOBOAfWiPosyyUAvBp5xpggX3VfwQgghwj8uh3RfmB7JiefgNCfyQEa4FCf2yC8GUGKoD0/H0ChkARAYV+grgkAlR/SrMFjhCIgfAD3QB/1QNRcbORWJgJcIR/iY8KPVDcH4OKtI3o/mOI6cKveyASfgYMeAXWTw5QxwVlsWD0/3MCikvC5lqHLzFeGFhqYBjlX3eeicICkWN1PfDFtDhMv6rxOf3JycnJycl/z09hLyuC+apKBQAAAABJRU5ErkJggg==&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAjIyY5OT0mVzM7gE1WsF6Hf2+1plu61Fvm3X7//2vl39C0rJR9VilSNhUexholAAAAAXRSTlMAQObYZgAAAlVJREFUeNrtlIey3CAQBBmSuKDl///WswJdKlc6FkdaybG75l1wi8VisVj8WcjBTH8hgmn+6xWkFEwLkEImBsgKrMCfHZAWEJk2QA44YfICTFuAqQs4AGyUwsSUAK4CQVsgUxYAOoH6Y8WMV7jgoByIrZ168FIK3670W45QM+jXQ/W9YDgCQFE7b+DZChC7AnURaPbMC1fBUYCVXyTebkDOPBlItgUaXbxd8i3nfOOtTWAEDgVmgXyhWzPHBLmKWUBFGqA8M9MClhPUUxlQNPMaqEaBWqOaNUA0oPazUOuQv/ZAow3IH4EYB/wiNHgGLu199JNAqhUDfqle/SzcLt3/DHgG6P++UNXfAh1BfgQKfOJZZSwQI/3vMFCan+jKgUCzt0TSs/uRgENf79/7SdNHeltHG0TlpFJP6B8JRIjQ1AIxdbpd2cPgAAjRhtbqg/uDoUDiAWloQOT+RghhJOBAPWqlnLz7932n/67XQMAhIxC0N1CsdT/RyLbdhxYQDwQFSRMItAay9R8QjyE/A6GDjBY45Ft4BpAMAgQBoHzjGbRjHiBNrBMCQz2wxwTjQH91ewCpwA2AV//WA+3RhqDYBegLL4E+BIMB/xroP31evcPT029V6G8gPf35VeH30UDwPM6XoOl5aWBXNGBQONgPAs+gvzbxE/jOKeWUvf9O73BmhW0/oXfzZOsDbAvnlk1/D2cBmFDr5xArfx9B33l1AGcGUOt7oFY4U1DqG4V+68IbcObgJQG4CUQ8iG5KIKUU+3NaIT6eUwDeQsrUUGexWCwWPwAlmC+GrqHtSAAAAABJRU5ErkJggg==&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABdRpRDNWgQEBAvGE5HvmI1KVRAlVU1ajz9C0L9/f3Jycn3XJDpN2F8gIkKtcJLAAAAAXRSTlMAQObYZgAABH1JREFUeNrt14di2zAaA+D+ADiy+v6PeyIhlpTPaSU7vRl4D+LLL6ojP/6T853vfKf+7f70FUL9MuB6SU3rh+JXAzWtgOJRINUzgOJLAPWMT8oB0GN7wDRbpOiRDLwsH0XwaUAxAvUBNoBfAZQm1Dr6LdSUXo6ArpdL80jUVEf5dnN/MeD+B0bwvjG1osoB4A0Rav0e4HFAsQOlV22I+xsQ2vrLc4D7u7CVwUDvN3DsfwLwCHirTcBW/2qh9YeeGcCABQXY9hrg62vJ0XeB7UGj/1HAgqKwHZPy+vJaUgNCjB5JsQPSBYCxChvwaqFsd+if+YydoYIPjiBF5MS2ry05BhCYhBTXAI/g+gaUwpdaUikGdiEwjSv90hAkd+G1bJd+xQrEZHjpx5cYjvvfXt9I8uf2uAIz0BWBPqgO+gDc9gAA+YpwGMfg2ghzXZ+AwZ9tgpLIFXhaAMbBYNuEt5IUnwBXzyJGCOv5wn4O3Qe0xcIVQocmof/rRigc6nAaQLoIKI5AoKYKYMzVK1v80AgDV/dZHOcSE4FWbbZhLQY7wUuAj6sEuj9Ii4DHQiOA9rgLugJk/4QQmqAAlkNOuBFCoD25OoKBnOE9teAiA3ul35/CtWOUIzI4gF6Rfw0wAMY6gi4BaOvYK0HXfOQBDAEMbwIuC25pAun+yO8ZEZoAANBQ6g9JugqAQPYz6H0TEOpehkOy9WcDCScFEj5xACKjXZE34ENoyfvNJw5JGUDCKYGKSBinHuk24eP9A8qLQN7+9XgKkKdtghvYDQIfaKWjfa+fgAmd6nc0G1pvX58LW9z+LLCW1Bw9uRQf+vuApDP9uAMU7BuZ7gFp7484AyDdARL2/lQgkkfBS3RiBrUS3AJkTQk7kEIADgajJPTB8achFEjlpp8ESpojRKBnIYj1v5X6fX+6+duRAHzeDqAF0Eow0n6APh9B2m5IHgCzX23lMkCZpwywCNrdz4D2wb4Dff6hqpeVIfhxElzXA+JnG737vh+zu30t9g6tBGcBSIB9/X3AK471U8B0jsQEeni332W+40LOlIQ5wCqHlv5Wznv9EPox7MKhH5gj+O6O4C1w/92o7z5hZ+kHZlGJKId+p69gH510/z1A8hd0AGaf9M/Nuw4Duls+t2Cfju7n2p/RIvbcGMsIvwEEknv/AsD1vZ9k7ukGJjGBzwXNzSEs8FdFXtuHEcAU0Kupz4F1c0hMwf17u45Evv0Fhw04E2v0FnpraGB1mjrqYcD9p0M4AxBlYExCNGF85Xo4+zvAft+gARDOClwXvJh5OIb8iPw8kG+AFbLg/ocFAxbcu0LQ04DGanIdgNy/kA08LOQyhL3Yj5xfcP/DgErd16/Nk4QeB9xfqm6B4zfy4wClsmVZztsq1vKgUFtSMfBJDKQkqV7vdv4ksOzf25ac7i+plrbkBMA0U04KW2+rrsX9Z4HS1p0D3O96tvzpCHnYUk4JBtq1l5/5p6MR1bdTAllTu54+8xpR+40nDxLZrhfSins5+ePvhOy3f1O+853v/AM7XSSoHxEOngAAAABJRU5ErkJggg==&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAQEBCLQTHNQVLFezH2tDH/3kr//6z////N1e6k5v97ze5apM1zc4MxYovieTafAAAAAXRSTlMAQObYZgAAAj5JREFUeNrtlAeW4zgMBf3RpE22SNz/uItPBewkP0uGJqo6B1cJULj9S1xcXFxcXKgB4DR9+/ycmqHAOXoyCmyE+4eegUpaQ7B/Wvx1JbiAysJkfie20GszSgFwTgBlBFCsUcL9BLO/o7NCfzAQYQDAPMYtGrnfpfRCQgPuN6SOCXqoPxEZ/pznc1CDAmlw38iSrDCDCP3j4fLFnzMgMQXTL/7szD9BJCAgMCST9Vuv5YjCAGR8k9hwJNX3ZzC2Dq+kj62RUpb6ZkFk286slw8Cwot2FOZENw7cVzk51G9Y+j4CBoxejL7bP7Rk1WKB+i1ADt0Y8qB+XKgCIrxqHQ+QAw9X81H/Y7IHyJGA639xoJ8SyAx0D9SE2+7C84AkU3vh7EA6Eng831BONBP4ABEjeKD2sgRSDgu43wMVOYUHEj9QyhKgP6jgfg9USGQgr7Dg93FYITsZpZwfiC1kvkUFWHjiDy/Q7IWIAIHb3e8wEFDIjhM1Qkd+UhB44GChF+BHBUFrKO8VlK+HNxwBmqFg4HBBJ7WXa2XjCzfMhaYeOFbQaZpUtanR4Jh4DfiOVLUqdvup4AeNZFiXgK4jDDe/bQ26w982v+oSYAFrD+P3KNrYJGBl5wCqPsAAbGD+FvxJt+OYOzi4IIdiZwQOFNT9iqdzg6v0Lb1aGMflC3oGpgMF+NzD/1IBOwrw/wVeOhwv6EsB3fyv7FO98OprYNz86Pct6RaOF9x/TmEMfg6ABfQsu5+2i4uLi4uLX8l/Cd43EaPQnVQAAAAASUVORK5CYII=&quot;, &quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAIj76UH43jFnGNVIQEBB5GjLm5uakpKQiYD1BUlJiYmIgMTn+p8hjPikVQCKYDWH3AAAAAXRSTlMAQObYZgAAA0hJREFUeNrtloeimzAMRZHvFbg05f8/t7KQYh5dDl2Lk73OwY7emG5ubm5ubm5u/j34k/3r/IWC6o8MrJ/6RVS/P2P+eWZUzoGWEE4d+Z7AeRUU5xiQB17OrMtsWGW1uzwvAe4/BSIzvgDDKsu6eED1uAS+bSKuXw0YquoBFVHPZGHSSKJ7r/jNZQlagLE79AD2V8z/sJ0RuRhQcbQH/IbN72gE7DLJxQDgU+nq6BDQ/bmHWuAhjwc9MgxnZ9kHRsXJJVDhAVExNR76cPelQCtkQBvYl4T9K4D4wT/s8uIQMfxewK6Xzl6Aovl1ovkHeA76+8a6WsALfREdGKoALMDBgEJD/i4Bnjo9+QMlm3vUH/K0p6uUEtMUdP00ipr/s/ayQ/8m8Dag0zAKdP3JLj0g+vSrB1RHA6lPO6BaHBGxSzn8QKDBqHDIf9DHxJuQJQqlBSiNltlh3HBg9/Wsh0j6O/RXEg3/0O53fR4lKRnokN0Pciigart/1AMtoM0W2xMoGT9cKSa/HTDVtPvzd0ypsABRTqjXBQro08uRgPtVxQw+NrVkQORTfwRSy2/6fXq0ySUT1W4pOATEA6ro/kHi8GP64r+dqv7I1RnR3B6yXRaOB8JfUJtlTwglCmL0HSJYq+mNdSyRC2ApW5OAhBjEOQARgM2/BBz1W8D8swU8RFLgGfQtqorGwU9y1A+yVJk39UCDdpMB1xva/S9uEARVKIuKCuouLIdADUj3j+sjAKkmEfiYsDibB9DtgN9sjM0fZat5vBsFbwIQcWkGQv+a3wMBTQipWxbxvmHazJDLy34r5JZ7QVi2WEAV91nC2Ux/xR9LIKNAl2+lVgi4RMLtyTq9xMymnxdu2dncXwFU185zU67rtQVMnMgPH2a70MwtkH4LtMJsrJG44HdM/qGx7YHw74PvgUxcDFjBGg7T73pzcU68cM3vCa4ZyKlx1blwKcC1bdLcClsEyJyWDGThSsDdbZB8iEIf/lPhGqy0AGtxTL8u58D3F1iefnv8uQAb1/zKJgfCb6zpz8Jq7ssowBYQS4SHbwNr2C/7wRr/dWpKjwFO3wUJndgQQ/vo/jjA3SlCcvoJpJUyrL9eurm5ubm5ufmlfATfaCf9iOvmnQAAAABJRU5ErkJggg==&quot;];
+const slider=root.querySelector(&#x27;input&#x27;),play=root.querySelector(&#x27;[data-play]&#x27;),roster=root.querySelector(&#x27;.trace-roster&#x27;),reduced=matchMedia(&#x27;(prefers-reduced-motion: reduce)&#x27;);
+let step=0,running=false,timer=null,prior=-1;const fields=[&#x27;Species&#x27;,&#x27;Ability&#x27;,&#x27;Item&#x27;,&#x27;Move 1&#x27;,&#x27;Move 2&#x27;,&#x27;Move 3&#x27;,&#x27;Move 4&#x27;,&#x27;Alignment&#x27;];
+const set=(key,text)=&gt;root.querySelector(&#x27;[data-&#x27;+key+&#x27;]&#x27;).textContent=text;
+roster.innerHTML=trace.finalTeam.map((m,i)=&gt;`&lt;div class=&quot;trace-slot&quot;&gt;&lt;div class=&quot;trace-image&quot;&gt;?&lt;/div&gt;&lt;div class=&quot;trace-name text-small&quot;&gt;Slot ${i+1}&lt;/div&gt;&lt;div class=&quot;trace-dots&quot; aria-hidden=&quot;true&quot;&gt;${Array(8).fill(&#x27;&lt;i&gt;&lt;/i&gt;&#x27;).join(&#x27;&#x27;)}&lt;/div&gt;&lt;/div&gt;`).join(&#x27;&#x27;);
+function draw(){const event=step?trace.events[Math.min(step,48)-1]:null,state=event?event.state:Array(48).fill(null),slot=event?event.slot:0,base=slot*8;
+ [...roster.children].forEach((el,i)=&gt;{const species=state[i*8],image=el.querySelector(&#x27;.trace-image&#x27;);if(species&amp;&amp;!image.querySelector(&#x27;img&#x27;))image.innerHTML=`&lt;img src=&quot;${sprites[i]}&quot; alt=&quot;${species}&quot;&gt;`;else if(!species)image.textContent=&#x27;?&#x27;;el.classList.toggle(&#x27;active&#x27;,i===slot);el.querySelector(&#x27;.trace-name&#x27;).textContent=species||`Slot ${i+1}`;[...el.querySelectorAll(&#x27;.trace-dots i&#x27;)].forEach((dot,j)=&gt;dot.classList.toggle(&#x27;done&#x27;,state[i*8+j] !== null));});
+ roster.setAttribute(&#x27;aria-label&#x27;,trace.finalTeam.map((m,i)=&gt;state[i*8]||`Slot ${i+1} masked`).join(&#x27;, &#x27;));set(&#x27;count&#x27;,`${Math.min(step,48)} / 48 revealed`);set(&#x27;stage&#x27;,step===0?&#x27;48 masked fields&#x27;:step&lt;=6?&#x27;1 · Sample species&#x27;:step&lt;=18?&#x27;2 · Sample abilities and items&#x27;:step&lt;=42?&#x27;3 · Sample moves&#x27;:step&lt;=48?&#x27;4 · Sample alignments&#x27;:step===49?&#x27;5 · Assign corpus spreads&#x27;:&#x27;6 · Validate the full team&#x27;);
+ set(&#x27;member&#x27;,`Member ${slot+1} · ${state[base]||&#x27;masked&#x27;}`);set(&#x27;ability&#x27;,state[base+1]||&#x27;MASK&#x27;);set(&#x27;item&#x27;,state[base+2]===null?&#x27;MASK&#x27;:state[base+2]||&#x27;No item&#x27;);set(&#x27;nature&#x27;,state[base+7]||&#x27;MASK&#x27;);root.querySelector(&#x27;[data-moves]&#x27;).innerHTML=Array.from({length:4},(_,i)=&gt;`&lt;span class=&quot;${event&amp;&amp;event.column===base+3+i&amp;&amp;step&lt;=48?&#x27;trace-new&#x27;:&#x27;&#x27;}&quot;&gt;${state[base+3+i]||&#x27;MASK&#x27;}&lt;/span&gt;`).join(&#x27;&#x27;);set(&#x27;stats&#x27;,step&lt;49?&#x27;Assigned after decoding&#x27;:[&#x27;HP&#x27;,&#x27;Atk&#x27;,&#x27;Def&#x27;,&#x27;SpA&#x27;,&#x27;SpD&#x27;,&#x27;Spe&#x27;].map(k=&gt;`${k} ${trace.finalTeam[slot].statPoints[k]||0}`).join(&#x27; · &#x27;));
+ const prob=root.querySelector(&#x27;.trace-probabilities&#x27;);
+ if(step===0){set(&#x27;decision&#x27;,&#x27;Start with a fully masked 6 × 8 categorical grid.&#x27;);set(&#x27;note&#x27;,&#x27;The sampler chooses a field in dependency order, applies legality masks, then samples a value.&#x27;);prob.innerHTML=&#x27;&#x27;;}
+ else if(step&lt;=48){set(&#x27;decision&#x27;,`Step ${step}: ${fields[event.column%8]} → ${event.value||&#x27;No item&#x27;}`);set(&#x27;note&#x27;,`Member ${event.slot+1} · sampled probability ${(event.probability*100).toFixed(1)}%. These are probabilities after legality masking, not win probabilities.`);prob.innerHTML=&#x27;&lt;div class=&quot;text-small trace-muted&quot;&gt;Top 3 allowed choices at this step&lt;/div&gt;&#x27;+event.top.slice(0,3).map(v=&gt;`&lt;div class=&quot;trace-prob-row text-small&quot;&gt;&lt;span&gt;${v.value||&#x27;No item&#x27;}&lt;/span&gt;&lt;div class=&quot;trace-bar&quot;&gt;&lt;span style=&quot;width:${v.probability*100}%&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;span class=&quot;tabular-nums&quot;&gt;${(v.probability*100).toFixed(1)}%&lt;/span&gt;&lt;/div&gt;`).join(&#x27;&#x27;);}
+ else if(step===49){set(&#x27;decision&#x27;,&#x27;All 48 model-sampled fields are complete.&#x27;);set(&#x27;note&#x27;,&#x27;The pipeline now assigns each member a species-matched corpus Stat Point spread. These numbers were not predicted by this checkpoint.&#x27;);prob.innerHTML=&#x27;&lt;div class=&quot;text-small trace-muted&quot;&gt;Stat order: HP · Attack · Defense · Special Attack · Special Defense · Speed.&lt;/div&gt;&#x27;;}
+ else{set(&#x27;decision&#x27;,trace.validationErrors.length?&#x27;Validator rejected this proposal.&#x27;:&#x27;The generated team passes the pinned M-B validator.&#x27;);set(&#x27;note&#x27;,`Seed ${trace.seed} · ${trace.attempts.length} proposal attempt(s). Battle strength has not been measured.`);prob.innerHTML=&#x27;&lt;div class=&quot;text-small trace-muted&quot;&gt;A legal generated candidate is ready for battle evaluation against the chosen opponent. See the full team below.&lt;/div&gt;&#x27;;}
+ set(&#x27;step&#x27;,`${step} / 50`);slider.value=step;slider.setAttribute(&#x27;aria-valuetext&#x27;,step&lt;=48?`${step} model-sampled fields revealed`:step===49?&#x27;Corpus spreads assigned&#x27;:&#x27;Team validated&#x27;);prior=step;if(!running)play.textContent=step===50?&#x27;Replay recorded run&#x27;:&#x27;Play recorded run&#x27;;
+}
+function stop(){running=false;clearTimeout(timer);play.textContent=step===50?&#x27;Replay recorded run&#x27;:&#x27;Play recorded run&#x27;}
+function tick(){if(!running)return;if(step&gt;=50){stop();return}step++;draw();timer=setTimeout(tick,step&lt;7?850:650)}
+function start(){if(step===50)step=0;if(reduced.matches){step=50;draw();stop();return}running=true;play.textContent=&#x27;Pause&#x27;;draw();timer=setTimeout(tick,650)}
+play.addEventListener(&#x27;click&#x27;,()=&gt;running?stop():start());root.querySelector(&#x27;[data-back]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{stop();step=Math.max(0,step-1);draw()});root.querySelector(&#x27;[data-next]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{stop();step=Math.min(50,step+1);draw()});root.querySelector(&#x27;[data-reset]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{stop();step=0;draw()});slider.addEventListener(&#x27;input&#x27;,()=&gt;{stop();step=Number(slider.value);draw()});document.addEventListener(&#x27;visibilitychange&#x27;,()=&gt;{if(document.hidden)stop()});set(&#x27;paste&#x27;,trace.paste);set(&#x27;provenance&#x27;,`Checkpoint: temperature_p0.pt · SHA-256 ${trace.checkpointSha256}. Seed: ${trace.seed}. Corpus: ${trace.trainingCorpusSize} teams, hashes verified. CPU · temperature 1 · unconditional · original sampler replay parity verified. ${trace.attempts.length} attempts before the displayed legal team. No retraining performed.`);draw();
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerdown&quot;, handlePointer);
+    document.removeEventListener(&quot;pointercancel&quot;, handlePointer);
+    document.removeEventListener(&quot;click&quot;, handleTouchClick);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerdown&quot;, handlePointer);
+  document.addEventListener(&quot;pointercancel&quot;, handlePointer);
+  document.addEventListener(&quot;click&quot;, handleTouchClick);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-tabs&quot;&gt;
+(() =&gt; {
+  const selector = &#x27;.nav[role=&quot;tablist&quot;] [role=&quot;tab&quot;]&#x27;;
+  const disabled = &#x27;:disabled,[aria-disabled=&quot;true&quot;]&#x27;;
+  const selectTab = (selected) =&gt; {
+    const panelId = selected.getAttribute(&quot;aria-controls&quot;);
+    for (const tab of selected.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;)) {
+      const active = tab === selected;
+      tab.classList.toggle(&quot;active&quot;, active);
+      tab.setAttribute(&quot;aria-selected&quot;, String(active));
+      const id = tab.getAttribute(&quot;aria-controls&quot;);
+      const panel = id &amp;&amp; document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden &amp;&amp; selected.id) {
+          panel.setAttribute(&quot;aria-labelledby&quot;, selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) =&gt; {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === &quot;click&quot;) {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;),
+    ).filter((candidate) =&gt; !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === &quot;ArrowRight&quot; || event.key === &quot;ArrowDown&quot;) {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === &quot;ArrowLeft&quot; || event.key === &quot;ArrowUp&quot;) {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === &quot;Home&quot;) {
+      next = 0;
+    } else if (event.key === &quot;End&quot;) {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll(&#x27;.nav[role=&quot;tablist&quot;]&#x27;)) {
+    const selected =
+      list.querySelector(&#x27;[role=&quot;tab&quot;][aria-selected=&quot;true&quot;]&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;].active&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;]&#x27;);
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener(&quot;click&quot;, interact);
+  document.addEventListener(&quot;keydown&quot;, interact);
+  window.addEventListener(&quot;pagehide&quot;, () =&gt; {
+    document.removeEventListener(&quot;click&quot;, interact);
+    document.removeEventListener(&quot;keydown&quot;, interact);
+  }, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>

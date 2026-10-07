@@ -1,0 +1,40 @@
+{
+	"nodes":[
+		{"id":"n1","type":"text","text":"- [ ] **Reimplement VGC-Bench** — run their release, reproduce BC → self-play / fictitious play / double oracle, then extend on team-pool size (545 Reg M-B teams). The battle policy starts from this.\nWork-list: [[Reimplement VGC-Bench — run the release, reproduce BC, self-play, fictitious play, double oracle, then extend on team-pool size]]","x":1100,"y":0,"width":400,"height":180,"color":"4"},
+		{"id":"n2","type":"text","text":"- [ ] **Write up the battle-policy experiment plan** (decided in chat 2026-08-18, recorded nowhere else)\nArms = BC-init + SP / FP / DO · baseline = random agent · Glicko ranking · success = beat BC ≥ 60%, no pool arm beats winner > 55% · training pool = 545 VGCPastes teams · 107-way action space.\n⚠ still open: confirm uniform opponent distribution (child 5)","x":740,"y":320,"width":480,"height":230},
+		{"id":"n3","type":"text","text":"- [ ] **Implement the FootsiesGym protocol** as the arm-ranking harness — seed-crossed cross-play matrix + best-response exploitability probe (owner-approved 2026-08-20). Probe measures, never trains.","x":-220,"y":680,"width":360,"height":160},
+		{"id":"n5","type":"text","text":"- [ ] **Decide PPO vs SAC per arm** — battles cheap + parallel on the M4 Pro → PPO favoured for SP; open question: do FP/DO arms earn an off-policy learner (`DiscreteSACPolicy`), or does one algorithm across all arms buy more than sample efficiency?","x":220,"y":680,"width":360,"height":210},
+		{"id":"n4","type":"text","text":"- [ ] **Implement action masking** — Showdown legality is state-dependent (fainted slots, Choice lock, disabled moves); penalties suppress valid actions (RLC 2026 Paper 1).\n[[How do you implementing maskout in reinforcement learning and whey do you need to mask out]]","x":620,"y":680,"width":360,"height":180},
+		{"id":"n6","type":"text","text":"- [ ] **Upgrade the behaviour-cloning arm to advantage-weighted BC** — MED verdict from [[Convert Chess puzzles via offline RL (Applications) to pokemon vgc]]","x":1020,"y":680,"width":360,"height":140},
+		{"id":"n7","type":"text","text":"- [ ] **Battle policy robust to team styles** — teams sampled per episode from the 545-team pool stratified by archetype · team-conditioned obs · checkpoint-population opponents · held-out archetypes for Glicko · worst-case-archetype win rate as the robust metric","x":1420,"y":680,"width":360,"height":200},
+		{"id":"n8","type":"text","text":"- [ ] **Patch the seed plumbing** — `>start` takes a `seed`, poke-env's challenge path never sends one; both sides need a patch.\n[[Showdown seeds, PufferLib, VGC-Bench requirements — research findings]]","x":-480,"y":990,"width":320,"height":170},
+		{"id":"n9","type":"text","text":"- [ ] **CRN seeding in the poke-env harness** — paired-battle estimator (Lesson 0006); blocked by the seed patch.","x":-80,"y":990,"width":340,"height":140},
+		{"id":"n10","type":"text","text":"- [ ] **Pin PufferLib 3.0.0** — `PettingZooPufferEnv` + shared-memory vectorizer only exist on 3.0; 4.0 deleted the Python emulation layer. Owner: 3.0 for now.","x":1960,"y":320,"width":380,"height":170,"color":"5"},
+		{"id":"n11","type":"text","text":"- [ ] **Act on [[PufferLib for the battle-policy stack — research findings]]** — wrapper alone delivers none of the PPO gains (they live in its own training loop). Open child 5: vectorizer-only A/B vs full-loop adoption (forfeits `MaskedActorCriticPolicy`).","x":1880,"y":680,"width":400,"height":200},
+		{"id":"n12","type":"text","text":"- [ ] **Read PufferLib 5.0 native self-play** — 🟢 [repo](https://github.com/PufferAI/PufferLib/tree/5.0); reference envs `chain_reaction`, `guerrillacheckers`. Five children in [[Todo Section]].","x":2340,"y":680,"width":360,"height":150},
+		{"id":"n13","type":"text","text":"- [ ] **Swap VGC-Bench's PettingZoo env for PufferLib, measure battle throughput** — clean A/B only if vectorizer-only path chosen above.","x":1940,"y":990,"width":380,"height":140},
+		{"id":"h4","type":"text","text":"## Parked ideas\n(no commitment yet)","x":-260,"y":1380,"width":260,"height":110,"color":"3"},
+		{"id":"n14","type":"text","text":"- [ ] **Prototype the cross-entropy method** — per-slot sampling distribution refit on the elite quantile. Gate: decision 7 must first admit CEM beside SA + BO.","x":-720,"y":1580,"width":340,"height":170},
+		{"id":"n15","type":"text","text":"- [ ] **Prototype deep-surrogate MAP-Elites** (Lesson 0004) — open until it runs: does a fitted estimator of $f$ earn its training cost?","x":-330,"y":1580,"width":340,"height":150},
+		{"id":"n16","type":"text","text":"- [ ] **Diffusion-model gradient walk as team search** — [[Diffusion for conditional counter-team generation]]","x":20,"y":1580,"width":340,"height":120},
+		{"id":"n17","type":"text","text":"- [ ] **Reimplement the pivotal-Pokémon paper** — owner sequencing rule 2026-08-24 (reaffirmed 2026-08-26, replacing the earlier reimplementation rule): read all HIGH papers first, then reimplement — grade this paper HIGH before it earns reimplementation time","x":410,"y":1580,"width":340,"height":170}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"n1","fromSide":"bottom","toNode":"n2","toSide":"top"},
+		{"id":"e2","fromNode":"n1","fromSide":"bottom","toNode":"n10","toSide":"top"},
+		{"id":"e3","fromNode":"n2","fromSide":"bottom","toNode":"n3","toSide":"top"},
+		{"id":"e4","fromNode":"n2","fromSide":"bottom","toNode":"n5","toSide":"top"},
+		{"id":"e5","fromNode":"n2","fromSide":"bottom","toNode":"n4","toSide":"top"},
+		{"id":"e6","fromNode":"n2","fromSide":"bottom","toNode":"n6","toSide":"top"},
+		{"id":"e7","fromNode":"n2","fromSide":"bottom","toNode":"n7","toSide":"top"},
+		{"id":"e8","fromNode":"n3","fromSide":"bottom","toNode":"n9","toSide":"top"},
+		{"id":"e9","fromNode":"n8","fromSide":"right","toNode":"n9","toSide":"left"},
+		{"id":"e10","fromNode":"n10","fromSide":"bottom","toNode":"n11","toSide":"top"},
+		{"id":"e11","fromNode":"n10","fromSide":"bottom","toNode":"n12","toSide":"top"},
+		{"id":"e12","fromNode":"n11","fromSide":"bottom","toNode":"n13","toSide":"top"},
+		{"id":"e13","fromNode":"h4","fromSide":"bottom","toNode":"n14","toSide":"top"},
+		{"id":"e14","fromNode":"h4","fromSide":"bottom","toNode":"n15","toSide":"top"},
+		{"id":"e15","fromNode":"h4","fromSide":"bottom","toNode":"n16","toSide":"top"},
+		{"id":"e16","fromNode":"h4","fromSide":"bottom","toNode":"n17","toSide":"top"}
+	]
+}

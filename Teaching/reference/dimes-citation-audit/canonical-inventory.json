@@ -1,0 +1,1027 @@
+{
+  "sourceRecords": 113,
+  "confirmedMergeCount": 4,
+  "countAfterConfirmedMerges": 109,
+  "probableMergeCount": 1,
+  "countIncludingProbableMerge": 108,
+  "note": "Counts are per source record; do not sum counts within a merged work. Preserve S080 separately when reporting confirmed distinct-work total.",
+  "records": [
+    {
+      "auditId": "S001",
+      "canonicalAuditId": "S001",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Evolution of Heuristics: Towards Efficient Automatic Algorithm Design Using Large Language Model",
+      "citationCount": 371,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S002",
+      "canonicalAuditId": "S002",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "DIFUSCO: Graph-based Diffusion Solvers for Combinatorial Optimization",
+      "citationCount": 331,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S003",
+      "canonicalAuditId": "S003",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Neural Combinatorial Optimization with Heavy Decoder: Toward Large Scale Generalization",
+      "citationCount": 233,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S004",
+      "canonicalAuditId": "S004",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "DeepACO: Neural-enhanced Ant Systems for Combinatorial Optimization",
+      "citationCount": 152,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S005",
+      "canonicalAuditId": "S005",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "From Distribution Learning in Training to Gradient Search in Testing for Combinatorial Optimization",
+      "citationCount": 137,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S006",
+      "canonicalAuditId": "S006",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning to Search Feasible and Infeasible Regions of Routing Problems with Flexible Neural k-Opt",
+      "citationCount": 123,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S007",
+      "canonicalAuditId": "S007",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "BQ-NCO: Bisimulation Quotienting for Efficient Neural Combinatorial Optimization",
+      "citationCount": 115,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S008",
+      "canonicalAuditId": "S008",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "RL4CO: An Extensive Reinforcement Learning for Combinatorial Optimization Benchmark",
+      "citationCount": 111,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S009",
+      "canonicalAuditId": "S009",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Towards Omni-generalizable Neural Methods for Vehicle Routing Problems",
+      "citationCount": 105,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S010",
+      "canonicalAuditId": "S010",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "MVMoE: Multi-Task Vehicle Routing Solver with Mixture-of-Experts",
+      "citationCount": 94,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S011",
+      "canonicalAuditId": "S011",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Unsupervised Learning for Solving the Travelling Salesman Problem",
+      "citationCount": 88,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S012",
+      "canonicalAuditId": "S012",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "How Efficient is LLM-Generated Code? A Rigorous & High-Standard Benchmark",
+      "citationCount": 77,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S013",
+      "canonicalAuditId": "S013",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Winner Takes It All: Training Performant RL Populations for Combinatorial Optimization",
+      "citationCount": 75,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S014",
+      "canonicalAuditId": "S014",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Ant Colony Sampling with GFlowNets for Combinatorial Optimization",
+      "citationCount": 69,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S015",
+      "canonicalAuditId": "S015",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Fast T2T: Optimization Consistency Speeds Up Diffusion-Based Training-to-Testing Solving for Combinatorial Optimization",
+      "citationCount": 60,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S016",
+      "canonicalAuditId": "S016",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning to Handle Complex Constraints for Vehicle Routing Problems",
+      "citationCount": 59,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S017",
+      "canonicalAuditId": "S017",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Let the Flows Tell: Solving Graph Combinatorial Optimization Problems with GFlowNets",
+      "citationCount": 59,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S018",
+      "canonicalAuditId": "S018",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Neural Combinatorial Optimization Algorithms for Solving Vehicle Routing Problems: A Comprehensive Survey with Perspectives",
+      "citationCount": 53,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S019",
+      "canonicalAuditId": "S019",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "INViT: A Generalizable Routing Problem Solver with Invariant Nested View Transformer",
+      "citationCount": 52,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S020",
+      "canonicalAuditId": "S020",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Select and Optimize: Learning to aolve large-scale TSP instances",
+      "citationCount": 51,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S021",
+      "canonicalAuditId": "S021",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs",
+      "citationCount": 48,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S022",
+      "canonicalAuditId": "S022",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "GOAL: A Generalist Combinatorial Optimization Agent Learner",
+      "citationCount": 48,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S023",
+      "canonicalAuditId": "S023",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Rethinking Light Decoder-based Solvers for Vehicle Routing Problems",
+      "citationCount": 42,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S024",
+      "canonicalAuditId": "S024",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Meta-SAGE: Scale Meta-Learning Scheduled Adaptation with Guided Exploration for Mitigating Scale Shift on Combinatorial Optimization",
+      "citationCount": 40,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S025",
+      "canonicalAuditId": "S025",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Cross-Problem Learning for Solving Vehicle Routing Problems",
+      "citationCount": 38,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S026",
+      "canonicalAuditId": "S026",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "CO-Bench: Benchmarking Language Model Agents in Algorithm Search for Combinatorial Optimization",
+      "citationCount": 37,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S027",
+      "canonicalAuditId": "S027",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Revisiting Sampling for Combinatorial Optimization",
+      "citationCount": 35,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S028",
+      "canonicalAuditId": "S028",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Diffusion Models as Network Optimizers: Explorations and Analysis",
+      "citationCount": 34,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S029",
+      "canonicalAuditId": "S029",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Self-Improved Learning for Scalable Neural Combinatorial Optimization",
+      "citationCount": 34,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S030",
+      "canonicalAuditId": "S030",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "GDSG: Graph Diffusion-Based Solution Generator for Optimization Problems in MEC Networks",
+      "citationCount": 31,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S031",
+      "canonicalAuditId": "S031",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "DiffSG: A Generative Solver for Network Optimization with Diffusion Model",
+      "citationCount": 31,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S032",
+      "canonicalAuditId": "S032",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Position: Rethinking Post-Hoc Search-Based Neural Approaches for Solving Large-Scale Traveling Salesman Problems",
+      "citationCount": 31,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S033",
+      "canonicalAuditId": "S001",
+      "mergeStatus": "confirmed",
+      "mergeEvidence": "Same arXiv 2401.02051; one ID encoded in DOI",
+      "title": "An Example of Evolutionary Computation + Large Language Model Beating Human: Design of Efficient Guided Local Search",
+      "citationCount": 31,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S034",
+      "canonicalAuditId": "S034",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Variational Annealing on Graphs for Combinatorial Optimization",
+      "citationCount": 29,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S035",
+      "canonicalAuditId": "S035",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Instance-Conditioned Adaptation for Large-scale Generalization of Neural Combinatorial Optimization",
+      "citationCount": 28,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S036",
+      "canonicalAuditId": "S036",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning for routing: A guided review of recent developments and future directions",
+      "citationCount": 26,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S037",
+      "canonicalAuditId": "S037",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Adjustable Robust Reinforcement Learning for Online 3D Bin Packing",
+      "citationCount": 23,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S038",
+      "canonicalAuditId": "S038",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Clustering-based hyper-heuristic algorithm for multi-region coverage path planning of heterogeneous UAVs",
+      "citationCount": 22,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S039",
+      "canonicalAuditId": "S039",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Controlling Continuous Relaxation for Combinatorial Optimization",
+      "citationCount": 22,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S040",
+      "canonicalAuditId": "S040",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Generative Models in Decision Making: A Survey",
+      "citationCount": 20,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S041",
+      "canonicalAuditId": "S041",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Reconstructing Graph Diffusion History from a Single Snapshot",
+      "citationCount": 19,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S042",
+      "canonicalAuditId": "S042",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Preference Optimization for Combinatorial Optimization Problems",
+      "citationCount": 16,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S043",
+      "canonicalAuditId": "S043",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning to Reduce Search Space for Generalizable Neural Routing Solver",
+      "citationCount": 16,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S044",
+      "canonicalAuditId": "S044",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Breaking Silos: Adaptive Model Fusion Unlocks Better Time Series Forecasting",
+      "citationCount": 15,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S045",
+      "canonicalAuditId": "S045",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Gradient Compressed Sensing: A Query-Efficient Gradient Estimator for High-Dimensional Zeroth-Order Optimization",
+      "citationCount": 15,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S046",
+      "canonicalAuditId": "S046",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Improving Generalization of Neural Combinatorial Optimization for Vehicle Routing Problems via Test-Time Projection Learning",
+      "citationCount": 14,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S047",
+      "canonicalAuditId": "S047",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Bridging Large Language Models and Optimization: A Unified Framework for Text-attributed Combinatorial Optimization",
+      "citationCount": 14,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S048",
+      "canonicalAuditId": "S048",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "GTG-ACO: Graph Transformer Guided Ant Colony Optimization for learning heuristics and pheromone dynamics for combinatorial optimization",
+      "citationCount": 13,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S049",
+      "canonicalAuditId": "S049",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning-Driven Swarm Intelligence: Enabling Deterministic Flows Scheduling in LEO Satellite Networks",
+      "citationCount": 13,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S050",
+      "canonicalAuditId": "S050",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Matcha: Mitigating Graph Structure Shifts with Test-Time Adaptation",
+      "citationCount": 13,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S051",
+      "canonicalAuditId": "S051",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Benchmarking PtO and PnO Methods in the Predictive Combinatorial Optimization Regime",
+      "citationCount": 13,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S052",
+      "canonicalAuditId": "S052",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "URS: A Unified Neural Routing Solver for Cross-Problem Zero-Shot Generalization",
+      "citationCount": 12,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S053",
+      "canonicalAuditId": "S053",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "DGL: Dynamic Global-Local Information Aggregation for Scalable VRP Generalization with Self-Improvement Learning",
+      "citationCount": 12,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S054",
+      "canonicalAuditId": "S054",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "PLANETALIGN: A Comprehensive Python Library for Benchmarking Network Alignment",
+      "citationCount": 12,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S055",
+      "canonicalAuditId": "S055",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Regularized Langevin Dynamics for Combinatorial Optimization",
+      "citationCount": 12,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S056",
+      "canonicalAuditId": "S056",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Collaboration! Towards Robust Neural Methods for Routing Problems",
+      "citationCount": 12,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S057",
+      "canonicalAuditId": "S057",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Less Is More - On the Importance of Sparsification for Transformers and Graph Neural Networks for TSP",
+      "citationCount": 12,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S058",
+      "canonicalAuditId": "S058",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "FrontierCO: Real-World and Large-Scale Evaluation of Machine Learning Solvers for Combinatorial Optimization",
+      "citationCount": 11,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S059",
+      "canonicalAuditId": "S059",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Deliberate planning of 3D bin packing on packing configuration trees",
+      "citationCount": 11,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S060",
+      "canonicalAuditId": "S060",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Tackling Prevalent Conditions in Unsupervised Combinatorial Optimization: Cardinality, Minimum, Covering, and More",
+      "citationCount": 11,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S061",
+      "canonicalAuditId": "S061",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Ask, and it shall be given: On the Turing completeness of prompting",
+      "citationCount": 10,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S062",
+      "canonicalAuditId": "S062",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "DISCO: Efficient Diffusion Solver for Large-Scale Combinatorial Optimization Problems",
+      "citationCount": 10,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S063",
+      "canonicalAuditId": "S035",
+      "mergeStatus": "confirmed",
+      "mergeEvidence": "Same arXiv 2405.01906; one ID encoded in DOI",
+      "title": "Instance-Conditioned Adaptation for Large-Scale Generalization of Neural Routing Solver",
+      "citationCount": 10,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S064",
+      "canonicalAuditId": "S064",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Symmetric Replay Training: Enhancing Sample Efficiency in Deep Reinforcement Learning for Combinatorial Optimization",
+      "citationCount": 10,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S065",
+      "canonicalAuditId": "S065",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Coverage Path Planning for UAV Based on Improved Back-and-Forth Mode",
+      "citationCount": 10,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S066",
+      "canonicalAuditId": "S066",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Frontiers of Generative AI for Network Optimization: Theories, Limits, and Visions",
+      "citationCount": 9,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S067",
+      "canonicalAuditId": "S067",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning to Insert for Constructive Neural Vehicle Routing Solver",
+      "citationCount": 9,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S068",
+      "canonicalAuditId": "S068",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Generation as Search Operator for Test-Time Scaling of Diffusion-based Combinatorial Optimization",
+      "citationCount": 9,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S069",
+      "canonicalAuditId": "S069",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Optimization by Parallel Quasi-Quantum Annealing with Gradient-Based Sampling",
+      "citationCount": 8,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S070",
+      "canonicalAuditId": "S070",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Moco: A Learnable Meta Optimizer for Combinatorial Optimization",
+      "citationCount": 8,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S071",
+      "canonicalAuditId": "S071",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Graph Data Selection for Domain Adaptation: A Model-Free Approach",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S072",
+      "canonicalAuditId": "S072",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Multi-Dimensional AGV Path Planning in 3D Warehouses Using Ant Colony Optimization and Advanced Neural Networks",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S073",
+      "canonicalAuditId": "S073",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Reheated Gradient-based Discrete Sampling for Combinatorial Optimization",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S074",
+      "canonicalAuditId": "S074",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Neural Genetic Search in Discrete Spaces",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S075",
+      "canonicalAuditId": "S075",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "SymmetricDiffusers: Learning Discrete Diffusion on Finite Symmetric Groups",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S076",
+      "canonicalAuditId": "S076",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Enhancing GNNs Performance on Combinatorial Optimization by Recurrent Feature Update",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S077",
+      "canonicalAuditId": "S077",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "RouteExplainer: An Explanation Framework for Vehicle Routing Problem",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S078",
+      "canonicalAuditId": "S078",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "A Hierarchical Destroy and Repair Approach for Solving Very Large-Scale Travelling Salesman Problem",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S079",
+      "canonicalAuditId": "S079",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "ML4CO-Bench-101: Benchmark Machine Learning for Classic Combinatorial Problems on Graphs",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S080",
+      "canonicalAuditId": "S022",
+      "mergeStatus": "probable",
+      "mergeEvidence": "Anonymous OpenReview prior title Learning and final Learner share project; malformed S080 lacks external identifier",
+      "title": "GOAL: A Generalist Combinatorial Optimization Agent Learning",
+      "citationCount": 7,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S081",
+      "canonicalAuditId": "S081",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Multi-Task Vehicle Routing Solver via Mixture of Specialized Experts under State-Decomposable MDP",
+      "citationCount": 6,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S082",
+      "canonicalAuditId": "S082",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning to Segment for Vehicle Routing Problems",
+      "citationCount": 6,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S083",
+      "canonicalAuditId": "S083",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Combinatorial optimization: From deep learning to large language models",
+      "citationCount": 6,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S084",
+      "canonicalAuditId": "S084",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Survey on Neural Routing Solvers",
+      "citationCount": 5,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S085",
+      "canonicalAuditId": "S085",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "LocalEscaper: A Weakly-supervised Framework with Regional Reconstruction for Scalable Neural TSP Solvers",
+      "citationCount": 5,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S086",
+      "canonicalAuditId": "S086",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Memory-Enhanced Neural Solvers for Routing Problems",
+      "citationCount": 5,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S087",
+      "canonicalAuditId": "S087",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Fractional Langevin Dynamics for Combinatorial Optimization via Polynomial-Time Escape",
+      "citationCount": 5,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S088",
+      "canonicalAuditId": "S088",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Solving NP-hard Min-max Routing Problems as Sequential Generation with Equity Context",
+      "citationCount": 5,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S089",
+      "canonicalAuditId": "S089",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "ADAPT: Lightweight, Long-Range Machine Learning Force Fields Without Graphs",
+      "citationCount": 4,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S090",
+      "canonicalAuditId": "S090",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "A Scalable Lift-and-Project Differentiable Approach For the Maximum Cut Problem",
+      "citationCount": 4,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S091",
+      "canonicalAuditId": "S091",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Obstacle-aware Simultaneous Task and Energy Planning with Ordering Constraints",
+      "citationCount": 4,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S092",
+      "canonicalAuditId": "S092",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Neural Cluster First, Route Second: One-Shot Capacitated Vehicle Routing via Differentiable Optimal Transport",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S093",
+      "canonicalAuditId": "S093",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Geometric Algorithms for Neural Combinatorial Optimization with Constraints",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S094",
+      "canonicalAuditId": "S094",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Enhancing the Cross-Size Generalization for Solving Vehicle Routing Problems via Continual Learning",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S095",
+      "canonicalAuditId": "S095",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Towards Unsupervised Training of Matching-based Graph Edit Distance Solver via Preference-aware GAN",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S096",
+      "canonicalAuditId": "S096",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Boosting Cross-problem Generalization in Diffusion-Based Neural Combinatorial Solver via Inference Time Adaptation",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S097",
+      "canonicalAuditId": "S097",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Unrealized Expectations: Comparing AI Methods vs Classical Algorithms for Maximum Independent Set",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S098",
+      "canonicalAuditId": "S098",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Unsupervised Training of Diffusion Models for Feasible Solution Generation in Neural Combinatorial Optimization",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S099",
+      "canonicalAuditId": "S099",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Learning to Solve Combinatorial Optimization under Positive Linear Constraints via Non-Autoregressive Neural Networks",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S100",
+      "canonicalAuditId": "S100",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Dynamic Job Shop Scheduling via Deep Reinforcement Learning",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S101",
+      "canonicalAuditId": "S096",
+      "mergeStatus": "confirmed",
+      "mergeEvidence": "Same arXiv 2502.12188; one ID encoded in DOI",
+      "title": "Boosting Generalization in Diffusion-Based Neural Combinatorial Solver via Energy-guided Sampling",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S102",
+      "canonicalAuditId": "S102",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Dataless Quadratic Neural Networks for the Maximum Independent Set Problem",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S103",
+      "canonicalAuditId": "S096",
+      "mergeStatus": "confirmed",
+      "mergeEvidence": "Exact title and five authors match primary arXiv2502.12188v2",
+      "title": "Boosting Generalization in Diffusion-Based Neural Combinatorial Solver via Inference Time Adaptation",
+      "citationCount": 3,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S104",
+      "canonicalAuditId": "S104",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Large Neighborhood Search meets Iterative Neural Constraint Heuristics",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S105",
+      "canonicalAuditId": "S105",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Pheromone learning-enhanced neural ant colony optimization",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S106",
+      "canonicalAuditId": "S106",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Graph homophily booster: Reimagining the role of discrete features in heterophilic graph learning",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S107",
+      "canonicalAuditId": "S107",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Multi-Action Self-Improvement for Neural Combinatorial Optimization",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S108",
+      "canonicalAuditId": "S108",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "N(CO)2 : Neural Combinatorial Optimization with Chance Constraints to Solve Stochastic Orienteering",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S109",
+      "canonicalAuditId": "S109",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Breaking the Performance Ceiling in Reinforcement Learning requires Inference Strategies",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S110",
+      "canonicalAuditId": "S110",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Solving method of traveling salesman problem based on performer graph self-attention mechanism",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "S111",
+      "canonicalAuditId": "S111",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "Beyond the Heatmap: A Rigorous Evaluation of Component Impact in MCTS-Based TSP Solvers",
+      "citationCount": 2,
+      "countSource": "Semantic Scholar"
+    },
+    {
+      "auditId": "O001",
+      "canonicalAuditId": "O001",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "GLOP: Learning Global Partition and Local Construction for Solving Large-Scale Routing Problems in Real-Time",
+      "citationCount": 38,
+      "countSource": "OpenAlex"
+    },
+    {
+      "auditId": "O002",
+      "canonicalAuditId": "O002",
+      "mergeStatus": "unique",
+      "mergeEvidence": "No merge identified",
+      "title": "DOGE-Train: Discrete Optimization on GPU with End-to-End Training",
+      "citationCount": 3,
+      "countSource": "OpenAlex"
+    }
+  ]
+}

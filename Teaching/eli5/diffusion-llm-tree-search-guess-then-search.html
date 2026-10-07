@@ -1,0 +1,518 @@
+<title>Diffusion LLM Tree Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F2F5F3; --panel:#FCFDFC; --ink:#10201A; --ink2:#4B5B54; --muted:#7D8B85; --rule:#D8E0DC;
+  --search:#0A6F99; --value:#B86A00; --mask:#C9D3CE; --maskInk:#8A9892; --soft:#E7EEEA;
+  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-io:cubic-bezier(0.77,0,0.175,1);
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Sans 3",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --ground:#0E1512; --panel:#16201C; --ink:#E6EEEA; --ink2:#A9B8B1; --muted:#7F8F88; --rule:#2A3832;
+  --search:#2B8DB3; --value:#C97B22; --mask:#33433C; --maskInk:#7F8F88; --soft:#1C2823;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --ground:#0E1512; --panel:#16201C; --ink:#E6EEEA; --ink2:#A9B8B1; --muted:#7F8F88; --rule:#2A3832;
+  --search:#2B8DB3; --value:#C97B22; --mask:#33433C; --maskInk:#7F8F88; --soft:#1C2823;
+}
+body{background:var(--ground);color:var(--ink);font:16px/1.6 var(--body);padding-inline:16px;padding-block:36px 72px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:60px}
+h1,h2,h3{font-family:var(--display);font-weight:800;margin:0;line-height:1.08;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(34px,6vw,58px)}
+h2{font-size:clamp(24px,3.4vw,32px)}
+h3{font-size:18px;font-weight:600}
+p{margin:0;max-width:66ch}
+.kicker{font:600 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lede{display:grid;gap:16px}
+.lede p{font-size:18px;color:var(--ink2)}
+section{display:grid;gap:18px}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:20px;display:grid;gap:16px}
+.muted{color:var(--muted)}
+.small{font-size:14px;color:var(--ink2)}
+code,.mono{font-family:var(--mono);font-size:.92em}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:600 13px/1 var(--mono);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:10px 13px;cursor:pointer;transition:background-color .15s ease,transform .12s var(--ease-out)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--search);border-color:var(--search);color:#fff}
+@media (hover:hover) and (pointer:fine){.btn:hover{background:var(--soft)}.btn.primary:hover{background:var(--search);filter:brightness(1.08)}}
+:focus-visible{outline:2px solid var(--search);outline-offset:2px}
+.status{font:500 13px/1.4 var(--mono);color:var(--ink2);min-height:2.8em}
+.status b{color:var(--ink)}
+
+/* map */
+.map{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.map div{border-top:3px solid var(--rule);padding-top:10px;display:grid;gap:4px}
+.map div b{font-family:var(--display);font-size:17px}
+.map div span{font-size:14px;color:var(--ink2)}
+.map .s{border-color:var(--search)} .map .v{border-color:var(--value)}
+
+/* prompt */
+.prompt{display:grid;gap:10px;font-family:var(--mono);font-size:13px}
+.pblock{border:1px solid var(--rule);border-radius:8px;padding:10px 12px;background:var(--ground);transition:opacity .45s var(--ease-out),transform .45s var(--ease-out)}
+.pblock.hide{opacity:0;transform:translateY(8px)}
+.pblock .lab{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 16px}
+.tokens{display:flex;gap:6px;flex-wrap:wrap}
+.tok{width:34px;height:40px;border-radius:6px;display:grid;place-items:center;font:600 17px var(--mono);background:var(--mask);color:var(--maskInk);position:relative;transition:background-color .3s ease,color .3s ease,transform .35s var(--ease-out)}
+.tok.guess{background:var(--soft);color:var(--ink2);box-shadow:inset 0 0 0 1px var(--rule)}
+.tok.kept{background:var(--search);color:#fff}
+.tok.fresh{transform:translateY(-4px)}
+.tok .cf{position:absolute;left:3px;right:3px;bottom:3px;height:3px;border-radius:2px;background:var(--value);transform-origin:left;transition:transform .35s var(--ease-out)}
+.tlab{font:500 12px var(--mono);color:var(--muted)}
+
+/* tree */
+.treebox{overflow-x:auto}
+.tree{width:100%;min-width:620px;height:auto;display:block}
+.edge{stroke:var(--rule);stroke-width:1.5}
+.edge.path{stroke:var(--search);stroke-width:3}
+.node circle.ring{fill:var(--panel);stroke:var(--muted);stroke-width:1.5}
+.node circle.val{fill:var(--value);transition:fill-opacity .4s ease}
+.node.path circle.ring{stroke:var(--search);stroke-width:3}
+.node.best circle.ring{stroke:var(--value);stroke-width:3.5}
+.node.new circle.ring{stroke:var(--search)}
+.depthlab{font:500 11px var(--mono);fill:var(--muted)}
+.pulse{fill:var(--value)}
+.phase{display:flex;gap:6px;flex-wrap:wrap}
+.phase span{font:600 12px/1 var(--mono);padding:7px 10px;border-radius:999px;border:1px solid var(--rule);color:var(--muted);transition:background-color .2s ease,color .2s ease,border-color .2s ease}
+.phase span.on{background:var(--search);border-color:var(--search);color:#fff}
+.phase span.on.v{background:var(--value);border-color:var(--value)}
+.readout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.readout div{display:grid;gap:0}
+.readout b{font:800 24px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.readout span{font-size:12px;color:var(--muted)}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--ground);font:500 12px/1.45 var(--mono);padding:8px 10px;border-radius:6px;opacity:0;transition:opacity .12s ease;z-index:10;max-width:260px}
+.formula{font-family:var(--mono);font-size:14px;background:var(--ground);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+
+/* gp */
+.gp{width:100%;height:auto;display:block}
+.gp .band{fill:var(--search);fill-opacity:.14}
+.gp .mean{fill:none;stroke:var(--search);stroke-width:2}
+.gp .ei{fill:var(--value);fill-opacity:.25;stroke:var(--value);stroke-width:2}
+.gp .obs{fill:var(--ink);stroke:var(--panel);stroke-width:2}
+.gp .best{stroke:var(--ink2);stroke-dasharray:5 5;stroke-width:1.5}
+.gp .cand{stroke:var(--ink);stroke-width:1.5}
+.gp text{font:500 12px var(--mono);fill:var(--muted)}
+.gp .axis{stroke:var(--rule)}
+input[type=range]{width:100%;accent-color:var(--search)}
+
+/* results */
+.abl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px}
+.task{display:grid;gap:6px}
+.task h3{font-size:16px}
+.bar{display:grid;grid-template-columns:118px minmax(0,1fr) 48px;align-items:center;gap:8px;font-size:13px;position:relative}
+.bar .nm{color:var(--ink2)}
+.bar .tr{height:14px;position:relative}
+.bar .fl{position:absolute;inset:0 auto 0 0;border-radius:0 4px 4px 0;background:var(--mask);transform-origin:left;transition:transform .7s var(--ease-out)}
+.bar.full .fl{background:var(--search)}
+.bar .vv{font:500 12px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink2);text-align:right}
+.bar.full .nm,.bar.full .vv{color:var(--ink);font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font:600 12px var(--mono);color:var(--muted);letter-spacing:.04em}
+tr.me td{font-weight:600;background:var(--soft)}
+.tablewrap{overflow-x:auto}
+
+/* relevance */
+.rel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.rel div{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px;display:grid;gap:6px;align-content:start}
+.rel b{font-family:var(--display);font-size:17px}
+.grade{display:inline-block;font:700 12px/1 var(--mono);letter-spacing:.06em;padding:6px 9px;border-radius:6px;background:var(--value);color:#fff}
+
+@media (max-width:760px){
+  .map{grid-template-columns:1fr 1fr}
+  .abl,.rel{grid-template-columns:1fr}
+  .readout{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .pblock,.tok,.bar .fl,.node circle.val{transition:opacity .2s ease,background-color .2s ease}
+  .pblock.hide{transform:none}
+  .tok.fresh{transform:none}
+}
+</style>
+
+<div class="wrap">
+
+<header class="lede">
+  <div class="kicker">Yuan, Chen, Sun, Zhang, Pal &amp; Liu · arXiv 2601.14446 · January 2026 · preprint 🟢</div>
+  <h1>Guess the whole design, then search the guesses</h1>
+  <p>This paper turns a pretrained diffusion language model into an optimiser. It sees only ten scored examples, writes a new design by filling in a fully masked answer, and uses a tree search to decide which half-finished answers are worth finishing. A Gaussian process, a small statistical model fitted to the ten examples, does the judging.</p>
+  <div class="map" aria-label="The four parts">
+    <div><b>1 · Prompt</b><span>Task description, ten design–score pairs, an instruction.</span></div>
+    <div class="s"><b>2 · Denoise</b><span>LLaDA-8B fills masked tokens a few at a time.</span></div>
+    <div class="s"><b>3 · Tree search</b><span>Branch on partial designs, go deeper where it pays.</span></div>
+    <div class="v"><b>4 · Judge</b><span>A Gaussian process scores finished designs by expected improvement.</span></div>
+  </div>
+</header>
+
+<!-- 1 prompt -->
+<section aria-labelledby="h1s">
+  <div class="kicker">Part 1 · the setting</div>
+  <h2 id="h1s">Ten examples and no second chances</h2>
+  <p>The setting is <b>offline</b> black-box optimisation. The method gets a fixed dataset, by default 10 designs with their scores, and may not ask for new scores while it searches. At the end it hands over 128 designs, and only then is each one scored by the real objective once. Below is the prompt shape for TF Bind 8, where a design is an 8-letter DNA string.</p>
+  <div class="panel">
+    <div class="prompt" id="prompt">
+      <div class="pblock"><span class="lab">Task description</span>Design a DNA sequence of length 8 over {A, C, G, T}. The label is its binding activity with a transcription factor. Goal: maximise the label.</div>
+      <div class="pblock"><span class="lab">Offline dataset · 10 pairs (illustrative values, not the paper's data)</span><div class="pairs" id="pairs"></div></div>
+      <div class="pblock"><span class="lab">Instruction</span>Propose a new sequence with higher binding activity.</div>
+      <div class="pblock"><span class="lab">Answer slot · fully masked, t = 1</span><div class="tokens" id="slot0"></div></div>
+    </div>
+    <div class="btns"><button class="btn" id="promptPlay" type="button">Replay the prompt</button></div>
+  </div>
+</section>
+
+<!-- 2 denoise -->
+<section aria-labelledby="h2s">
+  <div class="kicker">Part 2 · one denoising run</div>
+  <h2 id="h2s">Predict everything, keep the surest, mask the rest</h2>
+  <p>A masked diffusion model does not write left to right. At every step it guesses <em>all</em> masked positions at once, keeps the ones it is most confident about, and masks the rest again. The masked fraction <code>t</code> falls from 1 to 0. With depth 4 and 8 letters, two letters are fixed per step. The orange bar under each guess is the model's confidence.</p>
+  <div class="panel">
+    <div class="tokens" id="den"></div>
+    <div class="status" id="denStatus"></div>
+    <div class="btns">
+      <button class="btn primary" id="denStep" type="button">Next step</button>
+      <button class="btn" id="denReset" type="button">Start over</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3 tree -->
+<section aria-labelledby="h3s">
+  <div class="kicker">Part 3 · masked diffusion tree search</div>
+  <h2 id="h3s">Treat every half-finished guess as a branch</h2>
+  <p>One denoising run commits to its early letters and never looks back. The paper's fix is to treat each partially masked design as a node in a tree. Running denoising steps differently from the same node gives different children. The search runs <b>16 iterations</b> with <b>branching 5</b> and <b>depth 4</b>. Each iteration has four phases: select a path, expand a node into 5 children, evaluate each child, and send the scores back up.</p>
+  <div class="panel">
+    <div class="phase" id="phase"><span data-p="select">Select</span><span data-p="expand">Expand</span><span data-p="evaluate" class="vv">Evaluate</span><span data-p="backprop" class="vv">Back-propagate</span></div>
+    <div class="treebox"><svg class="tree" id="tree" viewBox="0 0 900 400" role="img" aria-label="The search tree grows over 16 iterations"></svg></div>
+    <div class="status" id="treeStatus"></div>
+    <div class="readout">
+      <div><b id="rIter">0</b><span>iterations of 16</span></div>
+      <div><b id="rNodes">1</b><span>nodes in the tree</span></div>
+      <div><b id="rDone">0</b><span>finished designs (t = 0)</span></div>
+      <div><b id="rBest">–</b><span>best finished design</span></div>
+    </div>
+    <div class="btns">
+      <button class="btn primary" id="tStep" type="button">Next phase</button>
+      <button class="btn" id="tRun" type="button">Run all 16</button>
+      <button class="btn" id="tReset" type="button">Reset</button>
+    </div>
+    <p class="small">Hover a node to see its partial design. The score here is a toy stand-in: closeness to a hidden target, averaged over 5 random completions. In the paper it is the Gaussian process's expected improvement. The layout is simplified; the phases, the counts and the selection rule follow the paper.</p>
+    <div class="formula">UCT(child) = V(child) + ω · p<sub>θ</sub>(child | parent) · √( ln N(parent) / N(child) ),  ω = 1</div>
+    <p class="small">Selection walks down by this score. <b>V</b> is the child's average reward, so good branches get revisited. <b>p<sub>θ</sub></b> is how likely the diffusion model thought that child was, so the model's own knowledge steers exploration. The square-root term grows for branches visited rarely, so nothing gets ignored forever.</p>
+  </div>
+</section>
+
+<!-- 4 GP -->
+<section aria-labelledby="h4s">
+  <div class="kicker">Part 4 · the judge</div>
+  <h2 id="h4s">Expected improvement rewards the promising and the unknown</h2>
+  <p>Evaluating a child means finishing it 5 times (J = 5) and scoring each finished design with a Gaussian process fitted to the 10 examples. The process gives a predicted score <b>μ</b> and an uncertainty <b>σ</b>. Expected improvement asks how much a design is likely to beat the best score seen so far, <code>f<sub>best</sub></code>. It is high where μ is high <em>or</em> where σ is wide. Drag the candidate to see both effects. This picture is one-dimensional for readability; the real designs are 8 to 60 dimensions.</p>
+  <div class="panel">
+    <svg class="gp" id="gp" viewBox="0 0 900 330" role="img" aria-label="Gaussian process mean, uncertainty band and expected improvement"></svg>
+    <label for="gpX" class="kicker">candidate design</label>
+    <input type="range" id="gpX" min="0" max="1000" value="700">
+    <div class="readout">
+      <div><b id="gMu">–</b><span>predicted score μ</span></div>
+      <div><b id="gSd">–</b><span>uncertainty σ</span></div>
+      <div><b id="gBest">–</b><span>best seen f<sub>best</sub></span></div>
+      <div><b id="gEi">–</b><span>expected improvement</span></div>
+    </div>
+    <div class="formula">EI(x) = (μ − f<sub>best</sub>) · Φ(z) + σ · φ(z),   z = (μ − f<sub>best</sub>) / σ</div>
+  </div>
+</section>
+
+<!-- 5 results -->
+<section aria-labelledby="h5s">
+  <div class="kicker">Part 5 · what it achieved</div>
+  <h2 id="h5s">First on all four tasks, by small margins</h2>
+  <p>Each method proposes 128 designs. The score is the best of the 128 on the real objective, normalised, as mean ± standard deviation. dLLM ranks first on all four tasks among 16 methods. Against the strongest baselines, though, most margins are inside one standard deviation.</p>
+  <div class="panel tablewrap">
+    <table>
+      <thead><tr><th>method</th><th>Ant</th><th>D'Kitty</th><th>TF Bind 8</th><th>TF Bind 10</th><th>mean rank</th></tr></thead>
+      <tbody>
+        <tr class="me"><td>dLLM (this paper)</td><td>0.652 ± 0.030</td><td>0.942 ± 0.012</td><td>0.876 ± 0.038</td><td>0.642 ± 0.013</td><td>1.0</td></tr>
+        <tr><td>UniSO-T</td><td>0.642 ± 0.010</td><td>0.939 ± 0.022</td><td>0.844 ± 0.033</td><td>0.631 ± 0.018</td><td>2.8</td></tr>
+        <tr><td>ExPT</td><td>0.641 ± 0.021</td><td>0.935 ± 0.004</td><td>0.826 ± 0.036</td><td>0.640 ± 0.014</td><td>3.3</td></tr>
+        <tr><td>MCTS-transfer</td><td>0.633 ± 0.017</td><td>0.933 ± 0.020</td><td>0.848 ± 0.023</td><td>0.638 ± 0.008</td><td>4.3</td></tr>
+        <tr><td>CMA-ES</td><td>0.603 ± 0.142</td><td>0.725 ± 0.002</td><td>0.811 ± 0.057</td><td>0.628 ± 0.044</td><td>9.5</td></tr>
+        <tr><td>ORPO (LLaMA3-8B, autoregressive)</td><td>0.596 ± 0.014</td><td>0.878 ± 0.009</td><td>0.778 ± 0.033</td><td>0.499 ± 0.033</td><td>13.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>The ablation is the stronger evidence</h3>
+  <p>Removing the tree search costs far more than the gap to any baseline, especially on TF Bind 10. A diffusion model trained only on the ten examples, with no pretraining, is weakest on Ant and TF Bind 8.</p>
+  <div class="panel">
+    <div class="abl" id="abl"></div>
+    <div class="btns"><button class="btn" id="ablPlay" type="button">Replay</button></div>
+  </div>
+</section>
+
+<!-- 6 relevance -->
+<section aria-labelledby="h6s">
+  <div class="kicker">Part 6 · for the counter-team search</div>
+  <h2 id="h6s">What carries over, and what does not</h2>
+  <div class="rel">
+    <div><b>Offline, and you are online</b><span class="small">It never queries the objective during the search, and its only feedback is a Gaussian process fitted to ten points. Your loop battles 128 new teams every generation. Its results say little about a loop with a simulator.</span></div>
+    <div><b>Search spent at sampling time</b><span class="small">The tree search improves the output by spending compute while decoding, not by retraining. That is the sampling-time searcher role from your diffusion-roles survey, and the part your pilot has never tried. It could sit where gloss guidance sits now.</span></div>
+    <div><b>Uncertainty already inside the score</b><span class="small">Expected improvement rewards high σ as well as high μ. That is your "put uncertainty into guidance" idea with a paper behind it: branches are chosen by a score that includes uncertainty, while which teams get battled stays a separate choice.</span></div>
+    <div><b>Scale and cost</b><span class="small">Designs here are 8 to 60 tokens and one run takes 30 to 40 minutes on an A100 with an 8-billion-parameter model. A team is about 48 fields. Depth 4 with branching 5 on your small model is cheap; the 8B prompted model is not needed for the tree idea.</span></div>
+  </div>
+  <p><span class="grade">MY READ: MED</span> The masked diffusion tree search, scored by an uncertainty-aware judge, transfers directly to your constrained decoder. The prompted 8B model and the offline few-shot setting do not. It stays ungraded in your Reading List until you grade it.</p>
+</section>
+
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+const L = 'ACGT';
+
+/* ---------- 1. prompt ---------- */
+(function(){
+  const pairs=[]; for(let i=0;i<10;i++){let s='';for(let k=0;k<8;k++)s+=L[Math.floor(rnd()*4)];pairs.push(`${s}  →  ${(0.15+rnd()*0.55).toFixed(2)}`)}
+  $('pairs').innerHTML=pairs.map(p=>`<span>${p}</span>`).join('');
+  $('slot0').innerHTML='<div class="tok">?</div>'.repeat(8);
+  const blocks=[...document.querySelectorAll('#prompt .pblock')];
+  $('promptPlay').onclick=()=>{
+    blocks.forEach(b=>{b.style.transition='none';b.classList.add('hide')}); void document.body.offsetWidth;
+    blocks.forEach((b,i)=>{b.style.transition='';setTimeout(()=>b.classList.remove('hide'),reduce?0:160+i*220)});
+  };
+})();
+
+/* ---------- 2. denoising ---------- */
+const den=$('den'); const TARGET='GATTACAG';
+let dState;
+function denReset(){
+  dState={step:0,kept:Array(8).fill(null),guess:Array(8).fill(null),conf:Array(8).fill(0),phase:'masked'};
+  den.innerHTML=''; for(let i=0;i<8;i++){const t=document.createElement('div');t.className='tok';t.innerHTML='?<span class="cf" style="transform:scaleX(0)"></span>';den.appendChild(t)}
+  $('denStatus').innerHTML='<b>t = 1.</b> Every position is masked. Press next step: the model will guess all eight letters at once.';
+  $('denStep').disabled=false;
+}
+function denRender(){
+  [...den.children].forEach((el,i)=>{
+    const k=dState.kept[i], g=dState.guess[i], cf=el.querySelector('.cf');
+    el.classList.toggle('kept',k!==null); el.classList.toggle('guess',k===null&&g!==null);
+    el.firstChild.nodeValue = k!==null?k:(g!==null?g:'?');
+    cf.style.transform=`scaleX(${k===null&&g!==null?dState.conf[i]:0})`;
+  });
+}
+function denStep(){
+  const masked=[...Array(8).keys()].filter(i=>dState.kept[i]===null);
+  if(!masked.length) return;
+  if(dState.phase!=='guessed'){
+    masked.forEach(i=>{dState.guess[i]= rnd()<.55?TARGET[i]:L[Math.floor(rnd()*4)]; dState.conf[i]=.15+rnd()*.8});
+    dState.phase='guessed';
+    const t=(masked.length/8).toFixed(2);
+    $('denStatus').innerHTML=`<b>t = ${t}.</b> The model predicted all ${masked.length} masked letters. Next: keep the 2 it is surest about, mask the other ${masked.length-2} again.`;
+  } else {
+    const top=masked.sort((a,b)=>dState.conf[b]-dState.conf[a]).slice(0,2);
+    top.forEach(i=>{dState.kept[i]=dState.guess[i]; const el=den.children[i]; el.classList.add('fresh'); setTimeout(()=>el.classList.remove('fresh'),350)});
+    masked.forEach(i=>{if(!top.includes(i)){dState.guess[i]=null;dState.conf[i]=0}});
+    dState.phase='masked'; dState.step++;
+    const left=8-2*dState.step;
+    $('denStatus').innerHTML = left? `<b>t = ${(left/8).toFixed(2)}.</b> Two letters are fixed for good; ${left} positions are masked again. Step ${dState.step} of 4.`
+      : `<b>t = 0.</b> The design is finished: <b>${dState.kept.join('')}</b>. The early letters were never reconsidered. That is the weakness the tree search fixes.`;
+    if(!left) $('denStep').disabled=true;
+  }
+  denRender();
+}
+$('denStep').onclick=denStep; $('denReset').onclick=()=>{denReset();denRender()};
+denReset(); denRender();
+
+/* ---------- 3. tree search ---------- */
+const svgNS='http://www.w3.org/2000/svg', tree=$('tree'), tip=$('tip');
+const DEPTH=4, BR=5, ITERS=16, OMEGA=1;
+let T, phaseIdx, curPath, newKids, anim=null, runTimer=null;
+function score(design){ // toy: closeness to target over 5 random completions
+  let s=0; for(let j=0;j<5;j++){let m=0; for(let i=0;i<8;i++){const c=design[i]==='?'?L[Math.floor(rnd()*4)]:design[i]; if(c===TARGET[i])m++} s+=Math.pow(m/8,2)} return s/5;
+}
+function mkNode(parent,design,p){return {id:T?T.nodes.length:0,parent,design,p,depth:parent?parent.depth+1:0,N:0,V:0,kids:[],x:450,y:30,tx:450,ty:30,el:null,edge:null}}
+function treeReset(){
+  clearInterval(runTimer); runTimer=null; $('tRun').textContent='Run all 16';
+  cancelAnimationFrame(anim); tree.innerHTML='';
+  T={nodes:[],iter:0}; const root=mkNode(null,'????????',1); root.N=1; T.nodes.push(root); T.root=root;
+  const gE=document.createElementNS(svgNS,'g'); gE.id='edges'; tree.appendChild(gE);
+  for(let d=0;d<=DEPTH;d++){const t=document.createElementNS(svgNS,'text');t.setAttribute('class','depthlab');t.setAttribute('x',4);t.setAttribute('y',34+d*88);t.textContent=`t = ${(1-d/DEPTH).toFixed(2)}`;tree.appendChild(t)}
+  const gN=document.createElementNS(svgNS,'g'); gN.id='nodesG'; tree.appendChild(gN);
+  const pl=document.createElementNS(svgNS,'circle'); pl.setAttribute('class','pulse'); pl.setAttribute('r',6); pl.style.opacity=0; pl.id='pulse'; tree.appendChild(pl);
+  drawNode(root); phaseIdx=0; curPath=[]; newKids=[]; layout(true); setPhase(null);
+  $('treeStatus').innerHTML='The root is the fully masked design. Press <b>Next phase</b> to run the first iteration one phase at a time, or <b>Run all 16</b>.';
+  updateReadout(); $('tStep').disabled=false; $('tRun').disabled=false;
+}
+function drawNode(n){
+  const g=document.createElementNS(svgNS,'g'); g.setAttribute('class','node'); g.setAttribute('tabindex','0');
+  g.innerHTML=`<circle class="ring" r="${n.depth?8:10}"></circle><circle class="val" r="${n.depth?5:6.5}" fill-opacity="0"></circle>`;
+  g.addEventListener('mouseenter',e=>showTip(n,e)); g.addEventListener('mousemove',e=>moveTip(e)); g.addEventListener('mouseleave',()=>tip.style.opacity=0);
+  g.addEventListener('focus',()=>{const r=g.getBoundingClientRect();showTip(n,{clientX:r.right,clientY:r.top})}); g.addEventListener('blur',()=>tip.style.opacity=0);
+  $('nodesG').appendChild(g); n.el=g;
+  if(n.parent){const l=document.createElementNS(svgNS,'line'); l.setAttribute('class','edge'); $('edges').appendChild(l); n.edge=l}
+}
+function showTip(n,e){tip.innerHTML=`design <b>${n.design}</b><br>depth ${n.depth} · t = ${(1-n.depth/DEPTH).toFixed(2)}<br>visits N = ${n.N} · value V = ${n.V.toFixed(3)}<br>model prior p = ${n.p.toFixed(2)}`;tip.style.opacity=1;moveTip(e)}
+function moveTip(e){tip.style.left=Math.min(innerWidth-270,e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px'}
+function layout(instant){
+  // leaves get slots; parents centre over kids
+  let slot=0; const leaves=[];
+  (function walk(n){ if(!n.kids.length){leaves.push(n);return} n.kids.forEach(walk) })(T.root);
+  const W=820, x0=64, gap=leaves.length>1?W/(leaves.length-1):0;
+  (function place(n){ if(!n.kids.length){n.tx=leaves.length>1?x0+gap*(slot++):450} else {n.kids.forEach(place); n.tx=(n.kids[0].tx+n.kids[n.kids.length-1].tx)/2} n.ty=30+n.depth*88 })(T.root);
+  const from=T.nodes.map(n=>[n.x,n.y]);
+  if(instant||reduce){T.nodes.forEach(n=>{n.x=n.tx;n.y=n.ty}); paint(); return}
+  const t0=performance.now(), d=480; cancelAnimationFrame(anim);
+  const ez=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  const step=now=>{const k=Math.min(1,(now-t0)/d), e=ez(k); T.nodes.forEach((n,i)=>{n.x=from[i][0]+(n.tx-from[i][0])*e; n.y=from[i][1]+(n.ty-from[i][1])*e}); paint(); if(k<1)anim=requestAnimationFrame(step)};
+  anim=requestAnimationFrame(step);
+}
+function paint(){
+  const maxV=Math.max(.001,...T.nodes.map(n=>n.V));
+  T.nodes.forEach(n=>{
+    n.el.setAttribute('transform',`translate(${n.x},${n.y})`);
+    n.el.querySelector('.val').setAttribute('fill-opacity',n.N?(0.15+0.85*n.V/maxV).toFixed(2):0);
+    if(n.edge){n.edge.setAttribute('x1',n.parent.x);n.edge.setAttribute('y1',n.parent.y);n.edge.setAttribute('x2',n.x);n.edge.setAttribute('y2',n.y)}
+  });
+}
+function uct(c,parent){return c.V + OMEGA*c.p*Math.sqrt(Math.log(Math.max(2,parent.N))/Math.max(1,c.N))}
+function select(){
+  let n=T.root, path=[n];
+  while(n.kids.length && n.depth<DEPTH){ n=n.kids.reduce((a,b)=>uct(b,n)>uct(a,n)?b:a); path.push(n) }
+  // a finished leaf cannot expand: back off to its parent's best unexpanded sibling
+  if(n.depth===DEPTH){ const alt=n.parent.kids.filter(k=>!k.kids.length&&k.depth<DEPTH); if(!alt.length) return path; }
+  return path;
+}
+function expand(n){
+  const masked=[...n.design].map((c,i)=>c==='?'?i:-1).filter(i=>i>=0);
+  let ps=Array.from({length:BR},()=>.2+rnd()); const s=ps.reduce((a,b)=>a+b); ps=ps.map(p=>p/s);
+  const kids=[];
+  for(let b=0;b<BR;b++){
+    const arr=[...n.design]; const pick=[...masked].sort(()=>rnd()-.5).slice(0,2);
+    pick.forEach(i=>arr[i]= rnd()<.5?TARGET[i]:L[Math.floor(rnd()*4)]);
+    const k=mkNode(n,arr.join(''),ps[b]); T.nodes.push(k); n.kids.push(k); drawNode(k); k.x=n.x; k.y=n.y; kids.push(k);
+    k.el.classList.add('new');
+  }
+  return kids;
+}
+function setPhase(p){document.querySelectorAll('#phase span').forEach(s=>{s.classList.toggle('on',s.dataset.p===p);s.classList.toggle('v',s.dataset.p===p&&(p==='evaluate'||p==='backprop'))})}
+function markPath(path,on){T.nodes.forEach(n=>{n.el.classList.remove('path'); if(n.edge)n.edge.classList.remove('path')}); if(on) path.forEach(n=>{n.el.classList.add('path'); if(n.edge&&path.includes(n.parent))n.edge.classList.add('path')})}
+function pulseUp(path){
+  const pl=$('pulse'); if(reduce){return}
+  const pts=[...path].reverse(); let i=0; pl.style.opacity=1;
+  const t0=performance.now(), seg=110;
+  const step=now=>{const k=(now-t0)/seg; i=Math.floor(k); if(i>=pts.length-1){pl.style.opacity=0;return}
+    const f=k-i, a=pts[i], b=pts[i+1]; pl.setAttribute('cx',a.x+(b.x-a.x)*f); pl.setAttribute('cy',a.y+(b.y-a.y)*f); requestAnimationFrame(step)};
+  requestAnimationFrame(step);
+}
+function updateReadout(){
+  $('rIter').textContent=T.iter; $('rNodes').textContent=T.nodes.length;
+  const done=T.nodes.filter(n=>n.depth===DEPTH); $('rDone').textContent=done.length;
+  if(done.length){const b=done.reduce((a,c)=>c.V>a.V?c:a); $('rBest').textContent=b.design; T.nodes.forEach(n=>n.el.classList.toggle('best',n===b))}
+}
+function nextPhase(){
+  if(T.iter>=ITERS) return;
+  const ph=['select','expand','evaluate','backprop'][phaseIdx];
+  setPhase(ph);
+  if(ph==='select'){
+    curPath=select(); markPath(curPath,true);
+    const leaf=curPath[curPath.length-1];
+    $('treeStatus').innerHTML=`<b>Select.</b> Walk down from the root, taking the child with the highest UCT score each time, until reaching a node with no children: <span class="mono">${leaf.design}</span> at depth ${leaf.depth}.`;
+  } else if(ph==='expand'){
+    const leaf=curPath[curPath.length-1];
+    if(leaf.depth>=DEPTH){ newKids=[]; $('treeStatus').innerHTML='<b>Expand.</b> This node is a finished design, so it has nothing left to unmask. It is re-scored instead.'; }
+    else { newKids=expand(leaf); layout(false);
+      $('treeStatus').innerHTML=`<b>Expand.</b> Run the diffusion model from this node 5 times. Each run fixes 2 more letters, giving 5 different children at depth ${leaf.depth+1}.`; }
+  } else if(ph==='evaluate'){
+    const targets=newKids.length?newKids:[curPath[curPath.length-1]];
+    targets.forEach(k=>{k._r=score(k.design)});
+    $('treeStatus').innerHTML=`<b>Evaluate.</b> Each child is finished 5 separate times (J = 5), each finished design is scored, and the child's reward is the average. Rewards: ${targets.map(k=>k._r.toFixed(3)).join(' · ')}.`;
+  } else {
+    const targets=newKids.length?newKids:[curPath[curPath.length-1]];
+    targets.forEach(k=>{
+      k.N+=1; k.V=k.V+(k._r-k.V)/k.N;
+      curPath.forEach(a=>{ if(a===k) return; a.N+=1; a.V=a.V+(k._r-a.V)/a.N });
+    });
+    pulseUp(curPath); paint(); markPath(curPath,false);
+    targets.forEach(k=>k.el.classList.remove('new'));
+    T.iter++; updateReadout();
+    $('treeStatus').innerHTML = T.iter<ITERS
+      ? `<b>Back-propagate.</b> Every node on the path updates its visit count and average reward, so good branches pull the next selection toward them. Iteration ${T.iter} of 16 done.`
+      : `<b>Done.</b> 16 iterations built ${T.nodes.length} nodes. The finished design with the highest average reward is ringed in orange. The paper returns finished designs ranked by expected improvement.`;
+    if(T.iter>=ITERS){$('tStep').disabled=true;$('tRun').disabled=true;clearInterval(runTimer);runTimer=null;$('tRun').textContent='Run all 16';setPhase(null)}
+  }
+  phaseIdx=(phaseIdx+1)%4;
+}
+$('tStep').onclick=()=>{clearInterval(runTimer);runTimer=null;$('tRun').textContent='Run all 16';nextPhase()};
+$('tRun').onclick=()=>{
+  if(runTimer){clearInterval(runTimer);runTimer=null;$('tRun').textContent='Run all 16';return}
+  $('tRun').textContent='Pause'; runTimer=setInterval(nextPhase,reduce?60:380);
+};
+$('tReset').onclick=()=>{seed=7;treeReset()};
+treeReset();
+
+/* ---------- 4. Gaussian process + EI ---------- */
+const gp=$('gp');
+const OX=[.06,.14,.22,.31,.40,.52,.58,.71,.83,.93], OY=[.21,.35,.30,.52,.44,.61,.55,.38,.47,.29];
+const ell=.075, sig2=.04, noise=1e-5;
+const k=(a,b)=>sig2*Math.exp(-((a-b)**2)/(2*ell*ell));
+const n=OX.length, K=OX.map(a=>OX.map(b=>k(a,b))); for(let i=0;i<n;i++)K[i][i]+=noise;
+const Lc=K.map(r=>r.map(()=>0)); // cholesky
+for(let i=0;i<n;i++)for(let j=0;j<=i;j++){let s=K[i][j];for(let q=0;q<j;q++)s-=Lc[i][q]*Lc[j][q];Lc[i][j]=i===j?Math.sqrt(s):s/Lc[j][j]}
+const meanY=OY.reduce((a,b)=>a+b)/n;
+const solveL=b=>{const y=[];for(let i=0;i<n;i++){let s=b[i];for(let q=0;q<i;q++)s-=Lc[i][q]*y[q];y.push(s/Lc[i][i])}return y};
+const solveLT=y=>{const x=Array(n).fill(0);for(let i=n-1;i>=0;i--){let s=y[i];for(let q=i+1;q<n;q++)s-=Lc[q][i]*x[q];x[i]=s/Lc[i][i]}return x};
+const alpha=solveLT(solveL(OY.map(y=>y-meanY)));
+function post(x){const ks=OX.map(a=>k(a,x)); const mu=meanY+ks.reduce((s,v,i)=>s+v*alpha[i],0); const v=solveL(ks); const var_=Math.max(1e-9,sig2-v.reduce((s,q)=>s+q*q,0)); return [mu,Math.sqrt(var_)]}
+const fbest=Math.max(...OY);
+const pdf=z=>Math.exp(-z*z/2)/Math.sqrt(2*Math.PI);
+const cdf=z=>{const t=1/(1+.2316419*Math.abs(z));const d=.3989423*Math.exp(-z*z/2);const p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p};
+const EI=(mu,sd)=>{const z=(mu-fbest)/sd;return (mu-fbest)*cdf(z)+sd*pdf(z)};
+const GX0=50,GX1=880,GY0=18,GY1=208,EY0=236,EY1=300, YMIN=-.05, YMAX=.95;
+const sx=x=>GX0+x*(GX1-GX0), sy=y=>GY1-(y-YMIN)/(YMAX-YMIN)*(GY1-GY0);
+const xs=Array.from({length:201},(_,i)=>i/200), P=xs.map(post), E=P.map(([m,s])=>EI(m,s)), Emax=Math.max(...E);
+const se=e=>EY1-(e/Emax)*(EY1-EY0);
+(function drawGP(){
+  const band='M'+xs.map((x,i)=>`${sx(x)},${sy(P[i][0]+2*P[i][1])}`).join('L')+'L'+[...xs].reverse().map((x,j)=>{const i=200-j;return `${sx(x)},${sy(P[i][0]-2*P[i][1])}`}).join('L')+'Z';
+  const mean='M'+xs.map((x,i)=>`${sx(x)},${sy(P[i][0])}`).join('L');
+  const ei='M'+sx(0)+','+EY1+'L'+xs.map((x,i)=>`${sx(x)},${se(E[i])}`).join('L')+'L'+sx(1)+','+EY1+'Z';
+  gp.innerHTML=`
+   <line class="axis" x1="${GX0}" x2="${GX1}" y1="${GY1}" y2="${GY1}"/>
+   <line class="axis" x1="${GX0}" x2="${GX1}" y1="${EY1}" y2="${EY1}"/>
+   <path class="band" d="${band}"/><path class="mean" d="${mean}"/>
+   <line class="best" x1="${GX0}" x2="${GX1}" y1="${sy(fbest)}" y2="${sy(fbest)}"/>
+   <text x="${GX1}" y="${sy(fbest)-6}" text-anchor="end">f_best = best of the 10 examples</text>
+   <text x="${GX0}" y="${GY0+4}">score</text>
+   ${OX.map((x,i)=>`<circle class="obs" cx="${sx(x)}" cy="${sy(OY[i])}" r="5"/>`).join('')}
+   <path class="ei" d="${ei}"/>
+   <text x="${GX0}" y="${EY0-6}">expected improvement</text>
+   <text x="${GX0}" y="${GY1+16}">μ ± 2σ (blue band) · dots are the 10 scored examples</text>
+   <line class="cand" id="candL" x1="0" x2="0" y1="${GY0}" y2="${EY1}"/>
+   <circle id="candM" r="6" fill="var(--search)" stroke="var(--panel)" stroke-width="2"/>
+   <circle id="candE" r="6" fill="var(--value)" stroke="var(--panel)" stroke-width="2"/>`;
+})();
+function gpSet(v){
+  const x=v/1000, [mu,sd]=post(x), ei=EI(mu,sd);
+  $('candL').setAttribute('x1',sx(x)); $('candL').setAttribute('x2',sx(x));
+  $('candM').setAttribute('cx',sx(x)); $('candM').setAttribute('cy',sy(mu));
+  $('candE').setAttribute('cx',sx(x)); $('candE').setAttribute('cy',se(ei));
+  $('gMu').textContent=mu.toFixed(3); $('gSd').textContent=sd.toFixed(3); $('gBest').textContent=fbest.toFixed(3); $('gEi').textContent=ei.toFixed(4);
+}
+$('gpX').oninput=e=>gpSet(+e.target.value); gpSet(700);
+
+/* ---------- 5. ablation bars ---------- */
+const ABL={'Ant':[.652,.604,.630,.590],"D'Kitty":[.942,.892,.934,.897],'TF Bind 8':[.876,.798,.846,.764],'TF Bind 10':[.642,.503,.633,.603]};
+const NAMES=['full dLLM','without tree search','without task text','no pretraining'];
+$('abl').innerHTML=Object.entries(ABL).map(([t,v])=>`<div class="task"><h3>${t}</h3>${v.map((s,i)=>`
+  <div class="bar ${i?'':'full'}" title="${NAMES[i]}: ${s.toFixed(3)}"><span class="nm">${NAMES[i]}</span><span class="tr"><span class="fl" style="transform:scaleX(${s})"></span></span><span class="vv">${s.toFixed(3)}</span></div>`).join('')}</div>`).join('');
+function ablPlay(){
+  const fl=[...document.querySelectorAll('#abl .fl')];
+  fl.forEach(f=>{f.dataset.s=f.dataset.s||f.style.transform; f.style.transition='none'; f.style.transform='scaleX(0)'}); void document.body.offsetWidth;
+  fl.forEach((f,i)=>{f.style.transition=''; f.style.transitionDelay=(reduce?0:(i%4)*50+Math.floor(i/4)*80)+'ms'; f.style.transform=f.dataset.s});
+}
+$('ablPlay').onclick=ablPlay;
+const seen=new WeakSet();
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&!seen.has(e.target)){seen.add(e.target);ablPlay()}}),{threshold:.4});
+io.observe($('abl'));
+</script>

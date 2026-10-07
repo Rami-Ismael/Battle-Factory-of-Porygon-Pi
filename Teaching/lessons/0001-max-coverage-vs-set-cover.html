@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 — Max coverage vs set cover</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>Max coverage vs set cover</h1>
+<p class="subtitle">Fix <span class="k">k</span> and maximise covered weight — versus cover everything and minimise <span class="k">k</span>.</p>
+<p class="meta">Lesson 0001 · 2026-08-18 · ~10 minutes · <a href="../reference/set-cover-vs-max-coverage.html">reference sheet</a> · <a href="../MISSION.md">mission</a> · answers TODO item <em>“11. max coverage vs set cover”</em> in <code>Todo Section.md</code></p>
+
+<div class="mission"><strong>Why this, now.</strong> Your vault records one clarifying move so far: <em>weighted set cover → weighted maximum coverage</em> as the formulation of <span class="k">f</span>. This lesson makes that move defensible in one breath: you should be able to say which problem <span class="k">f</span> is, why the other one is the wrong shape, and what changes in the algorithm and its guarantee.</div>
+
+<h2>1. Both problems, in one sentence each</h2>
+
+<p>The cleanest primary-source statement is the opening of Feige’s 1998 paper — the paper that proved both greedy guarantees are essentially best possible:</p>
+
+<blockquote>“Given a collection 𝓕 of subsets of S = {1,…,n}, <b>set cover</b> is the problem of selecting as few as possible subsets from 𝓕 such that their union covers S, and <b>max k-cover</b> is the problem of selecting k subsets from 𝓕 such that their union has maximum cardinality. Both these problems are NP-hard.”
+<cite>🟢 Feige, <a href="https://courses.cs.duke.edu/spring07/cps296.2/papers/p634-feige.pdf">A Threshold of ln n for Approximating Set Cover</a>, JACM 45(4), 1998 — abstract. “Max k-cover” is the same thing as maximum coverage.</cite></blockquote>
+
+<p>Same ingredients — a universe of elements and a family of subsets — and the two problems are what you get by swapping which quantity is <em>fixed</em> and which is <em>optimised</em>:</p>
+
+<table class="compare">
+<tr><th></th><th class="sc">Set cover</th><th class="mc">Maximum coverage</th></tr>
+<tr><td>what is fixed</td><td>the target: <em>every</em> element must be covered</td><td>the budget: at most <span class="k">k</span> sets</td></tr>
+<tr><td>what is optimised</td><td><b>minimise</b> the number (or total cost) of sets</td><td><b>maximise</b> the number (or total weight) of covered elements</td></tr>
+<tr><td>the answer looks like</td><td>“you need at least this many”</td><td>“with this many, this is the most you get”</td></tr>
+<tr><td>“weighted” means</td><td>each <b>set</b> has a cost <span class="k">c<sub>j</sub></span>; minimise total cost</td><td>each <b>element</b> has a weight <span class="k">w<sub>e</sub></span>; maximise covered weight</td></tr>
+<tr><td>infeasible when</td><td>some element lies in no set (nothing can cover it)</td><td>never — any <span class="k">k</span> sets are an answer, just a poor one</td></tr>
+<tr><td>greedy rule</td><td>add the most cost-effective set (most new elements per unit cost) — <em>until everything is covered</em></td><td>add the set with the most still-uncovered <em>weight</em> — <em>until <span class="k">k</span> sets are chosen</em></td></tr>
+<tr><td>greedy guarantee</td><td>within <span class="k">H<sub>n</sub> ≈ ln n</span> <b>times</b> the optimal cost — a multiplicative factor on the <em>count</em></td><td>at least <span class="k">1 − 1/e ≈ 63%</span> <b>of</b> the optimal covered weight — a fraction of the <em>value</em></td></tr>
+<tr><td>can anything beat greedy?</td><td>no, essentially: <span class="k">(1−o(1)) ln n</span> is a threshold (Feige)</td><td>no, essentially: <span class="k">1 − 1/e</span> is a threshold unless P = NP (Feige, Prop. 5.2)</td></tr>
+</table>
+
+<p class="note">Sources for the table: set cover definition, weighted, W&amp;S §1.2; greedy and Theorem 1.11 (H<sub>n</sub>), W&amp;S §1.6; ln n hardness, W&amp;S Theorem 1.13 / Feige; max coverage greedy 1 − 1/e, Feige Prop. 5.1 and W&amp;S §2.5 (Theorem 2.16) and Exercise 2.11. All 🟢 — <a href="https://www.designofapproxalgs.com/download.php">Williamson &amp; Shmoys, electronic edition</a>, free for personal use.</p>
+
+<h2>2. The mirror: constraint and objective trade places</h2>
+
+<p>Written as integer programs the swap is literal. Let <span class="k">x<sub>j</sub> = 1</span> if set <span class="k">S<sub>j</sub></span> is chosen, and for max coverage <span class="k">y<sub>e</sub> = 1</span> if element <span class="k">e</span> ends up covered.</p>
+
+<table class="compare">
+<tr><th class="sc">Weighted set cover</th><th class="mc">Weighted maximum coverage</th></tr>
+<tr>
+<td style="font-style:normal;color:inherit;width:auto">
+<b>min</b> ∑<sub>j</sub> c<sub>j</sub> x<sub>j</sub><br>
+s.t. ∑<sub>j : e ∈ S<sub>j</sub></sub> x<sub>j</sub> ≥ 1 &nbsp;for every element e<br>
+x<sub>j</sub> ∈ {0,1}
+</td>
+<td>
+<b>max</b> ∑<sub>e</sub> w<sub>e</sub> y<sub>e</sub><br>
+s.t. ∑<sub>j</sub> x<sub>j</sub> ≤ k<br>
+y<sub>e</sub> ≤ ∑<sub>j : e ∈ S<sub>j</sub></sub> x<sub>j</sub> &nbsp;for every element e<br>
+x<sub>j</sub>, y<sub>e</sub> ∈ {0,1}
+</td></tr>
+</table>
+
+<p>Read the columns against each other. Set cover’s <em>constraint</em> (“every element gets ≥ 1”) becomes max coverage’s <em>objective</em> (“as much weight as possible gets ≥ 1”). Set cover’s <em>objective</em> (“few sets”) becomes max coverage’s <em>constraint</em> (“≤ k sets”). That is the whole relationship. (ILP for max coverage as on 🟢 <a href="https://en.wikipedia.org/wiki/Maximum_coverage_problem">Wikipedia — Maximum coverage problem</a>; set cover LP as W&amp;S §1.2.)</p>
+
+<div class="callout trap">
+<h4>The trap: “weighted” is not one word</h4>
+<p>In <span class="sc">weighted set cover</span> the weights are <b>costs on the sets</b> (W&amp;S: “a nonnegative weight w<sub>j</sub> ≥ 0 for each subset S<sub>j</sub>… find a minimum-weight collection of subsets that covers all of E”). In <span class="mc">weighted maximum coverage</span> the weights are <b>values on the elements</b>. Your project’s weights — how often each meta team appears in the collected list — sit on <em>elements</em>. So “weighted set cover”, which your TODO ticks as understood, is a different weighting from the one <span class="k">f</span> uses. If sets also carry costs and you replace <span class="k">k</span> with a spend limit, that is the <em>budgeted</em> maximum coverage of Khuller, Moss &amp; Naor (🔒 IPL 1999; <a href="https://www.semanticscholar.org/paper/465a755ef79ff8d74f7a355012269fa5fcbba477">abstract on Semantic Scholar</a>) — still 1 − 1/e, still not set cover.</p>
+</div>
+
+<h2>3. Try it: one instance, two readings</h2>
+
+<p>Seven meta teams, weighted by how many times each appears in the list (T′<sub>1</sub> ×6, T′<sub>2</sub> ×5, the rest ×1). Four candidates, letters not species — the “beats” pattern is invented for the exercise, so nothing here is a matchup claim. Budget <span class="k">k = 2</span> for the max-coverage reading (your real <span class="k">k</span> is 6).</p>
+
+<div id="sim"></div>
+
+<ol>
+<li><b>Max coverage.</b> Find the pair that covers the most weight. (There is one best pair; the panel confirms it.)</li>
+<li><b>Set cover.</b> Reset, then find the fewest candidates that cover <em>every</em> column. There is exactly one minimum cover.</li>
+<li>Compare the two answers. The best pair is <em>not</em> a subset of the minimum cover — the two problems do not agree on which candidates matter. Set cover is forced to take A and B for the singleton columns; max coverage ignores those columns and takes C for the two heavy ones.</li>
+<li>Reset and press <b>Greedy step</b> four times. It reaches full cover using four candidates, one more than the minimum. That greedy chases <em>weight</em>, which is what maximum coverage wants and what set cover does not care about. On an unweighted instance the two greedies pick in the same order and differ only in when they stop; add element weights and even the order splits.</li>
+</ol>
+
+<script src="../assets/coverage-sim.js"></script>
+<script>
+CoverageSim.mount(document.getElementById('sim'), {
+  elements: [
+    {name:'T′<sub>1</sub>', w:6}, {name:'T′<sub>2</sub>', w:5}, {name:'T′<sub>3</sub>', w:1},
+    {name:'T′<sub>4</sub>', w:1}, {name:'T′<sub>5</sub>', w:1}, {name:'T′<sub>6</sub>', w:1}, {name:'T′<sub>7</sub>', w:1}
+  ],
+  sets: [
+    {name:'A', covers:[0,2]}, {name:'B', covers:[1,3]}, {name:'C', covers:[0,1]}, {name:'D', covers:[4,5,6]}
+  ],
+  k: 2, optMaxCov: 14, optSetCover: 3
+});
+</script>
+
+<h2>4. Which one is <span class="k">f</span></h2>
+
+<p>Map your objects onto the ingredients: universe = the collected meta-team list; element weight = frequency in that list; a set = the meta slice one candidate beats; and the number of candidates on a team is <b>six, fixed by the rules</b>. A fixed count you are not allowed to minimise is a budget <span class="k">k</span>, and a budget is the signature of maximum coverage. So at the species layer, <span class="k">f</span> in its coverage form reads: <em>choose 6 slices whose union has the largest weight</em>. Set cover would instead ask <em>how many candidates does it take to beat every meta team?</em> — a legitimate diagnostic (if the answer is 9, no team of six covers the meta and you are choosing what to concede), but not the objective, and it is infeasible outright whenever some meta team is beaten by no single candidate. Maximum coverage never becomes infeasible; it just reports a lower number.</p>
+
+<p>Two things this lesson deliberately does not settle, because they are separate checkboxes: whether coverage is the <em>definition</em> of <span class="k">f</span> or a proxy checked against the matchup predictor (item 9), and what to do about “beats” being binary when a matchup is a probability (item 8). On the second: W&amp;S §2.5 solves exactly the soft version — choose <span class="k">k</span> things, score each element by the <em>best</em> chosen value <span class="k">max<sub>i∈S</sub> v<sub>ij</sub></span>, still greedy, still 1 − 1/e — which is a strong candidate for the next lesson.</p>
+
+<h2>5. Retrieval check</h2>
+<p class="note">Answer from memory before scrolling back. Every option has the same word count on purpose.</p>
+
+<div class="quiz" data-answer="a">
+<p class="q">Which statement has the set-cover shape?</p>
+<button data-opt="a">Beat every meta team using the fewest species possible.</button>
+<button data-opt="b">Beat the most meta weight using at most six species.</button>
+<button data-opt="c">Beat the most meta weight using the fewest species.</button>
+<button data-opt="d">Beat every meta team using at most six species.</button>
+<div class="why">(a) fixes the target (everything) and minimises the count. (b) is maximum coverage. (c) has two objectives and no fixed quantity — ill-posed until you fix one. (d) fixes both — it is a yes/no feasibility question (“is there a 6-cover?”), not an optimisation.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">In <em>weighted set cover</em>, the weights sit on…</p>
+<button data-opt="a">the sets: each one costs something</button>
+<button data-opt="b">the elements: each one earns something</button>
+<button data-opt="c">the budget: it becomes a cost</button>
+<button data-opt="d">the union: it becomes a fraction</button>
+<div class="why">Set costs (W&amp;S §1.2). Element weights belong to weighted <em>maximum coverage</em> — the one your meta-team frequencies match.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">On an <em>unweighted</em> instance, how do the two greedy algorithms differ?</p>
+<button data-opt="a">when they stop, not what they add</button>
+<button data-opt="b">what they add, not when they stop</button>
+<button data-opt="c">both the stopping rule and the choice</button>
+<button data-opt="d">neither the stopping rule nor the choice</button>
+<div class="why">Both add the set with the most uncovered elements; set cover stops at full coverage, max coverage after k picks. With costs or element weights the choice rule splits too (you saw it in the sandbox).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Greedy for maximum coverage guarantees…</p>
+<button data-opt="a">at least 63% of the best coverable weight</button>
+<button data-opt="b">at most 63% of the best coverable weight</button>
+<button data-opt="c">at least 63% of the total meta weight</button>
+<button data-opt="d">at most ln n times the best count</button>
+<div class="why">1 − 1/e of OPT — of what the best k sets could cover, <em>not</em> of the whole universe (c is the classic misreading). (d) is set cover’s guarantee, and it bounds a count from above, not a value from below.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Why is <span class="k">f</span> maximum coverage rather than set cover?</p>
+<button data-opt="a">the team size is fixed by the rules</button>
+<button data-opt="b">the whole meta must be beaten in full</button>
+<button data-opt="c">the number of species is to be minimised</button>
+<button data-opt="d">the species carry costs which must be summed</button>
+<div class="why">Six is a budget you cannot shrink or grow, so the only free quantity is how much weight the six cover. (b) is the set-cover target — and often unattainable; (c) is set cover’s objective; (d) is budgeted max coverage, a different variant.</div>
+</div>
+
+<p class="quiz-summary"></p>
+<script src="../assets/quiz.js"></script>
+
+<h2>6. Read one thing</h2>
+<p><b>Primary source for this lesson:</b> 🟢 Feige 1998, <a href="https://courses.cs.duke.edu/spring07/cps296.2/papers/p634-feige.pdf">the abstract, §1 (first two paragraphs) and §5 Proposition 5.1</a> — three pages that state both problems side by side and give the half-page proof that greedy max k-cover is within 1 − 1/e. Skip the rest (a PCP construction) entirely.</p>
+<p><b>If you want the textbook version:</b> 🟢 Williamson &amp; Shmoys, <a href="https://www.designofapproxalgs.com/download.php">free electronic edition</a> — §1.2 (set cover, weighted, with the LP), §1.6 (greedy, Theorem 1.11), §2.5 (the float problem, which is your soft-coverage <span class="k">f</span> in disguise; Theorem 2.16), Exercise 2.11 (max coverage). Their bibliographic notes credit §2.5 to Cornuejols, Fisher &amp; Nemhauser and Exercise 2.11 to Nemhauser, Wolsey &amp; Fisher — both 🔒 originals, so read them through W&amp;S.</p>
+
+<div class="ask"><b>Ask your teacher.</b> Anything unclear — the ILP mirror, why (d) in the first question is a decision problem, what H<sub>n</sub> is — ask in the session. Good follow-ups: “show me the H<sub>n</sub> proof at the same level as Prop 5.1”, or “write my six-slot instance in the float form of W&amp;S §2.5”.</div>
+
+<nav class="lesson-nav">
+<a href="../reference/set-cover-vs-max-coverage.html">Reference sheet →</a>
+<span class="note">Next candidates: soft coverage — the float model of W&amp;S §2.5 (TODO item 8) · partial cover — the middle problem between the two</span>
+</nav>
+</body>
+</html>

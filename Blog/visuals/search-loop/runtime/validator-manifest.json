@@ -1,0 +1,173 @@
+{
+  "format": "gen9championsvgc2026regmb",
+  "revision": "913da3602a3aa1db79f9fdc5d5222eaf8d39569d",
+  "moduleCount": 41,
+  "bundleBytes": 7909277,
+  "bundleSha256": "06cd0ddf5119b93f5a309d0174dd42c720ebd5f8fd2e9c0022fbecc624da6502",
+  "modules": [
+    {
+      "id": "/dist/sim/team-validator.js",
+      "sha256": "8c750afbe41540bedd6e31d1bb2584a85629596838ab3c2c4a961c40c42ddd56"
+    },
+    {
+      "id": "/dist/sim/dex.js",
+      "sha256": "903574084d94cf03ea1e10149fa5cf1a1da00132256bb0201c2aea6a80215c88"
+    },
+    {
+      "id": "/dist/sim/dex-data.js",
+      "sha256": "750fba875a44d41b086870d55642a630e3b2a9374c7be392e500b57cf1c3440c"
+    },
+    {
+      "id": "/dist/lib/utils.js",
+      "sha256": "6e1f9eae4277090971d083977b6c221aa7492ad7711af30db9028dea00cb498a"
+    },
+    {
+      "id": "/dist/sim/dex-conditions.js",
+      "sha256": "0455338330f1581b123bb7fb86151dcf6ca7199e07727344dc725a6ae786162a"
+    },
+    {
+      "id": "/dist/sim/dex-moves.js",
+      "sha256": "c946ff14702d90ff9b277457af6300bc593a66eedde5b19feded4bfb951bc60a"
+    },
+    {
+      "id": "/dist/sim/dex-items.js",
+      "sha256": "77fa4f652971b9e9e67276c76fb7dfeb55535049649987f66b18f49f812be055"
+    },
+    {
+      "id": "/dist/sim/dex-abilities.js",
+      "sha256": "b2fb05433b5a9f127fb664b66a706675b0d7244a3167d12d2e56d257ee4a9280"
+    },
+    {
+      "id": "/dist/sim/dex-species.js",
+      "sha256": "23e3223196f6758f537e63af69b7dcb7a1ba6d786b57027978c85c535a60233f"
+    },
+    {
+      "id": "/dist/sim/dex-formats.js",
+      "sha256": "a52c1c9302a1e62e58edb882f41dda5aa4ef3717cc01815ef4970e7473ecee22"
+    },
+    {
+      "id": "/dist/data/tags.js",
+      "sha256": "68b3388d8fdb44dab7ce4d1eca035c4acd3e3016726940f866e1dc8b08f70950"
+    },
+    {
+      "id": "/dist/sim/teams.js",
+      "sha256": "1c260f8f9d251f16c743ca1361041d3bbc6761869943decc9d5470cfe781c77d"
+    },
+    {
+      "id": "/dist/sim/prng.js",
+      "sha256": "327745d5c0bb090c8d1c0d52a89528533ca3822333dd5346e91c36bbbb4c15b8"
+    },
+    {
+      "id": "/vendor/ts-chacha20.js",
+      "sha256": "9c8aa114083d06946ba78c977244cf2a01a85d86ab49dfadf2dd4b0941ffb183"
+    },
+    {
+      "id": "/dist/data/aliases.js",
+      "sha256": "205e0adca43ee0d704f3385b8cd11fcf988965b5bc7e42f6d0fa06746ec3892a"
+    },
+    {
+      "id": "/dist/data/scripts.js",
+      "sha256": "6c4c39184978eb3f308e60dbc21b1043cd03e57671959c210318d0e424627d39"
+    },
+    {
+      "id": "/dist/config/formats.js",
+      "sha256": "aad238e593084e32609f75b2e799b22299234bcf194e69aa55839771eac44887"
+    },
+    {
+      "id": "/dist/data/abilities.js",
+      "sha256": "53acce98287c9d3cae5a30c2c5e442cf53287d4c5eb4bc219270b58e868b30dd"
+    },
+    {
+      "id": "/dist/data/rulesets.js",
+      "sha256": "7bcbb33234b403ae7dd8fa6fa4cd307677f97d88786f4a67a775fbc48642847e"
+    },
+    {
+      "id": "/dist/data/formats-data.js",
+      "sha256": "50061c5704016059bcc3dae7e0376392b032c9074163dc8101877e32eb061da0"
+    },
+    {
+      "id": "/dist/data/items.js",
+      "sha256": "6418cffb3daa00094f07ff187a37aff7b6ae06f68330c9f9b3202cfd3da21ab3"
+    },
+    {
+      "id": "/dist/data/learnsets.js",
+      "sha256": "af583fa81f63d7c89fb8c91bd85a8962f403afdc7e66453e714190baa27cd793"
+    },
+    {
+      "id": "/dist/data/moves.js",
+      "sha256": "274fe63fe9791edc05031246c1ef57ea9d94f926534c5ff2b36ff1f91af3f058"
+    },
+    {
+      "id": "/dist/data/natures.js",
+      "sha256": "9075adf12fb7dfdbdb215d553419c3faaad5fcd3007d2865dbaa52986c1da6d1"
+    },
+    {
+      "id": "/dist/data/pokedex.js",
+      "sha256": "664ded15cb762576b75cb1c2ded09e10a32317f8125f047155886f939d587a14"
+    },
+    {
+      "id": "/dist/data/conditions.js",
+      "sha256": "459fbfc3e2b48329ca5ea64323692dcfaa35ccfda1649ce774e8a884ef10f0ac"
+    },
+    {
+      "id": "/dist/data/typechart.js",
+      "sha256": "7871f541822a95cb9288d89e98cd7f30cfa2ba94938711b3796999411215e05b"
+    },
+    {
+      "id": "/dist/data/pokemongo.js",
+      "sha256": "096db9e523acfa3b8a8eedcae4951190550206affbc0975f206188cb83658cab"
+    },
+    {
+      "id": "/dist/data/mods/champions/scripts.js",
+      "sha256": "c58f1cb08e2fe82e53207e5a19827a150e5ed7a0724a17339d285ba529c21477"
+    },
+    {
+      "id": "/dist/data/mods/champions/abilities.js",
+      "sha256": "5403eba95bc866976809ee6cf22533c99738e325b9dbe0008e4de5870dcade0c"
+    },
+    {
+      "id": "/dist/data/mods/champions/rulesets.js",
+      "sha256": "e103ab2b68b7448dbd81f7c092f2c1b95fb4d7588452c9c2b6bd95352d3d64c6"
+    },
+    {
+      "id": "/dist/data/mods/champions/formats-data.js",
+      "sha256": "e67d1c282ede040138f1eee1ac197b9b44eedc6405a1b5ed5c78e2d73098a1c2"
+    },
+    {
+      "id": "/dist/data/mods/champions/items.js",
+      "sha256": "6252338f049d5828a15c1355a193d3693ab934c164b294464cf62db9a48319d7"
+    },
+    {
+      "id": "/dist/data/mods/champions/learnsets.js",
+      "sha256": "6891430b5d56a223ad225c1c76aa465ff8c0c24b1347bee3084255a3793a68ec"
+    },
+    {
+      "id": "/dist/data/mods/champions/moves.js",
+      "sha256": "21915ff91bd3465b607d474865b20b0d2f96cd85f1fa0ffcbff889daa3249052"
+    },
+    {
+      "id": "/dist/data/mods/champions/conditions.js",
+      "sha256": "53b0123878089d1e797c02af2261ffd0b8d23497dc317b2664082acef12a3f5d"
+    },
+    {
+      "id": "/dist/data/text/pokedex.js",
+      "sha256": "9fc097af36c25e711a22ed5fd1a85d1e4f5c674c186fe7797fbcb68f243cf029"
+    },
+    {
+      "id": "/dist/data/text/moves.js",
+      "sha256": "18d9078ddde5ced1555f543d0585249e67261b3a4b1288146776f57bd85ac3f8"
+    },
+    {
+      "id": "/dist/data/text/abilities.js",
+      "sha256": "b0f4eaf27d7cd42661d6b233a4e4578e03d7c1a17e65083cf6ef729c97ca48a4"
+    },
+    {
+      "id": "/dist/data/text/items.js",
+      "sha256": "3e3b7c331acdb8af75c97ba8189c29d250a6135dc0f5b588046a99b3de78813d"
+    },
+    {
+      "id": "/dist/data/text/default.js",
+      "sha256": "75c9acfbf496a585599989d026c4000a7c7f0d937b4eef850dfd01bf04765c9f"
+    }
+  ]
+}

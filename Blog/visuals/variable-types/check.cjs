@@ -1,0 +1,35 @@
+const { chromium } = require('/Users/ramiismael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const path = require('path');
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'chrome'});
+ const page=await browser.newPage({viewport:{width:1120,height:830},deviceScaleFactor:2});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('file://'+path.join(__dirname,'index.html'));
+ await page.screenshot({path:path.join(__dirname,'preview.png'),fullPage:true});
+ await page.getByRole('button',{name:'Focus Sash'}).click();
+ if(await page.locator('#token-item').textContent()!=='Focus Sash')throw Error('Item did not update');
+ await page.locator('[data-step="1"]').click();
+ await page.locator('#transfer').click();
+ if(await page.locator('#spa').textContent()!=='22'||await page.locator('#spe').textContent()!=='12')throw Error('Incorrect transfer');
+ for(let i=0;i<20;i++)await page.locator('#transfer').click();
+ if(!await page.locator('#transfer').isDisabled())throw Error('Stat limit failed');
+ await page.locator('[data-step="2"]').click();await page.locator('[data-species="Torkoal"]').click();
+ if(!(await page.locator('#abilities').textContent()).includes('Drought'))throw Error('Conditional ability failed');
+ if((await page.locator('#abilities').textContent()).includes('Drizzle'))throw Error('Stale ability');
+ await page.waitForTimeout(500);await page.screenshot({path:path.join(__dirname,'preview-conditional.png'),fullPage:true});
+ await page.emulateMedia({reducedMotion:'reduce'});await page.locator('[data-species="Pelipper"]').focus();await page.keyboard.press('Enter');
+ if(await page.evaluate(()=>document.getAnimations().length))throw Error('Reduced motion has animations');
+ await page.locator('#play').click();await page.waitForTimeout(1900);
+ if(await page.locator('#token-item').textContent()!=='Focus Sash')throw Error('Story failed');
+ await page.locator('[data-step="1"]').click();await page.waitForTimeout(2400);
+ if(await page.locator('[data-step="1"]').getAttribute('aria-pressed')!=='true')throw Error('Manual change did not interrupt story');
+ await page.locator('#play').click();await page.waitForTimeout(20500);
+ if(await page.locator('#play').getAttribute('aria-label')!=='Replay the guided animation')throw Error('Story did not finish');
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('[data-step="0"]').click();
+ await page.screenshot({path:path.join(__dirname,'preview-mobile.png'),fullPage:true});
+ for(const width of [320,390,600,1120]){await page.setViewportSize({width,height:900});for(let i=0;i<3;i++){await page.locator(`[data-step="${i}"]`).click();if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error(`Overflow at ${width} / ${i}`)}}
+ if(errors.length)throw Error(errors.join('\n'));
+ console.log('PASS: categorical updates; stat transfer and limit; dependent abilities; reduced motion; demo and interruption; no horizontal overflow at 320/390/600/1120px; no page errors.');
+ await browser.close();
+})();

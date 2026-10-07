@@ -1,0 +1,890 @@
+{
+ "abomasite": {
+  "name": "Abomasite",
+  "sprite": "item-sprites/item-abomasite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iabomasite.png",
+  "sha256": "b331078e83318c867ef09af6c3ea16176498466355c025e7524017e45222e083"
+ },
+ "absolite": {
+  "name": "Absolite",
+  "sprite": "item-sprites/item-absolite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iabsolite.png",
+  "sha256": "191e0d22d0ae51b44399960185807677e9955e3f18ce9f9fbe936ec77c7626ac"
+ },
+ "aerodactylite": {
+  "name": "Aerodactylite",
+  "sprite": "item-sprites/item-aerodactylite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iaerodactylite.png",
+  "sha256": "8cfe712527d08f6a4c34bd5328158aa086ae98619f1b4da2a30b650cf61d32e2"
+ },
+ "aggronite": {
+  "name": "Aggronite",
+  "sprite": "item-sprites/item-aggronite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iaggronite.png",
+  "sha256": "656843505ecfca526b68062d925feed03bca4519803a76a65739348d862e71ef"
+ },
+ "alakazite": {
+  "name": "Alakazite",
+  "sprite": "item-sprites/item-alakazite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ialakazite.png",
+  "sha256": "6f393f61b928706e644eb9121c096a587ba492a3511e2584d2ac40d82b975ef1"
+ },
+ "altarianite": {
+  "name": "Altarianite",
+  "sprite": "item-sprites/item-altarianite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ialtarianite.png",
+  "sha256": "34118c523376c95a1c0802bdd56cbeeac6195f9cfc6374e4c1fc96c4cbfbf15d"
+ },
+ "ampharosite": {
+  "name": "Ampharosite",
+  "sprite": "item-sprites/item-ampharosite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iampharosite.png",
+  "sha256": "61e7bbe1675f681adc3fe7f0bd77b93ef0d16d240a2db84d5f3ebdf7e1253ec4"
+ },
+ "audinite": {
+  "name": "Audinite",
+  "sprite": "item-sprites/item-audinite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iaudinite.png",
+  "sha256": "727ee8a88d93e98c5b9b66c0f3c2042c762395129057ffa356bc2c552fcfdef3"
+ },
+ "banettite": {
+  "name": "Banettite",
+  "sprite": "item-sprites/item-banettite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibanettite.png",
+  "sha256": "98e3d3b45a5bc395e4bfe554bb70f5a1b63b5e26f4b9b4748fee05204badbbe2"
+ },
+ "barbaracite": {
+  "name": "Barbaracite",
+  "sprite": "item-sprites/item-barbaracite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibarbaracite.png",
+  "sha256": "e559936db23c433ead390eebe93493c21536dfee1e13479f0b8d469bc39ac6b7"
+ },
+ "beedrillite": {
+  "name": "Beedrillite",
+  "sprite": "item-sprites/item-beedrillite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibeedrillite.png",
+  "sha256": "f18051dbe7c6700d70f85613cb512c40110fe0edb1418dcc831c5aafd89ea4c8"
+ },
+ "blastoisinite": {
+  "name": "Blastoisinite",
+  "sprite": "item-sprites/item-blastoisinite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iblastoisinite.png",
+  "sha256": "2d6f2f4f91eff1fac0bd86c26e57ba46e1cb8d7ce9cb53c487620be336879c1a"
+ },
+ "blazikenite": {
+  "name": "Blazikenite",
+  "sprite": "item-sprites/item-blazikenite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iblazikenite.png",
+  "sha256": "d47cd325d396fea08f141d0e7d5b195c40fd419cb4c6b979500f25d08ee4f181"
+ },
+ "cameruptite": {
+  "name": "Cameruptite",
+  "sprite": "item-sprites/item-cameruptite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icameruptite.png",
+  "sha256": "c9b20fc4f1442ab67b86ef417ae1b3a6bf97d025fda456acbe93cad793cc6cd3"
+ },
+ "chandelurite": {
+  "name": "Chandelurite",
+  "sprite": "item-sprites/item-chandelurite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichandelurite.png",
+  "sha256": "0234e9e0ffca5c79b2cdfb4348f2f1e94cc08cdf5532cce5dfd015042c09c7f1"
+ },
+ "charizarditex": {
+  "name": "Charizardite X",
+  "sprite": "item-sprites/item-charizarditex.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icharizardite_x.png",
+  "sha256": "33db0706b8497962254936143853690234e970cd5b5fdc55ee33bce4c5da2028"
+ },
+ "charizarditey": {
+  "name": "Charizardite Y",
+  "sprite": "item-sprites/item-charizarditey.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icharizardite_y.png",
+  "sha256": "45244c3bee4ed20bf8fc810fc08694466e682e88462a2ff11e2b618daace6416"
+ },
+ "chesnaughtite": {
+  "name": "Chesnaughtite",
+  "sprite": "item-sprites/item-chesnaughtite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichesnaughtite.png",
+  "sha256": "78771a2cd0bdaeec7d25c3381ff3a5fd50d3fb351e3f9f3fa7f562efccd33344"
+ },
+ "chimechite": {
+  "name": "Chimechite",
+  "sprite": "item-sprites/item-chimechite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichimechite.png",
+  "sha256": "ad3b5ff42c5968c6a558348b0d435e042d927249e045254504ff658b07ee108a"
+ },
+ "clefablite": {
+  "name": "Clefablite",
+  "sprite": "item-sprites/item-clefablite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iclefablite.png",
+  "sha256": "aa53ac3972718ed884b826ffb6aa613c7db54ec09c1e98762a954465c0c06f0c"
+ },
+ "crabominite": {
+  "name": "Crabominite",
+  "sprite": "item-sprites/item-crabominite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icrabominite.png",
+  "sha256": "593a23ac0c088b31c65e3b9a97f8f6e0567e3a1fd6c24e4ba251ab8bb3903112"
+ },
+ "delphoxite": {
+  "name": "Delphoxite",
+  "sprite": "item-sprites/item-delphoxite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/idelphoxite.png",
+  "sha256": "947661d419d33470c6201bcac281e06c88f4a8df64ab0212300e72f8bddeeb3c"
+ },
+ "dragalgite": {
+  "name": "Dragalgite",
+  "sprite": "item-sprites/item-dragalgite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/idragalgite.png",
+  "sha256": "0edde405ca6d48c8eedc924172af12e330cc5ca29972f0caf679139718b11c00"
+ },
+ "dragoninite": {
+  "name": "Dragoninite",
+  "sprite": "item-sprites/item-dragoninite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/idragoninite.png",
+  "sha256": "56a0ffc72667cfdd718c88b518e6fde40fb20ceb055afce5e7af1f0ce6c15e43"
+ },
+ "drampanite": {
+  "name": "Drampanite",
+  "sprite": "item-sprites/item-drampanite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/idrampanite.png",
+  "sha256": "fe78fb157f1447124d9300bccf8384fe1f80bcef95669c2436fdbdc79b668e50"
+ },
+ "eelektrossite": {
+  "name": "Eelektrossite",
+  "sprite": "item-sprites/item-eelektrossite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ieelektrossite.png",
+  "sha256": "6b7d19789e5504e7d843c4a0561fbacd3cce75310eef45f4c478b58136d22550"
+ },
+ "emboarite": {
+  "name": "Emboarite",
+  "sprite": "item-sprites/item-emboarite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iemboarite.png",
+  "sha256": "9ec8a1972448f36b2a9c59ca027ef30389bb5497899aa97398b99e6c7336ee1f"
+ },
+ "excadrite": {
+  "name": "Excadrite",
+  "sprite": "item-sprites/item-excadrite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iexcadrite.png",
+  "sha256": "0196bb090016239c3d51d748782dc687020a130720dadf51f6728fbce4a3eac4"
+ },
+ "falinksite": {
+  "name": "Falinksite",
+  "sprite": "item-sprites/item-falinksite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifalinksite.png",
+  "sha256": "398882c4b450f3f22af9076911cd01447954b1e25625d9b8e67e062b3cf1e037"
+ },
+ "feraligite": {
+  "name": "Feraligite",
+  "sprite": "item-sprites/item-feraligite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iferaligite.png",
+  "sha256": "c9939722e3c33901b6bb3586af43899a47d45b76b6124b924c99eb1d1f94983b"
+ },
+ "floettite": {
+  "name": "Floettite",
+  "sprite": "item-sprites/item-floettite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifloettite.png",
+  "sha256": "21de879947fe57e46a9e662bd5f65a4d740e5b43881fc0bb0b73510dd118a9ef"
+ },
+ "froslassite": {
+  "name": "Froslassite",
+  "sprite": "item-sprites/item-froslassite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifroslassite.png",
+  "sha256": "61a43edaba3a33adc4a3fcd73b532b5f2b8866a7b9a5ddc4c42dd77b52ca32d9"
+ },
+ "galladite": {
+  "name": "Galladite",
+  "sprite": "item-sprites/item-galladite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/igalladite.png",
+  "sha256": "f794e0e715c8d093b4eaa229f7ca1cf90ad390fa2fa80be4ed6a37cc171aa8a5"
+ },
+ "garchompite": {
+  "name": "Garchompite",
+  "sprite": "item-sprites/item-garchompite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/igarchompite.png",
+  "sha256": "7da668dcf38793c11596160d470acb64a1706fed57a3a6bfe9cb175ac571307b"
+ },
+ "gardevoirite": {
+  "name": "Gardevoirite",
+  "sprite": "item-sprites/item-gardevoirite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/igardevoirite.png",
+  "sha256": "9a812e65b6abb565d3a29f0c07aa0de02f57faf53864389d2f5189bbe57b7f36"
+ },
+ "gengarite": {
+  "name": "Gengarite",
+  "sprite": "item-sprites/item-gengarite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/igengarite.png",
+  "sha256": "d721c3351b03e70e84418d54bf263978e3ef46d8170812e9d3b2ad3eb4b4969d"
+ },
+ "glalitite": {
+  "name": "Glalitite",
+  "sprite": "item-sprites/item-glalitite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iglalitite.png",
+  "sha256": "965785f54161c9c2bd3ec7f2da79deae77e5854462ce6718ca2a8c69a8e79335"
+ },
+ "glimmoranite": {
+  "name": "Glimmoranite",
+  "sprite": "item-sprites/item-glimmoranite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iglimmoranite.png",
+  "sha256": "254af9ca928d6874781e998acda2ffab14d127abd14e3b18b654b49c4a24b47f"
+ },
+ "golurkite": {
+  "name": "Golurkite",
+  "sprite": "item-sprites/item-golurkite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/igolurkite.png",
+  "sha256": "01d3e09948b81071437ecd6d51b514d996f22a32666ac750aa034cb493d48715"
+ },
+ "greninjite": {
+  "name": "Greninjite",
+  "sprite": "item-sprites/item-greninjite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/igreninjite.png",
+  "sha256": "d7e0392785ca05c8a8a61f600f882d184e9f786bbd111e41ee618735fdf5c54c"
+ },
+ "gyaradosite": {
+  "name": "Gyaradosite",
+  "sprite": "item-sprites/item-gyaradosite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/igyaradosite.png",
+  "sha256": "37b7ea0d25876e73c2fdf64642177aaa412e9b0b7ef7875e3e84b21338852118"
+ },
+ "hawluchanite": {
+  "name": "Hawluchanite",
+  "sprite": "item-sprites/item-hawluchanite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ihawluchanite.png",
+  "sha256": "f93ba05f9dad83725614c5463c6684aa396ab136d13356b191e8d8e9f162d208"
+ },
+ "heracronite": {
+  "name": "Heracronite",
+  "sprite": "item-sprites/item-heracronite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iheracronite.png",
+  "sha256": "7485f8b723b8a13402091066f16c83829c732ee0822fc09b4a08ceecd02ed223"
+ },
+ "houndoominite": {
+  "name": "Houndoominite",
+  "sprite": "item-sprites/item-houndoominite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ihoundoominite.png",
+  "sha256": "f3a7155be35a1371e61764d7872b00fd0edab540e48095c790f61b3676ac1f56"
+ },
+ "kangaskhanite": {
+  "name": "Kangaskhanite",
+  "sprite": "item-sprites/item-kangaskhanite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ikangaskhanite.png",
+  "sha256": "8a3edebeed8bff2fe65410399382b7639148761bbabdd0f7b92450fe6949a9e8"
+ },
+ "lopunnite": {
+  "name": "Lopunnite",
+  "sprite": "item-sprites/item-lopunnite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilopunnite.png",
+  "sha256": "fc8a87e1512264346f0225b968af305df993a9660473f8c29b18af90eff799a1"
+ },
+ "lucarionite": {
+  "name": "Lucarionite",
+  "sprite": "item-sprites/item-lucarionite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilucarionite.png",
+  "sha256": "89b580474d0206b27aa2693a590788f6397e8cb627c526ad9bfdf3654603a5d5"
+ },
+ "malamarite": {
+  "name": "Malamarite",
+  "sprite": "item-sprites/item-malamarite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imalamarite.png",
+  "sha256": "6eeb1117b8197340bfe7d600b14ba7fd59cb055872a3fa61602a3d36109647ba"
+ },
+ "manectite": {
+  "name": "Manectite",
+  "sprite": "item-sprites/item-manectite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imanectite.png",
+  "sha256": "1025f102355efd6a9fb4075778b0f37305f24f89534df538c4b5437f4680b16a"
+ },
+ "mawilite": {
+  "name": "Mawilite",
+  "sprite": "item-sprites/item-mawilite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imawilite.png",
+  "sha256": "ea16a9f3b9a7af3cc52a94ccc705c02efb77b1f3598b586e92dbeaac70e0a4e5"
+ },
+ "medichamite": {
+  "name": "Medichamite",
+  "sprite": "item-sprites/item-medichamite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imedichamite.png",
+  "sha256": "c44c49944fbf5c39668f6dfb4133ecdf6ba11bc8d76afa3010dce5f274b98d07"
+ },
+ "meganiumite": {
+  "name": "Meganiumite",
+  "sprite": "item-sprites/item-meganiumite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imeganiumite.png",
+  "sha256": "fb226c5d5b941f58f7345dbafc1077852f34fa31f0a52ef12ee969c6103a3e7c"
+ },
+ "meowsticite": {
+  "name": "Meowsticite",
+  "sprite": "item-sprites/item-meowsticite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imeowsticite.png",
+  "sha256": "1f7841482c922e56045b5f124a48b5ea793d75c4629732b938828bbd51d7bae0"
+ },
+ "metagrossite": {
+  "name": "Metagrossite",
+  "sprite": "item-sprites/item-metagrossite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imetagrossite.png",
+  "sha256": "f6dac6a98cbdc8e2a8ca76f9f609ceb8633332b297e233f69206752aa498086a"
+ },
+ "pidgeotite": {
+  "name": "Pidgeotite",
+  "sprite": "item-sprites/item-pidgeotite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipidgeotite.png",
+  "sha256": "4101eba66f87716d5287a327c3364ba4dd31114b0668a594bb1abe5e9a65b82d"
+ },
+ "pinsirite": {
+  "name": "Pinsirite",
+  "sprite": "item-sprites/item-pinsirite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipinsirite.png",
+  "sha256": "da9727fc0a6b31a4b9e625a5ca6a24853caf2184780d3ec7af58fce8de6c1f41"
+ },
+ "pyroarite": {
+  "name": "Pyroarite",
+  "sprite": "item-sprites/item-pyroarite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipyroarite.png",
+  "sha256": "df04b94ee885a4da3047c449b590595bef7a51eb6bcb5f809632dfedabc8692b"
+ },
+ "raichunitex": {
+  "name": "Raichunite X",
+  "sprite": "item-sprites/item-raichunitex.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iraichunite_x.png",
+  "sha256": "764853dc888818ba94f0b62eee1df89da8cc90fd88fb7de7bd27368451da47a0"
+ },
+ "raichunitey": {
+  "name": "Raichunite Y",
+  "sprite": "item-sprites/item-raichunitey.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iraichunite_y.png",
+  "sha256": "daa24b013c1238cfb48c604de4752b96834372725c2abbbe38391815ceb387d6"
+ },
+ "sablenite": {
+  "name": "Sablenite",
+  "sprite": "item-sprites/item-sablenite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isablenite.png",
+  "sha256": "0fde09055aa79ad877e27aaa1bf1dab4475199525b30c2a36d1938c29b6155ca"
+ },
+ "sceptilite": {
+  "name": "Sceptilite",
+  "sprite": "item-sprites/item-sceptilite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isceptilite.png",
+  "sha256": "7f98b37ec8072b1d28dff74c673250257fdf9bfd60abd4bb92a437ac6dc8aa43"
+ },
+ "scizorite": {
+  "name": "Scizorite",
+  "sprite": "item-sprites/item-scizorite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iscizorite.png",
+  "sha256": "250d5768e53e02fd8756badfba09fda7e972423836676863c32a5375a8422e8f"
+ },
+ "scolipite": {
+  "name": "Scolipite",
+  "sprite": "item-sprites/item-scolipite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iscolipite.png",
+  "sha256": "3e5425b23cbb2dc0778b1a980854d400e9bcb9b1733ceb83c6afc338666b1a5c"
+ },
+ "scovillainite": {
+  "name": "Scovillainite",
+  "sprite": "item-sprites/item-scovillainite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iscovillainite.png",
+  "sha256": "8e8dfc0518f9681793f43446a82423d83cbe7348e0785e4d00a0cf26d40434c7"
+ },
+ "scraftinite": {
+  "name": "Scraftinite",
+  "sprite": "item-sprites/item-scraftinite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iscraftinite.png",
+  "sha256": "6c44d08b1db41275f2a7684353fd5d2b24462cec989fce88e7d2cc191536abeb"
+ },
+ "sharpedonite": {
+  "name": "Sharpedonite",
+  "sprite": "item-sprites/item-sharpedonite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isharpedonite.png",
+  "sha256": "24d9cd0a3779885e60df69618690afa97cb12ce475403ca30822cdac97bfb88b"
+ },
+ "skarmorite": {
+  "name": "Skarmorite",
+  "sprite": "item-sprites/item-skarmorite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iskarmorite.png",
+  "sha256": "53f3fe60eb381abfc4d0d13f97b50397ed59bf3d106ec9ea1692b435425ffe36"
+ },
+ "slowbronite": {
+  "name": "Slowbronite",
+  "sprite": "item-sprites/item-slowbronite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/islowbronite.png",
+  "sha256": "a4ae047f88e29a0643d00ebf04f62a28f1038e86f64b48cfed7f4f6707518bf2"
+ },
+ "spelltag": {
+  "name": "Spell Tag",
+  "sprite": "item-sprites/item-spelltag.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ispell_tag.png",
+  "sha256": "adf26568aba3f94a6ab02cf476200a3fb7da2a12d7808a40dc5000dd8b180231"
+ },
+ "staraptite": {
+  "name": "Staraptite",
+  "sprite": "item-sprites/item-staraptite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/istaraptite.png",
+  "sha256": "7c2e6cf03d53d6499fbdac4f0c8513bca490ada072a3e38b8757e8a670fe615a"
+ },
+ "starminite": {
+  "name": "Starminite",
+  "sprite": "item-sprites/item-starminite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/istarminite.png",
+  "sha256": "a9c78330999fa0c9a025700682ae740362bc31186df41d65020c22df9ba47e21"
+ },
+ "steelixite": {
+  "name": "Steelixite",
+  "sprite": "item-sprites/item-steelixite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isteelixite.png",
+  "sha256": "632dec2d6833691c1083032cdccb215b122c8f341172f8748376ffc37f7ffcc2"
+ },
+ "swampertite": {
+  "name": "Swampertite",
+  "sprite": "item-sprites/item-swampertite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iswampertite.png",
+  "sha256": "03c4768023b6fa7e527ace56d3143d958b26e85bf565243a7fdb9bc491f131af"
+ },
+ "tyranitarite": {
+  "name": "Tyranitarite",
+  "sprite": "item-sprites/item-tyranitarite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ityranitarite.png",
+  "sha256": "243de35c55f72b703ea5948e65b894635b8d5b8bf5e83e6e281a1de715cbf3d7"
+ },
+ "venusaurite": {
+  "name": "Venusaurite",
+  "sprite": "item-sprites/item-venusaurite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ivenusaurite.png",
+  "sha256": "532a7db1eb8e739f3fb8e9c9ea36858349b0161bd55da059be501766589f120a"
+ },
+ "victreebelite": {
+  "name": "Victreebelite",
+  "sprite": "item-sprites/item-victreebelite.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ivictreebelite.png",
+  "sha256": "d6cec0db42110a411be877d5bd20b5e477077a54a1bf1db371968201ee543ad8"
+ },
+ "whiteherb": {
+  "name": "White Herb",
+  "sprite": "item-sprites/item-whiteherb.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iwhite_herb.png",
+  "sha256": "5dacf68a9c813f082ca7640c8ed711730a5bfae0a2510efe4779703561f2012f"
+ },
+ "aspearberry": {
+  "name": "Aspear Berry",
+  "sprite": "item-sprites/item-aspearberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iaspear_berry.png",
+  "sha256": "ac115722d6b3603c686d980497779edd3d01ba8fb0f1ce14054f9cf511e1c748"
+ },
+ "babiriberry": {
+  "name": "Babiri Berry",
+  "sprite": "item-sprites/item-babiriberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibabiri_berry.png",
+  "sha256": "b076681b1eaceec874889f31cddcae38d2496a9f11fa8cf76e01d1ab4e61b064"
+ },
+ "bigroot": {
+  "name": "Big Root",
+  "sprite": "item-sprites/item-bigroot.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibig_root.png",
+  "sha256": "d625d28ab2a74e98b1788c6b7189f0fac4f293420fd335c49bec3d4cf3b20c42"
+ },
+ "blackbelt": {
+  "name": "Black Belt",
+  "sprite": "item-sprites/item-blackbelt.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iblack_belt.png",
+  "sha256": "259e45399f288b485cfbef39f02e75d47defea7199a1609f21a5e0ced3bfeb5e"
+ },
+ "blackglasses": {
+  "name": "Black Glasses",
+  "sprite": "item-sprites/item-blackglasses.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iblack_glasses.png",
+  "sha256": "e65c1268779ff9500a4cd42a0ba86c67dbe12b13bdafd5ce8727cba41d89de1c"
+ },
+ "brightpowder": {
+  "name": "Bright Powder",
+  "sprite": "item-sprites/item-brightpowder.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibright_powder.png",
+  "sha256": "3cd2c0ac4a5e2e8f46b6d6611a7e0f63d4d65c9c38981c7ef776c537173ce663"
+ },
+ "charcoal": {
+  "name": "Charcoal",
+  "sprite": "item-sprites/item-charcoal.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icharcoal.png",
+  "sha256": "66fd82251efebc4eed6314c999b5e13f2cb1baee3ce1224799c8a47e7afec099"
+ },
+ "chartiberry": {
+  "name": "Charti Berry",
+  "sprite": "item-sprites/item-chartiberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icharti_berry.png",
+  "sha256": "573c7154e82d6fee68465be2d97657a0801612714a00311396bdde8aff3a3205"
+ },
+ "cheriberry": {
+  "name": "Cheri Berry",
+  "sprite": "item-sprites/item-cheriberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icheri_berry.png",
+  "sha256": "3935af13fe7c2a05f6bfad64b3116d3e21ea14d3388f685b764b27deb0ceb62b"
+ },
+ "chestoberry": {
+  "name": "Chesto Berry",
+  "sprite": "item-sprites/item-chestoberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichesto_berry.png",
+  "sha256": "204c4bd816c6054ace8a49bd7da747dd9e2994283ca120d63d22f90b323f6678"
+ },
+ "chilanberry": {
+  "name": "Chilan Berry",
+  "sprite": "item-sprites/item-chilanberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichilan_berry.png",
+  "sha256": "e57be443a63b4d1a72b28c71aaa263ce1103f49b3ccabccc3cfbe6e2b4189d18"
+ },
+ "choicescarf": {
+  "name": "Choice Scarf",
+  "sprite": "item-sprites/item-choicescarf.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichoice_scarf.png",
+  "sha256": "91a3722f82415375809df3eb31e527d24a97b67d94825e5e7d713d5edb8fe4cd"
+ },
+ "chopleberry": {
+  "name": "Chople Berry",
+  "sprite": "item-sprites/item-chopleberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichople_berry.png",
+  "sha256": "6a647035850f6b92bffd2a3b1108b96a8b3f608efd2af17534adafd4d6efc73d"
+ },
+ "cobaberry": {
+  "name": "Coba Berry",
+  "sprite": "item-sprites/item-cobaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icoba_berry.png",
+  "sha256": "b11e2135dfa4ae9021a08cfa6a47ad8a05adbefcd83ef85537ef65f89bbdc777"
+ },
+ "colburberry": {
+  "name": "Colbur Berry",
+  "sprite": "item-sprites/item-colburberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icolbur_berry.png",
+  "sha256": "2476d5e0d4c6466e21e183d6ac6055382f582f4bd30d65f89918b3c387745e2c"
+ },
+ "damprock": {
+  "name": "Damp Rock",
+  "sprite": "item-sprites/item-damprock.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/idamp_rock.png",
+  "sha256": "dd353d2942aa82ad6291f8e3b8ff9890fed70508f1e6ce706546e57366224a55"
+ },
+ "dragonfang": {
+  "name": "Dragon Fang",
+  "sprite": "item-sprites/item-dragonfang.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/idragon_fang.png",
+  "sha256": "1380118477f4d512598849839560dcac9524a92ff3ec6f6f4bbc0da987620a06"
+ },
+ "expertbelt": {
+  "name": "Expert Belt",
+  "sprite": "item-sprites/item-expertbelt.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iexpert_belt.png",
+  "sha256": "08aa01285ce02400c1abc86a33bc8024ca2327a7b2fc97c24de7dac4270247de"
+ },
+ "fairyfeather": {
+  "name": "Fairy Feather",
+  "sprite": "item-sprites/item-fairyfeather.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifairy_feather.png",
+  "sha256": "b08dda12e82d8ca77fa86c6b0809ff7ab616b6dd3b6d160230caba8865cee3d2"
+ },
+ "focusband": {
+  "name": "Focus Band",
+  "sprite": "item-sprites/item-focusband.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifocus_band.png",
+  "sha256": "f0d960a8b3a26a7b06b08c3e5315c9d2d85d772d01826bbc19d667cd05d994f0"
+ },
+ "focussash": {
+  "name": "Focus Sash",
+  "sprite": "item-sprites/item-focussash.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifocus_sash.png",
+  "sha256": "940fefdaa322780eac3610b847372d0dec858c33e7fef015c0d9899f04470c00"
+ },
+ "habanberry": {
+  "name": "Haban Berry",
+  "sprite": "item-sprites/item-habanberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ihaban_berry.png",
+  "sha256": "c665a97024ebd439636f957c421326c22a91debe8122e3a7b3c35338d529c69b"
+ },
+ "hardstone": {
+  "name": "Hard Stone",
+  "sprite": "item-sprites/item-hardstone.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ihard_stone.png",
+  "sha256": "418327041bc8d5ae4f37a33a5998fedb84fe247e8f66f5ab650a3c02d9dd71d5"
+ },
+ "heatrock": {
+  "name": "Heat Rock",
+  "sprite": "item-sprites/item-heatrock.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iheat_rock.png",
+  "sha256": "c888c4cb3390295d7ce89992fc9a0c627a1ddaefe466b2d31841ee33819f61df"
+ },
+ "icyrock": {
+  "name": "Icy Rock",
+  "sprite": "item-sprites/item-icyrock.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iicy_rock.png",
+  "sha256": "4eacfa59fcaf30a1dc128d41a8a648837936ecb9297125bc9f7e671f7dbc0eb5"
+ },
+ "ironball": {
+  "name": "Iron Ball",
+  "sprite": "item-sprites/item-ironball.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iiron_ball.png",
+  "sha256": "af0bb99167313653bd3877110dce4f8a2ac274d59b8043e26f469c73ecb09470"
+ },
+ "kasibberry": {
+  "name": "Kasib Berry",
+  "sprite": "item-sprites/item-kasibberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ikasib_berry.png",
+  "sha256": "9103374553bb7b173fc74829350b352826993fbcadb034994f5a094e6355a074"
+ },
+ "kebiaberry": {
+  "name": "Kebia Berry",
+  "sprite": "item-sprites/item-kebiaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ikebia_berry.png",
+  "sha256": "d92e6e07f2127983c1e29153a7c24337f04fc0897c3b5ab25a58d62bf546ff1b"
+ },
+ "kingsrock": {
+  "name": "King's Rock",
+  "sprite": "item-sprites/item-kingsrock.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ikings_rock.png",
+  "sha256": "d4a37a9ede317cb76a51220a0b20cd0a82c6101449b9c53e0a5ef516a51a36ad"
+ },
+ "leftovers": {
+  "name": "Leftovers",
+  "sprite": "item-sprites/item-leftovers.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ileftovers.png",
+  "sha256": "1b8b9f4a47ce0943d1e5653498aa2166fc845e7c55f5536292cd277eea172fae"
+ },
+ "leppaberry": {
+  "name": "Leppa Berry",
+  "sprite": "item-sprites/item-leppaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ileppa_berry.png",
+  "sha256": "c6a8109391d4b4b3c3b239b5383622a64e47631ec2f91d58e69802aa93da54f1"
+ },
+ "lifeorb": {
+  "name": "Life Orb",
+  "sprite": "item-sprites/item-lifeorb.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilife_orb.png",
+  "sha256": "014a90311c0f091f94bf5fd42573b9054cfe3fdedd631ae62f89b1be1ce5a0ee"
+ },
+ "lightball": {
+  "name": "Light Ball",
+  "sprite": "item-sprites/item-lightball.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilight_ball.png",
+  "sha256": "9f5a155312be0f0e84fd9927948ff0adc11542787d2dbc88c8ef6c7e179a57cc"
+ },
+ "lightclay": {
+  "name": "Light Clay",
+  "sprite": "item-sprites/item-lightclay.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilight_clay.png",
+  "sha256": "72b92532297068a423e0a439381504b56e887d5e5840f4637ccb1387a634234e"
+ },
+ "lumberry": {
+  "name": "Lum Berry",
+  "sprite": "item-sprites/item-lumberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilum_berry.png",
+  "sha256": "1bedac77be52dd31940c368cfd480be6207fae50ade140ade9c3f00e778b9af0"
+ },
+ "magnet": {
+  "name": "Magnet",
+  "sprite": "item-sprites/item-magnet.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imagnet.png",
+  "sha256": "dd316e5f9a2ceb008b10f1bcb05188f53fec79acbf256a3611b9243c8516fa76"
+ },
+ "mentalherb": {
+  "name": "Mental Herb",
+  "sprite": "item-sprites/item-mentalherb.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imental_herb.png",
+  "sha256": "c3749f4a2bcce04f440750dabcb0f9c4a329818b34c4ea2d1518c0933518fae5"
+ },
+ "metalcoat": {
+  "name": "Metal Coat",
+  "sprite": "item-sprites/item-metalcoat.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imetal_coat.png",
+  "sha256": "bccd427472291bacc22057dafe29cbac4519bd541aa2c0428ef6ac6fe77fb592"
+ },
+ "metronome": {
+  "name": "Metronome",
+  "sprite": "item-sprites/item-metronome.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imetronome.png",
+  "sha256": "a218b022d055a690f5902d7a3998d263ef6f9b42324af4b34d5bb41ee74af5d8"
+ },
+ "miracleseed": {
+  "name": "Miracle Seed",
+  "sprite": "item-sprites/item-miracleseed.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imiracle_seed.png",
+  "sha256": "5dfc9d3ccd5fee2392278067774abb0dedf1b06fdc78a3f5e9ed8796c640132e"
+ },
+ "muscleband": {
+  "name": "Muscle Band",
+  "sprite": "item-sprites/item-muscleband.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imuscle_band.png",
+  "sha256": "aa3d70fd5b65b9f09bb960a32601e367de5780f85d34589e46c44aa332f87968"
+ },
+ "mysticwater": {
+  "name": "Mystic Water",
+  "sprite": "item-sprites/item-mysticwater.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imystic_water.png",
+  "sha256": "cf6375b912a019cefb528954a6d23338e19ac99369ba7f075aca3c80cf759ea9"
+ },
+ "nevermeltice": {
+  "name": "Never-Melt Ice",
+  "sprite": "item-sprites/item-nevermeltice.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/inever_melt_ice.png",
+  "sha256": "84724c5454f2c9d3b414410d67faa7af61a73d9ae0365815d7dc2d886592991d"
+ },
+ "occaberry": {
+  "name": "Occa Berry",
+  "sprite": "item-sprites/item-occaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iocca_berry.png",
+  "sha256": "f3231c5f6757379714c599a37556a856e282e2dc19097af374a8c675c5355ccd"
+ },
+ "oranberry": {
+  "name": "Oran Berry",
+  "sprite": "item-sprites/item-oranberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ioran_berry.png",
+  "sha256": "7ff96ebc28e3ba189f48c6b5c91cc8572dc6fd0167c7f998b90ac16d05175f24"
+ },
+ "passhoberry": {
+  "name": "Passho Berry",
+  "sprite": "item-sprites/item-passhoberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipassho_berry.png",
+  "sha256": "ba6e970e7b3563492d1e9d7af62b75c06c74a9fbbe07f374663b18ac42376d79"
+ },
+ "payapaberry": {
+  "name": "Payapa Berry",
+  "sprite": "item-sprites/item-payapaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipayapa_berry.png",
+  "sha256": "761b8aa5c9bc0943a67b12042e3fd279fb46bef714ed2c701838fc4a879346ef"
+ },
+ "pechaberry": {
+  "name": "Pecha Berry",
+  "sprite": "item-sprites/item-pechaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipecha_berry.png",
+  "sha256": "18f6ab7db22a7a19f0785e8e157cac85023c40e01e2a945f398de6e2f6ecd3d1"
+ },
+ "persimberry": {
+  "name": "Persim Berry",
+  "sprite": "item-sprites/item-persimberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipersim_berry.png",
+  "sha256": "f1da1bf9ca36f8465adc97c80de85d18cf3da723e3e34e820089e930e3ffc289"
+ },
+ "poisonbarb": {
+  "name": "Poison Barb",
+  "sprite": "item-sprites/item-poisonbarb.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipoison_barb.png",
+  "sha256": "a1be98141dc7aee6e3fc36a68313c1740e0d239e45e984ecbb38b3c07e3965d5"
+ },
+ "quickclaw": {
+  "name": "Quick Claw",
+  "sprite": "item-sprites/item-quickclaw.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iquick_claw.png",
+  "sha256": "d44dd5b8845b8e847b6626ff9b9719c702d5607fcd2b82b7ba89784dceb52a3a"
+ },
+ "rawstberry": {
+  "name": "Rawst Berry",
+  "sprite": "item-sprites/item-rawstberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/irawst_berry.png",
+  "sha256": "dd1410e809f40045e7b5f61a963250bb58203f97e2272b0d9c12551e96cdaade"
+ },
+ "rindoberry": {
+  "name": "Rindo Berry",
+  "sprite": "item-sprites/item-rindoberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/irindo_berry.png",
+  "sha256": "768b1e57fb352f60926bde986984d91884617329a627070bd4ce60cf9647e87b"
+ },
+ "roseliberry": {
+  "name": "Roseli Berry",
+  "sprite": "item-sprites/item-roseliberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iroseli_berry.png",
+  "sha256": "83e0432a64df61e123f1c6d43571d5325853f66fe5bc6344a42b5a65dc2ad593"
+ },
+ "scopelens": {
+  "name": "Scope Lens",
+  "sprite": "item-sprites/item-scopelens.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iscope_lens.png",
+  "sha256": "6b80e5809e7230305c901d18e064e1bc66b6c8d9047fe23e2f9cdccd088b6995"
+ },
+ "sharpbeak": {
+  "name": "Sharp Beak",
+  "sprite": "item-sprites/item-sharpbeak.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isharp_beak.png",
+  "sha256": "507203f056819d5636dd836b659f821e9494a51e3e208d03c34c9c1e1aa7a632"
+ },
+ "shedshell": {
+  "name": "Shed Shell",
+  "sprite": "item-sprites/item-shedshell.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ished_shell.png",
+  "sha256": "eac5973967c1bffa2be16b58fd164b617159fc66db8021330b8f2aeaa4ce9831"
+ },
+ "shellbell": {
+  "name": "Shell Bell",
+  "sprite": "item-sprites/item-shellbell.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ishell_bell.png",
+  "sha256": "16e66bb1adcc8f9be058dc9bb9a24ac78bb2699ab94924e46555b2c13de20048"
+ },
+ "shucaberry": {
+  "name": "Shuca Berry",
+  "sprite": "item-sprites/item-shucaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ishuca_berry.png",
+  "sha256": "ef3be36c05df1e844a40f6510137930deb4d854f769d673e1166632ce13bc2b9"
+ },
+ "silkscarf": {
+  "name": "Silk Scarf",
+  "sprite": "item-sprites/item-silkscarf.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isilk_scarf.png",
+  "sha256": "8689ad9d98d13692eae2e960a80060b9ea8b1365983b14eedc4532eb4ba93795"
+ },
+ "silverpowder": {
+  "name": "Silver Powder",
+  "sprite": "item-sprites/item-silverpowder.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isilver_powder.png",
+  "sha256": "4b0b5fa3456f8178b15a95a1c35ffc29567596f776ec2b8189bfcc237fefcf3c"
+ },
+ "sitrusberry": {
+  "name": "Sitrus Berry",
+  "sprite": "item-sprites/item-sitrusberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isitrus_berry.png",
+  "sha256": "6add55554b85520ff4532007d0e18cea042e18e8b0fe1158fa7061577a56c43f"
+ },
+ "smoothrock": {
+  "name": "Smooth Rock",
+  "sprite": "item-sprites/item-smoothrock.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ismooth_rock.png",
+  "sha256": "407827b4e473707b7f4dc474c2b3c8bae9a4caa2660af574a7678e5dfb07ed76"
+ },
+ "softsand": {
+  "name": "Soft Sand",
+  "sprite": "item-sprites/item-softsand.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isoft_sand.png",
+  "sha256": "55f1a6f56d8be3fcf15724ce61743bb08dacd7ec5f6f04e334f4b175a979f87d"
+ },
+ "tangaberry": {
+  "name": "Tanga Berry",
+  "sprite": "item-sprites/item-tangaberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/itanga_berry.png",
+  "sha256": "a58d383a6f47933bcad154308224801c18e814e0e998fe7d76dc823269a1a2e0"
+ },
+ "twistedspoon": {
+  "name": "Twisted Spoon",
+  "sprite": "item-sprites/item-twistedspoon.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/itwisted_spoon.png",
+  "sha256": "9955ffebcf5ae8208d8e398e6fff84542af8f8a4f405c1a32c761a1428c3fa06"
+ },
+ "wacanberry": {
+  "name": "Wacan Berry",
+  "sprite": "item-sprites/item-wacanberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iwacan_berry.png",
+  "sha256": "d35767b133935b12233ba8abff8ac7244d21080a50327fb889414743f1f25636"
+ },
+ "widelens": {
+  "name": "Wide Lens",
+  "sprite": "item-sprites/item-widelens.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iwide_lens.png",
+  "sha256": "d257991210f774d93506f487cd0cb432e0da98cb325290af6003231278578c19"
+ },
+ "wiseglasses": {
+  "name": "Wise Glasses",
+  "sprite": "item-sprites/item-wiseglasses.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iwise_glasses.png",
+  "sha256": "93ce10962eb4eddd6d6e3e7434136988fd8dfd41cec7ceef49e5b8391bd0842f"
+ },
+ "yacheberry": {
+  "name": "Yache Berry",
+  "sprite": "item-sprites/item-yacheberry.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iyache_berry.png",
+  "sha256": "d124775c08f3947f765111e28296ff37948b0f9000a252820e385c3618a68b33"
+ },
+ "zoomlens": {
+  "name": "Zoom Lens",
+  "sprite": "item-sprites/item-zoomlens.png",
+  "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/izoom_lens.png",
+  "sha256": "46d634b3bed0d37704082304f0c01526aec1142b4fb18b9f74514b80f6108c07"
+ }
+}

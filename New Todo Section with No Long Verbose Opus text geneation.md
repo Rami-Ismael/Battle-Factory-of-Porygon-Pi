@@ -1,0 +1,86 @@
+- [x] I don't want claude to click done when finished a todo task in my vault. For example, one todo item I was really confuse what is going , plus it make the text hard to read and follow I put somewhere else later in my notes
+- [ ] [[Matchup Matrix]]
+- [ ] Use a diffusion model as a pokemon team candidate proposer by doing model base search
+	- [ ] Track team diversity and win rate across CEM generations, starting before fine-tuning.
+		- Prerequisite: complete [[Metrics for Diversity]] so the same measurements are used before and after fine-tuning.
+	- [ ] Compare classifier-free guidance strengths for team win rate, legality, and diversity.
+		- Prerequisite: complete [[Metrics for Diversity]] so every guidance strength is compared using the same measurements.
+	- [ ] Test whether rearranging the same team's Pokémon changes the diffusion model's guesses for a hidden item, despite its existing slot-shuffling training. Reorder complete Pokémon blocks after encoding; hold the hidden item and model settings fixed, disable dropout, and include an unchanged-input repeat. Visualize item probabilities before and after reordering with paired bars, then show prediction changes across held-out teams. Use this inexpensive check to decide whether team-order sensitivity needs further work.
+	- [ ] [[trying to retire this convert this into a blog (diffusion model as team generator for model-based search-research finding) into (Using diffusion model for black box optimzation)]]
+	- [ ] [[Diffusion as candidate proposer in black-box optimization over structured inputs]] move everything to [[Ablation Experiments]]
+	- [x] Test whether gradually lowering Boltzmann selection temperature during retraining, inspired by DiffUCO, improves the diffusion generator's battle win rate while preserving diversity.
+		- **Tested 2026-09-08:** 15 runs and 921,600 battles audited. Annealing retained more diversity than fixed 0.10/0.20 but had lower observed win rates; three-seed intervals remain inconclusive. [[Boltzmann selection temperature experiment]]
+		- **Idea from the paper:** [DiffUCO (§§2–4)](https://arxiv.org/html/2406.01661v1) trains a diffusion model to approximate sampling from an intractable Boltzmann distribution, `p_T(x) ∝ exp(-E(x) / T)`. Its training objective avoids computing the normalization sum over all solutions. During training, the authors lower `T` linearly to zero, progressively concentrating the target on low-energy solutions.
+		- **Our adaptation:** treat negative measured win rate as energy and sample evaluated teams for retraining with probability proportional to `exp(measured_win_rate / T)`. Start with a higher `T` to include a broader range of teams, then lower it to favor stronger measured teams. Low `T` can amplify noisy battle scores. This applies annealing to selection from an evaluated pool; implementing DiffUCO's full training objective would be a separate experiment.
+		- **Implementation:** extend `vgc-team-generator-pilot/src/entropyloop.py`, which already has `boltz_weights()` and a `0.30 → 0.10` schedule. Compare that schedule with fixed temperatures (`0.10`, `0.20`, `0.30`) and adaptive temperature based on weight concentration. Temperature is scheduled or adapted, rather than learned as a network weight; it is optional for ordinary diffusion denoising.
+		- **Evaluation:** hold decoding temperature fixed and the separate loss entropy bonus at zero; match starting model, training steps, battle policy, opponents, and battle budgets. Repeat across seeds, measure generated-team diversity, and verify finalist win rates in fresh battles.
+- [ ] [[Metaheuristics]]
+- [ ] You should read paper that cites this  [Self-Consuming Generative Models Go MAD](https://api.semanticscholar.org/arXiv:2307.01850) that address the issues the author comes up with and [On the Stability of Iterative Retraining of Generative Models on their own Data](https://api.semanticscholar.org/arXiv:2310.00429) also look for other paper put in them a markdown then use those paper using animation and design skills for me so far the paper that interest right from early research [Neon: Negative Extrapolation From Self-Training Improves Image Generation](https://arxiv.org/abs/2510.03597) and [Self-Improving Diffusion Models with Synthetic Data (SIMS)](https://arxiv.org/abs/2408.16333)
+	- [ ] grill me
+- [ ] [[Model-based trust-region methods]]
+- [ ] I am looking for the intersection of bayesian approach which take in account of uncertainity to find new diverse example, I was wondering what diversity of the example of model be when doing in the negative direction of score function I can also use uncertainnity select and find space where huge mismatch and performance and i know there is specific word for this because it's impossible to to check all posisble pokemon team each games is stochastic fix the understanding in where about active learning and [[Membership Query Synthesis]] I don't want to combine two names if there is no academic work behind the ideas
+	- [ ] grill me 
+		- [ ] What does the uncertainty push toward
+			- [ ] So there are three options there is pure uncertainity in where steer toward team the predictor is most unsure about. This is the direct twin of negative score run i think there was paper look for me, optimism steer toward predicted win rate _plus_ a bonus for uncertainty, a standard Bayesian optimisation rule (upper confidence bound). It aims at winning while exploring. and caution which I am not interested in 
+- [ ] First step create a visual and design skills to help explain what does this paper do.Experiment with masked diffusion tree search from [Diffusion Large Language Models for Black-Box Optimization](https://arxiv.org/html/2601.14446v1) for Pokémon team generation. Compare the same generator with and without tree search, using the same training data, candidate-scoring method, and battle budget; measure win rate against fixed meta opponents, team diversity, and runtime, and verify selected teams in fresh battles.
+	- [ ] grill me 
+	- [ ] Look at paper that cites it
+- [ ] I think we should be able to create a new function in taking two pokemon team we generate a json where we list some thing that we deem relevant to consider for example how similar the pokemon team are, the list of strates they use for example quick room foe example how much unique pokemon there are are think of more stuff to add to list
+	- [ ] grill me
+- [ ] [[Surrogate Model]]
+- [ ] Prototype deep-surrogate [[MAP Elite|MAP-Elites]] for team search. Compare against the existing search baseline with the same battle budget; measure team win rate, diversity, and surrogate training cost, and verify selected teams in fresh battles. Use [[Metrics for Diversity]] and the surrogate-validation task above to prepare the experiment. Source: [[Todo Section]].
+	- [ ] grill me 
+- [ ] Improve the battle policy
+	- [ ] Can you do research on this conference or what you called it on this https://icga.org/?page\_id=4052to determine relevant paper for my project
+- [ ] Test whether more training data or a larger model reduces the generator's ability to produce strong teams, measured by battle win rate. Extend the scaling experiment in [[List of Experiments]]: vary data size at fixed model size, then model size at fixed data. Use nested, deduplicated datasets with the same source and strength proportions; hold decoding, battle policy, and held-out opponents fixed. Repeat across at least five seeds with equal battle budgets and confidence intervals across runs. Compare at matched training compute, then extend training for any declining arm to distinguish insufficient training from persistent degradation. Plot win rate against data size and parameter count.
+- [ ] Research uncertainty quantification in diffusion models, especially discrete diffusion, to prepare for a Bayesian approach to Pokémon team generation. Explain model uncertainty, outcome noise, and sampling diversity; compare estimation methods, computational costs, and calibration checks. Investigate how uncertainty could guide team generation and selection, and clarify which uncertainty belongs to the diffusion model versus a separate win-rate predictor. Use primary research papers.
+- [ ] [[Using LLM to help win ml competition]] — moved here 2026-08-24 from the chase list; an ungraded idea, not a reading item
+- [ ] [[Retargeting guidance to a new meta without retraining the diffusion model]]
+- [ ] I was wondering is possible to create simple rule in where this pokemon team always beat this pokemon because you follow this step to win thus creating a dependecy graph can we use the graph to find the pokemon the beat all the meta
+- [x] Replace the metric diversity markdown file with something that what hand maded the ai only generated visual stuff , [[Rami Hand written notes with no claude interacting at all about diversity]]
+- [ ] There is a software project called deephyper i thini similar to what you are doing therefore it good to look into deephyper.github.io
+	- [ ] [Constrained Black-Box Optimization with Rejection Sampling](https://deephyper.readthedocs.io/en/latest/examples/examples_bbo/plot_constrained_black_box_optimization.html)
+- [ ] First define what is adaptive sampling then determine can be a replacement for [[Cross Entropy Method]]
+	- [ ] I was reading this paper about active flow i was wondering can i borronw the ideas of soft weight from design by adaptive sampling
+		- Settled 2026-10-07: put the soft weight into the combined loop's re-steer finetune in place of its top-25% elite cut; guidance, acquisition and battle budget stay fixed.
+		- Settled 2026-10-07: the weight is the probability that a team's true win rate clears the threshold (Design by Adaptive Sampling), not Active Flow Matching's Boltzmann replay, tested 2026-09-02 and 2026-09-08 with no win-rate gain.
+		- Why: Active Flow Matching trains on this same probability; with exact scores it collapses to the hard cut, so any gain depends on which uncertainty feeds it.
+		- Open: uncertainty source, resampling versus weighted loss, protocol and baseline, threshold, prior, success rule.
+- [ ] Hamiltonian Monte Carlo uses the distributions structure to propose farther-away candidates and explore much more efficiently.
+- [ ] [Prof. Mengdi Wang | Guiding Diffusion Models Towards Generative Optimization by INI Satellite Events](https://www.youtube.com/watch?v=8W9qHXN0weg)
+- [ ] [[How to determine the out of distribution performance of our method]]
+- [ ] [[Use an LLM for this project]]
+- [ ] Determining if there is scaling law in bayesian optimization problem
+- [ ] I was thing about the detail in where we have a tree hierachy  aproach to solve this problems look for meta heuristic approach that does something like that for me
+- [ ] 🟢 [EliteFurretAI](https://github.com/caymansimpson/elitefurretai) — "Summary of the VGC Problem Space" — done 2026-08-23: five bullets + bottleneck order (talent, engine, capacity, human data); its milestone 3 is our problem, "via brute force"; detail in chat
+	- [ ] Read the literature synthesis the README links, not the README — 🟢 [EliteFurret AI: Learnings for VGC](https://docs.google.com/document/d/14menCHw8z06KJWZ5F_K-MjgWVo_b7PESR7RlG-em4ic/edit), publicly readable, 47 headings, not peer-reviewed.
+- [ ]  Monte Carlo Seminar| Ethan Epperly| What is the role of Monte Carlo in randomized linear algebra? 
+- [ ]  Monte Carlo Seminar| Yuchen Wu| Theoretical advances in diffusion models 
+- [ ] Create an awesome github list for AI research in pokemon thing what your probably need
+- [ ] https://en.wikipedia.org/wiki/Derivative-free_optimization
+- [ ] Diffusion-BBO
+	- [ ] What are the cross entropy method that exist i am aware of CBAS and adpative sampling
+	- [ ] What is CbAS (Brookes, Park and Listgarten, ICML 2019)
+	- [ ] What is an acquisition function
+	- [ ] What is a forward appraoch
+	- [ ] Generative Model-based Optimization
+	- [ ] What are some paper that continue on the work on diffusion bbd
+		- [ ] SPARROW: Generative Refinement for Low-Budget Black-Box Optimization
+		- [ ] Training Diffusion Language Models for Black-Box Optimization
+	- [ ] Design by adaptive sampling
+	- [ ] tryout noisey cross entropy metho
+- [ ] https://www.youtube.com/watch?v=ATw0LkMkqm4
+- [ ] [[How to use LLM in software engineering]]
+- [ ] DiffUCO
+- [ ] 2026-08-17, delete all the AI slop markdown file fisrt
+	- [ ] Instruction to feed what are the list of markdown is just full of AI slop
+- [ ] [[What is the baseline]]
+- [ ] [[Ablation Experiments]]
+- [ ] Go through the seven job to get lesson from them that should be a blog section in the ideas to discuss about approacches i think like a subsection in the paragraph the biggest struggle where to place we focus on that latter or create a new blog if ncesssary 
+- [ ] The ideas for the beginning of the project we start with a diverse set of pokemon team to trained a diffusion model that can produce valid pokemon team we also have classifer free guidance in where we also the rank againt the current top 50 placement taem, we start with from a point with the guidance classifer let say the best pokemon team in the datasets was .1 we will start with .11 , then we retrained the diffusion model with the extra details we have a surroage model to check if this true or not also  i think this is called active generation . First make an exalidraw drawing on these detilas to help me explain the thought and determine what future direction i can go 
+- [ ] [[MAP Elite]]
+- [ ] How to make sure composition is more diverse after each generation
+- [ ] /goal Retrained a diffusion model base on what data we have so far in the mathup matrix and other data sources there is this should exceeed what we have before hand I want what to see the loss function to be lower than we ever had before and come up or read current academic paper to find techniques to find to furthere improve data loss I want wacky ideas please as many compute or token that is necessary todo  please make sure it has classifier guidance backed in too tell me those paper and added to them reading list that show increase performances 
+- [ ] Create a personal project we create a leaderboard for prompt engineering what can be produce in the solution for this could be just pokemon team building for this reason why now
+- [ ] Given all the placement team pokemon that are valid to be used in our dataset meaning they are the states, iv , abiliteis and moves we will be added to the to our datasets too and determine where they place them againt the meta pool we have to do some math behind in these details
+- [ ] I was wondering given our diffusino model can we retrained to find the given win rate given a diverse set of meta team which can 1 to 5 this could be done using a text encoder just start with 

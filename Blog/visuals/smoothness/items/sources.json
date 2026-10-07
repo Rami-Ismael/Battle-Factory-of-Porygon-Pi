@@ -1,0 +1,233 @@
+{
+  "aerodactylite": {
+    "name": "Aerodactylite",
+    "sprite": "items/item-aerodactylite.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iaerodactylite.png",
+    "sourceBlobSha": "45bc7b2f9ffa32224db3087664262da98523b63c",
+    "sha256": "8cfe712527d08f6a4c34bd5328158aa086ae98619f1b4da2a30b650cf61d32e2"
+  },
+  "bigroot": {
+    "name": "Big Root",
+    "sprite": "items/item-bigroot.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibig_root.png",
+    "sourceBlobSha": "a1ced63ace48d1296b14b09417e9390dfdb5188c",
+    "sha256": "d625d28ab2a74e98b1788c6b7189f0fac4f293420fd335c49bec3d4cf3b20c42"
+  },
+  "brightpowder": {
+    "name": "Bright Powder",
+    "sprite": "items/item-brightpowder.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ibright_powder.png",
+    "sourceBlobSha": "c5e16a9b37261f144f61686dc1b8c6c15880bb35",
+    "sha256": "3cd2c0ac4a5e2e8f46b6d6611a7e0f63d4d65c9c38981c7ef776c537173ce663"
+  },
+  "charcoal": {
+    "name": "Charcoal",
+    "sprite": "items/item-charcoal.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icharcoal.png",
+    "sourceBlobSha": "7d351790cb6f13602151987077c5e9dd361c57d6",
+    "sha256": "66fd82251efebc4eed6314c999b5e13f2cb1baee3ce1224799c8a47e7afec099"
+  },
+  "charizarditey": {
+    "name": "Charizardite Y",
+    "sprite": "items/item-charizarditey.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icharizardite_y.png",
+    "sourceBlobSha": "a98c91afe13649ec02ae35b03178d4631b1d3750",
+    "sha256": "45244c3bee4ed20bf8fc810fc08694466e682e88462a2ff11e2b618daace6416"
+  },
+  "chartiberry": {
+    "name": "Charti Berry",
+    "sprite": "items/item-chartiberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icharti_berry.png",
+    "sourceBlobSha": "21eb22edc013efd7523c96c12c411a6a744414dd",
+    "sha256": "573c7154e82d6fee68465be2d97657a0801612714a00311396bdde8aff3a3205"
+  },
+  "choicescarf": {
+    "name": "Choice Scarf",
+    "sprite": "items/item-choicescarf.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichoice_scarf.png",
+    "sourceBlobSha": "34e4b4e1c1cdbd19efb4a531083518927feff9d0",
+    "sha256": "91a3722f82415375809df3eb31e527d24a97b67d94825e5e7d713d5edb8fe4cd"
+  },
+  "chopleberry": {
+    "name": "Chople Berry",
+    "sprite": "items/item-chopleberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ichople_berry.png",
+    "sourceBlobSha": "7494f5d7e705a97ffb8e2a8536282858ca82251a",
+    "sha256": "6a647035850f6b92bffd2a3b1108b96a8b3f608efd2af17534adafd4d6efc73d"
+  },
+  "colburberry": {
+    "name": "Colbur Berry",
+    "sprite": "items/item-colburberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/icolbur_berry.png",
+    "sourceBlobSha": "1f2dd33ee24256fc1be8b1c00bbb8c386b9ac48f",
+    "sha256": "2476d5e0d4c6466e21e183d6ac6055382f582f4bd30d65f89918b3c387745e2c"
+  },
+  "dragalgite": {
+    "name": "Dragalgite",
+    "sprite": "items/item-dragalgite.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/idragalgite.png",
+    "sourceBlobSha": "9261e171fc004300945d92f23531a71b7050315a",
+    "sha256": "0edde405ca6d48c8eedc924172af12e330cc5ca29972f0caf679139718b11c00"
+  },
+  "expertbelt": {
+    "name": "Expert Belt",
+    "sprite": "items/item-expertbelt.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iexpert_belt.png",
+    "sourceBlobSha": "ed28abcca30fada8df5383b5ed79a16bc9ccc623",
+    "sha256": "08aa01285ce02400c1abc86a33bc8024ca2327a7b2fc97c24de7dac4270247de"
+  },
+  "fairyfeather": {
+    "name": "Fairy Feather",
+    "sprite": "items/item-fairyfeather.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifairy_feather.png",
+    "sourceBlobSha": "1c9255b10b0603bddcfd6d218fba1cdff3e229bd",
+    "sha256": "b08dda12e82d8ca77fa86c6b0809ff7ab616b6dd3b6d160230caba8865cee3d2"
+  },
+  "floettite": {
+    "name": "Floettite",
+    "sprite": "items/item-floettite.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifloettite.png",
+    "sourceBlobSha": "4f39bae86c53fdcaf7c09ca1c64092fedf68b548",
+    "sha256": "21de879947fe57e46a9e662bd5f65a4d740e5b43881fc0bb0b73510dd118a9ef"
+  },
+  "focussash": {
+    "name": "Focus Sash",
+    "sprite": "items/item-focussash.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ifocus_sash.png",
+    "sourceBlobSha": "e70555cddad613527f7a8a73edb0273b3d393a5d",
+    "sha256": "940fefdaa322780eac3610b847372d0dec858c33e7fef015c0d9899f04470c00"
+  },
+  "kasibberry": {
+    "name": "Kasib Berry",
+    "sprite": "items/item-kasibberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ikasib_berry.png",
+    "sourceBlobSha": "8e49f621316acf16f50f6682b94c01af3885edc5",
+    "sha256": "9103374553bb7b173fc74829350b352826993fbcadb034994f5a094e6355a074"
+  },
+  "leftovers": {
+    "name": "Leftovers",
+    "sprite": "items/item-leftovers.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ileftovers.png",
+    "sourceBlobSha": "a19a1095a2380b01026bf9ca7d2e335abf6f1b92",
+    "sha256": "1b8b9f4a47ce0943d1e5653498aa2166fc845e7c55f5536292cd277eea172fae"
+  },
+  "lifeorb": {
+    "name": "Life Orb",
+    "sprite": "items/item-lifeorb.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilife_orb.png",
+    "sourceBlobSha": "d642ec353aeeb3b8779020ba8aa5c462646e504f",
+    "sha256": "014a90311c0f091f94bf5fd42573b9054cfe3fdedd631ae62f89b1be1ce5a0ee"
+  },
+  "lightclay": {
+    "name": "Light Clay",
+    "sprite": "items/item-lightclay.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilight_clay.png",
+    "sourceBlobSha": "18e442e7478aeda39711e7664fcc382a6c3577ce",
+    "sha256": "72b92532297068a423e0a439381504b56e887d5e5840f4637ccb1387a634234e"
+  },
+  "lumberry": {
+    "name": "Lum Berry",
+    "sprite": "items/item-lumberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ilum_berry.png",
+    "sourceBlobSha": "b75d0d6b330bd486e8018d2aaa74ca10da31bd15",
+    "sha256": "1bedac77be52dd31940c368cfd480be6207fae50ade140ade9c3f00e778b9af0"
+  },
+  "meganiumite": {
+    "name": "Meganiumite",
+    "sprite": "items/item-meganiumite.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imeganiumite.png",
+    "sourceBlobSha": "6428ff9160e2ffdc56663f53728b545dfcdd2610",
+    "sha256": "fb226c5d5b941f58f7345dbafc1077852f34fa31f0a52ef12ee969c6103a3e7c"
+  },
+  "mentalherb": {
+    "name": "Mental Herb",
+    "sprite": "items/item-mentalherb.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/imental_herb.png",
+    "sourceBlobSha": "0ee4520f34dcbd8c38da13a0294c814efdc83288",
+    "sha256": "c3749f4a2bcce04f440750dabcb0f9c4a329818b34c4ea2d1518c0933518fae5"
+  },
+  "nevermeltice": {
+    "name": "Never-Melt Ice",
+    "sprite": "items/item-nevermeltice.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/inever_melt_ice.png",
+    "sourceBlobSha": "a1cedf126f18f9a8c8801d2432d6fd3c2fd8ab2d",
+    "sha256": "84724c5454f2c9d3b414410d67faa7af61a73d9ae0365815d7dc2d886592991d"
+  },
+  "occaberry": {
+    "name": "Occa Berry",
+    "sprite": "items/item-occaberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iocca_berry.png",
+    "sourceBlobSha": "f013115924085a5c7f8fa4e6f6b1547bcea87054",
+    "sha256": "f3231c5f6757379714c599a37556a856e282e2dc19097af374a8c675c5355ccd"
+  },
+  "passhoberry": {
+    "name": "Passho Berry",
+    "sprite": "items/item-passhoberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ipassho_berry.png",
+    "sourceBlobSha": "75d6f50713404c5aa2bdddbdd5e4ab6e841270a1",
+    "sha256": "ba6e970e7b3563492d1e9d7af62b75c06c74a9fbbe07f374663b18ac42376d79"
+  },
+  "raichunitey": {
+    "name": "Raichunite Y",
+    "sprite": "items/item-raichunitey.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iraichunite_y.png",
+    "sourceBlobSha": "d2d4a7b81f9adafad09ad9f3f8631753b1b860aa",
+    "sha256": "daa24b013c1238cfb48c604de4752b96834372725c2abbbe38391815ceb387d6"
+  },
+  "scopelens": {
+    "name": "Scope Lens",
+    "sprite": "items/item-scopelens.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iscope_lens.png",
+    "sourceBlobSha": "58f72f98d3dbea6a4d639ff8d91017202d4dd76a",
+    "sha256": "6b80e5809e7230305c901d18e064e1bc66b6c8d9047fe23e2f9cdccd088b6995"
+  },
+  "sharpbeak": {
+    "name": "Sharp Beak",
+    "sprite": "items/item-sharpbeak.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isharp_beak.png",
+    "sourceBlobSha": "ea9f09b50b75a701690aa00dbbd8ee83f4740ad8",
+    "sha256": "507203f056819d5636dd836b659f821e9494a51e3e208d03c34c9c1e1aa7a632"
+  },
+  "sitrusberry": {
+    "name": "Sitrus Berry",
+    "sprite": "items/item-sitrusberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isitrus_berry.png",
+    "sourceBlobSha": "ab0d1cd24330ec35b27063b2f2d9bff864b79314",
+    "sha256": "6add55554b85520ff4532007d0e18cea042e18e8b0fe1158fa7061577a56c43f"
+  },
+  "softsand": {
+    "name": "Soft Sand",
+    "sprite": "items/item-softsand.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/isoft_sand.png",
+    "sourceBlobSha": "e956562f3b2914ae69ed1dbaf78230803c752d14",
+    "sha256": "55f1a6f56d8be3fcf15724ce61743bb08dacd7ec5f6f04e334f4b175a979f87d"
+  },
+  "swampertite": {
+    "name": "Swampertite",
+    "sprite": "items/item-swampertite.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iswampertite.png",
+    "sourceBlobSha": "20043c1d6e13278066853d0646acd50abe2d5f55",
+    "sha256": "03c4768023b6fa7e527ace56d3143d958b26e85bf565243a7fdb9bc491f131af"
+  },
+  "tyranitarite": {
+    "name": "Tyranitarite",
+    "sprite": "items/item-tyranitarite.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/ityranitarite.png",
+    "sourceBlobSha": "910adaa1f3547a528576a8f9f1e45a17bb7f4afa",
+    "sha256": "243de35c55f72b703ea5948e65b894635b8d5b8bf5e83e6e281a1de715cbf3d7"
+  },
+  "wacanberry": {
+    "name": "Wacan Berry",
+    "sprite": "items/item-wacanberry.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iwacan_berry.png",
+    "sourceBlobSha": "4e8f50d6fc051fa6bb54334c212bb368478ec99b",
+    "sha256": "d35767b133935b12233ba8abff8ac7244d21080a50327fb889414743f1f25636"
+  },
+  "whiteherb": {
+    "name": "White Herb",
+    "sprite": "items/item-whiteherb.png",
+    "source": "https://raw.githubusercontent.com/smogon/sprites/master/src/minisprites/items/iwhite_herb.png",
+    "sourceBlobSha": "0de84fe362e0a5801cb5c4b4ec393f12b56e208a",
+    "sha256": "5dacf68a9c813f082ca7640c8ed711730a5bfae0a2510efe4779703561f2012f"
+  }
+}

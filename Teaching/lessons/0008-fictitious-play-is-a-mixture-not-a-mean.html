@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0008 — Fictitious play is a mixture, not a mean</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>Fictitious play is a mixture, not a mean</h1>
+<p class="subtitle">The opponent in FP is <em>one frozen checkpoint, sampled</em> — not one network holding the average of all of them. The word "average" is doing damage, and it hides the thing that actually separates FP from vanilla self-play: <strong>frozen versus live</strong>.</p>
+<p class="meta">Lesson 0008 · 2026-08-23 · ~10 minutes · source: <a href="https://arxiv.org/abs/2408.01072">Zhang et al., <em>A Survey on Self-play Methods in Reinforcement Learning</em></a> (🟢 arXiv 2408.01072, v4 2025-10-18), §3.1–§3.4, §5.2 · builds on <a href="0002-self-play-framework-and-double-oracle.html">lesson 0002</a> · <a href="../MISSION.md">mission</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> You flagged the mistake yourself: people say fictitious play "trains against the average of all past versions," and that sentence is in your own paper note. It is wrong in the way that matters — it makes FP sound like <em>one</em> opponent when it is <em>many</em>, and it never mentions that they are frozen. After this lesson you should be able to (1) say what the survey's four framework components are and write any arm as one row of Σ, (2) state the three things "average" could mean and which one FP is, and (3) answer your own open question in <code>Why Self-Play is consider Multi-Agent.md</code> — does a frozen opponent make the environment stationary?</div>
+
+<h2>1. The survey's whole apparatus, in four objects</h2>
+
+<p>Everything in §3 is an instance of one template. Learn these four and the taxonomy stops being a list of names.</p>
+
+<table class="compare">
+<tr><th>Object</th><th>Survey notation</th><th>What it is in your poke-env run</th></tr>
+<tr><td><strong>Policy population</strong></td><td>Π = {π<sup>(1)</sup>, …, π<sup>(K)</sup>}</td><td>The directory of saved PPO checkpoints, plus whatever is currently training.</td></tr>
+<tr><td><strong>Interaction matrix</strong></td><td>Σ, row σ<sup>(k)</sup></td><td>Row <em>k</em> is a probability distribution over Π: "when π<sup>(k)</sup> collects a battle, who does it play?"</td></tr>
+<tr><td><strong>Meta-strategy solver</strong></td><td>MSS: ℝ<sup>K×C₂</sup> → ℝ<sup>K×C₁</sup></td><td>The function that reads the performance matrix 𝒫 (win rates) and <em>writes</em> Σ. This is the only line of code that differs between your arms.</td></tr>
+<tr><td><strong>Oracle</strong></td><td>ORACLE</td><td>PPO itself — "give me a (approximate) best response to the opponent distribution in my row."</td></tr>
+</table>
+
+<p class="note">Your <code>Battle Policy</code> pseudocode already has this shape. Step 1 COLLECT reads a row of Σ. Step 2 TRAIN is the ORACLE. Step 3 "maybe snapshot" is what grows Π. What you called "the flavor" is exactly the survey's MSS.</p>
+
+<h2>2. The mistake: three things "average" can mean</h2>
+
+<p>"FP trains against the average of all past versions" is ambiguous across three completely different objects. Only one is FP.</p>
+
+<table class="compare">
+<tr><th></th><th>Reading</th><th>Is it FP?</th></tr>
+<tr><td><strong>A</strong></td><td><em>Average of the weights.</em> Take θ<sup>(1)</sup>…θ<sup>(m−1)</sup>, mean them, play the resulting network.</td><td><strong>No.</strong> This is parameter averaging (EMA / SWA / Polyak). The mean of parameters is not the mean of behaviours — averaging two networks, one that always leads Trick Room and one that never does, does not give you a network that leads it half the time. Useful as a <em>deployment</em> trick (the Generals.io paper in your reading list steals exactly this); it is not an opponent-selection scheme.</td></tr>
+<tr><td><strong>B</strong></td><td><em>Average of the behaviours, distilled into one net.</em> Keep a reservoir of your own past actions and supervised-train a second network to imitate them.</td><td><strong>Only in NFSP.</strong> This is real and it is Heinrich &amp; Silver's <em>average policy network</em> — but it is a specific implementation choice for representing the mixture compactly, not what FP <em>is</em>. Your arms do not do this.</td></tr>
+<tr><td><strong>C</strong></td><td><em>A mixed strategy: a distribution over frozen policies.</em> Before each battle, draw one past checkpoint uniformly and play that one, whole.</td><td><strong>Yes.</strong> This is the survey's FP row: σ<sub>m+1,n</sub> = 1/(m−1) for n ≤ m−1, 0 otherwise. Uniform over every earlier member of Π.</td></tr>
+</table>
+
+<p>Where the word "average" legitimately comes from: Brown's original fictitious play says each player best-responds to <strong>the empirical frequency of the opponent's past play</strong>. That empirical frequency <em>is</em> an average — an average over the <em>distribution</em>, not over the parameters. And you never instantiate it: you sample from it. Play 1,000 battles against a uniform draw from Π and the opponent you faced, in aggregate, <em>is</em> that average. The average is a fact about the batch, never about any single game and never about any single network.</p>
+
+<p class="callout"><strong>Say it this way.</strong> "Fictitious play holds a population of frozen past selves — each one a snapshot taken after some number of battles and never updated again — and samples one uniformly as the opponent for each battle. The 'average' is the mixture you're sampling from, not a network you built."</p>
+
+<h2>3. What the mistake hides: frozen versus live</h2>
+
+<p>Collapsing FP to "an average" loses the load-bearing contrast. It is not <em>one opponent vs. many</em>. It is <strong>an opponent that is still receiving gradient updates vs. opponents that will never change again</strong>.</p>
+
+<figure>
+<svg viewBox="0 0 720 260" role="img" aria-label="Vanilla self-play versus fictitious play: live opponent versus frozen population">
+  <text x="10" y="22" font-family="system-ui" font-size="15" font-weight="700" fill="currentColor">Vanilla self-play — the opponent is the live network</text>
+  <g font-family="ui-monospace, monospace" font-size="11" fill="currentColor">
+    <rect x="14" y="38" width="90" height="34" rx="6" fill="none" stroke="currentColor"/><text x="30" y="59">π (live)</text>
+    <text x="118" y="59">→ grad step →</text>
+    <rect x="212" y="38" width="90" height="34" rx="6" fill="none" stroke="currentColor"/><text x="228" y="59">π' (live)</text>
+    <text x="316" y="59">→ grad step →</text>
+    <rect x="410" y="38" width="90" height="34" rx="6" fill="none" stroke="currentColor"/><text x="424" y="59">π'' (live)</text>
+    <text x="14" y="94" font-size="11.5">opponent at every step = the same object you are updating; it moves under you each batch</text>
+  </g>
+  <line x1="10" y1="112" x2="710" y2="112" stroke="currentColor" stroke-dasharray="3 4" opacity="0.4"/>
+  <text x="10" y="140" font-family="system-ui" font-size="15" font-weight="700" fill="currentColor">Fictitious play — snapshot, freeze, sample</text>
+  <g font-family="ui-monospace, monospace" font-size="11" fill="currentColor">
+    <rect x="14" y="156" width="74" height="34" rx="6" fill="none" stroke="currentColor"/><text x="28" y="177">π₁ ❄</text>
+    <rect x="102" y="156" width="74" height="34" rx="6" fill="none" stroke="currentColor"/><text x="116" y="177">π₂ ❄</text>
+    <rect x="190" y="156" width="74" height="34" rx="6" fill="none" stroke="currentColor"/><text x="204" y="177">π₃ ❄</text>
+    <rect x="278" y="156" width="74" height="34" rx="6" fill="none" stroke="currentColor"/><text x="292" y="177">π₄ ❄</text>
+    <text x="366" y="177">…  each saved after n battles, never trained again</text>
+    <text x="14" y="212" font-size="11.5">draw ONE uniformly per battle  →  play it whole  →  the learner best-responds to the mixture</text>
+    <text x="14" y="232" font-size="11.5">Π grows by one every time you append; the frozen members never move.</text>
+  </g>
+</svg>
+</figure>
+
+<p><strong>Now your open question.</strong> <em>"Does a frozen agent make the environment stationary or non-stationary?"</em> The precise answer:</p>
+
+<ul>
+<li><strong>Conditioned on a sampled opponent, yes.</strong> For the duration of one battle against frozen π₃, the transition and reward process the learner faces is a fixed MDP. That is why frozen opponents are a variance-reduction and credit-assignment win, not just an anti-forgetting one.</li>
+<li><strong>Marginally over the draw, still yes — for as long as Σ's row is fixed.</strong> A fixed mixture over fixed policies is itself a fixed stochastic environment.</li>
+<li><strong>Across appends, no — but the drift is bounded.</strong> Every snapshot changes the row from uniform-over-(m−1) to uniform-over-m; the distribution moves by O(1/m) and shrinks as training goes on. That is what "piecewise stationary" actually buys you.</li>
+</ul>
+
+<p class="note"><strong>Be precise about the comparison.</strong> Vanilla self-play is <em>also</em> piecewise-stationary in practice — the survey says so itself in §3.2.2: "Typically, each player's policy is fixed, and samples are collected into a buffer… This allows the agent to leverage past experiences and maintain more stationary training." Your PPO loop freezes the weights for the whole COLLECT phase and only then updates. So the honest statement is not "vanilla shifts every gradient step, FP does not" — it is that <strong>both are piecewise stationary, and the pieces differ in size and in how far each boundary moves</strong>. Vanilla's piece is one PPO iteration and the jump across it is unbounded; FP's piece lasts until the next append and the jump is O(1/m) and shrinking. That is the claim you can defend.</p>
+
+<p class="callout"><strong>What the survey does <em>not</em> give you.</strong> §5.2 <em>Non-stationarity of the Environment</em> is one paragraph. It states the problem — "the strategies of the opponent players evolve as training progresses… creating a non-stationary environment" — and gestures at opponent modelling as future work. It contains no analysis of piecewise stationarity and no bound. Everything above §3 of this lesson is <em>derived from</em> the MSS equations (5)–(8), not quoted from §5.2. Cite it that way.</p>
+
+<h2>4. Every arm you plan to run is one row of Σ</h2>
+
+<table class="compare">
+<tr><th>Arm</th><th>Survey §</th><th>σ<sub>m+1,n</sub> — who you fight</th><th>Frozen?</th></tr>
+<tr><td>Vanilla self-play</td><td>3.2.2</td><td>mass 1 on n = m−1 (the latest)</td><td><strong>No</strong> — same live weights, both seats</td></tr>
+<tr><td>Fictitious play</td><td>3.2.3</td><td>1/(m−1) for all n ≤ m−1</td><td>Yes, all of them</td></tr>
+<tr><td>δ-uniform</td><td>3.2.4</td><td>1/f(m) for ⌈δ(m−1)⌉ ≤ n ≤ m−1</td><td>Yes, recent slice only</td></tr>
+<tr><td>PFSP</td><td>3.2.5</td><td>∝ a priority of your win rate against n — e.g. f(x) = (1−x)<sup>p</sup> to favour opponents that beat you, or f(x) = x(1−x) to favour same-level ones</td><td>Yes, reweighted</td></tr>
+<tr><td>Double oracle</td><td>3.3.2</td><td>the Nash of the restricted game's payoff matrix</td><td>Yes, and Π grows only by a computed best response</td></tr>
+</table>
+
+<p class="note">δ-uniform is the dial that contains the other two: δ = 0 is FP, δ = 1 is vanilla self-play. If you ever want a fourth arm for cheap, it is a δ you have not tried — not a new algorithm.</p>
+
+<p class="callout"><strong>Careful with your DO arm.</strong> Lesson 0002 already flagged this: real Double Oracle solves the restricted game for a Nash and asks the oracle for an <em>exact</em> best response to it. A PPO run gated on "promote only if win rate &gt; τ" is a heuristic in the PSRO family, not DO. Call it what it is in the write-up or a reviewer will.</p>
+
+<h3>4a. The AlphaGo family is four different rows, not one</h3>
+
+<p>"Vanilla self-play — you know, AlphaZero" is the shorthand everybody uses, and §4.1.1 shows it is wrong twice over. The family changed its MSS three times:</p>
+
+<table class="compare">
+<tr><th>System</th><th>What §4.1.1 actually says</th><th>Row of Σ</th></tr>
+<tr><td><strong>AlphaGo</strong></td><td>p<sub>ρ</sub> "is refined by competing against a randomly selected historical version p<sub>ρ⁻</sub>, <strong>similar to the MSS shown in Equ. (6)</strong>"</td><td><strong>Fictitious play</strong> — Eq. (6), not vanilla</td></tr>
+<tr><td><strong>AlphaGo Zero</strong></td><td>"the current best policy competing against itself… analogous to the MSS referenced in Equ. (5). <strong>A new policy to be incorporated into the policy pool must surpass a 55 percent win rate against its predecessor</strong>, aligning with the stipulation set in Algo. 2 at Line 1"</td><td>Vanilla + a <strong>promotion gate</strong></td></tr>
+<tr><td><strong>AlphaZero</strong></td><td>"the only difference between AlphaZero and AlphaGo Zero is that AlphaZero utilizes the newly updated network <strong>without the validation process</strong>"</td><td>Vanilla, Eq. (5), gate removed</td></tr>
+<tr><td><strong>MuZero</strong></td><td>"The vanilla self-play in MuZero operates similarly to that in AlphaZero"</td><td>Vanilla, Eq. (5)</td></tr>
+</table>
+
+<p class="callout"><strong>This is about your experiment, not Go trivia.</strong> AlphaGo Zero's 55% gate <em>is</em> your DO arm's promotion rule — the survey even points at the same line of Algo. 2. And the next paper in the family <strong>deleted it</strong>, judging it not worth the validation games. That is one published data point against your gate, in a transitive perfect-information game. It is not decisive for VGC, but if the gate is a design choice you are defending, you now know who dropped it and what they replaced it with (nothing).</p>
+
+<h3>4b. Why AlphaZero wins on the simplest row — and why that does not transfer</h3>
+
+<p>Two ingredients, neither of which is opponent selection:</p>
+
+<ol>
+<li><strong>MCTS is the real ORACLE.</strong> Every move is chosen by search over the network, and the network is regressed toward the search's visit counts. Search is a policy-<em>improvement</em> operator: its output is reliably better than the raw network, so the training target improves on its own regardless of who the opponent is. §3.2.2 flags this coupling directly — "vanilla self-play is frequently used in conjunction with Monte Carlo Tree Search." <strong>Your arms have no search.</strong> Vanilla self-play with PPO and no improvement operator is a materially weaker object than the thing that beat Lee Sedol, and the ablation separating them has never been run in your setting.</li>
+<li><strong>Go is transitive.</strong> §3.2.2, verbatim: vanilla self-play "is effective in transitive games, but it can lead the agent to cyclic learning patterns in non-transitive games. It may also lead to a nonstationary problem, causing the system to get stuck in a local optimum." On a ladder, "fight your newest self" is optimal because your newest self genuinely is your hardest opponent. VGC is not a ladder — non-transitivity is the reason your evaluation is a cross-play matrix plus Alpha-Rank instead of a single number.</li>
+</ol>
+
+<p class="note">Both ingredients are missing in your setup, so AlphaZero is evidence <em>for</em> running the FP / δ-uniform / gated arms, not against. Compare §4.3.2: the systems in genuinely non-transitive games do not run a pure row either — OpenAI Five is 80% vanilla / 20% PFSP, and Honor of Kings 1v1 is δ-uniform.</p>
+
+<h2>5. The four branches — and the one you are not considering</h2>
+
+<p>§3 splits self-play into four families. Your three arms all live in the first one.</p>
+
+<ol>
+<li><strong>Traditional self-play</strong> (§3.2) — vanilla, FP, δ-uniform, PFSP. Π is a checkpoint zoo; MSS is a hand-written rule over history.</li>
+<li><strong>PSRO series</strong> (§3.3) — DO, PSRO, variants, R-NaD. MSS is a <em>game solver</em> run on the measured payoff matrix. This is where your cross-play matrix stops being a report and becomes an input.</li>
+<li><strong>Ongoing-training</strong> (§3.4) — FTW, NeuPL, Simplex-NeuPL. <em>All</em> policies train at once; nothing is frozen. NeuPL is the interesting one for you: instead of K stored checkpoints it is <strong>one network conditioned on which population member it is meant to be</strong>, so skills transfer across members instead of being relearned. At poke-env throughput, "no checkpoint zoo, and basic play is learned once" is not a small claim.</li>
+<li><strong>Regret minimisation</strong> (§3.5) — CFR and variants. This is where your existing Neller &amp; Lanctot CFR primer sits, and where the imperfect-information side of VGC (open team sheets, hidden sets) is actually addressed.</li>
+</ol>
+
+<p>The survey's other half is empirical: §4.1 board games, §4.2 card games, §4.3 video games. §4.3.1 StarCraft II is your closest read — it is where PFSP got famous, and where the "exploiter" idea lives that you have already ruled out.</p>
+
+<h2>6. Check yourself</h2>
+
+<div class="quiz" data-answer="c">
+<p class="q">In fictitious play, what does the learner's opponent look like in a <em>single</em> battle?</p>
+<button data-opt="a">one network whose weights are the mean of all past checkpoints</button>
+<button data-opt="b">a network trained by supervised learning to imitate all past checkpoints</button>
+<button data-opt="c">one frozen past checkpoint, drawn uniformly from the population</button>
+<div class="why">Reading C in §2. A is parameter averaging, a different technique. B is NFSP's average policy network — a way to <em>compress</em> the mixture, not the definition of FP. The average is a property of the batch of battles, never of any one game.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q">The sharpest difference between vanilla self-play and fictitious play is…</p>
+<button data-opt="a">one opponent versus many opponents</button>
+<button data-opt="b">an opponent still receiving gradient updates versus opponents frozen forever</button>
+<button data-opt="c">one uses PPO and the other does not</button>
+<div class="why">§3. "One vs. many" is a consequence, not the mechanism — and it is exactly what the "average" phrasing erases. Both arms use the same ORACLE (PPO); only the MSS row differs (§1, §4).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">You freeze a snapshot after every 10,000 battles and sample uniformly. Is the learner's environment stationary?</p>
+<button data-opt="a">stationary between appends, and it drifts by O(1/m) at each append</button>
+<button data-opt="b">fully stationary, because every opponent is frozen</button>
+<button data-opt="c">as non-stationary as vanilla self-play, because the learner keeps changing</button>
+<div class="why">§3. A fixed mixture over fixed policies is a fixed environment; appending a member moves the row from uniform-over-(m−1) to uniform-over-m. The learner changing is not what makes the <em>environment</em> non-stationary — the opponent distribution is. Note option c is wrong for a second reason: batched vanilla self-play is piecewise stationary too, just with a smaller piece and an unbounded jump.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q">Which single component of the survey's framework distinguishes vanilla / FP / δ-uniform / PFSP from each other?</p>
+<button data-opt="a">the oracle</button>
+<button data-opt="b">the meta-strategy solver, which writes the row of Σ</button>
+<button data-opt="c">the policy population</button>
+<div class="why">§1 and §4. All four run the same approximate-best-response oracle over the same growing checkpoint population; only the MSS — the rule turning the performance matrix into an opponent distribution — changes. That is why they are one code path with a flag.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">δ-uniform self-play with δ = 1 is equivalent to…</p>
+<button data-opt="a">fictitious play</button>
+<button data-opt="b">prioritized fictitious self-play</button>
+<button data-opt="c">vanilla self-play</button>
+<div class="why">§4. δ = 0 keeps the whole history (FP); δ = 1 keeps only the newest member (vanilla). The parameter interpolates between the two arms you were treating as separate algorithms.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q">Which AlphaGo-family system does the survey describe with the fictitious-play MSS, Eq. (6)?</p>
+<button data-opt="a">AlphaZero</button>
+<button data-opt="b">the original AlphaGo</button>
+<button data-opt="c">MuZero</button>
+<div class="why">§4a. AlphaGo's stage-2 policy network is "refined by competing against a randomly selected historical version p<sub>ρ⁻</sub>, similar to the MSS shown in Equ. (6)." AlphaGo Zero, AlphaZero and MuZero are all Eq. (5). The family is four rows, not one.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">AlphaGo Zero required a new network to beat its predecessor 55% before joining the pool. AlphaZero…</p>
+<button data-opt="a">removed the check and used the newly updated network directly</button>
+<button data-opt="b">raised the threshold to 60%</button>
+<button data-opt="c">replaced it with a Nash solve over the pool</button>
+<div class="why">§4a — "the only difference between AlphaZero and AlphaGo Zero is that AlphaZero utilizes the newly updated network without the validation process." That gate is the same promotion rule your "double oracle" arm uses, and the successor paper judged it not worth the validation games.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">Why is "AlphaZero proves vanilla self-play works" a bad argument for your pure-SP arm?</p>
+<button data-opt="a">AlphaZero used a checkpoint pool and your arm does not</button>
+<button data-opt="b">Go is stochastic and imperfect-information, so it is harder</button>
+<button data-opt="c">AlphaZero adds MCTS as a policy-improvement operator, and Go is transitive — you have neither</button>
+<div class="why">§4b. The survey: vanilla self-play "is effective in transitive games, but it can lead the agent to cyclic learning patterns in non-transitive games." Go is a ladder and is perfect-information and deterministic (so b is backwards); AlphaZero's pool has one member (so a is backwards). The two load-bearing ingredients are search and transitivity, and VGC supplies neither.</div>
+</div>
+
+<div class="quiz-summary"></div>
+
+<h2>7. Read next</h2>
+
+<ul>
+<li>🟢 <a href="http://proceedings.mlr.press/v37/heinrich15.pdf">Heinrich, Lanctot &amp; Silver, <em>Fictitious Self-Play in Extensive-Form Games</em>, ICML 2015 (PMLR v37)</a> — the paper that carries FP from normal-form to sequential games. Read §3 for the exact sense in which the "average strategy" is a mixture.</li>
+<li>🟢 <a href="https://openreview.net/forum?id=MIX3fJkl_1">Liu et al., <em>NeuPL: Neural Population Learning</em>, ICLR 2022</a> — the ongoing-training branch; one conditional network instead of a checkpoint zoo.</li>
+<li>🟢 <a href="https://arxiv.org/abs/1711.00832">Lanctot et al., <em>A Unified Game-Theoretic Approach to Multiagent Reinforcement Learning</em> (PSRO), NeurIPS 2017</a> — already item 1 of your five-paper path; it is the survey's §3.3 in primary form.</li>
+<li>Survey §5.2 <em>Non-stationarity of the Environment</em> — read it directly after §3 of this lesson and check whether it says anything your three bullets do not.</li>
+</ul>
+
+<p class="meta">Anything unclear — why parameter averaging fails on behaviours, what NFSP's reservoir actually stores, whether NeuPL is worth an arm at poke-env throughput — ask in chat.</p>
+
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

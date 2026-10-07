@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — Too many machines to try: greedy in the many-armed regime</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:      #f7f8f6;
+    --surface:   #fdfdfc;
+    --ink:       #0b0b0b;
+    --ink-2:     #52514e;
+    --muted:     #8b8a84;
+    --hairline:  #e2e1da;
+    --border:    rgba(11,11,11,0.10);
+    --green:     #1f8a4c;   /* the greedy player  */
+    --red:       #c8442e;   /* wasted / impossible */
+    --oracle:    #6b4fd8;   /* the careful player */
+    --card:      #eef0fa;
+    --note:      #faf3d9;
+    --dim:       #f0efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:      #0d0d0d;
+      --surface:   #1a1a19;
+      --ink:       #ffffff;
+      --ink-2:     #c4c3b8;
+      --muted:     #8b8a84;
+      --hairline:  #2d2d2b;
+      --border:    rgba(255,255,255,0.10);
+      --green:     #2fb567;
+      --red:       #e2614a;
+      --oracle:    #9a83ff;
+      --card:      #23213a;
+      --note:      #33301f;
+      --dim:       #232322;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 32px 36px;
+    margin: 0 0 28px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.3px; }
+  p  { font-size: 19px; color: var(--ink-2); margin: 8px 0 0; }
+  p strong { color: var(--ink); }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 10px; }
+  figure { margin: 24px 0 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .svg-label { font-family: system-ui, sans-serif; font-size: 15px; fill: var(--ink); }
+  .svg-small { font-family: system-ui, sans-serif; font-size: 12.5px; fill: var(--ink-2); }
+  .svg-tiny  { font-family: ui-monospace, monospace; font-size: 10.5px; fill: var(--muted); }
+  .svg-big   { font-family: system-ui, sans-serif; font-size: 20px; font-weight: 700; fill: var(--ink); }
+  .svg-huge  { font-family: system-ui, sans-serif; font-size: 30px; font-weight: 700; fill: var(--ink); }
+  .foot { font-size: 14px; color: var(--muted); margin-top: 14px; }
+  .warn { background: var(--note); border-radius: 12px; padding: 18px 20px; margin-top: 22px; }
+  .warn p { margin: 0; font-size: 17px; }
+  .warn p + p { margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+
+<section>
+  <p class="kicker">ELI5 · Bayati, Hamidi, Johari &amp; Khosravi · arXiv 2020</p>
+  <h1>Too many machines to try</h1>
+  <p><strong>When there are far more things you could try than tries you have, stop being clever. Grab a random handful, keep playing whichever one looks best, and spend nothing on exploring.</strong></p>
+</section>
+
+<section>
+  <h2>1 · A room full of machines</h2>
+  <p>Each machine pays out sometimes and not other times. Every machine has its own secret chance of paying. You don't know any of them. You get a fixed number of pulls, and you want the most wins.</p>
+  <figure>
+    <svg viewBox="0 0 720 210" role="img" aria-label="Three machines each with a hidden win chance, and one pull that either wins or loses">
+      <g>
+        <rect x="40"  y="30" width="120" height="120" rx="14" fill="var(--card)" stroke="var(--border)" stroke-width="2.5"/>
+        <rect x="215" y="30" width="120" height="120" rx="14" fill="var(--card)" stroke="var(--border)" stroke-width="2.5"/>
+        <rect x="390" y="30" width="120" height="120" rx="14" fill="var(--card)" stroke="var(--border)" stroke-width="2.5"/>
+        <text x="100" y="105" text-anchor="middle" class="svg-huge">?</text>
+        <text x="275" y="105" text-anchor="middle" class="svg-huge">?</text>
+        <text x="450" y="105" text-anchor="middle" class="svg-huge">?</text>
+        <text x="275" y="176" text-anchor="middle" class="svg-small">each one pays out at some secret rate</text>
+      </g>
+      <line x1="550" y1="20" x2="550" y2="190" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+      <circle cx="600" cy="60" r="16" fill="var(--note)" stroke="var(--muted)" stroke-width="2.5"/>
+      <text x="600" y="66" text-anchor="middle" class="svg-small">1</text>
+      <text x="638" y="66" class="svg-small">one pull</text>
+      <text x="600" y="112" text-anchor="middle" class="svg-label" fill="var(--green)">win</text>
+      <text x="600" y="140" text-anchor="middle" class="svg-label" fill="var(--red)">or nothing</text>
+      <text x="600" y="176" text-anchor="middle" class="svg-small">that's all you learn</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>2 · The usual story: few machines, lots of pulls</h2>
+  <p>Three machines, a thousand pulls. Try each one plenty of times, see which pays best, then ride it for the rest. The trying costs you a few pulls, and it pays for itself. <strong>This is the version everyone teaches.</strong></p>
+  <figure>
+    <svg viewBox="0 0 720 180" role="img" aria-label="Three machines on the left and a large pile of coins on the right, showing hundreds of pulls per machine">
+      <rect x="40"  y="34" width="76" height="76" rx="12" fill="var(--card)" stroke="var(--border)" stroke-width="2.5"/>
+      <rect x="128" y="34" width="76" height="76" rx="12" fill="var(--card)" stroke="var(--border)" stroke-width="2.5"/>
+      <rect x="216" y="34" width="76" height="76" rx="12" fill="var(--card)" stroke="var(--border)" stroke-width="2.5"/>
+      <text x="166" y="140" text-anchor="middle" class="svg-label">3 machines</text>
+      <text x="166" y="162" text-anchor="middle" class="svg-small">you can afford to test each one</text>
+
+      <text x="330" y="80" text-anchor="middle" class="svg-huge">≪</text>
+
+      <g fill="var(--note)" stroke="var(--muted)" stroke-width="1.6">
+        <circle cx="400" cy="40" r="8"/><circle cx="424" cy="40" r="8"/><circle cx="448" cy="40" r="8"/><circle cx="472" cy="40" r="8"/><circle cx="496" cy="40" r="8"/><circle cx="520" cy="40" r="8"/><circle cx="544" cy="40" r="8"/><circle cx="568" cy="40" r="8"/><circle cx="592" cy="40" r="8"/><circle cx="616" cy="40" r="8"/><circle cx="640" cy="40" r="8"/><circle cx="664" cy="40" r="8"/>
+        <circle cx="400" cy="64" r="8"/><circle cx="424" cy="64" r="8"/><circle cx="448" cy="64" r="8"/><circle cx="472" cy="64" r="8"/><circle cx="496" cy="64" r="8"/><circle cx="520" cy="64" r="8"/><circle cx="544" cy="64" r="8"/><circle cx="568" cy="64" r="8"/><circle cx="592" cy="64" r="8"/><circle cx="616" cy="64" r="8"/><circle cx="640" cy="64" r="8"/><circle cx="664" cy="64" r="8"/>
+        <circle cx="400" cy="88" r="8"/><circle cx="424" cy="88" r="8"/><circle cx="448" cy="88" r="8"/><circle cx="472" cy="88" r="8"/><circle cx="496" cy="88" r="8"/><circle cx="520" cy="88" r="8"/><circle cx="544" cy="88" r="8"/><circle cx="568" cy="88" r="8"/><circle cx="592" cy="88" r="8"/><circle cx="616" cy="88" r="8"/><circle cx="640" cy="88" r="8"/><circle cx="664" cy="88" r="8"/>
+      </g>
+      <text x="532" y="140" text-anchor="middle" class="svg-label">1,000 pulls</text>
+      <text x="532" y="162" text-anchor="middle" class="svg-small">hundreds of tries per machine</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>3 · This paper's room: more machines than pulls</h2>
+  <p>Now flip it. Thousands of machines, a hundred coins. <strong>You cannot pull every machine even once.</strong> Testing them all isn't slow — it's off the table. Everything you were taught about exploring stops making sense here.</p>
+  <figure>
+    <svg viewBox="0 0 720 220" role="img" aria-label="A dense grid of thousands of machines beside a small handful of coins">
+      <defs>
+        <pattern id="grid1" width="14" height="14" patternUnits="userSpaceOnUse">
+          <rect width="10" height="10" rx="2" fill="var(--dim)" stroke="var(--border)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect x="42" y="42" width="336" height="112" fill="url(#grid1)"/>
+      <text x="210" y="184" text-anchor="middle" class="svg-label">thousands of machines</text>
+      <text x="210" y="206" text-anchor="middle" class="svg-small">…and this picture is showing you far too few</text>
+
+      <text x="425" y="105" text-anchor="middle" class="svg-huge" fill="var(--red)">≫</text>
+
+      <g fill="var(--note)" stroke="var(--muted)" stroke-width="1.6">
+        <circle cx="500" cy="60" r="9"/><circle cx="528" cy="60" r="9"/><circle cx="556" cy="60" r="9"/><circle cx="584" cy="60" r="9"/><circle cx="612" cy="60" r="9"/>
+        <circle cx="500" cy="88" r="9"/><circle cx="528" cy="88" r="9"/><circle cx="556" cy="88" r="9"/><circle cx="584" cy="88" r="9"/><circle cx="612" cy="88" r="9"/>
+        <circle cx="500" cy="116" r="9"/><circle cx="528" cy="116" r="9"/><circle cx="556" cy="116" r="9"/><circle cx="584" cy="116" r="9"/><circle cx="612" cy="116" r="9"/>
+      </g>
+      <text x="556" y="184" text-anchor="middle" class="svg-label">your pulls</text>
+      <text x="556" y="206" text-anchor="middle" class="svg-small">most machines are never touched</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>4 · Trick one: throw most of them away</h2>
+  <p>Pick a random handful — about <strong>√T</strong> of them, the square root of how many pulls you have — and pretend the rest of the room doesn't exist. You barely lose anything by doing this. In a pile that big, a random handful <strong>already contains a machine that is nearly the best in the room</strong>.</p>
+  <p>Being careful with all of them is actually the worse plan: the textbook method, run across the whole room, spends its life giving first tries to machines it will never see again.</p>
+  <figure>
+    <svg viewBox="0 0 720 230" role="img" aria-label="The same grid with about ten machines picked at random and the rest greyed out">
+      <defs>
+        <pattern id="grid2" width="14" height="14" patternUnits="userSpaceOnUse">
+          <rect width="10" height="10" rx="2" fill="var(--dim)" stroke="var(--border)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect x="42" y="42" width="644" height="112" fill="url(#grid2)" opacity="0.55"/>
+      <g fill="var(--green)">
+        <rect x="98"  y="56"  width="10" height="10" rx="2"/>
+        <rect x="196" y="98"  width="10" height="10" rx="2"/>
+        <rect x="280" y="42"  width="10" height="10" rx="2"/>
+        <rect x="336" y="126" width="10" height="10" rx="2"/>
+        <rect x="434" y="70"  width="10" height="10" rx="2"/>
+        <rect x="490" y="112" width="10" height="10" rx="2"/>
+        <rect x="574" y="56"  width="10" height="10" rx="2"/>
+        <rect x="644" y="98"  width="10" height="10" rx="2"/>
+      </g>
+      <g fill="none" stroke="var(--green)" stroke-width="2">
+        <circle cx="103" cy="61"  r="13"/>
+        <circle cx="201" cy="103" r="13"/>
+        <circle cx="285" cy="47"  r="13"/>
+        <circle cx="341" cy="131" r="13"/>
+        <circle cx="439" cy="75"  r="13"/>
+        <circle cx="495" cy="117" r="13"/>
+        <circle cx="579" cy="61"  r="13"/>
+        <circle cx="649" cy="103" r="13"/>
+      </g>
+      <text x="364" y="190" text-anchor="middle" class="svg-label" fill="var(--green)">keep about √T of them, chosen at random</text>
+      <text x="364" y="214" text-anchor="middle" class="svg-small">everything else is greyed out and never played</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>5 · Trick two: the careful player loses</h2>
+  <p>Two players work that handful. The <strong>careful</strong> one holds pulls back for machines that <em>might</em> be good — it gives anything under-tested the benefit of the doubt, on purpose. The <strong>greedy</strong> one never does that: it just plays whatever has the best record so far, and that's the whole plan.</p>
+  <p><strong>The greedy one came out ahead</strong> — in their simulations, and again when they ran a version on real-world data.</p>
+  <figure>
+    <svg viewBox="0 0 720 250" role="img" aria-label="The careful player spreads pulls across many machines while the greedy player pours them into the current best; a bar chart shows greedy ahead">
+      <text x="30" y="28" class="svg-label" fill="var(--oracle)">careful</text>
+      <text x="30" y="48" class="svg-small">saves pulls for maybes</text>
+      <circle cx="150" cy="34" r="15" fill="var(--card)" stroke="var(--oracle)" stroke-width="2.5"/>
+      <g stroke="var(--oracle)" stroke-width="2" fill="none">
+        <path d="M168 30 L212 16"/><path d="M168 34 L212 34"/><path d="M168 38 L212 52"/><path d="M168 42 L212 70"/>
+      </g>
+      <g fill="var(--dim)" stroke="var(--border)" stroke-width="2">
+        <rect x="216" y="6"  width="26" height="20" rx="5"/>
+        <rect x="216" y="24" width="26" height="20" rx="5"/>
+        <rect x="216" y="42" width="26" height="20" rx="5"/>
+        <rect x="216" y="60" width="26" height="20" rx="5"/>
+      </g>
+      <text x="256" y="46" class="svg-small">a little here, a little there</text>
+
+      <text x="30" y="128" class="svg-label" fill="var(--green)">greedy</text>
+      <text x="30" y="148" class="svg-small">plays the current best</text>
+      <circle cx="150" cy="134" r="15" fill="var(--card)" stroke="var(--green)" stroke-width="2.5"/>
+      <path d="M168 134 L212 134" stroke="var(--green)" stroke-width="7" fill="none"/>
+      <rect x="216" y="118" width="34" height="32" rx="7" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <text x="264" y="140" class="svg-small">everything into the leader</text>
+
+      <line x1="470" y1="14" x2="470" y2="236" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+      <text x="596" y="34" text-anchor="middle" class="svg-small">wins at the end</text>
+      <rect x="516" y="60"  width="46" height="120" rx="6" fill="var(--card)" stroke="var(--oracle)" stroke-width="2.5"/>
+      <rect x="612" y="46"  width="46" height="134" rx="6" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <line x1="500" y1="180" x2="676" y2="180" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="539" y="202" text-anchor="middle" class="svg-small" fill="var(--oracle)">careful</text>
+      <text x="635" y="202" text-anchor="middle" class="svg-small" fill="var(--green)">greedy</text>
+      <text x="596" y="230" text-anchor="middle" class="svg-tiny">direction only — not their measured numbers</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>6 · Why greedy gets away with it</h2>
+  <p><strong>The pile does the exploring for you.</strong> Every machine's secret rate was drawn from the same distribution, and when you draw that many, a few land far out in the lucky tail. Your random handful catches some of them. So the machine that <em>looks</em> best after a few pulls is already close to the best there is — and paying to keep looking buys you almost nothing.</p>
+  <p>That tail is the paper's actual answer, and it says so pointedly: this is a different kind of free exploration from the one the contextual-bandit crowd talks about.</p>
+  <figure>
+    <svg viewBox="0 0 720 260" role="img" aria-label="A bell-shaped distribution of secret win rates with a shaded lucky tail; a random handful of machines lands mostly in the middle and twice in the tail">
+      <path d="M60 180 C160 180 200 60 320 60 C440 60 500 150 660 178" fill="none" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M539 180 L539 140 L575 155 L615 168 L660 178 L660 180 Z" fill="var(--green)" opacity="0.28"/>
+      <line x1="539" y1="52" x2="539" y2="180" stroke="var(--green)" stroke-width="2" stroke-dasharray="5 5"/>
+      <line x1="60" y1="180" x2="676" y2="180" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="60"  y="204" class="svg-small">bad machines</text>
+      <text x="676" y="204" text-anchor="end" class="svg-small" fill="var(--green)">nearly the best possible</text>
+      <text x="606" y="44"  text-anchor="middle" class="svg-small" fill="var(--green)">the lucky tail</text>
+      <text x="320" y="44"  text-anchor="middle" class="svg-small">most machines are ordinary</text>
+
+      <g fill="var(--muted)">
+        <circle cx="150" cy="226" r="6"/><circle cx="205" cy="226" r="6"/><circle cx="248" cy="226" r="6"/>
+        <circle cx="292" cy="226" r="6"/><circle cx="330" cy="226" r="6"/><circle cx="366" cy="226" r="6"/>
+        <circle cx="404" cy="226" r="6"/><circle cx="452" cy="226" r="6"/><circle cx="498" cy="226" r="6"/>
+      </g>
+      <g fill="var(--green)">
+        <circle cx="566" cy="226" r="7.5"/><circle cx="624" cy="226" r="7.5"/>
+      </g>
+      <text x="60" y="231" class="svg-small">your handful →</text>
+      <text x="596" y="252" text-anchor="middle" class="svg-tiny">two of them landed out here — for free</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>7 · What they showed</h2>
+  <p>Three plans, one room, and the ranking is not the one you'd expect.</p>
+  <figure>
+    <svg viewBox="0 0 720 210" role="img" aria-label="Scoreboard of three strategies: careful over everything is worse, handful then careful is right on paper but behind in practice, handful then greedy wins">
+      <text x="360" y="22" text-anchor="middle" class="svg-small">on paper　·　in practice</text>
+
+      <rect x="30" y="36" width="450" height="44" rx="10" fill="var(--dim)" stroke="var(--border)" stroke-width="2"/>
+      <text x="50" y="64" class="svg-label">careful, across the whole room</text>
+      <text x="540" y="64" text-anchor="middle" class="svg-big" fill="var(--red)">✗</text>
+      <text x="640" y="64" text-anchor="middle" class="svg-big" fill="var(--red)">✗</text>
+
+      <rect x="30" y="92" width="450" height="44" rx="10" fill="var(--card)" stroke="var(--oracle)" stroke-width="2"/>
+      <text x="50" y="120" class="svg-label">handful, then careful</text>
+      <text x="540" y="120" text-anchor="middle" class="svg-big" fill="var(--green)">✓</text>
+      <text x="640" y="120" text-anchor="middle" class="svg-big" fill="var(--red)">✗</text>
+
+      <rect x="30" y="148" width="450" height="44" rx="10" fill="var(--card)" stroke="var(--green)" stroke-width="3"/>
+      <text x="50" y="176" class="svg-label">handful, then greedy</text>
+      <text x="540" y="176" text-anchor="middle" class="svg-big" fill="var(--green)">✓</text>
+      <text x="640" y="176" text-anchor="middle" class="svg-big" fill="var(--green)">✓</text>
+    </svg>
+  </figure>
+  <p>For plain coin-flip machines they prove the handful-then-greedy plan is as good as any plan can be here, and for wider families of machines they show it still keeps improving. Their own closing line: greedy is what <q>practitioners might find greater value in adopting</q>.</p>
+</section>
+
+<section>
+  <h2>8 · Why it sits in this vault</h2>
+  <p><strong>One machine is one team. One pull is one battle.</strong> There are more teams than you could ever battle, and your budget is a few thousand battles — so you are standing in this paper's room, not the textbook one.</p>
+  <figure>
+    <svg viewBox="0 0 720 200" role="img" aria-label="Machines map to teams and pulls map to battles">
+      <defs>
+        <pattern id="grid3" width="14" height="14" patternUnits="userSpaceOnUse">
+          <rect width="10" height="10" rx="2" fill="var(--dim)" stroke="var(--border)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect x="42" y="42" width="252" height="84" fill="url(#grid3)"/>
+      <text x="168" y="156" text-anchor="middle" class="svg-label">one machine = one team</text>
+      <text x="168" y="178" text-anchor="middle" class="svg-small">more than you could ever play</text>
+
+      <line x1="360" y1="20" x2="360" y2="186" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+
+      <g fill="var(--note)" stroke="var(--muted)" stroke-width="1.6">
+        <circle cx="450" cy="56" r="9"/><circle cx="478" cy="56" r="9"/><circle cx="506" cy="56" r="9"/><circle cx="534" cy="56" r="9"/><circle cx="562" cy="56" r="9"/><circle cx="590" cy="56" r="9"/>
+        <circle cx="450" cy="84" r="9"/><circle cx="478" cy="84" r="9"/><circle cx="506" cy="84" r="9"/><circle cx="534" cy="84" r="9"/><circle cx="562" cy="84" r="9"/><circle cx="590" cy="84" r="9"/>
+        <circle cx="450" cy="112" r="9"/><circle cx="478" cy="112" r="9"/><circle cx="506" cy="112" r="9"/><circle cx="534" cy="112" r="9"/><circle cx="562" cy="112" r="9"/><circle cx="590" cy="112" r="9"/>
+      </g>
+      <text x="520" y="156" text-anchor="middle" class="svg-label">one pull = one battle</text>
+      <text x="520" y="178" text-anchor="middle" class="svg-small">a few thousand, and they are noisy</text>
+    </svg>
+  </figure>
+  <p>Its advice — <strong>sample a handful, chase whatever looks best, don't buy exploration</strong> — is the thing your own runs already measured. Budget-matched active learning tied plain random selection, and the informativeness-based acquisition was dropped. This paper is the reason to expect that in advance.</p>
+  <div class="warn">
+    <p><strong>What the model actually wants.</strong> Each machine's win rate has to be an independent draw from one distribution — which holds if you sample teams independently from one generator, even though those teams share species and items. What it also wants is a <em>frozen room</em>: the moment your opponents adapt to you, the machines stop sitting still and none of this applies.</p>
+    <p><strong>Most wins ≠ best machine.</strong> This paper counts wins piled up along the way. You want to walk out holding one team. Greedy is good at the first and bad at the second — it stops looking at the machines it would need to tell apart.</p>
+    <p><strong>Different greedy.</strong> Here "greedy" means <em>keep playing the current leader</em>. It is not the 1−1/e coverage greedy that sits directly under it in the reading list.</p>
+  </div>
+  <p class="foot">Bayati, Hamidi, Johari &amp; Khosravi — "The Unreasonable Effectiveness of Greedy Algorithms in Multi-Armed Bandit with Many Arms." 🟢 arXiv:2002.10121, v4 March 2024; no venue is stated on the arXiv page. Reading List entry 37, Tier 3.</p>
+</section>
+
+</main>
+</body>
+</html>

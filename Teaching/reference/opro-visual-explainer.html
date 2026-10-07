@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>OPRO — how an LLM optimizes with scored history</title>
+  <style>
+    :root {
+      --paper: #f6f9fc;
+      --surface: #fff;
+      --ink: #172c4b;
+      --muted: #586c83;
+      --line: #cfdae7;
+      --blue: #3158b8;
+      --blue-pale: #edf2ff;
+      --violet: #754ca5;
+      --violet-pale: #f5edff;
+      --teal: #087d80;
+      --teal-pale: #e9f8f7;
+      --amber: #b56617;
+      --amber-pale: #fff3e5;
+      --ease-out: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button { font: inherit; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--amber); outline-offset: 4px; }
+    .shell { width: min(1450px, 100%); margin: auto; padding: 0 clamp(20px, 4vw, 64px) 90px; }
+    .topline { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding: 22px 0; }
+    .identity { font-weight: 850; font-size: 21px; letter-spacing: -.05em; }
+    .identity span { display: inline-grid; place-items: center; width: 32px; height: 32px; margin-right: 9px; border-radius: 7px; color: white; background: var(--blue); letter-spacing: -.06em; transform: rotate(-7deg); }
+    .topline a { text-decoration: none; border-bottom: 1px solid currentColor; color: var(--blue); font-size: 14px; font-weight: 750; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(255px, .45fr); gap: 45px; align-items: end; padding: clamp(52px, 7vw, 105px) 0 58px; }
+    h1 { margin: 0; max-width: 870px; font-size: clamp(48px, 6.1vw, 91px); line-height: 1.01; letter-spacing: -.073em; font-weight: 820; }
+    .hero p { margin: 0 0 7px; max-width: 360px; color: var(--muted); font-size: clamp(17px, 1.4vw, 20px); line-height: 1.55; }
+    .hero strong { color: var(--ink); }
+    .main { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+    .main-heading { padding: 18px 0; display: flex; justify-content: space-between; gap: 18px; align-items: baseline; }
+    .main-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.025em; }
+    .main-heading p { margin: 0; color: var(--muted); font-size: 13px; }
+    .workspace { display: grid; grid-template-columns: 235px minmax(0, 1fr); border-top: 1px solid var(--line); }
+    .rail { padding: 28px 18px 28px 0; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+    .step { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: baseline; padding: 12px 9px; width: 100%; background: transparent; color: var(--muted); border: 1px solid transparent; border-radius: 8px; text-align: left; cursor: pointer; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+    .step .num { font-size: 12px; font-weight: 850; }
+    .step .name { font-size: 15px; font-weight: 750; }
+    .step[aria-current="step"] { color: var(--blue); background: var(--blue-pale); border-color: #ced9f0; }
+    @media (hover: hover) and (pointer: fine) { .step:hover { color: var(--blue); background: #edf2ff; } }
+    .rail-foot { margin: auto 4px 0; padding-top: 30px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .content { min-width: 0; padding: clamp(22px, 3vw, 42px); background: var(--surface); }
+    .story-heading { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 20px; min-height: 106px; }
+    .story-heading h3 { margin: 0; font-size: clamp(26px, 2.8vw, 39px); letter-spacing: -.055em; line-height: 1.08; }
+    .story-heading p { margin: 9px 0 0; max-width: 710px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+    .story-count { font-size: 13px; font-weight: 800; color: var(--blue); padding-top: 4px; }
+    .board { position: relative; min-height: 410px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background-color: #fafcff; background-image: linear-gradient(#edf2f7 1px, transparent 1px), linear-gradient(90deg, #edf2f7 1px, transparent 1px); background-size: 24px 24px; }
+    .board-inner { position: relative; z-index: 1; height: 100%; min-height: 410px; display: grid; grid-template-columns: minmax(0, 1.08fr) 58px minmax(0, .8fr) 58px minmax(0, 1.08fr); gap: 0; align-items: center; padding: 28px; }
+    .station { height: 282px; min-width: 0; padding: 20px; border: 2px solid; border-radius: 12px; background: white; opacity: .58; transform: translateY(0); transition: opacity 280ms var(--ease-out), transform 280ms var(--ease-out), box-shadow 280ms var(--ease-out); }
+    .station.is-active { opacity: 1; transform: translateY(-5px); box-shadow: 0 13px 27px rgba(19, 43, 76, .10); }
+    .station.meta { border-color: #acc1ea; background: var(--blue-pale); }
+    .station.generate { border-color: #d3b8e8; background: var(--violet-pale); }
+    .station.score { border-color: #a7dcd9; background: var(--teal-pale); }
+    .station-label { margin: 0 0 13px; font-size: 13px; font-weight: 850; color: var(--muted); }
+    .station h4 { margin: 0 0 15px; font-size: clamp(18px, 1.8vw, 26px); letter-spacing: -.045em; line-height: 1.15; }
+    .station p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.46; }
+    .connector { display: flex; justify-content: center; font-size: 32px; color: #8fa0b6; transition: color 220ms ease, transform 220ms var(--ease-in-out); }
+    .connector.on { color: var(--blue); transform: translateX(6px); }
+    .tape { display: grid; gap: 6px; }
+    .tape-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 9px; border-radius: 5px; background: white; border: 1px solid #cad8ed; font-size: 12px; }
+    .tape-row span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .tape-row b { color: var(--blue); }
+    .tape-row.new { background: #fff4e4; border-color: #edc18d; }
+    .meta .mini { margin-top: 13px; }
+    .candidate-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 27px 0 16px; }
+    .candidate { min-height: 38px; display: grid; place-items: center; border-radius: 7px; border: 1px solid #d8c4e9; background: white; color: var(--violet); font-weight: 850; font-size: 14px; opacity: .5; transform: translateY(0); transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out), background-color 260ms ease; }
+    .generate.is-active .candidate { opacity: 1; transform: translateY(-4px); background: #fff; }
+    .generate.is-active .candidate:nth-child(2) { transition-delay: 40ms; }
+    .generate.is-active .candidate:nth-child(3) { transition-delay: 80ms; }
+    .generate.is-active .candidate:nth-child(4) { transition-delay: 120ms; }
+    .generate.is-active .candidate:nth-child(5) { transition-delay: 160ms; }
+    .generate.is-active .candidate:nth-child(6) { transition-delay: 200ms; }
+    .generate.is-active .candidate:nth-child(7) { transition-delay: 240ms; }
+    .generate.is-active .candidate:nth-child(8) { transition-delay: 280ms; }
+    .score-lines { display: grid; gap: 10px; margin: 22px 0 16px; }
+    .score-line { display: grid; grid-template-columns: 30px 1fr 38px; gap: 7px; align-items: center; font-size: 12px; font-weight: 750; color: var(--teal); }
+    .bar { height: 9px; border-radius: 5px; background: #c9eae8; overflow: hidden; }
+    .bar i { display: block; width: var(--w); height: 100%; border-radius: inherit; background: var(--teal); transform: scaleX(.1); transform-origin: left; transition: transform 600ms var(--ease-out); }
+    .score.is-active .bar i { transform: scaleX(1); }
+    .feedback { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 15px 18px; border: 1px solid #e6c190; border-radius: 10px; background: var(--amber-pale); color: #824c15; font-size: 13px; line-height: 1.4; }
+    .feedback strong { flex: none; font-size: 19px; }
+    .feedback.on { border-color: #c88634; box-shadow: 0 0 0 3px #f9e6cd; }
+    .feedback strong::before { content: "↶"; margin-right: 9px; }
+    .result { display: none; position: absolute; inset: 0; z-index: 2; padding: clamp(24px, 4vw, 52px); background: #f9fcff; }
+    .board.final .result { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .result h4 { margin: 0 0 15px; font-size: clamp(25px, 3vw, 40px); line-height: 1.1; letter-spacing: -.055em; }
+    .result p { max-width: 390px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.55; }
+    .result-bars { display: grid; gap: 18px; }
+    .result-row { display: grid; gap: 8px; font-size: 13px; font-weight: 750; }
+    .result-row .row-head { display: flex; justify-content: space-between; gap: 8px; }
+    .result-row strong { font-size: 20px; }
+    .result-row .track { height: 21px; border-radius: 5px; background: #e3ebf4; overflow: hidden; }
+    .result-row .fill { display: block; width: var(--w); height: 100%; border-radius: inherit; background: #aabbd0; transform: scaleX(.08); transform-origin: left; transition: transform 650ms var(--ease-out); }
+    .board.final .result-row .fill { transform: scaleX(1); }
+    .result-row.opro .fill { background: var(--blue); }
+    .result-row.opro strong { color: var(--blue); }
+    .board-foot { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 22px; }
+    .progress { display: flex; gap: 6px; flex: 1; max-width: 310px; }
+    .progress i { height: 4px; flex: 1; border-radius: 4px; background: #d8e2ed; transition: background-color 160ms ease; }
+    .progress i.on { background: var(--blue); }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .controls button { min-width: 45px; min-height: 40px; padding: 8px 13px; border-radius: 7px; border: 1px solid var(--line); background: white; color: var(--ink); font-weight: 750; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+    .controls button.primary { background: var(--blue); color: white; border-color: var(--blue); }
+    .controls button:disabled { opacity: .45; cursor: default; }
+    @media (hover: hover) and (pointer: fine) { .controls button:not(:disabled):hover { background: var(--blue-pale); color: var(--blue); } .controls button.primary:hover { background: #21479c; color: white; } }
+    .below { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 90px); padding-top: 65px; }
+    .below h2 { margin: 0 0 17px; font-size: clamp(25px, 2.6vw, 36px); letter-spacing: -.05em; }
+    .below p, .below li { color: var(--muted); line-height: 1.65; font-size: 15px; }
+    .below ul { margin: 15px 0 0; padding-left: 20px; }
+    .below li { margin-bottom: 8px; }
+    .source { margin-top: 25px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .source a { color: var(--blue); font-weight: 750; }
+    @media (max-width: 1020px) {
+      .workspace { grid-template-columns: 1fr; }
+      .rail { border-right: 0; border-bottom: 1px solid var(--line); padding: 14px 0; display: flex; flex-direction: row; overflow-x: auto; }
+      .step { flex: 0 0 auto; width: auto; grid-template-columns: auto auto; }
+      .rail-foot { display: none; }
+      .board-inner { grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr) 30px minmax(0, 1fr); padding: 17px; }
+      .station { padding: 15px; }
+      .candidate-grid { gap: 4px; }
+    }
+    @media (max-width: 700px) {
+      .hero, .below { grid-template-columns: 1fr; }
+      .hero { gap: 18px; padding-bottom: 42px; }
+      .topline { align-items: start; }
+      .topline a { max-width: 145px; text-align: right; }
+      .content { padding: 20px; }
+      .story-heading { min-height: 135px; }
+      .board { min-height: 680px; }
+      .board-inner { grid-template-columns: 1fr; gap: 6px; min-height: 680px; align-items: stretch; }
+      .station { height: auto; min-height: 143px; padding: 12px 14px; }
+      .station h4 { margin-bottom: 8px; }
+      .station p { font-size: 12px; }
+      .connector { height: 23px; font-size: 22px; line-height: 22px; transform: rotate(90deg); }
+      .connector.on { transform: rotate(90deg) translateX(5px); }
+      .tape { grid-template-columns: repeat(3, 1fr); }
+      .tape-row { display: block; font-size: 10px; }
+      .tape-row b { display: block; }
+      .meta .mini { display: none; }
+      .candidate-grid { grid-template-columns: repeat(8, 1fr); margin: 9px 0; }
+      .candidate { min-height: 28px; font-size: 11px; }
+      .score-lines { margin: 8px 0; }
+      .feedback { padding: 10px 12px; margin-top: 11px; }
+      .board.final .result { grid-template-columns: 1fr; gap: 25px; align-content: center; }
+      .board-foot { align-items: stretch; flex-direction: column; }
+      .controls { justify-content: end; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .station, .connector, .candidate, .bar i, .result-row .fill { transform: none !important; transition: opacity 180ms ease, background-color 180ms ease, color 180ms ease; }
+      .bar i, .result-row .fill { width: var(--w); }
+      .station.is-active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topline">
+      <div class="identity"><span>O</span> OPRO reading room</div>
+      <a href="../../Papers/OPRO%20-%20visual%20explanation.excalidraw">Open editable diagram</a>
+    </header>
+
+    <section class="hero">
+      <h1>Can a prompt learn from its own scores?</h1>
+      <p><strong>OPRO</strong> gives an LLM a trail of attempts and measured results. The model proposes what to try next; a separate evaluation supplies the score.</p>
+    </section>
+
+    <main>
+      <section class="main" aria-labelledby="explainer-title">
+        <div class="main-heading"><h2 id="explainer-title">Inside one optimization loop</h2><p>Use the controls to follow the paper’s method.</p></div>
+        <div class="workspace">
+          <nav class="rail" aria-label="Explanation steps">
+            <button class="step" data-step="0" aria-current="step"><span class="num">01</span><span class="name">Build the prompt</span></button>
+            <button class="step" data-step="1"><span class="num">02</span><span class="name">Propose eight</span></button>
+            <button class="step" data-step="2"><span class="num">03</span><span class="name">Score them</span></button>
+            <button class="step" data-step="3"><span class="num">04</span><span class="name">Update history</span></button>
+            <button class="step" data-step="4"><span class="num">05</span><span class="name">Test the winner</span></button>
+            <p class="rail-foot">Numbers and settings reflect the paper’s default prompt-optimization setup. The candidate chips and score bars illustrate the mechanism.</p>
+          </nav>
+          <div class="content">
+            <div class="story-heading" aria-live="polite">
+              <div><h3 id="stage-title">Start with a scored trail</h3><p id="stage-description">The meta-prompt states the task and goal, shows three examples, and lists up to 20 high-scoring past instructions in ascending score order.</p></div>
+              <span class="story-count" id="stage-count">1 / 5</span>
+            </div>
+            <div class="board" id="board" aria-label="OPRO optimization loop diagram">
+              <div class="board-inner">
+                <div class="station meta is-active" id="meta-station">
+                  <div class="station-label">Evidence supplied to optimizer</div>
+                  <h4>Meta-prompt</h4>
+                  <div class="tape" id="history-tape">
+                    <div class="tape-row"><span>“Let’s solve the problem.”</span><b>60.5</b></div>
+                    <div class="tape-row"><span>“Let’s think carefully…”</span><b>63.2</b></div>
+                    <div class="tape-row"><span>“Let’s break it down!”</span><b>71.3</b></div>
+                  </div>
+                  <p class="mini">Plus the task goal and three input–output examples.</p>
+                </div>
+                <div class="connector" id="arrow-one" aria-hidden="true">→</div>
+                <div class="station generate" id="generate-station">
+                  <div class="station-label">Candidate generator</div>
+                  <h4>Optimizer LLM</h4>
+                  <div class="candidate-grid" aria-label="Eight candidate instructions">
+                    <span class="candidate">1</span><span class="candidate">2</span><span class="candidate">3</span><span class="candidate">4</span>
+                    <span class="candidate">5</span><span class="candidate">6</span><span class="candidate">7</span><span class="candidate">8</span>
+                  </div>
+                  <p>Eight proposals per step in the default setup.</p>
+                </div>
+                <div class="connector" id="arrow-two" aria-hidden="true">→</div>
+                <div class="station score" id="score-station">
+                  <div class="station-label">Measured objective</div>
+                  <h4>Scorer LLM</h4>
+                  <div class="score-lines" aria-label="Illustrative candidate scores">
+                    <div class="score-line"><span>A</span><div class="bar"><i style="--w:62%"></i></div><span>62</span></div>
+                    <div class="score-line"><span>B</span><div class="bar"><i style="--w:74%"></i></div><span>74</span></div>
+                    <div class="score-line"><span>C</span><div class="bar"><i style="--w:78%"></i></div><span>78</span></div>
+                  </div>
+                  <p>Apply each instruction to training questions; accuracy becomes its score.</p>
+                </div>
+              </div>
+              <div class="result" id="result">
+                <div><h4>The best instruction is tested after search.</h4><p>One GSM8K setup used PaLM 2-L-IT as optimizer and PaLM 2-L as scorer. These are held-out test accuracies, not scores from the candidate bars.</p></div>
+                <div class="result-bars">
+                  <div class="result-row"><div class="row-head"><span>Human-written baseline</span><strong>71.8%</strong></div><div class="track"><i class="fill" style="--w:71.8%"></i></div></div>
+                  <div class="result-row opro"><div class="row-head"><span>OPRO-selected instruction</span><strong>80.2%</strong></div><div class="track"><i class="fill" style="--w:80.2%"></i></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="feedback" id="feedback"><strong>Score → history</strong><span>New instruction–score pairs feed the next meta-prompt. The loop repeats until the stopping condition is met.</span></div>
+            <div class="board-foot">
+              <div class="progress" id="progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+              <div class="controls">
+                <button id="previous" type="button" aria-label="Previous step" disabled>← Back</button>
+                <button id="play" type="button">Play loop</button>
+                <button id="next" type="button" class="primary">Next →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="below">
+        <div>
+          <h2>What the paper demonstrates</h2>
+          <p>OPRO uses a language model as a proposal mechanism. Its input is a natural-language task description and scored solution history; the objective is measured outside that model. The paper first tries small regression and traveling-salesperson problems, then focuses on optimizing instructions for a scorer LLM.</p>
+          <p>The loop matters: in the paper’s comparison, generating 50 instructions in one shot did worse than iterative proposals that incorporated fresh scores.</p>
+        </div>
+        <div>
+          <h2>How to read the limits</h2>
+          <ul>
+            <li>The TSP results degrade as the problems grow; OPRO is not presented as a replacement for specialized solvers.</li>
+            <li>The paper reports overfitting: training scores can exceed test scores by 5–20 percentage points.</li>
+            <li>For this Pokémon project, an OPRO-style team proposer is a baseline to test. The paper does not measure team-search performance.</li>
+          </ul>
+        </div>
+      </section>
+      <p class="source">Source: Yang et al., <a href="https://arxiv.org/html/2309.03409">Large Language Models as Optimizers</a>, §§2–5 and 7. The 60.5, 63.2, and 71.3 values shown in the meta-prompt panel come from different steps in the paper’s GSM8K trajectory; the three candidate score bars are illustrative.</p>
+    </main>
+  </div>
+  <script>
+    const stages = [
+      { title: "Start with a scored trail", description: "The meta-prompt states the task and goal, shows three examples, and lists up to 20 high-scoring past instructions in ascending score order.", active: "meta" },
+      { title: "Ask for eight new instructions", description: "The optimizer LLM reads the trail and proposes eight candidates. Sampling temperature helps it explore different wording.", active: "generate" },
+      { title: "Measure each proposal", description: "A scorer LLM applies each candidate to a fixed training subset. Accuracy supplies the numerical feedback; the bars here are illustrative.", active: "score" },
+      { title: "Feed the scores back", description: "Add the new instruction–score pairs, retain the highest-scoring 20, sort them, and build the next meta-prompt.", active: "meta" },
+      { title: "Inspect held-out performance", description: "After optimization, evaluate the selected instruction on a test set the loop did not use.", active: "final" }
+    ];
+    let current = 0;
+    let timer = null;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const byId = id => document.getElementById(id);
+    const stepButtons = [...document.querySelectorAll(".step")];
+    const progressBars = [...document.querySelectorAll("#progress i")];
+    function stop() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      byId("play").textContent = "Play loop";
+      byId("play").setAttribute("aria-pressed", "false");
+    }
+    function render(index) {
+      current = Math.max(0, Math.min(stages.length - 1, index));
+      const stage = stages[current];
+      byId("stage-title").textContent = stage.title;
+      byId("stage-description").textContent = stage.description;
+      byId("stage-count").textContent = `${current + 1} / ${stages.length}`;
+      byId("board").classList.toggle("final", current === 4);
+      for (const name of ["meta", "generate", "score"]) byId(`${name}-station`).classList.toggle("is-active", name === stage.active);
+      byId("arrow-one").classList.toggle("on", current === 1);
+      byId("arrow-two").classList.toggle("on", current === 2);
+      byId("feedback").classList.toggle("on", current === 3);
+      stepButtons.forEach((button, i) => {
+        if (i === current) button.setAttribute("aria-current", "step");
+        else button.removeAttribute("aria-current");
+      });
+      progressBars.forEach((bar, i) => bar.classList.toggle("on", i <= current));
+      byId("previous").disabled = current === 0;
+      byId("next").disabled = current === stages.length - 1;
+      const tape = byId("history-tape");
+      if (current === 3 && !tape.querySelector(".new")) {
+        const row = document.createElement("div");
+        row.className = "tape-row new";
+        row.innerHTML = '<span>“Let’s do the math!”</span><b>78.2</b>';
+        tape.append(row);
+      } else if (current !== 3) {
+        tape.querySelector(".new")?.remove();
+      }
+    }
+    function advance() {
+      if (current === stages.length - 1) { stop(); return; }
+      render(current + 1);
+      if (current === stages.length - 1) stop();
+    }
+    stepButtons.forEach(button => button.addEventListener("click", () => { stop(); render(Number(button.dataset.step)); }));
+    byId("previous").addEventListener("click", () => { stop(); render(current - 1); });
+    byId("next").addEventListener("click", () => { stop(); advance(); });
+    byId("play").addEventListener("click", () => {
+      if (timer) { stop(); return; }
+      if (current === stages.length - 1) render(0);
+      byId("play").textContent = "Pause";
+      byId("play").setAttribute("aria-pressed", "true");
+      timer = setInterval(advance, 2500);
+    });
+    reducedMotion.addEventListener("change", () => { if (reducedMotion.matches) stop(); });
+    render(0);
+  </script>
+</body>
+</html>

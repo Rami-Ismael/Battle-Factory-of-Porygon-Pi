@@ -1,0 +1,200 @@
+## Repos & venues
+
+- [x] 2026-08-27, sweep ReALM-GEN, the ICLR 2026 diffusion-alignment workshop, for black-box-reward papers usable on the team generator — done: [[ReALM-GEN (ICLR 2026)]]; 6 of 84 kept in [[Reading List]]
+- [x] 2026-08-24, sweep EXAG (Experimental AI in Games), the AIIDE workshop — done: [[EXAG 2026 (Experimental AI in Games)]]
+
+### Repos — one section each (context, not method)
+
+- [ ] 2026-08-17, Read this github repository
+
+	**Read the paper first, the repo second**
+	- [x] VGC-Bench (paper in [[Reading List]]) → 🟢 [repo](https://github.com/cameronangliss/vgc-bench) · 🟢 [battle logs](https://huggingface.co/datasets/cameronangliss/vgc-battle-logs) — done
+	- [ ] Metamon (paper in [[Reading List]]) → 🟢 [repo](https://github.com/UT-Austin-RPL/metamon) · 🟢 [HF dataset](https://huggingface.co/datasets/jakegrigsby/metamon-parsed-replays) · 🟢 [HF checkpoints](https://huggingface.co/jakegrigsby/metamon)
+	- [ ] PokéChamp (paper in [[Reading List]]) → 🟢 [repo](https://github.com/sethkarten/pokechamp)
+	- [ ] PokéLLMon — paper in [[Reading List]]
+	- [ ] VGC AI Framework → 🟢 [GitLab](https://gitlab.com/DracoStriker/pokemon-vgc-engine) (cite only)
+
+	**One section each**
+	- [ ] 🟢 [ps-ppo](https://github.com/Nebraskinator/ps-ppo) — "Observation Space & State Representation"
+	- [x] 🟢 [EliteFurretAI](https://github.com/caymansimpson/elitefurretai) — "Summary of the VGC Problem Space" — done 2026-08-23: five bullets + bottleneck order (talent, engine, capacity, human data); its milestone 3 is our problem, "via brute force"; detail in chat
+		- [ ] Read the literature synthesis the README links, not the README — 🟢 [EliteFurret AI: Learnings for VGC](https://docs.google.com/document/d/14menCHw8z06KJWZ5F_K-MjgWVo_b7PESR7RlG-em4ic/edit), publicly readable, 47 headings, not peer-reviewed.
+			- [ ] 1. Read "Implications on Team Building" — his decision variables and cardinalities (species 300+, ability ~2, EVs ~100, moveset ~30, item ~8) — HIGH.
+			- [ ] 2. Read "Implications on Team Preview" — 15 x 6 = 90 selections per player, 90^2 = 8,100 opening states — HIGH.
+			- [ ] 3. Read "Action Space Calculations" and "Branching Factor Calculations" — the derivations the README's 40x and 3000x claims come from — MED.
+			- [ ] 4. Read "Proposed Evaluation Methodology" and "Open Questions" — how he plans to measure a bot without a ladder rating — MED.
+			- [ ] 5. Skip the working notes ("WIP Notes", "Generally Useful Commands", "3/29 Sweep Analysis") — a personal lab log — LOW.
+			- [ ] 6. Decide whether the doc earns a numbered entry in [[Citation]] or stays a read logged only here.
+	- [x] 🟢 [reuniclusVGC](https://github.com/caymansimpson/reuniclusVGC) — "Rules of Pokemon that make it hard" — done 2026-08-23: section extracted, LOW — framing only, repo abandoned; five rules, 418² = 174,724 joint doubles actions; detail in chat
+		- [ ] Grab all the link
+		- [x] Add EliteFurret Ai in the — done 2026-08-23: it is the EliteFurretAI checkbox above, with its doc reading tree
+		- [ ] https://docs.google.com/document/d/14menCHw8z06KJWZ5F_K-MjgWVo_b7PESR7RlG-em4ic/edit?tab=t.0
+		- [ ] Go through the useful link 
+			- [ ] 6. Skim 🟢 [EPOke](https://github.com/pkmn/EPOke) — battle-state tracking and opponent-set prediction, for the revealed-team problem at selection — MED
+			- [ ] 7. Skip 🟢 [Technical Machine](http://doublewise.net/pokemon/) — singles-only C++ minimax, pre-2014 — LOW
+			- [ ] Here to place them
+	- [x] 🟢 [meloetta](https://github.com/spktrm/meloetta) — "Example Output"
+	- [x] 🟢 [llm-pokemon-battle](https://github.com/vjeux/llm-pokemon-battle) — "Project Structure"
+	- [ ] 🟢 [Code Base On Meta](https://github.com/qiaodev/pokeagent) — "Battle Backends", "Revealed Teams"
+
+	**Use, don't read**
+	- [ ] 🟢 [poke-env docs](https://poke-env.readthedocs.io)
+		- [ ] I want to check if 
+	- [ ] 🟢 [foul-play](https://github.com/pmariglia/foul-play) / 🟢 [poke-engine](https://github.com/pmariglia/poke-engine)
+	- [ ] https://github.com/AbdulKMuhammad/porygonz
+
+	**Skip** — see [[README section inventory — Pokémon-battle ML repos in the vault]]
+
+
+## Search methods — background learning
+
+- [x] 2026-08-19, read [[ReEvo  the LLM writes heuristic code, evolutionary search scores it]] — collapses the two paper checkboxes; verdict **LOW**, downgraded 2026-08-19 from MED after the owner's push-back — the loop presupposes a cheap evaluator and a family of instances, this project has one meta and an expensive $f$ — then re-graded **MED** later 2026-08-19 for the owner's pruning-rule application only (child 5, battle-free score); reasoning in chat; note is frontmatter-only, body is yours *(moved here from the chase list 2026-08-24)*
+	- *Retired 2026-08-21 —* owner retired ReEvo in favour of StreamLLM (next item below): the same LLM-writes-pruning-rules loop, already validated battle-free; see [[papers-closest-to-what-i-hoped-reevo-was]]. The child-5 score idea carries over unchanged.
+	- *Parked 2026-08-19 —* three applications were sketched (spread-allocation code scored by damage-formula benchmarks; a bring-4 rule scored against human selections in the VGC-Bench logs; the construction heuristic itself scored by an estimator of $f$) — none prototyped.
+	- [x] 4. Decide which application, if any, becomes the first prototype — decided 2026-08-19: none; every one automates designing a rule the project could write directly, which is a detour, not progress toward the team.
+	- [ ] 5. Owner idea, later 2026-08-19: pruning rules — ReEvo evolves candidate-filter code (e.g. no two candidates share a type); battle-free score = fraction of the raw space pruned × fraction of the collected meta teams retained; risk: retention-scoring can prune the off-meta counter-team.
+		- [ ] 1. Check the example rule against the meta list: count how many collected Reg M-B meta teams run two candidates of the same type; if some do, the naive rule is lossy and needs the evolution loop to refine it.
+		- [ ] 2. Decide whether evolved rules enter the search as hard filters or as soft penalties the search can pay to cross.
+- [x] Gradient-guided diffusion as team search — research findings — done 2026-08-26: [[trying to retire this convert this into a blog (diffusion model as team generator for model-based search-research finding) into (Using diffusion model for black box optimzation)]] (four-cluster sweep, every claim verified against the primary PDF by a second agent)
+- [ ] **hyper-heuristic**
+- [ ] 2026-08-21, learn what hyper-heuristics are — search over the heuristic space rather than the team space (ReEvo and StreamLLM are the LLM kind) — and decide whether a hyper-heuristic layer earns a place in this project beyond the pruning-rule application.
+- [ ] 2026-08-23, learn what exact algorithms are — branch and bound, dynamic programming, ILP/CP solvers — methods that guarantee the optimum at a known cost; then decide whether any is affordable on the team search or whether they only set the baseline the heuristics are judged against.
+- [ ] 2026-08-23, learn what metaheuristics are — the design patterns behind the single-point and population searches already in this list (simulated annealing, tabu search, evolutionary/CMA-ES, ant/bee colonies): what makes a heuristic "meta", exploration vs exploitation, and no guarantee of optimality — then map each pattern onto the methods under test for the set layer.
+- [x] 2026-08-18, learn the main families of black-box optimisation beyond these two (evolutionary / CMA-ES, bandit and racing methods, other surrogate-based methods) and check whether OpenSpiel ships anything usable for the set layer. — done 2026-08-20: /research swept 4 families (bandits/racing excluded by owner the same day); graded reading below, full report in chat
+	- [x] 6. OpenSpiel check — done 2026-08-20, nothing usable for the team search: `python/algorithms` is CFR / MCTS / PSRO-family, `egt` is evaluation only, and the lone evolution strategy is a continuous-parameter PSRO oracle (`psro_v2/optimization_oracle.py`); verified against the live repo
+	- [ ] 7. Decide whether the cross-entropy method — the sweep's best fit for the full-team search (native factored sampling, noise absorbed by the elite update) — joins simulated annealing and Bayesian optimisation in the methods under test.
+- [ ] 2026-08-19, learn what a Q-learning search policy is — the method in Q-DeckRec, which learns the search itself instead of running one
+	- [ ] 1. Learn the formulation: state = the current team plus the opponent, actions = edit the team (add / remove / swap a member), reward = the win-rate gain, so greedily following Q walks any starting team toward a strong one.
+	- [ ] 2. Learn where the applications are: training is paid once, then every new opponent costs one cheap policy rollout — the win over direct search is amortising repeated searches (the meta shifts, a new regulation drops).
+	- [ ] 3. Find runnable code — the paper's own release if one exists, otherwise the closest open reimplementation; if neither exists, record that rather than pretend.
+	- [ ] 4. Turn 1–3 into a `/teach` lesson in `Teaching/` so the learning is checked, not skimmed.
+	- [ ] 5. Decide whether a learned search policy joins the team-search methods under test (beside simulated annealing and Bayesian optimisation) or stays background reading.
+- [ ] 2026-08-19, learn the HIGH OpenSpiel payoff-matrix tools beyond what VGC-Bench uses (`alpharank.compute`, infinite α only), then turn them into a `/teach` lesson in `Teaching/` so the learning is checked, not skimmed.
+	- [ ] 1. Learn `egt.nash_averaging` (Balduzzi et al. 2018, in [[Reading List]]) and why it is invariant to duplicate agents while [[AlphaRank]] is not.
+	- [ ] 2. Learn `alpharank.sweep_pi_vs_alpha` and check on the VGC-Bench Table 2 matrix whether the ranking is stable below infinite α.
+	- [ ] 3. Learn `psro_v2.meta_strategies` (uniform / nash / prd / alpharank) and map each to the SP / FP / DO arms in [[Why Self-Play is consider Multi-Agent]].
+	- [ ] 4. Decide which ranking — Nash averaging, finite-α Alpha-Rank, or both — reports the battle-policy cross-play matrix.
+- [ ] 4. Decide whether one-card-at-a-time drafting transfers to choosing a whole team at once, and grade each of the three HIGH/MED/LOW.
+- [ ] **Constraint programming, MiniZinc, symmetry breaking (Gent–Petrie–Puget), search-space reduction** on pokemon  
+- [ ] /goal The goal is to add more legal pokemon team for the current regulation for today which is 2026-08-29 for Regulation M-B from the small daataset to much larger dataset the target to 100,000 legal unique pokemon team using the [[hierarchical product sampling]] to generate legal pokemon team 
+- [ ] I was wondering can you view a graph problem for example sneler will have a certain perctnage knocking fairy type pokemon 
+- [ ] 
+
+## Build / implement
+
+- [ ] 2026-08-14, I realize i should be a project in where I reimplement the paper for pivotal pokemon paper
+	- [x] Do you think is good waste of your time, do they need to be relevated or nice blog will suffices — decided 2026-08-24: reimplement HIGH-graded papers first; MED/LOW stay read-only, a nice blog post suffices — so grade this paper before committing any reimplementation time — *superseded 2026-08-26: owner dropped that rule; the sequencing rule now governs (read all HIGH first → reimplement → MED), so this paper needs a HIGH grade and its turn in the queue*
+- [x] 2026-08-18, convert Nie et al. (RLC 2026 chess puzzles, Applications award) to Pokémon VGC — their pipeline is offline RL over 1.5B human puzzle-solving logs; the VGC analogue is offline RL over the VGC-Bench / Metamon replay corpora — done: [[Convert Chess puzzles via offline RL (Applications) to pokemon vgc]] (frontmatter; conversion table + verdict delivered in chat 2026-08-18 — search stage LOW, battle-policy stage MED: upgrade the BC arm to advantage-weighted BC)
+- [ ] 2026-08-17 , I was thinking applied diffusion model as we move the model through it gradient of the model we search near optimal — prior scan: [[Diffusion for conditional counter-team generation]]
+	- 2026-08-26, answered in [[trying to retire this convert this into a blog (diffusion model as team generator for model-based search-research finding) into (Using diffusion model for black box optimzation)]]: a team is discrete, so there is no gradient to move through — the discrete score is a per-slot swap ratio; the move that exists is mask-k-slots-and-resample.
+- [ ] 2026-08-29, check the four ways the basic discrete diffusion implementation plausibly hurt the latent structure of real teams, per 🟢 [Prof. Mengdi Wang | Guiding Diffusion Models Towards Generative Optimization by INI Satellite Events](https://www.youtube.com/watch?v=8W9qHXN0weg) (in the Reading List).
+	- [ ] 1. Measure how far the random and mutated legal teams in the training mix sit off the real-team distribution, and whether dropping them changes generated-team win rate — legality is not evidence of quality.
+	- [ ] 2. Sweep the win-rate condition from in-support values up to the maximum and plot generation quality against it — her claim at 34:24 is that quality rises under modest extrapolation, then collapses past the training support.
+	- [ ] 3. Re-run the cross-entropy-method elite retraining with an anchor to the pretrained model (mix pretraining data back in, or regularise toward it) and check whether the copy-paste rate stays below the 0.540 collapse.
+	- [ ] 4. Treat naive token edits outside the model as already convicted by the 2026-08-27 mutation closure test — no new run, just cite it.
+	- [ ] 5. Decide whether any of these earns reopening the closed diffusion-generator arc, or whether the findings only go into the blog write-up.
+- [ ] 2026-08-17, replace VGC-Bench's PettingZoo environment with PufferLib and measure whether battle throughput jumps
+- [ ] 2026-08-18, reimplement VGC-Bench (*Towards Mastering Diverse Team Strategies in Competitive Pokémon*, 🟢 arXiv 2506.10326): run their release, reproduce their BC → self-play / fictitious play / double oracle results, then extend on team-pool size (545 Reg M-B teams) — the battle policy starts from this — work-list: [[Reimplement VGC-Bench — run the release, reproduce BC, self-play, fictitious play, double oracle, then extend on team-pool size]]
+- [ ] 2026-08-18, battle policy robust to team styles: sample both teams per episode from the 545-team pool, stratified by archetype; team-conditioned obs; opponents from checkpoint population (FP/DO); held-out archetypes for Glicko; add worst-case-archetype win rate as the "robust" metric
+- [ ] 2026-08-20, write up the 2026-08-18 battle-policy experiment plan — decided in chat, recorded nowhere in the vault yet
+	- [ ] 1. Arms are behaviour-cloning init plus pure self-play, fictitious play, and double oracle; no exploiter training arm. — the 2026-08-21 split into one note per arm was reverted 2026-08-23; all four arm notes deleted
+	- [ ] 2. The baseline is a random agent; the ranking is Glicko over the pool of arms plus the behaviour-cloning policy.
+	- [ ] 3. Success criterion: beat the behaviour-cloning policy ≥ 60% while no arm in the pool beats the winner > 55%.
+	- [ ] 4. Training team pool is VGC-Bench's 545 Reg M-B VGCPastes teams; the action space is VGC-Bench's 107-way per slot with policy-controlled team preview (§4.1), no separate 4-of-6 head.
+	- [ ] 5. Decide the opponent distribution the training objective uses — uniform over the VGCPastes Reg M-B pool is the recommendation on the table, still unconfirmed.
+- [ ] 2026-08-20, implement the FootsiesGym protocol (owner-approved 2026-08-20) as the arm-ranking harness: a seed-crossed cross-play matrix plus a per-arm best-response exploitability probe — the probe is a measurement, not a training arm.
+- [ ] 2026-08-20, implement action masking in the battle policy (Showdown legality is state-dependent; penalties suppress valid actions, RLC 2026 Paper 1) — background in [[How do you implementing maskout in reinforcement learning and whey do you need to mask out]].
+- [ ] 2026-08-23, decide where the PPO-vs-SAC rule puts each arm: choose PPO only if you can generate abundant fresh parallel rollouts and prioritise training simplicity/stability over simulator-sample efficiency; choose SAC when simulation is expensive, you have existing data, or need iterative expert fine-tuning (the [[Human-Like Goalkeeping in a Realistic Football Simulation a Sample-Efficient Reinforcement Learning Approach|goalkeeping paper]]'s setting) — so the question is: Showdown battles are cheap and parallelisable on this M4 Pro, which flips the heuristic back to PPO for the SP arm, but do the FP/DO arms — frozen opponent pool makes replay legal — earn an off-policy learner (Tianshou `DiscreteSACPolicy`), or does keeping one algorithm across all arms buy more than the sample efficiency would?
+- [ ] 2026-08-20, implement common-random-number seeding in the poke-env battle harness so two candidate teams are compared against the same opponents on identical Showdown seeds — the paired-battle estimator taught in Lesson 0006.
+- [ ] 2026-08-20, upgrade the behaviour-cloning arm to advantage-weighted behaviour cloning — the MED verdict from [[Convert Chess puzzles via offline RL (Applications) to pokemon vgc]].
+- [ ] 2026-08-20, prototype the cross-entropy method on the full-team search — a per-slot sampling distribution refit on the elite quantile — if decision 7 under the $f$ section keeps it beside simulated annealing and Bayesian optimisation.
+- [ ] 2026-08-20, prototype the deep-surrogate MAP-Elites loop from Lesson 0004 on the team search, then decide whether a fitted estimator of $f$ earns its training cost — that open question stays open until this runs.
+- [ ] 2026-08-20, patch the seed plumbing for the common-random-number item: Showdown's `>start` already takes a `seed`, but poke-env's challenge path never sends one, so both sides need a patch — [[Showdown seeds, PufferLib, VGC-Bench requirements — research findings]]
+- [ ] 2026-08-20, pin PufferLib 3.0.0 for the PettingZoo-swap item — `PettingZooPufferEnv` and the shared-memory vectorizer exist only on the 3.0 branch; 4.0 deleted the Python emulation layer entirely — same findings note. Owner decision 2026-08-20: 3.0 for now; a Showdown integration is reportedly in progress on the PufferLib Discord — revisit when it lands.
+- [ ] 2026-08-21, act on [[PufferLib for the battle-policy stack — research findings]] — the env wrapper alone delivers none of PufferLib's PPO improvements; those live only in its own training loop (`pufferlib/pufferl.py`)
+	- [ ] 1. VGC-Bench's `ShowdownEnv` fits `PettingZooPufferEnv` as-is — two agents, identical Box spaces — so the wrapper side costs nothing.
+	- [ ] 2. A vectorizer-only swap still needs a hand-written SB3 `VecEnv` adapter — PufferLib's `vector.py` API is its own recv/send, with no SB3 base class; VGC-Bench vectorises via SuperSuit in `src/env.py`.
+	- [ ] 3. Adopting the full PufferLib loop gains Muon, the C/CUDA GAE + V-trace kernel, prioritized minibatches, and bf16 — but forfeits VGC-Bench's `MaskedActorCriticPolicy` and callbacks, so action masking must be reimplemented.
+	- [ ] 4. No public trace of a Showdown integration anywhere in the PufferLib repo, issues, PRs, or docs (the `pokemon_red*` branches are the Game Boy env) — the Discord claim is unverifiable from primary sources; re-check before building on it.
+	- [ ] 5. Decide the experiment shape: vectorizer-only (clean throughput A/B, SB3 trainer kept) or the full PufferLib loop (the PPO improvements, but no longer a controlled comparison).
+- [ ] 2026-08-23, read PufferLib 5.0's native self-play implementation — 🟢 [PufferAI/PufferLib at 5.0](https://github.com/PufferAI/PufferLib/tree/5.0); the reference envs are `ocean/chain_reaction` and `ocean/guerrillacheckers`, not robocode (`config/robocode.ini` ships `selfplay.enabled = 0`).
+	- [ ] 1. Read `src/pufferl.cu:2494`–`2530`: the whole pool is `Selfplay{pool, max_size, opp_timeout_steps}` sampled uniformly over saved checkpoints.
+	- [ ] 2. Confirm the env's only self-play interface is the `Agent.policy` tag (`src/pufferenv.h:30`) and that `vec.hist_policy_percent` alone sets the current-vs-frozen env split (`src/pufferl.cu:1043`).
+	- [ ] 3. Compare the two observation conventions: chain reaction canonicalises to self/opponent channels (`chain_reaction.h:238`), guerrilla checkers keeps an absolute board plus a side id (`guerrillacheckers.h:679`).
+	- [ ] 4. Copy the cadence arithmetic commented in `config/guerrillacheckers.ini`, where `checkpoint_interval` and `opp_timeout_steps` are matched so the pool grows as fast as opponents refresh.
+	- [ ] 5. Decide whether the `match` mode (`src/pufferl.cu:2900`, two checkpoints head-to-head) is worth porting as the cross-play matrix harness, given 5.0 is C-only with no PettingZoo layer.
+- [ ] 2026-08-20, clone VGC-Bench with its pinned Showdown submodule (the fork's `vgc-bench` branch is mandatory per the README); the 545-team Reg M-B pool ships in `teams/reg_mb/`; Python 3.10–3.14, no GPU stated — same findings note. — done 2026-08-21: cloned to `~/code/vgc-bench`, submodule on `vgc-bench` branch, 545 teams verified, battle logs downloaded too
+- [ ] 2026-08-18, [[Behavior cloning a VGC battle policy from human Showdown replays]] — human Showdown replays → BC battle policy; the work-list (dataset v0/v1, two heads, rating bands, yardstick, code) moved there 2026-08-18
+
+- [x] 2026-08-15, go in talked in deployment finding a real world ladder to play agsint — done: the Showdown ladder; [[Decision — the stack is Showdown and poke-env]]
+- [x] 2026-08-15, fix the accumation of the ideas it can be oslve brute force by just having the search space reduce by 30 top pokemon team as we need to selecte move pool, items , abilities afterward having a 6 team battling against all the possible move is not possible — done: species enumeration is phase 1, set choice on the finalist team is phase 2; [[Decision — enumerate species subsets, don't optimise]] *(note deleted 2026-08-18, no replacement)*, [[Monte Carlo battle budget — what 800 battles can resolve]]
+- [x] 2026-08-15, What is the deliverable? — done: daily tweet → blog → matchup predictor on HuggingFace → workshop/conference paper; [[Determine what are some deliverable can I do]]
+- [x] 2026-08-15, Trying annealing as optimization techqniues and optimization / surrogate — done: the surrogate is the matchup predictor ([[Decision — the matchup predictor is ridge with pairwise terms]]); annealing not needed at the species layer, only for sets
+- [x] 2026-08-15, determine what is your stack will be — done: local Pokémon Showdown + `poke-env`, VGC 2026 Reg M-B, Pikalytics + Limitless; [[Decision — the stack is Showdown and poke-env]]
+
+## Process, writing & side threads
+
+- [x] 2026-08-14, fix the writing in "How my problem differs from TSP" — items listed at the bottom of that note; still open: compute the real slot size with item + 4 moves + tera — done 2026-08-21: slot size computed in §2 (≈7.3×10⁷ median with item + moves; tera is ×1 in Reg M-B) and the writing items fixed — superseded: the owner deleted that note and the "Why brute force is out" stub on 2026-08-21; the slot-size numbers survive in [[Clause or the feature of the search space]]
+- [ ] 2026-08-17, delete all the AI slop markdown file fisrt
+- [ ] I was thinking of the format and structure to a prompt that will be good and I probably need to practice prompting 
+- [ ] I remember talking about ev in ticket to ride, i notice that i struggling to communicate the ev I need to explain the ev in team building for example let start with opportunity cost and create list of topic to talked later i think create a markdown calaculting ev with pokemon  https://x.com/xuanalogue/status/2075736535899811879
+- [ ] 2026-08-19, watch 🟢 [So I tried Matt's skills... by Theo - t3gg](https://www.youtube.com/watch?v=0oXOOlqVu5M&t=371s) from 6:11, to get better at using Claude Code.
+
+- [x] 2026-08-14, fix the writing in [[Inverse design or combinatorial search — which am I doing]] — done 2026-08-15; six style items remain at the bottom of that note
+- [x] Generate some open question on how to increase writing quality for "IEEE CoG (Conference on Games)".md — done: 12 questions added to that note
+- [x] 2026-08-14, havinga relevant search in VCG AI competition is kinda obvious there is no need to write stuff done for it — done: deleted from [[VGC AI Competition (IEEE CoG)]]
+
+## Inbox
+
+- [ ] [[Using LLM to help win ml competition]] — moved here 2026-08-24 from the chase list; an ungraded idea, not a reading item
+- [ ] Could you build actual VGC puzzles from replays, the way Lichess mines chess games? Partially, and it's the interesting version of your question: *(moved here 2026-08-24 from the chase list)*
+- [ ] 2026-08-24, owner idea: use Obsidian Canvas for hierarchical, vertical priority-based task organisation — top-to-bottom layout encodes priority, canvas nodes group tasks by hierarchy; decide whether this replaces or supplements the flat checkbox list in this file before migrating anything.
+- [ ] I was wondering is possible to use a model base diffusion appraoch in where the output space is an entire pokemon the model can move through the gradient to find the optimal 
+	- 2026-08-26, answered in [[trying to retire this convert this into a blog (diffusion model as team generator for model-based search-research finding) into (Using diffusion model for black box optimzation)]]: possible in form (DDOM does it), but it needs win-rate labels the corpus lacks, memorises at a few hundred samples, and is the cross-entropy method with a costlier density.
+- [ ] 2026-08-18, read the three posts below from [The Pokémon Company - PTCG AI Battle Challenge Simulation](https://www.kaggle.com/competitions/pokemon-tcg-ai-battle) and decide whether the competition has anything for the battle-policy stage.
+	- [ ] 🟢 Read [Team Preferred 213tubo's Solution Overview by 213tubo](https://www.kaggle.com/competitions/pokemon-tcg-ai-battle/discussion/735867) — 9th place; imitation learning + RL (PPO), per-deck specialised policies, 16.7M and 117M-parameter models.
+	- [ ] 🟢 Read [My Internal Tooling + Play against my agent! by Abhyuday](https://www.kaggle.com/competitions/pokemon-tcg-ai-battle/discussion/735649) — 95th place; a local Elo leaderboard + round-robin arena for measuring bot strength, close to the cross-play matrix idea.
+	- [ ] 🟢 Read [Pokemon TCG AI - Team Magist Solution](https://www.kaggle.com/competitions/pokemon-tcg-ai-battle/writeups/team-magist-solution) — 117th-place write-up; pattern-database retrieval borrowed from Go.
+- [ ] 2026-08-19, have an LLM build a team, but only with a chain-of-thought trace that justifies each choice; the human exemplar of that reasoning is the team report 🟢 [Eggscelent Execution: 2012 World's Masters Finalist Team Analysis by Wolfey](https://nuggetbridge.com/reports/eggscelent-execution/).
+	- [ ] 1. Read Wolfey's report and list what each per-Pokémon section justifies — role, moves, spread, rejected alternatives, synergy pairs.
+	- [ ] 2. Decide what the trace must contain before a team counts as built, and whether the LLM team-builder is a search method or just a baseline.
+- [ ] Can we make a general text difufsion model we can make diffusion model to find to counter a certain pokemon, then we need to counter 2 pokemon how do we do this then
+	- 2026-08-26, answered in [[trying to retire this convert this into a blog (diffusion model as team generator for model-based search-research finding) into (Using diffusion model for black box optimzation)]]: countering two is the same conditioning as countering one (the condition is the opponent set); the missing piece is (opponent, counter) training pairs, which only battles produce.
+- [ ] 2026-08-21, settle the AlphaStar grill threads (questions and recommended answers in chat) before reading the paper — the five threads moved 2026-08-23 to [[Grandmaster level in StarCraft II using multi-agent reinforcement learning]]
+- [ ] [[Using AI model to intervene in human play to increase their level of performance by win rate]]
+
+- [x] What will deployment in real world look like — done: playing the top-$k$ teams on the Showdown ladder; [[Decision — the stack is Showdown and poke-env]]
+- [x] 2026-08-17, remove all the context for adversary — done: swept all 36 notes
+
+## Done
+
+- [x] 2026-08-17, work out which "multi-agent evaluation primitives" ladder validation needs — cross-play win matrix, round-robin / Elo, held-out-team generalisation — starting from [[VGC-Bench Towards Mastering Diverse Team Strategies in Competitive Pokémon]] — done 2026-08-18: only the held-out-team test (VGC-Bench §4.3 Eq. 6, §5.2) is a ladder primitive; cross-play matrix + Alpha-Rank (§4.3, §5.1) belong to the battle-policy experiment; Elo/round-robin not needed — Showdown Glicko-1 + RD is native; §5.4 human test is anecdotal, no ladder rating there. Detail in chat
+- [x] 2026-08-18, learn what Alpha-Rank is (VGC-Bench §4.3, Table 2 — the ranking they use instead of Elo; Omidshafiei et al. 2019, in [[Reading List]]) — done 2026-08-18: cross-play matrix → invasion Markov chain (large α) → stationary distribution = time each agent survives; handles non-transitive pools where Elo can't; VGC-Bench Table 2 reports the ordering only, to pick the pool champion for §5.2–5.3. Battle-policy tool, not ladder. `open_spiel.egt.alpharank`. Detail in chat
+- [x] [[AlphaRank]] — done 2026-08-18: frontmatter-only concept note, body is yours
+- [x] 2026-08-18, learn what a cross-play win matrix is (VGC-Bench §5.1, Fig. 3, Tables 8–11) — done 2026-08-18: 11×11 table, cell (i,j) = row agent's win rate vs column agent over 1000 battles (LLM: 100), teams drawn uniformly per game, diagonal blank, ±0.03; one table per team-set size (1/4/16/64 = Tables 8–11, Fig. 3 = same as heatmaps); Alpha-Rank's input. Detail in chat
+- [x] 2026-08-15, decide what the battle policy trains on: human replays, self-play, or a scripted baseline — revised 2026-08-18: an experiment, not a pick — behaviour cloning, RL, and self-play variants (SP / FP / DO) compared on the same team pool, ranked by cross-play matrix; see [[Why Self-Play is consider Multi-Agent]]
+- [x] 2026-08-15, start the process on reading academic paper staring the process of reading the paper is the starting the process building up to read the paper *(moved here 2026-08-24 from the chase list)*
+- [x] 2026-08-14, I am able to find paper on neural routing problem i was wondering are they applicable to my problems *(moved here 2026-08-24)*
+- [x] 2026-08-18, find papers that apply weighted maximum coverage (or a learned pairwise objective over a k-subset) to a problem shaped like VGC team building — hero/champion drafting in MOBAs, card-deck building, sports lineup selection, portfolio-style team composition; grade each HIGH/MED/LOW for the objective function $f$ — done 2026-08-19: 16 papers graded, 0 HIGH survive the 2026-08-19 deep-read verification: Skowron & Faliszewski lowered to LOW (the CC ≡ MaxCover equivalence is real but its MaxCover is unweighted/binary and the FPT algorithms are infeasible at VGC scale), Q-DeckRec lowered to MED, arXiv 2605.09588 retracted by the owner; nobody aims weighted max coverage at an opponent meta — reports in chat · a second sweep the same day graded 26 papers (6 HIGH) in [Teaching/RESOURCES.md](Teaching/RESOURCES.md), closest match Haugh & Singal (Management Science 2021); same verdict on the gap *(moved here 2026-08-24)*
+- [x] 2026-08-18, find AI competitions whose task is the same shape as VGC team building — pick a k-subset to beat a field — e.g. Hearthstone / Legends of Code and Magic deck-building (IEEE CoG), Dota 2 / LoL drafting, fantasy-sports lineup contests; one line each: venue, what is built, how it is scored; add each venue under its conference in [[_Workshops index]] — done 2026-08-19: 2 rows + 3 screened bullets added under IEEE CoG there; MOBA drafting and fantasy lineups have no competition venue *(moved here 2026-08-24)*
+- [x] 2026-08-19, find papers that specifically use black-box optimisers (evolutionary / CMA-ES, simulated annealing, Bayesian optimisation, cross-entropy) for deck building, and grade each HIGH/MED/LOW for reuse in the team search — done 2026-08-19: 13 papers, every grade deep-read-verified by a second agent; one HIGH stands (Zhang et al., GECCO 2022, deep-surrogate MAP-Elites); Pokémon GO (JIS 2026) fell to LOW; no Bayesian-optimisation or annealing deck-building paper exists — reports in chat *(moved here 2026-08-24)*
+- [x] 2026-08-18, find any relevant paper on W. Bradley Knox's personal site that would help this project — <https://bradknox.net/reward-specification/> (author of *How to Specify RL Objectives*, the #1 pick in [[Finding the Frame — papers relevant to the counter-team search]]) — dropped 2026-08-18: not interested in the author; papers stand on their own *(moved here 2026-08-24)*
+- [x] What is weighted set cover
+- [x] 2026-08-14, determine what math that will be helpful for me on this topic category theory if category theory what is the prerequiste — see [[Online Courses — math curriculum for the VGC project]]; category theory not needed
+- [x] 2026-08-14, add the goal stuff in "I want a list of online course I can take that will help me understand the necesary matheatmic to complete this projects I don't plus i graduate with a computer science degree from UTD known as MIT of the south"
+- [x] 2026-08-14, Give the list of workshop make sure each one have their own seperate markdown file where each one of url to their website, essential properteies atmost three paper that will potential interest me for this projects of pokemon search for the best competition team, add update_at and create_at peroties and some tag to it. Check if each workshop relevant to my search problem Don't get ti write an ai generate tag to it please add stuff your claude memory furthermore — done: [[_Workshops index]]
+	- [x] There need some clean up there should be no essential properties section in the fables those should be only in the properties section , website link includeing , fix any other similar issues — done
+- [x] 2026-08-14, I was thinking about the diffusion method given a condition a pokemon generete a pokemon that can beat the pokemon team which is possible it requires this requires have a huge pokemon however there are plenty of pokemon also we can search with the diffusion model I thinking of some idea right now — done: [[Diffusion for conditional counter-team generation]]
+- [x] 2026-08-14, I want you to create a list of paper from the RLC conference workshop finding the frame between 2024 to 2026 about paper that potential be relevant to this project Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon. I think a first list of step to understand the title of the paper, what type of rl, who are the research — done: [[Finding the Frame — papers relevant to the counter-team search]]
+- [x] 2026-08-14,Determine if finding the frame workshop have relevant paper that will be good for this project — verdict MEDIUM, framing only; same note
+- [x] 2026-08-14, can you search for me online for academic research similar workshop that find relevant search for this projects — done: [[_Workshops index]]; biggest find [[VGC AI Competition (IEEE CoG)]]
+- [x] 2026-08-14, Determine what method are doing here are we trying to do inverse design or actual combinatoric search because each have their ow — done: combinatorial search; [[Inverse design or combinatorial search — which am I doing]]
+- [x] 2026-08-14, I feel like this paper kinda does the spiririt i want to solve the problem Learning the Travelling Salesperson Problem Requires Rethinking Generalization only reading from the title of the paper , first determine is the paper is relevant and good starting point for our problem afterward if so then let which conference or workshop. Afterward, place there. I was wondering let make it into a todo item — done: verdict MED, filed in [[CP (Constraint Programming conference)]]
+- [x] 2026-08-14, Build a five-paper reading path around this work for relevant pape — done: [[Reading path — neural CO for team selection]]
+- [x] 2026-08-14, take some lesson in writiting in where this make no sense to me "# IEEE CoG — Conference on GamesThe IEEE Conference on Games — an academic venue for AI applied to games people actually play.Its CFP states it **does not accept game-theory papers unless they are applied to games peoplewould play**, such as video games or board games. That's a useful filter for me: I'm not doingabstract game theory, I'm doing VGC." does add anythign else — done: paragraph deleted; [[Lessons for Claude — writing quality in this vault]]
+- [x] 2026-08-14, the paper **[[VGC-Bench Towards Mastering Diverse Team Strategies in Competitive Pokémon]]** was not a paper sent IEEE understand where you got it wrong and explain and make sure the mistake never happen again — done: it is AAMAS 2026; moved to [[AAMAS (Autonomous Agents and Multiagent Systems)]]; rules 12–13 in [[Lessons for Claude — writing quality in this vault]]
+- [x] 2026-08-14, explain this to me on the detail about the aspect in where you recommend to use the spring to access cost me money and have an insution account. i don;t have any one. Therefore, instead just cite the IEEE paper from it instead okay now this will help improve on your writing — done: no IEEE version exists (HCII 2024, Springer only); citations now carry 🟢/🔒 labels; rule 13 in [[Lessons for Claude — writing quality in this vault]]
+- [x] 2026-08-14, It took a while to understand on the aspect in you see current text to generation problem is an actually inverse generation problem i thought for example if you say I want a snow team pokemon with a garchomp team that will be inverse problem not a combinatorical problem, anyway you make this into a contraint combinatorics problem for this case the question what is clear line of seperatino of the method
+- [x] 2026-08-14, you write too much for this "Inverse design or combinatorial search — which am I doing".md — done: cut 127 → 88 lines
+- [x] 2026-08-14, for section like this Papers that could interest me (≤3) it does not need to have to be less than 3 it was beginning ideas I see as limiting right now delete the clause just list all the paper that you deem is relevant — done: cap removed everywhere
+- [x] Add all relevant paper from this link into your vault <https://gitlab.com/DracoStriker/pokemon-vgc-engine/-/wikis/Documentation/Research> — done: 9 added to [[VGC AI Competition (IEEE CoG)]]; top find is the Reis ToG 2023 team-building paper
+- [x] 2026-08-14, explain to me how this paper is relevant to me "**Geometric Algorithms for Neural Combinatorial Optimization with Constraints**" — done: verdict LOW, note deleted 2026-08-24

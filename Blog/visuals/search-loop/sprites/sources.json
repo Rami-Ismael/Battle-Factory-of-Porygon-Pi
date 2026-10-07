@@ -1,0 +1,48 @@
+{
+  "retrieved": "2026-09-13",
+  "collection": "Pok\u00e9mon Showdown static front sprites (gen5 directory)",
+  "assets": [
+    {
+      "file": "excadrill.png",
+      "source": "https://play.pokemonshowdown.com/sprites/gen5/excadrill.png",
+      "sha256": "88af42cd03f6f29edce9763008d9520d6307faaa5046ea5b8792378a215d9205",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "file": "tyranitar.png",
+      "source": "https://play.pokemonshowdown.com/sprites/gen5/tyranitar.png",
+      "sha256": "40e6c46fe10c2901b4a3429484141ddac1ded8aee25b785d4f7642b1da7d69de",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "file": "staraptor.png",
+      "source": "https://play.pokemonshowdown.com/sprites/gen5/staraptor.png",
+      "sha256": "2c7c30aaf625cca016350ef5cb65ca3a6e03f551e05fbb8f1742f247e4c52062",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "file": "basculegion.png",
+      "source": "https://play.pokemonshowdown.com/sprites/gen5/basculegion.png",
+      "sha256": "112be4e391349a9fa46e2d183eaaf2b7601a083936cc989bab387fe657a5234f",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "file": "sinistcha.png",
+      "source": "https://play.pokemonshowdown.com/sprites/gen5/sinistcha.png",
+      "sha256": "a8492f02cb3cf00bf9d988684cc9692599fbc4a43b76bcea157d607085d65bf6",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "file": "raichu.png",
+      "source": "https://play.pokemonshowdown.com/sprites/gen5/raichu.png",
+      "sha256": "3a5ab73e2d0b6e3e4ffecf39024d94505eb567ef27989a45f852fdeef04d8ec2",
+      "width": 96,
+      "height": 96
+    }
+  ]
+}

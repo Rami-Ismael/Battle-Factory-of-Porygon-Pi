@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Active Flow Matching — an illustrated method</title>
+  <style>
+    :root {
+      --paper: #f3f7f8;
+      --white: #fff;
+      --ink: #16334a;
+      --muted: #5a7181;
+      --line: #cbd9df;
+      --teal: #087d80;
+      --teal-light: #dff5f2;
+      --blue: #24669b;
+      --blue-light: #e8f2fb;
+      --coral: #be6546;
+      --coral-light: #fff0e9;
+      --violet: #6a56a5;
+      --violet-light: #f0edfa;
+      --gold: #ad6a20;
+      --gold-light: #fff4e5;
+      --ease-out: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button { font: inherit; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--coral); outline-offset: 4px; }
+    .shell { max-width: 1480px; margin: auto; padding: 0 clamp(20px, 4vw, 65px) 90px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 850; letter-spacing: -.05em; }
+    .mark { width: 35px; height: 29px; display: flex; gap: 3px; align-items: center; }
+    .mark i { display: block; width: 6px; border-radius: 4px; background: var(--teal); transform: skewY(-15deg); }
+    .mark i:nth-child(1), .mark i:nth-child(5) { height: 10px; opacity: .5; }
+    .mark i:nth-child(2), .mark i:nth-child(4) { height: 19px; }
+    .mark i:nth-child(3) { height: 28px; background: var(--coral); }
+    .top a { text-decoration: none; border-bottom: 1px solid currentColor; color: var(--teal); font-size: 14px; font-weight: 750; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(270px, .48fr); gap: 40px; align-items: end; padding: clamp(55px, 7vw, 107px) 0 57px; }
+    .hero h1 { margin: 0; max-width: 970px; font-size: clamp(47px, 6vw, 90px); line-height: 1; letter-spacing: -.075em; font-weight: 820; }
+    .hero p { margin: 0 0 6px; max-width: 385px; color: var(--muted); font-size: clamp(17px, 1.45vw, 20px); line-height: 1.55; }
+    .hero strong { color: var(--ink); }
+    .main { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+    .main-title { display: flex; justify-content: space-between; gap: 18px; align-items: baseline; padding: 18px 0; }
+    .main-title h2 { margin: 0; font-size: 18px; letter-spacing: -.025em; }
+    .main-title p { margin: 0; color: var(--muted); font-size: 13px; }
+    .workspace { display: grid; grid-template-columns: 244px minmax(0, 1fr); border-top: 1px solid var(--line); }
+    .rail { display: flex; flex-direction: column; gap: 5px; padding: 25px 17px 25px 0; border-right: 1px solid var(--line); }
+    .step { display: grid; grid-template-columns: 28px 1fr; gap: 9px; width: 100%; padding: 12px 9px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted); text-align: left; cursor: pointer; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+    .step .n { font-size: 12px; font-weight: 850; }
+    .step .label { font-size: 15px; font-weight: 750; }
+    .step[aria-current="step"] { color: var(--teal); background: var(--teal-light); border-color: #bce7e2; }
+    @media (hover: hover) and (pointer: fine) { .step:hover { background: var(--teal-light); color: var(--teal); } }
+    .rail-note { margin: auto 4px 0; padding-top: 30px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+    .content { min-width: 0; padding: clamp(22px, 3vw, 43px); background: var(--white); }
+    .story-head { display: grid; grid-template-columns: 1fr auto; gap: 25px; min-height: 115px; }
+    .story-head h3 { margin: 0; font-size: clamp(27px, 2.9vw, 40px); line-height: 1.1; letter-spacing: -.055em; }
+    .story-head p { margin: 8px 0 0; max-width: 760px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+    .count { color: var(--teal); font-size: 13px; font-weight: 850; padding-top: 4px; }
+    .board { position: relative; min-height: 550px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #f9fcfd; background-image: linear-gradient(90deg, #edf2f4 1px, transparent 1px), linear-gradient(#edf2f4 1px, transparent 1px); background-size: 25px 25px; }
+    .scene { position: absolute; inset: 0; padding: clamp(20px, 3vw, 40px); opacity: 0; transform: translateY(14px); visibility: hidden; pointer-events: none; transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out), visibility 260ms; }
+    .scene.active { opacity: 1; transform: translateY(0); visibility: visible; pointer-events: auto; }
+    .scene-title { margin: 0 0 19px; color: var(--muted); font-size: 13px; font-weight: 800; }
+    .scene-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(12px, 2vw, 30px); align-items: center; min-height: 290px; }
+    .panel { min-width: 0; padding: clamp(15px, 2vw, 25px); border: 2px solid var(--line); border-radius: 10px; background: white; }
+    .panel h4 { margin: 0 0 15px; font-size: clamp(19px, 2vw, 28px); letter-spacing: -.045em; }
+    .panel p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .panel.teal { background: var(--teal-light); border-color: #afe0dc; }
+    .panel.blue { background: var(--blue-light); border-color: #b8d7ee; }
+    .panel.coral { background: var(--coral-light); border-color: #edc0af; }
+    .panel.violet { background: var(--violet-light); border-color: #cec4ec; }
+    .panel.gold { background: var(--gold-light); border-color: #edd3b0; }
+    .arrow { font-size: 35px; color: var(--teal); font-weight: 800; }
+    .equation { font-size: clamp(20px, 2.4vw, 31px); font-weight: 800; letter-spacing: -.04em; line-height: 1.3; }
+    .crossed { text-decoration: line-through; text-decoration-color: var(--coral); text-decoration-thickness: 4px; }
+    .small { margin-top: 17px !important; font-size: 12px !important; }
+    .flow-paths { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin: 17px 0 19px; color: var(--muted); font-size: 13px; }
+    .flow-paths i { display: block; width: 11px; height: 11px; border-radius: 50%; background: #aac4cf; }
+    .flow-paths i:nth-child(3) { background: var(--coral); }
+    .data-table { display: grid; gap: 7px; }
+    .data-row { display: grid; grid-template-columns: 1fr 48px 64px; gap: 9px; align-items: center; padding: 9px 11px; background: white; border: 1px solid #cbe4e1; border-radius: 7px; font-size: 13px; }
+    .data-row span:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; letter-spacing: .04em; }
+    .data-row b { color: var(--teal); text-align: right; }
+    .data-row em { color: var(--muted); font-style: normal; text-align: right; }
+    .classifier { display: grid; gap: 10px; }
+    .classifier .line { display: grid; grid-template-columns: 31px 1fr 43px; gap: 8px; align-items: center; font-size: 13px; font-weight: 750; color: var(--blue); }
+    .track { height: 10px; background: #d5e6f2; border-radius: 8px; overflow: hidden; }
+    .track i { display: block; width: var(--w); height: 100%; border-radius: inherit; background: var(--blue); transform: scaleX(.08); transform-origin: left; transition: transform 650ms var(--ease-out); }
+    .scene.active .track i { transform: scaleX(1); }
+    .mix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0 13px; }
+    .mix-item { min-width: 0; min-height: 132px; padding: 13px; border-radius: 10px; border: 2px solid; background: white; font: inherit; text-align: left; cursor: pointer; transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), background-color 200ms ease; }
+    .mix-item[aria-pressed="true"] { transform: translateY(-4px); box-shadow: 0 10px 22px rgba(22, 51, 74, .11); background: #fff; }
+    @media (hover: hover) and (pointer: fine) { .mix-item:hover { transform: translateY(-3px); } }
+    .mix-item strong { display: block; margin: 11px 0 7px; font-size: 19px; letter-spacing: -.035em; }
+    .mix-item p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .mix-item .symbol { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; font-size: 20px; font-weight: 850; }
+    .mix-item.prior { border-color: #b7d5eb; } .mix-item.prior .symbol { color: var(--blue); background: var(--blue-light); }
+    .mix-item.flow { border-color: #c7bdeb; } .mix-item.flow .symbol { color: var(--violet); background: var(--violet-light); }
+    .mix-item.replay { border-color: #edc6a4; } .mix-item.replay .symbol { color: var(--gold); background: var(--gold-light); }
+    .mix-equation { margin: 0; color: var(--ink); font-size: clamp(16px, 1.7vw, 22px); font-weight: 800; letter-spacing: -.035em; }
+    .source-detail { min-height: 125px; margin: 14px 0 10px; padding: 15px 17px; border: 1px solid #cbd9df; border-radius: 9px; background: white; }
+    .source-detail strong { display: block; margin-bottom: 8px; font-size: 17px; letter-spacing: -.03em; }
+    .source-detail p { margin: 0 0 6px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .source-detail b { color: var(--ink); }
+    .stage-note { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .weight-row { display: flex; align-items: center; gap: 8px; margin: 17px 0; flex-wrap: wrap; }
+    .weight { display: grid; place-items: center; width: clamp(42px, 5vw, 64px); height: clamp(42px, 5vw, 64px); border: 1px solid #ecc4b4; border-radius: 8px; background: white; color: var(--coral); font: 800 15px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .weight.heavy { color: white; background: var(--coral); transform: translateY(-6px); }
+    .tokens { display: flex; flex-wrap: wrap; gap: 7px; margin: 19px 0; }
+    .token { display: grid; place-items: center; min-width: 41px; height: 43px; padding: 0 8px; border: 1px solid #b7c7d2; border-radius: 7px; background: white; color: var(--ink); font: 800 16px ui-monospace, SFMono-Regular, Menlo, monospace; transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out), background-color 240ms ease; }
+    .token.mask { color: #6b8291; background: #dbe6eb; }
+    .scene.active .token { transform: translateY(-3px); }
+    .scene.active .token:nth-child(2) { transition-delay: 50ms; } .scene.active .token:nth-child(3) { transition-delay: 100ms; } .scene.active .token:nth-child(4) { transition-delay: 150ms; } .scene.active .token:nth-child(5) { transition-delay: 200ms; }
+    .loss { margin-top: 17px; padding: 12px 16px; border-radius: 7px; color: #9c4c2d; background: white; border: 1px solid #e8c1af; font-size: 16px; font-weight: 850; }
+    .sequence-stack { display: grid; gap: 11px; }
+    .sequence-row { display: flex; align-items: center; gap: 10px; }
+    .sequence-row .time { width: 38px; color: var(--muted); font-size: 13px; font-weight: 850; }
+    .sequence-row .tokens { margin: 0; }
+    .oracle-arrow { display: flex; gap: 12px; align-items: center; margin: 18px 0; color: var(--blue); font-weight: 850; font-size: 16px; }
+    .oracle-arrow::before { content: "→"; font-size: 26px; }
+    .result-list { display: grid; gap: 10px; margin: 15px 0; }
+    .result-line { display: grid; grid-template-columns: 145px 1fr; gap: 12px; padding: 12px 14px; background: white; border: 1px solid var(--line); border-radius: 7px; font-size: 13px; }
+    .result-line strong { color: var(--teal); }
+    .controls-row { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding-top: 22px; }
+    .progress { display: flex; gap: 6px; flex: 1; max-width: 330px; }
+    .progress i { height: 4px; flex: 1; border-radius: 3px; background: #d8e3e7; transition: background-color 160ms ease; }
+    .progress i.on { background: var(--teal); }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+    .controls button { min-height: 40px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink); font-weight: 750; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+    .controls button.primary { background: var(--teal); border-color: var(--teal); color: white; }
+    .controls button:disabled { opacity: .45; cursor: default; }
+    @media (hover: hover) and (pointer: fine) { .controls button:not(:disabled):hover { background: var(--teal-light); color: var(--teal); } .controls button.primary:hover { background: #05686b; color: white; } }
+    .below { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(30px, 5vw, 85px); padding-top: 64px; }
+    .below h2 { margin: 0 0 17px; font-size: clamp(26px, 2.6vw, 37px); letter-spacing: -.05em; }
+    .below p, .below li { color: var(--muted); font-size: 15px; line-height: 1.63; }
+    .below ul { margin: 14px 0 0; padding-left: 20px; }
+    .below li { margin-bottom: 8px; }
+    .source { margin-top: 26px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .source a { color: var(--teal); font-weight: 750; }
+    @media (max-width: 950px) {
+      .workspace { grid-template-columns: 1fr; }
+      .rail { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 14px 0; }
+      .step { flex: 0 0 auto; width: auto; grid-template-columns: auto auto; }
+      .rail-note { display: none; }
+      .board { min-height: 620px; }
+    }
+    @media (max-width: 700px) {
+      .hero, .below { grid-template-columns: 1fr; }
+      .hero { gap: 16px; padding-bottom: 42px; }
+      .top { align-items: start; }
+      .top a { max-width: 135px; text-align: right; }
+      .content { padding: 20px; }
+      .story-head { min-height: 145px; }
+      .board { min-height: 700px; }
+      .scene { padding: 20px; }
+      .scene-grid { grid-template-columns: 1fr; gap: 9px; align-content: center; min-height: 480px; }
+      .scene-grid .arrow { transform: rotate(90deg); text-align: center; line-height: 25px; }
+      .panel { padding: 16px; }
+      .mix { grid-template-columns: 1fr; gap: 7px; }
+      .mix-item { min-height: auto; display: grid; grid-template-columns: 35px 1fr; gap: 0 9px; padding: 10px; }
+      .mix-item .symbol { grid-row: span 2; }
+      .mix-item strong { margin: 0; font-size: 16px; }
+      .mix-item p { font-size: 12px; }
+      .source-detail { min-height: 150px; }
+      .result-line { grid-template-columns: 1fr; gap: 4px; }
+      .controls-row { flex-direction: column; align-items: stretch; }
+      .controls { justify-content: end; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scene, .token, .track i, .weight.heavy, .mix-item { transform: none !important; }
+      .scene { transition: opacity 180ms ease, visibility 180ms; }
+      .token, .track i { transition: opacity 180ms ease, background-color 180ms ease; }
+      .track i { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="top">
+      <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span> AFM sequence lab</div>
+      <a href="../../Papers/Active%20Flow%20Matching%20-%20visual%20explanation.excalidraw">Open editable diagram</a>
+    </header>
+    <section class="hero">
+      <h1>How do you aim a flow at rare good designs?</h1>
+      <p><strong>Active Flow Matching</strong> learns from expensive fitness measurements while keeping the parallel refinement of a discrete flow model.</p>
+    </section>
+    <main>
+      <section class="main" aria-labelledby="explainer-heading">
+        <div class="main-title"><h2 id="explainer-heading">One online round, from score to next batch</h2><p>Advance through the method at your own pace.</p></div>
+        <div class="workspace">
+          <nav class="rail" aria-label="Explanation steps">
+            <button class="step" data-step="0" aria-current="step"><span class="n">01</span><span class="label">The missing density</span></button>
+            <button class="step" data-step="1"><span class="n">02</span><span class="label">Learn from scores</span></button>
+            <button class="step" data-step="2"><span class="n">03</span><span class="label">Choose proposals</span></button>
+            <button class="step" data-step="3"><span class="n">04</span><span class="label">Weight the denoiser</span></button>
+            <button class="step" data-step="4"><span class="n">05</span><span class="label">Generate and test</span></button>
+            <button class="step" data-step="5"><span class="n">06</span><span class="label">Read the evidence</span></button>
+            <p class="rail-note">Token strings, fitness values, and probability bars are illustrative. The method and qualitative results follow the paper.</p>
+          </nav>
+          <div class="content">
+            <div class="story-head" aria-live="polite"><div><h3 id="stage-title">A flow can sample without giving its final density</h3><p id="stage-description">To get the probability of one completed sequence, we would have to sum over its many possible stochastic generation paths.</p></div><span class="count" id="stage-count">1 / 6</span></div>
+            <div class="board" aria-label="Active Flow Matching visual explanation">
+              <div class="scene active" data-scene="0">
+                <p class="scene-title">The mathematical obstacle</p>
+                <div class="scene-grid">
+                  <div class="panel blue"><h4>Implicit flow</h4><p>A masked or simple source is refined in parallel until it becomes a completed sequence.</p><div class="flow-paths"><span>MASK</span><i></i><i></i><i></i><span>SEQUENCE</span></div><p>Many paths can lead to the same endpoint.</p></div>
+                  <div class="arrow" aria-hidden="true">→</div>
+                  <div class="panel coral"><h4>Use what is available</h4><div class="equation crossed">qφ(x)</div><p>Final sequence density: no simple expression.</p><div class="equation" style="margin-top:19px;color:var(--teal)">qφ(x₁ | xₜ, t)</div><p>Conditional endpoint prediction: directly available.</p></div>
+                </div>
+              </div>
+              <div class="scene" data-scene="1">
+                <p class="scene-title">Observed fitness gives the steering signal</p>
+                <div class="scene-grid">
+                  <div class="panel teal"><h4>Measured designs</h4><div class="data-table"><div class="data-row"><span>AKM…</span><em>y</em><b>0.22</b></div><div class="data-row"><span>TRQ…</span><em>y</em><b>0.81</b></div><div class="data-row"><span>WLP…</span><em>y</em><b>0.94</b></div></div><p class="small">Illustrative scores; each row comes from the external oracle.</p></div>
+                  <div class="arrow" aria-hidden="true">→</div>
+                  <div class="panel blue"><h4>High-fitness classifier</h4><p>Learn P(y ≥ τ | x) from the measured dataset.</p><div class="classifier" style="margin:18px 0"><div class="line"><span>A</span><div class="track"><i style="--w:22%"></i></div><span>.22</span></div><div class="line"><span>B</span><div class="track"><i style="--w:73%"></i></div><span>.73</span></div><div class="line"><span>C</span><div class="track"><i style="--w:91%"></i></div><span>.91</span></div></div><p>The probability estimate guides training; it is not a new oracle measurement.</p></div>
+                </div>
+              </div>
+              <div class="scene" data-scene="2">
+                <p class="scene-title">Training proposals balance exploration, refinement, and verified examples</p>
+                <p class="mix-equation">μ(x₁) = α₀ p₀(x₁) + αflow q₁θ(x₁) + αreplay r(x₁)</p>
+                <div class="mix" aria-label="Select a proposal source">
+                  <button type="button" class="mix-item prior" data-source="prior" aria-pressed="true"><span class="symbol">∞</span><strong>Prior</strong><p>Broad exploration</p></button>
+                  <button type="button" class="mix-item flow" data-source="flow" aria-pressed="false"><span class="symbol">↝</span><strong>Previous flow</strong><p>Local refinement</p></button>
+                  <button type="button" class="mix-item replay" data-source="replay" aria-pressed="false"><span class="symbol">★</span><strong>Replay buffer</strong><p>Verified high scores</p></button>
+                </div>
+                <div class="source-detail" aria-live="polite"><strong id="source-title">Prior: random complete candidates</strong><p id="source-summary">Draw a complete endpoint x₁ by choosing each sequence token uniformly. This can reach regions the learned flow overlooks.</p><p><b>Training weight:</b> <span id="source-weight">proportional to P(y ≥ τ | x₁), because the prior cancels.</span></p><p><b>Tradeoff:</b> <span id="source-tradeoff">When good designs are rare, many random draws have low predicted fitness.</span></p></div>
+                <p class="stage-note">Here “prior” means a random complete endpoint x₁, not the flow's start state x₀. One source is chosen per training minibatch; its samples receive source-specific weights. <a href="../../Papers/Active%20Flow%20Matching%20-%20reading%20guide.md">See the worked example</a> and paper §3.5.</p>
+              </div>
+              <div class="scene" data-scene="3">
+                <p class="scene-title">Forward-KL AFM turns high-fitness probability into weighted denoising</p>
+                <div class="scene-grid">
+                  <div class="panel coral"><h4>Weight endpoint examples</h4><p>Self-normalised importance sampling favors designs likely to pass the fitness threshold, while correcting for where proposals came from.</p><div class="weight-row" aria-label="Illustrative importance weights"><span class="weight">.1</span><span class="weight heavy">.8</span><span class="weight">.3</span><span class="weight heavy">.9</span></div><p class="small">Numbers illustrate weighting; they are not reported experiment data.</p></div>
+                  <div class="arrow" aria-hidden="true">→</div>
+                  <div class="panel teal"><h4>Fit the conditional endpoint</h4><p>Corrupt an endpoint x₁ into an intermediate xₜ, then predict x₁ from the whole partial sequence.</p><div class="tokens" aria-label="Illustrative partially masked sequence"><span class="token mask">M</span><span class="token">R</span><span class="token mask">M</span><span class="token">G</span><span class="token mask">M</span></div><div class="loss">weighted cross-entropy → update φ</div></div>
+                </div>
+              </div>
+              <div class="scene" data-scene="4">
+                <p class="scene-title">The updated flow proposes a batch for expensive evaluation</p>
+                <div class="scene-grid">
+                  <div class="panel violet"><h4>Parallel refinement</h4><div class="sequence-stack"><div class="sequence-row"><span class="time">t=0</span><div class="tokens"><span class="token mask">M</span><span class="token mask">M</span><span class="token mask">M</span><span class="token mask">M</span></div></div><div class="sequence-row"><span class="time">t≈½</span><div class="tokens"><span class="token">R</span><span class="token mask">M</span><span class="token">G</span><span class="token mask">M</span></div></div><div class="sequence-row"><span class="time">t=1</span><div class="tokens"><span class="token">R</span><span class="token">T</span><span class="token">G</span><span class="token">L</span></div></div></div></div>
+                  <div class="arrow" aria-hidden="true">→</div>
+                  <div class="panel blue"><h4>Oracle and next round</h4><p>Evaluate the new batch with the real fitness function.</p><div class="oracle-arrow">new sequence → measured y</div><p>Add the resulting sequence–score pairs to Dᵣ₊₁. Retrain the classifier and update the flow again.</p></div>
+                </div>
+              </div>
+              <div class="scene" data-scene="5">
+                <p class="scene-title">What the experiments support</p>
+                <div class="scene-grid">
+                  <div class="panel teal"><h4>Forward-KL is the strongest variant here</h4><div class="result-list"><div class="result-line"><strong>Ehrlich + AAV</strong><span>Fast convergence and low regret in the reported comparisons.</span></div><div class="result-line"><strong>Protein stability</strong><span>Best reported search progress among compared methods.</span></div><div class="result-line"><strong>F2 docking</strong><span>Higher scores than VSD in this experiment.</span></div></div></div>
+                  <div class="arrow" aria-hidden="true">↔</div>
+                  <div class="panel gold"><h4>The exceptions matter</h4><div class="result-list"><div class="result-line"><strong>Protein SASA</strong><span>AFM underperformed VSD and CbAS.</span></div><div class="result-line"><strong>Early rounds</strong><span>Sparse data can make classifier estimates unreliable.</span></div><div class="result-line"><strong>Importance weights</strong><span>Poor proposal overlap can cause high variance.</span></div></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="controls-row"><div class="progress" id="progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div><div class="controls"><button id="previous" type="button" disabled>← Back</button><button id="play" type="button" aria-pressed="false">Play method</button><button id="next" class="primary" type="button">Next →</button></div></div>
+          </div>
+        </div>
+      </section>
+      <section class="below">
+        <div><h2>What actually changes?</h2><p>AFM fine-tunes the discrete flow’s denoiser. A fitness classifier estimates which endpoints are likely to exceed a threshold. Importance-weighted training puts more learning weight on those endpoints, then the updated flow generates another batch for external evaluation.</p><p>The forward-KL consistency result is conditional on the paper’s assumptions, including the specified masked-source path and an optimal training solution. It is a statement about the target distribution under those assumptions, not a guarantee that finite-budget runs find the global best design.</p></div>
+        <div><h2>For the Pokémon project</h2><p>A team is a structured discrete object and battles provide expensive, noisy scores, so the active-generation loop is relevant as a research direction. Applying AFM would require a legal team representation, a reliable high-fitness classifier, and explicit handling of opponent distributions and battle noise.</p><ul><li>Compare equal battle budgets, including rejected or duplicate proposals.</li><li>Measure independent win rate, validity, diversity, and best-team regret where a reference is available.</li><li>Treat this as a proposed transfer experiment; the paper reports protein and molecule tasks, not Pokémon teams.</li></ul></div>
+      </section>
+      <p class="source">Source: Grewal et al., <a href="https://arxiv.org/html/2603.00877">Active Flow Matching</a>, §§2–6 and Algorithm 1. All token strings, numeric scores, classifier bars, and weights shown in the animation are illustrative.</p>
+    </main>
+  </div>
+  <script>
+    const stages = [
+      { title: "A flow can sample without giving its final density", description: "To get the probability of one completed sequence, we would have to sum over its many possible stochastic generation paths." },
+      { title: "Turn measured scores into a high-fitness signal", description: "A classifier trained on observed sequence–score pairs estimates the probability that a design exceeds the current fitness threshold." },
+      { title: "Draw endpoints from three useful sources", description: "The prior draws random complete sequences for training. Select a source to see its role, weight, and tradeoff." },
+      { title: "Weight and train the conditional endpoint", description: "Correct proposal samples with importance weights, corrupt them along a flow path, and update the endpoint predictor with weighted cross-entropy." },
+      { title: "Sample, measure, and repeat", description: "The updated flow proposes a new batch. Oracle evaluations become new labels in the next round's dataset." },
+      { title: "Read the gains with their exceptions", description: "Forward-KL AFM performs strongly on several reported tasks, while protein SASA and finite-sample estimation expose important limits." }
+    ];
+    const byId = id => document.getElementById(id);
+    const stepButtons = [...document.querySelectorAll(".step")];
+    const scenes = [...document.querySelectorAll(".scene")];
+    const progress = [...document.querySelectorAll("#progress i")];
+    const sourceButtons = [...document.querySelectorAll(".mix-item[data-source]")];
+    const sourceDetails = {
+      prior: {
+        title: "Prior: random complete candidates",
+        summary: "Draw a complete endpoint x₁ by choosing each sequence token uniformly. This can reach regions the learned flow overlooks.",
+        weight: "proportional to P(y ≥ τ | x₁), because the prior cancels.",
+        tradeoff: "When good designs are rare, many random draws have low predicted fitness."
+      },
+      flow: {
+        title: "Previous flow: refine learned regions",
+        summary: "Draw x₁ from a frozen earlier flow q₁θ. It concentrates samples near designs the model has already learned to produce.",
+        weight: "proportional to P(y ≥ τ | x₁) / q₁θ(x₁) in the paper's implementation; q₁θ is Monte Carlo estimated.",
+        tradeoff: "This can neglect unseen regions, and estimating the flow density adds variance."
+      },
+      replay: {
+        title: "Replay: revisit measured successes",
+        summary: "Draw from previously scored designs above the threshold, with selection probability πⱼ proportional to exp(γ yⱼ).",
+        weight: "set to 1 in the practical implementation. Exact equal weights require the conditions discussed in §3.5.",
+        tradeoff: "Replay alone cannot discover a new endpoint; it reinforces designs already measured."
+      }
+    };
+    let current = 0;
+    let timer = null;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function stop() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      byId("play").textContent = "Play method";
+      byId("play").setAttribute("aria-pressed", "false");
+    }
+    function render(index) {
+      current = Math.max(0, Math.min(stages.length - 1, index));
+      byId("stage-title").textContent = stages[current].title;
+      byId("stage-description").textContent = stages[current].description;
+      byId("stage-count").textContent = `${current + 1} / ${stages.length}`;
+      scenes.forEach((scene, i) => scene.classList.toggle("active", i === current));
+      stepButtons.forEach((button, i) => { if (i === current) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current"); });
+      progress.forEach((bar, i) => bar.classList.toggle("on", i <= current));
+      byId("previous").disabled = current === 0;
+      byId("next").disabled = current === stages.length - 1;
+    }
+    function showSource(name) {
+      const detail = sourceDetails[name];
+      if (!detail) return;
+      byId("source-title").textContent = detail.title;
+      byId("source-summary").textContent = detail.summary;
+      byId("source-weight").textContent = detail.weight;
+      byId("source-tradeoff").textContent = detail.tradeoff;
+      sourceButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.source === name)));
+    }
+    function advance() {
+      if (current === stages.length - 1) { stop(); return; }
+      render(current + 1);
+      if (current === stages.length - 1) stop();
+    }
+    stepButtons.forEach(button => button.addEventListener("click", () => { stop(); render(Number(button.dataset.step)); }));
+    sourceButtons.forEach(button => button.addEventListener("click", () => showSource(button.dataset.source)));
+    byId("previous").addEventListener("click", () => { stop(); render(current - 1); });
+    byId("next").addEventListener("click", () => { stop(); advance(); });
+    byId("play").addEventListener("click", () => {
+      if (timer) { stop(); return; }
+      if (current === stages.length - 1) render(0);
+      byId("play").textContent = "Pause";
+      byId("play").setAttribute("aria-pressed", "true");
+      timer = setInterval(advance, 2800);
+    });
+    reducedMotion.addEventListener("change", () => { if (reducedMotion.matches) stop(); });
+    render(0);
+  </script>
+</body>
+</html>

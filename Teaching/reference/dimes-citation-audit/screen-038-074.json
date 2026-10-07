@@ -1,0 +1,372 @@
+[
+  {
+    "auditId": "S038",
+    "title": "Clustering-based hyper-heuristic algorithm for multi-region coverage path planning of heterogeneous UAVs",
+    "count": 22,
+    "decision": "SKIP",
+    "reason": "Spectral clustering and GNN hyper-heuristics allocate coverage regions to heterogeneous UAVs; this does not change categorical team generation or elite replay.",
+    "source": "https://www.sciencedirect.com/science/article/pii/S0925231224012992",
+    "evidence_level": "abstract",
+    "abstract_provenance": "publisher abstract retrieved"
+  },
+  {
+    "auditId": "S039",
+    "title": "Controlling Continuous Relaxation for Combinatorial Optimization",
+    "count": 22,
+    "decision": "SKIP",
+    "reason": "Continuous-relaxation annealing assumes an optimizable relaxed objective; battle rewards supply neither that energy nor its gradient. Parked annealing direction.",
+    "source": "https://arxiv.org/abs/2309.16965",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S040",
+    "title": "Generative Models in Decision Making: A Survey",
+    "count": 20,
+    "decision": "SKIP",
+    "reason": "A survey of generative decision-making; owner explicitly excludes surveys, and it supplies no single live experiment.",
+    "source": "https://arxiv.org/abs/2502.17100",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S041",
+    "title": "Reconstructing Graph Diffusion History from a Single Snapshot",
+    "count": 19,
+    "decision": "SKIP",
+    "reason": "Infers graph spreading histories and diffusion parameters from a snapshot, rather than improving a denoising team proposer.",
+    "source": "https://arxiv.org/abs/2306.00488",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S042",
+    "title": "Preference Optimization for Combinatorial Optimization Problems",
+    "count": 16,
+    "decision": "DEFER",
+    "reason": "Preference loss could compare winner/loser teams instead of elite imitation, but reward/preference integration is explicitly deferred. Requires trajectory likelihoods and uncertainty-aware preferences; deterministic routing comparisons do not resolve battle noise.",
+    "source": "https://arxiv.org/abs/2505.08735",
+    "evidence_level": "fulltext",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S043",
+    "title": "Learning to Reduce Search Space for Generalizable Neural Routing Solver",
+    "count": 16,
+    "decision": "SKIP",
+    "reason": "Learns which routing nodes to prune for scalability. Six complete Pokemon sets are not a huge spatial routing-node set; no demonstrated safe pruning of coupled categorical choices.",
+    "source": "https://arxiv.org/abs/2503.03137",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S044",
+    "title": "Breaking Silos: Adaptive Model Fusion Unlocks Better Time Series Forecasting",
+    "count": 15,
+    "decision": "SKIP",
+    "reason": "Adaptive fusion of time-series forecasts has no direct connection to the current generation/evaluate/elite-update loop.",
+    "source": "https://arxiv.org/abs/2505.18442",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S045",
+    "title": "Gradient Compressed Sensing: A Query-Efficient Gradient Estimator for High-Dimensional Zeroth-Order Optimization",
+    "count": 15,
+    "decision": "DEFER",
+    "reason": "Sparse-gradient zeroth-order optimization in continuous space could matter only after a validated continuous parameterization with sparse gradients; neither assumption follows from categorical battle search.",
+    "source": "https://arxiv.org/abs/2405.16805",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S046",
+    "title": "Improving Generalization of Neural Combinatorial Optimization for Vehicle Routing Problems via Test-Time Projection Learning",
+    "count": 14,
+    "decision": "SKIP",
+    "reason": "LLM-generated test-time projections address size/distribution shifts in routing geometry, not training-team mixture or masked field sampling.",
+    "source": "https://arxiv.org/abs/2506.02392",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S047",
+    "title": "Bridging Large Language Models and Optimization: A Unified Framework for Text-attributed Combinatorial Optimization",
+    "count": 14,
+    "decision": "SKIP",
+    "reason": "Text-attributed multi-task COP encoding with LLMs changes the input/problem family; the project already has structured categorical teams and a fixed verifier.",
+    "source": "https://arxiv.org/abs/2408.12214",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S048",
+    "title": "GTG-ACO: Graph Transformer Guided Ant Colony Optimization for learning heuristics and pheromone dynamics for combinatorial optimization",
+    "count": 13,
+    "decision": "SKIP",
+    "reason": "Learns routing/scheduling ACO heuristic and initial pheromone matrices. Adopting an ant-construction solver is a new architecture direction, not a tested change to current diffusion/CEM.",
+    "source": "https://www.sciencedirect.com/science/article/pii/S2210650225003049",
+    "evidence_level": "abstract",
+    "abstract_provenance": "publisher abstract retrieved"
+  },
+  {
+    "auditId": "S049",
+    "title": "Learning-Driven Swarm Intelligence: Enabling Deterministic Flows Scheduling in LEO Satellite Networks",
+    "count": 13,
+    "decision": "SKIP",
+    "reason": "Deterministic flows scheduling and dynamic satellite topology require network-specific queue/path mechanics unrelated to legal six-set generation.",
+    "source": "https://doi.org/10.1109/TMC.2024.3517618",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S050",
+    "title": "Matcha: Mitigating Graph Structure Shifts with Test-Time Adaptation",
+    "count": 13,
+    "decision": "SKIP",
+    "reason": "Graph node-classification test-time adaptation to connectivity shifts; not a proposal distribution update from battle-evaluated teams.",
+    "source": "https://arxiv.org/abs/2410.06976",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S051",
+    "title": "Benchmarking PtO and PnO Methods in the Predictive Combinatorial Optimization Regime",
+    "count": 13,
+    "decision": "DEFER",
+    "reason": "Benchmarks prediction of unknown optimization coefficients and downstream decisions. Current surrogate predicts whole-team outcome; a coefficient-based differentiable solver is not established. Selective evaluation background only.",
+    "source": "https://arxiv.org/abs/2311.07633",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S052",
+    "title": "URS: A Unified Neural Routing Solver for Cross-Problem Zero-Shot Generalization",
+    "count": 12,
+    "decision": "SKIP",
+    "reason": "Unified routing-constraint representation enables transfer among VRP variants; does not supply a transferable legal team decoder or training-data experiment.",
+    "source": "https://arxiv.org/abs/2509.23413",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S053",
+    "title": "DGL: Dynamic Global-Local Information Aggregation for Scalable VRP Generalization with Self-Improvement Learning",
+    "count": 12,
+    "decision": "DEFER",
+    "reason": "Replacement-based self-improvement is potentially related, but the contribution also relies on routing-local/global structure and augmentation. No demonstrated additional update beyond the current CEM/partial regeneration axes from abstract screening.",
+    "source": "https://doi.org/10.24963/ijcai.2025/964",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S054",
+    "title": "PLANETALIGN: A Comprehensive Python Library for Benchmarking Network Alignment",
+    "count": 12,
+    "decision": "SKIP",
+    "reason": "Network-alignment benchmarking matches nodes across networks; no current project component needs this library.",
+    "source": "https://arxiv.org/abs/2505.21366",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S055",
+    "title": "Regularized Langevin Dynamics for Combinatorial Optimization",
+    "count": 12,
+    "decision": "DEFER",
+    "reason": "Gradient-guided discrete search belongs to parked annealing direction. Official code says fully black-box REINFORCE results were not reported; published results do not establish noisy battle efficiency.",
+    "source": "https://arxiv.org/abs/2502.00277",
+    "evidence_level": "fulltext",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S056",
+    "title": "Collaboration! Towards Robust Neural Methods for Routing Problems",
+    "count": 12,
+    "decision": "SKIP",
+    "reason": "Collaborative adversarially trained routing ensembles defend geometric perturbations. That attack model and training redesign do not match the fixed opponent-pool generator experiments.",
+    "source": "https://arxiv.org/abs/2410.04968",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S057",
+    "title": "Less Is More - On the Importance of Sparsification for Transformers and Graph Neural Networks for TSP",
+    "count": 12,
+    "decision": "SKIP",
+    "reason": "TSP graph sparsification and attention masks use spatial relevance to improve routing encoders; no analogous justified sparsity over coupled Pokemon fields.",
+    "source": "https://arxiv.org/abs/2403.17159",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S058",
+    "title": "FrontierCO: Real-World and Large-Scale Evaluation of Machine Learning Solvers for Combinatorial Optimization",
+    "count": 11,
+    "decision": "DEFER",
+    "reason": "Useful caution about synthetic-only evaluation, but the project already tests real teams and battle outcomes. No new method or presently missing measurement is identified; selective benchmark background only.",
+    "source": "https://arxiv.org/abs/2505.16952",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S059",
+    "title": "Deliberate planning of 3D bin packing on packing configuration trees",
+    "count": 11,
+    "decision": "SKIP",
+    "reason": "Packing-configuration trees encode spatial placement and robot constraints; not transferable merely because both problems involve structured search.",
+    "source": "https://arxiv.org/abs/2504.04421",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S060",
+    "title": "Tackling Prevalent Conditions in Unsupervised Combinatorial Optimization: Cardinality, Minimum, Covering, and More",
+    "count": 11,
+    "decision": "ALREADY",
+    "reason": "Already in the active reading queue under its canonical title; do not duplicate or upgrade based on citation count.",
+    "source": "https://arxiv.org/abs/2405.08424",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S061",
+    "title": "Ask, and it shall be given: On the Turing completeness of prompting",
+    "count": 10,
+    "decision": "SKIP",
+    "reason": "Turing-completeness theorem for prompting does not change current finite-budget team generation or training.",
+    "source": "https://arxiv.org/abs/2411.01992",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S062",
+    "title": "DISCO: Efficient Diffusion Solver for Large-Scale Combinatorial Optimization Problems",
+    "count": 10,
+    "decision": "DEFER",
+    "reason": "Residual diffusion accelerates graph-solution sampling and uses solution structure; candidate relevance to warm starts, but no current generation-time bottleneck or teacher/representation mapping establishes an immediate addition.",
+    "source": "https://arxiv.org/abs/2406.19705",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S063",
+    "title": "Instance-Conditioned Adaptation for Large-Scale Generalization of Neural Routing Solver",
+    "count": 10,
+    "decision": "SKIP",
+    "reason": "Instance-conditioned routing adaptation exploits geometry and density to handle size changes; fixed-size teams do not inherit that mechanism.",
+    "source": "https://arxiv.org/abs/2405.01906",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S064",
+    "title": "Symmetric Replay Training: Enhancing Sample Efficiency in Deep Reinforcement Learning for Combinatorial Optimization",
+    "count": 10,
+    "decision": "DEFER",
+    "reason": "SRT replays solution-preserving alternative trajectories, with hardware black-box evidence. However, this project already uses slot-shuffling training. Generic permutation augmentation is redundant; need evidence that a separate symmetry replay objective or replay schedule adds beyond existing shuffled CEM training before adding.",
+    "source": "https://proceedings.mlr.press/v235/kim24o.html",
+    "evidence_level": "fulltext",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S065",
+    "title": "Coverage Path Planning for UAV Based on Improved Back-and-Forth Mode",
+    "count": 10,
+    "decision": "SKIP",
+    "reason": "Back-and-forth UAV coverage heuristics optimize geometry, turns, and travel continuity; no learned proposal-distribution update.",
+    "source": "https://doi.org/10.1109/ACCESS.2023.3325483",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S066",
+    "title": "Frontiers of Generative AI for Network Optimization: Theories, Limits, and Visions",
+    "count": 9,
+    "decision": "SKIP",
+    "reason": "Survey of generative AI network optimization; explicitly outside owner reading preference and lacks a direct new experiment.",
+    "source": "https://arxiv.org/abs/2507.01773",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S067",
+    "title": "Learning to Insert for Constructive Neural Vehicle Routing Solver",
+    "count": 9,
+    "decision": "SKIP",
+    "reason": "Routing insertion positions change sequential tour construction; team-generation field choices lack a corresponding route-position objective.",
+    "source": "https://arxiv.org/abs/2505.13904",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S068",
+    "title": "Generation as Search Operator for Test-Time Scaling of Diffusion-based Combinatorial Optimization",
+    "count": 9,
+    "decision": "DEFER",
+    "reason": "GenSCO combines disrupted solutions with trained rectified-flow enhancement. Supervised suboptimal-to-optimal trajectory construction and graph-specific local operators are substantial prerequisites; frozen search is not the existing CEM update.",
+    "source": "https://papers.nips.cc/paper_files/paper/2025/hash/b8e9869fa827226ff68db9290659a20c-Abstract-Conference.html",
+    "evidence_level": "fulltext",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S069",
+    "title": "Optimization by Parallel Quasi-Quantum Annealing with Gradient-Based Sampling",
+    "count": 8,
+    "decision": "SKIP",
+    "reason": "Quasi-quantum annealing with relaxed differentiable objectives is in the explicitly parked family; no accessible battle gradient.",
+    "source": "https://arxiv.org/abs/2409.02135",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S070",
+    "title": "Moco: A Learnable Meta Optimizer for Combinatorial Optimization",
+    "count": 8,
+    "decision": "DEFER",
+    "reason": "Budget-aware meta-optimizer updates a continuous heatmap using search-state features. Potential online proposal adaptation, but requires a new heatmap constructor/meta-training regime and evaluates best-found quality, not current random-draw distribution quality.",
+    "source": "https://arxiv.org/abs/2402.04915",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S071",
+    "title": "Graph Data Selection for Domain Adaptation: A Model-Free Approach",
+    "count": 7,
+    "decision": "SKIP",
+    "reason": "Optimal-transport data selection is for graph-domain classification shift, not measured win-rate mixture selection for full-team generation.",
+    "source": "https://arxiv.org/abs/2505.17293",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S072",
+    "title": "Multi-Dimensional AGV Path Planning in 3D Warehouses Using Ant Colony Optimization and Advanced Neural Networks",
+    "count": 7,
+    "decision": "SKIP",
+    "reason": "3D AGV congestion-aware ACO is spatial warehouse routing engineering; does not address categorical team legality or CEM replay.",
+    "source": "https://arxiv.org/abs/2504.01985",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S073",
+    "title": "Reheated Gradient-based Discrete Sampling for Combinatorial Optimization",
+    "count": 7,
+    "decision": "SKIP",
+    "reason": "Reheating gradient-based discrete samplers presupposes a usable energy/gradient and reopens parked annealing, without noisy battle evidence.",
+    "source": "https://arxiv.org/abs/2503.04047",
+    "evidence_level": "abstract",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  },
+  {
+    "auditId": "S074",
+    "title": "Neural Genetic Search in Discrete Spaces",
+    "count": 7,
+    "decision": "MAYBE",
+    "reason": "Selective frozen-generator crossover reading: token restrictions from two parents plus mutation can be compared against current one-parent partial regeneration without retraining. Broader than molecule-only evidence. Requires typed masks and legality mapping; no claim it improves CEM training distribution.",
+    "source": "https://arxiv.org/abs/2502.10433",
+    "evidence_level": "fulltext",
+    "abstract_provenance": "author abstract in Semantic Scholar inventory"
+  }
+]

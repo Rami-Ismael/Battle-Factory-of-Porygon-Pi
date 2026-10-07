@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 — Deep Surrogate Assisted MAP-Elites: search on the estimator, spend the simulator on grounding it</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>Deep Surrogate Assisted MAP-Elites</h1>
+<p class="subtitle">The one verified-HIGH paper from both 2026-08-19 sweeps. Its idea in one line: run the search on a cheap fitted model, and spend every expensive simulated evaluation on the exact candidates the model is most confidently wrong about.</p>
+<p class="meta">Lesson 0004 · 2026-08-19 · ~10 minutes · <a href="../reference/surrogate-assisted-search-loop.html">reference: the two-loop architecture</a> · <a href="../MISSION.md">mission</a> · serves the todo "learn the main families of black-box optimisation … other surrogate-based methods" (§ The objective function 𝑓) and grounds the annealing / Bayesian-optimisation comparison items · previous: <a href="0003-metamon-offline-rl-from-human-replays.html">0003</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> Your todo list already commits to comparing simulated annealing and Bayesian optimisation against 𝑓, and 𝑓 is expensive: one candidate team costs a batch of simulated battles. DSA-ME (🟢 <a href="https://arxiv.org/abs/2112.03534">Zhang, Fontaine, Hoover &amp; Nikolaidis, GECCO 2022, arXiv 2112.03534</a>) is the only published deck-construction paper that solves exactly that cost problem with a surrogate — an estimator of the objective — trained <em>during</em> the search. After this lesson you should be able to (1) draw its two-loop architecture from memory and price each arrow, (2) state what the surrogate predicts (it is not win rate), and (3) name the ablation result that matters most for any estimator of 𝑓 you ever fit.</p></div>
+
+<h2>1. Their problem, translated to yours</h2>
+
+<table class="compare">
+<tr><th>DSA-ME (Hearthstone)</th><th>Your project (VGC)</th></tr>
+<tr><td>a deck: 30 cards from a 180-card set, encoded as an integer vector x<sub>i</sub> ∈ {0,1,2} summing to 30 ("bag of cards")</td><td>a team: six candidates, each configured — the encoding question (per-slot structure) is exactly what their flat bag lacks</td></tr>
+<tr><td>opponent suite: six strong decks — "For each class, we include both an aggro and a control opponent" — games split <em>evenly</em> among them</td><td>the meta: collected meta-team list weighted by <em>frequency</em> — their one missing piece</td></tr>
+<tr><td>both sides piloted by one fixed neural-network strategy</td><td>a fixed battle policy</td></tr>
+<tr><td>one evaluation = 200 simulated games, because "the outcome of a single Hearthstone game has high variance even with deterministic strategies"</td><td>one evaluation of a candidate team = a batch of simulated battles; same variance problem</td></tr>
+<tr><td>objective: average end-of-game <em>health difference</em>, "a smooth approximation of winning percentage"</td><td>𝑓 = expected win rate vs the meta; their smoothed proxy is a trick worth considering — more signal per game than a win/loss bit</td></tr>
+</table>
+
+<h2>2. MAP-Elites in five sentences</h2>
+
+<p>MAP-Elites is a <strong>quality-diversity</strong> method: instead of one best solution it maintains an <em>archive</em> — a grid whose axes are "measure" dimensions (here: average hand size, range 1–7, and average game length in turns, range 5–15) — and keeps the best deck found in each cell. Each step: pick an elite from the archive, mutate it — "we replace k cards from a parent elite with k cards chosen uniformly from the cardset. We vary k geometrically" — a swap operator over the subset, the same neighbourhood move annealing on teams would use. The child is evaluated, its measures place it in a cell, and it stays only if it beats that cell's incumbent. The product is a <em>map</em> of diverse strong decks, scored by <strong>QD-score</strong> — the paper's own definition (§4.2.2, verbatim): "the sum of the objective values of all solutions in the <em>ground-truth archive</em>". Ground-truth matters: the score counts only elites whose objective (range −30…+30) and measures came from the simulator — the surrogate archive's predicted scores never count. Note the kinship with your argmax-vs-top-k item from <a href="0001-max-coverage-vs-set-cover.html">Lesson 0001</a>'s strand: an archive is a structured top-k.</p>
+
+<p class="note"><strong>The division of labour, if one sentence sticks:</strong> the measures decide <em>where</em> a child competes (which cell it lands in — not a choice, determined by how it behaved); the objective decides <em>whether</em> it wins there. A mediocre control deck never has to beat the best aggro deck — only the best control deck found so far. That is the mechanism that keeps diversity alive: a child <em>worse</em> than its parent can still enter the archive, if its measures land it in a different — weaker or empty — cell.</p>
+
+<h2>3. The contribution: the two-loop architecture</h2>
+
+<p>The expensive thing is the 200-game evaluation. So they train a deep surrogate — a 3-hidden-layer MLP (128 / 32 / 16) — <em>online</em>, to predict, from the bag-of-cards vector alone, <strong>three numbers: the objective and both measures</strong>. (It must predict the measures too, or the surrogate archive cannot place candidates in cells.) The loop:</p>
+
+<ol>
+<li><strong>Inner loop (free):</strong> run MAP-Elites for ~10⁶ iterations entirely on the surrogate — zero simulated games — producing a <em>surrogate archive</em> of predicted-good, predicted-diverse decks.</li>
+<li><strong>Ground (expensive):</strong> take candidates from the surrogate archive and evaluate them on the real simulator, 200 games each. Insert results into the real archive.</li>
+<li><strong>Retrain:</strong> add those labelled decks to the training set, retrain the surrogate, repeat.</li>
+</ol>
+
+<p>The self-correcting part is why it works: the inner search generates precisely the decks the surrogate is most optimistic about, and those are the ones that get ground-truthed next. Systematic errors are hunted down by the search itself.</p>
+
+<h2>4. The numbers — and the two corrections</h2>
+
+<p>Every method gets the <em>identical</em> real budget: N = 10,000 simulator evaluations × 200 games (5 trials; ~200 CPUs, 10–12 h per trial). At equal budget:</p>
+
+<table class="compare">
+<tr><th></th><th>what it isolates</th><th>DSA-ME</th><th>plain MAP-Elites</th></tr>
+<tr><td>best average health difference</td><td>quality of the single best</td><td><b>22.30 ± 0.16</b></td><td>15.72 ± 0.62</td></tr>
+<tr><td>best deck win rate</td><td>quality of the single best</td><td><b>98.4%</b></td><td>90.6%</td></tr>
+<tr><td>archive cells filled</td><td>diversity alone</td><td><b>31.86%</b></td><td>14.36%</td></tr>
+<tr><td>QD-score</td><td>both at once</td><td><b>338.52 ± 5.86</b></td><td>136.89 ± 1.95</td></tr>
+</table>
+
+<p>Because QD-score "combines both the number of cells filled … and the objective value of each occupant", the paper disambiguates with a CCDF plot (their Fig. 2, right): for each objective threshold on the x-axis, the fraction of cells holding an elite above it. That curve is how you tell "many mediocre elites" apart from "fewer but stronger" when two QD-scores tie.</p>
+
+<p>Two corrections to the way this paper is usually summarised (both caught in the 2026-08-19 adversarial deep-read; see the entry in <a href="../RESOURCES.md">RESOURCES.md</a>): it does <strong>not</strong> reduce the number of real simulations — it extracts ~2.5× more quality from the <em>same</em> simulation budget; and the surrogate predicts the smoothed health-difference proxy plus the archive measures, <strong>not</strong> win rate.</p>
+
+<p>The ablation that matters most for you: <strong>Offline DSA-ME</strong> — identical, except the surrogate trains on <em>random</em> decks instead of search-generated diverse ones — collapses from 338.5 to <b>194.9</b> QD-score. Any estimator of 𝑓 you ever fit will face the same fact: what you train it <em>on</em> matters as much as what you train.</p>
+
+<h2>5. What does not transfer</h2>
+
+<ul>
+<li><strong>Encoding.</strong> Bag-of-cards has no per-slot configuration — a card is a card, while your team member bundles species, ability, item, moves, Stat Points, alignment. The authors flag their own encoding as weak: it "does not capture a card's mana cost, attack, health, or card text".</li>
+<li><strong>Measures.</strong> Hand size and game length are Hearthstone-specific <em>and gameplay-derived</em> — a VGC adaptation must invent its own measures, and the surrogate must predict them too.</li>
+<li><strong>Opponent weights.</strong> Six decks weighted evenly ≠ a frequency-weighted meta-team list. The fix looks mechanical (weight the games per opponent), but it is unpublished — nobody has done it.</li>
+</ul>
+
+<h2>Retrieval practice</h2>
+
+<div class="quiz" data-answer="b">
+<p class="q">What does DSA-ME's surrogate predict from the deck encoding?</p>
+<button data-opt="a">win rate of the candidate deck</button>
+<button data-opt="b">health difference plus both archive measures</button>
+<button data-opt="c">game length measured in turns only</button>
+<button data-opt="d">standalone value of each chosen card</button>
+<div class="why">Health difference is the smoothed objective; the two measures (hand size, game length) must be predicted too, or the surrogate archive cannot place candidates in cells.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">At the same real-simulation budget, DSA-ME versus plain MAP-Elites is…</p>
+<button data-opt="a">equal quality but reached much faster</button>
+<button data-opt="b">slightly better but within error bars</button>
+<button data-opt="c">about two-point-five times the QD-score</button>
+<button data-opt="d">lower coverage but better best deck</button>
+<div class="why">338.52 vs 136.89 QD-score at an identical 10,000-evaluation budget — quality per simulation, not fewer simulations.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Why does Offline DSA-ME (surrogate trained on random decks) fall to 194.9?</p>
+<button data-opt="a">training data misses where search goes</button>
+<button data-opt="b">the surrogate network is too small</button>
+<button data-opt="c">random decks are usually rules-illegal</button>
+<button data-opt="d">real evaluations were noisier per game</button>
+<div class="why">The surrogate is only accurate where it has labels; the online loop labels exactly the region the search is exploiting, the offline one never does.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+<p class="q">Which piece of 𝑓 is missing from DSA-ME's setup?</p>
+<button data-opt="a">a simulator behind the objective signal</button>
+<button data-opt="b">an explicit search over card subsets</button>
+<button data-opt="c">an archive of diverse strong decks</button>
+<button data-opt="d">opponents weighted by frequency, not evenly</button>
+<div class="why">Their six-deck suite splits games evenly; your meta weights each meta team by how often it appears in the collected list. That combination — surrogate search against a frequency-weighted opponent list — is unpublished.</div>
+</div>
+
+<h2>Primary source</h2>
+<p>Read the paper itself: 🟢 <a href="https://arxiv.org/abs/2112.03534">Zhang, Fontaine, Hoover &amp; Nikolaidis, "Deep Surrogate Assisted MAP-Elites for Automated Hearthstone Deckbuilding", GECCO 2022 (arXiv 2112.03534)</a>. Background if MAP-Elites itself is new: 🟢 <a href="https://arxiv.org/abs/1904.10656">Fontaine et al., GECCO 2019 (arXiv 1904.10656)</a> — already on your reading list as possibly the first quality-diversity deck paper.</p>
+
+<p class="note">Anything unclear — the QD-score definition, how the surrogate archive differs from the real archive, what a VGC measure pair could be — ask me in chat; that's what I'm for. When you can draw the two-loop architecture unaided, the next step on this strand is deciding whether a surrogate joins annealing and Bayesian optimisation in the set of methods you compare against 𝑓.</p>
+
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 470" role="img" aria-labelledby="title desc">
+  <title id="title">Why final sequence probability is hard, but endpoint prediction is usable</title>
+  <desc id="desc">Left: a masked sequence can travel through several different partial sequences to the same final sequence, so its final probability adds over all paths. Right: given one partial sequence and a time, the flow model predicts a completed endpoint directly.</desc>
+  <defs>
+    <marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3473a3"/></marker>
+    <marker id="green-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#087d80"/></marker>
+    <style>
+      text { font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif; fill: #18364b; }
+      .heading { font-size: 23px; font-weight: 800; letter-spacing: -.6px; }
+      .sub { font-size: 15px; fill: #587181; }
+      .label { font-size: 13px; font-weight: 750; fill: #587181; }
+      .token { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px; font-weight: 800; letter-spacing: 1px; }
+      .formula { font-size: 17px; font-weight: 800; }
+      .path { fill: none; stroke: #3473a3; stroke-width: 2.8; marker-end: url(#blue-arrow); }
+      .direct { fill: none; stroke: #087d80; stroke-width: 3.2; marker-end: url(#green-arrow); }
+    </style>
+  </defs>
+  <rect width="1160" height="470" rx="17" fill="#f5f9fb"/>
+  <rect x="18" y="18" width="687" height="433" rx="14" fill="#fff" stroke="#cbd9e2" stroke-width="2"/>
+  <rect x="723" y="18" width="419" height="433" rx="14" fill="#fff" stroke="#b5dcd9" stroke-width="2"/>
+
+  <text x="46" y="57" class="heading">Hard: probability of the final sequence</text>
+  <text x="46" y="83" class="sub">Different stochastic histories can end at the same design.</text>
+  <text x="63" y="153" class="label">Source</text>
+  <text x="281" y="122" class="label">Possible intermediate states</text>
+  <text x="560" y="153" class="label">Endpoint</text>
+
+  <path class="path" d="M207 237 C245 237 247 169 279 169"/>
+  <path class="path" d="M207 237 C244 237 248 245 279 245"/>
+  <path class="path" d="M207 237 C245 237 247 321 279 321"/>
+  <path class="path" d="M434 169 C484 169 493 237 536 237"/>
+  <path class="path" d="M434 245 C485 245 489 237 536 237"/>
+  <path class="path" d="M434 321 C484 321 493 237 536 237"/>
+  <rect x="56" y="210" width="150" height="54" rx="8" fill="#e6eef4" stroke="#9cb7c9" stroke-width="2"/>
+  <text x="74" y="244" class="token">M  M  M</text>
+  <rect x="280" y="142" width="153" height="54" rx="8" fill="#eaf3fb" stroke="#a8c9df" stroke-width="2"/>
+  <text x="299" y="176" class="token">A  M  C</text>
+  <rect x="280" y="218" width="153" height="54" rx="8" fill="#eaf3fb" stroke="#a8c9df" stroke-width="2"/>
+  <text x="299" y="252" class="token">M  B  C</text>
+  <rect x="280" y="294" width="153" height="54" rx="8" fill="#eaf3fb" stroke="#a8c9df" stroke-width="2"/>
+  <text x="299" y="328" class="token">A  B  M</text>
+  <rect x="537" y="210" width="140" height="54" rx="8" fill="#fff0e9" stroke="#e8b49f" stroke-width="2"/>
+  <text x="555" y="244" class="token">A  B  C</text>
+  <text x="47" y="391" class="formula">qφ(ABC) = sum of probabilities of every path to ABC</text>
+  <text x="47" y="420" class="sub">Only three paths are drawn here; the real number grows rapidly.</text>
+
+  <text x="751" y="57" class="heading">Usable: one conditional prediction</text>
+  <text x="751" y="83" class="sub">Give the model one partial state and its time t.</text>
+  <text x="751" y="148" class="label">Known partial state xₜ</text>
+  <rect x="751" y="164" width="218" height="56" rx="8" fill="#eaf3fb" stroke="#a8c9df" stroke-width="2"/>
+  <text x="776" y="200" class="token">A  M  C</text>
+  <path class="direct" d="M971 192 C1014 192 1010 278 967 278"/>
+  <rect x="751" y="250" width="218" height="56" rx="8" fill="#dff5f2" stroke="#8dcbc5" stroke-width="2"/>
+  <text x="773" y="286" class="token">qφ(x₁ | xₜ, t)</text>
+  <path class="direct" d="M860 309 L860 340"/>
+  <rect x="751" y="344" width="218" height="56" rx="8" fill="#e6f6f3" stroke="#8dcbc5" stroke-width="2"/>
+  <text x="776" y="380" class="token">A  B  C</text>
+  <text x="986" y="284" class="sub">predict</text>
+  <text x="751" y="425" class="sub">AFM trains this conditional predictor directly.</text>
+</svg>

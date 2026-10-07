@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — Common random numbers: share the dice where you agree</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:      #f7f8f6;
+    --surface:   #fdfdfc;
+    --ink:       #0b0b0b;
+    --ink-2:     #52514e;
+    --muted:     #8b8a84;
+    --hairline:  #e2e1da;
+    --border:    rgba(11,11,11,0.10);
+    --a:         #1f8a4c;   /* plan A            */
+    --b:         #c8442e;   /* plan B            */
+    --dice:      #6b4fd8;   /* the shared luck   */
+    --card:      #eef0fa;
+    --note:      #faf3d9;
+    --dim:       #f0efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:      #0d0d0d;
+      --surface:   #1a1a19;
+      --ink:       #ffffff;
+      --ink-2:     #c4c3b8;
+      --muted:     #8b8a84;
+      --hairline:  #2d2d2b;
+      --border:    rgba(255,255,255,0.10);
+      --a:         #2fb567;
+      --b:         #e2614a;
+      --dice:      #9a83ff;
+      --card:      #23213a;
+      --note:      #33301f;
+      --dim:       #232322;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 32px 36px;
+    margin: 0 0 28px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.3px; }
+  p  { font-size: 19px; color: var(--ink-2); margin: 8px 0 0; }
+  p strong { color: var(--ink); }
+  .kicker { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin: 0 0 10px; }
+  figure { margin: 24px 0 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .svg-label { font-family: system-ui, sans-serif; font-size: 15px; fill: var(--ink); }
+  .svg-small { font-family: system-ui, sans-serif; font-size: 12.5px; fill: var(--ink-2); }
+  .svg-tiny  { font-family: ui-monospace, monospace; font-size: 10.5px; fill: var(--ink-2); }
+  .svg-mono  { font-family: ui-monospace, monospace; font-size: 15px; fill: var(--ink); }
+  .svg-big   { font-family: system-ui, sans-serif; font-size: 20px; font-weight: 700; fill: var(--ink); }
+  .svg-huge  { font-family: system-ui, sans-serif; font-size: 30px; font-weight: 700; fill: var(--ink); }
+  .foot { font-size: 14px; color: var(--muted); margin-top: 14px; }
+  .warn { background: var(--note); border-radius: 12px; padding: 18px 20px; margin-top: 22px; }
+  .warn p { margin: 0; font-size: 17px; }
+  .punch { font-size: 21px; color: var(--ink); font-weight: 600; margin-top: 20px; padding-left: 16px; border-left: 4px solid var(--dice); }
+</style>
+</head>
+<body>
+<main>
+
+<section>
+  <p class="kicker">ELI5 · Yadav, Maliakkal, Khadilkar &amp; Kalyanakrishnan · RLJ 2026</p>
+  <h1>Share the dice where you agree</h1>
+  <p><strong>To find out which of two moves is better in a world full of luck, don't test them on different luck — test them on the same luck. But only for the stretch of the future where the two moves behave identically. Sharing luck where they disagree can make things worse.</strong></p>
+</section>
+
+<section>
+  <h2>1 · You have to pick, and the future rolls dice</h2>
+  <p>You're playing a board game. Two moves are legal. You can't see how the game ends, so you do the obvious thing: <strong>imagine finishing the game, over and over</strong>, once starting with move A and once with move B. Write down the score each time. Average them. Take the higher average.</p>
+  <p>That's the whole recipe the paper is about. The imagined games are called <strong>rollouts</strong>.</p>
+  <figure>
+    <svg viewBox="0 0 720 260" role="img" aria-label="From the current position, move A and move B each fan out into three imagined finishes with different scores, which are averaged">
+      <circle cx="70" cy="130" r="26" fill="var(--card)" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <text x="70" y="136" text-anchor="middle" class="svg-small">now</text>
+      <path d="M97 118 L166 82" stroke="var(--a)" stroke-width="3" fill="none"/>
+      <path d="M97 142 L166 178" stroke="var(--b)" stroke-width="3" fill="none"/>
+      <rect x="170" y="48" width="96" height="56" rx="12" fill="var(--card)" stroke="var(--a)" stroke-width="3"/>
+      <text x="218" y="82" text-anchor="middle" class="svg-label">move A</text>
+      <rect x="170" y="156" width="96" height="56" rx="12" fill="var(--dim)" stroke="var(--b)" stroke-width="3"/>
+      <text x="218" y="190" text-anchor="middle" class="svg-label">move B</text>
+
+      <path d="M266 76 C 330 52, 400 30, 556 40"  fill="none" stroke="var(--a)" stroke-width="2" opacity="0.7"/>
+      <path d="M266 76 C 340 84, 430 66, 556 76"  fill="none" stroke="var(--a)" stroke-width="2" opacity="0.7"/>
+      <path d="M266 76 C 330 100, 420 126, 556 112" fill="none" stroke="var(--a)" stroke-width="2" opacity="0.7"/>
+      <path d="M266 184 C 330 160, 400 140, 556 148" fill="none" stroke="var(--b)" stroke-width="2" opacity="0.7"/>
+      <path d="M266 184 C 340 192, 430 174, 556 184" fill="none" stroke="var(--b)" stroke-width="2" opacity="0.7"/>
+      <path d="M266 184 C 330 208, 420 234, 556 220" fill="none" stroke="var(--b)" stroke-width="2" opacity="0.7"/>
+
+      <rect x="556" y="26" width="46" height="28" rx="8" fill="var(--card)" stroke="var(--a)" stroke-width="2"/>
+      <text x="579" y="45" text-anchor="middle" class="svg-label">9</text>
+      <rect x="556" y="62" width="46" height="28" rx="8" fill="var(--card)" stroke="var(--a)" stroke-width="2"/>
+      <text x="579" y="81" text-anchor="middle" class="svg-label">4</text>
+      <rect x="556" y="98" width="46" height="28" rx="8" fill="var(--card)" stroke="var(--a)" stroke-width="2"/>
+      <text x="579" y="117" text-anchor="middle" class="svg-label">8</text>
+      <rect x="556" y="134" width="46" height="28" rx="8" fill="var(--dim)" stroke="var(--b)" stroke-width="2"/>
+      <text x="579" y="153" text-anchor="middle" class="svg-label">6</text>
+      <rect x="556" y="170" width="46" height="28" rx="8" fill="var(--dim)" stroke="var(--b)" stroke-width="2"/>
+      <text x="579" y="189" text-anchor="middle" class="svg-label">3</text>
+      <rect x="556" y="206" width="46" height="28" rx="8" fill="var(--dim)" stroke="var(--b)" stroke-width="2"/>
+      <text x="579" y="225" text-anchor="middle" class="svg-label">6</text>
+
+      <text x="618" y="76" class="svg-label" fill="var(--a)">avg 7</text>
+      <text x="618" y="190" class="svg-label" fill="var(--b)">avg 5</text>
+      <text x="400" y="252" text-anchor="middle" class="svg-small">three imagined finishes each — then average</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>2 · The dice are louder than the moves</h2>
+  <p>A averaged 7. B averaged 5. <strong>Was that the move, or was that the dice?</strong> A might have drawn a lucky run of imagined games and B an unlucky one. You genuinely cannot tell.</p>
+  <p>The usual fix is brute force: imagine <em>thousands</em> more games until the luck averages out. That is exactly the thing you can't afford.</p>
+  <figure>
+    <svg viewBox="0 0 720 220" role="img" aria-label="Two score estimates with wide error bars that overlap heavily, so the two moves cannot be told apart">
+      <rect x="273" y="52" width="194" height="98" fill="var(--dice)" opacity="0.10"/>
+      <line x1="273" y1="80" x2="563" y2="80" stroke="var(--a)" stroke-width="3"/>
+      <line x1="273" y1="68" x2="273" y2="92" stroke="var(--a)" stroke-width="3"/>
+      <line x1="563" y1="68" x2="563" y2="92" stroke="var(--a)" stroke-width="3"/>
+      <circle cx="418" cy="80" r="9" fill="var(--a)"/>
+      <text x="596" y="86" class="svg-small" fill="var(--a)">move A</text>
+
+      <line x1="177" y1="124" x2="467" y2="124" stroke="var(--b)" stroke-width="3"/>
+      <line x1="177" y1="112" x2="177" y2="136" stroke="var(--b)" stroke-width="3"/>
+      <line x1="467" y1="112" x2="467" y2="136" stroke="var(--b)" stroke-width="3"/>
+      <circle cx="322" cy="124" r="9" fill="var(--b)"/>
+      <text x="500" y="130" class="svg-small" fill="var(--b)">move B</text>
+
+      <line x1="80" y1="170" x2="660" y2="170" stroke="var(--hairline)" stroke-width="2"/>
+      <g class="svg-tiny">
+        <text x="80"  y="190" text-anchor="middle">0</text>
+        <text x="177" y="190" text-anchor="middle">2</text>
+        <text x="273" y="190" text-anchor="middle">4</text>
+        <text x="370" y="190" text-anchor="middle">6</text>
+        <text x="467" y="190" text-anchor="middle">8</text>
+        <text x="563" y="190" text-anchor="middle">10</text>
+        <text x="660" y="190" text-anchor="middle">12</text>
+      </g>
+      <text x="370" y="34" text-anchor="middle" class="svg-small">the shaded strip is where both are plausible — most of the picture</text>
+      <text x="370" y="212" text-anchor="middle" class="svg-small">score</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>3 · The fix: hand both moves the same dice</h2>
+  <p>Roll the dice <strong>first</strong> and write every roll down in a notebook. Then replay the whole future for move A reading from that notebook — and replay it for move B reading from <em>the same notebook</em>.</p>
+  <p>Now the two imagined games had identical luck. Whatever gap is left over is the <strong>move</strong>. That's it. That's common random numbers.</p>
+  <figure>
+    <svg viewBox="0 0 720 250" role="img" aria-label="A notebook of pre-written dice rolls feeds both move A's replay and move B's replay">
+      <rect x="40" y="52" width="176" height="152" rx="12" fill="var(--card)" stroke="var(--dice)" stroke-width="3"/>
+      <text x="128" y="80" text-anchor="middle" class="svg-label" fill="var(--dice)">the dice notebook</text>
+      <line x1="60" y1="92" x2="196" y2="92" stroke="var(--hairline)" stroke-width="1.5"/>
+      <g class="svg-tiny">
+        <text x="62" y="114">turn 1 · 4</text>
+        <text x="62" y="134">turn 2 · 6</text>
+        <text x="62" y="154">turn 3 · 1</text>
+        <text x="62" y="174">turn 4 · 5</text>
+        <text x="62" y="194">turn 5 · 3</text>
+      </g>
+      <path d="M216 106 C 270 78, 300 72, 356 72" fill="none" stroke="var(--dice)" stroke-width="3"/>
+      <path d="M356 72 l-13 -4 5 13 z" fill="var(--dice)"/>
+      <path d="M216 150 C 270 178, 300 184, 356 184" fill="none" stroke="var(--dice)" stroke-width="3"/>
+      <path d="M356 184 l-13 4 5 -13 z" fill="var(--dice)"/>
+
+      <rect x="360" y="46" width="170" height="54" rx="12" fill="var(--card)" stroke="var(--a)" stroke-width="3"/>
+      <text x="445" y="79" text-anchor="middle" class="svg-label">replay with A</text>
+      <rect x="360" y="158" width="170" height="54" rx="12" fill="var(--dim)" stroke="var(--b)" stroke-width="3"/>
+      <text x="445" y="191" text-anchor="middle" class="svg-label">replay with B</text>
+
+      <path d="M530 73 L586 73" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M586 73 l-11 -4 4 8 z" fill="var(--ink-2)"/>
+      <path d="M530 185 L586 185" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <path d="M586 185 l-11 -4 4 8 z" fill="var(--ink-2)"/>
+      <text x="628" y="79" class="svg-big" fill="var(--a)">7</text>
+      <text x="628" y="191" class="svg-big" fill="var(--b)">5</text>
+      <text x="360" y="238" text-anchor="middle" class="svg-small">same numbers, both times — so the 7 vs 5 is not luck</text>
+    </svg>
+  </figure>
+  <p class="foot">In the paper this is dressed up as "sample a deterministic MDP": before anything runs, you write down one outcome for <em>every</em> combination of where-you-are, what-you-do and which-turn-it-is. The notebook is the whole world's luck, decided in advance.</p>
+</section>
+
+<section>
+  <h2>4 · Why it should help — one sentence of arithmetic</h2>
+  <p>You don't care how jumpy A is, or how jumpy B is. You care how jumpy <strong>A minus B</strong> is. And there's a rule for that:</p>
+  <figure>
+    <svg viewBox="0 0 720 200" role="img" aria-label="Jumpiness of the gap equals jumpiness of A plus jumpiness of B minus twice how much they move together">
+      <rect x="50" y="60" width="120" height="40" rx="10" fill="var(--card)" stroke="var(--a)" stroke-width="3"/>
+      <text x="110" y="86" text-anchor="middle" class="svg-small">A jumps</text>
+      <text x="188" y="88" class="svg-big">+</text>
+      <rect x="222" y="60" width="120" height="40" rx="10" fill="var(--dim)" stroke="var(--b)" stroke-width="3"/>
+      <text x="282" y="86" text-anchor="middle" class="svg-small">B jumps</text>
+      <text x="360" y="88" class="svg-big">&#8722;</text>
+      <rect x="394" y="60" width="190" height="40" rx="10" fill="var(--dice)" opacity="0.18"/>
+      <rect x="394" y="60" width="190" height="40" rx="10" fill="none" stroke="var(--dice)" stroke-width="3"/>
+      <text x="489" y="86" text-anchor="middle" class="svg-small">2 &#215; they jump together</text>
+      <text x="600" y="88" class="svg-big">=</text>
+      <rect x="632" y="60" width="70" height="40" rx="10" fill="var(--surface)" stroke="var(--ink-2)" stroke-width="3"/>
+      <text x="667" y="86" text-anchor="middle" class="svg-small">the gap</text>
+      <text x="489" y="132" text-anchor="middle" class="svg-small" fill="var(--dice)">this is the only piece you control</text>
+      <path d="M489 140 L489 158" stroke="var(--dice)" stroke-width="2.5"/>
+      <path d="M489 100 L489 118" stroke="var(--dice)" stroke-width="2.5" stroke-dasharray="4 4"/>
+      <text x="360" y="180" text-anchor="middle" class="svg-small">make them jump together, and what's left over shrinks</text>
+    </svg>
+  </figure>
+  <p>Sharing the notebook is a bid to make that middle piece big. In kid words: <strong>if both plans are having a good day at the same time, the difference between them barely moves.</strong> Nothing here is a cheat — the averages stay honest. Only the wobble changes.</p>
+</section>
+
+<section>
+  <h2>5 · The nasty surprise: sometimes sharing makes it worse</h2>
+  <p>Here is the paper's own counterexample, shrunk to candy. One coin flip sends you to <strong>Room Left</strong> or <strong>Room Right</strong>. Plan A does great in Left and badly in Right. Plan B is the exact opposite.</p>
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="One coin flip sends both plans to the same room; plan A wins big in the left room, plan B wins big in the right room, so the gap is always plus or minus eight">
+      <circle cx="360" cy="42" r="24" fill="var(--card)" stroke="var(--dice)" stroke-width="3"/>
+      <text x="360" y="48" text-anchor="middle" class="svg-small" fill="var(--dice)">flip</text>
+      <path d="M340 56 L215 104" stroke="var(--dice)" stroke-width="3" fill="none"/>
+      <path d="M215 104 l4 -13 9 8 z" fill="var(--dice)"/>
+      <path d="M380 56 L505 104" stroke="var(--dice)" stroke-width="3" fill="none"/>
+      <path d="M505 104 l-13 -5 9 -8 z" fill="var(--dice)"/>
+
+      <rect x="46" y="110" width="272" height="120" rx="14" fill="var(--card)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="182" y="136" text-anchor="middle" class="svg-label">Room Left</text>
+      <text x="76" y="170" class="svg-small" fill="var(--a)">plan A</text>
+      <g fill="var(--a)"><rect x="140" y="156" width="18" height="18" rx="4"/><rect x="164" y="156" width="18" height="18" rx="4"/><rect x="188" y="156" width="18" height="18" rx="4"/></g>
+      <text x="222" y="170" class="svg-label" fill="var(--a)">9</text>
+      <text x="76" y="204" class="svg-small" fill="var(--b)">plan B</text>
+      <g fill="var(--b)"><rect x="140" y="190" width="18" height="18" rx="4"/></g>
+      <text x="222" y="204" class="svg-label" fill="var(--b)">1</text>
+
+      <rect x="402" y="110" width="272" height="120" rx="14" fill="var(--dim)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="538" y="136" text-anchor="middle" class="svg-label">Room Right</text>
+      <text x="432" y="170" class="svg-small" fill="var(--a)">plan A</text>
+      <g fill="var(--a)"><rect x="496" y="156" width="18" height="18" rx="4"/></g>
+      <text x="578" y="170" class="svg-label" fill="var(--a)">1</text>
+      <text x="432" y="204" class="svg-small" fill="var(--b)">plan B</text>
+      <g fill="var(--b)"><rect x="496" y="190" width="18" height="18" rx="4"/><rect x="520" y="190" width="18" height="18" rx="4"/><rect x="544" y="190" width="18" height="18" rx="4"/></g>
+      <text x="578" y="204" class="svg-label" fill="var(--b)">9</text>
+
+      <text x="182" y="262" text-anchor="middle" class="svg-big" fill="var(--a)">gap = +8</text>
+      <text x="538" y="262" text-anchor="middle" class="svg-big" fill="var(--b)">gap = &#8722;8</text>
+      <text x="360" y="290" text-anchor="middle" class="svg-small">one shared coin &#8594; the gap is only ever +8 or &#8722;8</text>
+    </svg>
+  </figure>
+  <p>Count it out. With <strong>one shared coin</strong>, the gap is +8 or &#8722;8 — nothing else. With <strong>two separate coins</strong>, the gap can also land on 0 (both do well, or both do badly), and it does so half the time. Separate coins are <em>calmer</em>. Sharing made the answer exactly twice as jumpy.</p>
+  <p class="punch">Sharing dice is a bet, not a law. When one plan's good luck is the other plan's bad luck, the bet loses.</p>
+</section>
+
+<section>
+  <h2>6 · The safe rule: share only where the two plans do the same thing</h2>
+  <p>Look again at what went wrong. The coin hurt because the two plans <strong>reacted to it differently</strong> — they made different choices in the rooms. So the paper draws a line down the future:</p>
+  <figure>
+    <svg viewBox="0 0 720 310" role="img" aria-label="Timeline split at step d: before it the two plans choose differently and get separate dice, after it both follow the same habit and share one set of dice, and the two imagined games merge into one">
+      <text x="185" y="30" text-anchor="middle" class="svg-label">the plans choose differently</text>
+      <text x="520" y="30" text-anchor="middle" class="svg-label">the plans do the same thing</text>
+      <line x1="330" y1="42" x2="330" y2="240" stroke="var(--ink-2)" stroke-width="2" stroke-dasharray="5 6"/>
+      <text x="330" y="258" text-anchor="middle" class="svg-small" fill="var(--ink)">step d</text>
+
+      <path d="M60 90 L120 110 L180 84 L240 118 L300 96 L330 104 L390 130 L450 152 L520 170"
+            fill="none" stroke="var(--a)" stroke-width="3"/>
+      <path d="M60 210 L120 190 L180 216 L240 186 L300 208 L330 198 L390 186 L450 176 L520 170"
+            fill="none" stroke="var(--b)" stroke-width="3"/>
+      <circle cx="520" cy="170" r="8" fill="var(--dice)"/>
+      <path d="M520 170 L600 148 L680 156" fill="none" stroke="var(--dice)" stroke-width="5"/>
+      <text x="600" y="122" text-anchor="middle" class="svg-small" fill="var(--dice)">same square, same habit,</text>
+      <text x="600" y="140" text-anchor="middle" class="svg-small" fill="var(--dice)">same dice &#8594; one single game</text>
+
+      <rect x="40" y="266" width="280" height="34" rx="10" fill="var(--dim)" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="180" y="288" text-anchor="middle" class="svg-small">separate dice here</text>
+      <rect x="340" y="266" width="340" height="34" rx="10" fill="var(--dice)" opacity="0.16"/>
+      <rect x="340" y="266" width="340" height="34" rx="10" fill="none" stroke="var(--dice)" stroke-width="2.5"/>
+      <text x="510" y="288" text-anchor="middle" class="svg-small" fill="var(--dice)">one shared set of dice here</text>
+    </svg>
+  </figure>
+  <p>Why is the right-hand side safe? Because once both imagined games land on the <strong>same square</strong>, and they're both following the <strong>same habit</strong>, and they're both reading the <strong>same dice</strong> — they are no longer two games. They're literally one game, written down twice. Two copies of one thing move together perfectly. That can only push the middle piece of the arithmetic up.</p>
+  <p>And if they never land on the same square? Then they were reading different dice all along, and it's a wash. Either way you never lose.</p>
+  <p class="punch">That's the whole theorem: split the dice where the plans differ, share them where the plans agree — and you are <em>guaranteed</em> to be no worse off than using separate dice everywhere. Usually much better.</p>
+</section>
+
+<section>
+  <h2>7 · The best part: you get that split for free</h2>
+  <p>It sounds like a fussy condition — "the two plans must behave identically after step d". It isn't. <strong>It's how rollout planning already works.</strong></p>
+  <p>You're comparing move A against move B. They differ for exactly one step — the first one. After that, both imagined games are finished off by the same lazy habit, because that's the point of a rollout: you don't think hard about the far future, you just play it out. So d = 1, handed to you.</p>
+  <figure>
+    <svg viewBox="0 0 720 230" role="img" aria-label="A search root branches into move A and move B, and both branches are then finished by the same shared rollout habit">
+      <circle cx="80" cy="115" r="24" fill="var(--card)" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <text x="80" y="121" text-anchor="middle" class="svg-small">now</text>
+      <path d="M104 102 L214 66" stroke="var(--a)" stroke-width="3" fill="none"/>
+      <path d="M104 128 L214 164" stroke="var(--b)" stroke-width="3" fill="none"/>
+      <text x="150" y="72" class="svg-small" fill="var(--a)">move A</text>
+      <text x="150" y="186" class="svg-small" fill="var(--b)">move B</text>
+      <circle cx="238" cy="60" r="19" fill="var(--card)" stroke="var(--a)" stroke-width="3"/>
+      <circle cx="238" cy="170" r="19" fill="var(--dim)" stroke="var(--b)" stroke-width="3"/>
+
+      <rect x="420" y="42" width="260" height="146" rx="16" fill="var(--dice)" opacity="0.13"/>
+      <rect x="420" y="42" width="260" height="146" rx="16" fill="none" stroke="var(--dice)" stroke-width="3" stroke-dasharray="8 6"/>
+      <text x="550" y="104" text-anchor="middle" class="svg-label" fill="var(--dice)">the same lazy habit</text>
+      <text x="550" y="128" text-anchor="middle" class="svg-small">finishes both games</text>
+      <path d="M257 60 C 320 52, 360 60, 418 74"  fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-dasharray="4 5"/>
+      <path d="M257 60 C 330 74, 360 86, 418 100" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-dasharray="4 5"/>
+      <path d="M257 170 C 320 178, 360 168, 418 156" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-dasharray="4 5"/>
+      <path d="M257 170 C 330 154, 360 142, 418 130" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-dasharray="4 5"/>
+      <text x="360" y="216" text-anchor="middle" class="svg-small">they differ for exactly one step &#8594; d = 1, for free</text>
+    </svg>
+  </figure>
+</section>
+
+<section>
+  <h2>8 · How you actually do it: you name the dice</h2>
+  <p>There is no new machinery. No notebook gets stored. You just <strong>label</strong> each random number with a name, and identical names are made to produce identical rolls.</p>
+  <figure>
+    <svg viewBox="0 0 720 210" role="img" aria-label="The seed is built by gluing together where you are, what you did, which turn, and which imagined run; the plan's name is added only for the early steps">
+      <rect x="46" y="48" width="628" height="66" rx="14" fill="var(--card)" stroke="var(--dice)" stroke-width="3"/>
+      <text x="360" y="80" text-anchor="middle" class="svg-mono">where I am + what I did + which turn + which imagined run</text>
+      <text x="360" y="102" text-anchor="middle" class="svg-small">the name of one die roll</text>
+
+      <rect x="212" y="146" width="296" height="46" rx="12" fill="var(--surface)" stroke="var(--b)" stroke-width="2.5" stroke-dasharray="7 5"/>
+      <text x="360" y="167" text-anchor="middle" class="svg-mono">+ which plan</text>
+      <text x="360" y="184" text-anchor="middle" class="svg-small">glued on only for the early steps, where the plans differ</text>
+      <path d="M360 146 L360 118" stroke="var(--b)" stroke-width="2.5"/>
+      <path d="M360 118 l-4 11 8 0 z" fill="var(--b)"/>
+    </svg>
+  </figure>
+  <p>Add the plan's name to the label and the two plans get <em>different</em> rolls. Leave it off and they get the <em>same</em> rolls. That one on/off switch, flipped at step d, is the entire implementation.</p>
+</section>
+
+<section>
+  <h2>9 · Does it work?</h2>
+  <p>Three tests: a tiny made-up world, a task about paying out a pension fund year by year, and 5000 games of the board game <strong>Ludo</strong>. Shared dice win — and <strong>they win biggest when you can only afford a handful of imagined games</strong>, which is the situation you're actually in.</p>
+  <figure>
+    <svg viewBox="0 0 720 250" role="img" aria-label="Two rising curves for pick quality against the number of imagined games; the shared-dice curve is far above the separate-dice curve when few games are affordable, and they converge when many are">
+      <path d="M90 170 C 200 80, 340 58, 650 50 L650 56 C 400 95, 240 175, 90 205 Z" fill="var(--dice)" opacity="0.15"/>
+      <path d="M90 170 C 200 80, 340 58, 650 50" fill="none" stroke="var(--dice)" stroke-width="4"/>
+      <path d="M90 205 C 240 175, 400 95, 650 56" fill="none" stroke="var(--ink-2)" stroke-width="3" stroke-dasharray="7 5"/>
+      <text x="470" y="40" class="svg-small" fill="var(--dice)">shared dice</text>
+      <text x="470" y="86" class="svg-small">separate dice</text>
+      <line x1="80" y1="216" x2="666" y2="216" stroke="var(--hairline)" stroke-width="2"/>
+      <line x1="80" y1="34" x2="80" y2="216" stroke="var(--hairline)" stroke-width="2"/>
+      <text x="120" y="236" class="svg-small">few</text>
+      <text x="600" y="236" class="svg-small">many</text>
+      <text x="373" y="240" text-anchor="middle" class="svg-small">imagined games you can afford</text>
+      <text x="26" y="130" class="svg-small" transform="rotate(-90 26 130)" text-anchor="middle">pick quality</text>
+      <path d="M132 188 L108 176" stroke="var(--dice)" stroke-width="2"/>
+      <text x="140" y="196" class="svg-small" fill="var(--dice)">the gap lives here</text>
+    </svg>
+  </figure>
+  <p><strong>Two honest gaps the authors name themselves.</strong> First, in Ludo the reckless version — share <em>everything</em>, the one that has no guarantee — did just as well as the safe version. The theorem doesn't cover the tree-growing search they used there, and they say so rather than papering over it. Second, nobody knows how to find the split point d automatically; you have to know where the two plans stop disagreeing.</p>
+</section>
+
+<section>
+  <h2>10 · Why it sits in this vault</h2>
+  <p>Half of this transfers, and half of it doesn't — and the halves are worth keeping straight.</p>
+  <figure>
+    <svg viewBox="0 0 720 250" role="img" aria-label="On the left, two candidate teams share one opponent, which works; on the right, two candidate teams diverge from turn one, so the theorem's condition fails">
+      <text x="180" y="28" text-anchor="middle" class="svg-label" fill="var(--a)">the free half &#10003;</text>
+      <rect x="40" y="56" width="112" height="44" rx="11" fill="var(--card)" stroke="var(--a)" stroke-width="2.5"/>
+      <text x="96" y="84" text-anchor="middle" class="svg-small">team A</text>
+      <rect x="40" y="140" width="112" height="44" rx="11" fill="var(--dim)" stroke="var(--b)" stroke-width="2.5"/>
+      <text x="96" y="168" text-anchor="middle" class="svg-small">team B</text>
+      <path d="M152 78 L206 106" stroke="var(--a)" stroke-width="2.5" fill="none"/>
+      <path d="M152 162 L206 134" stroke="var(--b)" stroke-width="2.5" fill="none"/>
+      <rect x="208" y="98" width="118" height="44" rx="11" fill="var(--dice)" opacity="0.18"/>
+      <rect x="208" y="98" width="118" height="44" rx="11" fill="none" stroke="var(--dice)" stroke-width="2.5"/>
+      <text x="267" y="126" text-anchor="middle" class="svg-small" fill="var(--dice)">one opponent</text>
+      <text x="180" y="206" text-anchor="middle" class="svg-small">same meta team, same opponent brain,</text>
+      <text x="180" y="226" text-anchor="middle" class="svg-small">battle 1 against battle 1</text>
+
+      <line x1="360" y1="16" x2="360" y2="238" stroke="var(--hairline)" stroke-width="2" stroke-dasharray="4 5"/>
+
+      <text x="540" y="28" text-anchor="middle" class="svg-label" fill="var(--b)">the half that isn't yours &#10007;</text>
+      <circle cx="412" cy="120" r="12" fill="var(--card)" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <text x="412" y="152" text-anchor="middle" class="svg-small">turn 1</text>
+      <path d="M424 112 L676 62" stroke="var(--a)" stroke-width="3" fill="none"/>
+      <path d="M424 128 L676 178" stroke="var(--b)" stroke-width="3" fill="none"/>
+      <text x="540" y="206" text-anchor="middle" class="svg-small">two different teams never</text>
+      <text x="540" y="226" text-anchor="middle" class="svg-small">"do the same thing after step d"</text>
+    </svg>
+  </figure>
+  <p><strong>What you can take today:</strong> pair the <em>opponent</em>. Battle 1 of team A and battle 1 of team B face the same sampled meta team, played by the same opponent brain with the same decision seed. A hard opponent is hard for both, which is exactly the "jump together" piece. That's classical paired comparison — free, and it needs nothing from the simulator.</p>
+  <p><strong>What you can't:</strong> the theorem itself. Two candidate teams disagree from turn one, so there is no stretch where they "do the same thing" to share dice over. And Showdown's randomness comes off one running tape rather than being labelled per event, so a shared battle seed stops lining up the moment the two battles diverge.</p>
+  <div class="warn">
+    <p><strong>The verdict, quoted from the vault:</strong> <em>"(a) The CRN idea for team-vs-team battle comparisons — MED. … (b) The paper's specific theoretical contribution (X_DD, Theorem 2) for this pipeline as it exists today — LOW."</em></p>
+  </div>
+  <p class="foot">Yadav, Maliakkal, Khadilkar &amp; Kalyanakrishnan — "Using Common Random Numbers for Simulation-based Planning with Rollouts," Reinforcement Learning Journal 2026 (Paper 52). 🟢 arXiv:2605.04732. Deeper treatment: lesson 0006 in this workspace; the transfer analysis is in reference/crn-usefulness-for-the-project.md.</p>
+</section>
+
+</main>
+</body>
+</html>

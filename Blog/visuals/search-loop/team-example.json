@@ -1,0 +1,150 @@
+{
+  "title": "A validated corpus team",
+  "sourceKind": "Corpus example, not a generated search result",
+  "sourceFile": "/Users/ramiismael/.local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2/teams/reg_mb/MB1.txt",
+  "sourceSha256": "8caebf4945f875ac59038ab40958fc5a92bf3068ab13934c144a4c06b357340b",
+  "format": "gen9championsvgc2026regmb",
+  "valid": true,
+  "validationErrors": [],
+  "team": [
+    {
+      "slot": 1,
+      "species": "Excadrill",
+      "item": "Focus Sash",
+      "moves": [
+        "Earthquake",
+        "Iron Head",
+        "Rock Slide",
+        "Protect"
+      ],
+      "statPoints": {
+        "HP": 1,
+        "Atk": 32,
+        "Def": 1,
+        "Spe": 32
+      },
+      "ivs": null,
+      "teraType": null,
+      "ability": "Sand Rush",
+      "level": 50,
+      "nature": "Adamant"
+    },
+    {
+      "slot": 2,
+      "species": "Tyranitar",
+      "item": "Tyranitarite",
+      "moves": [
+        "Rock Slide",
+        "Knock Off",
+        "Low Kick",
+        "Protect"
+      ],
+      "statPoints": {
+        "HP": 27,
+        "Atk": 26,
+        "Def": 1,
+        "Spe": 12
+      },
+      "ivs": null,
+      "teraType": null,
+      "ability": "Sand Stream",
+      "level": 50,
+      "nature": "Adamant"
+    },
+    {
+      "slot": 3,
+      "species": "Staraptor",
+      "item": "Staraptite",
+      "moves": [
+        "Brave Bird",
+        "Close Combat",
+        "Tailwind",
+        "Protect"
+      ],
+      "statPoints": {
+        "HP": 32,
+        "Atk": 4,
+        "Spe": 30
+      },
+      "ivs": null,
+      "teraType": null,
+      "ability": "Intimidate",
+      "level": 50,
+      "nature": "Jolly"
+    },
+    {
+      "slot": 4,
+      "species": "Basculegion",
+      "item": "Choice Scarf",
+      "moves": [
+        "Wave Crash",
+        "Last Respects",
+        "Flip Turn",
+        "Aqua Jet"
+      ],
+      "statPoints": {
+        "HP": 1,
+        "Atk": 18,
+        "Def": 14,
+        "SpD": 1,
+        "Spe": 32
+      },
+      "ivs": null,
+      "teraType": null,
+      "ability": "Adaptability",
+      "level": 50,
+      "nature": "Adamant"
+    },
+    {
+      "slot": 5,
+      "species": "Sinistcha",
+      "item": "Sitrus Berry",
+      "moves": [
+        "Matcha Gotcha",
+        "Rage Powder",
+        "Life Dew",
+        "Trick Room"
+      ],
+      "statPoints": {
+        "HP": 32,
+        "Def": 4,
+        "SpD": 30
+      },
+      "ivs": null,
+      "teraType": null,
+      "ability": "Hospitality",
+      "level": 50,
+      "nature": "Calm"
+    },
+    {
+      "slot": 6,
+      "species": "Raichu",
+      "item": "Shuca Berry",
+      "moves": [
+        "Fake Out",
+        "Encore",
+        "Charm",
+        "Volt Switch"
+      ],
+      "statPoints": {
+        "HP": 17,
+        "Def": 17,
+        "Spe": 32
+      },
+      "ivs": null,
+      "teraType": null,
+      "ability": "Lightning Rod",
+      "level": 50,
+      "nature": "Timid"
+    }
+  ],
+  "revealOrder": [
+    "species",
+    "ability and item",
+    "moves",
+    "nature",
+    "copied stat-point spreads"
+  ],
+  "revealNote": "Illustrative field reveal using a fixed corpus example; not a recorded diffusion trajectory. The constrained sampler reveals species, ability/item, moves, then nature. Spreads are assigned from same-species corpus slots after categorical decoding.",
+  "spreadNote": "Source EVs text label denotes Champions Stat Points; display as Stat Points. IVs and Tera Type are absent and should not be invented."
+}

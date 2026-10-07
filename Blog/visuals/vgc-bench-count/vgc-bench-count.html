@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counting Pokémon Teams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0EA;--ink:#17201B;--muted:#5E6B63;--slot:#DCE2D8;--rule:#C9D1C5;
+  --mon:#2E5E8C;--team:#C8372D;--focus:#2E5E8C;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"Martian Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--mon:#7FA8D6;--team:#F0705F;--focus:#7FA8D6}}
+:root[data-theme="dark"]{--paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--mon:#7FA8D6;--team:#F0705F;--focus:#7FA8D6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+main{max-width:880px;margin:0 auto;padding:48px 16px 64px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--muted);margin:0 0 14px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,6vw,54px);line-height:1.02;letter-spacing:-.02em;margin:0 0 14px}
+h1 .n{color:var(--team)}
+.dek{max-width:62ch;color:var(--muted);margin:0 0 26px}
+.chapters{list-style:none;padding:0;margin:0 0 14px;display:flex;flex-wrap:wrap;gap:6px}
+.chapters button{font:inherit;font-size:14px;color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:999px;padding:5px 14px;cursor:pointer;transition:border-color 160ms ease,color 160ms ease,background-color 160ms ease}
+.chapters button[aria-current="step"]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+.stage{border-top:1.5px solid var(--ink);padding-top:10px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.chip{fill:var(--slot)}.ov{fill:var(--mon)}.red{fill:var(--team)}.slotf{fill:var(--slot)}
+.t{fill:var(--ink);font-family:var(--mono);font-size:15px}
+.tb{fill:var(--ink);font-family:var(--display);font-weight:500;font-size:20px}
+.tm{fill:var(--muted);font-family:var(--body);font-size:14px}
+.tl{fill:var(--paper);font-family:var(--mono);font-size:12px;font-weight:600}
+.dot{fill:var(--slot)}.dot.a{fill:var(--mon)}.dot.b{fill:var(--muted)}.dot.x{fill:var(--team)}
+.div{stroke:var(--ink);stroke-width:2.5;stroke-linecap:round}
+.cap-line{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4}
+.captions{position:relative;min-height:112px;border-top:1px dashed var(--rule);margin-top:10px}
+.cap{position:absolute;inset:12px 0 0 0;visibility:hidden}
+.cap .f{font-family:var(--mono);font-size:clamp(14px,2.1vw,18px);font-weight:600;margin:0 0 4px;overflow-wrap:anywhere}
+.cap .p{color:var(--muted);margin:0;max-width:64ch;font-size:16px}
+.controls{display:flex;align-items:center;gap:12px;margin:10px 0 48px}
+.controls button{font:inherit;font-size:15px;color:var(--paper);background:var(--ink);border:1.5px solid var(--ink);border-radius:999px;padding:7px 18px;cursor:pointer;min-width:92px;transition:transform 120ms cubic-bezier(0.23,1,0.32,1)}
+.controls button:active{transform:scale(.97)}
+.controls input{flex:1;accent-color:var(--ink);min-width:0}
+@media (hover:hover) and (pointer:fine){.chapters button:not([aria-current]):hover{border-color:var(--ink);color:var(--ink)}}
+button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.foot{border-top:1px solid var(--rule);padding-top:14px;font-size:13px;color:var(--muted);max-width:72ch}
+.foot p{margin:0 0 8px}
+@media (max-width:640px){.captions{min-height:150px}}
+@media (prefers-reduced-motion:reduce){.controls button:active{transform:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">VGC-Bench, Appendix A · Pokémon Scarlet/Violet</p>
+<h1>How VGC-Bench counts <span class="n">10<sup>139</sup></span> teams</h1>
+<p class="dek">Press play, or drag the slider to move through it at your own pace. Each chapter works out one piece of the count on screen, and the bar at the end adds the pieces together.</p>
+
+<ol class="chapters" id="chapters"></ol>
+<div class="stage"><svg id="svg" viewBox="0 0 800 380" role="img" aria-label="Animated working of the VGC-Bench team count"></svg></div>
+<div class="captions" id="captions" aria-live="polite"></div>
+<div class="controls">
+  <button type="button" id="play">Play</button>
+  <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Position in the animation">
+</div>
+
+<div class="foot">
+<p>Source: VGC-Bench (Angliss, Cui, Hu, Rahman and Stone, AAMAS 2026), Appendix A. The paper sets up the stat-spread count and gives the answer, 246,774,528, but not the working. The stars-and-bars subtraction shown here reproduces that number exactly.</p>
+<p>It is an upper bound for Scarlet/Violet: it assumes every species has about 100 moves and lets two Pokémon hold the same item. It is not the Champions count. For scale: chess positions ≈ 4.8 × 10<sup>44</sup> (Tromp), chess games ≈ 10<sup>120</sup> (Shannon, 1950), Go positions ≈ 2.1 × 10<sup>170</sup> (Tromp, 2016).</p>
+</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+<script>
+gsap.registerPlugin(CustomEase);
+CustomEase.create("out","M0,0 C0.23,1 0.32,1 1,1");
+CustomEase.create("inOut","M0,0 C0.77,0 0.175,1 1,1");
+const NS="http://www.w3.org/2000/svg",svg=document.getElementById("svg");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e}
+function txt(s,attrs,parent){const e=el("text",attrs,parent);e.textContent=s;return e}
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const L=Math.log10;
+
+/* scene 1: moves */
+const s1=el("g",{});
+const chips=[],PICK=[23,47,61,88],LET="ABCD",pickOv=[],pickLet=[];
+for(let i=0;i<100;i++){const x=40+(i%10)*36,y=40+Math.floor(i/10)*30;chips.push(el("rect",{x,y,width:30,height:22,rx:3,class:"chip"},s1))}
+PICK.forEach((i,k)=>{const x=40+(i%10)*36,y=40+Math.floor(i/10)*30;
+ pickOv.push(el("rect",{x,y,width:30,height:22,rx:3,class:"ov"},s1));
+ pickLet.push(txt(LET[k],{x:x+15,y:y+16,"text-anchor":"middle",class:"tl"},s1))});
+txt("about 100 moves",{x:40,y:350,class:"tm"},s1);
+const pickLines=["1st pick: 100 choices","2nd pick: 99 left","3rd pick: 98 left","4th pick: 97 left"].map((s,k)=>txt(s,{x:450,y:70+k*38,class:"t"},s1));
+const product=txt("100 × 99 × 98 × 97",{x:450,y:250,class:"tb"},s1);
+const product2=txt("= 94,109,400 in order",{x:450,y:280,class:"t"},s1);
+function perms(a){if(a.length<2)return[a];return a.flatMap((x,i)=>perms([...a.slice(0,i),...a.slice(i+1)]).map(p=>[x,...p]))}
+const permRows=perms([..."ABCD"]).map((p,k)=>{const g=el("g",{},s1);p.forEach((c,j)=>{el("rect",{x:j*21,y:0,width:18,height:18,rx:2,class:"ov"},g);txt(c,{x:j*21+9,y:13.5,"text-anchor":"middle",class:"tl"},g)});
+ gsap.set(g,{x:450+(k%4)*84,y:40+Math.floor(k/4)*42});return g});
+const oneSet=txt("1 set of 4 moves",{x:548,y:300,"text-anchor":"middle",class:"t"},s1);
+
+/* scene 2: stat spread */
+const s2=el("g",{});
+const U=127,DX=720/U,dots=[];
+for(let i=0;i<U;i++)dots.push(el("circle",{cx:40+(i+.5)*DX,cy:62,r:2.3,class:"dot"},s2));
+txt("127 units of 4 EVs",{x:40,y:30,class:"tm"},s2);
+const divs=[0,1,2,3,4].map(()=>el("line",{x1:0,x2:0,y1:44,y2:80,class:"div"},s2));
+const STATS=["HP","Atk","Def","SpA","SpD","Spe"],BU=4.4,BX=90,bars=[],reds=[],nums=[];
+STATS.forEach((s,k)=>{const y=112+k*38;txt(s,{x:40,y:y+15,class:"t"},s2);
+ el("rect",{x:BX,y,width:63*BU,height:20,rx:3,class:"slotf"},s2);
+ bars.push(el("rect",{x:BX,y,width:0,height:20,rx:3,class:"ov"},s2));
+ reds.push(el("rect",{x:BX,y,width:0,height:20,rx:3,class:"red",opacity:0},s2));
+ nums.push(txt("0",{x:BX+8,y:y+15,class:"t"},s2))});
+el("line",{x1:BX+63*BU,x2:BX+63*BU,y1:100,y2:344,class:"cap-line"},s2);
+txt("max 63",{x:BX+63*BU,y:362,"text-anchor":"middle",class:"tm"},s2);
+const over=txt("over the cap: not allowed",{x:BX+80*BU+60,y:127,class:"tm"},s2);
+over.setAttribute("style","fill:var(--team)");
+const P={a:21,b:42,c:63,d:84,e:105};
+const SP={even:{a:21,b:42,c:63,d:84,e:105},attack:{a:1,b:64,c:64,d:64,e:64},bulky:{a:63,b:63,c:94,d:94,e:127},bad:{a:80,b:100,c:127,d:127,e:127}};
+function renderStats(){const d=[P.a,P.b,P.c,P.d,P.e].map(Math.round),cuts=[0,...d,U];
+ divs.forEach((ln,k)=>{const x=40+d[k]*DX;ln.setAttribute("x1",x);ln.setAttribute("x2",x)});
+ let bad=false,alt=0;
+ for(let k=0;k<6;k++){const c=cuts[k+1]-cuts[k],o=c>63;bad=bad||o;if(c>0)alt++;
+  bars[k].setAttribute("width",c*BU);reds[k].setAttribute("width",c*BU);reds[k].setAttribute("opacity",o?1:0);
+  nums[k].setAttribute("x",BX+c*BU+8);nums[k].textContent=c;
+  for(let i=cuts[k];i<cuts[k+1];i++)dots[i].setAttribute("class","dot "+(o?"x":(alt%2?"a":"b")))}
+ over.setAttribute("opacity",bad?1:0)}
+
+/* scenes 3-5: the length bar */
+const MAXD=175,PX=720/MAXD,T0=40,TY=250;
+const s3=el("g",{});const tapeG=el("g",{},s3);
+el("rect",{x:T0,y:TY,width:720,height:36,rx:4,class:"slotf"},tapeG);
+[0,25,50,75,100,125,150,175].forEach(v=>txt(v===175?"175 digits":String(v),{x:T0+v*PX,y:TY+56,"text-anchor":v===0?"start":v===175?"end":"middle",class:"tm"},tapeG));
+[[44.68,"chess positions"],[120,"chess games"],[170.32,"Go positions"]].forEach(([v,t])=>{const x=T0+v*PX;
+ el("line",{x1:x,x2:x,y1:TY-4,y2:TY+64,class:"cap-line"},tapeG);txt(t,{x,y:TY+80,"text-anchor":v>160?"end":"middle",class:"tm"},tapeG)});
+const MONL=L(3921225)+L(5182265088)+L(3)+L(223)+L(2)+L(19);
+const parts=[L(3921225),L(5182265088),L(3),L(223),L(2),L(19)];
+let acc=0;const partEls=parts.map(w=>{const r=el("rect",{x:T0+acc*PX,y:TY,width:Math.max(1,w*PX-1.5),height:36,class:"ov"},tapeG);acc+=w;return r});
+const brace=el("g",{},tapeG);
+el("path",{d:`M${T0} ${TY-8} v-6 h${MONL*PX-2} v6`,fill:"none",style:"stroke:var(--ink)","stroke-width":1.5},brace);
+txt("one Pokémon: 20.71 digits",{x:T0,y:TY-22,class:"t"},brace);
+const copies=[1,2,3,4,5].map(k=>{const g=el("g",{},tapeG);el("rect",{x:0,y:TY,width:MONL*PX-1.5,height:36,class:"ov",opacity:.72},g);
+ txt("Pokémon "+(k+1),{x:6,y:TY+23,class:"tl"},g);gsap.set(g,{x:T0+k*MONL*PX});return g});
+const spW=L(242285757049875);
+const spSeg=el("rect",{x:T0+6*MONL*PX,y:TY,width:spW*PX,height:36,class:"red"},tapeG);
+const spLab=txt("species",{x:T0+6*MONL*PX+4,y:TY+23,class:"tl",style:"font-size:10.5px"},tapeG);
+const endLab=txt("139 digits",{x:T0+(6*MONL+spW)*PX,y:TY-14,"text-anchor":"middle",class:"tb"},tapeG);
+endLab.setAttribute("style","fill:var(--team)");
+const gridG=el("g",{},s3),gridDots=[],SPK=[37,190,301,415,562,688];
+for(let i=0;i<750;i++){gridDots.push(el("circle",{cx:46+(i%58)*12.3,cy:14+Math.floor(i/58)*11.5,r:2.6,class:"dot"},gridG))}
+const spPicks=SPK.map(i=>el("circle",{cx:46+(i%58)*12.3,cy:14+Math.floor(i/58)*11.5,r:5,class:"red"},gridG));
+
+/* timeline */
+const tl=gsap.timeline({paused:true,defaults:{ease:"out",duration:.6}});
+const capBox=document.getElementById("captions");let lastCap=null;
+function cap(f,p){const d=document.createElement("div");d.className="cap";d.innerHTML=`<p class="f">${f}</p><p class="p">${p}</p>`;capBox.appendChild(d);
+ if(lastCap)tl.to(lastCap,{autoAlpha:0,duration:.25});
+ tl.fromTo(d,{autoAlpha:0,y:6},{autoAlpha:1,y:0,duration:.45});lastCap=d}
+const hold=s=>tl.to({},{duration:s});
+
+gsap.set([s2,s3,gridG,brace,spLab,endLab,over],{autoAlpha:0});
+gsap.set([...pickOv,...pickLet,...pickLines,product,product2,...permRows,oneSet],{autoAlpha:0});
+gsap.set(tapeG,{y:-110});
+gsap.set(partEls,{scaleX:0,transformOrigin:"left center"});
+gsap.set(spSeg,{scaleX:0,transformOrigin:"left center"});
+gsap.set(copies,{autoAlpha:0});gsap.set(spPicks,{autoAlpha:0});
+renderStats();
+
+tl.addLabel("Moves");
+cap("C(100, 4)","Choose 4 of about 100 moves. The order you pick them in does not matter.");
+tl.from(chips,{autoAlpha:0,scale:.9,transformOrigin:"50% 50%",stagger:.006,duration:.4});
+PICK.forEach((_,k)=>{tl.to(pickOv[k],{autoAlpha:1,duration:.3});tl.to(pickLet[k],{autoAlpha:1,duration:.25},"<.1");
+ tl.fromTo(pickLines[k],{autoAlpha:0,x:-8},{autoAlpha:1,x:0,duration:.4},"<");hold(.45)});
+tl.to([product,product2],{autoAlpha:1,stagger:.2});
+cap("100 × 99 × 98 × 97 = 94,109,400","Picking one at a time counts every order of the same four moves separately.");
+hold(1.8);
+tl.to([...pickLines,product,product2],{autoAlpha:0,duration:.3});
+tl.to(permRows,{autoAlpha:1,stagger:.035,duration:.3});
+cap("4 × 3 × 2 × 1 = 24","The same four moves, A B C D, can be picked in 24 different orders.");
+hold(1.6);
+tl.to(permRows.slice(1),{x:450+84*1.2,y:40+42*2.5,autoAlpha:0,duration:.8,ease:"inOut",stagger:.015});
+tl.to(permRows[0],{x:450+84*1.2,y:40+42*2.5,scale:1.5,transformOrigin:"50% 50%",duration:.8,ease:"inOut"},"<");
+tl.to(oneSet,{autoAlpha:1,duration:.4});
+cap("94,109,400 ÷ 24 = 3,921,225","Divide out the orders: almost 4 million movesets.");
+hold(2);
+
+tl.to(s1,{autoAlpha:0,duration:.35});
+tl.addLabel("Stat spread");
+tl.to(s2,{autoAlpha:1,duration:.35});
+cap("510 EVs ÷ 4 → 127 units, at most 63 per stat","A stat only changes every 4 EVs, so count in units of 4, rounding down.");
+tl.from(dots,{autoAlpha:0,stagger:.005,duration:.25},"<");
+tl.from(divs,{autoAlpha:0,y:-10,stagger:.08,duration:.4});
+hold(1.6);
+cap("C(127 + 5, 5) = C(132, 5) = 309,319,296","A spread is a way to place 5 dividers among the 127 units. Moving the dividers changes the spread.");
+tl.to(P,{...SP.attack,duration:1.3,ease:"inOut"});hold(1.1);
+tl.to(P,{...SP.bulky,duration:1.3,ease:"inOut"});hold(1.1);
+cap("− 6 × C(68, 5) = − 62,544,768","Remove spreads with 64 or more in one stat. Any of the 6 stats could be that one, but only one at a time: 64 + 64 > 127.");
+tl.to(P,{...SP.bad,duration:1.3,ease:"inOut"});hold(2.2);
+tl.to(P,{...SP.even,duration:1.3,ease:"inOut"});
+cap("= 246,774,528 spreads × 21 natures = 5,182,265,088","25 natures, but the 5 neutral ones behave the same: 20 + 1 = 21.");
+hold(2.2);
+
+tl.to(s2,{autoAlpha:0,duration:.35});
+tl.addLabel("One Pokémon");
+tl.to(s3,{autoAlpha:1,duration:.35});
+cap("3,921,225 × 5,182,265,088 × 3 × 223 × 2 × 19","Multiply one Pokémon's choices. On this bar, multiplying adds lengths: each factor adds its number of digits.");
+partEls.forEach((r,k)=>tl.to(r,{scaleX:1,duration:.55},k?">-0.15":">"));
+tl.to(brace,{autoAlpha:1,duration:.4});
+cap("≈ 5.17 × 10<sup>20</sup>","6.59 + 9.71 + 0.48 + 2.35 + 0.30 + 1.28 = 20.71 digits for one configured Pokémon.");
+hold(2.2);
+
+tl.addLabel("Six Pokémon");
+cap("(5.17 × 10<sup>20</sup>)<sup>6</sup>","Each of the six slots is configured on its own, so the one-Pokémon count is used six times.");
+copies.forEach((g,k)=>tl.fromTo(g,{x:T0+k*MONL*PX,autoAlpha:0},{x:T0+(k+1)*MONL*PX,autoAlpha:1,duration:.7},k?">-0.4":">+0.2"));
+cap("20.71 × 6 = 124.28 → 1.90 × 10<sup>124</sup>","Six copies of one Pokémon: most of the final size comes from this step.");
+hold(2.2);
+
+tl.addLabel("Species");
+tl.to(tapeG,{y:0,duration:.8,ease:"inOut"});
+tl.to(gridG,{autoAlpha:1,duration:.3},"<.3");
+tl.from(gridDots,{autoAlpha:0,stagger:.0012,duration:.2},"<");
+cap("C(750, 6) = 242,285,757,049,875","750 species, choose 6. Order does not matter here either.");
+tl.to(spPicks,{autoAlpha:1,stagger:.18,duration:.3});
+hold(.8);
+tl.to(spSeg,{scaleX:1,duration:.7});tl.to(spLab,{autoAlpha:1,duration:.3});
+cap("124.28 + 14.38 = 138.66 → 4.6 × 10<sup>138</sup>","A number 139 digits long: longer than every possible chess game, shorter than the number of Go positions.");
+tl.to(endLab,{autoAlpha:1,duration:.4});
+hold(2.5);
+
+/* controls */
+const scrub=document.getElementById("scrub"),playB=document.getElementById("play"),chaps=document.getElementById("chapters");
+const LABELS=Object.entries(tl.labels).sort((a,b)=>a[1]-b[1]);
+let dragging=false;
+function chapEnd(i){return (i+1<LABELS.length?LABELS[i+1][1]:tl.duration())-.01}
+function setPlay(){playB.textContent=tl.isActive()?"Pause":(tl.progress()>=1?"Replay":"Play")}
+function sync(){renderStats();if(!dragging)scrub.value=Math.round(tl.progress()*1000);
+ const t=tl.time();let cur=0;LABELS.forEach(([n,lt],i)=>{if(t>=lt-.001)cur=i});
+ chaps.querySelectorAll("button").forEach((b,i)=>{if(i===cur)b.setAttribute("aria-current","step");else b.removeAttribute("aria-current")})}
+function seek(t){tl.seek(t,false);sync();setPlay()}
+tl.eventCallback("onUpdate",sync);
+tl.eventCallback("onComplete",setPlay);
+LABELS.forEach(([name,t],i)=>{const li=document.createElement("li"),b=document.createElement("button");b.type="button";b.textContent=name;
+ b.onclick=()=>{if(reduce){tl.pause();seek(chapEnd(i))}else{tl.seek(t,false);tl.play();setPlay()}};li.appendChild(b);chaps.appendChild(li)});
+playB.onclick=()=>{
+ if(reduce){const t=tl.time();const i=LABELS.findIndex((_,k)=>chapEnd(k)>t+.02);seek(chapEnd(i<0?0:i));return}
+ if(tl.isActive())tl.pause();else{if(tl.progress()>=1)tl.seek(0,false);tl.play()}
+ setPlay()};
+scrub.addEventListener("pointerdown",()=>{dragging=true;tl.pause();setPlay()});
+scrub.addEventListener("input",()=>{tl.pause();tl.progress(scrub.value/1000,false);sync();setPlay()});
+["change","pointerup"].forEach(ev=>scrub.addEventListener(ev,()=>{dragging=false}));
+sync();
+</script>
+</body>
+</html>

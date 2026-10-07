@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>DiBO — the posterior landscape</title>
+  <style>
+    :root { --paper:#f7f5ef; --ink:#1e284b; --muted:#626b83; --line:#d9d9db; --violet:#5745b8; --lavender:#ded8fa; --orange:#e07843; --teal:#118a89; --blue:#3869b4; --ease:cubic-bezier(.22,1,.36,1); font-family:"Avenir Next",Avenir,"Segoe UI",sans-serif; color:var(--ink); background:var(--paper); }
+    *{box-sizing:border-box} body{margin:0} button{font:inherit} a{color:inherit;text-underline-offset:3px} :focus-visible{outline:3px solid var(--orange);outline-offset:4px}
+    .shell{max-width:1480px;margin:auto;padding:30px clamp(20px,4vw,64px) 76px}
+    .topline{display:flex;justify-content:space-between;gap:20px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:17px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+    .topline span:last-child{color:var(--muted)} .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--violet)}
+    header{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(230px,.7fr);gap:48px;align-items:end;padding:49px 0 42px}
+    h1{font-size:clamp(44px,6vw,90px);letter-spacing:-.075em;line-height:.98;margin:14px 0 20px;font-weight:760;max-width:960px}
+    .subtitle{font-size:clamp(17px,2vw,21px);line-height:1.55;color:var(--muted);max-width:670px;margin:0}
+    .header-note{border-left:3px solid var(--orange);padding:3px 0 4px 18px;font-size:14px;line-height:1.6;color:var(--muted)}
+    .header-note strong{color:var(--ink)} .header-note a{color:var(--violet);font-weight:700}
+    .lab{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 23px 70px #28345b0d;overflow:hidden}
+    .lab-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 25px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+    .lab-top .live{display:flex;align-items:center;gap:9px;color:var(--violet)}.live:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 5px #e078431c}
+    .lab-body{display:grid;grid-template-columns:minmax(310px,.72fr) minmax(0,1.28fr);min-height:590px}
+    .story{padding:clamp(24px,3.7vw,54px);border-right:1px solid var(--line);display:flex;flex-direction:column}
+    .step-number{font-size:13px;color:var(--violet);font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+    .story h2{font-size:clamp(29px,3.4vw,47px);letter-spacing:-.055em;line-height:1.08;margin:18px 0 18px;max-width:440px}
+    .story-copy{font-size:17px;line-height:1.68;color:var(--muted);margin:0;max-width:460px;min-height:118px}
+    .equation{background:#f5f3fd;border:1px solid #e6e1fb;border-radius:14px;padding:18px 20px;margin-top:24px;font-size:clamp(15px,1.6vw,19px);line-height:1.45;font-weight:730;color:var(--violet);overflow-wrap:anywhere}
+    .equation small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#77719e;margin-bottom:9px}
+    .story-bottom{margin-top:auto;padding-top:32px}
+    .takeaway{border-top:1px solid var(--line);padding-top:21px;font-size:14px;line-height:1.55;color:var(--muted)}.takeaway b{color:var(--ink)}
+    .controls{display:flex;align-items:center;gap:12px;margin-top:28px;flex-wrap:wrap}.controls button{border:1px solid #cfd0dc;background:white;color:var(--ink);border-radius:999px;min-height:44px;padding:0 19px;font-weight:750;cursor:pointer;transition:transform .22s var(--ease),background .22s,color .22s,border-color .22s}.controls button:hover{transform:translateY(-2px);border-color:var(--violet)}.controls button:active{transform:translateY(0)}.controls .primary{background:var(--ink);color:white;border-color:var(--ink)}.controls .primary:hover{background:var(--violet)}button:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+    .plot-wrap{position:relative;background:linear-gradient(125deg,#fdfdfd,#f9f8fd);padding:22px 22px 15px;min-width:0;display:flex;flex-direction:column}
+    .plot-heading{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin:2px 5px 14px}.plot-heading strong{font-size:13px;letter-spacing:.12em;text-transform:uppercase}.plot-heading span{font-size:12px;color:var(--muted);text-align:right;max-width:260px}
+    #map{width:100%;height:auto;display:block;max-height:555px;overflow:visible}.axis{font-size:12px;fill:#8589a0;letter-spacing:.04em}.grid{stroke:#e9e8ef;stroke-width:1}.frame{fill:#fff;stroke:#dfe0e8;stroke-width:1.5}
+    .layer{opacity:0;transition:opacity .58s ease}.data-layer{opacity:1}.stage-1 .prior-layer,.stage-2 .prior-layer,.stage-3 .prior-layer,.stage-4 .prior-layer,.stage-5 .prior-layer{opacity:1}.stage-1 .ucb-layer{opacity:1}.stage-2 .posterior-layer,.stage-3 .posterior-layer,.stage-4 .posterior-layer,.stage-5 .posterior-layer{opacity:1}.stage-3 .samples-layer,.stage-4 .samples-layer,.stage-5 .samples-layer{opacity:1}.stage-4 .refine-layer,.stage-5 .refine-layer{opacity:1}.stage-5 .result-layer{opacity:1}
+    .stage-2 .prior-layer,.stage-3 .prior-layer,.stage-4 .prior-layer,.stage-5 .prior-layer{opacity:.23}.contour{fill:none;stroke-width:1.6}.prior-contour{stroke:#9382d4}.post-contour{stroke:#e07843}.sample{fill:#24395f;stroke:#fff;stroke-width:2;filter:url(#dotShadow);transition:transform .78s var(--ease),opacity .4s}.stage-4 .sample,.stage-5 .sample{transform:translate(var(--dx),var(--dy))}.stage-5 .sample:not(.chosen){opacity:.2}.chosen{fill:var(--orange)}.result-dot{fill:var(--teal);stroke:white;stroke-width:3;filter:url(#dotShadow)}
+    .plot-caption{border-top:1px solid #e5e4eb;margin-top:auto;padding:16px 5px 2px;display:flex;justify-content:space-between;gap:18px;align-items:center;font-size:12px;color:var(--muted);line-height:1.4}.legend{display:flex;gap:16px;flex-wrap:wrap}.legend span{white-space:nowrap}.swatch{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}.swatch.data{background:var(--blue)}.swatch.prior{background:var(--violet)}.swatch.posterior{background:var(--orange)}
+    .rail{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;border-top:1px solid var(--line);background:#faf9f7}.rail button{text-align:left;min-height:94px;padding:15px 14px;border:0;border-right:1px solid var(--line);background:none;cursor:pointer;color:var(--muted);transition:background .2s,color .2s}.rail button:last-child{border-right:0}.rail button:hover{background:#f3f0fc}.rail button[aria-current="step"]{background:#ede9fb;color:var(--ink)}.rail b{display:block;color:var(--violet);font-size:11px;letter-spacing:.12em;margin-bottom:8px}.rail span{font-size:12px;line-height:1.35;font-weight:730}
+    .below{display:grid;grid-template-columns:1fr 1fr 1fr;gap:25px;margin-top:38px}.card{padding:25px 27px;background:#fff;border:1px solid var(--line);border-radius:18px}.card .index{color:var(--orange);font-weight:800;letter-spacing:.14em;font-size:11px;text-transform:uppercase}.card h3{font-size:22px;letter-spacing:-.035em;margin:13px 0 9px}.card p{font-size:14px;line-height:1.65;color:var(--muted);margin:0}.card code{font-size:12px;color:var(--violet);background:#f2effc;padding:2px 4px;border-radius:4px}
+    .bottom-line{margin-top:26px;padding:23px 27px;background:#1e284b;border-radius:17px;color:#f6f5ff;display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:start;line-height:1.6}.bottom-line b{color:#f4a97f;text-transform:uppercase;letter-spacing:.12em;font-size:12px}.bottom-line p{margin:0;font-size:14px}
+    footer{font-size:12px;line-height:1.6;color:var(--muted);padding-top:33px} footer a{color:var(--violet);font-weight:700}
+    @media(max-width:1000px){header{grid-template-columns:1fr;gap:18px}.lab-body{grid-template-columns:1fr}.story{border-right:0;border-bottom:1px solid var(--line)}.story-copy{min-height:0}.plot-wrap{padding:20px}.below{grid-template-columns:1fr 1fr}.rail{grid-template-columns:repeat(3,1fr)}.rail button:nth-child(3){border-right:0}.rail button:nth-child(-n+3){border-bottom:1px solid var(--line)}}
+    @media(max-width:650px){.shell{padding:18px 14px 48px}.topline span:last-child{display:none}header{padding:32px 5px 30px}h1{font-size:47px}.lab{border-radius:17px}.lab-top{padding:16px}.story{padding:27px 21px}.plot-wrap{padding:12px}.plot-heading span{max-width:150px}.plot-caption{display:block}.plot-caption .legend{margin-bottom:7px}.rail button{min-height:75px;padding:11px}.below{grid-template-columns:1fr;gap:12px;margin-top:18px}.bottom-line{grid-template-columns:1fr;gap:7px}.axis{font-size:10px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topline"><span>Research atlas / 03</span><span>ICML 2025 · high-dimensional optimization</span></div>
+    <header>
+      <div><div class="eyebrow">An interactive paper explainer</div><h1>The posterior<br>landscape</h1><p class="subtitle">How DiBO uses a diffusion model to propose promising designs when the true score is expensive to evaluate.</p></div>
+      <div class="header-note"><strong>Posterior Inference with Diffusion Models for High-dimensional Black-box Optimization</strong><br>Taeyoung Yun et al. · ICML 2025<br><a href="https://proceedings.mlr.press/v267/yun25a.html">Read the paper ↗</a></div>
+    </header>
+
+    <section class="lab" aria-label="Interactive explanation of the DiBO optimization loop">
+      <div class="lab-top"><span class="live">DiBO / one optimization round</span><span id="progress">01 / 06</span></div>
+      <div class="lab-body" id="stageRoot">
+        <div class="story" aria-live="polite">
+          <div class="step-number" id="stepNumber">01 / Starting evidence</div>
+          <h2 id="stepTitle">Begin with designs already tested.</h2>
+          <p class="story-copy" id="stepCopy">Each blue point is a design whose score came from the real black-box function. Evaluations are precious, so the next batch must use this small dataset well.</p>
+          <div class="equation"><small id="equationLabel">At round r</small><span id="equationText">Dᵣ = {(x₁, y₁), …, (xₙ, yₙ)}</span></div>
+          <div class="story-bottom"><div class="takeaway" id="takeaway"><b>Watch for:</b> this flat map is an illustrative 2D projection. The paper optimizes continuous designs in much higher dimensions.</div><div class="controls"><button id="back" type="button" aria-label="Previous step" disabled>← Back</button><button id="next" type="button" class="primary">Next →</button><button id="play" type="button" aria-label="Play animation">▶ Play</button></div></div>
+        </div>
+        <div class="plot-wrap">
+          <div class="plot-heading"><strong>Conceptual search landscape</strong><span id="plotNote">Observed designs anchor what the models can learn.</span></div>
+          <svg id="map" viewBox="0 0 760 520" role="img" aria-labelledby="mapTitle mapDesc">
+            <title id="mapTitle">Conceptual two-dimensional projection of DiBO's search process</title>
+            <desc id="mapDesc">Blue observed points, violet learned prior regions, orange posterior regions and sampled candidates are shown as the interactive steps progress. Positions are illustrative.</desc>
+            <defs>
+              <clipPath id="clip"><rect x="47" y="22" width="671" height="438" rx="14"/></clipPath>
+              <radialGradient id="priorFill"><stop stop-color="#8d78d1" stop-opacity=".24"/><stop offset="1" stop-color="#8d78d1" stop-opacity="0"/></radialGradient>
+              <radialGradient id="postFill"><stop stop-color="#ed9a68" stop-opacity=".51"/><stop offset="1" stop-color="#ed9a68" stop-opacity="0"/></radialGradient>
+              <radialGradient id="ucbFill"><stop stop-color="#44b3ad" stop-opacity=".4"/><stop offset="1" stop-color="#44b3ad" stop-opacity="0"/></radialGradient>
+              <filter id="dotShadow"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#26324f" flood-opacity=".17"/></filter>
+            </defs>
+            <rect class="frame" x="47" y="22" width="671" height="438" rx="14"/>
+            <g clip-path="url(#clip)">
+              <path class="grid" d="M159 22v438M271 22v438M383 22v438M495 22v438M607 22v438M47 95h671M47 168h671M47 241h671M47 314h671M47 387h671"/>
+              <g class="layer prior-layer">
+                <ellipse cx="226" cy="291" rx="158" ry="143" fill="url(#priorFill)"/><ellipse cx="481" cy="176" rx="149" ry="118" fill="url(#priorFill)"/>
+                <ellipse class="contour prior-contour" cx="226" cy="291" rx="130" ry="113"/><ellipse class="contour prior-contour" cx="226" cy="291" rx="98" ry="83"/><ellipse class="contour prior-contour" cx="226" cy="291" rx="60" ry="52"/>
+                <ellipse class="contour prior-contour" cx="481" cy="176" rx="126" ry="96"/><ellipse class="contour prior-contour" cx="481" cy="176" rx="91" ry="68"/><ellipse class="contour prior-contour" cx="481" cy="176" rx="54" ry="42"/>
+                <g font-size="13" font-weight="750" fill="#5745b8"><text x="90" y="151">learned prior</text><text x="522" y="72">learned prior</text></g>
+              </g>
+              <g class="layer ucb-layer">
+                <ellipse cx="641" cy="362" rx="97" ry="107" fill="url(#ucbFill)"/><ellipse cx="644" cy="359" rx="61" ry="66" fill="none" stroke="#45aaa7" stroke-dasharray="5 5" stroke-width="2"/>
+                <path d="M602 307l-24-30" stroke="#118a89" stroke-width="1.5"/><rect x="479" y="254" width="123" height="24" rx="12" fill="#e6f5f3"/><text x="490" y="270" font-size="12" font-weight="750" fill="#137a78">high uncertainty</text>
+              </g>
+              <g class="layer posterior-layer">
+                <ellipse cx="254" cy="275" rx="139" ry="118" fill="url(#postFill)"/><ellipse cx="466" cy="190" rx="141" ry="111" fill="url(#postFill)"/>
+                <ellipse class="contour post-contour" cx="254" cy="275" rx="110" ry="94"/><ellipse class="contour post-contour" cx="254" cy="275" rx="76" ry="65"/><ellipse class="contour post-contour" cx="254" cy="275" rx="41" ry="36"/>
+                <ellipse class="contour post-contour" cx="466" cy="190" rx="111" ry="88"/><ellipse class="contour post-contour" cx="466" cy="190" rx="77" ry="61"/><ellipse class="contour post-contour" cx="466" cy="190" rx="42" ry="34"/>
+                <g fill="#b4592f" font-size="13" font-weight="800"><text x="281" y="395">posterior mode A</text><text x="499" y="301">posterior mode B</text></g>
+                <g transform="translate(625 360)"><circle r="50" fill="none" stroke="#118a89" stroke-dasharray="4 5" stroke-width="1.5"/><path d="M-10 -10l20 20m0-20l-20 20" stroke="#118a89" stroke-width="3" stroke-linecap="round"/><text x="-56" y="72" font-size="12" font-weight="750" fill="#118a89">weak prior support</text></g>
+              </g>
+              <g class="data-layer" fill="#3869b4" stroke="white" stroke-width="2">
+                <circle cx="167" cy="252" r="6"/><circle cx="193" cy="321" r="6"/><circle cx="207" cy="285" r="6"/><circle cx="229" cy="341" r="6"/><circle cx="245" cy="232" r="6"/><circle cx="273" cy="309" r="6"/><circle cx="300" cy="267" r="6"/><circle cx="359" cy="207" r="6"/><circle cx="392" cy="135" r="6"/><circle cx="426" cy="212" r="6"/><circle cx="453" cy="147" r="6"/><circle cx="493" cy="236" r="6"/><circle cx="511" cy="168" r="6"/><circle cx="548" cy="182" r="6"/>
+              </g>
+              <g class="layer samples-layer">
+                <circle class="sample" cx="189" cy="267" r="7" style="--dx:61px;--dy:8px"/><circle class="sample chosen" cx="230" cy="225" r="7" style="--dx:24px;--dy:50px"/><circle class="sample" cx="293" cy="307" r="7" style="--dx:-39px;--dy:-32px"/><circle class="sample" cx="308" cy="237" r="7" style="--dx:-54px;--dy:38px"/>
+                <circle class="sample chosen" cx="396" cy="192" r="7" style="--dx:70px;--dy:-2px"/><circle class="sample" cx="448" cy="142" r="7" style="--dx:18px;--dy:48px"/><circle class="sample" cx="514" cy="219" r="7" style="--dx:-48px;--dy:-29px"/><circle class="sample" cx="523" cy="149" r="7" style="--dx:-57px;--dy:41px"/>
+              </g>
+              <g class="layer refine-layer" fill="none" stroke="#e07843" stroke-width="1.7" stroke-dasharray="4 4"><path d="M189 267 Q211 260 250 275"/><path d="M230 225 Q240 249 254 275"/><path d="M396 192 Q432 179 466 190"/><path d="M514 219 Q495 211 466 190"/></g>
+              <g class="layer result-layer"><circle class="result-dot" cx="254" cy="275" r="12"/><circle class="result-dot" cx="466" cy="190" r="12"/><rect x="274" y="246" width="127" height="27" rx="13" fill="#e4f4f0"/><text x="287" y="264" font-size="12" font-weight="800" fill="#117a77">new real score</text><rect x="482" y="164" width="127" height="27" rx="13" fill="#e4f4f0"/><text x="495" y="182" font-size="12" font-weight="800" fill="#117a77">new real score</text></g>
+            </g>
+            <text class="axis" x="309" y="499">design space — conceptual 2D projection</text>
+            <text class="axis" transform="translate(18 327) rotate(-90)">another design direction</text>
+          </svg>
+          <div class="plot-caption"><div class="legend"><span><i class="swatch data"></i>evaluated</span><span><i class="swatch prior"></i>prior</span><span><i class="swatch posterior"></i>posterior</span></div><span>Illustrative map; no plotted coordinates or scores come from the paper.</span></div>
+        </div>
+      </div>
+      <nav class="rail" aria-label="Explanation steps" id="rail">
+        <button type="button" aria-current="step"><b>01 / DATA</b><span>Real evaluations</span></button>
+        <button type="button"><b>02 / FIT</b><span>Prior + proxy</span></button>
+        <button type="button"><b>03 / TARGET</b><span>Posterior density</span></button>
+        <button type="button"><b>04 / SAMPLE</b><span>Amortized diffusion</span></button>
+        <button type="button"><b>05 / REFINE</b><span>Search + filter</span></button>
+        <button type="button"><b>06 / UPDATE</b><span>Query and repeat</span></button>
+      </nav>
+    </section>
+
+    <section class="below" aria-label="Three important distinctions">
+      <article class="card"><div class="index">01 / Why a prior?</div><h3>A plausible place to search</h3><p>The diffusion model learns from past designs, with higher-scoring observations weighted more heavily. It provides the <code>pθ(x)</code> term that keeps proposed designs near learned support.</p></article>
+      <article class="card"><div class="index">02 / Why uncertainty?</div><h3>Room to discover</h3><p>An ensemble proxy estimates score and disagreement. Its upper-confidence score, <code>μ(x) + γσ(x)</code>, rewards promising and uncertain designs.</p></article>
+      <article class="card"><div class="index">03 / Why sampling?</div><h3>More than one mode</h3><p>Fine-tuning a diffusion sampler toward the target distribution can yield candidates in multiple promising regions. Local search and filtering then focus the limited evaluation batch.</p></article>
+    </section>
+    <div class="bottom-line"><b>For this project</b><p>The paper studies continuous high-dimensional designs. Using this idea for Pokémon teams would require a legal structured representation and an evaluation pipeline; this page illustrates the optimization logic, not a validated team-search method.</p></div>
+    <footer>Based on <a href="https://proceedings.mlr.press/v267/yun25a.html">Yun et al., ICML 2025</a>, especially §3 and Algorithm 1. <a href="https://arxiv.org/html/2502.16824">Read the full paper</a> · <a href="https://github.com/umkiyoung/DiBO">Author code</a>. Visual positions and motion are teaching illustrations.</footer>
+  </main>
+  <script>
+    const steps = [
+      {label:'01 / Starting evidence',title:'Begin with designs already tested.',copy:'Each blue point is a design whose score came from the real black-box function. Evaluations are precious, so the next batch must use this small dataset well.',eqLabel:'At round r',eq:'Dᵣ = {(x₁, y₁), …, (xₙ, yₙ)}',take:'<b>Watch for:</b> this flat map is an illustrative 2D projection. The paper optimizes continuous designs in much higher dimensions.',note:'Observed designs anchor what the models can learn.'},
+      {label:'02 / Fit two models',title:'Learn what is plausible — and what might improve.',copy:'A score-weighted diffusion model learns a prior over observed designs. An ensemble of proxy models predicts the score and its uncertainty. The teal region shows how uncertainty alone can be enticing far from the data.',eqLabel:'Proxy upper-confidence score',eq:'rφ(x) = μφ(x) + γ σφ(x)',take:'<b>Prior:</b> learned support from examples. <b>Proxy:</b> expected score plus an exploration bonus.',note:'Violet = learned prior. Teal = illustrative uncertain edge.'},
+      {label:'03 / Define the target',title:'Combine value with plausibility.',copy:'The target posterior multiplies the learned prior by an exponentiated proxy score. It can favor several supported regions without chasing every uncertain edge of the space.',eqLabel:'Target distribution · paper Eq. 13',eq:'pₜₐᵣ(x) ∝ pθ(x) · exp[β rφ(x)]',take:'<b>β</b> sets how strongly the proxy reward tilts the prior. Orange contours depict two possible posterior modes.',note:'Orange = target posterior; the unsupported edge fades.'},
+      {label:'04 / Amortize sampling',title:'Teach diffusion to draw from that target.',copy:'The normalized target density is difficult to sample directly. DiBO starts with the trained diffusion model and fine-tunes a sampler using relative trajectory balance, so it can produce candidates across posterior modes.',eqLabel:'Sampler approximation',eq:'pψ(x) ≈ pₜₐᵣ(x)',take:'<b>Amortized</b> means the sampler pays a training cost now, then draws many proposals from its learned distribution.',note:'Dark dots are illustrative samples from the trained sampler.'},
+      {label:'05 / Spend the budget',title:'Move candidates toward modes, then filter.',copy:'Local gradient ascent raises each sampled candidate’s unnormalized posterior density. DiBO then keeps the top B refined candidates for expensive real evaluations.',eqLabel:'Refinement target · paper Eq. 15',eq:'maximize pθ(x) · exp[β rφ(x)]',take:'<b>Important:</b> the search gradient comes from learned models, not from the black-box function itself.',note:'Candidates move toward nearby modes; only selected dots remain strong.'},
+      {label:'06 / Close the loop',title:'Measure the real score. Repeat.',copy:'The selected designs are evaluated by the black-box function, added to the dataset, and used to retrain the models next round. If the buffer grows too large, the lowest-scoring observations are removed.',eqLabel:'Dataset update · Algorithm 1',eq:'Dᵣ₊₁ ← Dᵣ ∪ {(xᵦ, f(xᵦ))}',take:'<b>The loop:</b> observed scores reshape the prior and proxy, so the next posterior reflects new evidence.',note:'Teal marks the new real evaluations; the next round begins.'}
+    ];
+    const root=document.getElementById('stageRoot'); const rail=[...document.querySelectorAll('#rail button')]; let current=0; let timer=null;
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+    function stop(){if(timer){clearInterval(timer);timer=null;}document.getElementById('play').textContent='▶ Play';document.getElementById('play').setAttribute('aria-label','Play animation');}
+    function show(i){current=Math.max(0,Math.min(steps.length-1,i));const s=steps[current];root.className='lab-body stage-'+current;for(const [id,value] of Object.entries({stepNumber:s.label,stepTitle:s.title,stepCopy:s.copy,equationLabel:s.eqLabel,equationText:s.eq,plotNote:s.note,progress:String(current+1).padStart(2,'0')+' / 06'}))document.getElementById(id).textContent=value;document.getElementById('takeaway').innerHTML=s.take;document.getElementById('back').disabled=current===0;document.getElementById('next').textContent=current===5?'Restart ↺':'Next →';rail.forEach((b,j)=>{if(j===current)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});}
+    document.getElementById('back').addEventListener('click',()=>{stop();show(current-1)});document.getElementById('next').addEventListener('click',()=>{stop();show(current===5?0:current+1)});rail.forEach((b,i)=>b.addEventListener('click',()=>{stop();show(i)}));
+    document.getElementById('play').addEventListener('click',()=>{if(timer){stop();return;}if(reduced.matches){show(current===5?0:current+1);return;}if(current===5)show(0);const b=document.getElementById('play');b.textContent='Ⅱ Pause';b.setAttribute('aria-label','Pause animation');timer=setInterval(()=>{if(current===5){stop();return;}show(current+1)},3400)});
+    document.addEventListener('keydown',e=>{if(e.target.closest('button,a,input,textarea'))return;if(e.key==='ArrowRight'){stop();show(current===5?0:current+1)}if(e.key==='ArrowLeft'){stop();show(current-1)}});
+    reduced.addEventListener('change',()=>{if(reduced.matches)stop()});show(0);
+  </script>
+</body>
+</html>

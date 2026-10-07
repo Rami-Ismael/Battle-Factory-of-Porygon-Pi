@@ -1,0 +1,308 @@
+<title>Taking the Loop Apart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one Distill-style reading column; figures break slightly wider; every figure readable at rest. */
+:root{
+  --bg:#fafbfc; --fg:#1c2329; --muted:#5d6974; --rule:#dde3e8; --panel:#f0f3f6;
+  --accent:#1d6b88; --flip:#b2472e; --null:#8b97a1; --good:#2d7a4d; --warn:#a8741a;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13181c; --fg:#e3e8ec; --muted:#9aa6b0; --rule:#2c353c; --panel:#1b2228;
+  --accent:#5fb3d1; --flip:#e07a5f; --null:#76838d; --good:#67b88a; --warn:#d9a54a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13181c; --fg:#e3e8ec; --muted:#9aa6b0; --rule:#2c353c; --panel:#1b2228;
+  --accent:#5fb3d1; --flip:#e07a5f; --null:#76838d; --good:#67b88a; --warn:#d9a54a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--serif);font-size:1.08rem;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding-inline:20px;padding-block:40px 80px}
+h1,h2,h3{font-family:var(--sans);font-weight:600;text-wrap:balance;line-height:1.2}
+h1{font-size:2.1rem;margin:0 0 .4em}
+h2{font-size:1.35rem;margin:2.6em 0 .5em;padding-top:1.2em;border-top:1px solid var(--rule)}
+p{margin:.7em 0;max-width:65ch}
+.dek{color:var(--muted);font-size:1.15rem}
+.def{font-family:var(--sans);font-size:.85rem;color:var(--muted);border-left:3px solid var(--rule);padding:.4em .8em;margin:1.2em 0}
+figure{margin:1.6em 0;padding:16px;background:var(--panel);border-radius:6px}
+figcaption{font-family:var(--sans);font-size:.85rem;color:var(--muted);margin-top:.8em;line-height:1.5}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--sans);fill:var(--fg)}
+.lab{font-family:var(--sans);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:.6em 0}
+button{font-family:var(--sans);font-size:.85rem;padding:.42em .8em;border-radius:4px;border:1px solid var(--rule);background:var(--bg);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:.85rem}
+.tbl{overflow-x:auto}
+td,th{text-align:left;padding:.45em .5em;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.off td{background:color-mix(in srgb,var(--flip) 12%,transparent)}
+.tag{font-family:var(--sans);font-size:.7rem;padding:.1em .45em;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.tag.m{color:var(--good)} .tag.x{color:var(--warn)}
+.team{display:flex;gap:2px;align-items:center;flex-wrap:wrap}
+.team img{width:40px;height:40px;image-rendering:pixelated}
+.q{background:var(--panel);border-radius:6px;padding:14px 16px;margin:1.2em 0}
+.q h3{margin:0 0 .3em;font-size:1.05rem}
+.q .rec{font-family:var(--sans);font-size:.9rem;border-top:1px solid var(--rule);margin-top:.6em;padding-top:.6em}
+.read{font-family:var(--mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+canvas{display:block;width:100%;height:auto;border-radius:4px}
+.dot{transition:transform .9s cubic-bezier(.2,.7,.2,1),fill .4s}
+@media (prefers-reduced-motion: reduce){.dot{transition:none}}
+code{font-family:var(--mono);font-size:.9em}
+</style>
+
+<div class="wrap">
+<p class="lab">Ablation plan · Champions VGC 2026 Reg M-B · not yet run</p>
+<h1>Taking the loop apart</h1>
+<p class="dek">An ablation removes or breaks one piece of the method and checks that the result gets worse in the way the method predicts. Four figures, one per kind of ablation. Measured numbers are marked <span class="tag m">measured</span>. Expectations for runs that don't exist yet are marked <span class="tag x">not run</span>.</p>
+
+<p class="def">Every win rate on this page is measured against the top-50 placement meta teams, with the behaviour-cloning battle policy playing both sides. For scale, the real teams themselves average 0.491 against that meta.</p>
+
+<div class="team" aria-label="Example team: Basculegion, Charizard, Garchomp, Incineroar, Venusaur, Whimsicott">
+  <img src="sprites/basculegion.png" alt="Basculegion"><img src="sprites/charizard.png" alt="Charizard"><img src="sprites/garchomp.png" alt="Garchomp"><img src="sprites/incineroar.png" alt="Incineroar"><img src="sprites/venusaur.png" alt="Venusaur"><img src="sprites/whimsicott.png" alt="Whimsicott">
+</div>
+<p style="font-family:var(--sans);font-size:.85rem;color:var(--muted);margin-top:.2em">A team from the corpus. In the figures, a team moving through the loop is drawn as one of these sprites.</p>
+
+<!-- ============ FIG 1 ============ -->
+<h2>1 · Remove one piece at a time</h2>
+<p>The combined loop has five pieces. Teams go round the ring once per generation: the prior proposes 512 teams, the decoder keeps them legal, guidance tilts them toward the surrogate's idea of a good team, the 128 the surrogate likes best are battled, and the prior is retrained on the best of those. Click a piece to remove it and see what the earlier single runs say it was worth.</p>
+<figure>
+  <svg id="loop" viewBox="0 0 640 330" role="img" aria-label="The search loop as a ring of five stages with teams moving around it"></svg>
+  <div class="btns" id="loopBtns"></div>
+  <div class="tbl"><table id="loopTbl">
+    <thead><tr><th>Piece removed</th><th>What replaces it</th><th>What the old runs say it adds</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <figcaption>Every row comes from a different run with its own protocol, and most from a single seed. The ablation re-runs all five under one protocol: the same seeds, 11 generations, at least 3 seeds per arm. An 11-generation run is about 34,000 battles, under an hour at the speed your matchup matrix has logged.</figcaption>
+</figure>
+
+<!-- ============ FIG 2 ============ -->
+<h2>2 · Break the score function on purpose</h2>
+<p>The guided decoder scores 0.230 and the unguided one 0.140. That gap could have two causes. Either the surrogate points toward good teams, or guidance at strength 108 just loosens the prior and lets stranger teams through, whatever the direction. Three broken versions of the surrogate tell the two causes apart.</p>
+<p><strong>Predict first.</strong> Click on the <em>flipped sign</em> row to place where you think its win rate lands, then reveal.</p>
+<figure>
+  <svg id="ctl" viewBox="0 0 640 300" role="img" aria-label="Win rate of five guidance arms on an axis from 0 to 0.30"></svg>
+  <div class="btns">
+    <button id="reveal">Reveal the expectations</button>
+    <button id="scWorks" aria-pressed="true" disabled>If the surrogate matters</button>
+    <button id="scLoose" aria-pressed="false" disabled>If guidance only loosens the prior</button>
+  </div>
+  <p class="read" id="ctlRead" aria-live="polite">Your guess: none yet.</p>
+  <figcaption>The dots show an illustrative spread of 24 decoded teams per arm; the tick is the mean. Unguided and +108 are measured. The three broken arms are expectations: they have not been run. The two buttons show the two possible worlds. The test passes only if the runs look like the first one.</figcaption>
+</figure>
+
+<!-- ============ FIG 3 ============ -->
+<h2>3 · Change what the prior learns from</h2>
+<p>The prior is trained on 692 real Reg M-B teams. If the method still did well after training on random legal teams, the search would be doing all the work and the data none. That run exists, and it fails. What's missing is the curve between the two ends: train on 10, 25, 50 and 100% of the real teams.</p>
+<figure>
+  <canvas id="grid" width="1200" height="400" aria-label="Grid of 692 training teams"></canvas>
+  <div class="btns" id="dataBtns"></div>
+  <svg id="dataAxis" viewBox="0 0 640 90" role="img" aria-label="Win rate of the prior under each training set"></svg>
+  <figcaption>Each square is one training team. The random-team point comes from training on 100,000 random legal teams, shown here as grey squares. The two measured points come from different runs, so read the gap as large, not as an exact difference. The corpus-size arms are not run.</figcaption>
+</figure>
+
+<!-- ============ FIG 4 ============ -->
+<h2>4 · Re-battle before you report</h2>
+<p>Every score in an ablation table has to survive this. Out of many teams, the one with the best 24-battle score is usually lucky as well as good. Re-battle it at 192 and it drops. In one earlier run a team labelled 0.79 measured 0.57.</p>
+<p><strong>Predict first.</strong> The highlighted team topped a 24-battle screen. Click the axis where you think it lands after 192 battles.</p>
+<figure>
+  <svg id="curse" viewBox="0 0 640 200" role="img" aria-label="Fifty teams' 24-battle scores, with the top team highlighted"></svg>
+  <div class="btns">
+    <button id="rebattle">Re-battle at 192</button>
+    <button id="redraw">New draw of 50 teams</button>
+  </div>
+  <p class="read" id="curseRead" aria-live="polite"></p>
+  <figcaption>This figure is a simulation, not your data: 50 teams with true win rates near 0.42, scored once at 24 battles and once at 192. The 0.79 → 0.57 drop is the measured case.</figcaption>
+</figure>
+
+<!-- ============ DECISIONS ============ -->
+<h2>The two decisions that set everything else</h2>
+<div class="q">
+  <h3>Q1 · Which method are the ablations about?</h3>
+  <p>Figure 1 takes apart the combined loop. But DSA-ME (deep-surrogate MAP-Elites) beat that loop by +0.084 [0.044, 0.123] in fresh battles on 2026-10-01. An ablation only means something against one fixed method.</p>
+  <p class="rec">Recommended: DSA-ME, if it is now your best method. If you see it as a side experiment, ablate the combined loop and give DSA-ME its own row in the results table.</p>
+</div>
+<div class="q">
+  <h3>Q2 · What is the one claim the ablations must defend?</h3>
+  <p>Figure 2 defends "the surrogate's direction matters." Figure 1 defends "each piece earns its place." Figure 3 defends "the method needs real meta data." Figure 4 applies to all three.</p>
+  <p class="rec">Recommended: run Figure 2 first. If the random-direction arm matches +108, Figures 1 and 3 don't matter yet, because the method isn't doing what you claim.</p>
+</div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a){const v=a[k];if((k==="fill"||k==="stroke")&&String(v).startsWith("var("))e.style[k]=v;else e.setAttribute(k,v);}if(p)p.appendChild(e);return e;};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const SPR=["basculegion","charizard","garchomp","incineroar","venusaur","whimsicott"];
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+/* ---------- FIG 1: loop ---------- */
+const STAGES=[
+ {id:"prior",name:"Prior",sub:"diffusion on 692 real teams",fixed:true},
+ {id:"dec",name:"Constrained decoder",sub:"keeps every team legal",repl:"Unconstrained decoding",ev:"0 valid teams in 80,000"},
+ {id:"guide",name:"Gradient guidance",sub:"strength 108",repl:"Unguided decoding",ev:"0.230 vs 0.140 unguided (decode only)"},
+ {id:"acq",name:"Value acquisition",sub:"battle top 128 of 512",repl:"Random labelling",ev:"+0.055 [+0.040, +0.069]"},
+ {id:"cut",name:"Re-steer, fixed cut",sub:"retrain prior on elites",repl:"Frozen prior / elite fraction",ev:"Re-steer: +0.052 at gen 1, ≈0 by gen 4 alone; +0.064 with guidance. Fixed cut: +0.012 [+0.002, +0.023]"}
+];
+const loop=document.getElementById("loop"),cx=320,cy=165,rx=230,ry=118;
+const off=new Set();
+const angOf=i=>-Math.PI/2+i*2*Math.PI/STAGES.length;
+el("ellipse",{cx,cy,rx,ry,fill:"none",stroke:"var(--rule)","stroke-width":2},loop);
+const nodes=STAGES.map((s,i)=>{
+  const a=angOf(i),x=cx+rx*Math.cos(a),y=cy+ry*Math.sin(a);
+  const g=el("g",{},loop);
+  const c=el("circle",{cx:x,cy:y,r:9,fill:"var(--accent)",stroke:"var(--bg)","stroke-width":3},g);
+  const right=Math.cos(a)>0.2,left=Math.cos(a)<-0.2;
+  const tx=right?x+16:left?x-16:x, anchor=right?"start":left?"end":"middle", ty=(Math.abs(Math.cos(a))<0.2)?y-16:y-2;
+  const t1=el("text",{x:tx,y:ty,"text-anchor":anchor,"font-size":13,"font-weight":600},g);t1.textContent=s.name;
+  const t2=el("text",{x:tx,y:ty+15,"text-anchor":anchor,"font-size":11,fill:"var(--muted)"},g);t2.textContent=s.sub;t2.style.fill="var(--muted)";
+  return {c,t1,a};
+});
+const mid=el("text",{x:cx,y:cy+4,"text-anchor":"middle","font-size":12},loop);mid.style.fill="var(--muted)";
+const chips=SPR.map((n,i)=>{const im=el("image",{href:"sprites/"+n+".png",width:34,height:34},loop);im.style.imageRendering="pixelated";return {im,ph:i/SPR.length,bad:false};});
+const tbody=document.querySelector("#loopTbl tbody"),rows={};
+STAGES.filter(s=>!s.fixed).forEach(s=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${s.name}</td><td>${s.repl}</td><td class="n">${s.ev}</td>`;tbody.appendChild(tr);rows[s.id]=tr;});
+const lb=document.getElementById("loopBtns");
+STAGES.filter(s=>!s.fixed).forEach(s=>{const b=document.createElement("button");b.textContent="Remove: "+s.name;b.setAttribute("aria-pressed","false");b.id="rm-"+s.id;
+  b.onclick=()=>{off.has(s.id)?off.delete(s.id):off.add(s.id);b.setAttribute("aria-pressed",off.has(s.id));b.textContent=(off.has(s.id)?"Restore: ":"Remove: ")+s.name;paintLoop();};lb.appendChild(b);});
+function paintLoop(){
+  STAGES.forEach((s,i)=>{const n=nodes[i],o=off.has(s.id);n.c.style.fill=o?"var(--bg)":"var(--accent)";n.c.style.stroke=o?"var(--flip)":"var(--bg)";n.c.setAttribute("stroke-dasharray",o?"3 3":"");n.t1.style.textDecoration=o?"line-through":"none";n.t1.style.fill=o?"var(--flip)":"var(--fg)";});
+  Object.entries(rows).forEach(([id,tr])=>tr.classList.toggle("off",off.has(id)));
+  mid.textContent=off.size?`${off.size} piece${off.size>1?"s":""} removed`:"one generation per lap";
+}
+paintLoop();
+function ringPos(p){const a=-Math.PI/2+p*2*Math.PI;return [cx+rx*Math.cos(a),cy+ry*Math.sin(a)];}
+let last=performance.now(),T=0;
+function tick(now){
+  const dt=Math.min(50,now-last);last=now;if(!reduce)T+=dt/14000;
+  chips.forEach(ch=>{const p=(ch.ph+T)%1;const [x,y]=ringPos(p);ch.im.setAttribute("x",x-17);ch.im.setAttribute("y",y-17);
+    const stage=Math.floor(p*STAGES.length+1e-9)%STAGES.length; // last stage passed
+    const decOff=off.has("dec")&&stage>=1;
+    ch.im.style.opacity=decOff?0.25:1;});
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ---------- FIG 2: score-function controls ---------- */
+const ctl=document.getElementById("ctl"),X0=150,X1=610,MAX=0.30;
+const xs=v=>X0+(v/MAX)*(X1-X0);
+const ARMS=[
+ {id:"ung",name:"Unguided",m:0.140,meas:true},
+ {id:"pos",name:"Guidance +108",m:0.230,meas:true},
+ {id:"neg",name:"Flipped sign −108",works:[0.04,0.13],loose:[0.17,0.25]},
+ {id:"rnd",name:"Random direction",works:[0.12,0.16],loose:[0.20,0.26]},
+ {id:"shf",name:"Shuffled labels",works:[0.12,0.16],loose:[0.20,0.26]}
+];
+const rowY=i=>40+i*50;
+for(let v=0;v<=MAX+1e-9;v+=0.05){const x=xs(v);el("line",{x1:x,x2:x,y1:20,y2:270,stroke:"var(--rule)"},ctl);const t=el("text",{x,y:290,"text-anchor":"middle","font-size":11},ctl);t.textContent=v.toFixed(2);t.style.fill="var(--muted)";}
+const R=rng(7);let revealed=false,scen="works",guess=null;
+const armG=ARMS.map((a,i)=>{
+  const y=rowY(i);
+  const t=el("text",{x:0,y:y+4,"font-size":12.5,"font-weight":a.meas?600:400},ctl);t.textContent=a.name;
+  const hit=el("rect",{x:X0,y:y-20,width:X1-X0,height:40,fill:"transparent"},ctl);
+  const band=el("rect",{x:X0,y:y-14,width:0,height:28,rx:3,opacity:0},ctl);band.style.fill="var(--warn)";band.style.transition="all .9s";
+  const offs=Array.from({length:24},()=>({dx:gauss(R)*0.022,dy:(R()-0.5)*20}));
+  const dots=offs.map(o=>{const d=el("circle",{cx:0,cy:0,r:3.6,class:"dot"},ctl);return {d,o};});
+  const tick=el("line",{x1:0,x2:0,y1:y-16,y2:y+16,"stroke-width":2.5},ctl);tick.style.stroke="var(--fg)";tick.style.transition="all .9s";
+  const tag=el("text",{x:X1+6,y:y+4,"font-size":10.5},ctl);tag.style.fill=a.meas?"var(--good)":"var(--warn)";tag.textContent=a.meas?"measured":"?";
+  return {a,y,band,dots,tick,tag,hit};
+});
+const pin=el("path",{d:"",opacity:0},ctl);pin.style.fill="var(--flip)";
+const pinT=el("text",{"font-size":11,"text-anchor":"middle",opacity:0},ctl);pinT.style.fill="var(--flip)";pinT.textContent="your guess";
+function paintCtl(){
+  armG.forEach(g=>{const a=g.a;let m,band=null,col;
+    if(a.meas){m=a.m;col=a.id==="pos"?"var(--accent)":"var(--null)";}
+    else if(!revealed){m=0.140;col="var(--null)";}
+    else{band=a[scen];m=(band[0]+band[1])/2;col=a.id==="neg"?"var(--flip)":"var(--warn)";}
+    g.dots.forEach(({d,o})=>{const v=Math.max(0.003,Math.min(MAX,m+o.dx*(a.meas||revealed?1:0.4)));d.style.transform=`translate(${xs(v)}px,${g.y+o.dy}px)`;d.style.fill=col;d.style.opacity=(a.meas||revealed)?0.8:0.3;});
+    g.tick.setAttribute("x1",xs(m));g.tick.setAttribute("x2",xs(m));g.tick.style.opacity=(a.meas||revealed)?1:0;
+    if(band){g.band.setAttribute("x",xs(band[0]));g.band.setAttribute("width",xs(band[1])-xs(band[0]));g.band.setAttribute("opacity",0.18);}else g.band.setAttribute("opacity",0);
+    if(!a.meas)g.tag.textContent=revealed?"not run":"?";
+  });
+  const r=document.getElementById("ctlRead");
+  if(!revealed)r.textContent=guess==null?"Your guess: none yet. Click the flipped-sign row.":`Your guess for flipped sign: ${guess.toFixed(3)}. Now reveal.`;
+  else{const b=ARMS[2][scen];const inside=guess!=null&&guess>=b[0]&&guess<=b[1];
+    r.textContent=(scen==="works"?"If the surrogate matters, flipping the sign pushes below unguided (0.140) and the other two broken arms sit near 0.140. ":"If guidance only loosens the prior, every arm at strength 108 lands near +108, whatever its direction. The surrogate would then not be the cause. ")+(guess==null?"":`Your guess ${guess.toFixed(3)} is ${inside?"inside":"outside"} this world's flipped-sign range.`);}
+}
+armG[2].hit.style.cursor="crosshair";
+armG[2].hit.addEventListener("click",ev=>{const pt=ctl.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(ctl.getScreenCTM().inverse());
+  guess=Math.max(0,Math.min(MAX,(p.x-X0)/(X1-X0)*MAX));const x=xs(guess),y=rowY(2);
+  pin.setAttribute("d",`M${x},${y-4} l-6,-12 h12 z`);pin.setAttribute("opacity",1);pinT.setAttribute("x",x);pinT.setAttribute("y",y-20);pinT.setAttribute("opacity",1);paintCtl();});
+const bW=document.getElementById("scWorks"),bL=document.getElementById("scLoose");
+document.getElementById("reveal").onclick=function(){revealed=true;this.disabled=true;bW.disabled=false;bL.disabled=false;paintCtl();};
+bW.onclick=()=>{scen="works";bW.setAttribute("aria-pressed","true");bL.setAttribute("aria-pressed","false");paintCtl();};
+bL.onclick=()=>{scen="loose";bL.setAttribute("aria-pressed","true");bW.setAttribute("aria-pressed","false");paintCtl();};
+paintCtl();
+
+/* ---------- FIG 3: data ---------- */
+const cv=document.getElementById("grid"),cx2=cv.getContext("2d"),N=692,COLS=46,ROWS=Math.ceil(N/COLS);
+const cell=cv.width/COLS;cv.height=Math.ceil(ROWS*cell);
+const DATA=[
+ {id:"real",name:"692 real teams",v:0.140,meas:true,frac:1,rand:false,note:"Trained on all real teams, unguided: 0.140"},
+ {id:"f50",name:"50%",frac:.5,note:"Half the real teams: not run"},
+ {id:"f25",name:"25%",frac:.25,note:"A quarter: not run"},
+ {id:"f10",name:"10%",frac:.10,note:"69 teams: not run"},
+ {id:"rand",name:"Random legal teams",v:0.008,meas:true,frac:1,rand:true,note:"Trained on 100k random legal teams: 0.008"}
+];
+const hue=Array.from({length:N},(_,i)=>{const r=rng(i*97+3);return [r(),r()];});
+const order=Array.from({length:N},(_,i)=>i).sort((a,b)=>hue[a][1]-hue[b][1]);
+const rank=new Array(N);order.forEach((k,i)=>rank[k]=i);
+let cur={frac:1,rand:false},from={...cur},t0=0;
+function draw(now){
+  const k=reduce?1:Math.min(1,(now-t0)/900);
+  cx2.clearRect(0,0,cv.width,cv.height);
+  const acc=css("--accent"),nul=css("--null"),rul=css("--rule");
+  for(let i=0;i<N;i++){const c=i%COLS,r=Math.floor(i/COLS);const delay=(c/COLS)*0.5;const kk=Math.max(0,Math.min(1,(k-delay)/0.5));
+    const isR=kk>0.5?cur.rand:from.rand;const fr=kk>0.5?cur.frac:from.frac;const inSet=rank[i]/N<fr;
+    cx2.fillStyle=!inSet?rul:isR?nul:acc;cx2.globalAlpha=!inSet?0.6:isR?0.55:(0.45+hue[i][0]*0.55);
+    const s=cell*0.78;cx2.fillRect(c*cell+(cell-s)/2,r*cell+(cell-s)/2,s,s);}
+  cx2.globalAlpha=1;if(k<1)requestAnimationFrame(draw);
+}
+const dA=document.getElementById("dataAxis"),DX0=20,DX1=620,DMAX=0.5,dx=v=>DX0+v/DMAX*(DX1-DX0);
+el("line",{x1:DX0,x2:DX1,y1:40,y2:40,stroke:"var(--rule)","stroke-width":2},dA);
+[0,0.1,0.2,0.3,0.4,0.5].forEach(v=>{const t=el("text",{x:dx(v),y:62,"text-anchor":"middle","font-size":11},dA);t.textContent=v.toFixed(1);t.style.fill="var(--muted)";});
+const ref=el("line",{x1:dx(0.491),x2:dx(0.491),y1:22,y2:48,"stroke-dasharray":"3 3"},dA);ref.style.stroke="var(--good)";
+const rt=el("text",{x:dx(0.491),y:16,"text-anchor":"end","font-size":10.5},dA);rt.textContent="real teams themselves 0.491";rt.style.fill="var(--good)";
+const marks={};DATA.forEach(d=>{if(d.meas){const c=el("circle",{cx:dx(d.v),cy:40,r:6},dA);c.style.fill=d.rand?"var(--null)":"var(--accent)";marks[d.id]=c;}});
+const q=el("text",{x:dx(0.07),y:44,"text-anchor":"middle","font-size":14,"font-weight":600},dA);q.textContent="? ? ?";q.style.fill="var(--warn)";
+const dRead=el("text",{x:DX0,y:84,"font-size":11.5},dA);
+const db=document.getElementById("dataBtns");
+DATA.forEach((d,i)=>{const b=document.createElement("button");b.textContent=d.name;b.setAttribute("aria-pressed",i===0);b.onclick=()=>{
+  db.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");
+  from={...cur};cur={frac:d.frac,rand:!!d.rand};t0=performance.now();requestAnimationFrame(draw);
+  dRead.textContent=d.note;dRead.style.fill=d.meas?"var(--fg)":"var(--warn)";
+  Object.entries(marks).forEach(([id,c])=>c.setAttribute("r",id===d.id?9:6));
+  q.style.opacity=d.meas?0.5:1;};db.appendChild(b);});
+dRead.textContent=DATA[0].note;marks.real.setAttribute("r",9);
+requestAnimationFrame(draw);
+
+/* ---------- FIG 4: winner's curse ---------- */
+const cu=document.getElementById("curse"),CX0=20,CX1=620,CMIN=0.15,CMAX=0.90,cxs=v=>CX0+(v-CMIN)/(CMAX-CMIN)*(CX1-CX0);
+for(let v=0.2;v<=0.9+1e-9;v+=0.1){const x=cxs(v);el("line",{x1:x,x2:x,y1:20,y2:150,stroke:"var(--rule)"},cu);const t=el("text",{x,y:168,"text-anchor":"middle","font-size":11},cu);t.textContent=v.toFixed(1);t.style.fill="var(--muted)";}
+const ax=el("text",{x:CX1,y:190,"text-anchor":"end","font-size":11},cu);ax.textContent="win rate against the meta";ax.style.fill="var(--muted)";
+const hitC=el("rect",{x:CX0,y:10,width:CX1-CX0,height:150,fill:"transparent"},cu);hitC.style.cursor="crosshair";
+let teams=[],top=0,stage=0,cguess=null,seed=11;
+const cdots=Array.from({length:50},()=>el("circle",{r:4,class:"dot"},cu));
+const topImg=el("image",{href:"sprites/garchomp.png",width:30,height:30},cu);topImg.style.imageRendering="pixelated";topImg.style.transition="transform .9s cubic-bezier(.2,.7,.2,1)";
+const gpin=el("path",{opacity:0},cu);gpin.style.fill="var(--flip)";
+function binom(n,p,r){let k=0;for(let i=0;i<n;i++)if(r()<p)k++;return k/n;}
+function draw4(){const r=rng(seed);teams=Array.from({length:50},()=>{const p=Math.max(0.1,Math.min(0.8,0.42+gauss(r)*0.07));return {p,e24:binom(24,p,r),e192:binom(192,p,r),y:30+r()*110};});
+  top=teams.reduce((b,t,i)=>t.e24>teams[b].e24?i:b,0);stage=0;cguess=null;gpin.setAttribute("opacity",0);paint4();}
+function paint4(){teams.forEach((t,i)=>{const v=stage?t.e192:t.e24;const d=cdots[i];d.style.transform=`translate(${cxs(v)}px,${t.y}px)`;d.style.fill=i===top?"var(--flip)":"var(--null)";d.setAttribute("r",i===top?6:4);d.style.opacity=i===top?1:0.6;});
+  const t=teams[top],v=stage?t.e192:t.e24;topImg.style.transform=`translate(${cxs(v)-15}px,${t.y-36}px)`;
+  const rd=document.getElementById("curseRead");
+  rd.textContent=stage?`Top team: ${t.e24.toFixed(2)} at 24 battles → ${t.e192.toFixed(2)} at 192 (true ${t.p.toFixed(2)}).`+(cguess!=null?` Your guess: ${cguess.toFixed(2)}.`:""):
+    `Top team at 24 battles: ${t.e24.toFixed(2)}.`+(cguess!=null?` Your guess for 192 battles: ${cguess.toFixed(2)}.`:" Click the axis to place your guess.");}
+hitC.addEventListener("click",ev=>{if(stage)return;const pt=cu.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(cu.getScreenCTM().inverse());
+  cguess=Math.max(CMIN,Math.min(CMAX,CMIN+(p.x-CX0)/(CX1-CX0)*(CMAX-CMIN)));gpin.setAttribute("d",`M${cxs(cguess)},150 l-7,12 h14 z`);gpin.setAttribute("opacity",1);paint4();});
+document.getElementById("rebattle").onclick=()=>{stage=1;paint4();};
+document.getElementById("redraw").onclick=()=>{seed+=1;draw4();};
+draw4();
+})();
+</script>

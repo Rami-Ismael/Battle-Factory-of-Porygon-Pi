@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small edits, different outcomes</title>
+<style>
+:root{--paper:#f5f8fc;--ink:#192a46;--muted:#52617a;--line:#ccd6e5;--blue:#245bb0;--violet:#743eaa;--orange:#a94a13;--ease-out:cubic-bezier(.23,1,.32,1);--ease-in-out:cubic-bezier(.77,0,.175,1)}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 'Trebuchet MS',sans-serif}main{max-width:1120px;margin:auto;padding:64px 36px 80px}h1,h2{font-family:Georgia,serif;font-weight:normal;line-height:1.1;letter-spacing:-.035em}h1{font-size:clamp(42px,6vw,76px);max-width:800px;margin:12px 0 24px}h2{font-size:clamp(30px,4vw,42px);margin:0 0 20px}h3{font-size:19px;margin:0 0 8px}p{max-width:68ch;margin:12px 0}.lede{font-size:21px;max-width:64ch}.chapter{margin-top:68px;padding-top:32px;border-top:1px solid var(--line)}.note{color:var(--muted);font-size:14px}.definition{font-size:22px;border-left:4px solid var(--blue);padding-left:22px;margin:28px 0}.lab{background:white;padding:28px;margin-top:28px;border:1px solid var(--line);border-radius:8px}.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}.two>div{min-width:0}button{font:inherit;color:var(--ink);cursor:pointer;background:white;border:1px solid var(--line);border-radius:5px;padding:9px 15px}button[aria-pressed="true"]{border-color:var(--blue);background:#eaf1fc;color:var(--blue)}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--violet);outline-offset:4px}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.baseline-key{display:inline-block;width:10px;height:10px;background:var(--ink);border-radius:50%;margin-right:8px}.edit-key{display:inline-block;width:10px;height:10px;background:var(--violet);margin-right:8px}.axis{stroke:var(--line);stroke-width:1}svg{width:100%;height:auto;display:block}svg text{font:13px 'Trebuchet MS',sans-serif;fill:var(--muted)}.stem{stroke:var(--violet);stroke-width:2;stroke-dasharray:4 4}.base{fill:var(--ink)}.neighbor{fill:var(--violet)}.datum{font-size:16px;fill:var(--ink);font-weight:bold}.result{padding:14px 0;border-top:1px solid var(--line);min-height:90px}.number{font-size:32px;font-weight:bold;line-height:1.2;font-variant-numeric:tabular-nums}.team{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.slot{padding:10px 12px;background:#eef2f8;border-radius:4px;font-size:14px}.slot strong{display:block}.slot.changed{background:#f0e8f8;border-left:3px solid var(--violet)}.bar-area{margin:22px 0}.track{height:16px;background:#edf1f6;position:relative;border-radius:3px;margin:8px 0 20px}.bar{position:absolute;inset:0;background:var(--ink);transform-origin:left;transform:scaleX(.60)}#editedBar{background:var(--violet);transition:transform 240ms var(--ease-in-out)}body.keyboard #editedBar{transition:none}.bar-label{display:flex;justify-content:space-between;font-size:15px}.reveal{color:var(--blue);border-color:var(--blue)}details{margin:22px 0}summary{cursor:pointer;color:var(--blue)}.formula{font:19px Georgia,serif;padding:16px;background:#eef2f8}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:15px}th,td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--blue)}.transfer{margin-top:24px;padding-left:22px;border-left:4px solid var(--violet)}.muted{color:var(--muted)}.status{font-size:15px;color:var(--violet)}footer{margin-top:54px;color:var(--muted);font-size:14px}a{color:var(--blue)}@media(hover:hover) and (pointer:fine){button:hover{border-color:var(--blue)}}@media(prefers-reduced-motion:reduce){#editedBar{transition:none}}@media(max-width:680px){main{padding:32px 18px 50px}.two{grid-template-columns:1fr;gap:20px}.lab{padding:18px}.chapter{margin-top:44px}.team{grid-template-columns:repeat(2,1fr)}.lede{font-size:19px}th,td{padding:10px 8px}}
+</style>
+</head>
+<body><main>
+<header>
+<p class="muted">Exploring the team-building objective</p>
+<h1>Small edits.<br>How much changes?</h1>
+<p class="lede">Before asking which Pokémon team is better, ask how much the score changes between nearby teams. That tells us how useful a good team might be as a starting point for search.</p>
+</header>
+<section class="chapter" aria-labelledby="smoothness">
+<h2 id="smoothness">First, smoothness.</h2>
+<p class="definition">Informally, a landscape is locally smoother when small input changes tend to produce small output changes.</p>
+<p>Here, a neighbor is a team reached by <strong>one legal edit</strong>: replace one move, change one ability, or replace one Pokémon with a specified legal set. These edit types have different consequences; we compare them separately.</p>
+<div class="lab">
+<h3>Same distance. Different changes in score.</h3>
+<p>Choose an edit to compare two illustrative neighborhoods. Both start at 60%, and both use the same vertical scale.</p>
+<p class="note">Invented teaching values, not battle results. Each mark is a discrete team; the gaps are not measured intermediate teams.</p>
+<div class="controls" id="nearbyControls" aria-label="Choose a neighboring edit">
+<button data-neighbor="0" aria-pressed="true">Replace one move</button><button data-neighbor="1" aria-pressed="false">Change one ability</button><button data-neighbor="2" aria-pressed="false">Replace one Pokémon</button>
+</div>
+<p class="note"><span class="baseline-key"></span>Original team &nbsp; <span class="edit-key"></span>Edited team</p>
+<div class="two">
+<div><h3>Smaller changes in this neighborhood</h3><svg id="gentle" viewBox="0 0 400 260" role="img" aria-label="Illustrative smaller score change"></svg><div class="result" id="gentleResult"></div></div>
+<div><h3>Larger changes in this neighborhood</h3><svg id="sensitive" viewBox="0 0 400 260" role="img" aria-label="Illustrative larger score change"></svg><div class="result" id="sensitiveResult"></div></div>
+</div>
+<p id="neighborSummary" role="status" class="status"></p>
+</div>
+<details><summary>What does “smooth” mean mathematically?</summary><p>Classical smoothness usually concerns derivatives in a continuous space. Team building is discrete, so we need an explicit neighborhood and a measure of score changes. A differentiable function can be steep and highly sensitive: mathematical smoothness alone does not guarantee small changes in score.</p><p>One possible local summary is the median absolute score change over sampled neighbors:</p><p class="formula">S(T) = median over sampled T′ of |f(T′) − f(T)|</p><p>Here, f(T) is expected win rate under a fixed evaluation setup. This summary measures local sensitivity under the chosen edit protocol; it is not a derivative or a universal smoothness measure.</p></details>
+</section>
+<section class="chapter" aria-labelledby="sensitivity">
+<h2 id="sensitivity">Now, local sensitivity.</h2>
+<p>Sensitivity describes how much the score changes in response to an edit. It gives us a way to inspect local behavior and characterize our informal idea of smoothness.</p>
+<div class="lab">
+<h3>Change one move. Keep the rest fixed.</h3>
+<p>This fictional team example isolates a move substitution. The scores below are invented to demonstrate comparison; they do not predict this team's performance.</p>
+<div class="team"><div class="slot changed"><strong>Incineroar</strong><span id="moveName">Fake Out</span></div><div class="slot"><strong>Rillaboom</strong>Unchanged</div><div class="slot"><strong>Flutter Mane</strong>Unchanged</div><div class="slot"><strong>Urshifu</strong>Unchanged</div><div class="slot"><strong>Amoonguss</strong>Unchanged</div><div class="slot"><strong>Farigiraf</strong>Unchanged</div></div>
+<div class="controls"><button id="swap" class="reveal">Replace Fake Out with Protect</button><button id="reset">Reset example</button></div>
+<div class="bar-area"><div class="bar-label"><span>Original · Fake Out</span><strong>60%</strong></div><div class="track"><div class="bar"></div></div><div class="bar-label"><span id="editedLabel">Same team · Fake Out</span><strong id="editedValue">60%</strong></div><div class="track"><div class="bar" id="editedBar"></div></div><p class="note">Shared scale: 0–100% expected win rate.</p></div>
+<div id="teamResult" class="result" role="status">No edit yet. The original and comparison team are identical.</div>
+</div>
+<p>A large change in one example establishes sensitivity for that edit. To characterize a neighborhood, evaluate several legal edits. To characterize team space, sample many starting teams.</p>
+<p class="note">In a real experiment, hold the format, opponent pool, battle policy, and evaluation budget fixed. Estimate the paired difference and its uncertainty; battle noise can make an apparent score change misleading.</p>
+</section>
+<section class="chapter" aria-labelledby="search">
+<h2 id="search">Why should a search method care?</h2>
+<div class="two"><div><h3>Exploit a promising neighborhood</h3><p>If nearby teams tend to score similarly, one evaluation can help guide what to try next. Local edits may be productive, although small changes alone do not identify an improving direction.</p></div><div><h3>Explore other neighborhoods</h3><p>If nearby scores vary sharply, a single evaluation tells us less about its neighbors. Broader sampling can help discover alternatives. Sensitivity alone does not prove that exploration will outperform local search.</p></div></div>
+<div class="transfer"><h3>Check your understanding</h3><p>A differentiable benchmark changes from 60 to 90 after a small step. Can it still be mathematically smooth?</p><button id="answer" aria-expanded="false" aria-controls="answerText">Reveal explanation</button><p id="answerText" hidden>Yes. A smooth function can be steep. This example shows high sensitivity for the chosen step; it does not establish a failure of differentiability.</p></div>
+</section>
+<section class="chapter" aria-labelledby="benchmarks">
+<h2 id="benchmarks">Then compare benchmarks.</h2>
+<p>Compare the response to a defined small change, rather than treating all input spaces as equivalent. The experiment below is a plan; there are no measured benchmark rankings yet.</p>
+<div class="table-wrap"><table><caption class="note" style="text-align:left;margin-bottom:12px">Comparison protocol to specify before measuring</caption><thead><tr><th scope="col">Search problem</th><th scope="col">Define “nearby”</th><th scope="col">Measure</th></tr></thead><tbody><tr><th scope="row">Pokémon team building</th><td>One legal edit; report move, ability, and Pokémon edits separately.</td><td>Distribution of paired expected win-rate differences, in percentage points, with uncertainty.</td></tr><tr><th scope="row">Combinatorial benchmark</th><td>A declared one-component edit, such as one bit flip when the encoding permits it.</td><td>Absolute objective changes under the declared edit protocol.</td></tr><tr><th scope="row">Continuous benchmark</th><td>A fixed step size and direction protocol in normalized input coordinates.</td><td>Objective changes at that step size; repeat at other step sizes.</td></tr></tbody></table></div>
+<p>For a shared diagram, declare the objective normalization in advance and retain the original units alongside it. Different scores and edit distances do not become equivalent merely because they share an axis.</p>
+<p class="note">Planned Pokémon sampling: neighborhoods around 50 random legal teams and 50 top-placing teams, evaluated with the same protocol. Neither group is assumed to be more sensitive before measuring.</p>
+</section>
+<footer>Illustrative interactive explanation. All displayed scores are invented. No battle simulations or benchmark measurements are represented.</footer>
+</main>
+<script>
+const examples=[{name:'Replacing one move',small:61,large:42},{name:'Changing one ability',small:59,large:75},{name:'Replacing one Pokémon',small:62,large:49}];
+const $=id=>document.getElementById(id);
+const signed=n=>(n>0?'+':'')+n;
+function plot(id,value){
+ const y=v=>210-v*1.7;
+ $(id).innerHTML=`<title>Original score 60%; edited score ${value}%</title><desc>Both teams are one legal edit apart. Vertical scale is zero to one hundred percent.</desc>${[0,25,50,75,100].map(v=>`<line class="axis" x1="55" x2="375" y1="${y(v)}" y2="${y(v)}"/><text x="43" y="${y(v)+4}" text-anchor="end">${v}%</text>`).join('')}<text x="55" y="20">Expected win rate</text><line class="stem" x1="285" x2="285" y1="${y(60)}" y2="${y(value)}"/><circle class="base" cx="135" cy="${y(60)}" r="6"/><rect class="neighbor" x="279" y="${y(value)-6}" width="12" height="12"/><text class="datum" x="135" y="${y(60)-16}" text-anchor="middle">60%</text><text class="datum" x="285" y="${y(value)-16}" text-anchor="middle">${value}%</text><text x="135" y="239" text-anchor="middle">Original</text><text x="285" y="239" text-anchor="middle">One edit away</text>`;
+}
+function neighbor(index){
+ const e=examples[index]; plot('gentle',e.small);plot('sensitive',e.large);
+ $('gentleResult').innerHTML=`<div class="number">${signed(e.small-60)} pp</div><span>Change from the original score</span>`;
+ $('sensitiveResult').innerHTML=`<div class="number">${signed(e.large-60)} pp</div><span>Change from the original score</span>`;
+ $('neighborSummary').textContent=`${e.name} changes the scores by ${Math.abs(e.small-60)} and ${Math.abs(e.large-60)} percentage points in these illustrative neighborhoods.`;
+ document.querySelectorAll('[data-neighbor]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.neighbor)===index));
+}
+document.querySelectorAll('[data-neighbor]').forEach(b=>b.addEventListener('click',()=>neighbor(Number(b.dataset.neighbor))));
+let swapped=false;
+function team(){const value=swapped?42:60;$('moveName').textContent=swapped?'Protect':'Fake Out';$('editedLabel').textContent=swapped?'Edited team · Protect':'Same team · Fake Out';$('editedValue').textContent=value+'%';$('editedBar').style.transform=`scaleX(${value/100})`;$('swap').textContent=swapped?'Restore Fake Out':'Replace Fake Out with Protect';$('teamResult').innerHTML=swapped?'<div class="number">−18 percentage points</div><p>One move changed; the illustrative score fell from 60% to 42%. This is a sensitive edit in this invented example.</p>':'No edit yet. The original and comparison team are identical.';}
+$('swap').addEventListener('click',()=>{swapped=!swapped;team()});$('reset').addEventListener('click',()=>{swapped=false;team();neighbor(0)});
+$('answer').addEventListener('click',()=>{const expanded=$('answer').getAttribute('aria-expanded')==='true';$('answer').setAttribute('aria-expanded',!expanded);$('answerText').hidden=expanded;$('answer').textContent=expanded?'Reveal explanation':'Hide explanation'});
+document.addEventListener('keydown',()=>document.body.classList.add('keyboard'));document.addEventListener('pointerdown',()=>document.body.classList.remove('keyboard'));
+neighbor(0);
+</script>
+</body>
+</html>

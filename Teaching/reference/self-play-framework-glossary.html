@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — self-play framework glossary (Zhang, Xu et al. survey)</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<h1>Self-play framework — glossary</h1>
+<p class="subtitle">The five symbols of the unified framework, the three oracle types, and Double Oracle — one line each, with the project's word beside the paper's.</p>
+<p class="meta">Reference sheet · 2026-08-19 (upd. 2026-08-19) · source: 🟢 <a href="https://arxiv.org/html/2408.01072v4">Zhang, Xu et al., <em>A Survey on Self-Play Methods in Reinforcement Learning</em>, arXiv 2408.01072 v4 (2025-10-18)</a>, Sec. 3.1–3.3 · companion to <a href="../lessons/0002-self-play-framework-and-double-oracle.html">Lesson 0002</a></p>
+
+<h2>The loop (Algorithm 1)</h2>
+<p>For each epoch <span class="k">e</span>, for each policy <span class="k">k</span>:<br>
+initialise <span class="k">π<sub>[k]</sub><sup>h</sup></span> → <span class="k">π<sub>[k]</sub><sup>h</sup> ← ORACLE(π<sub>[k]</sub><sup>h</sup>, σ<sub>[k]</sub>, Π)</span> → <span class="k">𝒫 ← EVAL(Π)</span> → <span class="k">Σ ← MSS(𝒫)</span></p>
+
+<table class="compare">
+<tr><th>Symbol</th><th>Paper's meaning</th><th>In this project (CONTEXT.md words)</th></tr>
+<tr><td><span class="k">Π</span> policy population</td><td>the K policies; "lazy" init = slots filled as you go, "immediate" = all at once</td><td>the pool of battle-policy checkpoints/arms (random, BC, SP, FP, DO) that enter the cross-play matrix</td></tr>
+<tr><td><span class="k">σ<sub>[k]</sub></span>, row of <span class="k">Σ</span></td><td>"the opponent sampling strategy" for policy k — a distribution over Π. <em>Not</em> PSRO's meta-strategy</td><td>the rule that picks whom the next checkpoint trains against</td></tr>
+<tr><td><span class="k">ORACLE</span></td><td>"an abstract computational entity that returns a new policy adhering to specific criteria"</td><td>the training step that produces the next battle policy. <b>Not</b> the matchup predictor (CONTEXT.md bans "oracle" only in that slot)</td></tr>
+<tr><td><span class="k">EVAL</span> → <span class="k">𝒫</span></td><td>performance matrix: Elo column, or the full payoff matrix</td><td>cross-play win-rate matrix / Glicko</td></tr>
+<tr><td><span class="k">MSS</span></td><td>meta-strategy solver, 𝒫 → next Σ; "constant" MSS ⇒ EVAL can be skipped</td><td>what distinguishes the arms: latest-only (SP), uniform over history (FP), Nash over payoff (DO)</td></tr>
+<tr><td><span class="k">h(k)</span></td><td>policy condition function (∅ for self-play and PSRO series)</td><td>unused in the three arms</td></tr>
+<tr><td><span class="k">E</span></td><td>epochs; E = 1 for self-play/PSRO, E &gt; 1 for "ongoing-training"</td><td>VGC-Bench keeps training one net ⇒ closer to E &gt; 1</td></tr>
+</table>
+
+<h2>Oracle types (Sec. 3.1)</h2>
+<table class="compare">
+<tr><th>Type</th><th>Paper's words</th><th>Examples</th></tr>
+<tr><td><b>BR</b> best response</td><td>"identify the optimal counter-strategies against an opponent's strategy, including finding NE … often requires considerable computational effort"</td><td>Double Oracle (exact arg-max in a matrix game)</td></tr>
+<tr><td><b>ABR</b> approximate best response</td><td>"using techniques such as RL (Algo. 2), evolution-theory-based methods (Algo. 3) or regret minimization methods (Algo. 4)"</td><td>PSRO, NFSP, AlphaStar, <b>every VGC-Bench arm (PPO)</b>; R-NaD; CFR</td></tr>
+<tr><td><b>specially crafted</b></td><td>"either tailored to specific meta-strategy solvers (MSSs) … or introduced to enhance diversity"</td><td>α-PSRO's preference-based BR, JPSRO, Diverse PSRO, PSRO<sub>rN</sub></td></tr>
+</table>
+
+<h2>Double Oracle (McMahan, Gordon &amp; Blum, ICML 2003)</h2>
+<ul>
+<li><b>Setting:</b> two-player zero-sum matrix game, finite strategy sets.</li>
+<li><b>Loop:</b> solve the restricted game (rows R̄ × cols C̄) for an equilibrium (p, q); row oracle returns exact BR to q, column oracle exact BR to p; add both; bounds <span class="k">v<sub>ℓ</sub> = V(r, q) ≤ value ≤ v<sub>u</sub> = V(p, c)</span>.</li>
+<li><b>Stop:</b> both responses already in the restricted sets ⇔ <span class="k">v<sub>ℓ</sub> = v<sub>u</sub></span>; or <span class="k">v<sub>u</sub> − v<sub>ℓ</sub> &lt; ε</span>.</li>
+<li><b>Theorem 1:</b> converges to a minimax equilibrium — proof needs <em>exact</em> BR and finiteness. Worst case enumerates every strategy (RPS).</li>
+<li><b>Survey's Table 1 row:</b> MSS = NE-based (Algo. 6) · h(k) = ∅ · PSRO series · E = 1 · Π lazy · π<sup>h</sup> general. Oracle = <b>BR</b> (Sec. 3.3.2 prose).</li>
+<li><b>DO → PSRO</b> (Lanctot et al. 2017): "instead of computing exact best responses, we compute approximate best responses using reinforcement learning." Nash MSS + PPO oracle = PSRO-Nash, not DO; no NE guarantee carries over.</li>
+</ul>
+
+<h2>Two "pure"s — do not merge them</h2>
+<table class="compare">
+<tr><th>Term</th><th>What it is</th><th>Frozen?</th></tr>
+<tr><td>pure <b>strategy</b> (game theory)</td><td>one row/column of the payoff matrix = one fixed choice; in the experiment, one saved checkpoint. McMahan et al.: "finds an optimal pure strategy R(q<sub>i</sub>) = r<sub>i</sub>". Opposite: <b>mixed</b> strategy = a distribution over rows = σ<sub>[k]</sub>.</td><td>yes, necessarily</td></tr>
+<tr><td>pure <b>self-play</b> (training regime)</td><td>survey's vanilla self-play: "trained by competing against their latest versions"; VGC-Bench: one PPO net steps both seats — no frozen opponent, continuous drift.</td><td>no — nothing frozen</td></tr>
+</table>
+<p class="note">A checkpoint is a pure strategy; pure self-play has no checkpoints in its loop.</p>
+
+<h2>Sources</h2>
+<ul>
+<li>🟢 <a href="https://arxiv.org/html/2408.01072v4">Survey, arXiv 2408.01072 v4</a> — no venue on arXiv; do not cite one.</li>
+<li>🟢 <a href="https://www.aaai.org/Papers/ICML/2003/ICML03-071.pdf">McMahan, Gordon &amp; Blum, ICML 2003 (AAAI PDF)</a> — Sec. 4.2, Theorem 1.</li>
+<li>🟢 <a href="https://arxiv.org/abs/1711.00832">Lanctot et al., PSRO, arXiv 1711.00832 v2</a> — Sec. 2–3.</li>
+</ul>
+</body>
+</html>

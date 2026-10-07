@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generative Uncertainty Explained</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0EA;--ink:#17201B;--muted:#5E6B63;--slot:#DCE2D8;--rule:#C9D1C5;--card:#F6F8F4;
+  --mon:#2E5E8C;--sun:#C98A1E;--bad:#C8372D;--good:#2E7D5B;--focus:#2E5E8C;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--mono:"Martian Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;--mon:#7FA8D6;--sun:#E2B04F;--bad:#F0705F;--good:#6FC39A;--focus:#7FA8D6}}
+:root[data-theme="dark"]{--paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;--mon:#7FA8D6;--sun:#E2B04F;--bad:#F0705F;--good:#6FC39A;--focus:#7FA8D6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+main{max-width:960px;margin:0 auto;padding:44px 16px 64px}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.2vw,50px);line-height:1.03;letter-spacing:-.02em;margin:0 0 12px}
+h1 .n{color:var(--mon)}
+.dek{max-width:66ch;color:var(--muted);margin:0 0 22px}
+.chapters{list-style:none;padding:0;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px}
+.chapters button{font:inherit;font-size:13.5px;color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:999px;padding:4px 12px;cursor:pointer;transition:border-color 160ms ease,color 160ms ease,background-color 160ms ease}
+.chapters button[aria-current="step"]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+.stage{border-top:1.5px solid var(--ink);padding-top:8px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.t{font-family:var(--mono);font-size:13px;fill:var(--ink)}
+.tb{font-family:var(--display);font-weight:500;font-size:17px;fill:var(--ink)}
+.ts{font-family:var(--body);font-size:13px;fill:var(--muted)}
+.tw{font-family:var(--mono);font-size:12px;fill:var(--paper);font-weight:600}
+.captions{position:relative;min-height:150px;border-top:1px dashed var(--rule);margin-top:8px}
+.cap{position:absolute;inset:12px 0 0 0;visibility:hidden}
+.cap .f{font-family:var(--display);font-weight:500;font-size:clamp(18px,2.6vw,22px);line-height:1.25;margin:0 0 4px}
+.cap .p{color:var(--muted);margin:0;max-width:72ch;font-size:16px}
+.controls{display:flex;align-items:center;gap:12px;margin:10px 0 40px}
+.controls button{font:inherit;font-size:15px;color:var(--paper);background:var(--ink);border:1.5px solid var(--ink);border-radius:999px;padding:7px 18px;cursor:pointer;min-width:92px;transition:transform 120ms cubic-bezier(0.23,1,0.32,1)}
+.controls button:active{transform:scale(.97)}
+.controls input{flex:1;accent-color:var(--ink);min-width:0}
+@media (hover:hover) and (pointer:fine){.chapters button:not([aria-current]):hover{border-color:var(--ink);color:var(--ink)}}
+button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.foot{border-top:1px solid var(--rule);padding-top:12px;font-size:13px;color:var(--muted);max-width:78ch}
+.foot p{margin:0 0 8px}
+@media (max-width:640px){.captions{min-height:240px}}
+@media (prefers-reduced-motion:reduce){.controls button:active{transform:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Jazbec, Wong-Toi, Xia et al. · Generative Uncertainty in Diffusion Models · UAI 2025</p>
+<h1>Spotting a bad sample by <span class="n">asking slightly different models</span></h1>
+<p class="dek">An already-trained diffusion model, a little Bayesian doubt added to its last layer, and one question: if the model were slightly different, would this sample come out the same? Press play, or drag the slider.</p>
+
+<ol class="chapters" id="chapters"></ol>
+<div class="stage"><svg id="svg" viewBox="0 0 900 460" role="img" aria-label="Animated walkthrough of generative uncertainty in diffusion models"></svg></div>
+<div class="captions" id="captions" aria-live="polite"></div>
+<div class="controls">
+  <button type="button" id="play">Play</button>
+  <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Position in the animation">
+</div>
+
+<div class="foot">
+<p>From the paper: post-hoc last-layer Laplace with a diagonal empirical-Fisher approximation; the same starting noise for all variants; M = 5 by default; CLIP features; uncertainty = entropy of a diagonal Gaussian fitted to the variants' features, with σ² = 0.001; 12,000 ImageNet samples per run, keeping the lowest-uncertainty 6,000–11,000 and scoring them with FID (lower is better). The FID numbers shown are at 10,000 kept. Models: ADM, U-ViT and a latent flow-matching model.</p>
+<p>Illustrative: the pictures are abstract stand-ins for generated images, and the 2-D feature plot is a sketch of a 512-number space. The last chapter is my reading of what would transfer to a masked diffusion model over teams; the paper does not test that.</p>
+</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+<script>
+gsap.registerPlugin(CustomEase);
+CustomEase.create("out","M0,0 C0.23,1 0.32,1 1,1");
+CustomEase.create("inOut","M0,0 C0.77,0 0.175,1 1,1");
+const NS="http://www.w3.org/2000/svg",svg=document.getElementById("svg");
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+function tx(s,a,p){const e=el("text",a,p);e.textContent=s;return e}
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* an abstract "generated image": sky, sun, hill */
+function tile(p,x,y,w,h,v={}){const g=el("g",{},p);const{sx=.7,sy=.3,sr=.13,hx=.35,hy=.45,broken=0}=v;
+ el("rect",{x,y,width:w,height:h,rx:6,fill:"var(--slot)"},g);
+ el("circle",{cx:x+w*sx,cy:y+h*sy,r:w*sr,fill:"var(--sun)"},g);
+ el("path",{d:`M${x} ${y+h} L${x+w*hx} ${y+h*hy} L${x+w*(hx+.3+broken*.4)} ${y+h*(.75-broken*.5)} L${x+w} ${y+h} Z`,fill:"var(--mon)","fill-opacity":.85},g);
+ if(broken>.3)el("path",{d:`M${x+w*.1} ${y+h*.2} L${x+w*.45} ${y+h*.8}`,stroke:"var(--mon)","stroke-width":3,"stroke-opacity":.7},g);
+ return g}
+function scene(){return el("g",{})}
+
+/* scene 1: the problem */
+const s1=scene(),R1=rng(5),BAD=[2,7,9],tiles1=[],rings1=[];
+for(let i=0;i<12;i++){const x=150+(i%4)*155,y=40+Math.floor(i/4)*125,b=BAD.includes(i);
+ tiles1.push(tile(s1,x,y,130,100,b?{sx:.2+R1()*.6,sy:.6,hx:.1,hy:.2,broken:.8}:{sx:.55+R1()*.3,sy:.25+R1()*.1,hx:.25+R1()*.2}));
+ if(b)rings1.push(el("rect",{x:x-5,y:y-5,width:140,height:110,rx:9,fill:"none",stroke:"var(--bad)","stroke-width":3},s1))}
+tx("12 samples from a trained diffusion model",{x:150,y:24,class:"ts"},s1);
+
+/* scene 2: last-layer Laplace */
+const s2=scene(),layers=[];
+tx("noise z",{x:40,y:236,class:"t"},s2);el("path",{d:"M110 232 H150",stroke:"var(--muted)","stroke-width":2},s2);
+for(let i=0;i<6;i++){const x=160+i*95,last=i===5;layers.push(el("rect",{x,y:170,width:70,height:130,rx:8,fill:last?"var(--mon)":"var(--slot)",stroke:last?"var(--mon)":"var(--rule)"},s2));
+ if(!last)tx("frozen",{x:x+35,y:320,"text-anchor":"middle",class:"ts"},s2)}
+tx("last layer",{x:160+5*95+35,y:320,"text-anchor":"middle",class:"t"},s2);
+el("path",{d:"M720 235 H770",stroke:"var(--muted)","stroke-width":2},s2);tx("image",{x:780,y:240,class:"t"},s2);
+const bellPts=[...Array(41)].map((_,i)=>{const u=(i-20)/7;return [160+5*95+35+(i-20)*3.4,160-60*Math.exp(-u*u/2)]});
+const bell=el("path",{d:"M"+bellPts.map(p=>p.join(" ")).join(" L"),fill:"none",stroke:"var(--mon)","stroke-width":2.5},s2);
+const bellL=gsap.utils?0:0;
+tx("a Gaussian over the last layer's weights",{x:450,y:70,"text-anchor":"middle",class:"tb"},s2);
+tx("fitted after training: diagonal curvature (empirical Fisher)",{x:450,y:92,"text-anchor":"middle",class:"ts"},s2);
+
+/* scene 3: same noise, M weight samples */
+const s3=scene(),R3=rng(9);
+function noise(p,x,y){const g=el("g",{},p);for(let i=0;i<64;i++)el("rect",{x:x+(i%8)*8,y:y+Math.floor(i/8)*8,width:8,height:8,fill:"var(--ink)","fill-opacity":(R3()*.6+.1).toFixed(2)},g);return g}
+const z1=noise(s3,40,90),z2=noise(s3,40,290);
+tx("same z",{x:72,y:176,"text-anchor":"middle",class:"ts"},s3);tx("same z",{x:72,y:376,"text-anchor":"middle",class:"ts"},s3);
+tx("a good sample",{x:130,y:80,class:"tb"},s3);tx("a poor sample",{x:130,y:280,class:"tb"},s3);
+const rowG=[],rowB=[],R3b=rng(21);
+for(let m=0;m<5;m++){const x=240+m*128;tx("θ"+(m+1),{x:x+50,y:108,"text-anchor":"middle",class:"t"},s3);
+ rowG.push(tile(s3,x,116,100,78,{sx:.68+R3b()*.04,sy:.3,hx:.34+R3b()*.03}));
+ rowB.push(tile(s3,x,316,100,78,{sx:.15+R3b()*.7,sy:.3+R3b()*.4,sr:.08+R3b()*.1,hx:.1+R3b()*.5,hy:.2+R3b()*.4,broken:R3b()}));
+ tx("θ"+(m+1),{x:x+50,y:308,"text-anchor":"middle",class:"t"},s3)}
+const arrowsG=el("g",{},s3);[[108,122],[108,322]].forEach(([x,y])=>el("path",{d:`M${x} ${y+10} H225`,stroke:"var(--muted)","stroke-width":1.6,"stroke-dasharray":"4 4"},arrowsG));
+tx("M = 5 weight samples from the Gaussian, one starting noise",{x:240,y:440,class:"ts"},s3);
+
+/* scene 4: pixels vs features */
+const s4=scene(),R4=rng(3);
+tx("measured in pixels",{x:60,y:40,class:"tb"},s4);tx("measured in CLIP features",{x:500,y:40,class:"tb"},s4);
+const heat=el("g",{},s4);for(let i=0;i<144;i++){const cx=i%12,cy=Math.floor(i/12),bg=cy>7||cx<2;el("rect",{x:60+cx*26,y:60+cy*26,width:24,height:24,fill:"var(--bad)","fill-opacity":((bg?.35:.08)+R4()*.25).toFixed(2)},heat)}
+tx("differences pile up in the background",{x:60,y:390,class:"ts"},s4);
+const cross=el("path",{d:"M60 60 L370 370 M370 60 L60 370",stroke:"var(--bad)","stroke-width":5,"stroke-opacity":.8},s4);
+el("rect",{x:500,y:60,width:340,height:310,rx:10,fill:"var(--card)",stroke:"var(--rule)"},s4);
+const gp=[[610,150],[618,142],[604,158],[622,156],[612,164]],bp=[[700,250],[790,300],[660,330],[760,210],[730,340]];
+const gDots=gp.map(([x,y])=>el("circle",{cx:x,cy:y,r:7,fill:"var(--good)"},s4)),bDots=bp.map(([x,y])=>el("circle",{cx:x,cy:y,r:7,fill:"var(--bad)"},s4));
+const gEl=el("ellipse",{cx:613,cy:154,rx:26,ry:20,fill:"none",stroke:"var(--good)","stroke-width":2},s4),bEl=el("ellipse",{cx:728,cy:286,rx:88,ry:70,fill:"none",stroke:"var(--bad)","stroke-width":2},s4);
+tx("good: 5 variants agree",{x:520,y:98,class:"ts"},s4);tx("poor: 5 variants disagree",{x:640,y:394,class:"ts"},s4);
+tx("512 numbers per image, sketched in 2-D",{x:500,y:420,class:"ts"},s4);
+
+/* scene 5: entropy score */
+const s5=scene();
+tx("u(z) = entropy of a Gaussian fitted to the 5 feature vectors",{x:450,y:80,"text-anchor":"middle",class:"tb"},s5);
+tx("mean ē, per-feature variance, plus σ² = 0.001 on the diagonal",{x:450,y:104,"text-anchor":"middle",class:"ts"},s5);
+tx("good sample",{x:150,y:196,"text-anchor":"end",class:"t"},s5);tx("poor sample",{x:150,y:276,"text-anchor":"end",class:"t"},s5);
+el("rect",{x:170,y:176,width:620,height:30,rx:5,fill:"var(--slot)"},s5);el("rect",{x:170,y:256,width:620,height:30,rx:5,fill:"var(--slot)"},s5);
+const eG=el("rect",{x:170,y:176,width:150,height:30,rx:5,fill:"var(--good)"},s5),eB=el("rect",{x:170,y:256,width:540,height:30,rx:5,fill:"var(--bad)"},s5);
+tx("low uncertainty: keep",{x:335,y:196,class:"t"},s5);tx("high uncertainty: filter out",{x:560,y:314,class:"t"},s5);
+
+/* scene 6: filter and results */
+const s6=scene(),R6=rng(2),strip=[];
+tx("12,000 samples, sorted by uncertainty",{x:60,y:40,class:"ts"},s6);
+const US=[...Array(60)].map(()=>R6()).sort((a,b)=>a-b);
+US.forEach((u,i)=>strip.push(el("rect",{x:60+i*13,y:52,width:11,height:40,rx:2,fill:u>.82?"var(--bad)":"var(--good)","fill-opacity":(.35+u*.6).toFixed(2)},s6)));
+const cut=el("path",{d:`M${60+50*13-1} 44 V100`,stroke:"var(--ink)","stroke-width":2.5},s6);
+const cutL=tx("keep the lowest 10,000  |  drop 2,000",{x:60+50*13-6,y:118,"text-anchor":"end",class:"t"},s6);
+tx("FID of the kept samples (lower is better)",{x:60,y:170,class:"tb"},s6);
+const FID=[["ADM",[["random",11.31],["BayesDiff",11.20],["this paper",10.36]]],["U-ViT",[["random",9.45],["BayesDiff",9.16],["this paper",7.89]]]];
+const fidBars=[];FID.forEach(([m,rows],k)=>{const y0=196+k*130;tx(m,{x:60,y:y0+14,class:"t"},s6);
+ rows.forEach(([n,v],j)=>{const y=y0+24+j*30;tx(n,{x:200,y:y+15,"text-anchor":"end",class:"ts"},s6);
+  const r=el("rect",{x:210,y,width:v/12*560,height:20,rx:4,fill:j===2?"var(--mon)":"var(--muted)","fill-opacity":j===2?1:.45},s6);fidBars.push(r);
+  tx(v.toFixed(2),{x:215+v/12*560,y:y+15,class:"t"},s6)})});
+
+/* scene 7: cost */
+const s7=scene();
+tx("Extra network calls per sample (the sample itself costs 50)",{x:60,y:60,class:"tb"},s7);
+const COST=[["M = 5, T = 50 (default)",250],["M = 1, T = 50",50],["M = 1, T = 25",25]];const costBars=[];
+COST.forEach(([n,v],j)=>{const y=100+j*70;tx(n,{x:60,y:y+10,class:"t"},s7);const r=el("rect",{x:60,y:y+22,width:v/250*760,height:26,rx:5,fill:"var(--mon)","fill-opacity":j?.7:1},s7);costBars.push(r);tx(String(v),{x:66+v/250*760,y:y+41,class:"t"},s7)});
+tx("the cheapest setting is about 10× cheaper and still beats random and BayesDiff on ADM",{x:60,y:350,class:"ts"},s7);
+
+/* scene 8: for your teams */
+const s8=scene();
+tx("Transfers to a team generator",{x:60,y:50,class:"tb"},s8);tx("Breaks or needs new work",{x:500,y:50,class:"tb"},s8);
+const tr=["Add last-layer Laplace to your trained model; no retraining","Same random draws, M weight samples → M teams","Teams whose M versions disagree get flagged","Filter them out before spending battles"];
+const br=["No CLIP for teams: needs a team embedding, e.g. the win-rate predictor's features","Only tested on continuous images, never on masked discrete denoising","Filtering cuts diversity (the paper sees lower recall)","Flags teams the model is unsure how to make, not weak teams"];
+const trT=tr.map((s,i)=>{const g=el("g",{},s8);el("circle",{cx:66,cy:88+i*62,r:6,fill:"var(--good)"},g);wrap(s,80,93+i*62,40,g);return g});
+const brT=br.map((s,i)=>{const g=el("g",{},s8);el("circle",{cx:506,cy:88+i*62,r:6,fill:"var(--bad)"},g);wrap(s,520,93+i*62,44,g);return g});
+function wrap(s,x,y,n,g){const w=s.split(" ");let line="",dy=0;w.forEach(t=>{if((line+" "+t).trim().length>n){tx(line.trim(),{x,y:y+dy,class:"ts",style:"font-size:14px;fill:var(--ink)"},g);line=t;dy+=19}else line+=" "+t});tx(line.trim(),{x,y:y+dy,class:"ts",style:"font-size:14px;fill:var(--ink)"},g)}
+
+/* timeline */
+const tl=gsap.timeline({paused:true,defaults:{ease:"out",duration:.5}});
+const capBox=document.getElementById("captions");let lastCap=null;
+function cap(f,p){const d=document.createElement("div");d.className="cap";d.innerHTML=`<p class="f">${f}</p><p class="p">${p}</p>`;capBox.appendChild(d);
+ if(lastCap)tl.to(lastCap,{autoAlpha:0,duration:.25});tl.fromTo(d,{autoAlpha:0,y:6},{autoAlpha:1,y:0,duration:.4});lastCap=d}
+const hold=s=>tl.to({},{duration:s});
+const S=[s1,s2,s3,s4,s5,s6,s7,s8];gsap.set(S,{autoAlpha:0});
+gsap.set([...rings1,...layers.slice(5),bell,...rowG,...rowB,...gDots,...bDots,gEl,bEl,cross,cut,cutL,...trT,...brT],{autoAlpha:0});
+const bl=bell.getTotalLength();gsap.set(bell,{strokeDasharray:bl,strokeDashoffset:bl});
+gsap.set([eG,eB,...fidBars,...costBars],{scaleX:0,transformOrigin:"left center"});
+function sceneIn(s){tl.to(S.filter(x=>x!==s),{autoAlpha:0,duration:.3});tl.to(s,{autoAlpha:1,duration:.35},"<.15")}
+
+tl.addLabel("The problem");sceneIn(s1);
+cap("Some generated samples are poor, and you'd rather not check by hand","A trained diffusion model turns random noise into samples, and a few come out broken. The paper asks for a score, computed for each sample, that flags the poor ones automatically.");
+tl.from(tiles1,{autoAlpha:0,scale:.94,transformOrigin:"50% 50%",stagger:.05,duration:.35},"<.2");hold(1.2);
+tl.to(rings1,{autoAlpha:1,stagger:.25,duration:.3});hold(2);
+
+tl.addLabel("Bayesian doubt");sceneIn(s2);
+cap("Add doubt to the last layer only, after training","The model is already trained and stays frozen. Only its last layer gets a posterior: a Gaussian centred on the trained weights, whose width comes from how sharply the training loss curves around them (a diagonal empirical-Fisher Laplace approximation). No retraining.");
+tl.to(layers[5],{autoAlpha:1},">");tl.to(bell,{autoAlpha:1,strokeDashoffset:0,duration:1},"<.2");hold(2.6);
+
+tl.addLabel("Same noise, 5 models");sceneIn(s3);
+cap("Same starting noise, five slightly different models","Draw 5 weight settings from that Gaussian and generate from the same starting noise z under each. If the sample is solid, the five versions look alike. If it's poor, small changes to the model send it in different directions.");
+tl.to(rowG,{autoAlpha:1,stagger:.12,duration:.3},">");tl.to(rowB,{autoAlpha:1,stagger:.12,duration:.3});hold(2.6);
+
+tl.addLabel("Compare in features");sceneIn(s4);
+cap("Compare the five versions by meaning, not by pixels","Pixel differences mostly land on background clutter, so an earlier method (BayesDiff) over-reacts to backgrounds. Instead each version is turned into CLIP's 512 feature numbers. A good sample's five versions sit close together; a poor one's scatter.");
+tl.to(heat,{autoAlpha:1},">");tl.to(cross,{autoAlpha:1,duration:.3},"+=.8");
+tl.to(gDots,{autoAlpha:1,stagger:.08,duration:.25});tl.to(gEl,{autoAlpha:1,duration:.3});tl.to(bDots,{autoAlpha:1,stagger:.08,duration:.25});tl.to(bEl,{autoAlpha:1,duration:.3});hold(2.4);
+
+tl.addLabel("One number");sceneIn(s5);
+cap("Turn the scatter into one number","Fit a Gaussian to the five feature vectors: their mean, the variance of each feature, and a small constant. Its entropy is the sample's generative uncertainty. Tight cluster, low number; wide scatter, high number.");
+tl.to(eG,{scaleX:1,duration:.7},">");tl.to(eB,{scaleX:1,duration:.9},"<.2");hold(2.4);
+
+tl.addLabel("Filter");sceneIn(s6);
+cap("Keep the least uncertain samples, and quality goes up","Out of 12,000 samples, keep the 10,000 with the lowest uncertainty and measure FID, where lower means closer to real images. The kept set beats random filtering and BayesDiff on both models.");
+tl.from(strip,{autoAlpha:0,stagger:.012,duration:.2},">");tl.to([cut,cutL],{autoAlpha:1,duration:.3});tl.to(fidBars,{scaleX:1,stagger:.12,duration:.5});hold(2.8);
+
+tl.addLabel("Cost");sceneIn(s7);
+cap("It costs extra network calls, and can be made cheap","By default the check adds 250 network calls to a sample that cost 50. With one weight sample and half the denoising steps, it adds only 25, and still beats random filtering and BayesDiff on ADM.");
+tl.to(costBars,{scaleX:1,stagger:.2,duration:.6},">");hold(2.6);
+
+tl.addLabel("For your teams");sceneIn(s8);
+cap("What would carry over to your team generator","Everything except the feature extractor could be copied onto a masked diffusion model over teams. The paper names its dependence on a good encoder as a limitation, and it never tested discrete data. It also measures how unsure the model is about making a team, not whether the team wins.");
+tl.to(trT,{autoAlpha:1,stagger:.25,duration:.35},">");tl.to(brT,{autoAlpha:1,stagger:.25,duration:.35});hold(3.2);
+
+/* controls */
+const scrub=document.getElementById("scrub"),playB=document.getElementById("play"),chaps=document.getElementById("chapters");
+const LABELS=Object.entries(tl.labels).sort((a,b)=>a[1]-b[1]);let dragging=false;
+function chapEnd(i){return (i+1<LABELS.length?LABELS[i+1][1]:tl.duration())-.01}
+function setPlay(){playB.textContent=tl.isActive()?"Pause":(tl.progress()>=1?"Replay":"Play")}
+function sync(){if(!dragging)scrub.value=Math.round(tl.progress()*1000);const t=tl.time();let cur=0;LABELS.forEach(([n,lt],i)=>{if(t>=lt-.001)cur=i});
+ chaps.querySelectorAll("button").forEach((b,i)=>{if(i===cur)b.setAttribute("aria-current","step");else b.removeAttribute("aria-current")})}
+function seek(t){tl.seek(t,false);sync();setPlay()}
+tl.eventCallback("onUpdate",sync);tl.eventCallback("onComplete",setPlay);
+LABELS.forEach(([name,t],i)=>{const li=document.createElement("li"),b=document.createElement("button");b.type="button";b.textContent=name;
+ b.onclick=()=>{if(reduce){tl.pause();seek(chapEnd(i))}else{tl.seek(t,false);tl.play();setPlay()}};li.appendChild(b);chaps.appendChild(li)});
+playB.onclick=()=>{if(reduce){const t=tl.time();const i=LABELS.findIndex((_,k)=>chapEnd(k)>t+.02);seek(chapEnd(i<0?0:i));return}
+ if(tl.isActive())tl.pause();else{if(tl.progress()>=1)tl.seek(0,false);tl.play()}setPlay()};
+scrub.addEventListener("pointerdown",()=>{dragging=true;tl.pause();setPlay()});
+scrub.addEventListener("input",()=>{tl.pause();tl.progress(scrub.value/1000,false);sync();setPlay()});
+["change","pointerup"].forEach(ev=>scrub.addEventListener(ev,()=>{dragging=false}));
+seek(reduce?chapEnd(0):0.001);
+</script>
+</body>
+</html>

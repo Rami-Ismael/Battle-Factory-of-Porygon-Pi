@@ -1,0 +1,593 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Three variants of the "Are the generated teams actually different?"
+  figure on one page, switchable via ?variant=A|B|C and the bottom bar (or ← →):
+    A — Collapse: 11 generations as strips of 128 teams, grouped by composition.
+    B — Which compositions: cards in rows by how many species differ from a chosen composition.
+    C — Sets inside a composition: distinct values per field, then two teams compared.
+  Layout and state only. Stage 2 of the animation goal: NO motion of any kind yet.
+  Run: open index.html (data.js is built by build-data.py; sprites come from ../search-loop/sprites).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Are the generated teams actually different?</title>
+<style>
+/* Three linked views of one search run: strips -> cards -> table. Neutral page, data colours carry the meaning. */
+:root{--bg:#fff;--ink:#1d2328;--muted:#66707a;--line:#d5dae0;--line-strong:#9aa4ae;--grey:#e6e9ed;--card:#fafbfc;--surface:#fff;--ring:#d9622b;--ring-bg:#fdeee6;--hl:#fff3c4;--hl-line:#ecd98a;--focus:#2f5fd0;--fill:#2f5fd0;--hero-bg:#f2f5fd;--on-fill:#fff;
+  /* composition colours (generation 11's five largest) and the prototype bar: same in both themes */
+  --c1:#2f5fd0;--c2:#d99a1c;--c3:#cf5a86;--c4:#2f9467;--c5:#d9622b;--bar-bg:#111;--bar-btn:#2a2a2a;--bar-fg:#fff;--bar-code:#cfe3ff;--shadow:rgba(0,0,0,.12);
+  /* motion (stage 3) */
+  --ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  --move:250ms;--enter:200ms;--exit:150ms;--press:160ms;--tip:125ms;--build:450ms}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--ink:#e3e7eb;--muted:#9aa5b0;--line:#323a43;--line-strong:#5a6673;--grey:#2a3139;--card:#1a1f25;--surface:#1d232a;--ring:#f08a55;--ring-bg:#3b2519;--hl:#43391a;--hl-line:#7a6627;--focus:#86a3f2;--fill:#3f63c9;--hero-bg:#1c2540;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14181d;--ink:#e3e7eb;--muted:#9aa5b0;--line:#323a43;--line-strong:#5a6673;--grey:#2a3139;--card:#1a1f25;--surface:#1d232a;--ring:#f08a55;--ring-bg:#3b2519;--hl:#43391a;--hl-line:#7a6627;--focus:#86a3f2;--fill:#3f63c9;--hero-bg:#1c2540;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:0 auto;padding:28px 16px 120px}
+h1{font:600 26px/1.2 Georgia,serif;margin:0 0 6px}
+.sub{color:var(--muted);margin:0 0 20px}
+.measured{margin-top:22px;font-weight:600}
+.foot{color:var(--muted);font-size:13px;margin:4px 0}
+img.sp{image-rendering:pixelated;object-fit:contain;display:block}
+button,select,input{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;margin:0 0 20px}
+.controls label{color:var(--muted);font-size:13px;display:flex;gap:8px;align-items:center;max-width:100%;min-width:0}
+.controls select{min-width:0;flex:1 1 auto}
+select{padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);max-width:100%}
+
+/* ---------- A: collapse ---------- */
+.strips{display:grid;grid-template-columns:44px 1fr 56px;gap:8px 12px;align-items:center}
+.strips .hd{font-size:12px;color:var(--muted)}
+.gl{font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
+.gl.on{color:var(--focus);font-weight:700}
+.strip{position:relative;height:34px;border-radius:4px;overflow:hidden;outline:1px solid var(--line);cursor:pointer}
+.ticks,.blocks{position:absolute;inset:0}
+.tick{position:absolute;top:0;left:0;height:100%;width:calc(100% / 128);background:var(--grey);box-shadow:inset -1px 0 var(--bg);transition:transform var(--build) var(--ease-in-out),opacity var(--move) var(--ease-in-out)}
+/* grouped: blocks fade in once the ticks have arrived, then the ticks hide; ungrouped: blocks leave at once */
+.blocks{display:flex;opacity:0;pointer-events:none;transition:opacity var(--exit) var(--ease-out)}
+.strip.grouped .blocks{opacity:1;pointer-events:auto;transition:opacity var(--exit) var(--ease-out) var(--build)}
+.strip.grouped .ticks{opacity:0;transition:opacity 0s linear calc(var(--build) + var(--exit))}
+.frame{position:absolute;left:-8px;right:-8px;top:0;border:2px solid var(--focus);border-radius:8px;pointer-events:none;transition:transform var(--move) var(--ease-in-out)}
+.blk{height:100%;border-right:1px solid var(--bg);background:var(--grey);display:flex;align-items:center;gap:2px;overflow:hidden;min-width:0;padding-left:4px;color:var(--on-fill);font:600 12px system-ui;white-space:nowrap}
+.blk:last-child{border-right:0}
+.blk{transition:opacity var(--move) var(--ease-in-out)}
+.blk.dim,.tick.dim{opacity:.45}
+.gl,.cnt{transition:color var(--move) ease}
+.blk img.sp{width:22px;height:22px;flex:none}
+.cnt{font-variant-numeric:tabular-nums}
+.cnt.on{color:var(--focus);font-weight:700}
+.playrow{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-top:22px}
+.playrow input[type=range]{width:min(360px,100%)}
+.readout{border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-width:110px}
+.readout small{display:block;color:var(--muted);font-size:11px}
+.readout b{font:600 22px/1.2 system-ui;font-variant-numeric:tabular-nums;display:flex;align-items:baseline}
+.tcol{display:inline-block;height:1.2em;overflow:hidden}
+.tstrip{display:flex;flex-direction:column;transition:transform var(--move) var(--ease-out)}
+.tstrip span{height:1.2em;line-height:1.2em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.btn{border:1px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 14px}
+.btn,.cell{transition:transform var(--press) var(--ease-out)}
+.btn:active,.cell:not(:disabled):active{transform:scale(0.97)}
+.tip{opacity:0;transform:scale(0.97);transform-origin:top left;transition:opacity var(--tip) var(--ease-out),transform var(--tip) var(--ease-out);position:absolute;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 16px var(--shadow);padding:8px 10px;pointer-events:none;font-size:13px;max-width:280px}
+.tip[data-open]{opacity:1;transform:none}
+@starting-style{.tip[data-open]{opacity:0;transform:scale(0.97)}}
+.tip .six{display:flex;gap:2px}
+.tip img.sp{width:36px;height:36px}
+
+/* ---------- B: which compositions ---------- */
+.bucket{margin:18px 0 6px}
+.bucket h3{font:600 14px system-ui;margin:0 0 8px;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.cardc{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:8px 10px;text-align:left;position:relative;color:inherit}
+.cardc{transition:transform var(--press) var(--ease-out)}
+.cardc:active{transform:scale(0.98)}
+@media (hover:hover) and (pointer:fine){
+  .cardc{transition:transform var(--press) var(--ease-out),border-color 150ms ease}
+  .cardc:hover{border-color:var(--line-strong)}
+}
+.cardc.hero{grid-column:1/-1;border:2px solid var(--focus);background:var(--hero-bg);max-width:560px}
+.six{display:flex;gap:4px}
+.slot{display:flex;flex-direction:column;align-items:center;width:36px}
+.slot img.sp{width:36px;height:36px;border-radius:50%;border:2px solid transparent}
+.slot.in img.sp{border-color:var(--ring);background:var(--ring-bg)}
+.hero .slot{width:64px}.hero .slot img.sp{width:60px;height:60px}
+.cardc:not(.hero) .slot span{display:none}
+.slot span{font-size:10px;color:var(--muted);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot.in span{color:var(--ring)}
+.cap{font-size:12px;margin-top:4px;color:var(--ring);padding-right:44px}
+.hero .cap{color:var(--ink);font-size:14px}
+.badge{position:absolute;right:8px;bottom:8px;background:var(--fill);color:var(--on-fill);border-radius:6px;padding:1px 8px;font:600 13px system-ui;font-variant-numeric:tabular-nums}
+.ghost{position:absolute;margin:0;pointer-events:none;z-index:1}
+.more{margin-top:8px;background:none;border:0;color:var(--focus);padding:2px 0;font-size:13px}
+
+/* ---------- C: sets inside a composition ---------- */
+.hdr{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
+.hdr .slot{width:72px}.hdr .slot img.sp{width:64px;height:64px}
+.tblwrap{overflow-x:auto}
+table.dv{border-collapse:separate;border-spacing:4px;min-width:600px}
+table.dv th{font:500 12px system-ui;color:var(--muted);text-align:left;padding:0 4px}
+table.dv td.mon{display:flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap;padding-right:10px}
+table.dv td.mon img.sp{width:30px;height:30px}
+.cell{width:100%;min-width:64px;height:32px;border:1px solid var(--line);border-radius:4px;font:600 14px system-ui;font-variant-numeric:tabular-nums}
+.cell.sel{outline:3px solid var(--ring);outline-offset:1px}
+.cmpbar{display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;align-items:center;margin:24px 0 10px}
+.cmpbar h3{margin:0;font:600 16px system-ui}
+.cmp{border:1px solid var(--line);border-radius:8px}
+.cmpmon{display:grid;grid-template-columns:150px 1fr;border-top:1px solid var(--line);padding:8px 10px;gap:8px}
+.cmpmon:first-child{border-top:0}
+.cmpmon .who{display:flex;gap:6px;align-items:flex-start;font-size:14px}
+.cmpmon .who img.sp{width:30px;height:30px}
+.frow{display:grid;grid-template-columns:110px 1fr 1fr;gap:6px;font-size:13px;margin:2px 0}
+.frow .fl{color:var(--muted)}
+.frow .v{background:var(--hl);border:1px solid var(--hl-line);border-radius:4px;padding:1px 6px}
+.frow.same .v{background:none;border-color:transparent;color:var(--muted)}
+.frow .v{transition:background-color var(--exit) ease,border-color var(--exit) ease,color var(--exit) ease}
+
+.cols{display:grid;grid-template-columns:110px 1fr 1fr;gap:6px;font:600 12px system-ui;color:var(--muted);padding:6px 10px 0 170px}
+.same-note{font-size:13px;color:var(--muted)}
+
+@media (prefers-reduced-motion:reduce){
+  .frame,.tstrip{transition:none}
+  .tick{transition:opacity var(--move) var(--ease-in-out)}
+  .strip.grouped .blocks{transition-delay:0s}
+  .strip.grouped .ticks{transition-delay:var(--exit)}
+  .tip{transition:opacity var(--tip) var(--ease-out);transform:none}
+  .btn,.cell,.cardc{transition:border-color 150ms ease}
+  .btn:active,.cell:not(:disabled):active,.cardc:active{transform:none}
+}
+
+/* ---------- prototype switcher (not part of the design) ---------- */
+.switcher{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:6px;background:var(--bar-bg);color:var(--bar-fg);border-radius:999px;padding:6px 8px;box-shadow:0 6px 24px var(--shadow);font:13px system-ui;max-width:calc(100vw - 16px)}
+.switcher button{background:var(--bar-btn);color:var(--bar-fg);border:0;border-radius:999px;width:32px;height:32px}
+.switcher .lab{padding:0 10px;white-space:nowrap}
+.switcher .st{width:auto;padding:0 12px}
+.state{position:fixed;right:12px;bottom:calc(70px + env(safe-area-inset-bottom, 0px));z-index:20;background:var(--bar-bg);color:var(--bar-code);font:11px/1.4 ui-monospace,monospace;padding:10px 12px;border-radius:10px;max-width:min(420px,calc(100vw - 24px));white-space:pre-wrap}
+
+@media (max-width:640px){
+  .strips{grid-template-columns:24px 1fr 34px;gap:6px}
+  .cmpmon{grid-template-columns:1fr}
+  .frow,.cols{grid-template-columns:90px 1fr 1fr}
+  .cols{padding-left:10px}
+  .cmpbar{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="preact-htm-standalone.umd.js"></script>
+<script src="data.js"></script>
+<script>
+const { html, render, useState, useMemo, useEffect, useLayoutEffect, useRef } = htmPreact;
+// Motion tokens live in :root; read them so CSS and WAAPI share one source.
+const TOK = getComputedStyle(document.documentElement);
+const EASE_OUT = TOK.getPropertyValue('--ease-out').trim(), EASE_IN_OUT = TOK.getPropertyValue('--ease-in-out').trim();
+const ms = name => parseFloat(TOK.getPropertyValue(name));
+const MOVE = ms('--move'), ENTER = ms('--enter'), EXIT = ms('--exit');
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const D = window.TEAMS_DIFFER, ST = D.strings, N_TEAMS = 128;
+const FIELDS = [['Item', 1], ['Ability', 2], ['Stat Alignment', 3], ['Stat Points', 4], ['Moves', 5]];
+const COLOURS = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)'];
+const sprite = name => `../search-loop/sprites/${D.sprites[name]}.png`;
+const fmt = y => y.toFixed(2);
+
+// ---------- derived data ----------
+const GENS = D.gens.map(G => {
+  const groups = new Map();
+  G.teams.forEach((t, i) => {
+    const k = t.m.map(m => ST[m[0]]).sort().join('|');
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(i);
+  });
+  const comps = [...groups].map(([key, idx]) => {
+    idx.sort((a, b) => G.teams[b].y - G.teams[a].y);
+    return { key, idx };
+  }).sort((a, b) => b.idx.length - a.idx.length || a.key.localeCompare(b.key));
+  const compOf = [], slot = [];
+  let pos = 0;
+  comps.forEach(c => c.idx.forEach(i => { compOf[i] = c.key; slot[i] = pos++; }));
+  return { ...G, comps, compOf, slot };
+});
+// One species order everywhere: the final largest composition in its best team's slot order,
+// then any other species alphabetically. The same composition always reads the same way.
+const LAST = GENS[10], CORE = LAST.teams[LAST.comps[0].idx[0]].m.map(m => ST[m[0]]);
+const rank = s => CORE.includes(s) ? CORE.indexOf(s) : 6;
+GENS.forEach(G => G.comps.forEach(c => {
+  c.order = c.key.split('|').sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}));
+const comp = (g, key) => GENS[g - 1].comps.find(c => c.key === key);
+const largest = g => GENS[g - 1].comps[0];
+
+// ---------- URL state ----------
+const q = new URLSearchParams(location.search);
+const initial = {
+  variant: ['A', 'B', 'C'].includes(q.get('variant')) ? q.get('variant') : 'A',
+  gen: Math.min(11, Math.max(1, +q.get('gen') || 11)),
+  ref: q.get('ref') || null,
+  comp: q.get('comp') || null,
+};
+
+function Sprite({ name, cls = 'sp', size }) {
+  return html`<img class=${cls} src=${sprite(name)} alt=${name} title=${name} width=${size} height=${size} />`;
+}
+
+// Rolling digits: each column is a 0–9 strip moved with transform. Columns are keyed from the
+// right, so the ones and tens keep rolling when 112 becomes 81 and the hundreds column drops.
+function Ticker({ value }) {
+  const d = String(value).split('');
+  return html`<span class="sr">${value}</span>${d.map((x, i) => html`<span class="tcol" key=${d.length - i} aria-hidden="true">
+    <span class="tstrip" style=${`transform:translateY(${-x * 10}%)`}>${'0123456789'.split('').map(n => html`<span>${n}</span>`)}</span></span>`)}`;
+}
+
+// ================= Variant A — Collapse =================
+// Colours belong to generation 11's five largest compositions, so a colour always means the same six species.
+const TRACKED = GENS[10].comps.slice(0, 5).map(c => c.key);
+const FINE = () => matchMedia('(hover: hover) and (pointer: fine)').matches;
+function VariantA({ gen, setGen, openB }) {
+  const [hover, setHover] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [grouped, setGrouped] = useState(true);
+  const wrap = useRef(), frame = useRef(), rows = useRef([]);
+  const instant = useRef(true); // first paint and slider input place the frame without motion
+
+  const placeFrame = () => {
+    const row = rows.current[gen - 1], f = frame.current;
+    if (!row || !f) return;
+    f.style.transitionDuration = instant.current ? '0ms' : '';
+    f.style.height = row.offsetHeight + 8 + 'px';
+    f.style.transform = `translateY(${row.offsetTop - 4}px)`;
+    instant.current = false;
+  };
+  useLayoutEffect(placeFrame, [gen]);
+  useEffect(() => {
+    const r = () => { instant.current = true; placeFrame(); };
+    addEventListener('resize', r);
+    return () => removeEventListener('resize', r);
+  }, [gen]);
+
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => setGen(g => {
+      if (g >= 11) { setPlaying(false); return 11; }
+      return g + 1;
+    }), 700);
+    return () => clearInterval(id);
+  }, [playing]);
+
+  const play = () => { if (playing) return setPlaying(false); if (gen >= 11) setGen(1); setPlaying(true); };
+  const toggleGrouped = () => {
+    setHover(h => h && { ...h, open: false });
+    setGrouped(g => !g);
+    // reduced motion: the ticks jump, so dip the strips' opacity to mark the change instead
+    if (reduced()) wrap.current.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: ENTER, easing: EASE_OUT });
+  };
+  const G = GENS[gen - 1];
+
+  const onHover = (e, g, c) => {
+    if (!FINE()) return; // touch: a tap goes straight to B, no tooltip flash
+    const r = e.currentTarget.getBoundingClientRect(), w = wrap.current.getBoundingClientRect();
+    setHover({ g, c, open: true, x: Math.max(0, Math.min(r.left - w.left, w.width - 280)), y: r.bottom - w.top + 6 });
+  };
+  const colour = key => { const t = TRACKED.indexOf(key); return t >= 0 ? COLOURS[t] : null; };
+
+  return html`
+    <h1>Does the search collapse onto fewer compositions?</h1>
+    <p class="sub">Each strip is one generation's 128 teams, split by composition (the six species). One block is one composition; its width is how many teams share it. Colours mark generation 11's five largest compositions, so you can follow each one up the strips.</p>
+    <div class="strips" ref=${wrap} style="position:relative" onMouseLeave=${() => setHover(h => h && { ...h, open: false })}>
+      <div class="hd">Gen.</div><div class="hd">${grouped ? '128 teams, grouped by composition, largest first' : '128 teams, in the order the generation produced them'}</div><div class="hd">Comps.</div>
+      ${GENS.map(R => html`
+        <button class=${'gl' + (R.g === gen ? ' on' : '')} style="border:0;background:none;padding:0"
+          onClick=${() => setGen(R.g)} aria-label=${`Select generation ${R.g}`}>${R.g}</button>
+        <div class=${'strip' + (grouped ? ' grouped' : '')} ref=${el => rows.current[R.g - 1] = el}>
+          <div class="ticks" aria-hidden="true">${R.teams.map((t, i) => {
+            const bg = colour(R.compOf[i]);
+            return html`<i class=${'tick' + (bg && R.g !== gen ? ' dim' : '')}
+              style=${`transform:translateX(${(grouped ? R.slot[i] : i) * 100}%);${bg ? 'background:' + bg : ''}`}></i>`;
+          })}</div>
+          <div class="blocks">${R.comps.map(c => {
+            const w = c.idx.length / N_TEAMS * 100, bg = colour(c.key);
+            return html`<div class=${'blk' + (bg && R.g !== gen ? ' dim' : '')}
+              style=${`flex:0 0 ${w}%;${bg ? 'background:' + bg : ''}`}
+              onMouseEnter=${e => onHover(e, R.g, c)}
+              onClick=${e => { e.stopPropagation(); openB(R.g, c.key); }}>
+              ${w > 24 ? html`<span>×${c.idx.length}</span>${c.order.map(s => html`<${Sprite} name=${s} />`)}` : null}
+            </div>`;
+          })}</div>
+        </div>
+        <div class=${'cnt' + (R.g === gen ? ' on' : '')}>${R.comps.length}</div>`)}
+      <div class="frame" ref=${frame} aria-hidden="true"></div>
+      ${hover && html`<div class="tip" data-open=${hover.open ? '' : null} aria-hidden=${hover.open ? null : 'true'} style=${`left:${hover.x}px;top:${hover.y}px`}>
+        <div class="six">${hover.c.order.map(s => html`<${Sprite} name=${s} />`)}</div>
+        <div>Generation ${hover.g}: <b>${hover.c.idx.length}</b> of 128 teams</div>
+        <div class="foot">Click to see which compositions sit near it (variant B).</div>
+      </div>`}
+    </div>
+    <div class="playrow">
+      <label class="foot">Generation <input type="range" min="1" max="11" step="1" value=${gen}
+        onInput=${e => { setPlaying(false); instant.current = true; setGen(+e.target.value); }} aria-label="Generation" /></label>
+      <button class="btn" onClick=${play}>${playing ? 'Pause' : '▶ Play 1 → 11'}</button>
+      <button class="btn" onClick=${toggleGrouped} aria-pressed=${!grouped}>${grouped ? 'Show the teams unsorted' : 'Group by composition'}</button>
+      <div class="readout"><small>Compositions</small><b><${Ticker} value=${G.comps.length} /></b></div>
+      <div class="readout"><small>Largest</small><b><${Ticker} value=${G.comps[0].idx.length} /><span style="margin-left:.25em">/ 128</span></b></div>
+    </div>
+    <p class="measured">Measured: 112 compositions in generation 1, 22 in generation 11. The largest one, the same six species in every generation, grows from 8 to 96 of 128 teams.</p>
+    <p class="foot">Combined loop, 128 teams per generation. No two teams in a generation are identical as full teams; the collapse is in the species.</p>`;
+}
+
+// FLIP for anything marked data-flip inside `root`. Call capture() right before a state change;
+// after the render, survivors slide from where they were (transform only), newcomers fade up,
+// and leavers marked data-ghost fade out where they stood. Works across parents: matched by key, not node.
+function useFlip(root) {
+  const snap = useRef(null);
+  const capture = () => {
+    const m = new Map();
+    root.current.querySelectorAll('[data-flip]').forEach(el => m.set(el.dataset.flip, { el, r: el.getBoundingClientRect() }));
+    snap.current = m;
+  };
+  useLayoutEffect(() => {
+    const before = snap.current;
+    if (!before) return;
+    snap.current = null;
+    const still = reduced(), seen = new Set();
+    let n = 0;
+    root.current.querySelectorAll('[data-flip]').forEach(el => {
+      const k = el.dataset.flip, b = before.get(k);
+      seen.add(k);
+      el.getAnimations().forEach(a => a.cancel()); // measure from rest; b.r already holds the in-flight position
+      const r = el.getBoundingClientRect();
+      if (b) {
+        const dx = b.r.left - r.left, dy = b.r.top - r.top;
+        if (!still && (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5))
+          el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: MOVE, easing: EASE_IN_OUT });
+      } else {
+        el.animate(still ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+          { duration: ENTER, easing: EASE_OUT, delay: Math.min(n++ * 30, 300), fill: 'backwards' });
+      }
+    });
+    before.forEach(({ el, r }, k) => {
+      if (seen.has(k) || !el.hasAttribute('data-ghost')) return;
+      const g = el.cloneNode(true);
+      g.classList.add('ghost');
+      g.removeAttribute('data-flip'); g.removeAttribute('data-ghost');
+      Object.assign(g.style, { left: r.left + scrollX + 'px', top: r.top + scrollY + 'px', width: r.width + 'px', height: r.height + 'px' });
+      document.body.appendChild(g);
+      g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: EXIT, easing: EASE_OUT, fill: 'forwards' }).onfinish = () => g.remove();
+    });
+  });
+  return capture;
+}
+
+// ================= Variant B — Which compositions =================
+function slotsFor(refOrder, c) {
+  const S = new Set(c.key.split('|')), R = new Set(refOrder);
+  const incoming = c.key.split('|').filter(s => !R.has(s)).sort();
+  return refOrder.map(s => S.has(s) ? { s, in: false } : { s: incoming.shift(), in: true, replaces: s });
+}
+function CompCard({ c, refOrder, hero, onOpen }) {
+  const slots = hero ? c.order.map(s => ({ s })) : slotsFor(refOrder, c);
+  const ins = slots.filter(x => x.in);
+  const cap = hero ? html`<b>Chosen composition:</b> ${c.idx.length} of 128 teams. Click to see how its teams differ (variant C).`
+    : ins.length === 1 ? `${ins[0].s} replaces ${ins[0].replaces}`
+    : `In: ${ins.map(x => x.s).join(', ')}. Out: ${ins.map(x => x.replaces).join(', ')}.`;
+  return html`<button class=${'cardc' + (hero ? ' hero' : '')} data-flip=${c.key} data-ghost onClick=${e => onOpen(c.key, e.currentTarget)}
+      aria-label=${`${c.order.join(', ')}: ${c.idx.length} teams`}>
+    <div class="six">${slots.map(x => html`<div class=${'slot' + (x.in ? ' in' : '')}
+        title=${x.in ? `${x.s} replaces ${x.replaces}` : x.s}>
+      <${Sprite} name=${x.s} /><span>${x.s}</span></div>`)}</div>
+    <div class="cap">${cap}</div>
+    <span class="badge">×${c.idx.length}</span>
+  </button>`;
+}
+function VariantB({ gen, setGen, refKey, setRef, openC }) {
+  const [open, setOpenRaw] = useState({});
+  const root = useRef(), capture = useFlip(root);
+  // every change that re-buckets cards measures first, so cards can glide to their new row
+  const flip = fn => v => { capture(); fn(v); };
+  const setOpen = flip(setOpenRaw), changeGen = flip(setGen), changeRef = flip(setRef);
+  const G = GENS[gen - 1];
+  const ref = comp(gen, refKey) || G.comps[0];
+  const R = new Set(ref.key.split('|'));
+  const dist = c => 6 - c.key.split('|').filter(s => R.has(s)).length;
+  const buckets = [0, 1, 2, 3].map(b => ({ b, comps: G.comps.filter(c => b < 3 ? dist(c) === b : dist(c) >= 3) }));
+  const others = G.comps.length - 1;
+  const by = [1, 2, 3, 4, 5, 6].map(k => [k, G.comps.filter(c => dist(c) === k).length]).filter(x => x[1]);
+  const words = ['', 'one', 'two', 'three', 'four', 'five', 'six'];
+
+  return html`<div ref=${root}>
+    <h1>Which compositions does the generator propose?</h1>
+    <p class="sub">Generation ${gen}: 128 teams in ${G.comps.length} compositions. Rows are how many species differ from the chosen composition; an orange ring marks a species it doesn't have. The badge counts teams.</p>
+    <div class="controls">
+      <label>Generation <select value=${gen} onChange=${e => changeGen(+e.target.value)}>
+        ${GENS.map(x => html`<option value=${x.g}>${x.g}</option>`)}</select></label>
+      <label>Compare against <select value=${ref.key} onChange=${e => changeRef(e.target.value)}>
+        ${G.comps.map((c, i) => html`<option value=${c.key}>${i === 0 ? 'Largest: ' : ''}${c.idx.length} teams · ${c.order.join(', ')}</option>`)}</select></label>
+    </div>
+    ${buckets.map(({ b, comps }) => {
+      if (!comps.length) return null;
+      const teams = comps.reduce((a, c) => a + c.idx.length, 0);
+      const shown = open[b] || b === 0 ? comps : comps.slice(0, 4);
+      const title = b === 0 ? 'Chosen composition' : `${b < 3 ? b : '3 or more'} species ${b === 1 ? 'differs' : 'differ'} · ${comps.length} composition${comps.length > 1 ? 's' : ''}, ${teams} team${teams > 1 ? 's' : ''}`;
+      return html`<section class="bucket" key=${b}><h3 data-flip=${'h' + b}>${title}</h3>
+        <div class="cards">${shown.map(c => html`<${CompCard} key=${c.key} c=${c} refOrder=${ref.order} hero=${b === 0} onOpen=${openC} />`)}</div>
+        ${comps.length > shown.length ? html`<button class="more" data-flip=${'m' + b} onClick=${() => setOpen({ ...open, [b]: true })}>Show ${comps.length - shown.length} more</button>` : null}
+        ${open[b] && b > 0 && comps.length > 4 ? html`<button class="more" data-flip=${'f' + b} onClick=${() => setOpen({ ...open, [b]: false })}>Show fewer</button>` : null}
+      </section>`;
+    })}
+    <p class="measured" data-flip="measured">Measured: of the other ${others} compositions, ${by.map(([k, n]) => `${n} differ by ${words[k]}`).join(', ')}.</p>
+    <p class="foot" data-flip="foot">${ref === G.comps[0] ? 'Compared against the largest composition. ' : ''}A composition one species away is a small change to a team the search already has; four or more away is a new combination. Combined loop, generation ${gen}.</p>
+  </div>`;
+}
+
+// ================= Variant C — Sets inside a composition =================
+function VariantC({ gen, setGen, compKey, setComp, handoff }) {
+  const G = GENS[gen - 1];
+  const c = comp(gen, compKey) || G.comps[0];
+  const order = c.order, n = c.idx.length;
+  // aligned[t][speciesPos] = the mon array for that species in team t
+  const aligned = useMemo(() => c.idx.map(i => order.map(s => G.teams[i].m.find(m => ST[m[0]] === s))), [gen, c.key]);
+  const distinct = order.map((_, p) => FIELDS.map(([, f]) => new Set(aligned.map(t => t[p][f])).size));
+  const pairs = useMemo(() => {
+    const d = [];
+    for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
+      let k = 0;
+      for (let p = 0; p < 6; p++) for (const [, f] of FIELDS) if (aligned[a][p][f] !== aligned[b][p][f]) k++;
+      d.push(k);
+    }
+    return d.sort((x, y) => x - y);
+  }, [gen, c.key]);
+  const [ab, setABRaw] = useState([0, n - 1]);
+  const [sel, setSel] = useState(null);
+  const [showAll, setShowAllRaw] = useState(false);
+  const root = useRef(), capture = useFlip(root);
+  const setAB = v => { capture(); setABRaw(v); };
+  const setShowAll = v => { capture(); setShowAllRaw(v); };
+
+  // Arriving from a B card: its six sprites fly into the header; everything else fades in.
+  useLayoutEffect(() => {
+    const from = handoff && handoff.current;
+    if (!from) return;
+    handoff.current = null;
+    if (reduced()) { root.current.animate([{ opacity: 0 }, { opacity: 1 }], { duration: EXIT, easing: EASE_OUT }); return; }
+    root.current.querySelectorAll('.hdr img').forEach(img => {
+      const a = from.get(img.alt), b = img.getBoundingClientRect();
+      if (!a) return;
+      img.style.transformOrigin = '0 0';
+      img.animate([{ transform: `translate(${a.left - b.left}px,${a.top - b.top}px) scale(${a.width / b.width})` }, { transform: 'none' }],
+        { duration: MOVE, easing: EASE_IN_OUT });
+    });
+    const fade = [{ opacity: 0 }, { opacity: 1 }], t = { duration: ENTER, easing: EASE_OUT };
+    root.current.querySelectorAll('.hdr span').forEach(el => el.animate(fade, t));
+    [...root.current.children].forEach(el => { if (!el.classList.contains('hdr')) el.animate(fade, t); });
+  }, []);
+  useEffect(() => { setABRaw([0, n - 1]); setSel(null); }, [gen, c.key]);
+  const A = Math.min(ab[0], n - 1), B = Math.min(ab[1], n - 1);
+  const ys = c.idx.map(i => G.teams[i].y);
+  const mean = ys.reduce((a, b) => a + b, 0) / n;
+  const varObs = ys.reduce((a, y) => a + (y - mean) ** 2, 0) / n;
+  const varBin = mean * (1 - mean) / D.battles;
+
+  const pickCell = (p, f) => {
+    capture();
+    setSel([p, f]);
+    const b = aligned.findIndex(t => t[p][f] !== aligned[0][p][f]);
+    if (b > 0) setABRaw([0, b]);
+  };
+  const shade = k => {
+    if (n === 1 || k === 1) return 'background:var(--surface);color:var(--ink)';
+    const t = Math.min(1, Math.log(k) / Math.log(Math.max(2, n)));
+    // mix the fill colour into the surface, so the ramp works on either theme
+    return `background:color-mix(in oklab, var(--fill) ${Math.round(12 + t * 88)}%, var(--surface));color:${t > 0.55 ? 'var(--on-fill)' : 'var(--ink)'}`;
+  };
+  const teamLabel = j => `#${j + 1} · win rate ${fmt(G.teams[c.idx[j]].y)}`;
+
+  return html`<div ref=${root}>
+    <h1>How different are teams that share a composition?</h1>
+    <div class="controls">
+      <label>Generation <select value=${gen} onChange=${e => setGen(+e.target.value)}>
+        ${GENS.map(x => html`<option value=${x.g}>${x.g}</option>`)}</select></label>
+      <label>Composition <select value=${c.key} onChange=${e => setComp(e.target.value)}>
+        ${G.comps.map(x => html`<option value=${x.key}>${x.idx.length} teams · ${x.order.join(', ')}</option>`)}</select></label>
+    </div>
+    <div class="hdr">${order.map(s => html`<div class="slot"><${Sprite} name=${s} /><span>${s}</span></div>`)}</div>
+    <p class="sub">The ${n} generation-${gen} team${n > 1 ? 's' : ''} with ${order.join(', ')}.</p>
+    <h3 style="font:600 15px system-ui;margin:0 0 6px">Different values among the ${n} teams, per Pokémon and field</h3>
+    <div class="tblwrap"><table class="dv">
+      <thead><tr><th></th>${FIELDS.map(([l]) => html`<th>${l}</th>`)}</tr></thead>
+      <tbody>${order.map((s, p) => html`<tr>
+        <td class="mon"><${Sprite} name=${s} />${s}</td>
+        ${FIELDS.map(([l, f], fi) => html`<td><button class=${'cell' + (sel && sel[0] === p && sel[1] === f ? ' sel' : '')}
+          style=${shade(distinct[p][fi])} disabled=${n === 1}
+          aria-label=${`${s} ${l}: ${distinct[p][fi]} different values. Compare two teams that differ here.`}
+          onClick=${() => pickCell(p, f)}>${distinct[p][fi]}</button></td>`)}
+      </tr>`)}</tbody>
+    </table></div>
+    <p class="foot">1 = every team agrees on that field; ${n} would mean no two teams agree. Click a cell to compare two teams that differ in it.
+      ${n > 1 ? ` Any two teams differ in ${pairs[0]}–${pairs[pairs.length - 1]} of 30 fields (median ${pairs[Math.floor(pairs.length / 2)]}).` : ''}</p>
+
+    ${n === 1 ? html`<p class="same-note">Only one team has this composition, so there is nothing to compare.</p>` : html`
+    <div class="cmpbar">
+      <h3>Compare two teams</h3>
+      <select value=${A} onChange=${e => setAB([+e.target.value, B])} aria-label="Team A">
+        ${c.idx.map((_, j) => html`<option value=${j}>A: ${teamLabel(j)}${j === 0 ? ' (highest)' : ''}</option>`)}</select>
+      <select value=${B} onChange=${e => setAB([A, +e.target.value])} aria-label="Team B">
+        ${c.idx.map((_, j) => html`<option value=${j}>B: ${teamLabel(j)}${j === n - 1 ? ' (lowest)' : ''}</option>`)}</select>
+    </div>
+    <label class="foot" style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+      <input type="checkbox" checked=${showAll} onChange=${e => setShowAll(e.target.checked)} /> Show all 30 fields</label>
+    <div class="cols"><span></span><span>A · ${fmt(G.teams[c.idx[A]].y)}</span><span>B · ${fmt(G.teams[c.idx[B]].y)}</span></div>
+    <div class="cmp">${order.map((s, p) => {
+      const rows = FIELDS.map(([l, f]) => ({ l, f, a: ST[aligned[A][p][f]], b: ST[aligned[B][p][f]] }))
+        .map(r => ({ ...r, same: r.a === r.b })).filter(r => showAll || !r.same);
+      return html`<div class="cmpmon" key=${s} data-flip=${'m:' + s}><div class="who"><${Sprite} name=${s} />${s}</div><div>
+        ${rows.length ? rows.map(r => html`<div class=${'frow' + (r.same ? ' same' : '')} key=${r.l} data-flip=${`f:${s}:${r.l}`} data-ghost>
+          <span class="fl">${r.l}</span><span class="v">${r.a}</span><span class="v">${r.b}</span></div>`)
+          : html`<span class="same-note" data-flip=${'s:' + s}>Same set on both teams.</span>`}
+      </div></div>`;
+    })}</div>`}
+    <p class="measured" data-flip="cm">Measured: the same six species hide real set variation; win rates in this group span ${fmt(Math.min(...ys))}–${fmt(Math.max(...ys))}.</p>
+    <p class="foot" data-flip="cf">Win rate = share of battles won against the top-50 meta teams, the behaviour-cloning policy playing both sides, ${D.battles} battles per team (the real-team mean is ${D.realMean}).
+      ${n >= 10 ? ` At ${D.battles} battles, binomial noise alone would produce about ${Math.round(Math.min(1, varBin / varObs) * 100)}% of this spread${varBin / varObs >= 0.5 ? ', so it is mostly noise, not a ranking' : ''}.` : ''}</p>
+  </div>`;
+}
+
+// ================= Shell + prototype switcher =================
+const VARIANTS = [['A', 'Collapse'], ['B', 'Which compositions'], ['C', 'Sets inside a composition']];
+function App() {
+  const [variant, setVariant] = useState(initial.variant);
+  const [gen, setGen] = useState(initial.gen);
+  const [refKey, setRef] = useState(initial.ref);
+  const [compKey, setComp] = useState(initial.comp);
+  const [showState, setShowState] = useState(false);
+
+  useEffect(() => {
+    const p = new URLSearchParams({ variant, gen });
+    if (refKey) p.set('ref', refKey);
+    if (compKey) p.set('comp', compKey);
+    try { history.replaceState(null, '', '?' + p); } catch (e) { /* file:// may refuse */ }
+  }, [variant, gen, refKey, compKey]);
+
+  const cycle = d => setVariant(v => VARIANTS[(VARIANTS.findIndex(x => x[0] === v) + d + 3) % 3][0]);
+  useEffect(() => {
+    const k = e => {
+      const t = document.activeElement;
+      if (t && (t.matches('input,textarea,select,[contenteditable]'))) return;
+      if (e.key === 'ArrowLeft') cycle(-1);
+      if (e.key === 'ArrowRight') cycle(1);
+    };
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  }, []);
+
+  const openB = (g, key) => { setGen(g); setRef(key); setVariant('B'); scrollTo(0, 0); };
+  const handoff = useRef(null); // sprite rects of the clicked card, keyed by species, read once by C
+  const openC = (key, el) => {
+    if (el) handoff.current = new Map([...el.querySelectorAll('.slot img')].map(i => [i.alt, i.getBoundingClientRect()]));
+    setComp(key); setVariant('C'); scrollTo(0, 0);
+  };
+  const label = VARIANTS.find(x => x[0] === variant);
+  const state = {
+    variant, gen, compositions: GENS[gen - 1].comps.length, largest: largest(gen).idx.length,
+    compareAgainst: (comp(gen, refKey) || largest(gen)).order.join(', '),
+    composition: (comp(gen, compKey) || largest(gen)).order.join(', '),
+  };
+
+  return html`<main>
+      ${variant === 'A' && html`<${VariantA} gen=${gen} setGen=${setGen} openB=${openB} />`}
+      ${variant === 'B' && html`<${VariantB} gen=${gen} setGen=${setGen} refKey=${refKey} setRef=${setRef} openC=${openC} />`}
+      ${variant === 'C' && html`<${VariantC} gen=${gen} setGen=${setGen} compKey=${compKey} setComp=${setComp} handoff=${handoff} />`}
+    </main>
+    <nav class="switcher" aria-label="Prototype variant switcher">
+      <button onClick=${() => cycle(-1)} aria-label="Previous variant">←</button>
+      <span class="lab">${label[0]} — ${label[1]}</span>
+      <button onClick=${() => cycle(1)} aria-label="Next variant">→</button>
+      <button class="st" onClick=${() => setShowState(s => !s)}>${showState ? 'Hide state' : 'State'}</button>
+    </nav>
+    ${showState && html`<pre class="state">${JSON.stringify(state, null, 2)}</pre>`}`;
+}
+render(html`<${App} />`, document.getElementById('app'));
+</script>
+</body>
+</html>

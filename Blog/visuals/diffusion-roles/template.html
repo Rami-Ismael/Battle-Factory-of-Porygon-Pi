@@ -1,0 +1,343 @@
+<meta charset="utf-8">
+<title>Seven Jobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: role picker → one animated loop diagram (teams travel between the diffusion model and the battle simulator) with its step list → a do-now / test-next / skip board. Same system as the project's other blog figures. */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --accent:#0E7C7B; --accent-soft:#DDF0EF; --sim:#A2405A; --sim-soft:#F6E3E8; --chip:#EEF2F5;
+  --high:#1F7A4D; --high-soft:#E1F2E8; --med:#A86A0C; --med-soft:#F8EBD3; --low:#6B7480; --low-soft:#E9ECEF;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --accent:#4FC2BF; --accent-soft:#16312F; --sim:#E58AA0; --sim-soft:#3A2129; --chip:#1F2A35;
+    --high:#5BC48A; --high-soft:#173226; --med:#E3A443; --med-soft:#382A13; --low:#9AA6B2; --low-soft:#232D38;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --accent:#4FC2BF; --accent-soft:#16312F; --sim:#E58AA0; --sim-soft:#3A2129; --chip:#1F2A35;
+  --high:#5BC48A; --high-soft:#173226; --med:#E3A443; --med-soft:#382A13; --low:#9AA6B2; --low-soft:#232D38;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:26px}
+header{display:grid;gap:10px;max-width:72ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+h2{font:700 21px/1.2 var(--display);margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.note{color:var(--muted);font-size:13px;max-width:76ch}
+.roles{display:flex;flex-wrap:wrap;gap:8px}
+button{font:500 14px/1.1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:9px;padding:9px 12px;min-height:40px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform 120ms var(--ease),background-color 150ms ease,border-color 150ms ease}
+button:active{transform:scale(.97)}
+button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pill{font:600 10px/1 var(--mono);letter-spacing:.05em;border-radius:99px;padding:4px 7px}
+.pill.HIGH{background:var(--high-soft);color:var(--high)} .pill.MED{background:var(--med-soft);color:var(--med)} .pill.LOW{background:var(--low-soft);color:var(--low)}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:16px;display:grid;gap:14px}
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline}
+.top h2{margin-right:4px}
+.who{font:500 12px/1 var(--mono);color:var(--faint)}
+.io{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:14px;max-width:80ch}
+.io b{font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.diagram{overflow-x:auto;border-block:1px dashed var(--rule);padding-block:8px}
+svg{display:block;width:100%;min-width:620px;height:auto}
+.n rect{fill:var(--chip);stroke:var(--rule);stroke-width:1.2;transition:fill 200ms ease,stroke 200ms ease}
+.n.model rect{fill:var(--accent-soft);stroke:var(--accent)}
+.n.sim rect{fill:var(--sim-soft);stroke:var(--sim)}
+.n.flash rect{stroke-width:3}
+.n text{fill:var(--ink);font:600 14px var(--body)}
+.n text.s{fill:var(--muted);font:12px var(--body)}
+.n.cross line{stroke:var(--sim);stroke-width:2.5}
+.e{fill:none;stroke:var(--faint);stroke-width:1.6}
+.e.hot{stroke:var(--ink);stroke-width:2.6}
+.elab{fill:var(--muted);font:11.5px var(--mono)}
+.tok rect{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.tok text{fill:var(--ink);font:600 12.5px var(--mono)}
+.tok .q{fill:var(--faint);font:700 13px var(--display)}
+.knob{stroke:var(--accent);stroke-width:3;stroke-linecap:round;transition:transform 600ms var(--ease)}
+.stamp{fill:none;stroke:var(--sim);stroke-width:2}
+.stamp-t{fill:var(--sim);font:700 15px var(--display)}
+.steps{margin:0;padding-left:1.4em;display:grid;gap:4px;font-size:14px;color:var(--muted)}
+.steps li{transition:color 200ms ease}
+.steps li.on{color:var(--ink);font-weight:500}
+.papers{display:grid;gap:6px;font-size:13.5px}
+.papers div{display:grid;grid-template-columns:minmax(0,1fr);gap:1px}
+.papers .t{font-weight:500}
+a{color:var(--accent)} a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.papers .m{font:12px/1.4 var(--mono);color:var(--muted)}
+.why{display:flex;gap:10px;align-items:baseline;font-size:14.5px;border-top:1px solid var(--rule);padding-top:12px}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.lane{border-radius:14px;padding:14px;display:grid;gap:10px;align-content:start;border:1px solid var(--rule);background:var(--surface)}
+.lane h3{margin:0;font:700 17px/1.2 var(--display);display:flex;gap:8px;align-items:center}
+.lane.HIGH h3{color:var(--high)} .lane.MED h3{color:var(--med)} .lane.LOW h3{color:var(--low)}
+.item{border-top:1px solid var(--rule);padding-top:8px;display:grid;gap:4px;font-size:14px}
+.item b{font-weight:600}
+.item span{color:var(--muted)}
+.item button{justify-self:start;min-height:32px;padding:6px 10px;font-size:12.5px}
+@media (max-width:760px){ .board{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ button,.n rect,.knob,.steps li{transition:none} button:active{transform:none} }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Diffusion models in black-box optimisation · applied to VGC team search</span>
+    <h1>Seven jobs</h1>
+    <p class="lede">Researchers put a diffusion model into an optimisation loop in seven different jobs. Pick one to watch teams travel around its loop, see what goes in and what comes out, then read the board at the bottom for what that means for searching a Regulation M-B team.</p>
+  </header>
+
+  <div class="roles" id="roles" role="group" aria-label="Role"></div>
+
+  <section class="card" aria-live="polite">
+    <div class="top"><h2 id="rName"></h2><span class="pill" id="rGrade"></span><span class="who" id="rWho"></span></div>
+    <div class="io"><b>In</b><span id="rIn"></span><b>Out</b><span id="rOut"></span></div>
+    <div class="diagram"><svg id="svg" viewBox="0 0 800 390" role="img" aria-labelledby="rName"></svg></div>
+    <ol class="steps" id="steps"></ol>
+    <div class="papers" id="papers"></div>
+    <div class="why"><span class="pill" id="rGrade2"></span><span id="rWhy"></span></div>
+  </section>
+
+  <section aria-labelledby="h-board" style="display:grid;gap:12px">
+    <h2 id="h-board">What to do</h2>
+    <p class="note">Grades are for one problem: a full Regulation M-B team (species, ability, item, moves, Stat Points, alignment) that maximises win rate against the top-50 meta teams, scored by a noisy battle simulator. Numbers on this board are from the project's own runs.</p>
+    <div class="board" id="board"></div>
+  </section>
+
+  <p class="note">Win rates and labels moving through the diagrams are illustrations of each loop, not measurements. Paper venues were checked at the source (proceedings, conference pages, arXiv). Tags: online/offline · discrete/continuous · query budget (small ≤ 1k, medium, large ≥ 10k) · noisy/noiseless objective.</p>
+</div>
+
+<script>
+const SP = /*__SPRITES__*/null;
+const T = {
+  weather:["pelipper","charizard","grimmsnarl","archaludon","basculegion","venusaur"],
+  meta:["charizard","garchomp","incineroar","farigiraf","sylveon","aerodactyl"],
+  core:["garchomp","kingambit","basculegion","whimsicott","charizard","floetteeternal"],
+  room:["sinistcha","incineroar","gholdengo","sneasler","kingambit","whimsicott"],
+  mix:["pelipper","archaludon","kingambit","sinistcha","garchomp","incineroar"],
+};
+const team = (k, filled = 6) => ({kind:"team", team:T[k], filled});
+const val = text => ({kind:"value", text});
+const MODEL = {id:"model", x:140, y:195, w:180, h:70, cls:"model", t:"Diffusion model", s:"generates teams"};
+const SIM = {id:"sim", x:600, y:195, w:200, h:70, cls:"sim", t:"Battle simulator", s:"win rate vs the meta"};
+
+const ROLES = [
+ {id:"proposer", name:"Candidate proposer", who:"your name", grade:"HIGH",
+  in:"the current data or population", out:"a batch of candidate teams; a separate selector scores them with battles and keeps the best",
+  nodes:[{id:"data",x:140,y:60,w:180,h:56,t:"Meta teams",s:"training data"}, MODEL, SIM, {id:"sel",x:600,y:330,w:200,h:56,t:"Selector",s:"keeps the best"}],
+  edges:[{p:[[140,88],[140,160]]},{p:[[230,195],[500,195]]},{p:[[600,230],[600,302]]},{p:[[500,330],[140,330],[140,230]],l:"refit"}],
+  trips:[{e:0,tok:team("meta"),say:"Train the model on real meta teams."},
+         {e:1,tok:team("core"),say:"It proposes a batch of new candidate teams."},
+         {e:1,tok:team("room"),say:"…more candidates. The model never sees a win rate."},
+         {e:2,tok:val("0.57"),say:"Each candidate is battled; the simulator returns a win rate."},
+         {e:3,tok:team("core"),say:"The selector keeps the best, and they become training data for the next round."}],
+  papers:[["Diffusion Models are Evolutionary Algorithms","ICLR 2025 · online · continuous · large (12,800) · noiseless benchmarks, noisy control tasks · secondary: score-only sampler","https://arxiv.org/abs/2410.02543","🟢"],
+          ["Posterior Inference with Diffusion Models for High-dimensional Black-box Optimization (DiBO)","ICML 2025 · online · continuous · medium (2,000) to large (10,000) · mostly noiseless, one noisy task · secondary: guided sampler","https://proceedings.mlr.press/v267/yun25a.html","🟢"],
+          ["A Denoising Diffusion-Based Evolutionary Algorithm Framework (maximum independent set)","LOD 2025 · online at runtime · discrete · budget given as runtime · noiseless · secondary: learned solver","https://arxiv.org/abs/2510.08627","🟢 arXiv · 🔒 Springer"]],
+  why:"The proposer never needs exact values: noise is handled by the selector, which can re-battle close candidates."},
+ {id:"inverse", name:"Inverse method", who:"the survey's name (TMLR 2026 review)", grade:"LOW",
+  in:"a requested value, such as \"a team that wins 60%\"", out:"a team the model predicts will reach that value",
+  nodes:[{id:"req",x:140,y:60,w:200,h:56,t:"Request",s:"\"win rate 0.60\""}, MODEL, SIM, {id:"lab",x:600,y:330,w:200,h:56,t:"New label",s:"team + measured value"}],
+  edges:[{p:[[140,88],[140,160]]},{p:[[230,195],[500,195]]},{p:[[600,230],[600,302]]},{p:[[500,330],[140,330],[140,230]],l:"retrain"}],
+  trips:[{e:0,tok:val("0.60"),say:"Ask the model for a team that wins 60%."},
+         {e:1,tok:team("room"),say:"It returns a team it believes reaches 0.60."},
+         {e:2,tok:val("0.47"),say:"Battle it: it actually wins 47%."},
+         {e:3,tok:val("(team, 0.47)"),say:"Add the real label and retrain; online versions choose the next request with an acquisition rule."}],
+  papers:[["Diffusion Models for Black-Box Optimization (DDOM)","ICML 2023 · offline · continuous and discrete · noiseless · secondary: guided sampler. With a simulator: retrain on new labels each round","https://proceedings.mlr.press/v202/krishnamoorthy23a.html","🟢"],
+          ["Diffusion-Based Inverse Modeling for Online Black-Box Optimization (Diffusion-BBO)","NeurIPS 2024 workshop (BDU) · online · continuous and discrete · medium (1,600) · noiseless","https://arxiv.org/abs/2407.00610","🟢"]],
+  why:"Your 2026-08-29 run conditioning on a win-rate bin was null."},
+ {id:"guided", name:"Guided sampler", who:"your name (the survey's \"forward method\" is close)", grade:"HIGH",
+  in:"a trained model plus a value signal: a predictor's gradient or classifier-free guidance", out:"samples tilted toward high predicted value",
+  nodes:[MODEL, SIM, {id:"sur",x:140,y:340,w:200,h:56,t:"Surrogate",s:"predicts win rate"}, {id:"data",x:140,y:60,w:180,h:56,t:"Meta teams",s:"training data"}],
+  edges:[{p:[[140,312],[140,230]],l:"gradient"},{p:[[230,195],[500,195]]},{p:[[600,230],[600,340],[240,340]],l:"refit"},{p:[[140,88],[140,160]]}],
+  trips:[{e:3,tok:team("meta"),say:"The model is trained once on real meta teams."},
+         {e:0,tok:val("∇ win"),say:"At every denoising step, the surrogate's gradient nudges the next field."},
+         {e:1,tok:team("core"),say:"The finished team leans toward high predicted win rate."},
+         {e:2,tok:val("0.57"),say:"Battle it, then refit the surrogate on the new label."}],
+  papers:[["Protein Design with Guided Discrete Diffusion (LaMBO-2)","NeurIPS 2023 · online (wet-lab rounds) · discrete · small · noisy · secondary: candidate proposer","https://arxiv.org/abs/2305.20009","🟢"],
+          ["Steering Generative Models with Experimental Data for Protein Fitness Optimization","NeurIPS 2025 · online (rounds of 100) · discrete · small · noisy","https://arxiv.org/abs/2505.15093","🟢"],
+          ["Gradient Guidance for Diffusion Models: An Optimization Perspective","NeurIPS 2024 · online · continuous · small · noiseless (needs the objective's gradient) · secondary: reward-tuned policy","https://arxiv.org/abs/2404.14743","🟢"]],
+  why:"Guidance comes from a surrogate fitted to noisy labels; your 2026-09-01 loop with decode-time guidance climbed to 0.411 and found a 0.589 team."},
+ {id:"tuned", name:"Reward-tuned policy", who:"your name", grade:"MED", knob:true,
+  in:"sampled teams and their rewards", out:"new model weights: the model itself becomes the optimiser",
+  nodes:[MODEL, SIM, {id:"upd",x:140,y:340,w:200,h:56,t:"Weight update",s:"policy-gradient step"}],
+  edges:[{p:[[230,195],[500,195]]},{p:[[600,230],[600,340],[240,340]]},{p:[[140,312],[140,230]],l:"Δ weights"}],
+  trips:[{e:0,tok:team("mix"),say:"Sample teams from the current model."},
+         {e:0,tok:team("room"),say:"…a batch at a time."},
+         {e:1,tok:val("+0.06"),say:"Battles return rewards: above or below the batch average."},
+         {e:2,tok:val("Δθ"),say:"A policy-gradient step changes the model's weights, so the next batch shifts.",knob:true}],
+  papers:[["Training Diffusion Models with Reinforcement Learning (DDPO)","ICLR 2024 · online · continuous · large · noiseless reward models","https://arxiv.org/abs/2305.13301","🟢"],
+          ["Feedback Efficient Online Fine-Tuning of Diffusion Models (SEIKO)","ICML 2024 · online · discrete (medium, 2,000) and continuous (large, 15,360) · noiseless","https://arxiv.org/abs/2402.16359","🟢"],
+          ["Fine-Tuning Discrete Diffusion Models via Reward Optimization (DRAKES)","ICLR 2025 · offline (fixed differentiable reward model) · discrete · noiseless. With a simulator: no gradient, so policy gradients and battles per update","https://proceedings.iclr.cc/paper_files/paper/2025/hash/771e09dd204ea339da0d8114c48afd21-Abstract-Conference.html","🟢"]],
+  why:"Sampled rewards average out the noise, but your self-training loop stopped at generation 2 on concentration: collapse is the real risk."},
+ {id:"search", name:"Sampling-time searcher", who:"your name", grade:"MED", tree:true,
+  in:"one frozen model and a reward for finished samples", out:"the best denoising path, found by tree search or sequential Monte Carlo",
+  nodes:[{id:"root",x:110,y:195,w:150,h:44,t:"",partial:0},{id:"a",x:330,y:105,w:150,h:44,t:"",partial:2,k:"core"},{id:"b",x:330,y:290,w:150,h:44,t:"",partial:2,k:"mix"},
+         {id:"a1",x:540,y:55,w:150,h:44,t:"",partial:6,k:"core"},{id:"a2",x:540,y:155,w:150,h:44,t:"",partial:6,k:"room"},{id:"b1",x:540,y:290,w:150,h:44,t:"",partial:6,k:"mix"},
+         {id:"sim",x:720,y:195,w:130,h:70,cls:"sim",t:"Simulator",s:"full teams only"}],
+  edges:[{p:[[185,190],[255,110]]},{p:[[185,200],[255,290]]},{p:[[405,100],[465,60]]},{p:[[405,110],[465,155]]},{p:[[405,290],[465,290]]},
+         {p:[[615,60],[690,165]]},{p:[[615,155],[655,185]]},{p:[[615,290],[690,228]]}],
+  trips:[{e:0,tok:team("core",2),say:"The frozen model fills fields one at a time; the search branches at each step."},
+         {e:2,tok:team("core"),say:"Finish one branch into a full team."},
+         {e:5,tok:val("0.58"),say:"Only a full team can be battled: it scores 0.58."},
+         {e:3,tok:team("room"),say:"Try a sibling branch."},
+         {e:6,tok:val("0.49"),say:"It scores 0.49."},
+         {e:1,tok:team("mix",2),say:"Expand another early choice."},
+         {e:4,tok:team("mix"),say:"Complete it."},
+         {e:7,tok:val("0.44"),say:"0.44. The search keeps the path to the 0.58 team.",best:[0,2,5]}],
+  papers:[["A General Framework for Inference-time Scaling and Steering of Diffusion Models (FK steering)","ICML 2025 · online · continuous and discrete · small per sample · noiseless","https://proceedings.mlr.press/v267/singhal25b.html","🟢"],
+          ["Diffusion Tree Sampling","NeurIPS 2025 · online · continuous · budget given as compute · noiseless","https://arxiv.org/abs/2506.20701","🟢"],
+          ["UnMaskFork: Test-Time Scaling for Masked Diffusion via Deterministic Action Branching","ICML 2026 · online · discrete (masked diffusion) · budget given as rollouts · noiseless","https://arxiv.org/abs/2602.04344","🟢"]],
+  why:"Tree search over which field to fill fits masked team generation, but every intermediate node costs a completion plus battles."},
+ {id:"solver", name:"Learned solver", who:"your name", grade:"LOW", stamp:true,
+  in:"a new problem instance", out:"its solution in one pass, after training on many solved instances",
+  nodes:[{id:"i1",x:110,y:55,w:150,h:44,t:"Meta A + its counter"},{id:"i2",x:110,y:130,w:150,h:44,t:"Meta B + its counter"},{id:"i3",x:110,y:205,w:150,h:44,t:"Meta C + its counter"},
+         {id:"model",x:400,y:130,w:180,h:70,cls:"model",t:"Diffusion model",s:"amortised solver"},{id:"new",x:400,y:320,w:180,h:56,t:"New meta",s:"a new instance"},{id:"out",x:660,y:320,w:180,h:56,t:"Counter team",s:"one pass"}],
+  edges:[{p:[[185,55],[310,120]]},{p:[[185,130],[310,130]]},{p:[[185,205],[310,140]]},{p:[[400,292],[400,165]]},{p:[[490,150],[660,150],[660,292]]}],
+  trips:[{e:0,tok:team("meta"),say:"Train on many instances, each with a solved answer."},
+         {e:1,tok:team("weather"),say:"…instance after instance."},
+         {e:2,tok:team("room"),say:"…which is what makes the training pay off."},
+         {e:3,tok:val("meta?"),say:"A new instance arrives."},
+         {e:4,tok:team("core"),say:"The solver answers in one pass. But your search has one fixed meta: a single instance.",stamp:true}],
+  papers:[["DIFUSCO: Graph-based Diffusion Solvers for Combinatorial Optimization","NeurIPS 2023 · offline (solved instances) · discrete · noiseless","https://arxiv.org/abs/2302.08224","🟢"],
+          ["T2T: From Distribution Learning in Training to Gradient Search in Testing","NeurIPS 2023 · offline training, online search at test time · discrete · noiseless · secondary: sampling-time searcher","https://proceedings.neurips.cc/paper_files/paper/2023/hash/9c93b3cd3bc60c0fe7b0c2d74a2da966-Abstract-Conference.html","🟢"],
+          ["A Diffusion Model Framework for Unsupervised Neural Combinatorial Optimization (DiffUCO)","ICML 2024 · trained on the objective alone · discrete · noiseless · secondary: score-only sampler","https://arxiv.org/abs/2406.01661","🟢"]],
+  why:"It pays to generalise across instances, and one fixed meta is one instance."},
+ {id:"score", name:"Score-only sampler", who:"your name", grade:"LOW",
+  in:"the objective alone, no data", out:"samples from a distribution proportional to exp(f)",
+  nodes:[{id:"data",x:140,y:60,w:180,h:56,t:"Meta teams",s:"not used",cross:true}, {...MODEL, t:"Diffusion sampler", s:"no training data"}, SIM, {id:"w",x:600,y:330,w:200,h:56,t:"exp(f) weights",s:"from noisy f"}],
+  edges:[{p:[[230,195],[500,195]]},{p:[[600,230],[600,302]]},{p:[[500,330],[140,330],[140,230]]}],
+  trips:[{e:0,tok:team("mix"),say:"Draw a sample; no data was used to train the sampler."},
+         {e:1,tok:val("0.50 ± 0.03"),say:"The simulator returns a noisy win rate, not the true value."},
+         {e:2,tok:val("e^f"),say:"The sampler needs exp(f) exactly; with noisy f the weights are biased."},
+         {e:0,tok:team("room"),say:"Repeat for ≥ 10,000 queries."}],
+  papers:[["Denoising Diffusion Samplers","ICLR 2023 · online · continuous · large · noiseless","https://arxiv.org/abs/2302.13834","🟢"],
+          ["Iterated Denoising Energy Matching for Sampling from Boltzmann Densities (iDEM)","ICML 2024 · online · continuous · large · noiseless","https://arxiv.org/abs/2402.06121","🟢"],
+          ["Scalable Discrete Diffusion Samplers: Combinatorial Optimization and Statistical Physics","ICLR 2025 · online · discrete · large · noiseless","https://www.semanticscholar.org/paper/ec3d27dbfdd9431720c8a848b0ac33145dac58be","🟢"]],
+  why:"Noise counts here: these samplers need exact values in exp(f). They also ignore the meta teams, and ≥ 10k queries at 384 battles each is about 21 hours of battles."},
+];
+
+const BOARD = {
+  HIGH:{title:"Do now", items:[["proposer","Candidate proposer + guided sampler","This is the loop you already run. It stopped on diversity, not win rate, with a best team of 0.589 ± 0.036 at 192 battles. Spend battles re-battling the top candidates: 24-battle labels were winner's-cursed (0.79 label, 0.57 true)."],
+                               ["guided","Keep the simple guidance","The Jacobian variant kept validity but won less (0.209 vs 0.231) and over-fit the surrogate at high strength."]]},
+  MED:{title:"Test next", items:[["tuned","Reward-tuned policy","Only with a diversity guardrail and against the current loop at the same battle budget; the self-training loop collapsed toward one region by generation 2."],
+                                 ["search","Sampling-time searcher","Tree search over which field to fill, at a matched battle budget; each partial team must be completed and battled to be scored."]]},
+  LOW:{title:"Skip", items:[["inverse","Inverse method","Conditioning on a requested win rate was null (2026-08-29)."],
+                            ["solver","Learned solver","One fixed meta is one instance; there is nothing to amortise over."],
+                            ["score","Score-only sampler","Needs exact f, ignores the meta teams, and costs ≥ 10k queries."]]},
+};
+
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let cur = 0, runId = 0;
+
+function el(tag, attrs = {}, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function tokenGroup(tok){
+  const g = el("g", {class:"tok"});
+  if (tok.kind === "team") {
+    const n = 6, s = 22, w = n * s + 8;
+    el("rect", {x:-w/2, y:-15, width:w, height:30, rx:7}, g);
+    tok.team.forEach((name, i) => {
+      const x = -w/2 + 4 + i * s;
+      if (i < tok.filled && SP[name]) el("image", {href:SP[name], x, y:-11, width:s, height:s, style:"image-rendering:pixelated"}, g);
+      else { const t = el("text", {x:x + s/2, y:5, "text-anchor":"middle", class:"q"}, g); t.textContent = "?"; }
+    });
+  } else {
+    const t = el("text", {x:0, y:4.5, "text-anchor":"middle"}, g); t.textContent = tok.text;
+    const w = Math.max(44, tok.text.length * 8.2 + 18);
+    g.insertBefore(el("rect", {x:-w/2, y:-14, width:w, height:28, rx:14}), t);
+  }
+  return g;
+}
+function drawRole(){
+  const R = ROLES[cur], svg = $("svg"); svg.innerHTML = "";
+  el("defs", {}, svg).innerHTML = `<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/></marker>`;
+  const edges = R.edges.map((e, i) => {
+    const d = "M" + e.p.map(p => p.join(",")).join(" L");
+    const path = el("path", {d, class:"e", "marker-end":"url(#ar)", id:"e" + i}, svg);
+    if (e.l) { const m = e.p[Math.floor((e.p.length - 1) / 2)], n = e.p[Math.floor((e.p.length - 1) / 2) + 1];
+      const t = el("text", {x:(m[0] + n[0]) / 2 + 8, y:(m[1] + n[1]) / 2 - 8, class:"elab"}, svg); t.textContent = e.l; }
+    return path;
+  });
+  const nodes = {};
+  for (const n of R.nodes) {
+    const g = el("g", {class:"n " + (n.cls || ""), id:"n-" + n.id}, svg); nodes[n.id] = g;
+    el("rect", {x:n.x - n.w/2, y:n.y - n.h/2, width:n.w, height:n.h, rx:12}, g);
+    if (n.partial !== undefined) {
+      const tg = tokenGroup(team(n.k || "core", n.partial)); tg.setAttribute("transform", `translate(${n.x},${n.y})`); g.appendChild(tg);
+    } else {
+      const t = el("text", {x:n.x, y:n.s ? n.y - 3 : n.y + 5, "text-anchor":"middle"}, g); t.textContent = n.t;
+      if (n.s) { const s = el("text", {x:n.x, y:n.y + 16, "text-anchor":"middle", class:"s"}, g); s.textContent = n.s; }
+    }
+    if (n.cross) { const c = el("g", {class:"cross"}, g); el("line", {x1:n.x - n.w/2 + 10, y1:n.y - n.h/2 + 8, x2:n.x + n.w/2 - 10, y2:n.y + n.h/2 - 8}, c); }
+  }
+  let knob = null;
+  if (R.knob) { const m = R.nodes.find(n => n.id === "model"); knob = el("line", {x1:m.x + 70, y1:m.y, x2:m.x + 70, y2:m.y - 16, class:"knob", style:`transform-origin:${m.x + 70}px ${m.y}px`}, svg); }
+  let stamp = null;
+  if (R.stamp) { stamp = el("g", {opacity:0}, svg); el("rect", {x:500, y:40, width:270, height:44, rx:8, class:"stamp"}, stamp);
+    const t = el("text", {x:635, y:68, "text-anchor":"middle", class:"stamp-t"}, stamp); t.textContent = "You have one meta"; }
+  return {edges, nodes, knob, stamp, svg};
+}
+function render(){
+  const R = ROLES[cur];
+  ROLES.forEach((r, i) => $("rb-" + r.id).setAttribute("aria-pressed", i === cur));
+  $("rName").textContent = R.name; $("rWho").textContent = R.who;
+  for (const id of ["rGrade","rGrade2"]) { $(id).className = "pill " + R.grade; $(id).textContent = R.grade; }
+  $("rIn").textContent = R.in; $("rOut").textContent = R.out; $("rWhy").textContent = R.why;
+  $("steps").innerHTML = R.trips.map(t => `<li>${t.say}</li>`).join("");
+  $("papers").innerHTML = R.papers.map(([t, m, u, lab]) => `<div><a class="t" href="${u}" target="_blank" rel="noopener">${t}</a><span class="m">${lab} · ${m}</span></div>`).join("");
+  const S = drawRole(); play(S, R, ++runId);
+}
+function lerpPath(pts, f){
+  const segs = []; let L = 0;
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]); segs.push(d); L += d; }
+  let t = f * L;
+  for (let i = 0; i < segs.length; i++) { if (t <= segs[i]) { const u = t / segs[i]; return [pts[i][0] + u * (pts[i+1][0] - pts[i][0]), pts[i][1] + u * (pts[i+1][1] - pts[i][1])]; } t -= segs[i]; }
+  return pts[pts.length - 1];
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function play(S, R, id){
+  const lis = [...$("steps").children];
+  if (reduce) { lis.forEach(li => li.classList.add("on")); if (S.stamp) S.stamp.setAttribute("opacity", 1); return; }
+  let turn = 0;
+  while (id === runId) {
+    for (let k = 0; k < R.trips.length && id === runId; k++) {
+      const trip = R.trips[k], pts = R.edges[trip.e].p;
+      lis.forEach((li, j) => li.classList.toggle("on", j === k));
+      S.edges.forEach((e, j) => e.classList.toggle("hot", j === trip.e));
+      const g = tokenGroup(trip.tok); S.svg.appendChild(g);
+      const dur = 1500, t0 = performance.now();
+      await new Promise(res => { const f = now => { if (id !== runId) return res();
+        const x = Math.min(1, (now - t0) / dur), e = x < .5 ? 2*x*x : 1 - Math.pow(-2*x + 2, 2) / 2;
+        const [px, py] = lerpPath(pts, e); g.setAttribute("transform", `translate(${px},${py})`);
+        x < 1 && !document.hidden ? requestAnimationFrame(f) : res(); }; requestAnimationFrame(f); });
+      if (id !== runId) return;
+      if (trip.knob && S.knob) { turn += 50; S.knob.style.transform = `rotate(${turn}deg)`; }
+      if (trip.stamp && S.stamp) S.stamp.setAttribute("opacity", 1);
+      if (trip.best) trip.best.forEach(j => S.edges[j].classList.add("hot"));
+      await wait(trip.best || trip.stamp ? 1800 : 650); g.remove();
+      if (document.hidden) await new Promise(r => document.addEventListener("visibilitychange", r, {once:true}));
+    }
+    if (S.stamp) S.stamp.setAttribute("opacity", 0);
+    await wait(500);
+  }
+}
+$("roles").innerHTML = ROLES.map(r => `<button type="button" id="rb-${r.id}" aria-pressed="false">${r.name}<span class="pill ${r.grade}">${r.grade}</span></button>`).join("");
+ROLES.forEach((r, i) => $("rb-" + r.id).addEventListener("click", () => { cur = i; render(); }));
+$("board").innerHTML = ["HIGH","MED","LOW"].map(g => `<div class="lane ${g}"><h3>${BOARD[g].title}<span class="pill ${g}">${g}</span></h3>` +
+  BOARD[g].items.map(([id, t, d]) => `<div class="item"><b>${t}</b><span>${d}</span><button type="button" data-role="${id}">Watch the loop</button></div>`).join("") + `</div>`).join("");
+$("board").addEventListener("click", e => { const b = e.target.closest("button[data-role]"); if (!b) return;
+  cur = ROLES.findIndex(r => r.id === b.dataset.role); render(); $("roles").scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"start"}); });
+render();
+</script>

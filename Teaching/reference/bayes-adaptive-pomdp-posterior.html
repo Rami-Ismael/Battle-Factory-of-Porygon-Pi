@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — How a BAPOMDP keeps a posterior (and how Metamon doesn't)</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  svg { max-width: 100%; height: auto; display: block; margin: 1.4rem 0 .6rem; }
+  svg text { font-family: var(--serif); fill: var(--ink); }
+  svg .mono { font-family: var(--mono); font-size: 11px; }
+  svg .lbl { font-size: 13px; }
+  svg .small { font-size: 11px; fill: var(--ink-soft); }
+  svg .head { font-size: 14px; font-weight: 600; }
+  svg .big { font-size: 16px; font-weight: 600; }
+  svg .box { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+  svg .soft { fill: none; stroke: var(--rule); stroke-width: 1; }
+  svg .cell { stroke: var(--rule); stroke-width: .6; }
+  svg .fillc { fill: var(--cover); }
+  svg .fills { fill: var(--setc); }
+  svg .latent { fill: none; stroke: var(--warn); stroke-width: 1.2; stroke-dasharray: 3 3; }
+  svg .arrow { stroke: var(--ink); stroke-width: 1.2; fill: none; marker-end: url(#ah); }
+  svg .arrow-soft { stroke: var(--ink-soft); stroke-width: 1; fill: none; stroke-dasharray: 3 3; marker-end: url(#ahs); }
+  svg .warnt { fill: var(--warn); }
+  figcaption { font-size: .82em; color: var(--ink-soft); max-width: 42rem; margin: 0 0 2.6rem; }
+  figure { margin: 0; }
+</style>
+</head>
+<body>
+<h1>How a BAPOMDP keeps a posterior</h1>
+<p class="subtitle">The answer is that it doesn't keep one. It moves the unknown parameters <em>into the state</em>, so the belief you were already forced to maintain becomes a posterior over the model for free.</p>
+<p class="meta">Reference figure · 2026-08-22 · companion to <a href="metamon-in-context-window.html">what is in the context window</a> and <a href="../lessons/0003-metamon-offline-rl-from-human-replays.html">Lesson 0003</a> · sources: Ross, Chaib-draa &amp; Pineau, <em>Bayes-Adaptive POMDPs</em>, NIPS 20 (2007), Sec. 2–3 &amp; Thm. 3.1 · Metamon (arXiv 2504.04395v2) Sec. 4</p>
+
+<h2>1 &middot; Where the uncertainty lives</h2>
+
+<svg viewBox="0 0 940 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison: in a plain POMDP the state is hidden but the model is known; in a BAPOMDP both the state and the transition and observation parameters are unknown.">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+    <marker id="ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink-soft)"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="head">Plain POMDP</text>
+  <rect x="20" y="46" width="180" height="74" rx="6" class="latent"/>
+  <text x="110" y="74" text-anchor="middle" class="lbl warnt">state s</text>
+  <text x="110" y="96" text-anchor="middle" class="small">hidden — you carry b(s)</text>
+  <text x="110" y="111" text-anchor="middle" class="small">a distribution over S</text>
+
+  <rect x="20" y="150" width="180" height="74" rx="6" class="box"/>
+  <text x="110" y="178" text-anchor="middle" class="lbl">model T, O</text>
+  <text x="110" y="200" text-anchor="middle" class="small">KNOWN — handed to you</text>
+  <text x="110" y="215" text-anchor="middle" class="small">solid line = no uncertainty</text>
+  <text x="110" y="258" text-anchor="middle" class="small">"which is rarely the case</text>
+  <text x="110" y="272" text-anchor="middle" class="small">in practice" — Ross §1</text>
+
+  <path d="M225,135 L305,135" class="arrow"/>
+  <text x="265" y="126" text-anchor="middle" class="small">drop the</text>
+  <text x="265" y="152" text-anchor="middle" class="small">assumption</text>
+
+  <text x="330" y="28" class="head">BAPOMDP</text>
+  <rect x="330" y="46" width="180" height="74" rx="6" class="latent"/>
+  <text x="420" y="74" text-anchor="middle" class="lbl warnt">state s</text>
+  <text x="420" y="96" text-anchor="middle" class="small">still hidden</text>
+
+  <rect x="330" y="150" width="180" height="74" rx="6" class="latent"/>
+  <text x="420" y="178" text-anchor="middle" class="lbl warnt">model T, O</text>
+  <text x="420" y="200" text-anchor="middle" class="small">now unknown too —</text>
+  <text x="420" y="215" text-anchor="middle" class="small">tracked as counts &phi;, &psi;</text>
+
+  <path d="M535,135 L615,135" class="arrow"/>
+  <text x="575" y="126" text-anchor="middle" class="small">fold the</text>
+  <text x="575" y="152" text-anchor="middle" class="small">second into</text>
+  <text x="575" y="167" text-anchor="middle" class="small">the first</text>
+
+  <rect x="640" y="46" width="280" height="178" rx="6" class="box" style="stroke:var(--cover);stroke-width:1.6"/>
+  <text x="780" y="74" text-anchor="middle" class="big" style="fill:var(--cover)">one state space</text>
+  <text x="780" y="102" text-anchor="middle" class="mono" style="font-size:14px">S&prime; = S &times; T &times; O</text>
+  <text x="780" y="128" text-anchor="middle" class="small">a BAPOMDP "state" is the triple</text>
+  <text x="780" y="146" text-anchor="middle" class="mono" style="font-size:13px">&sigma; = (s, &phi;, &psi;)</text>
+  <text x="780" y="172" text-anchor="middle" class="small">where am I <tspan class="warnt">+</tspan> what are the rules</text>
+  <text x="780" y="196" text-anchor="middle" class="small">One belief over this triple is</text>
+  <text x="780" y="211" text-anchor="middle" class="small">the whole mechanism.</text>
+</svg>
+<figcaption><strong>The one move that matters.</strong> A Bayes-Adaptive <em>MDP</em> can pair an observed state with a belief over the model. A POMDP can't — there is no observed state to pair with anything. So Ross et al. put the parameters inside the state space instead, and the ordinary POMDP belief now ranges over both. This is why the framing is "one belief over a joint," never "the pair (state, belief)."</figcaption>
+
+<h2>2 &middot; The counts are the posterior</h2>
+
+<p>&phi;<sup>a</sup><sub>ss&prime;</sub> is a tally: how many times action <span class="m">a</span> in state <span class="m">s</span> led to <span class="m">s&prime;</span>. &psi;<sup>a</sup><sub>s&prime;z</sub> is the same for observations. A <strong>Dirichlet</strong> is just "a distribution over what a multinomial's probabilities are, given counts" — so a tally <em>is</em> a posterior, and the expected transition probability is the tally over its total:</p>
+
+<svg viewBox="0 0 940 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A row of Dirichlet counts becomes an expected transition probability by dividing each count by the row total.">
+  <g>
+    <rect x="30" y="34" width="58" height="42" class="cell fillc" fill-opacity=".18"/>
+    <rect x="88" y="34" width="58" height="42" class="cell fillc" fill-opacity=".85"/>
+    <rect x="146" y="34" width="58" height="42" class="cell fillc" fill-opacity=".35"/>
+    <rect x="204" y="34" width="58" height="42" class="cell fillc" fill-opacity=".06"/>
+    <text x="59" y="61" text-anchor="middle" class="mono">3</text>
+    <text x="117" y="61" text-anchor="middle" class="mono">14</text>
+    <text x="175" y="61" text-anchor="middle" class="mono">6</text>
+    <text x="233" y="61" text-anchor="middle" class="mono">1</text>
+    <text x="146" y="26" text-anchor="middle" class="small">counts &phi;<tspan baseline-shift="super" font-size="8">a</tspan><tspan baseline-shift="sub" font-size="8">s&middot;</tspan> — one per possible successor s&prime;</text>
+    <text x="146" y="94" text-anchor="middle" class="small">total = 24</text>
+  </g>
+  <path d="M285,55 L345,55" class="arrow"/>
+  <text x="315" y="45" text-anchor="middle" class="small">&divide; total</text>
+  <g>
+    <text x="370" y="62" class="mono" style="font-size:15px">T&#770;<tspan baseline-shift="super" font-size="9">sas&prime;</tspan> = .125, .583, .250, .042</text>
+  </g>
+  <text x="370" y="92" class="small">the expected model under the current Dirichlet — this is what the agent plans against</text>
+  <text x="370" y="112" class="small">More data &rarr; bigger counts &rarr; the Dirichlet sharpens. That sharpening is the learning.</text>
+</svg>
+<figcaption>No separate "learner" updates these. The counts sit inside the state, so they get carried along by the belief update like any other state variable.</figcaption>
+
+<h2>3 &middot; The answer: one joint belief, two marginals</h2>
+
+<svg viewBox="0 0 940 530" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A grid whose rows are candidate hidden states and columns are candidate count vectors. Cell shading is the joint belief. Summing down the columns gives the posterior over the model; summing across the rows gives the ordinary state belief.">
+  <text x="180" y="34" class="head">columns = candidate models (count vectors &phi;, &psi;)</text>
+  <text x="180" y="52" class="small">"what are the rules of this game / who is this opponent"</text>
+
+  <text x="24" y="180" class="head" transform="rotate(-90 24 180)">rows = hidden states s</text>
+  <text x="42" y="196" class="small" transform="rotate(-90 42 196)">"where am I right now"</text>
+
+  <!-- column heads -->
+  <text x="232" y="82" text-anchor="middle" class="mono">m&#8321;</text>
+  <text x="336" y="82" text-anchor="middle" class="mono">m&#8322;</text>
+  <text x="440" y="82" text-anchor="middle" class="mono">m&#8323;</text>
+  <text x="544" y="82" text-anchor="middle" class="mono">m&#8324;</text>
+  <text x="648" y="82" text-anchor="middle" class="mono">m&#8325;</text>
+  <!-- row heads -->
+  <text x="168" y="125" text-anchor="end" class="mono">s&#8321;</text>
+  <text x="168" y="185" text-anchor="end" class="mono">s&#8322;</text>
+  <text x="168" y="245" text-anchor="end" class="mono">s&#8323;</text>
+  <text x="168" y="305" text-anchor="end" class="mono">s&#8324;</text>
+
+  <!-- grid cells: fill-opacity proportional to joint probability -->
+  <g class="fillc">
+    <rect x="180" y="90" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".05"/>
+    <rect x="284" y="90" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".10"/>
+    <rect x="388" y="90" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".20"/>
+    <rect x="492" y="90" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".10"/>
+    <rect x="596" y="90" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".05"/>
+
+    <rect x="180" y="150" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".10"/>
+    <rect x="284" y="150" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".45"/>
+    <rect x="388" y="150" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".90"/>
+    <rect x="492" y="150" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".30"/>
+    <rect x="596" y="150" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".05"/>
+
+    <rect x="180" y="210" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".15"/>
+    <rect x="284" y="210" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".55"/>
+    <rect x="388" y="210" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity="1"/>
+    <rect x="492" y="210" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".35"/>
+    <rect x="596" y="210" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".05"/>
+
+    <rect x="180" y="270" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".05"/>
+    <rect x="284" y="270" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".15"/>
+    <rect x="388" y="270" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".25"/>
+    <rect x="492" y="270" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".10"/>
+    <rect x="596" y="270" width="104" height="60" class="cell" fill="var(--cover)" fill-opacity=".05"/>
+  </g>
+  <rect x="180" y="90" width="520" height="240" class="box"/>
+
+  <!-- one cell called out -->
+  <rect x="388" y="210" width="104" height="60" fill="none" stroke="var(--warn)" stroke-width="2"/>
+  <path d="M726,382 C640,382 560,330 496,278" class="arrow-soft"/>
+  <text x="716" y="400" class="small">one cell = one BAPOMDP state</text>
+  <text x="716" y="418" class="mono">&sigma; = (s&#8323;, &phi;, &psi;)</text>
+  <text x="716" y="438" class="small">shading = b&prime;(&sigma;), the single</text>
+  <text x="716" y="453" class="small">joint belief. That is all there is.</text>
+
+  <!-- right marginal: state belief -->
+  <text x="715" y="106" class="small" style="font-weight:600">sum &rarr; across a row</text>
+  <text x="715" y="121" class="small">= ordinary belief over states</text>
+  <rect x="715" y="128" width="21" height="14" class="fills" fill-opacity=".8"/>
+  <rect x="715" y="176" width="77" height="14" class="fills" fill-opacity=".8"/>
+  <rect x="715" y="236" width="90" height="14" class="fills" fill-opacity=".8"/>
+  <rect x="715" y="296" width="26" height="14" class="fills" fill-opacity=".8"/>
+
+  <!-- bottom marginal: posterior over the model -->
+  <text x="180" y="356" class="small" style="font-weight:600">sum &darr; down a column = posterior over the model</text>
+  <rect x="212" y="364" width="40" height="8" class="fillc" fill-opacity=".8"/>
+  <rect x="316" y="364" width="40" height="27" class="fillc" fill-opacity=".8"/>
+  <rect x="420" y="364" width="40" height="50" class="fillc" fill-opacity=".8"/>
+  <rect x="524" y="364" width="40" height="18" class="fillc" fill-opacity=".8"/>
+  <rect x="628" y="364" width="40" height="5" class="fillc" fill-opacity=".8"/>
+  <text x="440" y="434" text-anchor="middle" class="small">"the distribution will concentrate over most likely models, given the prior and experience so far"</text>
+
+  <rect x="180" y="482" width="520" height="34" rx="5" class="box" style="stroke:var(--cover)"/>
+  <text x="440" y="504" text-anchor="middle" class="big" style="fill:var(--cover)">Both answers are marginals of ONE distribution.</text>
+</svg>
+<figcaption><strong>This is the whole answer to "how does it keep a posterior".</strong> There is no posterior object and no model-learning subroutine — there is a grid, and the belief update spreads mass over it. Ask "where am I?" and you sum across a row. Ask "what model am I in?" and you sum down a column. At <span class="m">t=0</span> only <em>one</em> column is live: the initial belief is <span class="m">b&prime;<sub>0</sub>(s, &phi;<sub>0</sub>, &psi;<sub>0</sub>) = b<sub>0</sub>(s)</span> and zero elsewhere, all mass on the prior counts. The horizontal spread you see above <em>is</em> what learning looks like in this model.</figcaption>
+
+<h2>4 &middot; One update — and the bill</h2>
+
+<svg viewBox="0 0 940 392" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="One live cell fans out into one successor per possible next state, each with incremented counts, so the number of live cells multiplies by the size of the state space every turn.">
+  <rect x="30" y="150" width="170" height="66" rx="5" class="box" style="stroke:var(--cover)"/>
+  <text x="115" y="176" text-anchor="middle" class="mono" style="font-size:13px">&sigma; = (s, &phi;, &psi;)</text>
+  <text x="115" y="198" text-anchor="middle" class="small">one live cell at time t</text>
+
+  <path d="M210,183 L300,183" class="arrow"/>
+  <text x="255" y="172" text-anchor="middle" class="small">take a,</text>
+  <text x="255" y="204" text-anchor="middle" class="small">see z</text>
+
+  <path d="M320,183 C380,183 380,52 470,52" class="arrow-soft"/>
+  <path d="M320,183 C380,183 380,130 470,130" class="arrow-soft"/>
+  <path d="M320,183 C380,183 380,208 470,208" class="arrow-soft"/>
+  <path d="M320,183 C380,183 380,286 470,286" class="arrow-soft"/>
+
+  <g>
+    <rect x="474" y="28" width="330" height="48" rx="4" class="box" style="stroke:var(--rule)"/>
+    <text x="488" y="58" class="mono">(s&prime;&#8321;, &phi; + &delta;<tspan baseline-shift="super" font-size="8">a</tspan><tspan baseline-shift="sub" font-size="8">ss&prime;&#8321;</tspan>, &psi; + &delta;<tspan baseline-shift="super" font-size="8">a</tspan><tspan baseline-shift="sub" font-size="8">s&prime;&#8321;z</tspan>)</text>
+    <rect x="474" y="106" width="330" height="48" rx="4" class="box" style="stroke:var(--rule)"/>
+    <text x="488" y="136" class="mono">(s&prime;&#8322;, &phi; + &delta;<tspan baseline-shift="super" font-size="8">a</tspan><tspan baseline-shift="sub" font-size="8">ss&prime;&#8322;</tspan>, &psi; + &delta;<tspan baseline-shift="super" font-size="8">a</tspan><tspan baseline-shift="sub" font-size="8">s&prime;&#8322;z</tspan>)</text>
+    <rect x="474" y="184" width="330" height="48" rx="4" class="box" style="stroke:var(--rule)"/>
+    <text x="488" y="214" class="mono">(s&prime;&#8323;, &phi; + &delta;<tspan baseline-shift="super" font-size="8">a</tspan><tspan baseline-shift="sub" font-size="8">ss&prime;&#8323;</tspan>, &psi; + &delta;<tspan baseline-shift="super" font-size="8">a</tspan><tspan baseline-shift="sub" font-size="8">s&prime;&#8323;z</tspan>)</text>
+    <text x="639" y="256" text-anchor="middle" class="lbl">&#8942;</text>
+    <rect x="474" y="262" width="330" height="48" rx="4" class="box" style="stroke:var(--rule)"/>
+    <text x="488" y="292" class="mono">(s&prime;<tspan baseline-shift="sub" font-size="8">|S|</tspan>, &phi; + &delta;, &psi; + &delta;)</text>
+  </g>
+  <text x="820" y="58" class="small">weight</text>
+  <text x="820" y="73" class="mono" style="font-size:10px">T&#770;&middot;O&#770;</text>
+  <text x="820" y="136" class="small">weight</text>
+  <text x="820" y="151" class="mono" style="font-size:10px">T&#770;&middot;O&#770;</text>
+
+  <text x="474" y="330" class="small">The count increment is deterministic: a transition in the BAPOMDP already says</text>
+  <text x="474" y="348" class="small">which observation you got, so the observation function collapses to 0/1 and</text>
+  <text x="474" y="366" class="small">every probability lives in T&prime;. Then it is the plain Bayes update again.</text>
+
+  <rect x="30" y="252" width="290" height="100" rx="6" class="box" style="stroke:var(--warn)"/>
+  <text x="175" y="276" text-anchor="middle" class="head warnt">the bill (Thm. 3.1)</text>
+  <text x="175" y="300" text-anchor="middle" class="mono" style="font-size:13px">|S&prime;<tspan baseline-shift="sub" font-size="9">b&prime;t</tspan>| &le; |S|<tspan baseline-shift="super" font-size="9">t+1</tspan></text>
+  <text x="175" y="322" text-anchor="middle" class="small">live cells multiply by |S| every turn</text>
+  <text x="175" y="338" text-anchor="middle" class="small">exact = finite, but explodes</text>
+</svg>
+<figcaption><strong>Why this is a definition, not a program.</strong> Every live cell splits into one child per possible next state, each carrying a different incremented tally. Finite at any fixed <span class="m">t</span>, hopeless in the limit — which is why the back half of Ross et al. is approximation, and why "the optimal agent maintains a posterior" describes an ideal rather than something you can run.</figcaption>
+
+<h2>5 &middot; What Metamon does instead</h2>
+
+<svg viewBox="0 0 940 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Metamon replaces the belief and Bayes update with a transformer that maps the battle history to a hidden vector, which is not a distribution.">
+  <text x="20" y="26" class="head" style="fill:var(--cover)">the ideal Metamon cites</text>
+  <rect x="20" y="42" width="360" height="120" rx="6" class="box" style="stroke:var(--cover)"/>
+  <text x="200" y="70" text-anchor="middle" class="lbl">b&prime;(s, &phi;, &psi;) &nbsp;&rarr;&nbsp; Bayes update &nbsp;&rarr;&nbsp; act</text>
+  <text x="200" y="96" text-anchor="middle" class="small">a real distribution: normalized, has support,</text>
+  <text x="200" y="112" text-anchor="middle" class="small">starts from a prior, optimal by construction</text>
+  <text x="200" y="140" text-anchor="middle" class="small warnt">intractable here — S is not enumerable in VGC</text>
+
+  <path d="M200,178 L200,214" class="arrow"/>
+  <text x="212" y="200" class="small warnt">replaced by</text>
+
+  <rect x="20" y="222" width="360" height="62" rx="6" class="latent"/>
+  <text x="200" y="246" text-anchor="middle" class="small">"difficult to formulate" &mdash; so predict neither</text>
+  <text x="200" y="266" text-anchor="middle" class="mono">c&#8338; nor &pi;&#8338; explicitly</text>
+
+  <path d="M395,150 L445,150" class="arrow"/>
+
+  <text x="460" y="26" class="head">what actually runs</text>
+  <rect x="460" y="42" width="120" height="62" rx="5" class="box"/>
+  <text x="520" y="68" text-anchor="middle" class="mono">&tau;<tspan baseline-shift="sub" font-size="8">0:t</tspan></text>
+  <text x="520" y="88" text-anchor="middle" class="small">raw battle history</text>
+  <path d="M585,73 L625,73" class="arrow"/>
+  <rect x="630" y="42" width="120" height="62" rx="5" class="box"/>
+  <text x="690" y="68" text-anchor="middle" class="mono">S<tspan baseline-shift="sub" font-size="8">&theta;</tspan></text>
+  <text x="690" y="88" text-anchor="middle" class="small">transformer</text>
+  <path d="M755,73 L795,73" class="arrow"/>
+  <rect x="800" y="42" width="120" height="62" rx="5" class="box" style="stroke:var(--warn)"/>
+  <text x="860" y="68" text-anchor="middle" class="mono">h<tspan baseline-shift="sub" font-size="8">t</tspan></text>
+  <text x="860" y="88" text-anchor="middle" class="small">a vector</text>
+  <path d="M860,110 L860,140" class="arrow"/>
+  <rect x="800" y="146" width="120" height="46" rx="5" class="box"/>
+  <text x="860" y="174" text-anchor="middle" class="mono">&pi;<tspan baseline-shift="sub" font-size="8">&phi;</tspan>(h<tspan baseline-shift="sub" font-size="8">t</tspan>) &rarr; a</text>
+
+  <rect x="460" y="212" width="460" height="72" rx="6" class="box" style="stroke:var(--warn)"/>
+  <text x="690" y="236" text-anchor="middle" class="head warnt">h&#8348; is not a distribution</text>
+  <text x="690" y="257" text-anchor="middle" class="small">not normalized &middot; no support &middot; no prior &middot; no Bayes rule &middot; no guarantee</text>
+  <text x="690" y="274" text-anchor="middle" class="small">it tracks the opponent only insofar as doing so raised win rate during training</text>
+</svg>
+<figcaption><strong>The substitution.</strong> "Compute the posterior, then act optimally on it" becomes "feed the raw history to a sequence model and let gradient descent find whatever summary is useful." Metamon's own causal sentence is <em>"Because a better estimate of the opponent will increase win rate, the sequence model will implicitly learn that behavior."</em> Emergent, not derived. You lose the guarantee and keep the behaviour, approximately.</figcaption>
+
+<div class="callout trap">
+  <h4>Notation trap</h4>
+  <p>&phi; is the transition-count vector in Ross et al. and the <em>policy-network parameters</em> in Metamon (<span class="m">&pi;<sub>&phi;</sub></span>). Two papers, same letter, unrelated objects. Likewise Metamon's &psi; has nothing to do with observation counts.</p>
+</div>
+
+<table class="compare">
+  <tr><th></th><th class="mc">BAPOMDP</th><th>Metamon</th></tr>
+  <tr><td>the unknown</td><td>Dirichlet counts over a finite, known, tabular transition / observation model</td><td>&pi;<sub>o</sub> (opponent policy) and c<sub>o</sub> (their team) — not tabular, not enumerable</td></tr>
+  <tr><td>carried across turns</td><td>b&prime;(s, &phi;, &psi;), a distribution</td><td>h<sub>t</sub>, a vector of activations</td></tr>
+  <tr><td>how it updates</td><td>Bayes' rule, exactly</td><td>a forward pass with frozen weights</td></tr>
+  <tr><td>information-gathering</td><td>optimal by construction — trades off model, state and reward</td><td>emergent, if return-maximization happened to reward it</td></tr>
+  <tr><td>scope</td><td>the whole interaction</td><td>one battle (Sec. 4 fn. 1: Bo3 extension is future work)</td></tr>
+</table>
+
+<div class="ask">
+  <strong>Retrieval check.</strong> Without scrolling up: (1) why can't a BAPOMDP act on the pair (state, belief)? (2) You want "how likely is it that the opponent is a Trick Room team" — is that a row sum or a column sum? (3) At <span class="m">t=0</span>, how many columns of the grid carry mass, and why?
+</div>
+
+<nav class="lesson-nav">
+  <a href="metamon-in-context-window.html">&larr; What is in the context window</a>
+  <a href="../lessons/0003-metamon-offline-rl-from-human-replays.html">Lesson 0003 — Metamon</a>
+  <a href="metamon-cheat-sheet.html">Metamon cheat sheet</a>
+</nav>
+</body>
+</html>

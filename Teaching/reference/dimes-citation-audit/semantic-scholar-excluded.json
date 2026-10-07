@@ -1,0 +1,2410 @@
+[
+  {
+    "paperId": "100a3a3a5ac1f9a68a1b8e8a96a12e335800086a",
+    "externalIds": {
+      "DBLP": "journals/tetci/SunPTSTP26",
+      "DOI": "10.1109/TETCI.2026.3683773",
+      "CorpusId": 288180296
+    },
+    "url": "https://www.semanticscholar.org/paper/100a3a3a5ac1f9a68a1b8e8a96a12e335800086a",
+    "title": "TransACO: Transformer-Guided Ant Colony Algorithm for Combinatorial Optimization",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": "CLOSED",
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TETCI.2026.3683773?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TETCI.2026.3683773, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2451251705",
+        "name": "Bo Sun"
+      },
+      {
+        "authorId": "2200852",
+        "name": "Peixi Peng"
+      },
+      {
+        "authorId": "2239890483",
+        "name": "Guang Tan"
+      },
+      {
+        "authorId": "2258411123",
+        "name": "Yanjie Song"
+      },
+      {
+        "authorId": "2258424723",
+        "name": "Yonghong Tian"
+      },
+      {
+        "authorId": "2239228189",
+        "name": "Witold Pedrycz"
+      }
+    ],
+    "abstract": "Ant Colony Optimization (ACO) is a heuristic algorithm that has been widely used to solve combinatorial optimization problems. However, determining heuristic measures and initial pheromones levels in an ACO is problem-specific and often requires expert intervention, posing a significant challenge for the users. We investigate how the Transformer, a powerful learning model based on a self-attention mechanism, can be used to enable the automatic design of heuristic measures and pheromones. We present Transformer-Guided ACO (TransACO), a framework that combines neural methods with heuristic algorithms. The Transformer is designed as a learner that encodes problem instances, captures individual interactions, and generates heuristic measures and pheromone matrix. Additionally, a candidate point perturbation local search technique is proposed to enhance exploration. We conduct extensive experiments on four representative combinatorial optimization problems\u2014traveling salesman problem, capacitated vehicle routing problem, orienteering problem, and multiple knapsack problem\u2014across diverse instance sizes. Notably, in cross-scale generalization experiments, a model trained solely on small instances successfully transfers to 10k-node problems: on TSP-10 k, TransACO achieves a 4.12% improvement, and on CVRP-10 k, it yields a 1.16% gain over strong baselines. These findings demonstrate the robustness, adaptability, and scalability of TransACO."
+  },
+  {
+    "paperId": "7c3546d30d6d4bc2dfea55ee57db49ecf5ea03be",
+    "externalIds": {
+      "DBLP": "conf/soda/AbdelkaderM25",
+      "ArXiv": "2607.28886",
+      "DOI": "10.1137/1.9781611978322.172",
+      "CorpusId": 275933003
+    },
+    "url": "https://www.semanticscholar.org/paper/7c3546d30d6d4bc2dfea55ee57db49ecf5ea03be",
+    "title": "Differentiable Approximations for Distance Queries",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://arxiv.org/pdf/2607.28886",
+      "status": "GREEN",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2607.28886, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "1661064623",
+        "name": "Ahmed Abdelkader"
+      },
+      {
+        "authorId": "2257246223",
+        "name": "David M. Mount"
+      }
+    ],
+    "abstract": "The widespread use of gradient-based optimization has motivated the adaptation of various classical algorithms into differentiable solvers compatible with learning pipelines. In this paper, we investigate the enhancement of traditional geometric query problems such that the result consists of both the geometric function as well as its gradient. Specifically, we study the fundamental problem of distance queries against a set of points $P$ in $\\mathbb{R}^d$, which also underlies various similarity measures for learning algorithms. The main result of this paper is a multiplicative $(1+\\varepsilon)$-approximation of the Euclidean distance to $P$ which is differentiable at all points in $\\mathbb{R}^d \\setminus P$ with asymptotically optimal bounds on the norms of its gradient and Hessian, from a data structure with storage and query time matching state-of-the-art results for approximate nearest-neighbor searching. The approximation is realized as a regularized distance through a partition-of-unity framework, which efficiently blends multiple local approximations, over a suitably defined covering of space, into a smooth global approximation. In order to obtain the local distance approximations in a manner that facilitates blending, we develop a new approximate Voronoi diagram based on a simple point-location data structure, simplifying away both the lifting transformation and ray shooting."
+  },
+  {
+    "paperId": "62e746b94c0f66cda166cca4f09d9d1773fa9fca",
+    "externalIds": {
+      "ArXiv": "2607.12127",
+      "DBLP": "journals/corr/abs-2607-12127",
+      "DOI": "10.48550/arXiv.2607.12127",
+      "CorpusId": 290148825
+    },
+    "url": "https://www.semanticscholar.org/paper/62e746b94c0f66cda166cca4f09d9d1773fa9fca",
+    "title": "Connected by Construction: Learning Tractable Near-Tour Marginals for Traveling Salesman Problems",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2607.12127, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2442810819",
+        "name": "Kenneth Sun"
+      },
+      {
+        "authorId": "2309739579",
+        "name": "Xinyuan Zhang"
+      },
+      {
+        "authorId": "41233308",
+        "name": "Xinwu Qian"
+      }
+    ],
+    "abstract": "Learning-based methods for the traveling salesman problem (TSP) are often evaluated through the tours produced after decoding or search, but the learned object itself frequently lives in a surrogate space such as heatmaps, assignments, construction policies, or search-guidance scores. This hides the fundamental question: what Hamiltonian structure has actually been learned before decoding? In this study, we directly answer this question by learning TSP through a structurally meaningful latent object, rather than leaving most of the Hamiltonian structure to the final decoding stage. Based on a connected-by-construction rooted $1$-tree Gibbs family, we propose an end-to-end unsupervised learning pipeline called \\emph{C2TSP}. The pipeline learns residual edge perturbations from unbiased TSP cost through implicit differentiation. For structural correction, a smoothed Held--Karp layer restores expected degree balance, while certificate-guided sharpening further pushes the connected distribution toward more tour-like structures. Experiments show that C2TSP yields strong decoding performance while preserving interpretable structural information. Ablations further verify that edge perturbation and certificate-guided sharpening jointly improve both tour cost and tour-like structure."
+  },
+  {
+    "paperId": "ab07a083ee59343a99b78b8e1baec35541a906ff",
+    "externalIds": {
+      "ArXiv": "2607.03791",
+      "DBLP": "journals/corr/abs-2607-03791",
+      "DOI": "10.48550/arXiv.2607.03791",
+      "CorpusId": 289933307
+    },
+    "url": "https://www.semanticscholar.org/paper/ab07a083ee59343a99b78b8e1baec35541a906ff",
+    "title": "TSP with Predictions: Heatmap to Tour with Provable Guarantees",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2607.03791, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2332750032",
+        "name": "Marek Eli\u00e1s"
+      },
+      {
+        "authorId": "2267339236",
+        "name": "Fabrizio Grandoni"
+      },
+      {
+        "authorId": "9057710",
+        "name": "Adam Polak"
+      },
+      {
+        "authorId": "2047583692",
+        "name": "Eleonora Vercesi"
+      }
+    ],
+    "abstract": "The Traveling Salesperson Problem (TSP) has long served as a benchmark for evaluating the strength of optimization techniques in the classical theory of algorithms. In recent efforts to apply ML to algorithmic problems, TSP has also become a natural testbed for the development of ML-based techniques. A common approach is to train a neural network to output a heatmap estimating the likelihood of each edge to be part of the optimal tour; however, converting such a heatmap into an actual tour remains a non-trivial and often computationally intensive step. In this work, we propose algorithms for transforming heatmaps into tours with theoretical guarantees linking the achieved approximation ratio to the quality of the provided heatmap. In the spirit of algorithms with predictions, our results can be described as $(1+2\\frac{\\eta}{\\mathrm{OPT}})$-approximation algorithms, where $\\eta$ denotes the L1 distance between the prediction (heatmap) and an optimal solution (tour). Since the previous works lack such explicit guarantees, we compare our approach against them experimentally."
+  },
+  {
+    "paperId": "b0cf6ea1609b7cf7265e762066765d2bded42aba",
+    "externalIds": {
+      "ArXiv": "2606.22776",
+      "CorpusId": 289626496
+    },
+    "url": "https://www.semanticscholar.org/paper/b0cf6ea1609b7cf7265e762066765d2bded42aba",
+    "title": "GeoRouteNet: A Geometry-Aware Non-Autoregressive Neural Solver for the Euclidean Traveling Salesman Problem",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2606.22776, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2445570257",
+        "name": "Xiang Li"
+      }
+    ],
+    "abstract": "Non-autoregressive neural solvers amortize computation across traveling salesman problem (TSP) instances, but models trained on random Euclidean instances can degrade when the number or spatial distribution of nodes changes. We study whether explicit geometric features and a richer within-instance training signal improve transfer across graph sizes and spatial distributions. We introduce GeoRouteNet, which augments a non-autoregressive TSP solver with centered node offsets and radii, learnable radial distance bases, distance-aware graph attention, explicit edge messages, and cross-layer representation mixing. We also introduce multi-candidate self-comparison reinforcement learning (MCS-RL), which trains on several sampled tours per instance using a leave-one-out adaptive baseline, winner-candidate guidance, and annealed entropy regularization. In a single-seed study, all neural variants are trained only on random TSP-50 instances and evaluated with the same greedy and beam-search decoders. Under Beam-1000 decoding, GeoRouteNet-MCS-RL obtains gaps of 0.32% on the TSP-50 validation set used for checkpoint selection, 1.26% on a correlated TSP-100 size diagnostic, and 3.60% across 27 TSPLIB EUC_2D instances. The NAR4TSP-PG gaps on the same evaluations are 0.42%, 2.73%, and 17.12%. A 2x2 comparison crosses encoder and training choices. Under PG, the geometry-aware encoder has lower gaps than the reproduced encoder on the TSP-100 diagnostic and TSPLIB. With the geometry-aware encoder, MCS-RL is associated with a further reduction; with the reproduced encoder, it has a higher TSPLIB gap."
+  },
+  {
+    "paperId": "5a800d61e9262a46b8e16757d7a5d3f37cd9a289",
+    "externalIds": {
+      "ArXiv": "2606.20554",
+      "DBLP": "journals/corr/abs-2606-20554",
+      "DOI": "10.48550/arXiv.2606.20554",
+      "CorpusId": 289629371
+    },
+    "url": "https://www.semanticscholar.org/paper/5a800d61e9262a46b8e16757d7a5d3f37cd9a289",
+    "title": "Structuring and Tokenizing Distributed User Interest Context for Generative Recommendation",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2606.20554, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2187298875",
+        "name": "Ruizhong Qiu"
+      },
+      {
+        "authorId": "2265992302",
+        "name": "Yinglong Xia"
+      },
+      {
+        "authorId": "2324009031",
+        "name": "Dongqi Fu"
+      },
+      {
+        "authorId": "2265823676",
+        "name": "Hanqing Zeng"
+      },
+      {
+        "authorId": "2108428150",
+        "name": "Ren Chen"
+      },
+      {
+        "authorId": "2323788930",
+        "name": "Xiangjun Fan"
+      },
+      {
+        "authorId": "2357120991",
+        "name": "Hong Li"
+      },
+      {
+        "authorId": "2322619665",
+        "name": "Hong Yan"
+      },
+      {
+        "authorId": "2372282711",
+        "name": "Hanghang Tong"
+      }
+    ],
+    "abstract": "Generative recommendation is an emerging paradigm that has shown promise in industrial recommendation systems, aiming to predict users'next interactions from their historical behaviors. At the core of generative recommendation lies item tokenization, which bridges item semantics and recommendation models. However, existing methods often struggle to effectively organize and inject complex user-behavioral and item-semantic contexts into recommendation models simultaneously. On the one hand, existing graph-based integration methods, such as graph serialization and graph neural networks, either suffer from scalability issues or exploit only local graph information. On the other hand, existing semantic tokenization methods typically rely on heuristics and lack explicit supervision signals, which may lead to inaccurate or suboptimal semantic representations. To address these limitations in user interest context modeling, we propose G2Rec, a scalable framework that unifies holistic graph-based user co-engagement modeling with semantic tokenization for industrial-scale generative recommendation. Overall, G2Rec enables recommendation models to capture holistic and semantically grounded user interest prototypes without requiring ground-truth user interests, thereby providing more comprehensive and accurate modeling of user behavior contexts in industrial sequential recommendation. Online deployment across product surfaces and extensive experiments on public datasets demonstrate the superiority of G2Rec over existing methods."
+  },
+  {
+    "paperId": "66d62b3dcd4643d5f64de3593e9428c42e926934",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2606-19185",
+      "ArXiv": "2606.19185",
+      "DOI": "10.1145/3770855.3817789",
+      "CorpusId": 289629425
+    },
+    "url": "https://www.semanticscholar.org/paper/66d62b3dcd4643d5f64de3593e9428c42e926934",
+    "title": "AGDN: Learning to Solve Traveling Salesman Problem with Anisotropic Graph Diffusion Network",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.1145/3770855.3817789",
+      "status": "GOLD",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2606.19185, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2334578024",
+        "name": "Bolin Shen"
+      },
+      {
+        "authorId": "2384441631",
+        "name": "Ziwei Huang"
+      },
+      {
+        "authorId": "2375024920",
+        "name": "Zhiguang Cao"
+      },
+      {
+        "authorId": "2335128211",
+        "name": "Yushun Dong"
+      }
+    ],
+    "abstract": "The Traveling Salesman Problem (TSP) is a cornerstone of combinatorial optimization and arises in many practical scenarios. Although graph-based learning approaches have been explored for TSP, the question of how to exploit graph structure more effectively remains open. We present the Anisotropic Graph Diffusion Network (AGDN), a new Graph Neural Network framework designed to solve TSP. Our method tackles two central difficulties: (1) the lack of informative topological prior in fully connected TSP graphs, and (2) losing connected nodes in the optimal solution after the commonly used graph sparsification techniques. To overcome these issues, we construct a MixScore transition matrix that merges node similarity with pairwise distance, and we develop an anisotropic graph diffusion strategy that supports efficient information exchange across multiple hops. Comprehensive experiments spanning diverse instance sizes and node distributions show that AGDN consistently outperforms existing methods while keeping computation time competitive. Furthermore, AGDN generalizes well to problem sizes and distributions beyond those seen during training. The implementation is publicly available at: https://github.com/LabRAI/AGDN."
+  },
+  {
+    "paperId": "29810a9ec3e3789ea2e2bb814833abe4e0537c1d",
+    "externalIds": {
+      "ArXiv": "2606.09343",
+      "DBLP": "journals/corr/abs-2606-09343",
+      "DOI": "10.48550/arXiv.2606.09343",
+      "CorpusId": 289097140
+    },
+    "url": "https://www.semanticscholar.org/paper/29810a9ec3e3789ea2e2bb814833abe4e0537c1d",
+    "title": "Leveraging Structural Constraints for Diffusion-based Neural TSP Solvers",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2606.09343, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2097032523",
+        "name": "Mickael Basson"
+      },
+      {
+        "authorId": "2305096558",
+        "name": "Philippe Preux"
+      }
+    ],
+    "abstract": "Neural combinatorial optimization has recently achieved strong results on the Euclidean Traveling Salesman Problem (TSP) using generative models such as diffusion and consistency models. State-ofthe-art approaches like FT2T combine fast consistency-based prediction with gradient-based inference time refinement. However, gradient search often incurs significant computational overhead and may not align with the discrete structure of feasible solutions. We introduce Projected Consistency Inference (PCI), a plug-and-play, retraining-free alternative that replaces gradient refinement with structure-aware projections: PCI decodes valid Hamiltonian tours from the consistency model output and applies a lightweight local search (e.g., 2-opt). PCI achieves an average optimality gap (OG) of 0.17% on TSP with 500 cities, and 0.31% on TSP with 1000 cities, outperforming FT2T best settings (OG 0.22% and 0.36%, respectively) while reducing the inference time up to 30 to 40%. PCI also exhibits lower variance and memory usage, and can surpass classical heuristics such as LKH3 in rapid solution generation. Our results demonstrate that structure-aware inference time operations provide a practical and principled path for neural TSP solvers, complementing training time objectives."
+  },
+  {
+    "paperId": "082d974e97ef004a873e92c594e38b42ca33bf2c",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2606-04039",
+      "ArXiv": "2606.04039",
+      "DOI": "10.1145/3770855.3817893",
+      "CorpusId": 288939890
+    },
+    "url": "https://www.semanticscholar.org/paper/082d974e97ef004a873e92c594e38b42ca33bf2c",
+    "title": "Beyond Static Priors: Dynamic Neural Guidance for Large-Scale Ant Colony Optimization",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.1145/3770855.3817893",
+      "status": "GOLD",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2606.04039, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "26391078",
+        "name": "D. Tran"
+      },
+      {
+        "authorId": "10692052",
+        "name": "Van Khu Vu"
+      },
+      {
+        "authorId": "2347409373",
+        "name": "Yining Ma"
+      }
+    ],
+    "abstract": "Neural-guided Ant Colony Optimization (ACO) suffers from a fundamental training-inference misalignment: policies are typically trained to generate static priors (e.g., heatmaps), yet deployed to guide iterative, long-horizon search processes. In this paper, we present DyNACO, a novel framework that achieves dynamic neural guidance by periodically observing the pheromone distribution and the incumbent solution. To make DyNACO tractable at scale, we pair the policy with a perturbation-based ACO backend and a scope-restricted refinement mechanism that jointly ensure efficacy and stable credit assignment. On TSP, DyNACO scales to 100,000-node instances and outperforms neural baselines while often reducing total runtime compared to the unguided solver. We extend DyNACO to CVRP via a capacity-aware backend, consistently improving the unguided baseline with less than 1% neural overhead. We further provide in-depth analysis validating the model's generalization capabilities and elucidating why dynamic guidance outperforms static priors. Our work underscores the necessity of aligning neural training with iterative search dynamics in learning-guided optimization. The code is available at https://github.com/shoraaa/DyNACO."
+  },
+  {
+    "paperId": "e7889af545d3fa6694786ba677cfc2c868cd6f2c",
+    "externalIds": {
+      "ArXiv": "2605.30920",
+      "DBLP": "journals/corr/abs-2605-30920",
+      "DOI": "10.48550/arXiv.2605.30920",
+      "CorpusId": 288813755
+    },
+    "url": "https://www.semanticscholar.org/paper/e7889af545d3fa6694786ba677cfc2c868cd6f2c",
+    "title": "Unsupervised Diffusion Solver for Combinatorial Optimization via Combinatorial Adjoint Matching",
+    "year": 2026,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2605.30920, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2325515063",
+        "name": "Shengyu Feng"
+      },
+      {
+        "authorId": "2218724103",
+        "name": "Tarun Suresh"
+      },
+      {
+        "authorId": "2299753725",
+        "name": "Yiming Yang"
+      }
+    ],
+    "abstract": "Diffusion-based neural solvers have shown strong promise for combinatorial optimization (CO), but existing methods typically rely on supervised training with large collections of near-optimal solutions. In this work, we extend adjoint-based trajectory optimization methods to discrete combinatorial domains. We formulate diffusion-based CO as a stochastic control problem over Continuous-Time Markov Chains and introduce discrete adjoint dynamics for propagating optimization signals through discrete generative trajectories. Building on this formulation, we propose Combinatorial Adjoint Matching (CAM), an unsupervised training framework for discrete diffusion solvers with structured and low-variance trajectory-level optimization signals. Empirically, CAM consistently outperforms existing unsupervised diffusion baselines and achieves performance competitive with strong supervised diffusion solvers and even traditional solvers across diverse combinatorial optimization problems. Our code is available at https://github.com/Shengyu-Feng/CAM."
+  },
+  {
+    "paperId": "89ce48ae60610573247672e26e09e2fb81f73533",
+    "externalIds": {
+      "DBLP": "journals/aamas/PanLCCL26",
+      "DOI": "10.1007/s10458-026-09755-7",
+      "CorpusId": 288657591
+    },
+    "url": "https://www.semanticscholar.org/paper/89ce48ae60610573247672e26e09e2fb81f73533",
+    "title": "Multi-level graph partition via hierarchical learning for large-scale vehicle routing problems",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.1007/s10458-026-09755-7",
+      "status": "HYBRID",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1007/s10458-026-09755-7?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1007/s10458-026-09755-7, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2180617999",
+        "name": "Yuxin Pan"
+      },
+      {
+        "authorId": "2157830190",
+        "name": "Ruohong Liu"
+      },
+      {
+        "authorId": "2257091093",
+        "name": "Yize Chen"
+      },
+      {
+        "authorId": "2375024920",
+        "name": "Zhiguang Cao"
+      },
+      {
+        "authorId": "2256982457",
+        "name": "Fangzhen Lin"
+      }
+    ],
+    "abstract": "Vehicle Routing Problems (VRPs) involve multi-agent route optimization, with the objective of targeting optimal routes for a fleet of vehicles to serve a set of customers. Existing neural solvers based on the divide-and-conquer approach for VRPs in general, and capacitated VRP (CVRP) in particular, integrate the global partition of an instance with the local construction for each resulting subinstance to enhance generalization. However, during the global partition phase, misclusterings within subgraphs have a tendency to progressively compound throughout the multi-step decoding process of the learning-based partition policy. This suboptimal behavior of the partition policy, in turn, may lead to a dramatic deterioration in the performance of the overall decomposition-based system, despite using optimal local constructions. To address these challenges, we propose a versatile Hierarchical Learning-based Graph Partition (HLGP) framework, which is tailored to benefit the partition of CVRP instances by synergistically integrating global and local partition policies. Specifically, the global partition policy is tasked with creating a coarse multi-way partition to generate a sequence of simpler two-way partition subtasks. These subtasks mark the initiation of the subsequent K local partition levels. At each local partition level, subtasks exclusive to this level are assigned to the local partition policy which benefits from the insensitive local topological features to incrementally alleviate the compounded errors. This framework is versatile in the sense that it optimizes the involved partition policies towards a unified objective, which is harmoniously compatible with both reinforcement learning (RL) and supervised learning (SL) paradigms. Additionally, we decouple the synchronized training into individual training of each component to circumvent the instability issue. Furthermore, we point out the importance of treating the subproblems encountered during the partition process as individual training instances. Extensive experiments conducted on various CVRP benchmarks demonstrate the effectiveness and generalization capabilities of the HLGP framework under both scale and distribution shifts. The source code is available at https://github.com/panyxy/hlgp_cvrp."
+  },
+  {
+    "paperId": "7e15b35a1a66c175caff6173c9bdb1613a18456b",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2605-24484",
+      "ArXiv": "2605.24484",
+      "DOI": "10.48550/arXiv.2605.24484",
+      "CorpusId": 288669439
+    },
+    "url": "https://www.semanticscholar.org/paper/7e15b35a1a66c175caff6173c9bdb1613a18456b",
+    "title": "SPACE: Unifying Symmetric and Asymmetric Routing Problems for Generalist Neural Solver",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2605.24484, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "49565973",
+        "name": "Rongsheng Chen"
+      },
+      {
+        "authorId": "2300044951",
+        "name": "Changliang Zhou"
+      },
+      {
+        "authorId": "2382946126",
+        "name": "Canhong Yu"
+      },
+      {
+        "authorId": "2316977755",
+        "name": "Yuanyao Chen"
+      },
+      {
+        "authorId": "2364977930",
+        "name": "Yu Zhou"
+      },
+      {
+        "authorId": "2247979038",
+        "name": "Zhuo Chen"
+      },
+      {
+        "authorId": "2340385141",
+        "name": "Zhenkun Wang"
+      }
+    ],
+    "abstract": "Generalist neural routing solvers have shown great potential in solving diverse vehicle routing problems (VRPs) with a unified model. However, existing solvers are typically limited to symmetric settings or degrade in performance when switching to asymmetric settings due to input inconsistencies or inherent structural differences, substantially limiting their practicality in real-world scenarios that encompass both scenarios. To address this limitation, we define the spatial position of each node based on the relative distances to a specific set of pivots and further propose a Spatial Pivot-Aligned Coordinate-free Embedding (SPACE) framework that unifies node representation and solution generation across symmetric and asymmetric VRPs. Specifically, we construct a bidirectional Frechet representation using a novel furthest pivot sampling strategy to enable invariant node representations across distinct problem settings. Furthermore, we introduce a weight-decomposed adaptive decoding mechanism that decouples geometric perception from problem representations, mitigating the overfitting of constraint decisions to a specific geometry setting. Extensive experiments on 110 VRP variants, comprising 55 symmetric problems and their asymmetric counterparts, demonstrate that SPACE achieves promising zero-shot generalization in both symmetric and asymmetric VRPs."
+  },
+  {
+    "paperId": "cbce42821550e9a9c8f629066662e56f10f6f49b",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2605-10122",
+      "ArXiv": "2605.10122",
+      "DOI": "10.48550/arXiv.2605.10122",
+      "CorpusId": 288255091
+    },
+    "url": "https://www.semanticscholar.org/paper/cbce42821550e9a9c8f629066662e56f10f6f49b",
+    "title": "Rethinking Constraint Awareness for Efficient State Embedding of Neural Routing Solver",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2605.10122, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2382946126",
+        "name": "Canhong Yu"
+      },
+      {
+        "authorId": "2300044951",
+        "name": "Changliang Zhou"
+      },
+      {
+        "authorId": "49565973",
+        "name": "Rongsheng Chen"
+      },
+      {
+        "authorId": "2340385141",
+        "name": "Zhenkun Wang"
+      },
+      {
+        "authorId": "2364977930",
+        "name": "Yu Zhou"
+      }
+    ],
+    "abstract": "Heavy-Encoder-Light-Decoder (HELD) neural routing solvers have emerged as a promising paradigm due to their broad applicability across multiple vehicle routing problems (VRPs). However, they typically struggle with VRP variants with complex constraints. To address this limitation, this paper systematically revisits existing neural solvers from the perspective of the generation mechanism for state embeddings (i.e., query vector prior to compatibility calculation) during decoding. We identify that current mechanisms restrict the observation space during attention computation, introducing a key bottleneck to achieving high-quality solutions. Through detailed empirical analysis, we demonstrate the necessity of preserving a global observation space. To overcome the constraint-agnostic drawback inherent to global observation spaces, we propose a simple yet powerful Constraint-Aware Residual Modulation (CARM) module. By adaptively modulating the context embedding with constraint-relevant variables, CARM effectively enhances constraint awareness, enabling the neural solver to fully leverage the global observation space and generate an efficient state embedding. Extensive experimental results across two single-task and five multi-task neural routing solvers confirm that the CARM module consistently boosts baseline performance. Notably, solvers equipped with our CARM achieve substantial improvements in scaling to large-scale instances and in generalizing to unseen VRP variants. These findings provide valuable insights for the architectural design of neural routing solvers."
+  },
+  {
+    "paperId": "b61742dc546655ccaf4aabe5bad5ef2f1bd55c60",
+    "externalIds": {
+      "DBLP": "journals/tai/WenXSCH26",
+      "DOI": "10.1109/TAI.2025.3630620",
+      "CorpusId": 282968509
+    },
+    "url": "https://www.semanticscholar.org/paper/b61742dc546655ccaf4aabe5bad5ef2f1bd55c60",
+    "title": "MGLAN: A Mamba-Like Gated Linear Attention With Normalization for Solving CTSP",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TAI.2025.3630620?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TAI.2025.3630620, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2385333466",
+        "name": "Chengda Wen"
+      },
+      {
+        "authorId": "2119023129",
+        "name": "Xiangping Xu"
+      },
+      {
+        "authorId": "2379278383",
+        "name": "Xinli Shi"
+      },
+      {
+        "authorId": "2299373725",
+        "name": "Jinde Cao"
+      },
+      {
+        "authorId": "2344040309",
+        "name": "Liang Hua"
+      }
+    ],
+    "abstract": "Recent neural network models, particularly those based on reinforcement learning (RL) and supervised learning, have shown great success in solving various combinatorial problems such as the traveling salesman problem (TSP). The colored TSP (CTSP) is a variant of the multiple TSP that uses colors to indicate the accessibility of cities to different salesmen. This makes CTSP an important combinatorial optimization problem (COP) with many practical applications. In this article, we propose a novel end-to-end method for solving CTSP. Specifically, we introduce a Mamba-like gated linear attention with normalization (MGLAN) model and leverage the REINFORCE algorithm to train diverse policies capable of efficiently exploring the optimal solutions. The proposed MGLAN replaces standard attention scaling with normalization, combined with a gating mechanism that significantly enhances training stability in the RL setting. Our model\u2019s effectiveness is demonstrated through extensive experiments on random CTSP instances. MGLAN achieves an optimality gap of 0.27% for CTSP70 and 0.59% for CTSP100, while achieving faster inference and more stable convergence. Compared to the current state-of-the-art (SOTA) neural solver for CTSP (i.e., GEIAM), the proposed MGLAN achieves substantial performance gains, reducing the optimality gap by 86.2% and 77.1% on CTSP70 and CTSP100, respectively, while maintaining comparable inference times across all problem scales."
+  },
+  {
+    "paperId": "c4976b66eb5763823a4a067494fc09aef19d7e50",
+    "externalIds": {
+      "DOI": "10.1016/j.tre.2026.104742",
+      "CorpusId": 285584141
+    },
+    "url": "https://www.semanticscholar.org/paper/c4976b66eb5763823a4a067494fc09aef19d7e50",
+    "title": "Deep reinforcement learning approach to solving clustered vehicle routing problems",
+    "year": 2026,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.1016/j.tre.2026.104742",
+      "status": "HYBRID",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.tre.2026.104742?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.tre.2026.104742, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2301629274",
+        "name": "Yaoxin Wu"
+      },
+      {
+        "authorId": "2326557048",
+        "name": "Yueting Yu"
+      },
+      {
+        "authorId": "2320205201",
+        "name": "Lingxiao Wu"
+      },
+      {
+        "authorId": "2374088908",
+        "name": "Tao Feng"
+      },
+      {
+        "authorId": "2350184406",
+        "name": "Lu Zhang"
+      },
+      {
+        "authorId": "2137314148",
+        "name": "Zhenkun Wang"
+      },
+      {
+        "authorId": "2329229796",
+        "name": "Jie Gao"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "a9e3c5a90d144d81e90c0121562971b98bb9d937",
+    "externalIds": {
+      "ArXiv": "2604.20109",
+      "DBLP": "journals/corr/abs-2604-20109",
+      "DOI": "10.48550/arXiv.2604.20109",
+      "CorpusId": 287668699
+    },
+    "url": "https://www.semanticscholar.org/paper/a9e3c5a90d144d81e90c0121562971b98bb9d937",
+    "title": "Learning to Solve the Quadratic Assignment Problem with Warm-Started MCMC Finetuning",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2604.20109, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2352448951",
+        "name": "Yicheng Pan"
+      },
+      {
+        "authorId": "2239018505",
+        "name": "Rui Zhou"
+      },
+      {
+        "authorId": "2363821052",
+        "name": "Hai-Jun Zou"
+      },
+      {
+        "authorId": "2199182976",
+        "name": "Tianyou Li"
+      },
+      {
+        "authorId": "2242221741",
+        "name": "Zaiwen Wen"
+      }
+    ],
+    "abstract": "The quadratic assignment problem (QAP) is a fundamental NP-hard task that poses significant challenges for both traditional heuristics and modern learning-based solvers. Existing QAP solvers still struggle to achieve consistently competitive performance across structurally diverse real-world instances. To bridge this performance gap, we propose PLMA, an innovative permutation learning framework. PLMA features an efficient warm-started MCMC finetuning procedure to enhance deployment-time performance, leveraging short Markov chains to anchor the adaptation to the promising regions previously explored. For rapid exploration via MCMC over the permutation space, we design an additive energy-based model (EBM) that enables an $O(1)$-time 2-swap Metropolis-Hastings sampling step. Moreover, the neural network used to parameterize the EBM incorporates a scalable and flexible cross-graph attention mechanism to model interactions between facilities and locations in the QAP. Extensive experiments demonstrate that PLMA consistently outperforms state-of-the-art baselines across various benchmarks. In particular, PLMA achieves a near-zero average optimality gap on QAPLIB, exhibits remarkably superior robustness on the notoriously difficult Taixxeyy instances, and also serves as an effective QAP solver in bandwidth minimization."
+  },
+  {
+    "paperId": "2bdb0f6399231c937b8cfb5e62434a0f8e4db7da",
+    "externalIds": {
+      "ArXiv": "2604.20236",
+      "CorpusId": 287668903
+    },
+    "url": "https://www.semanticscholar.org/paper/2bdb0f6399231c937b8cfb5e62434a0f8e4db7da",
+    "title": "Machine Learning-based Two-Stage Graph Sparsification for the Travelling Salesman Problem",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2604.20236, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2342912890",
+        "name": "Bo-Cheng Lin"
+      },
+      {
+        "authorId": "2260001223",
+        "name": "Yi Mei"
+      },
+      {
+        "authorId": "2153206835",
+        "name": "Mengjie Zhang"
+      }
+    ],
+    "abstract": "High-performance TSP solvers such as Lin-Kernighan-Helsgaun (LKH) search within a \\emph{candidate graph} -- a small subset of edges pre-selected for the solver -- rather than over the complete graph. The two leading sparsification heuristics, $\\alpha$-Nearest and POPMUSIC, each fall short of the density-coverage balance: $\\alpha$-Nearest is dense with stable recall, while POPMUSIC is sparser but its recall degrades with scale. Their union closes the recall gap while remaining far below the complete graph in density, leaving room for further reduction. Existing learning-based sparsifiers score edges on the complete graph, an approach that is expensive and largely limited to Euclidean instances. We propose a two-stage method that inverts this logic. Stage~1 takes the union of $\\alpha$-Nearest and POPMUSIC, achieving near-perfect recall at ${\\sim}6N$ edges. Crucially, the union annotates each edge with its \\emph{source provenance} -- whether it was endorsed by $\\alpha$-Nearest, POPMUSIC, or both. Stage~2 trains a lightweight classifier on these annotated edges and prunes the lowest-scoring ones. Because dual-source edges are almost always optimal, the learning problem reduces to filtering the single-source subset -- a substantially easier task than classifying all $O(N^2)$ edges from scratch. Across four distance types, five spatial distributions, and problem sizes from 50 to 500, the pipeline reduces candidate-graph density by $37$-$47\\%$ while retaining ${\\geq}99.69\\%$ of optimal-tour edges, and matches or exceeds the coverage of recent Euclidean-only neural sparsifiers at lower density at TSP500."
+  },
+  {
+    "paperId": "86012b189774785c071f57ab37800942d1ce09bc",
+    "externalIds": {
+      "DBLP": "journals/tcc/NieZBYZY26",
+      "DOI": "10.1109/TCC.2026.3680335",
+      "CorpusId": 287138811
+    },
+    "url": "https://www.semanticscholar.org/paper/86012b189774785c071f57ab37800942d1ce09bc",
+    "title": "Dependency-Aware Microservice Deployment Optimization via Neural Heuristic Learning",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/TCC.2026.3680335?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/TCC.2026.3680335, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2199753072",
+        "name": "Hulin Nie"
+      },
+      {
+        "authorId": "2320709738",
+        "name": "Xiangguo Zhao"
+      },
+      {
+        "authorId": "48486326",
+        "name": "Xin Bi"
+      },
+      {
+        "authorId": "2198588499",
+        "name": "Xin Yao"
+      },
+      {
+        "authorId": "2281680161",
+        "name": "Junjie Zhou"
+      },
+      {
+        "authorId": "2223883623",
+        "name": "Ye Yuan"
+      }
+    ],
+    "abstract": "Microservice deployment should consider dependency constraints and resource requirements while minimizing deployment costs. There are various dependencies among microservices, and such intricate dependencies bring great difficulties to efficient deployment. Despite significant progress, existing deep learning-based methods are not expressive enough to capture the complexity of microservice dependencies. Meanwhile, metaheuristic methods encode such dependencies into problem-specific heuristics through explicit formulae, yet such formulations remain static and inherently limited. This paper addresses these issues by formulating the microservice deployment problem (MSDP) as a variable-sized bin packing problem. We first introduce a heterogeneous graph neural network to effectively represent the complex dependencies of MSDP. Based on this representation, we propose a novel reinforcement learning policy to design heuristics without the need to derive explicit formulae. Guided by the learned heuristics, we further devise a parallel ant colony optimization algorithm to accelerate solution construction. Experimental results from three representative microservice applications demonstrate that our method obtains near-optimal solutions while significantly outperforming the state-of-the-art methods in computational efficiency."
+  },
+  {
+    "paperId": "ad8c00647006d6dda54176763d6a3fc25de9a792",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2603-27169",
+      "ArXiv": "2603.27169",
+      "DOI": "10.48550/arXiv.2603.27169",
+      "CorpusId": 286961366
+    },
+    "url": "https://www.semanticscholar.org/paper/ad8c00647006d6dda54176763d6a3fc25de9a792",
+    "title": "Aligning LLMs with Graph Neural Solvers for Combinatorial Optimization",
+    "year": 2026,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2603.27169, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2376278962",
+        "name": "Shaodi Feng"
+      },
+      {
+        "authorId": "2276823867",
+        "name": "Zhuoyi Lin"
+      },
+      {
+        "authorId": "2301537762",
+        "name": "Yaoxin Wu"
+      },
+      {
+        "authorId": "2327301640",
+        "name": "Haiyan Yin"
+      },
+      {
+        "authorId": "2355398706",
+        "name": "Yan Jin"
+      },
+      {
+        "authorId": "49552741",
+        "name": "Senthilnath Jayavelu"
+      },
+      {
+        "authorId": "2374354345",
+        "name": "Xu Xu"
+      }
+    ],
+    "abstract": "Recent research has demonstrated the effectiveness of large language models (LLMs) in solving combinatorial optimization problems (COPs) by representing tasks and instances in natural language. However, purely language-based approaches struggle to accurately capture complex relational structures inherent in many COPs, rendering them less effective at addressing medium-sized or larger instances. To address these limitations, we propose AlignOPT, a novel approach that aligns LLMs with graph neural solvers to learn a more generalizable neural COP heuristic. Specifically, AlignOPT leverages the semantic understanding capabilities of LLMs to encode textual descriptions of COPs and their instances, while concurrently exploiting graph neural solvers to explicitly model the underlying graph structures of COP instances. Our approach facilitates a robust integration and alignment between linguistic semantics and structural representations, enabling more accurate and scalable COP solutions. Experimental results demonstrate that AlignOPT achieves state-of-the-art results across diverse COPs, underscoring its effectiveness in aligning semantic and structural representations. In particular, AlignOPT demonstrates strong generalization, effectively extending to previously unseen COP instances."
+  },
+  {
+    "paperId": "f6fbea31b2e3b5de466f29ae9457f480de081edd",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2603-06260",
+      "ArXiv": "2603.06260",
+      "DOI": "10.48550/arXiv.2603.06260",
+      "CorpusId": 286367914
+    },
+    "url": "https://www.semanticscholar.org/paper/f6fbea31b2e3b5de466f29ae9457f480de081edd",
+    "title": "Learning to Solve Orienteering Problem with Time Windows and Variable Profits",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2603.06260, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2221143826",
+        "name": "Songqun Gao"
+      },
+      {
+        "authorId": "2284345527",
+        "name": "Zanxi Ruan"
+      },
+      {
+        "authorId": "2422669781",
+        "name": "Patrick Floor"
+      },
+      {
+        "authorId": "2065774113",
+        "name": "M. Roveri"
+      },
+      {
+        "authorId": "2246855843",
+        "name": "Luigi Palopoli"
+      },
+      {
+        "authorId": "3039414",
+        "name": "D. Fontanelli"
+      }
+    ],
+    "abstract": "The orienteering problem with time windows and variable profits (OPTWVP) is common in many real-world applications and involves continuous time variables. Current approaches fail to develop an efficient solver for this orienteering problem variant with discrete and continuous variables. In this paper, we propose a learning-based two-stage DEcoupled discrete-Continuous optimization with Service-time-guided Trajectory (DeCoST), which aims to effectively decouple the discrete and continuous decision variables in the OPTWVP problem, while enabling efficient and learnable coordination between them. In the first stage, a parallel decoding structure is employed to predict the path and the initial service time allocation. The second stage optimizes the service times through a linear programming (LP) formulation and provides a long-horizon learning of structure estimation. We rigorously prove the global optimality of the second-stage solution. Experiments on OPTWVP instances demonstrate that DeCoST outperforms both state-of-the-art constructive solvers and the latest meta-heuristic algorithms in terms of solution quality and computational efficiency, achieving up to 6.6x inference speedup on instances with fewer than 500 nodes. Moreover, the proposed framework is compatible with various constructive solvers and consistently enhances the solution quality for OPTWVP."
+  },
+  {
+    "paperId": "c0c0f300df0e8e309bc1434a40d086ec7c708194",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2603-00430",
+      "ArXiv": "2603.00430",
+      "DOI": "10.48550/arXiv.2603.00430",
+      "CorpusId": 286223945
+    },
+    "url": "https://www.semanticscholar.org/paper/c0c0f300df0e8e309bc1434a40d086ec7c708194",
+    "title": "Efficient Decoder Scaling Strategy for Neural Routing Solvers",
+    "year": 2026,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2603.00430, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2386565389",
+        "name": "Qingze Luo"
+      },
+      {
+        "authorId": "2172100840",
+        "name": "Fu Luo"
+      },
+      {
+        "authorId": "2396476345",
+        "name": "Keyi Li"
+      },
+      {
+        "authorId": "2340385141",
+        "name": "Zhenkun Wang"
+      }
+    ],
+    "abstract": "Construction-based neural routing solvers, typically composed of an encoder and a decoder, have emerged as a promising approach for solving vehicle routing problems. While recent studies suggest that shifting parameters from the encoder to the decoder enhances performance, most works restrict the decoder size to 1-3M parameters, leaving the effects of scaling largely unexplored. To address this gap, we conduct a systematic study comparing two distinct strategies: scaling depth versus scaling width. We synthesize these strategies to construct a suite of 12 model configurations, spanning a parameter range from 1M to ~150M, and extensively evaluate their scaling behaviors across three critical dimensions: parameter efficiency, data efficiency, and compute efficiency. Our empirical results reveal that parameter count is insufficient to accurately predict the model performance, highlighting the critical and distinct roles of model depth (layer count) and width (embedding dimension). Crucially, we demonstrate that scaling depth yields superior performance gains to scaling width. Based on these findings, we provide and experimentally validate a set of design principles for the efficient allocation of parameters and compute resources to enhance the model performance."
+  },
+  {
+    "paperId": "58975495e3457f59aa73c9c3cd2b56ea5f448a47",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2602-10794",
+      "ArXiv": "2602.10794",
+      "DOI": "10.48550/arXiv.2602.10794",
+      "CorpusId": 285470271
+    },
+    "url": "https://www.semanticscholar.org/paper/58975495e3457f59aa73c9c3cd2b56ea5f448a47",
+    "title": "Transport, Don't Generate: Deterministic Geometric Flows for Combinatorial Optimization",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2602.10794, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2353378612",
+        "name": "Benjy Friedmann"
+      },
+      {
+        "authorId": "3046344",
+        "name": "Nadav Dym"
+      }
+    ],
+    "abstract": "Recent advances in Neural Combinatorial Optimization (NCO) have been dominated by diffusion models that treat the Euclidean Traveling Salesman Problem (TSP) as a stochastic $N \\times N$ heatmap generation task. In this paper, we propose CycFlow, a framework that replaces iterative edge denoising with deterministic point transport. CycFlow learns an instance-conditioned vector field that continuously transports input 2D coordinates to a canonical circular arrangement, where the optimal tour is recovered from this $2N$ dimensional representation via angular sorting. By leveraging data-dependent flow matching, we bypass the quadratic bottleneck of edge scoring in favor of linear coordinate dynamics. This paradigm shift accelerates solving speed by up to three orders of magnitude compared to state-of-the-art diffusion baselines, while maintaining competitive optimality gaps."
+  },
+  {
+    "paperId": "80f8325a0cdd6fcfe9ecb3df99cc450efa783808",
+    "externalIds": {
+      "ArXiv": "2602.08210",
+      "DBLP": "journals/corr/abs-2602-08210",
+      "DOI": "10.48550/arXiv.2602.08210",
+      "CorpusId": 285452723
+    },
+    "url": "https://www.semanticscholar.org/paper/80f8325a0cdd6fcfe9ecb3df99cc450efa783808",
+    "title": "CADO: From Imitation to Cost Minimization for Heatmap-based Solvers in Combinatorial Optimization",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2602.08210, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2400355059",
+        "name": "Hyungseok Song"
+      },
+      {
+        "authorId": "51226336",
+        "name": "Deunsol Yoon"
+      },
+      {
+        "authorId": "2299794746",
+        "name": "Kanghoon Lee"
+      },
+      {
+        "authorId": "2193337631",
+        "name": "Han-Seul Jeong"
+      },
+      {
+        "authorId": "2384802933",
+        "name": "Soonyoung Lee"
+      },
+      {
+        "authorId": "2400150146",
+        "name": "Woohyung Lim"
+      }
+    ],
+    "abstract": "Heatmap-based solvers have emerged as a promising paradigm for Combinatorial Optimization (CO). However, we argue that the dominant Supervised Learning (SL) training paradigm suffers from a fundamental objective mismatch: minimizing imitation loss (e.g., cross-entropy) does not guarantee solution cost minimization. We dissect this mismatch into two deficiencies: Decoder-Blindness (being oblivious to the non-differentiable decoding process) and Cost-Blindness (prioritizing structural imitation over solution quality). We empirically demonstrate that these intrinsic flaws impose a hard performance ceiling. To overcome this limitation, we propose CADO (Cost-Aware Diffusion models for Optimization), a streamlined Reinforcement Learning fine-tuning framework that formulates the diffusion denoising process as an MDP to directly optimize the post-decoded solution cost. We introduce Label-Centered Reward, which repurposes ground-truth labels as unbiased baselines rather than imitation targets, and Hybrid Fine-Tuning for parameter-efficient adaptation. CADO achieves state-of-the-art performance across diverse benchmarks, validating that objective alignment is essential for unlocking the full potential of heatmap-based solvers."
+  },
+  {
+    "paperId": "271695f87f79d0ef1d9dd08e4f887662ad10f452",
+    "externalIds": {
+      "DBLP": "journals/peerj-cs/XieJX26",
+      "DOI": "10.7717/peerj-cs.3516",
+      "CorpusId": 285374709
+    },
+    "url": "https://www.semanticscholar.org/paper/271695f87f79d0ef1d9dd08e4f887662ad10f452",
+    "title": "From recursion to prediction: modeling backtracking effort in TSP with machine learning",
+    "year": 2026,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "https://peerj.com/articles/cs-3516.pdf",
+      "status": "GOLD",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.7717/peerj-cs.3516?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.7717/peerj-cs.3516, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2306145070",
+        "name": "Juan Xie"
+      },
+      {
+        "authorId": "2409206447",
+        "name": "Jingchun Zhan"
+      },
+      {
+        "authorId": "2410365605",
+        "name": "Xunlin Zhu"
+      }
+    ],
+    "abstract": "The Traveling Salesman Problem (TSP) is a well-known Nondeterministic Polynomial-time (NP)-hard problem in combinatorial optimization. Solving TSP instances optimally using backtracking algorithms guarantees accuracy but incurs significant computational costs, especially for medium-scale problems. Little attention has been given to predicting the computational workload of TSP solvers based on backtracking using artificial intelligence. The precise estimation of resource usage is a complex and challenging issue due to the high variability of heterogeneous optimization problems. This article proposes a method for predicting the computational cost of solving the TSP using a backtrack solver through a machine learning approach. We propose a machine learning framework for estimating the computational effort required to solve TSP instances using backtracking techniques. Synthetic datasets are generated where each instance includes engineered features. Supervised machine learning models are proposed, tuned, and evaluated using various methods to estimate the computational cost for the TSP accurately. Results illustrate that among the 12\u00a0machine learning models of different classes, the regression models perform better. These models achieve a predictive accuracy of 99%, demonstrating strong consistency with actual results. The results also validate the potential of artificial intelligence (AI), focusing on the computational demands of optimization problems like TSP. We propose a machine learning framework that can be applied to optimization problems for intelligent solver selection, runtime estimation, and resource-aware scheduling."
+  },
+  {
+    "paperId": "7dc7a06746597dceebb30db16089ac3fdc075492",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2601-22896",
+      "ArXiv": "2601.22896",
+      "DOI": "10.48550/arXiv.2601.22896",
+      "CorpusId": 285241278
+    },
+    "url": "https://www.semanticscholar.org/paper/7dc7a06746597dceebb30db16089ac3fdc075492",
+    "title": "Game-Theoretic Co-Evolution for LLM-Based Heuristic Discovery",
+    "year": 2026,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2601.22896, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2344745216",
+        "name": "Xinyi Ke"
+      },
+      {
+        "authorId": "2366543230",
+        "name": "Kai Li"
+      },
+      {
+        "authorId": "2276201623",
+        "name": "Junliang Xing"
+      },
+      {
+        "authorId": "2293711004",
+        "name": "Yifan Zhang"
+      },
+      {
+        "authorId": "2276330423",
+        "name": "Jian Cheng"
+      }
+    ],
+    "abstract": "Large language models (LLMs) have enabled rapid progress in automatic heuristic discovery (AHD), yet most existing methods are predominantly limited by static evaluation against fixed instance distributions, leading to potential overfitting and poor generalization under distributional shifts. We propose Algorithm Space Response Oracles (ASRO), a game-theoretic framework that reframes heuristic discovery as a program level co-evolution between solver and instance generator. ASRO models their interaction as a two-player zero-sum game, maintains growing strategy pools on both sides, and iteratively expands them via LLM-based best-response oracles against mixed opponent meta-strategies, thereby replacing static evaluation with an adaptive, self-generated curriculum. Across multiple combinatorial optimization domains, ASRO consistently outperforms static-training AHD baselines built on the same program search mechanisms, achieving substantially improved generalization and robustness on diverse and out-of-distribution instances."
+  },
+  {
+    "paperId": "7926326663434221e44e66545d026d2d410d322a",
+    "externalIds": {
+      "ArXiv": "2601.21048",
+      "DBLP": "journals/tmlr/LiaoKN26",
+      "DOI": "10.48550/arXiv.2601.21048",
+      "CorpusId": 285140864
+    },
+    "url": "https://www.semanticscholar.org/paper/7926326663434221e44e66545d026d2d410d322a",
+    "title": "Test-Time Adaptation for Unsupervised Combinatorial Optimization",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2601.21048, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2363689311",
+        "name": "Yiqiao Liao"
+      },
+      {
+        "authorId": "3018662",
+        "name": "F. Koushanfar"
+      },
+      {
+        "authorId": "2876746",
+        "name": "Parinaz Naghizadeh Ardabili"
+      }
+    ],
+    "abstract": "Unsupervised neural combinatorial optimization (NCO) enables learning powerful solvers without access to ground-truth solutions. Existing approaches fall into two disjoint paradigms: models trained for generalization across instances, and instance-specific models optimized independently at test time. While the former are efficient during inference, they lack effective instance-wise adaptability; the latter are flexible but fail to exploit learned inductive structure and are prone to poor local optima. This motivates the central question of our work: how can we leverage the inductive bias learned through generalization while unlocking the flexibility required for effective instance-wise adaptation? We first identify a challenge in bridging these two paradigms: generalization-focused models often constitute poor warm starts for instance-wise optimization, potentially underperforming even randomly initialized models when fine-tuned at test time. To resolve this incompatibility, we propose TACO, a model-agnostic test-time adaptation framework that unifies and extends the two existing paradigms for unsupervised NCO. TACO applies strategic warm-starting to partially relax trained parameters while preserving inductive bias, enabling rapid and effective unsupervised adaptation. Crucially, compared to naively fine-tuning a trained generalizable model or optimizing an instance-specific model from scratch, TACO achieves better solution quality while incurring negligible additional computational cost. Experiments on the canonical problems of minimum vertex cover, maximum clique, maximum independent set, and max cut demonstrate the effectiveness and robustness of TACO across static, distribution-shifted, and dynamic combinatorial optimization problems, establishing it as a practical bridge between generalizable and instance-specific unsupervised NCO."
+  },
+  {
+    "paperId": "57a374228ecd8be179ec1a210486b729b9afb4c8",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2601-19395",
+      "ArXiv": "2601.19395",
+      "DOI": "10.48550/arXiv.2601.19395",
+      "CorpusId": 285071662
+    },
+    "url": "https://www.semanticscholar.org/paper/57a374228ecd8be179ec1a210486b729b9afb4c8",
+    "title": "SEAFormer: A Spatial Proximity and Edge-Aware Transformer for Real-World Vehicle Routing Problems",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2601.19395, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "38785411",
+        "name": "Saeed Nasehi Basharzad"
+      },
+      {
+        "authorId": "2315930730",
+        "name": "Farhana Choudhury"
+      },
+      {
+        "authorId": "3346327",
+        "name": "E. Tanin"
+      }
+    ],
+    "abstract": "Real-world Vehicle Routing Problems (RWVRPs) require solving complex, sequence-dependent challenges at scale with constraints such as delivery time window, replenishment or recharging stops, asymmetric travel cost, etc. While recent neural methods achieve strong results on large-scale classical VRP benchmarks, they struggle to address RWVRPs because their strategies overlook sequence dependencies and underutilize edge-level information, which are precisely the characteristics that define the complexity of RWVRPs. We present SEAFormer, a novel transformer that incorporates both node-level and edge-level information in decision-making through two key innovations. First, our Clustered Proximity Attention (CPA) exploits locality-aware clustering to reduce the complexity of attention from $O(n^2)$ to $O(n)$ while preserving global perspective, allowing SEAFormer to efficiently train on large instances. Second, our lightweight edge-aware module captures pairwise features through residual fusion, enabling effective incorporation of edge-based information and faster convergence. Extensive experiments across four RWVRP variants with various scales demonstrate that SEAFormer achieves superior results over state-of-the-art methods. Notably, SEAFormer is the first neural method to solve 1,000+ node RWVRPs effectively, while also achieving superior performance on classic VRPs, making it a versatile solution for both research benchmarks and real-world applications."
+  },
+  {
+    "paperId": "3f117723321a65bbe05c61229cf87dba273a6c0f",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2601-18917",
+      "ArXiv": "2601.18917",
+      "DOI": "10.48550/arXiv.2601.18917",
+      "CorpusId": 285071899
+    },
+    "url": "https://www.semanticscholar.org/paper/3f117723321a65bbe05c61229cf87dba273a6c0f",
+    "title": "GraIP: A Benchmarking Framework For Neural Graph Inverse Problems",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2601.18917, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "1785380058",
+        "name": "Semih Cant\u00fcrk"
+      },
+      {
+        "authorId": "2143755178",
+        "name": "Andrei Manolache"
+      },
+      {
+        "authorId": "2347345328",
+        "name": "Arman Mielke"
+      },
+      {
+        "authorId": "2253440539",
+        "name": "Chendi Qian"
+      },
+      {
+        "authorId": "2186404013",
+        "name": "Antoine Siraudin"
+      },
+      {
+        "authorId": "2253424002",
+        "name": "Christopher Morris"
+      },
+      {
+        "authorId": "2253455028",
+        "name": "Mathias Niepert"
+      },
+      {
+        "authorId": "2257002400",
+        "name": "Guy Wolf"
+      }
+    ],
+    "abstract": "A wide range of graph learning tasks, such as structure discovery, temporal graph analysis, and combinatorial optimization, focus on inferring graph structures from data, rather than making predictions on given graphs. However, the respective methods to solve such problems are often developed in an isolated, task-specific manner and thus lack a unifying theoretical foundation. Here, we provide a stepping stone towards the formation of such a foundation and further development by introducing the Neural Graph Inverse Problem (GraIP) conceptual framework, which formalizes and reframes a broad class of graph learning tasks as inverse problems. Unlike discriminative approaches that directly predict target variables from given graph inputs, the GraIP paradigm addresses inverse problems, i.e., it relies on observational data and aims to recover the underlying graph structure by reversing the forward process, such as message passing or network dynamics, that produced the observed outputs. We demonstrate the versatility of GraIP across various graph learning tasks, including rewiring, causal discovery, and neural relational inference. We also propose benchmark datasets and metrics for each GraIP domain considered, and characterize and empirically evaluate existing baseline methods used to solve them. Overall, our unifying perspective bridges seemingly disparate applications and provides a principled approach to structural learning in constrained and combinatorial settings while encouraging cross-pollination of existing methods across graph inverse problems."
+  },
+  {
+    "paperId": "226700920f13479405683a55ed19dfb59055aad2",
+    "externalIds": {
+      "ArXiv": "2601.19041",
+      "CorpusId": 285071718
+    },
+    "url": "https://www.semanticscholar.org/paper/226700920f13479405683a55ed19dfb59055aad2",
+    "title": "HeatACO: A Heatmap-Guided Max--Min Ant System for Large-Scale Travelling Salesman Problems",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2601.19041, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2342912890",
+        "name": "Bo-Cheng Lin"
+      },
+      {
+        "authorId": "2260001223",
+        "name": "Yi Mei"
+      },
+      {
+        "authorId": "2153206835",
+        "name": "Mengjie Zhang"
+      }
+    ],
+    "abstract": "Non-autoregressive neural solvers predict an edge-confidence heatmap for the Travelling Salesman Problem (TSP) in one forward pass, but a decoder must still produce a feasible Hamiltonian cycle. As instance size grows, this stage must reconcile a quadratic number of edge scores with global tour constraints. Greedy edge merging is fast and deterministic but produces low-quality tours, whereas Monte Carlo Tree Search (MCTS) over k-opt moves recovers better tours at high computational cost and requires predictor-specific tuning. We propose HeatACO, a predictor-agnostic heatmap-to-tour decoder. Its key is a capped, degree-aware evidence factor that integrates a fixed heatmap into a Max--Min Ant System (MMAS). The factor rewards only edge confidence beyond a node's tour-degree capacity, and its strength is scaled automatically from the pheromone dynamic range, allowing one configuration to decode heatmaps from different predictors without retraining or per-predictor tuning. Across four heatmap sources, HeatACO produces higher-quality solutions in less decoding time than the MCTS baseline on TSP500, TSP1K and TSP10K. Against matched standard MMAS baselines with the same search budget, heatmap guidance improves construction for all four predictors at both scales and remains beneficial with local search. HeatACO also transfers competitively to several distribution shifts and the asymmetric TSP (ATSP). Our post-hoc analysis identifies measurable heatmap properties associated with the observed performance variation."
+  },
+  {
+    "paperId": "c7116a64260473b88245c87db04592885e1b798b",
+    "externalIds": {
+      "DBLP": "journals/asc/QinP26",
+      "DOI": "10.1016/j.asoc.2025.114270",
+      "CorpusId": 283117282
+    },
+    "url": "https://www.semanticscholar.org/paper/c7116a64260473b88245c87db04592885e1b798b",
+    "title": "Strategic coordination of drones via short-term distributed optimization and long-term reinforcement learning",
+    "year": 2026,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.1016/j.asoc.2025.114270",
+      "status": "HYBRID",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.asoc.2025.114270?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.asoc.2025.114270, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2086966407",
+        "name": "Chuhao Qin"
+      },
+      {
+        "authorId": "3129259",
+        "name": "Evangelos Pournaras"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "724d0417831714196cabe521ace872e5a6fe2da0",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2512-18633",
+      "ArXiv": "2512.18633",
+      "DOI": "10.48550/arXiv.2512.18633",
+      "CorpusId": 284078305
+    },
+    "url": "https://www.semanticscholar.org/paper/724d0417831714196cabe521ace872e5a6fe2da0",
+    "title": "ARC: Leveraging Compositional Representations for Cross-Problem Learning on VRPs",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2512.18633, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2193337631",
+        "name": "Han-Seul Jeong"
+      },
+      {
+        "authorId": "2347940087",
+        "name": "Youngjoon Park"
+      },
+      {
+        "authorId": "2400355059",
+        "name": "Hyungseok Song"
+      },
+      {
+        "authorId": "2400150146",
+        "name": "Woohyung Lim"
+      }
+    ],
+    "abstract": "Vehicle Routing Problems (VRPs) with diverse real-world attributes have driven recent interest in cross-problem learning approaches that efficiently generalize across problem variants. We propose ARC (Attribute Representation via Compositional Learning), a cross-problem learning framework that learns disentangled attribute representations by decomposing them into two complementary components: an Intrinsic Attribute Embedding (IAE) for invariant attribute semantics and a Contextual Interaction Embedding (CIE) for attribute-combination effects. This disentanglement is achieved by enforcing analogical consistency in the embedding space to ensure the semantic transformation of adding an attribute (e.g., a length constraint) remains invariant across different problem contexts. This enables our model to reuse invariant semantics across trained variants and construct representations for unseen combinations. ARC achieves state-of-the-art performance across in-distribution, zero-shot generalization, few-shot adaptation, and real-world benchmarks."
+  },
+  {
+    "paperId": "a6c548ca213e23fff66656fccb88e9e65b76bc30",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2512-15800",
+      "ArXiv": "2512.15800",
+      "DOI": "10.48550/arXiv.2512.15800",
+      "CorpusId": 283933594
+    },
+    "url": "https://www.semanticscholar.org/paper/a6c548ca213e23fff66656fccb88e9e65b76bc30",
+    "title": "Edge-wise Topological Divergence Gaps: Guiding Search in Combinatorial Optimization",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2512.15800, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "144035647",
+        "name": "I. Trofimov"
+      },
+      {
+        "authorId": "2310697178",
+        "name": "D. Voronkova"
+      },
+      {
+        "authorId": "2140895166",
+        "name": "A. Mironenko"
+      },
+      {
+        "authorId": "2376622192",
+        "name": "Anton Dmitriev"
+      },
+      {
+        "authorId": "2165662874",
+        "name": "Eduard Tulchinskii"
+      },
+      {
+        "authorId": "145749032",
+        "name": "E. Burnaev"
+      },
+      {
+        "authorId": "2293520623",
+        "name": "S. Barannikov"
+      }
+    ],
+    "abstract": "We introduce a topological feedback mechanism for the Travelling Salesman Problem (TSP) by analyzing the divergence between a tour and the minimum spanning tree (MST). Our key contribution is a canonical decomposition theorem that expresses the tour-MST gap as edge-wise topology-divergence gaps from the RTD-Lite barcode. Based on this, we develop a topological guidance for 2-opt and 3-opt heuristics that increases their performance. We carry out experiments with fine-optimization of tours obtained from heatmap-based methods, TSPLIB, and random instances. Experiments demonstrate the topology-guided optimization results in better performance and faster convergence in many cases."
+  },
+  {
+    "paperId": "b4535d10dda27c76fe403ecdd5d101aa149e117f",
+    "externalIds": {
+      "ArXiv": "2511.19573",
+      "DBLP": "journals/corr/abs-2511-19573",
+      "DOI": "10.48550/arXiv.2511.19573",
+      "CorpusId": 283250745
+    },
+    "url": "https://www.semanticscholar.org/paper/b4535d10dda27c76fe403ecdd5d101aa149e117f",
+    "title": "Neural Tractability via Structure: Learning-Augmented Algorithms for Graph Combinatorial Optimization",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2511.19573, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2108961004",
+        "name": "Jialiang Li"
+      },
+      {
+        "authorId": "2238162116",
+        "name": "Weitong Chen"
+      },
+      {
+        "authorId": "2399560005",
+        "name": "Mingyu Guo"
+      }
+    ],
+    "abstract": "Neural models have shown promise in solving NP-hard graph combinatorial optimization (CO) problems. Once trained, they offer fast inference and reasonably high-quality solutions for in-distribution testing instances, but they generally fall short in terms of absolute solution quality compared to classical search-based algorithms that are admittedly slower but offer optimality guarantee once search finishes. We propose a novel framework that combines the inference efficiency and exploratory power of neural models with the solution quality guarantee of search-based algorithms. In particular, we use parameterized algorithms (PAs) as the search component. PAs are dedicated to identifying easy instances of generally NP-hard problems, and allow for practically efficient search by exploiting structural simplicity (of the identified easy instances). Under our framework, we use parameterized analysis to identify the structurally hard parts of a CO instance. The neural model handles the hard parts by generating advisory signals based on its data-driven understanding. The PA-based search component then integrates the advisory signals to systematically and efficiently searches through the remaining structurally easy parts. Notably, our framework is agnostic to the choice of neural model and produces strictly better solutions than neural solvers alone. We examine our framework on multiple CO tasks. Empirical results show that it achieves superior solution quality, competitive with that of commercial solvers. Furthermore, by using the neural model only for exploratory advisory signals, our framework exhibits improved out-of-distribution generalization, addressing a key limitation of existing neural CO solvers."
+  },
+  {
+    "paperId": "c405adb807f1c1ab8df486733f6db715429712ad",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2511-05872",
+      "ArXiv": "2511.05872",
+      "DOI": "10.3390/eng7080375",
+      "CorpusId": 282913020
+    },
+    "url": "https://www.semanticscholar.org/paper/c405adb807f1c1ab8df486733f6db715429712ad",
+    "title": "Adaptation and Fine-tuning with TabPFN for Travelling Salesman Problem",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.3390/eng7080375",
+      "status": "GOLD",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2511.05872, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2342730884",
+        "name": "Nguyen Gia Hien Vu"
+      },
+      {
+        "authorId": "2260449657",
+        "name": "Yifan Tang"
+      },
+      {
+        "authorId": "2348256665",
+        "name": "Rey Lim"
+      },
+      {
+        "authorId": "2271881820",
+        "name": "Yifan Yang"
+      },
+      {
+        "authorId": "2275194451",
+        "name": "Hang Ma"
+      },
+      {
+        "authorId": "2342968872",
+        "name": "Ke Wang"
+      },
+      {
+        "authorId": "2342863499",
+        "name": "G. G. Wang"
+      }
+    ],
+    "abstract": "Combinatorial Route Optimization (CRO) problems, such as the Vehicle Routing Problem (VRP) or the Travelling Salesman Problem (TSP), are commonly seen in scheduling, logistics, and transportation. While current machine learning (ML) methods can overcome certain limitations of traditional approaches, including exact and heuristic algorithms, they typically require substantial computational resources, large training datasets, and carefully designed models, thereby limiting their scalability and practical deployment. In this paper, we develop a method to address such concerns in a data-efficient and near-training-free manner using foundation models. We select TSP, one of the most well-known combinatorial optimization problems, to solve in our experiments and employ the Tabular Prior-Data Fitted Network (TabPFN), one of the newly designed foundation models. Specifically, we develop a node-based formulation that converts TSP into a sequence of localized prediction tasks and constructs a complete route through in-context learning provided by TabPFN. The proposed method enables TabPFN, a model developed for regression and classification, to be applied to CRO problems with only one TSP sample for fine-tuning. We evaluate the proposed method across varying TSP instance sizes and demonstrate that our approach generalizes effectively without retraining, maintains competitive solution quality, and exhibits promising scalability. These findings suggest that CRO problems can be approached through foundation models, enabling scalability as well as generating rapidly deployable solutions with near-training-free adaptation."
+  },
+  {
+    "paperId": "2c111472b804a7dbb4aaa2b6c73b269ea0223bef",
+    "externalIds": {
+      "DBLP": "journals/candie/LiuLXLCWYL25",
+      "DOI": "10.1016/j.cie.2025.111376",
+      "CorpusId": 280215140
+    },
+    "url": "https://www.semanticscholar.org/paper/2c111472b804a7dbb4aaa2b6c73b269ea0223bef",
+    "title": "Lightweight population-based policy optimization for pickup and delivery problems",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.1016/j.cie.2025.111376",
+      "status": "HYBRID",
+      "license": "CCBYNCND",
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1016/j.cie.2025.111376?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1016/j.cie.2025.111376, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2108203670",
+        "name": "Yizhou Liu"
+      },
+      {
+        "authorId": "2156057984",
+        "name": "Li Li"
+      },
+      {
+        "authorId": "2330979524",
+        "name": "Yixin Xu"
+      },
+      {
+        "authorId": "2267221493",
+        "name": "Tang Liu"
+      },
+      {
+        "authorId": "2372588981",
+        "name": "Rong Cheng"
+      },
+      {
+        "authorId": "2177507012",
+        "name": "Di\u00e9 Wu"
+      },
+      {
+        "authorId": "2267150465",
+        "name": "Jilin Yang"
+      },
+      {
+        "authorId": "2258783032",
+        "name": "Jingwen Li"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "00e5dfacf501bffa22d8d25ca88d77287724bb37",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2510-00958",
+      "ArXiv": "2510.00958",
+      "DOI": "10.48550/arXiv.2510.00958",
+      "CorpusId": 281706023
+    },
+    "url": "https://www.semanticscholar.org/paper/00e5dfacf501bffa22d8d25ca88d77287724bb37",
+    "title": "Test-Time Search in Neural Graph Coarsening Procedures for the Capacitated Vehicle Routing Problem",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2510.00958, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "145468115",
+        "name": "Y. Sim"
+      },
+      {
+        "authorId": "2169682778",
+        "name": "Hyeonah Kim"
+      },
+      {
+        "authorId": "2261284283",
+        "name": "Changhyun Kwon"
+      }
+    ],
+    "abstract": "The identification of valid inequalities, such as the rounded capacity inequalities (RCIs), is a key component of cutting plane methods for the Capacitated Vehicle Routing Problem (CVRP). While a deep learning-based separation method can learn to find high-quality cuts, our analysis reveals that the model produces fewer cuts than expected because it is insufficiently sensitive to generate a diverse set of generated subsets. This paper proposes an alternative: enhancing the performance of a trained model at inference time through a new test-time search with stochasticity. First, we introduce stochastic edge selection into the graph coarsening procedure, replacing the previously proposed greedy approach. Second, we propose the Graph Coarsening History-based Partitioning (GraphCHiP) algorithm, which leverages coarsening history to identify not only RCIs but also, for the first time, the Framed capacity inequalities (FCIs). Experiments on randomly generated CVRP instances demonstrate the effectiveness of our approach in reducing the dual gap compared to the existing neural separation method. Additionally, our method discovers effective FCIs on a specific instance, despite the challenging nature of identifying such cuts."
+  },
+  {
+    "paperId": "9a7158cb3846ac64acd7a513aeb17fdd4d312705",
+    "externalIds": {
+      "ArXiv": "2509.23465",
+      "DBLP": "journals/corr/abs-2509-23465",
+      "DOI": "10.48550/arXiv.2509.23465",
+      "CorpusId": 281674382
+    },
+    "url": "https://www.semanticscholar.org/paper/9a7158cb3846ac64acd7a513aeb17fdd4d312705",
+    "title": "ViTSP: A Vision Language Models Guided Framework for Large-Scale Traveling Salesman Problems",
+    "year": 2025,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2509.23465, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2268927010",
+        "name": "Zhuo-Li Yin"
+      },
+      {
+        "authorId": "2325690160",
+        "name": "Yi Ding"
+      },
+      {
+        "authorId": "2376667514",
+        "name": "Reem Khir"
+      },
+      {
+        "authorId": "2375975644",
+        "name": "Hua Cai"
+      }
+    ],
+    "abstract": "Solving the Traveling Salesman Problem (TSP) is NP-hard yet fundamental for a wide range of real-world applications. Classical exact methods face challenges in scaling, and heuristic methods often require domain-specific parameter calibration. While learning-based approaches have shown promise, they suffer from poor generalization and limited scalability due to fixed training data. This work proposes ViTSP, a novel framework that leverages pre-trained vision language models (VLMs) to visually guide the solution process for large-scale TSPs. The VLMs function to identify promising small-scale subproblems from a visualized TSP instance, which are then efficiently optimized using an off-the-shelf solver to improve the global solution. ViTSP bypasses the dedicated model training at the user end while maintaining effectiveness across diverse instances. Experiments on real-world TSP instances ranging from 1k to 88k nodes demonstrate that ViTSP consistently achieves solutions with average optimality gaps of 0.24%, outperforming existing learning-based methods. Under the same runtime budget, it surpasses the best-performing heuristic solver, LKH-3, by reducing its gaps by 3.57% to 100%, particularly on very-large-scale instances with more than 10k nodes. Our framework offers a new perspective in hybridizing pre-trained generative models and operations research solvers in solving combinatorial optimization problems. The framework holds potential for integration into more complex real-world logistics systems. The code is available at https://github.itap.purdue.edu/uSMART/ViTSP_ICLR2026."
+  },
+  {
+    "paperId": "3954940fb21fb4ed3adcf3cc799397df4d4e271f",
+    "externalIds": {
+      "ArXiv": "2508.08659",
+      "DBLP": "journals/corr/abs-2508-08659",
+      "DOI": "10.48550/arXiv.2508.08659",
+      "CorpusId": 280635158
+    },
+    "url": "https://www.semanticscholar.org/paper/3954940fb21fb4ed3adcf3cc799397df4d4e271f",
+    "title": "Hybrid Node-Destroyer Model with Large Neighborhood Search for Solving the Capacitated Vehicle Routing Problem",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2508.08659, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2105727278",
+        "name": "Bachtiar Herdianto"
+      },
+      {
+        "authorId": "2289131027",
+        "name": "Romain Billot"
+      },
+      {
+        "authorId": "137503816",
+        "name": "Flavien Lucas"
+      },
+      {
+        "authorId": "2258257664",
+        "name": "Marc Sevaux"
+      },
+      {
+        "authorId": "2300781508",
+        "name": "Daniele Vigo"
+      }
+    ],
+    "abstract": "In this research, we propose an iterative learning hybrid optimization solver developed to strengthen the performance of metaheuristic algorithms in solving the Capacitated Vehicle Routing Problem (CVRP). The iterative hybrid mechanism integrates the proposed Node-Destroyer Model, a machine learning hybrid model that utilized Graph Neural Networks (GNNs) such identifies and selects customer nodes to guide the Large Neighborhood Search (LNS) operator within the metaheuristic optimization frameworks. This model leverages the structural properties of the problem and solution that can be represented as a graph, to guide strategic selections concerning node removal. The proposed approach reduces operational complexity and scales down the search space involved in the optimization process. The hybrid approach is applied specifically to the CVRP and does not require retraining across problem instances of different sizes. The proposed hybrid mechanism is able to improve the performance of baseline metaheuristic algorithms. Our approach not only enhances the solution quality for standard CVRP benchmarks but also proves scalability on very large-scale instances with up to 30,000 customer nodes. Experimental evaluations on benchmark datasets show that the proposed hybrid mechanism is capable of improving different baseline algorithms, achieving better quality of solutions under similar settings."
+  },
+  {
+    "paperId": "9bde35b78a516214ccc3c0c8a2c3ac33221d560c",
+    "externalIds": {
+      "DBLP": "conf/kdd/ShiZSM0Y25",
+      "DOI": "10.1145/3711896.3736859",
+      "CorpusId": 280627716
+    },
+    "url": "https://www.semanticscholar.org/paper/9bde35b78a516214ccc3c0c8a2c3ac33221d560c",
+    "title": "BiQAP: Neural Bi-level Optimization-based Framework for Solving Quadratic Assignment Problems",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3711896.3736859",
+      "status": "GOLD",
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1145/3711896.3736859?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1145/3711896.3736859, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2317077889",
+        "name": "Liangliang Shi"
+      },
+      {
+        "authorId": "2397403900",
+        "name": "Haoran Zhang"
+      },
+      {
+        "authorId": "2357852912",
+        "name": "Shuheng Shen"
+      },
+      {
+        "authorId": "2356912445",
+        "name": "Changhua Meng"
+      },
+      {
+        "authorId": "2127983409",
+        "name": "Weiqiang Wang"
+      },
+      {
+        "authorId": "2261901149",
+        "name": "Junchi Yan"
+      }
+    ],
+    "abstract": "The Quadratic Assignment Problem (QAP) has attracted lasting attention for its wide applications and computational challenges. Despite the rich literature in machine learning for QAP, most works often address the problem in the setting of image matching, whereby deep networks could play a vital role in extracting useful features for the subsequent matching. While its power on pure numerical QAP instances is limited in node embedding, often with a vanilla graph neural network. This paper tries to tap the potential of deep nets for QAP, specifically by modifying the input instance, which is orthogonal to previous efforts. Specifically, we develop a bi-level unsupervised framework, where the inner optimization involves trying to solve the modified instance with entropic regularization that can be solved iteratively using the Sinkhorn algorithm without affecting backpropagation by truncating gradients during training. The outer minimization deals with the quadratic objective function of the original QAP. In particular, seeing the intractable scale of the most general form, i.e., Lawler's QAP and the practical utility of the more efficient Koopmans-Beckmann QAP (KBQAP) form for solving other graph and combinatorial problems like TSP and graph edit distance, we embody our network on the KBQAP, and show its strong performance on various benchmarks in our experiments."
+  },
+  {
+    "paperId": "f1b8d581ea77c98ce7bd55352bb46a83a87ef88e",
+    "externalIds": {
+      "ArXiv": "2506.22095",
+      "CorpusId": 280010941
+    },
+    "url": "https://www.semanticscholar.org/paper/f1b8d581ea77c98ce7bd55352bb46a83a87ef88e",
+    "title": "Beyond Simple Graphs: Neural Multi-Objective Routing on Multigraphs",
+    "year": 2025,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2506.22095, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2322448232",
+        "name": "Filip Rydin"
+      },
+      {
+        "authorId": "2293393265",
+        "name": "Attila Lischka"
+      },
+      {
+        "authorId": "2293572927",
+        "name": "Jiaming Wu"
+      },
+      {
+        "authorId": "31527457",
+        "name": "M. Chehreghani"
+      },
+      {
+        "authorId": "2323852002",
+        "name": "B. Kulcs\u00e1r"
+      }
+    ],
+    "abstract": "Learning-based methods for routing have gained significant attention in recent years, both in single-objective and multi-objective contexts. Yet, existing methods are unsuitable for routing on multigraphs, which feature multiple edges with distinct attributes between node pairs, despite their strong relevance in real-world scenarios. In this paper, we propose two graph neural network-based methods to address multi-objective routing on multigraphs. Our first approach operates directly on the multigraph by autoregressively selecting edges until a tour is completed. The second model, which is more scalable, first simplifies the multigraph via a learned pruning strategy and then performs autoregressive routing on the resulting simple graph. We evaluate both models empirically, across a wide range of problems and graph distributions, and demonstrate their competitive performance compared to strong heuristics and neural baselines."
+  },
+  {
+    "paperId": "259793065cdac1d364e13ddba1e45b3436079a4e",
+    "externalIds": {
+      "ArXiv": "2506.06444",
+      "CorpusId": 279251280
+    },
+    "url": "https://www.semanticscholar.org/paper/259793065cdac1d364e13ddba1e45b3436079a4e",
+    "title": "Saffron-1: Safety Inference Scaling",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2506.06444, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2187298875",
+        "name": "Ruizhong Qiu"
+      },
+      {
+        "authorId": "2350541241",
+        "name": "Gaotang Li"
+      },
+      {
+        "authorId": "2319175383",
+        "name": "Tianxin Wei"
+      },
+      {
+        "authorId": "2303885774",
+        "name": "Jingrui He"
+      },
+      {
+        "authorId": "2359204202",
+        "name": "Hanghang Tong"
+      }
+    ],
+    "abstract": "Existing safety assurance research has primarily focused on training-phase alignment to instill safe behaviors into LLMs. However, recent studies have exposed these methods'susceptibility to diverse jailbreak attacks. Concurrently, inference scaling has significantly advanced LLM reasoning capabilities but remains unexplored in the context of safety assurance. Addressing this gap, our work pioneers inference scaling for robust and effective LLM safety against emerging threats. We reveal that conventional inference scaling techniques, despite their success in reasoning tasks, perform poorly in safety contexts, even falling short of basic approaches like Best-of-N Sampling. We attribute this inefficiency to a newly identified challenge, the exploration--efficiency dilemma, arising from the high computational overhead associated with frequent process reward model (PRM) evaluations. To overcome this dilemma, we propose SAFFRON, a novel inference scaling paradigm tailored explicitly for safety assurance. Central to our approach is the introduction of a multifurcation reward model (MRM) that significantly reduces the required number of reward model evaluations. To operationalize this paradigm, we further propose: (i) a partial supervision training objective for MRM, (ii) a conservative exploration constraint to prevent out-of-distribution explorations, and (iii) a Trie-based key--value caching strategy that facilitates cache sharing across sequences during tree search. Extensive experiments validate the effectiveness of our method. Additionally, we publicly release our trained multifurcation reward model (Saffron-1) and the accompanying token-level safety reward dataset (Safety4M) to accelerate future research in LLM safety. Our code, model, and data are publicly available at https://github.com/q-rz/saffron , and our project homepage is at https://q-rz.github.io/p/saffron ."
+  },
+  {
+    "paperId": "584e690a444e77697bb045f1fa648a7fef7367ef",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2506-03672",
+      "ArXiv": "2506.03672",
+      "DOI": "10.48550/arXiv.2506.03672",
+      "CorpusId": 279154734
+    },
+    "url": "https://www.semanticscholar.org/paper/584e690a444e77697bb045f1fa648a7fef7367ef",
+    "title": "Latent Guided Sampling for Combinatorial Optimization",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2506.03672, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2184296671",
+        "name": "Sobihan Surendran"
+      },
+      {
+        "authorId": "2279630829",
+        "name": "Adeline Fermanian"
+      },
+      {
+        "authorId": "2139893",
+        "name": "S. L. Corff"
+      }
+    ],
+    "abstract": "Combinatorial Optimization problems are widespread in domains such as logistics, manufacturing, and drug discovery, yet their NP-hard nature makes them computationally challenging. Recent Neural Combinatorial Optimization (NCO) methods leverage deep learning to learn policies for constructing solutions, trained via Supervised or Reinforcement Learning. While promising, these approaches often rely on task-specific augmentations, perform poorly on out-of-distribution instances, and lack robust inference mechanisms. Moreover, existing latent space models either require labeled data or use an instance-independent latent distribution. In this work, we propose LGS-Net, a novel latent space model that conditions on problem instances, and introduce an efficient inference method, Latent Guided Sampling (LGS), based on Markov Chain Monte Carlo and Stochastic Approximation. We show that the iterations of our method form a time-inhomogeneous Markov Chain and provide rigorous theoretical convergence guarantees. Empirical results on benchmark routing tasks show that our method achieves state-of-the-art performance among NCO baselines."
+  },
+  {
+    "paperId": "a690e1807599fd65443411b624765ea817e2394c",
+    "externalIds": {
+      "ArXiv": "2506.00533",
+      "CorpusId": 279076057
+    },
+    "url": "https://www.semanticscholar.org/paper/a690e1807599fd65443411b624765ea817e2394c",
+    "title": "RsGCN: Subgraph-Based Rescaling Enhances Generalization of GCNs for Solving Traveling Salesman Problems",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2506.00533, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2331170190",
+        "name": "Junquan Huang"
+      },
+      {
+        "authorId": "2109111",
+        "name": "Zong-Gan Chen"
+      },
+      {
+        "authorId": "2315061362",
+        "name": "Yuncheng Jiang"
+      },
+      {
+        "authorId": "1680620",
+        "name": "Zhi-hui Zhan"
+      }
+    ],
+    "abstract": "GCN-based traveling salesman problem (TSP) solvers face two critical challenges: poor cross-scale generalization for TSPs and high training costs. To address these challenges, we propose a Subgraph-Based Rescaling Graph Convolutional Network (RsGCN). Focusing on the scale-dependent features (i.e., features varied with problem scales) related to nodes and edges, we design the subgraph-based rescaling to normalize edge lengths of subgraphs. Under a unified subgraph perspective, RsGCN can efficiently learn scale-generalizable representations from small-scale TSPs at low cost. To exploit and assess the heatmaps generated by RsGCN, we design a Reconstruction-Based Search (RBS), in which a reconstruction process based on adaptive weight is incorporated to help avoid local optima. Based on a combined architecture of RsGCN and RBS, our solver achieves remarkable generalization and low training cost: with only 3 epochs of training on a mixed-scale dataset containing instances with up to 100 nodes, it can be generalized successfully to 10K-node instances without any fine-tuning. Extensive experiments demonstrate our advanced performance across uniform-distribution instances of 9 different scales from 20 to 10K nodes and 78 real-world instances from TSPLIB, while requiring the fewest learnable parameters and training epochs among neural competitors."
+  },
+  {
+    "paperId": "db59504fa3880948279cf2a90ce5e7bb7974b7e2",
+    "externalIds": {
+      "ArXiv": "2505.19497",
+      "DBLP": "journals/corr/abs-2505-19497",
+      "DOI": "10.48550/arXiv.2505.19497",
+      "CorpusId": 278904429
+    },
+    "url": "https://www.semanticscholar.org/paper/db59504fa3880948279cf2a90ce5e7bb7974b7e2",
+    "title": "Learning for Dynamic Combinatorial Optimization without Training Data",
+    "year": 2025,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2505.19497, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2363689311",
+        "name": "Yiqiao Liao"
+      },
+      {
+        "authorId": "3018662",
+        "name": "F. Koushanfar"
+      },
+      {
+        "authorId": "2876746",
+        "name": "Parinaz Naghizadeh Ardabili"
+      }
+    ],
+    "abstract": "We introduce DyCO-GNN, a novel unsupervised learning framework for Dynamic Combinatorial Optimization that requires no training data beyond the problem instance itself. DyCO-GNN leverages structural similarities across time-evolving graph snapshots to accelerate optimization while maintaining solution quality. We evaluate DyCO-GNN on dynamic maximum cut, maximum independent set, and the traveling salesman problem across diverse datasets of varying sizes, demonstrating its superior performance under tight and moderate time budgets. DyCO-GNN consistently outperforms the baseline methods, achieving high-quality solutions up to 3-60x faster, highlighting its practical effectiveness in rapidly evolving resource-constrained settings."
+  },
+  {
+    "paperId": "cf3ee995353803f2c86e39c8e936d91b1c3a7fa0",
+    "externalIds": {
+      "DOI": "10.1109/ISEDA65950.2025.11100319",
+      "CorpusId": 280553311
+    },
+    "url": "https://www.semanticscholar.org/paper/cf3ee995353803f2c86e39c8e936d91b1c3a7fa0",
+    "title": "Addressing Continuity and Expressivity Limitations in Differentiable Physical Optimization: A Case Study in Gate Sizing",
+    "year": 2025,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: The following paper fields have been elided by the publisher: {'abstract'}. Paper or abstract available at https://api.unpaywall.org/v2/10.1109/ISEDA65950.2025.11100319?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/ISEDA65950.2025.11100319, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2330143721",
+        "name": "Yufan Du"
+      },
+      {
+        "authorId": "2029338389",
+        "name": "Zizheng Guo"
+      },
+      {
+        "authorId": "2375762315",
+        "name": "Yang Hsu"
+      },
+      {
+        "authorId": "2266767174",
+        "name": "Zhili Xiong"
+      },
+      {
+        "authorId": "2305668937",
+        "name": "Seunggeun Kim"
+      },
+      {
+        "authorId": "2261280159",
+        "name": "David Z. Pan"
+      },
+      {
+        "authorId": "2276178693",
+        "name": "Runsheng Wang"
+      },
+      {
+        "authorId": "2242493510",
+        "name": "Yibo Lin"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "6873d11c42d0ac14f26ee109712b9886e02a4558",
+    "externalIds": {
+      "DBLP": "journals/tmlr/MielkeBSN26",
+      "ArXiv": "2502.19377",
+      "DOI": "10.48550/arXiv.2502.19377",
+      "CorpusId": 276617518
+    },
+    "url": "https://www.semanticscholar.org/paper/6873d11c42d0ac14f26ee109712b9886e02a4558",
+    "title": "Preference-Based Gradient Estimation for ML-Based Approximate Combinatorial Optimization",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2502.19377, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2347345328",
+        "name": "Arman Mielke"
+      },
+      {
+        "authorId": "2283177530",
+        "name": "Uwe Bauknecht"
+      },
+      {
+        "authorId": "2283166953",
+        "name": "Thilo Strauss"
+      },
+      {
+        "authorId": "2253455028",
+        "name": "Mathias Niepert"
+      }
+    ],
+    "abstract": "Combinatorial optimization (CO) problems arise across a broad spectrum of domains, including medicine, logistics, and manufacturing. While exact solutions are often computationally infeasible, many practical applications require high-quality solutions within a given time budget. To address this, we propose a learning-based approach that enhances existing non-learned approximation algorithms for CO. Specifically, we parameterize these approximation algorithms and train graph neural networks (GNNs) to predict parameter values that yield near-optimal solutions. Our method is trained end-to-end in a self-supervised fashion, using a novel gradient estimation scheme that treats the approximation algorithm as a black box. This approach combines the strengths of learning and traditional algorithms: the GNN learns from data to guide the algorithm toward better solutions, while the approximation algorithm ensures feasibility. We validate our method on two well-known combinatorial optimization problems: the travelling salesman problem (TSP) and the minimum k-cut problem. Our results demonstrate that the proposed approach is competitive with state-of-the-art learned CO solvers."
+  },
+  {
+    "paperId": "dc896f57f91a93ec67b782619246998b1b9d3cb9",
+    "externalIds": {
+      "ArXiv": "2412.15537",
+      "DBLP": "journals/corr/abs-2412-15537",
+      "DOI": "10.1109/MCII64973.2025.11032679",
+      "CorpusId": 274965089
+    },
+    "url": "https://www.semanticscholar.org/paper/dc896f57f91a93ec67b782619246998b1b9d3cb9",
+    "title": "Enhancing Large-scale UAV Route Planing with Global and Local Features via Reinforcement Graph Fusion",
+    "year": 2024,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2412.15537, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2328683510",
+        "name": "Tao Zhou"
+      },
+      {
+        "authorId": "2252386230",
+        "name": "Kai Ye"
+      },
+      {
+        "authorId": "2292738548",
+        "name": "Zeyu Shi"
+      },
+      {
+        "authorId": "2320727509",
+        "name": "Jiajing Lin"
+      },
+      {
+        "authorId": "2293559839",
+        "name": "Dejun Xu"
+      },
+      {
+        "authorId": "2328610158",
+        "name": "Min Jiang"
+      }
+    ],
+    "abstract": "Numerous remarkable advancements have been made in accuracy, speed, and parallelism for solving the Unmanned Aerial Vehicle Route Planing (UAVRP). However, existing UAVRP solvers face challenges when attempting to scale effectively and efficiently for larger instances. In this paper, we present a generalization framework that enables current UAVRP solvers to robustly extend their capabilities to larger instances, accommodating up to 10,000 points, using widely recognized test sets. The UAVRP under a large number of patrol points is a typical large-scale TSP problem.Our proposed framework comprises three distinct steps. Firstly, we employ Delaunay triangulation to extract subgraphs from large instances while preserving global features. Secondly, we utilize an embedded TSP solver to obtain sub-results, followed by graph fusion. Finally, we implement a decoding strategy customizable to the user\u2019s requirements, resulting in high-quality solutions, complemented by a warming-up process for the heatmap. To demonstrate the flexibility of our approach, we integrate two representative TSP solvers into our framework and conduct a comprehensive comparative analysis against existing algorithms using large TSP benchmark datasets. The results unequivocally demonstrate that our framework efficiently scales existing TSP solvers to handle large instances and consistently outperforms state-of-the-art (SOTA) methods. Furthermore, since our proposed framework does not necessitate additional training or fine-tuning, we believe that its generality can significantly advance research on end-to-end UAVRP solvers, enabling the application of a broader range of methods to real-world scenarios."
+  },
+  {
+    "paperId": "72a4b508861e237c9cc42c335838a8996f026ceb",
+    "externalIds": {
+      "DBLP": "conf/mod/BassonP25",
+      "ArXiv": "2412.13858",
+      "DOI": "10.1007/978-3-032-21480-5_21",
+      "CorpusId": 274822849
+    },
+    "url": "https://www.semanticscholar.org/paper/72a4b508861e237c9cc42c335838a8996f026ceb",
+    "title": "Improving Diffusion Models for the Traveling Salesman Problem (TSP) by Leveraging the Structure of the Solution Space",
+    "year": 2024,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": "CLOSED",
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2412.13858, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2097032523",
+        "name": "Mickael Basson"
+      },
+      {
+        "authorId": "2244619702",
+        "name": "Philippe Preux"
+      }
+    ],
+    "abstract": "We investigate diffusion models to solve the Traveling Salesman Problem. Building on the recent DIFUSCO and T2TCO approaches, we propose IDEQ. IDEQ improves the quality of the solutions by leveraging the constrained structure of the state space of the TSP. Another key component of IDEQ consists in replacing the last stages of DIFUSCO curriculum learning by considering a uniform distribution over the Hamiltonian tours whose orbits by the 2-opt operator converge to the optimal solution as the training objective. Our experiments show that IDEQ improves the state of the art for such neural network based techniques on synthetic instances. More importantly, our experiments show that IDEQ performs very well on the instances of the TSPlib, a reference benchmark in the TSP community: it closely matches the performance of the best heuristics, LKH3, being even able to obtain better solutions than LKH3 on 2 instances of the TSPlib defined on 1577 and 3795 cities. IDEQ obtains 0.3% optimality gap on TSP instances made of 500 cities, and 0.5% on TSP instances with 1000 cities. This sets a new SOTA for neural based methods solving the TSP. Moreover, IDEQ exhibits a lower variance and better scales-up with the number of cities with regards to DIFUSCO and T2TCO."
+  },
+  {
+    "paperId": "705bfc54a133a55bf5e488269497c097db38a03e",
+    "externalIds": {
+      "DOI": "10.37985/jer.v5i4.1670",
+      "CorpusId": 275656363
+    },
+    "url": "https://www.semanticscholar.org/paper/705bfc54a133a55bf5e488269497c097db38a03e",
+    "title": "Optimalisasi Teknik Chaining dan Reinforcement untuk Meningkatkan Kemandirian Anak Usia Dini",
+    "year": 2024,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "https://jer.or.id/index.php/jer/article/download/1670/904",
+      "status": "HYBRID",
+      "license": "CCBYSA",
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.37985/jer.v5i4.1670?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.37985/jer.v5i4.1670, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "96955288",
+        "name": "Ina Herawati"
+      },
+      {
+        "authorId": "115787840",
+        "name": "Luluk Iffatur Rocmah"
+      }
+    ],
+    "abstract": "Kemandirian merupakan keterampilan penting yang harus dikembangkan sejak usia dini, karena berperan dalam membentuk kepribadian dan kemampuan anak dalam menjalani aktivitas sehari-hari. Penelitian ini bertujuan untuk menganalisis efektivitas teknik chaining dan reinforcement dalam meningkatkan kemandirian anak usia dini, terutama dalam hal makan, berpakaian, dan menjaga kebersihan diri. Melalui pendekatan Study Literature Review, berbagai literatur ilmiah terkini dianalisis untuk memahami dampak dan faktor yang mempengaruhi keberhasilan kedua teknik tersebut. Hasil penelitian menunjukkan bahwa chaining membantu anak memecah tugas-tugas kompleks menjadi langkah yang lebih sederhana, sementara reinforcement positif mampu meningkatkan motivasi anak untuk bertindak secara mandiri. Kombinasi kedua teknik ini memberikan hasil yang signifikan dalam mempercepat perkembangan kemandirian anak. Simpulan penelitian menekankan bahwa penerapan chaining dan reinforcement yang konsisten dan didukung lingkungan sosial efektif dalam mengembangkan kemandirian anak usia dini, dengan rekomendasi untuk penelitian lebih lanjut pada aspek kemandirian lainnya."
+  },
+  {
+    "paperId": "48085b7b0cbeeca0bcfd46327d211062dc5be907",
+    "externalIds": {
+      "DOI": "10.1109/ICCS62594.2024.10795844",
+      "CorpusId": 274894519
+    },
+    "url": "https://www.semanticscholar.org/paper/48085b7b0cbeeca0bcfd46327d211062dc5be907",
+    "title": "Research of Vehicle Scheduling and Path Planning for Concrete Batching Plant Based on GA-DeepACO-NLS Model",
+    "year": 2024,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": "CLOSED",
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1109/ICCS62594.2024.10795844?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1109/ICCS62594.2024.10795844, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2314616433",
+        "name": "Jun Wang"
+      },
+      {
+        "authorId": "2314547290",
+        "name": "Xudong Xue"
+      },
+      {
+        "authorId": "2314835106",
+        "name": "Minrui Zhao"
+      },
+      {
+        "authorId": "2314526562",
+        "name": "Jingjie Li"
+      },
+      {
+        "authorId": "2105493242",
+        "name": "T. Yue"
+      }
+    ],
+    "abstract": "Concrete mixing stations play a vital role in urban infrastructure construction. In this process, efficient vehicle scheduling and path planning systems have a significant impact on improving concrete supply efficiency, reducing logistics costs and alleviating urban traffic congestion. To address this problem, this study proposes an innovative vehicle path planning method, namely a comprehensive optimization strategy based on the GA-DeepACO-NLS model. This model cleverly combines the technologies of deep reinforcement learning, ant colony algorithm and genetic algorithm form a powerful multi-objective optimization framework. Through this fusion, the model is able to effectively deal with complex vehicle path planning problems. In practical applications, through a series of carefully designed experiments, we verified the advantages of this model in reducing the total distance traveled by the vehicle and improving the efficiency of task completion. Experimental results show that compared with existing path planning methods, the GA-DeepACO-NLS model has achieved significant improvements in multiple evaluation indicators. This not only provides a new solution to the vehicle path planning problem of concrete mixing stations, but also provides valuable reference for research and practice in related fields. The GA-DeepACO-NLS model proposed in this study provides an efficient and intelligent solution to the vehicle path planning problem of concrete mixing stations, which helps to promote the sustainable development of urban construction projects and contributes to urban planning and traffic management, it also provides strong technical support for urban planning and traffic management."
+  },
+  {
+    "paperId": "26d3dd2fa8019e7b876ef92584f6b64506142d5a",
+    "externalIds": {
+      "DBLP": "conf/sigir/Yang24",
+      "DOI": "10.1145/3626772.3657995",
+      "CorpusId": 271114620
+    },
+    "url": "https://www.semanticscholar.org/paper/26d3dd2fa8019e7b876ef92584f6b64506142d5a",
+    "title": "Representation Learning and Information Retrieval",
+    "year": 2024,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://dl.acm.org/doi/pdf/10.1145/3626772.3657995?download=true",
+      "status": "GOLD",
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1145/3626772.3657995?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1145/3626772.3657995, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2273909270",
+        "name": "Yiming Yang"
+      }
+    ],
+    "abstract": "How to best represent words, documents, queries, entities, relations, and other variables in information retrieval (IR) and related applications has been a fundamental research question for decades. Early IR systems relied on the independence assumptions about words and documents for simplicity and scalability, which were clearly sub-optimal from a semantic point of view. The rapid development of deep neural networks in the past decade has revolutionized the representation learning technologies for contextualized word embedding and graph-enhanced document embedding, leading to the new era of dense IR. This talk highlights such impactful shifts in representation learning for IR and related areas, the new challenges coming along and the remedies, including our recent work in large-scale dense IR [1, 9], in graph-based reasoning for knowledge-enhanced predictions [10], in self-refinement of large language models (LLMs) with retrieval augmented generation (RAG)[2,7] and iterative feedback [3,4], in principle-driven self-alignment of LLMs with minimum human supervision [6], etc. More generally, the power of such deep learning goes beyond IR enhancements, e.g., for significantly improving the state-of-the-art solvers for NP-Complete problems in classical computer science [5,8]."
+  },
+  {
+    "paperId": "b78861c191fd669bc3255cbf89388bdb8e584b0c",
+    "externalIds": {
+      "ArXiv": "2406.08687",
+      "DBLP": "journals/corr/abs-2406-08687",
+      "DOI": "10.48550/arXiv.2406.08687",
+      "CorpusId": 270440896
+    },
+    "url": "https://www.semanticscholar.org/paper/b78861c191fd669bc3255cbf89388bdb8e584b0c",
+    "title": "AlphaZeroES: Direct score maximization outperforms planning loss minimization",
+    "year": 2024,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2406.08687, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2108790577",
+        "name": "Carlos Martin"
+      },
+      {
+        "authorId": "145714168",
+        "name": "T. Sandholm"
+      }
+    ],
+    "abstract": "Planning at execution time has been shown to dramatically improve performance for AI agents. A well-known family of approaches to planning at execution time in single-agent settings and two-player zero-sum games are AlphaZero and its variants, which use Monte Carlo Tree Search together with a neural network that guides the search by predicting state values and action probabilities. AlphaZero trains these networks by minimizing a planning loss that makes the value prediction match the episode return, and the policy prediction at the root of the search tree match the output of the full tree expansion. AlphaZero has been applied to various single-agent environments that require careful planning, with great success. In this paper, we explore an intriguing question: can we outperform it by directly maximizing the episode score instead of minimizing this planning loss, while leaving the MCTS algorithm and neural architecture unchanged? To directly maximize the episode score, we use evolution strategies, a family of algorithms for zeroth-order blackbox optimization. Our experiments indicate that, across all the tested single-agent environments, directly maximizing the episode score instead of minimizing the planning loss yields a dramatic improvement in performance."
+  },
+  {
+    "paperId": "6ffb0177693ec6650a6dd531a841df31f9f94910",
+    "externalIds": {
+      "DBLP": "conf/ecai/EliasofH25",
+      "ArXiv": "2404.04874",
+      "DOI": "10.3233/FAIA251046",
+      "CorpusId": 269004540
+    },
+    "url": "https://www.semanticscholar.org/paper/6ffb0177693ec6650a6dd531a841df31f9f94910",
+    "title": "Quadratic Binary Optimization with Graph Neural Networks",
+    "year": 2024,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "https://doi.org/10.3233/faia251046",
+      "status": "HYBRID",
+      "license": "CCBYNC",
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2404.04874, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "104172497",
+        "name": "Moshe Eliasof"
+      },
+      {
+        "authorId": "2257221683",
+        "name": "Eldad Haber"
+      }
+    ],
+    "abstract": "We investigate a link between Graph Neural Networks (GNNs) and Quadratic Unconstrained Binary Optimization (QUBO) problems, laying the groundwork for GNNs to approximate solutions for these computationally challenging tasks. By analyzing the sensitivity of QUBO formulations, we frame the solution of QUBO problems as a heterophilic node classification task. We then propose QUBO-GNN, an architecture that integrates graph representation learning techniques with QUBO-aware features to approximate solutions efficiently. Additionally, we introduce a self-supervised data generation mechanism to enable efficient and scalable training data acquisition even for large-scale QUBO instances. Experimental evaluations of QUBO-GNN across diverse QUBO problem sizes demonstrate its superior performance compared to exhaustive search and heuristic methods. Finally, we discuss open challenges in the emerging intersection between QUBO optimization and GNN-based learning."
+  },
+  {
+    "paperId": "e6185399fa3c236c7507318d0780c1f4c525a6a7",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2604-20236",
+      "DOI": "10.48550/arXiv.2604.20236",
+      "CorpusId": 289313129
+    },
+    "url": "https://www.semanticscholar.org/paper/e6185399fa3c236c7507318d0780c1f4c525a6a7",
+    "title": "Machine Learning for Two-Stage Graph Sparsification for the Travelling Salesman Problem",
+    "year": 2026,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: The following paper fields have been elided by the publisher: {'abstract'}. Paper or abstract available at https://api.unpaywall.org/v2/10.48550/arXiv.2604.20236?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.48550/arXiv.2604.20236, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2342912890",
+        "name": "Bo-Cheng Lin"
+      },
+      {
+        "authorId": "2260001223",
+        "name": "Yi Mei"
+      },
+      {
+        "authorId": "2209886000",
+        "name": "Mengjie Zhang"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "7fd24f2639790ee8a36e77c614d98da89ccc0ede",
+    "externalIds": {
+      "DOI": "10.32604/cmc.2025.071269",
+      "CorpusId": 282617973
+    },
+    "url": "https://www.semanticscholar.org/paper/7fd24f2639790ee8a36e77c614d98da89ccc0ede",
+    "title": "Graph Guide Diffusion Solvers with Noises for Travelling Salesman Problem",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "https://cdn.techscience.press/files/cmc/2026/TSP_CMC-86-3/TSP_CMC_71269/TSP_CMC_71269.pdf",
+      "status": "GOLD",
+      "license": "CCBY",
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.32604/cmc.2025.071269?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.32604/cmc.2025.071269, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2337849245",
+        "name": "Yan Kong"
+      },
+      {
+        "authorId": "2390652316",
+        "name": "Xinpeng Guo"
+      },
+      {
+        "authorId": "2332637510",
+        "name": "Chih-Hsien Hsia"
+      }
+    ],
+    "abstract": ": With the development of technology, diffusion model-based solvers have shown significant promise in solving Combinatorial Optimization (CO) problems, particularly in tackling Non-deterministic Polynomial-time hard (NP-hard) problems such as the Traveling Salesman Problem (TSP). However, existing diffusion model-based solvers typically employ a fixed, uniform noise schedule (e.g., linear or cosine annealing) across all training instances, failing to fully account for the unique characteristics of each problem instance. To address this challenge, we present Graph-Guided Diffusion Solvers (GGDS), an enhanced method for improving graph-based diffusion models. GGDS leverages Graph Neural Networks (GNNs) to capture graph structural information embedded in node coordinates and adjacency matrices, dynamically adjusting the noise levels in the diffusion model. This study investigates the TSP by examining two distinct time-step noise generation strategies: cosine annealing and a Neural Network (NN)-based approach. We evaluate their performance across different problem scales, particularly after integrating graph structural information. Experimental results indicate that GGDS outperforms previous methods with average performance improvements of 18.7%, 6.3%, and 88.7% on TSP-500, TSP-100, and TSP-50, respectively. Specifically, GGDS demonstrates superior performance on TSP-500 and TSP-50, while its performance on TSP-100 is either comparable to or slightly better than that of previous methods, depending on the chosen noise schedule and decoding strategy."
+  },
+  {
+    "paperId": "4fbab961b4c7cfaffa75d29b4e2d144edcf26f79",
+    "externalIds": {
+      "DBLP": "conf/nips/WangLYC25",
+      "DOI": "10.52202/085713-2394",
+      "CorpusId": 290452700
+    },
+    "url": "https://www.semanticscholar.org/paper/4fbab961b4c7cfaffa75d29b4e2d144edcf26f79",
+    "title": "StruDiCO: Structured Denoising Diffusion with Gradient-free Inference-stage Boosting for Memory and Time Efficient Combinatorial Optimization",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": "CLOSED",
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.52202/085713-2394?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.52202/085713-2394, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2451047996",
+        "name": "Yu Wang"
+      },
+      {
+        "authorId": "2279202772",
+        "name": "Yang Li"
+      },
+      {
+        "authorId": "2257137870",
+        "name": "Junchi Yan"
+      },
+      {
+        "authorId": "2445085161",
+        "name": "Yi-Chun Chang"
+      }
+    ],
+    "abstract": "Diffusion models have recently emerged as powerful neural solvers for combinatorial optimization (CO). However, existing approaches fail to reveal how variables are progressively determined during inference, making the final solution opaque until the last step. To address this limitation, we propose a structured denoising diffusion model, StruDiCO, which incrementally constructs solutions through step-wise variable selection. This is achieved via a variable-absorption noising model, wherein the forward process simulates gradual variable deactivation, converging to an empty solution, while the reverse process incrementally selects variables to reconstruct the final solution. This design induces structural continuity across intermediate states, enabling interpretable and trajectory-consistent partial solutions throughout inference. To further improve the reliability of reverse inference, we introduce a constrained consistency sampling strategy, which suppresses low-confidence variable selection at each step to stabilize the reverse process. Leveraging the structure-preserving reverse process, we further propose a lightweight, gradient-free, objective-aware refinement framework, which iteratively improves solution quality by applying structure-aware perturbations to the current solution, performing reverse inference through the constraint consistency model, and decoding with an objective-guided scoring scheme. Extensive experiments on two canonical CO tasks, the Traveling Salesman Problem (TSP) and Maximal Independent Set (MIS), show that StruDiCO outperforms state-of-the-art diffusion-based solvers, achieving up to 3 . 5 \u00d7 faster inference, 70% lower GPU memory usage, and significantly improved solution quality, with up to 37.7% drop reduction on TSP"
+  },
+  {
+    "paperId": "951c54f624a9450b93916ce2af28bc3f808d413d",
+    "externalIds": {
+      "DBLP": "journals/corr/abs-2506-00533",
+      "DOI": "10.48550/arXiv.2506.00533",
+      "CorpusId": 285789270
+    },
+    "url": "https://www.semanticscholar.org/paper/951c54f624a9450b93916ce2af28bc3f808d413d",
+    "title": "RsGCN: Rescaling Enhances Generalization of GCNs for Solving Scalable Traveling Salesman Problems",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null,
+      "disclaimer": "Notice: The following paper fields have been elided by the publisher: {'abstract'}. Paper or abstract available at https://api.unpaywall.org/v2/10.48550/arXiv.2506.00533?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.48550/arXiv.2506.00533, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "authors": [
+      {
+        "authorId": "2331170190",
+        "name": "Junquan Huang"
+      },
+      {
+        "authorId": "2109111",
+        "name": "Zong-Gan Chen"
+      },
+      {
+        "authorId": "2315061362",
+        "name": "Yuncheng Jiang"
+      },
+      {
+        "authorId": "2302869143",
+        "name": "Zhi-hui Zhan"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "7e57b0bd43fd23f4a92b4ef33c2102df59b96e0a",
+    "externalIds": {
+      "CorpusId": 277742174
+    },
+    "url": "https://www.semanticscholar.org/paper/7e57b0bd43fd23f4a92b4ef33c2102df59b96e0a",
+    "title": "CADO: C OST -A WARE D IFFUSION M ODELS FOR C OM - BINATORIAL O PTIMIZATION VIA RL F INETUNING",
+    "year": null,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null
+    },
+    "authors": [],
+    "abstract": null
+  },
+  {
+    "paperId": "aa9e6eb5e0e38aa83b412d10e111e800dedaf82d",
+    "externalIds": {
+      "CorpusId": 276161570
+    },
+    "url": "https://www.semanticscholar.org/paper/aa9e6eb5e0e38aa83b412d10e111e800dedaf82d",
+    "title": "Time to Rethink AI for Combinatorial Optimization: Classical Algorithms Remain Tough to Match",
+    "year": null,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null
+    },
+    "authors": [
+      {
+        "authorId": "2344193480",
+        "name": "Yikai Wu"
+      },
+      {
+        "authorId": "2288581125",
+        "name": "Haoyu Zhao"
+      },
+      {
+        "authorId": "2261737783",
+        "name": "Sanjeev Arora"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "c4d9119800970f1caca77363cf26335dc0e031f8",
+    "externalIds": {
+      "CorpusId": 277737542
+    },
+    "url": "https://www.semanticscholar.org/paper/c4d9119800970f1caca77363cf26335dc0e031f8",
+    "title": "G UIDE CO: T RAINING O BJECTIVE -G UIDED D IFFU - SION S OLVER WITH I MPERFECT D ATA FOR C OMBINA - TORIAL O PTIMIZATION",
+    "year": null,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null
+    },
+    "authors": [],
+    "abstract": null
+  },
+  {
+    "paperId": "b909dae80fc267d966216f2fea5f9d77034369d4",
+    "externalIds": {
+      "CorpusId": 278456919
+    },
+    "url": "https://www.semanticscholar.org/paper/b909dae80fc267d966216f2fea5f9d77034369d4",
+    "title": "CADO: Cost-Aware Diffusion Solvers for Combinatorial Optimization through RL fine-tuning",
+    "year": null,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null
+    },
+    "authors": [],
+    "abstract": null
+  },
+  {
+    "paperId": "36fb75c3447ad29f45174cd55a9f418d083c5439",
+    "externalIds": {
+      "DBLP": "journals/tmlr/CuiAFKKASK25",
+      "CorpusId": 281406042
+    },
+    "url": "https://www.semanticscholar.org/paper/36fb75c3447ad29f45174cd55a9f418d083c5439",
+    "title": "Mean-Field RL for Large-Scale Unit-Capacity Pickup-and-Delivery Problems",
+    "year": 2025,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null
+    },
+    "authors": [
+      {
+        "authorId": "108598655",
+        "name": "Kai Cui"
+      },
+      {
+        "authorId": "2152020505",
+        "name": "Sharif Azem"
+      },
+      {
+        "authorId": "2071848292",
+        "name": "Christian Fabian"
+      },
+      {
+        "authorId": "2281996073",
+        "name": "Kirill Kuroptev"
+      },
+      {
+        "authorId": "2316063020",
+        "name": "Ramin Khalili"
+      },
+      {
+        "authorId": "2305842353",
+        "name": "Osama Abboud"
+      },
+      {
+        "authorId": "2261286957",
+        "name": "Florian Steinke"
+      },
+      {
+        "authorId": "2266465052",
+        "name": "Heinz Koeppl"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "c9198d14272e8b7032eb8c13d06cfc7196b6c67d",
+    "externalIds": {
+      "CorpusId": 289333488
+    },
+    "url": "https://www.semanticscholar.org/paper/c9198d14272e8b7032eb8c13d06cfc7196b6c67d",
+    "title": "Solving Asymmetric Traveling Salesman Problem via Trace-Guided Cost Augmentation",
+    "year": null,
+    "citationCount": 1,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null
+    },
+    "authors": [
+      {
+        "authorId": "2412944965",
+        "name": "Zhen Zhang"
+      },
+      {
+        "authorId": "2262197686",
+        "name": "J. Shi"
+      }
+    ],
+    "abstract": null
+  },
+  {
+    "paperId": "07236f52a95a6f646b5d00576e1595d57e4fac72",
+    "externalIds": {
+      "CorpusId": 291189628
+    },
+    "url": "https://www.semanticscholar.org/paper/07236f52a95a6f646b5d00576e1595d57e4fac72",
+    "title": "Learning Pairwise Cooperation For Large-scale Vertex Subset Selection: Dominating Set Problem as Example",
+    "year": null,
+    "citationCount": 0,
+    "openAccessPdf": {
+      "url": "",
+      "status": null,
+      "license": null
+    },
+    "authors": [
+      {
+        "authorId": "2356373878",
+        "name": "Zheng Fu"
+      },
+      {
+        "authorId": "2469158572",
+        "name": "Hai-Zhang Cheng"
+      },
+      {
+        "authorId": "2458192199",
+        "name": "Danlu Shao"
+      },
+      {
+        "authorId": "2458319172",
+        "name": "Li Ma"
+      },
+      {
+        "authorId": "2284387361",
+        "name": "Yang Yang"
+      },
+      {
+        "authorId": "1796257902",
+        "name": "Shi Pu"
+      },
+      {
+        "authorId": "2470294728",
+        "name": "Qi Zhu"
+      },
+      {
+        "authorId": "1471656565",
+        "name": "Weihao Jiang"
+      }
+    ],
+    "abstract": null
+  }
+]

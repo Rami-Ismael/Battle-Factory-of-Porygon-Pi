@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ doc.title }} · Margin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <div class="workspace">
+    <aside class="library" aria-label="Documents">
+      <a class="brand" href="/"><span class="brand-symbol">m</span> margin<span class="brand-dot">.</span></a>
+      <div class="workspace-name"><span class="avatar">Y</span><span>Your writing room<small>Personal workspace</small></span></div>
+      <button class="new-document" id="new-document"><i data-lucide="plus" aria-hidden="true"></i> New document</button>
+      <div class="library-label">Documents <span>{{ documents|length }}</span></div>
+      <nav id="document-list">
+      {% for item in documents %}
+        <a class="document-link {{ 'selected' if item.id == doc.id }}" href="/documents/{{ item.id }}"><i data-lucide="file-text" aria-hidden="true"></i><span>{{ item.title }}</span>{% if item.id == doc.id %}<span class="selected-dot"></span>{% endif %}</a>
+      {% endfor %}
+      </nav>
+      <div class="library-bottom"><i data-lucide="feather" aria-hidden="true"></i><p>Good writing happens<br>one revision at a time.</p><span>Made for the work in progress.</span></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <button class="icon-button mobile-library" id="toggle-library" aria-label="Toggle documents"><i data-lucide="panel-left"></i></button>
+        <div class="breadcrumb">Your documents <i data-lucide="chevron-right" aria-hidden="true"></i><span id="breadcrumb-title">{{ doc.title }}</span></div>
+        <div class="topbar-actions"><span id="save-status" role="status"><span class="status-dot"></span> All changes saved</span><button class="quiet-button" id="history-button"><i data-lucide="history"></i> History</button><button class="avatar" id="help-button" aria-label="Editor keyboard shortcuts">?</button></div>
+      </header>
+      <div class="document-bar"><div class="document-mode"><i data-lucide="feather"></i> Draft <span class="bar-divider"></span><span id="word-count">0 words</span></div><button class="quiet-button checkpoint-button" id="checkpoint-button"><i data-lucide="flag"></i> Save revision</button></div>
+      <div class="writing-layout">
+        <section class="paper" aria-label="Writing editor">
+          <div class="draft-label"><span class="tiny-line"></span> A little room for your next draft</div>
+          <textarea id="document-title" rows="1" maxlength="200" aria-label="Document title" placeholder="Untitled document">{{ doc.title }}</textarea>
+          <div class="document-subline"><span>Working draft</span><span class="small-dot"></span><span id="reading-time">1 min read</span></div>
+          <div class="format-toolbar" role="toolbar" aria-label="Text formatting">
+            <button data-format="paragraph" title="Paragraph">Text <i data-lucide="chevron-down"></i></button><span class="bar-divider"></span>
+            <button data-format="bold" aria-label="Bold" title="Bold (⌘/Ctrl B)"><i data-lucide="bold"></i></button><button data-format="italic" aria-label="Italic"><i data-lucide="italic"></i></button><button data-format="h2" aria-label="Heading"><i data-lucide="heading-2"></i></button><button data-format="bullet" aria-label="Bullet list"><i data-lucide="list"></i></button><button data-format="quote" aria-label="Block quote"><i data-lucide="quote"></i></button><span class="bar-divider"></span>
+            <button id="annotate-button" class="highlight-button" title="Select text, then add a note"><i data-lucide="highlighter"></i> Highlight & note</button>
+            <span class="toolbar-spacer"></span><button data-format="undo" aria-label="Undo"><i data-lucide="undo-2"></i></button><button data-format="redo" aria-label="Redo"><i data-lucide="redo-2"></i></button>
+          </div>
+          <div id="editor"></div>
+          <div class="page-end"><span></span><i data-lucide="asterisk"></i><span></span></div>
+          <div class="editor-tip"><i data-lucide="mouse-pointer-2"></i> Select a passage to leave a note. Type / on a new line for blocks.</div>
+        </section>
+        <aside class="commentary" aria-label="Passage commentary">
+          <div class="commentary-heading"><div><span class="margin-icon"><i data-lucide="messages-square"></i></span><h2>In the margin</h2></div><span id="open-count" class="count-badge">2</span></div>
+          <p class="margin-description">A closer look. A stronger next draft.</p>
+          <div class="pass-filter"><label for="pass-filter"><i data-lucide="sliders-horizontal"></i></label><select id="pass-filter" aria-label="Filter editing pass"><option value="all">All editing passes</option><option>Structure</option><option>Line edit</option><option>Voice</option><option>Proofread</option></select></div>
+          <div class="suggestion-navigation"><span id="suggestion-position">1 of 2 suggestions</span><div><button class="icon-button" id="previous-note" aria-label="Previous suggestion"><i data-lucide="chevron-left"></i></button><button class="icon-button" id="next-note" aria-label="Next suggestion"><i data-lucide="chevron-right"></i></button></div></div>
+          <div id="notes-list"></div>
+          <div class="margin-footer"><i data-lucide="sparkles"></i><span>Your voice stays yours.<br>These notes are a place to think.</span></div>
+        </aside>
+      </div>
+      <footer class="statusbar"><span><span class="status-dot"></span> Your private writing space</span><span>Saved on this device <span class="bar-divider"></span><kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>S</kbd> to save</span></footer>
+    </main>
+  </div>
+  <dialog id="new-dialog"><form hx-post="/documents" hx-swap="none"><div class="dialog-heading"><h2>A fresh page</h2><button type="button" data-close="new-dialog" class="icon-button" aria-label="Close"><i data-lucide="x"></i></button></div><label for="new-title">Document title</label><input id="new-title" name="title" required maxlength="200" placeholder="What are you working on?"><button class="primary-button" type="submit">Create document</button></form></dialog>
+  <dialog id="note-dialog"><form id="note-form"><div class="dialog-heading"><h2>Leave a note</h2><button type="button" data-close="note-dialog" class="icon-button" aria-label="Close"><i data-lucide="x"></i></button></div><blockquote id="selected-quote"></blockquote><label for="note-pass">Editing pass</label><select id="note-pass"><option>Line edit</option><option>Structure</option><option>Voice</option><option>Proofread</option></select><label for="note-body">Commentary</label><textarea id="note-body" required rows="4" placeholder="What could make this passage stronger?"></textarea><label for="note-replacement">Suggested wording <span>(optional)</span></label><textarea id="note-replacement" rows="2" placeholder="An alternative to try…"></textarea><button class="primary-button">Add highlighted note</button></form></dialog>
+  <dialog id="checkpoint-dialog"><form id="checkpoint-form"><div class="dialog-heading"><h2>Keep this version</h2><button type="button" data-close="checkpoint-dialog" class="icon-button" aria-label="Close"><i data-lucide="x"></i></button></div><p>A checkpoint for your work, with all its margin notes.</p><label for="revision-label">Revision name</label><input id="revision-label" required maxlength="200" placeholder="e.g. A stronger opening"><label class="checkbox-label"><input id="revision-major" type="checkbox"> Flag as a major revision</label><button class="primary-button">Save revision</button></form></dialog>
+  <dialog id="history-dialog" class="history-dialog"><div class="dialog-heading"><h2>Revision history</h2><button data-close="history-dialog" class="icon-button" aria-label="Close"><i data-lucide="x"></i></button></div><p>Every saved draft. Every way forward.</p><div id="history-content"></div><div id="revision-preview" hidden><h3 id="preview-title"></h3><div id="preview-editor"></div><button id="restore-revision" class="primary-button">Restore this revision</button><p>Your current draft will also be kept in history.</p></div></dialog>
+  <dialog id="help-dialog"><div class="dialog-heading"><h2>A few ways to write</h2><button data-close="help-dialog" class="icon-button" aria-label="Close"><i data-lucide="x"></i></button></div><p>Use Markdown as you type: <b>#</b> for a heading, <b>-</b> for a list, and <b>&gt;</b> for a quote, followed by a space.</p><p>⌘ / Ctrl + B for bold, I for italic, Z to undo, and S to save. Select text and choose “Highlight & note” to begin an editing pass.</p><p>Use the arrows in the margin to move through open suggestions. Resolve a note when you’re done, or accept its suggested wording.</p></dialog>
+  <div id="block-menu" role="menu" aria-label="Insert a block" hidden></div>
+  <div id="toast" role="status" hidden></div>
+  <script id="document-state" type="application/json">{{ state|tojson }}</script>
+</body>
+</html>

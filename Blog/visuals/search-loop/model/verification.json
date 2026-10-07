@@ -1,0 +1,17 @@
+{
+  "onnxBytes": 8710894,
+  "parameters": 2122751,
+  "maxAbsoluteError": 6.67572021484375e-06,
+  "torchOnnxComparedSteps": 48,
+  "ortCpuSecondsTotal": 0.05470054247416556,
+  "ortCpuMedianStep": 0.0011285835062153637,
+  "corpusHashesVerified": 692,
+  "checkpointSha256": "432b7ffee6a362044b77df7f069d3712a338bdd4ce53e7d6c842cad8a7482b64",
+  "modelSha256": "89d41e01c0d1ea38a025b0175273f8096e3333abe1cb0b8f8734e9d2fe309b06",
+  "versions": {
+    "torch": "2.12.0",
+    "onnx": "1.22.0",
+    "onnxruntime": "1.30.0"
+  },
+  "cpuThreads": 1
+}

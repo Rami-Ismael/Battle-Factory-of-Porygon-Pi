@@ -1,0 +1,372 @@
+[
+  {
+    "auditId": "S001",
+    "title": "Evolution of Heuristics: Towards Efficient Automatic Algorithm Design Using Large Language Model",
+    "count": 371,
+    "decision": "DEFER",
+    "reason": "Evolves LLM-written heuristic thoughts and code, rather than the candidate-team distribution. Revisit only for the automated-operator branch; it does not supply a new current CEM, legality or battle-evaluation experiment.",
+    "source": "https://arxiv.org/abs/2401.02051",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S002",
+    "title": "DIFUSCO: Graph-based Diffusion Solvers for Combinatorial Optimization",
+    "count": 331,
+    "decision": "ALREADY",
+    "reason": "Already in the neural CO queue and explained in this conversation. Graph bit denoising and task-specific decoding are background; no duplicate addition.",
+    "source": "https://arxiv.org/abs/2302.08224",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S003",
+    "title": "Neural Combinatorial Optimization with Heavy Decoder: Toward Large Scale Generalization",
+    "count": 233,
+    "decision": "SKIP",
+    "reason": "Light encoder/heavy autoregressive decoder targets generalization from small to large TSP/CVRP node counts. Teams remain six sets, and the masked diffusion architecture has a different bottleneck; no identified current transfer beyond existing partial regeneration.",
+    "source": "https://arxiv.org/abs/2310.07985",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S004",
+    "title": "DeepACO: Neural-enhanced Ant Systems for Combinatorial Optimization",
+    "count": 152,
+    "decision": "DEFER",
+    "reason": "Learns heuristic measures for an existing ant-colony solver. Requires a new team-construction/pheromone representation and objective-feedback training; GFACS is the more focused conditional reading if comparing multimodal proposal priors.",
+    "source": "https://arxiv.org/abs/2309.14032",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S005",
+    "title": "From Distribution Learning in Training to Gradient Search in Testing for Combinatorial Optimization",
+    "count": 137,
+    "decision": "DEFER",
+    "reason": "Noise-and-reconstruct test-time gradient search is potentially relevant only with a compatible differentiable team objective or surrogate. Battles provide no such gradient; existing guidance readings cover the nearer prerequisite. Do not interpret TSP/MIS gains as noisy black-box evidence.",
+    "source": "https://proceedings.neurips.cc/paper_files/paper/2023/hash/9c93b3cd3bc60c0fe7b0c2d74a2da966-Abstract-Conference.html",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S006",
+    "title": "Learning to Search Feasible and Infeasible Regions of Routing Problems with Flexible Neural k-Opt",
+    "count": 123,
+    "decision": "SKIP",
+    "reason": "Flexible k-opt and infeasible-region exploration use routing-specific moves, feasibility features and shaped rewards. Illegal teams cannot supply battle fitness; this does not replace the current legality verifier or explain categorical team completion.",
+    "source": "https://arxiv.org/abs/2310.18264",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S007",
+    "title": "BQ-NCO: Bisimulation Quotienting for Efficient Neural Combinatorial Optimization",
+    "count": 115,
+    "decision": "DEFER",
+    "reason": "Bisimulation quotienting reduces constructive MDP state spaces using recursive problem symmetries. A formal team-construction MDP and proven equivalences would be prerequisites; this is beyond the current diffusion proposer and already planned team-order checks.",
+    "source": "https://arxiv.org/abs/2301.03313",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S008",
+    "title": "RL4CO: An Extensive Reinforcement Learning for Combinatorial Optimization Benchmark",
+    "count": 111,
+    "decision": "DEFER",
+    "reason": "A benchmark/library for many CO environments and RL baselines, useful if building a constructive team-policy environment. It is engineering infrastructure, not a new method for the current diffusion/CEM experiment.",
+    "source": "https://arxiv.org/abs/2306.17100",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S009",
+    "title": "Towards Omni-generalizable Neural Methods for Vehicle Routing Problems",
+    "count": 105,
+    "decision": "DEFER",
+    "reason": "Meta-learns initialization for fast adaptation across routing sizes and distributions. Could matter after many opponent-specific optimization tasks exist; currently EAS and DIMES cover the adaptation question without another routing meta-learning paper.",
+    "source": "https://arxiv.org/abs/2305.19587",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S010",
+    "title": "MVMoE: Multi-Task Vehicle Routing Solver with Mixture-of-Experts",
+    "count": 94,
+    "decision": "SKIP",
+    "reason": "Mixture-of-experts generalizes among VRP variants. The project does not currently need one network covering many routing constraints; model-capacity scaling alone is insufficient reason to adopt a specialized MoE architecture.",
+    "source": "https://arxiv.org/abs/2405.01029",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S011",
+    "title": "Unsupervised Learning for Solving the Travelling Salesman Problem",
+    "count": 88,
+    "decision": "SKIP",
+    "reason": "Unsupervised heatmaps optimize explicit tour-length and Hamiltonian-cycle surrogate losses before local search. There is no equivalent known differentiable battle objective; it adds a TSP-specific energy and decoder, not an applicable CEM update.",
+    "source": "https://arxiv.org/abs/2303.10538",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S012",
+    "title": "How Efficient is LLM-Generated Code? A Rigorous & High-Standard Benchmark",
+    "count": 77,
+    "decision": "SKIP",
+    "reason": "ENAMEL measures efficiency of LLM-generated programs. Its code benchmark and reference implementations do not address generation of teams, noisy win-rate ranking, or training the team proposer.",
+    "source": "https://arxiv.org/abs/2406.06647",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S013",
+    "title": "Winner Takes It All: Training Performant RL Populations for Combinatorial Optimization",
+    "count": 75,
+    "decision": "DEFER",
+    "reason": "Poppy trains complementary policies for expected best-of-K return, updating the winner with a best-minus-runner-up signal (§3.2). This is distinct from improving average unranked team quality and has no strict diversity guarantee. Revisit for a portfolio objective and reward-based proposer training; compare one policy sampled K times against K specialized policies with equal battles and fresh finalist evaluation.",
+    "source": "https://arxiv.org/abs/2210.03475",
+    "evidence_level": "fulltext",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S014",
+    "title": "Ant Colony Sampling with GFlowNets for Combinatorial Optimization",
+    "count": 69,
+    "decision": "MAYBE",
+    "reason": "Selective MED: §§5.1/5.5 and Appendix D.2 test whether a diverse learned prior helps the same downstream search, including active search beyond ACO. For teams, compare proposal distributions before/after an identical partial-regeneration search while controlling battles and initial quality; measure diversity and verified fitness. GFlowNet/pheromone implementation is unnecessary for this reading, and the paper does not establish noisy-battle gains.",
+    "source": "https://arxiv.org/abs/2403.07041",
+    "evidence_level": "fulltext",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S015",
+    "title": "Fast T2T: Optimization Consistency Speeds Up Diffusion-Based Training-to-Testing Solving for Combinatorial Optimization",
+    "count": 60,
+    "decision": "DEFER",
+    "reason": "Consistency training accelerates diffusion and gradient-guided test-time search. Read only if denoising overhead becomes a measured bottleneck and suitable strong labels/surrogate exist; fewer denoising steps do not imply fewer battle queries or better diversity.",
+    "source": "https://arxiv.org/abs/2502.02941",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S016",
+    "title": "Learning to Handle Complex Constraints for Vehicle Routing Problems",
+    "count": 59,
+    "decision": "DEFER",
+    "reason": "Proactive infeasibility prevention learns masks to avoid dead ends when checking extendability is hard. Potential only if current categorical decoding repeatedly reaches uncompletable teams despite local legality masks. First measure that failure; VRP mask labels and reward shaping are not transferable as-is.",
+    "source": "https://arxiv.org/abs/2410.21066",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S017",
+    "title": "Let the Flows Tell: Solving Graph Combinatorial Optimization Problems with GFlowNets",
+    "count": 59,
+    "decision": "DEFER",
+    "reason": "Conditional GFlowNets supply diverse solution sampling and credit assignment, but require constructing a new team MDP and reward-based training. GFACS gives a more focused reading on priors plus downstream search; do not add both for the generic diversity analogy.",
+    "source": "https://arxiv.org/abs/2305.17010",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S018",
+    "title": "Neural Combinatorial Optimization Algorithms for Solving Vehicle Routing Problems: A Comprehensive Survey with Perspectives",
+    "count": 53,
+    "decision": "SKIP",
+    "reason": "Comprehensive routing NCO survey; the owner explicitly excludes surveys and no primary experimental contribution is needed for the current loop.",
+    "source": "https://arxiv.org/abs/2406.00415",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S019",
+    "title": "INViT: A Generalizable Routing Problem Solver with Invariant Nested View Transformer",
+    "count": 52,
+    "decision": "SKIP",
+    "reason": "Invariant nested views target geometric routing size/distribution generalization. Team fields do not have Euclidean routing views; no concrete current experiment warrants this architecture.",
+    "source": "https://arxiv.org/abs/2402.02317",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S020",
+    "title": "Select and Optimize: Learning to aolve large-scale TSP instances",
+    "count": 51,
+    "decision": "SKIP",
+    "reason": "Selects and repairs TSP subproblems for large-instance inference. Partial regeneration is already proposed and NLNS is already peripheral; another route-segment selector lacks a distinct transferable experiment for six interacting sets.",
+    "source": "https://proceedings.mlr.press/v206/cheng23a.html",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S021",
+    "title": "ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs",
+    "count": 48,
+    "decision": "SKIP",
+    "reason": "Process reward models supervise LLM reasoning trajectories. Team generation has no stepwise reasoning-trace target, and reward integration is deferred; selecting high-quality data in general is not enough relevance.",
+    "source": "https://arxiv.org/abs/2506.18896",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S022",
+    "title": "GOAL: A Generalist Combinatorial Optimization Agent Learner",
+    "count": 48,
+    "decision": "DEFER",
+    "reason": "Generalist graph solver with lightweight adapters for new CO problems. Requires a new graph representation and policy interface; only revisit if cross-problem pretraining becomes an explicit project direction.",
+    "source": "https://arxiv.org/abs/2406.15079",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S023",
+    "title": "Rethinking Light Decoder-based Solvers for Vehicle Routing Problems",
+    "count": 42,
+    "decision": "SKIP",
+    "reason": "Repairs capacity/generalization limits in light autoregressive routing decoders. Static node embeddings and larger VRP instances are not identified bottlenecks in the current masked team generator.",
+    "source": "https://arxiv.org/abs/2503.00753",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S024",
+    "title": "Meta-SAGE: Scale Meta-Learning Scheduled Adaptation with Guided Exploration for Mitigating Scale Shift on Combinatorial Optimization",
+    "count": 40,
+    "decision": "DEFER",
+    "reason": "Adapts routing embeddings to scale shifts, with nearby-location exploration bias. Team count is fixed and no corresponding geometric locality is established; EAS already supplies the relevant small-parameter adaptation reading.",
+    "source": "https://arxiv.org/abs/2306.02688",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S025",
+    "title": "Cross-Problem Learning for Solving Vehicle Routing Problems",
+    "count": 38,
+    "decision": "DEFER",
+    "reason": "Transfers a TSP backbone to related VRP variants using adapters. Relevant only if adapting an established team backbone across regulations/opponents becomes a measured issue; routing feature modules themselves do not transfer.",
+    "source": "https://arxiv.org/abs/2404.11677",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S026",
+    "title": "CO-Bench: Benchmarking Language Model Agents in Algorithm Search for Combinatorial Optimization",
+    "count": 37,
+    "decision": "DEFER",
+    "reason": "CO-Bench evaluates LLM agents that search for algorithms. Use if resuming automated heuristic design, not as an addition for the present candidate-generator experiments.",
+    "source": "https://arxiv.org/abs/2504.04310",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S027",
+    "title": "Revisiting Sampling for Combinatorial Optimization",
+    "count": 35,
+    "decision": "DEFER",
+    "reason": "Useful corrective background: iSCO shows training-free sampling can be competitive. But §§3.2.1–3.2.2 depend on cheap local energy differences/gradients and MH correction, unavailable directly from noisy battles. Current mutation/local-search controls already test the core baseline lesson; do not propose iSCO as a drop-in black-box team solver.",
+    "source": "https://proceedings.mlr.press/v202/sun23c.html",
+    "evidence_level": "fulltext",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S028",
+    "title": "Diffusion Models as Network Optimizers: Explorations and Analysis",
+    "count": 34,
+    "decision": "SKIP",
+    "reason": "Diffusion network optimization learns conditional high-quality solution distributions and samples repeatedly. That premise is already understood; no verified new CEM/noisy-oracle mechanism justifies another domain application paper.",
+    "source": "https://arxiv.org/abs/2411.00453",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S029",
+    "title": "Self-Improved Learning for Scalable Neural Combinatorial Optimization",
+    "count": 34,
+    "decision": "ADD",
+    "reason": "MED, read §4 and Figure 3: local reconstruction creates better pseudo-labels, then supervised learning improves the next reconstruction round. Concrete comparison: global top-fraction CEM versus training on independently validated improvements retained per starting team, at matched battle/training counts; also compare frozen reconstruction. TSP can evaluate/merge subpaths locally; teams must be evaluated as complete interacting objects, and noisy improvements require fresh validation.",
+    "source": "https://arxiv.org/abs/2403.19561",
+    "evidence_level": "fulltext",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S030",
+    "title": "GDSG: Graph Diffusion-Based Solution Generator for Optimization Problems in MEC Networks",
+    "count": 31,
+    "decision": "SKIP",
+    "reason": "Training from suboptimal labels matches a live axis, but §III-B assumes mean suboptimal parameterization equals the optimum and independent bits for its hitting example. Experiments compare datasets differing in size/scale (e.g., 80k suboptimal versus 2k optimal), so they do not resolve the planned matched-data-quality ablation. Existing experiment plan is stronger for this question; no new priority.",
+    "source": "https://arxiv.org/abs/2412.08296",
+    "evidence_level": "fulltext",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S031",
+    "title": "DiffSG: A Generative Solver for Network Optimization with Diffusion Model",
+    "count": 31,
+    "decision": "SKIP",
+    "reason": "Diffusion proposal sampling for network optimization is a domain demonstration. It supplies neither the current evaluate-select-retrain loop nor treatment of battle noise, and the generative-versus-discriminative argument is already covered.",
+    "source": "https://arxiv.org/abs/2408.06701",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S032",
+    "title": "Position: Rethinking Post-Hoc Search-Based Neural Approaches for Solving Large-Scale Traveling Salesman Problems",
+    "count": 31,
+    "decision": "MAYBE",
+    "reason": "Selective MED for §§3–5: replace learned TSP heatmaps with a simple baseline while preserving the downstream search to test attribution. Adapt as proposer-source × identical ranking/repair/search ablation, measuring before/after search with fresh battles. Directly challenges over-crediting DIFUSCO/DIMES components, but overlaps the already-listed Unify ML4TSP evaluation reading; add only if this narrower audit is useful.",
+    "source": "https://arxiv.org/abs/2406.03503",
+    "evidence_level": "fulltext",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S033",
+    "title": "An Example of Evolutionary Computation + Large Language Model Beating Human: Design of Efficient Guided Local Search",
+    "count": 31,
+    "decision": "SKIP",
+    "reason": "Duplicate/version identity: indexed DOI is arXiv:2401.02051, the same work as S001; current canonical arXiv returns Evolution of Heuristics. Preserve this citation record for audit, but do not treat it as an independent reading or add counts together.",
+    "source": "https://arxiv.org/abs/2401.02051",
+    "evidence_level": "abstract",
+    "duplicate_of": "S001"
+  },
+  {
+    "auditId": "S034",
+    "title": "Variational Annealing on Graphs for Combinatorial Optimization",
+    "count": 29,
+    "decision": "DEFER",
+    "reason": "Dependency-aware autoregressive variational annealing and entropy regularization could inform a future alternative proposer. Its explicit graph energy, graph subtokenization and non-diffusion objective require substantial adapters; current categorical diffusion already models dependencies and has more direct diversity controls.",
+    "source": "https://arxiv.org/abs/2311.14156",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S035",
+    "title": "Instance-Conditioned Adaptation for Large-scale Generalization of Neural Combinatorial Optimization",
+    "count": 28,
+    "decision": "SKIP",
+    "reason": "Instance-conditioned routing adaptation addresses geometry/density and varying customer counts. Those features and scale shift do not map to current six-set team generation; no immediate implementation or experiment.",
+    "source": "https://arxiv.org/abs/2405.01906",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S036",
+    "title": "Learning for routing: A guided review of recent developments and future directions",
+    "count": 26,
+    "decision": "SKIP",
+    "reason": "Guided routing review: outside the owner’s no-surveys preference and largely a taxonomy rather than a needed new experimental method.",
+    "source": "https://arxiv.org/abs/2507.00218",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  },
+  {
+    "auditId": "S037",
+    "title": "Adjustable Robust Reinforcement Learning for Online 3D Bin Packing",
+    "count": 23,
+    "decision": "DEFER",
+    "reason": "Adjustable robust RL trades average and adversarial worst-case return for online bin packing. Potential for future robust battle-policy/opponent objectives, but current fixed evaluation pool and candidate-generation axes do not need a permutation attacker or mixture-dynamics robust RL.",
+    "source": "https://arxiv.org/abs/2310.04323",
+    "evidence_level": "abstract",
+    "duplicate_of": null
+  }
+]

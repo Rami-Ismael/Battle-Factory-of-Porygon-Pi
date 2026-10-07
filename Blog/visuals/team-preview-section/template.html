@@ -1,0 +1,578 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Preview</title>
+<script type="module">import 'https://cdn.jsdelivr.net/npm/number-flow@0.6.2/+esm';</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* The blog's Distill article system (shared with team-preview-figure and bo-features): one reading column, figures set
+   into the prose, margin notes in a right gutter, numbered grey captions, reader-driven controls.
+   Colour roles: --you = your side, --them = the opponent, --back = the back pair. */
+:root{
+  --bg:#FFFFFF; --ink:#1F2328; --body:#2E3338; --muted:#6A7178; --faint:#9AA1A8; --rule:#E3E6EA; --panel:#F6F7F9;
+  --you:#0E7C7B; --you-soft:#E3F2F1; --them:#B23A5A; --them-soft:#F7E6EB; --back:#B7791F; --back-soft:#F7EEDD; --cell:#E5E8EC;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);          /* ease-out: things entering, state changes the reader asked for */
+  --ease-move:cubic-bezier(0.77,0,0.175,1);    /* ease-in-out: things moving across the screen */
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+    --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+  --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{background:var(--bg);color:var(--body);font:17px/1.7 var(--sans);margin:0;-webkit-font-smoothing:antialiased}
+.page{display:grid;grid-template-columns:minmax(16px,1fr) minmax(0,660px) minmax(16px,240px) minmax(16px,1fr);column-gap:32px;padding-block:48px 80px}
+.page > *{grid-column:2}
+.wide{grid-column:2 / 4}
+aside{grid-column:3;font-size:13px;line-height:1.55;color:var(--muted);align-self:start;border-top:1px solid var(--rule);padding-top:6px;margin-top:6px}
+aside b{color:var(--ink);font-weight:600}
+h1{font:700 clamp(34px,5vw,46px)/1.12 var(--sans);color:var(--ink);margin:0 0 10px;letter-spacing:-0.015em}
+.dek{font-size:20px;line-height:1.5;color:var(--muted);margin:0 0 24px;max-width:36em}
+.byline{display:flex;flex-wrap:wrap;gap:6px 36px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding-block:12px;margin-bottom:28px;font-size:13px;color:var(--muted)}
+.byline b{display:block;font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+h2{font:600 24px/1.3 var(--sans);color:var(--ink);margin:40px 0 8px}
+p{margin:0 0 18px}
+strong{color:var(--ink);font-weight:600}
+.math{font-family:var(--mono);font-size:.92em;white-space:nowrap;color:var(--ink)}
+figure{margin:12px 0 30px;display:grid;gap:12px}
+.fig{background:var(--panel);border-radius:6px;padding:18px;display:grid;gap:14px;min-width:0}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);max-width:44em}
+figcaption b{color:var(--ink);font-weight:600}
+.lab{font:600 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.read{font-size:14.5px;color:var(--ink);line-height:1.55;margin:0;min-height:1.6em}
+.y{color:var(--you);font-weight:600} .t{color:var(--them);font-weight:600} .b{color:var(--back);font-weight:600}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+button{font:500 13px/1 var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:7px 12px;min-height:34px;cursor:pointer;transition:transform 120ms var(--ease),border-color 160ms ease,background-color 160ms ease,opacity 160ms ease}
+button:active{transform:scale(0.97)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+img.sp{image-rendering:pixelated;display:block}
+
+/* ── Figure 1: what each sheet shows ── */
+.ledger{display:grid;grid-template-columns:minmax(124px,1.2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,2.2fr) minmax(0,1.3fr) minmax(0,.8fr);font-size:12.5px;line-height:1.4}
+.ledger > div{padding:7px 8px 7px 0;border-bottom:1px solid var(--rule);min-width:0}
+.ledger .h{font:600 10.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint);border-bottom-color:var(--ink)}
+.ledger .mon{display:flex;align-items:center;gap:6px;color:var(--ink);font-weight:500}
+.ledger .mon img{width:32px;height:32px}
+.unknown{font-size:14.5px;color:var(--ink);line-height:1.55;margin:0}
+.unknown b{font-weight:600}
+/* Figure 1 wheels: each field is a scroll wheel of that Pokémon's legal options (native scroll + snap) */
+.wheel{--h:22px;position:relative;height:calc(var(--h) * 3);overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;
+       border-radius:6px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--rule);
+       -webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.wheel::-webkit-scrollbar{display:none}
+.wheel .opt{scroll-snap-align:center}
+.wheel .pad{height:var(--h)}
+.wheel.is-real{box-shadow:inset 0 0 0 1.5px var(--you)}
+.wheel.is-real .opt.t{color:var(--you);font-weight:600}
+.wheel:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+.moves4 .wheel{height:calc(var(--h) * 1.6)}
+.moves4 .wheel .pad{height:calc(var(--h) * .3)}
+.ledger > div.cell{display:flex;flex-direction:column;justify-content:center}
+.reel{--h:22px;position:relative;height:calc(var(--h) * var(--lines));overflow:hidden;border-radius:6px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--rule);
+      -webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.reel.one{-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.strip{position:absolute;left:0;right:0;top:0;will-change:transform}
+.opt{height:var(--h);display:flex;align-items:center;gap:4px;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-size:12px}
+.opt .ii{width:20px;height:20px;flex:none;image-rendering:pixelated;margin-left:-3px}
+.opt .ph{width:12px;height:12px;flex:none;border-radius:50%;border:1.5px solid var(--faint);margin:0 4px 0 1px}
+.reel.true .opt.t{color:var(--you);font-weight:600}
+.reel.landed{box-shadow:inset 0 0 0 1.5px var(--you)}
+.moves4{display:grid;grid-template-columns:1fr 1fr;gap:4px 6px}
+.cellv{color:var(--ink)}
+.cellv .v{position:relative;display:block}
+.cellv .n{display:block;font:10.5px/1.3 var(--mono);color:var(--muted);margin-top:3px}
+.it{width:24px;height:24px;image-rendering:pixelated;vertical-align:middle;margin:-5px 2px -5px -5px}
+/* reveal: a redaction bar wipes off to the right (clip-path transition, so a second click retargets mid-wipe) */
+.cellv .bar{position:absolute;inset:-1px -2px;border-radius:3px;background:var(--ink);opacity:.86;clip-path:inset(0 0 0 0);transition:clip-path 220ms var(--ease)}
+.cellv.shown .bar{clip-path:inset(0 0 0 100%)}
+.cellv.never .bar{background:repeating-linear-gradient(135deg,var(--faint) 0 4px,var(--cell) 4px 8px);opacity:1}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted)}
+.key span::before{content:"";display:inline-block;width:18px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0;background:var(--c)}
+
+/* ── Figure 2: the count ── */
+.grid90{display:grid;grid-template-columns:auto repeat(6,minmax(0,1fr));gap:3px 4px;align-items:center}
+.grid90 .lp{display:flex;padding-right:6px;border-right:2px solid var(--you)}
+.grid90 .lp img{width:26px;height:26px}
+.grid90 .bc{display:flex;justify-content:center;background:var(--bg);border:1px solid var(--rule);border-radius:5px;padding:1px;opacity:0;transform:scale(0.95);transition:opacity 200ms var(--ease),transform 200ms var(--ease),border-color 120ms ease,background-color 120ms ease}
+.grid90 .bc img{width:22px;height:22px}
+.grid90.backs .bc{opacity:1;transform:none}
+@media (hover:hover) and (pointer:fine){ .grid90.backs .bc:hover{border-color:var(--back);background:var(--back-soft)} }
+.eq{font:500 15px/1.4 var(--mono);color:var(--ink)}
+/* Figure 2, step 1: where 15 comes from — 36 squares, minus the diagonal, minus the mirror half */
+.p6{display:grid;gap:12px}
+.p6 .say{min-height:4.7em}   /* the longest stage text; keeps the page from jumping between stages */
+.p6nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.p6nav .st{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.p6count{margin-left:auto;display:flex;align-items:baseline;gap:6px}
+.p6count number-flow,.p6count .nf{font:600 30px/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.p6count small{font-size:12.5px;color:var(--muted)}
+.p6grid{display:grid;grid-template-columns:auto repeat(6,minmax(0,1fr));gap:4px;max-width:560px}
+.p6grid .hd{display:flex;justify-content:center;align-items:center}
+.p6grid .hd img{width:36px;height:36px}
+.p6grid .corner{font:10px/1.3 var(--mono);color:var(--faint);text-align:right;padding-right:4px;align-self:end}
+.pc{position:relative;display:flex;justify-content:center;align-items:center;aspect-ratio:1.5;background:var(--bg);border:1px solid var(--rule);border-radius:6px;
+    transition:transform 400ms var(--ease-move),opacity 250ms var(--ease) 150ms,background-color 200ms ease,border-color 200ms ease}
+.pc img{width:24px;height:24px;margin:0 -3px}
+.pc .x{position:absolute;left:12%;right:12%;top:50%;height:2px;margin-top:-1px;background:var(--them);transform:scaleX(0);transform-origin:left;transition:transform 200ms var(--ease)}
+.pc .no{position:absolute;top:2px;left:5px;font:600 10px var(--mono);color:var(--you);opacity:0;transition:opacity 200ms var(--ease)}
+.pc.twin{border-color:var(--back);background:var(--back-soft)}
+.p6.cut .pc.diag{opacity:.3;transition-delay:0ms} .p6.cut .pc.diag .x{transform:scaleX(1)}
+.p6.fold .pc.lower{opacity:0}
+.p6.fold .pc.upper{border-color:var(--you);background:var(--you-soft)}
+.p6.done .pc.upper .no{opacity:1}
+.p6.enter .pc{animation:pcin 220ms var(--ease) both}
+.p6.bk.fold .pc.upper{border-color:var(--back);background:var(--back-soft)} .p6.bk .pc .no{color:var(--back)}
+.lpick{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chips button{display:flex;padding:2px 6px;min-height:30px;border-radius:8px}
+.chips button img{width:22px;height:22px;margin:0 -2px}
+.chips button[aria-pressed="true"]{border-color:var(--you);background:var(--you-soft)}
+.grid90 .lp.hl{border-right-color:var(--you);background:var(--you-soft);border-radius:6px 0 0 6px}
+.grid90.backs .bc.hl{border-color:var(--back);background:var(--back-soft)}
+@keyframes pcin{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:none}}
+
+/* ── Figure 3: play a preview ── */
+.opp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.oc{background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:6px 4px;display:grid;justify-items:center;min-width:0;transition:opacity 200ms ease,border-color 200ms ease,background-color 200ms ease}
+.oc img{width:48px;height:48px}
+.oc .nm{font-size:11.5px;font-weight:500;color:var(--ink);text-align:center;line-height:1.25}
+.oc .role{font:600 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;min-height:10px;margin-top:3px;color:var(--them)}
+.oc.lead{border-color:var(--them);background:var(--them-soft)} .oc.backr{border-color:var(--back);background:var(--back-soft)} .oc.home{opacity:.4}
+.field{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.slot{border:1.5px dashed var(--rule);border-radius:10px;min-height:88px;display:grid;justify-items:center;align-content:center;gap:2px;transition:border-color 200ms ease,background-color 200ms ease}
+.slot .k{font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.slot img.sp{width:52px;height:52px}
+.slot .nm{font-size:12px;color:var(--ink);font-weight:500}
+.slot.full{border-style:solid} .slot.full.L{border-color:var(--you);background:var(--you-soft)} .slot.full.B{border-color:var(--back);background:var(--back-soft)}
+.mine{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.mine button{border-radius:8px;display:grid;justify-items:center;gap:2px;padding:6px 4px;min-height:80px}
+.pic{position:relative;display:block}
+.pic .it{position:absolute;right:-8px;bottom:-6px;width:24px;height:24px;margin:0}
+.mine button img.sp{width:46px;height:46px;transition:opacity 200ms var(--ease)}
+.mine button .nm{font-size:11.5px}
+.mine button[aria-pressed="true"]{border-style:dashed;background:transparent}
+.mine button[aria-pressed="true"] img{opacity:.18}
+.mine button .pic .it{transition:opacity 200ms var(--ease)}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ramp{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font:10.5px var(--mono);color:var(--muted);max-width:330px}
+.ramp i{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--them),var(--cell),var(--you))}
+.hover3{font-size:13px;color:var(--muted);line-height:1.5;min-height:3em;margin:0}
+.duo{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:18px;align-items:start}
+.board{position:relative;width:100%;aspect-ratio:1}
+.board canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:4px;cursor:crosshair}
+/* lock-in: your row draws across, their column draws down 120ms later, then the cell marks itself (orchestration) */
+.band{position:absolute;pointer-events:none;opacity:.9}
+.band.row{left:0;right:0;border-block:1.5px solid var(--ink);margin-top:-1.5px;transform-origin:left;transform:scaleX(0);opacity:.55;transition:transform 300ms var(--ease),opacity 200ms ease}
+.band.col{top:0;bottom:0;border-inline:1.5px solid var(--ink);margin-left:-1.5px;transform-origin:top;transform:scaleY(0);transition:transform 300ms var(--ease) 120ms}
+.board.rowon .band.row{transform:scaleX(1)}
+.board.locked .band.row{transform:scaleX(1);opacity:1} .board.locked .band.col{transform:scaleY(1)}
+/* exits are quicker than entrances and drop the delays, so Start over clears the board at once */
+.board:not(.locked) .band.col{transition:transform 150ms var(--ease)}
+.board:not(.locked):not(.rowon) .band.row{transition:transform 150ms var(--ease),opacity 150ms ease}
+.board:not(.locked) .mark{transition:opacity 150ms var(--ease),transform 150ms var(--ease)}
+.mark{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border:2px solid var(--ink);border-radius:3px;background:transparent;box-shadow:0 0 0 2px var(--bg);opacity:0;transform:scale(0.9);transition:opacity 200ms var(--ease) 360ms,transform 200ms var(--ease) 360ms;pointer-events:none}
+.board.locked .mark{opacity:1;transform:none}
+.notes{border-top:1px solid var(--rule);margin-top:24px;padding-top:12px;font-size:13px;color:var(--muted)}
+.notes ol{padding-left:1.2em;margin:0}
+
+@media (max-width:980px){
+  .page{grid-template-columns:16px minmax(0,1fr) 16px;column-gap:0}
+  .page > *,.wide,aside{grid-column:2}
+  aside{margin:-6px 0 18px}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .ledger{grid-template-columns:minmax(110px,1.2fr) minmax(0,1fr) minmax(0,1fr)} .ledger .c4,.ledger .c5,.ledger .c6{display:none}
+  .grid90 .bc img{width:15px;height:15px} .grid90 .lp img{width:18px;height:18px}
+  .pc img{width:16px;height:16px;margin:0 -2px} .p6grid .hd img{width:26px;height:26px} .p6count number-flow,.p6count .nf{font-size:24px}
+  .opp,.mine{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .field{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .duo{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .pc{transition:opacity 200ms ease,background-color 200ms ease,border-color 200ms ease} .pc .x{transition:none} .p6.enter .pc{animation:none}
+  /* keep the fades and colour changes that carry meaning; drop the movement */
+  .cellv .bar{transition:none}
+  .grid90 .bc{transform:none;transition:opacity 200ms ease}
+  .band.row,.band.col,.board:not(.locked) .band.col,.board:not(.locked):not(.rowon) .band.row{transition:opacity 200ms ease;transform:none;opacity:0}
+  .board.rowon .band.row{opacity:.4} .board.locked .band.row,.board.locked .band.col{opacity:.9}
+  .mark{transform:none;transition:opacity 200ms ease}
+}
+</style>
+
+<article class="page">
+  <h1>Team preview</h1>
+  <p class="dek">Before a VGC battle starts, both players see each other's six Pokémon and secretly choose four. What they can see, and how many choices they have.</p>
+  <div class="byline wide">
+    <div><b>Format</b>Pokémon Champions, Regulation M-B</div>
+    <div><b>Teams shown</b>MB522 (you) vs MB763, 1st place at Talon's Fight Club #98</div>
+  </div>
+
+  <p>Competitive Pokémon, or VGC (Video Game Championships), differs from the main-series games in two ways. Battles are <em>doubles</em>: each player has two Pokémon on the field at once. And you don't bring your whole team. Before the battle, both players look at each other's six Pokémon and secretly choose four to bring.</p>
+  <p>This moment is called <strong>team preview</strong>. Of the four you choose, two are your <strong>leads</strong>, which start on the field. The other two wait in the <strong>back</strong>. The remaining two stay home.</p>
+
+  <h2>What you can see</h2>
+  <p>How much you learn about the other team depends on the <strong>team-sheet</strong> rule. With a <strong>closed sheet</strong>, you see only the six species. With an <strong>open sheet</strong>, you also see each Pokémon's ability, held item and moves. Under both rules, its Stat Points and nature stay hidden.</p>
+
+  <figure class="wide" id="f1">
+    <div class="fig">
+      <div class="head"><span class="lab">The opponent's team, as you see it</span>
+        <div class="seg" role="group" aria-label="Team sheet"><button data-s="closed" aria-pressed="true">Closed sheet</button><button data-s="open" aria-pressed="false">Open sheet</button></div></div>
+      <div class="ledger" id="ledger"></div>
+      <p class="unknown" id="r1" aria-live="polite"></p>
+      <div class="key"><span style="--c:var(--rule)">unmarked: could be any option</span><span style="--c:var(--you)">marked: shown by the sheet</span><span style="--c:transparent">scroll, swipe or use the arrow keys on any field</span></div>
+    </div>
+    <figcaption><b>Figure 1.</b> The same opponent team under the two rules. Each field is a wheel of that Pokémon's real legal options: scroll through them to see what a closed sheet leaves open. Open the sheet and the ability, item and move wheels turn to the real value and mark it. Stat Points and nature are never marked, because no sheet shows them (their wheel holds 40 sampled spreads of the 10,008,272). Options and counts come from the pinned Regulation M-B simulator.</figcaption>
+  </figure>
+  <aside><b>Where each rule is used.</b> Official tournaments use open sheets. On Pokémon Showdown, the Regulation M-B best-of-three format forces them, and best-of-one offers them to both players.</aside>
+
+  <p>An open sheet removes most of the surprise. Every move the opponent could use is on the page, so the game moves a little closer to chess. It does not tell you which four they will bring.</p>
+
+  <h2>How many choices you have</h2>
+  <p>Call one way of choosing a <strong>plan</strong>: two leads and two in the back. To count your plans, first pick the leads from six. Which lead stands on the left doesn't matter, so there are <span class="math">C(6,2) = <span class="y">15</span></span> lead pairs. Then pick two of the remaining four for the back: <span class="math">C(4,2) = <span class="b">6</span></span>. That gives <span class="math"><span class="y">15</span> × <span class="b">6</span> = 90</span> plans.</p>
+
+  <figure class="wide" id="f2">
+    <div class="fig">
+      <div class="seg" role="group" aria-label="Step"><button data-k="leads" aria-pressed="true">1 · Pick the leads</button><button data-k="backs" aria-pressed="false">2 · Fill the back: 90 plans</button></div>
+      <div class="p6" id="p6">
+        <div class="p6nav"><button class="prev" aria-label="Previous stage">←</button><span class="st"></span><button class="next">Next →</button>
+          <span class="p6count"><number-flow></number-flow><small class="unit"></small></span></div>
+        <div class="p6grid"></div>
+        <p class="read say" aria-live="polite"></p>
+      </div>
+      <div class="p6 bk" id="p4" hidden>
+        <div class="lpick"><span class="lab">Leading with</span><div class="chips" id="lchips" role="group" aria-label="Choose the lead pair"></div></div>
+        <div class="p6nav"><button class="prev" aria-label="Previous stage">←</button><span class="st"></span><button class="next">Next →</button>
+          <span class="p6count"><number-flow></number-flow><small class="unit"></small></span></div>
+        <div class="p6grid"></div>
+        <p class="read say" aria-live="polite"></p>
+      </div>
+      <div class="grid90" id="grid90" hidden></div>
+      <p class="read" id="r2" aria-live="polite"></p>
+    </div>
+    <figcaption><b>Figure 2.</b> Every plan for one real team, counted the same way twice. Step 1 counts the lead pairs: every left lead with every right lead, then without a Pokémon paired with itself, then without the mirror copies. Step 2 does the same for the back, with the four Pokémon your leads leave, and then shows all 90 plans: the 15 lead pairs as rows, each filled with the 6 ways to pick two of the four Pokémon left for the back; the leads stay where they are. Point at a plan to read it.</figcaption>
+  </figure>
+
+  <p>Your opponent has 90 plans too, and chooses at the same moment you do. A single team preview is therefore one of <span class="math">90 × 90 = 8,100</span> possible pairs of plans. No player memorises all of them. Instead, players choose a plan that holds up against the plans the opponent is <em>likely</em> to pick.</p>
+
+  <figure class="wide" id="f3">
+    <div class="fig">
+      <div class="lab">The opponent</div>
+      <div class="opp" id="opp"></div>
+      <div class="lab">Your field</div>
+      <div class="field" id="field"></div>
+      <div class="lab">Your six: tap two leads, then two for the back</div>
+      <div class="mine" id="mine"></div>
+      <div class="actions"><button id="lock" disabled>Lock in</button><button id="again">Start over</button></div>
+      <div class="duo">
+        <div class="board" id="board"><canvas id="cv" width="450" height="450" aria-label="All 8,100 pairs of plans: your plan is the row, the opponent's the column"></canvas><i class="band row" id="brow"></i><i class="band col" id="bcol"></i><i class="mark" id="mark"></i></div>
+        <div style="display:grid;gap:10px;align-content:start"><p class="read" id="r3" aria-live="polite"></p><p class="hover3" id="h3"></p></div>
+      </div>
+      <div class="ramp"><span>≤ 0.33</span><i></i><span>≥ 0.67 your win rate</span></div>
+    </div>
+    <figcaption><b>Figure 3.</b> Every square is one pair of plans: you choose the row, your opponent the column, and neither sees the other's choice until both lock in. Each square is coloured by your measured win rate: 24 battles with team preview forced to those two plans and the behaviour-cloning battle policy playing both sides after it (194,400 battles in all; one square's rate is uncertain by about ±0.2, a row's average by about ±0.02). Here the opponent's plan is drawn at random. Point at any square to read it.</figcaption>
+  </figure>
+
+  <div class="notes">
+    <ol>
+      <li>Teams from the Regulation M-B pool used throughout this project: MB522 for you, and MB763, the winning team at Talon's Fight Club #98, for the opponent.</li>
+    </ol>
+  </div>
+</article>
+
+<script>
+const D = /*__DATA__*/null;
+const YOU = D.you.mons, THEM = D.them.mons;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+const img = m => { const i = new Image(); i.src = m.img; i.alt = m.name; i.title = m.name; i.className = 'sp'; return i; };
+const short = n => n.replace('-Alola', '-A').replace('-Eternal', '-E');
+const PAIRS = a => { const r = []; for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) r.push([a[i], a[j]]); return r; };
+const SIX = [0, 1, 2, 3, 4, 5], LEADS = PAIRS(SIX);
+const plans = []; LEADS.forEach(l => PAIRS(SIX.filter(x => !l.includes(x))).forEach(b => plans.push({ l, b })));
+const planOf = (l, b) => plans.findIndex(p => p.l.join() === [...l].sort().join() && p.b.join() === [...b].sort().join());
+const fmt = n => n.toLocaleString('en-US');
+const withItem = m => { const p = el('span', 'pic'); p.append(img(m)); if (m.itemImg) { const i = new Image(); i.src = m.itemImg; i.alt = m.item; i.title = m.item; i.className = 'it'; p.append(i); } return p; };
+
+/* ── Figure 1: every field is a scroll wheel of that Pokémon's legal options; the sheet turns the wheels it
+   reveals to the real value and marks it. Nothing moves until the reader scrolls or switches the sheet. ── */
+(() => {
+  const L = $('#ledger'), wheels = [];
+  const shuffle = (a, seed) => { a = a.slice(); let s = seed; for (let i = a.length - 1; i > 0; i--) { s = (s * 16807) % 2147483647; const j = s % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const itemHTML = it => `<img class="ii" src="${it.img}" alt="">${it.name}`;
+  function wheel(opts, truth, shown, label) {
+    const w = el('div', 'wheel'); w.tabIndex = 0; w.setAttribute('role', 'listbox'); w.setAttribute('aria-label', label);
+    w.append(el('div', 'pad'));
+    opts.forEach(o => w.append(el('div', 'opt' + (o === truth ? ' t' : ''), o)));
+    w.append(el('div', 'pad'));
+    w.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault(); w.scrollBy({ top: (e.key === 'ArrowDown' ? 1 : -1) * 22, behavior: reduce ? 'auto' : 'smooth' });
+    });
+    wheels.push({ w, shown }); return w;
+  }
+  const centre = (w, o, smooth) => w.scrollTo({ top: o.offsetTop - w.clientHeight / 2 + o.offsetHeight / 2, behavior: smooth && !reduce ? 'smooth' : 'auto' });
+  ['Pokémon', 'Ability', 'Item', 'Moves', 'Stat Points', 'Nature'].forEach((h, k) => L.append(el('div', 'h c' + (k + 1), h)));
+  const ITEM_OPTS = D.items.map(itemHTML);
+  THEM.forEach((m, r) => {
+    const c1 = el('div', 'mon c1'); c1.append(img(m), document.createTextNode(m.name)); L.append(c1);
+    const cell = (k, node, note) => { const c = el('div', 'cell c' + k); c.append(node, el('span', 'n', note)); L.append(c); };
+    cell(2, wheel(shuffle(m.abilities, 7 + r), m.ability, true, `${m.name}'s possible abilities`), `${m.n.abilities} possible`);
+    cell(3, wheel(shuffle(ITEM_OPTS, 31 + r), ITEM_OPTS[D.items.findIndex(x => x.name === m.item)], true, `${m.name}'s possible items`), `${m.n.items} possible`);
+    const g4 = el('div', 'moves4'), learn = shuffle(m.learn, 101 + r);
+    m.moves.forEach((mv, j) => g4.append(wheel(shuffle(learn, 53 + r * 4 + j), mv, true, `${m.name}'s possible moves, slot ${j + 1}`)));
+    cell(4, g4, `4 of ${m.learn.length} possible`);
+    cell(5, wheel(shuffle(m.spOpts, 77 + r), m.spTrue, false, `${m.name}'s possible Stat Point spreads`), `${fmt(m.n.sp)} possible`);
+    cell(6, wheel(shuffle(D.natures, 89 + r), m.nature, false, `${m.name}'s possible natures`), `${m.n.alignments} possible`);
+  });
+  // start each wheel somewhere random, so a closed sheet doesn't hint at the real value
+  requestAnimationFrame(() => wheels.forEach(({ w }) => { const o = w.querySelectorAll('.opt'); centre(w, o[Math.floor(Math.random() * o.length)], false); }));
+  const seg = $('#f1 .seg');
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const open = b.dataset.s === 'open';
+    wheels.forEach(({ w, shown }) => { const show = open && shown; w.classList.toggle('is-real', show); if (show) centre(w, w.querySelector('.opt.t'), true); });
+    unknown(open);
+  });
+  // what the sheet leaves unknown, as a count of the legal ways these six could be built
+  const sci = x => { const e = Math.floor(Math.log10(x)); return `${(x / 10 ** e).toFixed(1)} × 10<sup>${e}</sup>`; };
+  function unknown(open) {
+    const lg = THEM.reduce((a, m) => a + Math.log10(open ? m.n.open : m.n.closed), 0);
+    $('#r1').innerHTML = open
+      ? `With an open sheet, each Pokémon could still be any of <b>${sci(THEM[0].n.open)}</b> builds: its Stat Points and nature. Across all six, about <b>10<sup>${Math.round(lg)}</sup></b>.`
+      : `With a closed sheet, each Pokémon could be any of about <b>${sci(THEM[0].n.closed)}</b> legal builds (that is ${THEM[0].name}; the others are similar). Across all six, about <b>10<sup>${Math.round(lg)}</sup></b>.`;
+  }
+  unknown(false);
+})();
+
+/* ── Figure 2: one explainer, used twice. A square grid of the given Pokémon (rows = first slot, columns =
+   second slot), then: strike the diagonal (a Pokémon can't take both slots), fold every copy below the diagonal
+   onto its twin above (order doesn't matter), number what is left. One stage per click. ── */
+function explainer(root, idx, stages, onStage) {
+  const grid = root.querySelector('.p6grid'), say = root.querySelector('.say'), nf = root.querySelector('number-flow');
+  const n = idx.length, cell = {};
+  grid.innerHTML = ''; grid.style.gridTemplateColumns = `auto repeat(${n}, minmax(0, 1fr))`; grid.style.maxWidth = n === 6 ? '560px' : '420px';
+  grid.append(el('div', 'corner', 'first ↓<br>second →'));
+  idx.forEach(i => { const h = el('div', 'hd'); h.append(img(YOU[i])); grid.append(h); });
+  let no = 0;
+  idx.forEach((ia, r) => {
+    const h = el('div', 'hd'); h.append(img(YOU[ia])); grid.append(h);
+    idx.forEach((ib, c) => {
+      const a = YOU[ia], b = YOU[ib], x = el('div', 'pc ' + (r === c ? 'diag' : r < c ? 'upper' : 'lower'));
+      x.append(img(a), img(b), el('i', 'x'));
+      if (r < c) x.append(el('span', 'no', ++no));
+      x.title = r === c ? `${a.name} twice: not allowed` : `${a.name} first, ${b.name} second`;
+      // point at a square to light up its mirror: the same two Pokémon, slots swapped
+      x.addEventListener('pointerenter', () => { if (r !== c) cell[`${c},${r}`].classList.add('twin'); });
+      x.addEventListener('pointerleave', () => { if (r !== c) cell[`${c},${r}`].classList.remove('twin'); });
+      cell[`${r},${c}`] = x; grid.append(x);
+    });
+  });
+  let k = 0;
+  function setN(v) {
+    if (customElements.get('number-flow') && typeof nf.update === 'function') {
+      nf.transformTiming = nf.spinTiming = { duration: 400, easing: getComputedStyle(document.documentElement).getPropertyValue('--ease-move').trim() };
+      nf.update(v);
+    } else nf.textContent = v;
+  }
+  // the fold: each copy below the diagonal slides onto its twin above it, then fades out there
+  function fold(on) {
+    for (let r = 0; r < n; r++) for (let c = 0; c < r; c++) {
+      const x = cell[`${r},${c}`];
+      if (!on || reduce || grid.hidden) { x.style.transform = ''; continue; }
+      const a = x.getBoundingClientRect(), b = cell[`${c},${r}`].getBoundingClientRect();
+      x.style.transform = `translate(${b.left - a.left}px,${b.top - a.top}px)`;
+    }
+  }
+  function go(i) {
+    k = Math.max(0, Math.min(stages.length - 1, i));
+    root.classList.toggle('cut', k >= 1); root.classList.toggle('fold', k >= 2); root.classList.toggle('done', k >= 3);
+    if (onStage) onStage(k);
+    fold(k >= 2);
+    setN(stages[k].n); say.innerHTML = stages[k].t; root.querySelector('.unit').textContent = stages[k].u;
+    root.querySelector('.st').textContent = `Stage ${k + 1} of ${stages.length}`;
+    root.querySelector('.prev').disabled = k === 0; root.querySelector('.next').disabled = k === stages.length - 1;
+  }
+  function enter() {      // the squares fill in row by row, 30ms apart
+    if (reduce) return;
+    grid.querySelectorAll('.pc').forEach((x, i) => x.style.animationDelay = (Math.floor(i / n) * 30) + 'ms');
+    root.classList.remove('enter'); void root.offsetWidth; root.classList.add('enter');
+    setTimeout(() => root.classList.remove('enter'), 30 * n + 260);
+  }
+  root.querySelector('.prev').onclick = () => go(k - 1);
+  root.querySelector('.next').onclick = () => go(k + 1);
+  if (root._ro) root._ro.disconnect();
+  root._ro = new ResizeObserver(() => { if (k >= 2) fold(true); }); root._ro.observe(grid);
+  customElements.whenDefined('number-flow').then(() => setN(stages[k].n));
+  go(0);
+  return { go, enter };
+}
+
+/* step 1: the leads, 36 → 30 → 15 */
+const P6 = (() => {
+  const a = YOU[0].name, b = YOU[1].name, u = 'ways to pick the leads';
+  const ex = explainer($('#p6'), SIX, [
+    { n: 36, u, t: `Fill the first lead slot (rows) and the second (columns) with any of your six: <span class="math">6 × 6 = 36</span> squares.` },
+    { n: 30, u, t: `A Pokémon can't lead next to itself, so the 6 squares on the diagonal go: <span class="math">36 − 6 = 30</span>.` },
+    { n: 15, u, t: `Left and right don't matter: <span class="y">${a} + ${b}</span> is the same pair as <span class="y">${b} + ${a}</span>. Every square below the diagonal is a copy of one above it, so half go: <span class="math">30 ÷ 2 = 15</span>.` },
+    { n: 15, u, t: `What is left is every way to pick 2 of 6 when order doesn't matter: <span class="math">C(6,2) = 6 × 5 ÷ 2 = <span class="y">15</span></span> lead pairs.` },
+  ]);
+  new IntersectionObserver((es, ob) => es.forEach(e => { if (e.isIntersecting) { ob.disconnect(); ex.enter(); } }), { threshold: 0.3 }).observe($('#p6 .p6grid'));
+  return ex;
+})();
+
+/* step 2: the back, for one lead pair, 16 → 12 → 6, then all 15 × 6 = 90 plans */
+(() => {
+  const g = $('#grid90'), r2 = $('#r2'), rows = [];
+  LEADS.forEach((l, r) => {
+    const lp = el('div', 'lp'); l.forEach(i => lp.append(img(YOU[i]))); lp.title = `Lead pair ${r + 1}: ${YOU[l[0]].name} + ${YOU[l[1]].name}`; g.append(lp);
+    const row = { lp, bcs: [] };
+    PAIRS(SIX.filter(x => !l.includes(x))).forEach((b, k) => {
+      const c = el('div', 'bc'); b.forEach(i => c.append(img(YOU[i])));
+      c.dataset.r = r; row.bcs.push(c);
+      c.addEventListener('pointerenter', () => { r2.innerHTML = `Plan <span class="num">${r * 6 + k + 1}</span>: lead <span class="y">${YOU[l[0]].name} + ${YOU[l[1]].name}</span>, back <span class="b">${YOU[b[0]].name} + ${YOU[b[1]].name}</span>. The other two stay home.`; });
+      g.append(c);
+    });
+    rows.push(row);
+  });
+  let lead = 0, ex = null;
+  function showAll(on) {         // final stage: the 4 x 4 grid gives way to every plan, the chosen lead pair's row marked
+    $('#p4 .p6grid').hidden = on; g.hidden = !on;
+    rows.forEach((row, r) => { row.lp.classList.toggle('hl', on && r === lead); row.bcs.forEach(c => c.classList.toggle('hl', on && r === lead)); });
+    g.querySelectorAll('.bc').forEach(c => { c.style.transitionDelay = on && !reduce ? (+c.dataset.r * 30) + 'ms' : '0ms'; });
+    requestAnimationFrame(() => g.classList.toggle('backs', on));
+    r2.innerHTML = on ? 'Point at a plan to read it.' : '';
+  }
+  function build(r, animate) {
+    lead = r;
+    const L = LEADS[r], rest = SIX.filter(x => !L.includes(x)), l0 = YOU[L[0]].name, l1 = YOU[L[1]].name, a = YOU[rest[0]].name, b = YOU[rest[1]].name, u = 'ways to fill the back';
+    $('#lchips').querySelectorAll('button').forEach((x, i) => x.setAttribute('aria-pressed', i === r));
+    ex = explainer($('#p4'), rest, [
+      { n: 16, u, t: `With <span class="y">${l0} + ${l1}</span> leading, four Pokémon are left. Fill the first back slot (rows) and the second (columns) with any of them: <span class="math">4 × 4 = 16</span> squares.` },
+      { n: 12, u, t: `One Pokémon can't take both back slots, so the 4 squares on the diagonal go: <span class="math">16 − 4 = 12</span>.` },
+      { n: 6, u, t: `Order in the back doesn't matter either: <span class="b">${a} + ${b}</span> is the same pair as <span class="b">${b} + ${a}</span>. Half go: <span class="math">12 ÷ 2 = 6</span>.` },
+      { n: 6, u, t: `That is every way to pick 2 of the 4 left: <span class="math">C(4,2) = 4 × 3 ÷ 2 = <span class="b">6</span></span> back pairs. The two you don't pick stay home.` },
+      { n: 90, u: 'plans', t: `Every one of the <span class="y">15</span> lead pairs leaves its own four, and each has <span class="b">6</span> back pairs: <span class="math"><span class="y">15</span> × <span class="b">6</span> = 90</span> plans. Your lead pair is the marked row.` },
+    ], k => showAll(k === 4));
+    if (animate) ex.enter();
+  }
+  LEADS.forEach((l, r) => { const b = el('button'); b.setAttribute('aria-label', `Lead with ${YOU[l[0]].name} and ${YOU[l[1]].name}`); l.forEach(i => b.append(img(YOU[i]))); b.onclick = () => build(r, true); $('#lchips').append(b); });
+  const seg = $('#f2 .seg');
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const backs = b.dataset.k === 'backs';
+    $('#p6').hidden = backs; $('#p4').hidden = !backs;
+    if (backs) build(lead, true); else { g.hidden = true; r2.innerHTML = ''; requestAnimationFrame(() => P6.go(0)); }
+  });
+})();
+
+/* ── Figure 3: play a preview, then find your square among the 8,100 ── */
+(() => {
+  const opp = $('#opp'), field = $('#field'), mine = $('#mine'), board = $('#board'), cv = $('#cv'), r3 = $('#r3');
+  THEM.forEach(m => { const c = el('div', 'oc'); c.append(img(m), el('span', 'nm', short(m.name)), el('span', 'role')); opp.append(c); });
+  const SLOTS = [['L', 'Lead'], ['L', 'Lead'], ['B', 'Back'], ['B', 'Back']];
+  const slots = SLOTS.map(([k, t]) => { const s = el('div', 'slot ' + k); field.append(s); return s; });
+  const btns = YOU.map((m, i) => { const b = el('button'); b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', `Bring ${m.name}`); b.append(withItem(m), el('span', 'nm', short(m.name))); b.onclick = () => toggle(i); mine.append(b); return b; });
+  let picks = [], locked = false, them = null;
+
+  // measured win rates (your side), coloured on a diverging ramp: rose = they win, grey = even, teal = you win
+  const PM = D.pm, wr = (r, c) => PM.wins[r][c] / PM.battles[r][c];
+  const rowMean = r => PM.wins[r].reduce((a, b) => a + b, 0) / PM.battles[r].reduce((a, b) => a + b, 0);
+  const colMean = c => PM.wins.reduce((a, row) => a + row[c], 0) / PM.battles.reduce((a, row) => a + row[c], 0);
+  const rgb = v => { const h = getComputedStyle(document.documentElement).getPropertyValue(v).trim().replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+  function draw(hr, hc) {
+    const x = cv.getContext('2d'), cs = 5, Y = rgb('--you'), T = rgb('--them'), M = rgb('--cell'), focus = hr >= 0;
+    x.clearRect(0, 0, 450, 450);
+    for (let r = 0; r < 90; r++) for (let c = 0; c < 90; c++) {
+      const p = wr(r, c), k = Math.min(1, Math.abs(p - 0.5) * 6), to = p >= 0.5 ? Y : T;
+      x.globalAlpha = !focus || r === hr || c === hc ? 1 : 0.45;      // with a plan chosen, its row and column stay at full strength
+      x.fillStyle = `rgb(${M.map((m, i) => Math.round(m + (to[i] - m) * k)).join(',')})`;
+      x.fillRect(c * cs, r * cs, cs - 1, cs - 1);
+    }
+    x.globalAlpha = 1;
+  }
+  draw(-1, -1);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => them ? draw(them.r, them.c ?? -1) : draw(-1, -1));
+  const planText = (P, team) => `${team[P.l[0]].name} + ${team[P.l[1]].name}, back ${team[P.b[0]].name} + ${team[P.b[1]].name}`;
+  cv.addEventListener('pointermove', e => {
+    const b = cv.getBoundingClientRect(), c = Math.min(89, Math.floor((e.clientX - b.left) / b.width * 90)), r = Math.min(89, Math.floor((e.clientY - b.top) / b.height * 90));
+    $('#h3').innerHTML = `You lead ${planText(plans[r], YOU)}.<br>They lead ${planText(plans[c], THEM)}.<br><b class="num" style="color:var(--ink)">${PM.wins[r][c]} of ${PM.battles[r][c]}</b> battles won (${wr(r, c).toFixed(2)}).`;
+  });
+  cv.addEventListener('pointerleave', () => { $('#h3').innerHTML = ''; });
+  const SAY0 = 'Each square is a measured result: teal where your plan beat theirs, rose where it lost. Pick four to find your row among the <b class="num">90</b>.';
+
+  // layout animation: the picked Pokémon slides between its button and its field slot (240ms, ease-in-out: it moves on screen)
+  function slide(i, fromRect) {
+    if (reduce || !fromRect) return;
+    const to = field.querySelector(`img[data-i="${i}"]`)?.parentElement || btns[i].querySelector('.pic'), b = to.getBoundingClientRect();
+    to.animate([{ transform: `translate(${fromRect.left - b.left}px,${fromRect.top - b.top}px) scale(${fromRect.width / b.width})` }, { transform: 'none' }],
+      { duration: 240, easing: getComputedStyle(document.documentElement).getPropertyValue('--ease-move').trim() });
+  }
+  function render() {
+    slots.forEach((s, k) => {
+      const i = picks[k]; s.classList.toggle('full', i != null);
+      s.innerHTML = `<span class="k">${SLOTS[k][1]}</span>`;
+      if (i != null) { const p = withItem(YOU[i]); p.querySelector('img').dataset.i = i; s.append(p, el('span', 'nm', short(YOU[i].name))); }
+    });
+    btns.forEach((b, i) => b.setAttribute('aria-pressed', picks.includes(i)));
+    $('#lock').disabled = picks.length < 4 || locked;
+    const row = picks.length === 4 ? planOf(picks.slice(0, 2), picks.slice(2)) : -1;
+    if (!locked) { if (row >= 0) { placeBands(row); them = { r: row, c: null }; } else them = null; board.classList.toggle('rowon', row >= 0); draw(row, -1); }
+    if (picks.length < 4) r3.innerHTML = picks.length ? `Picked <b class="num">${picks.length}</b> of 4.` : SAY0;
+    else if (!locked) r3.innerHTML = `This is your plan <b class="y num">${row + 1}</b> of 90, your row. Against all 90 of their plans it wins <b class="num">${rowMean(row).toFixed(2)}</b> of battles. Lock in to see which plan they chose.`;
+  }
+  function toggle(i) {
+    if (locked) return;
+    const from = picks.includes(i) ? field.querySelector(`img[data-i="${i}"]`)?.parentElement : btns[i].querySelector('.pic');
+    const rect = from && from.getBoundingClientRect();
+    if (picks.includes(i)) picks = picks.filter(x => x !== i); else if (picks.length < 4) picks.push(i); else return;
+    render(); slide(i, rect);
+  }
+  function placeBands(r, c) {
+    const W = board.clientWidth / 90;
+    Object.assign($('#brow').style, { top: (r * W) + 'px', height: Math.max(2, W - 1) + 'px' });
+    if (c == null) return;
+    Object.assign($('#bcol').style, { left: (c * W) + 'px', width: Math.max(2, W - 1) + 'px' });
+    Object.assign($('#mark').style, { top: ((r + .5) * W) + 'px', left: ((c + .5) * W) + 'px' });
+  }
+  $('#lock').onclick = () => {
+    locked = true; $('#lock').disabled = true;
+    const p = Math.floor(Math.random() * 90), P = plans[p], mineIdx = planOf(picks.slice(0, 2), picks.slice(2));
+    them = { r: mineIdx, c: p };
+    opp.querySelectorAll('.oc').forEach((c, j) => {
+      c.classList.toggle('lead', P.l.includes(j)); c.classList.toggle('backr', P.b.includes(j)); c.classList.toggle('home', !P.l.includes(j) && !P.b.includes(j));
+      c.querySelector('.role').textContent = P.l.includes(j) ? 'lead' : P.b.includes(j) ? 'back' : '';
+    });
+    placeBands(mineIdx, p); draw(mineIdx, p);
+    requestAnimationFrame(() => board.classList.add('locked'));
+    const w = PM.wins[mineIdx][p], n = PM.battles[mineIdx][p];
+    r3.innerHTML = `They led ${THEM[P.l[0]].name} + ${THEM[P.l[1]].name} (their plan <b class="t num">${p + 1}</b>, which wins <b class="num">${(1 - colMean(p)).toFixed(2)}</b> against all your plans). In square <b class="num">${fmt(mineIdx * 90 + p + 1)}</b> of 8,100 your plan won <b class="num">${w} of ${n}</b> battles: ${w / n > 0.5 ? '<span class="y">a good read</span>' : w / n < 0.5 ? '<span class="t">their plan had the edge</span>' : 'an even split'}.`;
+  };
+  $('#again').onclick = () => {
+    picks = []; locked = false; them = null; board.classList.remove('locked', 'rowon'); draw(-1, -1);
+    opp.querySelectorAll('.oc').forEach(c => { c.className = 'oc'; c.querySelector('.role').textContent = ''; });
+    render();
+  };
+  new ResizeObserver(() => { if (them) placeBands(them.r, them.c); }).observe(board);
+  render();
+})();
+</script>

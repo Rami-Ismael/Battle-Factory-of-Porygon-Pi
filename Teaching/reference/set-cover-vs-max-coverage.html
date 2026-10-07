@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — Set cover vs maximum coverage</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  body { max-width: 62rem; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .two > div { border-top: 3px solid; padding-top: .6rem; }
+  .two .sc { border-color: var(--setc); } .two .mc { border-color: var(--cover); }
+  .two h3 { margin-top: 0; text-transform: none; letter-spacing: 0; font-size: 1.05rem; }
+  .two .sc h3 { color: var(--setc); } .two .mc h3 { color: var(--cover); }
+  .frm { font-family: var(--serif); font-size: .95em; line-height: 1.5; margin: .5rem 0 1rem; }
+  dl { max-width: 42rem; } dt { font-weight: 600; margin-top: .7rem; } dd { margin: 0; color: var(--ink-soft); }
+  @media (max-width: 700px) { .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>Set cover vs maximum coverage</h1>
+<p class="subtitle">One-page reference. Same ingredients — universe U, family of subsets — different fixed quantity.</p>
+<p class="meta">Reference sheet · created 2026-08-18 · from <a href="../lessons/0001-max-coverage-vs-set-cover.html">Lesson 0001</a></p>
+
+<div class="two">
+<div class="sc">
+<h3>Set cover — cover all, minimise count/cost</h3>
+<div class="frm">
+<b>min</b> ∑<sub>j</sub> c<sub>j</sub> x<sub>j</sub><br>
+s.t. ∑<sub>j : e ∈ S<sub>j</sub></sub> x<sub>j</sub> ≥ 1 &nbsp;∀ e ∈ U<br>
+x<sub>j</sub> ∈ {0,1}
+</div>
+<p><b>Fixed:</b> the target — every element.<br><b>Free:</b> how many / how costly the sets.<br><b>Weighted =</b> costs on <em>sets</em>.<br><b>Greedy:</b> repeatedly add the set with the best (new elements ÷ cost); stop when U is covered.<br><b>Guarantee:</b> ≤ H<sub>n</sub> · OPT, H<sub>n</sub> = 1 + ½ + … + 1/n ≈ ln n. Best possible up to low-order terms (Feige 1998).<br><b>Infeasible</b> if some element is in no set.</p>
+</div>
+<div class="mc">
+<h3>Maximum coverage — fix k, maximise covered weight</h3>
+<div class="frm">
+<b>max</b> ∑<sub>e</sub> w<sub>e</sub> y<sub>e</sub><br>
+s.t. ∑<sub>j</sub> x<sub>j</sub> ≤ k<br>
+y<sub>e</sub> ≤ ∑<sub>j : e ∈ S<sub>j</sub></sub> x<sub>j</sub> &nbsp;∀ e ∈ U<br>
+x<sub>j</sub>, y<sub>e</sub> ∈ {0,1}
+</div>
+<p><b>Fixed:</b> the budget k.<br><b>Free:</b> how much weight gets covered.<br><b>Weighted =</b> weights on <em>elements</em>.<br><b>Greedy:</b> k times, add the set with the most still-uncovered weight.<br><b>Guarantee:</b> ≥ (1 − 1/e) · OPT ≈ 0.632 · OPT — of the best <em>coverable</em> weight, not of all of U. Best possible unless P = NP (Feige 1998, Prop. 5.2).<br><b>Never infeasible.</b></p>
+</div>
+</div>
+
+<h3>The mirror</h3>
+<p>Set cover’s constraint (“all covered”) is max coverage’s objective (“much covered”); set cover’s objective (“few sets”) is max coverage’s constraint (“≤ k sets”). On unweighted instances the two greedies choose identically and differ only in the stopping rule; with weights the choice rule splits as well (max coverage chases element weight, set cover chases cost-effectiveness).</p>
+
+<h3>Neighbours you will meet</h3>
+<dl>
+<dt>Budgeted maximum coverage</dt><dd>Sets have costs, elements have weights, spend ≤ B instead of ≤ k sets. Modified greedy still 1 − 1/e. Khuller, Moss &amp; Naor, IPL 1999 (🔒; <a href="https://www.semanticscholar.org/paper/465a755ef79ff8d74f7a355012269fa5fcbba477">abstract 🟢</a>).</dd>
+<dt>Soft coverage / “float” model</dt><dd>Each (set i, element j) has a value v<sub>ij</sub> ∈ [0,1]; score an element by the best chosen value: max ∑<sub>j</sub> w<sub>j</sub> · max<sub>i∈S</sub> v<sub>ij</sub>, |S| ≤ k. Greedy 1 − 1/e (W&amp;S §2.5, Thm 2.16). This is the shape of “beats with probability p” rather than “beats”.</dd>
+<dt>Partial set cover</dt><dd>Cover at least a fixed fraction of U with the fewest sets — sits between the two problems.</dd>
+<dt>Submodular maximisation with a cardinality constraint</dt><dd>The general family all of the above belong to; the 1 − 1/e greedy bound is Nemhauser–Wolsey–Fisher 1978 (🔒).</dd>
+</dl>
+
+<h3>Mapping to the counter-team search (species layer)</h3>
+<table class="compare">
+<tr><th>ingredient</th><th>in the project</th></tr>
+<tr><td>universe U</td><td>the meta — the collected meta-team list, one element per meta team T′</td></tr>
+<tr><td>element weight w<sub>T′</sub></td><td>how often T′ appears in the list (frequency — never usage %)</td></tr>
+<tr><td>set S<sub>i</sub></td><td>the meta slice candidate i beats</td></tr>
+<tr><td>budget k</td><td>6 — the team size, fixed by the rules ⇒ maximum coverage, not set cover</td></tr>
+<tr><td>set cover’s question</td><td>“how many candidates to beat every meta team?” — a diagnostic, not <span class="k">f</span>; infeasible if some T′ is beaten by no candidate</td></tr>
+</table>
+
+<h3>Vocabulary collisions</h3>
+<dl>
+<dt>coverage</dt><dd>In VGC slang: the types a moveset hits super-effectively. Here: the weight of meta teams a team beats. Say “type coverage” for the slang sense.</dd>
+<dt>set</dt><dd>Mathematical: a subset S<sub>i</sub> of the universe. Project (CONTEXT.md): a candidate’s competitive configuration. Say “coverage set” / “competitive set” when a sentence could go either way.</dd>
+<dt>weighted</dt><dd>Set costs (set cover) vs element weights (max coverage). Always say which.</dd>
+</dl>
+
+<h3>Sources</h3>
+<p class="note">🟢 Feige, <a href="https://courses.cs.duke.edu/spring07/cps296.2/papers/p634-feige.pdf">A Threshold of ln n for Approximating Set Cover</a>, JACM 45(4):634–652, 1998 — abstract, §1, §5. · 🟢 Williamson &amp; Shmoys, <a href="https://www.designofapproxalgs.com/download.php">The Design of Approximation Algorithms</a> (electronic edition, personal use) — §1.2, §1.6, §2.5, Ex. 2.11, Thm 1.13. · 🟢 <a href="https://en.wikipedia.org/wiki/Maximum_coverage_problem">Wikipedia — Maximum coverage problem</a> (ILP, weighted/budgeted variants).</p>
+</body>
+</html>

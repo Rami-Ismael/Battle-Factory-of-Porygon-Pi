@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en" class="bg-[#0b1220]">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noise to Team Archetypes</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style>
+  :root{--bg:#0b1220;--panel:#111a2c;--line:#26344c;--fg:#edf3ff;--muted:#9fb0c9;--tr:#b794f6;--weather:#f6ad55;--tailwind:#4fd1c5;--other:#f687b3}
+  body{background:var(--bg);color:var(--fg);margin:0}
+  .sprite{image-rendering:pixelated}
+  input[type=range]{accent-color:#9ecbff}
+</style>
+</head>
+<body class="font-sans antialiased">
+<section id="archetype-diffusion" class="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+  <p class="text-xs font-semibold tracking-[.12em] text-[#96c5ff]">REAL CHECKPOINT · RECORDED INFERENCE</p>
+  <h2 class="mt-2 text-2xl font-semibold sm:text-3xl">From random noise to Pokémon team archetypes</h2>
+  <p class="mt-3 max-w-3xl text-[15px] leading-relaxed text-[var(--muted)]">
+    Each dot is one team sampled from the masked diffusion model. At step 0 all 48 fields are masked, so every team is the same unknown and the cloud is as wide as the model's whole output. As the model reveals species, then abilities and items, then moves, each dot moves to where its possible completions land, and the cloud tightens into archetypes.
+  </p>
+
+  <div class="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div>
+      <div class="relative overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--bg)]">
+        <canvas id="ad-canvas" class="block w-full touch-none" aria-label="Scatter of sampled teams moving from a noise cloud into archetype clusters"></canvas>
+        <div class="pointer-events-none absolute left-3 top-3 rounded-md bg-[#0b1220cc] px-2.5 py-1.5 text-xs">
+          <div id="ad-stage" class="font-medium">All fields masked</div>
+          <div id="ad-count" class="tabular-nums text-[var(--muted)]">0 / 48 fields revealed</div>
+        </div>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <button id="ad-play" type="button" class="rounded-md bg-[#e8f0ff] px-3 py-1.5 text-sm font-semibold text-[#0e182a] hover:bg-white focus-visible:outline-2 focus-visible:outline-[#9ecbff]">Play</button>
+        <button id="ad-restart" type="button" class="rounded-md border border-[var(--line)] px-3 py-1.5 text-sm hover:bg-[#1a263b] focus-visible:outline-2 focus-visible:outline-[#9ecbff]">Restart</button>
+        <label class="ml-auto flex min-w-[220px] flex-1 items-center gap-3 text-sm text-[var(--muted)]">
+          <span class="whitespace-nowrap">Step</span>
+          <input id="ad-scrub" type="range" min="0" max="48" step="0.01" value="0" class="w-full" aria-label="Decoding step, 0 to 48 fields revealed">
+          <span id="ad-step" class="w-12 text-right tabular-nums">0</span>
+        </label>
+      </div>
+      <div id="ad-legend" class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm"></div>
+    </div>
+
+    <aside class="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-4">
+      <div class="flex items-baseline justify-between">
+        <h3 class="text-sm font-semibold">Followed teams</h3>
+        <span class="text-xs text-[var(--muted)]">tap a dot to inspect any team</span>
+      </div>
+      <div id="ad-featured" class="mt-3 grid grid-cols-6 gap-1.5"></div>
+      <div id="ad-card" class="mt-4" aria-live="polite"></div>
+    </aside>
+  </div>
+
+  <details class="mt-5 text-sm text-[var(--muted)]">
+    <summary class="cursor-pointer text-[var(--fg)]">How a partly masked team gets a position</summary>
+    <div class="mt-2 max-w-3xl space-y-2 leading-relaxed" id="ad-method"></div>
+  </details>
+</section>
+
+<script id="ad-data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById('ad-data').textContent);
+  const COLORS = ['#b794f6', '#f6ad55', '#4fd1c5', '#f687b3'];
+  const RGB = COLORS.map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
+  const GREY = [120, 134, 158];
+  const STEPS = 48, T = D.teams.length, STRIDE = 9;
+  const FIELD_NAMES = { species: 'species', ability: 'ability', item: 'item', m0: 'move', m1: 'move', m2: 'move', m3: 'move', nature: 'nature' };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Seeded Gaussian draw per team: fixed direction, scale comes from the recorded spread.
+  let seed = 7;
+  const rand = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const gauss = () => Math.sqrt(-2 * Math.log(rand() + 1e-12)) * Math.cos(2 * Math.PI * rand());
+  const Z = D.teams.map(() => [gauss(), gauss()]);
+
+  // Step at which each (team, slot) species becomes visible, from the decode order.
+  const revealStep = {};
+  D.order.forEach((o, i) => { revealStep[o.slot * 8 + ['species','ability','item','m0','m1','m2','m3','nature'].indexOf(o.field)] = i + 1; });
+
+  // Sprites: decode once, crop transparent padding.
+  const sprites = {};
+  const loadSprite = (id) => new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+      const px = x.getImageData(0, 0, c.width, c.height).data;
+      let x0 = c.width, y0 = c.height, x1 = 0, y1 = 0;
+      for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (px[(y * c.width + xx) * 4 + 3] > 8) { x0 = Math.min(x0, xx); y0 = Math.min(y0, y); x1 = Math.max(x1, xx); y1 = Math.max(y1, y); }
+      sprites[id] = { img, sx: x0, sy: y0, sw: x1 - x0 + 1, sh: y1 - y0 + 1, url: D.sprites[id] };
+      res();
+    };
+    img.onerror = res; img.src = D.sprites[id];
+  });
+
+  const canvas = document.getElementById('ad-canvas'), ctx = canvas.getContext('2d');
+  const scrub = document.getElementById('ad-scrub'), playBtn = document.getElementById('ad-play');
+  let W = 0, H = 0, dpr = 1, tau = 0, playing = false, last = 0, selected = D.featured[0], hold = 0;
+
+  const bounds = (() => {
+    let m = 0;
+    D.teams.forEach(t => { const s = t.steps; for (let k = 0; k <= STEPS; k++) { const o = k * STRIDE; m = Math.max(m, Math.abs(s[o]) + 2 * s[o + 2], Math.abs(s[o + 1]) + 2 * Math.hypot(s[o + 3], s[o + 4])); } });
+    return Math.min(m, 1.6);
+  })();
+  const toPx = (x, y) => {
+    const pad = Math.min(W, H) * 0.08, sx = (W - 2 * pad) / (2 * bounds), sy = (H - 2 * pad) / (2 * bounds);
+    return [W / 2 + x * sx, H / 2 - y * sy];
+  };
+
+  let lastW = -1;
+  function resize() {
+    if (canvas.clientWidth === lastW) return; lastW = canvas.clientWidth;
+    dpr = window.devicePixelRatio || 1;
+    W = canvas.clientWidth; H = Math.round(W * (W < 560 ? 1 : 0.62));
+    canvas.style.height = H + 'px'; canvas.width = trail.width = Math.round(W * dpr); canvas.height = trail.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw(true);
+  }
+
+  const ease = u => u * u * (3 - 2 * u);
+  function stateAt(t, time) {
+    const s = D.teams[t].steps, k = Math.min(Math.floor(time), STEPS - 1), u = ease(Math.min(time - k, 1));
+    const a = k * STRIDE, b = Math.min(k + 1, STEPS) * STRIDE, out = new Array(STRIDE);
+    for (let i = 0; i < STRIDE; i++) out[i] = s[a + i] + (s[b + i] - s[a + i]) * u;
+    return out;
+  }
+  function pos(t, time) {
+    const v = stateAt(t, time);
+    // Cholesky factor of the completions' 2D covariance turns the fixed draw into their real spread.
+    return { xy: toPx(v[0] + v[2] * Z[t][0], v[1] + v[3] * Z[t][0] + v[4] * Z[t][1]), p: v.slice(5, 9) };
+  }
+  function blend(p) {
+    const conf = Math.max(...p), w = Math.max(0, (conf - 0.25) / 0.75);
+    const mix = [0, 1, 2].map(c => p.reduce((acc, pk, k) => acc + pk * RGB[k][c], 0));
+    return [0, 1, 2].map(c => Math.round(GREY[c] + (mix[c] - GREY[c]) * Math.min(1, w * 1.4)));
+  }
+
+  function drawSprite(id, cx, cy, size, alpha = 1) {
+    const s = sprites[id]; if (!s) return false;
+    const k = size / Math.max(s.sw, s.sh);
+    ctx.globalAlpha = alpha; ctx.imageSmoothingEnabled = k < 1;
+    ctx.drawImage(s.img, s.sx, s.sy, s.sw, s.sh, cx - s.sw * k / 2, cy - s.sh * k / 2, s.sw * k, s.sh * k);
+    ctx.globalAlpha = 1; return true;
+  }
+
+  function lastRevealedSpecies(t, time) {
+    let best = -1;
+    for (let slot = 0; slot < 6; slot++) if (revealStep[slot * 8] <= time) best = slot;
+    return best < 0 ? null : D.teams[t].speciesId[best];
+  }
+
+  const trail = document.createElement('canvas'), tctx = trail.getContext('2d');
+  function draw(clear) {
+    if (!W) return;
+    // Dots live on their own layer so only they leave fading trails.
+    tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (clear || !playing) tctx.clearRect(0, 0, W, H);
+    else { tctx.globalCompositeOperation = 'destination-out'; tctx.fillStyle = 'rgba(0,0,0,0.28)'; tctx.fillRect(0, 0, W, H); tctx.globalCompositeOperation = 'source-over'; }
+    ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, W, H);
+
+    // Archetype anchors fade in as the cloud commits.
+    const anchorA = 0.25 + 0.75 * Math.min(1, tau / 18);
+    D.archetypes.forEach((name, k) => {
+      const [x, y] = toPx(D.centroids[k][0], D.centroids[k][1]), r = Math.min(W, H) * 0.16;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, COLORS[k] + '26'); g.addColorStop(1, COLORS[k] + '00');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+    });
+
+    const sel = new Set(D.featured);
+    for (let t = 0; t < T; t++) {
+      if (sel.has(t) || t === selected) continue;
+      const { xy, p } = pos(t, tau), c = blend(p);
+      tctx.fillStyle = `rgba(${c},0.9)`; tctx.beginPath(); tctx.arc(xy[0], xy[1], W < 560 ? 2.1 : 2.6, 0, 7); tctx.fill();
+    }
+    ctx.drawImage(trail, 0, 0, W, H);
+
+    // Anchor labels and representative sprites.
+    D.archetypes.forEach((name, k) => {
+      const [x, y] = toPx(D.centroids[k][0], D.centroids[k][1]);
+      // Labels sit out past the cluster, toward the canvas edge, so they never cover the dots.
+      const c = D.centroids[k], n = Math.hypot(c[0], c[1]) || 1, [ex, ey] = toPx(c[0] / n * bounds * 0.97, c[1] / n * bounds * 0.97);
+      const lx = Math.max(56, Math.min(W - 56, ex)), ly = Math.max(W < 560 ? 92 : 30, Math.min(H - 22, ey));
+      ctx.globalAlpha = anchorA; ctx.font = '600 12px ui-sans-serif,system-ui,sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = COLORS[k]; ctx.fillText(name, lx, ly - 16);
+      ctx.globalAlpha = 1;
+      const reps = D.representatives[k] || [], sz = W < 560 ? 22 : 30;
+      reps.forEach((id, i) => drawSprite(id, lx + (i - (reps.length - 1) / 2) * (sz + 2), ly + 4, sz, anchorA * 0.9));
+    });
+
+    // Followed teams on top: ring, badge, latest revealed species.
+    [...D.featured, ...(sel.has(selected) ? [] : [selected])].forEach(t => {
+      const { xy, p } = pos(t, tau), c = blend(p), isSel = t === selected;
+      ctx.fillStyle = `rgb(${c})`; ctx.beginPath(); ctx.arc(xy[0], xy[1], isSel ? 6 : 4.5, 0, 7); ctx.fill();
+      ctx.strokeStyle = isSel ? '#ffffff' : 'rgba(237,243,255,.6)'; ctx.lineWidth = isSel ? 2 : 1.2; ctx.stroke();
+      const sp = lastRevealedSpecies(t, tau);
+      if (sp) drawSprite(sp, xy[0], xy[1] - (W < 560 ? 17 : 22), W < 560 ? 26 : 36);
+      const fi = D.featured.indexOf(t);
+      if (fi >= 0) { ctx.font = '700 10px ui-sans-serif,system-ui'; ctx.fillStyle = '#edf3ff'; ctx.textAlign = 'left'; ctx.fillText(String(fi + 1), xy[0] + 7, xy[1] + 10); }
+    });
+  }
+
+  const stageName = s => s === 0 ? 'All fields masked' : s <= 6 ? 'Revealing species' : s <= 18 ? 'Revealing abilities and items' : s <= 42 ? 'Revealing moves' : s < 48 ? 'Revealing natures' : 'Every field revealed';
+  function updateText() {
+    const s = Math.round(tau * 100) / 100, si = Math.floor(tau + 1e-6);
+    document.getElementById('ad-stage').textContent = stageName(si);
+    document.getElementById('ad-count').textContent = `${si} / 48 fields revealed`;
+    document.getElementById('ad-step').textContent = si;
+    scrub.value = tau; renderCard();
+  }
+
+  function slotHTML(t, slot, si) {
+    const f = D.teams[t].fields, id = D.teams[t].speciesId[slot], shown = c => revealStep[slot * 8 + c] <= si;
+    const val = c => shown(c) ? (f[slot * 8 + c] || '—') : '<span class="text-[#5d6f8c]">?</span>';
+    const pic = shown(0) && D.sprites[id]
+      ? `<img class="sprite h-10 w-10 object-contain" src="${D.sprites[id]}" alt="">`
+      : `<div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a263b] text-lg text-[#5d6f8c]">?</div>`;
+    const moves = [3, 4, 5, 6].map(val).join(' · ');
+    return `<div class="flex gap-2 border-t border-[var(--line)] py-1.5 first:border-t-0">${pic}<div class="min-w-0 text-xs leading-snug">
+      <div class="font-semibold text-[13px] text-[var(--fg)]">${val(0)}</div>
+      <div class="truncate text-[var(--muted)]">${val(1)} · ${val(2)}</div>
+      <div class="truncate text-[var(--muted)]">${moves}</div></div></div>`;
+  }
+  function renderCard() {
+    const t = selected, si = Math.floor(tau + 1e-6), p = stateAt(t, tau).slice(5, 9), fi = D.featured.indexOf(t);
+    const bar = p.map((v, k) => `<div style="width:${(v * 100).toFixed(1)}%;background:${COLORS[k]}" title="${D.archetypes[k]} ${(v * 100).toFixed(0)}%"></div>`).join('');
+    const top = p.indexOf(Math.max(...p));
+    document.getElementById('ad-card').innerHTML = `
+      <div class="flex items-baseline justify-between text-sm"><span class="font-semibold">${fi >= 0 ? 'Followed team ' + (fi + 1) : 'Team #' + (t + 1)}</span>
+      <span class="text-xs text-[var(--muted)]">final: <span style="color:${COLORS[D.teams[t].label]}">${D.archetypes[D.teams[t].label]}</span></span></div>
+      <div class="mt-2 text-xs text-[var(--muted)]">Where its completions land now — leaning <span style="color:${COLORS[top]}">${D.archetypes[top]}</span> (${(p[top] * 100).toFixed(0)}%)</div>
+      <div class="mt-1 flex h-2 overflow-hidden rounded-full bg-[#1a263b]">${bar}</div>
+      <div class="mt-3">${[0, 1, 2, 3, 4, 5].map(s => slotHTML(t, s, si)).join('')}</div>`;
+    document.querySelectorAll('#ad-featured button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.t === t)));
+  }
+
+  function renderFeatured() {
+    document.getElementById('ad-featured').innerHTML = D.featured.map((t, i) => {
+      const k = D.teams[t].label;
+      return `<button type="button" data-t="${t}" aria-pressed="false" class="rounded-md border border-[var(--line)] py-1 text-sm font-semibold hover:bg-[#1a263b] aria-pressed:bg-[#1f2d45] aria-pressed:border-[#9ecbff] focus-visible:outline-2 focus-visible:outline-[#9ecbff]" style="color:${COLORS[k]}" title="Followed team ${i + 1}">${i + 1}</button>`;
+    }).join('');
+    document.querySelectorAll('#ad-featured button').forEach(b => b.onclick = () => { selected = +b.dataset.t; draw(true); renderCard(); });
+  }
+
+  function renderLegend() {
+    document.getElementById('ad-legend').innerHTML = D.archetypes.map((n, k) =>
+      `<span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${COLORS[k]}"></span><span>${n}</span><span class="text-[var(--muted)] tabular-nums">${D.labelCounts[k]}</span></span>`).join('') +
+      `<span class="inline-flex items-center gap-1.5 text-[var(--muted)]"><span class="h-2.5 w-2.5 rounded-full" style="background:rgb(${GREY})"></span>undecided</span>`;
+    document.getElementById('ad-method').innerHTML = D.methodHTML;
+  }
+
+  function frame(now) {
+    if (!playing) return;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (tau >= STEPS) { hold += dt; if (hold > 1.2) { playing = false; playBtn.textContent = 'Replay'; draw(true); return; } }
+    else tau = Math.min(STEPS, tau + dt * (tau < 6 ? 1.1 : tau < 18 ? 3 : tau < 42 ? 4.5 : 8));
+    draw(false); updateText(); requestAnimationFrame(frame);
+  }
+  function play() {
+    if (tau >= STEPS) tau = 0;
+    playing = true; hold = 0; playBtn.textContent = 'Pause'; last = performance.now(); requestAnimationFrame(frame);
+  }
+  function pause() { playing = false; playBtn.textContent = 'Play'; draw(true); }
+  playBtn.onclick = () => playing ? pause() : play();
+  document.getElementById('ad-restart').onclick = () => { tau = 0; draw(true); updateText(); if (!reduce) play(); };
+  scrub.oninput = () => { if (playing) pause(); tau = +scrub.value; draw(true); updateText(); };
+
+  canvas.addEventListener('pointerdown', e => {
+    const r = canvas.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    let best = -1, bd = 22 * 22;
+    for (let t = 0; t < T; t++) { const [x, y] = pos(t, tau).xy, d = (x - mx) ** 2 + (y - my) ** 2; if (d < bd) { bd = d; best = t; } }
+    if (best >= 0) { selected = best; draw(true); renderCard(); }
+  });
+
+  Promise.all(Object.keys(D.sprites).map(loadSprite)).then(() => {
+    renderFeatured(); renderLegend(); resize(); updateText();
+    new ResizeObserver(() => resize()).observe(canvas);
+    if (!reduce) {
+      const io = new IntersectionObserver(es => { if (es[0].isIntersecting && tau === 0 && !playing) { play(); io.disconnect(); } }, { threshold: 0.4 });
+      io.observe(canvas);
+    }
+  });
+})();
+</script>
+</body>
+</html>

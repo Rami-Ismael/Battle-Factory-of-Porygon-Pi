@@ -1,0 +1,257 @@
+<meta charset="utf-8">
+<title>Searching the Masks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: paper summary → the search, running: tree of partial teams (left) beside the selected path drawn as team cards and the five new children with their completion scores (right) → the no-search comparison counter → the paper's ablation → how it maps onto Reg M-B teams. Same system as the project's other blog figures. */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6773; --faint:#8C96A1; --rule:#D9DEE4;
+  --accent:#0E7C7B; --accent-soft:#DDF0EF; --sel:#C07A12; --sel-soft:#F8EBD3; --mask:#E9EDF1; --mask2:#DCE2E8;
+  --s1:#2F6FB3; --s2:#7A55B0; --s3:#1F7A4D; --s4:#B8412F;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+    --accent:#4FC2BF; --accent-soft:#16312F; --sel:#E3A443; --sel-soft:#382A13; --mask:#1C252F; --mask2:#25303B;
+    --s1:#6FA8E8; --s2:#AE8BE0; --s3:#5BC48A; --s4:#E07A68;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C; --surface:#172029; --ink:#E4EAF0; --muted:#9AA6B2; --faint:#6D7885; --rule:#2A3440;
+  --accent:#4FC2BF; --accent-soft:#16312F; --sel:#E3A443; --sel-soft:#382A13; --mask:#1C252F; --mask2:#25303B;
+  --s1:#6FA8E8; --s2:#AE8BE0; --s3:#5BC48A; --s4:#E07A68;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:grid;gap:24px}
+header{display:grid;gap:10px;max-width:74ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);letter-spacing:-0.01em;margin:0;text-wrap:balance}
+h2{font:700 21px/1.2 var(--display);margin:0;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--muted);font-size:16px}
+.note{color:var(--muted);font-size:13px;max-width:80ch}
+a{color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:16px;display:grid;gap:14px}
+.run{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:start}
+.treebox{display:grid;gap:8px;min-width:0}
+svg{display:block;width:100%;height:auto}
+.edge{stroke:var(--rule);stroke-width:1.2;fill:none}
+.edge.hot{stroke:var(--sel);stroke-width:2.6}
+.nd{stroke:var(--surface);stroke-width:1.5;transition:r 300ms var(--ease)}
+.nd.hot{stroke:var(--sel);stroke-width:3}
+.lvl{fill:var(--faint);font:10.5px var(--mono)}
+.phase{display:flex;gap:6px;flex-wrap:wrap}
+.phase span{font:600 11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--rule);border-radius:99px;padding:6px 9px;color:var(--muted)}
+.phase span.on{background:var(--sel-soft);border-color:var(--sel);color:var(--ink)}
+.side{display:grid;gap:12px;min-width:0}
+.sub{font:600 11px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.path{display:grid;gap:6px}
+.tc{display:flex;align-items:center;gap:8px;border:1px solid var(--rule);border-radius:10px;padding:5px 8px;min-width:0}
+.tc.child{border-style:dashed}
+.tc.best{border-color:var(--sel);background:var(--sel-soft)}
+.slots{display:flex;gap:2px;flex:none}
+.slot{width:30px;height:30px;border-radius:6px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,var(--mask) 0 3px,var(--mask2) 3px 6px);font:700 12px var(--display);color:var(--faint)}
+.slot img{width:30px;height:30px;image-rendering:pixelated}
+.slot.on{background:var(--bg)}
+.stages{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;width:84px;flex:none}
+.stages i{height:7px;border-radius:2px;background:var(--mask2)}
+.stages i.f1{background:var(--s1)} .stages i.f2{background:var(--s2)} .stages i.f3{background:var(--s3)} .stages i.f4{background:var(--s4)}
+.meta{font:12px/1.3 var(--mono);color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
+.ei{font:600 11px/1 var(--mono);border-radius:5px;padding:3px 5px;background:var(--accent-soft);color:var(--ink);opacity:0;transform:translateY(3px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.ei.in{opacity:1;transform:none}
+.mean{font:600 12px/1 var(--mono);color:var(--accent)}
+.versus{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.vs{border:1px solid var(--rule);border-radius:12px;padding:12px;display:grid;gap:4px}
+.vs b{font:700 15px/1.2 var(--display)}
+.vs .n{font:500 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.vs .l{font-size:12.5px;color:var(--muted)}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:500 14px/1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;min-height:40px;cursor:pointer;transition:transform 120ms var(--ease)}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.say{font-size:14.5px;min-height:3em;max-width:72ch}
+.say code{font:13px var(--mono);background:var(--bg);padding:1px 5px;border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;border-bottom:1px solid var(--rule);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{font:600 11px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+tr.ours td{font-weight:600}
+.tbl{overflow-x:auto}
+.map{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.map div{border-radius:10px;padding:10px;border:1px solid var(--rule);display:grid;gap:4px;font-size:13.5px}
+.map b{font:700 14px/1.2 var(--display)}
+.map i{display:block;height:6px;border-radius:2px}
+@media (max-width:860px){ .run{grid-template-columns:1fr} .map{grid-template-columns:repeat(2,minmax(0,1fr))} .slot,.slot img{width:24px;height:24px} }
+@media (prefers-reduced-motion:reduce){ .nd,.ei{transition:none} button{transition:none} button:active{transform:none} }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Paper explainer · Diffusion Large Language Models for Black-Box Optimization (arXiv 2601.14446, 2026 preprint)</span>
+    <h1>Searching the masks</h1>
+    <p class="lede">A masked diffusion model writes a design by filling in blanks. This paper does not just sample complete designs and keep the best: it searches over half-filled designs, finishing each one a few ways to judge whether it is worth filling further. Here is that search, drawn on Pokémon teams.</p>
+  </header>
+
+  <section class="card">
+    <div class="phase" id="phase"><span id="ph0">1 · select</span><span id="ph1">2 · expand</span><span id="ph2">3 · finish 5 ways and score</span><span id="ph3">4 · back up the value</span></div>
+    <p class="say" id="say"></p>
+    <div class="run">
+      <div class="treebox">
+        <span class="sub">the search tree · circle size = visits · colour = value</span>
+        <svg id="tree" viewBox="0 0 520 330" aria-label="Search tree of partially filled teams"></svg>
+      </div>
+      <div class="side">
+        <span class="sub">the selected path: blanks fill in, one stage per level</span>
+        <div class="path" id="path"></div>
+        <span class="sub" id="kidsLab">new children: each finished 5 ways, scored by the predictor</span>
+        <div class="path" id="kids"></div>
+      </div>
+    </div>
+    <div class="versus">
+      <div class="vs"><b>With tree search</b><span class="n" id="vT">0</span><span class="l" id="vTl">complete teams scored · iteration 0 of 16</span></div>
+      <div class="vs"><b>Without tree search (same budget)</b><span class="n" id="vB">0</span><span class="l">complete teams sampled directly, then ranked by the same predictor</span></div>
+    </div>
+    <div class="ctrl"><button type="button" id="play">Replay</button><button type="button" id="skip">Jump to the end</button>
+      <span class="note">Scores in this animation are made up to show the mechanics. Whether the search helps for teams is what the experiment measures.</span></div>
+  </section>
+
+  <section class="card">
+    <h2>What the paper reports</h2>
+    <p class="note">Maximum normalised score over 128 final designs, from 10 offline examples. "Without tree search" asks the same diffusion LLM for the same number of candidates directly and ranks them with the same Gaussian-process predictor (expected improvement). Table 2 of the paper.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Variant</th><th>Ant</th><th>D'Kitty</th><th>TF Bind 8</th><th>TF Bind 10</th></tr></thead>
+      <tbody>
+        <tr><td>Vanilla diffusion</td><td>0.590 ± 0.018</td><td>0.897 ± 0.008</td><td>0.764 ± 0.068</td><td>0.603 ± 0.014</td></tr>
+        <tr><td>Without tree search</td><td>0.604 ± 0.003</td><td>0.892 ± 0.001</td><td>0.798 ± 0.012</td><td>0.503 ± 0.013</td></tr>
+        <tr><td>Without prompt template</td><td>0.630 ± 0.005</td><td>0.934 ± 0.015</td><td>0.846 ± 0.027</td><td>0.633 ± 0.017</td></tr>
+        <tr class="ours"><td>Full method</td><td>0.652 ± 0.030</td><td>0.942 ± 0.012</td><td>0.876 ± 0.038</td><td>0.642 ± 0.013</td></tr>
+      </tbody></table></div>
+    <p class="note">The model is LLaDA-8B-Instruct, prompted with the task description and 10 scored examples; it is never fine-tuned. A search episode took about 30 minutes on Ant and 40 on TF Bind 8. Settings: depth 4, 5 children per expansion, 5 completions per child, 16 iterations, selection by UCT = average value + ω × model probability × √(log parent visits ÷ child visits).</p>
+  </section>
+
+  <section class="card">
+    <h2>The same search on a Regulation M-B team</h2>
+    <p class="note">The project's team generator fills 48 fields (6 Pokémon × species, ability, item, four moves, alignment) in a fixed order so legality can be checked at every step. That order already has four stages, which become the four levels of the tree:</p>
+    <div class="map">
+      <div><i style="background:var(--s1)"></i><b>Level 1 · species</b><span>6 fields. Species Clause checked.</span></div>
+      <div><i style="background:var(--s2)"></i><b>Level 2 · abilities and items</b><span>12 fields. Item Clause checked.</span></div>
+      <div><i style="background:var(--s3)"></i><b>Level 3 · moves</b><span>24 fields, each legal for its species.</span></div>
+      <div><i style="background:var(--s4)"></i><b>Level 4 · alignments</b><span>6 fields. The team is complete.</span></div>
+    </div>
+    <p class="note">One change from the paper: it re-masks the least confident tokens; the team generator must reveal fields in dependency order, so each level reveals the next stage instead. The predictor is the project's ridge surrogate with its posterior variance, so it gives expected improvement like the paper's Gaussian process. The experiment runs both arms with the same generator, training data, predictor and battle budget.</p>
+  </section>
+</div>
+
+<script>
+const SP = /*__SPRITES__*/null;
+const POOL = Object.keys(SP);
+const DEPTH = 4, BR = 5, J = 5, ITERS = 16, OMEGA = 1.0;
+const STAGE_NAMES = ["species", "abilities and items", "moves", "alignments"];
+
+// ---------------- toy objective and predictor (illustration only)
+let seed = 11;
+const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+const gauss = () => { let u = 0; while (!u) u = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd()); };
+const SPVAL = {}; POOL.forEach((n, i) => SPVAL[n] = Math.sin(i * 2.17) * .5);
+const BEST0 = .9;                                           // best label in the offline data (toy units)
+const Phi = z => .5 * (1 + Math.tanh(.7978845608 * (z + .044715 * z ** 3)));
+const ei = (mu, sd) => { const z = (mu - BEST0) / sd; return (mu - BEST0) * Phi(z) + sd * Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI); };
+function pickSpecies(){ const s = [...POOL].sort(() => rnd() - .5).slice(0, 6); return s; }
+function complete(node){                                     // fill the still-masked stages at random
+  const sp = node.sp || pickSpecies(), st = node.stage.slice();
+  for (let d = st.length; d < DEPTH - 1; d++) st.push(gauss() * .35);
+  const mu = sp.reduce((a, n) => a + SPVAL[n], 0) * .5 + st.reduce((a, b) => a + b, 0);
+  return ei(mu, .55);
+}
+// ---------------- the tree
+let root, nodes, tScored, bScored, bBest, tBest, iter;
+function reset(){ seed = 11; root = {id:0, d:0, sp:null, stage:[], kids:[], N:0, V:0, prior:1, parent:null}; nodes = [root];
+  tScored = 0; bScored = 0; bBest = 0; tBest = 0; iter = 0; }
+function uct(p, c){ return c.V + OMEGA * c.prior * Math.sqrt(Math.log(Math.max(p.N, 1)) / Math.max(c.N, 1e-9)); }
+function select(){ const path = [root]; let n = root;
+  while (n.kids.length && n.d < DEPTH) { n = n.kids.reduce((a, b) => uct(n, b) > uct(n, a) ? b : a); path.push(n); } return path; }
+function expand(leaf){ if (leaf.d >= DEPTH) return [];
+  const raw = Array.from({length:BR}, () => .3 + rnd()), t = raw.reduce((a, b) => a + b, 0);
+  leaf.kids = raw.map(p => { const k = {id:nodes.length, d:leaf.d + 1, parent:leaf, kids:[], N:0, V:0, prior:p / t,
+    sp: leaf.d === 0 ? pickSpecies() : leaf.sp, stage: leaf.d === 0 ? [] : [...leaf.stage, gauss() * .35]}; nodes.push(k); return k; });
+  return leaf.kids; }
+function rollout(k){ k.eis = Array.from({length:J}, () => complete(k)); k.V = k.eis.reduce((a, b) => a + b, 0) / J; k.N = 1;
+  tScored += J; tBest = Math.max(tBest, ...k.eis); }
+function backup(path, kids){ const v = kids.reduce((a, k) => a + k.V, 0) / kids.length;
+  for (const n of path) { n.V = (n.V * n.N + v) / (n.N + 1); n.N += 1; } }
+function baselineTo(n){ while (bScored < n) { bBest = Math.max(bBest, complete({sp:null, stage:[]})); bScored++; } }
+
+// ---------------- drawing
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function layout(){ let x = 0; const leafW = 7.6;
+  const walk = n => { if (!n.kids.length) { n.x = 30 + x * leafW; x++; } else { n.kids.forEach(walk); n.x = (n.kids[0].x + n.kids[n.kids.length - 1].x) / 2; } n.y = 26 + n.d * 70; };
+  walk(root); const w = Math.max(30 + x * leafW, 1); if (w > 500) nodes.forEach(n => n.x = 30 + (n.x - 30) * 470 / (w - 30)); }
+function drawTree(hot = []){
+  layout(); const svg = document.getElementById("tree"); const hotSet = new Set(hot.map(n => n.id));
+  const vmax = Math.max(...nodes.map(n => n.V), 1e-6);
+  let h = [0,1,2,3,4].map(d => `<text class="lvl" x="2" y="${30 + d * 70}">${d ? "L" + d : "root"}</text>`).join("");
+  for (const n of nodes) for (const k of n.kids) h += `<path class="edge${hotSet.has(n.id) && hotSet.has(k.id) ? " hot" : ""}" d="M${n.x},${n.y} C${n.x},${n.y + 35} ${k.x},${k.y - 35} ${k.x},${k.y}"/>`;
+  for (const n of nodes) { const r = 3 + Math.min(7, Math.sqrt(n.N) * 1.6), t = n.N ? n.V / vmax : 0;
+    h += `<circle class="nd${hotSet.has(n.id) ? " hot" : ""}" cx="${n.x}" cy="${n.y}" r="${r}" fill="${n.N ? `color-mix(in srgb, var(--accent) ${Math.round(25 + 75 * t)}%, var(--rule))` : "var(--rule)"}"/>`; }
+  svg.innerHTML = h;
+}
+function teamCard(n, cls = "", extra = ""){
+  const slots = Array.from({length:6}, (_, i) => n.sp && n.d >= 1 ? `<span class="slot on"><img src="${SP[n.sp[i]]}" alt="${n.sp[i]}"></span>` : `<span class="slot">?</span>`).join("");
+  const stages = [1,2,3,4].map(d => `<i class="${n.d >= d ? "f" + d : ""}"></i>`).join("");
+  return `<div class="tc ${cls}"><span class="slots">${slots}</span><span class="stages" title="stages filled">${stages}</span><span class="meta">${extra}</span></div>`;
+}
+function drawPath(path){ document.getElementById("path").innerHTML = path.map(n =>
+  teamCard(n, "", n.d === 0 ? "root: everything masked" : `level ${n.d} · ${STAGE_NAMES[n.d - 1]} filled · visits ${n.N} · value ${n.V.toFixed(3)}`)).join(""); }
+function drawKids(kids, shown){ const best = kids.length ? kids.reduce((a, b) => (a.V > b.V ? a : b)) : null;
+  document.getElementById("kids").innerHTML = kids.map(k => teamCard(k, "child" + (shown && k === best ? " best" : ""),
+    (k.eis || []).map((e, j) => `<span class="ei${shown ? " in" : ""}" style="transition-delay:${j * 70}ms">${e.toFixed(2)}</span>`).join("") +
+    (shown && k.eis ? ` <span class="mean">mean ${k.V.toFixed(3)}</span>` : ""))).join("");
+  if (!shown) requestAnimationFrame(() => document.querySelectorAll("#kids .ei").forEach(e => e.classList.add("in"))); }
+function counters(){ document.getElementById("vT").textContent = tScored; document.getElementById("vB").textContent = bScored;
+  document.getElementById("vTl").textContent = `complete teams scored · iteration ${iter} of ${ITERS}`; }
+function phase(i){ [0,1,2,3].forEach(j => document.getElementById("ph" + j).classList.toggle("on", j === i)); }
+
+// ---------------- playback
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let runId = 0;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const say = t => document.getElementById("say").innerHTML = t;
+async function run(fastFrom = 3){
+  const id = ++runId; reset(); drawTree(); drawPath([root]); drawKids([], true); counters(); phase(-1);
+  say("The root is a team with every field masked. Each iteration selects a promising partial team, fills its next stage five different ways, finishes each child five ways to score it, and passes the scores back up.");
+  await wait(reduce ? 0 : 1800);
+  for (iter = 1; iter <= ITERS && id === runId; iter++) {
+    const slow = iter <= fastFrom && !reduce, d = ms => wait(slow ? ms : (reduce ? 0 : 120));
+    const path = select(); const leaf = path[path.length - 1];
+    phase(0); drawTree(path); drawPath(path);
+    say(path.length === 1 ? "<b>Select.</b> Only the root exists, so start there." :
+      `<b>Select.</b> Walk down by <code>UCT = value + ω × prior × √(log parent visits ÷ visits)</code>: good average scores attract the search, rarely visited branches get a bonus.`);
+    await d(1700);
+    if (leaf.d >= DEPTH) { backup(path, [leaf]); continue; }
+    phase(1); const kids = expand(leaf); drawTree([...path, ...kids]); drawKids(kids, false);
+    say(`<b>Expand.</b> The diffusion model fills the next stage (${STAGE_NAMES[leaf.d]}) five different ways. Everything after that stays masked.`);
+    await d(1700);
+    phase(2); kids.forEach(rollout); drawKids(kids, false); counters();
+    say(`<b>Finish 5 ways and score.</b> A half-filled team cannot be battled or scored, so each child is completed five times and the predictor's expected improvement is averaged. That average is the child's value.`);
+    await d(2200);
+    phase(3); backup(path, kids); baselineTo(tScored); drawTree(path); drawPath(path); drawKids(kids, true); counters();
+    say(`<b>Back up.</b> Every node on the path updates its visit count and average value. Without tree search, the same ${tScored} complete teams would have been drawn independently.`);
+    await d(1600);
+  }
+  if (id !== runId) return;
+  phase(-1); drawTree(); drawKids([], true);
+  say(`Done: ${tScored} complete teams scored in ${ITERS} iterations. The search returns the explored complete teams with the highest expected improvement; without tree search, the top of ${bScored} independent samples. Both then go to battle.`);
+}
+document.getElementById("play").addEventListener("click", () => run());
+document.getElementById("skip").addEventListener("click", () => run(0));
+document.addEventListener("visibilitychange", () => { if (document.hidden) runId++; });
+run();
+</script>

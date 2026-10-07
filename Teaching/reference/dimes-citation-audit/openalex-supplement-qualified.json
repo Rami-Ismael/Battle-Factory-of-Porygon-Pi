@@ -1,0 +1,2061 @@
+[
+  {
+    "id": "https://openalex.org/W4393160633",
+    "doi": "https://doi.org/10.1609/aaai.v38i18.30009",
+    "title": "GLOP: Learning Global Partition and Local Construction for Solving Large-Scale Routing Problems in Real-Time",
+    "display_name": "GLOP: Learning Global Partition and Local Construction for Solving Large-Scale Routing Problems in Real-Time",
+    "publication_year": 2024,
+    "publication_date": "2024-03-24",
+    "ids": {
+      "openalex": "https://openalex.org/W4393160633",
+      "doi": "https://doi.org/10.1609/aaai.v38i18.30009"
+    },
+    "language": "en",
+    "primary_location": {
+      "id": "doi:10.1609/aaai.v38i18.30009",
+      "is_oa": true,
+      "landing_page_url": "https://doi.org/10.1609/aaai.v38i18.30009",
+      "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30009/31772",
+      "source": {
+        "id": "https://openalex.org/S4210191458",
+        "display_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+        "issn_l": "2159-5399",
+        "issn": [
+          "2159-5399",
+          "2374-3468"
+        ],
+        "is_oa": true,
+        "is_in_doaj": false,
+        "is_core": false,
+        "host_organization": "https://openalex.org/P4310320058",
+        "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+        "host_organization_lineage": [
+          "https://openalex.org/P4310320058"
+        ],
+        "host_organization_lineage_names": [
+          "Association for the Advancement of Artificial Intelligence"
+        ],
+        "type": "conference"
+      },
+      "license": null,
+      "license_id": null,
+      "version": "publishedVersion",
+      "is_accepted": true,
+      "is_published": true,
+      "raw_source_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "raw_type": "journal-article"
+    },
+    "type": "conference-paper",
+    "indexed_in": [
+      "crossref"
+    ],
+    "open_access": {
+      "is_oa": true,
+      "oa_status": "diamond",
+      "oa_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30009/31772",
+      "any_repository_has_fulltext": false
+    },
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5015329124",
+          "display_name": "Haoran Ye",
+          "orcid": "https://orcid.org/0000-0002-8510-3716"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I3923682",
+            "display_name": "Soochow University",
+            "ror": "https://ror.org/05t8y2r12",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Haoran Ye",
+        "raw_affiliation_strings": [
+          "Soochow University, China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Soochow University, China",
+            "institution_ids": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100639354",
+          "display_name": "Jiarui Wang",
+          "orcid": "https://orcid.org/0000-0002-2138-6016"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I3923682",
+            "display_name": "Soochow University",
+            "ror": "https://ror.org/05t8y2r12",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jiarui Wang",
+        "raw_affiliation_strings": [
+          "Soochow University, China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Soochow University, China",
+            "institution_ids": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5082615174",
+          "display_name": "Helan Liang",
+          "orcid": "https://orcid.org/0000-0001-9176-8944"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I3923682",
+            "display_name": "Soochow University",
+            "ror": "https://ror.org/05t8y2r12",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Helan Liang",
+        "raw_affiliation_strings": [
+          "Soochow University, China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Soochow University, China",
+            "institution_ids": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5021597928",
+          "display_name": "Zhiguang Cao",
+          "orcid": "https://orcid.org/0000-0002-4499-759X"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I79891267",
+            "display_name": "Singapore Management University",
+            "ror": "https://ror.org/050qmg959",
+            "country_code": "SG",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I79891267"
+            ]
+          }
+        ],
+        "countries": [
+          "SG"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Zhiguang Cao",
+        "raw_affiliation_strings": [
+          "Singapore Management University, Singapore"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Singapore Management University, Singapore",
+            "institution_ids": [
+              "https://openalex.org/I79891267"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100355277",
+          "display_name": "Yong Li",
+          "orcid": "https://orcid.org/0000-0001-5617-1659"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I99065089",
+            "display_name": "Tsinghua University",
+            "ror": "https://ror.org/03cve4549",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I99065089"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yong Li",
+        "raw_affiliation_strings": [
+          "Tsinghua University, China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Tsinghua University, China",
+            "institution_ids": [
+              "https://openalex.org/I99065089"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5013713640",
+          "display_name": "Fanzhang Li",
+          "orcid": "https://orcid.org/0000-0003-4318-3081"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I3923682",
+            "display_name": "Soochow University",
+            "ror": "https://ror.org/05t8y2r12",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Fanzhang Li",
+        "raw_affiliation_strings": [
+          "Soochow University, China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Soochow University, China",
+            "institution_ids": [
+              "https://openalex.org/I3923682"
+            ]
+          }
+        ]
+      }
+    ],
+    "institutions": [],
+    "countries_distinct_count": 2,
+    "institutions_distinct_count": 3,
+    "corresponding_author_ids": [],
+    "corresponding_institution_ids": [],
+    "apc_list": null,
+    "apc_paid": null,
+    "fwci": 31.9377,
+    "has_fulltext": true,
+    "cited_by_count": 38,
+    "citation_normalized_percentile": {
+      "value": 0.99930358,
+      "is_in_top_1_percent": true,
+      "is_in_top_10_percent": true
+    },
+    "cited_by_percentile_year": {
+      "min": 97,
+      "max": 100
+    },
+    "biblio": {
+      "volume": "38",
+      "issue": "18",
+      "first_page": "20284",
+      "last_page": "20292"
+    },
+    "is_retracted": false,
+    "is_paratext": false,
+    "is_xpac": false,
+    "primary_topic": {
+      "id": "https://openalex.org/T11522",
+      "display_name": "VLSI and FPGA Design Techniques",
+      "score": 0.9782999753952026,
+      "subfield": {
+        "id": "https://openalex.org/subfields/2208",
+        "display_name": "Electrical and Electronic Engineering"
+      },
+      "field": {
+        "id": "https://openalex.org/fields/22",
+        "display_name": "Engineering"
+      },
+      "domain": {
+        "id": "https://openalex.org/domains/3",
+        "display_name": "Physical Sciences"
+      }
+    },
+    "topics": [
+      {
+        "id": "https://openalex.org/T11522",
+        "display_name": "VLSI and FPGA Design Techniques",
+        "score": 0.9782999753952026,
+        "subfield": {
+          "id": "https://openalex.org/subfields/2208",
+          "display_name": "Electrical and Electronic Engineering"
+        },
+        "field": {
+          "id": "https://openalex.org/fields/22",
+          "display_name": "Engineering"
+        },
+        "domain": {
+          "id": "https://openalex.org/domains/3",
+          "display_name": "Physical Sciences"
+        }
+      },
+      {
+        "id": "https://openalex.org/T10586",
+        "display_name": "Robotic Path Planning Algorithms",
+        "score": 0.967199981212616,
+        "subfield": {
+          "id": "https://openalex.org/subfields/1707",
+          "display_name": "Computer Vision and Pattern Recognition"
+        },
+        "field": {
+          "id": "https://openalex.org/fields/17",
+          "display_name": "Computer Science"
+        },
+        "domain": {
+          "id": "https://openalex.org/domains/3",
+          "display_name": "Physical Sciences"
+        }
+      },
+      {
+        "id": "https://openalex.org/T12203",
+        "display_name": "Mobile Agent-Based Network Management",
+        "score": 0.96670001745224,
+        "subfield": {
+          "id": "https://openalex.org/subfields/1705",
+          "display_name": "Computer Networks and Communications"
+        },
+        "field": {
+          "id": "https://openalex.org/fields/17",
+          "display_name": "Computer Science"
+        },
+        "domain": {
+          "id": "https://openalex.org/domains/3",
+          "display_name": "Physical Sciences"
+        }
+      }
+    ],
+    "keywords": [
+      {
+        "id": "https://openalex.org/keywords/partition",
+        "display_name": "Partition (number theory)",
+        "score": 0.7385633587837219
+      },
+      {
+        "id": "https://openalex.org/keywords/computer-science",
+        "display_name": "Computer science",
+        "score": 0.5473554134368896
+      },
+      {
+        "id": "https://openalex.org/keywords/scale",
+        "display_name": "Scale (ratio)",
+        "score": 0.516200840473175
+      },
+      {
+        "id": "https://openalex.org/keywords/network-partition",
+        "display_name": "Network partition",
+        "score": 0.49566733837127686
+      },
+      {
+        "id": "https://openalex.org/keywords/routing",
+        "display_name": "Routing (electronic design automation)",
+        "score": 0.45009806752204895
+      },
+      {
+        "id": "https://openalex.org/keywords/distributed-computing",
+        "display_name": "Distributed computing",
+        "score": 0.2351454198360443
+      },
+      {
+        "id": "https://openalex.org/keywords/mathematics",
+        "display_name": "Mathematics",
+        "score": 0.20730626583099365
+      },
+      {
+        "id": "https://openalex.org/keywords/geography",
+        "display_name": "Geography",
+        "score": 0.15797165036201477
+      },
+      {
+        "id": "https://openalex.org/keywords/computer-network",
+        "display_name": "Computer network",
+        "score": 0.11581853032112122
+      },
+      {
+        "id": "https://openalex.org/keywords/cartography",
+        "display_name": "Cartography",
+        "score": 0.0716756284236908
+      }
+    ],
+    "concepts": [
+      {
+        "id": "https://openalex.org/C42812",
+        "wikidata": "https://www.wikidata.org/wiki/Q1082910",
+        "display_name": "Partition (number theory)",
+        "level": 2,
+        "score": 0.7385633587837219
+      },
+      {
+        "id": "https://openalex.org/C41008148",
+        "wikidata": "https://www.wikidata.org/wiki/Q21198",
+        "display_name": "Computer science",
+        "level": 0,
+        "score": 0.5473554134368896
+      },
+      {
+        "id": "https://openalex.org/C2778755073",
+        "wikidata": "https://www.wikidata.org/wiki/Q10858537",
+        "display_name": "Scale (ratio)",
+        "level": 2,
+        "score": 0.516200840473175
+      },
+      {
+        "id": "https://openalex.org/C2780860992",
+        "wikidata": "https://www.wikidata.org/wiki/Q16887485",
+        "display_name": "Network partition",
+        "level": 2,
+        "score": 0.49566733837127686
+      },
+      {
+        "id": "https://openalex.org/C74172769",
+        "wikidata": "https://www.wikidata.org/wiki/Q1446839",
+        "display_name": "Routing (electronic design automation)",
+        "level": 2,
+        "score": 0.45009806752204895
+      },
+      {
+        "id": "https://openalex.org/C120314980",
+        "wikidata": "https://www.wikidata.org/wiki/Q180634",
+        "display_name": "Distributed computing",
+        "level": 1,
+        "score": 0.2351454198360443
+      },
+      {
+        "id": "https://openalex.org/C33923547",
+        "wikidata": "https://www.wikidata.org/wiki/Q395",
+        "display_name": "Mathematics",
+        "level": 0,
+        "score": 0.20730626583099365
+      },
+      {
+        "id": "https://openalex.org/C205649164",
+        "wikidata": "https://www.wikidata.org/wiki/Q1071",
+        "display_name": "Geography",
+        "level": 0,
+        "score": 0.15797165036201477
+      },
+      {
+        "id": "https://openalex.org/C31258907",
+        "wikidata": "https://www.wikidata.org/wiki/Q1301371",
+        "display_name": "Computer network",
+        "level": 1,
+        "score": 0.11581853032112122
+      },
+      {
+        "id": "https://openalex.org/C58640448",
+        "wikidata": "https://www.wikidata.org/wiki/Q42515",
+        "display_name": "Cartography",
+        "level": 1,
+        "score": 0.0716756284236908
+      },
+      {
+        "id": "https://openalex.org/C114614502",
+        "wikidata": "https://www.wikidata.org/wiki/Q76592",
+        "display_name": "Combinatorics",
+        "level": 1,
+        "score": 0.0
+      }
+    ],
+    "mesh": [],
+    "locations_count": 2,
+    "locations": [
+      {
+        "id": "doi:10.1609/aaai.v38i18.30009",
+        "is_oa": true,
+        "landing_page_url": "https://doi.org/10.1609/aaai.v38i18.30009",
+        "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30009/31772",
+        "source": {
+          "id": "https://openalex.org/S4210191458",
+          "display_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+          "issn_l": "2159-5399",
+          "issn": [
+            "2159-5399",
+            "2374-3468"
+          ],
+          "is_oa": true,
+          "is_in_doaj": false,
+          "is_core": false,
+          "host_organization": "https://openalex.org/P4310320058",
+          "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+          "host_organization_lineage": [
+            "https://openalex.org/P4310320058"
+          ],
+          "host_organization_lineage_names": [
+            "Association for the Advancement of Artificial Intelligence"
+          ],
+          "type": "conference"
+        },
+        "license": null,
+        "license_id": null,
+        "version": "publishedVersion",
+        "is_accepted": true,
+        "is_published": true,
+        "raw_source_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+        "raw_type": "journal-article"
+      },
+      {
+        "id": "pmh:oai:ojs.aaai.org:article/30009",
+        "is_oa": false,
+        "landing_page_url": "https://ojs.aaai.org/index.php/AAAI/article/view/30009",
+        "pdf_url": null,
+        "source": {
+          "id": "https://openalex.org/S4306400155",
+          "display_name": "AAAI Publications (The Association for the Advancement of Artificial Intelligence (AAAI))",
+          "issn_l": null,
+          "issn": null,
+          "is_oa": false,
+          "is_in_doaj": false,
+          "is_core": false,
+          "host_organization": "https://openalex.org/I2801652627",
+          "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+          "host_organization_lineage": [
+            "https://openalex.org/I2801652627"
+          ],
+          "host_organization_lineage_names": [],
+          "type": "repository"
+        },
+        "license": null,
+        "license_id": null,
+        "version": "submittedVersion",
+        "is_accepted": false,
+        "is_published": false,
+        "raw_source_name": "2159-5399",
+        "raw_type": "info:eu-repo/semantics/article"
+      }
+    ],
+    "best_oa_location": {
+      "id": "doi:10.1609/aaai.v38i18.30009",
+      "is_oa": true,
+      "landing_page_url": "https://doi.org/10.1609/aaai.v38i18.30009",
+      "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30009/31772",
+      "source": {
+        "id": "https://openalex.org/S4210191458",
+        "display_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+        "issn_l": "2159-5399",
+        "issn": [
+          "2159-5399",
+          "2374-3468"
+        ],
+        "is_oa": true,
+        "is_in_doaj": false,
+        "is_core": false,
+        "host_organization": "https://openalex.org/P4310320058",
+        "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+        "host_organization_lineage": [
+          "https://openalex.org/P4310320058"
+        ],
+        "host_organization_lineage_names": [
+          "Association for the Advancement of Artificial Intelligence"
+        ],
+        "type": "conference"
+      },
+      "license": null,
+      "license_id": null,
+      "version": "publishedVersion",
+      "is_accepted": true,
+      "is_published": true,
+      "raw_source_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "raw_type": "journal-article"
+    },
+    "sustainable_development_goals": [],
+    "awards": [
+      {
+        "id": "https://openalex.org/G1987493015",
+        "display_name": null,
+        "funder_award_id": "2018YFA0701701",
+        "funder_id": "https://openalex.org/F4320321001",
+        "funder_display_name": "National Natural Science Foundation of China"
+      },
+      {
+        "id": "https://openalex.org/G2017435993",
+        "display_name": null,
+        "funder_award_id": "61902269",
+        "funder_id": "https://openalex.org/F4320321001",
+        "funder_display_name": "National Natural Science Foundation of China"
+      },
+      {
+        "id": "https://openalex.org/G3162858518",
+        "display_name": null,
+        "funder_award_id": "62176172",
+        "funder_id": "https://openalex.org/F4320321001",
+        "funder_display_name": "National Natural Science Foundation of China"
+      },
+      {
+        "id": "https://openalex.org/G3740256347",
+        "display_name": null,
+        "funder_award_id": "2018YFA0701700",
+        "funder_id": "https://openalex.org/F4320321001",
+        "funder_display_name": "National Natural Science Foundation of China"
+      }
+    ],
+    "funders": [
+      {
+        "id": "https://openalex.org/F4320321001",
+        "display_name": "National Natural Science Foundation of China",
+        "ror": "https://ror.org/01h0zpd94"
+      },
+      {
+        "id": "https://openalex.org/F4320322724",
+        "display_name": "Ministry of Education, India",
+        "ror": "https://ror.org/048xjjh50"
+      },
+      {
+        "id": "https://openalex.org/F4320324720",
+        "display_name": "Soochow University",
+        "ror": "https://ror.org/05t8y2r12"
+      },
+      {
+        "id": "https://openalex.org/F4320327518",
+        "display_name": "Priority Academic Program Development of Jiangsu Higher Education Institutions",
+        "ror": null
+      }
+    ],
+    "has_content": {
+      "grobid_xml": true,
+      "pdf": true
+    },
+    "content_urls": {
+      "pdf": "https://content.openalex.org/works/W4393160633.pdf",
+      "grobid_xml": "https://content.openalex.org/works/W4393160633.grobid-xml"
+    },
+    "referenced_works_count": 34,
+    "referenced_works": [
+      "https://openalex.org/W2119717200",
+      "https://openalex.org/W2408150663",
+      "https://openalex.org/W2810479212",
+      "https://openalex.org/W2948433391",
+      "https://openalex.org/W2989857233",
+      "https://openalex.org/W2990626178",
+      "https://openalex.org/W2996246179",
+      "https://openalex.org/W3009304813",
+      "https://openalex.org/W3115357289",
+      "https://openalex.org/W3117777470",
+      "https://openalex.org/W3126703815",
+      "https://openalex.org/W3127048605",
+      "https://openalex.org/W3170112077",
+      "https://openalex.org/W3177337956",
+      "https://openalex.org/W3193394022",
+      "https://openalex.org/W3199468096",
+      "https://openalex.org/W3208692779",
+      "https://openalex.org/W3214111786",
+      "https://openalex.org/W4206070139",
+      "https://openalex.org/W4226340499",
+      "https://openalex.org/W4229064821",
+      "https://openalex.org/W4230563027",
+      "https://openalex.org/W4290927725",
+      "https://openalex.org/W4295884286",
+      "https://openalex.org/W4296872783",
+      "https://openalex.org/W4304701342",
+      "https://openalex.org/W4306705633",
+      "https://openalex.org/W4310266386",
+      "https://openalex.org/W4366554617",
+      "https://openalex.org/W4382766484",
+      "https://openalex.org/W4385848933",
+      "https://openalex.org/W4388193048",
+      "https://openalex.org/W6798458556",
+      "https://openalex.org/W6941249815"
+    ],
+    "related_works": [
+      "https://openalex.org/W2388364837",
+      "https://openalex.org/W2793369131",
+      "https://openalex.org/W1549987457",
+      "https://openalex.org/W3197085788",
+      "https://openalex.org/W1992093253",
+      "https://openalex.org/W3014059774",
+      "https://openalex.org/W2388365985",
+      "https://openalex.org/W1998080522",
+      "https://openalex.org/W4372292342",
+      "https://openalex.org/W4220652165"
+    ],
+    "abstract_inverted_index": {
+      "The": [
+        0
+      ],
+      "recent": [
+        1
+      ],
+      "end-to-end": [
+        2
+      ],
+      "neural": [
+        3,
+        64,
+        72
+      ],
+      "solvers": [
+        4
+      ],
+      "have": [
+        5
+      ],
+      "shown": [
+        6
+      ],
+      "promise": [
+        7
+      ],
+      "for": [
+        8,
+        66,
+        74
+      ],
+      "small-scale": [
+        9
+      ],
+      "routing": [
+        10,
+        37,
+        43,
+        103
+      ],
+      "problems": [
+        11,
+        44
+      ],
+      "but": [
+        12
+      ],
+      "suffered": [
+        13
+      ],
+      "from": [
+        14
+      ],
+      "limited": [
+        15
+      ],
+      "real-time": [
+        16,
+        99
+      ],
+      "scaling-up": [
+        17
+      ],
+      "performance.": [
+        18
+      ],
+      "This": [
+        19
+      ],
+      "paper": [
+        20
+      ],
+      "proposes": [
+        21
+      ],
+      "GLOP": [
+        22,
+        39,
+        94
+      ],
+      "(Global": [
+        23
+      ],
+      "and": [
+        24,
+        50,
+        70,
+        84,
+        97,
+        109
+      ],
+      "Local": [
+        25
+      ],
+      "Optimization": [
+        26
+      ],
+      "Policies),": [
+        27
+      ],
+      "a": [
+        28
+      ],
+      "unified": [
+        29
+      ],
+      "hierarchical": [
+        30
+      ],
+      "framework": [
+        31
+      ],
+      "that": [
+        32,
+        93
+      ],
+      "efficiently": [
+        33
+      ],
+      "scales": [
+        34
+      ],
+      "toward": [
+        35
+      ],
+      "large-scale": [
+        36,
+        102
+      ],
+      "problems.": [
+        38
+      ],
+      "hierarchically": [
+        40
+      ],
+      "partitions": [
+        41,
+        69
+      ],
+      "large": [
+        42
+      ],
+      "into": [
+        45,
+        52
+      ],
+      "Travelling": [
+        46
+      ],
+      "Salesman": [
+        47
+      ],
+      "Problems": [
+        48
+      ],
+      "(TSPs)": [
+        49
+      ],
+      "TSPs": [
+        51
+      ],
+      "Shortest": [
+        53
+      ],
+      "Hamiltonian": [
+        54
+      ],
+      "Path": [
+        55
+      ],
+      "Problems.": [
+        56
+      ],
+      "For": [
+        57
+      ],
+      "the": [
+        58,
+        79,
+        82,
+        85,
+        88
+      ],
+      "first": [
+        59
+      ],
+      "time,": [
+        60
+      ],
+      "we": [
+        61
+      ],
+      "hybridize": [
+        62
+      ],
+      "non-autoregressive": [
+        63
+      ],
+      "heuristics": [
+        65,
+        73
+      ],
+      "coarse-grained": [
+        67
+      ],
+      "problem": [
+        68
+      ],
+      "autoregressive": [
+        71
+      ],
+      "fine-grained": [
+        75
+      ],
+      "route": [
+        76
+      ],
+      "constructions,": [
+        77
+      ],
+      "leveraging": [
+        78
+      ],
+      "scalability": [
+        80
+      ],
+      "of": [
+        81,
+        87
+      ],
+      "former": [
+        83
+      ],
+      "meticulousness": [
+        86
+      ],
+      "latter.": [
+        89
+      ],
+      "Experimental": [
+        90
+      ],
+      "results": [
+        91
+      ],
+      "show": [
+        92
+      ],
+      "achieves": [
+        95
+      ],
+      "competitive": [
+        96
+      ],
+      "state-of-the-art": [
+        98
+      ],
+      "performance": [
+        100
+      ],
+      "on": [
+        101
+      ],
+      "problems,": [
+        104
+      ],
+      "including": [
+        105
+      ],
+      "TSP,": [
+        106
+      ],
+      "ATSP,": [
+        107
+      ],
+      "CVRP,": [
+        108
+      ],
+      "PCTSP.": [
+        110
+      ],
+      "Our": [
+        111
+      ],
+      "code": [
+        112
+      ],
+      "is": [
+        113
+      ],
+      "available": [
+        114
+      ],
+      "at:": [
+        115
+      ],
+      "https://github.com/henry-yeh/GLOP.": [
+        116
+      ]
+    },
+    "counts_by_year": [
+      {
+        "year": 2026,
+        "cited_by_count": 17
+      },
+      {
+        "year": 2025,
+        "cited_by_count": 17
+      },
+      {
+        "year": 2024,
+        "cited_by_count": 4
+      }
+    ],
+    "updated_date": "2026-09-03T10:48:47.769340",
+    "created_date": "2025-10-10T00:00:00",
+    "auditId": "O001"
+  },
+  {
+    "id": "https://openalex.org/W4393160819",
+    "doi": "https://doi.org/10.1609/aaai.v38i18.30048",
+    "title": "DOGE-Train: Discrete Optimization on GPU with End-to-End Training",
+    "display_name": "DOGE-Train: Discrete Optimization on GPU with End-to-End Training",
+    "publication_year": 2024,
+    "publication_date": "2024-03-24",
+    "ids": {
+      "openalex": "https://openalex.org/W4393160819",
+      "doi": "https://doi.org/10.1609/aaai.v38i18.30048"
+    },
+    "language": "en",
+    "primary_location": {
+      "id": "doi:10.1609/aaai.v38i18.30048",
+      "is_oa": true,
+      "landing_page_url": "https://doi.org/10.1609/aaai.v38i18.30048",
+      "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30048/31845",
+      "source": {
+        "id": "https://openalex.org/S4210191458",
+        "display_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+        "issn_l": "2159-5399",
+        "issn": [
+          "2159-5399",
+          "2374-3468"
+        ],
+        "is_oa": true,
+        "is_in_doaj": false,
+        "is_core": false,
+        "host_organization": "https://openalex.org/P4310320058",
+        "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+        "host_organization_lineage": [
+          "https://openalex.org/P4310320058"
+        ],
+        "host_organization_lineage_names": [
+          "Association for the Advancement of Artificial Intelligence"
+        ],
+        "type": "conference"
+      },
+      "license": null,
+      "license_id": null,
+      "version": "publishedVersion",
+      "is_accepted": true,
+      "is_published": true,
+      "raw_source_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "raw_type": "journal-article"
+    },
+    "type": "conference-paper",
+    "indexed_in": [
+      "crossref"
+    ],
+    "open_access": {
+      "is_oa": true,
+      "oa_status": "diamond",
+      "oa_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30048/31845",
+      "any_repository_has_fulltext": false
+    },
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5047659746",
+          "display_name": "Ahmed Abbas",
+          "orcid": "https://orcid.org/0000-0002-6330-3266"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210109712",
+            "display_name": "Max Planck Institute for Informatics",
+            "ror": "https://ror.org/01w19ak89",
+            "country_code": "DE",
+            "type": "facility",
+            "lineage": [
+              "https://openalex.org/I149899117",
+              "https://openalex.org/I4210109712"
+            ]
+          }
+        ],
+        "countries": [
+          "DE"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Ahmed Abbas",
+        "raw_affiliation_strings": [
+          "Max Planck Institute for Informatics, Saarland Informatics Campus"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Max Planck Institute for Informatics, Saarland Informatics Campus",
+            "institution_ids": [
+              "https://openalex.org/I4210109712"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5070897658",
+          "display_name": "Paul Swoboda",
+          "orcid": "https://orcid.org/0000-0003-4065-8758"
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I177802217",
+            "display_name": "University of Mannheim",
+            "ror": "https://ror.org/031bsb921",
+            "country_code": "DE",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I177802217"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210109712",
+            "display_name": "Max Planck Institute for Informatics",
+            "ror": "https://ror.org/01w19ak89",
+            "country_code": "DE",
+            "type": "facility",
+            "lineage": [
+              "https://openalex.org/I149899117",
+              "https://openalex.org/I4210109712"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I44260953",
+            "display_name": "Heinrich Heine University D\u00fcsseldorf",
+            "ror": "https://ror.org/024z2rq82",
+            "country_code": "DE",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I44260953"
+            ]
+          }
+        ],
+        "countries": [
+          "DE"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Paul Swoboda",
+        "raw_affiliation_strings": [
+          "Max Planck Institute for Informatics, Saarland Informatics Campus\nUniversity of Mannheim\nHeinrich-Heine University Dusseldorf"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Max Planck Institute for Informatics, Saarland Informatics Campus\nUniversity of Mannheim\nHeinrich-Heine University Dusseldorf",
+            "institution_ids": [
+              "https://openalex.org/I177802217",
+              "https://openalex.org/I4210109712",
+              "https://openalex.org/I44260953"
+            ]
+          }
+        ]
+      }
+    ],
+    "institutions": [],
+    "countries_distinct_count": 1,
+    "institutions_distinct_count": 3,
+    "corresponding_author_ids": [],
+    "corresponding_institution_ids": [],
+    "apc_list": null,
+    "apc_paid": null,
+    "fwci": 0.9664,
+    "has_fulltext": true,
+    "cited_by_count": 3,
+    "citation_normalized_percentile": {
+      "value": 0.74424224,
+      "is_in_top_1_percent": false,
+      "is_in_top_10_percent": false
+    },
+    "cited_by_percentile_year": {
+      "min": 90,
+      "max": 96
+    },
+    "biblio": {
+      "volume": "38",
+      "issue": "18",
+      "first_page": "20623",
+      "last_page": "20631"
+    },
+    "is_retracted": false,
+    "is_paratext": false,
+    "is_xpac": false,
+    "primary_topic": {
+      "id": "https://openalex.org/T10320",
+      "display_name": "Neural Networks and Applications",
+      "score": 0.8112999796867371,
+      "subfield": {
+        "id": "https://openalex.org/subfields/1702",
+        "display_name": "Artificial Intelligence"
+      },
+      "field": {
+        "id": "https://openalex.org/fields/17",
+        "display_name": "Computer Science"
+      },
+      "domain": {
+        "id": "https://openalex.org/domains/3",
+        "display_name": "Physical Sciences"
+      }
+    },
+    "topics": [
+      {
+        "id": "https://openalex.org/T10320",
+        "display_name": "Neural Networks and Applications",
+        "score": 0.8112999796867371,
+        "subfield": {
+          "id": "https://openalex.org/subfields/1702",
+          "display_name": "Artificial Intelligence"
+        },
+        "field": {
+          "id": "https://openalex.org/fields/17",
+          "display_name": "Computer Science"
+        },
+        "domain": {
+          "id": "https://openalex.org/domains/3",
+          "display_name": "Physical Sciences"
+        }
+      },
+      {
+        "id": "https://openalex.org/T11612",
+        "display_name": "Stochastic Gradient Optimization Techniques",
+        "score": 0.7645000219345093,
+        "subfield": {
+          "id": "https://openalex.org/subfields/1702",
+          "display_name": "Artificial Intelligence"
+        },
+        "field": {
+          "id": "https://openalex.org/fields/17",
+          "display_name": "Computer Science"
+        },
+        "domain": {
+          "id": "https://openalex.org/domains/3",
+          "display_name": "Physical Sciences"
+        }
+      },
+      {
+        "id": "https://openalex.org/T10054",
+        "display_name": "Parallel Computing and Optimization Techniques",
+        "score": 0.7350000143051147,
+        "subfield": {
+          "id": "https://openalex.org/subfields/1708",
+          "display_name": "Hardware and Architecture"
+        },
+        "field": {
+          "id": "https://openalex.org/fields/17",
+          "display_name": "Computer Science"
+        },
+        "domain": {
+          "id": "https://openalex.org/domains/3",
+          "display_name": "Physical Sciences"
+        }
+      }
+    ],
+    "keywords": [
+      {
+        "id": "https://openalex.org/keywords/training",
+        "display_name": "Training (meteorology)",
+        "score": 0.669514000415802
+      },
+      {
+        "id": "https://openalex.org/keywords/computer-science",
+        "display_name": "Computer science",
+        "score": 0.605315625667572
+      },
+      {
+        "id": "https://openalex.org/keywords/end-to-end-principle",
+        "display_name": "End-to-end principle",
+        "score": 0.5903154611587524
+      },
+      {
+        "id": "https://openalex.org/keywords/computational-science",
+        "display_name": "Computational science",
+        "score": 0.35268935561180115
+      },
+      {
+        "id": "https://openalex.org/keywords/computer-graphics",
+        "display_name": "Computer graphics (images)",
+        "score": 0.33147555589675903
+      },
+      {
+        "id": "https://openalex.org/keywords/artificial-intelligence",
+        "display_name": "Artificial intelligence",
+        "score": 0.2595062851905823
+      },
+      {
+        "id": "https://openalex.org/keywords/physics",
+        "display_name": "Physics",
+        "score": 0.09944131970405579
+      }
+    ],
+    "concepts": [
+      {
+        "id": "https://openalex.org/C2777211547",
+        "wikidata": "https://www.wikidata.org/wiki/Q17141490",
+        "display_name": "Training (meteorology)",
+        "level": 2,
+        "score": 0.669514000415802
+      },
+      {
+        "id": "https://openalex.org/C41008148",
+        "wikidata": "https://www.wikidata.org/wiki/Q21198",
+        "display_name": "Computer science",
+        "level": 0,
+        "score": 0.605315625667572
+      },
+      {
+        "id": "https://openalex.org/C74296488",
+        "wikidata": "https://www.wikidata.org/wiki/Q2527392",
+        "display_name": "End-to-end principle",
+        "level": 2,
+        "score": 0.5903154611587524
+      },
+      {
+        "id": "https://openalex.org/C459310",
+        "wikidata": "https://www.wikidata.org/wiki/Q117801",
+        "display_name": "Computational science",
+        "level": 1,
+        "score": 0.35268935561180115
+      },
+      {
+        "id": "https://openalex.org/C121684516",
+        "wikidata": "https://www.wikidata.org/wiki/Q7600677",
+        "display_name": "Computer graphics (images)",
+        "level": 1,
+        "score": 0.33147555589675903
+      },
+      {
+        "id": "https://openalex.org/C154945302",
+        "wikidata": "https://www.wikidata.org/wiki/Q11660",
+        "display_name": "Artificial intelligence",
+        "level": 1,
+        "score": 0.2595062851905823
+      },
+      {
+        "id": "https://openalex.org/C121332964",
+        "wikidata": "https://www.wikidata.org/wiki/Q413",
+        "display_name": "Physics",
+        "level": 0,
+        "score": 0.09944131970405579
+      },
+      {
+        "id": "https://openalex.org/C153294291",
+        "wikidata": "https://www.wikidata.org/wiki/Q25261",
+        "display_name": "Meteorology",
+        "level": 1,
+        "score": 0.0
+      }
+    ],
+    "mesh": [],
+    "locations_count": 2,
+    "locations": [
+      {
+        "id": "doi:10.1609/aaai.v38i18.30048",
+        "is_oa": true,
+        "landing_page_url": "https://doi.org/10.1609/aaai.v38i18.30048",
+        "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30048/31845",
+        "source": {
+          "id": "https://openalex.org/S4210191458",
+          "display_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+          "issn_l": "2159-5399",
+          "issn": [
+            "2159-5399",
+            "2374-3468"
+          ],
+          "is_oa": true,
+          "is_in_doaj": false,
+          "is_core": false,
+          "host_organization": "https://openalex.org/P4310320058",
+          "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+          "host_organization_lineage": [
+            "https://openalex.org/P4310320058"
+          ],
+          "host_organization_lineage_names": [
+            "Association for the Advancement of Artificial Intelligence"
+          ],
+          "type": "conference"
+        },
+        "license": null,
+        "license_id": null,
+        "version": "publishedVersion",
+        "is_accepted": true,
+        "is_published": true,
+        "raw_source_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+        "raw_type": "journal-article"
+      },
+      {
+        "id": "pmh:oai:ojs.aaai.org:article/30048",
+        "is_oa": false,
+        "landing_page_url": "https://ojs.aaai.org/index.php/AAAI/article/view/30048",
+        "pdf_url": null,
+        "source": {
+          "id": "https://openalex.org/S4306400155",
+          "display_name": "AAAI Publications (The Association for the Advancement of Artificial Intelligence (AAAI))",
+          "issn_l": null,
+          "issn": null,
+          "is_oa": false,
+          "is_in_doaj": false,
+          "is_core": false,
+          "host_organization": "https://openalex.org/I2801652627",
+          "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+          "host_organization_lineage": [
+            "https://openalex.org/I2801652627"
+          ],
+          "host_organization_lineage_names": [],
+          "type": "repository"
+        },
+        "license": null,
+        "license_id": null,
+        "version": "submittedVersion",
+        "is_accepted": false,
+        "is_published": false,
+        "raw_source_name": "2159-5399",
+        "raw_type": "info:eu-repo/semantics/article"
+      }
+    ],
+    "best_oa_location": {
+      "id": "doi:10.1609/aaai.v38i18.30048",
+      "is_oa": true,
+      "landing_page_url": "https://doi.org/10.1609/aaai.v38i18.30048",
+      "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/30048/31845",
+      "source": {
+        "id": "https://openalex.org/S4210191458",
+        "display_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+        "issn_l": "2159-5399",
+        "issn": [
+          "2159-5399",
+          "2374-3468"
+        ],
+        "is_oa": true,
+        "is_in_doaj": false,
+        "is_core": false,
+        "host_organization": "https://openalex.org/P4310320058",
+        "host_organization_name": "Association for the Advancement of Artificial Intelligence",
+        "host_organization_lineage": [
+          "https://openalex.org/P4310320058"
+        ],
+        "host_organization_lineage_names": [
+          "Association for the Advancement of Artificial Intelligence"
+        ],
+        "type": "conference"
+      },
+      "license": null,
+      "license_id": null,
+      "version": "publishedVersion",
+      "is_accepted": true,
+      "is_published": true,
+      "raw_source_name": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "raw_type": "journal-article"
+    },
+    "sustainable_development_goals": [],
+    "awards": [],
+    "funders": [],
+    "has_content": {
+      "grobid_xml": true,
+      "pdf": true
+    },
+    "content_urls": {
+      "pdf": "https://content.openalex.org/works/W4393160819.pdf",
+      "grobid_xml": "https://content.openalex.org/works/W4393160819.grobid-xml"
+    },
+    "referenced_works_count": 75,
+    "referenced_works": [
+      "https://openalex.org/W120040546",
+      "https://openalex.org/W1522301498",
+      "https://openalex.org/W1906770428",
+      "https://openalex.org/W2008454042",
+      "https://openalex.org/W2009832821",
+      "https://openalex.org/W2012771329",
+      "https://openalex.org/W2013603106",
+      "https://openalex.org/W2022536315",
+      "https://openalex.org/W2118103795",
+      "https://openalex.org/W2135414191",
+      "https://openalex.org/W2136848157",
+      "https://openalex.org/W2146807782",
+      "https://openalex.org/W2149404019",
+      "https://openalex.org/W2427497464",
+      "https://openalex.org/W2758694956",
+      "https://openalex.org/W2786776430",
+      "https://openalex.org/W2787189213",
+      "https://openalex.org/W2890608676",
+      "https://openalex.org/W2900896126",
+      "https://openalex.org/W2902719825",
+      "https://openalex.org/W2948268323",
+      "https://openalex.org/W2963772421",
+      "https://openalex.org/W2963775850",
+      "https://openalex.org/W2971842403",
+      "https://openalex.org/W2989952597",
+      "https://openalex.org/W2995038946",
+      "https://openalex.org/W2997090216",
+      "https://openalex.org/W2998442330",
+      "https://openalex.org/W3005700790",
+      "https://openalex.org/W3016657256",
+      "https://openalex.org/W3023950925",
+      "https://openalex.org/W3034758333",
+      "https://openalex.org/W3037310420",
+      "https://openalex.org/W3037610925",
+      "https://openalex.org/W3047863327",
+      "https://openalex.org/W3081673258",
+      "https://openalex.org/W3084428871",
+      "https://openalex.org/W3100248546",
+      "https://openalex.org/W3131262006",
+      "https://openalex.org/W3133902371",
+      "https://openalex.org/W3134315323",
+      "https://openalex.org/W3158091578",
+      "https://openalex.org/W3187966659",
+      "https://openalex.org/W3196575984",
+      "https://openalex.org/W3204908603",
+      "https://openalex.org/W3205832574",
+      "https://openalex.org/W3212871274",
+      "https://openalex.org/W3213571528",
+      "https://openalex.org/W3217666578",
+      "https://openalex.org/W4214700040",
+      "https://openalex.org/W4225341320",
+      "https://openalex.org/W4281477740",
+      "https://openalex.org/W4283705250",
+      "https://openalex.org/W4283806831",
+      "https://openalex.org/W4287070488",
+      "https://openalex.org/W4287326275",
+      "https://openalex.org/W4287549149",
+      "https://openalex.org/W4287681384",
+      "https://openalex.org/W4295138992",
+      "https://openalex.org/W4297437617",
+      "https://openalex.org/W4304701342",
+      "https://openalex.org/W4312261673",
+      "https://openalex.org/W4321337724",
+      "https://openalex.org/W4384931918",
+      "https://openalex.org/W4394666973",
+      "https://openalex.org/W6652376575",
+      "https://openalex.org/W6652740703",
+      "https://openalex.org/W6653662193",
+      "https://openalex.org/W6677408996",
+      "https://openalex.org/W6677645113",
+      "https://openalex.org/W6759803958",
+      "https://openalex.org/W6780267548",
+      "https://openalex.org/W6789255099",
+      "https://openalex.org/W6804716185",
+      "https://openalex.org/W6838869520"
+    ],
+    "related_works": [
+      "https://openalex.org/W2748952813",
+      "https://openalex.org/W3179968364",
+      "https://openalex.org/W230091440",
+      "https://openalex.org/W2390279801",
+      "https://openalex.org/W2233261550",
+      "https://openalex.org/W2358668433",
+      "https://openalex.org/W2810751659",
+      "https://openalex.org/W258997015",
+      "https://openalex.org/W2376932109",
+      "https://openalex.org/W1999612375"
+    ],
+    "abstract_inverted_index": {
+      "We": [
+        0,
+        15,
+        30,
+        69,
+        94
+      ],
+      "present": [
+        1
+      ],
+      "a": [
+        2,
+        17,
+        25,
+        109,
+        176,
+        182
+      ],
+      "fast,": [
+        3
+      ],
+      "scalable,": [
+        4
+      ],
+      "data-driven": [
+        5
+      ],
+      "approach": [
+        6
+      ],
+      "for": [
+        7,
+        35,
+        161
+      ],
+      "solving": [
+        8
+      ],
+      "relaxations": [
+        9,
+        138
+      ],
+      "of": [
+        10,
+        19,
+        74,
+        136,
+        139
+      ],
+      "0-1": [
+        11
+      ],
+      "integer": [
+        12
+      ],
+      "linear": [
+        13
+      ],
+      "programs.": [
+        14
+      ],
+      "use": [
+        16,
+        39,
+        90
+      ],
+      "combination": [
+        18
+      ],
+      "graph": [
+        20
+      ],
+      "neural": [
+        21
+      ],
+      "networks": [
+        22
+      ],
+      "(GNN)": [
+        23
+      ],
+      "and": [
+        24,
+        38,
+        57,
+        99,
+        122,
+        145
+      ],
+      "Lagrange": [
+        26
+      ],
+      "decomposition": [
+        27
+      ],
+      "based": [
+        28
+      ],
+      "algorithm.": [
+        29
+      ],
+      "make": [
+        31
+      ],
+      "the": [
+        32,
+        50,
+        61,
+        75
+      ],
+      "latter": [
+        33
+      ],
+      "differentiable": [
+        34
+      ],
+      "end-to-end": [
+        36
+      ],
+      "training": [
+        37,
+        88
+      ],
+      "GNNs": [
+        40
+      ],
+      "to": [
+        41,
+        48,
+        132,
+        181
+      ],
+      "predict": [
+        42
+      ],
+      "its": [
+        43,
+        127
+      ],
+      "algorithmic": [
+        44
+      ],
+      "parameters.": [
+        45,
+        115
+      ],
+      "This": [
+        46
+      ],
+      "allows": [
+        47
+      ],
+      "retain": [
+        49
+      ],
+      "algorithm's": [
+        51
+      ],
+      "theoretical": [
+        52
+      ],
+      "properties": [
+        53
+      ],
+      "including": [
+        54
+      ],
+      "dual": [
+        55,
+        85,
+        124
+      ],
+      "feasibility": [
+        56
+      ],
+      "guaranteed": [
+        58
+      ],
+      "non-decrease": [
+        59
+      ],
+      "in": [
+        60
+      ],
+      "lower": [
+        62
+      ],
+      "bound": [
+        63
+      ],
+      "while": [
+        64,
+        165
+      ],
+      "improving": [
+        65
+      ],
+      "it": [
+        66
+      ],
+      "via": [
+        67
+      ],
+      "training.": [
+        68
+      ],
+      "overcome": [
+        70
+      ],
+      "suboptimal": [
+        71
+      ],
+      "fixed": [
+        72
+      ],
+      "points": [
+        73
+      ],
+      "basic": [
+        76
+      ],
+      "solver": [
+        77,
+        117,
+        170
+      ],
+      "by": [
+        78
+      ],
+      "additional": [
+        79
+      ],
+      "non-parametric": [
+        80
+      ],
+      "GNN": [
+        81,
+        110
+      ],
+      "update": [
+        82
+      ],
+      "steps": [
+        83
+      ],
+      "maintaining": [
+        84
+      ],
+      "feasibility.": [
+        86
+      ],
+      "For": [
+        87
+      ],
+      "we": [
+        89,
+        152
+      ],
+      "an": [
+        91
+      ],
+      "unsupervised": [
+        92
+      ],
+      "loss.": [
+        93
+      ],
+      "train": [
+        95
+      ],
+      "on": [
+        96,
+        101,
+        146
+      ],
+      "smaller": [
+        97
+      ],
+      "problems": [
+        98,
+        144
+      ],
+      "test": [
+        100
+      ],
+      "larger": [
+        102
+      ],
+      "ones": [
+        103
+      ],
+      "showing": [
+        104
+      ],
+      "strong": [
+        105
+      ],
+      "generalization": [
+        106
+      ],
+      "performance": [
+        107,
+        121,
+        174
+      ],
+      "with": [
+        108
+      ],
+      "comprising": [
+        111
+      ],
+      "only": [
+        112
+      ],
+      "around": [
+        113
+      ],
+      "10k": [
+        114
+      ],
+      "Our": [
+        116,
+        169
+      ],
+      "achieves": [
+        118
+      ],
+      "significantly": [
+        119
+      ],
+      "faster": [
+        120
+      ],
+      "better": [
+        123,
+        154,
+        172
+      ],
+      "objectives": [
+        125
+      ],
+      "than": [
+        126,
+        157
+      ],
+      "non-learned": [
+        128
+      ],
+      "version,": [
+        129
+      ],
+      "achieving": [
+        130
+      ],
+      "close": [
+        131
+      ],
+      "optimal": [
+        133
+      ],
+      "objective": [
+        134,
+        155
+      ],
+      "values": [
+        135,
+        156
+      ],
+      "LP": [
+        137
+      ],
+      "very": [
+        140
+      ],
+      "large": [
+        141,
+        177
+      ],
+      "structured": [
+        142
+      ],
+      "prediction": [
+        143
+      ],
+      "selected": [
+        147
+      ],
+      "combinatorial": [
+        148
+      ],
+      "ones.": [
+        149
+      ],
+      "In": [
+        150
+      ],
+      "particular,": [
+        151
+      ],
+      "achieve": [
+        153
+      ],
+      "specialized": [
+        158
+      ],
+      "approximate": [
+        159
+      ],
+      "solvers": [
+        160
+      ],
+      "specific": [
+        162
+      ],
+      "problem": [
+        163
+      ],
+      "classes": [
+        164
+      ],
+      "retaining": [
+        166
+      ],
+      "their": [
+        167
+      ],
+      "efficiency.": [
+        168
+      ],
+      "has": [
+        171
+      ],
+      "any-time": [
+        173
+      ],
+      "over": [
+        175
+      ],
+      "time": [
+        178
+      ],
+      "period": [
+        179
+      ],
+      "compared": [
+        180
+      ],
+      "commercial": [
+        183
+      ],
+      "solver.": [
+        184
+      ]
+    },
+    "counts_by_year": [
+      {
+        "year": 2025,
+        "cited_by_count": 2
+      },
+      {
+        "year": 2024,
+        "cited_by_count": 1
+      }
+    ],
+    "updated_date": "2026-09-06T09:10:53.072986",
+    "created_date": "2025-10-10T00:00:00",
+    "auditId": "O002"
+  }
+]

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diffusion Uncertainty Methods</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0EA;--ink:#17201B;--muted:#5E6B63;--slot:#DCE2D8;--rule:#C9D1C5;--card:#F6F8F4;
+  --epi:#2E5E8C;--epi-bg:#DCE7F2;--spr:#9A5B13;--spr-bg:#F3E6D2;--both:#6B4C8A;--both-bg:#E7DFF0;--hot:#C8372D;--focus:#2E5E8C;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--mono:"Martian Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;
+  --epi:#7FA8D6;--epi-bg:#1A2A3B;--spr:#E2A857;--spr-bg:#3A2A14;--both:#B9A0D6;--both-bg:#2B2238;--hot:#F0705F;--focus:#7FA8D6}}
+:root[data-theme="dark"]{--paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;--epi:#7FA8D6;--epi-bg:#1A2A3B;--spr:#E2A857;--spr-bg:#3A2A14;--both:#B9A0D6;--both-bg:#2B2238;--hot:#F0705F;--focus:#7FA8D6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+main{max-width:1060px;margin:0 auto;padding:44px 16px 64px}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,50px);line-height:1.03;letter-spacing:-.02em;margin:0 0 12px}
+h1 .w{color:var(--epi)}h1 .d{color:var(--spr)}
+.dek{max-width:68ch;color:var(--muted);margin:0 0 24px}
+h2{font-family:var(--display);font-weight:500;font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 14px;max-width:70ch;font-size:15px}
+.matrix{display:grid;grid-template-columns:120px repeat(2,minmax(0,1fr));gap:8px;margin:0 0 34px}
+.mh{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.mh.row{justify-content:flex-start;text-align:left}
+.cell{border-radius:12px;padding:12px;min-height:104px;background:var(--card);border:1px solid var(--rule);display:flex;flex-direction:column;gap:8px}
+.cell .t{font-family:var(--display);font-weight:500;font-size:16px}
+.cell.epi{background:var(--epi-bg);border-color:transparent}.cell.spr{background:var(--spr-bg);border-color:transparent}.cell.both{background:var(--both-bg);border-color:transparent}
+.cell.epi .t{color:var(--epi)}.cell.spr .t{color:var(--spr)}.cell.both .t{color:var(--both)}
+.cell .none{font-size:14px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.mbtn{font:inherit;font-size:13.5px;border:1.5px solid transparent;background:var(--card);color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer;transition:border-color 160ms ease,transform 140ms var(--ease-out)}
+.mbtn[aria-pressed="true"]{border-color:var(--ink)}
+.mbtn:active{transform:scale(.97)}
+.pipe{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:16px;margin:0 0 16px}
+.ph{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px;margin-bottom:10px}
+.ph b{font-family:var(--display);font-weight:500;font-size:20px}
+.ph span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.flow{display:grid;grid-template-columns:minmax(0,.9fr) 30px minmax(0,1fr) 30px minmax(0,2.4fr);gap:8px;align-items:center}
+.arrow{color:var(--muted);text-align:center;font-size:20px}
+.box{border:1.5px solid var(--ink);border-radius:10px;padding:10px;background:var(--paper);text-align:center}
+.box small{display:block;font-size:12px;color:var(--muted)}
+.box .slots{display:flex;gap:3px;justify-content:center;margin-top:6px}
+.box .slots i{width:16px;height:16px;border-radius:3px;background:var(--slot);font-style:normal;font-family:var(--mono);font-size:10px;line-height:16px;color:var(--muted)}
+.models{display:flex;flex-direction:column;gap:6px}
+.model{border:1.5px solid var(--c);border-radius:8px;padding:5px 8px;font-size:13px;background:var(--paper);text-align:center;min-height:28px}
+.outs{display:flex;flex-direction:column;gap:6px}
+.orow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.orow span{font-size:11.5px;line-height:1.2;padding:5px 3px;border-radius:5px;background:var(--paper);border:1px solid var(--rule);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orow span.dis{border:1.5px solid var(--hot);color:var(--ink)}
+.read{margin:12px 0 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.read p{margin:0;font-size:15px}
+.tag{display:inline-block;font-family:var(--mono);font-size:12px;border-radius:6px;padding:2px 8px;margin-bottom:6px}
+.tag.epi{background:var(--epi-bg);color:var(--epi)}.tag.spr{background:var(--spr-bg);color:var(--spr)}.tag.both{background:var(--both-bg);color:var(--both)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 0}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--mono);font-size:11.5px;color:var(--muted);font-weight:400}
+tr.sel td{background:var(--card)}
+td a{color:var(--ink)}
+.twrap{overflow-x:auto}
+.gap{margin:26px 0 0;border:1.5px dashed var(--ink);border-radius:12px;padding:14px 16px;max-width:80ch;background:var(--card)}
+.gap b{font-family:var(--display);font-weight:500;font-size:17px;display:block;margin-bottom:4px}
+.foot{border-top:1px solid var(--rule);margin-top:26px;padding-top:12px;font-size:13px;color:var(--muted);max-width:80ch}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.mbtn:not([aria-pressed="true"]):hover{border-color:var(--rule)}}
+@media (max-width:760px){
+  .matrix{grid-template-columns:minmax(0,1fr)}.mh.corner,.mh.col{display:none}.mh.row{padding-top:10px}
+  .flow{grid-template-columns:minmax(0,1fr)}.arrow{transform:rotate(90deg)}
+  .read{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){.mbtn:active{transform:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Uncertainty quantification for diffusion models · five primary methods</p>
+<h1>Vary the <span class="w">weights</span> or vary the <span class="d">dice</span></h1>
+<p class="dek">Every method here gets an uncertainty estimate the same way: produce several answers and measure how much they disagree. What decides the kind of uncertainty is what they vary between answers. Varying the model's weights exposes what the model doesn't know. Varying only the random draws shows how spread out its distribution is.</p>
+
+<h2>What each method varies</h2>
+<p class="sub">Pick a method in the grid or the table to see it run on a masked Pokémon team.</p>
+<div class="matrix" id="matrix">
+  <div class="mh corner"></div>
+  <div class="mh col">Random draws fixed<br>(same starting noise)</div>
+  <div class="mh col">Random draws varied</div>
+  <div class="mh row">Weights fixed<br>(one trained model)</div>
+  <div class="cell"><span class="t" style="color:var(--muted)">No estimate</span><span class="none">One model, one draw: a single team with nothing to compare it against.</span></div>
+  <div class="cell spr"><span class="t">Spread of the distribution</span><div class="chips" data-cell="spr"></div></div>
+  <div class="mh row">Weights varied<br>(several plausible models)</div>
+  <div class="cell epi"><span class="t">Model (epistemic) uncertainty</span><div class="chips" data-cell="epi"></div></div>
+  <div class="cell both"><span class="t">Both, kept apart</span><div class="chips" data-cell="both"></div></div>
+</div>
+
+<section class="pipe" aria-live="polite">
+  <div class="ph"><b id="pName"></b><span id="pPaper"></span></div>
+  <div class="flow">
+    <div class="box">Masked team<small id="pSeed"></small><div class="slots"><i>?</i><i>?</i><i>?</i><i>?</i><i>?</i><i>?</i></div></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="models" id="pModels"></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="outs" id="pOuts"></div>
+  </div>
+  <div class="read">
+    <p><span class="tag" id="pTag"></span><br><span id="pHow"></span></p>
+    <p id="pMeans"></p>
+  </div>
+</section>
+
+<div class="twrap">
+<table>
+  <thead><tr><th>Method</th><th>Paper</th><th>What varies</th><th>Extra training</th><th>Extra sampling</th><th>Gives</th><th>Tested on</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div class="gap"><b>The gap for your team model</b>The four methods that measure what the model doesn't know were all tested on continuous data (images, CT scans, weather). The only discrete one, repeated denoising, measures spread, not model uncertainty. So applying an ensemble, Laplace or hypernetwork method to a masked diffusion model over teams would be new work, not a copy of a tested recipe.</div>
+
+<p class="foot">Team names and which slots disagree are illustrative. Method descriptions follow each paper's abstract and, for the Laplace methods, their stated approach; the cost columns are relative, since no paper reports costs on a comparable task.</p>
+</main>
+<script>
+const M=[
+ {id:"ens",cell:"epi",name:"Ensemble with shared frozen weights",paper:"Berry et al., UAI 2024 (DECU)",url:"https://www.semanticscholar.org/paper/5a549d177efc4cf5f00be75362d678344b5fcfc8",
+  varies:"Ensemble members",extra:"M members; each trains only a small part on top of shared pretrained weights",samp:"M ×",gives:"epi",tested:"ImageNet images",
+  models:["member 1","member 2","member 3","member 4"],seed:"one starting noise, reused",
+  how:"Several models share a frozen pretrained body and differ only in a small trained part. Each generates from the same starting point.",
+  means:"Disagreement between members is measured as mutual information between outputs and weights (a pairwise-distance estimator). It is high for under-represented classes: the model hasn't seen enough."},
+ {id:"lla",cell:"epi",name:"Last-layer Laplace",paper:"Kou et al., ICLR 2024 (BayesDiff)",url:"https://www.semanticscholar.org/paper/8856e634c1f048f565664dc5a5648a8950e28a97",
+  varies:"Last-layer weights",extra:"None; one curvature pass after training",samp:"Small",gives:"epi",tested:"Images, per pixel",
+  models:["last layer, sample 1","last layer, sample 2","last layer, sample 3","last layer, sample 4"],seed:"one starting noise, reused",
+  how:"One trained model. A Gaussian over its last layer's weights, shaped by how sharply the training loss curves, stands in for the posterior, and its variance is carried through the sampling steps.",
+  means:"The result is uncertainty for each output position (each pixel in the paper; each team slot in yours)."},
+ {id:"gen",cell:"epi",name:"Laplace, measured in a feature space",paper:"Jazbec et al., UAI 2025",url:"https://www.semanticscholar.org/paper/54b4c9a67d0c55b5d430d45ead5d5c7246283232",
+  varies:"Weight samples",extra:"None; Laplace added after training",samp:"M ×",gives:"epi",tested:"Images",
+  models:["weights, sample 1","weights, sample 2","weights, sample 3","weights, sample 4"],seed:"one starting noise, reused",
+  how:"Draw several weight settings from a Laplace posterior, generate from the same starting noise under each, embed every result with a feature extractor and measure the variance there.",
+  means:"High variance flags a poor sample. The paper uses it to filter out low-quality generations before anyone looks at them."},
+ {id:"hyp",cell:"both",name:"Hypernetwork",paper:"Chan et al., NeurIPS 2024 (HyperDM)",url:"https://www.semanticscholar.org/paper/721d2080099677b77b2130488a637f44db35025e",
+  varies:"Weight sets and draws",extra:"One hypernetwork",samp:"weight sets × draws",gives:"both",tested:"CT reconstruction, weather forecasting",
+  models:["weights A, draw 1","weights A, draw 2","weights B, draw 1","weights B, draw 2"],seed:"several starting noises",
+  how:"A hypernetwork outputs many weight sets for one diffusion model. Varying the weight set and the random draw independently gives both kinds from one trained model.",
+  means:"Disagreement between weight sets is model uncertainty; disagreement between draws under one weight set is the data's own spread. The paper matches multi-model ensembles at lower cost."},
+ {id:"rep",cell:"spr",name:"Repeated denoising",paper:"Doyle, arXiv 2025 (no venue)",url:"https://www.semanticscholar.org/paper/8cba4b8ab522dca29821f0e4ea84bdfede1be57b",
+  varies:"Random masks and draws",extra:"None",samp:"K × (K = 128)",gives:"spr",tested:"Text (discrete)",
+  models:["same model, pass 1","same model, pass 2","same model, pass 3","same model, pass 4"],seed:"a new random draw each pass",
+  how:"One masked diffusion model, run K times with different random draws. The per-slot variance tracks reconstruction error closely on text.",
+  means:"This is how many completions fit the model's distribution, not whether the model is wrong. It is the only discrete method here, and it measures spread."}];
+const TAG={epi:"model (epistemic) uncertainty",spr:"spread, not model uncertainty",both:"both, kept apart"};
+const ROWS={
+ epi:[["Incineroar","Garchomp","Rillaboom","Amoonguss","Kingambit","Pelipper"],["Incineroar","Garchomp","Sneasler","Amoonguss","Dragonite","Pelipper"],["Incineroar","Garchomp","Rillaboom","Amoonguss","Kingambit","Pelipper"],["Incineroar","Garchomp","Tyranitar","Amoonguss","Charizard","Pelipper"]],
+ spr:[["Incineroar","Garchomp","Rillaboom","Amoonguss","Kingambit","Pelipper"],["Incineroar","Dragonite","Rillaboom","Sneasler","Kingambit","Charizard"],["Incineroar","Garchomp","Rillaboom","Amoonguss","Tyranitar","Pelipper"],["Incineroar","Dragonite","Rillaboom","Amoonguss","Kingambit","Charizard"]],
+ both:[["Incineroar","Garchomp","Rillaboom","Amoonguss","Kingambit","Pelipper"],["Incineroar","Garchomp","Rillaboom","Sneasler","Kingambit","Pelipper"],["Incineroar","Dragonite","Tyranitar","Amoonguss","Charizard","Pelipper"],["Incineroar","Dragonite","Tyranitar","Sneasler","Charizard","Pelipper"]]};
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const tbody=document.getElementById("tbody");
+M.forEach(m=>{const b=document.createElement("button");b.type="button";b.className="mbtn";b.dataset.m=m.id;b.textContent=m.name;document.querySelector(`[data-cell="${m.cell}"]`).appendChild(b);
+ const tr=document.createElement("tr");tr.dataset.m=m.id;tr.innerHTML=`<td><button type="button" class="mbtn" data-m="${m.id}">${m.name}</button></td><td><a href="${m.url}">${m.paper}</a> 🟢</td><td>${m.varies}</td><td>${m.extra}</td><td>${m.samp}</td><td><span class="tag ${m.gives}">${TAG[m.gives]}</span></td><td>${m.tested}</td>`;tbody.appendChild(tr)});
+function show(id,animate){const m=M.find(x=>x.id===id),c=`var(--${m.gives==="spr"?"spr":m.gives==="both"?"both":"epi"})`;
+ document.querySelectorAll(".mbtn").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===id?"true":"false"));
+ document.querySelectorAll("tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.m===id));
+ pName.textContent=m.name;pPaper.textContent=m.paper;pSeed.textContent=m.seed;
+ pModels.innerHTML=m.models.map(t=>`<div class="model" style="--c:${c}">${t}</div>`).join("");
+ const rows=ROWS[m.gives],dis=[0,1,2,3,4,5].map(j=>new Set(rows.map(r=>r[j])).size>1);
+ pOuts.innerHTML=rows.map(r=>`<div class="orow">${r.map((s,j)=>`<span class="${dis[j]?"dis":""}" title="${s}">${s}</span>`).join("")}</div>`).join("");
+ pTag.className="tag "+m.gives;pTag.textContent=TAG[m.gives];pHow.textContent=m.how;
+ pMeans.innerHTML=`<b>Red outline</b> = slots where the answers disagree. ${m.means}`;
+ if(animate&&!reduce){[...pModels.children,...pOuts.children].forEach((e,i)=>e.animate([{opacity:0,transform:"translateX(-6px)"},{opacity:1,transform:"none"}],{duration:260,delay:(i%4)*55+(i>=4?120:0),easing:"cubic-bezier(0.23,1,0.32,1)",fill:"backwards"}))}
+ else if(animate){[...pOuts.children].forEach(e=>e.animate([{opacity:0},{opacity:1}],{duration:180,fill:"backwards"}))}}
+document.addEventListener("click",e=>{const b=e.target.closest(".mbtn[data-m]");if(b)show(b.dataset.m,true)});
+show("ens",false);
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+<defs><style>text{font-family:'Comic Sans MS','Chalkboard',sans-serif;fill:#243247;font-size:17px}.title{font-size:30px;font-weight:bold}.heading{font-size:23px;font-weight:bold}.small{font-size:14px}.muted{fill:#566477}.ink{fill:none;stroke:#243247;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.soft{fill:none;stroke:#a9b3c2;stroke-width:1.5;stroke-linecap:round}.violet{fill:none;stroke:#7c46aa;stroke-width:2.5;stroke-linecap:round}.blue{fill:none;stroke:#2863a8;stroke-width:2.5;stroke-linecap:round}.base{fill:#243247}.edit{fill:#7c46aa}.panel{fill:#fff;stroke:#a9b3c2;stroke-width:1.5}</style><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#2863a8" stroke-width="1.5"/></marker></defs>
+<rect width="1200" height="1200" fill="#f7f9fc"/>
+<text x="36" y="48" class="title">Small edits, different outcomes</text>
+<text x="36" y="79" class="muted">Four proposed figures · read left to right, then down · sketches, not measured results</text>
+<path d="M36 98 L1162 100" class="soft"/>
+<!-- Smoothness -->
+<path d="M35 121 L579 123 L577 575 L37 572 Z" class="panel"/>
+<text x="57" y="160" class="heading">1. Introduce smoothness</text>
+<text x="57" y="188">Do nearby teams have nearby scores?</text>
+<text x="69" y="232" class="small">Small changes</text><text x="326" y="232" class="small">Larger changes</text>
+<path d="M77 253 L77 392 L280 394 M332 253 L331 392 L536 393" class="ink"/>
+<path d="M80 273 L278 273 M80 315 L278 315 M80 354 L278 354 M334 273 L534 273 M334 315 L534 315 M334 354 L534 354" class="soft"/>
+<text x="52" y="267" class="small" transform="rotate(-90 52 267)">Score</text>
+<circle cx="113" cy="315" r="6" class="base"/><circle cx="165" cy="309" r="6" class="edit"/><circle cx="211" cy="320" r="6" class="edit"/><circle cx="256" cy="305" r="6" class="edit"/>
+<circle cx="369" cy="315" r="6" class="base"/><circle cx="416" cy="367" r="6" class="edit"/><circle cx="464" cy="270" r="6" class="edit"/><circle cx="509" cy="343" r="6" class="edit"/>
+<text x="84" y="418" class="small">Original + three neighbors</text><text x="341" y="418" class="small">Same score scale</text>
+<path d="M84 444 L275 443 L277 476 L84 478 Z" class="violet"/><text x="100" y="466">Select a legal edit</text>
+<text x="57" y="517">Keep all dots visible; highlight one.</text><text x="57" y="544" class="small muted">Discrete teams: do not draw a continuous curve.</text>
+<!-- sensitivity -->
+<path d="M603 122 L1164 120 L1162 575 L604 573 Z" class="panel"/>
+<text x="626" y="160" class="heading">2. Inspect local sensitivity</text>
+<text x="626" y="188">How much does one edit change the score?</text>
+<g class="soft"><path d="M626 218 L700 219 L699 271 L627 270 Z"/><path d="M712 219 L786 218 L787 271 L713 272 Z"/><path d="M800 219 L874 220 L875 271 L800 270 Z"/><path d="M888 219 L962 218 L962 271 L889 272 Z"/><path d="M976 219 L1050 220 L1051 271 L976 270 Z"/><path d="M1064 219 L1138 218 L1138 271 L1065 272 Z"/></g>
+<path d="M626 218 L700 219 L699 271 L627 270 Z" class="violet"/><text x="636" y="249" class="small">Edited</text><text x="727" y="249" class="small">Same</text><text x="815" y="249" class="small">Same</text><text x="903" y="249" class="small">Same</text><text x="991" y="249" class="small">Same</text><text x="1079" y="249" class="small">Same</text>
+<text x="630" y="311">Fake Out</text><path d="M741 305 Q777 301 818 305" class="blue" marker-end="url(#arrow)"/><text x="840" y="311">Protect</text>
+<text x="630" y="350" class="small">Original</text><rect x="711" y="333" width="253" height="19" fill="#243247"/><text x="985" y="350">60%</text>
+<text x="630" y="388" class="small">Edited</text><rect x="711" y="371" width="177" height="19" fill="#7c46aa"/><text x="985" y="388">42%</text>
+<path d="M711 412 L1133 413" class="soft"/><text x="708" y="435" class="small">0%</text><text x="1098" y="435" class="small">100%</text>
+<text x="630" y="476" class="heading">Change: −18 percentage points</text>
+<text x="626" y="517">Choose edit → reveal score → reset.</text><text x="626" y="544" class="small muted">Invented example; real results need uncertainty.</text>
+<!-- search -->
+<path d="M37 596 L579 599 L578 1065 L35 1062 Z" class="panel"/>
+<text x="57" y="636" class="heading">3. Explain the search decision</text>
+<text x="57" y="665">What should we evaluate next?</text>
+<path d="M179 802 L107 744 M180 801 L245 738 M179 803 L258 858 M179 803 L99 862" class="soft"/>
+<circle cx="179" cy="802" r="24" class="base"/><text x="164" y="808" style="fill:white">60</text>
+<circle cx="107" cy="744" r="19" class="violet"/><text x="102" y="750">?</text><circle cx="245" cy="738" r="19" class="violet"/><text x="240" y="744">?</text><circle cx="258" cy="858" r="19" class="violet"/><text x="253" y="864">?</text><circle cx="99" cy="862" r="19" class="violet"/><text x="94" y="868">?</text>
+<path d="M421 747 L476 811 L420 861 L421 747 M476 811 L521 754" class="soft"/><circle cx="421" cy="747" r="18" class="blue"/><circle cx="476" cy="811" r="18" class="blue"/><circle cx="420" cy="861" r="18" class="blue"/><circle cx="521" cy="754" r="18" class="blue"/>
+<text x="73" y="711" class="small">Nearby candidates</text><text x="375" y="710" class="small">Another neighborhood</text>
+<path d="M208 796 Q304 763 394 756" class="blue" marker-end="url(#arrow)"/><text x="282" y="741" class="small">Explore?</text>
+<path d="M191 775 Q212 753 224 747" class="violet"/><text x="62" y="920" class="small">Exploit: try a local edit.</text><text x="322" y="920" class="small">Explore: sample farther.</text>
+<text x="57" y="972">Pick a candidate, then reveal its score.</text><text x="57" y="1000">Retain earlier evaluations for comparison.</text><text x="57" y="1030" class="small muted">Toy graph; it does not prove which strategy wins.</text>
+<!-- benchmark -->
+<path d="M603 597 L1164 598 L1163 1064 L605 1065 Z" class="panel"/>
+<text x="626" y="636" class="heading">4. Compare benchmarks</text>
+<text x="626" y="665">How do measured score changes differ?</text>
+<text x="626" y="722">Pokémon</text><text x="626" y="804">Combinatorial</text><text x="626" y="886">Continuous</text>
+<path d="M777 695 L1126 696 L1125 749 L778 748 Z M777 776 L1126 777 L1125 830 L778 829 Z M777 857 L1126 858 L1125 911 L778 910 Z" class="soft"/>
+<text x="802" y="729" class="small muted">Measured distribution goes here</text><text x="802" y="811" class="small muted">Measured distribution goes here</text><text x="802" y="892" class="small muted">Measured distribution goes here</text>
+<path d="M777 930 L1126 932" class="ink"/><text x="777" y="955" class="small">Small</text><text x="1085" y="955" class="small">Large</text><text x="816" y="979" class="small">Absolute normalized score change</text>
+<text x="626" y="1010">Select a point to inspect its input edit.</text><text x="626" y="1037" class="small muted">Define distance + normalization; no rankings yet.</text>
+<text x="36" y="1107" class="muted">Recommended starting point: figures 1 + 2. Add 3 for the search argument, then 4 when results exist.</text>
+</svg>

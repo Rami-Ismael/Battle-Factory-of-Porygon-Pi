@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 — Metamon: offline RL from human replays, and where BC sits relative to self-play</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<h1>Metamon: offline RL from human replays</h1>
+<p class="subtitle">Behaviour cloning is the floor. A <em>filtered</em> BC update is the cheapest step above it. Self-play data is a lever that can also pull you into playing yourself.</p>
+<p class="meta">Lesson 0003 · 2026-08-19 · ~14 minutes · <a href="../reference/metamon-cheat-sheet.html">cheat sheet</a> · <a href="../reference/metamon-in-context-window.html">context-window figure</a> · <a href="../reference/self-play-framework-glossary.html">glossary</a> · <a href="../MISSION.md">mission</a> · serves the battle-policy experiment (BC / SP / FP / DO arms) and the vault note <code>Does pretraining on singles replays make a better VGC doubles battle policy.md</code> · previous: <a href="0002-self-play-framework-and-double-oracle.html">0002</a></p>
+
+<div class="mission"><strong>Why this, now.</strong> Lesson 0002 left one box unfilled: your BC arm is not a self-play arm — so where does it live, and what is the published evidence that it is worth building first? Metamon (🟢 <a href="https://arxiv.org/abs/2504.04395">Grigsby, Xie, Sasek, Zheng &amp; Zhu, RLC 2025</a>) is that evidence, for <em>singles</em>. After this lesson you should be able to (1) place Metamon's whole pipeline on the five-symbol loop from 0002, (2) read its one actor-loss equation and say which row is BC and which rows are offline RL, and (3) write the critic's TD loss and say where its advantage enters the actor, and (4) name the exact failure their realistic self-play run hit — because your cross-play matrix can hide the same failure.</div>
+
+<h2>1. The claim, in their words</h2>
+
+<blockquote>"We develop a pipeline to reconstruct the first-person perspective of an agent from logs saved from the third-person perspective of a spectator, thereby unlocking a dataset of real human battles spanning more than a decade that grows larger every day. … We study a progression from imitation learning to offline RL and offline fine-tuning on self-play data … The resulting agents outperform a recent LLM Agent approach and a strong heuristic search engine. While playing anonymously in online battles against humans, our best agents climb to rankings inside the top 10% of active players."
+<cite>🟢 <a href="https://arxiv.org/abs/2504.04395">arXiv 2504.04395</a>, abstract.</cite></blockquote>
+
+<p>Three facts to pin before anything else, because each one is a mismatch with your setting:</p>
+<table class="compare">
+<tr><th>Metamon</th><th>Your project</th><th>Consequence</th></tr>
+<tr><td>Singles, Gen 1–4 OU (no team preview), 9 discrete actions</td><td>VGC doubles, Reg M-B, team preview + selection of four, ~107-way actions</td><td>architecture ideas transfer; the observation compromise (only the opponent's <em>active</em> Pokémon is in the obs) may not</td></tr>
+<tr><td>475k battles → 950k first-person trajectories → 38M timesteps; now 3.5M trajectories incl. Gen 9 OU</td><td>VGCPastes Reg M-B replays — far fewer</td><td>the singles→doubles pretraining question in your vault note is the right question to ask of this corpus</td></tr>
+<tr><td>One 8×A5000 machine, ≥1M gradient steps, 15M–200M params</td><td>one workstation</td><td>the 15M "Small" model is in reach; 200M is not the point of the lesson</td></tr>
+</table>
+
+<h2>2. Where BC sits on the loop from Lesson 0002</h2>
+
+<p>Recall the five symbols: Π (population), σ (opponent sampling), ORACLE (training step), EVAL → 𝒫, MSS. Self-play methods differ by MSS. <b>Offline learning from human replays skips the loop entirely on the first pass</b>: there is no Π of your own checkpoints and no σ — the "opponents" are whoever the human in the replay faced, frozen in the dataset. The ORACLE is a supervised update on a fixed dataset <span class="k">D</span>. That is why the survey never lists BC: it is not a self-play method; it is a <em>starting policy</em> that a self-play loop can later be seeded with.</p>
+
+<p>Metamon's formal framing (Sec. 4) makes the opponent part of the environment — "we consider our opponent's choices part of the environment's unknown transition function T(s<sub>t+1</sub> | s<sub>t</sub>, a<sub>t</sub>, π<sub>o</sub>)" — and the objective is the expected return over a <em>distribution</em> of opponent policies and teams, p(π<sub>o</sub>, c<sub>o</sub>). The sequence model conditions on the whole battle so far and is trusted to infer (π<sub>o</sub>, c<sub>o</sub>) implicitly. (Figure: <a href="../reference/metamon-in-context-window.html">what is and is not in the context window</a>.) Then the key sentence that makes this a dataset paper:</p>
+
+<blockquote>"We will be using the offline dataset (D) from Section 3 to approximate the expectations in Eq. (1), which assumes that the distribution of teams and playstyles across history is identical to that of the current game. This is false, but it may be close enough, particularly in the optimized world of Early Gen OU."
+<cite>🟢 Sec. 4.</cite></blockquote>
+
+<p class="note">Translate to your vocabulary: their dataset plays the role your <em>meta</em> plays — a distribution over opponent teams and policies — and they state the same assumption you make when you treat the collected meta-team list as the thing to beat. Theirs is a distribution over <em>history</em>; yours is over <em>a dated snapshot</em>. Both are approximations of "the ladder right now".</p>
+
+<h2>3. One equation, four training objectives</h2>
+
+<p>Everything they train is one actor loss with two knobs (Sec. 4, Eq. 2):</p>
+
+<p style="font-family:var(--mono);font-size:.95em;max-width:none">L<sub>actor</sub> = E<sub>τ∼D</sub> [ (1/T) Σ<sub>t</sub> ( −<b>w</b>(h<sub>t</sub>, a<sub>t</sub>) · log π(a<sub>t</sub> | h<sub>t</sub>) &nbsp;−&nbsp; <b>λ</b> · E<sub>a∼π</sub>[Q(h<sub>t</sub>, a)] ) ]</p>
+
+<p>Term one is behaviour cloning re-weighted by <b>w</b>; it can only ever raise the probability of actions that humans actually took. Term two is the ordinary off-policy actor update — "risks overestimating the value of OOD actions when used offline". The advantage is the critic's: A(h,a) = Q(h,a) − E<sub>a'∼π</sub>[Q(h,a')].</p>
+
+<table class="compare">
+<tr><th>Row (Table 1)</th><th>w(h, a)</th><th>λ</th><th>Lineage</th><th>What it does to a human decision</th></tr>
+<tr><td>IL</td><td>1</td><td>0</td><td>plain BC</td><td>imitate every decision equally, 1000-rated and 1900-rated alike</td></tr>
+<tr><td>Exp ("RL")</td><td>exp(β·A), clipped</td><td>0</td><td>AWAC (Nair et al. 2020)</td><td>up-weight decisions the critic thinks beat the policy's own average, down-weight the rest, never to zero</td></tr>
+<tr><td>Binary</td><td>𝟙[A &gt; 0]</td><td>0</td><td>CRR (Wang et al. 2020)</td><td>keep a decision only if the critic says it was better than average; otherwise drop it</td></tr>
+<tr><td>Binary+MaxQ</td><td>𝟙[A &gt; 0]</td><td>&gt; 0</td><td>CRR + online actor term</td><td>as Binary, plus a small push toward the critic's arg-max even off-data</td></tr>
+</table>
+
+<p>Drive the weights yourself. One timestep, four legal actions, the critic's Q for each, the action the human clicked. Watch what happens to <span class="k">w<sub>Binary</sub></span> the moment the human's action falls below the policy's own expected value.</p>
+
+<div id="filter-sim"></div>
+
+<p>Two findings worth memorising, both from Sec. 5.2 and Fig. 9: <b>"RL updates significantly outperform the pure-BC Transformers, but there is little difference between the many RL variants considered."</b> And model size helps BC more visibly than it helps RL. So: the step from IL to <em>any</em> filtered row is the one that pays; which filter is secondary.</p>
+
+<div class="callout">
+<h4>What the critic is for here</h4>
+<p>Nothing in the Exp/Binary rows ever acts on the critic's arg-max. The critic is a <em>data filter</em>. The reward that trains it is R = r<sub>hp</sub> + ½ r<sub>stat</sub> + r<sub>faint</sub> + 100·r<sub>win</sub> (App. E.1) — win/loss dominates, shaping exists "to help the offline filter w … learn to assign unique weights over short horizons". They admit a side effect: agents "cling to life in clearly lost positions by using recovery moves".</p>
+</div>
+
+<h2>3b. The other equation — how the critic is trained</h2>
+
+<p>Eq. (2) is the actor only. Metamon does not print the critic loss; it defers to AMAGO ("we refer the reader to the AMAGO implementation used throughout our experiments"). The equation lives in 🟢 <a href="https://arxiv.org/abs/2310.09971">AMAGO, ICLR 2024</a> (App. A, Eq. 2–3) and is restated with the sequence-model state in 🟢 <a href="https://arxiv.org/abs/2411.11188">AMAGO-2, NeurIPS 2024</a> (Sec. 3, Eq. 1):</p>
+
+<p style="font-family:var(--mono);font-size:.95em;max-width:none">y<sub>t</sub> = r<sub>t</sub> + γ · Q̄(h<sub>t+1</sub>, a′ ∼ π̄(h<sub>t+1</sub>)) &nbsp;&nbsp;&nbsp; L<sub>Critic</sub>(t) = ( Q(h<sub>t</sub>, a<sub>t</sub>) − y<sub>t</sub> )²</p>
+
+<p>Plain one-step TD regression on the replay transitions; Q̄, π̄ are slow target copies of the <em>heads</em> (τ = 0.004), never of the Transformer. The joint update is Σ<sub>t</sub> L<sub>actor</sub>(t) + λ·L<sub>Critic</sub>(t) with λ = 10 (Table 3 "TD Loss Coeff"), and the critic's parameters are blocked from minimising the actor term — AMAGO-2: "By preventing the parameters of Q from minimizing L<sub>Actor</sub>, we can update the full architecture with one step of the joint loss."</p>
+
+<table class="compare">
+<tr><th>Wrapped around the square</th><th>Why</th><th>Metamon setting</th></tr>
+<tr><td>ensemble of critics (REDQ)</td><td>less overestimation; the mean gives V(h) for the advantage, the spread gives uncertainty (Fig. 31 error bars)</td><td>4 critics</td></tr>
+<tr><td>target heads Q̄, π̄</td><td>a bootstrap target that does not move every step</td><td>τ = 0.004</td></tr>
+<tr><td>multi-γ heads</td><td>one TD loss per γ, act on the longest horizon</td><td>γ ∈ {.1, .9, .99, .999}; act on .999 (Fig. 8)</td></tr>
+<tr><td>PopArt on y</td><td>AMAGO: "L<sub>PG</sub> and L<sub>TD</sub> do not scale equally with Q, and the scale of Q values depends on the environment's reward function and changes over time" — with ±100 win reward the TD term would swamp the BC term in the shared trunk</td><td>on</td></tr>
+</table>
+
+<p><b>SynRL-V2's swap.</b> Regression → two-hot classification (AMAGO-2 Eq. 3): the critic emits softmax probabilities Q<sub>B</sub> over B bins b, recovers Q = Q<sub>B</sub><sup>T</sup>b, and the target y becomes a two-hot label on the two adjacent bins bracketing it:</p>
+<p style="font-family:var(--mono);font-size:.95em;max-width:none">L<sub>Critic-Ind</sub>(t) = − twohot<sub>B</sub>(y<sub>t</sub>)<sup>T</sup> log Q<sub>B</sub>(h<sub>t</sub>, a<sub>t</sub>)</p>
+<p>Metamon Table 4: 96 bins spaced evenly on [−110, 110] — just wider than the ±100 win/loss reward. Effect they report (Fig. 25): a sharper critic, hence a far more pessimistic 𝟙[A&gt;0] filter.</p>
+
+<div class="callout"><h4>How the two equations meet</h4><p>A(h,a) = Q(h,a) − E<sub>a'∼π</sub>Q(h,a'), with Q the ensemble mean. That advantage is the only place the critic touches Eq. (2) when λ = 0. TD trains Q on the replays; Q's advantage decides which replay decisions the BC term learns from. Nothing else.</p></div>
+
+<h2>4. Putting self-play back in — and the failure they hit</h2>
+
+<p>Having a ladder-capable policy, they re-enter the loop from Lesson 0002: deploy checkpoints on a local Showdown ladder, add those trajectories to <span class="k">D</span>, retrain. Now Π and σ exist. Their worry is exactly the distribution assumption in §2: new self-play data shifts the implied p(π<sub>o</sub>, c<sub>o</sub>) away from the real ladder. Their answer is odd and worth keeping:</p>
+
+<blockquote>"One approach would be to try and generate data that is clearly different from the original set so that when conditioned on a real battle, our model's implicit estimate of p(π<sub>o</sub>, c<sub>o</sub> | τ<sub>0:i</sub>) should be unchanged at small i. We let a mix of checkpoints from all our agents compete on a locally hosted PS ladder, playing with teams from the Variety Team Set. By prioritizing diversity over realism, we hope this data will cover replay reconstruction failures and improve model-free learning of Pokémon's stochastic transitions without biasing estimates of human teams and strategies."
+<cite>🟢 Sec. 5.3.</cite></blockquote>
+
+<p>So the self-play teams are <em>deliberately unrealistic</em> (1,000 procedurally generated teams per gen/tier) — a watermark that tells the model "this is not a human". Then they tested the cautious version against the obvious one:</p>
+
+<table class="compare">
+<tr><th>Model</th><th>Self-play data</th><th>vs itself / other models</th><th>vs humans on the ladder</th></tr>
+<tr><td>SynRL-V1</td><td>3M traj, Variety (unrealistic) teams</td><td>good</td><td>GXE ≈ 51–63%</td></tr>
+<tr><td>SynRL-V1+SP</td><td>+2M traj of V1 vs recent V1 with the <em>realistic</em> Replay Set</td><td>"significantly better against itself" (Fig. 10)</td><td>"inconsistent improvement against real players" — "replays make it clear that the model believes it is playing SynRL-V1"</td></tr>
+<tr><td>SynRL-V1++</td><td>back to unrealistic teams + IL opponents, 5M traj</td><td>good</td><td>recovered</td></tr>
+<tr><td>SynRL-V2</td><td>V1++ data + 50k fresh human replays, from scratch, Binary filter with a two-hot critic</td><td>best</td><td>GXE 64–80%, ~89th–96th percentile</td></tr>
+</table>
+
+<div class="callout trap">
+<h4>The trap, named in Lesson 0002's terms</h4>
+<p>SynRL-V1+SP is vanilla self-play with a constant σ pointed at the latest checkpoint. The cross-play matrix 𝒫 said it improved. The ladder said it had learned to model <em>its own</em> p(π<sub>o</sub>) rather than the human one. This is the concrete reason your cross-play ranking of BC / SP / FP / DO needs at least one column that is <b>not</b> one of your own arms — a human-replay opponent or a fixed external engine — or it will reward exactly this failure.</p>
+</div>
+
+<h2>5. The numbers to carry</h2>
+<ul>
+<li>Ladder (Dec 2024–Mar 2025, ≥400 battles per model-gen): Large-RL GXE 41–58%; SynRL-V2 64–80%, peak Gen1OU 79.9% / Glicko-1 1761±35, global #31. Percentiles are the authors' own estimate from 14k reconstructed usernames — not a Showdown-published figure.</li>
+<li>vs Foul Play (expectiminimax / MCTS, 300 battles/gen): wins Gens 1–2, draws Gens 3–4. vs PokéLLMon (GPT-4o, 75 battles/gen): 74-1, 72-3, 69-6, 70-5.</li>
+<li>Memory matters: truncating context reduces win rate monotonically (Fig. 13). Failure mode: "nonsensical decisions in long battles — particularly when the opponent is playing with a rare team". Invalid-action rate 2–5%.</li>
+</ul>
+
+<h2>6. Retrieval practice</h2>
+<p class="note">From memory. Options are equal length on purpose.</p>
+
+<div class="quiz" data-answer="c">
+<p class="q">In Metamon's Eq. (2), which row is plain behaviour cloning?</p>
+<button data-opt="a">w = exp(βA), λ = 0</button>
+<button data-opt="b">w = 𝟙[A &gt; 0], λ = 0</button>
+<button data-opt="c">w = 1 always, λ = 0</button>
+<button data-opt="d">w = 𝟙[A &gt; 0], λ &gt; 0</button>
+<div class="why">IL is w ≡ 1, λ = 0: every human decision weighted equally, no critic involvement in the actor. Exp and Binary are the filtered-BC rows; Binary+MaxQ adds the off-data actor term.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q">What is the critic actually used for in the Exp and Binary rows?</p>
+<button data-opt="a">to pick the argmax action</button>
+<button data-opt="b">to weight human decisions</button>
+<button data-opt="c">to model state dynamics</button>
+<button data-opt="d">to infer opponent teams</button>
+<div class="why">With λ = 0 the policy only ever raises probability on actions in the dataset; the critic's advantage decides how much each human decision counts (or, for Binary, whether it counts at all).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q">Why were the self-play teams deliberately unrealistic?</p>
+<button data-opt="a">so real battles look unlike them</button>
+<button data-opt="b">so the teams cover more types</button>
+<button data-opt="c">so Showdown matchmaking is faster</button>
+<button data-opt="d">so the critic can learn faster</button>
+<div class="why">Sec. 5.3: data "clearly different from the original set so that when conditioned on a real battle, our model's implicit estimate of p(π<sub>o</sub>, c<sub>o</sub> | τ<sub>0:i</sub>) should be unchanged". A watermark against self-modelling.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+<p class="q">SynRL-V1+SP got better in cross-play but not on the ladder. In Lesson 0002's vocabulary, what went wrong?</p>
+<button data-opt="a">the MSS returned a wrong Nash</button>
+<button data-opt="b">the ORACLE was not an exact BR</button>
+<button data-opt="c">the EVAL matrix was too small</button>
+<button data-opt="d">σ pointed only at its own past</button>
+<div class="why">Vanilla self-play: σ samples the latest checkpoint, so the implied opponent distribution becomes the model itself. 𝒫 (cross-play) cannot see this; only an external column — humans — can.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q">Which comparison did the paper find made the biggest difference?</p>
+<button data-opt="a">Binary versus Exp weighting</button>
+<button data-opt="b">any RL row versus plain IL</button>
+<button data-opt="c">Large versus Medium model size</button>
+<button data-opt="d">two-hot versus scalar critic</button>
+<div class="why">Sec. 5.2: "RL updates significantly outperform the pure-BC Transformers, but there is little difference between the many RL variants considered." Size helped BC more than RL; two-hot mattered only for V2's filter pessimism.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q">Where does Metamon's dataset take the role your meta plays?</p>
+<button data-opt="a">as the reward shaping terms</button>
+<button data-opt="b">as the team the agent uses</button>
+<button data-opt="c">as the opponent distribution</button>
+<button data-opt="d">as the evaluation leaderboard</button>
+<div class="why">Eq. (1) takes an expectation over p(π<sub>o</sub>, c<sub>o</sub>); D approximates it, under the stated (false but "close enough") assumption that history ≈ the current ladder. Your meta-team list approximates the same object from a dated snapshot.</div>
+</div>
+
+<p class="quiz-summary"></p>
+
+<h2>7. Primary source and what to read of it</h2>
+<p>Read the paper itself, not this lesson: 🟢 <a href="https://arxiv.org/abs/2504.04395">arXiv 2504.04395 v2</a>. Order: abstract → Sec. 4 (Eq. 1–2, Table 1, Fig. 4–5) → Sec. 5.3 (the self-play story) → Fig. 12 and 14 → App. D.1 (missing actions) and E.1 (reward). Skip Sec. 5.1 on first pass. The code and data: 🟢 <a href="https://github.com/UT-Austin-RPL/metamon">UT-Austin-RPL/metamon</a>, 🟢 <a href="https://huggingface.co/jakegrigsby/metamon">HF dataset</a>. The RL engine underneath is AMAGO — 🟢 <a href="https://openreview.net/forum?id=M6XWoEdmwf">Grigsby, Fan &amp; Zhu, ICLR 2024</a>.</p>
+
+<div class="ask"><b>Ask me.</b> Anything unclear — why λ &gt; 0 is "risky" offline, what two-hot classification of values is, how replay reconstruction infers unrevealed sets — ask in chat and I will go back to the PDF with you. If you want, the next lesson can be the reconstruction pipeline (App. D) or the AMAGO multi-γ trick (Fig. 8).</div>
+
+<nav class="lesson-nav">
+<a href="0002-self-play-framework-and-double-oracle.html">← 0002 Self-play loop, BR vs ABR, DO</a>
+<a href="../reference/metamon-cheat-sheet.html">Cheat sheet: Metamon →</a>
+</nav>
+
+<script src="../assets/quiz.js"></script>
+<script src="../assets/filter-sim.js"></script>
+<script>FilterSim.mount('#filter-sim', { actions: ['Thunderbolt', 'Toxic', 'Rest', 'Switch → Snorlax'], q: [0.35, -0.15, 0.05, 0.10], pi: [0.45, 0.15, 0.15, 0.25], taken: 1 });</script>
+</body>
+</html>

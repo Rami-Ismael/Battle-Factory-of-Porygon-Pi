@@ -1,0 +1,4000 @@
+{
+  "kind": "Recorded trained-model inference",
+  "checkpoint": "/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/temperature_p0.pt",
+  "checkpointSha256": "432b7ffee6a362044b77df7f069d3712a338bdd4ce53e7d6c842cad8a7482b64",
+  "seed": 91826,
+  "device": "cpu",
+  "trainingCorpusSize": 692,
+  "conditioning": "unconditional WNULL",
+  "guidance": 1,
+  "temperature": 1,
+  "sampler": "hpsdiffusion.sample_constrained",
+  "note": "Masked-diffusion-trained Transformer; dependency-order constrained decoding. Stats copied separately from species-matched corpus sets. No battles evaluated.",
+  "format": "gen9championsvgc2026regmb",
+  "sourceHashes": {
+    "corpus.py": "2099397302f96cc1110d3b7cba37cc394427ff666658f23f134207e23edb7b7c",
+    "encode.py": "c4eb13ed2137cc789f700771fdb30e5e210804133cf6f7520af0007f938494f2",
+    "diffusion.py": "29636253fa6ed6f3695e517a1677fb960810c0f13baa34e356e3f6fae24770df",
+    "hpsdiffusion.py": "57c107acb18e508ebf7a1955f3a7a3930fd2fb40cb12ad086c990d5726dee60e"
+  },
+  "validatorSha256": "06cd0ddf5119b93f5a309d0174dd42c720ebd5f8fd2e9c0022fbecc624da6502",
+  "attempts": [
+    {
+      "seed": 91826,
+      "errors": []
+    }
+  ],
+  "samplerParity": true,
+  "events": [
+    {
+      "step": 1,
+      "column": 0,
+      "slot": 0,
+      "field": "species",
+      "value": "Archaludon",
+      "probability": 0.018730631098151207,
+      "top": [
+        {
+          "value": "Basculegion",
+          "probability": 0.057751208543777466
+        },
+        {
+          "value": "Garchomp",
+          "probability": 0.055606815963983536
+        },
+        {
+          "value": "Kingambit",
+          "probability": 0.05309908092021942
+        },
+        {
+          "value": "Sinistcha",
+          "probability": 0.04495186731219292
+        },
+        {
+          "value": "Incineroar",
+          "probability": 0.043958015739917755
+        }
+      ],
+      "state": [
+        "Archaludon",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 2,
+      "column": 8,
+      "slot": 1,
+      "field": "species",
+      "value": "Swampert",
+      "probability": 0.13289521634578705,
+      "top": [
+        {
+          "value": "Pelipper",
+          "probability": 0.19319427013397217
+        },
+        {
+          "value": "Swampert",
+          "probability": 0.13289521634578705
+        },
+        {
+          "value": "Basculegion",
+          "probability": 0.08592108637094498
+        },
+        {
+          "value": "Grimmsnarl",
+          "probability": 0.05904208496212959
+        },
+        {
+          "value": "Sinistcha",
+          "probability": 0.05594892427325249
+        }
+      ],
+      "state": [
+        "Archaludon",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 3,
+      "column": 16,
+      "slot": 2,
+      "field": "species",
+      "value": "Sinistcha",
+      "probability": 0.14363785088062286,
+      "top": [
+        {
+          "value": "Pelipper",
+          "probability": 0.3452337086200714
+        },
+        {
+          "value": "Sinistcha",
+          "probability": 0.14363785088062286
+        },
+        {
+          "value": "Sableye",
+          "probability": 0.08237577229738235
+        },
+        {
+          "value": "Grimmsnarl",
+          "probability": 0.07227229326963425
+        },
+        {
+          "value": "Basculegion",
+          "probability": 0.05126344412565231
+        }
+      ],
+      "state": [
+        "Archaludon",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 4,
+      "column": 24,
+      "slot": 3,
+      "field": "species",
+      "value": "Grimmsnarl",
+      "probability": 0.09703434258699417,
+      "top": [
+        {
+          "value": "Pelipper",
+          "probability": 0.3726113438606262
+        },
+        {
+          "value": "Sableye",
+          "probability": 0.1293851137161255
+        },
+        {
+          "value": "Grimmsnarl",
+          "probability": 0.09703434258699417
+        },
+        {
+          "value": "Basculegion",
+          "probability": 0.05798223242163658
+        },
+        {
+          "value": "Mawile",
+          "probability": 0.039722129702568054
+        }
+      ],
+      "state": [
+        "Archaludon",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 5,
+      "column": 32,
+      "slot": 4,
+      "field": "species",
+      "value": "Pelipper",
+      "probability": 0.5631373524665833,
+      "top": [
+        {
+          "value": "Pelipper",
+          "probability": 0.5631373524665833
+        },
+        {
+          "value": "Basculegion",
+          "probability": 0.060555655509233475
+        },
+        {
+          "value": "Sableye",
+          "probability": 0.04509973153471947
+        },
+        {
+          "value": "Metagross",
+          "probability": 0.027546877041459084
+        },
+        {
+          "value": "Mawile",
+          "probability": 0.024627147242426872
+        }
+      ],
+      "state": [
+        "Archaludon",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 6,
+      "column": 40,
+      "slot": 5,
+      "field": "species",
+      "value": "Basculegion",
+      "probability": 0.20728154480457306,
+      "top": [
+        {
+          "value": "Basculegion",
+          "probability": 0.20728154480457306
+        },
+        {
+          "value": "Sableye",
+          "probability": 0.08726555854082108
+        },
+        {
+          "value": "Metagross",
+          "probability": 0.05789411813020706
+        },
+        {
+          "value": "Venusaur",
+          "probability": 0.05165613815188408
+        },
+        {
+          "value": "Overqwil",
+          "probability": 0.04813794791698456
+        }
+      ],
+      "state": [
+        "Archaludon",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 7,
+      "column": 1,
+      "slot": 0,
+      "field": "ability",
+      "value": "Stamina",
+      "probability": 0.9990110397338867,
+      "top": [
+        {
+          "value": "Stamina",
+          "probability": 0.9990110397338867
+        },
+        {
+          "value": "Sturdy",
+          "probability": 0.00098891812376678
+        },
+        {
+          "value": "Analytic",
+          "probability": 0.0
+        },
+        {
+          "value": "Armor Tail",
+          "probability": 0.0
+        },
+        {
+          "value": "Aroma Veil",
+          "probability": 0.0
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 8,
+      "column": 2,
+      "slot": 0,
+      "field": "item",
+      "value": "Leftovers",
+      "probability": 0.3456430733203888,
+      "top": [
+        {
+          "value": "Leftovers",
+          "probability": 0.3456430733203888
+        },
+        {
+          "value": "Sitrus Berry",
+          "probability": 0.1516886055469513
+        },
+        {
+          "value": "Light Clay",
+          "probability": 0.1373126059770584
+        },
+        {
+          "value": "Choice Scarf",
+          "probability": 0.08553460985422134
+        },
+        {
+          "value": "Focus Sash",
+          "probability": 0.06582995504140854
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 9,
+      "column": 9,
+      "slot": 1,
+      "field": "ability",
+      "value": "Damp",
+      "probability": 0.7223766446113586,
+      "top": [
+        {
+          "value": "Damp",
+          "probability": 0.7223766446113586
+        },
+        {
+          "value": "Torrent",
+          "probability": 0.18764127790927887
+        },
+        {
+          "value": "Swift Swim",
+          "probability": 0.0899820402264595
+        },
+        {
+          "value": "Armor Tail",
+          "probability": 0.0
+        },
+        {
+          "value": "Aroma Veil",
+          "probability": 0.0
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 10,
+      "column": 10,
+      "slot": 1,
+      "field": "item",
+      "value": "Swampertite",
+      "probability": 0.5621742010116577,
+      "top": [
+        {
+          "value": "Swampertite",
+          "probability": 0.5621742010116577
+        },
+        {
+          "value": "Light Clay",
+          "probability": 0.09933435916900635
+        },
+        {
+          "value": "Sitrus Berry",
+          "probability": 0.0813772976398468
+        },
+        {
+          "value": "Choice Scarf",
+          "probability": 0.057442158460617065
+        },
+        {
+          "value": "Coba Berry",
+          "probability": 0.03928070887923241
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 11,
+      "column": 17,
+      "slot": 2,
+      "field": "ability",
+      "value": "Hospitality",
+      "probability": 1.0,
+      "top": [
+        {
+          "value": "Hospitality",
+          "probability": 1.0
+        },
+        {
+          "value": "Adaptability",
+          "probability": 0.0
+        },
+        {
+          "value": "Analytic",
+          "probability": 0.0
+        },
+        {
+          "value": "Armor Tail",
+          "probability": 0.0
+        },
+        {
+          "value": "Aroma Veil",
+          "probability": 0.0
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 12,
+      "column": 18,
+      "slot": 2,
+      "field": "item",
+      "value": "Sitrus Berry",
+      "probability": 0.22847212851047516,
+      "top": [
+        {
+          "value": "Sitrus Berry",
+          "probability": 0.22847212851047516
+        },
+        {
+          "value": "Light Clay",
+          "probability": 0.22666895389556885
+        },
+        {
+          "value": "Focus Sash",
+          "probability": 0.1306885927915573
+        },
+        {
+          "value": "Coba Berry",
+          "probability": 0.0966113731265068
+        },
+        {
+          "value": "Choice Scarf",
+          "probability": 0.09597449749708176
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 13,
+      "column": 25,
+      "slot": 3,
+      "field": "ability",
+      "value": "Prankster",
+      "probability": 0.9989653825759888,
+      "top": [
+        {
+          "value": "Prankster",
+          "probability": 0.9989653825759888
+        },
+        {
+          "value": "Pickpocket",
+          "probability": 0.0006795218214392662
+        },
+        {
+          "value": "Frisk",
+          "probability": 0.00035507907159626484
+        },
+        {
+          "value": "Armor Tail",
+          "probability": 0.0
+        },
+        {
+          "value": "Aroma Veil",
+          "probability": 0.0
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 14,
+      "column": 26,
+      "slot": 3,
+      "field": "item",
+      "value": "Choice Scarf",
+      "probability": 0.09377491474151611,
+      "top": [
+        {
+          "value": "Light Clay",
+          "probability": 0.401537150144577
+        },
+        {
+          "value": "Focus Sash",
+          "probability": 0.13262587785720825
+        },
+        {
+          "value": "Coba Berry",
+          "probability": 0.1118435263633728
+        },
+        {
+          "value": "Choice Scarf",
+          "probability": 0.09377491474151611
+        },
+        {
+          "value": "Roseli Berry",
+          "probability": 0.0673203244805336
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 15,
+      "column": 33,
+      "slot": 4,
+      "field": "ability",
+      "value": "Drizzle",
+      "probability": 0.9992819428443909,
+      "top": [
+        {
+          "value": "Drizzle",
+          "probability": 0.9992819428443909
+        },
+        {
+          "value": "Rain Dish",
+          "probability": 0.0007181341643445194
+        },
+        {
+          "value": "Analytic",
+          "probability": 0.0
+        },
+        {
+          "value": "Armor Tail",
+          "probability": 0.0
+        },
+        {
+          "value": "Aroma Veil",
+          "probability": 0.0
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 16,
+      "column": 34,
+      "slot": 4,
+      "field": "item",
+      "value": "Light Clay",
+      "probability": 0.3796733021736145,
+      "top": [
+        {
+          "value": "Light Clay",
+          "probability": 0.3796733021736145
+        },
+        {
+          "value": "Coba Berry",
+          "probability": 0.1712156981229782
+        },
+        {
+          "value": "Focus Sash",
+          "probability": 0.1389217972755432
+        },
+        {
+          "value": "Kasib Berry",
+          "probability": 0.10232601314783096
+        },
+        {
+          "value": "Roseli Berry",
+          "probability": 0.05190186947584152
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 17,
+      "column": 41,
+      "slot": 5,
+      "field": "ability",
+      "value": "Swift Swim",
+      "probability": 0.38911324739456177,
+      "top": [
+        {
+          "value": "Adaptability",
+          "probability": 0.6084134578704834
+        },
+        {
+          "value": "Swift Swim",
+          "probability": 0.38911324739456177
+        },
+        {
+          "value": "Mold Breaker",
+          "probability": 0.0024732749443501234
+        },
+        {
+          "value": "Armor Tail",
+          "probability": 0.0
+        },
+        {
+          "value": "Aroma Veil",
+          "probability": 0.0
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 18,
+      "column": 42,
+      "slot": 5,
+      "field": "item",
+      "value": "Coba Berry",
+      "probability": 0.2570638358592987,
+      "top": [
+        {
+          "value": "Focus Sash",
+          "probability": 0.29095277190208435
+        },
+        {
+          "value": "Coba Berry",
+          "probability": 0.2570638358592987
+        },
+        {
+          "value": "Kasib Berry",
+          "probability": 0.11616078019142151
+        },
+        {
+          "value": "Life Orb",
+          "probability": 0.07181833684444427
+        },
+        {
+          "value": "Roseli Berry",
+          "probability": 0.06728316843509674
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 19,
+      "column": 3,
+      "slot": 0,
+      "field": "m0",
+      "value": "Draco Meteor",
+      "probability": 0.01923588290810585,
+      "top": [
+        {
+          "value": "Dragon Pulse",
+          "probability": 0.48261746764183044
+        },
+        {
+          "value": "Light Screen",
+          "probability": 0.2116996794939041
+        },
+        {
+          "value": "Earthquake",
+          "probability": 0.16295425593852997
+        },
+        {
+          "value": "Foul Play",
+          "probability": 0.04302498698234558
+        },
+        {
+          "value": "Draco Meteor",
+          "probability": 0.01923588290810585
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        null,
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 20,
+      "column": 4,
+      "slot": 0,
+      "field": "m1",
+      "value": "Electro Shot",
+      "probability": 0.6639284491539001,
+      "top": [
+        {
+          "value": "Electro Shot",
+          "probability": 0.6639284491539001
+        },
+        {
+          "value": "Protect",
+          "probability": 0.21496382355690002
+        },
+        {
+          "value": "Light Screen",
+          "probability": 0.06346672773361206
+        },
+        {
+          "value": "Iron Head",
+          "probability": 0.010724999010562897
+        },
+        {
+          "value": "Dragon Pulse",
+          "probability": 0.008652472868561745
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        null,
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 21,
+      "column": 5,
+      "slot": 0,
+      "field": "m2",
+      "value": "Protect",
+      "probability": 0.5570250153541565,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.5570250153541565
+        },
+        {
+          "value": "Flash Cannon",
+          "probability": 0.26489487290382385
+        },
+        {
+          "value": "Reflect",
+          "probability": 0.14296004176139832
+        },
+        {
+          "value": "Iron Head",
+          "probability": 0.005526906810700893
+        },
+        {
+          "value": "Rock Slide",
+          "probability": 0.00505768321454525
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        null,
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 22,
+      "column": 6,
+      "slot": 0,
+      "field": "m3",
+      "value": "Reflect",
+      "probability": 0.5627988576889038,
+      "top": [
+        {
+          "value": "Reflect",
+          "probability": 0.5627988576889038
+        },
+        {
+          "value": "Thunderbolt",
+          "probability": 0.10566912591457367
+        },
+        {
+          "value": "Rock Slide",
+          "probability": 0.09314244240522385
+        },
+        {
+          "value": "Snarl",
+          "probability": 0.06071942672133446
+        },
+        {
+          "value": "Swords Dance",
+          "probability": 0.05409351736307144
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 23,
+      "column": 11,
+      "slot": 1,
+      "field": "m0",
+      "value": "Flip Turn",
+      "probability": 0.1054215207695961,
+      "top": [
+        {
+          "value": "Earthquake",
+          "probability": 0.5004176497459412
+        },
+        {
+          "value": "High Horsepower",
+          "probability": 0.15375424921512604
+        },
+        {
+          "value": "Flip Turn",
+          "probability": 0.1054215207695961
+        },
+        {
+          "value": "Earth Power",
+          "probability": 0.05113467946648598
+        },
+        {
+          "value": "Ice Punch",
+          "probability": 0.025919083505868912
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        null,
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 24,
+      "column": 12,
+      "slot": 1,
+      "field": "m1",
+      "value": "Protect",
+      "probability": 0.5912445783615112,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.5912445783615112
+        },
+        {
+          "value": "Rain Dance",
+          "probability": 0.13185380399227142
+        },
+        {
+          "value": "Ice Punch",
+          "probability": 0.1081223264336586
+        },
+        {
+          "value": "High Horsepower",
+          "probability": 0.035831302404403687
+        },
+        {
+          "value": "Muddy Water",
+          "probability": 0.029986906796693802
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        null,
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 25,
+      "column": 13,
+      "slot": 1,
+      "field": "m2",
+      "value": "Weather Ball",
+      "probability": 0.3363984525203705,
+      "top": [
+        {
+          "value": "Weather Ball",
+          "probability": 0.3363984525203705
+        },
+        {
+          "value": "Rain Dance",
+          "probability": 0.30721256136894226
+        },
+        {
+          "value": "Wave Crash",
+          "probability": 0.06555360555648804
+        },
+        {
+          "value": "Muddy Water",
+          "probability": 0.057499296963214874
+        },
+        {
+          "value": "Ice Punch",
+          "probability": 0.04114912822842598
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        null,
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 26,
+      "column": 14,
+      "slot": 1,
+      "field": "m3",
+      "value": "Wave Crash",
+      "probability": 0.9244597554206848,
+      "top": [
+        {
+          "value": "Wave Crash",
+          "probability": 0.9244597554206848
+        },
+        {
+          "value": "Wide Guard",
+          "probability": 0.023713871836662292
+        },
+        {
+          "value": "Sludge Bomb",
+          "probability": 0.02241610176861286
+        },
+        {
+          "value": "Rock Slide",
+          "probability": 0.0075462209060788155
+        },
+        {
+          "value": "Rain Dance",
+          "probability": 0.0058650062419474125
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 27,
+      "column": 19,
+      "slot": 2,
+      "field": "m0",
+      "value": "Calm Mind",
+      "probability": 0.10291390866041183,
+      "top": [
+        {
+          "value": "Life Dew",
+          "probability": 0.3363078832626343
+        },
+        {
+          "value": "Foul Play",
+          "probability": 0.2717079520225525
+        },
+        {
+          "value": "Matcha Gotcha",
+          "probability": 0.15452033281326294
+        },
+        {
+          "value": "Calm Mind",
+          "probability": 0.10291390866041183
+        },
+        {
+          "value": "Protect",
+          "probability": 0.04410114511847496
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        null,
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 28,
+      "column": 20,
+      "slot": 2,
+      "field": "m1",
+      "value": "Rage Powder",
+      "probability": 0.041675157845020294,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.5648462772369385
+        },
+        {
+          "value": "Matcha Gotcha",
+          "probability": 0.268961638212204
+        },
+        {
+          "value": "Rage Powder",
+          "probability": 0.041675157845020294
+        },
+        {
+          "value": "Foul Play",
+          "probability": 0.031489357352256775
+        },
+        {
+          "value": "Giga Drain",
+          "probability": 0.029958931729197502
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        null,
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 29,
+      "column": 21,
+      "slot": 2,
+      "field": "m2",
+      "value": "Reflect",
+      "probability": 0.30171191692352295,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.6547515392303467
+        },
+        {
+          "value": "Reflect",
+          "probability": 0.30171191692352295
+        },
+        {
+          "value": "Solar Beam",
+          "probability": 0.011107943952083588
+        },
+        {
+          "value": "Shadow Ball",
+          "probability": 0.010161619633436203
+        },
+        {
+          "value": "Matcha Gotcha",
+          "probability": 0.006494517438113689
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        null,
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 30,
+      "column": 22,
+      "slot": 2,
+      "field": "m3",
+      "value": "Protect",
+      "probability": 0.8497989177703857,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.8497989177703857
+        },
+        {
+          "value": "Trick Room",
+          "probability": 0.13815194368362427
+        },
+        {
+          "value": "Shadow Ball",
+          "probability": 0.004688968416303396
+        },
+        {
+          "value": "Substitute",
+          "probability": 0.002821447094902396
+        },
+        {
+          "value": "Foul Play",
+          "probability": 0.0006584131624549627
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 31,
+      "column": 27,
+      "slot": 3,
+      "field": "m0",
+      "value": "Light Screen",
+      "probability": 0.885489821434021,
+      "top": [
+        {
+          "value": "Light Screen",
+          "probability": 0.885489821434021
+        },
+        {
+          "value": "Foul Play",
+          "probability": 0.038737956434488297
+        },
+        {
+          "value": "Dark Pulse",
+          "probability": 0.018602726981043816
+        },
+        {
+          "value": "Fake Out",
+          "probability": 0.010246051475405693
+        },
+        {
+          "value": "Dazzling Gleam",
+          "probability": 0.007942820899188519
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        null,
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 32,
+      "column": 28,
+      "slot": 3,
+      "field": "m1",
+      "value": "Parting Shot",
+      "probability": 0.3331317603588104,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.40953657031059265
+        },
+        {
+          "value": "Parting Shot",
+          "probability": 0.3331317603588104
+        },
+        {
+          "value": "Ice Punch",
+          "probability": 0.11830680072307587
+        },
+        {
+          "value": "Dazzling Gleam",
+          "probability": 0.04514884948730469
+        },
+        {
+          "value": "Reflect",
+          "probability": 0.02192019112408161
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        null,
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 33,
+      "column": 29,
+      "slot": 3,
+      "field": "m2",
+      "value": "Protect",
+      "probability": 0.48355117440223694,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.48355117440223694
+        },
+        {
+          "value": "Reflect",
+          "probability": 0.44658032059669495
+        },
+        {
+          "value": "Ice Punch",
+          "probability": 0.013063565827906132
+        },
+        {
+          "value": "Fake Out",
+          "probability": 0.011881653219461441
+        },
+        {
+          "value": "Spirit Break",
+          "probability": 0.006827636621892452
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        null,
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 34,
+      "column": 30,
+      "slot": 3,
+      "field": "m3",
+      "value": "Reflect",
+      "probability": 0.2497207522392273,
+      "top": [
+        {
+          "value": "Spirit Break",
+          "probability": 0.6567094922065735
+        },
+        {
+          "value": "Reflect",
+          "probability": 0.2497207522392273
+        },
+        {
+          "value": "Throat Chop",
+          "probability": 0.026994647458195686
+        },
+        {
+          "value": "Swagger",
+          "probability": 0.020309647545218468
+        },
+        {
+          "value": "Sucker Punch",
+          "probability": 0.01720503345131874
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 35,
+      "column": 35,
+      "slot": 4,
+      "field": "m0",
+      "value": "Hurricane",
+      "probability": 0.9562444686889648,
+      "top": [
+        {
+          "value": "Hurricane",
+          "probability": 0.9562444686889648
+        },
+        {
+          "value": "Brave Bird",
+          "probability": 0.008716831915080547
+        },
+        {
+          "value": "Ice Beam",
+          "probability": 0.00639638677239418
+        },
+        {
+          "value": "Protect",
+          "probability": 0.004978547338396311
+        },
+        {
+          "value": "Helping Hand",
+          "probability": 0.004508719779551029
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        null,
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 36,
+      "column": 36,
+      "slot": 4,
+      "field": "m1",
+      "value": "Rain Dance",
+      "probability": 0.11734939366579056,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.4095991253852844
+        },
+        {
+          "value": "Tailwind",
+          "probability": 0.3278973400592804
+        },
+        {
+          "value": "Rain Dance",
+          "probability": 0.11734939366579056
+        },
+        {
+          "value": "Muddy Water",
+          "probability": 0.03780166432261467
+        },
+        {
+          "value": "Ice Beam",
+          "probability": 0.0294125247746706
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        null,
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 37,
+      "column": 37,
+      "slot": 4,
+      "field": "m2",
+      "value": "Tailwind",
+      "probability": 0.5297580361366272,
+      "top": [
+        {
+          "value": "Tailwind",
+          "probability": 0.5297580361366272
+        },
+        {
+          "value": "Protect",
+          "probability": 0.3276885747909546
+        },
+        {
+          "value": "Weather Ball",
+          "probability": 0.0654752254486084
+        },
+        {
+          "value": "Soak",
+          "probability": 0.017027197405695915
+        },
+        {
+          "value": "Liquidation",
+          "probability": 0.015909532085061073
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        null,
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 38,
+      "column": 38,
+      "slot": 4,
+      "field": "m3",
+      "value": "U-turn",
+      "probability": 0.010426850989460945,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.6346768736839294
+        },
+        {
+          "value": "Wide Guard",
+          "probability": 0.247391015291214
+        },
+        {
+          "value": "Weather Ball",
+          "probability": 0.07601732760667801
+        },
+        {
+          "value": "Roost",
+          "probability": 0.013038315810263157
+        },
+        {
+          "value": "U-turn",
+          "probability": 0.010426850989460945
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 39,
+      "column": 43,
+      "slot": 5,
+      "field": "m0",
+      "value": "Aqua Jet",
+      "probability": 0.88337641954422,
+      "top": [
+        {
+          "value": "Aqua Jet",
+          "probability": 0.88337641954422
+        },
+        {
+          "value": "Flip Turn",
+          "probability": 0.05782882496714592
+        },
+        {
+          "value": "Ice Beam",
+          "probability": 0.012158838100731373
+        },
+        {
+          "value": "Crunch",
+          "probability": 0.0084920022636652
+        },
+        {
+          "value": "Protect",
+          "probability": 0.007206347305327654
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 40,
+      "column": 44,
+      "slot": 5,
+      "field": "m1",
+      "value": "Protect",
+      "probability": 0.5997703671455383,
+      "top": [
+        {
+          "value": "Protect",
+          "probability": 0.5997703671455383
+        },
+        {
+          "value": "Last Respects",
+          "probability": 0.10655676573514938
+        },
+        {
+          "value": "Rain Dance",
+          "probability": 0.10629939287900925
+        },
+        {
+          "value": "Flip Turn",
+          "probability": 0.07251138985157013
+        },
+        {
+          "value": "Muddy Water",
+          "probability": 0.03808720409870148
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "step": 41,
+      "column": 45,
+      "slot": 5,
+      "field": "m2",
+      "value": "Last Respects",
+      "probability": 0.8296604752540588,
+      "top": [
+        {
+          "value": "Last Respects",
+          "probability": 0.8296604752540588
+        },
+        {
+          "value": "Rain Dance",
+          "probability": 0.06344092637300491
+        },
+        {
+          "value": "Shadow Ball",
+          "probability": 0.031319234520196915
+        },
+        {
+          "value": "Soak",
+          "probability": 0.018554186448454857
+        },
+        {
+          "value": "Liquidation",
+          "probability": 0.014195866882801056
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        null,
+        null
+      ]
+    },
+    {
+      "step": 42,
+      "column": 46,
+      "slot": 5,
+      "field": "m3",
+      "value": "Wave Crash",
+      "probability": 0.938061535358429,
+      "top": [
+        {
+          "value": "Wave Crash",
+          "probability": 0.938061535358429
+        },
+        {
+          "value": "Shadow Ball",
+          "probability": 0.024066725745797157
+        },
+        {
+          "value": "Psychic Fangs",
+          "probability": 0.011507430113852024
+        },
+        {
+          "value": "Rain Dance",
+          "probability": 0.009989384561777115
+        },
+        {
+          "value": "Waterfall",
+          "probability": 0.0034358901903033257
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash",
+        null
+      ]
+    },
+    {
+      "step": 43,
+      "column": 7,
+      "slot": 0,
+      "field": "nature",
+      "value": "Calm",
+      "probability": 0.11470578610897064,
+      "top": [
+        {
+          "value": "Modest",
+          "probability": 0.3351147770881653
+        },
+        {
+          "value": "Adamant",
+          "probability": 0.21182909607887268
+        },
+        {
+          "value": "Calm",
+          "probability": 0.11470578610897064
+        },
+        {
+          "value": "Bold",
+          "probability": 0.10016359388828278
+        },
+        {
+          "value": "Timid",
+          "probability": 0.08245078474283218
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        "Calm",
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        null,
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash",
+        null
+      ]
+    },
+    {
+      "step": 44,
+      "column": 15,
+      "slot": 1,
+      "field": "nature",
+      "value": "Modest",
+      "probability": 0.327257364988327,
+      "top": [
+        {
+          "value": "Modest",
+          "probability": 0.327257364988327
+        },
+        {
+          "value": "Adamant",
+          "probability": 0.2200128585100174
+        },
+        {
+          "value": "Calm",
+          "probability": 0.11561615020036697
+        },
+        {
+          "value": "Bold",
+          "probability": 0.10078611224889755
+        },
+        {
+          "value": "Timid",
+          "probability": 0.08620899170637131
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        "Calm",
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        "Modest",
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        null,
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash",
+        null
+      ]
+    },
+    {
+      "step": 45,
+      "column": 23,
+      "slot": 2,
+      "field": "nature",
+      "value": "Jolly",
+      "probability": 0.1523979902267456,
+      "top": [
+        {
+          "value": "Adamant",
+          "probability": 0.44211748242378235
+        },
+        {
+          "value": "Jolly",
+          "probability": 0.1523979902267456
+        },
+        {
+          "value": "Calm",
+          "probability": 0.11753630638122559
+        },
+        {
+          "value": "Bold",
+          "probability": 0.08453454077243805
+        },
+        {
+          "value": "Modest",
+          "probability": 0.07670821994543076
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        "Calm",
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        "Modest",
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        "Jolly",
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        null,
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash",
+        null
+      ]
+    },
+    {
+      "step": 46,
+      "column": 31,
+      "slot": 3,
+      "field": "nature",
+      "value": "Adamant",
+      "probability": 0.28418946266174316,
+      "top": [
+        {
+          "value": "Adamant",
+          "probability": 0.28418946266174316
+        },
+        {
+          "value": "Calm",
+          "probability": 0.17665328085422516
+        },
+        {
+          "value": "Bold",
+          "probability": 0.14934830367565155
+        },
+        {
+          "value": "Modest",
+          "probability": 0.14899702370166779
+        },
+        {
+          "value": "Timid",
+          "probability": 0.06728489696979523
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        "Calm",
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        "Modest",
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        "Jolly",
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        "Adamant",
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        null,
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash",
+        null
+      ]
+    },
+    {
+      "step": 47,
+      "column": 39,
+      "slot": 4,
+      "field": "nature",
+      "value": "Modest",
+      "probability": 0.35808321833610535,
+      "top": [
+        {
+          "value": "Modest",
+          "probability": 0.35808321833610535
+        },
+        {
+          "value": "Calm",
+          "probability": 0.2013963758945465
+        },
+        {
+          "value": "Bold",
+          "probability": 0.16238988935947418
+        },
+        {
+          "value": "Timid",
+          "probability": 0.109000064432621
+        },
+        {
+          "value": "Careful",
+          "probability": 0.05152563378214836
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        "Calm",
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        "Modest",
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        "Jolly",
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        "Adamant",
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        "Modest",
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash",
+        null
+      ]
+    },
+    {
+      "step": 48,
+      "column": 47,
+      "slot": 5,
+      "field": "nature",
+      "value": "Bold",
+      "probability": 0.178437277674675,
+      "top": [
+        {
+          "value": "Modest",
+          "probability": 0.2478022575378418
+        },
+        {
+          "value": "Calm",
+          "probability": 0.24613602459430695
+        },
+        {
+          "value": "Bold",
+          "probability": 0.178437277674675
+        },
+        {
+          "value": "Timid",
+          "probability": 0.09045609831809998
+        },
+        {
+          "value": "Adamant",
+          "probability": 0.08083949238061905
+        }
+      ],
+      "state": [
+        "Archaludon",
+        "Stamina",
+        "Leftovers",
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect",
+        "Calm",
+        "Swampert",
+        "Damp",
+        "Swampertite",
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash",
+        "Modest",
+        "Sinistcha",
+        "Hospitality",
+        "Sitrus Berry",
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect",
+        "Jolly",
+        "Grimmsnarl",
+        "Prankster",
+        "Choice Scarf",
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect",
+        "Adamant",
+        "Pelipper",
+        "Drizzle",
+        "Light Clay",
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn",
+        "Modest",
+        "Basculegion",
+        "Swift Swim",
+        "Coba Berry",
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash",
+        "Bold"
+      ]
+    }
+  ],
+  "finalTeam": [
+    {
+      "species": "Archaludon",
+      "ability": "Stamina",
+      "item": "Leftovers",
+      "moves": [
+        "Draco Meteor",
+        "Electro Shot",
+        "Protect",
+        "Reflect"
+      ],
+      "nature": "Calm",
+      "statPoints": {
+        "HP": 27,
+        "Atk": 0,
+        "Def": 0,
+        "SpA": 32,
+        "SpD": 2,
+        "Spe": 5
+      },
+      "spreadSourceIndex": 48
+    },
+    {
+      "species": "Swampert",
+      "ability": "Damp",
+      "item": "Swampertite",
+      "moves": [
+        "Flip Turn",
+        "Protect",
+        "Weather Ball",
+        "Wave Crash"
+      ],
+      "nature": "Modest",
+      "statPoints": {
+        "HP": 2,
+        "Atk": 32,
+        "Def": 0,
+        "SpA": 0,
+        "SpD": 0,
+        "Spe": 32
+      },
+      "spreadSourceIndex": 7
+    },
+    {
+      "species": "Sinistcha",
+      "ability": "Hospitality",
+      "item": "Sitrus Berry",
+      "moves": [
+        "Calm Mind",
+        "Rage Powder",
+        "Reflect",
+        "Protect"
+      ],
+      "nature": "Jolly",
+      "statPoints": {
+        "HP": 32,
+        "Atk": 0,
+        "Def": 14,
+        "SpA": 0,
+        "SpD": 20,
+        "Spe": 0
+      },
+      "spreadSourceIndex": 96
+    },
+    {
+      "species": "Grimmsnarl",
+      "ability": "Prankster",
+      "item": "Choice Scarf",
+      "moves": [
+        "Light Screen",
+        "Parting Shot",
+        "Protect",
+        "Reflect"
+      ],
+      "nature": "Adamant",
+      "statPoints": {
+        "HP": 32,
+        "Atk": 10,
+        "Def": 12,
+        "SpA": 0,
+        "SpD": 12,
+        "Spe": 0
+      },
+      "spreadSourceIndex": 47
+    },
+    {
+      "species": "Pelipper",
+      "ability": "Drizzle",
+      "item": "Light Clay",
+      "moves": [
+        "Hurricane",
+        "Rain Dance",
+        "Tailwind",
+        "U-turn"
+      ],
+      "nature": "Modest",
+      "statPoints": {
+        "HP": 32,
+        "Atk": 0,
+        "Def": 0,
+        "SpA": 25,
+        "SpD": 6,
+        "Spe": 3
+      },
+      "spreadSourceIndex": 59
+    },
+    {
+      "species": "Basculegion",
+      "ability": "Swift Swim",
+      "item": "Coba Berry",
+      "moves": [
+        "Aqua Jet",
+        "Protect",
+        "Last Respects",
+        "Wave Crash"
+      ],
+      "nature": "Bold",
+      "statPoints": {
+        "HP": 0,
+        "Atk": 32,
+        "Def": 1,
+        "SpA": 0,
+        "SpD": 1,
+        "Spe": 32
+      },
+      "spreadSourceIndex": 105
+    }
+  ],
+  "paste": "Archaludon @ Leftovers\nAbility: Stamina\nLevel: 50\nEVs: 27 HP / 32 SpA / 2 SpD / 5 Spe\nCalm Nature\n- Draco Meteor\n- Electro Shot\n- Protect\n- Reflect\n\nSwampert @ Swampertite\nAbility: Damp\nLevel: 50\nEVs: 2 HP / 32 Atk / 32 Spe\nModest Nature\n- Flip Turn\n- Protect\n- Weather Ball\n- Wave Crash\n\nSinistcha @ Sitrus Berry\nAbility: Hospitality\nLevel: 50\nEVs: 32 HP / 14 Def / 20 SpD\nJolly Nature\n- Calm Mind\n- Rage Powder\n- Reflect\n- Protect\n\nGrimmsnarl @ Choice Scarf\nAbility: Prankster\nLevel: 50\nEVs: 32 HP / 10 Atk / 12 Def / 12 SpD\nAdamant Nature\n- Light Screen\n- Parting Shot\n- Protect\n- Reflect\n\nPelipper @ Light Clay\nAbility: Drizzle\nLevel: 50\nEVs: 32 HP / 25 SpA / 6 SpD / 3 Spe\nModest Nature\n- Hurricane\n- Rain Dance\n- Tailwind\n- U-turn\n\nBasculegion @ Coba Berry\nAbility: Swift Swim\nLevel: 50\nEVs: 32 Atk / 1 Def / 1 SpD / 32 Spe\nBold Nature\n- Aqua Jet\n- Protect\n- Last Respects\n- Wave Crash\n",
+  "validationErrors": []
+}

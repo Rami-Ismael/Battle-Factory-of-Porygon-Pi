@@ -1,0 +1,5 @@
+
+- [ ] https://github.com/okhat/blog/blob/main/2024.09.impact.md
+
+- [ ] Can you tell me how this project is follow the principle that given in On Impactful AI Research  https://github.com/okhat/blog/blob/main/2024.09.impact.md what are way to address this issues
+- [ ] I am struggling to make a list of question to ask myself base on this paragraph "Instead of thinking of your work as a series of isolated papers, I suggest that you ask yourself: What is the larger vision, the sub-area, or the paradigm you will lead? What difference is your work seeking to make? You will publish individual papers to explore and build support for it, but your bigger vision should be something you iterate on quite intentionally. It needs to be a lot larger than a publication unit and certainly something that you haven't completely solved yet." from this blog https://github.com/okhat/blog/blob/main/2024.09.impact.md to see i am going in the right direction

@@ -1,0 +1,215 @@
+<!doctype html>
+<!-- PROTOTYPE — throwaway. Three variants of the Mega-slot third-order figure, switchable via ?variant=A|B|C.
+     Question: what should the Charizard / Venusaur / Blastoise third-order example look like on the blog? -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mega Slot Prototype</title>
+<style>
+:root{--paper:#f6f3eb;--ink:#202c32;--muted:#68777c;--line:#cdd2cc;--navy:#152b36;--sun:#e9a94a;--good:#3f8f6b;--bad:#b4533a;--none:#8a979b;--card:#fffdf8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:90px}
+main{max-width:980px;margin:auto;padding:32px 20px}
+h1{font:normal clamp(28px,4vw,42px)/1.1 Georgia,serif;letter-spacing:-.03em;margin:0 0 10px}
+.lede{max-width:620px;color:var(--muted);font-size:14px;line-height:1.65;margin:0 0 24px}
+.eyebrow{font:10px ui-monospace,monospace;letter-spacing:.12em;color:var(--muted);margin:0 0 12px;text-transform:uppercase}
+img.sp{image-rendering:pixelated;object-fit:contain}
+button{font:inherit;cursor:pointer}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:30px;padding:3px;gap:3px;background:var(--card)}
+.seg button{border:0;background:transparent;padding:8px 16px;border-radius:22px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--navy);color:#fff}
+.state{margin-top:22px;font:11px/1.7 ui-monospace,monospace;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.variant{display:none}.variant.on{display:block}
+
+/* terms */
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0 0 22px}
+.terms div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.55;color:var(--muted)}
+.terms b{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
+/* A — causal chain */
+.chain{list-style:none;padding:0;margin:16px 0 0;max-width:680px}
+.chain li{display:grid;grid-template-columns:34px 1fr 56px;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:8px;padding:12px 14px;margin-bottom:22px;position:relative;transition:opacity .35s,border-color .35s}
+.chain li:not(:last-child)::after{content:"↓";position:absolute;left:24px;bottom:-21px;color:var(--muted);font-size:14px}
+.chain li.off{border-left-color:var(--bad);opacity:.55}
+.chain li.break{border-left-color:var(--bad);opacity:1;box-shadow:0 0 0 2px #f5ddd5}
+.chain .n{font:13px ui-monospace,monospace;color:var(--muted)}
+.chain b{font-size:15px;font-weight:550}
+.chain dfn{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+.chain p{margin:6px 0 0;font-size:13px}
+.chain img{width:52px}
+.sunicon{font-size:30px;text-align:center;color:var(--sun)}
+.chain li.off .sunicon{color:#c9cfcc}
+/* A (old) — triangle */
+.tri{position:relative;background:var(--navy);border-radius:12px;color:#eaf1ed;aspect-ratio:16/10;margin-top:16px}
+.tri svg{position:absolute;inset:0;width:100%;height:100%}
+.tri .mon{position:absolute;width:24%;text-align:center;transform:translate(-50%,-50%)}
+.tri .mon img{width:58%}
+.tri .mon b{display:block;font-size:13px;font-weight:550}
+.tri .mon span{display:block;font:10px ui-monospace,monospace;color:#9fb2b9;margin-top:3px}
+.tri .edge{position:absolute;transform:translate(-50%,-50%);font:11px ui-monospace,monospace;padding:5px 9px;border-radius:5px;white-space:nowrap}
+.tri .third{position:absolute;left:50%;top:50%;transform:translate(-50%,-30%);width:30%;text-align:center;font-size:11px;line-height:1.5;color:#f3d39e;opacity:0;transition:opacity .4s}
+.tri.lost .third{opacity:1}
+.sunbadge{position:absolute;right:16px;top:14px;font:11px ui-monospace,monospace;padding:5px 10px;border-radius:20px}
+
+/* B — ledger */
+.ledger{width:100%;border-collapse:collapse;margin-top:16px;background:var(--card);border-radius:12px;overflow:hidden}
+.ledger th,.ledger td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:middle}
+.ledger th{font:10px ui-monospace,monospace;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;background:#efece3}
+.ledger td.team img{width:40px}
+.ledger td.team img.out{opacity:.15;filter:grayscale(1)}
+.chip{display:inline-block;font:11px ui-monospace,monospace;padding:3px 8px;border-radius:4px;margin:2px 4px 2px 0}
+.c-good{background:#dcefe4;color:#235a42}.c-bad{background:#f5ddd5;color:#7d3422}.c-none{background:#e7e9e6;color:#5c6a6e}.c-third{background:#fbe7c4;color:#7a4a0c}
+tr.sum td{background:#f4f1e8;font-weight:500}
+tr.trio td{background:#fff7e8}
+.verdict{margin-top:14px;font-size:14px;line-height:1.6;max-width:700px}
+.verdict b{color:var(--bad)}
+
+/* C — turn strip with prediction */
+.ask{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:16px}
+.ask p{margin:0 0 12px;font-size:15px}
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.lane{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:relative}
+.lane h3{font:normal 20px Georgia,serif;margin:0 0 4px}
+.lane .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px}
+.row img{width:44px}
+.bar{height:12px;border-radius:6px;background:var(--none);transition:width .5s cubic-bezier(.23,1,.32,1)}
+.sky{height:26px;border-radius:6px;margin-bottom:10px;display:flex;align-items:center;padding-left:10px;font:11px ui-monospace,monospace}
+.hidden .reveal{filter:blur(6px);opacity:.4}
+.feedback{margin-top:10px;font-size:14px;min-height:22px}
+
+/* switcher */
+.proto-bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:30px;padding:6px;box-shadow:0 6px 24px #0005;font:12px ui-monospace,monospace;z-index:9}
+.proto-bar button{background:#2a2a2a;color:#fff;border:0;width:32px;height:32px;border-radius:50%}
+.proto-bar span{padding:0 10px;white-space:nowrap}
+@media(max-width:640px){.lanes{grid-template-columns:1fr}.tri{aspect-ratio:4/5}.tri .mon{width:34%}.tri .edge{font-size:9px}.tri .third{width:60%;top:58%}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Prototype · third-order interaction</p>
+<h1>One Mega Evolution, three Pokémon</h1>
+<p class="lede">Charizard holds Charizardite Y, Venusaur has Chlorophyll, Blastoise holds Blastoisinite. Only one Pokémon may Mega Evolve per battle. Mechanism illustration, not a measured win rate.</p>
+<div class="terms" id="terms">
+  <div><b>Mega Evolution</b>A Pokémon holding its Mega Stone can transform mid-battle and gain a new Ability. Only one per battle.</div>
+  <div><b>Drought</b>Mega Charizard Y's Ability. Starts harsh sunlight when it Mega Evolves.</div>
+  <div><b>Chlorophyll</b>Venusaur's Ability. Doubles its Speed while harsh sunlight is up.</div>
+  <div><b>Mega Launcher</b>Mega Blastoise's Ability. Powers up its pulse moves.</div>
+</div>
+
+<!-- ========== A: causal chain ========== -->
+<section class="variant" data-v="A" data-name="Causal chain">
+  <span class="seg" role="group" aria-label="Who Mega Evolves"><button data-m="C">Mega Charizard</button><button data-m="B">Mega Blastoise</button></span>
+  <ol class="chain" id="chain">
+    <li data-k="slot"><span class="n">1</span><div><b>The one Mega Evolution</b><p id="ch1"></p></div><img class="sp" id="ch1img" alt=""></li>
+    <li data-k="drought"><span class="n">2</span><div><b>Drought</b> <dfn>Mega Charizard Y's Ability: when it Mega Evolves, harsh sunlight starts.</dfn><p id="ch2"></p></div><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAJFBMVEX///8xMTHeKRD/tQD/1gDenHPvzsXvvTr////OGQDeY0Lexb2tu88UAAAAAXRSTlMAQObYZgAAAFBJREFUeNoty4UNwEAMxdAGj/bft19WLHyBj0x9BDwyzEbVnbmqZLQ3xkNZlOp0n1RaQxUYXjx8VX6U+HjWnnVJrMvF0BJrcBxhDTwMkdngBxhzAsdHYP+iAAAAAElFTkSuQmCC" alt=""></li>
+    <li data-k="sun"><span class="n">3</span><div><b>Harsh sunlight</b> <dfn>A weather that covers the whole field.</dfn><p id="ch3"></p></div><span class="sunicon" id="ch3i">☀</span></li>
+    <li data-k="chloro"><span class="n">4</span><div><b>Chlorophyll</b> <dfn>Venusaur's Ability: doubles its Speed while harsh sunlight is up. No sun, no bonus.</dfn><p id="ch4"></p></div><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACDMQD/vb3/e3PevSneQUG9ajEQEBD/7lIQUkFanDkQe2qD3nta1cUgtJz////Qs62tAAAAAXRSTlMAQObYZgAABKBJREFUeNrtlAFvozgYROOmZjJxgP//b+/7xgxJlULJ9lbSSnk92ADmPWxLd/onePPmzZsS7N/+pf3j4+O8yIqOfv8c/DoiTQQki8vPokP3zR8nrFGg1hAPn5+fOuJ3ref8+1XCX1lDXwd8PoK4pfKS+KX/46MOlyysx6UGEaiaoAqv+4s5KxAFrMelrCjwekFvinOVZ7gM5RLiPIZLLpE3P1Hg1e114FyT4SIGHQpUBRJV/mT5vYtVk7jcAaJg+fItShz1+2V/nYpu9EsEXwLHE6VWvWP7l9aQ19auDS9mORjobwB4tKmIUr/eAe5X8QiH/EHqT9L3mHWl9Pk5EKzbUfMPBwMV+WPxOID0O2Gc6IWKl/x1DUhTDFwwOOn/HMub+6BmAktIgUc/8sA3hVONQDkyBWiUApqDDShAwYBs4KQHjsfF8kY5HLC/+v0UDxiGAV4kB4J1zpH+GUCj5V/OyG4pQ6doCt4djXABp0PAW+BZKIBQyz88BCTXL+i9o9jfgaIFRfKhAFry1FYVPhLZfxEoy+frjBOXXQoUKK8FgFrvEZBEqg3Jqx/3ALQ+ryWIdOdxDdqyBblMvF5J9gI8yddgcM1ZOEAiVz8PfX+wBEocAPma/io8CxnJNA+D2rzPgIAGk0cjBJbxauSVgqroZu8XJHYvQw5+vscb3ZPZaWO3b/84D+J2Jb9o6PPd+9j7OoNbsFeIAddrDLm7vCo3h/gc8Djpc1W3/dJfH7DW/pvr8EPjxwmw6dcMgnyZ3/gTNAqN4EOmv3bbXiYJEgovkP039rfBsQPE0JDi5nYAMNjcAP2HaQzI5sqNXZAJdv00sQF5K4sp1m8v0K7/BqowatfsV8Lx0LM0NMByF8T3BYCLH9UFDWeX64w2TeEna81A4inoRMq/AQHqsQvaufzrkOmfwl/qPYCgeR5oJE57ABmqZ97XSH6dwi9aK6UHjAIkW+PpR9gaKr1C/n46oEIkmgKGAJrgAX9Dn4DsjtB+J1wwhj/7G8eERPd7gRxwIouvBjjJP6kAywkFbF4TWEpGwd0C8wX7uS4+G+RvYzdPBjrT396fcs+fcGyhbz0ABfpy5G2rnwvyu7Dvn5gmFTDliZq9AvGQfCrAAbEfYDhGjtIB8S/QHvyM5+0pkIV7lnt+BeZC+UTXLwGWMs8OaEtdWP1tP8BRgY+4WAJ3W/o/HgPtIeB7Iydu+x2Yz98EcuXm8zyPDtABF6jjx4AKI5/8KRzl3wqM/HkLYOv4FPCiPPubC20nQI+z2f4NyLYGRi6B/Qm0bsOhwKJfrJxcaG17Bp470Lb9TT7SehNjvUabgRXMLjzZ29xCP4980kdA+obTfoBZ4NSe9WmnPl5+N1MvkPU2z9wvjL0wN9d89soIgN0/2q/AnIGtgjUyAyR14WWX3cDj2+LPMzDPEN8HussQrakhLBc20MuftAicuOEW1AK6ELME1BDPdhfGNbDptn8NNAUSKGI8++eA2AvYNbuCrw+2VpbH/SICaMjz6Rik3E2nA+MB+HwMzi3Vc8sTT/87nLs6/2nzXygAaIAC3qS/AjDb/fcSp3+aN2/evHnzHxDriT4zBlC+AAAAAElFTkSuQmCC" alt=""></li>
+    <li data-k="speed"><span class="n">5</span><div><b>Venusaur's Speed</b><p id="ch5"></p><div class="bar" id="ch5bar"></div></div></li>
+  </ol>
+  <p class="verdict" id="aVerdict"></p>
+</section>
+
+<!-- ========== B: inclusion–exclusion ledger ========== -->
+<section class="variant" data-v="B" data-name="Pairs ledger">
+  <span class="seg" role="group" aria-label="Who Mega Evolves in the trio"><button data-m="C">Trio megas Charizard</button><button data-m="B">Trio megas Blastoise</button></span>
+  <table class="ledger">
+    <thead><tr><th>Team</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td class="team" data-t="CV"></td><td><span class="chip c-good">+ sun → Venusaur Speed ×2</span></td></tr>
+      <tr><td class="team" data-t="CB"></td><td><span class="chip c-bad">− one stone wasted</span></td></tr>
+      <tr><td class="team" data-t="VB"></td><td><span class="chip c-none">nothing</span></td></tr>
+      <tr class="sum"><td>Sum of the three pairs</td><td><span class="chip c-good">+ Venusaur fast</span><span class="chip c-bad">− one stone wasted</span></td></tr>
+      <tr class="trio"><td class="team" data-t="CVB"></td><td id="bTrio"></td></tr>
+    </tbody>
+  </table>
+  <p class="verdict" id="bVerdict"></p>
+</section>
+
+<!-- ========== C: predict, then two lanes ========== -->
+<section class="variant" data-v="C" data-name="Predict, then compare">
+  <div class="ask">
+    <p>All three are on the field side. You Mega Evolve <b>Blastoise</b> instead of Charizard. Does Venusaur still move twice as fast?</p>
+    <span class="seg"><button data-g="yes">Yes, still ×2</button><button data-g="no">No, back to ×1</button></span>
+    <div class="feedback" id="cFb"></div>
+  </div>
+  <div class="lanes hidden" id="cLanes">
+    <div class="lane"><h3>Mega Charizard</h3><div class="sub">Charizard takes the one Mega</div>
+      <div class="sky" style="background:#fbe7c4;color:#7a4a0c">☀ harsh sunlight (Drought)</div>
+      <div class="row"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAAIQVIQEBAgc5SDMRjNUkHNzc3mQRDugynutFru3nv2pBD4+Pj/1RC9o1vCAAAAAXRSTlMAQObYZgAABO9JREFUeNrs2Nl66jAQA2AjJBin9P1f92TscZwF05bl7qj7Ev0RfKFL+p//eRTyw/WGz9a/3k8+qhdevaFoGH6l9ycY39zP1v+aQDsAjC9EfweeEahjP5fTX/pDEN8wgN5C6/0vTaDdBaKfJLaA8WWAEun15GEd3wPQ5lRkNw5vAChr0aY/APGv/VuANuoPwJ4Hjv3vB7iUl1fCAfijQO0BZjORwQgvAzITVv2l/jYG/iZQJewfU+L5dpMZKQ/uACL/0t9b6BhxLv058w4Q9434l/5oiVO2EuY5vANIlIf8dX+00NZB3goH4OcRjK0bIBQwj4EQzPiAiL49IDMCrT4z7wB2oBzOny6A1t8n4MYcIXPeCQSbYCXkwwEBIEpghlz6ETN2AGHgBjDxUb/FgFMTkGt9SsiRFUDBAKjEWjjuDwCnAJzwJA8WgGuApxO2gHHcbzEghE36BEM7SjTDWDj2G6P/fAQSdwDNTicazlWgDQV2XA04jydMC6C5egaOAn8c4ACHAMna7wDPTeiAeL/fer8LGAEGkRLgN5EhhNEEaj8A5xDYCJILME3ZoDl+9jTFhK3AhwPAEMxA9kftBkxGoN4+ZjLDUeBogPefoPMimJFUCduAyeYggJgQQisTOnDojztuMVQCKPrzlEPYTThRHAPR7zmzC3EoIAVQbqMQYoJCwCIIh35Z7XcAthHiTFXbPbkJbEeW78JyI4kHwMQFOCsAkkWgeaYeCwFxvj4B6euKmCBhARTnXwagAjDzalqdAtsDeQ1QSEAA4gagVFea9yM2ADIaaUNgEoqQEEBKc//3NSZI4vY389qfUNqREgq6BfIaMKIACaYKpABUAWEzQKq9rni6oLlfhwFTZgqBK+DreqUL4gKgDUDq/SEwJtTvwbQJ218SWAExQdQGoMWHaP3whEDKi6jp3gRDADFhC1BiDIjeWk55YJlmwUB5OkxAXOZswCygfMwG1CtoAVKK8o0g79d0BBKw/lX2Oufrmw5gBYhmTBEo0oS4p6F8D2gEa7/nGw54demH0QFEP7UJYTlLRZjuA3UzEf0LgAL4S6JMAfRfAT05EzIn7gp5ES68LMCXA60c+z+lWev7b+sG9bt5OOGCCnh9vZeX8gDagCxbQjpg8Jh4R2CKoLR9eb1fCXSgJwYcABPZTj8uawyAyLfHr4QDgAWYbB1J8YgHhPAI+Arhd0CEVjMBthe4F+4vkDF1IN/v94sAMt3wCPC7mNcA9gMC2Aq0iPfhpttGoLE/vFSB5DWNgcQphGO/A7gBG8AICAlQVShc0xCICZ2QrEYVgD/3ZJqJEiGJABXFENMa2HwUx24HGKdjsgNGlXD9oAphDOTt8RHd668XDbQESHcBpN2EiKyHeVc/A3EZsrUvPWAaAwmtirYBcidyFdj/A0CsS4AREMKcPYC8ylSeclsI7BvSJkLaBqWNGgK1nwuQHodI+wBxfI4OIR8i/VZAOgYogI0BlQTwTCjZYgz6Pc8CpOYMB1Cr4LnzL8+l/tgP8TUACsBz6AcUeQlogWfdjvgy+Wx/AFw9vmDJ2ic86YlwOfcfFiI9FfTDPwswfUiAfjmBFF4C+OA7SPFy4QVPAawFY6CU43Lx5ycAXsjbhZfbWJibaz2eAeZm3m7z81hIiKQngtsFjgABvDu4IdVyIH0kXrsr/59/GxgwCgCFfWTIRzWnQwAAAABJRU5ErkJggg==" alt="">Mega Charizard Y sets sun</div>
+      <div class="row reveal"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACDMQD/vb3/e3PevSneQUG9ajEQEBD/7lIQUkFanDkQe2qD3nta1cUgtJz////Qs62tAAAAAXRSTlMAQObYZgAABKBJREFUeNrtlAFvozgYROOmZjJxgP//b+/7xgxJlULJ9lbSSnk92ADmPWxLd/onePPmzZsS7N/+pf3j4+O8yIqOfv8c/DoiTQQki8vPokP3zR8nrFGg1hAPn5+fOuJ3ref8+1XCX1lDXwd8PoK4pfKS+KX/46MOlyysx6UGEaiaoAqv+4s5KxAFrMelrCjwekFvinOVZ7gM5RLiPIZLLpE3P1Hg1e114FyT4SIGHQpUBRJV/mT5vYtVk7jcAaJg+fItShz1+2V/nYpu9EsEXwLHE6VWvWP7l9aQ19auDS9mORjobwB4tKmIUr/eAe5X8QiH/EHqT9L3mHWl9Pk5EKzbUfMPBwMV+WPxOID0O2Gc6IWKl/x1DUhTDFwwOOn/HMub+6BmAktIgUc/8sA3hVONQDkyBWiUApqDDShAwYBs4KQHjsfF8kY5HLC/+v0UDxiGAV4kB4J1zpH+GUCj5V/OyG4pQ6doCt4djXABp0PAW+BZKIBQyz88BCTXL+i9o9jfgaIFRfKhAFry1FYVPhLZfxEoy+frjBOXXQoUKK8FgFrvEZBEqg3Jqx/3ALQ+ryWIdOdxDdqyBblMvF5J9gI8yddgcM1ZOEAiVz8PfX+wBEocAPma/io8CxnJNA+D2rzPgIAGk0cjBJbxauSVgqroZu8XJHYvQw5+vscb3ZPZaWO3b/84D+J2Jb9o6PPd+9j7OoNbsFeIAddrDLm7vCo3h/gc8Djpc1W3/dJfH7DW/pvr8EPjxwmw6dcMgnyZ3/gTNAqN4EOmv3bbXiYJEgovkP039rfBsQPE0JDi5nYAMNjcAP2HaQzI5sqNXZAJdv00sQF5K4sp1m8v0K7/BqowatfsV8Lx0LM0NMByF8T3BYCLH9UFDWeX64w2TeEna81A4inoRMq/AQHqsQvaufzrkOmfwl/qPYCgeR5oJE57ABmqZ97XSH6dwi9aK6UHjAIkW+PpR9gaKr1C/n46oEIkmgKGAJrgAX9Dn4DsjtB+J1wwhj/7G8eERPd7gRxwIouvBjjJP6kAywkFbF4TWEpGwd0C8wX7uS4+G+RvYzdPBjrT396fcs+fcGyhbz0ABfpy5G2rnwvyu7Dvn5gmFTDliZq9AvGQfCrAAbEfYDhGjtIB8S/QHvyM5+0pkIV7lnt+BeZC+UTXLwGWMs8OaEtdWP1tP8BRgY+4WAJ3W/o/HgPtIeB7Iydu+x2Yz98EcuXm8zyPDtABF6jjx4AKI5/8KRzl3wqM/HkLYOv4FPCiPPubC20nQI+z2f4NyLYGRi6B/Qm0bsOhwKJfrJxcaG17Bp470Lb9TT7SehNjvUabgRXMLjzZ29xCP4980kdA+obTfoBZ4NSe9WmnPl5+N1MvkPU2z9wvjL0wN9d89soIgN0/2q/AnIGtgjUyAyR14WWX3cDj2+LPMzDPEN8HussQrakhLBc20MuftAicuOEW1AK6ELME1BDPdhfGNbDptn8NNAUSKGI8++eA2AvYNbuCrw+2VpbH/SICaMjz6Rik3E2nA+MB+HwMzi3Vc8sTT/87nLs6/2nzXygAaIAC3qS/AjDb/fcSp3+aN2/evHnzHxDriT4zBlC+AAAAAElFTkSuQmCC" alt=""><div style="flex:1">Venusaur Speed <b>×2</b><div class="bar" style="width:100%;background:var(--good)"></div></div></div>
+      <div class="row"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABai82UrObNzdX21ZzmxXPVrEqUlJSLYkFKSkpaORgQEBAIOWIgYqz////4N0ukAAAAAXRSTlMAQObYZgAAA35JREFUeNrtmMuO6zgMBaMwbZk6h/n/zx1SdHTH6QvEUDybgWshwJuqkELcj9vFxcXFxcX/HfK2x+w8uaqylEhYp/fud57mFxGWKFjpmNHKveAkP8SBFW8M6P5zA2JW/mBx6EkF1Cq5oz2KgrbxZcAR2nsAKHg+pbV1XbOBoM0FKsrG/e4HrQcMz0h4IRrwY1mWqcJvf4JnkIX0zxU0AjZuFyJbwbKQE3T/OlVQeIFhjMMWGQWibjMg94OJLQVK0hyaEasvviQE0Att82O2QIEFpESgjEAWpGENf6CqxwuqitCT0szKL9ADjvqWWrhRxZ9Uj+mBpxhJQ3mHeclOjYBo91fIMzmSgIqAZul/g+Z+hn8YoTWfks8FiNTu/0uAj4eZDX8gitcAolA5UgAzYLBSMN7WJB+OEX3jg651BMHnAAQkYQ4Amm365ZEg/LUqHd0KIhKfP9CPBYhEIKYALWHqgwXQWisZYbNegATp1wMjZCAA4bAt6Q8AhH97Rd1tjCAa/o+BABgBLC9+Xv5Fhz+wMUKFDv/RAkYhEj8/S/or0z8KFTUKChXB7QhABki0ZdCilwPsA6KIhKO4HQXIwkjkO/PhAZC0V6AwvK0hOK4PEEQh6Z24BZbALP2vQHDYv68sf4hrHvux8M8HBvirP7ASRAD4JtCG3gFptgsgBvgi0JZHa2voA1p8/Nf+7c+GMB1AuNeWsK9n7N8fDTVvAMFkwBMJ9/uPAGtVtK/ueB2vCpUS/DuAqlor5gM5QhB+qYVkJErs3whV1NMCEOk/AVhe64EuP1qrCL4JjB0BUImAWQTAxVkXiINvAq8RHB+g0itWDF1PAMzCtJ9YR0EFoFcAPB7Lwm1b/CKwvU/HlrLCh0Na2YjC5AA0I5Y2Ek6vrCss/N8WYNYLnohFZWWNh50/CiDmBsiCs7YkS+8B0MGcPwt7YG8BZ6KAzU/iQ6BgOpD+twL4KzC/IvYAgfeAvQcw9TUIkCdasq6w9wIB3CYDABMAawKD7QpG3KaAw8FowPYFmw9wB7Zm2MFMpN+mAqqVO6ruvuI2mAtodXb+EdgKGH5O/8+FqDL2j1/fwdcomL5iiLOXj0ImQIvALBHYy0dgMB8IEPoPAbLidjLoXssTIqrnFxi/YjBOjT3ezgZPh+Ov8NvpwN0KiULu53Q0vPCO4PZfcmQ9FxcXFxcX/wAx4k/IXnAWbAAAAABJRU5ErkJggg==" alt="">Blastoisinite unused</div>
+    </div>
+    <div class="lane"><h3>Mega Blastoise</h3><div class="sub">Blastoise takes the one Mega</div>
+      <div class="sky" style="background:#e7e9e6;color:#5c6a6e">no weather</div>
+      <div class="row"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC" alt="">Charizard stays base form: no Drought</div>
+      <div class="row reveal"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACDMQD/vb3/e3PevSneQUG9ajEQEBD/7lIQUkFanDkQe2qD3nta1cUgtJz////Qs62tAAAAAXRSTlMAQObYZgAABKBJREFUeNrtlAFvozgYROOmZjJxgP//b+/7xgxJlULJ9lbSSnk92ADmPWxLd/onePPmzZsS7N/+pf3j4+O8yIqOfv8c/DoiTQQki8vPokP3zR8nrFGg1hAPn5+fOuJ3ref8+1XCX1lDXwd8PoK4pfKS+KX/46MOlyysx6UGEaiaoAqv+4s5KxAFrMelrCjwekFvinOVZ7gM5RLiPIZLLpE3P1Hg1e114FyT4SIGHQpUBRJV/mT5vYtVk7jcAaJg+fItShz1+2V/nYpu9EsEXwLHE6VWvWP7l9aQ19auDS9mORjobwB4tKmIUr/eAe5X8QiH/EHqT9L3mHWl9Pk5EKzbUfMPBwMV+WPxOID0O2Gc6IWKl/x1DUhTDFwwOOn/HMub+6BmAktIgUc/8sA3hVONQDkyBWiUApqDDShAwYBs4KQHjsfF8kY5HLC/+v0UDxiGAV4kB4J1zpH+GUCj5V/OyG4pQ6doCt4djXABp0PAW+BZKIBQyz88BCTXL+i9o9jfgaIFRfKhAFry1FYVPhLZfxEoy+frjBOXXQoUKK8FgFrvEZBEqg3Jqx/3ALQ+ryWIdOdxDdqyBblMvF5J9gI8yddgcM1ZOEAiVz8PfX+wBEocAPma/io8CxnJNA+D2rzPgIAGk0cjBJbxauSVgqroZu8XJHYvQw5+vscb3ZPZaWO3b/84D+J2Jb9o6PPd+9j7OoNbsFeIAddrDLm7vCo3h/gc8Djpc1W3/dJfH7DW/pvr8EPjxwmw6dcMgnyZ3/gTNAqN4EOmv3bbXiYJEgovkP039rfBsQPE0JDi5nYAMNjcAP2HaQzI5sqNXZAJdv00sQF5K4sp1m8v0K7/BqowatfsV8Lx0LM0NMByF8T3BYCLH9UFDWeX64w2TeEna81A4inoRMq/AQHqsQvaufzrkOmfwl/qPYCgeR5oJE57ABmqZ97XSH6dwi9aK6UHjAIkW+PpR9gaKr1C/n46oEIkmgKGAJrgAX9Dn4DsjtB+J1wwhj/7G8eERPd7gRxwIouvBjjJP6kAywkFbF4TWEpGwd0C8wX7uS4+G+RvYzdPBjrT396fcs+fcGyhbz0ABfpy5G2rnwvyu7Dvn5gmFTDliZq9AvGQfCrAAbEfYDhGjtIB8S/QHvyM5+0pkIV7lnt+BeZC+UTXLwGWMs8OaEtdWP1tP8BRgY+4WAJ3W/o/HgPtIeB7Iydu+x2Yz98EcuXm8zyPDtABF6jjx4AKI5/8KRzl3wqM/HkLYOv4FPCiPPubC20nQI+z2f4NyLYGRi6B/Qm0bsOhwKJfrJxcaG17Bp470Lb9TT7SehNjvUabgRXMLjzZ29xCP4980kdA+obTfoBZ4NSe9WmnPl5+N1MvkPU2z9wvjL0wN9d89soIgN0/2q/AnIGtgjUyAyR14WWX3cDj2+LPMzDPEN8HussQrakhLBc20MuftAicuOEW1AK6ELME1BDPdhfGNbDptn8NNAUSKGI8++eA2AvYNbuCrw+2VpbH/SICaMjz6Rik3E2nA+MB+HwMzi3Vc8sTT/87nLs6/2nzXygAaIAC3qS/AjDb/fcSp3+aN2/evHnzHxDriT4zBlC+AAAAAElFTkSuQmCC" alt=""><div style="flex:1">Venusaur Speed <b>×1</b><div class="bar" style="width:50%;background:var(--bad)"></div></div></div>
+      <div class="row"><img class="sp" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAABKSkr4+PjNzdUQEBCUlJQzIQ+LYkFaORgENGUZWbCMoulRgdHRPSjOqEvx0ZhP4zz5AAAAAXRSTlMAQObYZgAABFxJREFUeNrtmtFu4zoMBUvxyBK5qvr/f3tFSrZjxMnCjo2Lxe68pA/pTChbjgr06x9/CNS4VR8a9yUoMAHEge7yRxjWuc3vBGa6048Q7ygQEzotZYX7BuAQbyhQIHRi4NgL9wQo2AB3FHjxDzjS1buMiN0/uHyRDI7xvgIzxw385xXi7QV6KljgSv6HAk2DuwoAkmOJOy41QMjJyNMdl5oAZkxTboF8xzIBiMwAkhVweQEARS/YCFcWyArU/Va4dAT3U4OZKDpMSNeNQBQcNkaCLlyjrl8bXgAmD2Rc6Xe8QBbwAq71O0yEEfi8QBz2CtN0WSDsQTlPHvisICI+gDohBDHQC5b4MCC/ioqIajFURIsxAv2B+mHAxb/sxSqOKoJByfmoILN/1QswB/IofBoo5l/1S4ApjYIFTqLdrYve/Rw2I+QPCjD58IuoqkA84FCaC+cDWrT7VTioZVTAvC3kNJ0ORFG/wILvEEYJkcOARiDj9D771kZ7wTf7PbuO4FAPpOmcX8szqgriMENkgXMjyI7d/Ir0UGByTgQI/RZ97Ih4oFbaeYAf9QeYcLtMUsUDVnhOHPQHK2xQaWYx/27heEChYuiiHwGH+OQIZFigeVF/DGn4TxZA7YgfNcjofsa+r2P13CDy9xKxlkY274r7B6JKFINhv8QvArTOZ8+u9fxDHkCuGz9QHwNhxo/H2PMzEY8CgNXPUgz85H19TYKxNNmhuB+g1bospjhW0CVQc37UEwHM7PrkZPpdYJ6km8eu8kDNjfoI+fd/MH9Tu//F31TwADeoYRkpjlekBX5ynodYQDNrKRJo4GPkvJOAXwPTl6b3QpkLqir42TICY2tQDMu3pxfyTsGv6ZCLrAVRA+lnh8XPBGIzAHh1TkXDKtGWv8gIqKoXUNNzIgFiDQrLnRcD3n37k01pfgswqTNGaL5UN/rkn5p1CTBz5PcBDgRI2Q00alqwGoJxIGAFFEMl8DaA+vMMfILlGjQ/gJTfTQC4X4W3AXxhLwARne8i92fjXYBN9+T3QN0JaHEUC+afJtDLAMOkwhy3A0jBTiCqqg2MGKfcj79OjK8KcGJDZPHD/AV19xoEHf4e8AkQrfASxI4M0E8WuyPYpjG/DzBw//sC4gpmf0GqTw8MGNF48MvbgANg1XugF9JW7+QMeKEnAFXpgffA2R69UJdEXfSp1jqGQEMNscCZsx1qtT08k01vyDJxmQMkhwJqlKKoLZFnlpS0tlPKKJCqiBw8/WpRRarPSFkZAXVwcI36pngVUBmcCMyji3piLyCi8wQiigN+A6qbyYG0CWiRxyXqAZj/ZEFhLPeS6MZvAZj+REBF1s8GJ6UkKroGljecK6gATzvSs67vHPcTRBfwnJ/7ZwPkT00dt+DOU+DDAIUGQwJHUUH8bQGn/OgvznOgr6E0+oxHGE64/uWHYFERbohuZjwWejckj4M8jxkvBR22TsTXbQAhuP/OBP79C8dfyH9CNGdgEnhrDgAAAABJRU5ErkJggg==" alt="">Mega Blastoise (Mega Launcher)</div>
+    </div>
+  </div>
+  <p class="verdict" id="cVerdict" style="display:none">Venusaur's slowdown needs <b>both</b> others: Charizard so there's sun to lose, Blastoise so the Mega goes elsewhere. No pair contains it, so it's a third-order term. Which one Mega Evolves is chosen in battle, so the battle policy decides whether the term shows up.</p>
+</section>
+
+<div class="state" id="state"></div>
+</main>
+
+<div class="proto-bar" role="navigation" aria-label="Prototype variant switcher">
+  <button id="prev" aria-label="Previous variant">←</button><span id="vlabel"></span><button id="next" aria-label="Next variant">→</button>
+</div>
+
+<script>
+const D={'venusaur.png':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACDMQD/vb3/e3PevSneQUG9ajEQEBD/7lIQUkFanDkQe2qD3nta1cUgtJz////Qs62tAAAAAXRSTlMAQObYZgAABKBJREFUeNrtlAFvozgYROOmZjJxgP//b+/7xgxJlULJ9lbSSnk92ADmPWxLd/onePPmzZsS7N/+pf3j4+O8yIqOfv8c/DoiTQQki8vPokP3zR8nrFGg1hAPn5+fOuJ3ref8+1XCX1lDXwd8PoK4pfKS+KX/46MOlyysx6UGEaiaoAqv+4s5KxAFrMelrCjwekFvinOVZ7gM5RLiPIZLLpE3P1Hg1e114FyT4SIGHQpUBRJV/mT5vYtVk7jcAaJg+fItShz1+2V/nYpu9EsEXwLHE6VWvWP7l9aQ19auDS9mORjobwB4tKmIUr/eAe5X8QiH/EHqT9L3mHWl9Pk5EKzbUfMPBwMV+WPxOID0O2Gc6IWKl/x1DUhTDFwwOOn/HMub+6BmAktIgUc/8sA3hVONQDkyBWiUApqDDShAwYBs4KQHjsfF8kY5HLC/+v0UDxiGAV4kB4J1zpH+GUCj5V/OyG4pQ6doCt4djXABp0PAW+BZKIBQyz88BCTXL+i9o9jfgaIFRfKhAFry1FYVPhLZfxEoy+frjBOXXQoUKK8FgFrvEZBEqg3Jqx/3ALQ+ryWIdOdxDdqyBblMvF5J9gI8yddgcM1ZOEAiVz8PfX+wBEocAPma/io8CxnJNA+D2rzPgIAGk0cjBJbxauSVgqroZu8XJHYvQw5+vscb3ZPZaWO3b/84D+J2Jb9o6PPd+9j7OoNbsFeIAddrDLm7vCo3h/gc8Djpc1W3/dJfH7DW/pvr8EPjxwmw6dcMgnyZ3/gTNAqN4EOmv3bbXiYJEgovkP039rfBsQPE0JDi5nYAMNjcAP2HaQzI5sqNXZAJdv00sQF5K4sp1m8v0K7/BqowatfsV8Lx0LM0NMByF8T3BYCLH9UFDWeX64w2TeEna81A4inoRMq/AQHqsQvaufzrkOmfwl/qPYCgeR5oJE57ABmqZ97XSH6dwi9aK6UHjAIkW+PpR9gaKr1C/n46oEIkmgKGAJrgAX9Dn4DsjtB+J1wwhj/7G8eERPd7gRxwIouvBjjJP6kAywkFbF4TWEpGwd0C8wX7uS4+G+RvYzdPBjrT396fcs+fcGyhbz0ABfpy5G2rnwvyu7Dvn5gmFTDliZq9AvGQfCrAAbEfYDhGjtIB8S/QHvyM5+0pkIV7lnt+BeZC+UTXLwGWMs8OaEtdWP1tP8BRgY+4WAJ3W/o/HgPtIeB7Iydu+x2Yz98EcuXm8zyPDtABF6jjx4AKI5/8KRzl3wqM/HkLYOv4FPCiPPubC20nQI+z2f4NyLYGRi6B/Qm0bsOhwKJfrJxcaG17Bp470Lb9TT7SehNjvUabgRXMLjzZ29xCP4980kdA+obTfoBZ4NSe9WmnPl5+N1MvkPU2z9wvjL0wN9d89soIgN0/2q/AnIGtgjUyAyR14WWX3cDj2+LPMzDPEN8HussQrakhLBc20MuftAicuOEW1AK6ELME1BDPdhfGNbDptn8NNAUSKGI8++eA2AvYNbuCrw+2VpbH/SICaMjz6Rik3E2nA+MB+HwMzi3Vc8sTT/87nLs6/2nzXygAaIAC3qS/AjDb/fcSp3+aN2/evHnzHxDriT4zBlC+AAAAAElFTkSuQmCC','charizardmegay.png':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAAIQVIQEBAgc5SDMRjNUkHNzc3mQRDugynutFru3nv2pBD4+Pj/1RC9o1vCAAAAAXRSTlMAQObYZgAABO9JREFUeNrs2Nl66jAQA2AjJBin9P1f92TscZwF05bl7qj7Ev0RfKFL+p//eRTyw/WGz9a/3k8+qhdevaFoGH6l9ycY39zP1v+aQDsAjC9EfweeEahjP5fTX/pDEN8wgN5C6/0vTaDdBaKfJLaA8WWAEun15GEd3wPQ5lRkNw5vAChr0aY/APGv/VuANuoPwJ4Hjv3vB7iUl1fCAfijQO0BZjORwQgvAzITVv2l/jYG/iZQJewfU+L5dpMZKQ/uACL/0t9b6BhxLv058w4Q9434l/5oiVO2EuY5vANIlIf8dX+00NZB3goH4OcRjK0bIBQwj4EQzPiAiL49IDMCrT4z7wB2oBzOny6A1t8n4MYcIXPeCQSbYCXkwwEBIEpghlz6ETN2AGHgBjDxUb/FgFMTkGt9SsiRFUDBAKjEWjjuDwCnAJzwJA8WgGuApxO2gHHcbzEghE36BEM7SjTDWDj2G6P/fAQSdwDNTicazlWgDQV2XA04jydMC6C5egaOAn8c4ACHAMna7wDPTeiAeL/fer8LGAEGkRLgN5EhhNEEaj8A5xDYCJILME3ZoDl+9jTFhK3AhwPAEMxA9kftBkxGoN4+ZjLDUeBogPefoPMimJFUCduAyeYggJgQQisTOnDojztuMVQCKPrzlEPYTThRHAPR7zmzC3EoIAVQbqMQYoJCwCIIh35Z7XcAthHiTFXbPbkJbEeW78JyI4kHwMQFOCsAkkWgeaYeCwFxvj4B6euKmCBhARTnXwagAjDzalqdAtsDeQ1QSEAA4gagVFea9yM2ADIaaUNgEoqQEEBKc//3NSZI4vY389qfUNqREgq6BfIaMKIACaYKpABUAWEzQKq9rni6oLlfhwFTZgqBK+DreqUL4gKgDUDq/SEwJtTvwbQJ218SWAExQdQGoMWHaP3whEDKi6jp3gRDADFhC1BiDIjeWk55YJlmwUB5OkxAXOZswCygfMwG1CtoAVKK8o0g79d0BBKw/lX2Oufrmw5gBYhmTBEo0oS4p6F8D2gEa7/nGw54demH0QFEP7UJYTlLRZjuA3UzEf0LgAL4S6JMAfRfAT05EzIn7gp5ES68LMCXA60c+z+lWev7b+sG9bt5OOGCCnh9vZeX8gDagCxbQjpg8Jh4R2CKoLR9eb1fCXSgJwYcABPZTj8uawyAyLfHr4QDgAWYbB1J8YgHhPAI+Arhd0CEVjMBthe4F+4vkDF1IN/v94sAMt3wCPC7mNcA9gMC2Aq0iPfhpttGoLE/vFSB5DWNgcQphGO/A7gBG8AICAlQVShc0xCICZ2QrEYVgD/3ZJqJEiGJABXFENMa2HwUx24HGKdjsgNGlXD9oAphDOTt8RHd668XDbQESHcBpN2EiKyHeVc/A3EZsrUvPWAaAwmtirYBcidyFdj/A0CsS4AREMKcPYC8ylSeclsI7BvSJkLaBqWNGgK1nwuQHodI+wBxfI4OIR8i/VZAOgYogI0BlQTwTCjZYgz6Pc8CpOYMB1Cr4LnzL8+l/tgP8TUACsBz6AcUeQlogWfdjvgy+Wx/AFw9vmDJ2ic86YlwOfcfFiI9FfTDPwswfUiAfjmBFF4C+OA7SPFy4QVPAawFY6CU43Lx5ycAXsjbhZfbWJibaz2eAeZm3m7z81hIiKQngtsFjgABvDu4IdVyIH0kXrsr/59/GxgwCgCFfWTIRzWnQwAAAABJRU5ErkJggg==','blastoisemega.png':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAABKSkr4+PjNzdUQEBCUlJQzIQ+LYkFaORgENGUZWbCMoulRgdHRPSjOqEvx0ZhP4zz5AAAAAXRSTlMAQObYZgAABFxJREFUeNrtmtFu4zoMBUvxyBK5qvr/f3tFSrZjxMnCjo2Lxe68pA/pTChbjgr06x9/CNS4VR8a9yUoMAHEge7yRxjWuc3vBGa6048Q7ygQEzotZYX7BuAQbyhQIHRi4NgL9wQo2AB3FHjxDzjS1buMiN0/uHyRDI7xvgIzxw385xXi7QV6KljgSv6HAk2DuwoAkmOJOy41QMjJyNMdl5oAZkxTboF8xzIBiMwAkhVweQEARS/YCFcWyArU/Va4dAT3U4OZKDpMSNeNQBQcNkaCLlyjrl8bXgAmD2Rc6Xe8QBbwAq71O0yEEfi8QBz2CtN0WSDsQTlPHvisICI+gDohBDHQC5b4MCC/ioqIajFURIsxAv2B+mHAxb/sxSqOKoJByfmoILN/1QswB/IofBoo5l/1S4ApjYIFTqLdrYve/Rw2I+QPCjD58IuoqkA84FCaC+cDWrT7VTioZVTAvC3kNJ0ORFG/wILvEEYJkcOARiDj9D771kZ7wTf7PbuO4FAPpOmcX8szqgriMENkgXMjyI7d/Ir0UGByTgQI/RZ97Ih4oFbaeYAf9QeYcLtMUsUDVnhOHPQHK2xQaWYx/27heEChYuiiHwGH+OQIZFigeVF/DGn4TxZA7YgfNcjofsa+r2P13CDy9xKxlkY274r7B6JKFINhv8QvArTOZ8+u9fxDHkCuGz9QHwNhxo/H2PMzEY8CgNXPUgz85H19TYKxNNmhuB+g1bospjhW0CVQc37UEwHM7PrkZPpdYJ6km8eu8kDNjfoI+fd/MH9Tu//F31TwADeoYRkpjlekBX5ynodYQDNrKRJo4GPkvJOAXwPTl6b3QpkLqir42TICY2tQDMu3pxfyTsGv6ZCLrAVRA+lnh8XPBGIzAHh1TkXDKtGWv8gIqKoXUNNzIgFiDQrLnRcD3n37k01pfgswqTNGaL5UN/rkn5p1CTBz5PcBDgRI2Q00alqwGoJxIGAFFEMl8DaA+vMMfILlGjQ/gJTfTQC4X4W3AXxhLwARne8i92fjXYBN9+T3QN0JaHEUC+afJtDLAMOkwhy3A0jBTiCqqg2MGKfcj79OjK8KcGJDZPHD/AV19xoEHf4e8AkQrfASxI4M0E8WuyPYpjG/DzBw//sC4gpmf0GqTw8MGNF48MvbgANg1XugF9JW7+QMeKEnAFXpgffA2R69UJdEXfSp1jqGQEMNscCZsx1qtT08k01vyDJxmQMkhwJqlKKoLZFnlpS0tlPKKJCqiBw8/WpRRarPSFkZAXVwcI36pngVUBmcCMyji3piLyCi8wQiigN+A6qbyYG0CWiRxyXqAZj/ZEFhLPeS6MZvAZj+REBF1s8GJ6UkKroGljecK6gATzvSs67vHPcTRBfwnJ/7ZwPkT00dt+DOU+DDAIUGQwJHUUH8bQGn/OgvznOgr6E0+oxHGE64/uWHYFERbohuZjwWejckj4M8jxkvBR22TsTXbQAhuP/OBP79C8dfyH9CNGdgEnhrDgAAAABJRU5ErkJggg==','charizard.png':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC','blastoise.png':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABai82UrObNzdX21ZzmxXPVrEqUlJSLYkFKSkpaORgQEBAIOWIgYqz////4N0ukAAAAAXRSTlMAQObYZgAAA35JREFUeNrtmMuO6zgMBaMwbZk6h/n/zx1SdHTH6QvEUDybgWshwJuqkELcj9vFxcXFxcX/HfK2x+w8uaqylEhYp/fud57mFxGWKFjpmNHKveAkP8SBFW8M6P5zA2JW/mBx6EkF1Cq5oz2KgrbxZcAR2nsAKHg+pbV1XbOBoM0FKsrG/e4HrQcMz0h4IRrwY1mWqcJvf4JnkIX0zxU0AjZuFyJbwbKQE3T/OlVQeIFhjMMWGQWibjMg94OJLQVK0hyaEasvviQE0Att82O2QIEFpESgjEAWpGENf6CqxwuqitCT0szKL9ADjvqWWrhRxZ9Uj+mBpxhJQ3mHeclOjYBo91fIMzmSgIqAZul/g+Z+hn8YoTWfks8FiNTu/0uAj4eZDX8gitcAolA5UgAzYLBSMN7WJB+OEX3jg651BMHnAAQkYQ4Amm365ZEg/LUqHd0KIhKfP9CPBYhEIKYALWHqgwXQWisZYbNegATp1wMjZCAA4bAt6Q8AhH97Rd1tjCAa/o+BABgBLC9+Xv5Fhz+wMUKFDv/RAkYhEj8/S/or0z8KFTUKChXB7QhABki0ZdCilwPsA6KIhKO4HQXIwkjkO/PhAZC0V6AwvK0hOK4PEEQh6Z24BZbALP2vQHDYv68sf4hrHvux8M8HBvirP7ASRAD4JtCG3gFptgsgBvgi0JZHa2voA1p8/Nf+7c+GMB1AuNeWsK9n7N8fDTVvAMFkwBMJ9/uPAGtVtK/ueB2vCpUS/DuAqlor5gM5QhB+qYVkJErs3whV1NMCEOk/AVhe64EuP1qrCL4JjB0BUImAWQTAxVkXiINvAq8RHB+g0itWDF1PAMzCtJ9YR0EFoFcAPB7Lwm1b/CKwvU/HlrLCh0Na2YjC5AA0I5Y2Ek6vrCss/N8WYNYLnohFZWWNh50/CiDmBsiCs7YkS+8B0MGcPwt7YG8BZ6KAzU/iQ6BgOpD+twL4KzC/IvYAgfeAvQcw9TUIkCdasq6w9wIB3CYDABMAawKD7QpG3KaAw8FowPYFmw9wB7Zm2MFMpN+mAqqVO6ruvuI2mAtodXb+EdgKGH5O/8+FqDL2j1/fwdcomL5iiLOXj0ImQIvALBHYy0dgMB8IEPoPAbLidjLoXssTIqrnFxi/YjBOjT3ezgZPh+Ov8NvpwN0KiULu53Q0vPCO4PZfcmQ9FxcXFxcX/wAx4k/IXnAWbAAAAABJRU5ErkJggg=='};
+const S='';
+const IMG={C:'charizard.png',CM:'charizardmegay.png',V:'venusaur.png',B:'blastoise.png',BM:'blastoisemega.png'};
+const $=id=>document.getElementById(id);
+const VS=['A','B','C'];
+let st={variant:new URLSearchParams(location.search).get('variant')||'A',mega:'C',guess:null};
+if(!VS.includes(st.variant))st.variant='A';
+
+function render(){
+  document.querySelectorAll('.variant').forEach(s=>s.classList.toggle('on',s.dataset.v===st.variant));
+  const cur=document.querySelector(`.variant[data-v="${st.variant}"]`);
+  $('vlabel').textContent=`${st.variant} — ${cur.dataset.name}`;
+  document.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===st.mega));
+  const c=st.mega==='C';
+  // A — terms box is redundant here: the chain defines each term in place
+  $('terms').style.display=st.variant==='A'?'none':'grid';
+  $('ch1img').src=D[(c?IMG.CM:IMG.BM)];
+  $('ch1').textContent=c?'Charizard takes it and becomes Mega Charizard Y. Blastoise keeps its stone unused.':'Blastoise takes it and becomes Mega Blastoise. Charizard stays in base form.';
+  $('ch2').textContent=c?'Triggers.':'Never triggers: base Charizard does not have Drought.';
+  $('ch3').textContent=c?'Up.':'Never starts.';
+  $('ch4').textContent=c?'Active.':'Nothing to react to.';
+  $('ch5').innerHTML=c?'<b>×2</b>':'<b>×1</b>, the loss';
+  $('ch5bar').style.width=c?'100%':'50%';$('ch5bar').style.background=c?'var(--good)':'var(--bad)';
+  document.querySelectorAll('#chain li').forEach((li,i)=>{li.classList.toggle('break',!c&&(i===0||i===4));li.classList.toggle('off',!c&&i>0&&i<4)});
+  $('aVerdict').innerHTML=c?'Every link holds. Pick Mega Blastoise to see where the chain breaks.':'The chain breaks at link 1, and Venusaur pays at link 5. That loss needs <b>both</b> Charizard (the sun it would have had) and Blastoise (which took the Mega). No pair alone produces it: a third-order term.';
+  // B
+  document.querySelectorAll('td.team').forEach(td=>{
+    const t=td.dataset.t;
+    td.innerHTML=['C','V','B'].map(k=>{
+      let f=IMG[k];if(t==='CVB'){if(k==='C'&&c)f=IMG.CM;if(k==='B'&&!c)f=IMG.BM}else if(k==='C'&&t.includes('C')&&t!=='CB')f=IMG.CM;
+      return `<img class="sp${t.includes(k)?'':' out'}" src="${D[f]}" alt="">`}).join('');
+  });
+  $('bTrio').innerHTML=c
+    ?'<span class="chip c-good">+ Venusaur fast</span><span class="chip c-bad">− Blastoisinite wasted</span>'
+    :'<span class="chip c-third">− Venusaur slow (no sun)</span><span class="chip c-bad">− Charizardite Y wasted</span>';
+  $('bVerdict').innerHTML=c
+    ?'Trio = sum of pairs. No third-order term when Charizard takes the Mega.'
+    :'Trio ≠ sum of pairs. The pairs predict "Venusaur fast", the trio gives <b>Venusaur slow</b>. That gap is the third-order term.';
+  // C
+  document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.g===st.guess));
+  $('cLanes').classList.toggle('hidden',!st.guess);
+  $('cVerdict').style.display=st.guess?'block':'none';
+  $('cFb').textContent=!st.guess?'':st.guess==='no'?'Right: no sun, so no Chlorophyll boost.':'Not quite: without Mega Charizard there is no Drought, so no sun.';
+  $('state').textContent=`state → variant=${st.variant} · mega=${c?'Charizard':'Blastoise'} · sun=${c} · venusaurSpeed=${c?'×2':'×1'} · thirdOrderTermVisible=${!c} · guess=${st.guess??'—'}`;
+}
+function go(d){const i=(VS.indexOf(st.variant)+d+VS.length)%VS.length;st.variant=VS[i];const u=new URL(location);u.searchParams.set('variant',st.variant);history.replaceState(null,'',u);render()}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.m){st.mega=b.dataset.m;render()}
+  if(b.dataset.g){st.guess=b.dataset.g;render()}});
+$('prev').onclick=()=>go(-1);$('next').onclick=()=>go(1);
+document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,[contenteditable]'))return;if(e.key==='ArrowLeft')go(-1);if(e.key==='ArrowRight')go(1)});
+render();
+</script>
+</body>
+</html>

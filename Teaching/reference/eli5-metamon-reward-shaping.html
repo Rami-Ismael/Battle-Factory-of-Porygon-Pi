@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELI5 — Metamon's reward shaping</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .panel { margin: 3rem 0; }
+  .panel h2 { margin-top: 0; }
+  .bigword { font-size: 1.3rem; max-width: 40rem; }
+  svg { max-width: 100%; height: auto; display: block; margin: 1rem 0; }
+  svg text { font-family: var(--serif); fill: var(--ink); }
+  svg .n { font-family: var(--mono); }
+  svg .soft { fill: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<h1>The points system that teaches the Pokémon model</h1>
+<p class="subtitle">ELI5 — Metamon's reward shaping (App. E.1), in four pictures.</p>
+<p class="meta">companion to <a href="../lessons/0003-metamon-offline-rl-from-human-replays.html">Lesson 0003</a> · <a href="metamon-cheat-sheet.html">cheat sheet</a></p>
+
+<div class="panel">
+<h2>1 · The model learns from points</h2>
+<p class="bigword">Every turn, the game hands the model some points. The model's whole job is: <b>collect as many points as possible.</b> Whatever earns points, it learns to do.</p>
+</div>
+
+<div class="panel">
+<h2>2 · One prize, three breadcrumbs</h2>
+<p class="bigword">Winning is worth <b>100</b>. Everything else is tiny — drawn to scale:</p>
+<svg viewBox="0 0 900 360" role="img" aria-label="Bar sizes drawn to scale: win 100 points dwarfs faint 1, health under 1, status half">
+  <rect x="30"  y="20" width="300" height="300" fill="var(--cover)" rx="10"/>
+  <text x="180" y="150" text-anchor="middle" font-size="34" fill="#fff">WIN</text>
+  <text x="180" y="195" text-anchor="middle" font-size="28" fill="#fff" class="n">+100</text>
+
+  <rect x="380" y="290" width="30" height="30" fill="var(--setc)" rx="4"/>
+  <text x="395" y="270" text-anchor="middle" font-size="15">knock one out</text>
+  <text x="395" y="345" text-anchor="middle" font-size="14" class="n">±1</text>
+
+  <rect x="520" y="300" width="20" height="20" fill="var(--accent)" rx="3"/>
+  <text x="530" y="270" text-anchor="middle" font-size="15">damage / heal</text>
+  <text x="530" y="345" text-anchor="middle" font-size="14" class="n">&lt;±1</text>
+
+  <rect x="650" y="305" width="15" height="15" fill="var(--warn)" rx="3"/>
+  <text x="657" y="270" text-anchor="middle" font-size="15">poison / burn them</text>
+  <text x="657" y="345" text-anchor="middle" font-size="14" class="n">±½</text>
+
+  <text x="750" y="315" font-size="15" class="soft">lose = −100</text>
+</svg>
+<p class="note">The recipe: points = health change + ½·status change + faints + 100·win. "Change" is always <em>yours minus theirs</em> — hurting them and healing yourself both pay.</p>
+</div>
+
+<div class="panel">
+<h2>3 · Why the breadcrumbs exist</h2>
+<p class="bigword">A battle is ~100 turns. With only the prize, turn 37 gets no feedback — was that move good? Silence until the end. The breadcrumbs give <b>every single turn</b> a little signal, so the model (and its critic, which filters which human moves to copy) can tell good turns from bad ones <em>during</em> the battle.</p>
+<svg viewBox="0 0 900 150" role="img" aria-label="Timeline of 100 turns: without breadcrumbs only the last turn has a signal; with breadcrumbs every turn has a small one">
+  <text x="30" y="30" font-size="16">prize only:</text>
+  <line x1="150" y1="25" x2="820" y2="25" stroke="var(--rule)" stroke-width="2"/>
+  <circle cx="820" cy="25" r="12" fill="var(--cover)"/>
+  <text x="845" y="31" font-size="14" class="n">+100</text>
+
+  <text x="30" y="100" font-size="16">with breadcrumbs:</text>
+  <g fill="var(--accent)">
+    <circle cx="200" cy="95" r="4"/><circle cx="260" cy="95" r="4"/><circle cx="320" cy="95" r="4"/>
+    <circle cx="380" cy="95" r="4"/><circle cx="440" cy="95" r="4"/><circle cx="500" cy="95" r="4"/>
+    <circle cx="560" cy="95" r="4"/><circle cx="620" cy="95" r="4"/><circle cx="680" cy="95" r="4"/>
+    <circle cx="740" cy="95" r="4"/>
+  </g>
+  <circle cx="820" cy="95" r="12" fill="var(--cover)"/>
+  <text x="845" y="101" font-size="14" class="n">+100</text>
+</svg>
+</div>
+
+<div class="panel">
+<h2>4 · The trick the model found</h2>
+<p class="bigword">Breadcrumbs can be farmed. In a battle that is <b>already lost</b>, the healing breadcrumb still pays. So the model uses recovery moves over and over — not to win, just to keep collecting crumbs and delay the −100.</p>
+<svg viewBox="0 0 900 170" role="img" aria-label="A losing agent repeatedly uses Recover, collecting small rewards while delaying the big loss">
+  <text x="40" y="45" font-size="46">😵</text>
+  <text x="110" y="40" font-size="16">battle lost, really</text>
+  <g font-size="15" class="n">
+    <text x="110" y="80" fill="var(--accent)">Recover… +0.3</text>
+    <text x="110" y="105" fill="var(--accent)">Recover… +0.3</text>
+    <text x="110" y="130" fill="var(--accent)">Recover… +0.3</text>
+  </g>
+  <text x="420" y="105" font-size="16" class="soft">… 40 turns later …</text>
+  <rect x="640" y="60" width="220" height="60" fill="var(--bad-bg)" rx="10"/>
+  <text x="750" y="97" text-anchor="middle" font-size="22" class="n">−100 anyway</text>
+</svg>
+<p class="bigword">The paper's own words: agents "cling to life in clearly lost positions by using recovery moves" — and they never forfeit. The lesson: <b>whatever you pay points for, you get — including things you did not mean to ask for.</b></p>
+</div>
+
+<div class="ask"><b>Ask me.</b> Why 100 and not 10? Why does the discount γ mostly cancel the farming? What would this failure look like in your objective function f? Ask in chat.</div>
+
+<nav class="lesson-nav"><a href="../lessons/0003-metamon-offline-rl-from-human-replays.html">← Lesson 0003</a> <a href="metamon-cheat-sheet.html">Metamon cheat sheet</a></nav>
+</body>
+</html>

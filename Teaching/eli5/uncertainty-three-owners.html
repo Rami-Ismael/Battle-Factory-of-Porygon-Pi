@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three Uncertainties</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0EA;--ink:#17201B;--muted:#5E6B63;--slot:#DCE2D8;--rule:#C9D1C5;--card:#F6F8F4;
+  --gen:#9A5B13;--gen-bg:#F3E6D2;--pred:#2E5E8C;--pred-bg:#DCE7F2;--sim:#C8372D;--sim-bg:#F6DEDA;--focus:#2E5E8C;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--mono:"Martian Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;
+  --gen:#E2A857;--gen-bg:#3A2A14;--pred:#7FA8D6;--pred-bg:#1A2A3B;--sim:#F0705F;--sim-bg:#3D1C18;--focus:#7FA8D6}}
+:root[data-theme="dark"]{--paper:#111613;--ink:#E4EAE5;--muted:#8C9A91;--slot:#1D2520;--rule:#2A332D;--card:#161C18;--gen:#E2A857;--gen-bg:#3A2A14;--pred:#7FA8D6;--pred-bg:#1A2A3B;--sim:#F0705F;--sim-bg:#3D1C18;--focus:#7FA8D6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+main{max-width:1100px;margin:0 auto;padding:44px 16px 64px}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,50px);line-height:1.03;letter-spacing:-.02em;margin:0 0 12px}
+h1 .g{color:var(--gen)}h1 .p{color:var(--pred)}h1 .s{color:var(--sim)}
+.dek{max-width:68ch;color:var(--muted);margin:0 0 26px}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;position:relative}
+.st{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px;border-top:5px solid var(--c)}
+.st.g{--c:var(--gen);--cb:var(--gen-bg)}.st.p{--c:var(--pred);--cb:var(--pred-bg)}.st.s{--c:var(--sim);--cb:var(--sim-bg)}
+.own{font-family:var(--mono);font-size:11.5px;color:var(--c);margin:0}
+.st h2{font-family:var(--display);font-weight:500;font-size:22px;line-height:1.15;margin:0}
+.st .what{margin:0;font-size:14.5px;color:var(--muted)}
+.st svg{width:100%;height:auto;display:block;background:var(--paper);border-radius:10px}
+.ctl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13.5px}
+.ctl input{accent-color:var(--c);min-width:0}
+.ctl output{font-family:var(--mono);font-size:13px;min-width:4.5ch;text-align:right}
+.read{font-family:var(--mono);font-size:13px;background:var(--cb);border-radius:8px;padding:6px 9px;margin:0}
+.take{margin:0;font-size:14.5px;border-top:1px dashed var(--rule);padding-top:8px}
+.take b{font-weight:700}
+.arrow{position:absolute;top:44px;width:14px;text-align:center;color:var(--muted);font-size:18px}
+.duties{margin:26px 0 0;border-top:1.5px solid var(--ink);padding-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.duties div{font-size:15px}
+.duties b{display:block;font-family:var(--display);font-weight:500;font-size:17px;margin-bottom:2px}
+.trap{margin:22px 0 0;background:var(--card);border:1.5px dashed var(--ink);border-radius:12px;padding:14px 16px;max-width:78ch}
+.trap b{font-family:var(--display);font-weight:500;font-size:17px;display:block;margin-bottom:4px}
+.foot{border-top:1px solid var(--rule);margin-top:26px;padding-top:12px;font-size:13px;color:var(--muted);max-width:80ch}
+.foot p{margin:0 0 8px}
+.axis{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (max-width:820px){.flow,.duties{grid-template-columns:minmax(0,1fr)}.arrow{display:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Uncertainty in a Bayesian team-generation loop</p>
+<h1>Three uncertainties, three owners: <span class="g">spread</span>, <span class="p">not knowing</span>, <span class="s">dice</span></h1>
+<p class="dek">A Bayesian approach to team generation has three moving parts, and each one carries a different kind of uncertainty. Move the sliders to see what shrinks each one, and what doesn't.</p>
+
+<div class="flow">
+ <section class="st g" aria-labelledby="h1g">
+  <p class="own">Diffusion model · proposes teams</p>
+  <h2 id="h1g">Sampling diversity</h2>
+  <p class="what">How spread out the proposed teams are. A setting you choose, not something the model is unsure about.</p>
+  <svg id="sv1" viewBox="0 0 300 200" role="img" aria-label="Proposed teams spreading out as temperature rises"></svg>
+  <label class="ctl">Temperature<input type="range" id="temp" min="0.2" max="1.6" step="0.05" value="0.7"><output id="tempO">0.70</output></label>
+  <p class="read" id="r1"></p>
+  <p class="take"><b>Nothing shrinks it.</b> More data or battles leave it unchanged; you set it with temperature, top-p and guidance.</p>
+ </section>
+ <section class="st p" aria-labelledby="h1p">
+  <p class="own">Win-rate predictor · judges teams</p>
+  <h2 id="h1p">Model uncertainty</h2>
+  <p class="what">How unsure the predictor is about a team's true win rate. Wide where it has seen no battled teams.</p>
+  <svg id="sv2" viewBox="0 0 300 200" role="img" aria-label="Predictor band narrowing near labelled teams"></svg>
+  <label class="ctl">Teams battled<input type="range" id="nlab" min="1" max="24" step="1" value="5"><output id="nlabO">5</output></label>
+  <p class="read" id="r2"></p>
+  <p class="take"><b>Shrinks with more labelled teams</b>, most where teams unlike the ones seen so far get battled.</p>
+ </section>
+ <section class="st s" aria-labelledby="h1s">
+  <p class="own">Simulator + battle policy · scores teams</p>
+  <h2 id="h1s">Outcome noise</h2>
+  <p class="what">One battle is a random win or loss, even with team, opponent and policy all fixed.</p>
+  <svg id="sv3" viewBox="0 0 300 200" role="img" aria-label="Win and loss squares and the estimate interval narrowing with more battles"></svg>
+  <label class="ctl">Battles<input type="range" id="nb" min="1" max="500" step="1" value="192"><output id="nbO">192</output></label>
+  <p class="read" id="r3"></p>
+  <p class="take"><b>Never goes away per battle.</b> The win-rate estimate tightens only as 1 / √battles.</p>
+ </section>
+ <span class="arrow" style="left:calc(33.33% - 7px)" aria-hidden="true">→</span>
+ <span class="arrow" style="left:calc(66.66% - 7px)" aria-hidden="true">→</span>
+</div>
+
+<div class="duties">
+ <div><b>The diffusion model proposes</b>Its diversity is a design choice. Its own epistemic uncertainty is used only as a filter, to reject teams far from its training data before any battle.</div>
+ <div><b>The predictor's posterior picks</b>Which proposed teams get battled, chosen by value: expected improvement, or a sample from the posterior.</div>
+ <div><b>The noise sets the budget</b>How many battles each chosen team needs. Stop once its interval sits clearly below the best team's.</div>
+</div>
+
+<div class="trap"><b>The trap</b>A masked diffusion model that hesitates between two Pokémon for a slot is showing <em>spread</em>, not being wrong. Running its denoiser K times measures how many completions fit its distribution (Doyle, 2025). That is no reason to battle either team; only the predictor's posterior is.</div>
+
+<div class="foot">
+<p>Illustration, not data. Teams are drawn as points in two dimensions (left) or one (middle); the middle panel is a Gaussian-process posterior over made-up battle results; the right panel simulates battles at a true win rate of 0.55. The ±0.036 standard error at 192 battles matches the binomial formula at a 0.5 win rate.</p>
+<p>Sources: Hüllermeier &amp; Waegeman (Machine Learning 2021) for the epistemic/aleatoric split; Doyle, "Your Absorbing Discrete Diffusion Secretly Models the Bayesian Posterior" (arXiv 2025) for the trap; Friedman &amp; Dieng, the Vendi Score (TMLR 2023) for measuring diversity.</p>
+</div>
+</main>
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function normal(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+
+/* 1: sampling diversity */
+const sv1=document.getElementById("sv1"),R1=rng(7),Z=[...Array(70)].map(()=>[normal(R1),normal(R1)]);
+el("rect",{x:0,y:0,width:300,height:200,fill:"none"},sv1);
+el("text",{x:10,y:190,class:"axis"},sv1).textContent="space of legal teams (sketch)";
+const dots=Z.map(()=>el("circle",{r:3.6,fill:"var(--gen)","fill-opacity":.75},sv1));
+function vendiLike(T){ // effective number of distinct teams, illustrative: grows with spread, capped
+ return Math.min(70,1+69*(1-Math.exp(-T*T*1.4)))}
+function draw1(){const T=+temp.value;tempO.value=T.toFixed(2);
+ dots.forEach((d,i)=>{d.setAttribute("cx",(150+Z[i][0]*T*42).toFixed(1));d.setAttribute("cy",(95+Z[i][1]*T*30).toFixed(1))});
+ r1.textContent=`spread ×${T.toFixed(2)}: same model, same data, only the setting changed`}
+temp.addEventListener("input",draw1);
+
+/* 2: model uncertainty, a Gaussian-process posterior */
+const sv2=document.getElementById("sv2"),R2=rng(3);
+const f=x=>.5+.18*Math.sin(6*x)+.08*Math.cos(13*x);
+const XS=[.08,.15,.2,.27,.9,.33,.38,.12,.24,.45,.5,.95,.3,.18,.42,.55,.6,.66,.72,.78,.84,.35,.62,.05];
+const YS=XS.map(x=>f(x)+normal(R2)*.07);
+const ell=.09,sf2=.03,sn2=.07*.07,m0=.5,G=[...Array(81)].map((_,i)=>i/80);
+const k=(a,b)=>sf2*Math.exp(-((a-b)**2)/(2*ell*ell));
+function solve(A,b){const n=b.length,M=A.map((r,i)=>[...r,b[i]]);for(let i=0;i<n;i++){let p=i;for(let j=i+1;j<n;j++)if(Math.abs(M[j][i])>Math.abs(M[p][i]))p=j;[M[i],M[p]]=[M[p],M[i]];
+ for(let j=i+1;j<n;j++){const c=M[j][i]/M[i][i];for(let q=i;q<=n;q++)M[j][q]-=c*M[i][q]}}const x=Array(n).fill(0);for(let i=n-1;i>=0;i--){let s=M[i][n];for(let q=i+1;q<n;q++)s-=M[i][q]*x[q];x[i]=s/M[i][i]}return x}
+const px=x=>20+x*270,py=y=>180-(y-.1)/0.8*165;
+const band=el("path",{fill:"var(--pred)","fill-opacity":.18},sv2),mean=el("path",{fill:"none",stroke:"var(--pred)","stroke-width":2},sv2);
+const truth=el("path",{fill:"none",stroke:"var(--muted)","stroke-width":1,"stroke-dasharray":"3 4",d:"M"+G.map(x=>`${px(x).toFixed(1)} ${py(f(x)).toFixed(1)}`).join(" L")},sv2);
+el("text",{x:20,y:196,class:"axis"},sv2).textContent="teams, along one feature";el("text",{x:22,y:12,class:"axis"},sv2).textContent="win rate";
+const pts=XS.map(()=>el("circle",{r:3.4,fill:"var(--pred)"},sv2));
+function draw2(){const n=+nlab.value;nlabO.value=n;const X=XS.slice(0,n),Y=YS.slice(0,n);
+ const K=X.map(a=>X.map(b=>k(a,b))).map((r,i)=>r.map((v,j)=>v+(i===j?sn2:0)));const alpha=solve(K,Y.map(y=>y-m0));
+ let up=[],lo=[],mu=[],maxsd=0,avg=0;
+ G.forEach(x=>{const ks=X.map(a=>k(a,x));const m=m0+ks.reduce((s,v,i)=>s+v*alpha[i],0);const w=solve(K,ks);const v=Math.max(1e-6,sf2-ks.reduce((s,q,i)=>s+q*w[i],0));const sd=Math.sqrt(v);
+  mu.push([x,m]);up.push([x,m+2*sd]);lo.push([x,m-2*sd]);maxsd=Math.max(maxsd,sd);avg+=sd/G.length});
+ band.setAttribute("d","M"+up.map(([x,y])=>`${px(x).toFixed(1)} ${py(y).toFixed(1)}`).join(" L")+" L"+lo.reverse().map(([x,y])=>`${px(x).toFixed(1)} ${py(y).toFixed(1)}`).join(" L")+"Z");
+ mean.setAttribute("d","M"+mu.map(([x,y])=>`${px(x).toFixed(1)} ${py(y).toFixed(1)}`).join(" L"));
+ pts.forEach((p,i)=>{if(i<n){p.setAttribute("cx",px(XS[i]).toFixed(1));p.setAttribute("cy",py(YS[i]).toFixed(1));p.style.display=""}else p.style.display="none"});
+ r2.textContent=`average ±${(2*avg).toFixed(2)} win rate, widest ±${(2*maxsd).toFixed(2)}`}
+nlab.addEventListener("input",draw2);
+
+/* 3: outcome noise */
+const sv3=document.getElementById("sv3"),R3=rng(11),P=.55,B=[...Array(500)].map(()=>R3()<P?1:0);
+const sq=[...Array(100)].map((_,i)=>el("rect",{x:20+(i%20)*13.2,y:14+Math.floor(i/20)*13.2,width:10.5,height:10.5,rx:2},sv3));
+el("text",{x:20,y:92,class:"axis"},sv3).textContent="first 100 battles: filled = win";
+const L0=20,L1=280,lx=p=>L0+(p-.2)/.6*(L1-L0);
+el("line",{x1:L0,x2:L1,y1:150,y2:150,stroke:"var(--rule)","stroke-width":2},sv3);
+[.2,.4,.6,.8].forEach(v=>{el("text",{x:lx(v),y:170,"text-anchor":"middle",class:"axis"},sv3).textContent=v.toFixed(1)});
+el("line",{x1:lx(P),x2:lx(P),y1:122,y2:160,stroke:"var(--muted)","stroke-dasharray":"3 3"},sv3);
+el("text",{x:lx(P),y:117,"text-anchor":"middle",class:"axis"},sv3).textContent="true 0.55";
+const iv=el("line",{y1:150,y2:150,stroke:"var(--sim)","stroke-width":8,"stroke-linecap":"round","stroke-opacity":.35},sv3),est=el("circle",{cy:150,r:5.5,fill:"var(--sim)"},sv3);
+el("text",{x:20,y:192,class:"axis"},sv3).textContent="estimated win rate, 95% interval";
+function draw3(){const n=+nb.value;nbO.value=n;const w=B.slice(0,n).reduce((a,b)=>a+b,0),p=w/n,se=Math.sqrt(Math.max(p*(1-p),.0001)/n);
+ sq.forEach((s,i)=>{s.setAttribute("fill",i<n?(B[i]?"var(--sim)":"none"):"none");s.setAttribute("stroke",i<n?"var(--sim)":"var(--rule)");s.setAttribute("stroke-width",1)});
+ const a=Math.max(.2,p-1.96*se),b=Math.min(.8,p+1.96*se);iv.setAttribute("x1",lx(a));iv.setAttribute("x2",lx(b));est.setAttribute("cx",lx(Math.min(.8,Math.max(.2,p))));
+ r3.textContent=`${w}/${n} won → ${p.toFixed(3)} ± ${se.toFixed(3)} (one standard error)`}
+nb.addEventListener("input",draw3);
+draw1();draw2();draw3();
+</script>
+</body>
+</html>

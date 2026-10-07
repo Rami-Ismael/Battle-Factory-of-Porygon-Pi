@@ -1,0 +1,1 @@
+- 2FFS, a new tree search algorithm that combines multi-fidelity bandits to resolve the fundamental trade-off: should we use cheaper, approximated evaluations, or expansive but accurate samplings?

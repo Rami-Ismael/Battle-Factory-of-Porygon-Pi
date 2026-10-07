@@ -1,0 +1,739 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Stage 2 built layout and state; stage 3 added motion (tokens below, reduced motion at the end of the CSS).
+  Question: how should one figure show the Bayesian optimisation loop on real teams, and where each
+  property group hits it? Search space → Propose, Evaluation → Battle, Landscape → Update the model.
+  Three variants on one page, ?variant=A|B|C|D, bottom bar or ← →:
+    A — Ring: the loop as a wheel, the current team in the middle, the lit station's group beside it.
+    B — Belief board: 24 real teams with the model's band for each; the three steps as a header strip.
+    C — Stepper: prose steps, one figure per group, the board as the last step.
+    D — Stepper + board (owner asked for B and C mixed, 2026-10-05): C's steps drive B's board; default.
+  Host context (prototype sub-shape A): mounted inside a copy of the opening of "Not a Benchmark".
+  Stages (2026-10-05): 1 library = Preact + htm, motion on WAAPI/CSS, tokens shared with bo-features.
+  3 motion: bands slide (clip-path/transform 400ms ease-in-out), rows re-rank by FLIP, battles land one
+  square at a time with a ticking count (≤ 900ms), the acquisition marker grows from its tip.
+  5 applied: update is staged (shared Pokémon ring 0–200ms → bands 200–600 → re-rank 500–900), guide line
+  at the highest upper bound, battle slot reserved and last result kept dimmed, Play 5 loops (650ms/step),
+  live region announces each battle once. Not applied: scorecard "Figure n →" landing ring (published page).
+  Run: preview "blog-visuals" (python3 -m http.server 8765 --directory Blog/visuals), open /bo-loop-prototype/
+  Data: build-data.py → data.js (numbers and sprites reused from ../bo-features/bo-features.html).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Not a Benchmark — loop prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Tokens copied from bo-features/template.html (same article system). --you = VGC and the model's belief,
+   --them = what breaks, --back = the acquisition (the loop's third state). */
+:root{
+  --bg:#FFFFFF; --ink:#1F2328; --body:#2E3338; --muted:#6A7178; --faint:#9AA1A8; --rule:#E3E6EA; --panel:#F6F7F9;
+  --you:#0E7C7B; --you-soft:#E3F2F1; --them:#B23A5A; --them-soft:#F7E6EB; --back:#B7791F; --back-soft:#F7EEDD; --cell:#E5E8EC;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(0.23,1,0.32,1);          /* ease-out: things entering, state changes */
+  --ease-move:cubic-bezier(0.77,0,0.175,1);    /* ease-in-out: things moving on screen */
+  --move:400ms;    /* explanatory moves: bands, re-sort (explanation tier, 300–500ms) */
+  --enter:200ms;   /* panels and markers appearing */
+  --press:120ms;   /* button press */
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+    --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121518; --ink:#E8EBEE; --body:#C9CED3; --muted:#9AA1A8; --faint:#6D747B; --rule:#2A3036; --panel:#1A1E22;
+  --you:#4FC2BF; --you-soft:#16312F; --them:#E58AA0; --them-soft:#3A2129; --back:#E3A443; --back-soft:#382A13; --cell:#2A3138;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--body);font:17px/1.7 var(--sans);margin:0;-webkit-font-smoothing:antialiased}
+.page{display:grid;grid-template-columns:minmax(16px,1fr) minmax(0,660px) minmax(16px,240px) minmax(16px,1fr);column-gap:32px;padding-block:48px 120px}
+.page > *{grid-column:2}
+.wide{grid-column:2 / 4}
+aside{grid-column:3;font-size:13px;line-height:1.55;color:var(--muted);align-self:start;border-top:1px solid var(--rule);padding-top:6px;margin-top:6px}
+aside b{color:var(--ink);font-weight:600}
+h1{font:700 clamp(34px,5vw,46px)/1.12 var(--sans);color:var(--ink);margin:0 0 10px;letter-spacing:-0.015em}
+.dek{font-size:20px;line-height:1.5;color:var(--muted);margin:0 0 24px;max-width:36em}
+.byline{display:flex;flex-wrap:wrap;gap:6px 36px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding-block:12px;margin-bottom:28px;font-size:13px;color:var(--muted)}
+.byline b{display:block;font:600 11px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+p{margin:0 0 18px}
+.term{font-weight:600;color:var(--ink)}
+.math{font-family:var(--mono);font-size:.92em;white-space:nowrap;color:var(--ink)}
+figure{margin:12px 0 30px;display:grid;gap:12px}
+.fig{background:var(--panel);border-radius:6px;padding:18px;display:grid;gap:14px;min-width:0}
+figcaption{font-size:13.5px;line-height:1.55;color:var(--muted);max-width:46em}
+figcaption b{color:var(--ink);font-weight:600}
+.lab{font:600 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+button{font:500 13px/1 var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:7px 12px;min-height:34px;cursor:pointer;transition:transform var(--press) var(--ease),background-color 160ms ease,border-color 160ms ease,color 160ms ease}
+button:active:not(:disabled){transform:scale(0.97)}
+button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg > span{font:600 11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.check{display:inline-flex;gap:7px;align-items:center;font-size:13.5px;color:var(--ink);cursor:pointer}
+.check input{accent-color:var(--you)}
+.read{font-size:14.5px;color:var(--ink);line-height:1.55;margin:0}
+.read .y{color:var(--you);font-weight:600} .read .t{color:var(--them);font-weight:600} .read .b{color:var(--back);font-weight:600}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ph-note{border:1px dashed var(--rule);border-radius:6px;padding:14px;color:var(--faint);font-size:14px;text-align:center}
+
+/* sprites */
+img.sp{image-rendering:pixelated;display:block;width:var(--s,28px);height:var(--s,28px);object-fit:contain}
+.six{display:grid;grid-template-columns:repeat(6,var(--s,28px));gap:1px}
+.six.two{grid-template-columns:repeat(3,var(--s,40px))}
+
+/* belief track (shared) */
+.track{position:relative;height:var(--h,22px);min-width:0}
+.track .g{position:absolute;top:0;bottom:0;width:1px;background:var(--rule)}
+.track .best{position:absolute;top:-3px;bottom:-3px;width:0;border-left:1px dashed var(--ink);opacity:.5}
+.track .band{position:absolute;left:0;right:0;top:calc(50% - 5px);height:10px;background:var(--you);opacity:.22;transition:clip-path var(--move) var(--ease-move)}
+.track .obs{position:absolute;left:0;right:0;top:calc(50% - 1px);height:2px;background:var(--ink);opacity:.55;transition:clip-path var(--move) var(--ease-move)}
+.track .at{position:absolute;inset:0;pointer-events:none;transition:transform var(--move) var(--ease-move),opacity var(--enter) var(--ease)}
+.track .at > b{position:absolute;left:0;display:block}
+.track .mu > b{top:calc(50% - 7px);height:14px;width:2px;margin-left:-1px;background:var(--you)}
+.track .ucb > b{top:0;width:0;height:0;margin-left:-5px;border:5px solid transparent;border-top:7px solid var(--back);transform-origin:50% 7px;transition:transform var(--enter) var(--ease)}  /* grows from its tip, which sits on the band */
+.track .ucb.dim{opacity:.35} .track .ucb.off{opacity:0}
+.track .ucb.pick > b{transform:scale(1.5)}
+.track .od > b{top:calc(50% - 4px);width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--ink)}
+.track .tru > b{top:calc(50% - 5px);width:10px;height:10px;margin-left:-5px;transform:rotate(45deg);border:1.5px solid var(--them);background:var(--bg)}
+.track .tru{animation:fade var(--enter) ease both}
+.track .od.off,.track .obs.off{opacity:0}
+/* the acquisition's choice, drawn across every row at the highest upper bound */
+.track .guide > b{top:-4px;bottom:-4px;width:0;border-left:1.5px dashed var(--back)}
+.track .guide.off{opacity:0}
+/* update, staged: shared Pokémon ring first (0–200ms), then bands move (200–600ms), then rows re-rank */
+.board.upd .track .band,.board.upd .track .obs,.board.upd .track .at{transition-delay:var(--enter)}
+.spw{position:relative;display:block}
+.spw::after{content:"";position:absolute;inset:-1px;border-radius:5px;box-shadow:inset 0 0 0 1.5px var(--back);opacity:0;transition:opacity var(--enter) var(--ease)}
+.spw.sh::after{opacity:1}
+.status{font-size:14px;line-height:1.55;color:var(--ink);margin:0;min-height:3.1em}
+.status .b{color:var(--back);font-weight:600} .status .y{color:var(--you);font-weight:600}
+.slot{min-height:86px;display:grid}
+.slot .empty{border:1px dashed var(--rule);border-radius:8px;display:grid;place-items:center;font-size:13px;color:var(--faint);padding:10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.axis{position:relative;height:16px;font:10.5px var(--mono);color:var(--faint)}
+.axis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;vertical-align:-1px;margin-right:6px}
+.legend .lb{width:16px;height:8px;border-radius:4px;background:var(--you);opacity:.35}
+.legend .lu{width:0;height:0;border:5px solid transparent;border-top:7px solid var(--back);vertical-align:-4px}
+.legend .lo{width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.legend .lt{width:9px;height:9px;transform:rotate(45deg);border:1.5px solid var(--them)}
+.legend .ld{width:0;height:12px;border-left:1px dashed var(--ink);vertical-align:-2px}
+
+/* pips: one square per battle */
+.pips{display:flex;flex-wrap:wrap;gap:2px;max-width:100%}
+.pips i{width:7px;height:7px;border-radius:1.5px;background:var(--cell);animation:land 140ms var(--ease) both;animation-delay:calc(var(--i) * var(--step, 0ms))}
+@keyframes land{from{opacity:0;transform:translateY(-3px)}}
+.pips i.w{background:var(--you)} .pips i.l{background:var(--them);opacity:.75}
+.pips.small i{width:4px;height:4px;border-radius:1px;gap:1px}
+
+/* group card (what each group changes at its step) */
+.gcard{background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;display:grid;gap:8px;align-content:start;min-width:0;transition:border-color var(--enter) ease}
+.gcard.on{border-color:var(--ink)}
+.gcard .eb{font:600 10.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.gcard h4{margin:0;font:600 16px/1.3 var(--sans);color:var(--ink)}
+.gcard p{margin:0;font-size:13.5px;line-height:1.55;color:var(--body)}
+.gcard p.does{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 12px/1.35 var(--mono);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:3px 7px}
+.chip b{color:var(--them);font-weight:600}
+.budget{display:flex;flex-wrap:wrap;gap:4px 18px;font:12.5px var(--mono);color:var(--muted)}
+.budget b{color:var(--ink);font-weight:500}
+
+/* ---------- A: ring ---------- */
+.ringwrap{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
+.ring{position:relative;aspect-ratio:1;width:100%;max-width:380px}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ring .arc{fill:none;stroke:var(--rule);stroke-width:2;transition:stroke var(--enter) ease}
+.ring .arc.on{stroke:var(--ink)}
+.station{position:absolute;width:108px;margin-left:-54px;margin-top:-30px;display:grid;justify-items:center;gap:2px;text-align:center;background:var(--bg);border:1px solid var(--rule);border-radius:10px;padding:8px 6px;cursor:pointer;font:inherit;color:inherit;min-height:0;line-height:1.2;transition:border-color var(--enter) ease,box-shadow var(--enter) ease,transform var(--press) var(--ease)}
+.station.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.station .n{font:600 10.5px/1 var(--mono);color:var(--faint)}
+.station .v{font:600 14px/1.2 var(--sans);color:var(--ink)}
+.station .g{font:11px/1.2 var(--sans);color:var(--muted)}
+.ring .centre{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:6px;text-align:center;width:52%}
+.ring .centre .read{font-size:12.5px}
+.top5{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;align-items:center}
+
+/* ---------- B: board ---------- */
+.strip3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.board{display:grid;gap:4px}
+.brow{display:grid;grid-template-columns:52px 149px minmax(0,1fr) 40px;gap:12px;align-items:center;border-radius:4px;transition:background-color var(--enter) ease}
+.brow.on{background:var(--back-soft)}
+.board .hd{font:600 10.5px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.board .id{font:12px var(--mono);color:var(--muted);padding-left:4px}
+.board .id small{display:block;font-size:10px;color:var(--faint)}
+.board .nb{font:12px var(--mono);color:var(--muted);text-align:right;padding-right:4px}
+.detail{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;align-items:center;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;animation:enter var(--enter) var(--ease) backwards}   /* backwards, not both: a filling animation would block the .stale opacity transition */
+.detail{transition:opacity var(--enter) var(--ease)}
+.detail.stale{opacity:.45}
+.detail.stale .read::before{content:"Last battle · ";color:var(--muted)}   /* last loop's battle, kept so the slot never empties */
+.detail .est{transition:opacity var(--enter) var(--ease)}
+.detail .est.wait{opacity:0}
+@keyframes enter{from{opacity:0;transform:translateY(4px)}}
+.detail .read{font-size:13.5px}
+
+/* ---------- C: stepper ---------- */
+.stepper{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:22px;align-items:start}
+.steps{display:grid;gap:8px}
+.stepb{display:block;text-align:left;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;background:var(--bg);font:inherit;color:var(--body);min-height:0;line-height:1.5;cursor:pointer}
+.stepb.on{border-color:var(--ink)}
+.stepb .eb{display:block;font:600 10.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.stepb b{display:block;color:var(--ink);font-size:15px;margin:2px 0}
+.stepb span.t{font-size:13.5px;color:var(--muted)}
+.stepfig{position:sticky;top:16px;display:grid;gap:12px;min-width:0}
+.stepfig > .fig{animation:enter var(--enter) var(--ease) both}
+.stepb{transition:border-color var(--enter) ease}
+.pipe{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:6px 8px;font-size:13px;align-items:stretch}
+.pipe .h{font:600 10.5px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:4px 2px}
+.pipe .c{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:8px;line-height:1.45}
+.pipe .c.vgc{border-color:var(--you)}
+.pipe .rl{font:600 12px/1.3 var(--sans);color:var(--ink);align-self:center}
+.units{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:2px;max-width:420px}
+.units i{display:block;aspect-ratio:1;border-radius:1.5px;background:var(--cell);transition:background-color 220ms ease}
+.units i.ok{background:var(--you)} .units i.item{background:var(--them)} .units i.spc{background:var(--back)} .units i.bad{background:var(--them);opacity:.55}
+.edits{display:grid;grid-template-columns:minmax(150px,auto) minmax(0,1fr) 7.5em;gap:6px 12px;align-items:center;font-size:13px}
+.edits .bar{position:relative;height:12px;background:var(--cell);border-radius:3px}
+.edits .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--you);border-radius:3px}
+.edits .bar .floor{position:absolute;top:-3px;bottom:-3px;width:0;border-left:1.5px dashed var(--ink);opacity:.6}
+.edits .v{font:12px var(--mono);color:var(--muted);text-align:right}
+.edits .me{color:var(--ink);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
+.stat b{display:block;font:600 19px/1.2 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);line-height:1.4;display:block}
+
+/* ---------- D: stepper + board ---------- */
+.mix{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:22px;align-items:start}
+.rail{position:sticky;top:16px;display:grid;gap:12px}
+.dsteps{display:grid;gap:6px}
+.dstep{border:1px solid var(--rule);border-radius:8px;background:var(--bg);transition:border-color var(--enter) ease}
+.dstep.open{border-color:var(--ink)}
+.dhead{display:block;width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:9px 12px;min-height:0;line-height:1.45;font:inherit;color:var(--body);cursor:pointer}
+.dhead:active:not(:disabled){transform:none}
+.dhead .eb{display:flex;align-items:center;gap:6px;font:600 10.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.dhead .dot{width:6px;height:6px;border-radius:50%;background:var(--back);opacity:0;transition:opacity var(--enter) var(--ease)}
+.dstep.now .dhead .dot{opacity:1}
+.dstep.now .dhead .eb{color:var(--back)}
+.dhead b{display:block;color:var(--ink);font-size:15px;margin:1px 0}
+.dhead .t{display:block;font-size:13px;color:var(--muted)}
+/* accordion: the codebase's scorecard pattern (grid rows 0fr → 1fr) */
+.dbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--enter) var(--ease)}
+.dbody > div{overflow:hidden;min-height:0}
+.dstep.open .dbody{grid-template-rows:1fr}
+.dinner{padding:0 12px 12px;display:grid;gap:8px}
+.dinner p{margin:0;font-size:13.5px;line-height:1.55}
+.vs{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 8px;font-size:12.5px;line-height:1.45}
+.vs .vk{font:600 10.5px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.vs i{font-style:normal;font:600 10px/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-right:6px;color:var(--faint)}
+.vs .vv{color:var(--ink)} .vs .vv i{color:var(--you)}
+.dctrl{display:grid;gap:8px;border-top:1px solid var(--rule);padding-top:10px}
+.dctrl .ctrl{gap:8px}
+.dnow{display:none;font-size:13.5px;color:var(--ink);font-weight:600}
+.dnow .eb{font:600 10.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--back);margin-right:4px}
+.stage{display:grid;gap:12px;min-width:0}
+.stage .status{min-height:4.7em}
+
+/* ---------- prototype switcher (not part of the design) ---------- */
+.switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:#111;color:#fff;border-radius:999px;padding:6px 8px;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:20;font:13px var(--sans);max-width:calc(100vw - 24px)}
+.switcher button{background:#2a2a2a;color:#fff;border:0;min-height:30px;padding:5px 11px}
+.switcher .lb{padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.state{position:fixed;right:12px;bottom:64px;max-width:min(420px,calc(100vw - 24px));max-height:50vh;overflow:auto;background:#111;color:#cfe3ff;font:11.5px/1.45 var(--mono);padding:10px 12px;border-radius:8px;z-index:20;margin:0}
+
+@media (max-width: 900px){
+  aside{grid-column:2}
+  .wide{grid-column:2}
+  .page{grid-template-columns:16px minmax(0,1fr) 0 16px;column-gap:0}
+  .ringwrap,.stepper{grid-template-columns:minmax(0,1fr)}
+  /* D on narrow screens: steps, then the controls pinned to the top while the board scrolls under them */
+  .mix{grid-template-columns:minmax(0,1fr)}
+  .rail{display:contents}
+  .dctrl{position:sticky;top:0;z-index:3;background:var(--panel);padding:10px 18px;margin-inline:-18px;border-top:0;border-bottom:1px solid var(--rule)}   /* full figure width, so rows scrolling under it never peek out */
+  .dnow{display:block}
+  .stepfig{position:static}
+  .strip3{grid-template-columns:minmax(0,1fr)}
+  .strip3 .gcard:not(.on){display:none}
+  .strip3 .gcard.on{animation:enter var(--enter) var(--ease) both}
+}
+@media (max-width: 560px){
+  .brow{grid-template-columns:125px minmax(0,1fr) 30px;gap:8px}
+  .board .id{display:none}
+  .board .six{--s:20px !important}
+  .stats{grid-template-columns:minmax(0,1fr)}
+  .pipe{grid-template-columns:minmax(0,1fr)}
+  .pipe .h{display:none}
+  .edits{grid-template-columns:minmax(0,1fr) 5.5em}
+  .edits .bar{grid-column:1 / -1}
+  .axis span:nth-child(even){display:none}   /* 0.2 · 0.4 · 0.6 · 0.8 only */
+}
+@media (prefers-reduced-motion: reduce){
+  .dbody{transition:none}
+  .track .band,.track .obs,.track .at,.track .ucb > b{transition-property:opacity}
+  .pips i{animation:none}
+  .detail,.stepfig > .fig,.strip3 .gcard.on{animation-name:fade}
+  button:active:not(:disabled){transform:none}
+}
+@keyframes fade{from{opacity:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="preact-htm-standalone.umd.js"></script>
+<script src="data.js"></script>
+<script>
+const { html, render, useState, useMemo, useEffect, useLayoutEffect, useRef } = htmPreact;
+// Motion tokens live in :root; read them once so CSS and WAAPI share one source.
+const TOK = getComputedStyle(document.documentElement);
+const MOVE = parseFloat(TOK.getPropertyValue('--move')), EASE_MOVE = TOK.getPropertyValue('--ease-move').trim();
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FILL = n => Math.min(900, 30 * n);   // a batch of battles lands over at most 0.9 s
+const D = window.BO_LOOP, T = D.teams, NT = T.length;
+
+// ================= the model: a Gaussian process over the 24 teams =================
+// Bayesian ridge regression written as a kernel: which Pokémon a team has, and which pairs, weighted by the
+// measured split of variation (interaction-order run, 2026-09-30: singles 0.871, pairs 0.116), plus a 2% per-team
+// jitter. Sets are invisible to it, as they are to 384 battles (5 of 6 edit types inside noise).
+// One swap → correlation 0.80, inside the measured smoothness interval for whole-Pokémon swaps (0.86 [0.74, 0.93]).
+const W1 = 0.871 / 0.987, W2 = 0.116 / 0.987, JIT = 0.02;
+const VAR_F = 0.25 / 384 * (1 - 0.061) / 0.061;             // 0.0100: between-team variance implied by a 0.061 noise share at 384 battles
+const M0 = 0.5, BETA = 2, BEST = 0.691, PER_S = 50;          // prior mean; upper bound = mean + 2 sd; best known team; battles per second
+const LO = 0.15, HI = 0.85, X = v => ((Math.min(HI, Math.max(LO, v)) - LO) / (HI - LO) * 100).toFixed(2) + '%';
+const noiseShare = n => { const v = 0.25 / n; return v / (v + VAR_F); };
+const shared = (a, b) => T[b].species.filter(s => T[a].species.includes(s)).length;
+const simil = (a, b) => { const s = shared(a, b); return (1 - JIT) * (W1 * s / 6 + W2 * (s * (s - 1) / 2) / 15) + (a === b ? JIT : 0); };
+const KER = T.map((_, a) => T.map((_, b) => VAR_F * simil(a, b)));
+const ONE_SWAP = (1 - JIT) * (W1 * 5 / 6 + W2 * 10 / 15);   // 0.80
+
+function chol(A) {
+  const n = A.length, L = A.map(() => Array(n).fill(0));
+  for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) {
+    let s = A[i][j]; for (let k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+    L[i][j] = i === j ? Math.sqrt(Math.max(s, 1e-12)) : s / L[j][j];
+  }
+  return L;
+}
+const fwd = (L, b) => { const x = []; b.forEach((v, i) => { let s = v; for (let k = 0; k < i; k++) s -= L[i][k] * x[k]; x.push(s / L[i][i]); }); return x; };
+const bwd = (L, b) => { const n = b.length, x = Array(n); for (let i = n - 1; i >= 0; i--) { let s = b[i]; for (let k = i + 1; k < n; k++) s -= L[k][i] * x[k]; x[i] = s / L[i][i]; } return x; };
+const noiseVar = o => { const p = (o.w + 1) / (o.n + 2); return p * (1 - p) / o.n; };
+
+function posterior(obs) {                                     // obs: { teamIndex: {w, n} }
+  const O = Object.keys(obs).map(Number);
+  if (!O.length) return T.map(() => ({ mu: M0, sd: Math.sqrt(VAR_F) }));
+  const L = chol(O.map((i, r) => O.map((j, c) => KER[i][j] + (r === c ? noiseVar(obs[i]) : 0))));
+  const alpha = bwd(L, fwd(L, O.map(i => obs[i].w / obs[i].n - M0)));
+  return T.map((_, i) => {
+    const k = O.map(j => KER[i][j]), v = fwd(L, k);
+    return { mu: M0 + k.reduce((s, x, r) => s + x * alpha[r], 0), sd: Math.sqrt(Math.max(1e-9, KER[i][i] - v.reduce((s, x) => s + x * x, 0))) };
+  });
+}
+
+// battles: simulated from each team's measured 2,400-battle win rate (seeded, so a run replays exactly)
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const battle = (i, n, seed) => { const r = mulberry32(seed * 7919 + i * 104729 + n * 31); return Array.from({ length: n }, () => r() < T[i].p); };
+const ci95 = (w, n) => { const p = w / n, h = 1.96 * Math.sqrt(Math.max(p * (1 - p), 1e-4) / n); return [Math.max(0, p - h), Math.min(1, p + h)]; };
+const f2 = v => v.toFixed(2), pct = v => Math.round(v * 100) + '%';
+const secs = n => { const s = n / PER_S; return s < 10 ? s.toFixed(1) + ' s' : s < 120 ? Math.round(s) + ' s' : (s / 60).toFixed(1) + ' min'; };
+
+// one loop = three steps; each step is where one property group hits
+const STEP = {
+  propose: { num: 1, verb: 'Propose', group: 'Search space', gsub: 'what a team is, before any win rate',
+    does: 'The acquisition function scores every candidate and picks one: here, the team whose band reaches highest (upper confidence bound).',
+    vgc: 'These 24 teams are already legal. The full space holds up to 10¹¹² teams, and filling every field at random gave 0 legal teams in 2,000. A one-bit benchmark has 24–100 neighbours to score; a team has 10⁸·⁹ without swapping a Pokémon and 10¹⁹·⁹ with. A real loop can only score a sample, drawn by a proposer that writes legal teams.',
+    chips: [['0 of 2,000', 'random teams legal'], ['10¹¹²', 'teams vs ≤ 10¹⁸ points'], ['1.4 × 10¹¹', 'ways to write one team']] },
+  battle: { num: 2, verb: 'Battle', group: 'Evaluation', gsub: 'how f can be observed',
+    does: 'Evaluate f at the chosen point. On the benchmarks this returns one exact number in 0.01–1.7 ms.',
+    vgc: 'Here f is a win rate: battles against the top-50 meta teams, behaviour-cloning policy on both sides. Each battle is a weighted coin flip, so the result is noisy and the noise shrinks only with more battles, which cost time. There is no known best to stop at: the dashed line is the best known team, built by a human.',
+    chips: n => [[pct(noiseShare(n)), `of the spread is noise at ${n} battles`], [secs(n), 'per team, 12 cores'], ['0.691', 'best known, not an optimum']] },
+  update: { num: 3, verb: 'Update the model', group: 'Landscape', gsub: 'the shape of f, given an edit',
+    does: 'The observed team\'s band tightens around the result, and teams the model calls similar move with it.',
+    vgc: 'Similar here means sharing Pokémon, and sharing pairs of them. Only whole-Pokémon swaps move win rate beyond battle noise; move, item, ability, alignment and Stat Point edits do not, so this model ignores sets, as 384 battles do. Pairs of Pokémon explain 11.6% of the variation, more than in any benchmark, so the model weighs pairs as well as single Pokémon.',
+    chips: [['ρ 0.86', 'smoothness of one Pokémon swap'], ['1 of 6', 'edit types beyond noise'], ['11.6%', 'from pairs (benchmarks ≤ 8.8%)']] },
+};
+const ORDER = ['propose', 'battle', 'update'];
+
+// ================= the run (pure state) =================
+const fresh = n => ({ iter: 0, phase: 'ready', n, obs: {}, pick: null, out: null, res: null, spent: 0 });
+function advance(s) {
+  if (s.phase === 'ready' || s.phase === 'update') {
+    const post = posterior(s.obs), ucb = post.map(b => b.mu + BETA * b.sd);
+    const pick = ucb.indexOf(Math.max(...ucb));
+    return { ...s, iter: s.iter + 1, phase: 'propose', pick, out: null };
+  }
+  if (s.phase === 'propose') {
+    const out = battle(s.pick, s.n, s.iter);
+    return { ...s, phase: 'battle', out, res: { i: s.pick, out, iter: s.iter }, spent: s.spent + s.n };   // res stays on screen until the next battle
+  }
+  const w = s.out.filter(Boolean).length, o = s.obs[s.pick] || { w: 0, n: 0 };
+  return { ...s, phase: 'update', obs: { ...s.obs, [s.pick]: { w: o.w + w, n: o.n + s.n } } };
+}
+const runIters = (s, k) => { let t = s; const stop = t.iter + k; while (!(t.iter === stop && t.phase === 'update')) t = advance(t); return t; };
+function useRun(n0 = 24) {
+  const [s, set] = useState(fresh(n0));
+  // the model shown during "battle" is still the old one; it changes at "update"
+  const post = useMemo(() => posterior(s.obs), [s.obs]);
+  const ucb = post.map(b => b.mu + BETA * b.sd);
+  return { s, post, ucb, step: () => set(advance), run: k => set(t => runIters(t, k)), reset: n => set(fresh(n ?? s.n)), setN: n => set(fresh(n)) };
+}
+
+// ================= shared pieces =================
+const sprite = name => D.sprites[name];
+const Sprite = ({ name, size = 28 }) => html`<img class="sp" style=${`--s:${size}px`} src=${sprite(name)} alt=${name} title=${name} />`;
+const Six = ({ team, size = 28, two, ring }) => html`<div class=${'six' + (two ? ' two' : '')} style=${`--s:${size}px`} role="img" aria-label=${team.species.join(', ')}>${team.species.map(s => ring
+  ? html`<span class=${'spw' + (ring.includes(s) ? ' sh' : '')}><${Sprite} name=${s} size=${size} /></span>` : html`<${Sprite} name=${s} size=${size} />`)}</div>`;
+// one square per battle; they land in order, so the count below is visibly a count of these squares
+const Pips = ({ out, small }) => html`<div class=${'pips' + (small ? ' small' : '')} style=${`--step:${reduced() ? 0 : FILL(out.length) / out.length}ms`} aria-hidden="true">
+  ${out.map((w, i) => html`<i class=${w ? 'w' : 'l'} style=${`--i:${i}`}></i>`)}</div>`;
+// the win count ticks up in step with the squares; the estimate appears once the last battle lands
+function Tally({ out, id }) {
+  const n = out.length, [k, setK] = useState(reduced() ? n : 0);
+  useEffect(() => {
+    if (reduced()) { setK(n); return; }
+    let raf, t0;
+    const tick = t => { t0 ??= t; const kk = Math.min(n, Math.floor((t - t0) / FILL(n) * n) + 1); setK(kk); if (kk < n) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [out]);
+  const w = out.slice(0, k).filter(Boolean).length, done = k === n, [a, b] = ci95(w, n);
+  const line = `${id} won ${w} of ${n} → ${f2(w / n)}, 95% interval ${f2(a)}–${f2(b)}, after ${secs(n)} of battles.`;
+  return html`<span aria-hidden="true"><b>${id}</b> won <span class="y num">${w} of ${k}</span>${done ? '' : ' so far'}<span class=${'est' + (done ? '' : ' wait')}> → ${f2(w / n)}, 95% interval ${f2(a)}–${f2(b)}, after ${secs(n)} of battles.</span></span><span class="sr" aria-live="polite">${done ? line : ''}</span>`;
+}
+// FLIP: rows slide to their new rank. Positions are read during render (before commit), so a re-sort that
+// interrupts a running slide starts from where the rows are on screen, not from where they were heading.
+function useFlip(ref, key, delay) {
+  const before = useRef(null);
+  if (ref.current) before.current = new Map([...ref.current.querySelectorAll('[data-flip]')].map(r => [r.dataset.flip, r.getBoundingClientRect().top]));
+  useLayoutEffect(() => {
+    const el = ref.current, prev = before.current;
+    if (!el || !prev) return;
+    el.querySelectorAll('[data-flip]').forEach(r => {
+      if (r._flip) r._flip.cancel();
+      const was = prev.get(r.dataset.flip); if (was == null) return;
+      const dy = was - r.getBoundingClientRect().top;
+      if (Math.abs(dy) < 1 || reduced()) return;
+      r._flip = r.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: MOVE, delay, easing: EASE_MOVE, fill: 'backwards' });
+    });
+  }, [key]);
+}
+
+// Every mark is a full-width layer moved with transform (or clipped with clip-path), so a new belief slides there.
+const P = v => (Math.min(HI, Math.max(LO, v)) - LO) / (HI - LO) * 100;
+const clip = (a, b) => `clip-path:inset(0 ${(100 - P(b)).toFixed(2)}% 0 ${P(a).toFixed(2)}% round 5px)`;
+const at = v => `transform:translateX(${P(v).toFixed(2)}%)`;
+function Track({ b, u, o, truth, ucb = '', guide, h = 22 }) {
+  const ci = o ? ci95(o.w, o.n) : [M0, M0];
+  return html`<div class="track" style=${`--h:${h}px`}>
+    <i class="g" style=${`left:${X(0.5)}`}></i>
+    <i class="best" style=${`left:${X(BEST)}`}></i>
+    <i class="band" style=${clip(b.mu - 2 * b.sd, b.mu + 2 * b.sd)}></i>
+    <i class=${'obs' + (o ? '' : ' off')} style=${clip(ci[0], ci[1])}></i>
+    <i class="at mu" style=${at(b.mu)}><b></b></i>
+    <i class=${'at od' + (o ? '' : ' off')} style=${at(o ? o.w / o.n : M0)}><b></b></i>
+    ${truth != null && html`<i class="at tru" style=${at(truth)}><b></b></i>`}
+    ${guide && html`<i class=${'at guide' + (guide.on ? '' : ' off')} style=${at(guide.x)}><b></b></i>`}
+    <i class=${'at ucb ' + ucb} style=${at(u)}><b></b></i>
+  </div>`;
+}
+// acquisition marker state: all equal before the first pick, winner grows and the rest dim at "propose", hidden otherwise
+const ucbState = (s, i) => s.phase === 'ready' ? '' : s.phase !== 'propose' ? 'off' : i === s.pick ? 'pick' : 'dim';
+const Axis = () => html`<div class="axis">${[0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8].map(v => html`<span style=${`left:${X(v)}`}>${v.toFixed(1)}</span>`)}</div>`;
+const Legend = ({ truth }) => html`<div class="legend">
+  <span><i class="lb"></i>model's belief (mean ± 2 sd)</span><span><i class="lu"></i>top of the band: what the acquisition maximises</span>
+  <span><i class="lo"></i>observed win rate, 95% interval</span><span><i class="ld"></i>best known team, 0.691</span>
+  ${truth && html`<span><i class="lt"></i>measured at 2,400 battles</span>`}</div>`;
+
+function GroupCard({ k, on, n }) {
+  const st = STEP[k], chips = typeof st.chips === 'function' ? st.chips(n) : st.chips;
+  return html`<div class=${'gcard' + (on ? ' on' : '')}>
+    <div class="eb">Step ${st.num} · ${st.group}</div>
+    <h4>${st.verb}</h4>
+    <p class="does">${st.does}</p>
+    <p>${st.vgc}</p>
+    <div class="chips">${chips.map(([a, b]) => html`<span class="chip"><b>${a}</b> ${b}</span>`)}</div>
+  </div>`;
+}
+// Play: one step at a time, slow enough to read; after a battle, wait for the last square to land
+const PACE = 650;
+function usePlay(R) {
+  const { s } = R, [target, setTarget] = useState(null);
+  useEffect(() => {
+    if (target == null) return;
+    if (s.iter >= target && s.phase === 'update') { setTarget(null); return; }
+    const wait = s.phase === 'battle' ? FILL(s.n) + 300 : PACE;
+    const t = setTimeout(R.step, wait);
+    return () => clearTimeout(t);
+  }, [target, s]);
+  // five complete loops from here: a loop ends at its "update"
+  const play = () => { if (reduced()) { R.run(5); return; } setTarget(s.iter + (s.phase === 'ready' || s.phase === 'update' ? 5 : 4)); };
+  return { playing: target != null, play, pause: () => setTarget(null) };
+}
+function Controls({ R, label, Pl: shared_ }) {
+  const own = usePlay(R), Pl = shared_ || own, { s } = R, next = s.phase === 'ready' ? 'Start: propose a team' : { propose: 'Battle it', battle: 'Update the model', update: 'Propose the next team' }[s.phase];
+  return html`<div class="ctrl">
+    <button class="primary" onClick=${() => { Pl.pause(); R.step(); }}>${next}</button>
+    <button onClick=${Pl.playing ? Pl.pause : Pl.play} aria-pressed=${Pl.playing}>${Pl.playing ? 'Pause' : 'Play 5 loops'}</button>
+    <button onClick=${() => { Pl.pause(); R.reset(); }} disabled=${s.phase === 'ready'}>Reset</button>
+    <span class="seg" role="group" aria-label="Battles per team"><span>Battles per team</span>
+      ${[24, 96, 384].map(n => html`<button aria-pressed=${s.n === n} onClick=${() => { Pl.pause(); R.setN(n); }}>${n}</button>`)}</span>
+  </div>
+  <div class="budget"><span>loop <b>${s.iter}</b></span><span>battles <b>${s.spent.toLocaleString()}</b></span><span>compute <b>${secs(s.spent)}</b></span><span>${label || ''}</span></div>`;
+}
+
+
+// ================= Variant A — Ring =================
+function VariantA() {
+  const R = useRun(), { s, post, ucb } = R;
+  const [lens, setLens] = useState(null);
+  const active = lens || (s.phase === 'ready' ? 'propose' : s.phase);
+  const t = s.pick != null ? T[s.pick] : null;
+  const pos = { propose: [50, 9], battle: [87, 72], update: [13, 72] };
+  const top = T.map((_, i) => i).sort((a, b) => ucb[b] - ucb[a]).slice(0, 5);
+  const centre = !t ? html`<p class="read">The model knows nothing yet: every team sits at 0.50 ± 0.20.</p>`
+    : html`<${Six} team=${t} size=${36} two /><p class="read">${s.phase === 'propose'
+      ? html`<b>${t.id}</b>: the band reaches <span class="b">${f2(ucb[s.pick])}</span>, highest of 24.`
+      : s.phase === 'battle' ? html`<${Tally} out=${s.out} id=${t.id} />`
+      : html`<b>${t.id}</b> now ${f2(post[s.pick].mu)} ± ${f2(2 * post[s.pick].sd)}.`}</p>
+      ${s.out && s.phase !== 'propose' && html`<${Pips} out=${s.out} small=${s.n > 96} />`}`;
+  return html`<figure class="wide">
+    <div class="fig">
+      <${Controls} R=${R} />
+      <div class="ringwrap">
+        <div class="ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <path class=${'arc' + (s.phase === 'propose' ? ' on' : '')} d="M 61 12 A 40 40 0 0 1 86 58" />
+            <path class=${'arc' + (s.phase === 'battle' ? ' on' : '')} d="M 78 82 A 40 40 0 0 1 22 82" />
+            <path class=${'arc' + (s.phase === 'update' ? ' on' : '')} d="M 14 58 A 40 40 0 0 1 39 12" />
+          </svg>
+          ${ORDER.map(k => html`<button class=${'station' + (active === k ? ' on' : '')} style=${`left:${pos[k][0]}%;top:${pos[k][1]}%`}
+              onClick=${() => setLens(lens === k ? null : k)} aria-pressed=${active === k}>
+            <span class="n">${STEP[k].num}</span><span class="v">${STEP[k].verb}</span><span class="g">${STEP[k].group}</span></button>`)}
+          <div class="centre">${centre}</div>
+        </div>
+        <${GroupCard} k=${active} on n=${s.n} />
+      </div>
+      <div class="lab">The model's five highest bands</div>
+      <div class="top5">${top.map(i => html`<${Six} team=${T[i]} size=${24} /><${Track} b=${post[i]} u=${ucb[i]} o=${s.obs[i]} ucb=${ucbState(s, i)} h=${18} />`)}
+        <span></span><${Axis} /></div>
+      <${Legend} />
+    </div>
+    <figcaption><b>Figure 0 (variant A).</b> One Bayesian optimisation loop, three steps, one property group per step. Click a station to read its group without advancing the loop.</figcaption>
+  </figure>`;
+}
+
+// ================= Variant B — Belief board =================
+// what changed at this step, in one sentence (each stage names its change)
+function statusOf({ s, post, ucb }) {
+  const pickT = s.pick != null ? T[s.pick] : null;
+  const moved = pickT ? T.filter((t, i) => i !== s.pick && shared(s.pick, i) > 0).length : 0;
+  return s.phase === 'ready' ? html`The model knows nothing yet: every team starts at 0.50 ± 0.20, so all 24 bands are the same.`
+    : s.phase === 'propose' ? html`The acquisition picks <b>${pickT.id}</b>: its band reaches <span class="b">${f2(ucb[s.pick])}</span>, the highest of 24 (dashed line).`
+    : s.phase === 'battle' ? html`<b>${pickT.id}</b> plays ${s.n} battles against the top-50 meta teams. The model has not changed yet.`
+    : html`<b>${pickT.id}</b>'s band tightens to <span class="y">${f2(post[s.pick].mu)} ± ${f2(2 * post[s.pick].sd)}</span>. ${moved} other teams share Pokémon with it (ringed), so their bands move too; teams sharing none stay where they were.`;
+}
+// battle slot + board + legend, driven by a run
+function BoardView({ R, rows = NT }) {
+  const { s, post, ucb } = R;
+  const [truth, setTruth] = useState(false);
+  const order = useMemo(() => T.map((_, i) => i).sort((a, b) => post[b].mu - post[a].mu || a - b), [post]);
+  const shown = order.slice(0, rows);
+  if (s.pick != null && !shown.includes(s.pick)) shown[shown.length - 1] = s.pick;
+  // update, staged: shared Pokémon ring (0–200ms), bands move (200–600ms), rows re-rank (500–900ms)
+  const upd = s.phase === 'update', pickT = s.pick != null ? T[s.pick] : null;
+  const board = useRef(null);
+  useFlip(board, shown.join(','), upd ? MOVE * 0.75 + 200 : 0);
+  const maxU = Math.max(...ucb);
+  return html`
+      <div class="slot">${s.res ? html`<div class=${'detail' + (s.res.iter !== s.iter || s.phase === 'propose' ? ' stale' : '')} key=${'d' + s.res.iter}><${Six} team=${T[s.res.i]} size=${26} />
+        <div><p class="read"><${Tally} out=${s.res.out} id=${T[s.res.i].id} /> Noise is ${pct(noiseShare(s.res.out.length))} of the spread between teams at this count.</p><${Pips} out=${s.res.out} small=${s.res.out.length > 96} /></div></div>`
+        : html`<div class="empty">Battle results land here, one square per battle.</div>`}</div>
+      <div class=${'board' + (upd ? ' upd' : '')} ref=${board}>
+        <div class="brow"><span class="hd id">Team</span><span class="hd">Pokémon</span><span class="hd">Win rate vs the top-50 meta</span><span class="hd" style="text-align:right">Battled</span></div>
+        ${shown.map(i => html`<div class=${'brow' + (i === s.pick && s.phase !== 'ready' ? ' on' : '')} key=${T[i].id} data-flip=${T[i].id}>
+          <span class="id">${T[i].id}<small>${T[i].kind === 'meta' ? 'human-built' : 'search-found'}</small></span>
+          <${Six} team=${T[i]} size=${24} ring=${upd && i !== s.pick ? pickT.species : []} />
+          <${Track} b=${post[i]} u=${ucb[i]} o=${s.obs[i]} truth=${truth ? T[i].p : null} ucb=${ucbState(s, i)} guide=${{ on: s.phase === 'propose', x: maxU }} />
+          <span class="nb">${s.obs[i] ? s.obs[i].n : '–'}</span></div>`)}
+        <div class="brow"><span class="id"></span><span></span><${Axis} /><span></span></div>
+      </div>
+      <div class="ctrl"><${Legend} truth=${truth} /><label class="check"><input type="checkbox" checked=${truth} onChange=${e => setTruth(e.target.checked)} /> Show each team's measured win rate</label></div>`;
+}
+const CAPTION = html`A Bayesian optimisation loop run on 24 real teams. Each band is the model's belief about a team's win rate against the top-50 meta teams. The model is Bayesian ridge regression on which Pokémon each team has and which pairs, weighted 87 : 12 as measured; it cannot see sets. Teams one Pokémon apart start correlated 0.80, inside the measured interval for one swap (0.86 [0.74, 0.93]). Battles are simulated from each team's measured 2,400-battle win rate, behaviour-cloning policy on both sides.`;
+
+// ================= Variant B — Belief board =================
+function VariantB({ rows = NT, compact }) {
+  const R = useRun(), active = R.s.phase === 'ready' ? null : R.s.phase;
+  const body = html`
+      ${!compact && html`<div class="strip3">${ORDER.map(k => html`<${GroupCard} k=${k} on=${active === k} n=${R.s.n} />`)}</div>`}
+      <${Controls} R=${R} />
+      <p class="status" aria-live="polite">${statusOf(R)}</p>
+      <${BoardView} R=${R} rows=${rows} />`;
+  if (compact) return html`<div class="fig">${body}</div>`;
+  return html`<figure class="wide"><div class="fig">${body}</div>
+    <figcaption><b>Figure 0 (variant B).</b> ${CAPTION}</figcaption></figure>`;
+}
+
+// ================= Variant D — Stepper + board (B and C mixed) =================
+// C's reader-paced steps on the left drive B's board on the right. The loop's phase decides which step is
+// current; the reader can open any other step to re-read it without moving the loop.
+const DSTEPS = [
+  { k: 'ready', eb: 'Start', t: 'The loop', line: 'Propose a team, battle it, update the model. Repeat.' },
+  { k: 'propose', line: 'The acquisition function picks the team whose band reaches highest.' },
+  { k: 'battle', line: 'The chosen team plays battles against the top-50 meta teams.' },
+  { k: 'update', line: 'The result is folded into the model.' },
+  { k: 'play', eb: 'All three', t: 'Run it', line: 'Five loops in a row, at a pace you can follow.' },
+];
+const VS = [
+  ['propose', 'any of 2²⁵ bit strings; 25 neighbours', '0 of 2,000 random teams legal; 10⁸·⁹–10¹⁹·⁹ neighbours'],
+  ['battle', 'one exact number in 0.08 ms', 'a noisy win rate; 7.7 s at 384 battles'],
+  ['update', 'every bit has a measurable effect', '1 of 6 edit types beyond battle noise'],
+];
+function DBody({ k, n }) {
+  if (k === 'ready') return html`<p>Bayesian optimisation finds a good point with few evaluations. Each step behaves differently on a team than on a standard benchmark, here contamination control (25 bits):</p>
+    <div class="vs">${VS.map(([o, b, v]) => html`<span class="vk">${STEP[o].num} · ${STEP[o].verb}</span><span class="vb"><i>Benchmark</i>${b}</span><span class="vv"><i>VGC</i>${v}</span>`)}</div>`;
+  if (k === 'play') return html`<p>Play five loops and watch the three steps repeat. Then switch to 384 battles per team: each result is sharper (noise ${pct(noiseShare(384))} of the spread instead of ${pct(noiseShare(24))}) but each team costs 16 times as long, ${secs(384)}.</p>`;
+  const st = STEP[k], chips = typeof st.chips === 'function' ? st.chips(n) : st.chips;
+  return html`<p>${st.vgc}</p><div class="chips">${chips.map(([a, b]) => html`<span class="chip"><b>${a}</b> ${b}</span>`)}</div>`;
+}
+function VariantD() {
+  const R = useRun(), Pl = usePlay(R), { s } = R;
+  const now = s.phase === 'ready' ? 'ready' : s.phase;
+  const [open, setOpen] = useState('ready');
+  // the open step follows the loop, except during Play, when "Run it" stays open and only the markers move
+  useEffect(() => { if (!Pl.playing) setOpen(now); }, [now, Pl.playing]);
+  useEffect(() => { if (Pl.playing) setOpen('play'); }, [Pl.playing]);
+  const cur = DSTEPS.find(d => d.k === now), curName = cur.t || STEP[now].verb;
+  return html`<figure class="wide">
+    <div class="fig">
+      <div class="mix">
+        <div class="rail">
+          <div class="dsteps">${DSTEPS.map(d => {
+            const st = STEP[d.k], isNow = d.k === now || (d.k === 'play' && Pl.playing), isOpen = d.k === open;
+            return html`<section class=${'dstep' + (isOpen ? ' open' : '') + (isNow ? ' now' : '')}>
+              <button class="dhead" aria-expanded=${isOpen} onClick=${() => setOpen(isOpen ? now : d.k)}>
+                <span class="eb"><i class="dot" aria-hidden="true"></i>${d.eb || `Step ${st.num} · ${st.group}`}</span>
+                <b>${d.t || st.verb}</b><span class="t">${d.line}</span>
+              </button>
+              <div class="dbody"><div><div class="dinner"><${DBody} k=${d.k} n=${s.n} /></div></div></div>
+            </section>`; })}</div>
+          <div class="dctrl">
+            <div class="dnow"><span class="eb">${now === 'ready' ? 'Start' : `Step ${STEP[now].num} · ${STEP[now].group}`}</span> ${curName}</div>
+            <${Controls} R=${R} Pl=${Pl} />
+          </div>
+        </div>
+        <div class="stage">
+          <p class="status" aria-live="polite">${statusOf(R)}</p>
+          <${BoardView} R=${R} />
+        </div>
+      </div>
+    </div>
+    <figcaption><b>Figure 0.</b> ${CAPTION} The steps follow the loop; open any step to re-read it without moving the loop.</figcaption>
+  </figure>`;
+}
+
+// ================= Variant C — Stepper =================
+const MIX = { uniform: [0, 0, 0, 200], member: [135, 44, 20, 1], clauses: [188, 0, 0, 12] };
+const MIXREAD = {
+  uniform: html`<span class="t">0 of 2,000</span> legal. Some field is always wrong for its species.`,
+  member: html`<span class="y">1,354 of 2,000</span> legal. Of the rest, <span class="t">435</span> break the Item Clause and <span class="b">203</span> the Species Clause.`,
+  clauses: html`<span class="y">471 of 500</span> legal. The 29 failures are errors in our own ability table.`,
+};
+const OPS = [['F_candidate_copy', 'Replace a whole Pokémon'], ['A_move_swap', 'Swap one move'], ['C_item_swap', 'Swap the item'],
+  ['B_ability_swap', 'Swap the ability'], ['D_alignment_swap', 'Change the stat alignment'], ['E_spread_copy', 'Copy another Stat Point spread']];
+const CSTEPS = [
+  ['The loop', null, 'Bayesian optimisation repeats three steps: propose a point, evaluate it, update a model of f. Each property group hits one step.'],
+  ['Propose', 'Search space', 'Most teams are illegal, and no team\'s neighbours can be listed.'],
+  ['Battle', 'Evaluation', 'Every score is noisy, and more battles cost more time.'],
+  ['Update the model', 'Landscape', 'Only whole-Pokémon swaps carry signal the model can learn.'],
+  ['Run it', null, 'All three at once, on 24 real teams.'],
+];
+function VariantC() {
+  const [k, setK] = useState(0), [mix, setMix] = useState('uniform'), [n, setN] = useState(24);
+  const demo = T.find(t => t.id === 'MB373'), out = useMemo(() => battle(T.indexOf(demo), n, 1), [n]);
+  const w = out.filter(Boolean).length, [a, b] = ci95(w, n);
+  const units = []; ['ok', 'item', 'spc', 'bad'].forEach((c, j) => { for (let i = 0; i < MIX[mix][j]; i++) units.push(c); });
+  const figs = [
+    html`<div class="pipe"><span></span>${ORDER.map(o => html`<span class="h">${STEP[o].num} · ${STEP[o].verb}<br />${STEP[o].group}</span>`)}
+      <span class="rl">Contamination control</span><span class="c">any of 2²⁵ bit strings; 25 neighbours</span><span class="c">exact cost, 0.08 ms</span><span class="c">every bit has a measurable effect</span>
+      <span class="rl">VGC team</span><span class="c vgc">0 of 2,000 random teams legal; 10⁸·⁹–10¹⁹·⁹ neighbours</span><span class="c vgc">noisy win rate, 7.7 s at 384 battles</span><span class="c vgc">1 of 6 edit types beyond noise</span></div>`,
+    html`<div class="seg" role="group" aria-label="How the team is drawn">
+        ${[['uniform', 'Every field at random'], ['member', 'Each Pokémon from its own legal options'], ['clauses', '…and the team clauses while drawing']].map(([m, l]) => html`<button aria-pressed=${mix === m} onClick=${() => setMix(m)}>${l}</button>`)}</div>
+      <div class="units" aria-hidden="true">${units.map(c => html`<i class=${c}></i>`)}</div>
+      <p class="read">${MIXREAD[mix]}</p>
+      <${GroupCard} k="propose" on n=${n} />`,
+    html`<div class="seg" role="group" aria-label="Battles"><span>Battles</span>${[24, 96, 384, 2400].map(v => html`<button aria-pressed=${n === v} onClick=${() => setN(v)}>${v.toLocaleString()}</button>`)}</div>
+      <div class="detail"><${Six} team=${demo} size=${26} /><div><p class="read"><b>MB373</b> won <span class="y">${w} of ${n.toLocaleString()}</span> → ${f2(w / n)}, 95% interval ${f2(a)}–${f2(b)}.</p><${Pips} out=${out} small=${n > 96} /></div></div>
+      <div class="stats"><div class="stat"><b>${pct(noiseShare(n))}</b><span>of the spread between teams is noise</span></div>
+        <div class="stat"><b>${secs(n)}</b><span>to score one team (50 battles/s, 12 cores)</span></div>
+        <div class="stat"><b>0.01–1.7 ms</b><span>to score one point on any measured benchmark, noise 0</span></div></div>
+      <${GroupCard} k="battle" on n=${n} />`,
+    html`<div class="lab">Edits that moved win rate beyond battle noise (meta starting teams, 384 battles)</div>
+      <div class="edits">${OPS.map(([op, l], i) => { const e = D.edits[op].meta; return html`<span class=${i === 0 ? 'me' : ''}>${l}</span>
+        <div class="bar"><i style=${`width:${e.beyond * 100}%`}></i><i class="floor" style=${`left:${e.repeat * 100}%`}></i></div>
+        <span class="v">${pct(e.beyond)} · ρ ${f2(e.rho)}</span>`; })}</div>
+      <p class="read">Dashed line: the share an unchanged team, battled again, also clears (8%). Only replacing a whole Pokémon clears it clearly.</p>
+      <${GroupCard} k="update" on n=${384} />`,
+    html`<${VariantB} rows=${8} compact />`,
+  ];
+  return html`<figure class="wide">
+    <div class="stepper">
+      <div class="steps">${CSTEPS.map(([t, g, d], i) => html`<button class=${'stepb' + (k === i ? ' on' : '')} onClick=${() => setK(i)} aria-pressed=${k === i}>
+          <span class="eb">${i === 0 ? 'Start' : i === 4 ? 'All three' : 'Step ' + i + ' · ' + g}</span><b>${t}</b><span class="t">${d}</span></button>`)}
+        <div class="ctrl"><button onClick=${() => setK(Math.max(0, k - 1))} disabled=${k === 0}>Back</button><button class="primary" onClick=${() => setK(Math.min(4, k + 1))} disabled=${k === 4}>Next</button></div>
+      </div>
+      <div class="stepfig"><div class="fig">${figs[k]}</div></div>
+    </div>
+    <figcaption><b>Figure 0 (variant C).</b> The loop taken one step at a time. Steps 1–3 each show one property group's measured numbers; step 4 runs the loop on 24 real teams.</figcaption>
+  </figure>`;
+}
+
+// ================= host page + prototype switcher =================
+const VARIANTS = [['A', 'Ring'], ['B', 'Belief board'], ['C', 'Stepper'], ['D', 'Stepper + board']];
+function App() {
+  const q = new URLSearchParams(location.search);
+  const [variant, setVariant] = useState(VARIANTS.some(v => v[0] === q.get('variant')) ? q.get('variant') : 'D');
+  const [showState, setShowState] = useState(false);
+  const cycle = d => setVariant(v => { const i = VARIANTS.findIndex(x => x[0] === v); return VARIANTS[(i + d + VARIANTS.length) % VARIANTS.length][0]; });
+  useEffect(() => { const u = new URL(location); u.searchParams.set('variant', variant); history.replaceState(null, '', u); }, [variant]);
+  useEffect(() => {
+    const k = e => { const t = document.activeElement; if (t && t.matches('input,textarea,select,[contenteditable]')) return;
+      if (e.key === 'ArrowLeft') cycle(-1); if (e.key === 'ArrowRight') cycle(1); };
+    addEventListener('keydown', k); return () => removeEventListener('keydown', k);
+  }, []);
+  const label = VARIANTS.find(x => x[0] === variant);
+  const V = { A: VariantA, B: VariantB, C: VariantC, D: VariantD }[variant];
+  return html`<article class="page">
+      <h1>Not a benchmark</h1>
+      <p class="dek">Bayesian optimisation papers test their methods on a short list of standard problems. Here is how Pokémon VGC team building compares with them, property by property, with the same measurement on both sides.</p>
+      <div class="byline wide">
+        <div><b>Objective <span class="math">f</span></b>win rate vs the top-50 Reg M-B meta teams</div>
+        <div><b>Battle policy</b>behaviour cloning, both sides</div>
+        <div><b>Compared with</b>contamination control, Ising, pest control, MaxSAT-60, LABS-50, Ackley-53, molecules</div>
+      </div>
+      <p><span class="term">Bayesian optimisation</span> finds a good point with few evaluations by repeating three steps: <b>propose</b> the point a model rates most promising, <b>evaluate</b> it, and <b>update</b> the model with the result. Each kind of property below hits one of those steps: search-space properties decide what can be proposed, evaluation properties decide what one result is worth, and landscape properties decide how far one result should move the model.</p>
+      <${V} key=${variant} />
+      <aside><b>Prototype.</b> Variant ${label[0]} of 4. D mixes B's board with C's steps.</aside>
+      <p>A search problem has three kinds of properties. Some describe the space before anything is scored, some describe how a score can be observed, and some describe how the score changes as you move. The table summarises all thirteen; the rest of the page takes them in order, one figure at a time.</p>
+      <div class="ph-note wide">The existing summary scorecard and Figures 1–6 of “Not a Benchmark” follow here.</div>
+    </article>
+    <nav class="switcher" aria-label="Prototype variant switcher">
+      <button onClick=${() => cycle(-1)} aria-label="Previous variant">←</button>
+      <span class="lb">${label[0]} — ${label[1]}</span>
+      <button onClick=${() => cycle(1)} aria-label="Next variant">→</button>
+      <button onClick=${() => setShowState(x => !x)}>${showState ? 'Hide state' : 'State'}</button>
+    </nav>
+    ${showState && html`<pre class="state">${JSON.stringify({ variant, oneSwap: +ONE_SWAP.toFixed(3), varF: +VAR_F.toFixed(4), beta: BETA }, null, 2)}</pre>`}`;
+}
+render(html`<${App} />`, document.getElementById('app'));
+</script>
+</body>
+</html>

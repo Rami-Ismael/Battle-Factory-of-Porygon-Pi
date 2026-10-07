@@ -1,0 +1,168 @@
+<div id="team-space-film">
+  <div class="film-heading"><span class="text-small text-muted">THE MAKING OF A TEAM</span><span class="text-small tabular-nums" data-chapter>01 / 08</span></div>
+  <h2 data-title>Start with six species</h2>
+  <div class="film-total"><span class="text-small text-muted">Cumulative count · restricted model</span><h2 class="tabular-nums" data-count>1.05 × 10¹¹</h2></div>
+  <svg class="film-scene" role="img" aria-label="Animated construction of a six-member Pokémon team"><title>From species selection to fully configured teams</title></svg>
+  <div class="film-caption" aria-live="polite" data-caption>208 species. Six different members. Already over 100 billion combinations.</div>
+  <div class="film-math" aria-label="Calculation for this stage" aria-live="polite"></div>
+  <div class="film-controls"><button type="button" class="btn btn-primary" data-play>Play animation</button><button type="button" class="btn" data-replay>Replay</button><span class="text-small tabular-nums" data-time>0:00 / 1:36</span></div>
+  <label class="form-label film-seek">Animation timeline<input class="form-range" type="range" min="0" max="96" step="0.05" value="0" aria-label="Animation time in seconds"></label>
+  <div class="text-small text-muted">Frozen Champions M-B subset · four moves except Ditto · exactly 66 SP · fixed gender · order excluded. Not a verified total of all legal teams. C(n,k) means “choose k from n”; n! means n × (n−1) × … × 1.</div>
+</div>
+<style>
+#team-space-film{width:100%;color:var(--foreground)}
+#team-space-film .film-heading,#team-space-film .film-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#team-space-film .film-heading{margin-bottom:8px}
+#team-space-film h2{margin:0}
+#team-space-film .film-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:16px;flex-wrap:wrap}
+#team-space-film .film-scene{display:block;width:100%;height:310px;overflow:hidden;margin:8px 0}
+#team-space-film .film-scene text{fill:var(--foreground);font-size:12px;font-weight:400;font-family:inherit}
+#team-space-film .film-caption{min-height:52px;margin-bottom:12px}
+#team-space-film .film-math{margin:0 0 20px;min-height:176px;overflow-wrap:anywhere}
+#team-space-film .math-line{margin:8px 0;transition:transform .35s ease,opacity .35s ease}
+#team-space-film .math-line.pending{opacity:0;transform:translateY(10px);visibility:hidden}
+#team-space-film .math-line small{display:block;color:var(--muted-foreground);font-size:inherit}
+@media(prefers-reduced-motion:reduce){#team-space-film .math-line{transition:none}}
+#team-space-film .film-controls{justify-content:flex-start}
+#team-space-film .film-controls [data-time]{margin-left:auto}
+#team-space-film .film-seek{display:block;margin:12px 0}
+#team-space-film .film-scene .wire{fill:none;stroke:var(--border);stroke-width:1.3}
+#team-space-film .film-scene .node{fill:var(--background);stroke:var(--border);stroke-width:1}
+#team-space-film .film-scene .mark{fill:var(--viz-series-1)}
+@media(max-width:420px){#team-space-film .film-scene{height:340px}#team-space-film .film-caption{min-height:76px}}
+</style>
+<script>
+(()=>{
+const root=document.getElementById('team-space-film'),svg=root.querySelector('.film-scene'),seek=root.querySelector('input'),play=root.querySelector('[data-play]');
+const sprites=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAXFhUBAQFZCwNEQTrxNSElIyGqFxD/7gYctFT+/v5cYWOHlZpLQUf/cQEaNs1QAAAAAXRSTlMAQObYZgAABERJREFUeNrtmdtym1AQBNmZ3R0HsP7/c5Nz08WUAiLKm9rlQq5auuFg4EHThw8fPrwbw3QH8W6vuePOH+8LJHqgFdj8gbf5M9H8tUBhIuO9ASu4k56UwIh3BcDJ0iwiPJ0Bl8Q3+ieIlkXvXv0eRf/vAZJ9K6X7ze8Rj34710FEbSCo5iQDoU3AHNMp2KREkB7hjMDXfQDW/GcDiIqECAar/yvCdfU7xp1xvqACuvHXry+G9y7q2pjXwEmgBhFU4AsloKonSXNHD/xjgV9wwgts+rIpbjT/aYCWMDOvmMegHry1gOFsIBOgilbVP1t0sJh3YInzgaRk7nRPM5tnNT2Wa8AyEy/cveTUMKsFSrTCvJYfRRBYqr9F7aifZIQY0QtIMyQkqi6MChGKwNICaZREGo7euAyJwdtD2hIAJMaAjFYwT1MPHw6IEmfeXYG6wPr+ZgNYV7IHTFHRsTUiqaLHDHKcQuX7e13XZa0sZUsUfzIq7nmkwAiRKn4o2jyav6ubvnM7AfdDBUZBWGdglfq4Ff9QNv3A3Jq/khKOPDo1A8A8o1cxAlvgdvMfuNIIkdI6Q0AftYB1/xakDX9U9gtBAoDGpHkE/hZQC0RnPyBREjH8JVD8zwtZ/UcLPQAb/seA7wTcE9NuQUKmtUArPAm0Qubwl2mS3Hu9kJm1wNgJLMtSCyp6kk5GhHYKzIJkxnaHShh+93t9BTCTNB6ScaDQ/FKaRfsM3wbclw6gptY6r+1UdgsqVPd9wQuj5MsAE7jOEYF5niOOrJIeAyn4T5Y7/zRxrgGg+Auc9gojMAqLu2eh6x8DmCMgSWBbJmG/UMV9CyxL3rj3f9d5AKpwnmcdeP3gFlAC04Qia/ZHqomhTiuR3C3kCKCNogVG4VrCeBGKHI364VCh628FbdZJIwCgq7lG7AcmoPgfk7po6Du6aMJ6+78BwHleW2A/8TAkpC6t0OXFXwOPk6SK/2V0QQtUd5FLlxrAzqEdDujyVQrF3Y4+Ln/Ycb3gL4FSKOp29O8PtIIuQ87y+7ZAoQQ6fw8YXvQzpOLfFCj8dE+TmYPkS/4/6CEQ1wAf/W7mnogIvuaPegr9EkhksZOCyPtAevdLOOxvqNA29U9SBeg+Ye6ZCRXwgn+LBlVGs+bPiplJwst+kj/sI6AiJZlXzIRX/MOLgrQpZGF8GIkz/qmAxwCqdltI7PrNPW4M/7aA3AYATEcCvvFvCpgm4Bo4ah/+a0Jln2eFkuj+BqajgcFVvy10GzqZOFpApnfK/JPCTxsShWOBQvc/KWTlwQdMR8FfVxR5Q5jOAKkHdgrS6ULjWQHd/38CI6FKnizs7ow+cjZw4L7BGMLpAo4MJYTTgUNT+s8BnQmQ8Qdhd4yUXi6w6vcLY+zVAKOg3cDQt7njsO7C2A9UuU4EGCHtBxDVHa8GEOwnIGBvsE9iegVcOTz4+ar3w4dn/Ab180pwLQf8DgAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAjIyY5OT0mVzM7gE1WsF6Hf2+1plu61Fvm3X7//2vl39C0rJR9VilSNhUexholAAAAAXRSTlMAQObYZgAAAlVJREFUeNrtlIey3CAQBBmSuKDl///WswJdKlc6FkdaybG75l1wi8VisVj8WcjBTH8hgmn+6xWkFEwLkEImBsgKrMCfHZAWEJk2QA44YfICTFuAqQs4AGyUwsSUAK4CQVsgUxYAOoH6Y8WMV7jgoByIrZ168FIK3670W45QM+jXQ/W9YDgCQFE7b+DZChC7AnURaPbMC1fBUYCVXyTebkDOPBlItgUaXbxd8i3nfOOtTWAEDgVmgXyhWzPHBLmKWUBFGqA8M9MClhPUUxlQNPMaqEaBWqOaNUA0oPazUOuQv/ZAow3IH4EYB/wiNHgGLu199JNAqhUDfqle/SzcLt3/DHgG6P++UNXfAh1BfgQKfOJZZSwQI/3vMFCan+jKgUCzt0TSs/uRgENf79/7SdNHeltHG0TlpFJP6B8JRIjQ1AIxdbpd2cPgAAjRhtbqg/uDoUDiAWloQOT+RghhJOBAPWqlnLz7932n/67XQMAhIxC0N1CsdT/RyLbdhxYQDwQFSRMItAay9R8QjyE/A6GDjBY45Ft4BpAMAgQBoHzjGbRjHiBNrBMCQz2wxwTjQH91ewCpwA2AV//WA+3RhqDYBegLL4E+BIMB/xroP31evcPT029V6G8gPf35VeH30UDwPM6XoOl5aWBXNGBQONgPAs+gvzbxE/jOKeWUvf9O73BmhW0/oXfzZOsDbAvnlk1/D2cBmFDr5xArfx9B33l1AGcGUOt7oFY4U1DqG4V+68IbcObgJQG4CUQ8iG5KIKUU+3NaIT6eUwDeQsrUUGexWCwWPwAlmC+GrqHtSAAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAADecznunDn2vVruvYv/7r3Nzc3///+si0GcWkpiYmIYamIgpHsQQTFaOSAAAAAf1c/vAAAAAXRSTlMAQObYZgAAA09JREFUeNrsluFuszoQRJkNgJ3223n/t73LgINJqdQY8ucqR6ZSqXoOtpFM97/kwwd/t3+4quD+3oAPw28FXuNn5ffLA3uLG6tf+ssDbmb+5gDIS/3y0H3152xmdCH/FbAP5gQtiEYv5L8GBpGg3W7hn2Oc6S7FZ3+QQ28Bu8tZA26Cb/BbFKyA5wLFqYA4DHhghsBbGlwpbrIKyK7i14waL9odgRnH4h9HGsCiz5JvAC8UZP9aoC1MrAK0Jz0D+J/9q124LdAnogrEn76/v4tdN/lHv4NBCSBe0iUwogpA/rkg70uU51GD4VcBCyxT/Pe9wK4dUn4FHgmWwHm/Eia/8BLQHqlwKiBoGw4vgfCrsPO7aAqg+BWgHQXcYQHcXy/48o8Osfj1hsq/6QVengMRuPd9lt+4+KPw74vFj2J3bz14clYgLPx6FLj6baHFLhj2SNQBiid/14izDxQwBYr6Kr+xX5fo6FhzXOBfl8gOAybgzf4IiHx4rHHNtvtLYFBAXBdw+bP8KeGgQLQHpA+0BSkNQ7ICWAVUANv08gdDMAdoC7uAYIteUP46UBeItoJbgbnoU7KtAJ4KOKrnTwt9vwuAJwL+CIDDRrKLCpwIrJL+DQFOI7HC4TlQCjI2Bsi7Q7BPDx4BQP4t0LJGE90dzjQU5pTJzNpINAVGcoyLw550WYBzo+sOAsBWcCfREBCU/zgAuiPGOBKtAcFQFtYABKfxHvazAWdKfbXFKX6CZhYB2Xku4MahRhHazGzWdaVfCdoCAdlPBW784e9ZPrVPBuR/Cshvt18Lmd3LgX5IG33A26+BnPiq/8aU9jucngPtfgWMfV/0glYH6kJuCVgE9tBM/h+BnDIbvrd+BmAF1IHcEKAsTJU+JaIUIPjQJ3YNgf15Ey0J5d8CucEvuCie12gHZ3vS+jQHUu1PzwHZU5L/dCEF+wJlz2TXHFBhI+fM54D05wrMhf0cWJ7+bAFkquB2W/orCnJVCQh2Z3E4NhcfdH5JwN2Rt0DFJQHSzH7xE/l0gdMdZpv/6gAnjioc+wELzhR4nziNi/6HhbCVM1PgNI33I70CMA2cKYhDAYFpHezeAqcJk673BRgBKvCmApfRvQuW8eHDh/82OAAARCI/tslFcmgAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAADe1d7/9v+9rL20i72Uc7R7YqRaSpxqYntKKUoQEBD/Wlr/lJQQTNuPAAAAAXRSTlMAQObYZgAAAk9JREFUeNrtlYFq4zAUBH3JW233xf//vZeuLSNiUmrLAe7Q0LgphRlvYtA0GAwGg8Hgv4Af1jPys/rAxQGqeR8RKNcGiC3Axc+81g81tx/AaT/Zfip+2Y/lD67+0wMEsDYY8msiHCDEMAA7AoigI4oQA7LfvxTROaAWnpCKgABiw19voA7oLIQQtrcs/nJVYE/1O9BTgANvqP7ewroEgZY6oLcAMAx2BbYBnQ4ojAv7AdWbOFvIqABvB2TiWCD948LbQOE3st7/lH7dUKRCfpd446+BzNwe5fx94Bv57oC9nr58Ux80hew/VoCU2CNhC6z+iKMBwHddEkJDBKDHg03ABXPIbwIU2oJXPdZAqQvW8mG/HQAfagLIeV4ChAMbRwKTtPodeIhbIJ+B2QF5QsHK0aNf9i+BeU7BUI8aENBMOHHuqNSnkM/Aoxbm6s81UE6fCuKTBD1hJha4fMW614Cx/1QhIUuJFul+awN59twXE5CAnd5+0Cg7Dv4EeG8Tkr5utxqoaDpLAuDtSyu++a/qL9cFbtaul/ufOqAzYASAbcDXxGUBq+j79sWBxV+uC0DtBAmG3QGjpaAakIDdgJ5AYkErAPYD+ifsKWwD1PkV+Qu/ydOF8rO/P8Dyo58dfiOS5a1eV/hNebUXmLQ+p76A+EpBJa3vDFCvCZgIoE/vgMncD4hwYepDQFkTWWPCtYE1oSkXJmGhBroLTrSirYArFhAE4MCucEEgBQGZ+dLt91cyq31f8LAP4QABTp9CmYA87mOk9f8Eg8FgMBgM/gLNci4zZlHn4QAAAABJRU5ErkJggg=="];
+const names=['Garchomp','Charizard','Incineroar','Sinistcha','Dragonite','Gengar'];
+// Compact snapshot: [National Dex number, move counts for each eligible ability].
+// Generated from domain.json; calculations below use exact BigInt arithmetic.
+const countingRows=[[3,[57,57]],[6,[72,72]],[9,[73,73]],[15,[53,53]],[18,[31,31,31]],[24,[70,70,70]],[25,[60,60]],[26,[66,66]],[26,[74]],[36,[91,91,91]],[38,[67,67]],[38,[64,64]],[45,[54,54]],[59,[57,57,57]],[59,[64,64,64]],[65,[60,60,60]],[68,[66,66,66]],[71,[59,59]],[80,[78,78,78]],[80,[92,92,92]],[94,[76]],[115,[67,67,67]],[121,[62,62,62]],[127,[53,53,53]],[128,[57,57,57]],[128,[52,52,52]],[128,[53,53,53]],[128,[48,48,48]],[130,[67,67]],[132,[1,1]],[134,[59,59]],[135,[59,59]],[136,[57,57]],[142,[58,58,58]],[143,[83,83,83]],[149,[83,83]],[154,[61,61]],[157,[63,63]],[157,[66,66]],[160,[82,82]],[168,[64,64,64]],[181,[67,67]],[184,[66,66,66]],[186,[57,57,57]],[196,[67,67]],[197,[67,67]],[199,[85,85,85]],[199,[95,95,95]],[205,[69,69]],[208,[66,66,66]],[211,[63,63,63]],[212,[64,64,64]],[214,[66,66,66]],[227,[51,51,51]],[229,[67,67,67]],[248,[92,92]],[254,[77,77]],[257,[78,78]],[260,[77,77]],[279,[53,53,53]],[282,[80,80,80]],[302,[88,88,88]],[303,[71,71,71]],[306,[83,83,83]],[308,[77,77]],[310,[49,49,49]],[319,[57,57]],[323,[67,67,67]],[324,[57,57,57]],[334,[65,65]],[350,[61,61,61]],[351,[37]],[354,[66,66,66]],[358,[65]],[359,[71,71,71]],[362,[54,54,54]],[376,[68,68]],[389,[72,72]],[392,[88,88]],[395,[74,74]],[398,[43,43]],[405,[53,53,53]],[407,[51,51,51]],[409,[74,74]],[411,[68,68]],[428,[76,76,76]],[442,[54,54]],[445,[58,58]],[448,[83,83,83]],[450,[51,51]],[454,[81,81,81]],[460,[65,65]],[461,[72,72]],[464,[91,91,91]],[470,[58,58]],[471,[58,58]],[472,[74,74,74]],[473,[63,63,63]],[475,[105,105,105]],[478,[68,68]],[479,[42]],[479,[43]],[479,[43]],[479,[43]],[479,[43]],[479,[43]],[497,[53,53]],[500,[79,79]],[503,[61,61]],[503,[67,67]],[505,[52,52,52]],[510,[60,60,60]],[512,[50,50]],[514,[55,55]],[516,[52,52]],[518,[50,50,50]],[530,[53,53,53]],[531,[69,69,69]],[534,[61,61,61]],[545,[53,53,53]],[547,[50,50,50]],[553,[83,83,83]],[560,[82,82,82]],[563,[54]],[569,[53,53,53]],[571,[70]],[571,[73]],[579,[66,66,66]],[584,[41,41,41]],[587,[46,46]],[604,[75]],[609,[54,54,54]],[614,[75,75,75]],[618,[48,48,48]],[618,[52]],[623,[78,78,78]],[635,[78]],[637,[57,57]],[652,[87,87]],[655,[72,72]],[658,[64,64]],[660,[58,58,58]],[663,[50,50]],[666,[43,43,43]],[668,[49,49,49]],[670,[41,41]],[671,[46,46]],[675,[80,80,80]],[676,[40]],[678,[59,59,59]],[678,[56,56,56]],[681,[45]],[683,[48,48]],[685,[42,42]],[687,[68,68,68]],[689,[71,71,71]],[691,[52,52,52]],[693,[52]],[695,[63,63,63]],[697,[64,64]],[699,[56,56]],[700,[55,55]],[701,[74,74,74]],[702,[50,50,50]],[706,[65,65,65]],[706,[63,63,63]],[707,[44,44]],[709,[73,73,73]],[711,[60,60,60]],[713,[49,49,49]],[713,[49,49,49]],[715,[64,64,64]],[724,[66,66]],[724,[66,66]],[727,[77,77]],[730,[63,63]],[733,[53,53,53]],[740,[63,63,63]],[745,[58,58,58]],[745,[61]],[745,[68,68,68]],[748,[51,51,51]],[750,[45,45,45]],[752,[51,51]],[758,[70,70]],[763,[54,54,54]],[765,[64,64,64]],[766,[66,66]],[778,[60]],[780,[66,66,66]],[784,[78,78,78]],[823,[55,55,55]],[841,[44,44,44]],[842,[51,51,51]],[844,[48,48,48]],[855,[46,46]],[858,[59,59,59]],[861,[64,64,64]],[866,[93,93,93]],[867,[69]],[869,[49,49]],[870,[51,51]],[877,[65]],[887,[63,63,63]],[899,[61,61,61]],[900,[56,56,56]],[902,[49,49,49]],[902,[49,49,49]],[903,[61,61,61]],[904,[60,60,60]],[908,[65,65]],[911,[56,56]],[914,[59,59]],[925,[50,50,50]],[934,[54,54,54]],[936,[55,55]],[937,[55,55]],[939,[39,39,39]],[952,[48,48,48]],[956,[57,57,57]],[959,[47,47,47]],[964,[58]],[968,[40,40]],[970,[46,46]],[972,[52,52]],[979,[75,75,75]],[981,[70,70,70]],[983,[52,52,52]],[1000,[42]],[1013,[35,35]],[1018,[51,51,51]],[1019,[51,51,51]]];
+const choose=(n,k)=>{let v=1n;for(let i=1;i<=k;i++)v=v*BigInt(n-i+1)/BigInt(i);return v};
+function rosterCount(weight){const groups=new Map();for(const [id,moves] of countingRows)groups.set(id,(groups.get(id)||0n)+weight(moves));const dp=[1n,0n,0n,0n,0n,0n,0n];for(const w of groups.values())for(let k=6;k>=1;k--)dp[k]+=w*dp[k-1];return dp[6]}
+let itemCount=0n,falling=1n;for(let k=0;k<=6;k++){if(k)falling*=BigInt(149-k);itemCount+=choose(6,k)*falling}
+const spreadCount=choose(71,5)-6n*choose(38,5)+15n;
+const formCount=rosterCount(()=>1n),abilityCount=rosterCount(m=>BigInt(m.length)),moveCount=rosterCount(m=>m.reduce((s,n)=>s+choose(n,Math.min(n,4)),0n));
+const totals=[choose(new Set(countingRows.map(r=>r[0])).size,6),formCount,abilityCount,abilityCount*itemCount,moveCount*itemCount,moveCount*itemCount*21n**6n,moveCount*itemCount*21n**6n*spreadCount**6n];
+root.dataset.exactCounts=JSON.stringify(totals.map(String));
+const sci=n=>{const s=String(n);return `${(Number(s.slice(0,5))/10000).toFixed(2)} × 10${String(s.length-1).split('').map(x=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(x)]).join('')}`};
+const mathSteps=[
+ [
+  ['208 × 207 × 206 × 205 × 204 × 203','Six selections, with no repeated species.'],
+  ['Divide by 6! = 720','The same six species can be arranged in 720 orders; count that roster once.'],
+  ['C(208,6) = 104,579,959,848','Species choices only. No moves, items or stats yet.']
+ ],
+ [
+  ['For one roster: f₁ × f₂ × … × f₆','fᵢ is the number of retained forms for that member’s species.'],
+  ['Add that product over every six-species roster','Example: two members with 2 forms and four with 1 give 2 × 2 × 1 × 1 × 1 × 1 = 4.'],
+  ['Σ rosters (f₁ × … × f₆) = 198,700,517,666','Forms of the same species remain alternatives; they cannot occupy two team slots.']
+ ],
+ [
+  ['Garchomp: 1 form × 2 abilities = 2 options','Other species can have different form and ability counts.'],
+  ['For species s: aₛ = Σ forms (eligible abilities)','Add alternatives within a species; multiply across the six different species.'],
+  ['Σ rosters (a₁ × … × a₆) = 39,288,136,225,780','This sums all retained species-specific options, not an average ability count.']
+ ],
+ [
+  ['If all 6 hold items: 148 × 147 × … × 143','Each occupied item choice removes that item from the remaining pool.'],
+  ['For k holders: C(6,k) × 148! / (148−k)!','Choose which members hold items, then assign k distinct items. The rest hold nothing.'],
+  ['I = Σ k=0…6 = 9,889,059,373,669','Multiply the previous cumulative count by I to get ≈ 3.89 × 10²⁶.']
+ ],
+ [
+  ['Garchomp: C(58,4) = (58 × 57 × 56 × 55) / 24','Divide by 4! = 24 because changing move order does not create a new set in this model.'],
+  ['= 424,270 movesets for each eligible ability','For each species s, let wₛ = Σ forms, abilities C(m,4), where m is its move count. Ditto contributes 1.'],
+  ['Q = Σ rosters (w₁ × … × w₆); then Q × I ≈ 4.84 × 10⁶¹','Recount with moves included. Do not multiply the old total by Garchomp’s count to the sixth power.']
+ ],
+ [
+  ['21 choices per member','20 stat-changing alignments plus one neutral representative.'],
+  ['21 × 21 × 21 × 21 × 21 × 21 = 85,766,121','Each of the six members receives its own alignment.'],
+  ['Q × I × 21⁶ ≈ 4.15 × 10⁶⁹','Use the exact cumulative integer internally; displayed totals are rounded.']
+ ],
+ [
+  ['Without a per-stat cap: C(71,5)','Distribute 66 identical points into 6 stats: 66 points plus 5 dividers.'],
+  ['S = C(71,5) − 6C(38,5) + 15C(5,5)','Subtract allocations with a stat ≥33; add back double-subtracted pairs. Three over-cap stats need ≥99 points.'],
+  ['S = 10,008,272; one independent spread per member','Multiply by S⁶, not by 6S. Spending exactly 66 is a model restriction.']
+ ],
+ [
+  ['N = Q × I × 21⁶ × S⁶ ≈ 4.17 × 10¹¹¹','Q: species/forms/abilities/moves · I: item assignments · S: fully spent SP allocations.'],
+  ['Allow 0–66 SP instead: S = 136,663,185','With only this assumption changed, N becomes ≈ 2.71 × 10¹¹⁸.'],
+  ['A restricted-model count, not all legal teams','Fixed gender, four-move convention and retained move/form inventory still limit the count.']
+ ]
+];
+const mathBox=root.querySelector('.film-math');let mathState='';
+function drawMath(chapter,u){const revealed=1+(u>=.28?1:0)+(u>=.56?1:0),key=`${chapter}:${revealed}`;if(key===mathState)return;const newChapter=key.split(':')[0]!==mathState.split(':')[0];mathState=key;if(newChapter)mathBox.innerHTML=mathSteps[chapter].map(([formula,note],i)=>`<div class="math-line${i?' pending':''}"><div class="tabular-nums">${formula}</div><small class="text-small">${note}</small></div>`).join('');[...mathBox.children].forEach((el,i)=>{el.classList.toggle('pending',i>=revealed);el.setAttribute('aria-hidden',i>=revealed?'true':'false')})}
+const chapters=[
+ ['Start with six species','1.05 × 10¹¹','208 species. Six different members. Already over 100 billion combinations.'],
+ ['A species is only the beginning','1.99 × 10¹¹','Forms add choices. Now follow Garchomp into the configuration of a single member.'],
+ ['Choose an ability','3.93 × 10¹³','Garchomp branches into two abilities. Other species have their own eligible options.'],
+ ['Give each member an item','3.89 × 10²⁶','148 held items, or no item. A held item cannot be repeated across the team.'],
+ ['Choose four moves together','4.84 × 10⁶¹','Garchomp’s 58 eligible moves make 424,270 four-move sets. Each species has a different move pool.'],
+ ['Choose a stat alignment','4.15 × 10⁶⁹','21 distinct alignments per member: 20 stat-changing choices and one neutral representative.'],
+ ['Distribute the stat budget','4.17 × 10¹¹¹','66 Stat Points, at most 32 per stat: 10,008,272 fully spent allocations for each member.'],
+ ['Every member needs every choice','4.17 × 10¹¹¹','The search is over complete teams. The goal: find a legal configuration that beats one known opponent.']
+];
+let t=0,running=false,last=0,raf=0,width=600,height=310,active=-1;
+const duration=96,chapterSeconds=12;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const clamp=x=>Math.max(0,Math.min(1,x)),ease=x=>{x=clamp(x);return x*x*(3-2*x)},mix=(a,b,p)=>a+(b-a)*p;
+const text=(x,y,s,anchor='middle',extra='')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" ${extra}>${s}</text>`;
+const line=(x,y,xx,yy,p=1)=>`<path class="wire" d="M${x},${y} C${x},${mix(y,yy,.5)} ${xx},${mix(y,yy,.5)} ${xx},${yy}" opacity="${p}"/>`;
+const dot=(x,y,r,alpha=.3)=>`<circle class="mark" cx="${x}" cy="${y}" r="${r}" opacity="${alpha}"/>`;
+function portrait(i,x,y,size=60,alpha=1,label=true){return `<g opacity="${alpha}"><image href="${sprites[i]}" x="${x-size/2}" y="${y-size/2}" width="${size}" height="${size}"/>${label?text(x,y+size/2+15,names[i]):''}</g>`}
+function box(x,y,w,label,alpha=1){return `<g opacity="${alpha}"><rect class="node" x="${x-w/2}" y="${y-17}" rx="7" width="${w}" height="34"/>${text(x,y+4,label)}</g>`}
+function draw(){
+ const chapter=Math.min(7,Math.floor(t/chapterSeconds)),u=reduced.matches?1:(t-chapter*chapterSeconds)/chapterSeconds,narrow=width<450,cx=width/2;
+ drawMath(chapter,u);
+ if(chapter!==active){active=chapter;root.querySelector('[data-title]').textContent=chapters[chapter][0];root.querySelector('[data-count]').textContent=sci(totals[Math.min(chapter,6)]);root.querySelector('[data-caption]').textContent=chapters[chapter][2];root.querySelector('[data-chapter]').textContent=`0${chapter+1} / 08`;}
+ let out='<title>'+chapters[chapter][0]+'</title><desc>'+chapters[chapter][2]+'</desc>';
+ const row=(i)=>({x:narrow?width*(.18+(i%3)*.32):width*(.09+i*.164),y:narrow?45+Math.floor(i/3)*80:52});
+ if(chapter===0){
+  for(let j=0;j<72;j++){const x=16+(j%18)*(width-32)/17,y=30+Math.floor(j/18)*17;out+=dot(x,y,2.5, .12*(1-ease(u*1.5)));}
+  for(let i=0;i<6;i++){const p=ease(u*2.2-i*.14),end=row(i),x=mix(cx+(i-2.5)*15,end.x,p),y=mix(55,narrow?end.y+90:170,p);out+=portrait(i,x,y,narrow?54:70,.25+.75*p);}
+  out+=text(cx,height-25,'Choose 6 distinct species');
+ }else if(chapter===1){
+  const p=ease(u*1.7);
+  for(let i=0;i<6;i++){const a=row(i);out+=portrait(i,mix(a.x,cx,p),mix(narrow?a.y+90:170,i===0?85:55,p),mix(narrow?54:70,i===0?90:40,p),i===0?1:1-p,i===0);}
+  const q=ease((u-.3)*2);out+=line(cx,140,cx,208,q)+box(cx,226,Math.min(260,width-24),'232 retained form representatives',q);
+ }else if(chapter>=2&&chapter<=5){
+  out+=portrait(0,cx,44,64,1,false)+text(cx,89,'Garchomp · one member');
+  const p=ease(u*2.4),cy=chapter===4?194:195;
+  let labels=chapter===2?['Sand Veil','Rough Skin']:chapter===3?['Clear Amulet','Life Orb','No item']:chapter===4?['Earthquake','Dragon Claw','Protect','Swords Dance']:['Jolly','Modest','Neutral'];
+  const cols=chapter===4?2:(narrow&&labels.length===3?1:labels.length);
+  labels.forEach((s,i)=>{
+   const col=i%cols,r=Math.floor(i/cols),x=cols===1?cx:width*(col+1)/(cols+1),y=cols===1?143+i*47:cy+r*49-((chapter===4)?35:0),q=ease(u*2.8-i*.14);
+   const xx=mix(cx,x,q),yy=mix(106,y,q);out+=line(cx,104,xx,yy-17,q);out+=box(xx,yy,chapter===4?Math.min(136,width*.43):Math.min(130,width/cols-12),s,q);
+   const travel=clamp((u-.35-i*.06)*2);if(travel>0&&travel<1){const mid=(104+yy-17)/2,inv=1-travel,tx=cx*inv*inv*inv+3*cx*inv*inv*travel+3*xx*inv*travel*travel+xx*travel*travel*travel,ty=104*inv*inv*inv+3*mid*inv*inv*travel+3*mid*inv*travel*travel+(yy-17)*travel*travel*travel;out+=dot(tx,ty,4,.85);}
+  });
+  if(chapter===2)out+=text(cx,height-22,'2 ability branches');
+  if(chapter===3)out+=text(cx,height-22,'149 options here · shared item restriction');
+  if(chapter===4){for(let k=0;k<18;k++){const q=ease((u-.4)*2),x=18+(k%9)*(width-36)/8,y=height-51-Math.floor(k/9)*10;out+=dot(x,y,2,q*.35)}out+=text(cx,height-16,'58 moves → 424,270 sets of four');}
+  if(chapter===5)out+=text(cx,height-22,'21 distinct alignments per member');
+ }else if(chapter===6){
+  out+=portrait(0,cx,35,60,1,false);
+  const sets=[[2,32,0,0,0,32],[32,0,32,0,2,0],[20,20,4,0,2,20]],v=Math.min(1.999,u*2.2),a=Math.floor(v),p=ease(v-a),labels=['HP','Attack','Defense','Sp. Atk','Sp. Def','Speed'];
+  const raw=sets[a].map((v,i)=>mix(v,sets[a+1][i],p)),values=raw.map(Math.floor),order=raw.map((v,i)=>i).sort((i,j)=>(raw[j]-values[j])-(raw[i]-values[i]));for(let j=0,left=66-values.reduce((s,v)=>s+v,0);j<left;j++)values[order[j]]++;
+  for(let i=0;i<6;i++){const value=values[i],y=93+i*31,start=narrow?83:135,end=width-42;out+=text(start-10,y+4,labels[i],'end');out+=`<rect x="${start}" y="${y-7}" width="${end-start}" height="12" fill="var(--border)" opacity=".4"/><rect class="mark" x="${start}" y="${y-7}" width="${(end-start)*value/32}" height="12"/>`;out+=text(end+10,y+4,String(value),'start');}
+  out+=text(cx,height-9,'10,008,272 allocations · 66 SP in total');
+ }else{
+  const p=ease(u*2);
+  for(let i=0;i<6;i++){const r=row(i),x=mix(cx,r.x,p),y=mix(35,r.y,p);out+=portrait(i,x,y,narrow?47:58,1,p>.7);for(let b=0;b<5;b++){let xx=x+(b-2)*(narrow?10:13),yy=y+(narrow?67:86);out+=line(x,y+30,xx,yy,.55*p)+dot(xx,yy,2,p*.6);}}
+  const base=narrow?225:174;
+  for(let j=0;j<144;j++){const col=j%24,r=Math.floor(j/24),q=ease((u-.18)*2.6-r*.09),x=mix(cx,12+col*(width-24)/23,q),y=mix(base-10,base+r*13,q);out+=dot(x,y,2.2,.5*q);}
+  out+=text(cx,height-12,'≈ 4.17 × 10¹¹¹ complete configurations');
+ }
+ svg.innerHTML=out;
+ seek.value=t;const sec=Math.floor(t);root.querySelector('[data-time]').textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')} / 1:36`;
+ seek.setAttribute('aria-valuetext',`${sec} seconds: ${chapters[chapter][0]}`);
+}
+function stop(){running=false;cancelAnimationFrame(raf);play.textContent=t>=duration?'Play again':'Play animation';}
+function frame(now){if(!running)return;t=Math.min(duration,t+Math.max(0,now-last)/1000);last=now;draw();if(t>=duration)stop();else raf=requestAnimationFrame(frame);}
+function start(){if(t>=duration)t=0;running=true;last=performance.now();play.textContent='Pause';raf=requestAnimationFrame(frame);}
+play.addEventListener('click',()=>running?stop():start());
+root.querySelector('[data-replay]').addEventListener('click',()=>{stop();t=0;draw();start()});
+seek.addEventListener('input',()=>{stop();t=Number(seek.value);draw()});
+new ResizeObserver(()=>{width=svg.clientWidth;height=width<450?340:310;svg.setAttribute('viewBox',`0 0 ${width} ${height}`);draw()}).observe(svg);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
+draw();
+})();
+</script>

@@ -1,0 +1,87 @@
+import {test,expect} from '@playwright/test';
+
+test('opening draft, suggestion navigation, local assets, and responsive layout', async ({page}) => {
+  const errors = [];
+  const remote = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('request', r => {if (!r.url().startsWith('http://127.0.0.1:5058')) remote.push(r.url());});
+  await page.goto('/documents/1');
+  await expect(page.locator('#editor .tiptap')).toContainText('I left the engine running.');
+  await expect(page.locator('#suggestion-position')).toHaveText('1 of 2 suggestions');
+  await page.getByRole('button',{name:'Next suggestion'}).click();
+  await expect(page.locator('#suggestion-position')).toHaveText('2 of 2 suggestions');
+  await expect(page.locator('#editor .active-annotation')).toContainText('blue cup');
+  await page.getByRole('button',{name:'Previous suggestion'}).click();
+  await expect(page.locator('#editor .active-annotation')).toContainText('windows were open');
+  await page.screenshot({path:'test-results/desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await expect(page.locator('#editor .tiptap')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.screenshot({path:'test-results/mobile.png',fullPage:true});
+  expect(errors).toEqual([]);
+  expect(remote).toEqual([]);
+});
+
+test('create, annotate, edit, autosave, checkpoint, flag, and restore a draft', async ({page}) => {
+  await page.goto('/documents/1');
+  await page.getByRole('button',{name:'New document',exact:true}).click();
+  await page.getByLabel('Document title',{exact:true}).last().fill('Browser workshop draft');
+  await page.getByRole('button',{name:'Create document',exact:true}).click();
+  await expect(page.locator('#document-title')).toHaveValue('Browser workshop draft');
+  const url = page.url();
+  await page.locator('#editor .tiptap').click();
+  await page.keyboard.type('/');
+  await expect(page.getByRole('menu',{name:'Insert a block'})).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#editor h1')).toBeVisible();
+  await page.evaluate(() => window.workshop.editor.commands.setParagraph());
+  await page.locator('#editor .tiptap').fill('A quiet first sentence. Another thought.');
+  await page.evaluate(() => window.workshop.editor.commands.setTextSelection({from:1,to:23}));
+  await page.getByRole('button',{name:'Highlight & note'}).click();
+  await page.getByLabel('Commentary',{exact:true}).fill('Make this opening more vivid.');
+  await page.getByLabel('Suggested wording').fill('A vivid first sentence.');
+  await page.getByRole('button',{name:'Add highlighted note'}).click();
+  await expect(page.locator('#editor mark')).toHaveText('A quiet first sentence');
+  // Inserting before the highlighted passage must keep its annotation linked.
+  await page.evaluate(() => {window.workshop.editor.commands.setTextSelection(1);window.workshop.editor.commands.insertContent('Prelude. ');});
+  await expect(page.locator('#editor mark')).toHaveText('A quiet first sentence');
+  await page.getByRole('button',{name:'Save revision',exact:true}).click();
+  await page.getByLabel('Revision name').fill('Before line edit');
+  await page.getByLabel('Flag as a major revision').check();
+  await page.locator('#checkpoint-dialog').getByRole('button',{name:'Save revision',exact:true}).click();
+  await expect(page.locator('#checkpoint-dialog')).not.toBeVisible();
+  await page.getByRole('button',{name:'Accept wording'}).click();
+  await expect(page.locator('#editor .tiptap')).toContainText('A vivid first sentence.');
+  await expect(page.locator('#open-count')).toHaveText('0');
+  await page.evaluate(() => window.workshop.save());
+  await page.reload();
+  await expect(page.locator('#editor .tiptap')).toContainText('A vivid first sentence.');
+  await page.getByRole('button',{name:'History',exact:true}).click();
+  const checkpoint = page.locator('.history-row').filter({hasText:'Before line edit'});
+  await expect(checkpoint).toContainText('Major');
+  await checkpoint.getByRole('button',{name:'Unflag major revision'}).click();
+  await expect(checkpoint).not.toContainText('Major');
+  await checkpoint.locator('.revision-open').click();
+  await expect(page.locator('#preview-editor')).toContainText('A quiet first sentence');
+  await page.getByRole('button',{name:'Restore this revision'}).click();
+  await expect(page.locator('#history-dialog')).not.toBeVisible();
+  await expect(page.locator('#editor .tiptap')).toContainText('Prelude. A quiet first sentence');
+  await expect(page.locator('#open-count')).toHaveText('1');
+  await expect(page.locator('#notes-list')).toContainText('Make this opening more vivid.');
+  expect(page.url()).toBe(url);
+});
+
+test('another tab cannot silently overwrite a newer draft', async ({page,context}) => {
+  await page.goto('/documents/2');
+  const other = await context.newPage();
+  await other.goto('/documents/2');
+  await page.locator('#document-title').fill('Saved from first tab');
+  await page.evaluate(() => window.workshop.save());
+  await other.locator('#document-title').fill('Outdated tab title');
+  await other.evaluate(() => window.workshop.save());
+  await expect(other.locator('#toast')).toContainText('changed in another tab');
+  await expect(other.locator('#save-status')).toContainText('Save failed');
+  await page.reload();
+  await expect(page.locator('#document-title')).toHaveValue('Saved from first tab');
+});
