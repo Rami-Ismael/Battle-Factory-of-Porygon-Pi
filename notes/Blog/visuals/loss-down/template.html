@@ -1,0 +1,393 @@
+<title>Loss-Down Retrain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~66ch) in the Distill manner; figures break out wider; every number lives in a figure or the prose next to it. */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --ink: #14161b; --ink-2: #474d59; --ink-3: #737b8a; --rule: #dadee6;
+  --new: #2a78d6; --old: #eb6834; --refline: #737b8a; --focus: #2a78d6;
+  --h0: #edf2fa; --h1: #cde2fb; --h2: #9ec5f4; --h3: #6da7ec; --h4: #3987e5; --h5: #1c5cab; --h6: #0d366b;
+  --hi-lo: #14161b; --hi-hi: #ffffff;
+  --font-body: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --col: 42rem; --wide: 60rem;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a;
+  --new: #3987e5; --old: #d95926; --refline: #8a91a0; --focus: #6da7ec;
+  --h0: #1a202b; --h1: #12345f; --h2: #184f95; --h3: #256abf; --h4: #3987e5; --h5: #6da7ec; --h6: #b7d3f6;
+  --hi-lo: #eceef2; --hi-hi: #0b1220; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a;
+  --new: #3987e5; --old: #d95926; --refline: #8a91a0; --focus: #6da7ec;
+  --h0: #1a202b; --h1: #12345f; --h2: #184f95; --h3: #256abf; --h4: #3987e5; --h5: #6da7ec; --h6: #b7d3f6;
+  --hi-lo: #eceef2; --hi-hi: #0b1220; color-scheme: dark; }
+
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.65; }
+.page { padding-inline: 1rem; padding-block: 2.5rem 4rem; display: grid; gap: 2.25rem; justify-items: center; }
+.page > * { width: 100%; max-width: var(--col); min-width: 0; }
+.page > .wide { max-width: var(--wide); }
+h1, h2, h3 { font-family: var(--font-ui); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 600; letter-spacing: -0.015em; }
+h2 { font-size: 1.4rem; font-weight: 600; }
+p { margin: 0; }
+.stack { display: grid; gap: 1rem; }
+.kicker { font-family: var(--font-ui); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.dek { font-size: 1.2rem; color: var(--ink-2); line-height: 1.55; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+.headline { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; border-block: 1px solid var(--rule); padding-block: 1.1rem; }
+.headline div { display: grid; gap: 0.2rem; min-width: 0; }
+.headline b { font-family: var(--font-mono); font-weight: 500; font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+.headline > div > span { font-family: var(--font-ui); font-size: 0.83rem; color: var(--ink-2); line-height: 1.4; }
+figure { margin: 0; display: grid; gap: 0.75rem; }
+figcaption { font-family: var(--font-ui); font-size: 0.86rem; color: var(--ink-2); line-height: 1.5; }
+figcaption b { color: var(--ink); font-weight: 600; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; min-width: 0; }
+.ui { font-family: var(--font-ui); font-size: 0.9rem; }
+.note { font-family: var(--font-ui); font-size: 0.86rem; color: var(--ink-2); }
+a { color: var(--new); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* controls */
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.seg button { font: 500 0.86rem var(--font-ui); background: transparent; color: var(--ink-2); border: 0; padding: 0.45rem 0.8rem; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; justify-content: space-between; }
+.total { font-family: var(--font-ui); font-size: 0.92rem; color: var(--ink-2); }
+.total b { font-family: var(--font-mono); font-weight: 500; font-size: 1.25rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* figure 1: the team grid */
+.scroll { overflow-x: auto; }
+.team { display: grid; grid-template-columns: 4.6rem repeat(6, minmax(6.4rem, 1fr)); gap: 3px; min-width: 44rem; }
+.team .mon { display: grid; justify-items: center; gap: 0.1rem; padding-bottom: 0.3rem; font: 600 0.82rem var(--font-ui); text-align: center; }
+.team .mon img { width: 64px; height: 64px; image-rendering: pixelated; }
+.team .rowlab { font: 500 0.74rem var(--font-ui); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; align-self: center; }
+.cell { position: relative; font: 0.78rem/1.25 var(--font-ui); text-align: left; border: 0; border-radius: 3px; padding: 0.42rem 0.45rem 0.9rem; cursor: pointer;
+        background: var(--h0); color: var(--hi-lo); min-height: 3.1rem; display: flex; gap: 0.3rem; align-items: flex-start; transition: background-color .25s; }
+.cell img { width: 20px; height: 22px; flex: none; image-rendering: pixelated; }
+.cell .v { min-width: 0; overflow-wrap: anywhere; }
+.cell .n { position: absolute; right: 0.35rem; bottom: 0.2rem; font: 0.68rem var(--font-mono); opacity: 0.85; }
+.cell .s { position: absolute; left: 0.45rem; bottom: 0.2rem; font: 0.62rem var(--font-mono); opacity: 0.6; }
+.cell[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+.team.dim .cell:not(.lit) { opacity: 0.28; }
+@media (prefers-reduced-motion: reduce) { .cell { transition: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; font: 0.78rem var(--font-ui); color: var(--ink-2); }
+.ramp { display: flex; gap: 2px; }
+.ramp span { display: grid; place-items: center; min-width: 2.6rem; height: 1.4rem; border-radius: 2px; font: 0.68rem var(--font-mono); }
+.detail { font-family: var(--font-ui); font-size: 0.9rem; line-height: 1.55; border-left: 3px solid var(--new); padding: 0.2rem 0 0.2rem 0.8rem; min-height: 4.5rem; }
+.detail .row { display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; }
+.detail .row span { white-space: nowrap; }
+.key-old { color: var(--old); } .key-new { color: var(--new); }
+.swatch { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 2px; vertical-align: -0.05rem; margin-right: 0.3rem; }
+
+/* svg charts */
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: var(--font-ui); fill: var(--ink-2); }
+svg .t-ink { fill: var(--ink); }
+svg .t-mono { font-family: var(--font-mono); }
+svg .grid { stroke: var(--rule); stroke-width: 1; }
+svg .hit { fill: transparent; cursor: default; }
+.tip { position: fixed; z-index: 10; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-radius: 5px;
+       padding: 0.45rem 0.6rem; font: 0.8rem/1.45 var(--font-ui); box-shadow: 0 4px 14px rgb(0 0 0 / 0.14); max-width: 18rem; }
+details { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); }
+details summary { cursor: pointer; }
+table { border-collapse: collapse; font-size: 0.82rem; margin-top: 0.5rem; }
+td, th { padding: 0.25rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; font-variant-numeric: tabular-nums; }
+td:first-child, th:first-child { text-align: left; }
+.tried { display: grid; gap: 0.35rem; font-family: var(--font-ui); font-size: 0.88rem; }
+.tried div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.35rem; }
+.tried em { font-style: normal; color: var(--ink-3); font-size: 0.8rem; }
+.pending { font-family: var(--font-ui); color: var(--ink-3); padding: 2rem 1rem; text-align: center; }
+.err { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 20; background: var(--panel); color: var(--ink); border: 1px solid var(--old);
+       border-radius: 6px; padding: 0.7rem 0.9rem; font: 0.85rem/1.45 var(--font-ui); }
+footer { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 1.2rem; display: grid; gap: 0.6rem; }
+footer code { font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: anywhere; }
+</style>
+
+<main class="page">
+  <header class="stack">
+    <div class="kicker">Team diffusion · held-out loss · 2026-10-08</div>
+    <h1>Loss-Down Retrain</h1>
+    <p class="dek">The diffusion model that writes VGC teams now predicts teams it has never seen with 40% less surprise. This page shows where that 40% came from on one real team, then asks the question the loss cannot answer: do its teams win more?</p>
+  </header>
+
+  <section class="headline" aria-label="Headline numbers">
+    <div><b><span id="h-old">2.362</span> → <span id="h-new">1.418</span></b><span>nats per field: exact loss of the generator as it samples, on 500 held-out teams</span></div>
+    <div><b id="h-diff">−0.944 ± 0.010</b><span>paired change, same 500 teams; every one of them is predicted better</span></div>
+    <div><b>146,994</b><span>teams gathered from the matrix and every experiment log; the final mix learns from the loop teams and all 9,272 matrix teams</span></div>
+  </section>
+
+  <section class="stack">
+    <h2>What the loss counts</h2>
+    <p>A team is 48 fields: six Pokémon, each with a species, an ability, an item, four moves and a nature. To score a team, the model reveals it one field at a time in a fixed order (all six species, then abilities and items, then moves, then natures). Before each reveal it says how likely every value is. If it gave the true value probability <i>p</i>, it pays −ln <i>p</i> nats of surprise. Certainty costs 0, a coin flip 0.69, a one-in-a-hundred guess 4.6.</p>
+    <p>The loss is the average surprise per field over 500 teams the model never trained on. Below is one of them, a Sand team the search loops wrote in September. Switch models to see where the surprise sits, and click any field for its numbers.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-team">
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Model">
+        <button type="button" id="m-old" data-m="old" aria-pressed="false">Old model</button>
+        <button type="button" id="m-oldm" data-m="old_masked" aria-pressed="false">Old + legal masks</button>
+        <button type="button" id="m-new" data-m="new" aria-pressed="true">New model</button>
+      </div>
+      <div class="total">This team costs <b id="t-total">69.9</b> nats · <b id="t-avg">1.46</b> per field</div>
+    </div>
+    <div class="scroll"><div class="team" id="team"></div></div>
+    <div class="legend"><span>Surprise per field (nats)</span><div class="ramp" id="ramp"></div><span>Small number bottom-left: reveal order, 1–48</span></div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+    <figcaption><b>Figure 1.</b> One held-out team, field by field. Shading is the surprise the chosen model paid for the true value when it was revealed. The old model is <code>asked_vs_got.pt</code>; “legal masks” keeps its weights but rules out values the visible fields make impossible; the new model is the final F1 + G2 mix.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <p>Three things stand out. Abilities go from expensive to nearly free as soon as impossible values are ruled out: once Gallade is on the page, only two abilities are legal. The species row barely moves under any model, because picking six Pokémon is the genuinely open part of team building. And the single most surprising field for every model is Muddy Water on Tyranitar, a legal but unusual move; the new model’s best guess there was Protect.</p>
+  </section>
+
+  <section class="stack">
+    <h2>Why the order matters</h2>
+    <p>A legality mask only helps when the field it depends on is already visible. Gallade’s ability depends on its species, so if the species is revealed first, the ability question has two possible answers. The old model was trained to fill fields in random order, so it often faced the ability before anyone knew the species. Figure 2 counts the legal options at the moment each field is predicted, averaged over the 500 test teams.</p>
+  </section>
+
+  <figure class="panel" id="fig-order">
+    <div class="legend" id="order-legend"></div>
+    <div id="order-chart"></div>
+    <figcaption><b>Figure 2.</b> Legal values left when a field is predicted. Species first leaves the first species wide open and pins everything after it down; a random order does the reverse. Hover a row to light up those fields in Figure 1.</figcaption>
+    <details><summary>Table</summary><div id="order-table"></div></details>
+  </figure>
+
+  <section class="stack">
+    <p>Masked-diffusion papers give the training-side version of this: let different fields unmask at different times, so the model learns the order it will be used in (Shi et al., NeurIPS 2024; Garg et al., 2025). Species first, then ability and item, then moves, then nature is also the order every search loop already decodes in. Making training match it was worth about 0.04 nats per field on top of the masks.</p>
+  </section>
+
+  <section class="stack">
+    <h2>The staircase</h2>
+    <p>Each step below changes one thing. The value is the exact loss of the generator as it samples, on the same 500 teams; Δ is the paired change from the step above, with its standard error over teams.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-stairs">
+    <div id="stairs-chart"></div>
+    <figcaption><b>Figure 3.</b> From the old model to the final mix, one change at a time. The first drop uses the old model’s own weights: it was spreading probability over impossible teams.</figcaption>
+    <details><summary>Table</summary><div id="stairs-table"></div></details>
+  </figure>
+
+  <section class="stack">
+    <p class="note"><b>Tried, no gain.</b> Lower is better; the second number is the comparison.</p>
+    <div class="tried" id="tried"></div>
+    <p>The other ~120k teams in the logs (the temperature campaign, cem and reverse-score runs, random fills, HPS) never lowered the loss on these test teams, whether mixed in directly or used for pretraining. They come from different generators at different temperatures, so they teach a different distribution.</p>
+  </section>
+
+  <section class="stack">
+    <h2>Who a team beats</h2>
+    <p>The matchup matrix stores each team’s result against every top-50 meta team. Is that row informative about the team itself, beyond its overall win rate? A model was trained to read the row, and 1,000 matrix teams it never saw were scored three ways on the same masks: with nothing, with the win rate, and with the win rate plus the row.</p>
+  </section>
+
+  <figure class="panel" id="fig-matrix">
+    <div id="matrix-chart"></div>
+    <figcaption><b>Figure 4.</b> Information each condition carries about a held-out team, in nats per team (the drop in its loss). The per-opponent row adds about two-thirds as much as the win rate itself, measured from one battle per cell. That is the evidence that “write a team that beats these opponents” has signal to learn from.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <h2>Does a better fit write better teams?</h2>
+    <p>Why battle at all: the loss only measures how well the model predicts teams the search loops already wrote, and most of those teams lose three battles in four (the 500 test teams have a median win rate of <span class="num" id="test-median">–</span>). A model can get much better at predicting weak teams without getting better at writing strong ones. The only measure of the second is to battle what it writes.</p>
+    <p>The protocol copies the asked-vs-got experiment of 2026-10-04 exactly, so the old model’s numbers compare cell for cell: 64 Showdown-valid teams per cell, either unconditioned or asked for a win rate of 0.3, 0.5 or 0.7 at guidance 1, 2 or 4; one battle against each top-50 team; the VGC-Bench behaviour-cloning policy on both sides; corpus Stat Point spreads. A top-50 team scores <span class="num">0.531</span> against the other 49.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-battle">
+    <div class="legend" id="battle-legend"></div>
+    <div id="battle-chart"></div>
+    <figcaption id="battle-cap"><b>Figure 5.</b> Win rate against the top 50 by cell, old model vs new, ±1 standard error over teams (64 teams × 49 battles per cell). The dashed line is a real top-50 team.</figcaption>
+    <details><summary>Table</summary><div id="battle-table"></div></details>
+  </figure>
+  <section class="stack" id="battle-read"></section>
+
+  <footer>
+    <p><b>Exact loss vs ELBO.</b> Training minimizes the ELBO, a bound averaged over random reveal orders. The numbers here are the exact loss of the fixed order the generator actually samples in (DUEL, ICML 2026), which is lower and needs no bound. Both fall by about 40%; the write-up has both.</p>
+    <p><b>Test set.</b> The 500 held-out teams from asked_vs_got’s split, conditioned on their win-rate labels; every copy of them was removed from all training data.</p>
+    <p><b>Files.</b> <code>docs/loss-down.md</code>, <code>src/lossdown.py</code>, <code>src/lossdown_battle.py</code>, <code>results/lossdown.json</code>, <code>results/lossdown_battle.json</code> in vgc-team-generator-pilot.</p>
+  </footer>
+</main>
+<div class="tip" id="tip" hidden></div>
+<div class="err" id="err" role="alert" hidden></div>
+
+<script type="application/json" id="lossdown-data">/*DATA*/null</script>
+<script type="module">
+const errBox = document.getElementById("err");
+const report = m => { errBox.hidden = false; errBox.textContent = "Something on this page failed to run: " + m; };
+addEventListener("error", e => report(e.message));
+try {
+const D = JSON.parse(document.getElementById("lossdown-data").textContent);
+const $ = (s, r = document) => r.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+const fmt = (x, d = 3) => (x < 0 ? "−" : "") + Math.abs(x).toFixed(d);
+const pct = p => p >= 0.995 ? ">99%" : p < 0.001 ? "<0.1%" : (p * 100).toFixed(p < 0.1 ? 1 : 0) + "%";
+
+/* tooltip */
+const tip = $("#tip");
+function showTip(html, ev) { tip.innerHTML = html; tip.hidden = false; moveTip(ev); }
+function moveTip(ev) { const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8); const y = Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 8); tip.style.left = x + "px"; tip.style.top = y + "px"; }
+function hideTip() { tip.hidden = true; }
+function bindTip(node, html) { node.addEventListener("pointerenter", e => showTip(html, e)); node.addEventListener("pointermove", moveTip); node.addEventListener("pointerleave", hideTip); }
+
+/* headline */
+$("#h-old").textContent = D.head.old.toFixed(3); $("#h-new").textContent = D.head.new.toFixed(3);
+$("#h-diff").textContent = `${fmt(D.head.diff[0])} ± ${D.head.diff[1].toFixed(3)}`;
+$("#test-median").textContent = D.team.test_median != null ? D.team.test_median.toFixed(3) : "low";
+
+/* ---------- Figure 1 ---------- */
+const BINS = [0.1, 0.5, 1, 2, 3, 4.5];
+const bin = n => { let i = 0; while (i < BINS.length && n >= BINS[i]) i++; return i; };
+const ramp = $("#ramp");
+["0", "0.1", "0.5", "1", "2", "3", "4.5+"].forEach((lab, i) => { const s = document.createElement("span"); s.textContent = lab; s.style.background = `var(--h${i})`; s.style.color = i >= 4 ? "var(--hi-hi)" : "var(--hi-lo)"; ramp.appendChild(s); });
+const ROWS = [["species", "Species"], ["ability", "Ability"], ["item", "Item"], ["m0", "Move 1"], ["m1", "Move 2"], ["m2", "Move 3"], ["m3", "Move 4"], ["nature", "Nature"]];
+const byCol = {}; for (const m of Object.keys(D.team.walks)) { byCol[m] = {}; for (const s of D.team.walks[m]) byCol[m][s.col] = s; }
+const grid = $("#team"); grid.appendChild(document.createElement("div"));
+D.team.species.forEach((name, i) => { const d = document.createElement("div"); d.className = "mon"; const im = new Image(); im.src = D.sprites[D.team.species_id[i]]; im.alt = ""; d.append(im, name); grid.appendChild(d); });
+const cells = {};
+ROWS.forEach(([f, lab], r) => {
+  const l = document.createElement("div"); l.className = "rowlab"; l.textContent = lab; grid.appendChild(l);
+  for (let s = 0; s < 6; s++) {
+    const col = s * 8 + r, st = byCol.new[col];
+    const b = document.createElement("button"); b.type = "button"; b.className = "cell"; b.dataset.col = col; b.dataset.key = st.key;
+    if (f === "item" && D.items[st.truth]) { const im = new Image(); im.src = D.items[st.truth]; im.alt = ""; b.appendChild(im); }
+    const v = document.createElement("span"); v.className = "v"; v.textContent = st.truth; b.appendChild(v);
+    const n = document.createElement("span"); n.className = "n"; b.appendChild(n);
+    const sp = document.createElement("span"); sp.className = "s"; sp.textContent = st.step + 1; b.appendChild(sp);
+    b.setAttribute("aria-pressed", "false");
+    grid.appendChild(b); cells[col] = b;
+  }
+});
+let model = "new", picked = null;
+function paint() {
+  let tot = 0;
+  for (const [col, b] of Object.entries(cells)) {
+    const st = byCol[model][col]; tot += st.nats; const k = bin(st.nats);
+    b.style.background = `var(--h${k})`; b.style.color = k >= 4 ? "var(--hi-hi)" : "var(--hi-lo)";
+    b.querySelector(".n").textContent = st.nats.toFixed(2);
+    b.setAttribute("aria-label", `${D.team.species[Math.floor(col / 8)]} ${ROWS[col % 8][1]}: ${st.truth}, ${st.nats.toFixed(2)} nats`);
+  }
+  $("#t-total").textContent = tot.toFixed(1); $("#t-avg").textContent = (tot / 48).toFixed(2);
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === model)));
+}
+function select(col) {
+  picked = col;
+  Object.values(cells).forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.col === col)));
+  const o = byCol.old[col], m = byCol.old_masked[col], n = byCol.new[col];
+  const mon = D.team.species[Math.floor(col / 8)], lab = ROWS[col % 8][1];
+  $("#detail").innerHTML = `<div><b>${mon} · ${lab}: ${n.truth}</b> <span class="note">(revealed ${n.step + 1} of 48)</span></div>
+    <div class="row"><span><span class="swatch" style="background:var(--old)"></span>Old ${pct(o.p)} · ${o.nats.toFixed(2)} nats</span>
+    <span>Old + masks ${pct(m.p)} · ${m.nats.toFixed(2)} nats</span>
+    <span><span class="swatch" style="background:var(--new)"></span>New ${pct(n.p)} · ${n.nats.toFixed(2)} nats</span></div>
+    <div class="note">Legal values at that moment: ${n.legal} of ${n.vocab}. New model’s top guesses: ${n.top.filter(([v, p]) => v !== "[MASK]" && p >= 0.001).map(([v, p]) => `${v} ${pct(p)}`).join(", ")}.</div>`;
+}
+grid.addEventListener("click", e => { const b = e.target.closest(".cell"); if (b) select(+b.dataset.col); });
+$("#fig-team .seg").addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (!b) return; model = b.dataset.m; paint(); });
+paint();
+select(D.team.walks.new.find(s => s.key === "ability" && s.slot === D.team.species.indexOf("Gallade"))?.col ?? 10);
+
+/* ---------- Figure 2: options at prediction time ---------- */
+(function () {
+  const keys = [["ability", "Ability"], ["move", "Moves"], ["item", "Item"], ["species", "Species"], ["nature", "Nature"]];
+  const O = D.options, W = 640, rowH = 46, top = 22, left = 76, right = 40, H = top + keys.length * rowH + 26;
+  const max = 200, x = v => left + (W - left - right) * v / max;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Legal values when each field is predicted, species-first order versus random order" });
+  for (const t of [0, 50, 100, 150, 200]) { el("line", { x1: x(t), x2: x(t), y1: top - 6, y2: H - 24, class: "grid" }, svg); const tx = el("text", { x: x(t), y: H - 8, "text-anchor": "middle", "font-size": 11 }, svg); tx.textContent = t; }
+  keys.forEach(([k, lab], i) => {
+    const y0 = top + i * rowH, g = el("g", { "data-key": k }, svg);
+    const tl = el("text", { x: left - 10, y: y0 + rowH / 2 + 1, "text-anchor": "end", "font-size": 15, class: "t-ink" }, g); tl.textContent = lab;
+    [["deployed", "var(--new)", 0], ["random", "var(--old)", 1]].forEach(([s, c, j]) => {
+      const v = O[s][k], y = y0 + 6 + j * 16;
+      el("rect", { x: left, y, width: Math.max(2, x(v) - left), height: 13, rx: 2, fill: c }, g);
+      const t = el("text", { x: x(v) + 5, y: y + 11, "font-size": 12.5, class: "t-mono" }, g); t.textContent = v.toFixed(1);
+    });
+    const hit = el("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit" }, g);
+    bindTip(hit, `<b>${lab}</b><br>Species first: ${O.deployed[k].toFixed(1)} legal values<br>Random order: ${O.random[k].toFixed(1)}<br>Vocabulary: ${O.vocab[k]}`);
+    hit.addEventListener("pointerenter", () => light(k)); hit.addEventListener("pointerleave", () => light(null));
+  });
+  $("#order-chart").appendChild(svg);
+  $("#order-legend").innerHTML = `<span><span class="swatch" style="background:var(--new)"></span>Species first (how the generator samples)</span><span><span class="swatch" style="background:var(--old)"></span>Random order (how the old model trained)</span>`;
+  $("#order-table").innerHTML = `<table><tr><th>Field</th><th>Species first</th><th>Random order</th><th>Vocabulary</th></tr>${keys.map(([k, l]) => `<tr><td>${l}</td><td>${O.deployed[k]}</td><td>${O.random[k]}</td><td>${O.vocab[k]}</td></tr>`).join("")}</table>`;
+})();
+function light(k) { const g = $("#team"); g.classList.toggle("dim", !!k); Object.values(cells).forEach(b => b.classList.toggle("lit", b.dataset.key === k)); }
+
+/* ---------- Figure 3: staircase ---------- */
+(function () {
+  const S = D.stairs, W = 860, rowH = 50, top = 30, left = 300, right = 150, H = top + S.length * rowH + 30;
+  const lo = 1.3, hi = 2.45, x = v => left + (W - left - right) * (v - lo) / (hi - lo);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Exact loss after each change, from 2.362 to 1.418 nats per field" });
+  for (const t of [1.4, 1.6, 1.8, 2.0, 2.2, 2.4]) { el("line", { x1: x(t), x2: x(t), y1: top - 10, y2: H - 26, class: "grid" }, svg); const tx = el("text", { x: x(t), y: H - 6, "text-anchor": "middle", "font-size": 13, class: "t-mono" }, svg); tx.textContent = t.toFixed(1); }
+  const ax = el("text", { x: x(hi), y: top - 16, "text-anchor": "end", "font-size": 13 }, svg); ax.textContent = "nats per field →";
+  S.forEach((s, i) => {
+    const y = top + i * rowH + rowH / 2;
+    const a = el("text", { x: 0, y: y - 4, "font-size": 16, class: "t-ink" }, svg); a.textContent = s.label;
+    const b = el("text", { x: 0, y: y + 14, "font-size": 12.5 }, svg); b.textContent = s.note;
+    if (i) el("line", { x1: x(S[i - 1].nll), x2: x(s.nll), y1: y - rowH, y2: y, stroke: "var(--new)", "stroke-width": 2, "stroke-opacity": 0.45 }, svg);
+    el("circle", { cx: x(s.nll), cy: y, r: 6, fill: i ? "var(--new)" : "var(--old)", stroke: "var(--panel)", "stroke-width": 2 }, svg);
+    const v = el("text", { x: x(s.nll) + 11, y: y + 5, "font-size": 14, class: "t-ink t-mono" }, svg); v.textContent = s.nll.toFixed(3);
+    if (i) { const d = el("text", { x: W, y: y + 5, "text-anchor": "end", "font-size": 13, class: "t-mono" }, svg); d.textContent = `Δ ${fmt(s.delta)} ± ${s.se.toFixed(3)}`; }
+    const hit = el("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, class: "hit" }, svg);
+    bindTip(hit, `<b>${s.label}</b><br>${s.note}<br>Exact loss ${s.nll.toFixed(3)} nats/field${i ? `<br>Change ${fmt(s.delta)} ± ${s.se.toFixed(3)} (paired, 500 teams)` : ""}`);
+  });
+  $("#stairs-chart").appendChild(svg);
+  $("#stairs-table").innerHTML = `<table><tr><th>Step</th><th>Exact loss</th><th>Δ</th><th>± SE</th></tr>${S.map((s, i) => `<tr><td>${s.label}</td><td>${s.nll.toFixed(3)}</td><td>${i ? fmt(s.delta) : ""}</td><td>${i ? s.se.toFixed(3) : ""}</td></tr>`).join("")}</table>`;
+  $("#tried").innerHTML = D.tried.map(t => `<div><span>${t.label} <em>${t.unit}</em></span><span class="num">${t.ours.toFixed(3)} vs ${t.ref.toFixed(3)}</span></div>`).join("");
+})();
+
+/* ---------- Figure 4: matrix information ---------- */
+(function () {
+  const M = D.matrix, W = 640, H = 104, left = 10, right = 10, tot = M.scalar + M.row, x = v => left + (W - left - right) * v / 2;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Win rate carries ${M.scalar} nats per team; the matchup row adds ${M.row}` });
+  for (const t of [0, 0.5, 1, 1.5, 2]) { el("line", { x1: x(t), x2: x(t), y1: 26, y2: 70, class: "grid" }, svg); const tx = el("text", { x: x(t), y: 88, "text-anchor": t ? (t === 2 ? "end" : "middle") : "start", "font-size": 11, class: "t-mono" }, svg); tx.textContent = t.toFixed(1); }
+  const r1 = el("rect", { x: x(0), y: 32, width: x(M.scalar) - x(0) - 1, height: 30, rx: 3, fill: "var(--h3)" }, svg);
+  const r2 = el("rect", { x: x(M.scalar) + 1, y: 32, width: x(tot) - x(M.scalar) - 1, height: 30, rx: 3, fill: "var(--new)" }, svg);
+  const a = el("text", { x: x(M.scalar / 2), y: 20, "text-anchor": "middle", "font-size": 12, class: "t-ink" }, svg); a.textContent = `Win rate: ${M.scalar.toFixed(2)} ± ${M.scalar_se.toFixed(2)}`;
+  const b = el("text", { x: x(M.scalar + M.row / 2), y: 20, "text-anchor": "middle", "font-size": 12, class: "t-ink" }, svg); b.textContent = `+ row: ${M.row.toFixed(2)} ± ${M.row_se.toFixed(2)}`;
+  const c = el("text", { x: W - right, y: 102, "text-anchor": "end", "font-size": 11 }, svg); c.textContent = "nats per team";
+  bindTip(r1, `<b>Win rate as the condition</b><br>${M.scalar.toFixed(3)} ± ${M.scalar_se.toFixed(3)} nats per team<br>1,000 held-out matrix teams, paired`);
+  bindTip(r2, `<b>Win rate + per-opponent row</b><br>${M.row.toFixed(3)} ± ${M.row_se.toFixed(3)} more nats per team`);
+  $("#matrix-chart").appendChild(svg);
+})();
+
+/* ---------- Figure 5: battles ---------- */
+(function () {
+  const B = D.battle;
+  if (!B) { $("#battle-chart").innerHTML = `<p class="pending">Battles are still running.</p>`; return; }
+  const W = 860, H = 330, top = 20, bottom = 58, left = 46, right = 12, lo = 0, hi = 0.6;
+  const y = v => top + (H - top - bottom) * (1 - (v - lo) / (hi - lo));
+  const groups = [["Unconditioned", B.filter(b => b.asked == null)], ...[1, 2, 4].map(g => [`Guidance ${g}`, B.filter(b => b.asked != null && b.guidance === g).sort((a, b) => a.asked - b.asked)])];
+  const slots = groups.reduce((n, [, cs]) => n + cs.length, 0) + groups.length - 1;
+  const step = (W - left - right) / slots;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Win rate against the top 50 by cell, old versus new model" });
+  for (const t of [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]) { el("line", { x1: left, x2: W - right, y1: y(t), y2: y(t), class: "grid" }, svg); const tx = el("text", { x: left - 8, y: y(t) + 4, "text-anchor": "end", "font-size": 11, class: "t-mono" }, svg); tx.textContent = t.toFixed(1); }
+  el("line", { x1: left, x2: W - right, y1: y(0.531), y2: y(0.531), stroke: "var(--refline)", "stroke-width": 1.5, "stroke-dasharray": "5 4" }, svg);
+  const rl = el("text", { x: W - right, y: y(0.531) - 6, "text-anchor": "end", "font-size": 11 }, svg); rl.textContent = "top-50 team vs the other 49: 0.531";
+  let k = 0;
+  groups.forEach(([gname, cs], gi) => {
+    const x0 = left + step * k;
+    cs.forEach(c => {
+      const cx = left + step * (k + 0.5);
+      if (c.asked != null) el("line", { x1: cx - step * 0.36, x2: cx + step * 0.36, y1: y(c.asked), y2: y(c.asked), stroke: "var(--ink-3)", "stroke-width": 1 }, svg);
+      [["old", c.old_got, c.old_se, "var(--old)", -0.14], ["new", c.got, c.se, "var(--new)", 0.14]].forEach(([nm, v, se, col, dx]) => {
+        const px = cx + step * dx;
+        el("line", { x1: px, x2: px, y1: y(v - se), y2: y(v + se), stroke: col, "stroke-width": 2 }, svg);
+        el("circle", { cx: px, cy: y(v), r: 5, fill: col, stroke: "var(--panel)", "stroke-width": 2 }, svg);
+      });
+      const lab = el("text", { x: cx, y: H - bottom + 18, "text-anchor": "middle", "font-size": 11, class: "t-mono" }, svg); lab.textContent = c.asked == null ? "—" : `ask ${c.asked.toFixed(1)}`;
+      const hit = el("rect", { x: cx - step / 2, y: top, width: step, height: H - top - bottom, class: "hit" }, svg);
+      const d = c.got - c.old_got, se = Math.hypot(c.se, c.old_se);
+      bindTip(hit, `<b>${gname}${c.asked != null ? `, asked ${c.asked.toFixed(1)}` : ""}</b><br><span class="key-new">New ${c.got.toFixed(3)} ± ${c.se.toFixed(3)}</span> · ${c.species_sets} species sets · ${(c.valid * 100).toFixed(0)}% valid<br><span class="key-old">Old ${c.old_got.toFixed(3)} ± ${c.old_se.toFixed(3)}</span> · ${c.old_sets} sets · ${(c.old_valid * 100).toFixed(0)}% valid<br>Difference ${fmt(d)} ± ${se.toFixed(3)} (${(d / se).toFixed(1)}σ)`);
+      k++;
+    });
+    const gl = el("text", { x: x0 + step * cs.length / 2, y: H - bottom + 38, "text-anchor": "middle", "font-size": 12, class: "t-ink" }, svg); gl.textContent = gname;
+    k++;
+  });
+  $("#battle-chart").appendChild(svg);
+  $("#battle-legend").innerHTML = `<span><span class="swatch" style="background:var(--old)"></span>Old model (asked_vs_got.pt, 2026-10-04)</span><span><span class="swatch" style="background:var(--new)"></span>New model (F1 + G2)</span><span>Short grey tick: the win rate asked for</span>`;
+  $("#battle-table").innerHTML = `<table><tr><th>Cell</th><th>New</th><th>± SE</th><th>Old</th><th>± SE</th><th>Diff</th><th>Valid new / old</th><th>Species sets new / old</th></tr>${B.map(c => `<tr><td>${c.cell}</td><td>${c.got.toFixed(3)}</td><td>${c.se.toFixed(3)}</td><td>${c.old_got.toFixed(3)}</td><td>${c.old_se.toFixed(3)}</td><td>${fmt(c.got - c.old_got)}</td><td>${(c.valid * 100).toFixed(0)}% / ${(c.old_valid * 100).toFixed(0)}%</td><td>${c.species_sets} / ${c.old_sets}</td></tr>`).join("")}</table>`;
+  if (D.battleRead) $("#battle-read").innerHTML = D.battleRead;
+})();
+} catch (e) { report(e && e.message ? e.message : String(e)); }
+</script>

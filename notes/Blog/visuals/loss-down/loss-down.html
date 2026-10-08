@@ -1,0 +1,393 @@
+<title>Loss-Down Retrain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~66ch) in the Distill manner; figures break out wider; every number lives in a figure or the prose next to it. */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --ink: #14161b; --ink-2: #474d59; --ink-3: #737b8a; --rule: #dadee6;
+  --new: #2a78d6; --old: #eb6834; --refline: #737b8a; --focus: #2a78d6;
+  --h0: #edf2fa; --h1: #cde2fb; --h2: #9ec5f4; --h3: #6da7ec; --h4: #3987e5; --h5: #1c5cab; --h6: #0d366b;
+  --hi-lo: #14161b; --hi-hi: #ffffff;
+  --font-body: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --col: 42rem; --wide: 60rem;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a;
+  --new: #3987e5; --old: #d95926; --refline: #8a91a0; --focus: #6da7ec;
+  --h0: #1a202b; --h1: #12345f; --h2: #184f95; --h3: #256abf; --h4: #3987e5; --h5: #6da7ec; --h6: #b7d3f6;
+  --hi-lo: #eceef2; --hi-hi: #0b1220; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a;
+  --new: #3987e5; --old: #d95926; --refline: #8a91a0; --focus: #6da7ec;
+  --h0: #1a202b; --h1: #12345f; --h2: #184f95; --h3: #256abf; --h4: #3987e5; --h5: #6da7ec; --h6: #b7d3f6;
+  --hi-lo: #eceef2; --hi-hi: #0b1220; color-scheme: dark; }
+
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.65; }
+.page { padding-inline: 1rem; padding-block: 2.5rem 4rem; display: grid; gap: 2.25rem; justify-items: center; }
+.page > * { width: 100%; max-width: var(--col); min-width: 0; }
+.page > .wide { max-width: var(--wide); }
+h1, h2, h3 { font-family: var(--font-ui); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 600; letter-spacing: -0.015em; }
+h2 { font-size: 1.4rem; font-weight: 600; }
+p { margin: 0; }
+.stack { display: grid; gap: 1rem; }
+.kicker { font-family: var(--font-ui); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.dek { font-size: 1.2rem; color: var(--ink-2); line-height: 1.55; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+.headline { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; border-block: 1px solid var(--rule); padding-block: 1.1rem; }
+.headline div { display: grid; gap: 0.2rem; min-width: 0; }
+.headline b { font-family: var(--font-mono); font-weight: 500; font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+.headline > div > span { font-family: var(--font-ui); font-size: 0.83rem; color: var(--ink-2); line-height: 1.4; }
+figure { margin: 0; display: grid; gap: 0.75rem; }
+figcaption { font-family: var(--font-ui); font-size: 0.86rem; color: var(--ink-2); line-height: 1.5; }
+figcaption b { color: var(--ink); font-weight: 600; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; min-width: 0; }
+.ui { font-family: var(--font-ui); font-size: 0.9rem; }
+.note { font-family: var(--font-ui); font-size: 0.86rem; color: var(--ink-2); }
+a { color: var(--new); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* controls */
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.seg button { font: 500 0.86rem var(--font-ui); background: transparent; color: var(--ink-2); border: 0; padding: 0.45rem 0.8rem; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; justify-content: space-between; }
+.total { font-family: var(--font-ui); font-size: 0.92rem; color: var(--ink-2); }
+.total b { font-family: var(--font-mono); font-weight: 500; font-size: 1.25rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* figure 1: the team grid */
+.scroll { overflow-x: auto; }
+.team { display: grid; grid-template-columns: 4.6rem repeat(6, minmax(6.4rem, 1fr)); gap: 3px; min-width: 44rem; }
+.team .mon { display: grid; justify-items: center; gap: 0.1rem; padding-bottom: 0.3rem; font: 600 0.82rem var(--font-ui); text-align: center; }
+.team .mon img { width: 64px; height: 64px; image-rendering: pixelated; }
+.team .rowlab { font: 500 0.74rem var(--font-ui); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; align-self: center; }
+.cell { position: relative; font: 0.78rem/1.25 var(--font-ui); text-align: left; border: 0; border-radius: 3px; padding: 0.42rem 0.45rem 0.9rem; cursor: pointer;
+        background: var(--h0); color: var(--hi-lo); min-height: 3.1rem; display: flex; gap: 0.3rem; align-items: flex-start; transition: background-color .25s; }
+.cell img { width: 20px; height: 22px; flex: none; image-rendering: pixelated; }
+.cell .v { min-width: 0; overflow-wrap: anywhere; }
+.cell .n { position: absolute; right: 0.35rem; bottom: 0.2rem; font: 0.68rem var(--font-mono); opacity: 0.85; }
+.cell .s { position: absolute; left: 0.45rem; bottom: 0.2rem; font: 0.62rem var(--font-mono); opacity: 0.6; }
+.cell[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+.team.dim .cell:not(.lit) { opacity: 0.28; }
+@media (prefers-reduced-motion: reduce) { .cell { transition: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; font: 0.78rem var(--font-ui); color: var(--ink-2); }
+.ramp { display: flex; gap: 2px; }
+.ramp span { display: grid; place-items: center; min-width: 2.6rem; height: 1.4rem; border-radius: 2px; font: 0.68rem var(--font-mono); }
+.detail { font-family: var(--font-ui); font-size: 0.9rem; line-height: 1.55; border-left: 3px solid var(--new); padding: 0.2rem 0 0.2rem 0.8rem; min-height: 4.5rem; }
+.detail .row { display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; }
+.detail .row span { white-space: nowrap; }
+.key-old { color: var(--old); } .key-new { color: var(--new); }
+.swatch { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 2px; vertical-align: -0.05rem; margin-right: 0.3rem; }
+
+/* svg charts */
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: var(--font-ui); fill: var(--ink-2); }
+svg .t-ink { fill: var(--ink); }
+svg .t-mono { font-family: var(--font-mono); }
+svg .grid { stroke: var(--rule); stroke-width: 1; }
+svg .hit { fill: transparent; cursor: default; }
+.tip { position: fixed; z-index: 10; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-radius: 5px;
+       padding: 0.45rem 0.6rem; font: 0.8rem/1.45 var(--font-ui); box-shadow: 0 4px 14px rgb(0 0 0 / 0.14); max-width: 18rem; }
+details { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); }
+details summary { cursor: pointer; }
+table { border-collapse: collapse; font-size: 0.82rem; margin-top: 0.5rem; }
+td, th { padding: 0.25rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; font-variant-numeric: tabular-nums; }
+td:first-child, th:first-child { text-align: left; }
+.tried { display: grid; gap: 0.35rem; font-family: var(--font-ui); font-size: 0.88rem; }
+.tried div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.35rem; }
+.tried em { font-style: normal; color: var(--ink-3); font-size: 0.8rem; }
+.pending { font-family: var(--font-ui); color: var(--ink-3); padding: 2rem 1rem; text-align: center; }
+.err { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 20; background: var(--panel); color: var(--ink); border: 1px solid var(--old);
+       border-radius: 6px; padding: 0.7rem 0.9rem; font: 0.85rem/1.45 var(--font-ui); }
+footer { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 1.2rem; display: grid; gap: 0.6rem; }
+footer code { font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: anywhere; }
+</style>
+
+<main class="page">
+  <header class="stack">
+    <div class="kicker">Team diffusion · held-out loss · 2026-10-08</div>
+    <h1>Loss-Down Retrain</h1>
+    <p class="dek">The diffusion model that writes VGC teams now predicts teams it has never seen with 40% less surprise. This page shows where that 40% came from on one real team, then asks the question the loss cannot answer: do its teams win more?</p>
+  </header>
+
+  <section class="headline" aria-label="Headline numbers">
+    <div><b><span id="h-old">2.362</span> → <span id="h-new">1.418</span></b><span>nats per field: exact loss of the generator as it samples, on 500 held-out teams</span></div>
+    <div><b id="h-diff">−0.944 ± 0.010</b><span>paired change, same 500 teams; every one of them is predicted better</span></div>
+    <div><b>146,994</b><span>teams gathered from the matrix and every experiment log; the final mix learns from the loop teams and all 9,272 matrix teams</span></div>
+  </section>
+
+  <section class="stack">
+    <h2>What the loss counts</h2>
+    <p>A team is 48 fields: six Pokémon, each with a species, an ability, an item, four moves and a nature. To score a team, the model reveals it one field at a time in a fixed order (all six species, then abilities and items, then moves, then natures). Before each reveal it says how likely every value is. If it gave the true value probability <i>p</i>, it pays −ln <i>p</i> nats of surprise. Certainty costs 0, a coin flip 0.69, a one-in-a-hundred guess 4.6.</p>
+    <p>The loss is the average surprise per field over 500 teams the model never trained on. Below is one of them, a Sand team the search loops wrote in September. Switch models to see where the surprise sits, and click any field for its numbers.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-team">
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Model">
+        <button type="button" id="m-old" data-m="old" aria-pressed="false">Old model</button>
+        <button type="button" id="m-oldm" data-m="old_masked" aria-pressed="false">Old + legal masks</button>
+        <button type="button" id="m-new" data-m="new" aria-pressed="true">New model</button>
+      </div>
+      <div class="total">This team costs <b id="t-total">69.9</b> nats · <b id="t-avg">1.46</b> per field</div>
+    </div>
+    <div class="scroll"><div class="team" id="team"></div></div>
+    <div class="legend"><span>Surprise per field (nats)</span><div class="ramp" id="ramp"></div><span>Small number bottom-left: reveal order, 1–48</span></div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+    <figcaption><b>Figure 1.</b> One held-out team, field by field. Shading is the surprise the chosen model paid for the true value when it was revealed. The old model is <code>asked_vs_got.pt</code>; “legal masks” keeps its weights but rules out values the visible fields make impossible; the new model is the final F1 + G2 mix.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <p>Three things stand out. Abilities go from expensive to nearly free as soon as impossible values are ruled out: once Gallade is on the page, only two abilities are legal. The species row barely moves under any model, because picking six Pokémon is the genuinely open part of team building. And the single most surprising field for every model is Muddy Water on Tyranitar, a legal but unusual move; the new model’s best guess there was Protect.</p>
+  </section>
+
+  <section class="stack">
+    <h2>Why the order matters</h2>
+    <p>A legality mask only helps when the field it depends on is already visible. Gallade’s ability depends on its species, so if the species is revealed first, the ability question has two possible answers. The old model was trained to fill fields in random order, so it often faced the ability before anyone knew the species. Figure 2 counts the legal options at the moment each field is predicted, averaged over the 500 test teams.</p>
+  </section>
+
+  <figure class="panel" id="fig-order">
+    <div class="legend" id="order-legend"></div>
+    <div id="order-chart"></div>
+    <figcaption><b>Figure 2.</b> Legal values left when a field is predicted. Species first leaves the first species wide open and pins everything after it down; a random order does the reverse. Hover a row to light up those fields in Figure 1.</figcaption>
+    <details><summary>Table</summary><div id="order-table"></div></details>
+  </figure>
+
+  <section class="stack">
+    <p>Masked-diffusion papers give the training-side version of this: let different fields unmask at different times, so the model learns the order it will be used in (Shi et al., NeurIPS 2024; Garg et al., 2025). Species first, then ability and item, then moves, then nature is also the order every search loop already decodes in. Making training match it was worth about 0.04 nats per field on top of the masks.</p>
+  </section>
+
+  <section class="stack">
+    <h2>The staircase</h2>
+    <p>Each step below changes one thing. The value is the exact loss of the generator as it samples, on the same 500 teams; Δ is the paired change from the step above, with its standard error over teams.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-stairs">
+    <div id="stairs-chart"></div>
+    <figcaption><b>Figure 3.</b> From the old model to the final mix, one change at a time. The first drop uses the old model’s own weights: it was spreading probability over impossible teams.</figcaption>
+    <details><summary>Table</summary><div id="stairs-table"></div></details>
+  </figure>
+
+  <section class="stack">
+    <p class="note"><b>Tried, no gain.</b> Lower is better; the second number is the comparison.</p>
+    <div class="tried" id="tried"></div>
+    <p>The other ~120k teams in the logs (the temperature campaign, cem and reverse-score runs, random fills, HPS) never lowered the loss on these test teams, whether mixed in directly or used for pretraining. They come from different generators at different temperatures, so they teach a different distribution.</p>
+  </section>
+
+  <section class="stack">
+    <h2>Who a team beats</h2>
+    <p>The matchup matrix stores each team’s result against every top-50 meta team. Is that row informative about the team itself, beyond its overall win rate? A model was trained to read the row, and 1,000 matrix teams it never saw were scored three ways on the same masks: with nothing, with the win rate, and with the win rate plus the row.</p>
+  </section>
+
+  <figure class="panel" id="fig-matrix">
+    <div id="matrix-chart"></div>
+    <figcaption><b>Figure 4.</b> Information each condition carries about a held-out team, in nats per team (the drop in its loss). The per-opponent row adds about two-thirds as much as the win rate itself, measured from one battle per cell. That is the evidence that “write a team that beats these opponents” has signal to learn from.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <h2>Does a better fit write better teams?</h2>
+    <p>Why battle at all: the loss only measures how well the model predicts teams the search loops already wrote, and most of those teams lose three battles in four (the 500 test teams have a median win rate of <span class="num" id="test-median">–</span>). A model can get much better at predicting weak teams without getting better at writing strong ones. The only measure of the second is to battle what it writes.</p>
+    <p>The protocol copies the asked-vs-got experiment of 2026-10-04 exactly, so the old model’s numbers compare cell for cell: 64 Showdown-valid teams per cell, either unconditioned or asked for a win rate of 0.3, 0.5 or 0.7 at guidance 1, 2 or 4; one battle against each top-50 team; the VGC-Bench behaviour-cloning policy on both sides; corpus Stat Point spreads. A top-50 team scores <span class="num">0.531</span> against the other 49.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-battle">
+    <div class="legend" id="battle-legend"></div>
+    <div id="battle-chart"></div>
+    <figcaption id="battle-cap"><b>Figure 5.</b> Win rate against the top 50 by cell, old model vs new, ±1 standard error over teams (64 teams × 49 battles per cell). The dashed line is a real top-50 team.</figcaption>
+    <details><summary>Table</summary><div id="battle-table"></div></details>
+  </figure>
+  <section class="stack" id="battle-read"></section>
+
+  <footer>
+    <p><b>Exact loss vs ELBO.</b> Training minimizes the ELBO, a bound averaged over random reveal orders. The numbers here are the exact loss of the fixed order the generator actually samples in (DUEL, ICML 2026), which is lower and needs no bound. Both fall by about 40%; the write-up has both.</p>
+    <p><b>Test set.</b> The 500 held-out teams from asked_vs_got’s split, conditioned on their win-rate labels; every copy of them was removed from all training data.</p>
+    <p><b>Files.</b> <code>docs/loss-down.md</code>, <code>src/lossdown.py</code>, <code>src/lossdown_battle.py</code>, <code>results/lossdown.json</code>, <code>results/lossdown_battle.json</code> in vgc-team-generator-pilot.</p>
+  </footer>
+</main>
+<div class="tip" id="tip" hidden></div>
+<div class="err" id="err" role="alert" hidden></div>
+
+<script type="application/json" id="lossdown-data">{"battleRead":null,"team":{"index":8,"win_rate":0.08330000191926956,"species":["Basculegion","Excadrill","Gallade","Kingambit","Milotic","Tyranitar"],"species_id":["basculegion","excadrill","gallade","kingambit","milotic","tyranitar"],"walks":{"old":[{"step":0,"col":0,"slot":0,"field":"species","key":"species","truth":"Basculegion","p":0.07195,"nats":2.6317,"legal":189,"vocab":189,"top":[["Garchomp",0.0734],["Basculegion",0.072],["Kingambit",0.07]]},{"step":1,"col":8,"slot":1,"field":"species","key":"species","truth":"Excadrill","p":0.01264,"nats":4.3707,"legal":187,"vocab":189,"top":[["Kingambit",0.1107],["Garchomp",0.1061],["Whimsicott",0.0916]]},{"step":2,"col":16,"slot":2,"field":"species","key":"species","truth":"Gallade","p":0.00131,"nats":6.6361,"legal":186,"vocab":189,"top":[["Tyranitar",0.1059],["Garchomp",0.0851],["Sinistcha",0.0832]]},{"step":3,"col":24,"slot":3,"field":"species","key":"species","truth":"Kingambit","p":0.04241,"nats":3.1604,"legal":185,"vocab":189,"top":[["Garchomp",0.0868],["Sinistcha",0.061],["Milotic",0.0585]]},{"step":4,"col":32,"slot":4,"field":"species","key":"species","truth":"Milotic","p":0.03954,"nats":3.2305,"legal":184,"vocab":189,"top":[["Garchomp",0.1007],["Staraptor",0.0444],["Milotic",0.0395]]},{"step":5,"col":40,"slot":5,"field":"species","key":"species","truth":"Tyranitar","p":0.04189,"nats":3.1726,"legal":183,"vocab":189,"top":[["Garchomp",0.0909],["Staraptor",0.0521],["Tyranitar",0.0419]]},{"step":6,"col":1,"slot":0,"field":"ability","key":"ability","truth":"Adaptability","p":0.05475,"nats":2.905,"legal":3,"vocab":127,"top":[["Sand Stream",0.1124],["Competitive",0.0984],["Sand Rush",0.0979]]},{"step":7,"col":2,"slot":0,"field":"item","key":"item","truth":"Focus Sash","p":0.12778,"nats":2.0574,"legal":50,"vocab":111,"top":[["Life Orb",0.1344],["Focus Sash",0.1278],["Sitrus Berry",0.1248]]},{"step":8,"col":9,"slot":1,"field":"ability","key":"ability","truth":"Sand Rush","p":0.10532,"nats":2.2507,"legal":3,"vocab":127,"top":[["Sand Rush",0.1053],["Sand Stream",0.105],["Defiant",0.0833]]},{"step":9,"col":10,"slot":1,"field":"item","key":"item","truth":"Life Orb","p":0.16248,"nats":1.8172,"legal":50,"vocab":111,"top":[["Sitrus Berry",0.1707],["Life Orb",0.1625],["Choice Scarf",0.106]]},{"step":10,"col":17,"slot":2,"field":"ability","key":"ability","truth":"Sharpness","p":0.01187,"nats":4.4336,"legal":2,"vocab":127,"top":[["Sand Stream",0.1643],["Competitive",0.1124],["Defiant",0.0954]]},{"step":11,"col":18,"slot":2,"field":"item","key":"item","truth":"Sitrus Berry","p":0.24948,"nats":1.3884,"legal":49,"vocab":111,"top":[["Sitrus Berry",0.2495],["Choice Scarf",0.1046],["Tyranitarite",0.1043]]},{"step":12,"col":25,"slot":3,"field":"ability","key":"ability","truth":"Defiant","p":0.11258,"nats":2.1841,"legal":3,"vocab":127,"top":[["Sand Stream",0.1305],["Competitive",0.1158],["Defiant",0.1126]]},{"step":13,"col":26,"slot":3,"field":"item","key":"item","truth":"Leftovers","p":0.07763,"nats":2.5558,"legal":47,"vocab":111,"top":[["Choice Scarf",0.1497],["Chople Berry",0.1226],["Tyranitarite",0.1208]]},{"step":14,"col":33,"slot":4,"field":"ability","key":"ability","truth":"Competitive","p":0.18287,"nats":1.699,"legal":2,"vocab":127,"top":[["Sand Stream",0.1842],["Competitive",0.1829],["Hospitality",0.0687]]},{"step":15,"col":34,"slot":4,"field":"item","key":"item","truth":"Black Glasses","p":0.03552,"nats":3.3377,"legal":46,"vocab":111,"top":[["Tyranitarite",0.1672],["Choice Scarf",0.1562],["Chople Berry",0.1541]]},{"step":16,"col":41,"slot":5,"field":"ability","key":"ability","truth":"Sand Stream","p":0.27178,"nats":1.3028,"legal":2,"vocab":127,"top":[["Sand Stream",0.2718],["Intimidate",0.0995],["Hospitality",0.0725]]},{"step":17,"col":42,"slot":5,"field":"item","key":"item","truth":"Tyranitarite","p":0.20825,"nats":1.569,"legal":46,"vocab":111,"top":[["Tyranitarite",0.2082],["Chople Berry",0.1792],["Choice Scarf",0.1537]]},{"step":18,"col":3,"slot":0,"field":"m0","key":"move","truth":"Last Respects","p":0.00449,"nats":5.4061,"legal":40,"vocab":316,"top":[["Iron Head",0.1901],["Aqua Jet",0.1829],["Blizzard",0.0649]]},{"step":19,"col":4,"slot":0,"field":"m1","key":"move","truth":"Protect","p":0.25877,"nats":1.3518,"legal":22,"vocab":316,"top":[["Iron Head",0.2862],["Protect",0.2588],["Low Kick",0.0998]]},{"step":20,"col":5,"slot":0,"field":"m2","key":"move","truth":"Shadow Ball","p":0.01433,"nats":4.2455,"legal":16,"vocab":316,"top":[["Protect",0.5857],["Rock Slide",0.2385],["Low Kick",0.0244]]},{"step":21,"col":6,"slot":0,"field":"m3","key":"move","truth":"Wave Crash","p":0.13112,"nats":2.0317,"legal":10,"vocab":316,"top":[["Rock Slide",0.2563],["Wave Crash",0.1311],["Scald",0.0857]]},{"step":22,"col":11,"slot":1,"field":"m0","key":"move","truth":"High Horsepower","p":0.03816,"nats":3.2659,"legal":39,"vocab":316,"top":[["Iron Head",0.1775],["Aqua Jet",0.1643],["Blizzard",0.0774]]},{"step":23,"col":12,"slot":1,"field":"m1","key":"move","truth":"Protect","p":0.241,"nats":1.423,"legal":24,"vocab":316,"top":[["Iron Head",0.3052],["Protect",0.241],["Low Kick",0.1134]]},{"step":24,"col":13,"slot":1,"field":"m2","key":"move","truth":"Rock Slide","p":0.31201,"nats":1.1647,"legal":18,"vocab":316,"top":[["Protect",0.5007],["Rock Slide",0.312],["Rage Powder",0.0362]]},{"step":25,"col":14,"slot":1,"field":"m3","key":"move","truth":"Swords Dance","p":0.12929,"nats":2.0457,"legal":16,"vocab":316,"top":[["Rock Slide",0.1835],["Swords Dance",0.1293],["Sucker Punch",0.1284]]},{"step":26,"col":19,"slot":2,"field":"m0","key":"move","truth":"Close Combat","p":0.02742,"nats":3.5963,"legal":90,"vocab":316,"top":[["Iron Head",0.2339],["Aqua Jet",0.1399],["Blizzard",0.0745]]},{"step":27,"col":20,"slot":2,"field":"m1","key":"move","truth":"Low Kick","p":0.10245,"nats":2.2784,"legal":79,"vocab":316,"top":[["Iron Head",0.2932],["Protect",0.2921],["Low Kick",0.1025]]},{"step":28,"col":21,"slot":2,"field":"m2","key":"move","truth":"Protect","p":0.64957,"nats":0.4314,"legal":48,"vocab":316,"top":[["Protect",0.6496],["Rock Slide",0.1442],["Sucker Punch",0.0689]]},{"step":29,"col":22,"slot":2,"field":"m3","key":"move","truth":"Rock Slide","p":0.20798,"nats":1.5703,"legal":40,"vocab":316,"top":[["Rock Slide",0.208],["Sucker Punch",0.1303],["Swords Dance",0.1135]]},{"step":30,"col":27,"slot":3,"field":"m0","key":"move","truth":"Iron Head","p":0.2351,"nats":1.4477,"legal":43,"vocab":316,"top":[["Iron Head",0.2351],["Kowtow Cleave",0.1467],["Aqua Jet",0.1193]]},{"step":31,"col":28,"slot":3,"field":"m1","key":"move","truth":"Kowtow Cleave","p":0.05808,"nats":2.8459,"legal":28,"vocab":316,"top":[["Protect",0.3465],["Iron Head",0.1673],["Low Kick",0.0733]]},{"step":32,"col":29,"slot":3,"field":"m2","key":"move","truth":"Protect","p":0.60771,"nats":0.4981,"legal":27,"vocab":316,"top":[["Protect",0.6077],["Sucker Punch",0.1969],["Rock Slide",0.0674]]},{"step":33,"col":30,"slot":3,"field":"m3","key":"move","truth":"Sucker Punch","p":0.42115,"nats":0.8648,"legal":21,"vocab":316,"top":[["Sucker Punch",0.4211],["Swords Dance",0.1042],["Rock Slide",0.0842]]},{"step":34,"col":35,"slot":4,"field":"m0","key":"move","truth":"Icy Wind","p":0.03141,"nats":3.4606,"legal":45,"vocab":316,"top":[["Aqua Jet",0.2414],["Blizzard",0.1235],["Iron Head",0.0712]]},{"step":35,"col":36,"slot":4,"field":"m1","key":"move","truth":"Iron Head","p":0.2455,"nats":1.4045,"legal":25,"vocab":316,"top":[["Protect",0.3163],["Iron Head",0.2455],["Icy Wind",0.0784]]},{"step":36,"col":37,"slot":4,"field":"m2","key":"move","truth":"Protect","p":0.75138,"nats":0.2858,"legal":23,"vocab":316,"top":[["Protect",0.7514],["Rock Slide",0.1149],["Rage Powder",0.0408]]},{"step":37,"col":38,"slot":4,"field":"m3","key":"move","truth":"Scald","p":0.11468,"nats":2.1656,"legal":18,"vocab":316,"top":[["Rock Slide",0.1719],["Tailwind",0.1321],["Scald",0.1147]]},{"step":38,"col":43,"slot":5,"field":"m0","key":"move","truth":"Iron Head","p":0.06178,"nats":2.7842,"legal":71,"vocab":316,"top":[["Aqua Jet",0.2475],["Blizzard",0.1146],["Iron Head",0.0618]]},{"step":39,"col":44,"slot":5,"field":"m1","key":"move","truth":"Low Kick","p":0.06833,"nats":2.6834,"legal":33,"vocab":316,"top":[["Protect",0.3246],["Iron Head",0.1861],["Icy Wind",0.0919]]},{"step":40,"col":45,"slot":5,"field":"m2","key":"move","truth":"Muddy Water","p":0.0016,"nats":6.4391,"legal":29,"vocab":316,"top":[["Protect",0.7342],["Rock Slide",0.1338],["Rage Powder",0.0399]]},{"step":41,"col":46,"slot":5,"field":"m3","key":"move","truth":"Rock Slide","p":0.20081,"nats":1.6054,"legal":28,"vocab":316,"top":[["Rock Slide",0.2008],["Tailwind",0.1246],["Scald",0.106]]},{"step":42,"col":7,"slot":0,"field":"nature","key":"nature","truth":"Jolly","p":0.18071,"nats":1.7109,"legal":19,"vocab":19,"top":[["Adamant",0.6616],["Jolly",0.1807],["Modest",0.0584]]},{"step":43,"col":15,"slot":1,"field":"nature","key":"nature","truth":"Jolly","p":0.13112,"nats":2.0317,"legal":19,"vocab":19,"top":[["Adamant",0.6764],["Jolly",0.1311],["Modest",0.0758]]},{"step":44,"col":23,"slot":2,"field":"nature","key":"nature","truth":"Modest","p":0.08964,"nats":2.4119,"legal":19,"vocab":19,"top":[["Adamant",0.6718],["Jolly",0.1095],["Modest",0.0896]]},{"step":45,"col":31,"slot":3,"field":"nature","key":"nature","truth":"Adamant","p":0.783,"nats":0.2446,"legal":19,"vocab":19,"top":[["Adamant",0.783],["Jolly",0.1303],["Timid",0.0221]]},{"step":46,"col":39,"slot":4,"field":"nature","key":"nature","truth":"Adamant","p":0.72554,"nats":0.3208,"legal":19,"vocab":19,"top":[["Adamant",0.7255],["Jolly",0.1416],["Timid",0.0365]]},{"step":47,"col":47,"slot":5,"field":"nature","key":"nature","truth":"Adamant","p":0.66347,"nats":0.4103,"legal":19,"vocab":19,"top":[["Adamant",0.6635],["Jolly",0.1484],["Modest",0.0626]]}],"old_masked":[{"step":0,"col":0,"slot":0,"field":"species","key":"species","truth":"Basculegion","p":0.07195,"nats":2.6317,"legal":189,"vocab":189,"top":[["Garchomp",0.0734],["Basculegion",0.072],["Kingambit",0.07]]},{"step":1,"col":8,"slot":1,"field":"species","key":"species","truth":"Excadrill","p":0.01285,"nats":4.3548,"legal":187,"vocab":189,"top":[["Kingambit",0.1125],["Garchomp",0.1078],["Whimsicott",0.093]]},{"step":2,"col":16,"slot":2,"field":"species","key":"species","truth":"Gallade","p":0.00135,"nats":6.6104,"legal":186,"vocab":189,"top":[["Tyranitar",0.1087],["Garchomp",0.0873],["Sinistcha",0.0854]]},{"step":3,"col":24,"slot":3,"field":"species","key":"species","truth":"Kingambit","p":0.04299,"nats":3.1469,"legal":185,"vocab":189,"top":[["Garchomp",0.088],["Sinistcha",0.0619],["Milotic",0.0593]]},{"step":4,"col":32,"slot":4,"field":"species","key":"species","truth":"Milotic","p":0.04012,"nats":3.2159,"legal":184,"vocab":189,"top":[["Garchomp",0.1022],["Staraptor",0.0451],["Milotic",0.0401]]},{"step":5,"col":40,"slot":5,"field":"species","key":"species","truth":"Tyranitar","p":0.04251,"nats":3.1579,"legal":183,"vocab":189,"top":[["Garchomp",0.0923],["Staraptor",0.0529],["Tyranitar",0.0425]]},{"step":6,"col":1,"slot":0,"field":"ability","key":"ability","truth":"Adaptability","p":0.8318,"nats":0.1842,"legal":3,"vocab":127,"top":[["Adaptability",0.8318],["Mold Breaker",0.1523],["Swift Swim",0.0159]]},{"step":7,"col":2,"slot":0,"field":"item","key":"item","truth":"Focus Sash","p":0.14628,"nats":1.9222,"legal":50,"vocab":111,"top":[["Life Orb",0.1539],["Focus Sash",0.1463],["Sitrus Berry",0.1429]]},{"step":8,"col":9,"slot":1,"field":"ability","key":"ability","truth":"Sand Rush","p":0.9535,"nats":0.0476,"legal":3,"vocab":127,"top":[["Sand Rush",0.9535],["Mold Breaker",0.0443],["Sand Force",0.0022]]},{"step":9,"col":10,"slot":1,"field":"item","key":"item","truth":"Life Orb","p":0.19004,"nats":1.6605,"legal":50,"vocab":111,"top":[["Sitrus Berry",0.1997],["Life Orb",0.19],["Choice Scarf",0.1239]]},{"step":10,"col":17,"slot":2,"field":"ability","key":"ability","truth":"Sharpness","p":0.96825,"nats":0.0323,"legal":2,"vocab":127,"top":[["Sharpness",0.9683],["Justified",0.0317],["[MASK]",0.0]]},{"step":11,"col":18,"slot":2,"field":"item","key":"item","truth":"Sitrus Berry","p":0.30184,"nats":1.1979,"legal":49,"vocab":111,"top":[["Sitrus Berry",0.3018],["Choice Scarf",0.1266],["Colbur Berry",0.0832]]},{"step":12,"col":25,"slot":3,"field":"ability","key":"ability","truth":"Defiant","p":0.91254,"nats":0.0915,"legal":3,"vocab":127,"top":[["Defiant",0.9125],["Pressure",0.0514],["Supreme Overlord",0.0361]]},{"step":13,"col":26,"slot":3,"field":"item","key":"item","truth":"Leftovers","p":0.09794,"nats":2.3234,"legal":47,"vocab":111,"top":[["Choice Scarf",0.1889],["Chople Berry",0.1546],["Colbur Berry",0.1212]]},{"step":14,"col":33,"slot":4,"field":"ability","key":"ability","truth":"Competitive","p":0.99611,"nats":0.0039,"legal":2,"vocab":127,"top":[["Competitive",0.9961],["Marvel Scale",0.0039],["[MASK]",0.0]]},{"step":15,"col":34,"slot":4,"field":"item","key":"item","truth":"Black Glasses","p":0.04847,"nats":3.0269,"legal":46,"vocab":111,"top":[["Choice Scarf",0.2132],["Chople Berry",0.2102],["Colbur Berry",0.0972]]},{"step":16,"col":41,"slot":5,"field":"ability","key":"ability","truth":"Sand Stream","p":0.94448,"nats":0.0571,"legal":2,"vocab":127,"top":[["Sand Stream",0.9445],["Unnerve",0.0555],["[MASK]",0.0]]},{"step":17,"col":42,"slot":5,"field":"item","key":"item","truth":"Tyranitarite","p":0.23663,"nats":1.4413,"legal":46,"vocab":111,"top":[["Tyranitarite",0.2366],["Chople Berry",0.2036],["Choice Scarf",0.1747]]},{"step":18,"col":3,"slot":0,"field":"m0","key":"move","truth":"Last Respects","p":0.01196,"nats":4.426,"legal":40,"vocab":316,"top":[["Aqua Jet",0.4874],["Blizzard",0.1729],["Icy Wind",0.108]]},{"step":19,"col":4,"slot":0,"field":"m1","key":"move","truth":"Protect","p":0.9741,"nats":0.0262,"legal":22,"vocab":316,"top":[["Protect",0.9741],["Muddy Water",0.0134],["Liquidation",0.0084]]},{"step":20,"col":5,"slot":0,"field":"m2","key":"move","truth":"Shadow Ball","p":0.63745,"nats":0.4503,"legal":16,"vocab":316,"top":[["Shadow Ball",0.6374],["Rain Dance",0.2169],["Psychic Fangs",0.036]]},{"step":21,"col":6,"slot":0,"field":"m3","key":"move","truth":"Wave Crash","p":0.90099,"nats":0.1043,"legal":10,"vocab":316,"top":[["Wave Crash",0.901],["Substitute",0.0505],["Waterfall",0.0193]]},{"step":22,"col":11,"slot":1,"field":"m0","key":"move","truth":"High Horsepower","p":0.13031,"nats":2.0378,"legal":39,"vocab":316,"top":[["Iron Head",0.6062],["High Horsepower",0.1303],["Earthquake",0.0736]]},{"step":23,"col":12,"slot":1,"field":"m1","key":"move","truth":"Protect","p":0.41739,"nats":0.8737,"legal":24,"vocab":316,"top":[["Iron Head",0.5285],["Protect",0.4174],["Poison Jab",0.0367]]},{"step":24,"col":13,"slot":1,"field":"m2","key":"move","truth":"Rock Slide","p":0.96734,"nats":0.0332,"legal":18,"vocab":316,"top":[["Rock Slide",0.9673],["Sludge Bomb",0.0054],["Swords Dance",0.0046]]},{"step":25,"col":14,"slot":1,"field":"m3","key":"move","truth":"Swords Dance","p":0.62057,"nats":0.4771,"legal":16,"vocab":316,"top":[["Swords Dance",0.6206],["Stomping Tantrum",0.1806],["Throat Chop",0.0457]]},{"step":26,"col":19,"slot":2,"field":"m0","key":"move","truth":"Close Combat","p":0.12796,"nats":2.056,"legal":90,"vocab":316,"top":[["Icy Wind",0.1468],["Close Combat",0.128],["Low Kick",0.1261]]},{"step":27,"col":20,"slot":2,"field":"m1","key":"move","truth":"Low Kick","p":0.18612,"nats":1.6814,"legal":79,"vocab":316,"top":[["Protect",0.5307],["Low Kick",0.1861],["Icy Wind",0.0858]]},{"step":28,"col":21,"slot":2,"field":"m2","key":"move","truth":"Protect","p":0.7833,"nats":0.2442,"legal":48,"vocab":316,"top":[["Protect",0.7833],["Rock Slide",0.1739],["Shadow Ball",0.0118]]},{"step":29,"col":22,"slot":2,"field":"m3","key":"move","truth":"Rock Slide","p":0.38748,"nats":0.9481,"legal":40,"vocab":316,"top":[["Rock Slide",0.3875],["Swords Dance",0.2114],["Taunt",0.0864]]},{"step":30,"col":27,"slot":3,"field":"m0","key":"move","truth":"Iron Head","p":0.54143,"nats":0.6135,"legal":43,"vocab":316,"top":[["Iron Head",0.5414],["Kowtow Cleave",0.3378],["Brick Break",0.0348]]},{"step":31,"col":28,"slot":3,"field":"m1","key":"move","truth":"Kowtow Cleave","p":0.11492,"nats":2.1635,"legal":28,"vocab":316,"top":[["Protect",0.6856],["Low Kick",0.145],["Kowtow Cleave",0.1149]]},{"step":32,"col":29,"slot":3,"field":"m2","key":"move","truth":"Protect","p":0.72877,"nats":0.3164,"legal":27,"vocab":316,"top":[["Protect",0.7288],["Sucker Punch",0.2361],["Low Kick",0.0136]]},{"step":33,"col":30,"slot":3,"field":"m3","key":"move","truth":"Sucker Punch","p":0.70806,"nats":0.3452,"legal":21,"vocab":316,"top":[["Sucker Punch",0.7081],["Swords Dance",0.1752],["Taunt",0.0577]]},{"step":34,"col":35,"slot":4,"field":"m0","key":"move","truth":"Icy Wind","p":0.08273,"nats":2.4922,"legal":45,"vocab":316,"top":[["Blizzard",0.3252],["Iron Head",0.1876],["Dragon Pulse",0.0945]]},{"step":35,"col":36,"slot":4,"field":"m1","key":"move","truth":"Iron Head","p":0.42316,"nats":0.86,"legal":25,"vocab":316,"top":[["Protect",0.5452],["Iron Head",0.4232],["Life Dew",0.0121]]},{"step":36,"col":37,"slot":4,"field":"m2","key":"move","truth":"Protect","p":0.96243,"nats":0.0383,"legal":23,"vocab":316,"top":[["Protect",0.9624],["Recover",0.0159],["Scald",0.0126]]},{"step":37,"col":38,"slot":4,"field":"m3","key":"move","truth":"Scald","p":0.61215,"nats":0.4908,"legal":18,"vocab":316,"top":[["Scald",0.6121],["Weather Ball",0.138],["Triple Axel",0.0815]]},{"step":38,"col":43,"slot":5,"field":"m0","key":"move","truth":"Iron Head","p":0.11877,"nats":2.1306,"legal":71,"vocab":316,"top":[["Blizzard",0.2203],["Iron Head",0.1188],["High Horsepower",0.1051]]},{"step":39,"col":44,"slot":5,"field":"m1","key":"move","truth":"Low Kick","p":0.14857,"nats":1.9067,"legal":33,"vocab":316,"top":[["Protect",0.7057],["Low Kick",0.1486],["Knock Off",0.1157]]},{"step":40,"col":45,"slot":5,"field":"m2","key":"move","truth":"Muddy Water","p":0.00181,"nats":6.3134,"legal":29,"vocab":316,"top":[["Protect",0.8325],["Rock Slide",0.1517],["Rain Dance",0.0031]]},{"step":41,"col":46,"slot":5,"field":"m3","key":"move","truth":"Rock Slide","p":0.4543,"nats":0.789,"legal":28,"vocab":316,"top":[["Rock Slide",0.4543],["Stomping Tantrum",0.1571],["Taunt",0.1433]]},{"step":42,"col":7,"slot":0,"field":"nature","key":"nature","truth":"Jolly","p":0.18071,"nats":1.7109,"legal":19,"vocab":19,"top":[["Adamant",0.6616],["Jolly",0.1807],["Modest",0.0584]]},{"step":43,"col":15,"slot":1,"field":"nature","key":"nature","truth":"Jolly","p":0.13112,"nats":2.0317,"legal":19,"vocab":19,"top":[["Adamant",0.6764],["Jolly",0.1311],["Modest",0.0758]]},{"step":44,"col":23,"slot":2,"field":"nature","key":"nature","truth":"Modest","p":0.08964,"nats":2.4119,"legal":19,"vocab":19,"top":[["Adamant",0.6718],["Jolly",0.1095],["Modest",0.0896]]},{"step":45,"col":31,"slot":3,"field":"nature","key":"nature","truth":"Adamant","p":0.783,"nats":0.2446,"legal":19,"vocab":19,"top":[["Adamant",0.783],["Jolly",0.1303],["Timid",0.0221]]},{"step":46,"col":39,"slot":4,"field":"nature","key":"nature","truth":"Adamant","p":0.72554,"nats":0.3208,"legal":19,"vocab":19,"top":[["Adamant",0.7255],["Jolly",0.1416],["Timid",0.0365]]},{"step":47,"col":47,"slot":5,"field":"nature","key":"nature","truth":"Adamant","p":0.66347,"nats":0.4103,"legal":19,"vocab":19,"top":[["Adamant",0.6635],["Jolly",0.1484],["Modest",0.0626]]}],"new":[{"step":0,"col":0,"slot":0,"field":"species","key":"species","truth":"Basculegion","p":0.06435,"nats":2.7434,"legal":189,"vocab":189,"top":[["Garchomp",0.0727],["Basculegion",0.0644],["Kingambit",0.0591]]},{"step":1,"col":8,"slot":1,"field":"species","key":"species","truth":"Excadrill","p":0.00683,"nats":4.9864,"legal":187,"vocab":189,"top":[["Garchomp",0.1139],["Whimsicott",0.0949],["Kingambit",0.086]]},{"step":2,"col":16,"slot":2,"field":"species","key":"species","truth":"Gallade","p":0.00127,"nats":6.6648,"legal":186,"vocab":189,"top":[["Tyranitar",0.1013],["Sinistcha",0.0735],["Staraptor",0.0662]]},{"step":3,"col":24,"slot":3,"field":"species","key":"species","truth":"Kingambit","p":0.03515,"nats":3.348,"legal":185,"vocab":189,"top":[["Tyranitar",0.0992],["Staraptor",0.0805],["Sinistcha",0.074]]},{"step":4,"col":32,"slot":4,"field":"species","key":"species","truth":"Milotic","p":0.04212,"nats":3.1672,"legal":184,"vocab":189,"top":[["Tyranitar",0.0743],["Whimsicott",0.0698],["Garchomp",0.0686]]},{"step":5,"col":40,"slot":5,"field":"species","key":"species","truth":"Tyranitar","p":0.19371,"nats":1.6414,"legal":183,"vocab":189,"top":[["Tyranitar",0.1937],["Garchomp",0.0916],["Sinistcha",0.0874]]},{"step":6,"col":1,"slot":0,"field":"ability","key":"ability","truth":"Adaptability","p":0.92275,"nats":0.0804,"legal":3,"vocab":127,"top":[["Adaptability",0.9228],["Mold Breaker",0.0652],["Swift Swim",0.012]]},{"step":7,"col":2,"slot":0,"field":"item","key":"item","truth":"Focus Sash","p":0.18125,"nats":1.7079,"legal":50,"vocab":111,"top":[["Focus Sash",0.1813],["Sitrus Berry",0.158],["Life Orb",0.1284]]},{"step":8,"col":9,"slot":1,"field":"ability","key":"ability","truth":"Sand Rush","p":0.97917,"nats":0.021,"legal":3,"vocab":127,"top":[["Sand Rush",0.9792],["Mold Breaker",0.0203],["Sand Force",0.0006]]},{"step":9,"col":10,"slot":1,"field":"item","key":"item","truth":"Life Orb","p":0.17249,"nats":1.7574,"legal":50,"vocab":111,"top":[["Sitrus Berry",0.2124],["Life Orb",0.1725],["Choice Scarf",0.1331]]},{"step":10,"col":17,"slot":2,"field":"ability","key":"ability","truth":"Sharpness","p":0.96457,"nats":0.0361,"legal":2,"vocab":127,"top":[["Sharpness",0.9646],["Justified",0.0354],["[MASK]",0.0]]},{"step":11,"col":18,"slot":2,"field":"item","key":"item","truth":"Sitrus Berry","p":0.30321,"nats":1.1933,"legal":49,"vocab":111,"top":[["Sitrus Berry",0.3032],["Choice Scarf",0.1516],["Chople Berry",0.0735]]},{"step":12,"col":25,"slot":3,"field":"ability","key":"ability","truth":"Defiant","p":0.97695,"nats":0.0233,"legal":3,"vocab":127,"top":[["Defiant",0.977],["Supreme Overlord",0.0203],["Pressure",0.0027]]},{"step":13,"col":26,"slot":3,"field":"item","key":"item","truth":"Leftovers","p":0.06375,"nats":2.7527,"legal":47,"vocab":111,"top":[["Choice Scarf",0.2287],["Colbur Berry",0.115],["Chople Berry",0.1139]]},{"step":14,"col":33,"slot":4,"field":"ability","key":"ability","truth":"Competitive","p":0.99863,"nats":0.0014,"legal":2,"vocab":127,"top":[["Competitive",0.9986],["Marvel Scale",0.0014],["[MASK]",0.0]]},{"step":15,"col":34,"slot":4,"field":"item","key":"item","truth":"Black Glasses","p":0.031,"nats":3.4738,"legal":46,"vocab":111,"top":[["Choice Scarf",0.2556],["Chople Berry",0.1256],["Colbur Berry",0.1213]]},{"step":16,"col":41,"slot":5,"field":"ability","key":"ability","truth":"Sand Stream","p":0.96407,"nats":0.0366,"legal":2,"vocab":127,"top":[["Sand Stream",0.9641],["Unnerve",0.0359],["[MASK]",0.0]]},{"step":17,"col":42,"slot":5,"field":"item","key":"item","truth":"Tyranitarite","p":0.75466,"nats":0.2815,"legal":46,"vocab":111,"top":[["Tyranitarite",0.7547],["Choice Scarf",0.0768],["Colbur Berry",0.0333]]},{"step":18,"col":3,"slot":0,"field":"m0","key":"move","truth":"Last Respects","p":0.01375,"nats":4.2869,"legal":40,"vocab":316,"top":[["Aqua Jet",0.6726],["Blizzard",0.0933],["Flip Turn",0.079]]},{"step":19,"col":4,"slot":0,"field":"m1","key":"move","truth":"Protect","p":0.75629,"nats":0.2793,"legal":22,"vocab":316,"top":[["Protect",0.7563],["Liquidation",0.1361],["Muddy Water",0.0982]]},{"step":20,"col":5,"slot":0,"field":"m2","key":"move","truth":"Shadow Ball","p":0.67005,"nats":0.4004,"legal":16,"vocab":316,"top":[["Shadow Ball",0.67],["Psychic Fangs",0.1155],["Rain Dance",0.0724]]},{"step":21,"col":6,"slot":0,"field":"m3","key":"move","truth":"Wave Crash","p":0.98808,"nats":0.012,"legal":10,"vocab":316,"top":[["Wave Crash",0.9881],["Waterfall",0.0045],["Substitute",0.0034]]},{"step":22,"col":11,"slot":1,"field":"m0","key":"move","truth":"High Horsepower","p":0.34961,"nats":1.0509,"legal":39,"vocab":316,"top":[["High Horsepower",0.3496],["Iron Head",0.2634],["Earth Power",0.1488]]},{"step":23,"col":12,"slot":1,"field":"m1","key":"move","truth":"Protect","p":0.44629,"nats":0.8068,"legal":24,"vocab":316,"top":[["Iron Head",0.4905],["Protect",0.4463],["Poison Jab",0.0493]]},{"step":24,"col":13,"slot":1,"field":"m2","key":"move","truth":"Rock Slide","p":0.92801,"nats":0.0747,"legal":18,"vocab":316,"top":[["Rock Slide",0.928],["Sludge Bomb",0.0301],["Swords Dance",0.0103]]},{"step":25,"col":14,"slot":1,"field":"m3","key":"move","truth":"Swords Dance","p":0.44514,"nats":0.8094,"legal":16,"vocab":316,"top":[["Swords Dance",0.4451],["Sludge Bomb",0.214],["Stomping Tantrum",0.1847]]},{"step":26,"col":19,"slot":2,"field":"m0","key":"move","truth":"Close Combat","p":0.22234,"nats":1.5036,"legal":90,"vocab":316,"top":[["Close Combat",0.2223],["Knock Off",0.1241],["Aura Sphere",0.1237]]},{"step":27,"col":20,"slot":2,"field":"m1","key":"move","truth":"Low Kick","p":0.12486,"nats":2.0805,"legal":79,"vocab":316,"top":[["Protect",0.2618],["Knock Off",0.2552],["Icy Wind",0.1317]]},{"step":28,"col":21,"slot":2,"field":"m2","key":"move","truth":"Protect","p":0.59191,"nats":0.5244,"legal":48,"vocab":316,"top":[["Protect",0.5919],["Rock Slide",0.2987],["Shadow Ball",0.0186]]},{"step":29,"col":22,"slot":2,"field":"m3","key":"move","truth":"Rock Slide","p":0.38385,"nats":0.9575,"legal":40,"vocab":316,"top":[["Rock Slide",0.3838],["Trick Room",0.1654],["Swords Dance",0.1162]]},{"step":30,"col":27,"slot":3,"field":"m0","key":"move","truth":"Iron Head","p":0.38934,"nats":0.9433,"legal":43,"vocab":316,"top":[["Iron Head",0.3893],["Kowtow Cleave",0.3678],["Brick Break",0.06]]},{"step":31,"col":28,"slot":3,"field":"m1","key":"move","truth":"Kowtow Cleave","p":0.3637,"nats":1.0114,"legal":28,"vocab":316,"top":[["Protect",0.416],["Kowtow Cleave",0.3637],["Low Kick",0.1822]]},{"step":32,"col":29,"slot":3,"field":"m2","key":"move","truth":"Protect","p":0.75546,"nats":0.2804,"legal":27,"vocab":316,"top":[["Protect",0.7555],["Sucker Punch",0.1523],["Low Kick",0.0487]]},{"step":33,"col":30,"slot":3,"field":"m3","key":"move","truth":"Sucker Punch","p":0.74127,"nats":0.2994,"legal":21,"vocab":316,"top":[["Sucker Punch",0.7413],["Swords Dance",0.1467],["Taunt",0.0514]]},{"step":34,"col":35,"slot":4,"field":"m0","key":"move","truth":"Icy Wind","p":0.15667,"nats":1.8536,"legal":45,"vocab":316,"top":[["Flip Turn",0.1654],["Icy Wind",0.1567],["Iron Head",0.1526]]},{"step":35,"col":36,"slot":4,"field":"m1","key":"move","truth":"Iron Head","p":0.29588,"nats":1.2178,"legal":25,"vocab":316,"top":[["Protect",0.5376],["Iron Head",0.2959],["Life Dew",0.1119]]},{"step":36,"col":37,"slot":4,"field":"m2","key":"move","truth":"Protect","p":0.87113,"nats":0.138,"legal":23,"vocab":316,"top":[["Protect",0.8711],["Scald",0.0797],["Recover",0.0228]]},{"step":37,"col":38,"slot":4,"field":"m3","key":"move","truth":"Scald","p":0.85468,"nats":0.157,"legal":18,"vocab":316,"top":[["Scald",0.8547],["Triple Axel",0.0467],["Weather Ball",0.0465]]},{"step":38,"col":43,"slot":5,"field":"m0","key":"move","truth":"Iron Head","p":0.08906,"nats":2.4185,"legal":71,"vocab":316,"top":[["Knock Off",0.1873],["High Horsepower",0.1223],["Icy Wind",0.1164]]},{"step":39,"col":44,"slot":5,"field":"m1","key":"move","truth":"Low Kick","p":0.14787,"nats":1.9114,"legal":33,"vocab":316,"top":[["Knock Off",0.4716],["Protect",0.3453],["Low Kick",0.1479]]},{"step":40,"col":45,"slot":5,"field":"m2","key":"move","truth":"Muddy Water","p":0.00527,"nats":5.2455,"legal":29,"vocab":316,"top":[["Protect",0.7806],["Rock Slide",0.1987],["Muddy Water",0.0053]]},{"step":41,"col":46,"slot":5,"field":"m3","key":"move","truth":"Rock Slide","p":0.6035,"nats":0.505,"legal":28,"vocab":316,"top":[["Rock Slide",0.6035],["Protect",0.2441],["Superpower",0.0685]]},{"step":42,"col":7,"slot":0,"field":"nature","key":"nature","truth":"Jolly","p":0.14197,"nats":1.9521,"legal":19,"vocab":19,"top":[["Adamant",0.6277],["Jolly",0.142],["Modest",0.1054]]},{"step":43,"col":15,"slot":1,"field":"nature","key":"nature","truth":"Jolly","p":0.10089,"nats":2.2938,"legal":19,"vocab":19,"top":[["Adamant",0.6361],["Modest",0.129],["Jolly",0.1009]]},{"step":44,"col":23,"slot":2,"field":"nature","key":"nature","truth":"Modest","p":0.15467,"nats":1.8665,"legal":19,"vocab":19,"top":[["Adamant",0.6173],["Modest",0.1547],["Jolly",0.0848]]},{"step":45,"col":31,"slot":3,"field":"nature","key":"nature","truth":"Adamant","p":0.75722,"nats":0.2781,"legal":19,"vocab":19,"top":[["Adamant",0.7572],["Jolly",0.0925],["Modest",0.0504]]},{"step":46,"col":39,"slot":4,"field":"nature","key":"nature","truth":"Adamant","p":0.70374,"nats":0.3514,"legal":19,"vocab":19,"top":[["Adamant",0.7037],["Jolly",0.0981],["Modest",0.0728]]},{"step":47,"col":47,"slot":5,"field":"nature","key":"nature","truth":"Adamant","p":0.63655,"nats":0.4517,"legal":19,"vocab":19,"top":[["Adamant",0.6365],["Modest",0.1046],["Jolly",0.1009]]}]},"test_median":0.25},"sprites":{"basculegion":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAIj76UH43jFnGNVIQEBB5GjLm5uakpKQiYD1BUlJiYmIgMTn+p8hjPikVQCKYDWH3AAAAAXRSTlMAQObYZgAAA0hJREFUeNrtloeimzAMRZHvFbg05f8/t7KQYh5dDl2Lk73OwY7emG5ubm5ubm5u/j34k/3r/IWC6o8MrJ/6RVS/P2P+eWZUzoGWEE4d+Z7AeRUU5xiQB17OrMtsWGW1uzwvAe4/BSIzvgDDKsu6eED1uAS+bSKuXw0YquoBFVHPZGHSSKJ7r/jNZQlagLE79AD2V8z/sJ0RuRhQcbQH/IbN72gE7DLJxQDgU+nq6BDQ/bmHWuAhjwc9MgxnZ9kHRsXJJVDhAVExNR76cPelQCtkQBvYl4T9K4D4wT/s8uIQMfxewK6Xzl6Aovl1ovkHeA76+8a6WsALfREdGKoALMDBgEJD/i4Bnjo9+QMlm3vUH/K0p6uUEtMUdP00ipr/s/ayQ/8m8Dag0zAKdP3JLj0g+vSrB1RHA6lPO6BaHBGxSzn8QKDBqHDIf9DHxJuQJQqlBSiNltlh3HBg9/Wsh0j6O/RXEg3/0O53fR4lKRnokN0Pciigart/1AMtoM0W2xMoGT9cKSa/HTDVtPvzd0ypsABRTqjXBQro08uRgPtVxQw+NrVkQORTfwRSy2/6fXq0ySUT1W4pOATEA6ro/kHi8GP64r+dqv7I1RnR3B6yXRaOB8JfUJtlTwglCmL0HSJYq+mNdSyRC2ApW5OAhBjEOQARgM2/BBz1W8D8swU8RFLgGfQtqorGwU9y1A+yVJk39UCDdpMB1xva/S9uEARVKIuKCuouLIdADUj3j+sjAKkmEfiYsDibB9DtgN9sjM0fZat5vBsFbwIQcWkGQv+a3wMBTQipWxbxvmHazJDLy34r5JZ7QVi2WEAV91nC2Ux/xR9LIKNAl2+lVgi4RMLtyTq9xMymnxdu2dncXwFU185zU67rtQVMnMgPH2a70MwtkH4LtMJsrJG44HdM/qGx7YHw74PvgUxcDFjBGg7T73pzcU68cM3vCa4ZyKlx1blwKcC1bdLcClsEyJyWDGThSsDdbZB8iEIf/lPhGqy0AGtxTL8u58D3F1iefnv8uQAb1/zKJgfCb6zpz8Jq7ssowBYQS4SHbwNr2C/7wRr/dWpKjwFO3wUJndgQQ/vo/jjA3SlCcvoJpJUyrL9eurm5ubm5ufmlfATfaCf9iOvmnQAAAABJRU5ErkJggg==","excadrill":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABaSkGkpKRBMSkQEBC9QUHV1dViYmIpIBiDQUH////ug3uDKTGsUlLNc2pbEtPrAAAAAXRSTlMAQObYZgAAA0tJREFUeNrtlod2gzgQAEE7ao7v/v9zb7USwiTIFd9rTHp4bwYtdTo5OTk5+V+I8cv+wJf9gS/73VcDrAFZOHoBjiqfF0TSsf7Y5Z0kH6vbgJwGnCK/I5IOODfN76KrwDbxUQENREINRNc4rmAnZyC4toLDC5RADK5xeKGdPH0+hwfq8On6bUEKnxXq8HFxb0aSvfc5fRCwCe2D4iuIvF0gDNw4J7MlQOXHBVBmcQVRKfDR9WwTirf2YrrEy8XlrIEtvLWA2Pyx7axw0YDPO4E5vRGI3a5/2e5T/TahTwux+iPYX07EFuR9ndDnBUIweyVeFrzPRwWAdT1d7+s59HkBbv+4LESIA7+kt55migirfnf/5Z1ndAw0/cw/P/+avvzO3nCS+t8MlNsZPz9aQJTZTJs9N4AXAzEELZBmCyjFz7zFtq6N1wMEU+iIQLYBvw0Y8Jo/xOK/Xq8CsvVnvxNQeCkQg0tzvefLNuCVKvxTIOc8PehQA/qp+++vq9/71Z93AwreE3h0+mD+oAug+xPFmrP5NTUIzBCfCmABpPsnit9Xfx4HZsLdgO095ndJOkx4HU7z66/DAu6JQPXHHkhME3U4zwXi2B+duonFHyOpNMDCc+5+bS267b1bBFcCLg4TBIXmL1/U9ab5dgHLGjJ+LYhIfc0PETcOdD/mn4wa2KzB/kR/lUXvYn1JthkNC9RLbNn9aQ0oTW4HwX7gl4K4Zl8DjA4BmohU/V5gNr/RA+ZfCzgtBEbP4uDMP936SyCv/txaYAFxjdgDhFHA/BNs9bIcZf1R19IT814ANwq46Jp8O54WmI1eKJsQ9W8L4IaBOrqt3wKSb/zZYsVvBferQBwHYNoLaCHnPC/YmSq5beJ3ILphgGnfbwFRWsB+102DggXi9BTXbpEtPaA/2Qk86/e5Wvaxtfmdgk3oCainiowpAZ8EVPpOIHuf+0hkA2Ko3+fUbqRWeD6gQF69IMDfQM4ZEVBtGJ1EY5AVsOZCC2QLKASlBRzT00Czs9um+ycIhaiB5/0pSUoURqsDC9h2Yi28MiEQS9xZHUjfTn0peX4FVO5utxeDDgQ0cBxIkiRsoho4urA18tXA8SAI0zeBz/0nJycnJycn/wGLUSSfNFlgcAAAAABJRU5ErkJggg==","gallade":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAD/nIPmUjl7UlI5UlJBg1pSe4NzlKR7i6x7xbSktM3Fzd7u7v////9atGoQEBCzUTuOAAAAAXRSTlMAQObYZgAAAjhJREFUeNrtlod24zAMBBVxYcMCo/3/vz2QFC+9kriqSY/8ZrTuy8nJycnJr4WFyMD1dr1eL4EJeCA0gZsXaiJ4ghdiAw5jA7fgws0/LoycUL4HBaofQFCBN0dk33cgIMBr1zvihZDT3zuCyQF0fw/I3ADkuV/A0AEOtRA1wNVmOWdGBARAtuLfGHETAPeac/GTAbexcF3vtxJQTr4XSb1tec8SMOoyE4q/zEj136W1DuDsJ4pWgG3Nn/P8ggeYC2YW8BaG9IIPUPe7PALiciHD9C2xkMSEAPDmAQLgcIKCVxsQAiL7DqY04seO/bUCUkrF74AjgV288CLBlO7WVY6CACOF3RvPErxz/ZrEIUXGEl54cZp0fQuU30pDBhKUnugKIPUBKL8sC9kT+EaIOAIiTSHCRwNSi5YEgXaZbyWkUhVcWAPA2u6jrTvyJoOUTjOkFQI7Tp9k1Tvf9DdJ91coYqYLHezOoL830AukwLp84rs8FsoPzciUx/qZ78BcX6Fr0c/dw7Ng7pCYLXdouWNGR5e50HrBGh6YCzd7xMZlNqSqHSin+1U3h43yh07W52wb2cd4y3Sq3lE+u8WnFdSyw5cPCtUwfyvMGaG5+4MKLAOMbz2yOe6v8I2yp6MCrdAOjfuN7x4bD+j7B2MGTJlA064IKdC2jwL9+MgAfS9wXIIxgTbh+4Xmb4GQCX3Ae4GRCbQe0DcD+mjC4DUUMIHt/Ei+u3JkQuODyxwBcgmCB8vJycnJ/8sP0zM0Tsu1vv0AAAAASUVORK5CYII=","kingambit":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKSlqGBhBQVKUMUHFMTH/LihiYnPMTU2EayK1lRWspLTmvUHe3t7l5eV6WxX9AAAAAXRSTlMAQObYZgAABCFJREFUeNrt2ImW4yoMBFCXkB0iwPn/v32UAoln7Rgf3l6z4zl1kWGW7uWXicvcxEf8xwPJ5vb/CUCyqUCZD1CYCKT5AIV/PJBsJmDTgTJNIFDmAxMFAvPfUerCPxYoMwUC80dIcwV9lNnA5BHex1xmj2BTT6GYzT0Fm36RaFTEJp4C+8vvBZHxETqQAvDL/ptcGKH3b9sW8Iv+U8BxXPERzPuZ9WeCxHPAcV7hCATYzyh+0n8aiEehEEgvIOLH/sj+M8Bb4AgErPWvtQ34of888K1gJfR+RoHv+s8C3wkpNUBjTxNEWO/94wJyHYGA9v4uiG9/EKAgTSCgXq/yFljvi0MAyxohSgEs1dwB6fW9f0ggUaPIDmiVbvJca4/ZPwhQ8A6tdS6o5dpP0J+olzPAcjqAH4MXMRRSMhNt6d2MKpYRgggTu2CmzKEa67pCtQtDSGck2+1YnVK430Pt5ztT6cIlBs8oRFLvD+K5JjAG+EaVpwArxfs7cFkwSzUgQiG+gKCQnnEhhHsIKZViXi+vfgJvAeP1TCg1VoF4HAB6WWBN6IJF/0Nm5XXEUI24BGCteQsdqL+GnzA0XhVwEDgCgfvtdkeAdOEKQKIJPOcDoBAGdUUYYFQQoAscgUCNAxCxKmB/pjJDQFTgXndNgUB6AiJIsEKgJe+76pnqyEisgIDAPfkppDvAATL8/2SoEYareZcT7TvDAbJUgUl+qNAa1H4Cxu9cYP3H/WzPCiaq5ZzhAhA9FahLx35k382n/bVeAf7MTK1tsEZ7fyWFAPsTH1P4/B7pvvffi2IEDKzIWRnWA2JmiQbEg/3z/pybYIZSKmAJ3LL0+wgoLPkLsoS2iip/KABQP2akJ5ASBEAUMMKXZFYKhXS4pKeuqV8iJENJDdh3ja8zMMIlkWt5Ilk/rs8KsJmbTCYSZN9fZ+DbB7AFeYUzZDlxi/gTJFZZQgjbJrK3AOzfmNCIvLP+834sTAg8A96UzSMtG1LrJyHwdkDO3qK6axR/2wnH/8Gvdb31Mzj3h6DfIvbX8BUla/tdI8P1ni5wQ+fSARAAJ1jrxpX5CSCCkX4GicfZBlhDB8IWe32kMDzAGtEPgKEQ1tWBeACwjABx44GuQG1kuScQWMNaaSd45CuWMYD13wc1DvQj5zjLWELvD6H9CEBq8BqK/WMDMDjum5F3msCw/6rADlE5RLE+CX8IDCII7/4YYyeUwWE6/hIYJzpAw3MU4CBdDL8nbQDzPQBpAYYFVbD/pyNA2f3cPgiMCj8FlP1VAEa7OxAfPwcU3r9cC+LjQUBbvxwABXCxX5X9UfQNxNYfVSOWq/UP9j+wtBHY34EHn+HqJ3+11vs1VQL6BlABCnoFANTrGXCE3u9v/rLAsKkFWADhSl+rPEBgWhSg+3/+0/kDYc1F/EUwfgYAAAAASUVORK5CYII=","milotic":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAD/5rTevYsAAAAxMTG0OVLuansIe5w5rNXmUmJ7UlL//+ZiKSmDOTnH2cIeAAAAAXRSTlMAQObYZgAAA65JREFUeNrt1PtWuzoUxHFgZidA6/u/7skk4G4WNQ2K5/br/OHd78cEV4f3/rd77z1b0n41zzSzX+uTek9+IaTTmf2ov3/4VCjHE/FTQCuVdfWvbMcTcUG/bB1H/5ofT8L1gI8L/xuA+v8IoP41gPrT7wOX9V3wvoDWD+FywKqf4YxvAt6vAVv8Rxw4KXjfAf/z6/78IJDoBbzvgP/5zwFSH/cL9/F2y/1prV/LD4B/eA64pQmQUD1dn0fZ2XfBblrqm318lLz3HdCQP3CgS7Aw5gOYhZCIQXn1D8CiLOdzwMKUHTULeeSCY17AIuBUX8I0sQBW6lwWDL4DoPjiT4N4KYzjugOqL/iynyZgyVCuC+oAxpD75DRNgN3bwFIAdj/rdcxb9Z74sBeA3p57FOs0bgM43c0aVzR/AnM34C8TuCXg40sgqgw723cAadY4QYxmG4CYH/U5gAzB2AZihNkyR8RF6+v7FZGcWkAaoll+u/U5dI0F0AQ0BOzK/iTI18a60vtNYO9Hy3noIcho11ddzdZfXwNA1JTXJKCVT9V8dOWB/QRk844ilPd+M5/78Y60uG6AIT4jSpwAzDyPdl4Co6qIAooAhfgMQFGSMLfy6k8+1sBzQX1dB4qhuufb/RxFJB0A02ItQP08aKo3+/6fuT1YswKEAsQ01v0d6H8BfQQmFsDvqBYQebovwYGJGxB2gGne5wlA7ZveeB9YHShC9RhAzjjdFwBkIH0ZAvwI9WMA51PAbQOAIfUFpL0CyNN9dVMvGPbv+B2p/yjoP/8sgEGApSA+n72AYBaOgIRz/QxYyoXPA+xH0NdiJSCeBzAUwG/IjxB2wIUEEN8DwgHIKmuAcSbR03dA/SPgAmuBnCOuAwKoRfpTeCE4sKWw9Q3e3wENZtT8KZwDRhwOUAswjfsl6QixLXimpCw0gSKQsTpCRDcwPgCr31wtCJCwATwDqP8ccAH5jiK5A4xsCXjSN6j/HAgGASKAmADrBbwf9r4DLqSBm0C9MZ2hSzAvrKVfA/YgxF2g6cbagPe3hL7i/R3APbgAbsIJAMAjcDsAwy7Y5yFoeRTQeUemvuJV3wHLAgBS/U7A+xDg/RqQUIBcJ20HvN8SLBjSG/j1PAHCHZDg99MPAKY3e/fYz8I9/Tz8CXi/LTTmgAQBaUAW6P3m1rXVd0CCgEKgCMDweug8QD3kDV1DxwF+NvxqXwOmY/2ivhPTIa5B/YsIePbqvBt4jHv+YqRs+NP33nvv/QWkkTUpPKl6oQAAAABJRU5ErkJggg==","tyranitar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAAQEBBKWjlzc3NznGKszZzFxcXe5s3///9KnOYge70ASouUKQDVUgC40AdtAAAAAXRSTlMAQObYZgAAA0pJREFUeNrtl9tS20AUBOnRjCJs/P+/m6wuxxdMSrGWp9AvSZmqbp+ziy3efvjhh/8FSd+rT/hO/a+E75tEvza/vmMSrf7F3tkvLW8/Atl27/ev8MdvKQlpif7+hYgkMp3Xz2YnM70vEM0eKYWKbtdTcq44G/TwJ2Ianc9AlyOOGCa7u778z3Dpj0IsCZBzQ8ebyggTHx8fKDf0u0fiT+TjcvngYUcrXUbhcrkoz4A+W7pMze/O+gLJze/e96hg1jvd71GBfQ1I3/CBhDa/BcqGe305XP00bvx08ZfSXANO6Q9TW6Gh/veo3jTo4cug08dF7rDXgKQ1dNCPUljA9RnmuF8KcKeHRInocUuVhFldCclRGmx+SYf9JjfUrTr2rCplDdji0d/g0LOq4hpAp9P5SSAcOGilAm6BE58DNrYP7EfXAWqECqxvwEf2o22A91agAq7Ogf1E1xN4f38slF/iRX8TeB3gPAfO52vAjtYtIemlQOQa4Ny4GQFbXvwJ5iW/5e0EGqcGtwE7fukY8Oy1aoAK1JKgBZS8UBhGItl6qwEqUCPYLFO8UBgYGSdofqX5K1AF2fYyhf85wDQNE+0/oQXO581//kNIA2yWKfSvz0nDBMylNoQ4vZ9XWiNLAQPmDRiJGIfd/uYtiEJtaD1kCJ5hHnhYNvoSkHBq+vI3wDeFoUUOfaWdViqQWY5r9RwLnFf9OcV6S6HDl3IrLOQKWWfwoQJkKdR+VrQdhA4VlK8DUpqfIwUlxGvh0V+PSToUCEsglL8h1n84VmAukEfKfzgwF8gD1uqXPPNQkHb70ZOCrRRrAG70YfcZiKbAd3rrfhxJ2JLq4HYHVqGxy/4YEA3bibSMrBbY9dcJmxMXFVAjsQVubK8G1Ngzi7CfFEiyVeYirsQMQPbsShFPCqz+hu5/mtvX2fOL4OeFCpjHH26Twa5fNRtsAzwPmAps7NHXirLY27g3DR6+ee6BffpBdYzbQmlU4ekl096PjmGYSKMCG8z40Q/X/M6HlxEGfTVzLUYsbK/vDMA0Dpqm8euFgiRbfC7vK7QG/P2PlKcL2f8oAH/boTJMyKqHoq4Mbbplg2PvQq1hDrzB2D9QY1Cb7E+pf/jhh/+G3w3DK9CzeB3qAAAAAElFTkSuQmCC"},"items":{"Focus Sash":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAWCAMAAAD3n0w0AAAAG1BMVEX///8xMTFaWlrec0r/hIT/pVK9MTHvUlL/5lIjIEyuAAAAAXRSTlMAQObYZgAAAHhJREFUeNpdzkESAyAIQ1E+inj/EzftkEX9yzejJAIy3liLcJnwIGzFD2uQcxjMqsqxA909ii2M1L05Nqi49yL62ulOD0H5X+KvfC2Btpn2boVNsRWQoXyoW+RHhZGw3Ss12tSsM9qU5yVVtlEoBeFAvNYymdVDTx/VvAMNiA4zDwAAAABJRU5ErkJggg==","Life Orb":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGFBMVEX///8xMTHetffmQub3vff////FMc7/c3NbByJoAAAAAXRSTlMAQObYZgAAAFJJREFUeNp9j8UBACEQxNDZ/ju+IZxbfgm6CTIkQAtsyVrBaXrrrUoaKRN67wJCLnXsiPAmtjhU1ZAoM1hk4ic8j+h06VoA5xmUjz2+/hzuMf4CgSUC14Hio6EAAAAASUVORK5CYII=","Sitrus Berry":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAMAAAC3SZ14AAAAHlBMVEX///8xMTFShEpr1lr/72vmtUKMczrWtUrv1lqtczFwlDxKAAAAAXRSTlMAQObYZgAAAHVJREFUeNpdzgcOhEAMQ1HSmftfeGP97aY/ORHXT8yuf3DHiJmFR2BAZqr1poWqtQhkKw1tD1qYJDktM73KSs+BNENuEZspqtQiKiXobpkhNJnUoIhr5oiIaEvsvxHGoJ7FAo5kbcg5w0/IGlkyCbWWAsTIEx60/gRxVpqwvQAAAABJRU5ErkJggg==","Leftovers":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUCAMAAACK2/weAAAAJFBMVEX///8xMTF7lCGcjFLmUlL3Y2N7Skq1Wlr/jGv////O5q3v/9YM7kBCAAAAAXRSTlMAQObYZgAAAHNJREFUeNp90EUCAyAMRFGmUZL737eR2qoffUs4r4DzEx4foiICsGJhEJgZK7Wi6VjdRTth1uZ1qbhVQY0r01ZFoWYWNKiQEYEX1n9IRXoDlBkZhNXNiHImhh5xs6YvzW8x3IZGJu4udb6ebsxsvx+gitET220DqTjn/04AAAAASUVORK5CYII=","Black Glasses":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAQCAMAAAAlM38UAAAAD1BMVEX///9KQkoxMTFjWmPOzs6VLnf8AAAAAXRSTlMAQObYZgAAAExJREFUeNp9zQEGRFEMxdAm9+9/zUNVoc8EcCD1P/SJl2nzYItXbwa9d7+AumhwGKIuDisk0cZqDljmCzQOs4zWptbw6kaeLM03tbYfockBAtMV6QsAAAAASUVORK5CYII=","Tyranitarite":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAJ1BMVEX///8xMTFSY1K9KTH/ISGEpWutxaX/pZzFY0L///9CQkJje1rF1nuK4KOkAAAAAXRSTlMAQObYZgAAAFBJREFUeNoty4cNwAAIA8FQU/efN+aFVY8XBzPtYMAjw2xVfWZeVba67zWEYxvV0/2kpgy1wPBdw6/Kx+LHM125pMn0CEWsw+MI6+BhiJktfifPAvCXCNdgAAAAAElFTkSuQmCC"},"options":{"deployed":{"species":184.9,"ability":2.2,"item":48.6,"move":30.8,"nature":19.0},"random":{"species":44.0,"ability":69.8,"item":82.3,"move":133.8,"nature":19.0},"vocab":{"species":189,"ability":127,"item":111,"move":316,"nature":19}},"stairs":[{"label":"Old model","note":"asked_vs_got.pt, trained 2026-10-04 on 14,736 teams","nll":2.3616,"delta":0.0,"se":0.0},{"label":"Rule out illegal values","note":"same old weights; impossible values masked when scoring","nll":1.5934,"delta":-0.7682,"se":0.0056},{"label":"Retrain with the masks","note":"all 145k teams, masks in training","nll":1.5507,"delta":-0.0427,"se":0.005},{"label":"Train on the test family","note":"only the 16k Aug\u2013Sep loop teams + corpus","nll":1.5142,"delta":-0.0365,"se":0.0044},{"label":"Fix a training bias","note":"no forced mask when a draw hides nothing","nll":1.4892,"delta":-0.025,"se":0.0022},{"label":"Reveal species first","note":"unmasking schedule 2,1,1,1,1","nll":1.4697,"delta":-0.0195,"se":0.0015},{"label":"Full block order","note":"species \u2192 ability/item \u2192 moves \u2192 nature","nll":1.4514,"delta":-0.0183,"se":0.0019},{"label":"Medium model","note":"d256 \u00d7 6 layers, validation teams folded in","nll":1.4262,"delta":-0.0252,"se":0.0032},{"label":"Mix in the matrix model","note":"F1 + G2 (trained on all 9,272 matrix teams)","nll":1.4177,"delta":-0.0085,"se":0.0012}],"tried":[{"label":"Prime partial masking (2 sub-tokens per field)","ours":2.026,"ref":1.782,"unit":"ELBO, vs the same model without it"},{"label":"Source tags as metadata","ours":1.838,"ref":1.823,"unit":"ELBO, all-data model with vs without"},{"label":"Pretrain on all 146k, then fine-tune","ours":1.448,"ref":1.434,"unit":"exact loss, vs no pretraining"},{"label":"Moves stored in popularity order","ours":1.478,"ref":1.452,"unit":"exact loss, vs alphabetical"},{"label":"No time input (RADD)","ours":1.493,"ref":1.489,"unit":"exact loss, vs with time input"},{"label":"Ensemble with small seeds","ours":1.484,"ref":1.481,"unit":"own-order ELBO, vs F1 alone"}],"matrix":{"scalar":1.063,"scalar_se":0.057,"row":0.704,"row_se":0.066},"battle":null,"head":{"old":2.362,"new":1.418,"diff":[-0.9439,0.0102]}}</script>
+<script type="module">
+const errBox = document.getElementById("err");
+const report = m => { errBox.hidden = false; errBox.textContent = "Something on this page failed to run: " + m; };
+addEventListener("error", e => report(e.message));
+try {
+const D = JSON.parse(document.getElementById("lossdown-data").textContent);
+const $ = (s, r = document) => r.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+const fmt = (x, d = 3) => (x < 0 ? "−" : "") + Math.abs(x).toFixed(d);
+const pct = p => p >= 0.995 ? ">99%" : p < 0.001 ? "<0.1%" : (p * 100).toFixed(p < 0.1 ? 1 : 0) + "%";
+
+/* tooltip */
+const tip = $("#tip");
+function showTip(html, ev) { tip.innerHTML = html; tip.hidden = false; moveTip(ev); }
+function moveTip(ev) { const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8); const y = Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 8); tip.style.left = x + "px"; tip.style.top = y + "px"; }
+function hideTip() { tip.hidden = true; }
+function bindTip(node, html) { node.addEventListener("pointerenter", e => showTip(html, e)); node.addEventListener("pointermove", moveTip); node.addEventListener("pointerleave", hideTip); }
+
+/* headline */
+$("#h-old").textContent = D.head.old.toFixed(3); $("#h-new").textContent = D.head.new.toFixed(3);
+$("#h-diff").textContent = `${fmt(D.head.diff[0])} ± ${D.head.diff[1].toFixed(3)}`;
+$("#test-median").textContent = D.team.test_median != null ? D.team.test_median.toFixed(3) : "low";
+
+/* ---------- Figure 1 ---------- */
+const BINS = [0.1, 0.5, 1, 2, 3, 4.5];
+const bin = n => { let i = 0; while (i < BINS.length && n >= BINS[i]) i++; return i; };
+const ramp = $("#ramp");
+["0", "0.1", "0.5", "1", "2", "3", "4.5+"].forEach((lab, i) => { const s = document.createElement("span"); s.textContent = lab; s.style.background = `var(--h${i})`; s.style.color = i >= 4 ? "var(--hi-hi)" : "var(--hi-lo)"; ramp.appendChild(s); });
+const ROWS = [["species", "Species"], ["ability", "Ability"], ["item", "Item"], ["m0", "Move 1"], ["m1", "Move 2"], ["m2", "Move 3"], ["m3", "Move 4"], ["nature", "Nature"]];
+const byCol = {}; for (const m of Object.keys(D.team.walks)) { byCol[m] = {}; for (const s of D.team.walks[m]) byCol[m][s.col] = s; }
+const grid = $("#team"); grid.appendChild(document.createElement("div"));
+D.team.species.forEach((name, i) => { const d = document.createElement("div"); d.className = "mon"; const im = new Image(); im.src = D.sprites[D.team.species_id[i]]; im.alt = ""; d.append(im, name); grid.appendChild(d); });
+const cells = {};
+ROWS.forEach(([f, lab], r) => {
+  const l = document.createElement("div"); l.className = "rowlab"; l.textContent = lab; grid.appendChild(l);
+  for (let s = 0; s < 6; s++) {
+    const col = s * 8 + r, st = byCol.new[col];
+    const b = document.createElement("button"); b.type = "button"; b.className = "cell"; b.dataset.col = col; b.dataset.key = st.key;
+    if (f === "item" && D.items[st.truth]) { const im = new Image(); im.src = D.items[st.truth]; im.alt = ""; b.appendChild(im); }
+    const v = document.createElement("span"); v.className = "v"; v.textContent = st.truth; b.appendChild(v);
+    const n = document.createElement("span"); n.className = "n"; b.appendChild(n);
+    const sp = document.createElement("span"); sp.className = "s"; sp.textContent = st.step + 1; b.appendChild(sp);
+    b.setAttribute("aria-pressed", "false");
+    grid.appendChild(b); cells[col] = b;
+  }
+});
+let model = "new", picked = null;
+function paint() {
+  let tot = 0;
+  for (const [col, b] of Object.entries(cells)) {
+    const st = byCol[model][col]; tot += st.nats; const k = bin(st.nats);
+    b.style.background = `var(--h${k})`; b.style.color = k >= 4 ? "var(--hi-hi)" : "var(--hi-lo)";
+    b.querySelector(".n").textContent = st.nats.toFixed(2);
+    b.setAttribute("aria-label", `${D.team.species[Math.floor(col / 8)]} ${ROWS[col % 8][1]}: ${st.truth}, ${st.nats.toFixed(2)} nats`);
+  }
+  $("#t-total").textContent = tot.toFixed(1); $("#t-avg").textContent = (tot / 48).toFixed(2);
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === model)));
+}
+function select(col) {
+  picked = col;
+  Object.values(cells).forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.col === col)));
+  const o = byCol.old[col], m = byCol.old_masked[col], n = byCol.new[col];
+  const mon = D.team.species[Math.floor(col / 8)], lab = ROWS[col % 8][1];
+  $("#detail").innerHTML = `<div><b>${mon} · ${lab}: ${n.truth}</b> <span class="note">(revealed ${n.step + 1} of 48)</span></div>
+    <div class="row"><span><span class="swatch" style="background:var(--old)"></span>Old ${pct(o.p)} · ${o.nats.toFixed(2)} nats</span>
+    <span>Old + masks ${pct(m.p)} · ${m.nats.toFixed(2)} nats</span>
+    <span><span class="swatch" style="background:var(--new)"></span>New ${pct(n.p)} · ${n.nats.toFixed(2)} nats</span></div>
+    <div class="note">Legal values at that moment: ${n.legal} of ${n.vocab}. New model’s top guesses: ${n.top.filter(([v, p]) => v !== "[MASK]" && p >= 0.001).map(([v, p]) => `${v} ${pct(p)}`).join(", ")}.</div>`;
+}
+grid.addEventListener("click", e => { const b = e.target.closest(".cell"); if (b) select(+b.dataset.col); });
+$("#fig-team .seg").addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (!b) return; model = b.dataset.m; paint(); });
+paint();
+select(D.team.walks.new.find(s => s.key === "ability" && s.slot === D.team.species.indexOf("Gallade"))?.col ?? 10);
+
+/* ---------- Figure 2: options at prediction time ---------- */
+(function () {
+  const keys = [["ability", "Ability"], ["move", "Moves"], ["item", "Item"], ["species", "Species"], ["nature", "Nature"]];
+  const O = D.options, W = 640, rowH = 46, top = 22, left = 76, right = 40, H = top + keys.length * rowH + 26;
+  const max = 200, x = v => left + (W - left - right) * v / max;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Legal values when each field is predicted, species-first order versus random order" });
+  for (const t of [0, 50, 100, 150, 200]) { el("line", { x1: x(t), x2: x(t), y1: top - 6, y2: H - 24, class: "grid" }, svg); const tx = el("text", { x: x(t), y: H - 8, "text-anchor": "middle", "font-size": 11 }, svg); tx.textContent = t; }
+  keys.forEach(([k, lab], i) => {
+    const y0 = top + i * rowH, g = el("g", { "data-key": k }, svg);
+    const tl = el("text", { x: left - 10, y: y0 + rowH / 2 + 1, "text-anchor": "end", "font-size": 15, class: "t-ink" }, g); tl.textContent = lab;
+    [["deployed", "var(--new)", 0], ["random", "var(--old)", 1]].forEach(([s, c, j]) => {
+      const v = O[s][k], y = y0 + 6 + j * 16;
+      el("rect", { x: left, y, width: Math.max(2, x(v) - left), height: 13, rx: 2, fill: c }, g);
+      const t = el("text", { x: x(v) + 5, y: y + 11, "font-size": 12.5, class: "t-mono" }, g); t.textContent = v.toFixed(1);
+    });
+    const hit = el("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit" }, g);
+    bindTip(hit, `<b>${lab}</b><br>Species first: ${O.deployed[k].toFixed(1)} legal values<br>Random order: ${O.random[k].toFixed(1)}<br>Vocabulary: ${O.vocab[k]}`);
+    hit.addEventListener("pointerenter", () => light(k)); hit.addEventListener("pointerleave", () => light(null));
+  });
+  $("#order-chart").appendChild(svg);
+  $("#order-legend").innerHTML = `<span><span class="swatch" style="background:var(--new)"></span>Species first (how the generator samples)</span><span><span class="swatch" style="background:var(--old)"></span>Random order (how the old model trained)</span>`;
+  $("#order-table").innerHTML = `<table><tr><th>Field</th><th>Species first</th><th>Random order</th><th>Vocabulary</th></tr>${keys.map(([k, l]) => `<tr><td>${l}</td><td>${O.deployed[k]}</td><td>${O.random[k]}</td><td>${O.vocab[k]}</td></tr>`).join("")}</table>`;
+})();
+function light(k) { const g = $("#team"); g.classList.toggle("dim", !!k); Object.values(cells).forEach(b => b.classList.toggle("lit", b.dataset.key === k)); }
+
+/* ---------- Figure 3: staircase ---------- */
+(function () {
+  const S = D.stairs, W = 860, rowH = 50, top = 30, left = 300, right = 150, H = top + S.length * rowH + 30;
+  const lo = 1.3, hi = 2.45, x = v => left + (W - left - right) * (v - lo) / (hi - lo);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Exact loss after each change, from 2.362 to 1.418 nats per field" });
+  for (const t of [1.4, 1.6, 1.8, 2.0, 2.2, 2.4]) { el("line", { x1: x(t), x2: x(t), y1: top - 10, y2: H - 26, class: "grid" }, svg); const tx = el("text", { x: x(t), y: H - 6, "text-anchor": "middle", "font-size": 13, class: "t-mono" }, svg); tx.textContent = t.toFixed(1); }
+  const ax = el("text", { x: x(hi), y: top - 16, "text-anchor": "end", "font-size": 13 }, svg); ax.textContent = "nats per field →";
+  S.forEach((s, i) => {
+    const y = top + i * rowH + rowH / 2;
+    const a = el("text", { x: 0, y: y - 4, "font-size": 16, class: "t-ink" }, svg); a.textContent = s.label;
+    const b = el("text", { x: 0, y: y + 14, "font-size": 12.5 }, svg); b.textContent = s.note;
+    if (i) el("line", { x1: x(S[i - 1].nll), x2: x(s.nll), y1: y - rowH, y2: y, stroke: "var(--new)", "stroke-width": 2, "stroke-opacity": 0.45 }, svg);
+    el("circle", { cx: x(s.nll), cy: y, r: 6, fill: i ? "var(--new)" : "var(--old)", stroke: "var(--panel)", "stroke-width": 2 }, svg);
+    const v = el("text", { x: x(s.nll) + 11, y: y + 5, "font-size": 14, class: "t-ink t-mono" }, svg); v.textContent = s.nll.toFixed(3);
+    if (i) { const d = el("text", { x: W, y: y + 5, "text-anchor": "end", "font-size": 13, class: "t-mono" }, svg); d.textContent = `Δ ${fmt(s.delta)} ± ${s.se.toFixed(3)}`; }
+    const hit = el("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, class: "hit" }, svg);
+    bindTip(hit, `<b>${s.label}</b><br>${s.note}<br>Exact loss ${s.nll.toFixed(3)} nats/field${i ? `<br>Change ${fmt(s.delta)} ± ${s.se.toFixed(3)} (paired, 500 teams)` : ""}`);
+  });
+  $("#stairs-chart").appendChild(svg);
+  $("#stairs-table").innerHTML = `<table><tr><th>Step</th><th>Exact loss</th><th>Δ</th><th>± SE</th></tr>${S.map((s, i) => `<tr><td>${s.label}</td><td>${s.nll.toFixed(3)}</td><td>${i ? fmt(s.delta) : ""}</td><td>${i ? s.se.toFixed(3) : ""}</td></tr>`).join("")}</table>`;
+  $("#tried").innerHTML = D.tried.map(t => `<div><span>${t.label} <em>${t.unit}</em></span><span class="num">${t.ours.toFixed(3)} vs ${t.ref.toFixed(3)}</span></div>`).join("");
+})();
+
+/* ---------- Figure 4: matrix information ---------- */
+(function () {
+  const M = D.matrix, W = 640, H = 104, left = 10, right = 10, tot = M.scalar + M.row, x = v => left + (W - left - right) * v / 2;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Win rate carries ${M.scalar} nats per team; the matchup row adds ${M.row}` });
+  for (const t of [0, 0.5, 1, 1.5, 2]) { el("line", { x1: x(t), x2: x(t), y1: 26, y2: 70, class: "grid" }, svg); const tx = el("text", { x: x(t), y: 88, "text-anchor": t ? (t === 2 ? "end" : "middle") : "start", "font-size": 11, class: "t-mono" }, svg); tx.textContent = t.toFixed(1); }
+  const r1 = el("rect", { x: x(0), y: 32, width: x(M.scalar) - x(0) - 1, height: 30, rx: 3, fill: "var(--h3)" }, svg);
+  const r2 = el("rect", { x: x(M.scalar) + 1, y: 32, width: x(tot) - x(M.scalar) - 1, height: 30, rx: 3, fill: "var(--new)" }, svg);
+  const a = el("text", { x: x(M.scalar / 2), y: 20, "text-anchor": "middle", "font-size": 12, class: "t-ink" }, svg); a.textContent = `Win rate: ${M.scalar.toFixed(2)} ± ${M.scalar_se.toFixed(2)}`;
+  const b = el("text", { x: x(M.scalar + M.row / 2), y: 20, "text-anchor": "middle", "font-size": 12, class: "t-ink" }, svg); b.textContent = `+ row: ${M.row.toFixed(2)} ± ${M.row_se.toFixed(2)}`;
+  const c = el("text", { x: W - right, y: 102, "text-anchor": "end", "font-size": 11 }, svg); c.textContent = "nats per team";
+  bindTip(r1, `<b>Win rate as the condition</b><br>${M.scalar.toFixed(3)} ± ${M.scalar_se.toFixed(3)} nats per team<br>1,000 held-out matrix teams, paired`);
+  bindTip(r2, `<b>Win rate + per-opponent row</b><br>${M.row.toFixed(3)} ± ${M.row_se.toFixed(3)} more nats per team`);
+  $("#matrix-chart").appendChild(svg);
+})();
+
+/* ---------- Figure 5: battles ---------- */
+(function () {
+  const B = D.battle;
+  if (!B) { $("#battle-chart").innerHTML = `<p class="pending">Battles are still running.</p>`; return; }
+  const W = 860, H = 330, top = 20, bottom = 58, left = 46, right = 12, lo = 0, hi = 0.6;
+  const y = v => top + (H - top - bottom) * (1 - (v - lo) / (hi - lo));
+  const groups = [["Unconditioned", B.filter(b => b.asked == null)], ...[1, 2, 4].map(g => [`Guidance ${g}`, B.filter(b => b.asked != null && b.guidance === g).sort((a, b) => a.asked - b.asked)])];
+  const slots = groups.reduce((n, [, cs]) => n + cs.length, 0) + groups.length - 1;
+  const step = (W - left - right) / slots;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Win rate against the top 50 by cell, old versus new model" });
+  for (const t of [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]) { el("line", { x1: left, x2: W - right, y1: y(t), y2: y(t), class: "grid" }, svg); const tx = el("text", { x: left - 8, y: y(t) + 4, "text-anchor": "end", "font-size": 11, class: "t-mono" }, svg); tx.textContent = t.toFixed(1); }
+  el("line", { x1: left, x2: W - right, y1: y(0.531), y2: y(0.531), stroke: "var(--refline)", "stroke-width": 1.5, "stroke-dasharray": "5 4" }, svg);
+  const rl = el("text", { x: W - right, y: y(0.531) - 6, "text-anchor": "end", "font-size": 11 }, svg); rl.textContent = "top-50 team vs the other 49: 0.531";
+  let k = 0;
+  groups.forEach(([gname, cs], gi) => {
+    const x0 = left + step * k;
+    cs.forEach(c => {
+      const cx = left + step * (k + 0.5);
+      if (c.asked != null) el("line", { x1: cx - step * 0.36, x2: cx + step * 0.36, y1: y(c.asked), y2: y(c.asked), stroke: "var(--ink-3)", "stroke-width": 1 }, svg);
+      [["old", c.old_got, c.old_se, "var(--old)", -0.14], ["new", c.got, c.se, "var(--new)", 0.14]].forEach(([nm, v, se, col, dx]) => {
+        const px = cx + step * dx;
+        el("line", { x1: px, x2: px, y1: y(v - se), y2: y(v + se), stroke: col, "stroke-width": 2 }, svg);
+        el("circle", { cx: px, cy: y(v), r: 5, fill: col, stroke: "var(--panel)", "stroke-width": 2 }, svg);
+      });
+      const lab = el("text", { x: cx, y: H - bottom + 18, "text-anchor": "middle", "font-size": 11, class: "t-mono" }, svg); lab.textContent = c.asked == null ? "—" : `ask ${c.asked.toFixed(1)}`;
+      const hit = el("rect", { x: cx - step / 2, y: top, width: step, height: H - top - bottom, class: "hit" }, svg);
+      const d = c.got - c.old_got, se = Math.hypot(c.se, c.old_se);
+      bindTip(hit, `<b>${gname}${c.asked != null ? `, asked ${c.asked.toFixed(1)}` : ""}</b><br><span class="key-new">New ${c.got.toFixed(3)} ± ${c.se.toFixed(3)}</span> · ${c.species_sets} species sets · ${(c.valid * 100).toFixed(0)}% valid<br><span class="key-old">Old ${c.old_got.toFixed(3)} ± ${c.old_se.toFixed(3)}</span> · ${c.old_sets} sets · ${(c.old_valid * 100).toFixed(0)}% valid<br>Difference ${fmt(d)} ± ${se.toFixed(3)} (${(d / se).toFixed(1)}σ)`);
+      k++;
+    });
+    const gl = el("text", { x: x0 + step * cs.length / 2, y: H - bottom + 38, "text-anchor": "middle", "font-size": 12, class: "t-ink" }, svg); gl.textContent = gname;
+    k++;
+  });
+  $("#battle-chart").appendChild(svg);
+  $("#battle-legend").innerHTML = `<span><span class="swatch" style="background:var(--old)"></span>Old model (asked_vs_got.pt, 2026-10-04)</span><span><span class="swatch" style="background:var(--new)"></span>New model (F1 + G2)</span><span>Short grey tick: the win rate asked for</span>`;
+  $("#battle-table").innerHTML = `<table><tr><th>Cell</th><th>New</th><th>± SE</th><th>Old</th><th>± SE</th><th>Diff</th><th>Valid new / old</th><th>Species sets new / old</th></tr>${B.map(c => `<tr><td>${c.cell}</td><td>${c.got.toFixed(3)}</td><td>${c.se.toFixed(3)}</td><td>${c.old_got.toFixed(3)}</td><td>${c.old_se.toFixed(3)}</td><td>${fmt(c.got - c.old_got)}</td><td>${(c.valid * 100).toFixed(0)}% / ${(c.old_valid * 100).toFixed(0)}%</td><td>${c.species_sets} / ${c.old_sets}</td></tr>`).join("")}</table>`;
+  if (D.battleRead) $("#battle-read").innerHTML = D.battleRead;
+})();
+} catch (e) { report(e && e.message ? e.message : String(e)); }
+</script>

@@ -1,0 +1,1 @@
+- [ ] /goal I am planning to set a different repo for my blog on the detail with the visual that are using the artifiact and decide what are local on the details and current writing on this details on the aspect and determine what linkedin post on this details

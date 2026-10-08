@@ -1,17 +1,5 @@
 .DS_Store
-.obsidian/
-.claude/
-.codex/
-.agents/
-node_modules/
-.venv/
 __pycache__/
 *.pyc
-# third-party papers
-Teaching/reference/**/*.pdf
-# large binaries (>5 MB)
-Blog/visuals/search-loop/model/model.onnx
-Blog/visuals/search-loop/runtime/showdown-validator.js
-Blog/visuals/search-loop/runtime/ort-wasm-simd-threaded.wasm
-# iCloud-evicted placeholder, not downloadable
-What are the step before reading  the paper.md
+.venv/
+node_modules/
