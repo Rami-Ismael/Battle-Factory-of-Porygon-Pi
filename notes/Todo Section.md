@@ -21,7 +21,6 @@ updated_at: 2026-09-28
 ## ✍️ Process, writing & side threads
 
 - [x] 2026-08-14, fix the writing in "How my problem differs from TSP" — items listed at the bottom of that note; still open: compute the real slot size with item + 4 moves + tera — done 2026-08-21: slot size computed in §2 (≈7.3×10⁷ median with item + moves; tera is ×1 in Reg M-B) and the writing items fixed — superseded: the owner deleted that note and the "Why brute force is out" stub on 2026-08-21; the slot-size numbers survive in [[Clause or the feature of the search space]]
-- [ ] I remember talking about ev in ticket to ride, i notice that i struggling to communicate the ev I need to explain the ev in team building for example let start with opportunity cost and create list of topic to talked later i think create a markdown calaculting ev with pokemon  https://x.com/xuanalogue/status/2075736535899811879
 - [ ] 2026-08-19, watch 🟢 [So I tried Matt's skills... by Theo - t3gg](https://www.youtube.com/watch?v=0oXOOlqVu5M&t=371s) from 6:11, to get better at using Claude Code.
 - [ ] 2026-09-23, scaffold the final-blog section on how VGC team search differs from other search spaces, from "Search Perspective" in [[What makes Pokémon a unique problem set]]; I write the prose.
 	- [ ] 1. Open with an intro paragraph for readers curious about ML in games; the VGC paragraph is separate, its place undecided.

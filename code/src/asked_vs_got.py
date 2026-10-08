@@ -16,6 +16,7 @@ import numpy as np
 import torch, torch.nn as nn, torch.nn.functional as F
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import activesearch as A
 import diffusion as D
 import hpsdiffusion as H

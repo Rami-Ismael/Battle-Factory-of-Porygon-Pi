@@ -1,0 +1,18 @@
+{
+  "mode": "benchmark",
+  "format": "gen9championsvgc2026regmb",
+  "spread_system": "Champions Stat Points; use the allocation rules for the specified format.",
+  "showdown_runtime": "/Users/ramiismael/.local/share/vgc-pilot-runtime/validator-913da36",
+  "starting_teams": "data/starting-hps.json",
+  "meta_teams": "data/top50-meta.json",
+  "selection": "sample",
+  "team_limit": 50,
+  "seed": 20261001,
+  "mask_repetitions": 3,
+  "attempts": 2,
+  "timeout_seconds": 120,
+  "tasks": [{"task": "stats"}, {"task": "items"}, {"task": "moves"}, {"task": "pokemon"}, {"task": "abilities"}, {"task": "natures"}],
+  "methods": [{"name": "ling-3.0-flash-vl", "type": "openrouter", "model": "inclusionai/ling-3.0-flash-vl", "prompt": "regmb", "provider": {"order": ["Novita"], "allow_fallbacks": false}, "json_mode": false, "temperature": 0.7, "max_tokens": 16384}],
+  "battle": {"type": "showdown-random", "policy_version": "showdown-random-v1", "max_turns": 300, "seeds": [101, 202, 303, 404, 505]},
+  "output_dir": "runs/ling-3.0-flash-vl"
+}
