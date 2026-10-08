@@ -2,7 +2,7 @@
   "mode": "benchmark",
   "format": "gen9championsvgc2026regmb",
   "spread_system": "Champions Stat Points; use the allocation rules for the specified format.",
-  "showdown_runtime": "/Users/ramiismael/.local/share/vgc-pilot-runtime/servers/8134",
+  "showdown_runtime": "/Users/ramiismael/.local/share/vgc-pilot-runtime/validator-913da36",
   "starting_teams": "data/starting.json",
   "meta_teams": "data/heldout-meta.json",
   "proposal_pool": "data/proposal-pool.json",
@@ -14,6 +14,6 @@
   "timeout_seconds": 120,
   "tasks": [{"task": "items"}, {"task": "stats"}, {"task": "moves"}, {"task": "pokemon"}],
   "methods": [{"name": "llm", "type": "openrouter", "model": "REPLACE_WITH_MODEL_ID", "temperature": 0.7, "max_tokens": 4096}],
-  "battle": {"type": "showdown-random", "policy_version": "showdown-random-v1", "max_turns": 300, "seeds": [101, 202, 303, 404, 505]},
+  "battle": {"type": "external-behaviour-cloning", "scorer": "mask_lab_battle.py", "policy": "bc_100.zip on both sides", "seeds": [101]},
   "output_dir": "runs/benchmark"
 }

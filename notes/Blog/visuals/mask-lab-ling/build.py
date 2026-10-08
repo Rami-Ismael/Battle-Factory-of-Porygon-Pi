@@ -6,6 +6,7 @@ once battles have run, panels.json. Output: index.html (one file, sprites inline
 Missing panels are shown on the page as "not scored yet", never as zero.
 """
 import base64
+import gzip
 import json
 import math
 import re
@@ -16,7 +17,7 @@ RUN = HERE.parents[2] / 'team_completion_pipeline/runs/prompt-ab'
 SPRITES = HERE.parent / 'search-loop/sprites'
 ITEMS = HERE.parent / 'item-sprites'
 ITEM_IDS = {f.stem[5:] for f in (HERE.parent / 'item-sprites').glob('item-*.png')}
-ARMS = ['baseline@4096', 'baseline@16384', 'regmb@16384']
+ARMS = ['baseline@4096', 'baseline@16384', 'regmb@16384', 'diffusion@v3']
 FAMILIES = ['stats', 'items', 'moves', 'pokemon', 'abilities', 'natures']
 STATS = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe']
 
@@ -53,6 +54,8 @@ def main():
     saved = json.loads((RUN / 'eval2.tasks.json').read_text())
     rows = [json.loads(l) for l in (RUN / 'eval2.jsonl').read_text().splitlines()]
     cands = {c['label']: c for c in json.loads((RUN / 'candidates.json').read_text())['candidates']}
+    drows_path = RUN / 'diffusion_rows.json'
+    drows = json.loads(drows_path.read_text()) if drows_path.exists() else {}
     panels_path = RUN / 'panels.json'
     panels = json.loads(panels_path.read_text()) if panels_path.exists() else None
     opp_ids = [o['team_id'] for o in panels['opponents']] if panels else []
@@ -73,6 +76,15 @@ def main():
         tasks.append({'id': t['id'], 's': start_index[t['source']], 'f': t['task'], 'k': t['k'], 'sl': t['slots']})
         res = {'arms': {}}
         for arm in ARMS:
+            if arm == 'diffusion@v3':
+                cand = cands.get(f"diffusion:{t['id']}")
+                if cand and cand['team']:
+                    e = {'ok': True, 'cost': 0, 'fill': [slim(get_path(cand['team'], p)) for p in t['masked_paths']]}
+                    e.update(panel(f"diffusion:{t['id']}") or {})
+                else:
+                    e = {'ok': False, 'cost': 0, 'stage': 'decoder', 'err': (drows.get(t['id'], {}).get('error') or 'not run')[:110]}
+                res['arms'][arm] = e
+                continue
             r = arm_rows.get((arm, t['id']))
             if r is None:
                 res['arms'][arm] = None
@@ -127,14 +139,14 @@ def main():
 
     arm_summary = {}
     for arm in ARMS:
-        got = [r for (a, _), r in arm_rows.items() if a == arm]
-        legal = sum(r['status'] == 'legal' for r in got)
+        got = [results[t['id']]['arms'][arm] for t in tasks if results[t['id']]['arms'][arm]]
+        legal = sum(1 for g in got if g['ok'])
         arm_summary[arm] = {'n': len(got), 'legal': legal, 'ci': wilson(legal, len(got)) if got else None}
     first = RUN / 'summary-eval.json'
     run1 = None
     if first.exists():
         s = json.loads(first.read_text())
-        run1 = {a: {'n': s['arms'][a]['n'], 'legal': s['arms'][a]['legal']} for a in ARMS}
+        run1 = {a: {'n': s['arms'][a]['n'], 'legal': s['arms'][a]['legal']} for a in ARMS if a in s['arms']}
     data = {
         'opponents': panels['opponents'] if panels else [],
         'policy': panels['policy'] if panels else 'not battled yet',
@@ -143,7 +155,8 @@ def main():
     }
     (HERE / 'data.json').write_text(json.dumps(data, separators=(',', ':')))
     html = (HERE / 'template.html').read_text()
-    html = html.replace('/*DATA*/null', json.dumps(data, separators=(',', ':')))
+    packed = base64.b64encode(gzip.compress(json.dumps(data, separators=(',', ':')).encode(), 9)).decode()
+    html = html.replace('/*DATAGZ*/', packed)
     html = html.replace('/*SPRITES*/{}', json.dumps(sprites, separators=(',', ':')))
     (HERE / 'index.html').write_text(html)
     scored = sum(1 for t in tasks for a in results[t['id']]['arms'].values() if a and a.get('win') is not None)

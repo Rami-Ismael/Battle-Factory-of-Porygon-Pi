@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mask Lab: Ling</title>
+<title>Mask Lab: Ling × diffusion</title>
 <style>
 :root{
   color-scheme:dark;
   --bg:#0b1216;--surface:#111b21;--surface2:#16232a;--line:rgba(255,255,255,.09);
   --ink:#eef3f2;--ink2:#b3c0be;--muted:#7b8a87;
   --accent:#7fe3c6;--accent-ink:#06231b;--warn:#e8b45a;--bad:#ef7d72;
-  --a0:#68767a;--a1:#8fa6d1;--a2:#7fe3c6;
+  --a0:#68767a;--a1:#8fa6d1;--a2:#7fe3c6;--a3:#b6a8ff;
   --hatch:rgba(127,227,198,.2);
 }
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
@@ -18,7 +18,7 @@
   --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--line:rgba(11,18,22,.12);
   --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
   --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
-  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--hatch:rgba(13,138,109,.16);
+  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--a3:#6a55d8;--hatch:rgba(13,138,109,.16);
 }}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
@@ -47,6 +47,7 @@ select{width:100%;background:var(--surface);color:var(--ink);border:1px solid va
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .seg button,.btn{background:var(--surface);color:var(--ink2);border:1px solid var(--line);border-radius:12px;padding:10px 6px;font:600 13px system-ui;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.seg.s4{grid-template-columns:1fr 1fr}
 .seg button .sw{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
 input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
 .kline{display:flex;justify-content:space-between;align-items:baseline}
@@ -102,14 +103,20 @@ footer li{margin-bottom:6px}
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<script>
-const DATA = /*DATA*/null;
+<script type="module">
+const DATA = await (async () => {
+  const bin = Uint8Array.from(atob('/*DATAGZ*/'), c => c.charCodeAt(0));
+  const stream = new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return JSON.parse(await new Response(stream).text());
+})();
 const SPRITES = /*SPRITES*/{};
 
 const ARMS = [
   {key:'baseline@4096',  short:'Original · 4,096',  long:'Original prompt, 4,096-token cap',  c:'var(--a0)'},
   {key:'baseline@16384', short:'Original · 16,384', long:'Original prompt, 16,384-token cap', c:'var(--a1)'},
-  {key:'regmb@16384',    short:'Reg M-B · 16,384',  long:'Reg M-B prompt, 16,384-token cap',  c:'var(--a2)'}];
+  {key:'regmb@16384',    short:'Reg M-B · 16,384',  long:'Reg M-B prompt, 16,384-token cap',  c:'var(--a2)'},
+  {key:'diffusion@v3',   short:'Diffusion v3',      long:'Diffusion v3 (F1 + G2), ask 0.5, guidance 2', c:'var(--a3)'}];
+ARMS.forEach(a => { a.kind = a.key.startsWith('diffusion') ? 'Diffusion' : 'Ling'; });
 const FAM = {stats:'Stat Points', items:'Items', moves:'Moves', pokemon:'Whole Pokémon', abilities:'Abilities', natures:'Stat Alignment'};
 const kmax = f => f === 'moves' ? 24 : 6;
 const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -204,7 +211,7 @@ function gridCard(t) {
   const rows = [0, 1, 2, 3, 4, 5].map(i => monRow(t, i)).join('');
   const seg = (v, l) => `<button data-view="${v}" aria-pressed="${S.view === v}">${l}</button>`;
   const n = t.paths.length;
-  return `<div class="card"><div class="seg" style="margin-bottom:12px">${seg('masked', 'Masked')}${seg('random', 'Random fill')}${seg('ling', 'Ling fill')}</div>
+  return `<div class="card"><div class="seg" style="margin-bottom:12px">${seg('masked', 'Masked')}${seg('random', 'Random fill')}${seg('ling', ARMS[S.arm].kind + ' fill')}</div>
     ${rows}
     <div class="legend"><span><i style="background:var(--hatch);border:1px dashed var(--accent)"></i>Masked / may change</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Fixed / must not change</span></div>
     <div class="note mono" style="margin-top:10px">${n} masked ${n === 1 ? 'part' : 'parts'} · click a cell to inspect</div>
@@ -232,12 +239,12 @@ function resultCard(t) {
     <div class="rows">${bars([
       {label: 'Untouched team', v: o && o.win, text: f(o && o.win), c: 'var(--ink2)'},
       {label: 'Random legal fill', v: r && r.win, text: r ? f(r.win) : 'no legal fill', c: 'var(--muted)'},
-      {label: 'Ling · ' + ARMS[S.arm].short, v: lw, text: lingText, c: ARMS[S.arm].c, color: !L || !L.ok ? 'var(--bad)' : ''}], max)}</div>
-    <div class="deltas">${dl('Ling vs original', dO)}${dl('Ling vs random', dR)}</div>
+      {label: ARMS[S.arm].kind + ' · ' + ARMS[S.arm].short, v: lw, text: lingText, c: ARMS[S.arm].c, color: !L || !L.ok ? 'var(--bad)' : ''}], max)}</div>
+    <div class="deltas">${dl(ARMS[S.arm].kind + ' vs original', dO)}${dl(ARMS[S.arm].kind + ' vs random', dR)}</div>
     <div class="note">${msg}</div></div>`;
 }
 function starsCard(t) {
-  const sources = {ling: ['Ling', lingOf(t) && lingOf(t).ok ? lingOf(t) : null], random: ['Random fill', randOf(t)], orig: ['Untouched', origOf(t)]};
+  const sources = {ling: [ARMS[S.arm].kind, lingOf(t) && lingOf(t).ok ? lingOf(t) : null], random: ['Random fill', randOf(t)], orig: ['Untouched', origOf(t)]};
   const [label, src] = sources[S.show];
   const bits = src && src.opp ? src.opp : '';
   const wins = [...bits].filter(c => c === '1').length;
@@ -250,13 +257,25 @@ function starsCard(t) {
   const opp = DATA.opponents[S.opp == null ? 0 : S.opp];
   return `<div class="card"><div class="eyebrow">The threat constellation</div>
     <div class="kline"><h2>Every sparkle is a result.</h2></div>
-    <div class="seg" style="margin:6px 0 4px">${seg('ling', 'Ling')}${seg('random', 'Random')}${seg('orig', 'Untouched')}</div>
+    <div class="seg" style="margin:6px 0 4px">${seg('ling', ARMS[S.arm].kind)}${seg('random', 'Random')}${seg('orig', 'Untouched')}</div>
     <div class="note">✦ at least one observed win · · no win · – not scored · ${esc(label)}: ${bits ? wins + ' wins of ' + n : 'not scored yet'}</div>
     <div class="stars">${cells}</div>
     ${opp ? `<div class="note" style="margin-top:12px"><b style="color:var(--ink)">Opponent ${(S.opp == null ? 0 : S.opp) + 1}</b>${opp.weight > 1 ? ' (counted twice)' : ''} · ${opp.species.map(esc).join(', ')}</div>` : '<div class="pending">Battles have not been run yet, so no result is shown.</div>'}</div>`;
 }
 
 /* ---------- aggregate ---------- */
+function netDelta(key, fam) {
+  // mean change vs the untouched team over ALL masks; a rejected completion keeps the original (change 0)
+  const per = DATA.starts.map(() => []); let legal = 0, n = 0;
+  for (const t of DATA.tasks) {
+    if (fam && t.f !== fam) continue;
+    const a = res(t).arms[key], o = origOf(t); if (!a) continue;
+    n++; const ok = a.ok && a.win != null && o && o.win != null; if (ok) legal++;
+    per[t.s].push(ok ? a.win - o.win : 0);
+  }
+  const m = per.filter(x => x.length).map(x => x.reduce((p, q) => p + q, 0) / x.length);
+  return {v: m.reduce((p, q) => p + q, 0) / m.length, legal, n};
+}
 function famDelta(f, key) {
   const ds = [];
   for (const t of DATA.tasks) {
@@ -271,7 +290,7 @@ function summaryCard() {
     const k = kpis(a.key), info = DATA.arms[a.key], ci = info.ci;
     return `<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${a.c};margin-right:6px"></span>${esc(a.long)}</td>
       <td class="n"><b>${pct(k.legal / k.n, 0)}</b><br><span style="color:var(--muted)">${k.legal}/${k.n} · ${pct(ci[0], 0)}–${pct(ci[1], 0)}</span></td>
-      <td class="n">${k.gO ? pp(k.gO.v) : '—'}</td><td class="n">${k.gR ? pp(k.gR.v) : '—'}</td></tr>`;
+      <td class="n">${k.gR ? pp(k.gR.v) : '—'}</td><td class="n"><b>${pp(netDelta(a.key).v)}</b></td></tr>`;
   }).join('');
   const fams = Object.keys(FAM).map(f => {
     const ts = DATA.tasks.filter(t => t.f === f);
@@ -279,18 +298,18 @@ function summaryCard() {
       return `<div class="b"><div class="track"><i style="width:${Math.max(p * 100, 1)}%;background:${a.c}"></i></div><span>${l}/${g.length}</span></div>`; }).join('');
     return `<div>${FAM[f]}</div><div class="bars">${b}</div>`;
   }).join('');
-  const dRows = Object.keys(FAM).map(f => `<tr><td>${FAM[f]}</td>${ARMS.map(a => { const x = famDelta(f, a.key);
-    const c = !x ? 'var(--muted)' : x.v > 0.005 ? 'var(--accent)' : x.v < -0.005 ? 'var(--bad)' : 'var(--ink)';
-    return `<td class="n" style="color:${c};font-weight:700">${x ? pp(x.v, 1) : '—'}<br><span style="color:var(--muted);font-weight:400">n = ${x ? x.n : 0}</span></td>`; }).join('')}</tr>`).join('');
-  const run1 = DATA.run1 ? `<div class="note">An earlier run on the same masks (new samples, teams not saved) gave ${ARMS.map(a => ARMS.length && pct(DATA.run1[a.key].legal / DATA.run1[a.key].n, 0)).join(' / ')}.</div>` : '';
-  return `<div class="card"><div class="eyebrow">Across all ${DATA.tasks.length} masks</div><h2>Which prompt filled best?</h2>
-    <table class="tbl"><thead><tr><th>Prompt</th><th>Legal</th><th>Δ original*</th><th>Δ random*</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="note">*Mean win-rate change among legal completions, each starting team weighted equally. Illegal completions are excluded, so these are not overall success rates.</div>
+  const dRows = Object.keys(FAM).map(f => `<tr><td>${FAM[f]}</td>${ARMS.map(a => { const x = netDelta(a.key, f);
+    const c = x.v > 0.005 ? 'var(--accent)' : x.v < -0.005 ? 'var(--bad)' : 'var(--ink)';
+    return `<td class="n" style="color:${c};font-weight:700">${pp(x.v, 1)}<br><span style="color:var(--muted);font-weight:400">${x.legal}/${x.n} legal</span></td>`; }).join('')}</tr>`).join('');
+  const run1 = DATA.run1 ? `<div class="note">An earlier run on the same masks (new samples, teams not saved) gave ${ARMS.filter(a => DATA.run1[a.key]).map(a => pct(DATA.run1[a.key].legal / DATA.run1[a.key].n, 0)).join(' / ')}.</div>` : '';
+  return `<div class="card"><div class="eyebrow">Across all ${DATA.tasks.length} masks</div><h2>Which method filled best?</h2>
+    <table class="tbl"><thead><tr><th>Method</th><th>Legal</th><th>Δ random*</th><th>Net per mask†</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="note">*Mean win-rate change against the random legal fill of the same mask, legal completions only. †Mean change against the untouched team over all masks; a rejected completion counts as no change. Each starting team weighted equally.</div>
     <div class="eyebrow" style="margin-top:16px">Legal completions by mask family</div>
     <div class="fam">${fams}</div>
-    <div class="eyebrow" style="margin-top:20px">Win-rate change vs the untouched team, by family</div>
+    <div class="eyebrow" style="margin-top:20px">Net win-rate change vs the untouched team, by family</div>
     <table class="tbl"><thead><tr><th>Family</th>${ARMS.map(a => `<th>${esc(a.short)}</th>`).join('')}</tr></thead><tbody>${dRows}</tbody></table>
-    <div class="note">Mean over legal completions. The average above is carried by whole-Pokémon masks, where Ling writes most of the team itself. The other five families sit within about two points of zero, which is inside the noise of a 49-battle panel.</div>${run1}</div>`;
+    <div class="note">A rejected completion counts as no change. Whole-Pokémon masks carry all of the gain, because there the model writes most of the team itself. The other five families sit within about two points of zero, mostly below it: the five untouched starting teams happen to be a little stronger than the average random team, so any refill drifts down.</div>${run1}</div>`;
 }
 function costCard() {
   const rows = ARMS.map(a => { const k = kpis(a.key), per = k.cost / Math.max(1, k.n);
@@ -305,7 +324,7 @@ function controls() {
   const fams = Object.keys(FAM).map(f => `<option value="${f}" ${S.family === f ? 'selected' : ''}>${FAM[f]}</option>`).join('');
   const starts = DATA.starts.map((s, i) => `<option value="${i}" ${S.start === i ? 'selected' : ''}>Team ${String(i + 1).padStart(2, '0')}</option>`).join('');
   const arms = ARMS.map((a, i) => `<button data-arm="${i}" aria-pressed="${S.arm === i}"><span class="sw" style="background:${a.c}"></span>${a.short}</button>`).join('');
-  return `<div class="eyebrow">Prompt and token cap</div><div class="seg" style="margin:8px 0 14px">${arms}</div>
+  return `<div class="eyebrow">Method</div><div class="seg s4" style="margin:8px 0 14px">${arms}</div>
     <div class="ctl" style="margin-top:0"><label class="f"><span class="eyebrow">Mask family</span><select id="fam">${fams}</select></label>
     <label class="f"><span class="eyebrow">Starting team</span><select id="start">${starts}</select></label></div>
     <div class="kline"><span class="eyebrow">Mask size</span><b class="mono" id="kv">k = ${S.k}</b></div>
@@ -315,13 +334,13 @@ function header() {
   const k = kpis(armKey()), info = DATA.arms[armKey()];
   const card = (label, v, s, cls) => `<div class="card kpi"><div class="eyebrow">${label}</div><div class="v ${cls || ''}">${v}</div><div class="s">${s}</div></div>`;
   const g = (x, label) => x ? card(label, pp(x.v), `${x.n} legal completions · ${x.starts} starting teams weighted equally`, x.v > 0 ? 'good' : x.v < 0 ? 'bad' : '') : card(label, '—', DATA.scored ? 'no scored pairs' : 'battles pending');
-  return `<header class="top"><div class="brand"><i></i>Porygon-Pi / Mask Lab</div><div class="tag">Ling × Reg M-B<br>prompt test</div></header>
+  return `<header class="top"><div class="brand"><i></i>Porygon-Pi / Mask Lab</div><div class="tag">Ling × diffusion<br>Reg M-B</div></header>
     <div class="eyebrow" style="margin-top:14px">Masked completion / Experiment 002</div>
     <h1>See what changes. <em>Measure what helps.</em></h1>
-    <p class="lede">Random legal teams. One precise mask. Ling fills the gap under three prompt settings; the same behaviour-cloning policy plays every battle.</p>
-    <div class="grid2">${card('Ling legal success', pct(k.legal / k.n), `${k.legal}/${k.n} completions accepted`, 'good')}
-      ${g(k.gO, 'Ling vs original team')}${g(k.gR, 'Ling vs random fill')}
-      ${card('Recorded Ling API cost', '$' + k.cost.toFixed(4), `all ${k.n} attempts for this arm`)}</div>`;
+    <p class="lede">Random legal teams. One precise mask. Ling (three prompt settings) and the diffusion model fill the gaps; the same behaviour-cloning policy plays every battle.</p>
+    <div class="grid2">${card(ARMS[S.arm].kind + ' legal success', pct(k.legal / k.n), `${k.legal}/${k.n} completions accepted`, 'good')}
+      ${g(k.gO, ARMS[S.arm].kind + ' vs original team')}${g(k.gR, ARMS[S.arm].kind + ' vs random fill')}
+      ${ARMS[S.arm].kind === 'Diffusion' ? card('Compute cost', '$0', `local CPU, about 0.1 s per completion; no API calls`) : card('Recorded Ling API cost', '$' + k.cost.toFixed(4), `all ${k.n} attempts for this arm`)}</div>`;
 }
 function render() {
   const t = task();
@@ -337,7 +356,8 @@ function boot() {
   <footer><ul>
     <li>Policy: ${esc(DATA.policy)}. Every team plays one battle against each of the 49 distinct meta teams (one of them counted twice). No random-action policy is used.</li>
     <li>Regulation: Champions VGC 2026 Reg M-B. Starting teams are 5 random legal teams from the project's hierarchical sampler; none is a meta team.</li>
-    <li>Each completion is one sample at temperature 0.7 on OpenRouter, routed to Novita with JSON mode off. A completion counts as legal only if it parses, keeps every unmasked field and passes the Showdown validator on the first attempt.</li>
+    <li>Diffusion v3 is the project's F1 + G2 masked-diffusion ensemble with the settings you selected on 2026-10-08: ask 0.5, guidance 2, temperature 1. It sees only the known categorical fields: no opponent pastes and no Stat Points. Masked Stat Points are copied from a same-species corpus spread or drawn at random, so the Stat Points family is not a network completion. Ling sees all 48 complete meta teams in its prompt. Its training data may include this meta pool.</li>
+    <li>Each Ling completion is one sample at temperature 0.7 on OpenRouter, routed to Novita with JSON mode off. A completion counts as legal only if it parses, keeps every unmasked field and passes the Showdown validator on the first attempt.</li>
     <li>Largest species overlap between any completion and any meta team: 4 of 6, so no completion copies a meta team. Ling does see all the meta teams in its prompt.</li>
     <li>A panel is 49 battles, so one team's win rate is noisy by several points. Simulator randomness is not fixed. Five starting teams cannot show a general winner.</li></ul></footer>`;
   $('#ctl').innerHTML = controls();
@@ -360,6 +380,7 @@ document.addEventListener('change', e => {
 document.addEventListener('input', e => {
   if (e.target.id === 'k') { S.k = +e.target.value; S.sel = null; $('#kv').textContent = 'k = ' + S.k; render(); }
 });
+window.MASKLAB = {DATA, S, ARMS, render, controls, task, res, lingOf, randOf, origOf, kpis, netDelta};
 boot();
 </script>
 </body>

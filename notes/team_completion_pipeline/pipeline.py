@@ -357,6 +357,14 @@ def run(config_path):
             config[field] = str((root / config[field]).resolve())
     if config['mode'] not in ('smoke', 'benchmark'):
         raise ValueError('mode must be smoke or benchmark')
+    # Checked before any paid request. Random play is a smoke-test stand-in only; benchmark scores
+    # come from the behaviour-cloning policy on both sides (mask_lab_battle.py or a command adapter).
+    if config['battle']['type'] not in ('showdown-random', 'command'):
+        raise ValueError('This config has no built-in battle adapter; score with mask_lab_battle.py '
+                         '(behaviour-cloning policy). No generation requests sent')
+    if config['mode'] == 'benchmark' and config['battle']['type'] == 'showdown-random':
+        raise ValueError('Benchmark mode must not score with random play; use a behaviour-cloning '
+                         'command adapter. No generation requests sent')
     if config.get('attempts', 1) < 1 or config.get('mask_repetitions', 1) < 1:
         raise ValueError('Attempts and repetitions must be positive')
     methods = config['methods']
