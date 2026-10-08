@@ -30,6 +30,8 @@
 - [ ]  I think a nice featuerwill be creating some visual for live training run to show how thing work out
 - [ ] https://distill.pub/2020/communicating-with-interactive-articles/
 - [ ] Read this also Lessons from interactive articles for our explanations and VGC blogchatgpt
+- [ ] How do I add vertification and step in visual design like a checkbox that will be help
+	- [ ] Checkbox for visual design 
 
 
 # Visual Project we are creating

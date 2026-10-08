@@ -11,12 +11,19 @@
 - [x] https://emilkowal.ski/ui/agents-with-taste
 - [ ] Get this book # _Style: Lessons in Clarity and Grace_
 - [ ] We use the advices from the sock puuet link and also use the autoskill for writing also
-- [ ] https://sockpuppet.org/blog/2026/08/20/stop-making-tuis/
+- [x] https://sockpuppet.org/blog/2026/08/20/stop-making-tuis/
 - [ ] Ask the llm what are some writing skills that will be helpful
 - [x] https://docs.kapa.ai/improving/writing-best-practices
 - [ ] https://distill.pub/2020/communicating-with-interactive-articles/
 - [ ] https://emerge-lab.github.io/papers/an-unsolicited-guide-to-good-research.pdf
 - [ ] https://github.com/charlax/professional-programming
+	- [ ] https://developers.google.com/tech-writing/one
+	- [ ] https://rmoff.net/2023/07/19/blog-writing-for-developers/
+	- [ ] https://jvns.ca/blog/2023/06/05/some-blogging-myths/
+	- [ ] https://paulgraham.com/simply.html
+	- [ ] https://www.julian.com/guide/write/intro
+	- [ ] https://www.solipsys.co.uk/new/SellYourselfSellYourWork.html?te20hnc
+- [ ] https://refactoringenglish.com/blog/anti-patterns-software-blogging/
 
 
 # Prompt

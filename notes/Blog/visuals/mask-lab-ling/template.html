@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mask Lab: Ling</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0b1216;--surface:#111b21;--surface2:#16232a;--line:rgba(255,255,255,.09);
+  --ink:#eef3f2;--ink2:#b3c0be;--muted:#7b8a87;
+  --accent:#7fe3c6;--accent-ink:#06231b;--warn:#e8b45a;--bad:#ef7d72;
+  --a0:#68767a;--a1:#8fa6d1;--a2:#7fe3c6;
+  --hatch:rgba(127,227,198,.2);
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
+  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--hatch:rgba(13,138,109,.16);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:580px;margin:0 auto;padding:0 16px 64px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font:600 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 0 10px}
+.brand{display:flex;align-items:center;gap:10px;font:700 12px/1.2 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}
+.brand i{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#5b8cff);display:inline-block}
+.tag{font:600 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:right}
+h1{font-size:44px;line-height:1.04;letter-spacing:-.02em;margin:18px 0 14px;font-weight:700}
+h1 em{display:block;color:var(--accent);font:italic 500 46px/1.05 Georgia,"Times New Roman",serif}
+.lede{color:var(--ink2);font-size:16px;margin:0 0 20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.kpi .v{font-size:30px;font-weight:700;letter-spacing:-.01em;margin:6px 0 2px}
+.kpi .s{font-size:12px;color:var(--muted)}
+.kpi .v.good{color:var(--accent)}
+.kpi .v.bad{color:var(--bad)}
+section{margin-top:16px}
+h2{font-size:22px;letter-spacing:-.01em;margin:6px 0 10px}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0 8px}
+label.f{display:block}
+label.f span{display:block;margin-bottom:6px}
+select{width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:600 15px system-ui;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button,.btn{background:var(--surface);color:var(--ink2);border:1px solid var(--line);border-radius:12px;padding:10px 6px;font:600 13px system-ui;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.seg button .sw{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
+.kline{display:flex;justify-content:space-between;align-items:baseline}
+.mon{padding:10px 0;border-top:1px solid var(--line)}
+.mon:first-child{border-top:0}
+.mon h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:15px}
+.mon h4 img{width:40px;height:40px;image-rendering:pixelated;margin:-6px 0}
+.ph{width:40px;height:40px;border-radius:10px;background:var(--surface2);display:inline-grid;place-items:center;color:var(--muted);font-size:18px;margin:-6px 0}
+.cells{display:flex;flex-wrap:wrap;gap:6px}
+.cell{border:1px solid var(--line);background:var(--surface2);border-radius:9px;padding:5px 8px;font-size:12.5px;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-align:left;font-family:inherit}
+.cell small{font:600 9.5px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cell img{width:14px;height:14px;image-rendering:pixelated}
+.cell.masked{background:repeating-linear-gradient(135deg,var(--hatch) 0 6px,transparent 6px 12px);border:1px dashed var(--accent);color:var(--accent)}
+.cell.filled{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.cell.rejected{border:1px dashed var(--bad);color:var(--bad);background:repeating-linear-gradient(135deg,rgba(239,125,114,.14) 0 6px,transparent 6px 12px)}
+.cell.sel{outline:2px solid var(--ink);outline-offset:1px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink2);font-size:12.5px;margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.insp{margin-top:12px;background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:13.5px}
+.insp dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
+.insp dt{color:var(--muted)}
+.insp dd{margin:0;font-weight:600}
+.pill{display:inline-block;font:700 10.5px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:99px;border:1px solid}
+.pill.ok{color:var(--accent);border-color:var(--accent)}
+.pill.no{color:var(--bad);border-color:var(--bad)}
+.rows{display:grid;gap:12px;margin-top:12px}
+.row{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.row b{font-weight:600}
+.track{grid-column:1/-1;height:8px;border-radius:5px;background:var(--surface2);overflow:hidden}
+.track i{display:block;height:100%;border-radius:5px}
+.deltas{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.deltas .v{font-size:26px;font-weight:700}
+.note{color:var(--muted);font-size:12.5px;margin-top:10px}
+.stars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+.star{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);display:grid;place-items:center;font-size:16px;cursor:pointer;padding:0}
+.star.win{color:#d9ccff;border-color:#8b78e6;background:rgba(139,120,230,.18)}
+.star.sel{outline:2px solid var(--ink);outline-offset:1px}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.tbl th{font:600 10px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.tbl td{padding:9px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fam{display:grid;grid-template-columns:96px 1fr;gap:8px 10px;align-items:center;margin-top:10px;font-size:12.5px}
+.fam .bars{display:grid;gap:3px}
+.fam .b{display:grid;grid-template-columns:1fr 54px;gap:8px;align-items:center}
+.fam .b .track{height:6px;grid-column:auto}
+.fam .b span{font:600 11px ui-monospace,monospace;color:var(--ink2);text-align:right}
+.cost{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.cost .v{font-size:28px;font-weight:700;color:var(--accent)}
+footer{margin-top:22px;color:var(--muted);font-size:12.5px;line-height:1.55}
+footer li{margin-bottom:6px}
+.pending{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;color:var(--ink2);font-size:13px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+const DATA = /*DATA*/null;
+const SPRITES = /*SPRITES*/{};
+
+const ARMS = [
+  {key:'baseline@4096',  short:'Original · 4,096',  long:'Original prompt, 4,096-token cap',  c:'var(--a0)'},
+  {key:'baseline@16384', short:'Original · 16,384', long:'Original prompt, 16,384-token cap', c:'var(--a1)'},
+  {key:'regmb@16384',    short:'Reg M-B · 16,384',  long:'Reg M-B prompt, 16,384-token cap',  c:'var(--a2)'}];
+const FAM = {stats:'Stat Points', items:'Items', moves:'Moves', pokemon:'Whole Pokémon', abilities:'Abilities', natures:'Stat Alignment'};
+const kmax = f => f === 'moves' ? 24 : 6;
+const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const pct = (x, d = 1) => (x * 100).toFixed(d).replace(/\.0+$/, '') + '%';
+const pp = (x, d = 2) => (x >= 0 ? '+' : '−') + Math.abs(x * 100).toFixed(d) + ' pp';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const STATS = ['HP','Atk','Def','SpA','SpD','Spe'];
+const spread = sp => STATS.map(k => sp[k] || 0).join('·');
+
+const S = {arm: 2, family: 'moves', start: 0, k: 3, view: 'masked', sel: null, show: 'ling', opp: null};
+const taskIdx = {};
+const PATHOF = {stats: i => `team[${i}].statPoints`, items: i => `team[${i}].item`, abilities: i => `team[${i}].ability`,
+  natures: i => `team[${i}].nature`, pokemon: i => `team[${i}]`, moves: i => `team[${i >> 2}].moves[${i & 3}]`};
+DATA.tasks.forEach(t => { t.paths = t.sl.map(PATHOF[t.f]); taskIdx[`${t.s}|${t.f}|${t.k}`] = t; });
+const task = () => taskIdx[`${S.start}|${S.family}|${S.k}`];
+const res = t => DATA.results[t.id];
+const armKey = () => ARMS[S.arm].key;
+const lingOf = t => res(t).arms[armKey()];
+const randOf = t => res(t).random || null;
+const origOf = t => DATA.originals[DATA.starts[t.s].id] || null;
+
+function kpis(key) {
+  let n = 0, legal = 0, cost = 0;
+  const dO = DATA.starts.map(() => []), dR = DATA.starts.map(() => []);
+  for (const t of DATA.tasks) {
+    const a = res(t).arms[key]; if (!a) continue;
+    n++; cost += a.cost || 0;
+    if (!a.ok) continue;
+    legal++;
+    if (a.win == null) continue;
+    const o = origOf(t); if (o && o.win != null) dO[t.s].push(a.win - o.win);
+    const r = randOf(t); if (r && r.win != null) dR[t.s].push(a.win - r.win);
+  }
+  const mean = xs => xs.reduce((p, q) => p + q, 0) / xs.length;
+  const avg = per => { const m = per.filter(x => x.length).map(mean); return m.length ? {v: mean(m), starts: m.length, n: per.flat().length} : null; };
+  return {n, legal, cost, gO: avg(dO), gR: avg(dR)};
+}
+
+/* ---------- team grid ---------- */
+function fieldPath(i, f, j) { return j == null ? `team[${i}].${f}` : `team[${i}].${f}[${j}]`; }
+function resolve(t, i, f, j, view) {
+  const base = DATA.starts[t.s].team[i], masked = new Set(t.paths);
+  const whole = masked.has(`team[${i}]`), path = fieldPath(i, f, j);
+  const isMasked = whole || masked.has(path);
+  const get = m => m == null ? undefined : (j == null ? m[f] : m[f][j]);
+  if (!isMasked) return {state: 'fixed', value: get(base), path, masked: false};
+  if (view === 'masked') return {state: 'masked', value: null, path, masked: true};
+  const src = view === 'ling' ? lingOf(t) : randOf(t);
+  if (!src || (view === 'ling' && !src.ok)) return {state: 'rejected', value: null, path, masked: true};
+  const fv = p => (src.fill || [])[t.paths.indexOf(p)];
+  const v = whole ? get(fv(`team[${i}]`)) : fv(path);
+  return {state: 'filled', value: v, path: whole ? `team[${i}]` : path, masked: true};
+}
+const show = v => v == null ? '' : (typeof v === 'object' ? (v.species ? v.species + (v.item ? ' @ ' + v.item : '') : spread(v)) : String(v));
+function monRow(t, i) {
+  const base = DATA.starts[t.s].team[i];
+  const whole = new Set(t.paths).has(`team[${i}]`);
+  const sp = resolve(t, i, 'species', null, S.view);
+  const name = whole && S.view === 'masked' ? 'Unknown Pokémon' : (whole ? sp.value : base.species);
+  const sprite = !(whole && S.view === 'masked') && SPRITES[norm(name)];
+  const head = `<h4>${sprite ? `<img src="${sprite}" alt="">` : `<span class="ph">${whole && S.view === 'masked' ? '?' : ''}</span>`}${esc(name)}</h4>`;
+  const cell = (label, f, j, text, img) => {
+    const r = resolve(t, i, f, j, S.view);
+    const val = r.state === 'filled' || r.state === 'fixed' ? (f === 'statPoints' ? spread(r.value) : r.value) : '';
+    const sel = S.sel && S.sel === r.path ? ' sel' : '';
+    const body = r.state === 'masked' ? '<small>' + label + '</small> ⌖'
+      : r.state === 'rejected' ? '<small>' + label + '</small> ✕'
+      : `<small>${label}</small>${img && SPRITES['item-' + norm(val)] ? `<img src="${SPRITES['item-' + norm(val)]}" alt="">` : ''}${esc(val || '—')}`;
+    return `<button class="cell ${r.state}${sel}" data-path="${r.path}" data-i="${i}" data-f="${f}">${body}</button>`;
+  };
+  return `<div class="mon">${head}<div class="cells">
+    ${cell('Item', 'item', null, null, true)}${cell('Ability', 'ability')}${cell('Nature', 'nature')}${cell('Pts', 'statPoints')}
+    ${[0, 1, 2, 3].map(j => cell('Move', 'moves', j)).join('')}</div></div>`;
+}
+function inspector(t) {
+  if (!S.sel) return '<div class="insp">Click any cell. The inspector shows whether it was fixed all along or changed by a fill.</div>';
+  const m = S.sel.match(/^team\[(\d)\](?:\.(\w+)(?:\[(\d)\])?)?$/);
+  const i = +m[1], f = m[2] || 'species', j = m[3] == null ? null : +m[3];
+  const base = DATA.starts[t.s].team[i], paths = new Set(t.paths);
+  const isMasked = paths.has(S.sel) || paths.has(`team[${i}]`);
+  const orig = f === 'species' && !m[2] ? show(base) : show(j == null ? base[f] : base[f][j]);
+  const L = lingOf(t), R = randOf(t);
+  const pick = src => { if (!src || !src.fill) return null; const key = paths.has(`team[${i}]`) ? `team[${i}]` : S.sel; const v = src.fill[t.paths.indexOf(key)]; return v == null ? null : (paths.has(`team[${i}]`) && m[2] ? show(j == null ? v[f] : v[f][j]) : show(v)); };
+  if (!isMasked) return `<div class="insp"><span class="pill ok">Fixed</span> <b>${esc(base.species)}</b> · ${esc(f)}<dl><dt>Value</dt><dd>${esc(orig)}</dd></dl><div class="note">This value was not in the mask, so every method kept it unchanged.</div></div>`;
+  const lv = L && L.ok ? pick(L) : null;
+  return `<div class="insp"><span class="pill ok">Masked</span> <b>${esc(base.species)}</b> · ${esc(f)}<dl>
+    <dt>Original</dt><dd>${esc(orig)}</dd>
+    <dt>Random fill</dt><dd>${R ? esc(pick(R) ?? '—') : 'none could be made legal'}</dd>
+    <dt>${esc(ARMS[S.arm].short)}</dt><dd>${L && L.ok ? esc(lv ?? '—') : '<span class="pill no">Rejected</span> ' + esc(L ? (L.stage || '') + ': ' + L.err : 'not run')}</dd></dl></div>`;
+}
+function gridCard(t) {
+  const rows = [0, 1, 2, 3, 4, 5].map(i => monRow(t, i)).join('');
+  const seg = (v, l) => `<button data-view="${v}" aria-pressed="${S.view === v}">${l}</button>`;
+  const n = t.paths.length;
+  return `<div class="card"><div class="seg" style="margin-bottom:12px">${seg('masked', 'Masked')}${seg('random', 'Random fill')}${seg('ling', 'Ling fill')}</div>
+    ${rows}
+    <div class="legend"><span><i style="background:var(--hatch);border:1px dashed var(--accent)"></i>Masked / may change</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Fixed / must not change</span></div>
+    <div class="note mono" style="margin-top:10px">${n} masked ${n === 1 ? 'part' : 'parts'} · click a cell to inspect</div>
+    ${inspector(t)}</div>`;
+}
+
+/* ---------- results ---------- */
+function bars(items, max) {
+  return items.map(it => `<div class="row"><b>${it.label}</b><span class="mono" style="font-weight:700;${it.color ? 'color:' + it.color : ''}">${it.text}</span><div class="track"><i style="width:${it.v == null ? 0 : Math.max(1.5, it.v / max * 100)}%;background:${it.c}"></i></div></div>`).join('');
+}
+function resultCard(t) {
+  const o = origOf(t), r = randOf(t), L = lingOf(t);
+  const lw = L && L.ok && L.win != null ? L.win : null;
+  const vals = [o && o.win, r && r.win, lw].filter(x => x != null);
+  const max = Math.max(0.1, ...vals) * 1.15;
+  const f = x => x == null ? 'not scored' : pct(x, 0);
+  const lingText = !L ? 'not run' : !L.ok ? 'Rejected' : f(lw);
+  const dO = lw != null && o && o.win != null ? lw - o.win : null;
+  const dR = lw != null && r && r.win != null ? lw - r.win : null;
+  const dl = (label, d) => `<div><div class="eyebrow">${label}</div><div class="v ${d == null ? '' : d > 0 ? 'good' : d < 0 ? 'bad' : ''}" style="color:${d == null ? 'var(--muted)' : ''}">${d == null ? '—' : pp(d)}</div></div>`;
+  const msg = L && !L.ok ? `${esc(L.stage)}: ${esc(L.err).slice(0, 140)}` : 'One panel is noisy. A gain here is not proof.';
+  return `<div class="card"><div class="eyebrow">This mask / Team ${S.start + 1}</div>
+    <div class="kline"><h2>Did the fill help?</h2><span class="pill ${L && L.ok ? 'ok' : 'no'}">${L && L.ok ? 'Legal' : 'Rejected'}</span></div>
+    <div class="note" style="margin:-4px 0 0">Same frozen schedule · ${DATA.opponents.length || 49} meta opponents · BC vs BC</div>
+    <div class="rows">${bars([
+      {label: 'Untouched team', v: o && o.win, text: f(o && o.win), c: 'var(--ink2)'},
+      {label: 'Random legal fill', v: r && r.win, text: r ? f(r.win) : 'no legal fill', c: 'var(--muted)'},
+      {label: 'Ling · ' + ARMS[S.arm].short, v: lw, text: lingText, c: ARMS[S.arm].c, color: !L || !L.ok ? 'var(--bad)' : ''}], max)}</div>
+    <div class="deltas">${dl('Ling vs original', dO)}${dl('Ling vs random', dR)}</div>
+    <div class="note">${msg}</div></div>`;
+}
+function starsCard(t) {
+  const sources = {ling: ['Ling', lingOf(t) && lingOf(t).ok ? lingOf(t) : null], random: ['Random fill', randOf(t)], orig: ['Untouched', origOf(t)]};
+  const [label, src] = sources[S.show];
+  const bits = src && src.opp ? src.opp : '';
+  const wins = [...bits].filter(c => c === '1').length;
+  const n = DATA.opponents.length || 49;
+  const cells = Array.from({length: n}, (_, i) => {
+    const b = bits[i]; const cls = b === '1' ? 'star win' : 'star'; const sel = S.opp === i ? ' sel' : '';
+    return `<button class="${cls}${sel}" data-opp="${i}" aria-label="Opponent ${i + 1}">${b === '1' ? '✦' : b === '0' ? '·' : '–'}</button>`;
+  }).join('');
+  const seg = (v, l) => `<button data-show="${v}" aria-pressed="${S.show === v}">${l}</button>`;
+  const opp = DATA.opponents[S.opp == null ? 0 : S.opp];
+  return `<div class="card"><div class="eyebrow">The threat constellation</div>
+    <div class="kline"><h2>Every sparkle is a result.</h2></div>
+    <div class="seg" style="margin:6px 0 4px">${seg('ling', 'Ling')}${seg('random', 'Random')}${seg('orig', 'Untouched')}</div>
+    <div class="note">✦ at least one observed win · · no win · – not scored · ${esc(label)}: ${bits ? wins + ' wins of ' + n : 'not scored yet'}</div>
+    <div class="stars">${cells}</div>
+    ${opp ? `<div class="note" style="margin-top:12px"><b style="color:var(--ink)">Opponent ${(S.opp == null ? 0 : S.opp) + 1}</b>${opp.weight > 1 ? ' (counted twice)' : ''} · ${opp.species.map(esc).join(', ')}</div>` : '<div class="pending">Battles have not been run yet, so no result is shown.</div>'}</div>`;
+}
+
+/* ---------- aggregate ---------- */
+function famDelta(f, key) {
+  const ds = [];
+  for (const t of DATA.tasks) {
+    if (t.f !== f) continue;
+    const a = res(t).arms[key], o = origOf(t);
+    if (a && a.ok && a.win != null && o && o.win != null) ds.push(a.win - o.win);
+  }
+  return ds.length ? {v: ds.reduce((p, q) => p + q, 0) / ds.length, n: ds.length} : null;
+}
+function summaryCard() {
+  const rows = ARMS.map(a => {
+    const k = kpis(a.key), info = DATA.arms[a.key], ci = info.ci;
+    return `<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${a.c};margin-right:6px"></span>${esc(a.long)}</td>
+      <td class="n"><b>${pct(k.legal / k.n, 0)}</b><br><span style="color:var(--muted)">${k.legal}/${k.n} · ${pct(ci[0], 0)}–${pct(ci[1], 0)}</span></td>
+      <td class="n">${k.gO ? pp(k.gO.v) : '—'}</td><td class="n">${k.gR ? pp(k.gR.v) : '—'}</td></tr>`;
+  }).join('');
+  const fams = Object.keys(FAM).map(f => {
+    const ts = DATA.tasks.filter(t => t.f === f);
+    const b = ARMS.map(a => { const g = ts.filter(t => res(t).arms[a.key]); const l = g.filter(t => res(t).arms[a.key].ok).length; const p = g.length ? l / g.length : 0;
+      return `<div class="b"><div class="track"><i style="width:${Math.max(p * 100, 1)}%;background:${a.c}"></i></div><span>${l}/${g.length}</span></div>`; }).join('');
+    return `<div>${FAM[f]}</div><div class="bars">${b}</div>`;
+  }).join('');
+  const dRows = Object.keys(FAM).map(f => `<tr><td>${FAM[f]}</td>${ARMS.map(a => { const x = famDelta(f, a.key);
+    const c = !x ? 'var(--muted)' : x.v > 0.005 ? 'var(--accent)' : x.v < -0.005 ? 'var(--bad)' : 'var(--ink)';
+    return `<td class="n" style="color:${c};font-weight:700">${x ? pp(x.v, 1) : '—'}<br><span style="color:var(--muted);font-weight:400">n = ${x ? x.n : 0}</span></td>`; }).join('')}</tr>`).join('');
+  const run1 = DATA.run1 ? `<div class="note">An earlier run on the same masks (new samples, teams not saved) gave ${ARMS.map(a => ARMS.length && pct(DATA.run1[a.key].legal / DATA.run1[a.key].n, 0)).join(' / ')}.</div>` : '';
+  return `<div class="card"><div class="eyebrow">Across all ${DATA.tasks.length} masks</div><h2>Which prompt filled best?</h2>
+    <table class="tbl"><thead><tr><th>Prompt</th><th>Legal</th><th>Δ original*</th><th>Δ random*</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="note">*Mean win-rate change among legal completions, each starting team weighted equally. Illegal completions are excluded, so these are not overall success rates.</div>
+    <div class="eyebrow" style="margin-top:16px">Legal completions by mask family</div>
+    <div class="fam">${fams}</div>
+    <div class="eyebrow" style="margin-top:20px">Win-rate change vs the untouched team, by family</div>
+    <table class="tbl"><thead><tr><th>Family</th>${ARMS.map(a => `<th>${esc(a.short)}</th>`).join('')}</tr></thead><tbody>${dRows}</tbody></table>
+    <div class="note">Mean over legal completions. The average above is carried by whole-Pokémon masks, where Ling writes most of the team itself. The other five families sit within about two points of zero, which is inside the noise of a 49-battle panel.</div>${run1}</div>`;
+}
+function costCard() {
+  const rows = ARMS.map(a => { const k = kpis(a.key), per = k.cost / Math.max(1, k.n);
+    return `<tr><td>${esc(a.short)}</td><td class="n">$${k.cost.toFixed(4)}</td><td class="n">$${(per * 1000).toFixed(3)} / 1k</td><td class="n">$${(per * 8100).toFixed(2)}</td></tr>`; }).join('');
+  const k = kpis(armKey());
+  return `<div class="card"><div class="cost"><div><div class="eyebrow">Cost notebook / measured usage</div><div class="note" style="margin-top:6px">Every attempt counts, including rejected ones.</div></div><div class="v">$${k.cost.toFixed(4)}</div></div>
+    <table class="tbl"><thead><tr><th>Arm</th><th>Spent</th><th>Per call</th><th>8,100 calls</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+/* ---------- page ---------- */
+function controls() {
+  const fams = Object.keys(FAM).map(f => `<option value="${f}" ${S.family === f ? 'selected' : ''}>${FAM[f]}</option>`).join('');
+  const starts = DATA.starts.map((s, i) => `<option value="${i}" ${S.start === i ? 'selected' : ''}>Team ${String(i + 1).padStart(2, '0')}</option>`).join('');
+  const arms = ARMS.map((a, i) => `<button data-arm="${i}" aria-pressed="${S.arm === i}"><span class="sw" style="background:${a.c}"></span>${a.short}</button>`).join('');
+  return `<div class="eyebrow">Prompt and token cap</div><div class="seg" style="margin:8px 0 14px">${arms}</div>
+    <div class="ctl" style="margin-top:0"><label class="f"><span class="eyebrow">Mask family</span><select id="fam">${fams}</select></label>
+    <label class="f"><span class="eyebrow">Starting team</span><select id="start">${starts}</select></label></div>
+    <div class="kline"><span class="eyebrow">Mask size</span><b class="mono" id="kv">k = ${S.k}</b></div>
+    <input type="range" id="k" min="1" max="${kmax(S.family)}" value="${S.k}" aria-label="Mask size">`;
+}
+function header() {
+  const k = kpis(armKey()), info = DATA.arms[armKey()];
+  const card = (label, v, s, cls) => `<div class="card kpi"><div class="eyebrow">${label}</div><div class="v ${cls || ''}">${v}</div><div class="s">${s}</div></div>`;
+  const g = (x, label) => x ? card(label, pp(x.v), `${x.n} legal completions · ${x.starts} starting teams weighted equally`, x.v > 0 ? 'good' : x.v < 0 ? 'bad' : '') : card(label, '—', DATA.scored ? 'no scored pairs' : 'battles pending');
+  return `<header class="top"><div class="brand"><i></i>Porygon-Pi / Mask Lab</div><div class="tag">Ling × Reg M-B<br>prompt test</div></header>
+    <div class="eyebrow" style="margin-top:14px">Masked completion / Experiment 002</div>
+    <h1>See what changes. <em>Measure what helps.</em></h1>
+    <p class="lede">Random legal teams. One precise mask. Ling fills the gap under three prompt settings; the same behaviour-cloning policy plays every battle.</p>
+    <div class="grid2">${card('Ling legal success', pct(k.legal / k.n), `${k.legal}/${k.n} completions accepted`, 'good')}
+      ${g(k.gO, 'Ling vs original team')}${g(k.gR, 'Ling vs random fill')}
+      ${card('Recorded Ling API cost', '$' + k.cost.toFixed(4), `all ${k.n} attempts for this arm`)}</div>`;
+}
+function render() {
+  const t = task();
+  $('#head').innerHTML = header();
+  $('#grid').innerHTML = gridCard(t);
+  $('#result').innerHTML = resultCard(t);
+  $('#stars').innerHTML = starsCard(t);
+  $('#summary').innerHTML = summaryCard() + '<div style="height:12px"></div>' + costCard();
+}
+const $ = s => document.querySelector(s);
+function boot() {
+  $('#app').innerHTML = `<div id="head"></div><div id="ctl" style="margin-top:18px"></div><section id="grid"></section><section id="result"></section><section id="stars"></section><section id="summary"></section>
+  <footer><ul>
+    <li>Policy: ${esc(DATA.policy)}. Every team plays one battle against each of the 49 distinct meta teams (one of them counted twice). No random-action policy is used.</li>
+    <li>Regulation: Champions VGC 2026 Reg M-B. Starting teams are 5 random legal teams from the project's hierarchical sampler; none is a meta team.</li>
+    <li>Each completion is one sample at temperature 0.7 on OpenRouter, routed to Novita with JSON mode off. A completion counts as legal only if it parses, keeps every unmasked field and passes the Showdown validator on the first attempt.</li>
+    <li>Largest species overlap between any completion and any meta team: 4 of 6, so no completion copies a meta team. Ling does see all the meta teams in its prompt.</li>
+    <li>A panel is 49 battles, so one team's win rate is noisy by several points. Simulator randomness is not fixed. Five starting teams cannot show a general winner.</li></ul></footer>`;
+  $('#ctl').innerHTML = controls();
+  render();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.arm != null) { S.arm = +b.dataset.arm; S.sel = null; $('#ctl').innerHTML = controls(); }
+  else if (b.dataset.view) S.view = b.dataset.view;
+  else if (b.dataset.show) S.show = b.dataset.show;
+  else if (b.dataset.opp != null) S.opp = +b.dataset.opp;
+  else if (b.dataset.path) S.sel = S.sel === b.dataset.path ? null : b.dataset.path;
+  else return;
+  render();
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'fam') { S.family = e.target.value; S.k = Math.min(S.k, kmax(S.family)); S.sel = null; $('#ctl').innerHTML = controls(); render(); }
+  else if (e.target.id === 'start') { S.start = +e.target.value; S.sel = null; render(); }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'k') { S.k = +e.target.value; S.sel = null; $('#kv').textContent = 'k = ' + S.k; render(); }
+});
+boot();
+</script>
+</body>
+</html>

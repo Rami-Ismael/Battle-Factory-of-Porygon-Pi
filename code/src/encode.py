@@ -10,6 +10,7 @@ sorting slots on species before any distance is computed, and slot order is rand
 permuted during training as augmentation.
 """
 import json, random
+from pathlib import Path
 from collections import defaultdict
 import numpy as np
 from corpus import (load_corpus, norm, dex_entry, legal_moves, legal_abilities,
@@ -34,6 +35,7 @@ class Vocab:
     """One vocabulary per field type; species/ability/item/nature share a column each,
     the four move columns share a single move vocabulary."""
     def __init__(self, teams):
+        self.regulation = None
         cols = defaultdict(set)
         for t in teams:
             f = team_fields(t)
@@ -46,11 +48,27 @@ class Vocab:
             self.itos[k] = vs
             self.stoi[k] = {v: i for i, v in enumerate(vs)}
         self.sizes = {k: len(v) for k, v in self.itos.items()}
+    @classmethod
+    def from_regulation(cls, manifest):
+        """Stable token IDs from an explicit simulator-derived format snapshot."""
+        if isinstance(manifest, (str, Path)):
+            with open(manifest) as f: manifest = json.load(f)
+        if manifest['format'] != 'gen9championsvgc2026regmb':
+            raise ValueError('expected the pinned Regulation M-B vocabulary')
+        obj = cls.__new__(cls)
+        obj.regulation = manifest
+        obj.itos = {k:['[MASK]']+sorted(set(v)) for k,v in manifest['values'].items()}
+        obj.stoi = {k:{v:i for i,v in enumerate(vs)} for k,vs in obj.itos.items()}
+        obj.sizes = {k:len(vs) for k,vs in obj.itos.items()}
+        return obj
     def key(self, col):
         k = FIELDS[col % NF]
         return "move" if k.startswith("m") and k != "nature" else k
     def encode(self, team):
         f = team_fields(team)
+        if self.regulation is not None:
+            missing = [(self.key(i),v) for i,v in enumerate(f) if v not in self.stoi[self.key(i)]]
+            if missing: raise ValueError(f'outside Regulation M-B vocabulary: {missing}')
         return np.array([self.stoi[self.key(i)].get(v, 0) for i, v in enumerate(f)], dtype=np.int64)
     def decode_field(self, col, idx):
         return self.itos[self.key(col)][idx]

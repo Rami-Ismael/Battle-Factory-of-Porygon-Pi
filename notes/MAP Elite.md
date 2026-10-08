@@ -6,6 +6,7 @@
 - [ ] Do a project that use MAP Elite and see comparison
 	- [ ] What are some ablation experiemnt
 - [ ] read this papers list 
+- [ ] try the model all the difference version of our model
 # What is Map Elite
 # Papers
 

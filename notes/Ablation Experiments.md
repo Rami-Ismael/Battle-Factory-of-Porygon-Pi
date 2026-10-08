@@ -2,14 +2,16 @@
 created_at: 2026-09-24
 updated_at: 2026-10-07
 ---
-- [ ] Ask the llm model what ablation experiment did you choose for example you can choose negative score function, data
-	- [ ] guidaince for example score function going in the negative ways
-	- [ ] In the blog, show that the diffusion model's performance depends on the dataset it was trained on: the same model and recipe, trained on different sets of teams, including a list of random legal teams, give different win rates. Then show how changing the guidance and the sampling parameters changed the win rate.
-- [ ] @Ablation Experiments.md Given the context what are ablation experiement I should be added to test my one for cross entropy method and one for Map Elite method when you added a checkbox please determine the reason why we are doing in this ablation experimenet 
-- [ ] What is the total number of placement team that is possible to trained our model from previous regulation and all previous regulation also 
+- [x] Ask the llm model what ablation experiment did you choose for example you can choose negative score function, data
+	- [x] guidaince for example score function going in the negative ways
+	- [x] In the blog, show that the diffusion model's performance depends on the dataset it was trained on: the same model and recipe, trained on different sets of teams, including a list of random legal teams, give different win rates. Then show how changing the guidance and the sampling parameters changed the win rate.
+- [x] @Ablation Experiments.md Given the context what are ablation experiement I should be added to test my one for cross entropy method and one for Map Elite method when you added a checkbox please determine the reason why we are doing in this ablation experimenet 
+- [ ]  What is the total number of placement team that is possible to trained our model from previous regulation and all previous regulation
+- [ ] Count the unique real Regulation M-B tournament teams available in our project's stored data and traceable sources, using teams with recorded placements. Report both unique six-Pokémon species/form compositions and unique complete builds, ignoring team and move order; state the source coverage, deduplication rules, missing data, and exclusions rather than claiming to count every team ever used. Use the resulting usable real-team count to plan three training conditions: **real tournament teams only**, **teams from our existing [[hierarchical product sampling]] procedure only**, and **a mixture of both (proposed: 50/50)**. Use our existing hierarchical product sampling implementation and legality validation; do not confuse this training-data procedure with Cross-Entropy Method search. Test whether including real tournament teams improves performance, and whether removing them hurts performance, against **the current meta pool already stored in the project**, using our existing performance metric and evaluation protocol. Keep the number of distinct legal training builds, model configuration, training updates, and evaluation budget equal across conditions; exclude evaluation builds from training, report composition overlap, and compare matched seeds. Report the counts and propose a feasible common training-set size and experiment setup; do not launch training yet.
 - [ ] For the cross entropy method we can replace the battling with a surrogate model instead let see the difference in performances
 	- Why: the loop already mixes the two (the surrogate screens 512 teams, 128 get battled). Removing battles from search entirely shows whether those battles are worth their cost.
-- [ ] Use a pretrained diffusion model
+- [ ] [[Replace the scratch model with a pretrained text diffusion model finetune it to do your task]]
+- [ ] [[Replace the scratch model with a pretrained text llm model finetune to do your task]]
 - [ ] [[Cross Entropy Method]] ablation part of the calculuation
 	- [ ] **Cross-entropy method's calculation:** two parts are untested:
 		- [ ] retraining from the original model each generation (what the loop does now) versus continuing from the last generation;
@@ -43,7 +45,9 @@ updated_at: 2026-10-07
 	- [ ] 5. Replace the three-network ensemble with the ridge surrogate.
 		- Why: on held-out teams the two rank almost the same (Spearman 0.266 vs 0.250), so the deep surrogate may not earn its training cost.
 	- [ ] 6. Decide which of these enter the blog's ablation table.
-
+- [ ] We have updates the llm model training recicipe so we need to restart the traditional experiment for abaltion we need to the old model then apply to the current model 
+	- [ ] grill me
+	- [ ] 
 # Method we have done
 
 

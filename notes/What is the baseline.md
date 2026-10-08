@@ -27,6 +27,16 @@
 4. openai/gpt-6-luna
 5. anthropic/claude-sonnet-5
 
+OpenRouter price per million tokens, cheapest first (2026-10-08). Grid input cost = 8,100 calls × 14k tokens, output excluded:
+
+| #   | Model                         | Input $ | Output $ | Grid input $ |
+| --- | ----------------------------- | ------- | -------- | ------------ |
+| 1   | inclusionai/ling-3.0-flash-vl | 0.021   | 0.0616   | 2.38         |
+| 2   | inception/mercury-2.5         | 0.04    | 0.15     | 4.54         |
+| 3   | openai/gpt-6-luna             | 0.10    | 0.50     | 11.34        |
+| 4   | deepseek/deepseek-v4.1-flash  | 0.30    | 1.20     | 34.02        |
+| 5   | anthropic/claude-sonnet-5     | 2.00    | 10.00    | 226.80       |
+
 ### LLM gateway we are using
 
 
@@ -37,6 +47,7 @@
 ### Prompt to feed to the model to make their decision
 
 - [ ] Ask the llm to feed into the prompt
+- [ ] Determine if there anything else I should add to the prompt to feed into the model 
 
 1. Instruction
 2. Meta Team
@@ -57,6 +68,12 @@
 1. One team in Showdown paste format averages 901 characters, which is about 225–300 tokens. All 50 meta teams come to about **11k–15k tokens**, so you were right that it's well under 30k. Add ~1k for instructions and the masked team, and each call is about **14k input tokens**. Writing the meta in JSON instead of paste format makes it roughly 1.5× bigger.
 2. Full grid: 6 tasks with these k values (stats, items, abilities and natures 1–6, whole Pokémon 1–6, moves 1–24) is 54 cells. 54 × 50 starting teams × 3 completions = **8,100 calls**.
 ### Create a visual for me
+
+
+
+
+
+
 
 
 ### Starting pokemon team 

@@ -1,0 +1,395 @@
+<title>Foundation Swap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the loss-down page's reading column (Distill manner); figures break out wider; old model = orange, new model = blue everywhere. */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --ink: #14161b; --ink-2: #474d59; --ink-3: #737b8a; --rule: #dadee6; --link: #c9ced8;
+  --new: #2a78d6; --old: #eb6834; --v3: #1baf7a; --refline: #737b8a; --focus: #2a78d6; --core: #e3ecf9;
+  --font-body: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --col: 42rem; --wide: 60rem;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a; --link: #3a404c;
+  --new: #3987e5; --old: #d95926; --v3: #199e70; --refline: #8a91a0; --focus: #6da7ec; --core: #17263d; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a; --link: #3a404c;
+  --new: #3987e5; --old: #d95926; --v3: #199e70; --refline: #8a91a0; --focus: #6da7ec; --core: #17263d; color-scheme: dark; }
+
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.65; }
+.page { padding-inline: 1rem; padding-block: 2.5rem 4rem; display: grid; gap: 2.25rem; justify-items: center; }
+.page > * { width: 100%; max-width: var(--col); min-width: 0; }
+.page > .wide { max-width: var(--wide); }
+h1, h2 { font-family: var(--font-ui); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 600; letter-spacing: -0.015em; }
+h2 { font-size: 1.4rem; font-weight: 600; }
+p { margin: 0; }
+.stack { display: grid; gap: 1rem; }
+.kicker { font-family: var(--font-ui); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.dek { font-size: 1.2rem; color: var(--ink-2); line-height: 1.55; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+figure { margin: 0; display: grid; gap: 0.75rem; }
+figcaption { font-family: var(--font-ui); font-size: 0.86rem; color: var(--ink-2); line-height: 1.5; }
+figcaption b { color: var(--ink); font-weight: 600; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; min-width: 0; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; align-items: center; font: 0.8rem var(--font-ui); color: var(--ink-2); }
+.swatch { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; vertical-align: -0.05rem; margin-right: 0.35rem; }
+
+/* method glossary */
+.methods { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.45rem 1rem; font-family: var(--font-ui); font-size: 0.9rem; margin: 0; }
+.methods dt { font-weight: 600; }
+.methods dd { margin: 0; color: var(--ink-2); }
+@media (max-width: 34rem) { .methods { grid-template-columns: minmax(0, 1fr); } .methods dd { margin-bottom: 0.4rem; } }
+
+/* charts */
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: var(--font-ui); fill: var(--ink-2); }
+svg .t-ink { fill: var(--ink); }
+svg .t-mono { font-family: var(--font-mono); }
+svg .grid { stroke: var(--rule); stroke-width: 1; }
+svg .hit { fill: transparent; }
+svg g.row.dim { opacity: 0.25; }
+@media (prefers-reduced-motion: no-preference) { svg g.row { transition: opacity .2s; } }
+.tip { position: fixed; z-index: 10; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-radius: 5px;
+       padding: 0.45rem 0.6rem; font: 0.8rem/1.45 var(--font-ui); box-shadow: 0 4px 14px rgb(0 0 0 / 0.14); max-width: 19rem; }
+details { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); }
+details summary { cursor: pointer; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 0.82rem; margin-top: 0.5rem; }
+td, th { padding: 0.25rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td:first-child, th:first-child { text-align: left; }
+
+/* figure 3: what the stack wrote */
+.stacks { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 1.25rem; }
+@media (max-width: 46rem) { .stacks { grid-template-columns: minmax(0, 1fr); } }
+.stacks h3 { font: 600 0.95rem var(--font-ui); margin: 0 0 0.5rem; display: flex; gap: 0.5rem; align-items: center; }
+.lu { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.6rem; align-items: center; padding-block: 0.3rem; border-bottom: 1px solid var(--rule); font-family: var(--font-ui); font-size: 0.82rem; }
+.mons { display: flex; flex-wrap: wrap; gap: 0; }
+.mons img { width: 40px; height: 40px; image-rendering: pixelated; }
+.mons img.core { background: var(--core); border-radius: 4px; }
+.lu .count { font-family: var(--font-mono); color: var(--ink-2); white-space: nowrap; }
+.lu .wr { font-family: var(--font-mono); text-align: right; white-space: nowrap; }
+.big .mons img { width: 56px; height: 56px; }
+.freq { display: grid; gap: 0.2rem; margin-top: 0.75rem; }
+.freq .f { display: grid; grid-template-columns: 34px 7.5rem minmax(0, 1fr) 3rem; gap: 0.5rem; align-items: center; font: 0.78rem var(--font-ui); }
+.freq img { width: 34px; height: 34px; image-rendering: pixelated; }
+.freq .bar { height: 0.7rem; background: var(--new); border-radius: 0 2px 2px 0; min-width: 2px; }
+.freq .c { font-family: var(--font-mono); text-align: right; color: var(--ink-2); }
+.more { font: 0.8rem var(--font-ui); color: var(--ink-3); padding-top: 0.4rem; }
+.lu-meta { font: 0.85rem var(--font-ui); color: var(--ink-2); margin-top: 0.4rem; }
+.freq .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+.chip { display: inline-grid; place-items: center; height: 40px; padding-inline: 0.35rem; font: 600 0.7rem var(--font-ui); color: var(--ink-2);
+        border: 1px dashed var(--rule); border-radius: 4px; margin: 0 2px; }
+.bugs dt { color: var(--ink); }
+.share { display: grid; gap: 0.3rem; font: 0.82rem var(--font-ui); }
+.share .r { display: grid; grid-template-columns: 11rem minmax(0, 1fr) 3.5rem; gap: 0.6rem; align-items: center; }
+.share .bar { height: 0.8rem; background: var(--v3); border-radius: 0 2px 2px 0; min-width: 2px; }
+.share .c { font-family: var(--font-mono); text-align: right; color: var(--ink-2); }
+.err { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 20; background: var(--panel); color: var(--ink); border: 1px solid var(--old);
+       border-radius: 6px; padding: 0.7rem 0.9rem; font: 0.85rem/1.45 var(--font-ui); }
+footer { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 1.2rem; display: grid; gap: 0.6rem; }
+footer code { font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: anywhere; }
+</style>
+
+<main class="page">
+  <header class="stack">
+    <div class="kicker">Team diffusion · generator methods · 2026-10-08</div>
+    <h1>Foundation Swap</h1>
+    <p class="dek">Every trick that ever helped the old team generator, re-run on the new one under the same rules. The new model is the better starting point for all of them, and with everything stacked its teams play like real top-50 teams.</p>
+  </header>
+
+  <section class="stack">
+    <h2>The question</h2>
+    <p>A method such as guidance changes how a model writes teams, but how far it gets depends on the model underneath. The retrained model already wrote better teams with no tricks at all. So every method the project had used on the old model was run again, on the old model and on the new one, with identical rules: 64 legal teams per method, one battle against each of the top-50 meta teams, and the same behaviour-cloned battle policy on both sides. The number on every chart is the share of those battles a team wins, averaged over its 64 teams.</p>
+    <dl class="methods">
+      <dt>Plain</dt><dd>Write a team with no request and no help.</dd>
+      <dt>Ask for 0.5</dt><dd>Tell the model to write a team that wins half its battles, with guidance strength 2 (classifier-free guidance on the win-rate condition).</dd>
+      <dt>Low temperature</dt><dd>Make every choice more decisive: temperature 0.7, and only the likeliest values that make up 90% of the probability.</dd>
+      <dt>Protect filter</dt><dd>Throw away any team with fewer than three Pokémon carrying Protect or a move like it.</dd>
+      <dt>Predictor picks 64 of 512</dt><dd>Write 512 teams and battle only the 64 that a win-rate predictor rates highest. The predictor is a ridge regression on 44,887 teams with known win rates.</dd>
+      <dt>Predictor guidance</dt><dd>While writing, nudge each choice toward the values the same predictor rates highly.</dd>
+      <dt>Nature repair</dt><dd>After writing, give each Pokémon a nature that suits its moves (no Modest on a physical attacker).</dd>
+      <dt>All stacked</dt><dd>Everything above at once: ask for 0.5, low temperature, guidance and repair while writing, then the Protect filter, then the predictor’s top 64 of 512.</dd>
+    </dl>
+  </section>
+
+  <figure class="wide panel" id="fig-dumb">
+    <div class="legend"><span><span class="swatch" style="background:var(--old)"></span>Old model (asked_vs_got.pt)</span><span><span class="swatch" style="background:var(--new)"></span>New model (the loss-down retrain)</span><span>Dashed line: a real top-50 team, 0.531</span></div>
+    <div id="dumb"></div>
+    <figcaption><b>Figure 1.</b> Win rate against the top 50 under each method, old model against new. Each dot is the mean of 64 teams × 49 battles; hover for its standard error, how many samples Showdown accepted, and how many different line-ups it holds. The right column is the new model’s lead and how many standard errors it spans.</figcaption>
+    <details><summary>Table</summary><div class="tablewrap" id="dumb-table"></div></details>
+  </figure>
+
+  <section class="stack">
+    <p>The new model wins more under every method, and in seven of the eight the lead spans more than two standard errors. With everything stacked, the new model’s teams average <span class="num" id="t-stack-new">0.527</span>, level with a real top-50 team playing the rest of the top 50. The stacked old model reaches <span class="num" id="t-stack-old">0.503</span>, but that number comes with a catch, which Figure 3 shows.</p>
+  </section>
+
+  <section class="stack">
+    <h2>What each method adds</h2>
+    <p>A better foundation could make methods redundant, or make them work better. Figure 2 measures each method against its own model’s plain teams, so the two bars in a row show how much that method adds on top of each model.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-gain">
+    <div id="gain"></div>
+    <figcaption><b>Figure 2.</b> Each method’s gain over its own model’s plain teams (old plain 0.185, new plain 0.257). Hover a row to light up the same method in Figure 1.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <p>The methods add about the same on both models; none of the differences between the two bars spans two standard errors. Asking for a win rate, low temperature, the predictor’s pick and guidance each add 0.10 to 0.15. Two methods add nothing on either model. The Protect filter has nothing to remove, because both models already give Protect to three or more Pokémon on almost every team; its earlier gain was measured on random legal teams, which rarely carry it. Nature repair’s earlier gain of 1.3 points does not reappear. Stacking everything gives the biggest gain on both, slightly smaller on the new model, which is what you expect as teams approach the level of the real ones.</p>
+  </section>
+
+  <section class="stack">
+    <h2>What the stacked models actually wrote</h2>
+    <p>The two stacked averages are close. The teams behind them are not.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-teams">
+    <div class="stacks">
+      <div>
+        <h3><span class="swatch" style="background:var(--old)"></span>Old model, all stacked</h3>
+        <div id="old-lu" class="big"></div>
+        <p class="more" id="old-note"></p>
+      </div>
+      <div>
+        <h3><span class="swatch" style="background:var(--new)"></span>New model, all stacked</h3>
+        <div id="new-lu"></div>
+        <p class="more" id="new-more"></p>
+        <div class="freq" id="new-freq" aria-label="How many of the 64 teams carry each Pokémon"></div>
+      </div>
+    </div>
+    <figcaption><b>Figure 3.</b> Line-ups written by the two stacked models: six Pokémon, how many of the 64 teams use exactly that six, and their mean win rate. Shaded sprites are the new model’s core, the four Pokémon on almost every team. The bars count how many of the 64 teams carry each Pokémon.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <p>Stacked, the old model writes one team. All 64 are the same six Pokémon (Basculegion, Charizard, Floette-Eternal, Garchomp, Kingambit and Whimsicott), the core the gradient-guidance loop settled on in September, differing only in items, moves and natures. The new model writes <span class="num" id="n-lu">17</span> line-ups. Four Pokémon sit on almost every team (Floette-Mega, Garchomp, Milotic and Sinistcha) and the last two slots rotate through Ceruledge, Incineroar, Basculegion, Talonflame, Raichu and others.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-strip">
+    <div id="strip"></div>
+    <figcaption><b>Figure 4.</b> Every stacked team’s own win rate (49 battles each), old model and new; the black tick is the mean. The dashed line is a real top-50 team. Each dot’s spread comes partly from luck: one team’s 49 battles carry a standard error near 0.07.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <p><span class="num" id="n-above">31</span> of the new model’s 64 stacked teams beat the real-team line, and the best scored <span class="num" id="best">0.740</span>. That best number is part strength, part luck until the team is battled again. One more sign the method is running out of road: inside the stacked set, the predictor that picked the teams no longer tells strong from weak. Its predictions and the battle results correlate at <span class="num" id="surr-r">0.02</span>, and it expected <span class="num" id="surr-pred">0.635</span> where the teams got <span class="num" id="surr-got">0.527</span>.</p>
+  </section>
+
+  <section class="stack" id="v3-intro" hidden>
+    <h2>Version 3: the whole regulation</h2>
+    <p>While this comparison ran, a different test found bugs that the from-scratch runs above never touch. It asked the model to fill in hidden fields of an existing team, against a large language model doing the same, and the model could not even read most of the teams it was given. Five problems turned up.</p>
+    <dl class="methods bugs">
+      <dt>Vocabulary from 692 teams</dt><dd>The model could only name what appears in the 692 VGCPastes teams: <span class="num" id="legacy-n">189</span> species, where the regulation allows 347. It could never write the other 158.</dd>
+      <dt>Unknown became hidden</dt><dd>A value the model had never seen was silently turned into a hidden field instead of raising an error.</dd>
+      <dt>Legal is not useful</dt><dd>Showdown lets any Pokémon hold any Mega Stone, so a decoder that checks only legality let Kingambit hold Floettite. A stone is only useful on the Pokémon that Mega Evolves with it.</dd>
+      <dt>Training data taught habits</dt><dd>An intermediate version’s synthetic training teams gave 13,232 of 36,000 Pokémon another species’ stone, and almost never fewer than four moves.</dd>
+      <dt>Weights without labels</dt><dd>Saved models did not record which row belongs to which Pokémon, so a rebuilt vocabulary could have shifted every weight without warning.</dd>
+    </dl>
+    <p>Version 3 retrains both halves of the new model with all five fixed: the full Regulation M-B vocabulary taken from Showdown itself, stones matched to the exact forme, varied move counts, and checkpoints that refuse a mismatched vocabulary. It then went through the same eight methods, seeds and predictor as above.</p>
+  </section>
+
+  <figure class="wide panel" id="fig-v3" hidden>
+    <div class="legend"><span><span class="swatch" style="background:var(--old)"></span>Old</span><span><span class="swatch" style="background:var(--new)"></span>New</span><span><span class="swatch" style="background:var(--v3)"></span>Version 3 (full regulation)</span><span>Dashed line: a real top-50 team, 0.531</span></div>
+    <div id="v3chart"></div>
+    <figcaption><b>Figure 5.</b> The three models under each method, same protocol. The right column is version 3 minus the new model, with how many standard errors it spans; hover for legality, line-ups and how many teams use a species the old vocabulary lacked.</figcaption>
+    <details><summary>Table</summary><div class="tablewrap" id="v3-table"></div></details>
+  </figure>
+
+  <section class="stack" id="v3-read" hidden></section>
+
+  <figure class="wide panel" id="fig-v3-new" hidden>
+    <div class="stacks">
+      <div>
+        <h3>Teams that use a newly reachable species</h3>
+        <div class="share" id="v3-share"></div>
+        <h3 style="margin-top:1rem">Most used new species</h3>
+        <div class="mons" id="v3-newsp"></div>
+      </div>
+      <div>
+        <h3><span class="swatch" style="background:var(--v3)"></span>Version 3, all stacked</h3>
+        <div id="v3-lu"></div>
+        <p class="more" id="v3-more"></p>
+      </div>
+    </div>
+    <figcaption><b>Figure 6.</b> What the wider vocabulary changed in practice. Left: of each method’s 64 version-3 teams, how many hold at least one species the old 189-species vocabulary could not write, and which new species appear most. Right: the line-ups written by version 3 with everything stacked. A dashed name means no local sprite exists for that Pokémon yet.</figcaption>
+  </figure>
+
+  <section class="stack">
+    <h2>Where this leaves us</h2>
+    <p>The retrain improved the foundation, not one lucky setting: every method starts higher on the new model and adds about as much. The open questions are about the top. First, re-battle the 16 strongest stacked teams with 192 battles each, to separate the strong teams from the lucky ones. Then run the loop that retrains the model on its own winners, which on the old model climbed from 0.26 to 0.41 over eleven generations, starting this time from the new model and the stacked method.</p>
+    <p id="v3-next" hidden>Version 3 changes the starting point for both: its full stack is the strongest set so far, and it can now read and write every legal team. Its new species only help once some of them have been battled and labelled, so the loop should start from version 3 and let the battles teach it which of the newly reachable Pokémon are worth using.</p>
+  </section>
+
+  <footer>
+    <p><b>Win rate.</b> Wins ÷ battles against the 50 top-placing Regulation M-B teams (49 distinct), one battle per team and opponent, the VGC-Bench behaviour-cloned policy on both sides, corpus Stat Point spreads. 64 Showdown-legal teams per cell. Every battle is stored in the matchup matrix.</p>
+    <p><b>Files.</b> <code>docs/foundation-swap.md</code> (pre-registration and results), <code>src/foundation.py</code>, <code>results/foundation.json</code> in vgc-team-generator-pilot. The plain and “ask for 0.5” cells reuse the asked-vs-got and loss-down battle runs, which used the same protocol.</p>
+  </footer>
+</main>
+<div class="tip" id="tip" hidden></div>
+<div class="err" id="err" role="alert" hidden></div>
+
+<script type="application/json" id="fs-data">/*DATA*/null</script>
+<script type="module">
+const errBox = document.getElementById("err");
+const report = m => { errBox.hidden = false; errBox.textContent = "Something on this page failed to run: " + m; };
+addEventListener("error", e => report(e.message));
+try {
+const D = JSON.parse(document.getElementById("fs-data").textContent);
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+const txt = (parent, attrs, s) => { const t = el("text", attrs, parent); t.textContent = s; return t; };
+const f3 = x => (x < 0 ? "−" : "") + Math.abs(x).toFixed(3);
+const sgn = x => (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(3);
+const LABEL = { base: "Plain", cfg: "Ask for 0.5", lowtemp: "Low temperature", protect3: "Protect filter", surrogate: "Predictor picks 64 of 512",
+                guide: "Predictor guidance", repair: "Nature repair", stack: "All stacked" };
+const REAL = 0.531;
+
+const tip = $("#tip");
+const moveTip = ev => { tip.style.left = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 8) + "px"; };
+const bindTip = (node, html) => { node.addEventListener("pointerenter", e => { tip.innerHTML = html; tip.hidden = false; moveTip(e); }); node.addEventListener("pointermove", moveTip); node.addEventListener("pointerleave", () => { tip.hidden = true; }); };
+const linked = new Set();
+const light = arm => linked.forEach(g => g.classList.toggle("dim", !!arm && g.dataset.arm !== arm));
+
+/* ---------- Figure 1: dumbbells ---------- */
+(function () {
+  const R = D.rows, W = 900, rowH = 44, top = 26, left = 210, right = 120, H = top + R.length * rowH + 30, lo = 0.15, hi = 0.6;
+  const x = v => left + (W - left - right) * (v - lo) / (hi - lo);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Win rate under each method, old model versus new model" });
+  for (const t of [0.2, 0.3, 0.4, 0.5, 0.6]) { el("line", { x1: x(t), x2: x(t), y1: top - 8, y2: H - 26, class: "grid" }, svg); txt(svg, { x: x(t), y: H - 8, "text-anchor": "middle", "font-size": 13, class: "t-mono" }, t.toFixed(1)); }
+  el("line", { x1: x(REAL), x2: x(REAL), y1: top - 16, y2: H - 26, stroke: "var(--refline)", "stroke-width": 1.5, "stroke-dasharray": "5 4" }, svg);
+  txt(svg, { x: x(REAL), y: top - 20, "text-anchor": "middle", "font-size": 12 }, "real top-50 team");
+  txt(svg, { x: W, y: top - 20, "text-anchor": "end", "font-size": 12 }, "new − old");
+  R.forEach((r, i) => {
+    const y = top + i * rowH + rowH / 2, g = el("g", { class: "row", "data-arm": r.arm }, svg); linked.add(g);
+    txt(g, { x: 0, y: y + 5, "font-size": 15, class: "t-ink" }, LABEL[r.arm]);
+    el("line", { x1: x(r.old.got), x2: x(r.new.got), y1: y, y2: y, stroke: "var(--link)", "stroke-width": 4, "stroke-linecap": "round" }, g);
+    for (const [k, c] of [["old", "var(--old)"], ["new", "var(--new)"]]) {
+      el("line", { x1: x(r[k].got - r[k].se), x2: x(r[k].got + r[k].se), y1: y, y2: y, stroke: c, "stroke-width": 2 }, g);
+      el("circle", { cx: x(r[k].got), cy: y, r: 7, fill: c, stroke: "var(--panel)", "stroke-width": 2 }, g);
+    }
+    const lowK = r.old.got <= r.new.got ? "old" : "new", highK = lowK === "old" ? "new" : "old";
+    txt(g, { x: Math.min(x(r[lowK].got - r[lowK].se), x(r[lowK].got) - 8) - 6, y: y + 4.5, "text-anchor": "end", "font-size": 13, class: "t-mono" }, r[lowK].got.toFixed(3));
+    txt(g, { x: Math.max(x(r[highK].got + r[highK].se), x(r[highK].got) + 8) + 6, y: y + 4.5, "font-size": 13, class: "t-ink t-mono" }, r[highK].got.toFixed(3));
+    txt(g, { x: W, y: y + 4.5, "text-anchor": "end", "font-size": 13, class: "t-mono" }, `${sgn(r.diff)} (${r.z.toFixed(1)}σ)`);
+    const hit = el("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, class: "hit" }, g);
+    bindTip(hit, `<b>${LABEL[r.arm]}</b><br><span style="color:var(--old)">Old</span> ${r.old.got.toFixed(3)} ± ${r.old.se.toFixed(3)} · ${(r.old.valid * 100).toFixed(0)}% legal · ${r.old.sets} line-ups<br><span style="color:var(--new)">New</span> ${r.new.got.toFixed(3)} ± ${r.new.se.toFixed(3)} · ${(r.new.valid * 100).toFixed(0)}% legal · ${r.new.sets} line-ups<br>New − old ${sgn(r.diff)} (${r.z.toFixed(1)} standard errors)`);
+    hit.addEventListener("pointerenter", () => light(r.arm)); hit.addEventListener("pointerleave", () => light(null));
+  });
+  $("#dumb").appendChild(svg);
+  $("#dumb-table").innerHTML = `<table><tr><th>Method</th><th>Old</th><th>± SE</th><th>New</th><th>± SE</th><th>New − old</th><th>σ</th><th>Legal old / new</th><th>Line-ups old / new</th></tr>${R.map(r => `<tr><td>${LABEL[r.arm]}</td><td>${r.old.got.toFixed(3)}</td><td>${r.old.se.toFixed(3)}</td><td>${r.new.got.toFixed(3)}</td><td>${r.new.se.toFixed(3)}</td><td>${sgn(r.diff)}</td><td>${r.z.toFixed(1)}</td><td>${(r.old.valid * 100).toFixed(0)}% / ${(r.new.valid * 100).toFixed(0)}%</td><td>${r.old.sets} / ${r.new.sets}</td></tr>`).join("")}</table>`;
+})();
+
+/* ---------- Figure 2: gains over each model's plain teams ---------- */
+(function () {
+  const R = D.rows.filter(r => r.arm !== "base"), W = 900, rowH = 46, top = 16, left = 210, right = 150, H = top + R.length * rowH + 30, lo = -0.05, hi = 0.35;
+  const x = v => left + (W - left - right) * (v - lo) / (hi - lo);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Gain of each method over its own model's plain teams" });
+  for (const t of [0, 0.1, 0.2, 0.3]) { el("line", { x1: x(t), x2: x(t), y1: top - 6, y2: H - 26, class: "grid" }, svg); txt(svg, { x: x(t), y: H - 8, "text-anchor": "middle", "font-size": 13, class: "t-mono" }, (t > 0 ? "+" : "") + t.toFixed(1)); }
+  el("line", { x1: x(0), x2: x(0), y1: top - 6, y2: H - 26, stroke: "var(--ink-3)", "stroke-width": 1.5 }, svg);
+  txt(svg, { x: W, y: top - 2, "text-anchor": "end", "font-size": 12 }, "new − old gain");
+  R.forEach((r, i) => {
+    const y0 = top + i * rowH, g = el("g", { class: "row", "data-arm": r.arm }, svg); linked.add(g);
+    txt(g, { x: 0, y: y0 + rowH / 2 + 4, "font-size": 15, class: "t-ink" }, LABEL[r.arm]);
+    [["gain_old", "var(--old)", 0], ["gain_new", "var(--new)", 1]].forEach(([k, c, j]) => {
+      const v = r[k], yy = y0 + 7 + j * 16, xa = Math.min(x(0), x(v)), w = Math.max(2, Math.abs(x(v) - x(0)));
+      el("rect", { x: xa, y: yy, width: w, height: 13, rx: 2, fill: c }, g);
+      txt(g, { x: v >= 0 ? x(v) + 6 : x(v) - 6, y: yy + 11, "text-anchor": v >= 0 ? "start" : "end", "font-size": 12, class: "t-mono" }, sgn(v));
+    });
+    txt(g, { x: W, y: y0 + rowH / 2 + 4, "text-anchor": "end", "font-size": 13, class: "t-mono" }, `${sgn(r.inter)} (${r.inter_z.toFixed(1)}σ)`);
+    const hit = el("rect", { x: 0, y: y0, width: W, height: rowH, class: "hit" }, g);
+    bindTip(hit, `<b>${LABEL[r.arm]}</b><br>Adds ${sgn(r.gain_old)} on the old model<br>Adds ${sgn(r.gain_new)} on the new model<br>Difference ${sgn(r.inter)} (${r.inter_z.toFixed(1)} standard errors)`);
+    hit.addEventListener("pointerenter", () => light(r.arm)); hit.addEventListener("pointerleave", () => light(null));
+  });
+  $("#gain").appendChild(svg);
+})();
+
+/* ---------- Figure 3: line-ups ---------- */
+(function () {
+  const S = D.stacks, sprite = id => D.sprites[id], name = id => D.names[id] || id;
+  const core = new Set(S.new.freq.filter(([, n]) => n >= 56).map(([s]) => s));
+  const rank = Object.fromEntries(S.new.freq.map(([s, n], i) => [s, i]));
+  const order = sp => [...sp].sort((a, b) => (rank[a] ?? 99) - (rank[b] ?? 99));
+  const row = (lu, isNew) => `<div class="lu"><div class="mons">${order(lu.species).map(s => `<img src="${sprite(s)}" alt="${name(s)}" title="${name(s)}"${isNew && core.has(s) ? ' class="core"' : ""}>`).join("")}</div>
+    <span class="count">${lu.n} of 64</span><span class="wr">${lu.mean.toFixed(3)}</span></div>`;
+  const o = S.old.lineups[0];
+  $("#old-lu").innerHTML = `<div class="mons">${o.species.map(s => `<img src="${sprite(s)}" alt="${name(s)}" title="${name(s)}">`).join("")}</div>
+    <p class="lu-meta"><span class="num">${o.n} of 64</span> teams · mean <span class="num">${o.mean.toFixed(3)}</span></p>`;
+  $("#old-note").textContent = `${S.old.lineups.length} line-up for all 64 teams. Mean win rate ${S.old.lineups[0].mean.toFixed(3)}, best team ${S.old.lineups[0].best.toFixed(3)}.`;
+  const shown = S.new.lineups.filter(l => l.n >= 2);
+  $("#new-lu").innerHTML = shown.map(l => row(l, true)).join("");
+  const rest = S.new.lineups.filter(l => l.n < 2);
+  $("#new-more").textContent = `${rest.length} more line-ups with one team each (${S.new.lineups.length} in all).`;
+  $("#new-freq").innerHTML = S.new.freq.slice(0, 12).map(([s, n]) => `<div class="f"><img src="${sprite(s)}" alt=""><span class="nm">${name(s)}</span><div><div class="bar" style="width:${(n / 64 * 100).toFixed(1)}%"></div></div><span class="c">${n}/64</span></div>`).join("");
+  $("#n-lu").textContent = S.new.lineups.length;
+})();
+
+/* ---------- Figure 4: every team's win rate ---------- */
+(function () {
+  const plain = D.rows.find(r => r.arm === "base");
+  const groups = [["Old, plain", null, "var(--old)"], ["New, plain", null, "var(--new)"], ["Old, all stacked", D.stacks.old.y, "var(--old)"], ["New, all stacked", D.stacks.new.y, "var(--new)"]];
+  const W = 900, rowH = 64, top = 14, left = 150, right = 20, H = top + rowH * 2 + 40, lo = 0, hi = 0.8;
+  const x = v => left + (W - left - right) * (v - lo) / (hi - lo);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Each stacked team's win rate, old versus new model" });
+  for (const t of [0, 0.2, 0.4, 0.6, 0.8]) { el("line", { x1: x(t), x2: x(t), y1: top - 4, y2: H - 26, class: "grid" }, svg); txt(svg, { x: x(t), y: H - 8, "text-anchor": "middle", "font-size": 13, class: "t-mono" }, t.toFixed(1)); }
+  el("line", { x1: x(REAL), x2: x(REAL), y1: top - 4, y2: H - 26, stroke: "var(--refline)", "stroke-width": 1.5, "stroke-dasharray": "5 4" }, svg);
+  const rnd = (i => () => (i = (i * 16807) % 2147483647) / 2147483647)(7);
+  groups.slice(2).forEach(([lab, ys, col], i) => {
+    const y = top + i * rowH + rowH / 2;
+    txt(svg, { x: 0, y: y + 5, "font-size": 15, class: "t-ink" }, lab);
+    ys.forEach(v => el("circle", { cx: x(v), cy: y + (rnd() - 0.5) * (rowH - 18), r: 4.5, fill: col, "fill-opacity": 0.75, stroke: "var(--panel)", "stroke-width": 1 }, svg));
+    const m = ys.reduce((a, b) => a + b, 0) / ys.length, above = ys.filter(v => v >= REAL).length;
+    el("line", { x1: x(m), x2: x(m), y1: y - rowH / 2 + 4, y2: y + rowH / 2 - 4, stroke: "var(--ink)", "stroke-width": 2.5 }, svg);
+    const hit = el("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, class: "hit" }, svg);
+    bindTip(hit, `<b>${lab}</b><br>Mean ${m.toFixed(3)} (black tick)<br>${above} of 64 teams at or above 0.531<br>Best ${Math.max(...ys).toFixed(3)}, worst ${Math.min(...ys).toFixed(3)}`);
+  });
+  $("#strip").appendChild(svg);
+  const ny = D.stacks.new.y;
+  $("#n-above").textContent = ny.filter(v => v >= REAL).length;
+  $("#best").textContent = Math.max(...ny).toFixed(3);
+  $("#surr-r").textContent = D.surrogate.r.toFixed(2);
+  $("#surr-pred").textContent = D.surrogate.pred.toFixed(3);
+  $("#surr-got").textContent = D.surrogate.got.toFixed(3);
+  const st = D.rows.find(r => r.arm === "stack");
+  $("#t-stack-new").textContent = st.new.got.toFixed(3); $("#t-stack-old").textContent = st.old.got.toFixed(3);
+})();
+/* ---------- Version 3 (only when its report exists) ---------- */
+(function () {
+  const V = D.v3; if (!V) return;
+  ["#v3-intro", "#fig-v3", "#fig-v3-new", "#v3-next"].forEach(s => { $(s).hidden = false; });
+  $("#legacy-n").textContent = V.legacy_n;
+  if (V.read) { $("#v3-read").innerHTML = V.read; $("#v3-read").hidden = false; }
+  const R = V.rows, W = 900, rowH = 44, top = 26, left = 210, right = 130, H = top + R.length * rowH + 30;
+  const all = R.flatMap(r => [r.old, r.new, r.v3.got]);
+  const lo = Math.max(0, Math.floor((Math.min(...all) - 0.03) * 20) / 20), hi = 0.6;
+  const x = v => left + (W - left - right) * (v - lo) / (hi - lo);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Old, new and version 3 models under each method" });
+  for (let t = Math.ceil(lo * 10) / 10; t <= hi + 1e-9; t += 0.1) { el("line", { x1: x(t), x2: x(t), y1: top - 8, y2: H - 26, class: "grid" }, svg); txt(svg, { x: x(t), y: H - 8, "text-anchor": "middle", "font-size": 13, class: "t-mono" }, t.toFixed(1)); }
+  el("line", { x1: x(REAL), x2: x(REAL), y1: top - 16, y2: H - 26, stroke: "var(--refline)", "stroke-width": 1.5, "stroke-dasharray": "5 4" }, svg);
+  txt(svg, { x: x(REAL), y: top - 20, "text-anchor": "middle", "font-size": 12 }, "real top-50 team");
+  txt(svg, { x: W, y: top - 20, "text-anchor": "end", "font-size": 12 }, "v3 − new");
+  R.forEach((r, i) => {
+    const y = top + i * rowH + rowH / 2, vals = [r.old, r.new, r.v3.got];
+    txt(svg, { x: 0, y: y + 5, "font-size": 15, class: "t-ink" }, LABEL[r.arm]);
+    el("line", { x1: x(Math.min(...vals)), x2: x(Math.max(...vals)), y1: y, y2: y, stroke: "var(--link)", "stroke-width": 4, "stroke-linecap": "round" }, svg);
+    el("line", { x1: x(r.v3.got - r.v3.se), x2: x(r.v3.got + r.v3.se), y1: y, y2: y, stroke: "var(--v3)", "stroke-width": 2 }, svg);
+    [[r.old, "var(--old)"], [r.new, "var(--new)"], [r.v3.got, "var(--v3)"]].forEach(([v, c]) => el("circle", { cx: x(v), cy: y, r: 7, fill: c, stroke: "var(--panel)", "stroke-width": 2 }, svg));
+    txt(svg, { x: x(r.v3.got), y: y - 11, "text-anchor": "middle", "font-size": 12, class: "t-ink t-mono" }, r.v3.got.toFixed(3));
+    txt(svg, { x: W, y: y + 4.5, "text-anchor": "end", "font-size": 13, class: "t-mono" }, `${sgn(r.d)} (${r.z.toFixed(1)}σ)`);
+    const hit = el("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, class: "hit" }, svg);
+    bindTip(hit, `<b>${LABEL[r.arm]}</b><br><span style="color:var(--old)">Old</span> ${r.old.toFixed(3)} · <span style="color:var(--new)">New</span> ${r.new.toFixed(3)} ± ${r.new_se.toFixed(3)}<br><span style="color:var(--v3)">Version 3</span> ${r.v3.got.toFixed(3)} ± ${r.v3.se.toFixed(3)} · ${(r.v3.valid * 100).toFixed(0)}% legal · ${r.v3.sets} line-ups<br>${r.v3.new_species_teams} of ${r.v3.n} teams use a newly reachable species<br>Version 3 − new ${sgn(r.d)} (${r.z.toFixed(1)} standard errors)`);
+  });
+  $("#v3chart").appendChild(svg);
+  $("#v3-table").innerHTML = `<table><tr><th>Method</th><th>Old</th><th>New</th><th>Version 3</th><th>± SE</th><th>v3 − new</th><th>σ</th><th>Legal</th><th>Line-ups</th><th>New-species teams</th></tr>${R.map(r => `<tr><td>${LABEL[r.arm]}</td><td>${r.old.toFixed(3)}</td><td>${r.new.toFixed(3)}</td><td>${r.v3.got.toFixed(3)}</td><td>${r.v3.se.toFixed(3)}</td><td>${sgn(r.d)}</td><td>${r.z.toFixed(1)}</td><td>${(r.v3.valid * 100).toFixed(0)}%</td><td>${r.v3.sets}</td><td>${r.v3.new_species_teams}/${r.v3.n}</td></tr>`).join("")}</table>`;
+  const pic = id => D.sprites[id] ? `<img src="${D.sprites[id]}" alt="${D.names[id] || id}" title="${D.names[id] || id}">` : `<span class="chip" title="${D.names[id] || id}">${D.names[id] || id}</span>`;
+  $("#v3-share").innerHTML = R.map(r => `<div class="r"><span>${LABEL[r.arm]}</span><div><div class="bar" style="width:${(r.v3.new_species_teams / r.v3.n * 100).toFixed(1)}%"></div></div><span class="c">${r.v3.new_species_teams}/${r.v3.n}</span></div>`).join("");
+  $("#v3-newsp").innerHTML = V.newsp.map(([s, n]) => `<span title="${D.names[s] || s}: ${n} slots">${pic(s)}</span>`).join("");
+  const shown = V.stack.lineups.filter(l => l.n >= 2).slice(0, 10);
+  $("#v3-lu").innerHTML = (shown.length ? shown : V.stack.lineups.slice(0, 8)).map(l => `<div class="lu"><div class="mons">${l.species.map(pic).join("")}</div><span class="count">${l.n} of 64</span><span class="wr">${l.mean.toFixed(3)}</span></div>`).join("");
+  $("#v3-more").textContent = `${V.stack.lineups.length} line-ups in all; mean win rate ${(V.stack.y.reduce((a, b) => a + b, 0) / V.stack.y.length).toFixed(3)}, ${V.stack.y.filter(v => v >= REAL).length} of 64 teams at or above 0.531.`;
+})();
+} catch (e) { report(e && e.message ? e.message : String(e)); }
+</script>

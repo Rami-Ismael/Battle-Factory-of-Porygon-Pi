@@ -1,5 +1,16 @@
 # VGC team-generator pilot
 
+## Current M-B vocabulary and retraining (October 8, 2026)
+
+Use `scripts/retrain_regmb.py` for the regulation-complete F1/G2 pipeline and
+`src/regmb_model.py` for its inference loader. The pinned simulator supplies the
+vocabulary and compatibility tables; the corpus supplies training examples,
+not the set of allowed tokens. Checkpoints save token identities and the rules
+snapshot. See [the M-B retraining report](docs/regmb-vocabulary-retraining.md).
+
+The older experiments below retain their original corpus vocabularies and
+explicit checkpoints for reproducibility.
+
 Does a learned generator trained on the Champions VGC 2026 Reg Set M-B meta corpus
 propose better teams than cheap non-learned operators?
 
