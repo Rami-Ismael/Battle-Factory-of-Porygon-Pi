@@ -1,5 +1,8 @@
 # Battle Factory of Porygon-Pi
 
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](code/README.md)
+
 Searching the space of competitive Pokémon VGC teams (Champions Reg Set M-B) for teams that beat a meta, using a diffusion proposer, a battle simulator and a surrogate.
 
 | Folder | What it is |
