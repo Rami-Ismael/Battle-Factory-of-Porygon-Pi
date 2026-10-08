@@ -3,8 +3,9 @@
   PROTOTYPE — throwaway. Fourteen candidate figures for the team-preview section (why VGC is a nested
   optimisation problem, team preview first), one page, switchable via ?variant=A…N, the bottom bar, or ← →.
     A Matryoshka (A3 kept: box → party → preview → field) · B Jenga · I Times table · J Sieve · L Guess Who?
+    N Search the fog (six versions, ?nv=N1…N6)
     Removed 2026-10-08 (owner): C chase, D spinner, E thinking, F periscope, G ridgelines, H string art, K chairs,
-    M sand timer, N search the fog (all six versions); copies in archive/.
+    M sand timer; a copy from before the cuts is in archive/.
   Real data only: MB522 vs MB763, 90 x 90 plans x 24 battles (data.js, built by build-data.py).
   Stage 2 built layout and state for all 14. Stage 3 (2026-10-07) adds motion to A3 only, the version the owner kept;
   2026-10-07 stage 3 also on C (cards enter, arrows light, ring on loop close) and D (spinners spin and land, result
@@ -1309,11 +1310,223 @@ function VariantL({ report }) {
   <//>`;
 }
 
+// ================= N — Search the fog: six ways to spend a battle budget =================
+// Owner 2026-10-08: "try as many wacky ideas to represent the matrix for the N action". Same task in every version:
+// the 8,100 squares are hidden, battles are expensive, find one MB522 plan that holds up; then the fog lifts.
+const MAXIMIN = Math.max(...Wm.map(r => Math.min(...r)));
+function FogBoard({ cell = 5, ver = 0, known = () => false, marks = [], onCell, picked = null, lift = false, cave = false }) {
+  const S = cell * 90, band = cell * 6, z = Math.min(16, Math.floor(band / 2) - 1);
+  const [hov, setHov] = useState(null);
+  const ref = useCanvas(S, S, ctx => {
+    const fogC = cave ? [9, 11, 13] : PAL.cell;
+    for (let i = 0; i < 90; i++) for (let j = 0; j < 90; j++) {
+      ctx.fillStyle = (lift || known(i, j)) ? rate(M[i][j]) : rgba(fogC);
+      ctx.fillRect(j * cell, i * cell, cell + 0.5, cell + 0.5);
+    }
+    ctx.strokeStyle = cave ? 'rgba(60,66,72,0.9)' : rgba(PAL.bg, 0.9); ctx.lineWidth = 1;
+    for (let g = 1; g < 15; g++) { const q = g * band; ctx.beginPath(); ctx.moveTo(q, 0); ctx.lineTo(q, S); ctx.moveTo(0, q); ctx.lineTo(S, q); ctx.stroke(); }
+    for (const m of marks) {
+      const x = m.j * cell, y = m.i * cell;
+      if (m.kind === 'hit') { ctx.strokeStyle = rgba(PAL.them); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + cell - 0.5, y + cell - 0.5); ctx.moveTo(x + cell - 0.5, y + 0.5); ctx.lineTo(x + 0.5, y + cell - 0.5); ctx.stroke(); }
+      else if (m.kind === 'miss') { ctx.fillStyle = rgba(PAL.ink, 0.55); ctx.beginPath(); ctx.arc(x + cell / 2, y + cell / 2, Math.max(1, cell * 0.22), 0, 7); ctx.fill(); }
+      else { ctx.strokeStyle = m.color || rgba(PAL.ink); ctx.lineWidth = 1.2; ctx.strokeRect(x + 0.6, y + 0.6, cell - 1.2, cell - 1.2); }
+    }
+    if (picked != null) { ctx.strokeStyle = rgba(PAL.ink); ctx.lineWidth = 2; ctx.strokeRect(1, picked * cell, S - 2, cell); }
+  }, [ver, lift, picked, cell]);
+  const at = e => { const r = e.currentTarget.getBoundingClientRect(); return [clamp(Math.floor((e.clientY - r.top) / r.height * 90), 0, 89), clamp(Math.floor((e.clientX - r.left) / r.width * 90), 0, 89)]; };
+  const sp = (side, k) => html`<img class="sp" src=${T[side][k].sprite} width=${z} height=${z} alt=${T[side][k].name} title=${T[side][k].name} />`;
+  const seen = hov && (lift || known(hov[0], hov[1]));
+  return html`<div class="sboard" style=${`--S:${S}px;--band:${band}px`}>
+    <div class="sb-grid">
+      <div class="sb-corner note">MB522 ↓<br />MB763 →</div>
+      <div class="sb-top">${GRID.them.map((g, k) => html`<div class="sb-gh" title=${`MB763 leads ${nm('them', leadOf('them', k))}`}>${leadOf('them', k).map(m => sp('them', m))}</div>`)}</div>
+      <div class="sb-left">${GRID.you.map((g, k) => html`<div class="sb-gh" title=${`MB522 leads ${nm('you', leadOf('you', k))}`}>${leadOf('you', k).map(m => sp('you', m))}</div>`)}</div>
+      <div class="sb-cells" onClick=${e => onCell && onCell(...at(e))} onPointerMove=${e => setHov(at(e))} onPointerLeave=${() => setHov(null)}>
+        <canvas ref=${ref} style=${`width:${S}px;height:${S}px`} aria-label="The fogged 90 by 90 matchup board"></canvas>
+        ${hov && html`<i class="sb-hr" style=${`top:${hov[0] * cell}px;height:${cell}px`}></i><i class="sb-hc" style=${`left:${hov[1] * cell}px;width:${cell}px`}></i>`}
+      </div>
+    </div>
+    <div class="sb-read">${hov ? html`<${Plan} side="you" p=${hov[0]} size=${20} home=${true} /><span class="vs">vs</span><${Plan} side="them" p=${hov[1]} size=${20} home=${true} />
+      <span class="read">${seen ? html`MB522 won <b class="num">${Wm[hov[0]][hov[1]]} of 24</b>` : 'still in the fog'}</span>` : html`<span class="note">Hover the board to see which two plans meet in a square.</span>`}</div>
+  </div>`;
+}
+function Scorecard({ i }) {
+  const j = argmin(Wm[i]);
+  return html`<div class="readouts">
+      <div><span class="lab">Your plan, average</span><span class="big">${f3(RM[i])}</span></div>
+      <div><span class="lab">Its worst square</span><span class="big">${Wm[i][j]} of 24</span></div>
+      <div><span class="lab">Best single plan's worst</span><span class="big">${MAXIMIN} of 24</span></div>
+      <div><span class="lab">The spinner guarantees</span><span class="big">${f3(V)}</span></div>
+    </div>
+    <div class="row"><${Plan} side="you" p=${i} size=${22} /><span class="note">is held to ${Wm[i][j]} of 24 by</span><${Plan} side="them" p=${j} size=${22} /></div>`;
+}
+function FogControls({ mode, setMode, budget, canLift, lift, setLift, reset, probeLabel = 'Probe a square' }) {
+  return html`<div class="row spread">
+    <${Seg} label="Clicking the board" value=${mode} set=${setMode} options=${[['probe', probeLabel], ['pick', 'Pick my plan (its row)']]} />
+    <div class="row"><span class="num">${budget}</span>
+      <button type="button" disabled=${!canLift || lift} onClick=${() => setLift(true)}>Lift the fog</button>
+      <button type="button" onClick=${reset}>Reset</button></div></div>`;
+}
+const fogCaption = extra => html`${extra} Rows are MB522's 90 plans in bands by lead pair (sprites on the left), columns MB763's (sprites on top). After the fog lifts, your plan is scored against all 90 of MB763's plans. ${WIN}`;
+
+// N1 — the original game, on the sprite board.
+function N1({ report }) {
+  const [probes, setProbes] = useState([]), [mode, setMode] = useState('probe'), [pick, setPick] = useState(null), [lift, setLift] = useState(false);
+  const has = useMemo(() => new Set(probes.map(([i, j]) => i * 90 + j)), [probes]);
+  useEffect(() => report({ probes: probes.length, pick: pick == null ? null : planName('you', pick), lift }), [probes, pick, lift]);
+  const onCell = (i, j) => { if (lift) return; if (mode === 'pick') return setPick(i); if (probes.length < 30 && !has.has(i * 90 + j)) setProbes(p => [...p, [i, j]]); };
+  return html`<${Fig} n="14" title="Find a safe plan with 30 probes" serves="¶4: searching with a battle budget"
+      lead="The matrix is fogged. Each probe reveals one square: 24 battles. You get 30 probes, then you must commit to a plan."
+      caption=${fogCaption('Thirty probes is 720 battles; the full board took 194,400.')}>
+    <${FogControls} mode=${mode} setMode=${setMode} budget=${`${probes.length} / 30 probes`} canLift=${pick != null} lift=${lift} setLift=${setLift} reset=${() => { setProbes([]); setPick(null); setLift(false); }} />
+    <${FogBoard} ver=${probes.length} known=${(i, j) => has.has(i * 90 + j)} marks=${probes.map(([i, j]) => ({ i, j }))} onCell=${onCell} picked=${pick} lift=${lift} />
+    ${lift && html`<${Scorecard} i=${pick} />`}
+  <//>`;
+}
+// N2 — the board is a dark cave; each Flash lights a 3 × 3 patch.
+function N2({ report }) {
+  const [flashes, setFlashes] = useState([]), [mode, setMode] = useState('probe'), [pick, setPick] = useState(null), [lift, setLift] = useState(false);
+  const lit = useMemo(() => { const s = new Set(); for (const [a, b] of flashes) for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { const i = a + di, j = b + dj; if (i >= 0 && i < 90 && j >= 0 && j < 90) s.add(i * 90 + j); } return s; }, [flashes]);
+  useEffect(() => report({ flashes: flashes.length, squaresLit: lit.size, pick: pick == null ? null : planName('you', pick), lift }), [flashes, pick, lift]);
+  const onCell = (i, j) => { if (lift) return; if (mode === 'pick') return setPick(i); if (flashes.length < 6) setFlashes(f => [...f, [i, j]]); };
+  return html`<${Fig} n="14" title="Use Flash in the dark cave" serves="¶4: searching with a battle budget"
+      lead="Like a cave before you teach a Pokémon Flash, the board is pitch black. You have six uses of Flash; each lights a 3 × 3 patch of squares: 9 matchups, 216 battles."
+      caption=${fogCaption(`Six Flashes light at most 54 squares, 1,296 battles. Neighbouring squares are similar plans, so a lit patch shows a whole neighbourhood at once.`)}>
+    <${FogControls} mode=${mode} setMode=${setMode} probeLabel="Use Flash" budget=${`${6 - flashes.length} Flashes left · ${lit.size} squares lit`} canLift=${pick != null} lift=${lift} setLift=${setLift} reset=${() => { setFlashes([]); setPick(null); setLift(false); }} />
+    <${FogBoard} cave=${true} ver=${flashes.length} known=${(i, j) => lit.has(i * 90 + j)} onCell=${onCell} picked=${pick} lift=${lift} />
+    ${lift && html`<${Scorecard} i=${pick} />`}
+  <//>`;
+}
+// N3 — Battleship: the ships are the squares where MB522 wins 5 or fewer of 24.
+const SHIP = 5;
+const SHIP_FREE = Wm.map((r, i) => [i, r.every(k => k > SHIP)]).filter(e => e[1]).map(e => e[0]);
+const SHIPS = (() => { const out = []; for (let i = 0; i < 90; i++) for (let j = 0; j < 90; j++) if (Wm[i][j] <= SHIP) out.push({ i, j, kind: 'hit' }); return out; })();
+function N3({ report }) {
+  const [shots, setShots] = useState([]), [mode, setMode] = useState('probe'), [pick, setPick] = useState(null), [lift, setLift] = useState(false);
+  const has = useMemo(() => new Set(shots.map(([i, j]) => i * 90 + j)), [shots]);
+  const hits = shots.filter(([i, j]) => Wm[i][j] <= SHIP).length;
+  useEffect(() => report({ shots: shots.length, hits, pick: pick == null ? null : planName('you', pick), lift }), [shots, pick, lift]);
+  const onCell = (i, j) => { if (lift) return; if (mode === 'pick') return setPick(i); if (shots.length < 30 && !has.has(i * 90 + j)) setShots(s => [...s, [i, j]]); };
+  const sunk = pick == null ? 0 : Wm[pick].filter(k => k <= SHIP).length;
+  return html`<${Fig} n="14" title="Battleship: find a plan no counter can sink" serves="¶4: searching with a battle budget"
+      lead=${`MB763's counters are hidden ships: every square where MB522 wins ${SHIP} or fewer of 24. ${int(SHIPS.length)} of the 8,100 squares are ships. You have 30 shots. Then choose a row you think has no ship in it.`}
+      caption=${fogCaption(`Only ${SHIP_FREE.length} of MB522's 90 plans have no ship at all. Ships line up in columns: a strong MB763 plan sinks many of your plans at once, so a hit is a hint to look along its column.`)}>
+    <${FogControls} mode=${mode} setMode=${setMode} probeLabel="Fire a shot" budget=${`${30 - shots.length} shots left · ${hits} hits`} canLift=${pick != null} lift=${lift} setLift=${setLift} reset=${() => { setShots([]); setPick(null); setLift(false); }} />
+    <${FogBoard} ver=${shots.length + (lift ? 1000 : 0)} marks=${lift ? SHIPS : shots.map(([i, j]) => ({ i, j, kind: Wm[i][j] <= SHIP ? 'hit' : 'miss' }))} onCell=${onCell} picked=${pick} lift=${lift} />
+    ${lift && html`<p class="read">${sunk === 0 ? html`Your plan has <b>no ships</b>: it is one of the ${SHIP_FREE.length} that no MB763 plan sinks.` : html`Your plan holds <b class="num">${sunk}</b> ship${sunk > 1 ? 's' : ''}: ${sunk > 1 ? `${sunk} MB763 plans` : 'one MB763 plan'} hold it to ${SHIP} or fewer of 24.`}</p><${Scorecard} i=${pick} />`}
+  <//>`;
+}
+// N4 — Swiss rounds and top cut, as at a VGC event: 8 of your plans each play one random MB763 plan per round.
+const drawEight = () => [...Array(90).keys()].sort(() => Math.random() - 0.5).slice(0, 8);
+const ROUND_COLORS = ['#2f5fd0', '#d99a1c', '#cf5a86'];
+function N4({ report }) {
+  const [ent, setEnt] = useState(drawEight), [rounds, setRounds] = useState([]), [lift, setLift] = useState(false);
+  const rows = ent.map((i, n) => { const res = rounds.map(r => Wm[i][r[n]]); return { i, n, res, w: res.filter(k => k >= 12).length, pts: sum(res) }; })
+    .sort((a, b) => b.w - a.w || b.pts - a.pts);
+  const cut = rounds.length === 3 ? new Set(rows.slice(0, 4).map(r => r.i)) : null;
+  const safest = ent.reduce((b, i) => Math.min(...Wm[i]) > Math.min(...Wm[b]) ? i : b, ent[0]);
+  useEffect(() => report({ rounds: rounds.length, entrants: ent.map(i => planName('you', i)), topCut: cut && [...cut].map(i => planName('you', i)), lift }), [rounds, lift, ent]);
+  const marks = rounds.flatMap((r, q) => r.map((j, n) => ({ i: ent[n], j, color: ROUND_COLORS[q] })));
+  return html`<${Fig} n="14" title="Swiss rounds and top cut" serves="¶4: searching with a battle budget"
+      lead="Run your plans through an event. Eight of MB522's plans enter; each round, every one of them meets a random MB763 plan (24 battles). After three rounds the top four make the cut."
+      caption=${fogCaption('Three rounds of eight is 24 squares, 576 battles. A win is 12 or more of 24. Rounds are coloured blue, gold, pink on the board.')}>
+    <div class="row spread">
+      <div class="row"><button type="button" disabled=${rounds.length >= 3} onClick=${() => setRounds(r => [...r, ent.map(() => Math.floor(Math.random() * 90))])}>${rounds.length < 3 ? `Play round ${rounds.length + 1}` : 'Three rounds played'}</button>
+        <button type="button" disabled=${rounds.length < 3 || lift} onClick=${() => setLift(true)}>Lift the fog</button></div>
+      <button type="button" onClick=${() => { setEnt(drawEight()); setRounds([]); setLift(false); }}>New entrants</button>
+    </div>
+    <div class="swiss">
+      <table class="pulls"><thead><tr><th>#</th><th>Plan</th><th>Record</th><th>Rounds</th>${lift && html`<th>True average</th><th>True worst</th>`}</tr></thead><tbody>
+        ${rows.map((r, k) => html`<tr class=${cut && cut.has(r.i) ? 'topcut' : ''}><td class="num">${k + 1}</td><td><${Plan} side="you" p=${r.i} size=${18} /></td>
+          <td class="num">${r.w}–${r.res.length - r.w}</td><td>${r.res.map((x, q) => html`<span class="chip num" style=${`background:${rate(x / 24, 0.6)};border-bottom:2px solid ${ROUND_COLORS[q]}`}>${x}</span>`)}</td>
+          ${lift && html`<td class="num">${f3(RM[r.i])}</td><td class="num">${Math.min(...Wm[r.i])} of 24${r.i === safest ? ' · safest' : ''}</td>`}</tr>`)}</tbody></table>
+      <${FogBoard} cell=${4} ver=${rounds.length + (lift ? 10 : 0)} known=${(i, j) => rounds.some(r => r.some((jj, n) => ent[n] === i && jj === j))} marks=${marks} lift=${lift} />
+    </div>
+    ${lift && html`<p class="read">The safest of your eight (best worst case) was <${Plan} side="you" p=${safest} size=${18} />: ${cut && cut.has(safest) ? 'it made top cut.' : 'it missed top cut. Three random rounds measure luck and average, not the worst case.'}</p>`}
+  <//>`;
+}
+// N5 — scouting cards: set up both team previews yourself and scout one matchup at a time.
+const planOfSide = (side, ps) => PL[side].findIndex(p => sk(p.lead) === sk(ps.slice(0, 2)) && sk(p.back) === sk(ps.slice(2, 4)));
+function Picker({ side, picks, setPicks }) {
+  return html`<div class="pcol ${side}"><p class="lab">${NAMES[side]}</p><div class="tp ${side}">${T[side].map((m, k) => { const o = picks.indexOf(k) + 1;
+    return html`<button type="button" class=${'tpslot pick' + (o ? ' in' : '')} aria-pressed=${!!o} onClick=${() => setPicks(ps => ps.includes(k) ? ps.filter(x => x !== k) : ps.length < 4 ? [...ps, k] : ps)}>
+      <img class="sp" src=${m.sprite} width="34" height="34" alt=${m.name} /><b class="badge" data-on=${!!o}>${o || ''}</b></button>`; })}</div></div>`;
+}
+function N5({ report }) {
+  const [yp, setYp] = useState([]), [tp, setTp] = useState([]), [cards, setCards] = useState([]), [pick, setPick] = useState(null), [lift, setLift] = useState(false);
+  const i = yp.length === 4 ? planOfSide('you', yp) : null, j = tp.length === 4 ? planOfSide('them', tp) : null;
+  const has = useMemo(() => new Set(cards.map(([a, b]) => a * 90 + b)), [cards]);
+  useEffect(() => report({ cards: cards.length, pick: pick == null ? null : planName('you', pick), lift }), [cards, pick, lift]);
+  return html`<${Fig} n="14" title="Scouting cards" serves="¶4: searching with a battle budget"
+      lead="Set up a team preview for both sides, then scout it: 24 battles for one card. You have 30 cards. Then pick the plan you would bring, from the ones you scouted."
+      caption=${fogCaption('Each card is one square of the matrix. The board below only shows the squares your cards uncovered.')}>
+    <div class="scout">
+      <${Picker} side="you" picks=${yp} setPicks=${setYp} />
+      <div class="pmid"><button type="button" disabled=${i == null || j == null || has.has(i * 90 + j) || cards.length >= 30 || lift} onClick=${() => setCards(c => [[i, j], ...c])}>Scout this matchup</button>
+        <span class="num">${cards.length} / 30 cards</span>
+        <button type="button" disabled=${pick == null || lift} onClick=${() => setLift(true)}>Lift the fog</button>
+        <button type="button" onClick=${() => { setYp([]); setTp([]); setCards([]); setPick(null); setLift(false); }}>Reset</button></div>
+      <${Picker} side="them" picks=${tp} setPicks=${setTp} />
+    </div>
+    <div class="scards">${cards.map(([a, b]) => html`<button type="button" class=${'scard' + (pick === a ? ' picked' : '')} onClick=${() => !lift && setPick(a)} title="Pick this MB522 plan">
+      <${Plan} side="you" p=${a} size=${16} /><span class="vs">vs</span><${Plan} side="them" p=${b} size=${16} />
+      <b class="num chip" style=${`background:${rate(M[a][b], 0.6)}`}>${Wm[a][b]}/24</b></button>`)}</div>
+    ${cards.length > 0 && html`<${FogBoard} cell=${4} ver=${cards.length + (lift ? 100 : 0)} known=${(a, b) => has.has(a * 90 + b)} marks=${cards.map(([a, b]) => ({ i: a, j: b }))} picked=${pick} lift=${lift} />`}
+    ${lift && html`<${Scorecard} i=${pick} />`}
+  <//>`;
+}
+// N6 — probe shapes: one square (24 battles), a whole row (your plan against all 90 of theirs), or a whole column.
+const N6_BUDGET = 5760;   // 240 squares' worth
+function N6({ report }) {
+  const [known, setKnown] = useState(() => new Set()), [spent, setSpent] = useState(0), [tool, setTool] = useState('square'), [pick, setPick] = useState(null), [lift, setLift] = useState(false), [ver, setVer] = useState(0);
+  const cost = { square: 24, row: 90 * 24, col: 90 * 24 };
+  useEffect(() => report({ spent, tool, pick: pick == null ? null : planName('you', pick), lift }), [spent, tool, pick, lift]);
+  const onCell = (i, j) => {
+    if (lift) return;
+    if (tool === 'pick') return setPick(i);
+    if (spent + cost[tool] > N6_BUDGET) return;
+    const s = new Set(known);
+    if (tool === 'square') s.add(i * 90 + j); else if (tool === 'row') for (let b = 0; b < 90; b++) s.add(i * 90 + b); else for (let a = 0; a < 90; a++) s.add(a * 90 + j);
+    setKnown(s); setSpent(x => x + cost[tool]); setVer(v => v + 1);
+  };
+  return html`<${Fig} n="14" title="Probe shapes: a square, a row or a column" serves="¶4: searching with a battle budget"
+      lead="Spend 5,760 battles however you like. A square costs 24. A whole row (your plan against all 90 of theirs) costs 2,160 and shows that plan's worst case. A whole column (one of their plans against all of yours) costs 2,160 and shows which of your plans beat it."
+      caption=${fogCaption('The budget buys 240 squares: for example two rows and 60 single squares.')}>
+    <div class="row spread">
+      <${Seg} label="Tool" value=${tool} set=${setTool} options=${[['square', 'Square · 24'], ['row', 'Row · 2,160'], ['col', 'Column · 2,160'], ['pick', 'Pick my plan']]} />
+      <div class="row"><span class="num">${int(N6_BUDGET - spent)} of ${int(N6_BUDGET)} battles left</span>
+        <button type="button" disabled=${pick == null || lift} onClick=${() => setLift(true)}>Lift the fog</button>
+        <button type="button" onClick=${() => { setKnown(new Set()); setSpent(0); setPick(null); setLift(false); setVer(v => v + 1); }}>Reset</button></div>
+    </div>
+    <${FogBoard} ver=${ver} known=${(i, j) => known.has(i * 90 + j)} onCell=${onCell} picked=${pick} lift=${lift} />
+    ${lift && html`<${Scorecard} i=${pick} />`}
+  <//>`;
+}
+const N_VERSIONS = [
+  ['N1', 'Sprite minesweeper', 'The original game: 30 single-square probes, on the sprite board.'],
+  ['N2', 'Flash in a dark cave', 'Six uses of Flash, each lighting a 3 × 3 patch of the board.'],
+  ['N3', 'Battleship', 'Hidden ships are the squares where MB522 is crushed. 30 shots; pick a row with no ship.'],
+  ['N4', 'Swiss rounds and top cut', 'Eight of your plans play three rounds against random MB763 plans; the top four make the cut.'],
+  ['N5', 'Scouting cards', 'Set up both team previews yourself and scout one matchup per card.'],
+  ['N6', 'Probe shapes', 'Spend a battle budget on single squares, whole rows or whole columns.'],
+];
+function VariantN({ report }) {
+  const q0 = new URLSearchParams(location.search).get('nv');
+  const [nv, setNv] = useState(N_VERSIONS.some(v => v[0] === q0) ? q0 : 'N1');
+  useEffect(() => { try { const u = new URLSearchParams(location.search); u.set('nv', nv); history.replaceState(null, '', '?' + u); } catch (e) { /* file:// */ } }, [nv]);
+  const rep = useCallback(s => report({ version: nv, ...s }), [nv, report]);
+  const View = { N1, N2, N3, N4, N5, N6 }[nv], cur = N_VERSIONS.find(v => v[0] === nv);
+  return html`<div class="probe"><p class="lab">Six ways to search the fogged matrix</p>
+      <${Seg} label="Version of N" value=${nv} set=${setNv} options=${N_VERSIONS.map(v => [v[0], `${v[0]} · ${v[1]}`])} />
+      <p class="note">${cur[2]}</p></div>
+    <${View} key=${nv} report=${rep} />`;
+}
+
 // ================= Shell + prototype switcher =================
 const VARIANTS = [
   ['A', 'Matryoshka', VariantA], ['B', 'Jenga', VariantB],
   ['I', 'Times table', VariantI], ['J', 'Sieve', VariantJ],
-  ['L', 'Guess Who?', VariantL],
+  ['L', 'Guess Who?', VariantL], ['N', 'Search the fog', VariantN],
 ];
 const q = new URLSearchParams(location.search);
 function App() {
