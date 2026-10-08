@@ -36,7 +36,7 @@ def to_paste(team):
         if spread:
             lines.append(f'EVs: {spread}')
         lines.append(f"{mon['nature']} Nature")
-        lines += [f'- {move}' for move in mon['moves']]
+        lines += [f'- {move}' for move in mon['moves'] if move]
         blocks.append('\n'.join(lines))
     return '\n\n'.join(blocks) + '\n'
 
