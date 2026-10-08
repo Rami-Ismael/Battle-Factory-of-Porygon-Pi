@@ -14,6 +14,8 @@ explicit checkpoints for reproducibility.
 Does a learned generator trained on the Champions VGC 2026 Reg Set M-B meta corpus
 propose better teams than cheap non-learned operators?
 
+*Superseded 2026-10-08: win rate is now measured, see [`docs/cem-v3-loop.md`](docs/cem-v3-loop.md). The paragraph below describes the original pilot.*
+
 Battle-free by construction. **Win rate is not measured** — this project has no
 battle policy yet, so the objective function `f` cannot be evaluated. What is
 measured is what must hold *before* a battle budget is worth spending: rule
