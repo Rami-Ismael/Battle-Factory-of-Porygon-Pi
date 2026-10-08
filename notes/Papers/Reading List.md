@@ -1,6 +1,6 @@
 ---
 created_at: 2026-08-24
-updated_at: '2026-09-28'
+updated_at: '2026-10-08'
 type: reading-list
 tags:
 - reading-list
@@ -150,14 +150,20 @@ Browse by topic and subtopic. Grades stay beside each paper: read **HIGH** first
 
 ### Discrete diffusion foundations
 
+- [Simplified and Generalized Masked Diffusion for Discrete Data](https://www.alphaxiv.org/abs/2406.04329) — 🟢 NeurIPS 2024, HIGH
 - [Structured Denoising Diffusion Models in Discrete State-Spaces](https://www.semanticscholar.org/paper/91b32fc0a23f0af53229fceaae9cce43a0406d2e)
 - [Discrete Diffusion Modeling by Estimating the Ratios of the Data Distribution](https://www.semanticscholar.org/paper/ce806f8d32f6fb1eaa821248a1bc4fa2cd949fbb)
 - [Argmax Flows and Multinomial Diffusion: Learning Categorical Distributions](https://www.semanticscholar.org/paper/1913d3edcc00d0aba097a9df190dd16f6fdfbf0c)
 - [Simple and Effective Masked Diffusion Language Models](https://www.semanticscholar.org/paper/f8d357d38bbcdd93889fe71762eb57842b2ab063)
 - [BERT has a Mouth, and It Must Speak: BERT as a Markov Random Field Language Model](https://www.semanticscholar.org/paper/d79ac7a7bafdc9a782fb8c53285ca11c7f2e3f18)
+- [Your Absorbing Discrete Diffusion Secretly Models the Conditional Distributions of Clean Data](https://www.alphaxiv.org/abs/2406.03736) — 🟢 ICLR 2025, LOW
+- [Beyond Masked and Unmasked: Discrete Diffusion Models via Partial Masking](https://www.alphaxiv.org/abs/2505.18495) — 🟢 NeurIPS 2025, LOW
+- [Scaling Beyond Masked Diffusion Language Models](https://www.alphaxiv.org/abs/2602.15014) — 🟢 ICML 2026, LOW
+- [Bringing Stability to Diffusion: Decomposing and Reducing Variance of Training Masked Diffusion Models](https://www.alphaxiv.org/abs/2511.18159) — 🟢 ICLR 2026, LOW
 
 ### Sampling order, remasking and diversity
 
+- [Masked Diffusion Models are Secretly Learned-Order Autoregressive Models](https://www.alphaxiv.org/abs/2511.19152) — 🟢 EurIPS 2025 PriGM workshop, HIGH
 - [Remasking Discrete Diffusion Models with Inference-Time Scaling](https://www.semanticscholar.org/paper/19c3a5d9d32c57cd1482c8376f208cc2b2333334)
 - [[Low-density sampling from diffusion models]]
 - [A Tale of Two Temperatures: Simple, Efficient, and Diverse Sampling from Diffusion Language Models](https://arxiv.org/abs/2604.09921) — **MED** · SPIGM 2026 · Compare token temperature with randomness in the order fields are filled.
@@ -171,6 +177,7 @@ Browse by topic and subtopic. Grades stay beside each paper: read **HIGH** first
 - [TabDDPM: Modelling Tabular Data with Diffusion Models](https://www.semanticscholar.org/paper/25d3a4e048d0020ba9cffc6442ebd4e7bb548a55)
 - [Diffusion-LM Improves Controllable Text Generation](https://www.semanticscholar.org/paper/1386b8a11929cf02da291c56aca353e33bbc22ed)
 - [Protein Design with Guided Discrete Diffusion](https://arxiv.org/abs/2305.20009) — 🟢 NeurIPS 2023, HIGH
+- [TabDiff: a Mixed-type Diffusion Model for Tabular Data Generation](https://www.alphaxiv.org/abs/2410.20626) — 🟢 ICLR 2025, LOW
 
 ### Guidance methods
 
@@ -378,6 +385,10 @@ Browse by topic and subtopic. Grades stay beside each paper: read **HIGH** first
 
 - [Confidence Intervals for the Interquartile Mean](https://rlj.cs.umass.edu/2026/papers/Paper28.pdf)
 - [Space-sampled Value Decay: Forgetting Mechanisms for Non-stationary Deep Reinforcement Learning](https://arxiv.org/abs/2606.11797) — 🟢 EIML (ICML 2026 workshop), MED — stale value estimates under changing opponents; DQN/SAC evidence, VGC state sampling unresolved. Read §§3–6 after HIGH papers.
+
+### Data mixtures and metadata
+
+- [Metadata Conditioning Accelerates Language Model Pre-training](https://www.alphaxiv.org/abs/2501.01956) — 🟢 ICML 2025, LOW
 
 ## Deferred readings
 

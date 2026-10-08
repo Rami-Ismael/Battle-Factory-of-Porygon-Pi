@@ -21,7 +21,7 @@
 **Approach:** masked completion. The LLM fills only the empty parts and nothing else may change.
 ### LLM model we are using for now is
 
-1. inclusionai/ling-3.0-flash-vl ( This is much because is the cheepeast)
+1. inclusionai/ling-3.0-flash-vl ( This is much because is the cheepeast) so far
 2. DeepSeek: DeepSeek V4.1 Flash
 3. inception/mercury-2.5
 4. openai/gpt-6-luna
@@ -30,7 +30,7 @@
 ### LLM gateway we are using
 
 
-- [ ] put in 10 dollars
+- [x] put in 10 dollars
 
 1. OpenRouter
 

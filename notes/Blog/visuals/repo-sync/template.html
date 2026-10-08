@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where the files live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~42rem) in the Distill manner; the figure breaks out to 60rem.
+   Motion: explanatory tier. Flights run 800ms on the strong ease-in-out, landings 200-300ms ease-out,
+   transform and opacity only. prefers-reduced-motion drops the flights and keeps the fades. */
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --same:#2f9e6b; --ahead:#2a78d6; --lost:#d4551f; --focus:#2a78d6;
+  --font-body:"Literata",Georgia,"Times New Roman",serif;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --col:42rem; --wide:60rem;
+  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; color-scheme:dark; }
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.0625rem/1.65 var(--font-body)}
+.col{max-width:var(--col);margin:0 auto;padding:0 1rem}
+header.col{padding-top:3.5rem}
+h1{font:600 2.4rem/1.15 var(--font-body);letter-spacing:-0.01em;margin:0 0 .6rem;text-wrap:balance}
+.byline{font:400 .85rem var(--font-ui);color:var(--ink-3);margin:0 0 2.2rem}
+p{margin:0 0 1.2rem}
+code{font:400 .86em var(--font-mono);background:var(--wash);padding:.08em .35em;border-radius:4px}
+figure{margin:2.2rem auto;max-width:var(--wide);padding:0 1rem}
+figcaption{max-width:var(--col);margin:.9rem auto 0;font:400 .85rem/1.5 var(--font-ui);color:var(--ink-3)}
+footer.col{padding-bottom:5rem;font:400 .85rem/1.5 var(--font-ui);color:var(--ink-3)}
+
+/* ---- the figure ---- */
+.fig{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:1.1rem;font-family:var(--font-ui)}
+.steps{display:flex;gap:.4rem;flex-wrap:wrap;margin:0 0 .9rem;padding:0;list-style:none}
+.steps button{font:500 .8rem var(--font-ui);color:var(--ink-2);background:transparent;border:1px solid var(--rule);border-radius:99px;padding:.3rem .8rem;cursor:pointer;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.steps button[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.say{min-height:4.1rem;margin:0 0 .9rem}
+.say p{font:400 .95rem/1.55 var(--font-ui);color:var(--ink);margin:0 0 .6rem;max-width:46rem}
+.say p.fade{animation:rise .3s var(--ease-out)}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ctas{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+button.btn{font:500 .85rem var(--font-ui);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:.4rem .85rem;cursor:pointer;
+  transition:transform .12s var(--ease-out),border-color .15s ease,background-color .15s ease}
+button.btn:active{transform:scale(.97)}
+button.btn.primary{background:var(--ahead);border-color:var(--ahead);color:#fff}
+button.btn:disabled{opacity:.45;cursor:default}
+button.btn.nudge{animation:nudge 1.6s var(--ease-in-out) 2}
+@keyframes nudge{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--ahead) 28%,transparent)}}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){ button.btn:hover:not(:disabled),.steps button:hover{border-color:var(--ahead)} }
+.choices{display:flex;flex-direction:column;gap:.4rem;margin:.1rem 0 .7rem;max-width:26rem}
+.choices button{text-align:left}
+.choices button[aria-pressed="true"]{border-color:var(--ink);background:var(--wash)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 3.2rem minmax(0,1fr);gap:0;align-items:start}
+.pane{border:1px solid var(--rule);border-radius:10px;padding:.7rem .75rem .6rem;background:var(--panel)}
+.pane.home{background:var(--wash)}
+.pane h3{font:600 .68rem var(--font-ui);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin:0 0 .45rem}
+.pane h3 b{color:var(--ink);font-weight:600}
+.dir{font:400 .76rem var(--font-mono);color:var(--ink-3);margin:.55rem 0 .15rem}
+.row{display:flex;align-items:center;gap:.45rem;height:2.15rem;padding:0 .3rem;border-radius:6px;position:relative}
+.row[data-focus="1"]{background:var(--wash)}
+.row .name{font:400 .78rem var(--font-mono);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.away .name{color:var(--ink-3)}
+.ver{font:400 .72rem var(--font-mono);color:var(--ink-3);min-width:2.1rem;text-align:right;font-variant-numeric:tabular-nums;position:relative}
+.ver .tick{display:inline-block;animation:rise .3s var(--ease-out)}
+.ver .ghost{position:absolute;right:0;top:0;opacity:0;animation:ghost .9s var(--ease-out) both;text-decoration:line-through}
+@keyframes ghost{from{opacity:.8;transform:none}to{opacity:0;transform:translateY(-8px)}}
+.dot{width:.62rem;height:.62rem;border-radius:50%;flex:none;background:var(--same);transition:background-color .25s ease}
+.dot.ahead{background:var(--ahead)} .dot.lost{background:var(--lost)}
+.tag{font:500 .66rem var(--font-ui);padding:.08rem .45rem;border-radius:99px;border:1px solid var(--rule);color:var(--ink-3);white-space:nowrap;
+  transition:color .25s ease,border-color .25s ease}
+.tag.ahead{border-color:var(--ahead);color:var(--ahead)} .tag.lost{border-color:var(--lost);color:var(--lost)}
+.mini{font:500 .68rem var(--font-ui);padding:.12rem .5rem;border-radius:6px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);cursor:pointer}
+@media (hover:hover) and (pointer:fine){ .mini:hover{border-color:var(--ahead);color:var(--ink)} }
+.lock{font:400 .66rem var(--font-ui);color:var(--ink-3)}
+.land{position:absolute;inset:0;border-radius:6px;border:1.5px solid var(--ahead);pointer-events:none;opacity:0;animation:land .7s var(--ease-out)}
+@keyframes land{0%{opacity:1}100%{opacity:0}}
+
+.gutter{align-self:stretch;display:flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:1.2rem}
+.chip{position:absolute;z-index:3;pointer-events:none;font:500 .74rem var(--font-mono);color:#fff;background:var(--ahead);border-radius:6px;padding:.22rem .55rem;
+  white-space:nowrap;max-width:15rem;overflow:hidden;text-overflow:ellipsis;will-change:transform,opacity;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+
+.peek{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.9rem}
+.peek div{font:400 .76rem/1.5 var(--font-mono);background:var(--wash);border-radius:8px;padding:.5rem .65rem;min-width:0;color:var(--ink-2)}
+.peek span.k{display:block;font:600 .64rem var(--font-ui);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.15rem}
+.peek b{font-weight:500;color:var(--ink)} .peek .bad b{color:var(--lost)}
+.log{font:400 .76rem/1.5 var(--font-mono);color:var(--ink-3);margin:.8rem 0 0;min-height:1.2rem}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font:400 .74rem var(--font-ui);color:var(--ink-3);margin:.8rem 0 0}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+
+@media (max-width:760px){
+  h1{font-size:1.9rem}
+  .cols{grid-template-columns:1fr}
+  .gutter{height:2rem;transform:rotate(90deg)}
+  .peek{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){
+  .ver .ghost,.say p.fade,.ver .tick{animation:none}
+  .land{animation-duration:.01s}
+  button.btn.nudge{animation:none}
+}
+</style>
+</head>
+<body>
+<header class="col">
+  <h1>Where the files live</h1>
+  <p class="byline">Battle Factory of Porygon-Pi · 2026-10-08</p>
+</header>
+
+<div class="col">
+  <p>The project exists in two places. The copy I edit lives on my laptop: an Obsidian vault of notes and a folder of code. The copy on GitHub is a mirror of it, laid out as two folders, <code>notes/</code> and <code>code/</code>, so a visitor finds the writing and the program in one repository.</p>
+  <p>The question the figure answers is what happens when a file changes in either place. Step through it, or edit and sync as you like.</p>
+</div>
+
+<figure>
+  <div id="fig" class="fig" aria-label="Interactive: the laptop and the GitHub repository, with a sync between them"></div>
+  <figcaption>Six real files from the project. The edits are illustrative; the folders and the one-way rule are how the repository actually works.</figcaption>
+</figure>
+
+<div class="col">
+  <p>The mirror is one-way on purpose. The laptop is the only place a file is written, so there is never a merge to resolve and never a question of which version is the real one. A typo spotted on github.com gets fixed in Obsidian, and the next sync carries it over.</p>
+  <p>The sync copies only what each folder's own ignore rules allow. That keeps the Obsidian settings, the Python environment and about 1.6 GB of battle results at home, which is why a fresh clone has the code but not the datasets.</p>
+</div>
+<footer class="col">Sync script: <code>tools/sync.py</code> in the repository. <code>tools/sync.py --dry-run</code> lists what would change without touching anything.</footer>
+
+<script>/*PREACT*/</script>
+<script>
+const { html, render, useState, useRef, useEffect } = htmPreact;
+
+const FILES = [
+  { id: "todo", area: "notes", path: "Todo Section.md" },
+  { id: "fail", area: "notes", path: "What failed and what I learned.md" },
+  { id: "abl",  area: "notes", path: "Ablation Experiments.md" },
+  { id: "diff", area: "code",  path: "src/diffusion.py" },
+  { id: "act",  area: "code",  path: "src/activesearch.py" },
+  { id: "read", area: "code",  path: "README.md" },
+];
+const HOME = [
+  { path: ".obsidian/", why: "editor settings" },
+  { path: ".venv/", why: "Python environment" },
+  { path: "results/", why: "1.6 GB of battles" },
+];
+const first = () => Object.fromEntries(FILES.map(f => [f.id, { local: 1, remote: 1, gh: false }]));
+const status = s => s.gh ? "lost" : s.local !== s.remote ? "ahead" : "same";
+const LABEL = { same: "in sync", ahead: "laptop ahead", lost: "will be overwritten" };
+const lineOf = v => v === 1 ? "Mirror check: identical on both sides." : `Edited on the laptop (version ${v}).`;
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Chips leave the laptop row and land on the repository row (WAAPI, transform + opacity). */
+function fly(fig, ids) {
+  if (reduceMotion() || !ids.length) return Promise.resolve();
+  const fr = fig.getBoundingClientRect();
+  const runs = ids.map((id, i) => {
+    const a = fig.querySelector(`[data-side="local"][data-id="${id}"] .name`);
+    const b = fig.querySelector(`[data-side="remote"][data-id="${id}"] .name`);
+    if (!a || !b) return Promise.resolve();
+    const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+    const chip = document.createElement("div");
+    chip.className = "chip"; chip.textContent = a.textContent;
+    chip.style.left = ra.left - fr.left + "px"; chip.style.top = ra.top - fr.top + (ra.height - 24) / 2 + "px";
+    fig.appendChild(chip);
+    const dx = rb.left - ra.left, dy = rb.top - ra.top;
+    const anim = chip.animate([
+      { transform: "translate(0,0) scale(.96)", opacity: 0 },
+      { transform: "translate(0,0) scale(1)", opacity: 1, offset: .14 },
+      { transform: `translate(${dx * .96}px,${dy * .96}px) scale(1)`, opacity: 1, offset: .86 },
+      { transform: `translate(${dx}px,${dy}px) scale(.98)`, opacity: 0 },
+    ], { duration: 800, delay: i * 70, easing: "cubic-bezier(0.77,0,0.175,1)", fill: "both" });
+    return anim.finished.then(() => chip.remove());
+  });
+  return Promise.all(runs);
+}
+
+const STEPS = [
+  { label: "1 Write", say: ["You edit a note in Obsidian. The laptop's copy moves to a new version; GitHub still holds the old one, and the dot turns blue."], cta: "edit" },
+  { label: "2 Sync", say: ["The sync script copies each changed file into notes/ or code/, commits, and pushes. Press Sync and watch the file travel."], cta: "sync" },
+  { label: "3 What stays home", say: ["Some files never travel. Each folder's ignore rules keep editor settings, the Python environment and the battle results on the laptop, so those rows have no partner on the right."], cta: null },
+  { label: "4 Edit on GitHub", say: ["Suppose you fix a typo on github.com, then sync again. Which version of the file is in the repository afterwards?"], predict: true },
+];
+
+function App() {
+  const figRef = useRef();
+  const [st, setSt] = useState(first);
+  const [step, setStep] = useState(0);
+  const [focus, setFocus] = useState("fail");
+  const [log, setLog] = useState("Both sides match.");
+  const [flying, setFlying] = useState(false);
+  const [landed, setLanded] = useState({});
+  const [pick, setPick] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+  const [seq, setSeq] = useState(0);
+
+  const changed = FILES.filter(f => status(st[f.id]) !== "same");
+  const name = id => FILES.find(f => f.id === id).path;
+
+  const editLocal = id => { setSt(s => ({ ...s, [id]: { ...s[id], local: s[id].local + 1 } })); setFocus(id); setLog(`Edited ${name(id)} in Obsidian.`); };
+  const editRemote = id => { setSt(s => ({ ...s, [id]: { ...s[id], gh: true } })); setFocus(id); setLog(`Edited ${name(id)} on github.com.`); };
+  const sync = async () => {
+    if (flying) return;
+    const ids = changed.map(f => f.id);
+    setFlying(true);
+    await fly(figRef.current, ids);
+    setSt(s => Object.fromEntries(Object.entries(s).map(([k, v]) => [k, { local: v.local, remote: v.local, gh: false }])));
+    setLanded(Object.fromEntries(ids.map(i => [i, Date.now()])));
+    setLog(ids.length ? `Sync: ${ids.length} file${ids.length > 1 ? "s" : ""} copied from the laptop.` : "Sync: nothing to copy.");
+    if (pick !== null && !revealed) setRevealed(true);
+    setFlying(false);
+  };
+  const reset = () => { setSt(first()); setLog("Both sides match."); setPick(null); setRevealed(false); setLanded({}); };
+  const choose = n => { if (pick !== null) return; setPick(n); editRemote("fail"); };
+  const go = n => { setStep(n); setSeq(q => q + 1); };
+
+  const S = STEPS[step];
+  const f = st[focus];
+  const localLine = lineOf(f.local);
+  const remoteLine = f.gh ? "Typo fixed on github.com." : lineOf(f.remote);
+
+  const verdict = revealed
+    ? html`<p class="fade"><b>${pick === 1 ? "That's right." : "Not quite."}</b> The sync only ever copies laptop to repository, so the laptop's version replaced the one edited on github.com. The typo fix is gone until it is made in Obsidian.</p>`
+    : pick !== null ? html`<p class="fade">The repository now holds the GitHub edit (orange). Press Sync to find out.</p>` : null;
+
+  return html`
+    <ol class="steps" role="list">${STEPS.map((s, n) => html`<li key=${n}><button aria-current=${n === step ? "step" : "false"} onClick=${() => go(n)}>${s.label}</button></li>`)}</ol>
+
+    <div class="say" aria-live="polite">
+      ${S.say.map(t => html`<p class="fade" key=${seq}>${t}</p>`)}
+      ${S.predict && html`<div class="choices" role="group" aria-label="Which version survives?">
+        ${["The GitHub edit survives", "The laptop version replaces it", "Git stops with a merge conflict"].map((c, n) => html`
+          <button key=${n} class="btn" aria-pressed=${pick === n} disabled=${pick !== null && pick !== n} onClick=${() => choose(n)}>${c}</button>`)}
+      </div>`}
+      ${S.predict && verdict}
+    </div>
+
+    <div class="ctas">
+      ${(S.cta === "edit" || S.cta === "sync" || S.predict) && html`
+        ${S.cta === "edit" && html`<button class="btn primary" onClick=${() => editLocal("fail")}>Edit a note</button>`}
+        <button class=${"btn " + (S.cta === "sync" || (S.predict && pick !== null && !revealed) ? "primary nudge" : "")} disabled=${flying} onClick=${sync}>Sync${changed.length ? ` (${changed.length})` : ""}</button>`}
+      <button class="btn" onClick=${reset}>Reset</button>
+      <span style="flex:1"></span>
+      <button class="btn" disabled=${step === 0} onClick=${() => go(step - 1)}>← Back</button>
+      <button class="btn" disabled=${step === 3} onClick=${() => go(step + 1)}>Next →</button>
+    </div>
+
+    <div ref=${figRef} style="position:relative;margin-top:1rem">
+      <div class="cols">
+        <div class="pane"><h3><b>Laptop</b> · the source of truth</h3>
+          <div class="dir">Obsidian vault</div>
+          ${FILES.filter(x => x.area === "notes").map(x => html`<${Row} key=${x.id} f=${x} s=${st[x.id]} side="local" focus=${focus} onEdit=${() => editLocal(x.id)} />`)}
+          <div class="dir">code folder</div>
+          ${FILES.filter(x => x.area === "code").map(x => html`<${Row} key=${x.id} f=${x} s=${st[x.id]} side="local" focus=${focus} onEdit=${() => editLocal(x.id)} />`)}
+          <div class="dir">stays here (ignored)</div>
+          ${HOME.map(h => html`<div class="row away" key=${h.path} style=${step === 2 ? "background:var(--wash)" : ""}><span class="name">${h.path}</span><span class="lock">${h.why}</span></div>`)}
+        </div>
+        <div class="gutter" aria-hidden="true">→</div>
+        <div class="pane"><h3><b>GitHub</b> · Battle-Factory-of-Porygon-Pi</h3>
+          <div class="dir">notes/</div>
+          ${FILES.filter(x => x.area === "notes").map(x => html`<${Row} key=${x.id} f=${x} s=${st[x.id]} side="remote" focus=${focus} landed=${landed[x.id]} onEdit=${() => editRemote(x.id)} />`)}
+          <div class="dir">code/</div>
+          ${FILES.filter(x => x.area === "code").map(x => html`<${Row} key=${x.id} f=${x} s=${st[x.id]} side="remote" focus=${focus} landed=${landed[x.id]} onEdit=${() => editRemote(x.id)} />`)}
+          <div class="dir" style="visibility:hidden">.</div>
+          ${HOME.map(h => html`<div class="row away" key=${h.path}><span class="name">—</span><span class="lock">not mirrored</span></div>`)}
+        </div>
+      </div>
+    </div>
+
+    <div class="peek" aria-label=${"First line of " + name(focus) + " on each side"}>
+      <div><span class="k">Laptop · ${name(focus)}</span><b>${localLine}</b></div>
+      <div class=${f.gh ? "bad" : ""}><span class="k">GitHub · ${name(focus)}</span><b>${remoteLine}</b></div>
+    </div>
+    <div class="legend"><span><i class="dot"></i>in sync</span><span><i class="dot ahead"></i>laptop ahead</span><span><i class="dot lost"></i>edited on GitHub, will be overwritten</span></div>
+    <div class="log" aria-live="polite">${log}</div>`;
+}
+
+function Row({ f, s, side, focus, landed, onEdit }) {
+  const stt = status(s);
+  const v = side === "local" ? s.local : s.remote;
+  const prev = useRef(v);
+  const [ghost, setGhost] = useState(null);
+  useEffect(() => { if (prev.current !== v && side === "remote") setGhost({ k: Date.now(), v: prev.current }); prev.current = v; }, [v]);
+  return html`<div class="row" data-side=${side} data-id=${f.id} data-focus=${focus === f.id ? 1 : 0}>
+    <span class="name" title=${f.path}>${f.path}</span>
+    <span class="ver">${ghost && side === "remote" && html`<span class="ghost" key=${ghost.k}>v${ghost.v}</span>`}<span class=${side === "remote" ? "tick" : ""} key=${v}>v${v}${side === "remote" && s.gh ? "*" : ""}</span></span>
+    ${side === "remote" && html`<span class=${"tag " + stt}>${LABEL[stt]}</span>`}
+    <span class=${"dot " + stt} title=${LABEL[stt]} style=${side === "local" ? "visibility:hidden" : ""}></span>
+    <button class="mini" onClick=${onEdit} aria-label=${(side === "local" ? "Edit " : "Edit on github.com: ") + f.path}>${side === "local" ? "edit" : "edit here"}</button>
+    ${landed && html`<span class="land" key=${landed}></span>`}
+  </div>`;
+}
+
+render(html`<${App} />`, document.getElementById("fig"));
+</script>
+</body>
+</html>

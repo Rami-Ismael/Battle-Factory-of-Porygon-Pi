@@ -1,0 +1,197 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway (2026-10-08). Delete the folder once one variant is chosen.
+  Question: how should one figure show that the laptop is the source of truth and github.com
+  Battle-Factory-of-Porygon-Pi is a one-way mirror with two folders (notes/, code/)?
+  Sub-shape B (new page): there is no host article yet.
+  Three variants, ?variant=A|B|C, bottom bar or ← →:
+    A — Two trees: the laptop's folders on the left, the repo's on the right, one row per file, a status dot between.
+    B — Conveyor: each file is a chip; Sync loads every changed chip onto a belt that ends in the repo.
+    C — Stepper: four prose steps drive the same two trees; step 4 asks the reader to predict first.
+  All state lives in memory. Real file names, illustrative edits.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repo sync prototype</title>
+<style>
+:root {
+  --bg:#f5f6f8; --panel:#fff; --ink:#14161b; --ink-2:#474d59; --ink-3:#737b8a; --rule:#dadee6;
+  --blue:#2a78d6; --orange:#eb6834; --green:#2f9e6b; --focus:#2a78d6;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif; --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root{--bg:#111318;--panel:#191c23;--ink:#eceef2;--ink-2:#b6bcc8;--ink-3:#8a91a0;--rule:#2b303a;--blue:#3987e5;--orange:#d95926;--green:#3fb17f;color-scheme:dark}}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-ui)}
+main{max-width:62rem;margin:0 auto;padding:1.5rem 1rem 6rem}
+h1{font-size:1.25rem;margin:0 0 .25rem} .sub{color:var(--ink-2);margin:0 0 1.25rem;max-width:44rem}
+.mono{font-family:var(--font-mono);font-size:.8rem}
+button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:.3rem .65rem;cursor:pointer}
+button:hover{border-color:var(--blue)} button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.pane{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:.75rem}
+.pane h2{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 .5rem;font-weight:600}
+.folder{font-family:var(--font-mono);font-size:.8rem;color:var(--ink-2);margin:.5rem 0 .25rem}
+.row{display:flex;align-items:center;gap:.5rem;padding:.25rem .35rem;border-radius:6px;min-height:2.1rem}
+.row .name{font-family:var(--font-mono);font-size:.8rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ver{font-family:var(--font-mono);font-size:.72rem;color:var(--ink-3)}
+.dot{width:.7rem;height:.7rem;border-radius:50%;flex:none;background:var(--green)}
+.dot.ahead{background:var(--blue)} .dot.overwrite{background:var(--orange)}
+.tag{font-size:.7rem;padding:.05rem .4rem;border-radius:99px;border:1px solid var(--rule);color:var(--ink-2)}
+.tag.ahead{border-color:var(--blue);color:var(--blue)} .tag.overwrite{border-color:var(--orange);color:var(--orange)}
+.mini{padding:.1rem .4rem;font-size:.72rem}
+.log{font-family:var(--font-mono);font-size:.75rem;color:var(--ink-2);margin:1rem 0 0;min-height:3.6rem}
+.log div:first-child{color:var(--ink)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) 5rem minmax(0,1fr);gap:.75rem;align-items:start}
+.mid{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding-top:2rem}
+.arrow{font-size:1.4rem;color:var(--ink-3)}
+.belt{position:relative;height:2.6rem;border-top:2px dashed var(--rule);border-bottom:2px dashed var(--rule);margin:.4rem 0 .8rem}
+.chip{position:absolute;top:.35rem;font-family:var(--font-mono);font-size:.72rem;padding:.15rem .5rem;border-radius:5px;background:var(--blue);color:#fff;white-space:nowrap;transition:left .9s ease-in-out}
+.steps{display:grid;grid-template-columns:18rem 1fr;gap:1.5rem}
+.step{padding:.6rem .75rem;border-left:3px solid var(--rule);margin-bottom:.5rem;cursor:pointer;color:var(--ink-2)}
+.step.on{border-color:var(--blue);color:var(--ink);background:var(--panel)}
+.step b{display:block;font-size:.85rem}
+.choices{display:flex;flex-direction:column;gap:.35rem;margin-top:.5rem}
+.choices button.pick{border-color:var(--blue)} .verdict{margin-top:.5rem;font-size:.85rem}
+nav.bar{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);display:flex;gap:.25rem;background:var(--panel);border:1px solid var(--rule);border-radius:99px;padding:.3rem;box-shadow:0 4px 18px rgba(0,0,0,.15)}
+nav.bar button{border:0;border-radius:99px;padding:.3rem .9rem} nav.bar button.on{background:var(--blue);color:#fff}
+@media (max-width:900px){.steps{grid-template-columns:1fr}}
+@media (max-width:700px){.grid2{grid-template-columns:1fr}.mid{flex-direction:row;padding:0;justify-content:center}.steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="preact-htm-standalone.umd.js"></script>
+<script>
+const { html, render, useState, useEffect } = htmPreact;
+
+const FILES = [
+  { id: "todo",  area: "notes", path: "Todo Section.md" },
+  { id: "fail",  area: "notes", path: "What failed and what I learned.md" },
+  { id: "abl",   area: "notes", path: "Ablation Experiments.md" },
+  { id: "diff",  area: "code",  path: "src/diffusion.py" },
+  { id: "act",   area: "code",  path: "src/activesearch.py" },
+  { id: "read",  area: "code",  path: "README.md" },
+];
+const init = () => Object.fromEntries(FILES.map(f => [f.id, { local: 1, remote: 1, gh: false }]));
+const status = s => s.gh ? "overwrite" : s.local !== s.remote ? "ahead" : "same";
+const LABEL = { same: "same", ahead: "laptop ahead", overwrite: "github edit, will be overwritten" };
+
+function useModel() {
+  const [st, setSt] = useState(init);
+  const [log, setLog] = useState(["Both sides match."]);
+  const say = m => setLog(l => [m, ...l].slice(0, 3));
+  const name = id => FILES.find(f => f.id === id).path;
+  return {
+    st, log, FILES,
+    editLocal: id => { setSt(s => ({ ...s, [id]: { ...s[id], local: s[id].local + 1 } })); say(`Edited ${name(id)} in Obsidian.`); },
+    editRemote: id => { setSt(s => ({ ...s, [id]: { ...s[id], gh: true } })); say(`Edited ${name(id)} on github.com.`); },
+    sync: () => {
+      const n = FILES.filter(f => status(st[f.id]) !== "same").length;
+      setSt(s => Object.fromEntries(Object.entries(s).map(([k, v]) => [k, { local: v.local, remote: v.local, gh: false }])));
+      say(n ? `Sync: ${n} file${n > 1 ? "s" : ""} copied from the laptop.` : "Sync: nothing to copy.");
+    },
+    reset: () => { setSt(init()); setLog(["Both sides match."]); },
+  };
+}
+
+const Tag = ({ s }) => html`<span class=${"tag " + s}>${LABEL[s]}</span>`;
+
+function Tree({ m, side }) {
+  const area = (a, label) => html`
+    <div class="folder">${label}</div>
+    ${m.FILES.filter(f => f.area === a).map(f => {
+      const s = m.st[f.id], stt = status(s);
+      return html`<div class="row" key=${f.id}>
+        <span class="name" title=${f.path}>${f.path}</span>
+        <span class="ver">${side === "local" ? "v" + s.local : "v" + s.remote + (s.gh ? "*" : "")}</span>
+        ${side === "remote" && html`<span class=${"dot " + stt} title=${LABEL[stt]}></span>`}
+        ${side === "local"
+          ? html`<button class="mini" onClick=${() => m.editLocal(f.id)}>edit</button>`
+          : html`<button class="mini" onClick=${() => m.editRemote(f.id)}>edit here</button>`}
+      </div>`;
+    })}`;
+  return html`<div class="pane">
+    <h2>${side === "local" ? "Laptop — source of truth" : "github.com / Battle-Factory-of-Porygon-Pi"}</h2>
+    ${side === "local" ? html`${area("notes", "Obsidian vault  →")}${area("code", "code folder  →")}` : html`${area("notes", "notes/")}${area("code", "code/")}`}
+  </div>`;
+}
+
+const Dots = ({ m }) => html`<div>${m.FILES.map(f => html`<div class="row" key=${f.id} title=${LABEL[status(m.st[f.id])]}><span class=${"dot " + status(m.st[f.id])}></span></div>`)}</div>`;
+const Log = ({ m }) => html`<div class="log" aria-live="polite">${m.log.map((l, i) => html`<div key=${i + l}>${l}</div>`)}</div>`;
+const Legend = () => html`<p class="mono" style="color:var(--ink-3)"><span class="dot" style="display:inline-block"></span> same · <span class="dot ahead" style="display:inline-block"></span> laptop ahead · <span class="dot overwrite" style="display:inline-block"></span> github edit (lost on next sync)</p>`;
+
+/* A — two trees with a status gutter */
+function VariantA({ m }) {
+  return html`<div>
+    <div class="grid2">
+      <${Tree} m=${m} side="local" />
+      <div class="mid"><button class="primary" onClick=${m.sync}>Sync</button><div class="arrow">→</div><button onClick=${m.reset}>Reset</button></div>
+      <${Tree} m=${m} side="remote" />
+    </div>
+    <${Legend} /><${Log} m=${m} />
+  </div>`;
+}
+
+/* B — conveyor: changed files ride a belt to the repo */
+function VariantB({ m }) {
+  const [riding, setRiding] = useState(false);
+  const changed = m.FILES.filter(f => status(m.st[f.id]) !== "same");
+  const go = () => { if (!changed.length) return m.sync(); setRiding(true); setTimeout(() => { m.sync(); setRiding(false); }, 1000); };
+  return html`<div>
+    <div class="pane"><h2>Laptop — click a file to change it</h2>
+      ${m.FILES.map(f => html`<span key=${f.id} style="display:inline-block;margin:.15rem"><button onClick=${() => m.editLocal(f.id)}><span class=${"dot " + status(m.st[f.id])} style="display:inline-block;margin-right:.4rem"></span><span class="mono">${f.path}</span> <span class="ver">v${m.st[f.id].local}</span></button></span>`)}
+    </div>
+    <div class="belt">${riding && changed.map((f, i) => html`<span class="chip" key=${f.id} ref=${el => el && requestAnimationFrame(() => { el.style.left = "calc(100% - 9rem)"; })} style=${`left:${i * 1.5}rem;top:${0.2 + (i % 2) * 1.2}rem`}>${f.path.split("/").pop().slice(0, 18)}</span>`)}</div>
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.6rem"><button class="primary" onClick=${go}>Sync ${changed.length ? `(${changed.length})` : ""}</button><button onClick=${m.reset}>Reset</button></div>
+    <div class="pane"><h2>github.com / Battle-Factory-of-Porygon-Pi</h2>
+      ${["notes", "code"].map(a => html`<div class="folder">${a}/</div>${m.FILES.filter(f => f.area === a).map(f => html`<div class="row" key=${f.id}><span class="name">${f.path}</span><span class="ver">v${m.st[f.id].remote}${m.st[f.id].gh ? "*" : ""}</span><${Tag} s=${status(m.st[f.id])} /><button class="mini" onClick=${() => m.editRemote(f.id)}>edit here</button></div>`)}`)}
+    </div>
+    <${Log} m=${m} />
+  </div>`;
+}
+
+/* C — stepper: prose steps drive the trees; step 4 is predict-then-reveal */
+const STEPS = [
+  { t: "1 · Write in Obsidian", p: "You edit a note on the laptop. Nothing on GitHub changes yet.", run: m => m.editLocal("fail") },
+  { t: "2 · Sync", p: "The sync script copies what changed into notes/ and code/, commits, and pushes.", run: m => m.sync() },
+  { t: "3 · Same edit, both places", p: "The repository now shows exactly the file you wrote. The laptop never reads from GitHub.", run: () => {} },
+  { t: "4 · Predict: edit on github.com", p: "You fix a typo on github.com, then sync again. Which version survives?", predict: true, run: m => m.editRemote("fail") },
+];
+function VariantC({ m }) {
+  const [i, setI] = useState(0);
+  const [pick, setPick] = useState(null);
+  const [done, setDone] = useState({});
+  const go = n => { if (n < 0 || n > 3) return; if (n > i && !done[i] && !STEPS[i].predict) { STEPS[i].run(m); } setDone(d => ({ ...d, [i]: true })); setI(n); setPick(null); };
+  const S = STEPS[i];
+  return html`<div class="steps">
+    <div>${STEPS.map((s, n) => html`<div class=${"step " + (n === i ? "on" : "")} key=${n} onClick=${() => go(n)}><b>${s.t}</b>${n === i ? s.p : ""}</div>`)}
+      ${S.predict && html`<div class="choices">
+        ${["The GitHub edit survives", "The laptop version overwrites it", "Git reports a merge conflict"].map((c, n) => html`<button key=${n} class=${pick === n ? "pick" : ""} onClick=${() => { setPick(n); m.editRemote("fail"); setTimeout(m.sync, 700); }}>${c}</button>`)}
+        ${pick !== null && html`<div class="verdict">${pick === 1 ? "Right. " : "Not quite. "}The sync is one-way, so the laptop's version is copied over the top and the edit on github.com is gone.</div>`}</div>`}
+      ${!S.predict && html`<button class="primary" style="margin-top:.5rem" onClick=${() => go(i + 1)}>Next →</button>`}
+    </div>
+    <div><${VariantA} m=${m} /></div>
+  </div>`;
+}
+
+const VARIANTS = { A: VariantA, B: VariantB, C: VariantC };
+const NAMES = { A: "Two trees", B: "Conveyor", C: "Stepper" };
+function App() {
+  const m = useModel();
+  const [v, setV] = useState(new URLSearchParams(location.search).get("variant") || "A");
+  const pick = k => { setV(k); const u = new URL(location); u.searchParams.set("variant", k); history.replaceState(null, "", u); };
+  useEffect(() => {
+    const h = e => { const ks = Object.keys(VARIANTS), i = ks.indexOf(v); if (e.key === "ArrowRight") pick(ks[(i + 1) % 3]); if (e.key === "ArrowLeft") pick(ks[(i + 2) % 3]); };
+    addEventListener("keydown", h); return () => removeEventListener("keydown", h);
+  });
+  const V = VARIANTS[v] || VariantA;
+  return html`<h1>Battle Factory of Porygon-Pi — where the files live</h1>
+    <p class="sub">The laptop is the source of truth. github.com holds a one-way copy in two folders, <span class="mono">notes/</span> and <span class="mono">code/</span>. Prototype variant ${v}: ${NAMES[v]}.</p>
+    <${V} m=${m} />
+    <nav class="bar">${Object.keys(VARIANTS).map(k => html`<button key=${k} class=${k === v ? "on" : ""} onClick=${() => pick(k)}>${k} · ${NAMES[k]}</button>`)}</nav>`;
+}
+render(html`<${App} />`, document.getElementById("app"));
+</script>
+</body>
+</html>
