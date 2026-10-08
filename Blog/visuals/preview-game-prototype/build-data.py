@@ -12,7 +12,7 @@ Run: python3 build-data.py
 import json
 import re
 import sqlite3
-from itertools import product
+from itertools import combinations, product
 from pathlib import Path
 
 import numpy as np
@@ -107,6 +107,16 @@ for a, b in product(range(-1, 6), range(-1, 6)):
     dv, dx, dy = nash(M[np.ix_(rk, ck)])
     DROP[f"{a}|{b}"] = {"value": round(dv, 4), "x": sparse(dx, rk), "y": sparse(dy, ck)}
 
+# Jenga with up to two blocks out per side (owner 2026-10-08): two out = the two left at home at team preview.
+# Every combination of 0, 1 or 2 pulled per side: 22 × 22 = 484 games; both sides at two leaves the 6 × 6 "who leads" game.
+SUBSETS = [()] + [(k,) for k in range(6)] + list(combinations(range(6), 2))
+DROP2 = {}
+for A_, B_ in product(SUBSETS, SUBSETS):
+    rk = [i for i, p in enumerate(ROWS) if not set(A_) & set(p["lead"] + p["back"])]
+    ck = [j for j, p in enumerate(COLS) if not set(B_) & set(p["lead"] + p["back"])]
+    dv, dx, dy = nash(M[np.ix_(rk, ck)])
+    DROP2["-".join(map(str, A_)) + "|" + "-".join(map(str, B_))] = {"value": round(dv, 4), "x": sparse(dx, rk), "y": sparse(dy, ck)}
+
 # The sand timer: the matrix after one, two and three pours of 8 battles per cell.
 SAND = []
 for k in range(1, 4):
@@ -178,7 +188,7 @@ out = {
     "teams": {"you": YOU, "them": THEM}, "names": {"you": "MB522", "them": "MB763"},
     "rows": ROWS, "cols": COLS, "wins": W.tolist(), "battles": 24,
     "pours": [POUR[b].tolist() for b in pours],
-    "eq": EQ, "drop": DROP, "sand": SAND, "peek": PEEK, "think": THINK, "guess": GUESS,
+    "eq": EQ, "drop": DROP, "drop2": DROP2, "sand": SAND, "peek": PEEK, "think": THINK, "guess": GUESS,
 }
 (HERE / "data.js").write_text("// PROTOTYPE — built by build-data.py; do not edit\nwindow.PREVIEW = "
                               + json.dumps(out, separators=(",", ":")) + ";\n")
@@ -188,4 +198,6 @@ print("sand", [(s["battles"], s["value"], len(s["x"]), s["noiseShare"], s["singl
 print("drop singles you", [(YOU[a]["name"], DROP[f'{a}|-1']['value']) for a in range(6)])
 print("drop singles them", [(THEM[b]["name"], DROP[f'-1|{b}']['value']) for b in range(6)])
 print("guess", [(b["id"], len(b["cards"])) for b in GUESS["boards"]], "teams", n_teams)
+best_home = sorted(((DROP2["-".join(map(str, c)) + "|"]["value"], c) for c in combinations(range(6), 2)), reverse=True)
+print("MB522 best two to leave home", [(round(v, 3), [YOU[k]["name"] for k in c]) for v, c in best_home[:3]], "worst", [(round(v, 3), [YOU[k]["name"] for k in c]) for v, c in best_home[-2:]])
 print("data.js", round((HERE / "data.js").stat().st_size / 1024), "KB")

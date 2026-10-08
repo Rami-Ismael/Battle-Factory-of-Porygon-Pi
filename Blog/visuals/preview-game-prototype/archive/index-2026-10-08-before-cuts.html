@@ -2,9 +2,9 @@
 <!--
   PROTOTYPE — throwaway. Fourteen candidate figures for the team-preview section (why VGC is a nested
   optimisation problem, team preview first), one page, switchable via ?variant=A…N, the bottom bar, or ← →.
-    A Matryoshka (A3 kept: box → party → preview → field) · B Jenga · I Times table · J Sieve · L Guess Who?
-    Removed 2026-10-08 (owner): C chase, D spinner, E thinking, F periscope, G ridgelines, H string art, K chairs,
-    M sand timer, N search the fog (all six versions); copies in archive/.
+    A Matryoshka · B Jenga · C Mind-reading chase · D Loaded spinner · E Thinking makes MB522 worse
+    F Periscope · G Album-cover ridgelines · H String art · I Times table · J Sieve · K Three chairs
+    L Guess Who? · M Sand timer · N Minesweeper
   Real data only: MB522 vs MB763, 90 x 90 plans x 24 battles (data.js, built by build-data.py).
   Stage 2 built layout and state for all 14. Stage 3 (2026-10-07) adds motion to A3 only, the version the owner kept;
   2026-10-07 stage 3 also on C (cards enter, arrows light, ring on loop close) and D (spinners spin and land, result
@@ -241,7 +241,7 @@ button.tpslot:not(:disabled):active{transform:scale(0.96)}
 .fieldbox.big .side.them{justify-content:flex-end;align-items:flex-start}
 .fieldbox.big .gap{flex:1}
 .benched{opacity:.6;display:inline-flex}
-.scoreview{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:start}
+.scoreview{display:grid;grid-template-columns:240px minmax(0,1fr);gap:16px;align-items:start}
 .minib.big{width:240px}
 .nest [data-fk]{transform-origin:0 0}
 @media (max-width:720px){.build,.scoreview{grid-template-columns:1fr}.previewscreen{grid-template-columns:auto auto;}.previewscreen .pmid{grid-column:1 / -1;grid-row:2}}
@@ -257,7 +257,7 @@ button.tpslot:not(:disabled):active{transform:scale(0.96)}
 @media (max-width:900px){.drill{grid-template-columns:1fr}.darrow{white-space:normal}.darrow .ar::before{content:"↑"}}
 
 /* B — Jenga */
-.jenga{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:start;padding-inline:30px}
+.jenga{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:start}
 .tower{display:grid;gap:4px;width:190px}
 .tower .slot{border-radius:7px;min-height:44px}
 .tower .slot.gap{box-shadow:inset 0 0 0 2px var(--faint)}
@@ -265,8 +265,8 @@ button.tpslot:not(:disabled):active{transform:scale(0.96)}
 .tower.you .block{background:var(--you-soft);border-color:var(--you)}
 .tower.them .block{background:var(--them-soft);border-color:var(--them)}
 .tower .slot:nth-child(odd) .block{width:calc(100% - 10px)}
-.tower.you .block.out{translate:-28px 0;border-style:dashed}
-.tower.them .block.out{translate:28px 0;border-style:dashed}
+.tower.you .block.out{translate:-46px 0;border-style:dashed}
+.tower.them .block.out{translate:46px 0;border-style:dashed}
 .tower.them .slot:nth-child(odd) .block{margin-left:10px}
 .mid{display:grid;justify-items:center;gap:8px;text-align:center}
 svg.gauge .axis,svg.gauge .tick{stroke:var(--faint)} svg.gauge .tl{font:11px var(--mono);fill:var(--muted)}
@@ -291,44 +291,6 @@ svg.gauge .half{stroke:var(--rule);stroke-width:1}
 .block .use i{display:block;height:100%;transform-origin:left;transition:transform 400ms var(--ease-in-out) 150ms}
 .tower.you .block .use i{background:var(--you)} .tower.them .block .use i{background:var(--them)}
 @media (prefers-reduced-motion: reduce){ .block .use i{transition:none} }
-/* Sprite board: the 90 × 90 matrix labelled by lead-pair sprites (2026-10-08) */
-.sboard{display:grid;gap:8px;justify-items:start;min-width:0;max-width:100%}
-.sb-grid{display:grid;grid-template-columns:40px var(--S);grid-template-rows:22px var(--S);gap:2px;overflow-x:auto;max-width:100%}
-.sb-corner{font-size:9.5px;line-height:1.1;align-self:end}
-.sb-top{display:flex}.sb-left{display:flex;flex-direction:column}
-.sb-top .sb-gh{width:var(--band);display:flex;justify-content:center;align-items:flex-end;gap:0}
-.sb-left .sb-gh{height:var(--band);display:flex;justify-content:flex-end;align-items:center;gap:0}
-.sb-gh{transition:opacity 200ms ease}.sb-gh.out{opacity:.2}
-.sb-cells{position:relative;width:var(--S);height:var(--S);cursor:crosshair}
-.sb-cells canvas{display:block}
-.sb-row,.sb-col{position:absolute;background:var(--bg);opacity:0;pointer-events:none;transition:opacity 200ms ease}
-.sb-row{left:0;right:0}.sb-col{top:0;bottom:0}
-.sb-row.out,.sb-col.out{opacity:.8}
-.sb-hr,.sb-hc{position:absolute;pointer-events:none;outline:1px solid var(--ink);outline-offset:-1px}
-.sb-hr{left:0;right:0}.sb-hc{top:0;bottom:0}
-.sb-spot{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none;transition:opacity 300ms var(--ease-out)}
-@starting-style{.sb-spot{opacity:0}}
-.sb-cells .mk{position:absolute;width:10px;height:10px;border:2px solid var(--ink);border-radius:2px;translate:-50% -50%;z-index:2}
-.sb-read{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-height:52px}
-.bboard{display:grid;gap:8px}
-/* B plan grids with sprites */
-.pgrid .prow{display:flex;gap:2px;align-items:center}
-.pgrid .plead{display:inline-flex;width:38px;justify-content:flex-end;transition:opacity 200ms ease}
-.pgrid .prow.allout .plead{opacity:.25}
-.pgrid i{width:30px;height:18px;display:inline-flex;align-items:center;justify-content:center;gap:0}
-.pgrid i img{transition:opacity 200ms ease,filter 200ms ease}
-.pgrid i.x img{opacity:.15;filter:grayscale(1)}
-@media (prefers-reduced-motion: reduce){ .sb-row,.sb-col{transition-delay:0ms !important} }
-/* N versions (2026-10-08) */
-.swiss{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start}
-.swiss tr.topcut td{background:var(--you-soft)}
-.swiss .chip{margin-right:3px;padding:1px 6px}
-.scout{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:start}
-.scout .pmid{display:grid;gap:8px;justify-items:center;align-content:center}
-.scards{display:flex;flex-wrap:wrap;gap:6px}
-.scard{display:flex;align-items:center;gap:6px;border-radius:8px;padding:4px 8px;min-height:0}
-.scard.picked{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-@media (max-width:900px){.swiss,.scout{grid-template-columns:1fr}}
 /* B, two out per side (2026-10-08) */
 .athome{margin:4px 0 0;min-height:1.4em}
 .leadboard{display:grid;gap:8px;transition:opacity 250ms var(--ease-out),transform 250ms var(--ease-out)}
@@ -699,41 +661,6 @@ const SPOT_URL = (() => { const c = document.createElement('canvas'), k = 4; c.w
   ctx.fillStyle = rgba(PAL.bg, 0.82); ctx.fillRect(0, 0, 90 * k, 90 * k);
   for (let i = 0; i < 90; i++) if (X[i]) for (let j = 0; j < 90; j++) if (Y[j]) ctx.clearRect(j * k - 2, i * k - 2, k + 4, k + 4);
   return c.toDataURL(); })();
-// The 90 × 90 board with sprites (owner 2026-10-08: show the Pokémon on the matrix). Plans are already grouped by lead
-// pair (15 groups of 6, in index order), so MB522's lead pairs label the row bands and MB763's the column bands.
-// Hover a square for both plans in full. rowsOut / colsOut dim the plans that are gone, band by band.
-const leadOf = (side, g) => PL[side][GRID[side][g][0]].lead;
-function SpriteBoard({ cell = 5, rowsOut = () => false, colsOut = () => false, mark = null, spot = false, markRef, boardRef }) {
-  const S = cell * 90, band = cell * 6;
-  const [hov, setHov] = useState(null);
-  const ref = useCanvas(S, S, ctx => {
-    drawBoard(ctx, (i, j) => M[i][j], 0, 0, S);
-    ctx.strokeStyle = rgba(PAL.bg, 0.95); ctx.lineWidth = 1;
-    for (let g = 1; g < 15; g++) { const q = g * band; ctx.beginPath(); ctx.moveTo(q, 0); ctx.lineTo(q, S); ctx.moveTo(0, q); ctx.lineTo(S, q); ctx.stroke(); }
-  }, [cell]);
-  const at = e => { const r = e.currentTarget.getBoundingClientRect(); return [clamp(Math.floor((e.clientY - r.top) / r.height * 90), 0, 89), clamp(Math.floor((e.clientX - r.left) / r.width * 90), 0, 89)]; };
-  const sp = (side, k, z) => html`<img class="sp" src=${T[side][k].sprite} width=${z} height=${z} alt=${T[side][k].name} title=${T[side][k].name} />`;
-  const z = Math.min(16, Math.floor(band / 2) - 1);
-  const show = hov || mark;
-  return html`<div class="sboard" style=${`--S:${S}px;--band:${band}px`}>
-    <div class="sb-grid">
-      <div class="sb-corner note">MB522 ↓<br />MB763 →</div>
-      <div class="sb-top">${GRID.them.map((g, k) => html`<div class=${'sb-gh' + (g.every(j => colsOut(j)) ? ' out' : '')} title=${`MB763 leads ${nm('them', leadOf('them', k))}`}>${leadOf('them', k).map(m => sp('them', m, z))}</div>`)}</div>
-      <div class="sb-left">${GRID.you.map((g, k) => html`<div class=${'sb-gh' + (g.every(i => rowsOut(i)) ? ' out' : '')} title=${`MB522 leads ${nm('you', leadOf('you', k))}`}>${leadOf('you', k).map(m => sp('you', m, z))}</div>`)}</div>
-      <div class="sb-cells" ref=${boardRef} onPointerMove=${e => setHov(at(e))} onPointerLeave=${() => setHov(null)}>
-        <canvas ref=${ref} style=${`width:${S}px;height:${S}px`} aria-label="The 90 by 90 matchup board; hover a square"></canvas>
-        ${[...Array(90).keys()].map(i => html`<i class=${'sb-row' + (rowsOut(i) ? ' out' : '')} style=${`top:${i * cell}px;height:${cell}px;transition-delay:${Math.floor(i / 6) * 25}ms`}></i>`)}
-        ${[...Array(90).keys()].map(j => html`<i class=${'sb-col' + (colsOut(j) ? ' out' : '')} style=${`left:${j * cell}px;width:${cell}px;transition-delay:${Math.floor(j / 6) * 25}ms`}></i>`)}
-        ${spot && html`<img class="spot sb-spot" src=${SPOT_URL} alt="" />`}
-        ${hov && html`<i class="sb-hr" style=${`top:${hov[0] * cell}px;height:${cell}px`}></i><i class="sb-hc" style=${`left:${hov[1] * cell}px;width:${cell}px`}></i>`}
-        ${mark && html`<i class="mk" ref=${markRef} style=${`left:${((mark[1] + 0.5) / 90 * 100).toFixed(2)}%;top:${((mark[0] + 0.5) / 90 * 100).toFixed(2)}%`}></i>`}
-      </div>
-    </div>
-    <div class="sb-read">${show ? html`<${Plan} side="you" p=${show[0]} size=${22} home=${true} labels=${true} /><span class="vs">vs</span><${Plan} side="them" p=${show[1]} size=${22} home=${true} labels=${true} />
-      <span class="read">MB522 won <b class="num">${Wm[show[0]][show[1]]} of 24</b>${hov ? '' : ' (your square)'}</span>`
-      : html`<span class="note">Hover a square to see both plans. Rows are MB522's plans, banded by who leads; columns are MB763's.</span>`}</div>
-  </div>`;
-}
 function Pips({ i, j }) {
   return html`<div class="pips" role="img" aria-label=${`MB522 won ${Wm[i][j]} of 24 battles`}>
     ${P.pours.map((pw, q) => html`<div><span class="note">pour ${q + 1}</span>${Array.from({ length: 8 }, (_, k) => html`<i class=${k < pw[i][j] ? 'w' : 'l'}></i>`)}</div>`)}
@@ -978,7 +905,9 @@ function GameNesting({ report }) {
           <p class="read" aria-live="polite">MB522 won <b class="num">${winsSoFar} of ${shown}</b>${shown === 24 ? '. That fills one square of the preview board.' : ' so far…'}</p>`}`,
     4: () => html`<p class="read">One square is filled. The preview game's value comes from the whole board, not from one square.</p>
       <div class="scoreview">
-        <${SpriteBoard} cell=${4} mark=${[i, them]} spot=${spot} markRef=${markRef} boardRef=${boardRef} />
+        <div class="minib big" ref=${boardRef}><img class="board" src=${BOARD_URL} width="240" height="240" alt="All 8,100 pairs of plans" />
+          <img class="spot" data-on=${spot} src=${SPOT_URL} width="240" height="240" alt="" />
+          <i class="mk" ref=${markRef} style=${`left:${((them + 0.5) / 90 * 100).toFixed(2)}%;top:${((i + 0.5) / 90 * 100).toFixed(2)}%`}></i></div>
         <div style="display:grid;gap:10px">
           <p class="note">Your square: MB522 won <b class="num">${Wm[i][them]} of 24</b>. It is one of 8,100.</p>
           ${spot && html`<p class="note scoreline">Both spinners only ever meet in these ${Object.keys(P.eq.x).length * Object.keys(P.eq.y).length} squares. Their weighted average is <b class="num">${f3(V)}</b>, the value of the preview game.</p>`}
@@ -1043,7 +972,7 @@ const PROBES = [
 ];
 function VariantA({ report }) {
   const q0 = new URLSearchParams(location.search).get('probe');
-  const [probe, setProbe] = useState(PROBES.some(p => p[0] === q0) ? q0 : 'A3');   // A3 is the version the owner kept
+  const [probe, setProbe] = useState(PROBES.some(p => p[0] === q0) ? q0 : 'A0');
   useEffect(() => { try { const u = new URLSearchParams(location.search); u.set('probe', probe); history.replaceState(null, '', '?' + u); } catch (e) { /* file:// */ } }, [probe]);
   const rep = useCallback(s => report({ probe, ...s }), [probe, report]);
   const View = { A0: DollsShelf, A1: NestedDolls, A2: PlainLevels, A3: GameNesting, A4: ClickDown }[probe];
@@ -1112,12 +1041,10 @@ function Gauge({ value, ghost }) {
       <circle cx="56" cy="0" r="8" class="mark" /><text x="70" y="5" class="vl">${f3(value)}</text></g>
   </svg>`;
 }
-// One row per lead pair (its two sprites first), then its six plans, each showing the two in the back.
 function PlanGrid({ side, struck, w }) {
-  return html`<div class="pgrid ${side}">${GRID[side].map((g, r) => html`<div class=${'prow' + (g.every(struck) ? ' allout' : '')}>
-    <span class="plead">${PL[side][g[0]].lead.map(k => html`<img class="sp" src=${T[side][k].sprite} width="18" height="18" alt=${T[side][k].name} />`)}</span>
-    ${g.map(i => html`<i class=${struck(i) ? 'x' : w[i] > 0 ? 'on' : ''} style=${`transition-delay:${r * 20}ms;` + (w[i] > 0 ? `--w:${Math.round(Math.min(100, 30 + w[i] * 250))}%` : '')}
-      title=${planName(side, i) + (w[i] > 0 ? ' · picked ' + pct(w[i]) : '')}>${PL[side][i].back.map(k => html`<img class="sp" src=${T[side][k].sprite} width="13" height="13" alt="" />`)}</i>`)}</div>`)}</div>`;
+  return html`<div class="pgrid ${side}" aria-hidden="true">${GRID[side].map((g, r) => html`<div>${g.map(i =>
+    html`<i class=${struck(i) ? 'x' : w[i] > 0 ? 'on' : ''} style=${`transition-delay:${r * 20}ms;` + (w[i] > 0 ? `--w:${Math.round(Math.min(100, 30 + w[i] * 250))}%` : '')}
+      title=${planName(side, i) + (w[i] > 0 ? ' · ' + pct(w[i]) : '')}></i>`)}</div>`)}</div>`;
 }
 function TopMix({ side, w }) {
   const top = w.map((v, i) => [i, v]).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -1168,8 +1095,6 @@ function VariantB({ report }) {
       <${Tower} side="them" pulled=${pb} toggle=${toggle('them')} cost=${last.cost} version=${last.side === 'them' ? last.v : null} use=${bringShare('them', cy)} />
     </div>
     ${both && html`<${LeadBoard} pa=${pa} pb=${pb} cx=${cx} cy=${cy} value=${cur.value} />`}
-    <div class="bboard"><p class="lab">The matchup matrix · <span class="num">${int(plansLeft('you', pa) * plansLeft('them', pb))}</span> of 8,100 squares still in play</p>
-      <${SpriteBoard} cell=${5} rowsOut=${hit('you', pa)} colsOut=${hit('them', pb)} /></div>
     <div class="grids">
       <div><p class="lab">MB522's plans · ${plansLeft('you', pa)} of 90 left</p><${PlanGrid} side="you" struck=${hit('you', pa)} w=${cx} /><p class="note">Its mix now:</p><${TopMix} side="you" w=${cx} /></div>
       <div><p class="lab">MB763's plans · ${plansLeft('them', pb)} of 90 left</p><${PlanGrid} side="them" struck=${hit('them', pb)} w=${cy} /><p class="note">Its mix now:</p><${TopMix} side="them" w=${cy} /></div>
@@ -1192,8 +1117,527 @@ function VariantB({ report }) {
   <//>`;
 }
 
-// Draw one plan from a mix (used by A3's lock-in: MB763 spins its equilibrium spinner).
+// ================= C — Mind-reading chase =================
+function chaseFrom(start) {
+  const th = [{ who: 'you', plan: start, vs: null, wins: null }], seen = new Map();
+  let i = start;
+  for (;;) {
+    const j = argmin(Wm[i]), key = i * 90 + j;
+    if (seen.has(key)) return { th, loopFrom: seen.get(key) };
+    seen.set(key, th.length);
+    th.push({ who: 'them', plan: j, vs: i, wins: Wm[i][j] });
+    const i2 = colMax(j);
+    th.push({ who: 'you', plan: i2, vs: j, wins: Wm[i2][j] });
+    i = i2;
+  }
+}
+const CHASES = [...Array(90).keys()].map(chaseFrom);
+const LOOP_KEYS = new Set(CHASES.map(c => c.th.slice(c.loopFrom).filter(t => t.who === 'them').map(t => t.vs * 90 + t.plan).sort((a, b) => a - b).join()));
+const LOOP_LENS = [...new Set(CHASES.map(c => c.th.length - c.loopFrom))].sort((a, b) => a - b);
+// One square per plan, coloured by MB522's win rate: a row (your plan against each of their 90) or a column (each of
+// your 90 against their plan). Cached as 90×1 images.
+const STRIP_CACHE = new Map();
+const stripURL = (kind, k) => {
+  const key = kind + k; if (STRIP_CACHE.has(key)) return STRIP_CACHE.get(key);
+  const c = document.createElement('canvas'); c.width = 90; c.height = 1; const ctx = c.getContext('2d');
+  for (let x = 0; x < 90; x++) { ctx.fillStyle = rate(kind === 'row' ? M[k][x] : M[x][k]); ctx.fillRect(x, 0, 1, 1); }
+  const url = c.toDataURL(); STRIP_CACHE.set(key, url); return url;
+};
+// Why this answer: their best answer is the lowest square in your plan's row; yours is the highest in their plan's column.
+function AnswerStrip({ t, live, delay }) {
+  const ref = useRef(null), mk = useRef(null), them = t.who === 'them';
+  const vals = them ? Wm[t.vs] : Wm.map(r => r[t.vs]);
+  useLayoutEffect(() => {
+    if (!live || !ref.current || !mk.current) return;
+    const x = ref.current.getBoundingClientRect().width * (t.plan + 0.5) / 90;
+    mk.current.animate(reducedMotion() ? [{ opacity: 0 }, { opacity: 1 }] : [{ transform: `translateX(${-x}px)` }, { transform: 'none' }],
+      { duration: 500, easing: EASE_IN_OUT, delay: delay + 250, fill: 'backwards' });
+  }, []);
+  return html`<div class="astrip">
+    <div class="astrip-bar" ref=${ref}><img src=${stripURL(them ? 'row' : 'col', t.vs)} alt="" />
+      <i class="astrip-mk" ref=${mk} style=${`left:${((t.plan + 0.5) / 90 * 100).toFixed(2)}%`}></i></div>
+    <span class="note">${them ? `MB522's plan against each of MB763's 90 plans; their answer is the lowest square, ${Math.min(...vals)} of 24.`
+      : `Each of MB522's 90 plans against theirs; your answer is the highest square, ${Math.max(...vals)} of 24.`}</span>
+  </div>`;
+}
+function Thought({ t, n, hidden, delay = 0, live = false }) {
+  if (hidden) return html`<div class="thought hidden"><span class="lab">Thought ${n}</span><span>…</span></div>`;
+  const text = t.vs == null ? html`You plan to lead <b>${nm('you', PL.you[t.plan].lead)}</b>.`
+    : t.who === 'them' ? html`They expect that, and answer with <b>${nm('them', PL.them[t.plan].lead)}</b>.`
+    : html`You expect that, and switch to <b>${nm('you', PL.you[t.plan].lead)}</b>.`;
+  return html`<div class="thought ${t.who}" style=${delay ? `transition-delay:${delay}ms` : ''}>
+    <span class="lab">${n}. ${t.who === 'you' ? 'You think' : 'They think'}</span>
+    <p>${text}</p>
+    <${Plan} side=${t.who} p=${t.plan} size=${26} labels=${true} />
+    ${t.vs != null && html`<${AnswerStrip} t=${t} live=${live} delay=${delay} />`}
+    ${t.wins != null && html`<p class="score num">MB522 wins ${t.wins} of 24 here</p>`}
+  </div>`;
+}
+const STAGGER = 70;   // ms between cards when several are revealed by one click
+function VariantC({ report }) {
+  const [start, setStart] = useState(argmax(RM));
+  const [shown, setShown] = useState(99);
+  const [live, setLive] = useState(false);   // motion only after the reader acts; the figure loads still
+  const ch = CHASES[start], total = ch.th.length, vis = Math.min(shown, total);
+  const before = useRef({ start, vis }), ringRef = useRef(null);
+  const [base, setBase] = useState(0);   // cards already on screen when the reader clicked; new ones stagger from here
+  useEffect(() => report({ start: planName('you', start), thoughtsShown: vis, of: total, loopStartsAtThought: ch.loopFrom + 1 }), [start, vis]);
+  // When a click completes the loop, a ring flashes on the first loop card: the chase is back where it was.
+  useEffect(() => {
+    const was = before.current; before.current = { start, vis };
+    if (!live || ch.th.length - ch.loopFrom !== 4 || vis < total || (was.start === start && was.vis >= total) || !ringRef.current) return;
+    const delay = Math.max(0, total - 1 - base) * STAGGER + 250;
+    ringRef.current.animate(reducedMotion() ? [{ opacity: 0 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }]
+      : [{ opacity: 0, transform: 'scale(0.98)' }, { opacity: 1, transform: 'scale(1)', offset: 0.3 }, { opacity: 0, transform: 'scale(1.02)' }],
+      { duration: 700, easing: EASE_OUT, delay });
+  }, [start, vis]);
+  const card = (t, idx) => html`<${Thought} key=${`${start}-${idx}-${idx < vis ? 's' : 'h'}`} t=${t} n=${idx + 1} hidden=${idx >= vis}
+    delay=${live && idx >= base ? (idx - base) * STAGGER : 0} live=${live && idx >= base} />`;
+  const tail = ch.th.slice(0, ch.loopFrom), loop = ch.th.slice(ch.loopFrom), L0 = ch.loopFrom;
+  const lit = k => vis > L0 + k;   // the arrow into loop card k lights once that card is on screen
+  return html`<${Fig} n="3" title="I think that you think that I think" serves="¶4: making your preview fine against their plans"
+      lead="Pick a plan. The opponent answers it with their best plan; you answer that; they answer again. Every answer here is the best one in the real matrix."
+      caption=${html`Each thought is the best reply to the one before it, read off the 8,100 squares. From every one of MB522's 90 plans the chase falls into a loop, so no single plan is safe to commit to. A score like 24 of 24 is the luckiest square in its column; picking the best of 90 noisy squares inflates it. ${WIN}`}>
+    <div class="row spread">
+      <label class="note">Start from <select value=${start} onChange=${e => { setLive(true); setBase(0); setStart(+e.target.value); setShown(99); }}>
+        ${BYNAME('you').map(i => html`<option value=${i}>${planName('you', i)}</option>`)}</select></label>
+      <div class="row">
+        <button type="button" onClick=${() => { setLive(true); setBase(0); setShown(1); }}>Start over</button>
+        <button type="button" onClick=${() => { setLive(true); setBase(vis); setShown(vis + 1); }} disabled=${vis >= total}>Next thought</button>
+        <button type="button" onClick=${() => { setLive(true); setBase(vis); setShown(99); }} disabled=${vis >= total}>Show all</button>
+      </div>
+    </div>
+    <div class=${'chase' + (live ? ' live' : '')}>
+    ${tail.length > 0 && html`<div class="tail"><p class="lab">How the chase starts</p><div class="row">${tail.map((t, k) => card(t, k))}</div></div>`}
+    ${loop.length === 4 ? html`<div class="track" aria-label="The loop">
+        <div class="c1"><span class="ring" ref=${ringRef}></span>${card(loop[0], L0)}</div><div class=${'a12 arrow' + (lit(1) ? ' on' : '')}>→</div><div class="c2">${card(loop[1], L0 + 1)}</div>
+        <div class=${'a41 arrow' + (lit(3) ? ' on' : '')}>↑</div><div class=${'mid note' + (lit(3) ? ' on' : '')}>Back to thought ${L0 + 1}. The chase never settles.</div><div class=${'a23 arrow' + (lit(2) ? ' on' : '')}>↓</div>
+        <div class="c4">${card(loop[3], L0 + 3)}</div><div class=${'a34 arrow' + (lit(3) ? ' on' : '')}>←</div><div class="c3">${card(loop[2], L0 + 2)}</div>
+      </div>`
+      : html`<div class="tail"><div class="row">${loop.map((t, k) => card(t, L0 + k))}</div><p class="note">↺ back to thought ${L0 + 1}</p></div>`}
+    </div>
+    <p class="read">From every one of MB522's 90 plans the chase ends in a loop of ${LOOP_LENS.join(' or ')} thoughts. There are ${LOOP_KEYS.size} different loops.</p>
+  <//>`;
+}
+
+// ================= D — Loaded spinner =================
+function fpInit() { return { t: 0, i: argmax(RM), cntR: Array(90).fill(0), cntC: Array(90).fill(0), rowPay: Array(90).fill(0), colPay: Array(90).fill(0), hist: [] }; }
+function fpRun(s, n) {
+  const S = { ...s, cntR: s.cntR.slice(), cntC: s.cntC.slice(), rowPay: s.rowPay.slice(), colPay: s.colPay.slice(), hist: s.hist.slice() };
+  for (let k = 0; k < n; k++) {
+    const i = S.i; S.cntR[i]++; for (let j = 0; j < 90; j++) S.rowPay[j] += M[i][j];
+    const j = argmin(S.rowPay); S.cntC[j]++; for (let r = 0; r < 90; r++) S.colPay[r] += M[r][j];
+    S.i = argmax(S.colPay); S.t++;
+    const t = S.t;
+    if (t <= 20 || (t <= 200 && t % 5 === 0) || (t <= 2000 && t % 50 === 0) || t % 500 === 0)
+      S.hist.push([t, Math.min(...S.rowPay) / t, Math.max(...S.colPay) / t]);
+  }
+  return S;
+}
+function wedgesOf(w) {
+  const items = w.map((v, i) => [i, v]).filter(e => e[1] > 1e-4).sort((a, b) => b[1] - a[1]);
+  let a = -Math.PI / 2;
+  return items.map(([i, v]) => { const a0 = a; a += v * 2 * Math.PI; return { i, v, a0, a1: a }; });
+}
+// Degrees to add so the chosen wedge's middle stops under the pointer (top), after two full turns.
+function spinTo(cur, w, k) {
+  const d = wedgesOf(w).find(d => d.i === k), mid = (d.a0 + d.a1) / 2 * 180 / Math.PI, target = -90 - mid;
+  return cur + 720 + ((((target - cur) % 360) + 360) % 360);
+}
+function Pie({ side, w, sel, rot = 0 }) {
+  const R = 112, cx = 130, cy = 136;
+  const wedges = wedgesOf(w), items = wedges;
+  const pt = (r, t) => `${(cx + r * Math.cos(t)).toFixed(2)},${(cy + r * Math.sin(t)).toFixed(2)}`;
+  const arc = d => d.a1 - d.a0 > 2 * Math.PI - 1e-6 ? `M${pt(R, 0)}A${R},${R} 0 1 1 ${pt(R, Math.PI)}A${R},${R} 0 1 1 ${pt(R, 0)}Z`
+    : `M${cx},${cy}L${pt(R, d.a0)}A${R},${R} 0 ${d.a1 - d.a0 > Math.PI ? 1 : 0} 1 ${pt(R, d.a1)}Z`;
+  return html`<svg class="pie ${side}" viewBox="0 0 260 256" role="img" aria-label=${`${NAMES[side]}'s spinner: ${items.length} plans with a wedge`}>
+    <g class="rotor" style=${`transform:rotate(${rot}deg)`}>
+    ${items.length === 0 ? html`<circle cx=${cx} cy=${cy} r=${R} class="empty" />` : wedges.map((d, n) =>
+      html`<path d=${arc(d)} class=${'wedge' + (d.i === sel ? ' sel' : '')} style=${`opacity:${n % 2 ? 0.72 : 1}`}><title>${planName(side, d.i)}: ${pct(d.v)}</title></path>`)}
+    ${wedges.filter(d => d.v >= 0.06).map(d => {
+      const m = (d.a0 + d.a1) / 2, lx = cx + R * 0.64 * Math.cos(m), ly = cy + R * 0.64 * Math.sin(m), pl = PL[side][d.i];
+      return html`<g class="upright" style=${`transform:rotate(${-rot}deg)`}><image href=${T[side][pl.lead[0]].sprite} x=${lx - 22} y=${ly - 20} width="22" height="22" />
+        <image href=${T[side][pl.lead[1]].sprite} x=${lx} y=${ly - 20} width="22" height="22" />
+        <text x=${lx} y=${ly + 14} text-anchor="middle" class="wl">${pct(d.v)}</text></g>`; })}
+    </g>
+    <path d=${`M${cx - 9},6L${cx + 9},6L${cx},22Z`} class="pointer" />
+  </svg>`;
+}
+function FpPlot({ hist }) {
+  const W = 320, H = 150, tmax = Math.max(10, hist.length ? hist[hist.length - 1][0] : 10);
+  const x = t => 34 + Math.log10(t) / Math.log10(tmax) * (W - 44), y = v => 8 + (0.75 - clamp(v, 0.25, 0.75)) / 0.5 * (H - 30);
+  const line = k => hist.map((h, n) => `${n ? 'L' : 'M'}${x(h[0]).toFixed(1)},${y(h[k]).toFixed(1)}`).join('');
+  return html`<svg class="fpplot" viewBox=${`0 0 ${W} ${H}`} width="100%" style="max-width:320px" role="img" aria-label="Floor and ceiling over the rounds played">
+    <line x1="34" x2=${W - 10} y1=${H - 22} y2=${H - 22} class="ax" />
+    ${[0.3, 0.5, 0.7].map(v => html`<text x="2" y=${y(v) + 4}>${v.toFixed(1)}</text>`)}
+    <line x1="34" x2=${W - 10} y1=${y(V)} y2=${y(V)} class="eq" />
+    ${hist.length > 1 && html`<path d=${line(1)} class="floor" /><path d=${line(2)} class="ceil" />`}
+    <text x="34" y=${H - 6}>round 1</text><text x=${W - 10} y=${H - 6} text-anchor="end">round ${int(tmax)}</text>
+  </svg>`;
+}
 const sample = w => { const r = Math.random(); let c = 0; for (let i = 0; i < 90; i++) { c += w[i]; if (r < c) return i; } return argmax(w); };
+const SPIN_MS = 1100;   // a real spinner's slow-down: long, strong ease-out
+const SPINNER_VS = M[0].map((_, j) => sum(X.map((x, i) => x * M[i][j])));   // MB522's spinner against each MB763 plan
+const MAXIMIN_ROW = argmax(Wm.map(r => Math.min(...r)));                    // the single plan with the best worst square
+const STRIP_ORDER = [...Array(90).keys()].sort((a, b) => SPINNER_VS[a] - SPINNER_VS[b]);
+const STRIP_H = 140;
+// Proposal 1: no MB763 plan pushes the spinner below 0.478; a single plan can be pushed to 0.333.
+function FloorStrip() {
+  const [what, setWhat] = useState('mix');
+  const ref = useRef(null), played = useRef(false);
+  const vals = what === 'mix' ? SPINNER_VS : M[MAXIMIN_ROW], floor = Math.min(...vals), at = argmin(vals);
+  useEffect(() => {   // bars rise once, the first time the strip scrolls into view
+    const el = ref.current; if (!el || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(es => {
+      if (!es[0].isIntersecting || played.current) return;
+      played.current = true; io.disconnect();
+      const quiet = reducedMotion();
+      el.querySelectorAll('.fbar').forEach((b, n) => b.animate(quiet ? [{ opacity: 0 }, { opacity: 1 }] : [{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0 0 0 0)' }],
+        { duration: 400, easing: EASE_OUT, delay: n * 8, fill: 'backwards' }));
+      const fl = el.querySelector('.floorline');
+      fl && fl.animate(quiet ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, translate: '0 -6px' }, { opacity: 1, translate: '0 0' }], { duration: 250, easing: EASE_OUT, delay: 90 * 8 + 400, fill: 'backwards' });
+    }, { threshold: 0.5 });
+    io.observe(el); return () => io.disconnect();
+  }, []);
+  return html`<div class="floorbox">
+    <div class="row spread"><p class="lab">MB522 against each of MB763's 90 plans</p>
+      <${Seg} label="Which MB522" value=${what} set=${setWhat} options=${[['mix', 'Its spinner'], ['one', 'Its best single plan']]} /></div>
+    <div class="fstrip" ref=${ref}>
+      <div class="fbars">${STRIP_ORDER.map(j => html`<span class=${'fbar' + (Y[j] > 0 ? ' used' : '')} title=${`${planName('them', j)}: ${f3(vals[j])}`}>
+        <i style=${`transform:scaleY(${vals[j].toFixed(4)})`}></i></span>`)}</div>
+      <div class="floorline" style=${`transform:translateY(${(-floor * STRIP_H).toFixed(1)}px)`}><span class="num">floor ${f3(floor)}</span></div>
+    </div>
+    <p class="note">${what === 'mix'
+      ? html`Bars are MB522's win rate when it spins its spinner against each MB763 plan, lowest on the left. None drops below <b class="num">${f3(floor)}</b>; the red bars are the plans MB763's own spinner uses, and every one of them sits on that floor.`
+      : html`The same bars for MB522's best single plan, ${planName('you', MAXIMIN_ROW)}. One MB763 plan holds it to <b class="num">${Wm[MAXIMIN_ROW][at]} of 24 (${f3(floor)})</b>. Mixing raises the floor from ${f3(floor)} to ${f3(V)}.`}</p>
+  </div>`;
+}
+// Proposal 2: one spin is one square; the guarantee is what many spins average out to.
+function HundredSpins({ wx, wy }) {
+  const [draws, setDraws] = useState(null), [k, setK] = useState(0);
+  useEffect(() => {
+    if (!draws) return;
+    let n = 0, t;
+    const tick = () => { n++; setK(n); if (n < 100) t = setTimeout(tick, 10); };
+    t = setTimeout(tick, 10);
+    return () => clearTimeout(t);
+  }, [draws]);
+  const avg = draws && k ? mean(draws.slice(0, k).map(([i, j]) => M[i][j])) : null;
+  return html`<div class="hundred">
+    <div class="row"><button type="button" onClick=${() => { setK(0); setDraws(Array.from({ length: 100 }, () => [sample(wx), sample(wy)])); }}>Spin 100 times</button>
+      ${draws && html`<span class="read" aria-live="polite">Average square after <b class="num">${k}</b> spins: <b class="num">${avg == null ? '–' : f3(avg)}</b>. The spinners' value is <b class="num">${f3(V)}</b>.</span>`}</div>
+    ${draws && html`<div class="hdots" key=${draws}>${draws.map(([i, j], n) => html`<i class=${'hd' + (n < k ? ' on' : '')} style=${`background:${rate(M[i][j])}`} title=${`${Wm[i][j]} of 24`}></i>`)}</div>
+      ${k === 100 && html`<p class="note">Each dot is one spin of both spinners: one square, 24 battles. Single squares range widely; their average settles near ${f3(V)}.</p>`}`}
+  </div>`;
+}
+// A number that rolls in when its value changes (reader-triggered only: no roll on first render).
+function Roll({ value, cls = '' }) {
+  const ref = useRef(null), prev = useRef(value);
+  useLayoutEffect(() => {
+    const el = ref.current, p = prev.current; prev.current = value;
+    if (!el || p === value) return;
+    el.animate(reducedMotion() ? [{ opacity: 0.3 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: EASE_OUT });
+  }, [value]);
+  return html`<span class=${'roll ' + cls} ref=${ref}>${value}</span>`;
+}
+function VariantD({ report }) {
+  const [mode, setMode] = useState('eq');
+  const [fp, setFp] = useState(fpInit);
+  const [spin, setSpin] = useState(null), [landed, setLanded] = useState(true), [rot, setRot] = useState({ you: 0, them: 0 }), [live, setLive] = useState(false);
+  const wx = mode === 'eq' ? X : fp.t ? fp.cntR.map(c => c / fp.t) : Array(90).fill(0);
+  const wy = mode === 'eq' ? Y : fp.t ? fp.cntC.map(c => c / fp.t) : Array(90).fill(0);
+  const floor = mode === 'eq' ? V : fp.t ? Math.min(...fp.rowPay) / fp.t : null;
+  const ceil = mode === 'eq' ? V : fp.t ? Math.max(...fp.colPay) / fp.t : null;
+  const nx = wx.filter(v => v > 1e-4).length, ny = wy.filter(v => v > 1e-4).length;
+  useEffect(() => report({ mode, rounds: fp.t, mb522Floor: floor, mb763Ceiling: ceil, wedgesMB522: nx, wedgesMB763: ny, spin: spin && { mb522: planName('you', spin.i), mb763: planName('them', spin.j), wins: Wm[spin.i][spin.j] } }), [mode, fp, spin]);
+  const canSpin = nx > 0 && ny > 0;
+  // Both spinners turn at once (the players choose at the same moment) and stop together; the result shows when they stop.
+  const spinBoth = () => {
+    const s = { i: sample(wx), j: sample(wy) };
+    setRot(r => ({ you: spinTo(r.you, wx, s.i), them: spinTo(r.them, wy, s.j) }));
+    setSpin(s); setLanded(false); setLive(true);
+  };
+  useEffect(() => { if (landed) return; const t = setTimeout(() => setLanded(true), reducedMotion() ? 0 : SPIN_MS); return () => clearTimeout(t); }, [spin, landed]);
+  return html`<${Fig} n="4" title="The best preview is a loaded spinner" serves="¶4: what 'fine against every plan' means"
+      lead="The way out of the chase is not a better plan but a weighted spin over a few plans. Each side's equilibrium spinner holds the other to the same number."
+      caption=${html`Left: MB522's equilibrium spinner, 11 wedges, every other plan zero. Right: MB763's. Spinning these, MB522 wins ${f3(V)} however MB763 plays, and MB763 holds MB522 to ${f3(V)} however MB522 plays. Fictitious play finds the same spinners by having each side best-answer the other's history; the floor (MB522's guarantee) and the ceiling (MB763's) close in on ${f3(V)}. ${WIN}`}>
+    <div class="row spread">
+      <${Seg} label="Which spinners" value=${mode} set=${v => { setLive(true); setMode(v); setSpin(null); setLanded(true); }} options=${[['eq', 'Equilibrium spinners'], ['fp', 'Spinners learned by fictitious play']]} />
+      <button type="button" disabled=${!canSpin} onClick=${spinBoth}>Spin both</button>
+    </div>
+    <div class=${'spinners' + (live ? ' live' : '')}>
+      <div><p class="lab">MB522 · ${nx} of 90 plans have a wedge</p><${Pie} key=${mode} side="you" w=${wx} sel=${spin && landed ? spin.i : null} rot=${rot.you} /></div>
+      <div><p class="lab">MB763 · ${ny} of 90 plans have a wedge</p><${Pie} key=${mode} side="them" w=${wy} sel=${spin && landed ? spin.j : null} rot=${rot.them} /></div>
+    </div>
+    <${HundredSpins} key=${mode} wx=${wx} wy=${wy} />
+    ${spin && landed && html`<div class="row spinres" aria-live="polite" key=${`${spin.i}-${spin.j}-${rot.you}`}><${Plan} side="you" p=${spin.i} size=${26} /><span class="vs">vs</span><${Plan} side="them" p=${spin.j} size=${26} />
+      <span class="read">That square: MB522 won <b class="num">${Wm[spin.i][spin.j]} of 24</b>.</span></div>`}
+    ${mode === 'fp' && html`<div class="row" style="align-items:flex-start">
+      <div style="display:grid;gap:10px">
+        <div class="row">${[1, 10, 100, 1000].map(n => html`<button type="button" onClick=${() => { setSpin(null); setFp(s => fpRun(s, n)); }}>+${int(n)} round${n > 1 ? 's' : ''}</button>`)}
+          <button type="button" onClick=${() => { setFp(fpInit()); setSpin(null); }}>Reset</button></div>
+        <div class="readouts">
+          <div><span class="lab">Rounds</span><span class="big"><${Roll} value=${int(fp.t)} /></span></div>
+          <div><span class="lab">MB522's floor</span><span class="big y"><${Roll} value=${floor == null ? '–' : f3(floor)} /></span></div>
+          <div><span class="lab">MB763's ceiling</span><span class="big t"><${Roll} value=${ceil == null ? '–' : f3(ceil)} /></span></div>
+        </div>
+      </div>
+      <${FpPlot} hist=${fp.hist} />
+    </div>`}
+    ${mode === 'eq' && html`<${FloorStrip} />`}
+  <//>`;
+}
+
+// ================= E — Thinking makes MB522 worse =================
+function VariantE({ report }) {
+  const TH = P.think;
+  const [guess, setGuess] = useState(null), [revealed, setRevealed] = useState(false);
+  const [you, setYou] = useState(true), [them, setThem] = useState(true);
+  const lo = 0.30, hi = 0.70, at = v => `${((v - lo) / (hi - lo) * 100).toFixed(2)}%`;
+  const place = e => { if (revealed) return; const r = e.currentTarget.getBoundingClientRect(); setGuess(+clamp(lo + (e.clientX - r.left) / r.width * (hi - lo), lo, hi).toFixed(3)); };
+  const keys = e => { if (revealed || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return; e.preventDefault(); setGuess(g => +clamp((g ?? RANDOM) + (e.key === 'ArrowRight' ? 0.005 : -0.005), lo, hi).toFixed(3)); };
+  const cells = [[TH.randomRandom, TH.youRandomTheyThink], [TH.youThinkTheyRandom, TH.bothThink]];
+  useEffect(() => report({ guess, revealed, mb522ChoosesWell: you, mb763ChoosesWell: them, cell: cells[+you][+them] }), [guess, revealed, you, them]);
+  const hid = (r, c) => !revealed && (r || c);   // only random-vs-random is shown before the reveal
+  const show = (r, c) => hid(r, c) ? '?' : f3(cells[r][c]);
+  return html`<${Fig} n="5" title="When both players think, MB522 gets worse" serves="¶4: an opener for the spinner"
+      lead="Both players can pick a preview at random or choose well. Before you look: does MB522 win more or less when both choose well?"
+      caption=${html`Place a guess on the scale, then reveal. The table shows all four cases: each side either picks one of its 90 plans at random or spins its equilibrium spinner. In battles held out from the fit, every number moves by at most 0.014. ${WIN}`}>
+    <div>
+      <p class="lab">Your guess: MB522's win rate when both players choose well</p>
+      <div class="scale" role="slider" tabindex="0" data-arrows aria-label="Your guess" aria-valuemin=${lo} aria-valuemax=${hi} aria-valuenow=${guess ?? RANDOM}
+        onPointerDown=${e => { e.currentTarget.setPointerCapture(e.pointerId); place(e); }}
+        onPointerMove=${e => { if (e.currentTarget.hasPointerCapture(e.pointerId)) place(e); }} onKeyDown=${keys}>
+        <div class="axis"></div>
+        ${[0.3, 0.4, 0.5, 0.6, 0.7].map(t => html`<span class="tk" style=${`left:${at(t)}`}>${t.toFixed(1)}</span>`)}
+        <span class="mk random" style=${`left:${at(TH.randomRandom)}`}><span>both pick at random</span><b class="num">${f3(TH.randomRandom)}</b></span>
+        ${guess != null && html`<span class="mk guess" style=${`left:${at(guess)}`}><b class="num">${f3(guess)}</b><span>your guess</span></span>`}
+        ${revealed && html`<span class="mk truth" style=${`left:${at(TH.bothThink)}`}><b class="num">${f3(TH.bothThink)}</b><span>both choose well</span></span>`}
+      </div>
+    </div>
+    <div class="row">
+      <button type="button" disabled=${guess == null || revealed} onClick=${() => setRevealed(true)}>Reveal</button>
+      <button type="button" disabled=${guess == null && !revealed} onClick=${() => { setGuess(null); setRevealed(false); }}>Reset</button>
+      ${guess == null && html`<span class="note">Click or drag on the scale to place your guess.</span>`}
+    </div>
+    ${revealed && html`<p class="read">You guessed <b class="num">${f3(guess)}</b>. When both choose well MB522 wins <b class="num">${f3(TH.bothThink)}</b>, ${pts(TH.bothThink - TH.randomRandom)} against random previews. Choosing well alone is worth ${(100 * (TH.youThinkTheyRandom - TH.randomRandom)).toFixed(1)} points to MB522 and ${(100 * (TH.randomRandom - TH.youRandomTheyThink)).toFixed(1)} points to MB763: MB763 has more to gain from the preview.</p>`}
+    <div style="overflow-x:auto">
+      <table class="tt"><thead><tr><th></th><th>MB763 picks at random</th><th>MB763 spins its spinner</th></tr></thead><tbody>
+        ${[0, 1].map(r => html`<tr><th class="rowh">${r ? 'MB522 spins its spinner' : 'MB522 picks at random'}</th>
+          ${[0, 1].map(c => html`<td class=${(+you === r && +them === c) ? 'on' : ''} style=${hid(r, c) ? '' : `background:${rate(cells[r][c], 0.55)}`}>${show(r, c)}</td>`)}</tr>`)}
+      </tbody></table>
+    </div>
+    <div class="row">
+      <button type="button" aria-pressed=${you} onClick=${() => setYou(v => !v)}>MB522 chooses well: ${you ? 'yes' : 'no'}</button>
+      <button type="button" aria-pressed=${them} onClick=${() => setThem(v => !v)}>MB763 chooses well: ${them ? 'yes' : 'no'}</button>
+    </div>
+  <//>`;
+}
+
+// ================= F — Periscope =================
+function Scopes({ view }) {
+  const scope = (x, up, dir) => { const top = up ? 12 : 96, ex = x + dir * 46; return html`<path d=${`M${x},176 L${x},${top} L${ex},${top}`} /><circle cx=${ex} cy=${top} r="6" />`; };
+  return html`<svg class="scopes" viewBox="0 0 260 180" width="100%" aria-hidden="true">
+    <line x1="0" x2="260" y1="177" y2="177" class="ground" />
+    <rect x="120" y="34" width="20" height="143" class="wallr" />
+    <g class="you">${scope(84, view === 'you', 1)}</g><g class="them">${scope(176, view === 'they', -1)}</g>
+  </svg>`;
+}
+function VariantF({ report }) {
+  const K = P.peek;
+  const [view, setView] = useState('none'), [mirage, setMirage] = useState(false);
+  const [exT, setExT] = useState(argmax(Y)), [exY, setExY] = useState(argmax(X));
+  const marks = [['they', K.theyReadYou, 'they see your plan'], ['none', V, 'nobody sees'], ['you', K.youReadThem, 'you see their plan']];
+  const promised = view === 'you' ? K.youReadThemPromised : view === 'they' ? K.theyReadYouPromised : null;
+  const val = marks.find(m => m[0] === view)[1];
+  useEffect(() => report({ view, winRate: val, mirage, example: view === 'you' ? planName('them', exT) : view === 'they' ? planName('you', exY) : null }), [view, mirage, exT, exY]);
+  const ey = K.examples.you[exT], et = K.examples.them[exY];
+  return html`<${Fig} n="6" title="What a peek is worth" serves="¶1–3: choosing at the same moment, and how much you see"
+      lead="Team preview hides one thing from both players: the other's plan. Raise a periscope over the wall and see what that is worth."
+      caption=${html`Peeking numbers come from fresh battles: the best answer is picked on 16 battles a square and scored on the other 8 (three ways round, averaged). Picked and scored on the same battles, the matrix promises the mind-reader ${f3(K.youReadThemPromised)}; fresh battles pay ${f3(K.youReadThem)}. The gap is the winner's curse of picking the best of 90 noisy squares. ${WIN}`}>
+    <${Seg} label="Who peeks" value=${view} set=${setView} options=${[['they', 'They see your plan'], ['none', 'Nobody sees'], ['you', 'You see their plan']]} />
+    <div class="stage">
+      <div class="col"><span class="lab">MB522</span>${T.you.map((m, k) => html`<${Mon} side="you" k=${k} size=${30} />`)}</div>
+      <${Scopes} view=${view} />
+      <div class="col"><span class="lab">MB763</span>${T.them.map((m, k) => html`<${Mon} side="them" k=${k} size=${30} />`)}</div>
+    </div>
+    <div class="meter" role="img" aria-label=${`MB522 win rate ${f3(val)}`}>
+      <div class="bar"></div>
+      ${marks.map(([k, v, l]) => html`<div class="m ${k === view ? 'on' : ''}" style=${`left:${(v * 100).toFixed(1)}%`}><b>${f2(v)}</b><span>${l}</span></div>`)}
+      ${mirage && promised != null && html`<div class="m ghost" style=${`left:${(promised * 100).toFixed(1)}%`}><b>${f2(promised)}</b><span>promised</span></div>`}
+    </div>
+    <div class="row"><button type="button" aria-pressed=${mirage} disabled=${view === 'none'} onClick=${() => setMirage(m => !m)}>${mirage ? 'Hide' : 'Show'} what the matrix promised</button></div>
+    <div class="peekbox">
+      ${view === 'none' && html`<p class="read">Nobody peeks: both choose at the same moment, and the best either side can do is its spinner. MB522 wins <b class="num">${f3(V)}</b>.</p>`}
+      ${view === 'you' && html`<label class="note">Their plan <select value=${exT} onChange=${e => setExT(+e.target.value)}>${BYNAME('them').map(j => html`<option value=${j}>${planName('them', j)}</option>`)}</select></label>
+        <div class="row"><${Plan} side="them" p=${exT} size=${26} /><span class="vs">answered by</span><${Plan} side="you" p=${ey[0]} size=${26} /></div>
+        <p class="read">Picked on 16 battles a square, your best answer won <b class="num">${ey[1]} of 16</b> there. In 8 fresh battles it won <b class="num">${ey[2]} of 8</b>.</p>`}
+      ${view === 'they' && html`<label class="note">Your plan <select value=${exY} onChange=${e => setExY(+e.target.value)}>${BYNAME('you').map(i => html`<option value=${i}>${planName('you', i)}</option>`)}</select></label>
+        <div class="row"><${Plan} side="you" p=${exY} size=${26} /><span class="vs">answered by</span><${Plan} side="them" p=${et[0]} size=${26} /></div>
+        <p class="read">Picked on 16 battles a square, their best answer held MB522 to <b class="num">${et[1]} of 16</b>. In 8 fresh battles MB522 won <b class="num">${et[2]} of 8</b>.</p>`}
+    </div>
+  <//>`;
+}
+
+// ================= G — Album-cover ridgelines =================
+const RIDGE_FLOOR = 0.45;
+const rowsBy = by => { const idx = [...Array(90).keys()]; if (by === 'mean') idx.sort((a, b) => RM[b] - RM[a]); else if (by === 'worst') idx.sort((a, b) => Math.min(...Wm[b]) - Math.min(...Wm[a]) || RM[b] - RM[a]); return idx; };
+const colsBy = xo => { const easy = [...Array(90).keys()].sort((a, b) => CM[b] - CM[a]); if (xo === 'easy') return easy; const out = Array(90); let l = 44, r = 45; easy.forEach((j, k) => { if (k % 2 === 0) out[r++] = j; else out[l--] = j; }); return out; };
+function VariantG({ report }) {
+  const [by, setBy] = useState('mean'), [xo, setXo] = useState('album'), [sel, setSel] = useState(null);
+  const order = useMemo(() => rowsBy(by), [by]), cols = useMemo(() => colsBy(xo), [xo]);
+  const Wv = 660, s = 5, A = 46, top = A + 14, H = top + 89 * s + 22, x0 = 34, x1 = Wv - 34;
+  const xs = cols.map((_, k) => x0 + k * (x1 - x0) / 89);
+  const lift = p => Math.max(0, p - RIDGE_FLOOR) / (1 - RIDGE_FLOOR);   // flat where MB522 wins RIDGE_FLOOR or less
+  // Each line is drawn around its own baseline (y = 0) and placed with a transform, so re-sorting can glide it.
+  const ridge = i => cols.map((j, k) => `${k ? 'L' : 'M'}${xs[k].toFixed(1)},${(-A * lift(M[i][j])).toFixed(1)}`).join('');
+  const fillD = i => `${ridge(i)}L${x1},3L${x0},3Z`;
+  const svgRef = useRef(null), hiRef = useRef(null), hiWrap = useRef(null), dotRef = useRef(null), guideRef = useRef(null), labRef = useRef(null), prevOrder = useRef(order), played = useRef(false);
+  const yOf = r => top + r * s;
+  // Re-sort: every line glides from its old row to its new one (FLIP with WAAPI, so the new paint order is kept).
+  useLayoutEffect(() => {
+    const old = prevOrder.current; prevOrder.current = order;
+    if (old === order || !svgRef.current) return;
+    const was = new Map(old.map((i, r) => [i, r]));
+    if (sel != null && hiWrap.current && !reducedMotion())   // the highlight travels with its line
+      hiWrap.current.animate([{ transform: `translateY(${yOf(was.get(sel))}px)` }, { transform: `translateY(${yOf(order.indexOf(sel))}px)` }], { duration: 500, easing: EASE_IN_OUT, delay: Math.min(was.get(sel), order.indexOf(sel)) * 3 });
+    svgRef.current.querySelectorAll('g.rg').forEach(g => {
+      const i = +g.dataset.i, r0 = was.get(i), r1 = order.indexOf(i);
+      if (r0 === r1) return;
+      g.animate(reducedMotion() ? [{ opacity: 0.4 }, { opacity: 1 }] : [{ transform: `translateY(${yOf(r0)}px)` }, { transform: `translateY(${yOf(r1)}px)` }],
+        { duration: 500, easing: EASE_IN_OUT, delay: Math.min(r0, r1) * 3 });
+    });
+  }, [order]);
+  // The cover draws itself once, top line first, the first time it scrolls into view.
+  useEffect(() => {
+    const el = svgRef.current; if (!el || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(es => {
+      if (!es[0].isIntersecting || played.current) return;
+      played.current = true; io.disconnect();
+      el.querySelectorAll('g.rg').forEach((g, r) => g.animate(reducedMotion() ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, translate: '0 4px' }, { opacity: 1, translate: '0 0' }],
+        { duration: 300, easing: EASE_OUT, delay: r * 6, fill: 'backwards' }));
+    }, { threshold: 0.3 });
+    io.observe(el); return () => io.disconnect();
+  }, []);
+  // A picked line traces itself left to right; then a dot lands on its worst square and a guide drops to the plan that causes it.
+  useLayoutEffect(() => {
+    if (sel == null || !hiRef.current) return;
+    const quiet = reducedMotion();
+    hiRef.current.animate(quiet ? [{ opacity: 0 }, { opacity: 1 }] : [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 600, easing: EASE_OUT });
+    dotRef.current && dotRef.current.animate(quiet ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'scale(0.9)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: EASE_OUT, delay: quiet ? 0 : 600, fill: 'backwards' });
+    guideRef.current && guideRef.current.animate(quiet ? [{ opacity: 0 }, { opacity: 1 }] : [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 250, easing: EASE_OUT, delay: quiet ? 0 : 650, fill: 'backwards' });
+    labRef.current && labRef.current.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: EASE_OUT, delay: quiet ? 0 : 750, fill: 'backwards' });
+  }, [sel]);
+  // Proposal 3: sorting by worst case picks the top line once the glide is done, so the 8-of-24 floor is pointed at.
+  const WORST_TOP = useMemo(() => rowsBy('worst')[0], []);
+  useEffect(() => {
+    if (by !== 'worst') return;
+    const t = setTimeout(() => setSel(WORST_TOP), reducedMotion() ? 0 : 550);
+    return () => clearTimeout(t);
+  }, [by]);
+  const morph = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('d', 'path("M0 0")');   // Chrome: lines reshape when MB763's order changes
+  const dAttr = d => morph ? { style: `d:path("${d}")` } : { d };
+  const pick = e => { const [, py] = local(e, Wv, H); setSel(order[clamp(Math.ceil((py - top) / s), 0, 89)]); };
+  useEffect(() => report({ sortBy: by, xOrder: xo, selected: sel == null ? null : planName('you', sel) }), [by, xo, sel]);
+  const best = argmax(RM), bestWorst = Math.max(...Wm.map(r => Math.min(...r)));
+  const sr = sel == null ? null : order.indexOf(sel), worstJ = sel == null ? null : argmin(Wm[sel]);
+  return html`<${Fig} n="7" title="Ninety plans, one album cover" serves="¶4: average versus worst case"
+      lead="Each line is one of MB522's 90 plans, drawn across all 90 of MB763's. Height is MB522's win rate in that square."
+      caption=${html`Lines are stacked like the cover of Unknown Pleasures; a line hides the lines above it where it rises. A line lies flat wherever MB522 wins ${pct(RIDGE_FLOOR)} of a square or less, and rises with the win rate above that. The best plan on average wins ${f3(RM[best])}, but one MB763 plan holds it to ${Math.min(...Wm[best])} of 24. Sorted by worst case, the top line still dips to ${bestWorst} of 24 (${f3(bestWorst / 24)}): no single plan does better, which is why the answer is a spinner. ${WIN}`}>
+    <div class="row spread">
+      <${Seg} label="Sort the lines" value=${by} set=${setBy} options=${[['mean', 'Best average on top'], ['worst', 'Best worst case on top'], ['plan', 'Plan order']]} />
+      <${Seg} label="Order MB763's plans" value=${xo} set=${setXo} options=${[['album', 'Easiest for MB522 in the middle'], ['easy', 'Easiest to hardest']]} />
+    </div>
+    <div class="ridges">
+      <svg class="ridge" ref=${svgRef} viewBox=${`0 0 ${Wv} ${H}`} role="img" aria-label="Ninety stacked lines, one per MB522 plan" onClick=${pick}>
+        ${order.map((i, r) => html`<g class="rg" key=${i} data-i=${i} style=${`transform:translateY(${yOf(r)}px)`}>
+          <path ...${dAttr(fillD(i))} class="rf" /><path ...${dAttr(ridge(i))} class="rl" /></g>`)}
+        ${sel != null && (() => { const jw = argmin(Wm[sel]), xw = xs[cols.indexOf(jw)], yw = -A * lift(M[sel][jw]), bottom = H - yOf(sr) - 16, right = xw > Wv / 2;
+          return html`<g ref=${hiWrap} style=${`transform:translateY(${yOf(sr)}px)`} key=${`hi-${sel}-${xo}`}>
+            <path ref=${hiRef} d=${ridge(sel)} pathLength="1" class="hi" />
+            <line ref=${guideRef} x1=${xw} x2=${xw} y1=${yw + 5} y2=${bottom} pathLength="1" class="guide" />
+            <circle ref=${dotRef} cx=${xw} cy=${yw} r="4.5" class="worstdot" />
+            <text ref=${labRef} x=${right ? xw - 6 : xw + 6} y=${bottom + 12} text-anchor=${right ? 'end' : 'start'} class="worstlab">worst: vs ${nm('them', PL.them[jw].lead)} lead · ${Wm[sel][jw]} of 24</text></g>`; })()}
+        <text x=${x1} y="12" text-anchor="end">${by === 'worst' ? 'best worst case' : by === 'mean' ? 'best average' : 'first plan'} ↓</text>
+      </svg>
+    </div>
+    <label class="note">Highlight a plan <select value=${sel ?? ''} onChange=${e => setSel(e.target.value === '' ? null : +e.target.value)}>
+      <option value="">none</option>${BYNAME('you').map(i => html`<option value=${i}>${planName('you', i)}</option>`)}</select></label>
+    ${sel != null ? html`<div class="row"><${Plan} side="you" p=${sel} size=${26} /><span class="read">averages <b class="num">${f3(RM[sel])}</b>; its worst square is <b class="num">${Wm[sel][worstJ]} of 24</b>, against</span><${Plan} side="them" p=${worstJ} size=${22} /></div>
+      ${sel === WORST_TOP && html`<p class="read bestworst">Best worst case of all 90 plans: <b class="num">${Wm[sel][worstJ]} of 24 (${f3(Wm[sel][worstJ] / 24)})</b>. No single plan does better, which is why the answer is a spinner.</p>`}`
+      : html`<p class="note">Click a line or choose a plan to see its average and its worst square.</p>`}
+  <//>`;
+}
+
+// ================= H — String art =================
+const RING = (() => {
+  const S = 640, R = 236, cx = 320, cy = 320, g = 2, span = 160 * Math.PI / 180;
+  const side = (s, val, a0, dir) => {
+    const groups = groupBy(s, p => sk([...p.lead, ...p.back])).map(([key, idx]) => ({ key, idx: idx.sort((a, b) => val[b] - val[a]), m: mean(idx.map(i => val[i])) })).sort((a, b) => b.m - a.m);
+    const step = span / (90 + 14 * g - 1), pos = Array(90), labels = [];
+    let slot = 0;
+    groups.forEach((G, gi) => {
+      const first = slot;
+      G.idx.forEach(i => { const ang = a0 + dir * slot * step; pos[i] = { ang, x: cx + R * Math.cos(ang), y: cy + R * Math.sin(ang) }; slot++; });
+      const mid = a0 + dir * (first + 2.5) * step;
+      labels.push({ ang: mid, x: cx + (R + 40) * Math.cos(mid), y: cy + (R + 40) * Math.sin(mid), four: G.key.split('').map(Number) });
+      slot += g;
+    });
+    return { pos, labels };
+  };
+  return { S, R, cx, cy, you: side('you', RM, 260 * Math.PI / 180, -1), them: side('them', CM.map(v => 1 - v), -80 * Math.PI / 180, 1) };
+})();
+const BYW = Array.from({ length: 25 }, () => []);
+for (let i = 0; i < 90; i++) for (let j = 0; j < 90; j++) BYW[Wm[i][j]].push(i * 90 + j);
+function VariantH({ report }) {
+  const [mode, setMode] = useState('all'), [focus, setFocus] = useState(null), [pinned, setPinned] = useState(false);
+  const { S, R, cx, cy } = RING;
+  const ref = useCanvas(S, S, ctx => {
+    const curve = (i, j) => { const a = RING.you.pos[i], b = RING.them.pos[j]; ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(cx, cy, b.x, b.y); };
+    const ghost = mode === 'eq' || focus ? 0.022 : 0.075;
+    ctx.lineWidth = 0.6;
+    for (let w = 0; w <= 24; w++) { if (!BYW[w].length) continue; ctx.strokeStyle = rate(w / 24, ghost); ctx.beginPath(); for (const c of BYW[w]) curve(Math.floor(c / 90), c % 90); ctx.stroke(); }
+    if (mode === 'eq') {
+      for (let i = 0; i < 90; i++) if (X[i]) for (let j = 0; j < 90; j++) if (Y[j]) {
+        ctx.strokeStyle = rate(M[i][j], 0.9); ctx.lineWidth = 0.7 + 30 * X[i] * Y[j]; ctx.beginPath(); curve(i, j); ctx.stroke();
+      }
+    }
+    if (focus) {
+      ctx.lineWidth = 1.3;
+      for (let k = 0; k < 90; k++) { const [i, j] = focus.side === 'you' ? [focus.i, k] : [k, focus.i]; ctx.strokeStyle = rate(M[i][j], 0.95); ctx.beginPath(); curve(i, j); ctx.stroke(); }
+    }
+    for (const s of ['you', 'them']) RING[s].pos.forEach((p, i) => {
+      const on = mode === 'eq' ? (s === 'you' ? X[i] : Y[i]) > 0 : true;
+      ctx.fillStyle = rgba(s === 'you' ? PAL.you : PAL.them, on ? 1 : 0.3);
+      ctx.beginPath(); ctx.arc(p.x, p.y, focus && focus.side === s && focus.i === i ? 5 : 2.4, 0, 2 * Math.PI); ctx.fill();
+    });
+  }, [mode, focus]);
+  const near = e => {
+    const [x, y] = local(e, S, S), d = Math.hypot(x - cx, y - cy);
+    if (Math.abs(d - R) > 28) return null;
+    const ang = Math.atan2(y - cy, x - cx), side = Math.cos(ang) < 0 ? 'you' : 'them';
+    let best = 0, bd = 9;
+    RING[side].pos.forEach((p, i) => { const dd = Math.abs(Math.atan2(Math.sin(ang - p.ang), Math.cos(ang - p.ang))); if (dd < bd) { bd = dd; best = i; } });
+    return { side, i: best };
+  };
+  useEffect(() => report({ mode, focus: focus && `${NAMES[focus.side]}: ${planName(focus.side, focus.i)}`, pinned }), [mode, focus, pinned]);
+  const fv = focus && (focus.side === 'you' ? Wm[focus.i] : Wm.map(r => r[focus.i]));
+  return html`<${Fig} n="8" title="8,100 threads" serves="¶4: 90 × 90 = 8,100"
+      lead="MB522's 90 plans sit on the left of the ring, MB763's on the right. Every pair of plans is a thread."
+      caption=${html`Each thread is one square of the matrix, coloured by MB522's win rate in it (teal: MB522 ahead; red: MB763 ahead). Plans are grouped by the four they bring, 15 groups of 6; the sprites show each group's four. In equilibrium mode only ${Object.keys(P.eq.x).length * Object.keys(P.eq.y).length} threads (${(100 * Object.keys(P.eq.x).length * Object.keys(P.eq.y).length / 8100).toFixed(1)}%) carry any play, thickness by how often that pair meets. ${WIN}`}>
+    <${Seg} label="Which threads" value=${mode} set=${setMode} options=${[['all', 'All 8,100 threads'], ['eq', 'Only threads the spinners use']]} />
+    <div class="canvas-wrap ring" style=${`max-width:${S}px`}>
+      <canvas ref=${ref} style=${`max-width:${S}px`} aria-label="Ring of 180 plans with 8,100 threads"
+        onPointerMove=${e => { if (!pinned) setFocus(near(e)); }} onPointerLeave=${() => { if (!pinned) setFocus(null); }}
+        onClick=${e => { const n = near(e); if (n) { setFocus(n); setPinned(true); } else { setPinned(false); setFocus(null); } }}></canvas>
+      ${['you', 'them'].map(s => RING[s].labels.map(L => html`<div class="lbl" style=${`left:${(L.x / S * 100).toFixed(2)}%;top:${(L.y / S * 100).toFixed(2)}%`}>
+        ${L.four.map(k => html`<${Mon} side=${s} k=${k} size=${15} />`)}</div>`))}
+    </div>
+    ${focus ? html`<div class="row"><span class="lab">${pinned ? 'Pinned' : 'Hovering'}</span><${Plan} side=${focus.side} p=${focus.i} size=${24} />
+        <span class="read">MB522 averages <b class="num">${f3(mean(fv) / 24)}</b> across its 90 threads; from <span class="num">${Math.min(...fv)}</span> to <span class="num">${Math.max(...fv)}</span> wins of 24.</span></div>`
+      : html`<p class="note">Hover a plan on the ring to light its 90 threads; click to pin it.</p>`}
+  <//>`;
+}
 
 // ================= I — Times table =================
 const dur = min => min >= 525600 ? `${(min / 525600).toFixed(1)} years` : min >= 1440 ? `${(min / 1440).toFixed(1)} days` : min >= 60 ? `${Math.floor(min / 60)} h ${Math.round(min % 60)} min` : `${Math.round(min * 10) / 10} min`;
@@ -1276,6 +1720,51 @@ function VariantJ({ report }) {
   <//>`;
 }
 
+// ================= K — Three chairs =================
+const CHAIR = 'M8 4h24v26h6v6h-2v18h-4V36H12v18H8V36H6v-6h2z';
+function Chair({ p, side, id }) {
+  const h = 50 * p;
+  return html`<svg viewBox="0 0 44 56" class="chair ${side}" width="40" height="52" aria-hidden="true">
+    <defs><clipPath id=${id}><path d=${CHAIR} /></clipPath></defs>
+    <rect x="0" y=${54 - h} width="44" height=${h} clip-path=${`url(#${id})`} class="fill" />
+    <path d=${CHAIR} class="outline" />
+  </svg>`;
+}
+function seats(side, w) {
+  const out = T[side].map(() => [0, 0, 0]);
+  PL[side].forEach((p, i) => { if (!w[i]) return; out.forEach((o, k) => { o[p.lead.includes(k) ? 0 : p.back.includes(k) ? 1 : 2] += w[i]; }); });
+  return out;
+}
+function chairRates(side) {
+  const val = side === 'you' ? RM : CM.map(v => 1 - v);
+  return T[side].map((_, k) => [0, 1, 2].map(c => mean(PL[side].map((p, i) => [p, i]).filter(([p]) => (c === 0 ? p.lead.includes(k) : c === 1 ? p.back.includes(k) : !p.lead.includes(k) && !p.back.includes(k))).map(([, i]) => val[i]))));
+}
+function VariantK({ report }) {
+  const [side, setSide] = useState('you'), [mode, setMode] = useState('eq');
+  const st = mode === 'random' ? seats(side, UNI) : seats(side, side === 'you' ? X : Y);
+  const wr = chairRates(side);
+  let ext = null;
+  if (mode === 'eq') st.forEach((o, k) => o.forEach((v, c) => { if (!ext || Math.abs(v - 1 / 3) > Math.abs(ext.v - 1 / 3)) ext = { k, c, v }; }));
+  useEffect(() => report({ side: NAMES[side], mode, seats: Object.fromEntries(T[side].map((m, k) => [m.name, st[k].map(v => +v.toFixed(3))])) }), [side, mode]);
+  const CH = ['Leads', 'Waits in the back', 'Stays home'];
+  return html`<${Fig} n="11" title="Lead, back, or stay home" serves="¶1: six become four become two plus two"
+      lead="At team preview every Pokémon gets one of three chairs. Picking plans at random fills each chair a third of the time; the equilibrium does not."
+      caption=${html`Chair fill is how often a Pokémon takes that chair: under random previews every chair is a third full; under the equilibrium spinner some Pokémon almost never sit down. The win-rate setting shows ${NAMES[side]}'s average win rate over the plans that put the Pokémon in that chair. ${WIN}`}>
+    <div class="row spread">
+      <${Seg} label="Whose team" value=${side} set=${setSide} options=${[['you', 'MB522'], ['them', 'MB763']]} />
+      <${Seg} label="Show" value=${mode} set=${setMode} options=${[['random', 'Random previews'], ['eq', 'Equilibrium'], ['win', 'Win rate per chair']]} />
+    </div>
+    <div style="overflow-x:auto"><table class="chairs">
+      <thead><tr><th></th>${CH.map(c => html`<th>${c}</th>`)}</tr></thead>
+      <tbody>${T[side].map((m, k) => html`<tr><td class="mon"><div><${Mon} side=${side} k=${k} size=${36} />${m.name}</div></td>
+        ${[0, 1, 2].map(c => mode === 'win' ? html`<td><span class="chip" style=${`background:${rate(side === 'you' ? wr[k][c] : 1 - wr[k][c], 0.6)}`}>${f3(wr[k][c])}</span></td>`
+          : html`<td><${Chair} p=${st[k][c]} side=${side} id=${`ch-${side}-${k}-${c}`} /><div class="p">${pct(st[k][c])}</div></td>`)}</tr>`)}</tbody>
+    </table></div>
+    <p class="read">${mode === 'random' ? 'Every chair: 33%.' : mode === 'eq' && ext ? html`Furthest from a third: <b>${T[side][ext.k].name}</b> ${['leads', 'waits in the back', 'stays home'][ext.c]} <b class="num">${pct(ext.v)}</b> of the time.`
+      : html`Win rate is ${NAMES[side]}'s; for MB763 it is 1 minus MB522's.`}</p>
+  <//>`;
+}
+
 // ================= L — Guess Who? =================
 const GB = P.guess.boards;
 const factsOf = k => { const m = T.them[k]; return [['item', m.item], ['ability', m.ability], ...m.moves.map(v => ['move', v])]; };
@@ -1309,11 +1798,100 @@ function VariantL({ report }) {
   <//>`;
 }
 
+// ================= M — Sand timer =================
+const CUM = [0, 1, 2].map(k => Wm.map((r, i) => r.map((_, j) => { let s = 0; for (let q = 0; q <= k; q++) s += P.pours[q][i][j]; return s; })));
+function Glass({ pour }) {
+  const top = (3 - pour) / 3, bot = pour / 3;
+  return html`<svg class="glass" viewBox="0 0 100 160" width="110" role="img" aria-label=${`${pour} of 3 pours`}>
+    <path d="M10,6 H90 L54,78 L90,154 H10 L46,78 Z" class="frame" />
+    ${top > 0 && html`<path d=${`M${10 + 36 * (1 - top)},${78 - 72 * top} H${90 - 36 * (1 - top)} L52,76 H48 Z`} class="grain" />`}
+    ${bot > 0 && html`<path d=${`M${46 - 36 * bot},${154 - 0} H${54 + 36 * bot} L${54 + 36 * bot - 18 * bot},${154 - 60 * bot} H${46 - 36 * bot + 18 * bot} Z`} class="grain" />`}
+  </svg>`;
+}
+function VariantM({ report }) {
+  const [pour, setPour] = useState(1);
+  const sd = P.sand[pour - 1], prev = pour > 1 ? P.sand[pour - 2] : null;
+  const sx = Object.keys(sd.x).map(Number), sy = Object.keys(sd.y).map(Number);
+  const kept = prev ? sx.filter(i => prev.x[i] != null).length : null;
+  const S = 474;
+  const ref = useCanvas(S, S, ctx => {
+    const n = 8 * pour;
+    drawBoard(ctx, (i, j) => CUM[pour - 1][i][j] / n, 12, 12, 450);
+    ctx.fillStyle = rgba(PAL.you); sx.forEach(i => ctx.fillRect(0, 12 + i * 5, 9, 5));
+    ctx.fillStyle = rgba(PAL.them); sy.forEach(j => ctx.fillRect(12 + j * 5, 0, 5, 9));
+  }, [pour]);
+  useEffect(() => report({ battlesPerSquare: 8 * pour, equilibrium: sd.value, mb522Plans: sx.length, keptFromPreviousPour: kept, noiseShare: sd.noiseShare }), [pour]);
+  return html`<${Fig} n="13" title="Every square is an estimate" serves="noise: each square is a handful of battles"
+      lead="The 194,400 battles arrived in three pours of 8 battles a square. Watch the matrix, and the equilibrium read from it, as the sand falls."
+      caption=${html`Marks on the left edge are MB522's equilibrium plans at this pour, marks on the top edge MB763's. The value of the game barely moves between pours; which plans the spinner uses changes a lot. "Noise share" is the part of the square-to-square spread that coin-flip noise alone would produce at this many battles. ${WIN}`}>
+    <${Seg} label="Pours" value=${pour} set=${setPour} options=${[[1, 'After 8 battles a square'], [2, 'After 16'], [3, 'After 24']]} />
+    <div class="sand">
+      <div style="display:grid;gap:12px;justify-items:center"><${Glass} pour=${pour} />
+        <div class="readouts" style="display:grid;gap:10px">
+          <div><span class="lab">Equilibrium</span><span class="big">${f3(sd.value)}</span></div>
+          <div><span class="lab">MB522's plans used</span><span class="big">${sx.length}</span>${kept != null && html`<span class="note">${kept} kept from the last pour</span>`}</div>
+          <div><span class="lab">Noise share</span><span class="big">${pct(sd.noiseShare)}</span></div>
+        </div></div>
+      <canvas ref=${ref} style=${`max-width:${S}px`} aria-label="The matrix after this pour"></canvas>
+    </div>
+  <//>`;
+}
+
+// ================= N — Minesweeper =================
+function VariantN({ report }) {
+  const BUDGET = 30, S = 540, c = 6;
+  const [probes, setProbes] = useState([]), [tool, setTool] = useState('probe'), [pick, setPick] = useState(null), [lifted, setLifted] = useState(false), [hover, setHover] = useState(null);
+  const probed = useMemo(() => new Set(probes.map(([i, j]) => i * 90 + j)), [probes]);
+  const ref = useCanvas(S, S, ctx => {
+    drawBoard(ctx, (i, j) => lifted || probed.has(i * 90 + j) ? M[i][j] : null, 0, 0, S);
+    if (!lifted) { ctx.strokeStyle = rgba(PAL.ink); ctx.lineWidth = 1.5; probes.forEach(([i, j]) => ctx.strokeRect(j * c + 0.75, i * c + 0.75, c - 1.5, c - 1.5)); }
+    if (pick != null) { ctx.strokeStyle = rgba(PAL.ink); ctx.lineWidth = 2; ctx.strokeRect(1, pick * c, S - 2, c); }
+    if (hover && !lifted) { ctx.strokeStyle = rgba(PAL.muted, 0.8); ctx.lineWidth = 1; ctx.strokeRect(0.5, hover[0] * c + 0.5, S - 1, c - 1); ctx.strokeRect(hover[1] * c + 0.5, 0.5, c - 1, S - 1); }
+  }, [probes, pick, lifted, hover]);
+  const cell = e => { const [x, y] = local(e, S, S); return [clamp(Math.floor(y / c), 0, 89), clamp(Math.floor(x / c), 0, 89)]; };
+  const click = e => {
+    if (lifted) return;
+    const [i, j] = cell(e);
+    if (tool === 'pick') { setPick(i); return; }
+    if (probes.length >= BUDGET || probed.has(i * 90 + j)) return;
+    setProbes(p => [...p, [i, j]]);
+  };
+  useEffect(() => report({ probesUsed: probes.length, budget: BUDGET, tool, pickedPlan: pick == null ? null : planName('you', pick), fogLifted: lifted }), [probes, tool, pick, lifted]);
+  const best = argmax(RM);
+  return html`<${Fig} n="14" title="Find a safe plan with 30 probes" serves="¶4: searching with a battle budget"
+      lead="The matrix is fogged. Each probe reveals one square: 24 battles. You get 30 probes, then you must commit to a plan."
+      caption=${html`Rows are MB522's plans, columns MB763's. Thirty probes is 720 battles; the full board took 194,400. After the fog lifts, your plan is scored against all 90 of MB763's plans and against the equilibrium spinner's guarantee. ${WIN}`}>
+    <div class="row spread">
+      <${Seg} label="Clicking the board" value=${tool} set=${setTool} options=${[['probe', 'Probe a square'], ['pick', 'Pick my plan (row)']]} />
+      <div class="row"><span class="num">${probes.length} / ${BUDGET} probes</span>
+        <button type="button" disabled=${pick == null || lifted} onClick=${() => setLifted(true)}>Lift the fog</button>
+        <button type="button" onClick=${() => { setProbes([]); setPick(null); setLifted(false); }}>Reset</button></div>
+    </div>
+    <canvas ref=${ref} style=${`max-width:${S}px;margin-inline:auto;cursor:crosshair`} aria-label="The fogged 90 by 90 board"
+      onClick=${click} onPointerMove=${e => setHover(cell(e))} onPointerLeave=${() => setHover(null)}></canvas>
+    ${hover && html`<div class="row note"><${Plan} side="you" p=${hover[0]} size=${20} /><span>vs</span><${Plan} side="them" p=${hover[1]} size=${20} />
+      <span>${lifted || probed.has(hover[0] * 90 + hover[1]) ? html`MB522 won <b class="num">${Wm[hover[0]][hover[1]]} of 24</b>` : 'fogged'}</span></div>`}
+    ${probes.length > 0 && html`<div class="probelog"><p class="lab">Your probes, newest first</p>
+      ${probes.slice().reverse().map(([i, j], n) => html`<div class="row note"><span class="num">#${probes.length - n}</span>
+        <${Plan} side="you" p=${i} size=${18} /><span>vs</span><${Plan} side="them" p=${j} size=${18} />
+        <b class="num chip" style=${`background:${rate(M[i][j], 0.6)}`}>${Wm[i][j]} of 24</b>
+        ${!lifted && html`<button type="button" aria-pressed=${pick === i} onClick=${() => setPick(i)}>${pick === i ? 'Your plan' : 'Pick this plan'}</button>`}</div>`)}</div>`}
+    ${pick != null && html`<div class="row"><span class="lab">Your plan</span><${Plan} side="you" p=${pick} size=${26} /></div>`}
+    ${lifted && html`<div class="readouts">
+      <div><span class="lab">Your plan, average</span><span class="big">${f3(RM[pick])}</span></div>
+      <div><span class="lab">Its worst square</span><span class="big">${Math.min(...Wm[pick])} of 24</span></div>
+      <div><span class="lab">The spinner guarantees</span><span class="big">${f3(V)}</span></div>
+      <div><span class="lab">Best plan on average</span><span class="big">${f3(RM[best])}</span></div>
+    </div>`}
+  <//>`;
+}
+
 // ================= Shell + prototype switcher =================
 const VARIANTS = [
-  ['A', 'Matryoshka', VariantA], ['B', 'Jenga', VariantB],
-  ['I', 'Times table', VariantI], ['J', 'Sieve', VariantJ],
-  ['L', 'Guess Who?', VariantL],
+  ['A', 'Matryoshka', VariantA], ['B', 'Jenga', VariantB], ['C', 'Mind-reading chase', VariantC], ['D', 'Loaded spinner', VariantD],
+  ['E', 'Thinking makes MB522 worse', VariantE], ['F', 'Periscope', VariantF], ['G', 'Album-cover ridgelines', VariantG],
+  ['H', 'String art', VariantH], ['I', 'Times table', VariantI], ['J', 'Sieve', VariantJ], ['K', 'Three chairs', VariantK],
+  ['L', 'Guess Who?', VariantL], ['M', 'Sand timer', VariantM], ['N', 'Minesweeper', VariantN],
 ];
 const q = new URLSearchParams(location.search);
 function App() {
@@ -1322,7 +1900,7 @@ function App() {
   const [vstate, setVstate] = useState({});
   const report = useCallback(s => setVstate(s), []);
   useEffect(() => {
-    try { const u = new URLSearchParams(location.search); u.set('variant', variant); if (variant !== 'A') u.delete('probe'); if (variant !== 'N') u.delete('nv'); history.replaceState(null, '', '?' + u); } catch (e) { /* file:// may refuse */ }
+    try { const u = new URLSearchParams(location.search); u.set('variant', variant); if (variant !== 'A') u.delete('probe'); history.replaceState(null, '', '?' + u); } catch (e) { /* file:// may refuse */ }
     window.scrollTo(0, 0);
   }, [variant]);
   const cycle = d => setVariant(v => VARIANTS[(VARIANTS.findIndex(x => x[0] === v) + d + VARIANTS.length) % VARIANTS.length][0]);
