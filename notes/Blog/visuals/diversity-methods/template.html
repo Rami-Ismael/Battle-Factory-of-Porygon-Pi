@@ -1,0 +1,732 @@
+<meta charset="utf-8">
+<title>Keeping Rosters Diverse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one Distill reading column; figures break wider; margin notes in a right gutter, inline on phones.
+   One selected arm (the plain loop or one of five fixes) is shared by every figure. */
+:root{
+  --bg:#fbfbfa; --ink:#1d2127; --muted:#5d6570; --rule:#dfe2e6; --track:#eceef1; --mid:#c3c8ce;
+  --accent:#2b55c4; --accent-soft:#dfe7fb; --bad:#b3402f; --good:#2e7d4f;
+  --a-control:#7b848f; --a-big:#a5acb5; --a-taboo:#2b55c4; --a-dpp:#0f8b8d; --a-island:#b7791f; --a-peel:#9b3d8f;
+  --g0:#2b55c4; --g1:#d9822b; --g2:#0f8b8d; --g3:#9b3d8f; --g4:#7a8a2e;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14171c; --ink:#e6e8eb; --muted:#9aa2ad; --rule:#2c3139; --track:#232830; --mid:#3a414b;
+  --accent:#7c9cf2; --accent-soft:#24304d; --bad:#e07a68; --good:#6cc08f;
+  --a-control:#8f98a4; --a-big:#626b77; --a-taboo:#7c9cf2; --a-dpp:#4fc3c5; --a-island:#e0a247; --a-peel:#d27bc6;
+  --g0:#7c9cf2; --g1:#e8a050; --g2:#4fc3c5; --g3:#d27bc6; --g4:#b4c35a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14171c; --ink:#e6e8eb; --muted:#9aa2ad; --rule:#2c3139; --track:#232830; --mid:#3a414b;
+  --accent:#7c9cf2; --accent-soft:#24304d; --bad:#e07a68; --good:#6cc08f;
+  --a-control:#8f98a4; --a-big:#626b77; --a-taboo:#7c9cf2; --a-dpp:#4fc3c5; --a-island:#e0a247; --a-peel:#d27bc6;
+  --g0:#7c9cf2; --g1:#e8a050; --g2:#4fc3c5; --g3:#d27bc6; --g4:#b4c35a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.65 var(--sans);margin:0;padding-inline:16px;padding-block:40px 64px}
+.page{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:minmax(0,660px) minmax(0,1fr);column-gap:40px}
+.page>*{grid-column:1;min-width:0}
+.wide{grid-column:1 / -1}
+.note{grid-column:2;font-size:13px;line-height:1.5;color:var(--muted);align-self:start;margin-top:4px;padding-left:12px;border-left:1px solid var(--rule)}
+@media (max-width:860px){.page{grid-template-columns:minmax(0,1fr)}.note{grid-column:1;margin-block:0 16px}}
+h1{font-weight:600;font-size:clamp(28px,4.4vw,40px);line-height:1.15;text-wrap:balance;margin:0 0 12px}
+h2{font-weight:600;font-size:22px;line-height:1.25;margin:36px 0 10px;text-wrap:balance}
+.dek{font-size:19px;color:var(--muted);margin:0 0 20px;text-wrap:pretty}
+.byline{font-size:13px;color:var(--muted);border-block:1px solid var(--rule);padding-block:10px;margin-bottom:28px;display:flex;gap:24px;flex-wrap:wrap}
+.byline b{display:block;font-weight:500;color:var(--ink);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+p{margin:0 0 18px;text-wrap:pretty}
+strong{font-weight:600}
+code{font:13px var(--mono);background:var(--track);padding:1px 5px;border-radius:3px}
+.tag{font-weight:600;white-space:nowrap}
+figure{margin:12px 0 28px}
+figcaption{font-size:13px;color:var(--muted);line-height:1.5;margin-top:12px;max-width:760px}
+figcaption b{color:var(--ink);font-weight:600}
+button{font:500 14px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+button[disabled]{opacity:.45;cursor:default}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chips button{display:inline-flex;align-items:center;gap:7px}
+.chips button i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.chips button[aria-pressed=true]{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
+.chips.seg button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+input[type=range]{accent-color:var(--accent);min-width:0}
+
+/* predict */
+.predict{border:1px solid var(--rule);border-radius:6px;padding:16px;display:grid;gap:12px;margin-bottom:28px}
+.predict .q{font-weight:500}
+.predict output{font:500 18px var(--mono);color:var(--accent);min-width:4ch;font-variant-numeric:tabular-nums}
+.feedback{font-size:14px;color:var(--muted);min-height:1.5em}
+.feedback b{color:var(--ink)}
+
+/* mons */
+.mons{display:inline-flex;gap:1px;flex-wrap:nowrap;vertical-align:middle}
+.mons img{width:32px;height:32px;object-fit:contain}
+.mons .chip{width:32px;height:32px;display:grid;place-items:center;font:500 9px var(--mono);color:var(--muted);background:var(--track);border-radius:4px;overflow:hidden;text-transform:uppercase}
+.mons.sm img,.mons.sm .chip{width:24px;height:24px}
+.mons.sm .chip{font-size:7px}
+.mon-s{position:relative;display:inline-block}
+.mon-s.gone img{opacity:.28;filter:grayscale(1)}
+.mon-s.gone::after{content:"";position:absolute;left:2px;right:2px;top:50%;border-top:2px solid var(--bad);transform:rotate(-30deg)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border-block:1px solid var(--rule);padding-block:12px;margin-block:12px}
+.stat .k{font-size:12px;color:var(--muted);line-height:1.35}
+.stat .n{font:500 22px var(--mono);font-variant-numeric:tabular-nums}
+.stat .n small{font-size:13px;color:var(--muted)}
+
+/* crowd */
+.grid{display:grid;grid-template-columns:repeat(32,minmax(0,1fr));gap:2px;margin-block:8px}
+.cell{aspect-ratio:1;border-radius:2px;background:var(--track);transition:background-color .45s ease}
+@media (max-width:600px){.grid{grid-template-columns:repeat(16,minmax(0,1fr))}}
+.readout{min-height:44px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.readout b{color:var(--ink)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:baseline}
+
+/* svg charts */
+svg text{font-family:var(--mono);fill:var(--muted);font-size:13px}
+svg .ax{stroke:var(--rule);stroke-width:1}
+svg .gl{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 3}
+svg .lbl{font-size:14px;font-weight:500}
+.chartwrap{overflow-x:auto}
+.chart{width:100%;min-width:620px;height:auto;display:block;touch-action:pan-y}
+.legendrow{display:flex;gap:14px;flex-wrap:wrap;font:12px var(--mono);color:var(--muted);margin-top:6px}
+.legendrow b{font-weight:500}
+.legendrow span{display:inline-flex;gap:5px;align-items:center}
+
+/* mechanism */
+.mech{border:1px solid var(--rule);border-radius:6px;padding:16px;display:grid;gap:14px}
+.mech h3{margin:0;font-size:17px;font-weight:600}
+.mech p{margin:0;font-size:15px}
+.loop{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font:12px var(--mono);color:var(--muted)}
+.loop span.st{border:1px solid var(--rule);border-radius:4px;padding:4px 8px}
+.loop span.st.hit{border-color:var(--c);color:var(--ink);box-shadow:inset 0 0 0 1px var(--c);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 1px var(--c),0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}}
+.demo{display:grid;gap:10px}
+.ledger{display:flex;gap:8px;flex-wrap:wrap;font:12px var(--mono);color:var(--muted)}
+.prop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
+.prop .verdict{font:500 13px var(--mono)}
+.prop.ok .verdict{color:var(--good)}.prop.no .verdict{color:var(--bad)}
+.log{display:grid;gap:6px;max-height:300px;overflow:auto}
+.isl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.isl>div{border:2px solid var(--a-island);border-radius:8px;padding:8px;display:grid;gap:4px;justify-items:start}
+.isl small{font:11px var(--mono);color:var(--muted)}
+.isl>div.in{animation:flash 1.1s ease-out}
+@keyframes flash{0%{background:color-mix(in srgb,var(--a-island) 35%,transparent)}100%{background:transparent}}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:34px minmax(0,1fr) 56px;gap:8px;align-items:center;font:12px var(--mono);color:var(--muted)}
+.bar .tr{height:14px;background:var(--track);border-radius:2px;overflow:hidden}
+.bar .fl{height:100%;background:var(--c);transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.bar .v{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* table */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th{font:500 11px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1px solid var(--rule)}
+td{padding:8px;border-bottom:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px}
+th:first-child,td:first-child{text-align:left;font-family:var(--sans);font-size:14px}
+td.fail{color:var(--bad)}td.base{color:var(--muted)}
+.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin-top:20px}
+@media (prefers-reduced-motion:reduce){.cell,.bar .fl{transition:none}.loop span.st.hit,.isl>div.in{animation:none}}
+
+/* up close */
+.mini{display:grid;gap:1px}
+.mini .cell{aspect-ratio:1;border-radius:1px;transition:background-color .45s ease,box-shadow .3s}
+.mini .cell.hit{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.lp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:stretch;margin-top:10px}
+@media (max-width:760px){.lp{grid-template-columns:minmax(0,1fr)}}
+.stg{border:1px solid var(--rule);border-radius:6px;padding:10px;display:grid;gap:8px;align-content:start;min-width:0}
+.stg h4{margin:0;font:500 11px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.big{font:500 26px var(--mono);font-variant-numeric:tabular-nums;line-height:1.1}
+.sub{font-size:12px;color:var(--muted);line-height:1.4}
+.sub b{color:var(--ink);font-weight:600}
+.hb{display:grid;grid-template-columns:minmax(96px,150px) minmax(0,1fr) 64px;gap:8px;align-items:center;font:12px var(--mono);color:var(--muted);margin-block:6px}
+.hb .tr{position:relative;height:18px;background:var(--track);border-radius:2px;overflow:hidden;display:flex}
+.hb .fl{height:100%;background:var(--c);transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.hb .fl.rej{background:var(--bad);opacity:.55}
+.hb .v{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.lb{position:relative}
+.lb .rw{position:absolute;left:0;right:0;height:34px;display:grid;grid-template-columns:34px 112px minmax(0,1fr) 52px;gap:8px;align-items:center;transition:transform .7s cubic-bezier(.2,.7,.2,1),opacity .4s;font:12px var(--mono);color:var(--muted)}
+.lb .rw .tr{height:12px;background:var(--track);border-radius:2px;overflow:hidden}
+.lb .rw .fl{height:100%;background:var(--c);width:0;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.lb .rw .v{text-align:right;color:var(--ink)}
+.lb .rw .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-family:var(--sans);font-size:13px}
+.lb .rw img,.lb .rw .chip{width:30px;height:30px;object-fit:contain}
+.lb .rw .chip{display:grid;place-items:center;background:var(--track);border-radius:4px;font:500 8px var(--mono)}
+.ilands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
+.ilands>div{border:2px solid var(--a-island);border-radius:8px;padding:10px;display:grid;gap:8px;min-width:0}
+.ilands>div.in{animation:flash 1.3s ease-out}
+.dppgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}
+@media (max-width:640px){.dppgrid{grid-template-columns:minmax(0,1fr)}}
+.pk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;border:1px solid var(--rule);border-radius:6px;padding:6px 8px;margin-bottom:6px;font:12px var(--mono);color:var(--muted);animation:rise .45s cubic-bezier(.2,.7,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pk .why{grid-column:1 / -1;font:12px var(--sans)}
+.pk.dup{border-color:var(--bad)}
+.pk b{color:var(--ink);font-weight:500}
+@media (prefers-reduced-motion:reduce){.pk,.lb .rw,.hb .fl,.mini .cell{animation:none;transition:none}}
+</style>
+
+<main class="page">
+  <h1>Keeping Rosters Diverse</h1>
+  <p class="dek">A loop that trains on its own best teams ends up proposing one team. Five fixes were tried for six generations on three seeds. One keeps the variety. None keeps the win rate.</p>
+  <div class="byline">
+    <div><b>Data</b>6 arms · 3 seeds · 6 generations</div>
+    <div><b>Scored</b>Battles against the top-50 meta teams</div>
+    <div><b>Date</b>2026-10-09</div>
+  </div>
+
+  <p>The loop in this project works in generations. The version-3 diffusion model proposes 512 teams, the 128 the surrogate likes best are battled, the winners become the <strong>elites</strong>, and the model is fine-tuned on the elites before it proposes again. After one generation the loop had climbed from a battled win rate of 0.43 to 0.56. It had also stopped proposing different teams.</p>
+
+  <p>To count variety, this page uses one definition. A <strong>roster</strong> is the six species of a team with order ignored. Two teams with the same six species but different moves are the same roster. <strong>Distinct rosters</strong> is the number of different rosters among the first 512 valid proposals of a generation, taken before any ranking.</p>
+  <aside class="note">Counting exact teams would hide the problem. Every one of the 88,320 proposals measured on 2026-09-08 was a different team, down to moves and Stat Points, while the number of rosters fell from 478 to 172 per 512. The measures come from the note Metrics for Diversity.</aside>
+
+  <section class="predict" aria-labelledby="pq">
+    <div class="q" id="pq">The plain loop runs six generations with nothing to protect variety. How many of its 512 proposals in generation 6 are different rosters? 512 would mean every proposal is its own roster.</div>
+    <div class="row">
+      <input type="range" id="guess" min="0" max="512" step="1" value="256" aria-labelledby="pq" style="flex:1 1 220px">
+      <output id="guessOut" for="guess">256</output>
+      <button class="primary" id="reveal">Reveal</button>
+    </div>
+    <div class="feedback" id="feedback">The shared starting point, generation 0, already had 176.</div>
+  </section>
+
+  <h2>Watch the crowd shrink</h2>
+  <p>Figure 1 draws the 512 proposals of one run as 512 tiles. Tiles of the same roster sit together and share a colour; the largest roster gets blue. Pick an arm, then step through the generations.</p>
+
+  <figure class="wide" id="fig1">
+    <div class="chips" id="armChips" role="group" aria-label="Arm"></div>
+    <div class="row" style="margin-bottom:6px">
+      <label for="gen" style="font-size:14px;color:var(--muted)">Generation</label>
+      <input type="range" id="gen" min="0" max="6" step="1" value="0" style="flex:0 1 240px" aria-describedby="genOut">
+      <output id="genOut" for="gen" style="font:500 15px var(--mono);color:var(--accent)">0</output>
+      <button id="play">Step through</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Distinct rosters</div><div class="n" id="stD">–<small> of 512</small></div></div>
+      <div class="stat"><div class="k">Largest roster's share</div><div class="n" id="stS">–</div></div>
+      <div class="stat"><div class="k">Effective rosters (e<sup>entropy</sup>)</div><div class="n" id="stE">–</div></div>
+    </div>
+    <div class="grid" id="grid" role="img" aria-label="512 tiles, one per proposal, grouped by roster"></div>
+    <div class="readout" id="readout"></div>
+    <figcaption><b>Figure 1.</b> Seed 1 only. Every arm starts from the same generation 0 (176 distinct rosters, the largest holding 32% of the proposals). In the plain loop the blue block swallows the grid within two generations. With a taboo list the grid stays a field of single tiles. Hover or tap a tile to see its roster. Some newer species have no sprite yet and show as a short name. Generation 0 shows 175 distinct rosters here and 176 in the run's own count, because one proposal has an item-less slot that the parser merges.</figcaption>
+  </figure>
+
+  <h2>How the numbers move</h2>
+  <p>Seed 1 can be unlucky, so Figure 2 averages the three seeds. Choose what to plot. The coloured arm is the one selected above; the others stay in grey-tinted form.</p>
+
+  <figure class="wide" id="fig2">
+    <div class="chips seg" id="metricChips" role="group" aria-label="Measure"></div>
+    <div class="chartwrap"><svg class="chart" id="curves" viewBox="0 0 760 360" role="img" aria-label="Line chart of the chosen measure for six arms across generations 0 to 6"></svg></div>
+    <div class="legendrow" id="curveRead" aria-live="polite"></div>
+    <figcaption><b>Figure 2.</b> Mean of three seeds per generation. Generation 0 is shared. Move across the chart to read all six arms at one generation. The plain loop and the big pool end near 35 distinct rosters; the taboo list and peeling end above 400. The win rate is the mean of the 128 battled teams, which each arm picks by its own rule.</figcaption>
+  </figure>
+
+  <aside class="note">The big pool (4,096 proposals instead of 512) is a control. It checks that the DPP arm does not win just because it chooses from more candidates.</aside>
+
+  <h2>What variety costs</h2>
+  <p>The pre-registered rule was strict. An arm passes if, at generation 6, it has more distinct rosters than the plain loop in every seed, at least 176, a smaller largest roster in every seed, and a win rate no more than 0.03 below the plain loop (95% bound). In Figure 3 that is the upper-right region.</p>
+
+  <figure class="wide" id="fig3">
+    <div class="chartwrap"><svg class="chart" id="trade" viewBox="0 0 760 400" role="img" aria-label="Scatter of battled win rate against distinct rosters at generation 6 for six arms"></svg></div>
+    <figcaption><b>Figure 3.</b> Generation 6. Large dots are the three-seed mean, small dots are the three seeds. The shaded region passes the rule. It is empty: every fix that adds rosters loses win rate, and the one that gains win rate adds no rosters. Click a dot to see how that arm works.</figcaption>
+  </figure>
+
+  <h2>How each fix works</h2>
+  <figure class="wide" id="fig4">
+    <div class="chips" id="mechChips" role="group" aria-label="Arm"></div>
+    <div class="mech" id="mech"></div>
+    <figcaption><b>Figure 4.</b> The loop has five stages. The highlighted stage is where the selected arm intervenes. The demo underneath uses real rosters and real numbers from the run.</figcaption>
+  </figure>
+
+
+  <h2>Up close</h2>
+  <p>The five figures below take the plain loop and then each fix in turn. They use the real numbers from the run, so what moves on screen is what happened.</p>
+
+  <h3 style="font-size:17px;margin:24px 0 6px">Why the plain loop collapses</h3>
+  <p>Each generation has four stages. Elites train the model, the model proposes 512 teams, 128 of them are battled, and the winners become the next elites. The roster that wins once gets a head start at every stage, so it grows.</p>
+  <figure class="wide" id="fig5">
+    <div class="row">
+      <label for="lpGen" style="font-size:14px;color:var(--muted)">Generation</label>
+      <input type="range" id="lpGen" min="0" max="6" step="1" value="1" style="flex:0 1 240px">
+      <output id="lpGenOut" style="font:500 15px var(--mono);color:var(--accent)">1</output>
+      <button id="lpPlay">Step through</button>
+    </div>
+    <div class="lp">
+      <div class="stg"><h4>1 · Elites train the model</h4><div class="big" id="lpEl">–</div><div class="sub" id="lpElSub"></div></div>
+      <div class="stg"><h4>2 · Model proposes 512</h4><div class="mini" id="lpProp"></div><div class="sub" id="lpPropSub"></div></div>
+      <div class="stg"><h4>3 · 128 are battled</h4><div class="mini" id="lpBat"></div><div class="sub" id="lpBatSub"></div></div>
+      <div class="stg"><h4>4 · Winners become elites</h4><div class="big" id="lpAbove">–</div><div class="sub" id="lpAboveSub"></div></div>
+    </div>
+    <figcaption><b>Figure 5.</b> The plain loop, seed 1. Tile colours are rosters, as in Figure 1. Outlined tiles in stage 3 scored 0.531 or more. By generation 2 the same roster fills most of stage 2 and most of stage 3, so the elites in stage 4 are mostly copies of it, and stage 1 trains the model on those copies.</figcaption>
+  </figure>
+
+  <h3 style="font-size:17px;margin:24px 0 6px">Taboo list: sample longer, keep only new rosters</h3>
+  <p>The taboo list leaves the model alone. It keeps sampling until it has 512 proposals that pass the rule: no roster from an earlier generation, and no roster accepted more than twice in this one. The attempts that fail the rule are thrown away.</p>
+  <figure class="wide" id="fig6">
+    <div class="row">
+      <label for="tbGen" style="font-size:14px;color:var(--muted)">Generation</label>
+      <input type="range" id="tbGen" min="1" max="6" step="1" value="1" style="flex:0 1 240px">
+      <output id="tbGenOut" style="font:500 15px var(--mono);color:var(--accent)">1</output>
+      <button class="primary" id="tbApply">Apply the taboo list</button>
+    </div>
+    <div id="tbBars"></div>
+    <div class="readout" id="tbTop"></div>
+    <figcaption><b>Figure 6.</b> Mean of three seeds. “Before” is the first 512 valid proposals the model makes. “After” is the 512 the list accepts. The bottom bar splits the sampling attempts (cap 4,096) into accepted and rejected. The sprites are the roster the model proposed most often that generation in seed 1. The filter works because the model is still varied enough for new rosters to appear; it cannot rescue a model that has collapsed to 25 rosters.</figcaption>
+  </figure>
+
+  <h3 style="font-size:17px;margin:24px 0 6px">Peeling: ban the winning core</h3>
+  <p>Peeling masks species out of the sampler. Compare what each loop's proposals are made of: Figure 7 ranks the species that appear in the most proposals.</p>
+  <figure class="wide" id="fig7">
+    <div class="chips seg" id="lbArm"><button data-a="control">Plain loop</button><button data-a="peel">Peeling</button></div>
+    <div class="row" style="margin-bottom:8px">
+      <label for="lbGen" style="font-size:14px;color:var(--muted)">Generation</label>
+      <input type="range" id="lbGen" min="0" max="6" step="1" value="2" style="flex:0 1 240px">
+      <output id="lbGenOut" style="font:500 15px var(--mono);color:var(--accent)">2</output>
+      <button id="lbPlay">Step through</button>
+    </div>
+    <div class="lb" id="lb"></div>
+    <div class="readout" id="lbBan" style="margin-top:8px"></div>
+    <figcaption><b>Figure 7.</b> Seed 1. Each bar is the share of the 512 proposals that contain the species. In the plain loop a handful of species appear in nearly every proposal. In the peeling arm the banned species drop out and their slots go to others. The proposals become varied, but the replacements are weaker, which is why the peeling arm's win rate falls to about 0.34.</figcaption>
+  </figure>
+
+  <h3 style="font-size:17px;margin:24px 0 6px">Islands: four loops that cannot copy each other</h3>
+  <p>Each island is pinned to a different meta team and trains only on its own elites. They are shown here with their 128 proposals each.</p>
+  <figure class="wide" id="fig8">
+    <div class="row">
+      <label for="isG" style="font-size:14px;color:var(--muted)">Generation</label>
+      <input type="range" id="isG" min="1" max="6" step="1" value="1" style="flex:0 1 240px">
+      <output id="isGOut" style="font:500 15px var(--mono);color:var(--accent)">1</output>
+      <button id="isPlay">Step through</button>
+      <span class="sub" id="isMig"></span>
+    </div>
+    <div class="ilands" id="ilands"></div>
+    <figcaption><b>Figure 8.</b> Seed 1. Tiles are the 128 proposals of each island, coloured by roster within the island. The roster at the top of each box is the meta team the island started from. Islands start varied from each other, but each one narrows on its own, and migrants arrive only before generations 3 and 5.</figcaption>
+  </figure>
+
+  <h3 style="font-size:17px;margin:24px 0 6px">DPP: choose the 128 so they are not copies of each other</h3>
+  <p>A determinantal point process picks a set where similar teams count against each other. Picking is greedy: the first team is the best one, and each next pick is the best remaining team after its gain is reduced by how much it overlaps with the teams already chosen.</p>
+  <figure class="wide" id="fig9">
+    <div class="row"><button class="primary" id="dpNext">Pick next</button><button id="dpAll">Pick all 8</button><button id="dpReset">Reset</button></div>
+    <div class="dppgrid">
+      <div><div class="head sub" style="margin-bottom:6px"><b>DPP picks</b> <span id="dpStat"></span></div><div id="dpList"></div></div>
+      <div><div class="head sub" style="margin-bottom:6px"><b>Top 8 by win rate alone</b> <span id="tkStat"></span></div><div id="tkList"></div></div>
+    </div>
+    <div id="dpBars" style="margin-top:12px"></div>
+    <figcaption><b>Figure 9.</b> Left: the real algorithm on the 128 teams the plain loop battled in generation 1, seed 1 (win rate as the score, temperature 0.05, similarity = shared species ÷ 6). Right: the same pool taken by score alone. Below: distinct rosters among the 128 teams actually battled, and among the next 512 proposals, by generation (three seeds). DPP battles a varied set every generation, but the proposals still narrow, because the elites it trains on are still a few strong rosters.</figcaption>
+  </figure>
+
+  <h2>The verdict</h2>
+  <figure class="wide" id="fig5">
+    <div class="tbl" id="tbl"></div>
+    <figcaption><b>Figure 10.</b> Generation 6, three-seed means. “Qualifying rosters” counts distinct rosters of battled teams with a win rate of 0.531 or more, the score a typical top-50 team gets against the other 49. “Best team” is the best of 16 re-battled at 4 battles per opponent (196); it includes the 49 battles that selected it, so it is slightly high for every arm alike.</figcaption>
+  </figure>
+
+  <p>No arm passes. The <strong>taboo list</strong> is the only fix that keeps real variety: 437 distinct rosters at generation 6 against 38, with a best team that is nearly as good (0.655 to 0.73 against 0.70 to 0.735). It pays 0.055 of average win rate, and it finds about 254 distinct rosters that beat 0.531, of which about 78 sit outside the six-species core the plain loop converges on.</p>
+  <p><strong>DPP</strong> comes closest on win rate, 0.030 below the plain loop. Its battled set is varied but the model still narrows, so it reaches only 174 rosters. <strong>Peeling</strong> and <strong>islands</strong> lose too much: banned species and walled-off loops give variety by construction, not strength. The <strong>big pool</strong> alone changes nothing about variety and gives the highest win rate, 0.605.</p>
+
+  <p>The next experiment worth running combines the two partial successes: a taboo list on the proposals, with DPP choosing which proposals to battle. A longer run would also show whether the taboo list keeps its variety past generation 6 or only delays the collapse.</p>
+
+  <div class="foot">Data: <code>results/diversity_methods_all.json</code> and <code>results/cem_v3.json</code> in the pilot repository; code <code>src/diversity_loops.py</code>; pre-registration <code>docs/diversity-methods.md</code>. Win rate is wins over battles against the top-50 meta teams, one battle per opponent, behaviour-cloning policy on both sides. Composition diversity does not prove strategic variety. Rebuild with <code>python3 build.py</code>. No new battles were run for this page.</div>
+</main>
+
+<script>
+const D = /*__DATA__*/null;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const ARMS = [
+  {k:"control", name:"Plain loop"}, {k:"taboo", name:"Taboo list"}, {k:"peel", name:"Peeling"},
+  {k:"island", name:"Islands"}, {k:"big", name:"Big pool"}, {k:"dpp", name:"DPP"}
+];
+const NAMES = {floetteeternal:"Eternal Floette", decidueyehisui:"Hisuian Decidueye", ninetalesalola:"Alolan Ninetales", floettemega:"Mega Floette", dragonitemega:"Mega Dragonite", mawilemega:"Mega Mawile"};
+const nice = s => NAMES[s] || s.charAt(0).toUpperCase() + s.slice(1);
+const colorOf = k => `var(--a-${k})`;
+const armName = k => ARMS.find(a => a.k === k).name;
+let sel = "taboo";
+const listeners = [];
+const onSel = f => listeners.push(f);
+function select(k){ sel = k; listeners.forEach(f => f()); }
+
+const mon = (i, cls="") => {
+  const s = D.species[i], src = D.sprites[s];
+  return src ? `<img src="${src}" alt="${nice(s)}" title="${nice(s)}">` : `<span class="chip" title="${nice(s)}">${s.slice(0,6)}</span>`;
+};
+const mons = (idxs, cls="") => `<span class="mons ${cls}">${idxs.map(i => mon(i)).join("")}</span>`;
+const monsByName = (names, cls="") => mons(names.map(n => D.species.indexOf(n)), cls);
+const pct = x => (100 * x).toFixed(x < 0.1 ? 1 : 0) + "%";
+const f3 = x => x.toFixed(3);
+
+function chipsFor(el, withDot=true){
+  el.innerHTML = "";
+  ARMS.forEach(a => {
+    const b = document.createElement("button");
+    b.style.setProperty("--c", colorOf(a.k)); b.dataset.k = a.k;
+    b.innerHTML = `<i></i>${a.name}`;
+    b.addEventListener("click", () => select(a.k));
+    el.appendChild(b);
+  });
+  return () => [...el.children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === sel));
+}
+
+/* ---------- predict ---------- */
+const guess = document.getElementById("guess"), guessOut = document.getElementById("guessOut");
+guess.addEventListener("input", () => guessOut.textContent = guess.value);
+document.getElementById("reveal").addEventListener("click", () => {
+  const truth = Math.round(D.curve.control[6][0]), g = +guess.value;
+  const ctl1 = D.crowd.control["6"].length;
+  document.getElementById("feedback").innerHTML = `<b>${truth}</b> on average over three seeds (${ctl1} in the seed drawn below). You guessed ${g}. ` +
+    (g > 2 * truth ? "Most people expect the loop to keep more variety than this: it trains on the best teams, and the best teams are all the same few rosters." : g < truth / 2 ? "The loop is more concentrated than most people expect, but it does not reach one roster." : "That is close.");
+});
+
+/* ---------- Figure 1: the crowd ---------- */
+const armUpd = [];
+const grid = document.getElementById("grid"), cells = [];
+for (let i = 0; i < 512; i++){ const c = document.createElement("div"); c.className = "cell"; c.dataset.i = i; grid.appendChild(c); cells.push(c); }
+const genEl = document.getElementById("gen"), genOut = document.getElementById("genOut"), readout = document.getElementById("readout");
+const GP = ["--g0","--g1","--g2","--g3","--g4"];
+let groupOf = [], rows = [];
+function drawCrowd(){
+  const g = +genEl.value; genOut.textContent = g;
+  rows = D.crowd[sel][String(g)]; groupOf = [];
+  rows.forEach((r, gi) => { for (let j = 0; j < r[0]; j++) groupOf.push(gi); });
+  cells.forEach((c, i) => {
+    const gi = groupOf[i];
+    if (gi === undefined) { c.style.backgroundColor = "transparent"; return; }
+    const n = rows[gi][0];
+    c.style.backgroundColor = gi < 5 && n > 1 ? `var(${GP[gi]})` : n > 1 ? "var(--mid)" : "var(--track)";
+  });
+  const total = groupOf.length, H = rows.reduce((s, r) => s - (r[0] / total) * Math.log(r[0] / total), 0);
+  document.getElementById("stD").innerHTML = `${rows.length}<small> of ${total}</small>`;
+  document.getElementById("stS").textContent = pct(rows[0][0] / total);
+  document.getElementById("stE").textContent = Math.exp(H).toFixed(Math.exp(H) < 100 ? 1 : 0);
+  showRoster(0);
+}
+function showRoster(gi, hover){
+  const r = rows[gi]; if (!r) return;
+  const sw = gi < 5 && r[0] > 1 ? `var(${GP[gi]})` : r[0] > 1 ? "var(--mid)" : "var(--track)";
+  readout.innerHTML = `<span><span class="sw" style="background:${sw}"></span> ${hover ? "This tile" : "Largest roster"}:</span> ${mons(r[1])} <span><b>${r[0]}</b> of ${groupOf.length} proposals${r[0] === 1 ? " (appears once)" : ""}</span>`;
+}
+grid.addEventListener("pointerover", e => { const c = e.target.closest(".cell"); if (c && groupOf[+c.dataset.i] !== undefined) showRoster(groupOf[+c.dataset.i], true); });
+grid.addEventListener("pointerleave", () => showRoster(0));
+const armChips1 = chipsFor(document.getElementById("armChips"));
+armUpd.push(armChips1);
+genEl.addEventListener("input", drawCrowd);
+let timer = null;
+document.getElementById("play").addEventListener("click", e => {
+  if (timer){ clearInterval(timer); timer = null; e.target.textContent = "Step through"; return; }
+  genEl.value = 0; drawCrowd(); e.target.textContent = "Stop";
+  timer = setInterval(() => {
+    if (+genEl.value >= 6){ clearInterval(timer); timer = null; e.target.textContent = "Step through"; return; }
+    genEl.value = +genEl.value + 1; drawCrowd();
+  }, reduce ? 600 : 1300);
+});
+onSel(drawCrowd);
+
+/* ---------- SVG helpers ---------- */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs={}, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function txt(parent, x, y, s, attrs={}){ const t = el("text", {x, y, ...attrs}, parent); t.textContent = s; return t; }
+
+/* ---------- Figure 2: curves ---------- */
+const METRICS = [
+  {i:0, name:"Distinct rosters /512", dom:[0,500], tick:100, fmt:v => Math.round(v)},
+  {i:1, name:"Largest roster's share", dom:[0,1], tick:0.2, fmt:v => pct(v)},
+  {i:2, name:"Battled win rate", dom:[0.25,0.65], tick:0.1, fmt:v => f3(v)}
+];
+let metric = 0, hoverG = null;
+const mc = document.getElementById("metricChips");
+METRICS.forEach((m, i) => { const b = document.createElement("button"); b.textContent = m.name; b.addEventListener("click", () => { metric = i; drawCurves(); }); mc.appendChild(b); });
+function drawCurves(){
+  [...mc.children].forEach((b, i) => b.setAttribute("aria-pressed", i === metric));
+  const svg = document.getElementById("curves"); svg.innerHTML = "";
+  const W = 760, H = 360, L = 52, R = 160, T = 14, B = 34, m = METRICS[metric];
+  const X = g => L + (W - L - R) * g / 6, Y = v => T + (H - T - B) * (1 - (v - m.dom[0]) / (m.dom[1] - m.dom[0]));
+  for (let v = m.dom[0]; v <= m.dom[1] + 1e-9; v += m.tick){ el("line", {x1:L, x2:W-R, y1:Y(v), y2:Y(v), class:"gl"}, svg); txt(svg, L-8, Y(v)+4, m.fmt(v), {"text-anchor":"end"}); }
+  for (let g = 0; g <= 6; g++){ txt(svg, X(g), H-12, "g" + g, {"text-anchor":"middle"}); }
+  el("line", {x1:L, x2:W-R, y1:H-B, y2:H-B, class:"ax"}, svg);
+  const ends = [];
+  ARMS.forEach(a => {
+    const on = a.k === sel, pts = D.curve[a.k].map((p, g) => `${X(g)},${Y(p[m.i])}`).join(" ");
+    el("polyline", {points:pts, fill:"none", stroke:colorOf(a.k), "stroke-width":on ? 3 : 1.6, "stroke-dasharray":a.k === "big" ? "5 4" : "", opacity:on ? 1 : .65, "stroke-linejoin":"round"}, svg);
+    ends.push({a, y:Y(D.curve[a.k][6][m.i]), on});
+  });
+  ends.sort((p, q) => p.y - q.y); for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i-1].y < 15) ends[i].y = ends[i-1].y + 15;
+  ends.forEach(e => txt(svg, W-R+8, e.y+4, e.a.name, {class:"lbl", fill:colorOf(e.a.k), style:`fill:${colorOf(e.a.k)};font-weight:${e.on ? 600 : 500}`}));
+  if (hoverG !== null){ el("line", {x1:X(hoverG), x2:X(hoverG), y1:T, y2:H-B, stroke:"var(--muted)", "stroke-width":1}, svg); ARMS.forEach(a => el("circle", {cx:X(hoverG), cy:Y(D.curve[a.k][hoverG][m.i]), r:4, fill:colorOf(a.k)}, svg)); }
+  const hit = el("rect", {x:L-10, y:T, width:W-L-R+20, height:H-T-B, fill:"transparent"}, svg);
+  const move = e => { const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W; const g = Math.max(0, Math.min(6, Math.round((x - L) / ((W - L - R) / 6)))); if (g !== hoverG){ hoverG = g; drawCurves(); } };
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move);
+  const g = hoverG === null ? 6 : hoverG;
+  document.getElementById("curveRead").innerHTML = `<b>g${g}</b>` + ARMS.map(a => `<span><i class="sw" style="background:${colorOf(a.k)}"></i>${a.name} <b>${m.fmt(D.curve[a.k][g][m.i])}</b></span>`).join("");
+}
+onSel(drawCurves);
+
+/* ---------- Figure 3: trade-off ---------- */
+function drawTrade(){
+  const svg = document.getElementById("trade"); svg.innerHTML = "";
+  const W = 760, H = 400, L = 56, R = 24, T = 16, B = 44, xd = [0,500], yd = [0.30,0.64];
+  const X = v => L + (W - L - R) * (v - xd[0]) / (xd[1] - xd[0]), Y = v => T + (H - T - B) * (1 - (v - yd[0]) / (yd[1] - yd[0]));
+  const ctlWin = D.curve.control[6][2], floor = ctlWin - 0.03, g0 = D.curve.control[0][0];
+  el("rect", {x:X(g0), y:T, width:X(xd[1]) - X(g0), height:Y(floor) - T, fill:"var(--accent-soft)", opacity:.7}, svg);
+  txt(svg, X(g0) + 8, T + 18, "passes the rule (empty)", {style:"fill:var(--accent)", class:"lbl"});
+  for (let v = 0.3; v <= 0.64; v += 0.1) { el("line", {x1:L, x2:W-R, y1:Y(v), y2:Y(v), class:"gl"}, svg); txt(svg, L-8, Y(v)+4, v.toFixed(2), {"text-anchor":"end"}); }
+  for (let v = 0; v <= 500; v += 100) txt(svg, X(v), H-B+18, v, {"text-anchor":"middle"});
+  txt(svg, (L + W - R) / 2, H-6, "distinct rosters among 512 proposals, generation 6", {"text-anchor":"middle"});
+  txt(svg, 12, (T + H - B) / 2, "battled win rate", {transform:`rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor":"middle"});
+  el("line", {x1:L, x2:W-R, y1:Y(floor), y2:Y(floor), stroke:"var(--muted)", "stroke-dasharray":"5 4"}, svg);
+  txt(svg, W-R-4, Y(floor) + 14, "plain loop minus 0.03", {"text-anchor":"end"});
+  el("line", {x1:X(g0), x2:X(g0), y1:T, y2:H-B, stroke:"var(--muted)", "stroke-dasharray":"5 4"}, svg);
+  txt(svg, X(g0) + 4, H-B-6, "generation 0 level", {});
+  ARMS.forEach(a => {
+    const on = a.k === sel;
+    D.seedpts[a.k].forEach(p => el("circle", {cx:X(p[0]), cy:Y(p[1]), r:3, fill:colorOf(a.k), opacity:.55}, svg));
+    const m = D.curve[a.k][6];
+    const g = el("g", {tabindex:0, role:"button", "aria-label":`${armName(a.k)}: ${Math.round(m[0])} rosters, win rate ${f3(m[2])}`, style:"cursor:pointer"}, svg);
+    if (on) el("circle", {cx:X(m[0]), cy:Y(m[2]), r:13, fill:"none", stroke:colorOf(a.k), "stroke-width":2}, g);
+    el("circle", {cx:X(m[0]), cy:Y(m[2]), r:8, fill:colorOf(a.k)}, g);
+    const dx = m[0] > 380 ? -14 : 14;
+    txt(g, X(m[0]) + dx, Y(m[2]) + 4, armName(a.k), {"text-anchor":dx < 0 ? "end" : "start", class:"lbl", style:`fill:${colorOf(a.k)}`});
+    g.addEventListener("click", () => { select(a.k); document.getElementById("fig4").scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"nearest"}); });
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); select(a.k); } });
+  });
+}
+onSel(drawTrade);
+
+/* ---------- Figure 4: mechanisms ---------- */
+const STAGES = ["Propose 512", "Pick 128", "Battle", "Choose elites", "Fine-tune"];
+const MECH = {
+  control: {stage:-1, text:"Nothing protects variety. The elites are the teams that scored 0.531 or more, so the same rosters that win keep entering the training data and the model learns to propose them."},
+  taboo: {stage:0, text:"A proposal is rejected before it is battled if its roster appeared in any earlier generation, or has already been accepted twice in this one. The model is not changed; the filter only decides what counts as an accepted proposal."},
+  peel: {stage:0, text:"Species are removed from the sampler in epochs of two generations. The three most common species among the sixteen best teams of the epoch before are banned from then on, and elite teams that hold a banned species are dropped from the training data."},
+  island: {stage:4, text:"Four loops run side by side. Each is pinned to the first three species of a different meta team and trains only on its own elites. Before generations 3 and 5, each island receives one team from every other island that shares at most two species with its own core."},
+  big: {stage:1, text:"The model proposes 4,096 teams instead of 512 and the 128 with the best surrogate score are battled. This is a control for the DPP arm: it shows what a bigger pool does without any diversity rule."},
+  dpp: {stage:1, text:"From the same 4,096 proposals, the 128 to battle are chosen by a determinantal point process that rewards a high surrogate score and penalises teams that share species with teams already chosen."}
+};
+const mechChips = chipsFor(document.getElementById("mechChips"));
+let tabooStep = 0, peelEpoch = 0, migr = 0;
+function drawMech(){
+  const m = MECH[sel], box = document.getElementById("mech");
+  const loop = STAGES.map((s, i) => `<span class="st ${i === m.stage ? "hit" : ""}" style="--c:${colorOf(sel)}">${s}</span>`).join("<span>→</span>");
+  let demo = "";
+  if (sel === "taboo") demo = tabooDemo();
+  else if (sel === "peel") demo = peelDemo();
+  else if (sel === "island") demo = islandDemo();
+  else demo = battledDemo();
+  box.innerHTML = `<h3 style="color:${colorOf(sel)}">${armName(sel)}</h3><div class="loop">${loop}</div><p>${m.text}</p><div class="demo">${demo}</div>`;
+  wireMech();
+}
+const SEQ = () => {
+  const A = D.ctrl_top, I = D.island.map(r => r.map(n => D.species.indexOf(n)));
+  return [
+    {r:I[0], ok:true, why:"new roster"}, {r:A, ok:false, why:"seen in an earlier generation"}, {r:I[1], ok:true, why:"new roster"},
+    {r:I[0], ok:true, why:"second time this generation, allowed"}, {r:I[0], ok:false, why:"already accepted twice this generation"}, {r:I[2], ok:true, why:"new roster"}
+  ];
+};
+function tabooDemo(){
+  const s = SEQ(), shown = s.slice(0, tabooStep);
+  const rows = shown.map(p => `<div class="prop ${p.ok ? "ok" : "no"}">${mons(p.r, "sm")}<span class="verdict">${p.ok ? "accepted" : "rejected"}</span><span style="font-size:13px;color:var(--muted)">${p.why}</span></div>`).join("");
+  const done = tabooStep >= s.length;
+  return `<div class="row"><button id="tabooNext" class="primary" ${done ? "disabled" : ""}>Send next proposal</button><button id="tabooReset">Reset</button><span class="ledger">accepted ${shown.filter(p => p.ok).length} · rejected ${shown.filter(p => !p.ok).length}</span></div><div class="log">${rows || '<span style="font-size:13px;color:var(--muted)">Six proposals will arrive one by one. The roster in the second one is the plain loop\'s largest roster from generation 6 (seed 1).</span>'}</div>`;
+}
+function peelDemo(){
+  const ep = peelEpoch, gens = ["1","3","5"], ban = D.peel[gens[ep]];
+  const sprites = ban.map(n => `<span class="mon-s gone">${monsByName([n])}</span>`).join("");
+  const wr = [1,2,3,4,5,6].map(g => D.curve.peel[g][2]);
+  return `<div class="chips seg">${["Generations 1–2","Generations 3–4","Generations 5–6"].map((t, i) => `<button data-ep="${i}" aria-pressed="${i === ep}">${t}</button>`).join("")}</div>
+  <div style="font-size:14px;color:var(--muted)">${ban.length} species banned from the sampler:</div><div class="row" style="gap:2px">${sprites}</div>
+  <div class="bars">${[0,1,2].map(i => { const a = wr[i*2], b = wr[i*2+1]; return `<div class="bar" style="--c:var(--a-peel)"><span>g${i*2+1}–${i*2+2}</span><span class="tr"><span class="fl" style="display:block;width:${(a+b)/2/0.65*100}%"></span></span><span class="v">${f3((a+b)/2)}</span></div>`; }).join("")}</div>
+  <div style="font-size:12px;color:var(--muted)">Bars: mean battled win rate of the epoch (three seeds). The plain loop stays near 0.55.</div>`;
+}
+function islandDemo(){
+  const boxes = D.island.map((r, i) => `<div class="${migr && i === migr % 4 ? "in" : ""}">${monsByName(r, "sm")}<small>island ${i + 1} · pinned to this meta team's first three species</small></div>`).join("");
+  return `<div class="isl">${boxes}</div><div class="row"><button id="migrate" class="primary">Migrate</button><span class="ledger">${migr ? "an off-core team from each other island arrived at island " + (migr % 4 + 1) : "islands are walled off until generation 3"}</span></div>`;
+}
+function battledDemo(){
+  const arms = sel === "control" || sel === "big" || sel === "dpp" ? ["control","big","dpp"] : [sel];
+  const lines = ["control","big","dpp"].map(k => {
+    const v = D.battled[k][6];
+    return `<div class="bar" style="--c:${colorOf(k)}"><span>${armName(k).slice(0,5)}</span><span class="tr"><span class="fl" style="display:block;width:${v/128*100}%"></span></span><span class="v">${v.toFixed(0)}</span></div>`;
+  }).join("");
+  return `<div style="font-size:14px;color:var(--muted)">Distinct rosters among the 128 teams battled in generation 6 (three seeds, of 128):</div><div class="bars">${lines}</div>
+  <div style="font-size:12px;color:var(--muted)">The DPP arm battles a varied set, yet its next proposals still narrow, because the elites it trains on come from a few strong rosters. Choosing what to battle is not enough on its own.</div>`;
+}
+function wireMech(){
+  const $ = id => document.getElementById(id);
+  if ($("tabooNext")) $("tabooNext").onclick = () => { tabooStep++; drawMech(); };
+  if ($("tabooReset")) $("tabooReset").onclick = () => { tabooStep = 0; drawMech(); };
+  if ($("migrate")) $("migrate").onclick = () => { migr++; drawMech(); };
+  document.querySelectorAll("[data-ep]").forEach(b => b.onclick = () => { peelEpoch = +b.dataset.ep; drawMech(); });
+}
+onSel(() => { mechChips(); drawMech(); });
+
+/* ---------- table ---------- */
+function drawTable(){
+  const t = D.table, rowsH = ARMS.map(a => {
+    const r = t[a.k], ctl = a.k === "control";
+    const diff = ctl ? "—" : `${r.diff >= 0 ? "+" : "−"}${Math.abs(r.diff).toFixed(3)} [${r.ci[0].toFixed(3)}, ${r.ci[1].toFixed(3)}]`;
+    return `<tr><td><i class="sw" style="background:${colorOf(a.k)}"></i> ${a.name}</td><td>${Math.round(r.comps)}</td><td>${pct(r.share)}</td><td>${f3(r.win)}</td><td>${diff}</td><td>${Math.round(r.cores)}${ctl ? "" : ` (${Math.round(r.off)} off-core)`}</td><td>${Math.min(...r.best).toFixed(2)}–${Math.max(...r.best).toFixed(2)}</td><td class="${ctl ? "base" : "fail"}">${ctl ? "baseline" : "fails"}</td></tr>`;
+  }).join("");
+  document.getElementById("tbl").innerHTML = `<table><thead><tr><th>Arm</th><th>Distinct rosters</th><th>Largest share</th><th>Win rate</th><th>Win rate vs plain loop (95%)</th><th>Qualifying rosters</th><th>Best team</th><th>Rule</th></tr></thead><tbody>${rowsH}</tbody></table>`;
+}
+
+
+/* ---------- up-close helpers ---------- */
+const colorFor = (gi, n) => gi < 5 && n > 1 ? `var(${GP[gi]})` : n > 1 ? "var(--mid)" : "var(--track)";
+function makeGrid(host, n, cols){
+  host.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`; host.innerHTML = "";
+  return Array.from({length:n}, () => { const d = document.createElement("div"); d.className = "cell"; host.appendChild(d); return d; });
+}
+function paint(cs, rowsX){
+  let i = 0;
+  rowsX.forEach((r, gi) => { for (let j = 0; j < r[0] && i < cs.length; j++, i++) cs[i].style.backgroundColor = colorFor(gi, r[0]); });
+  for (; i < cs.length; i++) cs[i].style.backgroundColor = "transparent";
+}
+function stepper(slider, out, btn, lo, hi, draw, ms){
+  const set = v => { slider.value = v; draw(); };
+  slider.addEventListener("input", draw);
+  let t = null; const stop = () => { clearInterval(t); t = null; btn.textContent = "Step through"; };
+  btn.addEventListener("click", () => {
+    if (t){ stop(); return; }
+    set(lo); btn.textContent = "Stop";
+    t = setInterval(() => { if (+slider.value >= hi) stop(); else set(+slider.value + 1); }, reduce ? 500 : ms);
+  });
+}
+
+/* ---------- Figure 5: why the plain loop collapses ---------- */
+const lpProp = makeGrid(document.getElementById("lpProp"), 512, 32), lpBat = makeGrid(document.getElementById("lpBat"), 128, 16);
+const lpG = document.getElementById("lpGen");
+function drawLoop(){
+  const g = +lpG.value, L = D.loop[g], R = D.crowd.control[String(g)];
+  document.getElementById("lpGenOut").textContent = g;
+  document.getElementById("lpEl").textContent = L.elites === null ? "none" : L.elites;
+  document.getElementById("lpElSub").innerHTML = L.elites === null ? "Generation 0 comes from the original model, before any training on this loop's results." : `teams that scored <b>${L.cut}</b> or more, including ${L.anchors} real meta teams. The model is re-trained on them.`;
+  paint(lpProp, R);
+  document.getElementById("lpPropSub").innerHTML = `<b>${R.length}</b> distinct rosters. The biggest is <b>${pct(R[0][0] / 512)}</b>:<br>${mons(R[0][1], "sm")}`;
+  L.tiles.forEach(([rk, hit], i) => { const c = lpBat[i]; c.style.backgroundColor = rk < 5 ? `var(${GP[rk]})` : "var(--mid)"; c.classList.toggle("hit", !!hit); });
+  document.getElementById("lpBatSub").innerHTML = `<b>${L.distinct}</b> distinct rosters among the 128. The biggest has <b>${L.top[0][0]}</b> teams.`;
+  document.getElementById("lpAbove").textContent = L.above;
+  document.getElementById("lpAboveSub").innerHTML = `of 128 scored 0.531 or more (the outlined tiles). They enter the next generation's elites.`;
+}
+stepper(lpG, null, document.getElementById("lpPlay"), 0, 6, drawLoop, 1600);
+
+/* ---------- Figure 6: taboo list ---------- */
+let tbOn = false;
+const tbG = document.getElementById("tbGen");
+function drawTab(){
+  const g = +tbG.value, T = D.tab[g]; document.getElementById("tbGenOut").textContent = g;
+  const cap = 4096, acc = 512, rej = Math.min(T.attempts - acc, cap - acc);
+  document.getElementById("tbBars").innerHTML = `
+    <div class="hb" style="--c:var(--a-control)"><span>Before: distinct rosters</span><span class="tr"><span class="fl" style="width:${T.raw / 512 * 100}%"></span></span><span class="v">${Math.round(T.raw)}</span></div>
+    <div class="hb" style="--c:var(--a-taboo)"><span>After: distinct rosters</span><span class="tr"><span class="fl" style="width:${(tbOn ? T.kept : T.raw) / 512 * 100}%"></span></span><span class="v">${Math.round(tbOn ? T.kept : T.raw)}</span></div>
+    <div class="hb" style="--c:var(--a-taboo)"><span>Sampling attempts</span><span class="tr"><span class="fl" style="width:${tbOn ? acc / cap * 100 : 0}%"></span><span class="fl rej" style="width:${tbOn ? (T.attempts - acc) / cap * 100 : 0}%"></span></span><span class="v">${tbOn ? Math.round(T.attempts) : 512}</span></div>
+    <div class="sub" style="margin-bottom:6px">${tbOn ? `The list rejected about <b>${Math.round(T.rejected).toLocaleString()}</b> attempts to find 512 acceptable proposals. The largest roster falls from <b>${pct(T.rawshare)}</b> to <b>${pct(T.keptshare)}</b>.` : `Before the list, the model's own 512 proposals contain <b>${Math.round(T.raw)}</b> distinct rosters. The largest takes <b>${pct(T.rawshare)}</b>.`}</div>`;
+  document.getElementById("tbTop").innerHTML = T.top.slice(0, 3).map(r => `${mons(r[1], "sm")}<span><b>${r[0]}</b>×</span>`).join(" ");
+  document.getElementById("tbApply").textContent = tbOn ? "Remove the taboo list" : "Apply the taboo list";
+}
+document.getElementById("tbApply").addEventListener("click", () => { tbOn = !tbOn; drawTab(); });
+tbG.addEventListener("input", drawTab);
+
+/* ---------- Figure 7: peeling leaderboard ---------- */
+let lbArm = "peel";
+const LB_ROW = 38, LB_N = 8, lb = document.getElementById("lb"), lbG = document.getElementById("lbGen");
+const banAt = (arm, g) => arm !== "peel" || g < 1 ? [] : D.peel[g >= 5 ? "5" : g >= 3 ? "3" : "1"];
+function presenceOf(arm, g){
+  const rows = D.crowd[arm][String(g)], m = {}; let tot = 0;
+  rows.forEach(([n, ids]) => { tot += n; ids.forEach(i => m[i] = (m[i] || 0) + n); });
+  return Object.entries(m).map(([i, n]) => [+i, n / tot]).sort((a, b) => b[1] - a[1]);
+}
+let lbRows = {};
+function buildLb(){
+  lb.innerHTML = ""; lbRows = {};
+  const u = new Set(); for (let g = 0; g <= 6; g++) presenceOf(lbArm, g).slice(0, LB_N).forEach(([i]) => u.add(i));
+  lb.style.height = LB_N * LB_ROW + "px";
+  [...u].forEach(i => {
+    const d = document.createElement("div"); d.className = "rw"; d.style.setProperty("--c", colorOf(lbArm));
+    const sp = D.species[i], src = D.sprites[sp];
+    d.innerHTML = `${src ? `<img src="${src}" alt="">` : `<span class="chip">${sp.slice(0,6)}</span>`}<span class="nm">${nice(sp)}</span><span class="tr"><span class="fl"></span></span><span class="v"></span>`;
+    d.style.transform = `translateY(${LB_N * LB_ROW}px)`; d.style.opacity = 0; lb.appendChild(d); lbRows[i] = d;
+  });
+}
+function drawLb(){
+  const g = +lbG.value; document.getElementById("lbGenOut").textContent = g;
+  [...document.querySelectorAll("#lbArm button")].forEach(b => b.setAttribute("aria-pressed", b.dataset.a === lbArm));
+  const top = presenceOf(lbArm, g).slice(0, LB_N), inTop = new Set(top.map(t => t[0]));
+  top.forEach(([i, v], r) => { const d = lbRows[i]; d.style.transform = `translateY(${r * LB_ROW}px)`; d.style.opacity = 1; d.querySelector(".fl").style.width = v * 100 + "%"; d.querySelector(".v").textContent = pct(v); });
+  Object.entries(lbRows).forEach(([i, d]) => { if (!inTop.has(+i)){ d.style.transform = `translateY(${LB_N * LB_ROW}px)`; d.style.opacity = 0; } });
+  const ban = banAt(lbArm, g);
+  document.getElementById("lbBan").innerHTML = lbArm === "peel" ? (ban.length ? `<span>Banned from the sampler (${ban.length}):</span> ${ban.map(n => `<span class="mon-s gone">${monsByName([n], "sm")}</span>`).join("")}` : "<span>No species banned yet.</span>") : "<span>No species are banned in the plain loop.</span>";
+}
+document.querySelectorAll("#lbArm button").forEach(b => b.addEventListener("click", () => { lbArm = b.dataset.a; buildLb(); drawLb(); }));
+stepper(lbG, null, document.getElementById("lbPlay"), 0, 6, drawLb, 1600);
+
+/* ---------- Figure 8: islands ---------- */
+const isG = document.getElementById("isG"), isHost = document.getElementById("ilands"), isCells = [];
+D.island.forEach((r, k) => {
+  const box = document.createElement("div"); box.id = "isl" + k;
+  box.innerHTML = `<div>${monsByName(r, "sm")}</div><div class="mini" id="isGrid${k}"></div><div class="sub" id="isSub${k}"></div>`;
+  isHost.appendChild(box); isCells.push(makeGrid(box.querySelector(".mini"), 128, 16));
+});
+function drawIsl(){
+  const g = +isG.value; document.getElementById("isGOut").textContent = g;
+  const mig = g === 3 || g === 5;
+  document.getElementById("isMig").textContent = mig ? "Migrants arrived before this generation." : "";
+  D.isl[g].forEach((I, k) => {
+    paint(isCells[k], I.rows);
+    document.getElementById("isSub" + k).innerHTML = `<b>${I.distinct}</b> distinct rosters of 128 · battled mean <b>${I.mean.toFixed(3)}</b> · <b>${I.qual}</b> of 32 above 0.531`;
+    const b = document.getElementById("isl" + k); b.classList.remove("in"); if (mig){ void b.offsetWidth; b.classList.add("in"); }
+  });
+}
+stepper(isG, null, document.getElementById("isPlay"), 1, 6, drawIsl, 1600);
+
+/* ---------- Figure 9: DPP ---------- */
+const POOL = D.dpppool, K9 = 8, TAU = 0.05;
+const rosterKey = r => r.slice().sort((a, b) => a - b).join(",");
+function dppGreedy(){
+  const ymax = POOL[0][1], q = POOL.map(p => Math.exp((p[1] - ymax) / TAU));
+  const n = POOL.length, vocab = {}; POOL.forEach(p => p[0].forEach(i => { if (!(i in vocab)) vocab[i] = Object.keys(vocab).length; }));
+  const dim = Object.keys(vocab).length, Phi = POOL.map((p, a) => { const v = new Array(dim).fill(0); p[0].forEach(i => v[vocab[i]] = q[a] / Math.sqrt(6)); return v; });
+  const dot = (x, y) => x.reduce((s, v, i) => s + v * y[i], 0);
+  let d2 = Phi.map(v => dot(v, v)); const C = [], sel = [], gains = [];
+  let j = d2.indexOf(Math.max(...d2));
+  while (sel.length < K9 && d2[j] > 1e-10){
+    sel.push(j); gains.push(d2[j]);
+    const e = Phi.map((v, a) => (dot(v, Phi[j]) - C.reduce((s, c) => s + c[a] * c[j], 0)) / Math.sqrt(d2[j]));
+    C.push(e); d2 = d2.map((x, a) => sel.includes(a) ? -Infinity : x - e[a] * e[a]); j = d2.indexOf(Math.max(...d2));
+  }
+  return {sel, gains};
+}
+const DPP = dppGreedy(); let dpShown = 0;
+const overlap = (a, b) => a.filter(x => b.includes(x)).length;
+function pkHtml(a, extra, dup){ const p = POOL[a]; return `<div class="pk ${dup ? "dup" : ""}">${mons(p[0], "sm")}<span>win rate <b>${p[1].toFixed(3)}</b></span><span class="why">${extra}</span></div>`; }
+function drawDpp(){
+  const picked = DPP.sel.slice(0, dpShown);
+  document.getElementById("dpList").innerHTML = picked.map((a, k) => {
+    const mx = Math.max(0, ...picked.slice(0, k).map(b => overlap(POOL[a][0], POOL[b][0])));
+    return pkHtml(a, k === 0 ? "First pick: the best score." : `Pick ${k + 1}: gain left after overlap and score = <b>${(r => r < 0.01 ? "under 0.01" : r.toFixed(2))(DPP.gains[k] / DPP.gains[0])}</b> of the first. Shares up to <b>${mx}</b> of 6 species with an earlier pick.`, false);
+  }).join("") || '<div class="sub">Press “Pick next”.</div>';
+  const top = POOL.slice(0, K9).map((_, a) => a), shown = top.slice(0, Math.max(dpShown, 0));
+  document.getElementById("tkList").innerHTML = shown.map((a, k) => {
+    const mx = Math.max(0, ...shown.slice(0, k).map(b => overlap(POOL[a][0], POOL[b][0])));
+    return pkHtml(a, k === 0 ? "Highest win rate." : `Shares up to <b>${mx}</b> of 6 species with an earlier pick.`, mx >= 5);
+  }).join("");
+  const stat = list => { const rs = new Set(list.map(a => rosterKey(POOL[a][0]))), sp = new Set(list.flatMap(a => POOL[a][0])); return `${rs.size} distinct rosters · ${sp.size} species`; };
+  document.getElementById("dpStat").textContent = picked.length ? "· " + stat(picked) : "";
+  document.getElementById("tkStat").textContent = shown.length ? "· " + stat(shown) : "";
+  document.getElementById("dpNext").disabled = dpShown >= DPP.sel.length;
+}
+document.getElementById("dpNext").addEventListener("click", () => { dpShown++; drawDpp(); });
+document.getElementById("dpAll").addEventListener("click", () => { dpShown = DPP.sel.length; drawDpp(); });
+document.getElementById("dpReset").addEventListener("click", () => { dpShown = 0; drawDpp(); });
+function drawDppBars(){
+  const rows = [1,2,3,4,5,6].map(g => `<div class="hb" style="--c:var(--a-dpp)"><span>g${g} battled: plain ${Math.round(D.battled.control[g])} · DPP ${Math.round(D.battled.dpp[g])}</span><span class="tr"><span class="fl" style="width:${D.battled.dpp[g] / 128 * 100}%"></span></span><span class="v">of 128</span></div><div class="hb" style="--c:var(--a-dpp);margin-top:-4px"><span>g${g} next proposals: ${Math.round(D.curve.dpp[g][0])}</span><span class="tr"><span class="fl" style="width:${D.curve.dpp[g][0] / 512 * 100}%;opacity:.55"></span></span><span class="v">of 512</span></div>`).join("");
+  document.getElementById("dpBars").innerHTML = `<div class="sub" style="margin-bottom:4px"><b>DPP arm:</b> distinct rosters in what it battles (strong bar) and in what the model then proposes (light bar)</div>${rows}`;
+}
+
+/* ---------- start ---------- */
+const syncChips = () => armUpd.forEach(f => f());
+onSel(syncChips);
+drawTable(); drawCurves(); select(sel);
+drawLoop(); drawTab(); buildLb(); drawLb(); drawIsl(); drawDpp(); drawDppBars();
+</script>
