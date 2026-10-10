@@ -1,732 +1,1124 @@
 <meta charset="utf-8">
-<title>Keeping Rosters Diverse</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Keeping Teams Diverse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one Distill reading column; figures break wider; margin notes in a right gutter, inline on phones.
-   One selected arm (the plain loop or one of five fixes) is shared by every figure. */
-:root{
-  --bg:#fbfbfa; --ink:#1d2127; --muted:#5d6570; --rule:#dfe2e6; --track:#eceef1; --mid:#c3c8ce;
-  --accent:#2b55c4; --accent-soft:#dfe7fb; --bad:#b3402f; --good:#2e7d4f;
-  --a-control:#7b848f; --a-big:#a5acb5; --a-taboo:#2b55c4; --a-dpp:#0f8b8d; --a-island:#b7791f; --a-peel:#9b3d8f;
-  --g0:#2b55c4; --g1:#d9822b; --g2:#0f8b8d; --g3:#9b3d8f; --g4:#7a8a2e;
-  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+/* Layout: the series' Distill reading column (42rem) with figures breaking out to 60rem and margin notes in a right gutter on wide screens.
+   Colour meaning is fixed across every figure: orange = the plain loop and the dominant six, blue = the taboo list, four quiet hues for the other arms.
+   Each arm hue has an -ink twin that is safe as text (at least 4.5:1 on --bg and --panel). */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --ink: #14161b; --ink-2: #474d59; --ink-3: #737b8a; --rule: #dadee6; --focus: #2a78d6;
+  --plain: #eb6834; --plain-soft: #fde5d9; --plain-ink: #b4441a;
+  --taboo: #2a78d6; --taboo-soft: #e2ecfa; --taboo-line: #86b3ea; --taboo-ink: #1f66bd;
+  --peel: #8a6db5; --peel-ink: #7457a3; --island: #3a967d; --island-ink: #2b7862;
+  --dpp: #b0882c; --dpp-ink: #86661a; --big: #8a909c; --big-ink: #5f6573;
+  --good: #1d8a4e; --good-ink: #17703f; --good-soft: #e1f3e8; --bad: #b8325a; --bad-soft: #fbe4ea;
+  --box: #e9edf3; --boxbar: #dde3ec; --slot: #f8f9fb; --slot-line: #d2d8e1; --chip: #e3e6ec; --chip-ink: #5a6170;
+  --sel: #14161b; --sel-soft: #eceff4; --shadow: rgb(20 22 27 / 0.16);
+  --font-body: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --col: 42rem; --wide: 60rem;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#14171c; --ink:#e6e8eb; --muted:#9aa2ad; --rule:#2c3139; --track:#232830; --mid:#3a414b;
-  --accent:#7c9cf2; --accent-soft:#24304d; --bad:#e07a68; --good:#6cc08f;
-  --a-control:#8f98a4; --a-big:#626b77; --a-taboo:#7c9cf2; --a-dpp:#4fc3c5; --a-island:#e0a247; --a-peel:#d27bc6;
-  --g0:#7c9cf2; --g1:#e8a050; --g2:#4fc3c5; --g3:#d27bc6; --g4:#b4c35a; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#14171c; --ink:#e6e8eb; --muted:#9aa2ad; --rule:#2c3139; --track:#232830; --mid:#3a414b;
-  --accent:#7c9cf2; --accent-soft:#24304d; --bad:#e07a68; --good:#6cc08f;
-  --a-control:#8f98a4; --a-big:#626b77; --a-taboo:#7c9cf2; --a-dpp:#4fc3c5; --a-island:#e0a247; --a-peel:#d27bc6;
-  --g0:#7c9cf2; --g1:#e8a050; --g2:#4fc3c5; --g3:#d27bc6; --g4:#b4c35a; color-scheme:dark}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a; --focus: #6da7ec;
+  --plain: #d95926; --plain-soft: #4a2c1f; --plain-ink: #e8743f;
+  --taboo: #3987e5; --taboo-soft: #162a45; --taboo-line: #3768a6; --taboo-ink: #5b9cec;
+  --peel: #a189cc; --peel-ink: #a189cc; --island: #48ab90; --island-ink: #48ab90;
+  --dpp: #c7a043; --dpp-ink: #c7a043; --big: #7f8796; --big-ink: #9aa1ae;
+  --good: #3fb072; --good-ink: #3fb072; --good-soft: #13301f; --bad: #e46a8c; --bad-soft: #3a1823;
+  --box: #1d2129; --boxbar: #20242c; --slot: #262b35; --slot-line: #3a414e; --chip: #323846; --chip-ink: #b6bcc8;
+  --sel: #eceef2; --sel-soft: #343a47; --shadow: rgb(0 0 0 / 0.55); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a; --focus: #6da7ec;
+  --plain: #d95926; --plain-soft: #4a2c1f; --plain-ink: #e8743f;
+  --taboo: #3987e5; --taboo-soft: #162a45; --taboo-line: #3768a6; --taboo-ink: #5b9cec;
+  --peel: #a189cc; --peel-ink: #a189cc; --island: #48ab90; --island-ink: #48ab90;
+  --dpp: #c7a043; --dpp-ink: #c7a043; --big: #7f8796; --big-ink: #9aa1ae;
+  --good: #3fb072; --good-ink: #3fb072; --good-soft: #13301f; --bad: #e46a8c; --bad-soft: #3a1823;
+  --box: #1d2129; --boxbar: #20242c; --slot: #262b35; --slot-line: #3a414e; --chip: #323846; --chip-ink: #b6bcc8;
+  --sel: #eceef2; --sel-soft: #343a47; --shadow: rgb(0 0 0 / 0.55); color-scheme: dark; }
 
-*{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font:16px/1.65 var(--sans);margin:0;padding-inline:16px;padding-block:40px 64px}
-.page{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:minmax(0,660px) minmax(0,1fr);column-gap:40px}
-.page>*{grid-column:1;min-width:0}
-.wide{grid-column:1 / -1}
-.note{grid-column:2;font-size:13px;line-height:1.5;color:var(--muted);align-self:start;margin-top:4px;padding-left:12px;border-left:1px solid var(--rule)}
-@media (max-width:860px){.page{grid-template-columns:minmax(0,1fr)}.note{grid-column:1;margin-block:0 16px}}
-h1{font-weight:600;font-size:clamp(28px,4.4vw,40px);line-height:1.15;text-wrap:balance;margin:0 0 12px}
-h2{font-weight:600;font-size:22px;line-height:1.25;margin:36px 0 10px;text-wrap:balance}
-.dek{font-size:19px;color:var(--muted);margin:0 0 20px;text-wrap:pretty}
-.byline{font-size:13px;color:var(--muted);border-block:1px solid var(--rule);padding-block:10px;margin-bottom:28px;display:flex;gap:24px;flex-wrap:wrap}
-.byline b{display:block;font-weight:500;color:var(--ink);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
-p{margin:0 0 18px;text-wrap:pretty}
-strong{font-weight:600}
-code{font:13px var(--mono);background:var(--track);padding:1px 5px;border-radius:3px}
-.tag{font-weight:600;white-space:nowrap}
-figure{margin:12px 0 28px}
-figcaption{font-size:13px;color:var(--muted);line-height:1.5;margin-top:12px;max-width:760px}
-figcaption b{color:var(--ink);font-weight:600}
-button{font:500 14px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:6px 12px;cursor:pointer}
-button:hover{border-color:var(--muted)}
-button:focus-visible,input:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-button[disabled]{opacity:.45;cursor:default}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.chips button{display:inline-flex;align-items:center;gap:7px}
-.chips button i{width:10px;height:10px;border-radius:50%;background:var(--c)}
-.chips button[aria-pressed=true]{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
-.chips.seg button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
-.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-input[type=range]{accent-color:var(--accent);min-width:0}
+/* ---------- page ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.65; }
+.page { padding-inline: 1rem; padding-block: 2.5rem 4rem; display: grid; gap: 2.25rem; justify-items: center; }
+.page > * { width: 100%; max-width: var(--col); min-width: 0; }
+.page > .wide { max-width: var(--wide); }
+h1, h2, h3 { font-family: var(--font-ui); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 600; letter-spacing: -0.015em; }
+h2 { font-size: 1.4rem; font-weight: 600; }
+h3 { font-size: 0.95rem; font-weight: 600; }
+p { margin: 0; }
+b, strong { font-weight: 600; }
+a { color: var(--taboo-ink); }
+.stack { display: grid; gap: 1rem; }
+.kicker { font-family: var(--font-ui); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.dek { font-size: 1.2rem; color: var(--ink-2); line-height: 1.55; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+.byline { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem 1.5rem; border-block: 1px solid var(--rule); padding-block: 0.85rem; font-family: var(--font-ui); font-size: 0.88rem; }
+.byline > div { display: grid; gap: 0.15rem; min-width: 0; }
+.byline .k { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.lead { font-size: 1.1rem; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-/* predict */
-.predict{border:1px solid var(--rule);border-radius:6px;padding:16px;display:grid;gap:12px;margin-bottom:28px}
-.predict .q{font-weight:500}
-.predict output{font:500 18px var(--mono);color:var(--accent);min-width:4ch;font-variant-numeric:tabular-nums}
-.feedback{font-size:14px;color:var(--muted);min-height:1.5em}
-.feedback b{color:var(--ink)}
+/* margin notes: inline on phones, right gutter on wide screens */
+.wn { position: relative; display: grid; gap: 0.75rem; }
+.mnote { font-family: var(--font-ui); font-size: 0.82rem; line-height: 1.5; color: var(--ink-2); border-left: 2px solid var(--rule); padding-left: 0.75rem; }
+@media (min-width: 78rem) {
+  .mnote { position: absolute; top: 0.25rem; left: calc(100% + 2.5rem); width: 14rem; border-left: 0; padding-left: 0; }
+}
 
-/* mons */
-.mons{display:inline-flex;gap:1px;flex-wrap:nowrap;vertical-align:middle}
-.mons img{width:32px;height:32px;object-fit:contain}
-.mons .chip{width:32px;height:32px;display:grid;place-items:center;font:500 9px var(--mono);color:var(--muted);background:var(--track);border-radius:4px;overflow:hidden;text-transform:uppercase}
-.mons.sm img,.mons.sm .chip{width:24px;height:24px}
-.mons.sm .chip{font-size:7px}
-.mon-s{position:relative;display:inline-block}
-.mon-s.gone img{opacity:.28;filter:grayscale(1)}
-.mon-s.gone::after{content:"";position:absolute;left:2px;right:2px;top:50%;border-top:2px solid var(--bad);transform:rotate(-30deg)}
+/* figures */
+figure { margin: 0; display: grid; gap: 0.9rem; }
+figcaption, .figcap { font-family: var(--font-ui); font-size: 0.86rem; color: var(--ink-2); line-height: 1.5; }
+figcaption b, .figcap b { color: var(--ink); font-weight: 600; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem; min-width: 0; }
+.ui { font-family: var(--font-ui); }
+.small { font-family: var(--font-ui); font-size: 0.8rem; color: var(--ink-3); }
+.btn { font: 500 0.86rem var(--font-ui); padding: 0.45rem 0.85rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--ink-3); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.arm-control { --arm: var(--plain); --arm-ink: var(--plain-ink); } .arm-taboo { --arm: var(--taboo); --arm-ink: var(--taboo-ink); }
+.arm-peel { --arm: var(--peel); --arm-ink: var(--peel-ink); } .arm-island { --arm: var(--island); --arm-ink: var(--island-ink); }
+.arm-dpp { --arm: var(--dpp); --arm-ink: var(--dpp-ink); } .arm-big { --arm: var(--big); --arm-ink: var(--big-ink); }
+.armname { color: var(--arm-ink); font-weight: 600; }
+.dot { display: inline-block; width: 0.62rem; height: 0.62rem; border-radius: 50%; background: var(--arm); vertical-align: 0.02rem; margin-right: 0.4rem; }
+@media (max-width: 34rem) { .wide.panel { padding: 0.75rem 0.6rem; } }
 
-/* stats */
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border-block:1px solid var(--rule);padding-block:12px;margin-block:12px}
-.stat .k{font-size:12px;color:var(--muted);line-height:1.35}
-.stat .n{font:500 22px var(--mono);font-variant-numeric:tabular-nums}
-.stat .n small{font-size:13px;color:var(--muted)}
+/* five fixes */
+.methods { display: grid; grid-template-columns: 12.5rem minmax(0, 1fr); gap: 0.9rem 1.25rem; margin: 0; font-size: 0.92rem; }
+.methods dt { display: grid; gap: 0.1rem; align-content: start; min-width: 0; }
+.methods dt .stage { font-size: 0.74rem; color: var(--ink-3); letter-spacing: 0.02em; }
+.methods dd { margin: 0; color: var(--ink-2); line-height: 1.5; min-width: 0; }
+.fx-bans { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; margin-top: 0.55rem; }
+.fx-ban { display: grid; gap: 0.25rem; min-width: 0; }
+.fx-ban > span { font-size: 0.74rem; color: var(--ink-3); }
+.fx-ban .mons { display: flex; gap: 0.5rem; }
+.bmon { --sz: 2.1rem; display: grid; justify-items: center; font-size: 0.66rem; line-height: 1.2; color: var(--ink-2); text-align: center; max-width: 3.6rem; }
+.bmon .mon { width: var(--sz); margin: 0; }
+.fx-isles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.35rem 1.2rem; margin-top: 0.55rem; }
+.fx-isle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.74rem; color: var(--ink-3); min-width: 0; }
+.fx-isle .six.row { --sz: 1.55rem; }
+@media (max-width: 34rem) { .methods { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; } .methods dd { margin-bottom: 0.9rem; } .fx-isles { grid-template-columns: minmax(0, 1fr); } }
 
-/* crowd */
-.grid{display:grid;grid-template-columns:repeat(32,minmax(0,1fr));gap:2px;margin-block:8px}
-.cell{aspect-ratio:1;border-radius:2px;background:var(--track);transition:background-color .45s ease}
-@media (max-width:600px){.grid{grid-template-columns:repeat(16,minmax(0,1fr))}}
-.readout{min-height:44px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted)}
-.readout b{color:var(--ink)}
-.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:baseline}
+/* ---------- sprites ---------- */
+.six { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); position: relative; }
+.six.fx { grid-template-columns: repeat(3, var(--sz)); }
+.six.row { grid-template-columns: repeat(6, var(--sz)); }
+/* sprite canvases are mostly transparent: each one is drawn 120% of its cell and overlaps its neighbours' empty margins */
+.mon { position: relative; display: block; width: 120%; margin: -10%; aspect-ratio: 1; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.mon.chip { width: 84%; margin: 8%; background: var(--chip); border-radius: 22%; display: grid; place-items: center; container-type: inline-size; overflow: hidden; }
+.mon.chip b { font: 600 27cqi/1 var(--font-ui); color: var(--chip-ink); letter-spacing: -0.02em; }
+.mon.has-b { container-type: inline-size; }
+.mon .bdg { position: absolute; right: 12%; bottom: 12%; font: 600 max(7px, 20cqi)/1 var(--font-ui); font-style: normal; color: var(--ink-2); background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: 0.06em 0.18em; }
+.mon.struck::after { content: ""; position: absolute; left: 10%; right: 10%; top: 50%; border-top: 2px solid var(--bad); transform: rotate(-32deg); }
+.mon.struck { opacity: 0.8; }
 
-/* svg charts */
-svg text{font-family:var(--mono);fill:var(--muted);font-size:13px}
-svg .ax{stroke:var(--rule);stroke-width:1}
-svg .gl{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 3}
-svg .lbl{font-size:14px;font-weight:500}
-.chartwrap{overflow-x:auto}
-.chart{width:100%;min-width:620px;height:auto;display:block;touch-action:pan-y}
-.legendrow{display:flex;gap:14px;flex-wrap:wrap;font:12px var(--mono);color:var(--muted);margin-top:6px}
-.legendrow b{font-weight:500}
-.legendrow span{display:inline-flex;gap:5px;align-items:center}
+/* ---------- generation bar ---------- */
+.genbar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; font-family: var(--font-ui); max-width: 26rem; justify-self: center; width: 100%; }
+.genbar .gb-title { text-align: center; font-weight: 600; font-size: 1rem; }
+.genbar .gb-title .num { font-weight: 500; }
+@media (max-width: 52rem) {
+  .genbar.sticky { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--panel); max-width: none; padding-block: 0.45rem; border-bottom: 1px solid var(--rule); }
+}
 
-/* mechanism */
-.mech{border:1px solid var(--rule);border-radius:6px;padding:16px;display:grid;gap:14px}
-.mech h3{margin:0;font-size:17px;font-weight:600}
-.mech p{margin:0;font-size:15px}
-.loop{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font:12px var(--mono);color:var(--muted)}
-.loop span.st{border:1px solid var(--rule);border-radius:4px;padding:4px 8px}
-.loop span.st.hit{border-color:var(--c);color:var(--ink);box-shadow:inset 0 0 0 1px var(--c);animation:pulse 1.6s ease-in-out infinite}
-@keyframes pulse{50%{box-shadow:inset 0 0 0 1px var(--c),0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}}
-.demo{display:grid;gap:10px}
-.ledger{display:flex;gap:8px;flex-wrap:wrap;font:12px var(--mono);color:var(--muted)}
-.prop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
-.prop .verdict{font:500 13px var(--mono)}
-.prop.ok .verdict{color:var(--good)}.prop.no .verdict{color:var(--bad)}
-.log{display:grid;gap:6px;max-height:300px;overflow:auto}
-.isl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.isl>div{border:2px solid var(--a-island);border-radius:8px;padding:8px;display:grid;gap:4px;justify-items:start}
-.isl small{font:11px var(--mono);color:var(--muted)}
-.isl>div.in{animation:flash 1.1s ease-out}
-@keyframes flash{0%{background:color-mix(in srgb,var(--a-island) 35%,transparent)}100%{background:transparent}}
-.bars{display:grid;gap:6px}
-.bar{display:grid;grid-template-columns:34px minmax(0,1fr) 56px;gap:8px;align-items:center;font:12px var(--mono);color:var(--muted)}
-.bar .tr{height:14px;background:var(--track);border-radius:2px;overflow:hidden}
-.bar .fl{height:100%;background:var(--c);transition:width .5s cubic-bezier(.2,.7,.2,1)}
-.bar .v{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+/* ---------- the PC box ---------- */
+.pcbox { background: var(--box); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; min-width: 0; }
+.pcbar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; padding: 0.35rem 0.5rem; background: var(--boxbar); border-bottom: 1px solid var(--rule); min-height: 2.5rem; }
+.pctitle { grid-column: 2; text-align: center; font: 500 0.84rem var(--font-ui); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pctitle .num { color: var(--ink); }
+.pcnav { font: 600 0.78rem var(--font-ui); width: 2.4rem; height: 2rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); cursor: pointer; }
+.pcnav:hover:not(:disabled) { border-color: var(--ink-3); }
+.pcnav:disabled { opacity: 0.35; cursor: default; }
+.pcview { padding: 0.5rem; overflow: hidden; }
+.pcgrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.375rem; }
+.slot { position: relative; display: block; padding: 3px; border: 1px solid var(--slot-line); border-radius: 6px; background: var(--slot); color: inherit; font: inherit; cursor: pointer; min-width: 0; }
+@media (prefers-reduced-motion: no-preference) { .slot { transition: opacity 0.2s, border-color 0.15s; } }
+.slot:hover { border-color: var(--ink-3); }
+.slot:focus-visible { outline-offset: -2px; }
+.slot .tint { position: absolute; inset: -1px; border-radius: 6px; background: var(--plain-soft); box-shadow: inset 0 0 0 2px var(--plain); opacity: 0; pointer-events: none; }
+.slot.is-core .tint { opacity: 1; }
+.slot.is-sel:not(.is-core) .tint { background: var(--sel-soft); box-shadow: inset 0 0 0 2px var(--sel); opacity: 1; }
+.slot.is-pair { border: 2px solid var(--taboo-line); padding: 2px; }
+.pcgrid.has-sel .slot:not(.is-sel):not(.empty) { opacity: 0.4; }
+.slot.empty { cursor: default; border-style: dashed; background: transparent; aspect-ratio: 3 / 2.6; align-self: stretch; }
+.slot .sfoot { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 0.2rem; margin-top: 2px; font: 500 0.66rem/1.1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.slot .pip { font-size: 0.6rem; padding: 0 0.22rem; border-radius: 3px; background: var(--sel-soft); color: var(--ink-2); }
+.slot.is-core .pip { background: var(--plain); color: var(--panel); }
+.pcgrid.wins .slot.is-pick { box-shadow: 0 0 0 2px var(--sel); }
+@media (max-width: 34rem) {
+  .pcview { padding: 0.25rem; }
+  .pcgrid { gap: 0.2rem; }
+  .slot { padding: 2px; border-radius: 5px; }
+  .slot.is-pair { padding: 1px; }
+  .slot .sfoot { font-size: 0.56rem; letter-spacing: -0.02em; }
+  .slot .pip { font-size: 0.5rem; padding: 0 0.12rem; }
+}
 
-/* table */
-.tbl{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
-th{font:500 11px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1px solid var(--rule)}
-td{padding:8px;border-bottom:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px}
-th:first-child,td:first-child{text-align:left;font-family:var(--sans);font-size:14px}
-td.fail{color:var(--bad)}td.base{color:var(--muted)}
-.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin-top:20px}
-@media (prefers-reduced-motion:reduce){.cell,.bar .fl{transition:none}.loop span.st.hit,.isl>div.in{animation:none}}
+/* readouts and generation strips */
+.readout { display: grid; gap: 0.9rem; font-family: var(--font-ui); align-content: start; min-width: 0; }
+.ro-nums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; font-family: var(--font-ui); }
+.ro-nums > div { display: grid; gap: 0.1rem; min-width: 0; }
+.ro-k { font-family: var(--font-ui); font-size: 0.78rem; color: var(--ink-2); line-height: 1.35; }
+.ro-v { font: 500 1.5rem/1.15 var(--font-mono); font-variant-numeric: tabular-nums; }
+.ro-v small { font: 0.8rem var(--font-ui); color: var(--ink-3); margin-left: 0.25rem; }
+.ro-sel { display: grid; gap: 0.45rem; border-top: 1px solid var(--rule); padding-top: 0.75rem; min-width: 0; }
+.ro-sel .six.row { --sz: 2.3rem; }
+.ro-stats { font-size: 0.86rem; color: var(--ink); line-height: 1.5; }
+.ro-hint { font-size: 0.76rem; color: var(--ink-3); }
+.gstrip { display: grid; gap: 0.35rem; min-width: 0; font-family: var(--font-ui); }
+.gs-bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.3rem; }
+.gbar { display: grid; gap: 0.2rem; justify-items: center; padding: 0.2rem 0 0.15rem; background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer; color: var(--ink-2); font: inherit; min-width: 0; }
+.gbar:hover { border-color: var(--rule); }
+.gb-track { position: relative; width: 62%; height: 4.2rem; margin-top: 1.05rem; background: var(--slot); border: 1px solid var(--slot-line); border-radius: 3px 3px 0 0; }
+.gb-fill { position: absolute; left: 0; right: 0; bottom: 0; background: var(--arm); opacity: 0.35; border-radius: 2px 2px 0 0; }
+.gb-v { position: absolute; left: 50%; transform: translateX(-50%); font: 500 0.66rem/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+.gb-g { font: 500 0.72rem var(--font-mono); }
+.gbar[aria-pressed="true"] { border-color: var(--rule); background: var(--panel); }
+.gbar[aria-pressed="true"] .gb-fill { opacity: 1; }
+.gbar[aria-pressed="true"] .gb-v, .gbar[aria-pressed="true"] .gb-g { color: var(--ink); font-weight: 600; }
+.gs-axis { text-align: center; font-size: 0.74rem; color: var(--ink-3); }
 
-/* up close */
-.mini{display:grid;gap:1px}
-.mini .cell{aspect-ratio:1;border-radius:1px;transition:background-color .45s ease,box-shadow .3s}
-.mini .cell.hit{box-shadow:inset 0 0 0 1.5px var(--ink)}
-.lp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:stretch;margin-top:10px}
-@media (max-width:760px){.lp{grid-template-columns:minmax(0,1fr)}}
-.stg{border:1px solid var(--rule);border-radius:6px;padding:10px;display:grid;gap:8px;align-content:start;min-width:0}
-.stg h4{margin:0;font:500 11px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.big{font:500 26px var(--mono);font-variant-numeric:tabular-nums;line-height:1.1}
-.sub{font-size:12px;color:var(--muted);line-height:1.4}
-.sub b{color:var(--ink);font-weight:600}
-.hb{display:grid;grid-template-columns:minmax(96px,150px) minmax(0,1fr) 64px;gap:8px;align-items:center;font:12px var(--mono);color:var(--muted);margin-block:6px}
-.hb .tr{position:relative;height:18px;background:var(--track);border-radius:2px;overflow:hidden;display:flex}
-.hb .fl{height:100%;background:var(--c);transition:width .8s cubic-bezier(.2,.7,.2,1)}
-.hb .fl.rej{background:var(--bad);opacity:.55}
-.hb .v{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
-.lb{position:relative}
-.lb .rw{position:absolute;left:0;right:0;height:34px;display:grid;grid-template-columns:34px 112px minmax(0,1fr) 52px;gap:8px;align-items:center;transition:transform .7s cubic-bezier(.2,.7,.2,1),opacity .4s;font:12px var(--mono);color:var(--muted)}
-.lb .rw .tr{height:12px;background:var(--track);border-radius:2px;overflow:hidden}
-.lb .rw .fl{height:100%;background:var(--c);width:0;transition:width .7s cubic-bezier(.2,.7,.2,1)}
-.lb .rw .v{text-align:right;color:var(--ink)}
-.lb .rw .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-family:var(--sans);font-size:13px}
-.lb .rw img,.lb .rw .chip{width:30px;height:30px;object-fit:contain}
-.lb .rw .chip{display:grid;place-items:center;background:var(--track);border-radius:4px;font:500 8px var(--mono)}
-.ilands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
-.ilands>div{border:2px solid var(--a-island);border-radius:8px;padding:10px;display:grid;gap:8px;min-width:0}
-.ilands>div.in{animation:flash 1.3s ease-out}
-.dppgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}
-@media (max-width:640px){.dppgrid{grid-template-columns:minmax(0,1fr)}}
-.pk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;border:1px solid var(--rule);border-radius:6px;padding:6px 8px;margin-bottom:6px;font:12px var(--mono);color:var(--muted);animation:rise .45s cubic-bezier(.2,.7,.2,1)}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.pk .why{grid-column:1 / -1;font:12px var(--sans)}
-.pk.dup{border-color:var(--bad)}
-.pk b{color:var(--ink);font-weight:500}
-@media (prefers-reduced-motion:reduce){.pk,.lb .rw,.hb .fl,.mini .cell{animation:none;transition:none}}
+/* figure 1 layout */
+.f1 { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.f1-left { display: grid; gap: 0.6rem; min-width: 0; }
+@media (max-width: 48rem) { .f1 { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- prediction ---------- */
+.predict { display: grid; gap: 0.9rem; font-family: var(--font-ui); }
+.pq { font: 600 1rem/1.4 var(--font-ui); }
+.pscale { position: relative; height: 7rem; margin-inline: 0.9rem; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.pscale.locked { cursor: default; }
+.ps-track { position: absolute; left: 0; right: 0; top: 2.9rem; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--box); border: 1px solid var(--rule); }
+.ps-tick { position: absolute; top: 2.9rem; width: 1px; height: 0.45rem; background: var(--ink-3); transform: translateX(-0.5px); margin-top: 3px; }
+.ps-tl { position: absolute; top: 3.5rem; font: 0.72rem var(--font-mono); color: var(--ink-2); transform: translateX(-50%); }
+.ps-ref { position: absolute; top: 2rem; height: 1.8rem; border-left: 1.5px dashed var(--ink-3); }
+.ps-ref > span { position: absolute; top: 2.7rem; left: 0; transform: translateX(-50%); font-size: 0.74rem; color: var(--ink-2); white-space: nowrap; }
+.ps-guess { position: absolute; top: 0; width: 0; height: 3.4rem; outline: none; }
+.ps-guess::before { content: ""; position: absolute; left: -7px; top: 2.9rem; width: 14px; height: 1.9rem; margin-top: -0.95rem; border-radius: 7px; background: var(--ink); box-shadow: 0 1px 4px var(--shadow); }
+.ps-guess:focus-visible::before { outline: 2px solid var(--focus); outline-offset: 3px; }
+.ps-guess .gl { position: absolute; top: 0; left: 0; transform: translateX(-50%); font: 600 0.78rem var(--font-ui); white-space: nowrap; color: var(--ink); }
+.ps-guess .gl .num { font-weight: 500; }
+.ps-real { position: absolute; top: 2.9rem; width: 0; }
+.ps-real::before { content: ""; position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: var(--plain); box-shadow: 0 0 0 2px var(--panel); }
+.ps-real > span { position: absolute; top: 3rem; left: -0.4rem; font: 600 0.76rem var(--font-ui); color: var(--plain-ink); white-space: nowrap; }
+.ps-seed { position: absolute; top: 2.9rem; width: 2px; height: 1.1rem; margin-top: -0.55rem; background: var(--plain); transform: translateX(-1px); opacity: 0.75; }
+.prow { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; }
+.prow p { flex: 1 1 16rem; min-width: 0; font-size: 0.9rem; color: var(--ink-2); line-height: 1.5; }
+.prow p b { color: var(--ink); }
+
+/* ---------- figure 2: two boxes ---------- */
+.selrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem 0.75rem; font: 0.84rem var(--font-ui); color: var(--ink-2); }
+.selrow .six.row { --sz: 1.75rem; }
+.selrow .tag { padding: 0.15rem 0.5rem; border-radius: 4px; }
+.selrow .tag.core { background: var(--plain-soft); box-shadow: inset 0 0 0 1px var(--plain); color: var(--ink); }
+.selrow .tag.pick { background: var(--sel-soft); box-shadow: inset 0 0 0 1px var(--sel); color: var(--ink); }
+.twin { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.twin > div { display: grid; gap: 0.6rem; align-content: start; min-width: 0; }
+.twin h3 { font-size: 0.95rem; }
+.twin .ro-v { font-size: 1.3rem; }
+.twin .ro-line { font: 0.84rem var(--font-ui); color: var(--ink-2); }
+.twin .ro-line b { color: var(--ink); font-weight: 600; }
+@media (max-width: 52rem) { .twin { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; } }
+.pstrip { display: grid; gap: 0.4rem; font-family: var(--font-ui); border-top: 1px solid var(--rule); padding-top: 0.9rem; }
+.pstrip .legend { justify-content: flex-start; }
+.ps-bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.35rem; }
+.pgrp { display: grid; gap: 0.25rem; justify-items: center; padding: 0.25rem 0.1rem 0.2rem; background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer; color: var(--ink-2); font: inherit; min-width: 0; }
+.pgrp:hover { border-color: var(--rule); }
+.pgrp[aria-pressed="true"] { border-color: var(--rule); background: var(--slot); }
+.pg-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; width: 82%; max-width: 4rem; height: 5.2rem; margin-top: 2rem; position: relative; }
+.pg-pair::before { content: ""; position: absolute; left: -2px; right: -2px; top: 0; border-top: 1px dashed var(--rule); }
+.pg-bar { position: relative; }
+.pg-bar .fill { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 2px 2px 0 0; background: var(--arm); opacity: 0.4; }
+.pgrp[aria-pressed="true"] .pg-bar .fill { opacity: 1; }
+.pg-bar .cap { position: absolute; left: -2px; right: -2px; height: 0; border-top: 2px solid var(--ink-2); }
+.pg-bar .v { position: absolute; left: 50%; transform: translateX(-50%); display: grid; justify-items: center; font: 500 0.64rem/1.05 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+.pg-bar .v small { font-size: 0.56rem; color: var(--ink-3); }
+.pgrp[aria-pressed="true"] .pg-bar .v { color: var(--ink); font-weight: 600; }
+.pg-g { font: 500 0.72rem var(--font-mono); }
+.pgrp[aria-pressed="true"] .pg-g { color: var(--ink); font-weight: 600; }
+.lg-cap { display: inline-block; width: 0.9rem; border-top: 2px solid var(--ink-2); vertical-align: 0.25rem; margin-right: 0.35rem; }
+
+/* ---------- figure 3: scorecard ---------- */
+.scorecard { display: grid; font-family: var(--font-ui); }
+.sc-cols { display: grid; grid-template-columns: 7.6rem minmax(0, 1fr) minmax(0, 1fr) 7.8rem 9.6rem; gap: 0 1.1rem; align-items: start; }
+.sc-head { padding: 0 0.5rem 0.4rem; border-bottom: 1px solid var(--rule); font-size: 0.76rem; color: var(--ink-2); align-items: end; }
+.sh-ax { display: grid; gap: 0.25rem; min-width: 0; }
+.ticks { position: relative; height: 1.1rem; }
+.ticks span { position: absolute; bottom: 0; transform: translateX(-50%); font: 0.7rem var(--font-mono); color: var(--ink-2); white-space: nowrap; }
+.ticks span.first { transform: none; } .ticks span.last { transform: translateX(-100%); }
+.srow { border-bottom: 1px solid var(--rule); padding: 0.7rem 0.5rem; border-radius: 6px; }
+.srow:hover { background: var(--slot); }
+.sr-name { display: grid; gap: 0.1rem; min-width: 0; padding-top: 0.15rem; }
+.sr-arm { font-weight: 600; font-size: 0.95rem; color: var(--arm-ink); }
+.sr-stage { font-size: 0.76rem; color: var(--ink-3); }
+.sr-ax { display: grid; gap: 0.15rem; min-width: 0; }
+.ax-lab { font-size: 0.74rem; color: var(--ink-2); display: none; }
+.ax-note { font-size: 0.7rem; color: var(--ink-3); line-height: 1.3; }
+/* each axis: a label lane on top, a mark lane below; nothing in the mark lane carries text */
+.ax { position: relative; height: 2.6rem; --y: 1.85rem; }
+.ax-line { position: absolute; left: 0; right: 0; top: var(--y); border-top: 1px solid var(--rule); }
+.ax-grid { position: absolute; top: 1.2rem; bottom: 0.1rem; border-left: 1px solid var(--rule); opacity: 0.7; }
+.ax-ref { position: absolute; top: 1.15rem; bottom: 0; border-left: 1.5px dashed var(--ink-3); opacity: 0.75; }
+.ax-ref.plainref { border-left: 1.5px dotted var(--plain); opacity: 0.95; }
+.ax-tick { position: absolute; top: calc(var(--y) - 7px); height: 14px; width: 2px; margin-left: -1px; background: var(--arm); opacity: 0.8; }
+.ax-dot { position: absolute; top: var(--y); width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: var(--arm); box-shadow: 0 0 0 2px var(--panel); }
+.ax-dia { position: absolute; top: var(--y); width: 10px; height: 10px; margin: -5px 0 0 -5px; background: var(--plain); transform: rotate(45deg); box-shadow: 0 0 0 2px var(--panel); }
+.ax-val { position: absolute; top: 0; transform: translateX(-50%); font: 500 0.74rem/1.2 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.ax-val.al { transform: translateX(-6px); } .ax-val.ar { transform: translateX(calc(-100% + 6px)); }
+.ax-band { position: absolute; top: 1.15rem; bottom: 0; right: 0; background: var(--good-soft); border-left: 1.5px solid var(--good); }
+.ax-zero { position: absolute; top: 1.15rem; bottom: 0; border-left: 1px solid var(--ink-3); }
+.ax-whisk { position: absolute; top: var(--y); height: 0; border-top: 2px solid var(--arm); }
+.ax-whisk::before, .ax-whisk::after { content: ""; position: absolute; top: -5px; height: 8px; border-left: 2px solid var(--arm); }
+.ax-whisk::before { left: -1px; } .ax-whisk::after { right: -1px; }
+.ax-ticks { display: none; }
+.sr-top { display: grid; gap: 0.2rem; justify-items: start; min-width: 0; padding-top: 0.6rem; }
+.sr-top .six.row { --sz: 1.25rem; padding: 1px; border-radius: 4px; }
+.sr-top .six.is-core { background: var(--plain-soft); box-shadow: inset 0 0 0 1px var(--plain); }
+.sr-cnt { font: 0.72rem var(--font-mono); color: var(--ink-2); white-space: nowrap; }
+.sr-verdict { display: grid; gap: 0.25rem; justify-items: start; min-width: 0; padding-top: 0.15rem; }
+.vchip { font: 600 0.74rem var(--font-ui); padding: 0.22rem 0.5rem; border-radius: 4px; white-space: nowrap; }
+.vchip.fail { color: var(--bad); background: var(--bad-soft); }
+.vchip.ref { color: var(--ink-2); background: var(--sel-soft); }
+.vchip.pass { color: var(--good-ink); background: var(--good-soft); }
+.why { font-size: 0.72rem; line-height: 1.35; color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 0.35rem 1.2rem; align-items: center; font: 0.78rem var(--font-ui); color: var(--ink-2); }
+.lg-dash { display: inline-block; width: 1.1rem; border-top: 1.5px dashed var(--ink-3); vertical-align: 0.25rem; margin-right: 0.35rem; }
+.lg-dot { display: inline-block; width: 1.1rem; border-top: 2px dotted var(--plain); vertical-align: 0.25rem; margin-right: 0.35rem; }
+.lg-band { display: inline-block; width: 1.1rem; height: 0.7rem; background: var(--good-soft); border-left: 1.5px solid var(--good); vertical-align: -0.1rem; margin-right: 0.35rem; }
+.lg-sw { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 2px; background: var(--arm); vertical-align: -0.05rem; margin-right: 0.35rem; }
+@media (max-width: 46rem) {
+  .sc-head { display: none; }
+  .sc-cols { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name verdict" "div div" "win win" "top top"; gap: 0.5rem 0.75rem; }
+  .sr-name { grid-area: name; } .sr-verdict { grid-area: verdict; justify-items: end; text-align: right; max-width: 12rem; }
+  .sr-div { grid-area: div; } .sr-win { grid-area: win; } .sr-top { grid-area: top; padding-top: 0; }
+  .ax-lab { display: block; }
+  .ax-ticks { display: block; }
+}
+
+/* ---------- figure 4: winners and confirmation ---------- */
+.wboxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.wboxes > div { display: grid; gap: 0.6rem; align-content: start; min-width: 0; }
+.wh { font: 0.88rem/1.45 var(--font-ui); color: var(--ink-2); }
+.wh b { color: var(--ink); }
+.wh .num { color: var(--ink); font-size: 1rem; }
+.wdet { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.4rem 0.75rem; align-items: center; font: 0.82rem/1.45 var(--font-ui); color: var(--ink-2); min-height: 3.2rem; }
+.wdet .six.row { --sz: 1.9rem; }
+.wdet b { color: var(--ink); }
+@media (max-width: 52rem) { .wboxes { grid-template-columns: minmax(0, 1fr); gap: 2rem; } }
+@media (max-width: 30rem) { .wdet { grid-template-columns: minmax(0, 1fr); } }
+.confirm { display: grid; gap: 0.5rem; font-family: var(--font-ui); border-top: 1px solid var(--rule); padding-top: 1.1rem; }
+.cf-cols { display: grid; grid-template-columns: 9.4rem 9rem minmax(0, 1fr); gap: 0 1rem; align-items: center; }
+.cf-head { font-size: 0.74rem; color: var(--ink-2); padding: 1.1rem 0 0.2rem; }
+.cf-row { border-top: 1px solid var(--rule); min-height: 2.7rem; }
+.cf-row .six.row { --sz: 1.55rem; padding: 2px; border-radius: 5px; justify-self: start; }
+.cf-row .six.row.is-core { background: var(--plain-soft); box-shadow: inset 0 0 0 1px var(--plain); }
+.cf-row .six.row.is-taboo { background: var(--taboo-soft); box-shadow: inset 0 0 0 2px var(--taboo); }
+.cf-row .six.row.is-real { background: var(--sel-soft); box-shadow: inset 0 0 0 1px var(--ink-3); }
+.cf-lab { font-size: 0.82rem; color: var(--ink); }
+.cf-lab small { display: block; font-size: 0.72rem; color: var(--ink-2); }
+.cf-ax { position: relative; align-self: stretch; min-height: 2.7rem; --y: 50%; }
+.cf-mb { position: absolute; top: 0; bottom: 0; border-left: 2px solid var(--ink); opacity: 0.85; }
+.cf-gr { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--rule); }
+.cf-ax .ax-val { top: 50%; transform: translateY(-50%); margin-left: 6px; padding: 0 3px; background: var(--panel); border-radius: 3px; }
+.cf-row.is-real .ax-dot { background: var(--ink); }
+.cf-row.is-real .ax-whisk, .cf-row.is-real .ax-whisk::before, .cf-row.is-real .ax-whisk::after { border-color: var(--ink); }
+.cf-head .cf-ax { min-height: 1.3rem; }
+.cf-head .cf-ax span { position: absolute; bottom: 0; transform: translateX(-50%); font: 0.7rem var(--font-mono); color: var(--ink-2); white-space: nowrap; }
+.cf-head .cf-ax span.first { transform: none; } .cf-head .cf-ax span.last { transform: translateX(-100%); }
+.cf-head .cf-ax span.mb { color: var(--ink); font-family: var(--font-ui); font-weight: 600; bottom: 1.1rem; }
+@media (max-width: 40rem) {
+  .cf-cols { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "six lab" "ax ax"; gap: 0.3rem 0.75rem; }
+  .cf-row { padding-block: 0.45rem; }
+  .cf-row .six { grid-area: six; } .cf-lab { grid-area: lab; } .cf-ax { grid-area: ax; min-height: 1.8rem; }
+  .cf-head > :not(.cf-ax) { display: none; }
+}
+
+.err { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 40; background: var(--panel); color: var(--ink); border: 1px solid var(--bad); border-radius: 6px; padding: 0.7rem 0.9rem; font: 0.85rem/1.45 var(--font-ui); }
+footer { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 1.2rem; display: grid; gap: 0.6rem; }
+footer code { font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 
 <main class="page">
-  <h1>Keeping Rosters Diverse</h1>
-  <p class="dek">A loop that trains on its own best teams ends up proposing one team. Five fixes were tried for six generations on three seeds. One keeps the variety. None keeps the win rate.</p>
-  <div class="byline">
-    <div><b>Data</b>6 arms · 3 seeds · 6 generations</div>
-    <div><b>Scored</b>Battles against the top-50 meta teams</div>
-    <div><b>Date</b>2026-10-09</div>
-  </div>
-
-  <p>The loop in this project works in generations. The version-3 diffusion model proposes 512 teams, the 128 the surrogate likes best are battled, the winners become the <strong>elites</strong>, and the model is fine-tuned on the elites before it proposes again. After one generation the loop had climbed from a battled win rate of 0.43 to 0.56. It had also stopped proposing different teams.</p>
-
-  <p>To count variety, this page uses one definition. A <strong>roster</strong> is the six species of a team with order ignored. Two teams with the same six species but different moves are the same roster. <strong>Distinct rosters</strong> is the number of different rosters among the first 512 valid proposals of a generation, taken before any ranking.</p>
-  <aside class="note">Counting exact teams would hide the problem. Every one of the 88,320 proposals measured on 2026-09-08 was a different team, down to moves and Stat Points, while the number of rosters fell from 478 to 172 per 512. The measures come from the note Metrics for Diversity.</aside>
-
-  <section class="predict" aria-labelledby="pq">
-    <div class="q" id="pq">The plain loop runs six generations with nothing to protect variety. How many of its 512 proposals in generation 6 are different rosters? 512 would mean every proposal is its own roster.</div>
-    <div class="row">
-      <input type="range" id="guess" min="0" max="512" step="1" value="256" aria-labelledby="pq" style="flex:1 1 220px">
-      <output id="guessOut" for="guess">256</output>
-      <button class="primary" id="reveal">Reveal</button>
+  <header class="stack">
+    <div class="kicker">Diversity methods · run of 2026-10-08</div>
+    <h1>Keeping Teams Diverse</h1>
+    <p class="dek">A loop that retrains on its own winners ends up proposing the same six Pokémon. Five fixes ran for six generations on three seeds. The fixes that keep the variety lose win rate, and the one that gains win rate adds no variety.</p>
+    <div class="byline">
+      <div><span class="k">Data</span><span>6 arms · 3 seeds · 6 generations</span></div>
+      <div><span class="k">Scored</span><span>Win rate against the top-50 meta teams</span></div>
+      <div><span class="k">Date</span><span>2026-10-09</span></div>
     </div>
-    <div class="feedback" id="feedback">The shared starting point, generation 0, already had 176.</div>
+  </header>
+
+  <section class="stack">
+    <p class="lead">At generation 6, a taboo list keeps the proposals spread over about <span class="num">437</span> different <strong>compositions</strong> (sets of six species, order ignored). Figure 1 shows how far the plain loop falls without one. The price is paid in <strong>win rate</strong>: wins ÷ battles against the 50 top-placing meta teams, one battle per opponent, with the same behaviour-cloned battle policy on both sides. A typical top-50 team scores <span class="num">0.531</span> against the other 49. The taboo list’s battled teams score <span class="num">0.055</span> lower than the plain loop’s (95% interval <span class="num">0.042</span> to <span class="num">0.068</span>). Figure 3 sets every fix against the same rule.</p>
   </section>
 
-  <h2>Watch the crowd shrink</h2>
-  <p>Figure 1 draws the 512 proposals of one run as 512 tiles. Tiles of the same roster sit together and share a colour; the largest roster gets blue. Pick an arm, then step through the generations.</p>
-
-  <figure class="wide" id="fig1">
-    <div class="chips" id="armChips" role="group" aria-label="Arm"></div>
-    <div class="row" style="margin-bottom:6px">
-      <label for="gen" style="font-size:14px;color:var(--muted)">Generation</label>
-      <input type="range" id="gen" min="0" max="6" step="1" value="0" style="flex:0 1 240px" aria-describedby="genOut">
-      <output id="genOut" for="gen" style="font:500 15px var(--mono);color:var(--accent)">0</output>
-      <button id="play">Step through</button>
+  <section class="stack">
+    <h2>The loop proposes one team</h2>
+    <div class="wn">
+      <p>The loop runs in <strong>generations</strong>. In each one, the version-3 diffusion model proposes 512 teams; each is a <strong>proposal</strong>. A fast win-rate predictor, the <strong>surrogate</strong>, picks the 128 proposals it rates highest, and those 128 are battled. The battled teams that score 0.531 or more become the <strong>elites</strong>, the teams the model is fine-tuned on before the next generation. Generation 0 is the model before any fine-tuning, and every variant of the loop starts from it.</p>
+      <aside class="mnote">The elites also include the 49 top-50 meta teams as fixed anchors. If fewer than 64 teams reach the cut, the 64 best are used.</aside>
     </div>
-    <div class="stats">
-      <div class="stat"><div class="k">Distinct rosters</div><div class="n" id="stD">–<small> of 512</small></div></div>
-      <div class="stat"><div class="k">Largest roster's share</div><div class="n" id="stS">–</div></div>
-      <div class="stat"><div class="k">Effective rosters (e<sup>entropy</sup>)</div><div class="n" id="stE">–</div></div>
+    <div class="wn">
+      <p>A composition is the six species of a team. Two teams with the same six species but different moves, items or Stat Points have the same composition. <strong>Different compositions</strong> counts how many compositions occur among the first 512 valid proposals of a generation, before any ranking. The most it can be is 512.</p>
+      <aside class="mnote">Exact teams never repeat. All 88,320 proposals measured on 2026-09-08 were different teams down to moves and Stat Points, while compositions fell from 478 to 172 per 512. That is why this page counts compositions.</aside>
     </div>
-    <div class="grid" id="grid" role="img" aria-label="512 tiles, one per proposal, grouped by roster"></div>
-    <div class="readout" id="readout"></div>
-    <figcaption><b>Figure 1.</b> Seed 1 only. Every arm starts from the same generation 0 (176 distinct rosters, the largest holding 32% of the proposals). In the plain loop the blue block swallows the grid within two generations. With a taboo list the grid stays a field of single tiles. Hover or tap a tile to see its roster. Some newer species have no sprite yet and show as a short name. Generation 0 shows 175 distinct rosters here and 176 in the run's own count, because one proposal has an item-less slot that the parser merges.</figcaption>
-  </figure>
+    <p>The <strong>plain loop</strong> adds nothing to protect variety. It proposes, battles and retrains on its own winners six times. Before looking, place your estimate.</p>
+  </section>
 
-  <h2>How the numbers move</h2>
-  <p>Seed 1 can be unlucky, so Figure 2 averages the three seeds. Choose what to plot. The coloured arm is the one selected above; the others stay in grey-tinted form.</p>
-
-  <figure class="wide" id="fig2">
-    <div class="chips seg" id="metricChips" role="group" aria-label="Measure"></div>
-    <div class="chartwrap"><svg class="chart" id="curves" viewBox="0 0 760 360" role="img" aria-label="Line chart of the chosen measure for six arms across generations 0 to 6"></svg></div>
-    <div class="legendrow" id="curveRead" aria-live="polite"></div>
-    <figcaption><b>Figure 2.</b> Mean of three seeds per generation. Generation 0 is shared. Move across the chart to read all six arms at one generation. The plain loop and the big pool end near 35 distinct rosters; the taboo list and peeling end above 400. The win rate is the mean of the 128 battled teams, which each arm picks by its own rule.</figcaption>
-  </figure>
-
-  <aside class="note">The big pool (4,096 proposals instead of 512) is a control. It checks that the DPP arm does not win just because it chooses from more candidates.</aside>
-
-  <h2>What variety costs</h2>
-  <p>The pre-registered rule was strict. An arm passes if, at generation 6, it has more distinct rosters than the plain loop in every seed, at least 176, a smaller largest roster in every seed, and a win rate no more than 0.03 below the plain loop (95% bound). In Figure 3 that is the upper-right region.</p>
-
-  <figure class="wide" id="fig3">
-    <div class="chartwrap"><svg class="chart" id="trade" viewBox="0 0 760 400" role="img" aria-label="Scatter of battled win rate against distinct rosters at generation 6 for six arms"></svg></div>
-    <figcaption><b>Figure 3.</b> Generation 6. Large dots are the three-seed mean, small dots are the three seeds. The shaded region passes the rule. It is empty: every fix that adds rosters loses win rate, and the one that gains win rate adds no rosters. Click a dot to see how that arm works.</figcaption>
-  </figure>
-
-  <h2>How each fix works</h2>
-  <figure class="wide" id="fig4">
-    <div class="chips" id="mechChips" role="group" aria-label="Arm"></div>
-    <div class="mech" id="mech"></div>
-    <figcaption><b>Figure 4.</b> The loop has five stages. The highlighted stage is where the selected arm intervenes. The demo underneath uses real rosters and real numbers from the run.</figcaption>
-  </figure>
-
-
-  <h2>Up close</h2>
-  <p>The five figures below take the plain loop and then each fix in turn. They use the real numbers from the run, so what moves on screen is what happened.</p>
-
-  <h3 style="font-size:17px;margin:24px 0 6px">Why the plain loop collapses</h3>
-  <p>Each generation has four stages. Elites train the model, the model proposes 512 teams, 128 of them are battled, and the winners become the next elites. The roster that wins once gets a head start at every stage, so it grows.</p>
-  <figure class="wide" id="fig5">
-    <div class="row">
-      <label for="lpGen" style="font-size:14px;color:var(--muted)">Generation</label>
-      <input type="range" id="lpGen" min="0" max="6" step="1" value="1" style="flex:0 1 240px">
-      <output id="lpGenOut" style="font:500 15px var(--mono);color:var(--accent)">1</output>
-      <button id="lpPlay">Step through</button>
+  <section class="predict panel" id="predict" aria-labelledby="pq">
+    <p class="pq" id="pq">In generation 6, how many different compositions are among the plain loop’s 512 proposals?</p>
+    <div class="pscale" id="pscale">
+      <div class="ps-track"></div>
+      <div id="ps-ticks"></div>
+      <div class="ps-ref" id="ps-ref"><span>generation 0: <span class="num">176</span></span></div>
+      <div id="ps-seeds" hidden></div>
+      <div class="ps-real" id="ps-real" hidden><span></span></div>
+      <div class="ps-guess" id="ps-guess" role="slider" tabindex="0" aria-labelledby="pq" aria-valuemin="0" aria-valuemax="512" aria-valuenow="256" aria-valuetext="256 compositions"><span class="gl">Your estimate: <span class="num">256</span></span></div>
     </div>
-    <div class="lp">
-      <div class="stg"><h4>1 · Elites train the model</h4><div class="big" id="lpEl">–</div><div class="sub" id="lpElSub"></div></div>
-      <div class="stg"><h4>2 · Model proposes 512</h4><div class="mini" id="lpProp"></div><div class="sub" id="lpPropSub"></div></div>
-      <div class="stg"><h4>3 · 128 are battled</h4><div class="mini" id="lpBat"></div><div class="sub" id="lpBatSub"></div></div>
-      <div class="stg"><h4>4 · Winners become elites</h4><div class="big" id="lpAbove">–</div><div class="sub" id="lpAboveSub"></div></div>
+    <div class="prow">
+      <button type="button" class="btn primary" id="p-reveal">Reveal</button>
+      <p id="p-fb" aria-live="polite">Drag the marker, or focus it and use the arrow keys, then reveal the real count. The dashed line is where generation 0 started.</p>
     </div>
-    <figcaption><b>Figure 5.</b> The plain loop, seed 1. Tile colours are rosters, as in Figure 1. Outlined tiles in stage 3 scored 0.531 or more. By generation 2 the same roster fills most of stage 2 and most of stage 3, so the elites in stage 4 are mostly copies of it, and stage 1 trains the model on those copies.</figcaption>
-  </figure>
+  </section>
 
-  <h3 style="font-size:17px;margin:24px 0 6px">Taboo list: sample longer, keep only new rosters</h3>
-  <p>The taboo list leaves the model alone. It keeps sampling until it has 512 proposals that pass the rule: no roster from an earlier generation, and no roster accepted more than twice in this one. The attempts that fail the rule are thrown away.</p>
-  <figure class="wide" id="fig6">
-    <div class="row">
-      <label for="tbGen" style="font-size:14px;color:var(--muted)">Generation</label>
-      <input type="range" id="tbGen" min="1" max="6" step="1" value="1" style="flex:0 1 240px">
-      <output id="tbGenOut" style="font:500 15px var(--mono);color:var(--accent)">1</output>
-      <button class="primary" id="tbApply">Apply the taboo list</button>
+  <section class="stack">
+    <p>One composition takes over: Whimsicott, Chandelure, Kingambit, Floette-Eternal, Basculegion and Garchomp. This page calls it <strong>the dominant six</strong> and draws it in orange wherever it appears. Figure 1 opens the plain loop’s proposals the way the game opens a PC box.</p>
+  </section>
+
+  <figure class="wide panel arm-control" id="fig1" aria-label="Figure 1, the plain loop's PC box">
+    <div class="f1">
+      <div class="f1-left">
+        <div class="genbar" id="f1-genbar" role="group" aria-label="Generation">
+          <button type="button" class="pcnav" id="f1-prev" aria-label="Previous generation">◀</button>
+          <div class="gb-title" aria-live="polite">Generation <span class="num" id="f1-g">0</span> <span class="small">of 6</span></div>
+          <button type="button" class="pcnav" id="f1-next" aria-label="Next generation">▶</button>
+        </div>
+        <div id="f1-box"></div>
+      </div>
+      <div class="readout">
+        <div class="ro-nums">
+          <div><span class="ro-k">Different compositions in this box</span><span class="ro-v"><span id="f1-inbox">13</span><small>of 30</small></span></div>
+          <div><span class="ro-k">Among all 512 proposals</span><span class="ro-v"><span id="f1-all">176</span><small>of 512</small></span></div>
+        </div>
+        <div class="ro-sel" id="f1-sel" aria-live="polite"></div>
+        <div class="gstrip">
+          <span class="ro-k">Different compositions among all 512 proposals (bar height to scale, full bar = 512)</span>
+          <div id="f1-strip"></div>
+          <span class="gs-axis">Generation</span>
+        </div>
+      </div>
     </div>
-    <div id="tbBars"></div>
-    <div class="readout" id="tbTop"></div>
-    <figcaption><b>Figure 6.</b> Mean of three seeds. “Before” is the first 512 valid proposals the model makes. “After” is the 512 the list accepts. The bottom bar splits the sampling attempts (cap 4,096) into accepted and rejected. The sprites are the roster the model proposed most often that generation in seed 1. The filter works because the model is still varied enough for new rosters to appear; it cannot rescue a model that has collapsed to 25 rosters.</figcaption>
+    <figcaption><b>Figure 1.</b> The plain loop’s PC box, seed 1. Each slot is one proposal drawn as its six Pokémon; the 30 slots are the first 30 of the generation’s 512, in the order the model sampled them. Orange slots are the dominant six. It fills 6 of the 30 slots in generation 0 (81 of all 512 proposals) and all 30 in generation 3. “Won” counts battled teams of that composition with a win rate of at least 0.531. Change generation with ◀ ▶ or the bars; on those controls the left and right arrow keys step too. Click a slot to select its composition, and click it again to return to the dominant six. Inside the box, arrow keys move between slots.</figcaption>
   </figure>
 
-  <h3 style="font-size:17px;margin:24px 0 6px">Peeling: ban the winning core</h3>
-  <p>Peeling masks species out of the sampler. Compare what each loop's proposals are made of: Figure 7 ranks the species that appear in the most proposals.</p>
-  <figure class="wide" id="fig7">
-    <div class="chips seg" id="lbArm"><button data-a="control">Plain loop</button><button data-a="peel">Peeling</button></div>
-    <div class="row" style="margin-bottom:8px">
-      <label for="lbGen" style="font-size:14px;color:var(--muted)">Generation</label>
-      <input type="range" id="lbGen" min="0" max="6" step="1" value="2" style="flex:0 1 240px">
-      <output id="lbGenOut" style="font:500 15px var(--mono);color:var(--accent)">2</output>
-      <button id="lbPlay">Step through</button>
+  <section class="stack">
+    <h2>Why it collapses</h2>
+    <p>The dominant six does not start on top. In generation 0 the most common composition is a Charizard version of it (Basculegion, Charizard, Floette-Eternal, Garchomp, Kingambit and Whimsicott), with <span class="num">166</span> of the 512 proposals. The dominant six has <span class="num">81</span>. None of the Charizard version’s copies was among the 128 battled teams, while <span class="num">40</span> copies of the dominant six were, and <span class="num">26</span> of those reached 0.531. The elites therefore held copies of the dominant six and none of the Charizard version.</p>
+    <div class="wn">
+      <p>From then on the composition that won gets a head start at every stage. In generation 1 the model proposed the dominant six <span class="num">232</span> times. The surrogate put <span class="num">109</span> of them among the 128 battled, and <span class="num">79</span> of the <span class="num">91</span> battled teams that reached 0.531 were this six. Fine-tuned on those elites, the model proposed it <span class="num">413</span> times in generation 2 and <span class="num">441</span> times in generation 3. Figure 1’s readout gives the same three counts for whichever generation is open; click a Charizard slot in generation 0 to see its zero.</p>
+      <aside class="mnote">The dominant six is a strong team. An earlier loop’s best team has this composition and scored 0.667 on 192 fresh battles.</aside>
     </div>
-    <div class="lb" id="lb"></div>
-    <div class="readout" id="lbBan" style="margin-top:8px"></div>
-    <figcaption><b>Figure 7.</b> Seed 1. Each bar is the share of the 512 proposals that contain the species. In the plain loop a handful of species appear in nearly every proposal. In the peeling arm the banned species drop out and their slots go to others. The proposals become varied, but the replacements are weaker, which is why the peeling arm's win rate falls to about 0.34.</figcaption>
-  </figure>
+  </section>
 
-  <h3 style="font-size:17px;margin:24px 0 6px">Islands: four loops that cannot copy each other</h3>
-  <p>Each island is pinned to a different meta team and trains only on its own elites. They are shown here with their 128 proposals each.</p>
-  <figure class="wide" id="fig8">
-    <div class="row">
-      <label for="isG" style="font-size:14px;color:var(--muted)">Generation</label>
-      <input type="range" id="isG" min="1" max="6" step="1" value="1" style="flex:0 1 240px">
-      <output id="isGOut" style="font:500 15px var(--mono);color:var(--accent)">1</output>
-      <button id="isPlay">Step through</button>
-      <span class="sub" id="isMig"></span>
+  <section class="stack" id="fixes">
+    <h2>Five fixes</h2>
+    <p>Each fix is an <strong>arm</strong>: one variant of the loop, run for six generations on three seeds from the same generation 0. The fixes act at three different stages: proposing, choosing what to battle, and training.</p>
+    <div class="wn">
+      <dl class="methods ui">
+        <dt class="arm-taboo"><span class="armname">Taboo list</span><span class="stage">Proposing</span></dt>
+        <dd>A composition proposed in any earlier generation is rejected, and no composition is accepted more than twice in one generation. The model is unchanged. Sampling stops when 512 proposals pass or after about 4,100 attempts; in 8 of 18 seed-generations fewer passed (as few as 356), so the taboo list’s counts are out of fewer than 512.</dd>
+        <dt class="arm-peel"><span class="armname">Peeling</span><span class="stage">Proposing</span></dt>
+        <dd>At generations 1, 3 and 5, the three species most common among the recent best teams are removed from the sampler. Bans accumulate, so generation 5 runs without nine species. Seed 1’s bans:<div class="fx-bans" id="fx-peel"></div></dd>
+        <dt class="arm-island"><span class="armname">Islands</span><span class="stage">Training</span></dt>
+        <dd>Four separate loops, each started from a different meta team. Each proposes 128, battles 32 and trains only on its own elites. Migrants move between islands before generations 3 and 5. Seed 1’s starting teams:<div class="fx-isles" id="fx-island"></div></dd>
+        <dt class="arm-dpp"><span class="armname">Determinantal point process (DPP)</span><span class="stage">Choosing what to battle</span></dt>
+        <dd>From 4,096 proposals, a determinantal point process picks the 128 to battle so that teams sharing species count against each other. A team’s quality is the surrogate’s score at temperature 0.05.</dd>
+        <dt class="arm-big"><span class="armname">Big pool</span><span class="stage">Choosing what to battle</span></dt>
+        <dd>The surrogate’s top 128 of 4,096 proposals. This control checks that DPP does not win only by choosing from more candidates.</dd>
+      </dl>
+      <aside class="mnote">Fewer proposals leave fewer chances to find a new composition, so the taboo list’s counts of different compositions are conservative. With 512 proposals in every generation they could only be higher.</aside>
     </div>
-    <div class="ilands" id="ilands"></div>
-    <figcaption><b>Figure 8.</b> Seed 1. Tiles are the 128 proposals of each island, coloured by roster within the island. The roster at the top of each box is the meta team the island started from. Islands start varied from each other, but each one narrows on its own, and migrants arrive only before generations 3 and 5.</figcaption>
-  </figure>
+    <p>The pass rule was fixed before any battle. An arm passes if, at generation 6, it has more different compositions than the plain loop in every seed, at least 176 (generation 0’s count), a smaller <strong>largest-composition share</strong> (the fraction of the proposals taken by the most common composition) in every seed, and a win rate no more than 0.03 below the plain loop’s at the 95% bound.</p>
+  </section>
 
-  <h3 style="font-size:17px;margin:24px 0 6px">DPP: choose the 128 so they are not copies of each other</h3>
-  <p>A determinantal point process picks a set where similar teams count against each other. Picking is greedy: the first team is the best one, and each next pick is the best remaining team after its gain is reduced by how much it overlaps with the teams already chosen.</p>
-  <figure class="wide" id="fig9">
-    <div class="row"><button class="primary" id="dpNext">Pick next</button><button id="dpAll">Pick all 8</button><button id="dpReset">Reset</button></div>
-    <div class="dppgrid">
-      <div><div class="head sub" style="margin-bottom:6px"><b>DPP picks</b> <span id="dpStat"></span></div><div id="dpList"></div></div>
-      <div><div class="head sub" style="margin-bottom:6px"><b>Top 8 by win rate alone</b> <span id="tkStat"></span></div><div id="tkList"></div></div>
+  <section class="stack">
+    <h2>The taboo list</h2>
+    <p>VGC’s <strong>Species Clause</strong> stops a team from carrying two of the same Pokémon. The taboo list applies a similar rule to whole teams and adds a memory: like the Pokédex marking a species as seen, it records every composition the loop has proposed and refuses it in every later generation. Within one generation it accepts at most two copies of a composition.</p>
+    <p>In generation 1 the taboo arm drew <span class="num">3,110</span> proposals on average to pass 512, and rejected <span class="num">2,598</span> of them (three-seed means). Before the filter, the first 512 proposals held about <span class="num">122</span> compositions; after it, the 512 accepted held about <span class="num">428</span>. Every copy of the dominant six was rejected in every generation after 0, in every seed; generation 0 is shared and unfiltered. Figure 2 runs the two loops side by side.</p>
+  </section>
+
+  <figure class="wide panel" id="fig2" aria-label="Figure 2, plain loop and taboo list side by side">
+    <div class="genbar sticky" id="f2-genbar" role="group" aria-label="Generation">
+      <button type="button" class="pcnav" id="f2-prev" aria-label="Previous generation">◀</button>
+      <div class="gb-title" aria-live="polite">Generation <span class="num" id="f2-g">3</span> <span class="small">of 6</span></div>
+      <button type="button" class="pcnav" id="f2-next" aria-label="Next generation">▶</button>
     </div>
-    <div id="dpBars" style="margin-top:12px"></div>
-    <figcaption><b>Figure 9.</b> Left: the real algorithm on the 128 teams the plain loop battled in generation 1, seed 1 (win rate as the score, temperature 0.05, similarity = shared species ÷ 6). Right: the same pool taken by score alone. Below: distinct rosters among the 128 teams actually battled, and among the next 512 proposals, by generation (three seeds). DPP battles a varied set every generation, but the proposals still narrow, because the elites it trains on are still a few strong rosters.</figcaption>
+    <div class="selrow" id="f2-selrow"></div>
+    <div class="twin">
+      <div class="arm-control">
+        <h3><span class="dot"></span><span class="armname">Plain loop</span></h3>
+        <div id="f2-box-control"></div>
+        <div class="ro-nums">
+          <div><span class="ro-k">Different compositions in this box</span><span class="ro-v"><span id="f2-control-inbox">1</span><small>of 30</small></span></div>
+          <div><span class="ro-k" id="f2-control-allk">Among all 512 proposals</span><span class="ro-v"><span id="f2-control-all">25</span><small id="f2-control-of">of 512</small></span></div>
+        </div>
+        <div class="ro-line" id="f2-control-sel"></div>
+      </div>
+      <div class="arm-taboo">
+        <h3><span class="dot"></span><span class="armname">Taboo list</span></h3>
+        <div id="f2-box-taboo"></div>
+        <div class="ro-nums">
+          <div><span class="ro-k">Different compositions in this box</span><span class="ro-v"><span id="f2-taboo-inbox">30</span><small>of 30</small></span></div>
+          <div><span class="ro-k" id="f2-taboo-allk">Among all 413 proposals</span><span class="ro-v"><span id="f2-taboo-all">365</span><small id="f2-taboo-of">of 413</small></span></div>
+        </div>
+        <div class="ro-line" id="f2-taboo-sel"></div>
+      </div>
+    </div>
+    <div class="pstrip">
+      <div class="legend">
+        <span>Different compositions per generation, seed 1, on one 0–512 scale:</span>
+        <span class="arm-control"><span class="lg-sw"></span>plain loop</span>
+        <span class="arm-taboo"><span class="lg-sw"></span>taboo list</span>
+        <span><span class="lg-cap"></span>proposals that passed, when fewer than 512</span>
+      </div>
+      <div id="f2-strip"></div>
+      <span class="gs-axis">Generation</span>
+    </div>
+    <figcaption><b>Figure 2.</b> The first 30 proposals of each generation for the plain loop and the taboo list, seed 1, on one shared generation control; it opens at generation 3. Generation 0 is shared, so the two boxes start identical. Orange marks the dominant six. In the taboo box a blue outline pair marks a composition accepted twice, the most the rule allows. When fewer than 512 proposals passed the taboo list, its counts are out of that smaller number. Click a slot to find its composition in both boxes. Change generation with ◀ ▶ or the bars; on those controls the left and right arrow keys step too, and inside a box arrow keys move between slots.</figcaption>
   </figure>
 
-  <h2>The verdict</h2>
-  <figure class="wide" id="fig5">
-    <div class="tbl" id="tbl"></div>
-    <figcaption><b>Figure 10.</b> Generation 6, three-seed means. “Qualifying rosters” counts distinct rosters of battled teams with a win rate of 0.531 or more, the score a typical top-50 team gets against the other 49. “Best team” is the best of 16 re-battled at 4 battles per opponent (196); it includes the 49 battles that selected it, so it is slightly high for every arm alike.</figcaption>
+  <section class="stack">
+    <h2>What variety costs</h2>
+    <p>Figure 3 scores every arm at generation 6 against the pass rule: variety on the left, win rate on the right.</p>
+  </section>
+
+  <figure class="wide panel" id="fig3" aria-label="Figure 3, the scorecard">
+    <div class="legend">
+      <span><span class="lg-dash"></span>generation 0: 176 compositions</span>
+      <span><span class="lg-dot"></span>plain loop at generation 6: 38</span>
+      <span><span class="lg-band"></span>within 0.03 of the plain loop’s win rate</span>
+    </div>
+    <div class="scorecard" id="scorecard"></div>
+    <figcaption><b>Figure 3.</b> Generation 6, every arm. Left axis: different compositions among each arm’s proposals (512, or fewer for the taboo list where fewer passed); ticks are the three seeds and the labelled dot is their mean. Right axis: win rate minus the plain loop’s, with its bootstrap 95% interval; win rate here is the mean over each arm’s 128 battled teams, averaged over three seeds. An arm passes only if its whole interval sits inside the green band and it clears the variety test in every seed. The passing region is empty: every arm that gains variety leaves the band, and the one arm inside it adds no variety. The most common composition is from seed 1.</figcaption>
   </figure>
 
-  <p>No arm passes. The <strong>taboo list</strong> is the only fix that keeps real variety: 437 distinct rosters at generation 6 against 38, with a best team that is nearly as good (0.655 to 0.73 against 0.70 to 0.735). It pays 0.055 of average win rate, and it finds about 254 distinct rosters that beat 0.531, of which about 78 sit outside the six-species core the plain loop converges on.</p>
-  <p><strong>DPP</strong> comes closest on win rate, 0.030 below the plain loop. Its battled set is varied but the model still narrows, so it reaches only 174 rosters. <strong>Peeling</strong> and <strong>islands</strong> lose too much: banned species and walled-off loops give variety by construction, not strength. The <strong>big pool</strong> alone changes nothing about variety and gives the highest win rate, 0.605.</p>
+  <section class="stack">
+    <p>Every fix that adds compositions loses win rate. The one arm that gains win rate, the big pool, has fewer compositions than the plain loop on average. DPP battles a varied 128 each generation: in seed 1, <span class="num">122</span> to <span class="num">128</span> different compositions among its 128 battled teams. Its proposals stay near generation 0’s level: <span class="num">123</span> to <span class="num">185</span> different compositions among 512.</p>
+  </section>
 
-  <p>The next experiment worth running combines the two partial successes: a taboo list on the proposals, with DPP choosing which proposals to battle. A longer run would also show whether the taboo list keeps its variety past generation 6 or only delays the collapse.</p>
+  <section class="stack">
+    <h2>What variety bought</h2>
+    <p>A lower average can still hold a wider set of good teams. Call a battled team a <strong>winning team</strong> if its win rate is at least 0.531, the score of a typical top-50 team. Figure 4 collects every winning team from generations 1 to 6 of seed 1 and groups them by composition.</p>
+  </section>
 
-  <div class="foot">Data: <code>results/diversity_methods_all.json</code> and <code>results/cem_v3.json</code> in the pilot repository; code <code>src/diversity_loops.py</code>; pre-registration <code>docs/diversity-methods.md</code>. Win rate is wins over battles against the top-50 meta teams, one battle per opponent, behaviour-cloning policy on both sides. Composition diversity does not prove strategic variety. Rebuild with <code>python3 build.py</code>. No new battles were run for this page.</div>
+  <figure class="wide panel" id="fig4" aria-label="Figure 4, the winners' boxes">
+    <div class="wboxes">
+      <div class="arm-control">
+        <div class="wh"><span class="dot"></span><b>Plain loop</b> · <span class="num" id="f4-control-n">555</span> winning teams, <span class="num" id="f4-control-c">15</span> compositions, <span class="num" id="f4-control-o">1</span> sharing at most three species with the dominant six</div>
+        <div id="f4-box-control"></div>
+        <div class="wdet" id="f4-control-det" aria-live="polite"></div>
+      </div>
+      <div class="arm-taboo">
+        <div class="wh"><span class="dot"></span><b>Taboo list</b> · <span class="num" id="f4-taboo-n">280</span> winning teams, <span class="num" id="f4-taboo-c">267</span> compositions, <span class="num" id="f4-taboo-o">80</span> sharing at most three species with the dominant six</div>
+        <div id="f4-box-taboo"></div>
+        <div class="wdet" id="f4-taboo-det" aria-live="polite"></div>
+      </div>
+    </div>
+    <figcaption><b>Figure 4.</b> Winning compositions, seed 1, generations 1 to 6 pooled. Each slot is one composition: “×n” is how many winning teams have it, and the pip counts how many of the dominant six’s species it holds (6/6 is the dominant six itself, in orange). The plain loop fills 15 of its 30 slots, and the dominant six alone holds 414 of its 555 winning teams. The taboo list needs nine boxes; page through them with ◀ ▶. Click a slot for its names; inside a box, arrow keys move between slots.</figcaption>
+
+    <div class="confirm" id="confirm">
+      <h3>Re-scored on fresh battles</h3>
+      <div class="cf-grid" id="cf-grid"></div>
+      <p class="figcap"><b>Figure 4, lower panel.</b> Of the eight best re-battled teams across all arms and seeds, seven are the dominant six. Shown here are the best of those seven and the taboo list’s team (outlined in blue), each scored again on 196 new battles (four per opponent), against the best real team, MB607 (vertical line). Fresh battles played no part in choosing the teams, so these scores are free of the selection bias in the score that selected each team. Taking the best of eight still leaves a small winner’s curse, and differences of a few hundredths are within noise: whiskers are ± one standard error, √(p(1−p)/196) ≈ 0.033, and 0.018 for MB607.</p>
+    </div>
+  </figure>
+
+  <section class="stack">
+    <h2>Verdict</h2>
+    <p>No arm passes. Two fixes keep the variety: the taboo list, at about <span class="num">437</span> different compositions at generation 6, and peeling, at about <span class="num">417</span>. Only the taboo list keeps many strong teams: about <span class="num">254</span> compositions per seed with a win rate of at least 0.531, against peeling’s about <span class="num">30</span>, and about <span class="num">78</span> of the taboo list’s share at most three species with the dominant six. The taboo list pays <span class="num">0.055</span> of win rate; peeling pays <span class="num">0.207</span>.</p>
+    <p>DPP comes closest on win rate, <span class="num">0.030</span> below the plain loop, but stays at about <span class="num">174</span> compositions. Islands lose too much win rate (<span class="num">0.081</span>) and stay below generation 0’s variety. The big pool gains win rate (<span class="num">+0.055</span>) and adds no variety. The next experiment combines the two partial successes, the taboo list on proposals with DPP choosing what to battle, and a longer run will show whether the taboo list holds its variety past generation 6.</p>
+  </section>
+
+  <footer>
+    <div>Data: <code>results/diversity_methods_all.json</code>, <code>results/cem_v3.json</code> and <code>results/confirm_top.json</code> in the pilot repository. Code: <code>src/diversity_loops.py</code>. Pre-registration: <code>docs/diversity-methods.md</code>.</div>
+    <div>Win rate is wins ÷ battles against the 50 top-placing meta teams, one battle per opponent, with the same behaviour-cloned battle policy on both sides; a typical top-50 team scores 0.531 against the other 49. The best real team, MB607 (Sinistcha, Milotic, Incineroar, Raichu, Mimikyu, Ninetales-Alola), scores 0.691 (standard error 0.018).</div>
+    <div>Composition diversity does not prove strategic variety.</div>
+    <div>Sprites from Pokémon Showdown; a form without its own sprite is drawn as its base species with a small M (Mega) or F (form) badge, and a species with no sprite at all as a short name. Rebuild with <code>python3 build.py</code>.</div>
+  </footer>
 </main>
 
+<script type="application/json" id="data">/*__DATA__*/null</script>
+<script type="application/json" id="sprites">/*__SPRITES__*/null</script>
 <script>
-const D = /*__DATA__*/null;
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const ARMS = [
-  {k:"control", name:"Plain loop"}, {k:"taboo", name:"Taboo list"}, {k:"peel", name:"Peeling"},
-  {k:"island", name:"Islands"}, {k:"big", name:"Big pool"}, {k:"dpp", name:"DPP"}
-];
-const NAMES = {floetteeternal:"Eternal Floette", decidueyehisui:"Hisuian Decidueye", ninetalesalola:"Alolan Ninetales", floettemega:"Mega Floette", dragonitemega:"Mega Dragonite", mawilemega:"Mega Mawile"};
-const nice = s => NAMES[s] || s.charAt(0).toUpperCase() + s.slice(1);
-const colorOf = k => `var(--a-${k})`;
-const armName = k => ARMS.find(a => a.k === k).name;
-let sel = "taboo";
-const listeners = [];
-const onSel = f => listeners.push(f);
-function select(k){ sel = k; listeners.forEach(f => f()); }
-
-const mon = (i, cls="") => {
-  const s = D.species[i], src = D.sprites[s];
-  return src ? `<img src="${src}" alt="${nice(s)}" title="${nice(s)}">` : `<span class="chip" title="${nice(s)}">${s.slice(0,6)}</span>`;
-};
-const mons = (idxs, cls="") => `<span class="mons ${cls}">${idxs.map(i => mon(i)).join("")}</span>`;
-const monsByName = (names, cls="") => mons(names.map(n => D.species.indexOf(n)), cls);
-const pct = x => (100 * x).toFixed(x < 0.1 ? 1 : 0) + "%";
-const f3 = x => x.toFixed(3);
-
-function chipsFor(el, withDot=true){
-  el.innerHTML = "";
-  ARMS.forEach(a => {
-    const b = document.createElement("button");
-    b.style.setProperty("--c", colorOf(a.k)); b.dataset.k = a.k;
-    b.innerHTML = `<i></i>${a.name}`;
-    b.addEventListener("click", () => select(a.k));
-    el.appendChild(b);
-  });
-  return () => [...el.children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === sel));
+(function () {
+"use strict";
+const HAS_DOM = typeof document !== "undefined";
+if (HAS_DOM) window.addEventListener("error", e => showError(e.message));
+function showError(msg) {
+  if (!HAS_DOM || document.querySelector(".err")) return;
+  const d = document.createElement("div"); d.className = "err"; d.setAttribute("role", "status");
+  d.textContent = "A figure failed to draw: " + msg; document.body.appendChild(d);
 }
 
-/* ---------- predict ---------- */
-const guess = document.getElementById("guess"), guessOut = document.getElementById("guessOut");
-guess.addEventListener("input", () => guessOut.textContent = guess.value);
-document.getElementById("reveal").addEventListener("click", () => {
-  const truth = Math.round(D.curve.control[6][0]), g = +guess.value;
-  const ctl1 = D.crowd.control["6"].length;
-  document.getElementById("feedback").innerHTML = `<b>${truth}</b> on average over three seeds (${ctl1} in the seed drawn below). You guessed ${g}. ` +
-    (g > 2 * truth ? "Most people expect the loop to keep more variety than this: it trains on the best teams, and the best teams are all the same few rosters." : g < truth / 2 ? "The loop is more concentrated than most people expect, but it does not reach one roster." : "That is close.");
-});
+/* ================= data ================= */
+const D = HAS_DOM ? JSON.parse(document.getElementById("data").textContent) : globalThis.__D;
+const SPR = HAS_DOM ? JSON.parse(document.getElementById("sprites").textContent) : globalThis.__SPR;
+const RM = HAS_DOM && window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : { matches: true };
+const reduced = () => RM.matches;
+const SP = D.species, NM = D.names;
+const ARM_NAME = { control: "Plain loop", taboo: "Taboo list", peel: "Peeling", island: "Islands", dpp: "DPP", big: "Big pool" };
+const ARM_STAGE = { control: "Reference", taboo: "Proposing", peel: "Proposing", island: "Training", dpp: "Choosing what to battle", big: "Choosing what to battle" };
+const ORDER = ["control", "taboo", "peel", "island", "dpp", "big"];
+/* Proposals that passed the taboo list, per seed, generations 1..6: len(stream_comps) in results/diversity_methods_all.json.
+   data.json stores only seed 1 (gen.taboo[g].n); the check below keeps the two in step. Every other arm has 512 throughout. */
+const TABOO_N = { 1: [512, 455, 413, 512, 512, 512], 2: [512, 512, 369, 357, 356, 395], 3: [512, 424, 512, 441, 512, 512] };
+TABOO_N[1].forEach((n, j) => { if (D.gen.taboo[j + 1].n !== n) throw new Error("taboo n mismatch at generation " + (j + 1)); });
+const nOf = (arm, g, seed) => (arm === "taboo" && g > 0 ? TABOO_N[seed || 1][g - 1] : D.gen[arm][g].n);
 
-/* ---------- Figure 1: the crowd ---------- */
-const armUpd = [];
-const grid = document.getElementById("grid"), cells = [];
-for (let i = 0; i < 512; i++){ const c = document.createElement("div"); c.className = "cell"; c.dataset.i = i; grid.appendChild(c); cells.push(c); }
-const genEl = document.getElementById("gen"), genOut = document.getElementById("genOut"), readout = document.getElementById("readout");
-const GP = ["--g0","--g1","--g2","--g3","--g4"];
-let groupOf = [], rows = [];
-function drawCrowd(){
-  const g = +genEl.value; genOut.textContent = g;
-  rows = D.crowd[sel][String(g)]; groupOf = [];
-  rows.forEach((r, gi) => { for (let j = 0; j < r[0]; j++) groupOf.push(gi); });
-  cells.forEach((c, i) => {
-    const gi = groupOf[i];
-    if (gi === undefined) { c.style.backgroundColor = "transparent"; return; }
-    const n = rows[gi][0];
-    c.style.backgroundColor = gi < 5 && n > 1 ? `var(${GP[gi]})` : n > 1 ? "var(--mid)" : "var(--track)";
-  });
-  const total = groupOf.length, H = rows.reduce((s, r) => s - (r[0] / total) * Math.log(r[0] / total), 0);
-  document.getElementById("stD").innerHTML = `${rows.length}<small> of ${total}</small>`;
-  document.getElementById("stS").textContent = pct(rows[0][0] / total);
-  document.getElementById("stE").textContent = Math.exp(H).toFixed(Math.exp(H) < 100 ? 1 : 0);
-  showRoster(0);
-}
-function showRoster(gi, hover){
-  const r = rows[gi]; if (!r) return;
-  const sw = gi < 5 && r[0] > 1 ? `var(${GP[gi]})` : r[0] > 1 ? "var(--mid)" : "var(--track)";
-  readout.innerHTML = `<span><span class="sw" style="background:${sw}"></span> ${hover ? "This tile" : "Largest roster"}:</span> ${mons(r[1])} <span><b>${r[0]}</b> of ${groupOf.length} proposals${r[0] === 1 ? " (appears once)" : ""}</span>`;
-}
-grid.addEventListener("pointerover", e => { const c = e.target.closest(".cell"); if (c && groupOf[+c.dataset.i] !== undefined) showRoster(groupOf[+c.dataset.i], true); });
-grid.addEventListener("pointerleave", () => showRoster(0));
-const armChips1 = chipsFor(document.getElementById("armChips"));
-armUpd.push(armChips1);
-genEl.addEventListener("input", drawCrowd);
-let timer = null;
-document.getElementById("play").addEventListener("click", e => {
-  if (timer){ clearInterval(timer); timer = null; e.target.textContent = "Step through"; return; }
-  genEl.value = 0; drawCrowd(); e.target.textContent = "Stop";
-  timer = setInterval(() => {
-    if (+genEl.value >= 6){ clearInterval(timer); timer = null; e.target.textContent = "Step through"; return; }
-    genEl.value = +genEl.value + 1; drawCrowd();
-  }, reduce ? 600 : 1300);
-});
-onSel(drawCrowd);
+/* a composition's key: species indices sorted by species id, the order data.json stores them in */
+const canon = comp => comp.slice().sort((a, b) => (SP[a] < SP[b] ? -1 : SP[a] > SP[b] ? 1 : 0));
+const keyOf = comp => canon(comp).join(".");
+const compOf = key => key.split(".").map(Number);
+const CORE_KEY = keyOf(D.core), CORE = new Set(D.core);
+const shared = comp => comp.filter(i => CORE.has(i)).length;
+const nameId = id => NM[id] || (id.charAt(0).toUpperCase() + id.slice(1));
+const nameOf = i => nameId(SP[i]);
+const namesOf = comp => comp.map(nameOf);
+const listText = arr => arr.length < 2 ? arr.join("") : arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const minus = s => s.replace(/^-/, "−");
+const f3 = v => minus(v.toFixed(3));
+const f3s = v => (v > 0 ? "+" : "") + f3(v);
+const int = v => Math.round(v).toLocaleString("en-US");
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-/* ---------- SVG helpers ---------- */
-const NS = "http://www.w3.org/2000/svg";
-function el(tag, attrs={}, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
-function txt(parent, x, y, s, attrs={}){ const t = el("text", {x, y, ...attrs}, parent); t.textContent = s; return t; }
-
-/* ---------- Figure 2: curves ---------- */
-const METRICS = [
-  {i:0, name:"Distinct rosters /512", dom:[0,500], tick:100, fmt:v => Math.round(v)},
-  {i:1, name:"Largest roster's share", dom:[0,1], tick:0.2, fmt:v => pct(v)},
-  {i:2, name:"Battled win rate", dom:[0.25,0.65], tick:0.1, fmt:v => f3(v)}
-];
-let metric = 0, hoverG = null;
-const mc = document.getElementById("metricChips");
-METRICS.forEach((m, i) => { const b = document.createElement("button"); b.textContent = m.name; b.addEventListener("click", () => { metric = i; drawCurves(); }); mc.appendChild(b); });
-function drawCurves(){
-  [...mc.children].forEach((b, i) => b.setAttribute("aria-pressed", i === metric));
-  const svg = document.getElementById("curves"); svg.innerHTML = "";
-  const W = 760, H = 360, L = 52, R = 160, T = 14, B = 34, m = METRICS[metric];
-  const X = g => L + (W - L - R) * g / 6, Y = v => T + (H - T - B) * (1 - (v - m.dom[0]) / (m.dom[1] - m.dom[0]));
-  for (let v = m.dom[0]; v <= m.dom[1] + 1e-9; v += m.tick){ el("line", {x1:L, x2:W-R, y1:Y(v), y2:Y(v), class:"gl"}, svg); txt(svg, L-8, Y(v)+4, m.fmt(v), {"text-anchor":"end"}); }
-  for (let g = 0; g <= 6; g++){ txt(svg, X(g), H-12, "g" + g, {"text-anchor":"middle"}); }
-  el("line", {x1:L, x2:W-R, y1:H-B, y2:H-B, class:"ax"}, svg);
-  const ends = [];
-  ARMS.forEach(a => {
-    const on = a.k === sel, pts = D.curve[a.k].map((p, g) => `${X(g)},${Y(p[m.i])}`).join(" ");
-    el("polyline", {points:pts, fill:"none", stroke:colorOf(a.k), "stroke-width":on ? 3 : 1.6, "stroke-dasharray":a.k === "big" ? "5 4" : "", opacity:on ? 1 : .65, "stroke-linejoin":"round"}, svg);
-    ends.push({a, y:Y(D.curve[a.k][6][m.i]), on});
-  });
-  ends.sort((p, q) => p.y - q.y); for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i-1].y < 15) ends[i].y = ends[i-1].y + 15;
-  ends.forEach(e => txt(svg, W-R+8, e.y+4, e.a.name, {class:"lbl", fill:colorOf(e.a.k), style:`fill:${colorOf(e.a.k)};font-weight:${e.on ? 600 : 500}`}));
-  if (hoverG !== null){ el("line", {x1:X(hoverG), x2:X(hoverG), y1:T, y2:H-B, stroke:"var(--muted)", "stroke-width":1}, svg); ARMS.forEach(a => el("circle", {cx:X(hoverG), cy:Y(D.curve[a.k][hoverG][m.i]), r:4, fill:colorOf(a.k)}, svg)); }
-  const hit = el("rect", {x:L-10, y:T, width:W-L-R+20, height:H-T-B, fill:"transparent"}, svg);
-  const move = e => { const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W; const g = Math.max(0, Math.min(6, Math.round((x - L) / ((W - L - R) / 6)))); if (g !== hoverG){ hoverG = g; drawCurves(); } };
-  hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move);
-  const g = hoverG === null ? 6 : hoverG;
-  document.getElementById("curveRead").innerHTML = `<b>g${g}</b>` + ARMS.map(a => `<span><i class="sw" style="background:${colorOf(a.k)}"></i>${a.name} <b>${m.fmt(D.curve[a.k][g][m.i])}</b></span>`).join("");
-}
-onSel(drawCurves);
-
-/* ---------- Figure 3: trade-off ---------- */
-function drawTrade(){
-  const svg = document.getElementById("trade"); svg.innerHTML = "";
-  const W = 760, H = 400, L = 56, R = 24, T = 16, B = 44, xd = [0,500], yd = [0.30,0.64];
-  const X = v => L + (W - L - R) * (v - xd[0]) / (xd[1] - xd[0]), Y = v => T + (H - T - B) * (1 - (v - yd[0]) / (yd[1] - yd[0]));
-  const ctlWin = D.curve.control[6][2], floor = ctlWin - 0.03, g0 = D.curve.control[0][0];
-  el("rect", {x:X(g0), y:T, width:X(xd[1]) - X(g0), height:Y(floor) - T, fill:"var(--accent-soft)", opacity:.7}, svg);
-  txt(svg, X(g0) + 8, T + 18, "passes the rule (empty)", {style:"fill:var(--accent)", class:"lbl"});
-  for (let v = 0.3; v <= 0.64; v += 0.1) { el("line", {x1:L, x2:W-R, y1:Y(v), y2:Y(v), class:"gl"}, svg); txt(svg, L-8, Y(v)+4, v.toFixed(2), {"text-anchor":"end"}); }
-  for (let v = 0; v <= 500; v += 100) txt(svg, X(v), H-B+18, v, {"text-anchor":"middle"});
-  txt(svg, (L + W - R) / 2, H-6, "distinct rosters among 512 proposals, generation 6", {"text-anchor":"middle"});
-  txt(svg, 12, (T + H - B) / 2, "battled win rate", {transform:`rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor":"middle"});
-  el("line", {x1:L, x2:W-R, y1:Y(floor), y2:Y(floor), stroke:"var(--muted)", "stroke-dasharray":"5 4"}, svg);
-  txt(svg, W-R-4, Y(floor) + 14, "plain loop minus 0.03", {"text-anchor":"end"});
-  el("line", {x1:X(g0), x2:X(g0), y1:T, y2:H-B, stroke:"var(--muted)", "stroke-dasharray":"5 4"}, svg);
-  txt(svg, X(g0) + 4, H-B-6, "generation 0 level", {});
-  ARMS.forEach(a => {
-    const on = a.k === sel;
-    D.seedpts[a.k].forEach(p => el("circle", {cx:X(p[0]), cy:Y(p[1]), r:3, fill:colorOf(a.k), opacity:.55}, svg));
-    const m = D.curve[a.k][6];
-    const g = el("g", {tabindex:0, role:"button", "aria-label":`${armName(a.k)}: ${Math.round(m[0])} rosters, win rate ${f3(m[2])}`, style:"cursor:pointer"}, svg);
-    if (on) el("circle", {cx:X(m[0]), cy:Y(m[2]), r:13, fill:"none", stroke:colorOf(a.k), "stroke-width":2}, g);
-    el("circle", {cx:X(m[0]), cy:Y(m[2]), r:8, fill:colorOf(a.k)}, g);
-    const dx = m[0] > 380 ? -14 : 14;
-    txt(g, X(m[0]) + dx, Y(m[2]) + 4, armName(a.k), {"text-anchor":dx < 0 ? "end" : "start", class:"lbl", style:`fill:${colorOf(a.k)}`});
-    g.addEventListener("click", () => { select(a.k); document.getElementById("fig4").scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"nearest"}); });
-    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); select(a.k); } });
-  });
-}
-onSel(drawTrade);
-
-/* ---------- Figure 4: mechanisms ---------- */
-const STAGES = ["Propose 512", "Pick 128", "Battle", "Choose elites", "Fine-tune"];
-const MECH = {
-  control: {stage:-1, text:"Nothing protects variety. The elites are the teams that scored 0.531 or more, so the same rosters that win keep entering the training data and the model learns to propose them."},
-  taboo: {stage:0, text:"A proposal is rejected before it is battled if its roster appeared in any earlier generation, or has already been accepted twice in this one. The model is not changed; the filter only decides what counts as an accepted proposal."},
-  peel: {stage:0, text:"Species are removed from the sampler in epochs of two generations. The three most common species among the sixteen best teams of the epoch before are banned from then on, and elite teams that hold a banned species are dropped from the training data."},
-  island: {stage:4, text:"Four loops run side by side. Each is pinned to the first three species of a different meta team and trains only on its own elites. Before generations 3 and 5, each island receives one team from every other island that shares at most two species with its own core."},
-  big: {stage:1, text:"The model proposes 4,096 teams instead of 512 and the 128 with the best surrogate score are battled. This is a control for the DPP arm: it shows what a bigger pool does without any diversity rule."},
-  dpp: {stage:1, text:"From the same 4,096 proposals, the 128 to battle are chosen by a determinantal point process that rewards a high surrogate score and penalises teams that share species with teams already chosen."}
-};
-const mechChips = chipsFor(document.getElementById("mechChips"));
-let tabooStep = 0, peelEpoch = 0, migr = 0;
-function drawMech(){
-  const m = MECH[sel], box = document.getElementById("mech");
-  const loop = STAGES.map((s, i) => `<span class="st ${i === m.stage ? "hit" : ""}" style="--c:${colorOf(sel)}">${s}</span>`).join("<span>→</span>");
-  let demo = "";
-  if (sel === "taboo") demo = tabooDemo();
-  else if (sel === "peel") demo = peelDemo();
-  else if (sel === "island") demo = islandDemo();
-  else demo = battledDemo();
-  box.innerHTML = `<h3 style="color:${colorOf(sel)}">${armName(sel)}</h3><div class="loop">${loop}</div><p>${m.text}</p><div class="demo">${demo}</div>`;
-  wireMech();
-}
-const SEQ = () => {
-  const A = D.ctrl_top, I = D.island.map(r => r.map(n => D.species.indexOf(n)));
-  return [
-    {r:I[0], ok:true, why:"new roster"}, {r:A, ok:false, why:"seen in an earlier generation"}, {r:I[1], ok:true, why:"new roster"},
-    {r:I[0], ok:true, why:"second time this generation, allowed"}, {r:I[0], ok:false, why:"already accepted twice this generation"}, {r:I[2], ok:true, why:"new roster"}
-  ];
-};
-function tabooDemo(){
-  const s = SEQ(), shown = s.slice(0, tabooStep);
-  const rows = shown.map(p => `<div class="prop ${p.ok ? "ok" : "no"}">${mons(p.r, "sm")}<span class="verdict">${p.ok ? "accepted" : "rejected"}</span><span style="font-size:13px;color:var(--muted)">${p.why}</span></div>`).join("");
-  const done = tabooStep >= s.length;
-  return `<div class="row"><button id="tabooNext" class="primary" ${done ? "disabled" : ""}>Send next proposal</button><button id="tabooReset">Reset</button><span class="ledger">accepted ${shown.filter(p => p.ok).length} · rejected ${shown.filter(p => !p.ok).length}</span></div><div class="log">${rows || '<span style="font-size:13px;color:var(--muted)">Six proposals will arrive one by one. The roster in the second one is the plain loop\'s largest roster from generation 6 (seed 1).</span>'}</div>`;
-}
-function peelDemo(){
-  const ep = peelEpoch, gens = ["1","3","5"], ban = D.peel[gens[ep]];
-  const sprites = ban.map(n => `<span class="mon-s gone">${monsByName([n])}</span>`).join("");
-  const wr = [1,2,3,4,5,6].map(g => D.curve.peel[g][2]);
-  return `<div class="chips seg">${["Generations 1–2","Generations 3–4","Generations 5–6"].map((t, i) => `<button data-ep="${i}" aria-pressed="${i === ep}">${t}</button>`).join("")}</div>
-  <div style="font-size:14px;color:var(--muted)">${ban.length} species banned from the sampler:</div><div class="row" style="gap:2px">${sprites}</div>
-  <div class="bars">${[0,1,2].map(i => { const a = wr[i*2], b = wr[i*2+1]; return `<div class="bar" style="--c:var(--a-peel)"><span>g${i*2+1}–${i*2+2}</span><span class="tr"><span class="fl" style="display:block;width:${(a+b)/2/0.65*100}%"></span></span><span class="v">${f3((a+b)/2)}</span></div>`; }).join("")}</div>
-  <div style="font-size:12px;color:var(--muted)">Bars: mean battled win rate of the epoch (three seeds). The plain loop stays near 0.55.</div>`;
-}
-function islandDemo(){
-  const boxes = D.island.map((r, i) => `<div class="${migr && i === migr % 4 ? "in" : ""}">${monsByName(r, "sm")}<small>island ${i + 1} · pinned to this meta team's first three species</small></div>`).join("");
-  return `<div class="isl">${boxes}</div><div class="row"><button id="migrate" class="primary">Migrate</button><span class="ledger">${migr ? "an off-core team from each other island arrived at island " + (migr % 4 + 1) : "islands are walled off until generation 3"}</span></div>`;
-}
-function battledDemo(){
-  const arms = sel === "control" || sel === "big" || sel === "dpp" ? ["control","big","dpp"] : [sel];
-  const lines = ["control","big","dpp"].map(k => {
-    const v = D.battled[k][6];
-    return `<div class="bar" style="--c:${colorOf(k)}"><span>${armName(k).slice(0,5)}</span><span class="tr"><span class="fl" style="display:block;width:${v/128*100}%"></span></span><span class="v">${v.toFixed(0)}</span></div>`;
-  }).join("");
-  return `<div style="font-size:14px;color:var(--muted)">Distinct rosters among the 128 teams battled in generation 6 (three seeds, of 128):</div><div class="bars">${lines}</div>
-  <div style="font-size:12px;color:var(--muted)">The DPP arm battles a varied set, yet its next proposals still narrow, because the elites it trains on come from a few strong rosters. Choosing what to battle is not enough on its own.</div>`;
-}
-function wireMech(){
-  const $ = id => document.getElementById(id);
-  if ($("tabooNext")) $("tabooNext").onclick = () => { tabooStep++; drawMech(); };
-  if ($("tabooReset")) $("tabooReset").onclick = () => { tabooStep = 0; drawMech(); };
-  if ($("migrate")) $("migrate").onclick = () => { migr++; drawMech(); };
-  document.querySelectorAll("[data-ep]").forEach(b => b.onclick = () => { peelEpoch = +b.dataset.ep; drawMech(); });
-}
-onSel(() => { mechChips(); drawMech(); });
-
-/* ---------- table ---------- */
-function drawTable(){
-  const t = D.table, rowsH = ARMS.map(a => {
-    const r = t[a.k], ctl = a.k === "control";
-    const diff = ctl ? "—" : `${r.diff >= 0 ? "+" : "−"}${Math.abs(r.diff).toFixed(3)} [${r.ci[0].toFixed(3)}, ${r.ci[1].toFixed(3)}]`;
-    return `<tr><td><i class="sw" style="background:${colorOf(a.k)}"></i> ${a.name}</td><td>${Math.round(r.comps)}</td><td>${pct(r.share)}</td><td>${f3(r.win)}</td><td>${diff}</td><td>${Math.round(r.cores)}${ctl ? "" : ` (${Math.round(r.off)} off-core)`}</td><td>${Math.min(...r.best).toFixed(2)}–${Math.max(...r.best).toFixed(2)}</td><td class="${ctl ? "base" : "fail"}">${ctl ? "baseline" : "fails"}</td></tr>`;
-  }).join("");
-  document.getElementById("tbl").innerHTML = `<table><thead><tr><th>Arm</th><th>Distinct rosters</th><th>Largest share</th><th>Win rate</th><th>Win rate vs plain loop (95%)</th><th>Qualifying rosters</th><th>Best team</th><th>Rule</th></tr></thead><tbody>${rowsH}</tbody></table>`;
-}
-
-
-/* ---------- up-close helpers ---------- */
-const colorFor = (gi, n) => gi < 5 && n > 1 ? `var(${GP[gi]})` : n > 1 ? "var(--mid)" : "var(--track)";
-function makeGrid(host, n, cols){
-  host.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`; host.innerHTML = "";
-  return Array.from({length:n}, () => { const d = document.createElement("div"); d.className = "cell"; host.appendChild(d); return d; });
-}
-function paint(cs, rowsX){
-  let i = 0;
-  rowsX.forEach((r, gi) => { for (let j = 0; j < r[0] && i < cs.length; j++, i++) cs[i].style.backgroundColor = colorFor(gi, r[0]); });
-  for (; i < cs.length; i++) cs[i].style.backgroundColor = "transparent";
-}
-function stepper(slider, out, btn, lo, hi, draw, ms){
-  const set = v => { slider.value = v; draw(); };
-  slider.addEventListener("input", draw);
-  let t = null; const stop = () => { clearInterval(t); t = null; btn.textContent = "Step through"; };
-  btn.addEventListener("click", () => {
-    if (t){ stop(); return; }
-    set(lo); btn.textContent = "Stop";
-    t = setInterval(() => { if (+slider.value >= hi) stop(); else set(+slider.value + 1); }, reduce ? 500 : ms);
-  });
-}
-
-/* ---------- Figure 5: why the plain loop collapses ---------- */
-const lpProp = makeGrid(document.getElementById("lpProp"), 512, 32), lpBat = makeGrid(document.getElementById("lpBat"), 128, 16);
-const lpG = document.getElementById("lpGen");
-function drawLoop(){
-  const g = +lpG.value, L = D.loop[g], R = D.crowd.control[String(g)];
-  document.getElementById("lpGenOut").textContent = g;
-  document.getElementById("lpEl").textContent = L.elites === null ? "none" : L.elites;
-  document.getElementById("lpElSub").innerHTML = L.elites === null ? "Generation 0 comes from the original model, before any training on this loop's results." : `teams that scored <b>${L.cut}</b> or more, including ${L.anchors} real meta teams. The model is re-trained on them.`;
-  paint(lpProp, R);
-  document.getElementById("lpPropSub").innerHTML = `<b>${R.length}</b> distinct rosters. The biggest is <b>${pct(R[0][0] / 512)}</b>:<br>${mons(R[0][1], "sm")}`;
-  L.tiles.forEach(([rk, hit], i) => { const c = lpBat[i]; c.style.backgroundColor = rk < 5 ? `var(${GP[rk]})` : "var(--mid)"; c.classList.toggle("hit", !!hit); });
-  document.getElementById("lpBatSub").innerHTML = `<b>${L.distinct}</b> distinct rosters among the 128. The biggest has <b>${L.top[0][0]}</b> teams.`;
-  document.getElementById("lpAbove").textContent = L.above;
-  document.getElementById("lpAboveSub").innerHTML = `of 128 scored 0.531 or more (the outlined tiles). They enter the next generation's elites.`;
-}
-stepper(lpG, null, document.getElementById("lpPlay"), 0, 6, drawLoop, 1600);
-
-/* ---------- Figure 6: taboo list ---------- */
-let tbOn = false;
-const tbG = document.getElementById("tbGen");
-function drawTab(){
-  const g = +tbG.value, T = D.tab[g]; document.getElementById("tbGenOut").textContent = g;
-  const cap = 4096, acc = 512, rej = Math.min(T.attempts - acc, cap - acc);
-  document.getElementById("tbBars").innerHTML = `
-    <div class="hb" style="--c:var(--a-control)"><span>Before: distinct rosters</span><span class="tr"><span class="fl" style="width:${T.raw / 512 * 100}%"></span></span><span class="v">${Math.round(T.raw)}</span></div>
-    <div class="hb" style="--c:var(--a-taboo)"><span>After: distinct rosters</span><span class="tr"><span class="fl" style="width:${(tbOn ? T.kept : T.raw) / 512 * 100}%"></span></span><span class="v">${Math.round(tbOn ? T.kept : T.raw)}</span></div>
-    <div class="hb" style="--c:var(--a-taboo)"><span>Sampling attempts</span><span class="tr"><span class="fl" style="width:${tbOn ? acc / cap * 100 : 0}%"></span><span class="fl rej" style="width:${tbOn ? (T.attempts - acc) / cap * 100 : 0}%"></span></span><span class="v">${tbOn ? Math.round(T.attempts) : 512}</span></div>
-    <div class="sub" style="margin-bottom:6px">${tbOn ? `The list rejected about <b>${Math.round(T.rejected).toLocaleString()}</b> attempts to find 512 acceptable proposals. The largest roster falls from <b>${pct(T.rawshare)}</b> to <b>${pct(T.keptshare)}</b>.` : `Before the list, the model's own 512 proposals contain <b>${Math.round(T.raw)}</b> distinct rosters. The largest takes <b>${pct(T.rawshare)}</b>.`}</div>`;
-  document.getElementById("tbTop").innerHTML = T.top.slice(0, 3).map(r => `${mons(r[1], "sm")}<span><b>${r[0]}</b>×</span>`).join(" ");
-  document.getElementById("tbApply").textContent = tbOn ? "Remove the taboo list" : "Apply the taboo list";
-}
-document.getElementById("tbApply").addEventListener("click", () => { tbOn = !tbOn; drawTab(); });
-tbG.addEventListener("input", drawTab);
-
-/* ---------- Figure 7: peeling leaderboard ---------- */
-let lbArm = "peel";
-const LB_ROW = 38, LB_N = 8, lb = document.getElementById("lb"), lbG = document.getElementById("lbGen");
-const banAt = (arm, g) => arm !== "peel" || g < 1 ? [] : D.peel[g >= 5 ? "5" : g >= 3 ? "3" : "1"];
-function presenceOf(arm, g){
-  const rows = D.crowd[arm][String(g)], m = {}; let tot = 0;
-  rows.forEach(([n, ids]) => { tot += n; ids.forEach(i => m[i] = (m[i] || 0) + n); });
-  return Object.entries(m).map(([i, n]) => [+i, n / tot]).sort((a, b) => b[1] - a[1]);
-}
-let lbRows = {};
-function buildLb(){
-  lb.innerHTML = ""; lbRows = {};
-  const u = new Set(); for (let g = 0; g <= 6; g++) presenceOf(lbArm, g).slice(0, LB_N).forEach(([i]) => u.add(i));
-  lb.style.height = LB_N * LB_ROW + "px";
-  [...u].forEach(i => {
-    const d = document.createElement("div"); d.className = "rw"; d.style.setProperty("--c", colorOf(lbArm));
-    const sp = D.species[i], src = D.sprites[sp];
-    d.innerHTML = `${src ? `<img src="${src}" alt="">` : `<span class="chip">${sp.slice(0,6)}</span>`}<span class="nm">${nice(sp)}</span><span class="tr"><span class="fl"></span></span><span class="v"></span>`;
-    d.style.transform = `translateY(${LB_N * LB_ROW}px)`; d.style.opacity = 0; lb.appendChild(d); lbRows[i] = d;
-  });
-}
-function drawLb(){
-  const g = +lbG.value; document.getElementById("lbGenOut").textContent = g;
-  [...document.querySelectorAll("#lbArm button")].forEach(b => b.setAttribute("aria-pressed", b.dataset.a === lbArm));
-  const top = presenceOf(lbArm, g).slice(0, LB_N), inTop = new Set(top.map(t => t[0]));
-  top.forEach(([i, v], r) => { const d = lbRows[i]; d.style.transform = `translateY(${r * LB_ROW}px)`; d.style.opacity = 1; d.querySelector(".fl").style.width = v * 100 + "%"; d.querySelector(".v").textContent = pct(v); });
-  Object.entries(lbRows).forEach(([i, d]) => { if (!inTop.has(+i)){ d.style.transform = `translateY(${LB_N * LB_ROW}px)`; d.style.opacity = 0; } });
-  const ban = banAt(lbArm, g);
-  document.getElementById("lbBan").innerHTML = lbArm === "peel" ? (ban.length ? `<span>Banned from the sampler (${ban.length}):</span> ${ban.map(n => `<span class="mon-s gone">${monsByName([n], "sm")}</span>`).join("")}` : "<span>No species banned yet.</span>") : "<span>No species are banned in the plain loop.</span>";
-}
-document.querySelectorAll("#lbArm button").forEach(b => b.addEventListener("click", () => { lbArm = b.dataset.a; buildLb(); drawLb(); }));
-stepper(lbG, null, document.getElementById("lbPlay"), 0, 6, drawLb, 1600);
-
-/* ---------- Figure 8: islands ---------- */
-const isG = document.getElementById("isG"), isHost = document.getElementById("ilands"), isCells = [];
-D.island.forEach((r, k) => {
-  const box = document.createElement("div"); box.id = "isl" + k;
-  box.innerHTML = `<div>${monsByName(r, "sm")}</div><div class="mini" id="isGrid${k}"></div><div class="sub" id="isSub${k}"></div>`;
-  isHost.appendChild(box); isCells.push(makeGrid(box.querySelector(".mini"), 128, 16));
-});
-function drawIsl(){
-  const g = +isG.value; document.getElementById("isGOut").textContent = g;
-  const mig = g === 3 || g === 5;
-  document.getElementById("isMig").textContent = mig ? "Migrants arrived before this generation." : "";
-  D.isl[g].forEach((I, k) => {
-    paint(isCells[k], I.rows);
-    document.getElementById("isSub" + k).innerHTML = `<b>${I.distinct}</b> distinct rosters of 128 · battled mean <b>${I.mean.toFixed(3)}</b> · <b>${I.qual}</b> of 32 above 0.531`;
-    const b = document.getElementById("isl" + k); b.classList.remove("in"); if (mig){ void b.offsetWidth; b.classList.add("in"); }
-  });
-}
-stepper(isG, null, document.getElementById("isPlay"), 1, 6, drawIsl, 1600);
-
-/* ---------- Figure 9: DPP ---------- */
-const POOL = D.dpppool, K9 = 8, TAU = 0.05;
-const rosterKey = r => r.slice().sort((a, b) => a - b).join(",");
-function dppGreedy(){
-  const ymax = POOL[0][1], q = POOL.map(p => Math.exp((p[1] - ymax) / TAU));
-  const n = POOL.length, vocab = {}; POOL.forEach(p => p[0].forEach(i => { if (!(i in vocab)) vocab[i] = Object.keys(vocab).length; }));
-  const dim = Object.keys(vocab).length, Phi = POOL.map((p, a) => { const v = new Array(dim).fill(0); p[0].forEach(i => v[vocab[i]] = q[a] / Math.sqrt(6)); return v; });
-  const dot = (x, y) => x.reduce((s, v, i) => s + v * y[i], 0);
-  let d2 = Phi.map(v => dot(v, v)); const C = [], sel = [], gains = [];
-  let j = d2.indexOf(Math.max(...d2));
-  while (sel.length < K9 && d2[j] > 1e-10){
-    sel.push(j); gains.push(d2[j]);
-    const e = Phi.map((v, a) => (dot(v, Phi[j]) - C.reduce((s, c) => s + c[a] * c[j], 0)) / Math.sqrt(d2[j]));
-    C.push(e); d2 = d2.map((x, a) => sel.includes(a) ? -Infinity : x - e[a] * e[a]); j = d2.indexOf(Math.max(...d2));
+/* ================= sprites ================= */
+const SUFFIXES = ["megax", "megay", "mega", "alola", "galar", "hisui", "paldeablaze", "paldeacombat", "paldeaaqua", "hero", "busted", "hangry",
+  "rainy", "snowy", "sunny", "large", "small", "super", "blade", "f", "m", "midnight", "fan", "frost", "mow", "antique"];
+const RES = {};
+function resolve(id) {
+  if (RES[id]) return RES[id];
+  let r = null;
+  if (SPR[id]) r = { s: id };
+  else {
+    for (const suf of SUFFIXES) {
+      const base = id.slice(0, -suf.length);
+      if (id.length > suf.length + 2 && id.endsWith(suf) && SPR[base]) { r = { s: base, b: suf.startsWith("mega") ? "M" : "F" }; break; }
+    }
+    if (!r && id.startsWith("vivillon") && id !== "vivillon" && SPR.vivillon) r = { s: "vivillon", b: "F" };
+    if (!r) r = { chip: true };
   }
-  return {sel, gains};
+  return (RES[id] = r);
 }
-const DPP = dppGreedy(); let dpShown = 0;
-const overlap = (a, b) => a.filter(x => b.includes(x)).length;
-function pkHtml(a, extra, dup){ const p = POOL[a]; return `<div class="pk ${dup ? "dup" : ""}">${mons(p[0], "sm")}<span>win rate <b>${p[1].toFixed(3)}</b></span><span class="why">${extra}</span></div>`; }
-function drawDpp(){
-  const picked = DPP.sel.slice(0, dpShown);
-  document.getElementById("dpList").innerHTML = picked.map((a, k) => {
-    const mx = Math.max(0, ...picked.slice(0, k).map(b => overlap(POOL[a][0], POOL[b][0])));
-    return pkHtml(a, k === 0 ? "First pick: the best score." : `Pick ${k + 1}: gain left after overlap and score = <b>${(r => r < 0.01 ? "under 0.01" : r.toFixed(2))(DPP.gains[k] / DPP.gains[0])}</b> of the first. Shares up to <b>${mx}</b> of 6 species with an earlier pick.`, false);
-  }).join("") || '<div class="sub">Press “Pick next”.</div>';
-  const top = POOL.slice(0, K9).map((_, a) => a), shown = top.slice(0, Math.max(dpShown, 0));
-  document.getElementById("tkList").innerHTML = shown.map((a, k) => {
-    const mx = Math.max(0, ...shown.slice(0, k).map(b => overlap(POOL[a][0], POOL[b][0])));
-    return pkHtml(a, k === 0 ? "Highest win rate." : `Shares up to <b>${mx}</b> of 6 species with an earlier pick.`, mx >= 5);
-  }).join("");
-  const stat = list => { const rs = new Set(list.map(a => rosterKey(POOL[a][0]))), sp = new Set(list.flatMap(a => POOL[a][0])); return `${rs.size} distinct rosters · ${sp.size} species`; };
-  document.getElementById("dpStat").textContent = picked.length ? "· " + stat(picked) : "";
-  document.getElementById("tkStat").textContent = shown.length ? "· " + stat(shown) : "";
-  document.getElementById("dpNext").disabled = dpShown >= DPP.sel.length;
+let TALLY = null; /* set by the build check to count chip slots; null on the page */
+function monId(id, extra) {
+  const nm = esc(nameId(id)), r = resolve(id), cls = extra ? " " + extra : "";
+  if (TALLY) { TALLY.slots++; if (r.chip) TALLY.chips++; if (r.b) TALLY.badged++; }
+  if (r.chip) {
+    const short = nameId(id).replace(/[^A-Za-z]/g, "").slice(0, 4);
+    return `<span class="mon chip${cls}" role="img" aria-label="${nm}" title="${nm}"><b aria-hidden="true">${esc(short)}</b></span>`;
+  }
+  return `<span class="mon sp-${r.s}${r.b ? " has-b" : ""}${cls}" role="img" aria-label="${nm}" title="${nm}">${r.b ? `<i class="bdg" aria-hidden="true">${r.b}</i>` : ""}</span>`;
 }
-document.getElementById("dpNext").addEventListener("click", () => { dpShown++; drawDpp(); });
-document.getElementById("dpAll").addEventListener("click", () => { dpShown = DPP.sel.length; drawDpp(); });
-document.getElementById("dpReset").addEventListener("click", () => { dpShown = 0; drawDpp(); });
-function drawDppBars(){
-  const rows = [1,2,3,4,5,6].map(g => `<div class="hb" style="--c:var(--a-dpp)"><span>g${g} battled: plain ${Math.round(D.battled.control[g])} · DPP ${Math.round(D.battled.dpp[g])}</span><span class="tr"><span class="fl" style="width:${D.battled.dpp[g] / 128 * 100}%"></span></span><span class="v">of 128</span></div><div class="hb" style="--c:var(--a-dpp);margin-top:-4px"><span>g${g} next proposals: ${Math.round(D.curve.dpp[g][0])}</span><span class="tr"><span class="fl" style="width:${D.curve.dpp[g][0] / 512 * 100}%;opacity:.55"></span></span><span class="v">of 512</span></div>`).join("");
-  document.getElementById("dpBars").innerHTML = `<div class="sub" style="margin-bottom:4px"><b>DPP arm:</b> distinct rosters in what it battles (strong bar) and in what the model then proposes (light bar)</div>${rows}`;
+const mon = (i, extra) => monId(SP[i], extra);
+const six = (comp, cls) => `<span class="six${cls ? " " + cls : ""}">${comp.map(i => mon(i)).join("")}</span>`;
+function installSprites() {
+  const css = Object.keys(SPR).map(id => `.sp-${id}{background-image:url(${SPR[id]})}`).join("\n");
+  const st = document.createElement("style"); st.id = "sprite-sheet"; st.textContent = css; document.head.appendChild(st);
 }
 
-/* ---------- start ---------- */
-const syncChips = () => armUpd.forEach(f => f());
-onSel(syncChips);
-drawTable(); drawCurves(); select(sel);
-drawLoop(); drawTab(); buildLb(); drawLb(); drawIsl(); drawDpp(); drawDppBars();
+/* ================= shared pieces ================= */
+function genStats(arm, g) {
+  const R = D.gen[arm][g];
+  const keys = R.box.map(keyOf);
+  const cnt = {}; keys.forEach(k => { cnt[k] = (cnt[k] || 0) + 1; });
+  const info = {}; R.boxinfo.forEach(([c, p, b, w]) => { info[keyOf(c)] = { p, b, w }; });
+  info[CORE_KEY] = { p: R.core_proposed, b: R.core_battled, w: R.core_won };
+  const top = {}; R.top.forEach(([n, c]) => { top[keyOf(c)] = n; });
+  return { R, keys, cnt, info, top, inbox: Object.keys(cnt).length, n: nOf(arm, g) };
+}
+function genSlots(arm, g, pairs) {
+  const S = genStats(arm, g);
+  return S.R.box.map((c, i) => ({ comp: canon(c), key: S.keys[i], pair: pairs && S.cnt[S.keys[i]] === 2,
+    label: `Proposal ${i + 1}: ${listText(namesOf(canon(c)))}${S.keys[i] === CORE_KEY ? " (the dominant six)" : ""}` }));
+}
+function slotHTML(s, i) {
+  const core = s.key === CORE_KEY;
+  const foot = s.foot ? `<span class="sfoot">${s.foot}</span>` : "";
+  return `<button type="button" class="slot${core ? " is-core" : ""}${s.pair ? " is-pair" : ""}" data-k="${s.key}" data-i="${i}" tabindex="-1" aria-label="${esc(s.label)}" aria-pressed="false"><span class="tint" aria-hidden="true"></span>${six(s.comp)}${foot}</button>`;
+}
+function slotsHTML(list) {
+  return list.map((s, i) => (s ? slotHTML(s, i) : `<span class="slot empty" aria-hidden="true"></span>`)).join("");
+}
+/* figure 1's single strip */
+function stripHTML(arm, cur, id) {
+  const bars = D.gen[arm].map((R, g) => {
+    const v = R.distinct, h = (v / 512) * 100;
+    return `<button type="button" class="gbar" id="${id}-g${g}" data-g="${g}" aria-pressed="${g === cur}" aria-label="Generation ${g}: ${v} different compositions of 512"><span class="gb-track"><span class="gb-fill" style="height:${h.toFixed(2)}%"></span><span class="gb-v" style="bottom:calc(${h.toFixed(2)}% + 3px)">${v}</span></span><span class="gb-g">${g}</span></button>`;
+  }).join("");
+  return `<div class="gs-bars" role="group" aria-label="Different compositions per generation, ${ARM_NAME[arm]}">${bars}</div>`;
+}
+/* figure 2's paired strip: plain loop and taboo list per generation, one 0..512 scale */
+function pairStripHTML(cur) {
+  const grp = D.gen.control.map((Rc, g) => {
+    const Rt = D.gen.taboo[g], nt = nOf("taboo", g), hc = (Rc.distinct / 512) * 100, ht = (Rt.distinct / 512) * 100;
+    const clash = Math.abs(hc - ht) < 14;
+    const bar = (arm, v, h, n, lift) => `<span class="pg-bar arm-${arm}"><span class="fill" style="height:${h.toFixed(2)}%"></span>` +
+      (n < 512 ? `<span class="cap" style="bottom:${((n / 512) * 100).toFixed(2)}%"></span>` : "") +
+      `<span class="v" style="bottom:calc(${Math.max(h, n < 512 ? (n / 512) * 100 : 0).toFixed(2)}% + ${lift ? "0.95rem" : "3px"})">${v}${n < 512 ? `<small>of ${n}</small>` : ""}</span></span>`;
+    return `<button type="button" class="pgrp" id="f2s-g${g}" data-g="${g}" aria-pressed="${g === cur}" aria-label="Generation ${g}: plain loop ${Rc.distinct} of 512, taboo list ${Rt.distinct} of ${nt} different compositions">` +
+      `<span class="pg-pair">${bar("control", Rc.distinct, hc, 512, false)}${bar("taboo", Rt.distinct, ht, nt, clash)}</span><span class="pg-g">${g}</span></button>`;
+  }).join("");
+  return `<div class="ps-bars" role="group" aria-label="Different compositions per generation, both loops">${grp}</div>`;
+}
+function selReadout(S, key, g) {
+  const inf = S.info[key];
+  if (key === CORE_KEY && inf.p === 0) return `Not proposed in generation ${g}: none of the ${S.n} proposals is this composition.`;
+  if (inf) return `Proposed <span class="num">${inf.p}</span> of ${S.n} · Battled <span class="num">${inf.b}</span> of 128 · Won <span class="num">${inf.w}</span> (win rate ≥ 0.531)`;
+  if (S.top[key] != null) return `Not among this generation’s first 30 proposals. Proposed <span class="num">${S.top[key]}</span> of ${S.n}.`;
+  return `Not among generation ${g}’s first 30 proposals.`;
+}
+
+/* ================= the PC box component ================= */
+function makeBox(o) {
+  /* o: { el, id, label, nav, count, title(p), slots(p), onPick(key, i), onNav(p, dir), wins } */
+  const el = o.el;
+  el.classList.add("pcbox");
+  const nav = (id, ch, lab) => `<button type="button" class="pcnav" id="${id}" aria-label="${lab}">${ch}</button>`;
+  el.innerHTML = `<div class="pcbar">${o.nav ? nav(o.id + "-prev", "◀", o.prevLabel) : "<span></span>"}<div class="pctitle" id="${o.id}-title"></div>${o.nav ? nav(o.id + "-next", "▶", o.nextLabel) : "<span></span>"}</div>` +
+    `<div class="pcview"><div class="pcgrid${o.wins ? " wins" : ""}" id="${o.id}-grid" role="group" aria-label="${esc(o.label)}"></div></div>`;
+  const grid = el.querySelector(".pcgrid"), title = el.querySelector(".pctitle"), bar = el.querySelector(".pcbar");
+  const prev = o.nav ? el.querySelector("#" + o.id + "-prev") : null, next = o.nav ? el.querySelector("#" + o.id + "-next") : null;
+  let page = -1, seq = 0, busy = false, rove = 0, mk = { sel: null, active: false, pick: null };
+
+  function apply() {
+    grid.classList.toggle("has-sel", !!mk.active);
+    grid.querySelectorAll(".slot[data-k]").forEach(b => {
+      const on = !!mk.active && b.dataset.k === mk.sel, pick = mk.pick != null && +b.dataset.i === mk.pick;
+      b.classList.toggle("is-sel", on);
+      b.classList.toggle("is-pick", pick);
+      b.setAttribute("aria-pressed", String(on || pick));
+    });
+  }
+  function setRove(i, focus) {
+    const bs = grid.querySelectorAll(".slot[data-k]");
+    if (!bs.length) return;
+    rove = clamp(i, 0, bs.length - 1);
+    bs.forEach((b, j) => { b.tabIndex = j === rove ? 0 : -1; });
+    if (focus) bs[rove].focus({ preventScroll: true });
+  }
+  function fill(p) {
+    const hadFocus = grid.contains(document.activeElement);
+    grid.innerHTML = slotsHTML(o.slots(p));
+    title.innerHTML = o.title(p);
+    if (prev) { prev.disabled = p <= 0; next.disabled = p >= o.count - 1; }
+    apply();
+    setRove(rove, hadFocus);
+  }
+  async function go(p, dir) {
+    if (p === page) return;
+    const first = page < 0; page = p; const id = ++seq;
+    grid.getAnimations({ subtree: true }).forEach(a => a.cancel());
+    if (first || reduced() || !dir) { fill(p); busy = false; return; }
+    if (!busy) {
+      busy = true;
+      const out = grid.animate([{ transform: "translateX(0)", opacity: 1 }, { transform: `translateX(${-24 * dir}px)`, opacity: 0 }],
+        { duration: 150, easing: "ease-in", fill: "forwards" });
+      try { await out.finished; } catch (e) { /* interrupted */ }
+      if (id !== seq) return;
+    }
+    fill(p);
+    grid.getAnimations().forEach(a => a.cancel());
+    grid.animate([{ transform: `translateX(${24 * dir}px)`, opacity: 0 }, { transform: "translateX(0)", opacity: 1 }],
+      { duration: 220, easing: "cubic-bezier(.2,.7,.2,1)" });
+    const tints = grid.querySelectorAll(".slot.is-core .tint, .slot.is-sel .tint");
+    let last = null;
+    tints.forEach((t, k) => { last = t.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, delay: 220 + k * 12, easing: "ease-out", fill: "backwards" }); });
+    try { await (last ? last.finished : new Promise(r => setTimeout(r, 220))); } catch (e) { /* interrupted */ }
+    if (id === seq) busy = false;
+  }
+  function mark(m) { mk = Object.assign(mk, m); apply(); }
+
+  grid.addEventListener("click", e => {
+    const b = e.target.closest(".slot[data-k]"); if (!b) return;
+    setRove(+b.dataset.i, false);
+    o.onPick && o.onPick(b.dataset.k, +b.dataset.i);
+  });
+  /* one keyboard scheme in every box: arrows move between slots (left/right ±1, up/down ±6), Home/End jump */
+  grid.addEventListener("keydown", e => {
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -6, ArrowDown: 6 }[e.key];
+    const n = grid.querySelectorAll(".slot[data-k]").length;
+    let to = null;
+    if (step != null) { const t = rove + step; if (t >= 0 && t < n) to = t; else to = rove; }
+    else if (e.key === "Home") to = 0; else if (e.key === "End") to = n - 1;
+    if (to == null) return;
+    setRove(to, true); e.preventDefault(); e.stopPropagation();
+  });
+  if (prev) {
+    prev.addEventListener("click", () => o.onNav(page - 1, -1));
+    next.addEventListener("click", () => o.onNav(page + 1, 1));
+    bar.addEventListener("keydown", e => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault(); const d = e.key === "ArrowRight" ? 1 : -1; o.onNav(page + d, d);
+    });
+  }
+  return { go, mark, get page() { return page; } };
+}
+
+/* number tween: 300 ms, newest call wins */
+const TW = new Map();
+function tween(el, to) {
+  if (!el) return;
+  const from = parseFloat(el.textContent.replace(/,/g, "")) || 0;
+  cancelAnimationFrame(TW.get(el) || 0);
+  if (reduced() || from === to) { el.textContent = int(to); return; }
+  const t0 = performance.now();
+  const step = t => {
+    const u = Math.min(1, (t - t0) / 300), e = 1 - Math.pow(1 - u, 3);
+    el.textContent = int(from + (to - from) * e);
+    if (u < 1) TW.set(el, requestAnimationFrame(step));
+  };
+  TW.set(el, requestAnimationFrame(step));
+}
+/* generation controls: ◀ ▶ buttons, plus left/right arrows while focus is on the bar or the strip */
+function genControls(prefix, strip, getG, setG) {
+  const bar = document.getElementById(prefix + "-genbar");
+  document.getElementById(prefix + "-prev").addEventListener("click", () => setG(getG() - 1, -1));
+  document.getElementById(prefix + "-next").addEventListener("click", () => setG(getG() + 1, 1));
+  const keys = (e, focusStrip) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault(); const d = e.key === "ArrowRight" ? 1 : -1; setG(getG() + d, d);
+    if (focusStrip) { const b = strip.querySelector(`[data-g="${getG()}"]`); if (b) b.focus({ preventScroll: true }); }
+  };
+  bar.addEventListener("keydown", e => keys(e, false));
+  strip.addEventListener("keydown", e => keys(e, true));
+  strip.addEventListener("click", e => { const b = e.target.closest("[data-g]"); if (b) setG(+b.dataset.g, Math.sign(+b.dataset.g - getG())); });
+  return g => {
+    document.getElementById(prefix + "-g").textContent = g;
+    document.getElementById(prefix + "-prev").disabled = g <= 0;
+    document.getElementById(prefix + "-next").disabled = g >= 6;
+    strip.querySelectorAll("[data-g]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.g === g)));
+  };
+}
+
+/* ================= prediction ================= */
+function initPredict() {
+  const scale = document.getElementById("pscale"), guess = document.getElementById("ps-guess");
+  const real = document.getElementById("ps-real"), seedsEl = document.getElementById("ps-seeds");
+  const btn = document.getElementById("p-reveal"), fb = document.getElementById("p-fb");
+  const truth = D.mean.control[6][0], seeds = D.seeds6.control.map(s => s[0]), g0 = D.mean.control[0][0];
+  const X = v => (v / 512) * 100;
+  document.getElementById("ps-ticks").innerHTML = [0, 64, 128, 192, 256, 320, 384, 448, 512].map(v =>
+    `<span class="ps-tick" style="left:${X(v)}%"></span>` + (v % 128 === 0 ? `<span class="ps-tl" style="left:${X(v)}%">${v}</span>` : "")).join("");
+  document.getElementById("ps-ref").style.left = X(g0) + "%";
+  seedsEl.innerHTML = seeds.map(v => `<span class="ps-seed" style="left:${X(v)}%" title="seed: ${v}"></span>`).join("");
+  real.style.left = X(truth) + "%";
+  real.querySelector("span").innerHTML = `real: <span class="num">${Math.round(truth)}</span>, three-seed mean`;
+  let val = 256, locked = false;
+  const set = v => {
+    val = clamp(Math.round(v), 0, 512);
+    guess.style.left = X(val) + "%";
+    guess.setAttribute("aria-valuenow", val); guess.setAttribute("aria-valuetext", val + " compositions");
+    const gl = guess.querySelector(".gl");
+    gl.innerHTML = `Your estimate: <span class="num">${val}</span>`;
+    gl.style.transform = val < 90 ? "translateX(-0.5rem)" : val > 422 ? "translateX(calc(-100% + 0.5rem))" : "translateX(-50%)";
+  };
+  set(256);
+  const fromEvent = e => { const r = scale.getBoundingClientRect(); set(((e.clientX - r.left) / r.width) * 512); };
+  scale.addEventListener("pointerdown", e => {
+    if (locked) return; scale.setPointerCapture(e.pointerId); fromEvent(e); guess.focus({ preventScroll: true }); e.preventDefault();
+  });
+  scale.addEventListener("pointermove", e => { if (!locked && scale.hasPointerCapture(e.pointerId)) fromEvent(e); });
+  guess.addEventListener("keydown", e => {
+    if (locked) return;
+    const big = e.shiftKey ? 10 : 1;
+    const m = { ArrowRight: big, ArrowUp: big, ArrowLeft: -big, ArrowDown: -big, PageUp: 32, PageDown: -32 }[e.key];
+    if (m != null) { set(val + m); e.preventDefault(); }
+    else if (e.key === "Home") { set(0); e.preventDefault(); }
+    else if (e.key === "End") { set(512); e.preventDefault(); }
+  });
+  const sd = `${seeds[0]}, ${seeds[1]} and ${seeds[2]}`, t = Math.round(truth);
+  function feedback(v) {
+    const d = v - truth;
+    if (Math.abs(d) <= 12) return `<b>Close.</b> You placed ${v}; the three seeds averaged ${t} (seeds ${sd}).`;
+    if (v >= g0) return `<b>The loop went the other way.</b> You placed ${v}, at or above generation 0’s ${g0}. By generation 6 the plain loop proposed about ${t} different compositions (seeds ${sd}), about a fifth of where it started.`;
+    if (d > 0) return `<b>Lower.</b> You placed ${v}; the real count is about ${t} (seeds ${sd}). Six rounds of training on its own winners shrank generation 0’s ${g0} to about a fifth.`;
+    return `<b>Higher.</b> You placed ${v}; the real count is about ${t} (seeds ${sd}). The loop narrows hard, but a few dozen compositions survive.`;
+  }
+  btn.addEventListener("click", () => {
+    locked = !locked;
+    scale.classList.toggle("locked", locked);
+    guess.setAttribute("aria-readonly", String(locked));
+    real.hidden = !locked; seedsEl.hidden = !locked;
+    btn.textContent = locked ? "Try again" : "Reveal";
+    if (locked) {
+      fb.innerHTML = feedback(val);
+      if (!reduced()) real.animate([{ opacity: 0, transform: "scale(.6)" }, { opacity: 1, transform: "scale(1)" }], { duration: 200, easing: "cubic-bezier(.2,.7,.2,1)" });
+    } else fb.textContent = "Drag the marker, or focus it and use the arrow keys, then reveal the real count. The dashed line is where generation 0 started.";
+  });
+}
+
+/* ================= figure 1 ================= */
+function initFig1() {
+  const st = { g: 0, sel: CORE_KEY, active: false };
+  const strip = document.getElementById("f1-strip");
+  strip.innerHTML = stripHTML("control", 0, "f1s");
+  const box = makeBox({
+    el: document.getElementById("f1-box"), id: "f1", nav: false, count: 7,
+    label: "The first 30 proposals of the generation",
+    title: g => `First 30 of <span class="num">${nOf("control", g)}</span> proposals`,
+    slots: g => genSlots("control", g, false),
+    onPick: k => { if (st.active && st.sel === k) { st.sel = CORE_KEY; st.active = false; } else { st.sel = k; st.active = true; } box.mark(st); readout(false); }
+  });
+  function readout(tw) {
+    const S = genStats("control", st.g);
+    const set = (id, v) => (tw ? tween(document.getElementById(id), v) : (document.getElementById(id).textContent = int(v)));
+    set("f1-inbox", S.inbox); set("f1-all", S.R.distinct);
+    const core = st.sel === CORE_KEY;
+    const head = core ? `<span class="ro-k"><b>The dominant six</b>${st.active ? " (selected)" : ""}</span>` : `<span class="ro-k"><b>Selected composition</b></span>`;
+    const inBox = S.keys.filter(k => k === st.sel).length;
+    document.getElementById("f1-sel").innerHTML = head + six(compOf(st.sel), "row") +
+      `<div class="ro-stats">${selReadout(S, st.sel, st.g)}</div>` +
+      `<div class="ro-hint">${inBox ? `In ${inBox} of the 30 slots in the box.` : "In none of the 30 slots in the box."} ${core && !st.active ? "Click a slot to select another composition." : "Click the slot again to return to the dominant six."}</div>`;
+  }
+  let paint;
+  function setGen(g, dir) {
+    g = clamp(g, 0, 6); if (g === st.g) return;
+    st.g = g; box.mark(st); box.go(g, dir); readout(true); paint(g);
+  }
+  paint = genControls("f1", strip, () => st.g, setGen);
+  box.mark(st); box.go(0, 0); readout(false); paint(0);
+}
+
+/* ================= five fixes: seed 1's bans and island seeds ================= */
+function fixesHTML() {
+  const pb = D.peel_banned, steps = [["1", "From generation 1"], ["3", "Added at generation 3"], ["5", "Added at generation 5"]];
+  const bans = steps.map(([g, lab], j) => {
+    const before = j ? pb[steps[j - 1][0]] : [];
+    const add = pb[g].filter(s => !before.includes(s));
+    return `<div class="fx-ban"><span>${lab}</span><span class="mons">${add.map(s => `<span class="bmon">${monId(s, "struck")}<span>${esc(nameId(s))}</span></span>`).join("")}</span></div>`;
+  }).join("");
+  const isles = D.island_seeds.map((c, j) => `<div class="fx-isle"><span>Island ${j + 1}</span>${six(canon(c), "row")}</div>`).join("");
+  return { bans, isles };
+}
+function initFixes() {
+  const h = fixesHTML();
+  document.getElementById("fx-peel").innerHTML = h.bans;
+  document.getElementById("fx-island").innerHTML = h.isles;
+}
+
+/* ================= figure 2 ================= */
+function initFig2() {
+  const st = { g: 3, sel: CORE_KEY, active: false };
+  const boxes = {};
+  const strip = document.getElementById("f2-strip");
+  strip.innerHTML = pairStripHTML(st.g);
+  ["control", "taboo"].forEach(arm => {
+    boxes[arm] = makeBox({
+      el: document.getElementById("f2-box-" + arm), id: "f2" + arm, nav: false, count: 7,
+      label: `${ARM_NAME[arm]}: the first 30 proposals of the generation`,
+      title: g => `First 30 of <span class="num">${nOf(arm, g)}</span> proposals`,
+      slots: g => genSlots(arm, g, arm === "taboo"),
+      onPick: k => { if (st.active && st.sel === k) { st.sel = CORE_KEY; st.active = false; } else { st.sel = k; st.active = true; } update(false); }
+    });
+  });
+  function update(tw) {
+    const core = st.sel === CORE_KEY;
+    document.getElementById("f2-selrow").innerHTML = `<span>Selected:</span>${six(compOf(st.sel), "row")}<span class="tag ${core ? "core" : "pick"}">${core ? "the dominant six" : "a composition you picked"}</span>${st.active ? `<span class="small">click it again to clear</span>` : ""}`;
+    ["control", "taboo"].forEach(arm => {
+      const S = genStats(arm, st.g);
+      boxes[arm].mark(st);
+      const set = (id, v) => (tw ? tween(document.getElementById(id), v) : (document.getElementById(id).textContent = int(v)));
+      set(`f2-${arm}-inbox`, S.inbox); set(`f2-${arm}-all`, S.R.distinct);
+      document.getElementById(`f2-${arm}-allk`).textContent = `Among all ${S.n} proposals`;
+      document.getElementById(`f2-${arm}-of`).textContent = `of ${S.n}`;
+      const n = S.keys.filter(k => k === st.sel).length;
+      const what = core ? "The dominant six" : "Selected composition";
+      let line = n ? `${what}: <b>${n} of 30</b> slots in this box.` : `${what}: <b>not in this box</b>.`;
+      if (core) line += ` ${S.R.core_proposed} of the ${S.n} proposals this generation.`;
+      document.getElementById(`f2-${arm}-sel`).innerHTML = line;
+    });
+  }
+  let paint;
+  function setGen(g, dir) {
+    g = clamp(g, 0, 6); if (g === st.g) return;
+    st.g = g; boxes.control.mark(st); boxes.taboo.mark(st);
+    boxes.control.go(g, dir); boxes.taboo.go(g, dir); update(true); paint(g);
+  }
+  paint = genControls("f2", strip, () => st.g, setGen);
+  boxes.control.go(st.g, 0); boxes.taboo.go(st.g, 0); update(false); paint(st.g);
+}
+
+/* ================= figure 3: scorecard ================= */
+const XD = v => (v / 512) * 100;                                            /* compositions axis, 0..512 */
+const WLO = -0.25, WHI = 0.10, XW = v => ((v - WLO) / (WHI - WLO)) * 100;   /* win-rate difference axis */
+function verdictOf(arm) {
+  if (arm === "control") return { label: "Reference", cls: "ref", why: [`Win rate ${f3(D.mean.control[6][2])}, the zero line on the right.`] };
+  const s = D.seeds6[arm], c = D.seeds6.control, ci = D.verdict[arm].ci;
+  const below = s.map((x, i) => [i + 1, x[0]]).filter(([, v]) => v < 176);
+  const notMore = s.map((x, i) => [i + 1, x[0], c[i][0]]).filter(([, v, cv]) => v <= cv);
+  const notSmaller = s.map((x, i) => [i + 1, x[1], c[i][1]]).filter(([, v, cv]) => v >= cv);
+  const variety = !below.length && !notMore.length && !notSmaller.length;
+  const win = ci[0] > -0.03;
+  const why = [];
+  if (!variety) {
+    if (below.length === 3) why.push(`Variety: below 176 in every seed (at most ${Math.max(...s.map(x => x[0]))}).`);
+    else if (below.length) why.push(`Variety: ${below.map(([i, v]) => `seed ${i} has ${v}`).join(", ")}, below 176.`);
+    else if (notMore.length) why.push(`Variety: seed ${notMore[0][0]} has ${notMore[0][1]}, not more than the plain loop’s ${notMore[0][2]}.`);
+    else why.push(`Variety: largest-composition share not smaller in seed ${notSmaller[0][0]}.`);
+  }
+  if (!win) why.push(`Win rate: interval reaches ${f3(ci[0])}, below −0.030.`);
+  const label = variety && win ? "Passes" : !variety && !win ? "Fails: both" : !win ? "Fails: win rate" : "Fails: variety";
+  return { variety, win, label, cls: variety && win ? "pass" : "fail", why };
+}
+function axTicks(vals, X, fmt) {
+  return vals.map((v, j) => `<span class="${j === 0 ? "first" : j === vals.length - 1 ? "last" : ""}" style="left:${X(v)}%">${fmt(v)}</span>`).join("");
+}
+const DTICKS = [0, 128, 256, 384, 512], WTICKS = [-0.2, -0.1, 0, 0.1];
+const wfmt = v => (v === 0 ? "0" : (v > 0 ? "+" : "−") + Math.abs(v).toFixed(1));
+/* a value label in the label lane, kept inside the axis at the ends */
+const valLab = (x, text) => `<span class="ax-val${x < 10 ? " al" : x > 90 ? " ar" : ""}" style="left:${x}%">${text}</span>`;
+function scoreRows() {
+  return ORDER.map(arm => {
+    const R6 = D.gen[arm][6], V = D.verdict[arm];
+    return { arm, name: ARM_NAME[arm], stage: ARM_STAGE[arm], seeds: D.seeds6[arm].map(s => s[0]), ns: [1, 2, 3].map(s => nOf(arm, 6, s)),
+      mean: D.mean[arm][6][0], win: D.mean[arm][6][2], diff: V.diff, ci: V.ci, top: R6.top[0], n1: nOf(arm, 6, 1), verdict: verdictOf(arm) };
+  });
+}
+function scoreRowHTML(r) {
+  const plainMean = D.mean.control[6][0], m = Math.round(r.mean);
+  const grid = (ts, X) => ts.map(t => `<span class="ax-grid" style="left:${X(t)}%"></span>`).join("");
+  const divAx = `<span class="ax">${grid(DTICKS.slice(1, -1), XD)}<span class="ax-line"></span><span class="ax-ref" style="left:${XD(176)}%"></span><span class="ax-ref plainref" style="left:${XD(plainMean)}%"></span>` +
+    r.seeds.map(s => `<span class="ax-tick" style="left:${XD(s)}%"></span>`).join("") + `<span class="ax-dot" style="left:${XD(r.mean)}%"></span>${valLab(XD(r.mean), m)}</span>`;
+  const allFull = r.ns.every(n => n === 512);
+  const seedNote = allFull ? `Seeds: ${r.seeds.join(", ")} of 512` : `Seeds: ${r.seeds.map((v, i) => `${v} of ${r.ns[i]}`).join(", ")}`;
+  let winAx;
+  if (r.arm === "control") {
+    winAx = `<span class="ax">${grid(WTICKS, XW)}<span class="ax-line"></span><span class="ax-zero" style="left:${XW(0)}%"></span><span class="ax-dia" style="left:${XW(0)}%"></span>${valLab(XW(0), `win rate ${f3(r.win)}`)}</span>`;
+  } else {
+    winAx = `<span class="ax"><span class="ax-band" style="left:${XW(-0.03)}%"></span>${grid(WTICKS, XW)}<span class="ax-line"></span><span class="ax-zero" style="left:${XW(0)}%"></span>` +
+      `<span class="ax-whisk" style="left:${XW(r.ci[0])}%;width:${XW(r.ci[1]) - XW(r.ci[0])}%"></span><span class="ax-dot" style="left:${XW(r.diff)}%"></span>${valLab(XW(r.diff), f3s(r.diff))}</span>`;
+  }
+  const dTicks = `<span class="ticks ax-ticks" aria-hidden="true">${axTicks(DTICKS, XD, String)}</span>`;
+  const wTicks = `<span class="ticks ax-ticks" aria-hidden="true">${axTicks(WTICKS, XW, wfmt)}</span>`;
+  const topCore = keyOf(r.top[1]) === CORE_KEY;
+  const aria = `${r.name}, ${r.stage.toLowerCase()}. About ${m} different compositions at generation 6 (${seedNote.toLowerCase()}). ` +
+    (r.arm === "control" ? `Reference win rate ${f3(r.win)}. ` : `Win rate ${f3s(r.diff)} against the plain loop (95% interval ${f3(r.ci[0])} to ${f3(r.ci[1])}). `) +
+    `Most common composition in seed 1 proposed ${r.top[0]} of ${r.n1} times. ${r.verdict.label}. ${r.verdict.why.join(" ")}`;
+  return `<div class="srow sc-cols arm-${r.arm}" role="group" aria-label="${esc(aria)}">` +
+    `<span class="sr-name"><span class="sr-arm">${r.name}</span><span class="sr-stage">${r.stage}</span></span>` +
+    `<span class="sr-ax sr-div" aria-hidden="true"><span class="ax-lab">Different compositions, generation 6</span>${divAx}${dTicks}<span class="ax-note">${seedNote}</span></span>` +
+    `<span class="sr-ax sr-win" aria-hidden="true"><span class="ax-lab">Win rate vs plain loop</span>${winAx}${wTicks}</span>` +
+    `<span class="sr-top" aria-hidden="true">${six(canon(r.top[1]), "row" + (topCore ? " is-core" : ""))}<span class="sr-cnt">×${r.top[0]} of ${r.n1}</span></span>` +
+    `<span class="sr-verdict" aria-hidden="true"><span class="vchip ${r.verdict.cls}">${r.verdict.label}</span>${r.verdict.why.map(w => `<span class="why">${w}</span>`).join("")}</span></div>`;
+}
+function scorecardHTML() {
+  const head = `<div class="sc-head sc-cols" aria-hidden="true"><span>Arm</span>` +
+    `<span class="sh-ax"><span>Different compositions, generation 6</span><span class="ticks">${axTicks(DTICKS, XD, String)}</span></span>` +
+    `<span class="sh-ax"><span>Win rate vs plain loop</span><span class="ticks">${axTicks(WTICKS, XW, wfmt)}</span></span>` +
+    `<span>Most common composition, seed 1</span><span>Verdict</span></div>`;
+  return head + `<div class="sc-body">${scoreRows().map(scoreRowHTML).join("")}</div>`;
+}
+function initFig3() { document.getElementById("scorecard").innerHTML = scorecardHTML(); }
+
+/* ================= figure 4 ================= */
+function winSlots(arm, page) {
+  const W = D.winners[arm], out = [];
+  for (let j = 0; j < 30; j++) {
+    const w = W[page * 30 + j];
+    if (!w) { out.push(null); continue; }
+    const comp = canon(w[1]), key = keyOf(comp), sh = shared(comp);
+    out.push({ comp, key, foot: `<b>×${w[0]}</b><span class="pip" title="${sh} of the dominant six's species">${sh}/6</span>`,
+      label: `${listText(namesOf(comp))}: ${w[0]} winning team${w[0] > 1 ? "s" : ""}, ${sh} of the dominant six’s species${key === CORE_KEY ? " (the dominant six)" : ""}` });
+  }
+  return out;
+}
+function winDetail(arm, idx) {
+  const w = D.winners[arm][idx]; if (!w) return "";
+  const comp = canon(w[1]), sh = shared(comp);
+  return six(comp, "row") + `<span><b>${esc(listText(namesOf(comp)))}</b><br>${w[0]} winning team${w[0] > 1 ? "s" : ""} with this composition · ${keyOf(comp) === CORE_KEY ? "the dominant six" : `${sh} of the dominant six’s species`} · best single score <span class="num">${w[2].toFixed(2)}</span>, from one 49-battle evaluation (single scores are noisy)</span>`;
+}
+function winCounts(arm) {
+  const W = D.winners[arm];
+  return { teams: W.reduce((s, w) => s + w[0], 0), comps: W.length, off: W.filter(w => shared(w[1]) <= 3).length };
+}
+function initFig4() {
+  ["control", "taboo"].forEach(arm => {
+    const W = D.winners[arm], pages = Math.ceil(W.length / 30), c = winCounts(arm);
+    document.getElementById(`f4-${arm}-n`).textContent = int(c.teams);
+    document.getElementById(`f4-${arm}-c`).textContent = int(c.comps);
+    document.getElementById(`f4-${arm}-o`).textContent = int(c.off);
+    const det = document.getElementById(`f4-${arm}-det`);
+    const st = { page: 0, pick: 0 };
+    const box = makeBox({
+      el: document.getElementById(`f4-box-${arm}`), id: "f4" + arm, nav: pages > 1, count: pages, wins: true,
+      label: `${ARM_NAME[arm]}: winning compositions`, prevLabel: "Previous box", nextLabel: "Next box",
+      title: p => `Box <span class="num">${p + 1}</span> of <span class="num">${pages}</span>`,
+      slots: p => winSlots(arm, p),
+      onPick: (k, i) => { st.pick = st.page * 30 + i; box.mark({ pick: i }); det.innerHTML = winDetail(arm, st.pick); },
+      onNav: (p, dir) => go(p, dir)
+    });
+    function go(p, dir) {
+      p = clamp(p, 0, pages - 1); if (p === st.page) return;
+      st.page = p;
+      const local = st.pick - p * 30;
+      box.mark({ pick: local >= 0 && local < 30 ? local : null });
+      box.go(p, dir);
+    }
+    box.mark({ pick: 0 }); box.go(0, 0); det.innerHTML = winDetail(arm, 0);
+  });
+  initConfirm();
+}
+const MB607 = { ids: ["sinistcha", "milotic", "incineroar", "raichu", "mimikyu", "ninetalesalola"], score: 0.691, se: 0.018 };
+const CLO = 0.5, CHI = 0.8, XC = v => ((v - CLO) / (CHI - CLO)) * 100;
+function confirmRows() {
+  const all = D.best.map(b => {
+    const [arm, s] = b.arm.split("_s");
+    return { arm, seed: s, score: b.fresh, se: Math.sqrt((b.fresh * (1 - b.fresh)) / b.new_battles), core: keyOf(b.comp) === CORE_KEY, order: b.order, n: b.new_battles };
+  });
+  const bestCore = all.filter(r => r.core).sort((a, b) => b.score - a.score)[0];
+  const taboo = all.find(r => r.arm === "taboo");
+  const real = { arm: "real", score: MB607.score, se: MB607.se, ids: MB607.ids };
+  return [bestCore, real, taboo].sort((a, b) => b.score - a.score);
+}
+function confirmHTML() {
+  const ticks = [0.5, 0.6, 0.7, 0.8];
+  const grid = ticks.slice(1, -1).map(t => `<span class="cf-gr" style="left:${XC(t)}%"></span>`).join("");
+  const head = `<div class="cf-cols cf-head" aria-hidden="true"><span>Team, in paste order</span><span>Source</span><span class="cf-ax">` +
+    ticks.map((t, j) => `<span class="${j === 0 ? "first" : j === ticks.length - 1 ? "last" : ""}" style="left:${XC(t)}%">${t.toFixed(2)}</span>`).join("") +
+    `<span class="mb" style="left:${XC(MB607.score)}%">MB607</span></span></div>`;
+  const rows = confirmRows().map(r => {
+    const real = r.arm === "real";
+    const lab = real ? "Best real team, MB607" : `${ARM_NAME[r.arm]}, seed ${r.seed}`;
+    const sub = real ? "a meta team, standard error 0.018" : r.core ? "the dominant six, 196 fresh battles" : "not the dominant six, 196 fresh battles";
+    const sprites = real ? `<span class="six row is-real">${r.ids.map(id => monId(id)).join("")}</span>` : six(r.order, "row" + (r.core ? " is-core" : " is-taboo"));
+    const x = XC(r.score), lo = XC(r.score - r.se), hi = XC(r.score + r.se);
+    return `<div class="cf-cols cf-row arm-${real ? "big" : r.arm}${real ? " is-real" : ""}" role="group" aria-label="${esc(lab)}: win rate ${f3(r.score)}, standard error ${f3(r.se)}">` +
+      sprites + `<span class="cf-lab">${lab}<small>${sub}</small></span>` +
+      `<span class="cf-ax">${grid}<span class="cf-mb" style="left:${XC(MB607.score)}%"></span><span class="ax-whisk" style="left:${lo}%;width:${hi - lo}%"></span><span class="ax-dot" style="left:${x}%"></span><span class="ax-val" style="left:${hi}%">${f3(r.score)}</span></span></div>`;
+  }).join("");
+  return head + rows;
+}
+function initConfirm() { document.getElementById("cf-grid").innerHTML = confirmHTML(); }
+
+/* ================= boot ================= */
+const API = { canon, keyOf, CORE_KEY, shared, nOf, resolve, genStats, genSlots, slotsHTML, stripHTML, pairStripHTML, selReadout, scoreRows, scorecardHTML,
+  verdictOf, fixesHTML, winSlots, winDetail, winCounts, confirmRows, confirmHTML, six, monId, setTally: t => { TALLY = t; } };
+if (!HAS_DOM) { globalThis.__API = API; return; }
+function boot() {
+  installSprites();
+  [initPredict, initFig1, initFixes, initFig2, initFig3, initFig4].forEach(f => {
+    try { f(); } catch (e) { showError((f.name || "figure") + ": " + e.message); if (window.console) console.error(e); }
+  });
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
 </script>
