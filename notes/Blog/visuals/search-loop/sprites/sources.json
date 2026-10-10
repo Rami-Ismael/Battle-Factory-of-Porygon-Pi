@@ -1,48 +1,752 @@
 {
-  "retrieved": "2026-09-13",
-  "collection": "Pok\u00e9mon Showdown static front sprites (gen5 directory)",
-  "assets": [
-    {
-      "file": "excadrill.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/excadrill.png",
-      "sha256": "88af42cd03f6f29edce9763008d9520d6307faaa5046ea5b8792378a215d9205",
-      "width": 96,
-      "height": 96
-    },
-    {
-      "file": "tyranitar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/tyranitar.png",
-      "sha256": "40e6c46fe10c2901b4a3429484141ddac1ded8aee25b785d4f7642b1da7d69de",
-      "width": 96,
-      "height": 96
-    },
-    {
-      "file": "staraptor.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/staraptor.png",
-      "sha256": "2c7c30aaf625cca016350ef5cb65ca3a6e03f551e05fbb8f1742f247e4c52062",
-      "width": 96,
-      "height": 96
-    },
-    {
-      "file": "basculegion.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/basculegion.png",
-      "sha256": "112be4e391349a9fa46e2d183eaaf2b7601a083936cc989bab387fe657a5234f",
-      "width": 96,
-      "height": 96
-    },
-    {
-      "file": "sinistcha.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/sinistcha.png",
-      "sha256": "a8492f02cb3cf00bf9d988684cc9692599fbc4a43b76bcea157d607085d65bf6",
-      "width": 96,
-      "height": 96
-    },
-    {
-      "file": "raichu.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/raichu.png",
-      "sha256": "3a5ab73e2d0b6e3e4ffecf39024d94505eb567ef27989a45f852fdeef04d8ec2",
-      "width": 96,
-      "height": 96
-    }
-  ]
+ "retrieved": "2026-09-13",
+ "collection": "Pokémon Showdown static front sprites (gen5 directory)",
+ "assets": [
+  {
+   "file": "excadrill.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/excadrill.png",
+   "sha256": "88af42cd03f6f29edce9763008d9520d6307faaa5046ea5b8792378a215d9205",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "file": "tyranitar.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/tyranitar.png",
+   "sha256": "40e6c46fe10c2901b4a3429484141ddac1ded8aee25b785d4f7642b1da7d69de",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "file": "staraptor.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/staraptor.png",
+   "sha256": "2c7c30aaf625cca016350ef5cb65ca3a6e03f551e05fbb8f1742f247e4c52062",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "file": "basculegion.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/basculegion.png",
+   "sha256": "112be4e391349a9fa46e2d183eaaf2b7601a083936cc989bab387fe657a5234f",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "file": "sinistcha.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/sinistcha.png",
+   "sha256": "a8492f02cb3cf00bf9d988684cc9692599fbc4a43b76bcea157d607085d65bf6",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "file": "raichu.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/raichu.png",
+   "sha256": "3a5ab73e2d0b6e3e4ffecf39024d94505eb567ef27989a45f852fdeef04d8ec2",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "file": "leafeon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/leafeon.png",
+   "sha256": "61c891a4ab655c55fc312c7656417e3be05fb528ff2b50658a84a4acff91997b",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "sharpedomega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/sharpedo-mega.png",
+   "sha256": "a7fc94f557f460a44bfaa0eeb0b2175dae08c1baca327ea8c19b1d2c0c657a32",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "steelixmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/steelix-mega.png",
+   "sha256": "c092d2ef09c9ea0a1d0e48ad5b0530b3d52f12142bf2e70ba355e9c66cd84441",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "alakazam.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/alakazam.png",
+   "sha256": "4733821af7974ebb45f418659ad67f95cabc3853c86cc0aae07bc88eb6f11580",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "sandaconda.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/sandaconda.png",
+   "sha256": "836548d717233e69905523b097eab8ea27015e187ebe2eb5e97227b2bfbe9c6d",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "aggronmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/aggron-mega.png",
+   "sha256": "95fe84d3fc40c7a8e1757039c4e476fb2f4cd5ed5395475a00ae2704e23b284e",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonriver.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-river.png",
+   "sha256": "042a8ea304b2cc442f17d439fd733ef67afc0c962e487e57523bdbcadf981bec",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "alcremierainbowswirl.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/alcremie-rainbowswirl.png",
+   "sha256": "e781e189774cfc92e7c9c26868464b74ac6f72bf40eb4ecba8d7cefc663171c0",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "alcremiecaramelswirl.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/alcremie-caramelswirl.png",
+   "sha256": "c191960e4b77fc89361aa7e68d1622d55e0bd80df6bfff8ce28398f6aee1af1b",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "rampardos.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/rampardos.png",
+   "sha256": "299cc209c27ac6fe38c9c1a2748859f091542248fda26fa34cb56c52e3aa4949",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "mimikyubusted.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/mimikyu-busted.png",
+   "sha256": "0af190b39fc058d7cf3b26cf5bd9d437626a23c9330243ed4f9953d7f6d00f92",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "torterra.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/torterra.png",
+   "sha256": "accdeb3b5536a1d524d16d9fd85f1cafb2870cb232b139c242673d4922327cae",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "aurorus.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/aurorus.png",
+   "sha256": "dc89be7cebe8d9d5eb31afc01942ced8d57919fe28876b2d544e47534de36760",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "drampamega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/drampa-mega.png",
+   "sha256": "f20ccb952840dafadc8e8f160fb28e90592e2d85cd1eede881f19efe7f441ddf",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "rotommow.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/rotom-mow.png",
+   "sha256": "4d7acbfe630dd06ce600f1e654cf7a3edd37c67f7011f906d2a5527445f01afc",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "heracross.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/heracross.png",
+   "sha256": "c86ce5d0e207bd60e93183f7baa0379ee5feb5f203ecde244a0f70695ec40083",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "machamp.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/machamp.png",
+   "sha256": "132efceee2c7754fb714b7b72a03199ca3f38dc2e14fed4246f893b72a3614a3",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "diggersby.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/diggersby.png",
+   "sha256": "104bdb3987bf82bca5c19a5c29946c4edaf5791f89e97bdc35d0452a60780d4b",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "crabominablemega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/crabominable-mega.png",
+   "sha256": "a96fa48ef8e244a4c9c4be5dd8657de5254143938852021d1a0fa2e3abac1759",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "gallademega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/gallade-mega.png",
+   "sha256": "e4979bf2730b77eea99f233f1e7e20610191bd46d842226d5a0383da940c5524",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "greninjamega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/greninja-mega.png",
+   "sha256": "95dd8ad341a8f7e3e771f14027ab7dbcb1338003eb73c5da4bf20a2b8e718bd1",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "flareon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/flareon.png",
+   "sha256": "8cc21974e3720c7ff09022e3c0490041080acdecf73d5d09fd672bc866fa3a6a",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "qwilfish.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/qwilfish.png",
+   "sha256": "8f921d714535de6b5ea1a48eb4d61f922e928476ba20423fe4a565f9a43c792d",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "chimechomega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/chimecho-mega.png",
+   "sha256": "1d03247d947825edb2b8378a05c101279150d24f624d26514dd542106abac7f8",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "morpeko.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/morpeko.png",
+   "sha256": "4681c443b60f4fa1342951abb8fc2e450c4d72ee176b2f6e72146c6002591a99",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "flapple.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/flapple.png",
+   "sha256": "450643840195f9d82300a3a7de48fd3ebd827c2eb1acf944ca32596309e51fa4",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "simisage.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/simisage.png",
+   "sha256": "a24ab77cc9df7657b52dc240fa7571e5a4dec638c6272754a9495a1e364770e1",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "trevenant.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/trevenant.png",
+   "sha256": "8794d18089cc1e4c687dba1e590df579c592b8f2102f5be37f7e1bd8a2ac3e8e",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "meowsticf.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/meowstic-f.png",
+   "sha256": "72468a67d84ff62758bb03bf82e03a586f2a6441b558d362af60a50c031e24e2",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "roserade.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/roserade.png",
+   "sha256": "338eb352479a02f37d5dc5dc26d1b96a289f696a1486a7d8ecee8bbde1bf1a61",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "tauros.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/tauros.png",
+   "sha256": "eacd0989938d36169b00ff941c836eff48a49fccfb015a3f1f15e59f3cf37d19",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "emolga.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/emolga.png",
+   "sha256": "dc5c5d83275028edfd48728326cbe692e1063d534d23c74fa89eaf2054ee4e92",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "excadrillmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/excadrill-mega.png",
+   "sha256": "da1b3081e2a47e6a2fe0ccb8db5065c4bf0c3705c393a25ed28f777ab289db13",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "starmiemega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/starmie-mega.png",
+   "sha256": "b1be4d80629a8cecb199088244555d074b47df9e229f19abd5693729f3427af8",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "alcremiemintcream.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/alcremie-mintcream.png",
+   "sha256": "c7607bd38692915e8b676207677cde1d608ef9377f5e61661a9d57c2253b3a43",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "absolmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/absol-mega.png",
+   "sha256": "c970a57c05e84497de6aa5f39ef4751a7d3d52c846e266400fd5e062ead53393",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "beedrillmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/beedrill-mega.png",
+   "sha256": "6c5c0f604d2104b04bcbab901a6fd33bee0b8775fc51b3260642df6b7f82cfae",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "castformrainy.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/castform-rainy.png",
+   "sha256": "43f94183fe9bff4c4245163233b9ea2ce943e4ecb6985338120ee320016c3971",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "musharna.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/musharna.png",
+   "sha256": "fbf271b1c644c247a82d05f5b58299e228f5ce8ff9685416a74327348c7233ba",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "banettemega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/banette-mega.png",
+   "sha256": "90684bf2ee40f50feb544cc36c1e8a799445b6379e02eff26c4aea1a78497166",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "gengarmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/gengar-mega.png",
+   "sha256": "b10c7cb7a1c8d47bfd91ea20b32c36876df2d58b809bc97e2ca1ce27355f3e5e",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "infernape.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/infernape.png",
+   "sha256": "c31987b83b8ca758782e6996f8e8236feda668c71cd380f0c941ba68d82dc040",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "jolteon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/jolteon.png",
+   "sha256": "b7f63afe0b38febcff1dda72cbe6020fb4774cf0d02741bbfae1a45a49a6cb6a",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "ampharosmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/ampharos-mega.png",
+   "sha256": "0cf36ba1d6fafa33936626a242e8c197295e7170c45c6bf89c6d68155b542788",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "aegislashblade.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/aegislash-blade.png",
+   "sha256": "344794f5a28dd81ec0874317ac15623ab876fe697c8337e0ac23eb53e5c01b38",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "cameruptmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/camerupt-mega.png",
+   "sha256": "808e8d5808f56f0badaec516181c34bf6c963d66acb54fa180587bb3f806cbe1",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonpolar.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-polar.png",
+   "sha256": "9904576ceb4ea05ab5b96aa9e5f1e736a1ea8dcbaf9b75110bd2bbc93c161897",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "manectric.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/manectric.png",
+   "sha256": "fe7171737ce983b07ec51fd2f3d4c0e1a94d790d4261489d5870d6648300a5ba",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "castformsnowy.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/castform-snowy.png",
+   "sha256": "8af030dcb61fd354f2a3e9ea258d6abb16fcec5725c182e8e308f2ff7089b5ea",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "sharpedo.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/sharpedo.png",
+   "sha256": "cc5ba9c944d2abffad53bcb41606066b0bfe387ffbf69b9e04f82606bdb4313f",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "meowsticfmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/meowstic-fmega.png",
+   "sha256": "0801d50669b37b6181f20b3fee2ee45ef8a09592e8c2fd4c8cc8fc895944e6b7",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "raichualola.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/raichu-alola.png",
+   "sha256": "a14f82a686a62a7e39820554a8b6ec585e7e7534adaf70d2ac48969335d224c5",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "pidgeotmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/pidgeot-mega.png",
+   "sha256": "828ee55eac9c1832ae889e1a4882c1dbc5b4f155d96931e43db1cc553b2abab2",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonhighplains.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-highplains.png",
+   "sha256": "7167dd0ac47122a2b7328f506177601c3968e9f0939c70347c5b3aa19b9c99fb",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivilloncontinental.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-continental.png",
+   "sha256": "0e8fbb26d4f3a82618720a3a71fd684810c4db1378b8eb115a5becd63e387c75",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "gourgeistlarge.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/gourgeist-large.png",
+   "sha256": "be7845d6f010e76a64d7138d61cd12dd3240a123acc39fb0d7612d121c5646a6",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "taurospaldeacombat.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/tauros-paldeacombat.png",
+   "sha256": "66d100c0d1591492f4557017a670c8b5ec24d574c09d291c684ab9ed7473263c",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "noivern.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/noivern.png",
+   "sha256": "7cf18a0088158ce3eec7c216a0df22dff8077b160d6f4e05744d52739db3908c",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "krookodile.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/krookodile.png",
+   "sha256": "8a71cf2764260a986dcf29eb2c7fa58976b980538862060c03558e6f7e98db9a",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "toucannon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/toucannon.png",
+   "sha256": "6a5d09ee0eafdbd48cbbed9e42d0006bf3f4cbc9182ffb9c98c5ea173c0c82df",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonmodern.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-modern.png",
+   "sha256": "67cdf27451823bbf1596761c2b346570296156bc7597c2c2efa86c4fde0ed5fe",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "garganacl.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/garganacl.png",
+   "sha256": "1a37a4111c743905de327542fe66fe2633a8bbfa7db08a4e68360b0e584a50c8",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "alcremiematchacream.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/alcremie-matchacream.png",
+   "sha256": "e1dbfa7ea196c1d340c8c14645adb9c55e2d90f8e5064e83b8a9a9b07a053363",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "slowbro.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/slowbro.png",
+   "sha256": "a86b2774b63b3dc111d1b7f89066cc81035c52ee9ea264a9fe814923d66e46ed",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "altariamega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/altaria-mega.png",
+   "sha256": "de73b10002dcec54aaa5a6e41c431c690f90d320be0d0b65c0cd08b0ff09b62d",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "espeon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/espeon.png",
+   "sha256": "6428869926fb641dfba6a33b513f803ad4732878686b7598354e4c4e76cc957d",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "scizormega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/scizor-mega.png",
+   "sha256": "6b5e17c1d2e4044e3086667922183572c5850ee2444a85a40a89f3c41921d979",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "alcremielemoncream.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/alcremie-lemoncream.png",
+   "sha256": "a1ba4a2bdbda2f3d7b67947e6824dfc55ff1d2ebe29f36794229bcf42be17887",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "sceptilemega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/sceptile-mega.png",
+   "sha256": "c246e1da887ba942ce4f27dd964de05022d43c600c0664a284318ebaecb20afd",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "rotomfrost.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/rotom-frost.png",
+   "sha256": "896ff89e60e972c1a883ac8c94775e8b67a1237b537fdfc4b7a78fe8e23ecbb0",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "serperior.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/serperior.png",
+   "sha256": "5b13546cfe881127784cda3ddc8fcab9304d28133ebc3913dfc18dc443f8676d",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "kangaskhanmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/kangaskhan-mega.png",
+   "sha256": "59d78dfa1d4695121242c1f0131c9b3ad20a9c3f349467d17d9063f7fce46cc0",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "furfrou.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/furfrou.png",
+   "sha256": "6e33eb1258887b41af4c82fe56da00a96757cce41e923e9571005b7c09dbe332",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonelegant.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-elegant.png",
+   "sha256": "0a7d8b87bfccec6e47141a112fb8100176958f2cc830db989f1fb5830b05e794",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonjungle.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-jungle.png",
+   "sha256": "4054742e80c15efaed42ffca513f621bac9fc64f067c70f6588b279f3b2c1329",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "empoleon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/empoleon.png",
+   "sha256": "98589c5be6bd8147e51a51d265a10a85dd716ae410b22e1938ec048961e09849",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "lycanroc.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/lycanroc.png",
+   "sha256": "7b98d6b0d9aef18db4fb422e50508bb07dd018c98f04a44eabb62652188e004e",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "spiritomb.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/spiritomb.png",
+   "sha256": "f5bdc364a8904a12dbaf6d4a71f17781a8b2d50a9a0822e14b06e6c14e6f12e2",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "umbreon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/umbreon.png",
+   "sha256": "438afb6112f5363984e5514e4bcd2451b6d0943dd0cc0f0007a09b21bdaf46fb",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonmonsoon.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-monsoon.png",
+   "sha256": "707270b7288024e86030124856aa6ebbc4a45ed9c210fe4da15e342008a02cdf",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "slowbromega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/slowbro-mega.png",
+   "sha256": "53d6a72d7247817b019d7be86e13d98622e662b76d6440ef8c2fea2dbfa4f626",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "golurkmega.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/golurk-mega.png",
+   "sha256": "1c8f1a586f3c1e834616876a9329dfbe350f24b23a7741581520542a8eb6804c",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "stunfiskgalar.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/stunfisk-galar.png",
+   "sha256": "b0e2a5c9e9604041f5468a0fcd673534c28885fc8b17eb28261e2033b7763255",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "samurott.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/samurott.png",
+   "sha256": "ab2b4dff5e9ce620f1c1660b9346082b4882a03ceac0a8619a059c6a109a2b2b",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "aggron.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/aggron.png",
+   "sha256": "bd44ee3cccccf365c8fe990fff676513f74e21da65ab968506a9916073016680",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "charizardmegax.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/charizard-megax.png",
+   "sha256": "15b15296714ec552526f9850f4be55aba8b20e7d17631fca4fec60de690977f3",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "gourgeist.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/gourgeist.png",
+   "sha256": "bd59bfbd38f46ef8e5bfe3a9da2d6571a80100b2b5aa4235dcdb061829df81e5",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  },
+  {
+   "file": "vivillonsavanna.png",
+   "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-savanna.png",
+   "sha256": "bbb2ea0d7b2fe7b487495f890f1c84776fad60c418e15e9c838bcc316374f820",
+   "width": 96,
+   "height": 96,
+   "retrieved": "2026-10-10"
+  }
+ ]
 }
