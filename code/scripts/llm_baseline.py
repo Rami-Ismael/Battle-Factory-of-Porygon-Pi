@@ -196,9 +196,16 @@ def prompt(manifest, trial):
     messages = [{"role": "system", "content": instructions}, {"role": "user", "content": json.dumps({
         "format": FORMAT, "opponents": [o["paste"] for o in opponents_for(manifest, trial['start'])],
         "masked_team": masked(team, trial["paths"]), "requested_paths": trial["paths"]})}]
-    if manifest.get('prompt_version') == 'mb-grounded-v2':
+    # Versions are logged in docs/prompt-changelog.md; no key means mb-original-v1.
+    version = manifest.get('prompt_version')
+    if version == 'mb-grounded-v2':
         from mb_prompt import strengthen
         messages = strengthen(messages,manifest,trial)
+    elif version == 'mb-regulation-v3':
+        from prompt_versions import add_regulation
+        messages = add_regulation(messages)
+    elif version is not None:
+        raise ValueError(f'unknown prompt_version {version}')
     return messages
 
 
