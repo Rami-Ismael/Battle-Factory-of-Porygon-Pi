@@ -5,7 +5,8 @@
     code working directory         ->  code/
 
 One-way. The laptop is the source of truth; edits made on github.com are
-overwritten by the next sync. Which files travel is decided by each
+overwritten by the next sync. Only notes/ and code/ are staged, so folders
+written in this repo (blog/) are never published by a sync. Which files travel is decided by each
 source's own git ignore rules (`git ls-files --cached --others
 --exclude-standard`), so ignored files (.obsidian, .venv, large binaries,
 results) never leave the machine.
@@ -87,8 +88,8 @@ def main():
     if a.dry_run:
         return print("dry run:", "; ".join(parts))
 
-    run("git", "add", "-A")
-    if not run("git", "status", "--porcelain").strip():
+    run("git", "add", "-A", "--", *SOURCES)
+    if not run("git", "diff", "--cached", "--name-only").strip():
         return print("already in sync")
     run("git", "commit", "-q", "-m", "sync from laptop (" + "; ".join(parts) + ")")
     print("committed:", "; ".join(parts))
