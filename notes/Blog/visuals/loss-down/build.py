@@ -32,12 +32,12 @@ STEPS = [  # (results key, label, what changed)
     (OLD, "Old model", "asked_vs_got.pt, trained 2026-10-04 on 14,736 teams"),
     (OLD + " + structured output at eval only", "Rule out illegal values", "same old weights; impossible values masked when scoring"),
     ("A1_all_legal", "Retrain with the masks", "all 145k teams, masks in training"),
-    ("B2_family", "Train on the test family", "16k teams from earlier search experiments + real-team corpus"),
+    ("B2_family", "Train on the test family", "only the 16k Aug–Sep loop teams + corpus"),
     ("B3_family_base", "Fix a training bias", "no forced mask when a draw hides nothing"),
     ("S1_family_species_first", "Reveal species first", "unmasking schedule 2,1,1,1,1"),
     ("S7_family_block_sharp", "Full block order", "species → ability/item → moves → nature"),
-    ("F1_final_medium", "Overall-win-rate model", "d256 × 6 layers, validation teams folded in"),
-    ("ENS_F1_G2", "Diffusion ensemble", "Overall-win-rate and matchup-conditioned models; matrix holdout excluded"),
+    ("F1_final_medium", "Medium model", "d256 × 6 layers, validation teams folded in"),
+    ("ENS_F1_G2", "Mix in the matrix model", "F1 + G2 (trained on all 9,272 matrix teams)"),
 ]
 stairs = []
 for i, (k, label, note) in enumerate(STEPS):
@@ -50,7 +50,7 @@ tried = [
     dict(label="Pretrain on all 146k, then fine-tune", ours=round(exact("G1_final_all_matrix"), 3), ref=round(exact("G2_family_matrix_noprtrain"), 3), unit="exact loss, vs no pretraining"),
     dict(label="Moves stored in popularity order", ours=round(exact("MO1_block_popular_moves"), 3), ref=round(exact("S5_family_block_order"), 3), unit="exact loss, vs alphabetical"),
     dict(label="No time input (RADD)", ours=round(exact("N1_family_notime"), 3), ref=round(exact("B3_family_base"), 3), unit="exact loss, vs with time input"),
-    dict(label="Ensemble with small seeds", ours=1.484, ref=1.481, unit="own-order ELBO, vs the overall-win-rate diffusion model alone"),
+    dict(label="Ensemble with small seeds", ours=1.484, ref=1.481, unit="own-order ELBO, vs F1 alone"),
 ]
 
 m1 = R["M1_matrix_rows"]

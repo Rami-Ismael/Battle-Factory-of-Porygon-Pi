@@ -118,14 +118,7 @@ footer code { font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: a
   <section class="headline" aria-label="Headline numbers">
     <div><b><span id="h-old">2.362</span> → <span id="h-new">1.418</span></b><span>nats per field: exact loss of the generator as it samples, on 500 held-out teams</span></div>
     <div><b id="h-diff">−0.944 ± 0.010</b><span>paired change, same 500 teams; every one of them is predicted better</span></div>
-    <div><b>146,994</b><span>teams gathered from the matrix and every experiment log; the diffusion ensemble learns from earlier-search and real teams, plus eligible matrix teams; a separate matrix holdout is excluded</span></div>
-  </section>
-
-  <section class="stack">
-    <h2>How the two models were trained</h2>
-    <p>The <b>overall-win-rate diffusion model</b> learns from roughly 16,000 teams collected during earlier search experiments and a corpus of 692 real teams. Each training example can carry a single overall win rate. These are stored examples from earlier searches, not a model architecture that feeds its own output back into itself. The cross-entropy-method experiments are a separate data-source group.</p>
-    <p>The <b>matchup-conditioned diffusion model</b> adds eligible teams from the matchup matrix and conditions on measured win rates against individual reference opponents as well as the overall win rate. A separate 1,000-team matrix holdout is excluded, and untested matchups remain missing. This is training on available battle evidence, not a complete evaluation of every possible pairing. This model was trained directly, without the broader all-data pretraining tried in another experiment.</p>
-    <p>Both learn to recover masked team fields. The <b>diffusion ensemble</b> averages their predicted probabilities for each field. The cross-entropy method is the separate outer search procedure that samples teams, evaluates them and updates the proposal distribution toward selected high-scoring teams.</p>
+    <div><b>146,994</b><span>teams gathered from the matrix and every experiment log; the final mix learns from the loop teams and all 9,272 matrix teams</span></div>
   </section>
 
   <section class="stack">
@@ -139,14 +132,14 @@ footer code { font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: a
       <div class="seg" role="group" aria-label="Model">
         <button type="button" id="m-old" data-m="old" aria-pressed="false">Old model</button>
         <button type="button" id="m-oldm" data-m="old_masked" aria-pressed="false">Old + legal masks</button>
-        <button type="button" id="m-new" data-m="new" aria-pressed="true">Diffusion ensemble</button>
+        <button type="button" id="m-new" data-m="new" aria-pressed="true">New model</button>
       </div>
       <div class="total">This team costs <b id="t-total">69.9</b> nats · <b id="t-avg">1.46</b> per field</div>
     </div>
     <div class="scroll"><div class="team" id="team"></div></div>
     <div class="legend"><span>Surprise per field (nats)</span><div class="ramp" id="ramp"></div><span>Small number bottom-left: reveal order, 1–48</span></div>
     <div class="detail" id="detail" aria-live="polite"></div>
-    <figcaption><b>Figure 1.</b> One held-out team, field by field. Shading is the surprise the chosen model paid for the true value when it was revealed. The old model is <code>asked_vs_got.pt</code>; “legal masks” keeps its weights but rules out values the visible fields make impossible; the new model is the diffusion ensemble of the overall-win-rate and matchup-conditioned diffusion models.</figcaption>
+    <figcaption><b>Figure 1.</b> One held-out team, field by field. Shading is the surprise the chosen model paid for the true value when it was revealed. The old model is <code>asked_vs_got.pt</code>; “legal masks” keeps its weights but rules out values the visible fields make impossible; the new model is the final F1 + G2 mix.</figcaption>
   </figure>
 
   <section class="stack">
@@ -392,7 +385,7 @@ function light(k) { const g = $("#team"); g.classList.toggle("dim", !!k); Object
     k++;
   });
   $("#battle-chart").appendChild(svg);
-  $("#battle-legend").innerHTML = `<span><span class="swatch" style="background:var(--old)"></span>Old model (asked_vs_got.pt, 2026-10-04)</span><span><span class="swatch" style="background:var(--new)"></span>Diffusion ensemble</span><span>Short grey tick: the win rate asked for</span>`;
+  $("#battle-legend").innerHTML = `<span><span class="swatch" style="background:var(--old)"></span>Old model (asked_vs_got.pt, 2026-10-04)</span><span><span class="swatch" style="background:var(--new)"></span>New model (F1 + G2)</span><span>Short grey tick: the win rate asked for</span>`;
   $("#battle-table").innerHTML = `<table><tr><th>Cell</th><th>New</th><th>± SE</th><th>Old</th><th>± SE</th><th>Diff</th><th>Valid new / old</th><th>Species sets new / old</th></tr>${B.map(c => `<tr><td>${c.cell}</td><td>${c.got.toFixed(3)}</td><td>${c.se.toFixed(3)}</td><td>${c.old_got.toFixed(3)}</td><td>${c.old_se.toFixed(3)}</td><td>${fmt(c.got - c.old_got)}</td><td>${(c.valid * 100).toFixed(0)}% / ${(c.old_valid * 100).toFixed(0)}%</td><td>${c.species_sets} / ${c.old_sets}</td></tr>`).join("")}</table>`;
   if (D.battleRead) $("#battle-read").innerHTML = D.battleRead;
 })();

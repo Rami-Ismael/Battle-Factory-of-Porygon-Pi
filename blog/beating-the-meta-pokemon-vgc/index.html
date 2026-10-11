@@ -94,15 +94,7 @@ footer.col a{color:var(--ink-2)}
 </header>
 
 <article class="col">
-  <section aria-labelledby="diffusion-training">
-    <h2 id="diffusion-training">Two diffusion models, different training signals</h2>
-    <p>The team generator combines two masked-diffusion models. Both learn to recover hidden Pokémon team fields from training examples. They differ in the teams they train on and the battle information supplied alongside each example.</p>
-    <p>The <strong>overall-win-rate diffusion model</strong> learns from roughly 16,000 teams collected during earlier search experiments, together with a corpus of 692 real teams. Its battle information is a single overall win rate. Those search experiments supplied a stored training dataset: the name describes neither a model feeding its own output back into itself nor training specifically with the cross-entropy method.</p>
-    <p>The <strong>matchup-conditioned diffusion model</strong> adds eligible teams from the matchup matrix. Alongside the overall win rate, it receives a row of measured win rates against individual reference opponents. This lets training distinguish teams with similar averages but different strengths and weaknesses against particular opponents. A separate set of 1,000 matrix teams is held out, and untested matchups remain missing. It learns from the available battle evidence, not an exhaustive matrix of every possible pairing.</p>
-    <p>The original models were trained directly on these datasets; the matchup-conditioned model did not use the broader all-data pretraining tried in another experiment. Their <strong>diffusion ensemble</strong> averages their predicted probabilities for each team field. These are two complementary models, rather than successive generations of one model.</p>
-    <p>The cross-entropy method is a separate search procedure: it samples teams, evaluates them and updates the proposal distribution toward selected high-scoring teams. That outer search procedure is distinct from the training-data sources and conditioning described here. Later M-B v2 and v3 checkpoints are retrained descendants and should be identified by version.</p>
-    <p>Training details: <a href="../../code/docs/loss-down.md#final-model">original model report</a> and <a href="../../code/docs/regmb-vocabulary-retraining.md">M-B vocabulary retraining</a>.</p>
-  </section>
+  <!-- The article goes here. Rami writes the prose; see ../CLAUDE.md. -->
 </article>
 
 <footer class="col">

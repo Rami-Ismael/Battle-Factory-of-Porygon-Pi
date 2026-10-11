@@ -1,5 +1,11 @@
 # Project language
 
+## Authoring boundary
+
+Rami writes his own blog. Help him clarify his thoughts through explanations, questions, and optional wording suggestions in chat. Keep blog prose, figure captions, and reader-facing labels untouched unless he explicitly asks to apply a specific proposed edit. Requests to help articulate an idea are requests for discussion.
+
+## Vocabulary
+
 Before explaining diffusion models, comparing experiments, or writing model labels in prose, tables, or figures, read [CONTEXT.md](CONTEXT.md) and use its canonical names.
 
 - Lead with the descriptive name. When traceability matters, give the original experiment or checkpoint identifier in parentheses on first mention; use the descriptive name afterward.
