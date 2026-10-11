@@ -115,7 +115,7 @@ const ARMS = [
   {key:'baseline@4096',  short:'Original · 4,096',  long:'Original prompt, 4,096-token cap',  c:'var(--a0)'},
   {key:'baseline@16384', short:'Original · 16,384', long:'Original prompt, 16,384-token cap', c:'var(--a1)'},
   {key:'regmb@16384',    short:'Reg M-B · 16,384',  long:'Reg M-B prompt, 16,384-token cap',  c:'var(--a2)'},
-  {key:'diffusion@v3',   short:'Diffusion v3',      long:'Diffusion v3 (F1 + G2), ask 0.5, guidance 2', c:'var(--a3)'}];
+  {key:'diffusion@v3',   short:'Diffusion v3',      long:'Diffusion ensemble, M-B v3; ask 0.5, guidance 2', c:'var(--a3)'}];
 ARMS.forEach(a => { a.kind = a.key.startsWith('diffusion') ? 'Diffusion' : 'Ling'; });
 const FAM = {stats:'Stat Points', items:'Items', moves:'Moves', pokemon:'Whole Pokémon', abilities:'Abilities', natures:'Stat Alignment'};
 const kmax = f => f === 'moves' ? 24 : 6;
@@ -356,7 +356,8 @@ function boot() {
   <footer><ul>
     <li>Policy: ${esc(DATA.policy)}. Every team plays one battle against each of the 49 distinct meta teams (one of them counted twice). No random-action policy is used.</li>
     <li>Regulation: Champions VGC 2026 Reg M-B. Starting teams are 5 random legal teams from the project's hierarchical sampler; none is a meta team.</li>
-    <li>Diffusion v3 is the project's F1 + G2 masked-diffusion ensemble with the settings you selected on 2026-10-08: ask 0.5, guidance 2, temperature 1. It sees only the known categorical fields: no opponent pastes and no Stat Points. Masked Stat Points are copied from a same-species corpus spread or drawn at random, so the Stat Points family is not a network completion. Ling sees all 48 complete meta teams in its prompt. Its training data may include this meta pool.</li>
+    <li>Diffusion v3 is the project's diffusion ensemble, M-B v3: retrained descendants of the overall-win-rate diffusion model and the matchup-conditioned diffusion model with the settings you selected on 2026-10-08: ask 0.5, guidance 2, temperature 1. It sees only the known categorical fields: no opponent pastes and no Stat Points. Masked Stat Points are copied from a same-species corpus spread or drawn at random, so the Stat Points family is not a network completion. Ling sees all 48 complete meta teams in its prompt. Its training data may include this meta pool.</li>
+    <li>The original overall-win-rate diffusion model trained on teams from earlier search experiments and the real-team corpus, conditioned on one overall win rate. The original matchup-conditioned diffusion model added eligible matrix teams and per-opponent results, with a separate matrix holdout and missing values for untested pairings. M-B v3 adapts these checkpoints to the regulation vocabulary and adds synthetic legal training teams; it is not the original training dataset. These data sources are distinct from the cross-entropy method used for outer team search.</li>
     <li>Each Ling completion is one sample at temperature 0.7 on OpenRouter, routed to Novita with JSON mode off. A completion counts as legal only if it parses, keeps every unmasked field and passes the Showdown validator on the first attempt.</li>
     <li>Largest species overlap between any completion and any meta team: 4 of 6, so no completion copies a meta team. Ling does see all the meta teams in its prompt.</li>
     <li>A panel is 49 battles, so one team's win rate is noisy by several points. Simulator randomness is not fixed. Five starting teams cannot show a general winner.</li></ul></footer>`;
