@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beating the Meta: Building a Pokémon VGC Team with AI Search</title>
+<meta name="description" content="How I made the cross-entropy method work for building competitive Pokémon VGC teams.">
+<meta name="author" content="Rami Ismael">
+<!-- Draft: remove this line when the article is published. -->
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/blog/beating-the-meta-pokemon-vgc/">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Beating the Meta: Building a Pokémon VGC Team with AI Search">
+<meta property="og:description" content="How I made the cross-entropy method work for building competitive Pokémon VGC teams.">
+<meta property="og:url" content="https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/blog/beating-the-meta-pokemon-vgc/">
+<meta property="og:site_name" content="Battle Factory of Porygon-Pi">
+<!-- Placeholder card image (720 x 345 GIF). Replace with a 1200 x 630 still before sharing. -->
+<meta property="og:image" content="https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.gif">
+<meta property="og:image:alt" content="Dots, each one a Pokémon team sampled from the diffusion model, tightening into Trick Room, Weather, Tailwind and Other clusters.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Beating the Meta: Building a Pokémon VGC Team with AI Search">
+<meta name="twitter:description" content="How I made the cross-entropy method work for building competitive Pokémon VGC teams.">
+<meta name="twitter:image" content="https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.gif">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~42rem) in the Distill manner; figures break out to 60rem and
+   margin notes sit in the right gutter on wide screens. Fonts and colour tokens match
+   notes/Blog/visuals/repo-sync/repo-sync.html. */
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --same:#2f9e6b; --ahead:#2a78d6; --lost:#d4551f; --focus:#2a78d6;
+  --font-body:"Literata",Georgia,"Times New Roman",serif;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --col:42rem; --wide:60rem; --gutter:15rem;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; color-scheme:dark; }
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.0625rem/1.65 var(--font-body)}
+.col{max-width:var(--col);margin:0 auto;padding:0 1rem}
+header.col{padding-top:3.5rem}
+h1{font:600 2.4rem/1.15 var(--font-body);letter-spacing:-0.01em;margin:0 0 .8rem;text-wrap:balance}
+h1 .lead{display:block}
+.dek{font:400 1.25rem/1.45 var(--font-body);color:var(--ink-2);margin:0 0 1rem;text-wrap:pretty}
+.byline{font:400 .85rem var(--font-ui);color:var(--ink-3);margin:0 0 2.2rem;padding-bottom:1.4rem;border-bottom:1px solid var(--rule)}
+.byline .draft{font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;color:var(--lost)}
+
+/* ---- the article column ---- */
+article{counter-reset:figure}
+article h2{font:600 1.5rem/1.25 var(--font-body);margin:2.8rem 0 .8rem;text-wrap:balance}
+article h3{font:600 1.05rem/1.3 var(--font-ui);margin:2rem 0 .5rem}
+article p{margin:0 0 1.2rem}
+article a{color:var(--ahead);text-underline-offset:.15em}
+article a:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+article strong{font-weight:600}
+code{font:400 .86em var(--font-mono);background:var(--wash);padding:.08em .35em;border-radius:4px}
+
+/* A figure leaves the reading column and is centred on the page. Wrap it as
+   </div><figure>…</figure><div class="col"> or place it between two .col blocks. */
+figure{counter-increment:figure;margin:2.2rem auto;max-width:var(--wide);padding:0 1rem}
+figure iframe{display:block;width:100%;border:1px solid var(--rule);border-radius:12px;background:var(--panel)}
+figcaption{max-width:var(--col);margin:.9rem auto 0;font:400 .85rem/1.5 var(--font-ui);color:var(--ink-3)}
+figcaption::before{content:"Figure " counter(figure) ". ";font-weight:600;color:var(--ink-2)}
+
+/* Margin note: inline on a phone, in the right gutter once there is room. */
+aside.note{font:400 .85rem/1.5 var(--font-ui);color:var(--ink-3);border-left:2px solid var(--rule);padding-left:.8rem;margin:0 0 1.2rem}
+@media (min-width:78rem){
+  aside.note{float:right;clear:right;width:var(--gutter);margin:.3rem calc(-1 * var(--gutter) - 2rem) 1rem 0}
+}
+
+footer.col{margin-top:4rem;padding-bottom:5rem;font:400 .85rem/1.5 var(--font-ui);color:var(--ink-3)}
+footer.col::before{content:"";display:block;border-top:1px solid var(--rule);margin-bottom:1.4rem}
+footer.col p{margin:0 0 .6rem}
+footer.col a{color:var(--ink-2)}
+@media (max-width:34rem){ h1{font-size:1.9rem} .dek{font-size:1.1rem} header.col{padding-top:2.2rem} }
+</style>
+</head>
+<body>
+<header class="col">
+  <h1><span class="lead">Beating the Meta:</span> Building a Pokémon VGC Team with AI Search</h1>
+  <p class="dek">How I made the cross-entropy method work for building competitive Pokémon VGC teams.</p>
+  <p class="byline">Rami Ismael · Battle Factory of Porygon-Pi · <span class="draft">Draft</span></p>
+</header>
+
+<article class="col">
+  <!-- The article goes here. Rami writes the prose; see ../CLAUDE.md. -->
+</article>
+
+<footer class="col">
+  <p>Text and figures © 2026 Rami Ismael, licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Code is MIT, in the <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi">Battle Factory of Porygon-Pi</a> repository.</p>
+  <p>Pokémon sprites come from <a href="https://github.com/smogon/pokemon-showdown">Pokémon Showdown</a>. Pokémon and its character names and images belong to Nintendo, Game Freak and Creatures.</p>
+</footer>
+</body>
+</html>
