@@ -1,61 +1,80 @@
 <!doctype html>
-<html lang="en" class="bg-[#0b1220]">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Noise to Team Archetypes</title>
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<title>Random Noise to Pokémon Team Archetypes</title>
 <style>
   :root{--bg:#0b1220;--panel:#111a2c;--line:#26344c;--fg:#edf3ff;--muted:#9fb0c9;--tr:#b794f6;--weather:#f6ad55;--tailwind:#4fd1c5;--other:#f687b3}
-  body{background:var(--bg);color:var(--fg);margin:0}
-  .sprite{image-rendering:pixelated}
-  input[type=range]{accent-color:#9ecbff}
+  *{box-sizing:border-box}body{background:var(--bg);color:var(--fg);margin:0;font:15px/1.55 'Avenir Next',Avenir,system-ui,sans-serif}
+  main{max-width:1420px;margin:auto;padding:34px 36px}header{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:24px}h1{font-size:clamp(26px,3vw,42px);line-height:1.13;letter-spacing:-.035em;font-weight:600;margin:0;max-width:760px}header p{max-width:380px;color:var(--muted);margin:0;font-size:14px}.intro{font-size:13px;color:#96c5ff;margin:0 0 10px}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px}.plot{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}canvas{display:block;width:100%;touch-action:pan-y;cursor:crosshair}.stage{position:absolute;top:16px;left:18px;pointer-events:none;font-size:12px;color:var(--muted);background:#0b1220df;padding:5px 8px;border-radius:5px}#ad-stage{font-size:14px;color:var(--fg)}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}button,select{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer}button:hover,select:hover{background:#25344c}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid #9ecbff;outline-offset:3px}#ad-play{background:#e8f0ff;color:#0e182a;font-weight:650;min-width:78px}label.scrubber{flex:1;min-width:180px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}input[type=range]{accent-color:#9ecbff;width:100%;cursor:pointer}#ad-step{min-width:36px;text-align:right;font-variant-numeric:tabular-nums}.options{display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:12px;color:var(--muted);margin:12px 0}.options label{cursor:pointer;display:flex;align-items:center;gap:6px}.options input{accent-color:#9ecbff}.caption{color:var(--muted);font-size:12px;max-width:85ch;margin:14px 0 0}#ad-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-top:14px}#ad-legend span.key{display:inline-flex;gap:6px;align-items:center}.swatch{width:8px;height:8px;border-radius:50%;display:inline-block}.muted{color:var(--muted)}
+  aside{border-left:1px solid var(--line);padding-left:22px;min-width:0}h2{font-size:16px;margin:0 0 6px}aside>p{font-size:12px;color:var(--muted);margin:0 0 12px}#ad-team{width:100%;font-size:13px}#ad-featured{display:flex;gap:6px;margin:10px 0 18px}#ad-featured button{flex:1;padding:4px}button[aria-pressed=true]{border-color:#9ecbff;background:#243651}.card-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}.small{font-size:12px}.probabilities{display:flex;height:5px;border-radius:4px;overflow:hidden;margin-top:8px}.prob-list{display:flex;flex-wrap:wrap;gap:3px 10px;margin:8px 0 12px;font-size:11px;color:var(--muted)}.slot{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line);align-items:center}.sprite,.mask-icon{width:44px;height:44px;object-fit:contain;flex-shrink:0;image-rendering:pixelated}.mask-icon{display:flex;justify-content:center;align-items:center;background:#1a263b;border:1px dashed #617594;border-radius:9px;color:#a6b5cd;font-size:20px}.slot-info{min-width:0;font-size:11px;line-height:1.45;color:var(--muted)}.slot-info strong{font-size:13px;color:var(--fg)}.masked{color:#8c9cb5}.evidence{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin:4px 0}.evidence b{color:var(--fg);font-weight:500}.fallback{font-size:10px;color:#e5ba80}.method{margin-top:28px;border-top:1px solid var(--line);padding-top:18px;font-size:13px;color:var(--muted)}summary{cursor:pointer;color:var(--fg);font-size:15px}#ad-method{max-width:90ch;line-height:1.7}#ad-method b{color:var(--fg)}.hash{overflow-wrap:anywhere}noscript{color:#f6ad55}
+  @media(max-width:980px){main{padding:24px 20px}header{display:block}header p{max-width:70ch;margin-top:16px}.layout{grid-template-columns:minmax(0,1fr) 285px;gap:16px}aside{padding-left:16px}}
+  @media(max-width:740px){main{padding:20px 14px}.layout{display:block}aside{border-left:0;border-top:1px solid var(--line);padding:20px 0 0;margin-top:24px}.controls button{padding:8px}.scrubber{order:2;flex-basis:100%!important}.stage{left:8px;top:8px;font-size:11px}#ad-stage{font-size:12px}.slot-info{font-size:12px}}
+  .team-guide{margin:0 0 16px;color:var(--muted);font-size:13px;max-width:95ch}.team-guide b{color:var(--fg)}.roster{display:grid;grid-template-columns:116px minmax(0,1fr);gap:12px;align-items:center;padding:10px 14px;background:#111a2c;border-top:1px solid var(--line)}.roster-title{font-size:12px}.roster-title strong{display:block;color:#fff;font-size:14px}.roster-title span{color:var(--muted);font-size:11px}.roster-slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:0;padding:0;list-style:none}.roster-slot{text-align:center;min-width:0;font-size:10px;color:var(--muted)}.roster-slot img,.roster-slot .mask-icon{width:38px;height:38px;margin:0 auto;display:block}.roster-slot .mask-icon{display:flex;font-size:18px}.roster-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roster-number{font-size:9px;color:#99abc6}.identity-dot{display:inline-block;width:9px;height:9px;border:2px solid white;border-radius:50%;margin-right:5px}#ad-featured button{font-size:11px;padding:5px 2px}.pin-help{font-size:11px!important;margin-bottom:4px!important}
+  @media(max-width:740px){.roster{display:block;padding:10px}.roster-title{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}.roster-slot img,.roster-slot .mask-icon{width:34px;height:34px}.roster-slots{gap:3px}.team-guide{font-size:12px}}
+  @media(min-width:741px) and (max-width:900px){.layout{display:block}aside{border-left:0;border-top:1px solid var(--line);padding:20px 0 0;margin-top:24px}}
+  .roster{grid-template-columns:minmax(0,1fr)}.roster-title{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}.roster-title strong{font-size:13px}.card-heading{display:block}.card-heading strong{display:block}.card-heading>span{color:var(--muted);font-size:12px}#ad-featured{display:grid;grid-template-columns:1fr 1fr;gap:5px}#ad-featured button{font-size:11px;text-align:left;padding:6px 8px;line-height:1.35}.source-note{font-size:11px;color:#a8bbd7;margin:4px 0 10px}
+  a{color:#a5ceff;text-underline-offset:3px}.mode-list{font-size:12px;line-height:1.5;padding:12px 0;border-top:1px solid var(--line)}.mode-list p{margin:5px 0 12px}.mode-list h3{font-size:13px;margin:0 0 8px}.mode-label{font-size:12px;color:#d6c5ff}.sources{font-size:13px;color:var(--muted);line-height:1.65;margin-top:24px;max-width:95ch}.sources h2{color:var(--fg)}#ad-featured small{display:block;color:#c9b4f8;margin-bottom:3px}
 </style>
 </head>
-<body class="font-sans antialiased">
-<section id="archetype-diffusion" class="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-  <p class="text-xs font-semibold tracking-[.12em] text-[#96c5ff]">REAL CHECKPOINT · RECORDED INFERENCE</p>
-  <h2 class="mt-2 text-2xl font-semibold sm:text-3xl">From random noise to Pokémon team archetypes</h2>
-  <p class="mt-3 max-w-3xl text-[15px] leading-relaxed text-[var(--muted)]">
-    Each dot is one team sampled from the masked diffusion model. At step 0 all 48 fields are masked, so every team is the same unknown and the cloud is as wide as the model's whole output. As the model reveals species, then abilities and items, then moves, each dot moves to where its possible completions land, and the cloud tightens into archetypes.
-  </p>
-
-  <div class="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+<body>
+<main id="archetype-diffusion">
+  <p class="intro">An animated 2D diffusion demonstration</p>
+  <header><h1>Random noise to<br>Pokémon team archetypes</h1><p>Follow 300 sampled teams as masked fields become concrete choices. Pause anywhere to inspect a team and the evidence for its archetype.</p></header>
+  <p class="team-guide"><b>One dot = one whole team of six.</b> Labels combine VGC strategy cues with two team members. Fixed labels preview the completed sample; the six slots and evidence show only revealed fields. These are generated M-B samples, not tournament winners. <a href="#ad-sources">Strategy definitions and sources</a>.</p>
+  <noscript>This demonstration requires JavaScript. The accompanying README explains the sampling and projection.</noscript>
+  <div class="layout">
     <div>
-      <div class="relative overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--bg)]">
-        <canvas id="ad-canvas" class="block w-full touch-none" aria-label="Scatter of sampled teams moving from a noise cloud into archetype clusters"></canvas>
-        <div class="pointer-events-none absolute left-3 top-3 rounded-md bg-[#0b1220cc] px-2.5 py-1.5 text-xs">
-          <div id="ad-stage" class="font-medium">All fields masked</div>
-          <div id="ad-count" class="tabular-nums text-[var(--muted)]">0 / 48 fields revealed</div>
+      <div class="plot">
+        <canvas id="ad-canvas" role="img" aria-label="Scatter of sampled teams. Use the team selector for keyboard inspection." aria-describedby="ad-caption"></canvas>
+        <div class="stage">
+          <div id="ad-stage">All fields masked</div>
+          <div id="ad-count">0 / 48 fields revealed</div>
         </div>
+        <div id="ad-roster" class="roster" aria-label="Selected team's six Pokémon slots"></div>
       </div>
-      <div class="mt-3 flex flex-wrap items-center gap-2">
-        <button id="ad-play" type="button" class="rounded-md bg-[#e8f0ff] px-3 py-1.5 text-sm font-semibold text-[#0e182a] hover:bg-white focus-visible:outline-2 focus-visible:outline-[#9ecbff]">Play</button>
-        <button id="ad-restart" type="button" class="rounded-md border border-[var(--line)] px-3 py-1.5 text-sm hover:bg-[#1a263b] focus-visible:outline-2 focus-visible:outline-[#9ecbff]">Restart</button>
-        <label class="ml-auto flex min-w-[220px] flex-1 items-center gap-3 text-sm text-[var(--muted)]">
-          <span class="whitespace-nowrap">Step</span>
-          <input id="ad-scrub" type="range" min="0" max="48" step="0.01" value="0" class="w-full" aria-label="Decoding step, 0 to 48 fields revealed">
-          <span id="ad-step" class="w-12 text-right tabular-nums">0</span>
+      <div class="controls">
+        <button id="ad-play" type="button">Play</button>
+        <button id="ad-restart" type="button">Reset</button>
+        <button id="ad-prev" type="button" aria-label="Previous decoding step">−1</button>
+        <button id="ad-next" type="button" aria-label="Next decoding step">+1</button>
+        <label class="scrubber">
+          <span>Step</span>
+          <input id="ad-scrub" type="range" min="0" max="48" step="1" value="0" aria-label="Decoding step, 0 to 48 fields revealed">
+          <span id="ad-step">0</span>
         </label>
       </div>
-      <div id="ad-legend" class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm"></div>
+      <div class="options"><label><input type="checkbox" id="ad-means"> Show conditional means only</label><label><input type="checkbox" id="ad-trace" checked> Selected team’s recorded path</label></div>
+      <div id="ad-legend"></div>
+      <p class="caption">Map colors retain the recorded four-group projection. The more detailed strategy labels can overlap: a team may have both Rain and Trick Room.</p>
+      <p id="ad-caption" class="caption"><b>Recorded model choices, illustrative motion.</b> The model starts with 48 MASK tokens. The Gaussian cloud and smooth transitions illustrate completion uncertainty. This supervised map emphasizes fixed rule labels; it does not discover natural clusters or measure team strength.</p>
     </div>
 
-    <aside class="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-4">
-      <div class="flex items-baseline justify-between">
-        <h3 class="text-sm font-semibold">Followed teams</h3>
-        <span class="text-xs text-[var(--muted)]">tap a dot to inspect any team</span>
-      </div>
-      <div id="ad-featured" class="mt-3 grid grid-cols-6 gap-1.5"></div>
-      <div id="ad-card" class="mt-4" aria-live="polite"></div>
+    <aside>
+      <h2>Inspect a team</h2>
+      <p>Select a dot to follow its named marker and all six slots. The name highlights two members, not the whole team or a proven competitive strategy.</p>
+      <select id="ad-team" aria-label="Selected team"></select>
+      <p class="pin-help">Follow a named example</p>
+      <div id="ad-featured"></div>
+      <div id="ad-card" aria-live="off"></div>
     </aside>
   </div>
 
-  <details class="mt-5 text-sm text-[var(--muted)]">
-    <summary class="cursor-pointer text-[var(--fg)]">How a partly masked team gets a position</summary>
-    <div class="mt-2 max-w-3xl space-y-2 leading-relaxed" id="ad-method"></div>
+  <section class="sources" id="ad-sources">
+    <h2>VGC schemes: weather, speed control, and combinations</h2>
+    <p>Checked 11 October 2026: <a href="https://www.trickroomvgc.com/archetypes" target="_blank" rel="noopener">TrickRoom’s current M-C catalog</a> lists Rain, Sun, Sand, Snow, Trick Room, Tailwind and Balance. This visualization applies that vocabulary to the recorded <b>M-B checkpoint</b>; it does not claim current M-C legality or usage rates for these samples.</p>
+    <p><a href="https://www.vgcguide.com/speed-control" target="_blank" rel="noopener">VGC Guide: Speed Control, by Wolfe Glick</a> explains Tailwind and Trick Room. His <a href="https://www.vgcguide.com/cores-and-modes" target="_blank" rel="noopener">Cores and Modes</a> explains why teams can combine plans. Here, a tag means the required move or weather-setting ability is present, not that the generated team uses it well. Trick Room can also be used to counter an opponent’s Trick Room.</p>
+    <p>Weather definitions: <a href="https://www.trickroomvgc.com/archetypes/rain" target="_blank" rel="noopener">Rain</a>, <a href="https://www.trickroomvgc.com/archetypes/sun" target="_blank" rel="noopener">Sun</a>, <a href="https://www.trickroomvgc.com/archetypes/sand" target="_blank" rel="noopener">Sand</a>, <a href="https://www.trickroomvgc.com/archetypes/snow" target="_blank" rel="noopener">Snow</a>. We check actual abilities, manual weather moves, and compatible weather Mega forms/stones in the pinned M-B dex. Species names alone do not establish weather access.</p>
+    <p><a href="https://www.vgcguide.com/archetypes" target="_blank" rel="noopener">VGC Guide: Archetypes, by Aaron Traylor</a> relates archetypes to shared game plans and notes that some teams do not fit one. We leave unmatched samples <b>Unclassified</b>. We do not infer Balance, hyper offense or hard Trick Room from missing weather or one move; those need stronger evidence about the full team’s function.</p>
+  </section>
+
+  <details class="method">
+    <summary>How masked teams get positions, and what this view cannot tell you</summary>
+    <div id="ad-method"></div>
   </details>
-</section>
+</main>
 
 <script id="ad-data" type="application/json">__DATA__</script>
 <script>
@@ -78,41 +97,27 @@
   const revealStep = {};
   D.order.forEach((o, i) => { revealStep[o.slot * 8 + ['species','ability','item','m0','m1','m2','m3','nature'].indexOf(o.field)] = i + 1; });
 
-  // Sprites: decode once, crop transparent padding.
-  const sprites = {};
-  const loadSprite = (id) => new Promise(res => {
-    const img = new Image();
-    img.onload = () => {
-      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
-      const x = c.getContext('2d'); x.drawImage(img, 0, 0);
-      const px = x.getImageData(0, 0, c.width, c.height).data;
-      let x0 = c.width, y0 = c.height, x1 = 0, y1 = 0;
-      for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (px[(y * c.width + xx) * 4 + 3] > 8) { x0 = Math.min(x0, xx); y0 = Math.min(y0, y); x1 = Math.max(x1, xx); y1 = Math.max(y1, y); }
-      sprites[id] = { img, sx: x0, sy: y0, sw: x1 - x0 + 1, sh: y1 - y0 + 1, url: D.sprites[id] };
-      res();
-    };
-    img.onerror = res; img.src = D.sprites[id];
-  });
-
   const canvas = document.getElementById('ad-canvas'), ctx = canvas.getContext('2d');
   const scrub = document.getElementById('ad-scrub'), playBtn = document.getElementById('ad-play');
-  let W = 0, H = 0, dpr = 1, tau = 0, playing = false, last = 0, selected = D.featured[0], hold = 0;
+  let W = 0, H = 0, dpr = 1, tau = 0, playing = false, last = 0, selected = D.featured[0], raf = 0, meansOnly = false;
+  let markerHits = [];
 
   const bounds = (() => {
     let m = 0;
-    D.teams.forEach(t => { const s = t.steps; for (let k = 0; k <= STEPS; k++) { const o = k * STRIDE; m = Math.max(m, Math.abs(s[o]) + 2 * s[o + 2], Math.abs(s[o + 1]) + 2 * Math.hypot(s[o + 3], s[o + 4])); } });
-    return Math.min(m, 1.6);
+    D.teams.forEach((t, i) => { const s = t.steps; for (let k = 0; k <= STEPS; k++) { const o = k * STRIDE; m = Math.max(m, Math.abs(s[o]), Math.abs(s[o+1]), Math.abs(s[o] + s[o + 2]*Z[i][0]), Math.abs(s[o + 1] + s[o + 3]*Z[i][0] + s[o + 4]*Z[i][1])); } });
+    return Math.max(m * 1.03, ...D.centroids.flat().map(Math.abs));
   })();
   const toPx = (x, y) => {
     const pad = Math.min(W, H) * 0.08, sx = (W - 2 * pad) / (2 * bounds), sy = (H - 2 * pad) / (2 * bounds);
     return [W / 2 + x * sx, H / 2 - y * sy];
   };
 
-  let lastW = -1;
+  let lastW = -1, lastHeight = -1;
   function resize() {
-    if (canvas.clientWidth === lastW) return; lastW = canvas.clientWidth;
+    if (canvas.clientWidth === lastW && window.innerHeight === lastHeight) return;
+    lastW = canvas.clientWidth; lastHeight = window.innerHeight;
     dpr = window.devicePixelRatio || 1;
-    W = canvas.clientWidth; H = Math.round(W * (W < 560 ? 1 : 0.62));
+    W = canvas.clientWidth; H = Math.round(W < 560 ? W * 1.08 : Math.min(W * .68, Math.max(300, window.innerHeight - 470)));
     canvas.style.height = H + 'px'; canvas.width = trail.width = Math.round(W * dpr); canvas.height = trail.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     draw(true);
@@ -128,7 +133,8 @@
   function pos(t, time) {
     const v = stateAt(t, time);
     // Cholesky factor of the completions' 2D covariance turns the fixed draw into their real spread.
-    return { xy: toPx(v[0] + v[2] * Z[t][0], v[1] + v[3] * Z[t][0] + v[4] * Z[t][1]), p: v.slice(5, 9) };
+    const offset = meansOnly ? 0 : 1;
+    return { xy: toPx(v[0] + offset*v[2] * Z[t][0], v[1] + offset*(v[3] * Z[t][0] + v[4] * Z[t][1])), p: stateAt(t, Math.floor(time)).slice(5, 9) };
   }
   function blend(p) {
     const conf = Math.max(...p), w = Math.max(0, (conf - 0.25) / 0.75);
@@ -136,23 +142,10 @@
     return [0, 1, 2].map(c => Math.round(GREY[c] + (mix[c] - GREY[c]) * Math.min(1, w * 1.4)));
   }
 
-  function drawSprite(id, cx, cy, size, alpha = 1) {
-    const s = sprites[id]; if (!s) return false;
-    const k = size / Math.max(s.sw, s.sh);
-    ctx.globalAlpha = alpha; ctx.imageSmoothingEnabled = k < 1;
-    ctx.drawImage(s.img, s.sx, s.sy, s.sw, s.sh, cx - s.sw * k / 2, cy - s.sh * k / 2, s.sw * k, s.sh * k);
-    ctx.globalAlpha = 1; return true;
-  }
-
-  function lastRevealedSpecies(t, time) {
-    let best = -1;
-    for (let slot = 0; slot < 6; slot++) if (revealStep[slot * 8] <= time) best = slot;
-    return best < 0 ? null : D.teams[t].speciesId[best];
-  }
-
   const trail = document.createElement('canvas'), tctx = trail.getContext('2d');
   function draw(clear) {
     if (!W) return;
+    markerHits = [];
     // Dots live on their own layer so only they leave fading trails.
     tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (clear || !playing) tctx.clearRect(0, 0, W, H);
@@ -160,7 +153,7 @@
     ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, W, H);
 
     // Archetype anchors fade in as the cloud commits.
-    const anchorA = 0.25 + 0.75 * Math.min(1, tau / 18);
+    const anchorA = 0.7 + 0.3 * Math.min(1, tau / 18);
     D.archetypes.forEach((name, k) => {
       const [x, y] = toPx(D.centroids[k][0], D.centroids[k][1]), r = Math.min(W, H) * 0.16;
       const g = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -175,8 +168,14 @@
       tctx.fillStyle = `rgba(${c},0.9)`; tctx.beginPath(); tctx.arc(xy[0], xy[1], W < 560 ? 2.1 : 2.6, 0, 7); tctx.fill();
     }
     ctx.drawImage(trail, 0, 0, W, H);
+    // Retain the selected team's observed history; never preview future states.
+    if (document.getElementById('ad-trace').checked) {
+      ctx.strokeStyle = '#dce8ff65'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath();
+      for (let s = 0; s <= Math.floor(tau); s++) { const [x,y] = pos(selected,s).xy; if (!s) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+      const [x,y] = pos(selected,tau).xy; ctx.lineTo(x,y); ctx.stroke(); ctx.setLineDash([]);
+    }
 
-    // Anchor labels and representative sprites.
+    // Archetype names are group labels, never Pokémon mascots or team identities.
     D.archetypes.forEach((name, k) => {
       const [x, y] = toPx(D.centroids[k][0], D.centroids[k][1]);
       // Labels sit out past the cluster, toward the canvas edge, so they never cover the dots.
@@ -185,102 +184,142 @@
       ctx.globalAlpha = anchorA; ctx.font = '600 12px ui-sans-serif,system-ui,sans-serif'; ctx.textAlign = 'center';
       ctx.fillStyle = COLORS[k]; ctx.fillText(name, lx, ly - 16);
       ctx.globalAlpha = 1;
-      const reps = D.representatives[k] || [], sz = W < 560 ? 22 : 30;
-      reps.forEach((id, i) => drawSprite(id, lx + (i - (reps.length - 1) / 2) * (sz + 2), ly + 4, sz, anchorA * 0.9));
     });
 
-    // Followed teams on top: ring, badge, latest revealed species.
-    [...D.featured, ...(sel.has(selected) ? [] : [selected])].forEach(t => {
+    // Fixed composition names identify samples; only label the selected dot to avoid clutter.
+    [...D.featured.filter(t => t !== selected), selected].forEach(t => {
       const { xy, p } = pos(t, tau), c = blend(p), isSel = t === selected;
       ctx.fillStyle = `rgb(${c})`; ctx.beginPath(); ctx.arc(xy[0], xy[1], isSel ? 6 : 4.5, 0, 7); ctx.fill();
       ctx.strokeStyle = isSel ? '#ffffff' : 'rgba(237,243,255,.6)'; ctx.lineWidth = isSel ? 2 : 1.2; ctx.stroke();
-      const sp = lastRevealedSpecies(t, tau);
-      if (sp) drawSprite(sp, xy[0], xy[1] - (W < 560 ? 17 : 22), W < 560 ? 26 : 36);
-      const fi = D.featured.indexOf(t);
-      if (fi >= 0) { ctx.font = '700 10px ui-sans-serif,system-ui'; ctx.fillStyle = '#edf3ff'; ctx.textAlign = 'left'; ctx.fillText(String(fi + 1), xy[0] + 7, xy[1] + 10); }
+      if (!isSel) return;
+      let label = `${D.teams[t].strategyTitle} · ${D.teams[t].name}`;
+      ctx.font = `${isSel ? 700 : 500} ${isSel ? 12 : 10}px ui-sans-serif,system-ui`;
+      while (ctx.measureText(label).width > W-28 && label.length>4) label=label.slice(0,-2)+'…';
+      const bw = ctx.measureText(label).width + 12, bh = isSel ? 23 : 18;
+      const bx = Math.max(2, Math.min(W-bw-2, xy[0]-bw/2)), by = Math.max(2,xy[1]-bh-10);
+      markerHits.push({t,bx,by,bw,bh});
+      ctx.fillStyle = isSel ? '#edf3ff' : '#0b1220dd'; ctx.fillRect(bx,by,bw,bh);
+      ctx.fillStyle = isSel ? '#0b1220' : '#c9d8ef'; ctx.textAlign = 'center';
+      ctx.fillText(label,bx+bw/2,by+bh-6);
     });
   }
 
   const stageName = s => s === 0 ? 'All fields masked' : s <= 6 ? 'Revealing species' : s <= 18 ? 'Revealing abilities and items' : s <= 42 ? 'Revealing moves' : s < 48 ? 'Revealing natures' : 'Every field revealed';
   function updateText() {
-    const s = Math.round(tau * 100) / 100, si = Math.floor(tau + 1e-6);
+    const si = Math.floor(tau);
     document.getElementById('ad-stage').textContent = stageName(si);
-    document.getElementById('ad-count').textContent = `${si} / 48 fields revealed`;
+    document.getElementById('ad-count').textContent = `${si} / 48 fields revealed · ${tau % 1 > 1e-8 ? 'illustrative transition' : 'recorded state'}`;
     document.getElementById('ad-step').textContent = si;
-    scrub.value = tau; renderCard();
+    scrub.value = si; scrub.setAttribute('aria-valuetext', `${si} of 48 fields revealed`); renderCard();
   }
 
   function slotHTML(t, slot, si) {
     const f = D.teams[t].fields, id = D.teams[t].speciesId[slot], shown = c => revealStep[slot * 8 + c] <= si;
-    const val = c => shown(c) ? (f[slot * 8 + c] || '—') : '<span class="text-[#5d6f8c]">?</span>';
+    const val = c => shown(c) ? (f[slot * 8 + c] || '—') : '<span class="masked">[MASK]</span>';
     const pic = shown(0) && D.sprites[id]
-      ? `<img class="sprite h-10 w-10 object-contain" src="${D.sprites[id]}" alt="">`
-      : `<div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a263b] text-lg text-[#5d6f8c]">?</div>`;
+      ? `<img class="sprite" src="${D.sprites[id]}" alt="${f[slot*8]}">`
+      : `<div class="mask-icon" aria-label="Masked Pokémon slot ${slot+1}">?</div>`;
     const moves = [3, 4, 5, 6].map(val).join(' · ');
-    return `<div class="flex gap-2 border-t border-[var(--line)] py-1.5 first:border-t-0">${pic}<div class="min-w-0 text-xs leading-snug">
-      <div class="font-semibold text-[13px] text-[var(--fg)]">${val(0)}</div>
-      <div class="truncate text-[var(--muted)]">${val(1)} · ${val(2)}</div>
-      <div class="truncate text-[var(--muted)]">${moves}</div></div></div>`;
+    const fallback = shown(0) && D.spriteSources[id] !== id ? '<div class="fallback">Base-form artwork</div>' : '';
+    return `<div class="slot">${pic}<div class="slot-info"><strong>${shown(0) ? val(0) : `Slot ${slot+1} · [MASK]`}</strong>${fallback}
+      <div>${val(1)} · ${val(2)}</div><div>${moves}</div><div>Nature: ${val(7)}</div></div></div>`;
+  }
+  function evidence(t, si) {
+    const f = D.teams[t].fields, cues = [];
+    const known = (slot, j) => revealStep[slot*8+j] <= si;
+    for (let slot=0;slot<6;slot++) {
+      const name = f[slot*8];
+      for (let j=3;j<=6;j++) if (known(slot,j) && ['Trick Room','Tailwind'].includes(f[slot*8+j])) cues.push(`${name}: ${f[slot*8+j]}`);
+      if (known(slot,1) && ['Drizzle','Drought','Sand Stream','Snow Warning'].includes(f[slot*8+1])) cues.push(`${name}: ${f[slot*8+1]}`);
+      if (known(slot,2) && ['charizarditey','tyranitarite','froslassite','abomasite'].includes(f[slot*8+2].toLowerCase().replace(/[^a-z]/g,''))) cues.push(`${name}: ${f[slot*8+2]} (weather Mega)`);
+      if (known(slot,0) && ['charizardmegay','tyranitarmega','froslassmega','abomasnowmega'].includes(D.teams[t].speciesId[slot])) cues.push(`${name}: weather Mega form`);
+    }
+    return cues.length ? cues.join('; ') : si >= 42 ? 'No Trick Room, weather-setting or Tailwind cue. Other is the residual bucket.' : 'No qualifying cue revealed yet. Masked moves or abilities may change the label.';
+  }
+  let cardKey = '';
+  function renderRoster(t, si) {
+    const team = D.teams[t];
+    document.getElementById('ad-roster').innerHTML = `<div class="roster-title"><strong><i class="identity-dot"></i>${team.name}</strong><span class="mode-label">${team.strategyTitle} · final cues</span></div><ol class="roster-slots">${team.speciesId.map((id,slot)=>{
+      const shown = revealStep[slot*8] <= si, name = shown ? team.fields[slot*8] : '[MASK]';
+      const fallback = shown && D.spriteSources[id] !== id ? ' · base-form artwork' : '';
+      return `<li class="roster-slot" title="Slot ${slot+1}: ${name}${fallback}"><span class="roster-number">${slot+1}</span>${shown ? `<img class="sprite" src="${D.sprites[id]}" alt="${name}${fallback}">` : `<div class="mask-icon" aria-label="Slot ${slot+1} masked">?</div>`}<span class="roster-name">${name}</span></li>`;
+    }).join('')}</ol>`;
   }
   function renderCard() {
-    const t = selected, si = Math.floor(tau + 1e-6), p = stateAt(t, tau).slice(5, 9), fi = D.featured.indexOf(t);
+    const t = selected, si = Math.floor(tau), p = stateAt(t, si).slice(5, 9), fi = D.featured.indexOf(t);
+    const key = `${t}:${si}`; if (key === cardKey) return; cardKey = key;
+    renderRoster(t, si);
     const bar = p.map((v, k) => `<div style="width:${(v * 100).toFixed(1)}%;background:${COLORS[k]}" title="${D.archetypes[k]} ${(v * 100).toFixed(0)}%"></div>`).join('');
     const top = p.indexOf(Math.max(...p));
+    const modes = D.teams[t].modes.map(m=>({...m,evidence:m.evidence.filter(e=>e.columns.every(c=>revealStep[c]<=si))})).filter(m=>m.evidence.length);
+    const modeHTML = modes.length ? modes.map(m=>`<p><a href="${m.url}" target="_blank" rel="noopener">${m.name}</a><br><span class="muted">${m.evidence.map(e=>e.text).join('; ')}</span></p>`).join('') : `<p class="muted">${si>=42 ? 'Unclassified: no weather-setting, Trick Room or Tailwind cue. This does not establish Balance.' : 'No strategy cue revealed yet. Masked fields may supply one.'}</p>`;
     document.getElementById('ad-card').innerHTML = `
-      <div class="flex items-baseline justify-between text-sm"><span class="font-semibold">${fi >= 0 ? 'Followed team ' + (fi + 1) : 'Team #' + (t + 1)}</span>
-      <span class="text-xs text-[var(--muted)]">final: <span style="color:${COLORS[D.teams[t].label]}">${D.archetypes[D.teams[t].label]}</span></span></div>
-      <div class="mt-2 text-xs text-[var(--muted)]">Where its completions land now — leaning <span style="color:${COLORS[top]}">${D.archetypes[top]}</span> (${(p[top] * 100).toFixed(0)}%)</div>
-      <div class="mt-1 flex h-2 overflow-hidden rounded-full bg-[#1a263b]">${bar}</div>
-      <div class="mt-3">${[0, 1, 2, 3, 4, 5].map(s => slotHTML(t, s, si)).join('')}</div>`;
+      <div class="card-heading"><strong>${D.teams[t].name}</strong><span>${si>=42 ? D.archetypes[D.teams[t].label] : 'Archetype still being revealed'}</span></div>
+      <p class="source-note">Model-generated sample · no tournament result attached</p>
+      <div class="mode-list"><h3>VGC strategy cues revealed so far</h3>${modeHTML}<a href="#ad-sources">Definitions and classification limits</a></div>
+      <div class="small muted">${si>=42 ? 'Label fixed by revealed fields' : `Completion shares · ${si===0 ? D.completionsFullyMasked : D.completionsPerState} draws at step ${si}`}</div>
+      <div class="probabilities">${bar}</div>
+      <div class="prob-list">${p.map((v,k)=>`<span>${D.archetypes[k]} ${(v*100).toFixed(0)}%</span>`).join('')}</div>
+      <div>${[0, 1, 2, 3, 4, 5].map(s => slotHTML(t, s, si)).join('')}</div>
+      <p class="small muted">Map group priority: Trick Room → Weather → Tailwind → Other. Strategy cues above retain every detected mode.</p>`;
     document.querySelectorAll('#ad-featured button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.t === t)));
+    document.getElementById('ad-team').value = t;
   }
 
   function renderFeatured() {
     document.getElementById('ad-featured').innerHTML = D.featured.map((t, i) => {
       const k = D.teams[t].label;
-      return `<button type="button" data-t="${t}" aria-pressed="false" class="rounded-md border border-[var(--line)] py-1 text-sm font-semibold hover:bg-[#1a263b] aria-pressed:bg-[#1f2d45] aria-pressed:border-[#9ecbff] focus-visible:outline-2 focus-visible:outline-[#9ecbff]" style="color:${COLORS[k]}" title="Followed team ${i + 1}">${i + 1}</button>`;
+      return `<button type="button" data-t="${t}" aria-pressed="false" aria-label="Follow ${D.teams[t].name}" title="${i<4 ? 'Near an archetype centroid' : 'Seeded random example'}"><small>${D.teams[t].strategyTitle}</small>${D.teams[t].name}</button>`;
     }).join('');
     document.querySelectorAll('#ad-featured button').forEach(b => b.onclick = () => { selected = +b.dataset.t; draw(true); renderCard(); });
+    const picker = document.getElementById('ad-team');
+    picker.innerHTML = D.teams.map((t,i)=>`<option value="${i}">${t.strategyTitle} · ${t.name} (final)</option>`).join('');
+    picker.onchange = () => { selected = +picker.value; draw(true); renderCard(); };
   }
 
   function renderLegend() {
     document.getElementById('ad-legend').innerHTML = D.archetypes.map((n, k) =>
-      `<span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${COLORS[k]}"></span><span>${n}</span><span class="text-[var(--muted)] tabular-nums">${D.labelCounts[k]}</span></span>`).join('') +
-      `<span class="inline-flex items-center gap-1.5 text-[var(--muted)]"><span class="h-2.5 w-2.5 rounded-full" style="background:rgb(${GREY})"></span>undecided</span>`;
+      `<span class="key"><span class="swatch" style="background:${COLORS[k]}"></span>${n} <span class="muted">${D.labelCounts[k]}</span></span>`).join('') +
+      `<span class="muted">Final counts · 300 teams</span>`;
     document.getElementById('ad-method').innerHTML = D.methodHTML;
   }
 
   function frame(now) {
     if (!playing) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (tau >= STEPS) { hold += dt; if (hold > 1.2) { playing = false; playBtn.textContent = 'Replay'; draw(true); return; } }
-    else tau = Math.min(STEPS, tau + dt * (tau < 6 ? 1.1 : tau < 18 ? 3 : tau < 42 ? 4.5 : 8));
-    draw(false); updateText(); requestAnimationFrame(frame);
+    tau = Math.min(STEPS, tau + dt * (tau < 6 ? 1.1 : tau < 18 ? 3 : tau < 42 ? 4.5 : 8));
+    if (tau >= STEPS) { pause(); playBtn.textContent='Replay'; updateText(); return; }
+    draw(false); updateText(); raf = requestAnimationFrame(frame);
   }
   function play() {
+    if (playing) return;
     if (tau >= STEPS) tau = 0;
-    playing = true; hold = 0; playBtn.textContent = 'Pause'; last = performance.now(); requestAnimationFrame(frame);
+    playing = true; playBtn.textContent = 'Pause'; last = performance.now(); raf = requestAnimationFrame(frame);
   }
-  function pause() { playing = false; playBtn.textContent = 'Play'; draw(true); }
+  function pause() { playing = false; cancelAnimationFrame(raf); playBtn.textContent = tau>=STEPS ? 'Replay' : 'Play'; draw(true); updateText(); }
+  function seek(value) { pause(); tau = Math.max(0,Math.min(STEPS,value)); playBtn.textContent=tau>=STEPS ? 'Replay' : 'Play'; draw(true); updateText(); }
   playBtn.onclick = () => playing ? pause() : play();
-  document.getElementById('ad-restart').onclick = () => { tau = 0; draw(true); updateText(); if (!reduce) play(); };
-  scrub.oninput = () => { if (playing) pause(); tau = +scrub.value; draw(true); updateText(); };
+  document.getElementById('ad-restart').onclick = () => seek(0);
+  document.getElementById('ad-prev').onclick = () => seek(Math.ceil(tau)-1);
+  document.getElementById('ad-next').onclick = () => seek(Math.floor(tau)+1);
+  scrub.oninput = () => seek(+scrub.value);
+  document.getElementById('ad-means').onchange = e => { meansOnly=e.target.checked;draw(true); };
+  document.getElementById('ad-trace').onchange = () => draw(true);
+  document.addEventListener('visibilitychange', () => { if (document.hidden && playing) {pause();updateText();} });
 
   canvas.addEventListener('pointerdown', e => {
     const r = canvas.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    const hit = [...markerHits].reverse().find(h => mx>=h.bx && mx<=h.bx+h.bw && my>=h.by && my<=h.by+h.bh);
+    if (hit) {selected=hit.t;draw(true);renderCard();return;}
     let best = -1, bd = 22 * 22;
     for (let t = 0; t < T; t++) { const [x, y] = pos(t, tau).xy, d = (x - mx) ** 2 + (y - my) ** 2; if (d < bd) { bd = d; best = t; } }
     if (best >= 0) { selected = best; draw(true); renderCard(); }
   });
 
-  Promise.all(Object.keys(D.sprites).map(loadSprite)).then(() => {
-    renderFeatured(); renderLegend(); resize(); updateText();
-    new ResizeObserver(() => resize()).observe(canvas);
-    if (!reduce) {
-      const io = new IntersectionObserver(es => { if (es[0].isIntersecting && tau === 0 && !playing) { play(); io.disconnect(); } }, { threshold: 0.4 });
-      io.observe(canvas);
-    }
-  });
+  renderFeatured(); renderLegend(); resize(); updateText();
+  new ResizeObserver(() => resize()).observe(canvas);
+  window.addEventListener('resize', resize);
+  // Start paused: keep the all-masked comparison available, including reduced-motion users.
 })();
 </script>
 </body>
