@@ -11,9 +11,13 @@ Searching the space of competitive Pokémon VGC teams (Champions Reg Set M-B) fo
 
 *Win rate = wins ÷ battles against those 50 teams, one battle per pairing, with the same behaviour-cloned battle policy piloting both sides. A top-50 team scores 0.531 against the other 49. Source: [`code/docs/cem-v3-loop.md`](code/docs/cem-v3-loop.md).*
 
-[![From noise to team archetypes: each dot is a team sampled from the masked diffusion model; as species, abilities, items and moves are revealed over 48 steps, the cloud of dots tightens into Trick Room, Weather, Tailwind and Other clusters.](notes/Blog/visuals/archetype-diffusion/archetype-diffusion.gif)](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html)
+**[Random noise to Pokémon team archetypes](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html)** — latest artifact revision, 2026-10-12.
 
-**[Try it live](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html):** scrub through the 48 decoding steps and click any dot. Each dot is a team from the diffusion proposer. The figure shows what the model generates, not how well those teams play.
+[![Historical animation preview of model-generated Pokémon teams moving through the four-color archetype projection. The latest interactive version adds team names, a persistent roster and strategy cues.](notes/Blog/visuals/archetype-diffusion/archetype-diffusion.gif)](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html)
+
+**[Try it live](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html):** play or scrub through 48 decoding steps and select any of 300 model-generated teams. Track its stable name and six-member roster as masked fields are revealed, inspect overlapping weather, Trick Room and Tailwind cues, or toggle mean-only positions and the selected team's path. The GIF above is a historical preview; the interactive page contains the latest controls. You can also download the [standalone HTML](notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html) and open it offline.
+
+The model starts from masked categorical fields. The Gaussian cloud illustrates estimated completion uncertainty, and the four-color map uses supervised archetype labels; it does not discover natural clusters or measure strategic similarity. The figure shows what the model generates, not how well those teams play. See the [artifact notes and verification](notes/Blog/visuals/archetype-diffusion/README.md) for the sampling method, strategy definitions and limitations.
 
 | Folder | What it is |
 | --- | --- |
