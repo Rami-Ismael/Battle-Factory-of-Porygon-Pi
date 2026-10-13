@@ -23,7 +23,7 @@ Under `runs/smoke/`:
 
 - `manifest.json`: configuration, selected teams, rejected inputs, simulator fingerprint, masks, and original teams for auditing. Hidden originals are never included in model requests.
 - `candidates/`: each completion attempt, response, validation error, generation time, and OpenRouter response metadata when available.
-- `matchups.sqlite3`: battle requests and outcomes, including complete battle logs.
+- `matchups.sqlite3`: battle requests and outcomes, including final turn counts and complete battle logs for the built-in Showdown adapter.
 - `results.json`: results per masked example and method, opponent win rates, draws, original-team comparison, cache usage, and battle errors.
 - `summary.json`: results grouped by method, task, and k; validity and evaluation coverage are reported alongside win rates.
 

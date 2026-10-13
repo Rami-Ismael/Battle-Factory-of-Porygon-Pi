@@ -67,7 +67,15 @@ async function main(request) {
     const bytes = crypto.createHash('sha256').update(`${request.seed}:${label}`).digest();
     return [0,2,4,6].map(i => bytes.readUInt16BE(i));
   };
-  const stream = new BattleStream();
+  // Capture the simulator's final counter before BattleStream destroys the battle.
+  // The replay's |turn| events remain an independent check of this result.
+  class RecordedBattleStream extends BattleStream {
+    pushMessage(type, data) {
+      if (type === 'end') this.finalTurns = JSON.parse(data).turns;
+      super.pushMessage(type, data);
+    }
+  }
+  const stream = new RecordedBattleStream();
   const streams = getPlayerStreams(stream);
   const p1 = new RandomPlayerAI(streams.p1, {seed:seedFor('p1'), mega:1});
   const p2 = new RandomPlayerAI(streams.p2, {seed:seedFor('p2'), mega:1});
@@ -94,7 +102,10 @@ async function main(request) {
     `>player p2 ${JSON.stringify({name:'Opponent', team:opponent})}`);
   await reading;
   if (!outcome) throw new Error('Battle ended without an outcome');
-  return {outcome, log:logs.join('\n'), policy:'showdown-random-v1'};
+  if (!Number.isInteger(stream.finalTurns) || stream.finalTurns < 0) {
+    throw new Error('Battle ended without a valid final turn count');
+  }
+  return {outcome, turns:stream.finalTurns, log:logs.join('\n'), policy:'showdown-random-v1'};
 }
 
 let input = '';

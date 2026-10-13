@@ -153,4 +153,22 @@ python3 -m unittest discover -s tests -v
 
 `tests/test_battle_length_example.py` loads the actual `summarize_generations` example above and checks known averages, unequal batch sizes, win/loss/draw denominators, incomplete battles, missing and zero turn counts, empty inputs, grouping across all three methods, completion order, and cached evaluation slots.
 
-These are unit tests of aggregation from recorded battle results. They do not launch Showdown or verify simulator turn collection. Validation and retry deduplication remain preconditions of the example, not implemented behavior. Once the shared evaluator is integrated, add an integration test comparing its recorded turn count with a completed battle's simulator turn counter, plus persistence tests proving a retry or resume cannot duplicate an evaluation.
+These unit tests check aggregation from recorded battle results. Validation and evaluation-slot retry deduplication remain preconditions of the example, not implemented behavior.
+
+## Run real-battle integration tests
+
+The existing bridge at `notes/team_completion_pipeline/showdown.cjs` now returns `turns` from Showdown's end-of-battle result. The bridge rejects completed results without a valid nonnegative integer counter. Its existing runtime fingerprint includes the bridge source, so newly fingerprinted runs do not reuse older bridge results lacking this field.
+
+With Node.js on PATH and a built Showdown runtime supporting `gen9championsvgc2026regmb`, run from the repository root:
+
+```sh
+VGC_SHOWDOWN_RUNTIME=/absolute/path/to/built/showdown python3 -m unittest discover -s tests -v
+```
+
+Set the path to the runtime root containing `dist/sim/index.js` and installed dependencies. The local runtime configured in `notes/team_completion_pipeline/smoke.json` is one suitable option on the development machine; a standard upstream runtime may not contain this Champions format. No server, network connection, or paid model calls are needed.
+
+`tests/test_battle_length_integration.py` plays two real seeded battles using the committed six-Pokémon fixture and Showdown's random policies. It independently parses the battle log's turn events and checks that the recorded count equals the final turn. It then closes and reopens a temporary SQLite cache, forbids another simulator call, and verifies the stored result and row count. Finally, it feeds those recorded results into the documented summarizer and checks the average. A separate real-battle test verifies that exceeding the turn cap fails without caching a completed result.
+
+Without `VGC_SHOWDOWN_RUNTIME`, these two integration tests are explicitly skipped; the 12 unit tests still run. If the variable is supplied but the runtime is missing or incompatible, the integration tests fail rather than silently skip. Each simulator call has a 30-second timeout. All test databases are temporary.
+
+Local validation produced battles of 9 and 11 turns, with a mean of 10; both counts matched their logs and persisted cache records. The tests derive expected counts from the actual logs rather than hardcoding those lengths. This verifies the team-completion bridge and result cache, not the separate battle-speed worker or integration into the three search loops. Evaluation-slot deduplication across search generations still requires coverage when that orchestration is implemented.
