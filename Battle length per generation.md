@@ -142,3 +142,15 @@ results/<run_id>/
 ```
 
 These are responsibility boundaries, not a requirement to rename existing files. Before connecting all three methods, check a small known fixture: unequal batch sizes produce a weighted pooled mean, failed games are excluded and counted, missing turns stay missing, retries do not duplicate evaluations, and overlapping generations retain their original context.
+
+## Run the aggregation tests
+
+From the repository root, run:
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+`tests/test_battle_length_example.py` loads the actual `summarize_generations` example above and checks known averages, unequal batch sizes, win/loss/draw denominators, incomplete battles, missing and zero turn counts, empty inputs, grouping across all three methods, completion order, and cached evaluation slots.
+
+These are unit tests of aggregation from recorded battle results. They do not launch Showdown or verify simulator turn collection. Validation and retry deduplication remain preconditions of the example, not implemented behavior. Once the shared evaluator is integrated, add an integration test comparing its recorded turn count with a completed battle's simulator turn counter, plus persistence tests proving a retry or resume cannot duplicate an evaluation.
