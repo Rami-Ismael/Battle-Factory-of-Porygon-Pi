@@ -22,7 +22,7 @@ Chunks are assigned by scheduled battle count, with large chunks first. This fix
 
 Every completed battle is checked against its expected candidate and opponent. Missing, duplicated, unfinished, or misattributed results fail before the current database batch is committed. Earlier committed batches remain resumable. Shutdown closes owned processes and communication pipes. Fully cached invocations start no workers.
 
-Each invocation preserves configuration and source fingerprints, requests, individual results, startup records, and timings. Panel metadata points to that evidence. Fingerprints include the BC checkpoint, relevant code, numerical packages, BC source/data, configuration, and compiled simulator. [Usage and test commands](README.md#optimized-bc-battles-for-mask-lab).
+Each invocation preserves configuration and source fingerprints, requests, individual results, startup records, and timings. Panel metadata points to that evidence. Fingerprints include the behaviour-cloning (BC) checkpoint, relevant code, numerical packages, BC source/data, configuration, and compiled simulator. [Usage and test commands](README.md#optimized-bc-battles-for-mask-lab).
 
 ## Measured speed
 
@@ -35,7 +35,7 @@ The comparison used **24 real legal Mask Lab candidates against all 49 meta team
 
 Throughput columns use aggregate counts and elapsed time. Speedups normalize within each paired block and then take the geometric mean, so they need not equal the ratio of the aggregate columns. The later-batch comparison still includes the legacy evaluator's model reloads; it is not an isolated engine benchmark. These gains must not be multiplied by the earlier lab's speedup estimates.
 
-There were **six attempted ABBA/BAAB blocks**. One entire block was rejected after a roughly 471-second wall-clock discontinuity, and a replacement block was collected. The final estimate uses **five valid blocks, 20 trials, and 23,520 battles**; 28,224 battles were completed across all six attempted blocks. Ordinary slow trials were retained. The two earlier interrupted development runs are preserved but excluded entirely.
+There were **six attempted comparison blocks**, each ordered legacy–fast–fast–legacy or fast–legacy–legacy–fast (ABBA/BAAB). One entire block was rejected after a roughly 471-second wall-clock discontinuity, and a replacement block was collected. The final estimate uses **five valid blocks, 20 trials, and 23,520 battles**; 28,224 battles were completed across all six attempted blocks. Ordinary slow trials were retained. The two earlier interrupted development runs are preserved but excluded entirely.
 
 The timer includes evaluator provenance/setup, model/server startup, deficit planning, simulations, database writes, score calculation, and cleanup. Candidate generation/validation and copying the fixture database are excluded. Both paths use isolated servers with the same compiled simulator configuration; the legacy runner code is unchanged.
 
