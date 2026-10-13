@@ -109,6 +109,46 @@ To connect your battle policy, use:
 
 The adapter reads a JSON request containing both complete teams, the seed, format, simulator fingerprint, and battle configuration. It returns `{"outcome": "win"}`, `"loss"`, or `"draw"` from the candidate's perspective, optionally with a log/replay reference. Its version must change whenever policy weights, code, simulator, or relevant settings change. Simulation errors and timeouts must produce a nonzero exit or an error outcome; they are never cached as draws. Keep candidate/opponent side assignment fixed across methods; side-swapped evaluation is not implemented yet.
 
+## Optimized BC battles for Mask Lab
+
+The existing behaviour-cloning (BC) entry point, `mask_lab_battle.py`, now defaults to **six persistent Python worker / Showdown server groups with 24 concurrent battles per worker**. It uses the validated sparse observation encoder, shared batching within each worker, actor-only inference, and one numerical CPU thread. Workers stay loaded across saved candidate batches. Chunks are balanced by battle count so small row remainders do not leave workers idle. This integrates the BC path; the generic `pipeline.py` random-policy smoke workflow above keeps its existing policy.
+
+From this directory, using the existing pilot environment:
+
+```sh
+caffeinate -i /tmp/vgc-pilot/.venv/bin/python mask_lab_battle.py --limit 6
+
+# All prepared Mask Lab candidates, with the same defaults:
+caffeinate -i /tmp/vgc-pilot/.venv/bin/python mask_lab_battle.py
+```
+
+The inputs remain `runs/prompt-ab/candidates.json`, and the panel output remains `runs/prompt-ab/panels.json`. The private database remains `~/vgc-data/mask_lab_matrix.sqlite`. `--run-dir` and `--database` select isolated inputs/output and a private database for verification. `--workers` (also accepted as `--servers`), `--concurrency`, `--batch`, `--per-cell`, and `--limit` remain configurable. `--backend legacy --workers 3 --concurrency 50` selects the previous evaluator. The default saved batch is still 24 candidate teams; that is distinct from 24 simultaneous battles per worker.
+
+Fast results use a **separate versioned policy/cache identity** covering the checkpoint, worker configuration, relevant implementation, numerical packages, BC source/data, and compiled simulator. Existing legacy cells are preserved. Consequently, the first fast run computes its missing cells even if legacy results exist; rerunning the same fast configuration uses its cache. Raising `--per-cell` computes only the deficit. Held-out-team guards and existing score/tie conventions remain in force.
+
+Each fast invocation saves source snapshots, configuration fingerprints, requests, individual battle results, startup records, and batch timings under a fresh `runs/battle-evaluations/` directory. Panel metadata links to this evidence. Incomplete, duplicated, or misattributed results fail before the current database batch is committed; previously committed batches remain resumable. Failures and interrupts close the processes owned by this evaluator. A fully cached invocation starts no worker/server processes. Simulator trajectories are stochastic; the seed is not a promise of exact replay equality.
+
+Unit and database-contract tests:
+
+```sh
+/tmp/vgc-pilot/.venv/bin/python -m unittest -v test_fast_battle_runner test_fast_pipeline_benchmark test_pipeline
+```
+
+Real integration tests use temporary database copies and real BC/Showdown processes; they also exercise the main CLI and cached reruns:
+
+```sh
+VGC_LIVE_TESTS=1 caffeinate -i /tmp/vgc-pilot/.venv/bin/python -m unittest -v test_fast_battle_integration
+```
+
+The repeatable paired benchmark uses fresh isolated caches and no generation/API calls:
+
+```sh
+caffeinate -i /tmp/vgc-pilot/.venv/bin/python benchmark_fast_pipeline.py \
+  --blocks 5 --candidates 24 --opponents 49 --batch 12
+```
+
+This compares the previous three-worker/concurrency-50 evaluator with the integrated six-worker/concurrency-24 evaluator. It includes evaluator startup and database writes, alternates treatment order, records background load, and rejects entire blocks with detected clock gaps. Candidate generation/validation and copying the fixture database are outside its timer. Short runs can be dominated by model startup. The [completed integration report](FAST_EVALUATOR_INTEGRATION.md) records **1.73× whole-stage speedup**, **3.28× later-batch throughput**, uncertainty, and 33 passing tests.
+
 ## Remaining research setup
 
 The runnable infrastructure is complete for the supplied smoke experiment. A full comparison still needs your real team datasets and tournament metadata, a chosen OpenRouter model, a trained diffusion adapter, and the competitive battle policy. Mixed-part masking, automatic team synthesis, uncertainty estimates, weighted meta scoring, and cost aggregation are not implemented in this first version.

@@ -1,0 +1,234 @@
+{
+  "audit": "passed",
+  "runs": [
+    {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-003",
+      "audit": "passed",
+      "trials": 20,
+      "measured_battles": 23520,
+      "verified_fast_jobs": 720,
+      "whole_battle_stage": {
+        "accepted_blocks": [
+          0,
+          1,
+          3,
+          4
+        ],
+        "invalid_clock_blocks": [
+          2
+        ],
+        "block_speedups": [
+          1.35155269483054,
+          1.9002568882909192,
+          1.9198597382368017,
+          1.7850659753510412
+        ],
+        "geometric_mean_speedup": 1.7224327237077912,
+        "bootstrap95": [
+          1.4717288927807963,
+          1.9100331651929199
+        ],
+        "aggregate_battles_per_second": {
+          "baseline": 22.11013597263183,
+          "fast": 37.613280585052635
+        },
+        "limitations": [
+          "Stochastic live trajectories are not trace-paired.",
+          "Legacy output does not expose turns; no turns-normalized comparison is claimed.",
+          "The complete configuration changes from three legacy workers at concurrency50 to six fast workers at concurrency24.",
+          "Exploratory block-bootstrap interval under observed background load; no guarantee for other workloads."
+        ]
+      },
+      "later_saved_batches": {
+        "accepted_blocks": [
+          0,
+          1,
+          3,
+          4
+        ],
+        "invalid_clock_blocks": [
+          2
+        ],
+        "block_speedups": [
+          2.393814329093305,
+          3.4537732390610056,
+          3.651132673956934,
+          3.59245376458571
+        ],
+        "geometric_mean_speedup": 3.2270134170465354,
+        "bootstrap95": [
+          2.6495104914960095,
+          3.62167438066407
+        ],
+        "aggregate_battles_per_second": {
+          "baseline": 23.775620753429514,
+          "fast": 74.36580029652302
+        },
+        "limitations": [
+          "Stochastic live trajectories are not trace-paired.",
+          "Legacy output does not expose turns; no turns-normalized comparison is claimed.",
+          "The complete configuration changes from three legacy workers at concurrency50 to six fast workers at concurrency24.",
+          "Exploratory block-bootstrap interval under observed background load; no guarantee for other workloads."
+        ]
+      },
+      "external_cpu_percent": {
+        "min": 55.00000000000001,
+        "median": 440.6,
+        "max": 1080.5
+      },
+      "note": "Later-batch timing excludes the first saved batch; legacy model reloads still count. It is a persistent-pipeline comparison, not isolated engine speed. Database wins/losses/ties were reconciled with every fast battle result."
+    },
+    {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-004",
+      "audit": "passed",
+      "trials": 4,
+      "measured_battles": 4704,
+      "verified_fast_jobs": 144,
+      "whole_battle_stage": {
+        "accepted_blocks": [
+          0
+        ],
+        "invalid_clock_blocks": [],
+        "block_speedups": [
+          1.7524956113799655
+        ],
+        "geometric_mean_speedup": 1.7524956113799655,
+        "bootstrap95": null,
+        "aggregate_battles_per_second": {
+          "baseline": 23.349999192563004,
+          "fast": 40.9207711106924
+        },
+        "limitations": [
+          "Stochastic live trajectories are not trace-paired.",
+          "Legacy output does not expose turns; no turns-normalized comparison is claimed.",
+          "The complete configuration changes from three legacy workers at concurrency50 to six fast workers at concurrency24.",
+          "Exploratory block-bootstrap interval under observed background load; no guarantee for other workloads."
+        ]
+      },
+      "later_saved_batches": {
+        "accepted_blocks": [
+          0
+        ],
+        "invalid_clock_blocks": [],
+        "block_speedups": [
+          3.5195062237235804
+        ],
+        "geometric_mean_speedup": 3.51950622372358,
+        "bootstrap95": null,
+        "aggregate_battles_per_second": {
+          "baseline": 24.564941238943376,
+          "fast": 86.45646357586526
+        },
+        "limitations": [
+          "Stochastic live trajectories are not trace-paired.",
+          "Legacy output does not expose turns; no turns-normalized comparison is claimed.",
+          "The complete configuration changes from three legacy workers at concurrency50 to six fast workers at concurrency24.",
+          "Exploratory block-bootstrap interval under observed background load; no guarantee for other workloads."
+        ]
+      },
+      "external_cpu_percent": {
+        "min": 213.10000000000002,
+        "median": 414.45,
+        "max": 701.9000000000003
+      },
+      "note": "Later-batch timing excludes the first saved batch; legacy model reloads still count. It is a persistent-pipeline comparison, not isolated engine speed. Database wins/losses/ties were reconciled with every fast battle result."
+    }
+  ],
+  "block_origins": {
+    "0": {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-003",
+      "original_block": 0
+    },
+    "1": {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-003",
+      "original_block": 1
+    },
+    "2": {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-003",
+      "original_block": 2
+    },
+    "3": {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-003",
+      "original_block": 3
+    },
+    "4": {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-003",
+      "original_block": 4
+    },
+    "5": {
+      "run": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs/fast-integration-004",
+      "original_block": 0
+    }
+  },
+  "whole_battle_stage": {
+    "accepted_blocks": [
+      0,
+      1,
+      3,
+      4,
+      5
+    ],
+    "invalid_clock_blocks": [
+      2
+    ],
+    "block_speedups": [
+      1.35155269483054,
+      1.9002568882909192,
+      1.9198597382368017,
+      1.7850659753510412,
+      1.7524956113799655
+    ],
+    "geometric_mean_speedup": 1.7284037587540566,
+    "bootstrap95": [
+      1.5240304371358726,
+      1.8843587169579752
+    ],
+    "aggregate_battles_per_second": {
+      "baseline": 22.34746185677018,
+      "fast": 38.231302520799446
+    },
+    "limitations": [
+      "Stochastic live trajectories are not trace-paired.",
+      "Legacy output does not expose turns; no turns-normalized comparison is claimed.",
+      "The complete configuration changes from three legacy workers at concurrency50 to six fast workers at concurrency24.",
+      "Exploratory block-bootstrap interval under observed background load; no guarantee for other workloads."
+    ]
+  },
+  "later_saved_batches": {
+    "accepted_blocks": [
+      0,
+      1,
+      3,
+      4,
+      5
+    ],
+    "invalid_clock_blocks": [
+      2
+    ],
+    "block_speedups": [
+      2.393814329093305,
+      3.4537732390610056,
+      3.651132673956934,
+      3.59245376458571,
+      3.5195062237235804
+    ],
+    "geometric_mean_speedup": 3.28349957472339,
+    "bootstrap95": [
+      2.7937740486813727,
+      3.601006193054671
+    ],
+    "aggregate_battles_per_second": {
+      "baseline": 23.929400613323672,
+      "fast": 76.50561397687807
+    },
+    "limitations": [
+      "Stochastic live trajectories are not trace-paired.",
+      "Legacy output does not expose turns; no turns-normalized comparison is claimed.",
+      "The complete configuration changes from three legacy workers at concurrency50 to six fast workers at concurrency24.",
+      "Exploratory block-bootstrap interval under observed background load; no guarantee for other workloads."
+    ]
+  },
+  "attempted_battles": 28224,
+  "accepted_battles": 23520,
+  "note": "Replacement blocks are added only for clock-invalid blocks; entire invalid blocks remain excluded."
+}
