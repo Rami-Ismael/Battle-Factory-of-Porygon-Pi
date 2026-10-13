@@ -6,16 +6,19 @@ the same policy 1 as the shared matchup matrix. It starts its own Showdown serve
 the matrix (~/vgc-data/mask_lab_matrix.sqlite), so the shared database and servers are not touched.
 Writes runs/prompt-ab/panels.json.
 
-    nice -n 10 python mask_lab_battle.py --servers 3 --limit 6      # smoke test
-    nice -n 10 python mask_lab_battle.py --servers 3                 # everything
+    python mask_lab_battle.py --limit 6      # six persistent workers, 24 battles each
+    python mask_lab_battle.py                # all candidates, same optimized pool
 """
 import argparse
+from contextlib import ExitStack
 import json
+import signal
 import socket
 import sqlite3
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 
 REPO = Path('/Users/ramiismael/Documents/code/vgc-team-generator-pilot')
@@ -35,16 +38,21 @@ hps_generate.SHOWDOWN = VALIDATOR
 import matchup_db as MDB  # noqa: E402
 MDB.SHOWDOWN = VALIDATOR
 pool.REPO = str(BENCH)
+from fast_battle_runner import FastBattleRunner
 
 
-def private_copy():
-    if PRIVATE_DB.exists():
+def private_copy(destination=PRIVATE_DB):
+    if destination.resolve() == Path(MDB.DEFAULT_DB).resolve():
+        raise ValueError('Use a private database, not the shared matchup matrix')
+    if destination.exists():
         return
-    src = sqlite3.connect(MDB.DEFAULT_DB, timeout=60)
-    dst = sqlite3.connect(PRIVATE_DB)
-    src.backup(dst)
-    dst.close()
-    src.close()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect('file:'+str(MDB.DEFAULT_DB)+'?mode=ro', uri=True, timeout=60) as src:
+        dst = sqlite3.connect(destination)
+        try:
+            src.backup(dst)
+        finally:
+            dst.close()
 
 
 def start_servers(n):
@@ -71,18 +79,70 @@ def start_servers(n):
     return procs, ports
 
 
-def main():
+def parse_args(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument('--servers', type=int, default=3)
+    ap.add_argument('--workers', '--servers', dest='workers', type=int, default=6)
+    ap.add_argument('--concurrency', type=int, default=24)
+    ap.add_argument('--backend', choices=['fast', 'legacy'], default='fast')
     ap.add_argument('--batch', type=int, default=24, help='teams battled per saved batch')
+    ap.add_argument('--per-cell', type=int, default=1)
     ap.add_argument('--limit', type=int, help='only the first N candidates (smoke test)')
-    a = ap.parse_args()
+    ap.add_argument('--database', type=Path, default=PRIVATE_DB)
+    ap.add_argument('--run-dir', type=Path, default=RUN, help='candidate input and panels output directory')
+    ap.add_argument('--evidence-dir', type=Path, help='fresh evaluator provenance/results directory')
+    a = ap.parse_args(argv)
+    if min(a.workers, a.concurrency, a.batch, a.per_cell, a.limit or 1) < 1 or a.limit == 0:
+        ap.error('Counts must be positive')
+    return a
+
+
+def stop_servers(procs):
+    for proc in procs:
+        proc.terminate()
+    for proc in procs:
+        try:
+            proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=10)
+
+
+def evaluate(con, rows, cols, a):
+    """Keep the runner alive across database deficit batches; return cache identity."""
+    evidence = a.evidence_dir or HERE/'runs/battle-evaluations'/(
+        time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8])
+    with ExitStack() as stack:
+        if a.backend == 'fast':
+            runner = stack.enter_context(FastBattleRunner(evidence, a.workers, a.concurrency))
+            policy_id = runner.policy_id(con, MDB)
+        else:
+            policy_id = POLICY
+            runner = None
+            if MDB.plan(con, policy_id, rows, cols, a.per_cell):
+                procs, ports = start_servers(a.workers)
+                stack.callback(stop_servers, procs)
+                original_ports = pool.live_ports
+                stack.callback(setattr, pool, 'live_ports', original_ports)
+                pool.live_ports = lambda *args, **kwargs: ports
+                runner = lambda con, jobs, seed=None: MDB.run_jobs(con, jobs, seed=seed, conc=a.concurrency)
+        started = time.time()
+        for i in range(0, len(rows), a.batch):
+            t0 = time.time()
+            n = MDB.ensure(con, policy_id, rows[i:i + a.batch], cols, a.per_cell,
+                           seed=SEED, runner=runner, note='maskLab:'+a.backend)
+            print(f'batch {i // a.batch + 1}/{-(-len(rows) // a.batch)}: {n} battles in {time.time() - t0:.1f}s '
+                  f'({time.time() - started:.1f}s total)', flush=True)
+    return policy_id, str(evidence) if a.backend == 'fast' else None
+
+
+def main(argv=None):
+    a = parse_args(argv)
 
     if MDB.sha256_file(MDB.POLICY_FILE) != BC_HASH:
         raise SystemExit('bc_100.zip differs from the verified behaviour-cloning checkpoint; refusing to battle')
-    private_copy()
-    con = MDB.connect(PRIVATE_DB)
-    cands = json.loads((RUN / 'candidates.json').read_text())['candidates']
+    private_copy(a.database)
+    con = MDB.connect(a.database)
+    cands = json.loads((a.run_dir / 'candidates.json').read_text())['candidates']
     cands = [c for c in cands if c['paste']]
     if a.limit:
         cands = cands[:a.limit]
@@ -99,25 +159,17 @@ def main():
     print(f'{len(cands)} candidates -> {len(rows)} distinct legal teams; {len(cols)} meta opponents; '
           f'planned battles <= {len(rows) * len(cols)}', flush=True)
 
-    procs, ports = start_servers(a.servers)
-    pool.live_ports = lambda *args, **kwargs: ports
-    started = time.time()
+    previous = signal.getsignal(signal.SIGTERM)
+    def interrupted(*_):
+        raise KeyboardInterrupt()
+    signal.signal(signal.SIGTERM, interrupted)
     try:
-        for i in range(0, len(rows), a.batch):
-            t0 = time.time()
-            n = MDB.ensure(con, POLICY, rows[i:i + a.batch], cols, 1, seed=SEED, note='maskLab')
-            print(f'batch {i // a.batch + 1}/{-(-len(rows) // a.batch)}: {n} battles in {time.time() - t0:.0f}s '
-                  f'({time.time() - started:.0f}s total)', flush=True)
+        policy_id, evidence = evaluate(con, rows, cols, a)
     finally:
-        for proc in procs:
-            proc.terminate()
-        for proc in procs:
-            try:
-                proc.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                proc.kill()
+        signal.signal(signal.SIGTERM, previous)
 
-    out = {'policy_id': POLICY, 'policy': 'bc_100.zip:' + BC_HASH + ' on both sides', 'seed': SEED,
+    out = {'policy_id': policy_id, 'policy': 'bc_100.zip:' + BC_HASH + ' on both sides', 'seed': SEED,
+           'evaluator': {'backend':a.backend, 'workers':a.workers, 'concurrency':a.concurrency, 'evidence':evidence},
            'opponents': [], 'panels': {}}
     for t in cols:
         paste = con.execute('SELECT paste FROM team WHERE team_id=?', (t,)).fetchone()[0]
@@ -129,14 +181,15 @@ def main():
         if t not in legal:
             out['panels'][c['label']] = {'team_id': t, 'score': None, 'illegal': True}
             continue
-        s = MDB.score(con, POLICY, t)
-        cells = MDB.row_cells(con, POLICY, t, cols)
+        s = MDB.score(con, policy_id, t)
+        cells = MDB.row_cells(con, policy_id, t, cols)
         out['panels'][c['label']] = {'team_id': t, 'score': s['score'], 'coverage': s['coverage'],
                                      'battles': s['battles'], 'se': s['se'],
                                      'by_opponent': {str(o): list(v) for o, v in cells.items()}}
-    (RUN / 'panels.json').write_text(json.dumps(out, indent=1) + '\n')
+    (a.run_dir / 'panels.json').write_text(json.dumps(out, indent=1) + '\n')
     scored = sum(1 for p in out['panels'].values() if p.get('score') is not None)
-    print(f'saved {scored} scored panels to {RUN / "panels.json"}', flush=True)
+    print(f'saved {scored} scored panels to {a.run_dir / "panels.json"}', flush=True)
+    con.close()
 
 
 if __name__ == '__main__':
