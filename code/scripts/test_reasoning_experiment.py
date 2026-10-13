@@ -45,6 +45,26 @@ class ReasoningExperimentTests(unittest.TestCase):
             self.assertTrue(manifest['provider']['require_parameters'])
         self.assertEqual(E.read(self.args.parent/'manifest.json'), self.manifest)
 
+    def test_unvalidated_saved_response_cannot_finish_study(self):
+        import reasoning_battles as battles
+        _, runs = self.prepare()
+        for entry, folder, _ in runs:
+            self.record(entry, folder, valid=False)
+        entry, folder, manifest = runs[-1]
+        path = folder/'completions/s0-item-1.json'
+        raw = E.read(path)
+        del raw['error']  # Durable network reply, validation still outstanding.
+        B.save(path, raw)
+        before = path.read_bytes()
+        self.assertFalse(battles.progress(self.args.output)['complete'])
+        E.report(self.args)
+        self.assertFalse(E.read(self.args.output/'status.json')['complete'])
+        self.assertEqual(path.read_bytes(), before)
+        self.record(entry, folder, valid=True)
+        self.assertFalse(battles.progress(self.args.output)['complete'])
+        B.save(folder/'labels/llm-s0-item-1.json', dict(battles=50, wins=3))
+        self.assertTrue(battles.progress(self.args.output)['complete'])
+
     def record(self, entry, folder, valid=True, tokens=None):
         row = dict(request_hash=entry['request_hashes']['s0-item-1'], valid=valid,
                    response={'choices': [{'finish_reason': 'stop' if valid else 'length'}],

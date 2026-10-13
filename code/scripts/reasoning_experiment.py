@@ -132,6 +132,10 @@ def completion(folder, entry, trial):
     row = read(folder / 'completions' / (trial['id'] + '.json'))
     if row is not None and row['request_hash'] != entry['request_hashes'][trial['id']]:
         raise ValueError(f'completion request mismatch: {folder}/{trial["id"]}')
+    # A raw reply is durable before validation; it is not yet an illegal result.
+    # Keep the watcher alive until validation and any required scoring finish.
+    if row is not None and not row['valid'] and 'error' not in row:
+        return None
     return row
 
 
