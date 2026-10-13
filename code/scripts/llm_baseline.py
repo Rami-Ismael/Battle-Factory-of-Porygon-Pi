@@ -7,10 +7,12 @@ import json
 import os
 from pathlib import Path
 import random
+import shutil
 import sqlite3
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -267,24 +269,29 @@ def prepare(args):
 
 def load_manifest(args):
     m = json.loads((args.output / "manifest.json").read_text())
-    if m["model"] != MODEL or m["format"] != FORMAT:
+    if m["model"] not in (MODEL, 'inception/mercury-2.5') or m["format"] != FORMAT:
         raise ValueError("model/format mismatch")
     return m
 
 
-def complete(args):
+def completion_payload(manifest, trial):
+    """One request definition for generation and experiment provenance checks."""
+    return dict(model=manifest['model'], messages=prompt(manifest, trial),
+                temperature=manifest['temperature'], max_tokens=manifest['max_tokens'],
+                reasoning=manifest.get('reasoning', {'enabled': True}),
+                provider=manifest.get('provider', {'order': ['novita'], 'allow_fallbacks': False}))
+
+
+def complete(args, trials_override=None):
     m = load_manifest(args)
     key = os.environ.get("OPENROUTER_API_KEY")
     h, _ = runtime()
     validator = h.Validator()
     try:
-        for trial_index, trial in enumerate(m["trials"]):
+        for trial_index, trial in enumerate(m["trials"] if trials_override is None else trials_override):
             if trial_index % getattr(args, 'shards', 1) != getattr(args, 'shard', 0): continue
             out = args.output / "completions" / (trial["id"] + ".json")
-            payload = dict(model=MODEL, messages=prompt(m, trial), temperature=m["temperature"],
-                           max_tokens=m["max_tokens"],
-                           reasoning=m.get("reasoning", {"enabled": True}),
-                           provider={"order": ["novita"], "allow_fallbacks": False})
+            payload = completion_payload(m, trial)
             request_hash = digest(payload)
             if out.exists():
                 record = json.loads(out.read_text())
@@ -302,9 +309,10 @@ def complete(args):
             req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions",
                   data=json.dumps(payload).encode(), headers={"Authorization": f"Bearer {key}",
                   "Content-Type": "application/json"})
+            started = time.monotonic()
             for attempt in range(3):
                 try:
-                    with urllib.request.urlopen(req, timeout=180) as res:
+                    with urllib.request.urlopen(req, timeout=m.get('request_timeout', 180)) as res:
                         response = json.load(res)
                     break
                 except urllib.error.HTTPError as exc:
@@ -316,7 +324,8 @@ def complete(args):
                         continue
                     pending.unlink()
                     raise RuntimeError(f"OpenRouter HTTP {exc.code}: {detail}") from None
-            record = dict(request_hash=request_hash, response=response, valid=False)
+            record = dict(request_hash=request_hash, response=response, valid=False,
+                          elapsed_seconds=time.monotonic() - started)
             # Persist the paid response before parsing or validating it.
             save(out, record)
             pending.unlink()
@@ -421,7 +430,44 @@ def report(args):
     print(json.dumps({k: v for k, v in status.items() if k not in ("summaries", "comparisons")}))
 
 
-def battle(args, candidates_override=None):
+def isolated_showdown(source, destination):
+    """Copy executable/config state; only third-party dependencies are shared.
+
+    Separate ports alone are insufficient: Showdown writes config/*.NEW and
+    logs/lastbattle.txt relative to its module root, not the process cwd.
+    Copying dist (rather than symlinking it) gives each server its own root.
+    """
+    source, destination = Path(source), Path(destination)
+    shutil.copytree(source, destination,
+                    ignore=lambda folder, names: {'node_modules', '.git', 'logs'} if Path(folder) == source else set())
+    (destination / 'node_modules').symlink_to(source / 'node_modules', target_is_directory=True)
+    (destination / 'logs').mkdir()
+    # The CLI's skipped build normally creates this directory before REPL cleanup.
+    (destination / 'logs/repl').mkdir()
+    return destination
+
+
+def battle_paste(text):
+    """Preserve neutral stats while acknowledging intentional zero investment.
+
+    Canonical identity maps neutral natures to Serious. Showdown's challenge
+    validator uniquely rejects Serious plus zero Stat Points as a user warning;
+    Hardy has identical stats and neutral flavor preferences, and acknowledges
+    intentional zero investment. Do not alter canonical DB/cache identity.
+    """
+    import re
+    blocks = []
+    for block in text.strip().split('\n\n'):
+        total = sum(int(n) for line in block.splitlines() if line.startswith('EVs:')
+                    for n in re.findall(r'\b(\d+)\s+(?:HP|Atk|Def|SpA|SpD|Spe)\b', line))
+        if total == 0:
+            block = '\n'.join('Hardy Nature' if line == 'Serious Nature' else line
+                              for line in block.splitlines())
+        blocks.append(block)
+    return '\n\n'.join(blocks) + '\n'
+
+
+def battle(args, candidates_override=None, on_result=None):
     """Separate exact-panel cache; never reuse aggregate cells with unknown seeds."""
     import asyncio
     import importlib.util
@@ -458,24 +504,52 @@ def battle(args, candidates_override=None):
     con.commit()
     pid = db.get_policy(con, simulator="showdown-content:" + digest(fingerprints),
                         note="Ling baseline; BC both sides; exact-panel cache stored separately")
-    candidates = [(f"start-{i}", t) for i, t in enumerate(m["starts"])]
-    for trial in m["trials"]:
-        candidates.append(("random-" + trial["id"], trial["random_team"]))
-        path = args.output / "completions" / (trial["id"] + ".json")
-        if path.exists():
-            row = json.loads(path.read_text())
-            if row["valid"]: candidates.append(("llm-" + trial["id"], row["team"]))
     if candidates_override is not None:
         candidates = candidates_override
+    else:
+        candidates = [(f"start-{i}", t) for i, t in enumerate(m["starts"])]
+        for trial in m["trials"]:
+            candidates.append(("random-" + trial["id"], trial["random_team"]))
+            path = args.output / "completions" / (trial["id"] + ".json")
+            if path.exists():
+                row = json.loads(path.read_text())
+                if row["valid"]: candidates.append(("llm-" + trial["id"], row["team"]))
     # Own an isolated server built from the same checkout used for validation.
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
+    # macOS Unix socket paths are short; its default per-user temp path is too
+    # long for Showdown's logs/repl/team-validator-* sockets.
+    sandbox = tempfile.TemporaryDirectory(prefix='vgc-sd-', dir='/tmp')
+    server_root = isolated_showdown(h.SHOWDOWN, Path(sandbox.name) / 'server')
+    # Never rebuild the frozen simulator while multiple workers are running.
+    for original in sorted((h.SHOWDOWN / 'dist').rglob('*.js')):
+        copied = server_root / original.relative_to(h.SHOWDOWN)
+        if hashlib.sha256(copied.read_bytes()).hexdigest() != fingerprints[str(original)]:
+            raise ValueError('isolated simulator differs from frozen code')
     log = (args.output / "showdown.log").open("a")
-    server = subprocess.Popen(["node", "pokemon-showdown", "start", str(port), "--no-security"],
-                              cwd=h.SHOWDOWN, stdout=log, stderr=subprocess.STDOUT)
+    server = subprocess.Popen(["node", "pokemon-showdown", "start", str(port), "--no-security", "--skip-build"],
+                              cwd=server_root, stdout=log, stderr=subprocess.STDOUT)
     validator = h.Validator()
     try:
+        wire_files = {}
+        def battle_file(team_id):
+            if team_id not in wire_files:
+                original = Path(db.paste_file(con, team_id))
+                text = original.read_text()
+                wire = battle_paste(text)
+                if db.canonical_paste(wire) != db.canonical_paste(text):
+                    raise ValueError(f'battle export changed canonical team {team_id}')
+                error = validator(wire)
+                if error:
+                    raise ValueError(f'battle export rejected for team {team_id}: {error}')
+                path = original
+                if wire != text:
+                    path = args.output / 'wire-teams' / (digest(wire) + '.txt')
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(wire)
+                wire_files[team_id] = str(path)
+            return wire_files[team_id]
         for _ in range(100):
             try:
                 with socket.create_connection(("127.0.0.1", port), timeout=.2): break
@@ -508,10 +582,13 @@ def battle(args, candidates_override=None):
                 for job in jobs:
                     cols = sorted(set(job["schedule"]))
                     info = {c: con.execute("SELECT species_key,base_key FROM team WHERE team_id=?", (c,)).fetchone() for c in cols}
-                    job_spec = dict(row=tid, row_file=db.paste_file(con, tid),
-                                    schedule=[db.paste_file(con, c) for c in job["schedule"]],
+                    job_spec = dict(row=tid, row_file=battle_file(tid),
+                                    schedule=[battle_file(c) for c in job["schedule"]],
                                     key2col={info[c][0]: c for c in cols}, base2col={info[c][1]: c for c in cols})
-                    raw = asyncio.run(asyncio.wait_for(worker.run_job(policy, job_spec, 1, port, m["seed"]), timeout=600))
+                    try:
+                        raw = asyncio.run(asyncio.wait_for(worker.run_job(policy, job_spec, 1, port, m["seed"]), timeout=600))
+                    except TimeoutError as exc:
+                        raise TimeoutError(f'panel {label}, team {tid}: simulator exceeded 600 seconds; see {args.output / "showdown.log"}') from exc
                     unattributed += raw["unattributed"]
                     results += [(tid, int(c), *counts) for c, counts in raw["by_col"].items()]
                 n = sum(w+l+t for _, _, w,l,t in results)
@@ -528,6 +605,8 @@ def battle(args, candidates_override=None):
                     con.execute("INSERT INTO llm_completion_panel VALUES (?,?,?)",
                                 (key, json.dumps(config), json.dumps(result)))
             save(args.output / "labels" / (label + ".json"), result)
+            if on_result is not None:
+                on_result(label, result)
             print(label, f"{result['wins']}/50", flush=True)
     finally:
         validator.close()
@@ -537,6 +616,7 @@ def battle(args, candidates_override=None):
             server.kill(); server.wait()
         log.close()
         con.close()
+        sandbox.cleanup()
 
 
 def main():

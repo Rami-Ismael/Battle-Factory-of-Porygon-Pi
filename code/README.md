@@ -431,3 +431,10 @@ species in them), and the recorded results are identical either way.
 A rule keeping every meta team can still cut away the off-meta counter-team the search
 exists to find; r is a proxy for "did not destroy known-good structure", never for "kept
 the optimum". Nothing here tests that, and no battle-free score can.
+
+## Reasoning experiment
+
+Compare LLM reasoning off/on (or advertised effort levels) on matched frozen
+team-completion tasks, with legality, paired battle performance, reasoning-token
+usage and cost reports. See [the experiment guide](docs/reasoning-experiment.md)
+for preparation, generation, battle evaluation and resumable reports.
