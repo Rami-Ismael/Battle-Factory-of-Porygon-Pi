@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mask, Fill, Battle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one 640px column; a persistent team strip above a three-step stage that plays itself. Tokens follow blog/mask-lab. */
+:root{
+  color-scheme:dark;
+  --bg:#0b1216;--surface:#111b21;--surface2:#16232a;--line:rgba(255,255,255,.09);
+  --ink:#eef3f2;--ink2:#b3c0be;--muted:#7b8a87;
+  --accent:#7fe3c6;--accent-ink:#06231b;--warn:#e8b45a;--bad:#ef7d72;
+  --hatch:rgba(127,227,198,.22);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;--hatch:rgba(13,138,109,.18);
+}}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;--hatch:rgba(13,138,109,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font:600 11px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 30px/1.1 var(--sans);letter-spacing:-.02em;margin:8px 0 6px;text-wrap:balance}
+.lede{color:var(--ink2);margin:0 0 18px;max-width:58ch}
+code,.code{font-family:var(--mono);font-size:12px}
+
+/* Team strip */
+.team{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:14px}
+.mon{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 5px 7px;display:grid;gap:4px;justify-items:center;min-width:0}
+.mon img{width:48px;height:48px;image-rendering:pixelated}
+.mon .name{font:600 10px/1.2 var(--mono);color:var(--ink2);text-align:center}
+@media (max-width:480px){.team{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sp{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;width:100%;height:30px;align-items:end}
+.sp i{display:block;background:var(--ink2);opacity:.55;border-radius:1px;transition:height .6s ease}
+.mon .total{font:500 10px/1 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.mon.masked .sp{background:repeating-linear-gradient(135deg,var(--hatch) 0 4px,transparent 4px 8px);border-radius:2px}
+.mon.masked .sp i{height:0!important}
+.mon.masked .total{color:var(--accent)}
+.mon.target{border-color:var(--accent)}
+.mon.target.filled .sp i{background:var(--accent);opacity:1}
+
+/* Stage */
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+.tab{font:600 12px/1 var(--sans);color:var(--ink2);background:transparent;border:1px solid var(--line);border-radius:999px;padding:8px 12px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tab .n{font-family:var(--mono);margin-right:6px}
+.play{margin-left:auto;font:600 12px/1 var(--sans);background:var(--surface2);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 12px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.progress{height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.progress span{display:block;height:100%;width:0;background:var(--accent)}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
+.step h2{font:700 17px/1.25 var(--sans);margin:0 0 4px}
+.step p.sub{margin:0 0 12px;color:var(--ink2);font-size:14px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.pair{grid-template-columns:1fr}}
+.card{background:var(--surface2);border-radius:6px;padding:10px 11px;min-width:0}
+.card .eyebrow{margin-bottom:6px;display:block}
+.card.dspy .eyebrow{color:var(--accent)}
+pre{margin:0;white-space:pre-wrap;word-break:break-word;font:11.5px/1.5 var(--mono);color:var(--ink)}
+pre .k{color:var(--accent)}
+pre .m{color:var(--muted)}
+.same{margin:12px 0 0;font-size:13px;color:var(--ink2)}
+.checks{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:5px;font-size:13px}
+.checks li{display:flex;gap:8px;align-items:baseline}
+.ok{color:var(--accent);font-family:var(--mono);font-weight:700}
+.no{color:var(--bad);font-family:var(--mono);font-weight:700}
+.note{font-size:12px;color:var(--muted);margin:10px 0 0}
+
+/* Battles */
+.battles{display:grid;grid-template-columns:repeat(25,minmax(0,1fr));gap:3px;margin:4px 0 8px}
+.battles i{aspect-ratio:1;max-width:100%;border-radius:2px;background:var(--surface2);border:1px solid var(--line)}
+.battles i.done{background:var(--ink2);opacity:.35;border-color:transparent}
+.battles i.done.win{background:var(--accent);opacity:1}
+.score{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--ink2)}
+.score b{font:700 22px/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.verdicts{display:grid;gap:8px;margin-top:8px}
+.verdict{display:grid;grid-template-columns:132px 1fr;gap:10px;align-items:center;font-size:13px}
+@media (max-width:420px){.verdict{grid-template-columns:1fr}}
+.axis{position:relative;height:22px;border-radius:3px;background:var(--surface2)}
+.axis .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--muted)}
+.axis .ci{position:absolute;top:8px;height:6px;border-radius:3px}
+.axis .pt{position:absolute;top:5px;width:12px;height:12px;border-radius:50%;margin-left:-6px}
+.chip{font:600 11px/1 var(--mono);padding:5px 8px;border-radius:999px;justify-self:start}
+.up .ci,.up .pt{background:var(--accent)} .up .chip{background:var(--accent);color:var(--accent-ink)}
+.flat .ci,.flat .pt{background:var(--ink2)} .flat .chip{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.down .ci,.down .pt{background:var(--bad)} .down .chip{background:var(--bad);color:var(--accent-ink)}
+.headroom{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.headroom b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* Motion: each step enters from a visible state */
+.step .reveal{animation:rise .45s ease both}
+.step .r2{animation-delay:.9s}.step .r3{animation-delay:1.8s}.step .r4{animation-delay:2.7s}
+@keyframes rise{from{opacity:.15;transform:translateY(6px)}to{opacity:1;transform:none}}
+.typing{overflow:hidden}
+@media (prefers-reduced-motion:reduce){.step .reveal{animation:none}.sp i{transition:none}}
+footer{margin-top:18px;font-size:12px;color:var(--muted)}
+footer a{color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Masked team completion · DSPy structure, phase one</div>
+  <h1>Mask, fill, battle</h1>
+  <p class="lede">A random legal Regulation M-B team loses some fields. A language model fills them. The completed team is checked, then plays the frozen meta pool. The experiment changes one thing: how the request and reply are structured.</p>
+
+  <div class="team" id="team" aria-label="Starting team HPS003641"></div>
+
+  <div class="controls" role="tablist" aria-label="Steps">
+    <button class="tab" role="tab" id="tab-0" aria-controls="step-0"><span class="n">1</span>Masked input</button>
+    <button class="tab" role="tab" id="tab-1" aria-controls="step-1"><span class="n">2</span>Completion</button>
+    <button class="tab" role="tab" id="tab-2" aria-controls="step-2"><span class="n">3</span>Evaluation</button>
+    <button class="play" id="play" aria-pressed="true">Pause</button>
+  </div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+
+  <div class="stage">
+    <section class="step" id="step-0" role="tabpanel" aria-labelledby="tab-0">
+      <h2>Two Stat Point spreads are masked</h2>
+      <p class="sub">Goodra and Scovillain lose their Stat Points (0–32 each, at most 66 in total). Both requests carry the same instructions and the same four values.</p>
+      <div class="pair">
+        <div class="card reveal"><span class="eyebrow">Baseline: one JSON message</span>
+<pre><span class="m">system</span> Complete only the null fields…
+       Return only JSON: {"fills":[…]}.
+<span class="m">user</span>   {"format": "gen9…regmb",
+        "opponents": [<span class="m">49 pastes</span>],
+        "masked_team": [… {"species":
+          "Goodra", "evs": <span class="k">null</span>} …],
+        "requested_paths":
+          [[1,"evs"],[4,"evs"]]}</pre></div>
+        <div class="card dspy reveal r2"><span class="eyebrow">DSPy: typed fields</span>
+<pre><span class="m">system</span> inputs: format, opponents,
+         masked_team, requested_paths
+       output: <span class="k">fills (list[Fill])</span>
+         + its JSON schema
+       Complete only the null fields…
+         <span class="m">(same text)</span>
+<span class="m">user</span>   [[ ## masked_team ## ]]
+       [… {"species": "Goodra",
+           "evs": <span class="k">null</span>} …]
+       [[ ## requested_paths ## ]]
+       [[1,"evs"],[4,"evs"]]</pre></div>
+      </div>
+      <p class="same reveal r3">Model, provider, reasoning level, temperature 0.7 and output cap are identical. Only the reply-format sentence changes: DSPy's field layout and typed output replace “Return only JSON”.</p>
+    </section>
+
+    <section class="step" id="step-1" role="tabpanel" aria-labelledby="tab-1" hidden>
+      <h2>The reply is parsed, then checked</h2>
+      <p class="sub">An answer that cannot be read is rejected before any rule is checked. Rejected answers are never repaired or re-asked.</p>
+      <div class="pair">
+        <div class="card reveal"><span class="eyebrow">Baseline reply (recorded)</span>
+<pre><span class="m">Ling 3.0 Flash, reasoning off, 4,096-token cap</span>
+json.loads(reply)
+<span class="no">✗</span> Expecting value: line 1 column 1 (char 0)</pre>
+          <p class="note">Unreadable. For Mercury 2.5 with reasoning off, 120 of 420 baseline answers failed only on format like this.</p>
+        </div>
+        <div class="card dspy reveal r2"><span class="eyebrow">DSPy reply layout</span>
+<pre>[[ ## fills ## ]]
+[{"path":[1,"evs"],
+  "value":{"HP":12,"Atk":12,"Def":10,
+           "SpA":14,"SpD":8,"Spe":10}},
+ {"path":[4,"evs"],
+  "value":{"HP":10,"Atk":14,"Def":9,
+           "SpA":10,"SpD":11,"Spe":12}}]
+[[ ## completed ## ]]</pre>
+          <ul class="checks">
+            <li class="reveal r3"><span class="ok">✓</span>Typed parse into list[Fill]; strings are never turned into numbers</li>
+            <li class="reveal r3"><span class="ok">✓</span>Unchanged checks: every masked path once, unmasked fields kept, 66 in total</li>
+            <li class="reveal r4"><span class="ok">✓</span>Showdown validator, Regulation M-B</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">The values shown are a recorded legal Ling answer to this mask, laid out the way DSPy asks for it. No DSPy reply has been sampled yet.</p>
+    </section>
+
+    <section class="step" id="step-2" role="tabpanel" aria-labelledby="tab-2" hidden>
+      <h2>The completed team plays 50 battles</h2>
+      <p class="sub">49 top meta teams plus one repeat. The same behaviour-cloned policy pilots both sides.</p>
+      <div class="battles" id="battles" aria-label="50 battles, 3 wins"></div>
+      <div class="score"><span><b id="wins">0</b> wins</span><span><b id="played">0</b> / 50 battles</span><span>win rate <b id="rate">0.00</b></span></div>
+      <p class="note">Recorded panel for the legal answer above. Wins came against the teams of Dragapult/Kingambit (205), Torkoal/Farigiraf (284) and Dragonite/Sneasler (673).</p>
+      <div class="reveal r3" style="margin-top:14px">
+        <div class="eyebrow" style="margin-bottom:6px">Then: DSPy minus baseline, same mask and repeat</div>
+        <p class="sub" style="margin-bottom:8px">420 paired requests per setting (20 starters × 7 masks × 3 repeats), for Ling off/on and Mercury off/low/medium/high. Each starter weighs the same in the 95% interval.</p>
+        <div class="verdicts" aria-label="How a verdict is read; schematic intervals">
+          <div class="verdict up"><span class="chip">improved</span><div class="axis"><span class="zero"></span><span class="ci" style="left:58%;width:26%"></span><span class="pt" style="left:71%"></span></div></div>
+          <div class="verdict flat"><span class="chip">no clear change</span><div class="axis"><span class="zero"></span><span class="ci" style="left:38%;width:24%"></span><span class="pt" style="left:51%"></span></div></div>
+          <div class="verdict down"><span class="chip">regressed</span><div class="axis"><span class="zero"></span><span class="ci" style="left:16%;width:26%"></span><span class="pt" style="left:29%"></span></div></div>
+        </div>
+        <p class="note">Schematic: the intervals show how a verdict is read, not results. The paid run is pending.</p>
+      </div>
+      <div class="headroom reveal r4">Upper bound from published Mercury 2.5 data: if every format failure were fixed and nothing else changed, legality could rise from <b>28.3%</b> to at most <b>56.9%</b> with reasoning off, and from <b>36.9%</b> to at most <b>41.9%</b> with high reasoning.</div>
+    </section>
+  </div>
+
+  <footer>Starter HPS003641, Stat Points mask on slots 2 and 5. Recorded values from <a href="../mask-lab/">Mask Lab</a>; protocol in <code>code/docs/dspy-structure-experiment.md</code>.</footer>
+</div>
+<script>
+(function(){
+  const SPRITES = {"espathra": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAD19fUQEBDUx5/6t0PZijucjW6RUjPm1V+sg8XCrUhSQWKDWovy7Un/0YJ+1elQlX8rAAAAAXRSTlMAQObYZgAAAwhJREFUeNrt1geyYjsMhOGjFpYAe7j73+1rW4YiVXKo9OjJ6f84seb47X+/3377zep25qVuG2Fyn23s6zbBom5h2B6A3xCA2o6+gJMQtgDKegAbBGMe8kdg1yEglz+RvxzADoHAXykXdMFsdf/COgepcbEzlgNtBcK4GXb1M9TOYH5Hv2QubahzqDufAU/ppZ/aFiEss9+BFDu1LTNyKdGPMr+73W5hNMJ9/lIU1H5r+qMfRD0+n77Ute/tpNT+6XnsTwoEEthnPoC3+RwQ4QpEP52+CF43DDCREP2vgMjtdOOwCPgmnE6rAHwBWG/fJoAUABLU05sgrMfthcHrUJOlwBPEVL8IJGoeV8598DkoOPwOPAlSz43Iyf0a+/fPB4EEF9EQ6jog/QqQmAJKvQwq0oFYAyTdX01e+wQG76MQ1MxCiN24JnBgH8AxCFAoEM5U8SBqPnmDTgSgqmajQgCmIp2Ixcuo9t21bURA7QcgHCtAIPUSJ0e/SYPAiIDo3xchGu0C+/0evfoYEIQybK8GCNSh9TlXY39opmpPQAz9RgLzHVAb7gMhqDymIJBqP4SpM4QDCgnjCWC+9p39epuOCjEo2HgGFMzX8ToDOgdwkbCn62yPd1DPzwqoUY08Z4e3POdVVpkCgoBC+4wpr/UQTEPAMTMYAGt5Y+sZUFvSN5gBxjy4xyGA7SoCalMAWp+l+0dFyyOuOWavcs6q8UgU3DvgpK6qNgGwnkthgQD4M/SOn01eAIzWRQoX/75Z6EAXFLUOjOUjUR7/PpsF5dcAFBMXoFwupSXwZPaYnzlwasMA+xSi/gFczzGbBfB+1kQUcQALABL46AuOD2Con6WU/C7kUgTRfwIMxxAg0PwK5DhpL4ACo32xT+Czz40CpjiA1xP0Dsgs8HHWet8B+ATAQQB8u4XY7X+As4oM9jng+zPw5JoEsGZxALFnYFU/noGPvizrl88Xh63tcwVvfSzq55wvFMorgDX5+KiNyAR2rP/ft2RsAgBI3I84Ng11X+u//fbbb7/9B9KlJvSSt8OYAAAAAElFTkSuQmCC", "goodra": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAABNRU2Ac4C/rL/m1Of4+PgQEBCZipkweSJGsDCOcbu3kfBmUYWYvVFkdUPS5565L/HTAAAAAXRSTlMAQObYZgAAAzNJREFUeNrt2AeC2yAQhWFm3njQouL73zYDQkHSKgWDUv3S2/8Fa9fNvffeez83InJxzHxPHgCR5UXkBoKwjuXxkETc1d+GngLTWidmKesnsGRASPbjfgCiwDDgLiEBsgKwdb4ODBCzAZz7ts5HiEGwAAKwqnJ3IdUQDSbvKRI9AZaH5AEgT86p9hQ49b33SSAfBafoBrDE+eEBX46wCuCOwGN4bEARegIfCRgKYEInAF+BMHwMBdgJRM1CvAZhTIAWIQMEUCuAEMI4jkMw4HCEdoDFFsY8A9xeSIA2AVOwxfQUgSG2NQFkFLJA6hqEVJ8iEi9CAnw+RxYI6lqESKSFYQC5VbBvXpPADDagiQjzHEKYQoABWaAIOFXY1DVuec7zvOR+EozgNas21w48l2cBctf127LMyxIK0H/Ls/T/TmBaws2A5ccbgWm0/r2ALcCAu/q/CBDh+/oGiI1uPIDE8b0HsNHvAIiotV8AvuiLgKi1H4HrIxDkYcSLAm8AETMel4DVufbq5Ff0vPXJKvlVstJngAUionWvatgGTDlfdgUYUQVw+vuMrS+7QYWubyMTqgBFBmj/Gh9XAITrAEtCGeBDH2l6cTmJSKRKUFWOS4BJpDqnqfWvPiRrAbfMbIj1bapq3y/PxfqyzlM7MC+7T7IMLLKNLvsy6U8DzxNgghFShKs+fh5wVrP+YYZeCuWzBKER2B8BdPwAipsqALc4ujgBvGzzFCe7oQpwZ8CEJYB2R5Dj4EMVQDDgtLCP8rk/VQGEC4DksQNwyPs6gGDARd+AIniUfO43A3IAbAA8/EsHwBTOfdsZsFl/iP1qANP3Ac3A4IePob5/PkII10Cs29fwGhDCVi/9PTAMCZgMqOk7RRHSrgCotT/S7RMq+079jwH4FZiqb58EeP9JUBz7Xq0d4/V9A7bpDjC05G0aViD3XxXGAtiwzmO1h7Wv6l4GvOo4FsGWP3MTUPINQiLGAhz7mvKNghEpd/y9lnoSDodwydC9WerthOZf73+ny1TpVMsCdQIcffrvas8+ERgJOJt9AAIYgOr5fopBrss07fM9rfdQd99M4FuB+jcy33vvvS+C+znkpp0NdQAAAABJRU5ErkJggg==", "mawilemega": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEX///8QEBA2NjZSUlJzIEFzc3N7WimcSmqcpJSgR3DNzc3TfqnVg6zelEH4+Pj/xVqxrb5tAAAAAXRSTlMAQObYZgAAA65JREFUeNrtlum6ozgMBTlHGBKInfd/25EltzCzxh3u/KJmuvuuVZ8Q23Rzc3Nz839BpX3wMwE8Hg9zIzGK1xY8EYUoXgfS46FypFa4PoGkEMkLPoTw2gB7tGDFMcmxQv5NAY8OKkkZKtgKSf31lLpEjAAlCiqnDBZQvf7LSl9YHBGJRqpoQYYKkjp46N9GJsUa7jfGCoAIDC9YgsyuVyKRDmSsAJYN6xoJX2VuSJJIhH/wILEUrAqYAmmoPz6mIcZQASwQsYRIr+9ZdC3Zz9ahgIGCDRAr/D2+dC+k3yloYPICRSEM9nqj+h82IAcLG2pmXbkB4Fqpu6frA/NbgaMzxMI3ro7tHuL6RlK7Mr7oGGRjgZhfbPVnf06OfFFAAaoYNQX8rd8C/N0AbBvAVj8wfxB+A8MFVvV5K+cFfBWABgr6mML8D/7xADZEABGLQLdfKL5hfhAgGeeP3fROMabkhdzp15XKpwHEHdooHqCjAS0oIVdWhZ9NYMASpCssRj6SQUo6ULeUrQvYFKPPNAHYPby6AoQaKKh+v1VQyA8LUtWKDfGIQA9EA1qIAAauNb9yAanw7/yCTf1/DgzcVAG0EA9ppekxTRoQrIefph++p4Jhh2IRYAMsULBG4E0hch4o+Bl06OO5s5WChPMGPJCXJRMDL3lkrxd1b9CoBtqKC8iUmh85l3XJGH0Fq2JMUPyaBliw+oo32g9E4DW/Pg7Yjg1sBZPLfQ8aeL3sDiFnf17nYoFPgcHSAgIkUfcLL6UdP/e3wKvkkYBZ464KNa0vKdW+kuJ692fzG8s0BrqA+jWw0e2hN78FFowNEA8yovk1YPZe76/DcDfMP074yd4u6lsy6weLXf1fAPfLoYcZF5o/Dv0XA7wUut7lCsl2Flnh+wHc73K3u7++bCzLFQOYv9njUL3feFeWeZ6/2nD42e0ae37n2Qt53+fPIzww/Wp+YDK7I8C+57zPUxQUfOZPB1RML3/VG88Zbif5aQCGpMC3a0e+2V3vgckKNU4M3u7kF4B/wUYAJqj4V0BHML+npyHQiF+jO6Diee8K+w4LIAqjhB/mPweeeO4QbWv924D9vgeep8JTC7ABvgHN78uNgAKYHZi+B83ajaDMIb8qoM5z4Cr8DJ1bIPzXFVD9EXjaHwtcPICCU8AKlw7QB64bAeZ89oEYARcPcA5oAdeMgBigC+wXBgSNCU8PtGOE6RoAUeAfRqAGLwNKfNiw5g8BMSJ6PTB+TH9zc3Nz8weSMDpBJ1ACLwAAAABJRU5ErkJggg==", "rotomwash": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAAQEBBKSlJ7OSDFShjucyn/rIO9vb2LvfZKe/8xe+4ISsUIQaz///9Rl9HtAAAAAXRSTlMAQObYZgAAAtZJREFUeNrt14d6pDAMBOAYyYCi9fu/7jEe7QbOy/eFdpW5mjY/krd+3Llz586dO39i3C/uN7uUcJtyLaB6pQAgy4WAm2kvZn7lAH2WS4H+lwDmlwJ62QhuT8D8wjPOihGmnN+PDQWAnIc4Y/YCkEDOWT0jAqAKSgXEGf2oM5EsmfW5piIQjvfjsgWV9U/fUyB2WHCbasugvPzF38hhAYCWzzLkaNahaI6E4Ac3JEN5PF6tQ/kEdtIIjhPIU/8jBaBzDNEDI6AeJ5Aez1L8/zQA9bxv6fAqXUyDKIHd9aZ5AmQoiioCw7Jfk/nOep4AakRy7oZOcQaDfAG6C0D9WEb8mJvkSOlKh2uXn/sFwMb6qd/wUwCir0dXPz9eAiKazHxjvbGfE6gIlSao37oj1JdidT8BMMIsANTvAErh9S+BiIYT9TsB8zeAdgnJNUT2AuYtoF2EBDIHzH3DGfhHA2itTiTeAd8mHOtvAPSzhUIDuH+XAODNitA6jlXAFNIAGPpbhNsz7l+Aor8UCsAagEIZW6Lp1ykiQQQgU2cpIXCEBsD3jqUlmv7cIyJSCasADqCUdoSv/rkAYhVQrAMvIiSDQITA+BwgvQOcgI2FxCogfTclXqCQCMB4yB2jS8A9TgECCF8FcgVUReMOmwJAVgGUE4isA1iRKAAK+N0CSd/cSuMWjlnXRogzVZWUklZCCHRukZSWAPrndwM+Wq6PYOgWvtAFIaqSdTaCA5AlwF5jq68DFCIkoHBH/gTebog/SQAret+P+CuVSFMkz0Zwbze0BDjLhtctJkqhVrwfYAHUbHhjEwKKUc/+VWBH3ERDQFLTfxywuMlqrdeoXw4QwpR9gigNRuf9MwDZB4hK0jbRfxSgoAljLCOCBR0HQhBLiLQDML4boCDGzJm06HPk0HtxR4iILAc4HEde/4MQA1wTChzgOoH9FwrovzA8k/8md+7cuXPnzg9ZLjjW6fV0zQAAAABJRU5ErkJggg==", "scovillain": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAcPR8jOy0lWT8+cD89fVYvhzxQplpXulatcTKeNCVSGxPvUTHDw8P///8DjPqYAAAAAXRSTlMAQObYZgAAAjhJREFUeNrtk9GumzAQBT05F0zDFv7/b+vT1Q1N3gpGVSWPFFCkaIZdhzL4twwGg8FgMKjmTv0Pc1Oipj4TNzRq0770vvT3f6ByntV8BnoVrP9p3hLyUtJbLwZSbyLiCFRSnRfQ2cJL/zt0FASvAECOcMWft6OAWsEJYRw6G/iOZED6DlTl7pFbcuC8HyILTKlRTb+RfKkXBgBIvwPSn4HcE9QzgXV1ARMtlIFpIkfYsJh9B0RV5eQJr0RgvyH9LkjwfD7hGaI2/jYQx9GG9a8BpCxEPJ/REqELAYjjVVtpATfkhPXhD5zyuwBbsG9g/RqxBg44UcJqRfgHOuE3tEiEN40HMR4BXIioVKR8fFFO4T0kkAH5kPEIuRdftVFO+wHPEKzhAEWWZYFqYLsQiOIl77AaXiJaQMKU4s9pYgtSz+HJEeR34iqQ9gjKgSQm+6WrAdvtzy0n0rLk6zAti9Sh8H6MmqZWWFpgMZcTn8eYEySaJN9KVzTJ0gxME3CHHxZDK6j0D4AmHKDFOhfkpShvLeBK94CVmhpwSyBPN/+shtIXLJVm3RIw0ALzPEvWg0p3QLMLAPP81b2g+Y2vL+k+v1HfhPzQnwEnOkWUSid0BBI6+b11+zLQoJ/fgZSRhSNAH7+1+bDQAk7IAes7BfTaBjmD+ukdMEfg+NoJPQ5lBh73Bwx9A4b03x54PLruSPuuOwPa9m3LAsUBaW9JdQtwkF+33Wyi3IMT2+bafWD9YDAYDAaD/4VfWW0ip3zL4hYAAAAASUVORK5CYII=", "starmie": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAAAABaQTGLEFLNIFr2UnOUc0HFlCDuxUr/5pTutM3VrO60i9WLc71aUpwxOXNWY/RuAAAAAXRSTlMAQObYZgAAAsBJREFUeNrtlYfWpDYMRiPB2IZF+t7/baMynvWmB6WH+/cy9x6Jg/nu4eHh4eHh4eFvQBV/rv/LF8Gf61eh9TeAFp3ADwNLAZD4sQBUgcW/BkKvWg6IAGsgC6kXVAOkCvdg8QtNfdkfAU0VLHBlQAg6/RGoXgQJYP7rHciqGuUA6SzA/MwzsPrrAZ3+3ulT0D8uoHhviMfXgNYDCbKAy/3HElj85RE4AhcfMyAERgSQqP5+szoR4E7uj8AcgTuH+JrgxsFmiJp/mNb0nAGCBfgYlro+qPzugC894eFeHsOtDpn/m4De8FtBVK934Ogt3a21MeyH8ItMveDW1RVRW9TlBdMfwRhWMHyOwPThv0EYFH5/mdCGYKP1KEw/VNJ/vyCAF47Or4C90Huj+JNU/LMg4G7+czfOPQuDpz5O72KBezvY1Od5bjGDBTpByv5ZsAFa+vd92/at+QhU989CDLBv5/na99dnhMZc9xvgdhy+oS38r23PgNEtQVotoB/HiMDufv/yos4jIVVUBzjizuXztYV/2yLQ+wzURkCcdI0tYOsn2pwMBB5ApQARImpshX3zJUXBAq01MtRByW+AWgR2J/zNAi4n1B5r0DwwqTXuvCeLX0lrBaQf7wIF4e8zEAXBXX/ogYvHsEIS/ri8s3D3doOK69X9xzDvpHngM4LCAnqnoKFXDxweWLHCDGQBNwYIvQHu5icy78gO0SyQBreWROoQEShtRBkgUvVCI1kKN0YgJ0Yh90OVPcAZbm0NaOFYhd8I4Vd/NjfSOZpITqhOJWBoWvhrAOKoaylnrQQEOgOddCmoruKyH8S901r4gwJ460nE9URLoRzQ6SfysyOPNqJZKAfw9sNFuZRwErKg1QLST6mBTON7CJQDiqn/NjATqAZo6mdhFRI0eiWIfuFHoluBQv/h4eHh4eHh4V/M92JPP2XRUgsYAAAAAElFTkSuQmCC"};
+  const STATS = ['HP','Atk','Def','SpA','SpD','Spe'];
+  const team = [
+    ['Espathra','espathra',[15,10,12,12,8,9]],
+    ['Goodra','goodra',[12,12,10,14,8,10],true],
+    ['Mawile-Mega','mawilemega',[21,7,8,6,19,5]],
+    ['Rotom-Wash','rotomwash',[13,15,14,11,5,8]],
+    ['Scovillain','scovillain',[10,14,9,10,11,12],true],
+    ['Starmie','starmie',[8,14,9,10,15,10]]
+  ];
+  const teamEl = document.getElementById('team');
+  team.forEach(([name,key,sp,target])=>{
+    const el = document.createElement('div');
+    el.className = 'mon' + (target ? ' target masked' : '');
+    const total = sp.reduce((a,b)=>a+b,0);
+    el.innerHTML = '<img alt="" src="'+SPRITES[key]+'"><div class="name">'+name+'</div><div class="sp" title="'+
+      STATS.map((s,i)=>s+' '+sp[i]).join(', ')+'">'+sp.map(v=>'<i style="height:'+(v/32*100)+'%"></i>').join('')+
+      '</div><div class="total" data-total="'+total+'">'+(target?'? / 66':total+' / 66')+'</div>';
+    teamEl.appendChild(el);
+  });
+  const targets = [...teamEl.querySelectorAll('.target')];
+  function setFilled(on){
+    targets.forEach(el=>{
+      el.classList.toggle('masked',!on); el.classList.toggle('filled',on);
+      const t = el.querySelector('.total'); t.textContent = on ? t.dataset.total+' / 66' : '? / 66';
+    });
+  }
+  // Recorded panel: wins against opponents at positions 16, 20 and 40 of the pool; the repeat (cell 50) lost.
+  const wins = new Set([16,20,40]);
+  const grid = document.getElementById('battles');
+  for(let i=0;i<50;i++){const c=document.createElement('i');if(wins.has(i))c.dataset.win='1';grid.appendChild(c);}
+  const cells=[...grid.children];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let step=0, playing=!reduce, timers=[], started=0, raf;
+  const DUR=[6500,7000,9000];
+  function clear(){timers.forEach(clearTimeout);timers=[];}
+  function battles(animate){
+    let w=0;
+    cells.forEach((c,i)=>{
+      const show=()=>{c.classList.add('done');if(c.dataset.win){c.classList.add('win');w++;}
+        document.getElementById('wins').textContent=w;document.getElementById('played').textContent=i+1;
+        document.getElementById('rate').textContent=(w/50).toFixed(2);};
+      c.classList.remove('done','win');
+      animate ? timers.push(setTimeout(show,300+i*45)) : show();
+    });
+    if(!animate) return;
+    document.getElementById('wins').textContent='0';document.getElementById('played').textContent='0';document.getElementById('rate').textContent='0.00';
+  }
+  function show(n){
+    clear(); step=n;
+    document.querySelectorAll('.step').forEach((s,i)=>{s.hidden=i!==n; if(i===n){
+      s.querySelectorAll('.reveal').forEach(r=>{r.style.animation='none';void r.offsetWidth;r.style.animation='';});}});
+    document.querySelectorAll('.tab').forEach((t,i)=>{t.setAttribute('aria-selected',String(i===n));t.tabIndex=i===n?0:-1;});
+    setFilled(n>0 && (reduce || n>1));
+    if(n===1 && !reduce) timers.push(setTimeout(()=>setFilled(true),2800));
+    if(n===2) battles(!reduce);
+    started=performance.now();
+    if(playing) timers.push(setTimeout(()=>show((n+1)%3),DUR[n]));
+  }
+  function tick(now){
+    const bar=document.getElementById('bar');
+    bar.style.width = playing ? Math.min(100,(now-started)/DUR[step]*100)+'%' : '0';
+    raf=requestAnimationFrame(tick);
+  }
+  document.querySelectorAll('.tab').forEach((t,i)=>t.addEventListener('click',()=>show(i)));
+  document.querySelector('.controls').addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=(step+(e.key==='ArrowRight'?1:2))%3;show(n);document.getElementById('tab-'+n).focus();}
+  });
+  const play=document.getElementById('play');
+  function setPlay(on){playing=on;play.textContent=on?'Pause':'Play';play.setAttribute('aria-pressed',String(on));show(step);}
+  play.addEventListener('click',()=>setPlay(!playing));
+  play.textContent=playing?'Pause':'Play';play.setAttribute('aria-pressed',String(playing));
+  show(0); if(!reduce) raf=requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

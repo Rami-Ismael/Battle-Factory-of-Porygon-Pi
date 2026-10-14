@@ -1,5 +1,12 @@
 # VGC team-generator pilot
 
+## DSPy structure experiment (October 14, 2026)
+
+Tests whether typed DSPy request and answer fields change masked-completion
+legality or win rate, against the finished Ling and Mercury baselines, then
+optimizes the structured program. Built and tested offline; the paid run is
+pending. See [the protocol and headroom results](docs/dspy-structure-experiment.md).
+
 ## Current M-B vocabulary and retraining (October 8, 2026)
 
 Use `scripts/retrain_regmb.py` for the regulation-complete F1/G2 pipeline and

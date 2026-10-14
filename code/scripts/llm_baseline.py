@@ -276,7 +276,12 @@ def load_manifest(args):
 
 def completion_payload(manifest, trial):
     """One request definition for generation and experiment provenance checks."""
-    return dict(model=manifest['model'], messages=prompt(manifest, trial),
+    if manifest.get('structure'):
+        # Same instructions and inputs, packaged as typed DSPy fields.
+        from dspy_structure import messages
+    else:
+        messages = prompt
+    return dict(model=manifest['model'], messages=messages(manifest, trial),
                 temperature=manifest['temperature'], max_tokens=manifest['max_tokens'],
                 reasoning=manifest.get('reasoning', {'enabled': True}),
                 provider=manifest.get('provider', {'order': ['novita'], 'allow_fallbacks': False}))
@@ -341,8 +346,14 @@ def validate_record(record, manifest, trial, h, validator):
     try:
         choice = record['response']['choices'][0]
         if choice['finish_reason'] != 'stop': raise ValueError('truncated/non-stop completion')
-        team = apply_completion(manifest['starts'][trial['start']], trial['paths'],
-                                json.loads(choice['message']['content']))
+        content = choice['message']['content']
+        if manifest.get('structure'):
+            from dspy_structure import parse
+            record['structure'] = {}
+            answer = parse(manifest, trial, content, record['structure'])
+        else:
+            answer = json.loads(content)
+        team = apply_completion(manifest['starts'][trial['start']], trial['paths'], answer)
         error = validator(paste(team, h))
         if error: raise ValueError(error)
         record.update(valid=True, team=team)
