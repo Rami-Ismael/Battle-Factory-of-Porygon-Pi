@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teams without Kingambit — prototype</title>
+<!-- PROTOTYPE (throwaway). Question: what should "find me a strong team that does not bring Kingambit" look like?
+     Three structurally different answers on one page, switch with the bar at the bottom or ←/→ or ?variant=A|B|C. -->
+<style>
+:root{
+  --bg:#eceef1; --surface:#ffffff; --ink:#14171c; --muted:#5b6571; --line:#d2d7de; --soft:#f5f6f8;
+  --rate:#2459b8; --rate-soft:#c9d8f3; --real:#a8660c; --real-soft:#f3e2c4; --search:#5b6571; --out:#a8232c;
+  --shadow:0 1px 2px rgba(20,23,28,.08),0 6px 18px rgba(20,23,28,.06);
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --serif:"Iowan Old Style","Charter","Georgia",serif; --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12151a; --surface:#1b1f26; --ink:#eceff3; --muted:#9aa5b1; --line:#303741; --soft:#222730;
+  --rate:#7ea6ee; --rate-soft:#27395c; --real:#e0a64a; --real-soft:#43331a; --search:#9aa5b1; --out:#ee7a82;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);}}
+:root[data-theme="dark"]{
+  --bg:#12151a; --surface:#1b1f26; --ink:#eceff3; --muted:#9aa5b1; --line:#303741; --soft:#222730;
+  --rate:#7ea6ee; --rate-soft:#27395c; --real:#e0a64a; --real-soft:#43331a; --search:#9aa5b1; --out:#ee7a82;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);font-variant-numeric:tabular-nums;padding:0 16px 120px}
+.wrap{max-width:1040px;margin:0 auto}
+header{padding:32px 0 8px}
+h1{font:600 clamp(26px,4.2vw,38px)/1.12 var(--serif);margin:0 0 10px;letter-spacing:-.01em}
+.lede{max-width:66ch;color:var(--muted);margin:0}
+.lede b{color:var(--ink);font-weight:600}
+.controls{display:grid;gap:10px;margin:22px 0 14px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.row2{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.lab{font-size:13px;color:var(--muted);min-width:92px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink);padding:6px 11px;font:inherit;font-size:13px;cursor:pointer;transition:background-color .15s ease,color .15s ease}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:999px;padding:2px 9px 2px 3px;font:inherit;font-size:13px;cursor:pointer;transition:transform .12s var(--ease-out),background-color .15s ease,border-color .15s ease}
+.chip:active{transform:scale(.97)}
+.chip img{width:24px;height:24px;image-rendering:pixelated}
+.chip[aria-pressed="true"]{border-color:var(--out);background:color-mix(in srgb,var(--out) 12%,var(--surface));text-decoration:line-through;text-decoration-color:var(--out)}
+.chip.need[aria-pressed="true"]{border-color:var(--rate);background:var(--rate-soft);text-decoration:none}
+.chip.locked{cursor:default;border-color:var(--out);background:color-mix(in srgb,var(--out) 12%,var(--surface));text-decoration:line-through;text-decoration-color:var(--out)}
+.count{font-size:13px;color:var(--muted)}
+.count b{color:var(--ink)}
+.note{font-size:13px;color:var(--muted);max-width:74ch;margin:8px 0 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.spr{width:48px;height:48px;image-rendering:pixelated;display:block}
+.tag{font-size:12px;border-radius:999px;padding:1px 8px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.real{border-color:var(--real);color:var(--real);background:var(--real-soft)}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+/* Variant A — ladder */
+.ladder{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lrow{padding:10px 12px;cursor:pointer;will-change:transform}
+.lhead{display:grid;grid-template-columns:34px auto 1fr;align-items:center;gap:6px 14px}
+.rank{font:600 18px var(--serif);color:var(--muted);text-align:right}
+.team{display:flex;gap:2px}
+.meter{min-width:220px}
+.mnum{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mnum b{font:600 22px var(--serif)}
+.mnum span{font-size:12px;color:var(--muted)}
+.track{position:relative;height:10px;background:var(--soft);border-radius:5px;margin-top:4px}
+.whisk{position:absolute;top:3px;height:4px;background:var(--rate-soft);border-radius:2px}
+.dot{position:absolute;top:-1px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--rate);border:2px solid var(--surface)}
+.lrow.real .dot{background:var(--real)}
+.ref{position:absolute;top:-3px;width:1px;height:16px;background:var(--muted);opacity:.6}
+.more{display:block;margin:14px auto 0;padding:8px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;font:inherit;cursor:pointer}
+.sheetwrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s var(--ease-out)}
+.sheetwrap.open{grid-template-rows:1fr}
+.sheetwrap>div{overflow:hidden}
+.sheet{padding:12px 0 2px}
+.mons{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.mon{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--soft);display:grid;grid-template-columns:48px 1fr;gap:2px 10px}
+.mon h4{margin:0;font:600 15px var(--serif)}
+.mon .meta{font-size:12px;color:var(--muted)}
+.mon ul{margin:4px 0 0;padding:0;list-style:none;font-size:13px;grid-column:1/-1}
+.mon li{display:inline-block;margin:0 6px 2px 0}
+.mon li+li::before{content:"";}
+.sheetfoot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;transition:transform .12s var(--ease-out)}
+.btn:active{transform:scale(.97)}
+/* Variant B — partners */
+.bgrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.tile{padding:8px 6px;text-align:center;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .15s var(--ease-out),border-color .15s ease,background-color .15s ease}
+.tile:active{transform:scale(.97)}
+.tile img{margin:0 auto}
+.tile .nm{font-size:13px;font-weight:600}
+.tile .st{font-size:12px;color:var(--muted)}
+.tile[aria-pressed="true"]{border-color:var(--rate);background:var(--rate-soft)}
+.tile .bar{height:4px;border-radius:2px;background:var(--soft);margin:5px 6px 0;overflow:hidden}
+.tile .bar i{display:block;height:100%;background:var(--rate);transform-origin:left;transition:transform .25s var(--ease-out)}
+.best{padding:14px;position:sticky;top:12px}
+.best h2{font:600 20px var(--serif);margin:0 0 2px}
+.bigrate{font:600 40px/1 var(--serif)}
+.runners{display:grid;gap:6px;margin-top:12px}
+.runner{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--soft);cursor:pointer;color:var(--ink);font:inherit;text-align:left;width:100%}
+.runner .spr{width:32px;height:32px}
+.runner .rv{margin-left:auto;font-weight:600}
+.swap{animation:swap .22s var(--ease-out)}
+@keyframes swap{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* Variant B — idea 4: query tokens. Purposeful animation only; search is high Frequency of use, so every motion is ≤180 ms,
+   transform/opacity only, ease-out var(--ease-out); colour changes are instant on purpose. */
+.tk{display:grid;gap:10px}
+.tk-bar{position:relative;display:flex;align-items:center;gap:10px;padding:7px 10px 7px 8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.tk-bar:focus-within{border-color:var(--rate)}
+.tk-field{display:flex;flex-wrap:wrap;align-items:center;gap:6px;flex:1;min-width:0}
+.tk-toks{display:contents}
+.tk-tok{display:inline-flex;align-items:center;height:32px;max-width:100%;border:1px solid var(--rate);background:var(--rate-soft);color:var(--ink);border-radius:8px;font-size:14px;white-space:nowrap}
+.tk-tok.tk-exc{border-color:var(--out);background:color-mix(in srgb,var(--out) 12%,var(--surface))}
+.tk-tok.tk-exc .tk-nm{text-decoration:line-through;text-decoration-color:var(--out)}
+.tk-tok[aria-selected="true"]{outline:2px solid var(--ink);outline-offset:1px}
+.tk-tok img{width:24px;height:24px;image-rendering:pixelated;flex:none}
+.tk-nm{overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.tk-pol,.tk-x{border:0;background:transparent;cursor:pointer;height:30px;padding:0;transition:transform .12s var(--ease-out),opacity .12s var(--ease-out)}
+.tk-pol{width:26px;font:700 17px/1 var(--sans);color:var(--rate);border-radius:7px 0 0 7px}
+.tk-exc .tk-pol{color:var(--out)}
+.tk-x{width:26px;font-size:16px;color:var(--muted);opacity:.75;border-radius:0 7px 7px 0}
+.tk-pol:active,.tk-x:active{transform:scale(.92)}            /* Press/Tap feedback */
+.tk-in{flex:1;min-width:10ch;height:32px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;padding:0 4px}
+.tk-in::placeholder{color:var(--muted)}
+.tk-in:focus-visible{outline:0}
+.tk-in.tk-minus{color:var(--out)}
+.tk-n{flex:none;font-size:13px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}   /* Tabular numbers */
+.tk-n b{display:inline-block;min-width:3ch;text-align:right;font:600 22px/1 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+.tk-list{position:absolute;left:-1px;right:-1px;top:calc(100% + 6px);z-index:5;margin:0;padding:6px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);transform-origin:top center}
+.tk-list[hidden]{display:none}
+.tk-opt{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:3px 6px;border-radius:8px;cursor:pointer}
+.tk-opt img{width:32px;height:32px;image-rendering:pixelated}
+.tk-opt mark{background:none;color:inherit;font-weight:700}
+.tk-opt[aria-selected="true"]{background:var(--soft);box-shadow:inset 3px 0 0 var(--rate)}
+.tk-list.tk-minus .tk-opt[aria-selected="true"]{box-shadow:inset 3px 0 0 var(--out)}
+.tk-list.tk-minus .tk-on{text-decoration:line-through;text-decoration-color:var(--out)}
+.tk-to{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.tk-to b{color:var(--ink)}
+.tk-opt[aria-disabled="true"]{cursor:not-allowed;color:var(--muted)}
+.tk-opt[aria-disabled="true"] .tk-to b{color:var(--out)}
+.tk-alt{width:28px;height:28px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--out);font:700 15px/1 var(--sans);cursor:pointer;transition:transform .12s var(--ease-out)}
+.tk-list.tk-minus .tk-alt{color:var(--rate)}
+.tk-alt:active{transform:scale(.92)}
+.tk-alt[disabled]{opacity:.35;cursor:not-allowed}
+.tk-hint{font-size:12px;color:var(--muted);padding:6px 6px 2px;margin-top:4px;border-top:1px solid var(--line)}
+.tk-hint.tk-bad{color:var(--out)}
+.tk-hint kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 4px;background:var(--soft)}
+.tk-msg{min-height:1.4em;margin:-2px 4px 0;font-size:13px;color:var(--out)}
+.tk-res{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tk-rh{display:grid;grid-template-columns:22px auto minmax(0,1fr);align-items:center;gap:8px 14px;padding:8px 12px;cursor:pointer}
+.tk-rk{font:600 16px var(--serif);color:var(--muted);text-align:right}
+.tk-team{display:flex;gap:2px}
+.tk-team .spr{border-radius:8px}
+.tk-team .tk-hit{background:var(--rate-soft);box-shadow:inset 0 -3px 0 var(--rate)}
+.tk-rate{justify-self:end;text-align:right}
+.tk-rate b{font:600 20px/1.1 var(--serif)}
+.tk-rate span{display:block;font-size:12px;color:var(--muted)}
+.tk-body{padding:0 12px 10px}
+.tk-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:13px;color:var(--muted)}
+.tk-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.tk-shake{animation:tk-shake .18s var(--ease-out)}                /* Shake/Wiggle: only a rejected "→ 0 teams" pick */
+@keyframes tk-shake{0%,100%{transform:none}20%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
+@media (hover:hover) and (pointer:fine){                          /* Hover effect, gated to real pointers */
+  .tk-x:hover{opacity:1}
+  .tk-opt:not([aria-disabled="true"]):hover{background:var(--soft)}
+  .tk-rh:hover .tk-rk{color:var(--ink)}
+}
+@media (max-width:760px){
+  .tk-rh{grid-template-columns:18px minmax(0,1fr);padding:8px}
+  .tk-team .spr{width:40px;height:40px}
+  .tk-rate{grid-column:2;justify-self:start;text-align:left;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .tk-n b{font-size:18px}
+}
+/* Variant B merge — "Browse all 128" drawer under the bar, holding idea 2's sprite wall.
+   One query: the bar's text spotlights the wall. Motion here: Accordion/Collapse (grid-rows + opacity), Fade in/out (spotlight, 100 ms),
+   Hover effect (fine pointers only), Press/Tap feedback, Layout animation (wall re-order). All ease-out var(--ease-out), ≤200 ms. */
+.tk-msg:empty{min-height:0;margin-top:-10px}                          /* no blank line between bar and drawer until there is something to say */
+.mg-browse{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.mg-tog{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:600;padding:10px 12px;cursor:pointer;text-align:left;border-radius:12px;transition:transform .12s var(--ease-out)}
+.mg-tog:active{transform:scale(.99)}                                /* Press/Tap feedback */
+.mg-tog small{font-weight:400;font-size:13px;color:var(--muted)}
+.mg-chev{flex:none;width:7px;height:7px;margin:0 2px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .2s var(--ease-out)}
+.mg-tog[aria-expanded="true"] .mg-chev{transform:rotate(45deg)}      /* Accordion/Collapse indicator: transform only */
+.mg-drawer{display:grid;grid-template-rows:1fr;transition:grid-template-rows .2s var(--ease-out)}   /* Accordion/Collapse (grid-rows) */
+.mg-drawer.mg-shut{grid-template-rows:0fr}
+.mg-inner{min-height:0;overflow:hidden;opacity:1;transition:opacity .2s var(--ease-out)}           /* Fade in with the open */
+.mg-shut .mg-inner{opacity:0;visibility:hidden;transition:opacity .2s var(--ease-out),visibility 0s linear .2s}
+.mg-body{padding:0 12px 12px}
+.mg-tools{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin:0 0 8px}
+.mg-tools .seg button{padding:4px 10px;font-size:12px}
+.mg-tools .seg button[aria-pressed="true"].mg-outmode{background:var(--out);color:var(--surface)}
+.mg-lab{font-size:12px;color:var(--muted);margin-right:8px}
+.mg-read{min-height:32px;display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:13px;color:var(--muted)}
+.mg-read img{width:28px;height:28px;image-rendering:pixelated}
+.mg-read b{color:var(--ink);font-weight:600}
+.mg-read kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 4px;background:var(--soft)}
+/* idea 2's wall, unchanged in look: positions never move while typing (Spatial consistency) */
+.sp-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:2px;padding:4px;border-radius:8px;background:var(--soft)}
+.sp-row{display:contents}
+.sp-cell{position:relative;aspect-ratio:1;display:grid;place-items:center;border-radius:7px;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;user-select:none}
+.sp-cell img{width:100%;max-width:44px;height:auto;image-rendering:pixelated;display:block;pointer-events:none;
+  transition:opacity .1s var(--ease-out),transform .12s var(--ease-out)}   /* Fade in/out on the spotlight, 100 ms: search is high Frequency of use */
+.sp-cell::after{content:"";position:absolute;inset:1px;border-radius:7px;border:2px solid var(--rate);opacity:0;pointer-events:none;transition:opacity .1s var(--ease-out)}
+.sp-wall.sp-q .sp-cell:not(.sp-hit) img{opacity:.15}
+.sp-wall.sp-q .sp-hit::after{opacity:.55}
+.sp-wall.sp-q .sp-first::after{opacity:1;border-width:3px}
+.sp-wall.mg-minus .sp-first::after{border-color:var(--out)}
+.sp-enter{position:absolute;right:-3px;top:-5px;font:600 10px/1 var(--sans);background:var(--rate);color:var(--surface);border-radius:4px;padding:2px 3px;opacity:0;pointer-events:none;transition:opacity .1s var(--ease-out);z-index:1}
+.sp-wall.mg-minus .sp-enter{background:var(--out)}
+.sp-wall.sp-q .sp-first .sp-enter{opacity:1}
+.sp-cell.sp-need{background:var(--rate-soft)}
+.sp-cell.sp-need::after{opacity:1;border-color:var(--rate)}
+.sp-cell.sp-out{background:color-mix(in srgb,var(--out) 14%,transparent)}
+.sp-cell.sp-out::after{opacity:1;border-color:var(--out);border-style:dashed}
+.sp-cell.sp-out img{opacity:.45}
+.sp-cell.sp-out::before{content:"";position:absolute;left:12%;right:12%;top:50%;height:2px;background:var(--out);transform:rotate(-35deg);z-index:1;pointer-events:none}
+.sp-cell.sp-off{cursor:not-allowed}                                   /* disabled: Must bring would leave 0 teams */
+.sp-cell.sp-off img{opacity:.22;filter:grayscale(1)}
+.sp-wall.sp-q .sp-cell.sp-off.sp-hit img{opacity:.4}
+.sp-wall.sp-q .sp-cell.sp-off.sp-hit::after{border-style:dashed;border-color:var(--muted)}
+.sp-cell:focus-visible{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);z-index:2}   /* focus ring: instant, never animated */
+.sp-cell:not(.sp-off):active img{transform:scale(.9)}               /* Press/Tap feedback */
+@media (hover:hover) and (pointer:fine){                              /* Hover effect, gated to real pointers */
+  .sp-cell:not(.sp-off):hover img{transform:translateY(-2px) scale(1.12)}
+  .sp-cell:hover{z-index:2}
+  .mg-tog:hover{background:var(--soft)}
+}
+/* Variant C — frontier */
+.cgrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr);gap:16px;align-items:start}
+.plot{padding:8px 8px 4px}
+svg.sc{width:100%;height:auto;display:block;overflow:visible;touch-action:manipulation}
+.sc text{font:12px var(--sans);fill:var(--muted)}
+.sc .gl{stroke:var(--line);stroke-width:1}
+.sc .pt{cursor:pointer;opacity:1;transition:transform .26s var(--ease-out),opacity .18s ease}
+.sc .pt.off{opacity:0;pointer-events:none}
+.sc .pt.sel circle,.sc .pt.sel rect{stroke:var(--ink);stroke-width:2.5}
+.sc .pt:focus-visible{outline:none}
+.sc .pt:focus-visible circle,.sc .pt:focus-visible rect{stroke:var(--rate);stroke-width:3}
+@media (hover:hover) and (pointer:fine){.sc .pt:hover circle,.sc .pt:hover rect{stroke:var(--ink);stroke-width:2}}
+.sc .fr{fill:none;stroke:var(--rate);stroke-width:1.5;stroke-dasharray:4 4}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);padding:2px 8px 8px}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.cpanel{padding:14px;position:sticky;top:12px}
+.pbig{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:2px 0 4px}
+.pbig b{font:600 34px/1 var(--serif)}
+.pbig span:not(.tag){font-size:13px;color:var(--muted)}
+.cpanel .crow{display:grid;gap:6px;margin-top:10px}
+.cm{display:grid;grid-template-columns:40px 1fr;gap:8px;align-items:center;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+.cm .spr{width:40px;height:40px}
+.cm b{font:600 14px var(--serif)}
+.cm .meta{font-size:12px;color:var(--muted)}
+.cm .mv{font-size:12px;color:var(--ink)}
+/* switcher */
+.switcher{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9;display:flex;align-items:center;gap:6px;background:#14171c;color:#fff;border-radius:999px;padding:6px;box-shadow:0 8px 28px rgba(0,0,0,.35);font-size:14px}
+.switcher button{border:0;background:rgba(255,255,255,.12);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px}
+.switcher button:active{background:rgba(255,255,255,.25)}
+.switcher span{padding:0 12px;white-space:nowrap}
+.switcher small{opacity:.6;margin-left:6px}
+:focus-visible{outline:2px solid var(--rate);outline-offset:2px}
+@media (max-width:760px){
+  .bgrid,.cgrid{grid-template-columns:1fr}.best,.cpanel{position:static;max-height:none}
+  .lhead{grid-template-columns:28px 1fr}.meter{grid-column:1/-1;min-width:0}
+  .lab{min-width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .sheetwrap,.tile,.chip,.tile .bar i,.sc .pt{transition:none}
+  .sc .pt{transition:opacity .18s ease}
+  .swap{animation:none}
+  .tk-pol,.tk-x,.tk-alt{transition:none}                          /* Reduced motion: no press scale, no shake */
+  .tk-pol:active,.tk-x:active,.tk-alt:active{transform:none}
+  .tk-shake{animation:none}
+  /* Reduced motion: the drawer snaps open/shut, the spotlight snaps, no hover lift, no press scale */
+  .mg-drawer,.mg-inner,.mg-shut .mg-inner,.mg-chev,.mg-tog,.sp-cell img,.sp-cell::after,.sp-enter{transition:none}
+  .mg-tog:active,.sp-cell:not(.sp-off):hover img,.sp-cell:not(.sp-off):active img{transform:none}
+}
+/* Variant B — Matchup matrix (mx-). A modal panel opened from the token bar.
+   Motion, by name: Origin-aware animation (panel grows from the button, scale .96 + opacity, 200 ms ease-out, exit mirrors entry),
+   Stagger (rows, once per open), Hover effect (crosshair, fine pointers only), Press/Tap feedback (:active), Reduced motion (fade only).
+   transform/opacity only; colour changes are instant; Frequency of use: re-renders while open never animate. */
+.mx-open{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;transition:transform .12s var(--ease-out)}
+.mx-open svg{width:14px;height:14px;flex:none;color:var(--rate)}
+.mx-open:not(:disabled):active{transform:scale(.97)}                    /* Press/Tap feedback */
+.mx-open:disabled{opacity:.45;cursor:not-allowed}
+.mx-open:disabled svg{color:var(--muted)}
+.mx-dlg{width:min(1400px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);margin:auto;padding:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);overflow:hidden}
+.mx-dlg::backdrop{background:rgba(20,23,28,.45)}
+.mx-dlg[open]::backdrop{animation:mx-fade .2s cubic-bezier(0.23,1,0.32,1)}              /* backdrop rides the Origin-aware animation */
+.mx-dlg.mx-out::backdrop{animation:mx-unfade .2s cubic-bezier(0.23,1,0.32,1) forwards}
+@keyframes mx-fade{from{opacity:0}}
+@keyframes mx-unfade{to{opacity:0}}
+.mx-in{max-height:calc(100dvh - 34px);overflow:auto;overscroll-behavior:contain;padding:18px 20px 20px}
+.mx-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mx-h{margin:0;font:600 clamp(18px,2.4vw,22px)/1.2 var(--serif);letter-spacing:-.005em}
+.mx-close{flex:none;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted);font:400 20px/1 var(--sans);cursor:pointer;transition:transform .12s var(--ease-out)}
+.mx-close:active{transform:scale(.94)}                                  /* Press/Tap feedback */
+.mx-sub{margin:4px 0 10px;font-size:13px;color:var(--muted);max-width:92ch}
+.mx-leg{display:flex;flex-wrap:wrap;align-items:center;gap:4px 5px;margin:0 0 6px;font-size:12px;color:var(--muted)}
+.mx-leg i{display:inline-block;width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--line)}
+.mx-legi{display:inline-flex;align-items:center;gap:5px;margin-left:14px}
+.mx-realk{font:600 13px/1 var(--serif);color:var(--real)}
+.mx-note{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.mx-empty{margin:24px 0;color:var(--muted);text-align:center}
+.mx-scroll{width:max-content;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.mx-grid{display:grid;column-gap:2px;row-gap:2px;padding-bottom:3px}
+.mx-row{display:grid;grid-template-columns:subgrid;grid-column:1/-1}
+.mx-corner,.mx-rl{position:sticky;left:0;z-index:2;display:grid;grid-template-columns:18px 168px 70px;gap:0 8px;padding:4px 10px 4px 8px;background:var(--surface);border-right:1px solid var(--line)}
+.mx-corner{align-content:space-between;padding-top:8px;padding-bottom:6px;font-size:12px;color:var(--muted)}
+.mx-corner .mx-dir{grid-column:1/-1;text-align:right;color:var(--ink);font-weight:600}
+.mx-corner .mx-rt{font-size:11px;line-height:1.25}
+.mx-rl{align-items:center;cursor:pointer}
+.mx-rk{font:600 15px/1 var(--serif);color:var(--muted);text-align:right}
+.mx-real .mx-rk{color:var(--real)}
+.mx-six{display:flex}
+.mx-six img,.mx-six .mx-miss{width:28px;height:28px;image-rendering:pixelated;display:block}
+.mx-miss{display:grid;place-items:center;font-size:9px;color:var(--muted);overflow:hidden}
+.mx-rt{text-align:right}
+.mx-rt b{display:block;font:600 15px/1.15 var(--serif)}
+.mx-rt span{font-size:11px;color:var(--muted);white-space:nowrap}
+.mx-hr .mx-rl,.mx-hr .mx-sum{background:var(--soft)}
+.mx-selr .mx-rl{background:color-mix(in srgb,var(--rate) 10%,var(--surface));box-shadow:inset 3px 0 0 var(--rate)}
+.mx-ch{position:relative;display:flex;flex-direction:column;align-items:center;padding:8px 0 22px;border-radius:4px;cursor:pointer;outline:none;transition:transform .12s var(--ease-out)}
+.mx-ch img,.mx-ch .mx-miss{width:16px;height:16px;image-rendering:pixelated;display:block}
+.mx-place{position:absolute;left:50%;bottom:3px;z-index:1;transform:translateX(-50%);padding:0 6px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font-size:11px;line-height:15px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s var(--ease-out)}
+.mx-tl .mx-place{left:0;transform:none}                                  /* edge columns: keep the tag clear of the sticky columns */
+.mx-tr .mx-place{left:auto;right:0;transform:none}
+.mx-ch.mx-hc{background:var(--soft)}
+.mx-ch.mx-hc .mx-place,.mx-ch.mx-selc .mx-place{opacity:1}
+.mx-ch.mx-selc{background:var(--rate-soft);box-shadow:inset 0 -2px 0 var(--rate)}
+.mx-c{min-height:36px;border-radius:3px;cursor:pointer;outline:none;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 70%,transparent);transition:opacity .1s var(--ease-out),transform .12s var(--ease-out)}
+.mx-c.mx-nil{background:repeating-linear-gradient(135deg,var(--line) 0 1.5px,transparent 1.5px 5px)}
+.mx-c.mx-sc{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.mx-grid.mx-x .mx-c{opacity:.32}                                      /* Hover effect: crosshair (opacity only) */
+.mx-grid.mx-x .mx-hr .mx-c,.mx-grid.mx-x .mx-c.mx-hc{opacity:1}
+.mx-c:focus-visible,.mx-ch:focus-visible{position:relative;z-index:1;outline:none;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.mx-rl:focus-visible,.mx-corner:focus-visible,.mx-sum:focus-visible,.mx-sumh:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
+.mx-c:active{transform:scale(.88)}                                      /* Press/Tap feedback */
+.mx-ch:active{transform:scale(.96)}
+.mx-sum,.mx-sumh{display:flex;justify-content:flex-end;gap:4px;padding:0 12px 0 10px;background:var(--surface);border-left:1px solid var(--line);white-space:nowrap}
+.mx-sum{align-items:center}
+.mx-sum b{font:600 17px/1 var(--serif)}
+.mx-sum span{font-size:11px;color:var(--muted)}
+.mx-sumh{flex-direction:column;align-items:flex-end;justify-content:flex-end;padding-bottom:6px;font-size:12px;font-weight:600}
+.mx-sumh span{font-weight:400;color:var(--muted)}
+@media (min-width:761px){.mx-sum,.mx-sumh{position:sticky;right:0;z-index:2}}
+.mx-strip{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.mx-sthd{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.mx-opp{display:flex}
+.mx-opp img,.mx-opp .mx-miss{width:40px;height:40px;image-rendering:pixelated;display:block}
+.mx-sttx{flex:1;min-width:200px}
+.mx-sttx b{font:600 17px var(--serif)}
+.mx-mut{font-size:12px;color:var(--muted)}
+.mx-strip-x{flex:none;width:28px;height:28px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--muted);font:400 17px/1 var(--sans);cursor:pointer;transition:transform .12s var(--ease-out)}
+.mx-strip-x:active{transform:scale(.92)}
+.mx-best{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.mx-pick{display:grid;grid-template-columns:18px auto minmax(0,1fr);align-items:center;gap:10px;width:100%;padding:4px 10px 4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform .12s var(--ease-out)}
+.mx-pick:active{transform:scale(.99)}
+.mx-pr{justify-self:end;text-align:right}
+.mx-pr b{display:block;font:600 16px/1.1 var(--serif)}
+.mx-pr span{font-size:11px;color:var(--muted)}
+.mx-set{margin-top:16px}
+.mx-h3{margin:0;font:600 16px var(--serif)}
+.mx-tip{position:fixed;left:0;top:0;z-index:5;padding:4px 8px;border-radius:6px;background:var(--ink);color:var(--surface);font-size:12px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .1s var(--ease-out)}
+.mx-tip.mx-on{opacity:1}
+@media (hover:hover) and (pointer:fine){                                /* Hover effect, gated to real pointers */
+  .mx-open:not(:disabled):hover,.mx-close:hover,.mx-strip-x:hover{background:var(--soft)}
+  .mx-pick:hover{background:var(--soft)}
+}
+@media (max-width:600px){
+  .mx-in{padding:14px 14px 16px}
+  .mx-corner,.mx-rl{grid-template-columns:14px 84px 70px;gap:0 6px;padding-left:6px;padding-right:8px}
+  .mx-rl .mx-six{display:grid;grid-template-columns:repeat(3,28px)}
+  .mx-pick .mx-six img{width:24px;height:24px}
+  .mx-legi{margin-left:6px}
+}
+@media (max-width:520px){.mx-open{padding:0 8px}.mx-open .mx-lbl{display:none}}
+@media (prefers-reduced-motion:reduce){                                 /* Reduced motion: fades stay, no scale or slide */
+  .mx-open,.mx-close,.mx-ch,.mx-strip-x,.mx-pick{transition:none}
+  .mx-c{transition:opacity .1s var(--ease-out)}
+  .mx-open:not(:disabled):active,.mx-close:active,.mx-c:active,.mx-ch:active,.mx-strip-x:active,.mx-pick:active{transform:none}
+}
+.mg-split{display:block}
+.mg-side{margin-top:12px}
+@media (min-width:820px){
+  .mg-split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+  .mg-side{margin-top:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Strong teams that don't bring Kingambit</h1>
+  <p class="lede" id="lede"></p>
+  <div class="controls card" id="controls"></div>
+</header>
+<main id="stage" aria-live="polite"></main>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+<nav class="switcher" aria-label="Prototype variants">
+  <button id="prev" aria-label="Previous variant">←</button>
+  <span id="vlabel"></span>
+  <button id="next" aria-label="Next variant">→</button>
+</nav>
+<script>
+const D = /*__DATA__*/null;
+const T = D.teams, SP = D.sprites;
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = s => document.querySelector(s);
+const fmt = x => x.toFixed(3);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function wilson(w, n){ const z = 1.96, p = w / n, d = 1 + z*z/n, c = p + z*z/(2*n), m = z*Math.sqrt(p*(1-p)/n + z*z/(4*n*n));
+  return {lo:(c-m)/d, hi:(c+m)/d}; }
+for (const t of T){ t.p = t.w/t.b; Object.assign(t, wilson(t.w, t.b)); t.sp = t.mons.map(m => m.n); }
+const byId = Object.fromEntries(T.map(t => [t.id, t]));
+const FREQ = {}; for (const t of T) for (const s of t.sp) FREQ[s] = (FREQ[s]||0) + 1;
+const COMMON = Object.keys(FREQ).sort((a,b) => FREQ[b]-FREQ[a]).slice(0, 10);
+const REAL_TOP = Math.max(...T.filter(t => t.k==="real").map(t => t.lo));
+
+const S = {basis:"cautious", min:96, src:"all", out:new Set(), need:new Set(), sel:null, show:15};
+const score = t => S.basis === "cautious" ? t.lo : t.p;
+function filtered(extraIgnoreNeed){
+  return T.filter(t => t.b >= S.min && (S.src==="all" || t.k===S.src)
+      && !t.sp.some(s => S.out.has(s)) && (extraIgnoreNeed || [...S.need].every(s => t.sp.includes(s))))
+    .sort((a,b) => score(b) - score(a));
+}
+const spr = (n, cls="spr") => SP[n] ? `<img class="${cls}" src="${SP[n]}" alt="${esc(n)}" title="${esc(n)}" width="48" height="48">`
+  : `<span class="${cls}" title="${esc(n)}" style="font-size:11px">${esc(n.slice(0,6))}</span>`;
+const kindTag = t => t.k==="real" ? `<span class="tag real">Real tournament team</span>` : `<span class="tag">Found by search</span>`;
+function paste(t){ return t.mons.map(m => `${m.n}${m.i?" @ "+m.i:""}\nAbility: ${m.a}\nLevel: 50\nEVs: ${m.ev}\n${m.nat} Nature\n${m.m.map(x=>"- "+x).join("\n")}`).join("\n\n"); }
+
+/* ---------- shared: sheet of six sets ---------- */
+function sheet(t){
+  return `<div class="sheet"><div class="mons">${t.mons.map(m => `<div class="mon">${spr(m.n)}
+      <div><h4>${esc(m.n)}</h4><div class="meta">${esc(m.i||"no item")} · ${esc(m.a)}</div><div class="meta">${esc(m.nat)} · ${esc(m.ev)}</div></div>
+      <ul>${m.m.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div>
+    <div class="sheetfoot"><span>${t.w} wins in ${t.b} battles against ${t.opp} top-placing teams</span>
+    <button class="btn" data-copy="${t.id}">Copy Showdown paste</button></div></div>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  e.stopPropagation();
+  navigator.clipboard?.writeText(paste(byId[b.dataset.copy])).then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy Showdown paste", 1400); });
+});
+
+/* ---------- controls ---------- */
+function seg(name, opts, cur){
+  return `<div class="seg" role="group" aria-label="${name}">${opts.map(([v,l]) => `<button data-set="${name}" data-v="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`).join("")}</div>`;
+}
+function renderControls(n){
+  // Leave out row: the 10 most common species, then every other species currently left out (pressed, click to put back),
+  // so a Pokémon excluded from the bar or the wall always has a header chip.
+  const outRow = [...COMMON, ...[...S.out].filter(s => !COMMON.includes(s))];
+  $("#controls").innerHTML = `
+   <div class="row2"><span class="lab">Rank teams by</span>${seg("basis",[["cautious","Cautious rating"],["raw","Raw win rate"]],S.basis)}
+     <span class="note" style="margin:0">${S.basis==="cautious" ? "Cautious = the low end of a 95% interval, so a team with few battles has to earn its place." : "Raw = wins ÷ battles; lucky teams with few battles float to the top."}</span></div>
+   <div class="row2"><span class="lab">At least</span>${seg("min",[[96,"96 battles"],[196,"196"],[392,"392"],[784,"784"]],S.min)}
+     <span class="lab" style="min-width:0">Source</span>${seg("src",[["all","All"],["real","Real teams"],["search","Found by search"]],S.src)}</div>
+   <div class="row2"><span class="lab">Leave out</span><div class="chips"><span class="chip locked" title="Always out: this page is for teams without it">Kingambit</span>
+     ${outRow.map(s => `<button class="chip" data-out="${esc(s)}" aria-pressed="${S.out.has(s)}">${SP[s]?`<img src="${SP[s]}" alt="">`:""}${esc(s)}</button>`).join("")}</div></div>
+   ${S.need.size ? `<div class="row2"><span class="lab">Must bring</span><div class="chips">${[...S.need].map(s => `<button class="chip need" data-need="${esc(s)}" aria-pressed="true">${SP[s]?`<img src="${SP[s]}" alt="">`:""}${esc(s)} ×</button>`).join("")}</div></div>` : ""}
+   <div class="count"><b>${n}</b> of ${T.length} teams match</div>`;
+}
+$("#controls").addEventListener("click", e => {
+  const s = e.target.closest("[data-set]"), o = e.target.closest("[data-out]"), nd = e.target.closest("[data-need]");
+  if (s){ const k = s.dataset.set, v = s.dataset.v; S[k] = k==="min" ? +v : v; S.show = 15; }
+  else if (o){ const v = o.dataset.out; S.out.has(v) ? S.out.delete(v) : S.out.add(v); S.need.delete(v); S.show = 15; }
+  else if (nd){ S.need.delete(nd.dataset.need); S.show = 15; }
+  else return;
+  S.promoted = null;
+  render();
+});
+
+/* ---------- Variant A: ladder ---------- */
+function viewA(root){
+  const list = filtered(), shown = list.slice(0, S.show);
+  if (!list.length){ root.innerHTML = `<div class="card empty">No team matches. Lower the battle minimum or put a Pokémon back in.</div>`; return; }
+  const prev = new Map([...root.querySelectorAll(".lrow")].map(r => [r.dataset.id, r.getBoundingClientRect()]));
+  root.innerHTML = `<ol class="ladder">${shown.map((t,i) => {
+    const open = S.sel === t.id;
+    return `<li class="lrow card ${t.k}" data-id="${t.id}" tabindex="0" role="button" aria-expanded="${open}">
+      <div class="lhead"><div class="rank">${i+1}</div>
+        <div class="team">${t.sp.map(n => spr(n)).join("")}</div>
+        <div class="meter"><div class="mnum"><b>${fmt(score(t))}</b><span>${S.basis==="cautious" ? `raw ${fmt(t.p)} · ` : `low end ${fmt(t.lo)} · `}${t.b} battles</span></div>
+          <div class="track" aria-hidden="true"><div class="whisk" style="left:${t.lo*100}%;width:${(t.hi-t.lo)*100}%"></div><div class="ref" style="left:53.1%" title="0.531: a top-50 team vs the other 49"></div><div class="dot" style="left:${t.p*100}%"></div></div>
+          <div style="margin-top:6px">${kindTag(t)}</div></div></div>
+      <div class="sheetwrap ${open?"open":""}"><div>${open ? sheet(t) : ""}</div></div></li>`; }).join("")}</ol>
+    ${list.length > shown.length ? `<button class="more" id="more">Show 15 more (${list.length - shown.length} left)</button>` : ""}
+    <p class="note">The thin vertical mark is 0.531, what a typical top-50 team scores against the other 49. The pale band is the 95% interval; the dot is the raw win rate. Click a team to open its six sets.</p>`;
+  const rows = [...root.querySelectorAll(".lrow")];
+  if (!REDUCE) rows.forEach((r, i) => {
+    const p = prev.get(r.dataset.id);
+    if (p){ const n = r.getBoundingClientRect(), dy = p.top - n.top;
+      if (Math.abs(dy) > 1){ r.animate([{transform:`translateY(${dy}px)`},{transform:"none"}], {duration:240, easing:"cubic-bezier(0.23,1,0.32,1)"}); } }
+    else if (i < 10){ r.animate([{opacity:0, transform:"translateY(8px)"},{opacity:1, transform:"none"}], {duration:220, delay:i*30, easing:"cubic-bezier(0.23,1,0.32,1)", fill:"backwards"}); }
+  });
+}
+function bindA(root){
+  root.addEventListener("click", e => {
+    if (e.target.closest("#more")){ S.show += 15; render(); return; }
+    const r = e.target.closest(".lrow"); if (!r || e.target.closest("[data-copy]")) return;
+    const id = r.dataset.id; S.sel = S.sel === id ? null : id; render();
+  });
+  root.addEventListener("keydown", e => { if ((e.key==="Enter"||e.key===" ") && e.target.classList.contains("lrow")){ e.preventDefault(); e.target.click(); } });
+}
+
+/* ---------- Variant B: query tokens (idea 4) ----------
+   One bar. Tokens are a view of S.need (include, "+") and S.out (exclude, "−"), so the header chips and variants A/C agree.
+   S.tk only remembers the order tokens were added in, so they do not jump around. */
+const TK_ALL = Object.keys(FREQ).sort((a,b) => FREQ[b] - FREQ[a]);
+const tkNorm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+const TK_EASE = "cubic-bezier(0.23,1,0.32,1)";
+S.tk = [];
+let bState = null;   // {el, bar, toks, input, list, n, live, msg, res, foot, opts, act, mode, shift, armed, open}
+
+function tkSync(){
+  S.tk = S.tk.filter(s => S.need.has(s) || S.out.has(s));
+  for (const s of [...S.need, ...S.out]) if (!S.tk.includes(s)) S.tk.push(s);
+}
+function tkSet(s, pol){                       // pol "+" include, "-" exclude, null remove
+  S.need.delete(s); S.out.delete(s);
+  if (pol === "+") S.need.add(s); else if (pol === "-") S.out.add(s);
+  S.promoted = null; S.show = 15;
+}
+const tkLeft = (base, s, pol) => { let n = 0; for (const t of base) if (t.sp.includes(s) === (pol === "+")) n++; return n; };
+const tkMark = (s, q) => { if (!q) return esc(s); const ns = tkNorm(s), i = ns.indexOf(q);
+  // map normalised index back onto the display name (names only lose '-' and spaces)
+  let a = -1, b = -1, k = 0; for (let j = 0; j < s.length; j++){ if (/[a-z0-9]/i.test(s[j])){ if (k === i) a = j; if (k === i + q.length - 1) b = j + 1; k++; } }
+  return a < 0 || b < 0 ? esc(s) : esc(s.slice(0, a)) + "<mark>" + esc(s.slice(a, b)) + "</mark>" + esc(s.slice(b)); };
+
+function tkNumber(el, to, instant){           // Number ticker on Tabular numbers, Interruptible (restarts from what is on screen)
+  cancelAnimationFrame(el._raf); clearTimeout(el._end);
+  const from = +el.textContent || 0;
+  if (instant || REDUCE || from === to){ el.textContent = to; return; }
+  el._end = setTimeout(() => { cancelAnimationFrame(el._raf); el.textContent = to; }, 260);   // settles even where frames are throttled
+  const t0 = performance.now(), d = 180;
+  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(from + (to - from) * e); if (k < 1) el._raf = requestAnimationFrame(step); };
+  el._raf = requestAnimationFrame(step);
+}
+
+function tkSuggest(){
+  const B = bState, raw = B.input.value, lead = /^\s*[-−]/.test(raw);
+  B.mode = lead || B.shift ? "-" : "+";
+  const q = tkNorm(raw.replace(/^\s*[-+−]/, "")), base = filtered(), have = new Set(S.tk);
+  let names;
+  if (!q){                                    // empty box: the Pokémon most often in the teams that survive right now
+    const c = {}; for (const t of base) for (const s of t.sp) if (!have.has(s)) c[s] = (c[s] || 0) + 1;
+    names = Object.keys(c).sort((a,b) => c[b] - c[a]).slice(0, 6);
+  } else {
+    names = TK_ALL.filter(s => !have.has(s) && tkNorm(s).includes(q))
+      .sort((a,b) => (tkNorm(b).startsWith(q) - tkNorm(a).startsWith(q)) || FREQ[b] - FREQ[a]).slice(0, 7);
+  }
+  B.opts = names.map(s => ({s, n: tkLeft(base, s, B.mode), alt: tkLeft(base, s, B.mode === "+" ? "-" : "+")}));
+  if (q.length >= 2 && "kingambit".startsWith(q)) B.opts.push({s: "Kingambit", king: true, n: 0, alt: 0});
+  const first = B.opts.findIndex(o => !o.king && o.n > 0);
+  B.act = q ? (first < 0 ? 0 : first) : -1;   // with an empty box nothing is pre-selected, so Enter does nothing by surprise
+  B.q = q; B.arrowed = false;
+  tkDrawList();
+}
+function tkDrawList(){
+  mgSpot();                                   // the wall follows the same query and rings the same active option
+  // merged: with an empty box the wall is the browser, so the list opens only on typed letters or ↓ (it would cover the wall)
+  const B = bState, open = B.open && B.opts.length > 0 && (!!B.q || B.arrowed);
+  B.list.classList.toggle("tk-minus", B.mode === "-");
+  B.input.classList.toggle("tk-minus", B.mode === "-");
+  B.input.setAttribute("aria-expanded", String(open));
+  B.input.setAttribute("aria-activedescendant", open && B.act >= 0 ? `tk-o${B.act}` : "");
+  if (!open){ B.list.hidden = true; return; }
+  const wasHidden = B.list.hidden;
+  const other = B.mode === "+" ? "−" : "+";
+  B.list.innerHTML = B.opts.map((o, i) => {
+    const dead = o.king || o.n === 0;
+    return `<li class="tk-opt" role="option" id="tk-o${i}" data-i="${i}" aria-selected="${i === B.act}" aria-disabled="${dead}">
+      ${spr(o.s)}<span class="tk-on">${tkMark(o.s, B.q)}</span>
+      <span class="tk-to">${o.king ? "always left out here" : `→ <b>${o.n}</b> team${o.n === 1 ? "" : "s"}`}</span>
+      <button class="tk-alt" type="button" tabindex="-1" data-alt="${i}" ${o.king || o.alt === 0 ? "disabled" : ""} aria-hidden="true"
+        title="${other === "−" ? "Leave out" : "Include"} ${esc(o.s)} → ${o.alt} teams">${other}</button></li>`; }).join("")
+    + `<li class="tk-hint" role="presentation"><kbd>Enter</kbd> include · <kbd>Shift</kbd>+<kbd>Enter</kbd> or a leading <kbd>-</kbd> leave out · <kbd>⌫</kbd> remove last</li>`;
+  B.list.hidden = false;
+  // Fade in + Slide in (2 px, from the bar: Origin-aware animation, transform-origin top). Only when it was closed.
+  if (wasHidden && !REDUCE) B.list.animate([{opacity:0, transform:"translateY(-3px)"}, {opacity:1, transform:"none"}], {duration:120, easing:TK_EASE});
+}
+function tkWhy(s, pol){                       // why a pick would leave 0 teams (bar and wall share it)
+  const rest = S.tk.map(x => (S.need.has(x) ? "+" : "−") + x).join(" ");
+  return pol === "+" ? `No team brings ${s}${rest ? " with " + rest : ""}${S.min > 96 ? ` at ${S.min}+ battles` : ""}.`
+    : `Every remaining team brings ${s}, so leaving it out leaves 0.`;
+}
+function tkCommit(i, pol){
+  const B = bState, o = B.opts[i]; if (!o) return false;
+  const left = o.king ? 0 : tkLeft(filtered(), o.s, pol);
+  if (left === 0){                            // rejected pick: Shake/Wiggle the row, say why, keep the query
+    const row = B.list.querySelector(`#tk-o${i}`);
+    if (row && !REDUCE){ row.classList.remove("tk-shake"); void row.offsetWidth; row.classList.add("tk-shake"); }
+    B.msg.textContent = o.king ? "Kingambit is always left out on this page." : tkWhy(o.s, pol);
+    const hint = B.list.querySelector(".tk-hint");      // the list covers the message line, so say it where the eye is
+    if (hint){ hint.textContent = B.msg.textContent; hint.classList.add("tk-bad"); }
+    return false;
+  }
+  tkSet(o.s, pol); B.input.value = ""; B.armed = false; B.msg.textContent = "";
+  render(); tkSuggest();
+  return true;
+}
+function tkRemove(s){ tkSet(s, null); bState.armed = false; bState.msg.textContent = ""; render(); if (bState.open) tkSuggest(); }
+function tkFlip(s){ tkSet(s, S.need.has(s) ? "-" : "+"); bState.msg.textContent = ""; render(); if (bState.open) tkSuggest(); }
+
+/* ---------- Variant B merge: the "Browse all N" drawer (idea 2's wall) ----------
+   No search box of its own: the bar's text is the one query. Clicking writes S.need / S.out, so tokens and header chips follow. */
+const SPECIES = Object.keys(FREQ);
+const MG_BEST = {}; for (const t of T) for (const s of t.sp) MG_BEST[s] = Math.max(MG_BEST[s] ?? -1, t.lo);
+const MG_ORDER = {
+  rating: [...SPECIES].sort((a,b) => MG_BEST[b] - MG_BEST[a] || a.localeCompare(b)),   // fixed at load, never re-sorted by filters
+  az: [...SPECIES].sort((a,b) => a.localeCompare(b))};
+let mgOpen = true, mgOrder = "rating", mgAs = "need";   // drawer open on first load; remembered only in these variables
+const mgQuery = () => tkNorm((bState?.input.value || "").replace(/^\s*[-+−]/, ""));
+
+function mgBuild(B){
+  const cells = {};
+  for (const s of SPECIES){
+    const c = document.createElement("div");
+    c.className = "sp-cell"; c.dataset.s = s; c.setAttribute("role", "gridcell"); c.tabIndex = -1;
+    c.innerHTML = SP[s] ? `<img src="${SP[s]}" alt="" width="44" height="44" draggable="false"><span class="sp-enter" aria-hidden="true">↵</span>` : `<span style="font-size:9px">${esc(s.slice(0,5))}</span>`;
+    cells[s] = c;
+  }
+  B.cells = cells; B.cols = 0; B.match = new Set(); B.focus = MG_ORDER[mgOrder][0]; B.agg = {};
+  cells[B.focus].tabIndex = 0;                // roving tabindex: the wall is one Tab stop
+  mgLayout(true);
+  B.ro = new ResizeObserver(() => mgLayout(false)); B.ro.observe(B.wall);
+}
+/* rows exist only for the grid role; CSS grid owns the geometry, JS mirrors its column count */
+function mgLayout(force, depth = 0){   // depth guard: a column count that never settles must not recurse forever
+  const B = bState; if (!B?.wall || (!B.wall.isConnected && !force)) return;
+  const cols = Math.max(1, getComputedStyle(B.wall).gridTemplateColumns.split(" ").length);
+  if (!force && cols === B.cols) return;
+  B.cols = cols; const order = MG_ORDER[mgOrder], frag = document.createDocumentFragment();
+  for (let r = 0; r * cols < order.length; r++){
+    const row = document.createElement("div"); row.className = "sp-row"; row.setAttribute("role", "row");
+    for (const s of order.slice(r*cols, r*cols + cols)) row.appendChild(B.cells[s]);
+    frag.appendChild(row);
+  }
+  B.wall.replaceChildren(frag);
+  const real = getComputedStyle(B.wall).gridTemplateColumns.split(" ").length;
+  if (real !== cols && depth < 2) mgLayout(true, depth + 1);
+}
+function mgState(pool){                       // need / out / disabled, from the teams that survive right now
+  const B = bState, agg = {};
+  for (const t of pool) for (const s of t.sp){ const a = agg[s] || (agg[s] = {n:0, best:t}); a.n++; }   // pool is sorted: first seen = best
+  B.agg = agg;
+  for (const s of SPECIES){
+    const c = B.cells[s], need = S.need.has(s), out = S.out.has(s), off = !need && !out && !agg[s];
+    c.classList.toggle("sp-need", need); c.classList.toggle("sp-out", out); c.classList.toggle("sp-off", off);
+    c.setAttribute("aria-selected", String(need));
+    off ? c.setAttribute("aria-disabled", "true") : c.removeAttribute("aria-disabled");
+    c.setAttribute("aria-label", `${s}, ${need ? "must bring" : out ? "left out" : off ? "no team left" : `${agg[s].n} team${agg[s].n>1?"s":""}, best ${fmt(score(agg[s].best))}`}`);
+  }
+  B.el.querySelectorAll("[data-mg-order]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.mgOrder === mgOrder)));
+  B.el.querySelectorAll("[data-mg-as]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.mgAs === mgAs)));
+}
+/* the spotlight: classes only, no rebuild, nothing animates per keystroke except the 100 ms Fade in/out in CSS */
+function mgSpot(){
+  const B = bState; if (!B?.cells) return;
+  const q = mgQuery(), ring = B.open && B.act >= 0 && B.opts[B.act] && !B.opts[B.act].king ? B.opts[B.act].s : null;
+  B.wall.classList.toggle("sp-q", !!q);
+  B.wall.classList.toggle("mg-minus", B.mode === "-");
+  B.match = new Set();
+  for (const s of SPECIES){
+    const hit = !!q && tkNorm(s).includes(q);   // the same test the bar's suggestions use
+    if (hit) B.match.add(s);
+    B.cells[s].classList.toggle("sp-hit", hit);
+    B.cells[s].classList.toggle("sp-first", s === ring);
+  }
+}
+function mgRead(s){
+  const B = bState; if (!B?.read) return;
+  if (!s){ B.read.innerHTML = mgAs === "need"
+      ? `<span>Click adds a Pokémon · <kbd>Shift</kbd>- or <kbd>Alt</kbd>-click leaves it out · greyed would leave no team</span>`
+      : `<span>Click leaves a Pokémon out · <kbd>Shift</kbd>- or <kbd>Alt</kbd>-click adds it · greyed would leave no team</span>`; return; }
+  const a = B.agg[s], st = S.need.has(s) ? "must bring · click to drop" : S.out.has(s) ? "left out · click to put back"
+    : a ? `${a.n} team${a.n>1?"s":""} · best ${fmt(score(a.best))}` : "would leave no team";
+  B.read.innerHTML = `${SP[s] ? `<img src="${SP[s]}" alt="">` : ""}<b>${esc(s)}</b><span>${st}</span>`;
+}
+function mgPick(s, flip){                     // flip = Shift/Alt held: the other polarity from the mode switch
+  const B = bState, pol = (mgAs === "out") !== !!flip ? "-" : "+";
+  if (S.need.has(s) || S.out.has(s)) tkSet(s, null);       // clicking a picked one drops it
+  else if (!B.agg[s] && pol === "-"){ B.msg.textContent = `No remaining team brings ${s}, so there is nothing to leave out.`; return false; }
+  else if (tkLeft(filtered(), s, pol) === 0){                // rejected "→ 0 teams" pick
+    const c = B.cells[s];
+    if (!REDUCE){ c.classList.remove("tk-shake"); void c.offsetWidth; c.classList.add("tk-shake"); }   // Shake/Wiggle, rejected pick only
+    B.msg.textContent = tkWhy(s, pol);
+    return false;
+  }
+  else tkSet(s, pol);
+  B.input.value = ""; B.armed = false; B.msg.textContent = "";
+  // Press/Tap feedback for keyboard picks (a pointer already gets :active)
+  if (!REDUCE) B.cells[s].firstElementChild?.animate([{transform:"scale(.9)"}, {transform:"none"}], {duration:140, easing:TK_EASE});
+  render(); mgRead(s);
+  return true;
+}
+function mgFocus(s){
+  const B = bState; if (!s) return;
+  B.cells[B.focus]?.setAttribute("tabindex", "-1");
+  B.focus = s; const c = B.cells[s]; c.tabIndex = 0; c.focus();
+}
+/* arrow keys: with a query, jump between lit cells only; without, walk every cell */
+function mgStep(s, dr, dc){
+  const B = bState, order = MG_ORDER[mgOrder], N = order.length, cols = B.cols, i = order.indexOf(s), q = mgQuery();
+  const ok = j => !q || B.match.has(order[j]);
+  if (dc){ for (let j = i + dc; j >= 0 && j < N; j += dc) if (ok(j)) return order[j]; return s; }
+  const r = Math.floor(i / cols), c = i % cols;
+  for (let rr = r + dr; rr >= 0 && rr * cols < N; rr += dr){
+    let best = -1, bd = 1e9;
+    for (let cc = 0; cc < cols && rr*cols + cc < N; cc++){ const j = rr*cols + cc; if (ok(j) && Math.abs(cc - c) < bd){ bd = Math.abs(cc - c); best = j; } }
+    if (best >= 0) return order[best];
+  }
+  return dr < 0 ? null : s;                   // up off the top row returns to the bar
+}
+function mgReorder(to){
+  if (mgOrder === to) return;
+  const B = bState, before = {};
+  for (const s of SPECIES) before[s] = B.cells[s].getBoundingClientRect();
+  mgOrder = to; mgLayout(true); render();
+  if (REDUCE || !mgOpen) return;
+  // Layout animation (FLIP via Translate), Interruptible: a second toggle cancels the first mid-flight
+  for (const s of SPECIES){
+    const c = B.cells[s], n = c.getBoundingClientRect(), dx = before[s].left - n.left, dy = before[s].top - n.top;
+    c.getAnimations().forEach(a => a.cancel());
+    if (dx || dy) c.animate([{transform:`translate(${dx}px,${dy}px)`}, {transform:"none"}], {duration:200, easing:TK_EASE});
+  }
+}
+function mgToggle(){
+  const B = bState; mgOpen = !mgOpen;
+  B.tog.setAttribute("aria-expanded", String(mgOpen));
+  B.drawer.classList.toggle("mg-shut", !mgOpen);   // Accordion/Collapse: grid-rows 1fr↔0fr + opacity, 200 ms ease-out
+}
+
+function viewB(root){
+  tkSync();
+  const fresh = !bState || !root.contains(bState.el);
+  if (fresh){
+    root.innerHTML = `<section class="tk" aria-label="Search teams by Pokémon">
+      <div class="tk-bar">
+        <div class="tk-field"><span class="tk-toks" role="list" aria-label="Query"></span>
+          <input class="tk-in" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="tk-list"
+            aria-label="Add a Pokémon to include, or type minus first to leave one out" aria-describedby="tk-help"
+            autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></div>
+        <div class="tk-n" aria-hidden="true"><b>0</b> teams</div>
+        <button class="mx-open" type="button" aria-haspopup="dialog" aria-label="Matchup matrix: the top results against the ${MX_N} top-placing teams">
+          <svg viewBox="0 0 14 14" aria-hidden="true"><g fill="currentColor"><rect width="4" height="4" rx="1"/><rect x="5" width="4" height="4" rx="1" opacity=".55"/><rect x="10" width="4" height="4" rx="1"/><rect y="5" width="4" height="4" rx="1" opacity=".55"/><rect x="5" y="5" width="4" height="4" rx="1"/><rect x="10" y="5" width="4" height="4" rx="1" opacity=".3"/><rect y="10" width="4" height="4" rx="1"/><rect x="5" y="10" width="4" height="4" rx="1" opacity=".3"/><rect x="10" y="10" width="4" height="4" rx="1" opacity=".55"/></g></svg><span class="mx-lbl">Matchup matrix</span></button>
+        <ul class="tk-list" id="tk-list" role="listbox" aria-label="Pokémon" hidden></ul>
+      </div>
+      <p class="tk-msg" role="alert"></p>
+      <span class="tk-sr" role="status"></span>
+      <span class="tk-sr" id="tk-help">Enter includes. Shift+Enter, or a minus sign first, leaves out. Backspace in an empty box selects, then removes, the last Pokémon.</span>
+      <div class="mg-split"><div class="mg-browse">
+        <button class="mg-tog" type="button" aria-expanded="${mgOpen}" aria-controls="mg-drawer"><span class="mg-chev" aria-hidden="true"></span>Browse all ${SPECIES.length}<small>Pokémon</small></button>
+        <div class="mg-drawer${mgOpen ? "" : " mg-shut"}" id="mg-drawer" role="region" aria-label="All ${SPECIES.length} Pokémon"><div class="mg-inner"><div class="mg-body">
+          <div class="mg-tools">
+            <div><span class="mg-lab" id="mg-as-l">Click</span><div class="seg" role="group" aria-labelledby="mg-as-l"><button type="button" data-mg-as="need">Must bring</button><button type="button" data-mg-as="out" class="mg-outmode">Leave out</button></div></div>
+            <div><span class="mg-lab" id="mg-or-l">Order</span><div class="seg" role="group" aria-labelledby="mg-or-l"><button type="button" data-mg-order="rating">Best first</button><button type="button" data-mg-order="az">A–Z</button></div></div>
+          </div>
+          <div class="sp-wall" id="mg-wall" role="grid" aria-label="All ${SPECIES.length} Pokémon. Arrow keys move, Enter adds as Must bring, Shift+Enter leaves out, typing searches."></div>
+          <p class="mg-read" aria-hidden="true"></p>
+        </div></div></div>
+      </div>
+      <div class="mg-side"><ol class="tk-res" aria-label="Top matching teams"></ol>
+      <div class="tk-foot"></div></div></div></section>`;
+    const q = s => root.querySelector(s);
+    bState?.ro?.disconnect();
+    bState = {el:q(".tk"), bar:q(".tk-bar"), toks:q(".tk-toks"), input:q(".tk-in"), list:q(".tk-list"), n:q(".tk-n b"),
+      live:q(".tk-sr[role=status]"), msg:q(".tk-msg"), res:q(".tk-res"), foot:q(".tk-foot"),
+      tog:q(".mg-tog"), drawer:q(".mg-drawer"), wall:q(".sp-wall"), read:q(".mg-read"), mxBtn:q(".mx-open"),
+      opts:[], act:-1, mode:"+", shift:false, armed:false, open:false, q:""};
+    mgBuild(bState);
+  }
+  const B = bState;
+  // ---- tokens: Layout animation (FLIP Translate) of the tokens that stay, Scale in for a new one, input box slides along
+  const before = new Map([...B.toks.children].map(el => [el.dataset.tk, el.getBoundingClientRect()]));
+  const inBefore = B.input.getBoundingClientRect();
+  const focusKey = document.activeElement?.closest?.(".tk-tok") ? [document.activeElement.closest(".tk-tok").dataset.tk, document.activeElement.className] : null;
+  B.toks.innerHTML = S.tk.map((s, i) => { const inc = S.need.has(s);
+    return `<span class="tk-tok ${inc ? "tk-inc" : "tk-exc"}" role="listitem" data-tk="${esc(s)}" aria-selected="${B.armed && i === S.tk.length - 1}">
+      <button class="tk-pol" type="button" data-flip="${esc(s)}" aria-label="${inc ? "Including" : "Leaving out"} ${esc(s)}. Switch to ${inc ? "leave out" : "include"}">${inc ? "+" : "−"}</button>
+      ${SP[s] ? `<img src="${SP[s]}" alt="">` : ""}<span class="tk-nm">${esc(s)}</span>
+      <button class="tk-x" type="button" data-rm="${esc(s)}" aria-label="Remove ${esc(s)}">×</button></span>`; }).join("");
+  B.input.placeholder = S.tk.length ? "add another…" : "Type a Pokémon — e.g. sin, then -gar";
+  if (focusKey){ const tok = B.toks.querySelector(`[data-tk="${CSS.escape(focusKey[0])}"]`);
+    (tok ? tok.querySelector("." + focusKey[1].split(" ")[0]) : B.input)?.focus(); }
+  if (!fresh && !REDUCE){
+    let added = false;
+    for (const el of B.toks.children){
+      const p = before.get(el.dataset.tk);
+      if (p){ const r = el.getBoundingClientRect(), dx = p.left - r.left, dy = p.top - r.top;
+        if (Math.abs(dx) + Math.abs(dy) > 1) el.animate([{transform:`translate(${dx}px,${dy}px)`}, {transform:"none"}], {duration:180, easing:TK_EASE}); }
+      else { added = true; el.animate([{opacity:0, transform:"scale(.92)"}, {opacity:1, transform:"none"}], {duration:160, easing:TK_EASE}); }  // Scale in, never from 0
+    }
+    // the box only glides back after a removal; after an add it would slide across the token that is scaling in
+    const r = B.input.getBoundingClientRect(), dx = inBefore.left - r.left, dy = inBefore.top - r.top;
+    if (!added && Math.abs(dx) + Math.abs(dy) > 1) B.input.animate([{transform:`translate(${dx}px,${dy}px)`}, {transform:"none"}], {duration:180, easing:TK_EASE});
+  }
+  // ---- count: Number ticker; a screen reader gets the settled number once
+  const pool = filtered();
+  tkNumber(B.n, pool.length, fresh);
+  B.mxBtn.disabled = !pool.length;               // disabled state: nothing to put in the matrix
+  B.mxBtn.title = pool.length ? "" : "No team matches this search";
+  if (mx?.dlg.open && !mx.closing) mxRender();   // Frequency of use: the open panel follows instantly, no motion
+  mgState(pool); mgSpot(); if (fresh) mgRead(null);
+  const words = S.tk.map(s => (S.need.has(s) ? "with " : "without ") + s).join(", ");
+  B.live.textContent = `${pool.length} team${pool.length === 1 ? "" : "s"}${words ? " " + words : ""}`;
+  // ---- results: top five as six-sprite rows; Layout animation for rows that stay, Fade in (no Stagger: Frequency of use) for new ones
+  const top = pool.slice(0, 5);
+  const rowsBefore = new Map([...B.res.children].map(el => [el.dataset.id, el.getBoundingClientRect()]));
+  B.res.innerHTML = top.length ? top.map((t, i) => { const open = S.sel === t.id;
+    return `<li class="card tk-row" data-id="${t.id}">
+      <div class="tk-rh" role="button" tabindex="0" aria-expanded="${open}" aria-label="Team ${i+1}: ${esc(t.sp.join(", "))}, ${fmt(score(t))}. ${open ? "Hide" : "Show"} the six sets">
+        <span class="tk-rk">${i+1}</span>
+        <span class="tk-team">${t.sp.map(n => S.need.has(n) ? spr(n, "spr tk-hit") : spr(n)).join("")}</span>
+        <span class="tk-rate"><b>${fmt(score(t))}</b><span>${S.basis === "cautious" ? "cautious" : "win rate"} · ${t.b} battles</span>${kindTag(t)}</span></div>
+      ${open ? `<div class="tk-body">${sheet(t)}</div>` : ""}</li>`; }).join("")
+    : `<li class="card empty">No team matches ${esc(S.tk.map(s => (S.need.has(s) ? "+" : "−") + s).join(" ")) || "these settings"}. Remove a token or flip one, or lower the battle minimum.</li>`;
+  if (!fresh && !REDUCE) for (const el of B.res.children){
+    if (!el.dataset.id) continue;
+    const p = rowsBefore.get(el.dataset.id);
+    if (p){ const dy = p.top - el.getBoundingClientRect().top;
+      if (Math.abs(dy) > 1) el.animate([{transform:`translateY(${dy}px)`}, {transform:"none"}], {duration:180, easing:TK_EASE}); }
+    else el.animate([{opacity:0, transform:"translateY(4px)"}, {opacity:1, transform:"none"}], {duration:160, easing:TK_EASE});
+  }
+  const opened = S.sel && B.res.querySelector(`[data-id="${S.sel}"] .tk-body`);
+  if (opened && !REDUCE && B.lastSel !== S.sel){ opened.animate([{opacity:0, transform:"translateY(-4px)"}, {opacity:1, transform:"none"}], {duration:160, easing:TK_EASE}); }
+  B.lastSel = S.sel;   // Reveal the six sets only on the click that opens them, not on every keystroke
+  B.foot.innerHTML = pool.length > 5 ? `<span>Top 5 of ${pool.length}.</span><button class="btn" type="button" data-ladder>See all ${pool.length} in the Ladder</button>` : "";
+  if (B.open) tkDrawList();
+}
+
+function bindB(root){
+  root.addEventListener("pointerdown", e => { if (e.target.closest(".tk-list")) e.preventDefault(); });   // keep focus in the box
+  root.addEventListener("click", e => {
+    const B = bState; if (!B) return;
+    const mxb = e.target.closest(".mx-open"); if (mxb){ mxOpen(mxb); return; }
+    if (e.target.closest(".mg-tog")){ mgToggle(); return; }
+    const mo = e.target.closest("[data-mg-order]"); if (mo){ mgReorder(mo.dataset.mgOrder); return; }
+    const ma = e.target.closest("[data-mg-as]"); if (ma){ mgAs = ma.dataset.mgAs; mgState(filtered()); mgRead(null); return; }
+    const cell = e.target.closest(".sp-cell");
+    if (cell){ mgFocus(cell.dataset.s); mgPick(cell.dataset.s, e.shiftKey || e.altKey); return; }
+    const alt = e.target.closest("[data-alt]");
+    if (alt){ const i = +alt.dataset.alt; tkCommit(i, B.mode === "+" ? "-" : "+"); return; }
+    const opt = e.target.closest(".tk-opt");
+    if (opt){ B.act = +opt.dataset.i; tkCommit(B.act, B.mode); return; }
+    const fl = e.target.closest("[data-flip]"); if (fl){ tkFlip(fl.dataset.flip); return; }
+    const rm = e.target.closest("[data-rm]"); if (rm){ const s = rm.dataset.rm; tkRemove(s); B.input.focus(); return; }
+    if (e.target.closest("[data-ladder]")){ go(-1); return; }
+    if (e.target.closest("[data-copy]")) return;
+    const row = e.target.closest(".tk-rh");
+    if (row){ const id = row.closest(".tk-row").dataset.id; S.sel = S.sel === id ? null : id; render(); return; }
+    if (e.target.closest(".tk-bar") && !e.target.closest("button")) B.input.focus();
+  });
+  root.addEventListener("focusin", e => { if (e.target.classList?.contains("tk-in")){ bState.open = true; tkSuggest(); } });
+  root.addEventListener("focusout", e => { if (e.target.classList?.contains("tk-in")){ const B = bState; B.open = false; B.shift = false; B.armed = false;
+    tkDrawList(); const last = B.toks.lastElementChild; if (last) last.setAttribute("aria-selected", "false"); } });
+  root.addEventListener("input", e => { if (!e.target.classList?.contains("tk-in")) return;
+    const B = bState; B.msg.textContent = ""; if (B.armed){ B.armed = false; B.toks.lastElementChild?.setAttribute("aria-selected", "false"); }
+    B.open = true; tkSuggest(); });
+  // wall readout: name + teams left for the sprite under the pointer or focus
+  root.addEventListener("pointerover", e => { const c = e.target.closest?.(".sp-cell"); if (c && e.pointerType !== "touch") mgRead(c.dataset.s); });
+  root.addEventListener("pointerout", e => { if (e.target.closest?.(".sp-cell") && !e.relatedTarget?.closest?.(".sp-cell")) mgRead(document.activeElement?.closest?.(".sp-cell")?.dataset.s || null); });
+  root.addEventListener("focusin", e => { const c = e.target.closest?.(".sp-cell"); if (c){ if (bState.focus !== c.dataset.s) mgFocus(c.dataset.s); mgRead(c.dataset.s); } });
+  root.addEventListener("focusout", e => { if (e.target.closest?.(".sp-cell") && !e.relatedTarget?.closest?.(".sp-cell")) mgRead(null); });
+  root.addEventListener("keyup", e => { if (e.key === "Shift" && bState?.shift){ bState.shift = false; tkSuggest(); } });
+  root.addEventListener("keydown", e => {
+    const B = bState; if (!B) return;
+    if (e.target.classList?.contains("tk-rh") && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); e.target.click(); return; }
+    const cell = e.target.closest?.(".sp-cell");
+    if (cell){                                // the wall: grid keys, plus type-to-search into the shared bar
+      const s = cell.dataset.s, mv = {ArrowRight:[0,1], ArrowLeft:[0,-1], ArrowDown:[1,0], ArrowUp:[-1,0]}[e.key];
+      if (mv){ e.preventDefault(); e.stopPropagation();          // keep ←/→ from switching prototype variants
+        const n = mgStep(s, ...mv); n ? mgFocus(n) : B.input.focus(); return; }
+      if (e.key === "Home" || e.key === "End"){ e.preventDefault(); const o = MG_ORDER[mgOrder], i = o.indexOf(s), r = Math.floor(i / B.cols);
+        mgFocus(e.ctrlKey || e.metaKey ? o[e.key === "Home" ? 0 : o.length - 1] : o[Math.min(o.length - 1, e.key === "Home" ? r*B.cols : r*B.cols + B.cols - 1)]); return; }
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); mgPick(s, e.shiftKey || e.altKey); return; }
+      if (e.key === "Escape"){ B.input.focus(); return; }
+      if (e.key === "Backspace"){ e.preventDefault(); B.input.focus(); if (B.input.value){ B.input.value = B.input.value.slice(0, -1); tkSuggest(); } return; }
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && e.key !== " "){
+        e.preventDefault(); B.input.focus(); B.input.value += e.key; B.msg.textContent = ""; B.open = true; tkSuggest(); }
+      return;
+    }
+    if (!e.target.closest?.(".tk-bar")) return;
+    const inInput = e.target === B.input, empty = inInput && B.input.value === "";
+    // Arrow keys belong to the bar here, not to the variant switcher
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") e.stopPropagation();
+    if (inInput){
+      if (e.key === "Shift" && !B.shift){ B.shift = true; tkSuggest(); return; }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); if (!B.opts.length) return;
+        B.open = true; B.arrowed = true; const d = e.key === "ArrowDown" ? 1 : -1; B.act = ((B.act < 0 ? (d > 0 ? -1 : 0) : B.act) + d + B.opts.length) % B.opts.length; tkDrawList();
+        B.list.querySelector(`#tk-o${B.act}`)?.scrollIntoView({block:"nearest"}); return; }
+      if (e.key === "Enter"){ e.preventDefault(); if (B.act < 0) return;
+        tkCommit(B.act, e.shiftKey || /^\s*[-−]/.test(B.input.value) ? "-" : "+"); return; }
+      if (e.key === "Escape"){ if (B.open && B.opts.length){ B.open = false; tkDrawList(); } else { B.input.value = ""; B.msg.textContent = ""; tkSuggest(); } return; }   // tkSuggest also clears the wall spotlight
+      if (e.key === "Backspace" && empty && S.tk.length){ e.preventDefault();
+        const last = S.tk[S.tk.length - 1];
+        if (B.armed) tkRemove(last);          // second press removes
+        else { B.armed = true; B.toks.lastElementChild.setAttribute("aria-selected", "true");
+          B.live.textContent = `${last} selected. Press Backspace again to remove it.`; }
+        return; }
+      if (e.key === "ArrowLeft" && B.input.selectionStart === 0 && B.input.selectionEnd === 0 && S.tk.length){ e.preventDefault(); B.toks.querySelector(".tk-tok:last-child .tk-x")?.focus(); return; }
+      return;
+    }
+    // focus is on a token button: ←/→ walk the buttons, Backspace/Delete removes that token
+    const tok = e.target.closest(".tk-tok"); if (!tok) return;
+    if (e.key === "Backspace" || e.key === "Delete"){ e.preventDefault(); const s = tok.dataset.tk; tkRemove(s); B.input.focus(); return; }
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight"){ e.preventDefault();
+      const f = [...B.toks.querySelectorAll("button"), B.input], i = f.indexOf(e.target);
+      f[Math.max(0, Math.min(f.length - 1, i + (e.key === "ArrowLeft" ? -1 : 1)))].focus(); }
+  });
+}
+
+/* ---------- Variant B: Matchup matrix (mx-) ----------
+   A modal <dialog> (focus stays inside, Esc and backdrop close) opened from the token bar.
+   Rows = the top 10 of filtered(); columns = the D.opp top-placing teams, hardest first for the rows shown.
+   The grid is one Tab stop (roving tabindex); positions are (r, c): r 0 = header row, c 0 = row labels, c N+1 = "Beats". */
+const MX_N = D.opp.length, MX_EASE = "cubic-bezier(0.23,1,0.32,1)", MX_FINE = matchMedia("(hover:hover) and (pointer:fine)");
+let mx = null;   // {dlg, inner, body, tip, btn, rows, cols, col, focus:{r,c}, cross, closing, anim}
+const mxFill = p => { const pct = Math.round(Math.sqrt(Math.abs(p - .5) * 2) * 88);   // diverging around 0.5 (sqrt so 0.25/0.75 read clearly), existing tokens only
+  return pct < 1 ? "var(--soft)" : `color-mix(in srgb,var(${p > .5 ? "--rate" : "--out"}) ${pct}%,var(--soft))`; };
+const mxImg = (n, px) => SP[n] ? `<img src="${SP[n]}" alt="" width="${px}" height="${px}" draggable="false">` : `<span class="mx-miss">${esc(n.slice(0,4))}</span>`;
+// Reader-facing opponent name: how it placed first, the identifier only in parentheses (see AGENTS.md wording rules).
+const oppName = o => `${o.place || "Placed"} at ${o.event || "a Regulation M-B event"} (${o.id})`;
+const mxTipText = (r, t, o, i) => t.cn[i]
+  ? `Team ${r} vs ${oppName(o)} — ${t.cw[i]} of ${t.cn[i]} battle${t.cn[i] === 1 ? "" : "s"} (${(t.cw[i] / t.cn[i]).toFixed(2)})`
+  : `Team ${r} vs ${oppName(o)} — never battled`;
+const mxBeats = t => t.cn.reduce((k, n, i) => k + (n > 0 && t.cw[i] / n > .5 ? 1 : 0), 0);
+const mxMedian = a => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return !s.length ? 0 : s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2; };
+
+function mxEnsure(){
+  if (mx) return mx;
+  const dlg = document.createElement("dialog");
+  dlg.className = "mx-dlg"; dlg.setAttribute("aria-labelledby", "mx-title");
+  dlg.innerHTML = `<div class="mx-in"><div class="mx-hd"><h2 class="mx-h" id="mx-title">How the top results fare against the ${MX_N} top-placing teams</h2>
+      <button class="mx-close" type="button" aria-label="Close the matchup matrix">×</button></div><div class="mx-body"></div></div>
+    <div class="mx-tip" aria-hidden="true"></div>`;
+  document.body.appendChild(dlg);
+  mx = {dlg, inner:dlg.querySelector(".mx-in"), body:dlg.querySelector(".mx-body"), tip:dlg.querySelector(".mx-tip"),
+    btn:null, rows:[], cols:[], col:null, focus:{r:1, c:1}, cross:null, closing:false, anim:null};
+  mxBind(mx);
+  return mx;
+}
+
+function mxRender(){
+  const M = mx, pool = filtered(), rows = pool.slice(0, 10), R = rows.length;
+  const ae = document.activeElement, hadFocus = !!ae?.closest?.(".mx-grid") && M.body.contains(ae);
+  M.rows = rows;
+  if (!R){ M.body.innerHTML = `<p class="mx-empty">No team matches this search, so there is nothing to compare.</p>`; M.cols = []; return; }
+  // hardest first = lowest mean win rate over the shown rows that battled it; a column nobody shown has played goes last
+  const cols = D.opp.map((o, i) => { let s = 0, k = 0; for (const t of rows) if (t.cn[i]){ s += t.cw[i] / t.cn[i]; k++; }
+      return {o, i, mean: k ? s / k : null}; })
+    .sort((a, b) => (a.mean ?? 9) - (b.mean ?? 9) || a.i - b.i);
+  M.cols = cols;
+  M.focus = {r: Math.min(M.focus.r, R), c: Math.min(M.focus.c, MX_N + 1)};
+  const words = S.tk.map(s => (S.need.has(s) ? "with " : "without ") + s).join(", ");
+  const typical = rows.map(t => mxMedian(t.cn.filter(n => n > 0))), med = Math.round(mxMedian(typical));
+  const thinRows = typical.filter(n => n <= 8), thin = thinRows.length ? Math.round(mxMedian(thinRows)) : 0;   // the honesty line shows if any row is thin
+  const head = `<div class="mx-row" role="row" data-row="0">
+      <div class="mx-corner" role="columnheader" tabindex="-1" data-r="0" data-c="0"><span class="mx-dir">Opponents, hardest first →</span>
+        <span class="mx-rk" style="font-size:12px">#</span><span>Team</span><span class="mx-rt">${S.basis === "cautious" ? "cautious" : "win rate"}<br>battles</span></div>
+      ${cols.map((x, j) => `<div class="mx-ch${M.col === x.i ? " mx-selc" : ""}${j < 3 ? " mx-tl" : j > MX_N - 4 ? " mx-tr" : ""}" role="columnheader" tabindex="-1" data-r="0" data-c="${j+1}" data-o="${x.i}"
+          aria-selected="${M.col === x.i}" data-mean="${x.mean ?? ""}" data-tip="${esc(oppName(x.o))}"
+          aria-label="${esc(`${oppName(x.o)}: ${x.o.mons.join(", ")}. Shown teams average ${x.mean == null ? "no battles" : x.mean.toFixed(2)}. Enter shows the best three against it.`)}">
+          ${x.o.mons.map(n => mxImg(n, 16)).join("")}<span class="mx-place">${esc(x.o.place)}</span></div>`).join("")}
+      <div class="mx-sumh" role="columnheader" tabindex="-1" data-r="0" data-c="${MX_N+1}">Beats<span>of ${MX_N}</span></div></div>`;
+  const body = rows.map((t, k) => { const r = k + 1, sel = S.sel === t.id, beats = mxBeats(t), miss = t.cn.filter(n => !n).length;
+    return `<div class="mx-row${sel ? " mx-selr" : ""}" role="row" data-row="${r}" aria-selected="${sel}">
+      <div class="mx-rl${t.k === "real" ? " mx-real" : ""}" role="rowheader" tabindex="-1" data-r="${r}" data-c="0"
+        aria-label="Team ${r}${t.k === "real" ? ", real tournament team" : ""}: ${esc(t.sp.join(", "))}. ${S.basis === "cautious" ? "Cautious rating" : "Win rate"} ${fmt(score(t))}, ${t.b} battles. Enter ${sel ? "hides" : "shows"} its six sets.">
+        <span class="mx-rk">${r}</span><span class="mx-six">${t.sp.map(n => mxImg(n, 28)).join("")}</span>
+        <span class="mx-rt"><b>${fmt(score(t))}</b><span>${t.b} battles</span></span></div>
+      ${cols.map((x, j) => { const i = x.i, n = t.cn[i], tip = esc(mxTipText(r, t, x.o, i));
+        return `<div class="mx-c${n ? "" : " mx-nil"}${M.col === i ? " mx-sc" : ""}" role="gridcell" tabindex="-1" data-r="${r}" data-c="${j+1}" data-o="${i}" data-tip="${tip}" aria-label="${tip}"${n ? ` style="background:${mxFill(t.cw[i] / n)}"` : ""}></div>`; }).join("")}
+      <div class="mx-sum" role="gridcell" tabindex="-1" data-r="${r}" data-c="${MX_N+1}" aria-label="Team ${r} beats ${beats} of ${MX_N}${miss ? `; ${miss} never battled` : ""}"${miss ? ` title="${miss} opponent${miss > 1 ? "s" : ""} never battled, counted as not beaten"` : ""}><b>${beats}</b><span>of ${MX_N}</span></div></div>`; }).join("");
+  // strip: one opponent, the best three shown teams against it
+  let strip = "";
+  if (M.col != null){
+    const o = D.opp[M.col], pos = cols.findIndex(x => x.i === M.col), x = cols[pos];
+    const best = rows.map((t, k) => ({t, r: k + 1, n: t.cn[M.col], w: t.cw[M.col]})).filter(z => z.n > 0)
+      .sort((a, b) => b.w / b.n - a.w / a.n || b.n - a.n || a.r - b.r).slice(0, 3);
+    strip = `<section class="mx-strip" aria-label="${esc(oppName(o))} against the shown teams">
+      <div class="mx-sthd"><span class="mx-opp">${o.mons.map(n => mxImg(n, 40)).join("")}</span>
+        <div class="mx-sttx"><b>${esc(oppName(o))}</b>
+          <div class="mx-mut">Hardest opponent #${pos + 1} of ${MX_N} · shown teams average ${x.mean == null ? "—" : x.mean.toFixed(2)}</div></div>
+        <button class="mx-strip-x" type="button" aria-label="Close ${esc(oppName(o))}">×</button></div>
+      ${best.length ? `<div class="mx-mut" style="margin-top:10px">Best of the shown teams against it</div><ol class="mx-best">${best.map(z =>
+        `<li><button class="mx-pick" type="button" data-pick="${z.t.id}" aria-label="Team ${z.r}: ${z.w} of ${z.n} against ${esc(oppName(o))}. Show its six sets">
+          <span class="mx-rk">${z.r}</span><span class="mx-six">${z.t.sp.map(n => mxImg(n, 28)).join("")}</span>
+          <span class="mx-pr"><b>${(z.w / z.n).toFixed(2)}</b><span>${z.w} of ${z.n} battles</span></span></button></li>`).join("")}</ol>`
+        : `<p class="mx-mut">None of the shown teams has battled ${esc(oppName(o))}.</p>`}</section>`;
+  }
+  const selT = rows.find(t => t.id === S.sel);
+  M.body.innerHTML = `<p class="mx-sub">Top ${R} of ${pool.length} matching team${pool.length === 1 ? "" : "s"}${words ? " " + esc(words) : ""}, in result order. Each cell is wins ÷ battles against one opponent, behaviour-cloning policy on both sides.</p>
+    <div class="mx-leg" aria-hidden="true"><span>Lost all</span>${[0, .25, .5, .75, 1].map(p => `<i style="background:${mxFill(p)}"></i>`).join("")}<span>Won all</span>
+      <span class="mx-legi"><i style="background:repeating-linear-gradient(135deg,var(--line) 0 1.5px,transparent 1.5px 5px)"></i>Never battled</span>
+      <span class="mx-legi"><b class="mx-realk">1</b>Rank in amber: real tournament team</span></div>
+    ${thin ? `<p class="mx-note">${med <= 8 ? `Most cells are only ~${med} battles` : `Some rows have only ~${thin} battles per cell`}, so read the row totals, not single cells; the four real tournament teams have 48 per cell.</p>` : ""}
+    <div class="mx-scroll"><div class="mx-grid" role="grid" aria-labelledby="mx-title" aria-rowcount="${R + 1}" aria-colcount="${MX_N + 2}"
+      style="grid-template-columns:max-content repeat(${MX_N},18px) max-content">${head}${body}</div></div>
+    ${strip}
+    ${selT ? `<section class="mx-set"><h3 class="mx-h3">Team ${rows.indexOf(selT) + 1} — six sets</h3>${sheet(selT)}</section>` : ""}`;
+  // keep the sticky label / "Beats" columns from hiding a cell that keyboard focus scrolls to
+  const sc = M.body.querySelector(".mx-scroll"), lab = sc.querySelector(".mx-corner"), sum = sc.querySelector(".mx-sumh");
+  sc.style.scrollPaddingLeft = lab.offsetWidth + 4 + "px";
+  sc.style.scrollPaddingRight = getComputedStyle(sum).position === "sticky" ? sum.offsetWidth + 4 + "px" : "0px";
+  mxRove();
+  if (hadFocus) mxAt(M.focus.r, M.focus.c)?.focus({preventScroll:true});
+  if (M.cross) mxCross(mxAt(M.cross[0], M.cross[1]));
+}
+const mxAt = (r, c) => mx.body.querySelector(`.mx-grid [data-r="${r}"][data-c="${c}"]`);
+function mxRove(){                                // roving tabindex: exactly one grid position is a Tab stop
+  mx.body.querySelectorAll('.mx-grid [tabindex="0"]').forEach(x => x.tabIndex = -1);
+  const el = mxAt(mx.focus.r, mx.focus.c); if (el) el.tabIndex = 0;
+}
+function mxFocus(r, c){
+  mx.focus = {r, c}; mxRove();
+  const el = mxAt(r, c); if (!el) return;
+  el.focus({preventScroll:true});
+  if (c >= 1 && c <= MX_N) el.scrollIntoView({block:"nearest", inline:"nearest"});
+}
+function mxCross(g){                              // Hover effect: crosshair of row + column (also follows keyboard focus)
+  const M = mx, grid = M.body.querySelector(".mx-grid"); if (!grid) return;
+  grid.querySelectorAll(".mx-hc,.mx-hr").forEach(x => x.classList.remove("mx-hc", "mx-hr"));
+  const r = g ? +g.dataset.r : -1, c = g ? +g.dataset.c : -1, isCol = c >= 1 && c <= MX_N;
+  M.cross = g ? [r, c] : null;
+  if (isCol) grid.querySelectorAll(`[data-c="${c}"]`).forEach(x => x.classList.add("mx-hc"));
+  if (r > 0) grid.querySelector(`.mx-row[data-row="${r}"]`)?.classList.add("mx-hr");
+  grid.classList.toggle("mx-x", !!g && (r > 0 || isCol));
+  mxTip(isCol ? g : null);
+}
+function mxTip(el){
+  const tip = mx.tip;
+  if (!el){ tip.classList.remove("mx-on"); return; }
+  tip.textContent = el.dataset.tip;
+  const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  const x = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+  const y = r.top - h - 6 < 8 ? r.bottom + 6 : r.top - h - 6;
+  tip.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`;   // placed instantly; only opacity fades
+  tip.classList.add("mx-on");
+}
+function mxActivate(g){
+  const M = mx, r = +g.dataset.r, c = +g.dataset.c;
+  M.focus = {r, c}; mxRove();
+  if (c >= 1 && c <= MX_N){                       // header toggles the opponent strip; a cell opens its column's strip
+    const o = +g.dataset.o;
+    M.col = r === 0 && M.col === o ? null : o;
+    mxRender();
+    if (M.col != null) M.body.querySelector(".mx-strip")?.scrollIntoView({block:"nearest"});
+  } else if (c === 0 && r > 0) mxSelect(M.rows[r - 1].id);
+}
+function mxSelect(id){                            // a row label sets S.sel, so variants A/B/C agree on the open team
+  S.sel = S.sel === id ? null : id;
+  render();                                       // viewB re-renders the open panel instantly
+  if (S.sel) mx.body.querySelector(".mx-set")?.scrollIntoView({block:"nearest"});
+}
+function mxOrigin(){                              // Origin-aware animation: transform-origin sits on the button
+  const M = mx, b = M.btn?.isConnected ? M.btn.getBoundingClientRect() : null, d = M.dlg.getBoundingClientRect();
+  M.dlg.style.transformOrigin = b ? `${Math.round(b.left + b.width / 2 - d.left)}px ${Math.round(b.top + b.height / 2 - d.top)}px` : "50% 0";
+}
+function mxOpen(btn){
+  if (btn.disabled || !filtered().length) return;
+  const M = mxEnsure(); if (M.dlg.open) return;
+  M.btn = btn; M.col = null; M.cross = null; M.focus = {r:1, c:1};
+  mxRender();
+  M.dlg.showModal();                              // modal: background inert, focus starts on Close, Esc fires "cancel"
+  M.inner.scrollTop = 0;
+  mxOrigin();
+  // Origin-aware animation: grow from the button, scale .96 → 1 + opacity, 200 ms ease-out. Reduced motion: fade only.
+  M.anim = M.dlg.animate(REDUCE ? [{opacity:0}, {opacity:1}] : [{opacity:0, transform:"scale(.96)"}, {opacity:1, transform:"none"}],
+    {duration:200, easing:MX_EASE});
+  // Stagger: rows enter 30 ms apart, first 10 only, once per open (a rare action, so a little delight is allowed)
+  if (!REDUCE) M.body.querySelectorAll('.mx-row:not([data-row="0"])').forEach((row, k) => { if (k < 10)
+    row.animate([{opacity:0, transform:"translateY(6px)"}, {opacity:1, transform:"none"}], {duration:200, delay:60 + k * 30, easing:MX_EASE, fill:"backwards"}); });
+}
+function mxClose(){
+  const M = mx; if (!M?.dlg.open || M.closing) return;
+  M.closing = true; mxTip(null); M.anim?.cancel(); mxOrigin();
+  M.dlg.classList.add("mx-out");                  // backdrop fades out alongside
+  // Origin-aware animation, exit mirrors entry: shrink back toward the button. Reduced motion: fade only.
+  M.anim = M.dlg.animate(REDUCE ? [{opacity:1}, {opacity:0}] : [{opacity:1, transform:"none"}, {opacity:0, transform:"scale(.96)"}],
+    {duration:200, easing:MX_EASE, fill:"forwards"});
+  M.anim.finished.then(() => M.dlg.close(), () => {});
+}
+function mxBind(M){
+  const {dlg} = M, inGrid = el => el?.closest?.(".mx-grid [data-c]");
+  dlg.addEventListener("cancel", e => { e.preventDefault(); mxClose(); });   // Esc → animated exit
+  dlg.addEventListener("close", () => {
+    M.closing = false; M.anim?.cancel(); M.anim = null; dlg.classList.remove("mx-out"); mxTip(null);
+    if (M.btn?.isConnected && !M.btn.disabled) M.btn.focus();               // focus returns to the button
+  });
+  dlg.addEventListener("click", e => {
+    if (e.target === dlg || e.target.closest(".mx-close")){ mxClose(); return; }   // e.target === dlg: a backdrop click
+    if (e.target.closest("[data-copy]")) return;
+    if (e.target.closest(".mx-strip-x")){ M.col = null; mxRender(); return; }
+    const pk = e.target.closest("[data-pick]"); if (pk){ mxSelect(pk.dataset.pick); return; }
+    const g = inGrid(e.target); if (g) mxActivate(g);
+  });
+  dlg.addEventListener("keydown", e => {
+    if (e.key.startsWith("Arrow")) e.stopPropagation();       // ←/→ must not switch prototype variants behind the panel
+    const g = inGrid(e.target); if (!g) return;
+    const r = +g.dataset.r, c = +g.dataset.c, R = M.rows.length;
+    const mv = {ArrowRight:[0,1], ArrowLeft:[0,-1], ArrowDown:[1,0], ArrowUp:[-1,0]}[e.key];
+    let to = null;
+    if (mv) to = [r + mv[0], c + mv[1]];
+    else if (e.key === "Home") to = e.ctrlKey || e.metaKey ? [0, 0] : [r, 0];
+    else if (e.key === "End") to = e.ctrlKey || e.metaKey ? [R, MX_N + 1] : [r, MX_N + 1];
+    else if (e.key === "Enter" || e.key === " "){ e.preventDefault(); mxActivate(g); return; }
+    if (!to) return;
+    e.preventDefault();
+    mxFocus(Math.max(0, Math.min(R, to[0])), Math.max(0, Math.min(MX_N + 1, to[1])));
+  });
+  // Hover effect: fine pointers only; touch gets the crosshair through focus instead
+  dlg.addEventListener("pointerover", e => { if (e.pointerType !== "mouse" || !MX_FINE.matches) return;
+    const g = inGrid(e.target); if (g) mxCross(g); });
+  dlg.addEventListener("pointerout", e => { if (!inGrid(e.target) || inGrid(e.relatedTarget)) return;
+    const f = inGrid(document.activeElement); mxCross(f && f.matches(":focus-visible") ? f : null); });
+  dlg.addEventListener("focusin", e => { const g = inGrid(e.target); if (!g) return;
+    M.focus = {r:+g.dataset.r, c:+g.dataset.c}; mxRove(); if (g.matches(":focus-visible")) mxCross(g); });
+  dlg.addEventListener("focusout", e => { if (inGrid(e.target) && !inGrid(e.relatedTarget)) mxCross(null); });
+  M.inner.addEventListener("scroll", () => {      // the tip follows its cell when the panel or the matrix scrolls
+    const g = M.cross && mxAt(M.cross[0], M.cross[1]); mxTip(g && +g.dataset.c >= 1 && +g.dataset.c <= MX_N ? g : null);
+  }, {capture:true, passive:true});
+}
+
+/* ---------- Variant C: frontier ---------- */
+const CW = 640, CH = 450, CM = {l:48, r:12, t:18, b:58}, COLS = [98,196,392,784,1176,2400], PR = 4.4, Y0 = 0.30;
+const colOf = b => b<150 ? 0 : b<250 ? 1 : b<600 ? 2 : b<1000 ? 3 : b<1500 ? 4 : 5;
+const colN = COLS.map((_, i) => T.filter(t => colOf(t.b) === i).length);
+const colWt = colN.map(n => 0.7 + Math.sqrt(n)/6), wSum = colWt.reduce((a,b) => a+b, 0);
+const colWs = colWt.map(w => w / wSum * (CW-CM.l-CM.r));
+const colL = colWs.map((_, i) => CM.l + colWs.slice(0, i).reduce((a,b) => a+b, 0));
+const colX = i => colL[i] + colWs[i]/2;
+let cState = null;                                   // {svg, nodes, panel} for the live chart
+function compact(t){
+  return `<div class="crow">${t.mons.map(m => `<div class="cm">${spr(m.n)}<div><b>${esc(m.n)}</b> <span class="meta">${esc(m.i||"no item")} · ${esc(m.a)}</span><div class="mv">${m.m.map(esc).join(" · ")}</div></div></div>`).join("")}</div>
+    <div class="sheetfoot"><span>${t.w} wins in ${t.b} battles against ${t.opp} top-placing teams</span><button class="btn" data-copy="${t.id}">Copy Showdown paste</button></div>`;
+}
+function panelHTML(t, tag){
+  return `<div class="count">${tag}</div>
+    <div class="pbig"><b>${fmt(score(t))}</b><span>${S.basis==="cautious" ? "cautious rating" : "win rate"}</span>${kindTag(t)}</div>
+    <div class="count">raw ${fmt(t.p)} · ${t.b} battles · interval ${fmt(t.lo)}–${fmt(t.hi)}</div>${compact(t)}`;
+}
+function viewC(root){
+  const vis = filtered(), visSet = new Set(vis.map(t => t.id));
+  const ymax = Math.min(1, Math.ceil((Math.max(...T.map(score)) + 0.01) * 20) / 20);
+  const y = v => CH - CM.b - (v - Y0) / (ymax - Y0) * (CH - CM.t - CM.b);
+  if (!cState || !root.contains(cState.svg)){
+    const ticks = []; for (let v = Y0; v <= ymax + 1e-9; v += 0.05) ticks.push(+v.toFixed(2));
+    root.innerHTML = `<div class="cgrid"><div class="card plot">
+      <svg class="sc" viewBox="0 0 ${CW} ${CH}" role="group" aria-label="Rating against battles played, one mark per team">
+        ${COLS.map((c,i) => i%2===0 ? `<rect x="${colL[i]}" y="${CM.t}" width="${colWs[i]}" height="${CH-CM.t-CM.b}" fill="var(--soft)" opacity=".55"/>` : "").join("")}
+        <g id="grid"></g><g id="cols"></g>
+        <g id="best"></g><g id="pts"></g>
+        <text x="${CM.l+(CW-CM.l-CM.r)/2}" y="${CH-6}" text-anchor="middle">Battles played: further right means more evidence</text>
+      </svg>
+      <div class="legend"><span><i style="background:var(--real);transform:rotate(45deg)"></i>Real tournament team</span><span><i style="background:var(--search);border-radius:50%"></i>Found by search</span>
+        <span><i style="border:2px solid var(--rate);border-radius:50%;background:none"></i>Best team overall</span><span>Numbers: best in that column</span><span id="hidden"></span></div></div>
+      <aside class="card cpanel" id="cpanel" aria-live="polite"></aside></div>`;
+    const svg = root.querySelector("svg.sc"), pts = svg.querySelector("#pts");
+    const nodes = {};
+    for (const t of T){
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "pt off"); g.dataset.id = t.id; g.setAttribute("tabindex", "-1");
+      g.setAttribute("role", "button"); g.setAttribute("aria-label", `${t.sp.join(", ")}: ${t.b} battles`);
+      g.innerHTML = t.k === "real"
+        ? `<rect x="-6" y="-6" width="12" height="12" rx="2" transform="rotate(45)" fill="var(--real)"/>`
+        : `<circle r="${PR}" fill="var(--search)" fill-opacity=".8"/>`;
+      pts.appendChild(g); nodes[t.id] = g;
+    }
+    cState = {svg, nodes, panel: root.querySelector("#cpanel"), x: {}, hover: null};
+  }
+  const {svg, nodes} = cState;
+  // axes (grid depends on ymax, columns on the filtered counts)
+  const counts = COLS.map((_, i) => vis.filter(t => colOf(t.b) === i).length);
+  svg.querySelector("#grid").innerHTML = (() => { const o = []; for (let v = Y0; v <= ymax + 1e-9; v += 0.05) o.push(`<line class="gl" x1="${CM.l}" x2="${CW-CM.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${CM.l-8}" y="${y(v)+4}" text-anchor="end">${v.toFixed(2)}</text>`); return o.join("")
+    + (0.531 > Y0 && 0.531 < ymax ? `<line x1="${CM.l}" x2="${CW-CM.r}" y1="${y(.531)}" y2="${y(.531)}" stroke="var(--muted)" stroke-dasharray="6 4"/><text x="${CW-CM.r-4}" y="${y(.531)-6}" text-anchor="end">typical top-50 team 0.531</text>` : ""); })();
+  svg.querySelector("#cols").innerHTML = COLS.map((c,i) => `<text x="${colX(i)}" y="${CH-CM.b+18}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${c===98?"≈98":c===196?"≈196":c}</text><text x="${colX(i)}" y="${CH-CM.b+34}" text-anchor="middle">${counts[i]} team${counts[i]===1?"":"s"}</text>`).join("");
+  // positions: a small beeswarm per column so marks never sit on top of each other
+  const pos = {}, off = [];
+  for (let i = 0; i < COLS.length; i++){
+    const placed = [], half = colWs[i]/2 - PR - 2;
+    for (const t of vis.filter(t => colOf(t.b) === i && score(t) >= Y0).sort((a,b) => score(b) - score(a))){
+      const cy = y(score(t)); let best = 0;
+      for (let k = 0; k < 400; k++){
+        const dx = (k%2 ? 1 : -1) * Math.ceil(k/2) * (PR*0.9);
+        if (Math.abs(dx) > half) { best = ((k*37)%21 - 10) / 10 * half; break; }
+        if (placed.every(([px,py]) => (px-dx)**2 + (py-cy)**2 >= (2*PR+0.6)**2)) { best = dx; break; }
+      }
+      placed.push([best, cy]); pos[t.id] = [colX(i) + best, cy];
+    }
+  }
+  let hiddenN = 0;
+  for (const t of T){
+    const n = nodes[t.id], on = visSet.has(t.id), p = pos[t.id];
+    if (on && !p) hiddenN++;
+    n.classList.toggle("off", !(on && p));
+    n.setAttribute("tabindex", on && p ? "0" : "-1");
+    n.classList.toggle("sel", S.sel === t.id);
+    if (p) n.style.transform = `translate(${p[0]}px, ${p[1]}px)`;
+    else if (!n.style.transform) n.style.transform = `translate(${colX(colOf(t.b))}px, ${CH-CM.b}px)`;
+  }
+  root.querySelector("#hidden").textContent = hiddenN ? `${hiddenN} lower-rated teams sit below ${Y0.toFixed(2)} and are off the chart` : "";
+  // best in each column + the overall winner
+  const bestCol = COLS.map((_, i) => vis.find(t => colOf(t.b) === i && pos[t.id]));
+  const top = vis.find(t => pos[t.id]);
+  svg.querySelector("#best").innerHTML = bestCol.filter(Boolean).map(t => `<text x="${pos[t.id][0]}" y="${pos[t.id][1]-12}" text-anchor="middle" style="fill:var(--ink);font-weight:${t===top?700:500}">${fmt(score(t))}</text>`).join("")
+    + (top ? `<circle cx="${pos[top.id][0]}" cy="${pos[top.id][1]}" r="11" fill="none" stroke="var(--rate)" stroke-width="2"/>` : "");
+  cState.pos = pos; cState.top = top;
+  showPanel();
+}
+function showPanel(){
+  if (!cState) return;
+  const id = cState.hover, t = id ? byId[id] : (S.sel && cState.pos[S.sel] ? byId[S.sel] : cState.top);
+  if (!t){ cState.panel.innerHTML = `<div class="empty" style="padding:18px">No team matches. Lower the battle minimum or put a Pokémon back in.</div>`; return; }
+  const tag = id ? (id === S.sel ? "Pinned" : "Preview — click to pin") : (S.sel && S.sel === t.id ? "Pinned" : "Top pick right now");
+  cState.panel.innerHTML = panelHTML(t, tag);
+}
+function bindC(root){
+  const idOf = e => { const p = e.target.closest?.(".pt"); return p && !p.classList.contains("off") ? p.dataset.id : null; };
+  root.addEventListener("pointerover", e => { const id = idOf(e); if (id && cState){ cState.hover = id; showPanel(); } });
+  root.addEventListener("pointerout", e => { if (e.target.closest?.(".pt") && cState){ cState.hover = null; showPanel(); } });
+  root.addEventListener("focusin", e => { const id = idOf(e); if (id){ cState.hover = id; showPanel(); } });
+  root.addEventListener("focusout", e => { if (e.target.closest?.(".pt") && cState){ cState.hover = null; showPanel(); } });
+  root.addEventListener("click", e => { const id = idOf(e); if (!id) return;
+    S.sel = S.sel === id ? null : id; cState.hover = null; render(); });
+  root.addEventListener("keydown", e => { if ((e.key==="Enter"||e.key===" ") && e.target.classList?.contains("pt")){ e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click",{bubbles:true})); } });
+}
+
+/* ---------- shell ---------- */
+const VARIANTS = {A:["Ladder", viewA, bindA], B:["Query", viewB, bindB], C:["Frontier", viewC, bindC]};
+const KEYS = Object.keys(VARIANTS);
+let cur = new URLSearchParams(location.search).get("variant"); if (!VARIANTS[cur]) cur = "B";
+if (new URLSearchParams(location.search).has("clean")) document.querySelector(".switcher").style.display = "none";  // ?clean hides the prototype bar for screenshots
+let stage = $("#stage"), bound = null;
+function render(){
+  const list = filtered();
+  renderControls(list.length);
+  if (bound !== cur){ const fresh = stage.cloneNode(false); stage.replaceWith(fresh); stage = fresh; VARIANTS[cur][2](stage); bound = cur; }
+  VARIANTS[cur][1](stage);
+  if (cur !== "B" && mx?.dlg.open) mx.dlg.close();   // the matrix belongs to variant B only
+  $("#vlabel").innerHTML = `${cur} — ${VARIANTS[cur][0]}<small>${KEYS.indexOf(cur)+1}/${KEYS.length}</small>`;
+  const best = list.length ? list[0] : null;
+  if (cur === "B"){ $("#lede").textContent = `Search ${T.length} Regulation M-B teams without Kingambit — type a name or click a sprite.`; return; }   // one-line caption
+  $("#lede").innerHTML = `Teams from the Regulation M-B search with at least ${S.min} battles against the top-placing meta teams, behaviour-cloning policy on both sides. `
+    + (best ? `Right now the top pick is a <b>${best.k==="real" ? "real tournament team" : "team found by search"}</b>: ${best.sp.join(", ")}, ${fmt(best.p)} over ${best.b} battles.` : "");
+}
+function go(d){ cur = KEYS[(KEYS.indexOf(cur) + d + KEYS.length) % KEYS.length];
+  const u = new URL(location.href); u.searchParams.set("variant", cur); history.replaceState(null, "", u); render(); }
+$("#prev").onclick = () => go(-1); $("#next").onclick = () => go(1);
+addEventListener("keydown", e => { if (e.target.closest?.("input,textarea,[contenteditable]")) return;
+  if (e.key==="ArrowLeft") go(-1); else if (e.key==="ArrowRight") go(1); });
+render();
+</script>
+</body>
+</html>
