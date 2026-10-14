@@ -107,6 +107,22 @@ class JobTests(unittest.TestCase):
                 self.assertNotEqual(longer.policy_id(self.con,MDB),identity)
                 self.assertEqual(longer.config['concurrency'],24)
 
+    def test_checkpoint_snapshot_survives_shared_file_replacement(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shared = root/'shared.zip'
+            shared.write_bytes(b'verified weights')
+            expected = fast.lab.digest(shared)
+            with patch.object(fast, 'CHECKPOINT', shared), patch.object(fast, 'CHECKPOINT_SHA256', expected):
+                with fast.FastBattleRunner(root/'run') as runner:
+                    shared.write_bytes(b'replacement weights')
+                    self.assertEqual(runner.checkpoint.read_bytes(), b'verified weights')
+                    self.assertEqual(fast.lab.digest(runner.checkpoint), runner.provenance['policy_sha256'])
+                    with patch.object(fast.lab, 'prepare_runtime'), patch.object(fast.lab, 'tree_digest', return_value=runner.provenance['simulator_sha256']), patch.object(fast.lab, 'Server', FakeServer), patch.object(fast.lab, 'Worker', FakeWorker) as worker:
+                        runner._start()
+                    self.assertEqual(FakeWorker.instances[-1].config['checkpoint_path'], str(runner.checkpoint))
+                    self.assertEqual(FakeWorker.instances[-1].config['checkpoint_sha256'], expected)
+
 
 class FakeServer:
     instances=[]
@@ -119,7 +135,7 @@ class FakeWorker:
     instances=[]
     fail=False
     def __init__(self,*args):
-        self.closed=False;self.requests=[];self.proc=SimpleNamespace(pid=20000+len(self.instances));self.ready={};self.instances.append(self)
+        self.config=args[0];self.closed=False;self.requests=[];self.proc=SimpleNamespace(pid=20000+len(self.instances));self.ready={};self.instances.append(self)
     def trial(self,request):
         self.requests.append(request)
         if self.fail:raise RuntimeError('worker failed')
@@ -135,7 +151,8 @@ class RunnerDatabaseTests(unittest.TestCase):
         self.runner.folder=Path(self.temp.name);self.runner.runtime=self.runner.folder/'runtime'
         self.runner.worker_count=6;self.runner.config={'concurrency':24}
         self.runner.closed=False;self.runner.calls=0;self.runner.servers=[];self.runner.workers=[]
-        self.runner.provenance={'simulator_sha256':'test'}
+        self.runner.checkpoint=self.runner.folder/'policy.zip'
+        self.runner.provenance={'simulator_sha256':'test','policy_sha256':'test-policy'}
         FakeServer.instances=[];FakeWorker.instances=[];FakeWorker.fail=False
         self.addCleanup(self.runner.close)
         for target,name,value in [(fast.lab,'Server',FakeServer),(fast.lab,'Worker',FakeWorker),

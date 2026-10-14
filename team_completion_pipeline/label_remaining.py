@@ -118,6 +118,13 @@ class Job:
         self.done = self.con.execute('SELECT COUNT(*) FROM label_value').fetchone()[0]
         self.battles = self.con.execute('SELECT COALESCE(SUM(battles),0) FROM cell').fetchone()[0]
 
+    def recover_committed(self):
+        """Discard partial in-memory labels before publishing a stopped run."""
+        self.con.rollback()
+        with np.load(SOURCE) as source:
+            self.d = {k: v.copy() for k, v in source.items()}
+        self.restore()
+
     def apply(self, i, tid, score, n, pid):
         assert not np.isfinite(self.baseline[i])
         self.d['W'][i], self.d['NB'][i] = score, n
@@ -275,6 +282,14 @@ class Job:
         assert sha(SOURCE) == self.source_hash
 
 
+def background_command(args):
+    command = ['caffeinate', '-i', sys.executable, str(Path(__file__).resolve()),
+               '--workers', str(args.workers), '--chunk-size', str(args.chunk_size)]
+    if args.max_batches is not None:
+        command.extend(['--max-batches', str(args.max_batches)])
+    return command
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--background',action='store_true')
@@ -282,11 +297,12 @@ def main():
     ap.add_argument('--workers',type=int,default=6)
     ap.add_argument('--chunk-size',type=int,default=96)
     args = ap.parse_args()
+    if args.workers < 1 or args.chunk_size < 1 or (args.max_batches is not None and args.max_batches < 1):
+        ap.error('workers, chunk-size, and max-batches must be positive')
     ROOT.mkdir(parents=True,exist_ok=True)
     if args.background:
         with open(ROOT/'job.log','a') as log:
-            proc = subprocess.Popen(['caffeinate','-i',sys.executable,str(Path(__file__).resolve()),
-                                     '--workers',str(args.workers),'--chunk-size',str(args.chunk_size)],
+            proc = subprocess.Popen(background_command(args),
                                     stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         print(json.dumps({'pid':proc.pid,'status':str(ROOT/'status.json'),'log':str(ROOT/'job.log')}))
         return
@@ -303,15 +319,14 @@ def main():
                     job.run(args.max_batches,args.workers,args.chunk_size)
                     break
                 except Exception as exc:
-                    job.con.rollback()
-                    job.d = {k: v.copy() for k, v in np.load(SOURCE).items()}
-                    job.restore()
+                    job.recover_committed()
                     job.publish('retrying' if attempt<2 else 'failed',f'{type(exc).__name__}: {exc}',checkpoint=True)
                     print(f'Attempt {attempt+1} failed: {exc}',flush=True)
                     if attempt == 2:
                         raise
                     time.sleep(5)
         except KeyboardInterrupt:
+            job.recover_committed()
             job.publish('interrupted','Restart the same command to resume saved battles.',checkpoint=True)
             raise
         finally:

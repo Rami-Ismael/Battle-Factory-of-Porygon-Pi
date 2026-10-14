@@ -44,6 +44,31 @@ function download(text,name,type){const url=URL.createObjectURL(new Blob([text],
 let keyboard=false;$('source').addEventListener('keydown',()=>keyboard=true);$('source').addEventListener('pointerdown',()=>keyboard=false);$('source').addEventListener('change',()=>{active=$('source').value;render(!keyboard)});$('bin').addEventListener('input',e=>inspect(e.target.value));$('replay').onclick=e=>{if(e.detail)reveal()};$('csv').onclick=()=>download('win_rate,frequency\n'+DATA[active].counts.map((n,i)=>(i/100).toFixed(2)+','+n).join('\n'),'win-rate-frequency-'+active+'.csv','text/csv');$('save').onclick=()=>{const copy=$('chart').cloneNode(true);copy.setAttribute('xmlns',ns);copy.setAttribute('width','1100');copy.setAttribute('height','450');copy.querySelectorAll('.target').forEach(e=>e.remove());copy.querySelectorAll('.bar').forEach(b=>b.setAttribute('fill',b.classList.contains('selected')?'#007f8b':'#3267c8'));copy.querySelectorAll('text').forEach(t=>{t.setAttribute('fill','#536b80');t.setAttribute('font-family','Arial, sans-serif');t.setAttribute('font-size','13')});copy.insertBefore(el('rect',{width:1100,height:450,fill:'white'}),copy.firstChild);download(new XMLSerializer().serializeToString(copy),'win-rate-frequency-'+active+'.svg','image/svg+xml')};
 for(const d of Object.values(DATA)){if(d.counts.length!==101||d.counts.reduce((a,b)=>a+b,0)!==d.labeled)throw Error('Invalid frequency data')}matchMedia('(max-width:650px)').addEventListener('change',()=>render(false));render();
 let lastUpdate='',lastLive=null;
-async function refresh(){try{const response=await fetch('win-rate-frequency-live.json',{cache:'no-store'});if(!response.ok)return;const live=await response.json();if(live.updated_at===lastUpdate)return;for(const k of ['all','model','real','fill','hps']){const d=live.data[k];if(d.counts.length!==101||d.counts.reduce((a,b)=>a+b,0)!==d.labeled||d.rows!==d.labeled+d.unlabeled)throw Error('Invalid live counts')}lastUpdate=live.updated_at;lastLive=live;DATA=live.data;render(false);$('intro').textContent='Each bar counts team records with the same win rate after rounding to the nearest 0.01. '+fmt(DATA.all.labeled)+' records now have labels. This chart refreshes every 30 seconds as battle batches finish.';const label={preparing:'Preparing teams',prepared:'Teams ready',running:'Generating labels',retrying:'Retrying after an error',failed:'Run needs attention',interrupted:'Run interrupted',paused:'Run paused',complete:'All labels complete',complete_with_exclusions:'Run finished with exclusions'}[live.status]||live.status;$('job-status').hidden=false;$('job-status').textContent=label+' · '+fmt(live.added_labels)+' / '+fmt(live.target_labels)+' new labels · '+fmt(live.unique_battles)+' battles. '+live.detail+' Updated '+new Date(live.updated_at).toLocaleTimeString();$('provenance').textContent='Live results from '+live.dataset+'. Full opponent coverage is required before a new label enters this chart. Original labels and the VGCPastes additions are preserved. Six workers, concurrency 24; one battle per opponent with self-matches skipped. The run database stores exact source-paste mappings and scores; the dataset checkpoint is saved every ten batches and at completion. Last update: '+live.updated_at+'.';}catch(e){if(lastLive){$('job-status').hidden=false;$('job-status').textContent='Could not refresh. Showing saved results from '+new Date(lastUpdate).toLocaleTimeString()+'.'}}}
+async function refresh(){
+  try{
+    const response=await fetch('win-rate-frequency-live.json',{cache:'no-store'});
+    if(!response.ok)throw Error('Live snapshot unavailable: HTTP '+response.status);
+    const live=await response.json();
+    for(const k of ['all','model','real','fill','hps']){
+      const d=live.data[k];
+      if(d.counts.length!==101||d.counts.reduce((a,b)=>a+b,0)!==d.labeled||d.rows!==d.labeled+d.unlabeled)throw Error('Invalid live counts');
+    }
+    const changed=live.updated_at!==lastUpdate;
+    lastUpdate=live.updated_at;lastLive=live;DATA=live.data;
+    if(changed)render(false);
+    $('intro').textContent='Each bar counts team records with the same win rate after rounding to the nearest 0.01. '+fmt(DATA.all.labeled)+' records now have labels. This chart refreshes every 30 seconds as battle batches finish.';
+    const label={preparing:'Preparing teams',prepared:'Teams ready',running:'Generating labels',retrying:'Retrying after an error',failed:'Run needs attention',interrupted:'Run interrupted',paused:'Run paused',complete:'All labels complete',complete_with_exclusions:'Run finished with exclusions'}[live.status]||live.status;
+    $('job-status').hidden=false;
+    $('job-status').textContent=label+' · '+fmt(live.added_labels)+' / '+fmt(live.target_labels)+' new labels · '+fmt(live.unique_battles)+' battles. '+live.detail+' Updated '+new Date(live.updated_at).toLocaleTimeString();
+    const execution=live.execution;
+    const scheduling=execution?' '+execution.workers+' workers, concurrency '+execution.concurrency+'.':'';
+    $('provenance').textContent='Live results from '+live.dataset+'. Full opponent coverage is required before a new label enters this chart. Original labels and the VGCPastes additions are preserved.'+scheduling+' One battle per opponent with self-matches skipped. The run database stores exact source-paste mappings and scores; the dataset checkpoint is saved every ten batches and at completion. Last update: '+live.updated_at+'.';
+  }catch(e){
+    $('job-status').hidden=false;
+    $('job-status').textContent=lastLive
+      ?'Could not refresh. Showing saved results from '+new Date(lastUpdate).toLocaleString()+'.'
+      :'Live results unavailable. Showing the saved VGCPastes snapshot from October 13, 2026.';
+  }
+}
 refresh();setInterval(refresh,30000);
 </script></html>

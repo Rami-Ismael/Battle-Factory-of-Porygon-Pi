@@ -1,6 +1,7 @@
 """JSON-lines persistent BC worker; all policy changes are local subclasses."""
 import asyncio
 import hashlib
+import io
 import json
 import os
 import random
@@ -301,7 +302,11 @@ def main():
     torch.set_num_threads(config.get('threads', 8))
     torch.set_num_interop_threads(1)
     start = time.perf_counter()
-    policy = PPO.load('/tmp/bc_100.zip', device=torch.device('cpu')).policy
+    # Load the exact bytes verified here, even if another process replaces the path.
+    checkpoint = Path(config.get('checkpoint_path', '/tmp/bc_100.zip')).read_bytes()
+    if config.get('checkpoint_sha256') and hashlib.sha256(checkpoint).hexdigest() != config['checkpoint_sha256']:
+        raise ValueError('Worker checkpoint differs from the requested policy')
+    policy = PPO.load(io.BytesIO(checkpoint), device=torch.device('cpu')).policy
     loaded_training=policy.training
     if not config.get('preserve_training'):
         policy.set_training_mode(False)

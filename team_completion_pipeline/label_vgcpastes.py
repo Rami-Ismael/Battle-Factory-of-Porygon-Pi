@@ -5,9 +5,11 @@ Original training data and shared matrix are read-only inputs. Completed batches
 are resumable in a dedicated database; exports are a versioned training dataset.
 """
 import argparse
+from contextlib import contextmanager
 from collections import defaultdict
 from decimal import Decimal, ROUND_HALF_UP
 import hashlib
+import fcntl
 import json
 from pathlib import Path
 import signal
@@ -166,10 +168,16 @@ def export(manifest, con, policy, evidence):
     print((ROOT / 'summary.json').read_text(), flush=True)
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--prepare-only', action='store_true')
-    args = ap.parse_args()
+@contextmanager
+def exclusive_run():
+    # The database path is shared even when callers use different Git worktrees.
+    DATABASE.parent.mkdir(parents=True, exist_ok=True)
+    with DATABASE.with_suffix('.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        yield
+
+
+def run(args):
     manifest = prepare()
     if args.prepare_only:
         return
@@ -190,6 +198,14 @@ def main():
     finally:
         signal.signal(signal.SIGTERM, old)
         con.close()
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--prepare-only', action='store_true')
+    args = ap.parse_args()
+    with exclusive_run():
+        run(args)
 
 
 if __name__ == '__main__':

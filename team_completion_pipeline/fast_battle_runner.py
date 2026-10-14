@@ -121,6 +121,10 @@ class FastBattleRunner:
             raise ValueError('BC checkpoint differs from the verified policy')
         self.folder = Path(folder).resolve()
         self.folder.mkdir(parents=True, exist_ok=False)
+        self.checkpoint = self.folder/'policy.zip'
+        shutil.copyfile(CHECKPOINT, self.checkpoint)
+        if lab.digest(self.checkpoint) != CHECKPOINT_SHA256:
+            raise ValueError('BC checkpoint changed while creating its private snapshot')
         self.runtime = Path(runtime).resolve() if runtime else self.folder/'runtime'
         self.worker_count = workers
         self.request_chunk_size = request_chunk_size or concurrency
@@ -166,9 +170,11 @@ class FastBattleRunner:
             lab.prepare_runtime(self.runtime)
             if lab.tree_digest(self.runtime/'dist') != self.provenance['simulator_sha256']:
                 raise RuntimeError('Private simulator differs from the cache identity')
+            worker_config = {**self.config, 'checkpoint_path':str(self.checkpoint),
+                             'checkpoint_sha256':self.provenance['policy_sha256']}
             for i in range(self.worker_count):
                 self.servers.append(lab.Server(self.runtime, self.folder))
-                self.workers.append(lab.Worker(self.config, self.folder, str(i)))
+                self.workers.append(lab.Worker(worker_config, self.folder, str(i)))
                 lab.emit(self.folder/'startup.jsonl', {'worker':i, 'worker_pid':self.workers[-1].proc.pid,
                          'server_pid':self.servers[-1].proc.pid, **self.workers[-1].ready})
         except BaseException:
