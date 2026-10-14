@@ -1,4 +1,4 @@
-"""Regression tests for the Kingambit-free team finder prototype (notes/Blog/visuals/no-kingambit-finder-prototype).
+"""Regression tests for the Kingambit-free team finder (blog/kingambit-finder, served by GitHub Pages).
 
 Run from the repository root:
     python3 -m unittest discover -s tests -v
@@ -20,7 +20,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PAGE = ROOT / "notes/Blog/visuals/no-kingambit-finder-prototype/no-kingambit-finder-prototype.html"
+PAGE = ROOT / "blog/kingambit-finder/index.html"
 HARNESS = Path(__file__).resolve().parent / "no_kingambit_finder_harness.js"
 
 
@@ -104,6 +104,32 @@ class DataContract(unittest.TestCase):
         raw_top = max(TEAMS, key=lambda t: t["w"] / t["b"])
         self.assertLess(raw_top["b"], 2400)
         self.assertGreater(raw_top["w"] / raw_top["b"], 0.691)
+
+
+class PagesPage(unittest.TestCase):
+    """What GitHub Pages and a shared link need: a real title, a description, one self-contained file."""
+
+    def test_title_and_social_metadata(self):
+        self.assertIn("<title>Kingambit-Free Team Finder</title>", PAGE_TEXT)
+        self.assertRegex(PAGE_TEXT, r'<meta name="description" content="[^"]{40,}')
+        self.assertIn('<meta property="og:title" content="Kingambit-Free Team Finder">', PAGE_TEXT)
+
+    def test_page_is_self_contained(self):
+        # Pages serves the file as is; nothing may load from another host.
+        external = re.findall(r'(?:src|href)="(https?://[^"]+)"', PAGE_TEXT.split("<script>")[0])
+        self.assertEqual(external, [])
+
+    def test_dark_theme_sets_color_scheme(self):
+        style = PAGE_TEXT.split("</style>")[0]
+        media = style.split("@media (prefers-color-scheme:dark)")[1].split("}}")[0]
+        explicit = style.split(':root[data-theme="dark"]')[1].split("}")[0]
+        self.assertIn("color-scheme:dark", media)
+        self.assertIn("color-scheme:dark", explicit)
+
+    def test_readme_in_folder_names_the_rebuild_command(self):
+        readme = (PAGE.parent / "README.md").read_text()
+        self.assertIn("python3 build.py", readme)
+        self.assertTrue((PAGE.parent / "template.html").exists())
 
 
 @unittest.skipUnless(shutil.which("node"), "node is required for the search-logic tests")

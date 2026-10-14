@@ -1,12 +1,11 @@
-"""PROTOTYPE (throwaway). Build no-kingambit-finder-prototype.html: three ways to find a highly rated team
-that does NOT bring Kingambit.  Reads the local matchup database read-only and the counter grid.
-Run: python3 build.py
+"""Build index.html: search the Regulation M-B teams that do NOT bring Kingambit.
+Reads the local matchup database (read-only) and the counter grid. Run: python3 build.py
 """
 import base64, json, os, re, sqlite3
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SPR = HERE.parent / "search-loop/sprites"
+SPR = HERE.parents[1] / "notes/Blog/visuals/search-loop/sprites"
 DB = os.path.expanduser("~/vgc-data/matchup_regmb.sqlite")
 GRID = os.path.expanduser("~/Documents/code/vgc-team-generator-pilot/results/counter_matrix.json")
 MIN_BATTLES = 96
@@ -80,5 +79,5 @@ for s in species:
 print(len(teams), "teams;", len(species), "species;", "no sprite:", missing)
 data = {"teams": teams, "sprites": sprites, "opp": OPP}
 html = (HERE / "template.html").read_text().replace("/*__DATA__*/null", json.dumps(data, separators=(",", ":")))
-(HERE / "no-kingambit-finder-prototype.html").write_text(html)
+(HERE / "index.html").write_text(html)
 print("wrote html", f"{len(html)/1024:.0f} KB")

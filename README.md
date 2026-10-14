@@ -11,6 +11,8 @@ Searching the space of competitive Pokémon VGC teams (Champions Reg Set M-B) fo
 
 *Win rate = wins ÷ battles against those 50 teams, one battle per pairing, with the same behaviour-cloned battle policy piloting both sides. A top-50 team scores 0.531 against the other 49. Source: [`code/docs/cem-v3-loop.md`](code/docs/cem-v3-loop.md).*
 
+**[Find a strong team without Kingambit](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/blog/kingambit-finder/)** — search 549 Regulation M-B teams by typing a Pokémon or clicking a sprite, then open a matchup matrix of the top results against the 49 top-placing teams. Source and rebuild notes: [`blog/kingambit-finder/`](blog/kingambit-finder).
+
 **[Random noise to Pokémon team archetypes](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html)** — latest artifact revision, 2026-10-12.
 
 [![Historical animation preview of model-generated Pokémon teams moving through the four-color archetype projection. The latest interactive version adds team names, a persistent roster and strategy cues.](notes/Blog/visuals/archetype-diffusion/archetype-diffusion.gif)](https://rami-ismael.github.io/Battle-Factory-of-Porygon-Pi/notes/Blog/visuals/archetype-diffusion/archetype-diffusion.html)
