@@ -12,7 +12,7 @@ Purpose
 
 Design: docs/matchup-matrix.md.  Run:  python src/matchup_db.py --help
 """
-import argparse, hashlib, json, math, os, random, sqlite3, subprocess, sys, tempfile, time
+import argparse, atexit, hashlib, json, math, os, random, sqlite3, subprocess, sys, tempfile, time, uuid
 from collections import defaultdict
 from pathlib import Path
 
@@ -25,6 +25,11 @@ POOL_DIR = Path("/tmp/vgc-pilot/vgc-bench/teams/reg_mb")          # VGCPastes Re
 TOP50 = REPO / "results" / "top50_evs.json"
 SHOWDOWN = Path("/tmp/vgc-pilot/vgc-bench/pokemon-showdown")
 POLICY_FILE = Path("/tmp/bc_100.zip")                             # behaviour-cloning policy, both sides
+# Battles run on the fast evaluator unless MATCHUP_BACKEND=legacy (pair_shard.py over live servers).
+FAST_RUNNER_DIR = Path(os.environ.get("MATCHUP_FAST_RUNNER_DIR", Path.home() / "Documents/yakumsi-vault/Personal Project"
+    / "Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team"
+    / "team_completion_pipeline"))
+FAST_EVIDENCE = Path(os.environ.get("MATCHUP_FAST_EVIDENCE", Path.home() / "vgc-data" / "battle-evaluations"))
 STATS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"]
 NEUTRAL = {"bashful", "docile", "hardy", "quirky", "serious"}
 
@@ -320,13 +325,39 @@ def run_jobs(con, jobs, seed=None, conc=50, quiet=False):
     if failed: print(f"  WARNING {len(failed)} shard(s) failed: {failed[0][:200]}", flush=True)
     return results, unattributed, secs
 
+_fast = None
+
+def fast_runner():
+    """Six persistent workers, each with a private Showdown server and 24 concurrent battles, same
+    bc_100.zip policy on both sides (team_completion_pipeline/FAST_EVALUATOR_INTEGRATION.md: 1.7x
+    whole-stage, 3.3x once loaded). Started on the first battle, shared by every later ensure()
+    in this process, closed at exit. MATCHUP_FAST_WORKERS / MATCHUP_FAST_CONCURRENCY override."""
+    global _fast
+    if _fast is None or _fast.closed:
+        if str(FAST_RUNNER_DIR) not in sys.path: sys.path.append(str(FAST_RUNNER_DIR))
+        from fast_battle_runner import FastBattleRunner
+        folder = FAST_EVIDENCE / f"{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}-{uuid.uuid4().hex[:8]}"
+        _fast = FastBattleRunner(folder, workers=int(os.environ.get("MATCHUP_FAST_WORKERS", 6)),
+                                 concurrency=int(os.environ.get("MATCHUP_FAST_CONCURRENCY", 24)),
+                                 runtime=FAST_EVIDENCE / "runtime")
+        atexit.register(_fast.close)
+    return _fast
+
+def default_runner():
+    """The runner ensure() uses when the caller passes none: the fast evaluator, or run_jobs
+    when MATCHUP_BACKEND=legacy."""
+    backend = os.environ.get("MATCHUP_BACKEND", "fast")
+    if backend == "legacy": return run_jobs
+    if backend != "fast": raise ValueError(f"MATCHUP_BACKEND must be fast or legacy, not {backend!r}")
+    return fast_runner()
+
 def ensure(con, policy_id, rows, cols, per_cell, seed=None, runner=None, note=None):
     """The cache entry point: make every (row, col) cell hold >= per_cell battles, running
     only the deficit. Returns the number of battles actually run (0 when fully cached)."""
     need = plan(con, policy_id, rows, cols, per_cell)
     if not need: return 0
     jobs = jobs_for(con, need)
-    results, unattributed, secs = (runner or run_jobs)(con, jobs, seed=seed)
+    results, unattributed, secs = (runner or default_runner())(con, jobs, seed=seed)
     record(con, policy_id, results, seconds=secs, seed=seed, note=note, unattributed=unattributed)
     return sum(w + l + t for _, _, w, l, t in results)
 
