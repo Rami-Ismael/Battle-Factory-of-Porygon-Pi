@@ -46,8 +46,10 @@ def model_name(model):
     return MODEL_NAMES.get(model, model)
 
 
-def variant_name(variant, program=None):
+def variant_name(variant, program=None, constraints=None):
     name = VARIANT_NAMES[variant]
+    if constraints and variant != RESAMPLED:
+        name += ' with legal-choice types'
     return f'Optimized {name[0].lower()}{name[1:]}' if program and variant != RESAMPLED else name
 
 
@@ -73,8 +75,16 @@ def prepare(args):
     variants = list(args.adapters) + ([RESAMPLED] if args.resample_baseline else [])
     if not variants or len(set(variants)) != len(variants):
         raise ValueError('choose at least one distinct adapter')
+    # A model whose baseline route no longer exists can be sent to another provider.
+    # The change is recorded, and the report states it next to every comparison.
+    overrides = dict(item.split('=', 1) for item in getattr(args, 'provider', None) or ())
     study = dict(schema=1, kind='dspy-structure', dspy_version=S.dspy.__version__, variants=variants,
                  program=program or None, baselines=[], runs=[], arms={})
+    if overrides:
+        study['provider_overrides'] = {}
+    constraints = getattr(args, 'constraints', None)
+    if constraints:
+        study['constraints'] = constraints
     design = None
     for folder in args.baseline:
         baseline, runs = E.load_runs(folder)  # verifies frozen manifests and request hashes
@@ -94,15 +104,29 @@ def prepare(args):
             for variant in variants:
                 new = copy.deepcopy(m)
                 if variant != RESAMPLED:
-                    new['structure'] = S.config(variant, program.get('instructions'), program.get('demos', ()))
+                    new['structure'] = S.config(variant, program.get('instructions'), program.get('demos', ()),
+                                                constraints=constraints)
                 new['structure_experiment'] = dict(baseline_study=folder.name, baseline_run=entry['path'],
                                                    baseline_manifest_sha256=entry['manifest_sha256'])
+                rerouted = m['model'] in overrides
+                if rerouted:
+                    original = B.completion_payload(m, m['trials'][0])['provider']
+                    new['provider'] = dict(original, order=[overrides[m['model']]])
+                    new['structure_experiment']['provider_override'] = dict(baseline=original, used=new['provider'])
+                    study['provider_overrides'][m['model']] = dict(baseline=original, used=new['provider'])
                 for t in new['trials']:
-                    # Everything but the message packaging matches the baseline request.
-                    if payload_without_messages(new, t) != payload_without_messages(m, t):
+                    # Everything but the message packaging matches the baseline request,
+                    # apart from a recorded provider override.
+                    mine, theirs = payload_without_messages(new, t), payload_without_messages(m, t)
+                    if rerouted:
+                        mine.pop('provider'), theirs.pop('provider')
+                    if mine != theirs:
                         raise ValueError('structured request changed a sampling or routing setting')
                     if variant == RESAMPLED:
-                        if B.digest(B.completion_payload(new, t)) != entry['request_hashes'][t['id']]:
+                        if rerouted:
+                            if B.completion_payload(new, t)['messages'] != B.completion_payload(m, t)['messages']:
+                                raise ValueError('resampled baseline messages differ from the original')
+                        elif B.digest(B.completion_payload(new, t)) != entry['request_hashes'][t['id']]:
                             raise ValueError('resampled baseline request differs from the original')
                     else:
                         S.check_information(new, t)
@@ -174,6 +198,15 @@ def failure_class(error):
         return 'no answer'  # e.g. a provider error body without choices
     if error == 'truncated/non-stop completion':
         return 'cut off'
+    if error.startswith('DSPy parse') and 'validation error' in error:
+        # Readable JSON refused by a typed field (legal-choice types): classify the cause.
+        if re.search(r'type=(missing|extra_forbidden|too_short|too_long|list_type|dict_type|model_type)', error) \
+                or 'Field required' in error or 'Extra inputs are not permitted' in error or 'List should have' in error:
+            return 'wrong answer shape'
+        if re.search(r'type=(less_than_equal|greater_than_equal|int_type)', error) or 'than or equal to' in error:
+            return 'Stat Points out of range'
+        if 'type=enum' in error or 'Input should be' in error:
+            return 'rule violation'
     if JSON_ERRORS.match(error):
         return 'unreadable answer'
     if error.startswith(SHAPE_ERRORS):
@@ -203,10 +236,19 @@ def structured_rows(output):
                 win = label['wins'] / label['battles']
             response = record.get('response', {}) if record else {}
             usage = response.get('usage') or {}
+            error = record.get('error', 'unknown') if record else None
+            if (record and not record['valid'] and (m.get('structure') or {}).get('constraints')
+                    and str(error).startswith('DSPy parse') and 'validation error' not in error):
+                # Older records cut the typed-parse reason off; re-derive it from the saved reply (no API call).
+                import dspy_structure as S
+                try:
+                    S.parse(m, t, response['choices'][0]['message']['content'], {})
+                except (ValueError, TypeError, KeyError, IndexError) as exc:
+                    error = str(exc)
             rows.append(dict(model=entry['model'], reasoning=entry['reasoning'], variant=entry['variant'],
                              replicate=entry['replicate'], trial=t['id'], start=t['start'], task=t['task'],
                              returned=record is not None, legal=bool(record and record['valid']), win_rate=win,
-                             error=record.get('error', 'unknown') if record else None,
+                             error=error,
                              strict_json=(record or {}).get('structure', {}).get('strict_json'),
                              cost_usd=usage.get('cost'),
                              reasoning_tokens=(usage.get('completion_tokens_details') or {}).get('reasoning_tokens')))
@@ -359,6 +401,8 @@ def report(args):
     complete = all(r['returned'] and (not r['legal'] or r['win_rate'] is not None) for r in rows)
     status = dict(kind=study['kind'], complete=complete, dspy_version=study['dspy_version'],
                   program=study['program'], baselines=study['baselines'], planned_calls=study['planned_calls'],
+                  provider_overrides=study.get('provider_overrides') or {},
+                  constraints=study.get('constraints'),
                   margins=dict(legality=args.legality_margin, win_rate=args.win_margin),
                   cells=cells, pooled=pooled, rows=rows)
     B.save(args.output / 'status.json', status)
@@ -397,13 +441,23 @@ def render(status):
              'repeats, instructions, input values, output cap, validator and 50-battle meta panel. '
              'Differences are structured minus baseline for the same model, reasoning level, mask and repeat. '
              'Intervals are 95% starter-cluster bootstraps (each starter weighted equally); p-values are '
-             'starter-level sign-flip tests, Holm-adjusted across every model × reasoning × format cell.', '',
-             '## Pooled', '',
+             'starter-level sign-flip tests, Holm-adjusted across every model × reasoning × format cell.', '']
+    if status.get('constraints') == 'legal-choices':
+        lines += ['**Legal-choice answer types.** The structured answer has one typed field per requested path, limited to '
+                  "the regulation's legal values there (learnable moves, the species' ability/item pairs, items no fixed "
+                  'teammate holds, species not already on the team, Stat Points 0 to 32 with a stated total of at most 66). '
+                  'Inputs and instructions are unchanged.', '']
+    for model, o in status.get('provider_overrides', {}).items():
+        lines += [f"**Provider changed for {model_name(model)}.** The baseline route "
+                  f"({', '.join(o['baseline']['order'])}) no longer serves this model, so these requests went to "
+                  f"{', '.join(o['used']['order'])}. Its rows against the historical baseline mix structure with a "
+                  'provider change; the rows against the baseline prompt sampled at the same time use one provider.', '']
+    lines += ['## Pooled', '',
              '| Models | Format | Legal: baseline → structured | Legality change, pp | Win-rate change when both legal, pp | Wins delivered per request change, pp | Win-rate verdict |',
              '|---|---|---:|---:|---:|---:|---|']
     for c in status['pooled']:
         v = c['versus_baseline']
-        lines.append(f"| {label(c['model'])} | {variant_name(c['variant'], status['program'])} | {pct(c['baseline']['legality_rate'])} → "
+        lines.append(f"| {label(c['model'])} | {variant_name(c['variant'], status['program'], status.get('constraints'))} | {pct(c['baseline']['legality_rate'])} → "
                      f"{pct(c['structured']['legality_rate'])} | {ci(v['legality'])} | {ci(v['win_rate_both_legal'])} "
                      f"({v['win_rate_both_legal']['pairs']} pairs) | {ci(v['wins_delivered_per_request'])} | "
                      f"{c['verdict']['win_rate_both_legal']} |")
@@ -412,7 +466,7 @@ def render(status):
               '|---|---|---:|---:|---:|---:|---|']
     for c in status['cells']:
         v = c['versus_baseline']
-        lines.append(f"| {label(c['model'], c['reasoning'])} | {variant_name(c['variant'], status['program'])} | "
+        lines.append(f"| {label(c['model'], c['reasoning'])} | {variant_name(c['variant'], status['program'], status.get('constraints'))} | "
                      f"{pct(c['baseline']['legality_rate'])} → {pct(c['structured']['legality_rate'])} | "
                      f"{ci(v['legality'])} | {ci(v['win_rate_both_legal'])} ({v['win_rate_both_legal']['pairs']} pairs) | "
                      f"{pct(c['baseline']['legal_team_win_rate'])} → {pct(c['structured']['legal_team_win_rate'])} | "
@@ -425,7 +479,7 @@ def render(status):
         for c in status['cells']:
             if 'versus_resampled' in c:
                 v = c['versus_resampled']
-                lines.append(f"| {label(c['model'], c['reasoning'])} | {variant_name(c['variant'], status['program'])} | "
+                lines.append(f"| {label(c['model'], c['reasoning'])} | {variant_name(c['variant'], status['program'], status.get('constraints'))} | "
                              f"{ci(v['legality'])} | {ci(v['win_rate_both_legal'])} |")
     if any('versus_unoptimized' in c for c in status['cells']):
         lines += ['', '## Against the unoptimized DSPy structure (phase one)', '',
@@ -433,7 +487,7 @@ def render(status):
         for c in status['cells']:
             if 'versus_unoptimized' in c:
                 v = c['versus_unoptimized']
-                lines.append(f"| {label(c['model'], c['reasoning'])} | {variant_name(c['variant'], status['program'])} | "
+                lines.append(f"| {label(c['model'], c['reasoning'])} | {variant_name(c['variant'], status['program'], status.get('constraints'))} | "
                              f"{ci(v['legality'])} | {ci(v['win_rate_both_legal'])} |")
     lines += ['', '## Why answers were rejected', '',
               '| Setting | Format | ' + ' | '.join(FAILURE_CLASSES) + ' | Legal only after DSPy JSON repair |',
@@ -445,7 +499,7 @@ def render(status):
             if key in seen:
                 continue
             seen.add(key)
-            variant = 'Baseline JSON prompt' if name == 'baseline' else variant_name(name, status['program'])
+            variant = 'Baseline JSON prompt' if name == 'baseline' else variant_name(name, status['program'], status.get('constraints'))
             lines.append(f"| {label(c['model'], c['reasoning'])} | {variant} | " +
                          ' | '.join(str(d['failures'].get(k, 0)) for k in FAILURE_CLASSES) +
                          f" | {d['legal_after_json_repair'] if name not in ('baseline', RESAMPLED) else '—'} |")
@@ -489,6 +543,10 @@ def main():
     p.add_argument('--adapters', nargs='+', default=['chat', 'json'], choices=['chat', 'json'])
     p.add_argument('--resample-baseline', action='store_true',
                    help='also sample the unchanged baseline request again, to separate structure from provider drift')
+    p.add_argument('--provider', nargs='+', default=[], metavar='MODEL=PROVIDER',
+                   help='prepare: route a model to another provider when its baseline route is gone (recorded)')
+    p.add_argument('--constraints', choices=['legal-choices'],
+                   help='prepare: type each requested path with its legal choices (see dspy_structure.legal_completion_type)')
     p.add_argument('--program', type=Path, help='phase two: optimized program from dspy_optimize.py')
     p.add_argument('--reference', type=Path, help='phase two report: the phase-one structured study to compare with')
     p.add_argument('--concurrency', type=int, default=2)

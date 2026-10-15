@@ -93,6 +93,41 @@ $PY code/scripts/dspy_structure_experiment.py report --output code/results/dspy-
 
 Calls: 420 × 6 settings × 2 formats = 5,040, plus 2,520 for the re-sampled baseline. At the baseline's recorded cost ($0.98 for one pass of all six settings), expect about $3. Each structured request is about 2,200–2,500 characters longer (field list and answer schema); the 49 opponent pastes still dominate its length. Battles: the baseline had 810 legal answers per pass, so about 40,500 battles per format before exact-panel cache reuse. Generation and battles resume after interruption, as in the reasoning experiment.
 
+## Legal-choice answer types
+
+Phase one on Mercury 2.5 (14 October) found the structure removed format failures but not illegal answers. Unreadable answers with reasoning off fell from 72 to 0–2, while out-of-range Stat Points rose from 18 to 60 and rule violations from 163 to about 230. Most rejections were moves a species cannot learn (about 770 per format) and abilities it cannot have (about 500), followed by duplicate items (about 170) and Stat Point totals above 66.
+
+`prepare --constraints legal-choices` keeps the inputs and instructions and replaces the answer type. Each requested path gets its own typed field, limited to what the regulation allows there (`dspy_structure.legal_completion_type`, from `data/regmb-vocabulary.json`):
+
+| Path | Allowed values |
+|---|---|
+| ability | the species' abilities that pair with the slot's fixed item |
+| item | items that pair with the slot's fixed ability, minus items fixed teammates hold |
+| move | the species' learnable moves, minus moves already in the slot |
+| nature | the 25 natures |
+| Stat Points | each stat 0 to 32, plus a required `total` (schema maximum 66) that is dropped before checking |
+| whole Pokémon | species not already on the team, items no teammate holds, any regulation ability and move; species-specific legality is stated, not enforced |
+
+A value outside these choices fails the typed parse. The report counts it as a rule violation, not an unreadable answer. Choices that depend on the model's other answers (two masked items, a whole slot's moves for the species it picks) are only described. Requests grow 16–18% on average.
+
+Offline, 88% of phase one's failed structured answers contain a value these types forbid. That is the ceiling: without constrained decoding the model can still answer outside the choices, so only a run measures the effect.
+
+**Measured, Mercury 2.5, 15 October 2026** (`dspy-legal-choices-20261015`, 5,040 calls, $2.35). Legality improved in all eight model × format cells, Holm p < 0.01 each:
+
+| Reasoning | Field-marker | JSON-object | Baseline prompt resampled |
+|---|---|---|---|
+| off | +17.6 pp [+14.0, +21.2] | +18.1 [+15.2, +20.7] | −1.9 [−5.2, +1.4] |
+| low | +16.0 [+12.6, +19.3] | +15.7 [+12.9, +18.6] | +0.7 [−1.9, +3.3] |
+| medium | +32.9 [+27.4, +37.9] | +30.2 [+25.5, +35.2] | +0.7 [−3.6, +4.8] |
+| high | +41.0 [+36.2, +46.0] | +34.5 [+29.8, +39.5] | +1.0 [−2.9, +5.0] |
+
+Pooled legality rose from 32.3% to 59.1% (field-marker) and 56.9% (JSON-object). Against the resampled baseline the gains are similar (+15 to +40 pp), so this is not provider drift. Win rate when both answers are legal stayed within about ±1 pp. Wins delivered per request rose 2.1 pp [+1.7, +2.6] and 1.6 pp [+1.3, +2.0]. Remaining rejections are mostly rule violations at reasoning off and low (164–191 per cell): answers outside the offered choices, or rules a per-field type cannot express.
+
+```sh
+$PY code/scripts/dspy_structure_experiment.py prepare --output code/results/dspy-legal-choices-<date> \
+    --baseline code/results/mercury-reasoning-20261013 --adapters chat json --resample-baseline --constraints legal-choices
+```
+
 ## Phase two: optimization
 
 `dspy_optimize.py` optimizes the structured program, then tests it through the same phase-one path.

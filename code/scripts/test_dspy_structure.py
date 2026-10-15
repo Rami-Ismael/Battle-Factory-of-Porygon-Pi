@@ -134,6 +134,113 @@ class StructureTests(unittest.TestCase):
             B.completion_payload(m, TRIALS[0])
 
 
+# FILLS answers Fake Out for Garchomp, which the legal-choice type rightly refuses.
+LEGAL_FILLS = dict(FILLS, **{'s1-move-2': [{'path': [3, 'moves', 2], 'value': 'Earthquake'},
+                                          {'path': [4, 'nature'], 'value': 'Calm'}]})
+
+
+@unittest.skipIf(S is None, 'DSPy is not installed')
+class LegalChoiceTests(unittest.TestCase):
+    """The 'legal-choices' answer type limits each requested path to what the regulation allows."""
+
+    def constrained(self, adapter='chat'):
+        return dict(MANIFEST, structure=S.config(adapter, constraints='legal-choices'))
+
+    def answer_type(self, trial):
+        return S.parts(self.constrained(), trial)[0].output_fields['fills'].annotation
+
+    def choices(self, schema, field):
+        prop = schema['properties'][field]
+        ref = prop.get('$ref') or prop.get('allOf', [{}])[0].get('$ref')
+        return set(schema['$defs'][ref.split('/')[-1]]['enum']) if ref else set(prop['enum'])
+
+    def test_phase_one_manifests_keep_their_hashes(self):
+        self.assertNotIn('constraints', S.config('chat'))
+        with self.assertRaises(ValueError):
+            S.config('chat', constraints='anything')
+
+    def test_each_path_is_limited_to_its_legal_choices(self):
+        schema = self.answer_type(TRIALS[0]).model_json_schema()
+        items = self.choices(schema, 'slot0_item')
+        self.assertIn('Light Ball', items)  # Pikachu with Static
+        # Item Clause: teammates already hold these.
+        self.assertFalse(items & {'Charizardite Y', 'Life Orb', 'Sitrus Berry', 'Leftovers', 'Black Glasses'})
+        spread = schema['$defs']['StatPoints']['properties']
+        self.assertEqual((spread['Atk']['minimum'], spread['Atk']['maximum']), (0, 32))
+        self.assertEqual(spread['total']['maximum'], 66)
+        moves = self.choices(self.answer_type(TRIALS[2]).model_json_schema(), 'slot3_move2')
+        self.assertIn('Earthquake', moves)  # slot 3 of the reversed team is Garchomp
+        self.assertNotIn('Fake Out', moves)  # Garchomp cannot learn it
+        self.assertNotIn('Thunderbolt', moves)  # already in the slot
+        whole = self.answer_type(TRIALS[1]).model_json_schema()
+        species = set(whole['$defs']['Species']['enum'])
+        self.assertIn('Whimsicott', species)
+        self.assertNotIn('Garchomp', species)  # Species Clause: already on the team
+
+    def test_inputs_and_instructions_are_unchanged(self):
+        for trial in TRIALS:
+            self.assertEqual(S.check_information(self.constrained(), trial), ['format', 'masked_team', 'opponents', 'requested_paths'])
+            system = S.messages(self.constrained(), trial)[0]['content']
+            self.assertIn(S.strip_envelope(B.prompt(MANIFEST, trial)[0]['content']), system)
+
+    def test_answers_return_in_the_baseline_shape_without_the_total(self):
+        for adapter in S.ADAPTERS:
+            for trial in TRIALS:
+                fills = LEGAL_FILLS[trial['id']]
+                values = []
+                for fill in fills:
+                    v = copy.deepcopy(fill['value'])
+                    for spread in (v, v.get('evs') if isinstance(v, dict) else None):
+                        if isinstance(spread, dict) and 'HP' in spread:
+                            spread['total'] = sum(spread.values())
+                    values.append(v)
+                fields = dict(zip(self.answer_type(trial).model_fields, values))
+                content = (f'[[ ## fills ## ]]\n{json.dumps(fields)}\n\n[[ ## completed ## ]]' if adapter == 'chat'
+                           else json.dumps({'fills': fields}))
+                answer = S.parse(self.constrained(adapter), trial, content, {})
+                self.assertEqual(answer, {'fills': fills})
+                B.apply_completion(TEAM, trial['paths'], answer)
+
+    def test_a_value_outside_the_choices_is_an_invalid_answer(self):
+        trial = TRIALS[2]
+        content = '[[ ## fills ## ]]\n' + json.dumps({'slot3_move2': 'Fake Out', 'slot4_nature': 'Calm'}) + '\n\n[[ ## completed ## ]]'
+        with self.assertRaisesRegex(ValueError, 'DSPy parse') as caught:
+            S.parse(self.constrained(), trial, content, {})
+        # Counted as a rule violation, not as an unreadable answer.
+        self.assertEqual(X.failure_class(str(caught.exception)), 'rule violation')
+
+    def test_a_long_answer_keeps_the_reason_it_was_refused(self):
+        # DSPy echoes the answer before the reason; a whole-team answer is long enough to push it out.
+        trial = TRIALS[1]
+        slot = dict(species='Mewtwo', item='Focus Sash', ability='Prankster', nature='Timid',
+                    moves=['Tailwind', 'Moonblast', 'Protect', 'Encore'],
+                    evs=dict(HP=32, Atk=0, Def=2, SpA=0, SpD=0, Spe=32, total=66), padding='x' * 2000)
+        content = '[[ ## fills ## ]]\n' + json.dumps({'slot1': slot}) + '\n\n[[ ## completed ## ]]'
+        with self.assertRaises(ValueError) as caught:
+            S.parse(self.constrained(), trial, content, {})
+        self.assertIn('validation error', str(caught.exception))
+        self.assertEqual(X.failure_class(str(caught.exception)), 'wrong answer shape')  # extra key present
+
+    def test_prepare_records_the_constraints(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            B.save(root / 'parent/manifest.json', MANIFEST)
+            E.prepare(SimpleNamespace(parent=root / 'parent', output=root / 'baseline', arms=['off', 'on'],
+                                      replicates=1, max_tokens=4096, request_timeout=600))
+            _, runs = E.load_runs(root / 'baseline')
+            for entry, folder, m in runs:
+                for t in m['trials']:
+                    B.save(folder / 'completions' / (t['id'] + '.json'),
+                           dict(request_hash=entry['request_hashes'][t['id']], valid=False, error='wrong number of fills',
+                                response={'choices': [{'finish_reason': 'stop'}], 'usage': {'cost': .001}}))
+            E.report(SimpleNamespace(output=root / 'baseline'))
+            X.prepare(SimpleNamespace(output=root / 'dspy', baseline=[root / 'baseline'], adapters=['chat'],
+                                      resample_baseline=False, program=None, constraints='legal-choices'))
+            study, runs = E.load_runs(root / 'dspy')
+            self.assertEqual(study['constraints'], 'legal-choices')
+            self.assertTrue(all(m['structure']['constraints'] == 'legal-choices' for _, _, m in runs))
+
+
 @unittest.skipIf(S is None, 'DSPy is not installed')
 class ExperimentTests(unittest.TestCase):
     def setUp(self):
@@ -202,6 +309,26 @@ class ExperimentTests(unittest.TestCase):
         self.assertAlmostEqual(cell['versus_resampled']['win_rate_both_legal']['mean'], .06)
         self.assertEqual(cell['baseline']['failures'], {'wrong answer shape': 1})
         self.assertIn('Baseline JSON prompt, sampled again', (self.args.output / 'report.md').read_text())
+
+    def test_provider_override_is_recorded_and_reported(self):
+        model = MANIFEST['model']
+        self.args.provider = [f'{model}=deepinfra']
+        X.prepare(self.args)
+        study, runs = E.load_runs(self.args.output)
+        _, baseline = E.load_runs(self.baseline)
+        original = {e['path']: (e, m) for e, _, m in baseline}
+        self.assertEqual(study['provider_overrides'][model]['used']['order'], ['deepinfra'])
+        for entry, folder, m in runs:
+            old_entry, old = original[entry['baseline_path']]
+            t = m['trials'][0]
+            self.assertEqual(B.completion_payload(m, t)['provider']['order'], ['deepinfra'])
+            if entry['variant'] == 'resampled':
+                self.assertEqual(B.completion_payload(m, t)['messages'], B.completion_payload(old, t)['messages'])
+                self.assertNotEqual(entry['request_hashes'], old_entry['request_hashes'])
+            for t in m['trials']:
+                self.save(folder, entry, t, True, wins=2)
+        X.report(self.args)
+        self.assertIn('Provider changed for', (self.args.output / 'report.md').read_text())
 
     def test_report_refuses_a_different_battle_runtime(self):
         X.prepare(self.args)
