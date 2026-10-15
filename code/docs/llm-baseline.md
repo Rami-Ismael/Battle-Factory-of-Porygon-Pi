@@ -65,6 +65,51 @@ hashes, seed, concurrency and format. Existing aggregate matchup cells cannot
 prove identical conditions and are not reused. Incomplete or unattributed panels
 are rejected. Candidate labels resume from exact cached panels.
 
+### Fast engine (default from 14 October 2026)
+
+`battle` now runs these panels on the persistent six-worker evaluator
+(`team_completion_pipeline/fast_battle_runner.py`, 24 battles per worker), several
+panels per evaluator call. `--battle-backend legacy` restores the pair_shard path
+above. The schedule, battle export (zero-point Serious written as Hardy), policy,
+50-battle completeness check and label format are unchanged; a completion equal to a
+pool team still plays its mirror.
+
+Fast panels are a separate battle identity: `battle-config.json` records
+`backend: fast` and the evaluator fingerprint (policy, simulator, encoder/inference
+code, packages, worker count) instead of `concurrency=1` and the pair_shard file
+hashes, so every cache key differs and **no legacy panel is ever reused**. A folder
+whose labels came from the other engine (a config without `backend`, or labels with
+no config, means legacy) has its `labels/` and `battle-config.json` moved to
+`archive-legacy-battles-<time>/` and is re-battled in full; nothing is deleted.
+`reasoning_battles.py` does this per study (study `status.json`/`report.md` move
+too), `dspy_structure_experiment.py battle` also re-battles its baseline studies, and
+its report accepts a re-battled baseline only when the prepared status sits in that
+baseline's archive and differs from the new one only in win rates.
+`matched_diffusion_study.py` stays legacy: it asserts the legacy fingerprints and
+that its baseline files never change.
+
+Measured 14–15 October 2026 on the same 48 fixture panels (2,400 battles; random-fill
+controls from `prompt-regulation-test`), on a copy of the matchup database, legacy as
+`reasoning_battles`' six spawned pair_shard processes. Eight trials in two blocks
+(legacy/fast/fast/legacy, then fast/legacy/legacy/fast), the cache cleared before each.
+Other jobs shared the 12 cores throughout (load average 16–111):
+
+| Engine | Whole stage, including startup (4 trials) | Battles/second |
+|---|---:|---:|
+| legacy | 393, 258, 408, 168 s (mean 307) | 5.9–14.3 |
+| fast | 149, 177, 111, 88 s (mean 131) | 13.6–27.3 |
+
+Adjacent pairs give 2.6×, 1.5×, 3.7× and 1.9× (geometric mean **2.3×**); single
+ratios are noisy because the other jobs changed during the run. Win rates agree: 0.304 legacy vs 0.302 fast,
+paired difference −0.29 pp (SE 0.52 pp) over the 48 panels, four trials each.
+
+Under lighter load (load average 11–25), eight further interleaved fast trials took
+39–66 s whole-stage (37–62 battles/s) and 53–86 battles/s once warm. Panels per
+evaluator call: 6 → 50 s, 12 (default) → 63 s, 24 → 41 s, 48 → 55 s (mean of two
+runs each); 24 looked best but the gaps are within the load noise. The first call,
+which also starts the six workers, took 18–64 s. A fully cached rerun takes 0.9 s and
+starts no workers.
+
 ## Run
 
 From the repository root, using the already installed project runtime:
