@@ -10,7 +10,7 @@ BASE=B.ROOT/'results/llm-baseline-full-grid'
 DIFF=B.ROOT/'results/diffusion-baseline-full-grid'
 
 
-def worker(index,count,baseline=None,diffusion=None):
+def worker(index,count,baseline=None,diffusion=None,backend='fast'):
     global BASE,DIFF
     if baseline is not None:
         from pathlib import Path
@@ -30,7 +30,7 @@ def worker(index,count,baseline=None,diffusion=None):
     # Identical teams always go to the same process, preventing cache races.
     selected=[(label,team,dest) for label,team,dest in candidates
               if int(B.digest(db.canonical_paste(B.paste(team,h))),16)%count==index]
-    B.battle(SimpleNamespace(output=out),candidates_override=[(label,team) for label,team,_ in selected])
+    B.battle(SimpleNamespace(output=out,battle_backend=backend),candidates_override=[(label,team) for label,team,_ in selected])
     for label,_,dest in selected:
         p=out/'labels'/(label+'.json')
         B.save(dest/'labels'/p.name,json.loads(p.read_text()))
@@ -42,13 +42,19 @@ if __name__=='__main__':
     parser.add_argument('--workers',type=int,default=6)
     parser.add_argument('--baseline',default=str(BASE))
     parser.add_argument('--diffusion',default=str(DIFF))
+    parser.add_argument('--battle-backend',choices=['legacy','fast'],default='fast',
+                        help='fast: one process on the six-worker evaluator (--workers is ignored); legacy: --workers pair_shard processes')
     args=parser.parse_args()
     from pathlib import Path
     BASE,DIFF=Path(args.baseline).resolve(),Path(args.diffusion).resolve()
     lock=(BASE/'.battle-workers.lock').open('w')
     fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    # The fast evaluator already runs six workers; one process feeds it every panel.
+    if args.battle_backend=='fast':args.workers=1
+    # Labels from the other engine are archived, so every destination is re-battled on one engine.
+    for dest in (BASE,DIFF):B.switch_engine(dest,args.battle_backend)
     with concurrent.futures.ProcessPoolExecutor(max_workers=args.workers) as pool:
-        futures=[pool.submit(worker,i,args.workers,str(BASE),str(DIFF)) for i in range(args.workers)]
+        futures=[pool.submit(worker,i,args.workers,str(BASE),str(DIFF),args.battle_backend) for i in range(args.workers)]
         for future in concurrent.futures.as_completed(futures): print('Finished worker',future.result(),flush=True)
     config=json.loads((BASE/'workers/0/battle-config.json').read_text())
     for i in range(args.workers): assert json.loads((BASE/f'workers/{i}/battle-config.json').read_text())==config

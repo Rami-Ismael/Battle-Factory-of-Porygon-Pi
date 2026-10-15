@@ -65,6 +65,24 @@ class ParallelBattleTests(unittest.TestCase):
             self.assertEqual(len(pending), 1)
             self.assertEqual(len(pending[0]['destinations']), 2)
 
+    def test_fast_by_default_and_a_legacy_study_is_archived_for_a_full_rebattle(self):
+        self.assertEqual(P.study_backend(self.root, self.runs), 'fast')
+        B.save(self.root / 'off' / 'battle-config.json', {'seed': 42})  # written before the fast engine
+        B.save(self.root / 'off' / 'labels' / 'llm-s0-item-1.json', {'wins': 1, 'battles': 50})
+        B.save(self.root / 'status.json', {'rows': []})
+        self.assertEqual(P.study_backend(self.root, self.runs, 'legacy'), 'legacy')
+        self.assertTrue((self.root / 'off' / 'labels').exists())
+        self.assertEqual(P.study_backend(self.root, self.runs), 'fast')
+        self.assertFalse((self.root / 'off' / 'labels').exists())
+        self.assertFalse((self.root / 'status.json').exists())
+        self.assertEqual(len(list(self.root.glob('off/archive-legacy-battles-*/labels/*.json'))), 1)
+        self.assertEqual(len(list(self.root.glob('archive-legacy-battles-*/status.json'))), 1)
+        # The fast panels then publish under a fast config; publish still refuses a mix.
+        group = dict(destinations=[str(self.root / 'off' / 'labels' / 'llm-s0-item-1.json')])
+        P.publish(group, dict(wins=2, battles=50), {'backend': 'fast'})
+        with self.assertRaisesRegex(ValueError, 'battle configuration changed'):
+            P.publish(group, dict(wins=2, battles=50), {'seed': 42})
+
     def test_simulator_workers_have_independent_writable_roots(self):
         source = self.root / 'source'
         for name in ['dist/lib', 'config', 'logs', 'node_modules']:

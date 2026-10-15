@@ -62,7 +62,7 @@ def run(args):
     if failed:raise RuntimeError(f'generation stopped in {failed}; see generation.log, then rerun')
 
 
-def battle_worker(index,count):
+def battle_worker(index,count,backend='fast'):
     """Score the legal completions only; the comparison is between the two prompts."""
     h,db=B.runtime();jobs=[]
     for f in folders():
@@ -73,17 +73,25 @@ def battle_worker(index,count):
     # Identical teams always go to the same process, preventing cache races.
     jobs=[j for j in jobs if int(B.digest(db.canonical_paste(B.paste(j[1],h))),16)%count==index]
     out=OUT/'workers'/str(index);B.save(out/'manifest.json',m)
-    try:B.battle(SimpleNamespace(output=out),candidates_override=[(label,team) for label,team,_ in jobs])
+    try:B.battle(SimpleNamespace(output=out,battle_backend=backend),candidates_override=[(label,team) for label,team,_ in jobs])
     finally:
         for label,_,dest in jobs:
             done=read(out/'labels'/(label+'.json'))
-            if done:B.save(dest,done)
+            if done:
+                B.save(dest,done)
+                # Records the destination's engine, so a later run does not archive it again.
+                if not (dest.parent.parent/'battle-config.json').exists():B.save(dest.parent.parent/'battle-config.json',read(out/'battle-config.json'))
     return len(jobs)
 
 
 def battle(args):
-    if args.worker is not None:return print(battle_worker(args.worker,args.workers),'panels')
-    jobs=[subprocess.Popen([sys.executable,__file__,'battle','--output',str(OUT),'--workers',str(args.workers),'--worker',str(i)],
+    if args.worker is not None:return print(battle_worker(args.worker,args.workers,args.battle_backend),'panels')
+    # The fast evaluator already runs six workers; one process feeds it every panel.
+    if args.battle_backend=='fast':args.workers=1
+    # Labels from the other engine are archived, so every arm is re-battled on one engine.
+    for f in folders():B.switch_engine(f,args.battle_backend)
+    jobs=[subprocess.Popen([sys.executable,__file__,'battle','--output',str(OUT),'--workers',str(args.workers),'--worker',str(i),
+                            '--battle-backend',args.battle_backend],
                            stdout=(OUT/f'battles-{i}.log').open('a'),stderr=subprocess.STDOUT) for i in range(args.workers)]
     failed=[i for i,job in enumerate(jobs) if job.wait()]
     report(args)
@@ -170,5 +178,7 @@ if __name__=='__main__':
     p.add_argument('--parent',type=Path,default=B.ROOT/'results/ling-mb-prompt-comparison',help='folder holding the frozen 147-task manifest')
     p.add_argument('--output',type=Path,default=OUT);p.add_argument('--replicates',type=int,default=2)
     p.add_argument('--workers',type=int,default=1);p.add_argument('--worker',type=int)
+    p.add_argument('--battle-backend',choices=['legacy','fast'],default='fast',
+                   help='battle: fast = one process on the six-worker evaluator; legacy = --workers pair_shard processes')
     args=p.parse_args();OUT=args.output.resolve();OUT.mkdir(parents=True,exist_ok=True)
     globals()[args.command](args)

@@ -467,8 +467,68 @@ def battle_paste(text):
     return '\n\n'.join(blocks) + '\n'
 
 
+def candidates_for(args, m):
+    candidates = [(f"start-{i}", t) for i, t in enumerate(m["starts"])]
+    for trial in m["trials"]:
+        candidates.append(("random-" + trial["id"], trial["random_team"]))
+        path = args.output / "completions" / (trial["id"] + ".json")
+        if path.exists():
+            row = json.loads(path.read_text())
+            if row["valid"]: candidates.append(("llm-" + trial["id"], row["team"]))
+    return candidates
+
+
+def backend_of(config):
+    return config.get('backend', 'legacy')  # configs written before the fast engine name none
+
+
+def resolve_backend(requested=None):
+    """Fast unless legacy is asked for by name."""
+    if requested not in (None, 'legacy', 'fast'):
+        raise ValueError(f"battle backend must be legacy or fast, not {requested!r}")
+    return requested or 'fast'
+
+
+def read_config(folder):
+    path = Path(folder) / 'battle-config.json'
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+def recorded_backend(folder):
+    """The engine a folder's saved labels came from; labels without a config predate the fast engine."""
+    config = read_config(folder)
+    if config is not None:
+        return backend_of(config)
+    labels = Path(folder) / 'labels'
+    return 'legacy' if labels.is_dir() and any(labels.glob('*.json')) else None
+
+
+def switch_engine(folder, backend, extra=()):
+    """Before battling a folder on another engine, move its labels and battle config
+    (plus any named summaries) into an archive folder, never deleting them, so every
+    label in the folder comes from one engine. Returns the archive, or None."""
+    folder = Path(folder)
+    old = recorded_backend(folder)
+    if old is None or old == backend:
+        return None
+    archive = folder / f"archive-{old}-battles-{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}"
+    archive.mkdir()
+    for name in ('labels', 'battle-config.json', *extra):
+        if (folder / name).exists():
+            (folder / name).rename(archive / name)
+    print(f'{folder}: {old} labels moved to {archive.name}; re-battling on {backend}', flush=True)
+    return archive
+
+
 def battle(args, candidates_override=None, on_result=None):
-    """Separate exact-panel cache; never reuse aggregate cells with unknown seeds."""
+    """Separate exact-panel cache; never reuse aggregate cells with unknown seeds.
+
+    Fast by default (legacy only when args.battle_backend == 'legacy'). A folder
+    battled on the other engine is archived first and re-battled in full."""
+    backend = resolve_backend(getattr(args, 'battle_backend', None))
+    switch_engine(args.output, backend)
+    if backend == 'fast':
+        return fast_battle(args, candidates_override, on_result)
     import asyncio
     import importlib.util
     import torch
@@ -504,16 +564,7 @@ def battle(args, candidates_override=None, on_result=None):
     con.commit()
     pid = db.get_policy(con, simulator="showdown-content:" + digest(fingerprints),
                         note="Ling baseline; BC both sides; exact-panel cache stored separately")
-    if candidates_override is not None:
-        candidates = candidates_override
-    else:
-        candidates = [(f"start-{i}", t) for i, t in enumerate(m["starts"])]
-        for trial in m["trials"]:
-            candidates.append(("random-" + trial["id"], trial["random_team"]))
-            path = args.output / "completions" / (trial["id"] + ".json")
-            if path.exists():
-                row = json.loads(path.read_text())
-                if row["valid"]: candidates.append(("llm-" + trial["id"], row["team"]))
+    candidates = candidates_for(args, m) if candidates_override is None else candidates_override
     # Own an isolated server built from the same checkout used for validation.
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
@@ -619,6 +670,162 @@ def battle(args, candidates_override=None, on_result=None):
         sandbox.cleanup()
 
 
+FAST_PANELS = 12  # panels per evaluator call: 600 battles keep six workers x 24 battles busy
+_fast_runner = None
+
+
+def fast_runner(folder):
+    """One persistent evaluator per process, reused by every later fast_battle call."""
+    global _fast_runner
+    if _fast_runner is None or _fast_runner.closed:
+        import atexit
+        _, db = runtime()
+        if str(db.FAST_RUNNER_DIR) not in sys.path: sys.path.append(str(db.FAST_RUNNER_DIR))
+        from fast_battle_runner import FastBattleRunner
+        _fast_runner = FastBattleRunner(Path(folder) / f"{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}-{time.time_ns()}",
+                                        workers=int(os.environ.get("MATCHUP_FAST_WORKERS", 6)),
+                                        concurrency=int(os.environ.get("MATCHUP_FAST_CONCURRENCY", 24)),
+                                        runtime=db.FAST_EVIDENCE / "runtime")
+        atexit.register(_fast_runner.close)
+    return _fast_runner
+
+
+def fast_panels(runner, con, panels, wire, seed):
+    """Battle several exact panels in one all-or-nothing evaluator call.
+
+    Each panel row gets its own identity in a private in-memory team table that
+    holds the battle exports, so a completion equal to a pool team still plays
+    its mirror (the evaluator refuses a team battling its own identity).
+    Returns {panel index: [(team_id, opponent_id, wins, losses, ties)]}."""
+    from collections import Counter, defaultdict
+    mem = sqlite3.connect(':memory:')
+    try:
+        mem.execute('CREATE TABLE team (team_id INTEGER PRIMARY KEY, paste TEXT, base_key TEXT, format_id TEXT, legal INTEGER)')
+        def local(team_id):
+            base = con.execute('SELECT base_key FROM team WHERE team_id=?', (team_id,)).fetchone()[0]
+            row = mem.execute('INSERT INTO team (paste,base_key,format_id,legal) VALUES (?,?,?,1)',
+                              (wire(team_id), base, FORMAT)).lastrowid
+            real[row] = team_id
+            return row, base
+        real, owner, cols, jobs = {}, {}, {}, []
+        for index, (tid, schedule) in enumerate(panels):
+            row, _ = local(tid)
+            owner[row] = index
+            job, seen = [], {}
+            for oid, n in sorted(Counter(schedule).items()):
+                if oid not in cols: cols[oid] = local(oid)
+                col, base = cols[oid]
+                # Two opponents with one preview cannot be told apart in one job (as in jobs_for).
+                if seen.get(base, col) != col:
+                    jobs.append(dict(row=row, schedule=job))
+                    job, seen = [], {}
+                job += [col] * n
+                seen[base] = col
+            jobs.append(dict(row=row, schedule=job))
+        raw, unattributed, _ = runner(mem, jobs, seed=seed)
+    finally:
+        mem.close()
+    merged = defaultdict(lambda: [0, 0, 0])
+    for row, col, *counts in raw:
+        for i, count in enumerate(counts): merged[owner[row], real[col]][i] += count
+    by_panel = defaultdict(list)
+    for (index, oid), counts in sorted(merged.items()):
+        by_panel[index].append((panels[index][0], oid, *counts))
+    return by_panel, unattributed
+
+
+def fast_battle(args, candidates_override=None, on_result=None):
+    """The same exact 50-battle panels on the persistent six-worker evaluator.
+
+    A separate battle identity: the config (and so every cache key) names the
+    evaluator's fingerprint instead of concurrency=1 and the pair_shard files,
+    so a fast panel never answers a legacy lookup and publish() refuses to mix
+    the two in one study folder. Panels are battled several per evaluator call
+    and published one by one, each only once all 50 battles are attributed."""
+    from collections import Counter
+    h, db = runtime()
+    m = load_manifest(args)
+    runner = fast_runner(args.output / 'fast-battles')
+    config = dict(format=FORMAT, policy="behaviour-cloning both sides", backend='fast',
+                  evaluator=runner.identity, evaluator_provenance=runner.provenance,
+                  seed=m["seed"], battles=50, opponents=m["opponents"], seed_limit=m["seed_limit"])
+    if m.get('exclude_starter_team_ids'):
+        config['exclude_starter_team_ids'] = m['exclude_starter_team_ids']
+    con = db.connect()
+    con.execute("CREATE TABLE IF NOT EXISTS llm_completion_panel "
+                "(cache_key TEXT PRIMARY KEY, config_json TEXT NOT NULL, result_json TEXT NOT NULL)")
+    con.commit()
+    pid = runner.policy_id(con, db)
+    candidates = candidates_for(args, m) if candidates_override is None else candidates_override
+    validator = h.Validator()
+    try:
+        wire_texts = {}
+        def wire(team_id):
+            # The legacy battle export: canonical paste, zero-point Serious written as Hardy.
+            if team_id not in wire_texts:
+                text = con.execute("SELECT paste FROM team WHERE team_id=?", (team_id,)).fetchone()[0]
+                exported = battle_paste(text)
+                if db.canonical_paste(exported) != db.canonical_paste(text):
+                    raise ValueError(f'battle export changed canonical team {team_id}')
+                error = validator(exported)
+                if error:
+                    raise ValueError(f'battle export rejected for team {team_id}: {error}')
+                wire_texts[team_id] = exported
+            return wire_texts[team_id]
+        for o in m["opponents"]:
+            stored = con.execute("SELECT paste FROM team WHERE team_id=?", (o["team_id"],)).fetchone()
+            if not stored or stored[0] != o["paste"]: raise ValueError("opponent database changed")
+        schedule = schedule_for(m, 0)
+        panels = {'schedules_by_start': {str(i):schedule_for(m,i) for i in range(len(m['starts']))}} if m.get('exclude_starter_team_ids') else {'schedule':schedule}
+        save(args.output / "battle-config.json", dict(config, policy_id=pid, **panels))
+        def finish(label, result):
+            save(args.output / "labels" / (label + ".json"), result)
+            if on_result is not None:
+                on_result(label, result)
+            print(label, f"{result['wins']}/50", flush=True)
+        pending = {}
+        for label, team in candidates:
+            schedule = schedule_for(m, candidate_start(label))
+            text = paste(team, h)
+            error = validator(text)
+            if error: raise ValueError(error)
+            tid = db.add_team(con, text, "llm-completion:" + args.output.name, validator)[0]
+            key = digest(dict(config=config, candidate=db.canonical_paste(text), schedule=schedule))
+            cached = con.execute("SELECT result_json FROM llm_completion_panel WHERE cache_key=?", (key,)).fetchone()
+            if cached:
+                finish(label, json.loads(cached[0]))
+            else:
+                pending.setdefault(key, dict(tid=tid, schedule=schedule, labels=[]))['labels'].append(label)
+        work = list(pending.items())
+        size = getattr(args, 'fast_panels', None) or FAST_PANELS
+        for first in range(0, len(work), size):
+            batch = work[first:first + size]
+            by_panel, unattributed = fast_panels(runner, con, [(p['tid'], p['schedule']) for _, p in batch],
+                                                 wire, m["seed"])
+            if unattributed: raise RuntimeError(f"unattributed battles: {unattributed}")
+            for index, (key, p) in enumerate(batch):
+                results = by_panel.get(index, [])
+                n = sum(w+l+t for _, _, w,l,t in results)
+                played = Counter()
+                for _, oid, w, l, t in results: played[oid] += w+l+t
+                if n != 50 or played != Counter(p['schedule']):
+                    raise RuntimeError(f"incomplete panel {p['labels'][0]}: {n} battles against the 50-battle schedule")
+                # Round-trip through JSON so a published result equals its saved copy.
+                result = json.loads(json.dumps(dict(team_id=p['tid'], wins=sum(r[2] for r in results), battles=n,
+                                                    results=results, cache_key=key)))
+                off_diagonal = [r for r in results if r[0] != r[1]]
+                if off_diagonal:
+                    db.record(con, pid, off_diagonal, seed=m["seed"], note="llm-completion:" + args.output.name)
+                with con:
+                    con.execute("INSERT INTO llm_completion_panel VALUES (?,?,?)",
+                                (key, json.dumps(config), json.dumps(result)))
+                for label in p['labels']:
+                    finish(label, result)
+    finally:
+        validator.close()
+        con.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["prepare", "complete", "battle", "report"])
@@ -627,6 +834,11 @@ def main():
     parser.add_argument("--seed", type=int, default=20261008)
     parser.add_argument('--shards', type=int, default=1)
     parser.add_argument('--shard', type=int, default=0)
+    parser.add_argument('--battle-backend', choices=['legacy', 'fast'],
+                        help='battle: fast (default) = six persistent workers, a separate battle identity that never '
+                             'reuses legacy panels; legacy = pair_shard on one private server. Labels from the '
+                             'other engine are archived and re-battled')
+    parser.add_argument('--fast-panels', type=int, default=FAST_PANELS, help='battle: panels per fast evaluator call')
     args = parser.parse_args()
     args.output = args.output.resolve()
     if args.teams < 1: parser.error("--teams must be positive")
