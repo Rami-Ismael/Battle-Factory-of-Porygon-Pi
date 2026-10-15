@@ -88,20 +88,27 @@ baseline's archive and differs from the new one only in win rates.
 `matched_diffusion_study.py` stays legacy: it asserts the legacy fingerprints and
 that its baseline files never change.
 
-Measured 14 October 2026 on the same 48 fixture panels (2,400 battles; random-fill
-controls from `prompt-regulation-test`), legacy as `reasoning_battles`' six spawned
-pair_shard processes, interleaved legacy/fast/fast/legacy, other jobs keeping the
-load average near 20 on 12 cores:
+Measured 14–15 October 2026 on the same 48 fixture panels (2,400 battles; random-fill
+controls from `prompt-regulation-test`), on a copy of the matchup database, legacy as
+`reasoning_battles`' six spawned pair_shard processes. Eight trials in two blocks
+(legacy/fast/fast/legacy, then fast/legacy/legacy/fast), the cache cleared before each.
+Other jobs shared the 12 cores throughout (load average 16–111):
 
-| Engine | Whole stage, including startup | Battles/second |
+| Engine | Whole stage, including startup (4 trials) | Battles/second |
 |---|---:|---:|
-| legacy | 393 s, 258 s | 6.1, 9.3 |
-| fast | 149 s, 177 s | 16.1, 13.6 |
+| legacy | 393, 258, 408, 168 s (mean 307) | 5.9–14.3 |
+| fast | 149, 177, 111, 88 s (mean 131) | 13.6–27.3 |
 
-About **2.0× faster** whole-stage (paired 2.6× and 1.5×; two pairs only, under
-varying load). Once loaded, a 600-battle evaluator call took 26–38 s. Mean win rate
-0.299 legacy vs 0.300 fast; paired difference +0.15 pp (SE 0.76 pp) across the 48
-panels, so no detectable shift from the engine. A fully cached rerun starts no workers.
+Adjacent pairs give 2.6×, 1.5×, 3.7× and 1.9× (geometric mean **2.3×**); single
+ratios are noisy because the other jobs changed during the run. Win rates agree: 0.304 legacy vs 0.302 fast,
+paired difference −0.29 pp (SE 0.52 pp) over the 48 panels, four trials each.
+
+Under lighter load (load average 11–25), eight further interleaved fast trials took
+39–66 s whole-stage (37–62 battles/s) and 53–86 battles/s once warm. Panels per
+evaluator call: 6 → 50 s, 12 (default) → 63 s, 24 → 41 s, 48 → 55 s (mean of two
+runs each); 24 looked best but the gaps are within the load noise. The first call,
+which also starts the six workers, took 18–64 s. A fully cached rerun takes 0.9 s and
+starts no workers.
 
 ## Run
 
