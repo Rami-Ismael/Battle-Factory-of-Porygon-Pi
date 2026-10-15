@@ -5,6 +5,7 @@ from unittest.mock import patch
 from pathlib import Path
 import numpy as np
 import torch
+import frozen as F
 import retrain_regmb as R
 from encode import Vocab
 
@@ -49,13 +50,13 @@ class RegulationTests(unittest.TestCase):
 
     def test_all_frozen_pilot_contexts_representable(self):
         import diffusion_baseline as B
-        m=json.loads((R.CODE/'results/llm-baseline-instant-pilot/manifest.json').read_text())
+        m=F.load('llm-baseline-instant-pilot/manifest.json')
         for t in m['trials']:
             self.assertFalse(B.encode_context(m['starts'][t['start']],t['paths'],self.v)[2],t['id'])
 
     def test_unknown_value_is_not_silently_masked(self):
         import diffusion_baseline as B
-        m=json.loads((R.CODE/'results/llm-baseline-instant-pilot/manifest.json').read_text())
+        m=F.load('llm-baseline-instant-pilot/manifest.json')
         team=copy.deepcopy(m['starts'][0]);team[0]['nature']='Not a nature'
         with self.assertRaisesRegex(ValueError,'outside Regulation M-B'):
             self.v.encode(team)
