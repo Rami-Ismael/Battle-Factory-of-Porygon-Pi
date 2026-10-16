@@ -1,6 +1,9 @@
 import json
+from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
+import unittest.mock
 from unittest.mock import Mock
 
 import llm_baseline as B
@@ -10,7 +13,7 @@ try:
     from dspy.utils import DummyLM
     import dspy_optimize as O
     import dspy_structure as S
-    from test_dspy_structure import FILLS, MANIFEST, TRIALS
+    from test_dspy_structure import FILLS, LEGAL_FILLS, MANIFEST, TRIALS
 except ImportError:  # the runtime without DSPy still runs the other suites
     O = None
 
@@ -30,7 +33,7 @@ class OptimizeTests(unittest.TestCase):
         train, dev = O.examples(self.m, 'train'), O.examples(self.m, 'dev')
         self.assertEqual([e.trial_id for e in train], ['s0-item-2', 's0-pokemon-1'])
         self.assertEqual([e.trial_id for e in dev], ['s1-move-2'])
-        self.assertEqual(set(train[0].inputs()), {'format', 'opponents', 'masked_team', 'requested_paths'})
+        self.assertEqual(set(train[0].inputs()), {'format', 'opponents', 'masked_team', 'requested_paths', 'trial_id'})
 
     def test_metric_scores_legality_with_the_validator_message(self):
         metric = O.Metric(self.m, tempfile.mkdtemp(), validator=self.validator, h=self.h)
@@ -64,6 +67,91 @@ class OptimizeTests(unittest.TestCase):
         self.assertEqual(len(demo), 2)  # one demonstration: a user turn and an assistant turn
         self.assertIn('Focus Sash', demo[1]['content'])
         S.check_information(m, TRIALS[2])
+
+
+@unittest.skipIf(O is None, 'DSPy is not installed')
+class LegalChoiceOptimizeTests(unittest.TestCase):
+    """GEPA optimizes one predictor's instructions while every task keeps its own legal-choice type."""
+
+    def setUp(self):
+        self.m = dict(MANIFEST, structure=S.config('chat', constraints='legal-choices'),
+                      optimization=dict(split={'0': 'train', '1': 'dev'}))
+        self.h = Mock(slot_to_text=lambda slot: slot['species'])
+        self.validator = Mock(return_value=None)
+        self.metric = O.Metric(self.m, tempfile.mkdtemp(), validator=self.validator, h=self.h)
+        self.example = O.examples(self.m, 'dev')[0]  # s1-move-2: Garchomp's third move and a nature
+
+    def run_program(self, answer, program=None, adapter=None):
+        lm = DummyLM([{'fills': json.dumps(answer)}])
+        with dspy.context(lm=lm, adapter=adapter or O.lenient(S.adapter_for(self.m['structure']))):
+            pred = (program or O.Completion(self.m))(**self.example.inputs())
+        return pred, lm.history[-1]['messages']
+
+    def test_each_task_is_sent_its_own_legal_choices(self):
+        pred, messages = self.run_program({'slot3_move2': 'Earthquake', 'slot4_nature': 'Calm'})
+        self.assertIn('slot3_move2', messages[0]['content'])
+        self.assertIn('Earthquake', messages[0]['content'])
+        self.assertEqual(self.metric(self.example, pred).score, 1.0)
+        self.assertEqual(B.apply_completion(MANIFEST['starts'][1], TRIALS[2]['paths'],
+                                            S.as_fills(pred.fills, TRIALS[2]['paths'])),
+                         B.apply_completion(MANIFEST['starts'][1], TRIALS[2]['paths'], {'fills': LEGAL_FILLS['s1-move-2']}))
+
+    def test_a_refused_value_reaches_gepa_as_feedback(self):
+        pred, _ = self.run_program({'slot3_move2': 'Fake Out', 'slot4_nature': 'Calm'})
+        result = self.metric(self.example, pred)
+        self.assertEqual(result.score, 0.0)
+        self.assertIn('slot3_move2', result.feedback)
+        self.assertIn('type=enum', result.feedback)
+        self.validator.assert_not_called()
+
+    def test_without_the_lenient_adapter_a_refusal_is_a_parse_failure(self):
+        with self.assertRaises(dspy.AdapterParseError):
+            self.run_program({'slot3_move2': 'Fake Out', 'slot4_nature': 'Calm'}, adapter=S.adapter_for(self.m['structure']))
+
+    def test_instructions_gepa_writes_reach_every_typed_call(self):
+        program = O.Completion(self.m)
+        program.predict.signature = program.predict.signature.with_instructions('Pick only from the listed choices.')
+        _, messages = self.run_program({'slot3_move2': 'Earthquake', 'slot4_nature': 'Calm'}, program=program)
+        self.assertIn('Pick only from the listed choices.', messages[0]['content'])
+        self.assertNotIn('Complete only the null fields', messages[0]['content'])
+        self.assertIn('slot3_move2', messages[0]['content'])
+
+    def test_optimized_requests_match_the_test_requests(self):
+        # The phase-one test path sends the adapter's messages and no response_format.
+        trial = TRIALS[2]
+        _, messages = self.run_program({'slot3_move2': 'Earthquake', 'slot4_nature': 'Calm'})
+        self.assertEqual(messages, B.completion_payload(self.m, trial)['messages'])
+        kwargs = {}
+        O.lenient(S.adapter_for(S.config('json', constraints='legal-choices')))._prepare_response_format(None, kwargs, None)
+        self.assertEqual(kwargs, {})
+
+    def test_gepa_learns_from_refusals_on_the_typed_program(self):
+        refused = {'fills': json.dumps({'slot3_move2': 'Fake Out', 'slot4_nature': 'Calm'})}
+        legal = {'fills': json.dumps({'slot3_move2': 'Earthquake', 'slot4_nature': 'Calm'})}
+        task = DummyLM([refused] * 4 + [legal] * 40)  # base program refused; the proposed one legal
+        reflection = DummyLM([{'new_instruction': 'Choose only listed values.'}] * 10, adapter=dspy.JSONAdapter())
+        with dspy.context(lm=task, adapter=O.lenient(S.adapter_for(self.m['structure']))):
+            gepa = dspy.GEPA(metric=self.metric, max_metric_calls=12, reflection_lm=reflection,
+                             add_format_failure_as_feedback=True, num_threads=1, seed=1)
+            dev = O.examples(self.m, 'dev')
+            optimized = gepa.compile(O.Completion(self.m), trainset=dev, valset=dev)
+        # The reflection model was shown the refusal reason, not a generic parse note.
+        self.assertIn('type=enum', json.dumps(reflection.history[0]['messages']))
+        exported = O.export(optimized, self.m, {'name': 'gepa'})
+        self.assertEqual(exported['instructions'], 'Choose only listed values.')
+        self.assertEqual(exported['demos'], [])
+        m = dict(MANIFEST, structure=S.config('chat', exported['instructions'], constraints='legal-choices'))
+        S.check_information(m, TRIALS[2])
+
+    def test_mipro_is_refused_with_legal_choice_types(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            B.save(Path(tmp) / 'manifest.json', self.m)
+            args = SimpleNamespace(output=Path(tmp), optimizer='mipro')
+            with unittest.mock.patch.object(B, 'runtime', return_value=(self.h, None)), \
+                 unittest.mock.patch.object(O, 'lm_for', return_value=DummyLM([])):
+                self.h.Validator = Mock(return_value=self.validator)
+                with self.assertRaisesRegex(ValueError, 'MIPROv2'):
+                    O.optimize(args)
 
 
 if __name__ == '__main__':

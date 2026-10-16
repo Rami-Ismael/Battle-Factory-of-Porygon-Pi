@@ -281,6 +281,20 @@ def raw_fills(structure, content):
         return None
 
 
+def refusal_message(exc):
+    """A DSPy parse failure as a short message that leads with the reason.
+
+    DSPy's message echoes the whole answer before the reason, so the reason comes
+    first or it is cut off; the list of allowed values (up to hundreds of names)
+    is dropped, keeping the field, the pydantic error code and the input.
+    """
+    text = str(exc)
+    reason = text.split('Error message:', 1)[1].strip() if 'Error message:' in text else ''
+    reason = re.sub(r'Input should be .*? \[type=', '[type=', reason, flags=re.S)
+    reason = re.sub(r'\s*For further information visit \S+', '', reason)
+    return f'DSPy parse: {reason[:400]} | {text[:300]}' if reason else f'DSPy parse: {text[:500]}'
+
+
 def parse(manifest, trial, content, diagnostics):
     """Typed parse into the baseline answer shape, {"fills": [...]}.
 
@@ -299,14 +313,8 @@ def parse(manifest, trial, content, diagnostics):
     try:
         fields = adapter.parse(sig, content)
     except dspy.AdapterParseError as exc:
-        # The baseline counts a ValueError as an invalid answer. DSPy's message echoes
-        # the whole answer before the reason, so lead with the reason or it is cut off.
-        text = str(exc)
-        reason = text.split('Error message:', 1)[1].strip() if 'Error message:' in text else ''
-        # Drop the list of allowed values (up to hundreds of names); keep field, code and input.
-        reason = re.sub(r'Input should be .*? \[type=', '[type=', reason, flags=re.S)
-        reason = re.sub(r'\s*For further information visit \S+', '', reason)
-        raise ValueError(f'DSPy parse: {reason[:400]} | {text[:300]}' if reason else f'DSPy parse: {text[:500]}') from None
+        # The baseline counts a ValueError as an invalid answer.
+        raise ValueError(refusal_message(exc)) from None
     if manifest['structure'].get('constraints'):
         return as_fills(fields['fills'], trial['paths'])
     return {'fills': [fill.model_dump() for fill in fields['fills']]}

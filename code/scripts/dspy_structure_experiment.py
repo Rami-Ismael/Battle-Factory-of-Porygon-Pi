@@ -50,7 +50,9 @@ def variant_name(variant, program=None, constraints=None):
     name = VARIANT_NAMES[variant]
     if constraints and variant != RESAMPLED:
         name += ' with legal-choice types'
-    return f'Optimized {name[0].lower()}{name[1:]}' if program and variant != RESAMPLED else name
+    if not program or variant == RESAMPLED:
+        return name
+    return f'Optimized {name}' if name[:2].isupper() else f'Optimized {name[0].lower()}{name[1:]}'  # keep "DSPy"
 
 
 def payload_without_messages(manifest, trial):

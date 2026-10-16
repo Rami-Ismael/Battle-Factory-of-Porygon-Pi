@@ -13,6 +13,7 @@ so the optimized arm meets the identical request, validation and battle path.
 prepare makes no API calls. optimize makes paid calls through DSPy's LM client.
 """
 import argparse
+import copy
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -39,7 +40,10 @@ def prepare(args):
     m.update(optimization=dict(parent=str(args.parent), parent_manifest_sha256=B.digest(parent),
                                split=split, adapter=args.adapter,
                                rule='largest mask per family; starters sampled fresh'))
-    m['structure'] = S.config(args.adapter)
+    constraints = getattr(args, 'constraints', None)
+    if constraints:
+        m['optimization']['constraints'] = constraints
+    m['structure'] = S.config(args.adapter, constraints=constraints)
     for trial in m['trials']:
         S.check_information(m, trial)
     B.save(args.output / 'manifest.json', m)
@@ -47,16 +51,54 @@ def prepare(args):
                           tasks=len(m['trials']))))
 
 
+class Refused(str):
+    """An answer the legal-choice type refused; its text is the reason."""
+
+
+def lenient(adapter):
+    """The same adapter, made to suit optimization with legal-choice types.
+
+    - A reply refused by the answer type is returned as `Refused` instead of
+      raising, so the metric can give GEPA the exact reason (as it does for
+      validator messages). Raising would leave GEPA only a generic parse note.
+    - No `response_format`: the phase-one requests GEPA's result is tested with
+      never send one, so the optimized requests must not either.
+    """
+    def parse(self, signature, completion):
+        try:
+            return type(adapter).parse(self, signature, completion)
+        except dspy.AdapterParseError as exc:
+            return {name: Refused(S.refusal_message(exc)) for name in signature.output_fields}
+
+    cls = type('Lenient' + type(adapter).__name__, (type(adapter),),
+               dict(parse=parse, _prepare_response_format=lambda self, *a, **k: None))
+    wrapped = copy.copy(adapter)
+    wrapped.__class__ = cls
+    return wrapped
+
+
 class Completion(dspy.Module):
-    """The phase-one request as a DSPy program: one Predict, no added reasoning field."""
+    """The phase-one request as a DSPy program: one Predict, no added reasoning field.
+
+    With legal-choice types each task has its own answer type, but GEPA rewrites
+    one predictor's instructions. So the predictor keeps a generic signature
+    whose instructions GEPA edits, and each call sends that task's typed
+    signature carrying the current instructions.
+    """
 
     def __init__(self, manifest):
         super().__init__()
-        sig, _, _ = S.parts(manifest, manifest['trials'][0])
+        self.manifest = manifest
+        self.trials = {t['id']: t for t in manifest['trials']}
+        generic = dict(manifest, structure={k: v for k, v in manifest['structure'].items() if k != 'constraints'})
+        sig, _, _ = S.parts(generic, manifest['trials'][0])
         self.predict = dspy.Predict(sig)
 
-    def forward(self, **inputs):
-        return self.predict(**inputs)
+    def forward(self, trial_id=None, **inputs):
+        if not self.manifest['structure'].get('constraints'):
+            return self.predict(**inputs)
+        typed, _, _ = S.parts(self.manifest, self.trials[trial_id])
+        return self.predict(signature=typed.with_instructions(self.predict.signature.instructions), **inputs)
 
 
 def examples(manifest, split):
@@ -70,7 +112,7 @@ def examples(manifest, split):
             keys = list(inputs)
         elif list(inputs) != keys:
             raise ValueError('input fields differ between tasks')
-        rows.append(dspy.Example(**inputs, trial_id=trial['id']).with_inputs(*keys))
+        rows.append(dspy.Example(**inputs, trial_id=trial['id']).with_inputs(*keys, 'trial_id'))
     return rows
 
 
@@ -90,7 +132,12 @@ class Metric:
         self.cache = {}
 
     def check(self, trial, pred):
-        answer = {'fills': [f.model_dump() for f in pred.fills]}
+        if isinstance(pred.fills, Refused):
+            raise ValueError(str(pred.fills))
+        if self.manifest['structure'].get('constraints'):
+            answer = S.as_fills(pred.fills, trial['paths'])
+        else:
+            answer = {'fills': [f.model_dump() for f in pred.fills]}
         team = B.apply_completion(self.manifest['starts'][trial['start']], trial['paths'], answer)
         error = self.validator(B.paste(team, self.h))
         if error:
@@ -154,6 +201,10 @@ def optimize(args):
     validator = h.Validator()
     lm = lm_for(m)
     adapter = S.adapter_for(m['structure'])
+    if m['structure'].get('constraints'):
+        if args.optimizer != 'gepa':
+            raise ValueError('MIPROv2 demonstrations cannot carry per-task legal-choice types; use GEPA')
+        adapter = lenient(adapter)
     try:
         dspy.configure(lm=lm, adapter=adapter)
         metric = Metric(m, args.output, battles=args.battles, alpha=args.alpha, validator=validator, h=h)
@@ -176,6 +227,7 @@ def optimize(args):
                               num_threads=args.threads)(optimized).score
         cost = sum(entry.get('cost') or 0 for entry in lm.history)
         settings = dict(name=args.optimizer, budget=args.budget, battles=args.battles, alpha=args.alpha,
+                        constraints=m['structure'].get('constraints'),
                         reflection_model=args.reflection_model, max_demos=args.max_demos, seed=args.seed,
                         train_tasks=len(train), dev_tasks=len(dev), dev_score_before=before,
                         dev_score_after=after, task_lm_cost_usd=cost, dspy_version=dspy.__version__)
@@ -195,6 +247,8 @@ def main():
     p.add_argument('--dev-starters', type=int, default=8)
     p.add_argument('--seed', type=int, default=20261015)
     p.add_argument('--adapter', choices=S.ADAPTERS, default='chat')
+    p.add_argument('--constraints', choices=S.CONSTRAINTS,
+                   help='prepare: optimize with each task typed by its legal choices (dspy_structure.legal_completion_type)')
     p.add_argument('--optimizer', choices=['gepa', 'mipro'], default='gepa')
     p.add_argument('--budget', choices=['light', 'medium', 'heavy'], default='light')
     p.add_argument('--battles', action='store_true', help='score legal answers with the 50-battle panel too')
