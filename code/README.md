@@ -1,5 +1,18 @@
 # VGC team-generator pilot
 
+## Run queue
+
+Runs that are written and checked but not started are listed in
+[the run queue](docs/run-queue.md), in order, with their commands and costs.
+
+## Cross-entropy loop with Diffusion-BBO's rule (October 16, 2026)
+
+`src/cem_dbbo.py` keeps the version-3 loop's plumbing (512 proposals, the ridge
+picks 128 to battle) and takes Diffusion-BBO's two rules: train the conditioned
+model on every scored team, and ask for best so far × w. Two groups: the
+re-steered foundation (`cem_dbbo`) and a from-scratch network (`cem_scratch`).
+Queued, not run. See [the pre-registration](docs/cem-dbbo-loop.md).
+
 ## DSPy structure experiment (October 14, 2026)
 
 Tests whether typed DSPy request and answer fields change masked-completion
