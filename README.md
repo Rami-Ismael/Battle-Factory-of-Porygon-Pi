@@ -129,4 +129,10 @@ Code is [MIT](LICENSE). The blog's prose and figures are [CC BY 4.0](https://cre
 
 ## Acknowledgements
 
-[Pokémon Showdown](https://github.com/smogon/pokemon-showdown) for the battle simulator, [VGC-Bench](https://github.com/cameronangliss/VGC-Bench) for the behaviour-cloned policy and the scraped teams, and [poke-env](https://github.com/hsahovic/poke-env).
+This project depends on other people's work:
+
+- **[Pokémon Showdown](https://github.com/smogon/pokemon-showdown)** runs every battle and checks every team for legality. It also supplies the Pokédex, learnset and item data and the sprites.
+- **[VGC-Bench](https://github.com/cameronangliss/VGC-Bench)** ([paper](https://arxiv.org/abs/2506.10326), AAMAS 2026) supplies the behaviour-cloned battle policy that pilots both sides of every battle ([weights](https://huggingface.co/cameronangliss/vgc-bench-models)), and the scraped teams.
+- **[poke-env](https://github.com/hsahovic/poke-env)** connects the Python code to Showdown.
+- **The [VGCPastes sheet](https://docs.google.com/spreadsheets/d/1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw)** is the source of the top-placing Regulation M-B teams the search plays against. Thanks to the players who publish their team sheets there.
+- **[MDLM](https://arxiv.org/abs/2406.07524)** (Sahoo et al., NeurIPS 2024) supplies the masked diffusion objective that the team generator trains on.
