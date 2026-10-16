@@ -11,17 +11,19 @@ The page asks one thing: when part of a random legal Reg M-B team is hidden and
 a writer fills it, does the completed team battle better? It is laid out in the
 order the questions were asked:
 
-0. Explorer (5 starting teams, 270 masks): the masked team once, every writer's
-   fill stacked under it with the validator's reason on rejection, and the
-   49-cell threat constellation drawn as each opponent's six sprites.
+0. Explorer: the masked team once, every writer's fill stacked under it with
+   the validator's reason on rejection, and the 49-cell threat constellation
+   drawn as each opponent's six sprites. It opens on the reasoning studies
+   (20 starting teams, 7 mask families, 3 repeats, 7 writers); a toggle
+   switches to the earlier 5-starter, 270-mask, 4-writer grid. The two are
+   never pooled: the earlier grid's Ling arms are prompt settings, not the
+   reasoning switch.
 1. Ling or diffusion? Legality bars and paired battle differences.
 2. Does reasoning help Ling? Paired legality and battle deltas, discordant
    masks, legality by mask family.
 3. Does more reasoning help Mercury? Legality, cost and reasoning tokens by
    effort, paired deltas against off, rejection reasons by effort.
-4. Do the writers keep writing the same thing? Distinct fills, largest share
-   and meta-pool share per writer and mask family (explorer grid only).
-5. Verdict, then the method notes.
+4. Verdict, then the method notes.
 
 A panel is 50 battles: 49 distinct meta opponents, one counted twice (checked
 against the per-opponent bits in `data.json`).
@@ -55,6 +57,27 @@ Diffusion has no API fee; local training/hardware/electricity costs are unmeasur
 The `allMethodComparison`, `matchedDiffusion`, `mercury` and `reasoning` keys in
 `data.json` preserve the summaries and audit metadata. Raw paid completions and
 per-panel records remain in ignored local `code/results/` study directories.
+
+The `study20` key holds the per-trial records of the reasoning studies, which
+the explorer draws. `export_study20.py` writes it from the three saved study
+directories (`reasoning-expanded-20261012`, `mercury-reasoning-20261013`,
+`diffusion-matched-20261013`); the 5-starter keys (`starts`, `tasks`, `results`,
+`originals`, `arms`, `opponents`) are left as they were. Inside `study20`:
+
+- `starts`: the 20 starting teams; `trials`: the 140 masks (`s{starter}-{family}-{k}`)
+  with their masked paths in the explorer's `team[i].field` form.
+- `results["{trial}/r{repeat}"][writer]`: each of the seven writers' fill
+  (`fill[k]` is the value written at `paths[k]`, a whole slot for a
+  whole-Pokémon mask) with `win` = wins / 50 and `opp`, or on rejection its
+  `stage` (`parse`, `response`, `schema`, `validator`) and the validator's
+  message. `cost` is the recorded API charge and `rt` the reported reasoning
+  tokens.
+- `opp` is 49 characters in `opponents` order, like the 5-starter records, but
+  each character is the number of battles won against that opponent, because
+  the twice-counted team (weight 2) is battled twice here and can be won once.
+  The twice-counted team is a different meta team from the earlier grid's.
+- `untouched` is empty: the 20 starting teams were never battled on their own,
+  so the explorer shows no untouched baseline for this study.
 The study-specific analysis scripts require those saved studies; a fresh clone
 can inspect this snapshot but cannot reproduce absent model checkpoints or raw
 experiments without the runtime and datasets described in the code documentation.

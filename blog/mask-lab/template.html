@@ -215,49 +215,80 @@ const $ = s => document.querySelector(s);
 const sprite = name => { const n = norm(name); return SPRITES[n] || SPRITES[n.replace(/mega[xy]?$/, '')] || null; };
 const W = DATA.opponents.map(o => o.weight);
 const BATTLES = W.reduce((a, b) => a + b, 0);
-const winsOf = bits => [...(bits || '')].reduce((n, c, i) => n + (c === '1' ? W[i] : 0), 0);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const dot = c => `<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin-right:6px;vertical-align:0"></i>`;
 
-/* ---------- explorer state ---------- */
-const S = {writer: 2, family: 'pokemon', start: 0, k: 1, sel: null, show: 'writer', opp: null};
-const taskIdx = {};
+/* ---------- explorer state: two studies, never pooled ---------- */
 const PATHOF = {stats: i => `team[${i}].statPoints`, items: i => `team[${i}].item`, abilities: i => `team[${i}].ability`,
   natures: i => `team[${i}].nature`, pokemon: i => `team[${i}]`, moves: i => `team[${i >> 2}].moves[${i & 3}]`};
+const taskIdx = {};
 DATA.tasks.forEach(t => { t.paths = t.sl.map(PATHOF[t.f]); taskIdx[`${t.s}|${t.f}|${t.k}`] = t; });
-const task = () => taskIdx[`${S.start}|${S.family}|${S.k}`];
 const res = t => DATA.results[t.id];
-const armOf = (t, i) => res(t).arms[ARMS[i].key] || null;
-const randOf = t => res(t).random || null;
-const origOf = t => DATA.originals[DATA.starts[t.s].id] || null;
+const pad2 = i => String(i + 1).padStart(2, '0');
+/* The earlier grid: 5 starting teams, 6 families, every mask size, 4 writers (2026-10-08). */
+const X5 = {
+  key: '5', label: 'Earlier grid', sub: '5 starting teams · 6 mask families · every mask size · 270 masks per writer',
+  arms: ARMS, starts: DATA.starts, opps: DATA.opponents, counts: false,
+  st: {family: 'pokemon', start: 0, k: 1, writer: 2},
+  task() { return taskIdx[`${this.st.start}|${this.st.family}|${this.st.k}`]; },
+  arm(t, i) { return res(t).arms[ARMS[i].key] || null; },
+  rand(t) { return res(t).random || null; },
+  orig(t) { return DATA.originals[DATA.starts[t.s].id] || null; },
+  title(t) { return `Starting team ${pad2(t.s)} · ${DATA.starts[t.s].id}`; },
+  legal: Object.fromEntries(ARMS.map(a => [a.key, DATA.arms[a.key].legal / DATA.arms[a.key].n])),
+};
+/* The reasoning studies: 20 starting teams, the 7 largest families, 3 repeats, 7 writers (2026-10-12/13). */
+const S20 = DATA.study20 || null;
+const COL20 = {'ling@off': 'var(--l1)', 'ling@on': 'var(--l2)', 'mercury@off': 'var(--m1)', 'mercury@low': 'var(--m2)',
+  'mercury@medium': 'var(--m3)', 'mercury@high': 'var(--m4)', 'diffusion@v3': 'var(--a3)'};
+const trial20 = {};
+if (S20) S20.trials.forEach(t => { trial20[`${t.s}|${t.f}`] = t; });
+const X20 = S20 && {
+  key: '20', label: 'Reasoning studies', sub: `20 starting teams · 7 mask families · ${S20.repeats} repeats · ${S20.trials.length * S20.repeats} masks per writer`,
+  arms: S20.writers.map(w => ({...w, c: COL20[w.key] || 'var(--a0)'})), starts: S20.starts, opps: S20.opponents, counts: true,
+  st: {family: 'pokemon', start: 0, rep: 0, writer: S20.writers.length - 1},
+  task() { return {...trial20[`${this.st.start}|${this.st.family}`], rep: this.st.rep}; },
+  arm(t, i) { return (S20.results[`${t.id}/r${t.rep}`] || {})[this.arms[i].key] || null; },
+  rand() { return null; },
+  orig(t) { return S20.untouched[t.s] || null; },
+  title(t) { return `Starting team ${pad2(t.s)} · repeat ${t.rep + 1} of ${S20.repeats}`; },
+  legal: Object.fromEntries(S20.writers.map(w => [w.key, Object.values(S20.results).filter(r => r[w.key] && r[w.key].ok).length / Object.keys(S20.results).length])),
+};
+for (const X of [X5, X20]) if (X) { X.W = X.opps.map(o => o.weight); X.battles = X.W.reduce((a, b) => a + b, 0); }
+const S = {study: X20 ? '20' : '5', sel: null, show: 'writer', opp: null};
+const cur = () => S.study === '20' ? X20 : X5;
+/* opp strings: the earlier grid stores a 0/1 bit per opponent (weighted by W); the reasoning studies store the number of wins per opponent. */
+const winsAt = (C, bits, i) => !bits || bits[i] == null ? 0 : C.counts ? +bits[i] : bits[i] === '1' ? C.W[i] : 0;
+const winsOf = (C, bits) => C.opps.reduce((n, _, i) => n + winsAt(C, bits, i), 0);
+const STAGE = {parse: 'reply was not valid JSON', response: 'no reply content', schema: 'reply had the wrong shape', validator: 'Showdown validator'};
 const show = v => v == null ? '' : (typeof v === 'object' ? (v.species ? v.species + (v.item ? ' @ ' + v.item : '') : spread(v)) : String(v));
 const FIELD = {item:'Item', ability:'Ability', nature:'Nature', statPoints:'Pts', moves:'Move', species:'Slot'};
 function parsePath(p) { const m = p.match(/^team\[(\d)\](?:\.(\w+)(?:\[(\d)\])?)?$/); return {i: +m[1], f: m[2] || 'species', j: m[3] == null ? null : +m[3]}; }
-function pathLabel(t, p) {
-  const {i, f, j} = parsePath(p), base = DATA.starts[t.s].team[i];
+function pathLabel(C, t, p) {
+  const {i, f, j} = parsePath(p), base = C.starts[t.s].team[i];
   if (f === 'species') return `Slot ${i + 1}`;
   return `${base.species} · ${f === 'moves' ? 'move ' + (j + 1) : FIELD[f].toLowerCase()}`;
 }
 /* ---------- explorer: team grid ---------- */
 function fieldPath(i, f, j) { return j == null ? `team[${i}].${f}` : `team[${i}].${f}[${j}]`; }
-function resolve(t, i, f, j) {
-  const base = DATA.starts[t.s].team[i], masked = new Set(t.paths);
+function resolve(C, t, i, f, j) {
+  const base = C.starts[t.s].team[i], masked = new Set(t.paths);
   const whole = masked.has(`team[${i}]`), path = fieldPath(i, f, j);
   const get = m => m == null ? undefined : (j == null ? m[f] : m[f][j]);
   if (!(whole || masked.has(path))) return {state: 'fixed', value: get(base), path};
-  const src = armOf(t, S.writer);
+  const src = C.arm(t, C.st.writer);
   if (!src || !src.ok) return {state: src ? 'rejected' : 'masked', value: null, path: whole ? `team[${i}]` : path};
   const fv = p => (src.fill || [])[t.paths.indexOf(p)];
   return {state: 'filled', value: whole ? get(fv(`team[${i}]`)) : fv(path), path: whole ? `team[${i}]` : path};
 }
-function monRow(t, i) {
-  const base = DATA.starts[t.s].team[i], whole = new Set(t.paths).has(`team[${i}]`);
-  const sp = resolve(t, i, 'species', null);
+function monRow(C, t, i) {
+  const base = C.starts[t.s].team[i], whole = new Set(t.paths).has(`team[${i}]`);
+  const sp = resolve(C, t, i, 'species', null);
   const name = whole ? (sp.state === 'filled' ? sp.value : 'Unknown Pokémon') : base.species;
   const img = whole && sp.state !== 'filled' ? null : sprite(name);
-  const head = `<h4>${img ? `<img src="${img}" alt="">` : `<span class="ph">?</span>`}${esc(name)}${whole ? ` <span class="pill ${sp.state === 'filled' ? 'ok' : 'ref'}">${sp.state === 'filled' ? 'written by ' + ARMS[S.writer].kind : 'whole Pokémon masked'}</span>` : ''}</h4>`;
+  const head = `<h4>${img ? `<img src="${img}" alt="">` : `<span class="ph">?</span>`}${esc(name)}${whole ? ` <span class="pill ${sp.state === 'filled' ? 'ok' : 'ref'}">${sp.state === 'filled' ? 'written by ' + C.arms[C.st.writer].kind : 'whole Pokémon masked'}</span>` : ''}</h4>`;
   const cell = (f, j, withImg) => {
-    const r = resolve(t, i, f, j);
+    const r = resolve(C, t, i, f, j);
     const val = r.state === 'filled' || r.state === 'fixed' ? (f === 'statPoints' ? spread(r.value) : r.value) : '';
     const sel = S.sel === r.path ? ' sel' : '';
     const body = r.state === 'masked' ? `<small>${FIELD[f]}</small> ⌖` : r.state === 'rejected' ? `<small>${FIELD[f]}</small> ✕`
@@ -267,9 +298,9 @@ function monRow(t, i) {
   };
   return `<div class="mon">${head}<div class="cells">${cell('item', null, true)}${cell('ability')}${cell('nature')}${cell('statPoints')}${[0,1,2,3].map(j => cell('moves', j)).join('')}</div></div>`;
 }
-function inspector(t) {
+function inspector(C, t) {
   if (!S.sel) return `<div class="insp">Click a hatched cell to see what every writer put there.</div>`;
-  const {i, f, j} = parsePath(S.sel), base = DATA.starts[t.s].team[i], paths = new Set(t.paths);
+  const {i, f, j} = parsePath(S.sel), base = C.starts[t.s].team[i], paths = new Set(t.paths);
   const whole = paths.has(`team[${i}]`);
   const orig = f === 'species' ? show(base) : show(j == null ? base[f] : base[f][j]);
   const pick = src => {
@@ -278,67 +309,99 @@ function inspector(t) {
     if (v == null) return null;
     return whole && f !== 'species' ? show(j == null ? v[f] : v[f][j]) : show(v);
   };
-  const R = randOf(t);
-  const rows = ARMS.map((a, k) => { const src = armOf(t, k);
+  const R = C.rand(t);
+  const rows = C.arms.map((a, k) => { const src = C.arm(t, k);
     return `<tr><td>${dot(a.c)}${esc(a.short)}</td><td>${!src ? 'not run' : src.ok ? esc(pick(src) ?? '—') : `<span class="pill no">rejected</span>`}</td></tr>`; }).join('');
+  const randRow = C.key === '5' ? `<tr><td>Random legal fill</td><td>${R ? esc(pick(R) ?? '—') : 'none could be made legal'}</td></tr>` : '';
   return `<div class="insp"><span class="pill ok">Masked</span> <b>${esc(whole ? 'Slot ' + (i + 1) : base.species)}</b> · ${esc(f === 'species' ? 'whole Pokémon' : f === 'moves' ? 'move ' + (j + 1) : f === 'statPoints' ? 'Stat Points' : f)}
-    <table><tr><td>Original value</td><td>${esc(orig)}</td></tr><tr><td>Random legal fill</td><td>${R ? esc(pick(R) ?? '—') : 'none could be made legal'}</td></tr>${rows}</table></div>`;
+    <table><tr><td>Original value</td><td>${esc(orig)}</td></tr>${randRow}${rows}</table></div>`;
 }
-function gridCard(t) {
+function gridCard(C, t) {
   const n = t.paths.length;
-  return `<div class="card"><div class="kline"><div class="eyebrow">Starting team ${String(S.start + 1).padStart(2, '0')} · ${esc(DATA.starts[t.s].id)}</div><span class="note" style="margin:0">${n} masked ${n === 1 ? 'part' : 'parts'}</span></div>
-    <div style="margin-top:8px">${[0,1,2,3,4,5].map(i => monRow(t, i)).join('')}</div>
+  return `<div class="card"><div class="kline"><div class="eyebrow">${esc(C.title(t))}</div><span class="note" style="margin:0">${n} masked ${n === 1 ? 'part' : 'parts'}</span></div>
+    <div style="margin-top:8px">${[0,1,2,3,4,5].map(i => monRow(C, t, i)).join('')}</div>
     <div class="legend"><span><i style="background:var(--hatch);border:1px dashed var(--accent)"></i>Masked: the writer may change it</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Fixed: must come back unchanged</span><span><i style="background:color-mix(in srgb,var(--accent) 14%,transparent);border:1px solid var(--accent)"></i>Filled by the selected writer</span></div>
-    ${inspector(t)}</div>`;
+    ${inspector(C, t)}</div>`;
 }
 /* ---------- explorer: stacked writer rows ---------- */
-function fillChips(t, src) {
+function fillChips(C, t, src) {
   if (!src || !src.fill) return '';
   return `<div class="fills">${t.paths.map((p, k) => { const v = src.fill[k];
     const img = typeof v === 'object' && v && v.species ? sprite(v.species) : (typeof v === 'string' && SPRITES['item-' + norm(v)]) || null;
-    return `<span><small>${esc(pathLabel(t, p))}</small>${img ? `<img src="${img}" alt="">` : ''}${esc(show(v) || '—')}</span>`; }).join('')}</div>`;
+    return `<span><small>${esc(pathLabel(C, t, p))}</small>${img ? `<img src="${img}" alt="">` : ''}${esc(show(v) || '—')}</span>`; }).join('')}</div>`;
 }
-function writerRows(t) {
-  const o = origOf(t), ow = o && o.win != null ? o.win : null;
-  const max = Math.max(0.12, ...ARMS.map((a, k) => (armOf(t, k) || {}).win || 0), (randOf(t) || {}).win || 0, ow || 0) * 1.15;
-  const score = (win, bits, c, ref) => win == null ? '' : `<div class="score"><span>wins <b>${winsOf(bits)}</b> of ${BATTLES} battles · win rate <b>${pct(win, 0)}</b></span><span>${ow == null || ref ? '' : 'vs untouched <b>' + pp(win - ow, 0) + '</b>'}</span><div class="track"><i style="width:${Math.max(1.5, win / max * 100)}%;background:${c}"></i></div></div>`;
-  const rows = ARMS.map((a, k) => { const src = armOf(t, k);
+function writerRows(C, t) {
+  const o = C.orig(t), ow = o && o.win != null ? o.win : null, R = C.rand(t);
+  const max = Math.max(0.12, ...C.arms.map((a, k) => (C.arm(t, k) || {}).win || 0), (R || {}).win || 0, ow || 0) * 1.15;
+  const score = (win, bits, c, ref) => win == null ? '' : `<div class="score"><span>wins <b>${winsOf(C, bits)}</b> of ${C.battles} battles · win rate <b>${pct(win, 0)}</b></span><span>${ow == null || ref ? '' : 'vs untouched <b>' + pp(win - ow, 0) + '</b>'}</span><div class="track"><i style="width:${Math.max(1.5, win / max * 100)}%;background:${c}"></i></div></div>`;
+  const meta = src => { const m = [];
+    if (src.cost) m.push('$' + src.cost.toFixed(4));
+    if (src.rt) m.push(src.rt.toLocaleString('en-US') + ' reasoning tokens');
+    if (src.attempts > 1) m.push(src.attempts + ' attempts');
+    return m.length ? `<span class="note" style="margin:0">${m.join(' · ')}</span>` : ''; };
+  const rows = C.arms.map((a, k) => { const src = C.arm(t, k);
     const status = !src ? '<span class="pill ref">not run</span>' : src.ok ? '<span class="pill ok">legal</span>' : '<span class="pill no">rejected</span>';
-    const body = !src ? '' : src.ok ? fillChips(t, src) + score(src.win, src.opp, a.c) : `<div class="err">${esc(src.stage)}: ${esc(src.err || '')}</div>`;
-    return `<button class="wrow" data-writer="${k}" aria-pressed="${S.writer === k}"><div class="head"><i class="sw" style="background:${a.c}"></i><b>${esc(a.short)}</b>${status}</div>${body}</button>`; }).join('');
-  const R = randOf(t);
-  const rand = `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--muted)"></i><b>Random legal fill</b><span class="pill ref">reference</span></div>${R ? fillChips(t, R) + score(R.win, R.opp, 'var(--muted)') : '<div class="note" style="margin:0">No random fill could be made legal for this mask.</div>'}</div>`;
-  const un = `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--ink2)"></i><b>Untouched team</b><span class="pill ref">reference</span></div>${o ? score(o.win, o.opp, 'var(--ink2)', true) : ''}</div>`;
-  return `<div class="card"><h3 style="margin-top:0">Every writer's fill, side by side</h3><p class="note" style="margin:0 0 4px">Same mask, same battles. Click a writer to show its fill in the team above and its battles below. A rejected fill shows the validator's reason and keeps the original team.</p>
+    const body = !src ? '' : src.ok ? fillChips(C, t, src) + score(src.win, src.opp, a.c) : `<div class="err">${esc(STAGE[src.stage] || src.stage)}: ${esc(src.err || '')}</div>`;
+    return `<button class="wrow" data-writer="${k}" aria-pressed="${C.st.writer === k}"><div class="head"><i class="sw" style="background:${a.c}"></i><b>${esc(a.short)}</b>${status}${src ? meta(src) : ''}</div>${body}</button>`; }).join('');
+  const rand = C.key === '5' ? `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--muted)"></i><b>Random legal fill</b><span class="pill ref">reference</span></div>${R ? fillChips(C, t, R) + score(R.win, R.opp, 'var(--muted)') : '<div class="note" style="margin:0">No random fill could be made legal for this mask.</div>'}</div>` : '';
+  const unNote = C.key === '20' ? 'Never battled. The reasoning studies gave their 20 starting teams no panel of their own, so this study has no untouched baseline; compare the writers with each other.' : 'Not scored.';
+  const un = `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--ink2)"></i><b>Untouched team</b><span class="pill ref">reference</span></div>${o ? score(o.win, o.opp, 'var(--ink2)', true) : `<div class="note" style="margin:0">${unNote}</div>`}</div>`;
+  const n = C.arms.length;
+  return `<div class="card"><h3 style="margin-top:0">Every writer's fill, side by side</h3><p class="note" style="margin:0 0 4px">Same mask, same battles, ${n === 7 ? 'seven' : 'four'} writers. Click a writer to show its fill in the team above and its battles below. A rejected fill shows the validator's reason and keeps the original team.</p>
     <div class="wrows">${rows}${rand}${un}</div></div>`;
 }
 /* ---------- explorer: threat constellation ---------- */
-function starsCard(t) {
-  const src = S.show === 'writer' ? (armOf(t, S.writer) && armOf(t, S.writer).ok ? armOf(t, S.writer) : null) : S.show === 'random' ? randOf(t) : origOf(t);
-  const label = S.show === 'writer' ? ARMS[S.writer].short : S.show === 'random' ? 'Random legal fill' : 'Untouched team';
+function starsCard(C, t) {
+  const A = C.arm(t, C.st.writer), R = C.rand(t), O = C.orig(t);
+  if (S.show === 'random' && !R || S.show === 'orig' && !O) S.show = 'writer';
+  const src = S.show === 'writer' ? (A && A.ok ? A : null) : S.show === 'random' ? R : O;
+  const label = S.show === 'writer' ? C.arms[C.st.writer].short : S.show === 'random' ? 'Random legal fill' : 'Untouched team';
   const bits = src && src.opp ? src.opp : '';
-  const cells = DATA.opponents.map((o, i) => { const b = bits[i];
-    return `<button class="star ${b === '1' ? 'win' : b === '0' ? '' : 'none'}${S.opp === i ? ' sel' : ''}" data-opp="${i}" aria-label="Opponent ${i + 1}: ${esc(o.species.join(', '))}">${o.species.map(s => { const im = sprite(s); return im ? `<img src="${im}" alt="">` : '<span></span>'; }).join('')}${o.weight > 1 ? '<span class="twice">×2</span>' : ''}</button>`; }).join('');
+  const cells = C.opps.map((o, i) => { const w = winsAt(C, bits, i);
+    return `<button class="star ${!bits ? 'none' : w > 0 ? 'win' : ''}${S.opp === i ? ' sel' : ''}" data-opp="${i}" aria-label="Opponent ${i + 1}: ${esc(o.species.join(', '))}">${o.species.map(sp => { const im = sprite(sp); return im ? `<img src="${im}" alt="">` : '<span></span>'; }).join('')}${o.weight > 1 ? '<span class="twice">×2</span>' : ''}</button>`; }).join('');
   const seg = (v, l) => `<button data-show="${v}" aria-pressed="${S.show === v}">${l}</button>`;
-  const oi = S.opp == null ? 0 : S.opp, o = DATA.opponents[oi], ob = bits[oi];
+  const oi = S.opp == null ? 0 : S.opp, o = C.opps[oi], ow = winsAt(C, bits, oi);
+  const verdict = !bits ? '' : C.W[oi] > 1 ? ` · won ${ow} of ${C.W[oi]}` : ow ? ' · won' : ' · lost';
   return `<div class="card"><div class="eyebrow">The threat constellation</div><h3 style="margin:4px 0 8px">One cell per meta opponent, drawn as its six Pokémon</h3>
-    <div class="seg">${seg('writer', ARMS[S.writer].kind + ' fill')}${seg('random', 'Random fill')}${seg('orig', 'Untouched')}</div>
-    <p class="note">${esc(label)}: ${bits ? `<b style="color:var(--ink)">${winsOf(bits)} wins</b> of ${BATTLES} battles against ${DATA.opponents.length} teams; the ×2 team is counted twice` : 'not scored, because the fill was rejected'}. Lit cells are wins.</p>
+    <div class="seg">${seg('writer', C.arms[C.st.writer].kind + ' fill')}${R ? seg('random', 'Random fill') : ''}${O ? seg('orig', 'Untouched') : ''}</div>
+    <p class="note">${esc(label)}: ${bits ? `<b style="color:var(--ink)">${winsOf(C, bits)} wins</b> of ${C.battles} battles against ${C.opps.length} teams; the ×2 team is counted twice` : 'not scored, because the fill was rejected'}. Lit cells are wins.</p>
     <div class="stars">${cells}</div>
-    <div class="opp">${o.species.map(s => { const im = sprite(s); return im ? `<img src="${im}" alt="${esc(s)}" title="${esc(s)}">` : ''; }).join('')}<span><b>Opponent ${oi + 1}</b> · ${o.species.map(esc).join(', ')}${bits ? ` · ${ob === '1' ? 'won' : 'lost'}` : ''}</span></div></div>`;
+    <div class="opp">${o.species.map(sp => { const im = sprite(sp); return im ? `<img src="${im}" alt="${esc(sp)}" title="${esc(sp)}">` : ''; }).join('')}<span><b>Opponent ${oi + 1}</b> · ${o.species.map(esc).join(', ')}${verdict}</span></div></div>`;
 }
 function controls() {
-  const fams = Object.keys(FAM).map(f => `<option value="${f}" ${S.family === f ? 'selected' : ''}>${FAM[f]}</option>`).join('');
-  const starts = DATA.starts.map((s, i) => `<option value="${i}" ${S.start === i ? 'selected' : ''}>Team ${String(i + 1).padStart(2, '0')} · ${s.team.map(m => m.species).join(', ')}</option>`).join('');
-  return `<div class="ctl"><label class="f"><span class="eyebrow">What is masked</span><select id="fam">${fams}</select></label>
+  const C = cur();
+  const studies = [X20, X5].filter(Boolean).map(X => `<button data-study="${X.key}" aria-pressed="${S.study === X.key}">${X.label} · ${X.starts.length} teams · ${X.arms.length} writers</button>`).join('');
+  const head = `<div class="eyebrow">Which study</div><div class="seg" style="margin:8px 0 4px">${studies}</div><p class="note" style="margin:0 0 6px">Two separate studies with different starting teams, harnesses and seeds. Nothing on this page pools them.</p>`;
+  const starts = C.starts.map((s, i) => `<option value="${i}" ${C.st.start === i ? 'selected' : ''}>Team ${pad2(i)} · ${s.team.map(m => m.species).join(', ')}</option>`).join('');
+  if (C.key === '20') {
+    const fams = Object.entries(S20.families).map(([f, l]) => `<option value="${f}" ${C.st.family === f ? 'selected' : ''}>${esc(l)} · ${trial20[`0|${f}`].k} masked</option>`).join('');
+    const reps = Array.from({length: S20.repeats}, (_, r) => `<button data-rep="${r}" aria-pressed="${C.st.rep === r}">Repeat ${r + 1}</button>`).join('');
+    return `${head}<div class="ctl"><label class="f"><span class="eyebrow">What is masked</span><select id="fam">${fams}</select></label>
+      <label class="f"><span class="eyebrow">Starting team</span><select id="start">${starts}</select></label></div>
+      <div class="kline"><span class="eyebrow">Repeat: same mask, a fresh sample from every writer</span><div class="seg">${reps}</div></div>`;
+  }
+  const fams = Object.keys(FAM).map(f => `<option value="${f}" ${C.st.family === f ? 'selected' : ''}>${FAM[f]}</option>`).join('');
+  return `${head}<div class="ctl"><label class="f"><span class="eyebrow">What is masked</span><select id="fam">${fams}</select></label>
     <label class="f"><span class="eyebrow">Starting team</span><select id="start">${starts}</select></label></div>
-    <div class="kline"><span class="eyebrow">How many parts are masked</span><b class="mono num" id="kv">k = ${S.k}</b></div>
-    <input type="range" id="k" min="1" max="${kmax(S.family)}" value="${S.k}" aria-label="Mask size">`;
+    <div class="kline"><span class="eyebrow">How many parts are masked</span><b class="mono num" id="kv">k = ${C.st.k}</b></div>
+    <input type="range" id="k" min="1" max="${kmax(C.st.family)}" value="${C.st.k}" aria-label="Mask size">`;
+}
+function xhead(C) {
+  const legal = C.arms.map(a => `${dot(a.c)}${esc(a.short)} ${pct(C.legal[a.key], 0)}`).join(' &nbsp; ');
+  const intro = C.key === '20'
+    ? `Pick a starting team, what to hide and which of the three repeats to look at. The grid shows the masked team; the rows under it show what each of the seven writers wrote back for that exact mask and how the completed team fared. The writers are Ling 3.0 Flash with reasoning off or on, Mercury 2.5 at four reasoning efforts, and the project's Pokémon diffusion model.`
+    : `Pick what to hide and how much of it. The grid shows the masked team; the rows under it show what each writer wrote back and how the completed team fared. The writers are Ling 3.0 Flash under three prompt settings and the project's Pokémon diffusion model. This earlier grid is kept for its untouched-team and random-fill baselines; its Ling arms are prompt settings, not the reasoning switch, and are never pooled with the reasoning studies.`;
+  return `<div class="eyebrow">Explorer · ${esc(C.sub)}</div><h2>One mask, ${C.arms.length === 7 ? 'seven' : 'four'} writers</h2><p>${intro}</p>
+    <p class="note" style="margin:0 0 4px">Legal fills in this study: ${legal}.</p>`;
 }
 function renderExplorer() {
-  const t = task();
-  const paint = () => { $('#grid').innerHTML = gridCard(t); $('#writers').innerHTML = writerRows(t); $('#stars').innerHTML = starsCard(t); };
-  if (document.startViewTransition && !reduceMotion && $('#grid').innerHTML) document.startViewTransition(paint).finished.catch(() => {}); else paint();
+  const C = cur(), t = C.task();
+  const paint = () => { $('#xhead').innerHTML = xhead(C); $('#grid').innerHTML = gridCard(C, t); $('#writers').innerHTML = writerRows(C, t); $('#stars').innerHTML = starsCard(C, t); };
+  if (document.startViewTransition && !reduceMotion && $('#grid').innerHTML) {
+    // a click during a running transition aborts it; the paint still runs, so just swallow the rejection
+    const vt = document.startViewTransition(paint);
+    for (const pr of [vt.ready, vt.finished, vt.updateCallbackDone]) pr.catch(() => {});
+  } else paint();
 }
 
 /* ---------- question 1: Ling or diffusion? ---------- */
@@ -373,7 +436,7 @@ function q1() {
     <div class="card"><div class="eyebrow">Battles: diffusion minus each language model, same mask and repeat</div>
       <div class="ivals">${ivals}</div><div class="axis-ticks"><span>${pp(-span / 100, 1)}</span><span>0</span><span>${pp(span / 100, 1)}</span></div>
       <p class="note">Each pair is one mask that both writers filled legally. The difference is in win-rate points: the share of a team's ${BATTLES} battles it wins. Intervals are 95% starter bootstraps (4,000 draws, 20 starters weighted equally); green ones exclude zero.</p></div>
-    <div class="card"><div class="eyebrow">Same question on the explorer's grid</div><p style="margin:6px 0 0">On the 270 masks above, diffusion v3 against the Reg M-B prompt where both were legal: <b class="mono num">${pp(oldMean)}</b> over ${d.length} pairs. Same answer: level.</p></div>
+    <div class="card"><div class="eyebrow">Same question on the earlier 5-team grid</div><p style="margin:6px 0 0">On the earlier grid's 270 masks, diffusion v3 against the Reg M-B prompt where both were legal: <b class="mono num">${pp(oldMean)}</b> over ${d.length} pairs. Same answer: level.</p></div>
     <details><summary>Shared cohort: the 64 masks every writer filled legally</summary>
       <p>Comparing writers on their own legal subsets mixes easy and hard masks. On the ${NEW.common_pairs} masks all seven filled legally, the win rates (20 starters weighted equally) are:</p>
       <div class="tscroll"><table class="tbl"><thead><tr><th>Writer</th><th>Win rate</th><th>95% interval</th></tr></thead><tbody>${cohort}</tbody></table></div>
@@ -399,7 +462,7 @@ function q2() {
     <div class="card"><label class="f"><span class="eyebrow">Legal fills by mask family</span><select id="reasoning-family">${opts}</select></label>
       <div class="rows" id="reasoning-bars"></div><p id="reasoning-note" class="note" aria-live="polite"></p></div>
     <details><summary>How this relates to the explorer's prompt study</summary>
-      <p>The explorer's three Ling arms test the prompt and the token cap, not reasoning: ${old} legal on the 270-mask grid. That run used a different harness and five other starting teams, so it is never pooled with this study. Both say the same thing: the lever that moves Ling is how often it produces a legal team, not how well a legal team fights.</p></details></section>`;
+      <p>The earlier grid's three Ling arms test the prompt and the token cap, not reasoning: ${old} legal on its 270 masks. That run used a different harness and five other starting teams, so it is never pooled with this study; the explorer keeps it behind its own toggle. Both say the same thing: the lever that moves Ling is how often it produces a legal team, not how well a legal team fights.</p></details></section>`;
 }
 function updateReasoningFamily(animate = true) {
   if (!DATA.reasoning) return;
@@ -452,15 +515,25 @@ function updateReasons() {
 }
 /* ---------- question 4: do the writers keep writing the same thing? ---------- */
 const META = new Set(DATA.opponents.flatMap(o => o.species));
-const DIVFAM = {pokemon:'Whole Pokémon', items:'Items', moves:'Moves', abilities:'Abilities', natures:'Stat Alignment', stats:'Stat Points'};
-function divStats(fam, k) { // k is an ARMS index or 'random'
-  const vals = [];
-  for (const t of DATA.tasks) {
-    if (t.f !== fam) continue;
-    const r = res(t), src = k === 'random' ? r.random : r.arms[ARMS[k].key];
-    if (!src || !src.fill || (k !== 'random' && !src.ok)) continue;
-    for (const v of src.fill) vals.push(fam === 'pokemon' ? v.species : fam === 'stats' ? spread(v) : v);
+const DIV = {study: X20 ? '20' : '5', fam: 'pokemon'};
+const trialF = {}; if (S20) S20.trials.forEach(t => { trialF[t.id] = t.f; });
+const DIVFAM5 = {pokemon:'Whole Pokémon', items:'Items', moves:'Moves', abilities:'Abilities', natures:'Stat Alignment', stats:'Stat Points'};
+const divX = () => DIV.study === '20' ? X20 : X5;
+const divFams = () => DIV.study === '20' ? Object.fromEntries(Object.entries(S20.families).filter(([f]) => f !== 'mixed')) : DIVFAM5;
+const flat = v => v == null ? null : typeof v === 'object' ? (v.species ? v.species : spread(v)) : String(v);
+function fillsOf(fam, wkey) { // every value a writer wrote into a legal fill of this family
+  const out = [];
+  if (DIV.study === '5') {
+    for (const t of DATA.tasks) { if (t.f !== fam) continue; const r = res(t), src = wkey === 'random' ? r.random : r.arms[wkey];
+      if (!src || !src.fill || (wkey !== 'random' && !src.ok)) continue; src.fill.forEach(v => out.push(flat(v))); }
+  } else {
+    for (const [k, rec] of Object.entries(S20.results)) { if (trialF[k.split('/r')[0]] !== fam) continue; const src = rec[wkey];
+      if (!src || !src.ok || !src.fill) continue; src.fill.forEach(v => out.push(flat(v))); }
   }
+  return out.filter(v => v != null);
+}
+function divStats(fam, wkey) {
+  const vals = fillsOf(fam, wkey);
   const c = new Map(); vals.forEach(v => c.set(v, (c.get(v) || 0) + 1));
   const top = [...c.entries()].sort((a, b) => b[1] - a[1]);
   const meta = fam === 'pokemon' && vals.length ? vals.filter(v => META.has(v)).length / vals.length : null;
@@ -468,28 +541,41 @@ function divStats(fam, k) { // k is an ARMS index or 'random'
 }
 function divRow(label, c, st, fam) {
   if (!st.n) return `<div class="row"><b>${dot(c)}${esc(label)}</b><span class="v num"><small>no legal fills</small></span></div>`;
-  const chips = st.top.slice(0, 8).map(([v, n]) => { const im = fam === 'pokemon' ? sprite(v) : fam === 'items' ? SPRITES['item-' + norm(v)] : null;
+  const isItem = fam === 'items' || fam === 'item';
+  const chips = st.top.slice(0, 8).map(([v, n]) => { const im = fam === 'pokemon' ? sprite(v) : isItem ? SPRITES['item-' + norm(v)] : null;
     return `<span class="choice">${im ? `<img src="${im}" alt="">` : ''}${esc(v)}<b>×${n}</b></span>`; }).join('');
   const share = st.top[0][1] / st.n;
   return `<div class="row"><b>${dot(c)}${esc(label)}</b><span class="v num">${st.distinct} distinct<small>of ${st.n} fills</small></span><div class="track"><i style="width:${st.distinct / st.n * 100}%;background:${c}"></i></div>
     <div class="dv" style="grid-column:1/-1">largest share <b>${pct(share, 0)}</b> (${esc(st.top[0][0])})${st.meta != null ? ` · in the meta pool <b>${pct(st.meta, 0)}</b>` : ''}</div>
     <div class="choices" style="grid-column:1/-1">${chips}${st.top.length > 8 ? `<span class="choice"><b>+${st.top.length - 8} more</b></span>` : ''}</div></div>`;
 }
+function divControls() {
+  const fams = divFams();
+  if (!fams[DIV.fam]) DIV.fam = 'pokemon';
+  const seg = [X20 && ['20', 'Reasoning studies · 20 starting teams'], ['5', 'Earlier grid · 5 starting teams']].filter(Boolean)
+    .map(([k, l]) => `<button data-divstudy="${k}" aria-pressed="${DIV.study === k}">${l}</button>`).join('');
+  const opts = Object.entries(fams).map(([f, l]) => `<option value="${f}" ${DIV.fam === f ? 'selected' : ''}>${esc(l)}</option>`).join('');
+  return `<div class="seg" style="margin-bottom:12px">${seg}</div><label class="f"><span class="eyebrow">What was masked</span><select id="div-family">${opts}</select></label>`;
+}
 function updateDiversity() {
-  const fam = $('#div-family').value;
-  $('#div-rows').innerHTML = ARMS.map((a, k) => divRow(a.short, a.c, divStats(fam, k), fam)).join('') + divRow('Random legal fill', 'var(--muted)', divStats(fam, 'random'), fam);
-  $('#div-note').textContent = fam === 'pokemon' ? 'The bar is distinct choices over legal fills, the project\'s unique fraction. "In the meta pool" is the share of written species that appear in one of the 49 opponent teams.'
-    : fam === 'stats' ? 'Spreads compare exactly. The random fill draws a fresh spread every time, so it is always fully distinct.' : 'The bar is distinct choices over legal fills, the project\'s unique fraction. A writer with few legal fills has little room to repeat itself.';
+  const X = divX(), fam = DIV.fam;
+  $('#div-ctl').innerHTML = divControls();
+  const rows = X.arms.map(a => divRow(a.short, a.c, divStats(fam, a.key), fam));
+  if (DIV.study === '5') rows.push(divRow('Random legal fill', 'var(--muted)', divStats(fam, 'random'), fam));
+  $('#div-rows').innerHTML = rows.join('');
+  $('#div-note').textContent = (fam === 'pokemon' ? 'The bar is distinct choices over legal fills, the project\'s unique fraction. "In the meta pool" is the share of written species that appear in one of the 49 opponent teams. '
+    : fam === 'stats' ? 'Spreads compare exactly. ' : 'The bar is distinct choices over legal fills, the project\'s unique fraction. ')
+    + (DIV.study === '20' ? 'Three repeats of each mask count separately, so a writer that answers the same mask the same way three times shows up as repetition. Mixed masks are left out because their values span every field.' : 'A writer with few legal fills has little room to repeat itself; the random fill draws fresh every time.');
 }
 function qDiv() {
-  const L = divStats('pokemon', 2), D = divStats('pokemon', 3), R = divStats('pokemon', 'random');
-  const opts = Object.keys(DIVFAM).map(f => `<option value="${f}">${DIVFAM[f]}</option>`).join('');
-  return `<section class="q" id="q4"><div class="eyebrow">Question 4 · explorer grid · what the writers actually wrote</div><h2>Do the writers keep writing the same thing?</h2>
-    <p class="answer">Yes, each in its own way. Asked for a whole Pokémon, Ling writes a meta species ${pct(L.meta, 0)} of the time and leans on ${esc(L.top[0][0])}; the diffusion model draws from ${D.distinct} species, ${pct(D.meta, 0)} of them meta; the random fill is the widest, ${R.distinct} species, and the weakest.</p>
-    <p>Diversity matters because the search loop that will use a writer needs many different teams, not one good one. This counts every legal fill on the 270-mask grid: how many distinct values a writer produced, and how much of its output its single most common choice takes.</p>
-    <div class="card"><label class="f"><span class="eyebrow">What was masked</span><select id="div-family">${opts}</select></label>
-      <div class="rows" id="div-rows"></div><p class="note" id="div-note"></p></div>
-    <p class="note">The 20-starter study's fills are not in this snapshot yet, so this section covers the explorer grid only.</p></section>`;
+  const keep = DIV.study; DIV.study = X20 ? '20' : '5';
+  const X = divX(), ling = X.arms.find(a => a.key === (X20 ? 'ling@on' : 'regmb@16384')), diff = X.arms.find(a => a.key === 'diffusion@v3');
+  const L = divStats('pokemon', ling.key), D = divStats('pokemon', diff.key);
+  DIV.study = keep;
+  return `<section class="q" id="q4"><div class="eyebrow">Question 4 · both studies · what the writers actually wrote</div><h2>Do the writers keep writing the same thing?</h2>
+    <p class="answer">Yes, each in its own way. Asked for a whole Pokémon, ${esc(ling.short)} writes a meta species ${pct(L.meta, 0)} of the time and leans on ${esc(L.top[0][0])} (${L.distinct} species over ${L.n} fills); the diffusion model draws from ${D.distinct} species, ${pct(D.meta, 0)} of them meta.</p>
+    <p>Diversity matters because the search loop that will use a writer needs many different teams, not one good one. This counts every legal fill: how many distinct values a writer produced, and how much of its output its single most common choice takes. The two studies are shown separately and never pooled.</p>
+    <div class="card"><div id="div-ctl"></div><div class="rows" id="div-rows"></div><p class="note" id="div-note"></p></div></section>`;
 }
 /* ---------- question 5: verdict ---------- */
 function q4() {
@@ -508,14 +594,11 @@ function header() {
     <h1>See what changes. <em>Measure what helps.</em></h1>
     <p class="lede">Take a random legal Regulation M-B team. Hide one part of it: an item, an ability, a move, a Stat Point spread, or a whole Pokémon. Ask a writer to fill the gap. Check the answer with the Showdown validator, then play the completed team against the frozen top-49 meta pool.</p>
     <div class="howto"><div class="card"><b>See what changes</b><p>The explorer shows the masked team once and every writer's fill underneath it, cell by cell, with the validator's reason when a fill is rejected.</p></div>
-      <div class="card"><b>Measure what helps</b><p>Every legal fill plays ${BATTLES} battles, one per meta team. Its win rate is compared with the untouched team's and with a random legal fill's, on the same mask.</p></div></div>
+      <div class="card"><b>Measure what helps</b><p>Every legal fill plays ${BATTLES} battles, one per meta team. Its win rate is compared with the other writers' fills of the same mask; the earlier grid also compares it with the untouched team and a random legal fill.</p></div></div>
     <div class="toc"><a href="#explorer"><b>0</b>Explorer</a><a href="#q1"><b>1</b>Ling or diffusion?</a><a href="#q2"><b>2</b>Does reasoning help Ling?</a><a href="#q3"><b>3</b>Does more reasoning help Mercury?</a><a href="#q4"><b>4</b>Same thing again?</a><a href="#q5"><b>5</b>Verdict</a><a href="#method"><b>§</b>Method</a></div>`;
 }
 function explorerIntro() {
-  const legal = ARMS.map(a => `${dot(a.c)}${esc(a.short)} ${pct(DATA.arms[a.key].legal / DATA.arms[a.key].n, 0)}`).join(' &nbsp; ');
-  return `<section class="q" id="explorer"><div class="eyebrow">Explorer · 5 starting teams · 270 masks per writer</div><h2>One mask, four writers</h2>
-    <p>Pick what to hide and how much of it. The grid shows the masked team; the rows under it show what each writer wrote back and how the completed team fared. The writers are Ling 3.0 Flash under three prompt settings and the project's Pokémon diffusion model.</p>
-    <p class="note" style="margin:0 0 4px">Legal fills on this grid: ${legal}.</p>`;
+  return `<section class="q" id="explorer"><div id="xhead"></div>`;
 }
 function method() {
   return `<section class="q" id="method"><div class="eyebrow">Method</div><h2>What is fixed, and what the numbers mean</h2>
@@ -526,7 +609,7 @@ function method() {
       <li>Paired differences subtract, for each mask, one writer's win rate from another's. Intervals resample the starting teams (4,000 draws, starters weighted equally, repeats kept together) and are not adjusted for the number of comparisons.</li></ul></details>
     <details><summary>The two studies</summary><ul>
       <li>Explorer grid (2026-10-08): 5 random legal starting teams, 6 mask families, every mask size, one sample per writer, 270 masks. Ling via OpenRouter routed to Novita, temperature 0.7, JSON mode off. Diffusion v3: F1 + G2 ensemble, ask 0.5, guidance 2, temperature 1; Stat Points copied from a same-species corpus spread or drawn at random.</li>
-      <li>Reasoning studies (2026-10-12 and 2026-10-13): 20 fresh starting teams, the 7 largest families including mixed masks, 3 repeats, 420 masks per writer. Ling off/on, Mercury off/low/medium/high, diffusion with three generation seeds. The two studies share the opponent pool and the policy checkpoint but not starters, harness or seeds; nothing is pooled across them.</li>
+      <li>Reasoning studies (2026-10-12 and 2026-10-13): 20 fresh starting teams, the 7 largest families including mixed masks, 3 repeats, 420 masks per writer. Ling off/on, Mercury off/low/medium/high, diffusion with three generation seeds. The two studies share the opponent pool and the policy checkpoint but not starters, harness or seeds; nothing is pooled across them. The 20 starting teams were never battled untouched, so the reasoning-study explorer has no untouched baseline, and a different meta team is the one counted twice in its panels.</li>
       <li>The language models see all 49 opponent pastes in the prompt; diffusion sees only the known categorical fields. The largest species overlap between any fill and any meta team is 4 of 6, so no fill copies a meta team.</li></ul></details>
     <details><summary>What this page does not claim</summary><ul>
       <li>Not a live-meta or held-out result: the opponent pool is frozen and visible in the prompts.</li>
@@ -538,7 +621,7 @@ function boot() {
   const day = s => esc((s || '').slice(0, 10));
   $('#app').innerHTML = `${header()}${explorerIntro()}<div id="ctl"></div><div id="grid" style="margin-top:12px"></div><div id="writers" style="margin-top:12px"></div><div id="stars" style="margin-top:12px"></div></section>
     ${q1()}${q2()}${q3()}${qDiv()}${q4()}${method()}
-    <footer>Explorer data from the 2026-10-08 run. Reasoning studies verified ${day(DATA.reasoning && DATA.reasoning.audit.verified_at)} (Ling), ${day(DATA.mercury && DATA.mercury.audit.verified_at)} (Mercury) and ${day(DATA.matchedDiffusion && DATA.matchedDiffusion.audit.verified_at)} (diffusion). Sprites from Pokémon Showdown.</footer>`;
+    <footer>Explorer: the reasoning studies by default, the 2026-10-08 grid behind the study toggle. Reasoning studies verified ${day(DATA.reasoning && DATA.reasoning.audit.verified_at)} (Ling), ${day(DATA.mercury && DATA.mercury.audit.verified_at)} (Mercury) and ${day(DATA.matchedDiffusion && DATA.matchedDiffusion.audit.verified_at)} (diffusion). Sprites from Pokémon Showdown.</footer>`;
   $('#ctl').innerHTML = controls();
   renderExplorer();
   updateReasoningFamily(false);
@@ -547,24 +630,28 @@ function boot() {
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.writer != null) { S.writer = +b.dataset.writer; S.show = 'writer'; }
+  if (b.dataset.study) { if (S.study === b.dataset.study) return; S.study = b.dataset.study; S.sel = null; S.opp = null; S.show = 'writer'; $('#ctl').innerHTML = controls(); }
+  else if (b.dataset.rep != null) { X20.st.rep = +b.dataset.rep; S.sel = null; $('#ctl').innerHTML = controls(); }
+  else if (b.dataset.writer != null) { cur().st.writer = +b.dataset.writer; S.show = 'writer'; }
   else if (b.dataset.show) S.show = b.dataset.show;
   else if (b.dataset.opp != null) S.opp = +b.dataset.opp;
   else if (b.dataset.path) S.sel = S.sel === b.dataset.path ? null : b.dataset.path;
+  else if (b.dataset.divstudy) { DIV.study = b.dataset.divstudy; updateDiversity(); return; }
   else if (b.dataset.effort) { $('#effort-seg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); updateReasons(); return; }
   else return;
   renderExplorer();
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'reasoning-family') { updateReasoningFamily(!reduceMotion); return; }
-  if (e.target.id === 'div-family') { updateDiversity(); return; }
-  if (e.target.id === 'fam') { S.family = e.target.value; S.k = Math.min(S.k, kmax(S.family)); S.sel = null; S.opp = null; $('#ctl').innerHTML = controls(); renderExplorer(); }
-  else if (e.target.id === 'start') { S.start = +e.target.value; S.sel = null; S.opp = null; renderExplorer(); }
+  if (e.target.id === 'div-family') { DIV.fam = e.target.value; updateDiversity(); return; }
+  const C = cur();
+  if (e.target.id === 'fam') { C.st.family = e.target.value; if (C.key === '5') C.st.k = Math.min(C.st.k, kmax(C.st.family)); S.sel = null; S.opp = null; $('#ctl').innerHTML = controls(); renderExplorer(); }
+  else if (e.target.id === 'start') { C.st.start = +e.target.value; S.sel = null; S.opp = null; renderExplorer(); }
 });
 document.addEventListener('input', e => {
-  if (e.target.id === 'k') { S.k = +e.target.value; S.sel = null; $('#kv').textContent = 'k = ' + S.k; renderExplorer(); }
+  if (e.target.id === 'k') { X5.st.k = +e.target.value; S.sel = null; $('#kv').textContent = 'k = ' + X5.st.k; renderExplorer(); }
 });
-window.MASKLAB = {DATA, S, ARMS, renderExplorer, task, res, armOf, randOf, origOf};
+window.MASKLAB = {DATA, S, X5, X20, cur, renderExplorer};
 boot();
 </script>
 </body>

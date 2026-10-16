@@ -21,8 +21,14 @@ sprites, _ = json.JSONDecoder().raw_decode(page[sprite_start:])
 data = json.loads((HERE / 'data.json').read_text())
 
 norm = lambda s: re.sub(r'[^a-z0-9]', '', s.lower())
+wanted = {s for o in data['opponents'] for s in o['species']}
+if 'study20' in data:  # the reasoning studies' starting teams and every whole-Pokémon fill
+    s20 = data['study20']
+    wanted |= {m['species'] for st in s20['starts'] for m in st['team']}
+    wanted |= {v['species'] for rec in s20['results'].values() for w in rec.values()
+               for v in (w.get('fill') or []) if isinstance(v, dict) and 'species' in v}
 added = []
-for species in sorted({s for o in data['opponents'] for s in o['species']}):
+for species in sorted(wanted):
     key = norm(species)
     if key in sprites:
         continue
