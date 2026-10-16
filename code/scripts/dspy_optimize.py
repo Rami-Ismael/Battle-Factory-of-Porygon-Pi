@@ -180,6 +180,67 @@ def lm_for(manifest, model=None, **overrides):
     return dspy.LM('openrouter/' + (model or manifest['model']), api_key=key, **settings)
 
 
+ANSWER_CONTRACT = (
+    'The answer format is enforced by the program and cannot be changed by the instruction: each example '
+    'shows the exact answer shape its task requires. Never tell the assistant to drop, rename or add answer '
+    'fields. In particular every Stat Points object (an `evs` value) must keep its `total` field, written as '
+    'the sum of HP, Atk, Def, SpA, SpD and Spe, at most 66. The instruction may explain how to choose good, '
+    'legal values; it must not contradict the required shape.')
+
+
+def compact_schema(schema, limit=8):
+    """A JSON schema with long value lists replaced by their size: the shape, not hundreds of names."""
+    if isinstance(schema, dict):
+        out = {k: compact_schema(v, limit) for k, v in schema.items() if k != 'enum'}
+        if 'enum' in schema:
+            values = schema['enum']
+            out['enum' if len(values) <= limit else 'allowed_values'] = (
+                values if len(values) <= limit else f'one of {len(values)} values listed in the task schema')
+        return out
+    if isinstance(schema, list):
+        return [compact_schema(v, limit) for v in schema]
+    return schema
+
+
+class ShapeAwareProposer(dspy.teleprompt.gepa.instruction_proposal.InstructionProposer):
+    """GEPA's built-in proposer, told the answer shape each task requires.
+
+    The reflection model otherwise sees only the instructions and example
+    answers, never the typed answer schema, so it can write rules that
+    contradict it (it once wrote "do not add a total field"). Each reflection
+    example gets its task's own answer shape, and a standing note says the
+    shape is fixed by the program.
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(additional_instructions=ANSWER_CONTRACT, **kwargs)
+
+    def _prepare_examples(self, examples):
+        prepared = super()._prepare_examples(examples)
+        for example in prepared:
+            inputs = example.get('Inputs') or {}
+            if 'masked_team' in inputs and 'requested_paths' in inputs:
+                answer = S.legal_completion_type(inputs['masked_team'], inputs['requested_paths'])
+                example['Required answer shape'] = compact_schema(answer.model_json_schema())
+        return prepared
+
+
+def reflection_lm_for(model, effort='high', num_retries=3):
+    """GEPA's prompt writer, on its own route.
+
+    It never answers a task, so it keeps none of the task model's request
+    settings: no provider pin (the task's single-provider route refuses other
+    vendors' models), its own reasoning effort instead of the task's, and no
+    temperature (reasoning models do not accept one).
+    """
+    import os
+    key = os.environ.get('OPENROUTER_API_KEY')
+    if not key:
+        raise RuntimeError('OPENROUTER_API_KEY is not configured; no requests sent')
+    return dspy.LM('openrouter/' + model, api_key=key, max_tokens=32000, cache=False, num_retries=num_retries,
+                   extra_body=dict(reasoning={'effort': effort}))
+
+
 def export(program, manifest, optimizer):
     """Frozen instructions and demonstrations in the phase-one program format."""
     keys = list(program.predict.signature.input_fields)
@@ -199,7 +260,8 @@ def optimize(args):
     train, dev = examples(m, 'train'), examples(m, 'dev')
     h, _ = B.runtime()
     validator = h.Validator()
-    lm = lm_for(m)
+    # Retries go to LiteLLM, which backs off exponentially; more of them ride out shared-pool rate limits.
+    lm = lm_for(m, num_retries=args.num_retries)
     adapter = S.adapter_for(m['structure'])
     if m['structure'].get('constraints'):
         if args.optimizer != 'gepa':
@@ -210,9 +272,11 @@ def optimize(args):
         metric = Metric(m, args.output, battles=args.battles, alpha=args.alpha, validator=validator, h=h)
         program = Completion(m)
         if args.optimizer == 'gepa':
-            reflection = lm_for(m, args.reflection_model, temperature=1.0, max_tokens=32000) \
-                if args.reflection_model else lm_for(m)
+            reflection = reflection_lm_for(args.reflection_model, args.reflection_effort, args.num_retries) \
+                if args.reflection_model else lm_for(m, num_retries=args.num_retries)
+            proposer = ShapeAwareProposer() if m['structure'].get('constraints') else None
             optimizer = dspy.GEPA(metric=metric, auto=args.budget, reflection_lm=reflection,
+                                  instruction_proposer=proposer,
                                   add_format_failure_as_feedback=True, num_threads=args.threads,
                                   seed=args.seed, log_dir=str(args.output / 'gepa'), track_stats=True)
         else:
@@ -226,9 +290,15 @@ def optimize(args):
         after = dspy.Evaluate(devset=dev, metric=lambda g, p, t=None: metric(g, p).score,
                               num_threads=args.threads)(optimized).score
         cost = sum(entry.get('cost') or 0 for entry in lm.history)
+        reflection_cost = None
+        if args.optimizer == 'gepa' and args.reflection_model:
+            reflection_cost = sum(entry.get('cost') or 0 for entry in reflection.history)
         settings = dict(name=args.optimizer, budget=args.budget, battles=args.battles, alpha=args.alpha,
+                        threads=args.threads, num_retries=args.num_retries,
                         constraints=m['structure'].get('constraints'),
-                        reflection_model=args.reflection_model, max_demos=args.max_demos, seed=args.seed,
+                        reflection_model=args.reflection_model,
+                        reflection_effort=args.reflection_effort if args.reflection_model else None,
+                        reflection_lm_cost_usd=reflection_cost, max_demos=args.max_demos, seed=args.seed,
                         train_tasks=len(train), dev_tasks=len(dev), dev_score_before=before,
                         dev_score_after=after, task_lm_cost_usd=cost, dspy_version=dspy.__version__)
         B.save(args.output / 'program.json', export(optimized, m, settings))
@@ -253,9 +323,13 @@ def main():
     p.add_argument('--budget', choices=['light', 'medium', 'heavy'], default='light')
     p.add_argument('--battles', action='store_true', help='score legal answers with the 50-battle panel too')
     p.add_argument('--alpha', type=float, default=.5, help='score of a legal answer before battles')
-    p.add_argument('--reflection-model', help='GEPA reflection model; default is the task model')
+    p.add_argument('--reflection-model', help='GEPA reflection model, e.g. openai/gpt-6-luna; default is the task model')
+    p.add_argument('--reflection-effort', default='high', choices=['low', 'medium', 'high', 'xhigh', 'max'],
+                   help='reasoning effort for --reflection-model')
     p.add_argument('--max-demos', type=int, default=0, help='MIPROv2 demonstrations (each repeats the opponent pool)')
     p.add_argument('--threads', type=int, default=2)
+    p.add_argument('--num-retries', type=int, default=3,
+                   help='per-request retries with exponential backoff (rate limits, transient errors)')
     args = p.parse_args()
     args.output = args.output.resolve()
     if args.command == 'prepare':

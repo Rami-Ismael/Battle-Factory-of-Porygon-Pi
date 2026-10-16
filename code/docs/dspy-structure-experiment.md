@@ -149,6 +149,26 @@ Optimization may rewrite the whole instruction text, including the regulation re
 
 **Measured, Mercury 2.5, 15 October 2026.** GEPA `light` at reasoning off (`dspy-optimize-20261015`, 14 minutes, $0.52 in task-model calls) raised development legality from 44.6% to 53.6% (56 tasks, also used to pick the candidate). It kept the original instructions and appended rules from the refusals: no duplicate items, legal moves and abilities, Stat Points 0 to 32 summing to at most 66, and one Protect per Pokémon except support walls. On the 20 held-out starters (`dspy-optimized-20261015`, 1,680 calls, $0.82) it beat the 13 October baseline by +18 to +38 pp in every setting, but not the unoptimized legal-choice types: reasoning off +3.3 pp [−0.5, +7.4], low +2.1 [−1.2, +5.7], medium +1.2 [−1.9, +4.3], high −2.6 [−6.9, +1.9]. Win rate when both answers are legal: −0.1 to −0.3 pp, all intervals including zero. At this budget, optimization adds nothing measurable beyond the legal-choice types.
 
+### A stronger reflection model
+
+In the run above, Mercury wrote GEPA's candidate prompts itself (no `--reflection-model`). Three changes let another model write them:
+
+- `--reflection-model openai/gpt-6-luna` runs on its own route (`reflection_lm_for`): no provider pin (the task's Inception-only route refuses other vendors' models), its own reasoning effort (`--reflection-effort`, default `high`), no temperature (reasoning models take none), 32,000-token cap. Mercury still answers every task with the baseline settings. The run records `reflection_lm_cost_usd`.
+- With legal-choice types, GEPA uses `ShapeAwareProposer`. The reflection model otherwise sees only the instructions and example answers, never the typed answer schema. Each reflection example now carries its task's required answer shape (long value lists shortened to their size), and a standing note says the shape is fixed by the program and every Stat Points object keeps `total`.
+- `--num-retries` (default 3) sets per-request retries with backoff for both models. Inception's shared pool rate-limited Mercury overnight; `--threads 1 --num-retries 8` rides out short bursts but not a sustained limit.
+
+Same 140 tasks, GEPA `light`, reasoning off. Held-out legality against the unoptimized legal-choice types (20 starters, 1,680 calls each):
+
+| Reasoning | Mercury writes | GPT-6 Luna writes, no answer shape | GPT-6 Luna writes, shape-aware |
+|---|---|---|---|
+| off | +3.3 pp [−0.5, +7.4] | +6.4 [+1.9, +11.4] | +3.6 [−0.2, +6.9] |
+| low | +2.1 [−1.2, +5.7] | +5.0 [+1.0, +9.3] | **+6.0 [+2.6, +9.0]** |
+| medium | +1.2 [−1.9, +4.3] | −7.4 [−11.2, −3.6] | **+7.6 [+2.9, +12.4]** |
+| high | −2.6 [−6.9, +1.9] | −14.5 [−18.6, −10.2] | **+4.8 [+0.2, +9.0]** |
+| Pooled legality | 60.1% | 56.5% | **64.6%** |
+
+Without the answer shape, Luna generalized the original instruction "evs keys are HP,Atk,Def,SpA,SpD,Spe" into "do not add a `total` field". Answers that followed it failed the typed parse: 5% at reasoning off, 25% at high, where the model follows instructions most closely. With the shape shown, such failures fell to 1–2%. The shape-aware prompt (`dspy-optimize-luna4-20261016`; dev 46.4% → 53.6%; $0.71 Mercury + $0.20 Luna) is the best arm: pooled 64.6% against 59.1% for the unoptimized types and 32.3% for the 13 October baseline. Win rate when both answers are legal stayed within ±1 pp in every comparison.
+
 ## Limits
 
 - The opponent pool is frozen and visible in every prompt. This measures in-pool performance, not held-out play or today's Regulation M-C meta.

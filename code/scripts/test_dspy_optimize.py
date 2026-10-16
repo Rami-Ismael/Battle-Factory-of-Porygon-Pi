@@ -146,12 +146,128 @@ class LegalChoiceOptimizeTests(unittest.TestCase):
     def test_mipro_is_refused_with_legal_choice_types(self):
         with tempfile.TemporaryDirectory() as tmp:
             B.save(Path(tmp) / 'manifest.json', self.m)
-            args = SimpleNamespace(output=Path(tmp), optimizer='mipro')
+            args = SimpleNamespace(output=Path(tmp), optimizer='mipro', num_retries=3)
             with unittest.mock.patch.object(B, 'runtime', return_value=(self.h, None)), \
                  unittest.mock.patch.object(O, 'lm_for', return_value=DummyLM([])):
                 self.h.Validator = Mock(return_value=self.validator)
                 with self.assertRaisesRegex(ValueError, 'MIPROv2'):
                     O.optimize(args)
+
+
+@unittest.skipIf(O is None, 'DSPy is not installed')
+class ReflectionModelTests(unittest.TestCase):
+    """GEPA's prompt writer runs on its own route, not the task model's."""
+
+    def setUp(self):
+        self.m = dict(MANIFEST, structure=S.config('chat', constraints='legal-choices'),
+                      optimization=dict(split={'0': 'train', '1': 'dev'}),
+                      provider={'order': ['inception'], 'allow_fallbacks': False, 'require_parameters': True})
+
+    def test_reflection_model_keeps_none_of_the_task_settings(self):
+        with unittest.mock.patch.dict('os.environ', {'OPENROUTER_API_KEY': 'test'}):
+            lm = O.reflection_lm_for('openai/gpt-6-luna')
+            task = O.lm_for(self.m)
+        self.assertEqual(lm.model, 'openrouter/openai/gpt-6-luna')
+        self.assertNotIn('temperature', {k: v for k, v in lm.kwargs.items() if v is not None})
+        self.assertEqual(lm.kwargs['extra_body'], {'reasoning': {'effort': 'high'}})  # no provider pin
+        self.assertEqual(lm.kwargs['max_tokens'], 32000)
+        with unittest.mock.patch.dict('os.environ', {'OPENROUTER_API_KEY': 'test'}):
+            self.assertEqual(O.reflection_lm_for('openai/gpt-6-luna', num_retries=8).num_retries, 8)
+            self.assertEqual(O.lm_for(self.m, num_retries=8).num_retries, 8)
+        # The task model still carries the baseline's route and sampling settings.
+        self.assertEqual(task.kwargs['extra_body']['provider']['order'], ['inception'])
+        self.assertEqual(task.kwargs['temperature'], MANIFEST['temperature'])
+
+    def test_reflection_model_needs_a_key(self):
+        with unittest.mock.patch.dict('os.environ', {}, clear=True):
+            with self.assertRaises(RuntimeError):
+                O.reflection_lm_for('openai/gpt-6-luna')
+
+    def test_optimize_hands_gepa_the_separate_reflection_model(self):
+        class Stop(Exception):
+            pass
+        seen = {}
+
+        def fake_gepa(**kwargs):
+            seen.update(kwargs)
+            raise Stop
+
+        writer = DummyLM([])
+        with tempfile.TemporaryDirectory() as tmp:
+            B.save(Path(tmp) / 'manifest.json', self.m)
+            args = SimpleNamespace(output=Path(tmp), optimizer='gepa', battles=False, alpha=.5, budget='light',
+                                   threads=1, seed=1, reflection_model='openai/gpt-6-luna', reflection_effort='high',
+                                   num_retries=8)
+            h = Mock(Validator=Mock(return_value=Mock()))
+            with unittest.mock.patch.object(B, 'runtime', return_value=(h, None)), \
+                 unittest.mock.patch.object(O, 'lm_for', return_value=DummyLM([])), \
+                 unittest.mock.patch.object(O, 'reflection_lm_for', return_value=writer) as make_writer, \
+                 unittest.mock.patch.object(dspy, 'GEPA', side_effect=fake_gepa):
+                with self.assertRaises(Stop):
+                    O.optimize(args)
+        make_writer.assert_called_once_with('openai/gpt-6-luna', 'high', 8)
+        self.assertIs(seen['reflection_lm'], writer)
+
+
+@unittest.skipIf(O is None, 'DSPy is not installed')
+class ReflectionShapeTests(unittest.TestCase):
+    """The reflection model is shown the answer shape each task requires, including the Stat Points total."""
+
+    def setUp(self):
+        self.m = dict(MANIFEST, structure=S.config('chat', constraints='legal-choices'),
+                      optimization=dict(split={'0': 'train', '1': 'dev'}))
+        self.metric = O.Metric(self.m, tempfile.mkdtemp(), validator=Mock(return_value=None),
+                               h=Mock(slot_to_text=lambda slot: slot['species']))
+        self.example = O.examples(self.m, 'train')[0]  # s0-item-2: Pikachu's item and Garchomp's Stat Points
+
+    def test_compact_schema_keeps_the_shape_and_drops_long_lists(self):
+        schema = O.compact_schema(S.legal_completion_type(MANIFEST['starts'][0], TRIALS[0]['paths']).model_json_schema())
+        spread = schema['$defs']['StatPoints']
+        self.assertIn('total', spread['required'])
+        self.assertEqual(spread['properties']['total']['maximum'], 66)
+        item = schema['$defs']['Slot0Item']
+        self.assertNotIn('enum', item)
+        self.assertRegex(item['allowed_values'], r'^one of \d+ values')
+
+    def test_gepa_reflection_sees_the_required_total(self):
+        spread = dict(HP=2, Atk=32, Def=0, SpA=0, SpD=0, Spe=32)
+        refused = {'fills': json.dumps({'slot0_item': 'Not An Item', 'slot2_evs': dict(spread, total=66)})}
+        legal = {'fills': json.dumps({'slot0_item': 'Light Ball', 'slot2_evs': dict(spread, total=66)})}
+        task = DummyLM([refused] * 4 + [legal] * 40)
+        reflection = DummyLM([{'new_instruction': 'Keep every Stat Points total.'}] * 10, adapter=dspy.JSONAdapter())
+        with dspy.context(lm=task, adapter=O.lenient(S.adapter_for(self.m['structure']))):
+            gepa = dspy.GEPA(metric=self.metric, max_metric_calls=12, reflection_lm=reflection,
+                             instruction_proposer=O.ShapeAwareProposer(), add_format_failure_as_feedback=True,
+                             num_threads=1, seed=1)
+            train = [self.example]
+            optimized = gepa.compile(O.Completion(self.m), trainset=train, valset=train)
+        prompt = json.dumps(reflection.history[0]['messages'])
+        self.assertIn('Required answer shape', prompt)
+        self.assertIn('slot2_evs', prompt)
+        self.assertIn('must keep its `total` field', prompt)
+        self.assertIn('\\"total\\"', prompt)  # the StatPoints schema lists total
+        self.assertEqual(O.export(optimized, self.m, {})['instructions'], 'Keep every Stat Points total.')
+
+    def test_optimize_uses_the_shape_aware_proposer_with_legal_choices(self):
+        class Stop(Exception):
+            pass
+        seen = {}
+
+        def fake_gepa(**kwargs):
+            seen.update(kwargs)
+            raise Stop
+
+        with tempfile.TemporaryDirectory() as tmp:
+            B.save(Path(tmp) / 'manifest.json', self.m)
+            args = SimpleNamespace(output=Path(tmp), optimizer='gepa', battles=False, alpha=.5, budget='light',
+                                   threads=1, seed=1, reflection_model=None, reflection_effort='high', num_retries=3)
+            h = Mock(Validator=Mock(return_value=Mock()))
+            with unittest.mock.patch.object(B, 'runtime', return_value=(h, None)), \
+                 unittest.mock.patch.object(O, 'lm_for', return_value=DummyLM([])), \
+                 unittest.mock.patch.object(dspy, 'GEPA', side_effect=fake_gepa):
+                with self.assertRaises(Stop):
+                    O.optimize(args)
+        self.assertIsInstance(seen['instruction_proposer'], O.ShapeAwareProposer)
 
 
 if __name__ == '__main__':
