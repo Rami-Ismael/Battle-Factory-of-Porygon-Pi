@@ -169,6 +169,14 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
 .reasons{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;font-size:13px}
 .reasons li{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:baseline}
 .reasons li b{font-family:var(--mono);color:var(--bad);text-align:right}
+.choices{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.choice{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--surface3);border-radius:8px;padding:3px 7px;font-size:12px;color:var(--ink)}
+.choice img{width:18px;height:18px;image-rendering:pixelated}
+.choice b{font:600 10.5px var(--mono);color:var(--muted)}
+.dv{font-size:12.5px;color:var(--ink2)}
+.dv b{color:var(--ink);font-family:var(--mono);font-weight:600}
+#div-rows .row{padding-bottom:6px;border-bottom:1px solid var(--line)}
+#div-rows .row:last-child{border-bottom:0}
 details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 summary{cursor:pointer;color:var(--ink);font-weight:600;font-size:14px;padding:6px 0}
 details p,details li{color:var(--ink2);font-size:13.5px}
@@ -330,7 +338,7 @@ function controls() {
 function renderExplorer() {
   const t = task();
   const paint = () => { $('#grid').innerHTML = gridCard(t); $('#writers').innerHTML = writerRows(t); $('#stars').innerHTML = starsCard(t); };
-  if (document.startViewTransition && !reduceMotion && $('#grid').innerHTML) document.startViewTransition(paint); else paint();
+  if (document.startViewTransition && !reduceMotion && $('#grid').innerHTML) document.startViewTransition(paint).finished.catch(() => {}); else paint();
 }
 
 /* ---------- question 1: Ling or diffusion? ---------- */
@@ -442,11 +450,52 @@ function updateReasons() {
   const total = Object.values(g).reduce((a, b) => a + b, 0);
   $('#reasons').innerHTML = Object.entries(g).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<li><b>${n}</b><span>${esc(k)}</span></li>`).join('') + `<li><b>${total}</b><span style="color:var(--muted)">rejected of 420 at effort ${esc(e)}</span></li>`;
 }
-/* ---------- question 4: verdict ---------- */
+/* ---------- question 4: do the writers keep writing the same thing? ---------- */
+const META = new Set(DATA.opponents.flatMap(o => o.species));
+const DIVFAM = {pokemon:'Whole Pokémon', items:'Items', moves:'Moves', abilities:'Abilities', natures:'Stat Alignment', stats:'Stat Points'};
+function divStats(fam, k) { // k is an ARMS index or 'random'
+  const vals = [];
+  for (const t of DATA.tasks) {
+    if (t.f !== fam) continue;
+    const r = res(t), src = k === 'random' ? r.random : r.arms[ARMS[k].key];
+    if (!src || !src.fill || (k !== 'random' && !src.ok)) continue;
+    for (const v of src.fill) vals.push(fam === 'pokemon' ? v.species : fam === 'stats' ? spread(v) : v);
+  }
+  const c = new Map(); vals.forEach(v => c.set(v, (c.get(v) || 0) + 1));
+  const top = [...c.entries()].sort((a, b) => b[1] - a[1]);
+  const meta = fam === 'pokemon' && vals.length ? vals.filter(v => META.has(v)).length / vals.length : null;
+  return {n: vals.length, distinct: c.size, top, meta};
+}
+function divRow(label, c, st, fam) {
+  if (!st.n) return `<div class="row"><b>${dot(c)}${esc(label)}</b><span class="v num"><small>no legal fills</small></span></div>`;
+  const chips = st.top.slice(0, 8).map(([v, n]) => { const im = fam === 'pokemon' ? sprite(v) : fam === 'items' ? SPRITES['item-' + norm(v)] : null;
+    return `<span class="choice">${im ? `<img src="${im}" alt="">` : ''}${esc(v)}<b>×${n}</b></span>`; }).join('');
+  const share = st.top[0][1] / st.n;
+  return `<div class="row"><b>${dot(c)}${esc(label)}</b><span class="v num">${st.distinct} distinct<small>of ${st.n} fills</small></span><div class="track"><i style="width:${st.distinct / st.n * 100}%;background:${c}"></i></div>
+    <div class="dv" style="grid-column:1/-1">largest share <b>${pct(share, 0)}</b> (${esc(st.top[0][0])})${st.meta != null ? ` · in the meta pool <b>${pct(st.meta, 0)}</b>` : ''}</div>
+    <div class="choices" style="grid-column:1/-1">${chips}${st.top.length > 8 ? `<span class="choice"><b>+${st.top.length - 8} more</b></span>` : ''}</div></div>`;
+}
+function updateDiversity() {
+  const fam = $('#div-family').value;
+  $('#div-rows').innerHTML = ARMS.map((a, k) => divRow(a.short, a.c, divStats(fam, k), fam)).join('') + divRow('Random legal fill', 'var(--muted)', divStats(fam, 'random'), fam);
+  $('#div-note').textContent = fam === 'pokemon' ? 'The bar is distinct choices over legal fills, the project\'s unique fraction. "In the meta pool" is the share of written species that appear in one of the 49 opponent teams.'
+    : fam === 'stats' ? 'Spreads compare exactly. The random fill draws a fresh spread every time, so it is always fully distinct.' : 'The bar is distinct choices over legal fills, the project\'s unique fraction. A writer with few legal fills has little room to repeat itself.';
+}
+function qDiv() {
+  const L = divStats('pokemon', 2), D = divStats('pokemon', 3), R = divStats('pokemon', 'random');
+  const opts = Object.keys(DIVFAM).map(f => `<option value="${f}">${DIVFAM[f]}</option>`).join('');
+  return `<section class="q" id="q4"><div class="eyebrow">Question 4 · explorer grid · what the writers actually wrote</div><h2>Do the writers keep writing the same thing?</h2>
+    <p class="answer">Yes, each in its own way. Asked for a whole Pokémon, Ling writes a meta species ${pct(L.meta, 0)} of the time and leans on ${esc(L.top[0][0])}; the diffusion model draws from ${D.distinct} species, ${pct(D.meta, 0)} of them meta; the random fill is the widest, ${R.distinct} species, and the weakest.</p>
+    <p>Diversity matters because the search loop that will use a writer needs many different teams, not one good one. This counts every legal fill on the 270-mask grid: how many distinct values a writer produced, and how much of its output its single most common choice takes.</p>
+    <div class="card"><label class="f"><span class="eyebrow">What was masked</span><select id="div-family">${opts}</select></label>
+      <div class="rows" id="div-rows"></div><p class="note" id="div-note"></p></div>
+    <p class="note">The 20-starter study's fills are not in this snapshot yet, so this section covers the explorer grid only.</p></section>`;
+}
+/* ---------- question 5: verdict ---------- */
 function q4() {
   if (!NEW) return '';
   const rows = NEW.methods.map(m => `<tr><td>${dot(MCOL[m.id])}${esc(m.name)}</td><td class="n">${m.legal}/420</td><td class="n">${pct(m.full_set.legal_win_rate, 1)}</td><td class="n">${m.id === 'diffusion' ? 'none' : '$' + m.cost.toFixed(2) + (m.cost_coverage < 420 ? '*' : '')}</td></tr>`).join('');
-  return `<section class="q" id="q4"><div class="eyebrow">Question 4 · all seven writers</div><h2>So which writer should fill a mask?</h2>
+  return `<section class="q" id="q5"><div class="eyebrow">Question 5 · all seven writers</div><h2>So which writer should fill a mask?</h2>
     <p class="answer">The Pokémon diffusion model: always legal, free to run, and level with the best language-model setting in battle. Reasoning in a language model is a legality lever, not a strength lever.</p>
     <div class="card"><div class="tscroll"><table class="tbl"><thead><tr><th>Writer</th><th>Legal</th><th>Win rate, own legal fills</th><th>API cost</th></tr></thead><tbody>${rows}</tbody></table></div>
       <p class="note">Win rate is the share of a team's ${BATTLES} battles it wins against the top-49 meta pool, with the behaviour-cloning policy on both sides. Each writer is scored on its own legal fills, so this column is descriptive, not a ranking; the paired charts above are the ranking. *Three medium and two high cost records are missing.</p></div>
@@ -460,7 +509,7 @@ function header() {
     <p class="lede">Take a random legal Regulation M-B team. Hide one part of it: an item, an ability, a move, a Stat Point spread, or a whole Pokémon. Ask a writer to fill the gap. Check the answer with the Showdown validator, then play the completed team against the frozen top-49 meta pool.</p>
     <div class="howto"><div class="card"><b>See what changes</b><p>The explorer shows the masked team once and every writer's fill underneath it, cell by cell, with the validator's reason when a fill is rejected.</p></div>
       <div class="card"><b>Measure what helps</b><p>Every legal fill plays ${BATTLES} battles, one per meta team. Its win rate is compared with the untouched team's and with a random legal fill's, on the same mask.</p></div></div>
-    <div class="toc"><a href="#explorer"><b>0</b>Explorer</a><a href="#q1"><b>1</b>Ling or diffusion?</a><a href="#q2"><b>2</b>Does reasoning help Ling?</a><a href="#q3"><b>3</b>Does more reasoning help Mercury?</a><a href="#q4"><b>4</b>Verdict</a><a href="#method"><b>§</b>Method</a></div>`;
+    <div class="toc"><a href="#explorer"><b>0</b>Explorer</a><a href="#q1"><b>1</b>Ling or diffusion?</a><a href="#q2"><b>2</b>Does reasoning help Ling?</a><a href="#q3"><b>3</b>Does more reasoning help Mercury?</a><a href="#q4"><b>4</b>Same thing again?</a><a href="#q5"><b>5</b>Verdict</a><a href="#method"><b>§</b>Method</a></div>`;
 }
 function explorerIntro() {
   const legal = ARMS.map(a => `${dot(a.c)}${esc(a.short)} ${pct(DATA.arms[a.key].legal / DATA.arms[a.key].n, 0)}`).join(' &nbsp; ');
@@ -488,12 +537,13 @@ function method() {
 function boot() {
   const day = s => esc((s || '').slice(0, 10));
   $('#app').innerHTML = `${header()}${explorerIntro()}<div id="ctl"></div><div id="grid" style="margin-top:12px"></div><div id="writers" style="margin-top:12px"></div><div id="stars" style="margin-top:12px"></div></section>
-    ${q1()}${q2()}${q3()}${q4()}${method()}
+    ${q1()}${q2()}${q3()}${qDiv()}${q4()}${method()}
     <footer>Explorer data from the 2026-10-08 run. Reasoning studies verified ${day(DATA.reasoning && DATA.reasoning.audit.verified_at)} (Ling), ${day(DATA.mercury && DATA.mercury.audit.verified_at)} (Mercury) and ${day(DATA.matchedDiffusion && DATA.matchedDiffusion.audit.verified_at)} (diffusion). Sprites from Pokémon Showdown.</footer>`;
   $('#ctl').innerHTML = controls();
   renderExplorer();
   updateReasoningFamily(false);
   updateReasons();
+  updateDiversity();
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -507,6 +557,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'reasoning-family') { updateReasoningFamily(!reduceMotion); return; }
+  if (e.target.id === 'div-family') { updateDiversity(); return; }
   if (e.target.id === 'fam') { S.family = e.target.value; S.k = Math.min(S.k, kmax(S.family)); S.sel = null; S.opp = null; $('#ctl').innerHTML = controls(); renderExplorer(); }
   else if (e.target.id === 'start') { S.start = +e.target.value; S.sel = null; S.opp = null; renderExplorer(); }
 });

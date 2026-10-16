@@ -19,7 +19,9 @@ order the questions were asked:
    masks, legality by mask family.
 3. Does more reasoning help Mercury? Legality, cost and reasoning tokens by
    effort, paired deltas against off, rejection reasons by effort.
-4. Verdict, then the method notes.
+4. Do the writers keep writing the same thing? Distinct fills, largest share
+   and meta-pool share per writer and mask family (explorer grid only).
+5. Verdict, then the method notes.
 
 A panel is 50 battles: 49 distinct meta opponents, one counted twice (checked
 against the per-opponent bits in `data.json`).
