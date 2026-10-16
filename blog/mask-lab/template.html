@@ -2,134 +2,181 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mask Lab: diffusion, Ling and Mercury</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mask Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
+/* Layout: one 640px lab column. The explorer comes first (see what changes), then the four
+   questions in the order they were asked (measure what helps), then the method notes. */
 :root{
   color-scheme:dark;
-  --bg:#0b1216;--surface:#111b21;--surface2:#16232a;--line:rgba(255,255,255,.09);
+  --bg:#0b1216;--surface:#111b21;--surface2:#16232a;--surface3:#1d2c34;--line:rgba(255,255,255,.09);
   --ink:#eef3f2;--ink2:#b3c0be;--muted:#7b8a87;
   --accent:#7fe3c6;--accent-ink:#06231b;--warn:#e8b45a;--bad:#ef7d72;
   --a0:#68767a;--a1:#8fa6d1;--a2:#7fe3c6;--a3:#b6a8ff;
-  --hatch:rgba(127,227,198,.2);
+  --l1:#6f8fc4;--l2:#a9c0ec;--m1:#9a7a3a;--m2:#b8923f;--m3:#d6ab49;--m4:#f0c663;
+  --hatch:rgba(127,227,198,.2);--win:rgba(127,227,198,.22);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
 }
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
   color-scheme:light;
-  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--line:rgba(11,18,22,.12);
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--surface3:#e3e9e7;--line:rgba(11,18,22,.12);
   --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
   --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
-  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--a3:#6a55d8;--hatch:rgba(13,138,109,.16);
+  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--a3:#6a55d8;
+  --l1:#5c7db5;--l2:#2f5aa0;--m1:#c9a45a;--m2:#b58a2c;--m3:#9a7013;--m4:#7a5604;
+  --hatch:rgba(13,138,109,.16);--win:rgba(13,138,109,.18);
 }}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--surface3:#e3e9e7;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
+  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--a3:#6a55d8;
+  --l1:#5c7db5;--l2:#2f5aa0;--m1:#c9a45a;--m2:#b58a2c;--m3:#9a7013;--m4:#7a5604;
+  --hatch:rgba(13,138,109,.16);--win:rgba(13,138,109,.18);
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:580px;margin:0 auto;padding:0 16px 64px}
-.method-chart{margin:24px 0 30px}
-.method-chart table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
-.method-chart th,.method-chart td{padding:12px 5px;vertical-align:top;text-align:left;border-bottom:1px solid var(--line)}
-.method-chart th:first-child{width:23%}
-.method-chart .value{display:block;font-variant-numeric:tabular-nums;font-weight:600}
-.method-chart .track{display:block;height:7px;background:var(--surface2);margin:8px 0}
-.method-chart .fill{display:block;height:100%;background:var(--accent)}
-.method-chart .cost-fill{background:var(--ink2)}
-.method-chart .small{font-size:12px;color:var(--ink2);display:block}
-.method-chart .chart-caption{font-size:13px;color:var(--ink2)}
-@media(max-width:420px){.method-chart table{font-size:12px}.method-chart th,.method-chart td{padding:10px 3px}.method-chart th:first-child{width:24%}}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.eyebrow{font:600 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding-block:0 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--mono)}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font:600 11px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+a{color:var(--accent)}
 header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 0 10px}
-.brand{display:flex;align-items:center;gap:10px;font:700 12px/1.2 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}
+.brand{display:flex;align-items:center;gap:10px;font:700 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase}
 .brand i{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#5b8cff);display:inline-block}
-.tag{font:600 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:right}
-h1{font-size:44px;line-height:1.04;letter-spacing:-.02em;margin:18px 0 14px;font-weight:700}
-h1 em{display:block;color:var(--accent);font:italic 500 46px/1.05 Georgia,"Times New Roman",serif}
-.lede{color:var(--ink2);font-size:16px;margin:0 0 20px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
-.kpi .v{font-size:30px;font-weight:700;letter-spacing:-.01em;margin:6px 0 2px}
-.kpi .s{font-size:12px;color:var(--muted)}
-.kpi .v.good{color:var(--accent)}
-.kpi .v.bad{color:var(--bad)}
-section{margin-top:16px}
-h2{font-size:22px;letter-spacing:-.01em;margin:6px 0 10px}
-.ctl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0 8px}
-label.f{display:block}
+.tag{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:right}
+h1{font-size:44px;line-height:1.04;letter-spacing:-.02em;margin:18px 0 14px;font-weight:700;text-wrap:balance}
+h1 em{display:block;color:var(--accent);font:italic 500 46px/1.05 var(--serif)}
+.lede{color:var(--ink2);font-size:16px;margin:0 0 14px}
+p{margin:0 0 10px}
+.howto{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0 6px}
+.howto .card{padding:12px 14px}
+.howto b{display:block;font-size:14px;margin-bottom:4px}
+.howto p{font-size:13px;color:var(--ink2);margin:0}
+.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:14px 0 4px;font-size:13px}
+.toc a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--line)}
+.toc a b{color:var(--accent);font-family:var(--mono);font-size:11px;margin-right:4px}
+section.q{margin-top:40px;padding-top:22px;border-top:1px solid var(--line)}
+section.q>.eyebrow{margin-bottom:6px}
+h2{font-size:24px;line-height:1.15;letter-spacing:-.01em;margin:4px 0 8px;text-wrap:balance}
+h3{font-size:15px;margin:18px 0 6px}
+.answer{font-size:16px;color:var(--ink);margin:0 0 14px;padding-left:12px;border-left:3px solid var(--accent)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.card+.card{margin-top:12px}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 8px}
+label.f{display:block;min-width:0}
 label.f span{display:block;margin-bottom:6px}
-select{width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:600 15px system-ui;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.seg button,.btn{background:var(--surface);color:var(--ink2);border:1px solid var(--line);border-radius:12px;padding:10px 6px;font:600 13px system-ui;cursor:pointer}
+select{width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:600 14px var(--sans);appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{background:var(--surface);color:var(--ink2);border:1px solid var(--line);border-radius:999px;padding:8px 12px;font:600 12.5px var(--sans);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.seg.s4{grid-template-columns:1fr 1fr}
 .seg button .sw{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
-.kline{display:flex;justify-content:space-between;align-items:baseline}
+.kline{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+/* team grid */
 .mon{padding:10px 0;border-top:1px solid var(--line)}
-.mon:first-child{border-top:0}
-.mon h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:15px}
+.mon:first-child{border-top:0;padding-top:4px}
+.mon h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:15px;flex-wrap:wrap}
 .mon h4 img{width:40px;height:40px;image-rendering:pixelated;margin:-6px 0}
 .ph{width:40px;height:40px;border-radius:10px;background:var(--surface2);display:inline-grid;place-items:center;color:var(--muted);font-size:18px;margin:-6px 0}
 .cells{display:flex;flex-wrap:wrap;gap:6px}
-.cell{border:1px solid var(--line);background:var(--surface2);border-radius:9px;padding:5px 8px;font-size:12.5px;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-align:left;font-family:inherit}
-.cell small{font:600 9.5px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cell{border:1px solid var(--line);background:var(--surface2);border-radius:9px;padding:5px 8px;font-size:12.5px;color:var(--ink);display:inline-flex;align-items:center;gap:6px;text-align:left;font-family:inherit;cursor:default}
+.cell small{font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .cell img{width:14px;height:14px;image-rendering:pixelated}
-.cell.masked{background:repeating-linear-gradient(135deg,var(--hatch) 0 6px,transparent 6px 12px);border:1px dashed var(--accent);color:var(--accent)}
-.cell.filled{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
-.cell.rejected{border:1px dashed var(--bad);color:var(--bad);background:repeating-linear-gradient(135deg,rgba(239,125,114,.14) 0 6px,transparent 6px 12px)}
+.cell.masked{background:repeating-linear-gradient(135deg,var(--hatch) 0 6px,transparent 6px 12px);border:1px dashed var(--accent);color:var(--accent);cursor:pointer}
+.cell.filled{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);cursor:pointer}
+.cell.rejected{border:1px dashed var(--bad);color:var(--bad);background:repeating-linear-gradient(135deg,rgba(239,125,114,.14) 0 6px,transparent 6px 12px);cursor:pointer}
 .cell.sel{outline:2px solid var(--ink);outline-offset:1px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink2);font-size:12.5px;margin-top:10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.insp{margin-top:12px;background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:13.5px}
-.insp dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
-.insp dt{color:var(--muted)}
-.insp dd{margin:0;font-weight:600}
-.pill{display:inline-block;font:700 10.5px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:99px;border:1px solid}
+.note{color:var(--muted);font-size:12.5px;margin-top:10px}
+.pill{display:inline-block;font:700 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:99px;border:1px solid;white-space:nowrap}
 .pill.ok{color:var(--accent);border-color:var(--accent)}
 .pill.no{color:var(--bad);border-color:var(--bad)}
-.rows{display:grid;gap:12px;margin-top:12px}
-.row{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
-.row b{font-weight:600}
-.track{grid-column:1/-1;height:8px;border-radius:5px;background:var(--surface2);overflow:hidden}
-.track i{display:block;height:100%;border-radius:5px}
-.deltas{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
-.deltas .v{font-size:26px;font-weight:700}
-.note{color:var(--muted);font-size:12.5px;margin-top:10px}
+.pill.ref{color:var(--muted);border-color:var(--line)}
+/* stacked writer rows */
+.wrows{display:grid;gap:8px;margin-top:10px}
+.wrow{display:grid;grid-template-columns:1fr;gap:6px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;min-width:0;width:100%}
+.wrow[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.wrow .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wrow .head b{font-weight:600}
+.wrow .head .sw{width:9px;height:9px;border-radius:50%;display:inline-block}
+.wrow .fills{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:12.5px;color:var(--ink2)}
+.wrow .fills span{display:inline-flex;gap:5px;align-items:center;min-width:0}
+.wrow .fills small{font:600 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wrow .fills img{width:14px;height:14px;image-rendering:pixelated}
+.wrow .err{font-size:12.5px;color:var(--bad);overflow-wrap:anywhere}
+.wrow .score{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;font-size:12.5px;color:var(--ink2)}
+.wrow .score b{color:var(--ink);font-family:var(--mono);font-weight:600}
+.track{grid-column:1/-1;height:8px;border-radius:5px;background:var(--surface3);overflow:hidden}
+.track i{display:block;height:100%;border-radius:5px;transform-origin:left;animation:grow .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes grow{from{transform:scaleX(0)}}
+.insp{margin-top:12px;background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:13.5px}
+.insp table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
+.insp td{padding:4px 6px 4px 0;vertical-align:top;border-top:1px solid var(--line)}
+.insp td:first-child{color:var(--muted);width:46%}
+.insp tr:first-child td{border-top:0}
+/* constellation */
 .stars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
-.star{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);display:grid;place-items:center;font-size:16px;cursor:pointer;padding:0}
-.star.win{color:#d9ccff;border-color:#8b78e6;background:rgba(139,120,230,.18)}
+.star{aspect-ratio:1;max-width:100%;border-radius:10px;border:1px solid var(--line);background:var(--surface2);padding:4px;cursor:pointer;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:1px;align-content:center;position:relative}
+.star img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated;opacity:.5}
+.star.win{border-color:var(--accent);background:var(--win)}
+.star.win img{opacity:1}
+.star.none{border-style:dashed}
 .star.sel{outline:2px solid var(--ink);outline-offset:1px}
-.tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
-.tbl th{font:600 10px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
-.tbl td{padding:9px 4px;border-bottom:1px solid var(--line);vertical-align:top}
-.tbl td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
-.fam{display:grid;grid-template-columns:96px 1fr;gap:8px 10px;align-items:center;margin-top:10px;font-size:12.5px}
-.fam .bars{display:grid;gap:3px}
-.fam .b{display:grid;grid-template-columns:1fr 54px;gap:8px;align-items:center}
-.fam .b .track{height:6px;grid-column:auto}
-.fam .b span{font:600 11px ui-monospace,monospace;color:var(--ink2);text-align:right}
-.cost{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.cost .v{font-size:28px;font-weight:700;color:var(--accent)}
-footer{margin-top:22px;color:var(--muted);font-size:12.5px;line-height:1.55}
-footer li{margin-bottom:6px}
-.pending{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;color:var(--ink2);font-size:13px;margin-top:12px}
-</style>
-<style>
-.study-compare{margin:24px 0;padding-top:20px;border-top:1px solid var(--line)}
-.study-compare p{color:var(--ink2)}
-.study-compare .seg{grid-template-columns:1fr 1fr;margin:16px 0}
-.study-compare .tbl th{font-size:11px;letter-spacing:0}
-.study-compare .tbl td{overflow-wrap:anywhere}
-.study-compare .table-scroll{overflow-x:auto}
-.study-compare .group td{color:var(--accent);padding-top:18px;font-weight:600}
-.study-compare .track i{width:100%;transform-origin:left;transition:transform 220ms cubic-bezier(.23,1,.32,1)}
-.study-compare details{margin-top:16px}
-.study-compare summary{cursor:pointer;padding:8px 0;color:var(--ink)}
-.study-compare .note{color:var(--ink2)}
-.study-compare .interval{font-variant-numeric:tabular-nums;font-size:20px;color:var(--ink);margin-bottom:4px}
-.study-compare [hidden]{display:none}
-#summary .tbl{display:block;max-width:100%;overflow-x:auto}
-.grid2,.ctl{grid-template-columns:repeat(2,minmax(0,1fr))}
-.card{min-width:0}
-@media(prefers-reduced-motion:reduce){.study-compare .track i{transition:none}}
-@media(max-width:400px){.study-compare .grid2{grid-template-columns:1fr}.study-compare .tbl{font-size:12px}}
+.star .twice{position:absolute;right:3px;top:1px;font:700 9px var(--mono);color:var(--muted)}
+.opp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:13px}
+.opp img{width:36px;height:36px;image-rendering:pixelated}
+/* charts */
+.rows{display:grid;gap:10px;margin-top:12px}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;font-size:13.5px}
+.row b{font-weight:600}
+.row .v{font-family:var(--mono);font-weight:600;color:var(--ink);text-align:right}
+.row .v small{color:var(--muted);font-weight:400;margin-left:6px}
+.ivals{display:grid;gap:8px;margin-top:12px}
+.ival{display:grid;grid-template-columns:120px 1fr 110px;gap:10px;align-items:center;font-size:13px}
+@media (max-width:460px){.ival{grid-template-columns:1fr 1fr}.ival .axis{grid-column:1/-1}}
+.ival .lab{font-weight:600}
+.ival .lab small{display:block;color:var(--muted);font-weight:400;font-family:var(--mono);font-size:11px}
+.axis{position:relative;height:26px;border-radius:5px;background:var(--surface2)}
+.axis .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--muted)}
+.axis .ci{position:absolute;top:10px;height:6px;border-radius:3px;background:var(--ink2);opacity:.6}
+.axis .pt{position:absolute;top:7px;width:12px;height:12px;border-radius:50%;margin-left:-6px;background:var(--ink)}
+.ival.clear .ci{background:var(--accent);opacity:.75}.ival.clear .pt{background:var(--accent)}
+.ival .val{font-family:var(--mono);font-size:12.5px;text-align:right;color:var(--ink)}
+.ival .val small{display:block;color:var(--muted);font-size:10.5px;font-family:var(--sans)}
+.axis-ticks{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted);margin-top:4px;padding:0 120px 0 130px}
+@media (max-width:460px){.axis-ticks{padding:0}}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.big .card{padding:12px 14px}
+.big .v{font:700 28px/1.1 var(--mono);letter-spacing:-.01em;margin:6px 0 4px;font-variant-numeric:tabular-nums}
+.big .v.good{color:var(--accent)}
+.big .s{font-size:12px;color:var(--muted)}
+.four{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:12px;font-size:12.5px}
+.four div{background:var(--surface2);border-radius:10px;padding:10px 12px}
+.four b{display:block;font:700 20px/1.1 var(--mono);margin-bottom:2px}
+.four .on{color:var(--accent)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.tbl th{font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.tbl td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.n{font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--mono);font-size:12.5px}
+.tscroll{overflow-x:auto;max-width:100%}
+.reasons{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;font-size:13px}
+.reasons li{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:baseline}
+.reasons li b{font-family:var(--mono);color:var(--bad);text-align:right}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;color:var(--ink);font-weight:600;font-size:14px;padding:6px 0}
+details p,details li{color:var(--ink2);font-size:13.5px}
+details ul{padding-left:18px;margin:6px 0}
+details li{margin-bottom:6px}
+footer{margin-top:28px;color:var(--muted);font-size:12.5px;line-height:1.55;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:480px){.howto,.big,.ctl{grid-template-columns:1fr}h1{font-size:36px}h1 em{font-size:38px}}
+@media (prefers-reduced-motion:reduce){.track i{animation:none}}
 </style>
 </head>
 <body>
@@ -142,12 +189,12 @@ const DATA = await (async () => {
 })();
 const SPRITES = /*SPRITES*/{};
 
+/* ---------- shared helpers ---------- */
 const ARMS = [
-  {key:'baseline@4096',  short:'Original · 4,096',  long:'Original prompt, 4,096-token cap',  c:'var(--a0)'},
-  {key:'baseline@16384', short:'Original · 16,384', long:'Original prompt, 16,384-token cap', c:'var(--a1)'},
-  {key:'regmb@16384',    short:'Reg M-B · 16,384',  long:'Reg M-B prompt, 16,384-token cap',  c:'var(--a2)'},
-  {key:'diffusion@v3',   short:'Diffusion v3',      long:'Diffusion v3 (F1 + G2), ask 0.5, guidance 2', c:'var(--a3)'}];
-ARMS.forEach(a => { a.kind = a.key.startsWith('diffusion') ? 'Diffusion' : 'Ling'; });
+  {key:'baseline@4096',  short:'Ling · original prompt · 4,096 cap',  c:'var(--a0)', kind:'Ling'},
+  {key:'baseline@16384', short:'Ling · original prompt · 16,384 cap', c:'var(--a1)', kind:'Ling'},
+  {key:'regmb@16384',    short:'Ling · Reg M-B prompt · 16,384 cap',  c:'var(--a2)', kind:'Ling'},
+  {key:'diffusion@v3',   short:'Pokémon diffusion v3 (F1 + G2)',      c:'var(--a3)', kind:'Diffusion'}];
 const FAM = {stats:'Stat Points', items:'Items', moves:'Moves', pokemon:'Whole Pokémon', abilities:'Abilities', natures:'Stat Alignment'};
 const kmax = f => f === 'moves' ? 24 : 6;
 const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -156,396 +203,317 @@ const pp = (x, d = 2) => (x >= 0 ? '+' : '−') + Math.abs(x * 100).toFixed(d) +
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const STATS = ['HP','Atk','Def','SpA','SpD','Spe'];
 const spread = sp => STATS.map(k => sp[k] || 0).join('·');
+const $ = s => document.querySelector(s);
+const sprite = name => { const n = norm(name); return SPRITES[n] || SPRITES[n.replace(/mega[xy]?$/, '')] || null; };
+const W = DATA.opponents.map(o => o.weight);
+const BATTLES = W.reduce((a, b) => a + b, 0);
+const winsOf = bits => [...(bits || '')].reduce((n, c, i) => n + (c === '1' ? W[i] : 0), 0);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const dot = c => `<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin-right:6px;vertical-align:0"></i>`;
 
-const S = {arm: 2, family: 'moves', start: 0, k: 3, view: 'masked', sel: null, show: 'ling', opp: null};
+/* ---------- explorer state ---------- */
+const S = {writer: 2, family: 'pokemon', start: 0, k: 1, sel: null, show: 'writer', opp: null};
 const taskIdx = {};
 const PATHOF = {stats: i => `team[${i}].statPoints`, items: i => `team[${i}].item`, abilities: i => `team[${i}].ability`,
   natures: i => `team[${i}].nature`, pokemon: i => `team[${i}]`, moves: i => `team[${i >> 2}].moves[${i & 3}]`};
 DATA.tasks.forEach(t => { t.paths = t.sl.map(PATHOF[t.f]); taskIdx[`${t.s}|${t.f}|${t.k}`] = t; });
 const task = () => taskIdx[`${S.start}|${S.family}|${S.k}`];
 const res = t => DATA.results[t.id];
-const armKey = () => ARMS[S.arm].key;
-const lingOf = t => res(t).arms[armKey()];
+const armOf = (t, i) => res(t).arms[ARMS[i].key] || null;
 const randOf = t => res(t).random || null;
 const origOf = t => DATA.originals[DATA.starts[t.s].id] || null;
-
-function kpis(key) {
-  let n = 0, legal = 0, cost = 0;
-  const dO = DATA.starts.map(() => []), dR = DATA.starts.map(() => []);
-  for (const t of DATA.tasks) {
-    const a = res(t).arms[key]; if (!a) continue;
-    n++; cost += a.cost || 0;
-    if (!a.ok) continue;
-    legal++;
-    if (a.win == null) continue;
-    const o = origOf(t); if (o && o.win != null) dO[t.s].push(a.win - o.win);
-    const r = randOf(t); if (r && r.win != null) dR[t.s].push(a.win - r.win);
-  }
-  const mean = xs => xs.reduce((p, q) => p + q, 0) / xs.length;
-  const avg = per => { const m = per.filter(x => x.length).map(mean); return m.length ? {v: mean(m), starts: m.length, n: per.flat().length} : null; };
-  return {n, legal, cost, gO: avg(dO), gR: avg(dR)};
+const show = v => v == null ? '' : (typeof v === 'object' ? (v.species ? v.species + (v.item ? ' @ ' + v.item : '') : spread(v)) : String(v));
+const FIELD = {item:'Item', ability:'Ability', nature:'Nature', statPoints:'Pts', moves:'Move', species:'Slot'};
+function parsePath(p) { const m = p.match(/^team\[(\d)\](?:\.(\w+)(?:\[(\d)\])?)?$/); return {i: +m[1], f: m[2] || 'species', j: m[3] == null ? null : +m[3]}; }
+function pathLabel(t, p) {
+  const {i, f, j} = parsePath(p), base = DATA.starts[t.s].team[i];
+  if (f === 'species') return `Slot ${i + 1}`;
+  return `${base.species} · ${f === 'moves' ? 'move ' + (j + 1) : FIELD[f].toLowerCase()}`;
 }
-
-/* ---------- team grid ---------- */
+/* ---------- explorer: team grid ---------- */
 function fieldPath(i, f, j) { return j == null ? `team[${i}].${f}` : `team[${i}].${f}[${j}]`; }
-function resolve(t, i, f, j, view) {
+function resolve(t, i, f, j) {
   const base = DATA.starts[t.s].team[i], masked = new Set(t.paths);
   const whole = masked.has(`team[${i}]`), path = fieldPath(i, f, j);
-  const isMasked = whole || masked.has(path);
   const get = m => m == null ? undefined : (j == null ? m[f] : m[f][j]);
-  if (!isMasked) return {state: 'fixed', value: get(base), path, masked: false};
-  if (view === 'masked') return {state: 'masked', value: null, path, masked: true};
-  const src = view === 'ling' ? lingOf(t) : randOf(t);
-  if (!src || (view === 'ling' && !src.ok)) return {state: 'rejected', value: null, path, masked: true};
+  if (!(whole || masked.has(path))) return {state: 'fixed', value: get(base), path};
+  const src = armOf(t, S.writer);
+  if (!src || !src.ok) return {state: src ? 'rejected' : 'masked', value: null, path: whole ? `team[${i}]` : path};
   const fv = p => (src.fill || [])[t.paths.indexOf(p)];
-  const v = whole ? get(fv(`team[${i}]`)) : fv(path);
-  return {state: 'filled', value: v, path: whole ? `team[${i}]` : path, masked: true};
+  return {state: 'filled', value: whole ? get(fv(`team[${i}]`)) : fv(path), path: whole ? `team[${i}]` : path};
 }
-const show = v => v == null ? '' : (typeof v === 'object' ? (v.species ? v.species + (v.item ? ' @ ' + v.item : '') : spread(v)) : String(v));
 function monRow(t, i) {
-  const base = DATA.starts[t.s].team[i];
-  const whole = new Set(t.paths).has(`team[${i}]`);
-  const sp = resolve(t, i, 'species', null, S.view);
-  const name = whole && S.view === 'masked' ? 'Unknown Pokémon' : (whole ? sp.value : base.species);
-  const sprite = !(whole && S.view === 'masked') && SPRITES[norm(name)];
-  const head = `<h4>${sprite ? `<img src="${sprite}" alt="">` : `<span class="ph">${whole && S.view === 'masked' ? '?' : ''}</span>`}${esc(name)}</h4>`;
-  const cell = (label, f, j, text, img) => {
-    const r = resolve(t, i, f, j, S.view);
+  const base = DATA.starts[t.s].team[i], whole = new Set(t.paths).has(`team[${i}]`);
+  const sp = resolve(t, i, 'species', null);
+  const name = whole ? (sp.state === 'filled' ? sp.value : 'Unknown Pokémon') : base.species;
+  const img = whole && sp.state !== 'filled' ? null : sprite(name);
+  const head = `<h4>${img ? `<img src="${img}" alt="">` : `<span class="ph">?</span>`}${esc(name)}${whole ? ` <span class="pill ${sp.state === 'filled' ? 'ok' : 'ref'}">${sp.state === 'filled' ? 'written by ' + ARMS[S.writer].kind : 'whole Pokémon masked'}</span>` : ''}</h4>`;
+  const cell = (f, j, withImg) => {
+    const r = resolve(t, i, f, j);
     const val = r.state === 'filled' || r.state === 'fixed' ? (f === 'statPoints' ? spread(r.value) : r.value) : '';
-    const sel = S.sel && S.sel === r.path ? ' sel' : '';
-    const body = r.state === 'masked' ? '<small>' + label + '</small> ⌖'
-      : r.state === 'rejected' ? '<small>' + label + '</small> ✕'
-      : `<small>${label}</small>${img && SPRITES['item-' + norm(val)] ? `<img src="${SPRITES['item-' + norm(val)]}" alt="">` : ''}${esc(val || '—')}`;
-    return `<button class="cell ${r.state}${sel}" data-path="${r.path}" data-i="${i}" data-f="${f}">${body}</button>`;
+    const sel = S.sel === r.path ? ' sel' : '';
+    const body = r.state === 'masked' ? `<small>${FIELD[f]}</small> ⌖` : r.state === 'rejected' ? `<small>${FIELD[f]}</small> ✕`
+      : `<small>${FIELD[f]}</small>${withImg && SPRITES['item-' + norm(val)] ? `<img src="${SPRITES['item-' + norm(val)]}" alt="">` : ''}${esc(val || '—')}`;
+    const tag = r.state === 'fixed' ? 'span' : 'button';
+    return `<${tag} class="cell ${r.state}${sel}" ${r.state === 'fixed' ? '' : `data-path="${r.path}"`}>${body}</${tag}>`;
   };
-  return `<div class="mon">${head}<div class="cells">
-    ${cell('Item', 'item', null, null, true)}${cell('Ability', 'ability')}${cell('Nature', 'nature')}${cell('Pts', 'statPoints')}
-    ${[0, 1, 2, 3].map(j => cell('Move', 'moves', j)).join('')}</div></div>`;
+  return `<div class="mon">${head}<div class="cells">${cell('item', null, true)}${cell('ability')}${cell('nature')}${cell('statPoints')}${[0,1,2,3].map(j => cell('moves', j)).join('')}</div></div>`;
 }
 function inspector(t) {
-  if (!S.sel) return '<div class="insp">Click any cell. The inspector shows whether it was fixed all along or changed by a fill.</div>';
-  const m = S.sel.match(/^team\[(\d)\](?:\.(\w+)(?:\[(\d)\])?)?$/);
-  const i = +m[1], f = m[2] || 'species', j = m[3] == null ? null : +m[3];
-  const base = DATA.starts[t.s].team[i], paths = new Set(t.paths);
-  const isMasked = paths.has(S.sel) || paths.has(`team[${i}]`);
-  const orig = f === 'species' && !m[2] ? show(base) : show(j == null ? base[f] : base[f][j]);
-  const L = lingOf(t), R = randOf(t);
-  const pick = src => { if (!src || !src.fill) return null; const key = paths.has(`team[${i}]`) ? `team[${i}]` : S.sel; const v = src.fill[t.paths.indexOf(key)]; return v == null ? null : (paths.has(`team[${i}]`) && m[2] ? show(j == null ? v[f] : v[f][j]) : show(v)); };
-  if (!isMasked) return `<div class="insp"><span class="pill ok">Fixed</span> <b>${esc(base.species)}</b> · ${esc(f)}<dl><dt>Value</dt><dd>${esc(orig)}</dd></dl><div class="note">This value was not in the mask, so every method kept it unchanged.</div></div>`;
-  const lv = L && L.ok ? pick(L) : null;
-  return `<div class="insp"><span class="pill ok">Masked</span> <b>${esc(base.species)}</b> · ${esc(f)}<dl>
-    <dt>Original</dt><dd>${esc(orig)}</dd>
-    <dt>Random fill</dt><dd>${R ? esc(pick(R) ?? '—') : 'none could be made legal'}</dd>
-    <dt>${esc(ARMS[S.arm].short)}</dt><dd>${L && L.ok ? esc(lv ?? '—') : '<span class="pill no">Rejected</span> ' + esc(L ? (L.stage || '') + ': ' + L.err : 'not run')}</dd></dl></div>`;
+  if (!S.sel) return `<div class="insp">Click a hatched cell to see what every writer put there.</div>`;
+  const {i, f, j} = parsePath(S.sel), base = DATA.starts[t.s].team[i], paths = new Set(t.paths);
+  const whole = paths.has(`team[${i}]`);
+  const orig = f === 'species' ? show(base) : show(j == null ? base[f] : base[f][j]);
+  const pick = src => {
+    if (!src || !src.fill) return null;
+    const key = whole ? `team[${i}]` : S.sel, v = src.fill[t.paths.indexOf(key)];
+    if (v == null) return null;
+    return whole && f !== 'species' ? show(j == null ? v[f] : v[f][j]) : show(v);
+  };
+  const R = randOf(t);
+  const rows = ARMS.map((a, k) => { const src = armOf(t, k);
+    return `<tr><td>${dot(a.c)}${esc(a.short)}</td><td>${!src ? 'not run' : src.ok ? esc(pick(src) ?? '—') : `<span class="pill no">rejected</span>`}</td></tr>`; }).join('');
+  return `<div class="insp"><span class="pill ok">Masked</span> <b>${esc(whole ? 'Slot ' + (i + 1) : base.species)}</b> · ${esc(f === 'species' ? 'whole Pokémon' : f === 'moves' ? 'move ' + (j + 1) : f === 'statPoints' ? 'Stat Points' : f)}
+    <table><tr><td>Original value</td><td>${esc(orig)}</td></tr><tr><td>Random legal fill</td><td>${R ? esc(pick(R) ?? '—') : 'none could be made legal'}</td></tr>${rows}</table></div>`;
 }
 function gridCard(t) {
-  const rows = [0, 1, 2, 3, 4, 5].map(i => monRow(t, i)).join('');
-  const seg = (v, l) => `<button data-view="${v}" aria-pressed="${S.view === v}">${l}</button>`;
   const n = t.paths.length;
-  return `<div class="card"><div class="seg" style="margin-bottom:12px">${seg('masked', 'Masked')}${seg('random', 'Random fill')}${seg('ling', ARMS[S.arm].kind + ' fill')}</div>
-    ${rows}
-    <div class="legend"><span><i style="background:var(--hatch);border:1px dashed var(--accent)"></i>Masked / may change</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Fixed / must not change</span></div>
-    <div class="note mono" style="margin-top:10px">${n} masked ${n === 1 ? 'part' : 'parts'} · click a cell to inspect</div>
+  return `<div class="card"><div class="kline"><div class="eyebrow">Starting team ${String(S.start + 1).padStart(2, '0')} · ${esc(DATA.starts[t.s].id)}</div><span class="note" style="margin:0">${n} masked ${n === 1 ? 'part' : 'parts'}</span></div>
+    <div style="margin-top:8px">${[0,1,2,3,4,5].map(i => monRow(t, i)).join('')}</div>
+    <div class="legend"><span><i style="background:var(--hatch);border:1px dashed var(--accent)"></i>Masked: the writer may change it</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Fixed: must come back unchanged</span><span><i style="background:color-mix(in srgb,var(--accent) 14%,transparent);border:1px solid var(--accent)"></i>Filled by the selected writer</span></div>
     ${inspector(t)}</div>`;
 }
-
-/* ---------- results ---------- */
-function bars(items, max) {
-  return items.map(it => `<div class="row"><b>${it.label}</b><span class="mono" style="font-weight:700;${it.color ? 'color:' + it.color : ''}">${it.text}</span><div class="track"><i style="width:${it.v == null ? 0 : Math.max(1.5, it.v / max * 100)}%;background:${it.c}"></i></div></div>`).join('');
+/* ---------- explorer: stacked writer rows ---------- */
+function fillChips(t, src) {
+  if (!src || !src.fill) return '';
+  return `<div class="fills">${t.paths.map((p, k) => { const v = src.fill[k];
+    const img = typeof v === 'object' && v && v.species ? sprite(v.species) : (typeof v === 'string' && SPRITES['item-' + norm(v)]) || null;
+    return `<span><small>${esc(pathLabel(t, p))}</small>${img ? `<img src="${img}" alt="">` : ''}${esc(show(v) || '—')}</span>`; }).join('')}</div>`;
 }
-function resultCard(t) {
-  const o = origOf(t), r = randOf(t), L = lingOf(t);
-  const lw = L && L.ok && L.win != null ? L.win : null;
-  const vals = [o && o.win, r && r.win, lw].filter(x => x != null);
-  const max = Math.max(0.1, ...vals) * 1.15;
-  const f = x => x == null ? 'not scored' : pct(x, 0);
-  const lingText = !L ? 'not run' : !L.ok ? 'Rejected' : f(lw);
-  const dO = lw != null && o && o.win != null ? lw - o.win : null;
-  const dR = lw != null && r && r.win != null ? lw - r.win : null;
-  const dl = (label, d) => `<div><div class="eyebrow">${label}</div><div class="v ${d == null ? '' : d > 0 ? 'good' : d < 0 ? 'bad' : ''}" style="color:${d == null ? 'var(--muted)' : ''}">${d == null ? '—' : pp(d)}</div></div>`;
-  const msg = L && !L.ok ? `${esc(L.stage)}: ${esc(L.err).slice(0, 140)}` : 'One panel is noisy. A gain here is not proof.';
-  return `<div class="card"><div class="eyebrow">This mask / Team ${S.start + 1}</div>
-    <div class="kline"><h2>Did the fill help?</h2><span class="pill ${L && L.ok ? 'ok' : 'no'}">${L && L.ok ? 'Legal' : 'Rejected'}</span></div>
-    <div class="note" style="margin:-4px 0 0">Same frozen schedule · ${DATA.opponents.length || 49} meta opponents · BC vs BC</div>
-    <div class="rows">${bars([
-      {label: 'Untouched team', v: o && o.win, text: f(o && o.win), c: 'var(--ink2)'},
-      {label: 'Random legal fill', v: r && r.win, text: r ? f(r.win) : 'no legal fill', c: 'var(--muted)'},
-      {label: ARMS[S.arm].kind + ' · ' + ARMS[S.arm].short, v: lw, text: lingText, c: ARMS[S.arm].c, color: !L || !L.ok ? 'var(--bad)' : ''}], max)}</div>
-    <div class="deltas">${dl(ARMS[S.arm].kind + ' vs original', dO)}${dl(ARMS[S.arm].kind + ' vs random', dR)}</div>
-    <div class="note">${msg}</div></div>`;
+function writerRows(t) {
+  const o = origOf(t), ow = o && o.win != null ? o.win : null;
+  const max = Math.max(0.12, ...ARMS.map((a, k) => (armOf(t, k) || {}).win || 0), (randOf(t) || {}).win || 0, ow || 0) * 1.15;
+  const score = (win, bits, c, ref) => win == null ? '' : `<div class="score"><span>wins <b>${winsOf(bits)}</b> of ${BATTLES} battles · win rate <b>${pct(win, 0)}</b></span><span>${ow == null || ref ? '' : 'vs untouched <b>' + pp(win - ow, 0) + '</b>'}</span><div class="track"><i style="width:${Math.max(1.5, win / max * 100)}%;background:${c}"></i></div></div>`;
+  const rows = ARMS.map((a, k) => { const src = armOf(t, k);
+    const status = !src ? '<span class="pill ref">not run</span>' : src.ok ? '<span class="pill ok">legal</span>' : '<span class="pill no">rejected</span>';
+    const body = !src ? '' : src.ok ? fillChips(t, src) + score(src.win, src.opp, a.c) : `<div class="err">${esc(src.stage)}: ${esc(src.err || '')}</div>`;
+    return `<button class="wrow" data-writer="${k}" aria-pressed="${S.writer === k}"><div class="head"><i class="sw" style="background:${a.c}"></i><b>${esc(a.short)}</b>${status}</div>${body}</button>`; }).join('');
+  const R = randOf(t);
+  const rand = `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--muted)"></i><b>Random legal fill</b><span class="pill ref">reference</span></div>${R ? fillChips(t, R) + score(R.win, R.opp, 'var(--muted)') : '<div class="note" style="margin:0">No random fill could be made legal for this mask.</div>'}</div>`;
+  const un = `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--ink2)"></i><b>Untouched team</b><span class="pill ref">reference</span></div>${o ? score(o.win, o.opp, 'var(--ink2)', true) : ''}</div>`;
+  return `<div class="card"><h3 style="margin-top:0">Every writer's fill, side by side</h3><p class="note" style="margin:0 0 4px">Same mask, same battles. Click a writer to show its fill in the team above and its battles below. A rejected fill shows the validator's reason and keeps the original team.</p>
+    <div class="wrows">${rows}${rand}${un}</div></div>`;
 }
+/* ---------- explorer: threat constellation ---------- */
 function starsCard(t) {
-  const sources = {ling: [ARMS[S.arm].kind, lingOf(t) && lingOf(t).ok ? lingOf(t) : null], random: ['Random fill', randOf(t)], orig: ['Untouched', origOf(t)]};
-  const [label, src] = sources[S.show];
+  const src = S.show === 'writer' ? (armOf(t, S.writer) && armOf(t, S.writer).ok ? armOf(t, S.writer) : null) : S.show === 'random' ? randOf(t) : origOf(t);
+  const label = S.show === 'writer' ? ARMS[S.writer].short : S.show === 'random' ? 'Random legal fill' : 'Untouched team';
   const bits = src && src.opp ? src.opp : '';
-  const wins = [...bits].filter(c => c === '1').length;
-  const n = DATA.opponents.length || 49;
-  const cells = Array.from({length: n}, (_, i) => {
-    const b = bits[i]; const cls = b === '1' ? 'star win' : 'star'; const sel = S.opp === i ? ' sel' : '';
-    return `<button class="${cls}${sel}" data-opp="${i}" aria-label="Opponent ${i + 1}">${b === '1' ? '✦' : b === '0' ? '·' : '–'}</button>`;
-  }).join('');
+  const cells = DATA.opponents.map((o, i) => { const b = bits[i];
+    return `<button class="star ${b === '1' ? 'win' : b === '0' ? '' : 'none'}${S.opp === i ? ' sel' : ''}" data-opp="${i}" aria-label="Opponent ${i + 1}: ${esc(o.species.join(', '))}">${o.species.map(s => { const im = sprite(s); return im ? `<img src="${im}" alt="">` : '<span></span>'; }).join('')}${o.weight > 1 ? '<span class="twice">×2</span>' : ''}</button>`; }).join('');
   const seg = (v, l) => `<button data-show="${v}" aria-pressed="${S.show === v}">${l}</button>`;
-  const opp = DATA.opponents[S.opp == null ? 0 : S.opp];
-  return `<div class="card"><div class="eyebrow">The threat constellation</div>
-    <div class="kline"><h2>Every sparkle is a result.</h2></div>
-    <div class="seg" style="margin:6px 0 4px">${seg('ling', ARMS[S.arm].kind)}${seg('random', 'Random')}${seg('orig', 'Untouched')}</div>
-    <div class="note">✦ at least one observed win · · no win · – not scored · ${esc(label)}: ${bits ? wins + ' wins of ' + n : 'not scored yet'}</div>
+  const oi = S.opp == null ? 0 : S.opp, o = DATA.opponents[oi], ob = bits[oi];
+  return `<div class="card"><div class="eyebrow">The threat constellation</div><h3 style="margin:4px 0 8px">One cell per meta opponent, drawn as its six Pokémon</h3>
+    <div class="seg">${seg('writer', ARMS[S.writer].kind + ' fill')}${seg('random', 'Random fill')}${seg('orig', 'Untouched')}</div>
+    <p class="note">${esc(label)}: ${bits ? `<b style="color:var(--ink)">${winsOf(bits)} wins</b> of ${BATTLES} battles against ${DATA.opponents.length} teams; the ×2 team is counted twice` : 'not scored, because the fill was rejected'}. Lit cells are wins.</p>
     <div class="stars">${cells}</div>
-    ${opp ? `<div class="note" style="margin-top:12px"><b style="color:var(--ink)">Opponent ${(S.opp == null ? 0 : S.opp) + 1}</b>${opp.weight > 1 ? ' (counted twice)' : ''} · ${opp.species.map(esc).join(', ')}</div>` : '<div class="pending">Battles have not been run yet, so no result is shown.</div>'}</div>`;
-}
-
-/* ---------- aggregate ---------- */
-function netDelta(key, fam) {
-  // mean change vs the untouched team over ALL masks; a rejected completion keeps the original (change 0)
-  const per = DATA.starts.map(() => []); let legal = 0, n = 0;
-  for (const t of DATA.tasks) {
-    if (fam && t.f !== fam) continue;
-    const a = res(t).arms[key], o = origOf(t); if (!a) continue;
-    n++; const ok = a.ok && a.win != null && o && o.win != null; if (ok) legal++;
-    per[t.s].push(ok ? a.win - o.win : 0);
-  }
-  const m = per.filter(x => x.length).map(x => x.reduce((p, q) => p + q, 0) / x.length);
-  return {v: m.reduce((p, q) => p + q, 0) / m.length, legal, n};
-}
-function famDelta(f, key) {
-  const ds = [];
-  for (const t of DATA.tasks) {
-    if (t.f !== f) continue;
-    const a = res(t).arms[key], o = origOf(t);
-    if (a && a.ok && a.win != null && o && o.win != null) ds.push(a.win - o.win);
-  }
-  return ds.length ? {v: ds.reduce((p, q) => p + q, 0) / ds.length, n: ds.length} : null;
-}
-function summaryCard() {
-  const rows = ARMS.map(a => {
-    const k = kpis(a.key), info = DATA.arms[a.key], ci = info.ci;
-    return `<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${a.c};margin-right:6px"></span>${esc(a.long)}</td>
-      <td class="n"><b>${pct(k.legal / k.n, 0)}</b><br><span style="color:var(--muted)">${k.legal}/${k.n} · ${pct(ci[0], 0)}–${pct(ci[1], 0)}</span></td>
-      <td class="n">${k.gR ? pp(k.gR.v) : '—'}</td><td class="n"><b>${pp(netDelta(a.key).v)}</b></td></tr>`;
-  }).join('');
-  const fams = Object.keys(FAM).map(f => {
-    const ts = DATA.tasks.filter(t => t.f === f);
-    const b = ARMS.map(a => { const g = ts.filter(t => res(t).arms[a.key]); const l = g.filter(t => res(t).arms[a.key].ok).length; const p = g.length ? l / g.length : 0;
-      return `<div class="b"><div class="track"><i style="width:${Math.max(p * 100, 1)}%;background:${a.c}"></i></div><span>${l}/${g.length}</span></div>`; }).join('');
-    return `<div>${FAM[f]}</div><div class="bars">${b}</div>`;
-  }).join('');
-  const dRows = Object.keys(FAM).map(f => `<tr><td>${FAM[f]}</td>${ARMS.map(a => { const x = netDelta(a.key, f);
-    const c = x.v > 0.005 ? 'var(--accent)' : x.v < -0.005 ? 'var(--bad)' : 'var(--ink)';
-    return `<td class="n" style="color:${c};font-weight:700">${pp(x.v, 1)}<br><span style="color:var(--muted);font-weight:400">${x.legal}/${x.n} legal</span></td>`; }).join('')}</tr>`).join('');
-  const run1 = DATA.run1 ? `<div class="note">An earlier run on the same masks (new samples, teams not saved) gave ${ARMS.filter(a => DATA.run1[a.key]).map(a => pct(DATA.run1[a.key].legal / DATA.run1[a.key].n, 0)).join(' / ')}.</div>` : '';
-  return `<div class="card"><div class="eyebrow">Across all ${DATA.tasks.length} masks</div><h2>Which method filled best?</h2>
-    <table class="tbl"><thead><tr><th>Method</th><th>Legal</th><th>Δ random*</th><th>Net per mask†</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="note">*Mean win-rate change against the random legal fill of the same mask, legal completions only. †Mean change against the untouched team over all masks; a rejected completion counts as no change. Each starting team weighted equally.</div>
-    <div class="eyebrow" style="margin-top:16px">Legal completions by mask family</div>
-    <div class="fam">${fams}</div>
-    <div class="eyebrow" style="margin-top:20px">Net win-rate change vs the untouched team, by family</div>
-    <table class="tbl"><thead><tr><th>Family</th>${ARMS.map(a => `<th>${esc(a.short)}</th>`).join('')}</tr></thead><tbody>${dRows}</tbody></table>
-    <div class="note">A rejected completion counts as no change. Whole-Pokémon masks carry all of the gain, because there the model writes most of the team itself. The other five families sit within about two points of zero, mostly below it: the five untouched starting teams happen to be a little stronger than the average random team, so any refill drifts down.</div>${run1}</div>`;
-}
-function costCard() {
-  const rows = ARMS.map(a => { const k = kpis(a.key), per = k.cost / Math.max(1, k.n);
-    return `<tr><td>${esc(a.short)}</td><td class="n">$${k.cost.toFixed(4)}</td><td class="n">$${(per * 1000).toFixed(3)} / 1k</td><td class="n">$${(per * 8100).toFixed(2)}</td></tr>`; }).join('');
-  const k = kpis(armKey());
-  return `<div class="card"><div class="cost"><div><div class="eyebrow">Cost notebook / measured usage</div><div class="note" style="margin-top:6px">Every attempt counts, including rejected ones.</div></div><div class="v">$${k.cost.toFixed(4)}</div></div>
-    <table class="tbl"><thead><tr><th>Arm</th><th>Spent</th><th>Per call</th><th>8,100 calls</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-
-/* ---------- page ---------- */
-function allMethodComparison() {
- const c=DATA.allMethodComparison;if(!c)return '';
- const battleMax=Math.max(...c.methods.map(m=>m.battle.mean))*1.2,costMax=Math.max(...c.methods.map(m=>m.cost));
- return `<div class="method-chart"><h2>Which method fits best?</h2>
- <p>Three complementary views of the same experiment: full-set coverage, a shared battle subset, and larger pairwise comparisons. No battles were rerun or discarded from the saved results.</p>
- <h3>Full set: all 420 outputs per method</h3>
- <p><b>Diffusion: 420 legal teams and a 9.24% overall win rate.</b> The LLM averages below include only their legal teams. Invalid outputs remain visible in the coverage column; they are not counted as invented battle losses.</p>
- <table aria-label="Full 420-output results for every method"><caption class="chart-caption">Every method attempted the same 420 trials/repeats. Win rates average its own legal, fully scored outputs, equally by output.</caption><thead><tr><th scope="col">Method</th><th scope="col">Legal / 420</th><th scope="col">Wins on legal teams</th><th scope="col">API cost</th></tr></thead>
- <tbody>${c.methods.map(m=>`<tr><th scope="row">${esc(m.name)}</th><td><span class="value">${m.legal}/420</span><span class="track" aria-hidden="true"><span class="fill" style="width:${m.legality*100}%"></span></span><span class="small">${(m.legality*100).toFixed(1)}% legal<br>${m.full_set.invalid} invalid</span></td><td><span class="value">${(m.full_set.legal_win_rate*100).toFixed(2)}%</span><span class="track" aria-hidden="true"><span class="fill" style="width:${100*m.full_set.legal_win_rate/Math.max(...c.methods.map(x=>x.full_set.legal_win_rate))}%"></span></span><span class="small">${m.full_set.scored} teams scored<br>${m.full_set.represented_battles.toLocaleString()} represented battles</span></td><td><span class="value">$${m.cost.toFixed(4)}${m.cost_coverage<420?'*':''}</span><span class="small">${m.id==='diffusion'?'Local compute excluded':m.cost_coverage+'/420 cost records'}</span></td></tr>`).join('')}</tbody></table>
- <p class="chart-caption">These descriptive win rates use different legal subsets, so they cannot establish a head-to-head winner. Repeated cached panels are included in represented battle counts, not independent evidence.</p>
- <h3>Shared subset: 64 matched trials/repeats</h3>
- <p>Only 64 of 420 pairs were legal for <em>all seven</em> methods. Diffusion’s 2.13% here measures this selected subset; its full-set 9.24% above is still valid. Shared-subset rates also weight starters equally rather than outputs.</p>
- <table aria-label="Seven-method comparison of legality, common-cohort battle win rate and API cost"><caption class="chart-caption">420 outputs per method. Battle column: the same ${c.common_pairs} jointly legal trial-and-repeat pairs across ${c.common_starters} starters, weighted equally by starter.</caption>
- <thead><tr><th scope="col">Method</th><th scope="col">Legality<br><span class="small">Higher is better</span></th><th scope="col">Matched wins<br><span class="small">Higher is better</span></th><th scope="col">API cost<br><span class="small">Lower is better</span></th></tr></thead>
- <tbody>${c.methods.map(m=>`<tr><th scope="row">${esc(m.name)}</th><td><span class="value">${(100*m.legality).toFixed(1)}%</span><span class="track" aria-hidden="true"><span class="fill" style="width:${100*m.legality}%"></span></span><span class="small">${m.legal}/420 legal</span></td><td><span class="value">${(100*m.battle.mean).toFixed(2)}%</span><span class="track" aria-hidden="true"><span class="fill" style="width:${100*m.battle.mean/battleMax}%"></span></span><span class="small">95% interval<br>${(100*m.battle.low).toFixed(2)}–${(100*m.battle.high).toFixed(2)}%</span></td><td><span class="value">$${m.cost.toFixed(4)}${m.cost_coverage<420?'*':''}</span><span class="track" aria-hidden="true"><span class="fill cost-fill" style="width:${100*m.cost/costMax}%"></span></span><span class="small">${m.id==='diffusion'?'Local compute excluded':m.cost_coverage+'/420 cost records'}</span></td></tr>`).join('')}</tbody></table>
- <p><b>Most reliable:</b> Pokémon diffusion (100% legal). <b>Lowest recorded LLM API cost:</b> Ling off ($0.0592). <b>Battle winner on the shared subset:</b> not established; Mercury high has the highest point estimate, but every paired difference versus diffusion includes zero.</p>
- <h3>Pairwise: diffusion versus each LLM setting</h3>
- <p>Each row keeps every jointly legal, scored trial/repeat for those two methods. Positive differences favor diffusion. The subset differs by row, so these differences do not form a ranking of the LLMs.</p>
- <table aria-label="Larger pairwise battle comparisons against diffusion"><thead><tr><th scope="col">LLM setting</th><th scope="col">Matched pairs</th><th scope="col">Diffusion − LLM</th><th scope="col">95% interval</th></tr></thead><tbody>${Object.entries(c.pairwise).map(([name,v])=>`<tr><th scope="row">${esc(name.replace('mercury-reasoning-20261013/','Mercury ').replace('reasoning-expanded-20261012/','Ling '))}</th><td>${v.battles.pairs}<span class="small">${v.battles.starters} starters</span></td><td><span class="value">${pp(v.battles.mean)}</span><span class="small">Diffusion ${(100*v.paired_diffusion_rate).toFixed(2)}%<br>LLM ${(100*v.paired_llm_rate).toFixed(2)}%</span></td><td>${pp(v.battles.low)} to ${pp(v.battles.high)}</td></tr>`).join('')}</tbody></table>
- <p class="chart-caption">Exploratory paired differences weight starters equally. Intervals use 4,000 starter-bootstrap draws without adjustment for six comparisons; legal-team selection still applies.</p>
- <details><summary>Matched differences and fairness limits</summary>
- ${c.methods.filter(m=>m.id!=='diffusion').map(m=>`<p>${esc(m.name)} minus diffusion: ${pp(m.delta_vs_diffusion.mean)}; 95% interval ${pp(m.delta_vs_diffusion.low)} to ${pp(m.delta_vs_diffusion.high)}.</p>`).join('')}
- <p>Only 64 of 420 trials/repeats enter the shared battle cohort. This selected subset omits tasks where any method failed legality; it does not measure performance across every task. Earlier pairwise comparisons below use larger, different subsets and can give different estimates. Use paired difference intervals rather than overlapping win-rate intervals to assess differences.</p>
- <p>Intervals are exploratory, based on 4,000 starter-bootstrap draws across 20 starters, with no multiple-comparison adjustment. Repeats and reused battle panels are not independent samples. Each column has its own shared scale across methods.</p>
- <p>*API costs are recorded totals, not full economic costs. Mercury medium lacks three cost records and high lacks two; original timeout charges for Mercury and Ling are unknown. Preflights are excluded. Diffusion’s local hardware, training and electricity costs are unmeasured. Mercury’s recorded total across all four levels is $0.6902, plus $0.0040 preflight.</p>
- <p>These compare complete systems on the frozen visible M-B pool. Pokémon diffusion uses constrained decoding and separate Stat Point fills; it cannot read opponent pastes. This is not an equal-input architecture test, causal proof or a live-meta benchmark.</p></details>
- <p class="chart-caption">Updated ${esc(c.updated_at)}. Historical studies remain separate below.</p></div>`;
-}
-function mercuryComparison() {
-  const m=DATA.mercury; if(!m) return '';
-  const failed=m.generation?.stage==='failed';
-  const arms=Object.entries(m.arms), returned=arms.reduce((n,[,a])=>n+a.returned,0), legal=arms.reduce((n,[,a])=>n+a.legal,0), scored=arms.reduce((n,[,a])=>n+a.scored,0);
-  const row=arms.map(([name,a])=>`<tr><td>${esc(name)}</td><td>${a.returned}/${a.planned}</td><td>${a.legal} (${a.returned?pct(a.legal/a.returned):'—'})</td><td>${a.scored}/${a.legal}</td><td>$${a.cost.toFixed(4)}</td></tr>`).join('');
-  const paired=m.complete ? Object.entries(m.final.versus_off).map(([arm,v])=>`<p><b>${esc(arm)} − off:</b> legality ${pp(v.legality_delta.mean)} (${v.legality_delta.pairs} pairs); matched battles ${v.win_rate_delta_both_legal.mean==null?'not estimable':pp(v.win_rate_delta_both_legal.mean)} (${v.win_rate_delta_both_legal.pairs} both-legal pairs). Battle 95% starter-bootstrap interval: ${v.win_rate_delta_both_legal.low==null?'not estimable':pp(v.win_rate_delta_both_legal.low)+' to '+pp(v.win_rate_delta_both_legal.high)}.</p>`).join('') : '<p>Generation and battles are still in progress. These counts are a saved checkpoint, not final performance comparisons.</p>';
-  const prompt=arms.reduce((n,[,a])=>n+a.prompt_tokens,0),cached=arms.reduce((n,[,a])=>n+a.cached_tokens,0),coverage=arms.reduce((n,[,a])=>n+a.cache_coverage,0);
-  return `<div class="study-compare"><div class="eyebrow">Mercury 2.5 / ${m.complete?'complete':failed?'incomplete — generation stopped':'running'}</div><h2>Does more reasoning help Mercury?</h2>
-  ${failed?'<p><b>Generation stopped after two API timeouts.</b> Saved results are preserved. Two requests have uncertain outcomes and 225 were not dispatched. No automatic resend; these remain interim results.</p>':''}
-  <p>Off, low, medium and high · 20 saved starters × 7 masks × 3 repeats. Inception is the pinned provider; every level uses the same 16,384-token cap and frozen battle setup.</p>
-  <p><b>${returned}/1,680 responses · ${scored}/${legal} legal outputs scored</b></p>
-  <div class="table-scroll"><table class="tbl"><thead><tr><th>Effort</th><th>Returned</th><th>Legal</th><th>Scored</th><th>API cost</th></tr></thead><tbody>${row}</tbody></table></div>
-  <p class="note">Cached input tokens: ${prompt?pct(cached/prompt):'not yet reported'}; cache telemetry ${coverage}/${returned} responses. Costs are reported usage, with unknown usage excluded. No response caching: repeats generate fresh answers.</p>
-  ${failed?'<p>Generation is incomplete. Battle scoring continues for saved legal outputs. The comparisons below describe available results only.</p>':paired}
-  ${m.complete && m.audit ? `<p><b>Medium and high reasoning improved legality in this study. A battle advantage remains uncertain.</b> Every matched battle interval includes zero.</p>
-  <details><summary>Final uncertainty, cost and verification</summary>
-  ${Object.entries(m.audit.versus_off).map(([arm,v])=>`<p>${esc(arm)} legality difference versus off: ${pp(v.legality_delta.mean)}; exploratory 95% interval ${pp(v.legality_delta.low)} to ${pp(v.legality_delta.high)}. Each comparison uses 420 matched trials and repeats across 20 starters.</p>`).join('')}
-  <p>All 1,680 responses saved; no missing requests or pending markers. ${m.audit.legal_outputs} scored legal outputs represent ${m.audit.represented_battles.toLocaleString()} battles but only ${m.audit.unique_panels} unique panels (${m.audit.unique_panel_battles.toLocaleString()} battles); ${m.audit.duplicate_panel_outputs} output panels are reused.</p>
-  ${Object.entries(m.audit.arms).map(([arm,a])=>`<p>${esc(arm)}: ${a.total_reasoning_tokens.toLocaleString()} reported reasoning tokens; median call ${a.median_elapsed_seconds.toFixed(2)} seconds; cost coverage ${a.cost_reported}/420.</p>`).join('')}
-  <p>Recorded study cost: $${Object.values(m.audit.arms).reduce((n,a)=>n+a.cost_usd,0).toFixed(4)}. Five responses lack cost telemetry; original charges for two timed-out calls are unknown. Replacement calls are included; eight preflight calls are excluded.</p>
-  <p>All 12 battle configurations match Ling, all 1,680 prompts match the frozen tasks, and both preservation audits passed, including 1,946 pre-restart artifacts unchanged.</p>
-  ${m.audit.caveats.map(c=>`<p>${esc(c)}</p>`).join('')}
-  </details>` : ''}
-  ${!m.complete && m.interim ? `<h3>Interim matched comparisons</h3><p>Higher legality alone does not establish stronger teams. Compare each effort level with off on the same trial and repeat. Positive differences favor reasoning.</p>${Object.entries(m.interim).map(([arm,v])=>`<p><b>${esc(arm)} − off:</b> legality ${pp(v.legality_delta.mean)}; 95% interval ${pp(v.legality_delta.low)} to ${pp(v.legality_delta.high)} (${v.legality_delta.pairs} pairs, ${v.legality_delta.starters} starters).<br>Battle win rate ${pp(v.win_rate_delta_both_legal.mean)}; 95% interval ${pp(v.win_rate_delta_both_legal.low)} to ${pp(v.win_rate_delta_both_legal.high)} (${v.win_rate_delta_both_legal.pairs} jointly legal, fully scored pairs; ${v.win_rate_delta_both_legal.starters} starters).</p>`).join('')}<p class="note">Exploratory starter-bootstrap intervals weight available starters equally. Repeats and reused battle panels are not independent evidence. Unfinished starters and scoring may change these estimates; these are not final or causal conclusions.</p>` : ''}
-  <details><summary>Descriptive battle rates across all scored legal outputs</summary>${arms.map(([name,a])=>`<p>${esc(name)}: ${a.scored && a.win_sum!=null?pct(a.win_sum/a.scored):'not available'} (${a.scored} outputs).</p>`).join('')}<p>Each arm produces a different legal subset. These unpaired averages cannot isolate a reasoning benefit; use the matched differences above.</p></details>
-  <details><summary>Preflight and comparison boundaries</summary><p>Eight separate probe requests reached Inception. Off reported zero reasoning tokens; low, medium and high reported different positive reasoning budgets. This verifies telemetry, not the model’s internal implementation. The probe cost $0.00405, versus $0.00824 calculated without prompt caching (about 51% saved); one of eight outputs was legal. Probe answers are excluded from this study.</p>
-  <p>Mercury is Inception’s diffusion language model. It is a different system from the project’s Pokémon-specific F1 + G2 diffusion model. Earlier Mask Lab diffusion results do not become matched 20-starter results by adding Mercury.</p>
-  <p>Effort effects compare Mercury against its own off arm. Comparisons with Ling concern different complete systems, not a reasoning-only intervention. Match trial and repeat, restrict paired battle differences to jointly legal scored outputs, weight starters equally, and account for reused cached panels. The frozen M-B pool is visible in the prompts; simulator randomness is not fixed.</p></details>
-  <p class="note">Checkpoint <time datetime="${m.updated_at}">${esc(m.updated_at)}</time>. Reload after the next published update.</p></div>`;
-}
-function matchedDiffusionComparison() {
-  const d=DATA.matchedDiffusion;if(!d)return '';
-  return `<div class="study-compare"><h2>Pokémon diffusion: matched 20-starter study</h2>
-  <p>F1/G2 v3 · the same 140 masks · three seeded repeats · one completion attempt per task. Stage: <b>${esc(d.stage)}</b>.</p>
-  <p>${d.returned}/420 outputs saved; ${d.legal} legal; ${d.scored}/${d.legal} legal outputs scored. Local generation has no model API fee; machine and electricity costs are not measured.</p>
-  ${d.complete && d.audit?`<p><b>Diffusion achieved 100% legality. Its matched battle advantage depends on the LLM setting.</b> Against Mercury high, the difference was −0.25 percentage points, with a 95% interval from −1.03 to +0.50: no clear winner.</p>
-  <p class="note">All 420 contexts were supported, with no invalid or missing outputs. The 420 scored outputs contain 414 unique panels and six reused panels: 21,000 represented battles, 20,700 unique-panel battles. All 3,403 preserved LLM files passed their checksums.</p>
-  <p class="note">Each paired comparison weights 20 starters equally. Intervals are exploratory, use 4,000 bootstrap draws, and are not adjusted for six comparisons. The 9.24% all-legal win rate uses a different task mix from the LLMs’ legal subsets; do not use that average as a matched advantage.</p>`:''}
-  ${d.complete?`<p>Legality: ${pct(d.legal/420)}. Descriptive win rate across legal outputs: ${pct(d.all_legal_win_rate)}. ${d.unique_panels} distinct cached battle panels.</p>
-  <details><summary>Matched differences against each LLM setting</summary>${Object.entries(d.comparisons).map(([name,v])=>`<p><b>Diffusion minus ${esc(name.replace('mercury-reasoning-20261013/','Mercury ').replace('reasoning-expanded-20261012/','Ling '))}</b>: legality ${pp(v.legality.mean)} (95% interval ${pp(v.legality.low)} to ${pp(v.legality.high)}); battles ${pp(v.battles.mean)} (95% interval ${pp(v.battles.low)} to ${pp(v.battles.high)}; ${v.battles.pairs} jointly legal scored pairs across ${v.battles.starters} starters.</p>`).join('')}</details>`:'<p>Results are incomplete. Final comparisons will appear after generation and scoring finish.</p>'}
-  <p class="note">These compare complete systems on a frozen, visible M-B pool. Diffusion uses constrained categorical decoding plus corpus-based or random legal Stat Point fills; it cannot read opponent pastes. Each 50-battle panel uses the LLM studies’ frozen configuration. No retries or best-of selection. Starter-bootstrap intervals account for repeated tasks; legal subsets are selected, cached panels are reused, and this is not a causal or live-meta claim.</p>
-  <p class="note">Updated ${new Date(d.updated_at*1000).toISOString()}. Historical diffusion results below remain a separate study.</p></div>`;
-}
-function reasoningComparison() {
-  if (!DATA.reasoning) return '';
-  const a = DATA.reasoning.audit, l = a.paired.legality_delta, b = a.paired.win_rate_delta_both_legal;
-  const historic = ARMS.map(arm => {
-    const entries = DATA.tasks.map(t => DATA.results[t.id].arms[arm.key]).filter(Boolean);
-    const scored = entries.filter(e => e.ok && e.win != null);
-    return `<tr><td>${esc(arm.short)}</td><td>${entries.filter(e=>e.ok).length}/${entries.length}<br>${pct(entries.filter(e=>e.ok).length/entries.length)}</td><td>${scored.length ? pct(scored.reduce((s,e)=>s+e.win,0)/scored.length,2) : 'Not scored'}<br><small>${scored.length} legal panels</small></td></tr>`;
-  }).join('');
-  const newer = ['off','on'].map(arm => {const x=a.arms[arm];return `<tr><td>Reasoning ${arm} · 16,384</td><td>${x.legal}/${x.returned}<br>${pct(x.legality_rate)}</td><td>${pct(x.win_rate_legal_scored,2)}<br><small>${x.scored} legal panels</small></td></tr>`}).join('');
-  return `<div class="study-compare" aria-labelledby="study-title">
-    <div class="eyebrow">New / completed reasoning study</div><h2 id="study-title">More legal teams. A battle gain is still uncertain.</h2>
-    <p>840 responses saved; all 268 legal outputs scored. Compare reasoning on and off within the new study. The earlier settings and diffusion stay in their own cohort.</p>
-    <div class="grid2"><div><div class="eyebrow">Matched legality / on − off</div><p class="interval">${pp(l.mean)}</p><div class="note">95% exploratory interval ${pp(l.low)} to ${pp(l.high)}<br>420 pairs · 20 starters</div></div>
-    <div><div class="eyebrow">Matched battles / on − off</div><p class="interval">${pp(b.mean)}</p><div class="note">95% exploratory interval ${pp(b.low)} to ${pp(b.high)}<br>94 both-legal pairs · 20 starters</div></div></div>
-    <p class="note">Battle rates in these matched pairs: off ${pct(a.paired_rates[0],2)}, on ${pct(a.paired_rates[1],2)}. Starters receive equal weight. The interval includes zero; this study does not establish a battle advantage.</p>
-    <h2>All settings, grouped by study</h2>
-    <p class="note">Descriptive rates, not a six-way leaderboard. Each battle column averages that setting’s legal teams; the selected teams differ between arms.</p>
-    <table class="tbl"><thead><tr><th scope="col">Setting</th><th scope="col">Legal / returned</th><th scope="col">All-legal win rate</th></tr></thead><tbody>
-    <tr class="group"><td colspan="3">Earlier Mask Lab · 5 starters · 270 masks per setting</td></tr>${historic}
-    <tr class="group"><td colspan="3">Reasoning study · 20 starters · 420 calls per setting</td></tr>${newer}
-    <tr><td>Diffusion on new starters</td><td colspan="2">Not evaluated — no matched comparison</td></tr></tbody></table>
-    <h2>Where did legality improve?</h2>
-    <label class="f"><span class="eyebrow">New study mask family</span><select id="reasoning-family"><option value="all">All seven families</option>${Object.keys(a.tasks).map(k=>`<option value="${k}">${esc({'ability:6':'Abilities · 6','alignment:6':'Stat alignment · 6','item:6':'Items · 6','mixed:40':'Mixed · 40','move:24':'Moves · 24','pokemon:6':'Whole Pokémon · 6','stats:6':'Stat Points · 6'}[k])}</option>`).join('')}</select></label>
-    <div class="rows" id="reasoning-bars">${['off','on'].map((arm,i)=>`<div class="row"><b>Reasoning ${arm}</b><span id="reasoning-value-${arm}"></span><div class="track"><i id="reasoning-bar-${arm}" style="background:var(--a${i+1});transform:scaleX(${a.arms[arm].legality_rate})"></i></div></div>`).join('')}</div>
-    <p id="reasoning-family-note" class="note" aria-live="polite"></p>
-    <details><summary>What makes these comparisons fair?</summary>
-      <p>Within the reasoning study, Ling 3.0 Flash VL uses the same Novita route, prompt, 16,384-token cap, tasks and battle configuration. Only reasoning is switched off or on. This is a boolean switch, not a graded effort level.</p>
-      <p>The older study covers six families and every mask size on five starters, with one sample per setting. The new study uses twenty fresh starters, seven largest-mask families (including mixed masks), and three repeats. Matching task names or local team numbers does not make these the same trials. No cross-study differences are estimated here.</p>
-      <p>Both studies use the same 49 opponent IDs in the frozen M-B pool and the same behaviour-cloning checkpoint fingerprint (57f5edcab415cf6c), but their saved policy identifiers and seeds differ. The older panel export reports 49 battles while the new panels verify 50; cross-study simulator and scheduling equivalence is not established. The six new arm/repeat configurations match each other. This is not a current-live-meta or held-out benchmark; Ling receives opponent information. Diffusion sees categorical context only, with Stat Points filled by a separate rule.</p>
-      <p>Legality pairs match trial and repeat. Battle pairs require both outputs to be legal and fully scored. Illegal outputs are not battle losses. The earlier explorer’s “net per mask” retains the original team on rejection; that is a different measure and is not compared to the new win rates.</p>
-      <p>Exploratory 95% intervals resample whole starters (4,000 bootstrap draws), keeping repeats together. There are 242 unique cached panels among 268 output panels, 93 distinct ordered panel pairs among 94 matched pairs, and no cached panels shared across starters. 13,400 represented battles correspond to 12,100 unique-panel battles. Reused panels are not independent evidence. Simulator randomness is not fixed. These results do not prove causality.</p>
-    </details>
-    <details><summary>Usage, cost and completion audit</summary>
-      <table class="tbl"><thead><tr><th>New study</th><th>Off</th><th>On</th></tr></thead><tbody>
-      <tr><td>Recorded API cost</td><td>$${a.arms.off.cost_usd.toFixed(4)}</td><td>$${a.arms.on.cost_usd.toFixed(4)}</td></tr>
-      <tr><td>Reasoning tokens</td><td>0</td><td>${a.arms.on.total_reasoning_tokens.toLocaleString('en-US')}</td></tr>
-      <tr><td>Median elapsed / call</td><td>${a.arms.off.median_elapsed_seconds.toFixed(2)} s</td><td>${a.arms.on.median_elapsed_seconds.toFixed(2)} s</td></tr>
-      <tr><td>Token-limit finishes</td><td>0/420</td><td>17/420</td></tr></tbody></table>
-      <p>Usage telemetry covers all 840 saved responses. One original timed-out request has unknown usage and charge; its authorized replacement is included. Recorded total $${(a.arms.off.cost_usd+a.arms.on.cost_usd).toFixed(4)} excludes that unknown charge. Scheduling changed from sequential to concurrent mid-study; elapsed times include some retry cooldowns and are not a controlled throughput benchmark. Diffusion’s zero API cost excludes local compute.</p>
-      <p>No missing responses, pending requests or unscored legal outputs. All six battle configurations match; 1,097 pre-recovery artifacts were preserved. The earlier three-starter reasoning pilot is excluded.</p>
-      <p class="note">Results verified <time datetime="${a.verified_at}">${esc(a.verified_at)}</time>. Snapshot: ${esc(DATA.reasoning.study)}. Audit SHA-256: <span style="overflow-wrap:anywhere">${esc(DATA.reasoning.source_sha256)}</span>.</p>
-    </details>
-    <p class="eyebrow" style="margin-top:24px">Below / earlier Mask Lab explorer only</p>
-  </div>`;
-}
-function updateReasoningFamily(animate = false) {
-  if (!DATA.reasoning) return;
-  const a = DATA.reasoning.audit, key = $('#reasoning-family').value;
-  for (const arm of ['off','on']) {
-    const x = key === 'all' ? a.arms[arm] : a.tasks[key][arm];
-    const mark = $('#reasoning-bar-'+arm);
-    mark.style.transitionDuration = animate ? '' : '0s';
-    mark.style.transform = `scaleX(${x.legal/x.returned})`;
-    $('#reasoning-value-'+arm).textContent = `${x.legal}/${x.returned} · ${pct(x.legal/x.returned)}`;
-  }
-  $('#reasoning-family-note').textContent = key === 'all' ? 'All 420 matched trial-and-repeat pairs. Each arm uses the same 20 starters.' : '60 matched pairs in this family: 20 starters × 3 repeats. Subgroup results are exploratory.';
+    <div class="opp">${o.species.map(s => { const im = sprite(s); return im ? `<img src="${im}" alt="${esc(s)}" title="${esc(s)}">` : ''; }).join('')}<span><b>Opponent ${oi + 1}</b> · ${o.species.map(esc).join(', ')}${bits ? ` · ${ob === '1' ? 'won' : 'lost'}` : ''}</span></div></div>`;
 }
 function controls() {
   const fams = Object.keys(FAM).map(f => `<option value="${f}" ${S.family === f ? 'selected' : ''}>${FAM[f]}</option>`).join('');
-  const starts = DATA.starts.map((s, i) => `<option value="${i}" ${S.start === i ? 'selected' : ''}>Team ${String(i + 1).padStart(2, '0')}</option>`).join('');
-  const arms = ARMS.map((a, i) => `<button data-arm="${i}" aria-pressed="${S.arm === i}"><span class="sw" style="background:${a.c}"></span>${a.short}</button>`).join('');
-  return `<div class="eyebrow">Method</div><div class="seg s4" style="margin:8px 0 14px">${arms}</div>
-    <div class="ctl" style="margin-top:0"><label class="f"><span class="eyebrow">Mask family</span><select id="fam">${fams}</select></label>
+  const starts = DATA.starts.map((s, i) => `<option value="${i}" ${S.start === i ? 'selected' : ''}>Team ${String(i + 1).padStart(2, '0')} · ${s.team.map(m => m.species).join(', ')}</option>`).join('');
+  return `<div class="ctl"><label class="f"><span class="eyebrow">What is masked</span><select id="fam">${fams}</select></label>
     <label class="f"><span class="eyebrow">Starting team</span><select id="start">${starts}</select></label></div>
-    <div class="kline"><span class="eyebrow">Mask size</span><b class="mono" id="kv">k = ${S.k}</b></div>
+    <div class="kline"><span class="eyebrow">How many parts are masked</span><b class="mono num" id="kv">k = ${S.k}</b></div>
     <input type="range" id="k" min="1" max="${kmax(S.family)}" value="${S.k}" aria-label="Mask size">`;
 }
-function header() {
-  const k = kpis(armKey()), info = DATA.arms[armKey()];
-  const card = (label, v, s, cls) => `<div class="card kpi"><div class="eyebrow">${label}</div><div class="v ${cls || ''}">${v}</div><div class="s">${s}</div></div>`;
-  const g = (x, label) => x ? card(label, pp(x.v), `${x.n} legal completions · ${x.starts} starting teams weighted equally`, x.v > 0 ? 'good' : x.v < 0 ? 'bad' : '') : card(label, '—', DATA.scored ? 'no scored pairs' : 'battles pending');
-  return `<header class="top"><div class="brand"><i></i>Porygon-Pi / Mask Lab</div><div class="tag">Ling × diffusion<br>Reg M-B</div></header>
-    <div class="eyebrow" style="margin-top:14px">Masked completion / Experiment 002</div>
-    <h1>See what changes. <em>Measure what helps.</em></h1>
-    <p class="lede">Random legal teams. One precise mask. Ling (three prompt settings) and the diffusion model fill the gaps; the same behaviour-cloning policy plays every battle.</p>
-    <p class="note">These opening cards describe the earlier five-starter study. <a href="#reasoning-comparison" style="color:var(--accent)">Jump to the new reasoning comparison ↓</a></p>
-    <div class="grid2">${card(ARMS[S.arm].kind + ' legal success', pct(k.legal / k.n), `${k.legal}/${k.n} completions accepted`, 'good')}
-      ${g(k.gO, ARMS[S.arm].kind + ' vs original team')}${g(k.gR, ARMS[S.arm].kind + ' vs random fill')}
-      ${ARMS[S.arm].kind === 'Diffusion' ? card('Compute cost', '$0', `local CPU, about 0.1 s per completion; no API calls`) : card('Recorded Ling API cost', '$' + k.cost.toFixed(4), `all ${k.n} attempts for this arm`)}</div>`;
-}
-function render() {
+function renderExplorer() {
   const t = task();
-  $('#head').innerHTML = header();
-  $('#grid').innerHTML = gridCard(t);
-  $('#result').innerHTML = resultCard(t);
-  $('#stars').innerHTML = starsCard(t);
-  $('#summary').innerHTML = summaryCard() + '<div style="height:12px"></div>' + costCard();
+  const paint = () => { $('#grid').innerHTML = gridCard(t); $('#writers').innerHTML = writerRows(t); $('#stars').innerHTML = starsCard(t); };
+  if (document.startViewTransition && !reduceMotion && $('#grid').innerHTML) document.startViewTransition(paint); else paint();
 }
-const $ = s => document.querySelector(s);
+
+/* ---------- question 1: Ling or diffusion? ---------- */
+const NEW = DATA.allMethodComparison;
+const MCOL = {diffusion:'var(--a3)','ling-off':'var(--l1)','ling-on':'var(--l2)','mercury-off':'var(--m1)','mercury-low':'var(--m2)','mercury-medium':'var(--m3)','mercury-high':'var(--m4)'};
+const pairName = k => k.replace('mercury-reasoning-20261013/', 'Mercury ').replace('reasoning-expanded-20261012/', 'Ling ');
+function ivalRow(label, sub, v, lo, hi, n, span) {
+  const x = p => 50 + p * 100 / span * 50;
+  const clear = lo > 0 || hi < 0;
+  return `<div class="ival${clear ? ' clear' : ''}"><div class="lab">${esc(label)}<small>${esc(sub)}</small></div>
+    <div class="axis" role="img" aria-label="${esc(label)}: ${pp(v)}, interval ${pp(lo)} to ${pp(hi)}"><span class="zero"></span><span class="ci" style="left:${x(lo)}%;width:${x(hi) - x(lo)}%"></span><span class="pt" style="left:${x(v)}%"></span></div>
+    <div class="val num">${pp(v)}<small>${n}</small></div></div>`;
+}
+function q1() {
+  if (!NEW) return '';
+  const methods = NEW.methods;
+  const legal = methods.map(m => `<div class="row"><b>${dot(MCOL[m.id])}${esc(m.name)}</b><span class="v num">${pct(m.legality, 0)}<small>${m.legal}/420</small></span><div class="track"><i style="width:${m.legality * 100}%;background:${MCOL[m.id]}"></i></div></div>`).join('');
+  const pw = Object.entries(NEW.pairwise);
+  const span = Math.max(1.5, ...pw.map(([, v]) => Math.max(Math.abs(v.battles.low), Math.abs(v.battles.high)) * 100)) * 1.05;
+  const ivals = pw.map(([k, v]) => ivalRow('Diffusion − ' + pairName(k), `${v.battles.pairs} masks both legal`, v.battles.mean, v.battles.low, v.battles.high, `diffusion ${pct(v.paired_diffusion_rate, 1)} · ${pairName(k).split(' ')[0]} ${pct(v.paired_llm_rate, 1)}`, span)).join('');
+  const clearN = pw.filter(([, v]) => v.battles.low > 0).length;
+  // explorer grid: diffusion v3 against the Reg M-B prompt on the same 270 masks, where both were legal
+  const d = [];
+  for (const t of DATA.tasks) { const a = res(t).arms['regmb@16384'], b = res(t).arms['diffusion@v3']; if (a && b && a.ok && b.ok && a.win != null && b.win != null) d.push(b.win - a.win); }
+  const oldMean = d.reduce((p, q) => p + q, 0) / d.length;
+  const cohort = methods.map(m => `<tr><td>${dot(MCOL[m.id])}${esc(m.name)}</td><td class="n">${pct(m.battle.mean, 2)}</td><td class="n">${pct(m.battle.low, 2)} – ${pct(m.battle.high, 2)}</td></tr>`).join('');
+  return `<section class="q" id="q1"><div class="eyebrow">Question 1 · 20 starting teams · 7 masks · 3 repeats</div><h2>Ling or diffusion?</h2>
+    <p class="answer">The diffusion model never fails legality. Where both fill legally, its team wins slightly more of its battles than the language model's: under one point, and only ${clearN} of the ${pw.length} intervals clear zero.</p>
+    <p>The reasoning study gives every writer the same 420 masks: 20 fresh starting teams, the 7 largest mask families, 3 repeats. Two language models answer the prompt: Ling 3.0 Flash with reasoning off or on, and Mercury 2.5 at four reasoning efforts. The project's own Pokémon diffusion model (F1 + G2, version 3) fills the same masks with constrained decoding, so it cannot write an illegal field.</p>
+    <div class="card"><div class="eyebrow">Legal fills out of 420</div><div class="rows">${legal}</div>
+      <p class="note">A fill is legal when it parses, keeps every unmasked field, and passes the Showdown validator on the first try. Nothing is retried.</p></div>
+    <div class="card"><div class="eyebrow">Battles: diffusion minus each language model, same mask and repeat</div>
+      <div class="ivals">${ivals}</div><div class="axis-ticks"><span>${pp(-span / 100, 1)}</span><span>0</span><span>${pp(span / 100, 1)}</span></div>
+      <p class="note">Each pair is one mask that both writers filled legally. The difference is in win-rate points: the share of a team's ${BATTLES} battles it wins. Intervals are 95% starter bootstraps (4,000 draws, 20 starters weighted equally); green ones exclude zero.</p></div>
+    <div class="card"><div class="eyebrow">Same question on the explorer's grid</div><p style="margin:6px 0 0">On the 270 masks above, diffusion v3 against the Reg M-B prompt where both were legal: <b class="mono num">${pp(oldMean)}</b> over ${d.length} pairs. Same answer: level.</p></div>
+    <details><summary>Shared cohort: the 64 masks every writer filled legally</summary>
+      <p>Comparing writers on their own legal subsets mixes easy and hard masks. On the ${NEW.common_pairs} masks all seven filled legally, the win rates (20 starters weighted equally) are:</p>
+      <div class="tscroll"><table class="tbl"><thead><tr><th>Writer</th><th>Win rate</th><th>95% interval</th></tr></thead><tbody>${cohort}</tbody></table></div>
+      <p>Mercury high has the highest point estimate; every paired difference against diffusion includes zero. Diffusion's win rate across all 420 of its legal fills is ${pct(methods[0].full_set.legal_win_rate, 1)}; its cohort rate is lower because the shared masks are the easy ones.</p>
+      <p>What the comparison is not: diffusion reads only the categorical fields and fills Stat Points from a corpus spread, while the language models read all 49 opponent pastes. It compares two complete systems, not two architectures on equal input.</p></details></section>`;
+}
+/* ---------- question 2: does reasoning help Ling? ---------- */
+const FAMLABEL = {'ability:6':'Abilities · 6 masked','alignment:6':'Stat alignment · 6 masked','item:6':'Items · 6 masked','mixed:40':'Mixed · 40 masked','move:24':'Moves · 24 masked','pokemon:6':'Whole Pokémon · 6 masked','stats:6':'Stat Points · 6 masked'};
+function q2() {
+  if (!DATA.reasoning) return '';
+  const a = DATA.reasoning.audit, l = a.paired.legality_delta, b = a.paired.win_rate_delta_both_legal, dc = a.discordant;
+  const opts = `<option value="all">All seven families · 420 masks</option>` + Object.keys(a.tasks).map(k => `<option value="${k}">${esc(FAMLABEL[k] || k)}</option>`).join('');
+  const fin = a.arms.on.finish_reasons || {};
+  const old = ARMS.filter(x => x.kind === 'Ling').map(x => `${esc(x.short.replace('Ling · ', ''))} ${pct(DATA.arms[x.key].legal / DATA.arms[x.key].n, 0)}`).join(' → ');
+  return `<section class="q" id="q2"><div class="eyebrow">Question 2 · Ling 3.0 Flash · reasoning off vs on</div><h2>Does reasoning help Ling?</h2>
+    <p class="answer">Reasoning makes Ling legal far more often. It does not make the legal teams better at battling.</p>
+    <p>Same prompt, same Novita route, same 16,384-token cap, same 420 masks. The only change is the reasoning switch. Each mask is paired with itself across the two arms.</p>
+    <div class="big"><div class="card"><div class="eyebrow">Legality, on − off</div><div class="v good num">${pp(l.mean, 1)}</div><div class="s">95% interval ${pp(l.low, 1)} to ${pp(l.high, 1)} · ${l.pairs} pairs · 20 starters</div></div>
+      <div class="card"><div class="eyebrow">Battles, on − off</div><div class="v num">${pp(b.mean)}</div><div class="s">95% interval ${pp(b.low)} to ${pp(b.high)} · ${b.pairs} masks both legal</div></div></div>
+    <div class="card"><div class="eyebrow">The same 420 masks, sorted by which arm filled them legally</div>
+      <div class="four"><div><b class="on">${dc.on_only}</b>legal only with reasoning on</div><div><b>${dc.off_only}</b>legal only with reasoning off</div><div><b>${dc.both}</b>legal both ways</div><div><b>${dc.neither}</b>legal neither way</div></div>
+      <p class="note">Win rates on the ${dc.both} masks legal both ways: off ${pct(a.paired_rates[0], 2)}, on ${pct(a.paired_rates[1], 2)}. ${fin.length || 0} of 420 reasoning-on answers hit the token cap and were cut off.</p></div>
+    <div class="card"><label class="f"><span class="eyebrow">Legal fills by mask family</span><select id="reasoning-family">${opts}</select></label>
+      <div class="rows" id="reasoning-bars"></div><p id="reasoning-note" class="note" aria-live="polite"></p></div>
+    <details><summary>How this relates to the explorer's prompt study</summary>
+      <p>The explorer's three Ling arms test the prompt and the token cap, not reasoning: ${old} legal on the 270-mask grid. That run used a different harness and five other starting teams, so it is never pooled with this study. Both say the same thing: the lever that moves Ling is how often it produces a legal team, not how well a legal team fights.</p></details></section>`;
+}
+function updateReasoningFamily(animate = true) {
+  if (!DATA.reasoning) return;
+  const a = DATA.reasoning.audit, key = $('#reasoning-family').value;
+  $('#reasoning-bars').innerHTML = ['off', 'on'].map((arm, i) => { const x = key === 'all' ? a.arms[arm] : a.tasks[key][arm];
+    return `<div class="row"><b>Reasoning ${arm}</b><span class="v num">${pct(x.legal / x.returned, 0)}<small>${x.legal}/${x.returned}</small></span><div class="track"><i style="width:${x.legal / x.returned * 100}%;background:var(--l${i + 1});${animate ? '' : 'animation:none'}"></i></div></div>`; }).join('');
+  $('#reasoning-note').textContent = key === 'all' ? 'Every mask in the study. Each arm uses the same 20 starting teams.' : 'One family: 20 starting teams × 3 repeats = 60 masks per arm. Small subgroups; read as a hint.';
+}
+/* ---------- question 3: does more reasoning help Mercury? ---------- */
+const EFFORTS = ['off', 'low', 'medium', 'high'];
+function reasonGroup(msg) {
+  if (/Expecting|Unterminated|JSONDecodeError|Extra data/.test(msg)) return 'Reply was not valid JSON';
+  if (/Stat Points require|total Stat Points|more than this format/.test(msg)) return 'Stat Points outside 0–32 or over 66';
+  if (/duplicate or unmasked path/.test(msg)) return 'Changed a field that was not masked';
+  if (/invalid slot fields/.test(msg)) return 'Wrong fields in a slot';
+  if (/Item Clause/.test(msg)) return 'Two copies of one item';
+  if (/can't learn/.test(msg)) return 'A move the Pokémon cannot learn';
+  if (/can't have/.test(msg)) return 'An ability the Pokémon cannot have';
+  if (/invalid item|invalid move|does not exist/.test(msg)) return 'An item or move that does not exist';
+  return 'Other validator rejection';
+}
+function q3() {
+  const m = DATA.mercury; if (!m || !m.final) return '';
+  const vs = m.final.versus_off;
+  const bars = EFFORTS.map((e, i) => { const x = m.arms[e];
+    return `<div class="row"><b>Reasoning ${e}</b><span class="v num">${pct(x.legal / x.returned, 0)}<small>${x.legal}/420 · $${x.cost.toFixed(2)} · ${x.reasoning_tokens ? (x.reasoning_tokens / 1000).toFixed(0) + 'k reasoning tokens' : 'no reasoning tokens'}</small></span><div class="track"><i style="width:${x.legal / x.returned * 100}%;background:var(--m${i + 1})"></i></div></div>`; }).join('');
+  const lg = EFFORTS.slice(1).map(e => ivalRow(`${e} − off`, 'legality', vs[e].legality_delta.mean, vs[e].legality_delta.low, vs[e].legality_delta.high, `${vs[e].legality_delta.pairs} masks`, 14)).join('');
+  const bt = EFFORTS.slice(1).map(e => ivalRow(`${e} − off`, 'battles', vs[e].win_rate_delta_both_legal.mean, vs[e].win_rate_delta_both_legal.low, vs[e].win_rate_delta_both_legal.high, `${vs[e].win_rate_delta_both_legal.pairs} masks both legal`, 1.6)).join('');
+  const seg = EFFORTS.map(e => `<button data-effort="${e}" aria-pressed="${e === 'high'}">${e}</button>`).join('');
+  const cost = Object.values(m.audit.arms).reduce((n, a) => n + a.cost_usd, 0);
+  const cached = Object.values(m.arms).reduce((n, a) => n + a.cached_tokens, 0) / Object.values(m.arms).reduce((n, a) => n + a.prompt_tokens, 0);
+  return `<section class="q" id="q3"><div class="eyebrow">Question 3 · Mercury 2.5 · reasoning off, low, medium, high</div><h2>Does more reasoning help Mercury?</h2>
+    <p class="answer">More reasoning buys legality, a few points per step, at four times the cost. The battle result does not move.</p>
+    <p>Mercury is Inception's diffusion language model, a different system from the project's Pokémon diffusion model. Same 420 masks, same cap, pinned to Inception. The three reasoning efforts are paired against the off arm.</p>
+    <div class="card"><div class="eyebrow">Legal fills out of 420, by effort</div><div class="rows">${bars}</div></div>
+    <div class="card"><div class="eyebrow">Legality, each effort minus off</div><div class="ivals">${lg}</div><div class="axis-ticks"><span>−14 pp</span><span>0</span><span>+14 pp</span></div>
+      <div class="eyebrow" style="margin-top:18px">Battles, each effort minus off</div><div class="ivals">${bt}</div><div class="axis-ticks"><span>−1.6 pp</span><span>0</span><span>+1.6 pp</span></div>
+      <p class="note">Same reading as question 1: pairs are masks both arms filled legally; intervals are 95% starter bootstraps; green excludes zero.</p></div>
+    <div class="card"><div class="kline"><div class="eyebrow">Why Mercury's answers were rejected</div><div class="seg" id="effort-seg">${seg}</div></div><ul class="reasons" id="reasons"></ul></div>
+    <details><summary>Cost and telemetry</summary>
+      <p>Recorded API cost across the four arms: $${cost.toFixed(2)}, with five responses lacking cost records and two original timed-out calls of unknown charge. Prompt caching covered about ${pct(cached, 0)} of input tokens. Eight preflight probes confirmed that off reports zero reasoning tokens and the other levels report increasing budgets; they are excluded from the study.</p>
+      <p>Median call time: ${EFFORTS.map(e => `${e} ${m.audit.arms[e].median_elapsed_seconds.toFixed(1)} s`).join(', ')}. Concurrency changed from four to two mid-study, so these are descriptive, not a speed benchmark.</p></details></section>`;
+}
+function updateReasons() {
+  const m = DATA.mercury; if (!m || !m.final) return;
+  const e = $('#effort-seg [aria-pressed="true"]').dataset.effort, f = m.final.arms[e].failures || {};
+  const g = {}; for (const [msg, n] of Object.entries(f)) g[reasonGroup(msg)] = (g[reasonGroup(msg)] || 0) + n;
+  const total = Object.values(g).reduce((a, b) => a + b, 0);
+  $('#reasons').innerHTML = Object.entries(g).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<li><b>${n}</b><span>${esc(k)}</span></li>`).join('') + `<li><b>${total}</b><span style="color:var(--muted)">rejected of 420 at effort ${esc(e)}</span></li>`;
+}
+/* ---------- question 4: verdict ---------- */
+function q4() {
+  if (!NEW) return '';
+  const rows = NEW.methods.map(m => `<tr><td>${dot(MCOL[m.id])}${esc(m.name)}</td><td class="n">${m.legal}/420</td><td class="n">${pct(m.full_set.legal_win_rate, 1)}</td><td class="n">${m.id === 'diffusion' ? 'none' : '$' + m.cost.toFixed(2) + (m.cost_coverage < 420 ? '*' : '')}</td></tr>`).join('');
+  return `<section class="q" id="q4"><div class="eyebrow">Question 4 · all seven writers</div><h2>So which writer should fill a mask?</h2>
+    <p class="answer">The Pokémon diffusion model: always legal, free to run, and level with the best language-model setting in battle. Reasoning in a language model is a legality lever, not a strength lever.</p>
+    <div class="card"><div class="tscroll"><table class="tbl"><thead><tr><th>Writer</th><th>Legal</th><th>Win rate, own legal fills</th><th>API cost</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="note">Win rate is the share of a team's ${BATTLES} battles it wins against the top-49 meta pool, with the behaviour-cloning policy on both sides. Each writer is scored on its own legal fills, so this column is descriptive, not a ranking; the paired charts above are the ranking. *Three medium and two high cost records are missing.</p></div>
+    <p>Two things keep every number here small. The starting teams are random legal teams, and a random team loses almost every battle against the meta: the median panel wins one of ${BATTLES}. And one panel is noisy by several points, so a single mask proves nothing; only the paired differences over 420 masks do.</p></section>`;
+}
+/* ---------- page ---------- */
+function header() {
+  return `<header class="top"><div class="brand"><i></i>Porygon-Pi / Mask Lab</div><div class="tag">Reg M-B · behaviour cloning<br>on both sides</div></header>
+    <div class="eyebrow" style="margin-top:14px">Masked team completion · Experiment 002</div>
+    <h1>See what changes. <em>Measure what helps.</em></h1>
+    <p class="lede">Take a random legal Regulation M-B team. Hide one part of it: an item, an ability, a move, a Stat Point spread, or a whole Pokémon. Ask a writer to fill the gap. Check the answer with the Showdown validator, then play the completed team against the frozen top-49 meta pool.</p>
+    <div class="howto"><div class="card"><b>See what changes</b><p>The explorer shows the masked team once and every writer's fill underneath it, cell by cell, with the validator's reason when a fill is rejected.</p></div>
+      <div class="card"><b>Measure what helps</b><p>Every legal fill plays ${BATTLES} battles, one per meta team. Its win rate is compared with the untouched team's and with a random legal fill's, on the same mask.</p></div></div>
+    <div class="toc"><a href="#explorer"><b>0</b>Explorer</a><a href="#q1"><b>1</b>Ling or diffusion?</a><a href="#q2"><b>2</b>Does reasoning help Ling?</a><a href="#q3"><b>3</b>Does more reasoning help Mercury?</a><a href="#q4"><b>4</b>Verdict</a><a href="#method"><b>§</b>Method</a></div>`;
+}
+function explorerIntro() {
+  const legal = ARMS.map(a => `${dot(a.c)}${esc(a.short)} ${pct(DATA.arms[a.key].legal / DATA.arms[a.key].n, 0)}`).join(' &nbsp; ');
+  return `<section class="q" id="explorer"><div class="eyebrow">Explorer · 5 starting teams · 270 masks per writer</div><h2>One mask, four writers</h2>
+    <p>Pick what to hide and how much of it. The grid shows the masked team; the rows under it show what each writer wrote back and how the completed team fared. The writers are Ling 3.0 Flash under three prompt settings and the project's Pokémon diffusion model.</p>
+    <p class="note" style="margin:0 0 4px">Legal fills on this grid: ${legal}.</p>`;
+}
+function method() {
+  return `<section class="q" id="method"><div class="eyebrow">Method</div><h2>What is fixed, and what the numbers mean</h2>
+    <details open><summary>Battles and scoring</summary><ul>
+      <li>Policy: ${esc(DATA.policy)}. No random-action play anywhere.</li>
+      <li>A panel is ${BATTLES} battles: one against each of ${DATA.opponents.length} distinct top meta teams, with one team counted twice. Win rate is wins over ${BATTLES}. Simulator randomness is not fixed, so one panel is noisy by several points.</li>
+      <li>Regulation: Champions VGC 2026 Reg M-B, Showdown validator, first attempt only. No retries, repairs or best-of selection.</li>
+      <li>Paired differences subtract, for each mask, one writer's win rate from another's. Intervals resample the starting teams (4,000 draws, starters weighted equally, repeats kept together) and are not adjusted for the number of comparisons.</li></ul></details>
+    <details><summary>The two studies</summary><ul>
+      <li>Explorer grid (2026-10-08): 5 random legal starting teams, 6 mask families, every mask size, one sample per writer, 270 masks. Ling via OpenRouter routed to Novita, temperature 0.7, JSON mode off. Diffusion v3: F1 + G2 ensemble, ask 0.5, guidance 2, temperature 1; Stat Points copied from a same-species corpus spread or drawn at random.</li>
+      <li>Reasoning studies (2026-10-12 and 2026-10-13): 20 fresh starting teams, the 7 largest families including mixed masks, 3 repeats, 420 masks per writer. Ling off/on, Mercury off/low/medium/high, diffusion with three generation seeds. The two studies share the opponent pool and the policy checkpoint but not starters, harness or seeds; nothing is pooled across them.</li>
+      <li>The language models see all 49 opponent pastes in the prompt; diffusion sees only the known categorical fields. The largest species overlap between any fill and any meta team is 4 of 6, so no fill copies a meta team.</li></ul></details>
+    <details><summary>What this page does not claim</summary><ul>
+      <li>Not a live-meta or held-out result: the opponent pool is frozen and visible in the prompts.</li>
+      <li>Not an equal-input architecture test: the writers are complete systems with different inputs and decoders.</li>
+      <li>Not a cost comparison: API costs are recorded totals; diffusion's local compute is unmeasured.</li>
+      <li>Repeated cached panels count as battles represented, not as independent evidence.</li></ul></details></section>`;
+}
 function boot() {
-  $('#app').innerHTML = `<section id="all-method-comparison">${allMethodComparison()}</section><div id="head"></div><section id="matched-diffusion-comparison">${matchedDiffusionComparison()}</section><section id="mercury-comparison">${mercuryComparison()}</section><section id="reasoning-comparison">${reasoningComparison()}</section><div id="ctl" style="margin-top:18px"></div><section id="grid"></section><section id="result"></section><section id="stars"></section><section id="summary"></section>
-  <footer><ul>
-    <li>Policy: ${esc(DATA.policy)}. Every team plays one battle against each of the 49 distinct meta teams (one of them counted twice). No random-action policy is used.</li>
-    <li>Regulation: Champions VGC 2026 Reg M-B. Starting teams are 5 random legal teams from the project's hierarchical sampler; none is a meta team.</li>
-    <li>Diffusion v3 is the project's F1 + G2 masked-diffusion ensemble with the settings you selected on 2026-10-08: ask 0.5, guidance 2, temperature 1. It sees only the known categorical fields: no opponent pastes and no Stat Points. Masked Stat Points are copied from a same-species corpus spread or drawn at random, so the Stat Points family is not a network completion. Ling sees all 48 complete meta teams in its prompt. Its training data may include this meta pool.</li>
-    <li>Each Ling completion is one sample at temperature 0.7 on OpenRouter, routed to Novita with JSON mode off. A completion counts as legal only if it parses, keeps every unmasked field and passes the Showdown validator on the first attempt.</li>
-    <li>Largest species overlap between any completion and any meta team: 4 of 6, so no completion copies a meta team. Ling does see all the meta teams in its prompt.</li>
-    <li>A panel is 49 battles, so one team's win rate is noisy by several points. Simulator randomness is not fixed. Five starting teams cannot show a general winner.</li></ul></footer>`;
+  const day = s => esc((s || '').slice(0, 10));
+  $('#app').innerHTML = `${header()}${explorerIntro()}<div id="ctl"></div><div id="grid" style="margin-top:12px"></div><div id="writers" style="margin-top:12px"></div><div id="stars" style="margin-top:12px"></div></section>
+    ${q1()}${q2()}${q3()}${q4()}${method()}
+    <footer>Explorer data from the 2026-10-08 run. Reasoning studies verified ${day(DATA.reasoning && DATA.reasoning.audit.verified_at)} (Ling), ${day(DATA.mercury && DATA.mercury.audit.verified_at)} (Mercury) and ${day(DATA.matchedDiffusion && DATA.matchedDiffusion.audit.verified_at)} (diffusion). Sprites from Pokémon Showdown.</footer>`;
   $('#ctl').innerHTML = controls();
-  render();
-  updateReasoningFamily();
+  renderExplorer();
+  updateReasoningFamily(false);
+  updateReasons();
 }
-let reasoningPointer = false;
-document.addEventListener('pointerdown', () => { reasoningPointer = true; });
-document.addEventListener('keydown', () => { reasoningPointer = false; });
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.arm != null) { S.arm = +b.dataset.arm; S.sel = null; $('#ctl').innerHTML = controls(); }
-  else if (b.dataset.view) S.view = b.dataset.view;
+  if (b.dataset.writer != null) { S.writer = +b.dataset.writer; S.show = 'writer'; }
   else if (b.dataset.show) S.show = b.dataset.show;
   else if (b.dataset.opp != null) S.opp = +b.dataset.opp;
   else if (b.dataset.path) S.sel = S.sel === b.dataset.path ? null : b.dataset.path;
+  else if (b.dataset.effort) { $('#effort-seg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); updateReasons(); return; }
   else return;
-  render();
+  renderExplorer();
 });
 document.addEventListener('change', e => {
-  if (e.target.id === 'reasoning-family') { updateReasoningFamily(reasoningPointer); return; }
-  if (e.target.id === 'fam') { S.family = e.target.value; S.k = Math.min(S.k, kmax(S.family)); S.sel = null; $('#ctl').innerHTML = controls(); render(); }
-  else if (e.target.id === 'start') { S.start = +e.target.value; S.sel = null; render(); }
+  if (e.target.id === 'reasoning-family') { updateReasoningFamily(!reduceMotion); return; }
+  if (e.target.id === 'fam') { S.family = e.target.value; S.k = Math.min(S.k, kmax(S.family)); S.sel = null; S.opp = null; $('#ctl').innerHTML = controls(); renderExplorer(); }
+  else if (e.target.id === 'start') { S.start = +e.target.value; S.sel = null; S.opp = null; renderExplorer(); }
 });
 document.addEventListener('input', e => {
-  if (e.target.id === 'k') { S.k = +e.target.value; S.sel = null; $('#kv').textContent = 'k = ' + S.k; render(); }
+  if (e.target.id === 'k') { S.k = +e.target.value; S.sel = null; $('#kv').textContent = 'k = ' + S.k; renderExplorer(); }
 });
-window.MASKLAB = {DATA, S, ARMS, render, controls, task, res, lingOf, randOf, origOf, kpis, netDelta};
+window.MASKLAB = {DATA, S, ARMS, renderExplorer, task, res, armOf, randOf, origOf};
 boot();
 </script>
 </body>
