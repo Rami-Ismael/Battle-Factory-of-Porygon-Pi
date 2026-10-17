@@ -1,5 +1,7 @@
 # Random noise to Pokémon team archetypes
 
+*Retired 2026-10-17 — superseded by [Noise to Team Archetypes](../noise-to-archetypes/README.md), the scroll-driven take the owner picked on 2026-10-14. Kept for its method notes.*
+
 Updated and audited 2026-10-11. Open `archetype-diffusion.html` directly in a browser: a standalone offline page with embedded data, CSS, JavaScript and Pokémon sprites. Press Play, scrub the 48 steps, or select any of 300 teams. Reset stops playback. The page starts paused, including for reduced-motion users. A mean-only toggle removes the Gaussian offsets; a path toggle preserves the selected team's observed history.
 
 The trace contains teams sampled directly from `temperature_p0.pt` with `hpsdiffusion.sample_constrained`, seed 20260928, unconditional, temperature 1 and guidance 1. The checkpoint is a masked-diffusion-trained Transformer; its constrained decoder fills categorical fields in dependency order. It starts with MASK tokens, not Gaussian noise. The browser replays recorded inference, not live inference.

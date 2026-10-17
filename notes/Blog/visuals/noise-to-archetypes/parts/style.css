@@ -1,0 +1,120 @@
+/* Four chapters, two views. Prefix sc-. Tokens only; motion lives in motion.css and motion.js. */
+
+.sc-root { color: var(--ink); min-width: 0; }
+.sc-root [hidden] { display: none !important; }
+.sc-root :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sc-root img { max-width: 100%; }
+
+/* Phone and default layout: one column, stage sticky over the chapters. */
+.sc-track { display: block; min-width: 0; }
+.sc-stage {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--bg); padding: 8px 0 10px; min-width: 0;
+}
+.sc-controls { display: grid; gap: 8px; margin-bottom: 8px; }
+.sc-chapters { display: flex; flex-wrap: wrap; gap: 8px; }
+.sc-chap, .sc-pbtn, .sc-fut-btn, .sc-close {
+  min-height: 44px; min-width: 44px; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink);
+  font: inherit; font-size: 0.95rem; line-height: 1.2; cursor: pointer;
+}
+.sc-chap[aria-pressed="true"], .sc-pbtn[aria-pressed="true"], .sc-fut-btn[aria-pressed="true"] {
+  border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent);
+}
+.sc-scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.sc-scrub label, .sc-scrub output { font-size: 0.95rem; color: var(--muted); }
+.sc-range { width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }
+
+.sc-panels { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+.sc-panel { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+.sc-ptitle { margin: 0 0 4px; font-size: 1rem; }
+.sc-svg { display: block; width: 100%; height: auto; max-height: 22vh; }
+.sc-counts { margin: 4px 0 0; font-size: 0.9rem; color: var(--muted); }
+
+/* Marks: archetype colour comes from the class, never a literal colour. */
+.sc-grid line { stroke: var(--line); stroke-width: 1; }
+.sc-a0 { fill: var(--tr); }
+.sc-a1 { fill: var(--weather); }
+.sc-a2 { fill: var(--tailwind); }
+.sc-a3 { fill: var(--other); }
+.sc-dot { stroke: none; }
+.sc-fut { stroke: var(--bg); stroke-width: 1; }
+.sc-fut-open { stroke: var(--ink); stroke-width: 2.5; }
+.sc-ell-mb { fill: var(--mask); stroke: var(--line); stroke-width: 1; }
+.sc-mb-dot { fill: var(--ink); }
+.sc-mb-ring { fill: none; stroke: var(--focus); stroke-width: 2; }
+.sc-cent-label { fill: var(--muted); font-size: 14px; }
+
+/* Futures as six-sprite buttons. */
+.sc-futures {
+  display: grid; gap: 8px; margin-top: 8px; min-width: 0;
+  grid-template-columns: minmax(0, 1fr); max-height: 14vh; overflow: auto;
+}
+.sc-fut-btn { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; justify-content: flex-start; }
+.sc-fut-btn img { width: 32px; height: 32px; }
+
+.sc-sheet {
+  margin-top: 8px; padding: 10px; min-width: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+}
+.sc-sheet-title { margin: 0 0 6px; font-size: 1rem; }
+.sc-sheet-six { display: flex; flex-wrap: wrap; gap: 4px; }
+.sc-sheet-fields { columns: 2; margin: 8px 0 0; padding-left: 1.5em; font-size: 0.85rem; max-height: 18vh; overflow: auto; }
+.sc-close { margin-top: 8px; }
+
+/* Chapters: the tall sections whose scroll scrubs the steps. */
+.sc-chapter { min-width: 0; padding-top: 24px; }
+.sc-chapter h2 { margin: 0 0 6px; font-size: 1.1rem; }
+.sc-ch-1, .sc-ch-2, .sc-ch-4 { min-height: 120vh; }
+.sc-ch-3 { min-height: 250vh; }
+.sc-predict { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.sc-reveal {
+  min-height: 1.5em; margin: 8px 0 0; padding: 8px 10px;
+  border-left: 4px solid var(--line);
+}
+.sc-reveal.is-right { border-left-color: var(--accent); }
+.sc-reveal.is-wrong { border-left-color: var(--muted); }
+.sc-tally { font-weight: 600; margin-top: 12px; }
+
+/* Wider screens: chapter text in the left column, stage sticky in the right. */
+@media (min-width: 900px) {
+  .sc-track {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    column-gap: 32px;
+  }
+  .sc-stage { grid-column: 2; grid-row: 1 / span 4; align-self: start; padding-top: 16px; }
+  .sc-chapter { grid-column: 1; }
+  .sc-panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .sc-svg { max-height: 46vh; }
+  .sc-futures { grid-template-columns: repeat(auto-fill, minmax(min(100%, 268px), 1fr)); max-height: 22vh; }
+}
+
+/* Phones and narrow tablets: the sticky stage must leave room for the chapter text and the
+   prediction buttons scrolling beneath it. Chapters and futures become one-row strips that
+   scroll sideways, and the two panels sit side by side, so the stage stays near half the screen. */
+@media (max-width: 899px) {
+  .sc-stage { padding: 6px 0 8px; border-bottom: 1px solid var(--line); }
+  .sc-controls { gap: 4px; margin-bottom: 6px; }
+  .sc-chapters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .sc-chapters::-webkit-scrollbar { display: none; }
+  .sc-chap { flex: 0 0 auto; white-space: nowrap; padding: 8px 10px; font-size: 0.9rem; }
+  .sc-scrub { gap: 8px; }
+  .sc-scrub label, .sc-scrub output { font-size: 0.85rem; }
+  .sc-panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+  .sc-panel { padding: 6px; }
+  .sc-ptitle { font-size: 0.8rem; line-height: 1.25; }
+  .sc-svg { max-height: 26vh; }
+  .sc-counts { font-size: 0.75rem; line-height: 1.35; }
+  .sc-futures {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: max-content;
+    overflow-x: auto; overflow-y: hidden; max-height: none; margin-top: 6px;
+    overscroll-behavior-x: contain;
+  }
+  .sc-fut-btn { flex-wrap: nowrap; padding: 4px 8px; }
+  .sc-fut-btn img { width: 28px; height: 28px; }
+  .sc-sheet-fields { columns: 1; max-height: 14vh; }
+  /* The 520-unit plane renders about 170 px wide here; keep the archetype labels near 10 px. */
+  .sc-cent-label { font-size: 30px; font-weight: 600; }
+}

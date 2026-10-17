@@ -30,4 +30,4 @@ Figures are built in the Obsidian vault, because their build scripts read data t
 
 ## Publishing
 
-The article is marked as a draft in three places in `index.html`: the `noindex` meta tag, the "Draft" label in the byline, and the placeholder `og:image`. Publishing means removing the first two and replacing the third with a 1200 × 630 still.
+The article is marked as a draft in two places in `index.html`: the `noindex` meta tag and the "Draft" label in the byline. Publishing means removing both. The `og:image` is already a 1200 × 630 still, `notes/Blog/visuals/noise-to-archetypes/preview.png`.

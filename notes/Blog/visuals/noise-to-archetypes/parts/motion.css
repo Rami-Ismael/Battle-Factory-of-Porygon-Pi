@@ -1,0 +1,15 @@
+/* Movement is WAAPI in motion.js. CSS keeps the crossfade copies out of the reader's way
+   and gives chapter, prediction and future buttons a 120 ms press. */
+.sc-ghost {
+  pointer-events: none;
+}
+.sc-chap,
+.sc-pbtn,
+.sc-fut-btn {
+  transition: opacity 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.sc-chap:active,
+.sc-pbtn:active,
+.sc-fut-btn:active {
+  opacity: 0.6;
+}
