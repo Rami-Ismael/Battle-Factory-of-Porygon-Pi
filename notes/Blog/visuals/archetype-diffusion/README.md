@@ -1,6 +1,6 @@
 # Random noise to Pokémon team archetypes
 
-*Retired 2026-10-17 — superseded by [Noise to Team Archetypes](../noise-to-archetypes/README.md), the scroll-driven take the owner picked on 2026-10-14. Kept for its method notes.*
+*Retired 2026-10-17 — superseded by [Noise to Team Archetypes](../noise-to-archetypes/README.md), the 2026-09-25 slot-reel version the owner prefers. Kept for its method notes.*
 
 Updated and audited 2026-10-11. Open `archetype-diffusion.html` directly in a browser: a standalone offline page with embedded data, CSS, JavaScript and Pokémon sprites. Press Play, scrub the 48 steps, or select any of 300 teams. Reset stops playback. The page starts paused, including for reduced-motion users. A mean-only toggle removes the Gaussian offsets; a path toggle preserves the selected team's observed history.
 

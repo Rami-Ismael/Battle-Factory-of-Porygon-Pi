@@ -1,3 +1,3 @@
 # Noise to Team Archetypes
 
-Replaces `../archetype-diffusion/` (owner's pick, take f, 2026-10-14). Open `noise-to-archetypes.html`. Edit `parts/`, then run `python3 build.py`; `prep.py` regenerates `data/figdata.js` and `data/sprites.js`.
+The 2026-09-25 artifact the owner prefers: one team's fields spin like slot reels, then all 512 teams leave the Gaussian cloud. One offline file, data embedded. Replaces `../archetype-diffusion/` in the README and article card.
