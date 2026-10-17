@@ -16,6 +16,7 @@
 	- [ ] [[Visual Plan]]
 	- [ ] [[Explain why creating AI for pokemon does not hurt pokemon acutall enhance pokemon]]
 	- [ ] [[Go through in the blog about the ML pipelines]]
+	- [ ] [[The plumbing — six battle workers, one validator, and a battle cache]]
 	- [ ] [[Add a related work section]]
 	- [ ] [[Cross Entropy]]
 	- [ ] [[Run it yourself — from clone to a battled team]]
