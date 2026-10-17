@@ -1,4 +1,5 @@
 - [ ] Think about the meta structure of writing a blog the blog will start should have atleast two thing why you should care and conclusion and image
+	- Running example in every section: [[Running example — the best real counter]]
 	- [ ] [[Why should you care about team building in competitive pokemon as an academic question]]
 	- [ ] [[Why so we initial use a diffusion model instead of Large Language Model]]
 	- [ ] [[What are the metaheuristic appraoch in creating pokemon team ]]
