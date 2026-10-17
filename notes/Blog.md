@@ -18,6 +18,7 @@
 	- [ ] [[Go through in the blog about the ML pipelines]]
 	- [ ] [[Add a related work section]]
 	- [ ] [[Cross Entropy]]
+	- [ ] [[Run it yourself — from clone to a battled team]]
 	- [ ] [[Conclusion]]
 - [ ] Give the meta structure of the blog outline in [[Blog]] (not the daily posts in `Blog/`), as it stands and in the reading order the notes imply. Before commenting, read every linked note and the notes they link to, one level down (for `Reading List` and `Todo Section`, only the relevant heading), treating writing-process notes as guidance, not sections. The reader is an ML-curious engineer or student and the post is a worked example by a regular Pokémon Champions player, which should also work for hiring managers and people following my work. Judge what is missing against that reader: the problem and why it matters, a short VGC primer from my own play, the setup, the method from scratch with visuals, the big result early, what failed, limitations, how to reproduce, and measured results with no section yet. Check that each section uses one of my real teams as a running example. List at most 8 titles for new markdown files in chat only, each a missing section, ranked, with a one-line reason; then create each file with the full title as its filename and frontmatter only. I am open to WACKY ideas.
 	- [ ] grill me
