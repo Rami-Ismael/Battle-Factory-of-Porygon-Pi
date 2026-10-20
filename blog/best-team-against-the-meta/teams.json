@@ -1,0 +1,54 @@
+{
+ "meta_average": 0.531,
+ "meta_average_source": "code/docs/cem-v3-loop.md: a top-50 team scores 0.531 against the other 49",
+ "teams": [
+  {
+   "key": "wide",
+   "kind": "search",
+   "name": "Wide-screening loop team",
+   "method": "Cross-entropy loop whose surrogate screens 4,096 proposals per round instead of 512, then battles its top 128 (big-pool arm, seed 1).",
+   "wins": 140,
+   "battles": 196,
+   "paste": "Whimsicott @ Mental Herb\nAbility: Prankster\nLevel: 50\nEVs: 2 Def / 32 SpA / 32 Spe\nTimid Nature\n- Dazzling Gleam\n- Moonblast\n- Shadow Ball\n- Tailwind\n\nChandelure @ Focus Sash\nAbility: Flash Fire\nLevel: 50\nEVs: 2 HP / 32 SpA / 32 Spe\nModest Nature\n- Heat Wave\n- Protect\n- Shadow Ball\n- Will-O-Wisp\n\nKingambit @ Quick Claw\nAbility: Defiant\nLevel: 50\nEVs: 26 HP / 25 Atk / 15 Spe\nAdamant Nature\n- Kowtow Cleave\n- Protect\n- Sucker Punch\n- Swords Dance\n\nBasculegion @ Sitrus Berry\nAbility: Adaptability\nLevel: 50\nEVs: 30 Atk / 16 Def / 20 Spe\nAdamant Nature\n- Aqua Jet\n- Last Respects\n- Protect\n- Wave Crash\n\nGarchomp @ Yache Berry\nAbility: Rough Skin\nLevel: 50\nEVs: 32 Atk / 2 SpD / 32 Spe\nJolly Nature\n- Earthquake\n- Protect\n- Rock Slide\n- Stomping Tantrum\n\nFloette-Eternal @ Floettite\nAbility: Symbiosis\nLevel: 50\nEVs: 16 HP / 12 Def / 15 SpA / 23 Spe\nModest Nature\n- Dazzling Gleam\n- Moonblast\n- Protect\n- Solar Beam\n",
+   "source": "code/results/confirm_top.json, team 25102 (arm big_s1)",
+   "rate": 0.7142857142857143,
+   "se": 0.03226813938947326
+  },
+  {
+   "key": "mapelites",
+   "kind": "search",
+   "name": "Style-grid search team",
+   "method": "MAP-Elites: a deep surrogate keeps the best predicted team in each cell of a 12 \u00d7 12 grid of offense/bulk \u00d7 battle length (seed 11).",
+   "wins": 542,
+   "battles": 784,
+   "paste": "Ceruledge @ Colbur Berry\nAbility: Weak Armor\nLevel: 50\nEVs: 31 HP / 25 Atk / 10 Def\nCalm Nature\n- Bitter Blade\n- Bulk Up\n- Protect\n- Shadow Sneak\n\nFloette-Mega @ Floettite\nAbility: Symbiosis\nLevel: 50\nEVs: 7 HP / 27 Def / 32 Spe\nTimid Nature\n- Calm Mind\n- Dazzling Gleam\n- Draining Kiss\n- Protect\n\nIncineroar @ Sitrus Berry\nAbility: Intimidate\nLevel: 50\nEVs: 28 HP / 32 Atk / 6 Spe\nLonely Nature\n- Darkest Lariat\n- Fake Out\n- Parting Shot\n- Throat Chop\n\nMilotic @ Leftovers\nAbility: Competitive\nLevel: 50\nEVs: 32 HP / 27 Def / 5 SpD / 2 Spe\nCalm Nature\n- Coil\n- Hypnosis\n- Muddy Water\n- Protect\n\nSinistcha @ Quick Claw\nAbility: Hospitality\nLevel: 50\nEVs: 32 HP / 4 Def / 30 SpD\nAdamant Nature\n- Life Dew\n- Matcha Gotcha\n- Poltergeist\n- Rage Powder\n\nTyphlosion-Hisui @ Choice Scarf\nAbility: Frisk\nLevel: 50\nEVs: 1 HP / 32 SpA / 1 SpD / 32 Spe\nCalm Nature\n- Eruption\n- Heat Wave\n- Overheat\n- Shadow Ball\n",
+   "source": "code/results/dsame_experiment.json, verify.dsame_11[5], team 887 (fresh 0.69 over 784)",
+   "rate": 0.6913265306122449,
+   "se": 0.01649807342972828
+  },
+  {
+   "key": "real",
+   "kind": "real",
+   "name": "Best real team",
+   "method": "A published VGCPastes Reg M-B team from outside the top 50, battled against all 50 (MB607). The strongest real team tested.",
+   "wins": 1658,
+   "battles": 2400,
+   "se": 0.020302418787346007,
+   "paste": "Sinistcha @ Kasib Berry\nAbility: Hospitality\nLevel: 50\nEVs: 32 HP / 14 Def / 20 SpD\nCalm Nature\n- Life Dew\n- Matcha Gotcha\n- Rage Powder\n- Hex\n\nMilotic (M) @ Leftovers\nAbility: Competitive\nLevel: 50\nEVs: 32 HP / 27 Def / 5 SpD / 2 Spe\nCalm Nature\n- Muddy Water\n- Hypnosis\n- Coil\n- Recover\n\nIncineroar (M) @ Sitrus Berry\nAbility: Intimidate\nLevel: 50\nEVs: 31 HP / 15 Atk / 10 Def / 10 SpD\nAdamant Nature\n- Fake Out\n- Parting Shot\n- Darkest Lariat\n- Flare Blitz\n\nRaichu (M) @ Raichunite Y\nAbility: Lightning Rod\nLevel: 50\nEVs: 30 HP / 13 Def / 23 Spe\nTimid Nature\n- Zap Cannon\n- Focus Blast\n- Fake Out\n- Protect\n\nMimikyu (M) @ Life Orb\nAbility: Disguise\nLevel: 50\nEVs: 9 HP / 30 Atk / 2 Def / 25 Spe\nAdamant Nature\n- Play Rough\n- Shadow Sneak\n- Protect\n- Swords Dance\n\nNinetales-Alola (M) @ Focus Sash\nAbility: Snow Warning\nLevel: 50\nEVs: 2 HP / 32 SpA / 32 Spe\nTimid Nature\n- Blizzard\n- Freeze-Dry\n- Protect\n- Encore\n",
+   "source": "code/results/counter_matrix.json, candidate MB607 (48 battles against each of the 50 teams)",
+   "rate": 0.6908333333333333
+  },
+  {
+   "key": "std",
+   "kind": "search",
+   "name": "Standard loop team",
+   "method": "The plain cross-entropy loop: the surrogate screens 512 proposals and 128 are battled each round (generation 1).",
+   "wins": 128,
+   "battles": 192,
+   "paste": "Whimsicott @ Mental Herb\nAbility: Prankster\nLevel: 50\nEVs: 2 HP / 32 SpA / 32 Spe\nTimid Nature\n- Dazzling Gleam\n- Moonblast\n- Protect\n- Tailwind\n\nChandelure @ Colbur Berry\nAbility: Flash Fire\nLevel: 50\nEVs: 28 HP / 15 SpA / 23 Spe\nModest Nature\n- Heat Wave\n- Overheat\n- Solar Beam\n- Will-O-Wisp\n\nKingambit @ Focus Sash\nAbility: Defiant\nLevel: 50\nEVs: 2 HP / 32 Atk / 32 Spe\nAdamant Nature\n- Kowtow Cleave\n- Low Kick\n- Sucker Punch\n- Swords Dance\n\nFloette-Eternal @ Floettite\nAbility: Flower Veil\nLevel: 50\nEVs: 32 HP / 10 Def / 15 SpA / 9 Spe\nModest Nature\n- Dazzling Gleam\n- Moonblast\n- Protect\n- Solar Beam\n\nBasculegion @ Sitrus Berry\nAbility: Adaptability\nLevel: 50\nEVs: 32 Atk / 14 Def / 20 Spe\nAdamant Nature\n- Aqua Jet\n- Last Respects\n- Protect\n- Wave Crash\n\nGarchomp @ Wide Lens\nAbility: Rough Skin\nLevel: 50\nEVs: 32 Atk / 1 Def / 1 SpD / 32 Spe\nHasty Nature\n- Draco Meteor\n- Protect\n- Rock Slide\n- Stomping Tantrum\n",
+   "source": "code/results/cem_v3.json, best of 16 finalists",
+   "rate": 0.6666666666666666,
+   "se": 0.034020690871988585
+  }
+ ]
+}
