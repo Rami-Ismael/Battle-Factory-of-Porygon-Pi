@@ -95,9 +95,22 @@ footer.col a{color:var(--ink-2)}
   <p class="byline">Rami Ismael · Battle Factory of Porygon-Pi · <span class="draft">Draft</span></p>
 </header>
 
-<article class="col">
+<article>
+<figure id="best-team">
+  <iframe src="../best-team-against-the-meta/index.html?embed" title="The best search-built teams and the best real team, each shown as six Pokémon with its win rate" loading="lazy" style="height:1300px"></iframe>
+  <figcaption>The best teams the search found, next to the best real tournament team. Win rate = wins ÷ fresh battles against the 50 top-placing Regulation M-B teams, with the same behaviour-cloning bot playing both sides; ± is one standard error. Open a row to see its sets and where its numbers come from.</figcaption>
+</figure>
+<div class="col">
   <!-- The article goes here. Rami writes the prose; see ../CLAUDE.md. -->
+</div>
 </article>
+<script>
+/* Size each figure iframe to its page, so a figure never scrolls inside the article. */
+document.querySelectorAll("figure iframe").forEach(f => {
+  const fit = () => { try { const d = f.contentDocument; f.style.height = (d.body.scrollHeight + 2) + "px"; } catch (e) {} };
+  f.addEventListener("load", () => { fit(); new ResizeObserver(fit).observe(f.contentDocument.body); });
+});
+</script>
 
 <footer class="col">
   <p>Text and figures © 2026 Rami Ismael, licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Code is MIT, in the <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi">Battle Factory of Porygon-Pi</a> repository.</p>
