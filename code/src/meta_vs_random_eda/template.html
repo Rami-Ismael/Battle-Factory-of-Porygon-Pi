@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meta vs Random Teams</title>
+<style>
+:root{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--hue:#2a78d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--hue:#3987e5}}
+:root[data-theme="dark"]{--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--hue:#3987e5}
+body{background:var(--surface);color:var(--ink);font:16px/1.55 system-ui,-apple-system,sans-serif;margin:0;padding:24px 16px}
+main{max-width:640px;margin:0 auto}
+h1{font-size:1.6rem;line-height:1.25;margin:0 0 .4rem}h2{font-size:1.15rem;margin:2.2rem 0 .4rem}
+p,li{color:var(--ink2)}b{color:var(--ink)}
+.fig{margin:1rem 0 .3rem}.cap{font-size:.85rem;color:var(--muted);margin:0 0 1rem}
+svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}
+.grid{stroke:var(--grid);stroke-width:1}.tick{fill:var(--muted)}.lab{fill:var(--ink2);font-size:12.5px}.val,.tick{paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}.val{fill:var(--ink);font-size:12.5px}
+.bar{fill:var(--hue)}.ci{stroke:var(--ink);stroke-width:2;opacity:.55}.ref{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3}
+.ln{stroke:var(--hue);stroke-width:2}.dot{fill:var(--hue);stroke:var(--surface);stroke-width:2}
+.mark:hover .bar,.mark:hover .dot{opacity:.75}
+table{border-collapse:collapse;font-size:.9rem;margin:.6rem 0 1rem;width:100%}td,th{padding:4px 8px;border-bottom:1px solid var(--grid);text-align:left}th{color:var(--muted);font-weight:500}
+td:not(:first-child),th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.note{font-size:.88rem;border-left:3px solid var(--grid);padding-left:12px}
+</style></head><body><main>
+<h1>Why meta teams beat random teams</h1>
+<p>Win rate here is the fraction of battles a team wins against the 49 top-50 meta teams, with the VGC-Bench behaviour-cloning policy playing both sides and one battle per opponent. Real VGCPastes teams win <b>0.446</b>. A team whose six Pokémon are drawn uniformly at random from everything Showdown accepts wins <b>0.021</b>. The 100,000-team random pool from August gave the same answer: 0.015.</p>
+<p>The data come from the random-fill baseline (2026-10-04). It took 43 real teams that are not in the top 50, swapped one part at a time for a random legal value, and battled every result against the meta. Each swap changes one thing while everything else stays real, so the drop in win rate is that part's causal share.</p>
+
+<h2>1. The moves carry almost the whole gap</h2>
+<div class="fig">{{FIG1}}</div>
+<p class="cap">Win rate after one part of all 43 real teams is replaced by random legal values. The dashed line is the untouched real teams.</p>
+<p>A team that keeps its meta species, items, abilities, and spreads but gets <b>24 random moves</b> falls to <b>0.056</b>, nearly as low as a fully random team. Random items cost 0.13; random abilities, Stat Points, and Stat Alignment cost 0.05 or less each. The drops add up to more than the full gap because win rate cannot fall below 0: once the moves are random, little is left to lose.</p>
+
+<h2>2. Which moves matter</h2>
+<p>I sorted every move into one type and fitted one value per type from the 1,032 move-swap teams. The baseline is an "other status" move such as Rest, Safeguard, or Curse.</p>
+<div class="fig">{{FIG2}}</div>
+<p class="cap">Change in win rate when one move of this type replaces an "other status" move. The black line is a 95% interval from resampling the starting teams. The fit explains R² 0.42 of the per-team change.</p>
+<table><tr><th>Move type</th><th>Share of real moves</th><th>Share of random moves</th></tr>{{MIX}}</table>
+<p>Real teams spend 18% of their moves on Protect and 12% on spread attacks. Random teams spend 2% and 5%. The random teams' slots go to coverage attacks and filler status moves, the two types that are worth almost nothing. Multiply each type's value by how far the real share sits from the random share and add over 24 moves: the move mix alone predicts a drop of 0.41. The measured drop for 24 random moves is 0.39.</p>
+
+<h2>3. Most of a random Pokémon's cost is its moves</h2>
+<p>Now apply the same move values to the whole-Pokémon swaps, which change species, item, ability, nature, Stat Points, and moves together, and ask how much of the drop the change in move mix predicts.</p>
+<table><tr><th>Random Pokémon</th><th>Measured change</th><th>Predicted from move mix alone</th></tr>{{KTAB}}</table>
+<p>The move mix predicts 73–96% of the drop at every count. What remains, about 0.06 at three to five swaps, is everything else: species, item, and spread together. Among those leftovers, higher base offense and bulk on the new Pokémon help a little. Raw base stat total does not help once offense and bulk are accounted for.</p>
+
+<h2>4. The same pattern across {{NALL}} battled teams</h2>
+<p>The experiments above are causal but small. The matchup database holds every team the project has battled against the meta, mostly teams proposed by the search methods. With the fill-experiment teams removed, two patterns stand out.</p>
+<div class="fig">{{FIG3}}</div>
+<p class="cap">Mean win rate by number of spread attacks (moves that hit both opponents). Points with fewer than 50 teams are hidden.</p>
+<p>Spread attacks give the cleanest pattern in the database: 0.08 with none, rising steadily to 0.50 at five, flat after that. Doubles rewards hitting both targets.</p>
+<div class="fig">{{FIG4}}</div>
+<p class="cap">Mean win rate by number of Protect-family moves.</p>
+<p>Protect rises from 0.32 with none to 0.49 at three, then <b>falls</b>: six or more Protects lose more often. The fill experiment measured the step up from random (random teams average under one Protect). Near the meta, Protect has a ceiling. This matches the earlier finding that three Protects is the threshold.</p>
+
+<h2>What this says</h2>
+<ul>
+<li><b>Meta teams beat random teams mainly because of their moves, not their species.</b> Within those moves, the gap comes from Protect, spread attacks, and STAB attacks, which together make up 64% of a real team's moves and 26% of a random one's.</li>
+<li>A random Pokémon gets four uniformly drawn moves from its learnset. Most of those are off-type coverage or filler status, so each random slot spends turns on moves that do little, and the cost grows almost linearly with the number of random slots.</li>
+<li>Species quality matters, but the measured effect is small: about 0.06 at most beyond what the moves explain.</li>
+</ul>
+<p class="note"><b>Limits.</b> The behaviour-cloning policy plays both sides, so these are values under that policy. It may not exploit a strong species the way a human would, which would make species look less important than they are. The move types are my own grouping (Protect family, speed control, support lists). The fill experiment has 43 starting teams. Section 4 is correlation across generator outputs, not an intervention.</p>
+</main></body></html>
