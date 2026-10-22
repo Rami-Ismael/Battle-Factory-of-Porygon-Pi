@@ -1,0 +1,586 @@
+{
+  "updated_at": "2026-10-13T17:43:55.623003+00:00",
+  "planned_per_method": 420,
+  "common_pairs": 64,
+  "common_starters": 20,
+  "methods": [
+    {
+      "id": "diffusion",
+      "name": "Pok\u00e9mon diffusion",
+      "legal": 420,
+      "cost": 0,
+      "cost_coverage": 420,
+      "legality": 1.0,
+      "full_set": {
+        "outputs": 420,
+        "legal": 420,
+        "invalid": 0,
+        "scored": 420,
+        "legal_win_rate": 0.09238095238095227,
+        "represented_battles": 21000
+      },
+      "battle": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.02125,
+        "low": 0.014916666666666667,
+        "high": 0.028250000000000004
+      },
+      "delta_vs_diffusion": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      }
+    },
+    {
+      "id": "ling-off",
+      "name": "Ling off",
+      "legal": 106,
+      "cost": 0.059190718999999996,
+      "cost_coverage": 420,
+      "legality": 0.2523809523809524,
+      "full_set": {
+        "outputs": 420,
+        "legal": 106,
+        "invalid": 314,
+        "scored": 106,
+        "legal_win_rate": 0.03207547169811322,
+        "represented_battles": 5300
+      },
+      "battle": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.01736666666666667,
+        "low": 0.010150000000000001,
+        "high": 0.025366666666666666
+      },
+      "delta_vs_diffusion": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": -0.0038833333333333337,
+        "low": -0.01055,
+        "high": 0.003166666666666667
+      }
+    },
+    {
+      "id": "ling-on",
+      "name": "Ling on",
+      "legal": 162,
+      "cost": 0.2288028526,
+      "cost_coverage": 420,
+      "legality": 0.38571428571428573,
+      "full_set": {
+        "outputs": 420,
+        "legal": 162,
+        "invalid": 258,
+        "scored": 162,
+        "legal_win_rate": 0.07185185185185176,
+        "represented_battles": 8100
+      },
+      "battle": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.01958333333333333,
+        "low": 0.012916666666666668,
+        "high": 0.026666666666666665
+      },
+      "delta_vs_diffusion": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": -0.0016666666666666666,
+        "low": -0.007833333333333335,
+        "high": 0.005
+      }
+    },
+    {
+      "id": "mercury-off",
+      "name": "Mercury off",
+      "legal": 119,
+      "cost": 0.07346447,
+      "cost_coverage": 420,
+      "legality": 0.2833333333333333,
+      "full_set": {
+        "outputs": 420,
+        "legal": 119,
+        "invalid": 301,
+        "scored": 119,
+        "legal_win_rate": 0.022857142857142868,
+        "represented_battles": 5950
+      },
+      "battle": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.01931666666666667,
+        "low": 0.0124,
+        "high": 0.02733333333333333
+      },
+      "delta_vs_diffusion": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": -0.0019333333333333333,
+        "low": -0.009166666666666667,
+        "high": 0.004916666666666666
+      }
+    },
+    {
+      "id": "mercury-low",
+      "name": "Mercury low",
+      "legal": 127,
+      "cost": 0.09125680599999998,
+      "cost_coverage": 420,
+      "legality": 0.30238095238095236,
+      "full_set": {
+        "outputs": 420,
+        "legal": 127,
+        "invalid": 293,
+        "scored": 127,
+        "legal_win_rate": 0.02299212598425198,
+        "represented_battles": 6350
+      },
+      "battle": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.016500000000000004,
+        "low": 0.011000000000000001,
+        "high": 0.02225
+      },
+      "delta_vs_diffusion": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": -0.00475,
+        "low": -0.009666666666666667,
+        "high": 0.0004166666666666663
+      }
+    },
+    {
+      "id": "mercury-medium",
+      "name": "Mercury medium",
+      "legal": 141,
+      "cost": 0.23064217600000012,
+      "cost_coverage": 417,
+      "legality": 0.3357142857142857,
+      "full_set": {
+        "outputs": 420,
+        "legal": 141,
+        "invalid": 279,
+        "scored": 141,
+        "legal_win_rate": 0.03886524822695035,
+        "represented_battles": 7050
+      },
+      "battle": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.018866666666666664,
+        "low": 0.011850000000000001,
+        "high": 0.02686666666666667
+      },
+      "delta_vs_diffusion": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": -0.0023833333333333337,
+        "low": -0.009583333333333333,
+        "high": 0.005083333333333334
+      }
+    },
+    {
+      "id": "mercury-high",
+      "name": "Mercury high",
+      "legal": 155,
+      "cost": 0.29480953800000015,
+      "cost_coverage": 418,
+      "legality": 0.36904761904761907,
+      "full_set": {
+        "outputs": 420,
+        "legal": 155,
+        "invalid": 265,
+        "scored": 155,
+        "legal_win_rate": 0.05277419354838701,
+        "represented_battles": 7750
+      },
+      "battle": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.02291666666666667,
+        "low": 0.014083333333333333,
+        "high": 0.034
+      },
+      "delta_vs_diffusion": {
+        "pairs": 64,
+        "starters": 20,
+        "mean": 0.0016666666666666666,
+        "low": -0.007333333333333333,
+        "high": 0.010916666666666665
+      }
+    }
+  ],
+  "pairwise": {
+    "mercury-reasoning-20261013/off": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.7166666666666663,
+        "low": 0.6928571428571427,
+        "high": 0.7404761904761903
+      },
+      "battles": {
+        "pairs": 119,
+        "starters": 20,
+        "mean": 0.002904761904761905,
+        "low": -0.0025785714285714275,
+        "high": 0.008238095238095239
+      },
+      "paired_diffusion_rate": 0.02571547619047619,
+      "paired_llm_rate": 0.022810714285714285
+    },
+    "mercury-reasoning-20261013/low": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6976190476190476,
+        "low": 0.6690476190476189,
+        "high": 0.7214285714285713
+      },
+      "battles": {
+        "pairs": 127,
+        "starters": 20,
+        "mean": 0.0023257575757575756,
+        "low": -0.002859523809523809,
+        "high": 0.007333333333333332
+      },
+      "paired_diffusion_rate": 0.024189502164502164,
+      "paired_llm_rate": 0.02186374458874459
+    },
+    "mercury-reasoning-20261013/medium": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6642857142857141,
+        "low": 0.626190476190476,
+        "high": 0.6999999999999998
+      },
+      "battles": {
+        "pairs": 141,
+        "starters": 20,
+        "mean": 0.006824206349206351,
+        "low": 0.00093968253968254,
+        "high": 0.012667857142857142
+      },
+      "paired_diffusion_rate": 0.044675396825396826,
+      "paired_llm_rate": 0.037851190476190476
+    },
+    "mercury-reasoning-20261013/high": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6309523809523807,
+        "low": 0.5928571428571429,
+        "high": 0.6666666666666666
+      },
+      "battles": {
+        "pairs": 155,
+        "starters": 20,
+        "mean": -0.0025460678210678213,
+        "low": -0.010329797979797982,
+        "high": 0.005009415584415584
+      },
+      "paired_diffusion_rate": 0.04848647186147186,
+      "paired_llm_rate": 0.051032539682539686
+    },
+    "reasoning-expanded-20261012/off": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.7476190476190476,
+        "low": 0.7047619047619047,
+        "high": 0.7880952380952381
+      },
+      "battles": {
+        "pairs": 106,
+        "starters": 20,
+        "mean": 0.006276190476190475,
+        "low": 0.0008119047619047617,
+        "high": 0.01185
+      },
+      "paired_diffusion_rate": 0.03229523809523809,
+      "paired_llm_rate": 0.02601904761904762
+    },
+    "reasoning-expanded-20261012/on": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6142857142857142,
+        "low": 0.5785714285714285,
+        "high": 0.6476190476190473
+      },
+      "battles": {
+        "pairs": 162,
+        "starters": 20,
+        "mean": 0.008947438672438673,
+        "low": 0.0025301226551226533,
+        "high": 0.014767027417027418
+      },
+      "paired_diffusion_rate": 0.0791771645021645,
+      "paired_llm_rate": 0.07022972582972584
+    }
+  },
+  "cohort": [
+    [
+      "s0-alignment-6",
+      0
+    ],
+    [
+      "s0-alignment-6",
+      1
+    ],
+    [
+      "s0-alignment-6",
+      2
+    ],
+    [
+      "s1-alignment-6",
+      0
+    ],
+    [
+      "s1-alignment-6",
+      1
+    ],
+    [
+      "s1-alignment-6",
+      2
+    ],
+    [
+      "s10-alignment-6",
+      0
+    ],
+    [
+      "s10-stats-6",
+      0
+    ],
+    [
+      "s10-stats-6",
+      1
+    ],
+    [
+      "s10-stats-6",
+      2
+    ],
+    [
+      "s11-ability-6",
+      2
+    ],
+    [
+      "s11-alignment-6",
+      0
+    ],
+    [
+      "s11-alignment-6",
+      1
+    ],
+    [
+      "s11-alignment-6",
+      2
+    ],
+    [
+      "s11-stats-6",
+      1
+    ],
+    [
+      "s12-alignment-6",
+      0
+    ],
+    [
+      "s12-alignment-6",
+      1
+    ],
+    [
+      "s13-alignment-6",
+      0
+    ],
+    [
+      "s13-alignment-6",
+      1
+    ],
+    [
+      "s13-alignment-6",
+      2
+    ],
+    [
+      "s13-stats-6",
+      2
+    ],
+    [
+      "s14-alignment-6",
+      0
+    ],
+    [
+      "s14-alignment-6",
+      1
+    ],
+    [
+      "s14-alignment-6",
+      2
+    ],
+    [
+      "s15-alignment-6",
+      0
+    ],
+    [
+      "s15-alignment-6",
+      1
+    ],
+    [
+      "s15-stats-6",
+      2
+    ],
+    [
+      "s16-alignment-6",
+      0
+    ],
+    [
+      "s16-alignment-6",
+      1
+    ],
+    [
+      "s16-stats-6",
+      0
+    ],
+    [
+      "s17-alignment-6",
+      1
+    ],
+    [
+      "s17-alignment-6",
+      2
+    ],
+    [
+      "s18-alignment-6",
+      1
+    ],
+    [
+      "s18-stats-6",
+      0
+    ],
+    [
+      "s19-alignment-6",
+      0
+    ],
+    [
+      "s19-alignment-6",
+      1
+    ],
+    [
+      "s19-alignment-6",
+      2
+    ],
+    [
+      "s2-alignment-6",
+      0
+    ],
+    [
+      "s2-alignment-6",
+      1
+    ],
+    [
+      "s2-alignment-6",
+      2
+    ],
+    [
+      "s2-stats-6",
+      2
+    ],
+    [
+      "s3-alignment-6",
+      0
+    ],
+    [
+      "s3-alignment-6",
+      1
+    ],
+    [
+      "s4-alignment-6",
+      0
+    ],
+    [
+      "s4-alignment-6",
+      1
+    ],
+    [
+      "s4-alignment-6",
+      2
+    ],
+    [
+      "s4-stats-6",
+      0
+    ],
+    [
+      "s5-alignment-6",
+      0
+    ],
+    [
+      "s5-alignment-6",
+      1
+    ],
+    [
+      "s5-alignment-6",
+      2
+    ],
+    [
+      "s5-stats-6",
+      0
+    ],
+    [
+      "s6-alignment-6",
+      1
+    ],
+    [
+      "s6-stats-6",
+      1
+    ],
+    [
+      "s6-stats-6",
+      2
+    ],
+    [
+      "s7-alignment-6",
+      1
+    ],
+    [
+      "s7-alignment-6",
+      2
+    ],
+    [
+      "s8-alignment-6",
+      0
+    ],
+    [
+      "s8-alignment-6",
+      1
+    ],
+    [
+      "s8-alignment-6",
+      2
+    ],
+    [
+      "s8-stats-6",
+      2
+    ],
+    [
+      "s9-alignment-6",
+      0
+    ],
+    [
+      "s9-alignment-6",
+      1
+    ],
+    [
+      "s9-alignment-6",
+      2
+    ],
+    [
+      "s9-stats-6",
+      2
+    ]
+  ]
+}

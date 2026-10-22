@@ -17,6 +17,7 @@ import torch, torch.nn as nn, torch.nn.functional as F
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from showdown_validator import VGC_BENCH
 import activesearch as A
 import diffusion as D
 import hpsdiffusion as H
@@ -24,17 +25,18 @@ import matchup_db as MDB
 import pool
 from corpus import parse_team_text
 from encode import NF, NSLOT
+import heldout as HO               # ranks 51-100: excluded from training rows (docs/heldout-51-100.md)
 import hps_generate
 from hps_generate import Validator
+from checkpoints import load_checkpoint
 # /tmp Showdown lost node_modules files to tmp cleanup (2026-10-04); durable validator copy, same commit 913da36
-hps_generate.SHOWDOWN = Path.home() / ".local/share/vgc-pilot-runtime/validator-913da36"
 
 REPO = Path("/Users/ramiismael/Documents/code/vgc-team-generator-pilot")
 RES = REPO / "results"
 OUT = RES / "asked_vs_got.json"
-DATA = RES / "asked_vs_got_data.json"
-CKPT = RES / "asked_vs_got.pt"
-P0 = RES / "temperature_p0.pt"
+DATA = RES / "asked_vs_got_data_noheldout.json"
+CKPT = RES / "asked_vs_got_noheldout.pt"
+P0 = RES / "temperature_p0_noheldout.pt"
 WORK = Path("/tmp/vgc-pilot/askedgot")
 SOURCES = ["activesearch", "dsame_experiment", "entropyloop", "gradguide", "gradloop"]
 ASKED = [round(0.1 * i, 1) for i in range(10)]
@@ -54,6 +56,7 @@ def _walk(o, acc):
 def gather():
     pooled = {}                                   # canon hash -> [paste, wins, battles]
     def add(p, y, n):
+        if HO.is_heldout_text(p): return          # ranks 51-100 are not training labels
         c = MDB.canonical_paste(p); h = MDB.canon_hash(c)
         e = pooled.setdefault(h, [p, 0.0, 0])
         e[1] += y * n; e[2] += n
@@ -104,9 +107,15 @@ class ContinuousWR(H.TeamDiffusionHPS):
 
 
 def setup():
-    cf = A.load_corpus_files(); corpus = [t for _, t in cf]
-    V = A.Vocab(corpus); C = D.Constraints(V, A.Legality(corpus))
-    look, spreads = A.decode_tables(corpus)
+    """(training corpus, vocabulary, constraints, display names, spreads).
+
+    The vocabulary, rule tables and display names come from every corpus file: removing the held-out
+    teams shrinks them and would move every token id in every saved checkpoint. What is learned from
+    or sampled (rows, spread donors) is the training corpus, without ranks 51-100."""
+    cf = A.load_corpus_files(); full = [t for _, t in cf]
+    V = A.Vocab(full); C = D.Constraints(V, A.Legality(full))
+    corpus = [t for _, t in HO.training_pairs(cf)]
+    look, _ = A.decode_tables(full); _, spreads = A.decode_tables(corpus)
     return corpus, V, C, look, spreads
 
 
@@ -117,9 +126,9 @@ def train():
     X, W, drop = [], [], 0
     for r in rows:
         t = parse_team_text(r["paste"])
-        if len(t) != 6: drop += 1; continue
-        e = V.encode(t)
-        if (e == 0).any(): drop += 1; continue     # a field outside the corpus vocabulary
+        if len(t) != 6 or HO.is_heldout_team(t): drop += 1; continue
+        try: e = V.encode(t)
+        except ValueError: drop += 1; continue     # a field outside the corpus vocabulary
         X.append(e); W.append(r["y"])
     X, W = np.stack(X), np.array(W, dtype=np.float32)
     Xc = np.stack([V.encode(t) for t in corpus]); Wc = np.full(len(Xc), np.nan, np.float32)
@@ -128,7 +137,7 @@ def train():
     wtr = torch.tensor(np.concatenate([W[tr], Wc]), device=D.DEV)
     xte, wte = torch.tensor(X[te], device=D.DEV), torch.tensor(W[te], device=D.DEV)
     m = ContinuousWR(V).to(D.DEV)
-    miss, _ = m.load_state_dict(torch.load(P0, map_location=D.DEV)["sd"], strict=False)
+    miss, _ = m.load_state_dict(load_checkpoint(P0, map_location=D.DEV)["sd"], strict=False)
     print(f"{len(tr)} labelled + {len(Xc)} corpus (null) · held-out {len(te)} · dropped {drop} · "
           f"new params {miss}", flush=True)
     opt = torch.optim.AdamW(m.parameters(), lr=2e-4, weight_decay=.01)
@@ -148,7 +157,7 @@ def train():
 
 
 def load(V):
-    m = ContinuousWR(V).to(D.DEV); m.load_state_dict(torch.load(CKPT, map_location=D.DEV)["sd"]); m.eval()
+    m = ContinuousWR(V).to(D.DEV); m.load_state_dict(load_checkpoint(CKPT, map_location=D.DEV)["sd"]); m.eval()
     return m
 
 
@@ -203,8 +212,7 @@ def battle():
     one battle per (generated team, top-50 column) cell via matchup_db.score_pastes."""
     # /tmp/vgc-pilot lost the vgc_bench package and Showdown node_modules to tmp cleanup;
     # runtime copies are the same commits (vgc-bench d79f953, Showdown 913da36)
-    pool.REPO = str(Path.home() / ".local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2")
-    MDB.SHOWDOWN = hps_generate.SHOWDOWN
+    pool.REPO = str(VGC_BENCH)
     con = MDB.connect()
     out = json.load(open(OUT))
     todo = [t for t, c in out["cells"].items() if "y" not in c]
@@ -234,7 +242,7 @@ def battle():
 def fill():
     """Battle any (team, top-50) cell still missing -- a shard that hangs on exit is killed and its
     battles discarded -- then recompute every cell's scores from the matchup matrix."""
-    pool.REPO = str(Path.home() / ".local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2")
+    pool.REPO = str(VGC_BENCH)
     con = MDB.connect(); out = json.load(open(OUT))
     ids = sorted({t for c in out["cells"].values() for t in c.get("team_id", [])})
     legal = {t for (t,) in con.execute(f"SELECT team_id FROM team WHERE legal=1 AND team_id IN ({','.join('?' * len(ids))})", ids)}

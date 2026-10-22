@@ -1,20 +1,17 @@
 - [x] I don't want claude to click done when finished a todo task in my vault. For example, one todo item I was really confuse what is going , plus it make the text hard to read and follow I put somewhere else later in my notes
-- [ ] [[Matchup Matrix]]
 - [ ] Use a diffusion model as a pokemon team candidate proposer by doing model base search
 	- [ ] Track team diversity and win rate across CEM generations, starting before fine-tuning.
-		- Prerequisite: complete [[Metrics for Diversity]] so the same measurements are used before and after fine-tuning.
+		- Prerequisite: completeso the same measurements are used before and after fine-tuning.
 	- [ ] Compare classifier-free guidance strengths for team win rate, legality, and diversity.
 		- Prerequisite: complete [[Metrics for Diversity]] so every guidance strength is compared using the same measurements.
-	- [ ] Test whether rearranging the same team's Pokémon changes the diffusion model's guesses for a hidden item, despite its existing slot-shuffling training. Reorder complete Pokémon blocks after encoding; hold the hidden item and model settings fixed, disable dropout, and include an unchanged-input repeat. Visualize item probabilities before and after reordering with paired bars, then show prediction changes across held-out teams. Use this inexpensive check to decide whether team-order sensitivity needs further work.
 	- [ ] [[trying to retire this convert this into a blog (diffusion model as team generator for model-based search-research finding) into (Using diffusion model for black box optimzation)]]
-	- [ ] [[Diffusion as candidate proposer in black-box optimization over structured inputs]] move everything to [[Ablation Experiments]]
+	- [ ] [[Diffusion as candidate proposer in black-box optimization over structured inputs]] move everything to 
 	- [x] Test whether gradually lowering Boltzmann selection temperature during retraining, inspired by DiffUCO, improves the diffusion generator's battle win rate while preserving diversity.
 		- **Tested 2026-09-08:** 15 runs and 921,600 battles audited. Annealing retained more diversity than fixed 0.10/0.20 but had lower observed win rates; three-seed intervals remain inconclusive. [[Boltzmann selection temperature experiment]]
 		- **Idea from the paper:** [DiffUCO (§§2–4)](https://arxiv.org/html/2406.01661v1) trains a diffusion model to approximate sampling from an intractable Boltzmann distribution, `p_T(x) ∝ exp(-E(x) / T)`. Its training objective avoids computing the normalization sum over all solutions. During training, the authors lower `T` linearly to zero, progressively concentrating the target on low-energy solutions.
 		- **Our adaptation:** treat negative measured win rate as energy and sample evaluated teams for retraining with probability proportional to `exp(measured_win_rate / T)`. Start with a higher `T` to include a broader range of teams, then lower it to favor stronger measured teams. Low `T` can amplify noisy battle scores. This applies annealing to selection from an evaluated pool; implementing DiffUCO's full training objective would be a separate experiment.
 		- **Implementation:** extend `vgc-team-generator-pilot/src/entropyloop.py`, which already has `boltz_weights()` and a `0.30 → 0.10` schedule. Compare that schedule with fixed temperatures (`0.10`, `0.20`, `0.30`) and adaptive temperature based on weight concentration. Temperature is scheduled or adapted, rather than learned as a network weight; it is optional for ordinary diffusion denoising.
 		- **Evaluation:** hold decoding temperature fixed and the separate loss entropy bonus at zero; match starting model, training steps, battle policy, opponents, and battle budgets. Repeat across seeds, measure generated-team diversity, and verify finalist win rates in fresh battles.
-- [ ] [[Metaheuristics]]
 - [ ] You should read paper that cites this  [Self-Consuming Generative Models Go MAD](https://api.semanticscholar.org/arXiv:2307.01850) that address the issues the author comes up with and [On the Stability of Iterative Retraining of Generative Models on their own Data](https://api.semanticscholar.org/arXiv:2310.00429) also look for other paper put in them a markdown then use those paper using animation and design skills for me so far the paper that interest right from early research [Neon: Negative Extrapolation From Self-Training Improves Image Generation](https://arxiv.org/abs/2510.03597) and [Self-Improving Diffusion Models with Synthetic Data (SIMS)](https://arxiv.org/abs/2408.16333)
 	- [ ] grill me
 - [ ] [[Model-based trust-region methods]]
@@ -78,18 +75,93 @@
 - [ ] [[Ablation Experiments]]
 - [ ] Go through the seven job to get lesson from them that should be a blog section in the ideas to discuss about approacches i think like a subsection in the paragraph the biggest struggle where to place we focus on that latter or create a new blog if ncesssary 
 - [ ] The ideas for the beginning of the project we start with a diverse set of pokemon team to trained a diffusion model that can produce valid pokemon team we also have classifer free guidance in where we also the rank againt the current top 50 placement taem, we start with from a point with the guidance classifer let say the best pokemon team in the datasets was .1 we will start with .11 , then we retrained the diffusion model with the extra details we have a surroage model to check if this true or not also  i think this is called active generation . First make an exalidraw drawing on these detilas to help me explain the thought and determine what future direction i can go 
-- [ ] [[MAP Elite]]
-- [ ] How to make sure composition is more diverse after each generation
-- [ ] /goal Retrained a diffusion model base on what data we have so far in the mathup matrix and other data sources there is this should exceeed what we have before hand I want what to see the loss function to be lower than we ever had before and come up or read current academic paper to find techniques to find to furthere improve data loss I want wacky ideas please as many compute or token that is necessary todo  please make sure it has classifier guidance backed in too tell me those paper and added to them reading list that show increase performances 
+- [ ] How to make sure composition is more diverse after each generation for example version three of the model has the ability to generate a diverse set of pokemon team however it generate a few of them so we need to have new method that handle repetition please share me what wacky ideas you have i don't care how much compute it cost you can do please I want to increase variety and diversity of the model please add vertiifcation step to check if you actually increase diversity use our method [[Metrics for Diversity]] evental at the end of all diversity metho we combine them to see what are improvement can be in them please cite current academic literatue for this project while your are at ti
+	- [ ] Sonnet
+		- [ ] 1. **Peeling the onion.** Run the loop, find the winning core, then ban its top 3 species with a logit mask and run again. Repeat. The result is a ladder of cores, each forced away from the last.c
+			- [ ] 
+- [x] /goal Retrained a diffusion model base on what data we have so far in the mathup matrix and other data sources there is this should exceeed what we have before hand I want what to see the loss function to be lower than we ever had before and come up or read current academic paper to find techniques to find to furthere improve data loss I want wacky ideas please as many compute or token that is necessary todo  please make sure it has classifier guidance backed in too tell me those paper and added to them reading list that show increase performances 
 - [ ] Create a personal project we create a leaderboard for prompt engineering what can be produce in the solution for this could be just pokemon team building for this reason why now
-- [ ] Given all the placement team pokemon that are valid to be used in our dataset meaning they are the states, iv , abiliteis and moves we will be added to the to our datasets too and determine where they place them againt the meta pool we have to do some math behind in these details
+- [ ] Add a subset condition to the diffusion generator's training pipeline and run it as an ablation of how many meta teams the generator is asked to beat: condition on an asked win rate against any chosen subset of the 49 distinct top-50 Regulation M-B meta teams (the 50 entries contain one team twice), where k is the number of meta teams in the subset, from 1 to 49, training on random subsets with the observed win fraction over the chosen meta teams taken from the stored matchup matrix. Compare three arms with the same training teams, steps and seeds: a slot mask over the 49 meta teams, species multi-hot features of each chosen meta team, and a frozen off-the-shelf text encoder that reads each chosen meta team's Showdown paste, with the vectors sum-pooled (record the encoder's name and version); hold out 10 fixed random meta teams from all training and ask for them only at test time. Build the placement ladder at k = 1, 2, 3, 5, 10, 20, 35 and 49 in two orders, best placement first and worst placement first, with ties broken by sheet identifier, and report both because placement barely predicts how hard a meta team is to beat (Spearman −0.07). For every arm, order and k, ask win rates from 0.1 to 1.0 in steps of 0.1, generate 256 Showdown-valid teams per cell at k up to 3 and 64 above, battle each team once against each of its k asked meta teams with the behaviour-cloning policy on both sides, store every battle in the matchup database, and plot asked against got (got = the fraction of those battles the generated team wins), one line per k, with the existing scalar model as the k = 49 point. Report three measures, with the decision rules written down before any battle runs: degradation (slope of got at ask 0.5 against log k, real only if the sign agrees in both orders and the interval excludes zero), ceiling (the highest ask at which got stays within 0.05 of asked), and effort (rounds of the Cross Entropy Method, at 128 teams × 24 battles × 11 generations per run, needed to reach a target win rate at k = 1, 5, 20 and 49 in both orders, run only if the grid shows a k effect). Do not launch training or battles until you have reported the counts, the battle bill (about 549,000 battles for the grid) and the run order. Why: this tests whether telling the generator which meta teams to beat, and how many, changes the win rate it can deliver, and whether a text encoder carries more signal than slots on meta teams it has never seen.s
 	- [ ] grill me 
 - [ ] I was wondering given our diffusino model can we retrained to find the given win rate given a diverse set of meta team which can 1 to 5 this could be done using a text encoder just start with  we should do this first with our abalation experiment then apply cross entropy loss to see the ask ersus got rate in the graph 
 	- [ ] Can you make a flow chart or some visual if I select this options then the result be more like when grilling me 
 - [ ] I think a better ideas is to have central githb repo called Battle-Factory-of-Porygon-Pi where it has the code and my markdown notes in one place, while there will be two folder one for code and one for markdwon notes source of truth, the idea we are gonna gonna make it distinct from my obsidian onte which is my the local source of truth inside of my laptop. There is an update in my obsidian notes markdown there will be the same edit inside the github. Please make a visual using a prottype then crateone with desiang and animation 
 	- [ ] Instead replacing the wording for mono repo it should be place inside of "GitHub repository structure for Battle-Factory-of-Porygon-Pi"
-- [ ] [[Replace the scratch model with a pretrained text diffusion model finetune it to do your task]]
-- [ ] I was wondering can we add force diversity in the Cross Entropy method what will that be
-- [ ] How do I check that my prompt have a vertification step in them always in them  https://x.com/bcherny/status/2107565388250874193
-- [ ] I think for something for moves we should add empty moves slot part of the training pipeline, i was looking at the output of one of our diffusion model we we kinggambit have a floettitie items when it should be given to floetee-eternal what could be the source of the problem
-- [ ] I think we have to update the prompt for where we say which regulation we are focusing on M-B that help increase the legal output for ling also bring a comparison chart for this
+- [ ] I want to do research for me on this aspect where we look for paper in the field of diffusio model where we encourage model to generate diverse sample to the target right we asked chat to generate new wacky ideas we should list or tell the model to look for them please and thank you when doing cross entropy so it won't collapse to a few good answer
+- [ ] [[Diversity in Diffusion Model]]
+- [ ] How do I check that my prompt have a vertification step in them always in them  https://x.com/bcherny/status/2107565388250874193 "I am surprised that people are surprised this is how I prompt Claude. Talk to Claude the way you would a coworker. There's no secret to prompting. There's no need to be overly scaffolded or prescriptive for most tasks -- give Claude a goal, and it will figure it out. Back in the Sonnet 3.5 days, your prompt mattered a lot. Nowadays, it's much more important to communicate to the model: 1. What you want it to do 2. How much effort you want it to spend 3. How it should verify that it did the right thing"
+- [x] I think for something for moves we should add empty moves slot part of the training pipeline, i was looking at the output of one of our diffusion model we we kinggambit have a floettitie items when it should be given to floetee-eternal what could be the source of the problem
+- [x] I think we have to update the prompt for where we say which regulation we are focusing on M-B that help increase the legal output for ling also bring a comparison chart for this please make sure the update so the desire visual and artifact that is deem relevant with the updates prompt
+- [ ] I am trying to understand that version one of my diffusion model that was trained limitted set of data hoping to reach an it does not have the ability to generate all possible pokemon team I was wondering I was wondering v3 and v2 actually perform worse than version 1 and actually diverse with the concern of the diverse concern of the aspect please use subagent to find claim, evidence or proof for any claim that I make and opus does make can you grill me the instruction that feed into a single checkbox  please use better naming scheme than F1 and G2 It's true that I cannot generate all possible pokemon team instead i Can expect a dataset where each species is use atleast once i meant only the claude code diffusion model that was generation in a chat session called "Diffusion model retraining and loss optimization"
+	- [ ] Check with evidence whether the full-vocabulary diffusion model (version 3) is a worse team generator than versions 1 and 2, and whether the lost diversity comes from the steering method and not the model
+		- Why: plain version 3 wins 0.099 against version 2's 0.257, yet fully stacked it wins 0.556 against 0.527; stack line-ups are 1, 17 and 12 of 64
+		- Models: version 1 = `results/asked_vs_got.pt`; version 2 = the F1 + G2 loss-down mixture; version 3 = Codex regmb v3 (`F1_final_medium_regmb_v3` + `G2_family_matrix_noprtrain_regmb_v3`)
+		- Win rate = wins against the top-50 meta teams, behaviour-cloning policy on both sides, 64 teams × 49 battles
+		- Rules: no new battles. Use a subagent per claim. Evidence is a number read from `code/results/*.json` with its path, not doc prose or memory. Report one row per claim: claim, verdict (supported / contradicted / unmeasured), number, path. A contradicted claim is reported as contradicted, never reworded.
+		- Subagent models: the latest Haiku (Haiku 5.5) for exact lookups and counts where the expected value is given to it; Opus for refutation and anything needing judgement; the main session directs and checks disputed numbers at the source itself
+		- [ ] 1. Claim: versions 1 and 2 cannot produce every legal team, because their vocabulary holds 189 of 347 species
+		- [ ] 2. Claim: version 3 can produce all 347 species but only does so unsteered (33 of 64 plain teams hold a new species, 0 of 64 stacked)
+		- [ ] 3. Claim: version 2 beats version 1 in all 8 arms; version 3 loses to version 2 in 7 arms and wins only the stack
+		- [ ] 4. Claim: the steering stack, not the model version, removes diversity. Count distinct six-species line-ups at plain and at stack for each version, and in the cross-entropy loop (176 → 161 → 44)
+		- [ ] 5. An Opus subagent tries to refute every row marked supported; a Haiku subagent rechecks every number in the final report against the JSON
+		- [ ] 6. Decide: keep version 3 as the foundation, or go back to version 2
+- [ ] [[Why changing sampler does increase diversity]]
+- [x] Create a separate evaluation set of Pokémon teams ranked 51–100, inclusive, using the same data source, placement ordering, extraction process, and output format as our existing top-50 set. Verify it contains the expected 50 teams. Exclude these teams, including identical configurations appearing elsewhere, from training/search and candidate selection. If they exist in the matchup matrix, exclude their entries from all search fitness and selection calculations; use those entries only to evaluate the final selected counter. Add a focused check that verifies this separation. Preserve the existing top-50 set and CEM/MAP-Elites algorithms, changing only the filtering needed to enforce the separation.
+- [x] Check if possible to make all the artifact possible github page, so the answer is which artifact you want to make a github page
+- [ ] So, I am new to the field of RLHF , i heard the people openai and antrhopic use RLHF and there open source library like diffuser and tlr use RLHF applied to diffusion model I am interested in apply to RLHF to for the model to generate better, novel and diverse pokemon team againt a counter team..
+	- [ ] grill me 
+- [ ] I think these a problem we have a training script in claude code session in where the claude code find many problem with old script and improve on upon than compare to we should have one that was trained in full vocabulary model in claude code here is what I learn from this "- **Who trained the full-vocabulary model:** Codex did, on 2026-10-08, not Claude Code. Claude Code only ran battles and the cross-entropy loop on Codex’s two checkpoints, so version 3 under reading A is that Codex model."
+- [ ] Grab all the link special link on https://github.com/caymansimpson/reuniclusVGC to add them on this details put below where in my obsidina link for please and thank 
+- [ ] So, I am interested in performing this experement in where we test the does increase llm model ability to reasoning for the answer incease the change the answer is legal and will it increase the battle performances of the team again the current meta pool. Right now , my codebase does not support it we are not using any reasoning for the current llm model. So, I want the feature to be added to test the experiment
+	- [ ] can you grill me instruction that I am planning to feed into code please talk about wacky ideas and missing detail in the my instruction
+- [ ] How to encourage the llm model to use better wording then to use F1 and G2 i
+- [ ] Replace this section "Ladder validation report ($N$ games, pipeline team vs. baseline, confidence intervals)" with a new section that discuss how to build your vgc agent to be a ladder 
+- [ ] It be interesting to understand why path planning to perform so well compare to other method and does not collapse so badly
+- [ ] It be nice to create a bar chart of frequency of a win rate on the x axis and the y axis is frequency if appear in the datasets wun rate round to the nearest .01 places
+	- [ ] grill me 
+- [ ] I think the main problem with the path plannar is the issues we did not try the full set of force diversity in the there could be more diversity in diffusion llm 
+- [x] Go through the visual artifact the chatgpt created in codex session "Refine AI VGC blog prompt" please put your own spin ui, ux and animation way for the "When AI gets stronger,what happens to the player as an artifact?"
+- [ ] Test whether DSPy’s structured inputs and outputs improve our masked Pokémon team completion baseline. In phase one, reuse the existing models, reasoning levels, random teams, masks, instructions, information, validation, and meta-pool evaluation; change only the DSPy structure, without optimization. Compare win rates against the existing baselines and report uncertainty, including no improvement or regressions. Add DSPy optimization in phase two. Include a concise animated explanation of masked input → completion → evaluation.
+	- [ ] Can you grill me on my oringal instruction that I am planning to fed to codex for me please and I want use to your desing skills that focus on UI and UX and please use animation, i wondering what are the condition for the dspy text structure to look like anyway
+- [ ] I think a new update to our diffusion model is to have an way encode already seen version of the datasets so a text encoder
+- [x] There is a claude artifiact named See what Changes. Measure what help. I allowed the inferior model chatGPT mess up it ruin the UI , UI and animation structure and quality of text while you at. So, I was wondering can you fix make it work properly explain the orginal purpose propery
+	- [ ] grill me
+	- [ ] What are some skill that will be useful for this aspect
+	- [x] grill my instruction 
+	- [ ] regular versoin
+	- [ ] DSPy version
+- [x] Create a which ai for pokemon team building
+- [x] What is cloud session credit 
+- [ ] https://x.com/vTRouter/status/2110869583879958886
+
+# The interface of the todo list better order and structure 
+
+- [ ] [[Matchup Matrix]]
+- [ ] [[Spreading my work to the global internet]]
+- [ ] diffusion model as a pokemon team candidate proposer by doing model base search
+	- [ ] Diversity
+		- [ ] [[Diversity in Diffusion Model]]
+		- [ ] [[Metrics for Diversity]]  
+	- [ ] Rank-dependent corruption
+	- [ ] [[Looped Diffusion]]
+	- [ ] Text Diffusion Model
+		- [ ] Pretrained Diffusion 
+			- [ ] [[Replace the scratch model with a pretrained text diffusion model finetune it to do your task]]
+			- [ ] Determine the smallest text pretrained diffusion model there
+		- [ ] Scratch by Text Diffusion Model given in json format or something like dspy format compare to the 48 field of diffusion model then we do scale the experiment on the details 
+		- [ ] Training Speed
+			- [ ] First, tell me what is the current training speed of our text diffusion model. Afterward, come up with a new ideas , it can replaciing our text diffusion model with other text diffusion come up with WACKY ideas use as much compute as necessary please. The verfication it the training speed is faster, loss is close from last time. Write down in a markdown table consider also replacing adamw with sgd for less memory usage or there is neural magic also do /research with ubagent /wiriting-for-agents
+- [ ] [[What is the baseline]]
+- [ ] [[Decision model]] x
+- [ ] [[Goes through the artifact]]
+- [ ] [[Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/Papers/Reading List|Reading List]]
+	- [ ] [[Diffusion-BBO Diffusion-Based Inverse Modeling for Online Black-Box Optimization]]
+- [ ] [[Metaheuristics]]
+	- [ ] The one idea that transfers is global top-k re-centering (Section 3.2 and ablation D.1)
+- [ ] [[Hyper Heuristic]]
+- [ ] I was wondering can you we concept like having a battle be just random battle this will crate a graph with tree a start of brownian motion maybe we can use something like to identiy as feature what we can use graph theory for some ideas like this anyway
+- [ ] Neural Artectire Search
+	- [ ] Use a transformers with PyTorch
+- [ ] [[Ablation Experiments]]
+
+

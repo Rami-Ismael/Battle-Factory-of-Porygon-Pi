@@ -24,6 +24,7 @@ import gradguide as GG
 import streamliner as ST
 import matchup_db as MDB
 import hps_generate
+from checkpoints import load_checkpoint
 from hps_generate import Validator, slot_to_text
 from corpus import parse_team_text, norm, STATS
 from encode import NF, NSLOT
@@ -31,12 +32,15 @@ from encode import NF, NSLOT
 import os
 SET = os.environ.get("FOUNDATION_SET", "")          # "" = the original old-vs-new run; "v3" = the regulation-vocabulary rerun
 OUT = L.RES / ("foundation.json" if not SET else f"foundation_{SET}.json")
-RIDGE = L.RES / "foundation_ridge.npz"
+RIDGE = L.RES / "foundation_ridge_noheldout.npz"   # foundation_ridge.npz was fitted with ranks 51-100 in it (heldout.py)
 MODELS = ["old", "new"] if not SET else [SET]
 ARMS = ["lowtemp", "protect3", "surrogate", "guide", "repair", "stack"]
 if SET: ARMS = ["base", "cfg"] + ARMS                # v3 has no earlier plain / ask-0.5 cells to reuse
 SEED_ORDER = ["lowtemp", "protect3", "surrogate", "guide", "repair", "stack", "base", "cfg"]
-V3_MEMBERS = ["F1_final_medium_regmb_v3", "G2_family_matrix_noprtrain_regmb_v3"]
+# The members trained without ranks 51-100 (heldout.py). FOUNDATION_MEMBERS=legacy reproduces the earlier lineage,
+# whose F1/G2 parents saw 50 held-out rows (8 labelled).
+V3_MEMBERS = (["F1_final_medium_regmb_v3", "G2_family_matrix_noprtrain_regmb_v3"] if os.environ.get("FOUNDATION_MEMBERS") == "legacy"
+              else ["F1_final_medium_noheldout_regmb_v3", "G2_family_matrix_noprtrain_noheldout_regmb_v3"])
 REUSED = {"base": "uncond", "cfg": "y0.5_g2"}
 N, SEED, POOL = 64, 2026, 512
 NAN = float("nan")
@@ -130,7 +134,7 @@ class Gen:
         self.which = which
         self.corpus, self.V, self.C, self.look, self.spreads = X.setup()
         if which == "old":
-            m = X.ContinuousWR(self.V).to(L.DEV); m.load_state_dict(torch.load(X.CKPT, map_location=L.DEV)["sd"]); m.eval()
+            m = X.ContinuousWR(self.V).to(L.DEV); m.load_state_dict(load_checkpoint(X.CKPT, map_location=L.DEV)["sd"]); m.eval()
             self.m = m
         elif which == "v3":                                   # Codex regmb v3: full M-B vocabulary + v3 stone policy
             import regmb_model
@@ -152,20 +156,27 @@ class Gen:
         return o
 
     @torch.no_grad()
-    def sample(self, n, ystar=None, g=1.0, temp=1.0, top_p=1.0, sur=None, lam=0.0):
+    def sample(self, n, ystar=None, g=1.0, temp=1.0, top_p=1.0, sur=None, lam=0.0, g_species=None, cads=None):
+        """g_species: guidance weight on the six species columns (None = g). cads: noise scale s on the condition
+        embedding, annealed gamma = step / (COLS - 1) (docs/guidance-timing-cads.md)."""
         w = torch.full((n,), NAN if ystar is None else ystar, device=L.DEV); wn = torch.full((n,), NAN, device=L.DEV)
         x = torch.zeros(n, L.COLS, dtype=torch.long, device=L.DEV)
-        for step, c in enumerate(D.ORDER):
-            t = torch.full((n,), 1.0 - step / L.COLS, device=L.DEV)
-            lc = self.logp(x, t, w, c)
-            if ystar is not None and g != 1.0: lc = g * lc + (1 - g) * self.logp(x, t, wn, c)
-            if sur is not None and lam > 0: lc = lc + lam * sur.tilt(self.V, x, c)
-            lc = lc.masked_fill(~self.ok(x, c), -float("inf")) / temp
-            p = torch.softmax(lc, -1)
-            if top_p < 1.0:
-                ps, ix = p.sort(-1, descending=True); keep = ps.cumsum(-1) - ps < top_p
-                p = torch.zeros_like(p).scatter(1, ix, ps * keep); p = p / p.sum(-1, keepdim=True)
-            x[:, c] = torch.multinomial(p, 1).squeeze(1)
+        try:
+            for step, c in enumerate(D.ORDER):
+                t = torch.full((n,), 1.0 - step / L.COLS, device=L.DEV)
+                L.COND_NOISE = None if cads is None else (cads, step / (L.COLS - 1))
+                gc = g_species if (g_species is not None and c in SPECIES_COLS) else g
+                lc = self.logp(x, t, w, c)
+                if ystar is not None and gc != 1.0: lc = gc * lc + (1 - gc) * self.logp(x, t, wn, c)
+                if sur is not None and lam > 0: lc = lc + lam * sur.tilt(self.V, x, c)
+                lc = lc.masked_fill(~self.ok(x, c), -float("inf")) / temp
+                p = torch.softmax(lc, -1)
+                if top_p < 1.0:
+                    ps, ix = p.sort(-1, descending=True); keep = ps.cumsum(-1) - ps < top_p
+                    p = torch.zeros_like(p).scatter(1, ix, ps * keep); p = p / p.sum(-1, keepdim=True)
+                x[:, c] = torch.multinomial(p, 1).squeeze(1)
+        finally:
+            L.COND_NOISE = None
         return x
 
     def to_paste(self, r, rng, repair=False):

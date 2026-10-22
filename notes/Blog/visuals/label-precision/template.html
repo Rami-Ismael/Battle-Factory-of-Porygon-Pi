@@ -1,0 +1,233 @@
+<meta charset="utf-8">
+<title>Label Precision Ablation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: one reading column, figures on a quiet panel; every figure readable at rest, hover adds detail. */
+:root{
+  --bg:#fafbfc; --fg:#1c2329; --muted:#5d6974; --faint:#8b97a1; --rule:#dde3e8; --panel:#f0f3f6;
+  --accent:#1d6b88; --good:#2d7a4d; --bad:#b2472e; --neutral:#6b7780;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --ref1:#8b97a1; --ref2:#3d4852;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13181c; --fg:#e3e8ec; --muted:#9aa6b0; --faint:#76838d; --rule:#2c353c; --panel:#1b2228;
+  --accent:#5fb3d1; --good:#67b88a; --bad:#e07a5f; --neutral:#8d99a3;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --ref1:#76838d; --ref2:#c3ccd3; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13181c; --fg:#e3e8ec; --muted:#9aa6b0; --faint:#76838d; --rule:#2c353c; --panel:#1b2228;
+  --accent:#5fb3d1; --good:#67b88a; --bad:#e07a5f; --neutral:#8d99a3;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --ref1:#76838d; --ref2:#c3ccd3; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--serif);font-size:1.06rem;line-height:1.6}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:36px 72px}
+h1,h2,h3{font-family:var(--sans);font-weight:600;line-height:1.2;text-wrap:balance}
+h1{font-size:2rem;margin:.2em 0 .35em}
+h2{font-size:1.3rem;margin:2.4em 0 .5em;padding-top:1.1em;border-top:1px solid var(--rule)}
+p{margin:.7em 0;max-width:65ch}
+.eyebrow{font-family:var(--sans);font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.dek{color:var(--muted);font-size:1.12rem}
+.def{font-family:var(--sans);font-size:.85rem;color:var(--muted);border-left:3px solid var(--rule);padding:.35em .8em;margin:1.2em 0}
+.result{font-family:var(--sans);background:var(--panel);border-radius:6px;padding:14px 16px;margin:1.4em 0;display:grid;gap:8px}
+.result b{font-weight:600}
+figure{margin:1.5em 0;padding:16px;background:var(--panel);border-radius:6px;min-width:0}
+figcaption{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin-top:.8em;line-height:1.5}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--sans)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.legend button{font-family:var(--sans);font-size:.8rem;display:inline-flex;align-items:center;gap:6px;padding:.32em .6em;border-radius:4px;border:1px solid var(--rule);background:var(--bg);color:var(--fg);cursor:pointer}
+.legend button[aria-pressed="false"]{color:var(--faint)}
+.legend button[aria-pressed="false"] svg{opacity:.3}
+.legend svg{display:inline-block;width:22px;height:10px;flex:none}
+.legend button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tip{position:fixed;pointer-events:none;z-index:5;background:var(--bg);color:var(--fg);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;font-family:var(--sans);font-size:.8rem;line-height:1.45;box-shadow:0 4px 16px rgb(0 0 0 / .12);max-width:280px}
+.tip .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sprites{display:flex;gap:1px;flex-wrap:wrap}
+.sprites img,.sprites span{width:34px;height:34px;image-rendering:pixelated}
+.sprites span{display:inline-grid;place-items:center;font-family:var(--mono);font-size:.6rem;color:var(--muted);border:1px dashed var(--rule);border-radius:4px}
+.sets{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.set{min-width:0}
+.set h3{font-size:.9rem;margin:0 0 6px;display:flex;align-items:center;gap:6px}
+.set .row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--rule)}
+.set .row:last-child{border-bottom:0}
+.set .meta{font-family:var(--mono);font-size:.74rem;color:var(--muted);white-space:nowrap;text-align:right}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:.84rem}
+th,td{text-align:left;padding:.45em .5em;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{font-family:var(--sans);font-size:.72rem;padding:.12em .5em;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.pill.up{color:var(--good)} .pill.down{color:var(--bad)} .pill.flat{color:var(--neutral)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%}
+details{font-family:var(--sans);font-size:.84rem;margin-top:10px}
+summary{cursor:pointer;color:var(--accent)}
+.hists{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.hists h3{font-size:.85rem;margin:0 0 4px}
+code{font-family:var(--mono);font-size:.88em}
+ul{max-width:65ch;padding-left:1.2em}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Ablation · Champions VGC 2026 Reg M-B · 2026-10-16</div>
+  <h1>Do precise labels make a better team generator?</h1>
+  <p class="dek">A team's label is its win rate against the meta. With 49 battles that number is noisy; with 192 or more it is precise. This ablation trains the same diffusion model three times, changing only which labels it learns from.</p>
+  <p class="def">Win rate = wins ÷ battles against the top-50 meta teams, with the behaviour-cloned battle policy playing both sides. Generated teams get one battle per meta team (49 battles). Real meta teams average 0.531 against each other.</p>
+  <div class="result" id="result"></div>
+
+  <h2>The same team, labelled twice</h2>
+  <p>2,144 teams in the matchup matrix have 192 or more battles against the meta. For each one, a second label can be drawn from its own recorded battles: one battle per meta opponent, picked at random, 49 in all. That is the precision every search-loop label has.</p>
+  <figure>
+    <svg id="scatter" viewBox="0 0 640 420" role="img" aria-label="Scatter of each team's 49-battle label against its precise label"></svg>
+    <figcaption id="scatterCap">Each dot is one team. Hover a dot to see the six Pokémon. Dots on the dashed line got the same label both ways.</figcaption>
+  </figure>
+
+  <h2>Three training sets</h2>
+  <p>All three fine-tunes start from the same original model and use the same recipe: 600 steps, batch 64, half of each batch the model's original training teams with the label hidden, half labelled teams. Only the labelled half changes.</p>
+  <div class="tbl"><table id="sets"><thead><tr><th>Arm</th><th>Teams</th><th>Label from</th><th>Label noise (SE)</th></tr></thead><tbody></tbody></table></div>
+  <figure>
+    <div class="hists"><div><h3>Every team (labels as recorded)</h3><svg id="histAll" viewBox="0 0 300 130" role="img" aria-label="Label distribution of every team"></svg></div>
+    <div><h3>Teams with 192+ battles</h3><svg id="histPre" viewBox="0 0 300 130" role="img" aria-label="Label distribution of the precise teams"></svg></div></div>
+    <figcaption>Label distributions, win rate from 0 to 1. The precise set is spread across the range because most of it was re-battled on purpose, stratified by label, in the earlier precise-label run. Every team is centred lower, near the typical generated team.</figcaption>
+  </figure>
+
+  <h2>Asked versus got</h2>
+  <p>Each model is asked for win rates 0.1 to 0.9 with no search loop around it. For every ask it generates 64 legal teams, and each team battles the 49 meta teams once. A model that listens to the ask climbs along the dashed line.</p>
+  <figure>
+    <div class="legend" id="legend"></div>
+    <svg id="curve" viewBox="0 0 680 430" role="img" aria-label="Win rate got against win rate asked, one line per model"></svg>
+    <figcaption>Points are the mean of 64 teams; bars are 95% intervals. Grey lines are references: the untouched model, and the earlier model fine-tuned on 1,105 teams re-battled to 196 battles. Hover to read every model at one ask.</figcaption>
+    <details><summary>Table view</summary><div class="tbl"><table id="curveTbl"></table></div></details>
+  </figure>
+
+  <h2>What each model builds at ask 0.6</h2>
+  <p>The three species line-ups each model produced most often when asked for 0.6, out of its 64 teams, with the average win rate of the copies.</p>
+  <figure><div class="sets" id="teams"></div></figure>
+
+  <h2>The comparisons</h2>
+  <p>Fixed before any battle: <b>top-ask win rate</b> is the mean got over asks 0.5, 0.6 and 0.7; <b>dial slope</b> is how much got rises per unit of ask between 0.1 and 0.5. Intervals resample teams within each ask.</p>
+  <div class="tbl"><table id="contrasts"><thead><tr><th>Comparison</th><th>Top-ask win rate</th><th>Dial slope</th><th>Reading</th></tr></thead><tbody></tbody></table></div>
+
+  <h2>What this does not show</h2>
+  <ul>
+    <li>One training seed per arm. The intervals cover team-to-team noise in the evaluation, not seed-to-seed variation in training.</li>
+    <li>The precise teams are not a random sample: about half were re-battled on purpose to cover the whole win-rate range. The noisy arm uses the same teams, so that comparison is clean; the comparison with every team is not.</li>
+    <li>This tests the model alone. Inside the search loop the ridge and the retraining also shape what gets built.</li>
+  </ul>
+  <p class="def">Code: <code>label_precision.py</code> and <code>ask_sweep_dbbo.py</code>; pre-registration <code>docs/label-precision.md</code>. Labels from the matchup matrix (policy 1); ranks 51–100 excluded.</p>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const D=/*DATA*/null, SP=/*SPRITES*/{};
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a){if(k==="text")e.textContent=a[k];else if(k==="style")e.setAttribute("style",a[k]);else e.setAttribute(k,a[k]);}if(p)p.appendChild(e);return e;};
+const f3=x=>x==null||isNaN(x)?"–":x.toFixed(3), sg=x=>(x>=0?"+":"−")+Math.abs(x).toFixed(3);
+const tip=document.getElementById("tip");
+function showTip(html,ev){tip.innerHTML=html;tip.hidden=false;const w=tip.offsetWidth,h=tip.offsetHeight;let x=ev.clientX+14,y=ev.clientY+14;if(x+w>innerWidth-8)x=ev.clientX-w-14;if(y+h>innerHeight-8)y=ev.clientY-h-14;tip.style.left=Math.max(8,x)+"px";tip.style.top=Math.max(8,y)+"px";}
+const hideTip=()=>{tip.hidden=true;};
+function spriteRow(sp){return `<div class="sprites">${sp.map(s=>SP[s]?`<img src="${SP[s]}" alt="${s}" title="${s}">`:`<span title="${s}">${s.slice(0,4)}</span>`).join("")}</div>`;}
+function svgPoint(svg,ev){const p=svg.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+const SER={lp_precise:{c:"var(--s1)",dash:""},lp_noisy:{c:"var(--s2)",dash:""},lp_all:{c:"var(--s3)",dash:""},v3_original:{c:"var(--ref1)",dash:""},v3_precise:{c:"var(--ref2)",dash:"5 4"}};
+const ORDER=["lp_precise","lp_noisy","lp_all","v3_precise","v3_original"];
+
+/* ---------- headline ---------- */
+(function(){
+  const r=document.getElementById("result"), C=D.contrasts, S=D.summary;
+  const pn=C["lp_precise-lp_noisy"], pa=C["lp_precise-lp_all"], no=C["lp_noisy-v3_original"];
+  if(!pn){r.innerHTML="<div><b>Running.</b> The three fine-tunes are still being evaluated; this box fills in when they finish.</div>";return;}
+  const read=(d,ci)=>ci[0]>0?"higher, interval above zero":ci[1]<0?"lower, interval below zero":"no detectable difference";
+  const lines=[
+    `<div><b>Precise vs 49-battle labels on the same teams:</b> top-ask win rate ${sg(pn.top)} [${sg(pn.top_ci[0])}, ${sg(pn.top_ci[1])}], ${read(pn.top,pn.top_ci)}; dial slope ${sg(pn.slope)} [${sg(pn.slope_ci[0])}, ${sg(pn.slope_ci[1])}], ${read(pn.slope,pn.slope_ci)}.</div>`];
+  if(pa)lines.push(`<div><b>Precise teams only vs every team:</b> top-ask win rate ${sg(pa.top)} [${sg(pa.top_ci[0])}, ${sg(pa.top_ci[1])}], ${read(pa.top,pa.top_ci)}.</div>`);
+  if(no)lines.push(`<div><b>Fine-tuning on 49-battle labels vs no fine-tune:</b> top-ask win rate ${sg(no.top)} [${sg(no.top_ci[0])}, ${sg(no.top_ci[1])}], ${read(no.top,no.top_ci)}.</div>`);
+  const part=Object.entries(D.partial||{}).map(([k,n])=>`${D.curves[k].label} (${n} of 9 asks)`);
+  if(part.length)lines.unshift(`<div><b>Interim.</b> Still battling: ${part.join(", ")}. Its comparison appears when it finishes.</div>`);
+  r.innerHTML=lines.join("");
+})();
+
+/* ---------- scatter ---------- */
+(function(){
+  const svg=document.getElementById("scatter"),W=640,H=420,m={l:52,r:16,t:14,b:46};
+  const X=v=>m.l+v/0.8*(W-m.l-m.r), Y=v=>H-m.b-v/0.8*(H-m.t-m.b);
+  for(let v=0;v<=0.8001;v+=0.2){el("line",{x1:X(v),x2:X(v),y1:m.t,y2:H-m.b,stroke:"var(--rule)"},svg);el("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"var(--rule)"},svg);
+    el("text",{x:X(v),y:H-m.b+18,"text-anchor":"middle","font-size":11,fill:"var(--muted)",text:v.toFixed(1)},svg);el("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end","font-size":11,fill:"var(--muted)",text:v.toFixed(1)},svg);}
+  el("text",{x:(W+m.l)/2,y:H-8,"text-anchor":"middle","font-size":12,fill:"var(--fg)",text:"Precise label (all battles, 192+)"},svg);
+  el("text",{x:14,y:(H-m.b+m.t)/2,"text-anchor":"middle","font-size":12,fill:"var(--fg)",transform:`rotate(-90 14 ${(H-m.b+m.t)/2})`,text:"49-battle label (one per opponent)"},svg);
+  el("line",{x1:X(0),y1:Y(0),x2:X(0.8),y2:Y(0.8),stroke:"var(--muted)","stroke-dasharray":"5 4","stroke-width":1.2},svg);
+  const g=el("g",{},svg);
+  D.scatter.forEach(p=>el("circle",{cx:X(p[0]),cy:Y(p[1]),r:2.6,fill:"var(--s1)","fill-opacity":.32},g));
+  const hl=el("circle",{r:6,fill:"none",stroke:"var(--fg)","stroke-width":2,visibility:"hidden"},svg);
+  svg.addEventListener("pointermove",ev=>{const q=svgPoint(svg,ev);let best=null,bd=144;
+    for(const p of D.scatter){const dx=X(p[0])-q.x,dy=Y(p[1])-q.y,d=dx*dx+dy*dy;if(d<bd){bd=d;best=p;}}
+    if(!best){hideTip();hl.setAttribute("visibility","hidden");return;}
+    hl.setAttribute("cx",X(best[0]));hl.setAttribute("cy",Y(best[1]));hl.setAttribute("visibility","visible");
+    showTip(`${spriteRow(best[3])}<div>Precise label <span class="num">${f3(best[0])}</span> (${best[2]} battles)</div><div>49-battle label <span class="num">${f3(best[1])}</span> (${sg(best[1]-best[0])})</div>`,ev);});
+  svg.addEventListener("pointerleave",()=>{hideTip();hl.setAttribute("visibility","hidden");});
+  const n=D.noise;
+  document.getElementById("scatterCap").textContent=`Each dot is one of ${D.n_precise.toLocaleString()} teams. The 49-battle label misses the precise one by ${n.sd_one_minus_precise.toFixed(3)} on average (standard deviation of the difference), with no overall bias (${sg(n.mean_shift)}); correlation ${n.corr.toFixed(3)}. Hover a dot to see its six Pokémon. Dots on the dashed line got the same label both ways.`;
+})();
+
+/* ---------- sets table + histograms ---------- */
+(function(){
+  const n=D.train?D.train.n:{lp_precise:D.n_precise,lp_noisy:D.n_precise,lp_all:D.n_all};
+  const rows=[["lp_precise","Teams with 192+ battles","All their battles","≈ 0.035"],["lp_noisy","The same teams","One battle per opponent (49)","≈ 0.07"],["lp_all","Every team with 49+ battles","As recorded, mostly 49","≈ 0.07"]];
+  document.querySelector("#sets tbody").innerHTML=rows.map(([k,t,l,s])=>`<tr><td><span class="sw" style="background:${SER[k].c}"></span> ${D.curves[k]?D.curves[k].label:k}</td><td class="n">${(n[k]||0).toLocaleString()}</td><td>${l}</td><td class="n">${s}</td></tr>`).join("");
+  function hist(id,h,col){const svg=document.getElementById(id),W=300,H=130,m={l:4,r:4,t:6,b:20},mx=Math.max(...h),bw=(W-m.l-m.r)/h.length;
+    h.forEach((v,i)=>{const hh=v/mx*(H-m.t-m.b);if(v>0)el("rect",{x:m.l+i*bw+1,y:H-m.b-hh,width:bw-2,height:Math.max(hh,1),rx:1.5,fill:col},svg);});
+    el("line",{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,stroke:"var(--rule)"},svg);
+    [0,0.25,0.5,0.75,1].forEach(v=>el("text",{x:m.l+v*(W-m.l-m.r),y:H-5,"text-anchor":v===0?"start":v===1?"end":"middle","font-size":10,fill:"var(--muted)",text:v},svg));}
+  hist("histAll",D.hist_all,"var(--s3)");hist("histPre",D.hist_precise,"var(--s1)");
+})();
+
+/* ---------- asked vs got ---------- */
+(function(){
+  const svg=document.getElementById("curve"),W=680,H=430,m={l:52,r:18,t:14,b:48},keys=ORDER.filter(k=>D.curves[k]);
+  const maxY=Math.max(0.7,...keys.flatMap(k=>D.curves[k].points.map(p=>p.mean+1.96*p.se)));const top=Math.ceil(maxY*10)/10;
+  const X=a=>m.l+(a-0.05)/0.9*(W-m.l-m.r), Y=v=>H-m.b-v/top*(H-m.t-m.b);
+  for(let v=0;v<=top+1e-9;v+=0.1){el("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"var(--rule)"},svg);el("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end","font-size":11,fill:"var(--muted)",text:v.toFixed(1)},svg);}
+  for(let i=1;i<=9;i++){const a=i/10;el("text",{x:X(a),y:H-m.b+18,"text-anchor":"middle","font-size":11,fill:"var(--muted)",text:a.toFixed(1)},svg);}
+  el("text",{x:(W+m.l)/2,y:H-8,"text-anchor":"middle","font-size":12,fill:"var(--fg)",text:"Win rate asked"},svg);
+  el("text",{x:14,y:(H-m.b+m.t)/2,"text-anchor":"middle","font-size":12,fill:"var(--fg)",transform:`rotate(-90 14 ${(H-m.b+m.t)/2})`,text:"Win rate got (mean of 64 teams)"},svg);
+  el("line",{x1:X(0.1),y1:Y(0.1),x2:X(Math.min(0.9,top)),y2:Y(Math.min(0.9,top)),stroke:"var(--muted)","stroke-dasharray":"5 4","stroke-width":1.2},svg);
+  el("text",{x:X(Math.min(0.9,top))-4,y:Y(Math.min(0.9,top))-6,"text-anchor":"end","font-size":11,fill:"var(--muted)",text:"got = asked"},svg);
+  const meta=el("line",{x1:m.l,x2:W-m.r,y1:Y(0.531),y2:Y(0.531),stroke:"var(--accent)","stroke-width":1,"stroke-dasharray":"2 3"},svg);
+  el("text",{x:m.l+6,y:Y(0.531)-6,"font-size":11,fill:"var(--accent)",text:"meta team average 0.531"},svg);
+  const groups={},on={};keys.forEach(k=>on[k]=true);
+  keys.forEach((k,si)=>{const g=el("g",{},svg),s=SER[k],pts=D.curves[k].points,off=(si-(keys.length-1)/2)*0.006;groups[k]=g;
+    el("path",{d:pts.map((p,i)=>`${i?"L":"M"}${X(p.ask+off)},${Y(p.mean)}`).join(""),fill:"none",stroke:s.c,"stroke-width":2,"stroke-dasharray":s.dash,"stroke-linejoin":"round"},g);
+    pts.forEach(p=>{el("line",{x1:X(p.ask+off),x2:X(p.ask+off),y1:Y(Math.max(0,p.mean-1.96*p.se)),y2:Y(p.mean+1.96*p.se),stroke:s.c,"stroke-width":1.2,"stroke-opacity":.7},g);
+      el("circle",{cx:X(p.ask+off),cy:Y(p.mean),r:4,fill:s.c,stroke:"var(--panel)","stroke-width":2},g);});});
+  const lg=document.getElementById("legend");
+  keys.forEach(k=>{const b=document.createElement("button");b.setAttribute("aria-pressed","true");b.id="lg-"+k;
+    b.innerHTML=`<svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true"><line x1="1" y1="5" x2="21" y2="5" stroke="${SER[k].c}" stroke-width="2" stroke-dasharray="${SER[k].dash}"/><circle cx="11" cy="5" r="3.5" fill="${SER[k].c}"/></svg>${D.curves[k].label}`;
+    b.onclick=()=>{on[k]=!on[k];b.setAttribute("aria-pressed",on[k]);groups[k].style.display=on[k]?"":"none";};lg.appendChild(b);});
+  const cross=el("line",{y1:m.t,y2:H-m.b,stroke:"var(--muted)","stroke-width":1,visibility:"hidden"},svg);
+  const hit=el("rect",{x:m.l,y:m.t,width:W-m.l-m.r,height:H-m.t-m.b,fill:"transparent"},svg);
+  hit.addEventListener("pointermove",ev=>{const q=svgPoint(svg,ev);const a=Math.min(0.9,Math.max(0.1,Math.round(((q.x-m.l)/(W-m.l-m.r)*0.9+0.05)*10)/10));
+    cross.setAttribute("x1",X(a));cross.setAttribute("x2",X(a));cross.setAttribute("visibility","visible");
+    const rows=keys.filter(k=>on[k]).map(k=>{const p=D.curves[k].points.find(p=>Math.abs(p.ask-a)<1e-6);return p?`<div><span class="sw" style="background:${SER[k].c}"></span> ${D.curves[k].label}: <span class="num">${f3(p.mean)} ± ${(1.96*p.se).toFixed(3)}</span> · ${Math.round(p.valid*100)}% legal · ${p.sets} line-ups</div>`:"";}).join("");
+    showTip(`<div><b>Asked ${a.toFixed(1)}</b></div>${rows}`,ev);});
+  hit.addEventListener("pointerleave",()=>{hideTip();cross.setAttribute("visibility","hidden");});
+  const asks=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9];
+  document.getElementById("curveTbl").innerHTML=`<thead><tr><th>Model</th>${asks.map(a=>`<th>${a.toFixed(1)}</th>`).join("")}</tr></thead><tbody>${keys.map(k=>`<tr><td>${D.curves[k].label}</td>${asks.map(a=>{const p=D.curves[k].points.find(p=>Math.abs(p.ask-a)<1e-6);return `<td class="n">${p?f3(p.mean):"–"}</td>`;}).join("")}</tr>`).join("")}</tbody>`;
+})();
+
+/* ---------- teams at ask 0.6 ---------- */
+(function(){
+  const box=document.getElementById("teams");const ks=["lp_precise","lp_noisy","lp_all"].filter(k=>D.teams[k]);
+  if(!ks.length){box.innerHTML="<p>Filled in when the sweep finishes.</p>";return;}
+  box.innerHTML=ks.map(k=>`<div class="set"><h3><span class="sw" style="background:${SER[k].c}"></span>${D.curves[k].label}</h3>${D.teams[k].map(t=>`<div class="row">${spriteRow(t.sp)}<div class="meta">${t.n} of 64<br>${f3(t.mean)}</div></div>`).join("")}</div>`).join("");
+})();
+
+/* ---------- contrasts ---------- */
+(function(){
+  const tb=document.querySelector("#contrasts tbody"),C=D.contrasts;
+  const pill=ci=>ci[0]>0?`<span class="pill up">interval above zero</span>`:ci[1]<0?`<span class="pill down">interval below zero</span>`:`<span class="pill flat">no detectable difference</span>`;
+  const names={"lp_precise-lp_noisy":"Precise vs 49-battle labels, same teams","lp_precise-lp_all":"Precise teams only vs every team","lp_noisy-v3_original":"49-battle fine-tune vs no fine-tune"};
+  const ks=Object.keys(names).filter(k=>C[k]);
+  tb.innerHTML=ks.length?ks.map(k=>{const c=C[k];return `<tr><td>${names[k]}</td><td class="n">${sg(c.top)} [${sg(c.top_ci[0])}, ${sg(c.top_ci[1])}]<br>${pill(c.top_ci)}</td><td class="n">${sg(c.slope)} [${sg(c.slope_ci[0])}, ${sg(c.slope_ci[1])}]<br>${pill(c.slope_ci)}</td><td>${k==="lp_precise-lp_noisy"?"Only label precision differs":k==="lp_precise-lp_all"?"Precision and team count both differ":"Context: what any fine-tune adds"}</td></tr>`;}).join(""):`<tr><td colspan="4">Filled in when the sweep finishes.</td></tr>`;
+})();
+</script>

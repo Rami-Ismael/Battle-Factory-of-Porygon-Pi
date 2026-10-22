@@ -11,10 +11,10 @@ tags:
 
 - [x] Use the goal skills to Collect all the relevant pokemon github repo that apply Ai on Pokemon see their readme to get insipiration what should a good readme has, store all the relevant github repo under her as checkbox I also want to rank the repo bases on the quality of the readme
 - [ ] The goal is to  build a Hugging Face Docker Space where I play a VGC battle in the browser against a `poke-env` `RandomPlayer`. The space will not interaction it the actualy website slogon. This is possible because we can clone the smogon/pokemon-showdown and run locally. Serve as normal UI for people have played pokemon know hot it work.
+- [ ] [[Play a VGC battle against a random bot in a Hugging Face Space]] 
+- [ ] [[Ladder validation report deploy the rl policy to pokemon showdown to see performance of the current meta pokemon team where it rank compare to the best counter of meta rank pokemon also cache what pokemon you see on the leaderboard]]
 - [ ] I wished they go in detail how we are deploying a trained policy and a desire pokemon team to pokemon showdown to see how well it perform on the ladder "Ladder validation report ($N$ games, pipeline team vs. baseline, confidence intervals)"
-	- [ ] [[Create a public repository for this project with a runnable README]]
-- [ ] Grab all the link special link on https://github.com/caymansimpson/reuniclusVGC to add them on this details
-- [ ] Replace this section "Ladder validation report ($N$ games, pipeline team vs. baseline, confidence intervals)" with a new section that discuss how to build your vgc agent to be a ladder 
+- [ ] [[Create a public repository for this project with a runnable README]]
 - [ ] Replace this section "Workshop paper → arXiv preprint regardless of acceptance" with literature review
 - [ ] Determine what abalation experiment I cand do 
 - [ ] go through ranked deliberable create a list of modification
@@ -22,8 +22,6 @@ tags:
 		- [ ] Recorded talk (15–20 min) or poster — UTD club, PyData, local meetup
 			- [ ] Create a youtube video for this
 			- [ ] Determine a local meetup for this
-- [ ] Creaet an Rl model that can beat a different band of il model 60 percet 
-- [ ] **PufferLib throughput A/B post.** Battles/sec, vectorizer-only vs full loop, with the honest finding you already have in the findings note (the wrapper alone buys you none of the PPO improvements). The PufferLib community will amplify a real benchmark, and your #4 finding — no public trace of a Showdown integration anywhere in the repo — is worth publishing on its own.
 # Prompt
 - I am intersted in display my work to employer in the future and my peers. I want to create a certain amount of develiverable for this personal project this is what i have so far. I want to create more what are the thing I can do 
 

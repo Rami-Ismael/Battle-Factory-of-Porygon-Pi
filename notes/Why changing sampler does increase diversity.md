@@ -1,0 +1,4 @@
+
+- [ ] The current method for diffusion for our sampler is just start with pokemon, .. etc demask which take 48 field I am interested in the time it take but interested if the sampler hurt novelty, diversity and win rate.
+- [ ] The previous claude code session we tried talked about parralel generation where in my head i thought parralel generations means we can generate 1 to n example at the same, instead we shift the focus suddenly to sampler which was interesting the research topic follow these method Path Plannnig, ReMDM loop, entropy-bounded unmasking,  and etc. We use haiku for the research model. I was wondering are the different sampler can improve Quality diversity measure in where we win find wide rnage of diverse team of pokemon to beat the current meta team threat pool we are using
+- [ ] Goes through the claude session of this "Sampler quality/diversity for Pokémon teams"

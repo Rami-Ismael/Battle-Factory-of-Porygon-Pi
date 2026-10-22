@@ -1,0 +1,1144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When AI gets stronger</title>
+<meta name="description" content="An evidence board for competitive Go after superhuman AI: 21 checked claims placed as stones in the corner of the question each one answers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a sticky Go board beside a scrolling column of chapters (Distill-style).
+   The board is the index of the evidence: every claim in the ledger is one stone, placed in the corner
+   of the question it answers. Black = a measurement, white = something said, a square mark = a gap.
+   Motion: stones land in 280ms on the strong ease-out with a 70ms stagger; the token on the game-day
+   track travels 500ms ease-in-out; bars grow with scaleX. Transform and opacity only.
+   prefers-reduced-motion keeps the fades and drops the movement. */
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --same:#2f9e6b; --ahead:#2a78d6; --lost:#d4551f; --focus:#2a78d6;
+  --wood:#e2bf83; --wood-2:#d5ad6a; --grain:#5a4220; --hl:rgba(42,120,214,.20);
+  --stone-b:#17181b; --stone-b-edge:transparent; --stone-w:#f7f5ef; --stone-w-edge:#8f8a7e;
+  --font-body:"Literata",Georgia,"Times New Roman",serif;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --col:42rem;
+  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec;
+  --wood:#b48d52; --wood-2:#a07a42; --grain:#2c2010; --hl:rgba(109,167,236,.28);
+  --stone-b:#0c0d0f; --stone-b-edge:#5a606c; --stone-w:#ecebe6; --stone-w-edge:#5f5b52; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec;
+  --wood:#b48d52; --wood-2:#a07a42; --grain:#2c2010; --hl:rgba(109,167,236,.28);
+  --stone-b:#0c0d0f; --stone-b-edge:#5a606c; --stone-w:#ecebe6; --stone-w-edge:#5f5b52; color-scheme:dark; }
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.0625rem/1.65 var(--font-body)}
+a{color:var(--ahead);text-underline-offset:2px}
+.col{max-width:var(--col);margin:0 auto;padding:0 1rem}
+header.col{padding-top:3.5rem;padding-bottom:1rem}
+.kicker{font:500 .78rem var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 .8rem}
+h1{font:600 2.5rem/1.12 var(--font-body);letter-spacing:-0.015em;margin:0 0 .8rem;text-wrap:balance}
+.dek{font-size:1.18rem;line-height:1.5;color:var(--ink-2);margin:0 0 1rem}
+h2{font:600 1.55rem/1.2 var(--font-body);margin:0 0 .7rem;text-wrap:balance}
+h3{font:600 .72rem var(--font-ui);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin:1.4rem 0 .5rem}
+p{margin:0 0 1rem}
+.ui{font-family:var(--font-ui)}
+.small{font:400 .84rem/1.5 var(--font-ui);color:var(--ink-3)}
+button{font:inherit}
+button:focus-visible,[tabindex]:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---- scrolly ---- */
+.scrolly{display:grid;grid-template-columns:minmax(0,27rem) minmax(0,36rem);gap:3.5rem;max-width:70rem;margin:0 auto;padding:0 1.25rem;justify-content:center}
+.stage{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;padding:1rem 0;z-index:3}
+.tally{display:flex;gap:1rem;align-items:center;font:500 .8rem var(--font-ui);color:var(--ink-2);margin:0 0 .5rem;flex-wrap:wrap}
+.tally .n{font:500 .8rem var(--font-mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.tally .k{display:inline-flex;align-items:center;gap:.35rem}
+.dot{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;vertical-align:-.1em;flex:none}
+.dot.b{background:var(--stone-b);box-shadow:inset -2px -2px 3px rgba(255,255,255,.12),0 0 0 1px var(--stone-b-edge)}
+.dot.w{background:var(--stone-w);border:1px solid var(--stone-w-edge)}
+.dot.g{border-radius:2px;border:2px solid var(--lost);width:.7rem;height:.7rem}
+.dot.h{border:1.5px dashed var(--ink-3)}
+#board{width:100%;height:auto;display:block;max-height:68vh}
+#board text{font-family:var(--font-ui);font-size:12.5px;fill:var(--ink-3);transition:fill .3s ease}
+#board text.on{fill:var(--ink);font-weight:600}
+.grid line{stroke:var(--grain);stroke-width:.9;opacity:.75}
+.grid .hoshi{fill:var(--grain);opacity:.85}
+.reg{fill:var(--hl);opacity:0;transition:opacity .45s ease}
+.reg.on{opacity:1}
+.st{cursor:pointer;outline:none}
+.st .in{transform-box:fill-box;transform-origin:center;opacity:0;transform:translateY(-5px) scale(1.3);
+  transition:opacity .22s ease-out,transform .28s var(--ease-out)}
+.st.on .in{opacity:1;transform:none}
+.st:not(.on){pointer-events:none}
+.st .shadow{fill:rgba(0,0,0,.28)}
+.st circle.b{fill:url(#gb)}
+.st circle.w{fill:url(#gw);stroke:var(--stone-w-edge);stroke-width:.6}
+.st rect.g{fill:none;stroke:var(--lost);stroke-width:2.8}
+.st circle.ghost{fill:transparent;stroke:var(--grain);stroke-width:1.5;stroke-dasharray:3 2.4}
+.st:focus-visible .in > :last-child,.st.sel .in > :last-child{stroke:var(--ahead);stroke-width:2.4}
+.st.ghostg.on .in{opacity:.9}
+.ring{fill:none;stroke:var(--ahead);stroke-width:2;opacity:0;transition:opacity .2s ease}
+.ring.on{opacity:1}
+.detail{margin-top:.6rem;min-height:7.6rem;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:.7rem .85rem;font:400 .84rem/1.5 var(--font-ui);color:var(--ink-2)}
+.detail .top{display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem;flex-wrap:wrap}
+.detail .id{font:500 .74rem var(--font-mono);color:var(--ink-3)}
+.chip{font:500 .7rem var(--font-ui);letter-spacing:.03em;border-radius:99px;padding:.1rem .5rem;background:var(--wash);color:var(--ink-2);border:1px solid var(--rule)}
+.detail .claim{font:500 .9rem/1.45 var(--font-ui);color:var(--ink);margin:0 0 .35rem}
+.detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.15rem .6rem}
+.detail dt{color:var(--ink-3)}
+.detail dd{margin:0}
+.detail .x{display:none}
+.detail.fade{animation:rise .25s var(--ease-out)}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.steps{padding:0 0 30vh}
+.step{min-height:92vh;padding:22vh 0 4rem}
+.step:first-child{padding-top:12vh}
+.step .num{font:500 .75rem var(--font-mono);color:var(--ink-3);margin:0 0 .4rem;display:flex;align-items:center;gap:.5rem}
+.step .num .dot{width:.7rem;height:.7rem}
+
+/* ---- shared widget bits ---- */
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:1rem 1.05rem;margin:1.2rem 0;font-family:var(--font-ui)}
+.card p{font:400 .93rem/1.55 var(--font-ui)}
+.card .label{font:500 .7rem var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 .5rem}
+.btns{display:flex;gap:.5rem;flex-wrap:wrap;margin:.2rem 0 .3rem}
+.btn{font:500 .86rem var(--font-ui);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:.45rem .9rem;cursor:pointer;
+  transition:transform .12s var(--ease-out),border-color .15s ease,background-color .15s ease}
+.btn:active{transform:scale(.97)}
+.btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.btn.primary{background:var(--ahead);border-color:var(--ahead);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+@media (hover:hover) and (pointer:fine){ .btn:hover:not(:disabled){border-color:var(--ahead)} }
+.reveal{display:none}
+.reveal.on{display:block;animation:rise .3s var(--ease-out)}
+.note{font:400 .8rem/1.45 var(--font-ui);color:var(--ink-3);margin:.5rem 0 0}
+details{font:400 .9rem/1.55 var(--font-ui);color:var(--ink-2);border-top:1px solid var(--rule);padding:.6rem 0}
+details:last-of-type{border-bottom:1px solid var(--rule)}
+summary{cursor:pointer;color:var(--ink);font-weight:500}
+details p{margin:.5rem 0 0}
+.src{font:400 .8rem var(--font-ui);color:var(--ink-3)}
+.src a{color:var(--ink-2)}
+
+/* kifu timeline */
+.kifu{list-style:none;margin:1rem 0;padding:0;font-family:var(--font-ui)}
+.kifu li{display:grid;grid-template-columns:2rem 1fr;gap:.7rem;padding:.55rem 0;border-bottom:1px solid var(--rule)}
+.kifu li:last-child{border-bottom:0}
+.mv{width:1.75rem;height:1.75rem;border-radius:50%;display:grid;place-items:center;font:500 .72rem var(--font-mono)}
+.mv.b{background:var(--stone-b);color:#f1f1f1;box-shadow:0 0 0 1px var(--stone-b-edge)}
+.mv.w{background:var(--stone-w);color:#222;border:1px solid var(--stone-w-edge)}
+.kifu .yr{font:500 .76rem var(--font-mono);color:var(--ink-3)}
+.kifu b{display:block;font:600 .95rem var(--font-ui);color:var(--ink)}
+.kifu span.t{font:400 .87rem/1.5 var(--font-ui);color:var(--ink-2)}
+
+/* 15-game tally */
+.games{display:flex;gap:5px;flex-wrap:wrap;margin:.7rem 0 .4rem}
+.games i{width:18px;height:18px;border-radius:50%;opacity:0;transform:scale(1.4);transition:opacity .2s ease-out,transform .26s var(--ease-out)}
+.games.on i{opacity:1;transform:none}
+.games i.b{background:var(--stone-b);box-shadow:0 0 0 1px var(--stone-b-edge)}
+.games i.w{background:var(--stone-w);border:1px solid var(--stone-w-edge)}
+
+/* move picker */
+.picker{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr);gap:1.1rem;align-items:start}
+#mini{width:100%;height:auto;display:block}
+#mini .cand{cursor:pointer}
+#mini .cand circle{fill:var(--panel);stroke:var(--ahead);stroke-width:1.6;transition:transform .15s var(--ease-out);transform-box:fill-box;transform-origin:center}
+#mini .cand text{font:600 10px var(--font-ui);fill:var(--ahead);pointer-events:none}
+#mini .cand:hover circle,#mini .cand:focus-visible circle{transform:scale(1.15)}
+#mini .cand.done{display:none}
+#mini .placed{transform-box:fill-box;transform-origin:center;animation:land .3s var(--ease-out)}
+@keyframes land{from{opacity:0;transform:translateY(-5px) scale(1.3)}to{opacity:1;transform:none}}
+.meter{margin:.55rem 0}
+.meter .row{display:flex;justify-content:space-between;gap:.6rem;font:500 .8rem var(--font-ui);color:var(--ink-2);margin-bottom:.25rem}
+.meter .row .v{font:500 .8rem var(--font-mono);color:var(--ink);white-space:nowrap}
+.bar{height:.7rem;border-radius:99px;background:var(--wash);overflow:hidden;position:relative}
+.bar .fill{position:absolute;inset:0;background:var(--ahead);transform-origin:left;transform:scaleX(0);transition:transform .6s var(--ease-out)}
+.bar.empty{background:transparent;border:1.5px dashed var(--ink-3)}
+.calc{font:400 .82rem var(--font-mono);color:var(--ink-2);margin:.4rem 0 0}
+
+/* move-window strip */
+#strip{width:100%;height:auto;display:block}
+#strip text{font-family:var(--font-ui);font-size:15px;fill:var(--ink-2)}
+#strip .axis{stroke:var(--ink-3);stroke-width:1}
+#strip .tick{font-family:var(--font-mono);font-size:13px;fill:var(--ink-3)}
+#strip .w{fill:var(--ahead);transform-box:fill-box;transform-origin:left;transform:scaleX(0);transition:transform .7s var(--ease-out)}
+#strip .faint{fill:none;stroke:var(--ink-3);stroke-dasharray:3 3}
+#strip.go .w{transform:none}
+#strip .rest{fill:var(--ink-3);font-style:italic}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.two .card{margin:0}
+.side{font:500 .7rem var(--font-ui);letter-spacing:.06em;text-transform:uppercase;margin:0 0 .35rem}
+.side.r{color:var(--ahead)} .side.p{color:var(--lost)}
+
+/* waffle */
+.waffle-wrap{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:1.1rem;align-items:start}
+#waffle{width:100%;height:auto;display:block;background:var(--wood);border-radius:6px}
+#waffle .c{transform-box:fill-box;transform-origin:center;transition:opacity .2s ease-out,transform .25s var(--ease-out)}
+#waffle .c.off{opacity:0;transform:scale(1.35)}
+#waffle .c.b{fill:url(#gb)}
+#waffle .c.guess{fill:none;stroke:var(--ink);stroke-width:1.3;stroke-dasharray:2.4 2}
+#waffle line{stroke:var(--grain);stroke-width:.6;opacity:.6}
+.big{font:600 2.2rem/1 var(--font-body);font-variant-numeric:tabular-nums;margin:.2rem 0}
+input[type=range]{width:100%;accent-color:var(--ahead)}
+
+/* game-day track */
+.track{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin:1rem 0 .4rem;padding-top:2.6rem}
+.track::before{content:"";position:absolute;left:12.5%;right:12.5%;top:1.15rem;height:2px;background:var(--rule)}
+.stop{font:500 .8rem/1.3 var(--font-ui);color:var(--ink-2);background:transparent;border:1px solid var(--rule);border-radius:8px;padding:.5rem .4rem;cursor:pointer;text-align:center;
+  transition:border-color .15s ease,background-color .15s ease,color .15s ease}
+.stop small{display:block;font:400 .7rem var(--font-ui);color:var(--ink-3);margin-top:.15rem}
+.stop[aria-pressed="true"]{border-color:var(--ink);background:var(--wash);color:var(--ink)}
+.stop.live[aria-pressed="true"]{border-color:var(--lost)}
+.token{position:absolute;top:.3rem;left:0;width:1.75rem;height:1.75rem;border-radius:50%;background:var(--stone-w);border:1px solid var(--stone-w-edge);
+  display:grid;place-items:center;font:600 .62rem var(--font-mono);color:#222;transition:transform .5s var(--ease-in-out);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.rule{display:none;border-left:3px solid var(--lost);padding:.4rem .7rem;background:color-mix(in srgb,var(--lost) 9%,transparent);border-radius:0 6px 6px 0;margin:.6rem 0}
+.rule.on{display:block}
+#use.fade{animation:rise .25s var(--ease-out)}
+#use dl{display:grid;grid-template-columns:5.2rem 1fr;gap:.35rem .7rem;margin:.4rem 0 0;font:400 .88rem/1.5 var(--font-ui)}
+#use dt{color:var(--ink-3);font-weight:500}
+#use dd{margin:0;color:var(--ink-2)}
+
+/* gap list + verdict */
+.needs{list-style:none;padding:0;margin:.6rem 0;font:400 .9rem/1.5 var(--font-ui)}
+.needs li{display:flex;gap:.6rem;align-items:baseline;padding:.3rem 0;color:var(--ink-2)}
+.verdict{display:grid;gap:.6rem;margin:1rem 0}
+.verdict .v{display:grid;grid-template-columns:1.3rem 1fr;gap:.7rem;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:.75rem .9rem;font:400 .92rem/1.5 var(--font-ui)}
+.verdict .v .dot{width:1.05rem;height:1.05rem;margin-top:.15rem}
+.verdict .v .dot.g{width:.95rem;height:.95rem}
+.verdict b{display:block;font:600 .74rem var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.15rem}
+
+/* ledger */
+section.ledger{max-width:56rem;margin:0 auto;padding:4rem 1.25rem 2rem}
+.filters{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0 1rem}
+.lrow{display:grid;grid-template-columns:1.2rem 2.6rem 1fr;gap:.6rem;padding:.75rem 0;border-top:1px solid var(--rule);font:400 .88rem/1.5 var(--font-ui);color:var(--ink-2)}
+.lrow .dot{margin-top:.3rem}
+.lrow .id{font:500 .76rem var(--font-mono);color:var(--ink-3);padding-top:.15rem}
+.lrow .c{color:var(--ink);font-weight:500;margin-bottom:.15rem}
+.lrow .m{font-size:.8rem;color:var(--ink-3)}
+.lrow[hidden]{display:none}
+footer.col{padding:2rem 1rem 5rem;font:400 .82rem/1.55 var(--font-ui);color:var(--ink-3)}
+footer ul{padding-left:1.1rem}
+
+/* primer */
+.primer{padding-top:.5rem;padding-bottom:1.5rem}
+.pgrid{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:1.2rem;align-items:start}
+#pboard{width:100%;height:auto;display:block}
+#pboard .pst{transform-box:fill-box;transform-origin:center;animation:land .3s var(--ease-out) both}
+#pboard .gone{transform-box:fill-box;transform-origin:center;animation:gone .45s var(--ease-out) both}
+@keyframes gone{to{opacity:0;transform:scale(.6)}}
+#pboard .lib{fill:none;stroke:var(--lost);stroke-width:1.6;animation:land .3s var(--ease-out) both}
+#pboard .terr{animation:fadein .4s ease-out both}
+#pboard .corner{fill:var(--hl);animation:fadein .4s ease-out both}
+#pboard text{font:600 9px var(--font-ui)}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.pdots{display:flex;gap:.3rem;list-style:none;margin:0 0 .6rem;padding:0}
+.pdots button{width:1.6rem;height:1.6rem;border-radius:50%;border:1px solid var(--rule);background:transparent;color:var(--ink-3);font:500 .7rem var(--font-mono);cursor:pointer;padding:0}
+.pdots button[aria-current="step"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.ptitle{font:600 1.05rem var(--font-ui);margin:0 0 .3rem;color:var(--ink)}
+.ptext{font:400 .93rem/1.55 var(--font-ui);color:var(--ink-2);min-height:5.2rem;margin:0}
+.ptext.fade,.ptitle.fade{animation:rise .25s var(--ease-out)}
+.pmeter{margin:.6rem 0 0}
+.pmeter .row{display:flex;justify-content:space-between;gap:.6rem;font:500 .8rem var(--font-ui);color:var(--ink-2);margin-bottom:.25rem}
+.pmeter .v{font:500 .8rem var(--font-mono);color:var(--ink)}
+.term{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted var(--ink-3);text-underline-offset:3px;text-decoration-thickness:1.5px}
+.term:hover,.term[aria-expanded="true"]{text-decoration-color:var(--ahead);color:var(--ahead)}
+
+/* citations */
+.cite{font:600 .62rem/1 var(--font-mono);color:var(--ahead);background:color-mix(in srgb,var(--ahead) 12%,transparent);border:0;border-radius:4px;
+  padding:.18rem .3rem;margin-left:.15rem;vertical-align:super;cursor:pointer;transition:background-color .15s ease}
+.cite:hover,.cite[aria-expanded="true"]{background:var(--ahead);color:#fff}
+.cpop{position:absolute;z-index:20;width:min(22rem,calc(100vw - 2rem));background:var(--panel);border:1px solid var(--rule);border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);padding:.75rem .9rem;font:400 .82rem/1.5 var(--font-ui);color:var(--ink-2);display:none}
+.cpop.on{display:block;animation:rise .2s var(--ease-out)}
+.cpop .t{font:600 .9rem/1.35 var(--font-ui);color:var(--ink);margin:0 0 .15rem}
+.cpop .t a{color:var(--ink)}
+.cpop .meta{font-size:.74rem;color:var(--ink-3);margin:0 0 .4rem}
+.cpop p{margin:0 0 .35rem}
+.cpop .lim{border-left:2px solid var(--lost);padding-left:.5rem}
+ol.refs{padding-left:1.6rem;font:400 .86rem/1.5 var(--font-ui);color:var(--ink-2)}
+ol.refs li{padding:.35rem 0;border-top:1px solid var(--rule)}
+ol.refs li::marker{font-family:var(--font-mono);color:var(--ink-3)}
+ol.refs .rt{color:var(--ink);font-weight:500}
+ol.refs li:target{background:var(--wash)}
+
+/* citation thread */
+.thread{position:relative;margin:1.2rem 0;font-family:var(--font-ui)}
+.thread .post{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:.55rem .8rem;margin:0 0 .45rem}
+.thread .post p{font:400 .88rem/1.45 var(--font-ui);margin:0;color:var(--ink)}
+.thread .who{font:500 .72rem var(--font-ui);color:var(--ink-3)}
+.thread .reply{margin-left:1.6rem}
+.thread .reply::before{content:"";position:absolute;left:-1rem;top:-.5rem;width:.75rem;height:1.6rem;border-left:1.5px solid var(--rule);border-bottom:1.5px solid var(--rule);border-bottom-left-radius:6px}
+.thread .crit{border-color:color-mix(in srgb,var(--lost) 55%,var(--rule))}
+.thread .end{border-style:dashed;background:var(--wash)}
+.chip.bad{color:var(--lost);border-color:color-mix(in srgb,var(--lost) 45%,var(--rule));background:transparent;margin-left:.3rem}
+
+/* annotated chart */
+.chartfig{margin:1.2rem 0 .4rem}
+.chartwrap{position:relative;background:#fff;border:1px solid var(--rule);border-radius:10px;overflow:visible}
+.chartwrap img{display:block;width:100%;height:auto;border-radius:10px}
+.imgfail{display:none;padding:1rem;font:400 .85rem/1.5 var(--font-ui);color:#474d59;margin:0}
+.chartwrap.failed img{display:none}
+.chartwrap.failed .imgfail{display:block}
+.chartwrap.failed .pin{display:none}
+.pin{position:absolute;width:1.55rem;height:1.55rem;margin:-.775rem 0 0 -.775rem;border-radius:50%;border:2px solid #fff;background:var(--ahead);color:#fff;
+  font:600 .74rem/1 var(--font-mono);cursor:pointer;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.35);
+  transform:scale(.4);opacity:0;transition:transform .3s var(--ease-out),opacity .2s ease-out,background-color .15s ease}
+.chartfig.go .pin{transform:none;opacity:1}
+.pin[aria-pressed="true"]{background:var(--lost)}
+@media (hover:hover) and (pointer:fine){ .chartfig.go .pin:hover{transform:scale(1.12)} }
+.chartfig figcaption{font:400 .8rem/1.5 var(--font-ui);color:var(--ink-3);margin:.5rem 0 0}
+.pinnote{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.6rem 0 1.2rem;font-family:var(--font-ui)}
+.pinnote.fade{animation:rise .25s var(--ease-out)}
+.pinnote h4{grid-column:1/-1;font:600 .95rem var(--font-ui);margin:.2rem 0 0;color:var(--ink)}
+.pinnote h4 .n{display:inline-grid;place-items:center;width:1.3rem;height:1.3rem;border-radius:50%;background:var(--lost);color:#fff;font:600 .7rem var(--font-mono);margin-right:.4rem;vertical-align:.08em}
+.pinnote .side-card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:.65rem .8rem}
+.pinnote .side-card p{font:400 .88rem/1.5 var(--font-ui);margin:0 0 .4rem;color:var(--ink)}
+.pinnote .side-card p:last-child{margin:0}
+.pinnote .side-card.obj{border-color:color-mix(in srgb,var(--lost) 50%,var(--rule))}
+.pinnote .ans{grid-column:1/-1;font:400 .84rem/1.5 var(--font-ui);color:var(--ink-2);margin:0;padding:.1rem .2rem}
+.pinnote .nav{grid-column:1/-1;display:flex;gap:.5rem}
+
+/* ---- narrow screens: board pinned on top, chapters scroll beneath ---- */
+@media (max-width: 860px){
+  .scrolly{grid-template-columns:minmax(0,1fr);gap:0;padding:0 1rem}
+  .stage{height:auto;padding:.5rem 0 .4rem;background:var(--bg);border-bottom:1px solid var(--rule)}
+  #board{max-height:31vh;width:auto;margin:0 auto}
+  .tally{justify-content:center;margin:0 0 .25rem;gap:.7rem;font-size:.74rem}
+  .detail{position:fixed;left:.75rem;right:.75rem;bottom:.75rem;z-index:10;margin:0;min-height:0;box-shadow:0 8px 30px rgba(0,0,0,.25);display:none}
+  .detail.open{display:block}
+  .detail .x{display:block;position:absolute;top:.4rem;right:.5rem;border:0;background:transparent;color:var(--ink-3);font-size:1.2rem;cursor:pointer;padding:.2rem .4rem}
+  .step{min-height:0;padding:3rem 0 1rem}
+  .step:first-child{padding-top:1.5rem}
+  .steps{padding-bottom:4rem}
+  .picker,.waffle-wrap{grid-template-columns:minmax(0,1fr)}
+  #mini,#waffle{max-width:15rem}
+  .two,.pinnote,.pgrid{grid-template-columns:1fr}
+  #pboard{max-width:14rem}
+  .cpop{position:fixed;left:.75rem !important;right:.75rem;bottom:.75rem;top:auto !important;width:auto}
+  .stop{font-size:.72rem;padding:.45rem .2rem}
+  .stop small{display:none}
+  h1{font-size:2rem}
+}
+@media (prefers-reduced-motion: reduce){
+  .st .in,.games i,#waffle .c,#mini .placed,.pin,#pboard .pst,#pboard .gone,#pboard .lib{transform:none !important;animation:none}
+  #pboard .gone{opacity:0}
+  .token,.bar .fill,#strip .w{transition:none}
+  .st .in{transition:opacity .2s linear}
+}
+</style>
+</head>
+<body>
+
+<header class="col">
+  <p class="kicker">Competitive Go after superhuman AI · evidence checked 12 October 2026</p>
+  <h1>When AI gets stronger, what happens to the player?</h1>
+  <p class="dek">Twenty-one checked pieces of evidence, placed on a Go board. Each one lands in the corner of the question it actually answers. Watch which corner stays empty.</p>
+</header>
+
+<section class="col primer" id="primer" aria-labelledby="primer-h">
+  <p class="kicker">Never played Go? · <a href="#start">skip, I know Go</a></p>
+  <h2 id="primer-h">Go in one minute</h2>
+  <p>You need six ideas to follow this page. Step through them; the small board shows each one. Any word with a dotted underline later on can be tapped for a reminder.</p>
+  <div class="card pcard">
+    <div class="pgrid">
+      <svg id="pboard" viewBox="0 0 200 200" role="img" aria-label="A 9 by 9 Go board demonstrating the rules"></svg>
+      <div>
+        <ol class="pdots" id="pdots" aria-label="Primer steps"></ol>
+        <p class="ptitle" id="ptitle"></p>
+        <p class="ptext" id="ptext" aria-live="polite"></p>
+        <div class="pmeter" id="pmeter" hidden><div class="row"><span>Black's win chance, engine's estimate</span><span class="v" id="pmv">60%</span></div><div class="bar"><div class="fill" id="pmb"></div></div></div>
+        <div class="btns" style="margin-top:.7rem"><button class="btn" id="pback">← Back</button><button class="btn primary" id="pnext">Next →</button><button class="btn" id="preplay" title="Replay this step">↻ Replay</button></div>
+      </div>
+    </div>
+    <p class="note">Real games use a 19 × 19 board; this one is 9 × 9 so the steps are easy to see. The primer is general Go background, not from the evidence brief, and its positions and percentages are illustrations.</p>
+  </div>
+</section>
+
+<div class="scrolly">
+  <div class="stage" aria-label="Evidence board">
+    <div class="tally" aria-live="polite">
+      <span class="k"><span class="dot b"></span>measured <span class="n" id="nb">0</span></span>
+      <span class="k"><span class="dot w"></span>said <span class="n" id="nw">0</span></span>
+      <span class="k"><span class="dot g"></span>gap <span class="n" id="ng">0</span></span>
+      <span class="k"><span class="n" id="nt">0</span>&nbsp;/ 21 placed</span>
+    </div>
+    <svg id="board" viewBox="0 0 440 466" role="img" aria-label="A 19 by 19 Go board. Corners: does it teach (top left), do we understand (top right), is play fair (bottom left), is it enjoyable (bottom right). Centre: the AI itself."></svg>
+    <div class="detail" id="detail" aria-live="polite">
+      <button class="x" id="dx" aria-label="Close">×</button>
+      <div id="dbody"><p class="claim" style="font-weight:400;color:var(--ink-2)">Tap any stone to read the claim behind it, who it covers, and its limit.</p>
+      <p style="margin:0"><span class="dot b"></span> black: a measurement from data &nbsp; <span class="dot w"></span> white: something said (commentary, policy, an account) &nbsp; <span class="dot g"></span> a marked point: a gap</p></div>
+    </div>
+  </div>
+
+  <div class="steps">
+
+    <!-- 0 · predict -->
+    <section class="step" data-step="intro" id="start">
+      <p class="num">Before you scroll</p>
+      <h2>Make a guess first</h2>
+      <p>The hypothesis on the table: AI that beats the best humans makes competitive play less enjoyable, and fewer people stay.</p>
+      <p>The board has four corners, one per question about the player. The centre is the AI itself. A black stone is a measurement. A white stone is something someone said.</p>
+      <p class="small">The board here is only a map. No Go rules apply to these stones: nothing gets captured, and nobody wins.</p>
+      <div class="card">
+        <p class="label">Your prediction</p>
+        <p style="margin-bottom:.6rem">How many black stones, actual measurements, will land in the <b>"Is it enjoyable?"</b> corner?</p>
+        <div class="btns" id="guess">
+          <button class="btn" data-g="0" aria-pressed="false">None</button>
+          <button class="btn" data-g="1" aria-pressed="false">One or two</button>
+          <button class="btn" data-g="3" aria-pressed="false">Three or more</button>
+        </div>
+        <p class="note" id="guessnote">Pick one. The board answers in chapter 6.</p>
+      </div>
+    </section>
+
+    <!-- 1 · the AI -->
+    <section class="step" data-step="ai">
+      <p class="num"><span class="dot b"></span>1 · Centre</p>
+      <h2>How strong is the AI, really?</h2>
+      <p>Read the history like a game record. Each move is a different kind of event: a win, a tool becoming public, a weakness found.</p>
+      <ol class="kifu">
+        <li><span class="mv b">1</span><div><span class="yr">2016</span><b>AlphaGo defeats Lee Sedol</b><span class="t">A public demonstration of playing strength.<button class="cite" data-s="deepmind"></button></span></div></li>
+        <li><span class="mv w">2</span><div><span class="yr">2017</span><b>Strong <button class="term" data-t="engine">engines</button> become study tools</b><span class="t">The learning studies break their data at public access to Leela, or at the 2016–2017 transition.<button class="cite" data-s="choi"></button><button class="cite" data-s="shin"></button></span></div></li>
+        <li><span class="mv b">3</span><div><span class="yr">2023–24</span><b>Humans exploit some superhuman engines</b><span class="t">Adversarial research finds specific failure modes. Winning this way tests robustness.<button class="cite" data-s="attack"></button><button class="cite" data-s="defense"></button></span></div></li>
+        <li><span class="mv w">4</span><div><span class="yr">2025–26</span><b>The argument moves to the player</b><span class="t">New studies, a player's critique and the X thread ask what people gain from AI.<button class="cite" data-s="critique"></button><button class="cite" data-s="brown"></button></span></div></li>
+      </ol>
+      <div class="card">
+        <p class="label">Decide</p>
+        <p>Kellin Pelrine beat JBXKata005, the strongest playable bot on <button class="term" data-t="kgs">KGS</button> at the time, in 14 of 15 games.<button class="cite" data-s="humangames"></button> Does that make humans the stronger players again?</p>
+        <div class="btns" id="pq">
+          <button class="btn" data-a="yes" aria-pressed="false">Yes</button>
+          <button class="btn" data-a="no" aria-pressed="false">No</button>
+        </div>
+        <div class="reveal" id="pr">
+          <div class="games" id="games" aria-label="14 human wins, 1 loss"></div>
+          <p class="small" style="margin:0 0 .6rem">14 wins, 1 loss. Order of games not shown.</p>
+          <p><b id="pverdict"></b> He used a learned <button class="term" data-t="cyclic">cyclic exploit</button>, a blind spot in that bot. The same researcher also beat <button class="term" data-t="katago">KataGo</button> at 100,000 <button class="term" data-t="visits">search visits</button> with network b18c384nbt-uec after studying the adversary's games. Both are historical cases against named systems, not a 2026 ranking of the best human against the best AI.</p>
+          <p class="note">The project reports no live algorithmic help in these human games. It does not state the hardware or every time and rule setting.</p>
+        </div>
+      </div>
+      <details><summary>What would prove a general reversal?</summary>
+        <p>A dated, repeatable evaluation against a named current engine, with its version, hardware, search budget, rules, time limits, enough games and an uncertainty estimate. One exploit against one checkpoint cannot settle it. No such reversal was found.</p></details>
+    </section>
+
+    <!-- 2 · the chart -->
+    <section class="step" data-step="chart">
+      <p class="num"><span class="dot b"></span>2 · Centre</p>
+      <h2>The chart that started it measures decisions, not rank</h2>
+      <p>Noam Brown posted it on 28 May 2026 as evidence that human Go skill improved after AlphaGo<button class="cite" data-s="brown"></button>. Follow the thread to where the chart really comes from, then open the pins on the chart. Each pin puts what the chart says next to the strongest objection to it.</p>
+      <div class="thread" aria-label="Citation thread for Brown's chart">
+        <div class="post root"><span class="who">Noam Brown · 28 May 2026</span><p>Human Go skill improved after AlphaGo. Chart attached.<button class="cite" data-s="brown"></button></p></div>
+        <div class="post reply"><span class="who">Brown, giving a source</span><p>Links Henrik Karlsson's Go article.<button class="cite" data-s="brownsource"></button> <span class="chip bad">page not found</span><button class="cite" data-s="karlsson"></button></p></div>
+        <div class="post reply crit"><span class="who">anpaure, objecting</span><p>The gain could be memorised openings. Links a player's critique.<button class="cite" data-s="anpaure"></button><button class="cite" data-s="critique"></button></p></div>
+        <div class="post reply"><span class="who">Abhishek Nagaraj</span><p>Points to younger players gaining more. Links Choi et al.<button class="cite" data-s="nagaraj"></button><button class="cite" data-s="choi"></button></p></div>
+        <div class="post end"><span class="who">Traced to</span><p>Shin et al. 2023, Figure 1A. The image matches the figure's axes and pattern; no values were digitised from it.<button class="cite" data-s="shin"></button></p></div>
+      </div>
+      <figure class="chartfig" id="chartfig">
+        <div class="chartwrap" id="chartwrap">
+          <img id="chartimg" src="https://pbs.twimg.com/media/HJZZqiTbEAAKsOz?format=png&amp;name=large" width="1066" height="616" loading="lazy"
+            alt="The chart attached to Brown's post: yearly decision-quality estimates from 1950 to 2021, near the 1950 baseline before 2016 and higher afterwards, with 95% error bars and the AI years shaded.">
+          <p class="imgfail">The chart image could not load. It shows yearly decision-quality estimates for 1950–2021, near the 1950 baseline before 2016 and higher afterwards, with error bars.</p>
+        </div>
+        <figcaption>The chart attached to Brown's post<button class="cite" data-s="brown"></button>: Figure 1A of Shin et al.<button class="cite" data-s="shin"></button> Image loads from X. Pins are this page's notes.</figcaption>
+      </figure>
+      <div class="pinnote" id="pinnote" aria-live="polite"></div>
+      <div class="card">
+        <p class="label">Try the measure yourself · illustrative position and numbers, not study data</p>
+        <div class="picker">
+          <svg id="mini" viewBox="0 0 200 200" role="group" aria-label="Illustrative 9 by 9 position with three candidate moves A, B and C"></svg>
+          <div>
+            <p style="margin-bottom:.4rem" id="mtxt">You play Black. No Go skill needed: pick any of the three moves and the engine will score it. Its own best move here keeps Black's win chance at 60%.</p>
+            <div class="meter"><div class="row"><span>Decision-quality index</span><span class="v" id="dqv">–</span></div><div class="bar"><div class="fill" id="dqb"></div></div></div>
+            <div class="meter"><div class="row"><span>How much you enjoyed choosing it</span><span class="v">not in the formula</span></div><div class="bar empty"></div></div>
+            <p class="calc" id="calc">100 − (best − yours)</p>
+            <div class="btns" style="margin-top:.6rem"><button class="btn" id="mreset" disabled>Pick again</button></div>
+          </div>
+        </div>
+      </div>
+      <p>So the chart's rising line says professionals' opening moves agree more with KataGo's evaluation<button class="cite" data-s="shin"></button>. It is not an Elo curve, a ranking, or a survey of how playing feels.</p>
+    </section>
+
+    <!-- 3 · teach -->
+    <section class="step" data-step="teach">
+      <p class="num"><span class="dot b"></span>3 · Top left</p>
+      <h2>Does it teach? Yes, in the opening</h2>
+      <p>Two studies of <button class="term" data-t="pro">professional</button> games find engine-rated move quality rising once strong AI was available. Both look only at the <button class="term" data-t="opening">opening</button>, the start of the game.<button class="cite" data-s="shin"></button><button class="cite" data-s="choi"></button></p>
+      <div class="card">
+        <p class="label">Which moves each study measured</p>
+        <svg id="strip" viewBox="0 0 520 172" role="img" aria-label="Move windows: Shin et al. analysed moves 1 to 60; Choi et al.'s main analysis covers moves 1 to 30; an earlier study measured all stages and found most gain in moves 1 to 50."></svg>
+        <p class="note">Game length beyond move 120 is cut off on purpose. None of these windows reaches the middle or end of a game.</p>
+      </div>
+      <div class="two">
+        <div class="card"><p class="label">Shin et al. · 2023</p><p style="margin:0">5.8 million professional decisions, 1950–2021. Decision quality and sequence novelty rise after the AI transition.<button class="cite" data-s="shin"></button></p></div>
+        <div class="card"><p class="label">Choi et al. · 2025 manuscript</p><p style="margin:0">749,190 moves by 1,241 professionals, 2015–2019. Gains are larger for younger players.<button class="cite" data-s="choi"></button></p></div>
+      </div>
+      <p>Abhishek Nagaraj's reply to Brown points at that age effect.<button class="cite" data-s="nagaraj"></button> A separate survey of Go teachers reports both satisfaction and worry about AI tools, which is about teaching, not competitors.<button class="cite" data-s="teachers"></button></p>
+      <details><summary>Why this is evidence of change, not proof of cause</summary>
+        <p>Shin compares years with player fixed effects and robustness checks; nobody was randomly given an engine. Choi uses time trends and age groups, has no data on who used an engine, and the older group may have used one too.</p></details>
+    </section>
+
+    <!-- 4 · understand -->
+    <section class="step" data-step="understand">
+      <p class="num"><span class="dot b"></span>4 · Top right</p>
+      <h2>Do players understand more, or remember more?</h2>
+      <p>A competitive player writing as TuesdayBornWhale disputes what the learning numbers mean.<button class="cite" data-s="critique"></button></p>
+      <div class="two">
+        <div class="card"><p class="side r">The researchers tested</p><p style="margin:0">Moves that deviate from the AI, unfamiliar sequences, later opening moves, and simulated AI sequences. Improvement survives.<button class="cite" data-s="shin"></button></p></div>
+        <div class="card"><p class="side p">The player objects</p><p style="margin:0">A brand-new whole board can still be built from memorised <button class="term" data-t="joseki">corner patterns</button>. Those tests would not catch that.<button class="cite" data-s="critique"></button></p></div>
+      </div>
+      <p>Then the PNAS Nexus study adds a twist: new opening patterns arrived, and professionals converged on a few of them.<button class="cite" data-s="diversity"></button></p>
+      <div class="card">
+        <p class="label">Guess, then reveal · top skill decile of professionals</p>
+        <div class="waffle-wrap">
+          <svg id="waffle" viewBox="0 0 200 200" role="img" aria-label="100 points; each is 1% of opening patterns played"></svg>
+          <div>
+            <p style="margin-bottom:.3rem" id="wq">In 2003, the ten patterns that would dominate 2021 made up <b>4%</b> of what top professionals played. Each point is 1%. Drag to guess their share in 2021.</p>
+            <div class="big" id="wbig">4%</div>
+            <input type="range" id="wslider" min="0" max="100" value="4" aria-label="Your guess for the 2021 share">
+            <div class="btns" style="margin-top:.5rem"><button class="btn primary" id="wreveal">Reveal 2021</button></div>
+            <div class="reveal" id="wafter">
+              <div class="btns" id="wyear" aria-label="Year"><button class="btn" data-y="2003" aria-pressed="false">2003</button><button class="btn" data-y="2021" aria-pressed="true">2021</button></div>
+              <div class="btns" id="wdec" aria-label="Skill group"><button class="btn" data-d="top" aria-pressed="true">Top decile</button><button class="btn" data-d="bottom" aria-pressed="false">Bottom decile</button></div>
+            </div>
+          </div>
+        </div>
+        <p class="note">Reported values: top decile 4.02% → 66.8%, bottom decile 2.48% → 52.6% (Figure 5 discussion, p. 4)<button class="cite" data-s="diversity"></button>. These are the ten patterns prominent in 2021 traced back to 2003, not each year's own top ten. Points are rounded to whole percents.</p>
+      </div>
+      <p>Novelty and variety can move in opposite directions. Shin's novelty asks whether a game departs from every recorded sequence. Choi's diversity asks how spread out play is across eight-move <button class="term" data-t="joseki">corner patterns</button>. Both can be true at once. Neither measures enjoyment.<button class="cite" data-s="shin"></button><button class="cite" data-s="diversity"></button></p>
+      <details><summary>Can win probability mislead?</summary>
+        <p>The critique notes that the same point loss moves the estimated win chance by different amounts depending on the position and <button class="term" data-t="komi">komi</button>. That limits comparisons across stages of a game. It does not by itself undo comparisons of similar positions.<button class="cite" data-s="critique"></button></p></details>
+    </section>
+
+    <!-- 5 · fair -->
+    <section class="step" data-step="fair">
+      <p class="num"><span class="dot w"></span>5 · Bottom left</p>
+      <h2>Is play fair? It depends when the AI shows up</h2>
+      <p>The same engine plays four different roles in a player's day. Move it along the track. Every stone in this corner is white: rules, accounts and a synthesis, no measurements.</p>
+      <div class="card">
+        <div class="track" id="track">
+          <span class="token" id="token" aria-hidden="true">AI</span>
+          <button class="stop" data-u="training" aria-pressed="true">Study<small>before playing</small></button>
+          <button class="stop" data-u="practice" aria-pressed="false">Practice<small>versus the engine</small></button>
+          <button class="stop live" data-u="live" aria-pressed="false">Live game<small>versus a human</small></button>
+          <button class="stop" data-u="review" aria-pressed="false">Review<small>after the game</small></button>
+        </div>
+        <div id="use" aria-live="polite"></div>
+      </div>
+      <p>Players on the <button class="term" data-t="ogs">OGS</button> forum describe suspected engine help and what it does to trust.<button class="cite" data-s="ogsforum"></button> That is a reported concern, not a measured rate of cheating. Agreement with an engine also happens in honest play, so it cannot convict anyone.<button class="cite" data-s="critique"></button></p>
+    </section>
+
+    <!-- 6 · enjoy -->
+    <section class="step" data-step="enjoy">
+      <p class="num"><span class="dot g"></span>6 · Bottom right</p>
+      <h2>Is it enjoyable? Nobody measured it</h2>
+      <div class="card">
+        <p class="label">Your prediction</p>
+        <p style="margin:0" id="greveal">Black stones in this corner: <b>none</b>.</p>
+      </div>
+      <p>The one white stone here is David Bessis's essay on mathematics. He argues that understanding and meaning are worth something apart from output, and he explicitly warns against treating mathematics like a fixed-rule game such as Go. It frames the question. It is not data about Go.<button class="cite" data-s="bessis"></button></p>
+      <p>The marked point is the finding: none of the inspected sources measures how online competitors feel, or whether they keep playing. That is a gap, not proof that nothing was lost.</p>
+      <p>The dashed rings show what would fill the corner:</p>
+      <ul class="needs">
+        <li><span class="dot h"></span>Repeated satisfaction and agency surveys of competitive online players</li>
+        <li><span class="dot h"></span>Platform retention data, with clear periods and comparison groups</li>
+        <li><span class="dot h"></span>Records of engine access and review habits</li>
+        <li><span class="dot h"></span>Independently assessed live assistance</li>
+        <li><span class="dot h"></span>Learning measured separately from all of the above</li>
+      </ul>
+      <div class="card">
+        <p class="label">Check your reading</p>
+        <p>A player's moves agree with the engine more often than last year. What can you conclude about their enjoyment?</p>
+        <div class="btns" id="cq">
+          <button class="btn" data-a="up" aria-pressed="false">It went up</button>
+          <button class="btn" data-a="down" aria-pressed="false">It went down</button>
+          <button class="btn" data-a="none" aria-pressed="false">Nothing yet</button>
+        </div>
+        <div class="reveal" id="cr"><p style="margin:.4rem 0 0"><b id="cv"></b> They might be learning with enthusiasm, memorising under pressure, or handing decisions to the engine. Enjoyment needs its own measurement.</p></div>
+      </div>
+    </section>
+
+    <!-- 7 · final -->
+    <section class="step" data-step="final">
+      <p class="num">7 · The whole board</p>
+      <h2>What the board lets you say</h2>
+      <div class="verdict">
+        <div class="v"><span class="dot b"></span><div><b>You can say</b>AI changed how professionals play the opening: engine-rated quality rose, new patterns spread, play concentrated.</div></div>
+        <div class="v"><span class="dot w"></span><div><b>Say with a qualifier</b>That this is learning. It is engine agreement in the opening, and a player disputes whether it is understanding.</div></div>
+        <div class="v"><span class="dot g"></span><div><b>You cannot say from this evidence</b>That AI made online Go less enjoyable or drove players away, or that humans are stronger than AI again.</div></div>
+      </div>
+      <p>The useful question is narrower than the hypothesis: which uses of AI make the player stronger, and which take away the decisions that make competing worth doing?</p>
+      <details><summary>Carrying this to Pokémon VGC</summary>
+        <p>Go suggests keeping study, practice, live help and review apart, and measuring skill and enjoyment separately. It does not predict VGC: VGC has hidden information, randomness, team preparation and rules that change each regulation.</p></details>
+      <details><summary>The draft introduction from the Codex brief</summary>
+        <p>Go offers a useful test of life after superhuman AI. Research reports changes in professional play and improved engine-evaluated opening decisions, but players dispute how much of that reflects deeper understanding. Online, the question also depends on how the tool is used: studying with an engine differs from receiving undisclosed help during a match. The evidence here leaves open whether AI reduces enjoyment or participation. It points instead to a question worth investigating: when does AI help people become better players, and when does it take away the decisions that make competition rewarding?</p></details>
+    </section>
+  </div>
+</div>
+
+<section class="ledger" id="refs">
+  <h2>References</h2>
+  <p class="small">Numbered in the order they first appear. Click any number in the text to read the source's summary and limit without leaving the page.</p>
+  <ol class="refs" id="reflist"></ol>
+</section>
+
+<section class="ledger" id="ledger">
+  <h2>Every stone, in one list</h2>
+  <p class="small">The 21 claims from the evidence ledger, with where each was checked and what it cannot show.</p>
+  <div class="filters" id="filters">
+    <button class="btn" data-f="all" aria-pressed="true">All 21</button>
+    <button class="btn" data-f="b" aria-pressed="false">Measured</button>
+    <button class="btn" data-f="w" aria-pressed="false">Said</button>
+    <button class="btn" data-f="g" aria-pressed="false">Gap</button>
+  </div>
+  <div id="lrows"></div>
+</section>
+
+<footer class="col">
+  <p>Every claim, number and link on this page comes from the Codex evidence brief and its ledger, checked 12 October 2026. This page reorganises that evidence; it adds no new claims. The original datasets, regression estimates and supplementary analyses were not reproduced.</p>
+  <p>X coverage was partial: Brown's post and chart, two visible direct replies, the supplied Nagaraj reply, and the visible text of the quoted Gowers post. No quote posts were reachable while logged out. It is not a representative sample of the thread.</p>
+  <ul id="limits"></ul>
+  <p>The Go primer and term definitions are general background added for readers new to Go; they are not from the brief. The Go positions on this page are illustrations. The pattern-share points are the only plotted data.</p>
+</footer>
+
+<script>
+'use strict';
+const LEDGER = {"title": "Go after superhuman AI: evidence ledger", "checked_on": "2026-10-12", "scope": "Competitive Go; professional-game studies separated from online player experience.", "method": "Source inspection and qualitative synthesis. Original datasets, regression estimates, and supplementary analyses were not independently reproduced.", "claims": [{"id": "C01", "claim": "Brown posted that human Go skill improved after AlphaGo.", "source": "https://x.com/polynoamial/status/2059932468820816354", "locator": "Main post; May 28, 2026", "population": "Not specified by the post", "measurement": "Social interpretation", "type": "Commentary", "limitation": "Not an independent empirical study", "status": "Post text and author verified in browser"}, {"id": "C02", "claim": "Brown's attached chart measures yearly effects on decision quality, not rankings.", "source": "https://arxiv.org/pdf/2303.07462#page=6", "corroboration": "https://x.com/polynoamial/status/2059932468820816354/photo/1", "locator": "Figure 1A; PDF p.6, adjacent results p.5", "population": "Professional players, historical records", "measurement": "Year fixed effect on median decision-quality indices; player fixed effects; 1950 baseline; 95% confidence intervals", "type": "Empirical figure", "limitation": "First 60 moves; engine-evaluated proxy. Figure visually matched; no digitization or reanalysis", "status": "Verified caption and attached chart"}, {"id": "C03", "claim": "Brown's source reply links a Karlsson article that is now unavailable at the supplied path.", "source": "https://x.com/polynoamial/status/2059933022586282020", "corroboration": "https://www.henrikkarlsson.xyz/p/go", "locator": "Source reply and redirected page-not-found screen", "population": null, "measurement": null, "type": "Attribution chain", "limitation": "Intermediary article content remains unverified", "status": "Reply and unavailable destination verified in browser"}, {"id": "C04", "claim": "Nagaraj emphasizes stronger effects among younger players and links Choi et al.", "source": "https://x.com/abhishekn/status/2060060022550511826", "locator": "May 28, 2026 reply and paper link", "population": "Professional players discussed by linked study", "measurement": "Social summary of age heterogeneity", "type": "Research pointer", "limitation": "Not a separate experiment; reply discussion is login-limited", "status": "Verified in browser"}, {"id": "C05", "claim": "Shin et al. report improved engine-evaluated decision quality and increased sequence novelty after the AI transition.", "source": "https://arxiv.org/pdf/2303.07462", "locator": "Abstract, Results, Figure 1, footnote on PDF p.7", "population": "Professional Go decisions, 1950–2021; over 5.8 million moves", "measurement": "KataGo-derived decision quality and historically novel sequences; first 60 moves", "type": "Empirical observational study", "limitation": "Opening-window scope; historical comparison is not randomized AI access; does not measure enjoyment", "status": "Main paper inspected; estimates not reproduced"}, {"id": "C06", "claim": "Shin et al. test memorization explanations in multiple ways.", "source": "https://arxiv.org/pdf/2303.07462", "locator": "PDF pp.10–16", "population": "Same professional opening decisions", "measurement": "Deviations from AI choices, later opening subsets, opponent deviations, inserted simulated AI sequences", "type": "Robustness analysis", "limitation": "Main-text descriptions checked; supplemental figures and analysis code not independently reproduced", "status": "Verified as reported tests, not as a conclusive exclusion of every memorization mechanism"}, {"id": "C07", "claim": "Choi et al. report move-quality improvement, with stronger effects for younger professionals.", "source": "https://hyokang.com/assets/pdf/CKKK-AI-Go.pdf", "locator": "Abstract; §§3–5; research design around PDF pp.15–17", "population": "1,241 professionals, 24,973 games, 2015–2019; 749,190 analyzed early moves", "measurement": "Winning-probability difference from engine-preferred choices; main window first 30 moves", "type": "Empirical study", "limitation": "No individual AI-use measure; older age group is not a clean untreated control; not an enjoyment study", "status": "Verified as study finding; causal estimates not reproduced"}, {"id": "C08", "claim": "The earlier study linked by the critic reports most measured improvement in early play.", "source": "https://arxiv.org/pdf/2012.15035", "locator": "Figure 2 and adjacent discussion, PDF pp.4–5", "population": "Professional Go records", "measurement": "Human–AI gap by ten-move bins; concentration of gains in moves 1–50", "type": "Empirical observational study", "limitation": "Cannot prove absence of all later-game learning; arXiv version can differ from a cited earlier publication", "status": "Stage result checked in linked PDF"}, {"id": "C09", "claim": "TuesdayBornWhale challenges whether sequence novelty and engine agreement establish deeper understanding.", "source": "https://tuesdaybornwhale.github.io/posts/learning_from_superhumanai/", "locator": "My critique; local joseki discussion; Appendix", "population": "Professional-study interpretation and author's own competitive experience", "measurement": "Conceptual criticism of existing metrics", "type": "Methodological commentary", "limitation": "No representative sample or new controlled reanalysis", "status": "Article inspected; interpretation labeled disputed"}, {"id": "C10", "claim": "The critic reports deference to AI and an alleged online cheating example.", "source": "https://tuesdaybornwhale.github.io/posts/learning_from_superhumanai/", "locator": "So… we aren't getting better?", "population": "Author and unnamed acquaintance", "measurement": "Firsthand account and inference", "type": "Anecdote", "limitation": "Individual allegation unverified; not used to establish cheating prevalence or accuse an identified individual", "status": "Verified as author's reported experience only"}, {"id": "C11", "claim": "PNAS Nexus reports new local opening patterns and greater concentration after AI access.", "source": "https://academic.oup.com/pnasnexus/article/4/5/pgaf138/8124449?login=false", "accessible_copy": "https://ide.mit.edu/wp-content/uploads/2025/05/pgaf138.pdf", "locator": "Methods and Results, PDF pp.2–5", "population": "Professional games 2003–2021; full corpus 69,996 games; pattern analysis uses a subset", "measurement": "Eight alternating moves in a quadrant; pattern shares, CR4, HHI", "type": "Empirical observational study", "limitation": "No explicit counterfactual control group; diversity metric is not enjoyment", "status": "Full-text copy inspected; publisher page intermittently inaccessible"}, {"id": "C12", "claim": "The top ten patterns in 2021 accounted for 4.02% in 2003 and 66.8% in 2021 among the top skill decile; 2.48% and 52.6% among the bottom skill decile.", "source": "https://ide.mit.edu/wp-content/uploads/2025/05/pgaf138.pdf#page=4", "locator": "Figure 5 discussion, PDF p.4", "population": "Top and bottom professional skill deciles", "measurement": "Share of the set of ten patterns prominent in 2021, traced over time", "type": "Reported numerical comparison", "limitation": "Not necessarily each year's own ten most frequent patterns; no enjoyment implication", "status": "Values checked against full-text discussion; plotted on common 0–100% scale"}, {"id": "C13", "claim": "Novelty and concentration findings need not contradict each other.", "source": "https://arxiv.org/pdf/2303.07462", "additional_source": "https://ide.mit.edu/wp-content/uploads/2025/05/pgaf138.pdf", "locator": "Novelty definition versus standard-pattern concentration definition", "population": "Different professional samples and periods", "measurement": "Historical full sequence departure versus local pattern usage distribution", "type": "Synthesis", "limitation": "Conceptual compatibility is not independent proof of either causal interpretation", "status": "Inference explicitly distinguished from measured findings"}, {"id": "C14", "claim": "OGS prohibits engine analysis of ongoing games unless permitted, and all outside help in live/blitz games.", "source": "https://online-go.com/docs/terms-of-service", "locator": "No Cheating or Computer Help", "population": "OGS users", "measurement": "Platform rule", "type": "Policy", "limitation": "Does not measure prevalence, enforcement effectiveness, or enjoyment", "status": "Current rendered policy checked in browser"}, {"id": "C15", "claim": "Players have publicly raised fairness concerns about suspected live assistance.", "source": "https://forums.online-go.com/t/is-it-legal-for-human-player-using-ai-against-human-player/33153", "locator": "Initial January 2021 post and replies", "population": "Self-selected forum participants", "measurement": "Reported concern", "type": "Anecdotal community discussion", "limitation": "Alleged cheating is not independently confirmed; sample not representative", "status": "Source text inspected"}, {"id": "C16", "claim": "Go teachers report both concerns and satisfaction about educational AI tools.", "source": "https://www.intergostudies.net/journal/issuesSub_view.asp?sub_num=34", "locator": "Journal abstract for Trinks & Oh, December 7, 2023", "population": "Surveyed Go educators", "measurement": "Reported use, concerns, and satisfaction", "type": "Survey abstract", "limitation": "Full survey methods not audited; teachers are not representative online competitors", "status": "Verified abstract only; no competitive-enjoyment inference"}, {"id": "C17", "claim": "Bessis distinguishes understanding and meaning from output production and challenges a mathematics–Go analogy.", "source": "https://davidbessis.substack.com/p/the-fall-of-the-theorem-economy", "locator": "Opening argument; The way of Go and Chess", "population": "Mathematical community as discussed by author", "measurement": null, "type": "Philosophical commentary", "limitation": "Does not empirically study Go experience; used only as a framing lens", "status": "Essay inspected"}, {"id": "C18", "claim": "Go AI has demonstrated superhuman strength and tested engines can have exploitable weaknesses.", "source": "https://deepmind.google/blog/alphago-zero-starting-from-scratch/", "additional_sources": ["https://goattack.far.ai/", "https://arxiv.org/abs/2406.12843"], "locator": "Developer historical research account; adversarial project and study", "population": "Specified engines and test settings", "measurement": "Match results and adversarial success", "type": "Historical and experimental capability evidence", "limitation": "Not a current exhaustive best-engine ranking or proof that humans are generally superior", "status": "Scope-qualified finding verified"}, {"id": "C19", "claim": "The inspected evidence does not establish a population-wide reduction in online Go enjoyment or participation.", "source": "Starting-source collection and supporting evidence listed above", "locator": "Outcomes and populations in inspected sources", "population": "Online competitive Go players", "measurement": "No representative direct outcome estimate located in inspected material", "type": "Evidence-gap synthesis", "limitation": "Not proof of no harm; not an exhaustive systematic review", "status": "Supported as a bounded statement about inspected evidence"}, {"id": "C20", "claim": "Training, review, practice, and live assistance may affect agency and fairness differently.", "source": "https://tuesdaybornwhale.github.io/posts/learning_from_superhumanai/", "additional_sources": ["https://online-go.com/docs/terms-of-service", "https://hyokang.com/assets/pdf/CKKK-AI-Go.pdf"], "locator": "Use-setting comparison in brief", "population": "Competitive players as conceptual cases", "measurement": "Qualitative pathways; no effect sizes", "type": "Conceptual synthesis", "limitation": "Benefits and risks labeled potential where direct outcome evidence is absent", "status": "Explicitly hypothetical where appropriate"}, {"id": "C21", "claim": "The project reports Pelrine winning 14 of 15 games against JBXKata005 on KGS; a separate example exploits KataGo at 100,000 visits with network b18c384nbt-uec.", "source": "https://goattack.far.ai/human-evaluation", "locator": "Human exploits a top KGS bot; Human exploits KataGo; game record tables", "population": "One expert against specified historical bot implementations", "measurement": "Recorded wins using learned cyclic exploits", "type": "Experimental case evidence", "limitation": "Hardware and complete time/rule conditions not stated in visible summary; not proof against the current best engine under arbitrary conditions", "status": "Rendered primary research page and game tables checked in browser"}], "visuals": [{"name": "Hero Go board", "kind": "Illustration", "data": "No recorded match or claimed outcome"}, {"name": "Brown attached chart", "kind": "Original remote image", "data": "Source image viewed in browser; figure/caption matched; not reconstructed"}, {"name": "DQI calculator", "kind": "Illustrative computation", "data": "Reader-controlled hypothetical probabilities; index=100-(best-human); not study measurements"}, {"name": "Pattern-share comparison", "kind": "Reported data", "data": {"top_decile": {"2003": 4.02, "2021": 66.8}, "bottom_decile": {"2003": 2.48, "2021": 52.6}}, "units": "percent", "source_claim": "C12"}, {"name": "Process and evidence maps", "kind": "Conceptual diagrams", "data": "No measured causal effect represented"}], "x_coverage": {"checked_on": "2026-10-12", "brown_post": "Inspected main text, author, displayed date, attached chart", "visible_direct_replies_inspected": 2, "visible_direct_reply_urls": ["https://x.com/polynoamial/status/2059933022586282020", "https://x.com/anpaure/status/2059934782872866830"], "additional_supplied_reply": "https://x.com/abhishekn/status/2060060022550511826", "embedded_quoted_post": "Visible Gowers text in Brown's post read; mathematics context, not Go outcome evidence", "standalone_quote_posts_of_brown_inspected": 0, "limitations": "Logged-out page provides limited replies; scrolling reaches See all the replies / Continue to X login prompt. No quote-post listing navigation available in inspected page; More menu exposes only Embed post. No authenticated access was used. Search did not supply verifiable additional quote posts.", "representative": false}, "access_limits": ["Karlsson intermediary /p/go redirected to a page-not-found screen.", "PNAS Nexus publisher page was not consistently accessible; full text read from MIT-hosted copy.", "Shin supplemental PDF retrieval returned a challenge HTML page; main-text accounts of supplemental analyses are attributed to authors, not independently validated.", "Teacher survey summarized at abstract level only.", "Remote chart image needs internet; source link and text alternative remain available."]};
+const SOURCES = {"brown": {"title": "Noam Brown's post", "url": "https://x.com/polynoamial/status/2059932468820816354", "date": "May 28, 2026", "type": "Social commentary", "summary": "Claims human Go skill improved after AlphaGo and speculates about a similar pattern in mathematics. The attached figure displays decision quality.", "locator": "Main post and attached image", "limit": "A social claim and chart share, not an independent study. Replies and quote-post access are incomplete."}, "brownsource": {"title": "Brown's source reply", "url": "https://x.com/polynoamial/status/2059933022586282020", "date": "May 28, 2026", "type": "Source pointer", "summary": "Links Henrik Karlsson's Go article as the source.", "locator": "Visible direct reply", "limit": "The linked article currently resolves to a page-not-found screen."}, "anpaure": {"title": "anpaure's critical reply", "url": "https://x.com/anpaure/status/2059934782872866830", "date": "May 28, 2026", "type": "Social criticism", "summary": "Objects that the reported improvement could reflect memorized openings and links a player critique.", "locator": "Visible direct reply to Brown", "limit": "A compressed account of the critique, not an independently tested result."}, "nagaraj": {"title": "Abhishek Nagaraj's reply", "url": "https://x.com/abhishekn/status/2060060022550511826", "date": "May 28, 2026", "type": "Research pointer", "summary": "Emphasizes younger players and links the Choi–Kang–Kim–Kim paper.", "locator": "Supplied reply; source link verified", "limit": "Does not independently establish the finding or address enjoyment."}, "choi": {"title": "Choi et al.: human decision-making", "url": "https://hyokang.com/assets/pdf/CKKK-AI-Go.pdf", "date": "January 2025 manuscript", "type": "Empirical professional-game study", "summary": "Reports improved move quality around public engine access, especially early in the game; younger and less-skilled players show stronger benefits on the studied outcomes.", "locator": "Abstract; §§3–5, especially research design and stage comparisons", "limit": "Primary window: first 30 moves. No individual engine-use data; age comparison has no clean untreated group. Enjoyment was not measured."}, "shin": {"title": "Shin et al.: decision quality & novelty", "url": "https://arxiv.org/pdf/2303.07462", "date": "PNAS, March 2023", "type": "Empirical professional-game study", "summary": "Reports higher engine-evaluated decision quality and earlier departures from historical sequences after superhuman AI. Tests several memorization explanations.", "locator": "Figure 1A, PDF p.6; footnote p.7; tests pp.10–16", "limit": "Analyzes the first 60 moves. Novelty is sequence-based. Supplemental figures and raw data were not independently reproduced."}, "earlier": {"title": "Earlier human–AI gap study", "url": "https://arxiv.org/pdf/2012.15035", "date": "Earlier paper linked by the player critique; evolving arXiv version", "type": "Empirical professional-game study", "summary": "Its stage-by-stage analysis places much of the measured improvement in the early game, especially moves 1–50.", "locator": "Figure 2 and adjacent discussion, PDF pp.4–5", "limit": "A stage-specific engine measure does not establish absence of all later-game learning or an enjoyment effect."}, "diversity": {"title": "Choi et al.: knowledge & diversity", "url": "https://academic.oup.com/pnasnexus/article/4/5/pgaf138/8124449?login=false", "alternate": "https://ide.mit.edu/wp-content/uploads/2025/05/pgaf138.pdf", "date": "May 3, 2025", "type": "Empirical opening-pattern study", "summary": "Finds adoption of new local patterns and increased concentration in their use. Higher-skill professionals show stronger changes on these outcomes.", "locator": "Methods p.2; Figures 2–5 and discussion pp.3–5", "limit": "Eight-move local patterns; professional population. No explicit counterfactual control group. Less diversity does not imply less enjoyment."}, "critique": {"title": "TuesdayBornWhale: learning critique", "url": "https://tuesdaybornwhale.github.io/posts/learning_from_superhumanai/", "date": "September 13, 2025", "type": "Methodological criticism & player account", "summary": "Challenges novelty and learning interpretations using local-pattern memorization, scope after move 60, and stage-dependent win-probability metrics. Raises concern about deference to AI.", "locator": "“My critique,” “So… we aren't getting better?” and appendix", "limit": "No representative satisfaction survey or controlled reanalysis. Its individual cheating account is an author allegation, not independently verified here."}, "bessis": {"title": "David Bessis: theorem economy", "url": "https://davidbessis.substack.com/p/the-fall-of-the-theorem-economy", "date": "April 21, 2026", "type": "Philosophical commentary", "summary": "Distinguishes mathematical understanding and meaning from theorem production, and questions analogies between mathematics and fixed-rule games.", "locator": "Opening argument; “The way of Go and Chess”", "limit": "Provides a lens on human value and incentives, not empirical evidence about Go enjoyment or participation."}, "ogs": {"title": "OGS terms: computer help", "url": "https://online-go.com/docs/terms-of-service", "date": "Current page inspected October 12, 2026", "type": "Platform policy", "summary": "Prohibits engine analysis of ongoing games unless specifically permitted, and outside assistance in live or blitz games.", "locator": "“No Cheating or Computer Help”", "limit": "Rules establish permitted conduct, not cheating prevalence or psychological effects."}, "ogsforum": {"title": "OGS player fairness discussion", "url": "https://forums.online-go.com/t/is-it-legal-for-human-player-using-ai-against-human-player/33153", "date": "January 2021", "type": "Firsthand forum concern", "summary": "A player raises suspected engine assistance and fairness; replies direct the player to reporting and platform rules.", "locator": "Initial post and replies", "limit": "Self-selected anecdotal discussion. The allegation does not independently prove cheating or its frequency."}, "teachers": {"title": "Trinks & Oh: teacher survey", "url": "https://www.intergostudies.net/journal/issuesSub_view.asp?sub_num=34", "date": "December 7, 2023", "type": "Go education survey", "summary": "Educators report mixed views: non-use and concerns about suitability coexist with satisfaction among adopters.", "locator": "Journal abstract; full paper linked there", "limit": "Abstract checked. Teachers' views concern education, not representative competitive online player enjoyment."}, "deepmind": {"title": "DeepMind: AlphaGo Zero", "url": "https://deepmind.google/blog/alphago-zero-starting-from-scratch/", "date": "October 18, 2017", "type": "Developer research account", "summary": "Documents the progression beyond the AlphaGo version that defeated Lee Sedol and beyond Master, which defeated Ke Jie.", "locator": "Opening research account and linked paper", "limit": "Historical engine strength, not a current leaderboard or enjoyment study."}, "attack": {"title": "Adversarial Go research", "url": "https://goattack.far.ai/", "date": "2023 research; project site inspected October 2026", "type": "Experimental engine robustness research", "summary": "Shows exploitable strategies against specified superhuman engines that humans can replicate.", "locator": "Project overview and linked paper", "limit": "Attack success is conditional on evaluated systems and settings, not general human superiority."}, "humangames": {"title": "Human exploit games and settings", "url": "https://goattack.far.ai/human-evaluation", "date": "Historical research examples; page checked October 12, 2026", "type": "Documented experimental games", "summary": "Reports Pelrine winning 14 of 15 games against JBXKata005 on KGS. Separately documents a win against KataGo at 100,000 visits using network b18c384nbt-uec.", "locator": "Human exploits KataGo; Human exploits a top KGS bot; linked game records", "limit": "The learned exploit tests robustness. Hardware and complete rule/time conditions are not specified in the visible summary. Not a current best-engine evaluation."}, "defense": {"title": "Can Go AIs be adversarially robust?", "url": "https://arxiv.org/abs/2406.12843", "date": "June 18, 2024 initial submission", "type": "Experimental robustness research", "summary": "Studies defenses and continuing adversarial weaknesses in tested Go AI systems.", "locator": "Abstract and linked experimental project", "limit": "A robustness test is distinct from ordinary competitive strength; no claim that every current engine is exploitable."}, "karlsson": {"title": "Karlsson link in Brown's reply", "url": "https://www.henrikkarlsson.xyz/p/go", "date": "Checked October 12, 2026", "type": "Unavailable intermediary source", "summary": "The observed source chain includes this link, but its article was unavailable.", "locator": "Browser redirected to /go and displayed “Page not found”", "limit": "Its content and attribution details were not inferred."}};
+const CLAIMS = Object.fromEntries(LEDGER.claims.map(c => [c.id, c]));
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+
+/* ---------- where every claim sits: [col, row, colour, chapter] ---------- */
+const PLACE = {
+  C18:[9,9,'b','ai'], C21:[8,10,'b','ai'],
+  C01:[10,10,'w','chart'], C02:[10,8,'b','chart'], C03:[8,8,'w','chart'],
+  C05:[3,3,'b','teach'], C06:[4,4,'b','teach'], C07:[2,5,'b','teach'], C08:[5,2,'b','teach'], C16:[3,6,'b','teach'], C04:[6,3,'w','teach'],
+  C11:[15,3,'b','understand'], C12:[16,5,'b','understand'], C09:[13,2,'w','understand'], C13:[14,5,'w','understand'],
+  C14:[3,15,'w','fair'], C15:[5,16,'w','fair'], C10:[2,13,'w','fair'], C20:[5,14,'w','fair'],
+  C17:[13,13,'w','enjoy'], C19:[15,15,'g','enjoy'],
+};
+const GHOSTS = [
+  [16,16,'Repeated satisfaction and agency surveys of competitive online players'],
+  [13,16,'Platform retention data, with clear periods and comparison groups'],
+  [16,13,'Records of engine access and review habits'],
+  [17,17,'Independently assessed live assistance'],
+  [14,17,'Learning measured separately from enjoyment and participation'],
+];
+const ORDER = ['intro','ai','chart','teach','understand','fair','enjoy','final'];
+const REGION = {ai:'centre', chart:'centre', teach:'tl', understand:'tr', fair:'bl', enjoy:'br'};
+const KIND = {b:'Measured', w:'Said', g:'Gap'};
+const url = c => c.accessible_copy || (/^https?:/.test(c.source) ? c.source : null);
+const X = i => 40 + i * 20, Y = j => 50 + j * 20;
+
+/* ---------- the board ---------- */
+const board = document.getElementById('board');
+const defs = el('defs', {}, board);
+const gb = el('radialGradient', {id:'gb', cx:'35%', cy:'30%', r:'75%'}, defs);
+el('stop', {offset:'0', 'stop-color':'#55585f'}, gb); el('stop', {offset:'1', 'stop-color':'#0d0e10'}, gb);
+const gw = el('radialGradient', {id:'gw', cx:'35%', cy:'30%', r:'80%'}, defs);
+el('stop', {offset:'0', 'stop-color':'#ffffff'}, gw); el('stop', {offset:'1', 'stop-color':'#d9d5ca'}, gw);
+el('rect', {x:22, y:32, width:396, height:396, rx:6, fill:'var(--wood)'}, board);
+const regs = {
+  tl: el('rect', {class:'reg', x:28, y:38, width:144, height:144, rx:4}, board),
+  tr: el('rect', {class:'reg', x:268, y:38, width:144, height:144, rx:4}, board),
+  bl: el('rect', {class:'reg', x:28, y:278, width:144, height:144, rx:4}, board),
+  br: el('rect', {class:'reg', x:268, y:278, width:144, height:144, rx:4}, board),
+  centre: el('rect', {class:'reg', x:168, y:178, width:104, height:104, rx:4}, board),
+};
+const grid = el('g', {class:'grid'}, board);
+for (let i = 0; i < 19; i++) {
+  el('line', {x1:X(i), y1:Y(0), x2:X(i), y2:Y(18)}, grid);
+  el('line', {x1:X(0), y1:Y(i), x2:X(18), y2:Y(i)}, grid);
+}
+for (const a of [3,9,15]) for (const b of [3,9,15]) el('circle', {class:'hoshi', cx:X(a), cy:Y(b), r:2.4}, grid);
+const labels = {
+  tl: el('text', {x:24, y:22}, board), tr: el('text', {x:416, y:22, 'text-anchor':'end'}, board),
+  bl: el('text', {x:24, y:452}, board), br: el('text', {x:416, y:452, 'text-anchor':'end'}, board),
+  centre: el('text', {x:220, y:452, 'text-anchor':'middle'}, board),
+};
+labels.tl.textContent = 'Does it teach?'; labels.tr.textContent = 'Do we understand?';
+labels.bl.textContent = 'Is play fair?'; labels.br.textContent = 'Is it enjoyable?'; labels.centre.textContent = '· the AI ·';
+
+const stones = [];
+const ring = el('circle', {class:'ring', r:12.5}, null);
+for (const [id, [i, j, col, step]] of Object.entries(PLACE)) {
+  const c = CLAIMS[id];
+  const g = el('g', {class:'st', transform:`translate(${X(i)},${Y(j)})`, tabindex:'-1', role:'button',
+    'aria-label':`${id}, ${KIND[col].toLowerCase()}: ${c.claim}`}, board);
+  const inner = el('g', {class:'in'}, g);
+  if (col === 'g') { el('rect', {x:-6, y:-6, width:12, height:12, fill:'var(--wood)'}, inner); el('rect', {class:'g', x:-6, y:-6, width:12, height:12}, inner); }
+  else { el('circle', {class:'shadow', cx:1, cy:1.6, r:9.3}, inner); el('circle', {class:col, r:9.3}, inner); }
+  g.dataset.id = id; g.dataset.step = step;
+  stones.push({g, id, col, step});
+}
+for (const [i, j, text] of GHOSTS) {
+  const g = el('g', {class:'st ghostg', transform:`translate(${X(i)},${Y(j)})`, tabindex:'-1', role:'button', 'aria-label':`Missing evidence: ${text}`}, board);
+  const inner = el('g', {class:'in'}, g);
+  el('circle', {class:'ghost', r:8.6}, inner);
+  g.dataset.ghost = text; g.dataset.step = 'enjoy';
+  stones.push({g, ghost:text, col:'h', step:'enjoy'});
+}
+board.appendChild(ring);
+
+/* ---------- detail card ---------- */
+const detail = document.getElementById('detail'), dbody = document.getElementById('dbody');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+let selected = null;
+function show(s) {
+  if (selected) selected.g.classList.remove('sel');
+  selected = s; s.g.classList.add('sel');
+  const t = s.g.getAttribute('transform').match(/[\d.]+/g);
+  ring.setAttribute('cx', t[0]); ring.setAttribute('cy', t[1]); ring.classList.add('on');
+  if (s.ghost) {
+    dbody.innerHTML = `<div class="top"><span class="dot h"></span><span class="chip">Missing</span></div><p class="claim">${esc(s.ghost)}</p><p style="margin:0">Nothing in the inspected sources supplies this. A measurement like it would be the first black stone in this corner.</p>`;
+  } else {
+    const c = CLAIMS[s.id], u = url(c);
+    dbody.innerHTML = `<div class="top"><span class="dot ${s.col}"></span><span class="id">${c.id}</span><span class="chip">${esc(c.type)}</span></div>
+      <p class="claim">${esc(c.claim)}</p>
+      <dl>${c.population ? `<dt>Covers</dt><dd>${esc(c.population)}</dd>` : ''}${c.measurement ? `<dt>Measures</dt><dd>${esc(c.measurement)}</dd>` : ''}
+      <dt>Limit</dt><dd>${esc(c.limitation)}</dd><dt>Where</dt><dd>${esc(c.locator)}${u ? ` · <a href="${esc(u)}" target="_blank" rel="noopener">open ↗</a>` : ''}</dd></dl>`;
+  }
+  detail.classList.add('open'); detail.classList.remove('fade'); void detail.offsetWidth; detail.classList.add('fade');
+}
+document.getElementById('dx').onclick = () => { detail.classList.remove('open'); ring.classList.remove('on'); if (selected) selected.g.classList.remove('sel'); selected = null; };
+for (const s of stones) {
+  s.g.addEventListener('click', () => show(s));
+  s.g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(s); } });
+}
+
+/* ---------- step state: stones are cumulative, the active corner lights up ---------- */
+let current = null;
+function setStep(name) {
+  if (name === current) return;
+  const k = ORDER.indexOf(name), prev = ORDER.indexOf(current);
+  current = name;
+  let delay = 0;
+  /* a jump across several chapters lands many stones at once: keep the whole cascade under ~0.9s */
+  const fresh = stones.filter(s => ORDER.indexOf(s.step) <= k && s.step !== 'intro' && !s.g.classList.contains('on')).length;
+  const gap = Math.min(70, 900 / Math.max(fresh, 1));
+  for (const s of stones) {
+    const want = ORDER.indexOf(s.step) <= k && s.step !== 'intro';
+    const has = s.g.classList.contains('on');
+    if (want && !has) {
+      s.g.querySelector('.in').style.transitionDelay = reduce ? '0ms' : `${delay}ms`;
+      delay += gap;
+      s.g.classList.add('on'); s.g.setAttribute('tabindex', '0');
+    } else if (!want && has) {
+      s.g.querySelector('.in').style.transitionDelay = '0ms';
+      s.g.classList.remove('on'); s.g.setAttribute('tabindex', '-1');
+      if (selected === s) { ring.classList.remove('on'); s.g.classList.remove('sel'); selected = null; }
+    }
+  }
+  for (const [key, r] of Object.entries(regs)) { r.classList.toggle('on', REGION[name] === key); labels[key].classList.toggle('on', REGION[name] === key); }
+  const on = stones.filter(s => s.g.classList.contains('on') && !s.ghost);
+  const count = col => on.filter(s => s.col === col).length;
+  document.getElementById('nb').textContent = count('b');
+  document.getElementById('nw').textContent = count('w');
+  document.getElementById('ng').textContent = count('g');
+  document.getElementById('nt').textContent = on.length;
+  if (name === 'teach') document.getElementById('strip').classList.add('go');
+  if (name === 'chart') document.getElementById('chartfig').classList.add('go');
+  if (name === 'enjoy') recallGuess();
+  if (name === 'final' && prev < k) { /* nothing extra: the full board is the summary */ }
+}
+const io = new IntersectionObserver(entries => {
+  for (const e of entries) if (e.isIntersecting) setStep(e.target.dataset.step);
+}, {rootMargin:'-45% 0px -50% 0px'});
+document.querySelectorAll('.step').forEach(s => io.observe(s));
+setStep('intro');
+
+/* ---------- Go in one minute: six steps on a 9 x 9 board ---------- */
+const pboard = document.getElementById('pboard');
+const px = i => 12 + i * 22;
+el('rect', {x:2, y:2, width:196, height:196, rx:5, fill:'var(--wood)'}, pboard);
+const pg = el('g', {class:'grid'}, pboard);
+for (let i = 0; i < 9; i++) { el('line', {x1:px(i), y1:px(0), x2:px(i), y2:px(8)}, pg); el('line', {x1:px(0), y1:px(i), x2:px(8), y2:px(i)}, pg); }
+for (const [a, b] of [[2,2],[6,2],[4,4],[2,6],[6,6]]) el('circle', {class:'hoshi', cx:px(a), cy:px(b), r:2}, pg);
+const play = el('g', {}, pboard);
+const wallB = [0,1,2,3,4,5,6,7,8].map(j => [3, j, 'b']), wallW = [0,1,2,3,4,5,6,7,8].map(j => [5, j, 'w']);
+const PRIMER = [
+  {title:'1 · Take turns', text:'Two players, Black and White, take turns putting one stone on an empty crossing of the lines. Black goes first. That is the whole move: place a stone.',
+   stones:[[2,2,'b'],[6,6,'w'],[6,2,'b'],[2,6,'w'],[4,4,'b'],[5,5,'w']], seq:true},
+  {title:'2 · Surround to capture', text:'Stones never move. A stone with no empty neighbouring point left is captured and taken off the board. Watch White\'s last free point (circled) get filled.',
+   stones:[[4,4,'w'],[3,4,'b'],[5,4,'b'],[4,3,'b']], libs:[[4,5]], then:{place:[4,5,'b'], remove:[4,4]}},
+  {title:'3 · Wall off territory', text:'The real aim is to wall off empty space. At the end, each side counts the empty points it surrounds. Here Black and White each hold 27 points: a tie, so far.',
+   stones:[...wallB, ...wallW], terr:true},
+  {title:'4 · Komi', text:'Black moved first, which is an advantage. So White gets a few bonus points, called komi. With komi added, White wins this tied board.',
+   stones:[...wallB, ...wallW], terr:true, komi:true},
+  {title:'5 · The opening and corner patterns', text:'A game runs for well over a hundred moves. The first few dozen, the opening, are mostly played in the corners. Strong players memorise standard corner sequences, called joseki. Every study in this page measures the opening only.',
+   stones:[[2,2,'b'],[2,3,'w'],[3,3,'b'],[1,3,'w'],[6,6,'w'],[6,5,'b'],[5,5,'w'],[6,2,'b'],[2,6,'w']], corners:true, seq:true},
+  {title:'6 · How an engine scores a move', text:'An engine such as KataGo reads a position and estimates each side\'s chance of winning. If its best move keeps Black at 60% and yours drops Black to 52%, the engine calls your move 8 points worse. The research on this page is built on that number.',
+   stones:[[2,2,'b'],[2,3,'w'],[3,3,'b'],[1,3,'w'],[6,6,'w'],[6,5,'b'],[5,5,'w'],[6,2,'b'],[2,6,'w']], meter:true, then:{place:[0,8,'b']}},
+];
+let pi = 0, ptimers = [];
+const stoneAt = (i, j, c, cls = 'pst', delay = 0) => {
+  const g = el('g', {class:cls}, play);
+  if (delay && !reduce) g.style.animationDelay = `${delay}ms`;
+  el('circle', {cx:px(i)+.8, cy:px(j)+1.3, r:9.6, fill:'rgba(0,0,0,.28)'}, g);
+  el('circle', {cx:px(i), cy:px(j), r:9.6, fill:`url(#g${c})`, stroke: c === 'w' ? 'var(--stone-w-edge)' : 'none', 'stroke-width':.6}, g);
+  g.dataset.at = `${i},${j}`;
+  return g;
+};
+function pstep(n) {
+  ptimers.forEach(clearTimeout); ptimers = [];
+  pi = Math.max(0, Math.min(PRIMER.length - 1, n));
+  const P = PRIMER[pi];
+  play.innerHTML = '';
+  if (P.terr) for (let i = 0; i < 9; i++) for (let j = 0; j < 9; j++) {
+    if (i < 3) el('rect', {class:'terr', x:px(i)-3.5, y:px(j)-3.5, width:7, height:7, fill:'#17181b', opacity:.75}, play);
+    if (i > 5) el('rect', {class:'terr', x:px(i)-3.5, y:px(j)-3.5, width:7, height:7, fill:'#f7f5ef', stroke:'#8f8a7e', 'stroke-width':.5}, play);
+  }
+  if (P.corners) for (const [x, y] of [[2,2],[178,2],[2,178],[178,178]]) el('rect', {class:'corner', x: x === 2 ? 2 : 112, y: y === 2 ? 2 : 112, width:86, height:86, rx:4}, play);
+  P.stones.forEach(([i, j, c], k) => stoneAt(i, j, c, 'pst', P.seq ? k * 260 : k * 25));
+  (P.libs || []).forEach(([i, j]) => el('circle', {class:'lib', cx:px(i), cy:px(j), r:6}, play));
+  if (P.komi) {
+    const g = el('g', {class:'pst'}, play); g.style.animationDelay = '200ms';
+    el('rect', {x:140, y:86, width:52, height:28, rx:6, fill:'var(--panel)', stroke:'var(--lost)'}, g);
+    const t = el('text', {x:166, y:104, 'text-anchor':'middle', fill:'var(--ink)'}, g); t.textContent = '+ komi';
+  }
+  const meter = document.getElementById('pmeter');
+  meter.hidden = !P.meter;
+  if (P.meter) { document.getElementById('pmv').textContent = '60%'; const b = document.getElementById('pmb'); b.style.transition = 'none'; b.style.transform = 'scaleX(.6)'; void b.offsetWidth; b.style.transition = ''; }
+  if (P.then) ptimers.push(setTimeout(() => {
+    if (P.then.remove) {
+      const [ri, rj] = P.then.remove;
+      play.querySelectorAll('.lib').forEach(l => l.remove());
+      const gone = play.querySelector(`[data-at="${ri},${rj}"]`);
+      if (gone) gone.setAttribute('class', 'gone');
+    }
+    stoneAt(...P.then.place);
+    if (P.meter) { document.getElementById('pmv').textContent = '52%'; document.getElementById('pmb').style.transform = 'scaleX(.52)'; }
+  }, reduce ? 300 : 1300));
+  const t = document.getElementById('ptitle'), x = document.getElementById('ptext');
+  t.textContent = P.title; x.textContent = P.text;
+  [t, x].forEach(e => { e.classList.remove('fade'); void e.offsetWidth; e.classList.add('fade'); });
+  pdots.querySelectorAll('button').forEach((b, k) => k === pi ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+  document.getElementById('pback').disabled = pi === 0;
+  const nx = document.getElementById('pnext');
+  nx.textContent = pi === PRIMER.length - 1 ? 'Start the evidence ↓' : 'Next →';
+}
+const pdots = document.getElementById('pdots');
+PRIMER.forEach((P, k) => { const li = document.createElement('li'); const b = document.createElement('button'); b.textContent = k + 1; b.setAttribute('aria-label', P.title); b.onclick = () => pstep(k); li.appendChild(b); pdots.appendChild(li); });
+document.getElementById('pback').onclick = () => pstep(pi - 1);
+document.getElementById('preplay').onclick = () => pstep(pi);
+document.getElementById('pnext').onclick = () => pi === PRIMER.length - 1 ? document.getElementById('start').scrollIntoView({behavior: reduce ? 'auto' : 'smooth'}) : pstep(pi + 1);
+pstep(0);
+
+/* ---------- prediction ---------- */
+let guess = null;
+const GUESS_TXT = {0:'none', 1:'one or two', 3:'three or more'};
+document.querySelectorAll('#guess .btn').forEach(b => b.onclick = () => {
+  guess = +b.dataset.g;
+  document.querySelectorAll('#guess .btn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.getElementById('guessnote').textContent = `Locked in: ${GUESS_TXT[guess]}. Scroll on; the board fills as you read.`;
+});
+function recallGuess() {
+  const g = document.getElementById('greveal');
+  if (guess === null) g.innerHTML = 'You skipped the guess. Black stones in this corner: <b>none</b>.';
+  else if (guess === 0) g.innerHTML = 'You guessed <b>none</b>. Right: there are no black stones in this corner.';
+  else g.innerHTML = `You guessed <b>${GUESS_TXT[guess]}</b>. There are <b>none</b>. Every measurement on the board is about professional moves, not how play feels.`;
+}
+
+/* ---------- 1 · Pelrine tally ---------- */
+const games = document.getElementById('games');
+for (let i = 0; i < 15; i++) { const s = document.createElement('i'); s.className = i < 14 ? 'b' : 'w'; s.style.transitionDelay = reduce ? '0ms' : `${i * 45}ms`; games.appendChild(s); }
+document.querySelectorAll('#pq .btn').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#pq .btn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.getElementById('pverdict').textContent = b.dataset.a === 'no' ? 'Right, it does not.' : 'Not from this.';
+  document.getElementById('pr').classList.add('on');
+  requestAnimationFrame(() => requestAnimationFrame(() => games.classList.add('on')));
+});
+
+/* ---------- 2 · move picker (illustrative) ---------- */
+const mini = document.getElementById('mini');
+const mx = i => 12 + i * 22;
+el('rect', {x:2, y:2, width:196, height:196, rx:5, fill:'var(--wood)'}, mini);
+const mg = el('g', {class:'grid'}, mini);
+for (let i = 0; i < 9; i++) { el('line', {x1:mx(i), y1:mx(0), x2:mx(i), y2:mx(8)}, mg); el('line', {x1:mx(0), y1:mx(i), x2:mx(8), y2:mx(i)}, mg); }
+for (const [a, b] of [[2,2],[6,2],[4,4],[2,6],[6,6]]) el('circle', {class:'hoshi', cx:mx(a), cy:mx(b), r:2}, mg);
+const POS = [[2,2,'b'],[3,3,'b'],[6,2,'w'],[5,3,'w'],[6,6,'b'],[2,6,'w'],[3,5,'b'],[5,5,'w']];
+for (const [i, j, c] of POS) { el('circle', {cx:mx(i)+.8, cy:mx(j)+1.3, r:9.6, fill:'rgba(0,0,0,.28)'}, mini); el('circle', {cx:mx(i), cy:mx(j), r:9.6, fill:`url(#g${c})`, stroke: c === 'w' ? 'var(--stone-w-edge)' : 'none', 'stroke-width':.6}, mini); }
+const CANDS = [{k:'A', i:5, j:6, p:60}, {k:'B', i:6, j:4, p:55}, {k:'C', i:1, j:4, p:41}];
+const BEST = 60;
+let placed = null;
+for (const cd of CANDS) {
+  const g = el('g', {class:'cand', tabindex:'0', role:'button', 'aria-label':`Play move ${cd.k}`}, mini);
+  el('circle', {cx:mx(cd.i), cy:mx(cd.j), r:8.5}, g);
+  const t = el('text', {x:mx(cd.i), y:mx(cd.j) + 3.6, 'text-anchor':'middle'}, g); t.textContent = cd.k;
+  cd.g = g;
+  const pick = () => {
+    if (placed) return;
+    placed = el('g', {class:'placed'}, mini);
+    el('circle', {cx:mx(cd.i)+.8, cy:mx(cd.j)+1.3, r:9.6, fill:'rgba(0,0,0,.28)'}, placed);
+    el('circle', {cx:mx(cd.i), cy:mx(cd.j), r:9.6, fill:'url(#gb)'}, placed);
+    CANDS.forEach(x => x.g.classList.add('done'));
+    const dq = 100 - (BEST - cd.p);
+    document.getElementById('dqv').textContent = dq;
+    document.getElementById('dqb').style.transform = `scaleX(${dq / 100})`;
+    document.getElementById('calc').textContent = `100 − (${BEST} − ${cd.p}) = ${dq}`;
+    document.getElementById('mtxt').textContent = cd.p === BEST
+      ? `Move ${cd.k} is the engine's own choice: still ${cd.p}%. Perfect score, and the index still knows nothing about why you chose it.`
+      : `Move ${cd.k} leaves a ${cd.p}% win chance, ${BEST - cd.p} points below the engine's best.`;
+    document.getElementById('mreset').disabled = false;
+  };
+  g.addEventListener('click', pick);
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+}
+document.getElementById('mreset').onclick = function () {
+  if (placed) placed.remove(); placed = null;
+  CANDS.forEach(x => x.g.classList.remove('done'));
+  document.getElementById('dqv').textContent = '–';
+  document.getElementById('dqb').style.transform = 'scaleX(0)';
+  document.getElementById('calc').textContent = '100 − (best − yours)';
+  document.getElementById('mtxt').textContent = "You play Black. No Go skill needed: pick any of the three moves and the engine will score it. Its own best move here keeps Black's win chance at 60%.";
+  this.disabled = true; CANDS[0].g.focus();
+};
+
+/* ---------- 3 · move-window strip ---------- */
+const strip = document.getElementById('strip');
+const sx = m => 140 + (m - 1) * (345 / 119);
+const ROWS = [
+  {y:14, label:'Shin et al. 2023', from:1, to:60, faint:false},
+  {y:48, label:'Choi et al. 2025', from:1, to:30, faint:false},
+  {y:82, label:'Earlier study', from:1, to:50, faint:true, note:'dashed: all stages measured · solid: most gain'},
+];
+ROWS.forEach((r, n) => {
+  const t = el('text', {x:0, y:r.y + 13}, strip); t.textContent = r.label;
+  if (r.faint) el('rect', {class:'faint', x:sx(1), y:r.y, width:sx(120) - sx(1), height:16, rx:3}, strip);
+  const w = el('rect', {class:'w', x:sx(r.from), y:r.y, width:sx(r.to) - sx(r.from), height:16, rx:3}, strip);
+  w.style.transitionDelay = reduce ? '0ms' : `${n * 160}ms`;
+  const e = el('text', {x:sx(r.to) + 6, y:r.y + 12, class:'tick'}, strip); e.textContent = `1–${r.to}`;
+  if (r.note) { const nt = el('text', {x:sx(1), y:r.y + 29, class:'tick'}, strip); nt.textContent = r.note; }
+});
+el('line', {class:'axis', x1:sx(1), y1:138, x2:sx(120), y2:138}, strip);
+for (const m of [1, 30, 50, 60, 90, 120]) { el('line', {class:'axis', x1:sx(m), y1:138, x2:sx(m), y2:142}, strip); const t = el('text', {class:'tick', x:sx(m), y:154, 'text-anchor':'middle'}, strip); t.textContent = m; }
+const ax = el('text', {x:0, y:154, class:'tick'}, strip); ax.textContent = 'move number';
+const rest = el('text', {class:'rest', x:sx(120), y:170, 'text-anchor':'end'}, strip); rest.textContent = 'the game goes on →';
+
+/* ---------- 4 · pattern-share waffle ---------- */
+const waffle = document.getElementById('waffle');
+const SHARE = {top:{2003:4.02, 2021:66.8}, bottom:{2003:2.48, 2021:52.6}};
+for (let i = 0; i < 10; i++) { el('line', {x1:10 + i*20, y1:10, x2:10 + i*20, y2:190}, waffle); el('line', {x1:10, y1:10 + i*20, x2:190, y2:10 + i*20}, waffle); }
+const cells = [];
+for (let n = 0; n < 100; n++) {
+  const cx = 10 + (n % 10) * 20, cy = 10 + Math.floor(n / 10) * 20;
+  const g = el('circle', {class:'c off', cx, cy, r:8.4}, waffle);
+  cells.push(g);
+}
+let wState = {mode:'guess', guess:4, year:2021, dec:'top'};
+function paint() {
+  const real = wState.mode === 'guess' ? Math.round(SHARE.top[2003]) : Math.round(SHARE[wState.dec][wState.year]);
+  const g = wState.mode === 'guess' || (wState.dec === 'top' && wState.year === 2021) ? wState.guess : 0;  /* keep your guess visible against the answer it was about */
+  let d = 0;
+  cells.forEach((c, n) => {
+    const isB = n < real, isG = !isB && n < g;
+    const wasOn = !c.classList.contains('off');
+    c.setAttribute('class', 'c' + (isB ? ' b' : isG ? ' guess' : ' off'));
+    if ((isB || isG) && !wasOn && !reduce && wState.mode !== 'guess') { c.style.transitionDelay = `${d}ms`; d += 9; } else c.style.transitionDelay = '0ms';
+  });
+}
+const wslider = document.getElementById('wslider'), wbig = document.getElementById('wbig');
+wslider.oninput = wslider.onchange = () => { wState.guess = +wslider.value; wbig.textContent = wslider.value + '%'; paint(); };
+document.getElementById('wreveal').onclick = function () {
+  wState.mode = 'real';
+  const gtxt = wState.guess;
+  wbig.textContent = '66.8%';
+  document.getElementById('wq').innerHTML = `You guessed <b>${gtxt}%</b>. In 2021 those ten patterns made up <b>66.8%</b> of top professionals' play: up from 4.02% in 2003.`;
+  wslider.hidden = true; this.hidden = true;
+  document.getElementById('wafter').classList.add('on');
+  paint();
+};
+function wSet() {
+  const v = SHARE[wState.dec][wState.year];
+  wbig.textContent = v + '%';
+  document.querySelectorAll('#wyear .btn').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.y === wState.year)));
+  document.querySelectorAll('#wdec .btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.d === wState.dec)));
+  waffle.setAttribute('aria-label', `${wState.dec === 'top' ? 'Top' : 'Bottom'} skill decile, ${wState.year}: ${v}% of opening patterns played were the ten patterns prominent in 2021`);
+  paint();
+}
+document.querySelectorAll('#wyear .btn').forEach(b => b.onclick = () => { wState.year = +b.dataset.y; wSet(); });
+document.querySelectorAll('#wdec .btn').forEach(b => b.onclick = () => { wState.dec = b.dataset.d; wSet(); });
+paint();
+
+/* ---------- 5 · game-day track ---------- */
+const USES = {
+  training:{title:'Study before playing', gain:'Inspect alternatives and challenge an old opening assumption.', risk:'Memorise a recommendation without knowing when it transfers.', ev:'Professional studies show the studied decisions changed. The player critique disputes what the change means.', tag:'Measured behaviour, disputed mechanism'},
+  practice:{title:'Practice against the engine', gain:'A strong opponent who is always available supplies hard positions to study.', risk:'A big strength gap may discourage; a bot’s exploitable habits may distort preparation.', ev:'Robustness experiments document engine weaknesses. The effect on enjoyment is a hypothesis, not a measured Go result.', tag:'Tested weaknesses, hypothetical experience'},
+  live:{title:'Help during a live game against a human', gain:'Assisted moves may win the account more games. That alone shows no learning by the human.', risk:'Undisclosed help can break the rules and erode trust in every opponent.', ev:'OGS rules prohibit it directly. Player concerns are on record; how often it happens, and its effect on enjoyment, are not measured.', tag:'Verified rule, reported concerns', rule:true},
+  review:{title:'Review after the game', gain:'Find the mistake and compare candidate moves after making your own decisions.', risk:'Let the engine’s score stand in for thinking about your own reasoning.', ev:'The player account describes review habits and a pull to defer to the engine. No enjoyment effect is measured.', tag:'Reported practice, possible mechanism'},
+};
+const track = document.getElementById('track'), token = document.getElementById('token'), use = document.getElementById('use');
+function moveToken(btn) {
+  const tr = track.getBoundingClientRect(), br = btn.getBoundingClientRect();
+  token.style.transform = `translateX(${br.left - tr.left + br.width / 2 - token.offsetWidth / 2}px)`;
+}
+function setUse(key, btn) {
+  const u = USES[key];
+  track.querySelectorAll('.stop').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  moveToken(btn);
+  use.innerHTML = `<p style="margin:.2rem 0 .1rem;font-weight:600">${u.title} <span class="chip">${u.tag}</span></p>
+    <div class="rule ${u.rule ? 'on' : ''}"><b>OGS terms:</b> no engine analysis of ongoing games unless specifically permitted, and no outside help in live or blitz games. <a href="https://online-go.com/docs/terms-of-service" target="_blank" rel="noopener">Read ↗</a></div>
+    <dl><dt>Could help</dt><dd>${u.gain}</dd><dt>Could hurt</dt><dd>${u.risk}</dd><dt>Evidence</dt><dd>${u.ev}</dd></dl>`;
+  use.classList.remove('fade'); void use.offsetWidth; use.classList.add('fade');
+}
+const stops = [...track.querySelectorAll('.stop')];
+stops.forEach((b, n) => {
+  b.onclick = () => setUse(b.dataset.u, b);
+  b.onkeydown = e => {
+    const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (d) { e.preventDefault(); const nb = stops[(n + d + stops.length) % stops.length]; nb.focus(); nb.click(); }
+  };
+});
+token.style.transition = 'none'; setUse('training', stops[0]); requestAnimationFrame(() => token.style.transition = '');
+addEventListener('resize', () => { const on = track.querySelector('[aria-pressed="true"]'); if (on) { token.style.transition = 'none'; moveToken(on); requestAnimationFrame(() => token.style.transition = ''); } });
+
+/* ---------- 6 · comprehension check ---------- */
+document.querySelectorAll('#cq .btn').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#cq .btn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.getElementById('cv').textContent = b.dataset.a === 'none' ? 'Right: nothing definite.' : 'Not from that fact alone.';
+  document.getElementById('cr').classList.add('on');
+});
+
+/* ---------- citations: numbered by first appearance, a popover per number ---------- */
+const citeNum = {};
+let nextNum = 1;
+const numFor = k => citeNum[k] || (citeNum[k] = nextNum++);
+const citeHTML = k => `<button class="cite" data-s="${k}"></button>`;
+function paintCites(root) {
+  root.querySelectorAll('.cite').forEach(b => {
+    const k = b.dataset.s;
+    if (!SOURCES[k]) { b.remove(); return; }
+    b.textContent = numFor(k);
+    b.setAttribute('aria-label', `Source ${numFor(k)}: ${SOURCES[k].title}`);
+    b.setAttribute('aria-expanded', 'false');
+  });
+}
+const cpop = document.createElement('div');
+cpop.className = 'cpop'; cpop.setAttribute('role', 'dialog');
+document.body.appendChild(cpop);
+let openCite = null;
+function closeCite() { cpop.classList.remove('on'); if (openCite) openCite.setAttribute('aria-expanded', 'false'); openCite = null; }
+function showCite(b) {
+  if (openCite === b) { closeCite(); return; }
+  closeCite();
+  const s = SOURCES[b.dataset.s], n = numFor(b.dataset.s), href = s.alternate || s.url;
+  cpop.innerHTML = `<p class="t">[${n}] <a href="${esc(href)}" target="_blank" rel="noopener">${esc(s.title)} ↗</a></p>
+    <p class="meta">${esc(s.date)} · ${esc(s.type)}</p><p>${esc(s.summary)}</p>
+    <p class="lim"><b>Limit.</b> ${esc(s.limit)}</p><p class="meta" style="margin:0">Where: ${esc(s.locator)} · <a href="#ref-${n}">all references</a></p>`;
+  placePop(b);
+  cpop.classList.add('on'); b.setAttribute('aria-expanded', 'true'); openCite = b;
+}
+function placePop(b) {
+  const r = b.getBoundingClientRect();
+  const w = Math.min(352, innerWidth - 32);
+  cpop.style.left = `${Math.max(16, Math.min(r.left + scrollX - 24, scrollX + innerWidth - w - 16))}px`;
+  cpop.style.top = `${r.bottom + scrollY + 8}px`;
+}
+const TERMS = {
+  engine:['Engine', 'A program that plays Go. AlphaGo was DeepMind\'s; KataGo and Leela are free engines anyone can run.'],
+  katago:['KataGo', 'A free, open-source Go engine, far stronger than any human in normal play. The studies here use it to score human moves.'],
+  winchance:['Win chance', 'The engine\'s estimate of how likely a side is to win from the current position. A move that lowers it is, by the engine\'s reckoning, a worse move.'],
+  komi:['Komi', 'Bonus points White receives for moving second, so the game starts even.'],
+  opening:['Opening', 'The first few dozen moves of a game, mostly played in the corners. Every study on this page measures only this part.'],
+  joseki:['Corner patterns (joseki)', 'Standard move sequences in one corner that strong players learn by heart. Remembering them is not the same as understanding why they work.'],
+  visits:['Search visits', 'How many positions the engine looks at before choosing a move. More visits usually means stronger play.'],
+  cyclic:['Cyclic exploit', 'A trick that lures the bot into a ring-shaped group it misjudges, then captures a large group of its stones. It works on the bot\'s blind spot, not by out-playing it in normal Go.'],
+  kgs:['KGS', 'An online Go server where people, and some bots, play each other.'],
+  ogs:['OGS', 'The Online Go Server, a website where people play each other. Its rules ban engine help during live games.'],
+  pro:['Professional', 'A player certified by a national Go association. The studies use records of their tournament games.'],
+};
+function showTerm(b) {
+  if (openCite === b) { closeCite(); return; }
+  closeCite();
+  const [t, d] = TERMS[b.dataset.t];
+  cpop.innerHTML = `<p class="t">${esc(t)}</p><p style="margin:0">${esc(d)}</p><p class="meta" style="margin:.4rem 0 0"><a href="#primer">Go in one minute ↑</a></p>`;
+  placePop(b);
+  cpop.classList.add('on'); b.setAttribute('aria-expanded', 'true'); openCite = b;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.cite'), t = e.target.closest('.term');
+  if (b) { e.preventDefault(); showCite(b); }
+  else if (t) { e.preventDefault(); showTerm(t); }
+  else if (openCite && !cpop.contains(e.target)) closeCite();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && openCite) { const b = openCite; closeCite(); b.focus(); } });
+
+/* ---------- 2 · the annotated chart: what it says, next to the objection ---------- */
+const PINS = [
+  {x:2.6, y:22, title:'The vertical axis',
+   says:`Decision quality: the estimated yearly effect, relative to 1950, of how close professionals' moves come to <button class="term" data-t="katago">KataGo</button>'s evaluation of the best move.${citeHTML('shin')}`,
+   head:'The objection', obj:`It runs on <button class="term" data-t="winchance">win probability</button>. The same point loss moves win probability by different amounts depending on the position and <button class="term" data-t="komi">komi</button>, so comparisons across stages of a game are shaky.${citeHTML('critique')}`},
+  {x:96.5, y:53, title:'The dashed line and the bars',
+   says:`The dashed line is the 1950 baseline. The bars are 95% confidence intervals. Before 2016 the yearly estimates sit around the baseline.${citeHTML('shin')}`,
+   head:'The limit', obj:`Nobody was randomly given an engine. The paper compares years using player fixed effects and robustness checks, so it shows change after AI arrived. It does not isolate AI as the cause.${citeHTML('shin')}`},
+  {x:89.5, y:4, title:'The shaded AI years',
+   says:`After the AI transition, estimated decision quality jumps, and so does the novelty of move sequences.${citeHTML('shin')}`,
+   head:'The objection', obj:`Replying to Brown, anpaure suggests the gain could be memorised openings, and links a player's critique.${citeHTML('anpaure')}${citeHTML('critique')}`,
+   ans:`The authors tested for this: the gain holds for moves that deviate from the AI's choice, for unfamiliar sequences, for later opening moves and against simulated AI sequences.${citeHTML('shin')} The critic's reply: a new whole board can still be built from memorised corner patterns.${citeHTML('critique')}`},
+  {x:50, y:23, title:'Which moves count',
+   says:`Every point uses only the first 60 moves of professional games, 1950 to 2021: over 5.8 million decisions.${citeHTML('shin')}`,
+   head:'The objection', obj:`Nothing here looks past move 60. An earlier study, linked by the critic, found most of the measured gain in moves 1–50.${citeHTML('critique')}${citeHTML('earlier')}`},
+  {x:60, y:95, title:'Whose games',
+   says:`Professional tournament records.${citeHTML('shin')}`,
+   head:'The limit', obj:`Brown reads the chart as human Go skill improving.${citeHTML('brown')} It measures professionals' opening decisions. It says nothing about ranks, online players, or how playing feels.`},
+];
+const chartwrap = document.getElementById('chartwrap'), pinnote = document.getElementById('pinnote');
+const chartimg = document.getElementById('chartimg');
+chartimg.addEventListener('error', () => { chartwrap.classList.add('failed'); setPin(0); });
+const pinBtns = PINS.map((p, i) => {
+  const b = document.createElement('button');
+  b.className = 'pin'; b.textContent = i + 1;
+  b.style.left = p.x + '%'; b.style.top = p.y + '%';
+  b.style.transitionDelay = reduce ? '0ms' : `${i * 90}ms`;
+  b.setAttribute('aria-label', `Pin ${i + 1}: ${p.title}`);
+  b.onclick = () => setPin(i);
+  chartwrap.appendChild(b);
+  return b;
+});
+function setPin(i) {
+  const p = PINS[i];
+  pinBtns.forEach((b, n) => b.setAttribute('aria-pressed', String(n === i)));
+  pinnote.innerHTML = `<h4><span class="n">${i + 1}</span>${p.title}</h4>
+    <div class="side-card"><p class="side r">The chart says</p><p>${p.says}</p></div>
+    <div class="side-card obj"><p class="side p">${p.head}</p><p>${p.obj}</p></div>
+    ${p.ans ? `<p class="ans"><b>And the answer to it.</b> ${p.ans}</p>` : ''}
+    <div class="nav"><button class="btn" ${i === 0 ? 'disabled' : ''} data-d="-1">← Previous pin</button><button class="btn" ${i === PINS.length - 1 ? 'disabled' : ''} data-d="1">Next pin →</button><span class="small" style="align-self:center">${i + 1} of ${PINS.length}</span></div>`;
+  pinnote.querySelectorAll('.nav .btn').forEach(b => b.onclick = () => setPin(i + +b.dataset.d));
+  paintCites(pinnote);
+  pinnote.classList.remove('fade'); void pinnote.offsetWidth; pinnote.classList.add('fade');
+}
+
+/* number the static citations first, so numbers follow reading order */
+paintCites(document);
+PINS.forEach(p => { const d = document.createElement('div'); d.innerHTML = p.says + p.obj + (p.ans || ''); d.querySelectorAll('.cite').forEach(b => numFor(b.dataset.s)); });
+Object.keys(SOURCES).forEach(numFor);
+setPin(0);
+document.getElementById('reflist').innerHTML = Object.entries(citeNum).sort((a, b) => a[1] - b[1]).map(([k, n]) => {
+  const s = SOURCES[k], href = s.alternate || s.url;
+  return `<li id="ref-${n}"><a class="rt" href="${esc(href)}" target="_blank" rel="noopener">${esc(s.title)}</a> · ${esc(s.date)} · ${esc(s.type)}<br><span class="small">Where: ${esc(s.locator)}</span></li>`;
+}).join('');
+
+/* ---------- ledger list ---------- */
+const lrows = document.getElementById('lrows');
+lrows.innerHTML = LEDGER.claims.map(c => {
+  const col = PLACE[c.id][2], u = url(c);
+  return `<div class="lrow" data-col="${col}"><span class="dot ${col}" title="${KIND[col]}"></span><span class="id">${c.id}</span><div>
+    <div class="c">${esc(c.claim)}</div>
+    <div class="m">${esc(c.type)}${c.population ? ' · ' + esc(c.population) : ''}</div>
+    <div class="m"><b>Limit.</b> ${esc(c.limitation)}${u ? ` · <a href="${esc(u)}" target="_blank" rel="noopener">source ↗</a>` : ''}</div></div></div>`;
+}).join('');
+document.querySelectorAll('#filters .btn').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#filters .btn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  lrows.querySelectorAll('.lrow').forEach(r => r.hidden = b.dataset.f !== 'all' && r.dataset.col !== b.dataset.f);
+});
+document.getElementById('limits').innerHTML = LEDGER.access_limits.map(l => `<li>${esc(l)}</li>`).join('');
+</script>
+</body>
+</html>

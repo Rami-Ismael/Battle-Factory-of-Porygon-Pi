@@ -1,5 +1,4 @@
 - [ ] [[Bayesian optimisation benchmarks versus VGC team building]]
-- [ ] [[What makes Pokémon a unique problem set]]
 	- [x] Return a number list in where of recommendation outside of current notes you should read my current notes why you should care about phase two in competitive pokemon team building as an academic question then some paper that goes with that also 
 - [x] Solve all the variables in the text I sent above
 	- [x] Determine the prize pool and the number watch this year pokemon tournmanet
@@ -10,7 +9,11 @@
 	- [x] Move all the variables in [[Clause or the feature of the search space]]
 - [ ] Write my introductory paragragp with a good hook
 - [ ] Work on [[Clause or the feature of the search space]]
+- [ ]  [[What makes Pokémon a unique problem set]]
 
+# Todo Section
+
+- [ ] [[What makes Pokémon a unique problem set]]
 # What are some alternative reason 
 
 ## Academic
@@ -28,3 +31,4 @@
 5. Meta stucture version one
 	1. Hook
 		1. As a child, my dream while watching pokemon is become a pokemon world champion. I gave up on the dream as their future facreer path. Because, of wolfey, my internal my interest in pokemon grow so much. I recently got my computer science degree specially specialized in ML. I was wondering can I combine my two interest. I found the interesting world of optm
+		2. I want to become a pokemon world champion. I wished the st

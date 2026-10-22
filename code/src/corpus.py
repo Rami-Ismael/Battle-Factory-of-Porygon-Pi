@@ -113,13 +113,20 @@ for _k, _v in _dex.items():
 def parse_team(path):
     return parse_team_text(Path(path).read_text())
 
-def parse_team_text(text):
-    slots, cur = [], None
+def parse_team_text(text, blank_ends_slot=False):
+    """Slots of a Showdown paste. A slot starts at a line holding " @ " (species and item), or at an itemless
+    species line that opens the paste. blank_ends_slot=True also starts one at an itemless species line after
+    a blank line; without it such a Pokémon is lost. The default keeps how every finished experiment and the
+    corpus vocabulary were parsed (3 of 695 corpus teams change with it)."""
+    slots, cur, blank = [], None, False
     for line in text.splitlines():
         line = line.rstrip()
         if not line.strip():
+            blank = True
             continue
-        if " @ " in line or (cur is None and line and not line.startswith("-") and ":" not in line):
+        after_blank, blank = blank, False
+        if " @ " in line or ((cur is None or (blank_ends_slot and after_blank)) and line
+                             and not line.startswith("-") and ":" not in line):
             if cur: slots.append(cur)
             if " @ " in line:
                 spec, item = line.split(" @ ", 1)
@@ -146,11 +153,16 @@ def parse_team_text(text):
     if cur: slots.append(cur)
     return slots
 
-def load_corpus():
+def load_corpus(include_heldout=False):
+    """(teams, file names) of the 6-slot pool teams, without ranks 51-100 (heldout.py, 48-field identity).
+    Vocabulary and Legality read the excluded teams back in, so token ids and rule tables do not move.
+    include_heldout=True returns the whole pool (only for building those tables)."""
+    import heldout
+    held = set() if include_heldout else heldout.identities()
     teams, names = [], []
     for f in sorted(TEAMS.rglob("*.txt")):   # rglob: include featured/
         t = parse_team(f)
-        if len(t) == 6:
+        if len(t) == 6 and heldout.grid_key_team(t) not in held:
             teams.append(t); names.append(f.name)
     return teams, names
 

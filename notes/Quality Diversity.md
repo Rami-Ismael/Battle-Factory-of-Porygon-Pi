@@ -16,3 +16,4 @@
 
 # Todo 
 - [ ] What is "a **quality-diversity descriptor** — the axis of a MAP-Elites-style archive, so the loop keeps one best team per region;" Determine what, axis will be important for VGC
+- [ ] 

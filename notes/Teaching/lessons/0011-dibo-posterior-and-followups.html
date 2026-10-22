@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DiBO: where should we search next?</title><link rel="stylesheet" href="../assets/course.css"><script defer src="../assets/quiz.js"></script><script defer src="../assets/posterior-tilt.js"></script></head>
+<body>
+<p class="meta">Lesson 0011 · 8 minutes · Sources checked October 12, 2026 · <a href="../reference/dibo-paper-family.html">Paper comparison and technical reference →</a></p>
+<h1>Where should we search next?</h1><p class="subtitle">DiBO turns a score into a distribution over candidates.</p>
+<div class="mission"><strong>Your counter-team project:</strong> distinguish the model that proposes teams from the predictor that estimates their performance. This lesson teaches the search idea; Pokémon adaptations below are our inference.</div>
+<p><strong>First, a name collision:</strong> this is Yun et al.’s <a href="https://arxiv.org/abs/2502.16824">🟢 2025 DiBO</a>. Your existing <a href="../reference/dibo-training-visual-explainer.html">DiBO training visual</a> covers a different <a href="https://arxiv.org/abs/2603.17919">🟢 2026 diffusion language model paper</a>.</p>
+<h2>1. Learn two different things</h2>
+<p>Suppose each candidate is a complete team, and evaluating its objective <em>f</em> is expensive. From evaluated candidates, DiBO learns:</p>
+<ul><li><strong>A diffusion prior, p<sub>θ</sub>(x):</strong> which designs resemble the training data. Better observed designs receive more training weight.</li><li><strong>An ensemble of predictors:</strong> the estimated objective μ(x), plus uncertainty σ(x) from disagreement between predictors.</li></ul>
+<p>These have different jobs: the generator learns a distribution over designs; the ensemble estimates scores. Uncertainty here concerns the predictor’s knowledge, not random variation in battle outcomes. <a href="https://arxiv.org/html/2502.16824v2#S3.SS1">🟢 DiBO §3.1</a></p>
+<h2>2. Combine familiarity with promise</h2>
+<p>The optimistic score is <span class="m">r(x) = μ(x) + γσ(x)</span>. Higher γ rewards uncertain candidates more. DiBO then defines:</p>
+<div class="callout"><p class="m">p<sub>target</sub>(x) ∝ p<sub>θ</sub>(x) × exp(βr(x))</p><p><strong>Candidate probability ∝ learned prior × optimistic-score bonus.</strong> β controls how strongly the score changes the prior. The missing proportionality constant makes all probabilities add up to one.</p></div>
+<p>A candidate can have the highest optimistic score yet receive little probability because the prior assigns it little mass. This discourages chasing very uncertain regions far from the observed data. It cannot guarantee that the predictor is right. <a href="https://arxiv.org/html/2502.16824v2#S3.E13">🟢 Equation 13</a></p>
+<div class="callout" data-posterior-demo>
+<h3>Try the two controls</h3><p class="note">Illustrative three-candidate world. These numbers are invented for teaching; they are not paper results or actual team scores.</p>
+<p><label>Exploration γ = <output data-gamma>1.0</output><br><input name="gamma" type="range" min="0" max="2" step="0.1" value="1" aria-label="Exploration gamma"></label></p>
+<p><label>Score strength β = <output data-beta>4</output><br><input name="beta" type="range" min="0" max="12" step="1" value="4" aria-label="Score strength beta"></label></p>
+<table class="compare"><thead><tr><th>Candidate</th><th>Prior</th><th>μ / σ</th><th>UCB</th><th>Probability</th></tr></thead><tbody>
+<tr data-row><td>A: familiar</td><td>0.60</td><td>0.60 / 0.05</td><td data-score></td><td><span data-prob></span><br><progress max="1" aria-label="Candidate A probability"></progress></td></tr>
+<tr data-row><td>B: promising</td><td>0.35</td><td>0.70 / 0.10</td><td data-score></td><td><span data-prob></span><br><progress max="1" aria-label="Candidate B probability"></progress></td></tr>
+<tr data-row><td>C: unfamiliar</td><td>0.05</td><td>0.50 / 0.50</td><td data-score></td><td><span data-prob></span><br><progress max="1" aria-label="Candidate C probability"></progress></td></tr>
+</tbody></table><p data-result aria-live="polite"></p>
+<p>Set β to zero: the probabilities return to the prior. Then raise γ and β. C can eventually dominate: the prior is a soft restraint, not a hard ban.</p></div>
+<div class="quiz" data-answer="b"><p class="q">What distribution does this posterior describe?</p><button data-opt="a">Possible scores for candidates</button><button data-opt="b">Possible candidates for evaluation</button><button data-opt="c">Possible parameters for predictors</button><div class="why">It describes x, the candidate. It is not the usual Bayesian posterior over the unknown objective function.</div></div>
+<h2>3. Teach a sampler, then evaluate</h2>
+<p>DiBO fine-tunes the diffusion model using <strong>relative trajectory balance</strong> to approximate this target distribution. “Amortized” means learning a reusable sampler rather than solving a fresh sampling problem for each draw. It generates a pool, improves candidates with local search, and filters them by posterior density. Only then does it pay for real objective evaluations, add the results, and repeat. <a href="https://arxiv.org/html/2502.16824v2#S3.SS2">🟢 DiBO §3.2–3.3</a></p>
+<p>Local search and filtering change the final proposal distribution. The evaluated batch is therefore not simply a collection of untouched posterior samples.</p>
+<div class="quiz" data-answer="a"><p class="q">Which operation supplies fresh objective evidence?</p><button data-opt="a">Evaluate the proposed candidates</button><button data-opt="b">Increase the exploration coefficient</button><button data-opt="c">Retrain the diffusion sampler</button><div class="why">Only evaluating f on new candidates adds objective evidence. Sampling and model updates alone do not establish better real performance.</div></div>
+<h2>4. What the citing papers change</h2>
+<p>These four papers explicitly cite DiBO. A citation establishes a connection; it does not necessarily mean the authors built directly on DiBO’s code or method.</p>
+<table class="compare"><thead><tr><th>Paper</th><th>What changes?</th></tr></thead><tbody>
+<tr><td><a href="https://arxiv.org/abs/2507.00480">🟢 CiBO</a></td><td>Keeps posterior-guided online search, adds black-box constraints, and learns a diffusion sampler in the latent space of a flow prior.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2505.23913">🟢 FIBO</a></td><td>Pretrains across objective functions. At test time, observed examples condition candidate suggestions without fitting models anew at each round.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2510.25240">🟢 GenBO</a></td><td>Trains the proposal directly from observed utilities, avoiding a separate regression or classification surrogate.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2605.10385">🟢 Regret analysis</a></td><td>Studies conditions under which guided sampling improves finite-budget optimization. Approximate sampling alone is insufficient for its guarantees.</td></tr>
+</tbody></table>
+<div class="quiz" data-answer="c"><p class="q">Which change belongs to GenBO?</p><button data-opt="a">Sampling inside latent space</button><button data-opt="b">Conditioning across pretrained functions</button><button data-opt="c">Learning directly from utilities</button><div class="why">CiBO moves sampling into latent space; FIBO conditions a pretrained model on observations; GenBO learns a proposal from utility feedback.</div></div>
+<h2>5. Your tangible takeaway</h2>
+<p><strong>Separate three decisions:</strong> how to represent a legal team, how to estimate its objective, and how to propose the next teams to evaluate. DiBO mainly supplies an answer to the third decision.</p>
+<p>The original benchmarks use continuous vectors. Categorical team choices, permutation symmetry, and format legality require additional design. A learned prior does not enforce Pokémon rules. For already known legality constraints, exact checking or constrained generation is a more direct starting point than learning a black-box feasibility predictor. This is a project inference, not a result from these papers.</p>
+<p><strong>Read next:</strong> <a href="https://arxiv.org/html/2502.16824v2#S3">🟢 DiBO Figure 2 and §3</a>, using the <a href="../reference/dibo-paper-family.html#glossary">glossary</a>. Explain from memory why a high UCB candidate might still receive little probability.</p>
+<div class="ask">Ask me about any step that remains unclear. A useful next conversation is: “Walk me through one DiBO round using three hypothetical teams.” Tomorrow, try explaining the roles of p<sub>θ</sub>, μ, σ, β, and γ without looking.</div>
+<nav class="lesson-nav"><a href="../reference/dibo-paper-family.html">Technical details and comparison →</a><a href="0010-submodular-maximization.html">← Previous lesson</a></nav>
+</body></html>

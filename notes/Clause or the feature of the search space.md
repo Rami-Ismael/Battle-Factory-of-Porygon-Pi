@@ -18,13 +18,6 @@ tags:
   - vgc
   - combinatorics
 ---
-**
-
-1. You can use only legal move for the pokemon
-	*Range —* **1 of 1–3**. Across the 231 forms: 24 have a single ability, 87 have two, 120 have three. **186** distinct abilities in the pool.
-2. **One Mega Evolution per battle** — you may *hold* several Mega Stones, you may only Mega Evolve one Pokémon per battle. Reg M-B has no Terastallization. Unlike 1 and 2 this removes **nothing** from the team space: it binds on the battle policy at selection time, not on team building. See [[Regulation M-B — the Mega Evolution constraint]]
-	*Range —* **75** Mega Stones — half the item list — across **73** Dex numbers; Charizard `#0006` and Raichu `#0026` have two Megas each. There are 306 battle forms (231 buildable + 75 Mega), but you never *pick* a Mega form: you pick the base form and the stone.
-3. EV
 	*Range —* **there are no EVs in Champions, and no IVs either.** EVs are replaced by **Stat Points**: 66 per Pokémon, capped at 32 per stat, and 1 SP is flatly +1 to that stat at level 50 — no divide-by-four. IVs do not exist as a variable; every Pokémon is treated as 31 across the board. Natures are renamed **Stat Alignments**, and there are **21**, not 25
 
 
@@ -127,8 +120,10 @@ Vocabulary: [[CONTEXT]] · [[Regulation M-B — the Mega Evolution constraint]] 
 
 - [ ] Create a markdown table of all the features of the search spaces for example the size of the pokemon team, number of pokemon and what are the restriction  and determine the range of it also how many pokemon are avaiblibale for each regulation write it down a temp 
 	- [ ] Here is the list for now
+		- [ ] Pokemon Moves
+			- [ ] Min, mean, max , mode
 		- [ ] Species 
-			- [ ] **Species Clause** — ✅ true. No two Pokémon on your team may share a National Dex number. This is by _species_, not form, so Rotom-Wash + Rotom-Heat is illegal, as is Landorus-Therian + Landorus-Incarnate.
+			- [x] **Species Clause** — ✅ true. No two Pokémon on your team may share a National Dex number. This is by _species_, not form, so Rotom-Wash + Rotom-Heat is illegal, as is Landorus-Therian + Landorus-Incarnate.
 			- [ ] Moves clauesse - *Range —* **486** moves exist in the format, but the constraint is per-form: 4 distinct moves from that form's own movepool. Movepool size runs **1 → 102**, median **60** (Q1 51, Q3 70). The floor is Ditto — Transform only, so it has **no** legal 4-move set at all; the ceiling is Gallade at 102.
 			- [ ] Number of pokemon in regulation in current meta games which 2026-09-21 is **231 buildable forms** (208 distinct species)
 			- [ ] The number of pokemon item in regulation in current meta game which is **148 legal held items** — 149 choices per slot counting "none", all-different across the team, however in the current meta game does not have a support vest which increase special damage when added will change the metagames
@@ -139,7 +134,24 @@ Vocabulary: [[CONTEXT]] · [[Regulation M-B — the Mega Evolution constraint]] 
 			- [ ] The total number of items in pokemon
 			- [ ] The number of item in the current regulation, what is the average number of item use per regulation 
 			- [ ] I want a barchart of the number of item that is aviaible for each regulation
+			- [ ] There is mega stone which is added mega item in where abilities increase, 100+
 		- [ ] I found the paper i was talking about the show the math of the number of possible pokemon tema combinatino **VGC-Bench: Towards Mastering Diverse Team Strategies in Competitive Pokémon** by Angliss, Cui, Hu, Rahman and Stone (AAMAS 2026
 - [ ] Provide me a definition of clause in the context of
 - [x] 2026-08-20, swept RLC 2026 for papers on this note's search-space structure — done 2026-08-20: all five candidates fell to LOW on full-PDF checks; the surviving pointer for a huge pool under a finite budget is 🟢 [Bayati et al. 2020](https://arxiv.org/abs/2002.10121) — rows in [[Todo Section]]
 - [ ] https://www.smogon.com/forums/threads/how-many-possible-teams-are-there-in-pokemon-a-comprehensive-and-detailed-answer.3648997/
+- [ ] EV
+- [ ] Determine if we should give a glossary of pokemon moves out their in regulation M-B
+
+
+
+# Wririnting
+
+
+1. The number of possible of pokemon team is bigger than the number of possible chess position there which is {}.I will go through how we can calculaute one step of a time with you. The most well known clauses you are allowed to bring 6 pokemon to battle. The first clauses in pokemon is the number of possible pokemon SPECIES. This is important some pokemon specicies can have multiple form. For example, the pokemon Rotom can 4 possible different form however. This is the exception it more common for pokemon to have only one form.  The second clause for the search space is the each pokemon need to have atmost 4 moves to be competitive viable. The main problem with the calculcation that each pokemon have own number of moves which can they can learn. Therefore, we are gonna use th
+2. I will cover all feature in the search space in pokemon to demonstrate how we come up with the number of possible pokemon team is greater then number of possible chess move out their. 
+	1. Let start with the most basic we have to bring upto 6 pokemon to battle.
+3. Version 3
+	1. The search space in building a pokemon team is greater than the number of possible chess position there whic
+4. Version 4
+	1. Our M-B model gives approximately 2.71 × 10^118 possible Pokemon teams. This is larger than the estimated number of legal chess positions. Let calculate together how we determine the number of possible Pokemon teams.The most well known clauses you are allowed to bring 6 Pokemon to battle. The second clauses you are not allowed to have two or more Pokemon with the same national dex number. For example, you cannot bring two Charizard on your team. We call this the species clauses. This means our first counting step is choosing six distinct species from the eligible Pokemon species. Since order does not matter, we use the combination formula (S, 6). The number of moves a Pokemon can learn varies between Pokemon. For example, in our M-B model, Charizard can learn 72 moves while Venusaur can learn 57 moves. 
+	2. The Item Clause forbids two Pokémon on a team from holding the same item, so the six Pokémon take six different items in order, which gives $146 \times 145 \times \dots \times 141 \approx 8.7 \times 10^{12}$ ways to give out the items.

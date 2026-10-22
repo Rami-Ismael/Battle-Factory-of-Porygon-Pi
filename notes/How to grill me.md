@@ -1,0 +1,1 @@
+Can you /grill-me please use the /recall skill in the to find background information that will be necesarry on the details please use /writing-for-agent for when create a subagent that check for claim and make sure I don't have to ask obvious question that the agent should be made plese use the /unslop and /technical-writing skills

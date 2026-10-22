@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7ff">
+  <meta name="description" content="An interactive field guide to heuristic generation, genetic programming, LLM code evolution, and a concrete Pokémon counter-search experiment.">
+  <title>Teach the search a new trick · Heuristic generation lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="methods-content.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#idea">Skip to the explanation</a>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Heuristic lab, back to start"><span class="brand-mark" aria-hidden="true">h<span>+</span></span><span>The heuristic lab</span></a>
+    <div class="header-tools"><span class="header-caption">An interactive field guide</span><button id="motion-toggle" class="text-button" aria-pressed="true">Motion on</button></div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="hero-context">From hyper-heuristics to your Pokémon search</p>
+        <h1 id="hero-title">Teach the search<br>a new trick.</h1>
+        <p class="hero-deck">What if your algorithm could invent the rules it searches with? Explore how heuristics are generated, how to test them, and where this fits in your project.</p>
+        <div class="hero-actions"><a class="button primary" href="#idea">Start with the idea <span aria-hidden="true">↓</span></a><a class="quiet-link" href="#methods">Explore the methods</a></div>
+        <p class="hero-promise">Everything you need is on this page. Move through it at your own pace.</p>
+      </div>
+      <figure class="hero-figure" aria-label="A reusable rule guides the search through candidate Pokémon teams">
+        <div class="orbit-label">The thing we want to invent</div>
+        <div class="hero-rule"><div class="rule-glyph" aria-hidden="true">ƒ</div><div><span>A reusable decision rule</span><strong>Which change should<br>the search try next?</strong></div><span class="rule-stamp" aria-hidden="true">h</span></div>
+        <div class="hero-connector" aria-hidden="true"><span></span><b>guides</b><span></span></div>
+        <div class="hero-team" aria-label="Six illustrative Pokémon slots">
+          <div><img src="assets/incineroar.png" alt="Incineroar" width="96" height="96"><span>Slot 1</span></div>
+          <div class="marked"><img src="assets/pelipper.png" alt="Pelipper" width="96" height="96"><span>Try an edit</span></div>
+          <div><img src="assets/garchomp.png" alt="Garchomp" width="96" height="96"><span>Slot 3</span></div>
+          <div><img src="assets/torkoal.png" alt="Torkoal" width="96" height="96"><span>Slot 4</span></div>
+          <div class="marked"><img src="assets/tyranitar.png" alt="Tyranitar" width="96" height="96"><span>Try an edit</span></div>
+          <div><img src="assets/excadrill.png" alt="Excadrill" width="96" height="96"><span>Slot 6</span></div>
+        </div>
+        <figcaption>Invent a rule. Use it on many searches.<br><span>Illustrative slots, not a recommended or verified legal team.</span></figcaption>
+        <span class="figure-note" aria-hidden="true">A rule can be the search result.</span>
+      </figure>
+    </section>
+
+    <nav class="chapter-nav" aria-label="Guide chapters">
+      <div class="chapter-nav-inner"><a href="#idea">The idea</a><a href="#loops">Two loops</a><a href="#methods">The methods</a><a href="#workshop">Try a rule</a><a href="#proxy">The proxy trap</a><a href="#project">Your project</a></div>
+    </nav>
+
+    <section id="idea" class="chapter wrap" aria-labelledby="idea-title">
+      <div class="section-heading"><div class="chapter-number">1</div><div><p class="section-context">First, name what is changing</p><h2 id="idea-title">Are you searching for a team,<br>or a rule that finds teams?</h2></div></div>
+      <p class="section-lead">A heuristic is a shortcut that guides a decision. It might rank candidate teams, choose an edit, or decide when to restart. A hyper-heuristic operates one level above those decisions.</p>
+      <div class="concept-grid">
+        <article class="concept"><div class="concept-icon team-icon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><h3>Search for a solution</h3><p>Change the Pokémon, moves, or items until you find a strong team.</p><div class="output-label">The output is <strong>a team</strong></div><p class="small">Evolving teams directly is ordinary solution search, even if it uses an evolutionary algorithm.</p></article>
+        <article class="concept"><div class="concept-icon selector-icon" aria-hidden="true"><span>A</span><span class="chosen">B</span><span>C</span></div><h3>Select a heuristic</h3><p>Choose between rules you already supplied, such as swap a slot, edit a move, or restart.</p><div class="output-label">The output is <strong>a choice of rule</strong></div><p class="small">This is a selection hyper-heuristic. Its action menu comes from you.</p></article>
+        <article class="concept generation-concept"><div class="concept-icon formula-icon" aria-hidden="true">h = <span>min</span>(c, s, d)</div><h3>Generate a heuristic</h3><p>Construct a new formula or program, then test whether searches using it find better teams.</p><div class="output-label">The output is <strong>a reusable new rule</strong></div><p class="small">This is the generation hyper-heuristic idea you were looking for.</p></article>
+      </div>
+      <aside class="takeaway"><span aria-hidden="true">↳</span><p>The crucial question is <strong>what the outer search changes</strong>. New teams, choices among existing rules, and new rule structures are different outputs.</p></aside>
+      <p class="source-note">Terminology follows <a href="https://people.cs.nott.ac.uk/pszrq/files/HHSurveyJORS2013.pdf" target="_blank" rel="noopener">Burke and colleagues' hyper-heuristics survey</a>.</p>
+    </section>
+
+    <section id="loops" class="loop-section chapter" aria-labelledby="loop-title">
+      <div class="wrap">
+        <div class="section-heading"><div class="chapter-number">2</div><div><p class="section-context">Follow the feedback</p><h2 id="loop-title">A search inside a search.</h2></div></div>
+        <p class="section-lead">The outer loop searches for a useful heuristic. Every candidate heuristic has to guide an inner search before you can judge it.</p>
+        <div class="loop-controls"><button id="loop-play" class="button primary"><span aria-hidden="true">▶</span> Play one cycle</button><button id="loop-next" class="button secondary">Next step</button><button id="loop-reset" class="text-button">Reset</button><span class="evidence-label">Process illustration. No battles are running.</span></div>
+        <div class="step-track" aria-label="Six steps in a generation cycle"><div class="step-progress" aria-hidden="true"></div><button data-step="0" aria-current="step"><span>1</span>Propose</button><button data-step="1"><span>2</span>Check</button><button data-step="2"><span>3</span>Search</button><button data-step="3"><span>4</span>Measure</button><button data-step="4"><span>5</span>Compare</button><button data-step="5"><span>6</span>Revise</button></div>
+        <div class="step-caption" id="loop-caption" aria-live="polite"><span class="step-counter" id="step-counter">1 / 6</span><div><h3 id="step-title">Propose one candidate heuristic</h3><p id="step-text">Generate a small decision rule with a precise input and output. For example, choose which team slots to regenerate.</p></div></div>
+        <div class="loop-diagram" id="loop-diagram">
+          <div class="outer-loop-title"><span class="loop-tag">Outer loop</span><strong>Discover the decision rule</strong><span class="loop-cycle">Propose → test → revise</span></div>
+          <div class="diagram-flow">
+            <div class="flow-node" data-node="propose"><span class="node-symbol" aria-hidden="true">ƒ</span><h3>Propose a rule</h3><code>h(features)</code><p>A formula, program,<br>or trained policy</p></div>
+            <div class="flow-link" aria-hidden="true">↓</div>
+            <div class="inner-loop" data-node="search"><span class="loop-tag">Inner loop</span><h3>Search for a team using this rule</h3><div class="mini-search"><span>Start</span><b aria-hidden="true">→</b><span class="mini-decision">Choose edit<br><strong>using h</strong></span><b aria-hidden="true">→</b><span>Evaluate<br>&amp; update</span><b aria-hidden="true">↺</b></div><p>Repeat within the same search budget.</p><div class="inner-result"><span aria-hidden="true">▦</span> A candidate team</div></div>
+            <div class="flow-link" aria-hidden="true">↓</div>
+            <div class="flow-node" data-node="measure"><span class="node-symbol" aria-hidden="true">✓</span><h3>Measure the outcome</h3><p>Fresh development battles<br>estimate the resulting<br>team's win rate.</p></div>
+          </div>
+          <div class="feedback-route" data-node="feedback"><span aria-hidden="true">↶</span><p><strong>Feed the outcome back to the generator.</strong> Revise the rule, then try another candidate.</p></div>
+        </div>
+        <div class="two-notes"><p><strong>A useful rule is more than a plausible formula.</strong> Its fitness comes from the searches it causes, not from an LLM saying it looks clever.</p><p><strong>Nested evaluation is expensive.</strong> Each proposed rule may need several complete searches. Count that discovery cost separately from later use.</p></div>
+      </div>
+    </section>
+
+    <section id="methods" class="chapter wrap" aria-labelledby="methods-title">
+      <div class="section-heading"><div class="chapter-number">3</div><div><p class="section-context">Choose what the generator can build</p><h2 id="methods-title">Five routes. Different outputs.</h2></div></div>
+      <p class="section-lead">The practical starting points are genetic programming, grammatical evolution, and LLM code evolution. Neural learning and configuration are useful neighbors, with different meanings of “learn a heuristic.”</p>
+      <div class="method-tabs" id="method-tabs" role="group" aria-label="Choose a method to explore">
+        <button data-method="gp" aria-pressed="true">Genetic programming</button><button data-method="grammar" aria-pressed="false">Grammar</button><button data-method="llm" aria-pressed="false">LLM evolution</button><button data-method="neural" aria-pressed="false">Neural / RL</button><button data-method="config" aria-pressed="false">Configuration</button>
+      </div>
+      <p id="method-status" class="visually-hidden" aria-live="polite"></p>
+      <div id="method-panel" class="method-panel" role="region" aria-label="Selected method details"></div>
+      <noscript><p>This explorer uses JavaScript to show each method. Genetic programming evolves expression trees; grammatical evolution searches programs allowed by a grammar; LLM evolution proposes and evaluates code; neural learning trains a decision policy; configuration tunes settings within an existing algorithm.</p></noscript>
+      <div class="choice-strip"><h3>Which would I start with?</h3><p><strong>For this project, reuse your existing LLM loop first.</strong> Try typed genetic programming as a comparison when you want formulas you can inspect without LLM calls. A new framework alone will not solve the evaluation problem.</p><a href="#project">See the implementation path <span aria-hidden="true">↓</span></a></div>
+    </section>
+
+    <section id="workshop" class="workshop-section chapter" aria-labelledby="workshop-title">
+      <div class="wrap">
+        <div class="section-heading"><div class="chapter-number">4</div><div><p class="section-context">Make the distinction tangible</p><h2 id="workshop-title">Change the rule.<br>Watch the decision change.</h2></div></div>
+        <p class="section-lead">Three possible edits have three invented features: coverage <b>c</b>, speed support <b>s</b>, and defensive support <b>d</b>. The rule ranks which edit to try first.</p>
+        <div class="teaching-label"><span aria-hidden="true">◇</span> Invented teaching example. No Pokémon battle results.</div>
+        <div class="workshop-layout">
+          <div class="rule-console">
+            <div class="rule-choices" role="group" aria-label="Choose a ranking rule"><button data-rule="base" aria-pressed="true"><span>Starting rule</span><code>c + s + d</code></button><button data-rule="tuned" aria-pressed="false"><span>Tune its weights</span><code>2c + s + d</code></button><button data-rule="generated" aria-pressed="false"><span>Change its structure</span><code>min(c, s, d)</code></button></div>
+            <div class="formula-tree" id="formula-tree" aria-label="Expression tree for the current rule"></div>
+            <p id="rule-explanation" class="rule-explanation">The starting rule adds all three features. The edit with the greatest sum ranks first.</p>
+          </div>
+          <div class="ranking-panel"><div class="ranking-heading"><h3>Which edit goes first?</h3><span>Features on a 0–10 scale</span></div><div id="ranking-list" class="ranking-list" aria-label="Candidate edit rankings"></div><p class="rank-result" id="rank-result" aria-live="polite"></p></div>
+        </div>
+        <div class="workshop-foot"><p><strong>Tuning changes values inside the same structure.</strong> Generation can change the calculation itself. Here, the minimum rule favors an edit with no very weak feature.</p><p>The formulas use different score scales. A higher displayed score across two formulas does not mean a stronger team. <strong>Battle evaluation must decide whether the rule actually helps.</strong></p></div>
+      </div>
+    </section>
+
+    <section id="proxy" class="chapter wrap" aria-labelledby="proxy-title">
+      <div class="section-heading"><div class="chapter-number">5</div><div><p class="section-context">The mistake to catch early</p><h2 id="proxy-title">A convincing filter can reject<br>the counter you need.</h2></div></div>
+      <p class="section-lead">Your current prototype generates <code>keep(team) → bool</code> rules. It rewards retaining known competitive teams while discarding much of a random legal sample. That measures pruning behavior, not the win rate of teams a search will find.</p>
+      <div class="proxy-lab">
+        <div class="proxy-toolbar"><div><span class="teaching-label">Invented teaching example. No real battle evidence.</span><h3>Keep teams whose conventional score passes the gate</h3></div><label class="threshold-label" for="threshold">Threshold <output id="threshold-output" for="threshold">7</output><input id="threshold" type="range" min="1" max="10" step="1" value="7" aria-describedby="threshold-help"></label></div>
+        <p id="threshold-help" class="small">Change the threshold to see how the same fixed sample passes or fails. “Conventional score” is a made-up feature for this demonstration.</p>
+        <div class="retention-grid"><div class="reference-sample"><h4>Competitive reference sample</h4><div id="meta-dots" class="meta-dots"></div><p id="meta-result">5 / 5 kept</p></div><div class="retention-stat"><span>Reference retention, r</span><strong id="r-value">100%</strong><p>Known competitive teams kept ÷ tested</p></div><div class="retention-stat"><span>Random-space retention, q</span><strong id="q-value">20%</strong><p>Random legal sample kept ÷ tested</p></div></div>
+        <div class="random-heading"><h4>Random legal sample</h4><span>Same ten teams in every comparison</span></div><div id="random-sample" class="random-sample"></div>
+        <div class="proxy-reveal"><div class="proxy-actions"><button id="reveal-outcomes" class="button secondary" aria-pressed="false">Reveal invented matchup outcomes</button><button id="proxy-reset" class="text-button">Reset example</button></div><p id="proxy-verdict" aria-live="polite">At threshold 7, the rule keeps every reference team and only 2 of 10 random teams. Is that enough to know it keeps the best counter?</p></div>
+      </div>
+      <aside class="takeaway coral"><span aria-hidden="true">!</span><p><strong>Retaining familiar teams and finding winning counters are different goals.</strong> A generated filter can score well on the proxy and still discard an unusual counter. Test the search outcomes against your actual battle objective.</p></aside>
+    </section>
+
+    <section id="project" class="project-section chapter" aria-labelledby="project-title">
+      <div class="wrap">
+        <div class="section-heading"><div class="chapter-number">6</div><div><p class="section-context">Turn the idea into an experiment</p><h2 id="project-title">You already have the first piece.</h2></div></div>
+        <p class="section-lead">Your pilot has an LLM loop that proposes, compiles, evaluates, and saves rules. Start by changing one narrow search decision and improving how you score it.</p>
+        <div class="project-before-after"><div><span class="status-tag">Already in your code</span><h3>Generate a filter</h3><code>keep(team) → bool</code><p>Score competitive-team retention <b>r</b> and random-space retention <b>q</b>. This tells you which teams the filter removes.</p></div><span class="project-arrow" aria-hidden="true">→</span><div class="proposal"><span class="status-tag">Proposed experiment</span><h3>Generate a search decision</h3><code>choose_mask(features, context)<br>→ slots_to_regenerate</code><p>Keep the refill and legality checks. Score the battle win rates of teams produced by complete searches.</p></div></div>
+        <p class="implementation-note">The proposed function is an interface idea, not code already implemented. The separate mutation experiment has a useful insertion point for choosing slots or edits.</p>
+        <div class="build-path">
+          <article><span class="path-index">1</span><div><h3>Write a small contract</h3><p>Define exactly what the rule sees and returns. Start with a valid mask over six team slots. Use features available at that decision; account for any extra feature-computation cost.</p></div></article>
+          <article><span class="path-index">2</span><div><h3>Connect the generator</h3><p>Reuse the current LLM proposer with seed code and this contract. Alternatively, define typed GP inputs and operations in DEAP. Limit rule complexity. Run generated code in isolation with time and resource limits.</p></div></article>
+          <article><span class="path-index">3</span><div><h3>Test the whole search</h3><p>Use the rule inside the existing mutation experiment. Preserve the validator, refiller, battle policy, starting inputs, and inner-search budget. Compare with the existing rule and an appropriate random or tuned baseline.</p></div></article>
+          <article><span class="path-index">4</span><div><h3>Select, freeze, then verify</h3><p>Give the generator development feedback. Choose a rule using validation runs. Freeze its code and configuration before final testing on fresh runs and battles.</p></div></article>
+        </div>
+        <div class="evaluation-track"><div><span>Development</span><strong>Generate &amp; revise</strong><p>Feedback may change the heuristic.</p></div><span aria-hidden="true">→</span><div><span>Validation</span><strong>Choose one rule</strong><p>Select, then freeze the code.</p></div><span aria-hidden="true">→</span><div><span>Final test</span><strong>Measure its benefit</strong><p>Results do not feed back into selection.</p></div></div>
+        <div class="project-detail-grid"><article><h3>What stays fair?</h3><p>Use the same opponent set and weighting, battle policies, starting inputs, and search budget. Pair search seeds where practical. Repeat independent searches and report variation as well as the resulting teams' win rates.</p></article><article><h3>What counts as “better”?</h3><p>Higher measured battle win rate under the agreed comparison. Retention, a surrogate prediction, a clever explanation, or one lucky search is not enough to establish that improvement.</p></article><article><h3>What if the target is fixed?</h3><p>Keep that opponent fixed and use independent search and battle seeds. Test unseen opponents when you want to claim transfer to new matchups. Do not silently invent a new opponent distribution.</p></article><article><h3>Where does the cost go?</h3><p>Report discovery cost separately from deployment cost. Discovery includes unsuccessful heuristic candidates, searches, battles, and LLM calls. Deployment is one search using the frozen rule.</p></article></div>
+        <aside class="code-context"><h3>Where this maps to your pilot</h3><dl><div><dt><code>src/hyperheuristic.py</code></dt><dd>Existing LLM rule-generation loop. Its present fitness is retention, not battle win rate.</dd></div><div><dt><code>scripts/diffusion_mutation_arm.py</code></dt><dd>Separate mutation experiment with an isolated mutation choice and refill stage.</dd></div><div><dt><code>src/dibo_core_v4.py</code></dt><dd>The DiBO candidate ranker uses its specified target score. Replacing it would create a distinct search variant.</dd></div></dl><p>The recorded mutation pilot gives a protocol to learn from. A new outer heuristic search still needs its own recorded budget and validation split.</p></aside>
+      </div>
+    </section>
+
+    <section class="check-section wrap" aria-labelledby="check-title">
+      <div><p class="section-context">One last check</p><h2 id="check-title">What would count as<br>a generated heuristic?</h2><p>An algorithm evolves a reusable function that chooses which Pokémon slot to edit. That function then guides new team searches.</p></div>
+      <div class="quick-check"><p>What did the outer search produce?</p><div role="group" aria-label="Check your understanding"><button data-answer="team" class="button secondary">One optimized team</button><button data-answer="rule" class="button secondary">A decision rule</button></div><p id="check-feedback" aria-live="polite">Choose an answer to reveal the explanation.</p></div>
+    </section>
+
+    <footer class="sources-section wrap" id="sources">
+      <div class="sources-heading"><h2>Keep exploring</h2><p>Primary sources and implementations. Research checked 21 October 2026.</p></div>
+      <div class="source-columns"><div><h3>Foundations &amp; classical tools</h3><a href="https://people.cs.nott.ac.uk/pszrq/files/HHSurveyJORS2013.pdf" target="_blank" rel="noopener">Hyper-heuristics survey · Burke et al.</a><a href="https://deap.readthedocs.io/en/stable/tutorials/advanced/gp.html" target="_blank" rel="noopener">DEAP · typed genetic programming</a><a href="https://arxiv.org/abs/1703.08535" target="_blank" rel="noopener">PonyGE2 paper</a><a href="https://github.com/PonyGE/PonyGE2" target="_blank" rel="noopener">PonyGE2 implementation</a><a href="https://iridia.ulb.ac.be/irace/README.html" target="_blank" rel="noopener">irace · algorithm configuration</a></div><div><h3>LLM heuristic evolution</h3><a href="https://doi.org/10.1038/s41586-023-06924-6" target="_blank" rel="noopener">FunSearch · Nature paper</a><a href="https://github.com/google-deepmind/funsearch" target="_blank" rel="noopener">FunSearch implementation</a><a href="https://proceedings.mlr.press/v235/liu24bs.html" target="_blank" rel="noopener">Evolution of Heuristics · ICML paper</a><a href="https://github.com/FeiLiu36/EoH" target="_blank" rel="noopener">EoH implementation</a><a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/4ced59d480e07d290b6f29fc8798f195-Paper-Conference.pdf" target="_blank" rel="noopener">ReEvo · NeurIPS paper</a><a href="https://github.com/ai4co/reevo" target="_blank" rel="noopener">ReEvo implementation</a></div><div><h3>Learned decision policies</h3><a href="https://arxiv.org/abs/1803.08475" target="_blank" rel="noopener">Attention, Learn to Solve Routing Problems!</a><a href="https://github.com/wouterkool/attention-learn-to-route" target="_blank" rel="noopener">Authors' implementation</a><p class="small">These papers support the method descriptions. They establish no win-rate gain for this Pokémon project.</p></div></div>
+      <div class="footer-bottom"><span>The heuristic lab</span><p>All interactive scores are teaching examples. No real experiment is run by this page. Pokémon sprites: existing local copies from <a href="https://play.pokemonshowdown.com/sprites/gen5/" target="_blank" rel="noopener">Pokémon Showdown</a>. Pokémon belongs to its respective owners.</p><a href="#top">Back to start ↑</a></div>
+    </footer>
+  </main>
+</body>
+</html>

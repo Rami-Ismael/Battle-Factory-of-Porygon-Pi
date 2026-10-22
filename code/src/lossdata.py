@@ -25,6 +25,7 @@ import numpy as np
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 import asked_vs_got as X
 import matchup_db as MDB
+import heldout as HO
 from corpus import parse_team_text
 from encode import NF, NSLOT
 
@@ -51,8 +52,8 @@ def test_split(V):
     for r in rows:
         t = parse_team_text(r["paste"])
         if len(t) != 6: continue
-        e = V.encode(t)
-        if (e == 0).any(): continue
+        try: e = V.encode(t)
+        except ValueError: continue                # a field outside the corpus vocabulary
         Xs.append(e); W.append(r["y"])
     Xs, W = np.stack(Xs), np.array(W, np.float32)
     idx = np.random.default_rng(X.SEED).permutation(len(Xs))
@@ -89,11 +90,13 @@ def main():
     corpus, V, *_ = X.setup()
     xte, wte, _, _ = test_split(V)
     test_keys = {r.tobytes() for r in xte}
+    held_keys = HO.identities()             # ranks 51-100 (48 fields): never a training row, never a matrix-derived label
 
     pool = {}            # encoding bytes -> dict(x, wins, battles, tags:set, row:None)
     def add(x, tag, y=None, n=0, fam=None):
         k = x.tobytes()
         if k in test_keys: return "test"
+        if HO.row_key(x, V) in held_keys: return "heldout"
         e = pool.setdefault(k, dict(x=x, wins=0.0, battles=0, tags=set(), fam=0))
         e["tags"].add(tag)
         if fam: e["fam"] |= 1 << FAM.index(fam)
@@ -107,8 +110,8 @@ def main():
         t = parse_team_text(p)
         e = None
         if len(t) == 6:
-            e = V.encode(t)
-            if (e == 0).any(): e = None
+            try: e = V.encode(t)
+            except ValueError: e = None            # a field outside the corpus vocabulary
         cache[p] = e
         return e
 

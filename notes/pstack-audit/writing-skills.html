@@ -1,0 +1,120 @@
+<title>Writing Skills Ledger</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a copy-editor's ledger. One row per skill, words on the left, counts and a 12-week strip on the right. */
+:root {
+  --paper: #f6f7f9; --sheet: #ffffff; --ink: #1b2330; --muted: #5b6676; --rule: #dde2ea;
+  --pencil: #2f6db3; --pencil-soft: #e3edf9;
+  --high: #1f7a4d; --med: #9a6a00; --low: #7a8392;
+  --heat0: #eef1f5; --heat1: #c9dcf2; --heat2: #8fb6e6; --heat3: #4f8bd0; --heat4: #2a5f9e;
+  --display: "Newsreader", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #11151c; --sheet: #171c25; --ink: #e6eaf1; --muted: #9aa5b5; --rule: #2a3240;
+  --pencil: #7fb0ec; --pencil-soft: #1f2d42;
+  --high: #5fc794; --med: #e0b354; --low: #8c96a6;
+  --heat0: #212836; --heat1: #23395a; --heat2: #2f5687; --heat3: #4a7fc0; --heat4: #8ab8f0;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #11151c; --sheet: #171c25; --ink: #e6eaf1; --muted: #9aa5b5; --rule: #2a3240;
+  --pencil: #7fb0ec; --pencil-soft: #1f2d42;
+  --high: #5fc794; --med: #e0b354; --low: #8c96a6;
+  --heat0: #212836; --heat1: #23395a; --heat2: #2f5687; --heat3: #4a7fc0; --heat4: #8ab8f0;
+  color-scheme: dark }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font: 650 clamp(30px, 5vw, 44px)/1.1 var(--display); margin: 0 0 12px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font: 600 22px/1.2 var(--display); margin: 0; text-wrap: balance; }
+.lede { max-width: 64ch; color: var(--muted); margin: 0; font-size: 16px; }
+.lede b { color: var(--ink); font-weight: 600; }
+.head { display: grid; gap: 20px; margin-bottom: 28px; }
+.how { background: var(--pencil-soft); border-left: 3px solid var(--pencil); padding: 12px 16px; max-width: 72ch; font-size: 14px; }
+.how p { margin: 0; }
+.how p + p { margin-top: 6px; }
+section { margin-top: 36px; }
+.sechead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+.sechead span { color: var(--muted); font-size: 14px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px 28px; padding: 18px 0; border-bottom: 1px solid var(--rule); }
+.row.zero .name { color: var(--muted); }
+.nameline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.name { font: 500 15px/1.3 var(--mono); }
+.chip { font: 600 11px/1 var(--body); letter-spacing: 0.08em; padding: 4px 7px; border-radius: 3px; border: 1px solid currentColor; }
+.chip.HIGH { color: var(--high); } .chip.MED { color: var(--med); } .chip.LOW { color: var(--low); }
+.does { margin: 6px 0 2px; min-width: 0; }
+.why { margin: 0; color: var(--muted); font-size: 14px; }
+.stats { display: grid; gap: 8px; align-content: start; font-variant-numeric: tabular-nums; }
+.uses { display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 10px; }
+.uses b { font: 600 22px/1 var(--display); text-align: right; }
+.bar { height: 10px; background: var(--heat0); border-radius: 2px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--pencil); }
+.meta { color: var(--muted); font-size: 13px; }
+.strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
+.strip i { aspect-ratio: 1; max-width: 100%; border-radius: 2px; background: var(--heat0); }
+.strip i[data-l="1"] { background: var(--heat1); } .strip i[data-l="2"] { background: var(--heat2); }
+.strip i[data-l="3"] { background: var(--heat3); } .strip i[data-l="4"] { background: var(--heat4); }
+.axis { display: flex; justify-content: space-between; color: var(--muted); font: 11px/1 var(--mono); }
+footer { margin-top: 36px; color: var(--muted); font-size: 13px; max-width: 72ch; }
+footer p { margin: 0 0 6px; }
+@media (max-width: 680px) { .row { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <h1>Writing skills I've loaded</h1>
+    <p class="lede" id="lede"></p>
+    <div class="how">
+      <p><b>What a count means.</b> One count is one time a skill was loaded in a Claude Code session, either by me calling it or by you typing its slash command. Repeats of the same call in a resumed session are counted once.</p>
+      <p><b>Why unslop and technical-writing look low.</b> Both apply automatically. I load them once per session and then reuse them for every reply, so their count is the number of sessions, not the number of passes.</p>
+    </div>
+  </header>
+  <section id="craft"></section>
+  <section id="adjacent"></section>
+  <footer>
+    <p>Source: every Claude Code session log under ~/.claude/projects on this laptop, read on 18 Oct 2026. Logs older than early August are no longer on disk, so earlier uses, if any, are missing.</p>
+    <p>Relevance is graded for your writing in the VGC project: the blog post, vault notes and the repo README.</p>
+  </footer>
+</div>
+
+<script>
+const D = {"items": [{"key": "unslop", "name": "pskill:unslop", "tier": "craft", "rel": "HIGH", "does": "Cuts filler, stock phrases and vague claims from replies and prose.", "why": "Your CLAUDE.md applies it to every reply, so it touches everything you read from me.", "total": 21, "tool": 21, "slash": 0, "sessions": 21, "vgc": 21, "subagent": 0, "first": "2026-10-14", "last": "2026-10-18", "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 10]}, {"key": "technical-writing", "name": "pskill:technical-writing", "tier": "craft", "rel": "HIGH", "does": "Structure and reader-first sentences for blog posts, READMEs and docs in this project.", "why": "Built for exactly your blog and the repo README.", "total": 6, "tool": 6, "slash": 0, "sessions": 6, "vgc": 6, "subagent": 0, "first": "2026-10-15", "last": "2026-10-18", "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 4]}, {"key": "writing-workshop", "name": "writing-workshop", "tier": "craft", "rel": "HIGH", "does": "Turns your own prose into a practice page with before-and-after examples.", "why": "The only skill that improves your writing instead of mine.", "total": 1, "tool": 1, "slash": 0, "sessions": 1, "vgc": 1, "subagent": 0, "first": "2026-10-15", "last": "2026-10-15", "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]}, {"key": "writing-for-agents", "name": "writing-for-agents", "tier": "craft", "rel": "MED", "does": "How to write skills, CLAUDE.md and briefs that agents follow.", "why": "Writing for agents, not for blog readers.", "total": 13, "tool": 13, "slash": 0, "sessions": 13, "vgc": 13, "subagent": 0, "first": "2026-10-02", "last": "2026-10-18", "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 6, 6]}, {"key": "ux-copy", "name": "design:ux-copy", "tier": "craft", "rel": "LOW", "does": "Button labels, error messages, empty states.", "why": "Only the words inside your interactive figures.", "total": 1, "tool": 1, "slash": 0, "sessions": 1, "vgc": 1, "subagent": 1, "first": "2026-10-11", "last": "2026-10-11", "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]}, {"key": "documentation", "name": "engineering:documentation", "tier": "craft", "rel": "LOW", "does": "READMEs, runbooks, API docs.", "why": "technical-writing already covers the README in this project.", "total": 0, "tool": 0, "slash": 0, "sessions": 0, "vgc": 0, "subagent": 0, "first": null, "last": null, "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"key": "pr", "name": "mattpocock-skills:pr", "tier": "craft", "rel": "LOW", "does": "Pull-request descriptions.", "why": "PR bodies only.", "total": 0, "tool": 0, "slash": 0, "sessions": 0, "vgc": 0, "subagent": 0, "first": null, "last": null, "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"key": "card-judge", "name": "card-judge", "tier": "craft", "rel": "LOW", "does": "Judges flashcard wording against your card rules.", "why": "Flashcards, not the blog.", "total": 0, "tool": 0, "slash": 0, "sessions": 0, "vgc": 0, "subagent": 0, "first": null, "last": null, "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, {"key": "grilling", "name": "grilling", "tier": "adjacent", "rel": "MED", "does": "Questions a plan or draft until the weak spots show.", "why": "You use it to test hooks and section structure before writing.", "total": 45, "tool": 41, "slash": 4, "sessions": 42, "vgc": 38, "subagent": 0, "first": "2026-08-15", "last": "2026-10-18", "weeks": [0, 0, 10, 0, 0, 0, 0, 11, 7, 6, 7, 4]}, {"key": "wait-what", "name": "wait-what", "tier": "adjacent", "rel": "MED", "does": "Makes me re-pitch a message that did not land.", "why": "A clarity check on my replies, triggered by you.", "total": 8, "tool": 0, "slash": 8, "sessions": 6, "vgc": 8, "subagent": 0, "first": "2026-08-29", "last": "2026-10-17", "weeks": [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 5, 1]}, {"key": "eli5", "name": "eli5:eli5", "tier": "adjacent", "rel": "MED", "does": "Plain-picture explainers of one idea.", "why": "Useful for the ML-curious blog reader; it backs the ELI5 pages in Teaching/.", "total": 2, "tool": 1, "slash": 1, "sessions": 2, "vgc": 2, "subagent": 0, "first": "2026-09-01", "last": "2026-09-01", "weeks": [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0]}, {"key": "research", "name": "research", "tier": "adjacent", "rel": "LOW", "does": "Gathers primary sources into a Markdown file.", "why": "The writing is a by-product of fact-finding.", "total": 5, "tool": 5, "slash": 0, "sessions": 5, "vgc": 5, "subagent": 0, "first": "2026-10-15", "last": "2026-10-18", "weeks": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 1]}, {"key": "deep-research", "name": "deep-research", "tier": "adjacent", "rel": "LOW", "does": "Multi-source research reports.", "why": "Never used in this project.", "total": 9, "tool": 1, "slash": 8, "sessions": 9, "vgc": 0, "subagent": 0, "first": "2026-08-03", "last": "2026-08-13", "weeks": [8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}], "all": 618, "first": "2026-08-01", "last": "2026-10-18"};
+const start = new Date("2026-08-01T00:00:00Z");
+const fmt = d => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const wk = i => { const d = new Date(start.getTime() + i * 7 * 864e5); return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }); };
+const maxUses = Math.max(...D.items.map(i => i.total));
+const writing = D.items.filter(i => i.tier === "craft").reduce((a, i) => a + i.total, 0);
+const adj = D.items.filter(i => i.tier === "adjacent").reduce((a, i) => a + i.total, 0);
+document.getElementById("lede").innerHTML =
+  `Counted from my session logs, ${fmt(D.first)} to ${fmt(D.last)} 2026. Out of <b>${D.all}</b> skill loads in that window, <b>${writing}</b> were writing skills and <b>${adj}</b> were skills that shape writing indirectly.`;
+const level = n => n === 0 ? 0 : n <= 1 ? 1 : n <= 3 ? 2 : n <= 7 ? 3 : 4;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function row(i) {
+  const range = i.total ? (i.first === i.last ? fmt(i.first) : `${fmt(i.first)} to ${fmt(i.last)}`) : "Never loaded";
+  const how = i.total ? `${i.sessions} session${i.sessions === 1 ? "" : "s"}` + (i.slash ? ` · ${i.slash} by slash command` : "") + (i.subagent ? ` · ${i.subagent} by a subagent` : "") : "";
+  const cells = i.weeks.map((n, k) => `<i data-l="${level(n)}" title="Week of ${wk(k)}: ${n} load${n === 1 ? "" : "s"}"></i>`).join("");
+  return `<article class="row${i.total ? "" : " zero"}">
+    <div>
+      <div class="nameline"><span class="name">${esc(i.name)}</span><span class="chip ${i.rel}" title="Relevance to your writing">${i.rel}</span></div>
+      <p class="does">${esc(i.does)}</p>
+      <p class="why">${esc(i.why)}</p>
+    </div>
+    <div class="stats">
+      <div class="uses"><b>${i.total}</b><div class="bar" aria-hidden="true"><i style="width:${(i.total / maxUses * 100).toFixed(1)}%"></i></div></div>
+      <div class="meta">${range}${how ? " · " + how : ""}</div>
+      <div class="strip" role="img" aria-label="Loads per week from ${wk(0)}: ${i.weeks.join(", ")}">${cells}</div>
+      <div class="axis"><span>${wk(0)}</span><span>${wk(11)}</span></div>
+    </div>
+  </article>`;
+}
+function section(id, title, sub) {
+  const list = D.items.filter(i => i.tier === id).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+  document.getElementById(id).innerHTML =
+    `<div class="sechead"><h2>${title}</h2><span>${sub}</span></div>` + list.map(row).join("");
+}
+section("craft", "Writing craft", "Skills whose job is the words themselves");
+section("adjacent", "Shapes the writing", "Skills that change what gets written, before or around the prose");
+</script>

@@ -1,6 +1,6 @@
 ---
 created_at: 2026-08-18
-updated_at: 2026-08-18
+updated_at: 2026-10-21
 type: teaching-mission
 status: inferred from the vault — correct me
 tags:
@@ -26,3 +26,8 @@ Own the formal statement of $f$ well enough to write and defend the weighted-max
 
 ## Out of scope
 - GFlowNets. Category theory. Species usage %. Monte Carlo evaluation (moratorium until 2026-08-23).
+
+## Second strand: Claude Code delegation (added 2026-10-21, confirmed by the owner)
+- **Why:** get Claude Code to consider a subagent on every real task without typing it each time, and learn when delegation pays off.
+- **Success looks like:** for any rule, say whether CLAUDE.md, a prompt hook or a tool hook should carry it, and why; split a task into parts and name which part a Haiku subagent takes.
+- **Lessons:** 0012 (hook or CLAUDE.md). Record: 0012.

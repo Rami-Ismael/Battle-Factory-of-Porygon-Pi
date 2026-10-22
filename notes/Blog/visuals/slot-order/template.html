@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slot order bias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Distill layout: one reading column, the figure breaks out to 60rem. Tokens match repo-sync/template.html.
+   Motion: explanatory tier. Card flights 800ms strong ease-in-out, bar growth 600ms ease-out,
+   transform and height only. prefers-reduced-motion drops the flights and keeps the values. */
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --same:#2f9e6b; --ahead:#2a78d6; --lost:#d4551f; --focus:#2a78d6; --grid:#e1e0d9; --base:#c3c2b7; --neutral:#888780;
+  --font-body:"Literata",Georgia,"Times New Roman",serif;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --col:42rem; --wide:60rem;
+  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; --grid:#2c2c2a; --base:#4a4a46; --neutral:#98a0ae; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; --grid:#2c2c2a; --base:#4a4a46; --neutral:#98a0ae; color-scheme:dark; }
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.0625rem/1.65 var(--font-body)}
+.col{max-width:var(--col);margin:0 auto;padding:0 1rem}
+header.col{padding-top:3rem}
+h1{font:600 2.1rem/1.15 var(--font-body);letter-spacing:-0.01em;margin:0 0 .5rem;text-wrap:balance}
+.byline{font:400 .85rem var(--font-ui);color:var(--ink-3);margin:0 0 1.6rem}
+figure{margin:1.6rem auto 3rem;max-width:var(--wide);padding:0 1rem}
+figcaption{max-width:var(--col);margin:.9rem auto 0;font:400 .85rem/1.5 var(--font-ui);color:var(--ink-3)}
+.fig{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:1.1rem;font-family:var(--font-ui)}
+.steps{display:flex;gap:.4rem;flex-wrap:wrap;margin:0 0 .9rem;padding:0;list-style:none}
+.steps button{font:500 .8rem var(--font-ui);color:var(--ink-2);background:transparent;border:1px solid var(--rule);border-radius:99px;padding:.3rem .8rem;cursor:pointer;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.steps button[aria-current="step"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.say{min-height:5.2rem;margin:0 0 .8rem;max-width:46rem}
+.say p{font:400 .95rem/1.55 var(--font-ui);color:var(--ink);margin:0 0 .5rem}
+.say p.fade{animation:rise .3s var(--ease-out)}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+button.btn{font:500 .85rem var(--font-ui);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:.4rem .85rem;cursor:pointer;
+  transition:transform .12s var(--ease-out),border-color .15s ease,background-color .15s ease}
+button.btn:active{transform:scale(.97)}
+button.btn.primary{background:var(--ahead);border-color:var(--ahead);color:#fff}
+button.btn:disabled{opacity:.45;cursor:default}
+button.btn[aria-pressed="true"]{border-color:var(--ink);background:var(--wash)}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){ button.btn:hover:not(:disabled),.steps button:hover{border-color:var(--ahead)} }
+.ctas{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.2rem 0 .9rem}
+.ctas:empty{display:none}
+.nav{display:flex;justify-content:space-between;margin-top:1rem}
+.team{position:relative;height:15.2rem}
+.card{position:absolute;top:0;width:calc((100% - 2.5rem)/6);display:flex;flex-direction:column;align-items:center;
+  transition:left .8s var(--ease-in-out)}
+.card .slot{font:500 .72rem var(--font-ui);color:var(--ink-3);height:1.1rem}
+.card img{width:68px;height:68px;image-rendering:pixelated}
+.card .nm{font:400 .74rem var(--font-ui);color:var(--ink-2);height:1.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.track{position:relative;width:24px;height:6.5rem;margin-top:.35rem;display:flex;align-items:flex-end;justify-content:center}
+.track::after{content:"";position:absolute;left:-8px;right:-8px;bottom:0;border-bottom:1px solid var(--base)}
+.bar{width:24px;border-radius:4px 4px 0 0;background:var(--ahead);transition:height .6s var(--ease-out)}
+.bar.focus{background:var(--lost)}
+.val{font:500 .82rem var(--font-ui);color:var(--ink);font-variant-numeric:tabular-nums;margin-top:.25rem;height:1.2rem}
+.winrow{display:flex;gap:1.6rem;flex-wrap:wrap;font:400 .85rem var(--font-ui);color:var(--ink-2);margin-top:.4rem}
+.winrow b{font:500 1.05rem var(--font-ui);color:var(--ink);font-variant-numeric:tabular-nums}
+.check{font:400 .92rem/2 var(--font-ui);color:var(--ink);margin:.2rem 0 .8rem;padding:0;list-style:none}
+.check li::before{display:inline-block;width:1.4rem;font-weight:600}
+.check li.same::before{content:"=";color:var(--same)}
+.check li.diff::before{content:"\2260";color:var(--lost)}
+.codebox{font:400 .85rem/1.7 var(--font-mono);background:var(--wash);border-radius:8px;padding:.7rem .9rem;color:var(--ink);overflow-x:auto;white-space:nowrap}
+.codebox .hl{color:var(--lost);font-weight:500}
+.codebox .cm{color:var(--ink-3)}
+.preview{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.5rem;margin:.9rem 0 .2rem}
+.preview div{display:flex;flex-direction:column;align-items:center;border:1px solid var(--rule);border-radius:8px;padding:.3rem 0;font:500 .72rem var(--font-ui);color:var(--ink-3)}
+.preview div.on{border-color:var(--ahead);background:var(--wash);color:var(--ink)}
+.preview img{width:48px;height:48px;image-rendering:pixelated}
+svg text{font-family:var(--font-ui)}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font:400 .8rem var(--font-ui);color:var(--ink-2);margin:.4rem 0}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:.35rem .55rem;font:400 .8rem var(--font-ui);color:var(--ink);opacity:0;transition:opacity .12s ease;white-space:nowrap;z-index:2}
+.pairs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.5rem;align-items:end}
+.pair{display:flex;flex-direction:column;align-items:center}
+.pair img{width:56px;height:56px;image-rendering:pixelated}
+.pbars{display:flex;gap:4px;align-items:flex-end;height:6.5rem;border-bottom:1px solid var(--base);padding:0 6px}
+.pbars div{width:16px;border-radius:3px 3px 0 0;transition:height .6s var(--ease-out)}
+.pv{font:400 .74rem var(--font-ui);color:var(--ink-2);font-variant-numeric:tabular-nums;margin-top:.2rem;text-align:center}
+.h4{font:600 .72rem var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:1.2rem 0 .3rem}
+@media (max-width:560px){ .card img{width:42px;height:42px} .pair img{width:38px;height:38px} .pbars div{width:9px} .pbars{padding:0 3px}
+  .team{height:13.4rem} .preview img{width:34px;height:34px} .card .nm{font-size:.66rem} }
+@media (prefers-reduced-motion:reduce){ .card,.bar,.pbars div{transition:none} .say p.fade{animation:none} }
+</style>
+</head>
+<body>
+<header class="col">
+  <h1>The battle policy picks its four by list position</h1>
+  <p class="byline">Battle Factory of Porygon-Pi · slot-order bias, found 2026-10-15, fixed 2026-10-16</p>
+</header>
+<figure>
+  <div class="fig" id="fig">
+    <ol class="steps" id="steps" aria-label="Steps"></ol>
+    <div class="say" id="say" aria-live="polite"></div>
+    <div class="ctas" id="ctas"></div>
+    <div id="stage"></div>
+    <div class="nav"><button class="btn" id="prev">Back</button><button class="btn primary" id="next">Next</button></div>
+    <div class="tip" id="tip" role="tooltip"></div>
+  </div>
+  <figcaption>Win rate is the share of battles won against the top-50 meta teams, with the behaviour-cloning battle policy playing both sides. Bars in step 4 are 95% intervals over the 12 teams. Steps 1 and 2 use 1,176 battles per listing; the re-check after the fix uses 2,352 for the Sylveon team and 1,152 for the Glimmora team.</figcaption>
+</figure>
+<script>
+const D=/*DATA*/null, SP=/*SPRITES*/{};
+const NAME={sylveon:"Sylveon",chandelure:"Chandelure",garchomp:"Garchomp",basculegion:"Basculegion",kingambit:"Kingambit",floetteeternal:"Floette"};
+const $=id=>document.getElementById(id);
+const pct=v=>Math.round(v*100)+"%";
+const f3=v=>v.toFixed(3);
+const sgn=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(3);
+const L=D.team47355_listed, R=D.rotations, A=D.after_fix;
+let step=0, guess=null, revealed=false, metric="brought", fixView="after";
+
+function teamHTML(){
+  return `<div class="team" id="team">${L.sylveon_first.order.map(k=>`<div class="card" data-k="${k}">
+    <div class="slot"></div><img alt="${NAME[k]}" src="${SP[k]||""}"><div class="nm">${NAME[k]}</div>
+    <div class="track"><div class="bar${k==="sylveon"?" focus":""}" style="height:0"></div></div><div class="val"></div></div>`).join("")}</div>
+    <div class="winrow" id="winrow"></div>`;
+}
+function placeTeam(listing, showBars){
+  const order=L[listing].order, br=L[listing].brought;
+  document.querySelectorAll("#team .card").forEach(c=>{
+    const k=c.dataset.k, i=order.indexOf(k);
+    c.style.left=`calc(${i} * ((100% - 2.5rem)/6 + .5rem))`;
+    c.querySelector(".slot").textContent="slot "+(i+1);
+    c.querySelector(".bar").style.height=showBars?(br[k]*100)+"%":"0";
+    c.querySelector(".val").textContent=showBars?pct(br[k]):"";
+    c.title=`${NAME[k]} in slot ${i+1}: brought in ${pct(br[k])} of battles`;
+  });
+}
+function flush(){ void $("team").offsetWidth; }   // commit the start state so the move transitions without waiting for a frame
+function winRow(items){ $("winrow").innerHTML=items.map(([l,v])=>`<span>${l} <b>${v}</b></span>`).join(""); }
+
+function slotChart(){
+  const v=R[metric], lo=R[metric+"_lo"], hi=R[metric+"_hi"], chance=metric==="brought"?2/3:1/3;
+  const W=640,H=250,m={l:44,r:10,t:18,b:30}, iw=W-m.l-m.r, ih=H-m.t-m.b, bw=iw/6;
+  const y=t=>m.t+ih*(1-t);
+  const col=i=>hi[i]<chance?"var(--lost)":lo[i]>chance?"var(--ahead)":"var(--neutral)";
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${metric==="brought"?"Share of battles each slot is brought":"Share of battles each slot leads"}, slots 1 to 6: ${v.map(pct).join(", ")}; no slot effect would give ${pct(chance)}">`;
+  [0,.25,.5,.75,1].forEach(t=>{s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)"/><text x="${m.l-8}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--ink-3)">${t*100}%</text>`;});
+  s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(chance)}" y2="${y(chance)}" stroke="var(--ink-2)" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+  v.forEach((x,i)=>{
+    const cx=m.l+bw*i+bw/2;
+    s+=`<g class="hit" data-i="${i}"><rect x="${m.l+bw*i}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent"/>
+      <rect x="${cx-12}" y="${y(x)}" width="24" height="${y(0)-y(x)}" rx="4" fill="${col(i)}"/>
+      <line x1="${cx}" x2="${cx}" y1="${y(hi[i])}" y2="${y(lo[i])}" stroke="var(--ink)" stroke-width="1.5"/>
+      <line x1="${cx-5}" x2="${cx+5}" y1="${y(hi[i])}" y2="${y(hi[i])}" stroke="var(--ink)" stroke-width="1.5"/>
+      <line x1="${cx-5}" x2="${cx+5}" y1="${y(lo[i])}" y2="${y(lo[i])}" stroke="var(--ink)" stroke-width="1.5"/>
+      <text x="${cx}" y="${y(hi[i])-7}" text-anchor="middle" font-size="12" font-weight="500" fill="var(--ink)" stroke="var(--panel)" stroke-width="4" paint-order="stroke">${pct(x)}</text>
+      <text x="${cx}" y="${H-10}" text-anchor="middle" font-size="12" fill="var(--ink-2)">slot ${i+1}</text></g>`;
+  });
+  s+=`<text x="${m.l+4}" y="${y(chance)-6}" font-size="11" fill="var(--ink-2)" stroke="var(--panel)" stroke-width="4" paint-order="stroke">no slot effect: ${pct(chance)}</text>
+    <line x1="${m.l}" x2="${W-m.r}" y1="${y(0)}" y2="${y(0)}" stroke="var(--base)"/></svg>`;
+  return s;
+}
+function bindSlotTips(){
+  const tip=$("tip"), fig=$("fig");
+  document.querySelectorAll("#stage .hit").forEach(g=>{
+    g.addEventListener("pointerenter",()=>{const i=+g.dataset.i;
+      tip.textContent=`Slot ${i+1}: ${metric==="brought"?"brought":"leads"} in ${pct(R[metric][i])} of battles (${pct(R[metric+"_lo"][i])} to ${pct(R[metric+"_hi"][i])})`;tip.style.opacity=1;});
+    g.addEventListener("pointermove",e=>{const r=fig.getBoundingClientRect();tip.style.left=Math.max(4,Math.min(e.clientX-r.left+12,r.width-290))+"px";tip.style.top=(e.clientY-r.top+14)+"px";});
+    g.addEventListener("pointerleave",()=>tip.style.opacity=0);
+  });
+}
+function pairsHTML(){
+  const before=fixView==="before", T=A.teams["47355"];
+  const a=before?L.alphabetical.brought:T["0"].brought, b=before?L.sylveon_first.brought:T["5"].brought;
+  const key=k=>before?k:(k==="floetteeternal"?"floette":k);
+  return `<div class="h4">Share of battles each Pokémon is brought</div>
+  <div class="legend"><span><i class="sw" style="background:var(--ahead)"></i>Written alphabetically</span><span><i class="sw" style="background:var(--lost)"></i>Written Sylveon first</span></div>
+  <div class="pairs">${L.alphabetical.order.map(k=>{const va=a[key(k)], vb=b[key(k)];
+    return `<div class="pair" title="${NAME[k]}: ${pct(va)} written alphabetically, ${pct(vb)} written Sylveon first"><img alt="${NAME[k]}" src="${SP[k]||""}">
+      <div class="pbars"><div style="height:${va*100}%;background:var(--ahead)"></div><div style="height:${vb*100}%;background:var(--lost)"></div></div>
+      <div class="pv">${pct(va)} · ${pct(vb)}</div></div>`;}).join("")}</div>`;
+}
+function dumbbells(){
+  const t=A.teams, before=fixView==="before";
+  const rows=before?[["Sylveon team",L.alphabetical.win,L.sylveon_first.win],["Glimmora team",R.team205_rot3,R.team205_rot5]]
+                   :[["Sylveon team",t["47355"]["0"].win,t["47355"]["5"].win],["Glimmora team",t["205"]["3"].win,t["205"]["5"].win]];
+  const W=640,H=112,l=120,r=70,x0=.3,x1=.75, x=v=>l+(W-l-r)*(v-x0)/(x1-x0);
+  let s=`<div class="h4">Win rate of the same team, written two ways</div><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${before?"Before":"After"} the fix: ${rows.map(r=>`${r[0]} ${f3(r[1])} and ${f3(r[2])}`).join("; ")}">`;
+  [.3,.4,.5,.6,.7].forEach(v=>{s+=`<line x1="${x(v)}" x2="${x(v)}" y1="6" y2="${H-24}" stroke="var(--grid)"/><text x="${x(v)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--ink-3)">${v.toFixed(1)}</text>`;});
+  rows.forEach((rw,i)=>{const yy=24+i*36, a=x(rw[1]), b=x(rw[2]);
+    s+=`<text x="${l-12}" y="${yy+4}" text-anchor="end" font-size="12" fill="var(--ink-2)">${rw[0]}</text>
+      <line x1="${a}" x2="${b}" y1="${yy}" y2="${yy}" stroke="var(--base)" stroke-width="2"/>
+      <circle cx="${a}" cy="${yy}" r="6" fill="var(--ahead)" stroke="var(--panel)" stroke-width="2"><title>First listing: ${f3(rw[1])}</title></circle>
+      <rect x="${b-6}" y="${yy-6}" width="12" height="12" rx="2" fill="var(--lost)" stroke="var(--panel)" stroke-width="2"><title>Second listing: ${f3(rw[2])}</title></rect>
+      <text x="${Math.max(a,b)+12}" y="${yy+4}" font-size="11" fill="var(--ink-3)">gap ${Math.abs(rw[1]-rw[2]).toFixed(3)}</text>`;});
+  return s+`</svg><div class="legend"><span><i class="sw" style="background:var(--ahead);border-radius:50%"></i>Alphabetical order</span><span><i class="sw" style="background:var(--lost)"></i>Rotated order (the Sylveon team with Sylveon first)</span></div>`;
+}
+function previewHTML(){
+  const picks=[2,3,4,6], order=L.alphabetical.order;
+  return `<div class="h4">"/team 2346" brings these four from the alphabetical list</div><div class="preview">${order.map((k,i)=>`<div class="${picks.includes(i+1)?"on":""}">slot ${i+1}<img alt="${NAME[k]}" src="${SP[k]||""}"></div>`).join("")}</div>`;
+}
+
+const STEPS=[
+ {label:"1 · One team",
+  say:()=>[`One team the generator found, written with Sylveon in slot 1. Over ${"1,176"} battles the policy brings Sylveon in only ${pct(L.sylveon_first.brought.sylveon)} of them and Basculegion in ${pct(L.sylveon_first.brought.basculegion)}.`],
+  draw:()=>{$("stage").innerHTML=teamHTML();placeTeam("sylveon_first",false);flush();placeTeam("sylveon_first",true);
+    winRow([["Win rate",f3(L.sylveon_first.win)]]);}},
+ {label:"2 · Rewrite the list",
+  say:()=>revealed?[`Sylveon now comes along in ${pct(L.alphabetical.brought.sylveon)} of battles, and Basculegion drops to ${pct(L.alphabetical.brought.basculegion)}. Same six Pokémon, same sets, same opponents: only the order changed, and the win rate moved by ${sgn(L.gap)} (${sgn(L.gap_ci[0])} to ${sgn(L.gap_ci[1])}).`]
+    :[`The team database stores every team in alphabetical order, so Sylveon moves from slot 1 to slot 6. Nothing else changes. How often will the policy bring Sylveon now?`],
+  ctas:()=>revealed?"":[["about","About the same, around 20%"],["half","About half the time"],["most","Most battles, around 80%"]].map(([k,t])=>`<button class="btn" data-g="${k}">${t}</button>`).join(""),
+  draw:()=>{$("stage").innerHTML=teamHTML();placeTeam("sylveon_first",true);
+    if(revealed){flush();placeTeam("alphabetical",true);
+      winRow([["Sylveon first",f3(L.sylveon_first.win)],["Alphabetical",f3(L.alphabetical.win)],["Your guess",{about:"about the same",half:"about half",most:"most battles"}[guess]]]);}
+    else winRow([["Win rate",f3(L.sylveon_first.win)]]);}},
+ {label:"3 · Why order matters",
+  say:()=>[`At team preview the policy does not name Pokémon. It names slot numbers, and Showdown reads them as an order. Nothing in the policy tells it that a team is the same team in any order.`],
+  draw:()=>{$("stage").innerHTML=`<ul class="check"><li class="same">Species, items, moves, natures and Stat Points</li><li class="same">The 49 opponent teams</li><li class="same">The battle policy on both sides</li><li class="diff">The order the six Pokémon are written in</li></ul>
+    <div class="codebox">policy_player.teampreview(battle)<br>&nbsp;&nbsp;<span class="cm"># picks two leads, then two for the back, as</span> <span class="hl">slot numbers</span><br>&nbsp;&nbsp;return <span class="hl">"/team 2346"</span></div>${previewHTML()}`;}},
+ {label:"4 · Every slot",
+  say:()=>[metric==="brought"?`Is it only this team? 12 teams were each written in 6 rotated orders, so every Pokémon sat in every slot once: 13,848 battles. With no slot effect every slot would be brought ${pct(2/3)} of the time. Slots 1 and 5 are left out far more often, and slots 2 to 4 are favoured.`
+    :`Leads favour slot 3. Slots 1 and 5 lead in fewer than one battle in five. With no slot effect every slot would lead ${pct(1/3)} of the time.`],
+  ctas:()=>`<button class="btn" data-m="brought" aria-pressed="${metric==="brought"}">Brought</button><button class="btn" data-m="lead" aria-pressed="${metric==="lead"}">Leads</button>`,
+  draw:()=>{$("stage").innerHTML=slotChart()+`<div class="legend"><span><i class="sw" style="background:var(--lost)"></i>Below chance</span><span><i class="sw" style="background:var(--ahead)"></i>Above chance</span><span><i class="sw" style="background:var(--neutral)"></i>Interval includes chance</span></div>`;bindSlotTips();}},
+ {label:"5 · The fix",
+  say:()=>fixView==="before"?[`Before the fix, the same team written two ways is played as two different teams: different picks, and win rates that differ by up to 0.17.`]
+    :[`The fix shuffles both teams into a new random order before every battle, so no Pokémon is stuck in a bad slot. The two listings now get the same picks, to within 3 percentage points, and win rates within noise.`],
+  ctas:()=>`<button class="btn" data-f="before" aria-pressed="${fixView==="before"}">Before the fix</button><button class="btn" data-f="after" aria-pressed="${fixView==="after"}">After: shuffle every battle</button>`,
+  draw:()=>{$("stage").innerHTML=pairsHTML()+dumbbells();}}
+];
+
+function render(fade=true){
+  const s=STEPS[step];
+  $("steps").innerHTML=STEPS.map((x,i)=>`<li><button data-s="${i}" ${i===step?'aria-current="step"':""}>${x.label}</button></li>`).join("");
+  $("say").innerHTML=s.say().map(t=>`<p class="${fade?"fade":""}">${t}</p>`).join("");
+  $("ctas").innerHTML=s.ctas?s.ctas():"";
+  s.draw();
+  $("prev").disabled=step===0; $("next").textContent=step===STEPS.length-1?"Start over":"Next";
+}
+$("steps").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(b){step=+b.dataset.s;render();}});
+$("ctas").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.g){guess=b.dataset.g;revealed=true;render();}
+  if(b.dataset.m){metric=b.dataset.m;render(false);}
+  if(b.dataset.f){fixView=b.dataset.f;render(false);}});
+$("prev").onclick=()=>{if(step>0){step--;render();}};
+$("next").onclick=()=>{step=step===STEPS.length-1?0:step+1;if(step===0){revealed=false;guess=null;}render();};
+render();
+</script>
+</body>
+</html>

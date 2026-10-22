@@ -7,6 +7,27 @@ legality or win rate, against the finished Ling and Mercury baselines, then
 optimizes the structured program. Built and tested offline; the paid run is
 pending. See [the protocol and headroom results](docs/dspy-structure-experiment.md).
 
+## Current team search: discrete DiBO (October 12, 2026)
+
+The active search now uses [DiBO posterior inference](docs/dibo-v3.md), replacing
+the CEM elite-selection/retraining loop. A score-weighted diffusion prior and
+independent prediction ensemble define `p_prior(team) * exp(beta * UCB(team))`;
+relative trajectory balance trains a separate posterior sampler. Discrete local
+refinement and posterior-density filtering precede new battle evaluations.
+
+    .venv/bin/python src/search.py run --smoke
+    .venv/bin/python src/search.py run
+    .venv/bin/python src/search.py final
+    .venv/bin/python src/search.py report
+    .venv/bin/python scripts/test_dibo.py
+
+The existing `cem_v3.py run/final/report` commands also route to DiBO. Historical
+CEM results and helpers used by pinned comparison experiments remain archival;
+new runs use separate DiBO manifests and checkpoints. This is a categorical
+adaptation of the continuous paper, not a claim that its reported improvements
+have been reproduced on Pokémon. See the method mapping and runtime requirements
+in [the implementation guide](docs/dibo-v3.md).
+
 ## Current M-B vocabulary and retraining (October 8, 2026)
 
 Use `scripts/retrain_regmb.py` for the regulation-complete F1/G2 pipeline and

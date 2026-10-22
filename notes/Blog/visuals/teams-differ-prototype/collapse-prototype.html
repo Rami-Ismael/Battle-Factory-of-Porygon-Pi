@@ -1,0 +1,414 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Five motion variants of view A (Collapse), switchable via ?variant= and the
+  bottom bar (or ← →), crossed with four colour encodings ("Colour by" in the bar):
+    baseline — view A as shipped in index.html
+    stagger  — Group/Unsort regroups row by row, generation 1 → 11, 40 ms apart
+    linked   — hovering a block lights up that composition in all 11 rows
+    flight   — clicking a block flies its six sprites into the B card below
+    morph    — a large strip above the eleven tweens its block widths as the generation changes
+  Colour by: largest (top three of gen 11) · distance (species away from the largest) · age (generations
+  since first seen) · win rate (composition mean vs the real-team mean). All palettes validated with the
+  dataviz validator (light + dark).
+  Run: python3 -m http.server 8765 --directory Blog/visuals, then open /teams-differ-prototype/collapse-prototype.html
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Collapse Prototype</title>
+<style>
+:root{--bg:#fff;--ink:#1d2328;--muted:#66707a;--line:#d5dae0;--grey:#e6e9ed;--surface:#fff;--focus:#2f5fd0;--fill:#2f5fd0;--on-fill:#fff;--hero-bg:#f2f5fd;--shadow:rgba(0,0,0,.12);
+  /* largest: categorical, three slots (all-pairs CVD 9.2) */
+  --cat1:#2a78d6;--cat2:#eb6834;--cat3:#1baf7a;
+  /* distance: ordinal blue, 0 / 1 / 2 / 3+ species away */
+  --d0:#1c5cab;--d1:#2a78d6;--d2:#5598e7;--d3:#86b6ef;
+  /* age: sequential blue, 0 (new this generation) → 10 generations old */
+  --s0:#cde2fb;--s1:#b7d3f6;--s2:#9ec5f4;--s3:#86b6ef;--s4:#6da7ec;--s5:#5598e7;--s6:#3987e5;--s7:#2a78d6;--s8:#256abf;--s9:#1c5cab;--s10:#104281;
+  /* win rate: diverging around the real-team mean */
+  --div-pos:#2a78d6;--div-neg:#e34948;--div-mid:#f0efec;
+  --bar-bg:#111;--bar-btn:#2a2a2a;--bar-fg:#fff;--bar-code:#cfe3ff;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  --move:250ms;--enter:200ms;--exit:150ms;--tip:125ms;--build:450ms;--row-step:40ms}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--ink:#e3e7eb;--muted:#9aa5b0;--line:#323a43;--grey:#2a3139;--surface:#1d232a;--focus:#86a3f2;--fill:#3f63c9;--hero-bg:#1c2540;
+  --cat1:#3987e5;--cat2:#d95926;--cat3:#199e70;--d0:#b7d3f6;--d1:#6da7ec;--d2:#2a78d6;--d3:#184f95;
+  --s0:#104281;--s1:#1c5cab;--s2:#256abf;--s3:#2a78d6;--s4:#3987e5;--s5:#5598e7;--s6:#6da7ec;--s7:#86b6ef;--s8:#9ec5f4;--s9:#b7d3f6;--s10:#cde2fb;
+  --div-pos:#3987e5;--div-neg:#e66767;--div-mid:#383835;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14181d;--ink:#e3e7eb;--muted:#9aa5b0;--line:#323a43;--grey:#2a3139;--surface:#1d232a;--focus:#86a3f2;--fill:#3f63c9;--hero-bg:#1c2540;
+  --cat1:#3987e5;--cat2:#d95926;--cat3:#199e70;--d0:#b7d3f6;--d1:#6da7ec;--d2:#2a78d6;--d3:#184f95;
+  --s0:#104281;--s1:#1c5cab;--s2:#256abf;--s3:#2a78d6;--s4:#3987e5;--s5:#5598e7;--s6:#6da7ec;--s7:#86b6ef;--s8:#9ec5f4;--s9:#b7d3f6;--s10:#cde2fb;
+  --div-pos:#3987e5;--div-neg:#e66767;--div-mid:#383835;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:0 auto;padding:28px 16px 140px}
+h1{font:600 26px/1.2 Georgia,serif;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 16px}
+.foot{color:var(--muted);font-size:13px;margin:4px 0}
+img.sp{image-rendering:pixelated;object-fit:contain;display:block}
+button,select,input{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 14px;font-size:13px;color:var(--muted)}
+.lg{display:flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:3px;flex:none}
+.lg .six{display:flex}
+.lg img.sp{width:22px;height:22px}
+.ramp{width:160px;height:12px;border-radius:3px}
+
+/* strips */
+.strips{display:grid;grid-template-columns:44px 1fr 56px;gap:8px 12px;align-items:center;position:relative}
+.strips .hd{font-size:12px;color:var(--muted)}
+.gl{font-variant-numeric:tabular-nums;color:var(--muted);text-align:right;border:0;background:none;padding:0;transition:color var(--move) ease}
+.gl.on{color:var(--focus);font-weight:700}
+.cnt{font-variant-numeric:tabular-nums;transition:color var(--move) ease}
+.cnt.on{color:var(--focus);font-weight:700}
+.strip{position:relative;height:34px;border-radius:4px;overflow:hidden;outline:1px solid var(--line);cursor:pointer}
+.ticks,.blocks{position:absolute;inset:0}
+.tick{position:absolute;top:0;left:0;height:100%;width:calc(100% / 128);background:var(--grey);box-shadow:inset -1px 0 var(--bg);
+  transition:transform var(--build) var(--ease-in-out),opacity var(--move) var(--ease-in-out)}
+.blocks{display:flex;opacity:0;pointer-events:none;transition:opacity var(--exit) var(--ease-out)}
+.strip.grouped .blocks{opacity:1;pointer-events:auto;transition:opacity var(--exit) var(--ease-out) var(--build)}
+.strip.grouped .ticks{opacity:0;transition:opacity 0s linear calc(var(--build) + var(--exit))}
+.blk{height:100%;border-right:1px solid var(--bg);background:var(--grey);display:flex;align-items:center;gap:2px;overflow:hidden;min-width:0;padding-left:4px;
+  color:var(--on-fill);font:600 12px system-ui;white-space:nowrap;transition:opacity var(--move) var(--ease-in-out)}
+.blk:last-child{border-right:0}
+.blk img.sp{width:22px;height:22px;flex:none}
+.blk>span{background:var(--bg);color:var(--ink);border-radius:4px;padding:0 4px;margin-right:2px}
+.dim{opacity:.45}
+/* win rate: compositions with fewer than 4 teams get a hatch, their mean is too noisy to trust */
+.few{background-image:repeating-linear-gradient(135deg,transparent 0 3px,var(--bg) 3px 5px)}
+.frame{position:absolute;left:-8px;right:-8px;top:0;border:2px solid var(--focus);border-radius:8px;pointer-events:none;transition:transform var(--move) var(--ease-in-out)}
+
+/* variant: stagger — each row waits its turn, generation 1 first */
+.v-stagger .tick{transition-delay:var(--row-delay),0s}
+.v-stagger .strip.grouped .blocks{transition-delay:calc(var(--build) + var(--row-delay))}
+.v-stagger .strip.grouped .ticks{transition-delay:calc(var(--build) + var(--exit) + var(--row-delay))}
+.v-stagger .strip:not(.grouped) .blocks{transition-delay:var(--row-delay)}
+
+/* variant: linked — hovering one composition lights it in every row */
+.v-linked .blk{transition:opacity var(--exit) ease}
+.v-linked .strips.linking .blk:not(.match){opacity:.18}
+.v-linked .strips.linking .blk.match{opacity:1;box-shadow:inset 0 0 0 2px var(--ink)}
+
+/* variant: morph — one large strip that tweens between generations */
+.focus{position:relative;height:56px;border-radius:6px;overflow:hidden;outline:1px solid var(--line);margin:0 0 6px 56px;background:var(--grey)}
+.fb{position:absolute;inset:0;transform-origin:0 0;transition:transform var(--build) var(--ease-in-out),background-color var(--move) ease}
+.flabel{position:absolute;left:8px;top:0;bottom:0;display:flex;align-items:center;gap:4px;color:var(--ink);font:600 14px system-ui;font-variant-numeric:tabular-nums;pointer-events:none}
+.flabel img.sp{width:30px;height:30px}
+.flabel>.tick-num,.flabel>.x{background:var(--bg);border-radius:4px;padding:0 4px}
+.fcap{margin:0 0 14px 56px;font-size:13px;color:var(--muted)}
+
+/* ticker */
+.tick-num{display:inline-flex;align-items:baseline}
+.tcol{display:inline-block;height:1.2em;overflow:hidden}
+.tstrip{display:flex;flex-direction:column;transition:transform var(--move) var(--ease-out)}
+.tstrip span{height:1.2em;line-height:1.2em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* controls */
+.playrow{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-top:22px}
+.playrow input[type=range]{width:min(320px,100%)}
+.btn{border:1px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 14px;transition:transform 160ms var(--ease-out)}
+.btn:active{transform:scale(0.97)}
+.readout{border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-width:110px}
+.readout small{display:block;color:var(--muted);font-size:11px}
+.readout b{font:600 22px/1.2 system-ui;font-variant-numeric:tabular-nums;display:flex;align-items:baseline}
+
+/* tooltip */
+.tip{opacity:0;transform:scale(0.97);transform-origin:top left;transition:opacity var(--tip) var(--ease-out),transform var(--tip) var(--ease-out);
+  position:absolute;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 16px var(--shadow);padding:8px 10px;pointer-events:none;font-size:13px;max-width:290px}
+.tip[data-open]{opacity:1;transform:none}
+@starting-style{.tip[data-open]{opacity:0;transform:scale(0.97)}}
+.tip .six{display:flex;gap:2px}
+.tip img.sp{width:36px;height:36px}
+
+/* the B card a click opens (shown inline here) */
+.bcard{margin-top:22px;border:2px solid var(--focus);background:var(--hero-bg);border-radius:10px;padding:10px 12px;max-width:560px;position:relative}
+.bcard .six{display:flex;gap:4px;flex-wrap:wrap}
+.bcard .slot{display:flex;flex-direction:column;align-items:center;width:64px}
+.bcard img.sp{width:60px;height:60px}
+.bcard .slot span{font-size:10px;color:var(--muted);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bcard .cap{font-size:14px;margin-top:4px}
+.bcard .badge{position:absolute;right:10px;top:10px;background:var(--fill);color:var(--on-fill);border-radius:6px;padding:1px 8px;font:600 13px system-ui}
+
+/* prototype bar (not part of the design) */
+.switcher{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:20;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;
+  background:var(--bar-bg);color:var(--bar-fg);border-radius:22px;padding:6px 8px;box-shadow:0 6px 24px var(--shadow);font:13px system-ui;max-width:calc(100vw - 16px)}
+.switcher button{background:var(--bar-btn);color:var(--bar-fg);border:0;border-radius:999px;min-width:32px;height:32px;padding:0 10px}
+.switcher .lab{padding:0 8px;white-space:nowrap}
+.switcher select{background:var(--bar-btn);color:var(--bar-fg);border:0;border-radius:999px;height:32px;padding:0 10px}
+.state{position:fixed;right:12px;bottom:calc(84px + env(safe-area-inset-bottom, 0px));z-index:20;background:var(--bar-bg);color:var(--bar-code);font:11px/1.4 ui-monospace,monospace;padding:10px 12px;border-radius:10px;max-width:min(420px,calc(100vw - 24px));white-space:pre-wrap}
+
+@media (prefers-reduced-motion:reduce){
+  .frame,.tstrip,.fb{transition:none}
+  .tick{transition:opacity var(--move) var(--ease-in-out)}
+  .strip.grouped .blocks,.v-stagger .strip.grouped .blocks,.v-stagger .strip:not(.grouped) .blocks{transition-delay:0s}
+  .strip.grouped .ticks,.v-stagger .strip.grouped .ticks{transition-delay:var(--exit)}
+  .tip{transition:opacity var(--tip) var(--ease-out);transform:none}
+  .btn:active{transform:none}
+}
+@media (max-width:640px){
+  .strips{grid-template-columns:24px 1fr 34px;gap:6px}
+  .focus,.fcap{margin-left:30px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="preact-htm-standalone.umd.js"></script>
+<script src="data.js"></script>
+<script>
+const { html, render, useState, useEffect, useLayoutEffect, useRef } = htmPreact;
+const TOK = getComputedStyle(document.documentElement);
+const EASE_OUT = TOK.getPropertyValue('--ease-out').trim(), EASE_IN_OUT = TOK.getPropertyValue('--ease-in-out').trim();
+const ms = name => parseFloat(TOK.getPropertyValue(name));
+const MOVE = ms('--move'), ENTER = ms('--enter');
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FINE = () => matchMedia('(hover: hover) and (pointer: fine)').matches;
+const D = window.TEAMS_DIFFER, ST = D.strings, N_TEAMS = 128, REAL = D.realMean;
+const sprite = name => `../search-loop/sprites/${D.sprites[name]}.png`;
+
+// ---------- data ----------
+const GENS = D.gens.map(G => {
+  const groups = new Map();
+  G.teams.forEach((t, i) => {
+    const k = t.m.map(m => ST[m[0]]).sort().join('|');
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(i);
+  });
+  const comps = [...groups].map(([key, idx]) => ({ key, idx, mean: idx.reduce((a, i) => a + G.teams[i].y, 0) / idx.length }))
+    .sort((a, b) => b.idx.length - a.idx.length || a.key.localeCompare(b.key));
+  const compOf = [], slot = [];
+  let pos = 0;
+  comps.forEach(c => c.idx.forEach(i => { compOf[i] = c; slot[i] = pos++; }));
+  return { ...G, comps, compOf, slot };
+});
+const LAST = GENS[10], CORE_KEY = LAST.comps[0].key, CORE = LAST.teams[LAST.comps[0].idx[0]].m.map(m => ST[m[0]]);
+const CORE_SET = new Set(CORE);
+const rank = s => CORE.includes(s) ? CORE.indexOf(s) : 6;
+const BORN = new Map();
+GENS.forEach(G => G.comps.forEach(c => {
+  c.order = c.key.split('|').sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+  c.dist = 6 - c.order.filter(s => CORE_SET.has(s)).length;
+  if (!BORN.has(c.key)) BORN.set(c.key, G.g);
+}));
+const TOP3 = LAST.comps.slice(0, 3).map(c => c.key);
+const ALLKEYS = [...BORN.keys()];
+
+// ---------- colour encodings ----------
+const MODES = [['largest', 'Largest three'], ['distance', 'Species away'], ['age', 'Age'], ['winrate', 'Win rate']];
+function colourOf(mode, g, c) {
+  if (mode === 'largest') { const t = TOP3.indexOf(c.key); return { bg: t >= 0 ? `var(--cat${t + 1})` : null }; }
+  if (mode === 'distance') return { bg: `var(--d${Math.min(c.dist, 3)})` };
+  if (mode === 'age') return { bg: `var(--s${g - BORN.get(c.key)})` };
+  const t = Math.max(-1, Math.min(1, (c.mean - REAL) / 0.2));
+  return { bg: `color-mix(in oklab, var(${t >= 0 ? '--div-pos' : '--div-neg'}) ${Math.round(Math.abs(t) * 100)}%, var(--div-mid))`, few: c.idx.length < 4 };
+}
+// dimming the unselected rows only makes sense when colour marks a few compositions
+const dims = mode => mode === 'largest';
+
+function Sprite({ name }) { return html`<img class="sp" src=${sprite(name)} alt=${name} title=${name} />`; }
+function Ticker({ value }) {
+  const d = String(value).split('');
+  return html`<span class="tick-num"><span class="sr">${value}</span>${d.map((x, i) => html`<span class="tcol" key=${d.length - i} aria-hidden="true">
+    <span class="tstrip" style=${`transform:translateY(${-x * 10}%)`}>${'0123456789'.split('').map(n => html`<span>${n}</span>`)}</span></span>`)}</span>`;
+}
+
+function Legend({ mode }) {
+  if (mode === 'largest') return html`<div class="legend">${TOP3.map((k, i) => {
+    const c = LAST.comps.find(x => x.key === k);
+    return html`<span class="lg"><span class="sw" style=${`background:var(--cat${i + 1})`}></span><span class="six">${c.order.map(s => html`<${Sprite} name=${s} />`)}</span></span>`;
+  })}<span class="lg"><span class="sw" style="background:var(--grey)"></span>every other composition</span></div>`;
+  if (mode === 'distance') return html`<div class="legend">${['same six species', '1 species differs', '2 differ', '3 or more differ'].map((l, i) =>
+    html`<span class="lg"><span class="sw" style=${`background:var(--d${i})`}></span>${l}</span>`)}<span>from the largest composition</span></div>`;
+  if (mode === 'age') return html`<div class="legend"><span class="lg">new this generation
+    <span class="ramp" style=${`background:linear-gradient(90deg,${[...Array(11)].map((_, i) => `var(--s${i})`).join(',')})`}></span>first seen 10 generations ago</span></div>`;
+  return html`<div class="legend"><span class="lg">${(REAL - 0.2).toFixed(2)}
+    <span class="ramp" style="background:linear-gradient(90deg,var(--div-neg),var(--div-mid),var(--div-pos))"></span>${(REAL + 0.2).toFixed(2)}</span>
+    <span>composition's mean win rate; grey = the real-team mean ${REAL}</span>
+    <span class="lg"><span class="sw few" style="background-color:var(--div-mid)"></span>fewer than 4 teams (too noisy)</span></div>`;
+}
+
+// ---------- variant: morph, one strip tweening between generations ----------
+function FocusStrip({ gen, mode }) {
+  const lastL = useRef(new Map());
+  const G = GENS[gen - 1], here = new Map(G.comps.map(c => [c.key, c]));
+  let pos = 0;
+  const place = new Map();
+  G.comps.forEach(c => { place.set(c.key, { L: pos / N_TEAMS * 100, W: c.idx.length / N_TEAMS }); pos += c.idx.length; });
+  useEffect(() => { place.forEach((p, k) => lastL.current.set(k, p.L)); });
+  const big = G.comps[0];
+  return html`<div class="focus" aria-hidden="true">${ALLKEYS.map(k => {
+      const c = here.get(k), p = place.get(k) || { L: lastL.current.get(k) ?? 100, W: 0 };
+      const col = c ? colourOf(mode, gen, c) : { bg: null };
+      return html`<div class=${'fb' + (col.few ? ' few' : '')} key=${k}
+        style=${`transform:translateX(${p.L}%) scaleX(${p.W});background-color:${col.bg || 'var(--grey)'};box-shadow:inset -2px 0 var(--bg)`}></div>`;
+    })}
+    <div class="flabel">×<${Ticker} value=${big.idx.length} />${big.order.map(s => html`<${Sprite} name=${s} />`)}</div>
+  </div>
+  <p class="fcap">Generation ${gen}, drawn large: block widths slide to the next generation's counts.</p>`;
+}
+
+// ---------- the view ----------
+function Collapse({ variant, mode, setState }) {
+  const [gen, setGen] = useState(11);
+  const [playing, setPlaying] = useState(false);
+  const [grouped, setGrouped] = useState(true);
+  const [hover, setHover] = useState(null);
+  const [picked, setPicked] = useState(null);
+  const wrap = useRef(), frame = useRef(), rows = useRef([]), card = useRef(), flightFrom = useRef(null);
+  const instant = useRef(true);
+
+  const placeFrame = () => {
+    const row = rows.current[gen - 1], f = frame.current;
+    if (!row || !f) return;
+    f.style.transitionDuration = instant.current ? '0ms' : '';
+    f.style.height = row.offsetHeight + 8 + 'px';
+    f.style.transform = `translateY(${row.offsetTop - 4}px)`;
+    instant.current = false;
+  };
+  useLayoutEffect(placeFrame, [gen, variant]);
+  useEffect(() => {
+    const r = () => { instant.current = true; placeFrame(); };
+    addEventListener('resize', r);
+    return () => removeEventListener('resize', r);
+  }, [gen]);
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => setGen(g => { if (g >= 11) { setPlaying(false); return 11; } return g + 1; }), 700);
+    return () => clearInterval(id);
+  }, [playing]);
+  useEffect(() => setState({ gen, grouped, hover: hover && hover.open ? hover.c.order.join(', ') : null, picked: picked && `${picked.c.order.join(', ')} (gen ${picked.g})` }),
+    [gen, grouped, hover, picked]);
+
+  // variant: flight — the picked composition's sprites travel from the block into the card
+  useLayoutEffect(() => {
+    const from = flightFrom.current;
+    flightFrom.current = null;
+    if (!from || !card.current) return;
+    const fade = [{ opacity: 0 }, { opacity: 1 }];
+    if (variant !== 'flight' || reduced()) { card.current.animate(fade, { duration: ENTER, easing: EASE_OUT }); return; }
+    card.current.querySelectorAll('img.sp').forEach(img => {
+      const b = img.getBoundingClientRect();
+      // a block wide enough shows its own sprites; a sliver sends them out from its middle
+      const a = from.sprites.get(img.alt) || { left: from.cx - b.width * 0.15, top: from.cy - b.height * 0.15, width: b.width * 0.3 };
+      img.style.transformOrigin = '0 0';
+      img.animate([{ transform: `translate(${a.left - b.left}px,${a.top - b.top}px) scale(${a.width / b.width})`, opacity: from.sprites.size ? 1 : 0 },
+        { transform: 'none', opacity: 1 }], { duration: MOVE, easing: EASE_IN_OUT });
+    });
+    card.current.querySelectorAll('.cap,.badge,.slot span').forEach(el => el.animate(fade, { duration: ENTER, easing: EASE_OUT }));
+  }, [picked]);
+
+  const play = () => { if (playing) return setPlaying(false); if (gen >= 11) setGen(1); setPlaying(true); };
+  const toggleGrouped = () => {
+    setHover(h => h && { ...h, open: false });
+    setGrouped(g => !g);
+    if (reduced()) wrap.current.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: ENTER, easing: EASE_OUT });
+  };
+  const onHover = (e, g, c) => {
+    if (!FINE()) return;
+    const r = e.currentTarget.getBoundingClientRect(), w = wrap.current.getBoundingClientRect();
+    setHover({ g, c, open: true, x: Math.max(0, Math.min(r.left - w.left, w.width - 290)), y: r.bottom - w.top + 6 });
+  };
+  const pick = (e, g, c) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    flightFrom.current = { cx: r.left + r.width / 2, cy: r.top + r.height / 2,
+      sprites: new Map([...e.currentTarget.querySelectorAll('img.sp')].map(i => [i.alt, i.getBoundingClientRect()])) };
+    setPicked({ g, c });
+  };
+  const G = GENS[gen - 1];
+  const linkKey = variant === 'linked' && hover && hover.open ? hover.c.key : null;
+
+  return html`
+    <h1>Does the search collapse onto fewer compositions?</h1>
+    <p class="sub">Each strip is one generation's 128 teams, split by composition (the six species). One block is one composition; its width is how many teams share it.</p>
+    <${Legend} mode=${mode} />
+    ${variant === 'morph' && html`<${FocusStrip} gen=${gen} mode=${mode} />`}
+    <div class=${'strips' + (linkKey ? ' linking' : '')} ref=${wrap} onMouseLeave=${() => setHover(h => h && { ...h, open: false })}>
+      <div class="hd">Gen.</div><div class="hd">${grouped ? '128 teams, grouped by composition, largest first' : '128 teams, in the order the generation produced them'}</div><div class="hd">Comps.</div>
+      ${GENS.map(R => {
+        const dimRow = dims(mode) && R.g !== gen;
+        return html`
+        <button class=${'gl' + (R.g === gen ? ' on' : '')} onClick=${() => setGen(R.g)} aria-label=${`Select generation ${R.g}`}>${R.g}</button>
+        <div class=${'strip' + (grouped ? ' grouped' : '')} ref=${el => rows.current[R.g - 1] = el} style=${`--row-delay:calc(var(--row-step) * ${R.g - 1})`}>
+          <div class="ticks" aria-hidden="true">${R.teams.map((t, i) => {
+            const c = R.compOf[i], col = colourOf(mode, R.g, c);
+            return html`<i class=${'tick' + (col.bg && dimRow ? ' dim' : '')}
+              style=${`transform:translateX(${(grouped ? R.slot[i] : i) * 100}%);${col.bg ? 'background:' + col.bg : ''}`}></i>`;
+          })}</div>
+          <div class="blocks">${R.comps.map(c => {
+            const w = c.idx.length / N_TEAMS * 100, col = colourOf(mode, R.g, c);
+            return html`<div class=${'blk' + (col.bg && dimRow ? ' dim' : '') + (col.few ? ' few' : '') + (linkKey === c.key ? ' match' : '')}
+              style=${`flex:0 0 ${w}%;${col.bg ? 'background-color:' + col.bg : ''}`}
+              onMouseEnter=${e => onHover(e, R.g, c)} onClick=${e => pick(e, R.g, c)}>
+              ${w > 24 ? html`<span>×${c.idx.length}</span>${c.order.map(s => html`<${Sprite} name=${s} />`)}` : null}
+            </div>`;
+          })}</div>
+        </div>
+        <div class=${'cnt' + (R.g === gen ? ' on' : '')}>${R.comps.length}</div>`;
+      })}
+      <div class="frame" ref=${frame} aria-hidden="true"></div>
+      ${hover && html`<div class="tip" data-open=${hover.open ? '' : null} aria-hidden=${hover.open ? null : 'true'} style=${`left:${hover.x}px;top:${hover.y}px`}>
+        <div class="six">${hover.c.order.map(s => html`<${Sprite} name=${s} />`)}</div>
+        <div>Generation ${hover.g}: <b>${hover.c.idx.length}</b> of 128 teams · ${hover.c.dist === 0 ? 'the largest composition' : `${hover.c.dist} species away from the largest`}</div>
+        <div class="foot">first seen in generation ${BORN.get(hover.c.key)} · mean win rate ${hover.c.mean.toFixed(2)} over ${hover.c.idx.length * D.battles} battles</div>
+      </div>`}
+    </div>
+    <div class="playrow">
+      <label class="foot">Generation <input type="range" min="1" max="11" step="1" value=${gen}
+        onInput=${e => { setPlaying(false); instant.current = true; setGen(+e.target.value); }} aria-label="Generation" /></label>
+      <button class="btn" onClick=${play}>${playing ? 'Pause' : '▶ Play 1 → 11'}</button>
+      <button class="btn" onClick=${toggleGrouped} aria-pressed=${!grouped}>${grouped ? 'Show the teams unsorted' : 'Group by composition'}</button>
+      <div class="readout"><small>Compositions</small><b><${Ticker} value=${G.comps.length} /></b></div>
+      <div class="readout"><small>Largest</small><b><${Ticker} value=${G.comps[0].idx.length} /><span style="margin-left:.25em">/ 128</span></b></div>
+    </div>
+    ${picked ? html`<div class="bcard" ref=${card} key=${picked.g + picked.c.key}>
+        <div class="six">${picked.c.order.map(s => html`<div class="slot"><${Sprite} name=${s} /><span>${s}</span></div>`)}</div>
+        <div class="cap"><b>Opens view B with:</b> ${picked.c.idx.length} of 128 teams in generation ${picked.g}.</div>
+        <span class="badge">×${picked.c.idx.length}</span>
+      </div>` : html`<p class="foot" style="margin-top:22px">Click any block to see the card it opens in view B.</p>`}
+    <p class="foot">Win rate = share of battles won against the top-50 meta teams, the behaviour-cloning policy playing both sides, ${D.battles} battles per team; the real-team mean is ${REAL}.</p>`;
+}
+
+// ---------- shell + prototype bar ----------
+const VARIANTS = [['baseline', 'Baseline (as shipped)'], ['stagger', 'Staggered regroup'], ['linked', 'Linked hover'], ['flight', 'A → B sprite flight'], ['morph', 'Morphing focus strip']];
+const HINT = { baseline: 'View A as it is in index.html.', stagger: 'Press "Show the teams unsorted", then "Group by composition".',
+  linked: 'Hover any block (mouse only).', flight: 'Click a block, wide or thin.', morph: 'Press Play, or drag the slider.' };
+function App() {
+  const q = new URLSearchParams(location.search);
+  const [variant, setVariant] = useState(VARIANTS.some(v => v[0] === q.get('variant')) ? q.get('variant') : 'baseline');
+  const [mode, setMode] = useState(MODES.some(m => m[0] === q.get('colour')) ? q.get('colour') : 'largest');
+  const [inner, setInner] = useState({});
+  const [showState, setShowState] = useState(false);
+  useEffect(() => { try { history.replaceState(null, '', `?variant=${variant}&colour=${mode}`); } catch (e) {} }, [variant, mode]);
+  const cycle = d => setVariant(v => VARIANTS[(VARIANTS.findIndex(x => x[0] === v) + d + VARIANTS.length) % VARIANTS.length][0]);
+  useEffect(() => {
+    const k = e => {
+      if (document.activeElement && document.activeElement.matches('input,textarea,select,[contenteditable]')) return;
+      if (e.key === 'ArrowLeft') cycle(-1);
+      if (e.key === 'ArrowRight') cycle(1);
+    };
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  }, []);
+  const label = VARIANTS.find(v => v[0] === variant);
+  return html`<main class=${'v-' + variant}>
+      <p class="foot" style="margin:0 0 10px"><b>Try:</b> ${HINT[variant]}</p>
+      <${Collapse} key=${variant} variant=${variant} mode=${mode} setState=${setInner} />
+    </main>
+    <nav class="switcher" aria-label="Prototype variant switcher">
+      <button onClick=${() => cycle(-1)} aria-label="Previous variant">←</button>
+      <span class="lab">${label[1]}</span>
+      <button onClick=${() => cycle(1)} aria-label="Next variant">→</button>
+      <select value=${mode} onChange=${e => setMode(e.target.value)} aria-label="Colour by">
+        ${MODES.map(([k, l]) => html`<option value=${k}>Colour: ${l}</option>`)}</select>
+      <button onClick=${() => setShowState(s => !s)}>${showState ? 'Hide state' : 'State'}</button>
+    </nav>
+    ${showState && html`<pre class="state">${JSON.stringify({ variant, colourBy: mode, ...inner }, null, 2)}</pre>`}`;
+}
+render(html`<${App} />`, document.getElementById('app'));
+</script>
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FFFFFF">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="An explorable reading companion to Diffusion-BBO: follow a requested score through candidate generation, measured evaluation, and the next optimization iteration.">
+  <title>How does asking for a score find a better team?</title>
+  <style>
+    :root{--paper:#fff;--ink:#24262a;--quiet:#545454;--rule:#d9dcdf;--blue:#296184;--ochre:#855c16;--wash:#f5f7f8;--ease-out:cubic-bezier(.23,1,.32,1);--ease-in-out:cubic-bezier(.77,0,.175,1)}
+    *{box-sizing:border-box}html{scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:19px;line-height:1.7;-webkit-font-smoothing:antialiased}button,input{font:inherit}button,a,input{touch-action:manipulation}a{color:var(--blue);text-decoration-thickness:1px;text-underline-offset:4px}button{cursor:pointer}button:disabled{cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--ochre);outline-offset:5px}svg{display:block;height:auto;max-width:100%}svg text{font-family:"Avenir Next","Segoe UI",Arial,sans-serif;fill:var(--ink)}[hidden]{display:none!important}.sans,h1,h2,h3,button{font-family:"Avenir Next","Segoe UI","Helvetica Neue",Arial,sans-serif}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.skip{position:fixed;top:12px;left:12px;z-index:10;padding:9px 16px;background:white;transform:translateY(-180%)}.skip:focus{transform:translateY(0)}.page{max-width:1216px;padding-left:max(48px,env(safe-area-inset-left));padding-right:max(48px,env(safe-area-inset-right));margin:auto}.masthead{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:31px 0 25px;border-bottom:1px solid var(--rule);font:13px/1.4 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet)}.masthead strong{color:var(--ink);font-weight:600;letter-spacing:-.01em}.masthead a{color:var(--quiet)}.hero{padding:64px 0 33px;max-width:990px}.hero h1{font-size:clamp(42px,5.3vw,69px);line-height:1.075;font-weight:550;letter-spacing:-.055em;margin:0 0 25px;text-wrap:balance}.deck{font-size:24px;line-height:1.5;max-width:780px;margin:0 0 25px;color:#404145}.deck a{font-weight:600}.credit{display:flex;gap:28px;flex-wrap:wrap;margin:0;font:13px/1.6 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet)}.credit span{display:block}.credit strong{font-weight:600;color:var(--ink)}.essay-row{display:grid;grid-template-columns:minmax(0,740px) minmax(180px,220px);gap:64px;max-width:1024px;margin:0 auto}.prose{min-width:0}.prose p{margin:0 0 22px;max-width:68ch}.prose h2{font-size:31px;line-height:1.25;letter-spacing:-.035em;font-weight:550;margin:48px 0 18px}.opening{padding-top:17px}.opening p{font-size:20px;margin-bottom:24px}.margin-note{font:13px/1.65 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet);padding-top:8px}.margin-note p{margin:0 0 13px}.margin-note strong{color:var(--ink);font-weight:600}.margin-note .note-rule{width:34px;height:2px;background:var(--rule);margin-bottom:14px}.margin-note a{font-size:13px}.reading-link{display:inline-flex;align-items:center;min-height:44px;font:14px/1.4 "Avenir Next","Segoe UI",Arial,sans-serif}.explorer{margin:18px 0 39px;padding:28px 0 23px;border-top:1px solid var(--ink);border-bottom:1px solid var(--rule)}.figure-heading{display:flex;align-items:baseline;justify-content:space-between;gap:25px;font-family:"Avenir Next","Segoe UI",Arial,sans-serif;margin:0 0 7px}.figure-heading h2{margin:0;font-size:21px;line-height:1.35;font-weight:600;letter-spacing:-.025em}.figure-heading p{font-size:12px;color:var(--quiet);margin:0}.figure-kicker{font:13px/1.6 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet);margin:0 0 16px;max-width:78ch}.plot-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;margin:0 -8px;padding:0 8px 5px}.plot-scroll svg{width:100%;min-width:900px;max-width:900px;margin-inline:auto}.plot-grid{stroke:#e7eaed;stroke-width:1}.plot-axis{stroke:#989da1;stroke-width:1.2}.tick-label{font-size:12px;fill:var(--quiet)}.axis-label{font-size:12px;fill:var(--quiet)}.observed{fill:var(--blue);stroke:white;stroke-width:2}.baseline{stroke:var(--blue);stroke-width:1;stroke-dasharray:3 5}.baseline-label{font-size:12px;fill:var(--blue)}.target-rule{stroke:var(--ochre);stroke-width:1.7;stroke-dasharray:7 5}.target-label{font-size:13px;fill:var(--ochre);font-weight:600}.new-point{color:var(--blue);transform-origin:0 0;transform-box:view-box}.new-point circle{stroke:currentColor;stroke-width:2;fill:none}.new-point text{font-size:13px;font-weight:600;text-anchor:middle;paint-order:stroke fill;stroke:#fff;stroke-width:4px;stroke-linejoin:round}.new-point [data-point-score]{font-size:11px;font-weight:400;fill:var(--quiet)}.plot-legend{display:flex;gap:24px;flex-wrap:wrap;align-items:center;font:12px/1.5 "Avenir Next","Segoe UI",Arial,sans-serif;margin:0 0 16px}.plot-legend span{display:inline-flex;align-items:center;gap:8px;color:var(--quiet)}.legend-dot{width:9px;height:9px;border-radius:50%;background:var(--blue)}.legend-hollow{width:10px;height:10px;border:1.5px solid var(--blue);border-radius:50%}.legend-target{width:24px;height:0;border-top:2px dashed var(--ochre)}.scroll-hint{display:none;font:12px/1.5 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet);margin:0 0 15px}.figure-readout{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:20px;border-top:1px solid var(--rule);padding:16px 0 17px;font-family:"Avenir Next","Segoe UI",Arial,sans-serif}.figure-readout dl{margin:0}.figure-readout dt{font-size:11px;color:var(--quiet);margin-bottom:2px}.figure-readout dd{margin:0;font-size:20px;line-height:1.5;font-weight:550;letter-spacing:-.03em}.figure-readout .dataset dd{font-size:14px;letter-spacing:0;padding-top:4px}.interaction{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:45px;border-top:1px solid var(--rule);padding-top:21px}.steps{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:18px}.step{min-height:44px;min-width:44px;padding:8px 0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--quiet);font-size:12px;font-weight:500;line-height:1.3}.step[aria-pressed="true"]{border-bottom-color:var(--blue);color:var(--blue);font-weight:650}.explainer-panel h3{font-size:23px;line-height:1.3;letter-spacing:-.025em;font-weight:550;margin:0 0 10px}.explainer-panel p{font-size:16px;line-height:1.65;margin:0 0 12px;max-width:65ch}.explainer-panel .explainer-note{font:12px/1.6 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet)}.stage-index{font:11px/1.4 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet);margin:0 0 12px}.phase-nav{display:flex;gap:12px;align-items:center;margin-top:18px}.control{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:9px 16px;border:1px solid var(--ink);background:var(--ink);color:white;font-size:13px;line-height:1.4}.control.secondary{color:var(--ink);background:white;border-color:var(--rule)}.control:disabled{border-color:var(--rule);background:white;color:#686868}.text-control{border:0;background:transparent;color:var(--blue);min-height:44px;padding:8px 0;font-size:12px;text-decoration:underline;text-underline-offset:4px}.phase-nav .text-control{margin-left:auto}.case-switcher{border-left:1px solid var(--rule);padding-left:24px;font-family:"Avenir Next","Segoe UI",Arial,sans-serif}.case-switcher p{font-size:12px;color:var(--quiet);margin:0 0 12px}.case-switcher .case-title{font-size:14px;color:var(--ink);font-weight:600}.case-buttons{display:grid;gap:8px}.case-button{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:44px;text-align:left;border:1px solid var(--rule);background:white;padding:9px 12px;color:var(--quiet);font-size:13px}.case-button:before{content:"";width:10px;height:10px;border:1px solid #777;border-radius:50%;flex-shrink:0}.case-button[aria-pressed="true"]{color:var(--blue);border-color:var(--blue)}.case-button[aria-pressed="true"]:before{border:3px solid var(--blue)}.case-button span{flex:1}.control:not(:disabled):active,.case-button:active,.step:active{background:var(--wash);color:var(--blue)}.control:not(.secondary):not(:disabled):active{background:var(--blue);color:white}.figure-caption{font:12px/1.65 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet);margin:20px 0 0;max-width:100ch}.figure-caption strong{color:var(--ink);font-weight:600}.equation{font-family:Georgia,serif;font-size:25px;text-align:center;line-height:1.6;padding:15px 0 20px;margin:0 0 15px;overflow-wrap:anywhere}.equation small{font-size:15px;color:var(--quiet);display:block}.equation sub{font-size:60%}.key-statement{font-size:24px;line-height:1.5;border-left:2px solid var(--ochre);padding-left:21px;margin:30px 0}.reading-section{border-top:1px solid var(--ink);margin-top:51px;padding-top:30px}.reading-section h2{margin-top:0}.reading-section>p{font-size:18px}.plan-progress{margin:25px 0 17px;font:12px/1.5 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet)}.progress-labels{display:flex;flex-wrap:wrap;justify-content:space-between;gap:7px;margin-bottom:8px}.progress-track{height:3px;background:#e9ecee;overflow:hidden}.progress-fill{width:100%;height:100%;background:var(--blue);transform:scaleX(0);transform-origin:left}.plan-list{margin:0;padding:0;border:0;min-width:0}.task{display:grid;grid-template-columns:48px 1fr;gap:17px;border-top:1px solid var(--rule);padding:23px 0}.task-minutes{font:23px/1.2 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--blue);padding-top:1px;letter-spacing:-.04em}.task-minutes span{display:block;font-size:11px;letter-spacing:0;color:var(--quiet);margin-top:5px}.task-label{display:grid;grid-template-columns:20px 1fr;gap:13px;cursor:pointer}.task-label input{margin:5px 0 0;width:19px;height:19px;accent-color:var(--blue)}.task-name{display:block;font:600 17px/1.5 "Avenir Next","Segoe UI",Arial,sans-serif;margin-bottom:4px}.task-reading{display:block;font:12px/1.5 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet);margin-bottom:8px}.task-output{font-size:16px;line-height:1.6;display:block}.task-label:has(input:checked) .task-name{color:var(--blue)}.plan-footer{display:flex;gap:15px;align-items:center;justify-content:space-between;font:11px/1.5 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet);margin:5px 0 20px}.next-paper{padding:0 0 27px}.next-paper h2{margin-top:38px}.next-paper p{font-size:18px}.next-paper h3{font-size:18px;font-weight:550;margin:26px 0 11px}.evidence{border-top:1px solid var(--rule);margin-top:15px;padding:18px 0 20px;font-size:15px}.evidence summary{font-family:"Avenir Next","Segoe UI",Arial,sans-serif;cursor:pointer;color:var(--blue);min-height:44px;padding:8px 0}.evidence p{margin:10px 0 15px}.source-list{display:grid;gap:7px;margin:0;padding-left:20px;font-size:14px}.footer{display:flex;justify-content:space-between;gap:25px;border-top:1px solid var(--rule);font:11px/1.6 "Avenir Next","Segoe UI",Arial,sans-serif;padding:26px 0 35px;color:var(--quiet);margin-top:30px}.footer a{color:var(--quiet)}.print-note{display:none}
+    .explorer-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px 24px;flex-wrap:wrap;border-top:1px solid var(--rule);padding-top:13px}.explorer-toolbar .steps,.explorer-toolbar .phase-nav{margin:0}.interaction{border-top:0;padding-top:17px;margin-bottom:12px}.explainer-panel .stage-index{float:right;margin:4px 0 0 15px}.explainer-panel h3{padding-right:65px}.explorer-toolbar .phase-nav .text-control{margin-left:4px}
+    .case-inline{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;margin:10px 0 15px;font:12px/1.5 "Avenir Next","Segoe UI",Arial,sans-serif;color:var(--quiet)}.case-inline .case-buttons{display:flex;gap:9px;flex-wrap:wrap}.case-inline .case-button{min-width:145px}.interaction{display:block;max-width:740px;border-top:1px solid var(--rule);padding-top:18px;margin-top:3px}
+    @media(hover:hover) and (pointer:fine){a:hover{text-decoration-thickness:2px}.control.secondary:not(:disabled):hover,.case-button:hover{border-color:var(--blue);color:var(--blue)}.step:hover{color:var(--blue)}}
+    @media(max-width:1080px){.page{padding-left:max(34px,env(safe-area-inset-left));padding-right:max(34px,env(safe-area-inset-right))}.essay-row{grid-template-columns:minmax(0,1fr) 180px;gap:40px}.hero h1{font-size:60px}.interaction{grid-template-columns:minmax(0,1fr) 245px;gap:25px}.case-switcher{padding-left:20px}}
+    @media(max-width:800px){.page{padding-left:max(25px,env(safe-area-inset-left));padding-right:max(25px,env(safe-area-inset-right))}.hero{padding-top:44px}.hero h1{font-size:51px;max-width:760px}.deck{font-size:22px;max-width:650px}.essay-row{display:block;max-width:680px}.margin-note{padding:0 0 12px;margin-top:12px;max-width:570px}.margin-note .note-rule{display:none}.opening .margin-note{display:none}.margin-note p{font-size:12px}.interaction{grid-template-columns:minmax(0,1fr) 230px;gap:22px}.figure-heading{display:block}.figure-heading p{margin-top:7px}.explorer{margin-top:8px}.scroll-hint{display:block}.figure-readout{grid-template-columns:1fr 1fr 1.4fr}.figure-caption{font-size:11px}.prose h2{font-size:29px}}
+    @media(max-width:600px){body{font-size:18px}.page{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}.masthead{padding:22px 0 20px;font-size:11px;align-items:flex-start}.masthead>span{max-width:125px;text-align:right}.hero{padding:35px 0 24px}.hero h1{font-size:43px;line-height:1.1;letter-spacing:-.05em;margin-bottom:21px}.deck{font-size:21px;line-height:1.5;margin-bottom:20px}.credit{gap:10px 24px;font-size:11px}.opening{padding-top:8px}.opening p{font-size:18px}.explorer{padding-top:21px;margin:12px 0 25px}.figure-heading h2{font-size:19px}.figure-kicker{font-size:12px;margin-bottom:5px}.plot-scroll{margin:0 -20px;padding-left:20px;padding-right:20px}.plot-scroll svg{min-width:900px;max-width:none}.plot-legend{gap:9px 18px;font-size:11px;margin-top:7px}.figure-readout{gap:10px;grid-template-columns:1fr 1fr}.figure-readout dt{font-size:10px}.figure-readout dd{font-size:19px}.figure-readout .dataset{grid-column:1/-1;display:flex;gap:10px;align-items:baseline}.figure-readout .dataset dt{font-size:11px}.figure-readout .dataset dd{font-size:13px;padding-top:0}.interaction{grid-template-columns:1fr;gap:25px}.steps{gap:0 15px;margin-bottom:16px}.step{font-size:11px;min-height:44px}.explainer-panel h3{font-size:21px}.explainer-panel p{font-size:16px}.phase-nav{gap:10px;margin-top:18px}.control{padding:9px 14px}.case-switcher{padding:19px 0 0;border-left:0;border-top:1px solid var(--rule)}.case-buttons{grid-template-columns:1fr 1fr}.case-button{font-size:12px;padding:9px 10px;gap:8px}.case-switcher p{margin-bottom:10px}.figure-caption{font-size:11px;margin-top:19px}.prose h2{font-size:27px;margin-top:36px}.prose p{margin-bottom:20px}.equation{font-size:22px;padding:11px 0 16px}.key-statement{font-size:22px;padding-left:16px}.reading-section{margin-top:31px;padding-top:25px}.reading-section h2{margin-top:0}.task{gap:12px;grid-template-columns:37px 1fr;padding:20px 0}.task-label{gap:10px}.task-minutes{font-size:21px}.task-name{font-size:16px}.task-output{font-size:15px}.plan-footer{align-items:flex-start}.next-paper p{font-size:17px}.footer{display:block;padding:22px 0 27px}.footer span{display:block;margin-bottom:9px}}
+    @media(max-width:360px){.page{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}.hero h1{font-size:37px}.masthead{gap:12px}.deck{font-size:20px}.steps{gap:0 9px}.step{font-size:10px}.case-buttons{grid-template-columns:1fr}.phase-nav{flex-wrap:wrap}.phase-nav .text-control{margin-left:0}.task{grid-template-columns:30px 1fr;gap:9px}.task-label{gap:8px}.plot-scroll{margin:0 -16px;padding-left:16px;padding-right:16px}.figure-readout .dataset{display:block}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+    @media print{body{font-size:11pt}.page{max-width:none;padding:0}.masthead{padding-top:0}.hero{padding:28px 0 20px}.hero h1{font-size:33pt;max-width:700px}.deck{font-size:15pt}.credit{font-size:9pt}.essay-row{grid-template-columns:minmax(0,1fr) 160px;gap:30px}.prose h2{font-size:20pt;break-after:avoid}.prose p{orphans:3;widows:3}.margin-note{font-size:9pt}.explorer{break-inside:avoid;padding-top:18px}.plot-scroll{overflow:visible;margin:0;padding:0}.plot-scroll svg{min-width:0;width:100%}.plot-legend{font-size:8pt}.figure-heading h2{font-size:15pt}.figure-readout{font-size:10pt}.steps,.phase-nav,.case-switcher,.plan-footer button,.skip,.scroll-hint,.plan-progress{display:none!important}.interaction{display:block}.explainer-panel h3{font-size:14pt}.explainer-panel p{font-size:10pt}.figure-caption{font-size:8pt}.reading-section{break-inside:avoid;margin-top:25px}.task{padding:12px 0}.task-name{font-size:11pt}.task-output{font-size:10pt}.task-reading{font-size:8pt}.next-paper p{font-size:11pt}.footer{font-size:8pt}.evidence{display:none}.print-note{display:block;font:9pt/1.5 Arial,sans-serif}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#essay">Skip to the essay</a>
+  <div class="page">
+    <header class="masthead"><strong>Notes on searching for a better team</strong><span>A reading companion<br>October 20, 2026</span></header>
+    <main id="essay">
+      <article>
+        <header class="hero">
+          <h1>How does asking for a score find a better team?</h1>
+          <p class="deck">Continue <a href="https://arxiv.org/pdf/2407.00610v3">Diffusion-BBO</a> with one question in mind. How does a generator that takes a score as input become an optimizer that learns from new results?</p>
+          <p class="credit"><span><strong>The paper</strong><br>Based on Wu et al. · 2024 · Revised February 2025</span><span><strong>Your reading goal</strong><br>Explain one complete optimization iteration</span></p>
+        </header>
+
+        <div class="essay-row opening">
+          <div class="prose"><p>A measured score tells us what happened. A requested score tells the model what we want. Keeping those two meanings separate is the key to your unanswered questions about inverse modeling, target selection, and the next iteration.</p></div>
+          <aside class="margin-note"><div class="note-rule"></div><p><strong>Read now</strong><br><a href="https://arxiv.org/pdf/2407.00610v3">Diffusion-BBO, revision 3</a></p><p><a class="reading-link" href="#reading-plan">Jump to the one-hour reading plan</a></p></aside>
+        </div>
+
+        <figure class="explorer" data-explorer data-stage="0" data-case="improve" aria-labelledby="figure-title">
+          <div class="figure-heading"><h2 id="figure-title">Follow the evidence through one iteration.</h2><p>Constructed example · Objective values, not win rates</p></div>
+          <p class="figure-kicker">Six measured observations are already known. Follow four new proposals from a requested target to their actual evaluation.</p>
+          <div class="explorer-toolbar" data-js-only hidden>
+            <div class="steps" data-js-only hidden role="group" aria-label="Choose an optimization phase">
+                <button type="button" class="step" data-explorer-step="0" aria-pressed="true" aria-controls="explorer-panel">1. Observations</button>
+                <button type="button" class="step" data-explorer-step="1" aria-pressed="false" aria-controls="explorer-panel">2. Target</button>
+                <button type="button" class="step" data-explorer-step="2" aria-pressed="false" aria-controls="explorer-panel">3. Proposals</button>
+                <button type="button" class="step" data-explorer-step="3" aria-pressed="false" aria-controls="explorer-panel">4. Evaluation</button>
+                <button type="button" class="step" data-explorer-step="4" aria-pressed="false" aria-controls="explorer-panel">5. Update</button>
+              </div>
+            <div class="phase-nav" data-js-only hidden><button type="button" class="control secondary" data-explorer-prev disabled>Previous</button><button type="button" class="control" data-explorer-next>Next step</button><button type="button" class="text-control" data-explorer-reset>Start again</button></div>
+          </div>
+          <div class="case-inline" data-js-only hidden role="group" aria-label="Compare illustrative batches"><span>Illustrative batch</span><div class="case-buttons"><button type="button" class="case-button" data-example-case="improve" aria-pressed="true"><span>One improves</span></button><button type="button" class="case-button" data-example-case="flat" aria-pressed="false"><span>None improves</span></button></div></div>
+          <div class="plot-scroll" tabindex="0" role="region" aria-label="Illustrative objective plot; scroll horizontally on a narrow screen">
+            <svg data-explorer-plot viewBox="0 0 900 410" role="img" aria-labelledby="plot-title plot-desc">
+              <title id="plot-title">Requested and measured scores in a hypothetical optimization iteration</title>
+              <desc id="plot-desc">The six existing measured scores are 0.33, 0.54, 0.44, 0.62, 0.58, and 0.70. The previous best is 0.70. A constructed requested target is 0.78. Four proposed candidates A through D are evaluated in later steps. Their actual measured scores can fall below the request.</desc>
+              <text x="72" y="22" class="axis-label">Illustrative objective value</text>
+              <line class="plot-grid" x1="72" y1="42" x2="842" y2="42"/><text class="tick-label" x="57" y="46" text-anchor="end">1.0</text>
+              <line class="plot-grid" x1="72" y1="90" x2="842" y2="90"/><text class="tick-label" x="57" y="94" text-anchor="end">0.8</text>
+              <line class="plot-grid" x1="72" y1="138" x2="842" y2="138"/><text class="tick-label" x="57" y="142" text-anchor="end">0.6</text>
+              <line class="plot-grid" x1="72" y1="186" x2="842" y2="186"/><text class="tick-label" x="57" y="190" text-anchor="end">0.4</text>
+              <line class="plot-grid" x1="72" y1="234" x2="842" y2="234"/><text class="tick-label" x="57" y="238" text-anchor="end">0.2</text>
+              <line class="plot-axis" x1="72" y1="282" x2="842" y2="282"/><text class="tick-label" x="57" y="286" text-anchor="end">0.0</text>
+              <line class="plot-axis" x1="72" y1="42" x2="72" y2="282"/>
+              <line class="baseline" x1="72" y1="114" x2="842" y2="114"/><text class="baseline-label" x="80" y="130">Previous best 0.70</text>
+              <g data-target-line style="visibility:hidden" aria-hidden="true"><line class="target-rule" x1="72" y1="94.8" x2="842" y2="94.8"/><rect x="73" y="72" width="190" height="19" fill="white"/><text class="target-label" x="80" y="86">Requested target 0.78</text></g>
+              <g aria-label="Six previously measured observations"><circle class="observed" cx="114" cy="202.8" r="6"/><circle class="observed" cx="180" cy="152.4" r="6"/><circle class="observed" cx="246" cy="176.4" r="6"/><circle class="observed" cx="312" cy="133.2" r="6"/><circle class="observed" cx="378" cy="142.8" r="6"/><circle class="observed" cx="444" cy="114" r="6"/></g>
+              <g data-candidates style="visibility:hidden" aria-hidden="true">
+                <g class="new-point" data-new-point="0" data-measured="false" style="transform:translate(560px,340px)"><circle cx="0" cy="0" r="7"/><text data-point-score x="0" y="-18">unmeasured</text><text data-point-name x="0" y="25">A</text></g>
+                <g class="new-point" data-new-point="1" data-measured="false" style="transform:translate(642px,340px)"><circle cx="0" cy="0" r="7"/><text data-point-score x="0" y="-18">unmeasured</text><text data-point-name x="0" y="25">B</text></g>
+                <g class="new-point" data-new-point="2" data-measured="false" style="transform:translate(724px,340px)"><circle cx="0" cy="0" r="7"/><text data-point-score x="0" y="-18">unmeasured</text><text data-point-name x="0" y="25">C</text></g>
+                <g class="new-point" data-new-point="3" data-measured="false" style="transform:translate(806px,340px)"><circle cx="0" cy="0" r="7"/><text data-point-score x="0" y="-18">unmeasured</text><text data-point-name x="0" y="25">D</text></g>
+              </g>
+              <text class="axis-label" x="276" y="389" text-anchor="middle">Previously observed candidates</text><text class="axis-label" x="683" y="389" text-anchor="middle">New proposals</text>
+            </svg>
+          </div>
+          <p class="scroll-hint">Swipe the plot horizontally to see all candidates. The explanation below also describes each step.</p>
+          <div class="plot-legend" aria-hidden="true"><span><i class="legend-dot"></i>Measured observation</span><span><i class="legend-hollow"></i>Unevaluated proposal</span><span><i class="legend-target"></i>Requested target</span></div>
+          <div class="figure-readout">
+            <dl><dt>Requested target y</dt><dd data-target-score>—</dd></dl>
+            <dl><dt>Best measured score</dt><dd data-best-score>0.70</dd></dl>
+            <dl class="dataset"><dt>Dataset</dt><dd data-dataset-summary>Six measured candidate–score pairs</dd></dl>
+          </div>
+          <div class="interaction">
+            <div>
+              
+              <div id="explorer-panel" class="explainer-panel" aria-live="polite" aria-atomic="true">
+                <p class="stage-index">Step <span data-explorer-index>1 of 5</span></p>
+                <h3 data-explorer-title>Start from measured observations</h3>
+                <p data-explorer-copy>The dataset contains six candidate inputs paired with their measured objective values. Its best observed score is 0.70. These observations are evidence for fitting the inverse model.</p>
+                <p class="explainer-note" data-explorer-note>Every value in this figure is illustrative. None is a measured Pokémon battle win rate.</p>
+              </div>
+              
+            </div>
+
+          </div>
+          <figcaption class="figure-caption"><strong>Figure 1.</strong> A constructed example of the feedback loop, not a diffusion simulation or a real optimization result. The improving batch A–D measures 0.58, 0.72, 0.64, and 0.81. A different batch E–H measures 0.41, 0.55, 0.63, and 0.69. The requested target is 0.78 in both cases. The candidate locations separate inputs visually; horizontal distance has no scientific meaning.</figcaption>
+        </figure>
+
+        <div class="essay-row">
+          <div class="prose">
+            <h2>Generation runs the mapping backward.</h2>
+            <p>The observations pair a candidate <i>x</i> with its measured score <i>f(x)</i>. A forward model would predict a score from a candidate. An inverse model instead learns to generate candidates conditioned on a score:</p>
+            <div class="equation" aria-label="p theta of x conditioned on y">p<sub>θ</sub>(x | y)<small>A distribution of candidate inputs, given a requested score.</small></div>
+            <p>This reverses the modeling direction. It does not reverse the oracle. The generated candidate still has to be evaluated to find out what it actually achieves.</p>
+            <h2>The oracle can disagree with the request.</h2>
+            <p>In the figure, advance to evaluation. Some results fall below 0.78. Switch to “None improves” to see a different proposed batch. Even its best new score falls below the previous best of 0.70. What new information can this batch contribute if it fails to improve the best score?</p>
+            <p class="key-statement">A request is an input to the generator. A measurement is new evidence.</p>
+            <p>Both batches produce observations for the next iteration. Append the actual candidate–score pairs, then refit using the enlarged dataset.</p>
+            <div class="equation" aria-label="The next dataset is the current dataset union the evaluated candidate-score pairs">D<sub>k+1</sub> = D<sub>k</sub> ∪ {(x<sub>i</sub>, f(x<sub>i</sub>))}</div>
+            <p>The feedback loop is what makes the method an online optimizer. The next request uses evidence that was unavailable before the evaluations.</p>
+          </div>
+          <aside class="margin-note"><div class="note-rule"></div><p><strong>Read alongside the figure</strong></p><p><a href="https://arxiv.org/html/2407.00610v3#S4.SS1">Section 4.1, Figure 1, and Algorithm 1</a> distinguish training, target selection, generation, and true evaluation.</p><p>The figure here isolates that distinction. It does not show the internal diffusion sampling process.</p><p style="margin-top:68px"><strong>The important inequality</strong><br><span style="font-family:Georgia,serif;font-size:22px">y ≠ f(x)</span><br>A requested score need not equal the generated candidate's measured score.</p></aside>
+        </div>
+
+        <div class="essay-row">
+          <div class="prose">
+            <h2>Choosing the request is part of optimization.</h2>
+            <p>A high target alone does not solve the search. Diffusion-BBO proposes conditioning targets relative to the best observation and uses UaE to select among them. Its acquisition rule is</p>
+            <div class="equation" aria-label="Alpha of y and D equals y minus epistemic delta of y and D">α(y,D) = y − Δ<sub>epistemic</sub>(y,D).</div>
+            <p>This rule chooses the target score <i>y</i>. It is not team-level UCB. Read the uncertainty definition carefully: variation among generated candidates and disagreement between models are different quantities.</p>
+          </div>
+          <aside class="margin-note"><div class="note-rule"></div><p><strong>Target selection</strong><br><a href="https://arxiv.org/html/2407.00610v3#S5.SS3">Section 5.3</a></p><p>Before adapting this uncertainty to battle outcomes, explain what it measures in the paper.</p></aside>
+        </div>
+
+        <div class="essay-row">
+          <div class="prose">
+            <section class="reading-section" id="reading-plan" aria-labelledby="plan-title">
+              <h2 id="plan-title">Read this in one hour.</h2>
+              <p>Your notes ask how the method optimizes, what one iteration does, and how a target is chosen. Read revision 3 to answer those questions. Leave the proofs for a later pass.</p>
+              <div class="plan-progress" data-js-only hidden><div class="progress-labels"><span><span data-completed-count>0</span> of 4 tasks complete</span><span><span data-completed-minutes>0</span> / 60 planned minutes</span></div><div class="progress-track" data-progress-track role="progressbar" aria-label="Reading plan completed" aria-valuemin="0" aria-valuemax="60" aria-valuenow="0"><div class="progress-fill" data-progress-fill></div></div></div>
+              <fieldset class="plan-list"><legend class="sr-only">Mark each reading task complete</legend>
+                <div class="task"><div class="task-minutes" aria-hidden="true">15<span>minutes</span></div><label class="task-label" for="task-1"><input type="checkbox" id="task-1" data-task data-minutes="15"><span><span class="task-name">Draw one complete iteration<span class="sr-only">, 15 minutes</span></span><span class="task-reading">Figure 1, Algorithm 1, Sections 4.1–4.2</span><span class="task-output">Mark measured training labels and proposed requests. Show where new information enters.</span></span></label></div>
+                <div class="task"><div class="task-minutes" aria-hidden="true">20<span>minutes</span></div><label class="task-label" for="task-2"><input type="checkbox" id="task-2" data-task data-minutes="20"><span><span class="task-name">Explain why UaE chooses a target<span class="sr-only">, 20 minutes</span></span><span class="task-reading">Sections 5.1–5.3</span><span class="task-output">Separate model disagreement from variation among generated candidates.</span></span></label></div>
+                <div class="task"><div class="task-minutes" aria-hidden="true">10<span>minutes</span></div><label class="task-label" for="task-3"><input type="checkbox" id="task-3" data-task data-minutes="10"><span><span class="task-name">State what the experiment establishes<span class="sr-only">, 10 minutes</span></span><span class="task-reading">Figure 3, Section 6.4; skim Section 5.4's assumptions</span><span class="task-output">Explain adaptive versus fixed conditioning, and what these results do not establish for Pokémon.</span></span></label></div>
+                <div class="task"><div class="task-minutes" aria-hidden="true">15<span>minutes</span></div><label class="task-label" for="task-4"><input type="checkbox" id="task-4" data-task data-minutes="15"><span><span class="task-name">Trace a hypothetical Pokémon iteration<span class="sr-only">, 15 minutes</span></span><span class="task-reading">Use the figure as a guide, then explain it without looking</span><span class="task-output">Connect measured labels, requested y, generated team, true evaluation, and dataset update. Include a result below the request.</span></span></label></div>
+              </fieldset>
+              <div class="plan-footer"><span data-save-status>Progress lasts for this visit</span><button type="button" class="text-control" data-task-reset data-js-only hidden>Reset reading progress</button></div>
+            </section>
+            <section class="next-paper" aria-labelledby="next-title">
+              <h2 id="next-title">When the loop is clear, read GenBO.</h2>
+              <p><a href="https://arxiv.org/html/2510.25240v3">Generative Bayesian Optimization: Generative Models as Acquisition Functions</a> is the strongest next new paper. Start with Sections 2–3 and compare its utility-informed generator updates with CEM's elite selection.</p>
+              <p>If you can already explain the complete Diffusion-BBO iteration accurately, move directly to GenBO.</p>
+              <h3>Keep the transfer question open.</h3>
+              <p>Diffusion-BBO's discrete TFBind8/10 experiments do not establish transfer to legal Pokémon teams or noisy win-rate estimates. Your proposed surrogate-versus-battle comparisons remain ideas, not completed results. Which method wins more battles needs code, a defined evaluation protocol, and run evidence.</p>
+            </section>
+            <details class="evidence"><summary>Recommendation history and sources</summary><p>The recommendation follows specific unanswered questions in your notes. Current-reading annotations are ambiguous, and dated notes about fine-tuning do not establish today's implementation state.</p><ul class="source-list"><li><a href="../Best%20paper%20to%20read%20now%2020261020.md">Full recommendation and verified sources</a></li><li><a href="../../Papers/Diffusion-BBO%20Diffusion-Based%20Inverse%20Modeling%20for%20Online%20Black-Box%20Optimization.md">Your Diffusion-BBO notes</a></li><li><a href="../../Papers/Reading%20List%20%E2%80%94%20notes%20and%20decision%20history.md">Reading list decision history</a></li><li><a href="https://arxiv.org/html/2407.00610v3">Diffusion-BBO, verified revision 3</a></li></ul></details>
+          </div>
+          <aside class="margin-note"><div class="note-rule"></div><p><strong>Other useful paths</strong></p><p><a href="https://arxiv.org/html/2502.16824v2">Posterior Inference with Diffusion Models</a> fits next if a forward predictor is your main question.</p><p><a href="https://arxiv.org/abs/1810.03714">Design by adaptive sampling</a> is a bridge to the CEM connection in your queue.</p><p style="margin-top:50px"><strong>Evidence limits</strong><br><a href="https://arxiv.org/html/2407.00610v3">Experiments and Appendix D.2</a></p></aside>
+        </div>
+      </article>
+    </main>
+    <footer class="footer"><span>A personal research companion for the Pokémon counter-search project.</span><span>Explorable essay inspiration: <a href="https://distill.pub/2017/momentum/">Distill's “Why Momentum Really Works”</a></span></footer>
+  </div>
+  <script>
+(() => {
+  "use strict";
+
+  const phases = [
+    {
+      title: "Start with measured observations",
+      copy: "The dataset contains candidate inputs paired with their measured objective values. These observed pairs are the evidence used to fit the inverse model.",
+      note: "This is a hypothetical trace, not a recorded experiment or a claimed battle win rate.",
+    },
+    {
+      title: "Choose a requested score",
+      copy: "Use the best observed value to propose conditioning targets, then choose a requested score y with the acquisition rule. The target guides the next generation step.",
+      note: "A requested score is a model input. It is not a measured achievement.",
+    },
+    {
+      title: "Generate candidates conditioned on y",
+      copy: "Sample candidate inputs from the inverse model conditioned on the requested score. These candidates are proposals that still need evaluation.",
+      note: "Conditioning on a high score does not guarantee that a candidate will achieve it.",
+    },
+    {
+      title: "Evaluate with the true objective",
+      copy: "Query the oracle for each generated candidate. In this hypothetical trace, one candidate receives a measured score below the requested target.",
+      note: "New measured evidence enters here. A Pokémon application would need an evaluation protocol for estimating its battle objective.",
+    },
+    {
+      title: "Append observations, refit, repeat",
+      copy: "Add the evaluated candidate–score pairs to the dataset, refit the inverse model, and use the enlarged dataset when choosing the next conditioning target.",
+      note: "Store the measured result as the new label. Do not replace it with the requested score.",
+    },
+  ];
+
+  function initializeLoop() {
+    const loop = document.querySelector("[data-loop]");
+    if (!loop) return;
+
+    const buttons = Array.from(loop.querySelectorAll("[data-step]"));
+    const phaseMarks = Array.from(loop.querySelectorAll("[data-phase]"));
+    const previous = loop.querySelector("[data-loop-prev]");
+    const next = loop.querySelector("[data-loop-next]");
+    const reset = loop.querySelector("[data-loop-reset]");
+    const title = loop.querySelector("[data-loop-title]");
+    const copy = loop.querySelector("[data-loop-copy]");
+    const note = loop.querySelector("[data-loop-note]");
+    const index = loop.querySelector("[data-loop-index]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const activeAnimations = new Map();
+    let activeStep = 0;
+
+    function cancelAnimations() {
+      for (const animation of activeAnimations.values()) animation.cancel();
+      activeAnimations.clear();
+    }
+
+    function showStep(requestedStep, event) {
+      const step = Math.max(0, Math.min(phases.length - 1, requestedStep));
+      if (!Number.isInteger(step)) return;
+
+      const incoming = phaseMarks.find((mark) => Number(mark.dataset.phase) === step);
+      const fromOpacity = incoming ? getComputedStyle(incoming).opacity : "1";
+      const isPointerChange = Boolean(event && event.detail > 0);
+      const shouldAnimate = step !== activeStep && isPointerChange && !reducedMotion.matches;
+      cancelAnimations();
+
+      activeStep = step;
+      loop.dataset.activeStep = String(step);
+      for (const button of buttons) {
+        button.setAttribute("aria-pressed", String(Number(button.dataset.step) === step));
+      }
+      for (const mark of phaseMarks) {
+        mark.dataset.active = String(Number(mark.dataset.phase) === step);
+      }
+
+      const phase = phases[step];
+      if (title) title.textContent = phase.title;
+      if (copy) copy.textContent = phase.copy;
+      if (note) note.textContent = phase.note;
+      if (index) index.textContent = `${step + 1} of ${phases.length}`;
+      if (previous) previous.disabled = step === 0;
+      if (next) next.disabled = step === phases.length - 1;
+
+      if (shouldAnimate && incoming && typeof incoming.animate === "function") {
+        const toOpacity = getComputedStyle(incoming).opacity;
+        const animation = incoming.animate(
+          [{ opacity: fromOpacity }, { opacity: toOpacity }],
+          { duration: 180, easing: "cubic-bezier(.23, 1, .32, 1)" },
+        );
+        activeAnimations.set(incoming, animation);
+        animation.addEventListener("finish", () => {
+          if (activeAnimations.get(incoming) === animation) activeAnimations.delete(incoming);
+        }, { once: true });
+      }
+    }
+
+    for (const button of buttons) {
+      button.addEventListener("click", (event) => showStep(Number(button.dataset.step), event));
+    }
+    if (previous) previous.addEventListener("click", (event) => showStep(activeStep - 1, event));
+    if (next) next.addEventListener("click", (event) => showStep(activeStep + 1, event));
+    if (reset) reset.addEventListener("click", (event) => showStep(0, event));
+
+    const handleMotionPreference = () => {
+      if (reducedMotion.matches) cancelAnimations();
+    };
+    if (typeof reducedMotion.addEventListener === "function") {
+      reducedMotion.addEventListener("change", handleMotionPreference);
+    } else if (typeof reducedMotion.addListener === "function") {
+      reducedMotion.addListener(handleMotionPreference);
+    }
+
+    showStep(0);
+  }
+
+  function initializeReadingPlan() {
+    const storageKey = "rami.reading-guide.20261020.v1";
+    const taskIds = ["task-1", "task-2", "task-3", "task-4"];
+    const tasks = taskIds
+      .map((id) => document.getElementById(id))
+      .filter((task) => task && task.matches('input[type="checkbox"][data-task]'));
+    if (!tasks.length) return;
+
+    const completedMinutes = document.querySelector("[data-completed-minutes]");
+    const completedCount = document.querySelector("[data-completed-count]");
+    const progressFill = document.querySelector("[data-progress-fill]");
+    const progressTrack = document.querySelector("[data-progress-track]");
+    const saveStatus = document.querySelector("[data-save-status]");
+    const reset = document.querySelector("[data-task-reset]");
+    const totalMinutes = 60;
+    let storage = null;
+
+    try {
+      storage = window.localStorage;
+      const saved = storage.getItem(storageKey);
+      if (saved !== null) {
+        try {
+          const completedIds = JSON.parse(saved);
+          if (Array.isArray(completedIds) && completedIds.every((id) => taskIds.includes(id))) {
+            for (const task of tasks) task.checked = completedIds.includes(task.id);
+          }
+        } catch {
+          // An invalid saved value leaves the initial checklist intact.
+        }
+      }
+    } catch {
+      storage = null;
+    }
+
+    function saveProgress() {
+      let saved = false;
+      if (storage) {
+        try {
+          storage.setItem(storageKey, JSON.stringify(tasks.filter((task) => task.checked).map((task) => task.id)));
+          saved = true;
+        } catch {
+          storage = null;
+        }
+      }
+      if (saveStatus) {
+        saveStatus.textContent = saved ? "Progress saved in this browser" : "Progress lasts for this visit";
+      }
+    }
+
+    function updateProgress() {
+      const checked = tasks.filter((task) => task.checked);
+      const minutes = checked.reduce((sum, task) => {
+        const taskMinutes = Number(task.dataset.minutes);
+        return sum + (Number.isFinite(taskMinutes) && taskMinutes > 0 ? taskMinutes : 0);
+      }, 0);
+      const fraction = Math.max(0, Math.min(1, minutes / totalMinutes));
+      if (completedMinutes) completedMinutes.textContent = String(minutes);
+      if (completedCount) completedCount.textContent = String(checked.length);
+      if (progressFill) progressFill.style.transform = `scaleX(${fraction})`;
+      if (progressTrack) {
+        progressTrack.setAttribute("role", "progressbar");
+        progressTrack.setAttribute("aria-valuemin", "0");
+        progressTrack.setAttribute("aria-valuemax", String(totalMinutes));
+        progressTrack.setAttribute("aria-valuenow", String(Math.min(totalMinutes, minutes)));
+        progressTrack.setAttribute("aria-valuetext", `${minutes} of ${totalMinutes} planned minutes complete`);
+      }
+      saveProgress();
+    }
+
+    for (const task of tasks) task.addEventListener("change", updateProgress);
+    if (reset) {
+      reset.addEventListener("click", () => {
+        for (const task of tasks) task.checked = false;
+        updateProgress();
+      });
+    }
+    updateProgress();
+  }
+
+  function initialize() {
+    initializeLoop();
+    initializeReadingPlan();
+    for (const element of document.querySelectorAll("[data-js-only]")) element.hidden = false;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  } else {
+    initialize();
+  }
+})();
+  </script>
+  <script>
+(() => {
+  "use strict";
+
+  const scoresByCase = {
+    improve: [0.58, 0.72, 0.64, 0.81],
+    flat: [0.41, 0.55, 0.63, 0.69],
+  };
+  const namesByCase = {
+    improve: ["A", "B", "C", "D"],
+    flat: ["E", "F", "G", "H"],
+  };
+  const candidateX = [560, 642, 724, 806];
+  const oldBest = 0.7;
+  const target = 0.78;
+  const waitingY = 340;
+  const scoreY = (value) => 282 - value * 240;
+  const formatScore = (value) => value.toFixed(2);
+
+  function initialize() {
+    const root = document.querySelector("[data-explorer]");
+    if (!root) return;
+
+    const points = candidateX.map((_, index) => root.querySelector(`[data-new-point="${index}"]`));
+    const candidates = root.querySelector("[data-candidates]");
+    const targetLine = root.querySelector("[data-target-line]");
+    const stepButtons = Array.from(root.querySelectorAll("[data-explorer-step]"));
+    const caseButtons = Array.from(root.querySelectorAll("[data-example-case]"));
+    const previous = root.querySelector("[data-explorer-prev]");
+    const next = root.querySelector("[data-explorer-next]");
+    const reset = root.querySelector("[data-explorer-reset]");
+    const title = root.querySelector("[data-explorer-title]");
+    const copy = root.querySelector("[data-explorer-copy]");
+    const note = root.querySelector("[data-explorer-note]");
+    const index = root.querySelector("[data-explorer-index]");
+    const bestScore = root.querySelector("[data-best-score]");
+    const targetScore = root.querySelector("[data-target-score]");
+    const datasetSummary = root.querySelector("[data-dataset-summary]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const animations = new Map();
+    let stage = 0;
+    let exampleCase = "improve";
+
+    function setText(element, value) {
+      if (element) element.textContent = value;
+    }
+
+    function setVisible(element, visible) {
+      if (!element) return;
+      element.style.visibility = visible ? "visible" : "hidden";
+      element.setAttribute("aria-hidden", String(!visible));
+    }
+
+    function cancelAnimations() {
+      for (const animation of animations.values()) animation.cancel();
+      animations.clear();
+    }
+
+    function stageText(activeStage, values) {
+      const names = namesByCase[exampleCase];
+      const batchLabel = `${names[0]}–${names[3]}`;
+      switch (activeStage) {
+        case 0:
+          return {
+            title: "Fit to measured pairs",
+            copy: "Six measured candidate–score pairs form the observed dataset. The best observed objective value is 0.70. Diffusion-BBO fits its inverse model to observed pairs like these.",
+            note: "All values in this figure are constructed objective scores. No diffusion model is trained here, and these scores are not battle win rates.",
+          };
+        case 1:
+          return {
+            title: "Choose a request: y = 0.78",
+            copy: "The dashed line marks the requested conditioning score. Diffusion-BBO uses its acquisition rule to choose a target from observed data; this example holds the request at 0.78.",
+            note: "A request is a model input, not an achieved objective value. The figure does not compute the acquisition rule.",
+          };
+        case 2:
+          return {
+            title: "Generate four unmeasured candidates",
+            copy: `${batchLabel} stand in for four generated candidates. Their measured objective values are not available yet, so they wait beneath the score axis rather than appearing on the requested line.`,
+            note: "Candidate identities persist as you step through one batch. The two cases use different hypothetical candidates; neither is live sampling or a trained generator’s output.",
+          };
+        case 3:
+          return {
+            title: "Query the objective. Reveal the evidence.",
+            copy: exampleCase === "improve"
+              ? "The constructed measurements are now visible. D reaches 0.81 and raises the best observed value; A, B, and C all fall below the request of 0.78."
+              : "The constructed measurements are now visible. Every candidate falls below the request of 0.78, and none improves on the existing best value of 0.70.",
+            note: `Measured ${batchLabel}: ${values.map(formatScore).join(", ")}. These are illustrative labels, not observed model performance. New evidence enters through objective evaluation.`,
+          };
+        default:
+          return {
+            title: "Append measured labels. Refit. Repeat.",
+            copy: "All four measured labels are appended unchanged, including outcomes below the request. A real next iteration would refit on the enlarged dataset and choose another conditioning target.",
+            note: "The dataset now contains ten pairs. The requested 0.78 never replaces the measured scores. This figure represents the update; it does not perform a model refit.",
+          };
+      }
+    }
+
+    function render(nextStage, event, allowMotion = true) {
+      if (!Number.isInteger(nextStage) || nextStage < 0 || nextStage > 4) return;
+
+      // Read current visual positions before cancellation so rapid retargeting
+      // continues from the in-flight position, not from an earlier endpoint.
+      const currentTransforms = points.map((point) => point ? getComputedStyle(point).transform : "none");
+      const wereCandidatesVisible = stage >= 2;
+      const willShowCandidates = nextStage >= 2;
+      const shouldAnimate = allowMotion && Boolean(event && event.detail > 0)
+        && !reducedMotion.matches
+        && wereCandidatesVisible
+        && willShowCandidates;
+      cancelAnimations();
+
+      stage = nextStage;
+      const measured = stage >= 3;
+      const values = scoresByCase[exampleCase];
+      const names = namesByCase[exampleCase];
+      root.dataset.stage = String(stage);
+      root.dataset.exampleCase = exampleCase;
+      root.dataset.datasetPairs = String(stage >= 4 ? 10 : 6);
+      setVisible(targetLine, stage >= 1);
+      setVisible(candidates, willShowCandidates);
+
+      for (const button of stepButtons) {
+        button.setAttribute("aria-pressed", String(Number(button.dataset.explorerStep) === stage));
+      }
+      for (const button of caseButtons) {
+        button.setAttribute("aria-pressed", String(button.dataset.exampleCase === exampleCase));
+      }
+      if (previous) previous.disabled = stage === 0;
+      if (next) next.disabled = stage === 4;
+
+      points.forEach((point, pointIndex) => {
+        if (!point) return;
+        const value = values[pointIndex];
+        const y = measured ? scoreY(value) : waitingY;
+        const destination = `translate(${candidateX[pointIndex]}px, ${y}px)`;
+        const start = currentTransforms[pointIndex];
+
+        point.style.transformOrigin = "0 0";
+        point.style.transformBox = "view-box";
+        point.style.transform = destination;
+        point.dataset.measured = String(measured);
+        point.setAttribute("aria-label", measured
+          ? `Candidate ${names[pointIndex]}, illustrative measured objective ${formatScore(value)}`
+          : `Candidate ${names[pointIndex]}, not yet evaluated`);
+        const mark = point.querySelector("[data-point-mark]") || point.querySelector("circle, rect");
+        if (mark) mark.style.fill = measured ? "currentColor" : "none";
+        setText(point.querySelector("[data-point-score]"), measured ? formatScore(value) : "");
+        setText(point.querySelector("[data-point-name]"), names[pointIndex]);
+        for (const label of root.querySelectorAll(`[data-candidate-name="${pointIndex}"]`)) {
+          label.textContent = names[pointIndex];
+        }
+
+        if (shouldAnimate && typeof point.animate === "function") {
+          const destinationMatrix = getComputedStyle(point).transform;
+          if (start !== destinationMatrix) {
+            const animation = point.animate(
+              [{ transform: start }, { transform: destination }],
+              { duration: 240, easing: "cubic-bezier(.77, 0, .175, 1)" },
+            );
+            animations.set(point, animation);
+            animation.addEventListener("finish", () => {
+              if (animations.get(point) === animation) animations.delete(point);
+            }, { once: true });
+          }
+        }
+      });
+
+      const text = stageText(stage, values);
+      setText(title, text.title);
+      setText(copy, text.copy);
+      setText(note, text.note);
+      setText(index, `${stage + 1} of 5`);
+      setText(targetScore, stage >= 1 ? formatScore(target) : "—");
+      setText(bestScore, formatScore(measured ? Math.max(oldBest, ...values) : oldBest));
+      setText(datasetSummary, stage >= 4
+        ? "10 measured pairs. All four new labels are retained."
+        : measured
+          ? "6 fitted pairs; 4 new measurements are ready to append."
+          : "6 measured pairs in the observed dataset.");
+    }
+
+    for (const button of stepButtons) {
+      button.addEventListener("click", (event) => render(Number(button.dataset.explorerStep), event));
+    }
+    for (const button of caseButtons) {
+      button.addEventListener("click", (event) => {
+        if (!Object.prototype.hasOwnProperty.call(scoresByCase, button.dataset.exampleCase)) return;
+        const sameCase = exampleCase === button.dataset.exampleCase;
+        exampleCase = button.dataset.exampleCase;
+        render(3, event, sameCase);
+      });
+    }
+    if (previous) previous.addEventListener("click", (event) => render(stage - 1, event));
+    if (next) next.addEventListener("click", (event) => render(stage + 1, event));
+    if (reset) {
+      reset.addEventListener("click", (event) => {
+        exampleCase = "improve";
+        render(0, event);
+      });
+    }
+
+    const updateMotionPreference = () => {
+      if (reducedMotion.matches) cancelAnimations();
+    };
+    if (typeof reducedMotion.addEventListener === "function") {
+      reducedMotion.addEventListener("change", updateMotionPreference);
+    } else if (typeof reducedMotion.addListener === "function") {
+      reducedMotion.addListener(updateMotionPreference);
+    }
+
+    render(0);
+    root.dispatchEvent(new CustomEvent("explorer:ready", { bubbles: true }));
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  } else {
+    initialize();
+  }
+})();
+  </script>
+</body>
+</html>

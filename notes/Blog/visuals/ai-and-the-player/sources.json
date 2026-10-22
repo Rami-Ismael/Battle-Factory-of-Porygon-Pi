@@ -1,0 +1,165 @@
+{
+ "brown": {
+  "title": "Noam Brown’s post",
+  "url": "https://x.com/polynoamial/status/2059932468820816354",
+  "date": "May 28, 2026",
+  "type": "Social commentary",
+  "summary": "Claims human Go skill improved after AlphaGo and speculates about a similar pattern in mathematics. The attached figure displays decision quality.",
+  "locator": "Main post and attached image",
+  "limit": "A social claim and chart share, not an independent study. Replies and quote-post access are incomplete."
+ },
+ "brownsource": {
+  "title": "Brown’s source reply",
+  "url": "https://x.com/polynoamial/status/2059933022586282020",
+  "date": "May 28, 2026",
+  "type": "Source pointer",
+  "summary": "Links Henrik Karlsson’s Go article as the source.",
+  "locator": "Visible direct reply",
+  "limit": "The linked article currently resolves to a page-not-found screen."
+ },
+ "anpaure": {
+  "title": "anpaure’s critical reply",
+  "url": "https://x.com/anpaure/status/2059934782872866830",
+  "date": "May 28, 2026",
+  "type": "Social criticism",
+  "summary": "Objects that the reported improvement could reflect memorized openings and links a player critique.",
+  "locator": "Visible direct reply to Brown",
+  "limit": "A compressed account of the critique, not an independently tested result."
+ },
+ "nagaraj": {
+  "title": "Abhishek Nagaraj’s reply",
+  "url": "https://x.com/abhishekn/status/2060060022550511826",
+  "date": "May 28, 2026",
+  "type": "Research pointer",
+  "summary": "Emphasizes younger players and links the Choi–Kang–Kim–Kim paper.",
+  "locator": "Supplied reply; source link verified",
+  "limit": "Does not independently establish the finding or address enjoyment."
+ },
+ "choi": {
+  "title": "Choi et al.: human decision-making",
+  "url": "https://hyokang.com/assets/pdf/CKKK-AI-Go.pdf",
+  "date": "January 2025 manuscript",
+  "type": "Empirical professional-game study",
+  "summary": "Reports improved move quality around public engine access, especially early in the game; younger and less-skilled players show stronger benefits on the studied outcomes.",
+  "locator": "Abstract; §§3–5, especially research design and stage comparisons",
+  "limit": "Primary window: first 30 moves. No individual engine-use data; age comparison has no clean untreated group. Enjoyment was not measured."
+ },
+ "shin": {
+  "title": "Shin et al.: decision quality & novelty",
+  "url": "https://arxiv.org/pdf/2303.07462",
+  "date": "PNAS, March 2023",
+  "type": "Empirical professional-game study",
+  "summary": "Reports higher engine-evaluated decision quality and earlier departures from historical sequences after superhuman AI. Tests several memorization explanations.",
+  "locator": "Figure 1A, PDF p.6; footnote p.7; tests pp.10–16",
+  "limit": "Analyzes the first 60 moves. Novelty is sequence-based. Supplemental figures and raw data were not independently reproduced."
+ },
+ "earlier": {
+  "title": "Earlier human–AI gap study",
+  "url": "https://arxiv.org/pdf/2012.15035",
+  "date": "Earlier paper linked by the player critique; evolving arXiv version",
+  "type": "Empirical professional-game study",
+  "summary": "Its stage-by-stage analysis places much of the measured improvement in the early game, especially moves 1–50.",
+  "locator": "Figure 2 and adjacent discussion, PDF pp.4–5",
+  "limit": "A stage-specific engine measure does not establish absence of all later-game learning or an enjoyment effect."
+ },
+ "diversity": {
+  "title": "Choi et al.: knowledge & diversity",
+  "url": "https://academic.oup.com/pnasnexus/article/4/5/pgaf138/8124449?login=false",
+  "alternate": "https://ide.mit.edu/wp-content/uploads/2025/05/pgaf138.pdf",
+  "date": "May 3, 2025",
+  "type": "Empirical opening-pattern study",
+  "summary": "Finds adoption of new local patterns and increased concentration in their use. Higher-skill professionals show stronger changes on these outcomes.",
+  "locator": "Methods p.2; Figures 2–5 and discussion pp.3–5",
+  "limit": "Eight-move local patterns; professional population. No explicit counterfactual control group. Less diversity does not imply less enjoyment."
+ },
+ "critique": {
+  "title": "TuesdayBornWhale: learning critique",
+  "url": "https://tuesdaybornwhale.github.io/posts/learning_from_superhumanai/",
+  "date": "September 13, 2025",
+  "type": "Methodological criticism & player account",
+  "summary": "Challenges novelty and learning interpretations using local-pattern memorization, scope after move 60, and stage-dependent win-probability metrics. Raises concern about deference to AI.",
+  "locator": "“My critique,” “So… we aren’t getting better?” and appendix",
+  "limit": "No representative satisfaction survey or controlled reanalysis. Its individual cheating account is an author allegation, not independently verified here."
+ },
+ "bessis": {
+  "title": "David Bessis: theorem economy",
+  "url": "https://davidbessis.substack.com/p/the-fall-of-the-theorem-economy",
+  "date": "April 21, 2026",
+  "type": "Philosophical commentary",
+  "summary": "Distinguishes mathematical understanding and meaning from theorem production, and questions analogies between mathematics and fixed-rule games.",
+  "locator": "Opening argument; “The way of Go and Chess”",
+  "limit": "Provides a lens on human value and incentives, not empirical evidence about Go enjoyment or participation."
+ },
+ "ogs": {
+  "title": "OGS terms: computer help",
+  "url": "https://online-go.com/docs/terms-of-service",
+  "date": "Current page inspected October 12, 2026",
+  "type": "Platform policy",
+  "summary": "Prohibits engine analysis of ongoing games unless specifically permitted, and outside assistance in live or blitz games.",
+  "locator": "“No Cheating or Computer Help”",
+  "limit": "Rules establish permitted conduct, not cheating prevalence or psychological effects."
+ },
+ "ogsforum": {
+  "title": "OGS player fairness discussion",
+  "url": "https://forums.online-go.com/t/is-it-legal-for-human-player-using-ai-against-human-player/33153",
+  "date": "January 2021",
+  "type": "Firsthand forum concern",
+  "summary": "A player raises suspected engine assistance and fairness; replies direct the player to reporting and platform rules.",
+  "locator": "Initial post and replies",
+  "limit": "Self-selected anecdotal discussion. The allegation does not independently prove cheating or its frequency."
+ },
+ "teachers": {
+  "title": "Trinks & Oh: teacher survey",
+  "url": "https://www.intergostudies.net/journal/issuesSub_view.asp?sub_num=34",
+  "date": "December 7, 2023",
+  "type": "Go education survey",
+  "summary": "Educators report mixed views: non-use and concerns about suitability coexist with satisfaction among adopters.",
+  "locator": "Journal abstract; full paper linked there",
+  "limit": "Abstract checked. Teachers’ views concern education, not representative competitive online player enjoyment."
+ },
+ "deepmind": {
+  "title": "DeepMind: AlphaGo Zero",
+  "url": "https://deepmind.google/blog/alphago-zero-starting-from-scratch/",
+  "date": "October 18, 2017",
+  "type": "Developer research account",
+  "summary": "Documents the progression beyond the AlphaGo version that defeated Lee Sedol and beyond Master, which defeated Ke Jie.",
+  "locator": "Opening research account and linked paper",
+  "limit": "Historical engine strength, not a current leaderboard or enjoyment study."
+ },
+ "attack": {
+  "title": "Adversarial Go research",
+  "url": "https://goattack.far.ai/",
+  "date": "2023 research; project site inspected October 2026",
+  "type": "Experimental engine robustness research",
+  "summary": "Shows exploitable strategies against specified superhuman engines that humans can replicate.",
+  "locator": "Project overview and linked paper",
+  "limit": "Attack success is conditional on evaluated systems and settings, not general human superiority."
+ },
+ "humangames": {
+  "title": "Human exploit games and settings",
+  "url": "https://goattack.far.ai/human-evaluation",
+  "date": "Historical research examples; page checked October 12, 2026",
+  "type": "Documented experimental games",
+  "summary": "Reports Pelrine winning 14 of 15 games against JBXKata005 on KGS. Separately documents a win against KataGo at 100,000 visits using network b18c384nbt-uec.",
+  "locator": "Human exploits KataGo; Human exploits a top KGS bot; linked game records",
+  "limit": "The learned exploit tests robustness. Hardware and complete rule/time conditions are not specified in the visible summary. Not a current best-engine evaluation."
+ },
+ "defense": {
+  "title": "Can Go AIs be adversarially robust?",
+  "url": "https://arxiv.org/abs/2406.12843",
+  "date": "June 18, 2024 initial submission",
+  "type": "Experimental robustness research",
+  "summary": "Studies defenses and continuing adversarial weaknesses in tested Go AI systems.",
+  "locator": "Abstract and linked experimental project",
+  "limit": "A robustness test is distinct from ordinary competitive strength; no claim that every current engine is exploitable."
+ },
+ "karlsson": {
+  "title": "Karlsson link in Brown’s reply",
+  "url": "https://www.henrikkarlsson.xyz/p/go",
+  "date": "Checked October 12, 2026",
+  "type": "Unavailable intermediary source",
+  "summary": "The observed source chain includes this link, but its article was unavailable.",
+  "locator": "Browser redirected to /go and displayed “Page not found”",
+  "limit": "Its content and attribution details were not inferred."
+ }
+}

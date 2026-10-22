@@ -35,17 +35,21 @@ tags:
 	- [ ] Local search with escape mechanisms
 		- [ ] Hill climbing with random restarts
 	- [ ] Population and evolutionary
+		- [ ] [[Genetic and Evolutionary Computation Conference]]
+		- [ ] 
 	- [ ] [[Estimation-of-distribution algorithms]]
 	- [ ] [[Quality Diversity]]
 	- [ ] Model-based (from today's benchmark sweep)
 	- [ ] Noise handling, which wraps any of the above
 	- [ ] Global partitioning and random-search baselines
 - [ ] Look through before active flow mapping artifact
+- [ ] Evolutionary Combinatorial Optimization and Metaheuristics
 
 # What current list of them us have used
 
 1. [[Cross Entropy Method]]
-2. Diffusion-based proposal generation
+- [ ] [[MAP Elite]]
+1. Diffusion-based proposal generation
 
 
 

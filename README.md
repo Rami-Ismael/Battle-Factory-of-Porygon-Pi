@@ -112,14 +112,14 @@ Obsidian vault  ──sync──▶  notes/
 code folder     ──sync──▶  code/
 ```
 
-An edit in Obsidian shows up here as the same edit in the next sync. An edit made on github.com is overwritten by that sync, so open a note locally instead.
+An edit in Obsidian shows up here as the same edit in the next sync. Edit notes locally, not on github.com. If a file changed here after the last sync and the laptop's copy differs, the sync lists the file and stops, so it never undoes that change. Make the laptop match GitHub, or keep the laptop's version with `--force`, or with `--allow FILE` where `FILE` lists the paths one per line.
 
 `blog/` is the one folder edited in place. The sync stages only `notes/` and `code/`, so it never touches the article or publishes a half-written one.
 
 Ignored files (`.obsidian`, virtual environments, battle results, files over 5 MB) never leave the laptop, so the large datasets under `code/` are not included.
 
 ```bash
-tools/sync.py --dry-run   # show what would change
+tools/sync.py --dry-run   # show what would change, or which GitHub edits block the sync
 tools/sync.py             # mirror, commit, push
 ```
 

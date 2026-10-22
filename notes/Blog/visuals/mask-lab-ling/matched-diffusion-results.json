@@ -1,0 +1,264 @@
+{
+  "stage": "complete",
+  "updated_at": 1791911784.746221,
+  "planned": 420,
+  "returned": 420,
+  "supported": 420,
+  "legal": 420,
+  "scored": 420,
+  "unique_panels": 414,
+  "all_legal_win_rate": 0.09238095238095227,
+  "comparisons": {
+    "mercury-reasoning-20261013/off": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.7166666666666663,
+        "low": 0.6928571428571427,
+        "high": 0.7404761904761903
+      },
+      "battles": {
+        "pairs": 119,
+        "starters": 20,
+        "mean": 0.002904761904761905,
+        "low": -0.0025785714285714275,
+        "high": 0.008238095238095239
+      }
+    },
+    "mercury-reasoning-20261013/low": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6976190476190476,
+        "low": 0.6690476190476189,
+        "high": 0.7214285714285713
+      },
+      "battles": {
+        "pairs": 127,
+        "starters": 20,
+        "mean": 0.0023257575757575756,
+        "low": -0.002859523809523809,
+        "high": 0.007333333333333332
+      }
+    },
+    "mercury-reasoning-20261013/medium": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6642857142857141,
+        "low": 0.626190476190476,
+        "high": 0.6999999999999998
+      },
+      "battles": {
+        "pairs": 141,
+        "starters": 20,
+        "mean": 0.006824206349206351,
+        "low": 0.00093968253968254,
+        "high": 0.012667857142857142
+      }
+    },
+    "mercury-reasoning-20261013/high": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6309523809523807,
+        "low": 0.5928571428571429,
+        "high": 0.6666666666666666
+      },
+      "battles": {
+        "pairs": 155,
+        "starters": 20,
+        "mean": -0.0025460678210678213,
+        "low": -0.010329797979797982,
+        "high": 0.005009415584415584
+      }
+    },
+    "reasoning-expanded-20261012/off": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.7476190476190476,
+        "low": 0.7047619047619047,
+        "high": 0.7880952380952381
+      },
+      "battles": {
+        "pairs": 106,
+        "starters": 20,
+        "mean": 0.006276190476190475,
+        "low": 0.0008119047619047617,
+        "high": 0.01185
+      }
+    },
+    "reasoning-expanded-20261012/on": {
+      "legality": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.6142857142857142,
+        "low": 0.5785714285714285,
+        "high": 0.6476190476190473
+      },
+      "battles": {
+        "pairs": 162,
+        "starters": 20,
+        "mean": 0.008947438672438673,
+        "low": 0.0025301226551226533,
+        "high": 0.014767027417027418
+      }
+    }
+  },
+  "api_cost_usd": 0,
+  "complete": true,
+  "design": {
+    "starters": 20,
+    "masks": 140,
+    "repeats": 3,
+    "members": [
+      "F1_final_medium_regmb_v3",
+      "G2_family_matrix_noprtrain_regmb_v3"
+    ],
+    "generation_seeds": [
+      20261012,
+      20361012,
+      20461012
+    ],
+    "battle_seed": 20261012,
+    "attempts": 1,
+    "stat_points": "Corpus spread or random legal fallback, not neural prediction",
+    "input": "Categorical context only; no opponent-paste input",
+    "comparison": "Matched complete systems, not equal-input architecture or reasoning effect",
+    "started_at": 1791910698.200566
+  },
+  "audit": {
+    "verified_at": "2026-10-13T17:30:49.932937+00:00",
+    "preserved_files": 3403,
+    "outputs": 420,
+    "supported": 420,
+    "legal": 420,
+    "scored": 420,
+    "missing": 0,
+    "invalid": 0,
+    "unsupported": 0,
+    "unique_panels": 414,
+    "duplicate_panels": 6,
+    "represented_battles": 21000,
+    "unique_panel_battles": 20700,
+    "all_legal_win_rate": 0.09238095238095238,
+    "comparisons": {
+      "mercury-reasoning-20261013/off": {
+        "legality": {
+          "pairs": 420,
+          "starters": 20,
+          "mean": 0.7166666666666663,
+          "low": 0.6928571428571427,
+          "high": 0.7404761904761903
+        },
+        "battles": {
+          "pairs": 119,
+          "starters": 20,
+          "mean": 0.002904761904761905,
+          "low": -0.0025785714285714275,
+          "high": 0.008238095238095239
+        },
+        "paired_diffusion_rate": 0.02571547619047619,
+        "paired_llm_rate": 0.022810714285714285
+      },
+      "mercury-reasoning-20261013/low": {
+        "legality": {
+          "pairs": 420,
+          "starters": 20,
+          "mean": 0.6976190476190476,
+          "low": 0.6690476190476189,
+          "high": 0.7214285714285713
+        },
+        "battles": {
+          "pairs": 127,
+          "starters": 20,
+          "mean": 0.0023257575757575756,
+          "low": -0.002859523809523809,
+          "high": 0.007333333333333332
+        },
+        "paired_diffusion_rate": 0.024189502164502164,
+        "paired_llm_rate": 0.02186374458874459
+      },
+      "mercury-reasoning-20261013/medium": {
+        "legality": {
+          "pairs": 420,
+          "starters": 20,
+          "mean": 0.6642857142857141,
+          "low": 0.626190476190476,
+          "high": 0.6999999999999998
+        },
+        "battles": {
+          "pairs": 141,
+          "starters": 20,
+          "mean": 0.006824206349206351,
+          "low": 0.00093968253968254,
+          "high": 0.012667857142857142
+        },
+        "paired_diffusion_rate": 0.044675396825396826,
+        "paired_llm_rate": 0.037851190476190476
+      },
+      "mercury-reasoning-20261013/high": {
+        "legality": {
+          "pairs": 420,
+          "starters": 20,
+          "mean": 0.6309523809523807,
+          "low": 0.5928571428571429,
+          "high": 0.6666666666666666
+        },
+        "battles": {
+          "pairs": 155,
+          "starters": 20,
+          "mean": -0.0025460678210678213,
+          "low": -0.010329797979797982,
+          "high": 0.005009415584415584
+        },
+        "paired_diffusion_rate": 0.04848647186147186,
+        "paired_llm_rate": 0.051032539682539686
+      },
+      "reasoning-expanded-20261012/off": {
+        "legality": {
+          "pairs": 420,
+          "starters": 20,
+          "mean": 0.7476190476190476,
+          "low": 0.7047619047619047,
+          "high": 0.7880952380952381
+        },
+        "battles": {
+          "pairs": 106,
+          "starters": 20,
+          "mean": 0.006276190476190475,
+          "low": 0.0008119047619047617,
+          "high": 0.01185
+        },
+        "paired_diffusion_rate": 0.03229523809523809,
+        "paired_llm_rate": 0.02601904761904762
+      },
+      "reasoning-expanded-20261012/on": {
+        "legality": {
+          "pairs": 420,
+          "starters": 20,
+          "mean": 0.6142857142857142,
+          "low": 0.5785714285714285,
+          "high": 0.6476190476190473
+        },
+        "battles": {
+          "pairs": 162,
+          "starters": 20,
+          "mean": 0.008947438672438673,
+          "low": 0.0025301226551226533,
+          "high": 0.014767027417027418
+        },
+        "paired_diffusion_rate": 0.0791771645021645,
+        "paired_llm_rate": 0.07022972582972584
+      }
+    },
+    "generation_seconds_sum": 127.1933124208881,
+    "generation_seconds_median": 0.15080508351093158,
+    "api_cost_usd": 0,
+    "compute_cost_measured": false,
+    "configs_identical": true,
+    "checkpoint_hashes_verified": true,
+    "unmasked_values_preserved": true
+  }
+}

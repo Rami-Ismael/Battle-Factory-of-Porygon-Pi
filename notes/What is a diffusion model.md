@@ -13,8 +13,7 @@
 
 # Writing
 
-1. I am not planning to give an introductory what is a diffusion model there are better people who writing amazing blog which i will write down I highly recommend reading. I don't want to rewrite what they wrote down as I cannot think of a new twist compare to their work,
-
+1. **Masked diffusion from scratch, filling the blanks in one of my teams.** The current diffusion section links out, but your reader needs it explained from scratch.
 # Source that I recommend people to learn diffusion model
 
 1. https://huggingface.co/blog/annotated-diffusion

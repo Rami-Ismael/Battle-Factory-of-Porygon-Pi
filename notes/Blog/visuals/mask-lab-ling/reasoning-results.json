@@ -1,0 +1,394 @@
+{
+  "study": "reasoning-expanded-20261012",
+  "source_sha256": "a361c04e9dc0789da64e6740bdad39d08bd5d90603cfe99ff1e736ce509f062b",
+  "audit": {
+    "verified_at": "2026-10-12T23:29:29.978433+00:00",
+    "generation_recovery": {
+      "planned": 840,
+      "reused": 819,
+      "completed": 21,
+      "attempts": 26,
+      "rate_limits": 5,
+      "stage": "complete",
+      "concurrency": 1,
+      "in_flight": 0,
+      "queued": 0,
+      "cooldown_seconds": 0,
+      "elapsed_seconds": 918.4672779169923,
+      "updated_at": 1791847038.4249861,
+      "errors": []
+    },
+    "preserved_artifacts": 1097,
+    "configs_identical": true,
+    "runtime_fingerprints_verified": 494,
+    "request_hashes_verified": 840,
+    "pending": 0,
+    "missing": 0,
+    "legal_outputs": 268,
+    "unique_panels": 242,
+    "represented_battles": 13400,
+    "unique_panel_battles": 12100,
+    "duplicate_panel_outputs": 26,
+    "cached_panels_shared_across_starters": 0,
+    "distinct_matched_panel_pairs": 93,
+    "arms": {
+      "off": {
+        "planned": 420,
+        "returned": 420,
+        "missing": 0,
+        "legal": 106,
+        "legality_rate": 0.2523809523809524,
+        "scored": 106,
+        "win_rate_legal_scored": 0.03207547169811322,
+        "reasoning_tokens_reported": 420,
+        "mean_reasoning_tokens": 0,
+        "positive_reasoning_token_responses": 0,
+        "cost_usd": 0.059190718999999996,
+        "cost_reported": 420,
+        "mean_elapsed_seconds": 3.1821415351143516,
+        "finish_reasons": {
+          "stop": 420
+        },
+        "median_elapsed_seconds": 2.311566333504743,
+        "latency_coverage": 420,
+        "total_reasoning_tokens": 0,
+        "median_reasoning_tokens": 0,
+        "unique_cached_panels": 87,
+        "represented_wins": 170
+      },
+      "on": {
+        "planned": 420,
+        "returned": 420,
+        "missing": 0,
+        "legal": 162,
+        "legality_rate": 0.38571428571428573,
+        "scored": 162,
+        "win_rate_legal_scored": 0.07185185185185176,
+        "reasoning_tokens_reported": 420,
+        "mean_reasoning_tokens": 5242.990476190476,
+        "positive_reasoning_token_responses": 420,
+        "cost_usd": 0.2288028526,
+        "cost_reported": 420,
+        "mean_elapsed_seconds": 33.66671765467684,
+        "finish_reasons": {
+          "stop": 403,
+          "length": 17
+        },
+        "median_elapsed_seconds": 28.402224521007156,
+        "latency_coverage": 420,
+        "total_reasoning_tokens": 2202056,
+        "median_reasoning_tokens": 4466,
+        "unique_cached_panels": 156,
+        "represented_wins": 582
+      }
+    },
+    "paired_rates": [
+      0.02474404761904762,
+      0.02581190476190476
+    ],
+    "paired": {
+      "legality_delta": {
+        "pairs": 420,
+        "starters": 20,
+        "mean": 0.13333333333333333,
+        "low": 0.09285714285714286,
+        "high": 0.1785714285714286
+      },
+      "win_rate_delta_both_legal": {
+        "pairs": 94,
+        "starters": 20,
+        "mean": 0.0010678571428571434,
+        "low": -0.007585714285714284,
+        "high": 0.010682142857142857
+      }
+    },
+    "discordant": {
+      "on_only": 68,
+      "off_only": 12,
+      "both": 94,
+      "neither": 246
+    },
+    "starter_data": [
+      [
+        10,
+        10,
+        53,
+        19,
+        7,
+        28,
+        19
+      ],
+      [
+        4,
+        8,
+        7,
+        10,
+        3,
+        5,
+        4
+      ],
+      [
+        4,
+        8,
+        5,
+        14,
+        4,
+        5,
+        3
+      ],
+      [
+        7,
+        9,
+        51,
+        52,
+        7,
+        51,
+        40
+      ],
+      [
+        6,
+        7,
+        8,
+        29,
+        4,
+        5,
+        5
+      ],
+      [
+        6,
+        6,
+        3,
+        0,
+        6,
+        3,
+        0
+      ],
+      [
+        5,
+        8,
+        0,
+        37,
+        4,
+        0,
+        1
+      ],
+      [
+        3,
+        7,
+        0,
+        28,
+        2,
+        0,
+        3
+      ],
+      [
+        6,
+        7,
+        2,
+        23,
+        6,
+        2,
+        7
+      ],
+      [
+        6,
+        7,
+        3,
+        4,
+        6,
+        3,
+        2
+      ],
+      [
+        5,
+        7,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      [
+        10,
+        12,
+        1,
+        26,
+        8,
+        1,
+        0
+      ],
+      [
+        2,
+        11,
+        0,
+        57,
+        2,
+        0,
+        6
+      ],
+      [
+        5,
+        8,
+        6,
+        31,
+        5,
+        6,
+        2
+      ],
+      [
+        5,
+        7,
+        8,
+        26,
+        5,
+        8,
+        3
+      ],
+      [
+        5,
+        7,
+        6,
+        31,
+        5,
+        6,
+        7
+      ],
+      [
+        6,
+        8,
+        8,
+        77,
+        4,
+        6,
+        12
+      ],
+      [
+        3,
+        8,
+        4,
+        23,
+        3,
+        4,
+        1
+      ],
+      [
+        5,
+        11,
+        5,
+        63,
+        5,
+        5,
+        7
+      ],
+      [
+        3,
+        6,
+        0,
+        32,
+        3,
+        0,
+        2
+      ]
+    ],
+    "tasks": {
+      "ability:6": {
+        "off": {
+          "returned": 60,
+          "legal": 4,
+          "scored": 4,
+          "win_rate_legal_scored": 0.01
+        },
+        "on": {
+          "returned": 60,
+          "legal": 19,
+          "scored": 19,
+          "win_rate_legal_scored": 0.016842105263157894
+        }
+      },
+      "alignment:6": {
+        "off": {
+          "returned": 60,
+          "legal": 58,
+          "scored": 58,
+          "win_rate_legal_scored": 0.01724137931034483
+        },
+        "on": {
+          "returned": 60,
+          "legal": 58,
+          "scored": 58,
+          "win_rate_legal_scored": 0.020689655172413796
+        }
+      },
+      "item:6": {
+        "off": {
+          "returned": 60,
+          "legal": 8,
+          "scored": 8,
+          "win_rate_legal_scored": 0.0175
+        },
+        "on": {
+          "returned": 60,
+          "legal": 7,
+          "scored": 7,
+          "win_rate_legal_scored": 0.028571428571428574
+        }
+      },
+      "mixed:40": {
+        "off": {
+          "returned": 60,
+          "legal": 0,
+          "scored": 0,
+          "win_rate_legal_scored": null
+        },
+        "on": {
+          "returned": 60,
+          "legal": 1,
+          "scored": 1,
+          "win_rate_legal_scored": 0.1
+        }
+      },
+      "move:24": {
+        "off": {
+          "returned": 60,
+          "legal": 0,
+          "scored": 0,
+          "win_rate_legal_scored": null
+        },
+        "on": {
+          "returned": 60,
+          "legal": 1,
+          "scored": 1,
+          "win_rate_legal_scored": 0.14
+        }
+      },
+      "pokemon:6": {
+        "off": {
+          "returned": 60,
+          "legal": 4,
+          "scored": 4,
+          "win_rate_legal_scored": 0.45999999999999996
+        },
+        "on": {
+          "returned": 60,
+          "legal": 24,
+          "scored": 24,
+          "win_rate_legal_scored": 0.37500000000000006
+        }
+      },
+      "stats:6": {
+        "off": {
+          "returned": 60,
+          "legal": 32,
+          "scored": 32,
+          "win_rate_legal_scored": 0.011875
+        },
+        "on": {
+          "returned": 60,
+          "legal": 52,
+          "scored": 52,
+          "win_rate_legal_scored": 0.01307692307692308
+        }
+      }
+    }
+  }
+}

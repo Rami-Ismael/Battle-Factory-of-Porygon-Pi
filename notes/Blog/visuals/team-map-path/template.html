@@ -1,0 +1,361 @@
+<title>Loops on the Team Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: map on the left like the Langevin figure, the current team on the right; table and method below. */
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --plain:#d4551f; --taboo:#1a9a6c; --focus:#2a78d6;
+  --d0:#f5f6f8; --d1:#cde2fb; --d2:#86b6ef; --d3:#3987e5; --d4:#1c5cab; --d5:#0d366b;
+  --font-body:"Literata",Georgia,"Times New Roman",serif;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --plain:#ef7340; --taboo:#3fb17f; --focus:#6da7ec;
+  --d0:#111318; --d1:#123a6e; --d2:#1c5cab; --d3:#3987e5; --d4:#86b6ef; --d5:#cde2fb; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --plain:#ef7340; --taboo:#3fb17f; --focus:#6da7ec;
+  --d0:#111318; --d1:#123a6e; --d2:#1c5cab; --d3:#3987e5; --d4:#86b6ef; --d5:#cde2fb; color-scheme:dark; }
+body { background:var(--bg); color:var(--ink); font-family:var(--font-ui); font-size:15px; line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); padding-block:28px 48px; }
+.wrap { max-width:68rem; margin:0 auto; display:grid; gap:20px; }
+h1 { font-family:var(--font-body); font-weight:600; font-size:1.9rem; line-height:1.2; margin:0; text-wrap:balance; }
+.lede { font-family:var(--font-body); color:var(--ink-2); max-width:42rem; margin:6px 0 0; font-size:1.02rem; }
+.controls { display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; }
+.group { display:flex; align-items:center; gap:8px; }
+.group > .lab { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); }
+.seg { display:flex; border:1px solid var(--rule); border-radius:8px; overflow:hidden; background:var(--panel); }
+.seg button { font:inherit; font-size:.88rem; border:0; background:transparent; color:var(--ink-2); padding:6px 12px; cursor:pointer; display:flex; gap:6px; align-items:center; }
+.seg button + button { border-left:1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background:var(--wash); color:var(--ink); font-weight:600; }
+.seg button:focus-visible, .play:focus-visible, input[type=range]:focus-visible, summary:focus-visible, .copy:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+.sw { width:14px; height:3px; border-radius:2px; display:inline-block; }
+.play { font:inherit; font-size:.88rem; border:1px solid var(--rule); background:var(--panel); color:var(--ink); border-radius:8px; padding:6px 12px; cursor:pointer; min-width:4.5rem; }
+.slider { display:flex; align-items:center; gap:10px; flex:1 1 220px; min-width:0; }
+.slider input { flex:1; min-width:0; accent-color:var(--ink-2); }
+.slider output { font-family:var(--font-mono); font-size:.85rem; color:var(--ink-2); white-space:nowrap; }
+.stage { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:20px; align-items:start; }
+@media (max-width:820px) { .stage { grid-template-columns:minmax(0,1fr); } }
+.mapbox { background:var(--panel); border:1px solid var(--rule); border-radius:10px; padding:12px; position:relative; min-width:0; }
+canvas#map { width:100%; display:block; touch-action:manipulation; }
+.axis { display:flex; justify-content:space-between; font-size:.75rem; color:var(--ink-3); margin-top:6px; gap:12px; flex-wrap:wrap; }
+.ramp { display:flex; align-items:center; gap:6px; }
+.ramp i { width:90px; height:8px; border-radius:2px; display:inline-block; background:linear-gradient(90deg,var(--d0),var(--d1),var(--d2),var(--d3),var(--d4),var(--d5)); border:1px solid var(--rule); }
+.tip { position:absolute; pointer-events:none; background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:6px 8px; box-shadow:0 4px 14px rgba(0,0,0,.12); font-size:.78rem; display:grid; gap:4px; z-index:2; }
+.tip .row { display:flex; gap:2px; }
+.tip img, .tip .ph { width:36px; height:36px; }
+.side { display:grid; gap:14px; min-width:0; }
+.gen-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.gen-head h2 { font-family:var(--font-body); font-size:1.25rem; margin:0; font-weight:600; }
+.chip { font-size:.75rem; border:1px solid var(--rule); border-radius:999px; padding:2px 9px; color:var(--ink-2); background:var(--panel); }
+.team { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.mon { background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:6px 4px 8px; display:grid; justify-items:center; gap:2px; min-width:0; }
+.mon img, .mon .ph { width:72px; height:72px; image-rendering:pixelated; }
+.ph { display:grid; place-items:center; border-radius:50%; background:var(--wash); color:var(--ink-3); font-weight:600; font-size:.9rem; }
+.mon span { font-size:.78rem; color:var(--ink-2); text-align:center; overflow-wrap:anywhere; }
+.big { font-family:var(--font-mono); font-size:2rem; line-height:1; font-variant-numeric:tabular-nums; }
+.stat { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.stat small { color:var(--ink-3); font-size:.8rem; }
+.facts { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; font-size:.86rem; color:var(--ink-2); margin:0; }
+.facts dd { margin:0; font-family:var(--font-mono); color:var(--ink); text-align:right; font-variant-numeric:tabular-nums; }
+details { border-top:1px solid var(--rule); padding-top:8px; }
+summary { cursor:pointer; color:var(--ink-2); font-size:.86rem; }
+pre { font-family:var(--font-mono); font-size:.74rem; background:var(--wash); border-radius:8px; padding:10px; overflow:auto; max-height:260px; margin:8px 0 0; white-space:pre; }
+.copy { font:inherit; font-size:.8rem; margin-top:6px; border:1px solid var(--rule); background:var(--panel); color:var(--ink-2); border-radius:6px; padding:3px 10px; cursor:pointer; }
+.tablebox { overflow-x:auto; background:var(--panel); border:1px solid var(--rule); border-radius:10px; }
+table { border-collapse:collapse; width:100%; font-size:.85rem; font-variant-numeric:tabular-nums; }
+th, td { padding:7px 12px; text-align:right; white-space:nowrap; }
+th:first-child, td:first-child { text-align:left; }
+thead th { font-weight:500; color:var(--ink-3); font-size:.75rem; border-bottom:1px solid var(--rule); }
+thead tr:first-child th { text-transform:uppercase; letter-spacing:.06em; }
+tbody tr.on { background:var(--wash); }
+tbody td { font-family:var(--font-mono); color:var(--ink-2); }
+tbody tr.on td { color:var(--ink); }
+.method { font-family:var(--font-body); color:var(--ink-2); max-width:44rem; font-size:.95rem; }
+.method h3 { font-family:var(--font-ui); font-size:.8rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); margin:0 0 6px; font-weight:500; }
+.method p { margin:0 0 10px; }
+.jobs { display:grid; gap:10px; }
+.jobs h2 { font-family:var(--font-body); font-size:1.25rem; margin:0; font-weight:600; }
+.jobs p.note { margin:0; color:var(--ink-2); font-family:var(--font-body); max-width:44rem; }
+.jobgrid { overflow-x:auto; background:var(--panel); border:1px solid var(--rule); border-radius:10px; }
+.jobgrid table { min-width:760px; table-layout:fixed; }
+.jobgrid th, .jobgrid td { text-align:left; vertical-align:top; padding:8px 8px; white-space:normal; }
+.jobgrid thead th { cursor:pointer; }
+.jobgrid thead th:first-child { cursor:default; width:96px; }
+.jobgrid tbody th { font-size:.84rem; font-weight:600; color:var(--ink); border-top:1px solid var(--rule); }
+.jobgrid tbody th small { display:block; font-weight:400; color:var(--ink-3); font-size:.72rem; }
+.jobgrid td { border-top:1px solid var(--rule); cursor:pointer; }
+.jobgrid .on { background:var(--wash); }
+.jobgrid .corp { border-right:1px solid var(--rule); }
+.cov { font-family:var(--font-mono); font-size:.95rem; color:var(--ink); font-variant-numeric:tabular-nums; }
+.bar { height:4px; border-radius:2px; background:var(--rule); margin:3px 0 6px; overflow:hidden; }
+.bar i { display:block; height:100%; background:var(--ink-2); border-radius:2px; }
+.who { display:flex; gap:2px; flex-wrap:wrap; }
+.who { flex-wrap:nowrap; }
+.who div { display:grid; justify-items:center; width:33px; }
+.who img, .who .ph { width:32px; height:32px; image-rendering:pixelated; }
+.who .ph { font-size:.7rem; }
+.who span { font-family:var(--font-mono); font-size:.66rem; color:var(--ink-3); }
+.who em { font-style:normal; font-size:.72rem; color:var(--ink-3); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Loops on the Team Map</h1>
+    <p class="lede">The blue pools are where real Reg M-B teams sit, grouped into four archetypes. The line follows the best team of each generation of one cross-entropy loop run. Switch between the plain loop and the taboo loop and compare where each line goes.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Figure controls">
+    <div class="group"><span class="lab" id="lab-arm">Loop</span>
+      <div class="seg" aria-labelledby="lab-arm">
+        <button id="arm-plain" aria-pressed="true" data-arm="plain"><span class="sw" style="background:var(--plain)"></span>Plain</button>
+        <button id="arm-taboo" aria-pressed="false" data-arm="taboo"><span class="sw" style="background:var(--taboo)"></span>Taboo</button>
+      </div></div>
+    <div class="group"><span class="lab" id="lab-seed">Seed</span>
+      <div class="seg" id="seeds" aria-labelledby="lab-seed"></div></div>
+    <div class="slider"><button class="play" id="play" aria-label="Play generations">Play</button>
+      <input type="range" id="gen" min="1" max="6" step="1" value="1" aria-label="Generation">
+      <output id="genout" for="gen">gen 1 / 6</output></div>
+  </div>
+
+  <div class="stage">
+    <div class="mapbox">
+      <canvas id="map" aria-label="Map of corpus team density with the loop's path"></canvas>
+      <div class="tip" id="tip" hidden></div>
+      <div class="axis">
+        <span class="ramp">fewer <i></i> more corpus teams</span>
+        <span id="legend"></span>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="gen-head"><h2 id="gen-title">Generation 1</h2><span class="chip" id="arch-chip">Tailwind</span></div>
+      <div class="stat"><span class="big" id="wr">0.74</span><small id="wr-note">37 of 50 battles won · best of 128 battled</small></div>
+      <div class="team" id="team"></div>
+      <dl class="facts">
+        <dt>Mean win rate of the 128 battled</dt><dd id="f-mean">0.569</dd>
+        <dt>Distinct compositions in the proposals</dt><dd id="f-comps">173 / 512</dd>
+      </dl>
+      <details><summary>Team paste</summary><pre id="paste"></pre><button class="copy" id="copy">Copy paste</button></details>
+    </div>
+  </div>
+
+  <section class="jobs">
+    <h2 id="jobs-title">Who does each job, generation by generation</h2>
+    <p class="note">Each Pokémon gets the job its own set does, first match wins: a Trick Room user, else a weather setter, else a Tailwind user, else Other. The number is the share of the 128 battled teams with at least one Pokémon in that job. The sprites are the species doing it most, with the share of teams that use that species for that job. The first column is the corpus. Click a column to move the map there.</p>
+    <div class="jobgrid"><table><thead id="jobhead"></thead><tbody id="jobbody"></tbody></table></div>
+  </section>
+
+  <div class="tablebox">
+    <table>
+      <thead>
+        <tr><th></th><th colspan="3">Plain loop</th><th colspan="3">Taboo loop</th></tr>
+        <tr><th>Generation</th><th>Best</th><th>Mean</th><th>Compositions</th><th>Best</th><th>Mean</th><th>Compositions</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <section class="method">
+    <h3>How the map is made</h3>
+    <p id="m-corpus"></p>
+    <p>Each loop generation proposes 512 teams and battles 128 of them. Those 128 are the faint dots for the current generation. The path joins the team with the highest label in each generation. Labels are 50 battles each, one against every top-50 meta team, with the behaviour-cloned policy on both sides, so a best-of-128 label runs high. When the best 16 of each run were re-battled 196 times each, they scored 0.655 to 0.735.</p>
+    <p>Data: the 2026-10-08 diversity-methods run, control and taboo arms, three seeds, six generations, all starting from the same generation 0. The map is fitted on archetype labels, so the pools separate by archetype by construction. Two dots close together can still be different teams; hover a dot to see its six.</p>
+  </section>
+</div>
+
+<script>
+const D = __DATA__;
+const $ = id => document.getElementById(id);
+const S = { arm:'plain', seed:D.seeds[0], gen:1, playing:null };
+const [x0,x1,y0,y1] = D.extent, [GX,GY] = D.grid;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const name = sp => sp.replace(/mega.*$/, ' Mega').replace(/^./, c => c.toUpperCase());
+
+function spriteEl(sp, label, cls) {
+  if (D.sprites[sp]) { const im = new Image(); im.src = D.sprites[sp]; im.alt = label; if (cls) im.className = cls; return im; }
+  const d = document.createElement('div'); d.className = 'ph' + (cls ? ' ' + cls : ''); d.textContent = label.slice(0,2); d.title = label; return d;
+}
+
+// Seed buttons.
+for (const s of D.seeds) {
+  const b = document.createElement('button'); b.textContent = s; b.id = 'seed-' + s; b.dataset.seed = s;
+  b.setAttribute('aria-pressed', s === S.seed); $('seeds').append(b);
+}
+$('seeds').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { S.seed = +b.dataset.seed; render(); } });
+for (const id of ['arm-plain','arm-taboo']) $(id).addEventListener('click', e => { S.arm = e.currentTarget.dataset.arm; render(); });
+$('gen').max = D.gens;
+$('gen').addEventListener('input', e => { S.gen = +e.target.value; stop(); render(); });
+function stop() { if (S.playing) { clearInterval(S.playing); S.playing = null; $('play').textContent = 'Play'; } }
+$('play').addEventListener('click', () => {
+  if (S.playing) return stop();
+  if (S.gen >= D.gens) S.gen = 0;
+  const step = () => { S.gen += 1; render(); if (S.gen >= D.gens) stop(); };
+  step(); S.playing = setInterval(step, 1100); $('play').textContent = 'Pause';
+});
+
+// Density image, recoloured on theme change.
+const hex = h => { h = h.replace('#',''); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
+let densImg = null;
+function buildDensity() {
+  const stops = ['--d0','--d1','--d2','--d3','--d4','--d5'].map(n => hex(css(n)));
+  const pos = [0,.18,.4,.62,.82,1];
+  const off = document.createElement('canvas'); off.width = GX; off.height = GY;
+  const ctx = off.getContext('2d'), im = ctx.createImageData(GX, GY);
+  for (let r = 0; r < GY; r++) for (let c = 0; c < GX; c++) {
+    const v = D.density[r*GX + c] / 255; let k = 0; while (k < pos.length - 2 && v > pos[k+1]) k++;
+    const t = (v - pos[k]) / (pos[k+1] - pos[k]), a = stops[k], b = stops[k+1];
+    const o = ((GY - 1 - r) * GX + c) * 4;   // grid row 0 is the bottom of the map
+    for (let j = 0; j < 3; j++) im.data[o+j] = Math.round(a[j] + (b[j]-a[j]) * t);
+    im.data[o+3] = 255;
+  }
+  ctx.putImageData(im, 0, 0); densImg = off;
+}
+
+const cv = $('map'), g = cv.getContext('2d');
+let W = 0, H = 0, hits = [];
+const px = x => (x - x0) / (x1 - x0) * W, py = y => (1 - (y - y0) / (y1 - y0)) * H;
+
+function resize() {
+  const w = cv.parentElement.clientWidth - 24, ratio = (y1 - y0) / (x1 - x0);
+  W = w; H = Math.min(Math.round(w * ratio), 640); const dpr = window.devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px'; g.setTransform(dpr,0,0,dpr,0,0);
+  draw();
+}
+
+function path(run, upto, color, ghost) {
+  const pts = run.slice(0, upto).map(G => [px(G.best.x), py(G.best.y)]);
+  g.save(); g.strokeStyle = color; g.lineWidth = 2; g.lineJoin = 'round';
+  if (ghost) { g.setLineDash([5,5]); g.globalAlpha = .55; }
+  g.beginPath(); pts.forEach(([x,y],i) => i ? g.lineTo(x,y) : g.moveTo(x,y)); g.stroke(); g.setLineDash([]);
+  pts.forEach(([x,y],i) => {
+    const cur = !ghost && i === upto - 1, r = ghost ? 4 : cur ? 12 : 9;
+    g.beginPath(); g.arc(x,y,r+2,0,7); g.fillStyle = css('--panel'); g.fill();
+    g.beginPath(); g.arc(x,y,r,0,7); g.fillStyle = color; g.fill();
+    if (!ghost) { g.fillStyle = css('--panel'); g.font = `600 ${cur?12:11}px ${css('--font-ui')}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(i+1, x, y+.5); }
+  });
+  g.restore();
+}
+
+function draw() {
+  if (!W) return;
+  g.clearRect(0,0,W,H); g.imageSmoothingEnabled = true; g.drawImage(densImg, 0, 0, W, H);
+  const key = `${S.arm}_s${S.seed}`, other = `${S.arm === 'plain' ? 'taboo' : 'plain'}_s${S.seed}`;
+  const run = D.runs[key], G = run[S.gen - 1], col = css('--' + S.arm), ocol = css('--' + (S.arm === 'plain' ? 'taboo' : 'plain'));
+  // Archetype labels at their corpus centres.
+  g.font = `500 13px ${css('--font-ui')}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  D.centroids.forEach(([cx,cy],k) => {
+    const t = `${D.archetypes[k]} · ${D.labelCounts[k]}`, x = px(cx), y = py(cy) - 28;
+    g.lineWidth = 4; g.strokeStyle = css('--bg'); g.strokeText(t, x, y); g.fillStyle = css('--ink-2'); g.fillText(t, x, y);
+  });
+  // This generation's battled teams.
+  hits = [];
+  g.globalAlpha = .55;
+  G.pts.forEach(([x,y,wr],i) => {
+    const X = px(x), Y = py(y); hits.push([X,Y,i]);
+    g.beginPath(); g.arc(X,Y,3,0,7); g.fillStyle = col; g.fill();
+  });
+  g.globalAlpha = 1;
+  path(D.runs[other], S.gen, ocol, true);
+  path(run, S.gen, col, false);
+}
+
+
+const JOBS = [[1,'Weather','sets rain, sun, sand or snow'],[2,'Tailwind','uses Tailwind'],[0,'Trick Room','uses Trick Room'],[3,'Other','the rest of the team']];
+function jobCell(R, k, other) {
+  const td = document.createElement('td'), r = R[k];
+  if (!other) {
+    const c = document.createElement('div'); c.className = 'cov'; c.textContent = Math.round(r.cov * 100) + '%';
+    const b = document.createElement('div'); b.className = 'bar'; const i = document.createElement('i'); i.style.width = (r.cov * 100) + '%'; b.append(i);
+    td.append(c, b);
+  }
+  const w = document.createElement('div'); w.className = 'who';
+  if (!r.top.length) { const e = document.createElement('em'); e.textContent = 'none'; w.append(e); }
+  for (const [sp, v] of r.top.slice(0, 3)) {
+    const d = document.createElement('div'), nm = D.names[sp] || name(sp); d.title = `${nm}: ${Math.round(v*100)}% of teams`;
+    const t = document.createElement('span'); t.textContent = Math.round(v * 100) + '%';
+    d.append(spriteEl(sp, nm), t); w.append(d);
+  }
+  td.append(w); return td;
+}
+function renderJobs() {
+  const run = D.runs[`${S.arm}_s${S.seed}`];
+  $('jobs-title').textContent = `Who does each job, ${S.arm} loop, seed ${S.seed}`;
+  const hr = document.createElement('tr'); hr.innerHTML = '<th>Job</th><th class="corp">Corpus</th>';
+  run.forEach((G, i) => { const th = document.createElement('th'); th.textContent = `Gen ${i+1}`; if (i === S.gen - 1) th.className = 'on';
+    th.addEventListener('click', () => { S.gen = i + 1; stop(); render(); }); hr.append(th); });
+  $('jobhead').replaceChildren(hr);
+  const body = $('jobbody'); body.replaceChildren();
+  for (const [k, label, sub] of JOBS) {
+    const tr = document.createElement('tr'), th = document.createElement('th');
+    th.innerHTML = `${label}<small>${sub}</small>`; tr.append(th);
+    const c = jobCell(D.corpusRoles, k, k === 3); c.className = 'corp'; c.style.cursor = 'default'; tr.append(c);
+    run.forEach((G, i) => { const td = jobCell(G.roles, k, k === 3); if (i === S.gen - 1) td.classList.add('on');
+      td.addEventListener('click', () => { S.gen = i + 1; stop(); render(); }); tr.append(td); });
+    body.append(tr);
+  }
+}
+function render() {
+  for (const b of document.querySelectorAll('[data-arm]')) b.setAttribute('aria-pressed', b.dataset.arm === S.arm);
+  for (const b of $('seeds').children) b.setAttribute('aria-pressed', +b.dataset.seed === S.seed);
+  $('gen').value = S.gen; $('genout').textContent = `gen ${S.gen} / ${D.gens}`;
+  const run = D.runs[`${S.arm}_s${S.seed}`], G = run[S.gen - 1], B = G.best;
+  $('gen-title').textContent = `Generation ${S.gen}, ${S.arm} loop`;
+  $('arch-chip').textContent = D.archetypes[B.arch];
+  $('wr').textContent = B.wr.toFixed(2);
+  $('wr-note').textContent = `${Math.round(B.wr*50)} of 50 battles won · best of ${G.pts.length} battled`;
+  const team = $('team'); team.replaceChildren();
+  for (const m of B.mons) { const d = document.createElement('div'); d.className = 'mon'; d.append(spriteEl(m.s, m.name)); const s = document.createElement('span'); s.textContent = m.name; d.append(s); team.append(d); }
+  $('f-mean').textContent = G.mean.toFixed(3);
+  $('f-comps').textContent = `${G.comps} / ${G.accepted}`;
+  $('paste').textContent = B.paste;
+  const tb = $('tbody'); tb.replaceChildren();
+  const P = D.runs[`plain_s${S.seed}`], T = D.runs[`taboo_s${S.seed}`];
+  for (let i = 0; i < D.gens; i++) {
+    const tr = document.createElement('tr'); if (i === S.gen - 1) tr.className = 'on';
+    tr.innerHTML = `<td>${i+1}</td><td>${P[i].best.wr.toFixed(2)}</td><td>${P[i].mean.toFixed(3)}</td><td>${P[i].comps}</td><td>${T[i].best.wr.toFixed(2)}</td><td>${T[i].mean.toFixed(3)}</td><td>${T[i].comps}</td>`;
+    tr.style.cursor = 'pointer'; tr.addEventListener('click', () => { S.gen = i + 1; stop(); render(); });
+    tb.append(tr);
+  }
+  $('legend').innerHTML = `<span class="sw" style="background:var(--${S.arm})"></span> ${S.arm} path &nbsp; <span class="sw" style="background:var(--${S.arm==='plain'?'taboo':'plain'});opacity:.55"></span> ${S.arm==='plain'?'taboo':'plain'} path, same seed`;
+  renderJobs();
+  draw();
+}
+
+// Hover a dot: its six Pokémon and label.
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  let best = null, bd = 100;
+  for (const [x,y,i] of hits) { const d = (x-mx)**2 + (y-my)**2; if (d < bd) { bd = d; best = i; } }
+  const tip = $('tip');
+  if (best === null) { tip.hidden = true; return; }
+  const G = D.runs[`${S.arm}_s${S.seed}`][S.gen - 1];
+  tip.replaceChildren();
+  const row = document.createElement('div'); row.className = 'row';
+  for (const sp of G.cloud[best]) row.append(spriteEl(sp, name(sp)));
+  const t = document.createElement('div'); t.textContent = `win rate ${G.pts[best][2].toFixed(2)} · ${Math.round(G.pts[best][2]*50)} of 50`;
+  tip.append(row, t); tip.hidden = false;
+  const left = Math.min(mx + 26, cv.parentElement.clientWidth - tip.offsetWidth - 6);
+  tip.style.left = Math.max(6, left) + 'px'; tip.style.top = (my + 24) + 'px';
+});
+cv.addEventListener('pointerleave', () => $('tip').hidden = true);
+
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('paste').textContent); $('copy').textContent = 'Copied'; }
+  catch { const s = getSelection(), r = document.createRange(); r.selectNodeContents($('paste')); s.removeAllRanges(); s.addRange(r); $('copy').textContent = 'Selected, press copy'; }
+  setTimeout(() => $('copy').textContent = 'Copy paste', 1600);
+});
+
+$('m-corpus').textContent = `The map is built from the ${D.nCorpus} Reg M-B corpus teams. Each team becomes a list of its species, abilities, items and moves, and a linear discriminant analysis turns those lists into positions that separate four archetypes: Trick Room (${D.labelCounts[0]}), Weather (${D.labelCounts[1]}), Tailwind (${D.labelCounts[2]}) and Other (${D.labelCounts[3]}). The first rule that matches wins. The colour is a kernel density of where those corpus teams land. Loop teams go through the same projection, so a dot inside a pool tends to carry that pool's Pokémon, items and moves.`;
+
+const retheme = () => { buildDensity(); draw(); };
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', retheme);
+new MutationObserver(retheme).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+buildDensity(); new ResizeObserver(resize).observe(cv.parentElement); render();
+</script>

@@ -70,11 +70,14 @@ import numpy as np
 import torch
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
+from checkpoints import load_checkpoint
 from corpus import parse_team, parse_team_text
 from encode import NF, NSLOT
 import diffusion as D
 import hpsdiffusion as H
 import activesearch as A
+sys.path.append(str(Path(__file__).resolve().parent))
+import heldout as HO
 from hps_generate import Validator
 
 ROOT = Path("/tmp/vgc-pilot/gradguide")
@@ -94,24 +97,25 @@ SPECIES_COLS = [c for c in range(D.COLS) if c % NF == 0]
 
 # ---------------------------------------------------------------- labels -> f
 def all_labels():
-    """(team, win_rate) for everything this repo ever battled at 24x vs top-50."""
+    """(team, win_rate) for everything this repo ever battled at 24x vs top-50,
+    except teams of ranks 51-100 (docs/heldout-51-100.md)."""
     teams, ys, srcs = [], [], []
+    twin = HO.is_heldout_team                    # 48-field identity
+    def add(t, y, s, held):
+        if not (held or twin(t)): teams.append(t); ys.append(y); srcs.append(s)
     r = json.load(open(AS1))
     for f, y in r["anchor"].items():
-        teams.append(parse_team(f)); ys.append(float(y)); srcs.append("as1_anchor")
+        add(parse_team(f), float(y), "as1_anchor", False)
     for tag, g in r["gens"].items():
         for p, y in zip(g["pastes"], g["y"]):
-            teams.append(parse_team_text(p)); ys.append(float(y)); srcs.append("as1")
+            add(parse_team_text(p), float(y), "as1", False)
     try:
         r2 = json.load(open(AS2))
         for f, y in (r2.get("anchor") or {}).items():
-            teams.append(parse_team(f))
-            ys.append(float(y["win_rate"] if isinstance(y, dict) else y))
-            srcs.append("as2_anchor")
+            add(parse_team(f), float(y["win_rate"] if isinstance(y, dict) else y), "as2_anchor", False)
         for tag, g in r2["gens"].items():
             for p, l in zip(g["pastes"], g["lab"]):
-                teams.append(parse_team_text(p)); ys.append(float(l["win_rate"]))
-                srcs.append("as2")
+                add(parse_team_text(p), float(l["win_rate"]), "as2", False)
     except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
         print(f"  activesearch2 labels skipped ({e})", flush=True)
     return teams, ys, srcs
@@ -399,7 +403,7 @@ def main(stage):
           flush=True)
 
     p0 = H.TeamDiffusionHPS(V).to(D.DEV)
-    p0.load_state_dict(torch.load(A.P0_CKPT, map_location=D.DEV)["sd"]); p0.eval()
+    p0.load_state_dict(load_checkpoint(A.P0_CKPT, map_location=D.DEV)["sd"]); p0.eval()
     val = Validator()
     out = (json.load(open(RESULTS)) if os.path.exists(RESULTS) and not smoke
            else {"config": {}, "calib": {}, "cells": {}})

@@ -21,6 +21,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from signed_score_guidance import sample_direction, SignedGuide
+from checkpoints import load_checkpoint
 
 ARMS = ("normal", "none", "reverse")
 PRIMARY = "distinct_species_sets"
@@ -124,7 +125,7 @@ class Engine:
         self.F, self.coef = GG.fit_ridge(teams, y, self.corpus)
         self.G = GG.Guide(self.F, self.coef, self.V, D.DEV)
         self.model = GG.H.TeamDiffusionHPS(self.V).to(D.DEV)
-        self.model.load_state_dict(torch.load(args.checkpoint, map_location=D.DEV)["sd"])
+        self.model.load_state_dict(load_checkpoint(args.checkpoint, map_location=D.DEV)["sd"])
         self.model.eval()
         self.corpus_sets = [A.species_set(t) for t in self.corpus]
         os.environ["PATH"] = str(args.node.parent) + os.pathsep + os.environ.get("PATH", "")
@@ -303,8 +304,8 @@ def write_report(path, data):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--checkpoint", type=Path, default=ROOT / "results/temperature_p0.pt")
-    parser.add_argument("--checkpoint-metadata", type=Path, default=ROOT / "results/temperature_p0.training.json")
+    parser.add_argument("--checkpoint", type=Path, default=ROOT / "results/temperature_p0_noheldout.pt")
+    parser.add_argument("--checkpoint-metadata", type=Path, default=ROOT / "results/temperature_p0_noheldout.training.json")
     parser.add_argument("--labels", type=Path, default=ROOT / "results/activesearch.json")
     parser.add_argument("--node", type=Path, default=Path('/Users/ramiismael/.nvm/versions/node/v22.22.0/bin/node'))
     parser.add_argument("--output", type=Path, default=ROOT / "results/reverse_score_diversity.json")

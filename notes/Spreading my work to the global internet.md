@@ -1,0 +1,6 @@
+#linkediin #twitter #social_media_posting 
+- [ ] rite a linkedin post about the speed up and write a blog on how i prompt my llm to increase the speed for me please "> I asked for faster battles to reduce evaluation cost. Codex's [pipeline integration](../team_completion_pipeline/FAST_EVALUATOR_INTEGRATION.md) reused six workers with 24 concurrent battles each and measured 1.73 times the whole-stage throughput on the tested workload. After review, Codex merged [PR #17](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/pull/17). I also requested battle-turn measurements to compare how long games lasted across search generations; Codex documented the [battle-length design](../Battle%20length%20per%20generation.md) and added live-battle checks in [PR #14](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/pull/14), while search-loop aggregation remained proposed."
+- [ ] Write a linkedin post i discover a bug in there code in the details on about the write up about the rl policy has weakspot for sylevon fairy type 
+- [ ] [[Play a VGC battle against a random bot in a Hugging Face Space]]
+- [ ] Determine what artifact you can post abou
+- [ ] [[Cold Email]]

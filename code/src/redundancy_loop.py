@@ -12,9 +12,9 @@ import numpy as np
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from showdown_validator import VGC_BENCH
 import hps_generate
 # /tmp cleanup broke the /tmp copies (2026-10-04); durable runtime copies, same commits
-hps_generate.SHOWDOWN = Path.home() / ".local/share/vgc-pilot-runtime/validator-913da36"
 import activesearch as A
 import entropyloop as E
 import gradguide as GG
@@ -23,10 +23,9 @@ import diffusion as D
 from corpus import parse_team, parse_team_text, norm
 from hps_generate import Validator
 
-A.pool.REPO = str(Path.home() / ".local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2")
-MDB.SHOWDOWN = hps_generate.SHOWDOWN
+A.pool.REPO = str(VGC_BENCH)
 REPO = Path("/Users/ramiismael/Documents/code/vgc-team-generator-pilot")
-A.P0_CKPT = str(REPO / "results/temperature_p0.pt")         # shared p0 (the original is gone)
+A.P0_CKPT = str(REPO / "results/temperature_p0_noheldout.pt")         # shared p0 (the original is gone)
 OUT = REPO / "results/redundancy_loop.json"
 WORK = Path("/tmp/vgc-pilot/redundancy")
 ARMS = {"cut": 0.0, "mmr30": 0.30, "mmr60": 0.60}   # 0.10 dropped before any battle: near no-op (see doc amendment)

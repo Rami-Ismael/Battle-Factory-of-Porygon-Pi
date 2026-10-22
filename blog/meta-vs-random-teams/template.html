@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Meta vs Random Teams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --same:#2f9e6b; --ahead:#2a78d6; --lost:#d4551f; --focus:#2a78d6; --s1:#2a78d6; --s2:#d4551f;
+  --font-body:"Literata",Georgia,"Times New Roman",serif;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; --s1:#4b94ee; --s2:#d95926; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; --s1:#4b94ee; --s2:#d95926; color-scheme:dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.65 var(--font-body); }
+main { max-width: 68rem; margin: 0 auto; padding: 40px max(16px, env(safe-area-inset-left, 0px)) 120px; }
+.col { max-width: 42rem; }
+.eyebrow { font: 600 12px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+h1 { font: 600 clamp(30px, 5vw, 44px)/1.12 var(--font-body); margin: 0 0 12px; text-wrap: balance; }
+h2 { font: 600 24px/1.25 var(--font-body); margin: 48px 0 10px; }
+.byline { font: 14px/1.4 var(--font-ui); color: var(--ink-3); margin-bottom: 28px; }
+p { margin: 0 0 1em; color: var(--ink-2); } b, strong { color: var(--ink); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+figure { margin: 28px 0 8px; }
+figcaption { font: 13px/1.5 var(--font-ui); color: var(--ink-3); margin-top: 12px; max-width: 46rem; }
+figcaption b { color: var(--ink-2); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 32px; align-items: start; }
+.split > .side { position: sticky; top: 24px; font-size: 15.5px; }
+@media (max-width: 860px) { .split { grid-template-columns: 1fr; } .split > .side { position: static; } }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; }
+button { font: 500 14px/1 var(--font-ui); color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 10px 14px; cursor: pointer; min-height: 40px; transition: transform 120ms var(--ease-out), background-color 150ms ease, border-color 150ms ease; }
+button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { button:hover { border-color: var(--ink-3); } }
+button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--wash); border-color: var(--ink-2); }
+button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button:disabled { opacity: .45; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ask { font: 600 15px/1.4 var(--font-ui); color: var(--ink); margin: 0 0 10px; }
+.hint { font: 13px/1.45 var(--font-ui); color: var(--ink-3); margin: 8px 0 0; min-height: 1.45em; }
+
+/* team cards */
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+@media (max-width: 640px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font: 13px/1.35 var(--font-ui); min-width: 0; }
+.card .who { display: flex; align-items: center; gap: 8px; min-height: 64px; }
+.spr { position: relative; width: 64px; height: 64px; flex: none; }
+.spr img.mon { width: 64px; height: 64px; image-rendering: pixelated; }
+.spr img.itm { position: absolute; right: -4px; bottom: -2px; width: 24px; height: 24px; image-rendering: pixelated; }
+.card .who > div { min-width: 0; }
+.card .name { font-weight: 600; font-size: 14px; color: var(--ink); line-height: 1.2; }
+@media (max-width: 640px) { .card .who { flex-direction: column; align-items: flex-start; gap: 2px; } }
+.f { display: block; overflow: hidden; height: 1.35em; color: var(--ink-2); }
+.f > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f.changed { color: var(--lost); }
+.lbl { color: var(--ink-3); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; margin-top: 6px; }
+.readout { display: flex; gap: 28px; flex-wrap: wrap; align-items: end; margin-top: 18px; font-family: var(--font-ui); }
+@media (max-width: 640px) { .readout { position: sticky; bottom: 0; background: var(--panel); margin: 18px -18px -18px; padding: 12px 18px; border-top: 1px solid var(--rule); border-radius: 0 0 12px 12px; gap: 20px; } .readout .big { font-size: 36px; } }
+.big { font: 600 48px/1 var(--font-body); font-variant-numeric: tabular-nums; }
+.readout small { display: block; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+
+/* charts */
+svg { display: block; width: 100%; height: auto; font: 12px var(--font-ui); overflow: visible; }
+.grid { stroke: var(--rule); } .tick { fill: var(--ink-3); } .lab { fill: var(--ink-2); } .vlab { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; }
+.bar { fill: var(--s1); } .bar.pick { fill: var(--ink); } .ci { stroke: var(--ink); stroke-width: 2; opacity: .5; }
+.ref { stroke: var(--ink); stroke-dasharray: 4 3; }
+.l1 { fill: none; stroke: var(--s1); stroke-width: 2; }
+.d1 { fill: var(--s1); stroke: var(--panel); stroke-width: 2; }
+.tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font: 12px/1.35 var(--font-ui); padding: 6px 8px; border-radius: 6px; opacity: 0; transition: opacity 120ms ease; z-index: 30; max-width: 240px; }
+.small-multiples { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 640px) { .small-multiples { grid-template-columns: 1fr; } }
+
+.enter { animation: rise 320ms var(--ease-out) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) {
+  .enter { animation: fade 200ms ease both; }
+  @keyframes fade { from { opacity: 0; } }
+  button:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Exploratory analysis</p>
+  <h1>Why meta teams beat random teams</h1>
+  <p class="byline">Rami Ismael · Battle Factory of Porygon-Pi · draft</p>
+  <div class="col">
+    <p>A real tournament team from VGCPastes wins <span class="num" id="t-real"></span> of its battles against the top-50 meta teams. Swap all six Pokémon for random legal ones, with random items, abilities, Stat Points, Stat Alignment and moves, and the same team wins <span class="num" id="t-rand"></span>. This article asks which part of a team carries that gap.</p>
+    <p>The evidence is the random-fill baseline: <span class="num" id="t-n"></span> real teams outside the top 50, each with one part replaced by uniformly random legal values and every result battled against the meta. Because only one part changes, the drop in win rate is that part's share.</p>
+  </div>
+  <section id="variant"></section>
+
+  <h2>The same pattern across every battled team</h2>
+  <div class="col"><p>The fill experiment is causal but small. The matchup database also holds <span class="num" id="t-all"></span> teams that the project has battled against the meta, most of them proposed by search methods. Two counts track win rate across them.</p></div>
+  <figure>
+    <div class="small-multiples"><div id="c-spread"></div><div id="c-protect"></div></div>
+    <figcaption><b>Figure 2.</b> Mean win rate by the number of spread attacks (moves that hit both opponents) and by the number of Protect-family moves on the team, for counts held by at least 50 teams. Win rate is the share of battles won against the top-50 meta teams, with the behaviour-cloning policy playing both sides. Correlation, not an intervention. Source: <span id="src-curves"></span>.</figcaption>
+  </figure>
+  <div class="col">
+    <p>Spread attacks rise from 0.08 with none to 0.50 at five, then flatten. Protect rises to 0.49 at three and then <b>falls</b>: with six or more, teams lose more often. The fill experiment measures the step up from a random team, which carries less than one Protect. Close to the meta, Protect stops paying.</p>
+    <h2>Limits</h2>
+    <p>The behaviour-cloning policy plays both sides, so every value here holds under that policy. If it misuses a strong Pokémon, species will look less important than they are. The move types are my own grouping. The fill experiment has 43 starting teams.</p>
+  </div>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+<script>
+const DATA=/*DATA*/null;
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = (s, r = document) => r.querySelector(s);
+const f3 = v => v.toFixed(3);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const WR = "Win rate is the share of battles won against the top-50 meta teams, with the behaviour-cloning policy playing both sides, one battle per opponent.";
+const PARTS = [["ability6", "Abilities", m => [["Ability", m.ability]]], ["stats6", "Stat Points", m => [["Stat Points", m.points]]],
+  ["alignment6", "Stat Alignment", m => [["Alignment", m.nature]]], ["item6", "Items", m => [["Item", m.item]]],
+  ["move24", "Moves", m => m.moves.map((x, i) => ["Move " + (i + 1), x.name])]];
+const sprite = (m, cls = "") => `<div class="spr ${cls}"><img class="mon" alt="${esc(m.species)}" src="${DATA.sprites[m.sprite]}">${DATA.items[m.item] ? `<img class="itm" alt="${esc(m.item)}" src="${DATA.items[m.item]}">` : ""}</div>`;
+
+/* number tween: shows a score moving rather than teleporting (explanation) */
+function tween(el, from, to, ms = 700) {
+  if (REDUCE) { el.textContent = f3(to); return; }
+  const t0 = performance.now(), ease = t => 1 - Math.pow(1 - t, 4);
+  const step = now => { const t = Math.min(1, (now - t0) / ms); el.textContent = f3(from + (to - from) * ease(t)); if (t < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+/* slot-reel text swap: the old value leaves upward, the new one enters from below (shows what changed) */
+function roll(span, text, delay) {
+  const target = span.dataset.to ?? span.textContent;
+  if (target === text) return;
+  span.dataset.to = text;
+  span.getAnimations().forEach(a => a.cancel());            /* a fast second click retargets instead of queueing */
+  if (REDUCE) { span.textContent = text; return; }
+  span.animate([{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(-100%)", opacity: 0 }], { duration: 160, delay, easing: "cubic-bezier(0.23,1,0.32,1)", fill: "forwards" })
+    .finished.then(() => { if (span.dataset.to !== text) return; span.textContent = text; span.getAnimations().forEach(a => a.cancel());
+      span.animate([{ transform: "translateY(100%)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: 220, easing: "cubic-bezier(0.23,1,0.32,1)" }); }, () => {});
+}
+const tip = $("#tip");
+function hover(root) {
+  root.querySelectorAll("[data-tip]").forEach(n => {
+    n.addEventListener("pointermove", e => { tip.textContent = n.dataset.tip; tip.style.opacity = 1; tip.style.left = Math.min(e.clientX + 12, innerWidth - 250) + "px"; tip.style.top = e.clientY + 14 + "px"; });
+    n.addEventListener("pointerleave", () => tip.style.opacity = 0);
+  });
+}
+
+/* horizontal bars; bars grow from the zero line when revealed (reveal a result) */
+function hbars(rows, { xmin = 0, xmax, ref, pick, fmt = f3, W = 620 }) {
+  W = Math.max(330, Math.min(620, W)); const LW = Math.min(150, W * 0.34), h = rows.length * 32 + 30, sx = v => LW + (W - LW - 70) * (v - xmin) / (xmax - xmin);
+  let s = `<svg viewBox="0 0 ${W} ${h}" role="img">`;
+  for (const t of [xmin, 0, xmax / 2, xmax].filter((v, i, a) => a.indexOf(v) === i))
+    s += `<line class="grid" x1="${sx(t)}" x2="${sx(t)}" y1="0" y2="${h - 22}"/><text class="tick" x="${sx(t)}" y="${h - 6}" text-anchor="middle">${t.toFixed(2)}</text>`;
+  if (ref) s += `<line class="ref" x1="${sx(ref[0])}" x2="${sx(ref[0])}" y1="0" y2="${h - 22}"/><text class="tick" x="${sx(ref[0]) - 4}" y="${h - 26}" text-anchor="end">${ref[1]}</text>`;
+  rows.forEach(([lab, v, ci], i) => {
+    const y = 6 + i * 32, x0 = sx(0);
+    s += `<g data-tip="${esc(lab)}: ${fmt(v)}${ci ? ` (95% interval ${ci[0].toFixed(3)} to ${ci[1].toFixed(3)})` : ""}"><rect x="0" y="${y - 4}" width="${W}" height="30" fill="transparent"/>
+      <text class="lab" x="${LW - 8}" y="${y + 15}" text-anchor="end">${esc(lab)}</text>
+      <rect class="bar${pick === lab ? " pick" : ""}" data-i="${i}" x="${Math.min(x0, sx(v))}" y="${y + 2}" width="${Math.max(Math.abs(sx(v) - x0), 1)}" height="18" rx="4" style="transform-origin:${x0}px 0"/>
+      ${ci ? `<line class="ci" x1="${sx(ci[0])}" x2="${sx(ci[1])}" y1="${y + 11}" y2="${y + 11}"/>` : ""}
+      <text class="vlab" x="${sx(ci ? ci[1] : Math.max(v, 0)) + 6}" y="${y + 15}" style="paint-order:stroke;stroke:var(--panel);stroke-width:4px">${fmt(v)}</text></g>`;
+  });
+  return s + "</svg>";
+}
+function grow(root) {
+  if (REDUCE) return;
+  root.querySelectorAll("rect.bar").forEach((r, i) => r.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 450, delay: i * 50, easing: "cubic-bezier(0.23,1,0.32,1)", fill: "backwards" }));
+}
+
+/* line chart for Figure 2 */
+function lines({ series, xs, ymax = 0.6, xlab, guess, W = 560, H = 240 }) {
+  const x0 = 40, x1 = W - 14, y0 = H - 40, y1 = 12, sx = k => x0 + (x1 - x0) * (k - xs[0]) / (xs[xs.length - 1] - xs[0]), sy = v => y0 - (y0 - y1) * v / ymax;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let t = 0; t <= ymax + 1e-9; t += 0.2) s += `<line class="grid" x1="${x0}" x2="${x1}" y1="${sy(t)}" y2="${sy(t)}"/><text class="tick" x="${x0 - 6}" y="${sy(t) + 4}" text-anchor="end">${t.toFixed(1)}</text>`;
+  xs.forEach(k => s += `<text class="tick" x="${sx(k)}" y="${y0 + 16}" text-anchor="middle">${k}</text>`);
+  s += `<text class="tick" x="${(x0 + x1) / 2}" y="${H - 4}" text-anchor="middle">${xlab}</text>`;
+  series.forEach(({ pts, cls, name }) => {
+    if (!pts.length) return;
+    s += `<polyline class="l${cls}" points="${pts.map(([k, v]) => sx(k) + "," + sy(v)).join(" ")}"/>`;
+    pts.forEach(([k, v, n]) => s += `<g data-tip="${esc(name)}, ${k}: win rate ${f3(v)}${n ? ` over ${n.toLocaleString()} teams` : ""}"><circle cx="${sx(k)}" cy="${sy(v)}" r="12" fill="transparent"/><circle class="d${cls}" cx="${sx(k)}" cy="${sy(v)}" r="4.5"/></g>`);
+  });
+  if (guess) s += `<g data-tip="Your guess at ${guess[0]}: ${f3(guess[1])}"><circle class="guess" cx="${sx(guess[0])}" cy="${sy(guess[1])}" r="7"/><text class="tick" x="${sx(guess[0]) + 10}" y="${sy(guess[1]) - 8}">your guess</text></g>`;
+  return s + "</svg>";
+}
+
+/* Figure 1: teambuilder */
+function teambuilder(root) {
+  const real = DATA.real.team;
+  root.innerHTML = `<h2>Randomise one part at a time</h2>
+  <div class="split"><figure style="margin-top:8px">
+    <div class="panel">
+      <p class="ask" id="a-ask">Before you change anything: which part, randomised on all six Pokémon, costs this team the most?</p>
+      <div class="row" id="a-btns">${PARTS.map(([k, n]) => `<button data-k="${k}">${n}</button>`).join("")}</div>
+      <p class="hint" id="a-hint"></p>
+      <div class="cards" id="a-cards"></div>
+      <div class="readout"><div><div class="big num" id="a-wr">${f3(DATA.real.score)}</div><small>this team's win rate</small></div>
+        <div><div class="big num" id="a-mean" style="color:var(--ink-3)">${f3(DATA.real_mean)}</div><small>mean over all ${DATA.n_start} teams</small></div></div>
+    </div>
+    <div id="a-chart" class="panel" style="margin-top:12px" hidden></div>
+    <figcaption><b>Figure 1.</b> One real team from the fill experiment (team ${DATA.start}). Each button replaces that part on all six Pokémon with uniformly random legal values; changed fields turn orange. The large number is this team's measured win rate after the swap; the grey one is the mean over all ${DATA.n_start} starting teams given the same swap. ${WR} Source: ${esc(DATA.sources.fills)}.</figcaption>
+  </figure>
+  <div class="side"><p>Start with a guess. A teambuilder lets you change a team one part at a time, and that is the experiment: keep everything real except one part, then battle.</p>
+  <p id="a-side2" hidden>Random moves take the team almost to the floor while it keeps its meta species, items, abilities and spreads. The other parts barely matter by comparison.</p></div></div>`;
+  const cards = $("#a-cards", root);
+  cards.innerHTML = real.map((m, i) => `<div class="card" data-i="${i}"><div class="who">${sprite(m)}<div><div class="name">${esc(m.species)}</div>
+    <span class="f" data-f="Item"><span>${esc(m.item)}</span></span></div></div>
+    <div class="lbl">Ability · Alignment</div><span class="f" data-f="Ability"><span>${esc(m.ability)}</span></span><span class="f" data-f="Alignment"><span>${esc(m.nature)}</span></span>
+    <div class="lbl">Stat Points</div><span class="f" data-f="Stat Points"><span>${esc(m.points)}</span></span>
+    <div class="lbl">Moves</div>${m.moves.map((x, j) => `<span class="f" data-f="Move ${j + 1}"><span>${esc(x.name)}</span></span>`).join("")}</div>`).join("");
+  let guess = null, cur = "real", shown = new Set();
+  const btns = [...root.querySelectorAll("#a-btns button")];
+  btns.forEach(b => b.onclick = () => {
+    const k = b.dataset.k, name = PARTS.find(p => p[0] === k)[1];
+    if (!guess) { guess = name; $("#a-ask", root).textContent = `Your guess: ${name}. Now randomise each part and check.`; btns.forEach(x => x.textContent = "Randomise " + PARTS.find(p => p[0] === x.dataset.k)[1].toLowerCase()); return; }
+    const to = cur === k ? "real" : k; cur = to;
+    btns.forEach(x => x.setAttribute("aria-pressed", x.dataset.k === to));
+    const team = to === "real" ? real : DATA.fills[to].team;
+    const fields = m => [["Item", m.item], ["Ability", m.ability], ["Alignment", m.nature], ["Stat Points", m.points], ...m.moves.map((x, j) => ["Move " + (j + 1), x.name])];
+    team.forEach((m, i) => fields(m).forEach(([f, v], fi) => {
+      const box = cards.querySelector(`.card[data-i="${i}"] .f[data-f="${f}"]`); if (!box) return;
+      box.classList.toggle("changed", v !== fields(real[i])[fi][1]);
+      roll(box.firstElementChild, v, i * 40 + fi * 15);
+    }));
+    const wr = $("#a-wr", root), mean = $("#a-mean", root);
+    tween(wr, parseFloat(wr.textContent), to === "real" ? DATA.real.score : DATA.fills[to].score);
+    tween(mean, parseFloat(mean.textContent), to === "real" ? DATA.real_mean : DATA.fills[to].mean);
+    $("#a-hint", root).textContent = to === "real" ? "Back to the real team." : `${name} randomised on all six. Click again to restore the real team.`;
+    if (to !== "real") shown.add(k);
+    if (shown.size >= 2 && $("#a-chart", root).hidden) {
+      const rows = [...PARTS.map(([k, n]) => [n, DATA.fills[k].mean, DATA.fills[k].ci.map(c => c + DATA.real_mean)]), ["Whole Pokémon", DATA.fills.pokemon6.mean, null]];
+      const c = $("#a-chart", root); c.hidden = false;
+      c.innerHTML = `<p class="ask">All parts, averaged over ${DATA.n_start} teams</p>` + hbars(rows, { W: c.clientWidth - 36, xmax: 0.5, ref: [DATA.real_mean, "real teams " + f3(DATA.real_mean)], pick: guess });
+      c.classList.add("enter"); grow(c); hover(c); $("#a-side2", root).hidden = false;
+    }
+  });
+}
+
+/* Figure 2: counts across every battled team */
+function curves() {
+  const pts = c => Object.entries(c).filter(([, v]) => v[1] >= 50).map(([k, v]) => [+k, v[0], v[1]]).sort((a, b) => a[0] - b[0]);
+  for (const [id, c, lab] of [["c-spread", DATA.spread, "spread attacks on the team"], ["c-protect", DATA.protect, "Protect moves on the team"]]) {
+    const p = pts(c); $("#" + id).innerHTML = lines({ series: [{ pts: p, cls: 1, name: lab }], xs: p.map(x => x[0]), xlab: lab, W: Math.max(330, Math.min(420, $("#" + id).clientWidth)), H: 220 }); hover($("#" + id));
+  }
+}
+
+$("#t-real").textContent = f3(DATA.real_mean); $("#t-rand").textContent = f3(DATA.fills.pokemon6.mean);
+$("#t-n").textContent = DATA.n_start; $("#t-all").textContent = DATA.n_all.toLocaleString(); $("#src-curves").textContent = DATA.sources.curves;
+curves();
+teambuilder($("#variant"));
+</script>
+</body>
+</html>

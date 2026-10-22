@@ -1,0 +1,947 @@
+{
+  "accepted_runs_audited": [
+    {
+      "run": "bc-screen-002",
+      "archived_files_verified": 0,
+      "comparisons": {
+        "combined": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.0290522411762144,
+          "trace_equivalent": false
+        },
+        "deadline1": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9189127873688793,
+          "trace_equivalent": false
+        },
+        "shared": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.0836944457610056,
+          "trace_equivalent": false
+        },
+        "threads1": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.0333308041372167,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "bc-optimization-001",
+      "archived_files_verified": 12,
+      "comparisons": {
+        "actor_only": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.0501755796281251,
+          "trace_equivalent": false
+        },
+        "encoder": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 2.30715982907245,
+          "trace_equivalent": false
+        },
+        "fast_stack": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 2.783506416264426,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "bc-confirm-001",
+      "archived_files_verified": 12,
+      "comparisons": {
+        "fast_stack": {
+          "blocks": 8,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 2.740860259652789,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-001-direct-bc",
+      "archived_files_verified": 14,
+      "comparisons": {
+        "fast": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 2.3412224375748636,
+          "trace_equivalent": true
+        }
+      }
+    },
+    {
+      "run": "campaign-001-cold-worker",
+      "archived_files_verified": 16,
+      "comparisons": {
+        "cold_workers": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.7938192433292391,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-001-more-settings",
+      "archived_files_verified": 16,
+      "comparisons": {
+        "deadline0": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.8280392073415533,
+          "trace_equivalent": false
+        },
+        "deadline2": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.729927493749506,
+          "trace_equivalent": false
+        },
+        "inference_mode": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9893554416293191,
+          "trace_equivalent": false
+        },
+        "logit_cache": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.2106647266585413,
+          "trace_equivalent": false
+        },
+        "threads2": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.0111385852529784,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-001-concurrency",
+      "archived_files_verified": 20,
+      "comparisons": {
+        "concurrency50": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.1428579761587665,
+          "trace_equivalent": false
+        },
+        "concurrency8": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9344065361655125,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-002-direct-engine",
+      "archived_files_verified": 23,
+      "comparisons": {
+        "combined": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9669705905232495,
+          "trace_equivalent": true
+        },
+        "concurrent": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9098505098697286,
+          "trace_equivalent": true
+        },
+        "minimal": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9642812387879114,
+          "trace_equivalent": true
+        },
+        "team_cache": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.0225913258466677,
+          "trace_equivalent": true
+        }
+      }
+    },
+    {
+      "run": "campaign-002-cold-engine",
+      "archived_files_verified": 23,
+      "comparisons": {
+        "cold": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.0712581092484829,
+          "trace_equivalent": true
+        }
+      }
+    },
+    {
+      "run": "campaign-002-scaling",
+      "archived_files_verified": 23,
+      "comparisons": {
+        "dynamic2": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.994556879880017,
+          "trace_equivalent": false
+        },
+        "dynamic4": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9140469464402023,
+          "trace_equivalent": false
+        },
+        "workers2": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.9772396975184245,
+          "trace_equivalent": false
+        },
+        "workers4": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 3.4721437537061215,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-002-snapshot-bench",
+      "archived_files_verified": 31,
+      "comparisons": {
+        "resume": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.2116924386344845,
+          "trace_equivalent": true
+        }
+      }
+    },
+    {
+      "run": "campaign-002-remote-bench",
+      "archived_files_verified": 31,
+      "comparisons": {
+        "shared_actor2": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.8749808286062982,
+          "trace_equivalent": false
+        },
+        "shared_actor4": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.7617241876030265,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-002-cache-isolation",
+      "archived_files_verified": 33,
+      "comparisons": {
+        "fast_cache": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 1.0060462318732404,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-003-queue",
+      "archived_files_verified": 36,
+      "comparisons": {
+        "leased_queue": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9572090581253445,
+          "trace_equivalent": true
+        }
+      }
+    },
+    {
+      "run": "campaign-003-array",
+      "archived_files_verified": 36,
+      "comparisons": {
+        "array": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 843.6610749637775,
+          "trace_equivalent": false
+        },
+        "specialized": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 405.60548543898676,
+          "trace_equivalent": false
+        },
+        "vectorization": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 2.357268442304772,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-003-node-actor",
+      "archived_files_verified": 36,
+      "comparisons": {
+        "node_actor": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.939804168649856,
+          "trace_equivalent": true
+        }
+      }
+    },
+    {
+      "run": "campaign-003-student",
+      "archived_files_verified": 36,
+      "comparisons": {
+        "student": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9116890153896419,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "optimized-pool-001",
+      "archived_files_verified": 36,
+      "comparisons": {
+        "workers4": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 3.044954183315177,
+          "trace_equivalent": false
+        },
+        "workers6": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 3.607368009360865,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "deadline05-001",
+      "archived_files_verified": 40,
+      "comparisons": {
+        "deadline05": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.86519028145472,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "campaign-004-transport",
+      "archived_files_verified": 43,
+      "comparisons": {
+        "direct": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9495374932718451,
+          "trace_equivalent": false
+        }
+      }
+    },
+    {
+      "run": "optimized-concurrency-001",
+      "archived_files_verified": 46,
+      "comparisons": {
+        "workers4_concurrency50": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.942279718817137,
+          "trace_equivalent": false
+        },
+        "workers4_concurrency8": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.8627188810561167,
+          "trace_equivalent": false
+        },
+        "workers6_concurrency50": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.9953801930080663,
+          "trace_equivalent": false
+        },
+        "workers6_concurrency8": {
+          "blocks": 5,
+          "accepted_block_ids": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "invalid_clock_blocks": [],
+          "geometric_mean_speedup": 0.8374070074146547,
+          "trace_equivalent": false
+        }
+      }
+    }
+  ],
+  "live_allocation": {
+    "trials": 60,
+    "physical_battles": 17904,
+    "eligible_battles": 16960,
+    "accounting_failures": [],
+    "comparisons": {
+      "race": {
+        "accepted_blocks": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "excluded_blocks": [],
+        "quality_comparable_blocks": 5,
+        "selected_holdout_score_difference": {
+          "mean": 0.0361328125,
+          "bootstrap_95_percent_interval": [
+            -0.018359375,
+            0.0896484375
+          ]
+        },
+        "eligible_battle_ratio": {
+          "mean": 0.9865058838743049,
+          "bootstrap_95_percent_interval": [
+            0.9092331566015777,
+            1.0495495495495495
+          ]
+        },
+        "pilot_failures": 0,
+        "methods": {
+          "uniform": {
+            "trials": 10,
+            "mean_selected_holdout_score": 0.556640625,
+            "mean_eligible_battles": 291.2
+          },
+          "race": {
+            "trials": 10,
+            "mean_selected_holdout_score": 0.5927734375,
+            "mean_eligible_battles": 288.0
+          }
+        }
+      },
+      "stratified": {
+        "accepted_blocks": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "excluded_blocks": [],
+        "quality_comparable_blocks": 5,
+        "selected_holdout_score_difference": {
+          "mean": -0.011328125,
+          "bootstrap_95_percent_interval": [
+            -0.051953125,
+            0.0279296875
+          ]
+        },
+        "eligible_battle_ratio": {
+          "mean": 1.0005847953216374,
+          "bootstrap_95_percent_interval": [
+            0.8805847953216375,
+            1.1134999999999977
+          ]
+        },
+        "pilot_failures": 0,
+        "methods": {
+          "uniform": {
+            "trials": 10,
+            "mean_selected_holdout_score": 0.6078125,
+            "mean_eligible_battles": 281.6
+          },
+          "stratified": {
+            "trials": 10,
+            "mean_selected_holdout_score": 0.596484375,
+            "mean_eligible_battles": 280.0
+          }
+        }
+      },
+      "surrogate": {
+        "accepted_blocks": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "excluded_blocks": [],
+        "quality_comparable_blocks": 5,
+        "selected_holdout_score_difference": {
+          "mean": 0.0255859375,
+          "bootstrap_95_percent_interval": [
+            -0.023046875,
+            0.0845703125
+          ]
+        },
+        "eligible_battle_ratio": {
+          "mean": 0.9586186186186186,
+          "bootstrap_95_percent_interval": [
+            0.848048048048048,
+            1.092972972972973
+          ]
+        },
+        "pilot_failures": 0,
+        "methods": {
+          "uniform": {
+            "trials": 10,
+            "mean_selected_holdout_score": 0.569921875,
+            "mean_eligible_battles": 284.8
+          },
+          "surrogate": {
+            "trials": 10,
+            "mean_selected_holdout_score": 0.5955078125,
+            "mean_eligible_battles": 270.4
+          }
+        }
+      }
+    },
+    "limitations": [
+      "Intervals resample complete timing blocks, conditional on the same finite held-out outcome grid.",
+      "They do not include held-out-label uncertainty or establish the truly strongest team.",
+      "Five blocks are an exploratory screen; no multiplicity correction is applied.",
+      "Post-deadline results are logged and drained but cannot influence selection."
+    ]
+  },
+  "failures": [],
+  "warnings": [
+    {
+      "run": "bc-screen-002",
+      "warning": "No archived source set; legacy worker/controller hashes exist but full code reproduction is weaker."
+    }
+  ],
+  "scope": {
+    "objective": "Implement and empirically compare all practical and adventurous ideas in faster-battle-simulations-ideas.md, accounting for background activity",
+    "experiments": [
+      {
+        "id": "batch_deadline",
+        "status": "0/0.5/1/2 ms repeated screens complete; all slower in tested conditions",
+        "evidence": "runs/bc-screen-002; runs/campaign-001-more-settings; runs/deadline05-001"
+      },
+      {
+        "id": "persistent_workers",
+        "status": "Python comparison complete; five-block Node rerun completed with no flagged clock gaps, cold/warm 0.0713x",
+        "evidence": "runs/campaign-001-cold-worker; runs/campaign-002-cold-engine"
+      },
+      {
+        "id": "worker_concurrency_threads",
+        "status": "thread, worker and concurrency comparisons complete; fast-stack 4/6 groups measured 3.045x/3.607x versus one; final 48000-battle sweep found no gain from 50 versus 24 and slower throughput at 8; retain 24",
+        "evidence": "runs/campaign-001-concurrency; runs/campaign-002-scaling; runs/optimized-pool-001; runs/optimized-concurrency-001"
+      },
+      {
+        "id": "dynamic_scheduling",
+        "status": "five-block 2/4 worker comparisons complete; no clear gain on equal-sized chunks",
+        "evidence": "runs/campaign-002-scaling"
+      },
+      {
+        "id": "shared_inference",
+        "status": "within-worker gain measured; cross-worker numerical/actions validated but central CPU actor slower at 2/4 workers",
+        "evidence": "runs/bc-screen-002; runs/remote-validation-001; runs/campaign-002-remote-bench"
+      },
+      {
+        "id": "observation_optimization",
+        "status": "equality and repeated gains validated; packaged in reusable evaluator with workload/unit/live checks",
+        "evidence": "runs/encoder-verify-001; runs/bc-confirm-001; runs/evaluator-smoke-001"
+      },
+      {
+        "id": "direct_simulator",
+        "status": "direct BC correctness and optimized path gains validated; matched whole-job server/direct comparison complete at 0.950x with interval spanning 1; no direct-route gain established",
+        "evidence": "runs/campaign-001-direct-bc; runs/campaign-004-transport"
+      },
+      {
+        "id": "colocated_exported_policy",
+        "status": "partial colocation tested: ONNX checks and full timing traces match; 0.940x with interval spanning 1; Python preprocessing/sampling still present, so full round-trip removal remains untested",
+        "evidence": "runs/export-validation-001; runs/node-actor-validation-001; runs/campaign-003-node-actor"
+      },
+      {
+        "id": "opening_library",
+        "status": "broader validation and five-block timing complete; repeat-seed resume 1.212x; all 48 unseen seeds miss; no independent-sample gain",
+        "evidence": "runs/campaign-002-snapshot-validate; runs/campaign-002-snapshot-bench"
+      },
+      {
+        "id": "policy_output_cache",
+        "status": "correctness checks pass; isolated fast-stack comparison complete, 1.006x with interval spanning 1 and zero hits in 23930 requests; no gain established",
+        "evidence": "runs/campaign-002-cache-isolation"
+      },
+      {
+        "id": "specialized_simulator",
+        "status": "restricted prototype validated on 3453 damage events and timed; 0/49 real teams eligible, so no current VGC gain",
+        "evidence": "runs/campaign-003-array"
+      },
+      {
+        "id": "array_simulator",
+        "status": "restricted prototype matches Showdown and scalar rules; five-block vectorization/scalar ratio 2.357x; unsupported real teams require full engine",
+        "evidence": "runs/campaign-003-array"
+      },
+      {
+        "id": "distilled_policy",
+        "status": "trained and validated on separate battles; 22.6% greedy agreement and 0.912x completed-battle throughput; first apprentice rejected",
+        "evidence": "runs/campaign-003/student.json; runs/campaign-003-student"
+      },
+      {
+        "id": "surrogate_screening",
+        "status": "held-out replay and live 15-second comparison complete; live selected-score gain 2.56 percentage points, interval -2.30 to 8.46; no demonstrated benefit",
+        "evidence": "runs/campaign-002-quality-corpus/allocation-analysis.json; runs/campaign-004-live-allocation/analysis-v2.json"
+      },
+      {
+        "id": "adaptive_racing",
+        "status": "held-out replay and live 15-second comparison complete; live selected-score gain 3.61 percentage points, interval -1.84 to 8.96; no demonstrated benefit",
+        "evidence": "runs/campaign-002-quality-corpus/allocation-analysis.json; runs/campaign-004-live-allocation/analysis-v2.json"
+      },
+      {
+        "id": "opponent_allocation",
+        "status": "held-out replay and live 15-second comparison complete; live selected-score change -1.13 percentage points, interval -5.20 to 2.79; no demonstrated benefit",
+        "evidence": "runs/campaign-002-quality-corpus/allocation-analysis.json; runs/campaign-004-live-allocation/analysis-v2.json"
+      },
+      {
+        "id": "paired_randomness",
+        "status": "variance measured on complete seeded grid; 12/28 comparisons benefit, ratios 0.881\u20131.060; no universal variance reduction",
+        "evidence": "runs/campaign-002-quality-corpus/allocation-analysis.json"
+      },
+      {
+        "id": "prefix_reuse",
+        "status": "same-seed resume gain measured; exact state comparison rejects all 64 legal nature mutants, including 19 matching visible boards; no cross-team gain established",
+        "evidence": "runs/campaign-002-snapshot-bench; runs/prefix-audit-001"
+      },
+      {
+        "id": "distributed_queue",
+        "status": "recovery tests pass; five-block local multi-process HTTP queue comparison trace-equivalent at 0.957x static throughput; multi-host performance remains untested",
+        "evidence": "runs/campaign-003-queue"
+      }
+    ]
+  },
+  "limitations": [
+    "This verifies archived files and raw timing accounting, not correctness of all simulator mechanics.",
+    "Run completion and validation coverage must also be checked against stage manifests and validation artifacts.",
+    "Repeated seeded executions and calibrated array repetitions are not independent battle observations.",
+    "Restricted-engine trace_equivalent=false is intentional; its damage-event validation is separate.",
+    "The original clock-invalid engine runs and failed smoke attempts remain preserved but are not accepted evidence."
+  ]
+}

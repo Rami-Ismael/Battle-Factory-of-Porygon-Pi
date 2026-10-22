@@ -61,3 +61,43 @@ same core as the old gradient loop with Chandelure in Charizard's place: 14 of 1
 Basculegion / Chandelure / Floette-Eternal / Garchomp / Kingambit / Whimsicott. It never used a newly
 reachable species after generation 0. Run note: one generated team holding an item-less Pokémon parsed
 to 5 slots (`corpus.parse_team_text` merges item-less slots); it was skipped from the elites.
+
+
+## Clean re-run, scored once on ranks 51–100 (2026-10-14)
+
+Same protocol and seed (4040), run as `CEM_TAG=cem_v3_noheldout python battle_supervisor.py cem_v3.py run --then final`.
+Differences from the 2026-10-08 run: the `_noheldout_regmb_v3` members (never trained on ranks 51–100), a training
+corpus and labels without them, candidates that equal a held-out team rejected, and a final scoring of the 16
+finalists on the 50 held-out teams. Results: `results/cem_v3_noheldout.json`.
+
+| gen | battled mean | p90 | max | ≥ 0.531 | species sets / 512 | elites used |
+|---|---|---|---|---|---|---|
+| 0 | 0.458 ± 0.009 | 0.580 | 0.680 | 35/128 | 156 | — |
+| 1 | 0.506 ± 0.008 | 0.620 | 0.700 | 52/128 | 149 | 64 |
+| 2 | 0.506 ± 0.008 | 0.620 | 0.680 | 52/128 | 109 | 105 |
+| 3 | 0.528 ± 0.007 | 0.620 | 0.720 | 64/128 | 76 | 157 |
+
+Stopped after generation 3 on the diversity guardrail (76 < 156/2). Valid 100%, 0 copies, 0 held-out teams among
+512 battled and 2,048 proposed.
+
+**Fresh re-battle, 16 best distinct teams × 192 battles:**
+
+| | this run | 2026-10-08 run |
+|---|---|---|
+| loop labels (mean) | 0.679 | 0.721 |
+| fresh vs top-50 (mean) | **0.504** | 0.581 |
+| fresh vs top-50 (best) | 0.599 | 0.667 |
+| finalists ≥ 0.531 | 5 of 16 | 14 of 16 |
+| **vs ranks 51–100 (mean)** | **0.509** | not measured |
+| vs ranks 51–100 (best) | 0.609 | not measured |
+
+Reading:
+- **Out-of-sample, the finalists hold up.** Against ranks 51–100 they score 0.509 against 0.504 on the top-50
+  (paired difference +0.005, se 0.013; correlation across the 16 is 0.64). There is no generalisation gap to teams the
+  loop never saw. The best team by top-50 score (0.599: Floette-Eternal, Garchomp, Chandelure, Basculegion, Kingambit,
+  Whimsicott) scores 0.536 there. No finalist shares more than one slot with any held-out team.
+- **The clean loop is weaker than the 2026-10-08 one:** fresh mean 0.504 against 0.581, and it needed four generations
+  to reach a battled mean the earlier run hit in one (0.564). The earlier numbers came from members that had seen
+  these 50 teams, which are real winning teams, so some of that gap is likely leakage. This is one seed against one
+  seed, so it is not separable from run-to-run variation here.
+- Compare this run, not the earlier one, with any new method. The earlier run is quarantined as a contaminated record.

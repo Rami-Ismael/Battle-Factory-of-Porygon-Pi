@@ -1,0 +1,9 @@
+extends: substitution
+message: "Use '%s' instead of '%s'."
+level: error
+ignorecase: false
+swap:
+  '(?i)threshold': elite cut or ask
+  F1: the loop-teams model
+  G2: the battle-records model
+  '(?i)usage-weighted meta': the meta-team list

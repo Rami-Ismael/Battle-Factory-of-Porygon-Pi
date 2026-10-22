@@ -6,5 +6,4 @@
 			- [ ] We used VGCPaste, also known as the VGC Google Sheets Repository, where they keep track of the top Pokémon teams used in official Pokémon championships, including this year 2026 Pokémon World Championships.
 		- [ ] Step of production 
 			- [ ] We use an LLM to do all the steps for us. There could be some mistakes, but it is faster than doing it by hand. The first step of building the list of high-placing teams is to filter out Pokémon teams that do not have all the moves, abilities, stat spreads, natures, and EVs. Then we group each Pokémon team based on the tournament. Within each tournament, we rank them based on their placement in the tournament. We sort the tournament groups by date, from newest to oldest. We assume newer teams are built using better information than older Pokémon teams. We select the highest-ranked eligible Pokémon team from each tournament group. Then we repeat for the second-highest-ranked eligible Pokémon team inside each tournament group. We repeat these steps until we have 50 high-placing teams.
-- [ ] I want you to create new visual using your new animation skills in how you create the top 50 placment taem placement which is consider your meta pool
-	- [ ] grill me on what to expect
+- [ ] Find the visual for this behavior on this aspect which could be split into smaller section for the blog details
