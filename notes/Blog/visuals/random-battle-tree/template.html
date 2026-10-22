@@ -1,0 +1,490 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Random Battle Tree</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (680px) with figures breaking out to 980px; grey numbered captions under each figure. */
+:root {
+  --bg: #f5f6f4; --panel: #ffffff; --ink: #1b2127; --muted: #5b646d; --faint: #8b949c; --rule: #d8dcdc;
+  --us: #275d93; --them: #b4512b; --mid: #c6cacc;
+  --font: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #13171b; --panel: #1a1f25; --ink: #e6e9eb; --muted: #a0a9b1; --faint: #78828b; --rule: #2d343b;
+    --us: #82b2e3; --them: #ec9368; --mid: #4b535a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #13171b; --panel: #1a1f25; --ink: #e6e9eb; --muted: #a0a9b1; --faint: #78828b; --rule: #2d343b;
+  --us: #82b2e3; --them: #ec9368; --mid: #4b535a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 980px; margin: 0 auto; }
+.col { max-width: 680px; margin: 0 auto; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: balance; font-weight: 700; }
+h2 { font-size: 1.45rem; line-height: 1.2; margin: 48px 0 8px; text-wrap: balance; font-weight: 650; }
+p { margin: 0 0 14px; }
+.dek { font-size: 1.2rem; color: var(--muted); line-height: 1.45; margin-bottom: 18px; }
+.byline { display: flex; flex-wrap: wrap; gap: 6px 24px; border-block: 1px solid var(--rule); padding-block: 10px; font-size: 0.82rem; color: var(--muted); margin-bottom: 28px; }
+.byline b { display: block; color: var(--ink); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.7rem; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+.us { color: var(--us); font-weight: 600; } .them { color: var(--them); font-weight: 600; }
+figure { margin: 26px 0 30px; }
+.fig { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; }
+figcaption { max-width: 680px; margin: 10px auto 0; font-size: 0.86rem; color: var(--muted); line-height: 1.5; }
+figcaption b { color: var(--ink); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 10px; font-size: 0.88rem; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 5px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.85rem; padding: 6px 12px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--us); outline-offset: 2px; }
+.scroll { overflow-x: auto; }
+.scroll svg { display: block; width: 100%; height: auto; }
+#f1 { min-width: 640px; }
+#f2, #f3 { min-width: 480px; }
+svg text { font-family: var(--font); fill: var(--muted); }
+svg .mono { font-family: var(--mono); }
+.node { cursor: pointer; }
+.node:focus { outline: none; }
+.node:focus-visible circle, .node.sel circle { stroke: var(--ink); stroke-width: 2.5; }
+.teams { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; }
+.tline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
+.tline .who { width: 92px; flex: none; font-weight: 600; }
+.spr { width: 40px; height: 40px; image-rendering: pixelated; }
+.spr.sm { width: 26px; height: 26px; vertical-align: middle; }
+.chip { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 0.55rem; color: var(--muted); border: 1px dashed var(--rule); border-radius: 4px; text-align: center; line-height: 1.1; }
+.panel { border-top: 1px solid var(--rule); margin-top: 10px; padding-top: 12px; min-height: 148px; }
+.panel h3 { margin: 0 0 6px; font-size: 0.95rem; font-weight: 600; }
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
+.side { min-width: 0; }
+.side .lab { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.mons { display: flex; flex-wrap: wrap; gap: 6px; }
+.mon { width: 58px; text-align: center; font-size: 0.66rem; color: var(--muted); }
+.mon .hp { height: 5px; background: var(--rule); border-radius: 3px; overflow: hidden; margin-top: 2px; }
+.mon .hp i { display: block; height: 100%; }
+.mon.out img, .mon.out .chip { opacity: 0.25; filter: grayscale(1); }
+.mon .field { font-size: 0.6rem; color: var(--ink); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); align-items: center; }
+.ramp { width: 140px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, var(--them), var(--mid), var(--us)); }
+table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.predict { border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; background: var(--bg); }
+.predict .opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.predict button { font: inherit; font-size: 0.85rem; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 5px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.predict button[aria-pressed="true"] { border-color: var(--ink); }
+.feedback { margin-top: 8px; font-size: 0.9rem; }
+input[type=range] { width: min(320px, 100%); accent-color: var(--ink); }
+.readout { font-family: var(--mono); font-size: 0.9rem; }
+.tip { min-height: 64px; font-size: 0.85rem; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.notes { font-size: 0.85rem; color: var(--muted); }
+.notes li { margin-bottom: 6px; }
+a { color: var(--us); }
+@media (max-width: 560px) { body { font-size: 16px; } .board { grid-template-columns: 1fr; } .tline .who { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<main>
+<div class="col">
+  <h1>The random battle tree</h1>
+  <p class="dek">Let both players click at random and every battle becomes a walk through a tree that starts at team preview. This page grows that tree for one real matchup, checks whether the walk is Brownian motion, and asks what the random battle tells us about a team.</p>
+  <div class="byline">
+    <div><b>Date</b>21 October 2026</div>
+    <div><b>Battles</b><span class="num" id="b-battles"></span></div>
+    <div><b>Format</b>Champions VGC 2026 Reg M-B</div>
+    <div><b>Status</b>Draft, exploration</div>
+  </div>
+
+  <p><b>Random play</b> here means Showdown's own random player on both sides: every turn each Pokémon uses a random move on a random legal target, it switches only when forced, and it Mega Evolves whenever it can. Team preview is random too: a random four of six, in random order, so the first two lead. A <b>win rate</b> is the share of battles a team wins against the 49 top-50 meta teams (one team appears twice, so it counts twice). The <b>behaviour-cloning win rate</b> is the same thing with the behaviour-cloning policy playing both sides, the evaluator every search in this project is scored by.</p>
+</div>
+
+<div class="col"><h2>1. One battle is one path through a tree</h2>
+  <p>Start at team preview and let random play choose the next turn three times. Each choice opens a different branch: different leads, different targets, a crit or a miss. From every node, 48 random battles played to the end give that node's <b>chance to win</b>. Each of the 27 branches is then played out to a win or a loss.</p>
+</div>
+
+<figure>
+  <div class="fig">
+    <div class="teams" id="f1-teams"></div>
+    <div class="controls">
+      <span>Draw by</span>
+      <div class="seg" role="group" aria-label="Layout">
+        <button type="button" id="view-tree" aria-pressed="true">Tree</button>
+        <button type="button" id="view-walk" aria-pressed="false">Chance to win</button>
+      </div>
+      <span>Grow</span>
+      <div class="seg" role="group" aria-label="Depth" id="grow"></div>
+      <div class="legend"><span>chance to win</span><span class="ramp" aria-hidden="true"></span><span class="num">0% · 50% · 100%</span></div>
+    </div>
+    <div class="scroll"><svg id="f1" viewBox="0 0 940 420" role="img" aria-label="Tree of random battles from team preview"></svg></div>
+    <div class="panel" id="f1-panel" aria-live="polite"></div>
+  </div>
+  <figcaption><b>Figure 1.</b> <span id="f1-cap"></span></figcaption>
+</figure>
+
+<div class="col">
+  <p>The second view is the Brownian-motion picture. Height is the chance to win, so every path starts at the same point and wanders until it is absorbed at 0% or 100%. The chance to win along a path is a <b>martingale</b>: on average a node's children have the same chance as the node, so the path has no drift of its own. Its squared steps add up to the uncertainty at the start, <span class="num">p(1 − p)</span> for a starting chance p, and the tree shows where that uncertainty gets spent.</p>
+  <p id="tree-stats"></p>
+</div>
+
+<div class="col"><h2>2. Fold the tree by Pokémon left</h2>
+  <p>Most nodes of the tree differ in details that do not matter for the result. Merge every node with the same number of Pokémon left on each side and the tree folds into a 5 × 5 grid, a <b>graph</b> where each battle is a walk from the corner (4, 4) to an edge. The chance to win becomes an <b>absorption probability</b>, computed by working back from the edges.</p>
+</div>
+
+<figure>
+  <div class="fig">
+    <div class="scroll"><svg id="f2" viewBox="0 0 640 470" role="img" aria-label="Grid of Pokémon left on each side"></svg></div>
+    <div class="tip" id="f2-tip" aria-live="polite"></div>
+  </div>
+  <figcaption><b>Figure 2.</b> <span id="f2-cap"></span></figcaption>
+</figure>
+
+<div class="col">
+  <p id="snow-intro"></p>
+  <div class="scroll"><table id="snow"></table></div>
+  <p style="margin-top:14px" id="brown"></p>
+</div>
+
+<div class="col"><h2>3. What does a random battle measure?</h2>
+  <p>A random battle costs nothing to set up and runs about four times faster than a behaviour-cloning battle. If its win rate ranked teams the way the behaviour-cloning win rate does, it would be a cheap evaluator. Across all 150 teams it nearly does.</p>
+</div>
+
+<figure>
+  <div class="fig">
+    <div class="predict" id="predict">
+      <div><b>Predict first.</b> Keep only the 50 teams with a behaviour-cloning win rate of 0.50 or more, the range the search works in. How well does the random-play win rate rank them?</div>
+      <div class="opts">
+        <button type="button" data-guess="0.9" aria-pressed="false">As well as before, about 0.9</button>
+        <button type="button" data-guess="0.6" aria-pressed="false">Worse, about 0.6</button>
+        <button type="button" data-guess="0.2" aria-pressed="false">Barely, about 0.2</button>
+      </div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </div>
+    <div class="controls">
+      <label for="cutoff">Keep teams with a behaviour-cloning win rate of at least <span class="num" id="cut-val">0.00</span></label>
+      <input type="range" id="cutoff" min="0" max="0.6" step="0.05" value="0">
+      <span class="readout" id="rho"></span>
+    </div>
+    <div class="scroll"><svg id="f3" viewBox="0 0 640 470" role="img" aria-label="Random-play win rate against behaviour-cloning win rate for 150 teams"></svg></div>
+    <div class="legend" id="f3-legend"></div>
+    <div class="tip" id="f3-tip" aria-live="polite">Point at a team to see its six.</div>
+  </div>
+  <figcaption><b>Figure 3.</b> <span id="f3-cap"></span></figcaption>
+</figure>
+
+<div class="col">
+  <p id="measure"></p>
+  <h2>4. Features read off the walk and the graph</h2>
+  <p>The tree and the grid offer more than one number per team. Each candidate below was measured from the same random battles and tested against the behaviour-cloning win rate, first alone and then after removing what the random-play win rate already explains.</p>
+  <div class="scroll"><table id="feat"></table></div>
+  <p style="margin-top:14px" id="feat-verdict"></p>
+  <p id="gap"></p>
+
+  <h2>Notes</h2>
+  <ol class="notes" id="notes"></ol>
+</div>
+</main>
+
+<script id="rbt-data">/*DATA*/</script>
+<script>
+(function () {
+  const D = window.RBT, S = D.stats;
+  const $ = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const pct = v => Math.round(v * 100) + '%';
+  const f2 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+  const f3 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(3);
+  const ci = c => `[${f2(c[0])}, ${f2(c[1])}]`;
+  // chance-to-win colour: opponent's colour at 0, grey at 0.5, ours at 1 (theme-aware via CSS variables)
+  const winFill = v => v >= 0.5
+    ? `color-mix(in oklab, var(--us) ${Math.round((v - 0.5) * 200)}%, var(--mid))`
+    : `color-mix(in oklab, var(--them) ${Math.round((0.5 - v) * 200)}%, var(--mid))`;
+  const spriteHTML = (name, cls = 'spr') => D.sprites[name]
+    ? `<img class="${cls}" src="${D.sprites[name]}" alt="${name}" title="${name}">`
+    : `<span class="chip" title="${name}">${name}</span>`;
+  const sixHTML = list => list.map(s => spriteHTML(s)).join('');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  $('b-battles').textContent = S.battles_label;
+
+  // ------------------------------------------------------------------ Figure 1: the tree
+  $('f1-teams').innerHTML =
+    `<div class="tline"><span class="who us">Our team</span>${sixHTML(D.row_team)}<span class="num">behaviour-cloning win rate ${f2(S.row_bc)}</span></div>` +
+    `<div class="tline"><span class="who them">Opponent</span>${sixHTML(D.opp_team)}<span>a top-50 meta team</span></div>`;
+  const svg1 = $('f1');
+  const W = 940, H = 420, padL = 46, padR = 22, padT = 18, padB = 34;
+  const root = D.tree.root;
+  // collect nodes with depth and parent, leaves in order
+  const nodes = [], leaves = [];
+  (function walk(n, depth, parent) {
+    const me = {n, depth, parent, kids: []};
+    nodes.push(me);
+    if (parent) parent.kids.push(me);
+    (n.children || []).forEach(c => walk(c, depth + 1, me));
+    if (!n.children) leaves.push(me);
+  })(root, 0, null);
+  let maxTurn = 4;
+  for (const l of leaves) if (l.n.path) maxTurn = Math.max(maxTurn, l.n.path.turns + 1);
+  const x = t => padL + (W - padL - padR) * t / maxTurn;
+  const yWalk = v => padT + (H - padT - padB) * (1 - v);
+  leaves.forEach((l, i) => l.yTree = padT + (H - padT - padB) * (i + 0.5) / leaves.length);
+  (function setY(m) { if (m.kids.length) { m.kids.forEach(setY); m.yTree = m.kids.reduce((a, k) => a + k.yTree, 0) / m.kids.length; } })(nodes[0]);
+  // axes
+  const axis = el('g', {}, svg1);
+  for (let t = 0; t <= maxTurn; t++) {
+    el('line', {x1: x(t), x2: x(t), y1: padT, y2: H - padB, stroke: 'var(--rule)', 'stroke-width': t <= 3 ? 1 : 0.5}, axis);
+    const lab = el('text', {x: x(t), y: H - padB + 18, 'text-anchor': 'middle', 'font-size': 11}, axis);
+    lab.textContent = t === 0 ? 'preview' : (t % 2 === 0 || t <= 3 ? 'turn ' + t : '');
+  }
+  const yAxis = el('g', {opacity: 0}, svg1);
+  [[1, '100%'], [0.5, '50%'], [0, '0%']].forEach(([v, s]) => {
+    el('line', {x1: padL - 4, x2: W - padR, y1: yWalk(v), y2: yWalk(v), stroke: 'var(--rule)', 'stroke-dasharray': v === 0.5 ? '3 3' : ''}, yAxis);
+    el('text', {x: padL - 8, y: yWalk(v) + 4, 'text-anchor': 'end', 'font-size': 11, class: 'mono'}, yAxis).textContent = s;
+  });
+  const gPaths = el('g', {}, svg1), gEdges = el('g', {}, svg1), gNodes = el('g', {}, svg1);
+  // play-out paths after the leaves
+  for (const l of leaves) {
+    const p = l.n.path;
+    if (!p) continue;
+    l.pts = p.pts.map(q => ({t: q.turn, v: q.v}));
+    l.endT = p.turns + 0.6; l.win = p.win;
+    l.line = el('polyline', {fill: 'none', stroke: p.win ? 'var(--us)' : 'var(--them)', 'stroke-width': 1.4, 'stroke-opacity': 0.75}, gPaths);
+    l.end = el('circle', {r: 4.5, fill: p.win ? 'var(--us)' : 'var(--them)'}, gPaths);
+  }
+  for (const m of nodes) {
+    if (m.parent) m.edge = el('line', {stroke: 'var(--faint)', 'stroke-width': 1.2}, gEdges);
+    const g = el('g', {class: 'node', tabindex: 0, role: 'button'}, gNodes);
+    g.setAttribute('aria-label', `${m.depth === 0 ? 'Team preview' : 'Turn ' + m.n.turn}, chance to win ${pct(m.n.v)}`);
+    m.circle = el('circle', {r: m.depth === 0 ? 11 : 8, style: `fill:${winFill(m.n.v)}`, stroke: 'var(--panel)', 'stroke-width': 1.5}, g);
+    m.g = g;
+    g.addEventListener('click', () => select(m));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(m); } });
+  }
+  let s = 0, depthShown = 4;                       // s: 0 = tree, 1 = chance to win
+  const ny = m => (1 - s) * m.yTree + s * yWalk(m.n.v);
+  function draw() {
+    for (const m of nodes) {
+      const tx = x(m.depth === 0 ? 0 : m.n.turn), ty = ny(m);
+      m.g.setAttribute('transform', `translate(${tx},${ty})`);
+      m.g.style.display = m.depth <= depthShown ? '' : 'none';
+      if (m.edge) {
+        const px = x(m.parent.depth === 0 ? 0 : m.parent.n.turn), py = ny(m.parent);
+        Object.entries({x1: px, y1: py, x2: tx, y2: ty}).forEach(([k, v]) => m.edge.setAttribute(k, v));
+        m.edge.style.display = m.depth <= depthShown ? '' : 'none';
+      }
+    }
+    for (const l of leaves) {
+      if (!l.line) continue;
+      const show = depthShown >= 4;
+      const pts = [[x(l.n.turn), ny(l)]].concat(l.pts.map(q => [x(q.t), (1 - s) * l.yTree + s * yWalk(q.v)]));
+      const ey = (1 - s) * l.yTree + s * yWalk(l.win);
+      pts.push([x(l.endT), ey]);
+      l.line.setAttribute('points', pts.map(p => p.join(',')).join(' '));
+      l.end.setAttribute('cx', x(l.endT)); l.end.setAttribute('cy', ey);
+      l.line.style.display = l.end.style.display = show ? '' : 'none';
+    }
+    yAxis.setAttribute('opacity', s);
+  }
+  function animateTo(target) {
+    const s0 = s, t0 = performance.now(), dur = reduce ? 0 : 750;
+    function step(now) {
+      const k = dur ? Math.min(1, (now - t0) / dur) : 1;
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      s = s0 + (target - s0) * e; draw();
+      if (k < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  $('view-tree').addEventListener('click', () => { $('view-tree').setAttribute('aria-pressed', 'true'); $('view-walk').setAttribute('aria-pressed', 'false'); animateTo(0); });
+  $('view-walk').addEventListener('click', () => { $('view-walk').setAttribute('aria-pressed', 'true'); $('view-tree').setAttribute('aria-pressed', 'false'); animateTo(1); });
+  const grow = $('grow');
+  ['preview', '1', '2', '3', 'end'].forEach((lab, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = lab; b.setAttribute('aria-pressed', i === 4 ? 'true' : 'false');
+    b.addEventListener('click', () => { depthShown = i; [...grow.children].forEach((c, j) => c.setAttribute('aria-pressed', j === i ? 'true' : 'false')); draw(); });
+    grow.appendChild(b);
+  });
+  function monHTML(p) {
+    const hp = Math.max(0, Math.min(1, p.hp));
+    const col = hp > 0.5 ? 'var(--us)' : hp > 0.2 ? 'var(--faint)' : 'var(--them)';
+    return `<div class="mon${hp <= 0 ? ' out' : ''}">${spriteHTML(p.species)}<div class="hp"><i style="width:${hp * 100}%;background:${col}"></i></div>` +
+           `<div>${hp <= 0 ? 'fainted' : Math.round(hp * 100) + '% HP'}</div>${p.active && hp > 0 ? '<div class="field">on the field</div>' : '<div>&nbsp;</div>'}</div>`;
+  }
+  function select(m) {
+    nodes.forEach(o => o.g.classList.toggle('sel', o === m));
+    const n = m.n, P = $('f1-panel');
+    if (m.depth === 0) {
+      P.innerHTML = `<h3>Team preview · chance to win <span class="num">${pct(n.v)}</span></h3>` +
+        `<p class="notes">48 random battles from here, each with its own random team preview, won ${Math.round(n.v * 48)}. The three branches are three different random previews.</p>`;
+      return;
+    }
+    const [aA, hA, aB, hB] = n.board;
+    let html = `<h3>Turn ${n.turn} · we have <span class="num">${aA}</span> left, they have <span class="num">${aB}</span> left · chance to win <span class="num">${pct(n.v)}</span></h3>` +
+      `<div class="board"><div class="side"><div class="lab us">Ours</div><div class="mons">${n.detail[0].map(monHTML).join('')}</div></div>` +
+      `<div class="side"><div class="lab them">Theirs</div><div class="mons">${n.detail[1].map(monHTML).join('')}</div></div></div>`;
+    if (n.path) html += `<p class="notes" style="margin-top:8px">Played out from here: <b>${n.path.win ? 'won' : 'lost'}</b> on turn ${n.path.turns}.</p>`;
+    P.innerHTML = html;
+  }
+  draw();
+  select(nodes[0].kids[0]);
+  const T = S.tree;
+  $('f1-cap').innerHTML = `Our team against a top-50 team, under random play. Node colour is the chance to win from that node, from 48 random battles. Lines after turn 3 are single random battles to the end, coloured by the result (${leaves.filter(l => l.win === 1).length} of ${leaves.length} won). Click a node to see the board.`;
+  $('tree-stats').innerHTML = `Across ${T.spines.toLocaleString('en-US')} such battles (16 for each of 150 teams, 32 random battles per node), the average step of the chance to win was <span class="num">${f3(T.martingale_mean_step)}</span>, as a martingale requires, and the squared steps summed to <span class="num">${f3(T.sum_sq)}</span> against a starting uncertainty of <span class="num">${f3(T.v0var)}</span>. Team preview and the leads settle <b>${pct(T.preview_share)}</b> of the outcome's uncertainty before anyone moves; half of it is settled by the end of turn <span class="num">${T.half_turn}</span>, in battles whose median length is ${S.median_turns} turns.`;
+
+  // ------------------------------------------------------------------ Figure 2: the grid
+  const svg2 = $('f2'), L = D.lattice;
+  const gx = i => 120 + (4 - i) * 112, gy = j => 76 + (4 - j) * 92;   // i = ours left (columns), j = theirs left (rows)
+  el('text', {x: 120 + 2 * 112, y: 16, 'text-anchor': 'middle', 'font-size': 12}, svg2).textContent = 'our Pokémon left  →  we lose one';
+  const ylab = el('text', {x: 26, y: gy(2), 'text-anchor': 'middle', 'font-size': 12, transform: `rotate(-90 26 ${gy(2)})`}, svg2);
+  ylab.textContent = 'their Pokémon left  →  they lose one';
+  for (let i = 4; i >= 0; i--) el('text', {x: gx(i), y: 40, 'text-anchor': 'middle', 'font-size': 12, class: 'mono'}, svg2).textContent = i;
+  for (let j = 4; j >= 0; j--) el('text', {x: 62, y: gy(j) + 4, 'text-anchor': 'middle', 'font-size': 12, class: 'mono'}, svg2).textContent = j;
+  const gE = el('g', {}, svg2), gN = el('g', {}, svg2);
+  const maxW = 16;
+  for (const [k, st] of Object.entries(L)) {
+    const i = +k[0], j = +k[1];
+    for (const [k2, p] of Object.entries(st.next)) {
+      const i2 = +k2[0], j2 = +k2[1];
+      if (i2 === 0 && j2 === 0) continue;               // both last Pokémon in one turn: no cell to point at
+      const col = (i2 < i && j2 < j) ? 'var(--faint)' : (i2 < i ? 'var(--them)' : 'var(--us)');
+      el('line', {x1: gx(i), y1: gy(j), x2: gx(i2), y2: gy(j2), stroke: col, 'stroke-width': Math.max(0.6, p * maxW), 'stroke-opacity': 0.55, 'stroke-linecap': 'round'}, gE);
+    }
+  }
+  function cell(i, j) {
+    const terminal = i === 0 || j === 0;
+    const v = terminal ? (j === 0 && i > 0 ? 1 : 0) : (L[`${i}${j}`] ? L[`${i}${j}`].win : null);
+    if (v === null || (i === 0 && j === 0)) return;
+    const g = el('g', {class: 'node', tabindex: 0, role: 'button', transform: `translate(${gx(i)},${gy(j)})`}, gN);
+    el('circle', {r: terminal ? 12 : 21, style: `fill:${winFill(v)}`, stroke: 'var(--panel)', 'stroke-width': 2}, g);
+    const t = el('text', {y: 4, 'text-anchor': 'middle', 'font-size': terminal ? 9 : 12, class: 'mono', style: 'fill:var(--ink);font-weight:500'}, g);
+    t.textContent = terminal ? (v ? 'win' : 'loss') : pct(v);
+    const say = () => {
+      if (terminal) { $('f2-tip').textContent = v ? `They have no Pokémon left: we win.` : `We have no Pokémon left: we lose.`; return; }
+      const st = L[`${i}${j}`], nx = st.next;
+      const theyLose = nx[`${i}${j - 1}`] || 0, weLose = nx[`${i - 1}${j}`] || 0, two = 1 - theyLose - weLose;
+      $('f2-tip').innerHTML = `<span><b>We have ${i}, they have ${j}.</b> Next turn with a knockout: they lose one <span class="num us">${pct(theyLose)}</span>, we lose one <span class="num them">${pct(weLose)}</span>, two at once <span class="num">${pct(Math.max(0, two))}</span>. From here we win <span class="num">${pct(st.win)}</span>. (${st.n.toLocaleString('en-US')} visits)</span>`;
+    };
+    g.addEventListener('mouseenter', say); g.addEventListener('focus', say); g.addEventListener('click', say);
+  }
+  for (let i = 4; i >= 0; i--) for (let j = 4; j >= 0; j--) cell(i, j);
+  $('f2-tip').innerHTML = '<span>Point at a cell to read its arrows.</span>';
+  $('f2-cap').innerHTML = `All ${S.walk_battles.toLocaleString('en-US')} random battles of the 150 teams against the top 50, folded by Pokémon left. An arrow's width is the chance that the next knockout goes that way: <span class="them">right</span>, we lose one; <span class="us">down</span>, they lose one; grey, one each in the same turn. Cell colour is the chance to win from there, computed back from the edges. For each team, this computed chance from (4, 4) matches its random-play win rate to within <span class="num">${S.lattice_gap.toFixed(4)}</span> on average.`;
+  // snowball table
+  $('snow-intro').innerHTML = `If the grid were a coin-flip walk, the side that is ahead would be no more likely to take the next knockout. To test it, each battle is compared with itself after shuffling the order of its knockouts (the last one stays last). The shuffle keeps each battle's own balance, so a lopsided matchup cannot fake a streak.`;
+  const sb = S.snowball, rowsS = ['-2', '-1', '0', '1', '2'];
+  const lead = k => ({'-2': 'two down', '-1': 'one down', '0': 'level', '1': 'one up', '2': 'two up'})[k];
+  $('snow').innerHTML = `<tr><th>We are</th><th>We take the next knockout</th><th>Same battles, shuffled</th><th>Gap, 95% interval</th></tr>` +
+    rowsS.map(k => `<tr><td>${lead(k)}</td><td class="n">${pct(sb[k].row_scores_next)}</td><td class="n">${pct(sb[k].same_after_shuffle)}</td>` +
+      `<td class="n">${(sb[k].row_scores_next - sb[k].same_after_shuffle >= 0 ? '+' : '−')}${Math.abs(100 * (sb[k].row_scores_next - sb[k].same_after_shuffle)).toFixed(1)} points ${'[' + (100 * sb[k].gap_ci[0]).toFixed(1) + ', ' + (100 * sb[k].gap_ci[1]).toFixed(1) + ']'}</td></tr>`).join('');
+  const B = S.brownian;
+  $('brown').innerHTML = `So the grid is not a coin-flip walk. One Pokémon down, a side takes the next knockout back more often than chance; a likely reason is that its replacement comes in at full HP against attackers that have already taken damage. Two down, the leader pulls away; a likely reason is that a side down to its last Pokémon has one attacker on the field against two. Neither reason was tested here. The HP lead itself (HP left on our four minus theirs) does move like Brownian motion from turn to turn. Its steps carry no memory: their correlation with the next step is <span class="num">${f3(B.lag1)}</span>, against <span class="num">${f3(B.lag1_shuffled)}</span> for the same steps shuffled. They are heavier-tailed than a bell curve (kurtosis <span class="num">${B.kurtosis.toFixed(1)}</span>; a bell curve is 3), because a knockout turn moves the lead in one jump, and on <span class="num">${pct(B.flat)}</span> of turns the lead does not move at all.`;
+
+  // ------------------------------------------------------------------ Figure 3: the scatter
+  const svg3 = $('f3'), teams = D.teams;
+  const X0 = 60, X1 = 620, Y0 = 430, Y1 = 20, M = 0.78;
+  const sx = v => X0 + (X1 - X0) * v / M, sy = v => Y0 - (Y0 - Y1) * v / M;
+  for (let v = 0; v <= 0.75 + 1e-9; v += 0.25) {
+    el('line', {x1: sx(v), x2: sx(v), y1: Y0, y2: Y1, stroke: 'var(--rule)'}, svg3);
+    el('line', {x1: X0, x2: X1, y1: sy(v), y2: sy(v), stroke: 'var(--rule)'}, svg3);
+    el('text', {x: sx(v), y: Y0 + 16, 'text-anchor': 'middle', 'font-size': 11, class: 'mono'}, svg3).textContent = v.toFixed(2);
+    el('text', {x: X0 - 8, y: sy(v) + 4, 'text-anchor': 'end', 'font-size': 11, class: 'mono'}, svg3).textContent = v.toFixed(2);
+  }
+  el('text', {x: (X0 + X1) / 2, y: Y0 + 34, 'text-anchor': 'middle', 'font-size': 12}, svg3).textContent = 'random-play win rate (392 battles each)';
+  el('text', {x: 16, y: (Y0 + Y1) / 2, 'text-anchor': 'middle', 'font-size': 12, transform: `rotate(-90 16 ${(Y0 + Y1) / 2})`}, svg3).textContent = 'behaviour-cloning win rate';
+  const cutLine = el('line', {x1: X0, x2: X1, stroke: 'var(--ink)', 'stroke-dasharray': '4 4', 'stroke-width': 1}, svg3);
+  const dots = teams.map(t => {
+    const c = el('circle', {cx: sx(t.rp), cy: sy(t.bc), r: 5, tabindex: 0, class: 'node',
+      fill: t.family ? 'var(--us)' : 'var(--panel)', stroke: t.family ? 'var(--panel)' : 'var(--ink)', 'stroke-width': t.family ? 1 : 1.2}, svg3);
+    const say = () => {
+      $('f3-tip').innerHTML = `<span style="display:flex;gap:2px">${sixHTML(t.species)}</span><span>behaviour-cloning <span class="num">${f2(t.bc)}</span> · random play <span class="num">${f2(t.rp)}</span></span>`;
+    };
+    c.addEventListener('mouseenter', say); c.addEventListener('focus', say); c.addEventListener('click', say);
+    return c;
+  });
+  $('f3-legend').innerHTML =
+    `<span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="var(--us)"></circle></svg> one search family: ${['Basculegion', 'Chandelure', 'Floette-Eternal', 'Garchomp', 'Kingambit'].map(n => spriteHTML(n, 'spr sm')).join('')} + one more</span>` +
+    `<span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="var(--panel)" stroke="var(--ink)"></circle></svg> every other team</span>`;
+  function ranks(a) {
+    const idx = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]), r = new Array(a.length);
+    for (let i = 0; i < idx.length;) {
+      let j = i; while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+      for (let k = i; k <= j; k++) r[idx[k][1]] = (i + j) / 2;
+      i = j + 1;
+    }
+    return r;
+  }
+  function spearman(a, b) {
+    const ra = ranks(a), rb = ranks(b), n = a.length;
+    const ma = ra.reduce((p, q) => p + q, 0) / n, mb = rb.reduce((p, q) => p + q, 0) / n;
+    let sab = 0, saa = 0, sbb = 0;
+    for (let i = 0; i < n; i++) { sab += (ra[i] - ma) * (rb[i] - mb); saa += (ra[i] - ma) ** 2; sbb += (rb[i] - mb) ** 2; }
+    return sab / Math.sqrt(saa * sbb);
+  }
+  function setCut(c) {
+    $('cutoff').value = c; $('cut-val').textContent = (+c).toFixed(2);
+    const keep = teams.map(t => t.bc >= c - 1e-9);
+    dots.forEach((d, i) => d.setAttribute('opacity', keep[i] ? 1 : 0.15));
+    cutLine.setAttribute('y1', sy(c)); cutLine.setAttribute('y2', sy(c)); cutLine.style.display = c > 0 ? '' : 'none';
+    const a = teams.filter((t, i) => keep[i]);
+    $('rho').textContent = `${a.length} teams · Spearman correlation ${a.length > 4 ? f2(spearman(a.map(t => t.rp), a.map(t => t.bc))) : '—'}`;
+  }
+  $('cutoff').addEventListener('input', e => setCut(+e.target.value));
+  setCut(0);
+  const C = S.cut;
+  document.querySelectorAll('#predict button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#predict button').forEach(o => o.setAttribute('aria-pressed', o === b ? 'true' : 'false'));
+    setCut(0.5);
+    const g = +b.dataset.guess;
+    const answer = `Among the 50 strongest teams the Spearman correlation is <b class="num">${f2(C['0.50'].spearman)}</b>, 95% interval <span class="num">${ci(C['0.50'].ci)}</span>, although both win rates are still reliable there (a noise ceiling of <span class="num">${f2(S.ceiling_050)}</span>).`;
+    $('feedback').innerHTML = (g === 0.2 ? 'Right. ' : g === 0.6 ? 'Too high. ' : 'Much too high. ') + answer;
+  }));
+  $('f3-cap').innerHTML = `150 teams, each with at least 196 behaviour-cloning battles and 392 random-play battles against the top 50. Drag the cut-off to keep only stronger teams; the correlation is recomputed on the teams that remain. All: <span class="num">${f2(S.all.spearman)} ${ci(S.all.ci)}</span>. At least 0.30: <span class="num">${f2(C['0.30'].spearman)}</span>. At least 0.40: <span class="num">${f2(C['0.40'].spearman)}</span>. At least 0.50: <span class="num">${f2(C['0.50'].spearman)}</span>.`;
+  $('measure').innerHTML = `Random play separates teams that work from teams that do not: across all 150 the Spearman correlation is ${f2(S.all.spearman)}, and among the ${S.family26.n} teams that share all six species (only items, moves and Stat Points differ) it is still ${f2(S.family26.spearman)} ${ci(S.family26.ci)}. Among strong teams it stops tracking the evaluator. Ranked by random play, the top 10 holds ${S.top10.overlap} of the true top 10 and averages a behaviour-cloning win rate of ${f2(S.top10.picked)} against ${f2(S.top10.best)}. The part of a team's strength that needs a competent pilot is the part random play cannot see, and that is the part a search over strong teams is trying to find.`;
+
+  // ------------------------------------------------------------------ Section 4: features
+  const F = S.features, names = {
+    random_play_win_rate: ['Random-play win rate', 'the chance to win at the root'],
+    conversion: ['Conversion', 'win rate after taking the first knockout'],
+    comeback: ['Comeback', 'win rate after losing the first Pokémon'],
+    first_knockout: ['First knockout', 'share of battles where we knock out first'],
+    lead_drift: ['Drift', 'average HP-lead step per turn'],
+    lead_volatility: ['Volatility', 'spread of HP-lead steps within a battle'],
+    length: ['Battle length', 'turns per battle'],
+    half_decided_step: ['Decision time', 'turn by which half the uncertainty is settled (tree)'],
+    share_at_preview: ['Settled at preview', 'share of uncertainty settled by preview and leads (tree)'],
+  };
+  $('feat').innerHTML = `<tr><th>Feature</th><th>Correlation with behaviour-cloning win rate</th><th>Beyond random-play win rate</th></tr>` +
+    Object.keys(names).filter(k => F[k]).map(k => `<tr><td><b>${names[k][0]}</b><br><span class="notes">${names[k][1]}</span></td>` +
+      `<td class="n">${f2(F[k].spearman)} ${ci(F[k].ci)}</td><td class="n">${F[k].partial == null ? '—' : f2(F[k].partial) + ' ' + ci(F[k].partial_ci)}</td></tr>`).join('');
+  const clear = Object.keys(names).filter(k => F[k] && F[k].partial != null && (F[k].partial_ci[0] > 0 || F[k].partial_ci[1] < 0)).map(k => names[k][0].toLowerCase());
+  const list = clear.length > 1 ? clear.slice(0, -1).join(', ') + ' and ' + clear[clear.length - 1] : clear[0];
+  $('feat-verdict').innerHTML = `${clear.length ? `${list[0].toUpperCase() + list.slice(1)} keep${clear.length > 1 ? '' : 's'} a small rank correlation after the random-play win rate is removed, but nothing here helps predict.` : 'Nothing here keeps a correlation once the random-play win rate is removed.'} A ridge regression on the random-play win rate alone explains <span class="num">${f2(S.cv.random_play_only)}</span> of the variance in held-out behaviour-cloning win rates (10-fold cross-validation, repeated 20 times); adding every feature above gives <span class="num">${f2(S.cv.random_play_plus_features)}</span>. The walk and graph features are mostly re-readings of the same root number.`;
+  const G = S.gap;
+  $('gap').innerHTML = `One feature does carry new information: the <b>gap</b> between a team's behaviour-cloning win rate and what its random-play win rate predicts, a measure of how much the team needs to be piloted well. It rises with moves whose value depends on when they are clicked: Tailwind <span class="num">${f2(G.tailwind[0])} ${ci(G.tailwind.slice(1))}</span> and the number of Protects <span class="num">${f2(G.protect[0])} ${ci(G.protect.slice(1))}</span>; Trick Room, Fake Out and setup moves do not clear zero. Random play cannot click Tailwind on the right turn; the behaviour-cloning policy sometimes can.`;
+
+  // ------------------------------------------------------------------ notes
+  $('notes').innerHTML = [
+    `Battles: ${S.walk_battles.toLocaleString('en-US')} random battles (150 teams × 49 top-50 teams × 8), ${T.spines.toLocaleString('en-US')} tree battles with 32 random battles per node, and the Figure 1 tree (27 leaves, 48 random battles per node). Random battles ran at about ${S.speed.random} per second on 10 processes; the behaviour-cloning evaluator runs ${S.speed.bc} per second on 6 workers.`,
+    `Teams: rows of the project's matchup database with behaviour-cloning results against every top-50 team (at least 4 battles per opponent, 3,849 teams), sampled 10 per 0.05-wide band of win rate. ${S.origin_note}`,
+    `Code: <span class="num">src/random_battle_tree.cjs</span> (battles, read straight from Showdown's Battle object; saved states are restored with Showdown's own serializer and given a fresh random seed), <span class="num">src/random_battle_graph.py</span> (runs), <span class="num">src/random_battle_graph_report.py</span> (numbers). Results: <span class="num">results/random_battle_graph.json</span>.`,
+    `Prior work. 🟢 Hal Stern, <a href="https://www.stat.berkeley.edu/users/aldous/157/Papers/stern.pdf">A Brownian Motion Model for the Progress of Sports Scores</a>, Journal of the American Statistical Association, 1994: the score difference as Brownian motion with drift. 🟢 Alan Gabel and Sidney Redner, <a href="https://arxiv.org/abs/1109.2825">Random Walk Picture of Basketball Scoring</a>, Journal of Quantitative Analysis in Sports, 2012. 🟢 Aaron Clauset, Marina Kogan and Sidney Redner, <a href="https://arxiv.org/abs/1503.03509">Safe Leads and Lead Changes in Competitive Team Sports</a>, Physical Review E, 2015. 🔒 Bruce Abramson, Expected-Outcome: A General Model of Static Evaluation, IEEE Transactions on Pattern Analysis and Machine Intelligence, 1990: a position's value as its expected result under random play, the root number of Figure 1. 🟢 J. F. C. Kingman, <a href="https://gwern.net/doc/statistics/probability/1999-kingman.pdf">Martingales in the OK Corral</a>, Bulletin of the London Mathematical Society, 1999: two sides losing fighters one at a time, the walk of Figure 2.`,
+  ].map(s => `<li>${s}</li>`).join('');
+})();
+</script>
