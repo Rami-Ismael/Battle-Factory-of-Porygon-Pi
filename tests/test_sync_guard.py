@@ -78,6 +78,21 @@ class SyncGuard(unittest.TestCase):
     def github_head(self):
         return self.git(self.clone, "log", "-1", "--format=%H %s", "origin/main").strip()
 
+    def on_github(self, path):
+        return self.git(self.clone.parent / "github.git", "show", f"main:{path}")
+
+    def land_during_next_sync(self, path, text):
+        """Make the next sync commit land a pull request editing path, between the guard's check and the push."""
+        root = self.clone.parent
+        pr = root / "pr"
+        self.git(root, "clone", "-q", str(root / "github.git"), "pr")
+        write(pr / path, text)
+        self.git(pr, "commit", "-q", "-am", f"Edit {path} on GitHub mid-sync (#2)")
+        hook = self.clone / ".git" / "hooks" / "post-commit"
+        write(hook, f'#!/bin/sh\nunset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE\ngit -C "{pr}" push -q origin main\n')
+        hook.chmod(0o755)
+        return hook
+
     def test_refuses_to_overwrite_a_github_edit(self):
         self.merge_on_github("notes/plan.md", EDIT)
         before = self.github_head()
@@ -138,24 +153,41 @@ class SyncGuard(unittest.TestCase):
         self.assertEqual((self.clone / "code/run.py").read_text(), "print('laptop')\n")
 
     def test_stops_before_pushing_when_github_changes_during_the_sync(self):
-        root = self.clone.parent
-        pr = root / "pr"
-        self.git(root, "clone", "-q", str(root / "github.git"), "pr")
-        write(pr / "notes/ideas.md", EDIT)
-        self.git(pr, "commit", "-q", "-am", "Edit ideas.md on GitHub mid-sync (#2)")
-        # The clone's post-commit hook lands that pull request between the guard's check and the push.
-        hook = self.clone / ".git" / "hooks" / "post-commit"
-        write(hook, f'#!/bin/sh\nunset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE\ngit -C "{pr}" push -q origin main\n')
-        hook.chmod(0o755)
+        hook = self.land_during_next_sync("notes/ideas.md", EDIT)
         write(self.vault / "plan.md", "laptop edit\n")  # gives the sync something to commit
         result = self.sync()
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertEqual(listed(result.stderr), {("overwrite", "notes/ideas.md")})
-        self.assertEqual(self.git(root / "github.git", "log", "-1", "--format=%s", "main").strip(),
-                         "Edit ideas.md on GitHub mid-sync (#2)")
+        self.assertEqual(self.git(self.clone.parent / "github.git", "log", "-1", "--format=%s", "main").strip(),
+                         "Edit notes/ideas.md on GitHub mid-sync (#2)")
         hook.unlink()
         again = self.sync("--dry-run")  # the pull request stays above the baseline
         self.assertEqual(listed(again.stderr), {("overwrite", "notes/ideas.md")})
+
+    def test_rerun_after_a_mid_sync_refusal_pushes_the_held_commit(self):
+        hook = self.land_during_next_sync("notes/ideas.md", EDIT)
+        write(self.vault / "plan.md", "laptop edit\n")
+        self.assertEqual(self.sync().returncode, 1)
+        hook.unlink()
+        write(self.vault / "ideas.md", EDIT)  # the laptop now matches GitHub, as the refusal asks
+        result = self.sync()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.on_github("notes/plan.md"), "laptop edit\n")
+        self.assertEqual(self.on_github("notes/ideas.md"), EDIT)
+
+    def test_allowed_file_reaches_github_as_the_laptop_wrote_it_when_the_checkout_is_behind(self):
+        write(self.vault / "plan.md", "a\nb\nc\nd\ne\n")
+        self.assertEqual(self.sync().returncode, 0)
+        root = self.clone.parent
+        self.git(root, "clone", "-q", str(root / "github.git"), "pr")  # merged elsewhere: the clone does not pull
+        write(root / "pr" / "notes/plan.md", "a github\nb\nc\nd\ne\n")
+        self.git(root / "pr", "commit", "-q", "-am", "Edit plan.md on GitHub (#3)")
+        self.git(root / "pr", "push", "-q")
+        write(self.vault / "plan.md", "a\nb\nc\nd\ne laptop\n")
+        self.allow.write_text("notes/plan.md\n")
+        result = self.sync("--allow", str(self.allow))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.on_github("notes/plan.md"), "a\nb\nc\nd\ne laptop\n")
 
 
 if __name__ == "__main__":
