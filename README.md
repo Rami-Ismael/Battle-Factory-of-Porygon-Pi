@@ -114,6 +114,8 @@ code folder     ──sync──▶  code/
 
 An edit in Obsidian shows up here as the same edit in the next sync. Edit notes locally, not on github.com. If a file changed here after the last sync and the laptop's copy differs, the sync lists the file and stops, so it never undoes that change. Make the laptop match GitHub, or keep the laptop's version with `--force`, or with `--allow FILE` where `FILE` lists the paths one per line.
 
+The laptop folders are in iCloud Drive, which can evict a file to free disk space. Reading a file that iCloud has not downloaded waits on the download, which may never finish when the disk is nearly full. If any file the sync needs is not downloaded, the sync lists every such file and stops before reading anything. To download a file, open it in Finder or run `brctl download PATH`. Then run the sync again.
+
 `blog/` is the one folder edited in place. The sync stages only `notes/` and `code/`, so it never touches the article or publishes a half-written one.
 
 Ignored files (`.obsidian`, virtual environments, battle results, files over 5 MB) never leave the laptop, so the large datasets under `code/` are not included.

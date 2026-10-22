@@ -20,13 +20,20 @@ keep the laptop's version with --allow FILE or --force. A GitHub change that
 lands while the sync runs stops it before the push, whatever the flags. Each
 pushed sync commit becomes the next baseline.
 
+A sync also stops before reading a laptop file that iCloud has not downloaded,
+which macOS marks dataless. Reading such a file waits on the download, which
+may never finish when the disk is nearly full. The sync checks every file it
+would read with os.stat, which downloads nothing. If any are dataless, it lists
+them and exits with status 1, even with --dry-run. Download them, by opening
+each in Finder or with brctl download PATH, and rerun.
+
     tools/sync.py                 mirror, commit, push
     tools/sync.py --dry-run       show what would change; write nothing but the fetch
     tools/sync.py --no-push       mirror and commit only
     tools/sync.py --allow FILE    also undo the GitHub edits to the paths listed in FILE
     tools/sync.py --force         also undo every GitHub edit
 """
-import argparse, filecmp, hashlib, os, re, shutil, subprocess, sys
+import argparse, filecmp, hashlib, os, re, shlex, shutil, subprocess, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -38,6 +45,7 @@ SECRET = re.compile(rb"(gh[opsu]_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA
 UPSTREAM = "origin/main"
 SYNC_SUBJECT = "sync from laptop"  # subject prefix of every sync commit; the newest on UPSTREAM is the baseline
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"  # git's empty tree: before the first sync, every GitHub file counts as an edit
+DATALESS = 0x40000000  # SF_DATALESS in st_flags: iCloud has not downloaded the file, and reading it waits on the download
 
 
 def run(*cmd, cwd=REPO, **kw):
@@ -47,6 +55,11 @@ def run(*cmd, cwd=REPO, **kw):
 def source_files(src: Path) -> set[str]:
     out = run("git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", cwd=src)
     return {p for p in out.split("\0") if p and (src / p).is_file()}
+
+
+def dataless(path: Path) -> bool:
+    """Whether iCloud has not downloaded the file. os.stat reads the flag without downloading it."""
+    return bool(getattr(path.stat(), "st_flags", 0) & DATALESS)
 
 
 def blob_id(path: Path) -> str:
@@ -135,6 +148,17 @@ def main():
         if not src.exists():
             sys.exit(f"{name}: source folder missing: {src}")
     wants = {name: source_files(src) for name, src in SOURCES.items()}
+    # Every wanted file gets read: the guard hashes the ones GitHub touched, and mirroring compares or copies them all.
+    evicted = [("dataless", f"{name}/{rel}") for name, src in SOURCES.items() for rel in sorted(wants[name])
+               if dataless(src / rel)]
+    if evicted:
+        name, rel = evicted[0][1].split("/", 1)
+        roots = " and ".join(f"{n}/ stands for {shlex.quote(str(src))}" for n, src in SOURCES.items())
+        sys.exit("iCloud has not downloaded these laptop files, and reading one waits on a download that may never"
+                 f" finish when the disk is nearly full:\n{rows(evicted)}"
+                 f"refusing to sync: {len(evicted)} laptop files are not downloaded. Download them, by opening each in"
+                 f" Finder or with brctl download PATH, then rerun. In PATH, {roots}. For the first file:\n"
+                 f"brctl download {shlex.quote(str((SOURCES[name] / rel).resolve()))}")
     base = baseline()
     checked = run("git", "rev-parse", UPSTREAM).strip()
     undo = github_edits(wants, base or EMPTY_TREE)
