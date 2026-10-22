@@ -23,6 +23,7 @@ import torch
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from showdown_validator import VGC_BENCH
 import lossdown as L
 import asked_vs_got as X
 import activesearch as A
@@ -32,10 +33,9 @@ import pool
 import hps_generate
 from hps_generate import Validator
 from corpus import parse_team_text
-hps_generate.SHOWDOWN = Path.home() / ".local/share/vgc-pilot-runtime/validator-913da36"
 
 OUT = L.RES / "lossdown_battle.json"
-MEMBERS = ["F1_final_medium", "G2_family_matrix_noprtrain"]
+MEMBERS = ["F1_final_medium_noheldout", "G2_family_matrix_noprtrain_noheldout"]
 ASKED, GUIDE = [0.3, 0.5, 0.7], [1.0, 2.0, 4.0]
 N, SEED, POLICY, PER_CELL = 64, 2026, 1, 1
 NAN = float("nan")
@@ -97,8 +97,7 @@ def gen():
 
 
 def _stack():
-    pool.REPO = str(Path.home() / ".local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2")
-    MDB.SHOWDOWN = hps_generate.SHOWDOWN
+    pool.REPO = str(VGC_BENCH)
 
 
 def battle():

@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f5f6f7">
+  <meta name="description" content="A personal, interactive reading companion to Generative Bayesian Optimization. Compare fitting weights, map the search loop, and take your own notes.">
+  <title>GenBO · A reading companion</title>
+  <style>
+    :root {
+      font: 100%/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-optical-sizing: auto;
+      --ink: #202728; --muted: #596567; --faint: #e3e8e7;
+      --paper: #fff; --ground: #f5f6f7; --green: #0a6654; --soft: #e9f3ee;
+      --cem: #536b9b; --cem-soft: #e9edf6; --utility: #0a7862;
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--ground); -webkit-font-smoothing: antialiased; }
+    button, input, textarea, select { font: inherit; }
+    button, a, input, select, summary { -webkit-tap-highlight-color: transparent; }
+    button, summary, input[type="checkbox"], input[type="radio"] { cursor: pointer; }
+    button, .button { touch-action: manipulation; }
+    a { color: inherit; text-underline-offset: .2em; }
+    a:hover { text-decoration-thickness: 2px; }
+    button { color: inherit; }
+    :focus-visible { outline: 3px solid #158fbc; outline-offset: 4px; }
+    ::selection { background: #c8e8da; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { text-wrap: balance; }
+    h1 { font-size: clamp(2.8rem, 6.1vw, 5.2rem); line-height: 1.035; letter-spacing: -.055em; font-weight: 650; }
+    h2 { font-size: clamp(1.85rem, 3vw, 2.6rem); line-height: 1.12; letter-spacing: -.035em; font-weight: 630; }
+    h3 { font-size: 1.08rem; letter-spacing: -.015em; line-height: 1.35; font-weight: 650; }
+    p { text-wrap: pretty; }
+    .skip { position: fixed; top: .7rem; left: 1rem; z-index: 10; padding: .7rem 1rem; background: white; transform: translateY(-200%); }
+    .skip:focus { transform: none; }
+    .topbar { position: sticky; top: 0; z-index: 5; background: rgb(245 246 247 / .86); backdrop-filter: blur(20px) saturate(140%); }
+    .topbar::after { content: ""; position: absolute; inset: 100% 0 auto; height: 12px; background: linear-gradient(rgb(245 246 247 / .7), transparent); pointer-events: none; }
+    .topbar-inner { min-height: 76px; max-width: 1256px; padding: 0 3rem; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+    .wordmark { text-decoration: none; display: flex; align-items: center; gap: .8rem; font-weight: 650; letter-spacing: -.03em; }
+    .mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--ink); color: #fff; font-size: 13px; letter-spacing: -.07em; }
+    .wordmark small { font-weight: 450; font-size: .8rem; color: var(--muted); letter-spacing: 0; margin-left: .25rem; }
+    .topnav { display: flex; gap: 1.5rem; align-items: center; font-size: .8rem; font-weight: 550; }
+    .topnav a { text-decoration: none; }
+    .paper-link { display: inline-flex; gap: .55rem; align-items: center; }
+    .paper-link svg { width: 15px; height: 15px; }
+    .shell { max-width: 1256px; margin: auto; padding: 0 3rem; }
+    .hero { padding: 4.5rem 0 4rem; display: grid; grid-template-columns: 1.6fr 1fr; gap: 4rem; align-items: end; }
+    .eyebrow { font-size: .69rem; font-weight: 650; letter-spacing: .115em; text-transform: uppercase; color: var(--green); margin-bottom: 1.2rem; }
+    .hero h1 span { color: var(--green); }
+    .hero-intro { font-size: 1.05rem; max-width: 29rem; color: var(--muted); margin-top: 1.5rem; line-height: 1.65; }
+    .paper-summary { padding: 1.5rem 0 .3rem 1.75rem; border-left: 1px solid #cbd5d1; }
+    .paper-summary .label { display: block; margin-bottom: .65rem; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .paper-summary h2 { font-size: 1.3rem; letter-spacing: -.02em; line-height: 1.4; font-weight: 600; }
+    .authors { margin: .7rem 0 1.25rem; color: var(--muted); font-size: .8rem; }
+    .meta-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .tag { font-size: .65rem; font-weight: 600; letter-spacing: .02em; background: #e7ecea; padding: .3rem .65rem; border-radius: 6px; }
+    .layout { display: grid; grid-template-columns: 182px minmax(0, 1fr); gap: 3.25rem; align-items: start; }
+    .reading-rail { position: sticky; top: 113px; padding-top: 1.3rem; }
+    .rail-label { font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.4rem; }
+    .reading-rail ol { padding: 0; margin: 0; list-style: none; }
+    .reading-rail li { margin-bottom: 1.4rem; }
+    .reading-rail a { text-decoration: none; display: flex; align-items: start; gap: .7rem; font-size: .79rem; line-height: 1.5; }
+    .rail-number { width: 25px; height: 25px; border: 1px solid #ccd4d1; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-size: .65rem; font-weight: 650; }
+    .reading-rail a[aria-current="location"] { color: var(--green); font-weight: 650; }
+    .reading-rail a[aria-current="location"] .rail-number { background: var(--green); color: white; border-color: var(--green); }
+    .reading-rail small { display: block; font-size: .67rem; font-weight: 400; color: var(--muted); margin-top: .15rem; }
+    .rail-progress { margin-top: 2.2rem; font-size: .7rem; color: var(--muted); }
+    .progress-track { height: 3px; background: #dce3df; border-radius: 4px; margin-top: .6rem; overflow: hidden; }
+    .progress-fill { width: 100%; height: 100%; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform 220ms var(--ease-out); }
+    .content { min-width: 0; }
+    section { scroll-margin-top: 108px; }
+    .chapter { padding: 2.7rem 0 3.5rem; border-top: 1px solid #dce2df; }
+    .chapter .kicker { color: var(--green); font-size: .68rem; font-weight: 650; letter-spacing: .07em; margin-bottom: .8rem; }
+    .chapter-intro { color: var(--muted); max-width: 40rem; margin-top: 1rem; font-size: .96rem; line-height: 1.7; }
+    .section-top { display: flex; justify-content: space-between; gap: 1.5rem; align-items: start; }
+    .section-time { font-size: .69rem; color: var(--muted); white-space: nowrap; padding-top: .15rem; }
+    .panel { background: var(--paper); border: 1px solid #e0e6e2; border-radius: 22px; overflow: hidden; margin-top: 1.7rem; box-shadow: 0 3px 10px rgb(24 52 41 / .025); }
+    .flow { padding: 1.7rem 1.5rem 1.3rem; }
+    .flow-track { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); position: relative; }
+    .flow-track::before { content: ""; height: 1px; position: absolute; top: 20px; left: 12.5%; right: 12.5%; background: #d9e1dd; }
+    .flow-step { position: relative; background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: .55rem; padding: 0 .25rem 1rem; min-height: 82px; font-size: .72rem; }
+    .flow-dot { border: 1px solid #d5dfda; background: white; color: var(--muted); border-radius: 50%; height: 40px; width: 40px; display: grid; place-items: center; font-size: .75rem; font-weight: 650; transition: color 160ms ease, background-color 160ms ease; }
+    .flow-step[aria-pressed="true"] .flow-dot { background: var(--green); color: white; border-color: var(--green); }
+    .flow-step[aria-pressed="true"] { color: var(--green); font-weight: 650; }
+    .flow-indicator { position: absolute; bottom: 0; left: 0; width: 25%; height: 2px; border-radius: 2px; background: var(--green); transition: transform 220ms var(--ease-in-out); }
+    .flow-detail { margin-top: 1.3rem; padding: 1.1rem 1.25rem; background: #f4f7f5; border-radius: 12px; min-height: 103px; }
+    .flow-detail p { font-size: .82rem; color: var(--muted); margin-top: .35rem; line-height: 1.65; }
+    .reading-prompt { margin-top: 1.25rem; font-size: .81rem; line-height: 1.7; color: var(--muted); }
+    .reading-prompt a { color: var(--green); font-weight: 600; }
+    .task-done { display: flex; align-items: start; gap: .7rem; padding-top: 1.2rem; font-size: .8rem; font-weight: 550; }
+    input[type="checkbox"] { margin: .17rem 0 0; accent-color: var(--green); width: 17px; height: 17px; flex-shrink: 0; }
+    .lab-top { padding: 1.5rem 1.6rem 1.25rem; border-bottom: 1px solid var(--faint); }
+    .lab-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .small-label { font-size: .67rem; letter-spacing: .07em; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+    .toy-badge { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid #e0e6e2; border-radius: 20px; padding: .25rem .6rem; font-size: .62rem; color: var(--muted); }
+    .toy-badge::before { content: ""; height: 5px; width: 5px; border-radius: 50%; background: #a5afa9; }
+    .scenario { border: 0; margin: 1.15rem 0 0; padding: 0; }
+    .scenario legend { font-size: .81rem; font-weight: 550; margin-bottom: .65rem; }
+    .segments { display: inline-flex; border-radius: 10px; background: #edf0ee; padding: 3px; gap: 3px; }
+    .segments label { position: relative; cursor: pointer; }
+    .segments input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .segments span { display: block; padding: .5rem .9rem; border-radius: 8px; font-size: .73rem; color: var(--muted); }
+    .segments input:checked + span { background: white; color: var(--ink); box-shadow: 0 1px 4px rgb(28 44 35 / .09); font-weight: 600; }
+    .segments input:focus-visible + span { outline: 3px solid #158fbc; outline-offset: 2px; }
+    .scenario-note { margin-top: .65rem; font-size: .72rem; color: var(--muted); }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4rem; margin-top: 1.5rem; }
+    .control-label { display: flex; justify-content: space-between; align-items: baseline; font-size: .76rem; margin-bottom: .55rem; gap: .5rem; }
+    .control-label output { font-size: .74rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+    input[type="range"] { accent-color: var(--green); width: 100%; height: 24px; margin: 0; cursor: ew-resize; touch-action: pan-y; }
+    .controls .cem-range { accent-color: var(--cem); }
+    .control-hint { color: var(--muted); font-size: .65rem; margin-top: .2rem; }
+    .weight-table { padding: 1.15rem 1.6rem .8rem; }
+    .weight-row { display: grid; grid-template-columns: 45px 58px 1fr 1fr; gap: 1rem; align-items: center; min-height: 43px; border-bottom: 1px solid #eef1ef; }
+    .weight-row:last-child { border-bottom: 0; }
+    .weight-head { font-size: .65rem; color: var(--muted); min-height: 45px; line-height: 1.4; }
+    .weight-head .head-cem { color: #3e5789; }
+    .weight-head .head-util { color: var(--green); }
+    .team-label { display: flex; gap: .35rem; align-items: center; font-size: .75rem; font-weight: 600; }
+    .team-dot { width: 5px; height: 5px; border: 1px solid #b3bdb7; border-radius: 50%; }
+    .score { font-size: .74rem; font-variant-numeric: tabular-nums; }
+    .bar-cell { display: grid; grid-template-columns: 1fr 39px; align-items: center; gap: .5rem; min-width: 0; }
+    .bar-track { position: relative; height: 8px; width: 100%; background: #eef1f5; border-radius: 3px; overflow: hidden; }
+    .bar-track.utility { background: #e9f2ec; }
+    .bar { width: 100%; height: 100%; background: var(--cem); transform: scaleX(0); transform-origin: left; transition: transform 250ms var(--ease-out); }
+    .utility .bar { background: var(--utility); }
+    .bar-value { font-size: .67rem; font-variant-numeric: tabular-nums; text-align: right; }
+    .table-note { font-size: .65rem; color: var(--muted); margin: .65rem 0 .3rem; }
+    .insight { margin: .5rem 1.6rem 1.35rem; padding: 1rem 1.15rem; background: var(--soft); border-radius: 12px; font-size: .8rem; line-height: 1.65; min-height: 78px; }
+    .insight strong { color: var(--green); font-weight: 650; }
+    .lab-footer { background: #f8faf8; padding: 1rem 1.6rem; font-size: .7rem; line-height: 1.7; color: var(--muted); display: flex; align-items: start; gap: 1.2rem; justify-content: space-between; }
+    .lab-footer p { max-width: 34rem; }
+    .reset { border: 1px solid #cdd7d2; background: white; padding: .4rem .7rem; border-radius: 8px; white-space: nowrap; font-size: .67rem; min-height: 36px; }
+    details { font-size: .8rem; margin-top: 1.2rem; color: var(--muted); }
+    summary { color: var(--ink); font-weight: 550; min-height: 38px; padding: .4rem 0; }
+    details p { margin-top: .65rem; font-size: .78rem; line-height: 1.8; }
+    .formula { display: block; padding: .9rem 1rem; margin: .8rem 0; background: #ebefec; border-radius: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .76rem; overflow-wrap: anywhere; color: var(--ink); }
+    .transfer { margin-top: 1.7rem; }
+    .transfer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; padding: 1.15rem 0; border-bottom: 1px solid #dde4df; }
+    .transfer-head { color: var(--muted); font-size: .65rem; letter-spacing: .07em; text-transform: uppercase; padding-top: 0; }
+    .transfer-row p { font-size: .82rem; line-height: 1.7; }
+    .transfer-row .question { color: var(--muted); }
+    .note-section { background: #e9efeb; border-radius: 22px; padding: 1.7rem; margin: 0 0 3.5rem; border-top: none; }
+    .note-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .note-top h2 { font-size: 1.4rem; }
+    .save-status { font-size: .66rem; color: var(--muted); }
+    .note-label { display: block; font-size: .8rem; margin-bottom: .75rem; color: #40504a; }
+    textarea { display: block; width: 100%; min-height: 170px; resize: vertical; border: 1px solid #d4ded7; border-radius: 12px; padding: 1rem 1.1rem; background: #fff; color: var(--ink); font-size: .84rem; line-height: 1.8; }
+    textarea::placeholder { color: #737f79; opacity: 1; }
+    .note-actions { display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; margin-top: .85rem; }
+    .note-actions p { font-size: .67rem; color: var(--muted); }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-height: 42px; border: 0; background: var(--green); color: white; border-radius: 10px; padding: .6rem 1rem; font-size: .76rem; font-weight: 550; text-decoration: none; }
+    .press { transition: transform 160ms var(--ease-out); }
+    .press:active { transform: scale(.97); }
+    .footer { border-top: 1px solid #d9e1dc; padding: 1.8rem 0 2.3rem; display: flex; align-items: start; justify-content: space-between; gap: 2rem; color: var(--muted); font-size: .7rem; }
+    .footer p { max-width: 33rem; line-height: 1.7; }
+    .footer-links { display: flex; gap: 1.3rem; white-space: nowrap; }
+    .noscript { padding: 1rem; border: 1px solid #b9c9be; background: white; margin-bottom: 1rem; border-radius: 12px; }
+    body[data-adjusting="true"] .bar { transition: none; }
+    body[data-input="keyboard"] *, body[data-input="keyboard"] *::before, body[data-input="keyboard"] *::after { animation: none !important; transition: none !important; }
+    body[data-input="keyboard"] .press:active { transform: none; }
+    @media (hover: hover) and (pointer: fine) {
+      .button:hover { background: #075643; }
+      .flow-step:hover .flow-dot { border-color: var(--green); }
+      .reset:hover { background: #edf4ef; }
+    }
+    @media (max-width: 1000px) {
+      .topbar-inner, .shell { padding-left: 2rem; padding-right: 2rem; }
+      .hero { gap: 2.5rem; grid-template-columns: 1.4fr 1fr; padding-top: 3.5rem; }
+      .layout { grid-template-columns: 145px minmax(0, 1fr); gap: 2rem; }
+      .wordmark small { display: none; }
+      .weight-table, .lab-top { padding-left: 1.2rem; padding-right: 1.2rem; }
+      .weight-row { gap: .6rem; grid-template-columns: 28px 44px 1fr 1fr; }
+      .bar-cell { grid-template-columns: 1fr 35px; gap: .3rem; }
+      .insight { margin-left: 1.2rem; margin-right: 1.2rem; }
+    }
+    @media (max-width: 900px) {
+      .topbar-inner, .shell { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .topbar-inner { min-height: 65px; }
+      .topnav { gap: 1rem; font-size: .72rem; }
+      .topnav .nav-notes { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 2.2rem; padding: 2.9rem 0 2.3rem; }
+      h1 { font-size: clamp(2.65rem, 9vw, 4rem); }
+      .hero-intro { font-size: .97rem; max-width: 33rem; }
+      .paper-summary { padding: 0 0 0 1rem; max-width: 29rem; }
+      .paper-summary h2 { font-size: 1.08rem; }
+      .paper-summary .label { margin-bottom: .4rem; }
+      .authors { margin-bottom: .7rem; }
+      .layout { display: block; }
+      .reading-rail { position: static; padding: 0 0 1.7rem; }
+      .rail-label, .rail-progress, .reading-rail small { display: none; }
+      .reading-rail ol { display: flex; justify-content: space-between; gap: .5rem; }
+      .reading-rail li { margin: 0; }
+      .reading-rail a { font-size: .7rem; gap: .4rem; align-items: center; }
+      .rail-number { width: 23px; height: 23px; }
+      .chapter { padding-top: 2rem; padding-bottom: 2.6rem; }
+      .chapter-intro { font-size: .9rem; }
+      .section-time { font-size: .63rem; }
+      .flow { padding: 1.3rem .8rem 1rem; }
+      .flow-step { font-size: .66rem; }
+      .flow-detail { padding: 1rem; min-height: 127px; }
+      .controls { gap: 1rem; }
+      .control-label { font-size: .69rem; }
+      .control-label output { font-size: .68rem; }
+      .lab-top { padding-top: 1.1rem; }
+      .weight-row { grid-template-columns: 22px 38px minmax(0, 1fr) minmax(0, 1fr); gap: .45rem; }
+      .weight-head { font-size: .61rem; }
+      .bar-cell { display: flex; flex-direction: column; gap: .25rem; align-items: stretch; padding: .5rem 0; }
+      .bar-value { text-align: left; font-size: .6rem; }
+      .bar-track { height: 6px; }
+      .table-note { font-size: .6rem; }
+      .insight { padding: .9rem; font-size: .76rem; min-height: 96px; }
+      .lab-footer { padding: 1rem 1.2rem; gap: .75rem; }
+      .transfer-row { gap: 1rem; }
+      .transfer-row p { font-size: .77rem; }
+      .note-section { padding: 1.25rem; margin-bottom: 2.5rem; }
+      .note-top { align-items: start; }
+      .note-top h2 { font-size: 1.3rem; }
+      .save-status { text-align: right; font-size: .6rem; max-width: 7rem; }
+      .note-actions { align-items: start; flex-direction: column; gap: .7rem; }
+      .footer { flex-direction: column; gap: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bar, .flow-indicator, .progress-fill { transition: none; }
+      .press { transition: opacity 160ms ease; }
+      .press:active { transform: none; opacity: .75; }
+    }
+    @media (prefers-reduced-transparency: reduce) { .topbar { background: var(--ground); backdrop-filter: none; } }
+    @media (prefers-contrast: more) {
+      :root { --muted: #34413d; }
+      .topbar { background: var(--ground); backdrop-filter: none; }
+      .panel, textarea, .segments, .note-section { border: 1px solid #65766c; }
+    }
+    @media print {
+      .topbar, .reading-rail, .note-actions, .reset, .task-done { display: none; }
+      body { background: white; }
+      .shell { padding: 0; }
+      .hero { padding-top: 0; }
+      .layout { display: block; }
+      .panel, .note-section { break-inside: avoid; }
+      .chapter { padding: 1.5rem 0; }
+      textarea { min-height: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to the reading guide</a>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="wordmark" href="#top" aria-label="GenBO reading companion, top"><span class="mark" aria-hidden="true">g.</span>GenBO <small>A reading companion</small></a>
+      <nav class="topnav" aria-label="Page navigation">
+        <a href="#loop">The idea</a><a href="#notes" class="nav-notes">Your notes</a>
+        <a class="paper-link" href="https://arxiv.org/pdf/2510.25240" target="_blank" rel="noopener noreferrer">Read the paper<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell" id="top">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Your next paper · ICLR 2026</p>
+        <h1>Which teams should<br><span>teach the generator?</span></h1>
+        <p class="hero-intro">Start GenBO with one question from your Pokémon search. After you score a batch of teams, how much should each team shape the next proposal?</p>
+      </div>
+      <aside class="paper-summary" aria-label="Paper details">
+        <span class="label">On your reading list · High priority</span>
+        <h2>Generative Bayesian Optimization:<br>Generative Models as Acquisition Functions</h2>
+        <p class="authors">Rafael Oliveira, Daniel M. Steinberg &amp; Edwin V. Bonilla</p>
+        <div class="meta-row"><span class="tag">Three reading tasks</span><span class="tag">About 90 minutes</span><span class="tag">v3 · May 2026</span></div>
+      </aside>
+    </div>
+    <div class="layout">
+      <aside class="reading-rail" aria-label="Reading route">
+        <p class="rail-label">Your reading route</p>
+        <ol>
+          <li><a href="#loop" aria-current="location"><span class="rail-number">1</span><span>Map the loop<small>Section 3 · Algorithm 1</small></span></a></li>
+          <li><a href="#weights"><span class="rail-number">2</span><span>Compare weights<small>Section 3.2</small></span></a></li>
+          <li><a href="#transfer"><span class="rail-number">3</span><span>Check the transfer<small>Section 6.2 · Appendix C</small></span></a></li>
+        </ol>
+        <div class="rail-progress"><span id="progress-text" role="status">0 of 3 tasks complete</span><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div></div>
+      </aside>
+      <main class="content" id="main">
+        <noscript><p class="noscript">JavaScript is off. The reading guide and source links still work. Enable JavaScript to explore the weight comparison and save notes.</p></noscript>
+        <section class="chapter" id="loop" aria-labelledby="loop-title">
+          <div class="section-top"><div><p class="kicker">01 / MAP THE LOOP</p><h2 id="loop-title">Keep the search.<br>Inspect what it learns.</h2></div><span class="section-time">Suggested · 30 min</span></div>
+          <p class="chapter-intro">Your search already proposes teams, runs battles, and keeps the results. Read the paper to locate the update that turns those observations into the next generator.</p>
+          <div class="panel flow">
+            <div class="flow-track" role="group" aria-label="Explore the four stages of the search loop">
+              <button class="flow-step" type="button" data-phase="0" aria-pressed="true" aria-controls="phase-detail"><span class="flow-dot">01</span>Fit proposal</button>
+              <button class="flow-step" type="button" data-phase="1" aria-pressed="false" aria-controls="phase-detail"><span class="flow-dot">02</span>Sample teams</button>
+              <button class="flow-step" type="button" data-phase="2" aria-pressed="false" aria-controls="phase-detail"><span class="flow-dot">03</span>Evaluate</button>
+              <button class="flow-step" type="button" data-phase="3" aria-pressed="false" aria-controls="phase-detail"><span class="flow-dot">04</span>Keep results</button>
+              <span class="flow-indicator" id="flow-indicator" aria-hidden="true"></span>
+            </div>
+            <div class="flow-detail" id="phase-detail" aria-live="polite" aria-atomic="true"><h3 id="phase-title">Fit the next proposal</h3><p id="phase-copy">Use the evaluated observations to train a proposal model. This is the decision to inspect: who receives training weight, and how is that weight defined?</p></div>
+          </div>
+          <p class="reading-prompt">Open <a href="https://arxiv.org/html/2510.25240v3#S3" target="_blank" rel="noopener noreferrer">Section 3 and Algorithm 1</a>. Draw your current loop beside the paper's loop. Circle the part that would change.</p>
+          <label class="task-done"><input type="checkbox" data-task="0">I can point to the update this paper would change.</label>
+        </section>
+        <section class="chapter" id="weights" aria-labelledby="weights-title">
+          <div class="section-top"><div><p class="kicker">02 / COMPARE THE WEIGHTS</p><h2 id="weights-title">The same elites.<br>A different lesson.</h2></div><span class="section-time">Suggested · 30 min</span></div>
+          <p class="chapter-intro">A top-two CEM update treats its two elites equally. An improvement-based update can distinguish their scores. Change only team H's score to see the difference.</p>
+          <div class="panel" id="weight-lab">
+            <div class="lab-top">
+              <div class="lab-heading"><span class="small-label">Fitting-weight comparison</span><span class="toy-badge">Illustrative data</span></div>
+              <fieldset class="scenario"><legend>How far ahead is the leading team?</legend><div class="segments"><label><input type="radio" name="scenario" value="close" checked><span>Close leaders</span></label><label><input type="radio" name="scenario" value="clear"><span>One clear leader</span></label></div></fieldset>
+              <p class="scenario-note">Same eight fictional teams. Only H changes, from 69 to 80. Scores are hypothetical, on a 0–100 scale.</p>
+              <div class="controls">
+                <div><label class="control-label" for="elites"><span>CEM elite count</span><output id="elite-value" for="elites">Top 2</output></label><input class="cem-range" type="range" id="elites" min="1" max="4" value="2" step="1" aria-describedby="elite-hint"><p class="control-hint" id="elite-hint">Equal weight within the selected set.</p></div>
+                <div><label class="control-label" for="threshold"><span>Improvement threshold</span><output id="threshold-value" for="threshold">55</output></label><input type="range" id="threshold" min="35" max="82" value="55" step="1" aria-describedby="threshold-hint"><p class="control-hint" id="threshold-hint">Weight comes from score above this value.</p></div>
+              </div>
+            </div>
+            <div class="weight-table" role="table" aria-label="Fictional team scores and normalized fitting weights" aria-describedby="scale-note">
+              <div role="rowgroup"><div class="weight-row weight-head" role="row"><span role="columnheader">Team</span><span role="columnheader">Score</span><span role="columnheader" class="head-cem">CEM share</span><span role="columnheader" class="head-util">Improvement share</span></div></div>
+              <div id="weight-rows" role="rowgroup"></div>
+              <p class="table-note" id="scale-note">Both bar scales run from 0% to 100% of the fitting weight. Each method is normalized separately.</p>
+            </div>
+            <p class="insight" id="weight-insight" role="status" aria-live="polite" aria-atomic="true"></p>
+            <div class="lab-footer"><p>Illustrative fitting weights, not Algorithm 1. These are <strong>not predictions of next-round sampling probabilities</strong> or measured Pokémon results.</p><button class="reset press" id="reset-lab" type="button">Reset example</button></div>
+          </div>
+          <details><summary>What does this illustration leave out?</summary><p>The toy uses observed positive improvement and normalizes it across this batch.</p><code class="formula">u(y) = max(y − τ, 0)<br>toy weightᵢ = u(yᵢ) / Σⱼ u(yⱼ)</code><p>Expected improvement is the conditional expectation of that utility. The paper's target also includes a reference prior. Its divergence-based objectives can include proposal-density importance weights and a density penalty. The bars omit these terms. Most experiments omit proposal-density importance weights, but that does not make these bars the complete GenBO loss.</p><p>Use <a href="https://arxiv.org/html/2510.25240v3#S3.SS2" target="_blank" rel="noopener noreferrer">Section 3.2, especially Equations 20 and 21</a>, to identify the objective you would actually implement.</p></details>
+          <p class="reading-prompt">Try both leader cases at the default settings. Then explain why CEM's weights stay fixed while the improvement weights change. Afterward, read Section 3.2 to separate the toy from the full objective.</p>
+          <label class="task-done"><input type="checkbox" data-task="1">I can explain the fitting weights and what the toy omits.</label>
+        </section>
+        <section class="chapter" id="transfer" aria-labelledby="transfer-title">
+          <div class="section-top"><div><p class="kicker">03 / CHECK THE TRANSFER</p><h2 id="transfer-title">What carries over<br>to your team search?</h2></div><span class="section-time">Suggested · 30 min</span></div>
+          <p class="chapter-intro">The discrete-sequence experiments make this paper worth your attention. They leave practical questions for your Pokémon setup.</p>
+          <div class="transfer" role="table" aria-label="Paper evidence and project questions">
+            <div class="transfer-row transfer-head" role="row"><span role="columnheader">In the paper</span><span role="columnheader">Check in your project</span></div>
+            <div class="transfer-row" role="row"><p role="cell">Proposal models include categorical distributions and causal transformers in sequence-design experiments.</p><p role="cell" class="question">Which representation preserves a valid six-Pokémon team and its constraints?</p></div>
+            <div class="transfer-row" role="row"><p role="cell">A proposal is trained from observations, sampled, and updated after new evaluations.</p><p role="cell" class="question">How would its fitting objective compare with your current CEM update under the same battle budget?</p></div>
+            <div class="transfer-row" role="row"><p role="cell">Diffusion extensions are discussed as future work. The experiments do not establish a Pokémon win-rate gain.</p><p role="cell" class="question">What remains untested in your sampler? How will fresh battles and unseen opponents check an apparent gain?</p></div>
+          </div>
+          <p class="reading-prompt">Read <a href="https://arxiv.org/html/2510.25240v3#S6.SS2" target="_blank" rel="noopener noreferrer">Section 6.2, “Protein design”</a>, and Appendices C.3–C.5 in the <a href="https://arxiv.org/pdf/2510.25240" target="_blank" rel="noopener noreferrer">paper PDF</a>. Write one proposed comparison and one reason it might fail. Keep your existing opponents, seeds, policies, and evaluation budget explicit. Mark missing controls as unresolved.</p>
+          <label class="task-done"><input type="checkbox" data-task="2">I have a comparison to specify and a limitation to test.</label>
+        </section>
+        <section id="notes" class="note-section" aria-labelledby="notes-title">
+          <div class="note-top"><h2 id="notes-title">Leave with your own answer.</h2><span id="save-status" class="save-status" role="status">Stored in this browser</span></div>
+          <label class="note-label" for="reading-notes">What would you change in the update, and what evidence would make that change worth keeping?</label>
+          <textarea id="reading-notes" placeholder="The update I would compare is…&#10;&#10;The paper supports…&#10;&#10;I still need to test…" spellcheck="true"></textarea>
+          <div class="note-actions"><p>Your notes and checkboxes stay in this browser. Export a copy to keep with your reading list.</p><button class="button press" id="export-notes" type="button">Export reading notes <span aria-hidden="true">↓</span></button></div>
+        </section>
+      </main>
+    </div>
+    <footer class="footer"><p>A personal guide based on your reading queue and the paper's v3. The toy explains a weighting choice. It does not establish a better search method or reliable selection under noisy battle scores.</p><div class="footer-links"><a href="https://arxiv.org/abs/2510.25240" target="_blank" rel="noopener noreferrer">Paper &amp; versions ↗</a><a href="https://arxiv.org/html/2510.25240v3" target="_blank" rel="noopener noreferrer">Full text ↗</a></div></footer>
+  </div>
+  <script>
+    'use strict';
+    const $ = (selector) => document.querySelector(selector);
+    const storageKey = 'genbo-reading-companion-20261020-c7f2-v1';
+    const baseScores = [42, 48, 51, 55, 58, 62, 68, 69];
+    const letters = 'ABCDEFGH'.split('');
+    const phases = [
+      ['Fit the next proposal', 'Use the evaluated observations to train a proposal model. This is the decision to inspect: who receives training weight, and how is that weight defined?'],
+      ['Sample a new batch', 'Draw candidates from the fitted proposal. In your project, these candidates are teams. Fitting weights influence the learned model; they are not literal sampling probabilities for these eight teams.'],
+      ['Evaluate the candidates', 'Query the expensive objective. For your project, run the existing battle evaluation. The toy scores below are invented and do not come from those battles.'],
+      ['Keep observations, then repeat', 'Add the new observations to the accumulated dataset. Read Algorithm 1 to check what the next fit uses, including any warm-start and objective choices.']
+    ];
+    let state = { notes: '', complete: [false, false, false] };
+    let storageAvailable = true;
+    try {
+      const parsed = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      if (parsed && typeof parsed.notes === 'string' && Array.isArray(parsed.complete)) {
+        state = { notes: parsed.notes, complete: [0, 1, 2].map(i => parsed.complete[i] === true) };
+      }
+    } catch { storageAvailable = false; }
+    const notes = $('#reading-notes');
+    const saveStatus = $('#save-status');
+    notes.value = state.notes;
+    if (!storageAvailable) saveStatus.textContent = 'Export to keep your notes';
+    function save() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+        saveStatus.textContent = 'Saved in this browser';
+        storageAvailable = true;
+      } catch {
+        storageAvailable = false;
+        saveStatus.textContent = 'Storage unavailable. Export a copy.';
+      }
+    }
+    document.addEventListener('keydown', () => { document.body.dataset.input = 'keyboard'; });
+    document.addEventListener('pointerdown', () => { document.body.dataset.input = 'pointer'; });
+    const phaseButtons = [...document.querySelectorAll('[data-phase]')];
+    phaseButtons.forEach(button => button.addEventListener('click', () => {
+      const index = Number(button.dataset.phase);
+      phaseButtons.forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+      $('#phase-title').textContent = phases[index][0];
+      $('#phase-copy').textContent = phases[index][1];
+      $('#flow-indicator').style.transform = `translateX(${index * 100}%)`;
+    }));
+    const rows = $('#weight-rows');
+    rows.innerHTML = letters.map((letter, i) => `<div class="weight-row" role="row"><span class="team-label" role="cell"><span class="team-dot" aria-hidden="true"></span>${letter}</span><span class="score" id="score-${i}" role="cell">${baseScores[i]}</span><span class="bar-cell" role="cell"><span class="bar-track" aria-hidden="true"><span class="bar" id="cem-${i}" style="display:block"></span></span><span class="bar-value" id="cem-value-${i}">0%</span></span><span class="bar-cell" role="cell"><span class="bar-track utility" aria-hidden="true"><span class="bar" id="util-${i}" style="display:block"></span></span><span class="bar-value" id="util-value-${i}">0%</span></span></div>`).join('');
+    const percentage = value => value === 0 ? '0%' : `${(value * 100).toFixed(1).replace(/\.0$/, '')}%`;
+    function updateWeights() {
+      const scores = [...baseScores];
+      const scenario = document.querySelector('input[name="scenario"]:checked').value;
+      if (scenario === 'clear') scores[7] = 80;
+      const eliteCount = Number($('#elites').value);
+      const threshold = Number($('#threshold').value);
+      const topIndices = scores.map((score, i) => ({ score, i })).sort((a,b) => b.score - a.score || a.i - b.i).slice(0, eliteCount).map(v => v.i);
+      const utility = scores.map(score => Math.max(score - threshold, 0));
+      const total = utility.reduce((sum, value) => sum + value, 0);
+      const cem = scores.map((_, i) => topIndices.includes(i) ? 1 / eliteCount : 0);
+      const weighted = utility.map(value => total > 0 ? value / total : 0);
+      $('#elite-value').textContent = `Top ${eliteCount}`;
+      $('#threshold-value').textContent = threshold;
+      $('#elites').setAttribute('aria-valuetext', `${eliteCount} elite ${eliteCount === 1 ? 'team' : 'teams'}`);
+      $('#threshold').setAttribute('aria-valuetext', `${threshold} out of 100`);
+      scores.forEach((score, i) => {
+        $(`#score-${i}`).textContent = score;
+        $(`#cem-${i}`).style.transform = `scaleX(${cem[i]})`;
+        $(`#util-${i}`).style.transform = `scaleX(${weighted[i]})`;
+        $(`#cem-value-${i}`).textContent = percentage(cem[i]);
+        $(`#util-value-${i}`).textContent = percentage(weighted[i]);
+      });
+      if (total === 0) {
+        $('#weight-insight').innerHTML = '<strong>No positive improvement.</strong> No score exceeds this threshold, so the improvement weights cannot be normalized. The toy shows zero for every team. A real implementation needs an explicit fallback.';
+      } else {
+        const supported = utility.filter(value => value > 0).length;
+        $('#weight-insight').innerHTML = `<strong>H receives ${percentage(cem[7])} with CEM and ${percentage(weighted[7])} with improvement weighting.</strong> CEM shares its weight equally across ${eliteCount} ${eliteCount === 1 ? 'elite' : 'elites'}. The improvement rule gives weight to ${supported} ${supported === 1 ? 'team' : 'teams'} above ${threshold}.`;
+      }
+    }
+    document.querySelectorAll('input[name="scenario"]').forEach(input => input.addEventListener('change', updateWeights));
+    ['#elites', '#threshold'].forEach(selector => {
+      const slider = $(selector);
+      slider.addEventListener('pointerdown', () => { document.body.dataset.adjusting = 'true'; });
+      slider.addEventListener('input', updateWeights);
+    });
+    const stopAdjusting = () => { document.body.dataset.adjusting = 'false'; };
+    document.addEventListener('pointerup', stopAdjusting);
+    document.addEventListener('pointercancel', stopAdjusting);
+    window.addEventListener('blur', stopAdjusting);
+    $('#reset-lab').addEventListener('click', () => {
+      $('#elites').value = 2;
+      $('#threshold').value = 55;
+      document.querySelector('input[name="scenario"][value="close"]').checked = true;
+      updateWeights();
+    });
+    updateWeights();
+    function updateProgress() {
+      const count = state.complete.filter(Boolean).length;
+      $('#progress-text').textContent = `${count} of 3 tasks complete`;
+      $('#progress-fill').style.transform = `scaleX(${count / 3})`;
+    }
+    document.querySelectorAll('[data-task]').forEach(input => {
+      input.checked = state.complete[Number(input.dataset.task)];
+      input.addEventListener('change', () => {
+        state.complete[Number(input.dataset.task)] = input.checked;
+        updateProgress();
+        save();
+      });
+    });
+    updateProgress();
+    notes.addEventListener('input', () => { state.notes = notes.value; save(); });
+    $('#export-notes').addEventListener('click', () => {
+      const taskNames = ['Map the loop', 'Compare fitting weights', 'Check the transfer'];
+      const text = '# GenBO reading notes\n\nPaper: https://arxiv.org/abs/2510.25240\n\n' + taskNames.map((name,i) => `- [${state.complete[i] ? 'x' : ' '}] ${name}`).join('\n') + '\n\n## My answer\n\n' + (state.notes || 'No notes yet.') + '\n';
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = 'genbo-reading-notes.md';
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      saveStatus.textContent = 'Notes exported';
+    });
+    const railLinks = [...document.querySelectorAll('.reading-rail a')];
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        const entry = entries.find(item => item.isIntersecting);
+        if (!entry) return;
+        railLinks.forEach(link => {
+          if (link.hash === `#${entry.target.id}`) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        });
+      }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
+      document.querySelectorAll('.chapter').forEach(section => observer.observe(section));
+    }
+  </script>
+</body>
+</html>

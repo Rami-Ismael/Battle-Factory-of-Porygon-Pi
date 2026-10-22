@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-07
-updated_at: 2026-09-07
+updated_at: 2026-10-13
 type: reading-list-history
 tags:
   - reading-list
@@ -10,6 +10,19 @@ tags:
 # Reading List — notes and decision history
 
 Historical snapshot before the 2026-09-07 reorganization. Personal notes, old grades, numbering and decisions are preserved below. Use [[Reading List]] for the current queue; this snapshot does not define current acceptance.
+
+## Current-stage priority correction — 2026-10-13
+
+Owner confirmed fine-tuning has not started and requested Diffusion-BBO ahead of Feedback Efficient Online Fine-Tuning, plus a check for similar mistakes. Current-stage relevance now overrides the older blanket HIGH → reimplement → MED rule. Existing grades are retained as assessments of usefulness, not unconditional reading order.
+
+- **Diffusion-BBO stays active, MED**, ahead of the deferred fine-tuning readings. It studies online inverse-model search and uncertainty-aware selection of conditioning scores. This is a reading-priority decision, not a claim that the method requires no model training. [Primary paper](https://arxiv.org/abs/2407.00610).
+- **Feedback Efficient Online Fine-Tuning moves to deferred reward integration**, retaining HIGH: its objective is reward-maximizing diffusion fine-tuning. [Primary paper](https://proceedings.mlr.press/v235/uehara24a.html).
+- **Training Diffusion Language Models for BBO (DiBO) moves to deferred fine-tuning**, with the owner's related-work notes preserved. Its domain adaptation, supervised fine-tuning and RL stages make it a later methodological read; those related-work sections can still be consulted independently. [Primary paper](https://arxiv.org/html/2603.17919v1).
+- **Fine-Tuning Discrete Diffusion Models via Reward Optimization** had both active and deferred entries. Consolidated into one deferred entry, retaining MED and both source links.
+- **Weighted Retraining moves to deferred reward integration**, retaining HIGH, until objective-weighted generator retraining is being planned. [Primary paper](https://arxiv.org/abs/2006.09191).
+- **Model Collapse in the Self-Consuming Chain of Diffusion Finetuning moves to deferred fine-tuning diagnostics**, retaining HIGH. General diversity/data-mixing readings remain available selectively, but no longer outrank current search-loop work just because they are HIGH. [Primary paper](https://arxiv.org/abs/2407.17493).
+
+Inference-time guidance and general inverse-model/search papers were not treated as fine-tuning merely because they use a learned model or an objective score. The existing reward deferrals and SPIGM acceptance decisions remain in force.
 
 ## Generative Bayesian Optimization — reassessed 2026-09-07
 
@@ -448,3 +461,50 @@ Owner requested both forward-citation candidates be added and graded. Both recei
 - **Unify ML4TSP — MED:** Search and black-box optimization → Optimization benchmarks and validation. Read for separating learned proposal quality from downstream construction and improvement search. Placed first in that subsection because controlled generator/search comparisons fit the online project better than the existing offline-only benchmarks.
 
 Both active entries use only linked paper titles, following the owner's formatting preference. Grades and reasons are recorded here rather than appended to the entries.
+
+## DDEA cited-paper screening, 2026-10-20
+
+Screened all 29 bibliography entries in [DDEA v1](https://arxiv.org/html/2510.08627v1#bib) against the current search-loop, baseline and evaluation priorities. The complete inventory and selective-reading limits are recorded in [cited reading shortlist](../research_notes/DDEA%20decisions%20and%20reading%20priorities/cited%20reading%20shortlist.md). This is not a claim that every cited work received a full read.
+
+Added two previously absent papers to **Search and black-box optimization → Optimization benchmarks and validation**, after the existing owner-selected Design-Bench row. Both receive MED for selective methodology. Citation counts were not refreshed and are marked `not checked`.
+
+- [What's Wrong with Deep Learning in Tree Search for Combinatorial Optimization](https://arxiv.org/abs/2201.10494), Böther et al., ICLR 2022. Read §§3.1–3.2 first among these new references. It separates the value of learned guidance from graph reduction, local search and other search machinery by testing random guidance. Its separate learned solver can benefit from its GNN, so the result is not a universal claim that learning is useless. Transfer the controlled comparison to team proposals, while retaining noisy battle evaluation and fresh validation.
+- [Machine Learning for Combinatorial Optimization: A Methodological Tour d'Horizon](https://arxiv.org/abs/1811.06128), Bengio, Lodi and Prouvost, EJOR 2021. Read §§3.2, 4.2, 4.3 and 4.6 for where learning enters an optimizer, why learning loss differs from actual optimization performance, held-out generalization and offline cost. This is methodology, not a ready-made noisy battle-search algorithm. Verified journal DOI: [10.1016/j.ejor.2020.07.063](https://doi.org/10.1016/j.ejor.2020.07.063).
+
+Preserved existing priorities and grades, including LOW for DIFUSCO, DiffUCO and T2T. ReEvo is absent from the active list but already covered in Teaching lesson 0005, so it remains prior-reading context rather than another immediate task. GFlowNets remain a possible later reward-integration reading. No paper was assigned HIGH.
+
+KaMIS's stronger reported MIS results support checking a strong classical baseline and identifying the neural component's contribution. Its graph-specific reductions and exact cardinality objective do not establish a solver for categorical teams scored by noisy battle win rate. DDEA actually cites [Lamm et al. 2017](https://arxiv.org/html/2510.08627v1#bib.bib28) for KaMIS, and [Bäck and Khuri 1994](https://arxiv.org/html/2510.08627v1#bib.bib20) plus [Liu et al. 1996](https://arxiv.org/html/2510.08627v1#bib.bib21) for evolutionary MIS precedents. Those papers were not added merely because the classical baseline wins.
+
+The Liang et al. surrogate-assisted EA survey remains deferred because its full text was unavailable during this screening. The matching publisher record gives [10.1007/s41965-024-00165-w](https://link.springer.com/article/10.1007/s41965-024-00165-w), with 2024 online publication and a 2025 issue. DDEA's reference instead prints `10.1007/s41965-024-00155-x`. Record that discrepancy rather than copy the conflicting DOI or claim a full-paper assessment from an abstract.
+
+## GECCO methods and landscape follow-up, 2026-10-20
+
+The owner requested relevant reading-list additions, workshop and track rankings, explanations of constructive heuristics and hybrid methods, and landscape analysis as part of search. The topic-specific assessment is in [GECCO methods and reading priorities](../reports/GECCO%20methods%20and%20reading%2020261020.md), with primary-source evidence in [the research notes](../research_notes/GECCO%20methods%20and%20reading%2020261020/).
+
+Added five previously absent references, all MED for selective reading. Citation counts were not checked. Existing paper priorities and grades were preserved; the new topic-specific order does not replace the current experiment queue.
+
+- **Search trajectory networks**, Ochoa, Malan and Blum, 2021, DOI 10.1016/j.asoc.2021.107492. First landscape read. Sections 3 and 5 were inspected, including a fixed-cardinality p-median comparison. Use existing candidate trajectories when provenance permits; the graph does not certify the whole landscape or improve win rate by itself.
+- **Cross entropy-based memetic algorithms**, Amaya, Cotta and Fernández-Leiva, 2013, DOI 10.1080/18756891.2013.792542. First hybrid read. The discrete tool-switching example exposes local-refinement probability and an evaluation cap. Transfer the bounded comparison, not its deterministic scheduling results.
+- **Local Optima Networks: A New Model of Combinatorial Fitness Landscapes**, Ochoa, Verel, Daolio and Tomassini, 2014, arXiv 1402.2959. Foundational chapter, metadata and abstract verified. Local-optimum and basin claims need an explicit legal neighborhood and adequate evaluation precision.
+- **Greedy Randomized Adaptive Search Procedures**, Feo and Resende, 1995, DOI 10.1007/BF01096763. Construction and local-improvement foundation, sections 1 and 2. Author full text checked. A partial team needs a defined completion rule and scoring justification.
+- **Exploratory Landscape Analysis for Mixed-Variable Problems**, Prager and Trautmann, online 2024, journal issue 2025, arXiv 2402.16467, DOI 10.1109/TEVC.2024.3399560. Later methodology for mixed categorical feature representations and algorithm selection. VGC sampling cost, high-cardinality categories and selector generalization remain unresolved.
+
+The existing 2026 diffusion-EDA row received an access note. Acceptance and ECOM track are verified, but its method and results were not verified from full text in this review. No duplicate copy was added. The existing Hearthstone references remain in place.
+
+The current continuous-only and toy-evidence downgrade rule remains in force. Extract-QD's robotics/control evidence makes it LOW for direct reuse under that rule, superseding the earlier GECCO guide's MED assessment. It is retained as conditional explanatory background rather than added to the active reading list. Continuous-only NF-EDA, Beyond Final Fitness and classification-surrogate JADE papers, plus the toy-evidence noisy LON/STN and subfunction-structure papers, also remain LOW background references. Two 2026 workshop leads remain title-only holds. A highly relevant workshop scope does not override an individual paper's evidence limitations.
+
+For current project fit, the track order is ECOM, L4EC, GECH, BBSR, GA, then conditional RWA. A learned-search contribution moves L4EC first; a hybrid-coordination contribution moves GECH first. The workshop order is SAEOpt, AABOH, ECADA, BENCH, decomposition, LLMfwEC, then EvoOSS. BENCH 2026 is a discussion workshop with no paper submissions. The 2027 workshop roster and corrected submission dates were not established.
+
+### 2026-10-20: Owner excludes BBSR and GA from the GECCO shortlist
+
+This decision supersedes the main-track order immediately above. The current shortlist is **ECOM, L4EC, then GECH**. BBSR and GA, formerly fourth and fifth, are excluded for the current contribution. RWA remains conditional and unranked; workshop rankings and paper priorities are unchanged.
+
+BBSR does include landscape analysis, but the project is not currently proposing a standalone benchmark, diagnostic methodology, software contribution or replication study. Evaluation and reproducibility support the search method. GA includes model-based genetic algorithms, surrogates and landscape analysis, but no GA-specific representation or operator-design advance is currently the central claim. Neural CEM proposal learning and efficient battle acquisition fit L4EC more directly; hybrid coordination fits GECH. This is a contribution-fit decision, not a claim of formal ineligibility. See the [updated rationale](../reports/GECCO%20methods%20and%20reading%2020261020.md#excluded-from-the-current-shortlist), [BBSR scope](https://gecco-2026.sigevo.org/Track?itemId=2672), and [GA scope](https://gecco-2026.sigevo.org/Track?itemId=56).
+
+### 2026-10-21: Owner selects two textbooks for search foundations
+
+Added **Essentials of Metaheuristics**, by Sean Luke, and **Introduction to Evolutionary Computing**, by A. E. Eiben and J. E. Smith, to a new Textbooks and foundations section. They are owner-selected foundation readings; existing paper grades and experiment priorities remain unchanged.
+
+Start with Luke's sections 0.1 and 2.1. Continue with the chapter 3 introduction, section 3.2.1, and section 3.3.4 for **memetic algorithms / local search**. The author offers the book free; the online version 2.4 is dated January 2026 and the second print edition is cited as 2013.
+
+For Eiben and Smith's second edition, 2015, start with chapter 3, then chapters 4 and 5. Keep chapter 10 for memetic algorithms / local search, chapter 13 for legality constraints, and chapter 11 for noisy evaluation as references. Publisher chapter numbers were verified; access requires purchase or an institutional library. See [[Essentials of Metaheuristics - reading guide]] and [[Introduction to Evolutionary Computing - reading guide]].

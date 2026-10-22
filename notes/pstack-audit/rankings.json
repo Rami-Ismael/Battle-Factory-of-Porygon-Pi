@@ -1,0 +1,1528 @@
+[
+ {
+  "name": "recall",
+  "fit": 10,
+  "benefit": 10,
+  "confidence": "medium-high",
+  "does": "Reconstructs recent scoped working context from chat history and shared records, checks artifacts against live state, and returns a compact current-status brief and next move.",
+  "why": "You explicitly want prior chats and project decisions checked before grilling. Recovering settled answers addresses repeated explanations directly, including that “better” means higher battle win rate. The project adaptation is configured; its reliability still needs to be observed in future interviews.",
+  "evidence": [
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "01a136d5-a5ad-7151-9ffa-fe474f0b10ae",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "current-chat"
+  ],
+  "caveat": "Configured as a project-local Codex adaptation before grilling. It can use only accessible history, must distinguish user decisions from assistant proposals, and should report missing context. Configuration does not prove future retrieval will always succeed.",
+  "previousBenefit": 6,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 6,
+  "previousFit": 8,
+  "usage": {
+   "mode": "automatic",
+   "label": "Automatic in this project",
+   "when": "Before grilling or a requirements interview; also when you ask to recall or resume prior work.",
+   "action": "No slash command needed. Ask your normal question; relevant prior decisions should be recovered first. Codex name: pskill:recall.",
+   "basis": "AGENTS.md and local recall skill; implicit invocation enabled. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/recall/SKILL.md",
+   "codexName": "pskill:recall",
+   "sourcePath": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/.agents/skills/recall/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 1,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed; this skill was already selected for installation or adoption."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:recall",
+   "mode": "automatic",
+   "label": "Automatic in this project",
+   "when": "Before grilling or resuming work in the Pokémon counter-search project. Searches both Claude Code and Codex history.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/recall/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "technical-writing",
+  "fit": 10,
+  "benefit": 9,
+  "confidence": "high",
+  "does": "Chooses tutorial, how-to, reference, or explanation, then applies reader-focused sentences, short unambiguous instructions, stable terminology, real symbols, and reproducible counts.",
+  "why": "You used this on a complete blog post and asked to learn the rule behind each edit. It serves both a recurring writing task and your wish to improve your own judgment. Automatic use is configured for project blog posts and documentation.",
+  "evidence": [
+   "01a13649-dbed-7fb0-b085-f2eb6894d851",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "current-chat"
+  ],
+  "caveat": "Configured automatically for project blog posts and documentation, with unslop as a helper. Preserve voice, citations, and uncertainty; use the annotated comparison to learn and reject edits that weaken meaning. The full-post example is an editorial revision, not an experiment audit.",
+  "previousBenefit": 7,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 4,
+  "previousFit": 9,
+  "usage": {
+   "mode": "automatic",
+   "label": "Automatic in this project",
+   "when": "When drafting, editing, or reviewing this project’s blog posts or documentation.",
+   "action": "Ask for the writing task normally. Ordinary coding and chat do not trigger this rule. Codex name: pskill:technical-writing.",
+   "basis": "AGENTS.md and local technical-writing skill; implicit invocation enabled. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/technical-writing/SKILL.md",
+   "codexName": "pskill:technical-writing",
+   "sourcePath": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/.agents/skills/technical-writing/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 2,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed; this skill was already selected for installation or adoption."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:technical-writing",
+   "mode": "automatic",
+   "label": "Automatic in this project",
+   "when": "When drafting or reviewing blog posts and docs in the Pokémon counter-search project.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/technical-writing/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "principle-separate-before-serializing-shared-state",
+  "fit": 10,
+  "benefit": 9,
+  "confidence": "high",
+  "does": "Identifies shared writable files, branches, or state; gives independent workers separate owned outputs; uses locks, single writers, or compare-and-swap only when sharing is essential.",
+  "why": "You explicitly selected this principle for your project. Separate experiment outputs and agent-owned files address a concrete risk in your parallel research work. Project instructions already capture it; apply it when shared writes actually exist.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "current-chat"
+  ],
+  "caveat": "Portable and manual. The visual workflow already requests separate variant folders, so some benefit is reinforcement. The sample shows concurrency demand, not proof that existing code has a race.",
+  "previousBenefit": 5,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 9,
+  "previousFit": 9,
+  "usage": {
+   "mode": "automatic",
+   "label": "Automatic project rule",
+   "when": "When agents, processes, or experiment runs could write to the same mutable files, databases, outputs, or Git state.",
+   "action": "No skill call needed, including inside another workflow. Read-only or already isolated work needs no extra coordination.",
+   "basis": "Adapted directly into AGENTS.md; not installed as a separate named skill.",
+   "path": "AGENTS.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 3,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed; this skill was already selected for installation or adoption."
+  },
+  "claude": {
+   "installed": false,
+   "mode": "not-configured",
+   "label": "Not set up in Claude Code",
+   "when": "This is a rule in the project AGENTS.md for Codex. The project CLAUDE.md has no equivalent yet.",
+   "date": "2026-10-14"
+  }
+ },
+ {
+  "name": "arena",
+  "fit": 10,
+  "benefit": 8,
+  "confidence": "high",
+  "does": "Runs isolated parallel candidates, cross-judges them against a rubric, selects a base, grafts useful ideas from the others and verifies the synthesis.",
+  "why": "You explicitly installed arena to compare distinct designs during planning. That choice is direct evidence of usefulness to you. It now has a Codex adaptation with isolated candidate outputs; real benefits still depend on trying it.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a130a4-9dc2-7fc1-9851-f948833fdf00",
+   "01a136e7-6bc2-7920-a67d-0f551e5f22e1",
+   "current-chat"
+  ],
+  "caveat": "Use when several plausible approaches deserve comparison. Its identical candidate prompt does not guarantee the distinct forms the user requests; specify those in the framing. Adapt unavailable models and cap resource use on the MacBook.",
+  "previousBenefit": 7,
+  "revisionBasis": "User-requested installation is explicit usefulness evidence. User-selected skills rank first, then expected benefit and fit. Installation is not a measured productivity gain.",
+  "previousRank": 1,
+  "previousFit": 10,
+  "usage": {
+   "mode": "request",
+   "label": "Installed · ask for arena",
+   "when": "When you explicitly ask arena to explore and compare different designs or approaches.",
+   "action": "Say “Use arena to compare three designs.” It does not start just because it is installed. Codex name: pskill:arena.",
+   "basis": "Personal Codex adaptation; allow_implicit_invocation is false. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/arena/SKILL.md",
+   "codexName": "pskill:arena",
+   "sourcePath": "/Users/ramiismael/.codex/skills/arena/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 4,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed; this skill was already selected for installation or adoption."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:arena",
+   "mode": "request",
+   "label": "Ask explicitly",
+   "when": "Only when you ask for it by name (disable-model-invocation is set).",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/arena/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "automate-me",
+  "fit": 9,
+  "benefit": 8,
+  "confidence": "high",
+  "does": "Mines scoped recent transcripts, checks recurring preferences with the user and authors or updates a personal, explicitly invoked mode skill.",
+  "why": "You explicitly installed automate-me to capture recurring working preferences as skills. This directly supports the automatic behaviors you have been selecting. It is available on request; installation has not run a history audit.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "current-chat"
+  ],
+  "caveat": "This creates a working-style skill, not scheduled task automation. Adapt Cursor transcript paths/create-skill tools to Codex and validate preferences across a broader sample; the 60 summaries and six detailed chats are not a complete profile.",
+  "previousBenefit": 5,
+  "revisionBasis": "User-requested installation is explicit usefulness evidence. User-selected skills rank first, then expected benefit and fit. Installation is not a measured productivity gain.",
+  "previousRank": 7,
+  "previousFit": 9,
+  "usage": {
+   "mode": "request",
+   "label": "Installed · ask for automate-me",
+   "when": "When you explicitly ask to capture or update your recurring working preferences as a skill.",
+   "action": "Say “Use automate-me to turn my recurring preferences into a skill.” Codex name: pskill:automate-me.",
+   "basis": "Personal Codex adaptation; allow_implicit_invocation is false. Installation does not mine history. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/automate-me/SKILL.md",
+   "codexName": "pskill:automate-me",
+   "sourcePath": "/Users/ramiismael/.codex/skills/automate-me/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 5,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed; this skill was already selected for installation or adoption."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:automate-me",
+   "mode": "request",
+   "label": "Ask explicitly",
+   "when": "Only when you ask for it by name (disable-model-invocation is set).",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/automate-me/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "principle-make-operations-idempotent",
+  "fit": 8,
+  "benefit": 8,
+  "confidence": "medium",
+  "does": "Make repeat execution and recovery after partial failure converge by reconciling existing state, stale locks, sessions and scheduled work.",
+  "why": "You identified OpenRouter calls as a concrete use. Resume tracking and duplicate-result protection can help long experiments, while preserving intentionally independent samples. The skill cannot guarantee that a repeated remote request will not execute or be billed twice.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "current-chat"
+  ],
+  "caveat": "Scientific sampling must not be accidentally frozen or results overwritten. Define experiment identity, seeds and intended rerun semantics; content equivalence alone does not establish identical provenance.",
+  "previousBenefit": 5,
+  "revisionBasis": "Explicit user selection raises priority; usefulness remains an estimate, not an observed API or readability improvement.",
+  "previousRank": 18,
+  "previousFit": 8,
+  "usage": {
+   "mode": "task-selected",
+   "label": "Installed · selected for matching tasks",
+   "when": "When designing or reviewing retries, resumed runs, processing loops, or API calls such as OpenRouter.",
+   "action": "No slash command needed for matching work. Installation supplies guidance; it does not change existing application code. Codex name: pskill:principle-make-operations-idempotent.",
+   "basis": "Personal Codex skill with implicit invocation enabled and scoped application guidance. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/principle-make-operations-idempotent/SKILL.md",
+   "codexName": "pskill:principle-make-operations-idempotent",
+   "sourcePath": "/Users/ramiismael/.codex/skills/principle-make-operations-idempotent/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 18,
+   "date": "2026-10-13",
+   "basis": "User explicitly identified this skill as useful and selected it for Codex."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:principle-make-operations-idempotent",
+   "mode": "task-selected",
+   "label": "Chosen when the task matches",
+   "when": "Claude loads it when the task matches its description.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/principle-make-operations-idempotent/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "unslop",
+  "fit": 9,
+  "benefit": 7,
+  "confidence": "high",
+  "does": "Edits writing for specificity and human voice by removing puffery, vague attribution, repetitive synonyms, canned phrasing, decorative formatting, and dense passive prose.",
+  "why": "You explicitly installed unslop and asked for it to apply automatically to replies too. It now supports clearer everyday explanations as well as prose editing, while keeping technical precision and your own writing practice intact. Broader activation is not evidence of a measured productivity gain.",
+  "evidence": [
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "01a12c25-6119-7872-bf98-f68ce7846a91",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "current-chat"
+  ],
+  "caveat": "Portable prose, but its 'must always apply' claim and blanket punctuation bans should not override user style, exact quotations, scientific terms, or calibrated uncertainty. Removing AI tells does not verify truth.",
+  "previousBenefit": 4,
+  "revisionBasis": "Updated after your explicit request for automatic use in replies. Invocation scope expanded; benefit remains 7/10 rather than receiving another installation bonus.",
+  "previousRank": 22,
+  "previousFit": 8,
+  "usage": {
+   "mode": "automatic",
+   "label": "Automatic · replies and writing",
+   "when": "For ordinary replies, progress updates, explanations, and writing tasks across your Codex chats, including this project.",
+   "action": "No request or slash command needed. It applies quietly and preserves technical meaning, citations, uncertainty, and your writing-practice preferences. Codex name: pskill:unslop.",
+   "basis": "Personal Codex AGENTS.md explicitly requires it; personal and project unslop both enable implicit invocation. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/unslop/SKILL.md",
+   "codexName": "pskill:unslop",
+   "sourcePath": "/Users/ramiismael/.codex/skills/unslop/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 6,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed; this skill was already selected for installation or adoption."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:unslop",
+   "mode": "automatic",
+   "label": "Automatic on every reply",
+   "when": "Every reply, progress update and writing task, through ~/.claude/CLAUDE.md.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/unslop/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "principle-sequence-verifiable-units",
+  "fit": 9,
+  "benefit": 7,
+  "confidence": "high",
+  "does": "Breaks multi-step edits into checked units and orders commits or PRs to show baseline, failure, and fix instead of checking only after a large batch.",
+  "why": "You selected this because you have been trying to add verification steps to your work. It helps define meaningful checkpoints before dependent implementation or experiment stages proceed. Checks stay proportional and reuse existing tools; it does not require another verification-skill framework.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "current-chat"
+  ],
+  "caveat": "Configured for matching multi-step tasks, not a test after every edit. It preserves unrelated work and does not automatically rebase or create commits. A completed experiment is not proof of improved battle performance.",
+  "previousBenefit": 3,
+  "revisionBasis": "User selection establishes a concrete use and raises expected benefit to 7/10. This is a judgment, not a measured improvement; previous rejection of verification-skill creation remains intact.",
+  "previousRank": 28,
+  "previousFit": 9,
+  "usage": {
+   "mode": "task-selected",
+   "label": "Installed · selected for multi-step work",
+   "when": "When implementation, migration, or experiment stages depend on earlier outputs being correct.",
+   "action": "No slash command needed for matching work. Define and check each meaningful unit before dependent steps; reuse existing checks. Codex name: pskill:principle-sequence-verifiable-units.",
+   "basis": "Personal Codex adaptation with implicit invocation enabled, proportional verification, and no automatic Git restructuring. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/principle-sequence-verifiable-units/SKILL.md",
+   "codexName": "pskill:principle-sequence-verifiable-units",
+   "sourcePath": "/Users/ramiismael/.codex/skills/principle-sequence-verifiable-units/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 28,
+   "date": "2026-10-14",
+   "basis": "User explicitly found this useful and wants verification steps in the workflow."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:principle-sequence-verifiable-units",
+   "mode": "task-selected",
+   "label": "Chosen when the task matches",
+   "when": "Claude loads it when the task matches its description.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/principle-sequence-verifiable-units/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "why",
+  "fit": 8,
+  "benefit": 7,
+  "confidence": "high",
+  "does": "Anchors a design question in code/history, investigates seven available evidence categories in parallel, and synthesizes direct findings, inferences, competing hypotheses, and explicit gaps with citations.",
+  "why": "You explicitly chose to install why to understand the reasons behind code and design decisions. Its cited history investigations can help you assess alternatives without relying on plausible guesses. It is now available as a personal Codex skill; usefulness is endorsed by your choice, not measured by installation.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "claude:28c2bfb7-7144-446c-83b8-a075ee16496f",
+   "current-chat"
+  ],
+  "caveat": "Heavy Cursor-specific orchestration assumes Grok investigators, a Claude synthesizer, several reference files, and enterprise MCP categories often irrelevant or unavailable for a personal research project. A null search is not proof a decision was never ticketed. Code rationale investigation also cannot replace ablations to establish why DiBO performs worse.",
+  "previousBenefit": 6,
+  "revisionBasis": "User-requested installation raises priority under your selected-skills-first rule. Expected benefit reassessed to 7/10; actual productivity gains remain unmeasured.",
+  "previousRank": 13,
+  "previousFit": 8,
+  "usage": {
+   "mode": "task-selected",
+   "label": "Installed · selected for why questions",
+   "when": "When you ask why code or a design decision exists, what alternatives were rejected, or what evidence supports its rationale.",
+   "action": "Ask normally, or say “Use why to investigate this design decision.” Installation alone starts no investigation. Codex name: pskill:why.",
+   "basis": "Personal Codex adaptation with implicit invocation enabled; research is scoped to available relevant sources. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/why/SKILL.md",
+   "codexName": "pskill:why",
+   "sourcePath": "/Users/ramiismael/.codex/skills/why/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 7,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed; this skill was already selected for installation or adoption."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:why",
+   "mode": "task-selected",
+   "label": "Chosen when the task matches",
+   "when": "Claude loads it when the task matches its description.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/why/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "principle-minimize-reader-load",
+  "fit": 8,
+  "benefit": 7,
+  "confidence": "medium",
+  "does": "Assess both indirection and hidden mutable state; collapse pass-through layers, shorten state lifetimes and require interfaces to hide meaningful complexity.",
+  "why": "You selected this principle to make code easier to follow. It can reduce unhelpful layers and hidden mutable state in the research pipeline while preserving useful boundaries. Installed for matching code design and review tasks.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a12c25-6119-7872-bf98-f68ce7846a91",
+   "current-chat"
+  ],
+  "caveat": "This is primarily code maintainability, not a prose-writing skill. One caller alone does not prove a boundary is useless; indiscriminate inlining can expose more complexity.",
+  "previousBenefit": 5,
+  "revisionBasis": "Explicit user selection raises priority; usefulness remains an estimate, not an observed API or readability improvement.",
+  "previousRank": 17,
+  "previousFit": 8,
+  "usage": {
+   "mode": "task-selected",
+   "label": "Installed · selected for matching tasks",
+   "when": "When shaping or reviewing code that is hard to trace because of indirection or hidden state.",
+   "action": "No slash command needed for matching work. Installation supplies guidance; it does not change existing application code. Codex name: pskill:principle-minimize-reader-load.",
+   "basis": "Personal Codex skill with implicit invocation enabled and scoped application guidance. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/principle-minimize-reader-load/SKILL.md",
+   "codexName": "pskill:principle-minimize-reader-load",
+   "sourcePath": "/Users/ramiismael/.codex/skills/principle-minimize-reader-load/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 17,
+   "date": "2026-10-13",
+   "basis": "User explicitly identified this skill as useful and selected it for Codex."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:principle-minimize-reader-load",
+   "mode": "task-selected",
+   "label": "Chosen when the task matches",
+   "when": "Claude loads it when the task matches its description.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/principle-minimize-reader-load/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "reflect",
+  "fit": 8,
+  "benefit": 7,
+  "confidence": "high",
+  "does": "Reviews the active conversation through judgment, tooling and divergent lenses, synthesizes durable lessons into proposed skill edits or structural backlog items, and applies approved skill changes.",
+  "why": "You selected reflect to turn useful lessons and corrections from a conversation into proposed improvements to your skills. This can help preserve lessons you choose to keep; benefits are expected, not measured.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "current-chat"
+  ],
+  "caveat": "Runs only when requested. Reviews can use multiple subagents; proposed skill changes require your approval. Backlog items are not submitted externally without authorization.",
+  "previousBenefit": 3,
+  "revisionBasis": "October 14: user requested installation. Installed a request-only Codex adaptation and prioritized this explicit selection.",
+  "previousRank": 31,
+  "previousFit": 8,
+  "usage": {
+   "mode": "request",
+   "label": "Installed · ask to use",
+   "when": "When you ask to reflect on a conversation and identify durable lessons for your skills.",
+   "action": "Ask: Use reflect to review this conversation and propose skill improvements. Codex name: pskill:reflect.",
+   "basis": "Personal Codex installation; agents/openai.yaml disables implicit invocation. Codex adaptation requires approval before skill edits. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/reflect/SKILL.md",
+   "codexName": "pskill:reflect",
+   "sourcePath": "/Users/ramiismael/.codex/skills/reflect/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 31,
+   "date": "2026-10-14",
+   "basis": "You explicitly asked to add the Pstack reflect skill to Codex."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:reflect",
+   "mode": "request",
+   "label": "Ask explicitly",
+   "when": "Only when you ask for it by name (disable-model-invocation is set).",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/reflect/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "principle-exhaust-the-design-space",
+  "fit": 10,
+  "benefit": 5,
+  "confidence": "high",
+  "does": "Build two or three genuinely different prototypes for novel UI or architectural choices and compare them before committing.",
+  "why": "You chose to install this after considering comparisons for visual explanations and the writing workshop. It guides a small set of genuinely different designs before committing. Because arena already generates and compares candidates, this principle reuses that work rather than requiring another round.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a130a4-9dc2-7fc1-9851-f948833fdf00",
+   "current-chat"
+  ],
+  "caveat": "Its bounded two-to-three option rule may simplify a bloated workflow, but applying it atop the existing variant pipeline duplicates work. “Exhaust” does not mean an exhaustive search.",
+  "previousBenefit": 5,
+  "revisionBasis": "Explicit installation marks the skill selected and raises its default ranking. Benefit remains 5/10 because overlap with arena still limits added value; installation is not a measured improvement.",
+  "previousRank": 17,
+  "previousFit": 10,
+  "usage": {
+   "mode": "task-selected",
+   "label": "Installed · selected for novel design tasks",
+   "when": "When a novel interface or architecture has several viable approaches and no settled project pattern.",
+   "action": "No slash command needed for matching work. Compare two or three approaches; reuse arena candidates when available. Skip routine fixes and already-settled designs. Codex name: pskill:principle-exhaust-the-design-space.",
+   "basis": "Personal Codex skill with implicit invocation enabled; scoped to requested planning or prototyping. Exposed through the personal pskill plugin; the prefixed entry reads the original local instructions and retains its invocation policy. Standalone duplicate discovery is disabled.",
+   "path": "/Users/ramiismael/.codex/plugins/cache/rami-pskills/pskill/1.0.0/skills/principle-exhaust-the-design-space/SKILL.md",
+   "codexName": "pskill:principle-exhaust-the-design-space",
+   "sourcePath": "/Users/ramiismael/.codex/skills/principle-exhaust-the-design-space/SKILL.md"
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 17,
+   "date": "2026-10-13",
+   "basis": "User chose to install the principle after discussing concrete design-comparison examples and its overlap with arena."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:principle-exhaust-the-design-space",
+   "mode": "task-selected",
+   "label": "Chosen when the task matches",
+   "when": "Claude loads it when the task matches its description.",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/principle-exhaust-the-design-space/SKILL.md",
+   "date": "2026-10-14",
+   "basis": "Claude Code adaptation of the Codex skill, in the pskill plugin (pskill@skills-dir). Codex tool names and paths were replaced; the skill body is otherwise unchanged. Porting does not change the scores."
+  }
+ },
+ {
+  "name": "teach",
+  "fit": 10,
+  "benefit": 8,
+  "confidence": "high",
+  "does": "Combines actual how and why skill investigations into a plain explanation at the learner's pace, starts with a small complete answer, preserves uncertainty, and builds diagrams one component at a time.",
+  "why": "Your requests for step-by-step explanations and hover explanations show that learning the reasoning is part of the outcome. This is valuable for understanding your code and methods, provided explanations match your current knowledge and do not require repeating context.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a135f7-7646-7850-a228-ffffc2ceeed4",
+   "01a135ee-2795-7532-948c-9a4f8e56d68b",
+   "claude:6a78b75d-b75e-43a1-8cce-28c96abf395b",
+   "claude:b88712c4-86d8-474d-8fe9-32a7f3a7f401",
+   "current-chat"
+  ],
+  "caveat": "Source is primarily code/subsystem teaching, not a paper-reading or practice-exercise curriculum. It depends on how, why, unslop, and sometimes image generation. Full why investigations can be costly. Historical prompts name Matt Pocock teach, but that alone does not prove the skill is currently installed.",
+  "previousBenefit": 7,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 3,
+  "previousFit": 9,
+  "usage": {
+   "mode": "request",
+   "label": "Ask explicitly · local alternative",
+   "when": "When you want the installed guided teaching workspace workflow.",
+   "action": "Explicitly request the local teach skill. Pstack teach itself is not configured; the same name does not mean the same workflow.",
+   "basis": "Local teach has disable-model-invocation: true and allow_implicit_invocation: false.",
+   "path": ".agents/skills/teach/SKILL.md"
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 8,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed and instructed that skills not added be marked not interested. This decision concerns the Pstack skill, not removal of an existing alternative."
+  }
+ },
+ {
+  "name": "how",
+  "fit": 9,
+  "benefit": 8,
+  "confidence": "high",
+  "does": "Traces a subsystem from real source into an architectural explanation, optionally followed by independent architecture critics and a filtered verdict.",
+  "why": "You repeatedly ask how a method or tool actually works. Tracing the real pipeline can connect explanations to your sampler and evaluator, giving you something you can inspect rather than a generic overview.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a1286d-4473-7381-b3c1-086e7dfcbc90",
+   "current-chat"
+  ],
+  "caveat": "This explains code for a senior-engineer audience, not papers or beginner concepts. Explicitly request plain language when needed. Even the simple path delegates once, and critique adds a model panel; adapt this overhead and the Cursor APIs.",
+  "previousBenefit": 6,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 5,
+  "previousFit": 8,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When you want an explanation traced through the actual implementation.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 9,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed and instructed that skills not added be marked not interested. This decision concerns the Pstack skill, not removal of an existing alternative."
+  }
+ },
+ {
+  "name": "figure-it-out",
+  "fit": 9,
+  "benefit": 7,
+  "confidence": "high",
+  "does": "Designs a bespoke workflow for large or unusual work, establishes a falsifiable completion predicate and baseline, runs small measured experiments and maintains a linked decision trail.",
+  "why": "Your open research questions benefit from a concrete next experiment and a clear completion condition. Recover the established win-rate objective first, then use a light workflow rather than rebuilding the project plan.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "current-chat"
+  ],
+  "caveat": "Reserve for ambitious multi-part changes where a narrower workflow does not suffice. It brings dependencies on poteto-mode principles, architect/arena and show-me-your-work; avoid importing all of that for a small experiment.",
+  "previousBenefit": 7,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 2,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When an unusual, multi-part task needs a scoped experimental workflow.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 10,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed and instructed that skills not added be marked not interested. This decision concerns the Pstack skill, not removal of an existing alternative."
+  }
+ },
+ {
+  "name": "principle-encode-lessons-in-structure",
+  "fit": 9,
+  "benefit": 7,
+  "confidence": "high",
+  "does": "Turn repeated corrections into enforceable types, lints, metadata, checks or scripts, and route each lesson to an actionable mechanism.",
+  "why": "Your repeated-question complaint is a concrete lesson worth encoding in the recall-to-grilling sequence. Give recurring corrections a targeted home so they influence future work, without turning every conversation into another permanent rule.",
+  "evidence": [
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "claude:09d3529c-340f-4dbf-9564-190da9a0bd03",
+   "claude:ebdbc626-0734-4eef-887a-ef82f8c36b48",
+   "current-chat"
+  ],
+  "caveat": "Not every lesson is machine-checkable. The instruction to delete textual guidance after adding enforcement can remove valuable rationale; retain judgment criteria and avoid encoding a provisional experimental choice permanently.",
+  "previousBenefit": 4,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 15,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When the same concrete correction keeps recurring.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 11,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed and instructed that skills not added be marked not interested. This decision concerns the Pstack skill, not removal of an existing alternative."
+  }
+ },
+ {
+  "name": "principle-never-block-on-the-human",
+  "fit": 9,
+  "benefit": 6,
+  "confidence": "high",
+  "does": "Proceed on inferable reversible work, show reviewable results and reserve questions for genuine ambiguity or irreversible actions.",
+  "why": "You want agents to find already available answers themselves. Combined with recall, this can reduce repetitive clarification while leaving genuinely unresolved research choices to you. Existing host instructions already cover part of the behavior.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "current-chat"
+  ],
+  "caveat": "Do not override explicitly requested grilling or product choices. External messaging still requires authorization; reversibility alone does not authorize arbitrary account changes. Another principle file adds little where the host already enforces this behavior.",
+  "previousBenefit": 3,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 26,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When an answer can be recovered or reversible work can proceed without a new decision.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 12,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed and instructed that skills not added be marked not interested. This decision concerns the Pstack skill, not removal of an existing alternative."
+  }
+ },
+ {
+  "name": "principle-experience-first",
+  "fit": 9,
+  "benefit": 6,
+  "confidence": "high",
+  "does": "Prioritize the central user workflow, polished interactions and fewer well-finished features; include maintainers and API consumers as users.",
+  "why": "Your request for hover explanations shows that the way an artifact teaches matters. Put understandable comparisons and accessible controls ahead of extra report features; existing design skills supply much of the implementation guidance.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "current-chat"
+  ],
+  "caveat": "Delight must serve faithful scientific explanation; feature reduction must not omit uncertainty, legality or experimental controls. This is a broad preference, not an additional implementation workflow.",
+  "previousBenefit": 4,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 16,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When deciding which interactions or features most help the user complete the task.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 13,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed and instructed that skills not added be marked not interested. This decision concerns the Pstack skill, not removal of an existing alternative."
+  }
+ },
+ {
+  "name": "principle-subtract-before-you-add",
+  "fit": 8,
+  "benefit": 6,
+  "confidence": "high",
+  "does": "Removes dead code, redundant checks, unused features, stub references, and repetitive prompt instructions before adding new complexity.",
+  "why": "You want useful skills without becoming dependent on a large process. Removing duplicate instructions and unnecessary steps can keep the adopted workflow manageable, while retaining explanations, scientific baselines, and required checks.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "current-chat"
+  ],
+  "caveat": "Portable and manual. Do not remove legality validation, baseline artifacts, or reproducibility evidence just because they look repetitive; these can be part of the experiment's contract.",
+  "previousBenefit": 5,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 10,
+  "previousFit": 8,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When proposed changes duplicate existing steps, abstractions, or instructions.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 14,
+   "date": "2026-10-13",
+   "basis": "User confirmed ranks 1–14 reviewed and instructed that skills not added be marked not interested. This decision concerns the Pstack skill, not removal of an existing alternative."
+  }
+ },
+ {
+  "name": "bro",
+  "fit": 8,
+  "benefit": 5,
+  "confidence": "medium",
+  "does": "Restates the previous assistant message more simply and concisely without jargon.",
+  "why": "Not interested: you already have Matt Pocock’s wait-what skill for help when an explanation is unclear, and you identified bro as overlapping that existing skill.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a12c25-6119-7872-bf98-f68ce7846a91",
+   "current-chat"
+  ],
+  "caveat": "Invoke after an opaque answer. It does not research, verify, teach interactively or explain missing background.",
+  "previousBenefit": 4,
+  "revisionBasis": "October 14: explicitly declined because it overlaps your existing Matt Pocock wait-what skill.",
+  "previousRank": 23,
+  "previousFit": 7,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When you want the previous answer restated in simpler language.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 20,
+   "date": "2026-10-14",
+   "basis": "You asked to mark bro as not interested because it overlaps Matt Pocock’s wait-what skill."
+  }
+ },
+ {
+  "name": "principle-prove-it-works",
+  "fit": 10,
+  "benefit": 4,
+  "confidence": "high",
+  "does": "Checks the actual feature, data value, full integration path, and delegated artifact before claiming completion; prefers repeatable verification scripts with visible results.",
+  "why": "Actual result checks still matter for battle evaluations and interactive artifacts. Your objection to creating a verification skill does not remove this need, but existing tests and checks limit the additional value of another principle.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "01a1310e-6d3d-7472-b256-5d93cd1c7645",
+   "current-chat"
+  ],
+  "caveat": "Portable prose, but manually invoked in the source. Real scientific effectiveness still needs controlled experiments and uncertainty, not only passing software checks. Chat-reported test results were not independently rerun for this audit.",
+  "previousBenefit": 4,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 13,
+  "previousFit": 10,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When checking a concrete result before claiming completion.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "blast-radius",
+  "fit": 9,
+  "benefit": 4,
+  "confidence": "high",
+  "does": "Reviews consequences beyond the diff, identifies the key safety assumption, and attempts to prove it by running real code rather than listing hypothetical risks.",
+  "why": "You explicitly marked blast-radius as not interested. No further reason was given, so the report records your decision without inferring one. The skill remains in the catalog for reference.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13526-fa13-71c2-b63b-274b20d25cc4",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "current-chat"
+  ],
+  "caveat": "Best before evaluator, data-filtering or shared-format changes merge. One proved safety fact is not comprehensive correctness; retain the existing regression and integration checks. Wider changes can invoke arena and increase cost.",
+  "previousBenefit": 4,
+  "revisionBasis": "Recorded explicit not-interested decision. Scores and installation status are unchanged.",
+  "previousRank": 14,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When a change could affect behavior beyond the edited files.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 20,
+   "date": "2026-10-13",
+   "basis": "User explicitly stated they are not interested in blast-radius; no further reason was given."
+  }
+ },
+ {
+  "name": "principle-fix-root-causes",
+  "fit": 9,
+  "benefit": 4,
+  "confidence": "high",
+  "does": "Reproduce and instrument failures, trace causes, repair the recurring pattern and investigate stale state when restart behavior differs.",
+  "why": "You said you have not had recurring research-code bugs requiring diagnosis. The earlier ranking treated that as an established need without sufficient support. This skill has no demonstrated current use for you; ordinary bug fixes alone do not establish a recurring root-cause problem.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "claude:09d3529c-340f-4dbf-9564-190da9a0bd03",
+   "claude:28c2bfb7-7144-446c-83b8-a075ee16496f",
+   "current-chat"
+  ],
+  "caveat": "“Fix all instances” can expand an experiment or cleanup beyond scope. A safeguard can be valid defense, and inability to reproduce locally does not rule out a real defect.",
+  "previousBenefit": 3,
+  "revisionBasis": "Corrected the unsupported personal-history inference. Review decision updated; scores are unchanged rather than inventing a new measurement.",
+  "previousRank": 25,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When a recurring bug needs diagnosis rather than another workaround.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 21,
+   "date": "2026-10-13",
+   "basis": "User corrected the assumption that recurring research-code bugs were a demonstrated need and indicated no need for this skill."
+  }
+ },
+ {
+  "name": "swarm",
+  "fit": 9,
+  "benefit": 4,
+  "confidence": "high",
+  "does": "Frames a done predicate, fans out N workers for partitioned coverage or a declared race, isolates writable outputs, waits for results, and aggregates PASS/ISSUES/BLOCKED evidence and gaps.",
+  "why": "Not interested for now: your latest feedback indicates no current need for a separate swarm workflow. Existing delegation tools remain available; this does not mean you reject parallel agents in general.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a1286d-4473-7381-b3c1-086e7dfcbc90",
+   "current-chat"
+  ],
+  "caveat": "Cursor-specific cloud-worker arguments and ~/.cursor/rules model configuration are not portable. Default grok-4.5-fast-xhigh is unavailable here. MacBook-only work needs local workers, resource limits, and available Codex tool/model mappings rather than its default cloud fan-out.",
+  "previousBenefit": 3,
+  "revisionBasis": "Recorded as not interested for now based on the latest feedback. No skills or delegation settings were changed.",
+  "previousRank": 28,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When independent tasks need parallel coverage and aggregation.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 22,
+   "date": "2026-10-13",
+   "basis": "Interpreted the user’s statement as swarm not being useful yet; recorded as not interested for now."
+  }
+ },
+ {
+  "name": "principle-guard-the-context-window",
+  "fit": 9,
+  "benefit": 4,
+  "confidence": "high",
+  "does": "Keep bulk documents and verbose outputs out of the main context, summarize delegated work, read selectively and cap phase scope.",
+  "why": "You chose to keep context-mode and auto-compaction and marked this principle as not interested. Its guidance on selective reading and limiting large outputs overlaps your existing context-management setup, so you do not want another skill for this purpose.",
+  "evidence": [
+   "01a1308a-3098-76f2-a972-31a14af434ce",
+   "01a1286d-4473-7381-b3c1-086e7dfcbc90",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "claude:87797425-44ff-4cd8-b283-491032a714b4",
+   "current-chat"
+  ],
+  "caveat": "Delegation adds overhead and must remain authorized. “Finite and non-renewable” is an oversimplification in a system with compaction; summaries also risk losing evidence. All audited principle skills are manual-invocation skills.",
+  "previousBenefit": 2,
+  "revisionBasis": "Explicit user decision: not interested because of overlap. Existing context-mode and auto-compaction are unchanged; this update records the decision without changing the score.",
+  "previousRank": 34,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When large sources or histories would overwhelm the active context.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 23,
+   "date": "2026-10-13",
+   "basis": "User explicitly chose to keep context-mode and auto-compaction and declined this overlapping principle."
+  }
+ },
+ {
+  "name": "architect",
+  "fit": 8,
+  "benefit": 4,
+  "confidence": "medium-high",
+  "does": "Traces the existing system, generates competing usage-first type and module sketches through arena, synthesizes one, then implements and redesigns if recurring friction disproves the sketch.",
+  "why": "You already have Matt Pocock skills for substantial architecture redesign and consider this workflow repetitive. You do not want an additional Pstack architect skill for the same need. Your existing architecture skills remain available.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "current-chat"
+  ],
+  "caveat": "Invoke for a substantial pipeline redesign, not each small function. It proceeds to implementation by default; request a checkpoint for design-only work. Requires how/arena and adaptation of Cursor model/tool assumptions.",
+  "previousBenefit": 4,
+  "revisionBasis": "Recorded explicit rejection due to overlap with existing Matt Pocock architecture skills. No existing skill was removed or disabled.",
+  "previousRank": 17,
+  "previousFit": 8,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When a substantial subsystem redesign needs competing module and interface designs.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 24,
+   "date": "2026-10-13",
+   "basis": "User reports existing Matt Pocock skills already cover substantial architecture redesign and considers this overlapping."
+  }
+ },
+ {
+  "name": "principle-foundational-thinking",
+  "fit": 8,
+  "benefit": 4,
+  "confidence": "medium",
+  "does": "Choose data structures and access patterns first, isolate shared mutable state, and sequence broadly useful scaffold before dependent features.",
+  "why": "You do not see a useful role for this principle in your work, including after considering the example of shared experiment-result structures. It is marked not interested. The example was hypothetical, not evidence of a problem in your project.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "current-chat"
+  ],
+  "caveat": "Scaffold-first and subtraction-first are heuristics. Removing baseline code or adding broad infrastructure before a narrow controlled experiment can undermine the requested comparison.",
+  "previousBenefit": 4,
+  "revisionBasis": "Recorded explicit not-interested feedback. Scores remain estimates and are unchanged; no skill was installed or removed.",
+  "previousRank": 18,
+  "previousFit": 8,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When data structures or ownership choices constrain a planned change.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 25,
+   "date": "2026-10-13",
+   "basis": "User said the skill would not be useful after reviewing a concrete hypothetical example."
+  }
+ },
+ {
+  "name": "principle-laziness-protocol",
+  "fit": 8,
+  "benefit": 4,
+  "confidence": "medium",
+  "does": "Prefer deletion, fewer layers and one source of truth; find the smallest maintainable change before adding abstractions or threaded signals.",
+  "why": "You marked this skill as not interested because it overlaps your existing minimize-reader-load and Matt Pocock codebase-design skills. Their guidance already covers reducing unnecessary layers and keeping interfaces manageable; you do not want another skill for this purpose.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a13526-fa13-71c2-b63b-274b20d25cc4",
+   "current-chat"
+  ],
+  "caveat": "A three-layer cutoff is arbitrary. Small diffs are not always the simplest correct solution, and experiment baselines are not dead code just because a new implementation exists.",
+  "previousBenefit": 4,
+  "revisionBasis": "Recorded explicit not-interested decision due to overlap. Scores and installed skills are unchanged.",
+  "previousRank": 19,
+  "previousFit": 8,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When choosing a simpler sufficient implementation over extra layers.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 26,
+   "date": "2026-10-14",
+   "basis": "User explicitly declined because it overlaps skills they already have."
+  }
+ },
+ {
+  "name": "show-me-your-work",
+  "fit": 9,
+  "benefit": 3,
+  "confidence": "high",
+  "does": "Keeps an append-only TSV decision log with timestamp, phase, decision, reason, evidence pointer, and result; audits it against the transcript and requires a reviewer from another model family.",
+  "why": "A few durable decisions help recall, but the full mandatory logging and cross-model review process is more work than your current need warrants. Keep evidence and accepted decisions selectively rather than requiring a log for every action.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "current-chat"
+  ],
+  "caveat": "Best adapted, not copied unchanged. Source assumes Cursor agent-transcripts paths, a bundled helper/template, and mandatory different-model-family review. Those are not guaranteed in Codex; another GPT variant is not a different family. Its append-only rule also conflicts with later instructions to cut or fix rows.",
+  "previousBenefit": 3,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 24,
+  "previousFit": 10,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When you explicitly want a detailed decision log and its review workflow.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "interrogate",
+  "fit": 8,
+  "benefit": 3,
+  "confidence": "high",
+  "does": "Gives the same intent, code and rubric to multiple model reviewers, then synthesizes consensus, disagreements and prioritized findings without applying fixes.",
+  "why": "Not interested: you already have Matt Pocock’s code-review skill and do not need a separate overlapping review workflow. Interrogate adds independent models reviewing the same change, but that extra process is not a current priority.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "current-chat"
+  ],
+  "caveat": "This is code review, not a replacement for grilling the user about a prompt. Model agreement is not independent proof; validate findings. Its default model slugs and Cursor Task syntax need replacement in Codex.",
+  "previousBenefit": 3,
+  "revisionBasis": "October 14: explicitly marked not interested because of overlap with your existing Matt Pocock code-review skill.",
+  "previousRank": 29,
+  "previousFit": 8,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When you want multiple reviewers to assess a consequential code change.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false,
+  "review": {
+   "status": "not-interested",
+   "reviewed": true,
+   "rankAtReview": 29,
+   "date": "2026-10-14",
+   "basis": "You declined interrogate because it overlaps the Matt Pocock code-review skill you already have."
+  }
+ },
+ {
+  "name": "principle-boundary-discipline",
+  "fit": 8,
+  "benefit": 3,
+  "confidence": "medium",
+  "does": "Validate external inputs once, convert them into domain types, and keep scoring and prompt construction pure behind thin adapters.",
+  "why": "Generated team data needs clear validation boundaries. Existing legality contracts already address much of the need; use the principle when a specific input boundary is missing or duplicated.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "current-chat"
+  ],
+  "caveat": "“Trust internal code unconditionally” is too absolute for mutable Python objects, changing legality rules and experimental pipelines. Boundary validation does not prove all later invariants.",
+  "previousBenefit": 3,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 30,
+  "previousFit": 8,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When designing or repairing validation at external input boundaries.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "principle-type-system-discipline",
+  "fit": 7,
+  "benefit": 3,
+  "confidence": "medium",
+  "does": "Uses discriminated variants, semantic brands, constructive data models, boundary parsing, exhaustive matching, and schema-derived types to prevent invalid combinations.",
+  "why": "Typed representations can prevent invalid states in team schemas. This helps during implementation, but it is less directly useful for your immediate writing and learning work and does not replace runtime legality checks.",
+  "evidence": [
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a1286d-4473-7381-b3c1-086e7dfcbc90",
+   "current-chat"
+  ],
+  "caveat": "Manual; its strongest benefits require a statically checked language. Python annotations or DSPy fields alone do not enforce Pokémon legality, and external model output still needs runtime validation. Sample does not establish prevalence of typed-language work.",
+  "previousBenefit": 3,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 32,
+  "previousFit": 7,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When typed models should prevent invalid states or combinations.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "principle-build-the-lever",
+  "fit": 9,
+  "benefit": 2,
+  "confidence": "high",
+  "does": "Produce a small rerunnable script, generator, codemod or check for nontrivial work; verify it on one example and retain it when useful.",
+  "why": "You said you struggle to find a use for this skill. You already ask Codex to build tools when needed, and no specific repeated task has been identified where this extra workflow would save you effort. Creating and maintaining a reusable tool can cost more than completing the current task. Reconsider it when the same manual work recurs and a small tool would clearly reduce that work.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "current-chat"
+  ],
+  "caveat": "Requiring a file for every nontrivial one-off can add clutter. Use the smallest useful artifact; exploratory reasoning itself need not become a framework or script.",
+  "previousBenefit": 6,
+  "revisionBasis": "Lowered expected benefit from 6/10 to 2/10 after your explicit feedback that you cannot currently identify a useful application. Fit remains 9/10 because reusable tooling can still match your research work; present usefulness is lower.",
+  "previousRank": 12,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When a repeated task would benefit from a small reusable script or tool.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "principle-model-the-domain",
+  "fit": 9,
+  "benefit": 2,
+  "confidence": "high",
+  "does": "Represent invariants and ownership with models, state machines, registries or suitable data structures instead of scattered branches and synchronized flags.",
+  "why": "Clear names for teams, masks, and evaluations matter. You already have a domain-modeling skill, so an overlapping principle is less urgent than using the existing tool well.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "current-chat"
+  ],
+  "caveat": "Do not confuse a typed representation with proof of game legality or predictive adequacy. This duplicates a named installed skill more than it closes a workflow gap.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 35,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When the project needs clearer domain concepts and invariants.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "tdd",
+  "fit": 9,
+  "benefit": 2,
+  "confidence": "high",
+  "does": "For a cheap, clear bug reproduction, writes and runs a focused failing test before the fix, then verifies passing and adjacent behavior; explicitly permits practical scripted or manual substitutes.",
+  "why": "A focused regression test can protect a bug fix, but TDD is already available in your skills. Another same-name variant contributes little and can make skill selection less clear.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "current-chat"
+  ],
+  "caveat": "Portable and manual. This is not a full feature-development TDD replacement and does not by itself establish scientific correctness. Same-name installation creates selection ambiguity with existing tdd skills.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 36,
+  "previousFit": 9,
+  "usage": {
+   "mode": "task-selected",
+   "label": "Task-selected · local alternative",
+   "when": "When you ask for test-first development, red-green-refactor, or integration tests.",
+   "action": "Describe that intent normally; the available TDD skill can be selected. This is not a blanket requirement for every code change.",
+   "basis": "Local TDD description supplies the trigger and does not disable implicit invocation. It is a different implementation from Pstack TDD.",
+   "path": ".agents/skills/tdd/SKILL.md"
+  },
+  "userSelected": false
+ },
+ {
+  "name": "create-verification-skill",
+  "fit": 9,
+  "benefit": 2,
+  "confidence": "high (direct user feedback)",
+  "does": "Inspects a repo, creates a project-specific launch/health-check/drive/evidence/cleanup skill and feature map, then executes one real feature end to end to prove the generated instructions.",
+  "why": "You explicitly questioned its benefit. Reliable results do not require building another reusable verification skill when existing checks suffice; keep this low unless a repeated verification gap makes the maintenance worthwhile.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a1310e-6d3d-7472-b256-5d93cd1c7645",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "current-chat"
+  ],
+  "caveat": "Deprioritized by your feedback. A useful verification habit does not establish that authoring a dedicated verification skill is worthwhile. The 2/10 benefit score is a revised editorial estimate, not a score you supplied.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 33,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When repeated verification needs justify authoring a dedicated project skill.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "principle-migrate-callers-then-delete-legacy-apis",
+  "fit": 6,
+  "benefit": 2,
+  "confidence": "medium",
+  "does": "Inventory and migrate all internal callers, update contract tests and remove the obsolete API in one coordinated refactor when external compatibility is unnecessary.",
+  "why": "This can help during a deliberate internal API migration. It is not a frequent need established by your latest feedback, and experimental baselines should not disappear merely because a new API exists.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "current-chat"
+  ],
+  "caveat": "Do not remove old methods that remain scientific baselines. The source explicitly excludes externally required compatibility; coordinated change must respect existing users and reproducibility.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 37,
+  "previousFit": 6,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When intentionally replacing an internal API and migrating its callers.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "principle-outcome-oriented-execution",
+  "fit": 6,
+  "benefit": 2,
+  "confidence": "medium",
+  "does": "For planned rewrites, permit scoped reversible intermediate breakage, keep focused checks during migration and verify the full final state at declared boundaries.",
+  "why": "The source mainly addresses planned rewrites and temporary intermediate breakage. It has limited direct value for the current recall, writing, and controlled experiment workflows despite its broad name.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "current-chat"
+  ],
+  "caveat": "Despite its general title, this is specifically a migration principle. A shared working tree, preserved baseline or active experiment may require stable intermediate states; do not treat final-only verification as sufficient.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 38,
+  "previousFit": 6,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When a planned rewrite needs controlled intermediate breakage and final checks.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "principle-redesign-from-first-principles",
+  "fit": 6,
+  "benefit": 2,
+  "confidence": "high",
+  "does": "Reconsiders an affected design as though a new requirement existed from the start, propagates it through types and documentation, then delivers incrementally.",
+  "why": "Use for an intentional redesign when requirements invalidate the old structure. Broad restructuring can interfere with experiments that should change one factor while preserving the baseline.",
+  "evidence": [
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "current-chat"
+  ],
+  "caveat": "Portable and manual. Applying its broad redesign language indiscriminately could invalidate the user's matched DSPy baseline or violate explicit preservation constraints. Reserve for an authorized design change.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 39,
+  "previousFit": 6,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When changed requirements justify reconsidering an existing design.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "typescript-best-practices",
+  "fit": 5,
+  "benefit": 2,
+  "confidence": "medium",
+  "does": "Applies type-system discipline in TypeScript with discriminated unions, branded primitives, unknown inputs, validated narrowing, exhaustive checks, schema-derived types, real tests, and structured diagnostics.",
+  "why": "Useful when you work substantially in TypeScript, but the sampled research pipeline is largely Python and frontend guidance is already available. Reconsider for a specific typed frontend project.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a12c2c-3d9a-7520-8942-ce49fd5b532c",
+   "current-chat"
+  ],
+  "caveat": "Conditional recommendation for actual TypeScript projects. Relies on principle-type-system-discipline, boundary guidance, and referenced examples. Broad 'every as is a crash waiting' wording overstates TypeScript's legitimate assertion use; adapt to project conventions.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 40,
+  "previousFit": 5,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When implementing or reviewing substantial TypeScript code.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "maintain-verification-skill",
+  "fit": 7,
+  "benefit": 1,
+  "confidence": "medium",
+  "does": "Audits every feature in an existing verification skill against source and live behavior, corrects only its documentation/harness/map, and reports clean, changed or blocked.",
+  "why": "A dedicated verification skill must first prove useful before maintaining it becomes a priority. Your current feedback does not establish that need.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "current-chat"
+  ],
+  "caveat": "Conditional on first finding or creating a verification skill with a feature map. Every mapped feature gets a live exercise, so keep the map bounded. Product regressions are reported, not fixed by this workflow.",
+  "previousBenefit": 1,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 41,
+  "previousFit": 7,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When a dedicated verification skill already exists and needs maintenance.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "poteto-mode",
+  "fit": 6,
+  "benefit": 1,
+  "confidence": "high",
+  "does": "Applies a comprehensive personal workflow with mandatory principle reads, delegation, architecture exploration, verification, prose rules and task-specific playbooks.",
+  "why": "You are selecting individual behaviors that solve actual problems. A complete borrowed mode would add mandatory processes and conflict risks; the targeted recall and writing adaptations fit your request better.",
+  "evidence": [
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a13664-9a60-71a0-85be-cd6ece175821",
+   "current-chat"
+  ],
+  "caveat": "Prefer selected leaf workflows or a personal automate-me result. This mode mandates architect for code crossing a function boundary, no-comments before review, and dependencies such as Cursor agents, cursor-team-kit and Graphite. Its broad permission for external actions does not replace the user's authorization or host rules.",
+  "previousBenefit": 1,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 42,
+  "previousFit": 6,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When explicitly choosing to adopt the full Pstack workflow rather than selected pieces.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "setup-pstack",
+  "fit": 4,
+  "benefit": 1,
+  "confidence": "high",
+  "does": "Detects available subagent models, lets the user choose models for Pstack roles, and writes a Cursor always-applied model-override rule.",
+  "why": "The source configures model roles for Cursor. The current project uses Codex adaptations, so this setup adds little unless you later choose a Cursor workflow.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a1308a-3098-76f2-a972-31a14af434ce",
+   "01a1286d-4473-7381-b3c1-086e7dfcbc90",
+   "current-chat"
+  ],
+  "caveat": "Useful only after deciding to run Pstack in a compatible host or port its configuration mechanism. Confirm real available model IDs; do not assume the pinned defaults or Cursor rule path work in Codex.",
+  "previousBenefit": 1,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 43,
+  "previousFit": 4,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When configuring Pstack model roles for a Cursor installation.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ },
+ {
+  "name": "no-comments",
+  "fit": 2,
+  "benefit": 1,
+  "confidence": "medium-high",
+  "does": "Runs the Comment Sicko agent to delete comments outside a narrow exception list, then fixes accepted code-shape findings and offers structural encodings of constraints.",
+  "why": "Broad removal of explanatory comments works poorly with your goal of learning how the research code works. Preserve useful rationale and constraints; review individual comments when they are actually misleading.",
+  "evidence": [
+   "01a13182-8a6b-7e23-919c-98633a50502f",
+   "01a136d8-5eab-7113-9eba-34f72a55cc53",
+   "current-chat"
+  ],
+  "caveat": "Not a read-only review. Ambiguous keep cases are deleted, and constraint comments can be deleted even when the user declines the proposed encoding, with the constraint reported open. Avoid as a default, especially in research code.",
+  "previousBenefit": 1,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 44,
+  "previousFit": 2,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When explicitly requesting the source skill’s broad comment-removal workflow; not recommended for your learning goals.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": false
+ }
+]

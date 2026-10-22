@@ -15,6 +15,8 @@ import time
 CODE = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(CODE/'src'))
 import encode
+import heldout as HO
+from showdown_validator import SHOWDOWN
 import numpy as np
 import torch
 import lossdown as L
@@ -22,10 +24,11 @@ import asked_vs_got as X
 import hps_generate as H
 from corpus import norm
 from regmb_training_policy import mega_stone_users,training_regulation,sample_moves,encode_training_team
+from checkpoints import load_checkpoint
 
 MANIFEST = CODE/'data/regmb-vocabulary.json'
 OUT = Path.home()/'.local/share/vgc-pilot-runtime/regmb-v2'
-MEMBERS = ['F1_final_medium','G2_family_matrix_noprtrain']
+MEMBERS = ['F1_final_medium_noheldout','G2_family_matrix_noprtrain_noheldout']
 SEED = 20261009
 
 
@@ -77,10 +80,10 @@ def prepare(args):
     OUT.mkdir(parents=True,exist_ok=True)
     reg=json.loads(MANIFEST.read_text())
     if args.version=='v3':
-        reg=training_regulation(reg,mega_stone_users(Path.home()/'.local/share/vgc-pilot-runtime/validator-913da36'))
+        reg=training_regulation(reg,mega_stone_users(SHOWDOWN))
     save(OUT/'training-regulation.json',reg)
     V=encode.Vocab.from_regulation(reg)
-    corpus,old,*_=X.setup(); data=L.load_data()
+    corpus,old,*_=X.setup(); data=L.load_data(include_heldout=True)   # remapped.npz is aligned to every row
     train,ok=remap(data['X'],old,V); test,tok=remap(data['xte'],old,V)
     # Freeze the original test and current pilot contexts out of synthetic training.
     forbidden={x.tobytes() for x in test[tok]}
@@ -98,7 +101,6 @@ def prepare(args):
     ti=np.flatnonzero(tok); tok[ti[tables.check(test[ti],rules)]]=False
     np.savez_compressed(OUT/'remapped.npz',X=train,valid=ok,xte=test,test_valid=tok)
     rng=np.random.default_rng(SEED)
-    H.SHOWDOWN=Path.home()/'.local/share/vgc-pilot-runtime/validator-913da36'
     validator=H.Validator()
     coverage={k:np.zeros(V.sizes[k],dtype=int) for k in L.KEYS}
     examples=[]; seen=set(); rejected=0
@@ -167,15 +169,21 @@ def train(args):
     V=encode.Vocab.from_regulation(OUT/'training-regulation.json');corpus,old,*_=X.setup()
     audit=json.loads((OUT/'data-audit.json').read_text())
     assert audit['manifest_sha256']==sha(MANIFEST) and audit['legacy_vocabulary']==old.itos
-    assert audit['version']==args.version and audit['training_regulation_sha256']==sha(OUT/'training-regulation.json')
+    # the v2 audit predates the version and regulation hashes; its regulation is the manifest, which rebuilds the v2 vocabulary exactly
+    if 'training_regulation_sha256' in audit:
+        assert audit['version']==args.version and audit['training_regulation_sha256']==sha(OUT/'training-regulation.json')
+    else:
+        assert args.version=='v2' and sha(OUT/'training-regulation.json')==sha(MANIFEST)
     if audit['data_sha256']!=sha(L.DATA) or audit['synthetic_sha256']!=sha(OUT/'synthetic.npy'):
         raise ValueError('training data changed since preparation; rebuild the audited dataset')
-    d=L.load_data(); mapped=np.load(OUT/'remapped.npz');synthetic=np.load(OUT/'synthetic.npy')
-    tr,val=L.splits(d);tag=L.tag_of(d['S']);rules=('clause','compat','order');tables=L.Tables(V,corpus)
+    d=L.load_data(include_heldout=True); mapped=np.load(OUT/'remapped.npz');synthetic=np.load(OUT/'synthetic.npy')
+    assert len(mapped['X'])==len(d['X']),'remapped.npz is not aligned to lossdata.npz'
+    keep=HO.row_mask(d['X'],old)                        # ranks 51-100 are not training or validation rows
+    tr,val=L.splits(d);tr=tr[keep[tr]];val=val[keep[val]];tag=L.tag_of(d['S']);rules=('clause','compat','order');tables=L.Tables(V,corpus)
     for member in args.members:
         name=member+'_regmb_'+args.version; dest=L.CK/(name+'.pt')
         if dest.exists() and not args.replace:
-            previous=torch.load(dest,map_location='cpu')
+            previous=load_checkpoint(dest,map_location='cpu')
             if previous.get('provenance',{}).get('data_audit_sha256')!=sha(OUT/'data-audit.json'):
                 raise ValueError('existing checkpoint used different data; use --replace explicitly')
             if previous.get('provenance',{}).get('trainer_sha256')!=sha(Path(__file__)):
@@ -184,7 +192,7 @@ def train(args):
                 raise ValueError('training settings changed; use --replace explicitly')
             print('Already trained:',name,flush=True);continue
         torch.manual_seed(SEED);np.random.seed(SEED)
-        ck=torch.load(L.CK/(member+'.pt'),map_location=L.DEV);cfg=dict(L.DEFAULT,**ck['cfg'])
+        ck=load_checkpoint(L.CK/(member+'.pt'),map_location=L.DEV);cfg=dict(L.DEFAULT,**ck['cfg'])
         idx=tr[(tag[tr]==L.TEST_TAG)|(tag[tr]==0)|((d['M'][tr,:,1].sum(1)>0) if cfg['mrow'] else False)]
         if cfg['mrow']:idx=np.setdiff1d(idx,L.matrix_holdout(d))
         idx=idx[mapped['valid'][idx]];vi=val[mapped['valid'][val]]

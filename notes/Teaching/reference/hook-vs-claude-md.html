@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hook vs CLAUDE.md reference</title><link rel="stylesheet" href="../assets/course.css">
+<style>.cm{color:var(--accent);font-weight:600}.hk{color:var(--setc);font-weight:600}.wrap{overflow-x:auto}</style></head>
+<body>
+<p class="meta">Reference · from <a href="../lessons/0012-hook-or-claude-md.html">Lesson 0012</a> · sources checked October 21, 2026</p>
+<h1>Hook vs CLAUDE.md</h1><p class="subtitle">Who runs the rule decides what the rule can do.</p>
+
+<div class="wrap"><table class="compare">
+<thead><tr><th></th><th class="cm">CLAUDE.md</th><th class="hk">Prompt hook (UserPromptSubmit)</th><th class="hk">Tool hook (PreToolUse)</th></tr></thead>
+<tbody>
+<tr><td>Run by</td><td>The model reads it</td><td>The harness runs a script</td><td>The harness runs a script</td></tr>
+<tr><td>When</td><td>Loaded at session start; your personal file was re-read after this session's automatic compaction</td><td>Each submitted prompt, and turns Claude Code starts on its own</td><td>Before each matching tool call</td></tr>
+<tr><td>Can it force?</td><td>No: “context, not enforced configuration”</td><td>No: it adds text the model can ignore</td><td>Yes: it can block the call</td></tr>
+<tr><td>Can it judge meaning?</td><td>Yes, the model does</td><td>Only by asking the model, in the note</td><td>Only as a prompt- or agent-based hook</td></tr>
+<tr><td>Costs</td><td>Fixed tokens all session</td><td>Tokens per firing</td><td>A script run per call</td></tr>
+<tr><td>Your example</td><td>The “Subagent check” criteria</td><td><code>subagent-nudge.mjs</code></td><td><code>require-writing-for-agents.mjs</code></td></tr>
+</tbody></table></div>
+
+<h2>The sorting rule</h2>
+<ol>
+<li><strong>Needs judgement?</strong> CLAUDE.md.</li>
+<li><strong>Must hold even when Claude forgets or disagrees?</strong> A tool hook gate on the call that would break it.</li>
+<li><strong>A reminder beside the newest prompt?</strong> A prompt hook note. It still only asks.</li>
+</ol>
+<div class="callout trap"><h4>Limits</h4><p>No hook can make Claude start a subagent; a tool hook can only block a different action. A tool hook on Edit and Write never sees an edit made through Bash.</p></div>
+
+<h2>Sources</h2>
+<ul>
+<li><a href="https://code.claude.com/docs/en/memory">🟢 How Claude remembers your project</a>: “Claude treats them as context, not enforced configuration. To block an action regardless of what Claude decides, use a PreToolUse hook instead.”</li>
+<li><a href="https://code.claude.com/docs/en/hooks-guide">🟢 Automate actions with hooks</a>: hooks give “deterministic control”; the event table says UserPromptSubmit “also fires on turns Claude Code starts on its own” and PreToolUse “can block it”.</li>
+<li><a href="https://claude.ai/artifact/LJt9U5nnrDFENrRtmAjZEx">Hook or CLAUDE.md? comparison page</a>: your own measurements.</li>
+</ul>
+</body></html>

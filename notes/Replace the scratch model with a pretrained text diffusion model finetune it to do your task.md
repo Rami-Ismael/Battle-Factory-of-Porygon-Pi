@@ -11,6 +11,12 @@
 
 **Status:** this is a researched plan. No pretrained checkpoint has been downloaded, no fine-tuning has been run, and no new battle result is claimed. The two original tasks above remain open until a model runs here and the prompt passes a real data round-trip.
 
+**Status 2026-10-15:** Fast-dLLM v2 1.5B, LoRA-finetuned on the F1 rows (1 epoch, 8k examples), wins 0.463 ± 0.013 vs the scratch cfg arm 0.378 ± 0.015 (+4.3σ); raw legality 79–88% vs 100%, 10–13 species sets vs 20. Protocol, table and reading: `code/docs/textdiff.md`.
+
+**Mask Lab 2026-10-15:** on the 270-mask baseline grid the text writer is 55% legal (moves 13/120) vs the scratch decoder's 100%; where legal it is level (+1.3 pp [+0.4, +1.9]), ahead only on whole-Pokémon fills (+7.0 pp). Table: `code/docs/textdiff.md`.
+
+**Status 2026-10-15 (stack):** as proposer inside the one-shot stack (512 pool → protect3 → ridge top 64) the text model scores 0.491 ± 0.010 vs the scratch stack 0.556 ± 0.012 (−4.3σ, worse by the pre-registered rule); 4 species sets kept of 30. Table: `code/docs/textdiff.md`.
+
 ### The picture
 
 ```mermaid
@@ -171,24 +177,24 @@ The first practical baseline can leave `OPPONENT_CONTEXT: NONE`, generate a stro
 
 These are hypotheses, not capabilities we have measured. Each has a comparison that could show it was a bad idea. They are optional branches after the pipeline works.
 
-| ID | Experiment | Concrete comparison | What would make it useful? |
-| --- | --- | --- | --- |
-| W1 | **Pokémon witness protection** | Replace names with consistent anonymous IDs during fine-tuning/evaluation; compare against normal names with tokenizer-length effects recorded. | Tests whether pretrained name/strategy associations help beyond learning the local dataset. |
-| W2 | **Team surgery** | Lock five members and regenerate the sixth; compare with one-slot corpus replacement. | Better local repairs per battle budget than inventing all six members. |
-| W3 | **The three-headed proposer** | Allocate a fixed proposal budget across pretrained diffusion, scratch diffusion and HPS; compare against each alone. | Complementary candidates improve the final selected team. |
-| W4 | **Battle autopsy → repair** | Supply structured failure evidence from training-pool battles, such as a documented matchup weakness; compare with generic repair requests. | Improvements survive fresh battles rather than merely sounding persuasive. |
-| W5 | **Museum of weird winners** | Maintain a quality/diversity archive using explicit descriptors, such as speed-control and weather tools; compare with one global elite list. | More strategically distinct competitive teams without losing overall strength. |
-| W6 | **A rival that hunts us** | Add counterexamples generated against the current elite into the training opponent pool while retaining a fixed test pool. | Less collapse against a new opponent, without confusing moving-target scores with improvement. |
-| W7 | **Evolutionary crossover by diffusion** | Combine compatible fixed parts from two parents and denoise missing pieces; compare with ordinary crossover and validator repair. | Better children at the same evaluation budget. |
-| W8 | **Strategy before species** | Condition on a measurable role sketch derived from legal team data, then generate members; compare with direct generation. | Better role coherence and battle performance, not just good role labels. |
-| W9 | **Uncertainty-triggered surgery** | Re-mask uncertain generated fields versus random fields. Use a full-sequence model or an explicitly tested block regeneration path. | Higher valid/strong yield with fewer redraws. Confidence is not assumed to be correctness. |
-| W10 | **The legality escape room** | Generate near-legal examples by corrupting one known field; train repair against original legal teams; compare with deterministic repair. | Repairs generalize to unseen error types and do not homogenize every team. |
-| W11 | **Time-travel tournament** | Train on an earlier snapshot and test a later snapshot under a compatible, explicitly fixed ruleset. | Evidence for adaptation to unseen meta compositions, with leakage caveats recorded. |
-| W12 | **One Pokémon disappears** | Ban a common species at inference and compare constrained regeneration with simple replacement. | Resilient counter-team generation under changed allowed choices. |
-| W13 | **Teacher apprenticeships** | Use LLM-suggested teams as proposals, validate and battle-test them, then distill only evidence-backed examples. Compare against training on unfiltered suggestions. | Useful training targets; generated prose is never the reward label. |
-| W14 | **Preference tournament** | Form candidate pairs against the same training opponents and test a diffusion-appropriate preference objective. Keep uncertain pairs out. | Better held-out strength than supervised learning on elite teams alone. |
-| W15 | **Big teacher, tiny student** | After a larger teacher demonstrates a benefit, distill its verified candidates into the small proposer; compare equal data budgets. | Retain the teacher's useful output on the Mac. |
-| W16 | **Slot-order magic trick** | Permute equivalent teams and prompt order, measuring validity and performance; compare canonical and augmented training. | Reveals unwanted order dependence without mistaking permutations for new teams. |
+| ID  | Experiment                              | Concrete comparison                                                                                                                                                  | What would make it useful?                                                                     |
+| --- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| W1  | **Pokémon witness protection**          | Replace names with consistent anonymous IDs during fine-tuning/evaluation; compare against normal names with tokenizer-length effects recorded.                      | Tests whether pretrained name/strategy associations help beyond learning the local dataset.    |
+| W2  | **Team surgery**                        | Lock five members and regenerate the sixth; compare with one-slot corpus replacement.                                                                                | Better local repairs per battle budget than inventing all six members.                         |
+| W3  | **The three-headed proposer**           | Allocate a fixed proposal budget across pretrained diffusion, scratch diffusion and HPS; compare against each alone.                                                 | Complementary candidates improve the final selected team.                                      |
+| W4  | **Battle autopsy → repair**             | Supply structured failure evidence from training-pool battles, such as a documented matchup weakness; compare with generic repair requests.                          | Improvements survive fresh battles rather than merely sounding persuasive.                     |
+| W5  | **Museum of weird winners**             | Maintain a quality/diversity archive using explicit descriptors, such as speed-control and weather tools; compare with one global elite list.                        | More strategically distinct competitive teams without losing overall strength.                 |
+| W6  | **A rival that hunts us**               | Add counterexamples generated against the current elite into the training opponent pool while retaining a fixed test pool.                                           | Less collapse against a new opponent, without confusing moving-target scores with improvement. |
+| W7  | **Evolutionary crossover by diffusion** | Combine compatible fixed parts from two parents and denoise missing pieces; compare with ordinary crossover and validator repair.                                    | Better children at the same evaluation budget.                                                 |
+| W8  | **Strategy before species**             | Condition on a measurable role sketch derived from legal team data, then generate members; compare with direct generation.                                           | Better role coherence and battle performance, not just good role labels.                       |
+| W9  | **Uncertainty-triggered surgery**       | Re-mask uncertain generated fields versus random fields. Use a full-sequence model or an explicitly tested block regeneration path.                                  | Higher valid/strong yield with fewer redraws. Confidence is not assumed to be correctness.     |
+| W10 | **The legality escape room**            | Generate near-legal examples by corrupting one known field; train repair against original legal teams; compare with deterministic repair.                            | Repairs generalize to unseen error types and do not homogenize every team.                     |
+| W11 | **Time-travel tournament**              | Train on an earlier snapshot and test a later snapshot under a compatible, explicitly fixed ruleset.                                                                 | Evidence for adaptation to unseen meta compositions, with leakage caveats recorded.            |
+| W12 | **One Pokémon disappears**              | Ban a common species at inference and compare constrained regeneration with simple replacement.                                                                      | Resilient counter-team generation under changed allowed choices.                               |
+| W13 | **Teacher apprenticeships**             | Use LLM-suggested teams as proposals, validate and battle-test them, then distill only evidence-backed examples. Compare against training on unfiltered suggestions. | Useful training targets; generated prose is never the reward label.                            |
+| W14 | **Preference tournament**               | Form candidate pairs against the same training opponents and test a diffusion-appropriate preference objective. Keep uncertain pairs out.                            | Better held-out strength than supervised learning on elite teams alone.                        |
+| W15 | **Big teacher, tiny student**           | After a larger teacher demonstrates a benefit, distill its verified candidates into the small proposer; compare equal data budgets.                                  | Retain the teacher's useful output on the Mac.                                                 |
+| W16 | **Slot-order magic trick**              | Permute equivalent teams and prompt order, measuring validity and performance; compare canonical and augmented training.                                             | Reveals unwanted order dependence without mistaking permutations for new teams.                |
 
 ### Track the optional experiments in Obsidian
 

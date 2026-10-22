@@ -24,6 +24,8 @@
 	- [ ] https://www.julian.com/guide/write/intro
 	- [ ] https://www.solipsys.co.uk/new/SellYourselfSellYourWork.html?te20hnc
 - [ ] https://refactoringenglish.com/blog/anti-patterns-software-blogging/
+- [ ] https://github.com/cursor/plugins/blob/195d9359bdc2890f83745df69927528ad4538406/pstack/skills/technical-writing/SKILL.md
+- [ ] 
 
 
 # Prompt

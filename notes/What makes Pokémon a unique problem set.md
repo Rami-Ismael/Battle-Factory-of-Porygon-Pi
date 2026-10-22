@@ -21,6 +21,8 @@ Team-building is a two-layer problem — a 6-of-N species subset, then each spec
 
 ## Team Building
 
+1. [[Clause or the feature of the search space]]
+
 
 
 ## Team Selection 4x4 from your 6 pokemon team 
@@ -28,30 +30,12 @@ Team-building is a two-layer problem — a 6-of-N species subset, then each spec
 
 
 
-1. In pokemon competitive building, you don't bring all of you pokemon to battle. Intstead, you have to select 4 out of 6 pokemon at the same time while looking at your opponent pokemon team. In pokemon there is two form team preview. One is close sheet format which is the popular format in pokemon champion. In where you can only see your opponent 6 pokemon speciies. However, in open team sheet format which is tournmanet and pokemon shodown ladder, you can see more than 6 pokemon species. You can see the pokemon items, abilities, move and nature. 
-2. Let talked about the math behind of team preview. First , let count the number of lead ( the first two pokemon) that will be combinatorics of 6 of 2 multiple by 4 of 2 for the back lead which produce 90 possible pokemon team for team selection. Then there is opponent selecting so there is 90^2 possible game lead. It will be impossible to memorize you have to think generally on a time crunch. 
-3. Let use concept from game theory to define what this problem. The games is simulatnenous move games, with still imperfect information, incomplete information
 
-
-4. Introduction
-5. What is team seclection
-	1. Team selection is about the ideas in where you have 6 pokemon, you see the opponent 6 pokemon you decide what 4 pokemon you used for battle
-	2. You are not allowed to change moves, items and other stuff. 
-6. What are the different format of team selection
-	1. Open, tournmanet and pokemon showdown 
-	2. Close, pokemon champion
-7. Show the math behind
-8. Game theory word behind these
 
 
 - [x] Talk about the difference in competitive pokemon battle in pokemon showdown where is popular platform where people usually spend time playing pokemon before pokemon champion becomes an options and pokemon champion. The pokemon showdown follow the same procedure in regular pokemon tournmanet in where there is an open team sheet. You are given the pokemon team, nature, ability, items. I could also talke about the history of competiive pokemon in where over time open team format people are given more information. However, in pokemon champion is a close sheet format where you are given the list of pokemon the person has that is. No preview of nature, abilities, moves. This warp metagames as now becomes a guessing games more like poker than chess also increase variances. https://www.youtube.com/watch?v=mHG8ocKRCL8&t=172s wolfe talked about the details in where because the open team format the better player eventaully reach on top. 
 - [x] Count the ways to bring 4 of my 6 and pick 2 leads, as a ladder: 4 of 6, 2 leads, full plan, left/right slots, Showdown's order, both players at once, every legal lead pair in Reg M-B; then decide whether 90 or 180 is the number I quote.
 - [x] Write the meta structure of your pargraph for this
-- [ ] I am planning to write a section of why make pokemon vgc is bi level optimization the first one is just team preview. I was wondering what visual I should create. I want some more of WACKY ideas. The ideas can will try as many possible to be need I don't care there is more than three options. I would like to truly full of depth os possible for the visual. Make some prototype. I will give you my meta structure prompt of my wiriting and further instruction this should be place in [[Visual Plan]]
-- [ ] Work on the writing
-	- [x] Fix the speeling and obvious grammar issues
-	- [ ]  Ask the model to spot problems in your writing add those items in the bottm list of todo items
-	- [ ] Ask what are some checklist can I do to determine the quality of the writing and work effective with my ideas. Please show me a long list of WACKY ideas. I don't care how long it takes to make a list for me. I want to improve on my writing a lot.
 
 ### Writing
 
@@ -69,7 +53,7 @@ Team-building is a two-layer problem — a 6-of-N species subset, then each spec
 		1. The math behind team preview. We have to do combinatorics specicailly combination where order does not matter as there no benefit in left and right position in pokemon battles in double battles. You have combination (6,2) which is 15 then we have (4,2) which is 6 which equal to 90 possible pokemon team. As the game is done simulatnoeysly with imperfect information with time limit there is 90^2 which is 8100 possible battle state in team preview. Thus making it impossible.
 2. Version 2
 	1. Introduction
-		1. Two main things make competitive VGC (Video Game Championships) different from the RPG. First, the games are double battles: you have two Pokémon on your side, and the opponent has two Pokémon on theirs. We call the first two Pokémon in the front the leads. The other two Pokémon are in the back. Finally, the biggest difference: you don't bring all six of your Pokémon to the battle. Instead, there is a team preview, where the two players simultaneously select four Pokémon, two for the lead and two for the back. How much information you see at team preview depends on the format's team sheet rule.
+		1. Two main things make competitive VGC (Video Game Championships) different from the Pokemon RPG. First, the games are double battles: you have two Pokémon on your side, and the opponent has two Pokémon on theirs. We call the first two Pokémon in the front the leads. The other two Pokémon are in the back. Finally, the biggest difference: you don't bring all six of your Pokémon to the battle. Instead, there is a team preview, where the two players simultaneously select four Pokémon, two for the lead and two for the back. How much information you see at team preview depends on the format's team sheet rule.
 	2. Open
 		1. The open team sheet format is used in Pokémon tournaments and on Pokémon Showdown, the old online platform where people compete on a ladder. You can see the Pokémon's held items, abilities, and moves, but you cannot see the nature or EV spread at all. There are so many possible Pokémon and moves that, without the sheet, almost anything could come at you. The open sheet shows you what your opponent actually has, so there are far fewer surprises, and the game plays more like chess.
 	3. Closed
@@ -127,26 +111,48 @@ Team-building is a two-layer problem — a 6-of-N species subset, then each spec
 		1. The action space is combinatorial because you pick actions for _two_ Pokémon at once (each move with its target, or a switch), so the choices multiply into dozens. Three common styles show the idea: aggressive, where both of your Pokémon hit one opposing Pokémon; balanced, where each of your Pokémon attacks a different one; or passive, where none of your Pokémon attack your opponents.
 	6. Randomness
 		1. Finally, each Pokémon game is a stochastic environment. [[Randomness inside in pokemon]] 
+6. Version 6
+	1. Most people think pokemon is a game similar  rock, paper,scissor. However, that is further than the truth.
+
+```
+If you played Pokemon as a kid, you probably think of it as rock, paper, scissors. Fire beats Grass, Grass beats Water, Water beats Fire. That’s true, but it’s only the first layer.
+
+Rock, paper, scissors already has the most important property: both players choose at the same time. Every turn in a VGC battle works the same way. You pick your moves without seeing your opponent’s, so no single move always wins. Game theorists call this a simultaneous-move game.
+
+Now add dice. A move’s damage is multiplied by a random number between 85% and 100%, attacks can miss, and critical hits land at random. The game is stochastic.
+
+Now hide your opponent’s hand. Under closed team sheets you see their six Pokemon, but not their items, abilities or moves. You have incomplete information, so you play the odds of what is common in the meta.
+
+Now let the rules change mid-battle. Fake Out works only on a Pokemon’s first turn. A Choice item locks its holder into one move. The actions you can take depend on the state of the battle.
+
+Finally, play two at once. You choose for two Pokemon every turn, and their options multiply: up to about 14 each, close to 200 together.
+
+Rock, paper, scissors has three options and no surprises. A VGC turn has close to 200 options and surprises everywhere.
+```
 # Search Perspective and objective function  how different from other search spaces for optimization 
 
 
-1. [[Objective Function comparison with other black box function by Ill-conditioning]]
-2. [[Search Space Comparison with other black box function by variable type]]
-3. [[Evaluation properties with other black box function by evaluation cost and budget]]
-4. [[Evaluation properties with other black box function by a meta drift over time (non stationay target)]]
-5. **Search-space properties:** what a team is, before any win rate.
-6. **Evaluation properties:** how _f_ can be observed.
-	1. [[Objective Function Comparison with other black box function by noise]]
-7. **Landscape properties:** the shape of _f_ over the space, given an edit operator.
+1. **Search-space properties:** what a team is, before any win rate.
+	1. [[Search Space Comparison with other black box function by variable type]]
+2. **Evaluation properties:** how _f_ can be observed.
+	1. [[Evaluation properties with other black box function by evaluation cost and budget]]
+	2. [[Evaluation Properties Comparison with other black box function by noise]]
+	3. [[Evaluation properties with other black box function by a meta drift over time (non stationay target)]]
+4. **Landscape properties:** the shape of _f_ over the space, given an edit operator.
 	1. [[Landscape Properties comparison with other black box function by high order interaction]]
 	2. [[Landscape properties comparison with other black box function by smoothness]]
-	3. [[Lanscape Properties comparison with other black box function by non-stationaery relevance]]
-	4. [[Objective Function Comparison with other black box function by non global optimal]]
-	5. Non-separability / epistasisx, Indeed, these interactions, known as epistatic in protein evolution, violate the underlying sequential factorisation of AR models, which commits to each token before observing its downstream context.
+	3. [[Landscape properties comparison with other black box function by Ill-conditioning]]
+	4. [[Lanscape Properties comparison with other black box function by non-stationaery relevance]]
+	5. [[Landscape Properties Comparison with other black box function by non global optimal]]
+	6. Epistasis and linked edits
+	7. Non-separability / epistasisx, Indeed, these interactions, known as epistatic in protein evolution, violate the underlying sequential factorisation of AR models, which commits to each token before observing its downstream context.
 		1. Do good components combine into good solutions?A member’s value depends on its teammates. A support move may be useless without its intended partner; combining individually strong Pokémon need not produce a strong team.
 
 
 Independent list, built from the benchmarks and not from the points above: [[bo-benchmarks-vs-vgc-full-team-search-unit]].
+
+
+- [ ] Determine the right placement of this {[[Landscape properties comparison with other black box function by Ill-conditioning]]} in search space properties, evaluation peropteis, and landscape properties  inside of @What makes Pokémon a unique problem set
 
 
 
@@ -159,11 +165,4 @@ Independent list, built from the benchmarks and not from the points above: [[bo-
 
 - [x] There is three layer to the vgc pokemon — yes, but nested, not parallel: each layer is scored by the value of the layer below it
 - [x] /goal I was wondering is possible to determine you can split competiive vgc as three layer problem 1 is team building, second team selectionand third is battle itself if so that is an accruate if there alternative way please tell me if not then please write some more checkbox in the todo Section in [[What makes Pokémon a unique problem set]] to fill in the headers please and thank you /research — done 2026-08-24: accurate but nested, not three separate problems; alternatives and the 90×90 correction in chat, checkboxes below 
-- [ ] Fix the problems found in Version 5 of the battle writing.
-	- [ ] 1. Fill the empty Switching subsection with why you switch out.
-	- [ ] 2. Replace the intro sentence with the claim the section makes.
-	- [ ] 3. Add partial observability; Version 5 skips it.
-	- [ ] 4. Explain priority once; sections 3 and its Priority subsection repeat it.
-	- [ ] 5. Move Fake Out to variable action spaces, its clearest example.
-	- [ ] 6. Fill the burn and paralysis placeholders and add consecutive Protect.
-	- [ ] 7. Decide whether Mega Evolution counts as an action in Champions.
+- [ ] I want to write about the as

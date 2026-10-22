@@ -1,0 +1,258 @@
+[
+  {
+    "name": "architect",
+    "fit": 8,
+    "benefit": 4,
+    "confidence": "medium-high",
+    "does": "Traces the existing system, generates competing usage-first type and module sketches through arena, synthesizes one, then implements and redesigns if recurring friction disproves the sketch.",
+    "why": "A substantial pipeline redesign may benefit from competing module sketches. Most current work is narrower experimentation, where your existing design tools and a small implementation are a better starting point.",
+    "evidence": [
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "01a130f1-24d4-7d53-8906-4b7bd0954569",
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "current-chat"
+    ],
+    "caveat": "Invoke for a substantial pipeline redesign, not each small function. It proceeds to implementation by default; request a checkpoint for design-only work. Requires how/arena and adaptation of Cursor model/tool assumptions.",
+    "previousBenefit": 5,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "arena",
+    "fit": 10,
+    "benefit": 7,
+    "confidence": "high",
+    "does": "Runs isolated parallel candidates, cross-judges them against a rubric, selects a base, grafts useful ideas from the others and verifies the synthesis.",
+    "why": "You repeatedly ask for genuinely different ideas and visual variants. Comparing a small set and combining the strongest parts can improve the result directly, although your existing maker/verifier/judge process already covers much of it.",
+    "evidence": [
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "01a130a4-9dc2-7fc1-9851-f948833fdf00",
+      "01a136e7-6bc2-7920-a67d-0f551e5f22e1",
+      "current-chat"
+    ],
+    "caveat": "Use when several plausible approaches deserve comparison. Its identical candidate prompt does not guarantee the distinct forms the user requests; specify those in the framing. Adapt unavailable models and cap resource use on the MacBook.",
+    "previousBenefit": 7,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "automate-me",
+    "fit": 9,
+    "benefit": 5,
+    "confidence": "high",
+    "does": "Mines scoped recent transcripts, checks recurring preferences with the user and authors or updates a personal, explicitly invoked mode skill.",
+    "why": "Your repeated prompt refinements suggest value in a short personal workflow. Its benefit depends on replacing repeated instructions and unnecessary steps, not creating a larger personal rule bundle.",
+    "evidence": [
+      "01a13664-9a60-71a0-85be-cd6ece175821",
+      "01a136d8-5eab-7113-9eba-34f72a55cc53",
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "current-chat"
+    ],
+    "caveat": "This creates a working-style skill, not scheduled task automation. Adapt Cursor transcript paths/create-skill tools to Codex and validate preferences across a broader sample; the 60 summaries and six detailed chats are not a complete profile.",
+    "previousBenefit": 7,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "blast-radius",
+    "fit": 9,
+    "benefit": 4,
+    "confidence": "high",
+    "does": "Reviews consequences beyond the diff, identifies the key safety assumption, and attempts to prove it by running real code rather than listing hypothetical risks.",
+    "why": "Useful for a high-impact evaluator or data-filter change, but not a routine extra review for every task. Existing review and integration checks reduce the added benefit.",
+    "evidence": [
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "01a13526-fa13-71c2-b63b-274b20d25cc4",
+      "01a13182-8a6b-7e23-919c-98633a50502f",
+      "current-chat"
+    ],
+    "caveat": "Best before evaluator, data-filtering or shared-format changes merge. One proved safety fact is not comprehensive correctness; retain the existing regression and integration checks. Wider changes can invoke arena and increase cost.",
+    "previousBenefit": 7,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "bro",
+    "fit": 7,
+    "benefit": 4,
+    "confidence": "medium",
+    "does": "Restates the previous assistant message more simply and concisely without jargon.",
+    "why": "A quick simpler restatement can help when an agent's answer is opaque. It is a low-effort tool, but a normal request for plain language may achieve the same result and it cannot fill missing research.",
+    "evidence": [
+      "01a13664-9a60-71a0-85be-cd6ece175821",
+      "01a12c25-6119-7872-bf98-f68ce7846a91",
+      "current-chat"
+    ],
+    "caveat": "Invoke after an opaque answer. It does not research, verify, teach interactively or explain missing background.",
+    "previousBenefit": 2,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "create-verification-skill",
+    "fit": 9,
+    "benefit": 2,
+    "confidence": "high (direct user feedback)",
+    "does": "Inspects a repo, creates a project-specific launch/health-check/drive/evidence/cleanup skill and feature map, then executes one real feature end to end to prove the generated instructions.",
+    "why": "You explicitly said this skill would not be beneficial. The original audit confused your need for reliable results with a need to create and maintain another verification skill; keep existing checks and deprioritize this addition.",
+    "evidence": [
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "01a1310e-6d3d-7472-b256-5d93cd1c7645",
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "claude:09d3529c-340f-4dbf-9564-190da9a0bd03",
+      "current-chat"
+    ],
+    "caveat": "Deprioritized by your feedback. A useful verification habit does not establish that authoring a dedicated verification skill is worthwhile. The 2/10 benefit score is a revised editorial estimate, not a score you supplied.",
+    "previousBenefit": 2,
+    "revisionBasis": "Direct user feedback; numeric estimate assigned by assistant."
+  },
+  {
+    "name": "figure-it-out",
+    "fit": 9,
+    "benefit": 7,
+    "confidence": "high",
+    "does": "Designs a bespoke workflow for large or unusual work, establishes a falsifiable completion predicate and baseline, runs small measured experiments and maintains a linked decision trail.",
+    "why": "Your open-ended research and optimization questions need a route from an idea to a useful experiment. This can help choose the next informative action; use a shortened version so its orchestration does not become another project.",
+    "evidence": [
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "01a13182-8a6b-7e23-919c-98633a50502f",
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "current-chat"
+    ],
+    "caveat": "Reserve for ambitious multi-part changes where a narrower workflow does not suffice. It brings dependencies on poteto-mode principles, architect/arena and show-me-your-work; avoid importing all of that for a small experiment.",
+    "previousBenefit": 6,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "how",
+    "fit": 8,
+    "benefit": 6,
+    "confidence": "high",
+    "does": "Traces a subsystem from real source into an architectural explanation, optionally followed by independent architecture critics and a filtered verdict.",
+    "why": "Tracing the real code can directly answer how your sampler, evaluator or masked-completion pipeline works. Request plain language and skip the optional critic panel unless an architectural decision needs it.",
+    "evidence": [
+      "01a13182-8a6b-7e23-919c-98633a50502f",
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "01a1286d-4473-7381-b3c1-086e7dfcbc90",
+      "current-chat"
+    ],
+    "caveat": "This explains code for a senior-engineer audience, not papers or beginner concepts. Explicitly request plain language when needed. Even the simple path delegates once, and critique adds a model panel; adapt this overhead and the Cursor APIs.",
+    "previousBenefit": 6,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "interrogate",
+    "fit": 8,
+    "benefit": 3,
+    "confidence": "high",
+    "does": "Gives the same intent, code and rubric to multiple model reviewers, then synthesizes consensus, disagreements and prioritized findings without applying fixes.",
+    "why": "Several reviewers can help with a consequential code change. It adds cost and duplicated judgments to your existing review tools, and does not address your recurring request to clarify an idea or prompt.",
+    "evidence": [
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "01a130f1-24d4-7d53-8906-4b7bd0954569",
+      "current-chat"
+    ],
+    "caveat": "This is code review, not a replacement for grilling the user about a prompt. Model agreement is not independent proof; validate findings. Its default model slugs and Cursor Task syntax need replacement in Codex.",
+    "previousBenefit": 5,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "maintain-verification-skill",
+    "fit": 7,
+    "benefit": 1,
+    "confidence": "medium",
+    "does": "Audits every feature in an existing verification skill against source and live behavior, corrects only its documentation/harness/map, and reports clean, changed or blocked.",
+    "why": "If creating a dedicated verification skill is not useful to you, maintaining one has little current value. Reconsider only if you later rely on such a skill and it demonstrably saves work.",
+    "evidence": [
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "01a130f1-24d4-7d53-8906-4b7bd0954569",
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "current-chat"
+    ],
+    "caveat": "Conditional on first finding or creating a verification skill with a feature map. Every mapped feature gets a live exercise, so keep the map bounded. Product regressions are reported, not fixed by this workflow.",
+    "previousBenefit": 5,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "no-comments",
+    "fit": 2,
+    "benefit": 1,
+    "confidence": "medium-high",
+    "does": "Runs the Comment Sicko agent to delete comments outside a narrow exception list, then fixes accepted code-shape findings and offers structural encodings of constraints.",
+    "why": "Deleting explanatory comments does not directly support your research or learning goals and can erase useful constraints. Avoid its broad cleanup behavior.",
+    "evidence": [
+      "01a13182-8a6b-7e23-919c-98633a50502f",
+      "01a136d8-5eab-7113-9eba-34f72a55cc53",
+      "current-chat"
+    ],
+    "caveat": "Not a read-only review. Ambiguous keep cases are deleted, and constraint comments can be deleted even when the user declines the proposed encoding, with the constraint reported open. Avoid as a default, especially in research code.",
+    "previousBenefit": 1,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "poteto-mode",
+    "fit": 6,
+    "benefit": 1,
+    "confidence": "high",
+    "does": "Applies a comprehensive personal workflow with mandatory principle reads, delegation, architecture exploration, verification, prose rules and task-specific playbooks.",
+    "why": "A complete borrowed mode adds mandatory architecture, delegation, review and cleanup steps that may not improve your outcomes. Your feedback favors selecting useful pieces rather than adopting another person's full process.",
+    "evidence": [
+      "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "01a13664-9a60-71a0-85be-cd6ece175821",
+      "current-chat"
+    ],
+    "caveat": "Prefer selected leaf workflows or a personal automate-me result. This mode mandates architect for code crossing a function boundary, no-comments before review, and dependencies such as Cursor agents, cursor-team-kit and Graphite. Its broad permission for external actions does not replace the user's authorization or host rules.",
+    "previousBenefit": 3,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "recall",
+    "fit": 8,
+    "benefit": 6,
+    "confidence": "medium-high",
+    "does": "Reconstructs recent scoped working context from chat history and shared records, checks artifacts against live state, and returns a compact current-status brief and next move.",
+    "why": "You move between many related chats and ask agents to reuse established project decisions. A short, scoped context recovery can reduce repeated explanations; much of the mechanism already exists in your tools.",
+    "evidence": [
+      "01a130f1-24d4-7d53-8906-4b7bd0954569",
+      "01a136d5-a5ad-7151-9ffa-fe474f0b10ae",
+      "01a136d8-5eab-7113-9eba-34f72a55cc53",
+      "current-chat"
+    ],
+    "caveat": "Use before resuming work, not as the daily-blog summarizer: the skill explicitly distinguishes those tasks. Adapt Cursor history paths and shared-record tools, and report exactly which time range/workspaces were searched.",
+    "previousBenefit": 6,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "reflect",
+    "fit": 8,
+    "benefit": 3,
+    "confidence": "high",
+    "does": "Reviews the active conversation through judgment, tooling and divergent lenses, synthesizes durable lessons into proposed skill edits or structural backlog items, and applies approved skill changes.",
+    "why": "A competition retrospective or repeated agent failure can justify reflection. Routine skill edits, backlog entries and multiple review lenses would impose maintenance without an established payoff.",
+    "evidence": [
+      "01a13664-9a60-71a0-85be-cd6ece175821",
+      "01a136d8-5eab-7113-9eba-34f72a55cc53",
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "claude:ab8e4535-b994-4e38-80e5-0efb67b18787",
+      "claude:28c2bfb7-7144-446c-83b8-a075ee16496f",
+      "current-chat"
+    ],
+    "caveat": "Use after a consequential correction, not every conversation. It requires approval for skill edits, but separately instructs automatic backlog filing; disable/adapt external filing unless authorized. Avoid treating a one-session preference as a universal rule.",
+    "previousBenefit": 6,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  },
+  {
+    "name": "setup-pstack",
+    "fit": 4,
+    "benefit": 1,
+    "confidence": "high",
+    "does": "Detects available subagent models, lets the user choose models for Pstack roles, and writes a Cursor always-applied model-override rule.",
+    "why": "This configures Pstack model roles for Cursor. You are auditing in Codex and have not decided to adopt the bundle, so setup itself currently provides little benefit.",
+    "evidence": [
+      "01a12c04-5746-7f90-b206-a32db1b27548",
+      "01a1308a-3098-76f2-a972-31a14af434ce",
+      "01a1286d-4473-7381-b3c1-086e7dfcbc90",
+      "current-chat"
+    ],
+    "caveat": "Useful only after deciding to run Pstack in a compatible host or port its configuration mechanism. Confirm real available model IDs; do not assume the pinned defaults or Cursor rule path work in Codex.",
+    "previousBenefit": 2,
+    "revisionBasis": "Reassessed using the user's feedback as a preference for useful outcomes over additional process; this broader preference is an inference."
+  }
+]

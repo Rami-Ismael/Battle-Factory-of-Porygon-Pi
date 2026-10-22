@@ -114,3 +114,26 @@ One qualifying result excluded per `Thing I don't want my claude be talking abou
 
 - 🟢 [Krause & Golovin — Submodular Function Maximization, author-hosted chapter](https://www.cs.cmu.edu/~dgolovin/papers/submodular_survey12.pdf)
   Definitions 1.1–1.3 and Theorem 1.5: marginal gains, diminishing returns, and the cardinality-constrained greedy guarantee. Use for lesson 0010 and its reference sheet.
+
+## Knowledge — DiBO and verified citing work (2026-10-12)
+
+- 🟢 [Yun et al. — Posterior Inference with Diffusion Models for High-dimensional Black-box Optimization](https://arxiv.org/html/2502.16824v2)
+  Primary source for lesson 0011: learned design prior, ensemble UCB, RTB, local search, filtering, and online evaluation. Continuous-vector benchmarks; distinguish from the 2026 diffusion-language-model DiBO.
+- 🟢 [Venkatraman et al. — Amortizing intractable inference in diffusion models for vision, language, and control](https://arxiv.org/abs/2405.20971)
+  Source of RTB, inherited by DiBO. Use for the trajectory-ratio objective and asymptotic sampling claims.
+- 🟢 [CiBO — Posterior Inference in Latent Space for Scalable Constrained Black-box Optimization](https://arxiv.org/html/2507.00480)
+  Verified DiBO citation; closest continuation here. Adds black-box constraints and latent diffusion sampling over a learned flow prior.
+- 🟢 [FIBO — Simplifying Bayesian Optimization Via In-Context Direct Optimum Sampling](https://arxiv.org/html/2505.23913)
+  Verified DiBO citation; pretraining across objective functions and in-context optimum sampling, without per-round fitting.
+- 🟢 [GenBO — Generative Bayesian Optimization: Generative Models as Acquisition Functions](https://arxiv.org/html/2510.25240)
+  Verified DiBO citation; direct utility-based proposal training without a separate surrogate.
+- 🟢 [Regret Analysis of Guided Diffusion for Black-Box Optimization over Structured Inputs](https://arxiv.org/html/2605.10385)
+  Verified DiBO citation; conditional regret guarantees separating acquisition calibration, sampler approximation, and finite-pool selection.
+  Comparison and glossary: `reference/dibo-paper-family.html`. This selection is not an exhaustive citation census.
+
+## Knowledge — Claude Code delegation strand (2026-10-21)
+
+- 🟢 [Claude Code docs — Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide)
+  Primary source for lesson 0012: hooks give deterministic control; event table (UserPromptSubmit also fires on turns Claude Code starts; PreToolUse can block).
+- 🟢 [Claude Code docs — How Claude remembers your project](https://code.claude.com/docs/en/memory)
+  CLAUDE.md is "context, not enforced configuration"; use a PreToolUse hook to block. Also the file locations and the project-root re-read after /compact.

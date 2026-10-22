@@ -103,6 +103,9 @@ class JobTests(unittest.TestCase):
                 self.assertEqual(first.workers,[])
             with fast.FastBattleRunner(os.path.relpath(root/'relative')) as relative:
                 self.assertEqual(relative.folder,(root/'relative').resolve())
+            with fast.FastBattleRunner(root/'longer',request_chunk_size=96) as longer:
+                self.assertNotEqual(longer.policy_id(self.con,MDB),identity)
+                self.assertEqual(longer.config['concurrency'],24)
 
 
 class FakeServer:
@@ -152,6 +155,17 @@ class RunnerDatabaseTests(unittest.TestCase):
         self.assertEqual(self.con.execute('SELECT COUNT(*) FROM batch').fetchone()[0],2)
         self.runner.close();self.runner.close()
         self.assertTrue(all(p.closed for p in FakeWorker.instances+FakeServer.instances))
+
+    def test_long_request_keeps_concurrency_and_every_scheduled_battle(self):
+        self.runner.request_chunk_size = 96
+        schedule = [2, 3] * 25
+        results, unattributed, _ = self.runner(self.con, [{'row':1,'schedule':schedule}], seed=5)
+        requests = [r for w in FakeWorker.instances for r in w.requests]
+        self.assertEqual([len(r['pairs']) for r in requests], [50])
+        self.assertEqual([p['b_id'] for r in requests for p in r['pairs']], schedule)
+        self.assertEqual(requests[0]['config']['concurrency'],24)
+        self.assertEqual(sum(sum(r[2:]) for r in results),50)
+        self.assertEqual(unattributed,0)
 
     def test_worker_failure_cannot_create_cached_draws_or_partial_batch(self):
         FakeWorker.fail=True

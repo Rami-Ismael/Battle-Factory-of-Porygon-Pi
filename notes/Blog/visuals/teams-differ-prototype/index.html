@@ -55,6 +55,10 @@ select{padding:5px 8px;border:1px solid var(--line);border-radius:6px;background
 .blk{height:100%;border-right:1px solid var(--bg);background:var(--grey);display:flex;align-items:center;gap:2px;overflow:hidden;min-width:0;padding-left:4px;color:var(--on-fill);font:600 12px system-ui;white-space:nowrap}
 .blk:last-child{border-right:0}
 .blk{transition:opacity var(--move) var(--ease-in-out)}
+/* linked hover (picked 2026-10-16 from collapse-prototype.html): one composition lit in every row */
+.strips.linking .blk{transition:opacity var(--exit) ease}
+.strips.linking .blk:not(.match){opacity:.18}
+.strips.linking .blk.match{opacity:1;box-shadow:inset 0 0 0 2px var(--ink)}
 .blk.dim,.tick.dim{opacity:.45}
 .gl,.cnt{transition:color var(--move) ease}
 .blk img.sp{width:22px;height:22px;flex:none}
@@ -272,11 +276,12 @@ function VariantA({ gen, setGen, openB }) {
     setHover({ g, c, open: true, x: Math.max(0, Math.min(r.left - w.left, w.width - 280)), y: r.bottom - w.top + 6 });
   };
   const colour = key => { const t = TRACKED.indexOf(key); return t >= 0 ? COLOURS[t] : null; };
+  const linkKey = hover && hover.open ? hover.c.key : null;
 
   return html`
     <h1>Does the search collapse onto fewer compositions?</h1>
     <p class="sub">Each strip is one generation's 128 teams, split by composition (the six species). One block is one composition; its width is how many teams share it. Colours mark generation 11's five largest compositions, so you can follow each one up the strips.</p>
-    <div class="strips" ref=${wrap} style="position:relative" onMouseLeave=${() => setHover(h => h && { ...h, open: false })}>
+    <div class=${'strips' + (linkKey ? ' linking' : '')} ref=${wrap} style="position:relative" onMouseLeave=${() => setHover(h => h && { ...h, open: false })}>
       <div class="hd">Gen.</div><div class="hd">${grouped ? '128 teams, grouped by composition, largest first' : '128 teams, in the order the generation produced them'}</div><div class="hd">Comps.</div>
       ${GENS.map(R => html`
         <button class=${'gl' + (R.g === gen ? ' on' : '')} style="border:0;background:none;padding:0"
@@ -289,7 +294,7 @@ function VariantA({ gen, setGen, openB }) {
           })}</div>
           <div class="blocks">${R.comps.map(c => {
             const w = c.idx.length / N_TEAMS * 100, bg = colour(c.key);
-            return html`<div class=${'blk' + (bg && R.g !== gen ? ' dim' : '')}
+            return html`<div class=${'blk' + (bg && R.g !== gen ? ' dim' : '') + (linkKey === c.key ? ' match' : '')}
               style=${`flex:0 0 ${w}%;${bg ? 'background:' + bg : ''}`}
               onMouseEnter=${e => onHover(e, R.g, c)}
               onClick=${e => { e.stopPropagation(); openB(R.g, c.key); }}>

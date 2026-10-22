@@ -25,8 +25,8 @@ import numpy as np
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from showdown_validator import VGC_BENCH
 import hps_generate
-hps_generate.SHOWDOWN = Path.home() / ".local/share/vgc-pilot-runtime/validator-913da36"
 import activesearch as A
 import diffusion as D
 import matchup_db as MDB
@@ -34,8 +34,7 @@ from corpus import parse_team_text, norm, STATS
 from encode import NF, NSLOT, canon
 from hps_generate import Validator, slot_to_text
 
-A.pool.REPO = str(Path.home() / ".local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2")
-MDB.SHOWDOWN = hps_generate.SHOWDOWN
+A.pool.REPO = str(VGC_BENCH)
 REPO = Path("/Users/ramiismael/Documents/code/vgc-team-generator-pilot")
 TASKS_OUT = REPO / "results/random_fill_tasks.json"
 OUT = REPO / "results/random_fill_baseline.json"
@@ -56,7 +55,8 @@ def random_spread(rng):
 
 
 def start_teams(con):
-    top = set(MDB.set_members(con, "top50"))
+    import heldout as HO                       # ranks 51-100 are not start teams (7 of the first 50 were)
+    top = set(MDB.set_members(con, "top50")) | HO.team_ids(con)
     rows = con.execute("SELECT team_id, paste FROM team WHERE origin='vgcpastes' AND legal=1 ORDER BY team_id").fetchall()
     rows = [(t, p) for t, p in rows if t not in top and len(parse_team_text(p)) == 6]
     pick = random.Random(SEED).sample(rows, N_TEAMS)
@@ -122,7 +122,8 @@ def build():
     try:
         for tid, paste in start_teams(con):
             team = canon(parse_team_text(paste))
-            if (V.encode(team) == 0).any(): continue                # a field outside the vocabulary
+            try: V.encode(team)
+            except ValueError: continue                             # a field outside the vocabulary
             for task, k in TASKS:
                 for rep in range(REPS):
                     rng = random.Random(f"{SEED}:{tid}:{task}:{k}:{rep}")

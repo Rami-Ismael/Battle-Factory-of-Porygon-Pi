@@ -7,6 +7,7 @@ import concurrent.futures
 import hashlib
 import importlib.metadata
 import json
+import random
 import shutil
 import sys
 import threading
@@ -41,7 +42,15 @@ def base_key(species):
     return ','.join(sorted(values))
 
 
-def build_requests(con, jobs, chunk_size=24):
+def shuffle_paste(paste, rng):
+    """The same export with its six Pokemon blocks reordered (see slot_order.py in the code repo:
+    the policy picks at team preview by slot number, so listed order changes who it brings)."""
+    blocks = [b.strip() for b in paste.strip().split('\n\n') if b.strip()]
+    rng.shuffle(blocks)
+    return '\n\n'.join(blocks) + '\n'
+
+
+def build_requests(con, jobs, chunk_size=24, order_rng=None):
     if chunk_size < 1:
         raise ValueError('chunk_size must be positive')
     needed = {j['row'] for j in jobs} | {c for j in jobs for c in j['schedule']}
@@ -67,6 +76,10 @@ def build_requests(con, jobs, chunk_size=24):
                       'a':teams[candidate][0], 'b':teams[opponent][0],
                       'a_base':teams[candidate][1], 'b_base':teams[opponent][1]}
                      for i, opponent in enumerate(job['schedule'][offset:offset + chunk_size])]
+            if order_rng is not None:
+                for pair in pairs:
+                    pair['a'] = shuffle_paste(pair['a'], order_rng)
+                    pair['b'] = shuffle_paste(pair['b'], order_rng)
             requests.append({'job_id':len(requests), 'row':candidate, 'format':FORMAT, 'pairs':pairs})
     return requests
 
@@ -112,15 +125,22 @@ def attribute(request, outcome):
 
 
 class FastBattleRunner:
-    def __init__(self, folder, workers=6, concurrency=24, runtime=None):
+    def __init__(self, folder, workers=6, concurrency=24, runtime=None, request_chunk_size=None,
+                 slot_order='listed'):
+        if slot_order not in ('listed', 'shuffled'):
+            raise ValueError('slot_order must be listed or shuffled')
+        self.slot_order = slot_order
         if workers < 1 or concurrency < 1:
             raise ValueError('Worker and concurrency counts must be positive')
+        if request_chunk_size is not None and request_chunk_size < 1:
+            raise ValueError('Request chunk size must be positive')
         if lab.digest(CHECKPOINT) != CHECKPOINT_SHA256:
             raise ValueError('BC checkpoint differs from the verified policy')
         self.folder = Path(folder).resolve()
         self.folder.mkdir(parents=True, exist_ok=False)
         self.runtime = Path(runtime).resolve() if runtime else self.folder/'runtime'
         self.worker_count = workers
+        self.request_chunk_size = request_chunk_size or concurrency
         self.config = {'batcher':'original', 'threads':1, 'concurrency':concurrency,
                        'shared':True, 'encoder':'fast', 'actor_only':True, 'inference_mode':True}
         self.servers, self.workers = [], []
@@ -131,6 +151,7 @@ class FastBattleRunner:
         relevant = {name:sources[name] for name in ['worker.py', 'encoder.py', 'inference.py', 'run.py']}
         relevant['fast_battle_runner.py'] = lab.digest(Path(__file__))
         self.provenance = {'configuration':self.config, 'workers':workers,
+                           'request_chunk_size':self.request_chunk_size,
                            'policy_sha256':CHECKPOINT_SHA256, 'implementation':relevant,
                            'simulator_sha256':lab.tree_digest(lab.SOURCE/'dist'),
                            'formats_sha256':lab.digest(lab.SOURCE/'config/formats.ts'),
@@ -138,12 +159,15 @@ class FastBattleRunner:
                            'bench_data_sha256':lab.tree_digest(Path.home()/'.local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2/data'),
                            'packages':{name:importlib.metadata.version(name) for name in
                                        ['numpy', 'torch', 'poke-env', 'stable-baselines3']}}
+        if slot_order == 'shuffled':
+            self.provenance['slot_order'] = 'shuffled'   # listed keeps the old identity and policy_id
         self.identity = hashlib.sha256(json.dumps(self.provenance, sort_keys=True).encode()).hexdigest()
         (self.folder/'metadata.json').write_text(json.dumps({**self.provenance, 'identity':self.identity,
             'source_hashes':sources, 'note':'Policy seeds do not pin live simulator trajectories.'}, indent=2)+'\n')
 
     def policy_id(self, con, mdb):
-        return mdb.get_policy(con, row_policy='bc-fast:'+self.identity,
+        tag = '+slots-shuffled' if getattr(self, 'slot_order', 'listed') == 'shuffled' else ''
+        return mdb.get_policy(con, row_policy='bc-fast:'+self.identity+tag,
                               simulator='showdown:'+self.provenance['simulator_sha256'],
                               note='Optimized BC; full provenance in '+str(self.folder))
 
@@ -181,10 +205,11 @@ class FastBattleRunner:
     def __call__(self, con, jobs, seed=None):
         if self.closed:
             raise RuntimeError('Runner is closed')
-        requests = build_requests(con, jobs, self.config['concurrency'])
+        seed = 20261013 if seed is None else seed
+        order_rng = random.Random(seed) if getattr(self, 'slot_order', 'listed') == 'shuffled' else None
+        requests = build_requests(con, jobs, getattr(self, 'request_chunk_size', self.config['concurrency']), order_rng)
         if not requests:
             return [], 0, 0.
-        seed = 20261013 if seed is None else seed
         if not isinstance(seed, int) or seed < 0 or seed + len(requests) >= 2**32:
             raise ValueError('Seed range is outside NumPy limits')
         self.calls += 1

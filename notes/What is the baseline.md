@@ -3,11 +3,24 @@
 	- [ ] Build two baselines, each producing a new list of teams from the top-50 placement teams. LLM edit: give an LLM a random team from the top 50 and prompt it to edit the team so it can compete against the current meta. Random legal mutation: take a random team from the top 50 and apply random mutations that keep it legal. Compare the two lists against each other and against the teams they started from.
 		- [ ] grill me
 
+# ToDo
+
+- [ ] Find out whether a language model builds better Reg M-B teams when it explains its choices before filling in a team. **Task:** the Whole Pokémon fill-in from [[What is the baseline]], with 1, 3 or 6 slots blank, starting from random legal teams. **Change:** every prompt version (original, regulation reference, DSPy, future ones) gets an explanation twin that adds a JSON `explanation` field before the team. The field is a checklist drawn from [Wolfey's report](https://nuggetbridge.com/reports/eggscelent-execution/): core, each Pokémon's role, why each move/item/ability/Stat Alignment, Stat Point benchmarks, threats answered, rejected alternatives, and a bring-4 and lead plan (saved, not forced in battle). **Same in both twins:** hidden reasoning off, 16,384-token cap. **Models:** Ling, Mercury, GPT-6 Luna. **Measure:** win rate over 50 battles against the top-50 pool, compared where both twins are legal. Legality and how complete the checklist is are reported, never used as a gate. **Sample:** 40 starting teams × 3 repeats, run as a 20-team pilot and then 20 more, all drawn from one seed.
+- [ ] Determine the right claude artifact to store the baseline I want to do research on the concept of using diffusion model as a mutation operator compare to random or heuristic approaches 
+- [ ] Text Diffusion Model 
+	- [ ] I want a near exact copy of the baseline we applied to llm baseline example /recall this information you we finetune a local text diffusion model on we compare the performance on the heldout none top 51-100 pokemon team 
+
 # Work on the baseline
 
 - [x] Determine what llm model we are planning to use, let start with the cheapest first
 - [x] What gateway are using
 
+- [[Replace the scratch model with a pretrained text diffusion model finetune it to do your task]] joined the Mask Lab grid on 2026-10-15: text writer 149/270 legal, level with the scratch decoder where legal, +7 pp on whole-Pokémon fills. Table in `code/docs/textdiff.md`.
+
+## Decision Model Baseline
+
+- [ ] We will be using the teask and use the same pokemon team as seen in llm baseline with dspy , ling, and the reasoning llm model we will ask the decision model to select a pokemon one at a time, then abilities,ite,move, and etc with a good prompt to make sure we tried our best to make i ifst need to see the propmt before I get go ahead after battling the also compare if jev select all pokemon moves and legal pokemon move,
+- [ ] We will be testing the ability of decision model to to complete the baseline task fill in the blank.Because, a decision model can select answer from categories we have give categories for each section. one interesting experiment we are testing is that have happen if give all possible even that will break legality and compare to one don't brek legality. Please come up with any more wacky idea you can have.
 ## Random Search Baseline
 
 - [ ]  Given a an empty slot randomlety selected a valid answer to put then we see the win rate percetange against the top meta team  did it improve or decrease and how much 
@@ -21,11 +34,7 @@
 **Approach:** masked completion. The LLM fills only the empty parts and nothing else may change.
 ### LLM model we are using for now is
 
-1. inclusionai/ling-3.0-flash-vl ( This is much because is the cheepeast) so far
-2. DeepSeek: DeepSeek V4.1 Flash
-3. inception/mercury-2.5
-4. openai/gpt-6-luna
-5. anthropic/claude-sonnet-5
+
 
 OpenRouter price per million tokens, cheapest first (2026-10-08). Grid input cost = 8,100 calls × 14k tokens, output excluded:
 

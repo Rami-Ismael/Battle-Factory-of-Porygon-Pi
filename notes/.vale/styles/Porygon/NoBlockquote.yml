@@ -1,0 +1,7 @@
+extends: existence
+message: "Daily posts are plain paragraphs, not a '>' blockquote or callout."
+level: error
+scope: raw
+nonword: true
+tokens:
+  - '(?m)^>'

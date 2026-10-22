@@ -8,6 +8,3 @@
 ## Todo items for writing for the blog
 
 - [ ] [[Cross Entropy Method]]
-- [ ] Animation for this items
-- [ ] Grills me
-- [ ] Talk about how did you use cross entropy method

@@ -11,6 +11,7 @@ import numpy as np
 import torch
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
+sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))   # checkpoints.py lives in the repo
 import diffusion as D
 import hpsdiffusion as H
 import activesearch as A
@@ -18,9 +19,10 @@ import gradguide as GG
 import matchup_db as MDB
 from corpus import parse_team_text
 from hps_generate import Validator
+from checkpoints import load_checkpoint
 
 REPO = Path(__file__).resolve().parents[1]
-CKPT = REPO / "results" / "temperature_p0.pt"
+CKPT = REPO / "results" / "temperature_p0_noheldout.pt"
 OUT = REPO / "results" / "mdts_experiment.json"
 LEVELS = [0, 6, 18, 42, 48]           # decode steps revealed at tree depth 0..4 (D.ORDER stages)
 BR, J, OMEGA = 5, 5, 1.0
@@ -80,7 +82,7 @@ class Ctx:
         self.scorer = EIScorer(lab_t, lab_y, self.corpus)
         self.n_labels = len(lab_t)
         self.model = H.TeamDiffusionHPS(self.V).to(D.DEV)
-        self.model.load_state_dict(torch.load(CKPT, map_location=D.DEV)["sd"]); self.model.eval()
+        self.model.load_state_dict(load_checkpoint(CKPT, map_location=D.DEV)["sd"]); self.model.eval()
 
 def to_designs(ctx, rows, rng):
     """Complete grid rows -> pastes (Stat Points from corpus spreads) -> EI."""

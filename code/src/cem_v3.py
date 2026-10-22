@@ -16,30 +16,44 @@ import torch
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from showdown_validator import VGC_BENCH
+from checkpoints import load_checkpoint
 import foundation as FD
 import lossdown as L
 import lossdown_battle as LB
 import asked_vs_got as X
 import activesearch as A
 import matchup_db as MDB
+import heldout as HO               # ranks 51-100: not proposed, not labelled, scored once at the end
 import pool
 from hps_generate import Validator
 from corpus import parse_team_text, norm
 from encode import Vocab, team_fields
 
-OUT = L.RES / "cem_v3.json"
-BASE = L.RES / "cem_v3_ridge_base.npz"
+import os
+TAG = os.environ.get("CEM_TAG", "cem_v3")        # CEM_TAG=cem_v3_noheldout: own result file, checkpoints, matrix origin
+OUT = L.RES / f"{TAG}.json"
+BASE = L.RES / "cem_v3_ridge_base_noheldout.npz"   # the unsuffixed cache was fitted with ranks 51-100 in it
 GENS, PROPOSE, BATTLE, CUT, ELITE_MIN = 10, 512, 128, 0.531, 64
 FT_EPOCHS, FT_LR, FT_BATCH, LOOP_W = 40, 1e-4, 64, 10.0
+# Elite rule (2026-10-16). "cumulative" (default) = every labelled team so far + the top-50 anchors at >= CUT,
+# topped up to ELITE_MIN. "topfrac" = the owner's intended rule: the top ELITE_FRAC of the PREVIOUS generation's
+# battled teams by label, no anchors, nothing carried over. CEM_FT_EPOCHS / CEM_GENS override for that arm.
+ELITE_RULE, ELITE_FRAC = os.environ.get("CEM_ELITE", "cumulative"), float(os.environ.get("CEM_ELITE_FRAC", 0.2))
+assert ELITE_RULE in ("cumulative", "topfrac")
+FT_EPOCHS = int(os.environ.get("CEM_FT_EPOCHS", FT_EPOCHS)); GENS = int(os.environ.get("CEM_GENS", GENS))
 SAT_EPS, SAT_PATIENCE, COPY_MAX, SETS_FRAC = 0.01, 3, 0.10, 0.5   # sets guardrail: half of generation 0's
 SEED, FINAL_N, FINAL_BATTLES = 4040, 16, 192
+# Species guidance inside the loop (2026-10-16, docs/species-guidance-loop.md): CEM_SEED = a new search seed,
+# CEM_G_SPECIES = classifier-free guidance weight on the six species columns at every generation's proposer
+# (unset = the usual 2 everywhere). Unset, the loop runs unchanged.
+SEED = int(os.environ.get("CEM_SEED", SEED))
+G_SPECIES = float(os.environ["CEM_G_SPECIES"]) if os.environ.get("CEM_G_SPECIES") else None
 LAM_S, LAM_P = 10.0, 30.0
-import os
 SMOKE = bool(os.environ.get("CEM_SMOKE"))
 if SMOKE:                                     # plumbing check: tiny sizes, own file, own origin tag
-    OUT = L.RES / "cem_v3_smoke.json"
+    TAG += "_smoke"; OUT = L.RES / f"{TAG}.json"
     GENS, PROPOSE, BATTLE, ELITE_MIN, FT_EPOCHS, FINAL_N, FINAL_BATTLES = 2, 16, 4, 8, 1, 2, 8
-TAG = "cem_v3_smoke" if SMOKE else "cem_v3"
 LEGACY = set(json.load(open(Path.home() / ".local/share/vgc-pilot-runtime/regmb-v3/data-audit.json"))["legacy_vocabulary"]["species"])
 
 
@@ -104,7 +118,7 @@ def members(V, tables, elites, g):
         ck = L.CK / f"{TAG}_g{g}_{name}.pt"
         net, cfg, _ = L.load_net(name, V)
         if ck.exists():
-            net.load_state_dict(torch.load(ck, map_location=L.DEV)["sd"])
+            net.load_state_dict(load_checkpoint(ck, map_location=L.DEV)["sd"])
         elif elites is not None:
             torch.manual_seed(SEED + g)
             Xe = torch.as_tensor(np.stack([e[0] for e in elites]), device=L.DEV)
@@ -124,6 +138,22 @@ def members(V, tables, elites, g):
             torch.save({"sd": net.state_dict(), "cfg": ck.name}, ck)
         nets.append(L.logprobs_fn(net, tables, tuple(cfg["rules"].split(","))))
     return L.ensemble_fn(nets)
+
+
+# ---------------------------------------------------------------- diversity (docs/species-guidance-loop.md)
+def vendi(lineups):
+    """Vendi score (Friedman & Dieng, TMLR 2023), K_ij = shared species / 6 — as guidance_timing_cads.vendi."""
+    vocab = {s: i for i, s in enumerate(sorted({s for l in lineups for s in l}))}
+    B = np.zeros((len(lineups), len(vocab)))
+    for i, l in enumerate(lineups):
+        for s in l: B[i, vocab[s]] += 1 / math.sqrt(6)
+    lam = np.linalg.eigvalsh(B @ B.T / len(lineups)); lam = lam[lam > 1e-12]
+    return float(np.exp(-(lam * np.log(lam)).sum()))
+
+
+def elite_lineups(el, V):
+    """Distinct species line-ups among encoded elites (rows of V-indices)."""
+    return {tuple(sorted(V.decode_field(s * FD.NF, int(e[0][s * FD.NF])) for s in range(FD.NSLOT))) for e in el}
 
 
 # ---------------------------------------------------------------- labelled pool
@@ -161,7 +191,8 @@ def run():
     LB._stack()
     con = MDB.connect()
     out = json.load(open(OUT)) if OUT.exists() else {"config": dict(gens=GENS, propose=PROPOSE, battle=BATTLE, cut=CUT,
-                         elite_min=ELITE_MIN, ft_epochs=FT_EPOCHS, ft_lr=FT_LR, loop_weight=LOOP_W, seed=SEED), "gens": {}}
+                         elite_min=ELITE_MIN, elite_rule=ELITE_RULE, elite_frac=ELITE_FRAC, ft_epochs=FT_EPOCHS, ft_lr=FT_LR, loop_weight=LOOP_W, seed=SEED,
+                         g_species=G_SPECIES), "gens": {}}
     if "anchors" not in out:
         out["anchors"] = anchors(con); save(out)
     G = FD.Gen("v3"); V, tables = G.V, G.tables
@@ -175,10 +206,14 @@ def run():
         c = out["gens"].setdefault(str(g), {})
         rows = labelled({**out, "gens": {k: v for k, v in out["gens"].items() if int(k) < g}})
         # 1. model
-        el = elites_from(rows, V) if g > 0 else None
+        if g > 0 and ELITE_RULE == "topfrac":
+            prev = sorted([r for r in rows if r["src"] == f"g{g - 1}"], key=lambda r: -r["y"])
+            el = elites_from(prev[:math.ceil(ELITE_FRAC * len(prev))], V)
+        else:
+            el = elites_from(rows, V) if g > 0 else None
         if g > 0 and "elites" not in c:
             c["elites"] = dict(n=len(el), anchors=sum(e[2] == "anchor" for e in el), cut=min(e[1] for e in el),
-                               qualified=sum(r["y"] >= CUT for r in rows))
+                               qualified=sum(r["y"] >= CUT for r in rows), sets=len(elite_lineups(el, V)))
         G.f = members(V, tables, el, g)
         # 2. ridge
         loop_rows = [r for r in rows if r["src"] != "anchor"]
@@ -191,16 +226,17 @@ def run():
             val = Validator(); keep, tried, t0 = [], 0, time.perf_counter()
             try:
                 while len(keep) < PROPOSE and tried < PROPOSE * 8:
-                    for r in G.sample(96, 0.5, 2.0, 1.0, 1.0, sur, sur.lam).cpu().numpy():
+                    for r in G.sample(96, 0.5, 2.0, 1.0, 1.0, sur, sur.lam, g_species=G_SPECIES).cpu().numpy():
                         tried += 1
                         p, slots = G.to_paste(r, rng, repair=True)
-                        if val(p) is None: keep.append(p)
+                        if val(p) is None and not HO.is_heldout_text(p): keep.append(p)
                         if len(keep) >= PROPOSE: break
             finally:
                 val.close()
             teams = [parse_team_text(p) for p in keep]
             c.update(proposals=keep, mu=[float(sur.score(t)) for t in teams], tried=tried, valid=len(keep) / tried,
                      sets=len({tuple(sorted(norm(s["species"]) for s in t)) for t in teams}),
+                     vendi=vendi([tuple(sorted(norm(s["species"]) for s in t)) for t in teams]),
                      copies=sum(tuple(team_fields(t)) in known for t in teams) / max(len(teams), 1),
                      new_species=sum(any(norm(s["species"]) not in LEGACY for s in t) for t in teams),
                      propose_s=time.perf_counter() - t0)
@@ -248,7 +284,7 @@ def run():
 def final():
     """The 16 best distinct battled teams by loop label, re-battled fresh: 192 battles vs the top-50 schedule."""
     out = json.load(open(OUT))
-    if "final" in out: return
+    if "final" in out: return heldout_eval(out)
     rows = [r for r in labelled(out) if r["src"] != "anchor"]
     rows.sort(key=lambda r: -r["y"])
     seen, top = set(), []
@@ -257,7 +293,7 @@ def final():
         if k in seen: continue
         seen.add(k); top.append(r)
         if len(top) >= FINAL_N: break
-    pool.REPO = str(Path.home() / ".local/share/vgc-pilot-runtime/unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2")
+    pool.REPO = str(VGC_BENCH)
     d = Path(f"/tmp/vgc-pilot/{TAG}_final"); d.mkdir(parents=True, exist_ok=True)
     files = []
     for i, r in enumerate(top):
@@ -266,7 +302,22 @@ def final():
     out["final"] = [dict(paste=r["paste"], label=r["y"], src=r["src"], fresh=res.get(f, {}).get("win_rate"),
                          battles=res.get(f, {}).get("battles")) for r, f in zip(top, files)]
     save(out)
+    heldout_eval(out)
     report()
+
+
+def heldout_eval(out):
+    """The only place ranks 51-100 are battled: the final selected teams, once, after selection.
+    Selection above used the top-50 only; nothing here feeds back into a generation."""
+    if "heldout" in out or "final" not in out: return
+    pool.REPO = str(VGC_BENCH)
+    d = Path(f"/tmp/vgc-pilot/{TAG}_final"); d.mkdir(parents=True, exist_ok=True); files = []
+    for i, r in enumerate(out["final"]):
+        f = d / f"{i:02d}.txt"; f.write_text(r["paste"]); files.append(str(f))
+    res = HO.evaluate(files, battles=FINAL_BATTLES, conc=50)
+    out["heldout"] = [dict(fresh_top50=r["fresh"], heldout=res.get(f, {}).get("win_rate"), battles=res.get(f, {}).get("battles"))
+                      for r, f in zip(out["final"], files)]
+    save(out)
 
 
 def report():
@@ -278,6 +329,9 @@ def report():
         print(f"{g:>4s} {s['mean']:.3f}±{s['se']:.3f} {s['p90']:6.3f} {s['max']:6.3f} {s['above_cut']:6d} {c['sets']:9d} "
               f"{c['copies']:7.1%} {s['new_species_battled']:7d} {e.get('n', '-'):>7}")
     if out.get("stopped"): print("stopped:", out["stopped"])
+    if out.get("heldout"):
+        h = [r["heldout"] for r in out["heldout"] if r["heldout"] is not None]
+        print(f"held-out ranks 51-100: {len(h)} final teams x {FINAL_BATTLES}: mean {np.mean(h):.3f} · best {max(h):.3f}")
     if out.get("final"):
         f = [r for r in out["final"] if r["fresh"] is not None]
         print(f"final: {len(f)} teams re-battled x {FINAL_BATTLES}: fresh mean {np.mean([r['fresh'] for r in f]):.3f} "

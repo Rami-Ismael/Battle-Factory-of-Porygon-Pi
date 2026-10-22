@@ -15,21 +15,8 @@ from corpus import load_corpus, parse_team, norm, STATS, TEAMS
 from encode import Vocab, team_fields, canon, FIELDS, NF, NSLOT
 from model import MaskedFieldModel, random_mask, permute_slots, resample_fields
 
-SHOWDOWN = Path("/tmp/vgc-pilot/vgc-bench/pokemon-showdown")
+from showdown_validator import FORMAT, SHOWDOWN, Validator   # the pinned checkout and its one Validator
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
-
-class Validator:
-    def __init__(self):
-        self.p = subprocess.Popen(["node", "validate-teams-batch.js"],
-                                  stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                  text=True, cwd=str(SHOWDOWN))
-    def __call__(self, text, fmt="gen9championsvgc2026regmb"):
-        self.p.stdin.write(json.dumps({"format": fmt, "team": text}) + "\n")
-        self.p.stdin.flush()
-        r = json.loads(self.p.stdout.readline())
-        return None if r["valid"] else "; ".join(r["errors"])  # NOT truncated: callers parse every error
-    def close(self):
-        self.p.stdin.close(); self.p.wait()
 
 def slot_to_text(sl):
     """Render one parsed slot back to Showdown paste form."""
@@ -64,7 +51,7 @@ def build_lookup(teams):
 def main():
     n_per_arm = int(sys.argv[1]) if len(sys.argv) > 1 else 24
     seed = int(sys.argv[2]) if len(sys.argv) > 2 else 0
-    random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
+    random.seed(seed); torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
 
     teams, names = load_corpus()

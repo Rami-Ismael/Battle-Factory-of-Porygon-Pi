@@ -13,6 +13,8 @@ import json, random
 from pathlib import Path
 from collections import defaultdict
 import numpy as np
+from beartype import beartype
+from jaxtyping import Int64, jaxtyped
 from corpus import (load_corpus, norm, dex_entry, legal_moves, legal_abilities,
                     ITEM_NAMES, MOVE_NAMES, STATS, NATURES)
 
@@ -31,10 +33,25 @@ def team_fields(team):
                 norm(ms[0]), norm(ms[1]), norm(ms[2]), norm(ms[3]), norm(s["nature"])]
     return out
 
+def _with_excluded(teams):
+    """Held-out teams (heldout.py) are not training rows, but they stay in the vocabulary and the rule
+    tables: dropping them shrinks both (species 190 -> 187, moves 317 -> 311) and moves every token id."""
+    import heldout
+    return list(teams) + heldout.excluded_teams()
+
+def strict_ids(stoi, pairs, source):
+    """Token ids for (vocabulary key, value) pairs. Every encoder goes through here:
+    a value outside the vocabulary raises instead of becoming 0, the [MASK] token,
+    which is reserved for positions masked on purpose."""
+    missing = [(k, v) for k, v in pairs if v == "[MASK]" or v not in stoi[k]]
+    if missing: raise ValueError(f"outside {source} vocabulary: {missing}")
+    return [stoi[k][v] for k, v in pairs]
+
 class Vocab:
     """One vocabulary per field type; species/ability/item/nature share a column each,
     the four move columns share a single move vocabulary."""
     def __init__(self, teams):
+        teams = _with_excluded(teams)
         self.regulation = None
         cols = defaultdict(set)
         for t in teams:
@@ -61,15 +78,17 @@ class Vocab:
         obj.stoi = {k:{v:i for i,v in enumerate(vs)} for k,vs in obj.itos.items()}
         obj.sizes = {k:len(vs) for k,vs in obj.itos.items()}
         return obj
+    @property
+    def source(self):
+        return "corpus" if getattr(self, "regulation", None) is None else "Regulation M-B"
     def key(self, col):
         k = FIELDS[col % NF]
         return "move" if k.startswith("m") and k != "nature" else k
-    def encode(self, team):
+    @jaxtyped(typechecker=beartype)
+    def encode(self, team) -> Int64[np.ndarray, "fields"]:
         f = team_fields(team)
-        if self.regulation is not None:
-            missing = [(self.key(i),v) for i,v in enumerate(f) if v not in self.stoi[self.key(i)]]
-            if missing: raise ValueError(f'outside Regulation M-B vocabulary: {missing}')
-        return np.array([self.stoi[self.key(i)].get(v, 0) for i, v in enumerate(f)], dtype=np.int64)
+        return np.array(strict_ids(self.stoi, [(self.key(i), v) for i, v in enumerate(f)], self.source),
+                        dtype=np.int64)
     def decode_field(self, col, idx):
         return self.itos[self.key(col)][idx]
 
@@ -86,6 +105,7 @@ class Legality:
         _p = "/tmp/vgc-pilot/learnset_true.json"
         if _os.path.exists(_p):
             self._true = {k: set(v) for k, v in _json.load(open(_p)).items()}
+        teams = _with_excluded(teams)
         self.corpus_moves = defaultdict(set)
         self.corpus_abils = defaultdict(set)
         self.corpus_items = set()
