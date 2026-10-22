@@ -10,20 +10,20 @@ source's own git ignore rules (`git ls-files --cached --others
 --exclude-standard`), so ignored files (.obsidian, .venv, large binaries,
 results) never leave the machine.
 
-A sync will not silently undo a pull request merged on GitHub. Before copying
-anything, it fetches origin/main (--dry-run too), takes the newest commit there
-whose subject starts with "sync from laptop" as the baseline, and lists the
-notes/ and code/ files changed since. If the laptop copy of any of them differs
-from GitHub's, mirroring would overwrite, delete or re-add GitHub's version, so
-the sync prints those files and exits non-zero. Copy GitHub's version to the
-laptop, or keep the laptop's with --allow or --force. Each sync commit becomes
+A sync does not silently undo a pull request merged on GitHub. Before copying
+anything, it fetches origin/main, even with --dry-run. The newest commit there
+whose subject starts with "sync from laptop" is the baseline. If a notes/ or
+code/ file changed on GitHub after the baseline and the laptop copy differs,
+mirroring would overwrite, delete, or re-add GitHub's version. The sync prints
+those files instead and exits with status 1. Make the laptop match GitHub, or
+keep the laptop's version with --allow FILE or --force. Each sync commit becomes
 the next baseline.
 
-    tools/sync.py              mirror, commit, push
-    tools/sync.py --dry-run    show what would change, touch nothing
-    tools/sync.py --no-push    mirror and commit only
-    tools/sync.py --allow F    also overwrite the GitHub edits to the paths listed in F
-    tools/sync.py --force      also overwrite every GitHub edit
+    tools/sync.py                 mirror, commit, push
+    tools/sync.py --dry-run       show what would change, touch nothing
+    tools/sync.py --no-push       mirror and commit only
+    tools/sync.py --allow FILE    also overwrite the GitHub edits to the paths listed in FILE
+    tools/sync.py --force         also overwrite every GitHub edit
 """
 import argparse, filecmp, hashlib, os, re, shutil, subprocess, sys
 from pathlib import Path
@@ -35,8 +35,8 @@ SOURCES = {
 }
 SECRET = re.compile(rb"(gh[opsu]_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
 UPSTREAM = "origin/main"
-SYNC_SUBJECT = "sync from laptop"  # every sync commit starts so; the newest on UPSTREAM is the baseline
-EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"  # stands in for the baseline before the first sync
+SYNC_SUBJECT = "sync from laptop"  # subject prefix of every sync commit; the newest on UPSTREAM is the baseline
+EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"  # git's empty tree: before the first sync, every GitHub file counts as an edit
 
 
 def run(*cmd, cwd=REPO, **kw):
@@ -54,11 +54,12 @@ def blob_id(path: Path) -> str:
 
 
 def github_edits(wants: dict[str, set[str]]) -> tuple[str | None, list[tuple[str, str]]]:
-    """Files changed on UPSTREAM since the baseline whose laptop copy differs.
+    """GitHub edits that mirroring would undo.
 
-    Returns the baseline (None before the first sync) and (action, path) pairs,
-    where action is what mirroring would do to GitHub's version: overwrite,
-    delete or re-add.
+    Returns the baseline (None before the first sync) and an (action, path) pair
+    for each notes/ or code/ file that changed on UPSTREAM after the baseline and
+    differs on the laptop. The action is what mirroring would do to GitHub's
+    version: overwrite, delete, or re-add.
     """
     try:
         run("git", "fetch", "-q", "origin", "main")
@@ -116,7 +117,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-push", action="store_true")
-    ap.add_argument("--allow", type=Path, metavar="F", help="file of repo paths (code/README.md), one per line, whose GitHub edits may be overwritten")
+    ap.add_argument("--allow", type=Path, metavar="FILE", help="file of repo paths (code/README.md), one per line, whose GitHub edits may be overwritten")
     ap.add_argument("--force", action="store_true", help="overwrite every GitHub edit made since the last sync")
     a = ap.parse_args()
     if a.allow and not a.allow.is_file():
@@ -135,7 +136,8 @@ def main():
         sys.exit(f"These files changed on GitHub {since} and differ on the laptop:\n"
                  + "".join(f"  {act:9}  {p}\n" for act, p in blocked)
                  + f"refusing to sync: it would undo {len(blocked)} GitHub edits{more}. Make the laptop match"
-                 " GitHub for each file, or keep the laptop's version with --allow F (a file listing the paths) or --force.")
+                 " GitHub for each file, or keep the laptop's version with --force, or with --allow FILE where FILE"
+                 " lists the paths.")
     if undo:
         print(f"{'would overwrite' if a.dry_run else 'overwriting'} {len(undo)} GitHub edits made {since}:")
         for act, p in undo:

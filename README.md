@@ -112,7 +112,7 @@ Obsidian vault  ──sync──▶  notes/
 code folder     ──sync──▶  code/
 ```
 
-An edit in Obsidian shows up here as the same edit in the next sync. Edit notes locally, not on github.com. When a file changed here after the last sync and the laptop's copy differs, the sync stops and lists the file instead of undoing that edit. Copy the change to the laptop, or overwrite it on purpose with `--allow FILE` (one path per line) or `--force`.
+An edit in Obsidian shows up here as the same edit in the next sync. Edit notes locally, not on github.com. If a file changed here after the last sync and the laptop's copy differs, the sync lists the file and stops, so it never undoes that change. Make the laptop match GitHub, or keep the laptop's version with `--force`, or with `--allow FILE` where `FILE` lists the paths one per line.
 
 `blog/` is the one folder edited in place. The sync stages only `notes/` and `code/`, so it never touches the article or publishes a half-written one.
 
