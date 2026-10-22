@@ -103,15 +103,15 @@ a { color: var(--us); }
   <div class="byline">
     <div><b>Date</b>21 October 2026</div>
     <div><b>Battles</b><span class="num" id="b-battles"></span></div>
-    <div><b>Format</b>Champions VGC 2026 Reg M-B</div>
+    <div><b>Format</b>Pokémon Champions doubles, Regulation M-B</div>
     <div><b>Status</b>Draft, exploration</div>
   </div>
 
-  <p><b>Random play</b> here means Showdown's own random player on both sides: every turn each Pokémon uses a random move on a random legal target, it switches only when forced, and it Mega Evolves whenever it can. Team preview is random too: a random four of six, in random order, so the first two lead. A <b>win rate</b> is the share of battles a team wins against the 49 top-50 meta teams (one team appears twice, so it counts twice). The <b>behaviour-cloning win rate</b> is the same thing with the behaviour-cloning policy playing both sides, the evaluator every search in this project is scored by.</p>
+  <p>Every battle here runs in <b>Pokémon Showdown</b>, the open-source battle simulator, in the doubles format of the Video Game Championships (VGC), Regulation M-B. A <b>battle policy</b> is the program that picks each side's moves. <b>Random play</b> means Showdown's random battle policy on both sides: every turn each Pokémon uses a random move on a random legal target, it switches only when forced, and it Mega Evolves whenever it can. Team preview is random too: the <b>selection</b>, the four Pokémon a side brings out of six, is a random four in random order, so the first two lead. A <b>win rate</b> is the share of battles a team wins against the <b>top-50 meta teams</b>, the project's set of 49 distinct teams collected from tournament placements (one appears twice in the top 50, so it counts twice). The <b>behaviour-cloning win rate</b> is the same share with the behaviour-cloning policy, a network trained to imitate human players, on both sides: the evaluator every search in this project is scored by.</p>
 </div>
 
 <div class="col"><h2>1. One battle is one path through a tree</h2>
-  <p>Start at team preview and let random play choose the next turn three times. Each choice opens a different branch: different leads, different targets, a crit or a miss. From every node, 48 random battles played to the end give that node's <b>chance to win</b>. Each of the 27 branches is then played out to a win or a loss.</p>
+  <p>Start at team preview and let random play choose the next turn three times. Each choice opens a different branch: different leads, different targets, a critical hit or a miss. From every node, <span id="s1-k">48</span> random battles played to the end give that node's <b>chance to win</b>. Each of the <span id="s1-leaves">27</span> branches is then played out to a win or a loss.</p>
 </div>
 
 <figure>
@@ -123,8 +123,8 @@ a { color: var(--us); }
         <button type="button" id="view-tree" aria-pressed="true">Tree</button>
         <button type="button" id="view-walk" aria-pressed="false">Chance to win</button>
       </div>
-      <span>Grow</span>
-      <div class="seg" role="group" aria-label="Depth" id="grow"></div>
+      <span>Grow to</span>
+      <div class="seg" role="group" aria-label="Grow the tree to" id="grow"></div>
       <div class="legend"><span>chance to win</span><span class="ramp" aria-hidden="true"></span><span class="num">0% · 50% · 100%</span></div>
     </div>
     <div class="scroll"><svg id="f1" viewBox="0 0 940 420" role="img" aria-label="Tree of random battles from team preview"></svg></div>
@@ -157,7 +157,7 @@ a { color: var(--us); }
 </div>
 
 <div class="col"><h2>3. What does a random battle measure?</h2>
-  <p>A random battle costs nothing to set up and runs about four times faster than a behaviour-cloning battle. If its win rate ranked teams the way the behaviour-cloning win rate does, it would be a cheap evaluator. Across all 150 teams it nearly does.</p>
+  <p>A random battle costs nothing to set up and runs about <span id="speed-ratio">4</span> times faster than a behaviour-cloning battle. If its win rate ranked teams the way the behaviour-cloning win rate does, it would be a cheap evaluator. Across all 150 teams it nearly does.</p>
 </div>
 
 <figure>
@@ -208,6 +208,11 @@ a { color: var(--us); }
     if (parent) parent.appendChild(e);
     return e;
   };
+  // pointing at, focusing or tapping a mark all show the same details
+  const onPoint = (node, show) => ['mouseenter', 'focus', 'click'].forEach(ev => node.addEventListener(ev, show));
+  // a battle's result from the first side: 1 won, 0 lost, 0.5 tied
+  const resultColor = w => w === 1 ? 'var(--us)' : w === 0 ? 'var(--them)' : 'var(--faint)';
+  const resultWord = w => w === 1 ? 'won' : w === 0 ? 'lost' : 'tied';
   const pct = v => Math.round(v * 100) + '%';
   const f2 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
   const f3 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(3);
@@ -265,8 +270,8 @@ a { color: var(--us); }
     if (!p) continue;
     l.pts = p.pts.map(q => ({t: q.turn, v: q.v}));
     l.endT = p.turns + 0.6; l.win = p.win;
-    l.line = el('polyline', {fill: 'none', stroke: p.win ? 'var(--us)' : 'var(--them)', 'stroke-width': 1.4, 'stroke-opacity': 0.75}, gPaths);
-    l.end = el('circle', {r: 4.5, fill: p.win ? 'var(--us)' : 'var(--them)'}, gPaths);
+    l.line = el('polyline', {fill: 'none', stroke: resultColor(p.win), 'stroke-width': 1.4, 'stroke-opacity': 0.75}, gPaths);
+    l.end = el('circle', {r: 4.5, fill: resultColor(p.win)}, gPaths);
   }
   for (const m of nodes) {
     if (m.parent) m.edge = el('line', {stroke: 'var(--faint)', 'stroke-width': 1.2}, gEdges);
@@ -315,7 +320,7 @@ a { color: var(--us); }
   $('view-tree').addEventListener('click', () => { $('view-tree').setAttribute('aria-pressed', 'true'); $('view-walk').setAttribute('aria-pressed', 'false'); animateTo(0); });
   $('view-walk').addEventListener('click', () => { $('view-walk').setAttribute('aria-pressed', 'true'); $('view-tree').setAttribute('aria-pressed', 'false'); animateTo(1); });
   const grow = $('grow');
-  ['preview', '1', '2', '3', 'end'].forEach((lab, i) => {
+  ['preview', 'turn 1', 'turn 2', 'turn 3', 'end'].forEach((lab, i) => {
     const b = document.createElement('button');
     b.type = 'button'; b.textContent = lab; b.setAttribute('aria-pressed', i === 4 ? 'true' : 'false');
     b.addEventListener('click', () => { depthShown = i; [...grow.children].forEach((c, j) => c.setAttribute('aria-pressed', j === i ? 'true' : 'false')); draw(); });
@@ -332,21 +337,22 @@ a { color: var(--us); }
     const n = m.n, P = $('f1-panel');
     if (m.depth === 0) {
       P.innerHTML = `<h3>Team preview · chance to win <span class="num">${pct(n.v)}</span></h3>` +
-        `<p class="notes">48 random battles from here, each with its own random team preview, won ${Math.round(n.v * 48)}. The three branches are three different random previews.</p>`;
+        `<p class="notes">${D.tree.k} random battles from here, each with its own random team preview, won ${Math.round(n.v * D.tree.k)}. The ${m.kids.length} branches are ${m.kids.length} different random previews.</p>`;
       return;
     }
     const [aA, hA, aB, hB] = n.board;
     let html = `<h3>Turn ${n.turn} · we have <span class="num">${aA}</span> left, they have <span class="num">${aB}</span> left · chance to win <span class="num">${pct(n.v)}</span></h3>` +
       `<div class="board"><div class="side"><div class="lab us">Ours</div><div class="mons">${n.detail[0].map(monHTML).join('')}</div></div>` +
       `<div class="side"><div class="lab them">Theirs</div><div class="mons">${n.detail[1].map(monHTML).join('')}</div></div></div>`;
-    if (n.path) html += `<p class="notes" style="margin-top:8px">Played out from here: <b>${n.path.win ? 'won' : 'lost'}</b> on turn ${n.path.turns}.</p>`;
+    if (n.path) html += `<p class="notes" style="margin-top:8px">Played out from here: <b>${resultWord(n.path.win)}</b> on turn ${n.path.turns}.</p>`;
     P.innerHTML = html;
   }
   draw();
   select(nodes[0].kids[0]);
-  const T = S.tree;
-  $('f1-cap').innerHTML = `Our team against a top-50 team, under random play. Node colour is the chance to win from that node, from 48 random battles. Lines after turn 3 are single random battles to the end, coloured by the result (${leaves.filter(l => l.win === 1).length} of ${leaves.length} won). Click a node to see the board.`;
-  $('tree-stats').innerHTML = `Across ${T.spines.toLocaleString('en-US')} such battles (16 for each of 150 teams, 32 random battles per node), the average step of the chance to win was <span class="num">${f3(T.martingale_mean_step)}</span>, as a martingale requires, and the squared steps summed to <span class="num">${f3(T.sum_sq)}</span> against a starting uncertainty of <span class="num">${f3(T.v0var)}</span>. Team preview and the leads settle <b>${pct(T.preview_share)}</b> of the outcome's uncertainty before anyone moves; half of it is settled by the end of turn <span class="num">${T.half_turn}</span>, in battles whose median length is ${S.median_turns} turns.`;
+  const T = S.tree, cal = T.calibration;
+  $('s1-k').textContent = D.tree.k; $('s1-leaves').textContent = leaves.length;
+  $('f1-cap').innerHTML = `Our team against a top-50 team, under random play. Node colour is the chance to win from that node, from ${D.tree.k} random battles. Lines after turn 3 are single random battles to the end, coloured by the result (${leaves.filter(l => l.win === 1).length} of ${leaves.length} won). Click a node to see the board: each Pokémon's remaining hit points (HP) and the two on the field.`;
+  $('tree-stats').innerHTML = `The martingale property can be tested directly. Across ${T.spines.toLocaleString('en-US')} such battles (${Math.round(T.spines / D.teams.length)} for each of ${D.teams.length} teams, ${T.k} random battles per node), a battle that reached a node with chance to win v went on to win at rate v: the slope of the final result on the node's chance is <span class="num">${f2(cal.slope)} ${ci(cal.slope_ci)}</span>, where the noise of ${T.k} random battles alone predicts <span class="num">${f2(cal.slope_expected_from_rollout_noise)}</span>. The squared steps summed to <span class="num">${f3(T.sum_sq)}</span> against a starting uncertainty of <span class="num">${f3(T.v0var)}</span>. Team preview and the leads settle <b>${pct(T.preview_share)}</b> of the outcome's uncertainty before anyone moves; half of it is settled by the end of turn <span class="num">${T.half_turn}</span>, in battles whose median length is ${S.median_turns} turns.`;
 
   // ------------------------------------------------------------------ Figure 2: the grid
   const svg2 = $('f2'), L = D.lattice;
@@ -379,9 +385,9 @@ a { color: var(--us); }
       if (terminal) { $('f2-tip').textContent = v ? `They have no Pokémon left: we win.` : `We have no Pokémon left: we lose.`; return; }
       const st = L[`${i}${j}`], nx = st.next;
       const theyLose = nx[`${i}${j - 1}`] || 0, weLose = nx[`${i - 1}${j}`] || 0, two = 1 - theyLose - weLose;
-      $('f2-tip').innerHTML = `<span><b>We have ${i}, they have ${j}.</b> Next turn with a knockout: they lose one <span class="num us">${pct(theyLose)}</span>, we lose one <span class="num them">${pct(weLose)}</span>, two at once <span class="num">${pct(Math.max(0, two))}</span>. From here we win <span class="num">${pct(st.win)}</span>. (${st.n.toLocaleString('en-US')} visits)</span>`;
+      $('f2-tip').innerHTML = `<span><b>We have ${i}, they have ${j}.</b> Next turn with a knockout: they lose one <span class="num us">${pct(theyLose)}</span>, we lose one <span class="num them">${pct(weLose)}</span>, two or more at once <span class="num">${pct(Math.max(0, two))}</span>. From here we win <span class="num">${pct(st.win)}</span>. (${st.n.toLocaleString('en-US')} knockout turns started here.)</span>`;
     };
-    g.addEventListener('mouseenter', say); g.addEventListener('focus', say); g.addEventListener('click', say);
+    onPoint(g, say);
   }
   for (let i = 4; i >= 0; i--) for (let j = 4; j >= 0; j--) cell(i, j);
   $('f2-tip').innerHTML = '<span>Point at a cell to read its arrows.</span>';
@@ -390,11 +396,11 @@ a { color: var(--us); }
   $('snow-intro').innerHTML = `If the grid were a coin-flip walk, the side that is ahead would be no more likely to take the next knockout. To test it, each battle is compared with itself after shuffling the order of its knockouts (the last one stays last). The shuffle keeps each battle's own balance, so a lopsided matchup cannot fake a streak.`;
   const sb = S.snowball, rowsS = ['-2', '-1', '0', '1', '2'];
   const lead = k => ({'-2': 'two down', '-1': 'one down', '0': 'level', '1': 'one up', '2': 'two up'})[k];
-  $('snow').innerHTML = `<tr><th>We are</th><th>We take the next knockout</th><th>Same battles, shuffled</th><th>Gap, 95% interval</th></tr>` +
+  $('snow').innerHTML = `<tr><th>We are</th><th>We take the next knockout</th><th>Same battles, shuffled</th><th>Difference, 95% interval</th></tr>` +
     rowsS.map(k => `<tr><td>${lead(k)}</td><td class="n">${pct(sb[k].row_scores_next)}</td><td class="n">${pct(sb[k].same_after_shuffle)}</td>` +
       `<td class="n">${(sb[k].row_scores_next - sb[k].same_after_shuffle >= 0 ? '+' : '−')}${Math.abs(100 * (sb[k].row_scores_next - sb[k].same_after_shuffle)).toFixed(1)} points ${'[' + (100 * sb[k].gap_ci[0]).toFixed(1) + ', ' + (100 * sb[k].gap_ci[1]).toFixed(1) + ']'}</td></tr>`).join('');
   const B = S.brownian;
-  $('brown').innerHTML = `So the grid is not a coin-flip walk. One Pokémon down, a side takes the next knockout back more often than chance; a likely reason is that its replacement comes in at full HP against attackers that have already taken damage. Two down, the leader pulls away; a likely reason is that a side down to its last Pokémon has one attacker on the field against two. Neither reason was tested here. The HP lead itself (HP left on our four minus theirs) does move like Brownian motion from turn to turn. Its steps carry no memory: their correlation with the next step is <span class="num">${f3(B.lag1)}</span>, against <span class="num">${f3(B.lag1_shuffled)}</span> for the same steps shuffled. They are heavier-tailed than a bell curve (kurtosis <span class="num">${B.kurtosis.toFixed(1)}</span>; a bell curve is 3), because a knockout turn moves the lead in one jump, and on <span class="num">${pct(B.flat)}</span> of turns the lead does not move at all.`;
+  $('brown').innerHTML = `So the grid is not a coin-flip walk. One Pokémon down, a side takes the next knockout back more often than chance; a likely reason is that its replacement comes in at full HP against attackers that have already taken damage. Two down, the leader pulls away; a likely reason is that a side down to its last Pokémon has one attacker on the field against two. Neither reason was tested here. The <b>HP lead</b> (the share of HP left on our four, summed, minus theirs) moves like a random walk from turn to turn: its steps carry no memory. Their correlation with the next step is <span class="num">${f3(B.lag1)}</span>, against <span class="num">${f3(B.lag1_shuffled)}</span> for the same steps shuffled, and over four turns they spread out as much as shuffled steps do (variance ratio <span class="num">${f2(B.variance_ratio_4.obs)}</span> against <span class="num">${f2(B.variance_ratio_4.shuffled)}</span>). It is not quite Brownian motion, whose steps follow a bell curve: these are heavier-tailed (kurtosis <span class="num">${B.kurtosis.toFixed(1)}</span>; a bell curve gives 3), because a knockout turn moves the lead in one jump, and on <span class="num">${pct(B.flat)}</span> of turns the lead does not move at all.`;
 
   // ------------------------------------------------------------------ Figure 3: the scatter
   const svg3 = $('f3'), teams = D.teams;
@@ -406,7 +412,7 @@ a { color: var(--us); }
     el('text', {x: sx(v), y: Y0 + 16, 'text-anchor': 'middle', 'font-size': 11, class: 'mono'}, svg3).textContent = v.toFixed(2);
     el('text', {x: X0 - 8, y: sy(v) + 4, 'text-anchor': 'end', 'font-size': 11, class: 'mono'}, svg3).textContent = v.toFixed(2);
   }
-  el('text', {x: (X0 + X1) / 2, y: Y0 + 34, 'text-anchor': 'middle', 'font-size': 12}, svg3).textContent = 'random-play win rate (392 battles each)';
+  el('text', {x: (X0 + X1) / 2, y: Y0 + 34, 'text-anchor': 'middle', 'font-size': 12}, svg3).textContent = `random-play win rate (${S.walk_per_team} battles each)`;
   el('text', {x: 16, y: (Y0 + Y1) / 2, 'text-anchor': 'middle', 'font-size': 12, transform: `rotate(-90 16 ${(Y0 + Y1) / 2})`}, svg3).textContent = 'behaviour-cloning win rate';
   const cutLine = el('line', {x1: X0, x2: X1, stroke: 'var(--ink)', 'stroke-dasharray': '4 4', 'stroke-width': 1}, svg3);
   const dots = teams.map(t => {
@@ -415,11 +421,11 @@ a { color: var(--us); }
     const say = () => {
       $('f3-tip').innerHTML = `<span style="display:flex;gap:2px">${sixHTML(t.species)}</span><span>behaviour-cloning <span class="num">${f2(t.bc)}</span> · random play <span class="num">${f2(t.rp)}</span></span>`;
     };
-    c.addEventListener('mouseenter', say); c.addEventListener('focus', say); c.addEventListener('click', say);
+    onPoint(c, say);
     return c;
   });
   $('f3-legend').innerHTML =
-    `<span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="var(--us)"></circle></svg> one search family: ${['Basculegion', 'Chandelure', 'Floette-Eternal', 'Garchomp', 'Kingambit'].map(n => spriteHTML(n, 'spr sm')).join('')} + one more</span>` +
+    `<span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="var(--us)"></circle></svg> one search family: ${teams.filter(t => t.family).length} teams from earlier search runs that share these five, ${['Basculegion', 'Chandelure', 'Floette-Eternal', 'Garchomp', 'Kingambit'].map(n => spriteHTML(n, 'spr sm')).join('')}, and differ in the sixth or in their sets</span>` +
     `<span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="var(--panel)" stroke="var(--ink)"></circle></svg> every other team</span>`;
   function ranks(a) {
     const idx = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]), r = new Array(a.length);
@@ -452,11 +458,12 @@ a { color: var(--us); }
     document.querySelectorAll('#predict button').forEach(o => o.setAttribute('aria-pressed', o === b ? 'true' : 'false'));
     setCut(0.5);
     const g = +b.dataset.guess;
-    const answer = `Among the 50 strongest teams the Spearman correlation is <b class="num">${f2(C['0.50'].spearman)}</b>, 95% interval <span class="num">${ci(C['0.50'].ci)}</span>, although both win rates are still reliable there (a noise ceiling of <span class="num">${f2(S.ceiling_050)}</span>).`;
+    const rr = C['0.50'].range_restriction_only;
+    const answer = `Among the 50 strongest teams the Spearman correlation is <b class="num">${f2(C['0.50'].spearman)}</b>, 95% interval <span class="num">${ci(C['0.50'].ci)}</span>. Part of that drop is mechanical: keeping only strong teams lowers any correlation. If the all-teams relationship held among strong teams too, this filter alone would leave about <span class="num">${f2(rr.median)}</span> (95% of simulations between <span class="num">${f2(rr.band[0])}</span> and <span class="num">${f2(rr.band[1])}</span>); the observed value is lower than ${pct(1 - rr.share_at_or_below_observed)} of them. Noise does not explain it either: two measurements as noisy as these could still agree up to <span class="num">${f2(S.ceiling_050)}</span> (their noise ceiling).`;
     $('feedback').innerHTML = (g === 0.2 ? 'Right. ' : g === 0.6 ? 'Too high. ' : 'Much too high. ') + answer;
   }));
-  $('f3-cap').innerHTML = `150 teams, each with at least 196 behaviour-cloning battles and 392 random-play battles against the top 50. Drag the cut-off to keep only stronger teams; the correlation is recomputed on the teams that remain. All: <span class="num">${f2(S.all.spearman)} ${ci(S.all.ci)}</span>. At least 0.30: <span class="num">${f2(C['0.30'].spearman)}</span>. At least 0.40: <span class="num">${f2(C['0.40'].spearman)}</span>. At least 0.50: <span class="num">${f2(C['0.50'].spearman)}</span>.`;
-  $('measure').innerHTML = `Random play separates teams that work from teams that do not: across all 150 the Spearman correlation is ${f2(S.all.spearman)}, and among the ${S.family26.n} teams that share all six species (only items, moves and Stat Points differ) it is still ${f2(S.family26.spearman)} ${ci(S.family26.ci)}. Among strong teams it stops tracking the evaluator. Ranked by random play, the top 10 holds ${S.top10.overlap} of the true top 10 and averages a behaviour-cloning win rate of ${f2(S.top10.picked)} against ${f2(S.top10.best)}. The part of a team's strength that needs a competent pilot is the part random play cannot see, and that is the part a search over strong teams is trying to find.`;
+  $('f3-cap').innerHTML = `150 teams, each with at least 196 behaviour-cloning battles and 392 random-play battles against the top 50. Raise the minimum to keep only stronger teams; the correlation is recomputed on the teams that remain. All: <span class="num">${f2(S.all.spearman)} ${ci(S.all.ci)}</span>. At least 0.30: <span class="num">${f2(C['0.30'].spearman)}</span>. At least 0.40: <span class="num">${f2(C['0.40'].spearman)}</span>. At least 0.50: <span class="num">${f2(C['0.50'].spearman)}</span>.`;
+  $('measure').innerHTML = `Random play separates teams that work from teams that do not: across all 150 the Spearman correlation is ${f2(S.all.spearman)}, and among the ${S.family26.n} teams that share all six species, where only their sets differ (items, abilities, moves, natures and stat spreads), it is still ${f2(S.family26.spearman)} ${ci(S.family26.ci)}. Among strong teams it tracks the evaluator far less than the all-teams relationship predicts: ${f2(C['0.50'].spearman)} against about ${f2(C['0.50'].range_restriction_only.median)} expected from the filter alone. Ranked by random play, the top 10 holds ${S.top10.overlap} of the true top 10 and averages a behaviour-cloning win rate of ${f2(S.top10.picked)} against ${f2(S.top10.best)}. The part of a team's strength that needs a competent pilot is the part random play cannot see, and that is the part a search over strong teams is trying to find.`;
 
   // ------------------------------------------------------------------ Section 4: features
   const F = S.features, names = {
@@ -475,16 +482,17 @@ a { color: var(--us); }
       `<td class="n">${f2(F[k].spearman)} ${ci(F[k].ci)}</td><td class="n">${F[k].partial == null ? '—' : f2(F[k].partial) + ' ' + ci(F[k].partial_ci)}</td></tr>`).join('');
   const clear = Object.keys(names).filter(k => F[k] && F[k].partial != null && (F[k].partial_ci[0] > 0 || F[k].partial_ci[1] < 0)).map(k => names[k][0].toLowerCase());
   const list = clear.length > 1 ? clear.slice(0, -1).join(', ') + ' and ' + clear[clear.length - 1] : clear[0];
-  $('feat-verdict').innerHTML = `${clear.length ? `${list[0].toUpperCase() + list.slice(1)} keep${clear.length > 1 ? '' : 's'} a small rank correlation after the random-play win rate is removed, but nothing here helps predict.` : 'Nothing here keeps a correlation once the random-play win rate is removed.'} A ridge regression on the random-play win rate alone explains <span class="num">${f2(S.cv.random_play_only)}</span> of the variance in held-out behaviour-cloning win rates (10-fold cross-validation, repeated 20 times); adding every feature above gives <span class="num">${f2(S.cv.random_play_plus_features)}</span>. The walk and graph features are mostly re-readings of the same root number.`;
+  $('feat-verdict').innerHTML = `${clear.length ? `${list[0].toUpperCase() + list.slice(1)} keep${clear.length > 1 ? '' : 's'} a small rank correlation after the random-play win rate is removed, but nothing here helps predict.` : 'Nothing here keeps a correlation once the random-play win rate is removed.'} A ridge regression on the random-play win rate alone explains <span class="num">${f2(S.cv.random_play_only)}</span> of the variance in held-out behaviour-cloning win rates (10-fold cross-validation, repeated 20 times); adding every feature above gives <span class="num">${f2(S.cv.random_play_plus_features)}</span>. The grid's absorption probability from (4, 4), the one graph quantity here, is the random-play win rate itself (the two match to within <span class="num">${S.lattice_gap.toFixed(3)}</span>), so it adds nothing either. The walk and graph features are mostly re-readings of the same root number.`;
   const G = S.gap;
-  $('gap').innerHTML = `One feature does carry new information: the <b>gap</b> between a team's behaviour-cloning win rate and what its random-play win rate predicts, a measure of how much the team needs to be piloted well. It rises with moves whose value depends on when they are clicked: Tailwind <span class="num">${f2(G.tailwind[0])} ${ci(G.tailwind.slice(1))}</span> and the number of Protects <span class="num">${f2(G.protect[0])} ${ci(G.protect.slice(1))}</span>; Trick Room, Fake Out and setup moves do not clear zero. Random play cannot click Tailwind on the right turn; the behaviour-cloning policy sometimes can.`;
+  $('gap').innerHTML = `One quantity is worth keeping, as a description rather than a predictor, since it is built from the behaviour-cloning win rate itself: the <b>gap</b> between a team's behaviour-cloning win rate and what its random-play win rate predicts, a measure of how much the team needs to be played well. It rises with moves whose value depends on when they are clicked: Tailwind <span class="num">${f2(G.tailwind[0])} ${ci(G.tailwind.slice(1))}</span> and the number of Protects <span class="num">${f2(G.protect[0])} ${ci(G.protect.slice(1))}</span>; for Trick Room, Fake Out and setup moves the 95% intervals include zero. Random play cannot click Tailwind on the right turn; the behaviour-cloning policy sometimes can.`;
+  $('speed-ratio').textContent = S.speed.ratio;
 
   // ------------------------------------------------------------------ notes
   $('notes').innerHTML = [
-    `Battles: ${S.walk_battles.toLocaleString('en-US')} random battles (150 teams × 49 top-50 teams × 8), ${T.spines.toLocaleString('en-US')} tree battles with 32 random battles per node, and the Figure 1 tree (27 leaves, 48 random battles per node). Random battles ran at about ${S.speed.random} per second on 10 processes; the behaviour-cloning evaluator runs ${S.speed.bc} per second on 6 workers.`,
+    `Battles: ${S.walk_battles.toLocaleString('en-US')} random battles (${D.teams.length} teams × ${S.walk_per_team} each), ${T.spines.toLocaleString('en-US')} tree battles with ${T.k} random battles per node, and the Figure 1 tree (${leaves.length} leaves, ${D.tree.k} random battles per node). Random battles ran at about ${S.speed.random} per second on 10 processes; the behaviour-cloning evaluator runs ${S.speed.bc} per second on 6 workers. No run had an error. In ${(100 * S.runs.fallback_per_battle.walk).toFixed(2)}% of random battles (${(100 * S.runs.fallback_per_battle.tree).toFixed(2)}% in the trees) Showdown rejected one random choice and played its default choice instead.`,
     `Teams: rows of the project's matchup database with behaviour-cloning results against every top-50 team (at least 4 battles per opponent, 3,849 teams), sampled 10 per 0.05-wide band of win rate. ${S.origin_note}`,
     `Code: <span class="num">src/random_battle_tree.cjs</span> (battles, read straight from Showdown's Battle object; saved states are restored with Showdown's own serializer and given a fresh random seed), <span class="num">src/random_battle_graph.py</span> (runs), <span class="num">src/random_battle_graph_report.py</span> (numbers). Results: <span class="num">results/random_battle_graph.json</span>.`,
-    `Prior work. 🟢 Hal Stern, <a href="https://www.stat.berkeley.edu/users/aldous/157/Papers/stern.pdf">A Brownian Motion Model for the Progress of Sports Scores</a>, Journal of the American Statistical Association, 1994: the score difference as Brownian motion with drift. 🟢 Alan Gabel and Sidney Redner, <a href="https://arxiv.org/abs/1109.2825">Random Walk Picture of Basketball Scoring</a>, Journal of Quantitative Analysis in Sports, 2012. 🟢 Aaron Clauset, Marina Kogan and Sidney Redner, <a href="https://arxiv.org/abs/1503.03509">Safe Leads and Lead Changes in Competitive Team Sports</a>, Physical Review E, 2015. 🔒 Bruce Abramson, Expected-Outcome: A General Model of Static Evaluation, IEEE Transactions on Pattern Analysis and Machine Intelligence, 1990: a position's value as its expected result under random play, the root number of Figure 1. 🟢 J. F. C. Kingman, <a href="https://gwern.net/doc/statistics/probability/1999-kingman.pdf">Martingales in the OK Corral</a>, Bulletin of the London Mathematical Society, 1999: two sides losing fighters one at a time, the walk of Figure 2.`,
+    `Prior work (🟢 free to read, 🔒 behind a paywall). 🟢 Hal Stern, <a href="https://www.stat.berkeley.edu/users/aldous/157/Papers/stern.pdf">A Brownian Motion Model for the Progress of Sports Scores</a>, Journal of the American Statistical Association, 1994: the score difference as Brownian motion with drift. 🟢 Alan Gabel and Sidney Redner, <a href="https://arxiv.org/abs/1109.2825">Random Walk Picture of Basketball Scoring</a>, Journal of Quantitative Analysis in Sports, 2012. 🟢 Aaron Clauset, Marina Kogan and Sidney Redner, <a href="https://arxiv.org/abs/1503.03509">Safe Leads and Lead Changes in Competitive Team Sports</a>, Physical Review E, 2015. 🔒 Bruce Abramson, Expected-Outcome: A General Model of Static Evaluation, IEEE Transactions on Pattern Analysis and Machine Intelligence, 1990: a position's value as its expected result under random play, the root number of Figure 1. 🟢 J. F. C. Kingman, <a href="https://gwern.net/doc/statistics/probability/1999-kingman.pdf">Martingales in the OK Corral</a>, Bulletin of the London Mathematical Society, 1999: two sides losing fighters one at a time, the walk of Figure 2.`,
   ].map(s => `<li>${s}</li>`).join('');
 })();
 </script>

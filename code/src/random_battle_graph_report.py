@@ -5,16 +5,21 @@ Win rate below always means the fraction of battles a team wins against the top-
 behaviour-cloning policy (policy 1, at least 196 battles per team). "Random-play win rate" = both
 sides play at random (392 battles per team).
 
-1. Does the random-play win rate track the behaviour-cloning win rate across the 150 teams?
-2. Is the lead (HP left, summed over the four brought, row minus opponent) a Brownian motion?
+1. Does the random-play win rate track the behaviour-cloning win rate across the 150 teams, and
+   among strong teams beyond what range restriction alone would do?
+2. Is the lead (HP left, summed over the four brought, row minus opponent) a random walk?
    Serial correlation of its per-turn steps against a within-battle shuffle; variance ratio.
 3. The Pokemon-left lattice: battle = walk on the 5x5 grid of (row left, opponent left); absorption
    probability from (4, 4) by dynamic programming; does the next knockout depend on who is ahead?
 4. Features read off the walk and the lattice; do they predict the behaviour-cloning win rate, and
    beyond the random-play win rate?
-5. The tree (comb of rollouts): the random-play win probability along a battle is a martingale;
-   where do its squared steps (the outcome variance) get resolved?
-Output: results/random_battle_graph.json
+5. The tree. A spine is one random battle from team preview to the end; a rollout is a random battle
+   played to the end from a saved copy of a spine's state, and the share of rollouts won at a turn
+   is the chance to win there. Is that chance a martingale (calibration of the
+   final result on each node's estimate), and where do its squared steps get resolved?
+6. The play-dependence gap (behaviour-cloning win rate minus what random play predicts) against moves.
+7. One search family: does random play still rank teams that share all six species?
+Output: results/random_battle_graph.json, results/random_battle_graph_figure.json (the page's data).
 """
 import json, os, sys
 from collections import defaultdict
@@ -49,6 +54,11 @@ def boot(stat, *cols, n=2000):
     return [float(np.percentile(vals, 2.5)), float(np.percentile(vals, 97.5))]
 
 
+def rank_corr(x, y):
+    """Spearman correlation with its bootstrap 95% interval."""
+    return {"spearman": spearman(x, y), "ci": boot(spearman, x, y)}
+
+
 def partial_spearman(x, y, z):
     """Spearman of x and y after removing z linearly from both, on ranks."""
     rx, ry, rz = ranks(x), ranks(y), ranks(z)
@@ -78,7 +88,7 @@ def load_walk(meta):
     per = defaultdict(list)
     for line in open(DATA / "walk.jsonl"):
         d = json.loads(line)
-        if "error" in d: continue
+        if "error" in d: continue          # counted in run_walk.json, reported in figure_data()
         d["w"] = w[int(d["col"])]
         d["rep"] = int(d["seed"].rsplit(":", 1)[1])
         per[int(d["row"])].append(d)
@@ -104,14 +114,30 @@ def part1(rows, per):
     rel_rp = 2 * r_half / (1 + r_half)                      # Spearman-Brown, full 392 battles
     nb = np.array([r["bc_battles"] for r in rows])
     rel_bc = 1 - np.mean(bc * (1 - bc) / nb) / bc.var()      # binomial noise share of the spread
+    # Keeping only teams above a behaviour-cloning cut lowers any correlation on its own (range
+    # restriction). The null keeps the all-teams relationship (cubic fit plus resampled residuals),
+    # applies the same cut, and asks how often that alone gets as low as the observed correlation.
+    A = np.c_[np.ones(len(rp)), rp, rp ** 2, rp ** 3]
+    fit = A @ np.linalg.lstsq(A, bc, rcond=None)[0]
+    resid = bc - fit
     strong = {}
     for lo in (0.30, 0.40, 0.50):
         m = bc >= lo
         rh = float(np.corrcoef(h[m, 0], h[m, 1])[0, 1]); rr = 2 * rh / (1 + rh)
         rb = 1 - np.mean(bc[m] * (1 - bc[m]) / nb[m]) / bc[m].var()
-        strong[f"bc_at_least_{lo:.2f}"] = {"teams": int(m.sum()), "spearman": spearman(rp[m], bc[m]),
+        obs = spearman(rp[m], bc[m])
+        sims = []
+        for _ in range(4000):
+            y = fit + rng.choice(resid, len(resid), replace=True)
+            k = y >= lo
+            if k.sum() > 8: sims.append(spearman(rp[k], y[k]))
+        sims = np.array(sims)
+        strong[f"bc_at_least_{lo:.2f}"] = {"teams": int(m.sum()), "spearman": obs,
                                             "ci": boot(spearman, rp[m], bc[m]),
-                                            "noise_ceiling": float(np.sqrt(max(rr, 0) * max(rb, 0)))}
+                                            "noise_ceiling": float(np.sqrt(max(rr, 0) * max(rb, 0))),
+                                            "range_restriction_only": {"median": float(np.median(sims)),
+                                                                       "band": [float(np.percentile(sims, 2.5)), float(np.percentile(sims, 97.5))],
+                                                                       "share_at_or_below_observed": float(np.mean(sims <= obs))}}
     top = {}
     for k in (10, 20):
         a, b = set(np.argsort(-bc)[:k]), set(np.argsort(-rp)[:k])
@@ -235,13 +261,13 @@ def part3(rows, per, rp):
             for lead, x in s: null[lead].append(x)
             per_battle.append((o, s))
             rep_obs += repeats(seq); rep_null += repeats(shuffled)
-    def gap(idx, lead):
+    def shuffle_gap(idx, lead):
         a = [x for i in idx for l, x in per_battle[i][0] if l == lead]
         c = [x for i in idx for l, x in per_battle[i][1] if l == lead]
         return np.mean(a) - np.mean(c)
     momentum = {}
     for lead in sorted(obs):
-        cis = [gap(rng.integers(0, len(per_battle), len(per_battle)), lead) for _ in range(200)]
+        cis = [shuffle_gap(rng.integers(0, len(per_battle), len(per_battle)), lead) for _ in range(200)]
         momentum[str(lead)] = {"knockouts": len(obs[lead]), "row_scores_next": float(np.mean(obs[lead])),
                                "same_after_shuffle": float(np.mean(null[lead])),
                                "gap_ci": [float(np.percentile(cis, 2.5)), float(np.percentile(cis, 97.5))]}
@@ -285,10 +311,10 @@ def part4(rows, per, rp):
     bc = np.array([r["bc_win_rate"] for r in rows])
     F = [features(per[r["team_id"]]) for r in rows]
     names = list(F[0])
-    out = {"random_play_win_rate": {"spearman": spearman(rp, bc), "ci": boot(spearman, rp, bc)}}
+    out = {"random_play_win_rate": rank_corr(rp, bc)}
     for k in names:
         x = np.array([f[k] for f in F])
-        out[k] = {"spearman": spearman(x, bc), "ci": boot(spearman, x, bc),
+        out[k] = {**rank_corr(x, bc),
                   "partial_given_random_play": partial_spearman(x, bc, rp),
                   "partial_ci": boot(partial_spearman, x, bc, rp),
                   "spearman_with_random_play": spearman(x, rp)}
@@ -302,7 +328,8 @@ def part5(rows, meta, rp_by_team):
     path = Path(os.environ.get("TREE_FILE", DATA / "tree.jsonl"))
     if not path.exists(): return None, {}
     K = meta["tree_k"]; v_hat = lambda p: p * (1 - p) / (K - 1)
-    per_team = defaultdict(list); identity = []; first_step = []; mart = []; cum_by_turn = defaultdict(list)
+    per_team = defaultdict(list); identity = []; first_step = []; cum_by_turn = defaultdict(list)
+    calib = []                                   # (spine, chance to win at a node, final result)
     for line in open(path):
         d = json.loads(line)
         if "error" in d: continue
@@ -311,7 +338,7 @@ def part5(rows, meta, rp_by_team):
         inc = [(V[i + 1] - V[i]) ** 2 - noise[i] - noise[i + 1] for i in range(len(V) - 1)]
         tot = sum(inc)
         identity.append((tot, V[0] * (1 - V[0]) * K / (K - 1)))   # unbiased for the root's variance
-        mart.append(np.mean(np.diff(V)))
+        calib += [(len(identity), v, d["win"]) for v in V[:-1]]
         if tot <= 0: continue
         share = np.cumsum(inc) / tot
         first_step.append(inc[0] / tot)                       # root -> turn 1: team preview and leads
@@ -328,11 +355,23 @@ def part5(rows, meta, rp_by_team):
     idn = np.array(identity)
     cum = {i: float(np.mean(v)) for i, v in sorted(cum_by_turn.items())}
     tree_feats = {t: {"half_decided_step": h, "share_at_preview": p} for t, h, p in zip(ids, half_turn, prev)}
-    feat = lambda x: {"spearman": spearman(x, y), "ci": boot(spearman, x, y),
+    feat = lambda x: {**rank_corr(x, y),
                       "partial_given_random_play": partial_spearman(x, y, z), "partial_ci": boot(partial_spearman, x, y, z)}
+    # Martingale test: a battle that reaches a node with chance to win v goes on to win with
+    # probability v, so the slope of the final result on the node's estimate is 1, attenuated
+    # only by rollout noise to 1 - mean(noise variance) / var(estimate).
+    C = np.array(calib)
+    def slope(c):
+        v, w = c[:, 1], c[:, 2]
+        return float(np.cov(v, w)[0, 1] / v.var(ddof=1))
+    spines = np.unique(C[:, 0]); by = {s: C[C[:, 0] == s] for s in spines}
+    cis = [slope(np.concatenate([by[s] for s in rng.choice(spines, len(spines))])) for _ in range(300)]
+    expected = 1 - np.mean(C[:, 1] * (1 - C[:, 1]) / (K - 1)) / C[:, 1].var(ddof=1)
     return {
         "spines": len(identity),
-        "martingale_mean_step": float(np.mean(mart)),
+        "calibration": {"nodes": len(C), "slope": slope(C), "slope_ci": [float(np.percentile(cis, 2.5)), float(np.percentile(cis, 97.5))],
+                        "slope_expected_from_rollout_noise": float(expected),
+                        "mean_result_minus_mean_chance": float(C[:, 2].mean() - C[:, 1].mean())},
         "sum_of_squared_steps_vs_root_variance": {"mean_sum": float(idn[:, 0].mean()), "mean_v0_1_minus_v0": float(idn[:, 1].mean())},
         "share_resolved_at_preview": float(np.mean(first_step)),
         "cumulative_share_by_step": {str(i): v for i, v in cum.items()},
@@ -368,21 +407,21 @@ def part6(rows, rp, P):
     7. One search family: does random play still rank teams that share all six species?"""
     bc = np.array([r["bc_win_rate"] for r in rows])
     A = np.c_[np.ones(len(rp)), rp, rp ** 2]
-    gap = bc - A @ np.linalg.lstsq(A, bc, rcond=None)[0]
+    play_gap = bc - A @ np.linalg.lstsq(A, bc, rcond=None)[0]
     tests = {"Trick Room": lambda m: float("Trick Room" in m), "Tailwind": lambda m: float("Tailwind" in m),
              "Protect count": lambda m: float(sum(x in PROTECT for x in m)), "Fake Out": lambda m: float("Fake Out" in m),
              "setup moves": lambda m: float(sum(x in SETUP for x in m)),
              "Follow Me or Rage Powder": lambda m: float(("Follow Me" in m) or ("Rage Powder" in m))}
-    out = {"gap_sd": float(gap.std())}
+    out = {"gap_sd": float(play_gap.std())}
     for name, f in tests.items():
         x = np.array([f(moves(P[r["team_id"]])) for r in rows])
-        out[name] = {"teams_with": int((x > 0).sum()), "spearman_with_gap": spearman(x, gap), "ci": boot(spearman, x, gap)}
+        out[name] = {"teams_with": int((x > 0).sum()), "spearman_with_gap": spearman(x, play_gap), "ci": boot(spearman, x, play_gap)}
     sp = [species(P[r["team_id"]]) for r in rows]
     core = {"Basculegion", "Chandelure", "Floette-Eternal", "Garchomp", "Kingambit"}
     fam = np.array([core <= set(s) for s in sp]); six = np.array([set(s) == core | {"Whimsicott"} for s in sp])
     strong_out = (bc >= 0.5) & ~fam
-    fam_out = {"core_family": {"teams": int(fam.sum()), "spearman": spearman(rp[fam], bc[fam]), "ci": boot(spearman, rp[fam], bc[fam])},
-               "same_six_species": {"teams": int(six.sum()), "spearman": spearman(rp[six], bc[six]), "ci": boot(spearman, rp[six], bc[six])},
+    fam_out = {"core_family": {"teams": int(fam.sum()), **rank_corr(rp[fam], bc[fam])},
+               "same_six_species": {"teams": int(six.sum()), **rank_corr(rp[six], bc[six])},
                "strong_outside_family": {"teams": int(strong_out.sum()), "spearman": spearman(rp[strong_out], bc[strong_out])},
                "distinct_line_ups": len({tuple(sorted(s)) for s in sp}),
                "origins": dict(sorted({o: sum(r["origin"].split(":")[0] == o for r in rows)
@@ -390,14 +429,29 @@ def part6(rows, rp, P):
     return out, fam_out
 
 
-FIG_ROW, FIG_COL = 46151, 585       # Figure 1 matchup: the sample's best team against a top-50 Incineroar team
-RANDOM_PER_S = 379                   # 58,800 battles in 155 s on 10 Node processes (this run)
-BC_PER_S = "88–94"                   # fast behaviour-cloning evaluator, 6 workers, ~/vgc-data/battle-evaluations 2026-10-21
+from random_battle_graph import FIG_ROW, FIG_COL
+BC_PER_S = (88, 94)                  # fast behaviour-cloning evaluator, 6 workers: ~/vgc-data/battle-evaluations runs of 2026-10-21
 
 
-def figure_data(res, rows, per):
+def run_logs(meta):
+    """Errors, speed and default-choice fallbacks per run, from the run_<mode>.json files."""
+    logs = {m: json.loads((DATA / f"run_{m}.json").read_text()) for m in ("walk", "tree", "branch")
+            if (DATA / f"run_{m}.json").exists()}
+    tree_battles = 0
+    for line in open(Path(os.environ.get("TREE_FILE", DATA / "tree.jsonl"))):
+        d = json.loads(line)
+        if "error" not in d: tree_battles += 1 + (len(d["nodes"]) + 1) * meta["tree_k"]
+    battles = {"walk": logs["walk"]["records"], "tree": tree_battles}
+    return {"errors": sum(l["errors"] for l in logs.values()),
+            "random_per_s": round(logs["walk"]["records"] / logs["walk"]["seconds"]),
+            "fallback_per_battle": {m: logs[m]["fallback"] / battles[m] for m in battles},
+            "branch_decisions": logs.get("branch", {}).get("decisions"), "branch_fallback": logs.get("branch", {}).get("fallback")}
+
+
+def figure_data(res, rows, per, meta):
     """Everything the page Blog/visuals/random-battle-tree shows, in one file (sprites are added there)."""
     P = pastes(rows + [{"team_id": FIG_ROW}, {"team_id": FIG_COL}])
+    runs = run_logs(meta)
     r1, r2, r3, r4, r5 = (res[k] for k in ("1_random_vs_behaviour_cloning", "2_brownian_check", "3_lattice", "4_features", "5_tree"))
     st = r1["strong_teams_only"]
     feats = {k: {"spearman": v["spearman"], "ci": v["ci"], "partial": v.get("partial_given_random_play"), "partial_ci": v.get("partial_ci")}
@@ -405,7 +459,7 @@ def figure_data(res, rows, per):
     for k in ("half_decided_step", "share_at_preview"):
         v = r5["features_vs_behaviour_cloning"][k]
         feats[k] = {"spearman": v["spearman"], "ci": v["ci"], "partial": v["partial_given_random_play"], "partial_ci": v["partial_ci"]}
-    gap = res["6_play_dependence_gap"]; fam = res["7_one_family"]
+    gap_res = res["6_play_dependence_gap"]; fam = res["7_one_family"]
     walk = sum(len(v) for v in per.values())
     turns = sorted(b["turns"] for v in per.values() for b in v)
     n_search = sum(v for k, v in fam["origins"].items() if k != "vgcpastes")
@@ -419,19 +473,23 @@ def figure_data(res, rows, per):
         "top10": {"overlap": r1["top_k"]["10"]["overlap"], "picked": r1["top_k"]["10"]["bc_win_rate_of_random_play_top_k"],
                   "best": r1["top_k"]["10"]["bc_win_rate_of_true_top_k"]},
         "brownian": {"lag1": r2["lead_step_lag1_autocorrelation"], "lag1_shuffled": r2["same_after_within_battle_shuffle"],
-                     "kurtosis": r2["step_kurtosis"], "flat": r2["share_of_turns_lead_unchanged"]},
+                     "kurtosis": r2["step_kurtosis"], "flat": r2["share_of_turns_lead_unchanged"],
+                     "variance_ratio_4": r2["variance_ratio"]["4"]},
+        "walk_per_team": meta["walk_n"] * len(meta["top50"]),
+        "runs": runs,
         "snowball": r3["snowball_by_pokemon_lead"],
         "lattice_gap": r3["absorption_vs_random_play_win_rate"]["mean_abs_gap"],
-        "tree": {"spines": r5["spines"], "martingale_mean_step": r5["martingale_mean_step"],
+        "tree": {"spines": r5["spines"], "k": meta["tree_k"], "calibration": r5["calibration"],
                  "sum_sq": r5["sum_of_squared_steps_vs_root_variance"]["mean_sum"],
                  "v0var": r5["sum_of_squared_steps_vs_root_variance"]["mean_v0_1_minus_v0"],
                  "preview_share": r5["share_resolved_at_preview"], "half_turn": r5["half_settled_by_end_of_turn"]},
         "features": feats,
         "cv": {"random_play_only": r4["cv_r2"]["random_play_only"],
                "random_play_plus_features": r4["cv_r2"].get("random_play_plus_walk_and_tree_features", r4["cv_r2"]["random_play_plus_features"])},
-        "gap": {"tailwind": [gap["Tailwind"]["spearman_with_gap"], *gap["Tailwind"]["ci"]],
-                "protect": [gap["Protect count"]["spearman_with_gap"], *gap["Protect count"]["ci"]]},
-        "speed": {"random": RANDOM_PER_S, "bc": BC_PER_S},
+        "gap": {"tailwind": [gap_res["Tailwind"]["spearman_with_gap"], *gap_res["Tailwind"]["ci"]],
+                "protect": [gap_res["Protect count"]["spearman_with_gap"], *gap_res["Protect count"]["ci"]]},
+        "speed": {"random": runs["random_per_s"], "bc": f"{BC_PER_S[0]}–{BC_PER_S[1]}",
+                  "ratio": round(runs["random_per_s"] / (sum(BC_PER_S) / 2), 1)},
         "origin_note": f"{n_search} of the 150 come from earlier search runs and {fam['origins'].get('vgcpastes', 0)} from VGCPastes; "
                        f"{fam['core_family']['teams']} share one five-Pokémon core, and there are {fam['distinct_line_ups']} distinct line-ups.",
     }
@@ -469,7 +527,7 @@ def main():
            "per_team": [{**r, "random_play_win_rate": float(x), "lattice_absorption": float(a), **f}
                         for r, x, a, f in zip(rows, rp, ab, F)]}
     OUT.write_text(json.dumps(res, indent=1))
-    figure_data(res, rows, per)
+    figure_data(res, rows, per, meta)
     show = {k: v for k, v in res.items() if k != "per_team"}
     show["3_lattice"] = {k: v for k, v in r3.items() if k != "pooled_lattice_edges"}
     print(json.dumps(show, indent=1))
