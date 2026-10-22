@@ -17,7 +17,8 @@ code/ file changed on GitHub after the baseline and the laptop copy differs,
 mirroring would overwrite, delete, or re-add GitHub's version. The sync prints
 those files instead and exits with status 1. Make the laptop match GitHub, or
 keep the laptop's version with --allow FILE or --force. A GitHub change that
-lands while the sync runs stops it before the push, whatever the flags. Each
+lands while the sync runs stops it before the push, whatever the flags, and the
+next run pushes the commit it held back. Each
 pushed sync commit becomes the next baseline.
 
     tools/sync.py                 mirror, commit, push
@@ -150,6 +151,10 @@ def main():
                  " lists the paths.")
     if undo:
         print(f"{'would undo' if a.dry_run else 'undoing'} {len(undo)} GitHub edits made {since}:\n{rows(undo)}", end="")
+    if not a.dry_run:
+        # Build the sync commit on the GitHub commit just checked. On a stale checkout, the closing
+        # pull --rebase would merge each allowed file with GitHub's edit instead of replacing it.
+        run("git", "rebase", "--autostash", "-q", checked)
 
     parts, total = [], 0
     for name, src in SOURCES.items():
@@ -163,16 +168,22 @@ def main():
                     print(f"  {sign} {name}/{rel}")
                 if len(r[k]) > 8:
                     print(f"  {sign} ... {len(r[k]) - 8} more {k}")
-    if not total:
+    # A sync refused before its push leaves its commit here, so a rerun with nothing new still pushes it.
+    unpushed = int(run("git", "rev-list", "--count", f"{checked}..HEAD"))
+    held = [f"{unpushed} earlier commit{'s' * (unpushed > 1)} not yet on GitHub"] if unpushed else []
+    if not total and not unpushed:
         return print("already in sync")
     if a.dry_run:
-        return print("dry run:", "; ".join(parts))
+        return print("dry run:", "; ".join(parts + held))
 
     run("git", "add", "-A", "--", *SOURCES)
-    if not run("git", "diff", "--cached", "--name-only").strip():
+    if run("git", "diff", "--cached", "--name-only").strip():
+        run("git", "commit", "-q", "-m", f"{SYNC_SUBJECT} (" + "; ".join(parts) + ")")
+        print("committed:", "; ".join(parts))
+    elif not unpushed:
         return print("already in sync")
-    run("git", "commit", "-q", "-m", f"{SYNC_SUBJECT} (" + "; ".join(parts) + ")")
-    print("committed:", "; ".join(parts))
+    else:
+        print("nothing new to commit;", held[0])
     if not a.no_push:
         run("git", "pull", "--rebase", "--autostash", "-q")
         # A pull request merged while this sync ran now sits under the sync commit,
@@ -181,7 +192,7 @@ def main():
         if late:
             sys.exit(f"GitHub changed these files while this sync ran, and the laptop's copy differs:\n{rows(late)}"
                      "refusing to push, so the next sync cannot undo them unchecked. The sync commit stays local."
-                     " Rerun tools/sync.py to check these files.")
+                     " Rerun tools/sync.py to check these files; it pushes the commit once they pass.")
         run("git", "push", "-q")
         print("pushed")
 
