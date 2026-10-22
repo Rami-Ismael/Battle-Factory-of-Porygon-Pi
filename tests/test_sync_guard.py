@@ -137,6 +137,26 @@ class SyncGuard(unittest.TestCase):
         self.assertFalse((self.clone / "notes/ideas.md").exists())
         self.assertEqual((self.clone / "code/run.py").read_text(), "print('laptop')\n")
 
+    def test_stops_before_pushing_when_github_changes_during_the_sync(self):
+        root = self.clone.parent
+        pr = root / "pr"
+        self.git(root, "clone", "-q", str(root / "github.git"), "pr")
+        write(pr / "notes/ideas.md", EDIT)
+        self.git(pr, "commit", "-q", "-am", "Edit ideas.md on GitHub mid-sync (#2)")
+        # The clone's post-commit hook lands that pull request between the guard's check and the push.
+        hook = self.clone / ".git" / "hooks" / "post-commit"
+        write(hook, f'#!/bin/sh\nunset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE\ngit -C "{pr}" push -q origin main\n')
+        hook.chmod(0o755)
+        write(self.vault / "plan.md", "laptop edit\n")  # gives the sync something to commit
+        result = self.sync()
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertEqual(listed(result.stderr), {("overwrite", "notes/ideas.md")})
+        self.assertEqual(self.git(root / "github.git", "log", "-1", "--format=%s", "main").strip(),
+                         "Edit ideas.md on GitHub mid-sync (#2)")
+        hook.unlink()
+        again = self.sync("--dry-run")  # the pull request stays above the baseline
+        self.assertEqual(listed(again.stderr), {("overwrite", "notes/ideas.md")})
+
 
 if __name__ == "__main__":
     unittest.main()
