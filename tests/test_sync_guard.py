@@ -1,4 +1,5 @@
-"""Tests for the guard that stops tools/sync.py from undoing edits merged on GitHub.
+"""Tests for the guard that stops tools/sync.py from undoing edits merged on GitHub,
+and for the check that stops it before reading a laptop file that iCloud has not downloaded.
 
 Run from the repository root:
     python3 -m unittest discover -s tests -v
@@ -11,6 +12,7 @@ a test then lands a GitHub-side edit by pushing it from the clone.
 
 import os
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -63,6 +65,17 @@ class SyncGuard(unittest.TestCase):
 
     def sync(self, *args):
         return subprocess.run([sys.executable, "tools/sync.py", *args], cwd=self.clone,
+                              env=self.env, capture_output=True, text=True)
+
+    def sync_with_dataless(self, paths, *args):
+        """Run the sync as if iCloud had not downloaded the laptop files at `paths`.
+
+        Only iCloud can mark a file dataless, so the run swaps the sync's flag check for a path test.
+        """
+        stub = ("import sys\nsys.path.insert(0, 'tools')\nimport sync\n"
+                f"sync.dataless = lambda path: str(path) in {sorted(map(str, paths))!r}\n"
+                f"sys.argv[1:] = {list(args)!r}\nsync.main()\n")
+        return subprocess.run([sys.executable, "-c", stub], cwd=self.clone,
                               env=self.env, capture_output=True, text=True)
 
     def merge_on_github(self, path, text=None):
@@ -156,6 +169,23 @@ class SyncGuard(unittest.TestCase):
         hook.unlink()
         again = self.sync("--dry-run")  # the pull request stays above the baseline
         self.assertEqual(listed(again.stderr), {("overwrite", "notes/ideas.md")})
+
+    def test_lists_files_icloud_has_not_downloaded_before_reading_any(self):
+        self.merge_on_github("notes/plan.md", EDIT)  # the guard hashes plan.md
+        write(self.code / "new.py", "print('new')\n")  # mirroring copies new.py and compares run.py
+        dataless = [self.vault / "plan.md", self.code / "run.py", self.code / "new.py"]
+        for path in dataless:
+            path.chmod(0)  # unreadable, so a read before the check fails this test
+        before = self.git(self.clone, "rev-parse", "HEAD")
+        real, dry = self.sync_with_dataless(dataless), self.sync_with_dataless(dataless, "--dry-run")
+        self.assertEqual(real.returncode, 1, real.stderr)
+        self.assertEqual(listed(real.stderr), {("dataless", "notes/plan.md"), ("dataless", "code/run.py"),
+                                               ("dataless", "code/new.py")})
+        first = shlex.quote(str((self.vault / "plan.md").resolve()))
+        self.assertEqual(real.stderr.splitlines()[-1], f"brctl download {first}")
+        self.assertEqual(dry.stderr, real.stderr)
+        self.assertEqual(self.git(self.clone, "status", "--porcelain"), "")
+        self.assertEqual(self.git(self.clone, "rev-parse", "HEAD"), before)
 
 
 if __name__ == "__main__":
