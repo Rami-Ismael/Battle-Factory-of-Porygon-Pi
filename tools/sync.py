@@ -4,18 +4,28 @@
     Obsidian vault project folder  ->  notes/
     code working directory         ->  code/
 
-One-way. The laptop is the source of truth; edits made on github.com are
-overwritten by the next sync. Only notes/ and code/ are staged, so folders
+One-way. The laptop is the source of truth. Only notes/ and code/ are staged, so folders
 written in this repo (blog/) are never published by a sync. Which files travel is decided by each
 source's own git ignore rules (`git ls-files --cached --others
 --exclude-standard`), so ignored files (.obsidian, .venv, large binaries,
 results) never leave the machine.
 
+A sync will not silently undo a pull request merged on GitHub. Before copying
+anything, it fetches origin/main (--dry-run too), takes the newest commit there
+whose subject starts with "sync from laptop" as the baseline, and lists the
+notes/ and code/ files changed since. If the laptop copy of any of them differs
+from GitHub's, mirroring would overwrite, delete or re-add GitHub's version, so
+the sync prints those files and exits non-zero. Copy GitHub's version to the
+laptop, or keep the laptop's with --allow or --force. Each sync commit becomes
+the next baseline.
+
     tools/sync.py              mirror, commit, push
     tools/sync.py --dry-run    show what would change, touch nothing
     tools/sync.py --no-push    mirror and commit only
+    tools/sync.py --allow F    also overwrite the GitHub edits to the paths listed in F
+    tools/sync.py --force      also overwrite every GitHub edit
 """
-import argparse, filecmp, os, re, shutil, subprocess, sys
+import argparse, filecmp, hashlib, os, re, shutil, subprocess, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -24,6 +34,9 @@ SOURCES = {
     "code": Path(os.environ.get("BF_CODE", Path.home() / "Documents/code/vgc-team-generator-pilot")),
 }
 SECRET = re.compile(rb"(gh[opsu]_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
+UPSTREAM = "origin/main"
+SYNC_SUBJECT = "sync from laptop"  # every sync commit starts so; the newest on UPSTREAM is the baseline
+EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"  # stands in for the baseline before the first sync
 
 
 def run(*cmd, cwd=REPO, **kw):
@@ -35,9 +48,45 @@ def source_files(src: Path) -> set[str]:
     return {p for p in out.split("\0") if p and (src / p).is_file()}
 
 
-def mirror(name: str, src: Path, dry: bool) -> dict:
+def blob_id(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def github_edits(wants: dict[str, set[str]]) -> tuple[str | None, list[tuple[str, str]]]:
+    """Files changed on UPSTREAM since the baseline whose laptop copy differs.
+
+    Returns the baseline (None before the first sync) and (action, path) pairs,
+    where action is what mirroring would do to GitHub's version: overwrite,
+    delete or re-add.
+    """
+    try:
+        run("git", "fetch", "-q", "origin", "main")
+    except subprocess.CalledProcessError as e:
+        sys.exit(f"cannot fetch {UPSTREAM} to check for GitHub edits: {e.stderr.strip()}")
+    log = (line.partition(" ") for line in run("git", "log", "--format=%H %s", UPSTREAM).splitlines())
+    base = next((sha for sha, _, subject in log if subject.startswith(SYNC_SUBJECT)), None)
+    touched = run("git", "diff", "-z", "--name-only", "--no-renames", base or EMPTY_TREE, UPSTREAM, "--", *SOURCES)
+    github = {}
+    for entry in filter(None, run("git", "ls-tree", "-r", "-z", UPSTREAM, "--", *SOURCES).split("\0")):
+        meta, path = entry.split("\t", 1)
+        github[path] = meta.split()[2]
+    undo = []
+    for path in filter(None, touched.split("\0")):
+        name, rel = path.split("/", 1)
+        laptop = SOURCES[name] / rel if rel in wants[name] else None
+        if laptop and path in github and blob_id(laptop) != github[path]:
+            undo.append(("overwrite", path))
+        elif not laptop and path in github:
+            undo.append(("delete", path))
+        elif laptop and path not in github:
+            undo.append(("re-add", path))
+    return base, undo
+
+
+def mirror(name: str, src: Path, dry: bool, want: set[str] | None = None) -> dict:
     dst = REPO / name
-    want = source_files(src)
+    want = source_files(src) if want is None else want
     have = {str(p.relative_to(dst)) for p in dst.rglob("*") if p.is_file()} if dst.exists() else set()
     added, changed = [], []
     for rel in sorted(want):
@@ -67,13 +116,34 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-push", action="store_true")
+    ap.add_argument("--allow", type=Path, metavar="F", help="file of repo paths (code/README.md), one per line, whose GitHub edits may be overwritten")
+    ap.add_argument("--force", action="store_true", help="overwrite every GitHub edit made since the last sync")
     a = ap.parse_args()
+    if a.allow and not a.allow.is_file():
+        ap.error(f"--allow: no such file: {a.allow}")
 
-    parts, total = [], 0
     for name, src in SOURCES.items():
         if not src.exists():
             sys.exit(f"{name}: source folder missing: {src}")
-        r = mirror(name, src, a.dry_run)
+    wants = {name: source_files(src) for name, src in SOURCES.items()}
+    base, undo = github_edits(wants)
+    allowed = {line.strip() for line in a.allow.read_text().splitlines()} if a.allow else set()
+    blocked = [(act, p) for act, p in undo if p not in allowed]
+    since = f"since the last laptop sync ({base[:8]})" if base else "before any laptop sync"
+    if blocked and not a.force:
+        more = f" ({len(undo) - len(blocked)} more are allowed by {a.allow})" if len(blocked) < len(undo) else ""
+        sys.exit(f"These files changed on GitHub {since} and differ on the laptop:\n"
+                 + "".join(f"  {act:9}  {p}\n" for act, p in blocked)
+                 + f"refusing to sync: it would undo {len(blocked)} GitHub edits{more}. Make the laptop match"
+                 " GitHub for each file, or keep the laptop's version with --allow F (a file listing the paths) or --force.")
+    if undo:
+        print(f"{'would overwrite' if a.dry_run else 'overwriting'} {len(undo)} GitHub edits made {since}:")
+        for act, p in undo:
+            print(f"  {act:9}  {p}")
+
+    parts, total = [], 0
+    for name, src in SOURCES.items():
+        r = mirror(name, src, a.dry_run, wants[name])
         n = sum(map(len, r.values()))
         total += n
         if n:
@@ -91,7 +161,7 @@ def main():
     run("git", "add", "-A", "--", *SOURCES)
     if not run("git", "diff", "--cached", "--name-only").strip():
         return print("already in sync")
-    run("git", "commit", "-q", "-m", "sync from laptop (" + "; ".join(parts) + ")")
+    run("git", "commit", "-q", "-m", f"{SYNC_SUBJECT} (" + "; ".join(parts) + ")")
     print("committed:", "; ".join(parts))
     if not a.no_push:
         run("git", "pull", "--rebase", "--autostash", "-q")
