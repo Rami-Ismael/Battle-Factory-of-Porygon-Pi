@@ -572,3 +572,39 @@ Random fills: 267/270 found a legal fill in 50 draws. Text writer rejections: It
 **Limits.** Five starting teams, one fill per mask, one battle per opponent, one policy. The fresh fine-tune first
 planned here was replaced by the owner (2026-10-21) with text writers whose prompts copy the LLM prompt versions;
 that experiment follows.
+
+## A 3B writer trained on Modal's H100, and what the GPU changes (2026-10-23)
+
+`scripts/textdiff_modal.py` runs any `textdiff.py` command line on a Modal H100 ($3.95/h, Starter plan credit). A volume
+mounted at the runtime folder keeps `OUT`, `--name` and `--data` unchanged. `textdiff_port.DEV` now prefers CUDA, and the
+Fast-dLLM v2 code is pinned to revision `25093b6f`.
+
+**Bigger model.** `--base Qwen/Qwen2.5-3B-Instruct` with the first writer's recipe (8,000 examples, batch 4, LoRA r32,
+lr 2e-4, 2,000 steps, same seed, `--no-ckpt`) took 14 min on the H100, against 372 min for the 1.5B on the M4 Pro. A plain
+Qwen2.5-1.5B with the identical recipe is the size control: neither plain checkpoint was adapted to diffusion before.
+
+| writer | val 500 | 1,000 | 1,500 | 2,000 |
+|---|---|---|---|---|
+| Fast-dLLM v2 1.5B (`lora_r32`, M4 Pro) | 0.949 | 0.803 | 0.707 | **0.667** |
+| plain Qwen2.5-3B + recipe (`qwen3b_r32`) | 0.980 | 0.832 | 0.720 | **0.682** |
+| plain Qwen2.5-1.5B + recipe (`qwen15_r32`, control) | 1.080 | 0.879 | 0.765 | **0.714** |
+
+At equal recipe the 3B is 0.032 below the 1.5B. It is still 0.015 above Fast-dLLM v2 1.5B, which had diffusion
+pretraining. None of the three has been decoded or battled here; `gen ARM --name qwen3b_r32 --base Qwen/Qwen2.5-3B-Instruct`
+loads it.
+
+**What the Mac-shaped code leaves on the table** (3B, batch 4, steps 50–100 of the same batches, compiled):
+
+| setting | s / step | peak | verdict |
+|---|---|---|---|
+| no checkpointing (`--no-ckpt`, used above) | **0.194** | 29 GB | the 24 GB Mac could not fit it |
+| full checkpointing (`--ckpt-layers 36`, the Mac default) | 0.246 | 12 GB | 27% slower |
+| fused AdamW (`--optimizer adamw-fused`) | 0.193 | 29 GB | no gain (60M trainable) |
+| block-sparse `flex_attention` (`--flex`) | 0.221 | 29 GB | slower; exact in fp32 (`flexcheck fp32`: grad 5e-5 relative) |
+| batch 16 | 0.630 (0.039 / example) | 84 GB | 1.23× examples/s, at the memory edge |
+
+The profiler (`--profile 100`) splits a 0.19 s step: bf16 matmuls of the frozen model 31%, **fp32 matmuls 29%**, fused
+elementwise 12%, attention 9.5% (dense-mask sdpa already runs cuDNN's flash kernel), GPU idle 15%. The fp32 matmuls are
+the LoRA adapters, which PEFT keeps in fp32. On the M4 Pro fp32 runs at the bf16 rate, so this cost nothing there.
+`--autocast` (bf16 adapter matmuls, fp32 weights) and `--tf32` target it; both probes, and batch 8, were stopped
+before they reported, so they are unmeasured.

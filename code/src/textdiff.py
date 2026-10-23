@@ -335,6 +335,31 @@ def verify(args):
     print(json.dumps(P.verify_layouts(m, ids.to(P.DEV), lab.to(P.DEV)), indent=1), flush=True)
 
 
+def flexcheck(args):
+    """textdiff.py flexcheck: the flex_attention path (--flex, CUDA) against the dense sdpa path on one real batch of
+    four: loss and LoRA gradients on the same masks (B matrices set to small random values so every gradient is non-zero)."""
+    import torch, textdiff_port as P
+    tok, m = P.load(dtype=torch.float32 if args.arm == "fp32" else torch.bfloat16, base=args.base or None)   # flexcheck fp32
+    rows = load_jsonl(OUT / "train.jsonl")[:4]
+    ids, lab = collate([encode_example(tok, r["prompt"], r["answer"], 32, args.prompt_style) for r in rows], tok, 32)
+    ids, lab = ids.to(P.DEV), lab.to(P.DEV)
+    m = lora_model(m, args.rank, 2 * args.rank, ckpt=False)
+    torch.manual_seed(0)
+    for n, p in m.named_parameters():
+        if "lora_B" in n: p.data.normal_(0, 1e-3)
+    out = {}
+    for flex in (False, True):
+        P.FLEX = flex; m.zero_grad(set_to_none=True)
+        loss = P.diffusion_loss(m, ids, lab, generator=torch.Generator(device=P.DEV).manual_seed(0)); loss.backward()
+        out[flex] = loss.item(), [p.grad.float().clone() for p in m.parameters() if p.requires_grad]
+    (l0, g0), (l1, g1) = out[False], out[True]
+    sq = lambda gs: sum(float((x * x).sum()) for x in gs)
+    print(json.dumps(dict(dtype=args.arm if args.arm == "fp32" else "bf16", loss_dense=l0, loss_flex=l1,
+                          relative_grad_diff=(sq([a - b for a, b in zip(g0, g1)]) / sq(g0)) ** 0.5,
+                          max_grad_diff=max(float((a - b).abs().max()) for a, b in zip(g0, g1)),
+                          max_grad=max(float(a.abs().max()) for a in g0))), flush=True)
+
+
 def batches(rows, tok, bs, bd, rng, max_len, style="full"):
     order = list(range(len(rows))); rng.shuffle(order)
     enc = []
@@ -375,11 +400,11 @@ def smoke(args):
         loss = P.diffusion_loss(m, ids, lab, generator=g, shared_clean=not args.legacy_layout)
         opt.zero_grad(set_to_none=True); loss.backward()
         gn = torch.nn.utils.clip_grad_norm_([p for p in m.parameters() if p.requires_grad], 1.0)
-        opt.step(); torch.mps.synchronize()
+        opt.step(); P.synchronize()
         dt = time.perf_counter() - t0
         print(f"step {step}: loss {loss.item():.4f} grad-norm {gn.item():.3f} finite {math.isfinite(loss.item())} "
               f"{ids.numel()/dt:.0f} tok/s (×2 complementary) batch {tuple(ids.shape)} {dt:.1f}s "
-              f"peak {torch.mps.driver_allocated_memory()/1e9:.1f} GB", flush=True)
+              f"peak {P.memory_gb():.1f} GB", flush=True)
         if step == 3: break
     after = [p for p in m.parameters() if p.requires_grad][0]
     print("trainable parameter changed:", bool((after != before).any()))
@@ -389,7 +414,10 @@ def train(args):
     import torch, textdiff_port as P
     seed = args.seed                                 # SEED unless --seed: a replicate fine-tune on the same examples
     torch.manual_seed(seed); random.seed(seed)
-    P.SHIFT = not args.no_shift
+    P.SHIFT = not args.no_shift; P.FLEX = args.flex
+    if args.tf32:                                    # fp32 matmuls (PEFT keeps the adapters in fp32) on TF32 tensor cores
+        torch.backends.cuda.matmul.allow_tf32 = True; torch.backends.cudnn.allow_tf32 = True
+    amp = torch.autocast(P.DEV.type, dtype=torch.bfloat16, enabled=args.autocast)    # bf16 adapter matmuls, fp32 weights
     tok, m = P.load(base=args.base or None)
     if args.base and P.qwen3_folder(args.base):
         assert args.layout != "released", "a Qwen3 base trains only through the functional layouts (--layout trim)"
@@ -424,8 +452,9 @@ def train(args):
             if args.optimizer == "mezo":
                 opt.zero_grad(set_to_none=True); lv = mezo_step(m, ids, lab, g, args, fwd, params, seed + step)
             elif fwd is None:
-                loss = P.diffusion_loss(m, ids, lab, generator=g, shared_clean=not args.legacy_layout,
-                                        complementary=not args.no_complementary)
+                with amp:
+                    loss = P.diffusion_loss(m, ids, lab, generator=g, shared_clean=not args.legacy_layout,
+                                            complementary=not args.no_complementary)
                 if not torch.isfinite(loss): raise RuntimeError("non-finite loss")
                 opt.zero_grad(set_to_none=True); loss.backward(); lv = loss.item()
             else:
@@ -434,14 +463,22 @@ def train(args):
             if args.optimizer != "mezo": torch.nn.utils.clip_grad_norm_(params, 1.0)
             opt.step(); sched.step()
             running += lv; tokens += ids.numel(); step += 1
-            peak = max(peak, torch.mps.driver_allocated_memory() / 1e9)
+            peak = max(peak, P.memory_gb())
+            if args.profile and step == args.profile:            # a window of 10 steps after compile and warm-up
+                P.synchronize(); prof = torch.profiler.profile(activities=[torch.profiler.ProfilerActivity.CPU,
+                                                                           torch.profiler.ProfilerActivity.CUDA]); prof.__enter__(); tp = time.perf_counter()
+            if args.profile and step == args.profile + 10:
+                P.synchronize(); prof.__exit__(None, None, None)
+                print(f"profiled 10 steps: {(time.perf_counter() - tp) / 10:.3f} s/step (profiler on)", flush=True)
+                print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=30), flush=True)
+                break
             if step % 25 == 0 or step == total:
                 entry = dict(epoch=epoch, step=step, total=total, loss=running / 25, lr=sched.get_last_lr()[0],
                              minutes=(time.perf_counter() - t0) / 60, tok_per_s=tokens / (time.perf_counter() - t0),
                              peak_gb=peak, opt_state_gb=optimizer_state_gb(opt))
                 log.append(entry); running = 0.0
                 print(json.dumps(entry), flush=True)
-            if step % args.empty_cache_every == 0:
+            if step % args.empty_cache_every == 0 and P.DEV.type == "mps":
                 torch.mps.empty_cache()          # micro-batches of many lengths fragment the Metal cache (17-18 GB by step 150)
             if step % args.eval_every == 0 or step == total or step == args.max_steps:
                 if args.speed_only:
@@ -492,7 +529,7 @@ def gen(args):
     import torch, textdiff_port as P
     from peft import PeftModel
     cfg = ARMS[args.arm]
-    tok, m = P.load()
+    tok, m = P.load(base=args.base or None)                         # the base the adapter was trained on
     adapter = cfg.get("adapter", args.adapter)
     if adapter and (OUT / args.name / "tokenizer").exists():            # trained with domain tokens: same vocabulary
         from transformers import AutoTokenizer
@@ -527,7 +564,7 @@ def gen(args):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("command", choices=["prepare", "smoke", "train", "gen", "verify"])
+    p.add_argument("command", choices=["prepare", "smoke", "train", "gen", "verify", "flexcheck"])
     p.add_argument("arm", nargs="?", default="base")
     p.add_argument("--name", default="lora_r32")
     p.add_argument("--seed", type=int, default=SEED, help="train: torch, mask and order seed (same --limit examples)")
@@ -568,6 +605,12 @@ if __name__ == "__main__":
     p.add_argument("--lora-plus", type=float, default=1.0, help="learning-rate ratio of the LoRA B matrices to A (LoRA+); 1 = plain LoRA")
     p.add_argument("--prune-mlp", type=float, default=0.0, help="keep this fraction of MLP neurons per layer before training (0 = no pruning)")
     p.add_argument("--speed-only", action="store_true", help="no validation and no adapter saves (speed probes)")
+    p.add_argument("--flex", action="store_true", help="CUDA: train attention through the released block-sparse flex_attention "
+                   "(textdiff_port.FLEX) instead of sdpa with a dense mask; textdiff.py flexcheck compares the two")
+    p.add_argument("--tf32", action="store_true", help="CUDA: TF32 tensor cores for fp32 matmuls (the LoRA adapters are fp32)")
+    p.add_argument("--autocast", action="store_true", help="bf16 autocast around the training forward: adapter matmuls in bf16, "
+                   "adapter weights and optimizer state stay fp32 (released layout only)")
+    p.add_argument("--profile", type=int, default=0, help="CUDA: profile steps N+1..N+10, print the kernel table and stop (with --speed-only)")
     p.add_argument("--functional-val", action="store_true", help="validate through the functional split path (same masks; equals the released forward)")
     p.add_argument("--base-knows-mask", action="store_true", help="the --base checkpoint is already a diffusion model: do not train its [MASK] row")
     p.add_argument("--no-shift", action="store_true", help="score each masked token at its own position (dllm BD3LM checkpoints), training and validation")

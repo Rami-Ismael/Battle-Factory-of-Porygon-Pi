@@ -12,9 +12,19 @@ import sys, time
 import torch, torch.nn.functional as F
 
 MODEL_ID = "Efficient-Large-Model/Fast_dLLM_v2_1.5B"
+REVISION = "25093b6f63300adfd57f72145083c8a528fe4f16"     # the snapshot every run so far used (docs/textdiff.md)
 MASK_ID = 151665
 SHIFT = True          # token shift: hidden state i predicts token i + 1 (Fast-dLLM v2). False: predicts token i (dllm's BD3LM)
-DEV = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+DEV = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+
+
+def synchronize():
+    torch.cuda.synchronize() if DEV.type == "cuda" else torch.mps.synchronize()
+
+
+def memory_gb():
+    """What the backend holds: the Metal driver's allocation now, or the CUDA caching allocator's peak (Modal runs)."""
+    return (torch.cuda.max_memory_reserved() if DEV.type == "cuda" else torch.mps.driver_allocated_memory()) / 1e9
 
 
 def load(dtype=torch.bfloat16, device=DEV, base=None):
@@ -22,10 +32,10 @@ def load(dtype=torch.bfloat16, device=DEV, base=None):
     the released block-diffusion architecture and training recipe on that model's weights, with the [MASK] row
     (id 151665, untrained in a plain Qwen2.5 checkpoint) left for the trainer to learn (trainable_token_indices)."""
     from transformers import AutoTokenizer, AutoModelForCausalLM
-    tok = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
+    tok = AutoTokenizer.from_pretrained(MODEL_ID, revision=REVISION, trust_remote_code=True)
     if base and qwen3_folder(base):
         return tok, load_qwen3(base, dtype).to(device)
-    m = AutoModelForCausalLM.from_pretrained(MODEL_ID, trust_remote_code=True, dtype=dtype)
+    m = AutoModelForCausalLM.from_pretrained(MODEL_ID, revision=REVISION, trust_remote_code=True, dtype=dtype)
     if base:
         from pathlib import Path
         if (Path(base) / "model.safetensors").exists():
@@ -102,24 +112,56 @@ def segment_mask(n, block_size, nseg, device):
     return diagonal | offset_causal | causal
 
 
+def segment_mask_mod(n, block_size, nseg):
+    """segment_mask as a flex_attention mask_mod (same three terms, index by index)."""
+    clean = nseg - 1
+    def mask_mod(b, h, q, k):
+        sq, sk, bq, bk = q // n, k // n, (q % n) // block_size, (k % n) // block_size
+        return (((sq == sk) & (sq < clean) & (bq == bk)) | ((sq < clean) & (sk == clean) & (bq > bk))
+                | ((sq == clean) & (sk == clean) & (bq >= bk)))
+    return mask_mod
+
+
+FLEX = False          # CUDA only: the released block-sparse flex_attention instead of sdpa with a dense mask
+_FLEX_MASKS, _FLEX_KERNEL = {}, []
+
+
+@torch.compiler.disable
+def flex_block_mask(n, block_size, nseg, device):
+    """One BlockMask per padded length, built outside the compiled graph and reused (the released model rebuilt it
+    every step). Tiles that are wholly masked (most of the noisy-to-noisy square) are skipped by the kernel."""
+    from torch.nn.attention.flex_attention import create_block_mask
+    key = (n, block_size, nseg)
+    if key not in _FLEX_MASKS:
+        _FLEX_MASKS[key] = create_block_mask(segment_mask_mod(n, block_size, nseg), None, None, nseg * n, nseg * n, device=device)
+    return _FLEX_MASKS[key]
+
+
 _MODULE = None
 def type_module(): return _MODULE
 
 
 def patch(model):
-    """Route training attention through sdpa with a dense mask; keep eval attention as released."""
+    """Route training attention through sdpa with a dense mask (or flex_attention, FLEX); keep eval attention as released."""
     global _MODULE
     _MODULE = type(model).__module__
     mod = sys.modules[_MODULE]
 
-    def dense_attention(q, k, v, mask=None):
+    def train_attention(q, k, v, mask=None):
         # q: (B, Hq, L, d); k, v: (B, Hkv, L, d): the kernel maps the 12 query heads onto the 2 kv heads
         # (enable_gqa), the same grouping flex_attention's enable_gqa=True applied, without copying k and v.
-        return F.scaled_dot_product_attention(q, k, v, attn_mask=mask, enable_gqa=True)
-    mod.fused_flex_attention = dense_attention
+        if isinstance(mask, torch.Tensor):
+            return F.scaled_dot_product_attention(q, k, v, attn_mask=mask, enable_gqa=True)
+        if not _FLEX_KERNEL:
+            from torch.nn.attention.flex_attention import flex_attention
+            _FLEX_KERNEL.append(torch.compile(flex_attention, dynamic=False))
+        return _FLEX_KERNEL[0](q, k, v, block_mask=mask, enable_gqa=True)
+    mod.fused_flex_attention = train_attention
 
     def gen_mask(self, seqlen, block_size, B, H):
-        return dense_train_mask(seqlen, block_size, next(self.parameters()).device, getattr(self, "textdiff_nseg", 2))
+        device, nseg = next(self.parameters()).device, getattr(self, "textdiff_nseg", 2)
+        if FLEX: return flex_block_mask(seqlen, block_size, nseg, device)
+        return dense_train_mask(seqlen, block_size, device, nseg)
     type(model.model).gen_mask = gen_mask
 
     # The released training attention applies rotary to each half of [noisy | clean] separately,
