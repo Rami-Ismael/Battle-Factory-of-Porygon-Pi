@@ -1,0 +1,32 @@
+# Tests GitHub Actions runs on every pull request: the scripts/test_*.py that pass on a
+# clean machine, with no /tmp/vgc-pilot, ~/vgc-data, vgc-pilot-runtime checkpoints,
+# pinned Showdown checkout or outside network. One file name per line.
+# A test that needs this laptop's data stays off the list; run it locally.
+test_ask_rows.py
+test_battles.py
+test_cem_score_direction.py
+test_checkpoints.py
+test_dibo_v4.py
+test_dibo_v4_recovery.py
+test_diversity_baseline.py
+test_diversity_logging.py
+test_diversity_metrics.py
+test_dspy_optimize.py
+test_dspy_structure.py
+test_fast_experiment_battles.py
+test_frozen.py
+test_full_grid_recovery.py
+test_llm_completion.py
+test_mb_prompt.py
+test_meta_starters.py
+test_openrouter_generation.py
+test_parallel_temperature_campaign.py
+test_pokemon_id_diversity.py
+test_prompt_versions.py
+test_reasoning_battles.py
+test_reasoning_experiment.py
+test_results.py
+test_reverse_score_diversity.py
+test_slot_order.py
+test_temperature_experiment.py
+test_torch_load_ban.py
