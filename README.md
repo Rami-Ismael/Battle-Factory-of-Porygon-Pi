@@ -123,6 +123,8 @@ tools/sync.py --dry-run   # show what would change, or which GitHub edits block 
 tools/sync.py             # mirror, commit, push
 ```
 
+A pre-commit hook stops a commit when a note in `notes/` has frontmatter that doesn't parse as YAML, and names the note and line. Notes without frontmatter pass. Run `pre-commit install` once in the checkout that runs the sync.
+
 ## Licence
 
 Code is [MIT](LICENSE). The blog's prose and figures are [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The Pokémon sprites come from [Pokémon Showdown](https://github.com/smogon/pokemon-showdown); Pokémon and its character names and images belong to Nintendo, Game Freak and Creatures, and neither licence covers them.
