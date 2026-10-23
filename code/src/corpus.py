@@ -206,7 +206,6 @@ def check_team(team):
         base.append(norm(e.get("baseSpecies", e.get("name", s["species"]))) if e else norm(s["species"]))
     if len(set(base)) != len(base):
         v.append("speciesclause")
-    items = [norm(s["item"]) for s in team if s["item"]]
     return v
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ def main():
     V, L = Vocab(teams), Legality(teams)
     X = np.stack([V.encode(t) for t in teams])
     idx = rng.permutation(len(X)); ntest = int(len(X) * .15)
-    Xte, Xtr = X[idx[:ntest]], X[idx[ntest:]]
+    Xtr = X[idx[ntest:]]
     model = MaskedFieldModel(V).to(DEV)
     opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=.01)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, 600)

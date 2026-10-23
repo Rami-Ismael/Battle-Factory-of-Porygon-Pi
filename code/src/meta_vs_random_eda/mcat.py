@@ -6,7 +6,7 @@ tasks = {t["start_team"]: t["team_paste"] for t in json.load(open('/Users/ramiis
 CATS = ["Protect", "STAB attack", "Coverage attack", "Spread attack", "Speed control", "Support move", "Other status"]
 def cat(move, mon):
     i = nid(move); m = MOVES.get(i, {})
-    sid, _ = effective_species(mon); d = DEX.get(sid, {}); bs = d.get("baseStats", {}); types = set(d.get("types", []))
+    sid, _ = effective_species(mon); d = DEX.get(sid, {}); types = set(d.get("types", []))
     if i in PROTECT: return "Protect"
     if i in SPEED_CTRL: return "Speed control"
     if i in SUPPORT: return "Support move"

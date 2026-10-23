@@ -85,7 +85,7 @@ class Vocab:
         k = FIELDS[col % NF]
         return "move" if k.startswith("m") and k != "nature" else k
     @jaxtyped(typechecker=beartype)
-    def encode(self, team) -> Int64[np.ndarray, "fields"]:
+    def encode(self, team) -> Int64[np.ndarray, " fields"]:
         f = team_fields(team)
         return np.array(strict_ids(self.stoi, [(self.key(i), v) for i, v in enumerate(f)], self.source),
                         dtype=np.int64)

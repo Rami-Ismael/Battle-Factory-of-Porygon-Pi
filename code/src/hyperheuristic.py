@@ -435,8 +435,8 @@ def run(a):
                     else ask_claude(prompt, a.model, a.claude_bin, a.ask_timeout))
         except Exception as e:
             print(f"  proposer failed: {e}")
-            print(f"  fall back to: hyperheuristic.py prompt > /tmp/p.txt, then "
-                  f"hyperheuristic.py add --file <rules>")
+            print("  fall back to: hyperheuristic.py prompt > /tmp/p.txt, then "
+                  "hyperheuristic.py add --file <rules>")
             break
         got = extract(text)
         if not got:
@@ -447,7 +447,7 @@ def run(a):
     report_front(pareto(st["rules"]), len(hps))
 
 def report_front(front, npool):
-    print(f"\nportfolio -- non-dominated on (keep the meta, cut the space)")
+    print("\nportfolio -- non-dominated on (keep the meta, cut the space)")
     print(f"{'':2}{'rule':26} {'meta kept':>10} {'space kept':>12} {'lift':>10} {'space left':>12}")
     print("-"*78)
     for r in front:

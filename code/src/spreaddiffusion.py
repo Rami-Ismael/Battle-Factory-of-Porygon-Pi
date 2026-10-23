@@ -39,7 +39,7 @@ class SpreadVocab:
         j = col % NF2
         return "stat" if j >= 8 else self.base.key(j)
     @jaxtyped(typechecker=beartype)
-    def encode(self, team) -> Int64[np.ndarray, "fields"]:
+    def encode(self, team) -> Int64[np.ndarray, " fields"]:
         out = []
         for s in canon(team):
             ms = sorted(s["moves"], key=norm) + [""] * (4 - len(s["moves"]))

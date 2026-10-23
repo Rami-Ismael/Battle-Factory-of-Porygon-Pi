@@ -90,7 +90,7 @@ def initial_D_precise(V):
 
 def initial_D_all(con, V):
     """Every labelled matrix team with full top-50 coverage, labels shrunk toward the global mean (method-of-moments beta prior)."""
-    labs = MDB.labels(con, LB.POLICY); rows, ys, ns = [], [], []
+    labs = MDB.labels(con, LB.POLICY); rows = []
     for s in labs:
         (p,) = con.execute("SELECT paste FROM team WHERE team_id=?", (s["team_id"],)).fetchone()
         t = parse_team_text(p)

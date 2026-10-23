@@ -13,7 +13,7 @@ from encode import Vocab, NF
 
 
 @jaxtyped(typechecker=beartype)
-def ids(a) -> Int64[np.ndarray, "fields"]:
+def ids(a) -> Int64[np.ndarray, " fields"]:
     return a
 
 

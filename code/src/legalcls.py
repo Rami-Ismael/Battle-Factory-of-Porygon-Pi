@@ -100,7 +100,6 @@ def synth_rows(V, L, C, base_rows, n, rng):
     stat. Cells are sampled uniformly, so the classifier sees the whole table instead
     of the ~16% of it the corpus reveals."""
     X, Y = [], []
-    nv_move = V.sizes["move"]
     for _ in range(n):
         r = base_rows[rng.integers(0, len(base_rows))].copy()
         slot = int(rng.integers(0, NSLOT)); b = slot * S.NF2; si = int(r[b])

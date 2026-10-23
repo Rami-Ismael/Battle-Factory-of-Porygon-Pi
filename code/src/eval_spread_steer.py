@@ -75,8 +75,6 @@ def main():
                     p = out / f"{name}_{j:04d}.txt"; p.write_text(t); paths.append(str(p))
                 triples.append(paths)
     val.close()
-    novel = 0; tot = 0
-    corpus_spreads = {tuple(s["evs"].get(k, 0) for k in STATS) for t in corpus for s in t}
     print(f"{len(triples)} valid triples from {n_teams} real teams", flush=True)
     root = Path("/tmp/vgc-pilot/vgc-bench/teams/reg_mb"); opp = []
     for i in [t["id"] for t in json.load(open("/tmp/vgc-pilot/top50_evs.json"))]:

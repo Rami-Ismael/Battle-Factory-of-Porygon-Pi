@@ -50,7 +50,7 @@ for i in range(len(U)):
 print(" violations-per-team histogram (model uncond):",sorted(percount.items())[:8])
 # per-slot: reuse Legality by making a fake team of 6 distinct copies is unsafe; count slot-level
 def slot_bad(f,s):
-    sl=f[s*NF:(s+1)*NF]; sp,ab,it=sl[0],sl[1],sl[2]; ms=[m for m in sl[3:7] if m]
+    sl=f[s*NF:(s+1)*NF]; sp,ab=sl[0],sl[1]; ms=[m for m in sl[3:7] if m]
     from corpus import dex_entry
     if dex_entry(sp) is None: return True
     if ab not in L.abils_for(sp): return True

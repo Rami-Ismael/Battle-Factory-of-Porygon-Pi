@@ -28,7 +28,6 @@ class MaskedFieldModel(nn.Module):
         self.keys = [vocab.key(c) for c in range(self.cols)]
 
     def forward(self, x):
-        B = x.shape[0]
         h = torch.stack([self.emb[self.keys[c]](x[:, c]) for c in range(self.cols)], 1)
         h = self.tr(h + self.pos.unsqueeze(0))
         h = self.ln(h)

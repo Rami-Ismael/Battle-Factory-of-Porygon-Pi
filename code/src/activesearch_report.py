@@ -104,8 +104,8 @@ def main():
     bestarm = max(order, key=lambda t: G[t]["stats"]["mean"] if t in G else -1)
     print(f"  best arm-generation: {bestarm} at {G[bestarm]['stats']['mean']:.4f} "
           f"vs real {anchor.mean():.4f}")
-    print(f"  reference — loop.py 2026-08-27, same proposer family, PMI-surprise "
-          f"(information-gain) acquisition: 0.165 / 0.172 / 0.153")
+    print("  reference — loop.py 2026-08-27, same proposer family, PMI-surprise "
+          "(information-gain) acquisition: 0.165 / 0.172 / 0.153")
 
     best_tag, best_i, best_v = None, None, -1.0
     for t in order:

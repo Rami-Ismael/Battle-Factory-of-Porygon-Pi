@@ -185,7 +185,7 @@ def main():
     if Path(RUN1).exists():
         r1 = json.load(open(RUN1))["gens"]
         a1 = [np.mean(r1[f"active_g{g}"]["y"]) for g in range(1, 5) if f"active_g{g}" in r1]
-        print(f"\n  run 1 reference — same configuration as this run's `active` arm: "
+        print("\n  run 1 reference — same configuration as this run's `active` arm: "
               + " / ".join(f"{v:.3f}" for v in a1))
 
 

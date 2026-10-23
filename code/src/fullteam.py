@@ -53,7 +53,7 @@ class FullVocab:
         if j == 8: return "spread"
         return self.base.key(j)          # base indexes by field within a slot
     @jaxtyped(typechecker=beartype)
-    def encode(self, team) -> Int64[np.ndarray, "fields"]:
+    def encode(self, team) -> Int64[np.ndarray, " fields"]:
         out = []
         for s in canon(team):
             ms = sorted(s["moves"], key=norm) + [""] * (4 - len(s["moves"]))
@@ -201,7 +201,7 @@ def row_to_paste(V, row):
 def train_full(epochs=800, seed=0):
     random.seed(seed); torch.manual_seed(seed)
     teams, _ = load_corpus(); teams = [t for t in teams if len(t) == 6]
-    V = FullVocab(teams); L = Legality(teams)
+    V = FullVocab(teams)
     X = np.stack([V.encode(t) for t in teams])
     Y = np.array([D.style_of(t) for t in teams])
     rng = np.random.default_rng(seed); idx = rng.permutation(len(X)); nte = int(len(X)*.15)

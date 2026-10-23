@@ -108,7 +108,7 @@ def prepare(args):
     # Target every legal non-padding token, not only frequent or newly added ones.
     targets=[(k,v) for k in L.KEYS for v in reg['values'][k] if v]
     def slot(sp, target=None):
-        rules=reg['slots'][sp]; w=rules['witness']
+        rules=reg['slots'][sp]
         ab=str(rng.choice(rules['abilities'])); item=str(rng.choice(rules['abilityItems'][ab]))
         move_target=target[1] if target and target[0]=='move' else None
         moves=sample_moves(rules['moves'],rng,target=move_target,variable=args.version=='v3')

@@ -455,7 +455,6 @@ def purge_heldout(con, dry_run=False):
     held = sorted(H.team_ids(con))
     if not held: return {"teams": 0, "cells": 0, "battles": 0, "contributions": 0, "set_rows": 0, "batches": 0}
     q = ",".join("?" * len(held))
-    n = lambda sql, *a: con.execute(sql, a or held + held).fetchone()
     cells = con.execute(f"SELECT COUNT(*), COALESCE(SUM(battles),0) FROM cell WHERE lo IN ({q}) OR hi IN ({q})", held + held).fetchone()
     contrib = con.execute(f"SELECT COUNT(*) FROM contribution WHERE lo IN ({q}) OR hi IN ({q})", held + held).fetchone()[0]
     sets = con.execute(f"SELECT COUNT(*) FROM team_set WHERE team_id IN ({q}) AND set_name != ?", held + [H.SET_NAME]).fetchone()[0]

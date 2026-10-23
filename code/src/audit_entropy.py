@@ -44,11 +44,11 @@ for r in Xte:
             u_nll.append(nll(ct[k],y,Vs))
             if k=="species": c_nll.append(nll(spc,y,Vs))
             else: c_nll.append(nll(cond[k][sp],y,Vs))
-print(f"held-out per-field cross-entropy (nats), all 48 fields:")
+print("held-out per-field cross-entropy (nats), all 48 fields:")
 print(f"  uniform over vocab            {np.mean(unif):.3f}")
 print(f"  field-type marginal (unigram) {np.mean(u_nll):.3f}")
 print(f"  conditioned on the species    {np.mean(c_nll):.3f}   <-- a lookup table, no training")
-print(f"  the pilot's model (reported)  2.937")
+print("  the pilot's model (reported)  2.937")
 
 # --- fair version: replicate the pilot's mask distribution exactly (t~U(0,1) per team,
 # i.i.d. Bernoulli(t) per column, >=1 masked), score ONLY masked columns, and let the
@@ -66,10 +66,10 @@ for rep in range(8):
             if k=="species" or m[s*NF]: tot_c+=nll(ct[k],y,Vs)     # species unknown -> marginal
             else: tot_c+=nll(cond[k][sp],y,Vs)
             n+=1
-print(f"\nunder the pilot's own random-mask-rate protocol (8 reps, masked columns only):")
+print("\nunder the pilot's own random-mask-rate protocol (8 reps, masked columns only):")
 print(f"  field-type marginal            {tot_u/n:.3f}")
 print(f"  species-conditioned lookup     {tot_c/n:.3f}")
-print(f"  pilot model held-out (ep600)   2.937")
+print("  pilot model held-out (ep600)   2.937")
 
 # --- the regime that C1 is about: only k=3 scattered columns masked, species visible
 tot_u=tot_c=n=0; rows=[]
@@ -82,6 +82,6 @@ for rep in range(8):
             tot_u+=nll(ct[k],y,Vs)
             tot_c+=nll(ct[k],y,Vs) if (k=="species" or masked_sp) else nll(cond[k][sp],y,Vs)
             n+=1
-print(f"\nk=3 scatter mask (the regime C1 is about), masked columns only:")
+print("\nk=3 scatter mask (the regime C1 is about), masked columns only:")
 print(f"  field-type marginal        {tot_u/n:.3f}")
 print(f"  species-conditioned lookup {tot_c/n:.3f}")

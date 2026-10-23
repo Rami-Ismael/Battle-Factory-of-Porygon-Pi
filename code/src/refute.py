@@ -86,7 +86,7 @@ def op_slotcopy_scatter(X_src, cols, rng2):
     Xo=X_src.copy()
     for b in range(Xo.shape[0]):
         for c in cols[b]:
-            s=c//NF; j=c%NF
+            j=c%NF
             donor=Xtr[rng2.integers(0,len(Xtr))]
             s2=rng2.integers(0,NSLOT)
             Xo[b,c]=donor[s2*NF+j]
