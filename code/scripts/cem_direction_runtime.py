@@ -87,7 +87,8 @@ class Engine:
         self.validator = A.Validator()
 
     def load(self, checkpoint):
-        self.model.load_state_dict(self.torch.load(checkpoint, map_location=self.A.D.DEV)["sd"])
+        from checkpoints import load_checkpoint
+        self.model.load_state_dict(load_checkpoint(checkpoint, map_location=self.A.D.DEV)["sd"])
         self.model.eval()
 
     def close(self):

@@ -27,9 +27,10 @@ from start_temperature_servers import RUNTIME, SOURCE, NODE, link_or_copy, liste
 
 class BaselineEngine(BattleEngine):
     def baseline(self):
+        from checkpoints import load_checkpoint
         E = self.E
         model = E.H.TeamDiffusionHPS(self.V).to(E.D.DEV)
-        model.load_state_dict(E.torch.load(self.c.checkpoint, map_location=E.D.DEV)["sd"])
+        model.load_state_dict(load_checkpoint(self.c.checkpoint, map_location=E.D.DEV)["sd"])
         model.eval()
         features, coefficients = E.GG.fit_ridge(self.initial_teams, self.initial_y, self.corpus)
         guide = E.GG.Guide(features, coefficients, self.V, E.D.DEV)
