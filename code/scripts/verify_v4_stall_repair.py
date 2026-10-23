@@ -1,6 +1,5 @@
 """Independently check the authorized repair before the original driver resumes."""
 from collections import Counter
-import hashlib
 import json
 from pathlib import Path
 import sqlite3

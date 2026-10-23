@@ -14,7 +14,7 @@
 Objective f is expected win rate throughout; margin is only ever a surrogate signal.
 Bootstrap intervals are over teams, 20,000 resamples.
 """
-import itertools, json, sys
+import json, sys
 from pathlib import Path
 
 import numpy as np

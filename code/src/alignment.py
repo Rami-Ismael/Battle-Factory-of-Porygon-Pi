@@ -37,14 +37,14 @@ PRE-REGISTERED EXPECTATION (written before the run)
 
     python alignment.py [--per 150] [--battles 24] [--smoke]
 """
-import argparse, json, os, random, sys, time
+import argparse, json, random, sys, time
 from collections import Counter, defaultdict
 from pathlib import Path
 import numpy as np, torch
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 import diffusion as D, wrdiffusion as W
-from corpus import load_corpus, norm, STATS
+from corpus import norm, STATS
 from encode import NF, NSLOT
 from propose import Validator, slot_to_text
 import pool

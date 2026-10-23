@@ -137,7 +137,6 @@ def battle(ctx, pastes, d, seed):
 
 # ---------------------------------------------------------------- arms
 def gen_baseline(ctx, lab_t, lab_y, seed, g, val, outdir):
-    import hpsdiffusion as H
     t0 = time.perf_counter(); F, wv = GG.fit_ridge(lab_t, lab_y, ctx.corpus); G = GG.Guide(F, wv, ctx.V, D.DEV)
     t_fit = time.perf_counter() - t0
     k = max(A.ELITE_MIN, int(A.RHO * len(lab_y)))

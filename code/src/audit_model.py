@@ -1,9 +1,8 @@
-import numpy as np, torch, random
+import numpy as np, torch
 from collections import Counter
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
-from model import MaskedFieldModel
-from pilot import COLS, evaluate, memorization_stats, hamming, decode_fields
+from pilot import COLS, evaluate, memorization_stats, decode_fields
 DEV="mps" if torch.backends.mps.is_available() else "cpu"
 rng=np.random.default_rng(0)
 teams,_=load_corpus(); teams=[t for t in teams if len(t)==6]

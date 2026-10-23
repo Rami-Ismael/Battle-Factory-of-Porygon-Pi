@@ -1,8 +1,8 @@
-import json, numpy as np, random
+import numpy as np
 from collections import defaultdict, Counter
-from corpus import load_corpus, norm
-from encode import Vocab, Legality, team_fields, FIELDS, NF, NSLOT
-from pilot import evaluate, op_uniform, op_marginal, op_slotcopy, hamming, memorization_stats, COLS
+from corpus import load_corpus
+from encode import Vocab, Legality, NF, NSLOT
+from pilot import evaluate, op_uniform, op_marginal, memorization_stats, COLS
 
 rng = np.random.default_rng(0)
 teams,_ = load_corpus(); teams=[t for t in teams if len(t)==6]

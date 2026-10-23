@@ -35,12 +35,12 @@ Three ways to drive the generation step, in order of how little they assume:
 prompt/add is the loop with the model out of process: it needs no credentials, and the
 generation it produces is identical to what `run` would have scored.
 """
-import argparse, ast, collections, hashlib, json, re, signal, subprocess, sys, time
+import argparse, ast, collections, hashlib, json, re, signal, subprocess, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO/"src"))
-from streamliner import (parse, load_meta, load_hps, LEGAL,
+from streamliner import (load_meta, load_hps, LEGAL,
                          PROT_SELF, PROTECT, SPEEDCTRL, REDIRECT, FAKEOUT, SUPPORT)
 
 OUT = REPO/"results/hyperheuristic.json"

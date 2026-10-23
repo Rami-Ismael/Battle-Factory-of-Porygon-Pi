@@ -8,7 +8,7 @@ refit saw (composition, effective sizes, species-set entropy - the baseline's
 recomputed from its own labels the same way); the model's unmasking entropy;
 the re-battled top teams.  Works on a partial run.
 """
-import json, os, re, sys
+import json, os, re
 from collections import defaultdict
 import numpy as np
 

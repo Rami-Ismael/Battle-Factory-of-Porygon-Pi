@@ -12,9 +12,8 @@ Higher guidance should trade adherence against sample quality; that trade is the
 whole point of the guidance weight, so legality is reported alongside.
 """
 import json
-import numpy as np, torch
-from corpus import load_corpus, norm
-from encode import Vocab, Legality, NF, NSLOT
+import numpy as np
+from encode import NF, NSLOT
 import diffusion as D
 
 def team_from_row(V, row):

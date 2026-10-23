@@ -13,7 +13,7 @@ Two build methods, named for what they do:
            Measured baseline: 0.093. Offered because it is what the research goal
            asked for, and labelled honestly.
 """
-import asyncio, json, os, random, sys, threading, time
+import asyncio, json, os, random, sys, threading
 from collections import defaultdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -24,8 +24,8 @@ sys.path.insert(0, "/tmp/vgc-pilot/vgc-bench")
 os.chdir("/tmp/vgc-pilot/vgc-bench")
 
 import numpy as np, torch
-from corpus import load_corpus, norm, STATS
-from encode import Vocab, Legality, canon, NF, NSLOT
+from corpus import norm, STATS
+from encode import canon, NF, NSLOT
 import diffusion as D
 import wrdiffusion as W
 from propose import Validator, slot_to_text

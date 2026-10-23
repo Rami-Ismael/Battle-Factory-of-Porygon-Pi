@@ -13,7 +13,7 @@ Showdown-valid teams and battles the 200 most surprising (decision Q13a).
 Verdict after round 3 (decision Q12b): the 90th percentile of each loop's final-round
 proposals, against the median real team (0.458) and against each other.
 """
-import json, os, sys, time, random, itertools, math
+import json, sys, time, random, itertools, math
 from pathlib import Path
 from collections import Counter, defaultdict
 import numpy as np, torch

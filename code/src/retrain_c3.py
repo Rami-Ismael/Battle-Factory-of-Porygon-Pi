@@ -1,6 +1,5 @@
-import json, numpy as np, torch, random
-from collections import defaultdict
-from corpus import load_corpus, norm
+import json, numpy as np, torch
+from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel, random_mask, permute_slots, resample_fields
 from pilot import evaluate, memorization_stats, COLS, set_seed

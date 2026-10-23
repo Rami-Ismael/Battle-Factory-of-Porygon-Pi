@@ -3,9 +3,8 @@ required-version = "==0.17.2"
 
 [tool.ruff.lint]
 select = ["NPY", "TID251", "F", "E9"]
-# F401: unused imports wait for their own pass; some are used by other files through module aliases.
 # F722: jaxtyping shape strings such as " fields" are not Python expressions (jaxtyping's own advice).
-ignore = ["F401", "F722"]
+ignore = ["F722"]
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "torch.load".msg = "Use load_checkpoint from src/checkpoints.py, which sets weights_only."

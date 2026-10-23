@@ -1,7 +1,7 @@
 """The baseline the pilot never ran: p(field | species of that slot) as a plain
 count table from the training corpus. Zero parameters, zero training, ~microseconds."""
 import numpy as np
-from collections import defaultdict, Counter
+from collections import defaultdict
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
 from pilot import evaluate, op_uniform, op_marginal, set_seed, COLS

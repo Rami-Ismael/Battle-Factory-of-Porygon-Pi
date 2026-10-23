@@ -72,7 +72,7 @@ import torch
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 from checkpoints import load_checkpoint
 from corpus import parse_team, parse_team_text
-from encode import NF, NSLOT
+from encode import NF
 import diffusion as D
 import hpsdiffusion as H
 import activesearch as A

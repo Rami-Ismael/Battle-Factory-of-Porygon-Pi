@@ -7,7 +7,7 @@ emphasis form: the best arm of each family carries the accent hue, the rest are
 gray. Showdown validity is a second measure, so it stays in the row label and the
 table rather than on a second axis. The reference line is a real corpus team.
 """
-import json, os
+import json
 from pathlib import Path
 
 SRC = "/tmp/vgc-pilot/schemes_results.json"

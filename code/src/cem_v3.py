@@ -28,7 +28,7 @@ import heldout as HO               # ranks 51-100: not proposed, not labelled, s
 import pool
 from hps_generate import Validator
 from corpus import parse_team_text, norm
-from encode import Vocab, team_fields
+from encode import team_fields
 
 import os
 TAG = os.environ.get("CEM_TAG", "cem_v3")        # CEM_TAG=cem_v3_noheldout: own result file, checkpoints, matrix origin

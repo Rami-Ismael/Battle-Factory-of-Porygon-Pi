@@ -8,13 +8,13 @@ Take real corpus teams (composition fixed). Three spreads per team, paired:
 Pre-registered: steered < tuned by several points; steered ~ copied. If steered > copied
 the spread upgrade delivers a positive win-rate difference; if not, it is settled.
 """
-import json, sys, time
+import json, sys
 from collections import defaultdict
 from pathlib import Path
 import numpy as np, torch, torch.nn.functional as F
 sys.path.insert(0, "/tmp/vgc-pilot/src")
-from corpus import norm, STATS
-from encode import canon, NSLOT
+from corpus import norm
+from encode import canon
 import legaldiffusion as LD, spreaddiffusion as S, diffusion as D
 from wrdiffusion import WNULL
 from propose import Validator, slot_to_text

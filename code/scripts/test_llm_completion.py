@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 from llm_completion import apply_completion
 from team_masks import GRID, STATS, masked, paths_for
 

@@ -11,7 +11,6 @@ import json
 import math
 from pathlib import Path
 import sys
-import time
 import numpy as np
 import torch
 from torch import nn

@@ -8,11 +8,11 @@ permissive (it let "Sneasler can't learn Reflect" through) and still misses 0.7%
 Trick: one validator call tests up to 24 (species, move) pairs, because a team is
 six candidates x four moves and the validator reports every violation by name.
 """
-import json, re, sys
+import json, re
 from collections import defaultdict
 import numpy as np
-from corpus import load_corpus, norm, STATS
-from encode import Vocab, NF, NSLOT
+from corpus import load_corpus, norm
+from encode import Vocab, NSLOT
 from propose import Validator, slot_to_text
 
 CANT = re.compile(r"^(.*?) can'?t learn (.+?)\.?$")

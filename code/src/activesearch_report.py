@@ -11,7 +11,7 @@
 
 Bootstrap intervals are over teams (the unit that was randomised), 20,000 resamples.
 """
-import json, sys
+import json
 import numpy as np
 
 RESULTS = "/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/activesearch.json"

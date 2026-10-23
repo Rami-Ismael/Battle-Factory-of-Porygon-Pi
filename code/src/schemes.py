@@ -127,7 +127,7 @@ as a completed one.
   python schemes.py [--only deporder_g2,unconstrained] [--per 150] [--battles 24]
   python schemes.py --report
 """
-import argparse, itertools, json, math, os, random, sys, time
+import argparse, json, math, os, random, sys, time
 from collections import defaultdict
 from pathlib import Path
 

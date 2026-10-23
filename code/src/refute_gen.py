@@ -1,9 +1,9 @@
 """Reproduce pilot seed 0 and CACHE every generated array for post-hoc metric audit."""
-import json, random, time
-from collections import Counter, defaultdict
+import json, time
+from collections import defaultdict
 import numpy as np, torch
 from corpus import load_corpus
-from encode import Vocab, Legality, team_fields, FIELDS, NF, NSLOT
+from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel, random_mask, permute_slots, resample_fields
 from pilot import set_seed, evaluate, op_uniform, op_marginal, op_slotcopy, COLS, memorization_stats
 

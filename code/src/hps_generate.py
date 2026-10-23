@@ -14,13 +14,13 @@ accepted team per line.
 
 Usage: hps_generate.py --n 12500 --seed 0 --out /path/shard_0.jsonl
 """
-import argparse, hashlib, json, subprocess, sys, time
-from collections import Counter, defaultdict
-from pathlib import Path
+import argparse, hashlib, json, time
+import subprocess  # noqa: F401 -- test_showdown_pinned patches subprocess.Popen through this module
+from collections import Counter
 import numpy as np
 from corpus import load_corpus, norm, STATS, NATURES, dex_entry, MEGA_STONE_OF
 from encode import Legality
-from showdown_validator import FORMAT, SHOWDOWN, Validator   # the pinned checkout and its one Validator
+from showdown_validator import SHOWDOWN, Validator  # noqa: F401 -- SHOWDOWN re-exported: reverse_score_diversity imports it from here; the pinned checkout and its one Validator
 
 TRUE = {k: sorted(m for m in v if m != "[MASK]")
         for k, v in json.load(open("/tmp/vgc-pilot/learnset_true.json")).items()}

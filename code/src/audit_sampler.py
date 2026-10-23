@@ -2,9 +2,9 @@
 (temperature 1.0 + random column order)?"""
 import numpy as np, torch, random
 from corpus import load_corpus
-from encode import Vocab, Legality, NF, NSLOT
+from encode import Vocab, Legality, NF
 from model import MaskedFieldModel
-from pilot import COLS, evaluate
+from pilot import evaluate
 from checkpoints import load_checkpoint
 DEV="mps" if torch.backends.mps.is_available() else "cpu"
 rng=np.random.default_rng(0)

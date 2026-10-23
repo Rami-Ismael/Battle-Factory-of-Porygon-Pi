@@ -1,7 +1,7 @@
 import numpy as np
-from collections import defaultdict, Counter
-from corpus import load_corpus, norm, legal_moves, legal_abilities
-from encode import Vocab, Legality, NF, NSLOT
+from collections import Counter
+from corpus import load_corpus, legal_moves, legal_abilities
+from encode import Vocab, Legality, NF
 from pilot import COLS, memorization_stats
 teams,_=load_corpus(); teams=[t for t in teams if len(t)==6]
 L=Legality(teams); V=Vocab(teams)

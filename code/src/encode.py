@@ -9,14 +9,14 @@ Slot order is a nuisance variable (a team is a set), so teams are canonicalised 
 sorting slots on species before any distance is computed, and slot order is randomly
 permuted during training as augmentation.
 """
-import json, random
+import json
 from pathlib import Path
 from collections import defaultdict
 import numpy as np
 from beartype import beartype
 from jaxtyping import Int64, jaxtyped
 from corpus import (load_corpus, norm, dex_entry, legal_moves, legal_abilities,
-                    ITEM_NAMES, MOVE_NAMES, STATS, NATURES)
+                    ITEM_NAMES, NATURES)
 
 FIELDS = ["species", "ability", "item", "m0", "m1", "m2", "m3", "nature"]
 NF = len(FIELDS)

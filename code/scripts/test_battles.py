@@ -4,7 +4,7 @@ import tempfile
 from types import SimpleNamespace
 import unittest
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import battles
 import results
 

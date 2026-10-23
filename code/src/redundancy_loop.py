@@ -6,14 +6,13 @@
     python redundancy_loop.py report
 (run with /tmp/vgc-pilot/.venv/bin/python)
 """
-import json, os, sys, time
+import json, sys, time
 from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from showdown_validator import VGC_BENCH
-import hps_generate
 # /tmp cleanup broke the /tmp copies (2026-10-04); durable runtime copies, same commits
 import activesearch as A
 import entropyloop as E

@@ -1,5 +1,4 @@
 """Frozen 20-starter F1/G2 v3 system comparison; no API calls or reranking."""
-import collections
 import copy
 import fcntl
 import hashlib

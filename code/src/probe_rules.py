@@ -1,9 +1,9 @@
 """Constraints the widened oracle (encode.py:85-115) never checks."""
 import numpy as np
-from collections import Counter, defaultdict
-from corpus import load_corpus, norm, dex_entry, _items
+from collections import Counter
+from corpus import load_corpus, norm, _items
 from encode import Vocab, Legality, NF, NSLOT
-from pilot import set_seed, op_slotcopy, COLS, decode_fields
+from pilot import set_seed, op_slotcopy, decode_fields
 set_seed(0); rng=np.random.default_rng(0)
 teams,_=load_corpus(); teams=[t for t in teams if len(t)==6]
 V,L=Vocab(teams),Legality(teams)

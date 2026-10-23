@@ -2,7 +2,7 @@
 and does playstyle guidance help or cost win rate when combined with f?"""
 import json, asyncio, os
 from pathlib import Path
-import numpy as np, torch
+import torch
 from stable_baselines3 import PPO
 import winrate as W
 

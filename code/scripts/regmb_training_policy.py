@@ -1,7 +1,6 @@
 """Explicit v3 training heuristics, separate from simulator legality."""
 import copy
 import json
-from pathlib import Path
 import subprocess
 
 

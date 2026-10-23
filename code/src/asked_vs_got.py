@@ -24,9 +24,7 @@ import hpsdiffusion as H
 import matchup_db as MDB
 import pool
 from corpus import parse_team_text
-from encode import NF, NSLOT
 import heldout as HO               # ranks 51-100: excluded from training rows (docs/heldout-51-100.md)
-import hps_generate
 from hps_generate import Validator
 from checkpoints import load_checkpoint
 # /tmp Showdown lost node_modules files to tmp cleanup (2026-10-04); durable validator copy, same commit 913da36

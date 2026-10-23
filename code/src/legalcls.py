@@ -10,7 +10,7 @@ positives, which gives the classifier hard cases near the boundary.
 Exposes value_logprobs(x, c, t) -> [n, |vocab_c|] = log p(legal | x with x_c := v),
 which the sampler adds to the diffusion logits scaled by cls_scale.
 """
-import argparse, random, sys
+import argparse, random
 import numpy as np, torch
 import torch.nn as nn, torch.nn.functional as F
 from checkpoints import load_checkpoint

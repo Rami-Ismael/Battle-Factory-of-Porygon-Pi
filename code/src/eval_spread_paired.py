@@ -7,12 +7,12 @@ same opponent pool. The paired difference removes team-composition variance, whi
 is the dominant noise source, so this resolves far smaller effects than two
 independent arms can.
 """
-import json, sys, time
+import json, sys
 from collections import defaultdict
 from pathlib import Path
 import numpy as np, torch
 sys.path.insert(0, "/tmp/vgc-pilot/src")
-from corpus import norm, STATS
+from corpus import norm
 import legaldiffusion as LD, spreaddiffusion as S
 from propose import Validator, slot_to_text
 import pool

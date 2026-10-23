@@ -26,7 +26,6 @@ import numpy as np
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from showdown_validator import VGC_BENCH
-import hps_generate
 import activesearch as A
 import diffusion as D
 import matchup_db as MDB

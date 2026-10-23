@@ -11,7 +11,7 @@ Arms:
 
 This is the measurement that legality could never substitute for.
 """
-import argparse, asyncio, json, os, random, sys, time
+import argparse, asyncio, json, os, time
 from pathlib import Path
 import numpy as np, torch
 from poke_env.ps_client import ServerConfiguration, AccountConfiguration

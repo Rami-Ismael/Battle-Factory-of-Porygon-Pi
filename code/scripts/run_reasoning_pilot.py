@@ -1,7 +1,6 @@
 """Prepare a paired study and run generation followed by battle scoring."""
 import argparse
 import copy
-import json
 import random
 import subprocess
 import sys

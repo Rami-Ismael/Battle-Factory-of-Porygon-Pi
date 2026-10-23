@@ -4,7 +4,6 @@ prepare builds validated synthetic training examples; train updates both F1/G2
 without overwriting them. Legacy token IDs are remapped, never reused by position.
 """
 import argparse
-import copy
 import hashlib
 import json
 import math

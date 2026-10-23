@@ -1,8 +1,6 @@
 """Model and durable battle operations for the CEM direction experiment."""
 
-from collections import Counter
 import hashlib
-import importlib.metadata
 import json
 import math
 import os

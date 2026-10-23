@@ -12,7 +12,7 @@ import json, random, sys
 from collections import defaultdict
 from pathlib import Path
 import numpy as np
-from corpus import load_corpus, norm, STATS, dex_entry, MEGA_STONE_OF
+from corpus import load_corpus, norm, dex_entry, MEGA_STONE_OF
 from encode import Legality
 from propose import Validator, slot_to_text
 

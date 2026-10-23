@@ -1,5 +1,5 @@
-import json, sys, numpy as np
-sys.path.insert(0, sys.argv[1]); from feats import parse, effective_species, DEX, MOVES, nid, PROTECT, SPEED_CTRL, SUPPORT, SPREAD
+import json, sys
+sys.path.insert(0, sys.argv[1]); from feats import parse, effective_species, DEX, MOVES, nid, PROTECT, SPEED_CTRL, SUPPORT, SPREAD  # noqa: F401 -- re-exported: d_species and e_all import parse from mcat
 o = json.load(open('/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/random_fill_baseline.json'))
 orig = {int(k): v for k, v in o['original'].items()}
 tasks = {t["start_team"]: t["team_paste"] for t in json.load(open('/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/random_fill_tasks.json'))["tasks"]}

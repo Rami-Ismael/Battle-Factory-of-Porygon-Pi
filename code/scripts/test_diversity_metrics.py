@@ -1,5 +1,4 @@
 """Run: python scripts/test_diversity_metrics.py (standard library only)."""
-import copy
 import json
 from pathlib import Path
 import sys

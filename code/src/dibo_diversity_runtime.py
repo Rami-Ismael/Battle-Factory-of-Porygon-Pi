@@ -1,6 +1,5 @@
 """Opt-in DiBO v4 runtime; frozen v4 sources and current runs remain untouched."""
 from pathlib import Path
-import math
 import numpy as np
 import torch
 from torch import nn

@@ -18,10 +18,9 @@ import time
 import urllib.error
 import urllib.request
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import llm_completion
 import results
-import showdown_validator
 
 
 @dataclass(frozen=True)

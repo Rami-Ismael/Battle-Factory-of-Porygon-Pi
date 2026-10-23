@@ -24,7 +24,7 @@ balanced6 vs base isolates the reweighting the owner asked for.  Results go to
     python brackets.py --arms grown,grown_fine,grown_fine_bal   # needs cp_labels.json complete
 """
 import argparse, json, math, os, random, sys, time
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np

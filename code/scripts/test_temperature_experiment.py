@@ -1,5 +1,4 @@
 """Numerical invariants and campaign isolation checks; no simulator required."""
-import copy
 from pathlib import Path
 import sys
 import tempfile

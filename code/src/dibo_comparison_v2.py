@@ -8,9 +8,7 @@ import fcntl
 import hashlib
 import json
 import math
-import os
 from pathlib import Path
-import subprocess
 import sys
 import time
 import numpy as np
@@ -22,13 +20,12 @@ import dibo_v4 as DB
 import dibo_core_v4 as DC
 import cem_v3 as CV
 import foundation as FD
-import lossdown as L
+import lossdown as L  # noqa: F401 -- imported for the sys.path entries it adds
 import matchup_db as M
 import heldout as H
 import pool
 import top50
 from corpus import norm
-from hps_generate import Validator
 
 
 def config(smoke=False):

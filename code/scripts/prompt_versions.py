@@ -7,7 +7,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 
 ROOT=Path(__file__).resolve().parents[1]
 SNAPSHOTS=ROOT/'prompts'

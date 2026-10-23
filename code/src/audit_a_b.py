@@ -1,10 +1,9 @@
 """Model-free audits: (A) memorisation-by-construction, (B) canonicalisation distance
 inflation, (C) a species-conditioned copy baseline for the scatter regime."""
-import numpy as np, random
-from collections import defaultdict, Counter
+import numpy as np
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
-from pilot import op_uniform, op_marginal, evaluate, memorization_stats, hamming, COLS
+from pilot import op_uniform, memorization_stats, hamming, COLS
 
 rng = np.random.default_rng(0)
 teams,_ = load_corpus(); teams=[t for t in teams if len(t)==6]

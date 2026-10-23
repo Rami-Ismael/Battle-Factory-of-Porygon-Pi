@@ -1,12 +1,11 @@
 """Adversarial re-run: oracle strictness, decoding, edit-size-matched baselines."""
-import json, random, time, sys
-from collections import Counter, defaultdict
+import json, random, time
+from collections import defaultdict
 import numpy as np, torch
-from corpus import (load_corpus, norm, legal_moves, legal_abilities,
-                    MOVE_NAMES, ABIL_NAMES, ITEM_NAMES, NATURES)
-from encode import Vocab, Legality, team_fields, FIELDS, NF, NSLOT
+from corpus import (load_corpus, MOVE_NAMES, ABIL_NAMES)
+from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel, random_mask, permute_slots
-from pilot import decode_fields, evaluate, op_uniform, op_marginal, op_slotcopy, set_seed, COLS, memorization_stats, hamming
+from pilot import decode_fields, op_uniform, op_marginal, op_slotcopy, set_seed, COLS, memorization_stats, hamming
 
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
 

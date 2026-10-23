@@ -1,8 +1,8 @@
-import numpy as np, json
+import numpy as np
 from collections import Counter
 from corpus import load_corpus, norm, dex_entry
-from encode import Vocab, Legality, NF, NSLOT, team_fields
-from pilot import COLS, op_slotcopy, evaluate, hamming
+from encode import Vocab, Legality, NF, NSLOT
+from pilot import COLS, op_slotcopy, evaluate
 rng=np.random.default_rng(0)
 teams,_=load_corpus(); teams=[t for t in teams if len(t)==6]
 V,L=Vocab(teams),Legality(teams)

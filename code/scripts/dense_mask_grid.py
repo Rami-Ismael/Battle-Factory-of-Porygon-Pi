@@ -9,7 +9,6 @@ import shutil
 from repo_paths import ROOT  # also puts src/ first on sys.path
 import completion_study
 import results
-import showdown_validator
 import team_masks
 
 

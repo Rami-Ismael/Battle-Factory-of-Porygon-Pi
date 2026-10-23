@@ -126,7 +126,6 @@ class Training(unittest.TestCase):
                 with self.assertRaises(Reached): L.load_net("F1_final_medium", None)  # past the guard
 
     def test_no_contaminated_checkpoint_is_left_in_the_load_path(self):
-        import os
         home = Path.home()
         roots = [home / ".local/share/vgc-pilot-runtime/lossdown", home / "Documents/code/vgc-team-generator-pilot/results"]
         left = [str(p) for r in roots if r.exists() for p in r.rglob("*.pt")

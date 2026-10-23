@@ -13,7 +13,7 @@ The training examples are the rows the scratch model F1_final_medium_noheldout_r
 plus the 6,000 v3 synthetic teams), serialised as a Showdown paste without Stat Points, so both
 models see the same teams and neither models spreads.
 """
-import argparse, json, math, os, random, sys, time
+import argparse, json, math, random, sys, time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent

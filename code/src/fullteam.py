@@ -16,15 +16,13 @@ Any spread is legal on any candidate, so no cross-field constraint is needed.
 Tera type is deliberately absent: the `champions` mod deletes teraType, so it is not
 a decision variable in this regulation.
 """
-import argparse, json, random
-from collections import Counter, defaultdict
-from pathlib import Path
+import random
 import numpy as np, torch
 from beartype import beartype
 from jaxtyping import Int64, jaxtyped
 import torch.nn as nn, torch.nn.functional as F
 from corpus import load_corpus, norm, STATS, dex_entry, MEGA_STONE_OF
-from encode import Vocab as BaseVocab, Legality, canon, NSLOT, strict_ids
+from encode import Vocab as BaseVocab, canon, NSLOT, strict_ids
 import diffusion as D
 
 NF2 = 9                       # 8 categorical + 1 spread
@@ -187,7 +185,6 @@ def sample_full(model, C, n, style="none", guidance=1.0, temp=1.0, pin=None, dev
     return x
 
 def row_to_paste(V, row):
-    from propose import slot_to_text
     slots = []
     for i in range(NSLOT):
         b = i*NF2

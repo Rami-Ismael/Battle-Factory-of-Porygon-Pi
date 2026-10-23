@@ -30,7 +30,6 @@ import activesearch as A
 import diffusion as D
 import matchup_db as MDB
 import pool
-import hps_generate
 from hps_generate import Validator
 from corpus import parse_team_text
 

@@ -15,7 +15,6 @@ import os
 from pathlib import Path
 import re
 import socket
-import sys
 import time
 
 import numpy as np

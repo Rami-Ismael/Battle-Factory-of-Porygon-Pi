@@ -13,7 +13,7 @@ A plan is "lead+lead/back+back" in species ids, each pair sorted.
 
   python scripts/plan_matrix.py --rows MB522 --cols MB763 --rounds 8,16,24
 """
-import argparse, itertools, json, os, socket, sqlite3, subprocess, sys, time
+import argparse, itertools, json, os, socket, subprocess, sys, time
 from collections import defaultdict
 from pathlib import Path
 

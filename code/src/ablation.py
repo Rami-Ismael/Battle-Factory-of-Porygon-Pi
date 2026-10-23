@@ -8,12 +8,12 @@ find the crossover, and separates two cases the headline number confounds:
   species  - the species field plus k-1 other fields of that same candidate
 The third is the case that matters: swapping a candidate strands its old set.
 """
-import json, random
+import json
 import numpy as np, torch
 from corpus import load_corpus
-from encode import Vocab, Legality, FIELDS, NF, NSLOT
+from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel, random_mask, permute_slots, resample_fields
-from pilot import decode_fields, evaluate, op_uniform, set_seed, COLS
+from pilot import evaluate, op_uniform, set_seed, COLS
 
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
 

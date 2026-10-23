@@ -30,7 +30,7 @@ import lossdown_battle as LB
 import matchup_db as MDB
 import heldout as HO
 from hps_generate import Validator
-from corpus import parse_team_text, norm
+from corpus import norm
 from encode import team_fields
 
 ARMS = ["control", "interval", "cads"]

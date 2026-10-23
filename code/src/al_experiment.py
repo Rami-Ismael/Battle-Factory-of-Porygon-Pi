@@ -17,13 +17,13 @@ top-20 teams each surrogate ranks first ("top-20 yield").
 
 Battle cost: 7,200 held-out + 2 x 12,000 arms = 31,200.
 """
-import itertools, json, os, random, sys, time
+import itertools, json, random, sys, time
 from collections import Counter
 from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
-from corpus import parse_team, parse_team_text, norm, STATS
+from corpus import parse_team, norm
 import hps_generate as HG
 import pool
 import top50

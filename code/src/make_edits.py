@@ -11,12 +11,11 @@
 Both start from real teams, so unlike from-scratch generation they are in the range
 where win rate can actually discriminate.
 """
-import sys, json
-from collections import defaultdict
+import sys
 from pathlib import Path
 import numpy as np, torch
-from corpus import load_corpus, norm, STATS
-from encode import Vocab, Legality, canon, NF, NSLOT
+from corpus import norm
+from encode import canon, NF, NSLOT
 import diffusion as D
 from propose import Validator, slot_to_text
 

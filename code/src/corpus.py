@@ -1,7 +1,7 @@
 """Parse the VGC-Bench Reg M-B team corpus into structured teams, and check legality
 against Pokemon Showdown data. A team = 6 slots; a slot = species, ability, item,
 4 moves, nature, EV spread ("Stat Points")."""
-import json, re, os
+import json, re
 from pathlib import Path
 
 DATA = Path("/tmp/vgc-pilot/data")
