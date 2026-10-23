@@ -3,3 +3,4 @@ numpy>=1.24
 dspy==3.4.1  # DSPy structure experiment only; the version is frozen into its manifests
 jaxtyping>=0.3.11
 beartype>=0.23
+ruff==0.17.2  # linter; pyproject.toml refuses any other version
