@@ -248,7 +248,7 @@ class Runtime:
         """
         current = list(records); excluded = set(seen)
         for iteration in range(self.cfg["local_steps"]):
-            columns = np.random.randint(L.COLS, size=len(current))
+            columns = np.random.randint(L.COLS, size=len(current))  # noqa: NPY002 -- legacy global seed kept so finished runs reproduce exactly
             improved = 0
             for c in sorted(set(columns)):
                 indices = np.flatnonzero(columns == c)
@@ -292,7 +292,7 @@ class Runtime:
 
     def propose(self, prior, posterior, ensemble, generation, seen):
         torch.manual_seed(self.cfg["seed"] + generation * 1000 + 500)
-        np.random.seed(self.cfg["seed"] + generation * 1000 + 500)
+        np.random.seed(self.cfg["seed"] + generation * 1000 + 500)  # noqa: NPY002 -- legacy global seed kept so finished runs reproduce exactly
         records, keys, tried = [], set(seen), 0
         raw_accepted = []
         limit = self.cfg["propose"] * self.cfg["attempt_factor"]
