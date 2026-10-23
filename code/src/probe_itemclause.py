@@ -3,7 +3,7 @@ import numpy as np
 from collections import defaultdict
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
-from pilot import evaluate, op_uniform, op_marginal, op_slotcopy, set_seed, COLS, decode_fields
+from pilot import op_uniform, op_marginal, op_slotcopy, set_seed, COLS, decode_fields
 set_seed(0); rng=np.random.default_rng(0)
 teams,_=load_corpus(); teams=[t for t in teams if len(t)==6]
 V,L=Vocab(teams),Legality(teams)

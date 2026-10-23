@@ -3,7 +3,7 @@ with the same pilot so it is directly comparable to the first pass."""
 import sys
 sys.argv = ["winrate.py", "--teams-per-arm", "16", "--opponents", "16",
             "--battles", "8", "--conc", "25", "--out", "/tmp/vgc-pilot/winrate2.json"]
-import json, asyncio, os, time
+import json, asyncio, os
 from pathlib import Path
 import numpy as np, torch
 from stable_baselines3 import PPO

@@ -4,7 +4,6 @@ prepare builds validated synthetic training examples; train updates both F1/G2
 without overwriting them. Legacy token IDs are remapped, never reused by position.
 """
 import argparse
-import copy
 import hashlib
 import json
 import math
@@ -108,7 +107,7 @@ def prepare(args):
     # Target every legal non-padding token, not only frequent or newly added ones.
     targets=[(k,v) for k in L.KEYS for v in reg['values'][k] if v]
     def slot(sp, target=None):
-        rules=reg['slots'][sp]; w=rules['witness']
+        rules=reg['slots'][sp]
         ab=str(rng.choice(rules['abilities'])); item=str(rng.choice(rules['abilityItems'][ab]))
         move_target=target[1] if target and target[0]=='move' else None
         moves=sample_moves(rules['moves'],rng,target=move_target,variable=args.version=='v3')
@@ -191,7 +190,7 @@ def train(args):
             if any(previous['cfg'][k]!=getattr(args,k) for k in ['epochs','lr','batch']) or previous['provenance']['embedding_steps']!=args.embedding_steps:
                 raise ValueError('training settings changed; use --replace explicitly')
             print('Already trained:',name,flush=True);continue
-        torch.manual_seed(SEED);np.random.seed(SEED)
+        torch.manual_seed(SEED);np.random.seed(SEED)  # noqa: NPY002 -- legacy global seed kept so finished runs reproduce exactly
         ck=load_checkpoint(L.CK/(member+'.pt'),map_location=L.DEV);cfg=dict(L.DEFAULT,**ck['cfg'])
         idx=tr[(tag[tr]==L.TEST_TAG)|(tag[tr]==0)|((d['M'][tr,:,1].sum(1)>0) if cfg['mrow'] else False)]
         if cfg['mrow']:idx=np.setdiff1d(idx,L.matrix_holdout(d))

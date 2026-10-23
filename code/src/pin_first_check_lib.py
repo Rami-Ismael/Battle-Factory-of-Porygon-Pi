@@ -1,11 +1,9 @@
 """Drill check 2026-10-17: pin species slot 1 uniformly at random, model fills the rest (ask 0.5, guidance 2). Decode only."""
-import sys, math
-from collections import Counter
-import numpy as np, torch
+import sys
+import torch
 sys.path.insert(0, "/tmp/vgc-pilot/src")
-import lossdown as L, lossdown_battle as LB, sampler_battle as SB, activesearch as A
+import lossdown as L, lossdown_battle as LB, sampler_battle as SB, activesearch as A  # noqa: F401 -- LB and A imported for the sys.path entries they add
 import diffusion as D
-from hps_generate import Validator
 SB._setup(); V, tables, f = SB.V, SB.tables, SB.f
 SP = L.COLS_BY_KEY["species"]; NS = SB.SIZES["species"]; names = V.itos["species"]
 

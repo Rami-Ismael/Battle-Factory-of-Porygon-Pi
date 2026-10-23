@@ -11,7 +11,6 @@ import json
 import math
 from pathlib import Path
 import sys
-import time
 import numpy as np
 import torch
 from torch import nn
@@ -238,7 +237,7 @@ class Runtime:
         current = list(records)
         excluded = set(seen)
         for _ in range(self.cfg["local_steps"]):
-            columns = np.random.randint(L.COLS, size=len(current))
+            columns = np.random.randint(L.COLS, size=len(current))  # noqa: NPY002 -- legacy global seed kept so finished runs reproduce exactly
             variants, owners = [], {}
             # Batch independent coordinates, rather than retaining a separate
             # 48-transition density call for each of hundreds of candidates.
@@ -274,7 +273,7 @@ class Runtime:
 
     def propose(self, prior, posterior, ensemble, generation, seen):
         torch.manual_seed(self.cfg["seed"] + generation * 1000 + 500)
-        np.random.seed(self.cfg["seed"] + generation * 1000 + 500)
+        np.random.seed(self.cfg["seed"] + generation * 1000 + 500)  # noqa: NPY002 -- legacy global seed kept so finished runs reproduce exactly
         records, keys, tried = [], set(seen), 0
         limit = self.cfg["propose"] * self.cfg["attempt_factor"]
         while len(records) < self.cfg["propose"] and tried < limit:

@@ -1,8 +1,8 @@
-import json, numpy as np, random
+import numpy as np
 from collections import defaultdict, Counter
-from corpus import load_corpus, norm
-from encode import Vocab, Legality, team_fields, FIELDS, NF, NSLOT
-from pilot import evaluate, op_uniform, op_marginal, op_slotcopy, hamming, memorization_stats, COLS
+from corpus import load_corpus
+from encode import Vocab, Legality, NF, NSLOT
+from pilot import evaluate, op_uniform, op_marginal, memorization_stats, COLS
 
 rng = np.random.default_rng(0)
 teams,_ = load_corpus(); teams=[t for t in teams if len(t)==6]
@@ -86,7 +86,7 @@ def op_slotcopy_scatter(X_src, cols, rng2):
     Xo=X_src.copy()
     for b in range(Xo.shape[0]):
         for c in cols[b]:
-            s=c//NF; j=c%NF
+            j=c%NF
             donor=Xtr[rng2.integers(0,len(Xtr))]
             s2=rng2.integers(0,NSLOT)
             Xo[b,c]=donor[s2*NF+j]

@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import results
 
 

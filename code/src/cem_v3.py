@@ -28,7 +28,7 @@ import heldout as HO               # ranks 51-100: not proposed, not labelled, s
 import pool
 from hps_generate import Validator
 from corpus import parse_team_text, norm
-from encode import Vocab, team_fields
+from encode import team_fields
 
 import os
 TAG = os.environ.get("CEM_TAG", "cem_v3")        # CEM_TAG=cem_v3_noheldout: own result file, checkpoints, matrix origin
@@ -196,7 +196,6 @@ def run():
     if "anchors" not in out:
         out["anchors"] = anchors(con); save(out)
     G = FD.Gen("v3"); V, tables = G.V, G.tables
-    corpus = G.corpus
     known = {tuple(team_fields(parse_team_text(r["paste"]))) for r in out["anchors"]}
     cV = X.setup()[1]; d = L.load_data()
     known |= {tuple(cV.decode_field(c, int(r[c])) for c in range(L.COLS)) for r in d["X"]}

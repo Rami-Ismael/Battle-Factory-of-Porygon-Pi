@@ -7,7 +7,7 @@ from pathlib import Path
 import time
 from types import SimpleNamespace
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import battles
 import results
 import showdown_validator

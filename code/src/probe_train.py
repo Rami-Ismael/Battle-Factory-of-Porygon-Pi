@@ -1,9 +1,9 @@
-import json, random, time
+import time
 import numpy as np, torch
 from corpus import load_corpus
-from encode import Vocab, Legality, FIELDS, NF, NSLOT
+from encode import Vocab, Legality
 from model import MaskedFieldModel, random_mask, permute_slots
-from pilot import set_seed, COLS
+from pilot import set_seed
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
 set_seed(0); rng = np.random.default_rng(0)
 teams,_ = load_corpus(); teams=[t for t in teams if len(t)==6]

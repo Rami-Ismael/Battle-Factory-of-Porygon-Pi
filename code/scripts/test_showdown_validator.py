@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import showdown_validator as SV
 
 PINNED = Path.home() / ".local/share/vgc-pilot-runtime/validator-913da36"

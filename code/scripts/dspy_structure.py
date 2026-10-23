@@ -21,7 +21,7 @@ from typing import Union
 import dspy
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, create_model
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 
 KIND = 'dspy'
 ADAPTERS = ('chat', 'json')

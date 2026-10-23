@@ -3,7 +3,7 @@ import json, sys, time
 from pathlib import Path
 import numpy as np, torch
 sys.path.insert(0, "/tmp/vgc-pilot/src")
-from corpus import norm, STATS
+from corpus import norm
 from encode import NSLOT
 import slotlegal as SLm, spreaddiffusion as S
 from propose import Validator, slot_to_text

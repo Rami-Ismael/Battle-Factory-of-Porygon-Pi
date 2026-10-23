@@ -269,7 +269,7 @@ def island_gen(seed, g, rows, isl, out, base, G, V, tables, ref, con, ridge, rng
     all_rows = [r for r in rows]
     sur = ridge_for(ridge, all_rows, L.RES / f"divm_island_s{seed}_ridge_g{g}.npz")
     enc_col = [c for c in D.ORDER if c in FD.SPECIES_COLS][:3]
-    streams, raws, battled_all, per = [], [], [], []; tried_all = 0; CV.ELITE_MIN = 32
+    streams, raws, per = [], [], []; tried_all = 0; CV.ELITE_MIN = 32
     try:
         for k, a in enumerate(isl):
             CV.TAG = f"divm_island_s{seed}_i{k}"; CV.SEED = 1000 * seed + 100 * k

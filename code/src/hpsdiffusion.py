@@ -15,11 +15,10 @@ training corpus (100k HPS teams instead of 545 meta teams).
   sample : hpsdiffusion.py sample --bin 5 --guidance 2 --n 32
 """
 import argparse, json, random
-from pathlib import Path
 import numpy as np, torch
 import torch.nn as nn, torch.nn.functional as F
 from checkpoints import load_checkpoint
-from corpus import parse_team_text, norm, STATS
+from corpus import parse_team_text
 from encode import Vocab, Legality, NF, NSLOT
 import diffusion as D
 

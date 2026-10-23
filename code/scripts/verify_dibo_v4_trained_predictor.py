@@ -1,6 +1,5 @@
 """Check ownership sensitivity and permutation invariance on saved trained models."""
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import sys

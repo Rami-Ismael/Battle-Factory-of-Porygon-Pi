@@ -45,7 +45,7 @@ def scratch():
     import torch, foundation as FD
     out = _load(); val = Validator()
     try:
-        G = FD.Gen("v3"); sur = FD.Surrogate(G.V)
+        G = FD.Gen("v3")
         for arm, cfg in SCRATCH_ARMS.items():
             tag = f"scratch:{arm}"
             if tag in out["cells"]: continue
@@ -87,7 +87,7 @@ def decode():
                 secs += r["seconds"]
                 try:
                     slots = parse_team_text(r["text"])
-                except Exception as e:
+                except Exception:
                     fails["parse-exception"] += 1; continue
                 if len(slots) != 6: fails[f"slots={len(slots)}"] += 1; continue
                 bad = False

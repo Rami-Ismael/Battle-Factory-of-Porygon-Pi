@@ -8,14 +8,15 @@ Two operators, each replacing ONE candidate slot of a source team:
 Stat Points and Level for the model arm are inherited from the source slot: a
 spread is legal under the 66-point budget regardless of which candidate holds it.
 """
-import json, random, subprocess, sys
+import json, random, sys
+import subprocess  # noqa: F401 -- test_showdown_pinned patches subprocess.Popen through this module
 from pathlib import Path
 import numpy as np, torch
-from corpus import load_corpus, parse_team, norm, STATS, TEAMS
-from encode import Vocab, team_fields, canon, FIELDS, NF, NSLOT
+from corpus import load_corpus, norm, STATS
+from encode import Vocab, canon, NF, NSLOT
 from model import MaskedFieldModel, random_mask, permute_slots, resample_fields
 
-from showdown_validator import FORMAT, SHOWDOWN, Validator   # the pinned checkout and its one Validator
+from showdown_validator import Validator   # the pinned checkout and its one Validator
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
 
 def slot_to_text(sl):

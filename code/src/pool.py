@@ -10,7 +10,7 @@ Start the servers once:
     for p in 8123 8124 8125 8126 8127 8128 8129; do
         node pokemon-showdown start $p --no-security &  done
 """
-import json, os, socket, subprocess, sys, time
+import json, os, socket, subprocess, time
 from pathlib import Path
 
 CANDIDATE_PORTS = [8123, 8124, 8125, 8126, 8127, 8128, 8129]

@@ -1,13 +1,12 @@
 """Follow-up: (a) what does each operator REACH, (b) does the local move survive
 when the source team is HELD-OUT rather than a memorised training team?"""
-import numpy as np, torch, random, json
+import numpy as np, torch, json
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel
-from pilot import op_slotcopy, op_uniform, op_marginal, set_seed, COLS, decode_fields
-from refute_lens import resample, op_condcopy, StrictLegality
+from pilot import op_slotcopy, op_uniform, set_seed, COLS, decode_fields
+from refute_lens import resample, op_condcopy
 from checkpoints import load_checkpoint
-from collections import defaultdict
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
 set_seed(0); rng = np.random.default_rng(0)
 teams, _ = load_corpus(); teams = [t for t in teams if len(t) == 6]

@@ -1,5 +1,5 @@
 import sqlite3, csv, json, sys, numpy as np
-sys.path.insert(0, sys.argv[1]); from feats import parse, mon_features, team_features
+sys.path.insert(0, sys.argv[1]); from feats import parse, mon_features
 con = sqlite3.connect("/Users/ramiismael/vgc-data/matchup_regmb.sqlite")
 top = {r[0] for r in con.execute("select team_id from team_set where set_name='top50'")}
 sc = {int(r[0]): (r[1], int(r[2]) / int(r[3]), int(r[3])) for r in csv.reader(open(sys.argv[1] + "/scores.csv"))}

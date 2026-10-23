@@ -1,6 +1,5 @@
 """Opt-in DiBO v4 runtime; frozen v4 sources and current runs remain untouched."""
 from pathlib import Path
-import math
 import numpy as np
 import torch
 from torch import nn
@@ -146,7 +145,7 @@ class Runtime(DB.Runtime):
 
     def propose(self, prior, posterior, ensemble, generation, seen):
         seed = self.cfg['seed'] + generation * 1000 + 500
-        torch.manual_seed(seed); np.random.seed(seed)
+        torch.manual_seed(seed); np.random.seed(seed)  # noqa: NPY002 -- legacy global seed kept so finished runs reproduce exactly
         count = self.cfg['propose'] * (self.cfg['pool_multiplier'] if self.arm in ('big', 'dpp') else 1)
         banned_tokens = [self.V.stoi['species'][s] for s in self.banned if s in self.V.stoi['species']]
         sampler = DC.PathSampler(ProposalMask(posterior.model, DB.FD.SPECIES_COLS, banned_tokens, self.pins),

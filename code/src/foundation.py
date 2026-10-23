@@ -7,7 +7,6 @@ Pre-registration: docs/foundation-swap.md.
 (run with /tmp/vgc-pilot/.venv/bin/python)
 """
 import json, math, sys, time
-from collections import Counter
 from pathlib import Path
 import numpy as np
 import torch, torch.nn.functional as F
@@ -26,7 +25,7 @@ import matchup_db as MDB
 import hps_generate
 from checkpoints import load_checkpoint
 from hps_generate import Validator, slot_to_text
-from corpus import parse_team_text, norm, STATS
+from corpus import parse_team_text, norm
 from encode import NF, NSLOT
 
 import os

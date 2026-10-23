@@ -5,7 +5,6 @@ not contain per-opponent attribution. Exact battled pastes retain slot/move orde
 Import is incremental and idempotent; export needs only SQLite and this module.
 """
 import argparse
-import copy
 from datetime import datetime, timezone
 import hashlib
 import json

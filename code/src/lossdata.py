@@ -27,7 +27,6 @@ import asked_vs_got as X
 import matchup_db as MDB
 import heldout as HO
 from corpus import parse_team_text
-from encode import NF, NSLOT
 
 REPO = X.REPO
 RES = X.RES

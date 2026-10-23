@@ -1,6 +1,5 @@
-import time, random, json
+import time, random
 import numpy as np, torch
-from collections import defaultdict
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel, resample_fields

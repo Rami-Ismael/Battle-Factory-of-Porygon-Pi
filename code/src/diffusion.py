@@ -20,15 +20,13 @@ Usage:
   python diffusion.py sample --style trickroom --guidance 3 --n 8
   python diffusion.py sample --pin Garchomp --n 8
   python diffusion.py edit --k 8 --n 8
-  python diffusion.py evaltest
 """
-import argparse, json, math, random
-from collections import Counter
-from pathlib import Path
+import argparse, random
 import numpy as np, torch
 import torch.nn as nn, torch.nn.functional as F
-from corpus import load_corpus, norm, STATS
-from encode import Vocab, Legality, team_fields, canon, FIELDS, NF, NSLOT
+from corpus import load_corpus, norm
+from encode import Vocab, Legality, NF, NSLOT
+from encode import FIELDS  # noqa: F401 -- re-exported: lossdown reads diffusion.FIELDS
 from checkpoints import load_checkpoint
 
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -233,7 +231,7 @@ def to_text(V, row, teams):
 # a generator usable as a proposal distribution: an illegal team cannot be
 # battled at all, so illegal mass is wasted mass.
 # =====================================================================
-from corpus import dex_entry, legal_moves as _sd_moves, legal_abilities as _sd_abils, MEGA_STONE_OF
+from corpus import dex_entry, MEGA_STONE_OF
 
 class Constraints:
     """Per-column feasible-value masks, conditioned on what is already revealed."""
@@ -347,7 +345,7 @@ def _load(V):
 
 def cli():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["train", "sample", "edit", "evaltest"])
+    ap.add_argument("cmd", choices=["train", "sample", "edit"])
     ap.add_argument("--n", type=int, default=8)
     ap.add_argument("--style", default="none")
     ap.add_argument("--guidance", type=float, default=1.0)
@@ -388,8 +386,6 @@ def cli():
         ok = sum(L.legal([V.decode_field(c, int(r[c])) for c in range(COLS)]) for r in x)
         ch = float(np.mean((x != src).sum(1)))
         print(f"local move k={a.k}: legal {ok}/{a.n}, mean fields changed {ch:.2f}")
-    elif a.cmd == "evaltest":
-        evaltest(model, C, V, L, X, Y, teams)
 
 if __name__ == "__main__":
     cli()

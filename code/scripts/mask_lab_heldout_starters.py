@@ -67,7 +67,7 @@ def to_pipeline_team(text):
 
 # ---------------------------------------------------------------- prepare (/tmp/vgc-pilot/.venv)
 def prepare(a):
-    import corpus, heldout as H                       # the project's own modules, before the vault code adds the staging folder
+    import heldout as H                       # the project's own modules, before the vault code adds the staging folder
     M = vault("mask_lab_prepare"); A, P = sys.modules["prompt_ab"], sys.modules["pipeline"]
     config = A.load_config(str(PIPELINE / "benchmark.ling.json")); config["mask_repetitions"] = 1
     rows, rejected = [], []

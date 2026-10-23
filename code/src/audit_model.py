@@ -1,9 +1,8 @@
-import numpy as np, torch, random
+import numpy as np, torch
 from collections import Counter
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
-from model import MaskedFieldModel
-from pilot import COLS, evaluate, memorization_stats, hamming, decode_fields
+from pilot import COLS, evaluate, memorization_stats, decode_fields
 DEV="mps" if torch.backends.mps.is_available() else "cpu"
 rng=np.random.default_rng(0)
 teams,_=load_corpus(); teams=[t for t in teams if len(t)==6]
@@ -50,7 +49,7 @@ for i in range(len(U)):
 print(" violations-per-team histogram (model uncond):",sorted(percount.items())[:8])
 # per-slot: reuse Legality by making a fake team of 6 distinct copies is unsafe; count slot-level
 def slot_bad(f,s):
-    sl=f[s*NF:(s+1)*NF]; sp,ab,it=sl[0],sl[1],sl[2]; ms=[m for m in sl[3:7] if m]
+    sl=f[s*NF:(s+1)*NF]; sp,ab=sl[0],sl[1]; ms=[m for m in sl[3:7] if m]
     from corpus import dex_entry
     if dex_entry(sp) is None: return True
     if ab not in L.abils_for(sp): return True

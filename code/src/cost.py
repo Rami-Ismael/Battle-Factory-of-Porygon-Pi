@@ -1,7 +1,6 @@
-import time, numpy as np, torch, random
-from collections import defaultdict
+import time, numpy as np, torch
 from corpus import load_corpus
-from encode import Vocab, Legality, NF, NSLOT
+from encode import Vocab, NF, NSLOT
 from model import MaskedFieldModel, resample_fields
 from pilot import op_uniform, COLS
 DEV="mps" if torch.backends.mps.is_available() else "cpu"

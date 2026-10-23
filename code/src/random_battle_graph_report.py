@@ -21,7 +21,7 @@ sides play at random (392 battles per team).
 7. One search family: does random play still rank teams that share all six species?
 Output: results/random_battle_graph.json, results/random_battle_graph_figure.json (the page's data).
 """
-import json, os, sys
+import json, os
 from collections import defaultdict
 from pathlib import Path
 import numpy as np

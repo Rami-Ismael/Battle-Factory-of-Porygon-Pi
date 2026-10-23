@@ -47,7 +47,6 @@ import sampler_qd as Q
 import matchup_db as MDB
 import activesearch as A
 from hps_generate import Validator
-from corpus import parse_team_text
 
 OUT = L.RES / "sampler_repel.json"
 CHECK = L.RES / "sampler_repel_check.json"

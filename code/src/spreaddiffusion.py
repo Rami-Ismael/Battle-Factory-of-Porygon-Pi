@@ -10,17 +10,16 @@ Constrained decoding enforces every rule during sampling: species/item clauses,
 learnsets (authoritative table), ability ownership, mega-stone pairing, and the
 Stat Point budget (a value that would push the slot over 66 is masked out).
 """
-import argparse, json, random, sys
-from pathlib import Path
+import argparse, random
 import numpy as np, torch
 from beartype import beartype
 from jaxtyping import Int64, jaxtyped
 import torch.nn as nn, torch.nn.functional as F
 from checkpoints import load_checkpoint
-from corpus import parse_team, load_corpus, norm, STATS, dex_entry, MEGA_STONE_OF
+from corpus import load_corpus, norm, STATS, dex_entry, MEGA_STONE_OF
 from encode import Vocab, Legality, canon, NSLOT, strict_ids
 import diffusion as D
-from wrdiffusion import load_labelled, wr_bin, NBIN, WNULL, EDGES
+from wrdiffusion import load_labelled, wr_bin, NBIN, WNULL
 
 DEV = D.DEV
 NF2 = 14; COLS2 = NSLOT * NF2
@@ -39,7 +38,7 @@ class SpreadVocab:
         j = col % NF2
         return "stat" if j >= 8 else self.base.key(j)
     @jaxtyped(typechecker=beartype)
-    def encode(self, team) -> Int64[np.ndarray, "fields"]:
+    def encode(self, team) -> Int64[np.ndarray, " fields"]:
         out = []
         for s in canon(team):
             ms = sorted(s["moves"], key=norm) + [""] * (4 - len(s["moves"]))

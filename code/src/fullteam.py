@@ -16,15 +16,13 @@ Any spread is legal on any candidate, so no cross-field constraint is needed.
 Tera type is deliberately absent: the `champions` mod deletes teraType, so it is not
 a decision variable in this regulation.
 """
-import argparse, json, random
-from collections import Counter, defaultdict
-from pathlib import Path
+import random
 import numpy as np, torch
 from beartype import beartype
 from jaxtyping import Int64, jaxtyped
 import torch.nn as nn, torch.nn.functional as F
 from corpus import load_corpus, norm, STATS, dex_entry, MEGA_STONE_OF
-from encode import Vocab as BaseVocab, Legality, canon, NSLOT, strict_ids
+from encode import Vocab as BaseVocab, canon, NSLOT, strict_ids
 import diffusion as D
 
 NF2 = 9                       # 8 categorical + 1 spread
@@ -53,7 +51,7 @@ class FullVocab:
         if j == 8: return "spread"
         return self.base.key(j)          # base indexes by field within a slot
     @jaxtyped(typechecker=beartype)
-    def encode(self, team) -> Int64[np.ndarray, "fields"]:
+    def encode(self, team) -> Int64[np.ndarray, " fields"]:
         out = []
         for s in canon(team):
             ms = sorted(s["moves"], key=norm) + [""] * (4 - len(s["moves"]))
@@ -187,7 +185,6 @@ def sample_full(model, C, n, style="none", guidance=1.0, temp=1.0, pin=None, dev
     return x
 
 def row_to_paste(V, row):
-    from propose import slot_to_text
     slots = []
     for i in range(NSLOT):
         b = i*NF2
@@ -201,7 +198,7 @@ def row_to_paste(V, row):
 def train_full(epochs=800, seed=0):
     random.seed(seed); torch.manual_seed(seed)
     teams, _ = load_corpus(); teams = [t for t in teams if len(t) == 6]
-    V = FullVocab(teams); L = Legality(teams)
+    V = FullVocab(teams)
     X = np.stack([V.encode(t) for t in teams])
     Y = np.array([D.style_of(t) for t in teams])
     rng = np.random.default_rng(seed); idx = rng.permutation(len(X)); nte = int(len(X)*.15)

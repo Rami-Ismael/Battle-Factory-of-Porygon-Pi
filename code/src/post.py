@@ -1,7 +1,7 @@
-import numpy as np, torch, random, json
+import numpy as np, torch, random
 from collections import defaultdict
 from corpus import load_corpus
-from encode import Vocab, Legality, team_fields, NF, NSLOT
+from encode import Vocab, Legality, team_fields
 from model import MaskedFieldModel
 from pilot import evaluate, memorization_stats, op_uniform, op_marginal, COLS, set_seed
 from checkpoints import load_checkpoint

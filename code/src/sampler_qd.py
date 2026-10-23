@@ -78,7 +78,7 @@ def qd(teams):
 def jack(teams):
     """Leave-one-team-out jackknife standard errors of winning line-ups and QD-score.
     (A with-replacement bootstrap duplicates teams and so undercounts distinct line-ups.)"""
-    n, full = len(teams), qd(teams)
+    n = len(teams)
     se = {}
     for k in ("winning", "qd", "lineups"):
         th = np.array([qd(teams[:i] + teams[i + 1:])[k] for i in range(n)], float)

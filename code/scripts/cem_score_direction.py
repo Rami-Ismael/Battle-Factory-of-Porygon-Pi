@@ -6,13 +6,11 @@ import fcntl
 import importlib.metadata
 import json
 from pathlib import Path
-import shutil
 import socket
 import subprocess
 import sys
-import time
 
-from cem_direction_runtime import Engine, ROOT, RUNTIME, phase_seed, choose_elites
+from cem_direction_runtime import Engine, ROOT, phase_seed, choose_elites
 from reverse_score_diversity import atomic_json, digest
 
 ARMS = ('normal', 'random', 'reverse')

@@ -67,6 +67,17 @@ abilities, moves).
     ../.venv/bin/python hyperheuristic.py selftest       # LLM-written streamliners
     ../.venv/bin/python hyperheuristic.py report
 
+## Lint
+
+Run from this folder, the one holding `pyproject.toml` and `.venv` (`code/` in
+the monorepo):
+
+    .venv/bin/ruff check .
+
+Ruff reads its rules from `pyproject.toml` and refuses to run at any version but
+the one pinned there. A clean run prints `All checks passed!` and exits 0; any
+finding prints its file, line and rule code and exits 1.
+
 ## What the pilot does
 
 A team is encoded as 6 slots x 8 categorical fields = 48 columns (species,

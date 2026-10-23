@@ -24,7 +24,7 @@ if blocking:
 
 sys.path.insert(0, SRC); os.chdir(SRC)
 import numpy as np
-from corpus import load_corpus, norm, dex_entry, MEGA_STONE_OF, NATURES, STATS
+from corpus import load_corpus, norm, dex_entry, MEGA_STONE_OF, NATURES
 from encode import Legality
 from propose import Validator, team_to_text
 

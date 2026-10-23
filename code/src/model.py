@@ -5,12 +5,11 @@ paper itself calls 'a weighted average of masked language modeling losses').
 
 No diffusion machinery, no score network, no continuous relaxation.
 """
-import math, random
-import numpy as np
+import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from encode import FIELDS, NF, NSLOT
+from encode import NF, NSLOT
 
 class MaskedFieldModel(nn.Module):
     def __init__(self, vocab, d=192, nhead=6, nlayer=4, dropout=0.1):
@@ -28,7 +27,6 @@ class MaskedFieldModel(nn.Module):
         self.keys = [vocab.key(c) for c in range(self.cols)]
 
     def forward(self, x):
-        B = x.shape[0]
         h = torch.stack([self.emb[self.keys[c]](x[:, c]) for c in range(self.cols)], 1)
         h = self.tr(h + self.pos.unsqueeze(0))
         h = self.ln(h)

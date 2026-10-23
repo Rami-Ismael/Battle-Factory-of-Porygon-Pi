@@ -10,7 +10,7 @@ import sys
 import unittest
 from pathlib import Path
 
-import repo_paths  # puts src/ first on sys.path
+import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import showdown_validator as SV
 
 ROOT = Path(__file__).resolve().parents[1]

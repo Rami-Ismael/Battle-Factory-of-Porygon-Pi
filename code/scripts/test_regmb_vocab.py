@@ -1,8 +1,6 @@
 import copy
-import json
 import unittest
 from unittest.mock import patch
-from pathlib import Path
 import numpy as np
 import torch
 import frozen as F
@@ -55,7 +53,6 @@ class RegulationTests(unittest.TestCase):
             self.assertFalse(B.encode_context(m['starts'][t['start']],t['paths'],self.v)[2],t['id'])
 
     def test_unknown_value_is_not_silently_masked(self):
-        import diffusion_baseline as B
         m=F.load('llm-baseline-instant-pilot/manifest.json')
         team=copy.deepcopy(m['starts'][0]);team[0]['nature']='Not a nature'
         with self.assertRaisesRegex(ValueError,'outside Regulation M-B'):

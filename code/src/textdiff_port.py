@@ -21,7 +21,7 @@ def load(dtype=torch.bfloat16, device=DEV, base=None):
     """base=None: the released Fast-dLLM v2 1.5B. base='Qwen/Qwen2.5-0.5B-Instruct' (or any Qwen2 checkpoint):
     the released block-diffusion architecture and training recipe on that model's weights, with the [MASK] row
     (id 151665, untrained in a plain Qwen2.5 checkpoint) left for the trainer to learn (trainable_token_indices)."""
-    from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
+    from transformers import AutoTokenizer, AutoModelForCausalLM
     tok = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
     if base and qwen3_folder(base):
         return tok, load_qwen3(base, dtype).to(device)

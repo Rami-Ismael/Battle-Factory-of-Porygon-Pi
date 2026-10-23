@@ -6,7 +6,7 @@ from collections import defaultdict
 from corpus import load_corpus
 from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel, resample_fields
-from pilot import evaluate, op_slotcopy, op_marginal, op_uniform, set_seed, COLS, decode_fields
+from pilot import evaluate, op_slotcopy, op_marginal, set_seed, COLS, decode_fields
 from checkpoints import load_checkpoint
 DEV="mps"
 set_seed(0); rng=np.random.default_rng(0)

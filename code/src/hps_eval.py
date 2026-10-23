@@ -12,7 +12,7 @@ measured the dataset itself.
 Every generated team passes Showdown's validator before it battles; validity
 rates are reported alongside win rates.
 """
-import json, os, random, sys
+import json, random, sys
 from pathlib import Path
 import numpy as np, torch
 import hpsdiffusion as H

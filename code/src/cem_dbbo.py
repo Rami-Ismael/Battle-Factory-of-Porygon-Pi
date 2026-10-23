@@ -49,7 +49,7 @@ import diffusion as D
 import pool
 from diversity_metrics import Reference
 from hps_generate import Validator
-from corpus import parse_team_text, norm
+from corpus import parse_team_text
 from encode import team_fields
 from checkpoints import load_checkpoint
 

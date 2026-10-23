@@ -15,7 +15,6 @@ res = {}
 for k in sorted(by_k):
     d, p = np.array(by_k[k]).T; res[k] = dict(actual=d.mean(), move_pred=p.mean()); print(f"k={k} actual {d.mean():+.3f}  predicted from move mix {p.mean():+.3f}  residual {d.mean()-p.mean():+.3f}")
 # residual (non-move part) vs species/stat features, per replaced Pokémon
-import itertools
 y = np.array([r["resid"] for r in rows]); names = ["k", "bst", "spe", "bulk", "off", "mega", "ev_max", "neutral_nature"]
 X = np.array([[r[n] for n in names] for r in rows], float); A = np.c_[np.ones(len(X)), X]
 beta = np.linalg.lstsq(A, y, rcond=None)[0]

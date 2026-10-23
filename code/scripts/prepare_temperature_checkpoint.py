@@ -4,7 +4,6 @@ Never overwrites an existing checkpoint. All arms/seeds use this same artifact;
 the study is conditional on it and does not reproduce the historical p0 exactly.
 """
 import argparse
-import json
 import os
 from pathlib import Path
 import sys

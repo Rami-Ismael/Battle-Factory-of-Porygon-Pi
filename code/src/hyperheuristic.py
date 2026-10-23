@@ -35,12 +35,12 @@ Three ways to drive the generation step, in order of how little they assume:
 prompt/add is the loop with the model out of process: it needs no credentials, and the
 generation it produces is identical to what `run` would have scored.
 """
-import argparse, ast, collections, hashlib, json, re, signal, subprocess, sys, time
+import argparse, ast, collections, hashlib, json, re, signal, subprocess, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO/"src"))
-from streamliner import (parse, load_meta, load_hps, LEGAL,
+from streamliner import (load_meta, load_hps, LEGAL,
                          PROT_SELF, PROTECT, SPEEDCTRL, REDIRECT, FAKEOUT, SUPPORT)
 
 OUT = REPO/"results/hyperheuristic.json"
@@ -435,8 +435,8 @@ def run(a):
                     else ask_claude(prompt, a.model, a.claude_bin, a.ask_timeout))
         except Exception as e:
             print(f"  proposer failed: {e}")
-            print(f"  fall back to: hyperheuristic.py prompt > /tmp/p.txt, then "
-                  f"hyperheuristic.py add --file <rules>")
+            print("  fall back to: hyperheuristic.py prompt > /tmp/p.txt, then "
+                  "hyperheuristic.py add --file <rules>")
             break
         got = extract(text)
         if not got:
@@ -447,7 +447,7 @@ def run(a):
     report_front(pareto(st["rules"]), len(hps))
 
 def report_front(front, npool):
-    print(f"\nportfolio -- non-dominated on (keep the meta, cut the space)")
+    print("\nportfolio -- non-dominated on (keep the meta, cut the space)")
     print(f"{'':2}{'rule':26} {'meta kept':>10} {'space kept':>12} {'lift':>10} {'space left':>12}")
     print("-"*78)
     for r in front:

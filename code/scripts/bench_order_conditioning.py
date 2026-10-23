@@ -13,7 +13,7 @@ same designs as the VGC side, for Version 3 of the vault's benchmark comparison 
 No battles. Molecule tasks are skipped: no fixed coordinates for either design.
 Run: /tmp/vgc-pilot/.venv/bin/python scripts/bench_order_conditioning.py
 """
-import importlib.util, json, sys
+import importlib.util, json
 from pathlib import Path
 import numpy as np
 

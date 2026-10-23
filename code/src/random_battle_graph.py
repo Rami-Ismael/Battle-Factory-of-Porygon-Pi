@@ -18,7 +18,7 @@ Output: ~/vgc-data/random-battle-graph/{teams.json, walk.jsonl, tree.jsonl, bran
 and run_<mode>.json per run (records, errors, seconds, decisions, default-choice fallbacks).
 Run: python src/random_battle_graph.py [walk|tree|branch|all]. Analysis: src/random_battle_graph_report.py.
 """
-import json, os, random, sqlite3, subprocess, sys, time
+import json, random, sqlite3, subprocess, sys, time
 from pathlib import Path
 
 DB = Path.home() / "vgc-data" / "matchup_regmb.sqlite"

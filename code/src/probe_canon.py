@@ -4,8 +4,8 @@ distance is computed'. pilot.py:172-173 computes distances on the RAW edited gri
 which is no longer sorted by species after any species-changing edit."""
 import numpy as np
 from corpus import load_corpus
-from encode import Vocab, Legality, NF, NSLOT
-from pilot import memorization_stats, hamming, set_seed, COLS
+from encode import Vocab, NF, NSLOT
+from pilot import memorization_stats, set_seed, COLS
 set_seed(0); rng=np.random.default_rng(0)
 teams,_=load_corpus(); teams=[t for t in teams if len(t)==6]
 V=Vocab(teams); X=np.stack([V.encode(t) for t in teams])

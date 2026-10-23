@@ -1,0 +1,45 @@
+# Lint code/ and run the tests that need nothing outside the repo, on every pull request to main.
+name: Lint and test
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.18"
+      - name: Ruff, at the version pinned in code/requirements.txt
+        working-directory: code
+        run: uvx --from "$(grep '^ruff==' requirements.txt | cut -d' ' -f1)" ruff check --output-format=github .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.18"
+      - name: Install code/requirements.txt (CPU-only torch)
+        run: |
+          uv venv --python 3.11 code/.venv
+          uv pip install -p code/.venv --torch-backend cpu -r code/requirements.txt
+      - name: Repository tests (tests/)
+        run: code/.venv/bin/python -m unittest discover -s tests
+      - name: Code tests listed in code/scripts/ci_tests.txt
+        working-directory: code
+        run: |
+          status=0
+          for t in $(grep -v '^#' scripts/ci_tests.txt); do
+            echo "::group::$t"
+            .venv/bin/python "scripts/$t" || { echo "::error::$t failed"; status=1; }
+            echo "::endgroup::"
+          done
+          exit $status

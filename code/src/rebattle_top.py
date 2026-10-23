@@ -14,7 +14,6 @@ win rates. The 200-team real-corpus anchor mean under this evaluation is 0.4625.
 import json, sys, time
 from pathlib import Path
 
-import numpy as np
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 from corpus import parse_team_text, norm

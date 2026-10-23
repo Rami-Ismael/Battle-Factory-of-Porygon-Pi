@@ -45,7 +45,6 @@ import hpsdiffusion as H
 import activesearch as A
 import heldout as HO
 from corpus import norm, MEGA_STONE_OF, dex_entry
-from encode import NF, NSLOT
 
 DEV, COLS = D.DEV, D.COLS
 RES = X.RES
@@ -175,7 +174,6 @@ class Tables:
 
 
 def _cols_by_key():
-    V = None
     out = {}
     for c in range(COLS):
         k = D.FIELDS[c % NF]; k = "move" if k.startswith("m") and k != "nature" else k
@@ -459,7 +457,6 @@ def train_run(name, cfg):
     steps_per_ep = math.ceil(len(tr) / cfg["batch"]); total = steps_per_ep * cfg["epochs"]
     opt = torch.optim.AdamW(net.parameters(), lr=cfg["lr"], weight_decay=cfg["wd"], betas=(0.9, 0.98))
     lr_at = lambda s: cfg["lr"] * min(1.0, (s + 1) / cfg["warmup"]) * 0.5 * (1 + math.cos(math.pi * min(s, total) / total))
-    f_tr = logprobs_fn(net, tables, rules, tag_id=TEST_TAG if cfg["tags"] else None)
     print(f"[{name}] {len(tr)} teams · {sum(p.numel() for p in net.parameters()):,} params · {total} steps · {DEV}", flush=True)
     t0 = time.perf_counter(); step = 0; log = []
     for ep in range(cfg["epochs"]):

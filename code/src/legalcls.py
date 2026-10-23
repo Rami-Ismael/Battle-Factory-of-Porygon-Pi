@@ -10,7 +10,7 @@ positives, which gives the classifier hard cases near the boundary.
 Exposes value_logprobs(x, c, t) -> [n, |vocab_c|] = log p(legal | x with x_c := v),
 which the sampler adds to the diffusion logits scaled by cls_scale.
 """
-import argparse, random, sys
+import argparse, random
 import numpy as np, torch
 import torch.nn as nn, torch.nn.functional as F
 from checkpoints import load_checkpoint
@@ -100,7 +100,6 @@ def synth_rows(V, L, C, base_rows, n, rng):
     stat. Cells are sampled uniformly, so the classifier sees the whole table instead
     of the ~16% of it the corpus reveals."""
     X, Y = [], []
-    nv_move = V.sizes["move"]
     for _ in range(n):
         r = base_rows[rng.integers(0, len(base_rows))].copy()
         slot = int(rng.integers(0, NSLOT)); b = slot * S.NF2; si = int(r[b])

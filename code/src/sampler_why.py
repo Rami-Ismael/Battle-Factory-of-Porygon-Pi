@@ -23,7 +23,7 @@ condition, with it, and under the guided mix. Results in results/sampler_why_dia
     python battle_supervisor.py sampler_why.py battle --then report
 (run with /tmp/vgc-pilot/.venv/bin/python)
 """
-import json, math, sys
+import json, sys
 from pathlib import Path
 import numpy as np
 import torch

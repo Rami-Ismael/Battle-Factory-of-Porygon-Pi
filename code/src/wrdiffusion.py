@@ -14,12 +14,11 @@ Showdown's validator is still the final gate.
   train   : python wrdiffusion.py train [epochs]
   sample  : python wrdiffusion.py sample --bin 5 --guidance 2 --n 32
 """
-import argparse, json, random, sys
-from pathlib import Path
+import argparse, json, random
 import numpy as np, torch
 import torch.nn as nn, torch.nn.functional as F
 from checkpoints import load_checkpoint
-from corpus import parse_team, load_corpus, norm
+from corpus import parse_team, load_corpus
 from encode import Vocab, Legality, NF, NSLOT
 import diffusion as D
 

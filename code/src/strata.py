@@ -17,10 +17,10 @@ import json, sys
 from collections import defaultdict
 from pathlib import Path
 import numpy as np, torch
-from corpus import load_corpus, norm, STATS
-from encode import Vocab, Legality, canon, NF, NSLOT
+from corpus import norm, STATS
+from encode import canon, NF, NSLOT
 import diffusion as D
-from propose import Validator, team_to_text, slot_to_text
+from propose import Validator, team_to_text
 from random_team import build_tables, one_team
 
 def main():

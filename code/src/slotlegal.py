@@ -11,17 +11,16 @@ Pre-registered expectation: a large per-field lift (this is the fair version of
 the idea); whole-team validity unconstrained somewhere well above zero but well
 below constrained decoding; no win-rate change on top of constraints.
 """
-import argparse, os, random, sys, time
-from pathlib import Path
+import argparse, os, random, time
 import numpy as np, torch
 import torch.nn as nn, torch.nn.functional as F
 from checkpoints import load_checkpoint
-from corpus import load_corpus, norm
+from corpus import load_corpus
 from encode import Legality, NSLOT
 import diffusion as D
 import spreaddiffusion as S
-from spreaddiffusion import SpreadVocab, SpreadConstraints, ORDER2, NF2, COLS2, row_to_slots
-from wrdiffusion import load_labelled, wr_bin, NBIN, WNULL
+from spreaddiffusion import SpreadVocab, ORDER2, NF2, COLS2
+from wrdiffusion import load_labelled, WNULL
 import legalcls as LC
 import legaldiffusion as LD
 

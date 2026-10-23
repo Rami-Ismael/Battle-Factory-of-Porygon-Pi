@@ -127,7 +127,7 @@ as a completed one.
   python schemes.py [--only deporder_g2,unconstrained] [--per 150] [--battles 24]
   python schemes.py --report
 """
-import argparse, itertools, json, math, os, random, sys, time
+import argparse, json, math, os, random, sys, time
 from collections import defaultdict
 from pathlib import Path
 
@@ -528,8 +528,8 @@ def wilson(k, n, z=1.96):
 # one arm
 # --------------------------------------------------------------------------
 def run_arm(name, cfg, ctx, per, battles, max_attempts, batch):
-    V, L, A, model = ctx["V"], ctx["L"], ctx["A"], ctx["model"]
-    look, spreads, corpus, pmi, opp, val = (ctx["look"], ctx["spreads"], ctx["corpus"],
+    V, A, model = ctx["V"], ctx["A"], ctx["model"]
+    look, spreads, pmi, opp, val = (ctx["look"], ctx["spreads"],
                                             ctx["pmi"], ctx["opp"], ctx["val"])
     torch.manual_seed(0); random.seed(0); rng = np.random.default_rng(0)
     out = GEN / name; out.mkdir(parents=True, exist_ok=True)
@@ -641,8 +641,8 @@ def report(res):
               + bar(a, amax) + f" {spa:>8}  " + ws.ljust(18) + bar(wr, wmax)
               + f" {u} {pm}  n={r['n']}" + flag, flush=True)
     print("-" * 118)
-    print(f"reference win rates: real corpus team 0.470-0.475 · median real 0.458 · "
-          f"slotcopy 0.420-0.436 · generator bin5/g4 0.193-0.195 · random legal ~0.011")
+    print("reference win rates: real corpus team 0.470-0.475 · median real 0.458 · "
+          "slotcopy 0.420-0.436 · generator bin5/g4 0.193-0.195 · random legal ~0.011")
     print(f"reference PMI surprise of a real corpus team: {REAL_SURPRISE_REF}")
     weak = [r for r in rows if r["acceptance"] < 0.5 and r.get("rejections")]
     if weak:

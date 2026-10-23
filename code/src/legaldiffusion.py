@@ -11,16 +11,14 @@ the four-arm evaluation answers.
 Speed fix vs spreaddiffusion.py: one output head per FIELD TYPE (6 heads) instead of
 one per column (84), so the loss is 6 cross-entropies instead of 84.
 """
-import argparse, json, random, sys, time
-from pathlib import Path
+import argparse, random, time
 import numpy as np, torch
 import torch.nn as nn, torch.nn.functional as F
 from checkpoints import load_checkpoint
-from corpus import load_corpus, norm, STATS
+from corpus import load_corpus
 from encode import Legality, NSLOT
 import diffusion as D
-import spreaddiffusion as S
-from spreaddiffusion import SpreadVocab, SpreadConstraints, ORDER2, NF2, COLS2, row_to_slots
+from spreaddiffusion import SpreadVocab, SpreadConstraints, ORDER2, NF2, COLS2
 from wrdiffusion import load_labelled, wr_bin, NBIN, WNULL
 import legalcls as LC
 

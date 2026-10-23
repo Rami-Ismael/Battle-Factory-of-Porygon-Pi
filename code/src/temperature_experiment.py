@@ -15,7 +15,6 @@ import os
 from pathlib import Path
 import re
 import socket
-import sys
 import time
 
 import numpy as np
@@ -216,8 +215,9 @@ class BattleEngine:
         if len(self.initial_teams) != len(self.initial_y) or any(len(t) != 6 for t in self.initial_teams):
             raise RuntimeError("initial labels do not match six-slot teams")
         # Vocabulary compatibility is mandatory; a same-shaped unrelated checkpoint is not substituted.
+        from checkpoints import load_checkpoint
         check = E.H.TeamDiffusionHPS(self.V).to(D.DEV)
-        check.load_state_dict(E.torch.load(config.checkpoint, map_location=D.DEV)["sd"])
+        check.load_state_dict(load_checkpoint(config.checkpoint, map_location=D.DEV)["sd"])
         del check
         self.validator = E.Validator()
 

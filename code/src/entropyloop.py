@@ -60,8 +60,7 @@ if __name__ == "__main__" and len(sys.argv) > 1 and sys.argv[1] == "compare":
     sys.exit(0)
 
 import numpy as np
-from boltzmann_selection import (boltz_weights, select_boltz, linear_temperature,
-                                 selection_temperature, adaptive_temperature)
+from boltzmann_selection import (boltz_weights, select_boltz, linear_temperature)
 import torch
 import torch.nn.functional as F
 

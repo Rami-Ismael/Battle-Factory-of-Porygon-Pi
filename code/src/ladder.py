@@ -11,11 +11,10 @@ is corruption at noise level k/6, which is exactly what the model is trained to 
 import json, sys
 from pathlib import Path
 import numpy as np
-from corpus import load_corpus, norm, STATS
+from corpus import load_corpus, norm
 from encode import canon
-from propose import Validator, slot_to_text, team_to_text
-from random_team import build_tables, one_team, TRUE
-from corpus import MEGA_STONE_OF
+from propose import Validator, team_to_text
+from random_team import build_tables, one_team
 
 def main():
     per = int(sys.argv[1]) if len(sys.argv) > 1 else 350

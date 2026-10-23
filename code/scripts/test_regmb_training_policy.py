@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))
-from encode import Vocab,team_fields
+from encode import Vocab
 from showdown_validator import SHOWDOWN
 from regmb_training_policy import sample_moves,encode_training_team,training_regulation,mega_stone_users
 

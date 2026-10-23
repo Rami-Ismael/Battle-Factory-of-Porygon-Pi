@@ -10,9 +10,8 @@ Draws, each judged by Showdown's TeamValidator (gen9championsvgc2026regmb):
   (c) sequential     as (b) plus Species Clause and Item Clause enforced while drawing
 Run:  /tmp/vgc-pilot/.venv/bin/python scripts/vgc_domain_features.py
 """
-import copy, json, math, re, sys
+import json, math, re, sys
 from collections import Counter
-from itertools import product
 from pathlib import Path
 import numpy as np
 

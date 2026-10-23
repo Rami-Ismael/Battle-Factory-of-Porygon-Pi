@@ -1,5 +1,5 @@
 """Asked vs got figure for experiment A -> results/asked_vs_got.png (light) and _dark.png."""
-import json, sys
+import json
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

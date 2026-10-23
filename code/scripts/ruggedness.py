@@ -19,7 +19,7 @@ from the anchor's), so the replicate deltas are the null distribution for edit d
 
 Run:  /tmp/vgc-pilot/.venv/bin/python scripts/ruggedness.py
 """
-import copy, json, os, random, sys, time
+import copy, json, os, sys, time
 from pathlib import Path
 import numpy as np
 

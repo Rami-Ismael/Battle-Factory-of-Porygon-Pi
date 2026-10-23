@@ -21,7 +21,7 @@ from collections import Counter, defaultdict
 import numpy as np
 import torch
 from corpus import load_corpus
-from encode import Vocab, Legality, team_fields, FIELDS, NF, NSLOT
+from encode import Vocab, Legality, NF, NSLOT
 from model import MaskedFieldModel, random_mask, permute_slots, resample_fields
 
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
