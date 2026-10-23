@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: notes-frontmatter
+        name: notes frontmatter parses as YAML
+        entry: python tools/check_frontmatter.py
+        language: python
+        additional_dependencies: [pyyaml]
+        files: ^notes/.*\.md$
