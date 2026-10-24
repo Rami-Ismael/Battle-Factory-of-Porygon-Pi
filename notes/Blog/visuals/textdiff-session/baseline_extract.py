@@ -16,7 +16,8 @@ RUNS = Path.home() / "Documents/yakumsi-vault/Personal Project/Using Advance met
 GRIDS = {"random": "prompt-ab", "heldout": "heldout-starters", "meta": "meta-starters"}
 METHODS = {"textdiff": "textdiff", "textdiff3b": "textdiff3b", "diffusion": "diffusion", "random": "random",
            "llm_regmb": "llm_regmb", "llm_baseline": "llm_baseline", "llm_mb-original-v1": "llm_mb-original-v1",
-           "ling": "ling:regmb@16384", "ling_baseline16k": "ling:baseline@16384", "ling_baseline4k": "ling:baseline@4096"}
+           "ling": "ling:regmb@16384", "ling_baseline16k": "ling:baseline@16384", "ling_baseline4k": "ling:baseline@4096",
+           "mercury": "mercury:regmb@16384"}                       # Mercury 2.5, regmb prompt, reasoning effort high (2026-10-24)
 # the prompt-version writers' random-grid fills were battled in their own run (same opponents and policy), kept beside it
 EXTRA = {"random": Path.home() / "vgc-data/textdiff_llmformat/random-run/panels.json"}
 SEED = 20261008
@@ -94,6 +95,8 @@ def main():
                                    families={f: bootstrap([(r["start"], net(r, k)) for r in rows if r["family"] == f])
                                              for f in sorted({r["family"] for r in rows})})
         g["net_3b_minus_15b"] = bootstrap([(r["start"], net(r, "textdiff3b") - net(r, "textdiff")) for r in rows])
+        if "mercury" in present:                      # same masks, paired: the 3B text team writer against Mercury 2.5
+            g["net_3b_minus_mercury"] = bootstrap([(r["start"], net(r, "textdiff3b") - net(r, "mercury")) for r in rows])
         out[grid] = g
     out["example"] = example()
     out["reasoning_study"] = reasoning_study()
