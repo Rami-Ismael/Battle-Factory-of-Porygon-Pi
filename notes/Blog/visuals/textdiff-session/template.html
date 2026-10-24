@@ -109,6 +109,14 @@ details.raw pre{font:400 .74rem/1.45 var(--font-mono);background:var(--wash);bor
 /* Ling: where each call's tokens went, and what came back */
 .stack{display:flex;height:100%;border-radius:3px;overflow:hidden}
 .stack span{height:100%}
+/* target histogram: one column per 0.05 band */
+.hist{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));grid-template-rows:11rem;gap:2px;align-items:end;height:11rem;position:relative;border-bottom:1px solid var(--rule);margin-top:1.4rem}
+.hist .bin{background:var(--ahead);border-radius:3px 3px 0 0;transform-origin:bottom center;animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.hist .askline{position:absolute;top:-1.2rem;bottom:0;border-left:2px dashed var(--meta)}
+.hist .askline span{position:absolute;top:-.1rem;right:.4rem;width:11rem;text-align:right;font:600 .72rem/1.3 var(--font-ui);color:var(--ink-2)}
+.histx{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;font:400 .7rem var(--font-ui);color:var(--ink-3);margin-top:.2rem}
+@media (prefers-reduced-motion: reduce){.hist .bin{animation:fade .3s ease-out both}}
 /* answers */
 .answers{display:grid;gap:0;margin:0 0 2.4rem;border-top:2px solid var(--ink)}
 .answer{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"q q" "a v" "d d";gap:.25rem 1rem;padding:.9rem 0;border-bottom:1px solid var(--rule)}
@@ -383,6 +391,18 @@ function trainingPromptFigure() {
     <div class="legend"><span><i style="background:var(--meta)"></i>The target: this team's measured win rate, or <code>unknown</code></span><span><i style="background:var(--same)"></i>Graded: the answer and its end token</span></div>
     <figcaption>One real training row, with target ${ex.label}. The training file has ${P.train_rows.toLocaleString()} rows, and ${P.unknown_rows.toLocaleString()} of them say <code>unknown</code>; a run reads 8,000 of them (2,000 steps of 4). The answer has no Stat Points or level: they are copied from a real team of the same species before a battle. The 1.5B and 3B text team writers use this same prompt. From <code>sources/prompt_example.json</code> (<code>code/src/textdiff.py</code>).</figcaption></figure>`;
 }
+function targetFigure() {
+  const T = D.targets, bins = T.hist_005.slice(0, 16), max = Math.max(...bins), ask = 0.5 / 0.8 * 100;
+  const cols = bins.map((n, i) => `<div class="bin" title="${(i * 0.05).toFixed(2)}–${((i + 1) * 0.05).toFixed(2)}: ${n} rows" style="height:${n / max * 100}%;animation-delay:${i * 30}ms"></div>`).join("");
+  const xs = bins.map((_, i) => `<span>${i % 2 ? "" : (i * 0.05).toFixed(1)}</span>`).join("");
+  return `<div>
+    <p><b>Why 8,000 examples.</b> It was a time budget, set before the first run. On the MacBook each example took about 2.5 seconds, because block diffusion trains on four copies of it: a noisy and a clean copy under two complementary masks. One pass over all ${(21129).toLocaleString()} prepared rows would have taken about 15 hours. So a run reads every real-corpus team (${T.by_source.real}) and a random sample of the rest, ${T.rows.toLocaleString()} in all: 2,000 steps of 4, which took 372 minutes. The 3B run on the H100 took 14 minutes and kept the same ${T.rows.toLocaleString()} rows and seed so the two writers could be compared on equal terms.</p>
+    <figure><h3 class="ftitle">The target in each training prompt is that team's own win rate, not a fixed 0.50</h3>
+      <div class="hist">${cols}<div class="askline" style="left:${ask}%"><span>0.50, the target we ask for when generating</span></div></div>
+      <div class="histx">${xs}</div>
+      <div class="legend"><span><i style="background:var(--ahead)"></i>Training rows per 0.05 band of target win rate</span><span>Median ${T.median.toFixed(2)}, highest ${T.max.toFixed(2)}</span></div>
+      <figcaption>${T.known.toLocaleString()} of the ${T.rows.toLocaleString()} rows carry a measured win rate against the top-50 meta teams. The other ${T.unknown.toLocaleString()} say <code>unknown</code>: the ${T.unknown_by_source.synthetic.toLocaleString()} synthetic teams were never battled, ${T.unknown_by_source.real} of the real teams have no label, and some battled teams have their number hidden on purpose, so the writer also learns to write with no target. The model learns what a 0.29 team looks like; when we generate, we ask it for a 0.50 team. From <code>sources/train_targets.json</code> (the rows <code>textdiff.py train --limit 8000</code> picks).</figcaption></figure></div>`;
+}
 function baselinePromptFigure() {
   const ex = D.baseline.example, P = D.prompt, cut = ex.written_3b.indexOf("\n");
   const q = esc(P.template.replace("{fmt}", P.format).replace("{ask}", "0.50"));
@@ -542,7 +562,7 @@ function render(root) {
 
   const intro = $(`<section><h2>How a text diffusion model writes a team</h2>
     <p>An LLM writes left to right, one token at a time. A text diffusion model starts from a block of masked tokens and fills it in over a few steps, many tokens at once. Each step keeps every token the model is at least 90% sure of, and at least one token. Then it moves to the next block. Both text team writers work this way. The 3B writer started from the Qwen2.5-3B checkpoint and learned this block-diffusion loss during fine-tuning.</p></section>`);
-  intro.append($(trainingPromptFigure()), pasteFigure()); root.append(intro);
+  intro.append($(trainingPromptFigure()), $(targetFigure()), pasteFigure()); root.append(intro);
 
   const sTrain = $(`<section class="step"><div class="n">STEP 3</div><div>
     <h2>A rented H100 trained the 3B writer in 14 minutes</h2>
@@ -631,6 +651,6 @@ render(document.getElementById("app"));
 if ("IntersectionObserver" in window) {
   const io = new IntersectionObserver((seen) => seen.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove("wait"); io.unobserve(e.target); } }),
     { threshold: 0.3, rootMargin: "0px 0px -8% 0px" });
-  document.querySelectorAll(".bars, .strip, figure svg, .games, .spread, .net").forEach((el) => { el.classList.add("wait"); io.observe(el); });
+  document.querySelectorAll(".bars, .strip, figure svg, .games, .spread, .net, .hist").forEach((el) => { el.classList.add("wait"); io.observe(el); });
 }
 </script>

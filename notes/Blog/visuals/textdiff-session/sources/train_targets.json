@@ -1,0 +1,41 @@
+{
+ "source": "~/.local/share/vgc-pilot-runtime/textdiff/train.jsonl, rows chosen as src/textdiff.py train --limit 8000 does (real rows, then the rest in file order)",
+ "rows": 8000,
+ "by_source": {
+  "real": 622,
+  "synthetic": 2186,
+  "family": 5192
+ },
+ "unknown_by_source": {
+  "real": 572,
+  "synthetic": 2186,
+  "family": 1308
+ },
+ "known": 3934,
+ "unknown": 4066,
+ "mean": 0.285,
+ "median": 0.29,
+ "max": 0.75,
+ "hist_005": [
+  211,
+  226,
+  272,
+  372,
+  440,
+  812,
+  360,
+  335,
+  287,
+  212,
+  259,
+  70,
+  48,
+  18,
+  8,
+  4,
+  0,
+  0,
+  0,
+  0
+ ]
+}
