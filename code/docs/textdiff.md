@@ -780,6 +780,13 @@ first steps take 2 to 8 minutes per run. Checkpointing gives back its memory sav
 faster than batch 4. A larger batch also means fewer optimizer steps (667 at batch 12 instead of 2,000), so a full run at
 batch 12 would need its learning rate retuned and its final loss checked against 0.679. Not worth it at this data size.
 
+**Decision (owner, 2026-10-24): the 3B training default is batch 12 with `--autocast`, no checkpointing** (34.0
+examples per second, 25% more than batch 4; 67.7 GB of the H100's 80). Not yet verified on a full run: at batch 12 one pass
+over the 8,000 examples is 667 optimizer steps instead of 2,000, and the learning rate (2e-4) was tuned for batch 4. The first
+full batch-12 run must reach a validation loss of about 0.68 (batch 4 reached 0.679); if it does not, raise the learning rate
+and run again before trusting batch-12 adapters. On a GPU with less than about 70 GB, batch 12 does not fit without
+checkpointing: use batch 4 with `--autocast --ckpt-layers 36` (0.682, 12-16 GB) there.
+
 **The M4 Pro, measured (2026-10-24, `mac_bench/queue.sh`, 64 teams per setting; W&B `bench-qwen3b_r32-m4pro`).** The
 batched sampler matches the released `generate` token for token here too.
 
