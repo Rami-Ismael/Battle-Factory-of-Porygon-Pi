@@ -10,7 +10,7 @@ Win rate = wins / battles against the top-50 meta teams, one battle per (team, t
 BC policy both sides (policy 1), in the matchup matrix (origin textdiff:<cell>). Same protocol,
 seed and cell size as foundation.py (64 teams, seed 2026).
 """
-import json, math, sys, time
+import json, math, os, sys, time
 from collections import Counter
 from pathlib import Path
 import numpy as np
@@ -29,6 +29,8 @@ RUNTIME = Path.home() / ".local/share/vgc-pilot-runtime"
 GEN = RUNTIME / "textdiff" / "gen"
 OUT = L.RES / "textdiff.json"
 N, SEED, POOL = 64, 2026, 512
+WRITER = os.environ.get("TEXTDIFF_WRITER", "lora_r32")   # decode: gen/<WRITER>_<arm>.jsonl -> cells <TAG>:<arm>
+TAG = os.environ.get("TEXTDIFF_TAG", "text")             # e.g. TEXTDIFF_WRITER=qwen3b_r32 TEXTDIFF_TAG=text3b (2026-10-23)
 SCRATCH_ARMS = {"base": dict(), "cfg": dict(ystar=0.5, g=2.0)}
 
 
@@ -75,9 +77,9 @@ def decode():
     corpus, V, C, look, spreads = X.setup()
     out = _load(); val = Validator()
     try:
-        for path in sorted(GEN.glob("lora_r32_*.jsonl")):            # peeks (_peek_*.jsonl) are not cells
-            if path.stem.startswith("lora_r32_pool_"): continue      # stack pools are decoded by stack()
-            tag = "text:" + path.stem[len("lora_r32_"):]
+        for path in sorted(GEN.glob(f"{WRITER}_*.jsonl")):          # peeks (_peek_*.jsonl) are not cells
+            if path.stem.startswith(f"{WRITER}_pool_"): continue     # stack pools are decoded by stack()
+            tag = f"{TAG}:" + path.stem[len(f"{WRITER}_"):]
             if ONLY and tag.split(":")[1] not in ONLY: continue
             rows = [json.loads(l) for l in open(path)]
             if tag in out["cells"] and out["cells"][tag].get("n_raw") == len(rows): continue
@@ -102,7 +104,7 @@ def decode():
                 keep.append(p)
                 if len(keep) >= N: break
             n_used = len(rows) if len(keep) < N else rows.index(r) + 1
-            out["cells"][tag] = dict(model="text", arm=tag.split(":")[1], pastes=keep[:N], n_raw=len(rows), tried=n_used,
+            out["cells"][tag] = dict(model=TAG, arm=tag.split(":")[1], pastes=keep[:N], n_raw=len(rows), tried=n_used,
                                      valid=len(keep) / max(n_used, 1), failures=dict(fails.most_common(8)),
                                      seconds=secs, seconds_per_raw=secs / max(len(rows), 1))
             _save(out)
@@ -294,6 +296,23 @@ def report_final(out):
               f"{he.mean():10.3f} {sets:5d}")
         best = rows[int(fr.argmax())]
         print("   best:", ", ".join(s["species"] for s in parse_team_text(best["paste"])), f"(label {best['label']:.3f}, {best['cell']})")
+
+
+def bench():
+    """Raw legality of textdiff.py bench rows, per sampler setting: python textdiff_battle.py bench <bench jsonl>.
+    The decode() rules (six slots, spreads filled from the corpus, Showdown validation, no repair) on every row."""
+    corpus, V, C, look, spreads = X.setup()
+    rows = [json.loads(line) for line in open(sys.argv[2])]
+    val = Validator()
+    try:
+        for setting in dict.fromkeys(r["setting"] for r in rows):
+            mine = [r for r in rows if r["setting"] == setting]; fails = Counter()
+            keep, used, _ = _decode_rows(mine, spreads, val, len(mine), np.random.default_rng(SEED), fails)
+            species = {tuple(sorted(s["species"] for s in slots)) for _, slots in keep}
+            print(json.dumps(dict(setting=setting, valid=f"{len(keep)}/{used}", species_sets=len(species),
+                                  seconds_per_team=mine[0]["seconds"], failures=dict(fails.most_common(3)))), flush=True)
+    finally:
+        val.close()
 
 
 ONLY = set(sys.argv[2:])            # decode <arm...>: restrict to finished arms

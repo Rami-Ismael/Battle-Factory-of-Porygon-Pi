@@ -608,3 +608,70 @@ elementwise 12%, attention 9.5% (dense-mask sdpa already runs cuDNN's flash kern
 the LoRA adapters, which PEFT keeps in fp32. On the M4 Pro fp32 runs at the bf16 rate, so this cost nothing there.
 `--autocast` (bf16 adapter matmuls, fp32 weights) and `--tf32` target it; both probes, and batch 8, were stopped
 before they reported, so they are unmeasured.
+
+## Inference: the 3B writer's sampler on the H100 (2026-10-23)
+
+The released `generate` writes one team per call: it samples only row 0 and stops every row at the first stop token it
+sees. `textdiff_port.generate_batch` runs the same forward calls for n samples of one prompt, each row sampling,
+unmasking and stopping on its own. With one greedy row and the released bf16 softmax (`exact=True`) it reproduces the
+released `generate` token for token, with and without the block cache (`textdiff.py bench` checks this first).
+`textdiff.py bench` times the samplers (64 teams per setting, target `unknown`, temperature 1, threshold 0.9);
+`textdiff_battle.py bench` checks the same texts' raw legality.
+
+| sampler (H100) | s / team | forwards / team | legal of 64 |
+|---|---|---|---|
+| released `generate`, one team per call | 3.65 | 137 | 30 |
+| `generate_batch`, batch 1 | 3.30 | 134 | 32 |
+| batch 1, block cache | 3.12 | 131 | 34 |
+| batch 8 | 0.88 | 24.9 | 33 |
+| batch 32 | 0.24 | 6.4 | 37 |
+| **batch 64** | **0.17** | 3.9 | 30 |
+| batch 64, block cache | 0.16 | 3.8 | 27 |
+
+Batching is the lever: at batch 1 a 32-token forward costs ~24 ms of launch and sync overhead on the H100, and 64 rows
+share it (21× the released sampler's teams per second, 10 GB). Legality stays within noise (27–37 of 64) in every
+setting, about the 1.5B writer's 50% at `unknown`. The block cache saves arithmetic the H100 is not short of. Lower
+thresholds do not pay in a batch, because rows share each 8-token sub-block and a step waits for the least confident row:
+at batch 64, threshold 0.7 ran 0.13–0.16 s/team (24 and 30 legal) and 0.5 broke the paste structure (4 and 10 legal).
+Separate H100 containers differed by up to 25% on the same setting (batch 8: 0.66 and 0.88 s).
+
+Published: [Rami/qwen2.5-3b-block-diffusion-vgc-regmb-lora](https://huggingface.co/Rami/qwen2.5-3b-block-diffusion-vgc-regmb-lora)
+(adapter SHA-256 equal to the local file; `textdiff.py hubcheck` loads it with the repo's `load_vgc_writer.py` and writes
+the same greedy team as the local adapter). Qwen RESEARCH LICENSE, non-commercial; card in `hub/`. Curves and tables:
+W&B `compress_rl/vgc-textdiff` (`scripts/textdiff_wandb.py`). The M4 Pro has not been measured: another session's
+training queue holds its GPU.
+
+### Batch size, weight types and samplers (2026-10-23, H100, 256 teams per setting)
+
+Sampler research: `docs/textdiff-sampler-research.md`. Legality is raw Showdown validity at target `unknown`; ±3 points
+is noise at 256 teams.
+
+| setting | s / team | legal | species sets |
+|---|---|---|---|
+| bf16, batch 64 | 0.141 | 51% | 54 |
+| bf16, batch 128 | 0.137 | 49% | 52 |
+| bf16, batch 256 | 0.182 | 57% | 58 |
+| int8 weight-only, batch 64 / 256 | 0.242 / 0.220 | 50% / 48% | 56 / 42 |
+| FP8 weights and activations, batch 64 / 256 | 0.932 / 0.287 | 46% / 47% | 58 / 59 |
+| greedy, batch 128 | 0.05–0.07 | 0% or 100% | 1 (one team) |
+| temperature 1, top-p 0.9 | 0.207 | 58% | 43 |
+| temperature 0.7, top-p 0.9 | 0.174 | 42% | 19 |
+| temperature 0.2, top-p 0.95 | 0.056 | 1% | 1 |
+
+- **Batch:** 64–128 is the best size. 256 fits (21 GB) but is slower: a call lasts as long as its slowest row (307
+  batched steps per call at 256 against 230 at 128), and each step is now compute-bound.
+- **Lower types:** torchao int8 weight-only and FP8 (eager, no `torch.compile`) are slower than bf16 at every batch:
+  the decode is not memory-bound at these sizes, and dynamic FP8 quantises the activations on every call. FP8 also
+  costs about 5 points of legality. Kept bf16.
+- **Block cache:** costs legality. Across five paired settings, 49.2% with it against 53.9% without (630 vs 690 of 1,280,
+  about 2.4σ): it reuses stale keys and values inside a block. Off for evaluation.
+- **Sampler:** greedy writes one team per prompt, so it cannot fill a pool. Low temperature breaks parallel decoding:
+  the unmasking confidence is computed after temperature scaling, so at 0.2 nearly every position passes the 0.9
+  threshold and inconsistent tokens land together (`focuss`, 1% legal). Top-p 0.9 gains no clear legality and loses a
+  fifth of the species sets. Kept temperature 1, top-p 1, the 1.5B writer's sampler, which also keeps the comparison fair.
+
+**Win rate against the baseline (pending).** The 3B writer's four arms were generated on the H100 with that sampler
+(`gen --batch-gen 128`; guidance arm through `generate_cfg`) and decoded as `text3b:` cells in `results/textdiff.json`:
+raw legality 58% at `unknown`, 86% at 0.50, 88% at 0.60 and 90% at 0.50 with guidance 2 (1.5B: 50%, 88%, 88%, 79%). The battles, the 1.5B writer's and the
+scratch model's protocol, are queued on the M4 Pro behind the other session's training
+(`~/.local/share/vgc-pilot-runtime/textdiff/battle3b/queue.sh`) and log to W&B as run `battle-textdiff-3b-2026-10-23`.

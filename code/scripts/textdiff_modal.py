@@ -4,6 +4,7 @@
     modal run scripts/textdiff_modal.py::upload                     # train.jsonl / val.jsonl -> the vgc-textdiff volume
     modal run scripts/textdiff_modal.py::upload --folder llmformat/regmb       # an LLM-format version's folder
     modal run --detach scripts/textdiff_modal.py::run --argv "train --name qwen3b_r32 --base Qwen/Qwen2.5-3B-Instruct --limit 8000"
+    modal run --detach scripts/textdiff_modal.py::run --argv "gen base --name qwen3b_r32 ... && gen ask50 --name qwen3b_r32 ..."
     modal volume get vgc-textdiff qwen3b_r32 ~/.local/share/vgc-pilot-runtime/textdiff/
 
 The volume is mounted where textdiff.py keeps its runtime folder (HOME is /root in the container), so OUT, --name and
@@ -24,7 +25,7 @@ REMOTE = "/root/.local/share/vgc-pilot-runtime/textdiff"
 app = modal.App("textdiff")
 image = (modal.Image.debian_slim(python_version="3.11")
          .pip_install("torch==2.14.1", "transformers==4.57.3", "peft==0.18.1", "accelerate==1.15.0", "safetensors==0.8.0",
-                      "einops==0.8.2", "numpy==2.4.6", "huggingface_hub==0.36.2")
+                      "einops==0.8.2", "numpy==2.4.6", "huggingface_hub==0.36.2", "torchao==0.18.0")
          .env({"PYTHONUNBUFFERED": "1"})
          .add_local_file(SRC / "textdiff.py", "/root/src/textdiff.py")
          .add_local_file(SRC / "textdiff_port.py", "/root/src/textdiff_port.py"))
@@ -34,12 +35,15 @@ hf = modal.Volume.from_name("vgc-hf-cache", create_if_missing=True)          # m
 
 @app.function(image=image, gpu="H100", timeout=4 * 3600, volumes={REMOTE: data, "/root/.cache/huggingface": hf})
 def textdiff(argv: str):
-    p = subprocess.Popen(["python", "textdiff.py", *shlex.split(argv)], cwd="/root/src")
-    while p.poll() is None:
-        time.sleep(120)
-        data.commit()                           # the step adapters (every --eval-every) survive a crash or a timeout
-    data.commit(); hf.commit()
-    if p.returncode: raise RuntimeError(f"textdiff.py exited with {p.returncode}")
+    for command in argv.split(" && "):          # several textdiff.py command lines in one container, in order
+        p = subprocess.Popen(["python", "textdiff.py", *shlex.split(command)], cwd="/root/src")
+        last = time.time()
+        while p.poll() is None:                 # checked every 5 s: a crash stops the (billed) container at once
+            time.sleep(5)
+            if time.time() - last > 120:
+                data.commit(); last = time.time()   # the step adapters (every --eval-every) survive a crash or a timeout
+        data.commit(); hf.commit()
+        if p.returncode: raise RuntimeError(f"textdiff.py {command.split()[0]} exited with {p.returncode}")
 
 
 @app.local_entrypoint()

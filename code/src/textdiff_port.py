@@ -11,6 +11,12 @@ Run with ~/.local/share/vgc-pilot-runtime/venv-dlm (transformers 4.57, peft 0.18
 import sys, time
 import torch, torch.nn.functional as F
 
+try:                  # peft 0.18.1's LoRA dispatch imports a class torchao 0.18 dropped whenever torchao is installed (the
+    import peft.tuners.lora.torchao as _peft_torchao   # Modal image has it for --quant); our adapters never sit on
+    _peft_torchao.is_torchao_available = lambda: False  # torchao tensors, so the check is skipped
+except ImportError:
+    pass
+
 MODEL_ID = "Efficient-Large-Model/Fast_dLLM_v2_1.5B"
 REVISION = "25093b6f63300adfd57f72145083c8a528fe4f16"     # the snapshot every run so far used (docs/textdiff.md)
 MASK_ID = 151665
@@ -375,6 +381,84 @@ def generate_cfg(model, cond_ids, uncond_ids, guidance, max_new_tokens=320, thre
     if stop_token in x[0, original:]:
         k = int((x[0, original:] == stop_token).nonzero()[0, 0]); x = x[:, :original + k + 1]
     return x[0:1]
+
+
+# ---------------------------------------------------------------- many samples of one prompt per call (2026-10-23)
+@torch.no_grad()
+def generate_batch(model, prompt_ids, n, max_new_tokens=320, threshold=0.9, block_size=32, small_block_size=8,
+                   temperature=1.0, top_p=1.0, block_cache=False, exact=False, stop_token=151645):
+    """The released block sampler (modeling.py generate) for n samples of one prompt in one batch. The released loop is
+    single-row in practice: it samples row 0 only and stops every row at the first stop token it sees. Here each row
+    samples, unmasks (every token above the threshold, and at least its most confident one) and stops on its own; a
+    stopped row rides along unchanged until every row has stopped. The forward calls are the released ones: the prompt
+    prefill, one per denoising step (the whole 32-token block, or with block_cache the 8-token sub-block against the
+    block's cached keys and values), and the call that commits a finished block and drafts the next block's first
+    token. exact: softmax over the bf16 logits as released (for the token-for-token check); default fp32.
+    Returns a list of n token lists (generated tokens, cut after the stop token)."""
+    bs, small = block_size, small_block_size
+    dev = prompt_ids.device
+    x = prompt_ids.expand(n, -1).clone(); original = x.shape[1]
+    rows = torch.arange(n, device=dev)
+    past = None
+    if original > bs:
+        out = model.forward(input_ids=x[:, :original // bs * bs], use_cache=True, update_past_key_values=True, block_size=bs)
+        past = out.past_key_values
+        if original % bs == 0: x = torch.cat([x, out.logits[:, -1:].argmax(-1)], 1)
+
+    def stopped(x):                                     # the released check, per row: a stop token with no mask before it
+        gen = x[:, original:]; hit = gen == stop_token
+        if gen.shape[1] == 0: return hit.any(1)
+        first = torch.where(hit.any(1), hit.int().argmax(1), gen.shape[1])
+        masked_before = ((gen == MASK_ID) & (torch.arange(gen.shape[1], device=dev)[None] < first[:, None])).any(1)
+        return hit.any(1) & ~masked_before
+
+    def sample(lg):                                     # (n, k, V) -> tokens (n, k) and their probabilities
+        if temperature <= 0:
+            p = F.softmax(lg, -1); x1 = p.argmax(-1)
+        else:
+            p = F.softmax(lg / temperature, -1)
+            if top_p < 1.0:
+                ps, ix = p.sort(-1, descending=True); keep = ps.cumsum(-1) - ps < top_p
+                p = torch.zeros_like(p).scatter(-1, ix, ps * keep); p = p / p.sum(-1, keepdim=True)
+            x1 = torch.multinomial(p.flatten(0, 1), 1).view(p.shape[:2])
+        return x1, p.gather(-1, x1[..., None]).squeeze(-1)
+
+    shift = lambda lg: torch.cat([lg[:, :1], lg[:, :-1]], 1)
+    for _ in range(max_new_tokens // bs):
+        if bool(stopped(x).all()): break
+        x = torch.cat([x, torch.full((n, bs - x.shape[1] % bs), MASK_ID, dtype=torch.long, device=dev)], 1)
+        bpast = None
+        for sb in range(bs // small):
+            start = -bs + sb * small; end = None if sb == bs // small - 1 else start + small
+            while True:
+                m = x[:, start:end] == MASK_ID
+                need = m.any(1) & ~stopped(x)
+                if not bool(need.any()): break
+                if block_cache and bpast is not None and not bool((x[:, -bs + sb * small] == MASK_ID).any()):
+                    out = model.forward(input_ids=x[:, start:end], use_cache=True, past_key_values=past, update_past_key_values=False,
+                                        use_block_cache=True, block_past_key_values=bpast, replace_position=sb * small)
+                    lg = shift(out.logits)
+                elif block_cache:
+                    out = model.forward(input_ids=x[:, -bs:], use_cache=True, past_key_values=past, update_past_key_values=False,
+                                        use_block_cache=True)
+                    bpast = out.block_past_key_values; lg = shift(out.logits)[:, start:end]
+                else:
+                    out = model.forward(input_ids=x[:, -bs:], use_cache=True, past_key_values=past, update_past_key_values=False)
+                    lg = shift(out.logits)[:, start:end]
+                x1, conf = sample(lg if exact else lg.float())
+                conf = torch.where(m, conf, torch.full_like(conf, -float("inf")))
+                un = conf > threshold
+                un[rows, conf.argmax(-1)] = True
+                un &= m & need[:, None]
+                seg = x[:, start:end]; seg[un] = x1[un]
+        if bool(stopped(x).all()): break
+        out = model.forward(input_ids=x[:, -bs:], use_cache=True, past_key_values=past, update_past_key_values=True, block_size=bs)
+        past = out.past_key_values
+        x = torch.cat([x, out.logits[:, -1:].argmax(-1)], 1)
+    result = []
+    for row in x[:, original:].tolist():
+        result.append(row[:row.index(stop_token) + 1] if stop_token in row else row)
+    return result
 
 
 # ---------------------------------------------------------------- faster training layouts (2026-10-18)

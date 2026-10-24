@@ -547,6 +547,18 @@ def gen(args):
     ids = chat(prompt)
     unc = chat(prompt_text(None)) if cfg.get("guidance") else None
     with open(dest, "a") as f:
+        if args.gen_batch > 1 and not cfg.get("guidance"):  # generate_batch: --batch-gen teams per call, seconds amortised per team
+            i = done
+            while i < args.n:
+                b = min(args.gen_batch, args.n - i); t0 = time.perf_counter()
+                outs = P.generate_batch(m, ids, b, max_new_tokens=args.max_new, threshold=args.threshold,
+                                        temperature=args.temperature, top_p=args.top_p, block_cache=args.block_cache)
+                secs = (time.perf_counter() - t0) / b
+                for t in outs:
+                    f.write(json.dumps(dict(i=i, arm=args.arm, text=tok.decode(t, skip_special_tokens=True), seconds=secs,
+                                            tokens=len(t))) + "\n"); i += 1
+                f.flush(); print(f"{args.arm} {i}/{args.n} {secs:.2f}s/team", flush=True)
+            return
         for i in range(done, args.n):
             t0 = time.perf_counter()
             with torch.no_grad():
@@ -562,9 +574,84 @@ def gen(args):
             if i % 8 == 0: print(f"{args.arm} {i}/{args.n} {time.perf_counter()-t0:.1f}s", flush=True)
 
 
+def bench(args):
+    """textdiff.py bench: generation speed of one adapter (--name, --base) on this machine. First the token-for-token check:
+    generate_batch with one greedy row and the released bf16 softmax against the released generate, with and without the
+    block cache. Then --n teams per setting: the released sampler one team per call (as gen runs it), and generate_batch at
+    each --batches size, with and without the block cache. Rows go to gen/bench_<name>_<device>.jsonl (one setting each,
+    seconds amortised per team) for textdiff_battle legality."""
+    import torch, textdiff_port as P
+    from peft import PeftModel
+    tok, m = P.load(base=args.base or None)
+    m = PeftModel.from_pretrained(m, str(OUT / args.name / args.adapter)).merge_and_unload(); m.eval()
+    torch.set_grad_enabled(False)                    # as gen's torch.no_grad(): the released generate builds no graph
+    if args.quant != "none":                         # CUDA: torchao weight types for the decoder's linear layers (not the head)
+        from torchao.quantization import quantize_, Float8DynamicActivationFloat8WeightConfig, Int8WeightOnlyConfig
+        cfg = {"fp8": Float8DynamicActivationFloat8WeightConfig(), "int8wo": Int8WeightOnlyConfig()}[args.quant]
+        quantize_(m, cfg, filter_fn=lambda mod, fqn: isinstance(mod, torch.nn.Linear) and "lm_head" not in fqn)
+    ids = tok.apply_chat_template([{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt_text(ARMS[args.arm]["ask"])}],
+                                  add_generation_prompt=True, return_tensors="pt").to(P.DEV)
+    kw = dict(max_new_tokens=args.max_new, threshold=args.threshold, block_size=32, small_block_size=8)
+    calls = [0]; forward = m.forward
+    def counted(*a, **k):
+        calls[0] += 1; return forward(*a, **k)
+    m.forward = counted
+    for cache in (False, True):
+        ref = m.generate(ids, temperature=0, use_block_cache=cache, **kw)[0, ids.shape[1]:].tolist()
+        got = P.generate_batch(m, ids, 1, temperature=0, block_cache=cache, exact=True, **kw)[0]
+        print(json.dumps(dict(check="greedy, one row, against the released generate", block_cache=cache, identical=ref == got,
+                              tokens=len(ref))), flush=True)
+    samplers = ([tuple(map(float, x.split(":"))) for x in args.samplers.split(",")] if args.samplers
+                else [(args.temperature, args.top_p)])
+    sampler_tag = args.samplers.replace(",", "-").replace(":", "p") if args.samplers else f"T{args.temperature}_p{args.top_p}"
+    tag = f"{args.batches.replace(',', '-')}_t{args.threshold}_{sampler_tag}" + ("" if args.quant == "none" else f"_{args.quant}")
+    dest = OUT / "gen" / f"bench_{args.name}_{P.DEV.type}_{tag}.jsonl"; dest.parent.mkdir(parents=True, exist_ok=True)
+    suffix = (lambda T, tp: f"_T{T:g}_p{tp:g}") if args.samplers else (lambda T, tp: "")
+    settings = [("released" + suffix(T, tp), 1, False, T, tp) if b == "released" else
+                (f"batch{b}{'_cache' if c else ''}" + suffix(T, tp), int(b), c, T, tp)
+                for T, tp in samplers for b in args.batches.split(",") for c in ((False,) if b == "released" else (False, True))]
+    with open(dest, "w") as f:
+        for setting, b, cache, T, tp in settings:
+            texts, calls[0] = [], 0
+            P.synchronize(); t0 = time.perf_counter()
+            for _ in range(math.ceil(args.n / b)):
+                if setting.startswith("released"):
+                    texts.append(m.generate(ids, temperature=T, top_p=tp, **kw)[0, ids.shape[1]:].tolist())
+                else:
+                    texts += P.generate_batch(m, ids, b, temperature=T, top_p=tp, block_cache=cache, **kw)
+            P.synchronize(); secs = (time.perf_counter() - t0) / len(texts)
+            for i, t in enumerate(texts):
+                f.write(json.dumps(dict(setting=setting, i=i, text=tok.decode(t, skip_special_tokens=True), seconds=secs, tokens=len(t))) + "\n")
+            f.flush()
+            print(json.dumps(dict(setting=setting, device=P.DEV.type, teams=len(texts), seconds_per_team=round(secs, 4),
+                                  forwards_per_team=round(calls[0] / len(texts), 1), tokens_per_team=round(sum(map(len, texts)) / len(texts), 1),
+                                  threshold=args.threshold, temperature=T, top_p=tp, quant=args.quant,
+                                  memory_gb=round(P.memory_gb(), 1))), flush=True)
+
+
+def hubcheck(args):
+    """textdiff.py hubcheck --hub REPO --name N --base B: the published adapter, loaded by the repo's own load_vgc_writer.py,
+    against the local adapter loaded the way training built it: one greedy team each (released bf16 softmax), token for token."""
+    import importlib.util, torch, textdiff_port as P
+    from huggingface_hub import hf_hub_download
+    from peft import PeftModel
+    spec = importlib.util.spec_from_file_location("load_vgc_writer", hf_hub_download(args.hub, "load_vgc_writer.py"))
+    W = importlib.util.module_from_spec(spec); spec.loader.exec_module(W)
+    tok, hub = W.load(P.DEV.type)
+    ids = W.prompt_ids(tok, None, P.DEV.type)
+    kw = dict(temperature=0, exact=True, max_new_tokens=args.max_new, threshold=args.threshold)
+    a = W.generate_batch(hub, ids, 1, **kw)[0]
+    del hub; torch.cuda.empty_cache() if P.DEV.type == "cuda" else None
+    _, m = P.load(base=args.base or None)
+    m = PeftModel.from_pretrained(m, str(OUT / args.name / args.adapter)).merge_and_unload().eval()
+    b = P.generate_batch(m, ids, 1, **kw)[0]
+    print(json.dumps(dict(check="hub load against the local adapter", identical=a == b, tokens=len(a),
+                          start=tok.decode(a, skip_special_tokens=True)[:120])), flush=True)
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("command", choices=["prepare", "smoke", "train", "gen", "verify", "flexcheck"])
+    p.add_argument("command", choices=["prepare", "smoke", "train", "gen", "verify", "flexcheck", "bench", "hubcheck"])
     p.add_argument("arm", nargs="?", default="base")
     p.add_argument("--name", default="lora_r32")
     p.add_argument("--seed", type=int, default=SEED, help="train: torch, mask and order seed (same --limit examples)")
@@ -619,5 +706,14 @@ if __name__ == "__main__":
     p.add_argument("--threshold", type=float, default=0.9)
     p.add_argument("--temperature", type=float, default=1.0)
     p.add_argument("--top-p", type=float, default=1.0)
+    p.add_argument("--batch-gen", dest="gen_batch", type=int, default=1, help="gen: teams per generate_batch call (arms without guidance)")
+    p.add_argument("--block-cache", action="store_true", help="gen: generate_batch with the block cache")
+    p.add_argument("--samplers", default="", help="bench: temperature:top_p pairs, e.g. 0:1,1:1,1:0.9,0.7:0.9 (each crossed "
+                   "with --batches; default: --temperature and --top-p)")
+    p.add_argument("--quant", choices=["none", "fp8", "int8wo"], default="none", help="bench: torchao FP8 (weights and "
+                   "activations) or int8 weight-only linear layers after the adapter merge (CUDA)")
+    p.add_argument("--hub", default="", help="hubcheck: the Hugging Face repo to load")
+    p.add_argument("--batches", default="released,1,8,32", help="bench: 'released' (one team per call) and generate_batch "
+                   "sizes, each with and without the block cache")
     a = p.parse_args()
     globals()[a.command](a)
