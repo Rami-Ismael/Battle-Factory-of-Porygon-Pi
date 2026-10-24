@@ -58,7 +58,7 @@ def options(order_fn, reps):
             k = L.KEY_OF_COL[c]; j = L.COLS_BY_KEY[k].index(c)
             acc[k].append(T.allowed(cur)[k][:, j].sum(1).float().mean().item()); cur[:, c] = xa[:, c]
     return {k: round(float(np.mean(v)), 1) for k, v in acc.items()}
-opts = dict(deployed=options(lambda g: list(D.ORDER), 1),
+opts = dict(deployed=options(lambda _generator: list(D.ORDER), 1),
             random=options(lambda g: torch.randperm(L.COLS, generator=g).tolist(), 8),
             vocab={k: V.sizes[k] - 1 for k in L.KEYS})
 print(opts)

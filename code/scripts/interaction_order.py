@@ -52,8 +52,8 @@ def make_benchmarks(rng):
     def sphere(x): return float(np.sum(LEVELS[x] ** 2))
     pest = load_run1_module()["pest_control"]
     # (f(x, sim_seed), levels, maximise?)
-    return {"sphere": (lambda x, s: sphere(x), 5, False), "spin_glass": (lambda x, s: spin(x), 2, False),
-            "max3sat": (lambda x, s: maxsat(x), 2, True), "nk_k4": (lambda x, s: nk(x), 2, True),
+    return {"sphere": (lambda x, _seed: sphere(x), 5, False), "spin_glass": (lambda x, _seed: spin(x), 2, False),
+            "max3sat": (lambda x, _seed: maxsat(x), 2, True), "nk_k4": (lambda x, _seed: nk(x), 2, True),
             "pest_control": (lambda x, s: pest(x, np.random.default_rng(s)), 5, False)}
 
 def bench_cubes(rng):

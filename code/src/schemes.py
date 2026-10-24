@@ -657,7 +657,7 @@ def report(res):
     print("=" * 118, flush=True)
 
 # --------------------------------------------------------------------------
-def selftest(arc, constraints, vocab, Xc, n_rows=40):
+def selftest(arc, constraints, Xc, n_rows=40):
     """Arm 1 must be bit-identical to what runs today: under dependency order the
     arc-consistent mask has to equal diffusion.Constraints.mask_for at every step."""
     rng = np.random.default_rng(0); checked = 0
@@ -707,7 +707,7 @@ def main():
                pmi=PMI(corpus), opp=opponents(), val=Validator(),
                Xc=np.stack([vocab.encode(t) for t in corpus]))
     if args.selftest:
-        selftest(arc, constraints, vocab, ctx["Xc"]); ctx["val"].close(); return
+        selftest(arc, constraints, ctx["Xc"]); ctx["val"].close(); return
     print(f"{len(corpus)} corpus teams · {len(labelled)} labelled · {len(ctx['opp'])} opponents "
           f"· device {DEV} · per={per} battles={battles} cap={cap}", flush=True)
 

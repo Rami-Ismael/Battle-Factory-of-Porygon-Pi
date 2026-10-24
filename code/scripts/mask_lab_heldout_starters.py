@@ -66,7 +66,7 @@ def to_pipeline_team(text):
 
 
 # ---------------------------------------------------------------- prepare (/tmp/vgc-pilot/.venv)
-def prepare(a):
+def prepare(_args):
     import heldout as H                       # the project's own modules, before the vault code adds the staging folder
     M = vault("mask_lab_prepare"); A, P = sys.modules["prompt_ab"], sys.modules["pipeline"]
     config = A.load_config(str(PIPELINE / "benchmark.ling.json")); config["mask_repetitions"] = 1
@@ -93,7 +93,7 @@ def prepare(a):
 
 
 # ---------------------------------------------------------------- split (/tmp/vgc-pilot/.venv)
-def split(a):
+def split(_args):
     """No model that fills these masks trained on a starting team: 48-field identity against every text-writer example,
     shared slots for the near copies, and the held-out separation tests for the scratch decoder's data."""
     import corpus, heldout as H
@@ -149,7 +149,7 @@ def split(a):
 
 
 # ---------------------------------------------------------------- fills
-def diffusion(a):
+def diffusion(_args):
     """The scratch decoder (clean F1 + G2 v3 pair) on the manifest, then its valid fills join candidates.json."""
     import asked_vs_got, corpus                       # noqa: F401  project modules first
     D = vault("mask_lab_diffusion"); D.WORK = WORK / "diffusion"; D.MEMBERS = MEMBERS
@@ -260,7 +260,7 @@ def battle(a):
 
 
 # ---------------------------------------------------------------- report (any Python 3)
-def report(a):
+def report(_args):
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from mask_lab_heldout import cluster, fmt
     tasks = json.loads((RUN / "eval2.tasks.json").read_text())["tasks"]

@@ -22,7 +22,7 @@ def contamination_task():
     init_Z = np.random.RandomState(42).beta(1.0, 30.0, size=(sims,))
     lambdas = np.random.RandomState(42).beta(1.0, 17.0 / 3.0, size=(n, sims))
     gammas = np.random.RandomState(42).beta(1.0, 3.0 / 7.0, size=(n, sims))
-    def f(x, rng=None):
+    def f(x, _rng=None):
         Z = np.zeros((n, sims))
         Z[0] = lambdas[0] * (1 - x[0]) * (1 - init_Z) + (1 - gammas[0] * x[0]) * init_Z
         for i in range(1, n):
@@ -46,7 +46,7 @@ def ising_task():
     lz0 = logZ(J)
     hi = [0, 2, 4, 7, 9, 11, 14, 16, 18, 21, 22, 23]; vi = sorted(set(range(24)) - set(hi))   # BOCS mapping
     order = np.array(hi + vi)
-    def f(x, rng=None):
+    def f(x, _rng=None):
         mask = x[order].astype(float); Jq = J * mask
         return float(2 * np.sum((J - Jq) * EP) + logZ(Jq) - lz0 + 1e-2 * x.sum())
     return f, [2] * 24, False
@@ -70,20 +70,20 @@ def pest_score(x, rng):
 def pest_combo_task():      # COMBO: global np.random, never reseeded -> a fresh draw on every call
     return (lambda x, rng: pest_score(x, rng)), [5] * 25, True
 def pest_bounce_task():     # Bounce: _pest_control_score(x, seed=self.seed) -> same draw on every call
-    return (lambda x, rng=None: pest_score(x, np.random.default_rng(0))), [5] * 25, False
+    return (lambda x, _rng=None: pest_score(x, np.random.default_rng(0))), [5] * 25, False
 
 def maxsat_task():
     lines = [l.split() for l in open(HERE.parent / "data" / "frb10-6-4.wcnf") if l[0] not in "cp"]
     w = np.array([float(l[0]) for l in lines]); w = (w - w.mean()) / w.std()
     cl = [(np.abs(np.array(l[1:-1], int)) - 1, np.array(l[1:-1], int) > 0) for l in lines]
-    def f(x, rng=None):
+    def f(x, _rng=None):
         xb = x.astype(bool)
         return float(-np.sum(w * np.array([np.any(xb[i] == s) for i, s in cl])))
     return f, [2] * 60, False
 
 def labs_task():
     n = 50
-    def f(x, rng=None):
+    def f(x, _rng=None):
         s = 2 * x - 1; e = sum(float(np.dot(s[:-k], s[k:])) ** 2 for k in range(1, n))
         return -n * n / (2 * e)
     return f, [2] * n, False
@@ -115,7 +115,7 @@ def pen_logp_task():
     from rdkit.Chem import Crippen, rdmolops, RDConfig
     import os; sys.path.append(os.path.join(RDConfig.RDContribDir, "SA_Score")); import sascorer
     Chem = mol_env()["Chem"]
-    def f(smi, rng=None):                       # LOL-BO smile_to_penalized_logP, negated to minimise
+    def f(smi, _rng=None):                       # LOL-BO smile_to_penalized_logP, negated to minimise
         m = Chem.MolFromSmiles(smi)
         cyc = nx.cycle_basis(nx.Graph(rdmolops.GetAdjacencyMatrix(m)))
         c = max([len(j) for j in cyc], default=0); c = c - 6 if c > 6 else 0
@@ -128,7 +128,7 @@ def tdc_task(name):
     def make():
         from tdc import Oracle
         o = Oracle(name=name)
-        return (lambda smi, rng=None: -float(o(smi))), "mol", False
+        return (lambda smi, _rng=None: -float(o(smi))), "mol", False
     return make
 
 TASKS = {"contamination": contamination_task, "ising": ising_task, "pest_combo": pest_combo_task,

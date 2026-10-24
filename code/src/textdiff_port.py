@@ -118,7 +118,7 @@ def patch(model):
         return F.scaled_dot_product_attention(q, k, v, attn_mask=mask, enable_gqa=True)
     mod.fused_flex_attention = dense_attention
 
-    def gen_mask(self, seqlen, block_size, B, H):
+    def gen_mask(self, seqlen, block_size, B, H):  # noqa: ARG001 the model's gen_mask signature
         return dense_train_mask(seqlen, block_size, next(self.parameters()).device, getattr(self, "textdiff_nseg", 2))
     type(model.model).gen_mask = gen_mask
 

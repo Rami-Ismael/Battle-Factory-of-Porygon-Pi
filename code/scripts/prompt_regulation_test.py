@@ -113,7 +113,7 @@ def interval(by_start,seed):
     return float(values.mean()),*map(float,np.quantile(draws,[.025,.975]))
 
 
-def report(args):
+def report(_args):
     rows=collections.defaultdict(dict);cost=collections.Counter();why={arm:collections.Counter() for arm in ARMS};manifest=None
     for f in folders():
         m=read(f/'manifest.json');manifest=manifest or m;arm=m.get('prompt_version',V.ORIGINAL)
