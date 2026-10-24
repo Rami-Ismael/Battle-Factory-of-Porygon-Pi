@@ -75,6 +75,22 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);out
 .fills{width:100%;border-collapse:collapse;font:400 .85rem var(--font-ui);margin-top:.6rem}
 .fills td{padding:.3rem .4rem;border-bottom:1px solid var(--rule)} .fills td.r{text-align:right}
 .mon.hid .face{outline:2px dashed var(--meta);outline-offset:2px;border-radius:6px}
+/* scoreboard: every approach on every grid, one cell per net change */
+.board{width:100%;border-collapse:separate;border-spacing:3px;font:400 .82rem var(--font-ui);table-layout:fixed}
+.board th{font:600 .74rem var(--font-ui);color:var(--ink-2);text-align:center;padding:.2rem}
+.board th.who{text-align:left;width:42%}
+.board td{padding:.35rem .3rem;text-align:center;border-radius:4px}
+.board td.who{text-align:left;background:none;padding-left:0}
+.board td.who small{display:block;color:var(--ink-3);font-size:.7rem}
+.board td b{font:600 .9rem var(--font-ui)} .board td small{display:block;font-size:.66rem;opacity:.8}
+.board tr.grp td{padding-top:.7rem;font:600 .7rem var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:left;background:none}
+.board td.na{color:var(--ink-3);background:var(--wash)}
+.reg{width:100%;border-collapse:collapse;font:400 .8rem/1.4 var(--font-ui)}
+.reg th,.reg td{text-align:left;vertical-align:top;padding:.45rem .4rem;border-bottom:1px solid var(--rule)}
+.reg th{font-weight:600;color:var(--ink-2)} .reg td:first-child{font-weight:600;min-width:9rem}
+.reg code{font-size:.74rem} .reg .st{display:inline-block;font:600 .68rem var(--font-ui);padding:.05rem .4rem;border-radius:999px;background:var(--wash);color:var(--ink-2)}
+.reg .st.run{background:color-mix(in oklab, var(--same) 22%, var(--wash));color:var(--ink)}
+@media (max-width:520px){.board th.who{width:36%} .board{font-size:.74rem}}
 /* answers */
 .answers{display:grid;gap:0;margin:0 0 2.4rem;border-top:2px solid var(--ink)}
 .answer{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"q q" "a v" "d d";gap:.25rem 1rem;padding:.9rem 0;border-bottom:1px solid var(--rule)}
@@ -312,10 +328,33 @@ function diffChart() {
   const ticks = [-2, -1, 0, 1, 2].map((t) => `<span style="left:${x(t)}%">${sign(t, 0)}</span>`).join("");
   return `<div class="net">${rows}<div class="axis"><div></div><div class="ticks">${ticks}</div><div></div></div></div>`;
 }
+const BOARD = [
+  ["Text diffusion team writers", [["textdiff3b", "3B text team writer", "this page's 3B, Qwen2.5-3B converted"], ["textdiff", "1.5B text team writer", "Fast-dLLM v2 1.5B fine-tune"]]],
+  ["Text writers trained on the LLM's prompts", [["llm_regmb", "Prompt version regmb", "1.5B text writer, Ling's regmb prompt"], ["llm_baseline", "Prompt version baseline", "1.5B text writer, Ling's baseline prompt"], ["llm_mb-original-v1", "Prompt version mb-original-v1", "1.5B text writer, registry prompt"]]],
+  ["LLM (Ling, paid API)", [["ling", "Ling, regmb prompt", "16,384-token answer limit"], ["ling_baseline16k", "Ling, baseline prompt", "16,384-token limit"], ["ling_baseline4k", "Ling, baseline prompt", "4,096-token limit"]]],
+  ["Reference fills", [["diffusion", "Scratch team writer", "diffusion model trained from scratch"], ["random", "Random legal fill", "a random legal choice per gap"]]],
+];
+function scoreboard() {
+  const B = D.baseline, grids = [["meta", "Top 50"], ["heldout", "Ranks 51–100"], ["random", "Random"]];
+  const cell = (grid, k) => { const m = B[grid].methods[k];
+    if (!m) return `<td class="na">not run</td>`;
+    const v = m.net.mean, a = Math.min(1, Math.abs(v) / 6), hue = v >= 0 ? "var(--same)" : "var(--lost)";
+    const solid = m.net.lo > 0 || m.net.hi < 0;                       // interval clear of zero
+    return `<td style="background:color-mix(in oklab, ${hue} ${Math.round(a * 55)}%, var(--wash));${solid ? "" : "outline:1px dashed var(--rule)"}" title="95% interval ${sign(m.net.lo)} to ${sign(m.net.hi)}">
+      <b>${sign(v)}</b><small>${m.legal}/${B[grid].masks} legal</small></td>`; };
+  const body = BOARD.map(([group, rows]) => `<tr class="grp"><td colspan="4">${group}</td></tr>` + rows.map(([k, name, note]) =>
+    `<tr><td class="who">${name}<small>${note}</small></td>${grids.map(([g]) => cell(g, k)).join("")}</tr>`).join("")).join("");
+  const best = grids.map(([g, label]) => { const [k, m] = Object.entries(B[g].methods).sort((x, y) => y[1].net.mean - x[1].net.mean)[0];
+    return `${label}: ${(BOARD.flatMap((x) => x[1]).find((r) => r[0] === k) || [, k])[1]} (${sign(m.net.mean)})`; }).join(" · ");
+  return `<figure><h3 class="ftitle">Every approach on the same 270 masks per grid: net change per mask, in points</h3>
+    <div class="scroll"><table class="board"><thead><tr><th class="who">Approach</th>${grids.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>
+    <div class="legend"><span><i style="background:var(--same)"></i>gain</span><span><i style="background:var(--lost)"></i>loss</span><span>Dashed outline: the 95% interval crosses zero. Hover a cell for the interval.</span></div>
+    <figcaption>Highest per grid: ${best}. Each column has its own five starting teams: top-50 teams win 58% on average, ranks 51–100 48%, random teams 2%. Ling ran on the random grid only. The prompt-version writers' random-grid fills were battled in an earlier run than the rest of that column, so gaps under 1 point there are noise. From <code>sources/baseline_results.json</code> (<code>baseline_extract.py</code>).</figcaption></figure>`;
+}
 function baselineStep() {
   const B = D.baseline, ex = B.example, pts = (w) => `${(w * 100).toFixed(0)}%`;
   const mean = (o) => Object.values(o).reduce((a, b) => a + b, 0) / Object.values(o).length;
-  const sec = $(`<section class="step"><div class="n">STEP 2</div><div>
+  const sec = $(`<section class="step" id="baseline"><div class="n">STEP 2</div><div>
     <h2>On the baseline, the text writers do the least harm to good teams</h2>
     <p>The baseline is the Mask Lab. It takes a starting team and hides one part of it: the Stat Points, an item, some moves, a whole Pokémon, an ability or a nature. A writer fills the gap. Showdown checks the filled team, and an illegal fill is thrown away, so the team stays as it was. Every legal filled team then plays the same 50 battles as in <a href="#how">How a win rate is measured</a>. Each grid has five starting teams and 270 masks.</p>
     <p>Your note asks to compare the writers "against each other and against the teams they started from." So the score here is the <b>net change per mask</b>: the filled team's win rate minus the starting team's, in percentage points, averaged over all 270 masks. A thrown-away fill counts as no change.</p>
@@ -335,6 +374,28 @@ function baselineStep() {
       <div class="legend"><span>Dot: the 3B writer's net change minus the 1.5B's, per mask, in points. Whiskers: 95% interval. Right of zero means the 3B did better.</span></div>
       <figcaption>Same masks, same battles. From <code>sources/baseline_results.json</code>.</figcaption></figure>
     <p>The 3B writer does better on top-50 teams (${sign(B.meta.net_3b_minus_15b.mean)} [${sign(B.meta.net_3b_minus_15b.lo)}, ${sign(B.meta.net_3b_minus_15b.hi)}]), is level on held-out teams, and does slightly worse on random teams (${sign(B.random.net_3b_minus_15b.mean)}). Both write a legal fill for 52 to 64% of masks. That matches the battles in step 1: a bigger model, no clear gain.</p>
+    <h3 class="ftitle" style="margin-top:1.6rem">All approaches in one table</h3>
+    <p>The same masks were given to every approach the project has built: the two text team writers, three text writers trained on the LLM's own prompts, Ling with three prompt settings, the scratch team writer and a random legal fill. Read across a row to see how one approach does on good and bad teams. Read down a column to rank the approaches on one kind of team.</p>
+    ${scoreboard()}
+    <p>On top-50 and held-out teams the text writers trained on the LLM's prompts lose the least, about ${Math.abs(B.heldout.methods["llm_baseline"].net.mean).toFixed(1)} to ${Math.abs(B.meta.methods["llm_regmb"].net.mean).toFixed(1)} points, slightly less than the two text team writers. They also write fewer legal fills, and a thrown-away fill counts as no change, which pulls their losses toward zero. On random teams the 1.5B and 3B text team writers, the scratch team writer and Ling with its best prompt gain the most.</p>
+    <h3 class="ftitle" style="margin-top:1.6rem">Where every baseline in the project lives</h3>
+    <p>The project has built baselines in many sessions. This table puts them in one place: what each one asks, whether it ran, the file that defines it, where its results are, and the page that shows it.</p>
+    <div class="scroll"><table class="reg"><thead><tr><th>Baseline</th><th>Status</th><th>Defined in</th><th>Results</th><th>Page</th></tr></thead><tbody>
+      ${[
+        ["Mask Lab, random starting teams", "Hide part of a random legal team, fill it, battle it. Every approach above.", "run", "Vault note <code>What is the baseline.md</code>; <code>team_completion_pipeline/</code>", "<code>runs/prompt-ab/panels.json</code>, <code>text_vs_ling.json</code>", [["Mask Lab", "https://claude.ai/artifact/BHnAai6APQf1RVFgFydR63"], ["Mask, Fill, Battle", "https://claude.ai/artifact/L5yvEfeFpfHLUVe6GAcXKe"]]],
+        ["Mask Lab, held-out starting teams", "The same with ranks 51–100 as starting teams.", "run, no Ling", "<code>code/scripts/mask_lab_heldout_starters.py</code>", "<code>runs/heldout-starters/panels.json</code>", [["this page, step 2", "#baseline"]]],
+        ["Mask Lab, meta starting teams", "The same with five top-50 teams as starting teams.", "run, no Ling", "<code>mask_lab_heldout_starters.py</code> with <code>MASK_LAB_STARTERS=meta</code>", "<code>runs/meta-starters/panels.json</code>", [["this page, step 2", "#baseline"]]],
+        ["Ling, the LLM baseline", "A paid LLM fills the same masks from a prompt.", "random grid only; closed 2026-10-24", "<code>code/docs/llm-baseline.md</code>, <code>llm-baseline-pilot-results.md</code>", "<code>runs/prompt-ab/eval2.jsonl</code>, <code>text_vs_ling.json</code>", []],
+        ["Random legal fill", "Fill each gap with a random choice Showdown accepts: the floor any writer must beat.", "run", "<code>code/src/random_fill_baseline.py</code> (2026-10-04)", "<code>random:</code> rows in each grid's <code>panels.json</code>", []],
+        ["Scratch team writer", "The diffusion model trained from scratch fills the gap.", "run", "<code>code/docs/diffusion-baseline-comparison.md</code>", "<code>diffusion:</code> rows in each grid's <code>panels.json</code>", [["Two Team Writers", "https://claude.ai/artifact/VrGzrJTag3HrKfQ5C7s4NG"]]],
+        ["Top-50 meta team, 0.531", "A real top-50 team against the other 49: the bar for a generated team.", "run", "<code>code/docs/asked-vs-got.md</code>", "the matchup database, <code>~/vgc-data/matchup_regmb.sqlite</code>", [["The Top-50 Meta Pool", "https://claude.ai/artifact/1QsgTKk6t2rAcPJFNDjNda"]]],
+        ["Ranks 51–100, held out", "Teams the search never sees, for a final check.", "run", "<code>code/docs/heldout-51-100.md</code>", "<code>runs/prompt-ab/heldout_report.json</code>", [["Held-out Set Walkthrough", "https://claude.ai/artifact/Luj92wuAwJCBoiACrKq5DH"]]],
+        ["Ling on 49 meta starters", "An earlier grid: 49 meta teams × 102 masks, original prompt.", "generated, never battled", "<code>code/docs/meta-starter-grid.md</code>", "worktree <code>pokemon-team-llm-regulation</code>, <code>results/llm-baseline-meta-starters</code>", []],
+        ["Random search", "A search baseline, not a fill: sample teams at random and keep the best.", "run", "<code>code/docs/trs-port.md</code>", "TRS beat it by +0.057", []],
+        ["Decision model, LLM edit, random legal mutation, explanation twin", "Further baselines the note lists.", "not run", "<code>What is the baseline.md</code>", "none", []],
+      ].map(([name, what, status, def, res, pages]) => `<tr><td>${name}<div style="font-weight:400;color:var(--ink-3)">${what}</div></td><td><span class="st${status.startsWith("run") ? " run" : ""}">${status}</span></td><td>${def}</td><td>${res}</td><td>${pages.map(([t, u]) => `<a href="${u}"${u.startsWith("http") ? ' target="_blank" rel="noopener"' : ""}>${t}</a>`).join("<br>") || "—"}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p style="font-size:.85rem;color:var(--ink-3)">Paths under <code>runs/</code> are in <code>team_completion_pipeline/</code>. The vault note <code>The ten-line baseline that beat the diffusion model.md</code> has a title and no text yet.</p>
     <div class="check"><h3>How to check it</h3><code>python3 baseline_extract.py</code> in this page's folder reprints every number above from the grids' <code>panels.json</code>. The random grid was re-battled in full on 2026-10-24, about 51,000 battles, and its numbers moved by up to 1 point from the 2026-10-21 run. Read gaps smaller than that as noise.</div>
   </div></section>`);
   const t = teamEl(ex.team.map((s) => ({ ...s, moves: [] })));

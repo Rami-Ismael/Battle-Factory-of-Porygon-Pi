@@ -14,7 +14,11 @@ from pathlib import Path
 
 RUNS = Path.home() / "Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs"
 GRIDS = {"random": "prompt-ab", "heldout": "heldout-starters", "meta": "meta-starters"}
-METHODS = {"textdiff": "textdiff", "textdiff3b": "textdiff3b", "diffusion": "diffusion", "random": "random", "ling": "ling:regmb@16384"}
+METHODS = {"textdiff": "textdiff", "textdiff3b": "textdiff3b", "diffusion": "diffusion", "random": "random",
+           "llm_regmb": "llm_regmb", "llm_baseline": "llm_baseline", "llm_mb-original-v1": "llm_mb-original-v1",
+           "ling": "ling:regmb@16384", "ling_baseline16k": "ling:baseline@16384", "ling_baseline4k": "ling:baseline@4096"}
+# the prompt-version writers' random-grid fills were battled in their own run (same opponents and policy), kept beside it
+EXTRA = {"random": Path.home() / "vgc-data/textdiff_llmformat/random-run/panels.json"}
 SEED = 20261008
 
 
@@ -48,6 +52,7 @@ def main():
     for grid, folder in GRIDS.items():
         run = RUNS / folder
         panels = json.load(open(run / "panels.json"))["panels"]
+        if grid in EXTRA and EXTRA[grid].exists(): panels.update(json.load(open(EXTRA[grid]))["panels"])
         masks = json.load(open(run / "eval2.tasks.json"))["tasks"]
         score = lambda label: (panels.get(label) or {}).get("score")
         rows = []
