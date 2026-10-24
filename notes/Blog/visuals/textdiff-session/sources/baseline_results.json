@@ -1243,5 +1243,152 @@
   "prefix": "Espathra @ Roseli Berry\nAbility: Frisk\nLonely Nature\n- Baton Pass\n- Night Shade\n- Reflect\n- Seed Bomb\n\nGoodra @ Miracle Seed\nAbility: Sap Sipper\nRelaxed Nature\n- Body Slam\n- Flamethrower\n- Knock Off\n- Sludge Bomb\n\nMawile-Mega @ Mawilite\nAbility: Huge Power\nTimid Nature\n- Crunch\n- Dark Pulse\n- Ice Fang\n",
   "written_3b": "- Sucker Punch\n\nPelipper @ Colbur Berry\nAbility: Drizzle\nQuiet Nature\n- Flip Turn\n- Hurricane\n- Weather Ball\n- Tailwind\n"
  },
+ "reasoning_study": {
+  "source": "blog/mask-lab/data.json (studies reasoning-expanded-20261012, mercury-reasoning-20261013, diffusion-matched-20261013)",
+  "starters": 20,
+  "cohort_pairs": 64,
+  "methods": [
+   {
+    "id": "diffusion",
+    "name": "Pok\u00e9mon diffusion",
+    "legal": 420,
+    "planned": 420,
+    "cost": 0,
+    "legal_win": 0.0924,
+    "cohort": [
+     0.0213,
+     0.0149,
+     0.0283
+    ],
+    "vs_diffusion": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "reasoning": 0,
+    "seconds": 0
+   },
+   {
+    "id": "ling-off",
+    "name": "Ling off",
+    "legal": 106,
+    "planned": 420,
+    "cost": 0.059,
+    "legal_win": 0.0321,
+    "cohort": [
+     0.0174,
+     0.0102,
+     0.0254
+    ],
+    "vs_diffusion": [
+     -0.0039,
+     -0.0106,
+     0.0032
+    ],
+    "reasoning": 0,
+    "seconds": 3.2
+   },
+   {
+    "id": "ling-on",
+    "name": "Ling on",
+    "legal": 162,
+    "planned": 420,
+    "cost": 0.229,
+    "legal_win": 0.0719,
+    "cohort": [
+     0.0196,
+     0.0129,
+     0.0267
+    ],
+    "vs_diffusion": [
+     -0.0017,
+     -0.0078,
+     0.005
+    ],
+    "reasoning": 5243,
+    "seconds": 33.7
+   },
+   {
+    "id": "mercury-off",
+    "name": "Mercury off",
+    "legal": 119,
+    "planned": 420,
+    "cost": 0.073,
+    "legal_win": 0.0229,
+    "cohort": [
+     0.0193,
+     0.0124,
+     0.0273
+    ],
+    "vs_diffusion": [
+     -0.0019,
+     -0.0092,
+     0.0049
+    ],
+    "reasoning": 0,
+    "seconds": 1.2
+   },
+   {
+    "id": "mercury-low",
+    "name": "Mercury low",
+    "legal": 127,
+    "planned": 420,
+    "cost": 0.091,
+    "legal_win": 0.023,
+    "cohort": [
+     0.0165,
+     0.011,
+     0.0222
+    ],
+    "vs_diffusion": [
+     -0.0047,
+     -0.0097,
+     0.0004
+    ],
+    "reasoning": 251,
+    "seconds": 1.9
+   },
+   {
+    "id": "mercury-medium",
+    "name": "Mercury medium",
+    "legal": 141,
+    "planned": 420,
+    "cost": 0.231,
+    "legal_win": 0.0389,
+    "cohort": [
+     0.0189,
+     0.0119,
+     0.0269
+    ],
+    "vs_diffusion": [
+     -0.0024,
+     -0.0096,
+     0.0051
+    ],
+    "reasoning": 2414,
+    "seconds": 8.1
+   },
+   {
+    "id": "mercury-high",
+    "name": "Mercury high",
+    "legal": 155,
+    "planned": 420,
+    "cost": 0.295,
+    "legal_win": 0.0528,
+    "cohort": [
+     0.0229,
+     0.0141,
+     0.034
+    ],
+    "vs_diffusion": [
+     0.0017,
+     -0.0073,
+     0.0109
+    ],
+    "reasoning": 3401,
+    "seconds": 10.2
+   }
+  ]
+ },
  "source": "team_completion_pipeline/runs/{prompt-ab,heldout-starters,meta-starters}/panels.json, read 2026-10-24"
 }

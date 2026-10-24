@@ -55,6 +55,23 @@ def example(task="0dd56a1a37aceb04", start="HPS003641", slot="Mawile-Mega"):
                 team=[dict(species=s["species"], item=s["item"]) for s in team], fills=fills, prefix=prefix, written_3b=raw)
 
 
+def reasoning_study():
+    """The 2026-10-12..13 reasoning studies: 20 starting teams x 7 mask families x 3 repeats = 420 fills per setting,
+    Ling off/on, Mercury 2.5 off/low/medium/high and the scratch diffusion ensemble, each legal fill battled 50 times.
+    Copied from the Mask Lab snapshot (blog/mask-lab/data.json, keys allMethodComparison, reasoning, mercury)."""
+    d = json.load(open(Path(__file__).resolve().parents[4] / "blog/mask-lab/data.json"))
+    tokens = {f"ling-{k}": a for k, a in d["reasoning"]["audit"]["arms"].items()}
+    tokens.update({f"mercury-{k}": a for k, a in d["mercury"]["final"]["arms"].items()})
+    A = d["allMethodComparison"]
+    methods = [dict(id=m["id"], name=m["name"], legal=m["legal"], planned=A["planned_per_method"], cost=round(m["cost"], 3),
+                    legal_win=round(m["full_set"]["legal_win_rate"], 4), cohort=[round(m["battle"][k], 4) for k in ("mean", "low", "high")],
+                    vs_diffusion=[round(m["delta_vs_diffusion"][k], 4) for k in ("mean", "low", "high")],
+                    reasoning=round((tokens.get(m["id"]) or {}).get("mean_reasoning_tokens") or 0),
+                    seconds=round((tokens.get(m["id"]) or {}).get("mean_elapsed_seconds") or 0, 1)) for m in A["methods"]]
+    return dict(source="blog/mask-lab/data.json (studies reasoning-expanded-20261012, mercury-reasoning-20261013, diffusion-matched-20261013)",
+                starters=A["common_starters"], cohort_pairs=A["common_pairs"], methods=methods)
+
+
 def main():
     out = {}
     for grid, folder in GRIDS.items():
@@ -79,6 +96,7 @@ def main():
         g["net_3b_minus_15b"] = bootstrap([(r["start"], net(r, "textdiff3b") - net(r, "textdiff")) for r in rows])
         out[grid] = g
     out["example"] = example()
+    out["reasoning_study"] = reasoning_study()
     out["source"] = "team_completion_pipeline/runs/{prompt-ab,heldout-starters,meta-starters}/panels.json, read 2026-10-24"
     Path(__file__).with_name("sources").joinpath("baseline_results.json").write_text(json.dumps(out, indent=1))
     for grid in GRIDS:
