@@ -1,0 +1,14 @@
+{
+ "source": "code/src/textdiff.py (SYSTEM, PROMPT, encode_example) and the first target-0.25 row of ~/.local/share/vgc-pilot-runtime/textdiff/train.jsonl",
+ "system": "You write Pok\u00e9mon VGC teams as Showdown pastes.",
+ "template": "Format: {fmt}. Six Pok\u00e9mon. Target win rate vs top meta teams: {ask}.",
+ "format": "gen9championsvgc2026regmb",
+ "train_rows": 21129,
+ "unknown_rows": 10318,
+ "example": {
+  "prompt": "Format: gen9championsvgc2026regmb. Six Pok\u00e9mon. Target win rate vs top meta teams: 0.25.",
+  "answer": "Basculegion @ Occa Berry\nAbility: Adaptability\nAdamant Nature\n- Aqua Jet\n- Last Respects\n- Protect\n- Wave Crash\n\nCharizard @ Charizardite Y\nAbility: Blaze\nModest Nature\n- Breaking Swipe\n- Overheat\n- Protect\n- Rock Tomb\n\nGarchomp @ Sitrus Berry\nAbility: Rough Skin\nNaughty Nature\n- Dragon Claw\n- Power Gem\n- Protect\n- Swords Dance\n\nKingambit @ Light Clay\nAbility: Defiant\nTimid Nature\n- Kowtow Cleave\n- Low Kick\n- Protect\n- Sucker Punch\n\nSneasler @ Leftovers\nAbility: Poison Touch\nJolly Nature\n- Close Combat\n- Fake Out\n- Protect\n- Swords Dance\n\nVanilluxe @ Black Glasses\nAbility: Snow Warning\nAdamant Nature\n- Blizzard\n- Hyper Voice\n- Protect\n- Weather Ball\n",
+  "label": 0.25,
+  "source": "family"
+ }
+}

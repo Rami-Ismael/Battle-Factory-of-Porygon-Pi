@@ -81,7 +81,9 @@ def main():
     baseline = json.loads((SRC / "baseline_results.json").read_text())       # written by baseline_extract.py
     for slot in baseline["example"]["team"]:
         slot.update(sprite=data_uri(SPRITES / f"{norm(slot['species'])}.png"), item_sprite=data_uri(ITEMS / f"item-{norm(slot['item'])}.png"))
-    data = dict(winrate=winrate, baseline=baseline,
+    prompt = json.loads((SRC / "prompt_example.json").read_text())          # the training prompt and one real training row
+    ling_calls = json.loads((SRC / "ling_calls.json").read_text())         # Ling's 810 random-grid calls, summarised per arm
+    data = dict(winrate=winrate, baseline=baseline, prompt=prompt, ling_calls=ling_calls,
         win=win, meta_mean=0.531, teams=teams,
         curves={k: log(k) for k in ("lora_r32", "qwen3b_r32", "qwen15_r32")},
         train={k: log(k) for k in ("qwen3b_r32", "qwen3b_r32_tf32", "qwen3b_r32_amp", "qwen3b_r32_amp_ckpt")},

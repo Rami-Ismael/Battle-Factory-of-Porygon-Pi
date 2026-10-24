@@ -9,7 +9,7 @@ starting team weighs equally, 95% bootstrap over the five starting teams, the sa
 code/scripts/text_vs_ling.py. The random grid was re-battled in full on 2026-10-24, so its numbers differ from the
 2026-10-21 text_vs_ling.json by up to 1 point.
 """
-import json, random
+import json, random, re
 from pathlib import Path
 
 RUNS = Path.home() / "Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/runs"
@@ -43,8 +43,16 @@ def example(task="0dd56a1a37aceb04", start="HPS003641", slot="Mawile-Mega"):
     fills = [dict(writer=w, move=next(m for m in moves(f"{prefix}:{task}") if m not in next(s for s in team if s["species"] == slot)["moves"][1:]),
                   win=panels[f"{prefix}:{task}"]["score"]) for w, prefix in (("textdiff3b", "textdiff3b"), ("textdiff", "textdiff"),
                   ("ling", "ling:regmb@16384"), ("diffusion", "diffusion"), ("random", "random"))]
+    # the answer text the writer was given (mask_lab_textdiff.py: earlier Pokémon in full, then this one up to the gap;
+    # moves in training order, known ones alphabetical and the hidden one last) and what the 3B writer wrote after it
+    key = lambda m: re.sub(r"[^a-z0-9]", "", m.lower())
+    block = lambda t, moves: "\n".join([f"{t['species']} @ {t['item']}", f"Ability: {t['ability']}", f"{t['nature']} Nature"] + [f"- {m}" for m in moves])
+    i = next(j for j, t in enumerate(team) if t["species"] == slot)
+    prefix = "\n\n".join(block(t, sorted([m for m in t["moves"] if m], key=key)) for t in team[:i])
+    prefix += "\n\n" + block(team[i], sorted([m for m in team[i]["moves"][1:] if m], key=key)) + "\n"
+    raw = json.load(open(Path.home() / f"vgc-data/mask_lab_diffusion/textdiff3b/raw/{task}.json"))["raw"][0]["text"]
     return dict(task=task, start=start, slot=slot, hidden=hidden, original=panels[f"orig:{start}"]["score"],
-                team=[dict(species=s["species"], item=s["item"]) for s in team], fills=fills)
+                team=[dict(species=s["species"], item=s["item"]) for s in team], fills=fills, prefix=prefix, written_3b=raw)
 
 
 def main():

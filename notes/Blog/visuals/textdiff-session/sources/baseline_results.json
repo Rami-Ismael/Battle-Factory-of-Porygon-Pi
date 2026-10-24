@@ -1239,7 +1239,9 @@
     "move": "Flash Cannon",
     "win": 0.0
    }
-  ]
+  ],
+  "prefix": "Espathra @ Roseli Berry\nAbility: Frisk\nLonely Nature\n- Baton Pass\n- Night Shade\n- Reflect\n- Seed Bomb\n\nGoodra @ Miracle Seed\nAbility: Sap Sipper\nRelaxed Nature\n- Body Slam\n- Flamethrower\n- Knock Off\n- Sludge Bomb\n\nMawile-Mega @ Mawilite\nAbility: Huge Power\nTimid Nature\n- Crunch\n- Dark Pulse\n- Ice Fang\n",
+  "written_3b": "- Sucker Punch\n\nPelipper @ Colbur Berry\nAbility: Drizzle\nQuiet Nature\n- Flip Turn\n- Hurricane\n- Weather Ball\n- Tailwind\n"
  },
  "source": "team_completion_pipeline/runs/{prompt-ab,heldout-starters,meta-starters}/panels.json, read 2026-10-24"
 }

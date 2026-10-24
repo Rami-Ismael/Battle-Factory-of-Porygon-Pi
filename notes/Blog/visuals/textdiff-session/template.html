@@ -91,6 +91,24 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);out
 .reg code{font-size:.74rem} .reg .st{display:inline-block;font:600 .68rem var(--font-ui);padding:.05rem .4rem;border-radius:999px;background:var(--wash);color:var(--ink-2)}
 .reg .st.run{background:color-mix(in oklab, var(--same) 22%, var(--wash));color:var(--ink)}
 @media (max-width:520px){.board th.who{width:36%} .board{font-size:.74rem}}
+/* prompts: one row per chat message, the graded part marked */
+.chat{display:grid;gap:.5rem;margin:.4rem 0}
+.msg{display:grid;grid-template-columns:6.2rem minmax(0,1fr);gap:.7rem;align-items:start}
+.msg .role{font:600 .74rem var(--font-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);padding-top:.55rem}
+.msg .role small{display:block;font-weight:400;letter-spacing:0;text-transform:none;margin-top:.15rem}
+.msg .box{font:400 .78rem/1.45 var(--font-mono);background:var(--wash);border:1px solid var(--rule);border-left:4px solid var(--rule);border-radius:4px;padding:.5rem .65rem;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}
+.msg .box.graded{border-left-color:var(--same)}
+.msg .box.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));gap:.6rem 1rem;white-space:normal}
+.msg .box.cols div{white-space:pre-wrap}
+.msg .given{color:var(--ink-3)} .msg .wrote{background:color-mix(in oklab, var(--same) 28%, var(--wash));color:var(--ink);border-radius:2px;padding:0 .15rem}
+.msg .cut{color:var(--ink-3);text-decoration:line-through;opacity:.6}
+.msg .ask{background:color-mix(in oklab, var(--meta) 30%, var(--wash));border-radius:2px;padding:0 .15rem}
+details.raw{margin-top:.5rem;font:400 .82rem var(--font-ui)} details.raw summary{cursor:pointer;color:var(--ink-2)}
+details.raw pre{font:400 .74rem/1.45 var(--font-mono);background:var(--wash);border:1px solid var(--rule);border-radius:4px;padding:.5rem .65rem;white-space:pre-wrap;overflow-wrap:anywhere;margin:.4rem 0 0}
+@media (max-width:520px){.msg{grid-template-columns:minmax(0,1fr);gap:.2rem} .msg .role{padding-top:0}}
+/* Ling: where each call's tokens went, and what came back */
+.stack{display:flex;height:100%;border-radius:3px;overflow:hidden}
+.stack span{height:100%}
 /* answers */
 .answers{display:grid;gap:0;margin:0 0 2.4rem;border-top:2px solid var(--ink)}
 .answer{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"q q" "a v" "d d";gap:.25rem 1rem;padding:.9rem 0;border-bottom:1px solid var(--rule)}
@@ -331,7 +349,7 @@ function diffChart() {
 const BOARD = [
   ["Text diffusion team writers", [["textdiff3b", "3B text team writer", "this page's 3B, Qwen2.5-3B converted"], ["textdiff", "1.5B text team writer", "Fast-dLLM v2 1.5B fine-tune"]]],
   ["Text writers trained on the LLM's prompts", [["llm_regmb", "Prompt version regmb", "1.5B text writer, Ling's regmb prompt"], ["llm_baseline", "Prompt version baseline", "1.5B text writer, Ling's baseline prompt"], ["llm_mb-original-v1", "Prompt version mb-original-v1", "1.5B text writer, registry prompt"]]],
-  ["LLM (Ling, paid API)", [["ling", "Ling, regmb prompt", "16,384-token answer limit"], ["ling_baseline16k", "Ling, baseline prompt", "16,384-token limit"], ["ling_baseline4k", "Ling, baseline prompt", "4,096-token limit"]]],
+  ["LLM: Ling, one reasoning model, three settings", [["ling", "Ling, regmb prompt", "reasons; 16,384-token budget"], ["ling_baseline16k", "Ling, baseline prompt", "reasons; 16,384-token budget"], ["ling_baseline4k", "Ling, baseline prompt", "reasons; 4,096-token budget"]]],
   ["Reference fills", [["diffusion", "Scratch team writer", "diffusion model trained from scratch"], ["random", "Random legal fill", "a random legal choice per gap"]]],
 ];
 function scoreboard() {
@@ -351,6 +369,52 @@ function scoreboard() {
     <div class="legend"><span><i style="background:var(--same)"></i>gain</span><span><i style="background:var(--lost)"></i>loss</span><span>Dashed outline: the 95% interval crosses zero. Hover a cell for the interval.</span></div>
     <figcaption>Highest per grid: ${best}. Each column has its own five starting teams: top-50 teams win 58% on average, ranks 51–100 48%, random teams 2%. Ling ran on the random grid only. The prompt-version writers' random-grid fills were battled in an earlier run than the rest of that column, so gaps under 1 point there are noise. From <code>sources/baseline_results.json</code> (<code>baseline_extract.py</code>).</figcaption></figure>`;
 }
+const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const msg = (role, note, body, cls = "") => `<div class="msg"><div class="role">${role}<small>${note}</small></div><div class="box ${cls}">${body}</div></div>`;
+function trainingPromptFigure() {
+  const P = D.prompt, ex = P.example, question = esc(ex.prompt).replace(/(\d\.\d\d|unknown)\.$/, `<span class="ask">$1</span>.`);
+  const blocks = ex.answer.trim().split("\n\n").map((b) => `<div>${esc(b)}</div>`).join("");
+  const raw = `<|im_start|>system\n${P.system}<|im_end|>\n<|im_start|>user\n${ex.prompt}<|im_end|>\n<|im_start|>assistant\n[the team]<|im_end|>`;
+  return `<figure><h3 class="ftitle">The training prompt: one fixed system line, one question with a target, and the team as the answer</h3>
+    <div class="chat">${msg("System", "the same for every row", esc(P.system))}
+      ${msg("Question", "only the target changes", question)}
+      ${msg("Answer", "the loss grades these tokens", blocks, "graded cols")}</div>
+    <details class="raw"><summary>The exact text the model reads</summary><pre>${esc(raw)}</pre></details>
+    <div class="legend"><span><i style="background:var(--meta)"></i>The target: this team's measured win rate, or <code>unknown</code></span><span><i style="background:var(--same)"></i>Graded: the answer and its end token</span></div>
+    <figcaption>One real training row, with target ${ex.label}. The training file has ${P.train_rows.toLocaleString()} rows, and ${P.unknown_rows.toLocaleString()} of them say <code>unknown</code>; a run reads 8,000 of them (2,000 steps of 4). The answer has no Stat Points or level: they are copied from a real team of the same species before a battle. The 1.5B and 3B text team writers use this same prompt. From <code>sources/prompt_example.json</code> (<code>code/src/textdiff.py</code>).</figcaption></figure>`;
+}
+function baselinePromptFigure() {
+  const ex = D.baseline.example, P = D.prompt, cut = ex.written_3b.indexOf("\n");
+  const q = esc(P.template.replace("{fmt}", P.format).replace("{ask}", "0.50"));
+  const given = esc(ex.prefix).split("\n\n").map((b, i, all) => `<div><span class="given">${b}</span>${i === all.length - 1 ? `<span class="wrote">${esc(ex.written_3b.slice(0, cut))}</span>\n<span class="cut">${esc(ex.written_3b.slice(cut + 1).trim().split("\n").slice(0, 3).join("\n"))} …</span>` : ""}</div>`).join("");
+  return `<figure><h3 class="ftitle">The baseline prompt: the same chat, but the answer is typed in up to the gap</h3>
+    <div class="chat">${msg("System", "as in training", esc(P.system))}
+      ${msg("Question", "target 0.50, plus a copy with unknown", q.replace("0.50.", `<span class="ask">0.50</span>.`))}
+      ${msg("Answer", "grey is typed in; green is written", given, "cols")}</div>
+    <div class="legend"><span><i style="background:var(--meta)"></i>A second copy says <code>unknown</code>; guidance 2 pushes the fill toward what 0.50 asks for</span><span><i style="background:var(--same)"></i>What the 3B text team writer wrote</span><span>Struck through: what it kept writing, cut at the end of the line</span></div>
+    <figcaption>The mask above: Mega Mawile's first move hidden. Earlier Pokémon are typed in whole, then this Pokémon up to the gap, known moves first in alphabetical order, the hidden one last, as in training. The writer sees everything before the gap and nothing after it. From <code>sources/baseline_results.json</code> (<code>team_completion_pipeline/mask_lab_textdiff.py</code>).</figcaption></figure>`;
+}
+function lingFigure() {
+  const A = D.ling_calls.arms, B = D.baseline.random.methods, arms = [["regmb@16384", "regmb prompt, 16,384 budget", "ling"], ["baseline@16384", "baseline prompt, 16,384 budget", "ling_baseline16k"], ["baseline@4096", "baseline prompt, 4,096 budget", "ling_baseline4k"]];
+  const tokMax = 5000, tx = (v) => Math.min(v, tokMax) / tokMax * 100;
+  const tokens = arms.map(([k, name], i) => { const a = A[k];
+    return `<div class="row"><div class="k">${name}</div><div class="track"><div class="stack grow" style="width:${tx(a.mean_reasoning + a.mean_answer)}%;transform-origin:left center;animation-delay:${i * 80}ms">
+      <span style="width:${a.mean_reasoning / (a.mean_reasoning + a.mean_answer) * 100}%;background:var(--ink-3)"></span><span style="flex:1;background:var(--meta)"></span></div>
+      ${a.max_tokens <= tokMax ? `<div class="zero" style="left:${tx(a.max_tokens)}%;border-color:var(--lost);border-left-style:dashed"></div>` : ""}</div>
+      <div class="v num">${(a.mean_reasoning + a.mean_answer).toLocaleString()}</div></div>`; }).join("");
+  const outcome = arms.map(([k, name, bk], i) => { const a = A[k], w = (n) => n / a.calls * 100;
+    return `<div class="row"><div class="k">${name}<br><small>net ${sign(B[bk].net.mean)} per mask</small></div><div class="track"><div class="stack grow" style="width:100%;transform-origin:left center;animation-delay:${i * 80}ms">
+      <span style="width:${w(a.legal)}%;background:var(--same)" title="legal: ${a.legal}"></span><span style="width:${w(a.other_illegal)}%;background:var(--ink-3)" title="illegal answer: ${a.other_illegal}"></span><span style="width:${w(a.cut_off)}%;background:var(--lost)" title="ran out of tokens: ${a.cut_off}"></span></div></div>
+      <div class="v num">${a.legal}</div></div>`; }).join("");
+  const ticks = [0, 1000, 2000, 3000, 4000, 5000].map((t) => `<span style="left:${tx(t)}%">${t ? t / 1000 + "k" : 0}</span>`).join("");
+  return `<figure><h3 class="ftitle">Mean tokens per call: hidden reasoning first, then the answer</h3>
+    <div class="net">${tokens}<div class="axis"><div></div><div class="ticks">${ticks}</div><div></div></div></div>
+    <div class="legend"><span><i style="background:var(--ink-3)"></i>Hidden reasoning</span><span><i style="background:var(--meta)"></i>Answer</span><span><i style="background:var(--lost)"></i>Dashed red line: the 4,096-token budget (the other two have 16,384)</span></div>
+    <h3 class="ftitle" style="margin-top:1.2rem">What came back from 270 calls each</h3>
+    <div class="net">${outcome}</div>
+    <div class="legend"><span><i style="background:var(--same)"></i>Legal fill (count on the right)</span><span><i style="background:var(--ink-3)"></i>Answer, but illegal or unreadable</span><span><i style="background:var(--lost)"></i>Ran out of tokens</span></div>
+    <figcaption>Random grid, 270 masks per setting, the run that was battled. Means over all calls; a call "ran out" when it used its whole budget. Net change per mask as in the table above. From <code>sources/ling_calls.json</code> (<code>runs/prompt-ab/eval2.jsonl</code>) and <code>sources/baseline_results.json</code>.</figcaption></figure>`;
+}
 function baselineStep() {
   const B = D.baseline, ex = B.example, pts = (w) => `${(w * 100).toFixed(0)}%`;
   const mean = (o) => Object.values(o).reduce((a, b) => a + b, 0) / Object.values(o).length;
@@ -363,6 +427,7 @@ function baselineStep() {
         <tr><td>Original team</td><td>${ex.hidden}</td><td class="r num">${pts(ex.original)}</td></tr>
         ${ex.fills.map((f) => `<tr><td>${BASE_NAMES[f.writer]}</td><td>${f.move}</td><td class="r num">${pts(f.win)}</td></tr>`).join("")}</tbody></table>
       <figcaption>Random grid, starting team ${ex.start}. The dashed outline marks the Pokémon with the hidden move. Win rate as defined above, 50 battles. This team wins almost nothing either way, so one mask says little. The grid's answer is the average over 270 masks. From <code>sources/baseline_results.json</code>.</figcaption></figure>
+    ${baselinePromptFigure()}
     <div class="predict"><h3>Predict before you look</h3>A top-50 team has already been tuned by its player. If a writer refills one part of it, will its win rate go up or down on average?</div>
     <figure><h3 class="ftitle">Top-50 starting teams (they win ${pts(mean(B.meta.originals))} on average): every fill costs win rate</h3>${netChart("meta")}
       <h3 class="ftitle" style="margin-top:1.2rem">Held-out starting teams, ranks 51 to 100 (${pts(mean(B.heldout.originals))}): the same order</h3>${netChart("heldout")}
@@ -378,6 +443,10 @@ function baselineStep() {
     <p>The same masks were given to every approach the project has built: the two text team writers, three text writers trained on the LLM's own prompts, Ling with three prompt settings, the scratch team writer and a random legal fill. Read across a row to see how one approach does on good and bad teams. Read down a column to rank the approaches on one kind of team.</p>
     ${scoreboard()}
     <p>On top-50 and held-out teams the text writers trained on the LLM's prompts lose the least, about ${Math.abs(B.heldout.methods["llm_baseline"].net.mean).toFixed(1)} to ${Math.abs(B.meta.methods["llm_regmb"].net.mean).toFixed(1)} points, slightly less than the two text team writers. They also write fewer legal fills, and a thrown-away fill counts as no change, which pulls their losses toward zero. On random teams the 1.5B and 3B text team writers, the scratch team writer and Ling with its best prompt gain the most.</p>
+    <h3 class="ftitle" style="margin-top:1.6rem">The LLM: one model that reasons, run three ways</h3>
+    <p>The baseline tested one LLM, Ling (<code>inclusionai/ling-3.0-flash-vl</code>, through OpenRouter). It is a reasoning model: before it writes an answer it writes hidden reasoning, and every one of its ${D.ling_calls.arms["regmb@16384"].calls * 3} calls in this grid did. No second, non-reasoning LLM was battled. What differs between the three Ling rows is the prompt and the token budget, and the budget matters because the hidden reasoning is charged to the same budget as the answer.</p>
+    ${lingFigure()}
+    <p>With a 4,096-token budget, ${D.ling_calls.arms["baseline@4096"].cut_off} of 270 calls ran out of tokens while still reasoning or partway through the answer, and every one of them failed. Raising the budget to 16,384 with the same prompt cut that to ${D.ling_calls.arms["baseline@16384"].cut_off} and lifted legal fills from ${D.ling_calls.arms["baseline@4096"].legal} to ${D.ling_calls.arms["baseline@16384"].legal}. The regulation-grounded prompt, <code>regmb</code>, then lifted them to ${D.ling_calls.arms["regmb@16384"].legal}, level with the 1.5B text team writer. The 54-call pilot before this grid asked for reasoning to be off (<code>code/docs/llm-baseline.md</code>), yet ${D.ling_calls.pilot.reasoned} of its calls still reported reasoning tokens.</p>
     <h3 class="ftitle" style="margin-top:1.6rem">Where every baseline in the project lives</h3>
     <p>The project has built baselines in many sessions. This table puts them in one place: what each one asks, whether it ran, the file that defines it, where its results are, and the page that shows it.</p>
     <div class="scroll"><table class="reg"><thead><tr><th>Baseline</th><th>Status</th><th>Defined in</th><th>Results</th><th>Page</th></tr></thead><tbody>
@@ -473,7 +542,7 @@ function render(root) {
 
   const intro = $(`<section><h2>How a text diffusion model writes a team</h2>
     <p>An LLM writes left to right, one token at a time. A text diffusion model starts from a block of masked tokens and fills it in over a few steps, many tokens at once. Each step keeps every token the model is at least 90% sure of, and at least one token. Then it moves to the next block. Both text team writers work this way. The 3B writer started from the Qwen2.5-3B checkpoint and learned this block-diffusion loss during fine-tuning.</p></section>`);
-  intro.append(pasteFigure()); root.append(intro);
+  intro.append($(trainingPromptFigure()), pasteFigure()); root.append(intro);
 
   const sTrain = $(`<section class="step"><div class="n">STEP 3</div><div>
     <h2>A rented H100 trained the 3B writer in 14 minutes</h2>

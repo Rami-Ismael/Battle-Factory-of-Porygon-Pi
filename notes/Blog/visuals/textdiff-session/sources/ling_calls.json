@@ -1,0 +1,55 @@
+{
+ "source": "team_completion_pipeline/runs/prompt-ab/eval2.jsonl (Ling inclusionai/ling-3.0-flash-vl via OpenRouter, the random-grid run that was battled)",
+ "arms": {
+  "regmb@16384": {
+   "calls": 270,
+   "legal": 149,
+   "reasoned": 270,
+   "hit_cap": 1,
+   "no_answer": 12,
+   "mean_reasoning": 3110,
+   "mean_answer": 1680,
+   "mean_seconds": 22.2,
+   "cost": 0.284,
+   "max_tokens": 16384,
+   "cut_off": 1,
+   "legal_at_cap": 0,
+   "other_illegal": 120
+  },
+  "baseline@16384": {
+   "calls": 270,
+   "legal": 113,
+   "reasoned": 270,
+   "hit_cap": 3,
+   "no_answer": 10,
+   "mean_reasoning": 2507,
+   "mean_answer": 1591,
+   "mean_seconds": 19.6,
+   "cost": 0.241,
+   "max_tokens": 16384,
+   "cut_off": 3,
+   "legal_at_cap": 0,
+   "other_illegal": 154
+  },
+  "baseline@4096": {
+   "calls": 270,
+   "legal": 87,
+   "reasoned": 270,
+   "hit_cap": 80,
+   "no_answer": 49,
+   "mean_reasoning": 1913,
+   "mean_answer": 1151,
+   "mean_seconds": 15.5,
+   "cost": 0.255,
+   "max_tokens": 4096,
+   "cut_off": 80,
+   "legal_at_cap": 0,
+   "other_illegal": 103
+  }
+ },
+ "pilot": {
+  "calls": 54,
+  "reasoned": 33,
+  "note": "code/docs/llm-baseline.md line 33 says reasoning disabled for this pilot"
+ }
+}
