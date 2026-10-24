@@ -747,6 +747,39 @@ Every setting reaches the same loss. On the hill-climb metric (same loss, less t
 faster with 15% less memory, the best default when memory is not short. `--autocast --ckpt-layers 36` is level on time and
 uses 45% less memory, the choice for a smaller GPU or a larger batch. `--tf32` is 7% faster and saves no memory.
 
+**Batch-size probe: predictions, written before the run (2026-10-24).** 100 steps of the 3B recipe per setting, one
+Modal app, H100 80 GB. The model's fixed share at batch 4 is about 7.2 GB (bf16 weights 6.2 GB, the LoRA adapter, its
+gradients and AdamW state about 1 GB), so the 300-step probes put activations at about 4.4 GB per example with
+`--autocast` (24.9 GB at batch 4) and about 1.15 GB per example with `--autocast --ckpt-layers 36` (11.8 GB). A step at
+batch 4 already does roughly 4 x 3e9 x 4,096 multiply-adds in 0.151 s, about a third of the H100's bf16 peak, so a
+larger batch should lift examples per second only modestly.
+
+| setting | batch | predicted peak | predicted s / step | predicted examples / s |
+|---|---|---|---|---|
+| `--autocast` | 4 | 25 GB | 0.15 | 26 |
+| `--autocast` | 8 | 43 GB | 0.26 | 31 |
+| `--autocast` | 12 | 60 GB | 0.37 | 32 |
+| `--autocast --ckpt-layers 36` | 16 | 26 GB | 0.60 | 27 |
+| `--autocast --ckpt-layers 36` | 24 | 35 GB | 0.88 | 27 |
+
+**Batch-size probe: measured** (same app, 2026-10-24; steady time over steps 50-100, peak over the training steps;
+`batch_probe_2026-10-24.json` in the runtime folder):
+
+| setting | batch | peak (predicted) | s / step | examples / s (predicted) |
+|---|---|---|---|---|
+| `--autocast` | 4 | 24.9 GB (25) | 0.147 | 27.2 (26) |
+| `--autocast` | 8 | 47.0 GB (43) | 0.256 | 31.2 (31) |
+| `--autocast` | 12 | 67.7 GB (60) | 0.353 | **34.0** (32) |
+| `--autocast --ckpt-layers 36` | 16 | 35.9 GB (26) | 0.589 | 27.2 (27) |
+| `--autocast --ckpt-layers 36` | 24 | 49.9 GB (35) | 0.859 | 27.9 (27) |
+
+The speed predictions held to within 2 examples per second; memory grew faster than predicted (about 5.2 GB per example
+with `--autocast`, 1.75 GB with checkpointing). Batch 12 is the fastest, 25% more examples per second than batch 4, but
+one pass over the 8,000 examples drops only from about 4.9 to 3.9 minutes of training, while loading the model and the
+first steps take 2 to 8 minutes per run. Checkpointing gives back its memory savings in time, so batch 16 and 24 are no
+faster than batch 4. A larger batch also means fewer optimizer steps (667 at batch 12 instead of 2,000), so a full run at
+batch 12 would need its learning rate retuned and its final loss checked against 0.679. Not worth it at this data size.
+
 **The M4 Pro, measured (2026-10-24, `mac_bench/queue.sh`, 64 teams per setting; W&B `bench-qwen3b_r32-m4pro`).** The
 batched sampler matches the released `generate` token for token here too.
 
