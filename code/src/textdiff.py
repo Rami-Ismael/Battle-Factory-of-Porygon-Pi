@@ -582,7 +582,7 @@ def bench(args):
     seconds amortised per team) for textdiff_battle legality."""
     import torch, textdiff_port as P
     from peft import PeftModel
-    tok, m = P.load(base=args.base or None)
+    tok, m = P.load(base=args.base or None, dtype=torch.float16 if args.dtype == "fp16" else torch.bfloat16)
     m = PeftModel.from_pretrained(m, str(OUT / args.name / args.adapter)).merge_and_unload(); m.eval()
     torch.set_grad_enabled(False)                    # as gen's torch.no_grad(): the released generate builds no graph
     if args.quant != "none":                         # CUDA: torchao weight types for the decoder's linear layers (not the head)
@@ -604,28 +604,36 @@ def bench(args):
     samplers = ([tuple(map(float, x.split(":"))) for x in args.samplers.split(",")] if args.samplers
                 else [(args.temperature, args.top_p)])
     sampler_tag = args.samplers.replace(",", "-").replace(":", "p") if args.samplers else f"T{args.temperature}_p{args.top_p}"
-    tag = f"{args.batches.replace(',', '-')}_t{args.threshold}_{sampler_tag}" + ("" if args.quant == "none" else f"_{args.quant}")
+    tag = (f"{args.batches.replace(',', '-')}_t{args.threshold}_{sampler_tag}" + ("" if args.quant == "none" else f"_{args.quant}")
+           + ("" if args.dtype == "bf16" else f"_{args.dtype}"))
     dest = OUT / "gen" / f"bench_{args.name}_{P.DEV.type}_{tag}.jsonl"; dest.parent.mkdir(parents=True, exist_ok=True)
     suffix = (lambda T, tp: f"_T{T:g}_p{tp:g}") if args.samplers else (lambda T, tp: "")
     settings = [("released" + suffix(T, tp), 1, False, T, tp) if b == "released" else
                 (f"batch{b}{'_cache' if c else ''}" + suffix(T, tp), int(b), c, T, tp)
-                for T, tp in samplers for b in args.batches.split(",") for c in ((False,) if b == "released" else (False, True))]
+                for T, tp in samplers for b in args.batches.split(",")
+                for c in ((False,) if b == "released" or args.caches == "off" else (False, True))]
     with open(dest, "w") as f:
         for setting, b, cache, T, tp in settings:
             texts, calls[0] = [], 0
+            if P.DEV.type == "cuda": torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats()   # this setting's own peak
             P.synchronize(); t0 = time.perf_counter()
-            for _ in range(math.ceil(args.n / b)):
-                if setting.startswith("released"):
-                    texts.append(m.generate(ids, temperature=T, top_p=tp, **kw)[0, ids.shape[1]:].tolist())
-                else:
-                    texts += P.generate_batch(m, ids, b, temperature=T, top_p=tp, block_cache=cache, **kw)
+            try:
+                for _ in range(math.ceil(args.n / b)):
+                    if setting.startswith("released"):
+                        texts.append(m.generate(ids, temperature=T, top_p=tp, **kw)[0, ids.shape[1]:].tolist())
+                    else:
+                        texts += P.generate_batch(m, ids, b, temperature=T, top_p=tp, block_cache=cache, **kw)
+            except torch.OutOfMemoryError as error:      # the batch-size ceiling: report it, stop (larger settings fail too)
+                print(json.dumps(dict(setting=setting, device=P.DEV.type, batch=b, oom=True, memory_gb=round(P.memory_gb(), 1),
+                                      error=str(error).splitlines()[0][:200])), flush=True)
+                break
             P.synchronize(); secs = (time.perf_counter() - t0) / len(texts)
             for i, t in enumerate(texts):
                 f.write(json.dumps(dict(setting=setting, i=i, text=tok.decode(t, skip_special_tokens=True), seconds=secs, tokens=len(t))) + "\n")
             f.flush()
             print(json.dumps(dict(setting=setting, device=P.DEV.type, teams=len(texts), seconds_per_team=round(secs, 4),
                                   forwards_per_team=round(calls[0] / len(texts), 1), tokens_per_team=round(sum(map(len, texts)) / len(texts), 1),
-                                  threshold=args.threshold, temperature=T, top_p=tp, quant=args.quant,
+                                  threshold=args.threshold, temperature=T, top_p=tp, quant=args.quant, dtype=args.dtype,
                                   memory_gb=round(P.memory_gb(), 1))), flush=True)
 
 
@@ -649,9 +657,25 @@ def hubcheck(args):
                           start=tok.decode(a, skip_special_tokens=True)[:120])), flush=True)
 
 
+def masklab(args):
+    """textdiff.py masklab --grid G --name N --base B: the Mask Lab's constrained infilling (team_completion_pipeline/
+    mask_lab_textdiff.py, loaded unchanged: ask 0.5, guidance 2, threshold 0.9, one field at a time) with this run's adapter
+    and backbone, on the grid manifest OUT/masklab/<grid>/baseline/manifest.json. Raw fills go to OUT/masklab/<grid>/<name>/raw;
+    a rerun skips masks already written. The grid's own collect, battle and report steps take it from there."""
+    import functools, importlib.util, textdiff_port as P
+    P.load = functools.partial(P.load, base=args.base or None)          # the vault script calls P.load() with no base
+    path = Path(args.pipeline) / "mask_lab_textdiff.py"
+    spec = importlib.util.spec_from_file_location("mask_lab_textdiff", path)
+    M = importlib.util.module_from_spec(spec); spec.loader.exec_module(M)
+    grid = OUT / "masklab" / args.grid
+    M.REPO, M.WORK, M.OUT, M.ADAPTER = HERE.parent, grid, grid / args.name, OUT / args.name / args.adapter
+    M.KIND = f"textdiff_{args.name}"
+    M.generate(argparse.Namespace(limit=args.limit, family=None, guidance=2.0, ask=0.5))
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("command", choices=["prepare", "smoke", "train", "gen", "verify", "flexcheck", "bench", "hubcheck"])
+    p.add_argument("command", choices=["prepare", "smoke", "train", "gen", "verify", "flexcheck", "bench", "hubcheck", "masklab"])
     p.add_argument("arm", nargs="?", default="base")
     p.add_argument("--name", default="lora_r32")
     p.add_argument("--seed", type=int, default=SEED, help="train: torch, mask and order seed (same --limit examples)")
@@ -712,6 +736,12 @@ if __name__ == "__main__":
                    "with --batches; default: --temperature and --top-p)")
     p.add_argument("--quant", choices=["none", "fp8", "int8wo"], default="none", help="bench: torchao FP8 (weights and "
                    "activations) or int8 weight-only linear layers after the adapter merge (CUDA)")
+    p.add_argument("--dtype", choices=["bf16", "fp16"], default="bf16", help="bench: the model's weight and activation type")
+    p.add_argument("--caches", choices=["both", "off"], default="both", help="bench: off = no block-cache variants")
+    p.add_argument("--grid", default="", help="masklab: random, heldout or meta (OUT/masklab/<grid>/baseline/manifest.json)")
+    p.add_argument("--pipeline", default="/root/pipeline" if Path("/root/pipeline").exists() else str(Path.home() / (
+        "Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon "
+        "format to find the right counter to a pokemon team/team_completion_pipeline")), help="masklab: folder holding mask_lab_textdiff.py")
     p.add_argument("--hub", default="", help="hubcheck: the Hugging Face repo to load")
     p.add_argument("--batches", default="released,1,8,32", help="bench: 'released' (one team per call) and generate_batch "
                    "sizes, each with and without the block cache")

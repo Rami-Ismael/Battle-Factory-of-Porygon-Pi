@@ -1,0 +1,10 @@
+{"setting": "released", "device": "cuda", "teams": 64, "seconds_per_team": 3.6545, "forwards_per_team": 136.8, "tokens_per_team": 202.8, "memory_gb": 8.1, "_source_log": "bench_h100_part1.log"}
+{"setting": "batch1", "device": "cuda", "teams": 64, "seconds_per_team": 3.296, "forwards_per_team": 134.1, "tokens_per_team": 202.6, "memory_gb": 8.1, "_source_log": "bench_h100_part1.log"}
+{"setting": "batch1_cache", "device": "cuda", "teams": 64, "seconds_per_team": 3.121, "forwards_per_team": 130.6, "tokens_per_team": 203.9, "memory_gb": 8.1, "_source_log": "bench_h100_part1.log"}
+{"setting": "batch8", "device": "cuda", "teams": 64, "seconds_per_team": 0.6603, "forwards_per_team": 26.0, "tokens_per_team": 204.5, "memory_gb": 8.1, "_source_log": "bench_h100_part1.log"}
+{"setting": "batch8", "device": "cuda", "teams": 64, "seconds_per_team": 0.8786, "forwards_per_team": 24.9, "tokens_per_team": 204.1, "threshold": 0.9, "memory_gb": 8.1, "_source_log": "bench_h100_b.log"}
+{"setting": "batch8_cache", "device": "cuda", "teams": 64, "seconds_per_team": 0.9091, "forwards_per_team": 25.8, "tokens_per_team": 204.8, "threshold": 0.9, "memory_gb": 8.1, "_source_log": "bench_h100_b.log"}
+{"setting": "batch32", "device": "cuda", "teams": 64, "seconds_per_team": 0.2443, "forwards_per_team": 6.4, "tokens_per_team": 203.4, "threshold": 0.9, "memory_gb": 8.1, "_source_log": "bench_h100_b.log"}
+{"setting": "batch32_cache", "device": "cuda", "teams": 64, "seconds_per_team": 0.2688, "forwards_per_team": 7.0, "tokens_per_team": 203.9, "threshold": 0.9, "memory_gb": 8.6, "_source_log": "bench_h100_b.log"}
+{"setting": "batch64", "device": "cuda", "teams": 64, "seconds_per_team": 0.1707, "forwards_per_team": 3.9, "tokens_per_team": 205.0, "threshold": 0.9, "memory_gb": 10.1, "_source_log": "bench_h100_b.log"}
+{"setting": "batch64_cache", "device": "cuda", "teams": 64, "seconds_per_team": 0.1597, "forwards_per_team": 3.8, "tokens_per_team": 205.2, "threshold": 0.9, "memory_gb": 10.2, "_source_log": "bench_h100_b.log"}

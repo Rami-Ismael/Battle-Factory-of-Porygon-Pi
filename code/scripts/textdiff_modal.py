@@ -21,6 +21,8 @@ import modal
 SRC = Path(__file__).resolve().parents[1] / "src"
 LOCAL = Path.home() / ".local/share/vgc-pilot-runtime/textdiff"
 REMOTE = "/root/.local/share/vgc-pilot-runtime/textdiff"
+PIPELINE = Path.home() / ("Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc "
+                          "pokemon format to find the right counter to a pokemon team/team_completion_pipeline")
 
 app = modal.App("textdiff")
 image = (modal.Image.debian_slim(python_version="3.11")
@@ -28,7 +30,8 @@ image = (modal.Image.debian_slim(python_version="3.11")
                       "einops==0.8.2", "numpy==2.4.6", "huggingface_hub==0.36.2", "torchao==0.18.0")
          .env({"PYTHONUNBUFFERED": "1"})
          .add_local_file(SRC / "textdiff.py", "/root/src/textdiff.py")
-         .add_local_file(SRC / "textdiff_port.py", "/root/src/textdiff_port.py"))
+         .add_local_file(SRC / "textdiff_port.py", "/root/src/textdiff_port.py")
+         .add_local_file(PIPELINE / "mask_lab_textdiff.py", "/root/pipeline/mask_lab_textdiff.py"))   # masklab: the Mask Lab's infilling
 data = modal.Volume.from_name("vgc-textdiff", create_if_missing=True)
 hf = modal.Volume.from_name("vgc-hf-cache", create_if_missing=True)          # model downloads, kept between runs
 

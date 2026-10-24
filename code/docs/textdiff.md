@@ -670,8 +670,107 @@ is noise at 256 teams.
   threshold and inconsistent tokens land together (`focuss`, 1% legal). Top-p 0.9 gains no clear legality and loses a
   fifth of the species sets. Kept temperature 1, top-p 1, the 1.5B writer's sampler, which also keeps the comparison fair.
 
-**Win rate against the baseline (pending).** The 3B writer's four arms were generated on the H100 with that sampler
+**Win rate against the baseline (battled 2026-10-24, results in the next section).** The 3B writer's four arms were generated on the H100 with that sampler
 (`gen --batch-gen 128`; guidance arm through `generate_cfg`) and decoded as `text3b:` cells in `results/textdiff.json`:
 raw legality 58% at `unknown`, 86% at 0.50, 88% at 0.60 and 90% at 0.50 with guidance 2 (1.5B: 50%, 88%, 88%, 79%). The battles, the 1.5B writer's and the
 scratch model's protocol, are queued on the M4 Pro behind the other session's training
 (`~/.local/share/vgc-pilot-runtime/textdiff/battle3b/queue.sh`) and log to W&B as run `battle-textdiff-3b-2026-10-23`.
+
+## The questions behind the inference work, answered from the measurements (2026-10-24)
+
+**Does fine-tuning a pretrained text diffusion model beat the scratch diffusion model?**
+- *Writing whole teams* (64 valid teams per arm, win rate against the top-50 meta, 2026-10-15): yes, clearly. Fast-dLLM v2
+  1.5B + LoRA scores 0.438 at target `unknown` against the scratch model's 0.095 (+0.343, +16σ), and 0.463 with guidance
+  against the scratch model's guided 0.378 (+4.3σ). Both stay below a top-50 meta team (0.531). The 3B writer (battled 2026-10-24, same protocol) scores 0.442 / 0.472 /
+  0.452 / 0.444 on the four arms against the 1.5B's 0.440 / 0.452 / 0.459 / 0.463: level, every difference within about
+  1σ, and still +0.35 over the scratch model unguided and +0.07 to +0.09 over its guided arm.
+- *Filling masks in real teams* (held-out ranks 51–100): no difference in strength. Where both are legal the text writer
+  is +0.6 pp [−0.8, +1.9] over the scratch decoder; its better net per mask (+3.2 pp) comes from refusing fewer good
+  originals, and neither improves a real team.
+
+**Does it beat prompting an LLM (Ling, `inclusionai/ling-3.0-flash-vl`)?** Not yet. On the random grid's 270 masks the
+first text writer and Ling are level: net per mask +1.6 against +1.3, difference +0.3 pp [−0.3, +0.9]. The writer wins
+whole Pokémon (+6.5 pp, more legal fills) and loses items and abilities (about −1 pp each). The prompt-version writers
+trail Ling slightly with the same prompt (regmb −0.9 [−1.5, −0.1], baseline −0.6 [−1.5, +0.1]). **Closed on the random
+grid (owner's decision, 2026-10-24):** the held-out (ranks 51–100) and meta grids have no Ling baseline, so on those the
+writers are compared with the original team, a random legal fill, the scratch decoder and the first text writer only.
+`scripts/ling_grid.py` can add Ling later (about 540 calls per grid). Earlier Ling runs that do not line up with these
+grids: `docs/meta-starter-grid.md` (49 meta starters × 102 masks, answers saved, no battles found) and
+`docs/ling-mb-prompt-comparison.md` (147 tasks, legality only).
+
+**How large a batch fits, and does it help?** Doubling from 256 on one H100 (80 GB), temperature 1, no block cache,
+bf16. Predicted before the run from 59 MB per row at batch 256: 1024 fits (~66 GB), 2048 does not (~127 GB).
+
+| batch | s / team | peak |
+|---|---|---|
+| 256 | 0.175 | 20.1 GB |
+| 512 | 0.168 | 33.8 GB |
+| 1024 | 0.178 | 61.4 GB |
+| 2048 | out of memory (asked 9.3 GB more with 66 GB allocated) | — |
+
+The ceiling is 1024, as predicted, but speed stopped improving at about 128: past that, each call waits for its slowest
+row and every step is compute-bound. The per-row memory is mostly the 152k-way logits and their fp32 copies, then the
+KV cache.
+
+**Lower datatypes:** fp16 runs at the bf16 rate (0.17 s/team at batch 128 and 256, 12.7 / 18.8 GB): the H100's tensor cores
+run both at the same speed. int8 weight-only and FP8 (torchao, eager) were slower (previous section).
+
+**Sampler:** the papers do use greedy decoding, for benchmark scoring (Fast-dLLM v2: "all evaluations are conducted using
+greedy decoding", checked in the PDF; LLaDA and EB-sampler likewise). For generating many teams it is the wrong choice:
+one prompt gives one team. Sampling at temperature 1 with confidence-threshold unmasking keeps the most legal and diverse
+pool here (`docs/textdiff-sampler-research.md`).
+
+**Training: same loss, less time per step, less peak memory** (300-step probes of the 3B recipe, same seed and batches,
+validation on 128 rows at step 300; the spread between two runs of the same arithmetic was 0.04):
+
+| setting | val at 300 | s / step | peak |
+|---|---|---|---|
+| bf16, no checkpointing (the 3B run's setting) | 1.204 | 0.202 | 29.4 GB |
+| `--tf32` | 1.200 | 0.166 | 28.7 GB |
+| `--autocast` | 1.230 | 0.151 | 24.9 GB |
+| `--autocast --ckpt-layers 36` | 1.189 | 0.175 | **11.8 GB** |
+
+Autocast runs the fp32 LoRA matmuls in bf16 (29% of a step in the profile) and keeps fp32 adapter weights. With full
+checkpointing it is both faster than the 3B run's setting and needs 60% less memory.
+
+**Full 2,000-step runs** (the 3B recipe, same seed and batches; validation on 256 rows; steady time excludes compile and
+validation; peak includes validation):
+
+| setting | val 500 | 1,000 | 1,500 | 2,000 | s / step | peak |
+|---|---|---|---|---|---|---|
+| bf16, no checkpointing (`qwen3b_r32`) | 0.980 | 0.832 | 0.720 | 0.682 | 0.192 | 29.4 GB |
+| `--tf32` | 0.988 | 0.836 | 0.719 | 0.680 | 0.178 | 29.4 GB |
+| **`--autocast`** | 0.962 | 0.826 | 0.716 | **0.679** | **0.152** | 24.9 GB |
+| **`--autocast --ckpt-layers 36`** | 0.981 | 0.831 | 0.717 | **0.682** | 0.196 | **16.2 GB** |
+
+Every setting reaches the same loss. On the hill-climb metric (same loss, less time, less memory): `--autocast` is 21%
+faster with 15% less memory, the best default when memory is not short. `--autocast --ckpt-layers 36` is level on time and
+uses 45% less memory, the choice for a smaller GPU or a larger batch. `--tf32` is 7% faster and saves no memory.
+
+**The M4 Pro, measured (2026-10-24, `mac_bench/queue.sh`, 64 teams per setting; W&B `bench-qwen3b_r32-m4pro`).** The
+batched sampler matches the released `generate` token for token here too.
+
+| sampler (3B, M4 Pro) | s / team | legal of 64 |
+|---|---|---|
+| released `generate`, one team per call | 14.6 | 25 |
+| `generate_batch`, batch 1 / with block cache | 10.4 / 7.3 | 30 / 34 |
+| batch 8 / with block cache | 8.6 / **5.7** | 28 / 28 |
+| batch 32 / with block cache | 8.1 / 6.6 | 35 / 40 |
+| batch 64 / with block cache | 8.5 / 9.5 | 35 / 27 |
+
+The Mac is compute-bound, as predicted: batching past 8 gains nothing, and the block cache, which skips arithmetic, gives
+the gain the H100 did not get (5.7 s/team at batch 8, 2.6× the released sampler). The H100's best (about 0.14 s/team at
+batch 64–128) is about 40× the Mac's best.
+
+### The 3B writer in battle (2026-10-24, `battle3b/queue.sh`; W&B `battle-textdiff-3b-2026-10-23`)
+
+| arm | 3B (`text3b:`) | 1.5B (`text:`) | scratch | 3B − 1.5B |
+|---|---|---|---|---|
+| target `unknown` | 0.442 ± 0.014 | 0.440 ± 0.013 | 0.095 ± 0.016 | +0.002 |
+| target 0.50 | 0.472 ± 0.010 | 0.452 ± 0.012 | | +0.020 (1.3σ) |
+| target 0.60 | 0.452 ± 0.014 | 0.459 ± 0.011 | | −0.007 |
+| target 0.50, guidance 2 | 0.444 ± 0.013 | 0.463 ± 0.013 | 0.378 ± 0.015 (cfg) | −0.019 (1.0σ) |
+
+The bigger backbone does not buy win rate here: same validation loss as the diffusion-pretrained 1.5B, higher raw
+legality (58–90% against 50–88%), but level strength and fewer distinct species sets (7–29 against 10–33 per 64 teams).
+No team copies a training row. The model card on the Hub carries this table.

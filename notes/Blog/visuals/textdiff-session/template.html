@@ -1,0 +1,506 @@
+<meta charset="utf-8">
+<title>Text Writer Audit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the blog article's 42rem reading column; answers first, then six steps, each with its evidence and check. */
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --same:#2f9e6b; --ahead:#2a78d6; --lost:#d4551f; --focus:#2a78d6; --meta:#8a6d1f; --mask:#c9ced8;
+  --font-body:"Literata",Georgia,"Times New Roman",serif;
+  --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --col:42rem;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; --meta:#d6b45a; --mask:#3a404c; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; --meta:#d6b45a; --mask:#3a404c; color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.0625rem/1.65 var(--font-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 4rem}
+.col{max-width:var(--col);margin:0 auto}
+header{padding-top:2.6rem}
+h1{font:600 2.15rem/1.15 var(--font-body);letter-spacing:-.01em;margin:0 0 .6rem;text-wrap:balance}
+h2{font:600 1.4rem/1.25 var(--font-body);margin:0 0 .6rem;text-wrap:balance}
+h3{font:600 .95rem/1.3 var(--font-ui);margin:0 0 .35rem}
+p{margin:0 0 1rem;text-wrap:pretty}
+.dek{font-size:1.15rem;color:var(--ink-2)}
+.byline{font:400 .85rem var(--font-ui);color:var(--ink-3);padding-bottom:1.2rem;border-bottom:1px solid var(--rule);margin-bottom:1.8rem}
+.num{font-variant-numeric:tabular-nums}
+figure{margin:1.2rem 0 1.6rem} figcaption{font:400 .8rem/1.5 var(--font-ui);color:var(--ink-3);margin-top:.55rem}
+code{font-family:var(--font-mono);font-size:.84em;background:var(--wash);padding:.05em .3em;border-radius:3px;overflow-wrap:anywhere}
+button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* figure titles state the takeaway, so each figure stands alone */
+.ftitle{font:600 .92rem/1.35 var(--font-ui);color:var(--ink);margin:0 0 .55rem}
+/* teaser: every arm of every writer on one win-rate scale */
+.strip{display:grid;gap:.55rem;margin:.4rem 0 .2rem}
+.srow{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:.7rem;align-items:center;font:500 .82rem var(--font-ui)}
+.srow .track{position:relative;height:1.6rem;border-bottom:1px solid var(--rule)}
+.srow .dot{position:absolute;top:50%;width:.85rem;height:.85rem;border-radius:50%;transform:translate(-50%,-50%);border:2px solid var(--bg)}
+.srow .ref{position:absolute;top:-.3rem;bottom:-.3rem;border-left:2px dashed var(--meta)}
+.saxis{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:.7rem;font:400 .72rem var(--font-ui);color:var(--ink-3)}
+.saxis .ticks{position:relative;height:1rem} .saxis .ticks span{position:absolute;transform:translateX(-50%)} .saxis .ticks span:first-child{transform:none} .saxis .ticks span:last-child{transform:translateX(-100%)}
+@media (max-width:640px){.srow,.saxis{grid-template-columns:minmax(0,6rem) minmax(0,1fr)}}
+.pop{animation:pop .45s cubic-bezier(.2,.7,.2,1) both}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-50%) scale(.6)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* how a win rate is measured: one square per battle, then one dot per team */
+.games{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;max-width:26rem;margin:.5rem 0}
+.games .g{aspect-ratio:1;border-radius:3px;background:var(--wash);border:1px solid var(--rule);position:relative}
+.games .g.w{background:var(--same);border-color:var(--same)}
+.games .g.dup::after{content:"";position:absolute;inset:30%;border-radius:50%;background:var(--bg)}
+.tally{font:600 .95rem var(--font-ui);margin:.2rem 0 1rem}
+.spread{position:relative;height:3.2rem;margin:2.2rem 0 .2rem;border-bottom:1px solid var(--rule)}
+.spread .dot{position:absolute;bottom:.25rem;width:.6rem;height:.6rem;margin-left:-.3rem;border-radius:50%;background:var(--same);opacity:.55}
+.spread .dot.me{opacity:1;width:.85rem;height:.85rem;margin-left:-.425rem;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--ink)}
+.spread .line{position:absolute;top:-1.4rem;bottom:0;border-left:2px solid var(--ink)}
+.spread .line.meta{border-left:2px dashed var(--meta)}
+.spread .line span{position:absolute;top:0;right:.3rem;font:600 .72rem var(--font-ui);white-space:nowrap;color:var(--ink-2)}
+.spread .line.meta span{right:auto;left:.3rem}
+/* baseline: net change per mask, bars diverge from zero */
+.net{display:grid;gap:.3rem;font:400 .8rem/1.2 var(--font-ui);margin:.2rem 0 .3rem}
+.net .row{display:grid;grid-template-columns:minmax(0,12rem) minmax(0,1fr) 3.4rem;gap:.6rem;align-items:center}
+.net .k{color:var(--ink-2);text-align:right} .net .k small{color:var(--ink-3)}
+.net .track{position:relative;height:1rem;background:var(--wash);border-radius:3px}
+.net .fill{position:absolute;top:0;bottom:0;border-radius:3px}
+.net .zero{position:absolute;top:-.3rem;bottom:-.3rem;border-left:2px solid var(--ink)}
+.net .err{position:absolute;top:50%;height:1.5px;background:var(--ink);opacity:.75}
+.net .dotv{position:absolute;top:50%;width:.8rem;height:.8rem;margin:-.4rem 0 0 -.4rem;border-radius:50%;background:var(--ink)}
+.net .v{color:var(--ink-2)}
+.net .axis{grid-template-columns:minmax(0,12rem) minmax(0,1fr) 3.4rem}
+@media (max-width:640px){.net .row,.net .axis{grid-template-columns:minmax(0,6.8rem) minmax(0,1fr) 3rem}}
+.fills{width:100%;border-collapse:collapse;font:400 .85rem var(--font-ui);margin-top:.6rem}
+.fills td{padding:.3rem .4rem;border-bottom:1px solid var(--rule)} .fills td.r{text-align:right}
+.mon.hid .face{outline:2px dashed var(--meta);outline-offset:2px;border-radius:6px}
+/* answers */
+.answers{display:grid;gap:0;margin:0 0 2.4rem;border-top:2px solid var(--ink)}
+.answer{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"q q" "a v" "d d";gap:.25rem 1rem;padding:.9rem 0;border-bottom:1px solid var(--rule)}
+.answer .q{grid-area:q} .answer .a{grid-area:a} .answer .d{grid-area:d}
+.answer .q{font:500 .78rem var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.answer .a{font:600 1.2rem/1.3 var(--font-body)}
+.answer .v{grid-area:v;align-self:baseline;font:600 1.35rem var(--font-ui)}
+.answer .d{font:400 .9rem/1.5 var(--font-ui);color:var(--ink-2)}
+.yes{color:var(--same)} .level{color:var(--ink-2)} .none{color:var(--lost)}
+/* steps */
+.step{display:grid;grid-template-columns:3.4rem minmax(0,1fr);gap:0 1rem;margin-top:2.6rem}
+.step .n{font:600 .78rem var(--font-ui);color:var(--ink-3);letter-spacing:.08em;padding-top:.45rem}
+@media (max-width:640px){.step{grid-template-columns:minmax(0,1fr)} .step .n{padding:0 0 .2rem}}
+.check{border-left:3px solid var(--same);padding:.35rem 0 .35rem .9rem;margin:1.1rem 0 0;font:400 .9rem/1.55 var(--font-ui);color:var(--ink-2)}
+.check h3{color:var(--same)}
+.predict{border-left:3px solid var(--meta);padding:.35rem 0 .35rem .9rem;margin:0 0 1rem;font:400 .95rem/1.55 var(--font-ui)}
+.predict h3{color:var(--meta)}
+/* the unmasking figure */
+.paste{font:400 .78rem/1.55 var(--font-mono);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:.8rem .9rem;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem 1rem;min-width:0}
+@media (max-width:640px){.paste{grid-template-columns:minmax(0,1fr)}}
+.paste .slot{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.tok{border-radius:2px;transition:background-color .25s,color .25s}
+.tok.m{background:var(--mask);color:transparent}
+.tok.blk{box-shadow:inset 0 -2px 0 var(--ahead)}
+.paste-bar{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin-top:.5rem;font:400 .8rem var(--font-ui);color:var(--ink-3)}
+.paste-bar button,.pick button,.copy{font:600 .8rem var(--font-ui);border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:6px;padding:.4rem .75rem;cursor:pointer}
+/* teams */
+.team{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.35rem}
+.mon{display:flex;flex-direction:column;align-items:center;min-width:0}
+.mon .face{position:relative;width:100%;max-width:72px}
+.mon img.sp{display:block;width:100%;aspect-ratio:1;image-rendering:pixelated}
+.mon img.it{position:absolute;right:0;bottom:0;width:38%;max-width:26px;aspect-ratio:1;image-rendering:pixelated}
+.mon span{font:400 .66rem/1.2 var(--font-ui);color:var(--ink-3);text-align:center;overflow-wrap:normal;max-width:calc(100% + .4rem)}
+@media (max-width:640px){.mon span{font-size:.56rem;letter-spacing:-.02em}}
+.mon .ph{width:100%;aspect-ratio:1;display:grid;place-items:center;font:600 .7rem var(--font-ui);color:var(--ink-3);background:var(--wash);border-radius:50%}
+.picks{display:grid;gap:.6rem;margin:1rem 0 .4rem}
+.pick{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.6rem;align-items:center;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:.6rem .75rem}
+.pick .who{font:600 .85rem var(--font-ui);margin-bottom:.3rem} .pick .who small{font-weight:400;color:var(--ink-3)}
+.pick button{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pick.chosen{border-color:var(--ahead);box-shadow:0 0 0 1px var(--ahead) inset}
+@media (max-width:520px){.pick{grid-template-columns:minmax(0,1fr)} .pick button{justify-self:start}}
+.verdict{font:600 .95rem/1.5 var(--font-ui);min-height:1.5em}
+/* charts: HTML bars keep readable text at any width */
+.bars{display:grid;gap:.32rem;font:400 .8rem/1.2 var(--font-ui)}
+.bar{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr) 4.2rem;gap:.6rem;align-items:center}
+.bar .k{color:var(--ink-2);text-align:right;overflow-wrap:anywhere}
+.bar .track{position:relative;height:1rem;background:var(--wash);border-radius:3px}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px;transform-origin:left center}
+.bar .err{position:absolute;top:50%;height:1.5px;background:var(--ink);opacity:.75}
+.bar .ref{position:absolute;top:-.25rem;bottom:-.25rem;border-left:2px dashed var(--meta)}
+.bar .v{color:var(--ink-2)} .bar.dim .fill{opacity:.3}
+.bar.gap{margin-top:.45rem}
+.axis{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr) 4.2rem;gap:.6rem;font:400 .72rem var(--font-ui);color:var(--ink-3)}
+.axis .ticks{position:relative;height:1rem} .axis .ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:.35rem 1.1rem;font:400 .8rem var(--font-ui);color:var(--ink-2);margin-top:.4rem}
+.legend i{display:inline-block;width:.9rem;height:.28rem;border-radius:2px;vertical-align:middle;margin-right:.35rem}
+@media (max-width:640px){.bar,.axis{grid-template-columns:minmax(0,6.8rem) minmax(0,1fr) 3.6rem}}
+svg text{font-family:var(--font-ui);fill:var(--ink-3)}
+.tbl{width:100%;border-collapse:collapse;font:400 .85rem var(--font-ui)}
+.tbl th,.tbl td{text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--rule);vertical-align:top}
+.tbl th{font-weight:600;color:var(--ink-2)} .tbl td.r,.tbl th.r{text-align:right}
+.tbl .gain{color:var(--same)} .tbl .flat{color:var(--ink-3)}
+.scroll{overflow-x:auto}
+.copy{margin-top:.3rem;font-size:.72rem;padding:.2rem .5rem}
+.cmd{font:400 .74rem/1.45 var(--font-mono);color:var(--ink);overflow-wrap:anywhere}
+/* motion: each graph waits until it scrolls into view, then plays once. Reduced motion keeps the fades, drops the movement. */
+.wait,.wait *{animation-play-state:paused!important}
+.grow{animation:grow .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* a setting's bar grows to the bf16 length first, then moves to its own value */
+.settle{animation:settle 1.15s both}
+@keyframes settle{0%{transform:scaleX(0);animation-timing-function:cubic-bezier(.2,.7,.2,1)}52%{transform:scaleX(var(--from));animation-timing-function:cubic-bezier(.77,0,.175,1)}100%{transform:scaleX(1)}}
+.sweep{animation:sweep .9s cubic-bezier(.77,0,.175,1) both}
+@keyframes sweep{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.fade,.late{animation:fade .2s ease-out both}
+@keyframes fade{from{opacity:0}}
+.bar .fill{transition:opacity .2s ease-out}
+.bar .ghost{position:absolute;top:-.2rem;bottom:-.2rem;border-left:2px solid var(--ink-3);opacity:.55;animation:fade .3s ease-out .6s both}
+.bar .hatch{position:absolute;inset:0;border-radius:3px;background:repeating-linear-gradient(45deg,var(--lost) 0 4px,var(--wash) 4px 9px);animation:fade .2s ease-out both}
+.bar .best{position:absolute;top:-.3rem;bottom:-.3rem;width:3px;margin-left:-1.5px;border-radius:2px;background:var(--ink);animation:fade .2s ease-out both}
+@media (prefers-reduced-motion: reduce){.grow,.settle,.sweep,.pop{animation:fade .3s ease-out both}.tok,.bar .fill{transition:none}}
+</style>
+
+<header class="col">
+  <h1>What fine-tuning a text diffusion model bought, and how to check it</h1>
+  <p class="dek">Two days of runs on a rented H100 and the MacBook, in six steps. Each step names the file behind its numbers and the command that reruns it.</p>
+  <div class="byline">Runs of 2026-10-23 and 24 · Win rate is wins against the top-50 meta teams, with the behaviour-cloning policy on both sides (<a href="#how">how it is measured</a>)</div>
+</header>
+<main class="col" id="app"></main>
+
+<script>
+const D = /*DATA*/null;
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = (h) => { const t = document.createElement("template"); t.innerHTML = h.trim(); return t.content.firstElementChild; };
+const fmt = (x, d = 3) => x == null ? "—" : Number(x).toFixed(d);
+const get = (key) => D.win.find((r) => r.key === key);
+const WIN_NOTE = "Win rate is wins against the top-50 meta teams, one battle each, with the behaviour-cloning policy on both sides.";
+const WRITER = { scratch: "Scratch team writer", text: "1.5B text team writer", text3b: "3B text team writer" };
+const SHORT = { scratch: "scratch", text: "1.5B text", text3b: "3B text" };
+const COLORS = { scratch: "var(--ink-3)", text: "var(--ahead)", text3b: "var(--same)" };
+const SRC = {
+  win: "<code>sources/textdiff_results.json</code> (<code>results/textdiff.json</code>, summary)",
+  curves: "the runs' <code>log.json</code> files (<code>lora_r32</code>, <code>qwen3b_r32</code>, <code>qwen15_r32</code>)",
+  train: "the runs' <code>log.json</code> files (<code>qwen3b_r32</code>, <code>_tf32</code>, <code>_amp</code>, <code>_amp_ckpt</code>)",
+  ceiling: "<code>sources/h100_batch_ceiling.jsonl</code>", speed: "<code>sources/h100_samplers.jsonl</code> and <code>sources/m4pro_samplers.jsonl</code>",
+  ling: "<code>sources/text_vs_ling_random_grid.json</code>", checks: "<code>sources/checks.jsonl</code>",
+};
+const flex = D.checks.find((c) => c.loss_dense !== undefined && c.dtype === "fp32");
+const hub = D.checks.find((c) => (c.check || "").startsWith("hub"));
+const greedy = D.checks.filter((c) => (c.check || "").startsWith("greedy"));
+const last = (k) => D.curves[k].val.at(-1)[1];
+
+function teamEl(team) {
+  const t = $(`<div class="team"></div>`);
+  team.forEach((m) => {
+    const c = $(`<div class="mon" title="${m.species}${m.item ? " @ " + m.item : ""}&#10;${m.moves.join(", ")}"></div>`), f = $(`<div class="face"></div>`);
+    f.append(m.sprite ? $(`<img class="sp" alt="${m.species}" src="${m.sprite}">`) : $(`<div class="ph">${m.species.slice(0, 3)}</div>`));
+    if (m.item_sprite) f.append($(`<img class="it" alt="${m.item}" src="${m.item_sprite}">`));
+    c.append(f, $(`<span>${m.species}</span>`)); t.append(c);
+  });
+  return t;
+}
+function bars(rows, { max, ticks, unit = "", ref, refColor = "var(--meta)", refLabel, key = (r) => r.k, val = (r) => r.v, label = (r) => fmt(val(r)), color, dim, err, gapBefore,
+                       stagger = 35, attr = () => "", from = () => null, ghost, inner = () => "" }) {
+  const pct = (v) => `${Math.min(v, max) / max * 100}%`;
+  const html = rows.map((r, i) => `<div class="bar${dim && dim(r) ? " dim" : ""}${gapBefore && gapBefore(r, i) ? " gap" : ""}" ${attr(r)}><div class="k">${key(r)}</div>
+    <div class="track"><div class="fill ${from(r) ? "settle" : "grow"}" style="width:${pct(val(r))};background:${color(r)};animation-delay:${i * stagger}ms${from(r) ? `;--from:${from(r)}` : ""}">${inner(r, i)}</div>
+    ${from(r) && ghost != null ? `<div class="ghost" style="left:${pct(ghost)}"></div>` : ""}
+    ${err ? `<div class="err" style="left:${pct(val(r) - err(r))};width:${2 * err(r) / max * 100}%"></div>` : ""}${ref != null ? `<div class="ref" style="left:${pct(ref)};border-color:${refColor}"></div>` : ""}</div>
+    <div class="v num">${label(r, i)}</div></div>`).join("");
+  return `<div class="bars">${html}<div class="axis"><div></div><div class="ticks">${ticks.map((v) => `<span style="left:${pct(v)}">${v}${unit}</span>`).join("")}</div><div></div></div>${refLabel ? `<div class="legend">${refLabel}</div>` : ""}</div>`;
+}
+function lossChart() {
+  const W = 520, H = 210, L = 40, R = 14, T = 12, B = 30, xs = (st) => L + (st - 500) / 1500 * (W - L - R), ys = (v) => T + (1.12 - v) / 0.5 * (H - T - B);
+  const series = [["qwen15_r32", "Plain Qwen2.5-1.5B, same recipe (control, dashed)", "var(--ink-2)"], ["lora_r32", "1.5B text team writer (Fast-dLLM v2, MacBook)", "var(--ahead)"], ["qwen3b_r32", "3B text team writer (H100)", "var(--same)"]];
+  let g = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Validation loss against training step">`;
+  [0.7, 0.8, 0.9, 1.0, 1.1].forEach((v) => { g += `<line x1="${L}" x2="${W - R}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--rule)"/><text x="${L - 7}" y="${ys(v) + 4}" text-anchor="end" font-size="13">${v.toFixed(1)}</text>`; });
+  [500, 1000, 1500, 2000].forEach((st) => { g += `<text x="${xs(st)}" y="${H - 8}" text-anchor="middle" font-size="13">${st}</text>`; });
+  g += `<g class="sweep">`;
+  series.forEach(([k, , col]) => {
+    const pts = D.curves[k].val.map(([st, v]) => [xs(st), ys(v)]);
+    g += `<polyline fill="none" stroke="${col}" stroke-width="2.6" ${k === "qwen15_r32" ? 'stroke-dasharray="6 4"' : ""} points="${pts.map((q) => q.join(",")).join(" ")}"/>`;
+    pts.forEach((q) => { g += `<circle cx="${q[0]}" cy="${q[1]}" r="3.2" fill="${col}"/>`; });
+  });
+  return g + `</g></svg><div class="legend">` + series.map(([k, name, col]) => `<span><i style="background:${col}"></i>${name}, <b class="num">${last(k).toFixed(3)}</b></span>`).join("") + `<span>Horizontal: training step. Vertical: validation loss.</span></div>`;
+}
+function winChart(highlight) {
+  const rows = D.win.map((r) => ({ ...r, k: `${SHORT[r.writer]} · ${r.key.endsWith(":cfg") ? "guided (cfg)" : r.arm}` }));
+  return bars(rows, { max: 0.8, ticks: [0, 0.2, 0.4, 0.6, 0.8], val: (r) => r.win, color: (r) => COLORS[r.writer], err: (r) => r.se, attr: (r) => `data-w="${r.writer}"`,
+    ref: D.meta_mean, dim: (r) => highlight && r.writer !== highlight, gapBefore: (r, i) => i && rows[i - 1].writer !== r.writer,
+    refLabel: `<span><i style="background:var(--meta)"></i>Dashed line: a top-50 meta team scores ${D.meta_mean}</span><span>Whiskers: one standard error</span>` });
+}
+function speedChart() {
+  const name = { released: "released sampler", batch1: "batched, 1 per call", batch8: "batched, 8 per call", batch32: "batched, 32 per call", batch64: "batched, 64 per call",
+    batch1_cache: "batched, 1 per call + block cache", batch8_cache: "batched, 8 per call + block cache" };
+  const row = (r) => ({ k: name[r.setting], v: 60 / r.s, s: r.s });
+  const label = (r) => `${r.v < 10 ? r.v.toFixed(1) : Math.round(r.v)}/min`;
+  return `<h3 class="ftitle">H100: batching multiplies teams per minute</h3>`
+    + bars(D.h100.map(row), { max: 360, ticks: [0, 120, 240, 360], label, color: () => "var(--same)" })
+    + `<h3 class="ftitle" style="margin-top:1.1rem">MacBook: the block cache adds more than bigger batches</h3>`
+    + bars(D.mac.map(row), { max: 12, ticks: [0, 4, 8, 12], label, color: (r) => /cache/.test(r.k) ? "var(--same)" : "color-mix(in oklab, var(--same) 45%, var(--wash))",
+      refLabel: `<span><i style="background:var(--same)"></i>with the block cache</span><span>Teams per minute is 60 divided by seconds per team. Note the two scales differ by 30 times.</span>` });
+}
+function ceilingChart() {
+  const rows = D.ceiling.map((r) => ({ k: `batch ${r.batch}`, v: r.oom ? 80 : r.gb, oom: r.oom, s: r.s }));
+  const after = (i) => `animation-delay:${i * 260 + 700}ms`;
+  return bars(rows, { max: 80, ticks: [0, 20, 40, 60, 80], unit: " GB", ref: 79.2, refColor: "var(--lost)", stagger: 260,
+    label: (r, i) => r.oom ? `<span class="late" style="${after(i)}">out of memory</span>` : `<span class="late" style="${after(i)}">${r.v} GB</span>`,
+    inner: (r, i) => r.oom ? `<span class="hatch" style="${after(i)}"></span>` : "", color: () => "var(--same)",
+    refLabel: `<span><i style="background:var(--lost)"></i>Dashed red line: the H100's 79 GB</span>` });
+}
+function trainBars() {
+  const names = { qwen3b_r32: "bf16, as trained", qwen3b_r32_tf32: "<code>--tf32</code>", qwen3b_r32_amp: "<code>--autocast</code>", qwen3b_r32_amp_ckpt: "<code>--autocast</code> + checkpoints" };
+  const rows = Object.entries(D.train).map(([k, r]) => ({ k: `${names[k]}<br><span style="color:var(--ink-3)">loss ${r.val.at(-1)[1].toFixed(3)}</span>`, t: r.steady, gb: r.peak, base: k === "qwen3b_r32" }));
+  const shade = (r) => r.base ? "var(--ink-3)" : "var(--same)", base = rows.find((r) => r.base);
+  return `<h3 class="ftitle">Time per step</h3>` + bars(rows, { max: 0.25, ticks: [0, 0.1, 0.2], unit: " s", val: (r) => r.t, label: (r) => `${r.t.toFixed(3)} s`, color: shade,
+           stagger: 0, from: (r) => r.base ? null : base.t / r.t, ghost: base.t })
+       + `<h3 class="ftitle" style="margin-top:1.1rem">Peak GPU memory</h3>` + bars(rows, { max: 32, ticks: [0, 10, 20, 30], unit: " GB", val: (r) => r.gb, label: (r) => `${r.gb} GB`, color: shade,
+           stagger: 0, from: (r) => r.base ? null : base.gb / r.gb, ghost: base.gb })
+       + `<div class="legend"><span><i style="background:var(--ink-3)"></i>Grey mark: bf16, as trained</span></div>`;
+}
+function howWinRate() {
+  const W = D.winrate, team = D.teams.text3b;
+  // a meta team listed twice in the top-50 list counts twice, so the list gives 50 battles from 49 distinct teams
+  const squares = W.games.flatMap((g) => Array(g.weight).fill(g)).sort((a, b) => b.won - a.won);
+  const wins = squares.filter((g) => g.won).length, n = squares.length, p = wins / n, margin = Math.sqrt(p * (1 - p) / n);
+  const max = 0.8, pct = (v) => `${v / max * 100}%`;
+  const sec = $(`<section id="how"><h2>How a win rate is measured</h2>
+    <p>Every number on this page comes from battles in Pokémon Showdown. Both sides are played by the same AI, the VGC-Bench behaviour-cloning policy, a network trained to copy human players' moves. A written team first gets Stat Points from a real team of the same species, and Showdown checks that it is legal. Illegal teams are dropped and never battled.</p>
+    <figure><h3 class="ftitle">One team: one battle against each meta team, then wins divided by battles</h3>
+      <div class="me"></div>
+      <div class="games" role="img" aria-label="${wins} wins in ${n} battles">${squares.map((g, i) =>
+        `<span class="g fade${g.won ? " w" : ""}${g.weight > 1 ? " dup" : ""}" title="${g.won ? "Won" : "Lost"} against ${g.species.join(", ")}" style="animation-delay:${i * 14}ms"></span>`).join("")}</div>
+      <p class="tally">${wins} wins in ${n} battles: ${wins} ÷ ${n} = ${p.toFixed(3)}</p>
+      <div class="legend"><span><i style="background:var(--same)"></i>Won</span><span><i style="background:var(--wash);outline:1px solid var(--rule)"></i>Lost</span>
+        <span>Wins are sorted first. The two squares with a hole are one meta team that appears twice in the top-50 list, so it counts twice: 49 distinct teams, 50 battles.</span></div>
+      <figcaption>The 3B text team writer's best team, from the setting with target win rate 0.60. Hover a square for the opponent's six Pokémon. From <code>sources/winrate_example.json</code> (the matchup database, <code>~/vgc-data/matchup_regmb.sqlite</code>).</figcaption></figure>
+    <p>One team plays only ${n} battles, so its win rate is rough: about ±${margin.toFixed(2)}. A team at ${p.toFixed(3)} could be a ${(p - margin).toFixed(2)} team that got lucky. So a writer is scored on many teams, not its best one.</p>
+    <figure><h3 class="ftitle">One setting: 64 legal teams, averaged</h3>
+      <div class="spread">${W.arm_scores.map((y, i) => `<span class="dot pop${Math.abs(y - p) < 1e-9 && !W._me ? (W._me = " me") : ""}" style="left:${pct(y)};bottom:${0.25 + (i % 4) * 0.55}rem;animation-delay:${i * 12}ms"></span>`).join("")}
+        <span class="line" style="left:${pct(W.arm_mean)}"><span>mean ${W.arm_mean.toFixed(3)}</span></span>
+        <span class="line meta" style="left:${pct(D.meta_mean)}"><span>meta team ${D.meta_mean}</span></span></div>
+      <div class="saxis" style="grid-template-columns:minmax(0,1fr)"><div class="ticks">${[0, 0.2, 0.4, 0.6, 0.8].map((v) => `<span style="left:${pct(v)}">${v.toFixed(1)}</span>`).join("")}</div></div>
+      <div class="legend"><span>Each dot is one team's win rate. The ringed dot is the team above.</span></div>
+      <figcaption>The 64 teams of the 3B writer's target-0.60 setting. Their mean, ${W.arm_mean.toFixed(3)} ± ${W.arm_se.toFixed(3)}, is the number in the bar charts below. The ± is one standard error, the whisker on those bars. From ${SRC.win}.</figcaption></figure>
+    <p>The dashed line, ${D.meta_mean}, is the bar to clear. Each of the top-50 meta teams was scored the same way, against the rest of the list, and their scores average ${D.meta_mean}. A writer whose teams average ${D.meta_mean} writes teams as strong as the meta's.</p>
+  </section>`);
+  sec.querySelector(".me").append(teamEl(team.team));
+  return sec;
+}
+const BASE_NAMES = { textdiff3b: "3B text team writer", textdiff: "1.5B text team writer", diffusion: "Scratch team writer", ling: "Ling (LLM)", random: "Random legal fill" };
+const BASE_COLORS = { textdiff3b: "var(--same)", textdiff: "var(--ahead)", diffusion: "var(--ink-3)", ling: "var(--ink)",
+                      random: "repeating-linear-gradient(45deg,var(--ink-3) 0 3px,var(--wash) 3px 7px)" };
+const sign = (v, d = 1) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(d)}`;
+function netChart(grid, lo = -24, hi = 6) {
+  const g = D.baseline[grid], span = hi - lo, x = (v) => (Math.max(lo, Math.min(hi, v)) - lo) / span * 100;
+  const keys = ["textdiff3b", "textdiff", "diffusion", "ling", "random"].filter((k) => g.methods[k]);
+  const rows = keys.map((k, i) => {
+    const m = g.methods[k], v = m.net.mean, a = Math.min(0, v), z = Math.max(0, v);
+    return `<div class="row"><div class="k">${BASE_NAMES[k]}<br><small>${m.legal}/${g.masks} legal</small></div>
+      <div class="track"><div class="fill grow" style="left:${x(a)}%;width:${x(z) - x(a)}%;background:${BASE_COLORS[k]};transform-origin:${v < 0 ? "right" : "left"} center;animation-delay:${i * 60}ms"></div>
+      <div class="err" style="left:${x(m.net.lo)}%;width:${x(m.net.hi) - x(m.net.lo)}%"></div><div class="zero" style="left:${x(0)}%"></div></div>
+      <div class="v num">${sign(v)}</div></div>`;
+  }).join("");
+  const ticks = [-20, -10, 0, 5].map((t) => `<span style="left:${x(t)}%">${sign(t, 0)}</span>`).join("");
+  return `<div class="net">${rows}<div class="axis"><div></div><div class="ticks">${ticks}</div><div></div></div></div>`;
+}
+function diffChart() {
+  const lo = -2.5, hi = 2.5, x = (v) => (v - lo) / (hi - lo) * 100, names = { random: "Random starting teams", heldout: "Held-out starting teams", meta: "Meta starting teams" };
+  const rows = ["random", "heldout", "meta"].map((grid, i) => { const d = D.baseline[grid].net_3b_minus_15b;
+    return `<div class="row"><div class="k">${names[grid]}</div><div class="track" style="background:none;border-bottom:1px solid var(--rule)">
+      <div class="err" style="left:${x(d.lo)}%;width:${x(d.hi) - x(d.lo)}%"></div><div class="zero" style="left:${x(0)}%"></div>
+      <span class="dotv pop" style="left:${x(d.mean)}%;background:var(--same);animation-delay:${i * 120}ms"></span></div><div class="v num">${sign(d.mean)}</div></div>`; }).join("");
+  const ticks = [-2, -1, 0, 1, 2].map((t) => `<span style="left:${x(t)}%">${sign(t, 0)}</span>`).join("");
+  return `<div class="net">${rows}<div class="axis"><div></div><div class="ticks">${ticks}</div><div></div></div></div>`;
+}
+function baselineStep() {
+  const B = D.baseline, ex = B.example, pts = (w) => `${(w * 100).toFixed(0)}%`;
+  const mean = (o) => Object.values(o).reduce((a, b) => a + b, 0) / Object.values(o).length;
+  const sec = $(`<section class="step"><div class="n">STEP 2</div><div>
+    <h2>On the baseline, the text writers do the least harm to good teams</h2>
+    <p>The baseline is the Mask Lab. It takes a starting team and hides one part of it: the Stat Points, an item, some moves, a whole Pokémon, an ability or a nature. A writer fills the gap. Showdown checks the filled team, and an illegal fill is thrown away, so the team stays as it was. Every legal filled team then plays the same 50 battles as in <a href="#how">How a win rate is measured</a>. Each grid has five starting teams and 270 masks.</p>
+    <p>Your note asks to compare the writers "against each other and against the teams they started from." So the score here is the <b>net change per mask</b>: the filled team's win rate minus the starting team's, in percentage points, averaged over all 270 masks. A thrown-away fill counts as no change.</p>
+    <figure><h3 class="ftitle">One mask: a move on Mega Mawile is hidden, and each writer fills it</h3><div class="ex-team"></div>
+      <table class="fills"><tbody>
+        <tr><td>Original team</td><td>${ex.hidden}</td><td class="r num">${pts(ex.original)}</td></tr>
+        ${ex.fills.map((f) => `<tr><td>${BASE_NAMES[f.writer]}</td><td>${f.move}</td><td class="r num">${pts(f.win)}</td></tr>`).join("")}</tbody></table>
+      <figcaption>Random grid, starting team ${ex.start}. The dashed outline marks the Pokémon with the hidden move. Win rate as defined above, 50 battles. This team wins almost nothing either way, so one mask says little. The grid's answer is the average over 270 masks. From <code>sources/baseline_results.json</code>.</figcaption></figure>
+    <div class="predict"><h3>Predict before you look</h3>A top-50 team has already been tuned by its player. If a writer refills one part of it, will its win rate go up or down on average?</div>
+    <figure><h3 class="ftitle">Top-50 starting teams (they win ${pts(mean(B.meta.originals))} on average): every fill costs win rate</h3>${netChart("meta")}
+      <h3 class="ftitle" style="margin-top:1.2rem">Held-out starting teams, ranks 51 to 100 (${pts(mean(B.heldout.originals))}): the same order</h3>${netChart("heldout")}
+      <h3 class="ftitle" style="margin-top:1.2rem">Random starting teams (${pts(mean(B.random.originals))}): the writers gain a little and are level</h3>${netChart("random")}
+      <div class="legend"><span>Bars: net change per mask, in percentage points. Whiskers: 95% interval over the five starting teams.</span><span>Ling was run on the random grid only.</span></div>
+      <figcaption>Each grid: 5 starting teams × 270 masks; each legal fill plays 50 battles against the top-50 meta teams, behaviour-cloning policy on both sides. From <code>sources/baseline_results.json</code> (<code>baseline_extract.py</code>, the grids' <code>panels.json</code>).</figcaption></figure>
+    <p>Good teams lose a little to any change, because they were already tuned. The question is how much. The text team writers lose ${sign(B.meta.methods.textdiff3b.net.mean)} and ${sign(B.meta.methods.textdiff.net.mean)} points per mask on top-50 teams, against ${sign(B.meta.methods.diffusion.net.mean)} for the scratch team writer and ${sign(B.meta.methods.random.net.mean)} for a random legal fill. On random starting teams, which almost never win, any sensible fill helps a little, and the text writers are level with Ling and the scratch team writer.</p>
+    <figure><h3 class="ftitle">3B against 1.5B, the same masks paired: no size win</h3>${diffChart()}
+      <div class="legend"><span>Dot: the 3B writer's net change minus the 1.5B's, per mask, in points. Whiskers: 95% interval. Right of zero means the 3B did better.</span></div>
+      <figcaption>Same masks, same battles. From <code>sources/baseline_results.json</code>.</figcaption></figure>
+    <p>The 3B writer does better on top-50 teams (${sign(B.meta.net_3b_minus_15b.mean)} [${sign(B.meta.net_3b_minus_15b.lo)}, ${sign(B.meta.net_3b_minus_15b.hi)}]), is level on held-out teams, and does slightly worse on random teams (${sign(B.random.net_3b_minus_15b.mean)}). Both write a legal fill for 52 to 64% of masks. That matches the battles in step 1: a bigger model, no clear gain.</p>
+    <div class="check"><h3>How to check it</h3><code>python3 baseline_extract.py</code> in this page's folder reprints every number above from the grids' <code>panels.json</code>. The random grid was re-battled in full on 2026-10-24, about 51,000 battles, and its numbers moved by up to 1 point from the 2026-10-21 run. Read gaps smaller than that as noise.</div>
+  </div></section>`);
+  const t = teamEl(ex.team.map((s) => ({ ...s, moves: [] })));
+  [...t.children].forEach((c, i) => { if (ex.team[i].species === ex.slot) c.classList.add("hid"); });
+  sec.querySelector(".ex-team").append(t);
+  return sec;
+}
+function teaser() {
+  const max = 0.6, pct = (v) => `${v / max * 100}%`, writers = ["scratch", "text", "text3b"];
+  const rows = writers.map((w) => `<div class="srow"><div>${WRITER[w]}</div><div class="track">${D.win.filter((r) => r.writer === w).map((r, i) =>
+    `<span class="dot pop" title="${r.arm}: ${fmt(r.win)}" style="left:${pct(r.win)};background:${COLORS[w]};animation-delay:${200 + i * 80}ms"></span>`).join("")}
+    <span class="ref" style="left:${pct(D.meta_mean)}"></span></div></div>`).join("");
+  return `<figure><h3 class="ftitle">Fine-tuning moved every arm from the scratch writer's range to just below a meta team</h3><div class="strip">${rows}</div>
+    <div class="saxis"><div></div><div class="ticks">${[0, 0.2, 0.4, 0.6].map((v) => `<span style="left:${pct(v)}">${v.toFixed(1)}</span>`).join("")}</div></div>
+    <div class="legend"><span>Each dot is one prompt setting (arm) of 64 battled teams.</span><span><i style="background:var(--meta)"></i>Dashed line: a top-50 meta team, ${D.meta_mean}</span></div>
+    <figcaption>${WIN_NOTE} From ${SRC.win}.</figcaption></figure>`;
+}
+
+// The unmasking figure: the 3B writer's best team, revealed block by block. Order inside a block is random here.
+function pasteFigure() {
+  // Level and EVs lines come from decoding, which fills Stat Points from the corpus. The model never writes them.
+  const slots = D.teams.text3b.paste.trim().split("\n\n").map((b) => b.split("\n").filter((l) => !/^(Level|EVs|IVs):/.test(l)).join("\n")), BLOCK = 32, tokens = [];
+  const box = $(`<div class="paste" aria-label="The 3B text team writer's best team, as a Showdown paste"></div>`);
+  slots.forEach((slot) => {
+    const el = $(`<div class="slot"></div>`);
+    slot.split(/(\s+)/).forEach((part) => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { el.append(document.createTextNode(part)); return; }
+      const t = $(`<span class="tok"></span>`); t.textContent = part; el.append(t); tokens.push(t);
+    });
+    box.append(el);
+  });
+  const blocks = []; for (let i = 0; i < tokens.length; i += BLOCK) blocks.push(tokens.slice(i, i + BLOCK));
+  let timer = null;
+  const stop = () => { clearTimeout(timer); tokens.forEach((t) => t.classList.remove("m", "blk")); };
+  const play = () => {
+    stop(); if (RM) return;
+    tokens.forEach((t) => t.classList.add("m"));
+    let b = 0;
+    const step = () => {
+      if (b >= blocks.length) { tokens.forEach((t) => t.classList.remove("blk")); return; }
+      const todo = [...blocks[b]].sort(() => Math.random() - .5); blocks[b].forEach((t) => t.classList.add("blk"));
+      const waves = 4, per = Math.ceil(todo.length / waves); let w = 0;
+      const wave = () => {
+        todo.slice(w * per, (w + 1) * per).forEach((t) => t.classList.remove("m"));
+        if (++w < waves) timer = setTimeout(wave, 260); else { blocks[b].forEach((t) => t.classList.remove("blk")); b++; timer = setTimeout(step, 320); }
+      };
+      timer = setTimeout(wave, 260);
+    };
+    step();
+  };
+  const fig = $(`<figure></figure>`); fig.append(box);
+  const bar = $(`<div class="paste-bar"><button type="button">Write it again</button><span>${blocks.length} blocks of ${BLOCK} words. Each block fills in four waves, then the next block starts.</span></div>`);
+  bar.querySelector("button").onclick = play; fig.append(bar);
+  fig.append($(`<figcaption>The 3B text team writer's strongest battled team (win rate ${D.teams.text3b.win.toFixed(3)}). An illustration of the order, not a replay. The model's blocks are 32 tokens, and it unmasks the tokens it is most confident about first. Level and Stat Point lines are left out because decoding adds them later, from the corpus. From ${SRC.win}.</figcaption>`));
+  setTimeout(play, 500);
+  return fig;
+}
+
+function render(root) {
+  const L = D.ling, B = D.baseline;
+  root.append($(teaser()));
+  root.append($(`<section class="answers" aria-label="Answers">
+    <div class="answer"><div class="q">Against the scratch team writer</div><div class="a">The text team writers are far stronger</div><div class="v yes">+${(get("text3b:base").win - get("scratch:base").win).toFixed(2)}</div>
+      <div class="d">Win rate ${fmt(get("text3b:base").win)} for the 3B text team writer against ${fmt(get("scratch:base").win)} for the scratch team writer, unguided. Every text arm also beats the scratch writer's guided arm (${fmt(get("scratch:cfg").win)}).</div></div>
+    <div class="answer"><div class="q">Against an LLM (Ling)</div><div class="a">Level on the one grid measured</div><div class="v level">+${L.diff.mean}</div>
+      <div class="d">On random starting teams the 1.5B text team writer gains ${L.net_text.mean} points per mask and Ling ${L.net_ling.mean}. The difference, ${L.diff.mean} [${L.diff.lo}, ${L.diff.hi}], crosses zero. The held-out and meta grids have no Ling baseline.</div></div>
+    <div class="answer"><div class="q">A bigger model, 3B against 1.5B</div><div class="a">No gain in battle</div><div class="v level">≈ 0</div>
+      <div class="d">Every arm is within about one standard error. The 3B writer's validation loss is close to the 1.5B's (${last("qwen3b_r32").toFixed(3)} against ${last("lora_r32").toFixed(3)}), and it writes more legal teams in two of the four arms, but its win rate is no higher.</div></div>
+    <div class="answer"><div class="q">On the baseline: filling a hidden part of a team</div><div class="a">The text writers do the least harm to good teams</div><div class="v level">3B ≈ 1.5B</div>
+      <div class="d">On top-50 starting teams every writer's fill lowers the win rate on average. The 3B text team writer loses ${Math.abs(B.meta.methods.textdiff3b.net.mean).toFixed(1)} points per mask, the 1.5B ${Math.abs(B.meta.methods.textdiff.net.mean).toFixed(1)}, the scratch team writer ${Math.abs(B.meta.methods.diffusion.net.mean).toFixed(1)} and a random legal fill ${Math.abs(B.meta.methods.random.net.mean).toFixed(1)}. Step 2 has all three grids.</div></div>
+  </section>`));
+
+  root.append(howWinRate());
+
+  const intro = $(`<section><h2>How a text diffusion model writes a team</h2>
+    <p>An LLM writes left to right, one token at a time. A text diffusion model starts from a block of masked tokens and fills it in over a few steps, many tokens at once. Each step keeps every token the model is at least 90% sure of, and at least one token. Then it moves to the next block. Both text team writers work this way. The 3B writer started from the Qwen2.5-3B checkpoint and learned this block-diffusion loss during fine-tuning.</p></section>`);
+  intro.append(pasteFigure()); root.append(intro);
+
+  const sTrain = $(`<section class="step"><div class="n">STEP 3</div><div>
+    <h2>A rented H100 trained the 3B writer in 14 minutes</h2>
+    <p>The 1.5B text team writer took 372 minutes to fine-tune on the MacBook. On one H100 the 3B writer took ${D.curves.qwen3b_r32.minutes} minutes, with the same 8,000 teams, recipe and seed. A plain Qwen2.5-1.5B trained the same way is the control. It separates the effect of size from the effect of starting as a diffusion model.</p>
+    <figure><h3 class="ftitle">The 3B writer lands between the plain 1.5B and the diffusion-pretrained 1.5B</h3>${lossChart()}<figcaption>Validation loss on 256 held-out teams. Lower is better. From ${SRC.curves}.</figcaption></figure>
+    <p>The 3B writer ends below the plain 1.5B (${last("qwen3b_r32").toFixed(3)} against ${last("qwen15_r32").toFixed(3)}). It does not beat the 1.5B writer that started as a diffusion model (${last("lora_r32").toFixed(3)}).</p>
+    <div class="check"><h3>How to check it</h3>All three runs use the same data, recipe and seed. Their curves are on W&amp;B in project <code>compress_rl/vgc-textdiff</code>, runs <code>train-qwen3b_r32</code>, <code>train-qwen15_r32</code> and <code>train-lora_r32</code>.</div>
+  </div></section>`);
+
+  const sFast = $(`<section class="step"><div class="n">STEP 4</div><div>
+    <h2><code>--autocast</code> keeps the loss and trains 21% faster</h2>
+    <p>A profile of one training step put 29% of the GPU time in fp32 matrix maths, because the LoRA adapters stay in fp32. The MacBook runs fp32 as fast as bf16, so this never cost anything there. The H100 runs bf16 much faster. <code>--autocast</code> does those matrix products in bf16 and keeps the adapter weights in fp32.</p>
+    ${trainBars()}
+    <figcaption>Full 2,000-step runs with the same seed and batches. Time per step leaves out compile and validation. From ${SRC.train}.</figcaption>
+    <p style="margin-top:1rem">All four settings end at the same loss. Use <code>--autocast</code> for the next run, and add checkpointing when memory is short.</p>
+    <div class="check"><h3>How to check it</h3>Short 300-step probes of the same maths differed by 0.04 in loss, so only the full runs above decide whether the loss holds.</div>
+  </div></section>`);
+
+  const sBatch = $(`<section class="step"><div class="n">STEP 5</div><div>
+    <h2>Batching writes 21 times more teams per minute</h2>
+    <p>The released sampler writes one team per call. The batched copy writes many teams in one call. A greedy check compares their output token by token, once without the block cache and once with it. ${greedy.every((c) => c.identical) ? "Both comparisons came out identical." : "At least one comparison differed."}</p>
+    <div class="predict"><h3>Predicted before the MacBook run</h3>The MacBook is short of arithmetic. The block cache skips arithmetic, so it should help the MacBook more than the H100. A lower confidence threshold takes fewer steps, so it should help too.</div>
+    <figure>${speedChart()}<figcaption>Seconds per team for 64 teams per setting, shown as teams per minute. From ${SRC.speed}.</figcaption></figure>
+    <p>The cache part held: ${D.mac[0].s.toFixed(1)} s per team with the released sampler, ${D.mac.find((m) => m.setting === "batch8_cache").s.toFixed(1)} s with 8 per call and the cache. The threshold part never reached the MacBook. On the H100, thresholds below 0.9 broke the pastes, so the MacBook run kept 0.9.</p>
+    <div class="predict"><h3>Predicted before the run</h3>At about 59 MB per team at batch 256, batch 1024 fits in 80 GB and batch 2048 does not.</div>
+    <figure><h3 class="ftitle">1024 teams per call fit in memory. 2048 do not.</h3>${ceilingChart()}<figcaption>Peak GPU memory for one call of each size. From ${SRC.ceiling}.</figcaption></figure>
+    <p>The prediction held. Speed stopped improving near 128 teams per call, because each call waits for its slowest team.</p>
+    <div class="check"><h3>How to check it</h3>Every bench call runs the greedy check before it times anything. Separate H100 containers differed by up to 25% in speed, so read small speed gaps as noise.</div>
+  </div></section>`);
+
+  const s4 = $(`<section class="step"><div class="n">STEP 1</div><div>
+    <h2>Which team writer would you bring?</h2>
+    <p>Each row is the strongest team its writer wrote in the battles. Pick one, then compare it with the averages below.</p>
+    <div class="picks"></div>
+    <p class="verdict" aria-live="polite"></p>
+    <figure class="wins"><h3 class="ftitle">Every text arm beats every scratch arm, and no writer reaches a meta team</h3>${winChart()}<figcaption>${WIN_NOTE} 64 legal teams per arm. From ${SRC.win}.</figcaption></figure>
+    <p>Against Ling, the LLM baseline, the comparison exists only for random starting teams. On those 270 masks the 1.5B text team writer and Ling each fill ${L.legal_text} legally, and their net gains per mask are level. You chose not to run Ling on the held-out and meta grids. <span style="color:var(--ink-3)">From ${SRC.ling}.</span></p>
+  </div></section>`);
+  const picks = s4.querySelector(".picks"), verdict = s4.querySelector(".verdict"), wins = s4.querySelector(".wins");
+  const words = { scratch: `One lucky team is not the writer. The scratch team writer's arms average ${fmt(get("scratch:base").win)} and ${fmt(get("scratch:cfg").win)}, far below both text team writers.`,
+                  text: "The 1.5B and 3B text team writers are level. Every arm is within about one standard error.",
+                  text3b: "The 3B and 1.5B text team writers are level. Every arm is within about one standard error." };
+  Object.entries(D.teams).forEach(([w, t]) => {
+    const p = $(`<div class="pick"><div style="min-width:0"><div class="who">${WRITER[w]} <small>· best team ${t.win.toFixed(3)}</small></div></div><button type="button">Bring this team</button></div>`);
+    p.firstElementChild.append(teamEl(t.team));
+    p.querySelector("button").onclick = () => {
+      picks.querySelectorAll(".pick").forEach((x) => x.classList.remove("chosen")); p.classList.add("chosen");
+      wins.querySelectorAll(".bar").forEach((b) => {
+        b.classList.toggle("dim", b.dataset.w !== w); b.querySelector(".best")?.remove();
+        if (b.dataset.w === w) b.querySelector(".track").append($(`<div class="best" style="left:${t.win / 0.8 * 100}%"></div>`));
+      });
+      verdict.textContent = `This team scored ${t.win.toFixed(3)}, the black tick on its writer's rows. ${words[w]}`;
+    };
+    picks.append(p);
+  });
+  root.append(s4, baselineStep(), sTrain, sFast, sBatch);
+
+  const rows = [
+    ["The text team writers beat the scratch team writer", "Same battle protocol for every cell: 64 legal teams, one battle against each top-50 team, seed 2026.", "/tmp/vgc-pilot/.venv/bin/python code/src/textdiff_battle.py report"],
+    ["The batched sampler matches the released one", "Greedy, one team, compared token by token, with and without the block cache.", "modal run code/scripts/textdiff_modal.py::run --argv \"bench --name qwen3b_r32 --base Qwen/Qwen2.5-3B-Instruct --n 64 --batches released,64\""],
+    ["The published model is the trained one", `SHA-256 of the adapter matches, and loading it from the Hub writes the same ${hub ? hub.tokens : ""}-token team (${hub && hub.identical ? "identical" : "check failed"}).`, "modal run code/scripts/textdiff_modal.py::run --argv \"hubcheck --hub Rami/qwen2.5-3b-block-diffusion-vgc-regmb-lora --name qwen3b_r32 --base Qwen/Qwen2.5-3B-Instruct\""],
+    ["The faster attention path is exact", `In fp32 the flex-attention gradients match the dense ones to ${flex ? flex.relative_grad_diff.toExponential(1) : ""} relative error.`, "modal run code/scripts/textdiff_modal.py::run --argv \"flexcheck fp32\""],
+    ["Every run above is logged", "Training curves and inference tables are on W&B, project compress_rl/vgc-textdiff.", "uvx --with wandb python code/scripts/textdiff_wandb.py --help"],
+  ];
+  const s5 = $(`<section class="step"><div class="n">STEP 6</div><div>
+    <h2>Check each result yourself</h2>
+    <p>Each row names a claim, how it was checked, and the command that reruns the check. The <code>modal</code> commands run on a rented H100 and cost under a dollar each.</p>
+    <div class="scroll"><table class="tbl"><thead><tr><th>Claim</th><th>How it was checked</th><th>Rerun</th></tr></thead><tbody></tbody></table></div>
+    <figcaption>Check results from ${SRC.checks}. The full write-up is <code>code/docs/textdiff.md</code>.</figcaption>
+  </div></section>`);
+  const tb = s5.querySelector("tbody");
+  rows.forEach(([claim, how, command]) => {
+    const tr = $(`<tr><td>${claim}</td><td>${how}</td><td style="min-width:14rem"><div class="cmd"></div><button type="button" class="copy">Copy</button></td></tr>`);
+    tr.querySelector(".cmd").textContent = command;
+    tr.querySelector("button").onclick = (e) => {
+      const b = e.currentTarget;
+      navigator.clipboard.writeText(command).then(() => { b.textContent = "Copied"; }).catch(() => {
+        const r = document.createRange(); r.selectNodeContents(tr.querySelector(".cmd")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected";
+      });
+    };
+    tb.append(tr);
+  });
+  root.append(s5);
+}
+render(document.getElementById("app"));
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver((seen) => seen.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove("wait"); io.unobserve(e.target); } }),
+    { threshold: 0.3, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".bars, .strip, figure svg, .games, .spread, .net").forEach((el) => { el.classList.add("wait"); io.observe(el); });
+}
+</script>

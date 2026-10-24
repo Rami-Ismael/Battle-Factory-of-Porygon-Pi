@@ -110,7 +110,22 @@ A lower threshold does not pay in a batch: rows move through each 8-token sub-bl
 least confident row. At 64 per call, thresholds 0.7 and 0.5 ran at 0.13 to 0.16 s per team, no clear gain over 0.9, and
 0.5 broke the paste structure (4 and 10 legal of 64).
 
-**Not yet measured:** win rate in battles (the 1.5B writer's are on its card), and generation speed on Apple silicon.
+**Win rate** (wins over battles against the top-50 meta teams of Regulation M-B, one battle per opponent, the
+[VGC-Bench](https://huggingface.co/cameronangliss/vgc-bench-models) behaviour-cloning policy on both sides; 64
+Showdown-valid teams per setting, standard error over teams; a top-50 meta team scores 0.531):
+
+| setting | this adapter | 1.5B writer | scratch diffusion model |
+|---|---|---|---|
+| target `unknown` | 0.442 ± 0.014 | 0.440 ± 0.013 | 0.095 ± 0.016 |
+| target 0.50 | 0.472 ± 0.010 | 0.452 ± 0.012 | |
+| target 0.60 | 0.452 ± 0.014 | 0.459 ± 0.011 | |
+| target 0.50, classifier-free guidance 2 | 0.444 ± 0.013 | 0.463 ± 0.013 | 0.378 ± 0.015 (guided) |
+
+The 3B writer is level with the 1.5B writer (every difference within about 1σ) and far above the scratch model. It
+writes fewer distinct species sets (7 to 29 per 64 teams, against 10 to 33).
+
+**On Apple silicon** (M4 Pro, 64 teams): 14.6 s per team with the released sampler, 5.7 s with `generate_batch` at 8 per
+call and the block cache. The Mac is compute-bound, so the cache helps there and batching past 8 does not.
 
 ## Limitations
 

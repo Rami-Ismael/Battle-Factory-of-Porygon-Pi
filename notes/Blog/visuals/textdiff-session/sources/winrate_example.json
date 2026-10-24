@@ -1,0 +1,742 @@
+{
+ "source": "/Users/ramiismael/vgc-data/matchup_regmb.sqlite, table cell, policy_id 1 (behaviour-cloning policy both sides), row team 117947 against set top50",
+ "team_id": 117947,
+ "cell": "text3b:ask60",
+ "games": [
+  {
+   "opponent": 31,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Farigiraf",
+    "Mamoswine",
+    "Pyroar",
+    "Scrafty",
+    "Torkoal",
+    "Venusaur"
+   ]
+  },
+  {
+   "opponent": 33,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Farigiraf",
+    "Kangaskhan",
+    "Kommo-o",
+    "Torkoal",
+    "Vileplume"
+   ]
+  },
+  {
+   "opponent": 34,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Farigiraf",
+    "Floette-Mega",
+    "Ninetales",
+    "Pyroar-Mega",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 62,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Floette-Eternal",
+    "Garchomp",
+    "Gengar",
+    "Incineroar",
+    "Kingambit",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 65,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Blaziken-Mega",
+    "Gengar",
+    "Incineroar",
+    "Kingambit",
+    "Ninetales-Alola"
+   ]
+  },
+  {
+   "opponent": 74,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Archaludon",
+    "Floette-Eternal",
+    "Grimmsnarl",
+    "Pelipper",
+    "Sinistcha",
+    "Swampert"
+   ]
+  },
+  {
+   "opponent": 76,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Clefable",
+    "Froslass",
+    "Garchomp",
+    "Kingambit",
+    "Raichu",
+    "Sneasler"
+   ]
+  },
+  {
+   "opponent": 77,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Blastoise-Mega",
+    "Delphox-Mega",
+    "Incineroar",
+    "Kingambit",
+    "Sinistcha",
+    "Sneasler"
+   ]
+  },
+  {
+   "opponent": 91,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Charizard",
+    "Garchomp",
+    "Gholdengo",
+    "Maushold-Four",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 92,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Charizard",
+    "Garchomp",
+    "Incineroar",
+    "Venusaur",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 93,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Floette-Eternal",
+    "Gholdengo",
+    "Hydreigon",
+    "Sneasler",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 109,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Archaludon",
+    "Grimmsnarl",
+    "Metagross",
+    "Pelipper",
+    "Sinistcha",
+    "Swampert"
+   ]
+  },
+  {
+   "opponent": 118,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Froslass",
+    "Kingambit",
+    "Lycanroc-Dusk",
+    "Scovillain",
+    "Sneasler"
+   ]
+  },
+  {
+   "opponent": 140,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Archaludon",
+    "Basculegion",
+    "Lopunny",
+    "Maushold",
+    "Pelipper",
+    "Swampert"
+   ]
+  },
+  {
+   "opponent": 178,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Charizard",
+    "Garchomp",
+    "Grimmsnarl",
+    "Hydreigon",
+    "Metagross",
+    "Toxapex"
+   ]
+  },
+  {
+   "opponent": 203,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Farigiraf",
+    "Mawile",
+    "Scrafty",
+    "Staraptor",
+    "Torkoal",
+    "Vileplume"
+   ]
+  },
+  {
+   "opponent": 205,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Alcremie",
+    "Araquanid",
+    "Dragapult",
+    "Glimmora-Mega",
+    "Kingambit",
+    "Staraptor-Mega"
+   ]
+  },
+  {
+   "opponent": 222,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Delphox",
+    "Garchomp",
+    "Hydreigon",
+    "Incineroar",
+    "Mawile",
+    "Sinistcha"
+   ]
+  },
+  {
+   "opponent": 238,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Charizard",
+    "Kingambit",
+    "Ninetales-Alola",
+    "Raichu",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 282,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Charizard",
+    "Garchomp",
+    "Gholdengo",
+    "Incineroar",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 284,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Camerupt",
+    "Farigiraf",
+    "Kangaskhan",
+    "Pyroar",
+    "Torkoal",
+    "Vileplume"
+   ]
+  },
+  {
+   "opponent": 299,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Farigiraf",
+    "Floette-Eternal",
+    "Incineroar",
+    "Pyroar",
+    "Torkoal",
+    "Vileplume"
+   ]
+  },
+  {
+   "opponent": 316,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Archaludon",
+    "Basculegion",
+    "Charizard",
+    "Garchomp",
+    "Pelipper",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 326,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aerodactyl",
+    "Charizard",
+    "Farigiraf",
+    "Garchomp",
+    "Kingambit",
+    "Sylveon"
+   ]
+  },
+  {
+   "opponent": 405,
+   "weight": 2.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aerodactyl",
+    "Charizard",
+    "Garchomp",
+    "Incineroar",
+    "Kingambit",
+    "Sylveon"
+   ]
+  },
+  {
+   "opponent": 430,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Grimmsnarl",
+    "Gyarados",
+    "Incineroar",
+    "Sinistcha",
+    "Sneasler",
+    "Volcarona"
+   ]
+  },
+  {
+   "opponent": 431,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Charizard",
+    "Garchomp",
+    "Incineroar",
+    "Sylveon",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 491,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Dragonite-Mega",
+    "Farigiraf",
+    "Kingambit",
+    "Mawile-Mega",
+    "Pelipper",
+    "Sneasler"
+   ]
+  },
+  {
+   "opponent": 501,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Annihilape",
+    "Charizard",
+    "Hydreigon",
+    "Incineroar",
+    "Metagross",
+    "Toxapex"
+   ]
+  },
+  {
+   "opponent": 557,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Garchomp",
+    "Gholdengo",
+    "Gyarados",
+    "Raichu",
+    "Sylveon",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 574,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Ceruledge",
+    "Floette-Eternal",
+    "Incineroar",
+    "Milotic",
+    "Raichu",
+    "Sinistcha"
+   ]
+  },
+  {
+   "opponent": 577,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aegislash",
+    "Garchomp",
+    "Meganium",
+    "Sneasler",
+    "Talonflame",
+    "Tyranitar"
+   ]
+  },
+  {
+   "opponent": 585,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Garchomp",
+    "Gardevoir",
+    "Incineroar",
+    "Kingambit",
+    "Sinistcha",
+    "Sneasler"
+   ]
+  },
+  {
+   "opponent": 599,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Azumarill",
+    "Camerupt",
+    "Farigiraf",
+    "Gallade",
+    "Maushold-Four",
+    "Mawile"
+   ]
+  },
+  {
+   "opponent": 606,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aerodactyl",
+    "Charizard",
+    "Farigiraf",
+    "Garchomp",
+    "Incineroar",
+    "Sylveon"
+   ]
+  },
+  {
+   "opponent": 633,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Ceruledge",
+    "Floette-Eternal",
+    "Garchomp",
+    "Metagross",
+    "Ninetales-Alola",
+    "Talonflame"
+   ]
+  },
+  {
+   "opponent": 638,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Annihilape",
+    "Charizard",
+    "Dragonite",
+    "Mamoswine",
+    "Mawile",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 639,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aerodactyl",
+    "Basculegion",
+    "Kingambit",
+    "Raichu",
+    "Sneasler",
+    "Sylveon"
+   ]
+  },
+  {
+   "opponent": 640,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Excadrill",
+    "Gholdengo",
+    "Milotic",
+    "Sinistcha",
+    "Staraptor",
+    "Tyranitar"
+   ]
+  },
+  {
+   "opponent": 641,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Gengar",
+    "Incineroar",
+    "Kommo-o",
+    "Ninetales-Alola",
+    "Raichu",
+    "Volcarona"
+   ]
+  },
+  {
+   "opponent": 646,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Delphox",
+    "Garchomp",
+    "Glimmora",
+    "Kingambit",
+    "Staraptor",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 673,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Dragonite",
+    "Froslass",
+    "Garchomp",
+    "Kingambit",
+    "Sneasler"
+   ]
+  },
+  {
+   "opponent": 674,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aerodactyl",
+    "Charizard",
+    "Farigiraf",
+    "Garchomp",
+    "Kingambit",
+    "Sylveon"
+   ]
+  },
+  {
+   "opponent": 675,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aegislash",
+    "Basculegion",
+    "Farigiraf",
+    "Sneasler",
+    "Staraptor",
+    "Torkoal"
+   ]
+  },
+  {
+   "opponent": 676,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Floette-Eternal",
+    "Garchomp",
+    "Incineroar",
+    "Kingambit",
+    "Sinistcha",
+    "Sneasler"
+   ]
+  },
+  {
+   "opponent": 677,
+   "weight": 1.0,
+   "won": 0,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Basculegion",
+    "Farigiraf",
+    "Incineroar",
+    "Mawile",
+    "Ninetales-Alola",
+    "Raichu"
+   ]
+  },
+  {
+   "opponent": 678,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Charizard",
+    "Dragonite",
+    "Gengar",
+    "Ninetales-Alola",
+    "Snorlax",
+    "Venusaur"
+   ]
+  },
+  {
+   "opponent": 679,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Aerodactyl",
+    "Basculegion",
+    "Charizard",
+    "Garchomp",
+    "Kingambit",
+    "Whimsicott"
+   ]
+  },
+  {
+   "opponent": 681,
+   "weight": 1.0,
+   "won": 1,
+   "ties": 0,
+   "battles": 1,
+   "species": [
+    "Charizard",
+    "Floette-Eternal",
+    "Garchomp",
+    "Gholdengo",
+    "Incineroar",
+    "Sinistcha"
+   ]
+  }
+ ]
+}

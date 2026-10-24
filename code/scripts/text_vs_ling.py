@@ -18,6 +18,7 @@ run_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser(
     "~/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon "
     "format to find the right counter to a pokemon team/team_completion_pipeline/runs/prompt-ab")
 SEED = 20261008
+KIND = os.environ.get("TEXT_KIND", "textdiff")      # textdiff3b: the 3B text team writer (2026-10-24), written to text_vs_ling_textdiff3b.json
 LING_ARMS = ["regmb@16384", "baseline@16384", "baseline@4096"]     # prompt @ output-token limit
 BEST_ARM = "regmb@16384"                                           # the regulation-grounded prompt
 
@@ -55,7 +56,7 @@ def net(row, method):
 diff = lambda a, b: (lambda r: None if r[a] is None or r[b] is None else r[a] - r[b])
 rows_by_mask_type = {}
 for mask in masks:
-    row = dict(start=mask["source"], original=win_rate(f"orig:{mask['source']}"), text=win_rate(f"textdiff:{mask['id']}"))
+    row = dict(start=mask["source"], original=win_rate(f"orig:{mask['source']}"), text=win_rate(f"{KIND}:{mask['id']}"))
     for arm in LING_ARMS: row[arm] = win_rate(f"ling:{arm}:{mask['id']}")
     rows_by_mask_type.setdefault(mask["task"], []).append(row)
 groups = list(rows_by_mask_type.items()) + [("all", [r for v in rows_by_mask_type.values() for r in v])]
@@ -72,7 +73,7 @@ for mask_type, rows in groups:
         stats[f"net_text_minus_{arm}"] = start_weighted_bootstrap([(r["start"], net(r, "text") - net(r, arm)) for r in rows])
     results[mask_type] = stats
 json.dump(dict(groups=results, seconds={a: statistics.mean(v) for a, v in seconds_by_arm.items()}, cost_usd=cost_by_arm),
-          open(os.path.join(run_dir, "text_vs_ling.json"), "w"), indent=1)
+          open(os.path.join(run_dir, ("text_vs_ling.json" if KIND == "textdiff" else f"text_vs_ling_{KIND}.json")), "w"), indent=1)
 
 fmt = lambda c: "—" if not c else f"{100*c['mean']:+.1f} [{100*c['lo']:+.1f}, {100*c['hi']:+.1f}] (n={c['n']})"
 print("seconds per mask (Ling API):", {k: round(statistics.mean(v), 1) for k, v in seconds_by_arm.items()},

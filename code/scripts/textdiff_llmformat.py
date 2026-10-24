@@ -227,7 +227,8 @@ def stats(a):
 
 
 # ---------------------------------------------------------------- fill the Mask Lab grids
-GRIDS = {"random": PIPELINE / "runs/prompt-ab", "heldout": PIPELINE / "runs/heldout-starters"}
+GRIDS = {"random": PIPELINE / "runs/prompt-ab", "heldout": PIPELINE / "runs/heldout-starters",
+         "meta": PIPELINE / "runs/meta-starters"}          # meta: MASK_LAB_STARTERS=meta scripts/mask_lab_heldout_starters.py prepare
 WORK = Path.home() / "vgc-data/textdiff_llmformat"
 GEN_SEED = 20261008                                   # mask_lab_textdiff.py's seed, + trial index
 
@@ -353,7 +354,7 @@ def collect(a):                                       # /tmp/vgc-pilot/.venv
                 new.append(dict(label=f"{kind}:{t['id']}", kind=kind, task_id=t["id"], source=t["source"], team=t2, paste=MP.to_paste(t2)))
     finally:
         validator.close()
-    dest = WORK / "smoke" if a.tag else run if a.grid == "heldout" else WORK / "random-run"   # a tagged run never touches real candidates
+    dest = WORK / "smoke" if a.tag else run if a.grid in ("heldout", "meta") else WORK / "random-run"   # a tagged run never touches real candidates
     dest.mkdir(parents=True, exist_ok=True)
     path = dest / "candidates.json"
     cands = json.loads(path.read_text())["candidates"] if path.exists() else []
@@ -385,7 +386,7 @@ def report(a):
         r = dict(start=t["source"], original=score(f"orig:{t['source']}"), random=score(f"random:{t['id']}"),
                  diffusion=score(f"diffusion:{t['id']}"), text=score(f"textdiff:{t['id']}"),
                  **{f"llm_{v}": score(f"llm_{v}:{t['id']}") for v in versions},
-                 **{f"ling_{v}": score(LING[v] + t["id"]) for v in versions if v in LING and a.grid == "random"})
+                 **{f"ling_{v}": score(LING[v] + t["id"]) for v in versions if v in LING})   # every grid since 2026-10-23 (scripts/ling_grid.py)
         fam.setdefault(t["task"], []).append(r)
     groups = list(fam.items()) + [("all", [r for v in fam.values() for r in v])]
     net = lambda r, k: (r[k] if r[k] is not None else r["original"]) - r["original"]
