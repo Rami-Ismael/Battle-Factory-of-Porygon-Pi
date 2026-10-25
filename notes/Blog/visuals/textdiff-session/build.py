@@ -84,7 +84,8 @@ def main():
     prompt = json.loads((SRC / "prompt_example.json").read_text())          # the training prompt and one real training row
     ling_calls = json.loads((SRC / "ling_calls.json").read_text())         # Ling's 810 random-grid calls, summarised per arm
     targets = json.loads((SRC / "train_targets.json").read_text())        # the target win rates in the 8,000 training rows
-    data = dict(winrate=winrate, baseline=baseline, prompt=prompt, ling_calls=ling_calls, targets=targets,
+    dspy = json.loads((SRC / "dspy_results.json").read_text())             # DSPy on Mercury, from docs/dspy-structure-experiment.md
+    data = dict(winrate=winrate, baseline=baseline, prompt=prompt, ling_calls=ling_calls, targets=targets, dspy=dspy,
         win=win, meta_mean=0.531, teams=teams,
         curves={k: log(k) for k in ("lora_r32", "qwen3b_r32", "qwen15_r32")},
         train={k: log(k) for k in ("qwen3b_r32", "qwen3b_r32_tf32", "qwen3b_r32_amp", "qwen3b_r32_amp_ckpt")},

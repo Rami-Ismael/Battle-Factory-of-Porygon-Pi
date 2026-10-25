@@ -1,0 +1,80 @@
+{
+ "source": "code/docs/dspy-structure-experiment.md (measured tables of 2026-10-15 and 16; the run folders dspy-legal-choices-20261015, dspy-optimize-20261015, dspy-optimized-20261015 and dspy-optimize-luna4-20261016 are not on this laptop)",
+ "model": "inception/mercury-2.5",
+ "masks": "20 random legal starting teams x 7 mask kinds x 3 tries = 420 per reasoning setting",
+ "pooled": [
+  {
+   "id": "baseline",
+   "name": "Plain JSON prompt (13 October)",
+   "legality": 32.3
+  },
+  {
+   "id": "types_chat",
+   "name": "Legal-choice types, field-marker format",
+   "legality": 59.1
+  },
+  {
+   "id": "types_json",
+   "name": "Legal-choice types, JSON-object format",
+   "legality": 56.9
+  },
+  {
+   "id": "gepa_mercury",
+   "name": "+ GEPA, Mercury writes the prompt",
+   "legality": 60.1
+  },
+  {
+   "id": "gepa_luna",
+   "name": "+ GEPA, GPT-6 Luna writes it",
+   "legality": 56.5
+  },
+  {
+   "id": "gepa_luna_shape",
+   "name": "+ GEPA, Luna sees the answer shape",
+   "legality": 64.6
+  }
+ ],
+ "types_gain_by_reasoning": {
+  "off": [
+   17.6,
+   18.1
+  ],
+  "low": [
+   16.0,
+   15.7
+  ],
+  "medium": [
+   32.9,
+   30.2
+  ],
+  "high": [
+   41.0,
+   34.5
+  ]
+ },
+ "resampled_baseline_gain": {
+  "off": -1.9,
+  "low": 0.7,
+  "medium": 0.7,
+  "high": 1.0
+ },
+ "wins_per_request_gain": {
+  "field-marker": [
+   2.1,
+   1.7,
+   2.6
+  ],
+  "json": [
+   1.6,
+   1.3,
+   2.0
+  ]
+ },
+ "both_legal_win_change": "within about 1 point in every comparison",
+ "structure_only": "typed fields alone removed unreadable answers (72 to 0-2 at reasoning off) but rule violations rose (163 to about 230): legality did not improve",
+ "costs": {
+  "legal_choices_run": "5,040 calls, $2.35",
+  "gepa_mercury": "$0.52 optimizing + $0.82 testing",
+  "gepa_luna_shape": "$0.71 Mercury + $0.20 Luna"
+ }
+}

@@ -32,6 +32,20 @@ def bootstrap(pairs):
                 n=sum(len(v) for v in by_start.values()))
 
 
+def gap_closed(rows, net, k, min_gap=2.0):
+    """random_fill_baseline.py's report metric: the share of the random -> original gap a method closes,
+    (method - random fill) / (original - random fill) in win rate, here 1 - net(method) / net(random) because nets are
+    against the original. Each starting team weighs equally and the same 4,000 starter draws resample both nets.
+    None when random fills lose less than min_gap points (the random grid: nothing to close)."""
+    by_start = {}
+    for r in rows: by_start.setdefault(r["start"], []).append((net(r, k), net(r, "random")))
+    starts = [(sum(m for m, _ in v) / len(v), sum(x for _, x in v) / len(v)) for v in by_start.values()]
+    share = lambda ss: 1 - (sum(m for m, _ in ss) / len(ss)) / (sum(x for _, x in ss) / len(ss))
+    if -sum(x for _, x in starts) / len(starts) * 100 < min_gap: return None
+    rng = random.Random(SEED); draws = sorted(share([rng.choice(starts) for _ in starts]) for _ in range(4000))
+    return dict(mean=round(share(starts) * 100, 1), lo=round(draws[100] * 100, 1), hi=round(draws[-100] * 100, 1))
+
+
 def example(task="0dd56a1a37aceb04", start="HPS003641", slot="Mawile-Mega"):
     """One random-grid mask, as every writer filled it: the starting team, the hidden move, each fill and its win rate."""
     run = RUNS / "prompt-ab"
@@ -92,6 +106,7 @@ def main():
         for k in present:
             g["methods"][k] = dict(legal=sum(r[k] is not None for r in rows),
                                    net=bootstrap([(r["start"], net(r, k)) for r in rows]),
+                                   gap_closed=gap_closed(rows, net, k),
                                    families={f: bootstrap([(r["start"], net(r, k)) for r in rows if r["family"] == f])
                                              for f in sorted({r["family"] for r in rows})})
         g["net_3b_minus_15b"] = bootstrap([(r["start"], net(r, "textdiff3b") - net(r, "textdiff")) for r in rows])

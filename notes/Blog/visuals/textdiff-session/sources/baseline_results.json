@@ -17,6 +17,7 @@
      "hi": 3.75,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": 0.13,
@@ -64,6 +65,7 @@
      "hi": 2.96,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": 0.2,
@@ -111,6 +113,7 @@
      "hi": 4.9,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": 0.33,
@@ -158,6 +161,7 @@
      "hi": 1.35,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": -0.6,
@@ -205,6 +209,7 @@
      "hi": 1.39,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": -0.13,
@@ -252,6 +257,7 @@
      "hi": 0.35,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": -0.13,
@@ -299,6 +305,7 @@
      "hi": 1.01,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": -0.07,
@@ -346,6 +353,7 @@
      "hi": 3.22,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": 0.27,
@@ -393,6 +401,7 @@
      "hi": 2.03,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": -0.2,
@@ -440,6 +449,7 @@
      "hi": 0.75,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": 0.0,
@@ -487,6 +497,7 @@
      "hi": 2.36,
      "n": 270
     },
+    "gap_closed": null,
     "families": {
      "abilities": {
       "mean": 0.07,
@@ -558,6 +569,11 @@
      "hi": 0.96,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 88.2,
+     "lo": 73.9,
+     "hi": 108.0
+    },
     "families": {
      "abilities": {
       "mean": -2.53,
@@ -604,6 +620,11 @@
      "lo": -3.46,
      "hi": 1.49,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 93.2,
+     "lo": 82.3,
+     "hi": 112.8
     },
     "families": {
      "abilities": {
@@ -652,6 +673,11 @@
      "hi": -0.67,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 68.3,
+     "lo": 53.8,
+     "hi": 93.5
+    },
     "families": {
      "abilities": {
       "mean": -2.13,
@@ -698,6 +724,11 @@
      "lo": -19.92,
      "hi": -11.32,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 0.0,
+     "lo": 0.0,
+     "hi": 0.0
     },
     "families": {
      "abilities": {
@@ -746,6 +777,11 @@
      "hi": 1.29,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 96.1,
+     "lo": 88.9,
+     "hi": 111.4
+    },
     "families": {
      "abilities": {
       "mean": -0.33,
@@ -792,6 +828,11 @@
      "lo": -2.08,
      "hi": 2.01,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 97.9,
+     "lo": 89.5,
+     "hi": 117.8
     },
     "families": {
      "abilities": {
@@ -840,6 +881,11 @@
      "hi": 1.9,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 97.4,
+     "lo": 87.9,
+     "hi": 116.4
+    },
     "families": {
      "abilities": {
       "mean": 0.0,
@@ -886,6 +932,11 @@
      "lo": -2.13,
      "hi": 3.4,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 102.0,
+     "lo": 89.2,
+     "hi": 130.4
     },
     "families": {
      "abilities": {
@@ -958,6 +1009,11 @@
      "hi": -1.11,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 82.3,
+     "lo": 72.2,
+     "hi": 93.1
+    },
     "families": {
      "abilities": {
       "mean": -1.91,
@@ -1004,6 +1060,11 @@
      "lo": -5.71,
      "hi": -0.52,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 87.5,
+     "lo": 79.3,
+     "hi": 97.1
     },
     "families": {
      "abilities": {
@@ -1052,6 +1113,11 @@
      "hi": -5.86,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 49.0,
+     "lo": 34.0,
+     "hi": 65.9
+    },
     "families": {
      "abilities": {
       "mean": -2.43,
@@ -1098,6 +1164,11 @@
      "lo": -27.63,
      "hi": -16.28,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 0.0,
+     "lo": 0.0,
+     "hi": 0.0
     },
     "families": {
      "abilities": {
@@ -1146,6 +1217,11 @@
      "hi": -0.45,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 89.7,
+     "lo": 85.3,
+     "hi": 97.3
+    },
     "families": {
      "abilities": {
       "mean": 0.0,
@@ -1192,6 +1268,11 @@
      "lo": -3.61,
      "hi": 0.29,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 91.9,
+     "lo": 86.9,
+     "hi": 101.8
     },
     "families": {
      "abilities": {
@@ -1240,6 +1321,11 @@
      "hi": 0.75,
      "n": 270
     },
+    "gap_closed": {
+     "mean": 90.6,
+     "lo": 82.4,
+     "hi": 104.6
+    },
     "families": {
      "abilities": {
       "mean": -0.28,
@@ -1286,6 +1372,11 @@
      "lo": -6.12,
      "hi": 0.54,
      "n": 270
+    },
+    "gap_closed": {
+     "mean": 89.5,
+     "lo": 77.7,
+     "hi": 103.4
     },
     "families": {
      "abilities": {
