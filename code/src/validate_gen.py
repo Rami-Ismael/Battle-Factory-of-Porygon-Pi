@@ -55,7 +55,7 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args()
     rng = np.random.default_rng(a.seed); torch.manual_seed(a.seed)
-    teams, V, L, X, Y = D.load_all()
+    teams, V, L, X, _Y = D.load_all()
     look = build_lookup(teams); spreads = spreads_by_species(teams)
     model = D._load(V); C = D.Constraints(V, L)
 

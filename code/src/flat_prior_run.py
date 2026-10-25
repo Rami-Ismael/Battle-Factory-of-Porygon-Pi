@@ -61,7 +61,7 @@ def save(out):
 
 # ---------------------------------------------------------------- stages
 def gen():
-    corpus, V, C, look, spreads = X.setup()
+    corpus, V, _C, look, spreads = X.setup()
     tables = L.Tables(V, corpus)
     arms = {a: m for a, m in ARMS.items() if all((L.CK / f"{x}.pt").exists() for x in m)}
     fs = {a: mixture(m, V, tables) for a, m in arms.items()}
@@ -70,7 +70,7 @@ def gen():
     try:
         for tag, arm, a, s in cells():
             if tag in out["cells"] or arm not in fs: continue
-            base = SEED + 100 * s + int(round(a * 10))            # the same state for both arms of a (asked, seed)
+            base = SEED + 100 * s + round(a * 10)            # the same state for both arms of a (asked, seed)
             rng = np.random.default_rng(base)
             pastes, rows, tried, b, held, t0 = [], [], 0, 0, 0, time.perf_counter()
             while len(pastes) < N and tried < N * 8:

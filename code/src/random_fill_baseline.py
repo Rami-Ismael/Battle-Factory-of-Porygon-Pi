@@ -7,8 +7,8 @@ of the random → original gap it closes.
 
 Starting teams: 50 legal VGCPastes teams NOT in the top-50 set (seeded), so the starting teams and
 the opponents are disjoint. Tasks = the owner's list (2026-10-04), one seeded mask per team per
-(task, k): Stat Points k=1–6, items 1–6, moves 1–24, whole Pokémon 1–6, abilities 1–6,
-Stat Alignment 1–6, mixed parts (items/moves/abilities/alignments/Stat Points) 1–40. Random values come from the project vocabulary filtered by the decoder's
+(task, k): Stat Points k=1-6, items 1-6, moves 1-24, whole Pokémon 1-6, abilities 1-6,
+Stat Alignment 1-6, mixed parts (items/moves/abilities/alignments/Stat Points) 1-40. Random values come from the project vocabulary filtered by the decoder's
 legality constraints (learnsets, Species/Item Clause); a whole Pokémon also gets a random legal
 Stat Point spread (66 points, at most 32 per stat). Every fill is checked by Showdown's validator,
 redrawn up to 50 times. Everything outside the mask is kept exactly.

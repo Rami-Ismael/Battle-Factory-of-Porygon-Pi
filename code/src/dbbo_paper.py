@@ -1,7 +1,7 @@
 """Diffusion-BBO with the paper's full target rule (2026-10-16). Pre-registration: docs/dbbo-faithful.md, "Full paper rule".
 
 An owner-approved exception to the 2026-08-29 decision against uncertainty acquisition. Wu, Kuang, Niu, Ma & Yu,
-arXiv 2407.00610, §5.2–5.3 (Eq. 7–8), §6, App. D.2. Everything not listed here is dbbo_faithful_precise unchanged:
+arXiv 2407.00610, §5.2-5.3 (Eq. 7-8), §6, App. D.2. Everything not listed here is dbbo_faithful_precise unchanged:
 D starts as the 1,105 precise-label teams; every battled team gets 4 battles per top-50 column (about 196); models from
 random weights (condition dropout 0.15, learning rate 1e-3, batch 256, steps matched, best-validation checkpoint);
 guidance 2; 4 rounds x 128 battled; the same finalist protocol.
@@ -49,7 +49,7 @@ FIXED_W = float(os.environ["DBBO_PAPER_FIXED_W"]) if os.environ.get("DBBO_PAPER_
 # DBBO_PAPER_ALLW=1 (2026-10-17): a VARIANT, not the paper's rule. No w is chosen: every round battles teams at all five asks
 # (26/26/26/25/25 across w = 0.6 ... 1.0, each w's teams split across the 5 models). Delta_epistemic is still logged per w.
 ALLW = bool(os.environ.get("DBBO_PAPER_ALLW"))
-TAG = os.environ.get("DBBO_PAPER_TAG", "dbbo_allw" if ALLW else "dbbo_paper" if FIXED_W is None else f"dbbo_paper_w{int(round(FIXED_W * 10)):02d}")
+TAG = os.environ.get("DBBO_PAPER_TAG", "dbbo_allw" if ALLW else "dbbo_paper" if FIXED_W is None else f"dbbo_paper_w{round(FIXED_W * 10):02d}")
 M, WS, N_UNC, ROUNDS, N_BATTLE, SOFT = 5, [0.6, 0.7, 0.8, 0.9, 1.0], 64, 4, 128, 0.6
 SEED = 9393
 if DF.SMOKE: TAG += "_smoke"; N_UNC, ROUNDS, N_BATTLE = 8, 1, 10
@@ -184,7 +184,7 @@ def run():
 def check():
     """Battle-free smoke: train the 5 members on D0 (1 epoch under DBBO_SMOKE) and show Delta across the five w values."""
     G = FD.Gen("v3"); V, tables = G.V, G.tables
-    D0, info = DF.initial_D_precise(V); best = max(x["y"] for x in D0)
+    D0, _info = DF.initial_D_precise(V); best = max(x["y"] for x in D0)
     fs, _ = models(V, tables, D0, 0)
     cands, pick, pick_raw, varies = choose_w(G, fs, best, 0)
     for d in cands:

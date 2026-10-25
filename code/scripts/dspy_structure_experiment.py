@@ -427,7 +427,7 @@ def report(args):
             cell['versus_unoptimized'] = compare(treated, unoptimized, seed)
         cells.append(cell)
     pooled = []
-    for model in sorted({r['model'] for r in rows}) + [None]:
+    for model in [*sorted({r['model'] for r in rows}), None]:
         for variant in study['variants']:
             treated = [r for r in rows if r['variant'] == variant and model in (None, r['model'])]
             control = [r for r in base if model in (None, r['model'])]

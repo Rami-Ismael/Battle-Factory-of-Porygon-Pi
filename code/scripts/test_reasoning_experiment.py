@@ -56,7 +56,7 @@ class ReasoningExperimentTests(unittest.TestCase):
         _, runs = self.prepare()
         for entry, folder, _ in runs:
             self.record(entry, folder, valid=False)
-        entry, folder, manifest = runs[-1]
+        entry, folder, _manifest = runs[-1]
         path = folder/'completions/s0-item-1.json'
         raw = E.read(path)
         del raw['error']  # Durable network reply, validation still outstanding.
@@ -194,7 +194,7 @@ class ReasoningExperimentTests(unittest.TestCase):
 
     def test_completion_resume_and_pending_guard_do_not_send_requests(self):
         _, runs = self.prepare()
-        entry, folder, m = runs[0]
+        entry, folder, _m = runs[0]
         h = Mock()
         self.record(entry, folder)
         with patch.dict(sys.modules, {'hps_generate': h}), patch.object(llm_completion.urllib.request, 'urlopen') as request:
@@ -208,7 +208,7 @@ class ReasoningExperimentTests(unittest.TestCase):
 
     def test_generation_sends_reasoning_and_retains_truncation_usage(self):
         _, runs = self.prepare()
-        entry, folder, m = runs[2]
+        _entry, folder, _m = runs[2]
         response = Mock()
         response.__enter__ = Mock(return_value=response)
         response.__exit__ = Mock(return_value=False)

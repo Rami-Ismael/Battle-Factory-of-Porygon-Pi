@@ -112,20 +112,20 @@ def main():  # noqa: C901
             x, y = wr(f"{a}_g{g}"), wr(f"{b}_g{g}")
             if x and y:
                 print(f"    g{g}  {a} − {b} = {ci(*boot_diff(x, y, rng))}")
-        x = sum((wr(f"{a}_g{g}") for g in range(1, gens + 1)), [])
-        y = sum((wr(f"{b}_g{g}") for g in range(1, gens + 1)), [])
+        x = [item for g in range(1, gens + 1) for item in wr(f"{a}_g{g}")]
+        y = [item for g in range(1, gens + 1) for item in wr(f"{b}_g{g}")]
         if x and y:
             print(f"    pooled  {a} − {b} = {ci(*boot_diff(x, y, rng))}")
-        xl = sum((wr(f"{a}_g{g}") for g in (3, 4)), [])
-        yl = sum((wr(f"{b}_g{g}") for g in (3, 4)), [])
+        xl = [item for g in (3, 4) for item in wr(f"{a}_g{g}")]
+        yl = [item for g in (3, 4) for item in wr(f"{b}_g{g}")]
         if xl and yl:
             print(f"    late (g3+g4, where run 1 decayed)  {a} − {b} = "
                   f"{ci(*boot_diff(xl, yl, rng))}")
 
     print("\nLEVER 2 — margin vs binary win as the score")
     for a, b in (("margin", "active"), ("both", "cut")):
-        x = sum((wr(f"{a}_g{g}") for g in range(1, gens + 1)), [])
-        y = sum((wr(f"{b}_g{g}") for g in range(1, gens + 1)), [])
+        x = [item for g in range(1, gens + 1) for item in wr(f"{a}_g{g}")]
+        y = [item for g in range(1, gens + 1) for item in wr(f"{b}_g{g}")]
         if x and y:
             print(f"    pooled  {a} − {b} = {ci(*boot_diff(x, y, rng))}")
 
@@ -164,7 +164,7 @@ def main():  # noqa: C901
     for key, row in (("win_rate", ("active", "cut")), ("margin", ("margin", "both"))):
         vals = []
         for arm in row:
-            v = sum((wr(f"{arm}_g{g}") for g in range(1, gens + 1)), [])
+            v = [item for g in range(1, gens + 1) for item in wr(f"{arm}_g{g}")]
             vals.append(np.mean(v) if v else float("nan"))
         print(f"    {key:10s} {vals[0]:10.4f} {vals[1]:10.4f}")
 

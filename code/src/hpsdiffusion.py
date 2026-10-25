@@ -115,7 +115,7 @@ def build_vocab(teams):
 def train(epochs=30, seed=0, batch=256, init_from=""):
     random.seed(seed); torch.manual_seed(seed)
     teams, W = load_hps()
-    V, L = build_vocab(teams)
+    V, _L = build_vocab(teams)
     X = np.stack([V.encode(t) for t in teams])
     rng = np.random.default_rng(seed)
     idx = rng.permutation(len(X)); nte = 2000

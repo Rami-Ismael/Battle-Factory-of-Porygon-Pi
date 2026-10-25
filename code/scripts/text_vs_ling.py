@@ -58,11 +58,11 @@ for mask in masks:
     row = dict(start=mask["source"], original=win_rate(f"orig:{mask['source']}"), text=win_rate(f"textdiff:{mask['id']}"))
     for arm in LING_ARMS: row[arm] = win_rate(f"ling:{arm}:{mask['id']}")
     rows_by_mask_type.setdefault(mask["task"], []).append(row)
-groups = list(rows_by_mask_type.items()) + [("all", [r for v in rows_by_mask_type.values() for r in v])]
+groups = [*list(rows_by_mask_type.items()), ("all", [r for v in rows_by_mask_type.values() for r in v])]
 
 results = {}
 for mask_type, rows in groups:
-    stats = dict(n=len(rows), legal={k: sum(r[k] is not None for r in rows) for k in ["text"] + LING_ARMS},
+    stats = dict(n=len(rows), legal={k: sum(r[k] is not None for r in rows) for k in ["text", *LING_ARMS]},
                  text_vs_original=paired(rows, diff("text", "original")),
                  net_text=start_weighted_bootstrap([(r["start"], net(r, "text")) for r in rows]))
     for arm in LING_ARMS:

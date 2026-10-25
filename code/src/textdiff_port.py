@@ -265,7 +265,7 @@ if __name__ == "__main__":
 def generate_cfg(model, cond_ids, uncond_ids, guidance, max_new_tokens=320, threshold=0.9, block_size=32,  # noqa: C901
                  small_block_size=8, temperature=1.0, top_p=1.0, stop_token=151645, pad_id=151643):
     """The released block sampler, run on a batch of two prompts (conditional, unconditional) whose
-    logits are combined as g·cond + (1−g)·uncond at every denoising step and for the autoregressive
+    logits are combined as g·cond + (1-g)·uncond at every denoising step and for the autoregressive
     first token of each block. The unconditional prompt is left-padded with <|endoftext|> to the
     conditional prompt's length so both rows share one block structure and one KV cache.
     Sampling, thresholding and stopping follow modeling.py's generate exactly."""

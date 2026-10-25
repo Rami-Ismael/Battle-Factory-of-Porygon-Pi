@@ -28,7 +28,7 @@ def team_from_row(V, row):
     return slots
 
 def main():
-    teams, V, L, X, Y = D.load_all()
+    teams, V, L, _X, _Y = D.load_all()
     model = D._load(V); C = D.Constraints(V, L)
     n = 48
     base = {s: float(np.mean([D.style_of(t) == i for t in teams]))

@@ -18,7 +18,7 @@ model=MaskedFieldModel(V).to(DEV); model.load_state_dict(load_checkpoint("/tmp/v
 def viol2(row):
     v=L.violations(decode_fields(V,row))
     its=[V.decode_field(s*NF+2,int(row[s*NF+2])) for s in range(NSLOT)]; its=[i for i in its if i]
-    if len(set(its))!=len(its): v=v+["itemclause"]
+    if len(set(its))!=len(its): v=[*v, "itemclause"]
     return v
 pool=defaultdict(lambda: defaultdict(list)); sp_pool=[]
 for b in range(len(Xtr)):

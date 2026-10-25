@@ -116,7 +116,7 @@ def main():
         f"![Diversity trajectories]({image.resolve()})", "",
         "| Model | Distinct compositions / 512 | Unique teams / 512 | Novel teams / 512 | Generator win rate |",
         "| --- | ---: | ---: | ---: | ---: |"]
-    order = ["before fine-tuning"] + sorted({r["arm"] for r in rows if r["arm"] != "before fine-tuning"})
+    order = ["before fine-tuning", *sorted({r["arm"] for r in rows if r["arm"] != "before fine-tuning"})]
     for arm in order:
         selected = [r for r in rows if r["arm"] == arm]
         comp = statistics.mean(r["proposal"]["composition"]["unique_count"] for r in selected)

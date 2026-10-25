@@ -55,7 +55,7 @@ def scratch():
                 x = G.sample(96, cfg.get("ystar"), cfg.get("g", 1.0)).cpu().numpy()
                 for r in x:
                     tried += 1
-                    p, slots = G.to_paste(r, rng)
+                    p, _slots = G.to_paste(r, rng)
                     if val(p) is not None: continue
                     keep.append(p)
                     if len(keep) >= N: break
@@ -72,7 +72,7 @@ def decode():  # noqa: C901
     """Parse raw generated text into six slots, fill Stat Points exactly as the scratch arms do
     (same-species corpus spread, random legal spread for a species without one), validate with Showdown.
     Raw legality is measured before any repair; there is no repair."""
-    corpus, V, C, look, spreads = X.setup()
+    _corpus, _V, _C, _look, spreads = X.setup()
     out = _load(); val = Validator()
     try:
         for path in sorted(GEN.glob("lora_r32_*.jsonl")):            # peeks (_peek_*.jsonl) are not cells
@@ -140,7 +140,7 @@ def stack():
     the pool file gen/lora_r32_pool_<arm>.jsonl -> first POOL valid teams (no repair) -> protect3 filter ->
     the shared ridge picks the top N. text:stack_nofilter skips the filter. Pool statistics go to out["pools"]."""
     import foundation as FD
-    corpus, V, C, look, spreads = X.setup()
+    _corpus, V, _C, _look, spreads = X.setup()
     out = _load(); val = Validator(); sur = FD.Surrogate(V)
     try:
         for path in sorted(GEN.glob("lora_r32_pool_*.jsonl")):
@@ -204,7 +204,7 @@ def _stats(y):
 def report():  # noqa: C901
     LB._stack()
     con = MDB.connect(); out = _load()
-    corpus, V, *_ = X.setup(); d = L.load_data()
+    _corpus, V, *_ = X.setup(); d = L.load_data()
     known = {tuple(V.decode_field(c, int(r[c])) for c in range(L.COLS)) for r in d["X"]}
     corpus_species = set(V.itos["species"])
     summ = {}

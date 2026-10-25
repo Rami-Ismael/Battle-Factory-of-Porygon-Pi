@@ -70,8 +70,8 @@ def main():  # noqa: C901
         star = "" if lo <= 0 <= hi else "  <-- interval excludes 0"
         print(f"  g{g} {paired:28s} active − random = {d:+.4f} "
               f"[{lo:+.4f}, {hi:+.4f}]{star}")
-    a = sum((y(f"active_g{g}") for g in range(1, gens + 1)), [])
-    b = sum((y(f"random_g{g}") for g in range(1, gens + 1)), [])
+    a = [item for g in range(1, gens + 1) for item in y(f"active_g{g}")]
+    b = [item for g in range(1, gens + 1) for item in y(f"random_g{g}")]
     if a and b:
         d, lo, hi = boot_diff(a, b, rng)
         print(f"  all generations pooled              active − random = {d:+.4f} "
@@ -88,8 +88,8 @@ def main():  # noqa: C901
         d, lo, hi = boot_diff(r, base, rng)
         print(f"    gen0 → random_g{g}: {np.mean(base):.4f} → {np.mean(r):.4f}  "
               f"({d:+.4f} [{lo:+.4f}, {hi:+.4f}])")
-    a = sum((y(f"active_g{g}") for g in range(1, gens + 1)), [])
-    f = sum((y(f"frozen_g{g}") for g in range(1, gens + 1)), [])
+    a = [item for g in range(1, gens + 1) for item in y(f"active_g{g}")]
+    f = [item for g in range(1, gens + 1) for item in y(f"frozen_g{g}")]
     if a and f:
         d, lo, hi = boot_diff(a, f, rng)
         print(f"  same acquisition, re-steer on vs off: active − frozen = {d:+.4f} "

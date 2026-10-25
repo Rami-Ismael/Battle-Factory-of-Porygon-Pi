@@ -90,7 +90,7 @@ class Ridge:
         """X'X and X'y of the 44,887 foundation labels under this exact feature map (cached)."""
         if BASE.exists():
             z = np.load(BASE); return z["XtX"], z["Xty"]
-        corpus, V, *_ = X.setup(); d = L.load_data()
+        _corpus, V, *_ = X.setup(); d = L.load_data()
         lab = np.where(np.isfinite(d["W"]))[0]
         XtX = np.zeros((self.dim, self.dim)); Xty = np.zeros(self.dim)
         for i in range(0, len(lab), 4000):
@@ -227,7 +227,7 @@ def run():  # noqa: C901
                 while len(keep) < PROPOSE and tried < PROPOSE * 8:
                     for r in G.sample(96, 0.5, 2.0, 1.0, 1.0, sur, sur.lam, g_species=G_SPECIES).cpu().numpy():
                         tried += 1
-                        p, slots = G.to_paste(r, rng, repair=True)
+                        p, _slots = G.to_paste(r, rng, repair=True)
                         if val(p) is None and not HO.is_heldout_text(p): keep.append(p)
                         if len(keep) >= PROPOSE: break
             finally:

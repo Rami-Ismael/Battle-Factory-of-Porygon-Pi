@@ -28,7 +28,7 @@ WEATHER_ABIL = {"drought", "drizzle", "sandstream", "snowwarning", "chlorophyll"
 WEATHER_MOVES = {"raindance", "sunnyday", "sandstorm", "snowscape", "weatherball", "solarbeam", "solarblade",
                  "electroshot", "thunder", "hurricane", "blizzard", "growth", "synthesis", "morningsun",
                  "moonlight", "hydrosteam", "auroraveil"}
-CUBE = np.array(list(itertools.product([0, 1], repeat=K)))                    # 16 × 4, 0 = edit off
+CUBE = np.array(list(itertools.product([0, 1], repeat=K)))                    # 16 x 4, 0 = edit off
 SUBSETS = [S for r in range(K + 1) for S in itertools.combinations(range(K), r)]
 CHI = np.array([[np.prod([1 - 2 * (1 - b[i]) for i in S]) if S else 1 for b in CUBE] for S in SUBSETS])  # ±1, on = +1
 
@@ -155,7 +155,7 @@ def prep_vgc():  # noqa: C901
             slots = sorted(rng.choice(6, K, replace=False).tolist())
             donors = draw_donors(g, rng, base, slots, pool_all)
             if donors is None: continue
-            files, err = write_cube(g, val, base, slots, donors, f"p_{tid}")
+            files, _err = write_cube(g, val, base, slots, donors, f"p_{tid}")
             if files: break
         else:
             print(f"{tid}: no legal cube", flush=True); continue
@@ -171,7 +171,7 @@ def prep_vgc():  # noqa: C901
         for attempt in range(200):
             donors = draw_donors(g, rng, base, slots, pool_neutral)
             if donors is None: continue
-            files, err = write_cube(g, val, base, slots, donors, f"w_{tid}")
+            files, _err = write_cube(g, val, base, slots, donors, f"w_{tid}")
             if files: break
         else:
             raise SystemExit(f"{tid}: no legal weather cube")
@@ -290,7 +290,7 @@ def analyse():  # noqa: C901
         picked.append(cycle_report(V["primary"][ci], t)); seen.add(ci)
         if len(picked) == 2: break
     # NOT pre-registered: empirical SE of a pooled ε3 under common random numbers, from replicate
-    # disagreement over every anchor × trio of a group: SE = sd(ε3_rep1 − ε3_rep2) / 2
+    # disagreement over every anchor x trio of a group: SE = sd(ε3_rep1 - ε3_rep2) / 2
     emp = {}
     for g, cubes in V.items():
         d = [cycles(np.array(c["reps"][0]), t)[0] - cycles(np.array(c["reps"][1]), t)[0] for c in cubes for t in trios]

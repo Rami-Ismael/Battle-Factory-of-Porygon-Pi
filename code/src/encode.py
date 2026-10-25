@@ -61,7 +61,7 @@ class Vocab:
                 cols["move" if k.startswith("m") and k != "nature" else k].add(v)
         self.itos, self.stoi = {}, {}
         for k, vals in cols.items():
-            vs = ["[MASK]"] + sorted(vals)
+            vs = ["[MASK]", *sorted(vals)]
             self.itos[k] = vs
             self.stoi[k] = {v: i for i, v in enumerate(vs)}
         self.sizes = {k: len(v) for k, v in self.itos.items()}
@@ -74,7 +74,7 @@ class Vocab:
             raise ValueError('expected the pinned Regulation M-B vocabulary')
         obj = cls.__new__(cls)
         obj.regulation = manifest
-        obj.itos = {k:['[MASK]']+sorted(set(v)) for k,v in manifest['values'].items()}
+        obj.itos = {k:['[MASK]', *sorted(set(v))] for k,v in manifest['values'].items()}
         obj.stoi = {k:{v:i for i,v in enumerate(vs)} for k,vs in obj.itos.items()}
         obj.sizes = {k:len(vs) for k,vs in obj.itos.items()}
         return obj

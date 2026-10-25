@@ -165,7 +165,7 @@ def elite_indices(wrs, rho, rng, floor=20):
     ties break uniformly at random rather than by file order.
     """
     n = len(wrs)
-    k = n if rho >= 1.0 else max(floor, int(round(rho * n)))
+    k = n if rho >= 1.0 else max(floor, round(rho * n))
     k = min(k, n)
     perm = rng.permutation(n)
     order = perm[np.argsort(-np.asarray(wrs)[perm], kind="stable")]
@@ -416,8 +416,8 @@ def main():  # noqa: C901
                                   pool=len(lab_teams), per=per, battles=nbat,
                                   epochs_mode=a.epochs_mode, seed=a.seed))
     todo = []
-    if a.group in ("copypaste", "all"): todo += [("copypaste",) + x for x in CP_ARMS]
-    if a.group in ("diffusion", "all"): todo += [("diffusion",) + x[:2] + (x[2],) for x in DF_ARMS]
+    if a.group in ("copypaste", "all"): todo += [("copypaste", *x) for x in CP_ARMS]
+    if a.group in ("diffusion", "all"): todo += [("diffusion", *x[:2], x[2]) for x in DF_ARMS]
     if a.smoke: todo = [t for t in todo if t[1] in SMOKE_ARMS]
 
     val = Validator()
@@ -429,7 +429,7 @@ def main():  # noqa: C901
             arng = np.random.default_rng(a.seed + int(binascii.crc32(tag.encode())) % 100000)
             idx = elite_indices(lab_wrs, rho, arng)
             ewr = np.asarray(lab_wrs)[idx]
-            extra = dict(group=group, rho=rho, elite_n=int(len(idx)),
+            extra = dict(group=group, rho=rho, elite_n=len(idx),
                          elite_mean_wr=float(ewr.mean()), wr_cut=float(ewr.min()))
             print(f"[{tag}] rho={rho} · elite {len(idx)}/{len(lab_teams)} · "
                   f"mean label {ewr.mean():.3f} · cut {ewr.min():.3f}", flush=True)
@@ -443,7 +443,7 @@ def main():  # noqa: C901
                 conditional = spec[3]
                 spe = max(1, math.ceil(len(idx) / BATCH))
                 if epochs_fixed is not None: ep = epochs_fixed
-                elif a.epochs_mode == "steps": ep = max(1, int(round(target_steps / spe)))
+                elif a.epochs_mode == "steps": ep = max(1, round(target_steps / spe))
                 else: ep = BASE_EPOCHS
                 t1 = time.perf_counter()
                 m, init_ok, steps, last = refit(V, lab_teams, lab_wrs, idx, conditional,

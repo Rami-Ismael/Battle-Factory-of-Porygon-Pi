@@ -156,7 +156,7 @@ def main():  # noqa: C901
 
     model, V, L, corpus, lab = W.load_model()
     C = D.Constraints(V, L)
-    look, spreads, sets, modes, allowed = build_tables(corpus + lab)
+    look, _spreads, sets, modes, allowed = build_tables(corpus + lab)
     print(f"corpus alignments in use: {len(allowed)}", flush=True)
 
     gen = GEN.parent / f"align_gen_s{a.seed}"

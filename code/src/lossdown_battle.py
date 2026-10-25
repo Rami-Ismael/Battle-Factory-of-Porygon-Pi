@@ -45,7 +45,7 @@ def cells():
 
 
 def model():
-    corpus, V, C, look, spreads = X.setup()
+    corpus, V, _C, look, spreads = X.setup()
     tables = L.Tables(V, corpus)
     fs = []
     for m in MEMBERS:
@@ -132,7 +132,7 @@ def report():
     con = MDB.connect(); out = json.load(open(OUT))
     old = json.load(open(X.OUT))["summary"]
     known = {r.tobytes() for r in L.load_data()["X"]}
-    corpus, V, *_ = X.setup()
+    _corpus, V, *_ = X.setup()
     summ = {}
     for t, c in out["cells"].items():
         if "team_id" in c:                                  # re-read: a supervisor restart may have filled cells

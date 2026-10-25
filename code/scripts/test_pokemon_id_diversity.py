@@ -2,14 +2,15 @@ from collections import Counter
 from copy import deepcopy
 from itertools import combinations
 import math
+from typing import ClassVar
 import unittest
 
 from pokemon_id_diversity import analyze, pokemon_id_metrics, SCORE
 
 
 class PokemonIdDiversityTests(unittest.TestCase):
-    A = list("abcdef")
-    B = list("ghijkl")
+    A: ClassVar[list[str]] = list("abcdef")
+    B: ClassVar[list[str]] = list("ghijkl")
 
     def test_same_roster_and_reordered_slots_have_zero_distance(self):
         r = pokemon_id_metrics([self.A, self.A[::-1]])
@@ -47,9 +48,9 @@ class PokemonIdDiversityTests(unittest.TestCase):
                 pokemon_id_metrics([bad])
 
     def test_normalization_preserves_distinct_form_ids(self):
-        a = ["Rotom-Wash"] + self.A[1:]
-        b = ["rotomwash"] + self.A[1:]
-        c = ["Rotom-Heat"] + self.A[1:]
+        a = ["Rotom-Wash", *self.A[1:]]
+        b = ["rotomwash", *self.A[1:]]
+        c = ["Rotom-Heat", *self.A[1:]]
         self.assertEqual(pokemon_id_metrics([a, b])[SCORE], 0.)
         self.assertAlmostEqual(pokemon_id_metrics([a, c])[SCORE], 100 / 6)
 

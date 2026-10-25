@@ -13,7 +13,7 @@ def viol2(row):
     v=L.violations(decode_fields(V,row))
     its=[V.decode_field(s*NF+2,int(row[s*NF+2])) for s in range(NSLOT)]
     its=[i for i in its if i]
-    if len(set(its))!=len(its): v=v+["itemclause"]
+    if len(set(its))!=len(its): v=[*v, "itemclause"]
     return v
 print("corpus under oracle+ItemClause:", sum(1 for i in range(len(X)) if viol2(X[i])),"fail of",len(X))
 pool=defaultdict(lambda: defaultdict(list)); sp_pool=[]

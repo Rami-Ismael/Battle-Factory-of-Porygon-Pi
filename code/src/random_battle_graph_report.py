@@ -25,6 +25,7 @@ import json, os
 from collections import defaultdict
 from pathlib import Path
 import numpy as np
+import itertools
 
 DATA = Path.home() / "vgc-data" / "random-battle-graph"
 OUT = Path(__file__).resolve().parent.parent / "results" / "random_battle_graph.json"
@@ -197,7 +198,7 @@ def lattice_of(bs):
     cnt = defaultdict(lambda: defaultdict(float))
     for b in bs:
         states = [(t[1], t[3]) for t in b["traj"]]
-        for a, c in zip(states, states[1:]):
+        for a, c in itertools.pairwise(states):
             if c != a: cnt[a][c] += b["w"]
     return cnt
 
@@ -223,7 +224,7 @@ def ko_sequence(b):
     A double knockout stays one event, since its order inside the turn is not recorded."""
     seq = []
     states = [(t[1], t[3]) for t in b["traj"]]
-    for a, c in zip(states, states[1:]):
+    for a, c in itertools.pairwise(states):
         if c != a: seq.append((a[0] - c[0], a[1] - c[1]))
     return seq
 
@@ -240,7 +241,7 @@ def lead_table(seq):
 def repeats(seq):
     """For consecutive single-knockout turns: 1 if the same side scored both."""
     s = [e[1] for e in seq if e[0] + e[1] == 1]
-    return [float(a == b) for a, b in zip(s, s[1:])]
+    return [float(a == b) for a, b in itertools.pairwise(s)]
 
 
 def part3(rows, per, rp):
@@ -450,7 +451,7 @@ def run_logs(meta):
 
 def figure_data(res, rows, per, meta):
     """Everything the page Blog/visuals/random-battle-tree shows, in one file (sprites are added there)."""
-    P = pastes(rows + [{"team_id": FIG_ROW}, {"team_id": FIG_COL}])
+    P = pastes([*rows, {"team_id": FIG_ROW}, {"team_id": FIG_COL}])
     runs = run_logs(meta)
     r1, r2, r3, r4, r5 = (res[k] for k in ("1_random_vs_behaviour_cloning", "2_brownian_check", "3_lattice", "4_features", "5_tree"))
     st = r1["strong_teams_only"]

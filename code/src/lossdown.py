@@ -488,7 +488,7 @@ def train_run(name, cfg):  # noqa: C901
     torch.save({"sd": m.state_dict(), "cfg": cfg, "digits": None if digits is None else {k: v.cpu() for k, v in digits.D.items()}},
                CK / f"{name}.pt")
     res = score_model(m, tables, rules, cfg, d, val, digits)
-    res.update(cfg=cfg, log=log, minutes=(time.perf_counter() - t0) / 60, n_train=int(len(tr)))
+    res.update(cfg=cfg, log=log, minutes=(time.perf_counter() - t0) / 60, n_train=len(tr))
     save(name, res)
     return res
 
@@ -601,7 +601,7 @@ def save(name, res):
 # ---------------------------------------------------------------- old checkpoints on the benchmark
 def baseline():
     corpus, V, *_ = X.setup()
-    d = load_data(); tr, val = splits(d)
+    d = load_data(); _tr, val = splits(d)
     tables = Tables(V, corpus)
     olds = {"asked_vs_got.pt (2026-10-04, best so far)": ("cwr", RES / "asked_vs_got.pt"),
             "temperature_p0.pt (unconditional p0)": ("hps", RES / "temperature_p0.pt")}
@@ -792,7 +792,7 @@ def load_net(name, V):
 def rescore(names):
     """Re-score saved runs with the current evaluator (keeps their training log)."""
     corpus, V, *_ = X.setup()
-    d = load_data(); tr, val = splits(d)
+    d = load_data(); _tr, val = splits(d)
     tables = Tables(V, corpus)
     allr = json.load(open(OUT)) if OUT.exists() else {}
     for name in names:
@@ -815,7 +815,7 @@ def ensemble_fn(fs):
 
 def ensemble(name, members):
     corpus, V, *_ = X.setup()
-    d = load_data(); tr, val = splits(d)
+    d = load_data(); _tr, val = splits(d)
     tables = Tables(V, corpus)
     fs = []
     orders = {load_net(m, V)[1]["moveorder"] for m in members}

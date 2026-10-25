@@ -78,7 +78,7 @@ def prior_weights(rows, arm, generation, rounds):
         scale = max(float(y.std(ddof=1)), 1e-7) if len(y) > 1 else 1e-7
         w = boltz_weights(-y if arm == 'negative' else y, scale)
     p = w[w > 0]
-    return w, dict(info, ess=float(1 / (w @ w)), nonzero=int(len(p)),
+    return w, dict(info, ess=float(1 / (w @ w)), nonzero=len(p),
                    entropy=float(-(p * np.log(p)).sum()))
 
 

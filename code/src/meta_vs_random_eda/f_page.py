@@ -41,7 +41,7 @@ parts = [("Abilities, all 6", "ability6"), ("Stat Points, all 6", "stats6"), ("S
 fig1 = hbars([(l, fill[k]["filled"], None) for l, k in parts], 0.5, ref=(0.446, "real team 0.446"))
 order = ["Protect", "Spread attack", "STAB attack", "Support move", "Speed control", "Coverage attack"]
 fig2 = hbars([(c, mv["cost"][c]["value"][0], mv["cost"][c]["value"][1:]) for c in order], 0.08, xmin=-0.02, fmt="+{:.3f}")
-mix = "".join(f"<tr><td>{c}</td><td>{mv['mix'][c][0]:.0%}</td><td>{mv['mix'][c][1]:.0%}</td></tr>" for c in order + ["Other status"])
+mix = "".join(f"<tr><td>{c}</td><td>{mv['mix'][c][0]:.0%}</td><td>{mv['mix'][c][1]:.0%}</td></tr>" for c in [*order, "Other status"])
 fig3 = line(al["spread_curve"], "spread attacks"); fig4 = line(al["protect_curve"], "Protect moves")
 bk = sp["by_k"]; ktab = "".join(f"<tr><td>{k}</td><td>{v['actual']:+.3f}</td><td>{v['move_pred']:+.3f}</td></tr>" for k, v in bk.items())
 page = open(S + "/template.html").read()
