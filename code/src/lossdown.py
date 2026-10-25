@@ -102,7 +102,7 @@ class Tables:
         self.nbase = len(bases) + 1
         self.sizes = dict(species=nsp, ability=nab, item=nit, move=nmv, nature=V.sizes["nature"])
 
-    def allowed(self, xin, rules=("clause", "compat", "order")):
+    def allowed(self, xin, rules=("clause", "compat", "order")):  # noqa: C901
         B = xin.shape[0]; x = xin.view(B, NSLOT, NF)
         sp, ab, it, mv = x[..., 0], x[..., 1], x[..., 2], x[..., 3:7]
         vsp, vab, vit, vmv = sp != 0, ab != 0, it != 0, mv != 0
@@ -403,7 +403,7 @@ def apply_moveorder(d, V, tables):
     return d, tables
 
 
-def train_run(name, cfg):
+def train_run(name, cfg):  # noqa: C901
     torch.manual_seed(cfg["seed"])
     corpus, V, *_ = X.setup()
     d = load_data(include_heldout=True)       # the original row space: val and matrix holdout stay what they were

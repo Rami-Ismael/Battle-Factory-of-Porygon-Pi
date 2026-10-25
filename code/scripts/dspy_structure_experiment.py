@@ -69,7 +69,7 @@ def battle_design(m):
     return reasoning_battles.battle_design(m)
 
 
-def prepare(args):
+def prepare(args):  # noqa: C901
     import dspy_structure as S
     if args.output.exists() and any(args.output.iterdir()):
         raise ValueError('output must be empty; use run/battle/report to resume')
@@ -474,7 +474,7 @@ def label(model, reasoning=None):
     return name if reasoning is None else f'{name}, reasoning {reasoning}'
 
 
-def render(status):
+def render(status):  # noqa: C901
     title = 'DSPy-optimized structure versus the JSON-prompt baseline' if status['program'] else \
         'DSPy request structure versus the JSON-prompt baseline'
     lines = [f'# {title}', '',

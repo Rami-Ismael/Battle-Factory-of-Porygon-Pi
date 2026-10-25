@@ -360,7 +360,7 @@ def fmt(tag, st):
 
 
 # --------------------------------------------------------------- the run
-def main(smoke=False):
+def main(smoke=False):  # noqa: C901
     global ANCHOR_N, PROPOSE, BATTLE, BATTLES, GENS, P0_EPOCHS, FT_EPOCHS, ELITE_MIN
     if smoke:
         ANCHOR_N, PROPOSE, BATTLE, BATTLES, GENS = 8, 8, 4, 2, 1

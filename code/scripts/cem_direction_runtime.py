@@ -154,7 +154,7 @@ class Engine:
                     checkpoint=str(path), checkpoint_sha256=digest(path), parent_checkpoint=str(parent),
                     parent_sha256=digest(parent), training_examples=len(teams))
 
-    def battle(self, pastes, directory, battles, schedule, seed):
+    def battle(self, pastes, directory, battles, schedule, seed):  # noqa: C901
         directory.mkdir(parents=True, exist_ok=True)
         files = []
         for i, paste in enumerate(pastes):

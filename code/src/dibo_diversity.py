@@ -122,7 +122,7 @@ def island_seeds(anchors, count):
     return selected
 
 
-def island_observations(initial, rounds, seeds, generation):
+def island_observations(initial, rounds, seeds, generation):  # noqa: C901
     """Reconstruct private histories and simultaneous migration from saved rounds."""
     homes = [[] for _ in seeds]
     for row in initial:

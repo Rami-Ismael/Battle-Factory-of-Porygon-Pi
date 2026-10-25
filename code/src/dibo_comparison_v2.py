@@ -296,7 +296,7 @@ def final_arm(directory, arm, proto):
         print(f"{arm} {name} DONE: {sum(r['battles'] for r in out[name])} fresh battles", flush=True)
 
 
-def report(directory):
+def report(directory):  # noqa: C901
     proto = read(directory / "protocol.json")
     arms = {arm: read(directory / f"{arm}.json") for arm in proto["arms"] if (directory / f"{arm}.json").exists()}
     rows = []

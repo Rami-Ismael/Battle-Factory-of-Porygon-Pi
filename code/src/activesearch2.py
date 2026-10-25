@@ -77,7 +77,7 @@ def elite_index(lab_score, rule, cut):
     return np.argsort(-s)[:max(ELITE_MIN, int(RHO * len(s)))]
 
 
-def main(smoke=False):
+def main(smoke=False):  # noqa: C901
     global ANCHOR_N, PROPOSE, BATTLE, BATTLES, GENS, ELITE_MIN
     if smoke:
         ANCHOR_N, PROPOSE, BATTLE, BATTLES, GENS, ELITE_MIN = 8, 8, 4, 2, 1, 4

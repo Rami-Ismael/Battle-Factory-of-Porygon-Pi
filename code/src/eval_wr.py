@@ -21,7 +21,7 @@ import diffusion as D, wrdiffusion as W
 from propose import Validator, slot_to_text
 import pool
 
-def main():
+def main():  # noqa: C901
     per = int(sys.argv[1]) if len(sys.argv) > 1 else 120
     cells = [(5, 1.0), (5, 2.0), (5, 4.0), (0, 2.0)]     # top bin at three strengths, bottom bin as a control
     m, V, L, corpus, teams = W.load_model(); C = D.Constraints(V, L)

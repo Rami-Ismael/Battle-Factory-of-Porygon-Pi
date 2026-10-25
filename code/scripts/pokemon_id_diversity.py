@@ -59,7 +59,7 @@ def pokemon_id_metrics(rosters):
                 id_slot_counts=dict(sorted(slots.items())))
 
 
-def analyze(data):
+def analyze(data):  # noqa: C901
     if data.get("status") != "complete":
         raise ValueError("only completed experiments can be analyzed")
     manifest, runs = data["manifest"], data["runs"]

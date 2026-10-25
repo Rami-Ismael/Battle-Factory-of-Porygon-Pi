@@ -163,7 +163,7 @@ class Audit:
                     self.schedule(seed, iteration, 'opponents', c['battles']), seed_for(seed, iteration, 'policy'))
         return True
 
-    def run(self):
+    def run(self):  # noqa: C901
         d, c = self.d, self.c
         assert set(d['shared']) == {str(s) for s in c['seeds']}
         assert set(d['runs']) == {f'seed{s}/{a}' for s in c['seeds'] for a in ARMS}

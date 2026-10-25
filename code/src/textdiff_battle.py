@@ -68,7 +68,7 @@ def scratch():
 
 
 # ---------------------------------------------------------------- text -> validated paste
-def decode():
+def decode():  # noqa: C901
     """Parse raw generated text into six slots, fill Stat Points exactly as the scratch arms do
     (same-species corpus spread, random legal spread for a species without one), validate with Showdown.
     Raw legality is measured before any repair; there is no repair."""
@@ -201,7 +201,7 @@ def _stats(y):
     return float(y.mean()), float(y.std(ddof=1) / math.sqrt(len(y))), len(y)
 
 
-def report():
+def report():  # noqa: C901
     LB._stack()
     con = MDB.connect(); out = _load()
     _corpus, V, *_ = X.setup(); d = L.load_data()

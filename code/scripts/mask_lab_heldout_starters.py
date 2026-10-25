@@ -190,7 +190,7 @@ def text_collect(a):                                  # /tmp/vgc-pilot/.venv
 
 
 # ---------------------------------------------------------------- battle (/tmp/vgc-pilot/.venv)
-def battle(a):
+def battle(a):  # noqa: C901
     import heldout as H, matchup_db as MDB, top50 as T50
     from showdown_validator import Validator
     if MDB.sha256_file(MDB.POLICY_FILE) != BC_HASH:

@@ -23,7 +23,7 @@ import diffusion as D
 from propose import Validator, team_to_text
 from random_team import build_tables, one_team
 
-def main():
+def main():  # noqa: C901
     per  = int(sys.argv[1]) if len(sys.argv) > 1 else 300
     seed = int(sys.argv[2]) if len(sys.argv) > 2 else 0
     rng = np.random.default_rng(seed); torch.manual_seed(seed)

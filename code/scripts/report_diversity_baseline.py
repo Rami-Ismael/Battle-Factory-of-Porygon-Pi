@@ -9,7 +9,7 @@ from capture_diversity_baseline import verify_baseline
 from temperature_experiment import REPO, digest
 
 
-def compare(baseline, history):
+def compare(baseline, history):  # noqa: C901
     from corpus import parse_team_text
     if baseline.get("status") != "complete":
         raise ValueError("baseline is not complete")

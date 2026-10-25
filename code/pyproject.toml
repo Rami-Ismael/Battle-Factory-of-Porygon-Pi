@@ -2,7 +2,7 @@
 required-version = "==0.17.2"
 
 [tool.ruff.lint]
-select = ["NPY", "TID251", "F", "E9", "ARG", "RUF"]
+select = ["NPY", "TID251", "F", "E9", "ARG", "RUF", "C901"]
 # F722: jaxtyping shape strings such as " fields" are not Python expressions (jaxtyping's own advice).
 # RUF001: look-alike Unicode in strings (×, –, é) is mostly intended output text here.
 ignore = ["F722", "RUF001"]
@@ -10,6 +10,11 @@ ignore = ["F722", "RUF001"]
 [tool.ruff.lint.per-file-ignores]
 # Test fakes take the real object's arguments without using them.
 "scripts/test_*.py" = ["ARG"]
+
+[tool.ruff.lint.mccabe]
+# A function scores 1, plus 1 per if, elif, for, while, except, and nested function.
+# Functions that already scored above 10 on 2026-10-25 carry "# noqa: C901"; new code stays at 10 or less.
+max-complexity = 10
 
 [tool.ruff.lint.flake8-unused-arguments]
 # A catch-all *args or **kwargs is there to accept any call, not to be read.

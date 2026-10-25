@@ -17,7 +17,7 @@ import legaldiffusion as LD, spreaddiffusion as S
 from propose import Validator, slot_to_text
 import pool
 
-def main():
+def main():  # noqa: C901
     n_pairs = int(sys.argv[1]) if len(sys.argv) > 1 else 150
     m, V, L, corpus, teams = LD.load_model(); C = S.SpreadConstraints(V, L)
     look, spreads = {}, defaultdict(list)

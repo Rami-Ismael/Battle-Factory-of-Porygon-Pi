@@ -187,7 +187,7 @@ def elites_from(rows, V):
 
 
 # ---------------------------------------------------------------- one run
-def run():
+def run():  # noqa: C901
     LB._stack()
     con = MDB.connect()
     out = json.load(open(OUT)) if OUT.exists() else {"config": dict(gens=GENS, propose=PROPOSE, battle=BATTLE, cut=CUT,

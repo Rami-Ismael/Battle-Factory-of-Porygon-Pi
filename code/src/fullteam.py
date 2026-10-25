@@ -118,7 +118,7 @@ class FullConstraints(D.Constraints):
             lm = L.moves_for(sp); la = L.abils_for(sp)
             self.mv_ok[si] = torch.tensor([j > 0 and m in lm for j, m in enumerate(self.move_vals)])
             self.ab_ok[si] = torch.tensor([j > 0 and a in la for j, a in enumerate(self.abil_vals)])
-    def mask_for(self, col, row, device):
+    def mask_for(self, col, row, device):  # noqa: C901
         k = self.V.key(col); slot = col // NF2; j = col % NF2
         n = self.V.sizes[k]
         ok = torch.ones(n, dtype=torch.bool); ok[0] = False

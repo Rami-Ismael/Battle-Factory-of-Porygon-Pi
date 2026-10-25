@@ -42,7 +42,7 @@ def stop(process):
         process.wait()
 
 
-def run(args):
+def run(args):  # noqa: C901
     directory = args.output.resolve()
     with (directory / "supervisor.lock").open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

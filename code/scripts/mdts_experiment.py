@@ -102,7 +102,7 @@ def run_direct(ctx, n, seed):
         out += to_designs(ctx, x.cpu().numpy(), rng)
     return out, time.perf_counter() - t0, {}
 
-def run_tree(ctx, budget, seed):
+def run_tree(ctx, budget, seed):  # noqa: C901
     gen = torch.Generator().manual_seed(seed); rng = np.random.default_rng(seed)
     t0 = time.perf_counter()
     root = dict(x=torch.zeros(1, D.COLS, dtype=torch.long, device=D.DEV), d=0, kids=[], N=0, V=0.0, prior=1.0, dead=False)

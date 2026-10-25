@@ -18,7 +18,7 @@ import spreaddiffusion as S, legalcls as LC
 from propose import Validator, slot_to_text
 import pool
 
-def main():
+def main():  # noqa: C901
     per = int(sys.argv[1]) if len(sys.argv) > 1 else 120
     m, V, L, corpus, teams = S.load_model(); C = S.SpreadConstraints(V, L); cls = LC.load(V)
     look = {}

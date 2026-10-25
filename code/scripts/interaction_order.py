@@ -56,7 +56,7 @@ def make_benchmarks(rng):
             "max3sat": (lambda x, _seed: maxsat(x), 2, True), "nk_k4": (lambda x, _seed: nk(x), 2, True),
             "pest_control": (lambda x, seed: pest(x, np.random.default_rng(seed)), 5, False)}
 
-def bench_cubes(rng):
+def bench_cubes(rng):  # noqa: C901
     out = {}
     sim = iter(range(10**7))
     for name, (f, lv, maxi) in make_benchmarks(rng).items():
@@ -137,7 +137,7 @@ def slot_key(g, s):
     if sp == "charizard" and n(s["item"]) == "charizarditey": return "charizardmegay"
     return sp
 
-def prep_vgc():
+def prep_vgc():  # noqa: C901
     g = mutation_module()
     from corpus import parse_team
     PROP.mkdir(parents=True, exist_ok=True)
@@ -252,7 +252,7 @@ def cycle_report(c, trio):
             "eps2_rep2": e2_2, "eps2_pooled": e2_p,
             "points_pooled": {"".join(map(str, b)): float(v) for b, v in zip(CUBE, pooled)}}
 
-def analyse():
+def analyse():  # noqa: C901
     rng = np.random.default_rng(7)
     plan = json.load(open(PARTS / "vgc_plan.json")); bt = json.load(open(PARTS / "vgc_battles.json"))
     bench = json.load(open(PARTS / "benchmarks.json"))

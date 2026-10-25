@@ -380,7 +380,7 @@ def cells():
     return out
 
 
-def main(stage):
+def main(stage):  # noqa: C901
     smoke = stage == "smoke"
     n_battle, battles, n_calib = (6, 2, 8) if smoke else (N_BATTLE, BATTLES, N_CALIB)
 

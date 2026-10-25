@@ -232,7 +232,7 @@ class Runtime:
         return records
 
     @torch.no_grad()
-    def refine(self, records, prior, ensemble, seen=()):
+    def refine(self, records, prior, ensemble, seen=()):  # noqa: C901
         """Discrete coordinate ascent on log prior + β UCB; only legal improvements."""
         current = list(records)
         excluded = set(seen)

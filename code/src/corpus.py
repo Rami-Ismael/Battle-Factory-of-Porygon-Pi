@@ -113,7 +113,7 @@ for _k, _v in _dex.items():
 def parse_team(path):
     return parse_team_text(Path(path).read_text())
 
-def parse_team_text(text, blank_ends_slot=False):
+def parse_team_text(text, blank_ends_slot=False):  # noqa: C901
     """Slots of a Showdown paste. A slot starts at a line holding " @ " (species and item), or at an itemless
     species line that opens the paste. blank_ends_slot=True also starts one at an itemless species line after
     a blank line; without it such a Pokémon is lost. The default keeps how every finished experiment and the
@@ -166,7 +166,7 @@ def load_corpus(include_heldout=False):
             teams.append(t); names.append(f.name)
     return teams, names
 
-def check_slot(slot):
+def check_slot(slot):  # noqa: C901
     """Return list of violation strings for one slot."""
     v = []
     e = dex_entry(slot["species"])

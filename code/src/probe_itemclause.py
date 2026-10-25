@@ -23,7 +23,7 @@ for b in range(len(Xtr)):
         for j in range(1,NF): pool[sp][j].append(int(sl[j]))
         pool[sp]['mv'] += [int(sl[j]) for j in range(3,7)]
 sp_pool=np.array(sp_pool)
-def op_cond(X_src,cols,rng):
+def op_cond(X_src,cols,rng):  # noqa: C901
     Xa=X_src.copy()
     for b in range(Xa.shape[0]):
         cs=sorted(cols[b])

@@ -141,7 +141,7 @@ def clauses_ok(slots):
     it = [norm(s["item"]) for s in slots if s["item"]]
     return len(set(b)) == 6 and len(set(it)) == len(it)
 
-def main():
+def main():  # noqa: C901
     ap = argparse.ArgumentParser()
     ap.add_argument("--per", type=int, default=150)
     ap.add_argument("--battles", type=int, default=24)

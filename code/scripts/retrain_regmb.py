@@ -75,7 +75,7 @@ def migrate(net, checkpoint, old, new):
     return copied
 
 
-def prepare(args):
+def prepare(args):  # noqa: C901
     OUT.mkdir(parents=True,exist_ok=True)
     reg=json.loads(MANIFEST.read_text())
     if args.version=='v3':
@@ -164,7 +164,7 @@ def prepare(args):
     print('Prepared',len(synthetic),'validated teams; vocabulary',V.sizes,'test retained',int(tok.sum()),flush=True)
 
 
-def train(args):
+def train(args):  # noqa: C901
     V=encode.Vocab.from_regulation(OUT/'training-regulation.json');corpus,old,*_=X.setup()
     audit=json.loads((OUT/'data-audit.json').read_text())
     assert audit['manifest_sha256']==sha(MANIFEST) and audit['legacy_vocabulary']==old.itos

@@ -74,7 +74,7 @@ def run_baseline(config, output, engine, inputs, source_sha256):
     return out
 
 
-def verify_baseline(out, parse):
+def verify_baseline(out, parse):  # noqa: C901
     config = out["manifest"]["config"]
     frozen = out["manifest"]["reference"]
     teams = [[dict(species=s[0], ability=s[1], item=s[2], nature=s[3],
@@ -124,7 +124,7 @@ def verify_baseline(out, parse):
 
 
 @contextmanager
-def private_servers(ports):
+def private_servers(ports):  # noqa: C901
     processes = []
     try:
         for port in ports:

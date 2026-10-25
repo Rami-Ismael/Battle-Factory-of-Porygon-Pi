@@ -285,7 +285,7 @@ def load_or_create(path, manifest):
     return dict(manifest=manifest, runs={}, status="running")
 
 
-def run(config, output, engine, input_hashes):
+def run(config, output, engine, input_hashes):  # noqa: C901
     """Resume only completed phases; hold-out scores never feed the training pool."""
     manifest = json.loads(json.dumps(dict(schema=1, config=asdict(config), inputs=input_hashes,
                                          arms=ARMS, opponents=engine.opponents)))

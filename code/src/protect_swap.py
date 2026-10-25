@@ -24,7 +24,7 @@ ROOT = Path("/tmp/vgc-pilot/protect_swap")
 OUT  = Path.home()/"Documents/code/vgc-team-generator-pilot/results/protect_swap_labels.json"
 BATTLES, CHUNK, N_PAIRS = 24, 200, 300
 
-def gen():
+def gen():  # noqa: C901
     teams, _ = load_corpus()
     teams = [canon(t) for t in teams if len(t) == 6]
     # what does each species usually run, in this corpus?

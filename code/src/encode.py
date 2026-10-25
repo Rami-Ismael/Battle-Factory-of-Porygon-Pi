@@ -130,7 +130,7 @@ class Legality:
             base = legal_abilities(sp) or set()
             self._la[sp] = base | self.corpus_abils.get(sp, set())
         return self._la[sp]
-    def violations(self, fields):
+    def violations(self, fields):  # noqa: C901
         """fields = flat list of 48 normalised strings."""
         v = []
         bases = []

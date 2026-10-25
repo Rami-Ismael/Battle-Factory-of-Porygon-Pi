@@ -95,7 +95,7 @@ def saturated(means, stats_by_gen):
     return False, f"best {best:.4f}, stall streak {streak}/{SAT_PATIENCE}"
 
 
-def main(smoke=False, gens=None, only_arms=None, mode=None, lam=None):
+def main(smoke=False, gens=None, only_arms=None, mode=None, lam=None):  # noqa: C901
     global PROPOSE, BATTLE, BATTLES, GENS, MODE, LAM
     if gens:
         GENS = gens

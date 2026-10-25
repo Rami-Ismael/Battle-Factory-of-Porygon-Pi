@@ -13,7 +13,7 @@ import unittest
 from audit_temperature_protocol import audit
 
 
-def test_suite(results):
+def test_suite(results):  # noqa: C901
     data = json.loads(Path(results).read_text())
     key = next(k for k, r in data["runs"].items() if "scores" in r.get("final", {}))
     fixture = dict(status="running", manifest=data["manifest"], runs={key: data["runs"][key]})

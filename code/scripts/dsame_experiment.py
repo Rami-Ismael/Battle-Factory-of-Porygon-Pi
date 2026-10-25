@@ -151,7 +151,7 @@ def gen_baseline(ctx, lab_t, lab_y, seed, g, val, outdir):
     return [pastes[i] for i in sel], dict(ridge_seconds=t_fit, resteer_seconds=t_ft, proposal_seconds=t_prop,
                                           validity=validity, proposals=len(teams))
 
-def gen_dsame(ctx, lab_t, lab_y, lab_turn, seen, edges, seed, g, val, mut):
+def gen_dsame(ctx, lab_t, lab_y, lab_turn, seen, edges, seed, g, val, mut):  # noqa: C901
     rng = random.Random(seed * 100 + g); mut["rng"] = np.random.default_rng(seed * 100 + g)
     F = A.Feats(lab_t + ctx.corpus)
     deep = Deep(F.dim, seed * 100 + g)

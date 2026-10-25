@@ -9,7 +9,7 @@ from report_team_diversity import analyze, load_reference
 from temperature_experiment import REPO, atomic_json, digest
 
 
-def main():
+def main():  # noqa: C901
     baseline_path = REPO / "results/diversity_baseline.json"
     history_path = REPO / "results/temperature_diversity_metrics.json"
     baseline = json.loads(baseline_path.read_text())

@@ -66,7 +66,7 @@ class Kernel:
         return out
 
     @torch.no_grad()
-    def refill(self, parents, masks, uniform, rng):
+    def refill(self, parents, masks, uniform, rng):  # noqa: C901
         teams = [canon(copy.deepcopy(p)) for p in parents]
         X = torch.as_tensor(np.stack([self.V.encode(t) for t in teams]), dtype=torch.long, device=L.DEV)
         seqs = []
@@ -122,7 +122,7 @@ def mutate(arm, parents, kern, mut, rng, nrng, st, sizes):
     return [mut["team_to_text"](t) for t in kern.refill(parents, ms, arm == "uniform", nrng)]
 
 # ---------------------------------------------------------------- one generation (DS.gen_dsame with the operator swapped)
-def gen(ctx, arm, kern, mut, lab_t, lab_y, lab_turn, seen, edges, seed, g, val, children=CHILDREN, battle_n=BATTLE):
+def gen(ctx, arm, kern, mut, lab_t, lab_y, lab_turn, seen, edges, seed, g, val, children=CHILDREN, battle_n=BATTLE):  # noqa: C901
     rng = random.Random(seed * 100 + g); nrng = np.random.default_rng(seed * 100 + g); mut["rng"] = nrng
     F = A.Feats(lab_t + ctx.corpus)
     deep = DS.Deep(F.dim, seed * 100 + g)

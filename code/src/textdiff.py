@@ -385,7 +385,7 @@ def smoke(args):
     print("trainable parameter changed:", bool((after != before).any()))
 
 
-def train(args):
+def train(args):  # noqa: C901
     import torch, textdiff_port as P
     seed = args.seed                                 # SEED unless --seed: a replicate fine-tune on the same examples
     torch.manual_seed(seed); random.seed(seed)

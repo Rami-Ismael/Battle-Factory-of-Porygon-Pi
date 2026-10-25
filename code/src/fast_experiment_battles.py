@@ -83,7 +83,7 @@ class Backend:
             self.pending = None
         return self.original_record(con, policy_id, results, **kwargs)
 
-    def score(self, jobs, battles=24, conc=50, ports=None, quiet=False, opp_schedule=None,  # noqa: ARG002 same signature as pool.score
+    def score(self, jobs, battles=24, conc=50, ports=None, quiet=False, opp_schedule=None,  # noqa: ARG002, C901 same signature as pool.score
               seed=None, allow_heldout=False):
         import heldout as H
         import matchup_db as M

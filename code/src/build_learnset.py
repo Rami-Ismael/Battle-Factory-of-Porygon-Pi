@@ -17,7 +17,7 @@ from propose import Validator, slot_to_text
 
 CANT = re.compile(r"^(.*?) can'?t learn (.+?)\.?$")
 
-def main():
+def main():  # noqa: C901
     teams, _ = load_corpus(); teams = [t for t in teams if len(t) == 6]
     V = Vocab(teams)
     # a known-good template slot per species (from the corpus, so ability/item/spread are valid)

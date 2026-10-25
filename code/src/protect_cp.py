@@ -45,7 +45,7 @@ def nprot(team):
 def has_prot(slot):
     return "Protect" in slot["moves"]
 
-def gen():
+def gen():  # noqa: C901
     teams, _ = load_corpus()
     teams = [canon(t) for t in teams if len(t) == 6]
     base3 = [t for t in teams if nprot(t) == 3]

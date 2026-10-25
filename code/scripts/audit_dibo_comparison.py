@@ -23,7 +23,7 @@ def sha(path):
     return digest.hexdigest()
 
 
-def main():
+def main():  # noqa: C901
     ap = argparse.ArgumentParser()
     ap.add_argument('directory', type=Path)
     args = ap.parse_args()

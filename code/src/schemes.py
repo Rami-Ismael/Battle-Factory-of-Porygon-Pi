@@ -240,7 +240,7 @@ class Arc:
             if mv: ok &= self.MV[:, mv]
         return ok
 
-    def mask(self, col, row):
+    def mask(self, col, row):  # noqa: C901
         field, slot = col % NF, col // NF
         if int(row[slot * NF]) != 0 or field == 7:
             return self.C.mask_for(col, row, "cpu")   # fast path: identical by construction
@@ -351,7 +351,7 @@ def guided(model, x, tt, y, wbin, guidance):
 # the decoder: one function, every scheme
 # --------------------------------------------------------------------------
 @torch.no_grad()
-def decode(model, arc, num_teams, cfg, x0=None, m0=None, pin=None, rng=None, device=DEV):
+def decode(model, arc, num_teams, cfg, x0=None, m0=None, pin=None, rng=None, device=DEV):  # noqa: C901
     """Returns an (num_teams, COLS) grid.  cfg keys: order, cmode, guidance, temp, top_p,
     wbin, style, steps, remask."""
     guidance, temp, tp = cfg["guidance"], cfg["temp"], cfg["top_p"]
@@ -423,7 +423,7 @@ def _pick_by_entropy(arc, cmode, lg, xc, masked, temp, order, device):
     return bycol
 
 @torch.no_grad()
-def _parallel(model, arc, x, masked, gen_cols, y, wbin, cfg, device):
+def _parallel(model, arc, x, masked, gen_cols, y, wbin, cfg, device):  # noqa: C901
     """MDLM ancestral sampler, optionally with ReMDM remasking."""
     num_teams = x.shape[0]
     guidance, temp, tp = cfg["guidance"], cfg["temp"], cfg["top_p"]
@@ -527,7 +527,7 @@ def wilson(successes, trials, z_score=1.96):
 # --------------------------------------------------------------------------
 # one arm
 # --------------------------------------------------------------------------
-def run_arm(name, cfg, ctx, per, battles, max_attempts, batch):
+def run_arm(name, cfg, ctx, per, battles, max_attempts, batch):  # noqa: C901
     vocab, arc, model = ctx["V"], ctx["A"], ctx["model"]
     look, spreads, pmi, opp, val = (ctx["look"], ctx["spreads"],
                                             ctx["pmi"], ctx["opp"], ctx["val"])
@@ -674,7 +674,7 @@ def selftest(arc, constraints, Xc, n_rows=40):
     print(f"selftest OK: arc-consistent mask == Constraints.mask_for on {checked} "
           f"dependency-order states", flush=True)
 
-def main():
+def main():  # noqa: C901
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default=None, help="comma-separated scheme names")
     ap.add_argument("--per", type=int, default=150)

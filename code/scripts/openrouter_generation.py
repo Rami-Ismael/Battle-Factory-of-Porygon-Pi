@@ -152,7 +152,7 @@ async def generate(jobs, output, options=None, *, transport=send, validate=None,
             loop.remove_signal_handler(sig)
 
 
-async def _generate(jobs, output, options, transport, validate, key, stop):
+async def _generate(jobs, output, options, transport, validate, key, stop):  # noqa: C901
     queue, recover, seen = deque(), [], set()
     for job in jobs:
         path = job.path

@@ -143,7 +143,7 @@ class TeamWriter:
         return "\n\n".join(slot_to_text(s) for s in slots) + "\n", slots
 
     # ---------------------------------------------------------------- fine-tuning
-    def fine_tuned(self, rows, labels, *, epochs=None, steps=None, batch=64, lr=1e-4, mix_original=False, seed=0,
+    def fine_tuned(self, rows, labels, *, epochs=None, steps=None, batch=64, lr=1e-4, mix_original=False, seed=0,  # noqa: C901
                    cache_dir=CACHE):
         """A new writer: every member trained further from this writer's weights on (rows, labels).
         Training starts from this writer's weights: fine-tune TeamWriter.load() for the original members, or

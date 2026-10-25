@@ -27,7 +27,7 @@ def save(key, val):
     d = json.load(open(OUT)) if OUT.exists() else {}
     d[key] = val; json.dump(d, open(OUT, "w"), indent=1)
 
-def bench():
+def bench():  # noqa: C901
     BF = load("bf", "bench_features.py")
     res = {}
     for name in ["contamination", "ising", "pest_combo", "pest_bounce", "maxsat60", "labs50", "ackley53"]:

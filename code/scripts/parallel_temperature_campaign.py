@@ -45,7 +45,7 @@ def read_source(path):
         return data, os.fstat(stream.fileno()).st_mtime_ns
 
 
-def merge(base_manifest, sources):
+def merge(base_manifest, sources):  # noqa: C901
     """Reject treatment/input drift; copy observed records with exact provenance."""
     control = {k: v for k, v in base_manifest["config"].items() if k not in ("seeds", "ports")}
     out = dict(status="running", manifest=copy.deepcopy(base_manifest), runs={})
@@ -99,7 +99,7 @@ def launch(seed, config, output):
     return process.pid
 
 
-def main():
+def main():  # noqa: C901
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--initial", type=Path, required=True)
     parser.add_argument("--adopt-pid", type=int, required=True)
