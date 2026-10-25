@@ -104,7 +104,7 @@ class Ctx:
     def __init__(self):
         cf = A.load_corpus_files(); full = [t for _, t in cf]
         self.V = A.Vocab(full); L = A.Legality(full); self.C = D.Constraints(self.V, L)   # token ids must not move
-        self.corpus = [t for _, t in HO.training_pairs(cf, self.V)]                       # ranks 51-100 out of the rows
+        self.corpus = [t for _, t in HO.training_pairs(cf)]                       # ranks 51-100 out of the rows
         self.grid = np.stack([self.V.encode(t) for t in self.corpus])
         self.look, _ = A.decode_tables(full); _, self.spreads = A.decode_tables(self.corpus)
         self.opp = A.opponents()

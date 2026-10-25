@@ -171,8 +171,8 @@ def is_heldout_file(path):
 
 
 # ---------------------------------------------------------------- filters (training / candidates)
-def training_pairs(pairs, V=None):  # noqa: ARG001 V kept for older callers
-    """[(path, team)] without held-out teams (48-field identity). V is accepted for older callers."""
+def training_pairs(pairs):
+    """[(path, team)] without held-out teams (48-field identity)."""
     held = identities()
     return [(f, t) for f, t in pairs if grid_key_team(t) not in held]
 
