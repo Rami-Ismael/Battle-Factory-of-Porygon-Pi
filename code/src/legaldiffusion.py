@@ -88,7 +88,7 @@ def build_data(seed=0, n_synth=20000):
 
 def train(epochs=60, seed=0, batch=128):
     random.seed(seed); torch.manual_seed(seed)
-    V, L, C, corpus, teams, X, Y, W, G = build_data(seed)
+    V, _L, _C, _corpus, _teams, X, Y, W, G = build_data(seed)
     print(f"data: {len(X):,} rows · legal {G.mean():.1%} · with win-rate label {(W != WNULL).mean():.1%}", flush=True)
     rng = np.random.default_rng(seed); idx = rng.permutation(len(X)); nte = int(len(X) * .05); tr, te = idx[nte:], idx[:nte]
     m = LegalDiffusion(V).to(DEV); opt = torch.optim.AdamW(m.parameters(), lr=3e-4, weight_decay=.01)
@@ -113,7 +113,7 @@ def train(epochs=60, seed=0, batch=128):
 
 def load_model():
     corpus, _ = load_corpus(); corpus = [t for t in corpus if len(t) == 6]
-    teams, wrs = load_labelled(); V = SpreadVocab(corpus + teams); L = Legality(corpus)
+    teams, _wrs = load_labelled(); V = SpreadVocab(corpus + teams); L = Legality(corpus)
     ck = load_checkpoint(CKPT, map_location=DEV); assert ck["itos"]["species"] == V.itos["species"]
     m = LegalDiffusion(V).to(DEV); m.load_state_dict(ck["sd"]); m.eval(); return m, V, L, corpus, teams
 

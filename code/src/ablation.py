@@ -30,7 +30,7 @@ def build_cols(mode, k, n, rng):
         elif mode == "species":         # species + k-1 others in the same slot
             opts = [base + j for j in range(1, NF)]
             pick = list(rng.choice(opts, min(k - 1, len(opts)), replace=False))
-            cols.append([base] + pick)
+            cols.append([base, *pick])
     return cols, slots
 
 def main():
@@ -60,7 +60,7 @@ def main():
     out = {}
     for mode in ["scatter", "within", "species"]:
         out[mode] = {}
-        ks = range(1, 9) if mode != "species" else range(1, 9)
+        ks = range(1, 9)
         for k in ks:
             cols, _ = build_cols(mode, k, N, rng)
             src = Xtr[rng.integers(0, len(Xtr), N)]

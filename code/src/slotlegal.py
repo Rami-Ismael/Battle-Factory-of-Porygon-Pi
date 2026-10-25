@@ -75,7 +75,7 @@ class SlotLegalDiffusion(LD.LegalDiffusion):
 def train(epochs=60, seed=0, batch=128):
     random.seed(seed); torch.manual_seed(seed)
     os.environ["LD_HEAVY"] = "1"; LD.HEAVY = True
-    V, L, C, corpus, teams, X, Y, W, G = LD.build_data(seed, n_synth=30000)
+    V, _L, C, _corpus, _teams, X, Y, W, G = LD.build_data(seed, n_synth=30000)
     SL = np.stack([slot_labels(r, C) for r in X])
     print(f"data: {len(X):,} rows · slot-legal {SL.mean():.1%} · rows fully legal {(SL.min(1)==1).mean():.1%}", flush=True)
     rng = np.random.default_rng(seed); idx = rng.permutation(len(X)); nte = int(len(X) * .05); tr, te = idx[nte:], idx[:nte]
@@ -101,7 +101,7 @@ def train(epochs=60, seed=0, batch=128):
 
 def load_model():
     corpus, _ = load_corpus(); corpus = [t for t in corpus if len(t) == 6]
-    teams, wrs = load_labelled(); V = SpreadVocab(corpus + teams); L = Legality(corpus)
+    teams, _wrs = load_labelled(); V = SpreadVocab(corpus + teams); L = Legality(corpus)
     ck = load_checkpoint(CKPT, map_location=DEV); m = SlotLegalDiffusion(V).to(DEV); m.load_state_dict(ck["sd"]); m.eval(); return m, V, L, corpus, teams
 
 @torch.no_grad()

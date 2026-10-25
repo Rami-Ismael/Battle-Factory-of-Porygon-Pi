@@ -149,7 +149,7 @@ def build():
 
 def train(epochs=200, seed=0):
     random.seed(seed); torch.manual_seed(seed)
-    V, L, corpus, teams, wrs = build()
+    V, _L, _corpus, teams, wrs = build()
     X = np.stack([V.encode(t) for t in teams]); Y = np.array([D.style_of(t) for t in teams]); W = np.array([wr_bin(w) for w in wrs])
     rng = np.random.default_rng(seed); idx = rng.permutation(len(X)); nte = int(len(X) * .1); tr, te = idx[nte:], idx[:nte]
     m = SpreadDiffusion(V).to(DEV)
@@ -172,7 +172,7 @@ def train(epochs=200, seed=0):
     torch.save({"sd": m.state_dict(), "itos": V.itos}, CKPT); print("saved", CKPT, flush=True)
 
 def load_model():
-    V, L, corpus, teams, wrs = build()
+    V, L, corpus, teams, _wrs = build()
     ck = load_checkpoint(CKPT, map_location=DEV); assert ck["itos"]["species"] == V.itos["species"]
     m = SpreadDiffusion(V).to(DEV); m.load_state_dict(ck["sd"]); m.eval(); return m, V, L, corpus, teams
 

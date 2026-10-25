@@ -145,9 +145,9 @@ def selection_stats(idx, w, lab_teams, lab_y, n_anchor):
         s = A.species_set(lab_teams[i]); sets_w[s] = sets_w.get(s, 0.0) + w[i]
     p = np.array(list(sets_w.values()))
     h_sets = float(-(p * np.log(p)).sum())
-    return dict(k=int(len(idx)),
-                distinct_teams=int(len(set(idx.tolist()))),
-                distinct_species_sets=int(len({A.species_set(lab_teams[i]) for i in idx})),
+    return dict(k=len(idx),
+                distinct_teams=len(set(idx.tolist())),
+                distinct_species_sets=len({A.species_set(lab_teams[i]) for i in idx}),
                 real=int((idx < n_anchor).sum()),
                 proposals=int((idx >= n_anchor).sum()),
                 ess=ess, real_weight_share=real_share,

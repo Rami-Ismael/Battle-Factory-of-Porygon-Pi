@@ -34,7 +34,7 @@ OUT = L.RES / ("foundation.json" if not SET else f"foundation_{SET}.json")
 RIDGE = L.RES / "foundation_ridge_noheldout.npz"   # foundation_ridge.npz was fitted with ranks 51-100 in it (heldout.py)
 MODELS = ["old", "new"] if not SET else [SET]
 ARMS = ["lowtemp", "protect3", "surrogate", "guide", "repair", "stack"]
-if SET: ARMS = ["base", "cfg"] + ARMS                # v3 has no earlier plain / ask-0.5 cells to reuse
+if SET: ARMS = ["base", "cfg", *ARMS]                # v3 has no earlier plain / ask-0.5 cells to reuse
 SEED_ORDER = ["lowtemp", "protect3", "surrogate", "guide", "repair", "stack", "base", "cfg"]
 # The members trained without ranks 51-100 (heldout.py). FOUNDATION_MEMBERS=legacy reproduces the earlier lineage,
 # whose F1/G2 parents saw 50 held-out rows (8 labelled).
@@ -284,7 +284,7 @@ def report():
     con = MDB.connect(); out = json.load(open(OUT))
     reused = {"old": json.load(open(X.OUT))["cells"], "new": json.load(open(LB.OUT))["cells"]}
     known = {r.tobytes() for r in L.load_data()["X"]}
-    corpus, V, *_ = X.setup()
+    _corpus, V, *_ = X.setup()
     rows = {}
     for which in MODELS:
         for arm, cell in REUSED.items():
@@ -307,7 +307,7 @@ def report():
     json.dump(out, open(OUT, "w"))
     print(f"{'arm':10s} {'old':>13s} {'new':>13s} {'new-old':>16s} {'gain old':>9s} {'gain new':>9s} {'interaction':>14s}")
     bo, bn = summ["old:base"], summ["new:base"]
-    for arm in ["base", "cfg"] + ARMS:
+    for arm in ["base", "cfg", *ARMS]:
         o, n_ = summ.get(f"old:{arm}"), summ.get(f"new:{arm}")
         if not o or not n_: continue
         d = n_["got"] - o["got"]; sd = math.hypot(n_["se"], o["se"])
@@ -324,7 +324,7 @@ def report_v3():
     LB._stack()
     con = MDB.connect(); out = json.load(open(OUT))
     prev = json.load(open(L.RES / "foundation.json"))["summary"]
-    corpus, V, *_ = X.setup(); d = L.load_data()
+    _corpus, V, *_ = X.setup(); d = L.load_data()
     known = {tuple(V.decode_field(c, int(r[c])) for c in range(L.COLS)) for r in d["X"]}
     corpus_species = set(V.itos["species"])
     summ = {}

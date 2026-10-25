@@ -15,6 +15,7 @@ import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import llm_completion
 import results
 import openrouter_generation as G
+import itertools
 
 
 class GenerationTests(unittest.IsolatedAsyncioTestCase):
@@ -173,7 +174,7 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
             return self.ok()
         await G.generate(self.jobs[:3], self.root, G.Options(min_interval=.03),
                          transport=transport, validate=self.validate, key='test-only')
-        self.assertTrue(all(b-a >= .025 for a, b in zip(starts, starts[1:])))
+        self.assertTrue(all(b-a >= .025 for a, b in itertools.pairwise(starts)))
         (self.root/'STOP_GENERATION').touch()
         result = await self.run_jobs(lambda *a: self.fail('sent after stop'))
         self.assertEqual(result['stage'], 'stopped')

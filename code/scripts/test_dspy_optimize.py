@@ -64,7 +64,7 @@ class OptimizeTests(unittest.TestCase):
         program.predict.demos = [dspy.Example(**example.inputs(), fills=FILLS['s0-item-2'])]
         exported = O.export(program, {'name': 'test'})
         m = dict(MANIFEST, structure=S.config('chat', exported['instructions'], exported['demos']))
-        system, *demo, user = llm_completion.completion_payload(m, TRIALS[2])['messages']
+        system, *demo, _user = llm_completion.completion_payload(m, TRIALS[2])['messages']
         self.assertIn('Fill each null with a legal value.', system['content'])
         self.assertNotIn('Complete only the null fields', system['content'])
         self.assertEqual(len(demo), 2)  # one demonstration: a user turn and an assistant turn

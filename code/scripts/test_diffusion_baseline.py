@@ -1,11 +1,12 @@
 """Guard against hidden-value leakage and silently masked OOV context."""
 import copy
+from typing import ClassVar
 import unittest
 import diffusion_baseline as D
 
 
 class Vocabulary:
-    stoi = {k:{'known':1, 'alpha':2, 'zulu':3} for k in ['species','ability','item','nature','move']}
+    stoi: ClassVar[dict[str, dict[str, int]]] = {k:{'known':1, 'alpha':2, 'zulu':3} for k in ['species','ability','item','nature','move']}
 
 
 class ContextTests(unittest.TestCase):

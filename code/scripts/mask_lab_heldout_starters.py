@@ -272,7 +272,7 @@ def report(_args):
         r = dict(start=t["source"], original=score(f"orig:{t['source']}"), random=score(f"random:{t['id']}"),
                  diffusion=score(f"diffusion:{t['id']}"), **{k: score(f"{k}:{t['id']}") for k in kinds})
         fam.setdefault(t["task"], []).append(r)
-    groups = list(fam.items()) + [("all", [r for v in fam.values() for r in v])]
+    groups = [*list(fam.items()), ("all", [r for v in fam.values() for r in v])]
     net = lambda r, k: (r[k] if r[k] is not None else r["original"]) - r["original"]
     both = lambda rs, x, y: cluster([(r["start"], r[x] - r[y]) for r in rs if r[x] is not None and r[y] is not None])
     out = {}

@@ -26,6 +26,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 import top50 as T50
+import itertools
 
 N = 50
 SET_NAME = "heldout51_100"
@@ -83,7 +84,7 @@ def verify(heldout=HELDOUT, top50=T50.TOP50, root=T50.TEAMS):
     if any(t["evs"] != "Yes" or not t["on_disk"] for t in held):
         raise ValueError("a held-out team is not an EVs=Yes team on disk")
     seq = top + held                                  # ranks 1..100: must be one strictly ordered list
-    for a, b in zip(seq, seq[1:]):
+    for a, b in itertools.pairwise(seq):
         if not _ordinal_key(a) < _ordinal_key(b):
             raise ValueError(f"order broken between {a['id']} and {b['id']}: ranks 51-100 do not continue the top-50")
     got = files(root, heldout)

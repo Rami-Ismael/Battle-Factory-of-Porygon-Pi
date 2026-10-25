@@ -98,7 +98,7 @@ def build_vocab():
 
 def train(epochs=300, seed=0):
     random.seed(seed); torch.manual_seed(seed)
-    V, L, corpus, teams, wrs = build_vocab()
+    V, _L, _corpus, teams, wrs = build_vocab()
     X = np.stack([V.encode(t) for t in teams])
     Y = np.array([D.style_of(t) for t in teams])
     W = np.array([wr_bin(w) for w in wrs])
@@ -132,7 +132,7 @@ def train(epochs=300, seed=0):
     print("saved", CKPT, flush=True)
 
 def load_model():
-    V, L, corpus, teams, wrs = build_vocab()
+    V, L, corpus, teams, _wrs = build_vocab()
     ck = load_checkpoint(CKPT, map_location=DEV)
     assert ck["itos"]["species"] == V.itos["species"], "vocab drift: rebuild"
     m = TeamDiffusionWR(V).to(DEV); m.load_state_dict(ck["sd"]); m.eval()

@@ -30,7 +30,7 @@ def main():
         key = f"{f:g}"
         if key in out: continue
         torch.manual_seed(X.SEED); rng = np.random.default_rng(X.SEED)
-        keep = rng.permutation(len(xtr))[:int(round(f * len(xtr)))]
+        keep = rng.permutation(len(xtr))[:round(f * len(xtr))]
         xs = torch.tensor(np.concatenate([xtr[keep], Xc]), device=D.DEV)
         ws = torch.tensor(np.concatenate([wtr[keep], np.full(len(Xc), np.nan, np.float32)]), device=D.DEV)
         m = X.ContinuousWR(V).to(D.DEV)

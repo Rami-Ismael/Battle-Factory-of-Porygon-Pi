@@ -326,13 +326,13 @@ def memorisation(V, teams, corpus_grid):
     d = (P[:, None, :] != corpus_grid[None, :, :]).sum(2).min(1)
     return dict(copy_rate=float((d == 0).mean()),
                 nn_hamming=float(d.mean()),
-                distinct_species_sets=int(len({species_set(t) for t in teams})))
+                distinct_species_sets=len({species_set(t) for t in teams}))
 
 
 def batch_stats(y, teams, corpus_sets, real_mean):
     y = np.asarray(y, dtype=float)
     return dict(
-        n=int(len(y)),
+        n=len(y),
         mean=float(y.mean()),
         se=float(y.std(ddof=1) / np.sqrt(len(y))) if len(y) > 1 else None,
         total=float(y.sum()),                     # the active-search utility itself

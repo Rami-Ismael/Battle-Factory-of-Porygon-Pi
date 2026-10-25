@@ -2,6 +2,7 @@
 import copy
 from pathlib import Path
 import tempfile
+from typing import ClassVar
 import unittest
 
 from capture_diversity_baseline import Config, run_baseline, verify_baseline
@@ -10,7 +11,7 @@ from test_diversity_metrics import team
 
 
 class FakeBaseline:
-    opponents = ["a", "b"]
+    opponents: ClassVar[list[str]] = ["a", "b"]
     def __init__(self):
         self.diversity_reference = Reference([team()], scope="initial_training", format_id="fixture")
         self.loaded = self.samples = self.scored = 0

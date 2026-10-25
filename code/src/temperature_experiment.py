@@ -110,7 +110,7 @@ def canonical_paste(paste):
     for block in re.split(r"\n\s*\n", paste.strip()):
         lines = [line.strip() for line in block.splitlines() if line.strip()]
         if lines:
-            slots.append("\n".join([lines[0]] + sorted(lines[1:])))
+            slots.append("\n".join([lines[0], *sorted(lines[1:])]))
     return "\n\n".join(sorted(slots))
 
 
@@ -248,7 +248,7 @@ class BattleEngine:
         E, c = self.E, self.c
         model, feats, coef, guide = fitted
         sampling = {}
-        files, teams, pastes, validity, diag = E.GG.propose_guided(
+        _files, teams, pastes, validity, _diag = E.GG.propose_guided(
             model, self.C, guide, self.V, self.look, self.spreads, self.validator,
             c.guidance, c.guidance_strength, n, directory, seed, sampling_stats=sampling)
         stats = dict(**(diversity(pastes) if pastes else {"n": 0}), validity=validity,

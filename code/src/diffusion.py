@@ -45,7 +45,7 @@ RULES = {
     "snow":      lambda t: has_abil(t, "Snow Warning") or has_item(t, "Icy Rock"),
     "tailwind":  lambda t: has_move(t, "Tailwind"),
 }
-STYLES = ["none"] + list(RULES)            # index 0 == "none"
+STYLES = ["none", *RULES]            # index 0 == "none"
 NULL = len(STYLES)                          # the dropped-conditioning token
 
 def style_of(t):
@@ -168,7 +168,7 @@ def load_all():
 
 def train(epochs=800, seed=0):
     random.seed(seed); torch.manual_seed(seed)
-    teams, V, L, X, Y = load_all()
+    _teams, V, _L, X, Y = load_all()
     rng = np.random.default_rng(seed)
     idx = rng.permutation(len(X)); nte = int(len(X) * .15)
     Xtr, Ytr = X[idx[nte:]], Y[idx[nte:]]
@@ -357,7 +357,7 @@ def cli():
     a = ap.parse_args()
     if a.cmd == "train":
         train(a.epochs); return
-    teams, V, L, X, Y = load_all()
+    teams, V, L, X, _Y = load_all()
     model = _load(V); C = Constraints(V, L)
     pin = None
     if a.pin:

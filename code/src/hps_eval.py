@@ -71,7 +71,7 @@ def make_arm(name, model, C, V, look, spreads, wbin, guidance, n, val, rng):
 def main():
     n = 32; battles = 24
     rng = np.random.default_rng(0); torch.manual_seed(0); random.seed(0)
-    teams, W = H.load_hps()
+    teams, _W = H.load_hps()
     V, L = H.build_vocab(teams)
     look, spreads = build_decode_tables(teams)
     model = H.load_model(V)

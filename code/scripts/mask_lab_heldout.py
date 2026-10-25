@@ -126,7 +126,7 @@ def mask_rows(panels, tasks):
         tid, src = t["id"], t["source"]
         r = dict(task=tid, start=src, original=score(f"orig:{src}"), **{k: score(PREFIX[k] + tid) for k in ARMS})
         fam.setdefault(t["task"], []).append(r)
-    return list(fam.items()) + [("all", [r for v in fam.values() for r in v])]
+    return [*list(fam.items()), ("all", [r for v in fam.values() for r in v])]
 
 def compare(groups):
     """Every statistic of the Mask Lab and text-vs-Ling tables, per mask family and over all 270 masks.

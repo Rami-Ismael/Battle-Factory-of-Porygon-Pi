@@ -47,7 +47,7 @@ def prepare(_args):
     import lossdown as L, asked_vs_got as X, heldout as HO, encode
     reg = json.loads((REG / "training-regulation.json").read_text())
     V = encode.Vocab.from_regulation(reg); names = reg["names"]
-    corpus, old, *_ = X.setup()
+    _corpus, old, *_ = X.setup()
     d = L.load_data(include_heldout=True); mapped = np.load(REG / "remapped.npz"); synthetic = np.load(REG / "synthetic.npy")
     keep = HO.row_mask(d["X"], old)
     tr, val = L.splits(d); tr = tr[keep[tr]]; val = val[keep[val]]; tag = L.tag_of(d["S"])
@@ -82,7 +82,7 @@ def prepare(_args):
         with open(OUT / f"{name}.jsonl", "w") as f:
             for e in rows: f.write(json.dumps(e) + "\n")
     labelled = sum(e["label"] is not None for e in train)
-    meta = dict(n_train=len(train), n_real=int(len(real)), n_family=int(len(fam)), n_synthetic=int(len(synthetic)), n_val=len(valid),
+    meta = dict(n_train=len(train), n_real=len(real), n_family=len(fam), n_synthetic=len(synthetic), n_val=len(valid),
                 labelled=labelled, prompt_unknown=sum("unknown" in e["prompt"] for e in train),
                 p_uncond=P_UNCOND, seed=SEED, format=FORMAT, scratch_counterpart="F1_final_medium_noheldout_regmb_v3",
                 regulation=str(REG / "training-regulation.json"))
@@ -103,7 +103,7 @@ def encode_example(tok, prompt, answer, bd=32, style="full", system=None):
     else:
         msgs = [{"role": "system", "content": system or SYSTEM}, {"role": "user", "content": prompt}]
     p = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=True)
-    a = tok(answer, add_special_tokens=False).input_ids + [tok.eos_token_id]       # <|im_end|> = 151645
+    a = [*tok(answer, add_special_tokens=False).input_ids, tok.eos_token_id]       # <|im_end|> = 151645
     ids = p + a
     labels = [-100] * len(p) + a
     pad = (-len(ids)) % bd
@@ -308,7 +308,7 @@ def prune_mlp(m, tok, rows, keep, n_calib=64, style="full"):
             ids, _ = encode_example(tok, r["prompt"], r["answer"], 32, style)
             m(input_ids=torch.tensor([ids], device=P.DEV), block_size=32)
     for h in hooks: h.remove()
-    new = int(round(m.config.intermediate_size * keep / 64)) * 64
+    new = round(m.config.intermediate_size * keep / 64) * 64
     for i, l in enumerate(layers):
         idx = score[i].topk(new).indices.sort().values
         for name, dim in (("gate_proj", 0), ("up_proj", 0), ("down_proj", 1)):
@@ -367,7 +367,7 @@ def smoke(args):
     m = lora_model(m, ckpt=not args.no_ckpt, ckpt_layers=args.ckpt_layers); m.print_trainable_parameters()
     compile_backbone(m, args.compile)
     opt = torch.optim.AdamW([p for p in m.parameters() if p.requires_grad], lr=args.lr)
-    before = [p.detach().clone() for p in m.parameters() if p.requires_grad][0]
+    before = next(p.detach().clone() for p in m.parameters() if p.requires_grad)
     rng = random.Random(0); g = torch.Generator(device=P.DEV).manual_seed(0)
     for step, (ids, lab) in enumerate(batches(rows, tok, args.batch, 32, rng, 2048)):
         ids, lab = ids.to(P.DEV), lab.to(P.DEV)
@@ -381,7 +381,7 @@ def smoke(args):
               f"{ids.numel()/dt:.0f} tok/s (×2 complementary) batch {tuple(ids.shape)} {dt:.1f}s "
               f"peak {torch.mps.driver_allocated_memory()/1e9:.1f} GB", flush=True)
         if step == 3: break
-    after = [p for p in m.parameters() if p.requires_grad][0]
+    after = next(p for p in m.parameters() if p.requires_grad)
     print("trainable parameter changed:", bool((after != before).any()))
 
 

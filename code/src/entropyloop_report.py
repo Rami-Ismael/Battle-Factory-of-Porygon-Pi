@@ -79,7 +79,7 @@ for a, s in (R.get("stopped") or {}).items():
 
 # ---- 3. diversity -------------------------------------------------------------
 print("\n3. proposal diversity per generation: distinct species sets / 512 · novel-set fraction · NN-Hamming to corpus")
-print(f"{'gen':>3} " + " ".join(f"{n:>18}" for n in ["base"] + ARMS))
+print(f"{'gen':>3} " + " ".join(f"{n:>18}" for n in ["base", *ARMS]))
 for g in range(1, 12):
     cells = []
     for src in [base] + [arm_g[a] for a in ARMS]:
@@ -111,7 +111,7 @@ for g in G:
 def selrow(ss):
     return (f"{ss['k']:4d} {ss['distinct_teams']:4d} {ss['real']:4d}/{ss['proposals']:<4d} "
             f"{ss['ess']:5.0f} {ss['real_weight_share']:5.2f} {ss['effective_species_sets']:5.0f}")
-print(f"{'gen':>3} " + " ".join(f"{n:>36}" for n in ["base (recomputed)"] + ARMS))
+print(f"{'gen':>3} " + " ".join(f"{n:>36}" for n in ["base (recomputed)", *ARMS]))
 for g in range(1, 12):
     cells = [selrow(base_sel[g]) if g in base_sel else " " * 36]
     for a in ARMS:
