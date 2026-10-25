@@ -143,7 +143,7 @@ def gen_baseline(ctx, lab_t, lab_y, seed, g, val, outdir):
     el = np.argsort(-np.asarray(lab_y))[:k]
     t0 = time.perf_counter(); model = A.resteer(ctx.V, [lab_t[i] for i in el], seed=seed); t_ft = time.perf_counter() - t0
     t0 = time.perf_counter()
-    files, teams, pastes, validity, _ = GG.propose_guided(model, ctx.C, G, ctx.V, ctx.look, ctx.spreads, val, MODE, LAM,
+    _files, teams, pastes, validity, _ = GG.propose_guided(model, ctx.C, G, ctx.V, ctx.look, ctx.spreads, val, MODE, LAM,
                                                           PROPOSE, outdir / "proposals", 1000 * seed + g)
     t_prop = time.perf_counter() - t0
     mu = F.mat(teams) @ wv

@@ -2,6 +2,7 @@
 from pathlib import Path
 import sys
 import tempfile
+from typing import ClassVar
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -80,9 +81,9 @@ class SelectionTest(unittest.TestCase):
 
 class FakeEngine:
     """Independent deterministic experiment oracle; records training-label flow."""
-    opponents = ["opp1", "opp2", "opp3"]
-    initial_teams = [paste(100)]
-    initial_y = [.25]
+    opponents: ClassVar[list[str]] = ["opp1", "opp2", "opp3"]
+    initial_teams: ClassVar[list[str]] = [paste(100)]
+    initial_y: ClassVar[list[float]] = [.25]
 
     def __init__(self):
         self.fits, self.scores = [], []

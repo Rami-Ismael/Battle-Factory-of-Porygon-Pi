@@ -22,7 +22,7 @@ def parse(text):
         lines = [l.rstrip() for l in block.strip().split("\n") if l.strip()]
         if not lines: continue
         head = lines[0]
-        name, item = (head.split(" @ ", 1) + [""])[:2] if " @ " in head else (head, "")
+        name, item = ([*head.split(" @ ", 1), ""])[:2] if " @ " in head else (head, "")
         name = re.sub(r"\s*\((M|F)\)\s*$", "", name.strip())
         m = re.match(r"^(.*?)\s*\((.+)\)\s*$", name)
         s = {"species": (m.group(2) if m else name).strip(), "item": item.strip(),

@@ -458,7 +458,7 @@ def _parallel(model, arc, x, masked, gen_cols, y, wbin, cfg, device):
             held_prob[torch.tensor(rows), col] = probs.gather(1, x[row_ids, col].view(-1, 1)).squeeze(1).cpu()
         held_prob[~shown.cpu()] = 2.0            # never remask a fixed / already-masked column
         for team in range(num_teams):
-            num_remask = int(round(rf * int(shown[team].sum())))
+            num_remask = round(rf * int(shown[team].sum()))
             if num_remask < 1: continue
             worst = torch.topk(held_prob[team], num_remask, largest=False).indices.to(device)
             x[team, worst] = 0; masked[team, worst] = True
@@ -605,7 +605,7 @@ def run_arm(name, cfg, ctx, per, battles, max_attempts, batch):
     result.update(win_rate=float(wr.mean()),
                   se=float(wr.std(ddof=1) / math.sqrt(len(wr))) if len(wr) > 1 else None,
                   p90=float(np.percentile(wr, 90)), max=float(wr.max()),
-                  above_real_median=float((wr >= REAL_MEDIAN).mean()), n_scored=int(len(wr)))
+                  above_real_median=float((wr >= REAL_MEDIAN).mean()), n_scored=len(wr))
     return result
 
 # --------------------------------------------------------------------------
@@ -613,7 +613,7 @@ def run_arm(name, cfg, ctx, per, battles, max_attempts, batch):
 # --------------------------------------------------------------------------
 def bar(value, hi, width=18):
     if value is None or hi <= 0: return " " * width
-    filled = int(round(width * min(value / hi, 1.0)))
+    filled = round(width * min(value / hi, 1.0))
     return ("█" * filled).ljust(width, "·")
 
 def report(res):

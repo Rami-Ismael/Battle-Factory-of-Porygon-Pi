@@ -14,7 +14,7 @@ for task, cols in [("move", SUM), ("pokemon", SUM + AVG), ("item", ["mega"])]:
     fs = [f for f in o["fills"] if f["task"] == task and f.get("score") is not None and f["start_team"] in orig]
     y = np.array([f["score"] - orig[f["start_team"]] for f in fs])
     X = np.array([[tf(f["paste"])[c] - base[f["start_team"]][c] for c in cols] + [f["k"]] for f in fs], float)
-    names = cols + ["k"]
+    names = [*cols, "k"]
     Z = (X - X.mean(0)) / (X.std(0) + 1e-9)
     A = np.c_[np.ones(len(Z)), Z]
     beta, *_ = np.linalg.lstsq(A, y, rcond=None)
@@ -27,8 +27,8 @@ for task, cols in [("move", SUM), ("pokemon", SUM + AVG), ("item", ["mega"])]:
     r2 = 1 - ((y - A @ beta) ** 2).sum() / ((y - y.mean()) ** 2).sum()
     rk = np.corrcoef(X[:, -1], y)[0, 1] ** 2
     print(f"== {task}: n={len(y)} R2 all={r2:.3f}  R2 k only={rk:.3f}")
-    for n, b, l, h in zip(["const"] + names, beta, lo, hi): print(f"   {n:13s} {b:+.4f} [{l:+.4f},{h:+.4f}] per SD")
+    for n, b, l, h in zip(["const", *names], beta, lo, hi): print(f"   {n:13s} {b:+.4f} [{l:+.4f},{h:+.4f}] per SD")
     print("   mean feature change per fill:", {n: round(float(X[:, i].mean()), 2) for i, n in enumerate(names)})
-    out[task] = dict(n=len(y), r2=r2, r2_k=rk, coef={n: [b, l, h] for n, b, l, h in zip(["const"] + names, beta, lo, hi)},
+    out[task] = dict(n=len(y), r2=r2, r2_k=rk, coef={n: [b, l, h] for n, b, l, h in zip(["const", *names], beta, lo, hi)},
                      sd={n: float(X[:, i].std()) for i, n in enumerate(names)})
 json.dump(out, open(sys.argv[1] + "/b_fills.json", "w"), default=float)

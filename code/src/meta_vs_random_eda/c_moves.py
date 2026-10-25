@@ -27,7 +27,7 @@ for f in o["fills"]:
     for c in CATS: lost_c[c] += lost[c]; gain_c[c] += gain[c]
     rows.append([lost[c] for c in CATS] + [gain[c] for c in CATS]); y.append(f["score"] - orig[f["start_team"]]); st.append(f["start_team"])
 R = np.array(rows, float); X = (R[:, 7:] - R[:, :7])[:, :6]; y = np.array(y); st = np.array(st)  # net change per category; 'Other status' = 0
-# Δ = Σ cost(lost category) − Σ value(gained category); no intercept: zero changes = zero effect
+# Δ = Σ cost(lost category) - Σ value(gained category); no intercept: zero changes = zero effect
 beta = np.linalg.lstsq(X, y, rcond=None)[0]
 us = np.unique(st); rng = np.random.default_rng(1); B = []
 for _ in range(1000):

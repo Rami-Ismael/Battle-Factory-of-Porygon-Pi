@@ -98,8 +98,8 @@ def run(smoke=False):
                     F_, wv = GG.fit_ridge(lab_t, lab_y, corpus); G = GG.Guide(F_, wv, V, D.DEV)
                     idx = select_mmr(lab_t, lab_y, k, lam)
                     ss = E.selection_stats(idx, None, lab_t, lab_y, n_anchor)
-                    model, steps = E.resteer(V, [lab_t[i] for i in idx], seed=100 * seed + g, checkpoint=A.P0_CKPT)
-                    files, teams, pastes, validity, diag = GG.propose_guided(
+                    model, _steps = E.resteer(V, [lab_t[i] for i in idx], seed=100 * seed + g, checkpoint=A.P0_CKPT)
+                    _files, teams, pastes, validity, _diag = GG.propose_guided(
                         model, C, G, V, look, spreads, val, MODE, LAM, PROPOSE, WORK / tag, 1000 * seed + g)
                     mu = F_.mat(teams) @ wv
                     sel = [int(i) for i in np.argsort(-mu)[:BATTLE]]

@@ -122,9 +122,9 @@ def main():
     print(f"reported (1/t-weighted) loss  held-out {e['heldout']['elbo_weighted']:.3f} · train {e['train']['elbo_weighted']:.3f} · real corpus {e['real_corpus']['elbo_weighted']:.3f}")
     print(f"plain CE, same masks          held-out {e['heldout']['all']:.3f} · train {e['train']['all']:.3f} · real corpus {e['real_corpus']['all']:.3f}")
     print("\nplain CE per field type (held-out generated | real corpus)")
-    print(f"{'mask':14s}" + "".join(f"{k:>16s}" for k in TYPES + ['all']))
+    print(f"{'mask':14s}" + "".join(f"{k:>16s}" for k in [*TYPES, 'all']))
     for key, v in r["by_mask_rate"].items():
-        print(f"{key:14s}" + "".join(f"{v['heldout'].get(k, float('nan')):7.2f} | {v['real_corpus'].get(k, float('nan')):5.2f}" for k in TYPES + ['all']))
+        print(f"{key:14s}" + "".join(f"{v['heldout'].get(k, float('nan')):7.2f} | {v['real_corpus'].get(k, float('nan')):5.2f}" for k in [*TYPES, 'all']))
     b = r["baselines_heldout"]
     print("\nbaselines on held-out (plain CE):")
     for k in TYPES:

@@ -125,7 +125,7 @@ class Metric:
 
     Returns a score with written feedback, so GEPA can learn from the exact
     validator message. Score 0 when illegal; legal answers score `alpha`, plus
-    (1 - alpha) × win rate when battles are enabled.
+    (1 - alpha) x win rate when battles are enabled.
     """
 
     def __init__(self, manifest, output, battles=False, alpha=.5, validator=None, h=None, battle=None):

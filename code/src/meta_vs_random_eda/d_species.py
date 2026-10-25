@@ -20,5 +20,5 @@ X = np.array([[r[n] for n in names] for r in rows], float); A = np.c_[np.ones(le
 beta = np.linalg.lstsq(A, y, rcond=None)[0]
 rng = np.random.default_rng(2); B = [np.linalg.lstsq(A[i], y[i], rcond=None)[0] for i in (rng.integers(0, len(y), len(y)) for _ in range(1000))]
 lo, hi = np.quantile(B, [.025, .975], axis=0)
-for n, b, l, h, sd in zip(["const"] + names, beta, lo, hi, [1] + list(X.std(0))): print(f"  {n:15s} {b:+.5f} [{l:+.5f},{h:+.5f}]  per unit; sd {sd:.1f}")
-json.dump(dict(by_k=res, coef={n: [b, l, h] for n, b, l, h in zip(["const"] + names, beta, lo, hi)}), open(sys.argv[1] + "/d_species.json", "w"), default=float)
+for n, b, l, h, sd in zip(["const", *names], beta, lo, hi, [1, *list(X.std(0))]): print(f"  {n:15s} {b:+.5f} [{l:+.5f},{h:+.5f}]  per unit; sd {sd:.1f}")
+json.dump(dict(by_k=res, coef={n: [b, l, h] for n, b, l, h in zip(["const", *names], beta, lo, hi)}), open(sys.argv[1] + "/d_species.json", "w"), default=float)

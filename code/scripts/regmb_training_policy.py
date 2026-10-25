@@ -45,7 +45,7 @@ def sample_moves(legal,rng,target=None,variable=True):
     count=min(count,len(legal))
     if target is None:return list(rng.choice(legal,count,replace=False))
     remaining=[m for m in legal if m!=target]
-    return [target]+list(rng.choice(remaining,count-1,replace=False))
+    return [target, *list(rng.choice(remaining, count - 1, replace=False))]
 
 
 def encode_training_team(vocab,team):

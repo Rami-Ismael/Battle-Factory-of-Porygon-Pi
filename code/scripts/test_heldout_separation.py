@@ -95,7 +95,7 @@ class Training(unittest.TestCase):
         self.assertEqual(A.Vocab([t for _, t in kept]).sizes, old.sizes)       # token ids must not move
         self.assertEqual(A.Vocab([t for _, t in kept]).itos, old.itos)
         self.assertEqual(old.sizes["species"], 190)
-        corpus, V, Cn, look, spreads = X.setup()
+        corpus, V, _Cn, _look, _spreads = X.setup()
         self.assertEqual(len(corpus), len(kept))
         self.assertEqual(V.itos, old.itos)
 
@@ -106,7 +106,7 @@ class Training(unittest.TestCase):
         os.environ.pop("ALLOW_CONTAMINATED_CHECKPOINTS", None)
         for name in ("F1_final_medium", "G2_family_matrix_noprtrain", "A1_all_legal", "B2_family"):
             with self.assertRaises(H.HeldoutLeak): L.load_net(name, V)
-        net, cfg, _ = L.load_net("F1_final_medium_noheldout", V)               # the retrain loads
+        _net, cfg, _ = L.load_net("F1_final_medium_noheldout", V)               # the retrain loads
         self.assertEqual(cfg["epochs"], 80)
 
     def test_only_allow_1_lets_a_contaminated_checkpoint_load(self):
@@ -160,7 +160,7 @@ class Training(unittest.TestCase):
         self.assertTrue(rows(full["X"]) & raw)
         self.assertTrue(H.row_mask(d["X"], V).all())
         self.assertEqual(len(d["top"]), len(full["top"]))
-        teams, ys, srcs = GG.all_labels()
+        teams, _ys, _srcs = GG.all_labels()
         self.assertEqual(Path(GG.__file__).resolve().parent, SRC)
         self.assertFalse(any(H.is_heldout_team(t) for t in teams))
         self.assertGreater(len(teams), 4000)                                   # the other ~4,200 labels are all still there
@@ -183,7 +183,7 @@ class Matrix(unittest.TestCase):
             for t in self.top: self.con.execute("INSERT INTO team_set VALUES ('top50', ?, 1)", (t,))
         for c in self.cand:
             for t in self.top: M.record(self.con, self.pid, [(c, t, 5, 3, 0)])
-        for h in self.held + [self.variant]:                                   # entries that already exist in the matrix
+        for h in [*self.held, self.variant]:                                   # entries that already exist in the matrix
             for t in self.top: M.record(self.con, self.pid, [(h, t, 8, 0, 0)])
         for c in self.cand:
             for h in self.held: M.record(self.con, self.pid, [(c, h, 0, 8, 0)])

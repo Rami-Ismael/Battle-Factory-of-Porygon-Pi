@@ -44,7 +44,7 @@ def stats(A, B, rng):
                 gap_ci95=[float(x) for x in np.nanpercentile(boot, [2.5, 97.5])])
 
 def bench(name, rng):
-    f, card, noisy = BF.TASKS[name]()
+    f, card, _noisy = BF.TASKS[name]()
     sim = iter(range(10 ** 7))
     ev = lambda x: f(x, np.random.default_rng(700_000 + next(sim)))
     A, B = [], []

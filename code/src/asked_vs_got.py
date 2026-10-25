@@ -182,7 +182,7 @@ def cells():
 
 
 def gen():
-    corpus, V, C, look, spreads = setup(); m = load(V)
+    _corpus, V, C, look, spreads = setup(); m = load(V)
     out = json.load(open(OUT)) if OUT.exists() else {"cells": {}}
     val = Validator()
     try:

@@ -30,7 +30,7 @@ def main():
     out = Path("/tmp/vgc-pilot/strata"); out.mkdir(exist_ok=True)
     for f in out.glob("*.txt"): f.unlink()
 
-    teams, V, L, X, Y = D.load_all()
+    teams, V, L, X, _Y = D.load_all()
     model = D._load(V); C = D.Constraints(V, L)
     RT = build_tables()
     look, spreads, by_sp = {}, defaultdict(list), defaultdict(list)

@@ -72,7 +72,7 @@ def key_from_fields(f):
     slots = []
     for i in range(NSLOT):
         s = f[i * NF:(i + 1) * NF]
-        slots.append((s[0], s[1], s[2]) + tuple(sorted(s[3:7])) + (s[7],))
+        slots.append((s[0], s[1], s[2], *tuple(sorted(s[3:7])), s[7]))
     return "||".join(";".join(sl) for sl in sorted(slots))
 
 def canon_grid(V, row):

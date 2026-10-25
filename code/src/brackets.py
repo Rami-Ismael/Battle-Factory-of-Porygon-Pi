@@ -133,7 +133,7 @@ def train(V, teams, wrs, balanced, seed=0):
     m.eval()
     with torch.no_grad():
         vl = float(np.mean([float(m.loss(xte, yte, bte)) for _ in range(10)]))
-    return m, dict(train_n=int(len(tr)), heldout_n=int(len(te)), bins_train=counts.tolist(),
+    return m, dict(train_n=len(tr), heldout_n=len(te), bins_train=counts.tolist(),
                    heldout_loss=vl, train_minutes=(time.perf_counter() - t0) / 60)
 
 

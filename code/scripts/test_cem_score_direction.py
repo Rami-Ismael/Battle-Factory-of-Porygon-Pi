@@ -20,7 +20,7 @@ class FakeEngine:
 
     def sample(self, n, seed, label):
         self.samples.append(label)
-        records = [dict(index=i, paste=f'{label}/team{i}', species=list('abcde') + [f'id{i}'],
+        records = [dict(index=i, paste=f'{label}/team{i}', species=[*list('abcde'), f'id{i}'],
                         valid=not (self.fail and 'reverse/iteration2' in label)) for i in range(n)]
         return dict(seed=seed, records=records, metrics=metrics(records))
 

@@ -136,7 +136,7 @@ def prepare(args):
             for _ in range(100):
                 if len(team)==6:break
                 sp=str(rng.choice(species)); s=slot(sp)
-                if reg['slots'][sp]['base'] in used or s['item'] and norm(s['item']) in items:continue
+                if reg['slots'][sp]['base'] in used or (s['item'] and norm(s['item']) in items):continue
                 team.append(s);used.add(reg['slots'][sp]['base']);items.add(norm(s['item']))
             if len(team)!=6 or validator('\n\n'.join(H.slot_to_text(s) for s in team)):
                 rejected+=1;continue

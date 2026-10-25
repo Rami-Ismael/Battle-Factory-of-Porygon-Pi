@@ -42,7 +42,7 @@ class FullVocab:
         self.base = BaseVocab(teams)
         spreads = sorted({spread_key(s["evs"]) for t in teams for s in t})
         self.itos = dict(self.base.itos)
-        self.itos["spread"] = ["[MASK]"] + spreads
+        self.itos["spread"] = ["[MASK]", *spreads]
         self.stoi = dict(self.base.stoi)
         self.stoi["spread"] = {v: i for i, v in enumerate(self.itos["spread"])}
         self.sizes = {k: len(v) for k, v in self.itos.items()}

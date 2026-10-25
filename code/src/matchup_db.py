@@ -457,7 +457,7 @@ def purge_heldout(con, dry_run=False):
     q = ",".join("?" * len(held))
     cells = con.execute(f"SELECT COUNT(*), COALESCE(SUM(battles),0) FROM cell WHERE lo IN ({q}) OR hi IN ({q})", held + held).fetchone()
     contrib = con.execute(f"SELECT COUNT(*) FROM contribution WHERE lo IN ({q}) OR hi IN ({q})", held + held).fetchone()[0]
-    sets = con.execute(f"SELECT COUNT(*) FROM team_set WHERE team_id IN ({q}) AND set_name != ?", held + [H.SET_NAME]).fetchone()[0]
+    sets = con.execute(f"SELECT COUNT(*) FROM team_set WHERE team_id IN ({q}) AND set_name != ?", [*held, H.SET_NAME]).fetchone()[0]
     out = {"teams": len(held), "cells": cells[0], "battles": cells[1], "contributions": contrib, "set_rows": sets}
     plan_tables = [t for t in ("plan_cell", "plan_contribution")
                    if con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (t,)).fetchone()]
@@ -468,7 +468,7 @@ def purge_heldout(con, dry_run=False):
         touched = [r[0] for r in con.execute(f"SELECT DISTINCT batch_id FROM contribution WHERE lo IN ({q}) OR hi IN ({q})", held + held)]
         con.execute(f"DELETE FROM contribution WHERE lo IN ({q}) OR hi IN ({q})", held + held)
         con.execute(f"DELETE FROM cell WHERE lo IN ({q}) OR hi IN ({q})", held + held)
-        con.execute(f"DELETE FROM team_set WHERE team_id IN ({q}) AND set_name != ?", held + [H.SET_NAME])
+        con.execute(f"DELETE FROM team_set WHERE team_id IN ({q}) AND set_name != ?", [*held, H.SET_NAME])
         for t in plan_tables:
             con.execute(f"DELETE FROM {t} WHERE lo IN ({q}) OR hi IN ({q})", held + held)
         gone = 0
@@ -542,7 +542,7 @@ def bytes_per_cell(n=100_000):
         con.execute("PRAGMA foreign_keys = OFF")          # synthetic cells have no team rows; size is unaffected
         con.execute("INSERT INTO policy VALUES (1,'f','p','p','s',NULL)")
         con.execute("INSERT INTO batch (policy_id,started_at,battles) VALUES (1,'t',0)")
-        rng = random.Random(0); m = int(math.isqrt(2 * n)) + 2; rows = []
+        rng = random.Random(0); m = math.isqrt(2 * n) + 2; rows = []
         for lo in range(1, m):
             for hi in range(lo + 1, m):
                 w = rng.randint(0, 24); l = rng.randint(0, 24 - w); t = 0

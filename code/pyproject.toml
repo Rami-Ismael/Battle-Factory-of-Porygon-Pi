@@ -2,9 +2,10 @@
 required-version = "==0.17.2"
 
 [tool.ruff.lint]
-select = ["NPY", "TID251", "F", "E9", "ARG"]
+select = ["NPY", "TID251", "F", "E9", "ARG", "RUF"]
 # F722: jaxtyping shape strings such as " fields" are not Python expressions (jaxtyping's own advice).
-ignore = ["F722"]
+# RUF001: look-alike Unicode in strings (×, –, é) is mostly intended output text here.
+ignore = ["F722", "RUF001"]
 
 [tool.ruff.lint.per-file-ignores]
 # Test fakes take the real object's arguments without using them.
