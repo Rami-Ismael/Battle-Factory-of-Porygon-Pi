@@ -191,7 +191,7 @@ def excluded_teams(root=None):
     import corpus
     return list(_excluded(str(root or corpus.TEAMS)))
 
-def grid_predicate(V=None):  # noqa: ARG001 V kept for older callers
+def grid_predicate():
     """team -> True if it is a held-out team."""
     return is_heldout_team
 

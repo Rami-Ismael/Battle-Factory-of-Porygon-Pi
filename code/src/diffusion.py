@@ -118,7 +118,7 @@ def _step_logits(model, x, t, y, guidance):
     return out
 
 @torch.no_grad()
-def sample(model, n, style="none", guidance=1.0, steps=48, pin=None, V=None,  # noqa: ARG001 V kept for older callers
+def sample(model, n, style="none", guidance=1.0, steps=48, pin=None,
            x0=None, mask=None, temp=1.0, device=DEV):
     """Ancestral masked-diffusion sampling.
 

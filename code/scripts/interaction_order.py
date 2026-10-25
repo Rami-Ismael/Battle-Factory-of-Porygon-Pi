@@ -54,7 +54,7 @@ def make_benchmarks(rng):
     # (f(x, sim_seed), levels, maximise?)
     return {"sphere": (lambda x, _seed: sphere(x), 5, False), "spin_glass": (lambda x, _seed: spin(x), 2, False),
             "max3sat": (lambda x, _seed: maxsat(x), 2, True), "nk_k4": (lambda x, _seed: nk(x), 2, True),
-            "pest_control": (lambda x, s: pest(x, np.random.default_rng(s)), 5, False)}
+            "pest_control": (lambda x, seed: pest(x, np.random.default_rng(seed)), 5, False)}
 
 def bench_cubes(rng):
     out = {}
