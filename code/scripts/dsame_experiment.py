@@ -104,7 +104,7 @@ class Ctx:
     def __init__(self):
         cf = A.load_corpus_files(); full = [t for _, t in cf]
         self.V = A.Vocab(full); L = A.Legality(full); self.C = D.Constraints(self.V, L)   # token ids must not move
-        self.corpus = [t for _, t in HO.training_pairs(cf, self.V)]                       # ranks 51-100 out of the rows
+        self.corpus = [t for _, t in HO.training_pairs(cf)]                       # ranks 51-100 out of the rows
         self.grid = np.stack([self.V.encode(t) for t in self.corpus])
         self.look, _ = A.decode_tables(full); _, self.spreads = A.decode_tables(self.corpus)
         self.opp = A.opponents()
@@ -132,7 +132,7 @@ def write_files(pastes, d):
 
 def battle(ctx, pastes, d, seed):
     files = write_files(pastes, d)
-    res = A.pool.score([(f, ctx.opp) for f in files], battles=BATTLES, conc=50)
+    res = A.pool.score([(f, ctx.opp) for f in files], battles=BATTLES, conc=50, seed=seed)
     return [(res.get(f) or {}) for f in files]
 
 # ---------------------------------------------------------------- arms
@@ -308,7 +308,7 @@ def fresh_score(con, pid, team, note):
     W = sum(cols[c] for c in cells)
     return sum(cols[c] * w / n for c, (w, n) in cells.items()) / W, sum(n for _, n in cells.values())
 
-def stage_verify(ctx, out):
+def stage_verify(out):
     con = MDB.connect(); pid = MDB.get_policy(con); val = MDB.Validator()
     for rk, run in out["runs"].items():
         if rk in out["verify"]: continue
@@ -380,4 +380,4 @@ if __name__ == "__main__":
     ctx = Ctx(); out = load()
     {"validate": lambda: stage_validate(ctx, out), "pilot": lambda: stage_pilot(ctx, out),
      "smoke": lambda: stage_run(ctx, out, smoke=True), "run": lambda: stage_run(ctx, out),
-     "verify": lambda: stage_verify(ctx, out), "report": lambda: stage_report(ctx, out)}[stage]()
+     "verify": lambda: stage_verify(out), "report": lambda: stage_report(ctx, out)}[stage]()

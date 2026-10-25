@@ -129,7 +129,7 @@ def meta_lines():
         con.execute("SELECT paste FROM team WHERE team_id=?", (tid,)).fetchone()[0])))
     return [dict(team_id=tid, column=top.index(tid), line=line(tid)) for tid in order]
 
-def prepare(a):
+def prepare(_args):
     import numpy as np, lossdown as L, asked_vs_got as X, heldout as HO, encode
     reg = json.loads((REG / "training-regulation.json").read_text())
     V = encode.Vocab.from_regulation(reg); names = reg["names"]

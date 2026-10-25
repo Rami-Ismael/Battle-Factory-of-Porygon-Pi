@@ -2,9 +2,17 @@
 required-version = "==0.17.2"
 
 [tool.ruff.lint]
-select = ["NPY", "TID251", "F", "E9"]
+select = ["NPY", "TID251", "F", "E9", "ARG"]
 # F722: jaxtyping shape strings such as " fields" are not Python expressions (jaxtyping's own advice).
 ignore = ["F722"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test fakes take the real object's arguments without using them.
+"scripts/test_*.py" = ["ARG"]
+
+[tool.ruff.lint.flake8-unused-arguments]
+# A catch-all *args or **kwargs is there to accept any call, not to be read.
+ignore-variadic-names = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "torch.load".msg = "Use load_checkpoint from src/checkpoints.py, which sets weights_only."

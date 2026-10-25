@@ -59,7 +59,7 @@ def test_split(V):
     return Xs[idx[:500]], W[idx[:500]], Xs[idx[500:]], W[idx[500:]]
 
 
-def walk_pastes(o, out, valid_ok=True):
+def walk_pastes(o, out):
     """Collect (paste, win_rate|None, battles) from any results JSON layout seen in this repo."""
     if isinstance(o, dict):
         ps = o.get("pastes")

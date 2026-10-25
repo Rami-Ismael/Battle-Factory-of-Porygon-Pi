@@ -41,7 +41,7 @@ def slot_text(species, item, ability, nature, moves):
 
 
 # ---------------------------------------------------------------- prepare (project venv)
-def prepare(args):
+def prepare(_args):
     sys.path.insert(0, str(HERE))
     import numpy as np
     import lossdown as L, asked_vs_got as X, heldout as HO, encode
@@ -297,7 +297,7 @@ def prune_mlp(m, tok, rows, keep, n_calib=64, style="full"):
     import torch, textdiff_port as P
     layers = m.model.layers; score = [None] * len(layers); hooks = []
     def hook(i):
-        def f(mod, inp):
+        def f(_module, inp):
             a = inp[0].detach().abs().float().sum((0, 1))
             score[i] = a if score[i] is None else score[i] + a
         return f
@@ -446,7 +446,7 @@ def train(args):
             if step % args.eval_every == 0 or step == total or step == args.max_steps:
                 if args.speed_only:
                     (ck / "log.json").write_text(json.dumps(dict(args=vars(args), log=log), indent=1)); continue
-                v, na = validate(m, tok, val, g, bs=args.val_batch, shared=not args.legacy_layout, style=args.prompt_style, fwd=fwd, max_len=args.max_len,
+                v, na = validate(m, tok, val, bs=args.val_batch, shared=not args.legacy_layout, style=args.prompt_style, fwd=fwd, max_len=args.max_len,
                                  decoder_layers=args.decoder_layers, functional=args.functional_val)
                 log.append(dict(step=step, val=v, answer_tokens=na, seconds_per_step=(time.perf_counter() - t0) / step)); print(json.dumps(log[-1]), flush=True)
                 m.save_pretrained(ck / f"step{step}")
@@ -455,7 +455,7 @@ def train(args):
     (ck / "log.json").write_text(json.dumps(dict(args=vars(args), log=log, minutes=(time.perf_counter() - t0) / 60), indent=1))
 
 
-def validate(m, tok, val, g, bs=8, shared=True, style="full", fwd=None, decoder_layers=0, functional=False, max_len=2048):
+def validate(m, tok, val, bs=8, shared=True, style="full", fwd=None, decoder_layers=0, functional=False, max_len=2048):
     """The published loss (complementary pairs) on the held-out rows: the same function for every arm.
     Returns (mean loss per masked answer token, mean answer tokens per row): with a different vocabulary the
     per-token number changes meaning, their product is the comparable per-team figure. decoder_layers > 0: the

@@ -195,7 +195,7 @@ def spearman(a, b):
     ra = ra - ra.mean(); rb = rb - rb.mean()
     return float((ra * rb).sum() / np.sqrt((ra**2).sum() * (rb**2).sum()))
 
-def evaluate(name, F, w, hold_files, Xh, yh):
+def evaluate(name, w, Xh, yh):
     pred = Xh @ w
     r2 = 1 - ((yh - pred)**2).sum() / ((yh - yh.mean())**2).sum()
     top = np.argsort(-pred)[:20]
@@ -248,8 +248,8 @@ def main():
     wa, _ = fit(F, Xa, np.array(list(act_lab.values())))
 
     print(f"\nbudget check: random {len(rand_lab)*BATTLES}  active {len(act_lab)*BATTLES} battles", flush=True)
-    res = {"random": evaluate("random", F, wr_, hold_files, Xh, yh),
-           "active": evaluate("active", F, wa, hold_files, Xh, yh)}
+    res = {"random": evaluate("random", wr_, Xh, yh),
+           "active": evaluate("active", wa, Xh, yh)}
     out = {"metrics": res, "rounds": rounds_meta,
            "budget": {"battles_per_arm": RAND_N * BATTLES, "holdout_battles": len(yh) * BATTLES},
            "holdout": {"mean": float(yh.mean()),

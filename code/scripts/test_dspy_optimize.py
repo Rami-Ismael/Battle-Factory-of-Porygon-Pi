@@ -62,7 +62,7 @@ class OptimizeTests(unittest.TestCase):
         example = O.examples(self.m, 'train')[0]
         program.predict.signature = program.predict.signature.with_instructions('Fill each null with a legal value.')
         program.predict.demos = [dspy.Example(**example.inputs(), fills=FILLS['s0-item-2'])]
-        exported = O.export(program, self.m, {'name': 'test'})
+        exported = O.export(program, {'name': 'test'})
         m = dict(MANIFEST, structure=S.config('chat', exported['instructions'], exported['demos']))
         system, *demo, user = llm_completion.completion_payload(m, TRIALS[2])['messages']
         self.assertIn('Fill each null with a legal value.', system['content'])
@@ -140,7 +140,7 @@ class LegalChoiceOptimizeTests(unittest.TestCase):
             optimized = gepa.compile(O.Completion(self.m), trainset=dev, valset=dev)
         # The reflection model was shown the refusal reason, not a generic parse note.
         self.assertIn('type=enum', json.dumps(reflection.history[0]['messages']))
-        exported = O.export(optimized, self.m, {'name': 'gepa'})
+        exported = O.export(optimized, {'name': 'gepa'})
         self.assertEqual(exported['instructions'], 'Choose only listed values.')
         self.assertEqual(exported['demos'], [])
         m = dict(MANIFEST, structure=S.config('chat', exported['instructions'], constraints='legal-choices'))
@@ -249,7 +249,7 @@ class ReflectionShapeTests(unittest.TestCase):
         self.assertIn('slot2_evs', prompt)
         self.assertIn('must keep its `total` field', prompt)
         self.assertIn('\\"total\\"', prompt)  # the StatPoints schema lists total
-        self.assertEqual(O.export(optimized, self.m, {})['instructions'], 'Keep every Stat Points total.')
+        self.assertEqual(O.export(optimized, {})['instructions'], 'Keep every Stat Points total.')
 
     def test_optimize_uses_the_shape_aware_proposer_with_legal_choices(self):
         class Stop(Exception):

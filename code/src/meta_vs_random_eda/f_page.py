@@ -5,7 +5,7 @@ fill = json.load(open('/Users/ramiismael/Documents/code/vgc-team-generator-pilot
 mv = json.load(open(S + "/c_moves.json")); al = json.load(open(S + "/e_all.json")); sp = json.load(open(S + "/d_species.json"))
 W = 560
 
-def hbars(rows, xmax, ref=None, fmt="{:.3f}", ci=None, label_w=190, xmin=0.0):
+def hbars(rows, xmax, ref=None, fmt="{:.3f}", label_w=190, xmin=0.0):
     """rows: [(label, value, (lo,hi) or None)]. One hue; value labels in ink."""
     h = 30 * len(rows) + 34; x0 = label_w; sx = lambda v: x0 + (W - x0 - 60) * (v - xmin) / (xmax - xmin)
     o = [f'<svg viewBox="0 0 {W} {h}" role="img">']

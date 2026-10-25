@@ -199,40 +199,40 @@ DEFAULTS = dict(order="dep", cmode="full", guidance=2.0, temp=1.0, top_p=1.0,
 # --------------------------------------------------------------------------
 class Arc:
     """Arc-consistent, order-independent feasibility masks."""
-    def __init__(self, C, V):
+    def __init__(self, constraints, vocab):
         from corpus import MEGA_STONE_OF
-        self.C, self.V = C, V
-        nsp, nmv, nab = V.sizes["species"], V.sizes["move"], V.sizes["ability"]
-        z = lambda k: torch.zeros(k, dtype=torch.bool)
-        self.MV = torch.stack([C.mv_ok.get(i, z(nmv)) for i in range(nsp)])
-        self.AB = torch.stack([C.ab_ok.get(i, z(nab)) for i in range(nsp)])
-        bases = sorted({C.base_of[i] for i in range(nsp)})
+        self.C, self.V = constraints, vocab
+        nsp, nmv, nab = vocab.sizes["species"], vocab.sizes["move"], vocab.sizes["ability"]
+        zero_mask = lambda size: torch.zeros(size, dtype=torch.bool)
+        self.MV = torch.stack([constraints.mv_ok.get(i, zero_mask(nmv)) for i in range(nsp)])
+        self.AB = torch.stack([constraints.ab_ok.get(i, zero_mask(nab)) for i in range(nsp)])
+        bases = sorted({constraints.base_of[i] for i in range(nsp)})
         bid = {b: i for i, b in enumerate(bases)}
-        self.base_id = torch.tensor([bid[C.base_of[i]] for i in range(nsp)])
+        self.base_id = torch.tensor([bid[constraints.base_of[i]] for i in range(nsp)])
         self.stone_sp = {}
-        for vi, it in enumerate(V.itos["item"]):
+        for vi, it in enumerate(vocab.itos["item"]):
             if vi and it in MEGA_STONE_OF:
-                b = MEGA_STONE_OF[it]
+                base = MEGA_STONE_OF[it]
                 self.stone_sp[vi] = torch.tensor(
-                    [j > 0 and C.base_of[j] == b and "mega" not in V.itos["species"][j]
+                    [j > 0 and constraints.base_of[j] == base and "mega" not in vocab.itos["species"][j]
                      for j in range(nsp)])
         self.fallbacks = 0
 
     def cand(self, row, slot):
         """Species still possible for this slot given everything already decided."""
-        C = self.C
+        constraints = self.C
         si = int(row[slot * NF])
         if si != 0:
             ok = torch.zeros(self.MV.shape[0], dtype=torch.bool); ok[si] = True; return ok
         ok = torch.ones(self.MV.shape[0], dtype=torch.bool); ok[0] = False
-        used = {C.base_of[int(row[s * NF])] for s in range(NSLOT)
+        used = {constraints.base_of[int(row[s * NF])] for s in range(NSLOT)
                 if s != slot and int(row[s * NF]) != 0}
         if used:
             ub = torch.tensor(sorted({self.base_id[j].item() for j in range(len(self.base_id))
-                                      if C.base_of[j] in used}))
+                                      if constraints.base_of[j] in used}))
             ok &= ~torch.isin(self.base_id, ub)
-        a = int(row[slot * NF + 1])
-        if a: ok &= self.AB[:, a]
+        ability = int(row[slot * NF + 1])
+        if ability: ok &= self.AB[:, ability]
         it = int(row[slot * NF + 2])
         if it in self.stone_sp: ok &= self.stone_sp[it]
         for j in range(3, 7):
@@ -241,109 +241,109 @@ class Arc:
         return ok
 
     def mask(self, col, row):
-        j, slot = col % NF, col // NF
-        if int(row[slot * NF]) != 0 or j == 7:
+        field, slot = col % NF, col // NF
+        if int(row[slot * NF]) != 0 or field == 7:
             return self.C.mask_for(col, row, "cpu")   # fast path: identical by construction
         cd = self.cand(row, slot)
         if not cd.any():
             self.fallbacks += 1
             return self.C.mask_for(col, row, "cpu")   # stranded slot: let Showdown reject it
-        if j == 0:
+        if field == 0:
             return cd
-        if j == 1:
+        if field == 1:
             ok = self.AB[cd].any(0); ok[0] = False
-        elif j == 2:
+        elif field == 2:
             ok = torch.ones(self.V.sizes["item"], dtype=torch.bool); ok[0] = False
-            for s in range(NSLOT):
-                v = int(row[s * NF + 2])
-                if s != slot and v != 0: ok[v] = False
+            for teammate in range(NSLOT):
+                value = int(row[teammate * NF + 2])
+                if teammate != slot and value != 0: ok[value] = False
             for vi, sp in self.stone_sp.items():
                 if not bool((sp & cd).any()): ok[vi] = False
         else:
             ok = self.MV[cd].any(0); ok[0] = False
             for j2 in range(3, 7):
-                v = int(row[slot * NF + j2])
-                if j2 != j and v != 0: ok[v] = False
+                value = int(row[slot * NF + j2])
+                if j2 != field and value != 0: ok[value] = False
         if not ok.any():
             self.fallbacks += 1
             return self.C.mask_for(col, row, "cpu")
         return ok
 
-def nolearn_mask(C, col, row):
+def nolearn_mask(constraints, col, row):
     """Everything the full mask does EXCEPT the per-species learnset table: Species
     Clause, Item Clause, the mega-stone/forme rule, ability legality and duplicate-move
     exclusion all stay; move columns are otherwise free.  This isolates the one mask
     that costs a learnset lookup, which is the mask SubGoal 1.1 wants to delete."""
-    j, slot = col % NF, col // NF
-    if not (3 <= j <= 6):
-        return C.mask_for(col, row, "cpu")
-    ok = torch.ones(C.V.sizes["move"], dtype=torch.bool); ok[0] = False
+    field, slot = col % NF, col // NF
+    if not (3 <= field <= 6):
+        return constraints.mask_for(col, row, "cpu")
+    ok = torch.ones(constraints.V.sizes["move"], dtype=torch.bool); ok[0] = False
     for j2 in range(3, 7):
-        v = int(row[slot * NF + j2])
-        if j2 != j and v != 0: ok[v] = False
+        value = int(row[slot * NF + j2])
+        if j2 != field and value != 0: ok[value] = False
     if not ok.any(): ok[0] = True
     return ok
 
-def clause_mask(C, col, row):
+def clause_mask(constraints, col, row):
     """Species Clause + Item Clause only - the two team-level rules that need no
     learnset lookup.  Everything else (ability legality, learnsets, duplicate moves)
     is left to the model."""
-    k = C.V.key(col); n = C.V.sizes[k]
-    ok = torch.ones(n, dtype=torch.bool); ok[0] = False        # never emit [MASK]
-    j, slot = col % NF, col // NF
-    if j == 0:
-        used = {C.base_of[int(row[s * NF])] for s in range(NSLOT)
+    key = constraints.V.key(col); size = constraints.V.sizes[key]
+    ok = torch.ones(size, dtype=torch.bool); ok[0] = False        # never emit [MASK]
+    field, slot = col % NF, col // NF
+    if field == 0:
+        used = {constraints.base_of[int(row[s * NF])] for s in range(NSLOT)
                 if s != slot and int(row[s * NF]) != 0}
         if used:
-            for vi in range(1, n):
-                if C.base_of[vi] in used: ok[vi] = False
-    elif j == 2:
-        for s in range(NSLOT):
-            v = int(row[s * NF + 2])
-            if s != slot and v != 0: ok[v] = False
+            for vi in range(1, size):
+                if constraints.base_of[vi] in used: ok[vi] = False
+    elif field == 2:
+        for teammate in range(NSLOT):
+            value = int(row[teammate * NF + 2])
+            if teammate != slot and value != 0: ok[value] = False
     if not ok.any(): ok[0] = True
     return ok
 
 _FREE = {}
-def feas(A, cmode, col, row):
+def feas(arc, cmode, col, row):
     """Per-column feasible-value mask (CPU bool) under one of the three regimes."""
     if cmode == "full":
-        return A.mask(col, row)
+        return arc.mask(col, row)
     if cmode == "clause":
-        return clause_mask(A.C, col, row)
+        return clause_mask(arc.C, col, row)
     if cmode == "nolearn":
-        return nolearn_mask(A.C, col, row)
-    k = A.V.key(col)                                            # cmode == "none"
-    if k not in _FREE:
-        m = torch.ones(A.V.sizes[k], dtype=torch.bool); m[0] = False
-        _FREE[k] = m
-    return _FREE[k]
+        return nolearn_mask(arc.C, col, row)
+    key = arc.V.key(col)                                        # cmode == "none"
+    if key not in _FREE:
+        free_mask = torch.ones(arc.V.sizes[key], dtype=torch.bool); free_mask[0] = False
+        _FREE[key] = free_mask
+    return _FREE[key]
 
-def stack_masks(A, cmode, col, xc, rows, device):
-    return torch.stack([feas(A, cmode, col, xc[b]) for b in rows]).to(device)
+def stack_masks(arc, cmode, col, xc, rows, device):
+    return torch.stack([feas(arc, cmode, col, xc[b]) for b in rows]).to(device)
 
 # --------------------------------------------------------------------------
 # sampling primitives
 # --------------------------------------------------------------------------
-def top_p_filter(p, top_p):
-    if top_p >= 1.0: return p
-    sp, idx = torch.sort(p, descending=True, dim=-1)
+def top_p_filter(probs, top_p):
+    if top_p >= 1.0: return probs
+    sp, idx = torch.sort(probs, descending=True, dim=-1)
     keep = (sp.cumsum(-1) - sp) < top_p
-    out = torch.zeros_like(p).scatter_(-1, idx, sp * keep)
+    out = torch.zeros_like(probs).scatter_(-1, idx, sp * keep)
     return out / out.sum(-1, keepdim=True).clamp_min(1e-12)
 
 def draw(logits, mask, temp, top_p):
-    p = torch.softmax(logits.masked_fill(~mask, -1e9) / temp, -1)
-    return torch.multinomial(top_p_filter(p, top_p), 1).squeeze(-1)
+    probs = torch.softmax(logits.masked_fill(~mask, -1e9) / temp, -1)
+    return torch.multinomial(top_p_filter(probs, top_p), 1).squeeze(-1)
 
 @torch.no_grad()
-def guided(model, x, tt, y, w, guidance):
+def guided(model, x, tt, y, wbin, guidance):
     """D-CFG log-probabilities for EVERY column at once (the heads are ~6% of a
     forward, so computing all 48 costs nothing over computing one)."""
-    hc = model(x, tt, y, w)
+    hc = model(x, tt, y, wbin)
     lc = [F.log_softmax(model.logits(hc, c), -1) for c in range(COLS)]
     if guidance == 1.0: return lc
-    hu = model(x, tt, torch.full_like(y, D.NULL), torch.full_like(w, W.WNULL))
+    hu = model(x, tt, torch.full_like(y, D.NULL), torch.full_like(wbin, W.WNULL))
     return [guidance * lc[c] + (1 - guidance) * F.log_softmax(model.logits(hu, c), -1)
             for c in range(COLS)]
 
@@ -351,31 +351,31 @@ def guided(model, x, tt, y, w, guidance):
 # the decoder: one function, every scheme
 # --------------------------------------------------------------------------
 @torch.no_grad()
-def decode(model, A, n, cfg, x0=None, m0=None, pin=None, rng=None, device=DEV):
-    """Returns an (n, COLS) grid.  cfg keys: order, cmode, guidance, temp, top_p,
+def decode(model, arc, num_teams, cfg, x0=None, m0=None, pin=None, rng=None, device=DEV):
+    """Returns an (num_teams, COLS) grid.  cfg keys: order, cmode, guidance, temp, top_p,
     wbin, style, steps, remask."""
-    g, temp, tp = cfg["guidance"], cfg["temp"], cfg["top_p"]
+    guidance, temp, tp = cfg["guidance"], cfg["temp"], cfg["top_p"]
     cmode, order = cfg["cmode"], cfg["order"]
-    y = torch.full((n,), D.STYLES.index(cfg["style"]) if cfg["style"] in D.STYLES else D.NULL,
+    y = torch.full((num_teams,), D.STYLES.index(cfg["style"]) if cfg["style"] in D.STYLES else D.NULL,
                    device=device, dtype=torch.long)
-    w = torch.full((n,), cfg["wbin"], device=device, dtype=torch.long)
+    wbin = torch.full((num_teams,), cfg["wbin"], device=device, dtype=torch.long)
     if x0 is None:
-        x = torch.zeros(n, COLS, dtype=torch.long, device=device)
-        masked = torch.ones(n, COLS, dtype=torch.bool, device=device)
+        x = torch.zeros(num_teams, COLS, dtype=torch.long, device=device)
+        masked = torch.ones(num_teams, COLS, dtype=torch.bool, device=device)
     else:
         x = x0.clone().to(device); masked = m0.clone().to(device); x[masked] = 0
     if pin:
-        for c, v in pin.items(): x[:, c] = v; masked[:, c] = False
+        for col, pinned_value in pin.items(): x[:, col] = pinned_value; masked[:, col] = False
     gen_cols = masked.clone()                       # what this call is allowed to touch
 
     if order == "par":
-        return _parallel(model, A, x, masked, gen_cols, y, w, cfg, device)
+        return _parallel(model, arc, x, masked, gen_cols, y, wbin, cfg, device)
 
     # ---- one column at a time -------------------------------------------
     if order in ("dep", "rand"):
         seqs = []
-        for b in range(n):
-            todo = [c for c in range(COLS) if bool(masked[b, c])]
+        for team in range(num_teams):
+            todo = [c for c in range(COLS) if bool(masked[team, c])]
             if order == "dep":
                 seqs.append([c for c in D.ORDER if c in set(todo)])
             else:
@@ -389,113 +389,113 @@ def decode(model, A, n, cfg, x0=None, m0=None, pin=None, rng=None, device=DEV):
         # MDLM time = fraction of the grid still masked (identical to
         # 1 - step/48 for a from-scratch team, honest for a partial fill)
         tt = masked.sum(1).float() / COLS
-        lg = guided(model, x, tt, y, w, g)
+        lg = guided(model, x, tt, y, wbin, guidance)
         xc = x.cpu()
         if seqs is not None:
             bycol = defaultdict(list)
-            for b in range(n):
-                if step < len(seqs[b]): bycol[seqs[b][step]].append(b)
+            for team in range(num_teams):
+                if step < len(seqs[team]): bycol[seqs[team][step]].append(team)
         else:
-            bycol = _pick_by_entropy(A, cmode, lg, xc, masked, temp, order, device)
-        for c, rows in bycol.items():
-            r = torch.tensor(rows, device=device)
-            M = stack_masks(A, cmode, c, xc, rows, device)
-            x[r, c] = draw(lg[c][r], M, temp, tp)
-            masked[r, c] = False
+            bycol = _pick_by_entropy(arc, cmode, lg, xc, masked, temp, order, device)
+        for col, rows in bycol.items():
+            row_ids = torch.tensor(rows, device=device)
+            masks = stack_masks(arc, cmode, col, xc, rows, device)
+            x[row_ids, col] = draw(lg[col][row_ids], masks, temp, tp)
+            masked[row_ids, col] = False
     return x
 
-def _pick_by_entropy(A, cmode, lg, xc, masked, temp, order, device):
+def _pick_by_entropy(arc, cmode, lg, xc, masked, temp, order, device):
     """confidence / entropy_hi: score every still-masked column by the entropy of its
     CONSTRAINED predictive distribution, then decode one column per row."""
-    n = xc.shape[0]
-    H = torch.full((n, COLS), float("inf") if order == "conf" else float("-inf"))
-    for c in range(COLS):
-        rows = torch.nonzero(masked[:, c]).flatten().tolist()
+    num_teams = xc.shape[0]
+    entropy_grid = torch.full((num_teams, COLS), float("inf") if order == "conf" else float("-inf"))
+    for col in range(COLS):
+        rows = torch.nonzero(masked[:, col]).flatten().tolist()
         if not rows: continue
-        M = stack_masks(A, cmode, c, xc, rows, device)
-        p = torch.softmax(lg[c][torch.tensor(rows, device=device)].masked_fill(~M, -1e9) / temp, -1)
-        h = -(p * torch.log(p.clamp_min(1e-12))).sum(-1)
-        H[torch.tensor(rows), c] = h.cpu()
-    pick = (H.argmin(1) if order == "conf" else H.argmax(1)).tolist()
+        masks = stack_masks(arc, cmode, col, xc, rows, device)
+        probs = torch.softmax(lg[col][torch.tensor(rows, device=device)].masked_fill(~masks, -1e9) / temp, -1)
+        col_entropy = -(probs * torch.log(probs.clamp_min(1e-12))).sum(-1)
+        entropy_grid[torch.tensor(rows), col] = col_entropy.cpu()
+    pick = (entropy_grid.argmin(1) if order == "conf" else entropy_grid.argmax(1)).tolist()
     bycol = defaultdict(list)
-    for b in range(n):
-        if bool(masked[b].any()): bycol[pick[b]].append(b)
+    for team in range(num_teams):
+        if bool(masked[team].any()): bycol[pick[team]].append(team)
     return bycol
 
 @torch.no_grad()
-def _parallel(model, A, x, masked, gen_cols, y, w, cfg, device):
+def _parallel(model, arc, x, masked, gen_cols, y, wbin, cfg, device):
     """MDLM ancestral sampler, optionally with ReMDM remasking."""
-    n = x.shape[0]
-    g, temp, tp = cfg["guidance"], cfg["temp"], cfg["top_p"]
+    num_teams = x.shape[0]
+    guidance, temp, tp = cfg["guidance"], cfg["temp"], cfg["top_p"]
     cmode, steps, rf = cfg["cmode"], cfg["steps"], cfg["remask"]
     for i in range(steps):
         if not masked.any(): break
         t_now, t_next = 1.0 - i / steps, 1.0 - (i + 1) / steps
-        lg = guided(model, x, torch.full((n,), t_now, device=device), y, w, g)
+        lg = guided(model, x, torch.full((num_teams,), t_now, device=device), y, wbin, guidance)
         p_rev = 1.0 if t_now <= 0 else (t_now - t_next) / t_now
-        rev = masked & (torch.rand(n, COLS, device=device) < p_rev)
+        rev = masked & (torch.rand(num_teams, COLS, device=device) < p_rev)
         if i == steps - 1: rev = masked.clone()
         xc = x.cpu()
-        for c in D.ORDER:                       # resolve a step's reveals in dependency
-            rows = torch.nonzero(rev[:, c]).flatten().tolist()   # order, so the mask sees
-            if not rows: continue                                # what this step already fixed
-            r = torch.tensor(rows, device=device)
-            M = stack_masks(A, cmode, c, xc, rows, device)
-            v = draw(lg[c][r], M, temp, tp)
-            x[r, c] = v; masked[r, c] = False; xc[r.cpu(), c] = v.cpu()
+        for col in D.ORDER:                     # resolve a step's reveals in dependency
+            rows = torch.nonzero(rev[:, col]).flatten().tolist()   # order, so the mask sees
+            if not rows: continue                                  # what this step already fixed
+            row_ids = torch.tensor(rows, device=device)
+            masks = stack_masks(arc, cmode, col, xc, rows, device)
+            picked = draw(lg[col][row_ids], masks, temp, tp)
+            x[row_ids, col] = picked; masked[row_ids, col] = False; xc[row_ids.cpu(), col] = picked.cpu()
         if rf <= 0 or i == steps - 1: continue
         # ---- ReMDM: remask the least-confident revealed columns ----------
-        lg2 = guided(model, x, torch.full((n,), max(t_next, 1e-3), device=device), y, w, g)
+        lg2 = guided(model, x, torch.full((num_teams,), max(t_next, 1e-3), device=device), y, wbin, guidance)
         shown = gen_cols & ~masked
-        P = torch.zeros(n, COLS)
+        held_prob = torch.zeros(num_teams, COLS)
         xc = x.cpu()
-        for c in range(COLS):
-            rows = torch.nonzero(shown[:, c]).flatten().tolist()
+        for col in range(COLS):
+            rows = torch.nonzero(shown[:, col]).flatten().tolist()
             if not rows: continue
-            r = torch.tensor(rows, device=device)
-            M = stack_masks(A, cmode, c, xc, rows, device)
-            p = torch.softmax(lg2[c][r].masked_fill(~M, -1e9) / temp, -1)
-            P[torch.tensor(rows), c] = p.gather(1, x[r, c].view(-1, 1)).squeeze(1).cpu()
-        P[~shown.cpu()] = 2.0                    # never remask a fixed / already-masked column
-        for b in range(n):
-            k = int(round(rf * int(shown[b].sum())))
-            if k < 1: continue
-            worst = torch.topk(P[b], k, largest=False).indices.to(device)
-            x[b, worst] = 0; masked[b, worst] = True
+            row_ids = torch.tensor(rows, device=device)
+            masks = stack_masks(arc, cmode, col, xc, rows, device)
+            probs = torch.softmax(lg2[col][row_ids].masked_fill(~masks, -1e9) / temp, -1)
+            held_prob[torch.tensor(rows), col] = probs.gather(1, x[row_ids, col].view(-1, 1)).squeeze(1).cpu()
+        held_prob[~shown.cpu()] = 2.0            # never remask a fixed / already-masked column
+        for team in range(num_teams):
+            num_remask = int(round(rf * int(shown[team].sum())))
+            if num_remask < 1: continue
+            worst = torch.topk(held_prob[team], num_remask, largest=False).indices.to(device)
+            x[team, worst] = 0; masked[team, worst] = True
     if masked.any():                             # safety: nothing may leave as [MASK]
-        lg = guided(model, x, masked.sum(1).float() / COLS, y, w, g)
+        lg = guided(model, x, masked.sum(1).float() / COLS, y, wbin, guidance)
         xc = x.cpu()
-        for c in D.ORDER:
-            rows = torch.nonzero(masked[:, c]).flatten().tolist()
+        for col in D.ORDER:
+            rows = torch.nonzero(masked[:, col]).flatten().tolist()
             if not rows: continue
-            r = torch.tensor(rows, device=device)
-            M = stack_masks(A, cmode, c, xc, rows, device)
-            v = draw(lg[c][r], M, temp, tp)
-            x[r, c] = v; masked[r, c] = False; xc[r.cpu(), c] = v.cpu()
+            row_ids = torch.tensor(rows, device=device)
+            masks = stack_masks(arc, cmode, col, xc, rows, device)
+            picked = draw(lg[col][row_ids], masks, temp, tp)
+            x[row_ids, col] = picked; masked[row_ids, col] = False; xc[row_ids.cpu(), col] = picked.cpu()
     return x
 
 # --------------------------------------------------------------------------
 # rendering, statistics
 # --------------------------------------------------------------------------
-def render(V, row, look, spreads, rng):
+def render(vocab, row, look, spreads, rng):
     """Grid -> parsed slots.  Spreads are COPIED from the corpus for that species,
     identically in every arm (see the module docstring)."""
     slots = []
     for i in range(NSLOT):
-        b = i * NF
-        g = lambda j: V.decode_field(b + j, int(row[b + j]))
-        sp = g(0)
-        mv = [look.get(g(3 + j), g(3 + j)) for j in range(4)
-              if g(3 + j) and g(3 + j) != "[MASK]"]
+        slot_base = i * NF
+        field_value = lambda field: vocab.decode_field(slot_base + field, int(row[slot_base + field]))
+        sp = field_value(0)
+        mv = [look.get(field_value(3 + j), field_value(3 + j)) for j in range(4)
+              if field_value(3 + j) and field_value(3 + j) != "[MASK]"]
         pl = spreads.get(sp) or [{s: 0 for s in STATS}]
-        slots.append(dict(species=look.get(sp, sp), item=look.get(g(2), g(2)),
-                          ability=look.get(g(1), g(1)), nature=look.get(g(7), g(7)),
+        slots.append(dict(species=look.get(sp, sp), item=look.get(field_value(2), field_value(2)),
+                          ability=look.get(field_value(1), field_value(1)), nature=look.get(field_value(7), field_value(7)),
                           moves=mv, evs=pl[int(rng.integers(0, len(pl)))]))
     return slots
 
-def key_of(V, row):
+def key_of(vocab, row):
     """Slot-order-invariant identity of a team, for the uniqueness count."""
-    sl = [tuple(V.decode_field(i * NF + j, int(row[i * NF + j])) for j in range(NF))
+    sl = [tuple(vocab.decode_field(i * NF + j, int(row[i * NF + j])) for j in range(NF))
           for i in range(NSLOT)]
     return tuple(sorted(sl))
 
@@ -512,109 +512,109 @@ REASONS = [("can't learn",             "illegal move (learnset)"),
 def why(msg):
     """Bucket one Showdown rejection clause, so the sweep says WHICH mask was
     load-bearing instead of only that the team was rejected."""
-    m = msg.strip()
+    text = msg.strip()
     for pat, tag in REASONS:
-        if pat in m: return tag
-    return "other: " + m[:55]
+        if pat in text: return tag
+    return "other: " + text[:55]
 
-def wilson(k, n, z=1.96):
-    if n == 0: return [0.0, 1.0]
-    p = k / n; d = 1 + z * z / n
-    c = (p + z * z / (2 * n)) / d
-    h = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
-    return [round(max(0.0, c - h), 6), round(min(1.0, c + h), 6)]
+def wilson(successes, trials, z_score=1.96):
+    if trials == 0: return [0.0, 1.0]
+    rate = successes / trials; denom = 1 + z_score * z_score / trials
+    center = (rate + z_score * z_score / (2 * trials)) / denom
+    half_width = z_score * math.sqrt(rate * (1 - rate) / trials + z_score * z_score / (4 * trials * trials)) / denom
+    return [round(max(0.0, center - half_width), 6), round(min(1.0, center + half_width), 6)]
 
 # --------------------------------------------------------------------------
 # one arm
 # --------------------------------------------------------------------------
 def run_arm(name, cfg, ctx, per, battles, max_attempts, batch):
-    V, A, model = ctx["V"], ctx["A"], ctx["model"]
+    vocab, arc, model = ctx["V"], ctx["A"], ctx["model"]
     look, spreads, pmi, opp, val = (ctx["look"], ctx["spreads"],
                                             ctx["pmi"], ctx["opp"], ctx["val"])
     torch.manual_seed(0); random.seed(0); rng = np.random.default_rng(0)
     out = GEN / name; out.mkdir(parents=True, exist_ok=True)
-    for f in out.glob("*.txt"): f.unlink()
+    for old_file in out.glob("*.txt"): old_file.unlink()
     Xc = ctx["Xc"]
     pin = None
     if cfg["pin_species"]:
-        si = V.stoi["species"].get(norm(cfg["pin_species"]))
+        si = vocab.stoi["species"].get(norm(cfg["pin_species"]))
         if si is None: raise SystemExit(f"{cfg['pin_species']} not in the vocabulary")
         pin = {0: si}
 
-    A.fallbacks = 0
+    arc.fallbacks = 0
     from collections import Counter
     rej = Counter()
     files, slots_of, keys, tries, t0 = [], {}, [], 0, time.perf_counter()
     while len(files) < per and tries < max_attempts:
-        n = min(batch, max_attempts - tries)
+        n_attempts = min(batch, max_attempts - tries)
         x0 = m0 = None
         if cfg["seed"]:
-            src = Xc[rng.integers(0, len(Xc), n)]
+            src = Xc[rng.integers(0, len(Xc), n_attempts)]
             x0 = torch.tensor(src, device=DEV)
-            m0 = torch.zeros(n, COLS, dtype=torch.bool, device=DEV)
-            for b in range(n):
-                s = int(rng.integers(0, NSLOT))
-                if cfg["seed"] == "slot": m0[b, s * NF:(s + 1) * NF] = True
-                else:                     m0[b, s * NF + 3 + int(rng.integers(0, 4))] = True
-        X = decode(model, A, n, cfg, x0=x0, m0=m0, pin=pin, rng=rng).cpu().numpy()
+            m0 = torch.zeros(n_attempts, COLS, dtype=torch.bool, device=DEV)
+            for attempt in range(n_attempts):
+                slot = int(rng.integers(0, NSLOT))
+                if cfg["seed"] == "slot": m0[attempt, slot * NF:(slot + 1) * NF] = True
+                else:                     m0[attempt, slot * NF + 3 + int(rng.integers(0, 4))] = True
+        X = decode(model, arc, n_attempts, cfg, x0=x0, m0=m0, pin=pin, rng=rng).cpu().numpy()
         for row in X:
             # an attempt is a team actually rendered and shown to Showdown; rows left
             # over in the last batch are discarded UNCOUNTED, or the final partial batch
             # would inflate the acceptance rate this whole sweep is about
             if len(files) >= per: break
             tries += 1
-            sl = render(V, row, look, spreads, rng)
+            sl = render(vocab, row, look, spreads, rng)
             txt = "\n\n".join(slot_to_text(s) for s in sl) + "\n"
             err = val(txt)
             if err is not None:
                 for part in err.split(";"): rej[why(part)] += 1
                 continue
-            p = out / f"{len(files):04d}.txt"; p.write_text(txt)
-            files.append(str(p)); slots_of[str(p)] = sl; keys.append(key_of(V, row))
+            out_path = out / f"{len(files):04d}.txt"; out_path.write_text(txt)
+            files.append(str(out_path)); slots_of[str(out_path)] = sl; keys.append(key_of(vocab, row))
         print(f"  [{name}] {len(files)}/{per} valid · {tries} attempts "
               f"· {len(files)/max(tries,1):.3f}", flush=True)
 
     capped = len(files) < per
     acc = len(files) / max(tries, 1)
-    r = dict(scheme=name, config={k: cfg[k] for k in DEFAULTS},
+    result = dict(scheme=name, config={k: cfg[k] for k in DEFAULTS},
              attempts=tries, valid=len(files), n=len(files),
              acceptance=acc, acceptance_ci95=wilson(len(files), max(tries, 1)),
              samples_per_accepted=(tries / len(files)) if files else None,
              unique=(len(set(keys)) / len(keys)) if keys else None,
              capped=capped, cap=max_attempts if capped else None,
-             arc_fallbacks=A.fallbacks,
+             arc_fallbacks=arc.fallbacks,
              rejections=dict(rej.most_common(12)),
              gen_minutes=(time.perf_counter() - t0) / 60)
     if capped:
-        r["cap_note"] = (f"TRUNCATED: hit the {max_attempts}-attempt cap with only "
+        result["cap_note"] = (f"TRUNCATED: hit the {max_attempts}-attempt cap with only "
                          f"{len(files)} valid teams of the {per} requested — this arm is "
                          f"NOT a completed arm and its win rate rests on {len(files)} teams.")
     if not files:
-        r.update(win_rate=None, se=None, p90=None, max=None,
-                 above_real_median=None, surprise_mean=None, battles=0)
-        return r
-    s = np.array([pmi.surprise(slots_of[f]) for f in files])
+        result.update(win_rate=None, se=None, p90=None, max=None,
+                      above_real_median=None, surprise_mean=None, battles=0)
+        return result
+    surprises = np.array([pmi.surprise(slots_of[f]) for f in files])
     res = pool.score([(f, opp) for f in files], battles=battles, conc=50, quiet=True)
     wr = np.array([res[f]["win_rate"] for f in files if f in res])
-    r["battles"] = int(sum(res[f]["battles"] for f in res))
-    r["surprise_mean"] = float(s.mean())
-    r["surprise_ref_real"] = REAL_SURPRISE_REF
+    result["battles"] = int(sum(res[f]["battles"] for f in res))
+    result["surprise_mean"] = float(surprises.mean())
+    result["surprise_ref_real"] = REAL_SURPRISE_REF
     if len(wr) == 0:
-        r.update(win_rate=None, se=None, p90=None, max=None, above_real_median=None)
-        return r
-    r.update(win_rate=float(wr.mean()),
-             se=float(wr.std(ddof=1) / math.sqrt(len(wr))) if len(wr) > 1 else None,
-             p90=float(np.percentile(wr, 90)), max=float(wr.max()),
-             above_real_median=float((wr >= REAL_MEDIAN).mean()), n_scored=int(len(wr)))
-    return r
+        result.update(win_rate=None, se=None, p90=None, max=None, above_real_median=None)
+        return result
+    result.update(win_rate=float(wr.mean()),
+                  se=float(wr.std(ddof=1) / math.sqrt(len(wr))) if len(wr) > 1 else None,
+                  p90=float(np.percentile(wr, 90)), max=float(wr.max()),
+                  above_real_median=float((wr >= REAL_MEDIAN).mean()), n_scored=int(len(wr)))
+    return result
 
 # --------------------------------------------------------------------------
 # the visual
 # --------------------------------------------------------------------------
-def bar(v, hi, width=18):
-    if v is None or hi <= 0: return " " * width
-    k = int(round(width * min(v / hi, 1.0)))
-    return ("█" * k).ljust(width, "·")
+def bar(value, hi, width=18):
+    if value is None or hi <= 0: return " " * width
+    filled = int(round(width * min(value / hi, 1.0)))
+    return ("█" * filled).ljust(width, "·")
 
 def report(res):
     rows = [res[n] for n, _ in ARMS if n in res]
@@ -628,18 +628,18 @@ def report(res):
     print(f"{'scheme':<22}{'acceptance (Wilson 95%)':<26}{'':<19}{'samp/ok':>8}  "
           f"{'win rate (SE clustered)':<18}{'':<18} {'uniq':>6} {'PMI':>6}")
     print("-" * 118)
-    for r in rows:
-        a, lo, hi = r["acceptance"], *r["acceptance_ci95"]
-        wr, se = r["win_rate"], r["se"]
+    for row in rows:
+        acceptance, lo, hi = row["acceptance"], *row["acceptance_ci95"]
+        wr, se = row["win_rate"], row["se"]
         ws = f"{wr:.3f} +/- {se:.3f}" if wr is not None and se is not None else \
              (f"{wr:.3f}" if wr is not None else "n/a")
-        spa = f"{r['samples_per_accepted']:.1f}" if r["samples_per_accepted"] else "inf"
-        flag = "  <-- CAPPED" if r["capped"] else ""
-        u = f"{r['unique']:>6.2f}" if r["unique"] is not None else "   n/a"
-        pm = f"{r['surprise_mean']:>6.2f}" if r.get("surprise_mean") is not None else "   n/a"
-        print(f"{r['scheme']:<22} {a:.3g} [{lo:.3g}, {hi:.3g}]".ljust(48)
-              + bar(a, amax) + f" {spa:>8}  " + ws.ljust(18) + bar(wr, wmax)
-              + f" {u} {pm}  n={r['n']}" + flag, flush=True)
+        spa = f"{row['samples_per_accepted']:.1f}" if row["samples_per_accepted"] else "inf"
+        flag = "  <-- CAPPED" if row["capped"] else ""
+        uniq = f"{row['unique']:>6.2f}" if row["unique"] is not None else "   n/a"
+        pm = f"{row['surprise_mean']:>6.2f}" if row.get("surprise_mean") is not None else "   n/a"
+        print(f"{row['scheme']:<22} {acceptance:.3g} [{lo:.3g}, {hi:.3g}]".ljust(48)
+              + bar(acceptance, amax) + f" {spa:>8}  " + ws.ljust(18) + bar(wr, wmax)
+              + f" {uniq} {pm}  n={row['n']}" + flag, flush=True)
     print("-" * 118)
     print("reference win rates: real corpus team 0.470-0.475 · median real 0.458 · "
           "slotcopy 0.420-0.436 · generator bin5/g4 0.193-0.195 · random legal ~0.011")
@@ -648,29 +648,29 @@ def report(res):
     if weak:
         print("why the low-acceptance arms were rejected by Showdown "
               "(clauses per rejected team, top 3):")
-        for r in weak:
-            top = list(r["rejections"].items())[:3]
-            print(f"  {r['scheme']:<22} " + " · ".join(f"{k} x{v}" for k, v in top))
+        for row in weak:
+            top = list(row["rejections"].items())[:3]
+            print(f"  {row['scheme']:<22} " + " · ".join(f"{k} x{v}" for k, v in top))
         print("-" * 118)
     caps = [r["scheme"] for r in rows if r["capped"]]
     if caps: print("CAPPED (truncated, NOT completed): " + ", ".join(caps))
     print("=" * 118, flush=True)
 
 # --------------------------------------------------------------------------
-def selftest(A, C, V, Xc, n=40):
+def selftest(arc, constraints, Xc, n_rows=40):
     """Arm 1 must be bit-identical to what runs today: under dependency order the
     arc-consistent mask has to equal diffusion.Constraints.mask_for at every step."""
     rng = np.random.default_rng(0); checked = 0
-    for _ in range(n):
+    for _ in range(n_rows):
         row = torch.tensor(Xc[rng.integers(0, len(Xc))])
-        k = int(rng.integers(0, COLS))                 # a partially decoded dep-order state
+        cut = int(rng.integers(0, COLS))                 # a partially decoded dep-order state
         x = row.clone()
-        for c in D.ORDER[k:]: x[c] = 0
-        for c in D.ORDER[k:]:
-            a = A.mask(c, x); b = C.mask_for(c, x, "cpu")
-            assert torch.equal(a, b), f"arc mask differs from mask_for at column {c}"
+        for column in D.ORDER[cut:]: x[column] = 0
+        for column in D.ORDER[cut:]:
+            arc_mask = arc.mask(column, x); ref_mask = constraints.mask_for(column, x, "cpu")
+            assert torch.equal(arc_mask, ref_mask), f"arc mask differs from mask_for at column {column}"
             checked += 1
-            x[c] = row[c]
+            x[column] = row[column]
     print(f"selftest OK: arc-consistent mask == Constraints.mask_for on {checked} "
           f"dependency-order states", flush=True)
 
@@ -684,30 +684,30 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--report", action="store_true")
     ap.add_argument("--selftest", action="store_true")
-    a = ap.parse_args()
-    outfile = "/tmp/vgc-pilot/schemes_smoke.json" if a.smoke else OUT
-    if a.report:
+    args = ap.parse_args()
+    outfile = "/tmp/vgc-pilot/schemes_smoke.json" if args.smoke else OUT
+    if args.report:
         report(json.load(open(outfile)) if os.path.exists(outfile) else {}); return
-    per, battles, cap, batch = a.per, a.battles, a.max_attempts, a.batch
-    if a.smoke: per, battles, cap, batch = 3, 2, 24, 8
-    names = set(a.only.split(",")) if a.only else {n for n, _ in ARMS}
+    per, battles, cap, batch = args.per, args.battles, args.max_attempts, args.batch
+    if args.smoke: per, battles, cap, batch = 3, 2, 24, 8
+    names = set(args.only.split(",")) if args.only else {n for n, _ in ARMS}
 
     torch.manual_seed(0); random.seed(0)
-    model, V, L, corpus, labelled = W.load_model()
-    C = D.Constraints(V, L); A = Arc(C, V)
+    model, vocab, legality, corpus, labelled = W.load_model()
+    constraints = D.Constraints(vocab, legality); arc = Arc(constraints, vocab)
     look, spreads = {}, defaultdict(list)
-    for t in corpus + labelled:
-        for s in t:
-            look[norm(s["species"])] = s["species"]; look[norm(s["ability"])] = s["ability"]
-            if s["item"]: look[norm(s["item"])] = s["item"]
-            for mv in s["moves"]: look[norm(mv)] = mv
-            if s["nature"]: look[norm(s["nature"])] = s["nature"]
-            spreads[norm(s["species"])].append(dict(s["evs"]))
-    ctx = dict(V=V, L=L, C=C, A=A, model=model, look=look, spreads=spreads, corpus=corpus,
+    for team in corpus + labelled:
+        for slot in team:
+            look[norm(slot["species"])] = slot["species"]; look[norm(slot["ability"])] = slot["ability"]
+            if slot["item"]: look[norm(slot["item"])] = slot["item"]
+            for mv in slot["moves"]: look[norm(mv)] = mv
+            if slot["nature"]: look[norm(slot["nature"])] = slot["nature"]
+            spreads[norm(slot["species"])].append(dict(slot["evs"]))
+    ctx = dict(V=vocab, L=legality, C=constraints, A=arc, model=model, look=look, spreads=spreads, corpus=corpus,
                pmi=PMI(corpus), opp=opponents(), val=Validator(),
-               Xc=np.stack([V.encode(t) for t in corpus]))
-    if a.selftest:
-        selftest(A, C, V, ctx["Xc"]); ctx["val"].close(); return
+               Xc=np.stack([vocab.encode(t) for t in corpus]))
+    if args.selftest:
+        selftest(arc, constraints, ctx["Xc"]); ctx["val"].close(); return
     print(f"{len(corpus)} corpus teams · {len(labelled)} labelled · {len(ctx['opp'])} opponents "
           f"· device {DEV} · per={per} battles={battles} cap={cap}", flush=True)
 
@@ -718,16 +718,16 @@ def main():
             print(f"[{name}] already done, skipping", flush=True); continue
         cfg = dict(DEFAULTS); cfg.update(over)
         t0 = time.perf_counter()
-        r = run_arm(name, cfg, ctx, per, battles, cap, batch)
-        r["minutes"] = (time.perf_counter() - t0) / 60
-        res[name] = r
+        result = run_arm(name, cfg, ctx, per, battles, cap, batch)
+        result["minutes"] = (time.perf_counter() - t0) / 60
+        res[name] = result
         json.dump(res, open(outfile, "w"), indent=1)
-        wr = f"{r['win_rate']:.4f}" if r["win_rate"] is not None else "n/a"
-        se = f" +/- {r['se']:.4f}" if r.get("se") else ""
-        print(f"[{name}] DONE  accept {r['acceptance']:.3g} "
-              f"{r['acceptance_ci95']}  ({r['valid']}/{r['attempts']})  win rate {wr}{se}  "
-              f"uniq {r['unique']}  PMI {r.get('surprise_mean')}  "
-              f"{'CAPPED ' if r['capped'] else ''}{r['minutes']:.1f} min", flush=True)
+        wr = f"{result['win_rate']:.4f}" if result["win_rate"] is not None else "n/a"
+        se = f" +/- {result['se']:.4f}" if result.get("se") else ""
+        print(f"[{name}] DONE  accept {result['acceptance']:.3g} "
+              f"{result['acceptance_ci95']}  ({result['valid']}/{result['attempts']})  win rate {wr}{se}  "
+              f"uniq {result['unique']}  PMI {result.get('surprise_mean')}  "
+              f"{'CAPPED ' if result['capped'] else ''}{result['minutes']:.1f} min", flush=True)
     ctx["val"].close()
     report(res)
     print("SCHEMES_DONE", flush=True)

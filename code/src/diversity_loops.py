@@ -201,7 +201,7 @@ def run_arm(arm, seed, out, base, G, V, tables, ref, con, ridge):
         t0 = time.perf_counter(); rng = np.random.default_rng(seed * 1000 + g); torch.manual_seed(seed * 1000 + g)
         CV.SEED = 1000 * seed; c = {}
         if arm == "island":
-            c, new_rows, isl = island_gen(seed, g, rows, isl, out, base, G, V, tables, ref, con, ridge, rng)
+            c, new_rows, isl = island_gen(seed, g, rows, isl, base, G, V, tables, ref, con, ridge, rng)
         else:
             CV.TAG = f"divm_{arm}_s{seed}"
             if arm == "peel":
@@ -241,7 +241,7 @@ def run_arm(arm, seed, out, base, G, V, tables, ref, con, ridge):
               f"largest {d['largest_share']:.1%} · battled comps {s['battled_compositions']} · {c['minutes']:.1f} min", flush=True)
 
 
-def island_gen(seed, g, rows, isl, out, base, G, V, tables, ref, con, ridge, rng):
+def island_gen(seed, g, rows, isl, base, G, V, tables, ref, con, ridge, rng):
     """K islands, each pinned to a distant meta team, own re-steer on own elites, migration before g3 and g5."""
     sp = lambda r: set(comp_paste(r["paste"]) or ())
     if isl is None:

@@ -75,7 +75,7 @@ def lenient(adapter):
             return {name: Refused(S.refusal_message(exc)) for name in signature.output_fields}
 
     cls = type('Lenient' + type(adapter).__name__, (type(adapter),),
-               dict(parse=parse, _prepare_response_format=lambda self, *a, **k: None))
+               dict(parse=parse, _prepare_response_format=lambda _self, *a, **k: None))
     wrapped = copy.copy(adapter)
     wrapped.__class__ = cls
     return wrapped
@@ -155,7 +155,7 @@ class Metric:
                  on_result=lambda _, r: result.update(r))
         return result['wins'] / result['battles']
 
-    def __call__(self, gold, pred, trace=None, pred_name=None, pred_trace=None, program_trace=None):
+    def __call__(self, gold, pred, trace=None, pred_name=None, pred_trace=None, program_trace=None):  # noqa: ARG002 DSPy passes these by name
         trial = self.trials[gold.trial_id]
         try:
             team = self.check(trial, pred)
@@ -245,7 +245,7 @@ def reflection_lm_for(model, effort='high', num_retries=3):
                    extra_body=dict(reasoning={'effort': effort}))
 
 
-def export(program, manifest, optimizer):
+def export(program, optimizer):
     """Frozen instructions and demonstrations in the phase-one program format."""
     keys = list(program.predict.signature.input_fields)
     demos = []
@@ -284,14 +284,14 @@ def optimize(args):
                                   add_format_failure_as_feedback=True, num_threads=args.threads,
                                   seed=args.seed, log_dir=str(args.output / 'gepa'), track_stats=True)
         else:
-            optimizer = dspy.MIPROv2(metric=lambda g, p, t=None: metric(g, p).score, auto=args.budget,
+            optimizer = dspy.MIPROv2(metric=lambda g, p, _trace=None: metric(g, p).score, auto=args.budget,
                                      max_bootstrapped_demos=args.max_demos, max_labeled_demos=0,
                                      num_threads=args.threads, seed=args.seed,
                                      log_dir=str(args.output / 'mipro'))
-        before = dspy.Evaluate(devset=dev, metric=lambda g, p, t=None: metric(g, p).score,
+        before = dspy.Evaluate(devset=dev, metric=lambda g, p, _trace=None: metric(g, p).score,
                                num_threads=args.threads)(program).score
         optimized = optimizer.compile(program, trainset=train, valset=dev)
-        after = dspy.Evaluate(devset=dev, metric=lambda g, p, t=None: metric(g, p).score,
+        after = dspy.Evaluate(devset=dev, metric=lambda g, p, _trace=None: metric(g, p).score,
                               num_threads=args.threads)(optimized).score
         cost = sum(entry.get('cost') or 0 for entry in lm.history)
         reflection_cost = None
@@ -305,7 +305,7 @@ def optimize(args):
                         reflection_lm_cost_usd=reflection_cost, max_demos=args.max_demos, seed=args.seed,
                         train_tasks=len(train), dev_tasks=len(dev), dev_score_before=before,
                         dev_score_after=after, task_lm_cost_usd=cost, dspy_version=dspy.__version__)
-        results.save(args.output / 'program.json', export(optimized, m, settings))
+        results.save(args.output / 'program.json', export(optimized, settings))
         optimized.save(str(args.output / 'dspy-program.json'))
         print(json.dumps(settings))
     finally:

@@ -74,7 +74,7 @@ def retrain(model, V, teams, wrs, epochs=60, lr=1e-4):
         sch.step()
     model.eval(); return model
 
-def propose_diffusion(model, V, L, C, look, spreads, val, n_valid, rng, outdir):
+def propose_diffusion(model, V, C, look, spreads, val, n_valid, rng, outdir):
     kept, tries, files, slots_of = 0, 0, [], {}
     while kept < n_valid and tries < n_valid * 4:
         row = W.sample_constrained(model, C, 1, 5, "none", 2.0).cpu().numpy()[0]; tries += 1
@@ -139,7 +139,7 @@ def main(smoke=False):
             t0 = time.perf_counter()
             if loop == "diffusion":
                 model = retrain(model, V, teams, wrs, epochs=(3 if smoke else 60)); trained = time.perf_counter() - t0
-                files, slots_of, acc = propose_diffusion(model, V, L, C, look, spreads, val, PROPOSE, rng, outdir)
+                files, slots_of, acc = propose_diffusion(model, V, C, look, spreads, val, PROPOSE, rng, outdir)
             else:
                 trained = 0.0; files, slots_of, acc = propose_copypaste(teams, wrs, val, PROPOSE, rng, outdir)
             sur = {f: pmi.surprise(slots_of[f]) for f in files}

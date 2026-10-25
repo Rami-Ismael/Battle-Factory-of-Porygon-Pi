@@ -254,7 +254,7 @@ def top_teams(run):
         if k not in seenk: seenk.add(k); allp.append((y, p))
     return allp[:TOPV]
 
-def stage_verify(ctx, out):
+def stage_verify(out):
     con = MDB.connect(); pid = MDB.get_policy(con); val = MDB.Validator()
     try:
         for rk, run in out["runs"].items():
@@ -277,7 +277,7 @@ def stage_verify(ctx, out):
     finally:
         val.close()
 
-def stage_heldout(ctx, out):
+def stage_heldout(out):
     for rk, rows in out["verify"].items():
         if rk in out["heldout"]: continue
         files = DS.write_files([r["paste"] for r in rows], WORK / rk / "heldout")
@@ -347,5 +347,5 @@ if __name__ == "__main__":
     if stage == "probe": stage_probe(ctx); sys.exit()
     if stage == "smoke": stage_run(ctx, load(), smoke=True); sys.exit()
     out = load()
-    {"run": lambda: stage_run(ctx, out), "verify": lambda: stage_verify(ctx, out),
-     "heldout": lambda: stage_heldout(ctx, out), "report": lambda: stage_report(ctx, out)}[stage]()
+    {"run": lambda: stage_run(ctx, out), "verify": lambda: stage_verify(out),
+     "heldout": lambda: stage_heldout(out), "report": lambda: stage_report(ctx, out)}[stage]()

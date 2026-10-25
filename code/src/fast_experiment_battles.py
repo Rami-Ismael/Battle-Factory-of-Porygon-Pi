@@ -67,7 +67,7 @@ class Backend:
             self.close()
             raise
 
-    def run_jobs(self, con, jobs, seed=None, conc=50, quiet=False):
+    def run_jobs(self, con, jobs, seed=None, conc=50, quiet=False):  # noqa: ARG002 same signature as matchup_db.run_jobs, which it replaces
         import heldout
         bad = heldout.team_ids(con) & {tid for j in jobs for tid in [j['row'], *j['schedule']]}
         if bad: raise heldout.HeldoutLeak('Heldout teams in fast search evaluation')
@@ -83,7 +83,7 @@ class Backend:
             self.pending = None
         return self.original_record(con, policy_id, results, **kwargs)
 
-    def score(self, jobs, battles=24, conc=50, ports=None, quiet=False, opp_schedule=None,
+    def score(self, jobs, battles=24, conc=50, ports=None, quiet=False, opp_schedule=None,  # noqa: ARG002 same signature as pool.score
               seed=None, allow_heldout=False):
         import heldout as H
         import matchup_db as M

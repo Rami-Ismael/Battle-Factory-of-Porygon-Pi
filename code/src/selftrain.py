@@ -420,7 +420,7 @@ def check_stop(res):
     return verdicts or None
 
 # ---- commands ---------------------------------------------------------------
-def cmd_init(args):
+def cmd_init(_args):
     STDIR.mkdir(parents=True, exist_ok=True)
     if not HOLDOUT.exists():
         # exactly the split train(seed=0) used, so the shipped checkpoint is a
@@ -528,7 +528,7 @@ def cmd_run(args):
     save_results(res)
     print("STOP: S4 budget cap reached", flush=True)
 
-def cmd_status(args):
+def cmd_status(_args):
     res = load_results()
     for g in res["generations"]:
         row = {"gen": g["gen"]}

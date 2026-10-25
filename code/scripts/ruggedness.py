@@ -181,10 +181,10 @@ def main():
     res = {"design": {"anchors": N_ANCHOR, "edits_per_anchor": len(OPS) * PER_OP, "replicates": N_REP,
                       "battles": BATTLES, "hartmann_step": STEP, "seed": SEED}}
     b = benchmarks()
-    res["hartmann6"] = {"anchors": b["hartmann6"], "summary": summarise(b["hartmann6"], lambda a: 0.0)}
+    res["hartmann6"] = {"anchors": b["hartmann6"], "summary": summarise(b["hartmann6"], lambda _anchor: 0.0)}
     pest_noise = float(np.mean([np.var([a["f"]] + a["reps"], ddof=1) for a in b["pest_control"]]))
     res["pest_control"] = {"anchors": b["pest_control"], "noise_var": pest_noise,
-                           "summary": summarise(b["pest_control"], lambda a: pest_noise)}
+                           "summary": summarise(b["pest_control"], lambda _anchor: pest_noise)}
     for k in ("hartmann6", "pest_control"):
         print(k, json.dumps(res[k]["summary"]), flush=True)
     res["vgc"] = vgc_block(*vgc())

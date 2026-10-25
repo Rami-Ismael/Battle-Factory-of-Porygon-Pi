@@ -295,7 +295,7 @@ Prefer structural claims about what a real doubles team must contain or must avo
 Reply with {n} fenced python blocks, each starting with a comment `# name: short-name`,
 nothing else between them."""
 
-def render_state(rules, floor):
+def render_state(rules):
     if not rules:
         return "No rules have been scored yet. Start from what a competitive doubles team needs."
     top = sorted([x for x in rules if x["feasible"]], key=lambda x: x["q"])[:6]
@@ -397,7 +397,7 @@ def save(st):
 
 def build_prompt(st, meta, hps, a):
     return PROMPT.format(nmeta=len(meta), nhps=len(hps), floor=a.floor, n=a.pop,
-                         state=render_state(st["rules"], a.floor))
+                         state=render_state(st["rules"]))
 
 def cmd_prompt(a):
     meta, hps = pools(a)
@@ -456,7 +456,7 @@ def report_front(front, npool):
               f"{r['lift']:>9.0f}x {r['space_left']:>12.1e}")
     print("x = below the retention floor: it prunes harder by throwing real teams away.")
 
-def report(a):
+def report(_args):
     d = json.load(open(OUT))
     print(f"meta teams {d['meta']}   random-legal teams {d['pool']}   "
           f"retention floor {d['floor']}")
@@ -464,7 +464,7 @@ def report(a):
     report_front(pareto(d["rules"]), d["pool"])
 
 # ------------------------------------------------------------------ selftest
-def selftest(a):
+def selftest(_args):
     ok = True
     def chk(got, want, what):
         nonlocal ok

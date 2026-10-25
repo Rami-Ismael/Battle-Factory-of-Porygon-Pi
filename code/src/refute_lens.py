@@ -18,8 +18,8 @@ class StrictLegality(Legality):
 
 class GlobalLegality(Legality):
     """No per-species check at all: a move/ability only has to exist in the game."""
-    def moves_for(self, sp): return MOVE_NAMES
-    def abils_for(self, sp): return ABIL_NAMES
+    def moves_for(self, _species): return MOVE_NAMES
+    def abils_for(self, _species): return ABIL_NAMES
 
 @torch.no_grad()
 def resample(model, x, cols_to_mask, temp=1.0, gen=None, sweeps=1):
@@ -39,7 +39,7 @@ def resample(model, x, cols_to_mask, temp=1.0, gen=None, sweeps=1):
                     x[b, c] = torch.multinomial(torch.softmax(lg, -1), 1, generator=gen).item()
     return x
 
-def op_condcopy(X_src, cols, V, rng, Xtr):
+def op_condcopy(X_src, cols, rng, Xtr):
     """Trivial species-conditional table lookup, no learning: for each masked column,
     copy the value from a random corpus SLOT of the same species. If species itself
     is masked, draw a species from the corpus marginal then fill its fields."""
@@ -136,7 +136,7 @@ def main():
         res["marginal"] = report("marginal", V, oracles, op_marginal(X_src, cols, V, rng, colvals), X_src, Xtr)
         if regime == "slot":
             res["slotcopy"] = report("slotcopy", V, oracles, op_slotcopy(X_src, slot_of, Xtr, rng), X_src, Xtr)
-        res["condcopy"] = report("condcopy (table lookup)", V, oracles, op_condcopy(X_src, cols, V, rng, Xtr), X_src, Xtr)
+        res["condcopy"] = report("condcopy (table lookup)", V, oracles, op_condcopy(X_src, cols, rng, Xtr), X_src, Xtr)
         for temp, sw in [(0.5, 1), (0.0, 1), (1.0, 3), (0.5, 3)]:
             g = torch.Generator(device=DEV); g.manual_seed(0)
             Xv = resample(model, torch.tensor(X_src, device=DEV), cols, temp=temp, gen=g, sweeps=sw).cpu().numpy()
@@ -150,7 +150,7 @@ def main():
         src = Xtr[rng.integers(0, len(Xtr), N)]
         cols = [list(rng.choice(COLS, k, replace=False)) for _ in range(N)]
         em[f"uniform_k{k}"] = report(f"uniform k={k}", V, oracles, op_uniform(src, cols, V, rng), src, Xtr)
-        em[f"condcopy_k{k}"] = report(f"condcopy k={k}", V, oracles, op_condcopy(src, cols, V, rng, Xtr), src, Xtr)
+        em[f"condcopy_k{k}"] = report(f"condcopy k={k}", V, oracles, op_condcopy(src, cols, rng, Xtr), src, Xtr)
     out["edit_matched"] = em
 
     # ---------- unconditional ----------

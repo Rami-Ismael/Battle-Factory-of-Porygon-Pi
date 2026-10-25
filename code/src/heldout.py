@@ -161,7 +161,7 @@ def is_heldout_team(team):
     return grid_key_team(team) in identities()
 
 @functools.lru_cache(maxsize=1 << 16)
-def _file_flag(path, mtime_ns, size):
+def _file_flag(path, mtime_ns, size):  # noqa: ARG001 mtime and size are the cache key
     with open(path) as f: return is_heldout_text(f.read())
 
 def is_heldout_file(path):
@@ -171,8 +171,8 @@ def is_heldout_file(path):
 
 
 # ---------------------------------------------------------------- filters (training / candidates)
-def training_pairs(pairs, V=None):
-    """[(path, team)] without held-out teams (48-field identity). V is accepted for older callers."""
+def training_pairs(pairs):
+    """[(path, team)] without held-out teams (48-field identity)."""
     held = identities()
     return [(f, t) for f, t in pairs if grid_key_team(t) not in held]
 
@@ -191,7 +191,7 @@ def excluded_teams(root=None):
     import corpus
     return list(_excluded(str(root or corpus.TEAMS)))
 
-def grid_predicate(V=None):
+def grid_predicate():
     """team -> True if it is a held-out team."""
     return is_heldout_team
 
