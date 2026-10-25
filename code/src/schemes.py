@@ -696,8 +696,8 @@ def main():
     model, vocab, legality, corpus, labelled = W.load_model()
     constraints = D.Constraints(vocab, legality); arc = Arc(constraints, vocab)
     look, spreads = {}, defaultdict(list)
-    for t in corpus + labelled:
-        for slot in t:
+    for team in corpus + labelled:
+        for slot in team:
             look[norm(slot["species"])] = slot["species"]; look[norm(slot["ability"])] = slot["ability"]
             if slot["item"]: look[norm(slot["item"])] = slot["item"]
             for mv in slot["moves"]: look[norm(mv)] = mv

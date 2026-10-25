@@ -67,7 +67,7 @@ class Backend:
             self.close()
             raise
 
-    def run_jobs(self, con, jobs, seed=None, conc=50, quiet=False):  # noqa: ARG002 same signature as the slow runner
+    def run_jobs(self, con, jobs, seed=None, conc=50, quiet=False):  # noqa: ARG002 same signature as matchup_db.run_jobs, which it replaces
         import heldout
         bad = heldout.team_ids(con) & {tid for j in jobs for tid in [j['row'], *j['schedule']]}
         if bad: raise heldout.HeldoutLeak('Heldout teams in fast search evaluation')
