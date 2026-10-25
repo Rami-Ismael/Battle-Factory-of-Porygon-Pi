@@ -102,7 +102,7 @@ def apply_completion(team, paths, response):
     return result
 
 
-def complete(args, trials_override=None):
+def complete(args, trials_override=None):  # noqa: C901
     m = load_manifest(args)
     key = os.environ.get("OPENROUTER_API_KEY")
     import hps_generate as h

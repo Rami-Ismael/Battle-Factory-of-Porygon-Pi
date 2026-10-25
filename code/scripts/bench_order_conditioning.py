@@ -35,7 +35,7 @@ def shares(cubes):
     tot = p[ORDER > 0].sum()
     return [p[ORDER == 1].sum() / tot, p[ORDER == 2].sum() / tot, p[ORDER >= 3].sum() / tot] if tot > 0 else [np.nan] * 3
 
-def run(name):
+def run(name):  # noqa: C901
     f, card, noisy = BF.TASKS[name]()
     rng = np.random.default_rng(11); seeds = iter(range(10 ** 7))
     ev = lambda x, s=None: f(x, np.random.default_rng(s if s is not None else 900_000 + next(seeds)))

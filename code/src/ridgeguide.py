@@ -32,7 +32,7 @@ from checkpoints import load_checkpoint
 
 MIN_PAIR = 20
 
-def fit_ridge(V, lam_s=10.0, lam_p=30.0):
+def fit_ridge(V, lam_s=10.0, lam_p=30.0):  # noqa: C901
     lab = {}
     for f in ["/tmp/vgc-pilot/ladder_labels.json", "/tmp/vgc-pilot/strata_labels.json"]:
         for p, v in json.load(open(f)).items(): lab[p] = v["win_rate"]
@@ -101,7 +101,7 @@ def sample_ridge(model, C, V, ws, wp, n, scale, wbin=5, g_wr=2.0, temp=1.0, devi
             x[bi, c] = torch.multinomial(torch.softmax(lb / temp, -1), 1).item()
     return x
 
-def main():
+def main():  # noqa: C901
     per = int(sys.argv[1]) if len(sys.argv) > 1 else 150
     corpus, _ = load_corpus(); corpus = [t for t in corpus if len(t) == 6]
     lab_teams, _ = W.load_labelled()

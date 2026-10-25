@@ -55,7 +55,7 @@ def train_arm(tag, d, frac, epochs=300, seed=0):
             print(f"[{tag}]   ep{ep+1} held-out {vl:.3f}  ({(time.perf_counter()-t0)/60:.0f} min)", flush=True)
     m.eval(); return m, V, L, corpus, teams, nparam, vl, time.perf_counter() - t0
 
-def eval_arm(tag, m, V, L, corpus, teams, n=200):
+def eval_arm(tag, m, V, L, corpus, teams, n=200):  # noqa: C901
     C = D.Constraints(V, L); look, spreads = {}, {}
     for t in corpus + teams:
         for s in t:

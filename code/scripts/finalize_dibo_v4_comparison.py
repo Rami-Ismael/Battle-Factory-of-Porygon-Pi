@@ -28,7 +28,7 @@ def progress(root):
     (root/'progress.md').write_text('\n'.join(lines)+'\n')
 
 
-def main():
+def main():  # noqa: C901
     ap = argparse.ArgumentParser()
     ap.add_argument('directory', type=Path)
     ap.add_argument('--wait-pid', type=int)

@@ -71,7 +71,7 @@ def check_metrics(combinations, corpus, saved):
     close(saved["rarefied_distinct_128"], rare, "rarefaction")
 
 
-def audit(path, node):
+def audit(path, node):  # noqa: C901
     snapshot = path.read_bytes()
     data = json.loads(snapshot)
     m, runs = data["manifest"], data["runs"]

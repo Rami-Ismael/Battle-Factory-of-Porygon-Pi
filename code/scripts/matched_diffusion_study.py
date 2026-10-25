@@ -48,7 +48,7 @@ def snapshot(stage):
     results.save(OUT/'status.json',result)
     return result
 
-def run():
+def run():  # noqa: C901
     OUT.mkdir(parents=True,exist_ok=True)
     with (OUT/'.study.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)

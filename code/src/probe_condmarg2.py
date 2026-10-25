@@ -18,7 +18,7 @@ for b in range(len(Xtr)):
         pool[sp]['mv'] += [int(sl[j]) for j in range(3,7)]
 spec_pool=np.array(spec_pool)
 
-def op(X_src, cols, rng):
+def op(X_src, cols, rng):  # noqa: C901
     Xa=X_src.copy()
     for b in range(Xa.shape[0]):
         cs=sorted(cols[b])

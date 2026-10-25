@@ -96,7 +96,7 @@ class Run:
             self.save()
         return True
 
-    def run(self):
+    def run(self):  # noqa: C901
         c = self.c
         for seed_index, seed in enumerate(c['seeds']):
             shared = self.d['shared'].setdefault(str(seed), {})

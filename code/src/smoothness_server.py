@@ -23,7 +23,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def do_GET(self):
+    def do_GET(self):  # noqa: C901
         route=unquote(urlsplit(self.path).path)
         if route in ['/smoothness/data.js','/smoothness/api/data']:
             try:

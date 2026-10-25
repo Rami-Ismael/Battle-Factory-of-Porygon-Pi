@@ -25,7 +25,7 @@ def boot_diff(a, b, rng):
     return a.mean() - b.mean(), float(np.percentile(d, 2.5)), float(np.percentile(d, 97.5))
 
 
-def main():
+def main():  # noqa: C901
     out = json.load(open(RESULTS))
     G = out["gens"]
     cfg = out["config"]

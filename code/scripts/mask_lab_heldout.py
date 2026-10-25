@@ -44,7 +44,7 @@ def load_runner():
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
     return module
 
-def battle(a):
+def battle(a):  # noqa: C901
     sys.path.insert(0, str(REPO / "src"))
     import heldout as H, matchup_db as MDB
     from showdown_validator import Validator
@@ -144,7 +144,7 @@ def compare(groups):
         out[family] = o
     return out
 
-def report(a):
+def report(a):  # noqa: C901
     tasks = json.loads((a.run_dir / "eval2.tasks.json").read_text())["tasks"]
     target = json.loads((a.run_dir / a.panels).read_text())
     groups = compare(mask_rows(target["panels"], tasks))

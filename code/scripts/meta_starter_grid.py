@@ -26,7 +26,7 @@ DIFF=ROOT/'results'/selection.get('results','diffusion-baseline-meta-starters')
 MEMBERS=selection.get('members',['F1_final_medium_noheldout_regmb_v2','G2_family_matrix_noprtrain_noheldout_regmb_v2'])
 
 
-def random_control(team,paths,tables,rng,h,validator,regulation):
+def random_control(team,paths,tables,rng,h,validator,regulation):  # noqa: C901
     from corpus import norm,NATURES
     if any(len(p)==1 for p in paths): return completion_study.random_fill(team,paths,tables,rng,h,validator)
     allowed={tuple(p) for p in paths}

@@ -187,7 +187,7 @@ def runtime_fingerprints(runtime, checkpoint):
     return {str(path.resolve()): digest(path) for path in paths}
 
 
-def prepare(args):
+def prepare(args):  # noqa: C901
     output = args.output.resolve()
     if output.exists():
         raise FileExistsError(f"use a fresh output directory: {output}")
@@ -317,7 +317,7 @@ def checked_result(row, job, manifest_hash):
     return row
 
 
-def battle(args):
+def battle(args):  # noqa: C901
     import fcntl
     directory = args.output.resolve()
     with (directory / "battle.lock").open("w") as lock:

@@ -39,7 +39,7 @@ def fill_spreads(model, C, x0, wbin=5, g_wr=4.0, device=LD.DEV):
             x[b, c] = torch.multinomial(torch.softmax(lb, -1), 1).item()
     return x
 
-def main():
+def main():  # noqa: C901
     n_teams = int(sys.argv[1]) if len(sys.argv) > 1 else 150
     m, V, L, corpus, teams = LD.load_model(); C = S.SpreadConstraints(V, L)
     spreads = defaultdict(list); look = {}

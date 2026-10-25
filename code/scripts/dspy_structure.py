@@ -106,7 +106,7 @@ def _enum(name, values):
     return Enum(name, {f'v{i}': v for i, v in enumerate(values)}, type=str)
 
 
-def legal_completion_type(masked_team, paths):
+def legal_completion_type(masked_team, paths):  # noqa: C901
     """One field per requested path, typed with what the regulation allows there.
 
     Per-slot choices come from the pinned simulator vocabulary (data/regmb-vocabulary.json):

@@ -65,7 +65,7 @@ def cv_target_test(teams, win, margin, folds=5, seed=0):
     return out
 
 
-def main():
+def main():  # noqa: C901
     out = json.load(open(RESULTS))
     G, cfg = out["gens"], out["config"]
     gens = cfg["gens"]

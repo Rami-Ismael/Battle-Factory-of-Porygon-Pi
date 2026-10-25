@@ -58,7 +58,7 @@ def validate_saved_state(root):
     return snapshot
 
 
-def main():
+def main():  # noqa: C901
     env=dict(os.environ, OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1',
              PATH='/Users/ramiismael/.nvm/versions/node/v22.22.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin')
     children=[]; driver=None; wake=None

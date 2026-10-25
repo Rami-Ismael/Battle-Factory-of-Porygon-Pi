@@ -59,7 +59,7 @@ def test_split(V):
     return Xs[idx[:500]], W[idx[:500]], Xs[idx[500:]], W[idx[500:]]
 
 
-def walk_pastes(o, out):
+def walk_pastes(o, out):  # noqa: C901
     """Collect (paste, win_rate|None, battles) from any results JSON layout seen in this repo."""
     if isinstance(o, dict):
         ps = o.get("pastes")
@@ -84,7 +84,7 @@ def walk_pastes(o, out):
         for v in o: walk_pastes(v, out)
 
 
-def main():
+def main():  # noqa: C901
     t0 = time.perf_counter()
     corpus, V, *_ = X.setup()
     xte, wte, _, _ = test_split(V)

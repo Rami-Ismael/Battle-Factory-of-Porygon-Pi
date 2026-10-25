@@ -87,7 +87,7 @@ def live_ports():
     return up
 
 
-def run_round(con, pid, lo, hi, target, conc=50):
+def run_round(con, pid, lo, hi, target, conc=50):  # noqa: C901
     lo_plans, hi_plans = plans_of(species_of(con, lo)), plans_of(species_of(con, hi))
     have = done(con, pid, lo, hi)
     jobs = []

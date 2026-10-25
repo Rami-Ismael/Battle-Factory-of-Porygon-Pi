@@ -43,7 +43,7 @@ def encode_context(team, paths, vocab):
     return values, mapping, missing
 
 
-def generate(args):
+def generate(args):  # noqa: C901
     import numpy as np
     import torch
     import lossdown as L

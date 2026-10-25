@@ -84,7 +84,7 @@ def report(tag, V, oracles, Xa, X_src, Xtr, extra=""):
     return dict(legal={k: v for k, v in r.items()}, legal_novel_changed=ok,
                 mean_edits=float(ch.mean()), noop=float(np.mean(ch == 0)))
 
-def main():
+def main():  # noqa: C901
     set_seed(0); rng = np.random.default_rng(0)
     teams, _ = load_corpus(); teams = [t for t in teams if len(t) == 6]
     V = Vocab(teams)

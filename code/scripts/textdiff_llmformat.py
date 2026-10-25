@@ -129,7 +129,7 @@ def meta_lines():
         con.execute("SELECT paste FROM team WHERE team_id=?", (tid,)).fetchone()[0])))
     return [dict(team_id=tid, column=top.index(tid), line=line(tid)) for tid in order]
 
-def prepare(_args):
+def prepare(_args):  # noqa: C901
     import numpy as np, lossdown as L, asked_vs_got as X, heldout as HO, encode
     reg = json.loads((REG / "training-regulation.json").read_text())
     V = encode.Vocab.from_regulation(reg); names = reg["names"]
@@ -265,7 +265,7 @@ def generate(a):                                      # venv-dlm
         done += 1
         if done % 10 == 1: print(f"{done} {t['task']} k={t['k']} {time.perf_counter() - t0:.1f}s", flush=True)
 
-def parse_answer(version, text, team, mask):
+def parse_answer(version, text, team, mask):  # noqa: C901
     """The completed team (species, item, ability, nature, moves per slot), or ValueError. Unmasked fields must come
     back unchanged, as pipeline.check_completion and llm_completion.apply_completion require of Ling."""
     norm = lambda s: "".join(ch for ch in (s or "").lower() if ch.isalnum())

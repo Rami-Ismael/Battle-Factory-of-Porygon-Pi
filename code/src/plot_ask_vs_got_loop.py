@@ -43,7 +43,7 @@ def mse(y):
     return float(y.mean()), float(y.std(ddof=1) / np.sqrt(len(y))), len(y)
 
 
-def main():
+def main():  # noqa: C901
     q = json.load(open(L.RES / "sampler_qd_run.json"))["cells"]
     one = {}
     for arm in ("settemp05",):

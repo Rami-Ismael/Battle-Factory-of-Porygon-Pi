@@ -143,7 +143,7 @@ def immutable(con, table, key, values):
     return True
 
 
-def import_run(con, directory, visual=None):
+def import_run(con, directory, visual=None):  # noqa: C901
     sys.path.insert(0, str(ROOT / "scripts"))
     import smoothness_experiment as protocol
     directory = Path(directory).resolve()
@@ -255,7 +255,7 @@ def held_items_from_paste(text):
             for block in re.split(r'\n\s*\n', text.strip()) if block.strip()]
 
 
-def snapshot(con, run_id=None):
+def snapshot(con, run_id=None):  # noqa: C901
     query = "SELECT * FROM smoothness_visual WHERE name='smoothness-explorer'"
     rows = con.execute(query + (" AND run_id=?" if run_id else "") + " ORDER BY rowid", (run_id,) if run_id else ()).fetchall()
     if not rows or len({row['run_id'] for row in rows}) != 1:

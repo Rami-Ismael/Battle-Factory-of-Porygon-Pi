@@ -370,7 +370,7 @@ def propose_diffusion(m, V, C, look, spreads, val, n_valid, rng, outdir,
 
 
 # ------------------------------------------------------------------- driver
-def main():
+def main():  # noqa: C901
     ap = argparse.ArgumentParser()
     ap.add_argument("--group", choices=["copypaste", "diffusion", "all"], default="all")
     ap.add_argument("--per", type=int, default=150)

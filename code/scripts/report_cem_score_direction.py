@@ -16,7 +16,7 @@ def complete_mean(values):
     return statistics.mean(values) if values and all(v is not None for v in values) else None
 
 
-def summarize(data, source_review=None):
+def summarize(data, source_review=None):  # noqa: C901
     if data['status'] != 'complete' and source_review is None:
         raise ValueError('cannot report an unfinished experiment as complete')
     c = data['manifest']['config']

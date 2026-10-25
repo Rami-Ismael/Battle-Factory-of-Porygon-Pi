@@ -12,7 +12,7 @@ import results
 import team_masks
 
 
-def prepare():
+def prepare():  # noqa: C901
     import numpy as np
     source = ROOT / 'results/llm-baseline-instant-pilot'
     old_diff = ROOT / 'results/diffusion-baseline-f1g2-regmb-v2'

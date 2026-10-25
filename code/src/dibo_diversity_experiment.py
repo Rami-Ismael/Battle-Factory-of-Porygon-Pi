@@ -96,7 +96,7 @@ def report(directory):
     print(json.dumps(summary, indent=2))
 
 
-def execute(args, cfg):
+def execute(args, cfg):  # noqa: C901
     from dibo_diversity_runtime import Runtime, DB
     import dibo_comparison_v2 as C
     directory = args.directory.resolve()

@@ -253,7 +253,7 @@ class Constraints:
             self.mv_ok[si] = torch.tensor([j > 0 and m in lm for j, m in enumerate(self.move_vals)])
             self.ab_ok[si] = torch.tensor([j > 0 and a in la for j, a in enumerate(self.abil_vals)])
 
-    def mask_for(self, col, row, device):
+    def mask_for(self, col, row, device):  # noqa: C901
         """Feasible mask for `col` given the partially decoded team `row`
         (0 marks a still-masked field)."""
         k = self.V.key(col); slot = col // NF; j = col % NF

@@ -186,7 +186,7 @@ CV_V = [None]
 
 
 # ---------------------------------------------------------------- one arm-seed
-def run_arm(arm, seed, out, base, G, V, tables, ref, con, ridge):
+def run_arm(arm, seed, out, base, G, V, tables, ref, con, ridge):  # noqa: C901
     CV_V[0] = V
     rows = list(base["rows"]); seen = set(base["g0_comps"]); banned = []
     isl = None
@@ -241,7 +241,7 @@ def run_arm(arm, seed, out, base, G, V, tables, ref, con, ridge):
               f"largest {d['largest_share']:.1%} · battled comps {s['battled_compositions']} · {c['minutes']:.1f} min", flush=True)
 
 
-def island_gen(seed, g, rows, isl, base, G, V, tables, ref, con, ridge, rng):
+def island_gen(seed, g, rows, isl, base, G, V, tables, ref, con, ridge, rng):  # noqa: C901
     """K islands, each pinned to a distant meta team, own re-steer on own elites, migration before g3 and g5."""
     sp = lambda r: set(comp_paste(r["paste"]) or ())
     if isl is None:
@@ -332,7 +332,7 @@ def rebattle():
     out["rebattle"] = res; json.dump(out, open(MERGED, "w"))
 
 
-def report():
+def report():  # noqa: C901
     out = json.load(open(MERGED)) if MERGED.exists() else merged(); cfg = out["config"]; rng = np.random.default_rng(0); G = cfg["gens"]
     get = lambda a, s, g: out["gens"].get(f"{a}_s{s}_g{g}")
     print(f"generation 0 (shared): compositions {out['g0']['sets']}/512, battled {out['g0']['stats']['mean']:.3f}")

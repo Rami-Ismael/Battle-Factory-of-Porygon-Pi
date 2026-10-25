@@ -105,7 +105,7 @@ def propose_copypaste(pool_teams, pool_wr, val, n_valid, rng, outdir):
             p = outdir / f"{kept:04d}.txt"; p.write_text(txt); files.append(str(p)); slots_of[str(p)] = a; kept += 1
     return files, slots_of, kept / max(tries, 1)
 
-def main(smoke=False):
+def main(smoke=False):  # noqa: C901
     global PROPOSE, BATTLE, BATTLES, ROUNDS
     if smoke: PROPOSE, BATTLE, BATTLES, ROUNDS = 6, 3, 2, 1
     rng = np.random.default_rng(0); torch.manual_seed(0); random.seed(0)

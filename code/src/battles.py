@@ -158,7 +158,7 @@ def fast_panels(runner, con, panels, wire, seed):
     return by_panel, unattributed
 
 
-def battle(args, candidates_override=None, on_result=None):
+def battle(args, candidates_override=None, on_result=None):  # noqa: C901
     """The exact 50-battle panels on the persistent six-worker evaluator.
 
     The config (and so every cache key) names the evaluator's fingerprint, so a

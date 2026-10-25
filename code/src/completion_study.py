@@ -48,7 +48,7 @@ def random_fill(team, paths, tables, rng, h, validator):
     raise RuntimeError("random fill failed after 1000 attempts; no fallback to original")
 
 
-def prepare(args):
+def prepare(args):  # noqa: C901
     import numpy as np
     import hps_generate as h, matchup_db as db
     destination = args.output / "manifest.json"
@@ -104,7 +104,7 @@ def prepare(args):
                           opponents=len(opponents), planned_battles=(len(starts)+2*len(trials))*50)))
 
 
-def report(args):
+def report(args):  # noqa: C901
     m = load_manifest(args)
     records = [json.loads(p.read_text()) for p in (args.output / "completions").glob("*.json")
                if not p.name.endswith(".http-error.json")]

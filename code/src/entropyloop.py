@@ -301,7 +301,7 @@ def quiet():
         GG.wait_for_quiet()
 
 
-def main(smoke=False, only_arms=None, gens=None):
+def main(smoke=False, only_arms=None, gens=None):  # noqa: C901
     global PROPOSE, BATTLE, BATTLES, GENS
     if gens:
         GENS = gens

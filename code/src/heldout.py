@@ -69,7 +69,7 @@ def files(root=T50.TEAMS, path=HELDOUT):
 def _ordinal_key(t):
     return (t["ordinal"], -int(t["id"][2:]))
 
-def verify(heldout=HELDOUT, top50=T50.TOP50, root=T50.TEAMS):
+def verify(heldout=HELDOUT, top50=T50.TOP50, root=T50.TEAMS):  # noqa: C901
     """Check the set is the 50 teams ranked 51-100. Raises ValueError on the first failure; returns the facts."""
     held = entries(heldout)
     with open(top50) as f: top = json.load(f)

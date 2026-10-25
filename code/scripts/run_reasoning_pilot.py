@@ -15,7 +15,7 @@ import team_masks
 import reasoning_experiment as E
 
 
-def fresh_starters(parent, count, seed):
+def fresh_starters(parent, count, seed):  # noqa: C901
     """Sample legal starters without generating unused random-fill controls."""
     import numpy as np
     import hps_generate as h, matchup_db as db
@@ -63,7 +63,7 @@ def fresh_starters(parent, count, seed):
     return m
 
 
-def main():
+def main():  # noqa: C901
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('command', choices=['prepare', 'run'])
     p.add_argument('--parent', type=Path)

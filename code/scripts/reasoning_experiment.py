@@ -211,7 +211,7 @@ def summarize(rows, arms, seed):
     return dict(arms=summaries, versus_off=paired)
 
 
-def report(args):
+def report(args):  # noqa: C901
     study, runs = load_runs(args.output)
     rows, configs = [], []
     for entry, folder, m in runs:

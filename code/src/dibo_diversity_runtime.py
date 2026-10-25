@@ -143,7 +143,7 @@ class Runtime(DB.Runtime):
         # or change an island's pinned columns.
         return [r for r in super().records(terminal, prior, ensemble, terms) if self.allowed(r)]
 
-    def propose(self, prior, posterior, ensemble, generation, seen):
+    def propose(self, prior, posterior, ensemble, generation, seen):  # noqa: C901
         seed = self.cfg['seed'] + generation * 1000 + 500
         torch.manual_seed(seed); np.random.seed(seed)  # noqa: NPY002 -- legacy global seed kept so finished runs reproduce exactly
         count = self.cfg['propose'] * (self.cfg['pool_multiplier'] if self.arm in ('big', 'dpp') else 1)

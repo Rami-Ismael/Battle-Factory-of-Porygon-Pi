@@ -228,7 +228,7 @@ class Pipeline:
         return out, rows
 
 # ---- the TRS arm ----------------------------------------------------------
-def run_trs(l_min):
+def run_trs(l_min):  # noqa: C901
     pipe = Pipeline("trs")
     labels = Labels(OUTDIR / "trs_labels.json")
     sched_a, sched_b, _ = schedules(opponents())

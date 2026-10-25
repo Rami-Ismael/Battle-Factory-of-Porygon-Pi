@@ -29,7 +29,7 @@ def is_legal(V, L, row):
     g = np.asarray(row).reshape(NSLOT, S.NF2)[:, 8:]
     return bool(((g - 1).clip(min=0).sum(1) <= S.BUDGET).all())
 
-def corrupt(row, V, rng, C=None):
+def corrupt(row, V, rng, C=None):  # noqa: C901
     """Half the time: random field noise (label decided by the oracle).
     Half the time: a RULE-TARGETED edit whose label is known from the authoritative
     table — an illegal move/ability for that species, a duplicated species or item, an
@@ -90,7 +90,7 @@ class LegalClassifier(nn.Module):
             out[b] = lp
         return out
 
-def synth_rows(V, L, C, base_rows, n, rng):
+def synth_rows(V, L, C, base_rows, n, rng):  # noqa: C901
     """Manufacture n labelled rows that ENUMERATE the rule tables.
 
     Each row starts from a real team, then one slot gets a targeted edit whose label

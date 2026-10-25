@@ -275,7 +275,7 @@ def jobs_for(con, need):
             jobs.append({"row": r, "schedule": sched})
     return jobs
 
-def run_jobs(con, jobs, seed=None, conc=50, quiet=False):
+def run_jobs(con, jobs, seed=None, conc=50, quiet=False):  # noqa: C901
     """Run battle jobs across every live Showdown server with src/pair_shard.py.
     Returns ([(row, col, row_wins, col_wins, ties)], unattributed, seconds)."""
     sys.path.insert(0, "/tmp/vgc-pilot/src")
@@ -574,7 +574,7 @@ def cost_report(rate, n_seed, n_top=50, per_cell=(8, 24, 96), log10_legal=None):
     return out
 
 # ---------------------------------------------------------------- command line
-def main(argv=None):
+def main(argv=None):  # noqa: C901
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", default=str(DEFAULT_DB))
     sub = ap.add_subparsers(dest="cmd", required=True)

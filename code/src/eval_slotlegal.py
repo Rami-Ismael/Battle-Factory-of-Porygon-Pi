@@ -27,7 +27,7 @@ def diag(m, C, sleg, g_leg, n=64):
         full += ok_team
     return mv_ok / max(mv_tot, 1), ab_ok / max(ab_tot, 1), full / n
 
-def main():
+def main():  # noqa: C901
     per = int(sys.argv[1]) if len(sys.argv) > 1 else 120
     m, V, L, corpus, teams = SLm.load_model(); C = S.SpreadConstraints(V, L); torch.manual_seed(1)
     print(f"{'condition (unconstrained)':28s} {'move legal':>11s} {'ability ok':>11s} {'whole team':>11s}")

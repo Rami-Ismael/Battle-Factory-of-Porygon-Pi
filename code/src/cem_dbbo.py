@@ -435,7 +435,7 @@ def corr_ci(a, y, rng, B=4000):
 
 
 # ---------------------------------------------------------------- the run
-def run():
+def run():  # noqa: C901
     LB._stack(); con = MDB.connect(); DL.CV_V[0] = None
     base = json.load(open(BASE_RUN)); g0 = base["gens"]["0"]
     out = json.load(open(OUT)) if OUT.exists() else {"config": dict(base=BASE_RUN.name, gens=GENS, propose=PROPOSE, battle=BATTLE,
@@ -671,7 +671,7 @@ ABL_ARMS = {"noask": "no ask (unconditional decode, label-hidden fine-tune)", "f
             "noanch": "no top-50 anchors among the elites"}
 
 
-def ablate():
+def ablate():  # noqa: C901
     """Each ablation minus the base arm (fixed ask 0.5, elite re-steer, all 512 battled), paired by seed.
     Pooled difference = mean of the per-seed differences; its 95% interval resamples finalist teams within each
     seed and arm (team noise only), so the per-seed differences are printed beside it for the seed-to-seed spread."""

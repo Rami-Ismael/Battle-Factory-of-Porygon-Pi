@@ -23,7 +23,7 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def review_sources(data):
+def review_sources(data):  # noqa: C901
     archive_manifest = json.loads((ARCHIVE / 'manifest.json').read_text())
     for relative, expected in archive_manifest['files'].items():
         assert sha(ARCHIVE / relative) == expected, ('changed archive', relative)

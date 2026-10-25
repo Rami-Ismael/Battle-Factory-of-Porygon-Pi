@@ -17,7 +17,7 @@ import numpy as np
 import smoothness_experiment as S
 
 
-def prepare(parent, output):
+def prepare(parent, output):  # noqa: C901
     parent, output = parent.resolve(), output.resolve()
     if output.exists():
         manifest = S.verify_manifest(output, runtime=True)
@@ -117,7 +117,7 @@ def analyse(output):
     print(json.dumps({"complete": True, "additional_edits": len(edges), "additional_battles": result["battles"]}), flush=True)
 
 
-def run(args):
+def run(args):  # noqa: C901
     manifest = prepare(args.parent, args.output)
     print(json.dumps({"additional_candidates": len(manifest["candidates"]), "planned_additional_battles": manifest["planned_battles"], "baseline_battles_reused": True}), flush=True)
     if args.prepare_only:

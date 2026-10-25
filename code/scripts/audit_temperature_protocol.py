@@ -119,7 +119,7 @@ def audit_training(training, labels, arm, generation, label):
     close(training["selection"]["real_weight_share"], sum(w[:200]), f"{label}: anchor weight share")
 
 
-def audit(path, allow_incomplete=False, verify_inputs=True):
+def audit(path, allow_incomplete=False, verify_inputs=True):  # noqa: C901
     snapshot = Path(path).read_bytes()
     data = json.loads(snapshot)
     manifest, runs = data["manifest"], data["runs"]
