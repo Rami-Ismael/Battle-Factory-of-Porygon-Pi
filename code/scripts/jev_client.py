@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from typesafe_sdk import Choice, RetryPolicy, TypeSafeClient
+from typesafe_sdk import Choice, RetryPolicy, TypeSafeClient, TypeSafeError
 
 import jev_fill
 
@@ -55,7 +55,10 @@ class JevChooser:
                 raise jev_fill.QuestionTooLarge(f'{name}: {len(question["criteria"])} options, over {self.option_limit}')
         started = time.monotonic()
         sdk_questions = {n: Choice(instructions=q['instructions'], criteria=q['criteria']) for n, q in questions.items()}
-        response = self.client.system_one(state=state, questions=sdk_questions)
+        try:
+            response = self.client.system_one(state=state, questions=sdk_questions)
+        except TypeSafeError as error:      # after the SDK's own retries
+            raise jev_fill.TransportError(f'{type(error).__name__}: {error}') from error
         answers: dict[str, jev_fill.Answer] = {}
         for name in questions:
             if name not in response.choices:

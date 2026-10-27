@@ -4,6 +4,8 @@
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py fake --grid meta --task items        # fill with the fake chooser, check legality
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py prompts --grid meta --out FILE.json  # one request per task type, for review
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py live --grid meta --task items        # ONE live Jev call on one mask
+    /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py run --grid meta --dry-run            # price a full run, send nothing
+    /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py run --grid meta --limit 5            # the first 5 masks, 4 runs each
 
 prompt prints the first request of the first mask of a task type on a grid, with its token
 estimate. fake fills every mask of that task type (all task types when --task is omitted) with
@@ -11,7 +13,9 @@ FakeChooser, which answers with uniform probabilities, and checks each filled te
 validator. prompts writes the first request of each task type's first one-field mask, with its
 token estimate, for the owner to read before any call. live fills the first one-field mask of a
 task type with Jev itself (one paid call; TYPESAFE_API_KEY or the Keychain item "typesafe"), logs
-it to ~/vgc-data/jev/<grid>-live.jsonl and checks the filled team. The others send nothing.
+it to ~/vgc-data/jev/<grid>-live.jsonl and checks the filled team. run fills a grid's masks four
+times each with Jev (see jev_run.py): --dry-run prices it, --max-calls refuses a run whose estimated
+question count is larger, and a rerun resumes. The others send nothing.
 See docs/jev-baseline-spec.md.
 """
 import argparse
@@ -102,14 +106,48 @@ def live(a: argparse.Namespace) -> None:
           f"reported, ${chooser.dollars():.5f}")
 
 
+def run(a: argparse.Namespace) -> None:
+    import jev_client
+    import jev_run
+    pairs, meta = jev_run.pending(a.grid, a.limit), jev_fill.meta_pastes()
+    est = jev_run.estimate(pairs, meta)
+    dollars = est['tokens'] * jev_client.PRICE_PER_MILLION_INPUT / 1_000_000
+    print(f"{a.grid}: {est['pairs']} (mask, run) pairs to send, {est['questions']} questions, "
+          f"~{est['tokens']:,} input tokens, ~${dollars:.2f} at ${jev_client.PRICE_PER_MILLION_INPUT}/M (estimate)")
+    if a.dry_run or not pairs:
+        return
+    if est['questions'] > a.max_calls:
+        raise SystemExit(f"{est['questions']} questions exceeds --max-calls {a.max_calls}")
+    choosers: list[jev_client.JevChooser] = []
+
+    def make() -> jev_fill.Chooser:
+        chooser = jev_client.JevChooser(jev_run.DATA / f'{a.grid}-calls.jsonl')
+        choosers.append(chooser)
+        return chooser
+
+    try:
+        counts = jev_run.execute(a.grid, pairs, make, meta, jev_fill.load_pipeline(), a.workers)
+    finally:
+        for c in choosers:
+            c.close()
+    used = sum(c.usage['input_tokens'] for c in choosers)
+    print(f"{a.grid}: finished {counts}; {sum(c.usage['calls'] for c in choosers)} calls, {used:,} input tokens "
+          f"reported, ${used * jev_client.PRICE_PER_MILLION_INPUT / 1_000_000:.4f}")
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='command', required=True)
-    for name in ('prompt', 'fake', 'prompts', 'live'):
+    for name in ('prompt', 'fake', 'prompts', 'live', 'run'):
         q = sub.add_parser(name)
         q.add_argument('--grid', choices=list(jev_fill.GRIDS), required=True)
         q.add_argument('--task', choices=['pokemon', 'moves', 'items', 'abilities', 'natures', 'stats'])
     sub.choices['fake'].add_argument('--run', choices=['top', 'sample'], default='top')
     sub.choices['prompts'].add_argument('--out', required=True)
+    r = sub.choices['run']
+    r.add_argument('--dry-run', action='store_true')
+    r.add_argument('--limit', type=int, default=0, help='only the first N masks of the grid')
+    r.add_argument('--max-calls', type=int, default=200, help='refuse a run estimated to ask more questions')
+    r.add_argument('--workers', type=int, default=4)
     a = p.parse_args()
-    {'prompt': prompt, 'fake': fake, 'prompts': prompts, 'live': live}[a.command](a)
+    {'prompt': prompt, 'fake': fake, 'prompts': prompts, 'live': live, 'run': run}[a.command](a)

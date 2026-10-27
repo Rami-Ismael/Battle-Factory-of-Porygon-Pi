@@ -83,6 +83,10 @@ class QuestionTooLarge(ValueError):
     pass
 
 
+class TransportError(RuntimeError):
+    """The decision model could not be reached or refused the request; the pair is worth retrying."""
+
+
 @dataclass
 class Fill:
     """One mask being filled in one run."""
