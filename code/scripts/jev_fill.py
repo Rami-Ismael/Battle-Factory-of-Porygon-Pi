@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Protocol, TypedDict
+from typing import Any, NotRequired, Protocol, TypedDict
 
 PIPELINE = Path.home() / ('Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of '
                           'possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline')
@@ -53,6 +53,7 @@ class Answer(TypedDict):
     choice: str
     confidence: float
     probabilities: dict[str, float]
+    score: NotRequired[float]       # a Score question's expected level
 
 
 class Chooser(Protocol):

@@ -57,6 +57,13 @@ class ReportTest(unittest.TestCase):
         self.assertAlmostEqual(g['sampled_minus_original']['mean'], -0.10)
         self.assertTrue((R.DATA / 'test-report.json').exists())
 
+    def test_an_arm_with_several_prompt_versions_is_read_at_the_named_one(self):
+        scores = {'ling:baseline@4096:abc': 0.30, 'ling:regmb@16384:abc': 0.50, 'mercury:regmb@16384:abc': 0.45}
+        self.assertEqual(Rep.arm_score(scores, 'ling', 'abc'), 0.50)
+        self.assertEqual(Rep.arm_score(scores, 'mercury', 'abc'), 0.45)
+        with self.assertRaises(AssertionError):
+            Rep.arm_score({'textdiff:a:abc': 0.4, 'textdiff:b:abc': 0.5}, 'textdiff', 'abc')
+
 
 if __name__ == '__main__':
     unittest.main()

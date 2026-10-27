@@ -28,6 +28,8 @@ import jev_run
 
 OTHER_ARMS = ('random', 'diffusion', 'textdiff', 'textdiff3b', 'llm_regmb', 'llm_baseline', 'llm_mb-original-v1',
               'mercury', 'ling')
+# Ling ran three prompt versions on the random grid; compare the regmb one, the prompt Mercury got.
+ARM_PREFIX = {'ling': 'ling:regmb@16384'}
 
 
 def collect(grid: str) -> dict[str, int]:
@@ -49,8 +51,10 @@ def collect(grid: str) -> dict[str, int]:
 
 
 def arm_score(scores: dict[str, float | None], arm: str, task_id: str) -> float | None:
-    """An arm's win rate on one mask; for arms that carry a prompt or model name in the label, the first one found."""
-    hits = [v for k, v in scores.items() if k.startswith(arm + ':') and k.endswith(':' + task_id)]
+    """An arm's win rate on one mask; an arm with several prompt versions is read at the one ARM_PREFIX names."""
+    prefix = ARM_PREFIX.get(arm, arm) + ':'
+    hits = [v for k, v in scores.items() if k.startswith(prefix) and k.endswith(':' + task_id)]
+    assert len(hits) <= 1, f'{arm} has {len(hits)} scores on {task_id}; name its version in ARM_PREFIX'
     return hits[0] if hits else None
 
 

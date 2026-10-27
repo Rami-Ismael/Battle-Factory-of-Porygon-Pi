@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from typesafe_sdk import Choice, RetryPolicy, TypeSafeClient, TypeSafeError
+from typesafe_sdk import Choice, RetryPolicy, Score, TypeSafeClient, TypeSafeError
 
 import jev_fill
 
@@ -39,6 +39,13 @@ def api_key() -> str:
     return found.stdout.strip()
 
 
+def sdk_question(question: jev_fill.Question) -> Choice | Score:
+    """A Choice, or a Score whose criteria are its levels keyed "0", "1", ... in order."""
+    if question['type'] == 'score':
+        return Score(instructions=question['instructions'], criteria=list(question['criteria'].values()))
+    return Choice(instructions=question['instructions'], criteria=question['criteria'])
+
+
 class JevChooser:
     """A jev_fill.Chooser that asks Jev, logs every call and keeps a running token count."""
 
@@ -54,13 +61,21 @@ class JevChooser:
             if len(question['criteria']) > self.option_limit:
                 raise jev_fill.QuestionTooLarge(f'{name}: {len(question["criteria"])} options, over {self.option_limit}')
         started = time.monotonic()
-        sdk_questions = {n: Choice(instructions=q['instructions'], criteria=q['criteria']) for n, q in questions.items()}
+        sdk_questions = {n: sdk_question(q) for n, q in questions.items()}
         try:
             response = self.client.system_one(state=state, questions=sdk_questions)
         except TypeSafeError as error:      # after the SDK's own retries
             raise jev_fill.TransportError(f'{type(error).__name__}: {error}') from error
         answers: dict[str, jev_fill.Answer] = {}
-        for name in questions:
+        for name, question in questions.items():
+            if question['type'] == 'score':
+                if name not in response.scores:
+                    raise ValueError(f'{name}: Jev returned no Score answer')
+                s = response.scores[name]
+                levels = {str(k): v for k, v in s.probabilities.items()}
+                answers[name] = {'choice': max(levels, key=levels.__getitem__), 'confidence': s.confidence,
+                                 'probabilities': levels, 'score': s.score}
+                continue
             if name not in response.choices:
                 raise ValueError(f'{name}: Jev returned no Choice answer')
             a = response.choices[name]
