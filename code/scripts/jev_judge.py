@@ -85,13 +85,17 @@ def pending(grid: str) -> list[dict[str, Any]]:
 
 
 def estimate(todo: dict[str, list[dict[str, Any]]], meta: list[str]) -> int:
-    return sum(jev_fill.estimate_tokens([state(t['team'], meta), q]) for ts in todo.values() for t in ts
-               for q in questions().values())
+    return sum(jev_fill.estimate_tokens([state(t['team'], meta), questions()]) for ts in todo.values() for t in ts)
 
 
 def execute(grid: str, todo: list[dict[str, Any]], make: Callable[[], jev_fill.Chooser], meta: list[str],
             workers: int = 6) -> dict[str, int]:
-    """Judge each team with one request per question, appending a line per team as it finishes."""
+    """Judge each team with both questions in one request, appending a line per team as it finishes.
+
+    Jev bills the state once per request: one team cost 20,220 input tokens for both questions together
+    against 39,524 for two single-question requests (2026-10-27). The first full run, the same day, still
+    sent one request per question ($9.30); a rerun this way costs about half.
+    """
     lock, local, counts = threading.Lock(), threading.local(), {'judged': 0, 'transport': 0}
     path = results_path(grid)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -101,7 +105,7 @@ def execute(grid: str, todo: list[dict[str, Any]], make: Callable[[], jev_fill.C
             local.chooser = make()
         s = state(t['team'], meta)
         try:
-            answers = {name: local.chooser.choose(s, {name: q})[name] for name, q in questions().items()}
+            answers = local.chooser.choose(s, questions())
         except jev_fill.TransportError:
             with lock:
                 counts['transport'] += 1
@@ -169,7 +173,7 @@ def main() -> None:
         return
     meta = jev_fill.meta_pastes()
     todo = {g: pending(g) for g in (GRIDS if a.grid == 'all' else (a.grid,))}
-    calls = 2 * sum(map(len, todo.values()))
+    calls = sum(map(len, todo.values()))           # one request per team
     tokens = estimate(todo, meta)
     print(f"{', '.join(f'{g} {len(t)}' for g, t in todo.items())} teams to judge, {calls} calls, "
           f"~{tokens:,} input tokens, ~${tokens * 0.042 / 1e6:.2f} at $0.042/M (estimate)", flush=True)
