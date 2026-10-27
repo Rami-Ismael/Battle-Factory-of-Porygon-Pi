@@ -7,7 +7,8 @@ could point the same code at another decision model that copies TypeSafe's reque
 
 The key comes from TYPESAFE_API_KEY or the macOS Keychain item "typesafe" and is never printed
 or written anywhere. Retries are the SDK's own RetryPolicy (timeouts, connection errors and
-retryable HTTP statuses, honouring retry-after); any other API error stops the run.
+retryable HTTP statuses, honouring retry-after). A 402 (no credits left) raises OutOfCredits and
+stops the run; any other API error is a jev_fill.TransportError, recorded and retried on the next pass.
 
 Every call appends one line to the log: the question, the full answer with every probability,
 the model name the server reports, its token usage and the time taken. The meta teams are left
@@ -39,6 +40,10 @@ def api_key() -> str:
     return found.stdout.strip()
 
 
+class OutOfCredits(RuntimeError):
+    """TypeSafe refused the call for lack of credits. Not a TransportError, so a run stops instead of retrying."""
+
+
 def sdk_question(question: jev_fill.Question) -> Choice | Score:
     """A Choice, or a Score whose criteria are its levels keyed "0", "1", ... in order."""
     if question['type'] == 'score':
@@ -65,6 +70,8 @@ class JevChooser:
         try:
             response = self.client.system_one(state=state, questions=sdk_questions)
         except TypeSafeError as error:      # after the SDK's own retries
+            if getattr(error, 'status', None) == 402:   # out of credits: every later call fails the same way
+                raise OutOfCredits(f'{type(error).__name__}: {error}') from error
             raise jev_fill.TransportError(f'{type(error).__name__}: {error}') from error
         answers: dict[str, jev_fill.Answer] = {}
         for name, question in questions.items():
