@@ -3,13 +3,12 @@
 collect appends every legal Jev fill from ~/vgc-data/jev/<grid>.jsonl to the grid's candidates.json as
 kind 'jev', label 'jev:<run>:<mask id>', after a timestamped backup. It never rebuilds the file, which
 holds every other arm's fills, and skips labels already there. The grid's own battle step then battles
-them: run the grid queue's copy, which the meta and held-out grids were battled with,
+them:
 
-    cd ~/.local/share/vgc-pilot-runtime/textdiff/grids_ling/code
     MASK_LAB_STARTERS=meta /tmp/vgc-pilot/.venv/bin/python scripts/mask_lab_heldout_starters.py battle
 
-This branch's copy of that script has no MASK_LAB_STARTERS setting and silently battles the held-out
-grid instead (it did once, 2026-10-27: no battles ran, its panels were rebuilt from cached cells).
+(heldout is the default; an unknown value is refused). Before 2026-10-27 this branch's copy ignored the
+setting and battled the held-out grid; it now matches the grid queue's copy panel for panel.
 
 report reads the grid's panels.json. Win rate is the share of battles a team wins against the 49
 top-50 meta teams, one battle each, the behaviour-cloning policy on both sides, listed slot order.
