@@ -22,6 +22,7 @@ import dspy
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, create_model
 
 import repo_paths  # noqa: F401 -- puts src/ first on sys.path
+import legal_options
 
 KIND = 'dspy'
 ADAPTERS = ('chat', 'json')
@@ -106,25 +107,17 @@ def _enum(name, values):
     return Enum(name, {f'v{i}': v for i, v in enumerate(values)}, type=str)
 
 
-def legal_completion_type(masked_team, paths):  # noqa: C901
+def legal_completion_type(masked_team, paths):
     """One field per requested path, typed with what the regulation allows there.
 
-    Per-slot choices come from the pinned simulator vocabulary (data/regmb-vocabulary.json):
-    an ability or item is limited to the species' legal ability/item pairs given the
-    slot's fixed ability or item; a move to the species' learnable moves not already
-    in the slot; an item excludes items fixed teammates hold (Item Clause); a whole
-    slot's species excludes families already on the team (Species Clause). Choices
-    that depend on the model's own other answers (two masked items, a whole slot's
-    moves for the species it picks) are stated in descriptions, not enforced.
+    The choices come from legal_options, which the Jev baseline shares: an ability or
+    item is limited to the species' legal ability/item pairs given the slot's fixed
+    ability or item; a move to the species' learnable moves not already in the slot;
+    an item excludes items fixed teammates hold (Item Clause); a whole slot's species
+    excludes families already on the team (Species Clause). Choices that depend on
+    the model's own other answers (two masked items, a whole slot's moves for the
+    species it picks) are stated in descriptions, not enforced.
     """
-    from mb_prompt import norm, regulation
-    reg = regulation()
-    names = reg['names']
-    show = lambda ids: sorted({names.get(i, i) for i in ids if i})
-    slots = [None if s is None else reg['slots'].get(norm(s['species'])) if s.get('species') else None
-             for s in masked_team]
-    held = {norm(s['item']) for s in masked_team if s and s.get('item')}
-    families = {r['base'] for r in slots if r}
     enums = {}
 
     def enum(name, values):
@@ -132,57 +125,53 @@ def legal_completion_type(masked_team, paths):  # noqa: C901
             enums[name] = _enum(name, values)
         return enums[name]
 
-    nature = lambda: enum('Nature', show(reg['values']['nature']))
     whole = None
     fields = {}
     for path in paths:
         i = path[0]
-        slot, rules = masked_team[i], slots[i]
         where = f'path {json.dumps(path)}'
         if len(path) == 1:
-            if whole is None:
-                species = [s for s in reg['values']['species'] if s and reg['slots'][s]['base'] not in families]
-                whole = create_model(
-                    'PokemonSet', __config__=ConfigDict(extra='forbid'),
-                    species=(enum('Species', show(species)), Field(description='not the same species family as any other Pokémon on the team')),
-                    item=(enum('Item', show(it for it in reg['values']['item'] if it not in held)),
-                          Field(description='held by no other Pokémon on the team; a Mega Stone only on its own species')),
-                    ability=(enum('Ability', show(reg['values']['ability'])), Field(description="one of the chosen species' own abilities")),
-                    nature=(nature(), ...),
-                    moves=(list[enum('Move', show(reg['values']['move']))],
-                           Field(min_length=4, max_length=4, description='four different moves the chosen species can learn')),
-                    evs=(Spread, ...))
+            whole = whole or _whole_slot_type(masked_team, enum)
             fields[f'slot{i}'] = (whole, Field(description=where))
         elif path[1] == 'evs':
             fields[f'slot{i}_evs'] = (Spread, Field(description=where))
-        elif path[1] == 'nature':
-            fields[f'slot{i}_nature'] = (nature(), Field(description=where))
-        elif rules is None:  # species masked too: only regulation-wide choices
-            pool = {'ability': 'ability', 'item': 'item', 'moves': 'move', 'species': 'species'}[path[1]]
-            fields[f'slot{i}_{path[1]}' + (f'{path[2]}' if len(path) > 2 else '')] = (
-                enum(pool.title(), show(reg['values'][pool])), Field(description=where))
-        elif path[1] == 'ability':
-            item = slot.get('item')
-            legal = [a for a, items in rules['abilityItems'].items()
-                     if items and (item is None or norm(item) in items)]
-            fields[f'slot{i}_ability'] = (enum(f'Slot{i}Ability', show(legal)), Field(description=where))
-        elif path[1] == 'item':
-            ability = slot.get('ability')
-            legal = {it for a, items in rules['abilityItems'].items()
-                     if ability is None or a == norm(ability) for it in items}
-            fields[f'slot{i}_item'] = (enum(f'Slot{i}Item', show(legal - held)),
-                                       Field(description=where + '; different from every other item on the team'))
-        elif path[1] == 'moves':
-            known = {norm(m) for m in slot['moves'] if m}
-            fields[f'slot{i}_move{path[2]}'] = (
-                enum(f'Slot{i}Move', show(m for m in rules['moves'] if m not in known)),
-                Field(description=where + '; different from the other moves of this Pokémon'))
-        elif path[1] == 'species':
-            fields[f'slot{i}_species'] = (enum('Species', show(s for s in reg['values']['species'] if s and reg['slots'][s]['base'] not in families)),
-                                          Field(description=where))
         else:
-            raise ValueError(f'no legal-choice type for path {path}')
+            name, label, note = _choice_field(masked_team, path)
+            fields[name] = (enum(label, legal_options.options(masked_team, path)), Field(description=where + note))
     return create_model('Completion', __config__=ConfigDict(extra='forbid'), **fields)
+
+
+def _choice_field(masked_team, path):
+    """(field name, enum name, description suffix) for one single-value path."""
+    i, field = path[0], path[1]
+    if field == 'nature':
+        return f'slot{i}_nature', 'Nature', ''
+    if legal_options._rules(masked_team[i]) is None:  # species masked too: regulation-wide choices
+        return f'slot{i}_{field}' + (f'{path[2]}' if len(path) > 2 else ''), legal_options.FIELD_POOLS[field].title(), ''
+    if field == 'ability':
+        return f'slot{i}_ability', f'Slot{i}Ability', ''
+    if field == 'item':
+        return f'slot{i}_item', f'Slot{i}Item', '; different from every other item on the team'
+    if field == 'moves':
+        return f'slot{i}_move{path[2]}', f'Slot{i}Move', '; different from the other moves of this Pokémon'
+    if field == 'species':
+        return f'slot{i}_species', 'Species', ''
+    raise ValueError(f'no legal-choice type for path {path}')
+
+
+def _whole_slot_type(masked_team, enum):
+    """The answer type for a whole masked Pokémon."""
+    return create_model(
+        'PokemonSet', __config__=ConfigDict(extra='forbid'),
+        species=(enum('Species', legal_options.species_options(masked_team)),
+                 Field(description='not the same species family as any other Pokémon on the team')),
+        item=(enum('Item', legal_options.regulation_wide('item', masked_team)),
+              Field(description='held by no other Pokémon on the team; a Mega Stone only on its own species')),
+        ability=(enum('Ability', legal_options.regulation_wide('ability')), Field(description="one of the chosen species' own abilities")),
+        nature=(enum('Nature', legal_options.regulation_wide('nature')), ...),
+        moves=(list[enum('Move', legal_options.regulation_wide('moves'))],
+               Field(min_length=4, max_length=4, description='four different moves the chosen species can learn')),
+        evs=(Spread, ...))
 
 
 def config(adapter, instructions=None, demos=(), constraints=None):
