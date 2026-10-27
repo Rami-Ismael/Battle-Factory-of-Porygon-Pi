@@ -6,6 +6,8 @@
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py live --grid meta --task items        # ONE live Jev call on one mask
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py run --grid meta --dry-run            # price a full run, send nothing
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py run --grid meta --limit 5            # the first 5 masks, 4 runs each
+    /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py collect --grid meta                  # append legal fills as candidates
+    /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py report --grid meta                   # after the grid's battle step
 
 prompt prints the first request of the first mask of a task type on a grid, with its token
 estimate. fake fills every mask of that task type (all task types when --task is omitted) with
@@ -135,10 +137,20 @@ def run(a: argparse.Namespace) -> None:
           f"reported, ${used * jev_client.PRICE_PER_MILLION_INPUT / 1_000_000:.4f}")
 
 
+def collect(a: argparse.Namespace) -> None:
+    import jev_report
+    print(f'{a.grid}: {jev_report.collect(a.grid)}')
+
+
+def report(a: argparse.Namespace) -> None:
+    import jev_report
+    jev_report.print_report(jev_report.report(a.grid))
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='command', required=True)
-    for name in ('prompt', 'fake', 'prompts', 'live', 'run'):
+    for name in ('prompt', 'fake', 'prompts', 'live', 'run', 'collect', 'report'):
         q = sub.add_parser(name)
         q.add_argument('--grid', choices=list(jev_fill.GRIDS), required=True)
         q.add_argument('--task', choices=['pokemon', 'moves', 'items', 'abilities', 'natures', 'stats'])
@@ -150,4 +162,5 @@ if __name__ == '__main__':
     r.add_argument('--max-calls', type=int, default=200, help='refuse a run estimated to ask more questions')
     r.add_argument('--workers', type=int, default=4)
     a = p.parse_args()
-    {'prompt': prompt, 'fake': fake, 'prompts': prompts, 'live': live, 'run': run}[a.command](a)
+    {'prompt': prompt, 'fake': fake, 'prompts': prompts, 'live': live, 'run': run, 'collect': collect,
+     'report': report}[a.command](a)

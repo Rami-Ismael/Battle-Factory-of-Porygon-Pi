@@ -239,6 +239,11 @@ def paste(mon: Slot) -> str:
     return '\n'.join(lines)
 
 
+def team_paste(team: Team) -> str:
+    """A whole team as mask_lab_prepare.to_paste writes it, the text the battle step stores."""
+    return '\n\n'.join(paste(mon) for mon in team if mon is not None) + '\n'
+
+
 def meta_pastes(pipeline: ModuleType | None = None) -> list[str]:
     """The top-50 meta teams Ling's prompt gets, as paste text (same teams, compact form)."""
     pipeline = pipeline or load_pipeline()
