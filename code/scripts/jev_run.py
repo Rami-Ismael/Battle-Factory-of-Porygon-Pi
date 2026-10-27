@@ -1,7 +1,8 @@
-"""Run Jev over a Mask Lab grid: four runs per mask, resumable, priced before any spend.
+"""Run Jev over a Mask Lab grid: the top pick per mask, resumable, priced before any spend.
 
-Every mask is filled four times: 'top' takes Jev's top option at every question, and 'sample1',
-'sample2', 'sample3' draw each answer from Jev's probabilities. A run's seed comes from the mask id
+'top' takes Jev's top option at every question. The sampled runs 'sample1', 'sample2', 'sample3'
+draw each answer from Jev's probabilities; they ran on the meta and held-out grids and on 203 random
+masks, and are no longer sent (owner, 2026-10-27: top pick only, a quarter of the cost). A run's seed comes from the mask id
 and the run name, so a rerun draws the same samples. Because later questions see earlier answers,
 each run asks its own questions.
 
@@ -24,7 +25,8 @@ from typing import Any
 
 import jev_fill
 
-RUNS = ('top', 'sample1', 'sample2', 'sample3')
+RUNS = ('top',)                                  # the runs sent
+SAMPLED = ('sample1', 'sample2', 'sample3')      # read by the report where they exist; never sent again
 DATA = Path.home() / 'vgc-data/jev'
 FINISHED = ('legal', 'illegal', 'too large', 'no option')      # a pair with one of these is never sent again
 

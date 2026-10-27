@@ -32,9 +32,9 @@ class RunnerTest(unittest.TestCase):
     def rows(self):
         return [json.loads(line) for line in R.results_path('meta').read_text().splitlines()]
 
-    def test_four_runs_per_mask_and_nothing_is_sent_twice(self):
+    def test_one_top_run_per_mask_and_nothing_is_sent_twice(self):
         pairs = R.pending('meta', limit=2)
-        self.assertEqual(len(pairs), 8)
+        self.assertEqual(len(pairs), 2 * len(R.RUNS))
         R.execute('meta', pairs, J.FakeChooser, META, self.pipeline, workers=2)
         self.assertEqual(R.pending('meta', limit=2), [])
         self.assertEqual(sorted({r['run'] for r in self.rows()}), sorted(R.RUNS))
@@ -44,12 +44,12 @@ class RunnerTest(unittest.TestCase):
         pairs = R.pending('meta', limit=1)
         R.execute('meta', pairs, Unreachable, META, self.pipeline, workers=1)
         self.assertTrue(all(r['status'] == 'transport' for r in self.rows()))
-        self.assertEqual(len(R.pending('meta', limit=1)), 4)
+        self.assertEqual(len(R.pending('meta', limit=1)), len(R.RUNS))
 
     def test_seeds_are_stable_and_differ_between_runs(self):
         task = J.tasks('meta')[0]
         self.assertEqual(R.run_seed(task, 'sample1'), R.run_seed(task, 'sample1'))
-        self.assertEqual(len({R.run_seed(task, run) for run in R.RUNS}), 4)
+        self.assertEqual(len({R.run_seed(task, run) for run in ('top', *R.SAMPLED)}), 4)
 
     def test_the_estimate_counts_one_question_per_hidden_field(self):
         task = next(t for t in J.tasks('meta') if t['task'] == 'items' and t['k'] == 3)

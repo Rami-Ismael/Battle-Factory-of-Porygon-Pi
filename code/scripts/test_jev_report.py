@@ -29,7 +29,7 @@ class ReportTest(unittest.TestCase):
                          {'label': 'random:abc', 'kind': 'random', 'task_id': 'abc', 'team': TEAM, 'paste': 'y'}]
         (self.grid / 'candidates.json').write_text(json.dumps({'candidates': self.existing}))
         rows = [{'task_id': 'abc', 'run': run, 'source': 'MB1', 'status': 'legal' if run != 'sample3' else 'illegal',
-                 'team': TEAM} for run in R.RUNS]
+                 'team': TEAM} for run in ('top', *R.SAMPLED)]
         R.results_path('test').write_text(''.join(json.dumps(r) + '\n' for r in rows))
 
     def tearDown(self):

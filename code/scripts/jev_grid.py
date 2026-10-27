@@ -5,7 +5,7 @@
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py prompts --grid meta --out FILE.json  # one request per task type, for review
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py live --grid meta --task items        # ONE live Jev call on one mask
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py run --grid meta --dry-run            # price a full run, send nothing
-    /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py run --grid meta --limit 5            # the first 5 masks, 4 runs each
+    /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py run --grid meta --limit 5            # the first 5 masks, top pick
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py collect --grid meta                  # append legal fills as candidates
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_grid.py report --grid meta                   # after the grid's battle step
 

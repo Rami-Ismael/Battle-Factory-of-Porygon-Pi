@@ -60,7 +60,7 @@ def mask_rows(grid: str) -> list[dict[str, Any]]:
     out = []
     for task in jev_fill.tasks(grid):
         top = scores.get(f"jev:top:{task['id']}")
-        samples = [s for run in jev_run.RUNS[1:] if (s := scores.get(f"jev:{run}:{task['id']}")) is not None]
+        samples = [s for run in jev_run.SAMPLED if (s := scores.get(f"jev:{run}:{task['id']}")) is not None]
         if top is None and not samples:
             continue
         row = {'task_id': task['id'], 'task': task['task'], 'k': task['k'], 'source': task['source'],
