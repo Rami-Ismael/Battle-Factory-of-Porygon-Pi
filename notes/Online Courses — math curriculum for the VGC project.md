@@ -1,6 +1,6 @@
 ---
 created_at: 2026-08-14
-updated_at: 2026-09-07
+updated_at: 2026-10-27
 type: curriculum
 hub: "[[Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team]]"
 verdict: study methods against the actual team-search problem; coverage and ridge are not established requirements
@@ -19,9 +19,9 @@ tags:
 
 ## Purpose
 
-Find a **legal six-Pokémon team that performs well against the chosen opponents**. This guide assumes introductory data science and machine learning at UT Dallas. It focuses on the additional concepts needed to formulate the search, compare candidates and understand the methods being considered.
+The goal is a legal six-Pokémon team that performs well against the chosen opponents. This guide assumes UT Dallas intro data science and machine learning, and covers only what those courses skip: stating the search, comparing candidates and reading the methods on the table.
 
-See [[Problem Statement]] for the project’s scope. The resources below are free online or already in the vault.
+See [[Problem Statement]] for the project's scope. The resources below are free online or already in the vault.
 
 ## Find the relevant material
 
@@ -31,14 +31,14 @@ See [[Problem Statement]] for the project’s scope. The resources below are fre
 | Evaluation | How do I tell whether one candidate performs better? | Comparing search results |
 | Gaussian processes and Bayesian optimization | Can previous evaluations help choose the next candidate to evaluate? | Investigating a surrogate-based search method |
 | Reinforcement learning | How does the battle policy learn to play the team? | Working on the battle-policy experiment |
-| Submodularity | Does a particular set objective have diminishing returns? | Understanding the lecture or checking a proposed formulation; applicability to team performance is unproven |
+| Submodularity | Does a particular set objective have diminishing returns? | Understanding the lecture or checking a proposed formulation. Unproven for team performance |
 | Ridge regression and quadratic forms | Would a simple fitted model help, and what does it represent? | A specific model or paper calls for them |
 
-Each section can be studied independently, except for the stated prerequisites within the Gaussian process material.
+Study the sections in any order. Only the Gaussian process chapters build on each other.
 
 ## Submodularity
 
-Watch 🟢 [Introduction to Submodular Functions — Fabien Mathieu](https://www.youtube.com/watch?v=EIoUwkwoiu0), then read **section 1** of 🟢 [Krause and Golovin’s survey](https://las.inf.ethz.ch/files/krause12survey.pdf). Learn the discrete derivative, monotonicity and diminishing returns before continuing to the greedy algorithm.
+Watch 🟢 [Fabien Mathieu's Introduction to Submodular Functions](https://www.youtube.com/watch?v=EIoUwkwoiu0), then read section 1 of 🟢 [Krause and Golovin's survey](https://las.inf.ethz.ch/files/krause12survey.pdf). Learn the discrete derivative, monotonicity and diminishing returns before continuing to the greedy algorithm.
 
 For a set score $f$, the discrete derivative is the gain from adding one element:
 
@@ -46,65 +46,60 @@ $$
 \Delta(e\mid S)=f(S\cup\{e\})-f(S).
 $$
 
-**Monotone** means this gain is always nonnegative. **Submodular** means the gain cannot increase when the existing set grows: for $A\subseteq B$ and $e\notin B$, $\Delta(e\mid A)\geq\Delta(e\mid B)$. These are different properties; submodularity alone does not require positive gains.
+**Monotone** means this gain is always nonnegative. **Submodular** means the gain cannot increase when the existing set grows: for $A\subseteq B$ and $e\notin B$, $\Delta(e\mid A)\geq\Delta(e\mid B)$. These are different properties. A submodular function can still have negative gains.
 
-Replacing a Pokémon removes one element and adds another. A worse result after a replacement does not, by itself, disprove monotonicity. Also, if the score is defined only for complete six-Pokémon teams, the addition-based definition cannot be applied directly without defining scores on other subsets.
+Replacing a Pokémon removes one element and adds another. A worse result after a replacement does not, by itself, disprove monotonicity. Also, if the score is defined only for complete six-Pokémon teams, you must define scores on smaller subsets before the addition-based definition applies.
 
-The distinction that matters for this project is:
+This project has to keep two problems apart. Selecting a collection of complete teams is a coverage problem. If each team covers a fixed set of opponents, the nonnegatively weighted union of those sets is monotone and submodular.
 
-- **Selecting a collection of complete teams:** if each team has a fixed set of opponents it covers, the nonnegatively weighted union of those sets is monotone and submodular.
-- **Building one team:** its performance depends on the complete composition and how it is played. Fixed coverage sets for individual Pokémon have not been justified as a model of that performance.
+Building one team is different. Its performance depends on the whole composition and on how the policy plays it. Nobody has shown that fixed coverage sets for individual Pokémon model that performance.
 
-**Submodularity of the team-performance objective remains unproven.** The greedy $1-1/e$ guarantee applies to a normalized, nonnegative, monotone submodular objective under a cardinality limit. Applying it here would require establishing those assumptions for the chosen formulation.
+**Submodularity of the team-performance objective remains unproven.** The greedy $1-1/e$ guarantee applies to a normalized, nonnegative, monotone submodular objective under a cardinality limit. To use it here, first prove those assumptions hold for the chosen formulation.
 
-**Practice:** work exercises 2.10–2.11 in 🟢 [Williamson and Shmoys](https://www.designofapproxalgs.com/) to test your understanding of submodularity and coverage. Explain what the selected elements represent in that exercise. For further proofs, use 🟢 [Jan Vondrák’s notes](https://theory.stanford.edu/~jvondrak/CS369P/).
+For practice, work exercises 2.10–2.11 in 🟢 [Williamson and Shmoys](https://www.designofapproxalgs.com/). Explain what the selected elements represent in that exercise. For more proofs, see 🟢 [Jan Vondrák's notes](https://theory.stanford.edu/~jvondrak/CS369P/).
 
 ## Gaussian processes and Bayesian optimization
 
-A Gaussian process supplies predictions and uncertainty. Bayesian optimization uses a model to choose the next evaluation. This is useful to investigate when candidate evaluations are expensive.
+A Gaussian process predicts a score and how unsure that prediction is. Bayesian optimization uses the model to pick the next candidate to evaluate. It pays off when each evaluation is expensive.
 
 Watch from [[Gaussian Process|your video collection]] alongside [[Gaussian Processes by Mutual Information|your existing notes]]. The collection is unranked.
 
 Use 🟢 [Gaussian Processes for Machine Learning](https://gaussianprocess.org/gpml/chapters/) in this order:
 
-1. **Chapter 2:** connect familiar regression to Bayesian regression, then the function-space view. Understand how observations change the predictive mean and uncertainty.
-2. **Chapter 4:** learn what the kernel assumes about relationships between inputs. Similarity between legal teams is a modelling choice; a kernel does not discover a useful representation automatically.
-3. **Chapter 5:** consult it when fitting kernel hyperparameters becomes necessary.
-
-
+1. Chapter 2 connects familiar regression to Bayesian regression, then to the function-space view. Learn how observations change the predictive mean and uncertainty.
+2. Chapter 4 covers what a kernel assumes about how inputs relate. Similarity between legal teams is a modelling choice. A kernel does not discover a useful representation automatically.
+3. Read chapter 5 once you need to fit kernel hyperparameters.
 
 ## Candidate generation and legality
 
-Start from [[Clause or the feature of the search space]] and [[hierarchical product sampling]]. Write down what a search move changes—species, moves, item or another field—and which dependent choices must be checked again.
+Start from [[Clause or the feature of the search space]] and [[hierarchical product sampling]]. For each search move, write down the field it changes, such as species, moves or item, and which dependent choices need a fresh legality check.
 
-
-
-**Practice:** test a rule with one valid candidate and one invalid candidate. For canonicalization, establish that two representations really are equivalent before merging them; an ordering that changes policy behaviour cannot simply be discarded as irrelevant.
+To practice, test a rule with one valid candidate and one invalid candidate. Before merging two representations into one canonical form, check that they really are equivalent. If slot order changes how the policy plays, the order matters and stays.
 
 ## Comparing candidates
 
-Before comparing methods, specify the opponent teams and their weights, the battle policies, the evaluation budget and how results are aggregated. Keep those choices consistent when the question is whether a candidate or search method improved performance.
+Before comparing methods, specify the opponent teams and their weights, the battle policies, the evaluation budget and how you aggregate results. Hold them fixed across every run you compare, or a gain may come from the setup and not the method.
 
-If fitting a predictor, decide what must generalize: another battle involving familiar teams, unseen teams, or a changed opponent distribution. Choose the data split to match that question. A random split is not automatically evidence of performance on unseen teams.
+If you fit a predictor, decide what must generalize: another battle involving familiar teams, unseen teams, or a changed opponent distribution. Choose the data split to match that question. Good scores on a random split do not show that the predictor handles unseen teams.
 
-For validation methods, consult **chapter 5** of 🟢 [An Introduction to Statistical Learning — free Python edition](https://hastie.su.domains/ISLP/ISLP_website.pdf.download.html) or [[Inteligent Systems/Richard_Golden_-_Statistical_Machine_Learning__A_Unified_Framework (2).pdf|Golden chapter 16]]. Use the relevant validation section directly.
+For validation methods, read chapter 5 of 🟢 [An Introduction to Statistical Learning, free Python edition](https://hastie.su.domains/ISLP/ISLP_website.pdf.download.html) or [[Inteligent Systems/Richard_Golden_-_Statistical_Machine_Learning__A_Unified_Framework (2).pdf|Golden chapter 16]].
 
 ## Learning a battle policy
 
-This branch supports [[Reimplement VGC-Bench — run the release, reproduce BC, self-play, fictitious play, double oracle, then extend on team-pool size]]. A matchup predictor estimates an outcome; the battle policy chooses actions during play.
+This branch supports [[Reimplement VGC-Bench — run the release, reproduce BC, self-play, fictitious play, double oracle, then extend on team-pool size]]. A matchup predictor estimates an outcome. The battle policy chooses actions during play.
 
-Use 🟢 [David Silver’s lectures](https://www.davidsilver.uk/teaching/), lectures 1–3 for the decision-process framework, then 4–7 for prediction, control, function approximation and policy gradients as needed. Pair them with [[Reinforcement Learning an Introduction SEcond Sedition Richard S. Sutton and andrew G. Barto.pdf|Sutton and Barto]]: chapters 3–4, 5–6 and 13 respectively. Silver’s Easy21 assignment and the book exercises provide practice. [[The Little Book of reinforcement Learning.pdf]] is an orientation reference.
+Use 🟢 [David Silver's lectures](https://www.davidsilver.uk/teaching/), lectures 1–3 for the decision-process framework, then 4–7 for prediction, control, function approximation and policy gradients as needed. Pair them with [[Reinforcement Learning an Introduction SEcond Sedition Richard S. Sutton and andrew G. Barto.pdf|Sutton and Barto]]: chapters 3–4, 5–6 and 13 respectively. For practice, do Silver's Easy21 assignment and the book exercises. [[The Little Book of reinforcement Learning.pdf]] gives a quick overview.
 
-**Questions to answer:** what can the policy observe, what signal does it learn from, and which opponents does it train and evaluate against?
+Before training, answer three questions: what can the policy observe, what signal does it learn from, and which opponents does it train and evaluate against?
 
 ## Optional references
 
-- **Ridge and interaction features:** chapters 6 and 3 of 🟢 [An Introduction to Statistical Learning](https://hastie.su.domains/ISLP/ISLP_website.pdf.download.html), or [[Inteligent Systems/Richard_Golden_-_Statistical_Machine_Learning__A_Unified_Framework (2).pdf|Golden chapter 13]]. Use these when evaluating a ridge predictor.
-- **Quadratic notation:** 🟢 [Glover, Kochenberger and Du](https://arxiv.org/abs/1811.11538). Use it to interpret $x^\top Qx$ when encountered. Check what the pairwise terms assume about team performance.
-- **Matrix operations:** 🟢 [Boyd and Vandenberghe](https://web.stanford.edu/~boyd/vmls/), 🟢 [Essence of Linear Algebra](https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab), or Golden chapters 4–5. Look up the operation blocking the current derivation.
-- **Further statistical or optimization theory:** 🟢 [The Elements of Statistical Learning](https://hastie.su.domains/ElemStatLearn/download.html), 🟢 [Stanford Convex Optimization I](https://web.stanford.edu/class/ee364a/) and its 🟢 [exercise collection](https://github.com/cvxgrp/cvxbook_additional_exercises). Consult these for a particular derivation or proof.
+- **Ridge and interaction features.** Chapters 6 and 3 of 🟢 [An Introduction to Statistical Learning](https://hastie.su.domains/ISLP/ISLP_website.pdf.download.html), or [[Inteligent Systems/Richard_Golden_-_Statistical_Machine_Learning__A_Unified_Framework (2).pdf|Golden chapter 13]]. Read these when you evaluate a ridge predictor.
+- **Quadratic notation.** 🟢 [Glover, Kochenberger and Du](https://arxiv.org/abs/1811.11538). Read it when a paper writes $x^\top Qx$. Check what the pairwise terms assume about team performance.
+- **Matrix operations.** 🟢 [Boyd and Vandenberghe](https://web.stanford.edu/~boyd/vmls/), 🟢 [Essence of Linear Algebra](https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab), or Golden chapters 4–5. Look up only the operation a derivation is stuck on.
+- **Further statistical or optimization theory.** 🟢 [The Elements of Statistical Learning](https://hastie.su.domains/ElemStatLearn/download.html), 🟢 [Stanford Convex Optimization I](https://web.stanford.edu/class/ee364a/) and its 🟢 [exercise collection](https://github.com/cvxgrp/cvxbook_additional_exercises). Open these only when a specific derivation or proof needs them.
 
-**Study maps awaiting revision:** [[Online course pathway.canvas]] and [[Online study flow — free resources.excalidraw]].
+Two study maps still need revising: [[Online course pathway.canvas]] and [[Online study flow — free resources.excalidraw]].
 
 <details>
 <summary>Earlier decisions and task history</summary>
