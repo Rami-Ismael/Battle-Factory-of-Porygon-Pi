@@ -4,8 +4,10 @@ A near-exact copy of the 2026-10-15 Mask Lab battles (the vault's team_completio
 one change: the opponents. Kept: the five random legal starting teams, the 270 masks and every arm's fills exactly
 as saved in runs/prompt-ab/candidates.json (untouched originals, random legal fills, Ling's three prompt arms, the
 scratch diffusion decoder, the fine-tuned text writer lora_r32/final); one battle per (fill, opponent); the
-behaviour-cloning policy on both sides; listed slot order; seed 20261008; the 2026-10-15 fast evaluator, whose runner
-file is loaded from that run's evidence copy so the battle configuration identity is the recorded one (4208bc07...).
+behaviour-cloning policy on both sides; seed 20261008. Since 2026-10-28 slots are shuffled every battle by default
+(src/slot_order.py) on the current fast evaluator; VGC_SLOT_ORDER=listed reproduces the old runs: listed slot order on
+the 2026-10-15 fast evaluator, whose runner file is loaded from that run's evidence copy so the battle configuration
+identity is the recorded one (4208bc07...).
 Changed: the opponents are the 50 held-out teams (results/heldout_next50_evs.json), battled only through
 matchup_db.evaluate_final, the held-out set's permitted use, into a database of their own
 (~/vgc-data/mask_lab_heldout.sqlite) that no training or search code reads. A fill that is a held-out team (same
@@ -16,7 +18,7 @@ matchup_db.evaluate_final, the held-out set's permitted use, into a database of 
     python3 scripts/mask_lab_heldout.py report                                     # RUN/heldout_report.json
     python3 scripts/mask_lab_heldout.py report --panels panels.json                # the same tables on the top-50
 """
-import argparse, importlib.util, json, random, sys, time, uuid
+import argparse, contextlib, importlib.util, json, random, sys, time, uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -70,20 +72,23 @@ def battle(a):  # noqa: C901
           f"{len(cols)} held-out opponents; planned battles <= {len(rows) * len(cols)}", flush=True)
 
     evidence = EVIDENCE_ROOT / f"maskLab-heldout-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
-    with runner_module.FastBattleRunner(evidence, a.workers, a.concurrency) as runner:
-        if runner.identity != TOP50_IDENTITY:
+    # Slots are shuffled every battle by default (src/slot_order.py, owner 2026-10-28): the current fast evaluator and a
+    # policy tagged +slots-shuffled. VGC_SLOT_ORDER=listed reproduces the pre-2026-10-28 runs on the pinned 2026-10-15 runner.
+    listed = MDB.SLOT_ORDER == "listed"
+    with (runner_module.FastBattleRunner(evidence, a.workers, a.concurrency) if listed else contextlib.nullcontext(MDB.default_runner())) as runner:
+        if listed and runner.identity != TOP50_IDENTITY:
             raise SystemExit(f"evaluator identity {runner.identity} differs from the top-50 run's {TOP50_IDENTITY}")
-        policy_id = runner.policy_id(con, MDB)
+        policy_id = runner.policy_id(con, MDB) if listed else MDB.get_policy(con)
         t_all = time.time()
         for i in range(0, len(rows), a.batch):
             t0 = time.time()
             MDB.evaluate_final(con, policy_id, rows[i:i + a.batch], per_cell=1, seed=SEED, runner=runner, note="maskLab-heldout:fast")
             print(f"batch {i // a.batch + 1}/{-(-len(rows) // a.batch)} in {time.time() - t0:.1f}s ({time.time() - t_all:.1f}s total)", flush=True)
 
-    out = {"policy_id": policy_id, "policy_identity": TOP50_IDENTITY,
-           "policy": f"bc_100.zip:{BC_HASH} on both sides, listed slot order", "seed": SEED, "opponent_set": H.SET_NAME,
+    out = {"policy_id": policy_id, "policy_identity": TOP50_IDENTITY if listed else None,
+           "policy": f"bc_100.zip:{BC_HASH} on both sides, {MDB.SLOT_ORDER} slot order", "seed": SEED, "opponent_set": H.SET_NAME,
            "database": str(a.database), "evaluator": {"backend": "fast", "workers": a.workers, "concurrency": a.concurrency,
-           "runner_file": str(TOP50_EVIDENCE / "source/fast_battle_runner.py"), "evidence": str(evidence)},
+           "runner_file": str(TOP50_EVIDENCE / "source/fast_battle_runner.py") if listed else None, "evidence": str(evidence)},
            "opponents": [], "panels": {}}
     for mb, t in zip(H.ids(), cols):
         paste = con.execute("SELECT paste FROM team WHERE team_id=?", (t,)).fetchone()[0]

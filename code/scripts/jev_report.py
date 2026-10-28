@@ -11,7 +11,7 @@ them:
 setting and battled the held-out grid; it now matches the grid queue's copy panel for panel.
 
 report reads the grid's panels.json. Win rate is the share of battles a team wins against the 49
-top-50 meta teams, one battle each, the behaviour-cloning policy on both sides, listed slot order.
+top-50 meta teams, one battle each, the behaviour-cloning policy on both sides, shuffled slot order (listed before 2026-10-28).
 For every mask Jev filled it compares Jev's top-pick team and the mean of its three sampled teams with
 the original team, the random legal fill, and each other arm that filled the same mask, using only
 masks where both teams are legal. It prints one table per mask type and writes
@@ -93,7 +93,7 @@ def report(grid: str) -> dict[str, Any]:
                              **{f'top_minus_{ref}': paired(rs, 'jev_top', ref) for ref in refs},
                              **{f'sampled_minus_{ref}': paired(rs, 'jev_sampled', ref) for ref in refs[:2]}}
     out = {'grid': grid, 'win_rate': 'share of battles won against the 49 top-50 meta teams, one battle each, '
-                                     'behaviour-cloning policy on both sides, listed slot order',
+                                     'behaviour-cloning policy on both sides, shuffled slot order',
            'groups': groups, 'masks': rows}
     (jev_run.DATA / f'{grid}-report.json').write_text(json.dumps(out, indent=1) + '\n')
     return out

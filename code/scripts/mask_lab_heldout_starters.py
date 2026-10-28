@@ -27,7 +27,7 @@ teams. docs/textdiff.md, "Held-out teams as the starting teams".
     /tmp/vgc-pilot/.venv/bin/python scripts/mask_lab_heldout_starters.py battle
     python3 scripts/mask_lab_heldout_starters.py report
 """
-import argparse, collections, importlib.util, json, os, random, subprocess, sys, time, uuid
+import argparse, collections, contextlib, importlib.util, json, os, random, subprocess, sys, time, uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -246,18 +246,21 @@ def battle(a):  # noqa: C901
     print(f"{len(cands)} candidates -> {len(legal)} distinct legal teams ({len(legal & held)} are held-out teams); "
           f"{len(cols)} top-50 opponents; planned battles <= {len(rows) * len(cols)}", flush=True)
     evidence = Path.home() / f"vgc-data/battle-evaluations/{NAME}-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
-    with runner_module.FastBattleRunner(evidence, a.workers, a.concurrency) as runner:
-        if runner.identity != TOP50_IDENTITY:
+    # Slots are shuffled every battle by default (src/slot_order.py, owner 2026-10-28): the current fast evaluator and a
+    # policy tagged +slots-shuffled. VGC_SLOT_ORDER=listed reproduces the pre-2026-10-28 grids on the pinned 2026-10-15 runner.
+    listed = MDB.SLOT_ORDER == "listed"
+    with (runner_module.FastBattleRunner(evidence, a.workers, a.concurrency) if listed else contextlib.nullcontext(MDB.default_runner())) as runner:
+        if listed and runner.identity != TOP50_IDENTITY:
             raise SystemExit(f"evaluator identity {runner.identity} differs from the top-50 run's {TOP50_IDENTITY}")
-        policy_id = runner.policy_id(con, MDB)
+        policy_id = runner.policy_id(con, MDB) if listed else MDB.get_policy(con)
         t_all = time.time()
         for i in range(0, len(rows), a.batch):
             t0 = time.time()
             MDB.ensure(con, policy_id, rows[i:i + a.batch], cols, 1, seed=SEED, runner=runner,
                        note=f"{NAME}:fast", evaluation=True)
             print(f"batch {i // a.batch + 1}/{-(-len(rows) // a.batch)} in {time.time() - t0:.1f}s ({time.time() - t_all:.1f}s total)", flush=True)
-    out = {"policy_id": policy_id, "policy_identity": TOP50_IDENTITY,
-           "policy": f"bc_100.zip:{BC_HASH} on both sides, listed slot order", "seed": SEED, "database": str(a.database),
+    out = {"policy_id": policy_id, "policy_identity": TOP50_IDENTITY if listed else None,
+           "policy": f"bc_100.zip:{BC_HASH} on both sides, {MDB.SLOT_ORDER} slot order", "seed": SEED, "database": str(a.database),
            "evaluator": {"backend": "fast", "workers": a.workers, "concurrency": a.concurrency, "evidence": str(evidence)},
            "opponents": [], "panels": {}}
     for t in cols:
