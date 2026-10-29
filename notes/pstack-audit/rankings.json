@@ -557,6 +557,94 @@
   }
  },
  {
+  "name": "create-verification-skill",
+  "fit": 9,
+  "benefit": 2,
+  "confidence": "high (direct user feedback)",
+  "does": "Inspects a repo, creates a project-specific launch/health-check/drive/evidence/cleanup skill and feature map, then executes one real feature end to end to prove the generated instructions.",
+  "why": "You chose to install it on October 28, 2026, after earlier judging it not worth the extra work. Your install is the evidence that it is useful now. It fits work where you want a repeatable way to launch something, drive it the way a user would and keep proof, such as the blog figures or the Mask Lab page.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a1310e-6d3d-7472-b256-5d93cd1c7645",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "current-chat"
+  ],
+  "caveat": "The 2/10 benefit score is from October 13 and has not been re-estimated; installing it does not show a measured gain. Each verify-<app> skill it generates needs upkeep, and maintain-verification-skill, its companion for that upkeep, is not installed.",
+  "previousBenefit": 2,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 33,
+  "previousFit": 9,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When repeated verification needs justify authoring a dedicated project skill.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 36,
+   "date": "2026-10-28",
+   "basis": "User asked on 2026-10-28 to add it to the Claude Code pskill plugin."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:create-verification-skill",
+   "mode": "request",
+   "label": "Ask explicitly",
+   "when": "Only when you ask for it by name (disable-model-invocation is set).",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/create-verification-skill/SKILL.md",
+   "date": "2026-10-28",
+   "basis": "Claude Code adaptation of upstream commit c49b37a2c0e7, in the pskill plugin (pskill@skills-dir). Generated skills go to .claude/skills/verify-<app>/; web apps are driven with the built-in browser. Not installed in Codex."
+  }
+ },
+ {
+  "name": "maintain-verification-skill",
+  "fit": 7,
+  "benefit": 1,
+  "confidence": "medium",
+  "does": "Audits every feature in an existing verification skill against source and live behavior, corrects only its documentation/harness/map, and reports clean, changed or blocked.",
+  "why": "You installed it on October 28, 2026, right after create-verification-skill. It is that skill's upkeep loop: it rereads each verify-<app> skill against the current code and drives every mapped feature live, so the instructions stay true as the app changes.",
+  "evidence": [
+   "01a12c04-5746-7f90-b206-a32db1b27548",
+   "01a130f1-24d4-7d53-8906-4b7bd0954569",
+   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
+   "current-chat"
+  ],
+  "caveat": "It has nothing to work on until create-verification-skill has generated a verify-<app> skill. The 1/10 benefit score is from October 13 and has not been re-estimated. Each run drives every mapped feature, so keep the feature map small.",
+  "previousBenefit": 1,
+  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
+  "previousRank": 41,
+  "previousFit": 7,
+  "usage": {
+   "mode": "not-configured",
+   "label": "Not set up here",
+   "when": "When a dedicated verification skill already exists and needs maintenance.",
+   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
+   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
+  },
+  "userSelected": true,
+  "review": {
+   "status": "selected",
+   "reviewed": true,
+   "rankAtReview": 41,
+   "date": "2026-10-28",
+   "basis": "User asked on 2026-10-28 to add it to the Claude Code pskill plugin."
+  },
+  "claude": {
+   "installed": true,
+   "name": "pskill:maintain-verification-skill",
+   "mode": "request",
+   "label": "Ask explicitly",
+   "when": "Only when you ask for it by name (disable-model-invocation is set).",
+   "path": "/Users/ramiismael/.claude/skills/pskill/skills/maintain-verification-skill/SKILL.md",
+   "date": "2026-10-28",
+   "basis": "Claude Code adaptation of upstream commit 6714489fa233, in the pskill plugin (pskill@skills-dir). Targets .claude/skills/verify-*/; source readers run as read-only agents; commits and pull requests wait for your go-ahead. Not installed in Codex."
+  }
+ },
+ {
   "name": "teach",
   "fit": 10,
   "benefit": 8,
@@ -1286,33 +1374,6 @@
   "userSelected": false
  },
  {
-  "name": "create-verification-skill",
-  "fit": 9,
-  "benefit": 2,
-  "confidence": "high (direct user feedback)",
-  "does": "Inspects a repo, creates a project-specific launch/health-check/drive/evidence/cleanup skill and feature map, then executes one real feature end to end to prove the generated instructions.",
-  "why": "You explicitly questioned its benefit. Reliable results do not require building another reusable verification skill when existing checks suffice; keep this low unless a repeated verification gap makes the maintenance worthwhile.",
-  "evidence": [
-   "01a12c04-5746-7f90-b206-a32db1b27548",
-   "01a1310e-6d3d-7472-b256-5d93cd1c7645",
-   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
-   "current-chat"
-  ],
-  "caveat": "Deprioritized by your feedback. A useful verification habit does not establish that authoring a dedicated verification skill is worthwhile. The 2/10 benefit score is a revised editorial estimate, not a score you supplied.",
-  "previousBenefit": 2,
-  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
-  "previousRank": 33,
-  "previousFit": 9,
-  "usage": {
-   "mode": "not-configured",
-   "label": "Not set up here",
-   "when": "When repeated verification needs justify authoring a dedicated project skill.",
-   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
-   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
-  },
-  "userSelected": false
- },
- {
   "name": "principle-migrate-callers-then-delete-legacy-apis",
   "fit": 6,
   "benefit": 2,
@@ -1413,33 +1474,6 @@
    "mode": "not-configured",
    "label": "Not set up here",
    "when": "When implementing or reviewing substantial TypeScript code.",
-   "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
-   "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
-  },
-  "userSelected": false
- },
- {
-  "name": "maintain-verification-skill",
-  "fit": 7,
-  "benefit": 1,
-  "confidence": "medium",
-  "does": "Audits every feature in an existing verification skill against source and live behavior, corrects only its documentation/harness/map, and reports clean, changed or blocked.",
-  "why": "A dedicated verification skill must first prove useful before maintaining it becomes a priority. Your current feedback does not establish that need.",
-  "evidence": [
-   "01a12c04-5746-7f90-b206-a32db1b27548",
-   "01a130f1-24d4-7d53-8906-4b7bd0954569",
-   "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
-   "current-chat"
-  ],
-  "caveat": "Conditional on first finding or creating a verification skill with a feature map. Every mapped feature gets a live exercise, so keep the map bounded. Product regressions are reported, not fixed by this workflow.",
-  "previousBenefit": 1,
-  "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
-  "previousRank": 41,
-  "previousFit": 7,
-  "usage": {
-   "mode": "not-configured",
-   "label": "Not set up here",
-   "when": "When a dedicated verification skill already exists and needs maintenance.",
    "action": "Ask to install or adapt this Pstack skill if you want its exact workflow. A normal task request can still use existing Codex capabilities.",
    "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
   },
