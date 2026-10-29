@@ -179,6 +179,7 @@ async def _generate(jobs, output, options, transport, validate, key, stop):  # n
         validator = h.Validator()
         validate = lambda record, job: llm_completion.validate_record(record, job.manifest, job.trial, h, validator)
     gate = Controller(options)
+    loop = asyncio.get_running_loop()
     active = {}
     errors = []
     counters = dict(planned=len(jobs), reused=len(jobs)-len(queue), completed=0, attempts=0, rate_limits=0)
@@ -262,11 +263,18 @@ async def _generate(jobs, output, options, transport, validate, key, stop):  # n
                     errors.append(f'pending record: {type(exc).__name__}: {exc}')
                     stop.set()
                     break
-                task = asyncio.create_task(asyncio.to_thread(transport, item['payload'], key,
+                sent = loop.create_future()
+                def send_now(payload, api_key, timeout, sent=sent):
+                    loop.call_soon_threadsafe(sent.set_result, time.monotonic())
+                    return transport(payload, api_key, timeout)
+                task = asyncio.create_task(asyncio.to_thread(send_now, item['payload'], key,
                     job.manifest.get('request_timeout', 600)))
                 active[task] = item
                 counters['attempts'] += 1
-                gate.next_dispatch = now + options.min_interval
+                # Space requests from when the transport actually starts, not from when the
+                # dispatch was decided: the pending-record write and thread start in between
+                # vary by tens of ms on a busy disk and would squeeze the real gap.
+                gate.next_dispatch = await sent + options.min_interval
                 status('running')
                 now = time.monotonic()
             if stop.is_set() and not active:

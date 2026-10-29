@@ -179,6 +179,26 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
         result = await self.run_jobs(lambda *a: self.fail('sent after stop'))
         self.assertEqual(result['stage'], 'stopped')
 
+    async def test_pacing_ignores_slow_pending_write(self):
+        # A slow disk write before the first request must not shorten the gap to the second:
+        # the interval runs from when the transport starts, not from when dispatch was decided.
+        save = results.save
+        slow = []
+        def slow_first_pending(path, record):
+            if path.suffix == '.pending' and not slow:
+                slow.append(path)
+                time.sleep(.06)
+            save(path, record)
+        starts = []
+        def transport(*args):
+            starts.append(time.monotonic())
+            return self.ok()
+        with patch.object(results, 'save', side_effect=slow_first_pending):
+            await G.generate(self.jobs[:3], self.root, G.Options(min_interval=.03),
+                             transport=transport, validate=self.validate, key='test-only')
+        self.assertEqual(len(starts), 3)
+        self.assertTrue(all(b-a >= .025 for a, b in itertools.pairwise(starts)), starts)
+
     async def test_status_write_failure_drains_existing_request(self):
         save = results.save
         def failing_save(path, record):
