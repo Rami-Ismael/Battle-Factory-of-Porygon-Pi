@@ -86,7 +86,7 @@ def section(title, d):
                   "| Against | Masks | Jev | Other | Jev minus other, points |", "|---|---|---|---|---|"]
         for arm, r in d["pairs"].items():
             lines.append(f"| {arm} | {r['masks']} | {pct(r['jev'])} | {pct(r['other'])} | {r['diff'] * 100:+.1f} {ci(r)} |")
-    return lines + [""]
+    return [*lines, ""]
 
 
 def main():
