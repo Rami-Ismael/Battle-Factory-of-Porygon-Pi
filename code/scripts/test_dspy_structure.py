@@ -181,6 +181,18 @@ class LegalChoiceTests(unittest.TestCase):
         self.assertIn('Whimsicott', species)
         self.assertNotIn('Garchomp', species)  # Species Clause: already on the team
 
+    def test_the_shared_rules_keep_a_megas_stone_and_drop_unanswerable_abilities(self):
+        # Since the rules moved to legal_options (2026-10-27) these two cases differ from the 2026-10-15 runs.
+        mega = dict(species='Tyranitar-Mega', item=None, ability='Sand Stream', nature='Adamant', moves=['Protect'] * 4)
+        team = [dict(TEAM[0], item=None), mega, *TEAM[2:]]
+        schema = S.legal_completion_type(team, [[0, 'item'], [1, 'item']]).model_json_schema()
+        self.assertNotIn('Tyranitarite', self.choices(schema, 'slot0_item'))  # the only stone slot 1 can hold
+        self.assertEqual(self.choices(schema, 'slot1_item'), {'Tyranitarite'})
+        blocked = [dict(TEAM[0], item='Feraligite'), dict(species='Feraligatr-Mega', item=None, ability=None,
+                   nature=None, moves=[None] * 4), *TEAM[2:]]
+        with self.assertRaisesRegex(ValueError, 'no legal choice'):  # its stone is held, so no ability leaves an item
+            S.legal_completion_type(blocked, [[1, 'ability']])
+
     def test_inputs_and_instructions_are_unchanged(self):
         for trial in TRIALS:
             self.assertEqual(S.check_information(self.constrained(), trial), ['format', 'masked_team', 'opponents', 'requested_paths'])

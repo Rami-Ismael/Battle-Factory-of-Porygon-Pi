@@ -156,25 +156,36 @@ def swapped_team(team: jev_fill.Team, path: str, move: str) -> jev_fill.Team:
 
 
 def collect(grid: str) -> dict[str, int]:
-    """Append the top-pick team with the shuffled pick swapped in, for every question whose shuffled pick differs."""
+    """Append the top-pick team with the shuffled pick swapped in, for every question whose shuffled pick differs.
+
+    Each swapped team passes the Showdown check first, as every other fill does; a team that fails is counted, not appended.
+    """
     teams = {json.loads(line)['task_id']: json.loads(line)['team'] for line in jev_run.results_path(grid).read_text().splitlines()
              if json.loads(line)['run'] == 'top'}
+    tasks = {t['id']: t for t in jev_fill.tasks(grid)}
+    pipeline = jev_fill.load_pipeline()
     cpath = jev_fill.GRIDS[grid] / 'candidates.json'
     cands = json.loads(cpath.read_text())['candidates']
     have = {c['label'] for c in cands}
-    new = []
+    new, rejected = [], 0
     for r in rows(grid):
         label = f"{KIND}:{r['path']}:{r['task_id']}"
         if r['shuffled']['choice'] == r['alphabetical']['choice'] or label in have:
             continue
         team = swapped_team(teams[r['task_id']], r['path'], r['shuffled']['choice'])
+        try:
+            jev_fill.check_legal(pipeline, tasks[r['task_id']], team)
+        except ValueError as error:
+            print(f"{label}: not appended, {error}", flush=True)
+            rejected += 1
+            continue
         new.append({'label': label, 'kind': KIND, 'task_id': r['task_id'], 'source': r['source'], 'team': team,
                     'paste': jev_fill.team_paste(team)})
         have.add(label)
     if new:
         shutil.copy(cpath, cpath.with_name(f"candidates.before-{KIND}-{time.strftime('%Y%m%d-%H%M%S')}.json"))
         cpath.write_text(json.dumps({'candidates': cands + new}, indent=1) + '\n')
-    return {'questions': len(rows(grid)), 'appended': len(new), 'candidates': len(cands) + len(new)}
+    return {'questions': len(rows(grid)), 'appended': len(new), 'rejected': rejected, 'candidates': len(cands) + len(new)}
 
 
 def share(xs: list[bool]) -> float:

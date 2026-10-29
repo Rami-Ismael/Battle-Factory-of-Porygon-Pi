@@ -1,5 +1,11 @@
 """Experiment 2's shuffle: the order changes, the options do not, and the two fakes bracket the measurement."""
+import contextlib
+import io
+import json
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
 import jev_shuffle as S
 
@@ -40,6 +46,34 @@ class ShuffleTest(unittest.TestCase):
         out = S.swapped_team(team, 'team[0].moves[1]', 'Crunch')
         self.assertEqual(out[0]['moves'], ['Stone Axe', 'Crunch', 'Close Combat', 'Night Slash'])
         self.assertEqual(team[0]['moves'][1], 'X-Scissor')
+
+    def test_collect_appends_only_swapped_teams_the_showdown_check_passes(self):
+        team = [{'species': 'Kleavor', 'moves': ['Stone Axe', 'X-Scissor', 'Close Combat', 'Night Slash']}]
+        answer = lambda task, path, choice: {'task_id': task, 'source': 'MB1', 'path': path,
+                                             'alphabetical': {'choice': 'Aqua Jet'}, 'shuffled': {'choice': choice}}
+
+        def check_legal(pipeline, task, swapped):
+            if 'Hail' in swapped[0]['moves']:
+                raise ValueError('Kleavor cannot learn Hail')
+
+        with tempfile.TemporaryDirectory() as folder:
+            grid = Path(folder)
+            results = grid / 'top.jsonl'
+            results.write_text(json.dumps({'task_id': 'abc', 'run': 'top', 'team': team}) + '\n')
+            (grid / 'candidates.json').write_text(json.dumps({'candidates': []}))
+            with mock.patch.object(S.jev_run, 'results_path', return_value=results), \
+                 mock.patch.object(S, 'rows', return_value=[answer('abc', 'team[0].moves[1]', 'Crunch'),
+                                                            answer('abc', 'team[0].moves[2]', 'Hail')]), \
+                 mock.patch.dict(S.jev_fill.GRIDS, {'test': grid}), \
+                 mock.patch.object(S.jev_fill, 'tasks', return_value=[{'id': 'abc'}]), \
+                 mock.patch.object(S.jev_fill, 'load_pipeline'), \
+                 mock.patch.object(S.jev_fill, 'check_legal', side_effect=check_legal), \
+                 mock.patch.object(S.jev_fill, 'team_paste', return_value=''), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                out = S.collect('test')
+            cands = json.loads((grid / 'candidates.json').read_text())['candidates']
+        self.assertEqual((out['appended'], out['rejected']), (1, 1))
+        self.assertEqual([c['team'][0]['moves'][1] for c in cands], ['Crunch'])
 
 
 if __name__ == '__main__':

@@ -113,7 +113,9 @@ def legal_completion_type(masked_team, paths):
     The choices come from legal_options, which the Jev baseline shares: an ability or
     item is limited to the species' legal ability/item pairs given the slot's fixed
     ability or item; a move to the species' learnable moves not already in the slot;
-    an item excludes items fixed teammates hold (Item Clause); a whole slot's species
+    an item excludes items fixed teammates hold (Item Clause) and a Mega Stone another
+    hidden-item slot needs as its only item; an ability whose every legal item is taken
+    is dropped, and a path left with no choice raises ValueError; a whole slot's species
     excludes families already on the team (Species Clause). Choices that depend on
     the model's own other answers (two masked items, a whole slot's moves for the
     species it picks) are stated in descriptions, not enforced.
