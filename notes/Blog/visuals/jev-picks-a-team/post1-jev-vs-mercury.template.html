@@ -1,0 +1,118 @@
+<meta charset="utf-8">
+<title>Jev or Mercury: Finish the Team</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one portrait card (4:5, LinkedIn and X) that scales with its container; every size is in cqw so the PNG render and the page match. Same tokens as Jev Picks a Team. */
+:root{
+  --bg:#F1F3EC;--fg:#1B1F16;--muted:#5E6455;--rule:#CDD2C2;--card:#F8F9F4;--cell:#E2E6D8;
+  --jev:#A3226E;--merc:#7C6A12;--bad1:#C4561B;--bad2:#8A5A9E;--bad3:#6B7280;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#2A2D25;
+  --jev:#E27AB4;--merc:#D6C25A;--bad1:#F0935E;--bad2:#C49BD6;--bad3:#9CA3AF;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#2A2D25;
+  --jev:#E27AB4;--merc:#D6C25A;--bad1:#F0935E;--bad2:#C49BD6;--bad3:#9CA3AF;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+.wrap{max-width:1200px;margin:0 auto;container-type:inline-size}
+.card{aspect-ratio:4/5;background:var(--card);border:1px solid var(--rule);border-radius:1.2cqw;padding:4.6cqw 5.5cqw 4cqw;box-sizing:border-box;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:2.4cqw;font-family:var(--body);overflow:hidden}
+.kicker{font-family:var(--mono);font-size:2cqw;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 1.2cqw}
+h1{font-family:var(--display);font-weight:700;font-size:5cqw;line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.task{font-size:2.45cqw;line-height:1.38;color:var(--muted);margin:0;max-width:86cqw}
+.task b{color:var(--fg);font-weight:600}
+.waffles{display:grid;grid-template-columns:1fr 1fr;gap:4cqw;align-content:start}
+.wf h2{font-family:var(--display);font-size:3cqw;margin:0 0 .4cqw;display:flex;align-items:baseline;gap:1.2cqw}
+.wf h2 .who{font-family:var(--mono);font-size:2cqw;font-weight:400;color:var(--muted)}
+.wf .big{font-family:var(--display);font-weight:700;font-size:4.2cqw;line-height:1;margin:0 0 1.4cqw;font-variant-numeric:tabular-nums}
+.wf .big small{font-size:2.2cqw;font-weight:500;color:var(--muted);margin-left:.8cqw}
+.grid{display:grid;grid-template-columns:repeat(18,1fr);gap:.26cqw;width:76%}
+.grid i{aspect-ratio:1;border-radius:.25cqw;background:var(--cell)}
+.grid i.legal{background:var(--jev)}
+.grid.merc i.legal{background:var(--merc)}
+.grid i.changed{background:var(--bad1)}
+.grid i.rule{background:var(--bad2)}
+.grid i.unreadable{background:var(--bad3)}
+.why{display:grid;gap:.6cqw;margin-top:1.4cqw;font-size:2.2cqw;line-height:1.3}
+.why div{display:grid;grid-template-columns:2cqw minmax(0,1fr);gap:1cqw;align-items:start}
+.why i{width:1.6cqw;height:1.6cqw;border-radius:.3cqw;margin-top:.3cqw}
+.why b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.eg{display:flex;align-items:center;gap:1.4cqw;font-family:var(--mono);font-size:1.5cqw;color:var(--muted);margin-top:1.4cqw}
+.eg img{width:6cqw;height:6cqw;image-rendering:pixelated}
+.strength{display:grid;grid-template-columns:1fr 1fr;gap:4cqw;border-top:1px solid var(--rule);padding-top:2.6cqw}
+.strength h3{font-family:var(--display);font-size:2.6cqw;margin:0 0 1.2cqw;line-height:1.2}
+.strength h3 span{display:block;font-family:var(--body);font-weight:400;font-size:2.1cqw;color:var(--muted);margin-top:.3cqw}
+.bar{display:grid;grid-template-columns:10cqw minmax(0,1fr) 8cqw;gap:1cqw;align-items:center;margin:.7cqw 0;font-family:var(--mono);font-size:2.2cqw}
+.bar .t{height:2.4cqw;background:var(--cell);border-radius:.4cqw;overflow:hidden}
+.bar .t i{display:block;height:100%;border-radius:.4cqw}
+.bar .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;color:var(--fg)}
+.foot{font-size:2.05cqw;line-height:1.45;color:var(--muted);margin:0}
+.foot b{color:var(--fg);font-weight:600}
+.sign{display:flex;flex-wrap:wrap;gap:.6cqw 2cqw;justify-content:space-between;font-family:var(--mono);font-size:2cqw;color:var(--muted);border-top:1px solid var(--rule);padding-top:1.6cqw}
+</style>
+
+<div class="wrap">
+<div class="card" id="card">
+  <div>
+    <p class="kicker">Building in public · Pokémon team building with AI</p>
+    <h1>Can an AI finish a Pokémon team that follows the rules and is still strong?</h1>
+  </div>
+  <p class="task">I hid parts of <b>5 real tournament teams</b> in <b>270 ways</b> and asked two AI models to fill the gaps. A team is <b>legal</b> if the game's rules allow it. Every legal team then battled the <b>49 strongest teams</b> in the game.</p>
+
+  <div class="waffles">
+    <div class="wf">
+      <h2>Jev <span class="who">decision model</span></h2>
+      <p class="big" id="jevBig"></p>
+      <div class="grid" id="gJev" role="img" aria-label="270 squares, all legal, for Jev"></div>
+      <div class="why"><div><i style="background:var(--jev)"></i><span>It only picks from the legal options I list, so every team can play.</span></div></div>
+    </div>
+    <div class="wf">
+      <h2>Mercury <span class="who">language model, reasoning on</span></h2>
+      <p class="big" id="mercBig"></p>
+      <div class="grid merc" id="gMerc" role="img" aria-label="270 squares for Mercury, coloured by whether each team was legal"></div>
+      <div class="why" id="why"></div>
+    </div>
+  </div>
+
+  <div class="strength">
+    <div>
+      <h3>When both are legal: about the same<span id="sharedSub"></span></h3>
+      <div id="shared"></div>
+    </div>
+    <div>
+      <h3>Counting an illegal team as a loss<span>all 270 tasks; an illegal team scores 0</span></h3>
+      <div id="usable"></div>
+    </div>
+  </div>
+
+  <div>
+    <p class="foot"><b>Win rate</b>: battles won against the 49 strongest teams, same bot on both sides.</p>
+    <div class="sign" style="margin-top:1.2cqw"><span>Rami Ismael · Pokémon Champions VGC 2026</span><span>github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi</span></div>
+  </div>
+</div>
+</div>
+
+<script>
+if (/theme=(light|dark)/.test(location.search)) document.documentElement.dataset.theme = location.search.match(/theme=(light|dark)/)[1];   // for the PNG render
+const D = __DATA__;
+const $ = (id) => document.getElementById(id);
+$("gJev").innerHTML = Array.from({ length: D.tasks }, () => '<i class="legal"></i>').join("");
+$("gMerc").innerHTML = D.mercury.map((k) => `<i class="${k}"></i>`).join("");
+$("jevBig").innerHTML = `${D.tasks} / ${D.tasks}<small>legal teams</small>`;
+$("mercBig").innerHTML = `${D.counts.legal} / ${D.tasks}<small>legal teams</small>`;
+$("why").innerHTML = [
+  ["var(--merc)", "legal", `${D.counts.legal} legal`],
+  ["var(--bad1)", "changed", `${D.counts.changed} changed parts it was told to keep`],
+  ["var(--bad2)", "rule", `${D.counts.rule} broke a rule (e.g. a move the Pokémon can't learn)`],
+  ["var(--bad3)", "unreadable", `${D.counts.unreadable} answers weren't readable`],
+].map(([c, , t]) => `<div><i style="background:${c}"></i><span>${t.replace(/^(\d+)/, "<b>$1</b>")}</span></div>`).join("");
+$("sharedSub").textContent = `the ${D.shared.n} tasks where both were legal; gap +0.3 points, 95% interval −1.5 to +1.8`;
+const bar = (name, v, color, max = 0.6) => `<div class="bar"><span>${name}</span><span class="t"><i style="width:${(v / max) * 100}%;background:${color}"></i></span><span class="v">${(v * 100).toFixed(1)}%</span></div>`;
+$("shared").innerHTML = bar("Jev", D.shared.jev, "var(--jev)") + bar("Mercury", D.shared.mercury, "var(--merc)");
+$("usable").innerHTML = bar("Jev", D.usable.jev, "var(--jev)") + bar("Mercury", D.usable.mercury, "var(--merc)");
+</script>

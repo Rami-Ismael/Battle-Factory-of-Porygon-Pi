@@ -1,0 +1,420 @@
+<meta charset="utf-8">
+<title>Whole Pokémon Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* PROTOTYPE, throwaway: three variants of the "how Jev fills a whole Pokémon" figure, same tokens as jev-picks-a-team.html. */
+:root{
+  --bg:#EDF0F3;--fg:#141A22;--muted:#56606E;--rule:#C9D0D8;--card:#F8F9FB;--cell:#DFE4EA;
+  --jev:#3044C0;--jev-soft:#D9DEF6;--warn:#B8402B;--ok:#2B7149;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10141A;--fg:#E3E8EE;--muted:#98A3B1;--rule:#2A323C;--card:#161B22;--cell:#212832;
+  --jev:#8C9BF2;--jev-soft:#26305C;--warn:#EE8A74;--ok:#79C597;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141A;--fg:#E3E8EE;--muted:#98A3B1;--rule:#2A323C;--card:#161B22;--cell:#212832;
+  --jev:#8C9BF2;--jev-soft:#26305C;--warn:#EE8A74;--ok:#79C597;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 120px}
+.col{max-width:700px;margin:0 auto}
+.wide{max-width:1040px;margin:0 auto}
+h2{font-family:var(--display);font-weight:700;font-size:27px;line-height:1.15;margin:0 0 10px;text-wrap:balance}
+p{margin:0 0 12px}
+.cap{font-size:13.5px;color:var(--muted);line-height:1.5;margin-top:10px}
+.cap strong{color:var(--fg)}
+code,.mono{font-family:var(--mono);font-size:.82em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--jev);outline-offset:2px}
+.chip{display:inline-block;font-family:var(--mono);font-size:10.5px;border-radius:999px;padding:1px 8px;border:1px solid currentColor;vertical-align:2px;white-space:nowrap;color:var(--warn)}
+/* shared pieces */
+.team{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.mon{display:flex;flex-direction:column;align-items:center;background:var(--cell);border-radius:8px;padding:4px 2px 6px;font-family:var(--mono);font-size:11px;line-height:1.2;text-align:center;min-width:0;position:relative}
+.mon img.sp{width:56px;height:56px;image-rendering:pixelated;transition:opacity 260ms var(--ease-out),transform 260ms var(--ease-out)}
+.mon img.it{width:24px;height:24px;image-rendering:pixelated;position:absolute;right:4px;top:38px;transition:opacity 260ms var(--ease-out)}
+.mon.hidden{outline:2px dashed var(--jev);outline-offset:-2px;background:var(--jev-soft)}
+.mon .q{font-size:28px;line-height:56px;height:56px;color:var(--jev);font-family:var(--display)}
+.off{opacity:0}
+.steps{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0 0}
+.steps button{border:1px solid var(--rule);background:var(--card);transition:transform 120ms var(--ease-out),background-color 160ms ease,color 160ms ease}
+.steps button:active:not(:disabled){transform:scale(.97)}
+.steps .dot{width:26px;height:26px;border-radius:50%;font-family:var(--mono);font-size:11px;padding:0}
+.steps .dot[aria-current="step"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.steps .nav{font-family:var(--mono);font-size:12.5px;border-color:var(--fg);border-radius:999px;padding:4px 14px;background:transparent}
+.steps .nav:disabled{opacity:.35;cursor:default}
+.say{font-size:15px;margin:10px 0 0;min-height:3.2em}
+.guess{border-left:3px solid var(--jev);padding:4px 0 4px 12px;margin:0 0 16px;font-size:15.5px}
+.guess .opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.guess button{border:1px solid var(--rule);background:var(--card);border-radius:999px;padding:3px 12px;font-family:var(--mono);font-size:12.5px;transition:background-color 160ms ease,border-color 160ms ease}
+.guess button[aria-pressed="true"]{border-color:var(--fg)}
+.guess button.right{background:var(--jev-soft);border-color:var(--jev)}
+.guess .verdict{font-size:14px;color:var(--muted);margin-top:6px;min-height:1.4em}
+svg text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+svg text.lab{fill:var(--fg)}
+.chartbox{max-width:560px}
+.mon span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:520px){.mon span{font-size:9px}}
+.variant[hidden]{display:none}
+/* A */
+.a-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;margin-top:14px;align-items:start}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;min-width:0}
+.card .lbl{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.f{background:var(--cell);border-radius:6px;padding:4px 8px;min-width:0;transition:background-color 200ms ease}
+.f .k{font-family:var(--mono);font-size:10.5px;color:var(--muted);display:block}
+.f .v{font-size:14px;display:block;overflow-wrap:anywhere;min-height:1.4em}
+.f.now{background:var(--jev-soft)}
+.f.wide{grid-column:1/-1}
+.q-text{font-size:15.5px;margin:0 0 8px}
+.opts{display:flex;flex-wrap:wrap;gap:5px}
+.opt{font-family:var(--mono);font-size:12px;border:1px solid var(--rule);border-radius:6px;padding:2px 8px;background:var(--bg);transition:opacity 220ms var(--ease-out),transform 220ms var(--ease-out),border-color 160ms ease,background-color 160ms ease}
+.opt.in{opacity:0;transform:translateY(6px)}
+.opt.pick{border-color:var(--jev);background:var(--jev-soft);color:var(--fg);font-weight:600}
+.opt.more{border-style:dashed;color:var(--muted)}
+.count{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px}
+.mb{display:block;width:100%;max-width:360px;height:auto;margin-top:10px;transition:opacity 260ms var(--ease-out)}
+.mb .dots circle{transition:fill 200ms ease,opacity 260ms var(--ease-out)}
+.mb .step{transition:opacity 260ms var(--ease-out)}
+/* C */
+.c-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;margin-top:14px;align-items:start}
+.env{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:12px;line-height:1.5;transition:opacity 260ms var(--ease-out),transform 320ms var(--ease-out)}
+.env.in{opacity:0;transform:translateY(14px)}
+.env .key{color:var(--muted)}
+.env .val{color:var(--fg)}
+.env .mini{display:flex;gap:2px;margin:4px 0}
+.env .mini span{display:flex;flex-direction:column;align-items:center;background:var(--cell);border-radius:5px;padding:1px 2px;position:relative}
+.env .mini img{width:32px;height:32px;image-rendering:pixelated}
+.env .mini span.hid{outline:1.5px dashed var(--jev);outline-offset:-1.5px}
+.env .mini em{font-style:normal;font-size:9.5px;color:var(--jev)}
+.tok{position:relative;height:12px;background:var(--cell);border-radius:6px;margin-top:6px;overflow:hidden}
+.tok i{position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--jev);border-radius:6px;transform-origin:left center;transition:transform 380ms var(--ease-out)}
+/* picker */
+.picker{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:4px;align-items:center;background:var(--fg);color:var(--bg);border-radius:999px;padding:5px 6px 5px 14px;font-family:var(--mono);font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:5;max-width:calc(100vw - 32px);overflow-x:auto;white-space:nowrap}
+.picker button{white-space:nowrap;border:0;background:transparent;color:var(--bg);border-radius:999px;padding:5px 12px;font-family:var(--mono);font-size:12px;transition:background-color 160ms ease}
+.picker button[aria-pressed="true"]{background:var(--bg);color:var(--fg)}
+@media (max-width:760px){.a-grid,.c-grid{grid-template-columns:minmax(0,1fr)}.mon img.sp{width:44px;height:44px}.mon .q{height:44px;line-height:44px}.mon img.it{top:28px;width:20px;height:20px}}
+@media (prefers-reduced-motion:reduce){.opt.in,.env.in{transform:none}.mon img.sp,.opt,.env,.tok i{transition-property:opacity}}
+</style>
+
+<div class="col">
+  <h2>How Jev fills a whole Pokémon</h2>
+  <p>When a whole Pokémon is hidden, Jev fills it one question at a time. The species comes first, through a tournament because there are more species than one question allows. Then come its ability, item, four moves, Stat Alignment and Stat Points, and each question sees every earlier answer.</p>
+</div>
+<div class="wide">
+  <section class="variant" id="vA" data-name="A · Fill the slot"></section>
+  <section class="variant" id="vB" data-name="B · The bracket" hidden></section>
+  <section class="variant" id="vC" data-name="C · The requests" hidden></section>
+</div>
+<nav class="picker" aria-label="Prototype variants"><span>prototype</span></nav>
+
+<script>
+const DATA = /*DATA*/null;
+</script>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const Q = DATA.trace.questions, TEAM = DATA.trace.team, HID = DATA.trace.hidden_slot;
+const SP = (n) => DATA.species[n] || '', IT = (n) => DATA.items[n] || '';
+const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) { if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); } if (parent) parent.appendChild(e); return e; };
+const FIELD_NAMES = { species: 'Species', ability: 'Ability', item: 'Item', moves: 'Move', nature: 'Stat Alignment', statPoints: 'Stat Points' };
+const label = (q) => q.field[0] === 'moves' ? `Move ${q.field[1] + 1}` : FIELD_NAMES[q.field[0]] + (q.round ? ` · ${q.round}` : '');
+const spreadText = (s) => Object.entries(s).filter(([, v]) => v).map(([k, v]) => `${v} ${k}`).join(' / ');
+const FILLED = DATA.trace.filled;
+const fieldValue = (key) => {
+	if (key === 'statPoints') return spreadText(FILLED.statPoints);
+	if (key.startsWith('moves')) return FILLED.moves[+key.slice(5)];
+	return FILLED[key];
+};
+const FIELD_KEYS = ['species', 'ability', 'item', 'moves0', 'moves1', 'moves2', 'moves3', 'nature', 'statPoints'];
+const short = (q) => q.round ? (q.round === 'final' ? 'Species final' : `Species ${q.round.split(' ')[1]}/${q.round.split(' ')[3]}`) : label(q);
+const keyOf = (q) => q.field[0] === 'moves' ? 'moves' + q.field[1] : q.field[0];
+
+function stepper(root, n, render, labels) {
+	let at = n - 1;
+	const back = h('button', 'nav', 'Back'), next = h('button', 'nav', 'Next');
+	back.type = next.type = 'button';
+	const dots = [...Array(n)].map((_, k) => { const d = h('button', 'dot', String(k + 1)); d.type = 'button'; d.setAttribute('aria-label', labels ? labels[k] : 'Step ' + (k + 1)); d.onclick = () => go(k); return d; });
+	root.append(back, ...dots, next);
+	back.onclick = () => go(at - 1); next.onclick = () => go(at + 1);
+	function go(k, first) {
+		if (k < 0 || k >= n) return;
+		const from = first ? k : at; at = k;
+		dots.forEach((d, i) => i === k ? d.setAttribute('aria-current', 'step') : d.removeAttribute('aria-current'));
+		back.disabled = k === 0; next.disabled = k === n - 1;
+		render(k, from);
+	}
+	go(at, true);
+}
+
+function guess(root, prompt, options, answer, explain) {
+	const box = h('div', 'guess', `<strong>Guess first.</strong> ${prompt}<div class="opts"></div><div class="verdict" aria-live="polite"></div>`);
+	const opts = box.querySelector('.opts'), verdict = box.querySelector('.verdict');
+	options.forEach((o) => {
+		const b = h('button', '', o); b.type = 'button';
+		b.onclick = () => {
+			[...opts.children].forEach((c) => { c.setAttribute('aria-pressed', String(c === b)); c.classList.toggle('right', c.textContent === answer); });
+			verdict.textContent = (o === answer ? 'Right. ' : `It's ${answer}. `) + explain;
+		};
+		opts.appendChild(b);
+	});
+	root.appendChild(box);
+}
+
+function teamStrip(withHidden) {
+	const strip = h('div', 'team');
+	TEAM.forEach((m, i) => {
+		const d = h('div', 'mon' + (i === HID ? ' hidden' : ''));
+		if (i === HID && withHidden) {
+			d.innerHTML = `<span class="q" data-q>?</span><img class="sp off" src="${SP(m.species)}" alt="${m.species}"><img class="it off" src="${IT(m.item)}" alt=""><span data-name>slot ${i + 1}</span>`;
+			d.querySelector('img.sp').style.position = 'absolute'; d.querySelector('img.sp').style.top = '4px';
+		} else {
+			d.innerHTML = `<img class="sp" src="${SP(m.species)}" alt="${m.species}"><img class="it" src="${IT(m.item)}" alt=""><span>${m.species}</span>`;
+		}
+		strip.appendChild(d);
+	});
+	return strip;
+}
+
+function travel(fromEl, toEl, ms = 440) {
+	if (REDUCE || !fromEl || !toEl) return;
+	const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
+	toEl.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)`, opacity: 0.6 }, { transform: 'translate(0,0)', opacity: 1 }],
+		{ duration: ms, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' });
+}
+
+function optionsChart(svg, current, from = current) {
+	// One bar per question: how many options it offered (log scale), from whole-pokemon-trace.json.
+	const W = 420, rh = 19, L = 104, R = 40, T = 6, H = T + Q.length * rh + 30;
+	svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = '';
+	const X = (v) => L + Math.log10(v) / Math.log10(400) * (W - L - R);
+	[1, 10, 100].forEach((t) => { el('line', { x1: X(t), x2: X(t), y1: T, y2: T + Q.length * rh, style: 'stroke:var(--rule)' }, svg); el('text', { x: X(t), y: T + Q.length * rh + 14, 'text-anchor': 'middle', text: t }, svg); });
+	el('text', { x: (L + W - R) / 2, y: H - 2, 'text-anchor': 'middle', class: 'lab', text: 'options offered (log scale)' }, svg);
+	Q.forEach((q, i) => {
+		const y = T + i * rh;
+		const on = i >= from && i <= current;
+		el('text', { x: L - 8, y: y + 13, 'text-anchor': 'end', class: on ? 'lab' : '', text: short(q) }, svg);
+		const bar = el('rect', { x: L, y: y + 4, width: Math.max(2, X(q.options) - L), height: rh - 8, rx: 3, style: `fill:${on ? 'var(--jev)' : 'var(--muted)'};fill-opacity:${on ? 1 : .45}` }, svg);
+		el('text', { x: X(q.options) + 5, y: y + 13, class: 'lab', text: q.options }, svg);
+		if (!REDUCE) bar.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 380, delay: i * 30, easing: 'cubic-bezier(0.23,1,0.32,1)', fill: 'backwards' }).effect.target.style.transformOrigin = `${L}px 0`;
+	});
+}
+
+/* ---------------- the species tournament, drawn inside variant A's slot card ---------------- */
+// stage 0: group 1 is being asked · 1: group 2 is being asked · 2: the final is being asked · 3: the species is decided
+function miniBracket(parent) {
+	const sizes = Q.find((q) => q.groups).groups, W = 360, H = 132, gap = 4.4;
+	const svg = el('svg', { class: 'mb', viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Species tournament' }, parent);
+	const grid = (n, x0, y0) => {
+		const g = el('g', { class: 'dots' }, svg);
+		for (let i = 0; i < n; i++) el('circle', { cx: x0 + (i % 13) * gap, cy: y0 + Math.floor(i / 13) * gap, r: 1.6 }, g);
+		return g;
+	};
+	const g1 = grid(sizes[0], 4, 14), g2 = grid(sizes[1], 4, 76);
+	el('text', { x: 68, y: 22, text: `group 1 · ${sizes[0]}` }, svg);
+	el('text', { x: 68, y: 84, text: `group 2 · ${sizes[1]}` }, svg);
+	const step = (stage) => el('g', { class: 'step', 'data-stage': stage }, svg);
+	const w1 = step(1), w2 = step(2), fin = step(2), champ = step(3);
+	el('image', { href: SP(Q[0].pick), x: 160, y: 4, width: 44, height: 44, style: 'image-rendering:pixelated' }, w1);
+	el('text', { x: 182, y: 58, 'text-anchor': 'middle', class: 'lab', text: Q[0].pick }, w1);
+	el('image', { href: SP(Q[1].pick), x: 160, y: 66, width: 44, height: 44, style: 'image-rendering:pixelated' }, w2);
+	el('text', { x: 182, y: 120, 'text-anchor': 'middle', class: 'lab', text: Q[1].pick }, w2);
+	el('path', { d: 'M206,26 H222 V88 H206 M222,57 H240', style: 'fill:none;stroke:var(--fg);stroke-width:1.4' }, fin);
+	el('image', { href: SP(Q[2].pick), x: 244, y: 26, width: 60, height: 60, style: 'image-rendering:pixelated' }, champ);
+	el('text', { x: 274, y: 100, 'text-anchor': 'middle', class: 'lab', text: `final: ${Q[2].pick}` }, champ);
+	const loser = Q[2].pick === Q[0].pick ? w2 : w1;
+	return {
+		winner: (round) => (round.startsWith('group 1') ? w1 : w2).querySelector('image'),
+		show({ stage, dim }) {
+			svg.style.opacity = dim ? 0.45 : 1;
+			[[g1, 0], [g2, 1]].forEach(([g, n]) => g.querySelectorAll('circle').forEach((c) => {
+				c.style.fill = stage === n ? 'var(--jev)' : 'var(--muted)';
+				c.style.opacity = stage > n ? 0.2 : 1;
+			}));
+			[w1, w2, fin, champ].forEach((g) => g.style.opacity = stage >= +g.dataset.stage ? 1 : 0);
+			loser.style.opacity = stage >= 3 ? 0.35 : loser.style.opacity;
+		},
+	};
+}
+
+// Which part of the tournament the bracket shows at question k (0-based, Q[k] is the question).
+// Return { stage, dim }: stage as listed above miniBracket, dim true to fade the whole bracket.
+function bracketView(k) {
+	// TODO(human): map question k to the bracket's stage and decide what the bracket does once the species is chosen.
+	return { stage: 3, dim: false };
+}
+
+/* ---------------- A · Fill the slot ---------------- */
+function buildA(root) {
+	root.innerHTML = '';
+	guess(root, 'Which of these questions offers Jev the most options?', ['Species group', 'Item', 'Move 1', 'Stat Points'], 'Species group',
+		`Each tournament group holds ${Q[0].options} species; the item question offers ${Q.find((q) => q.field[0] === 'item').options}.`);
+	root.appendChild(teamStrip(true));
+	const grid = h('div', 'a-grid');
+	const slot = h('div', 'card'); slot.innerHTML = `<div class="lbl">slot ${HID + 1} · the hidden Pokémon</div><div class="fields"></div>`;
+	const fields = slot.querySelector('.fields');
+	const bracket = miniBracket(slot);
+	const F = {};
+	FIELD_KEYS.forEach((k) => {
+		const name = k.startsWith('moves') ? `Move ${+k.slice(5) + 1}` : FIELD_NAMES[k];
+		const f = h('div', 'f' + (k === 'statPoints' ? ' wide' : ''), `<span class="k">${name}</span><span class="v">?</span>`);
+		fields.appendChild(f); F[k] = f;
+	});
+	const ask = h('div', 'card'); ask.innerHTML = '<div class="lbl"></div><p class="q-text"></p><div class="opts"></div><div class="count"></div>';
+	grid.append(slot, ask); root.appendChild(grid);
+	const svgWrap = h('div', 'chartbox'); svgWrap.style.marginTop = '14px';
+	const svg = el('svg', { role: 'img', 'aria-label': 'Options offered per question' }, svgWrap); svg.style.width = '100%';
+	const steps = h('div', 'steps'), say = h('p', 'say'); say.setAttribute('aria-live', 'polite');
+	root.append(steps, say, svgWrap);
+	root.insertAdjacentHTML('beforeend', `<p class="cap"><strong>Figure A.</strong> One real whole-Pokémon mask from the meta grid (starting team ${DATA.trace.source}, slot ${HID + 1} hidden), run through the real prompt builder. Option counts and order come from <code>whole-pokemon-trace.json</code>. The picks are scripted, not Jev's: Jev has not been called yet. <span class="chip">picks scripted</span></p>`);
+	const hidden = root.querySelector('.mon.hidden');
+	stepper(steps, Q.length, (k, from) => {
+		const q = Q[k], forward = k === from + 1;
+		ask.querySelector('.lbl').textContent = `question ${k + 1} of ${Q.length} · ${label(q)}`;
+		ask.querySelector('.q-text').textContent = q.instructions;
+		ask.querySelector('.count').textContent = `${q.options} options · about ${Math.round(q.tokens / 1000)}k tokens with the meta teams`;
+		const opts = ask.querySelector('.opts'); opts.innerHTML = '';
+		const shown = q.sample_options.includes(q.pick) ? q.sample_options : [q.pick, ...q.sample_options.slice(0, 5)];
+		let pickEl = null;
+		shown.forEach((o, i) => {
+			const c = h('span', 'opt' + (forward ? ' in' : '') + (o === q.pick ? ' pick' : ''), q.field[0] === 'statPoints' ? o : o);
+			if (o === q.pick) pickEl = c;
+			c.style.transitionDelay = forward ? i * 40 + 'ms' : '0ms';
+			opts.appendChild(c);
+		});
+		if (q.options > shown.length) opts.appendChild(h('span', 'opt more', `+${q.options - shown.length} more`));
+		requestAnimationFrame(() => opts.querySelectorAll('.opt.in').forEach((c) => c.classList.remove('in')));
+		// fields known after this question
+		const known = new Set(Q.slice(0, k + 1).filter((x) => !x.round || x.round === 'final').map(keyOf));
+		FIELD_KEYS.forEach((key) => { F[key].querySelector('.v').textContent = known.has(key) ? fieldValue(key) : '?'; F[key].classList.toggle('now', key === keyOf(q) && (!q.round || q.round === 'final')); });
+		bracket.show(bracketView(k));
+		const speciesKnown = known.has('species');
+		hidden.querySelector('img.sp').classList.toggle('off', !speciesKnown);
+		hidden.querySelector('img.it').classList.toggle('off', !known.has('item'));
+		hidden.querySelector('[data-q]').classList.toggle('off', speciesKnown);
+		hidden.querySelector('[data-name]').textContent = speciesKnown ? FILLED.species : `slot ${HID + 1}`;
+		const target = (!q.round || q.round === 'final') ? F[keyOf(q)].querySelector('.v') : bracket.winner(q.round);
+		if (forward) setTimeout(() => travel(pickEl, target), REDUCE ? 0 : 220);
+		say.textContent = q.round && q.round.startsWith('group') ? `Group ${q.round.split(' ')[1]}: ${q.options} species, picked at random, in one question. Its winner waits for the final.`
+			: q.round === 'final' ? 'The final offers only the group winners. Its pick becomes the species, and every later question is built for it.'
+			: `Built for ${FILLED.species} with everything chosen so far: ${q.options} legal options.`;
+		optionsChart(svg, k);
+	});
+}
+
+/* ---------------- B · The bracket ---------------- */
+function buildB(root) {
+	root.innerHTML = '';
+	const total = Q[0].groups ? Q[0].groups.reduce((a, b) => a + b, 0) : Q.find((q) => q.groups).groups.reduce((a, b) => a + b, 0);
+	const sizes = Q.find((q) => q.groups).groups;
+	guess(root, `There are ${total} species this slot could hold, and one question allows 255 options. How many questions does Jev answer to pick the species?`, ['1', '2', '3', '4'], '3',
+		`Two group questions of ${sizes.join(' and ')} species, then a final between the two winners.`);
+	root.appendChild(teamStrip(false));
+	const W = 640, H = 300;
+	const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Species tournament' }); svg.style.width = '100%'; svg.style.marginTop = '12px';
+	root.appendChild(svg);
+	const cols = 26, gap = 9.2, r = 3.2;
+	const home = (i) => [24 + (i % cols) * gap, 40 + Math.floor(i / cols) * gap];
+	const groupPos = (i) => { const g = i < sizes[0] ? 0 : 1, j = g ? i - sizes[0] : i, c = 13; return [300 + (j % c) * gap, (g ? 168 : 30) + Math.floor(j / c) * gap]; };
+	const order = [...Array(total).keys()].sort(() => 0).map((i) => (i * 97) % total);   // fixed shuffle, same every load
+	const dots = [...Array(total)].map((_, i) => el('circle', { cx: 0, cy: 0, r, style: 'fill:var(--muted);transition:transform 520ms var(--ease-in-out),opacity 300ms var(--ease-out)' }, svg));
+	const label1 = el('text', { x: 24, y: 24, class: 'lab', text: `${total} legal species` }, svg);
+	const gl = [el('text', { x: 300, y: 22, class: 'lab', text: `group 1 · ${sizes[0]}` }, svg), el('text', { x: 300, y: 160, class: 'lab', text: `group 2 · ${sizes[1]}` }, svg)];
+	const winA = el('image', { href: SP(Q[0].pick), x: 450, y: 34, width: 56, height: 56, style: 'image-rendering:pixelated;transition:opacity 300ms var(--ease-out),transform 520ms var(--ease-in-out)' }, svg);
+	const winB = el('image', { href: SP(Q[1].pick), x: 450, y: 172, width: 56, height: 56, style: 'image-rendering:pixelated;transition:opacity 300ms var(--ease-out),transform 520ms var(--ease-in-out)' }, svg);
+	const wl = [el('text', { x: 478, y: 102, 'text-anchor': 'middle', class: 'lab', text: Q[0].pick }, svg), el('text', { x: 478, y: 240, 'text-anchor': 'middle', class: 'lab', text: Q[1].pick }, svg)];
+	const champ = el('image', { href: SP(Q[2].pick), x: 560, y: 98, width: 72, height: 72, style: 'image-rendering:pixelated;transition:opacity 300ms var(--ease-out)' }, svg);
+	const cl = el('text', { x: 636, y: 186, 'text-anchor': 'end', class: 'lab', text: `final: ${Q[2].pick}` }, svg);
+	const bracket = el('path', { d: 'M506,62 H530 V200 H506 M530,131 H556', style: 'fill:none;stroke:var(--fg);stroke-width:1.5;transition:opacity 300ms var(--ease-out)' }, svg);
+	const chartWrap = h('div', 'chartbox'); chartWrap.style.marginTop = '8px';
+	const chart = el('svg', { role: 'img', 'aria-label': 'Options offered per question' }, chartWrap); chart.style.width = '100%';
+	const steps = h('div', 'steps'), say = h('p', 'say'); say.setAttribute('aria-live', 'polite');
+	root.append(steps, say, chartWrap);
+	root.insertAdjacentHTML('beforeend', `<p class="cap"><strong>Figure B.</strong> The species tournament for one real whole-Pokémon mask on the meta grid (${DATA.trace.source}, slot ${HID + 1}): group sizes and option counts from <code>whole-pokemon-trace.json</code>. One dot per legal species. The winners are scripted picks; Jev has not been called yet. <span class="chip">picks scripted</span></p>`);
+	const set = (node, on) => node.style.opacity = on ? 1 : 0;
+	stepper(steps, 5, (k) => {
+		dots.forEach((d, i) => {
+			const [x, y] = k === 0 ? home(i) : groupPos(order[i]);
+			d.style.transform = `translate(${x}px, ${y}px)`;
+			d.style.opacity = k >= 2 ? 0.18 : 1;
+		});
+		set(label1, k === 0); gl.forEach((t) => set(t, k >= 1));
+		set(winA, k >= 2); set(winB, k >= 2); wl.forEach((t) => set(t, k >= 2));
+		set(bracket, k >= 3); set(champ, k >= 3); set(cl, k >= 3);
+		winB.style.opacity = k >= 3 ? (Q[2].pick === Q[1].pick ? 1 : 0.35) : (k >= 2 ? 1 : 0);
+		winA.style.opacity = k >= 3 ? (Q[2].pick === Q[0].pick ? 1 : 0.35) : (k >= 2 ? 1 : 0);
+		chartWrap.style.opacity = k >= 4 ? 1 : 0.25;
+		say.textContent = ['Every species this slot could legally hold. That is more than one question allows.',
+			`Split at random into two groups that each fit: ${sizes.join(' and ')}.`,
+			'One question per group. Each group gives one winner.',
+			'A final between the two winners picks the species.',
+			'Then the slot\'s other eight questions follow, each built for the species just picked. Below: how many options each question offered.'][k];
+		optionsChart(chart, k >= 4 ? Q.length - 1 : -1, 3);
+	}, ['All species', 'Split', 'Group winners', 'Final', 'The rest of the slot']);
+}
+
+/* ---------------- C · The requests ---------------- */
+function buildC(root) {
+	root.innerHTML = '';
+	const biggest = Q.reduce((a, q) => q.tokens > a.tokens ? q : a, Q[0]);
+	guess(root, 'Every question carries the top-50 meta teams. Which request is the largest?', ['A species group', 'The item', 'A move', 'Stat Points'], 'A species group',
+		`A species group question is about ${Math.round(biggest.tokens / 1000)}k tokens, under Jev's 32k limit.`);
+	const grid = h('div', 'c-grid');
+	const envWrap = h('div'); const side = h('div', 'card');
+	side.innerHTML = '<div class="lbl">tokens per request · limit 32k</div>';
+	const chart = el('svg', { role: 'img', 'aria-label': 'Tokens per request' }, side); chart.style.width = '100%';
+	grid.append(envWrap, side); root.appendChild(grid);
+	const steps = h('div', 'steps'); root.appendChild(steps);
+	root.insertAdjacentHTML('beforeend', `<p class="cap"><strong>Figure C.</strong> The eleven requests for one real whole-Pokémon mask on the meta grid (${DATA.trace.source}, slot ${HID + 1}). Token counts are the prompt builder's estimate (3 characters per token, deliberately high), from <code>whole-pokemon-trace.json</code>. The picks are scripted; Jev has not been called yet. <span class="chip">picks scripted</span></p>`);
+	function tokensChart(current) {
+		const W = 360, rh = 18, L = 96, R = 34, T = 6, H = T + Q.length * rh + 26, lim = 32000;
+		chart.setAttribute('viewBox', `0 0 ${W} ${H}`); chart.innerHTML = '';
+		const X = (v) => L + v / lim * (W - L - R);
+		el('line', { x1: X(lim), x2: X(lim), y1: T, y2: T + Q.length * rh, style: 'stroke:var(--warn);stroke-dasharray:4 3' }, chart);
+		el('text', { x: X(lim), y: T + Q.length * rh + 14, 'text-anchor': 'end', class: 'lab', text: '32k limit' }, chart);
+		el('text', { x: L, y: T + Q.length * rh + 14, text: '0' }, chart);
+		Q.forEach((q, i) => {
+			const y = T + i * rh;
+			el('text', { x: L - 6, y: y + 12, 'text-anchor': 'end', class: i === current ? 'lab' : '', text: short(q) }, chart);
+			el('rect', { x: L, y: y + 3, width: X(q.tokens) - L, height: rh - 7, rx: 3, style: `fill:${i === current ? 'var(--jev)' : 'var(--muted)'};fill-opacity:${i <= current ? (i === current ? 1 : .45) : .12}` }, chart);
+			if (i === current) el('text', { x: X(q.tokens) + 4, y: y + 12, class: 'lab', text: Math.round(q.tokens / 1000) + 'k' }, chart);
+		});
+	}
+	stepper(steps, Q.length, (k, from) => {
+		const q = Q[k];
+		const known = new Set(Q.slice(0, k).filter((x) => !x.round || x.round === 'final').map(keyOf));
+		const env = h('div', 'env' + (k === from + 1 ? ' in' : ''));
+		const mini = TEAM.map((m, i) => i === HID
+			? `<span class="hid">${known.has('species') ? `<img src="${SP(FILLED.species)}" alt="">` : '<img alt="" style="visibility:hidden">'}<em>${known.size} of 9</em></span>`
+			: `<span><img src="${SP(m.species)}" alt="${m.species}"></span>`).join('');
+		env.innerHTML = `<div><span class="key">state.meta</span> <span class="val">50 teams</span></div>
+			<div><span class="key">state.team</span></div><div class="mini">${mini}</div>
+			<div><span class="key">asking_about</span> <span class="val">${q.path}</span></div>
+			<div><span class="key">instructions</span> <span class="val">${q.instructions}</span></div>
+			<div><span class="key">criteria</span> <span class="val">${q.options} options${q.round ? ' · ' + q.round : ''}</span></div>
+			<div><span class="key">answer</span> <span class="val">${q.pick}</span></div>
+			<div class="tok"><i style="transform:scaleX(0)"></i></div>`;
+		envWrap.innerHTML = ''; envWrap.appendChild(env);
+		requestAnimationFrame(() => { env.classList.remove('in'); env.querySelector('.tok i').style.transform = `scaleX(${q.tokens / 32000})`; });
+		tokensChart(k);
+	});
+}
+
+/* ---------------- picker ---------------- */
+const want = 'v' + (new URLSearchParams(location.search).get('variant') || 'A');
+if (document.getElementById(want)) document.querySelectorAll('.variant').forEach((x) => x.hidden = x.id !== want);
+const builders = { vA: buildA, vB: buildB, vC: buildC };
+const picker = document.querySelector('.picker');
+document.querySelectorAll('.variant').forEach((v) => {
+	builders[v.id](v);
+	const b = h('button', '', v.dataset.name); b.type = 'button'; b.setAttribute('aria-pressed', String(!v.hidden));
+	b.onclick = () => { document.querySelectorAll('.variant').forEach((x) => x.hidden = x !== v); [...picker.querySelectorAll('button')].forEach((x) => x.setAttribute('aria-pressed', String(x === b))); builders[v.id](v); };
+	picker.appendChild(b);
+});
+</script>

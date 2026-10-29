@@ -1,0 +1,302 @@
+<meta charset="utf-8">
+<title>Shuffling Jev's Move List</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: a paper's figure sequence in one 760px column; each figure is a bordered plate with its number and an italic caption under it. Sister page to Jev Picks a Team, same tokens. */
+:root{
+  --bg:#F1F3EC;--fg:#1B1F16;--muted:#5E6455;--rule:#CDD2C2;--card:#F8F9F4;--cell:#E2E6D8;
+  --jev:#A3226E;--jev-soft:#F4D8E7;--base:#7C6A12;--base-soft:#EFE7C2;--warn:#C4561B;--warn-soft:#F6DCCB;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--jev-soft:#4A1F38;--base:#D6C25A;--base-soft:#3A3416;--warn:#F0935E;--warn-soft:#4A2A1A;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--jev-soft:#4A1F38;--base:#D6C25A;--base-soft:#3A3416;--warn:#F0935E;--warn-soft:#4A2A1A;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 72px}
+.col{max-width:760px;margin:0 auto}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,6vw,50px);line-height:1;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.2;margin:52px 0 8px;text-wrap:balance}
+p{margin:0 0 12px}
+a{color:var(--jev)}
+code,.mono{font-family:var(--mono);font-size:.82em}
+:focus-visible{outline:2px solid var(--jev);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.dek{color:var(--muted);font-size:19px}
+.plate{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:16px;margin:16px 0 8px;min-width:0}
+.plate svg{width:100%;height:auto;display:block}
+.plate svg text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.plate svg text.v{fill:var(--fg);font-weight:600}
+.plate svg text.t{font-family:var(--display);font-size:13px;font-weight:700;fill:var(--fg)}
+figcaption{font-style:italic;font-size:14.5px;color:var(--muted);line-height:1.5;margin:0 2px 8px}
+figcaption b{font-style:normal;font-family:var(--display);color:var(--fg)}
+figure{margin:0}
+.panel-lbl{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px}
+/* figure 1 */
+.team{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.mon{display:flex;flex-direction:column;align-items:center;border:1px solid var(--rule);border-radius:6px;padding:4px 2px;background:var(--bg);min-width:0}
+.mon img{width:100%;max-width:56px;aspect-ratio:1;image-rendering:pixelated}
+.mon span{font-family:var(--mono);font-size:10px;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mon.asked{border:2px solid var(--jev);background:var(--jev-soft)}
+.mon.asked span{color:var(--fg);font-weight:600}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:560px){.two{grid-template-columns:minmax(0,1fr)}}
+.opts{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start}
+.opt{font-family:var(--mono);font-size:10.5px;padding:1px 5px;border-radius:4px;background:var(--cell);color:var(--muted);white-space:nowrap}
+.opt i{font-style:normal;opacity:.6;margin-right:3px}
+.opt.pick{background:var(--jev);color:var(--bg);font-weight:600}
+.opt.other{outline:1.5px solid var(--jev);color:var(--fg)}
+.probs{display:grid;gap:3px;margin-top:10px}
+.pr{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr) 3.2em;gap:6px;align-items:center;font-family:var(--mono);font-size:11px}
+.pr .bar{height:9px;background:var(--cell);border-radius:3px;overflow:hidden}
+.pr .bar i{display:block;height:100%;background:var(--muted);border-radius:3px}
+.pr.pick .bar i{background:var(--jev)}
+.pr.pick{color:var(--fg);font-weight:600}
+.pr .n{text-align:right}
+/* figure 2 */
+.flow{display:grid;gap:8px}
+.step{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.step .k{font-family:var(--display);font-weight:700;font-size:15px;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--fg);display:flex;align-items:center;justify-content:center}
+.step .box{border:1px solid var(--rule);border-radius:6px;padding:8px 10px;background:var(--bg);font-size:15px}
+.step .box b{font-family:var(--display)}
+.fork{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+@media (max-width:560px){.fork{grid-template-columns:minmax(0,1fr)}}
+.fork div{border-radius:6px;padding:7px 9px;font-size:14px}
+.fork .noise{background:var(--cell)}
+.fork .order{background:var(--jev-soft)}
+/* figure 4 guess */
+.guess{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px;font-size:15px}
+.guess input[type=range]{flex:1 1 180px;accent-color:var(--jev)}
+.guess output{font-family:var(--display);font-weight:700;font-size:22px;min-width:3.2em;font-variant-numeric:tabular-nums}
+.guess button{font-family:var(--mono);font-size:12.5px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);border-radius:999px;padding:5px 14px;cursor:pointer}
+.guess button:disabled{opacity:.45;cursor:default}
+.verdict{font-size:15px;min-height:1.6em}
+/* figure 5 */
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.slots div{font-family:var(--mono);font-size:11.5px;text-align:center;padding:6px 3px;border:1px solid var(--rule);border-radius:5px;background:var(--bg);overflow-wrap:anywhere}
+.slots .hit{border:2px solid var(--jev);background:var(--jev-soft);color:var(--fg);font-weight:600}
+.slots .dup{border:2px solid var(--warn);background:var(--warn-soft);color:var(--fg);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px}
+.foot{margin-top:44px;font-size:13.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="col">
+  <p class="eyebrow">Jev decision-model baseline · experiment 2 · ticket 10</p>
+  <h1>Shuffling Jev's Move List</h1>
+  <p class="dek">Jev picks a move from a list. Does the order of that list change which move it picks? Seven figures from the run of 2026-10-27, every number taken from it.</p>
+
+  <h2>One question, two orders</h2>
+  <p>Every question in the experiment looks like this one: a held-out team with one move hidden, and every legal move offered as an option. The same options go to Jev twice, in alphabetical order and in a shuffled order.</p>
+  <figure>
+    <div class="plate" id="f1"></div>
+    <figcaption id="f1cap"></figcaption>
+  </figure>
+
+  <h2>How the experiment separates order from noise</h2>
+  <p>Jev does not always give the same answer twice. So a changed pick under shuffling means something only next to how often the pick changes with no shuffle at all.</p>
+  <figure>
+    <div class="plate"><div class="flow" id="f2"></div></div>
+    <figcaption><b>Figure 2.</b> The design. The main run already asked every question in alphabetical order, so asking it again in that order measures Jev's own noise. Both new questions travel in one request and see the same team, so the only difference between them is the order.</figcaption>
+  </figure>
+
+  <h2>Checking the measurement before spending</h2>
+  <p>Two fake choosers run on the same 300 real questions per grid, with no calls to Jev. One always takes the first option; the other always takes the same move by name. They mark the two ends of the scale, so Jev's number can be read against them.</p>
+  <figure>
+    <div class="plate"><svg id="f3" role="img" aria-label="Pick-change rate of the two fake choosers, Jev's noise, and Jev under shuffling"></svg></div>
+    <figcaption id="f3cap"></figcaption>
+  </figure>
+
+  <h2>How often the order changes the pick</h2>
+  <figure>
+    <div class="plate">
+      <div class="guess" id="guess">
+        <label for="g">Guess first: on held-out teams, shuffling changes Jev's pick on</label>
+        <input type="range" id="g" min="0" max="50" value="20" step="1">
+        <output id="gv" for="g">20%</output>
+        <button type="button" id="reveal">Reveal</button>
+      </div>
+      <p class="verdict" id="verdict" aria-live="polite"></p>
+      <svg id="f4" role="img" aria-label="Pick-change rates with 95% intervals, asked again against shuffled, per grid"></svg>
+      <div class="legend"><span><i style="background:var(--jev)"></i>a different move</span><span><i style="background:var(--muted);opacity:.55"></i>the same moves, another slot</span><span><i style="border:1.5px solid var(--fg);width:10px;height:0;border-radius:0"></i>95% interval of the total</span></div>
+    </div>
+    <figcaption id="f4cap"></figcaption>
+  </figure>
+
+  <h2>Half the changes are the same four moves in a new order</h2>
+  <p>A changed pick is not always a new move. Often Jev, shown the shuffled list, picks a move it already chose for another slot of the same Pokémon. The moveset is the same; only the slot changed.</p>
+  <figure>
+    <div class="plate" id="f5"></div>
+    <figcaption id="f5cap"></figcaption>
+  </figure>
+
+  <h2>No pull toward the top of the list</h2>
+  <p>A model that reads only the top of a list would pick early positions more often. Jev's picks spread almost evenly through the shuffled list.</p>
+  <figure>
+    <div class="plate"><div class="two"><div><p class="panel-lbl">(a) shuffled order</p><svg id="f6a" role="img" aria-label="Where in the shuffled list the picked move sat"></svg></div><div><p class="panel-lbl">(b) alphabetical order</p><svg id="f6b" role="img" aria-label="Where in the alphabetical list the picked move sat"></svg></div></div></div>
+    <figcaption id="f6cap"></figcaption>
+  </figure>
+
+  <h2>The changed teams win as often</h2>
+  <figure>
+    <div class="plate"><svg id="f7" role="img" aria-label="Win rate of each swapped team minus its top-pick team, per grid"></svg></div>
+    <figcaption id="f7cap"></figcaption>
+  </figure>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const D = __DATA__;
+const NS = "http://www.w3.org/2000/svg";
+const $ = (id) => document.getElementById(id);
+const pct = (v, d = 1) => (v * 100).toFixed(d) + "%";
+const sgn = (v, d = 3) => { const r = Math.round(v * 10 ** d) / 10 ** d; return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r).toFixed(d); };
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) k === "text" ? (e.textContent = attrs[k]) : e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+const G = [["heldout", "held-out"], ["meta", "meta"], ["random", "random"]];
+const H = D.grids.heldout;
+
+// Figure 1: one real question in both orders
+(() => {
+  const e = D.examples.move, mon = e.team[e.slot];
+  const teamHtml = e.team.map((m, i) => `<div class="mon${i === e.slot ? " asked" : ""}"><img alt="${esc(m.species)}" src="${D.sprites[m.species]}"><span>${esc(m.species)}</span></div>`).join("");
+  const list = (o) => o.order.map((name, i) => `<span class="opt${name === o.choice ? " pick" : name === (o === e.alphabetical ? e.shuffled.choice : e.alphabetical.choice) ? " other" : ""}"><i>${i + 1}</i>${esc(name)}</span>`).join("");
+  const probs = (o) => Object.entries(o.probabilities).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([n, p]) =>
+    `<div class="pr${n === o.choice ? " pick" : ""}"><span>${esc(n)}</span><span class="bar"><i style="width:${Math.max(2, p * 100)}%"></i></span><span class="n">${pct(p, 0)}</span></div>`).join("");
+  $("f1").innerHTML = `<p class="panel-lbl">unmasked team ${esc(e.unmasked_team)}, held-out grid · asked: move ${e.move_index + 1} of ${esc(mon.species)}</p>
+    <div class="team">${teamHtml}</div>
+    <div class="two">
+      <div><p class="panel-lbl">(a) alphabetical · pick at position ${e.alphabetical.position + 1} of ${e.options}</p><div class="opts">${list(e.alphabetical)}</div><div class="probs">${probs(e.alphabetical)}</div></div>
+      <div><p class="panel-lbl">(b) shuffled · pick at position ${e.shuffled.position + 1} of ${e.options}</p><div class="opts">${list(e.shuffled)}</div><div class="probs">${probs(e.shuffled)}</div></div>
+    </div>`;
+  $("f1cap").innerHTML = `<b>Figure 1.</b> A real question from the run. The same ${e.options} legal moves, two orders. Filled: the move Jev picked in that order. Outlined: the move it picked in the other order. Below each list, Jev's four most likely moves and their probabilities: in alphabetical order it picks ${esc(e.alphabetical.choice)}, shuffled it picks ${esc(e.shuffled.choice)}. Flips like this happen on close calls: where the pick changed, Jev's top two moves sat a median 0.07 apart in probability, against 0.44 where it held.`;
+})();
+
+// Figure 2: the design as a flow
+$("f2").innerHTML = [
+  ["1", "<b>Replay the main run.</b> Every move question of the top-pick fills is rebuilt exactly, by feeding back Jev's recorded answers: 1,920 questions per grid, at no cost. Every rebuilt team must equal the recorded one."],
+  ["2", "<b>Ask once more, in one request.</b> The same team, with two questions: the options in alphabetical order, and the same options shuffled."],
+  ["3", `<b>Compare twice.</b><div class="fork"><div class="noise">Main-run pick vs new alphabetical pick: same order, a new request. This is <b>Jev's noise</b>.</div><div class="order">New alphabetical pick vs shuffled pick: same request, a new order. This is <b>the order effect</b>.</div></div>`],
+  ["4", "<b>Battle only what changed.</b> Where the shuffled pick differs, it is swapped into the top-pick team, and that team plays the 49 top-50 meta teams."],
+].map(([k, html]) => `<div class="step"><span class="k">${k}</span><div class="box">${html}</div></div>`).join("");
+
+// Figure 3: the two fakes bracket Jev
+(() => {
+  const s = $("f3"), W = 640, Hh = 170, L = 20, R = 20, y = 96;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const X = (v) => L + v * (W - L - R);
+  el("line", { x1: X(0), x2: X(1), y1: y, y2: y, style: "stroke:var(--fg);stroke-width:1.5" }, s);
+  [0, 0.25, 0.5, 0.75, 1].forEach((t) => { el("line", { x1: X(t), x2: X(t), y1: y - 4, y2: y + 4, style: "stroke:var(--fg)" }, s); el("text", { x: X(t), y: y + 20, "text-anchor": "middle", text: Math.round(t * 100) + "%" }, s); });
+  const marks = [[D.fakes.by_name, "by-name fake", "var(--muted)", -1, "start", y - 28], [H.noise_move + H.noise_slot, "Jev, same order again", "var(--base)", 1, "start", y + 52],
+    [H.shuf_move + H.shuf_slot, "Jev, shuffled", "var(--jev)", -1, "start", y - 52], [D.fakes.first_option, "first-option fake", "var(--muted)", -1, "end", y - 28]];
+  marks.forEach(([v, lab, col, up, anchor, ty]) => {
+    el("circle", { cx: X(v), cy: y, r: 6, style: `fill:${col};stroke:var(--card);stroke-width:2` }, s);
+    el("line", { x1: X(v), x2: X(v), y1: up < 0 ? y - 8 : y + 26, y2: up < 0 ? ty + 5 : ty - 12, style: `stroke:${col}` }, s);
+    el("text", { x: X(v) + (anchor === "end" ? 4 : -4), y: ty, "text-anchor": anchor, class: "v", text: `${lab} ${pct(v)}` }, s);
+  });
+  el("text", { x: X(0), y: 18, class: "t", text: "share of questions whose pick changes" }, s);
+  $("f3cap").innerHTML = `<b>Figure 3.</b> The measurement, checked before any money was spent (held-out, 300 questions). A fake that always takes the first option follows the shuffle ${pct(D.fakes.first_option, 0)} of the time; one that picks by name never does. A model that read only list positions would land near the right end, one that read only names at the left. Jev lands at ${pct(H.shuf_move + H.shuf_slot)}, close to the names end, but above its own noise of ${pct(H.noise_move + H.noise_slot)}.`;
+})();
+
+// Figure 4: guess, then the result per grid
+function drawF4() {
+  const s = $("f4"), W = 640, L = 132, R = 70, bh = 16, gap = 6, gg = 34, top = 30, max = 0.35;
+  const Hh = top + G.length * (2 * bh + gap + gg) + 8;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const X = (v) => L + (v / max) * (W - L - R);
+  [0, 0.1, 0.2, 0.3].forEach((t) => { el("line", { x1: X(t), x2: X(t), y1: 18, y2: Hh - 10, style: "stroke:var(--rule)" }, s); el("text", { x: X(t), y: 14, "text-anchor": "middle", text: Math.round(t * 100) + "%" }, s); });
+  G.forEach(([g, name], i) => {
+    const d = D.grids[g], y0 = top + i * (2 * bh + gap + gg);
+    el("text", { x: 0, y: y0 + 4, class: "t", text: name + (g === "random" ? "*" : "") }, s);
+    [["same order again", d.noise_move, d.noise_slot, d.noise_ci, 0], ["shuffled", d.shuf_move, d.shuf_slot, d.shuf_ci, 1]].forEach(([lab, mv, sl, ci, k]) => {
+      const y = y0 + 12 + k * (bh + gap);
+      el("text", { x: L - 8, y: y + bh - 4, "text-anchor": "end", text: lab }, s);
+      el("rect", { x: X(0), y, width: Math.max(1, X(mv) - X(0)), height: bh, rx: 2, style: "fill:var(--jev)" }, s);
+      el("rect", { x: X(mv) + 1, y, width: Math.max(1, X(mv + sl) - X(mv) - 1), height: bh, rx: 2, style: "fill:var(--muted);fill-opacity:.55" }, s);
+      el("line", { x1: X(ci[0]), x2: X(ci[1]), y1: y + bh / 2, y2: y + bh / 2, style: "stroke:var(--fg);stroke-width:1.5" }, s);
+      [ci[0], ci[1]].forEach((c) => el("line", { x1: X(c), x2: X(c), y1: y + 3, y2: y + bh - 3, style: "stroke:var(--fg);stroke-width:1.5" }, s));
+      el("text", { x: Math.max(X(mv + sl), X(ci[1])) + 6, y: y + bh - 4, class: "v", text: pct(mv + sl) }, s);
+    });
+  });
+  return { X, s, y0: top + 8, y1: top + 2 * bh + gap + 14 };
+}
+function addGuess(f, v) {                      // the guess line on the held-out pair, drawn once on Reveal
+  const gx = f.X(v);
+  el("line", { x1: gx, x2: gx, y1: f.y0, y2: f.y1, style: "stroke:var(--base);stroke-width:2;stroke-dasharray:4 3" }, f.s);
+  el("text", { x: gx + 4, y: f.y1 + 11, style: "fill:var(--base)", class: "v", text: "your guess" }, f.s);
+}
+const f4 = drawF4();     // drawn faintly at rest so the page reads without the reveal
+(() => {
+  const g = $("g"), gv = $("gv"), btn = $("reveal"), svg = $("f4");
+  g.addEventListener("input", () => { gv.textContent = g.value + "%"; });
+  svg.style.opacity = "0.12";
+  btn.addEventListener("click", () => {
+    btn.disabled = true; g.disabled = true; svg.style.opacity = "1"; svg.style.transition = "opacity 300ms";
+    addGuess(f4, +g.value / 100);
+    const real = H.shuf_move + H.shuf_slot, diff = +g.value / 100 - real;
+    $("verdict").textContent = Math.abs(diff) < 0.03 ? `Close: the real rate is ${pct(real)}.` : diff > 0 ? `Lower than you guessed: ${pct(real)}, against your ${g.value}%. Jev mostly ignores the order.` : `Higher than you guessed: ${pct(real)}, against your ${g.value}%.`;
+  });
+})();
+$("f4cap").innerHTML = `<b>Figure 4.</b> Share of move questions whose pick changes. Top bar of each pair: the same alphabetical order, asked again in a new request (Jev's noise). Bottom bar: the shuffled order in the same request. On held-out, shuffling changes ${pct(H.shuf_move + H.shuf_slot)} of picks [${pct(H.shuf_ci[0])}, ${pct(H.shuf_ci[1])}], against ${pct(H.noise_move + H.noise_slot)} [${pct(H.noise_ci[0])}, ${pct(H.noise_ci[1])}] for asking again: more than twice the noise. Intervals resample the five unmasked teams. *Random: ${D.grids.random.questions.toLocaleString()} of 1,920 questions; the account ran out of credits.`;
+
+// Figure 5: a change that is only a new slot
+(() => {
+  const e = D.examples.slot, mon = e.team[e.slot], j = e.move_index;
+  const before = mon.moves.map((m, k) => `<div class="${k === j ? "hit" : ""}">${esc(m)}</div>`).join("");
+  const after = mon.moves.map((m, k) => k === j ? `<div class="dup">${esc(e.shuffled.choice)}</div>` : `<div class="${m === e.shuffled.choice ? "dup" : ""}">${esc(m)}</div>`).join("");
+  $("f5").innerHTML = `<div class="team" style="grid-template-columns:72px minmax(0,1fr);align-items:center;display:grid;gap:10px">
+      <div class="mon asked"><img alt="${esc(mon.species)}" src="${D.sprites[mon.species]}"><span>${esc(mon.species)}</span></div>
+      <div><p class="panel-lbl">(a) top pick, alphabetical list · asked move ${j + 1}</p><div class="slots">${before}</div>
+      <p class="panel-lbl" style="margin-top:10px">(b) shuffled pick swapped into move ${j + 1}</p><div class="slots">${after}</div></div></div>
+    <div class="legend"><span><i style="background:var(--jev-soft);border:2px solid var(--jev)"></i>the asked slot</span><span><i style="background:var(--warn-soft);border:2px solid var(--warn)"></i>the same move twice</span></div>`;
+  $("f5cap").innerHTML = `<b>Figure 5.</b> A real held-out change (unmasked team ${esc(e.unmasked_team)}). Shuffled, Jev picks ${esc(e.shuffled.choice)} for move ${j + 1}, a move it had already picked for another slot. Swapping it in gives the Pokémon the same move twice, which the validator rejects, so these teams were not battled. On held-out ${pct(H.shuf_slot)} of questions change this way and ${pct(H.shuf_move)} pick a genuinely different move; asking again in the same order gives ${pct(H.noise_slot)} and ${pct(H.noise_move)}.`;
+})();
+
+// Figure 6: where in the list the pick sat
+function hist(id, counts) {
+  const s = $(id), W = 300, Hh = 170, L = 30, R = 8, T = 10, B = 34, max = 0.16;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const n = counts.reduce((a, b) => a + b, 0), bw = (W - L - R) / 10, Y = (v) => Hh - B - (v / max) * (Hh - T - B);
+  [0, 0.05, 0.1, 0.15].forEach((t) => { el("line", { x1: L, x2: W - R, y1: Y(t), y2: Y(t), style: "stroke:var(--rule)" }, s); el("text", { x: L - 4, y: Y(t) + 3.5, "text-anchor": "end", text: Math.round(t * 100) + "%" }, s); });
+  counts.forEach((c, b) => el("rect", { x: L + b * bw + 1, y: Y(c / n), width: bw - 2, height: Y(0) - Y(c / n), rx: 2, style: "fill:var(--jev)" }, s));
+  el("line", { x1: L, x2: W - R, y1: Y(0.1), y2: Y(0.1), style: "stroke:var(--fg);stroke-dasharray:5 4;stroke-width:1.5" }, s);
+  el("text", { x: W - R, y: Y(0.1) - 5, "text-anchor": "end", class: "v", text: "even spread 10%" }, s);
+  ["top", "middle", "bottom"].forEach((t, k) => el("text", { x: L + [0.5, 5, 9.5][k] * bw, y: Hh - B + 15, "text-anchor": "middle", text: t }, s));
+  el("text", { x: (L + W - R) / 2, y: Hh - 4, "text-anchor": "middle", text: "where the pick sat in the list" }, s);
+}
+hist("f6a", H.hist_s); hist("f6b", H.hist_a);
+$("f6cap").innerHTML = `<b>Figure 6.</b> Where in the list the picked move sat, held-out grid, ${H.questions.toLocaleString()} questions. (a) Shuffled, the picks spread close to evenly over the list (dashed line); the top tenth holds 12.3%, a slight lean, not a pile-up. (b) Alphabetical, the spread follows the alphabet: good moves are not evenly spread from A to Z. Jev's first-option rate is 2.9% shuffled against 1.9% by chance.`;
+
+// Figure 7: win-rate change of the swapped teams
+(() => {
+  const s = $("f7"), W = 640, L = 90, R = 20, rh = 56, top = 34, lo = -0.25, hi = 0.25;
+  const Hh = top + G.length * rh + 26;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const X = (v) => L + ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (W - L - R);
+  [-0.2, -0.1, 0, 0.1, 0.2].forEach((t) => { el("line", { x1: X(t), x2: X(t), y1: top - 6, y2: Hh - 22, style: t === 0 ? "stroke:var(--fg);stroke-dasharray:4 3" : "stroke:var(--rule)" }, s); el("text", { x: X(t), y: Hh - 6, "text-anchor": "middle", text: sgn(t, 1) }, s); });
+  el("text", { x: X(lo), y: 16, class: "t", text: "win rate of the swapped team minus the top-pick team" }, s);
+  G.forEach(([g, name], i) => {
+    const w = D.grids[g].win, y = top + i * rh + rh / 2;
+    el("text", { x: 0, y: y + 4, class: "t", text: name }, s);
+    let seed = 7 + i;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    w.points.forEach((p) => el("circle", { cx: X(p), cy: y - 10 + rnd() * 20, r: 2.2, style: "fill:var(--muted);fill-opacity:.45" }, s));
+    el("line", { x1: X(w.ci[0]), x2: X(w.ci[1]), y1: y, y2: y, style: "stroke:var(--jev);stroke-width:3" }, s);
+    el("circle", { cx: X(w.mean), cy: y, r: 6, style: "fill:var(--jev);stroke:var(--card);stroke-width:2" }, s);
+    el("text", { x: W - R, y: y - 14, "text-anchor": "end", class: "v", text: `${sgn(w.mean)} [${sgn(w.ci[0])}, ${sgn(w.ci[1])}] · ${w.n} teams` }, s);
+  });
+  $("f7cap").innerHTML = `<b>Figure 7.</b> Each grey dot is one team where the shuffled pick was a legal swap, scored against the 49 top-50 meta teams, minus the same mask's top-pick team. The pink dot and bar are the mean and its 95% interval over the five unmasked teams. Held-out ${sgn(H.win.mean)}, meta ${sgn(D.grids.meta.win.mean)}, random ${sgn(D.grids.random.win.mean)}: the order changes which move Jev picks, not how strong the team is. Single teams swing by up to ±0.2 because each plays only 49 battles.`;
+})();
+
+$("foot").innerHTML = `Data: <code>~/vgc-data/jev/shuffle-&lt;grid&gt;.jsonl</code>, built by <code>build_shuffle_figures.py</code>. ${D.requests.toLocaleString()} requests, $${D.cost.toFixed(2)}. Win rate: share of 49 battles won against the top-50 meta teams, behaviour-cloning policy on both sides. The full result sits with the other experiments on <a href="https://claude.ai/artifact/KMaYSMi5xQkxyGjNN8DTri#exp2">Jev Picks a Team</a>.`;
+</script>

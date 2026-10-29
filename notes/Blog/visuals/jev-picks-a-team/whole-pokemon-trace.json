@@ -1,0 +1,285 @@
+{
+ "grid": "meta",
+ "task_id": "22d0b83c75aef17c",
+ "source": "MB158",
+ "hidden_slot": 3,
+ "team": [
+  {
+   "species": "Blaziken-Mega",
+   "item": "Blazikenite"
+  },
+  {
+   "species": "Kingambit",
+   "item": "Life Orb"
+  },
+  {
+   "species": "Basculegion",
+   "item": "Focus Sash"
+  },
+  {
+   "species": "Garchomp",
+   "item": "Choice Scarf"
+  },
+  {
+   "species": "Gengar",
+   "item": "Gengarite"
+  },
+  {
+   "species": "Incineroar",
+   "item": "Passho Berry"
+  }
+ ],
+ "filled": {
+  "slot": 4,
+  "species": "Garchomp",
+  "item": "Choice Scarf",
+  "ability": "Rough Skin",
+  "moves": [
+   "Earthquake",
+   "Dragon Claw",
+   "Rock Slide",
+   "Protect"
+  ],
+  "nature": "Jolly",
+  "statPoints": {
+   "HP": 0,
+   "Atk": 32,
+   "Def": 0,
+   "SpA": 0,
+   "SpD": 2,
+   "Spe": 32
+  },
+  "ivs": {
+   "HP": 31,
+   "Atk": 31,
+   "Def": 31,
+   "SpA": 31,
+   "SpD": 31,
+   "Spe": 31
+  },
+  "level": 50
+ },
+ "questions": [
+  {
+   "path": "team[3].species",
+   "field": [
+    "species"
+   ],
+   "round": "group 1 of 2",
+   "options": 169,
+   "tokens": 26283,
+   "pick": "Dragonite",
+   "sample_options": [
+    "Scizor",
+    "Whimsicott",
+    "Slowking",
+    "Maushold",
+    "Emolga",
+    "Vivillon"
+   ],
+   "instructions": "Which Pokémon should fill slot 4 to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].species",
+   "field": [
+    "species"
+   ],
+   "round": "group 2 of 2",
+   "options": 169,
+   "tokens": 26306,
+   "pick": "Garchomp",
+   "sample_options": [
+    "Castform",
+    "Vileplume",
+    "Meowstic-F",
+    "Trevenant",
+    "Blastoise",
+    "Aegislash-Blade"
+   ],
+   "instructions": "Which Pokémon should fill slot 4 to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].species",
+   "field": [
+    "species"
+   ],
+   "round": "final",
+   "options": 2,
+   "tokens": 16381,
+   "pick": "Garchomp",
+   "sample_options": [
+    "Dragonite",
+    "Garchomp"
+   ],
+   "instructions": "Which Pokémon should fill slot 4 to do best against the meta?",
+   "groups": [
+    169,
+    169
+   ]
+  },
+  {
+   "path": "team[3].ability",
+   "field": [
+    "ability"
+   ],
+   "round": null,
+   "options": 3,
+   "tokens": 16373,
+   "pick": "Rough Skin",
+   "sample_options": [
+    "Rough Skin",
+    "Sand Force",
+    "Sand Veil"
+   ],
+   "instructions": "Which ability should Garchomp in slot 4 have to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].item",
+   "field": [
+    "item"
+   ],
+   "round": null,
+   "options": 143,
+   "tokens": 20816,
+   "pick": "Choice Scarf",
+   "sample_options": [
+    "Abomasite",
+    "Absolite",
+    "Aerodactylite",
+    "Aggronite",
+    "Alakazite",
+    "Altarianite"
+   ],
+   "instructions": "Which item should Garchomp in slot 4 hold to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].moves[0]",
+   "field": [
+    "moves",
+    0
+   ],
+   "round": null,
+   "options": 58,
+   "tokens": 19678,
+   "pick": "Earthquake",
+   "sample_options": [
+    "Aerial Ace",
+    "Bite",
+    "Body Slam",
+    "Breaking Swipe",
+    "Brick Break",
+    "Brutal Swing"
+   ],
+   "instructions": "Which move should Garchomp in slot 4 use as move 1 to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].moves[1]",
+   "field": [
+    "moves",
+    1
+   ],
+   "round": null,
+   "options": 57,
+   "tokens": 19618,
+   "pick": "Dragon Claw",
+   "sample_options": [
+    "Aerial Ace",
+    "Bite",
+    "Body Slam",
+    "Breaking Swipe",
+    "Brick Break",
+    "Brutal Swing"
+   ],
+   "instructions": "Which move should Garchomp in slot 4 use as move 2 to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].moves[2]",
+   "field": [
+    "moves",
+    2
+   ],
+   "round": null,
+   "options": 56,
+   "tokens": 19568,
+   "pick": "Rock Slide",
+   "sample_options": [
+    "Aerial Ace",
+    "Bite",
+    "Body Slam",
+    "Breaking Swipe",
+    "Brick Break",
+    "Brutal Swing"
+   ],
+   "instructions": "Which move should Garchomp in slot 4 use as move 3 to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].moves[3]",
+   "field": [
+    "moves",
+    3
+   ],
+   "round": null,
+   "options": 55,
+   "tokens": 19511,
+   "pick": "Protect",
+   "sample_options": [
+    "Aerial Ace",
+    "Bite",
+    "Body Slam",
+    "Breaking Swipe",
+    "Brick Break",
+    "Brutal Swing"
+   ],
+   "instructions": "Which move should Garchomp in slot 4 use as move 4 to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].nature",
+   "field": [
+    "nature"
+   ],
+   "round": null,
+   "options": 25,
+   "tokens": 16661,
+   "pick": "Jolly",
+   "sample_options": [
+    "Adamant",
+    "Bashful",
+    "Bold",
+    "Brave",
+    "Calm",
+    "Careful"
+   ],
+   "instructions": "Which Stat Alignment should Garchomp in slot 4 use to do best against the meta?",
+   "groups": null
+  },
+  {
+   "path": "team[3].statPoints",
+   "field": [
+    "statPoints"
+   ],
+   "round": null,
+   "options": 91,
+   "tokens": 18609,
+   "pick": "spread 5",
+   "sample_options": [
+    "spread 1",
+    "spread 2",
+    "spread 3",
+    "spread 4",
+    "spread 5",
+    "spread 6"
+   ],
+   "instructions": "Which Stat Point spread should Garchomp in slot 4 use to do best against the meta?",
+   "groups": null
+  }
+ ],
+ "note": "picks are scripted (Jev not called yet); option counts, order and token estimates are real"
+}

@@ -1,0 +1,302 @@
+<meta charset="utf-8">
+<title>Shuffling Jev's Move List</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: a paper's figure sequence in one 760px column; each figure is a bordered plate with its number and an italic caption under it. Sister page to Jev Picks a Team, same tokens. */
+:root{
+  --bg:#F1F3EC;--fg:#1B1F16;--muted:#5E6455;--rule:#CDD2C2;--card:#F8F9F4;--cell:#E2E6D8;
+  --jev:#A3226E;--jev-soft:#F4D8E7;--base:#7C6A12;--base-soft:#EFE7C2;--warn:#C4561B;--warn-soft:#F6DCCB;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--jev-soft:#4A1F38;--base:#D6C25A;--base-soft:#3A3416;--warn:#F0935E;--warn-soft:#4A2A1A;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--jev-soft:#4A1F38;--base:#D6C25A;--base-soft:#3A3416;--warn:#F0935E;--warn-soft:#4A2A1A;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 72px}
+.col{max-width:760px;margin:0 auto}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,6vw,50px);line-height:1;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.2;margin:52px 0 8px;text-wrap:balance}
+p{margin:0 0 12px}
+a{color:var(--jev)}
+code,.mono{font-family:var(--mono);font-size:.82em}
+:focus-visible{outline:2px solid var(--jev);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.dek{color:var(--muted);font-size:19px}
+.plate{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:16px;margin:16px 0 8px;min-width:0}
+.plate svg{width:100%;height:auto;display:block}
+.plate svg text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.plate svg text.v{fill:var(--fg);font-weight:600}
+.plate svg text.t{font-family:var(--display);font-size:13px;font-weight:700;fill:var(--fg)}
+figcaption{font-style:italic;font-size:14.5px;color:var(--muted);line-height:1.5;margin:0 2px 8px}
+figcaption b{font-style:normal;font-family:var(--display);color:var(--fg)}
+figure{margin:0}
+.panel-lbl{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px}
+/* figure 1 */
+.team{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.mon{display:flex;flex-direction:column;align-items:center;border:1px solid var(--rule);border-radius:6px;padding:4px 2px;background:var(--bg);min-width:0}
+.mon img{width:100%;max-width:56px;aspect-ratio:1;image-rendering:pixelated}
+.mon span{font-family:var(--mono);font-size:10px;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mon.asked{border:2px solid var(--jev);background:var(--jev-soft)}
+.mon.asked span{color:var(--fg);font-weight:600}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:560px){.two{grid-template-columns:minmax(0,1fr)}}
+.opts{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start}
+.opt{font-family:var(--mono);font-size:10.5px;padding:1px 5px;border-radius:4px;background:var(--cell);color:var(--muted);white-space:nowrap}
+.opt i{font-style:normal;opacity:.6;margin-right:3px}
+.opt.pick{background:var(--jev);color:var(--bg);font-weight:600}
+.opt.other{outline:1.5px solid var(--jev);color:var(--fg)}
+.probs{display:grid;gap:3px;margin-top:10px}
+.pr{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr) 3.2em;gap:6px;align-items:center;font-family:var(--mono);font-size:11px}
+.pr .bar{height:9px;background:var(--cell);border-radius:3px;overflow:hidden}
+.pr .bar i{display:block;height:100%;background:var(--muted);border-radius:3px}
+.pr.pick .bar i{background:var(--jev)}
+.pr.pick{color:var(--fg);font-weight:600}
+.pr .n{text-align:right}
+/* figure 2 */
+.flow{display:grid;gap:8px}
+.step{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.step .k{font-family:var(--display);font-weight:700;font-size:15px;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--fg);display:flex;align-items:center;justify-content:center}
+.step .box{border:1px solid var(--rule);border-radius:6px;padding:8px 10px;background:var(--bg);font-size:15px}
+.step .box b{font-family:var(--display)}
+.fork{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+@media (max-width:560px){.fork{grid-template-columns:minmax(0,1fr)}}
+.fork div{border-radius:6px;padding:7px 9px;font-size:14px}
+.fork .noise{background:var(--cell)}
+.fork .order{background:var(--jev-soft)}
+/* figure 4 guess */
+.guess{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px;font-size:15px}
+.guess input[type=range]{flex:1 1 180px;accent-color:var(--jev)}
+.guess output{font-family:var(--display);font-weight:700;font-size:22px;min-width:3.2em;font-variant-numeric:tabular-nums}
+.guess button{font-family:var(--mono);font-size:12.5px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);border-radius:999px;padding:5px 14px;cursor:pointer}
+.guess button:disabled{opacity:.45;cursor:default}
+.verdict{font-size:15px;min-height:1.6em}
+/* figure 5 */
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.slots div{font-family:var(--mono);font-size:11.5px;text-align:center;padding:6px 3px;border:1px solid var(--rule);border-radius:5px;background:var(--bg);overflow-wrap:anywhere}
+.slots .hit{border:2px solid var(--jev);background:var(--jev-soft);color:var(--fg);font-weight:600}
+.slots .dup{border:2px solid var(--warn);background:var(--warn-soft);color:var(--fg);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px}
+.foot{margin-top:44px;font-size:13.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="col">
+  <p class="eyebrow">Jev decision-model baseline · experiment 2 · ticket 10</p>
+  <h1>Shuffling Jev's Move List</h1>
+  <p class="dek">Jev picks a move from a list. Does the order of that list change which move it picks? Seven figures from the run of 2026-10-27, every number taken from it.</p>
+
+  <h2>One question, two orders</h2>
+  <p>Every question in the experiment looks like this one: a held-out team with one move hidden, and every legal move offered as an option. The same options go to Jev twice, in alphabetical order and in a shuffled order.</p>
+  <figure>
+    <div class="plate" id="f1"></div>
+    <figcaption id="f1cap"></figcaption>
+  </figure>
+
+  <h2>How the experiment separates order from noise</h2>
+  <p>Jev does not always give the same answer twice. So a changed pick under shuffling means something only next to how often the pick changes with no shuffle at all.</p>
+  <figure>
+    <div class="plate"><div class="flow" id="f2"></div></div>
+    <figcaption><b>Figure 2.</b> The design. The main run already asked every question in alphabetical order, so asking it again in that order measures Jev's own noise. Both new questions travel in one request and see the same team, so the only difference between them is the order.</figcaption>
+  </figure>
+
+  <h2>Checking the measurement before spending</h2>
+  <p>Two fake choosers run on the same 300 real questions per grid, with no calls to Jev. One always takes the first option; the other always takes the same move by name. They mark the two ends of the scale, so Jev's number can be read against them.</p>
+  <figure>
+    <div class="plate"><svg id="f3" role="img" aria-label="Pick-change rate of the two fake choosers, Jev's noise, and Jev under shuffling"></svg></div>
+    <figcaption id="f3cap"></figcaption>
+  </figure>
+
+  <h2>How often the order changes the pick</h2>
+  <figure>
+    <div class="plate">
+      <div class="guess" id="guess">
+        <label for="g">Guess first: on held-out teams, shuffling changes Jev's pick on</label>
+        <input type="range" id="g" min="0" max="50" value="20" step="1">
+        <output id="gv" for="g">20%</output>
+        <button type="button" id="reveal">Reveal</button>
+      </div>
+      <p class="verdict" id="verdict" aria-live="polite"></p>
+      <svg id="f4" role="img" aria-label="Pick-change rates with 95% intervals, asked again against shuffled, per grid"></svg>
+      <div class="legend"><span><i style="background:var(--jev)"></i>a different move</span><span><i style="background:var(--muted);opacity:.55"></i>the same moves, another slot</span><span><i style="border:1.5px solid var(--fg);width:10px;height:0;border-radius:0"></i>95% interval of the total</span></div>
+    </div>
+    <figcaption id="f4cap"></figcaption>
+  </figure>
+
+  <h2>Half the changes are the same four moves in a new order</h2>
+  <p>A changed pick is not always a new move. Often Jev, shown the shuffled list, picks a move it already chose for another slot of the same Pokémon. The moveset is the same; only the slot changed.</p>
+  <figure>
+    <div class="plate" id="f5"></div>
+    <figcaption id="f5cap"></figcaption>
+  </figure>
+
+  <h2>No pull toward the top of the list</h2>
+  <p>A model that reads only the top of a list would pick early positions more often. Jev's picks spread almost evenly through the shuffled list.</p>
+  <figure>
+    <div class="plate"><div class="two"><div><p class="panel-lbl">(a) shuffled order</p><svg id="f6a" role="img" aria-label="Where in the shuffled list the picked move sat"></svg></div><div><p class="panel-lbl">(b) alphabetical order</p><svg id="f6b" role="img" aria-label="Where in the alphabetical list the picked move sat"></svg></div></div></div>
+    <figcaption id="f6cap"></figcaption>
+  </figure>
+
+  <h2>The changed teams win as often</h2>
+  <figure>
+    <div class="plate"><svg id="f7" role="img" aria-label="Win rate of each swapped team minus its top-pick team, per grid"></svg></div>
+    <figcaption id="f7cap"></figcaption>
+  </figure>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const D = {"grids":{"heldout":{"questions":1920,"noise_move":0.0281,"noise_slot":0.0177,"shuf_move":0.0563,"shuf_slot":0.0651,"noise_ci":[0.0245,0.0667],"shuf_ci":[0.0859,0.1599],"hist_s":[236,186,175,171,170,219,183,191,198,191],"hist_a":[109,109,222,189,224,309,293,95,200,170],"win":{"n":146,"mean":-0.0036,"ci":[-0.0211,0.0194],"points":[0.0,-0.02,0.08,0.0,0.02,0.0,0.0,0.08,0.08,0.0,0.08,0.0,0.0,0.0,-0.08,0.0,0.2,0.26,0.16,0.08,0.06,0.06,0.0,0.02,-0.02,-0.04,0.06,0.02,0.02,0.02,0.16,-0.18,-0.04,0.0,0.0,0.04,0.0,0.0,0.0,0.0,-0.06,-0.02,0.04,-0.06,0.06,0.08,0.02,0.22,-0.16,-0.26,-0.02,-0.06,-0.02,0.0,-0.1,-0.18,0.0,-0.06,-0.12,0.02,-0.08,-0.04,0.0,0.0,-0.08,0.0,-0.1,0.0,0.06,0.0,0.0,-0.12,0.16,0.0,-0.08,0.02,-0.04,-0.16,-0.16,-0.1,-0.06,-0.04,0.0,0.02,0.0,0.0,-0.1,0.02,0.0,0.0,-0.06,-0.04,0.02,0.12,0.06,-0.04,0.06,0.0,0.12,0.04,-0.04,0.0,-0.06,0.14,0.16,0.04,-0.04,0.0,-0.04,0.02,0.0,0.1,0.0,-0.08,-0.02,0.0,-0.04,0.0,-0.12,-0.1,0.0,-0.06,0.0,-0.14,-0.12,-0.12,0.1,0.0,0.04,0.12,-0.2,0.12,-0.18,0.0,0.02,0.0,0.0,0.06,-0.04,0.0,0.04,0.06,-0.08,0.0,0.0,0.1]}},"meta":{"questions":1920,"noise_move":0.0323,"noise_slot":0.0187,"shuf_move":0.0536,"shuf_slot":0.0604,"noise_ci":[0.0401,0.0635],"shuf_ci":[0.0906,0.1354],"hist_s":[215,186,167,166,210,211,193,187,177,208],"hist_a":[65,117,276,253,206,274,304,97,165,163],"win":{"n":143,"mean":0.0166,"ci":[0.0032,0.0272],"points":[-0.153,0.0,0.06,-0.1,0.06,0.04,0.0,-0.02,0.1,0.0,-0.02,0.0,0.18,0.0,0.0,0.08,0.1,0.08,0.06,0.0,-0.02,0.029,0.0,0.011,0.0,0.0,0.04,-0.06,-0.1,0.0,0.0,0.0,0.0,0.14,-0.12,0.0,0.0,-0.06,0.0,-0.06,0.0,0.0,0.0,-0.02,0.0,-0.02,-0.14,0.0,-0.08,0.12,0.12,0.0,0.14,0.04,0.14,0.08,0.14,0.0,0.0,0.02,0.0,-0.06,0.0,0.1,0.0,0.16,0.08,0.08,0.06,0.12,-0.06,0.08,0.0,0.0,0.02,-0.06,0.0,-0.06,-0.14,0.0,0.02,-0.08,0.0,-0.04,0.12,0.0,0.1,0.14,0.04,0.0,0.2,-0.16,0.12,0.2,0.0,0.18,-0.04,-0.08,0.08,0.0,0.04,0.0,0.1,0.06,0.0,0.04,0.08,0.02,-0.1,0.0,0.0,-0.12,0.1,0.0,0.08,0.08,-0.02,0.0,-0.02,0.0,0.04,0.02,0.0,-0.032,0.06,-0.08,0.06,-0.06,0.06,-0.14,0.0,0.06,0.06,0.06,0.0,-0.06,0.06,0.14,0.1,-0.04,0.0,0.0,-0.2]}},"random":{"questions":1702,"noise_move":0.0905,"noise_slot":0.03,"shuf_move":0.1692,"shuf_slot":0.1046,"noise_ci":[0.1132,0.1292],"shuf_ci":[0.2579,0.2984],"hist_s":[210,154,176,172,160,160,180,174,138,178],"hist_a":[66,128,168,181,131,372,289,132,97,138],"win":{"n":359,"mean":0.0024,"ci":[-0.0029,0.0083],"points":[0.0,0.0,0.04,0.02,0.04,-0.04,0.0,0.0,-0.08,0.0,-0.02,0.08,0.04,0.02,0.06,0.04,0.08,0.06,0.02,-0.06,-0.02,-0.02,-0.04,-0.02,0.04,0.0,-0.02,0.0,0.0,-0.02,0.0,0.02,-0.02,-0.1,-0.1,0.0,0.08,-0.02,0.0,-0.04,0.06,0.08,0.06,0.04,0.08,0.02,0.0,0.02,0.02,-0.04,0.04,0.08,0.0,0.14,0.0,0.06,0.12,0.0,-0.04,-0.02,0.0,-0.04,0.04,-0.04,-0.04,0.02,0.0,0.02,-0.02,0.0,-0.06,0.0,-0.12,0.0,0.02,0.0,0.02,0.0,0.06,0.16,0.0,0.0,0.02,0.1,0.02,0.02,0.0,0.08,0.0,0.08,0.04,0.02,-0.02,0.02,-0.02,-0.02,-0.02,0.06,0.0,-0.02,0.0,-0.02,0.02,-0.02,-0.02,0.0,-0.04,0.0,-0.08,0.0,0.0,-0.06,0.0,-0.04,-0.02,-0.02,0.02,0.06,-0.06,-0.04,0.04,0.02,0.0,0.1,0.06,-0.02,0.0,0.0,0.04,0.0,0.0,0.0,-0.08,-0.08,0.0,0.0,0.04,0.04,0.04,0.08,0.06,0.06,0.16,-0.04,0.0,0.0,-0.02,0.0,-0.12,0.0,0.0,0.0,0.06,-0.14,-0.06,-0.08,0.02,0.0,0.04,0.0,-0.02,-0.04,0.0,-0.06,-0.04,0.0,-0.08,0.1,0.02,-0.06,0.06,0.04,0.0,0.06,0.1,0.02,0.0,0.0,0.0,-0.04,0.0,0.0,-0.02,0.06,0.0,0.06,0.06,-0.12,0.0,0.0,0.02,-0.06,-0.02,-0.08,0.1,0.06,0.06,0.04,-0.04,0.0,0.02,-0.02,-0.06,0.0,-0.06,0.04,0.0,0.12,0.04,0.04,-0.08,-0.1,0.0,-0.02,0.02,-0.14,-0.02,0.0,0.0,-0.04,0.0,0.0,0.02,0.0,0.0,0.1,0.0,0.04,0.0,0.06,0.08,0.0,0.0,0.0,0.0,0.0,-0.02,-0.04,-0.02,0.0,0.0,0.04,-0.02,-0.02,0.0,0.02,-0.02,0.04,0.04,0.0,0.02,0.06,-0.02,0.0,0.0,-0.02,0.0,0.0,0.0,-0.02,0.04,-0.06,-0.04,-0.06,-0.02,0.0,0.02,0.0,0.04,0.0,-0.02,0.04,0.02,0.1,0.0,-0.02,0.02,0.0,0.02,0.0,0.02,0.0,0.08,0.0,-0.02,0.02,-0.06,-0.04,0.0,0.0,0.04,0.0,0.0,0.0,-0.02,-0.04,0.0,0.02,0.04,0.04,0.06,-0.02,0.0,-0.04,0.0,0.0,-0.04,-0.04,-0.02,-0.04,-0.02,-0.04,-0.02,-0.04,0.0,-0.12,0.04,-0.04,-0.06,0.0,-0.02,0.02,0.06,-0.02,0.0,0.0,0.0,-0.04,0.0,0.0,-0.02,-0.04,-0.04,0.0,0.02,0.0,-0.06,-0.04,-0.06,0.0,-0.02,0.0,-0.06,0.04,0.08,0.06,0.02,0.02,0.08,0.0,0.0,0.0,0.02,0.0,-0.02,-0.04,0.0,-0.04,-0.02]}}},"examples":{"move":{"path":"team[0].moves[1]","slot":0,"move_index":1,"options":53,"team":[{"species":"Armarouge","moves":["Armor Cannon","Flash Cannon","Aura Sphere","Protect"],"item":"Focus Sash"},{"species":"Aerodactyl","moves":["Rock Slide","Dual Wingbeat","Tailwind","Wide Guard"],"item":"Aerodactylite"},{"species":"Kingambit","moves":["Kowtow Cleave","Sucker Punch","Iron Head","Protect"],"item":"Black Glasses"},{"species":"Garchomp","moves":["Earthquake","Rock Slide","Dragon Claw","Protect"],"item":"Life Orb"},{"species":"Metagross","moves":["Iron Head","Psychic Fangs","Hammer Arm","Protect"],"item":"Metagrossite"},{"species":"Grimmsnarl","moves":["Spirit Break","Foul Play","Parting Shot","Reflect"],"item":"Sitrus Berry"}],"unmasked_team":"MB514","kind":"move","alphabetical":{"order":["Acid Spray","Ally Switch","Aura Sphere","Burn Up","Calm Mind","Clear Smog","Confuse Ray","Dark Pulse","Destiny Bond","Disable","Dragon Pulse","Endure","Energy Ball","Expanding Force","Facade","Fire Blast","Fire Spin","Flame Charge","Flamethrower","Flare Blitz","Flash Cannon","Fling","Focus Blast","Heat Wave","Helping Hand","Hyper Beam","Iron Defense","Lava Plume","Light Screen","Meteor Beam","Mystical Fire","Night Shade","Overheat","Psych Up","Psychic","Psychic Terrain","Psyshock","Reflect","Rest","Scorching Sands","Shadow Ball","Sleep Talk","Solar Beam","Spite","Stored Power","Substitute","Sunny Day","Taunt","Trick","Trick Room","Weather Ball","Wide Guard","Will-O-Wisp"],"choice":"Flash Cannon","position":20,"probabilities":{"Acid Spray":0.01,"Ally Switch":0.01,"Aura Sphere":0.08,"Burn Up":0.01,"Calm Mind":0.06,"Clear Smog":0.01,"Confuse Ray":0.0,"Dark Pulse":0.02,"Destiny Bond":0.01,"Disable":0.01,"Dragon Pulse":0.03,"Endure":0.01,"Energy Ball":0.01,"Expanding Force":0.02,"Facade":0.0,"Fire Blast":0.01,"Fire Spin":0.0,"Flame Charge":0.0,"Flamethrower":0.01,"Flare Blitz":0.0,"Flash Cannon":0.09,"Fling":0.0,"Focus Blast":0.01,"Heat Wave":0.09,"Helping Hand":0.09,"Hyper Beam":0.0,"Iron Defense":0.02,"Lava Plume":0.02,"Light Screen":0.01,"Meteor Beam":0.01,"Mystical Fire":0.02,"Night Shade":0.0,"Overheat":0.01,"Psych Up":0.0,"Psychic":0.04,"Psychic Terrain":0.02,"Psyshock":0.03,"Reflect":0.01,"Rest":0.0,"Scorching Sands":0.03,"Shadow Ball":0.05,"Sleep Talk":0.0,"Solar Beam":0.02,"Spite":0.0,"Stored Power":0.0,"Substitute":0.01,"Sunny Day":0.02,"Taunt":0.01,"Trick":0.02,"Trick Room":0.01,"Weather Ball":0.01,"Wide Guard":0.03,"Will-O-Wisp":0.01}},"shuffled":{"order":["Destiny Bond","Trick","Night Shade","Flash Cannon","Trick Room","Dark Pulse","Will-O-Wisp","Focus Blast","Facade","Clear Smog","Endure","Wide Guard","Disable","Shadow Ball","Ally Switch","Expanding Force","Overheat","Rest","Psych Up","Calm Mind","Heat Wave","Substitute","Psychic Terrain","Dragon Pulse","Light Screen","Taunt","Fire Blast","Meteor Beam","Psyshock","Acid Spray","Lava Plume","Flamethrower","Stored Power","Sleep Talk","Solar Beam","Fling","Flame Charge","Scorching Sands","Helping Hand","Aura Sphere","Spite","Hyper Beam","Iron Defense","Burn Up","Confuse Ray","Fire Spin","Energy Ball","Flare Blitz","Weather Ball","Mystical Fire","Reflect","Sunny Day","Psychic"],"choice":"Helping Hand","position":38,"probabilities":{"Destiny Bond":0.0,"Trick":0.01,"Night Shade":0.01,"Flash Cannon":0.05,"Trick Room":0.02,"Dark Pulse":0.03,"Will-O-Wisp":0.02,"Focus Blast":0.04,"Facade":0.0,"Clear Smog":0.01,"Endure":0.02,"Wide Guard":0.03,"Disable":0.01,"Shadow Ball":0.04,"Ally Switch":0.01,"Expanding Force":0.01,"Overheat":0.01,"Rest":0.0,"Psych Up":0.0,"Calm Mind":0.07,"Heat Wave":0.07,"Substitute":0.01,"Psychic Terrain":0.02,"Dragon Pulse":0.02,"Light Screen":0.01,"Taunt":0.01,"Fire Blast":0.01,"Meteor Beam":0.04,"Psyshock":0.02,"Acid Spray":0.01,"Lava Plume":0.01,"Flamethrower":0.0,"Stored Power":0.01,"Sleep Talk":0.0,"Solar Beam":0.03,"Fling":0.0,"Flame Charge":0.0,"Scorching Sands":0.01,"Helping Hand":0.07,"Aura Sphere":0.05,"Spite":0.0,"Hyper Beam":0.0,"Iron Defense":0.02,"Burn Up":0.01,"Confuse Ray":0.0,"Fire Spin":0.0,"Energy Ball":0.04,"Flare Blitz":0.01,"Weather Ball":0.01,"Mystical Fire":0.04,"Reflect":0.0,"Sunny Day":0.03,"Psychic":0.05}}},"slot":{"path":"team[3].moves[0]","slot":3,"move_index":0,"options":49,"team":[{"species":"Whimsicott","moves":["Moonblast","Tailwind","Encore","Protect"],"item":"Coba Berry"},{"species":"Swampert","moves":["Wave Crash","Earthquake","Ice Punch","Protect"],"item":"Swampertite"},{"species":"Pelipper","moves":["Weather Ball","Hurricane","Tailwind","Protect"],"item":"Life Orb"},{"species":"Archaludon","moves":["Dragon Pulse","Flash Cannon","Electro Shot","Protect"],"item":"Leftovers"},{"species":"Basculegion","moves":["Liquidation","Last Respects","Aqua Jet","Protect"],"item":"Focus Sash"},{"species":"Floette-Eternal","moves":["Moonblast","Dazzling Gleam","Light of Ruin","Protect"],"item":"Floettite"}],"unmasked_team":"MB198","kind":"slot","alphabetical":{"order":["Aura Sphere","Body Slam","Breaking Swipe","Brick Break","Dark Pulse","Double-Edge","Draco Meteor","Dragon Cheer","Dragon Claw","Dragon Pulse","Dragon Tail","Earthquake","Electro Shot","Endure","Facade","Focus Energy","Foul Play","Giga Impact","Gyro Ball","Hard Press","Heavy Slam","Hyper Beam","Iron Defense","Iron Head","Light Screen","Metal Burst","Metal Sound","Meteor Beam","Mirror Coat","Night Slash","Outrage","Reflect","Rest","Roar","Rock Slide","Rock Tomb","Scary Face","Sleep Talk","Smack Down","Snarl","Solar Beam","Stealth Rock","Steel Beam","Stone Edge","Substitute","Swords Dance","Thunder","Thunder Wave","Thunderbolt"],"choice":"Dragon Pulse","position":9,"probabilities":{"Aura Sphere":0.01,"Body Slam":0.0,"Breaking Swipe":0.0,"Brick Break":0.0,"Dark Pulse":0.0,"Double-Edge":0.0,"Draco Meteor":0.09,"Dragon Cheer":0.0,"Dragon Claw":0.0,"Dragon Pulse":0.43,"Dragon Tail":0.0,"Earthquake":0.01,"Electro Shot":0.43,"Endure":0.0,"Facade":0.0,"Focus Energy":0.0,"Foul Play":0.0,"Giga Impact":0.0,"Gyro Ball":0.0,"Hard Press":0.0,"Heavy Slam":0.0,"Hyper Beam":0.0,"Iron Defense":0.0,"Iron Head":0.0,"Light Screen":0.0,"Metal Burst":0.0,"Metal Sound":0.0,"Meteor Beam":0.0,"Mirror Coat":0.0,"Night Slash":0.0,"Outrage":0.0,"Reflect":0.0,"Rest":0.0,"Roar":0.0,"Rock Slide":0.0,"Rock Tomb":0.0,"Scary Face":0.0,"Sleep Talk":0.0,"Smack Down":0.0,"Snarl":0.0,"Solar Beam":0.0,"Stealth Rock":0.0,"Steel Beam":0.03,"Stone Edge":0.0,"Substitute":0.0,"Swords Dance":0.0,"Thunder":0.0,"Thunder Wave":0.0,"Thunderbolt":0.0}},"shuffled":{"order":["Foul Play","Metal Sound","Endure","Dragon Pulse","Body Slam","Iron Defense","Giga Impact","Scary Face","Meteor Beam","Dragon Claw","Rock Slide","Double-Edge","Swords Dance","Hard Press","Breaking Swipe","Roar","Outrage","Solar Beam","Thunder","Thunder Wave","Earthquake","Light Screen","Heavy Slam","Focus Energy","Rest","Dragon Cheer","Metal Burst","Draco Meteor","Stealth Rock","Stone Edge","Sleep Talk","Snarl","Steel Beam","Brick Break","Facade","Electro Shot","Thunderbolt","Mirror Coat","Reflect","Gyro Ball","Dark Pulse","Rock Tomb","Aura Sphere","Night Slash","Iron Head","Hyper Beam","Substitute","Smack Down","Dragon Tail"],"choice":"Electro Shot","position":35,"probabilities":{"Foul Play":0.02,"Metal Sound":0.0,"Endure":0.0,"Dragon Pulse":0.28,"Body Slam":0.0,"Iron Defense":0.0,"Giga Impact":0.0,"Scary Face":0.0,"Meteor Beam":0.0,"Dragon Claw":0.0,"Rock Slide":0.0,"Double-Edge":0.0,"Swords Dance":0.0,"Hard Press":0.0,"Breaking Swipe":0.0,"Roar":0.0,"Outrage":0.0,"Solar Beam":0.0,"Thunder":0.0,"Thunder Wave":0.0,"Earthquake":0.01,"Light Screen":0.0,"Heavy Slam":0.0,"Focus Energy":0.0,"Rest":0.0,"Dragon Cheer":0.0,"Metal Burst":0.0,"Draco Meteor":0.19,"Stealth Rock":0.0,"Stone Edge":0.0,"Sleep Talk":0.0,"Snarl":0.0,"Steel Beam":0.02,"Brick Break":0.0,"Facade":0.0,"Electro Shot":0.48,"Thunderbolt":0.0,"Mirror Coat":0.0,"Reflect":0.0,"Gyro Ball":0.0,"Dark Pulse":0.0,"Rock Tomb":0.0,"Aura Sphere":0.0,"Night Slash":0.0,"Iron Head":0.0,"Hyper Beam":0.0,"Substitute":0.0,"Smack Down":0.0,"Dragon Tail":0.0}}}},"sprites":{"Metagross":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABBYpQQEBAxOWJKg8V7pPasrKzNzc3e3t5zanOkxfaUi5TVSlKDSkrN3vYPMw7DAAAAAXRSTlMAQObYZgAAA3NJREFUeNrt1Ad22zoYRGHOnQEtuu1/uQ/CT0lMUcuTT+VNj3HmM9Smvb29vb29vb2fzb1pjd7L9997rPut9xfB9r/vt74f1n33+Nv30P5Z4L29N7HuS+IvZ2zH/2M/Yt2/Akhy7Al4GmhdqFG3df+aIFrCs/u9iLFvAVcBOUcgPA9oBeQM6y+BJdl1hX/el67cwK3JUmh6SiB9PysQWSj+K4CakJ4GlEgrICFUQs6dbjp0u0kRTwAVdQE8BEg7F9W+MCZNUXjiAjrmFTA9XeYrmSYZbFrzMzcgGQLGkUe4qW2LYmQ89pvV41lAAp322y+C5CQwUUD8OMAGkHGP2o6ORVJ6UlJAWgbghwTaGaB+B3lzA2WkOEPApGdb4pH9AdRhLMmR396WpmwBzY5l7CYSVTyyfwEwSI7fBtDWNPbn2WrNrZ0eTCkRDwBOohWwqf1DFy6AlvmY69UDHkJ6PHABr68J4R4Sfb93FqS5cpoFdgF6DHBtrABG5hcgy1wtKAGfhfsAKcBKMgSELQ5nIeoPWO3b6hnxBJDm9xblmDAySF7qDjU/hEWJLNnYmGQA4h7Q99+9BYwES93hbW02SoJtQFBXvnsF+n7PqfMDiCX4LmHdH7PpccwyOeYk5g6Q93dJUbQBzCcXwP5kACVYIhcg3AI0zpz3jUqAr2UFFr45As4IRyYtiu4DEwVULAWUsNS+xefn13lfSmzaEKzECg8CTCy4BOt0gdkCHHmdj03aEOR7ANoCTEyn1/fmOTY5JkvpWaYdq5O6BdDYAL58ni5z7VfWsYxseQO0m1egNaxfgXGFZZ6Pb7QF1jfBadyWTkAG0JolbnxQgHLaTwFL3+/CG5apzwmPVJnHgawf9rKt9SBzhY6t/1qsy/w0AD0E9HQudZDzfglbAo5n7BbdB0rQRWC6ABifhcqAqSMaWfcA63IDm+ks4B7V+Q6cj+ALIMnXhcUjbM/nU8AEPsdpn9O+NkB8Q+ADDvPHByzzBai4GLAsC3C5+BCsE4CuChPL4YNp4rJ/iVNTrW8A2ZbSeoNjuhoHxtb0cMSqVsARt85PT0Zas0/7TY4KeFXUcNY/WvRiwE7blFdeoMLa7DcJplcLds779sfLgXn+AFd8fLwcqLcNH/N86Nu8dr8ak3wcDtQ/fqACmH40fm5/b29vb29vb+8/eO4fcDOo/YEAAAAASUVORK5CYII=","Grimmsnarl":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABdRpRDNWgQEBAvGE5HvmI1KVRAlVU1ajz9C0L9/f3Jycn3XJDpN2F8gIkKtcJLAAAAAXRSTlMAQObYZgAABH1JREFUeNrt14di2zAaA+D+ADiy+v6PeyIhlpTPaSU7vRl4D+LLL6ojP/6T853vfKf+7f70FUL9MuB6SU3rh+JXAzWtgOJRINUzgOJLAPWMT8oB0GN7wDRbpOiRDLwsH0XwaUAxAvUBNoBfAZQm1Dr6LdSUXo6ArpdL80jUVEf5dnN/MeD+B0bwvjG1osoB4A0Rav0e4HFAsQOlV22I+xsQ2vrLc4D7u7CVwUDvN3DsfwLwCHirTcBW/2qh9YeeGcCABQXY9hrg62vJ0XeB7UGj/1HAgqKwHZPy+vJaUgNCjB5JsQPSBYCxChvwaqFsd+if+YydoYIPjiBF5MS2ry05BhCYhBTXAI/g+gaUwpdaUikGdiEwjSv90hAkd+G1bJd+xQrEZHjpx5cYjvvfXt9I8uf2uAIz0BWBPqgO+gDc9gAA+YpwGMfg2ghzXZ+AwZ9tgpLIFXhaAMbBYNuEt5IUnwBXzyJGCOv5wn4O3Qe0xcIVQocmof/rRigc6nAaQLoIKI5AoKYKYMzVK1v80AgDV/dZHOcSE4FWbbZhLQY7wUuAj6sEuj9Ii4DHQiOA9rgLugJk/4QQmqAAlkNOuBFCoD25OoKBnOE9teAiA3ul35/CtWOUIzI4gF6Rfw0wAMY6gi4BaOvYK0HXfOQBDAEMbwIuC25pAun+yO8ZEZoAANBQ6g9JugqAQPYz6H0TEOpehkOy9WcDCScFEj5xACKjXZE34ENoyfvNJw5JGUDCKYGKSBinHuk24eP9A8qLQN7+9XgKkKdtghvYDQIfaKWjfa+fgAmd6nc0G1pvX58LW9z+LLCW1Bw9uRQf+vuApDP9uAMU7BuZ7gFp7484AyDdARL2/lQgkkfBS3RiBrUS3AJkTQk7kEIADgajJPTB8achFEjlpp8ESpojRKBnIYj1v5X6fX+6+duRAHzeDqAF0Eow0n6APh9B2m5IHgCzX23lMkCZpwywCNrdz4D2wb4Dff6hqpeVIfhxElzXA+JnG737vh+zu30t9g6tBGcBSIB9/X3AK471U8B0jsQEeni332W+40LOlIQ5wCqHlv5Wznv9EPox7MKhH5gj+O6O4C1w/92o7z5hZ+kHZlGJKId+p69gH510/z1A8hd0AGaf9M/Nuw4Duls+t2Cfju7n2p/RIvbcGMsIvwEEknv/AsD1vZ9k7ukGJjGBzwXNzSEs8FdFXtuHEcAU0Kupz4F1c0hMwf17u45Evv0Fhw04E2v0FnpraGB1mjrqYcD9p0M4AxBlYExCNGF85Xo4+zvAft+gARDOClwXvJh5OIb8iPw8kG+AFbLg/ocFAxbcu0LQ04DGanIdgNy/kA08LOQyhL3Yj5xfcP/DgErd16/Nk4QeB9xfqm6B4zfy4wClsmVZztsq1vKgUFtSMfBJDKQkqV7vdv4ksOzf25ac7i+plrbkBMA0U04KW2+rrsX9Z4HS1p0D3O96tvzpCHnYUk4JBtq1l5/5p6MR1bdTAllTu54+8xpR+40nDxLZrhfSins5+ePvhOy3f1O+853v/AM7XSSoHxEOngAAAABJRU5ErkJggg==","Floette-Eternal":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAAAQEBBmYWFAPT2ALS3ZTEz/c3MkOmZAaLhZWVm/v7/4+PhRUVHZB0a6AAAAAXRSTlMAQObYZgAAAgFJREFUeNrt2bFywyAQRVGuDAhY///3ht0dD5moi5YiE91Grt4JsmIXTk9PT/8nYOd64jgONgIcwGurkHgpsLH9Asd+YT/wpwUH9gocx35Ahc1AJlmESeQFqFBsmVccUHP2fQcy0f/X1JoXYEfw/VhhAbnwCgZKqdn3rULQPp4LLCAX7gK2yqGVAlDmpu57hdv7LzgAXVOjMAEtBliPoRKeCQtIt8M3FgELyGQr7LvSWwLFUyNeWPtuBAJ+mwCKlYG4m+QBdvHsRaCwHqZVLiEG+DxlAYsoIYSW8E/SixFCnK1RFFDhGoQAvevl5zSGchug9yEKwOUvh7uCDsuQCTD6etfXKArAXcAu0j/vurUE1Pw1cMoQB0y4dmc+5bPhAPIBLv1yvs9yXYC4EJGvy+wC5Bw0L14uAqI1HKwRQhdvQJG3WGD7M0KAYZspIW99OZl3IOC3iJQMwIAxgaFA7z1C+OzDeBvAe4yRS1U6gsD3h3TE0v0BIOJEROiUKtJt3lFxIg5I0D/zwUJGfAeGzocLuWIzXeQnMCKAXCu6o/sOLKH3mAMk5pSMfgVSigJkEsOAFcTsV3SL1poCwfkBtLPNSH8PyHUBGw/gAGkb4AL7AYjf/wactMa+A5xn2wf4QzTPoMIuQIWNgAstHGDtnecCNgUG7Ax4fg96enp6enra0BeKGhcCpRkuZQAAAABJRU5ErkJggg==","Swampert":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAABSSlIYGBhag8WDpN5qaouDSinug0FaWov2tEGsvbRqe3Pe7uZqKUHFYnucxd663rU+AAAAAXRSTlMAQObYZgAAA2ZJREFUeNrtl9liGyEQBEMPmmW1Ov7/bzPDtDEmF9jWU7ZyI6dKveT8cXJycnJycvJFEoDhJAHfp0+XCyhsJ7AzfJPfXCkhpeaz4MUP0pcLtLmLPp7wIOH7ApxA/7cFqGsTRn9fSM63Bdqo7gMdJtYDrYDq/2NgPcE3PAToHwNMrAUG4eXFgWHA7wLpgsVCkw+B5h8DrbA8oT2hPw1ggIX1wMwABj5VABgY/OMTWiyAUkCkC9D/9QALgLg/AvDEGEh9IGE5IC1QUxj9Q2C1YNKcM+p6qWAckOj/WkAZMP4WSIsBDX+GbprCDvw1sFJQxQ7JDnb/rqGbAah+NaDGhhbQHRvCT9So/g+BNBvQfTeJP5gcATO++/UtUgcYHwdMBQDz52z+ZxRUamDf3Y7A/Qz0AxJmb0Cy+WtAnGJ+Q+sc3gClXQCTl+AWSJFnLkLgAUehUpq/AqANmF6woSDMhgge942FHYAl0J4KbCToZ2DmmlnA/f54AI/H3WYBHAJ592fzrwW0+l1XzO8B535V1euhADfBAwh/FFAjk2/f8K/vBv2VQyqlOo1Mv4D+mQD4B4IlcMSE+/1mci9IABkAkBhYADiuAEwffk6gUHqonw+oohQRHLfK1VsVOyVMEMwHeM+7hiXwOdcA71LGPIolv9l11/z200scs3DzQtwuWioCAOb8jqopaCdwvQFRrYVujCqAuQWqXtg2D1Q7KQWmd6D+qoGYkkU3O1n441ppQK8XYQBqfaU/0M3QSf/m718/BFSLOEcENlV7fQioMRlw4iHj7aj6GcBubMoAsaIx4y/q+sEPYeDqgToxFpT8fD45wdB/60vOYTcEDEC6ADzPQPFAK6jxL3+YB3+RnFvhCrUBvKKjD9Tp//YLv2S0G67ZFuiu4DiiwF+pDv7qN3Fp/mGWsICsvAEGiIjOBOAfWiPosyyUAvBp5xpggX3VfwQgghwj8uh3RfmB7JiefgNCfyQEa4FCf2yC8GUGKoD0/H0ChkARAYV+grgkAlR/SrMFjhCIgfAD3QB/1QNRcbORWJgJcIR/iY8KPVDcH4OKtI3o/mOI6cKveyASfgYMeAXWTw5QxwVlsWD0/3MCikvC5lqHLzFeGFhqYBjlX3eeicICkWN1PfDFtDhMv6rxOf3JycnJycl/z09hLyuC+apKBQAAAABJRU5ErkJggg==","Garchomp":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII=","Whimsicott":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAYShhSOSlqWkFzUkGUakGsSmKslFrFtIvm3s3///9SpEpBe0GsahDmgwBMwSnpAAAAAXRSTlMAQObYZgAAAiVJREFUeNrtmMFu3SAQRXuZa56hJvn/v+0wRnpMFFcK0E3FSVBYnWOPbRb5tXFsNpvNZrM5yfuv8Q/8OSdWfTaWJ8zLpneJpYGUexYVWLkD6l9eIE1FnuZfXTiZH2kFcnbwf6VeARf7Haxrub97WZMujAb45K+/b0jO+90HZssxlqBzuqmcQPZwIvB00ZMFF6C3G+dcwQWYvwPzgWf/6QKzBTZj6t59ZoYwHWhGuqfciiilfElwzK/QBRRaQAkTgW7yAfRPgrf/uq6+gNGDKJSC0wWAaP6JgPMrADpTVEoIwQpjAX4JSIxw/mADGg24G1CT+hWgjUfE/IrGMRRgF7iUGlAtFN18HBKulYGgmDYa8vvzuwAn/DqkoNoWwOcnLFDUH2ZvANcFu9aqbYHjwwJaKAWrAiWoNt5AN+HBPxGA+Q9RaiRU/dufhgNF3eovIUapvF4v1EACkCqmN//Ed2b+iNeNVL+HHA6gBRAjRaguOVMSJTk4eFS3QkgJ7UhNVpcYJwt3IinBpn0w90g80Ml14acBJevPjRyxu6szIwpSB6D+HxfyuwB7/dNtz8DcEzDQCg1YQgsE4OefRwIKkBxAO04r6P32GYwAJoeY2wXaFAcDTI8BSY3lfl8wZgInngKY9isE+BA4lgT8mOQ4jmZXsMLvCzh6BKlB9S8p4HCAnNcbTUT4gIqhLPt3iOp0LgJDLLAaDcDtlwO4/X/GZrPZbDabzR/ZkkXJiXR+yAAAAABJRU5ErkJggg==","Armarouge":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACTMjDiPBv4XqGjdiH/tSEMDAxUKCk2NDReVlLw4AocIiX68jXtwSHtNxP6+vpAJQ71AAAAAXRSTlMAQObYZgAAA01JREFUeNrt2AeiwzgIBFBD8CBH5u/9b7uAkbc3Rd4+v6TPU0nf/s//+T9/KERPA0yO0LMCM9OTQIYe7C/h4f7XBdBTwOsSqJyl/SW8XvQgUAL5P/GzZT2w7/vLE/9FZF8pEJH3D2LPOLBOoDGPqhb/TWGlwex/Y+gim6wDANXrUUbVn1nXr0qkuhdwCyv7PVyCyOp+NI8DrLrl4q8NGO04jsYc67StT4z/8HAjIqxuf2/o3ft7P453I9X1AvrZjn724+3LNACRFTstkkDr7ZrAuxUgckY+EaoFDrxrC94FEEX950K2wBNT6AkATUH7vhIwM7xbPx1o769vAOZdVcwvM/tsG8TMAfEALWYABzpzPhIQQmSekKiHJLChHQ3966uzqmEDzu8i8wtU9V5oQI+wisDg9rxw95eALfolAGZIAucCwHIbIWJAAAJmAN/1m1kdzAh1L4lip2BnNIMIwOlAxSoytUJiCURSyPpolfgf58bxAmb7CxCYuIA8V4AausSpSaD6C0DHeGSZocNGZA2AHoCngB8LM/eiH/V35FAlYdyAyAqgt+jPttMzhOQi0T8r3P1ZeNWxGLsQ216xOUCyv2e/gAswZhYGAj0/EfLuGPVXfwLVf56MLfelHmqzgMHrWxR5n7ETWe8xbCHAjwAihgkAZmjVn6e5Uv2XkH8ic0D1DyCHf23DDWgE0T8jQO8JDOHahehPQK9gmwuItA9ABGIW9dVfABG5MA1QDVDEwOKCCJuMV2F4f2ZOAN1ANINzBsJSu1xAZhIYKxwAbACn5C6PRdRpQYn5BiAm5oAL/vsdoMw6DfAAorAHcCYgcEru67AGgTkgb4ro7zmBFHpHrFU9+oqYAEgLiER/AiUghAToIuYAGpNHt8wNbECeTwzOzABjcW9AYNkfQAUgzyzARKrjaS33FTaAO6CIAxOCRn0BvdYE6AWMAPTpB0PtpNlamN7CIBKfTz6jjU50JVr5ObOAuxNKESwH7ko8DywXlKm+oCiAU1j6bWD1ledZDfCPgDxnKcBVV0IGTwOMpV/I4qdn6dMAYy0wPYV5gLGi/9cAXQpMTOEfAOiC/l8FGP8M4KdFtBgAtuVABZ6onwCWPr7XBzW1//N//gX5FrYGNoC4A4IOAAAAAElFTkSuQmCC","Kingambit":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKSlqGBhBQVKUMUHFMTH/LihiYnPMTU2EayK1lRWspLTmvUHe3t7l5eV6WxX9AAAAAXRSTlMAQObYZgAABCFJREFUeNrt2ImW4yoMBFCXkB0iwPn/v32UAoln7Rgf3l6z4zl1kWGW7uWXicvcxEf8xwPJ5vb/CUCyqUCZD1CYCKT5AIV/PJBsJmDTgTJNIFDmAxMFAvPfUerCPxYoMwUC80dIcwV9lNnA5BHex1xmj2BTT6GYzT0Fm36RaFTEJp4C+8vvBZHxETqQAvDL/ptcGKH3b9sW8Iv+U8BxXPERzPuZ9WeCxHPAcV7hCATYzyh+0n8aiEehEEgvIOLH/sj+M8Bb4AgErPWvtQ34of888K1gJfR+RoHv+s8C3wkpNUBjTxNEWO/94wJyHYGA9v4uiG9/EKAgTSCgXq/yFljvi0MAyxohSgEs1dwB6fW9f0ggUaPIDmiVbvJca4/ZPwhQ8A6tdS6o5dpP0J+olzPAcjqAH4MXMRRSMhNt6d2MKpYRgggTu2CmzKEa67pCtQtDSGck2+1YnVK430Pt5ztT6cIlBs8oRFLvD+K5JjAG+EaVpwArxfs7cFkwSzUgQiG+gKCQnnEhhHsIKZViXi+vfgJvAeP1TCg1VoF4HAB6WWBN6IJF/0Nm5XXEUI24BGCteQsdqL+GnzA0XhVwEDgCgfvtdkeAdOEKQKIJPOcDoBAGdUUYYFQQoAscgUCNAxCxKmB/pjJDQFTgXndNgUB6AiJIsEKgJe+76pnqyEisgIDAPfkppDvAATL8/2SoEYareZcT7TvDAbJUgUl+qNAa1H4Cxu9cYP3H/WzPCiaq5ZzhAhA9FahLx35k382n/bVeAf7MTK1tsEZ7fyWFAPsTH1P4/B7pvvffi2IEDKzIWRnWA2JmiQbEg/3z/pybYIZSKmAJ3LL0+wgoLPkLsoS2iip/KABQP2akJ5ASBEAUMMKXZFYKhXS4pKeuqV8iJENJDdh3ja8zMMIlkWt5Ilk/rs8KsJmbTCYSZN9fZ+DbB7AFeYUzZDlxi/gTJFZZQgjbJrK3AOzfmNCIvLP+834sTAg8A96UzSMtG1LrJyHwdkDO3qK6axR/2wnH/8Gvdb31Mzj3h6DfIvbX8BUla/tdI8P1ni5wQ+fSARAAJ1jrxpX5CSCCkX4GicfZBlhDB8IWe32kMDzAGtEPgKEQ1tWBeACwjABx44GuQG1kuScQWMNaaSd45CuWMYD13wc1DvQj5zjLWELvD6H9CEBq8BqK/WMDMDjum5F3msCw/6rADlE5RLE+CX8IDCII7/4YYyeUwWE6/hIYJzpAw3MU4CBdDL8nbQDzPQBpAYYFVbD/pyNA2f3cPgiMCj8FlP1VAEa7OxAfPwcU3r9cC+LjQUBbvxwABXCxX5X9UfQNxNYfVSOWq/UP9j+wtBHY34EHn+HqJ3+11vs1VQL6BlABCnoFANTrGXCE3u9v/rLAsKkFWADhSl+rPEBgWhSg+3/+0/kDYc1F/EUwfgYAAAAASUVORK5CYII=","Archaludon":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAVFRUQHToeLFkkPHkpUJhEcshoYoSKhpuppbng4O3/3527eUTJR0d6PT4QKO1VAAAAAXRSTlMAQObYZgAABJVJREFUeNrt1oma5CoIBeAgMaC1vP/jXjAnreWkFu2++/BNOfv5BWpbfte/q+7dr388/0YPv+7rN8C3Ghput58XeK2RYV1Pgeu3gNgAMYJ7zL+MtHXt8ytA8fhND1zp8/yLdIDdOYRXwPUyBlyrEPYJhW3jNwCEQSBswRoIns8iSzjP15TSNLCFaMfGK2eVZ0DOmj4HRCpAbMK2RV5XtphzQLMD8nF+VqnAaoLnB+sghfgM0JRoAEgNsHJkDmvgizqwnuWPAQrgEHi/PzmwMj9pYGRCDwATlwVcrpbPViTTDZwDkbyDlNJNHSDNctLA4ArOgPvtXoAMoWtAlpEVJGnyHVjD7QuAMD+hDlh3gIgCF+BRkNrAHLCtkayi1dGA31k6gL4DoLYClHgINX8A0BbwfAArgAwAwuSEWiAXYc1lQiHnKiAfE5oHTLCjAhD0Ks2E5gHPWv3YAOiRf70K5dEJLQqgbaB0sDoQEC8omplQD5Qt20+lAcX096I8OaEWsOwiYEJ6BsgyByA/F+FrBacNzAOWX4QC4DkEQPLMhHoAFWN9DrUAFjYDiBU/NsDB4sVqvgG1KvkiKed+BaFEppydIOSPT0hTSQdggikdkGxKpFYyNiEMVSwBQHZhdaO+T+wGGpCJFUsG0LwPrVsLKPJHATSQCyAiBchrBuD5ZUcA8BqbA0RUDSgLLgcADzSj5AMYzk8l3oDgDZQtYwUAkqg2TyEZB0SthEL9rDkm5HbJzCfA9X0+mvZ8oiU0n5YAQLT5SQn5F/msgVTyF8+PbOnsROAKLPIAIB/ABw24QDvAN47+iNsDUPMngSRpB24O2GFAl38KvBQkp6+t2YP2BgA8TKjm94C+BFI8BbZyAED+A/AVqprlZQMx4b13fQKox1p++qUBOUYsrxowQNMLwAQt+TF1gGR5CaCByAxAftnBihmV/IhtARCxYHkDEKM8fwcW2oFyAij5FZDysDPnJA5gI2dAFQwoMzKgZFeAkb8vCwD5oZqSWDyA18QZcAPAXgCOZXm+J0sC8JIIZLHtjABgRriE7GkAVBEP4SXh8S1AEGgH1AQYnl+AJv6Dz+dg6Wz1NSMqgJ2BITSA2tHcXl0I4TXAddly+XVGSQnLEjRQb19+BKY3LRwELTsAAUBJMqMCze01BeS/J8jyRdrnkaUXQMvwfVsA6u018Pt87BqvfMzIzjszZmT5KAWgmD7yPysAzHS3bL7faQe8AbYCQIlw+73xZQyA4ICfwQGr9pkEIAVG/jhwv3t2ObBmByAAOPY2Digh2xgALhBBKEDA9cfzAfQt+N/BMADxtMwBiZgAEADF35HVMS/EzwGhXbML0n4oE64/DSTq1twDiJ/KBxAAQOgAxM8Dibo1S34Alm8CfQs9kOi7+b3wwwDWSFWgFtCfAVSVUBbXAjIBID+1gJc84vWbEU0BKaYKQDgBSL8PCP8wgHwD0ACRA3I6ImIIE4AJxyuJrLr9fBNIsQXOx1eBcYGIDoBoeQ3MtADDAMT3+Q1ALDSTD+PFfgAsA/Fj+6kL+uEiKwAj+eOIAaPTGd/Q7/rn1x+MD2QnZDsM9QAAAABJRU5ErkJggg==","Pelipper":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAQEBCLQTHNQVLFezH2tDH/3kr//6z////N1e6k5v97ze5apM1zc4MxYovieTafAAAAAXRSTlMAQObYZgAAAj5JREFUeNrtlAeW4zgMBf3RpE22SNz/uItPBewkP0uGJqo6B1cJULj9S1xcXFxcXKgB4DR9+/ycmqHAOXoyCmyE+4eegUpaQ7B/Wvx1JbiAysJkfie20GszSgFwTgBlBFCsUcL9BLO/o7NCfzAQYQDAPMYtGrnfpfRCQgPuN6SOCXqoPxEZ/pznc1CDAmlw38iSrDCDCP3j4fLFnzMgMQXTL/7szD9BJCAgMCST9Vuv5YjCAGR8k9hwJNX3ZzC2Dq+kj62RUpb6ZkFk286slw8Cwot2FOZENw7cVzk51G9Y+j4CBoxejL7bP7Rk1WKB+i1ADt0Y8qB+XKgCIrxqHQ+QAw9X81H/Y7IHyJGA639xoJ8SyAx0D9SE2+7C84AkU3vh7EA6Eng831BONBP4ABEjeKD2sgRSDgu43wMVOYUHEj9QyhKgP6jgfg9USGQgr7Dg93FYITsZpZwfiC1kvkUFWHjiDy/Q7IWIAIHb3e8wEFDIjhM1Qkd+UhB44GChF+BHBUFrKO8VlK+HNxwBmqFg4HBBJ7WXa2XjCzfMhaYeOFbQaZpUtanR4Jh4DfiOVLUqdvup4AeNZFiXgK4jDDe/bQ26w982v+oSYAFrD+P3KNrYJGBl5wCqPsAAbGD+FvxJt+OYOzi4IIdiZwQOFNT9iqdzg6v0Lb1aGMflC3oGpgMF+NzD/1IBOwrw/wVeOhwv6EsB3fyv7FO98OprYNz86Pct6RaOF9x/TmEMfg6ABfQsu5+2i4uLi4uLX8l/Cd43EaPQnVQAAAAASUVORK5CYII=","Basculegion":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAIj76UH43jFnGNVIQEBB5GjLm5uakpKQiYD1BUlJiYmIgMTn+p8hjPikVQCKYDWH3AAAAAXRSTlMAQObYZgAAA0hJREFUeNrtloeimzAMRZHvFbg05f8/t7KQYh5dDl2Lk73OwY7emG5ubm5ubm5u/j34k/3r/IWC6o8MrJ/6RVS/P2P+eWZUzoGWEE4d+Z7AeRUU5xiQB17OrMtsWGW1uzwvAe4/BSIzvgDDKsu6eED1uAS+bSKuXw0YquoBFVHPZGHSSKJ7r/jNZQlagLE79AD2V8z/sJ0RuRhQcbQH/IbN72gE7DLJxQDgU+nq6BDQ/bmHWuAhjwc9MgxnZ9kHRsXJJVDhAVExNR76cPelQCtkQBvYl4T9K4D4wT/s8uIQMfxewK6Xzl6Aovl1ovkHeA76+8a6WsALfREdGKoALMDBgEJD/i4Bnjo9+QMlm3vUH/K0p6uUEtMUdP00ipr/s/ayQ/8m8Dag0zAKdP3JLj0g+vSrB1RHA6lPO6BaHBGxSzn8QKDBqHDIf9DHxJuQJQqlBSiNltlh3HBg9/Wsh0j6O/RXEg3/0O53fR4lKRnokN0Pciigart/1AMtoM0W2xMoGT9cKSa/HTDVtPvzd0ypsABRTqjXBQro08uRgPtVxQw+NrVkQORTfwRSy2/6fXq0ySUT1W4pOATEA6ro/kHi8GP64r+dqv7I1RnR3B6yXRaOB8JfUJtlTwglCmL0HSJYq+mNdSyRC2ApW5OAhBjEOQARgM2/BBz1W8D8swU8RFLgGfQtqorGwU9y1A+yVJk39UCDdpMB1xva/S9uEARVKIuKCuouLIdADUj3j+sjAKkmEfiYsDibB9DtgN9sjM0fZat5vBsFbwIQcWkGQv+a3wMBTQipWxbxvmHazJDLy34r5JZ7QVi2WEAV91nC2Ux/xR9LIKNAl2+lVgi4RMLtyTq9xMymnxdu2dncXwFU185zU67rtQVMnMgPH2a70MwtkH4LtMJsrJG44HdM/qGx7YHw74PvgUxcDFjBGg7T73pzcU68cM3vCa4ZyKlx1blwKcC1bdLcClsEyJyWDGThSsDdbZB8iEIf/lPhGqy0AGtxTL8u58D3F1iefnv8uQAb1/zKJgfCb6zpz8Jq7ssowBYQS4SHbwNr2C/7wRr/dWpKjwFO3wUJndgQQ/vo/jjA3SlCcvoJpJUyrL9eurm5ubm5ufmlfATfaCf9iOvmnQAAAABJRU5ErkJggg==","Aerodactyl":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACUg6SsrNVzUpQAAABSQXOUYs0xGGrNzeaDIEHmi5zNOUqsg97Nzc3///8xcyl8rC/7AAAAAXRSTlMAQObYZgAAAxdJREFUeNrtltFu4jAQRX2He4lTSvv/f7sZe9gEVwSD+7Ar5bwhWed4bINIBwcHBwcH/waA1Ls0eMmOnLM6l1rwZL20tT/xK1ZXOyYuTPt+5szkyBYAyHkwuHI2esYMJE/n85npCTSLAgnYSjSagIFlK4v9tOdHoZwPYbrFFBNE6GcCImmG0J8fHY9yAcqZhIwpIAHPSZFobyCb+yf37wV8KWmZGQZlbQYVGSt+DFHtJuOeP/A1IiVAOe65oR2CfsMyg9wfgd2CQwH0p/G4oM0AgAB2+KPgEKD7OwpUBM49gekUEMbUUXAI96+BroLkhr6Cuv3bAs20HzBtA+eXA3g6AuoC+hPqDqwFPQ7wFmB84jsB2rMC8EbAC50BoBZk7R2Pn5HWgMfaKxg/Iy+gwNdPKAr774gImPRewKFBzwKgmbn/9cD5vHNGwg2VK/h8ObAsnQjgZwGohXUATqfPz9cu2fW3n+3WX/9hcB0APE2e6A+E3uFaIJOjNVD98rWR6CpMoW8KNMYA2VgDcQFObXiiIxD6phABLX4Ta6C+0CASTwvTwtoQdfu+roEFScWPjT4SnQ8pKjKKAFWfrITshWgY2OgLqZclUQ6BZbMG+v7/Bu4PKMyv4gV4gSWw9ZtsHeAddxQEQGLd8tYPmHFQ70jKCiMY/giA1Z9GEKpTAmA02wTCzxE/LTvUFbgrIAKD/sTq/75+ocCb/rcC5WLBb5WAwGoPpsUPDt6wbZSEcMc0DQQk3/1WL6AtgO/7s7PqxZkuRMO7AVnRK+TkPJeAfi/gMPZeYUm1Cb0XoDkuoxR+AVQzhJnS+4XbDnWZ58uFANO9XmZDhXrGHnBUWtCaoI0EErUJfHx8CPQAIiGyHNHIN41k8V/d/+UBocCFRBTohTH04QibQPsHdQhdSoD1CrZCUoKjscDs/i8Wr5odc3wEXUvgqqqh9LsB2mVezmimRQDaCjUaIK/zwpcUAUHanrkgjhRo9ABpgMJI3Y3ApKGAccHC75CJq5BgGhzBWQMtxHBBuz/LUeDQQyL3BCLTwcHBwcHBwf/AH8rTHrYEVKitAAAAAElFTkSuQmCC"},"fakes":{"first_option":0.98,"by_name":0.0},"cost":6.52,"requests":5542};
+const NS = "http://www.w3.org/2000/svg";
+const $ = (id) => document.getElementById(id);
+const pct = (v, d = 1) => (v * 100).toFixed(d) + "%";
+const sgn = (v, d = 3) => { const r = Math.round(v * 10 ** d) / 10 ** d; return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r).toFixed(d); };
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) k === "text" ? (e.textContent = attrs[k]) : e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+const G = [["heldout", "held-out"], ["meta", "meta"], ["random", "random"]];
+const H = D.grids.heldout;
+
+// Figure 1: one real question in both orders
+(() => {
+  const e = D.examples.move, mon = e.team[e.slot];
+  const teamHtml = e.team.map((m, i) => `<div class="mon${i === e.slot ? " asked" : ""}"><img alt="${esc(m.species)}" src="${D.sprites[m.species]}"><span>${esc(m.species)}</span></div>`).join("");
+  const list = (o) => o.order.map((name, i) => `<span class="opt${name === o.choice ? " pick" : name === (o === e.alphabetical ? e.shuffled.choice : e.alphabetical.choice) ? " other" : ""}"><i>${i + 1}</i>${esc(name)}</span>`).join("");
+  const probs = (o) => Object.entries(o.probabilities).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([n, p]) =>
+    `<div class="pr${n === o.choice ? " pick" : ""}"><span>${esc(n)}</span><span class="bar"><i style="width:${Math.max(2, p * 100)}%"></i></span><span class="n">${pct(p, 0)}</span></div>`).join("");
+  $("f1").innerHTML = `<p class="panel-lbl">unmasked team ${esc(e.unmasked_team)}, held-out grid · asked: move ${e.move_index + 1} of ${esc(mon.species)}</p>
+    <div class="team">${teamHtml}</div>
+    <div class="two">
+      <div><p class="panel-lbl">(a) alphabetical · pick at position ${e.alphabetical.position + 1} of ${e.options}</p><div class="opts">${list(e.alphabetical)}</div><div class="probs">${probs(e.alphabetical)}</div></div>
+      <div><p class="panel-lbl">(b) shuffled · pick at position ${e.shuffled.position + 1} of ${e.options}</p><div class="opts">${list(e.shuffled)}</div><div class="probs">${probs(e.shuffled)}</div></div>
+    </div>`;
+  $("f1cap").innerHTML = `<b>Figure 1.</b> A real question from the run. The same ${e.options} legal moves, two orders. Filled: the move Jev picked in that order. Outlined: the move it picked in the other order. Below each list, Jev's four most likely moves and their probabilities: in alphabetical order it picks ${esc(e.alphabetical.choice)}, shuffled it picks ${esc(e.shuffled.choice)}. Flips like this happen on close calls: where the pick changed, Jev's top two moves sat a median 0.07 apart in probability, against 0.44 where it held.`;
+})();
+
+// Figure 2: the design as a flow
+$("f2").innerHTML = [
+  ["1", "<b>Replay the main run.</b> Every move question of the top-pick fills is rebuilt exactly, by feeding back Jev's recorded answers: 1,920 questions per grid, at no cost. Every rebuilt team must equal the recorded one."],
+  ["2", "<b>Ask once more, in one request.</b> The same team, with two questions: the options in alphabetical order, and the same options shuffled."],
+  ["3", `<b>Compare twice.</b><div class="fork"><div class="noise">Main-run pick vs new alphabetical pick: same order, a new request. This is <b>Jev's noise</b>.</div><div class="order">New alphabetical pick vs shuffled pick: same request, a new order. This is <b>the order effect</b>.</div></div>`],
+  ["4", "<b>Battle only what changed.</b> Where the shuffled pick differs, it is swapped into the top-pick team, and that team plays the 49 top-50 meta teams."],
+].map(([k, html]) => `<div class="step"><span class="k">${k}</span><div class="box">${html}</div></div>`).join("");
+
+// Figure 3: the two fakes bracket Jev
+(() => {
+  const s = $("f3"), W = 640, Hh = 170, L = 20, R = 20, y = 96;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const X = (v) => L + v * (W - L - R);
+  el("line", { x1: X(0), x2: X(1), y1: y, y2: y, style: "stroke:var(--fg);stroke-width:1.5" }, s);
+  [0, 0.25, 0.5, 0.75, 1].forEach((t) => { el("line", { x1: X(t), x2: X(t), y1: y - 4, y2: y + 4, style: "stroke:var(--fg)" }, s); el("text", { x: X(t), y: y + 20, "text-anchor": "middle", text: Math.round(t * 100) + "%" }, s); });
+  const marks = [[D.fakes.by_name, "by-name fake", "var(--muted)", -1, "start", y - 28], [H.noise_move + H.noise_slot, "Jev, same order again", "var(--base)", 1, "start", y + 52],
+    [H.shuf_move + H.shuf_slot, "Jev, shuffled", "var(--jev)", -1, "start", y - 52], [D.fakes.first_option, "first-option fake", "var(--muted)", -1, "end", y - 28]];
+  marks.forEach(([v, lab, col, up, anchor, ty]) => {
+    el("circle", { cx: X(v), cy: y, r: 6, style: `fill:${col};stroke:var(--card);stroke-width:2` }, s);
+    el("line", { x1: X(v), x2: X(v), y1: up < 0 ? y - 8 : y + 26, y2: up < 0 ? ty + 5 : ty - 12, style: `stroke:${col}` }, s);
+    el("text", { x: X(v) + (anchor === "end" ? 4 : -4), y: ty, "text-anchor": anchor, class: "v", text: `${lab} ${pct(v)}` }, s);
+  });
+  el("text", { x: X(0), y: 18, class: "t", text: "share of questions whose pick changes" }, s);
+  $("f3cap").innerHTML = `<b>Figure 3.</b> The measurement, checked before any money was spent (held-out, 300 questions). A fake that always takes the first option follows the shuffle ${pct(D.fakes.first_option, 0)} of the time; one that picks by name never does. A model that read only list positions would land near the right end, one that read only names at the left. Jev lands at ${pct(H.shuf_move + H.shuf_slot)}, close to the names end, but above its own noise of ${pct(H.noise_move + H.noise_slot)}.`;
+})();
+
+// Figure 4: guess, then the result per grid
+function drawF4() {
+  const s = $("f4"), W = 640, L = 132, R = 70, bh = 16, gap = 6, gg = 34, top = 30, max = 0.35;
+  const Hh = top + G.length * (2 * bh + gap + gg) + 8;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const X = (v) => L + (v / max) * (W - L - R);
+  [0, 0.1, 0.2, 0.3].forEach((t) => { el("line", { x1: X(t), x2: X(t), y1: 18, y2: Hh - 10, style: "stroke:var(--rule)" }, s); el("text", { x: X(t), y: 14, "text-anchor": "middle", text: Math.round(t * 100) + "%" }, s); });
+  G.forEach(([g, name], i) => {
+    const d = D.grids[g], y0 = top + i * (2 * bh + gap + gg);
+    el("text", { x: 0, y: y0 + 4, class: "t", text: name + (g === "random" ? "*" : "") }, s);
+    [["same order again", d.noise_move, d.noise_slot, d.noise_ci, 0], ["shuffled", d.shuf_move, d.shuf_slot, d.shuf_ci, 1]].forEach(([lab, mv, sl, ci, k]) => {
+      const y = y0 + 12 + k * (bh + gap);
+      el("text", { x: L - 8, y: y + bh - 4, "text-anchor": "end", text: lab }, s);
+      el("rect", { x: X(0), y, width: Math.max(1, X(mv) - X(0)), height: bh, rx: 2, style: "fill:var(--jev)" }, s);
+      el("rect", { x: X(mv) + 1, y, width: Math.max(1, X(mv + sl) - X(mv) - 1), height: bh, rx: 2, style: "fill:var(--muted);fill-opacity:.55" }, s);
+      el("line", { x1: X(ci[0]), x2: X(ci[1]), y1: y + bh / 2, y2: y + bh / 2, style: "stroke:var(--fg);stroke-width:1.5" }, s);
+      [ci[0], ci[1]].forEach((c) => el("line", { x1: X(c), x2: X(c), y1: y + 3, y2: y + bh - 3, style: "stroke:var(--fg);stroke-width:1.5" }, s));
+      el("text", { x: Math.max(X(mv + sl), X(ci[1])) + 6, y: y + bh - 4, class: "v", text: pct(mv + sl) }, s);
+    });
+  });
+  return { X, s, y0: top + 8, y1: top + 2 * bh + gap + 14 };
+}
+function addGuess(f, v) {                      // the guess line on the held-out pair, drawn once on Reveal
+  const gx = f.X(v);
+  el("line", { x1: gx, x2: gx, y1: f.y0, y2: f.y1, style: "stroke:var(--base);stroke-width:2;stroke-dasharray:4 3" }, f.s);
+  el("text", { x: gx + 4, y: f.y1 + 11, style: "fill:var(--base)", class: "v", text: "your guess" }, f.s);
+}
+const f4 = drawF4();     // drawn faintly at rest so the page reads without the reveal
+(() => {
+  const g = $("g"), gv = $("gv"), btn = $("reveal"), svg = $("f4");
+  g.addEventListener("input", () => { gv.textContent = g.value + "%"; });
+  svg.style.opacity = "0.12";
+  btn.addEventListener("click", () => {
+    btn.disabled = true; g.disabled = true; svg.style.opacity = "1"; svg.style.transition = "opacity 300ms";
+    addGuess(f4, +g.value / 100);
+    const real = H.shuf_move + H.shuf_slot, diff = +g.value / 100 - real;
+    $("verdict").textContent = Math.abs(diff) < 0.03 ? `Close: the real rate is ${pct(real)}.` : diff > 0 ? `Lower than you guessed: ${pct(real)}, against your ${g.value}%. Jev mostly ignores the order.` : `Higher than you guessed: ${pct(real)}, against your ${g.value}%.`;
+  });
+})();
+$("f4cap").innerHTML = `<b>Figure 4.</b> Share of move questions whose pick changes. Top bar of each pair: the same alphabetical order, asked again in a new request (Jev's noise). Bottom bar: the shuffled order in the same request. On held-out, shuffling changes ${pct(H.shuf_move + H.shuf_slot)} of picks [${pct(H.shuf_ci[0])}, ${pct(H.shuf_ci[1])}], against ${pct(H.noise_move + H.noise_slot)} [${pct(H.noise_ci[0])}, ${pct(H.noise_ci[1])}] for asking again: more than twice the noise. Intervals resample the five unmasked teams. *Random: ${D.grids.random.questions.toLocaleString()} of 1,920 questions; the account ran out of credits.`;
+
+// Figure 5: a change that is only a new slot
+(() => {
+  const e = D.examples.slot, mon = e.team[e.slot], j = e.move_index;
+  const before = mon.moves.map((m, k) => `<div class="${k === j ? "hit" : ""}">${esc(m)}</div>`).join("");
+  const after = mon.moves.map((m, k) => k === j ? `<div class="dup">${esc(e.shuffled.choice)}</div>` : `<div class="${m === e.shuffled.choice ? "dup" : ""}">${esc(m)}</div>`).join("");
+  $("f5").innerHTML = `<div class="team" style="grid-template-columns:72px minmax(0,1fr);align-items:center;display:grid;gap:10px">
+      <div class="mon asked"><img alt="${esc(mon.species)}" src="${D.sprites[mon.species]}"><span>${esc(mon.species)}</span></div>
+      <div><p class="panel-lbl">(a) top pick, alphabetical list · asked move ${j + 1}</p><div class="slots">${before}</div>
+      <p class="panel-lbl" style="margin-top:10px">(b) shuffled pick swapped into move ${j + 1}</p><div class="slots">${after}</div></div></div>
+    <div class="legend"><span><i style="background:var(--jev-soft);border:2px solid var(--jev)"></i>the asked slot</span><span><i style="background:var(--warn-soft);border:2px solid var(--warn)"></i>the same move twice</span></div>`;
+  $("f5cap").innerHTML = `<b>Figure 5.</b> A real held-out change (unmasked team ${esc(e.unmasked_team)}). Shuffled, Jev picks ${esc(e.shuffled.choice)} for move ${j + 1}, a move it had already picked for another slot. Swapping it in gives the Pokémon the same move twice, which the validator rejects, so these teams were not battled. On held-out ${pct(H.shuf_slot)} of questions change this way and ${pct(H.shuf_move)} pick a genuinely different move; asking again in the same order gives ${pct(H.noise_slot)} and ${pct(H.noise_move)}.`;
+})();
+
+// Figure 6: where in the list the pick sat
+function hist(id, counts) {
+  const s = $(id), W = 300, Hh = 170, L = 30, R = 8, T = 10, B = 34, max = 0.16;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const n = counts.reduce((a, b) => a + b, 0), bw = (W - L - R) / 10, Y = (v) => Hh - B - (v / max) * (Hh - T - B);
+  [0, 0.05, 0.1, 0.15].forEach((t) => { el("line", { x1: L, x2: W - R, y1: Y(t), y2: Y(t), style: "stroke:var(--rule)" }, s); el("text", { x: L - 4, y: Y(t) + 3.5, "text-anchor": "end", text: Math.round(t * 100) + "%" }, s); });
+  counts.forEach((c, b) => el("rect", { x: L + b * bw + 1, y: Y(c / n), width: bw - 2, height: Y(0) - Y(c / n), rx: 2, style: "fill:var(--jev)" }, s));
+  el("line", { x1: L, x2: W - R, y1: Y(0.1), y2: Y(0.1), style: "stroke:var(--fg);stroke-dasharray:5 4;stroke-width:1.5" }, s);
+  el("text", { x: W - R, y: Y(0.1) - 5, "text-anchor": "end", class: "v", text: "even spread 10%" }, s);
+  ["top", "middle", "bottom"].forEach((t, k) => el("text", { x: L + [0.5, 5, 9.5][k] * bw, y: Hh - B + 15, "text-anchor": "middle", text: t }, s));
+  el("text", { x: (L + W - R) / 2, y: Hh - 4, "text-anchor": "middle", text: "where the pick sat in the list" }, s);
+}
+hist("f6a", H.hist_s); hist("f6b", H.hist_a);
+$("f6cap").innerHTML = `<b>Figure 6.</b> Where in the list the picked move sat, held-out grid, ${H.questions.toLocaleString()} questions. (a) Shuffled, the picks spread close to evenly over the list (dashed line); the top tenth holds 12.3%, a slight lean, not a pile-up. (b) Alphabetical, the spread follows the alphabet: good moves are not evenly spread from A to Z. Jev's first-option rate is 2.9% shuffled against 1.9% by chance.`;
+
+// Figure 7: win-rate change of the swapped teams
+(() => {
+  const s = $("f7"), W = 640, L = 90, R = 20, rh = 56, top = 34, lo = -0.25, hi = 0.25;
+  const Hh = top + G.length * rh + 26;
+  s.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  const X = (v) => L + ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (W - L - R);
+  [-0.2, -0.1, 0, 0.1, 0.2].forEach((t) => { el("line", { x1: X(t), x2: X(t), y1: top - 6, y2: Hh - 22, style: t === 0 ? "stroke:var(--fg);stroke-dasharray:4 3" : "stroke:var(--rule)" }, s); el("text", { x: X(t), y: Hh - 6, "text-anchor": "middle", text: sgn(t, 1) }, s); });
+  el("text", { x: X(lo), y: 16, class: "t", text: "win rate of the swapped team minus the top-pick team" }, s);
+  G.forEach(([g, name], i) => {
+    const w = D.grids[g].win, y = top + i * rh + rh / 2;
+    el("text", { x: 0, y: y + 4, class: "t", text: name }, s);
+    let seed = 7 + i;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    w.points.forEach((p) => el("circle", { cx: X(p), cy: y - 10 + rnd() * 20, r: 2.2, style: "fill:var(--muted);fill-opacity:.45" }, s));
+    el("line", { x1: X(w.ci[0]), x2: X(w.ci[1]), y1: y, y2: y, style: "stroke:var(--jev);stroke-width:3" }, s);
+    el("circle", { cx: X(w.mean), cy: y, r: 6, style: "fill:var(--jev);stroke:var(--card);stroke-width:2" }, s);
+    el("text", { x: W - R, y: y - 14, "text-anchor": "end", class: "v", text: `${sgn(w.mean)} [${sgn(w.ci[0])}, ${sgn(w.ci[1])}] · ${w.n} teams` }, s);
+  });
+  $("f7cap").innerHTML = `<b>Figure 7.</b> Each grey dot is one team where the shuffled pick was a legal swap, scored against the 49 top-50 meta teams, minus the same mask's top-pick team. The pink dot and bar are the mean and its 95% interval over the five unmasked teams. Held-out ${sgn(H.win.mean)}, meta ${sgn(D.grids.meta.win.mean)}, random ${sgn(D.grids.random.win.mean)}: the order changes which move Jev picks, not how strong the team is. Single teams swing by up to ±0.2 because each plays only 49 battles.`;
+})();
+
+$("foot").innerHTML = `Data: <code>~/vgc-data/jev/shuffle-&lt;grid&gt;.jsonl</code>, built by <code>build_shuffle_figures.py</code>. ${D.requests.toLocaleString()} requests, $${D.cost.toFixed(2)}. Win rate: share of 49 battles won against the top-50 meta teams, behaviour-cloning policy on both sides. The full result sits with the other experiments on <a href="https://claude.ai/artifact/KMaYSMi5xQkxyGjNN8DTri#exp2">Jev Picks a Team</a>.`;
+</script>

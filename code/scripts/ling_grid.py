@@ -33,6 +33,10 @@ MODELS = {"ling": {},                                 # benchmark.ling.json's me
 # false, else an effort level), each to its own <grid>/mercury-<level>.jsonl and mercury-<level>:… labels (2026-10-28).
 for _level, _reasoning in (("off", {"enabled": False}), ("low", {"effort": "low"}), ("medium", {"effort": "medium"})):
     MODELS[f"mercury-{_level}"] = dict(MODELS["mercury"], name=f"mercury-2.5-{_level}", reasoning=_reasoning)
+# Novita stopped serving Ling by 2026-10-28 (pinned calls return HTTP 404); DeepInfra is its one OpenRouter provider
+# left, so this is Ling at the same settings on DeepInfra, kept in its own <grid>/ling-deepinfra.jsonl.
+MODELS["ling-deepinfra"] = dict(name="ling-3.0-flash-vl-deepinfra",
+                                provider={"order": ["DeepInfra"], "allow_fallbacks": False})
 
 
 def method(config, model):
