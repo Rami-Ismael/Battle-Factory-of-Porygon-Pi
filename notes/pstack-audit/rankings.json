@@ -569,7 +569,7 @@
    "01a1359b-d9b6-7753-ae4c-ab8d76470c32",
    "current-chat"
   ],
-  "caveat": "The 2/10 benefit score is from October 13 and has not been re-estimated; installing it does not show a measured gain. Each verify-<app> skill it generates needs upkeep, and maintain-verification-skill, its companion for that upkeep, is not installed.",
+  "caveat": "The 2/10 benefit score is from October 13 and has not been re-estimated; installing it does not show a measured gain. Each verify-<app> skill it generates needs upkeep, and maintain-verification-skill, its companion for that upkeep, is installed in Claude Code but not in Codex.",
   "previousBenefit": 2,
   "revisionBasis": "Reassessed October 13 after explicit feedback on recall before grilling, automatic writing support, learning from annotated edits, and shared-state separation. Benefit now estimates usefulness when used, including configured skills; it is not a measured gain or installation-only score.",
   "previousRank": 33,
