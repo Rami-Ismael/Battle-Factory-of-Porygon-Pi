@@ -181,6 +181,17 @@ async def _generate(jobs, output, options, transport, validate, key, stop):  # n
     gate = Controller(options)
     active = {}
     errors = []
+    # Requests are spaced from when a worker thread starts the transport, not from when dispatch was
+    # decided: the pending-record write and the thread start in between vary by tens of ms on a busy disk.
+    began = [-math.inf]
+
+    def ready_at():
+        return max(gate.cooldown, gate.next_dispatch, began[0] + options.min_interval)
+
+    def begun():
+        # With no spacing wanted, a burst up to the concurrency limit goes out together.
+        return not options.min_interval or all(item['began'] is not None for item in active.values())
+
     counters = dict(planned=len(jobs), reused=len(jobs)-len(queue), completed=0, attempts=0, rate_limits=0)
     started = time.monotonic()
 
@@ -248,7 +259,7 @@ async def _generate(jobs, output, options, transport, validate, key, stop):  # n
             if (output / 'STOP_GENERATION').exists():
                 stop.set()
             now = time.monotonic()
-            while queue and not stop.is_set() and len(active) < gate.limit and now >= max(gate.cooldown, gate.next_dispatch):
+            while queue and not stop.is_set() and len(active) < gate.limit and now >= ready_at() and begun():
                 item = queue.popleft()
                 item['attempts'] += 1
                 item['epoch'] = gate.epoch
@@ -262,18 +273,22 @@ async def _generate(jobs, output, options, transport, validate, key, stop):  # n
                     errors.append(f'pending record: {type(exc).__name__}: {exc}')
                     stop.set()
                     break
-                task = asyncio.create_task(asyncio.to_thread(transport, item['payload'], key,
+                item['began'] = None
+                def send_now(payload, api_key, timeout, item=item):
+                    item['began'] = began[0] = time.monotonic()
+                    return transport(payload, api_key, timeout)
+                task = asyncio.create_task(asyncio.to_thread(send_now, item['payload'], key,
                     job.manifest.get('request_timeout', 600)))
                 active[task] = item
                 counters['attempts'] += 1
-                gate.next_dispatch = now + options.min_interval
+                gate.next_dispatch = time.monotonic() + options.min_interval
                 status('running')
                 now = time.monotonic()
             if stop.is_set() and not active:
                 break
             delay = 1.0
             if queue and not stop.is_set() and len(active) < gate.limit:
-                delay = min(delay, max(.001, max(gate.cooldown, gate.next_dispatch)-time.monotonic()))
+                delay = min(delay, max(.001, ready_at()-time.monotonic()))
             if not active:
                 await asyncio.sleep(delay)
                 continue
