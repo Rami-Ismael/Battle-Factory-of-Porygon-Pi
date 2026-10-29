@@ -8,7 +8,8 @@ Reads each grid's panels.json (the battle step's per-team scores) and eval2.task
 per top-50 opponent (49 per team). The held-out grid's shuffled re-battle (scripts/jev_rebattle.py, 2026-10-29) comes
 from ~/vgc-data/jev/rebattle-heldout.json: six Pokémon shuffled every battle, 8 battles per opponent, against the
 top-50 teams and against the held-out teams. Intervals are 95%, from resampling masks and from resampling the five
-unmasked teams (jev_rebattle.interval).
+unmasked teams (jev_rebattle.interval). The re-battle also carries Mercury with its best DSPy prompt
+(scripts/mercury_dspy_grid.py, 2026-10-29), and the diversity table comes from that script's diversity.json.
 
     python3 scripts/jev_numbers.py
 """
@@ -26,7 +27,11 @@ DOC = Path(__file__).resolve().parents[1] / "docs/jev-measurements.md"
 OUT = Path.home() / "vgc-data/jev/measurements.json"
 ARMS = {"Jev, top pick": "jev:top:", "Mercury, off": "mercury-off:regmb@16384:", "Mercury, low": "mercury-low:regmb@16384:",
         "Mercury, medium": "mercury-medium:regmb@16384:", "Mercury, high": "mercury:regmb@16384:", "random legal fill": "random:"}
-REBATTLE_ARMS = dict(zip(ARMS, ["jev", "mercury-off", "mercury-low", "mercury-medium", "mercury", "random"]))
+REBATTLE_ARMS = {**dict(zip(ARMS, ["jev", "mercury-off", "mercury-low", "mercury-medium", "mercury", "random"])),
+                 **{f"Mercury DSPy, {level}": f"mercury-dspy-{level}" for level in ("off", "low", "medium", "high")}}
+DIVERSITY = Path.home() / "vgc-data/mercury-dspy/heldout/diversity.json"   # mercury_dspy_grid.DIVERSITY
+WRITTEN = {"species": "Species (whole Pokémon)", "item": "Items", "ability": "Abilities", "nature": "Stat Alignment",
+           "moves": "Moves", "statPoints": "Stat Points spreads"}
 REBATTLE_SETS = {"top50": "held-out grid, re-battled against the top-50 teams",
                  "heldout": "held-out grid, re-battled against the held-out teams"}
 
@@ -44,14 +49,14 @@ def rebattle_numbers():
     """The re-battle's per-mask scores, one entry per opponent set, in grid_numbers' shape."""
     sets = json.loads(REBATTLE.read_text())["sets"]
     tasks = {t["id"]: t for t in json.loads((GRIDS["held-out"] / "eval2.tasks.json").read_text())["tasks"]}
-    return {name: dict(numbers(tasks, {(arm, i): s["scores"][key].get(i) for arm, key in REBATTLE_ARMS.items() for i in tasks},
+    return {name: dict(numbers(tasks, {(arm, i): s["scores"].get(key, {}).get(i) for arm, key in REBATTLE_ARMS.items() for i in tasks},
                                [v for v in s["unmasked"].values() if v is not None]), opponents=s["opponents"])
             for name, s in sets.items()}
 
 
 def numbers(tasks, win, unmasked):
     """win: {(arm, task id): score, or None when the arm has no legal team}; unmasked: the unmasked teams' scores."""
-    present = [arm for arm in ARMS if any(win[(arm, i)] is not None for i in tasks)]
+    present = [arm for arm in dict.fromkeys(arm for arm, _ in win) if any(win[(arm, i)] is not None for i in tasks)]
     out = {"masks": len(tasks), "unmasked_teams": {"mean": round(statistics.mean(unmasked), 4), "teams": len(unmasked)}, "arms": {}, "pairs": {}}
     for arm in present:
         legal = [i for i in tasks if win[(arm, i)] is not None]
@@ -89,6 +94,29 @@ def section(title, d):
     return [*lines, ""]
 
 
+def diversity_section():
+    """What each arm wrote into the masks: written / distinct / effective values per field type."""
+    if not DIVERSITY.exists(): return []
+    d = json.loads(DIVERSITY.read_text())
+    names = {key: arm for arm, key in REBATTLE_ARMS.items()}
+    lines = ["# Diversity of the filled values (held-out grid)", "",
+             f"**Diversity:** {d['definition']}. Effective values grow with the number written, so compare arms with "
+             "similar counts. Each cell is written / distinct / effective.", "",
+             "| Model | " + " | ".join(WRITTEN.values()) + " |", "|---" * (len(WRITTEN) + 1) + "|"]
+    for key, fields in d["arms"].items():
+        cells = [f"{f['written']} / {f['distinct']} / {f['effective']}" if (f := fields.get(k)) else "—" for k in WRITTEN]
+        lines.append(f"| {names.get(key, key)} | " + " | ".join(cells) + " |")
+    lines += ["", "Same masks: effective values written by each Mercury setting, and by Jev's top pick on the masks that "
+              "setting filled legally (Mercury / Jev). This is the fair diversity comparison.", "",
+              "| Model | " + " | ".join(WRITTEN.values()) + " |", "|---" * (len(WRITTEN) + 1) + "|"]
+    for key, fields in d.get("jev_same_masks", {}).items():
+        if not key.startswith("mercury"): continue
+        cells = [f"{d['arms'][key][k]['effective']} / {f['effective']}" if (f := fields.get(k)) and k in d["arms"][key] else "—"
+                 for k in WRITTEN]
+        lines.append(f"| {names.get(key, key)} | " + " | ".join(cells) + " |")
+    return [*lines, ""]
+
+
 def main():
     data = {"rebattle_definition": "share of battles won, behaviour-cloning policy on both sides, six Pokémon shuffled every "
                                    "battle, 8 battles per opponent; against the 49 top-50 meta teams, or against the 45 "
@@ -107,6 +135,7 @@ def main():
              "# Shuffled re-battle (2026-10-29)", "", f"**Win rate:** {data['rebattle_definition']}.", ""]
     for name, d in data["rebattle"].items():
         lines += section(REBATTLE_SETS[name], d)
+    lines += diversity_section()
     lines += ["# First battles, listed slot order", "", f"**Win rate:** {data['definition']}. The behaviour-cloning policy "
               "picks its four by slot number, so these scores carry a slot-order bias; prefer the re-battle above.", ""]
     for g, d in data["grids"].items():

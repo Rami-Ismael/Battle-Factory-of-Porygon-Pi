@@ -56,6 +56,36 @@ Same masks, Jev against each Mercury setting:
 | Mercury, medium | 149 | 47.3% | 47.2% | +0.1 [-0.2, 0.3] |
 | Mercury, high | 183 | 47.0% | 47.4% | -0.4 [-0.9, 0.0] |
 
+# Diversity of the filled values (held-out grid)
+
+**Diversity:** values each arm wrote into the held-out grid's masks, over its legal fills only: distinct values, and effective values = exp(Shannon entropy) of their frequencies. Effective values grow with the number written, so compare arms with similar counts. Each cell is written / distinct / effective.
+
+| Model | Species (whole Pokémon) | Items | Abilities | Stat Alignment | Moves | Stat Points spreads |
+|---|---|---|---|---|---|---|
+| random legal fill | 105 / 77 / 70.89 | 92 / 57 / 51.17 | 105 / 43 / 37.92 | 105 / 25 / 22.85 | 1500 / 207 / 145.4 | 105 / 105 / 105.0 |
+| Mercury, high | 36 / 10 / 8.16 | 76 / 15 / 11.9 | 58 / 17 / 14.09 | 72 / 10 / 5.1 | 1011 / 79 / 31.3 | 67 / 23 / 9.35 |
+| Jev, top pick | 105 / 7 / 6.0 | 105 / 18 / 14.72 | 105 / 19 / 17.03 | 105 / 6 / 4.71 | 1500 / 64 / 34.08 | 105 / 16 / 8.44 |
+| Mercury, off | 4 / 4 / 4.0 | 27 / 17 / 15.05 | 42 / 17 / 14.07 | 76 / 7 / 4.44 | 271 / 57 / 30.9 | 69 / 34 / 22.81 |
+| Mercury, low | 19 / 8 / 6.75 | 34 / 15 / 12.27 | 62 / 17 / 14.26 | 77 / 8 / 4.82 | 579 / 61 / 27.77 | 77 / 40 / 21.0 |
+| Mercury, medium | 26 / 11 / 9.67 | 52 / 13 / 11.6 | 35 / 14 / 11.96 | 56 / 5 / 3.91 | 852 / 74 / 29.24 | 57 / 25 / 15.21 |
+| Mercury DSPy, off | 27 / 13 / 11.57 | 61 / 20 / 15.88 | 95 / 24 / 18.91 | 105 / 8 / 4.71 | 924 / 89 / 37.88 | 68 / 42 / 32.17 |
+| Mercury DSPy, low | 23 / 14 / 12.03 | 52 / 20 / 15.02 | 89 / 25 / 19.16 | 102 / 7 / 4.76 | 1027 / 95 / 39.19 | 71 / 43 / 33.03 |
+| Mercury DSPy, medium | 67 / 23 / 13.97 | 83 / 21 / 15.55 | 100 / 29 / 21.51 | 105 / 11 / 6.37 | 1028 / 112 / 45.05 | 105 / 29 / 15.82 |
+| Mercury DSPy, high | 76 / 20 / 12.28 | 83 / 18 / 13.75 | 105 / 27 / 21.39 | 105 / 10 / 6.11 | 1427 / 116 / 45.62 | 105 / 24 / 9.45 |
+
+Same masks: effective values written by each Mercury setting, and by Jev's top pick on the masks that setting filled legally (Mercury / Jev). This is the fair diversity comparison.
+
+| Model | Species (whole Pokémon) | Items | Abilities | Stat Alignment | Moves | Stat Points spreads |
+|---|---|---|---|---|---|---|
+| Mercury, high | 8.16 / 6.16 | 11.9 / 13.98 | 14.09 / 13.88 | 5.1 / 4.58 | 31.3 / 32.46 | 9.35 / 7.5 |
+| Mercury, off | 4.0 / 2.83 | 15.05 / 12.63 | 14.07 / 12.74 | 4.44 / 4.55 | 30.9 / 26.88 | 22.81 / 7.92 |
+| Mercury, low | 6.75 / 6.47 | 12.27 / 11.25 | 14.26 / 13.88 | 4.82 / 4.72 | 27.77 / 26.28 | 21.0 / 7.81 |
+| Mercury, medium | 9.67 / 6.5 | 11.6 / 13.46 | 11.96 / 13.16 | 3.91 / 4.36 | 29.24 / 29.48 | 15.21 / 9.54 |
+| Mercury DSPy, off | 11.57 / 6.23 | 15.88 / 12.16 | 18.91 / 16.35 | 4.71 / 4.71 | 37.88 / 32.43 | 32.17 / 9.17 |
+| Mercury DSPy, low | 12.03 / 6.42 | 15.02 / 12.69 | 19.16 / 16.52 | 4.76 / 4.72 | 39.19 / 33.45 | 33.03 / 7.09 |
+| Mercury DSPy, medium | 13.97 / 6.1 | 15.55 / 13.62 | 21.51 / 16.92 | 6.37 / 4.71 | 45.05 / 32.21 | 15.82 / 8.44 |
+| Mercury DSPy, high | 12.28 / 6.01 | 13.75 / 13.45 | 21.39 / 17.03 | 6.11 / 4.71 | 45.62 / 33.87 | 9.45 / 8.44 |
+
 # First battles, listed slot order
 
 **Win rate:** share of battles won against the 49 top-50 meta teams, behaviour-cloning policy on both sides; listed slot order, one battle per opponent. The behaviour-cloning policy picks its four by slot number, so these scores carry a slot-order bias; prefer the re-battle above.

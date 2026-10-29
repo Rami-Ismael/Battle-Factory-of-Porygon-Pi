@@ -7,7 +7,8 @@ held-out grid, every legal team from Jev's top pick, Mercury at its four reasoni
 the five unmasked teams: 8 battles per opponent (392 per team), six Pokémon shuffled every battle, the behaviour-cloning
 policy on both sides, against the Mask Lab's 49 top-50 teams paste for paste, then the same against the held-out teams
 (ranks 51-100) minus the five unmasked teams, which every fill on this grid is cut from (45 teams). Battles go to a
-private database.
+private database. Since 2026-10-29 it also battles Mercury with its best DSPy prompt at the four settings
+(scripts/mercury_dspy_grid.py), whose fills live in that script's CANDIDATES, not in the grid's candidates.json.
 
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_rebattle.py battle          # needs /tmp/vgc-pilot staging
     /tmp/vgc-pilot/.venv/bin/python scripts/jev_rebattle.py report          # reads the database
@@ -32,14 +33,18 @@ DB = Path.home() / "vgc-data/jev/rebattle_heldout.sqlite"
 OUT = Path.home() / "vgc-data/jev/rebattle-heldout.json"
 SRC = Path("/tmp/vgc-pilot/src")
 PER_CELL, SEED, BATCH = 8, 20261028, 25
+DSPY = Path.home() / "vgc-data/mercury-dspy/heldout/candidates.json"   # mercury_dspy_grid.CANDIDATES
 ARMS = {"jev": "jev:top:", "mercury-off": "mercury-off:", "mercury-low": "mercury-low:",
-        "mercury-medium": "mercury-medium:", "mercury": "mercury:", "random": "random:"}
+        "mercury-medium": "mercury-medium:", "mercury": "mercury:", "random": "random:",
+        "mercury-dspy-off": "mercury-dspy-off:", "mercury-dspy-low": "mercury-dspy-low:",
+        "mercury-dspy-medium": "mercury-dspy-medium:", "mercury-dspy-high": "mercury-dspy-high:"}
 
 
 def candidates():
     """The grid's candidates for the re-battled arms, each with its arm and task id (None for an unmasked team)."""
     out = []
-    for c in json.loads((GRID / "candidates.json").read_text())["candidates"]:
+    extra = json.loads(DSPY.read_text())["candidates"] if DSPY.exists() else []
+    for c in json.loads((GRID / "candidates.json").read_text())["candidates"] + extra:
         if not c["paste"]: continue
         if c["kind"] == "original": out.append(dict(c, arm="unmasked", task_id=None)); continue
         arm = next((a for a, p in ARMS.items() if c["label"].startswith(p)), None)
@@ -154,7 +159,7 @@ def report(_a):
             for arm in ARMS:
                 vals = [win.get((arm, i)) or 0 for i in ids]
                 row["usable"][arm] = interval([(tasks[i]["source"], v) for i, v in zip(ids, vals)], "mean")
-            for arm in ("mercury-off", "mercury-low", "mercury-medium", "mercury"):
+            for arm in (a for a in ARMS if a.startswith("mercury")):
                 pairs = [(tasks[i]["source"], win[("jev", i)] - win[(arm, i)]) for i in ids
                          if win.get(("jev", i)) is not None and win.get((arm, i)) is not None]
                 if len(pairs) >= 2: row["jev_minus"][arm] = interval(pairs, "diff")
