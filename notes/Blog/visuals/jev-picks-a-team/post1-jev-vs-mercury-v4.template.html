@@ -1,0 +1,247 @@
+<meta charset="utf-8">
+<title>Jev Finished Every Team, One Shape</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a fixed 1080x1350 stage (scaled to fit on the page). One shape morphs through every state on a 120 BPM grid;
+   every style is computed from time inside seek(t). Single light look by choice: warm-grey canvas, black and white, one accent for Jev. */
+:root{--canvas:#ECEAE4;--ink:#111110;--paper:#FFFFFF;--mute:#6B6A65;--line:#D6D3CB;--accent:#A3226E;--ghost:#C9C6BE;
+  --ui:"Geist",ui-sans-serif,system-ui,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace;color-scheme:light}
+html,body{background:var(--canvas)}
+body{margin:0;color:var(--ink);font-family:var(--ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+body.video{padding:0}
+.fit{max-width:1080px;margin:0 auto;aspect-ratio:1080/1350;position:relative;overflow:hidden}
+body.video .fit{max-width:none;width:1080px;height:1350px}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1350px;transform-origin:0 0;background:var(--canvas);overflow:hidden}
+.abs{position:absolute}
+h1{position:absolute;left:90px;top:70px;width:900px;margin:0;font-weight:700;font-size:60px;line-height:1.05;letter-spacing:-.03em}
+h1 .j{color:var(--accent)}
+.shape{position:absolute;background:var(--paper);border:3px solid var(--ink);box-sizing:border-box;overflow:hidden}
+.layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.q{font-weight:700;font-size:72px}
+.sprite{image-rendering:pixelated}
+.pilltext{font-weight:600;font-size:40px;letter-spacing:-.01em;white-space:nowrap}
+.pilltext .n{font-variant-numeric:tabular-nums}
+.ph{position:absolute;left:24px;top:20px;display:flex;flex-direction:column;gap:2px}
+.ph b{font-size:34px;font-weight:700}
+.ph span{font-family:var(--mono);font-size:20px;color:var(--mute)}
+.grid{position:absolute;left:20px;top:112px;display:grid;grid-template-columns:repeat(18,20px);gap:2px}
+.grid i{width:20px;height:20px;border-radius:4px;box-sizing:border-box}
+.count{position:absolute;left:24px;bottom:22px;display:flex;align-items:baseline;gap:12px}
+.count b{font-size:64px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.count span{font-size:24px;color:var(--mute)}
+.fill{position:absolute;left:0;top:0;bottom:0;width:100%;transform-origin:left center}
+.blab{position:absolute;font-size:34px;font-weight:700}
+.bval{position:absolute;font-size:40px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;width:130px}
+.btitle{position:absolute;left:90px;top:400px;font-size:34px;font-weight:700;letter-spacing:-.01em}
+.toggle{position:absolute;width:112px;height:60px;border-radius:30px;border:3px solid var(--ink);box-sizing:border-box;background:var(--paper)}
+.knob{position:absolute;top:6px;height:42px;border-radius:21px;background:var(--ink)}
+.tlab{position:absolute;font-size:28px;font-weight:500}
+.caption{position:absolute;left:90px;width:900px;top:1110px;text-align:center;font-size:37px;line-height:1.3;color:var(--ink);font-weight:500}
+.sum{position:absolute;inset:0;padding:44px 48px;box-sizing:border-box;display:grid;align-content:start;gap:26px}
+.srow{display:grid;grid-template-columns:190px 1fr 1fr;align-items:baseline;gap:12px}
+.srow .who{font-size:38px;font-weight:700}
+.srow .big{font-size:58px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.srow small{display:block;font-size:22px;font-weight:400;color:var(--mute);letter-spacing:0}
+.fair{font-size:26px;line-height:1.38;border-left:6px solid var(--ink);padding:14px 20px;background:var(--canvas)}
+.fair b{font-weight:700}
+.sig{white-space:nowrap;font-family:var(--mono);font-size:20px;color:var(--mute);border-top:2px solid var(--line);padding-top:16px}
+.cursor{position:absolute;left:0;top:0;width:44px;height:44px;pointer-events:none}
+.ring{position:absolute;width:70px;height:70px;border-radius:50%;border:3px solid var(--ink);box-sizing:border-box}
+.controls{max-width:1080px;margin:12px auto 0;display:flex;gap:12px;align-items:center;font-family:var(--mono);font-size:13px;color:var(--mute)}
+.controls button{font:inherit;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:999px;padding:6px 16px;cursor:pointer}
+body.video .controls{display:none}
+</style>
+
+<div class="fit" id="fit"><div id="stage">
+  <h1><span class="j">Jev</span> made all 270 teams legal. Mercury failed on 1 in 3.</h1>
+
+  <div class="abs" id="mons"></div>
+
+  <div class="shape" id="S">
+    <div class="layer" id="Lq"><span class="q">?</span></div>
+    <div class="layer" id="Lmon"></div>
+    <div class="layer" id="Lp1"><span class="pilltext">1 task</span></div>
+    <div class="layer" id="Lp2"><span class="pilltext">× 54 ways = 54 tasks</span></div>
+    <div class="layer" id="Lp3"><span class="pilltext">× 5 teams = <span class="n">270</span> tasks</span></div>
+    <div class="layer" id="Lpanel"><div class="ph"><b style="color:var(--accent)">Jev</b><span>decision model</span></div><div class="grid" id="gJ"></div><div class="count"><b id="cJ" style="color:var(--accent)"></b><span id="cJl"></span></div></div>
+    <div class="fill" id="fJ" style="background:var(--accent)"></div>
+    <div class="layer" id="Lsum"><div class="sum">
+      <div class="srow"><span class="who" style="color:var(--accent)">Jev</span><span class="big" style="color:var(--accent)">270/270<small>legal teams</small></span><span class="big" style="color:var(--accent)">48.1%<small>win rate</small></span></div>
+      <div class="srow"><span class="who">Mercury</span><span class="big">183/270<small>legal teams</small></span><span class="big">32.8%<small>win rate</small></span></div>
+      <p class="fair" style="margin:0"><b>Fair check:</b> when both teams were legal, they won equally often: 48.6% vs 48.3% (gap +0.3 points, 95% interval −1.5 to +1.8). Jev's edge is that it never makes an illegal team.</p>
+      <div class="sig" id="sig">Rami Ismael · github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi</div>
+    </div></div>
+  </div>
+
+  <div class="shape" id="S2">
+    <div class="layer" id="L2panel"><div class="ph"><b>Mercury</b><span>language model</span></div><div class="grid" id="gM"></div><div class="count"><b id="cM"></b><span id="cMl"></span></div></div>
+    <div class="fill" id="gMercBar" style="background:var(--ghost)"></div>
+    <div class="fill" id="fM" style="background:var(--ink)"></div>
+  </div>
+
+  <div class="btitle" id="btitle">Win rate against the 49 strongest teams</div>
+  <div class="blab" id="lJ" style="color:var(--accent)">Jev</div>
+  <div class="blab" id="lM">Mercury</div>
+  <div class="bval" id="vJ" style="color:var(--accent)"></div>
+  <div class="bval" id="vM"></div>
+  <div class="toggle" id="tog"><div class="knob" id="knob"></div></div>
+  <div class="tlab" id="tlab">Count illegal teams as losses</div>
+
+  <div class="caption" id="cap"></div>
+
+  <div class="ring" id="ring"></div>
+  <svg class="cursor" id="cur" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 4 L8 34 L16 26 L22 39 L28 36 L22 23 L33 23 Z" fill="#111110" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/></svg>
+</div></div>
+<div class="controls"><button type="button" id="play">Play</button><span>14 seconds, 7 bars at 120 BPM; the still is the summary frame</span></div>
+
+<script>
+const q = new URLSearchParams(location.search);
+if (q.has("video")) document.body.classList.add("video");
+const D = __DATA__;
+const $ = (id) => document.getElementById(id);
+const B = (n) => (n - 1) * 0.5;                       // time of beat n (1-based), 120 BPM
+const LEN = 14;
+
+// Closed-form spring step responses: each frame is a pure function of t.
+function crit(tau, w) { return tau <= 0 ? 0 : 1 - (1 + w * tau) * Math.exp(-w * tau); }          // no overshoot (data, geometry)
+function soft(tau, w, z = 0.82) {                                                                 // tiny overshoot (UI chrome only)
+  if (tau <= 0) return 0;
+  const wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * tau) * (Math.cos(wd * tau) + (z / Math.sqrt(1 - z * z)) * Math.sin(wd * tau));
+}
+// A value whose target changes several times is the sum of one spring per change.
+function track(t, start, changes, step = crit, w = 16) {
+  let v = start, prev = start;
+  for (const [t0, to] of changes) { v += (to - prev) * step(t - t0, w); prev = to; }
+  return v;
+}
+const lin = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+function show(el, o, blur = 0) { el.style.opacity = o.toFixed(3); el.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : "none"; el.style.visibility = o < 0.002 ? "hidden" : "visible"; }
+// A content layer that is on from tIn to tOut, swapping with a short blur.
+function swap(t, tIn, tOut = Infinity) { const a = crit(t - tIn, 22), b = crit(t - tOut, 22); return a - b; }
+function swapLayer(el, t, tIn, tOut) { const o = swap(t, tIn, tOut); show(el, o, (1 - o) * 10); }
+
+// Pieces built once.
+const team = D.team;
+$("Lmon").innerHTML = `<img class="sprite" alt="${team[0].species}" src="${team[0].sprite}" style="width:120px;height:120px">`;
+$("mons").innerHTML = team.slice(1).map((m, i) => `<img class="sprite abs" id="m${i}" alt="${m.species}" src="${m.sprite}" style="width:120px;height:120px">`).join("");
+const order = D.rows.flat();                          // 5 unmasked teams × 54 tasks; each team is 3 rows of 18
+$("gJ").innerHTML = order.map(() => '<i style="background:var(--accent)"></i>').join("");
+$("gM").innerHTML = order.map(() => '<i style="background:var(--ink)"></i>').join("");
+const cJ = [...$("gJ").children], cM = [...$("gM").children];
+const FLIP = { changed: B(13), rule: B(14), unreadable: B(15) };
+const nFail = (t) => order.reduce((a, s) => a + (s !== "legal" && t >= FLIP[s] ? 1 : 0), 0);
+
+const CAPS = [[B(2), "A real tournament team, with one Pokémon hidden."], [B(4), "An AI fills the gap."], [B(5), "That's one task."],
+  [B(8), "Two AIs fill every one of the 270."], [B(13), "53 changed parts of the team it was told to keep"], [B(14), "27 broke a game rule"],
+  [B(15), "7 answers couldn't be read"], [B(16), "Legal = follows the game's rules."], [B(18), "Both legal (183 tasks): the same strength."],
+  [B(22), "Now count illegal teams as losses, over all 270 tasks."], [B(23), "Jev's edge: it never makes an illegal team."], [B(25), ""]];
+
+function geom(el, x, y, w, h, r) { Object.assign(el.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px", borderRadius: r + "px" }); }
+
+function seek(t) {
+  // The shape S: tile → team slot → pill → Jev panel → Jev bar track → summary card → tile.
+  const sx = track(t, 465, [[B(2), 90], [B(5), 280], [B(9), 90], [B(17), 250], [B(25), 90], [B(28), 465]]);
+  const sy = track(t, 600, [[B(5), 615], [B(9), 330], [B(17), 520], [B(25), 400], [B(28), 600]]);
+  const sw = track(t, 150, [[B(5), 520], [B(9), 435], [B(17), 650], [B(25), 900], [B(28), 150]]);
+  const sh = track(t, 150, [[B(5), 120], [B(9), 640], [B(17), 80], [B(25), 560], [B(28), 150]]);
+  const sr = track(t, 28, [[B(5), 60], [B(9), 28], [B(17), 20], [B(25), 32], [B(28), 28]]);
+  geom($("S"), sx, sy, sw, sh, sr);
+  // S2 splits from the pill, becomes Mercury's panel and bar, then folds back into S.
+  const x2 = track(t, 280, [[B(9), 555], [B(17), 250], [B(25), 90]]), y2 = track(t, 615, [[B(9), 330], [B(17), 650], [B(25), 400]]);
+  const w2 = track(t, 520, [[B(9), 435], [B(17), 650], [B(25), 900]]), h2 = track(t, 120, [[B(9), 640], [B(17), 80], [B(25), 560]]);
+  const r2 = track(t, 60, [[B(9), 28], [B(17), 20], [B(25), 32]]);
+  geom($("S2"), x2, y2, w2, h2, r2);
+  show($("S2"), swap(t, B(9), B(25)));
+
+  // Bar 1: the tile, the team, the click, the fill.
+  const qOn = swap(t, -1, B(4)) + swap(t, B(28), Infinity);          // the "?" opens the loop and closes it
+  show($("Lq"), qOn, (1 - qOn) * 10);
+  swapLayer($("Lmon"), t, B(4), B(5));
+  team.slice(1).forEach((m, i) => {
+    const el = $("m" + i), o = swap(t, B(2) + 0.06 * i, B(5));
+    const gx = 90 + (i + 1) * 150 + 15, gy = 615;
+    const cx = track(t, gx, [[B(5), 540 - 60]]), cy = track(t, gy, [[B(5), 615]]);
+    Object.assign(el.style, { left: cx + "px", top: cy + 10 * (1 - crit(t - B(2) - 0.06 * i, 16)) + "px" }); show(el, o);
+  });
+  // Bar 2: the pill counts the tasks.
+  swapLayer($("Lp1"), t, B(5), B(6)); swapLayer($("Lp2"), t, B(6), B(7)); swapLayer($("Lp3"), t, B(7), B(9));
+  // Bar 3-4: the panels, their grids, Mercury's failures.
+  swapLayer($("Lpanel"), t, B(9), B(17)); swapLayer($("L2panel"), t, B(9), B(17));
+  const drawn = (i) => crit(t - (B(10) + (i / order.length) * 1.0), 30);
+  cJ.forEach((c, i) => { c.style.opacity = drawn(i).toFixed(3); });
+  cM.forEach((c, i) => {
+    const s = order[i], flipped = s !== "legal" ? crit(t - FLIP[s], 24) : 0;
+    c.style.opacity = drawn(i).toFixed(3);
+    c.style.background = flipped > 0.5 ? "var(--paper)" : "var(--ink)";
+    c.style.border = flipped > 0.5 ? "2px solid var(--ink)" : "0";
+    c.style.transform = `scale(${(1 - 0.25 * Math.sin(Math.PI * Math.min(1, flipped))).toFixed(3)})`;
+  });
+  const answered = Math.round(270 * crit(t - B(10), 6));
+  const legalOn = t >= B(13);
+  $("cJ").textContent = legalOn ? "270/270" : String(Math.min(270, answered));
+  $("cJl").textContent = legalOn ? "legal" : "answers";
+  $("cM").textContent = legalOn ? `${270 - nFail(t)}/270` : String(Math.min(270, answered));
+  $("cMl").textContent = legalOn ? "legal" : "answers";
+  // Bar 5-6: win-rate bars, then the toggle counts illegal teams as losses.
+  const barsOn = swap(t, B(17), B(25));
+  [$("btitle"), $("lJ"), $("lM"), $("vJ"), $("vM")].forEach((el) => show(el, barsOn, (1 - barsOn) * 8));
+  Object.assign($("lJ").style, { left: "90px", top: "540px" }); Object.assign($("lM").style, { left: "90px", top: "670px" });
+  Object.assign($("vJ").style, { left: "910px", top: "537px" }); Object.assign($("vM").style, { left: "910px", top: "667px" });
+  const jev = track(t, 0, [[B(18), D.shared.jev], [B(22), D.usable.jev]], crit, 12);
+  const merc = track(t, 0, [[B(18), D.shared.mercury], [B(22), D.usable.mercury]], crit, 12);
+  const fillOn = swap(t, B(17), B(25));
+  $("fJ").style.transform = `scaleX(${jev.toFixed(4)})`; show($("fJ"), fillOn);
+  $("fM").style.transform = `scaleX(${merc.toFixed(4)})`; show($("fM"), fillOn);
+  $("gMercBar").style.transform = `scaleX(${D.shared.mercury})`; show($("gMercBar"), swap(t, B(22), B(25)) * 0.9);
+  $("vJ").textContent = (jev * 100).toFixed(1) + "%"; $("vM").textContent = (merc * 100).toFixed(1) + "%";
+  // The toggle: its knob's two edges ride different springs, so the leading edge stretches ahead.
+  const togOn = swap(t, B(20), B(25));
+  Object.assign($("tog").style, { left: "250px", top: "800px" }); show($("tog"), togOn, (1 - togOn) * 8);
+  Object.assign($("tlab").style, { left: "384px", top: "811px" }); show($("tlab"), togOn, (1 - togOn) * 8);
+  const left = 6 + 50 * soft(t - B(21) - 0.06, 18), right = 48 + 50 * soft(t - B(21), 26);
+  Object.assign($("knob").style, { left: left + "px", width: (right - left) + "px" });
+  $("tog").style.background = t >= B(21) + 0.1 ? "var(--ink)" : "var(--paper)";
+  $("knob").style.background = t >= B(21) + 0.1 ? "var(--paper)" : "var(--ink)";
+  // Bar 7: the summary card, then back to the tile.
+  swapLayer($("Lsum"), t, B(25), B(28));
+  const sig = $("sig"), fair = document.querySelector(".fair");
+  show(fair, swap(t, B(26), B(28))); show(sig, swap(t, B(27), B(28)));
+  // Captions swap with a short blur.
+  const cap = $("cap");
+  let text = "", tIn = -1, tNext = Infinity;
+  CAPS.forEach(([c, s], k) => { if (t >= c) { text = s; tIn = c; tNext = CAPS[k + 1] ? CAPS[k + 1][0] : Infinity; } });
+  if (cap.textContent !== text) cap.textContent = text;
+  const co = text ? swap(t, tIn, tNext) : 0; show(cap, co, (1 - co) * 8);
+  // The cursor: clicks the "?" on beat 3, the toggle on beat 21.
+  const curO = swap(t, B(2) + 0.1, B(4) + 0.3) + swap(t, B(20) + 0.1, B(22) + 0.3);
+  const cx = track(t, 1000, [[B(2) + 0.1, 150], [B(4) + 0.1, 1000], [B(19), 1000], [B(20) + 0.1, 300], [B(22), 1000]], crit, 11);
+  const cy = track(t, 1280, [[B(2) + 0.1, 650], [B(4) + 0.1, 1280], [B(19), 1280], [B(20) + 0.1, 825], [B(22), 1280]], crit, 11);
+  const press = (tc) => { const d = t - tc; return d >= 0 && d < 0.12 ? 0.85 : 1; };
+  const ps = Math.min(press(B(3)), press(B(21)));
+  $("cur").style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px) scale(${ps})`;
+  show($("cur"), Math.min(1, curO));
+  // A ring where each click lands.
+  const ring = $("ring"), ringA = lin(t, B(3), B(3) + 0.35), ringB = lin(t, B(21), B(21) + 0.35);
+  const firstOn = ringA > 0 && ringA < 1;
+  const rp = firstOn ? ringA : ringB > 0 && ringB < 1 ? ringB : 0, rx = firstOn ? 150 : 300, ry = firstOn ? 650 : 825;
+  Object.assign(ring.style, { left: rx - 35 + "px", top: ry - 35 + "px", transform: `scale(${(0.6 + 0.8 * rp).toFixed(3)})` });
+  show(ring, rp > 0 ? (1 - rp) * 0.8 : 0);
+}
+window.seek = seek;
+window.render = seek;                                 // the frame recorder calls render(t)
+
+function fitStage() { if (document.body.classList.contains("video")) return; $("stage").style.transform = `scale(${$("fit").clientWidth / 1080})`; }
+addEventListener("resize", fitStage); fitStage();
+const STILL = B(26) + 1.2;                            // the page at rest is the summary card
+seek(q.has("t") ? +q.get("t") : STILL);
+$("play").addEventListener("click", () => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { seek(STILL); return; }
+  const t0 = performance.now();
+  const tick = (now) => { const t = (now - t0) / 1000; seek(Math.min(t, LEN)); if (t < LEN) requestAnimationFrame(tick); else seek(STILL); };
+  requestAnimationFrame(tick);
+});
+</script>

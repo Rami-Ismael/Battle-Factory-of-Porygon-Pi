@@ -1,0 +1,266 @@
+<meta charset="utf-8">
+<title>Jev Finished Every Team, With Ranges</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a fixed 1080x1350 stage (scaled to fit on the page). One shape morphs through every state on a 120 BPM grid;
+   every style is computed from time inside seek(t). v5 adds two bars (beats 25-32) that draws 95% ranges on the win-rate bars and explains them. Single light look by choice: warm-grey canvas, black and white, one accent for Jev. */
+:root{--canvas:#ECEAE4;--ink:#111110;--paper:#FFFFFF;--mute:#6B6A65;--line:#D6D3CB;--accent:#A3226E;--ghost:#C9C6BE;
+  --ui:"Geist",ui-sans-serif,system-ui,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace;color-scheme:light}
+html,body{background:var(--canvas)}
+body{margin:0;color:var(--ink);font-family:var(--ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+body.video{padding:0}
+.fit{max-width:1080px;margin:0 auto;aspect-ratio:1080/1350;position:relative;overflow:hidden}
+body.video .fit{max-width:none;width:1080px;height:1350px}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1350px;transform-origin:0 0;background:var(--canvas);overflow:hidden}
+.abs{position:absolute}
+h1{position:absolute;left:90px;top:70px;width:900px;margin:0;font-weight:700;font-size:60px;line-height:1.05;letter-spacing:-.03em}
+h1 .j{color:var(--accent)}
+.shape{position:absolute;background:var(--paper);border:3px solid var(--ink);box-sizing:border-box;overflow:hidden}
+.layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.q{font-weight:700;font-size:72px}
+.sprite{image-rendering:pixelated}
+.pilltext{font-weight:600;font-size:40px;letter-spacing:-.01em;white-space:nowrap}
+.pilltext .n{font-variant-numeric:tabular-nums}
+.ph{position:absolute;left:24px;top:20px;display:flex;flex-direction:column;gap:2px}
+.ph b{font-size:34px;font-weight:700}
+.ph span{font-family:var(--mono);font-size:20px;color:var(--mute)}
+.grid{position:absolute;left:20px;top:112px;display:grid;grid-template-columns:repeat(18,20px);gap:2px}
+.grid i{width:20px;height:20px;border-radius:4px;box-sizing:border-box}
+.count{position:absolute;left:24px;bottom:22px;display:flex;align-items:baseline;gap:12px}
+.count b{font-size:64px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.count span{font-size:24px;color:var(--mute)}
+.fill{position:absolute;left:0;top:0;bottom:0;width:100%;transform-origin:left center}
+.blab{position:absolute;font-size:34px;font-weight:700}
+.bval{position:absolute;font-size:40px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;width:130px}
+.btitle{position:absolute;left:90px;top:400px;width:900px;font-size:34px;line-height:1.2;font-weight:700;letter-spacing:-.01em}
+.wh{position:absolute;height:6px;background:var(--ink);box-shadow:0 0 0 2px var(--paper);border-radius:2px}
+.wh::before,.wh::after{content:"";position:absolute;top:-13px;width:6px;height:32px;background:var(--ink);box-shadow:0 0 0 2px var(--paper);border-radius:2px}
+.wh::before{left:-2px}.wh::after{right:-2px}
+.rng{position:absolute;font-family:var(--mono);font-size:25px;color:var(--ink);width:150px;text-align:right;font-variant-numeric:tabular-nums}
+.toggle{position:absolute;width:112px;height:60px;border-radius:30px;border:3px solid var(--ink);box-sizing:border-box;background:var(--paper)}
+.knob{position:absolute;top:6px;height:42px;border-radius:21px;background:var(--ink)}
+.tlab{position:absolute;font-size:28px;font-weight:500}
+.caption{position:absolute;left:90px;width:900px;top:1110px;text-align:center;font-size:37px;line-height:1.3;color:var(--ink);font-weight:500}
+.sum{position:absolute;inset:0;padding:44px 48px;box-sizing:border-box;display:grid;align-content:start;gap:26px}
+.srow{display:grid;grid-template-columns:190px 1fr 1fr;align-items:baseline;gap:12px}
+.srow .who{font-size:38px;font-weight:700}
+.srow .big{font-size:58px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.srow small{display:block;white-space:nowrap;font-size:22px;font-weight:400;color:var(--mute);letter-spacing:0}
+.fair{font-size:26px;line-height:1.38;border-left:6px solid var(--ink);padding:14px 20px;background:var(--canvas)}
+.fair b{font-weight:700}
+.sig{white-space:nowrap;font-family:var(--mono);font-size:20px;color:var(--mute);border-top:2px solid var(--line);padding-top:16px}
+.cursor{position:absolute;left:0;top:0;width:44px;height:44px;pointer-events:none}
+.ring{position:absolute;width:70px;height:70px;border-radius:50%;border:3px solid var(--ink);box-sizing:border-box}
+.controls{max-width:1080px;margin:12px auto 0;display:flex;gap:12px;align-items:center;font-family:var(--mono);font-size:13px;color:var(--mute)}
+.controls button{font:inherit;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:999px;padding:6px 16px;cursor:pointer}
+body.video .controls{display:none}
+</style>
+
+<div class="fit" id="fit"><div id="stage">
+  <h1><span class="j">Jev</span> made all 270 teams legal. Mercury failed on 1 in 3.</h1>
+
+  <div class="abs" id="mons"></div>
+
+  <div class="shape" id="S">
+    <div class="layer" id="Lq"><span class="q">?</span></div>
+    <div class="layer" id="Lmon"></div>
+    <div class="layer" id="Lp1"><span class="pilltext">1 task</span></div>
+    <div class="layer" id="Lp2"><span class="pilltext">× 54 ways = 54 tasks</span></div>
+    <div class="layer" id="Lp3"><span class="pilltext">× 5 teams = <span class="n">270</span> tasks</span></div>
+    <div class="layer" id="Lpanel"><div class="ph"><b style="color:var(--accent)">Jev</b><span>decision model</span></div><div class="grid" id="gJ"></div><div class="count"><b id="cJ" style="color:var(--accent)"></b><span id="cJl"></span></div></div>
+    <div class="fill" id="fJ" style="background:var(--accent)"></div>
+    <div class="layer" id="Lsum"><div class="sum">
+      <div class="srow"><span class="who" style="color:var(--accent)">Jev</span><span class="big" style="color:var(--accent)">270/270<small>legal teams</small></span><span class="big" style="color:var(--accent)"><span id="sumJ"></span><small>win rate, all 270 tasks<br>95% range <span id="sumJr"></span></small></span></div>
+      <div class="srow"><span class="who">Mercury</span><span class="big">183/270<small>legal teams</small></span><span class="big"><span id="sumM"></span><small>win rate, all 270 tasks<br>95% range <span id="sumMr"></span></small></span></div>
+      <p class="fair" style="margin:0"><b>Fair check:</b> when both teams were legal, <span id="fairNums"></span>. Jev's edge is that it never makes an illegal team. A 95% range is where the result would likely land with five other starting teams.</p>
+      <div class="sig" id="sig">Rami Ismael · github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi</div>
+    </div></div>
+  </div>
+
+  <div class="shape" id="S2">
+    <div class="layer" id="L2panel"><div class="ph"><b>Mercury</b><span>language model</span></div><div class="grid" id="gM"></div><div class="count"><b id="cM"></b><span id="cMl"></span></div></div>
+    <div class="fill" id="gMercBar" style="background:var(--ghost)"></div>
+    <div class="fill" id="fM" style="background:var(--ink)"></div>
+  </div>
+
+  <div class="btitle" id="btitle">Win rate: share of battles won against the 49 strongest tournament teams</div>
+  <div class="wh" id="whJ"></div><div class="wh" id="whM"></div>
+  <div class="rng" id="rJ"></div><div class="rng" id="rM"></div>
+  <div class="blab" id="lJ" style="color:var(--accent)">Jev</div>
+  <div class="blab" id="lM">Mercury</div>
+  <div class="bval" id="vJ" style="color:var(--accent)"></div>
+  <div class="bval" id="vM"></div>
+  <div class="toggle" id="tog"><div class="knob" id="knob"></div></div>
+  <div class="tlab" id="tlab">Count illegal teams as losses</div>
+
+  <div class="caption" id="cap"></div>
+
+  <div class="ring" id="ring"></div>
+  <svg class="cursor" id="cur" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 4 L8 34 L16 26 L22 39 L28 36 L22 23 L33 23 Z" fill="#111110" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/></svg>
+</div></div>
+<div class="controls"><button type="button" id="play">Play</button><span>18 seconds, 9 bars at 120 BPM; the still is the summary frame</span></div>
+
+<script>
+const q = new URLSearchParams(location.search);
+if (q.has("video")) document.body.classList.add("video");
+const D = {"tasks": 270, "mercury": ["legal", "legal", "legal", "rule", "legal", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "rule", "rule", "rule", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "rule", "changed", "legal", "changed", "legal", "rule", "legal", "legal", "rule", "legal", "changed", "rule", "rule", "changed", "changed", "legal", "rule", "changed", "legal", "legal", "changed", "legal", "changed", "legal", "legal", "legal", "legal", "changed", "legal", "legal", "legal", "changed", "rule", "legal", "changed", "rule", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "changed", "legal", "legal", "legal", "legal", "rule", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "legal", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "changed", "legal", "legal", "changed", "unreadable", "changed", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "legal", "changed", "legal", "unreadable", "legal", "legal", "rule", "legal", "legal", "legal", "legal", "legal", "unreadable", "legal", "rule", "legal", "legal", "rule", "legal", "legal", "rule", "legal", "rule", "rule", "changed", "legal", "unreadable", "rule", "legal", "changed", "changed", "rule", "changed", "legal", "unreadable", "changed", "changed", "rule", "legal", "legal", "legal", "rule", "changed", "rule", "legal", "legal", "changed", "changed", "changed", "legal", "changed", "legal", "legal", "rule", "rule", "legal", "changed", "unreadable", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "legal", "changed", "unreadable", "legal", "changed", "legal", "changed", "legal", "changed", "legal", "changed", "legal", "legal", "legal", "legal", "rule", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal"], "counts": {"legal": 183, "changed": 53, "rule": 27, "unreadable": 7}, "shared": {"n": 183, "jev": 0.48, "mercury": 0.483, "diff": -0.0039, "ci": [-0.0075, -0.0007]}, "usable": {"jev": 0.476, "mercury": 0.328}, "examples": ["Kleavor can't learn Avalanche", "Archaludon given 68 Stat Points (the limit is 66)", "two Pok\u00e9mon holding Choice Scarf"], "sprite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAABNPT4ICAiveEXitWE6Li8rHyJqWFZrVjqWhW3j0a78/PzIvbdn4ogsAAAAAXRSTlMAQObYZgAAA5RJREFUeNrt2IFu2zoMhWHx0KTotO//vJeUTDTWDQrbkTFsCNEVaID83yi7Sbbyr81nPqN6b1+IcG//XkCE7hWiL4L7+lVih1sBurdfXUD524GdsK7TgXYTqWrvf2HqS4T0BVRrRe/PA7Q6oEKqkQ8m+tMB0uojMh/QSlrM1OP5ctH635h0nQOwZdEa9QR6/wuTgF2foqz6DVdmAd7fL/CtpNq2mCN4Pvoag6KqDhDpnH4AtUbPg0QAtLpIPjoJEG0xv3ECYFYiJyRWKnNG23F8fZvWuglShVlnAabKZsbeD6EBVGVZFpvTX/po7QMVF7w/SbCFU6A+qCLbYzaxz1sfiIOSZZZgvc5bvOUr1doE5rcA9O9bPPLraisoRjj6/vXWLxgasMVb3taVQaTK7HV7C9AqsgkAQSTqbjBDiQQAswv2DkAJFEBciGEH4iJACAyEcL3fAa/HNwe4D6oLCB8lBLwLxKSQfUVtRxjCgllAF1AJoADoopD9HWCQEJwAYKB2Rikw3gYsunml1xUE1NwRdhowGwBjjogLrbjCv/IDN/h0P45VaACQN1QTVhSpXWj2yQFzB8x6fzhlmANFApBLV6AAHWC2mKFhj8fD+goX+/khBfmyP/TdfADF89EnXAdi7OlGjyMDP3yYGUvvE+EysJ3XFmBe2OBRn0j7nzzLC/3xeZGPNpZtjAHU578KzvUHgVvUwNbzxuaGPgkQnO0T9u/NHgX3O4t5DxAggjP9QfA8e38F5zhpzwKpHLgWmv0BsHboDvwIxrHRE0BCvwvqU3d9H/j0BfqxWAIbyXsBv8Z9ZOhvW1jLR49hPwD7HFwh6iSZH/slo2YoyBNqgDXgyAr1RXz3y9ai8ROerwEPwHFhvMrr2i9HCkAsxHuA5DIQwuo/pID47n2MAOEiUOyRQL7xYOw3Acf7I/AYnmvAqkQXgaE/CHlqWmODQZgGlOiLkEwCio2ARj6iz305CmT/lxVUM3vgNnLhAMDDSimIZP8UgDIAvAxACp0QSeCYMPbbmyaGlZR2xBkAL/89iHGlJ+HIq9F2W8ih/sLxgO6B1/0UFKGABK/7A+DDo4Df/wMzAJT/5QHV7I9APO8YEOMAyjhAJDRqu34CSQgOfAbDi760pytnfwRiQJSrnx4IxeAV8PMYfMq1AQh9hiu2qAbw/uBVBERKhASmTwI39wnlXgDlRgDw/o2D+Do2f3Q+85nPfOY/EY4hhAbYCxMAAAAASUVORK5CYII=", "team": [{"species": "Armarouge", "sprite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACTMjDiPBv4XqGjdiH/tSEMDAxUKCk2NDReVlLw4AocIiX68jXtwSHtNxP6+vpAJQ71AAAAAXRSTlMAQObYZgAAA01JREFUeNrt2AeiwzgIBFBD8CBH5u/9b7uAkbc3Rd4+v6TPU0nf/s//+T9/KERPA0yO0LMCM9OTQIYe7C/h4f7XBdBTwOsSqJyl/SW8XvQgUAL5P/GzZT2w7/vLE/9FZF8pEJH3D2LPOLBOoDGPqhb/TWGlwex/Y+gim6wDANXrUUbVn1nXr0qkuhdwCyv7PVyCyOp+NI8DrLrl4q8NGO04jsYc67StT4z/8HAjIqxuf2/o3ft7P453I9X1AvrZjn724+3LNACRFTstkkDr7ZrAuxUgckY+EaoFDrxrC94FEEX950K2wBNT6AkATUH7vhIwM7xbPx1o769vAOZdVcwvM/tsG8TMAfEALWYABzpzPhIQQmSekKiHJLChHQ3966uzqmEDzu8i8wtU9V5oQI+wisDg9rxw95eALfolAGZIAucCwHIbIWJAAAJmAN/1m1kdzAh1L4lip2BnNIMIwOlAxSoytUJiCURSyPpolfgf58bxAmb7CxCYuIA8V4AausSpSaD6C0DHeGSZocNGZA2AHoCngB8LM/eiH/V35FAlYdyAyAqgt+jPttMzhOQi0T8r3P1ZeNWxGLsQ216xOUCyv2e/gAswZhYGAj0/EfLuGPVXfwLVf56MLfelHmqzgMHrWxR5n7ETWe8xbCHAjwAihgkAZmjVn6e5Uv2XkH8ic0D1DyCHf23DDWgE0T8jQO8JDOHahehPQK9gmwuItA9ABGIW9dVfABG5MA1QDVDEwOKCCJuMV2F4f2ZOAN1ANINzBsJSu1xAZhIYKxwAbACn5C6PRdRpQYn5BiAm5oAL/vsdoMw6DfAAorAHcCYgcEru67AGgTkgb4ro7zmBFHpHrFU9+oqYAEgLiER/AiUghAToIuYAGpNHt8wNbECeTwzOzABjcW9AYNkfQAUgzyzARKrjaS33FTaAO6CIAxOCRn0BvdYE6AWMAPTpB0PtpNlamN7CIBKfTz6jjU50JVr5ObOAuxNKESwH7ko8DywXlKm+oCiAU1j6bWD1ledZDfCPgDxnKcBVV0IGTwOMpV/I4qdn6dMAYy0wPYV5gLGi/9cAXQpMTOEfAOiC/l8FGP8M4KdFtBgAtuVABZ6onwCWPr7XBzW1//N//gX5FrYGNoC4A4IOAAAAAElFTkSuQmCC"}, {"species": "Aerodactyl", "sprite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACUg6SsrNVzUpQAAABSQXOUYs0xGGrNzeaDIEHmi5zNOUqsg97Nzc3///8xcyl8rC/7AAAAAXRSTlMAQObYZgAAAxdJREFUeNrtltFu4jAQRX2He4lTSvv/f7sZe9gEVwSD+7Ar5bwhWed4bINIBwcHBwcH/waA1Ls0eMmOnLM6l1rwZL20tT/xK1ZXOyYuTPt+5szkyBYAyHkwuHI2esYMJE/n85npCTSLAgnYSjSagIFlK4v9tOdHoZwPYbrFFBNE6GcCImmG0J8fHY9yAcqZhIwpIAHPSZFobyCb+yf37wV8KWmZGQZlbQYVGSt+DFHtJuOeP/A1IiVAOe65oR2CfsMyg9wfgd2CQwH0p/G4oM0AgAB2+KPgEKD7OwpUBM49gekUEMbUUXAI96+BroLkhr6Cuv3bAs20HzBtA+eXA3g6AuoC+hPqDqwFPQ7wFmB84jsB2rMC8EbAC50BoBZk7R2Pn5HWgMfaKxg/Iy+gwNdPKAr774gImPRewKFBzwKgmbn/9cD5vHNGwg2VK/h8ObAsnQjgZwGohXUATqfPz9cu2fW3n+3WX/9hcB0APE2e6A+E3uFaIJOjNVD98rWR6CpMoW8KNMYA2VgDcQFObXiiIxD6phABLX4Ta6C+0CASTwvTwtoQdfu+roEFScWPjT4SnQ8pKjKKAFWfrITshWgY2OgLqZclUQ6BZbMG+v7/Bu4PKMyv4gV4gSWw9ZtsHeAddxQEQGLd8tYPmHFQ70jKCiMY/giA1Z9GEKpTAmA02wTCzxE/LTvUFbgrIAKD/sTq/75+ocCb/rcC5WLBb5WAwGoPpsUPDt6wbZSEcMc0DQQk3/1WL6AtgO/7s7PqxZkuRMO7AVnRK+TkPJeAfi/gMPZeYUm1Cb0XoDkuoxR+AVQzhJnS+4XbDnWZ58uFANO9XmZDhXrGHnBUWtCaoI0EErUJfHx8CPQAIiGyHNHIN41k8V/d/+UBocCFRBTohTH04QibQPsHdQhdSoD1CrZCUoKjscDs/i8Wr5odc3wEXUvgqqqh9LsB2mVezmimRQDaCjUaIK/zwpcUAUHanrkgjhRo9ABpgMJI3Y3ApKGAccHC75CJq5BgGhzBWQMtxHBBuz/LUeDQQyL3BCLTwcHBwcHBwf/AH8rTHrYEVKitAAAAAElFTkSuQmCC"}, {"species": "Kingambit", "sprite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKSlqGBhBQVKUMUHFMTH/LihiYnPMTU2EayK1lRWspLTmvUHe3t7l5eV6WxX9AAAAAXRSTlMAQObYZgAABCFJREFUeNrt2ImW4yoMBFCXkB0iwPn/v32UAoln7Rgf3l6z4zl1kWGW7uWXicvcxEf8xwPJ5vb/CUCyqUCZD1CYCKT5AIV/PJBsJmDTgTJNIFDmAxMFAvPfUerCPxYoMwUC80dIcwV9lNnA5BHex1xmj2BTT6GYzT0Fm36RaFTEJp4C+8vvBZHxETqQAvDL/ptcGKH3b9sW8Iv+U8BxXPERzPuZ9WeCxHPAcV7hCATYzyh+0n8aiEehEEgvIOLH/sj+M8Bb4AgErPWvtQ34of888K1gJfR+RoHv+s8C3wkpNUBjTxNEWO/94wJyHYGA9v4uiG9/EKAgTSCgXq/yFljvi0MAyxohSgEs1dwB6fW9f0ggUaPIDmiVbvJca4/ZPwhQ8A6tdS6o5dpP0J+olzPAcjqAH4MXMRRSMhNt6d2MKpYRgggTu2CmzKEa67pCtQtDSGck2+1YnVK430Pt5ztT6cIlBs8oRFLvD+K5JjAG+EaVpwArxfs7cFkwSzUgQiG+gKCQnnEhhHsIKZViXi+vfgJvAeP1TCg1VoF4HAB6WWBN6IJF/0Nm5XXEUI24BGCteQsdqL+GnzA0XhVwEDgCgfvtdkeAdOEKQKIJPOcDoBAGdUUYYFQQoAscgUCNAxCxKmB/pjJDQFTgXndNgUB6AiJIsEKgJe+76pnqyEisgIDAPfkppDvAATL8/2SoEYareZcT7TvDAbJUgUl+qNAa1H4Cxu9cYP3H/WzPCiaq5ZzhAhA9FahLx35k382n/bVeAf7MTK1tsEZ7fyWFAPsTH1P4/B7pvvffi2IEDKzIWRnWA2JmiQbEg/3z/pybYIZSKmAJ3LL0+wgoLPkLsoS2iip/KABQP2akJ5ASBEAUMMKXZFYKhXS4pKeuqV8iJENJDdh3ja8zMMIlkWt5Ilk/rs8KsJmbTCYSZN9fZ+DbB7AFeYUzZDlxi/gTJFZZQgjbJrK3AOzfmNCIvLP+834sTAg8A96UzSMtG1LrJyHwdkDO3qK6axR/2wnH/8Gvdb31Mzj3h6DfIvbX8BUla/tdI8P1ni5wQ+fSARAAJ1jrxpX5CSCCkX4GicfZBlhDB8IWe32kMDzAGtEPgKEQ1tWBeACwjABx44GuQG1kuScQWMNaaSd45CuWMYD13wc1DvQj5zjLWELvD6H9CEBq8BqK/WMDMDjum5F3msCw/6rADlE5RLE+CX8IDCII7/4YYyeUwWE6/hIYJzpAw3MU4CBdDL8nbQDzPQBpAYYFVbD/pyNA2f3cPgiMCj8FlP1VAEa7OxAfPwcU3r9cC+LjQUBbvxwABXCxX5X9UfQNxNYfVSOWq/UP9j+wtBHY34EHn+HqJ3+11vs1VQL6BlABCnoFANTrGXCE3u9v/rLAsKkFWADhSl+rPEBgWhSg+3/+0/kDYc1F/EUwfgYAAAAASUVORK5CYII="}, {"species": "Garchomp", "sprite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII="}, {"species": "Metagross", "sprite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABBYpQQEBAxOWJKg8V7pPasrKzNzc3e3t5zanOkxfaUi5TVSlKDSkrN3vYPMw7DAAAAAXRSTlMAQObYZgAAA3NJREFUeNrt1Ad22zoYRGHOnQEtuu1/uQ/CT0lMUcuTT+VNj3HmM9Smvb29vb29vb2fzb1pjd7L9997rPut9xfB9r/vt74f1n33+Nv30P5Z4L29N7HuS+IvZ2zH/2M/Yt2/Akhy7Al4GmhdqFG3df+aIFrCs/u9iLFvAVcBOUcgPA9oBeQM6y+BJdl1hX/el67cwK3JUmh6SiB9PysQWSj+K4CakJ4GlEgrICFUQs6dbjp0u0kRTwAVdQE8BEg7F9W+MCZNUXjiAjrmFTA9XeYrmSYZbFrzMzcgGQLGkUe4qW2LYmQ89pvV41lAAp322y+C5CQwUUD8OMAGkHGP2o6ORVJ6UlJAWgbghwTaGaB+B3lzA2WkOEPApGdb4pH9AdRhLMmR396WpmwBzY5l7CYSVTyyfwEwSI7fBtDWNPbn2WrNrZ0eTCkRDwBOohWwqf1DFy6AlvmY69UDHkJ6PHABr68J4R4Sfb93FqS5cpoFdgF6DHBtrABG5hcgy1wtKAGfhfsAKcBKMgSELQ5nIeoPWO3b6hnxBJDm9xblmDAySF7qDjU/hEWJLNnYmGQA4h7Q99+9BYwES93hbW02SoJtQFBXvnsF+n7PqfMDiCX4LmHdH7PpccwyOeYk5g6Q93dJUbQBzCcXwP5kACVYIhcg3AI0zpz3jUqAr2UFFr45As4IRyYtiu4DEwVULAWUsNS+xefn13lfSmzaEKzECg8CTCy4BOt0gdkCHHmdj03aEOR7ANoCTEyn1/fmOTY5JkvpWaYdq5O6BdDYAL58ni5z7VfWsYxseQO0m1egNaxfgXGFZZ6Pb7QF1jfBadyWTkAG0JolbnxQgHLaTwFL3+/CG5apzwmPVJnHgawf9rKt9SBzhY6t/1qsy/w0AD0E9HQudZDzfglbAo5n7BbdB0rQRWC6ABifhcqAqSMaWfcA63IDm+ks4B7V+Q6cj+ALIMnXhcUjbM/nU8AEPsdpn9O+NkB8Q+ADDvPHByzzBai4GLAsC3C5+BCsE4CuChPL4YNp4rJ/iVNTrW8A2ZbSeoNjuhoHxtb0cMSqVsARt85PT0Zas0/7TY4KeFXUcNY/WvRiwE7blFdeoMLa7DcJplcLds779sfLgXn+AFd8fLwcqLcNH/N86Nu8dr8ak3wcDtQ/fqACmH40fm5/b29vb29vb+8/eO4fcDOo/YEAAAAASUVORK5CYII="}, {"species": "Grimmsnarl", "sprite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABdRpRDNWgQEBAvGE5HvmI1KVRAlVU1ajz9C0L9/f3Jycn3XJDpN2F8gIkKtcJLAAAAAXRSTlMAQObYZgAABH1JREFUeNrt14di2zAaA+D+ADiy+v6PeyIhlpTPaSU7vRl4D+LLL6ojP/6T853vfKf+7f70FUL9MuB6SU3rh+JXAzWtgOJRINUzgOJLAPWMT8oB0GN7wDRbpOiRDLwsH0XwaUAxAvUBNoBfAZQm1Dr6LdSUXo6ArpdL80jUVEf5dnN/MeD+B0bwvjG1osoB4A0Rav0e4HFAsQOlV22I+xsQ2vrLc4D7u7CVwUDvN3DsfwLwCHirTcBW/2qh9YeeGcCABQXY9hrg62vJ0XeB7UGj/1HAgqKwHZPy+vJaUgNCjB5JsQPSBYCxChvwaqFsd+if+YydoYIPjiBF5MS2ry05BhCYhBTXAI/g+gaUwpdaUikGdiEwjSv90hAkd+G1bJd+xQrEZHjpx5cYjvvfXt9I8uf2uAIz0BWBPqgO+gDc9gAA+YpwGMfg2ghzXZ+AwZ9tgpLIFXhaAMbBYNuEt5IUnwBXzyJGCOv5wn4O3Qe0xcIVQocmof/rRigc6nAaQLoIKI5AoKYKYMzVK1v80AgDV/dZHOcSE4FWbbZhLQY7wUuAj6sEuj9Ii4DHQiOA9rgLugJk/4QQmqAAlkNOuBFCoD25OoKBnOE9teAiA3ul35/CtWOUIzI4gF6Rfw0wAMY6gi4BaOvYK0HXfOQBDAEMbwIuC25pAun+yO8ZEZoAANBQ6g9JugqAQPYz6H0TEOpehkOy9WcDCScFEj5xACKjXZE34ENoyfvNJw5JGUDCKYGKSBinHuk24eP9A8qLQN7+9XgKkKdtghvYDQIfaKWjfa+fgAmd6nc0G1pvX58LW9z+LLCW1Bw9uRQf+vuApDP9uAMU7BuZ7gFp7484AyDdARL2/lQgkkfBS3RiBrUS3AJkTQk7kEIADgajJPTB8achFEjlpp8ESpojRKBnIYj1v5X6fX+6+duRAHzeDqAF0Eow0n6APh9B2m5IHgCzX23lMkCZpwywCNrdz4D2wb4Dff6hqpeVIfhxElzXA+JnG737vh+zu30t9g6tBGcBSIB9/X3AK471U8B0jsQEeni332W+40LOlIQ5wCqHlv5Wznv9EPox7MKhH5gj+O6O4C1w/92o7z5hZ+kHZlGJKId+p69gH510/z1A8hd0AGaf9M/Nuw4Duls+t2Cfju7n2p/RIvbcGMsIvwEEknv/AsD1vZ9k7ukGJjGBzwXNzSEs8FdFXtuHEcAU0Kupz4F1c0hMwf17u45Evv0Fhw04E2v0FnpraGB1mjrqYcD9p0M4AxBlYExCNGF85Xo4+zvAft+gARDOClwXvJh5OIb8iPw8kG+AFbLg/ocFAxbcu0LQ04DGanIdgNy/kA08LOQyhL3Yj5xfcP/DgErd16/Nk4QeB9xfqm6B4zfy4wClsmVZztsq1vKgUFtSMfBJDKQkqV7vdv4ksOzf25ac7i+plrbkBMA0U04KW2+rrsX9Z4HS1p0D3O96tvzpCHnYUk4JBtq1l5/5p6MR1bdTAllTu54+8xpR+40nDxLZrhfSins5+ePvhOy3f1O+853v/AM7XSSoHxEOngAAAABJRU5ErkJggg=="}], "rows": [["legal", "legal", "legal", "rule", "legal", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "rule", "rule", "rule", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "rule", "changed", "legal", "changed", "legal", "rule", "legal", "legal", "rule", "legal", "changed", "rule", "rule", "changed", "changed", "legal", "rule", "changed", "legal", "legal", "changed", "legal", "changed", "legal"], ["legal", "legal", "legal", "changed", "legal", "legal", "legal", "changed", "rule", "legal", "changed", "rule", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "changed", "legal", "legal", "legal", "legal", "rule", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "changed", "changed", "legal"], ["legal", "legal", "legal", "legal", "changed", "legal", "legal", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "changed", "legal", "legal", "changed", "unreadable", "changed", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "legal", "legal", "legal"], ["legal", "legal", "changed", "legal", "legal", "changed", "legal", "unreadable", "legal", "legal", "rule", "legal", "legal", "legal", "legal", "legal", "unreadable", "legal", "rule", "legal", "legal", "rule", "legal", "legal", "rule", "legal", "rule", "rule", "changed", "legal", "unreadable", "rule", "legal", "changed", "changed", "rule", "changed", "legal", "unreadable", "changed", "changed", "rule", "legal", "legal", "legal", "rule", "changed", "rule", "legal", "legal", "changed", "changed", "changed", "legal"], ["changed", "legal", "legal", "rule", "rule", "legal", "changed", "unreadable", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "legal", "changed", "legal", "legal", "changed", "unreadable", "legal", "changed", "legal", "changed", "legal", "changed", "legal", "changed", "legal", "legal", "legal", "legal", "rule", "changed", "changed", "legal", "legal", "legal", "legal", "legal", "legal"]], "ci": {"jev": [0.4351, 0.5202], "mercury": [0.2653, 0.3839]}, "fair": "Mercury's teams won slightly more often: 48.4% against 48.0%, 0.4 points ahead (95% interval 0.1 to 0.8)"};
+const $ = (id) => document.getElementById(id);
+$("fairNums").textContent = D.fair;                   // same masks, shuffled re-battle (build_post1_figure.py)
+[["sumJ", "sumJr", "jev"], ["sumM", "sumMr", "mercury"]].forEach(([v, r, k]) => {   // the summary card
+  $(v).textContent = (D.usable[k] * 100).toFixed(1) + "%";
+  $(r).textContent = D.ci[k].map((x) => (x * 100).toFixed(1)).join("–");
+});
+const B = (n) => (n - 1) * 0.5;                       // time of beat n (1-based), 120 BPM
+const LEN = 18;
+
+// Closed-form spring step responses: each frame is a pure function of t.
+function crit(tau, w) { return tau <= 0 ? 0 : 1 - (1 + w * tau) * Math.exp(-w * tau); }          // no overshoot (data, geometry)
+function soft(tau, w, z = 0.82) {                                                                 // tiny overshoot (UI chrome only)
+  if (tau <= 0) return 0;
+  const wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * tau) * (Math.cos(wd * tau) + (z / Math.sqrt(1 - z * z)) * Math.sin(wd * tau));
+}
+// A value whose target changes several times is the sum of one spring per change.
+function track(t, start, changes, step = crit, w = 16) {
+  let v = start, prev = start;
+  for (const [t0, to] of changes) { v += (to - prev) * step(t - t0, w); prev = to; }
+  return v;
+}
+const lin = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+function show(el, o, blur = 0) { el.style.opacity = o.toFixed(3); el.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : "none"; el.style.visibility = o < 0.002 ? "hidden" : "visible"; }
+// A content layer that is on from tIn to tOut, swapping with a short blur.
+function swap(t, tIn, tOut = Infinity) { const a = crit(t - tIn, 22), b = crit(t - tOut, 22); return a - b; }
+function swapLayer(el, t, tIn, tOut) { const o = swap(t, tIn, tOut); show(el, o, (1 - o) * 10); }
+
+// Pieces built once.
+const team = D.team;
+$("Lmon").innerHTML = `<img class="sprite" alt="${team[0].species}" src="${team[0].sprite}" style="width:120px;height:120px">`;
+$("mons").innerHTML = team.slice(1).map((m, i) => `<img class="sprite abs" id="m${i}" alt="${m.species}" src="${m.sprite}" style="width:120px;height:120px">`).join("");
+const order = D.rows.flat();                          // 5 unmasked teams × 54 tasks; each team is 3 rows of 18
+$("gJ").innerHTML = order.map(() => '<i style="background:var(--accent)"></i>').join("");
+$("gM").innerHTML = order.map(() => '<i style="background:var(--ink)"></i>').join("");
+const cJ = [...$("gJ").children], cM = [...$("gM").children];
+const FLIP = { changed: B(13), rule: B(14), unreadable: B(15) };
+const nFail = (t) => order.reduce((a, s) => a + (s !== "legal" && t >= FLIP[s] ? 1 : 0), 0);
+
+const CAPS = [[B(2), "A real tournament team, with one Pokémon hidden."], [B(4), "An AI fills the gap."], [B(5), "That's one task."],
+  [B(8), "Two AIs fill every one of the 270."], [B(13), "53 changed parts of the team it was told to keep"], [B(14), "27 broke a game rule"],
+  [B(15), "7 answers couldn't be read"], [B(16), "Legal = follows the game's rules."], [B(18), "Both legal (183 tasks): 48.6% vs 48.3%, about the same."],
+  [B(22), "Now count illegal teams as losses, over all 270 tasks."], [B(23), "Jev's edge: it never makes an illegal team."], [B(25), "Thin lines: the 95% range. Re-run this with five other starting teams, and the win rate would most likely land inside it."],
+  [B(29), "The two ranges don't overlap, so the gap is unlikely to be chance."], [B(33), ""]];
+
+function geom(el, x, y, w, h, r) { Object.assign(el.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px", borderRadius: r + "px" }); }
+
+function seek(t) {
+  // The shape S: tile → team slot → pill → Jev panel → Jev bar track → summary card → tile.
+  const sx = track(t, 465, [[B(2), 90], [B(5), 280], [B(9), 90], [B(17), 250], [B(33), 90], [B(36), 465]]);
+  const sy = track(t, 600, [[B(5), 615], [B(9), 330], [B(17), 520], [B(33), 360], [B(36), 600]]);
+  const sw = track(t, 150, [[B(5), 520], [B(9), 435], [B(17), 650], [B(33), 900], [B(36), 150]]);
+  const sh = track(t, 150, [[B(5), 120], [B(9), 640], [B(17), 80], [B(33), 680], [B(36), 150]]);
+  const sr = track(t, 28, [[B(5), 60], [B(9), 28], [B(17), 20], [B(33), 32], [B(36), 28]]);
+  geom($("S"), sx, sy, sw, sh, sr);
+  // S2 splits from the pill, becomes Mercury's panel and bar, then folds back into S.
+  const x2 = track(t, 280, [[B(9), 555], [B(17), 250], [B(33), 90]]), y2 = track(t, 615, [[B(9), 330], [B(17), 650], [B(33), 360]]);
+  const w2 = track(t, 520, [[B(9), 435], [B(17), 650], [B(33), 900]]), h2 = track(t, 120, [[B(9), 640], [B(17), 80], [B(33), 680]]);
+  const r2 = track(t, 60, [[B(9), 28], [B(17), 20], [B(33), 32]]);
+  geom($("S2"), x2, y2, w2, h2, r2);
+  show($("S2"), swap(t, B(9), B(33)));
+
+  // Bar 1: the tile, the team, the click, the fill.
+  const qOn = swap(t, -1, B(4)) + swap(t, B(36), Infinity);          // the "?" opens the loop and closes it
+  show($("Lq"), qOn, (1 - qOn) * 10);
+  swapLayer($("Lmon"), t, B(4), B(5));
+  team.slice(1).forEach((m, i) => {
+    const el = $("m" + i), o = swap(t, B(2) + 0.06 * i, B(5));
+    const gx = 90 + (i + 1) * 150 + 15, gy = 615;
+    const cx = track(t, gx, [[B(5), 540 - 60]]), cy = track(t, gy, [[B(5), 615]]);
+    Object.assign(el.style, { left: cx + "px", top: cy + 10 * (1 - crit(t - B(2) - 0.06 * i, 16)) + "px" }); show(el, o);
+  });
+  // Bar 2: the pill counts the tasks.
+  swapLayer($("Lp1"), t, B(5), B(6)); swapLayer($("Lp2"), t, B(6), B(7)); swapLayer($("Lp3"), t, B(7), B(9));
+  // Bar 3-4: the panels, their grids, Mercury's failures.
+  swapLayer($("Lpanel"), t, B(9), B(17)); swapLayer($("L2panel"), t, B(9), B(17));
+  const drawn = (i) => crit(t - (B(10) + (i / order.length) * 1.0), 30);
+  cJ.forEach((c, i) => { c.style.opacity = drawn(i).toFixed(3); });
+  cM.forEach((c, i) => {
+    const s = order[i], flipped = s !== "legal" ? crit(t - FLIP[s], 24) : 0;
+    c.style.opacity = drawn(i).toFixed(3);
+    c.style.background = flipped > 0.5 ? "var(--paper)" : "var(--ink)";
+    c.style.border = flipped > 0.5 ? "2px solid var(--ink)" : "0";
+    c.style.transform = `scale(${(1 - 0.25 * Math.sin(Math.PI * Math.min(1, flipped))).toFixed(3)})`;
+  });
+  const answered = Math.round(270 * crit(t - B(10), 6));
+  const legalOn = t >= B(13);
+  $("cJ").textContent = legalOn ? "270/270" : String(Math.min(270, answered));
+  $("cJl").textContent = legalOn ? "legal" : "answers";
+  $("cM").textContent = legalOn ? `${270 - nFail(t)}/270` : String(Math.min(270, answered));
+  $("cMl").textContent = legalOn ? "legal" : "answers";
+  // Bar 5-6: win-rate bars, then the toggle counts illegal teams as losses.
+  const barsOn = swap(t, B(17), B(33));
+  [$("btitle"), $("lJ"), $("lM"), $("vJ"), $("vM")].forEach((el) => show(el, barsOn, (1 - barsOn) * 8));
+  Object.assign($("lJ").style, { left: "90px", top: "540px" }); Object.assign($("lM").style, { left: "90px", top: "670px" });
+  Object.assign($("vJ").style, { left: "910px", top: "537px" }); Object.assign($("vM").style, { left: "910px", top: "667px" });
+  const jev = track(t, 0, [[B(18), D.shared.jev], [B(22), D.usable.jev]], crit, 12);
+  const merc = track(t, 0, [[B(18), D.shared.mercury], [B(22), D.usable.mercury]], crit, 12);
+  const fillOn = swap(t, B(17), B(33));
+  $("fJ").style.transform = `scaleX(${jev.toFixed(4)})`; show($("fJ"), fillOn);
+  $("fM").style.transform = `scaleX(${merc.toFixed(4)})`; show($("fM"), fillOn);
+  $("gMercBar").style.transform = `scaleX(${D.shared.mercury})`; show($("gMercBar"), swap(t, B(22), B(33)) * 0.9);
+  $("vJ").textContent = (jev * 100).toFixed(1) + "%"; $("vM").textContent = (merc * 100).toFixed(1) + "%";
+  // Bar 7: 95% ranges on the usable win rates, drawn left to right, then held until the bars fold away.
+  const rangeOn = swap(t, B(25), B(33)), grow = crit(t - B(25), 10);
+  [["whJ", "rJ", D.ci.jev, 560, 593], ["whM", "rM", D.ci.mercury, 690, 723]].forEach(([w, r, [lo, hi], y, ty]) => {
+    const x0 = 250 + lo * 650, x1 = 250 + (lo + (hi - lo) * grow) * 650;
+    Object.assign($(w).style, { left: x0 + "px", top: y - 3 + "px", width: Math.max(0, x1 - x0) + "px" }); show($(w), rangeOn);
+    Object.assign($(r).style, { left: "880px", width: "160px", top: ty + "px" }); $(r).textContent = `${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)}`; show($(r), rangeOn, (1 - rangeOn) * 8);
+  });
+  // The toggle: its knob's two edges ride different springs, so the leading edge stretches ahead.
+  const togOn = swap(t, B(20), B(33));
+  Object.assign($("tog").style, { left: "250px", top: "800px" }); show($("tog"), togOn, (1 - togOn) * 8);
+  Object.assign($("tlab").style, { left: "384px", top: "811px" }); show($("tlab"), togOn, (1 - togOn) * 8);
+  const left = 6 + 50 * soft(t - B(21) - 0.06, 18), right = 48 + 50 * soft(t - B(21), 26);
+  Object.assign($("knob").style, { left: left + "px", width: (right - left) + "px" });
+  $("tog").style.background = t >= B(21) + 0.1 ? "var(--ink)" : "var(--paper)";
+  $("knob").style.background = t >= B(21) + 0.1 ? "var(--paper)" : "var(--ink)";
+  // Bar 7: the summary card, then back to the tile.
+  swapLayer($("Lsum"), t, B(33), B(36));
+  const sig = $("sig"), fair = document.querySelector(".fair");
+  show(fair, swap(t, B(34), B(36))); show(sig, swap(t, B(35), B(36)));
+  // Captions swap with a short blur.
+  const cap = $("cap");
+  let text = "", tIn = -1, tNext = Infinity;
+  CAPS.forEach(([c, s], k) => { if (t >= c) { text = s; tIn = c; tNext = CAPS[k + 1] ? CAPS[k + 1][0] : Infinity; } });
+  if (cap.textContent !== text) cap.textContent = text;
+  const co = text ? swap(t, tIn, tNext) : 0; show(cap, co, (1 - co) * 8);
+  // The cursor: clicks the "?" on beat 3, the toggle on beat 21.
+  const curO = swap(t, B(2) + 0.1, B(4) + 0.3) + swap(t, B(20) + 0.1, B(22) + 0.3);
+  const cx = track(t, 1000, [[B(2) + 0.1, 150], [B(4) + 0.1, 1000], [B(19), 1000], [B(20) + 0.1, 300], [B(22), 1000]], crit, 11);
+  const cy = track(t, 1280, [[B(2) + 0.1, 650], [B(4) + 0.1, 1280], [B(19), 1280], [B(20) + 0.1, 825], [B(22), 1280]], crit, 11);
+  const press = (tc) => { const d = t - tc; return d >= 0 && d < 0.12 ? 0.85 : 1; };
+  const ps = Math.min(press(B(3)), press(B(21)));
+  $("cur").style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px) scale(${ps})`;
+  show($("cur"), Math.min(1, curO));
+  // A ring where each click lands.
+  const ring = $("ring"), ringA = lin(t, B(3), B(3) + 0.35), ringB = lin(t, B(21), B(21) + 0.35);
+  const firstOn = ringA > 0 && ringA < 1;
+  const rp = firstOn ? ringA : ringB > 0 && ringB < 1 ? ringB : 0, rx = firstOn ? 150 : 300, ry = firstOn ? 650 : 825;
+  Object.assign(ring.style, { left: rx - 35 + "px", top: ry - 35 + "px", transform: `scale(${(0.6 + 0.8 * rp).toFixed(3)})` });
+  show(ring, rp > 0 ? (1 - rp) * 0.8 : 0);
+}
+window.seek = seek;
+window.render = seek;                                 // the frame recorder calls render(t)
+
+function fitStage() { if (document.body.classList.contains("video")) return; $("stage").style.transform = `scale(${$("fit").clientWidth / 1080})`; }
+addEventListener("resize", fitStage); fitStage();
+const STILL = B(34) + 1.2;                            // the page at rest is the summary card
+seek(q.has("t") ? +q.get("t") : STILL);
+$("play").addEventListener("click", () => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { seek(STILL); return; }
+  const t0 = performance.now();
+  const tick = (now) => { const t = (now - t0) / 1000; seek(Math.min(t, LEN)); if (t < LEN) requestAnimationFrame(tick); else seek(STILL); };
+  requestAnimationFrame(tick);
+});
+</script>

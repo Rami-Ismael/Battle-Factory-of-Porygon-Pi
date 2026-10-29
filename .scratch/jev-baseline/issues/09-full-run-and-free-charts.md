@@ -1,0 +1,32 @@
+# 09: Full run on the three grids, and the four free charts
+
+**What to build:** After the owner approves the dry-run cost, Jev runs live through the SDK on the random, held-out and meta grids (top pick plus three sampled runs per mask); results are collected, battled and reported. The four experiments that need no extra fills then get real charts on the page: 9 Sample instead of argmax, 5 Confidence against win rate, 12 Cost per win, and 6 Jev as the judge (one Score and one 100-label Choice call per legal team; the adapter gains the Score question type). The sketch on the Jev Picks a Team page is replaced by the real chart, drawn from the run's records, with a short description of what the run found, the number of battles behind each win rate, and the cost.
+
+**Blocked by:** 08
+
+**Status:** ready-for-agent
+
+- [ ] The owner approved the cost (human step).
+- [ ] All three grid reports show the Jev columns, and the report notes that species samples are drawn per tournament round.
+- [ ] Experiments 9, 5, 12 and 6 show real charts and descriptions on the page; no sketch remains for them.
+
+Source: `code/docs/jev-baseline-spec.md`. Page: Jev Picks a Team (https://claude.ai/artifact/KMaYSMi5xQkxyGjNN8DTri).
+
+**Meta grid done 2026-10-27** (owner approved the meta grid first, ~$13.5): 1,080 pairs (270 masks × 4 runs) all legal; 12,660 calls in 9 minutes, $12.54 (estimate $13.42); candidates 1,471 → 2,551; 1,792 distinct legal teams battled in 5 minutes; report `~/vgc-data/jev/meta-report.txt` and `meta-report.json`. Top pick vs the original team: −0.038 [−0.096, +0.003] over all 270 masks (bootstrap over the 5 starting teams); vs the random fill +0.177 [+0.164, +0.194]; vs Mercury −0.002 [−0.018, +0.015] on the 202 masks both filled legally. Whole Pokémon: −0.148 vs original, +0.233 vs random. Recall caveat: the state's meta list holds the starting teams, and the top pick equals the hidden original for 98% of abilities, 91% of Stat Alignments, 86% of moves, 69% of items, 39% of spreads and 11% of species. The held-out grid is the test without that shortcut.
+
+**Held-out grid done 2026-10-27** (owner approved ~$13.4): 1,080 pairs all legal; 12,720 calls in 9 minutes, $12.51 (estimate $13.38); candidates 1,392 → 2,472; 1,845 distinct legal teams battled in 6 minutes (3 empty random pastes skipped, as before). Report `~/vgc-data/jev/heldout-report.txt` and `.json`. Top pick vs original +0.001 [−0.041, +0.047] over 270 masks; vs random +0.163 [+0.152, +0.176] (267); vs Mercury +0.003 [−0.015, +0.018] (183); vs text writer +0.030 [+0.023, +0.038] (173); vs sampled runs +0.033 [+0.020, +0.046]. Whole Pokémon: −0.043 [−0.105, +0.014] vs original, +0.241 vs random, −0.051 [−0.082, −0.011] vs Mercury (11 masks). Recall falls without the starters in the state: abilities 84%, Stat Alignment 63%, moves 78%, items 55%, spreads 23%, species questions 12% (same method as the meta figures).
+
+**Random grid done 2026-10-27** (owner approved after topping up; switched to top pick only mid-run): 877 fills all legal (203 masks × 4 runs, then the last 67 masks top pick only); 10,547 calls, $10.46. 1,901 distinct legal teams battled in 5 minutes; report `~/vgc-data/jev/random-report.txt` and `.json`. Starting teams are random legal teams, so every arm scores low (Jev top-pick mean 0.062). All 270: top − original +0.042 [+0.019, +0.064]; − random fill +0.044 [+0.034, +0.054]; − Mercury +0.002 (141); − Ling (regmb prompt) −0.004 [−0.011, +0.001] (149; corrected 2026-10-27, the report had mixed Ling's three prompt versions); − text writer +0.000 (149); − sampled +0.012 (203 masks). Whole Pokémon: +0.221 vs original, +0.215 vs random fill, +0.040 vs Mercury (11), +0.001 vs Ling (16). Sampled runs are no longer sent (owner, 2026-10-27).
+
+**Free charts, 2026-10-27:** experiments 5, 9 and 12 have real charts on the page (version 32).
+- 5, confidence: held-out Spearman ρ +0.20 [+0.07, +0.30] between mean pick probability and win rate minus original; meta +0.17, random −0.13. The 0.70 gate fails: 226 of 270 held-out masks fall below it, and swapping in the text writer on the 137 it has loses 0.033.
+- 9, sampling at temperature 1: 2.75 distinct teams per mask (held-out) for −0.033 win rate; whole Pokémon 3 of 3 distinct for −0.070.
+- 12, cost per legal team: Jev ≈ 1.2¢, Mercury ≈ 0.3¢, Ling ≈ 0.2¢; gains over the random fill within a few points of Mercury's on every grid.
+- Fixed in `jev_report.arm_score`: an arm with several prompt versions (Ling on the random grid) is read at the one `ARM_PREFIX` names, and two matches raise.
+- 6, Jev as the judge (owner approved ~$9, run 2026-10-27): `jev_judge.py`, adapter gained the Score type. 5,635 distinct battled teams, 11,268 calls, $9.30, no failures. Spearman ρ predicted vs battle win rate, Score / Choice: held-out +0.38 [+0.34, +0.42] / +0.29, meta +0.44 / +0.37, random +0.41 / +0.31; within starting-team families Score +0.29 / +0.40 / +0.43. Predictions squeezed to 0.13–0.47: Jev ranks, does not calibrate. Bands changed from the plan at the ends (below 10%, 10–25%, …, 60%+). Chart on the page, version 33.
+
+All four free experiments have real charts; ticket 9's checklist items are the owner's to tick.
+
+**Experiment 12 revised 2026-10-28:** gains now measured on masks every compared arm filled legally (held-out 182: Jev +0.147, Mercury +0.144; meta 202: +0.179, +0.181; random 92: Jev +0.022, Mercury +0.017, Ling +0.029); the earlier own-mask gains overstated Jev. Added panel B from the Codex study `mercury-reasoning-20261013` (Mercury 2.5, 420 tasks per setting): legality off 28.3% → high 36.9% (+8.6 [+4.3, +13.1]) at 0.062¢ → 0.190¢ per legal team; both-legal win rate +0.6 points [−0.1, +1.4]. Mask Lab Mercury calls average ~3,140 reasoning tokens, close to high; the setting is not logged.
+
+**Experiment 12 as one graph, 2026-10-28** (owner approved ~$2): Mercury 2.5 rerun on the held-out grid at reasoning off, low and medium (`code/scripts/ling_grid.py --model mercury-off|-low|-medium`, copied from commit f6fed559; high is the 2026-10-24 run, `effort: high` in that runner's code). $1.25 for 810 calls. Legal 34% / 48% / 55% / 68%; usable win rate (illegal = 0, all 270 tasks) 16.5% / 23.2% / 26.2% / 32.8% against Jev 48.1% and random legal fill 31.5%; win rate when legal 47.5–48.3% at every setting against Jev 48.2%. Cost per task 0.15¢ / 0.12¢ / 0.19¢ / 0.20¢ against Jev 1.16¢. Page version 39.

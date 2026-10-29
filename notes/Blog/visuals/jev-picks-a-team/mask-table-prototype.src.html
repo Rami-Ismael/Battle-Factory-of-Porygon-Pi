@@ -1,0 +1,316 @@
+<title>Masks per Grid Prototype</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* PROTOTYPE, throwaway: three variants of the "masks per grid" table, switched by ?v=a|b|c and the bottom bar. */
+:root{--bg:#EDF0F3;--fg:#141A22;--muted:#56606E;--rule:#C9D0D8;--card:#F8F9FB;--cell:#DFE4EA;--jev:#3044C0;--jev-soft:#D9DEF6;--warn:#B8402B;--warn-soft:#F3DAD4;
+--ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);
+--display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141A;--fg:#E3E8EE;--muted:#98A3B1;--rule:#2A323C;--card:#161B22;--cell:#212832;--jev:#8C9BF2;--jev-soft:#26305C;--warn:#EE8A74;--warn-soft:#4A2620;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10141A;--fg:#E3E8EE;--muted:#98A3B1;--rule:#2A323C;--card:#161B22;--cell:#212832;--jev:#8C9BF2;--jev-soft:#26305C;--warn:#EE8A74;--warn-soft:#4A2620;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 110px}
+.col{max-width:760px;margin:0 auto}
+h2{font-family:var(--display);font-size:27px;margin:0 0 8px}
+p{margin:0 0 12px}
+.mono{font-family:var(--mono);font-size:.82em}
+.cap{font-size:13.5px;color:var(--muted);line-height:1.5;margin-top:8px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--jev);outline-offset:2px}
+.btn{font-family:var(--mono);font-size:12.5px;border:1px solid var(--rule);background:var(--card);border-radius:999px;padding:5px 13px;transition:transform 120ms var(--ease-out),background-color 160ms ease,color 160ms ease}
+.btn:active{transform:scale(.97)}
+.btn[aria-pressed="true"],.btn.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.v{display:none}.v.on{display:block}
+
+/* team strip: six sprites with items */
+.team{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.mon{position:relative;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:2px 2px 4px;text-align:center;min-width:0}
+.mon img.sp{width:100%;max-width:64px;aspect-ratio:1;image-rendering:pixelated;transition:opacity 220ms var(--ease-out)}
+.mon .it{position:absolute;right:2px;bottom:16px;width:22px;height:22px;image-rendering:pixelated;transition:opacity 220ms var(--ease-out)}
+.mon .nm{font-family:var(--mono);font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.mon .q{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;color:var(--warn);font-size:24px;opacity:0;transform:scale(.9);transition:opacity 200ms var(--ease-out),transform 200ms var(--ease-out);pointer-events:none}
+.mon.hide-all .sp,.mon.hide-all .it{opacity:.08}.mon.hide-all .q{opacity:1;transform:none}
+.mon.hide-item .it{opacity:0}.mon.hide-item::after{content:"?";position:absolute;right:6px;bottom:18px;font-family:var(--display);font-weight:700;color:var(--warn)}
+.mon .tag{display:block;font-family:var(--mono);font-size:9px;color:var(--warn);min-height:12px}
+.counter{font-family:var(--display);font-weight:700;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.say{min-height:3em;font-size:15.5px}
+
+/* B wall */
+.wall{display:grid;gap:10px}
+.wrow{display:grid;grid-template-columns:96px minmax(0,1fr) 44px;gap:8px;align-items:center}
+.wrow .lab{font-family:var(--mono);font-size:12px}
+.wrow .n{font-family:var(--mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.tiles{display:flex;flex-wrap:wrap;gap:2px}
+.tile{width:9px;height:9px;border-radius:2px;background:var(--jev);opacity:0;transform:translateY(-6px);transition:opacity 260ms var(--ease-out),transform 260ms var(--ease-out)}
+.tile.in{opacity:.85;transform:none}
+.tile.k6{background:var(--warn)}
+.guess{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.guess input{flex:1;min-width:160px;accent-color:var(--fg)}
+
+/* C table */
+table{border-collapse:collapse;width:100%;font-size:14.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 10px 7px 0;border-bottom:1px solid var(--rule);vertical-align:middle}
+th{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted);text-transform:uppercase}
+td.n{font-family:var(--mono);text-align:right}
+tr.pick{cursor:pointer;transition:background-color 150ms ease}
+tr.pick[aria-selected="true"]{background:var(--jev-soft)}
+@media (hover:hover) and (pointer:fine){tr.pick:hover{background:var(--cell)}}
+.tbl{overflow-x:auto}
+
+/* chart */
+.chart svg{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart text.v{fill:var(--fg);font-weight:600}
+.chart rect{transition:transform 360ms var(--ease-out);transform-box:fill-box;transform-origin:left center}
+
+
+.lbl{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--fg);margin:18px 0 6px}
+.pickteams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:6px}
+.tpick{display:flex;align-items:center;gap:4px;border:1.5px solid var(--rule);background:var(--card);border-radius:10px;padding:4px 8px;text-align:left;transition:border-color 160ms ease,background-color 160ms ease}
+.tpick img{width:30px;height:30px;image-rendering:pixelated}
+.tpick b{font-family:var(--mono);font-size:11px;font-weight:600;margin-right:4px}
+.tpick[aria-checked="true"]{border-color:var(--fg);background:var(--jev-soft)}
+.maskcard{border:1px solid var(--rule);background:var(--card);border-radius:12px;padding:12px;margin:12px 0}
+.mon.hit{outline:2px solid var(--warn);outline-offset:-2px;background:var(--warn-soft)}
+.qs{margin:10px 0 0;padding-left:22px;font-size:14px;display:grid;gap:3px;max-height:15em;overflow:auto}
+.qs li{opacity:0;transform:translateY(4px);transition:opacity 220ms var(--ease-out),transform 220ms var(--ease-out)}
+.qs li.in{opacity:1;transform:none}
+.qs .p{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.charts2{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.ct{font-family:var(--display);font-weight:700;font-size:15px;margin-bottom:2px}
+@media (prefers-reduced-motion:reduce){.qs li{transform:none}}
+/* picker */
+.picker{position:fixed;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--fg);color:var(--bg);display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:5}
+.picker .btn{background:transparent;color:var(--bg);border-color:var(--bg)}
+.picker .btn[aria-pressed="true"]{background:var(--bg);color:var(--fg)}
+@media (prefers-reduced-motion:reduce){.tile{transform:none!important}.btn:active{transform:none}.mon .q{transform:none}.chart rect{transition-property:opacity}}
+</style>
+
+<div class="col">
+  <p class="mono" style="color:var(--muted)">PROTOTYPE · Jev Picks a Team · Table 1 redo · data: meta grid tasks file</p>
+
+  <section class="v" id="va">
+    <h2>One team, 270 puzzles</h2>
+    <p>A <strong>mask</strong> is one puzzle: a real team with some fields blanked out. Build the grid one choice at a time.</p>
+    <div class="team" id="aTeam"></div>
+    <div class="row" id="aTypes" role="group" aria-label="What to blank"></div>
+    <div class="row"><label class="mono" for="aK">blanks</label><input type="range" id="aK" min="1" max="6" value="1" style="flex:1;accent-color:var(--fg)"><span class="mono" id="aKv">1</span></div>
+    <div class="row"><button class="btn primary" id="aAll">Do this for all five meta starting teams</button></div>
+    <div class="row" style="align-items:baseline;gap:12px"><span class="counter" id="aCount">1</span><span class="say" id="aSay"></span></div>
+    <div class="chart" id="aChart"></div>
+  </section>
+
+  <section class="v" id="vb">
+    <h2>How many puzzles in a grid?</h2>
+    <p>Five starting teams. Six kinds of blank: items, abilities, Stat Alignments, Stat Points, moves, whole Pokémon. One to six blanks of each, but a team has 24 move slots. Guess first.</p>
+    <div class="guess"><input type="range" id="bGuess" min="30" max="600" value="150" aria-label="Your guess"><span class="counter" id="bG" style="font-size:30px">150</span><button class="btn primary" id="bGo">Reveal</button></div>
+    <div class="wall" id="bWall"></div>
+    <p class="say" id="bSay"></p>
+    <div class="chart" id="bChart"></div>
+  </section>
+
+  <section class="v" id="vc">
+    <h2>Masks per grid</h2>
+    <p>Each grid starts from five teams. A <strong>mask</strong> hides some fields of one team; a model fills them back in, and the filled team is battled. Pick a starting team, a kind of blank and how many blanks, and you see the real mask from the meta grid and the questions Jev would be asked.</p>
+    <div class="lbl">1 · starting team</div>
+    <div class="pickteams" id="cTeams" role="radiogroup" aria-label="Starting team"></div>
+    <div class="lbl">2 · kind of blank <span class="mono" style="color:var(--muted)">(click a row)</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Kind of blank</th><th>Blanks (k)</th><th class="n">Masks per grid</th><th>Jev questions per mask</th></tr></thead>
+      <tbody id="cBody"></tbody>
+      <tfoot><tr><td><strong>all kinds</strong></td><td class="mono">every k × 5 teams</td><td class="n"><strong>270</strong></td><td></td></tr></tfoot>
+    </table></div>
+    <div class="lbl">3 · how many blanks</div>
+    <div class="row"><input type="range" id="cK" min="1" max="6" value="1" aria-label="Number of blanks" style="flex:1;accent-color:var(--fg)"><span class="counter" id="cKv" style="font-size:26px">1</span></div>
+    <div class="maskcard">
+      <div class="mono" id="cTitle"></div>
+      <div class="team" id="cTeam"></div>
+      <ol class="qs" id="cQs"></ol>
+    </div>
+    <div class="charts2">
+      <div class="chart"><div class="ct">Masks per grid, by kind of blank</div><div id="cChart"></div></div>
+      <div class="chart"><div class="ct" id="cQt">Jev questions per mask</div><div id="cChart2"></div></div>
+    </div>
+  </section>
+
+  <p class="cap" id="capAll"><strong>Data.</strong> Counts and starting teams come from the meta grid's <span class="mono">team_completion_pipeline/runs/meta-starters/eval2.tasks.json</span> (270 masks, starting teams MB158, MB715, MB493, MB169, MB518). The random and held-out grids use the same recipe with their own five teams. Every filled team is battled; win rate is the share of battles won against the top-50 meta teams, with the behaviour-cloning battle policy playing both sides. Question counts assume the species tournament needs two groups and a final, as in the recorded trace.</p>
+</div>
+
+<nav class="picker" aria-label="Variant picker"><button class="btn" data-v="a">A · Build it</button><button class="btn" data-v="b">B · Guess the wall</button><button class="btn" data-v="c">C · Live table</button></nav>
+
+<script>
+const D = __DATA__;
+const NS = 'http://www.w3.org/2000/svg';
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TYPES = [
+  {key:'items', label:'items', field:'item', kmax:6, q:k=>k, qtext:'1 per hidden item'},
+  {key:'abilities', label:'abilities', field:'ability', kmax:6, q:k=>k, qtext:'1 per hidden ability'},
+  {key:'natures', label:'Stat Alignments', field:'nature', kmax:6, q:k=>k, qtext:'1 per hidden Stat Alignment'},
+  {key:'stats', label:'Stat Points', field:'stats', kmax:6, q:k=>k, qtext:'1 per hidden spread (from a menu)'},
+  {key:'moves', label:'moves', field:'move', kmax:24, q:k=>k, qtext:'1 per hidden move'},
+  {key:'pokemon', label:'whole Pokémon', field:'all', kmax:6, q:k=>11*k, qtext:'11 per hidden Pokémon: 3 species (2 groups + final), ability, item, 4 moves, Stat Alignment, Stat Points'},
+];
+const h = (t, c, html) => { const e = document.createElement(t); if (c) e.className = c; if (html !== undefined) e.innerHTML = html; return e; };
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+function teamStrip(root, team){
+  root.innerHTML = '';
+  return team.map(m => {
+    const d = h('div', 'mon');
+    d.innerHTML = `<img class="sp" src="${D.sprites[m.species]}" alt="${m.species}"><img class="it" src="${D.items[m.item]}" alt="${m.item}"><span class="nm">${m.species}</span><span class="tag"></span><span class="q">?</span>`;
+    root.appendChild(d); return d;
+  });
+}
+// Which slots / labels a mask of type t with k blanks hides (illustrative positions, the real masks pick at random).
+function blank(mons, t, k){
+  mons.forEach(m => { m.classList.remove('hide-all','hide-item'); m.querySelector('.tag').textContent = ''; });
+  if (!t) return;
+  if (t.key === 'pokemon') { for (let i = 0; i < k; i++) mons[i].classList.add('hide-all'); return; }
+  if (t.key === 'moves') { for (let s = 0; s < 6; s++) { const n = Math.floor(k / 6) + (s < k % 6 ? 1 : 0); if (n) mons[s].querySelector('.tag').textContent = '?'.repeat(n) + ' move' + (n > 1 ? 's' : ''); } return; }
+  for (let i = 0; i < k; i++) { if (t.key === 'items') mons[i].classList.add('hide-item'); else mons[i].querySelector('.tag').textContent = '? ' + (t.key === 'stats' ? 'spread' : t.key === 'natures' ? 'alignment' : 'ability'); }
+}
+function ticker(node, to){
+  const from = +node.textContent || 0;
+  if (REDUCE) { node.textContent = to; return; }
+  const t0 = performance.now(), ms = 420;
+  const step = t => { const u = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - u, 3); node.textContent = Math.round(from + (to - from) * e); if (u < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+// one chart, shared: masks per mask type from the tasks file
+function chart(root, highlight){
+  root.innerHTML = '';
+  const W = 640, rowH = 24, L = 120, H = TYPES.length * rowH + 30, max = 120;
+  const s = el('svg', {viewBox:`0 0 ${W} ${H}`, role:'img', 'aria-label':'Masks per mask type'}, root);
+  TYPES.forEach((t, i) => {
+    const y = 6 + i * rowH, n = D.counts[t.key], w = (W - L - 60) * n / max;
+    el('text', {x: L - 8, y: y + 14, 'text-anchor':'end'}, s).textContent = t.label;
+    const r = el('rect', {x: L, y, width: w, height: 16, rx: 3, style:`fill:var(--${highlight && highlight !== t.key ? 'cell' : 'jev'})`}, s);
+    const v = el('text', {x: L + w + 6, y: y + 13, class:'v'}, s); v.textContent = n;
+    r.dataset.key = t.key;
+  });
+  el('text', {x: L, y: H - 4}, s).textContent = 'number of masks per grid (all six rows add up to 270)';
+  return s;
+}
+
+// ---------- A: build it ----------
+(function(){
+  const team = D.starts[0].team, mons = teamStrip(document.getElementById('aTeam'), team);
+  let type = TYPES[0], k = 1, all = false;
+  const types = document.getElementById('aTypes'), kIn = document.getElementById('aK'), kv = document.getElementById('aKv'), say = document.getElementById('aSay'), count = document.getElementById('aCount');
+  TYPES.forEach(t => { const b = h('button', 'btn', t.label); b.type = 'button'; b.onclick = () => { type = t; k = Math.min(k, t.kmax); kIn.max = t.kmax; kIn.value = k; update(); }; types.appendChild(b); });
+  kIn.oninput = () => { k = +kIn.value; update(); };
+  document.getElementById('aAll').onclick = () => { all = !all; update(); };
+  function update(){
+    [...types.children].forEach((b, i) => b.setAttribute('aria-pressed', TYPES[i] === type));
+    kv.textContent = k; blank(mons, type, k);
+    document.getElementById('aAll').textContent = all ? 'Back to one team' : 'Do this for all five meta starting teams';
+    if (!all) { ticker(count, 1); say.textContent = `one mask: ${D.starts[0].id} with ${k} ${type.label} blanked. Jev answers ${type.q(k)} question${type.q(k) > 1 ? 's' : ''}.`; chart(document.getElementById('aChart'), type.key); return; }
+    ticker(count, 270);
+    say.textContent = `${type.kmax} sizes of ${type.label} × 5 teams = ${type.kmax * 5} masks; all six kinds together = 270 per grid.`;
+    chart(document.getElementById('aChart'));
+  }
+  update();
+})();
+
+// ---------- B: guess the wall ----------
+(function(){
+  const g = document.getElementById('bGuess'), gv = document.getElementById('bG'), wall = document.getElementById('bWall'), say = document.getElementById('bSay');
+  g.oninput = () => gv.textContent = g.value;
+  const rows = TYPES.map(t => {
+    const r = h('div', 'wrow'); r.innerHTML = `<span class="lab">${t.label}</span><div class="tiles"></div><span class="n">0</span>`;
+    const tiles = r.querySelector('.tiles');
+    for (let k = 1; k <= t.kmax; k++) for (let s = 0; s < 5; s++) { const c = h('span', 'tile' + (t.key === 'pokemon' && k === 6 ? ' k6' : '')); c.title = `${t.label}, k=${k}, ${D.starts[s].id}`; tiles.appendChild(c); }
+    wall.appendChild(r); return r;
+  });
+  chart(document.getElementById('bChart'));
+  document.getElementById('bGo').onclick = () => {
+    let i = 0;
+    rows.forEach((r, ri) => [...r.querySelectorAll('.tile')].forEach(c => { c.style.transitionDelay = REDUCE ? '0ms' : (i++ * 4) + 'ms'; c.classList.add('in'); }));
+    rows.forEach((r, ri) => ticker(r.querySelector('.n'), D.counts[TYPES[ri].key]));
+    const off = g.value - 270;
+    say.textContent = `270 masks. You guessed ${g.value} (${off === 0 ? 'exactly right' : (off > 0 ? '+' : '') + off}). Moves are 120 of them because a team has 24 move slots. The red tiles hide all six Pokémon: Jev builds a whole team.`;
+  };
+})();
+
+// ---------- C: live table ----------
+(function(){
+  let start = 0, sel = TYPES[0], k = 1;
+  const FIELD = {items:'item', abilities:'ability', natures:'nature', stats:'statPoints'};
+  const WORD = {item:'item', ability:'ability', nature:'Stat Alignment', statPoints:'Stat Point spread'};
+  const teams = document.getElementById('cTeams'), body = document.getElementById('cBody'), kIn = document.getElementById('cK');
+  D.starts.forEach((s, i) => {
+    const b = h('button', 'tpick'); b.type = 'button'; b.setAttribute('role', 'radio');
+    b.innerHTML = `<b>${s.id}</b>` + s.team.map(m => `<img src="${D.sprites[m.species]}" alt="${m.species}">`).join('');
+    b.onclick = () => { start = i; render(); }; teams.appendChild(b);
+  });
+  const rows = TYPES.map(t => {
+    const tr = h('tr', 'pick'); tr.tabIndex = 0;
+    tr.innerHTML = `<td>${t.label}</td><td class="mono">1 to ${t.kmax}</td><td class="n">${D.counts[t.key]}</td><td>${t.qtext}</td>`;
+    const go = () => { sel = t; k = Math.min(k, t.kmax); render(); };
+    tr.onclick = go; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+    body.appendChild(tr); return tr;
+  });
+  kIn.oninput = () => { k = +kIn.value; render(); };
+  const parse = p => { const m = p.match(/team\[(\d)\](?:\.(\w+)(?:\[(\d+)\])?)?/); return [+m[1], m[2], m[3] === undefined ? null : +m[3]]; };
+  function questions(team, paths){
+    const qs = [];
+    for (const p of paths) {
+      const [i, f, j] = parse(p), sp = team[i].species, n = i + 1;
+      if (!f) {
+        qs.push([`team[${i}].species`, `Which Pokémon should fill slot ${n}? (tournament: group 1, group 2, final)`]);
+        for (const w of ['ability', 'item']) qs.push([`team[${i}].${w}`, `Which ${w} should the new slot ${n} Pokémon have?`]);
+        for (let m = 1; m <= 4; m++) qs.push([`team[${i}].moves[${m - 1}]`, `Which move should it use as move ${m}?`]);
+        qs.push([`team[${i}].nature`, 'Which Stat Alignment should it use?'], [`team[${i}].statPoints`, 'Which Stat Point spread should it use?']);
+      } else if (f === 'moves') qs.push([p, `Which move should ${sp} in slot ${n} use as move ${j + 1}?`]);
+      else qs.push([p, `Which ${WORD[f]} should ${sp} in slot ${n} ${f === 'item' ? 'hold' : 'use'}?`]);
+    }
+    return qs;
+  }
+  function render(){
+    const s = D.starts[start], paths = D.masks[s.id][sel.key][String(k)];
+    [...teams.children].forEach((b, i) => b.setAttribute('aria-checked', i === start));
+    rows.forEach((r, i) => r.setAttribute('aria-selected', TYPES[i] === sel));
+    kIn.max = sel.kmax; kIn.value = k; document.getElementById('cKv').textContent = k;
+    const mons = teamStrip(document.getElementById('cTeam'), s.team);
+    for (const p of paths) {
+      const [i, f, j] = parse(p), mon = mons[i]; mon.classList.add('hit');
+      if (!f) mon.classList.add('hide-all');
+      else if (f === 'item') mon.classList.add('hide-item');
+      const tag = mon.querySelector('.tag'), word = f === 'moves' ? `move ${j + 1}` : WORD[f];
+      if (f) tag.textContent = tag.textContent ? tag.textContent + ', ' + word : '? ' + word;
+    }
+    const qs = questions(s.team, paths);
+    document.getElementById('cTitle').textContent = `${s.id} · ${sel.label} · ${k} blank${k > 1 ? 's' : ''} · one of ${D.counts[sel.key]} ${sel.label} masks · ${qs.length + (paths.some(p => !parse(p)[1]) ? 2 * paths.length : 0)} Jev questions`;
+    const ol = document.getElementById('cQs'); ol.innerHTML = '';
+    qs.forEach(([p, q], n) => { const li = h('li', '', `${q} <span class="p">${p}</span>`); ol.appendChild(li); setTimeout(() => li.classList.add('in'), REDUCE ? 0 : 30 * n); });
+    chart(document.getElementById('cChart'), sel.key);
+    qchart(document.getElementById('cChart2'), sel);
+    document.getElementById('cQt').textContent = `Jev questions per ${sel.label} mask, by number of blanks`;
+  }
+  function qchart(root, t){
+    root.innerHTML = '';
+    const W = 640, H = 210, L = 40, B = 34, ks = Array.from({length: t.kmax}, (_, i) => i + 1), max = Math.max(...ks.map(t.q));
+    const s = el('svg', {viewBox:`0 0 ${W} ${H}`, role:'img', 'aria-label':'Jev questions per mask by number of blanks'}, root);
+    const bw = (W - L - 10) / ks.length;
+    ks.forEach(x => {
+      const v = t.q(x), bh = (H - B - 20) * v / max, X = L + (x - 1) * bw;
+      el('rect', {x: X + 2, y: H - B - bh, width: Math.max(2, bw - 4), height: bh, rx: 3, style:`fill:var(--${x === k ? 'warn' : 'jev'})`}, s);
+      if (ks.length <= 6 || x % 4 === 0 || x === 1 || x === k) { const tx = el('text', {x: X + bw / 2, y: H - B - bh - 4, 'text-anchor':'middle', class:'v'}, s); tx.textContent = v; }
+      if (ks.length <= 6 || x % 4 === 0 || x === 1) { const tl = el('text', {x: X + bw / 2, y: H - B + 14, 'text-anchor':'middle'}, s); tl.textContent = x; }
+    });
+    el('text', {x: L + (W - L) / 2, y: H - 4, 'text-anchor':'middle'}, s).textContent = 'number of blanks (k); the red bar is the mask shown above';
+  }
+  render();
+})();
+
+// ---------- picker ----------
+function show(v){
+  document.querySelectorAll('.v').forEach(s => s.classList.toggle('on', s.id === 'v' + v));
+  document.querySelectorAll('.picker .btn').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+  try { history.replaceState(null, '', '?v=' + v); } catch (e) {}
+}
+document.querySelectorAll('.picker .btn').forEach(b => b.onclick = () => show(b.dataset.v));
+show((new URLSearchParams(location.search).get('v') || 'a').slice(0, 1));
+</script>

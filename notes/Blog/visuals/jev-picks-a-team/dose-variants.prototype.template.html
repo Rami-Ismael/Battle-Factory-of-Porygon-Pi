@@ -1,0 +1,123 @@
+<meta charset="utf-8">
+<title>Dose Curve Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* PROTOTYPE, throwaway: three variants of the per-category illegal-option dose figure; tokens from jev-picks-a-team.html. */
+:root{--bg:#EDF0F3;--fg:#141A22;--muted:#56606E;--rule:#C9D0D8;--card:#F8F9FB;--cell:#DFE4EA;--jev:#3044C0;--jev-soft:#D9DEF6;--warn:#B8402B;--warn-soft:#F3DAD4;--ok:#2B7149;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);--display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141A;--fg:#E3E8EE;--muted:#98A3B1;--rule:#2A323C;--card:#161B22;--cell:#212832;--jev:#8C9BF2;--jev-soft:#26305C;--warn:#EE8A74;--warn-soft:#4A2620;--ok:#79C597;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10141A;--fg:#E3E8EE;--muted:#98A3B1;--rule:#2A323C;--card:#161B22;--cell:#212832;--jev:#8C9BF2;--jev-soft:#26305C;--warn:#EE8A74;--warn-soft:#4A2620;--ok:#79C597;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 110px}
+.col{max-width:700px;margin:0 auto}.wide{max-width:980px;margin:0 auto}
+h2{font-family:var(--display);font-size:27px;margin:0 0 10px;text-wrap:balance}
+p{margin:0 0 12px}.cap{font-size:13.5px;color:var(--muted);line-height:1.5}.cap strong{color:var(--fg)}
+code{font-family:var(--mono);font-size:.82em}
+button{font:inherit;color:inherit;cursor:pointer}:focus-visible{outline:2px solid var(--jev);outline-offset:2px}
+.dv-seg{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.dv-seg button{font-family:var(--mono);font-size:12.5px;border:1px solid var(--rule);background:var(--card);border-radius:999px;padding:4px 12px;transition:background-color 150ms ease}
+.dv-seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.dv-guess{border-left:3px solid var(--jev);padding:4px 0 4px 12px;margin:0 0 14px;font-size:15.5px}
+.dv-guess .dv-v{font-size:14px;color:var(--muted);min-height:1.4em;margin-top:6px}
+svg text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}svg text.lab{fill:var(--fg)}
+.dv-row{transition:opacity 260ms var(--ease-out)}
+/* B cards */
+.dv-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:10px}
+.dv-card{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;min-width:0}
+.dv-card h3{font-family:var(--display);font-size:16.5px;margin:0 0 4px}
+.dv-card .dv-wrong{font-size:14px;color:var(--warn);margin:0 0 4px}
+.dv-card .dv-why{font-size:14px;margin:0;transition:opacity 260ms var(--ease-out),transform 260ms var(--ease-out)}
+.dv-card .dv-why.dv-hide{opacity:0;transform:translateY(4px)}
+.dv-card button{font-family:var(--mono);font-size:12px;border:1px solid var(--rule);background:var(--bg);border-radius:999px;padding:2px 10px;margin-top:6px}
+/* C chips */
+.dv-chips{display:flex;flex-wrap:wrap;gap:3px;margin:8px 0}
+.dv-chip{width:12px;height:12px;border-radius:3px;background:var(--jev);transition:opacity 220ms var(--ease-out),transform 220ms var(--ease-out)}
+.dv-chip.dv-bad{background:var(--warn)}.dv-chip.dv-in{opacity:0;transform:scale(.6)}
+.dv-readout{font-family:var(--mono);font-size:13px}
+input[type=range]{width:100%;accent-color:var(--fg)}
+.dv-picker{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:4px;background:var(--fg);color:var(--bg);border-radius:999px;padding:5px 6px 5px 14px;font-family:var(--mono);font-size:12px;z-index:5;max-width:calc(100vw - 32px);overflow-x:auto;white-space:nowrap}
+.dv-picker button{white-space:nowrap;border:0;background:transparent;color:var(--bg);border-radius:999px;padding:5px 12px;font-family:var(--mono);font-size:12px}
+.dv-picker button[aria-pressed="true"]{background:var(--bg);color:var(--fg)}
+.variant[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.dv-chip.dv-in,.dv-card .dv-why.dv-hide{transform:none}.dv-chip,.dv-why,.dv-row{transition-property:opacity}}
+</style>
+<div class="col"><h2>One dose does not fit every category</h2>
+<p>The dose curve adds illegal options to a question and watches whether Jev picks them. A single percentage breaks, because the categories hold very different numbers of legal and illegal options. The numbers below are real: the first hidden field of each one-field mask on the three grids.</p></div>
+<div class="wide">
+<section class="variant" id="vA" data-name="A · The buckets"></section>
+<section class="variant" id="vB" data-name="B · The mistakes" hidden></section>
+<section class="variant" id="vC" data-name="C · Pour a dose" hidden></section>
+</div>
+<nav class="dv-picker"><span>prototype</span></nav>
+<script>const DATA=/*DATA*/null;</script>
+<script>
+const NS='http://www.w3.org/2000/svg', REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a){if(k==='text')e.textContent=a[k];else e.setAttribute(k,a[k]);}if(p)p.appendChild(e);return e;};
+const h=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.innerHTML=x;return e;};
+const CATS=[['moves','Moves'],['abilities','Abilities'],['items','Items'],['pokemon','Species'],['natures','Stat Alignment']];
+const med=(a)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.floor(s.length/2)];};
+const STAT=Object.fromEntries(CATS.map(([k,n])=>{const r=DATA[k];return [k,{name:n,legal:med(r.map(x=>x.legal)),pool:med(r.map(x=>x.illegal_pool)),lmin:Math.min(...r.map(x=>x.legal)),lmax:Math.max(...r.map(x=>x.legal)),n:r.length}];}));
+const DOSES=[0,.25,.5,1];
+const why=(c,d)=>{const s=STAT[c],want=Math.round(s.legal*d);if(!s.pool)return 'none exist';if(s.legal>255)return 'already over 255, asked as a tournament';if(s.pool<want)return `only ${s.pool} illegal options exist`;return s.legal+want>255?'the 255 limit stops it':'';};
+const added=(c,d)=>Math.min(Math.round(STAT[c].legal*d),STAT[c].pool,Math.max(0,255-STAT[c].legal));
+const CAP='<p class="cap"><strong>Figure.</strong> Medians over the 15 one-field masks per category on the random, held-out and meta grids, from <code>dose-pools.json</code> (<code>build_dose_pools.py</code>, using the same legal-option rules Jev gets). Items count only teammates\' items as illegal: other species\' Mega Stones are legal in the simulator. No Jev calls yet; dose results and win rates (wins against the top-50 meta teams, behaviour-cloning policy on both sides) come later.</p>';
+function guess(root,q,opts,ans,why){const b=h('div','dv-guess',`<strong>Guess first.</strong> ${q}<div class="dv-seg"></div><div class="dv-v" aria-live="polite"></div>`);const s=b.querySelector('.dv-seg'),v=b.querySelector('.dv-v');opts.forEach(o=>{const x=h('button','',o);x.type='button';x.onclick=()=>{[...s.children].forEach(c=>c.setAttribute('aria-pressed',String(c===x)));v.textContent=(o===ans?'Right. ':`It's ${ans}. `)+why;};s.appendChild(x);});root.appendChild(b);}
+function poolChart(svg,hi){ // legal vs illegal pool, log scale, one row per category
+  const W=520,rh=40,L=110,R=60,T=20,H=T+CATS.length*rh+28;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML='';
+  const X=v=>L+Math.log10(Math.max(v,1))/Math.log10(600)*(W-L-R);
+  [1,10,100].forEach(t=>{el('line',{x1:X(t),x2:X(t),y1:T-6,y2:T+CATS.length*rh,style:'stroke:var(--rule)'},svg);el('text',{x:X(t),y:H-12,'text-anchor':'middle',text:t},svg);});
+  el('line',{x1:X(255),x2:X(255),y1:T-12,y2:T+CATS.length*rh,style:'stroke:var(--fg);stroke-dasharray:4 3'},svg);el('text',{x:X(255),y:T-14,'text-anchor':'middle',class:'lab',text:'255 limit'},svg);
+  el('text',{x:(L+W-R)/2,y:H,'text-anchor':'middle',class:'lab',text:'options (log scale)'},svg);
+  CATS.forEach(([k],i)=>{const s=STAT[k],y=T+i*rh,g=el('g',{class:'dv-row',style:`opacity:${hi&&hi!==k?.35:1}`},svg);
+    el('text',{x:L-8,y:y+16,'text-anchor':'end',class:'lab',text:s.name},g);
+    el('rect',{x:L,y:y+4,width:X(s.legal)-L,height:12,rx:3,style:'fill:var(--jev)'},g);el('text',{x:X(s.legal)+5,y:y+14,text:`${s.legal} legal`},g);
+    if(s.pool){el('rect',{x:L,y:y+19,width:Math.max(3,X(s.pool)-L),height:12,rx:3,style:'fill:var(--warn)'},g);el('text',{x:Math.max(L+3,X(s.pool))+5,y:y+29,text:`${s.pool} illegal`},g);}
+    else el('text',{x:L,y:y+29,style:'fill:var(--warn)',text:'no illegal option exists'},g);});
+}
+/* A: buckets per dose */
+function buildA(root){root.innerHTML='';
+  guess(root,'At a "100%" dose, how many illegal items can be added to a question about one item?',['143','50','5','0'],'5','Only items a teammate already holds are illegal, and a team has five teammates.');
+  const svg=el('svg',{role:'img','aria-label':'Legal and illegal options per category'},root);svg.style.width='100%';
+  const seg=h('div','dv-seg');root.appendChild(seg);const say=h('p','cap');say.setAttribute('aria-live','polite');root.appendChild(say);
+  const tbl=h('div');root.appendChild(tbl);
+  function show(d){[...seg.children].forEach((b,i)=>b.setAttribute('aria-pressed',String(DOSES[i]===d)));poolChart(svg);
+    tbl.innerHTML='<table style="border-collapse:collapse;font-size:14px;width:100%">'+CATS.map(([k])=>{const s=STAT[k],want=Math.round(s.legal*d),got=added(k,d),short=want>got;return `<tr style="border-bottom:1px solid var(--rule)"><td style="padding:4px 0">${s.name}</td><td style="font-family:var(--mono);font-size:12.5px">wants ${want}, gets <b style="color:${short?'var(--warn)':'var(--fg)'}">${got}</b></td><td style="font-size:13px;color:var(--muted)">${short?why(k,d):''}</td></tr>`;}).join('')+'</table>';
+    say.textContent=`A ${d*100}% dose asks for that share of the legal list's length in illegal options. Red marks a category that cannot reach it.`;}
+  DOSES.forEach(d=>{const b=h('button','',`${d*100}% dose`);b.type='button';b.onclick=()=>show(d);seg.appendChild(b);});show(1);
+  root.insertAdjacentHTML('beforeend',CAP);}
+/* B: mistake cards */
+const MISTAKES=[
+ ['One percentage for every category','"Pad every list by 25%."',()=>`25% of ${STAT.abilities.legal} abilities is ${(STAT.abilities.legal*.25).toFixed(2)} of an option, and 25% of ${STAT.items.legal} items is ${Math.round(STAT.items.legal*.25)}, but only ${STAT.items.pool} illegal items exist.`],
+ ['Counting legal items as illegal','"Another species\' Mega Stone is an illegal item."',()=>'The simulator accepts any Pokémon holding any Mega Stone; it just does nothing. Only a teammate\'s item breaks a rule (the Item Clause), so the item pool is 5.'],
+ ['Forgetting the Mega slot','"Items always have a long legal list."',()=>`A Mega form has one legal item, its own stone. Adding the 5 held items makes a list that is ${Math.round(5/6*100)}% illegal, while the same 5 are ${(5/148*100).toFixed(0)}% of a full item list.`],
+ ['A species dose that cannot exist','"Add 25% illegal species."',()=>`About ${STAT.pokemon.legal} species are legal and only ${STAT.pokemon.pool} clash with the team's families, so the largest possible dose is ${(STAT.pokemon.pool/STAT.pokemon.legal*100).toFixed(1)}%. The species question is already over 255 and runs as a tournament.`],
+ ['Dosing a field with no illegal option','"Run the curve for every field."',()=>'All 25 Stat Alignments are legal for every Pokémon. There is nothing to add, so Stat Alignment has no dose curve.'],
+ ['Inventing illegal Stat Points','"Spreads over 66 make a good illegal option."',()=>'They test arithmetic, not Pokémon knowledge, and nothing in the game produces them. Leave them out.'],
+ ['A shared percentage axis','"Plot every category on 0 to 100%."',()=>'Items and species would sit near 0% and look unchanged. Plot legality against the number of illegal options offered instead.'],
+];
+function buildB(root){root.innerHTML='';
+  guess(root,'Which category has no illegal option at all?',['Moves','Items','Species','Stat Alignment'],'Stat Alignment','Every Pokémon can use all 25.');
+  const cards=h('div','dv-cards');root.appendChild(cards);
+  MISTAKES.forEach(([t,wrong,why])=>{const c=h('div','dv-card',`<h3>${t}</h3><p class="dv-wrong">${wrong}</p><p class="dv-why dv-hide">${why()}</p>`);const b=h('button','','Why it breaks');b.type='button';b.onclick=()=>{const w=c.querySelector('.dv-why');w.classList.toggle('dv-hide');b.textContent=w.classList.contains('dv-hide')?'Why it breaks':'Hide';};c.appendChild(b);cards.appendChild(c);});
+  const svg=el('svg',{role:'img','aria-label':'Legal and illegal options per category'},root);svg.style.width='100%';svg.style.maxWidth='620px';svg.style.marginTop='16px';poolChart(svg);
+  root.insertAdjacentHTML('beforeend',CAP);}
+/* C: pour a dose */
+function buildC(root){root.innerHTML='';
+  guess(root,'Pour a 100% dose into an ability question. How many options does Jev see?',['3','6','200','255'],String(STAT.abilities.legal*2),`${STAT.abilities.legal} legal abilities plus ${STAT.abilities.legal} illegal ones.`);
+  const seg=h('div','dv-seg');root.appendChild(seg);
+  const slider=h('input');slider.type='range';slider.min=0;slider.max=100;slider.step=25;slider.value=100;slider.setAttribute('aria-label','Dose');root.appendChild(slider);
+  const read=h('p','dv-readout');read.setAttribute('aria-live','polite');root.appendChild(read);const chips=h('div','dv-chips');root.appendChild(chips);
+  const svg=el('svg',{role:'img','aria-label':'Legal and illegal options per category'},root);svg.style.width='100%';svg.style.maxWidth='620px';
+  let cat='abilities';
+  function draw(){const s=STAT[cat],d=slider.value/100,got=added(cat,d),want=Math.round(s.legal*d);chips.innerHTML='';
+    const shown=Math.min(s.legal,255);for(let i=0;i<shown+got;i++){const c=h('span','dv-chip'+(i>=shown?' dv-bad dv-in':''));chips.appendChild(c);}
+    requestAnimationFrame(()=>chips.querySelectorAll('.dv-in').forEach((c,i)=>{c.style.transitionDelay=REDUCE?'0ms':Math.min(i*6,400)+'ms';c.classList.remove('dv-in');}));
+    read.innerHTML=`${s.name}: ${s.legal} legal + <b style="color:var(--warn)">${got} illegal</b> = ${s.legal+got} options`+(want>got?` · the dose wanted ${want}: ${why(cat,d)}`:'');
+    [...seg.children].forEach((b,i)=>b.setAttribute('aria-pressed',String(CATS[i][0]===cat)));poolChart(svg,cat);}
+  CATS.forEach(([k,n])=>{const b=h('button','',n);b.type='button';b.onclick=()=>{cat=k;draw();};seg.appendChild(b);});
+  slider.oninput=draw;draw();root.insertAdjacentHTML('beforeend',CAP);}
+const B={vA:buildA,vB:buildB,vC:buildC},pk=document.querySelector('.dv-picker');
+const want='v'+(new URLSearchParams(location.search).get('variant')||'A');if(document.getElementById(want))document.querySelectorAll('.variant').forEach(x=>x.hidden=x.id!==want);
+document.querySelectorAll('.variant').forEach(v=>{B[v.id](v);const b=h('button','',v.dataset.name);b.type='button';b.setAttribute('aria-pressed',String(!v.hidden));b.onclick=()=>{document.querySelectorAll('.variant').forEach(x=>x.hidden=x!==v);[...pk.querySelectorAll('button')].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));};pk.appendChild(b);});
+</script>

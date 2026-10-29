@@ -1,0 +1,177 @@
+<meta charset="utf-8">
+<title>Mercury's Reasoning Dial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one 760px column; five questions, each a ladder of the four reasoning settings from off (top) to high (bottom). Tokens are Jev Picks a Team's, plus a four-step olive ramp for the settings. */
+:root{
+  --bg:#F1F3EC;--fg:#1B1F16;--muted:#5E6455;--rule:#CDD2C2;--card:#F8F9F4;--cell:#E2E6D8;
+  --jev:#A3226E;--warn:#C4561B;--ok:#3B7A2A;--amber:#B8860B;
+  --m0:#C9B95A;--m1:#A8952A;--m2:#7C6A12;--m3:#4F430A;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--warn:#F0935E;--ok:#8FCB76;--amber:#E0B54A;
+  --m0:#6B6128;--m1:#9A8B35;--m2:#C4B04A;--m3:#E6D47A;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--warn:#F0935E;--ok:#8FCB76;--amber:#E0B54A;
+  --m0:#6B6128;--m1:#9A8B35;--m2:#C4B04A;--m3:#E6D47A;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+.col{max-width:760px;margin:0 auto}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,6vw,50px);line-height:1.02;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:21px;line-height:1.2;margin:0 0 4px;text-wrap:balance}
+p{margin:0 0 12px}
+.lede{font-size:19px;max-width:65ch}
+.mono{font-family:var(--mono);font-size:.8em}
+.price{border:1px solid var(--rule);background:var(--card);border-radius:10px;padding:14px 16px;margin:22px 0 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px 20px}
+.price div{min-width:0}
+.price .k{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.price .v{font-family:var(--mono);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.price .v s{color:var(--muted);font-weight:400;font-size:15px}
+.price .n{font-size:14px;color:var(--muted);line-height:1.45}
+.q{border-top:1px solid var(--rule);padding-top:22px;margin-top:30px}
+.q .ans{font-size:16px;color:var(--fg);max-width:65ch}
+.key{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 4px}
+.key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+svg{width:100%;height:auto;display:block;overflow:visible}
+svg text{font-family:var(--mono);font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
+svg text.lab{fill:var(--fg)}
+svg text.lvl{fill:var(--fg);font-weight:600}
+.foot{font-size:13.5px;color:var(--muted);line-height:1.5;margin-top:34px;border-top:1px solid var(--rule);padding-top:14px}
+.foot a{color:inherit}
+</style>
+
+<div class="col">
+  <p class="mono" style="color:var(--muted);margin-bottom:8px">Experiment 12 · held-out grid · 270 tasks per setting</p>
+  <h1>Mercury's reasoning dial</h1>
+  <p class="lede">Mercury 2.5 filled the same 270 held-out tasks four times, once at each reasoning setting, with the same prompt. More reasoning buys legal teams, not stronger ones. Even at its highest setting Mercury stays below Jev, and at Mercury's list price every setting costs more per legal team than Jev.</p>
+
+  <div class="price" aria-label="Mercury 2.5 price">
+    <div><div class="k">billed in every run</div><div class="v">$0.04 · $0.15</div><div class="n">per million input · output tokens, Inception's 80%-off launch price</div></div>
+    <div><div class="k">list price</div><div class="v"><s>$0.20 · $0.75</s></div><div class="n">five times higher; the cost chart shows both</div></div>
+    <div><div class="k">availability</div><div class="v" style="font-size:16px">ends 2026-11-15</div><div class="n">closed to new users; existing customers keep access until then</div></div>
+  </div>
+
+  <section class="q" id="think">
+    <h2>How much does it think?</h2>
+    <p class="ans" id="a-think"></p>
+    <svg id="c-think" role="img" aria-label="Reasoning tokens per call at each setting"></svg>
+  </section>
+
+  <section class="q" id="outcome">
+    <h2>What happens to the 270 tasks?</h2>
+    <p class="ans" id="a-outcome"></p>
+    <p class="key"><span><i style="background:var(--ok)"></i>legal team</span><span><i style="background:var(--warn)"></i>changed a field it was told to keep</span><span><i style="background:var(--amber)"></i>broke a rule</span><span><i style="background:var(--muted)"></i>answer unreadable</span></p>
+    <svg id="c-outcome" role="img" aria-label="Outcome of the 270 tasks at each setting"></svg>
+  </section>
+
+  <section class="q" id="usable">
+    <h2>How often does it hand you a team that wins?</h2>
+    <p class="ans" id="a-usable"></p>
+    <svg id="c-usable" role="img" aria-label="Usable win rate at each setting, with Jev and a random legal fill"></svg>
+  </section>
+
+  <section class="q" id="strength">
+    <h2>When its team is legal, how strong is it?</h2>
+    <p class="ans" id="a-strength"></p>
+    <p class="key"><span><i style="background:var(--m2);border-radius:50%"></i>Mercury</span><span><i style="border:2px solid var(--jev);border-radius:50%"></i>Jev, same masks</span></p>
+    <svg id="c-strength" role="img" aria-label="Win rate of Mercury and Jev on the masks each setting filled legally"></svg>
+  </section>
+
+  <section class="q" id="cost">
+    <h2>What does one legal team cost?</h2>
+    <p class="ans" id="a-cost"></p>
+    <p class="key"><span><i style="background:var(--m2);border-radius:50%"></i>billed, launch price</span><span><i style="border:2px solid var(--m2);border-radius:50%"></i>at list price</span><span><i style="background:var(--jev);width:2px"></i>Jev</span></p>
+    <svg id="c-cost" role="img" aria-label="Cost per legal team at the launch price and the list price, with Jev"></svg>
+  </section>
+
+  <p class="foot">Win rate: share of 49 battles won against the top-50 meta teams, with the behaviour-cloning policy on both sides. A usable win rate scores a team that isn't legal as 0, over all 270 tasks; bars are 95% intervals from resampling the five unmasked teams. Off, low and medium ran on 2026-10-28; high is the original run of 2026-10-24 (its runner sets <code>effort: high</code>). Costs are what OpenRouter reported per call. The list-price cost is five times the billed cost, which assumes cached input carried the same 80% discount. Prices from <a href="https://www.inceptionlabs.ai/blog/introducing-mercury-2-5">Inception's Mercury 2.5 launch post</a> and <a href="https://openrouter.ai/inception/mercury-2.5">OpenRouter's model page</a>; availability from <a href="https://www.inceptionlabs.ai/models">Inception's models page</a>, read 2026-10-28.</p>
+</div>
+
+<script>
+const D = {"levels": {"off": {"legal": 93, "legal_share": 0.3444, "usable": 0.1646, "usable_ci": [0.1284, 0.1981], "when_legal": 0.4778, "cost_per_task": 0.001527, "cost_per_legal": 0.004432, "reasoning_tokens": 0, "calls": 270, "cost_270": 0.412, "kinds": {"legal": 93, "changed": 51, "rule": 79, "unreadable": 47}, "seconds": 3.3, "cached": 3, "list_cost_per_legal": 0.02216, "pair": {"jev": 0.4961, "other": 0.4778, "diff": 0.0183, "masks": 93, "ci_masks": [0.0015, 0.0359], "ci_teams": [-0.0014, 0.0358]}}, "low": {"legal": 130, "legal_share": 0.4815, "usable": 0.2321, "usable_ci": [0.1733, 0.2914], "when_legal": 0.4822, "cost_per_task": 0.001249, "cost_per_legal": 0.002594, "reasoning_tokens": 251, "calls": 270, "cost_270": 0.337, "kinds": {"legal": 130, "changed": 49, "rule": 79, "unreadable": 12}, "seconds": 4.0, "cached": 83, "list_cost_per_legal": 0.01297, "pair": {"jev": 0.4915, "other": 0.4822, "diff": 0.0094, "masks": 130, "ci_masks": [-0.0051, 0.0235], "ci_teams": [-0.0135, 0.0265]}}, "medium": {"legal": 149, "legal_share": 0.5519, "usable": 0.2621, "usable_ci": [0.2198, 0.306], "when_legal": 0.4749, "cost_per_task": 0.001864, "cost_per_legal": 0.003378, "reasoning_tokens": 2331, "calls": 270, "cost_270": 0.503, "kinds": {"legal": 149, "changed": 71, "rule": 35, "unreadable": 15}, "seconds": 8.4, "cached": 5, "list_cost_per_legal": 0.01689, "pair": {"jev": 0.4851, "other": 0.4749, "diff": 0.0102, "masks": 149, "ci_masks": [-0.0021, 0.0226], "ci_teams": [-0.0008, 0.0261]}}, "high": {"legal": 183, "legal_share": 0.6778, "usable": 0.3276, "usable_ci": [0.2634, 0.3826], "when_legal": 0.4834, "cost_per_task": 0.002015, "cost_per_legal": 0.002973, "reasoning_tokens": 3140, "calls": 270, "cost_270": 0.544, "kinds": {"legal": 183, "changed": 53, "rule": 27, "unreadable": 7}, "seconds": 9.2, "cached": 5, "list_cost_per_legal": 0.014865, "pair": {"jev": 0.4864, "other": 0.4834, "diff": 0.0031, "masks": 183, "ci_masks": [-0.0074, 0.0137], "ci_teams": [-0.0146, 0.0186]}}}, "jev": {"legal": 270, "legal_share": 1.0, "usable": 0.4815, "usable_ci": [0.445, 0.5135], "when_legal": 0.4815, "cost_per_task": 0.011583, "cost_per_legal": 0.011583, "reasoning_tokens": 0, "calls": 270, "cost_270": 3.128}, "unmasked": 0.48, "random_fill": 0.315};
+const NS = "http://www.w3.org/2000/svg";
+const LV = ["off", "low", "medium", "high"], COL = ["var(--m0)", "var(--m1)", "var(--m2)", "var(--m3)"];
+const pct = (x, d = 0) => (x * 100).toFixed(d) + "%", cents = (x) => (x * 100).toFixed(2) + "¢", int = (x) => x.toLocaleString("en-US");
+function el(tag, a, parent) { const e = document.createElementNS(NS, tag); for (const k in a) { if (k === "text") e.textContent = a[k]; else if (k === "tip") { const t = document.createElementNS(NS, "title"); t.textContent = a[k]; e.appendChild(t); } else e.setAttribute(k, a[k]); } parent.appendChild(e); return e; }
+
+// A ladder: one row per setting, off at the top. x maps a value to the drawing; refs are vertical reference lines.
+function ladder(id, o) {
+	const s = document.getElementById(id), W = 700, L = 96, R = o.r ?? 150, T = o.refs?.length ? 26 : 8, RH = 34, B = 42;
+	const H = T + LV.length * RH + B;
+	s.setAttribute("viewBox", `0 0 ${W} ${H}`);
+	const X = (v) => L + (v - o.x0) / (o.x1 - o.x0) * (W - L - R);
+	o.ticks.forEach((t) => {
+		el("line", { x1: X(t), x2: X(t), y1: T - 4, y2: T + LV.length * RH, stroke: "var(--rule)" }, s);
+		el("text", { x: X(t), y: T + LV.length * RH + 16, "text-anchor": "middle", text: o.fmt(t) }, s);
+	});
+	if (o.xl) el("text", { x: X(o.x0), y: H - 4, text: o.xl }, s);
+	(o.refs || []).forEach(([v, lab, col, anchor]) => {
+		el("line", { x1: X(v), x2: X(v), y1: T - 8, y2: T + LV.length * RH, stroke: col, "stroke-width": 1.5, "stroke-dasharray": col === "var(--jev)" ? "" : "4 3" }, s);
+		el("text", { x: X(v) + (anchor === "end" ? -4 : 4), y: T - 12, "text-anchor": anchor || "start", class: "lab", style: `fill:${col}`, text: lab }, s);
+	});
+	LV.forEach((k, i) => {
+		const y = T + i * RH + RH / 2;
+		el("text", { x: 0, y: y + 4, class: "lvl", text: k }, s);
+		o.row(s, X, y, D.levels[k], COL[i], k);
+	});
+}
+
+const lv = D.levels, J = D.jev;
+
+document.getElementById("a-think").textContent = `Off writes no reasoning. Low adds ${int(lv.low.reasoning_tokens)} reasoning tokens per call; high writes ${int(lv.high.reasoning_tokens)}, and a call takes ${lv.high.seconds} s instead of ${lv.off.seconds} s.`;
+ladder("c-think", { x0: 0, x1: 3500, ticks: [0, 1000, 2000, 3000], fmt: int, xl: "reasoning tokens per call", row: (s, X, y, r, c) => {
+	el("rect", { x: X(0), y: y - 9, width: Math.max(X(r.reasoning_tokens) - X(0), 2), height: 18, rx: 3, fill: c, tip: `${int(r.reasoning_tokens)} reasoning tokens, median ${r.seconds} s per call` }, s);
+	el("text", { x: X(r.reasoning_tokens) + 8, y: y + 4, class: "lab", text: `${int(r.reasoning_tokens)} tokens · ${r.seconds} s` }, s);
+} });
+
+document.getElementById("a-outcome").textContent = `Legal teams climb from ${lv.off.kinds.legal} to ${lv.high.kinds.legal} of 270. Reasoning mostly cures unreadable answers (${lv.off.kinds.unreadable} → ${lv.high.kinds.unreadable}) and rule breaks (${lv.off.kinds.rule} → ${lv.high.kinds.rule}). Changing a field it was told to keep barely moves (${lv.off.kinds.changed} → ${lv.high.kinds.changed}).`;
+const KIND = [["legal", "var(--ok)", "legal"], ["changed", "var(--warn)", "changed a kept field"], ["rule", "var(--amber)", "broke a rule"], ["unreadable", "var(--muted)", "unreadable"]];
+ladder("c-outcome", { x0: 0, x1: 270, r: 40, ticks: [0, 90, 180, 270], fmt: int, xl: "tasks", row: (s, X, y, r) => {
+	let at = 0;
+	KIND.forEach(([k, c, name]) => {
+		const n = r.kinds[k]; if (!n) return;
+		el("rect", { x: X(at) + (at ? 1 : 0), y: y - 10, width: X(at + n) - X(at) - (at ? 1 : 0), height: 20, rx: 2, fill: c, tip: `${n} ${name}` }, s);
+		if (X(at + n) - X(at) > 26) el("text", { x: (X(at) + X(at + n)) / 2, y: y + 4, "text-anchor": "middle", style: "fill:var(--bg);font-weight:600", text: n }, s);
+		at += n;
+	});
+} });
+
+document.getElementById("a-usable").textContent = `Usable win rate rises from ${pct(lv.off.usable, 1)} to ${pct(lv.high.usable, 1)}. Only high beats a random legal fill, and none comes near Jev's ${pct(J.usable, 1)}, which is legal on every task.`;
+ladder("c-usable", { x0: 0, x1: 0.6, r: 160, ticks: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6], fmt: (t) => pct(t), xl: "usable win rate",
+	refs: [[J.usable, `Jev ${pct(J.usable, 1)}`, "var(--jev)", "start"], [D.random_fill, `random legal fill ${pct(D.random_fill, 1)}`, "var(--muted)", "end"]],
+	row: (s, X, y, r, c) => {
+		el("line", { x1: X(r.usable_ci[0]), x2: X(r.usable_ci[1]), y1: y, y2: y, stroke: c, "stroke-width": 3, "stroke-linecap": "round", "stroke-opacity": 0.55 }, s);
+		el("circle", { cx: X(r.usable), cy: y, r: 6, fill: c, stroke: "var(--bg)", "stroke-width": 2, tip: `${pct(r.usable, 1)} [${pct(r.usable_ci[0], 1)}, ${pct(r.usable_ci[1], 1)}]; ${pct(r.legal_share)} legal` }, s);
+		el("text", { x: X(0.6) + 16, y: y + 4, class: "lab", text: `${pct(r.usable, 1)} · ${pct(r.legal_share)} legal` }, s);
+	} });
+
+document.getElementById("a-strength").textContent = `On the masks each setting filled legally, Jev's team for the same masks wins ${LV.map((k) => pct(lv[k].pair.jev, 1)).join(", ")} and Mercury's ${LV.map((k) => pct(lv[k].when_legal, 1)).join(", ")}. Every gap's 95% interval includes zero, so the whole gap in usable win rate is legality.`;
+ladder("c-strength", { x0: 0.44, x1: 0.52, r: 190, ticks: [0.44, 0.46, 0.48, 0.50, 0.52], fmt: (t) => pct(t), xl: "win rate on the masks this setting filled legally (axis starts at 44%)",
+	row: (s, X, y, r, c) => {
+		const p = r.pair;
+		el("line", { x1: X(p.other), x2: X(p.jev), y1: y, y2: y, stroke: "var(--rule)", "stroke-width": 2 }, s);
+		el("circle", { cx: X(p.jev), cy: y, r: 5.5, fill: "var(--bg)", stroke: "var(--jev)", "stroke-width": 2, tip: `Jev ${pct(p.jev, 1)} on the same ${p.masks} masks` }, s);
+		el("circle", { cx: X(p.other), cy: y, r: 6, fill: c, stroke: "var(--bg)", "stroke-width": 2, tip: `Mercury ${pct(p.other, 1)} over ${p.masks} legal teams` }, s);
+		el("text", { x: X(0.52) + 16, y: y + 4, class: "lab", text: `${pct(p.other, 1)} vs ${pct(p.jev, 1)} · ${p.masks} masks` }, s);
+	} });
+
+const cheapest = LV.reduce((a, k) => (lv[k].cost_per_legal < lv[a].cost_per_legal ? k : a), "off");
+document.getElementById("a-cost").textContent = `At the launch price Mercury's cheapest legal team (${cheapest}, ${cents(lv[cheapest].cost_per_legal)}) costs about a fifth of Jev's ${cents(J.cost_per_legal)}. At list price every setting costs more than Jev, from ${cents(Math.min(...LV.map((k) => lv[k].list_cost_per_legal)))} to ${cents(Math.max(...LV.map((k) => lv[k].list_cost_per_legal)))}. Low beats off on cost because ${lv.low.cached} of its calls hit OpenRouter's prompt cache, against ${lv.off.cached} for off.`;
+ladder("c-cost", { x0: 0, x1: 0.025, r: 120, ticks: [0, 0.005, 0.01, 0.015, 0.02, 0.025], fmt: (t) => (t * 100).toFixed(1) + "¢", xl: "cost per legal team",
+	refs: [[J.cost_per_legal, `Jev ${cents(J.cost_per_legal)}`, "var(--jev)", "end"]],
+	row: (s, X, y, r, c) => {
+		el("line", { x1: X(r.cost_per_legal), x2: X(r.list_cost_per_legal), y1: y, y2: y, stroke: c, "stroke-width": 1.5, "stroke-opacity": 0.6 }, s);
+		el("circle", { cx: X(r.cost_per_legal), cy: y, r: 6, fill: c, stroke: "var(--bg)", "stroke-width": 2, tip: `billed ${cents(r.cost_per_legal)} per legal team` }, s);
+		el("circle", { cx: X(r.list_cost_per_legal), cy: y, r: 5.5, fill: "var(--bg)", stroke: c, "stroke-width": 2, tip: `${cents(r.list_cost_per_legal)} per legal team at list price` }, s);
+		el("text", { x: X(r.list_cost_per_legal) + 12, y: y + 4, class: "lab", text: `${cents(r.cost_per_legal)} → ${cents(r.list_cost_per_legal)}` }, s);
+	} });
+</script>

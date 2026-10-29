@@ -112,11 +112,13 @@ def evaluate(con, rows, cols, a):
     evidence = a.evidence_dir or HERE/'runs/battle-evaluations'/(
         time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8])
     with ExitStack() as stack:
+        # Slots are shuffled every battle by default (slot_order.py in the code repo, owner 2026-10-28);
+        # VGC_SLOT_ORDER=listed reproduces the 2026-10-15 grid and its policy 1 cache.
         if a.backend == 'fast':
-            runner = stack.enter_context(FastBattleRunner(evidence, a.workers, a.concurrency))
+            runner = stack.enter_context(FastBattleRunner(evidence, a.workers, a.concurrency, slot_order=MDB.SLOT_ORDER))
             policy_id = runner.policy_id(con, MDB)
         else:
-            policy_id = POLICY
+            policy_id = POLICY if MDB.SLOT_ORDER == 'listed' else MDB.get_policy(con)
             runner = None
             if MDB.plan(con, policy_id, rows, cols, a.per_cell):
                 procs, ports = start_servers(a.workers)
@@ -168,7 +170,7 @@ def main(argv=None):
     finally:
         signal.signal(signal.SIGTERM, previous)
 
-    out = {'policy_id': policy_id, 'policy': 'bc_100.zip:' + BC_HASH + ' on both sides', 'seed': SEED,
+    out = {'policy_id': policy_id, 'policy': 'bc_100.zip:' + BC_HASH + ' on both sides, ' + MDB.SLOT_ORDER + ' slot order', 'seed': SEED,
            'evaluator': {'backend':a.backend, 'workers':a.workers, 'concurrency':a.concurrency, 'evidence':evidence},
            'opponents': [], 'panels': {}}
     for t in cols:

@@ -1,0 +1,537 @@
+{
+ "items": [
+  {
+   "grid": "random",
+   "task_id": "a67bf0d2cbc8600a",
+   "species": "Scovillain",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "random",
+   "task_id": "4f53daf1022a4483",
+   "species": "Sableye",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "random",
+   "task_id": "de7b74e2c5ac256d",
+   "species": "Tyranitar-Mega",
+   "legal": 1,
+   "illegal_pool": 147
+  },
+  {
+   "grid": "random",
+   "task_id": "9530438900e69243",
+   "species": "Gengar",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "random",
+   "task_id": "b5ee3e28f7144f9c",
+   "species": "Kingambit",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "heldout",
+   "task_id": "5dbd815f3c91c2b6",
+   "species": "Froslass",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "heldout",
+   "task_id": "4a8bfbe24b26c25c",
+   "species": "Floette-Eternal",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "heldout",
+   "task_id": "98138d4592686a29",
+   "species": "Mamoswine",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "heldout",
+   "task_id": "143fdd27ab9c6c5e",
+   "species": "Garchomp",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "heldout",
+   "task_id": "d9ac13e2508dbdd8",
+   "species": "Kingambit",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "meta",
+   "task_id": "b90b461c39429bf2",
+   "species": "Ninetales-Alola",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "meta",
+   "task_id": "56ebc2a9323b39d3",
+   "species": "Aegislash",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "meta",
+   "task_id": "196c5703b9615ac2",
+   "species": "Charizard",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "meta",
+   "task_id": "eebc3b1ca6f85a7a",
+   "species": "Kingambit",
+   "legal": 143,
+   "illegal_pool": 5
+  },
+  {
+   "grid": "meta",
+   "task_id": "c189f5ba908f9b43",
+   "species": "Charizard",
+   "legal": 143,
+   "illegal_pool": 5
+  }
+ ],
+ "moves": [
+  {
+   "grid": "random",
+   "task_id": "0dd56a1a37aceb04",
+   "species": "Mawile-Mega",
+   "legal": 68,
+   "illegal_pool": 428
+  },
+  {
+   "grid": "random",
+   "task_id": "3311cb6bb02ab9d1",
+   "species": "Azumarill",
+   "legal": 63,
+   "illegal_pool": 433
+  },
+  {
+   "grid": "random",
+   "task_id": "e1701ffef9b11a56",
+   "species": "Tyranitar-Mega",
+   "legal": 89,
+   "illegal_pool": 407
+  },
+  {
+   "grid": "random",
+   "task_id": "9265635482a3e0cf",
+   "species": "Slowking",
+   "legal": 82,
+   "illegal_pool": 414
+  },
+  {
+   "grid": "random",
+   "task_id": "7b71841c57c3326f",
+   "species": "Kommo-o",
+   "legal": 75,
+   "illegal_pool": 421
+  },
+  {
+   "grid": "heldout",
+   "task_id": "33911406459d9dd1",
+   "species": "Swampert",
+   "legal": 74,
+   "illegal_pool": 422
+  },
+  {
+   "grid": "heldout",
+   "task_id": "4225599079ef9aad",
+   "species": "Pelipper",
+   "legal": 50,
+   "illegal_pool": 446
+  },
+  {
+   "grid": "heldout",
+   "task_id": "00d074ac49bd583c",
+   "species": "Glimmora",
+   "legal": 43,
+   "illegal_pool": 453
+  },
+  {
+   "grid": "heldout",
+   "task_id": "a4a4f183bc01e793",
+   "species": "Kingambit",
+   "legal": 49,
+   "illegal_pool": 447
+  },
+  {
+   "grid": "heldout",
+   "task_id": "1a14fe9a64b7462e",
+   "species": "Basculegion",
+   "legal": 46,
+   "illegal_pool": 450
+  },
+  {
+   "grid": "meta",
+   "task_id": "1517709760661159",
+   "species": "Gengar",
+   "legal": 73,
+   "illegal_pool": 423
+  },
+  {
+   "grid": "meta",
+   "task_id": "2685bf3505a98632",
+   "species": "Garchomp",
+   "legal": 55,
+   "illegal_pool": 441
+  },
+  {
+   "grid": "meta",
+   "task_id": "cb00c48b71addd79",
+   "species": "Aerodactyl",
+   "legal": 55,
+   "illegal_pool": 441
+  },
+  {
+   "grid": "meta",
+   "task_id": "e17739cdde9dae4e",
+   "species": "Incineroar",
+   "legal": 74,
+   "illegal_pool": 422
+  },
+  {
+   "grid": "meta",
+   "task_id": "f6186b1f74f2c781",
+   "species": "Sylveon",
+   "legal": 52,
+   "illegal_pool": 444
+  }
+ ],
+ "pokemon": [
+  {
+   "grid": "random",
+   "task_id": "0edcede12c1cd7d4",
+   "species": null,
+   "legal": 333,
+   "illegal_pool": 14
+  },
+  {
+   "grid": "random",
+   "task_id": "f6ebc8911dfef9c5",
+   "species": null,
+   "legal": 335,
+   "illegal_pool": 12
+  },
+  {
+   "grid": "random",
+   "task_id": "6b2c330e720ced87",
+   "species": null,
+   "legal": 336,
+   "illegal_pool": 11
+  },
+  {
+   "grid": "random",
+   "task_id": "2618c37b7b946ce8",
+   "species": null,
+   "legal": 338,
+   "illegal_pool": 9
+  },
+  {
+   "grid": "random",
+   "task_id": "b0d50e7e2b7e3000",
+   "species": null,
+   "legal": 340,
+   "illegal_pool": 7
+  },
+  {
+   "grid": "heldout",
+   "task_id": "9820f803e40918c3",
+   "species": null,
+   "legal": 338,
+   "illegal_pool": 9
+  },
+  {
+   "grid": "heldout",
+   "task_id": "d8bda4259f1b53e3",
+   "species": null,
+   "legal": 339,
+   "illegal_pool": 8
+  },
+  {
+   "grid": "heldout",
+   "task_id": "d097f9723c9465af",
+   "species": null,
+   "legal": 338,
+   "illegal_pool": 9
+  },
+  {
+   "grid": "heldout",
+   "task_id": "2d48bce13372ba8f",
+   "species": null,
+   "legal": 339,
+   "illegal_pool": 8
+  },
+  {
+   "grid": "heldout",
+   "task_id": "7d866f43f4fd11a1",
+   "species": null,
+   "legal": 337,
+   "illegal_pool": 10
+  },
+  {
+   "grid": "meta",
+   "task_id": "22d0b83c75aef17c",
+   "species": null,
+   "legal": 338,
+   "illegal_pool": 9
+  },
+  {
+   "grid": "meta",
+   "task_id": "fde4a984f1767b85",
+   "species": null,
+   "legal": 337,
+   "illegal_pool": 10
+  },
+  {
+   "grid": "meta",
+   "task_id": "b0868b01d937a479",
+   "species": null,
+   "legal": 338,
+   "illegal_pool": 9
+  },
+  {
+   "grid": "meta",
+   "task_id": "71c0d77a01e3f60a",
+   "species": null,
+   "legal": 339,
+   "illegal_pool": 8
+  },
+  {
+   "grid": "meta",
+   "task_id": "34e75c96b8709c55",
+   "species": null,
+   "legal": 338,
+   "illegal_pool": 9
+  }
+ ],
+ "abilities": [
+  {
+   "grid": "random",
+   "task_id": "c3ec08c0713d1473",
+   "species": "Goodra",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "random",
+   "task_id": "4c1d51bab4a3054c",
+   "species": "Dragalge-Mega",
+   "legal": 4,
+   "illegal_pool": 196
+  },
+  {
+   "grid": "random",
+   "task_id": "69f3d7d055e4d68a",
+   "species": "Tyranitar-Mega",
+   "legal": 2,
+   "illegal_pool": 198
+  },
+  {
+   "grid": "random",
+   "task_id": "41a00b8b67e719b0",
+   "species": "Houndstone",
+   "legal": 2,
+   "illegal_pool": 198
+  },
+  {
+   "grid": "random",
+   "task_id": "82b8e03d4ec74ead",
+   "species": "Kingambit",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "heldout",
+   "task_id": "392a719c7f367705",
+   "species": "Kleavor",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "heldout",
+   "task_id": "c72970ba898db811",
+   "species": "Pelipper",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "heldout",
+   "task_id": "e6c05683882f8058",
+   "species": "Charizard",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "heldout",
+   "task_id": "01419b0e16fb834e",
+   "species": "Armarouge",
+   "legal": 2,
+   "illegal_pool": 198
+  },
+  {
+   "grid": "heldout",
+   "task_id": "bcc2361804854e72",
+   "species": "Basculegion",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "meta",
+   "task_id": "12df02000e1dc7de",
+   "species": "Basculegion",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "meta",
+   "task_id": "085b5de9f781b3d7",
+   "species": "Garchomp",
+   "legal": 2,
+   "illegal_pool": 198
+  },
+  {
+   "grid": "meta",
+   "task_id": "a7c062c653762242",
+   "species": "Sylveon",
+   "legal": 2,
+   "illegal_pool": 198
+  },
+  {
+   "grid": "meta",
+   "task_id": "1f201483eff7971a",
+   "species": "Kingambit",
+   "legal": 3,
+   "illegal_pool": 197
+  },
+  {
+   "grid": "meta",
+   "task_id": "316da414d2e0bd11",
+   "species": "Incineroar",
+   "legal": 2,
+   "illegal_pool": 198
+  }
+ ],
+ "natures": [
+  {
+   "grid": "random",
+   "task_id": "63d15ed95559a829",
+   "species": "Rotom-Wash",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "random",
+   "task_id": "0c01fd6bd71ba42e",
+   "species": "Azumarill",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "random",
+   "task_id": "1e95d24c22e8bcf6",
+   "species": "Blaziken",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "random",
+   "task_id": "4e0454c33112ef16",
+   "species": "Gengar",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "random",
+   "task_id": "8e4c095670e92db4",
+   "species": "Kommo-o",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "heldout",
+   "task_id": "68a3be7f926744d8",
+   "species": "Froslass",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "heldout",
+   "task_id": "5d46e20f9f3f1849",
+   "species": "Whimsicott",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "heldout",
+   "task_id": "d5acd09f068342ea",
+   "species": "Whimsicott",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "heldout",
+   "task_id": "cb1f0052375a2892",
+   "species": "Aerodactyl",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "heldout",
+   "task_id": "de4495d69265e886",
+   "species": "Kingambit",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "meta",
+   "task_id": "8c31c95e4f47df9c",
+   "species": "Basculegion",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "meta",
+   "task_id": "a6ef97546efa3abe",
+   "species": "Sneasler",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "meta",
+   "task_id": "aa878029e488daec",
+   "species": "Kingambit",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "meta",
+   "task_id": "ca6d99916bba8ae5",
+   "species": "Sneasler",
+   "legal": 25,
+   "illegal_pool": 0
+  },
+  {
+   "grid": "meta",
+   "task_id": "625948adcdff98dd",
+   "species": "Sylveon",
+   "legal": 25,
+   "illegal_pool": 0
+  }
+ ]
+}

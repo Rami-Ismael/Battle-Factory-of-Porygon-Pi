@@ -1,0 +1,125 @@
+<meta charset="utf-8">
+<title>Jev Baseline Tickets</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one 760px column; the current ticket first, then the dependency chain, then every ticket grouped by stage. Sister page to Jev Picks a Team, same tokens. */
+:root{
+  --bg:#F1F3EC;--fg:#1B1F16;--muted:#5E6455;--rule:#CDD2C2;--card:#F8F9F4;--cell:#E2E6D8;
+  --jev:#A3226E;--jev-soft:#F4D8E7;--ok:#3B7A2A;--ok-soft:#DCEBD3;--base:#7C6A12;--base-soft:#EFE7C2;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--jev-soft:#4A1F38;--ok:#8FCB76;--ok-soft:#22341B;--base:#D6C25A;--base-soft:#3A3416;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;
+  --jev:#E27AB4;--jev-soft:#4A1F38;--ok:#8FCB76;--ok-soft:#22341B;--base:#D6C25A;--base-soft:#3A3416;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,6vw,48px);line-height:1;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.2;margin:44px 0 12px;text-wrap:balance}
+h3{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.25;margin:0;text-wrap:balance}
+a{color:var(--jev)}
+code,.mono{font-family:var(--mono);font-size:.82em}
+:focus-visible{outline:2px solid var(--jev);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.dek{color:var(--muted);font-size:18.5px;margin:0}
+/* the current ticket */
+.now{margin-top:28px;border:1.5px solid var(--jev);background:var(--card);border-radius:12px;padding:16px 18px;display:grid;gap:10px}
+.now .row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
+.now .big{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.1}
+.now p{margin:0}
+.now .then{border-top:1px solid var(--rule);padding-top:10px;color:var(--muted);font-size:15.5px}
+/* dependency chain */
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 4px}
+.chain .arrow{color:var(--muted);font-family:var(--mono);font-size:13px}
+.chain .fan{display:flex;flex-wrap:wrap;gap:4px;max-width:100%}
+.node{font-family:var(--mono);font-size:12.5px;font-weight:600;min-width:30px;text-align:center;padding:3px 7px;border-radius:6px;border:1px solid var(--rule);background:var(--card);color:var(--fg);text-decoration:none}
+.node.done{background:var(--ok-soft);border-color:var(--ok);color:var(--fg)}
+.node.current{background:var(--jev);border-color:var(--jev);color:var(--bg)}
+.node.next{background:var(--base-soft);border-color:var(--base)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;border:1px solid var(--rule);display:inline-block}
+/* ticket cards */
+.list{display:grid;gap:10px}
+.tk{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;display:grid;gap:8px;min-width:0}
+.tk.current{border-color:var(--jev)}
+.tk header{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.tk .num{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted)}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;border:1px solid currentColor;white-space:nowrap}
+.pill.done{color:var(--ok)}.pill.current{color:var(--jev)}.pill.next{color:var(--base)}.pill.waiting{color:var(--muted)}
+.meta{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.build{margin:0;font-size:15.5px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:15px}
+.checks li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:6px;align-items:start}
+.box{width:14px;height:14px;margin-top:4px;border:1.5px solid var(--muted);border-radius:3px;display:inline-block}
+.box.on{background:var(--ok);border-color:var(--ok)}
+details{font-size:14.5px}
+details summary{font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer}
+details p{margin:8px 0 0;overflow-wrap:anywhere}
+.foot{margin-top:40px;font-size:13.5px;color:var(--muted)}
+@media (max-width:520px){.now .big{font-size:22px}}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Jev decision-model baseline · tickets</p>
+  <h1>Jev Baseline Tickets</h1>
+  <p class="dek">The 19 tickets that built Jev's baseline and the experiments queued after it. Results and charts live on <a id="jevLink" href="#">Jev Picks a Team</a>.</p>
+
+  <section class="now" id="now" aria-label="Where the work stands"></section>
+
+  <h2>How the tickets depend on each other</h2>
+  <div class="chain" id="chain" aria-label="Dependency chain"></div>
+  <div class="legend" aria-hidden="true">
+    <span><i style="background:var(--ok-soft);border-color:var(--ok)"></i>done</span>
+    <span><i style="background:var(--jev);border-color:var(--jev)"></i>current</span>
+    <span><i style="background:var(--base-soft);border-color:var(--base)"></i>next</span>
+    <span><i></i>waiting</span>
+  </div>
+
+  <div id="groups"></div>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const D = __DATA__;
+const T = Object.fromEntries(D.tickets.map((t) => [t.n, t]));
+const STAGES = [["current", "Current"], ["next", "Next"], ["waiting", "Waiting"], ["done", "Done"]];
+const LABEL = { done: "done", current: "current", next: "next", waiting: "waiting" };
+document.getElementById("jevLink").href = D.jev;
+
+const cur = D.tickets.find((t) => t.stage === "current"), nxt = D.tickets.find((t) => t.stage === "next");
+const open = cur.checks.filter((c) => !c.done).length;
+document.getElementById("now").innerHTML = `
+  <div class="row"><span class="pill current">current</span><span class="big">Ticket ${cur.n}: ${cur.title}</span></div>
+  <p>Its run is done and experiment ${cur.experiment} has its real chart; the last 218 random-grid questions wait on TypeSafe credits. ${open === cur.checks.length ? `None of its ${open} checklist items is ticked yet` : `${open} of its ${cur.checks.length} checklist items are still unticked`}; ticking them is yours.</p>
+  <p class="then">Next: <strong>ticket ${nxt.n}, ${nxt.title}</strong>${nxt.experiment ? ` (experiment ${nxt.experiment})` : ""}. Its dry-run cost comes to you before any paid call.</p>`;
+
+const node = (n) => `<a class="node ${T[n].stage}" href="#t${n}" title="${T[n].title.replace(/"/g, "&quot;")}">${n}</a>`;
+const arrow = '<span class="arrow" aria-hidden="true">→</span>';
+document.getElementById("chain").innerHTML = [node(1), arrow, node(2), arrow,
+  `<span class="fan">${node(3)}${node(4)}</span>`, arrow, node(5), arrow, node(6), arrow, node(7), arrow, node(8), arrow, node(9), arrow,
+  `<span class="fan">${D.tickets.filter((t) => t.n >= 10).map((t) => node(t.n)).join("")}</span>`].join("");
+
+const card = (t) => {
+  const exp = t.experiment ? `<a href="${D.jev}#exp${t.experiment}">experiment ${t.experiment} on the page</a>` : "";
+  const checks = t.checks.length ? `<ul class="checks">${t.checks.map((c) => `<li><span class="box${c.done ? " on" : ""}" role="img" aria-label="${c.done ? "ticked" : "not ticked"}"></span><span>${c.text}</span></li>`).join("")}</ul>` : "";
+  const notes = t.notes.length ? `<details${t.stage === "current" ? " open" : ""}><summary>Results and notes (${t.notes.length})</summary>${t.notes.map((p) => `<p>${p}</p>`).join("")}</details>` : "";
+  return `<article class="tk ${t.stage}" id="t${t.n}">
+    <header><span class="num">${String(t.n).padStart(2, "0")}</span><h3>${t.title}</h3><span class="pill ${t.stage}">${LABEL[t.stage]}</span></header>
+    <div class="meta"><span>Blocked by: ${t.blocked}</span>${exp ? `<span>${exp}</span>` : ""}</div>
+    <p class="build">${t.build}</p>${checks}${notes}</article>`;
+};
+document.getElementById("groups").innerHTML = STAGES.map(([s, name]) => {
+  const ts = D.tickets.filter((t) => t.stage === s);
+  return ts.length ? `<h2>${name} <span class="mono" style="color:var(--muted);font-weight:400">· ${ts.length} ${ts.length === 1 ? "ticket" : "tickets"}</span></h2><div class="list">${ts.map(card).join("")}</div>` : "";
+}).join("");
+document.getElementById("foot").textContent = `Built ${D.updated} from the ticket files in .scratch/jev-baseline/issues/. Checkboxes show the files as they are; only the owner ticks them.`;
+</script>

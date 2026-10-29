@@ -27,7 +27,7 @@ teams. docs/textdiff.md, "Held-out teams as the starting teams".
     /tmp/vgc-pilot/.venv/bin/python scripts/mask_lab_heldout_starters.py battle
     python3 scripts/mask_lab_heldout_starters.py report
 """
-import argparse, collections, importlib.util, json, random, subprocess, sys, time, uuid
+import argparse, collections, contextlib, importlib.util, json, os, random, subprocess, sys, time, uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -44,6 +44,23 @@ TOP50_IDENTITY = "4208bc07b46d240b23059d94b9fcdee5f00b6dea4525e1272f2284083f4906
 BC_HASH, SEED, TASK_SEED, N_STARTERS = "57f5edcab415cf6c", 20261008, 22, 5
 MEMBERS = ["F1_final_medium_noheldout_regmb_v3", "G2_family_matrix_noprtrain_noheldout_regmb_v3"]
 ADAPTERS = {"textdiff": RUNTIME / "textdiff/lora_r32/final", "textdiff_s21": RUNTIME / "textdiff/lora_r32_s20261021/final"}
+# MASK_LAB_STARTERS picks the grid (ported 2026-10-27 from the grid queue's copy of this script, which battled the meta grid):
+#   heldout (the default) - five held-out teams, ranks 51-100, as above;
+#   meta (2026-10-23)     - five distinct top-50 meta teams as the starting teams, in their own run folder and battle database.
+#                           The top-50 teams are in the writers' training corpus, so split does not apply there;
+#   random                - text-collect only: the original Mask Lab grid (runs/prompt-ab), whose battles stay with mask_lab_battle.py.
+# Any other value is refused: an unknown one used to fall through to the held-out grid without a word.
+STARTERS = os.environ.get("MASK_LAB_STARTERS") or "heldout"
+if STARTERS not in ("heldout", "meta", "random"):
+    raise SystemExit(f"MASK_LAB_STARTERS={STARTERS!r}: use heldout (the default), meta or random")
+META = STARTERS == "meta"
+NAME = "maskLab-meta-starters" if META else "maskLab-heldout-starters"
+if META:
+    RUN = PIPELINE / "runs/meta-starters"
+    WORK = Path.home() / "vgc-data/mask_lab_meta_starters"
+    DATABASE = Path.home() / "vgc-data/mask_lab_meta_starters.sqlite"
+if STARTERS == "random":
+    RUN, WORK, NAME = PIPELINE / "runs/prompt-ab", Path.home() / "vgc-data/mask_lab_diffusion", "maskLab"
 STATS = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"]
 
 
@@ -67,11 +84,12 @@ def to_pipeline_team(text):
 
 # ---------------------------------------------------------------- prepare (/tmp/vgc-pilot/.venv)
 def prepare(_args):
-    import heldout as H                       # the project's own modules, before the vault code adds the staging folder
+    import heldout as H, top50 as T50          # the project's own modules, before the vault code adds the staging folder
     M = vault("mask_lab_prepare"); A, P = sys.modules["prompt_ab"], sys.modules["pipeline"]
     config = A.load_config(str(PIPELINE / "benchmark.ling.json")); config["mask_repetitions"] = 1
+    pool = list(dict.fromkeys(T50.files())) if META else H.files()       # the top-50 lists one team twice
     rows, rejected = [], []
-    for f in H.files():
+    for f in pool:
         team = to_pipeline_team(Path(f).read_text())
         try:
             P.check_structure(team); P.validate_team(config, team)
@@ -88,7 +106,7 @@ def prepare(_args):
     D.prepare(argparse.Namespace(limit=None))           # the decoder-format manifest both model arms read
     P.save_json(RUN / "starters.json", dict(seed=SEED, eligible=len(rows), rejected=rejected,
                                              starters=[s["id"] for s in starts], tasks=len(tasks)))
-    print(f"{len(rows)} of 50 held-out teams eligible ({len(rejected)} rejected: "
+    print(f"{len(rows)} of {len(pool)} {'meta' if META else 'held-out'} teams eligible ({len(rejected)} rejected: "
           f"{[r['id'] for r in rejected]}); starters {[s['id'] for s in starts]}; {len(tasks)} masks")
 
 
@@ -96,6 +114,7 @@ def prepare(_args):
 def split(_args):
     """No model that fills these masks trained on a starting team: 48-field identity against every text-writer example,
     shared slots for the near copies, and the held-out separation tests for the scratch decoder's data."""
+    if META: raise SystemExit("split does not apply to the meta grid: the top-50 teams are in the training corpus")
     import corpus, heldout as H
     saved = json.loads((RUN / "eval2.tasks.json").read_text())
     starts = {s["id"]: s["team"] for s in saved["starting_teams"]}
@@ -175,7 +194,8 @@ def llm_baseline_2026_10_15():
 
 def text_module(kind):
     T = vault("mask_lab_textdiff")
-    T.WORK, T.OUT, T.ADAPTER, T.KIND = WORK / "diffusion", WORK / kind, ADAPTERS[kind], kind
+    diffusion_work = WORK if STARTERS == "random" else WORK / "diffusion"   # the random grid keeps baseline/ at its top
+    T.WORK, T.OUT, T.ADAPTER, T.KIND = diffusion_work, WORK / kind, ADAPTERS[kind], kind
     return T
 
 def text_generate(a):                                 # ~/.local/share/vgc-pilot-runtime/venv-dlm
@@ -205,7 +225,7 @@ def battle(a):  # noqa: C901
     val = Validator()
     try:
         with con:
-            ids = {c["label"]: MDB.add_team(con, c["paste"], "llm-completion:maskLab-heldout-starters", val)[0] for c in cands}
+            ids = {c["label"]: MDB.add_team(con, c["paste"], f"llm-completion:{NAME}", val)[0] for c in cands}
             con.execute("DELETE FROM team_set WHERE set_name='top50'")
             for t in json.load(open(T50.TOP50)):          # as matchup_db.seed: a team listed twice counts twice
                 tid = MDB.add_team(con, Path(T50.resolve(t["id"])).read_text(), "vgcpastes", val)[0]
@@ -225,19 +245,22 @@ def battle(a):  # noqa: C901
     rows = sorted(legal)
     print(f"{len(cands)} candidates -> {len(legal)} distinct legal teams ({len(legal & held)} are held-out teams); "
           f"{len(cols)} top-50 opponents; planned battles <= {len(rows) * len(cols)}", flush=True)
-    evidence = Path.home() / f"vgc-data/battle-evaluations/maskLab-heldout-starters-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
-    with runner_module.FastBattleRunner(evidence, a.workers, a.concurrency) as runner:
-        if runner.identity != TOP50_IDENTITY:
+    evidence = Path.home() / f"vgc-data/battle-evaluations/{NAME}-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+    # Slots are shuffled every battle by default (src/slot_order.py, owner 2026-10-28): the current fast evaluator and a
+    # policy tagged +slots-shuffled. VGC_SLOT_ORDER=listed reproduces the pre-2026-10-28 grids on the pinned 2026-10-15 runner.
+    listed = MDB.SLOT_ORDER == "listed"
+    with (runner_module.FastBattleRunner(evidence, a.workers, a.concurrency) if listed else contextlib.nullcontext(MDB.default_runner())) as runner:
+        if listed and runner.identity != TOP50_IDENTITY:
             raise SystemExit(f"evaluator identity {runner.identity} differs from the top-50 run's {TOP50_IDENTITY}")
-        policy_id = runner.policy_id(con, MDB)
+        policy_id = runner.policy_id(con, MDB) if listed else MDB.get_policy(con)
         t_all = time.time()
         for i in range(0, len(rows), a.batch):
             t0 = time.time()
             MDB.ensure(con, policy_id, rows[i:i + a.batch], cols, 1, seed=SEED, runner=runner,
-                       note="maskLab-heldout-starters:fast", evaluation=True)
+                       note=f"{NAME}:fast", evaluation=True)
             print(f"batch {i // a.batch + 1}/{-(-len(rows) // a.batch)} in {time.time() - t0:.1f}s ({time.time() - t_all:.1f}s total)", flush=True)
-    out = {"policy_id": policy_id, "policy_identity": TOP50_IDENTITY,
-           "policy": f"bc_100.zip:{BC_HASH} on both sides, listed slot order", "seed": SEED, "database": str(a.database),
+    out = {"policy_id": policy_id, "policy_identity": TOP50_IDENTITY if listed else None,
+           "policy": f"bc_100.zip:{BC_HASH} on both sides, {MDB.SLOT_ORDER} slot order", "seed": SEED, "database": str(a.database),
            "evaluator": {"backend": "fast", "workers": a.workers, "concurrency": a.concurrency, "evidence": str(evidence)},
            "opponents": [], "panels": {}}
     for t in cols:
