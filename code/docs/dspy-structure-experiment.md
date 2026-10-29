@@ -110,6 +110,8 @@ Phase one on Mercury 2.5 (14 October) found the structure removed format failure
 
 A value outside these choices fails the typed parse. The report counts it as a rule violation, not an unreadable answer. Choices that depend on the model's other answers (two masked items, a whole slot's moves for the species it picks) are only described. Requests grow 16–18% on average.
 
+Since 2026-10-27 these choices come from `scripts/legal_options.py`, which the Jev decision model shares, and two rules are stricter than in the 15 October run below. An item path no longer offers a Mega Stone that another hidden-item slot needs as its only item. An ability path drops abilities whose every legal item a teammate holds; a path left with no choice raises `ValueError` instead of being asked. A rerun on the same masks can therefore see slightly different choices (`test_dspy_structure.py`, `test_the_shared_rules_keep_a_megas_stone_and_drop_unanswerable_abilities`).
+
 Offline, 88% of phase one's failed structured answers contain a value these types forbid. That is the ceiling: without constrained decoding the model can still answer outside the choices, so only a run measures the effect.
 
 **Measured, Mercury 2.5, 15 October 2026** (`dspy-legal-choices-20261015`, 5,040 calls, $2.35). Legality improved in all eight model × format cells, Holm p < 0.01 each:
