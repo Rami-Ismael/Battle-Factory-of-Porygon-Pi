@@ -11,9 +11,9 @@ top-50 teams and against the held-out teams. Intervals are 95%, from resampling 
 unmasked teams (jev_rebattle.interval). The re-battle also carries Mercury with its best DSPy prompt
 (scripts/mercury_dspy_grid.py, 2026-10-29), and the diversity table comes from that script's diversity.json.
 
-Every model row names the prompt its teams came from (PROMPTS), in the tables and in measurements.json, so a result is
-never quoted against the wrong prompt. The tuned-prompt rows are checked against the program hash each reasoning
-setting's manifest recorded when it was sent.
+Every model row names the prompt its teams came from, in the tables and in measurements.json (prompt_id), so a result is
+never quoted against the wrong prompt. A plain Mercury row reads its prompt from its team labels; the tuned-prompt rows
+are checked against the program hash each reasoning setting's manifest recorded when it was sent.
 
     python3 scripts/jev_numbers.py
 """
@@ -29,17 +29,21 @@ GRIDS = {"held-out": PIPELINE / "heldout-starters", "meta": PIPELINE / "meta-sta
 REBATTLE = Path.home() / "vgc-data/jev/rebattle-heldout.json"
 DOC = Path(__file__).resolve().parents[1] / "docs/jev-measurements.md"
 OUT = Path.home() / "vgc-data/jev/measurements.json"
+LEVELS = ("off", "low", "medium", "high")   # Mercury's reasoning-effort settings
 ARMS = {"Jev, top pick": "jev:top:", "Mercury, off": "mercury-off:regmb@16384:", "Mercury, low": "mercury-low:regmb@16384:",
         "Mercury, medium": "mercury-medium:regmb@16384:", "Mercury, high": "mercury:regmb@16384:", "random legal fill": "random:"}
 REBATTLE_ARMS = {**dict(zip(ARMS, ["jev", "mercury-off", "mercury-low", "mercury-medium", "mercury", "random"])),
-                 **{f"Mercury DSPy, {level}": f"mercury-dspy-{level}" for level in ("off", "low", "medium", "high")}}
-PROMPTS = {"Jev, top pick": "none: Jev picks from legal option lists (jev_fill)",
-           **{arm: "Mask Lab prompt, regmb version (ling_grid.py)" for arm in ARMS if arm.startswith("Mercury")},
-           **{arm: "GEPA-tuned prompt on legal-choice types (dspy-optimize-luna4-20261016)"
-              for arm in REBATTLE_ARMS if arm.startswith("Mercury DSPy")},
-           "random legal fill": "none"}
+                 **{f"Mercury DSPy, {level}": f"mercury-dspy-{level}" for level in LEVELS}}
 DSPY_RUN = Path.home() / "vgc-data/mercury-dspy/heldout"   # mercury_dspy_grid.OUT
-DSPY_PROGRAM_SHA256 = "b16ce050756f05fb985a0b551b319713b9858e6399578ecdccf8a9774e3305f6"   # dspy-optimize-luna4-20261016
+DSPY_RUN_ID = "dspy-optimize-luna4-20261016"
+DSPY_PROGRAM_SHA256 = "b16ce050756f05fb985a0b551b319713b9858e6399578ecdccf8a9774e3305f6"
+# prompt id -> (name in the tables, the page's one-line description)
+PROMPTS = {"regmb": ("Mask Lab rules prompt", "the Mask Lab pipeline's `regmb` prompt, which names Regulation M-B and states "
+                                              "the rules the Showdown team checker enforces"),
+           DSPY_RUN_ID: ("Tuned prompt", "instructions rewritten by GEPA, DSPy's reflective prompt optimizer, with GPT-6 Luna, "
+                                         "sent with answer types that allow only legal choices; optimization run "
+                                         f"`{DSPY_RUN_ID}`, program SHA-256 `{DSPY_PROGRAM_SHA256[:12]}`"),
+           "none": ("No prompt", "Jev picks every value from a list of legal options; the random fill draws one at random")}
 DIVERSITY = Path.home() / "vgc-data/mercury-dspy/heldout/diversity.json"   # mercury_dspy_grid.DIVERSITY
 WRITTEN = {"species": "Species (whole Pokémon)", "item": "Items", "ability": "Abilities", "nature": "Stat Alignment",
            "moves": "Moves", "statPoints": "Stat Points spreads"}
@@ -56,12 +60,24 @@ def grid_numbers(folder):
     return numbers(tasks, win, unmasked)
 
 
+def prompt_id(arm):
+    """The prompt an arm's teams came from: the version in its team labels ('mercury:regmb@16384:' -> 'regmb'), the tuned
+    prompt for a Mercury DSPy arm, or 'none'."""
+    if arm not in ARMS:
+        return DSPY_RUN_ID
+    part = ARMS[arm].split(":")[1]
+    return part.split("@")[0] if "@" in part else "none"
+
+
 def check_dspy_prompt():
-    """Refuse to label the tuned-prompt rows unless every reasoning setting sent the program PROMPTS names."""
-    for level in ("off", "low", "medium", "high"):
-        sent = json.loads((DSPY_RUN / level / "manifest.json").read_text())["program_sha256"]
+    """Refuse to label the tuned-prompt rows unless every reasoning setting sent the program DSPY_RUN_ID names."""
+    for level in LEVELS:
+        path = DSPY_RUN / level / "manifest.json"
+        if not path.exists():
+            raise SystemExit(f"{path} is missing, so the Mercury DSPy, {level} prompt cannot be confirmed")
+        sent = json.loads(path.read_text())["program_sha256"]
         if sent != DSPY_PROGRAM_SHA256:
-            raise SystemExit(f"Mercury DSPy, {level} sent program {sent[:12]}, not dspy-optimize-luna4-20261016; update PROMPTS")
+            raise SystemExit(f"Mercury DSPy, {level} sent program {sent[:12]}, not {DSPY_RUN_ID}; update DSPY_RUN_ID and PROMPTS")
 
 
 def rebattle_numbers():
@@ -79,13 +95,13 @@ def numbers(tasks, win, unmasked):
     out = {"masks": len(tasks), "unmasked_teams": {"mean": round(statistics.mean(unmasked), 4), "teams": len(unmasked)}, "arms": {}, "pairs": {}}
     for arm in present:
         legal = [i for i in tasks if win[(arm, i)] is not None]
-        out["arms"][arm] = {"prompt": PROMPTS[arm], "legal": len(legal),
+        out["arms"][arm] = {"prompt_id": prompt_id(arm), "legal": len(legal),
                             "usable": interval([(tasks[i]["source"], win[(arm, i)] or 0) for i in tasks], "mean"),
                             "when_legal": interval([(tasks[i]["source"], win[(arm, i)]) for i in legal], "mean")}
     for arm in present:
         if arm.startswith("Mercury"):
             shared = [i for i in tasks if win[("Jev, top pick", i)] is not None and win[(arm, i)] is not None]
-            out["pairs"][arm] = {"prompt": PROMPTS[arm], "jev": round(statistics.mean(win[("Jev, top pick", i)] for i in shared), 4),
+            out["pairs"][arm] = {"prompt_id": prompt_id(arm), "jev": round(statistics.mean(win[("Jev, top pick", i)] for i in shared), 4),
                                  "other": round(statistics.mean(win[(arm, i)] for i in shared), 4),
                                  **interval([(tasks[i]["source"], win[("Jev, top pick", i)] - win[(arm, i)]) for i in shared], "diff")}
     return out
@@ -104,12 +120,12 @@ def section(title, d):
     lines = [f"## {title}", "", f"Unmasked teams: {pct(d['unmasked_teams']['mean'])} ({d['unmasked_teams']['teams']} teams).", "",
              "| Model | Prompt | Legal | Usable win rate | When legal |", "|---|---|---|---|---|"]
     for arm, r in d["arms"].items():
-        lines.append(f"| {arm} | {r['prompt']} | {r['legal']}/{d['masks']} | {pct(r['usable']['mean'])} {ci(r['usable'])} | {pct(r['when_legal']['mean'])} over {r['legal']} |")
+        lines.append(f"| {arm} | {PROMPTS[r['prompt_id']][0]} | {r['legal']}/{d['masks']} | {pct(r['usable']['mean'])} {ci(r['usable'])} | {pct(r['when_legal']['mean'])} over {r['legal']} |")
     if d["pairs"]:
         lines += ["", "Same masks, Jev against each Mercury setting:", "",
-                  "| Against | Its prompt | Masks | Jev | Other | Jev minus other, points |", "|---|---|---|---|---|---|"]
+                  "| Against | Mercury's prompt | Masks | Jev | Mercury | Jev minus Mercury, points |", "|---|---|---|---|---|---|"]
         for arm, r in d["pairs"].items():
-            lines.append(f"| {arm} | {r['prompt']} | {r['masks']} | {pct(r['jev'])} | {pct(r['other'])} | {r['diff'] * 100:+.1f} {ci(r)} |")
+            lines.append(f"| {arm} | {PROMPTS[r['prompt_id']][0]} | {r['masks']} | {pct(r['jev'])} | {pct(r['other'])} | {r['diff'] * 100:+.1f} {ci(r)} |")
     return [*lines, ""]
 
 
@@ -118,21 +134,20 @@ def diversity_section():
     if not DIVERSITY.exists(): return []
     d = json.loads(DIVERSITY.read_text())
     names = {key: arm for arm, key in REBATTLE_ARMS.items()}
+    header = ["| Model | Prompt | " + " | ".join(WRITTEN.values()) + " |", "|---" * (len(WRITTEN) + 2) + "|"]
     lines = ["# Diversity of the filled values (held-out grid)", "",
              f"**Diversity:** {d['definition']}. Effective values grow with the number written, so compare arms with "
-             "similar counts. Each cell is written / distinct / effective.", "",
-             "| Model | Prompt | " + " | ".join(WRITTEN.values()) + " |", "|---" * (len(WRITTEN) + 2) + "|"]
+             "similar counts. Each cell is written / distinct / effective.", "", *header]
     for key, fields in d["arms"].items():
         cells = [f"{f['written']} / {f['distinct']} / {f['effective']}" if (f := fields.get(k)) else "—" for k in WRITTEN]
-        lines.append(f"| {names[key]} | {PROMPTS[names[key]]} | " + " | ".join(cells) + " |")
+        lines.append(f"| {names[key]} | {PROMPTS[prompt_id(names[key])][0]} | " + " | ".join(cells) + " |")
     lines += ["", "Same masks: effective values written by each Mercury setting, and by Jev's top pick on the masks that "
-              "setting filled legally (Mercury / Jev). This is the fair diversity comparison.", "",
-              "| Model | Prompt | " + " | ".join(WRITTEN.values()) + " |", "|---" * (len(WRITTEN) + 2) + "|"]
+              "setting filled legally (Mercury / Jev). This is the fair diversity comparison.", "", *header]
     for key, fields in d.get("jev_same_masks", {}).items():
         if not key.startswith("mercury"): continue
         cells = [f"{d['arms'][key][k]['effective']} / {f['effective']}" if (f := fields.get(k)) and k in d["arms"][key] else "—"
                  for k in WRITTEN]
-        lines.append(f"| {names[key]} | {PROMPTS[names[key]]} | " + " | ".join(cells) + " |")
+        lines.append(f"| {names[key]} | {PROMPTS[prompt_id(names[key])][0]} | " + " | ".join(cells) + " |")
     return [*lines, ""]
 
 
@@ -143,6 +158,7 @@ def main():
                                    "held-out teams (ranks 51-100 minus the five unmasked teams)",
             "definition": "share of battles won against the 49 top-50 meta teams, behaviour-cloning policy on both sides; "
                           "listed slot order, one battle per opponent",
+            "prompts": {i: {"name": name, "description": text} for i, (name, text) in PROMPTS.items()},
             "rebattle": rebattle_numbers(), "grids": {g: grid_numbers(f) for g, f in GRIDS.items()}}
     OUT.write_text(json.dumps(data, indent=1) + "\n")
     lines = ["# Jev and Mercury measurements", "",
@@ -152,6 +168,9 @@ def main():
              "- **Usable win rate:** over all 270 masks; a mask with no legal team scores 0.",
              "- **When legal:** over the masks this model filled legally. Two models' when-legal numbers sit on different masks, so never compare them.",
              "- **Same masks:** over the masks both models filled legally. This is the only fair head-to-head.", "",
+             "A mask is an unmasked team with some fields hidden; each model fills them in. Mercury runs at four "
+             "reasoning-effort settings: off, low, medium and high. Each model row names the prompt its teams came from:", "",
+             *[f"- **{name}:** {text}." for name, text in PROMPTS.values()], "",
              "# Shuffled re-battle (2026-10-29)", "", f"**Win rate:** {data['rebattle_definition']}.", ""]
     for name, d in data["rebattle"].items():
         lines += section(REBATTLE_SETS[name], d)
