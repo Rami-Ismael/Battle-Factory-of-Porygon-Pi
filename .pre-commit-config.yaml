@@ -1,3 +1,4 @@
+default_install_hook_types: [pre-commit, pre-push]
 repos:
   - repo: local
     hooks:
@@ -7,3 +8,11 @@ repos:
         language: python
         additional_dependencies: [pyyaml]
         files: ^notes/.*\.md$
+        stages: [pre-commit]
+      - id: ruff
+        name: Ruff on code/, at the version CI pins
+        entry: bash -c 'cd code && uvx --from "$(grep "^ruff==" requirements.txt | cut -d" " -f1)" ruff check .'
+        language: system
+        pass_filenames: false
+        files: ^code/(.*\.py|pyproject\.toml|requirements\.txt)$
+        stages: [pre-push]
