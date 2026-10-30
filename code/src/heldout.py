@@ -171,7 +171,7 @@ def is_heldout_file(path):
     return _file_flag(str(path), st.st_mtime_ns, st.st_size)
 
 
-# ---------------------------------------------------------------- filters (training / candidates)
+# ---------------------------------------------------------------- filters (training / candidates)  # noqa: ERA001
 def training_pairs(pairs):
     """[(path, team)] without held-out teams (48-field identity)."""
     held = identities()
@@ -234,7 +234,7 @@ def fill_grid_hash(con):
     return len(rows)
 
 
-# ---------------------------------------------------------------- guards (fitness / selection)
+# ---------------------------------------------------------------- guards (fitness / selection)  # noqa: ERA001
 def assert_clear_files(paths, role):
     bad = sorted({Path(p).name for p in set(map(str, paths)) if is_heldout_file(p)})
     if bad:

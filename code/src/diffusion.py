@@ -281,7 +281,7 @@ class Constraints:
                     st = self.item_vals[vi]
                     if st in MEGA_STONE_OF:
                         # a stone belongs on the BASE forme; Showdown rejects
-                        # "Blastoise-Mega @ Blastoisinite" ("please fix its item")
+                        # "Blastoise-Mega @ Blastoisinite" ("please fix its item")  # noqa: ERA001
                         if sp_is_mega or MEGA_STONE_OF[st] != base:
                             ok[vi] = False
         elif j == 1:                                    # ability: must belong to species

@@ -140,7 +140,7 @@ def members(V, tables, elites, g):
     return L.ensemble_fn(nets)
 
 
-# ---------------------------------------------------------------- diversity (docs/species-guidance-loop.md)
+# ---------------------------------------------------------------- diversity (docs/species-guidance-loop.md)  # noqa: ERA001
 def vendi(lineups):
     """Vendi score (Friedman & Dieng, TMLR 2023), K_ij = shared species / 6 — as guidance_timing_cads.vendi."""
     vocab = {s: i for i, s in enumerate(sorted({s for l in lineups for s in l}))}
