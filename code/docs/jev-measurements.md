@@ -8,6 +8,12 @@ Intervals are 95%, from resampling the five unmasked teams.
 - **When legal:** over the masks this model filled legally. Two models' when-legal numbers sit on different masks, so never compare them.
 - **Same masks:** over the masks both models filled legally. This is the only fair head-to-head.
 
+A mask is an unmasked team with some fields hidden; each model fills them in. Mercury runs at four reasoning-effort settings: off, low, medium and high. Each model row names the prompt its teams came from:
+
+- **Mask Lab rules prompt:** the Mask Lab pipeline's `regmb` prompt, which names Regulation M-B and states the rules the Showdown team checker enforces.
+- **Tuned prompt:** instructions rewritten by GEPA, DSPy's reflective prompt optimizer, with GPT-6 Luna, sent with answer types that allow only legal choices; optimization run `dspy-optimize-luna4-20261016`, program SHA-256 `b16ce050756f`.
+- **No prompt:** Jev picks every value from a list of legal options; the random fill draws one at random.
+
 # Shuffled re-battle (2026-10-29)
 
 **Win rate:** share of battles won, behaviour-cloning policy on both sides, six Pokémon shuffled every battle, 8 battles per opponent; against the 49 top-50 meta teams, or against the 45 held-out teams (ranks 51-100 minus the five unmasked teams).
@@ -16,45 +22,91 @@ Intervals are 95%, from resampling the five unmasked teams.
 
 Unmasked teams: 47.6% (5 teams).
 
-| Model | Legal | Usable win rate | When legal |
-|---|---|---|---|
-| Jev, top pick | 270/270 | 47.6% [43.5, 52.0] | 47.6% over 270 |
-| Mercury, off | 93/270 | 16.3% [13.0, 19.6] | 47.3% over 93 |
-| Mercury, low | 130/270 | 22.9% [17.3, 28.4] | 47.6% over 130 |
-| Mercury, medium | 149/270 | 26.4% [22.1, 30.6] | 47.8% over 149 |
-| Mercury, high | 183/270 | 32.8% [26.5, 38.4] | 48.4% over 183 |
-| random legal fill | 267/270 | 32.2% [30.3, 34.1] | 32.5% over 267 |
+| Model | Prompt | Legal | Usable win rate | When legal |
+|---|---|---|---|---|
+| Jev, top pick | No prompt | 270/270 | 47.6% [43.5, 52.0] | 47.6% over 270 |
+| Mercury, off | Mask Lab rules prompt | 93/270 | 16.3% [13.0, 19.6] | 47.3% over 93 |
+| Mercury, low | Mask Lab rules prompt | 130/270 | 22.9% [17.3, 28.4] | 47.6% over 130 |
+| Mercury, medium | Mask Lab rules prompt | 149/270 | 26.4% [22.1, 30.6] | 47.8% over 149 |
+| Mercury, high | Mask Lab rules prompt | 183/270 | 32.8% [26.5, 38.4] | 48.4% over 183 |
+| random legal fill | No prompt | 267/270 | 32.2% [30.3, 34.1] | 32.5% over 267 |
+| Mercury DSPy, off | Tuned prompt | 180/270 | 31.6% [28.4, 35.3] | 47.4% over 180 |
+| Mercury DSPy, low | Tuned prompt | 183/270 | 32.1% [28.4, 35.5] | 47.3% over 183 |
+| Mercury DSPy, medium | Tuned prompt | 219/270 | 37.9% [33.8, 41.9] | 46.7% over 219 |
+| Mercury DSPy, high | Tuned prompt | 252/270 | 43.4% [39.4, 47.3] | 46.5% over 252 |
 
 Same masks, Jev against each Mercury setting:
 
-| Against | Masks | Jev | Other | Jev minus other, points |
-|---|---|---|---|---|
-| Mercury, off | 93 | 48.2% | 47.3% | +0.9 [0.0, 1.6] |
-| Mercury, low | 130 | 48.6% | 47.6% | +1.0 [-0.0, 1.7] |
-| Mercury, medium | 149 | 48.0% | 47.8% | +0.3 [-0.3, 0.8] |
-| Mercury, high | 183 | 48.0% | 48.4% | -0.4 [-0.8, -0.1] |
+| Against | Mercury's prompt | Masks | Jev | Mercury | Jev minus Mercury, points |
+|---|---|---|---|---|---|
+| Mercury, off | Mask Lab rules prompt | 93 | 48.2% | 47.3% | +0.9 [0.0, 1.6] |
+| Mercury, low | Mask Lab rules prompt | 130 | 48.6% | 47.6% | +1.0 [-0.0, 1.7] |
+| Mercury, medium | Mask Lab rules prompt | 149 | 48.0% | 47.8% | +0.3 [-0.3, 0.8] |
+| Mercury, high | Mask Lab rules prompt | 183 | 48.0% | 48.4% | -0.4 [-0.8, -0.1] |
+| Mercury DSPy, off | Tuned prompt | 180 | 47.9% | 47.4% | +0.5 [0.2, 0.9] |
+| Mercury DSPy, low | Tuned prompt | 183 | 47.8% | 47.3% | +0.5 [0.1, 1.0] |
+| Mercury DSPy, medium | Tuned prompt | 219 | 47.5% | 46.7% | +0.8 [0.5, 1.0] |
+| Mercury DSPy, high | Tuned prompt | 252 | 47.5% | 46.5% | +1.1 [0.3, 1.8] |
 
 ## held-out grid, re-battled against the held-out teams
 
 Unmasked teams: 47.1% (5 teams).
 
-| Model | Legal | Usable win rate | When legal |
-|---|---|---|---|
-| Jev, top pick | 270/270 | 46.7% [43.0, 50.7] | 46.7% over 270 |
-| Mercury, off | 93/270 | 16.0% [12.8, 19.2] | 46.4% over 93 |
-| Mercury, low | 130/270 | 22.5% [17.1, 28.0] | 46.8% over 130 |
-| Mercury, medium | 149/270 | 26.1% [22.0, 30.1] | 47.2% over 149 |
-| Mercury, high | 183/270 | 32.1% [25.9, 37.4] | 47.4% over 183 |
-| random legal fill | 267/270 | 30.9% [29.1, 32.7] | 31.2% over 267 |
+| Model | Prompt | Legal | Usable win rate | When legal |
+|---|---|---|---|---|
+| Jev, top pick | No prompt | 270/270 | 46.7% [43.0, 50.7] | 46.7% over 270 |
+| Mercury, off | Mask Lab rules prompt | 93/270 | 16.0% [12.8, 19.2] | 46.4% over 93 |
+| Mercury, low | Mask Lab rules prompt | 130/270 | 22.5% [17.1, 28.0] | 46.8% over 130 |
+| Mercury, medium | Mask Lab rules prompt | 149/270 | 26.1% [22.0, 30.1] | 47.2% over 149 |
+| Mercury, high | Mask Lab rules prompt | 183/270 | 32.1% [25.9, 37.4] | 47.4% over 183 |
+| random legal fill | No prompt | 267/270 | 30.9% [29.1, 32.7] | 31.2% over 267 |
+| Mercury DSPy, off | Tuned prompt | 180/270 | 30.7% [28.2, 33.8] | 46.1% over 180 |
+| Mercury DSPy, low | Tuned prompt | 183/270 | 31.2% [28.0, 34.3] | 46.1% over 183 |
+| Mercury DSPy, medium | Tuned prompt | 219/270 | 36.7% [33.0, 40.4] | 45.2% over 219 |
+| Mercury DSPy, high | Tuned prompt | 252/270 | 42.2% [38.5, 45.5] | 45.2% over 252 |
 
 Same masks, Jev against each Mercury setting:
 
-| Against | Masks | Jev | Other | Jev minus other, points |
-|---|---|---|---|---|
-| Mercury, off | 93 | 46.9% | 46.4% | +0.5 [-0.4, 1.3] |
-| Mercury, low | 130 | 47.0% | 46.8% | +0.2 [-0.4, 0.6] |
-| Mercury, medium | 149 | 47.3% | 47.2% | +0.1 [-0.2, 0.3] |
-| Mercury, high | 183 | 47.0% | 47.4% | -0.4 [-0.9, 0.0] |
+| Against | Mercury's prompt | Masks | Jev | Mercury | Jev minus Mercury, points |
+|---|---|---|---|---|---|
+| Mercury, off | Mask Lab rules prompt | 93 | 46.9% | 46.4% | +0.5 [-0.4, 1.3] |
+| Mercury, low | Mask Lab rules prompt | 130 | 47.0% | 46.8% | +0.2 [-0.4, 0.6] |
+| Mercury, medium | Mask Lab rules prompt | 149 | 47.3% | 47.2% | +0.1 [-0.2, 0.3] |
+| Mercury, high | Mask Lab rules prompt | 183 | 47.0% | 47.4% | -0.4 [-0.9, 0.0] |
+| Mercury DSPy, off | Tuned prompt | 180 | 46.9% | 46.1% | +0.8 [0.2, 1.4] |
+| Mercury DSPy, low | Tuned prompt | 183 | 46.7% | 46.1% | +0.6 [0.4, 1.0] |
+| Mercury DSPy, medium | Tuned prompt | 219 | 46.5% | 45.2% | +1.3 [0.8, 1.7] |
+| Mercury DSPy, high | Tuned prompt | 252 | 46.7% | 45.2% | +1.4 [0.3, 2.6] |
+
+# Diversity of the filled values (held-out grid)
+
+**Diversity:** values each arm wrote into the held-out grid's masks, over its legal fills only: distinct values, and effective values = exp(Shannon entropy) of their frequencies. Effective values grow with the number written, so compare arms with similar counts. Each cell is written / distinct / effective.
+
+| Model | Prompt | Species (whole Pokémon) | Items | Abilities | Stat Alignment | Moves | Stat Points spreads |
+|---|---|---|---|---|---|---|---|
+| random legal fill | No prompt | 105 / 77 / 70.89 | 92 / 57 / 51.17 | 105 / 43 / 37.92 | 105 / 25 / 22.85 | 1500 / 207 / 145.4 | 105 / 105 / 105.0 |
+| Mercury, high | Mask Lab rules prompt | 36 / 10 / 8.16 | 76 / 15 / 11.9 | 58 / 17 / 14.09 | 72 / 10 / 5.1 | 1011 / 79 / 31.3 | 67 / 23 / 9.35 |
+| Jev, top pick | No prompt | 105 / 7 / 6.0 | 105 / 18 / 14.72 | 105 / 19 / 17.03 | 105 / 6 / 4.71 | 1500 / 64 / 34.08 | 105 / 16 / 8.44 |
+| Mercury, off | Mask Lab rules prompt | 4 / 4 / 4.0 | 27 / 17 / 15.05 | 42 / 17 / 14.07 | 76 / 7 / 4.44 | 271 / 57 / 30.9 | 69 / 34 / 22.81 |
+| Mercury, low | Mask Lab rules prompt | 19 / 8 / 6.75 | 34 / 15 / 12.27 | 62 / 17 / 14.26 | 77 / 8 / 4.82 | 579 / 61 / 27.77 | 77 / 40 / 21.0 |
+| Mercury, medium | Mask Lab rules prompt | 26 / 11 / 9.67 | 52 / 13 / 11.6 | 35 / 14 / 11.96 | 56 / 5 / 3.91 | 852 / 74 / 29.24 | 57 / 25 / 15.21 |
+| Mercury DSPy, off | Tuned prompt | 27 / 13 / 11.57 | 61 / 20 / 15.88 | 95 / 24 / 18.91 | 105 / 8 / 4.71 | 924 / 89 / 37.88 | 68 / 42 / 32.17 |
+| Mercury DSPy, low | Tuned prompt | 23 / 14 / 12.03 | 52 / 20 / 15.02 | 89 / 25 / 19.16 | 102 / 7 / 4.76 | 1027 / 95 / 39.19 | 71 / 43 / 33.03 |
+| Mercury DSPy, medium | Tuned prompt | 67 / 23 / 13.97 | 83 / 21 / 15.55 | 100 / 29 / 21.51 | 105 / 11 / 6.37 | 1028 / 112 / 45.05 | 105 / 29 / 15.82 |
+| Mercury DSPy, high | Tuned prompt | 76 / 20 / 12.28 | 83 / 18 / 13.75 | 105 / 27 / 21.39 | 105 / 10 / 6.11 | 1427 / 116 / 45.62 | 105 / 24 / 9.45 |
+
+Same masks: effective values written by each Mercury setting, and by Jev's top pick on the masks that setting filled legally (Mercury / Jev). This is the fair diversity comparison.
+
+| Model | Prompt | Species (whole Pokémon) | Items | Abilities | Stat Alignment | Moves | Stat Points spreads |
+|---|---|---|---|---|---|---|---|
+| Mercury, high | Mask Lab rules prompt | 8.16 / 6.16 | 11.9 / 13.98 | 14.09 / 13.88 | 5.1 / 4.58 | 31.3 / 32.46 | 9.35 / 7.5 |
+| Mercury, off | Mask Lab rules prompt | 4.0 / 2.83 | 15.05 / 12.63 | 14.07 / 12.74 | 4.44 / 4.55 | 30.9 / 26.88 | 22.81 / 7.92 |
+| Mercury, low | Mask Lab rules prompt | 6.75 / 6.47 | 12.27 / 11.25 | 14.26 / 13.88 | 4.82 / 4.72 | 27.77 / 26.28 | 21.0 / 7.81 |
+| Mercury, medium | Mask Lab rules prompt | 9.67 / 6.5 | 11.6 / 13.46 | 11.96 / 13.16 | 3.91 / 4.36 | 29.24 / 29.48 | 15.21 / 9.54 |
+| Mercury DSPy, off | Tuned prompt | 11.57 / 6.23 | 15.88 / 12.16 | 18.91 / 16.35 | 4.71 / 4.71 | 37.88 / 32.43 | 32.17 / 9.17 |
+| Mercury DSPy, low | Tuned prompt | 12.03 / 6.42 | 15.02 / 12.69 | 19.16 / 16.52 | 4.76 / 4.72 | 39.19 / 33.45 | 33.03 / 7.09 |
+| Mercury DSPy, medium | Tuned prompt | 13.97 / 6.1 | 15.55 / 13.62 | 21.51 / 16.92 | 6.37 / 4.71 | 45.05 / 32.21 | 15.82 / 8.44 |
+| Mercury DSPy, high | Tuned prompt | 12.28 / 6.01 | 13.75 / 13.45 | 21.39 / 17.03 | 6.11 / 4.71 | 45.62 / 33.87 | 9.45 / 8.44 |
 
 # First battles, listed slot order
 
@@ -64,52 +116,52 @@ Same masks, Jev against each Mercury setting:
 
 Unmasked teams: 48.0% (5 teams).
 
-| Model | Legal | Usable win rate | When legal |
-|---|---|---|---|
-| Jev, top pick | 270/270 | 48.1% [44.5, 51.3] | 48.1% over 270 |
-| Mercury, off | 93/270 | 16.5% [12.5, 19.8] | 47.8% over 93 |
-| Mercury, low | 130/270 | 23.2% [17.3, 29.1] | 48.2% over 130 |
-| Mercury, medium | 149/270 | 26.2% [22.0, 30.6] | 47.5% over 149 |
-| Mercury, high | 183/270 | 32.8% [26.3, 38.3] | 48.3% over 183 |
-| random legal fill | 267/270 | 31.5% [28.4, 34.2] | 31.9% over 267 |
+| Model | Prompt | Legal | Usable win rate | When legal |
+|---|---|---|---|---|
+| Jev, top pick | No prompt | 270/270 | 48.1% [44.5, 51.3] | 48.1% over 270 |
+| Mercury, off | Mask Lab rules prompt | 93/270 | 16.5% [12.5, 19.8] | 47.8% over 93 |
+| Mercury, low | Mask Lab rules prompt | 130/270 | 23.2% [17.3, 29.1] | 48.2% over 130 |
+| Mercury, medium | Mask Lab rules prompt | 149/270 | 26.2% [22.0, 30.6] | 47.5% over 149 |
+| Mercury, high | Mask Lab rules prompt | 183/270 | 32.8% [26.3, 38.3] | 48.3% over 183 |
+| random legal fill | No prompt | 267/270 | 31.5% [28.4, 34.2] | 31.9% over 267 |
 
 Same masks, Jev against each Mercury setting:
 
-| Against | Masks | Jev | Other | Jev minus other, points |
-|---|---|---|---|---|
-| Mercury, off | 93 | 49.6% | 47.8% | +1.8 [-0.1, 3.6] |
-| Mercury, low | 130 | 49.1% | 48.2% | +0.9 [-1.4, 2.6] |
-| Mercury, medium | 149 | 48.5% | 47.5% | +1.0 [-0.1, 2.6] |
-| Mercury, high | 183 | 48.6% | 48.3% | +0.3 [-1.5, 1.9] |
+| Against | Mercury's prompt | Masks | Jev | Mercury | Jev minus Mercury, points |
+|---|---|---|---|---|---|
+| Mercury, off | Mask Lab rules prompt | 93 | 49.6% | 47.8% | +1.8 [-0.1, 3.6] |
+| Mercury, low | Mask Lab rules prompt | 130 | 49.1% | 48.2% | +0.9 [-1.4, 2.6] |
+| Mercury, medium | Mask Lab rules prompt | 149 | 48.5% | 47.5% | +1.0 [-0.1, 2.6] |
+| Mercury, high | Mask Lab rules prompt | 183 | 48.6% | 48.3% | +0.3 [-1.5, 1.9] |
 
 ## meta grid
 
 Unmasked teams: 58.2% (5 teams).
 
-| Model | Legal | Usable win rate | When legal |
-|---|---|---|---|
-| Jev, top pick | 270/270 | 54.4% [50.5, 58.2] | 54.4% over 270 |
-| Mercury, high | 202/270 | 41.5% [37.8, 44.7] | 55.5% over 202 |
-| random legal fill | 270/270 | 36.6% [33.1, 40.2] | 36.6% over 270 |
+| Model | Prompt | Legal | Usable win rate | When legal |
+|---|---|---|---|---|
+| Jev, top pick | No prompt | 270/270 | 54.4% [50.5, 58.2] | 54.4% over 270 |
+| Mercury, high | Mask Lab rules prompt | 202/270 | 41.5% [37.8, 44.7] | 55.5% over 202 |
+| random legal fill | No prompt | 270/270 | 36.6% [33.1, 40.2] | 36.6% over 270 |
 
 Same masks, Jev against each Mercury setting:
 
-| Against | Masks | Jev | Other | Jev minus other, points |
-|---|---|---|---|---|
-| Mercury, high | 202 | 55.2% | 55.5% | -0.2 [-1.8, 1.6] |
+| Against | Mercury's prompt | Masks | Jev | Mercury | Jev minus Mercury, points |
+|---|---|---|---|---|---|
+| Mercury, high | Mask Lab rules prompt | 202 | 55.2% | 55.5% | -0.2 [-1.8, 1.6] |
 
 ## random grid
 
 Unmasked teams: 2.0% (5 teams).
 
-| Model | Legal | Usable win rate | When legal |
-|---|---|---|---|
-| Jev, top pick | 270/270 | 6.2% [5.3, 7.1] | 6.2% over 270 |
-| Mercury, high | 141/270 | 2.4% [1.4, 3.5] | 4.6% over 141 |
-| random legal fill | 270/270 | 1.8% [1.2, 2.2] | 1.8% over 270 |
+| Model | Prompt | Legal | Usable win rate | When legal |
+|---|---|---|---|---|
+| Jev, top pick | No prompt | 270/270 | 6.2% [5.3, 7.1] | 6.2% over 270 |
+| Mercury, high | Mask Lab rules prompt | 141/270 | 2.4% [1.4, 3.5] | 4.6% over 141 |
+| random legal fill | No prompt | 270/270 | 1.8% [1.2, 2.2] | 1.8% over 270 |
 
 Same masks, Jev against each Mercury setting:
 
-| Against | Masks | Jev | Other | Jev minus other, points |
-|---|---|---|---|---|
-| Mercury, high | 141 | 4.9% | 4.6% | +0.2 [-0.1, 0.8] |
+| Against | Mercury's prompt | Masks | Jev | Mercury | Jev minus Mercury, points |
+|---|---|---|---|---|---|
+| Mercury, high | Mask Lab rules prompt | 141 | 4.9% | 4.6% | +0.2 [-0.1, 0.8] |
