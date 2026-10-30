@@ -80,7 +80,7 @@ Same masks, Jev against each Mercury setting:
 
 # Diversity of the filled values (held-out grid)
 
-**Diversity:** values each arm wrote into the held-out grid's masks, over its legal fills only: distinct values, and effective values = exp(Shannon entropy) of their frequencies. Effective values grow with the number written, so compare arms with similar counts. Each cell is written / distinct / effective.
+**Diversity:** values each arm wrote into the held-out grid's masks, over its legal fills only: distinct values, and effective values = exp(Shannon entropy) of their frequencies: the number of equally common values that would be as varied (ten values written equally often score 10, one value written every time scores 1). Effective values grow with the number written, so compare arms with similar counts. Each cell is written / distinct / effective.
 
 | Model | Prompt | Species (whole Pokémon) | Items | Abilities | Stat Alignment | Moves | Stat Points spreads |
 |---|---|---|---|---|---|---|---|
