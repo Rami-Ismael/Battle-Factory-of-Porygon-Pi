@@ -39,7 +39,7 @@ def gap_range(scores, team_of):
         jev, plain, tuned = (sum(scores[a].get(m) or 0 for m in ids) / len(ids) for a in ("jev", "mercury", "mercury-dspy-high"))
         return (tuned - plain) / (jev - plain)
     draws = sorted(share(d) for d in itertools.product(teams, repeat=len(teams)))
-    return {"point": share(teams), "lo": draws[round(.025 * (len(draws) - 1))], "hi": draws[round(.975 * (len(draws) - 1))]}
+    return share(teams), {"lo": draws[round(.025 * (len(draws) - 1))], "hi": draws[round(.975 * (len(draws) - 1))]}
 
 
 def main():
@@ -52,6 +52,11 @@ def main():
     sprites = json.loads((VISUALS / "diversity-methods/sprites.json").read_text())
     scores = json.loads((DATA / "jev/rebattle-heldout.json").read_text())["sets"]["top50"]["scores"]
     team_of = {r["task_id"]: r["source"] for r in map(json.loads, (TASKS.parent / "mercury.jsonl").read_text().splitlines())}
+    point, gap = gap_range(scores, team_of)
+    # The per-mask scores must reproduce the headline numbers, so the range belongs to the same arms.
+    headline = (tuned[3]["usable"]["mean"] - plain[3]["usable"]["mean"]) / (jev["usable"]["mean"] - plain[3]["usable"]["mean"])
+    assert abs(point - headline) < .002, (point, headline)
+    assert task["masked_team"][0]["species"] == "Charizard", "the opening's Fly-not-Surf line is about Charizard"
 
     data = {
         "levels": LEVELS,
@@ -60,10 +65,10 @@ def main():
         "jev": {"legal": jev["legal"], "usable": jev["usable"]["mean"]},
         "shared": {"masks": shared["masks"], "jev": shared["jev"], "mercury": shared["other"]},
         "tasks": jev["usable"]["masks"],
-        "example": {"source": task["source"], "lead": task["masked_team"][0]["species"], "hidden": task["k"], "team": [
+        "example": {"lead": task["masked_team"][0]["species"], "hidden": task["k"], "team": [
             {"sprite": sprites[key(p["species"])], "itemIcon": png_uri(VISUALS / f"item-sprites/item-{key(p['item'])}.png")}
             for p in task["masked_team"]]},
-        "gap": gap_range(scores, team_of),
+        "gap": gap,
         "files": "jev-measurements.md in the repo",
     }
     html = (HERE / "post2-mercury-tuned.template.html").read_text().replace("__DATA__", json.dumps(data))

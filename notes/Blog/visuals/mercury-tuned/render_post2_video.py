@@ -14,7 +14,7 @@ from playwright.sync_api import sync_playwright
 
 HERE = Path(__file__).resolve().parent
 PAGE = HERE / "post2-mercury-tuned.html"
-FPS, SECONDS = 60, 19
+FPS = 60
 GRAB = "s => { t = s; playing = false; render(); return document.getElementById('stage').toDataURL('image/png'); }"
 
 
@@ -28,9 +28,10 @@ def main():
         page = browser.new_page(viewport={"width": 1080, "height": 1350})
         page.goto(PAGE.as_uri() + "?capture=1&t=0")
         page.wait_for_function("Object.values(imgs).length > 0 && Object.values(imgs).every(im => im.complete)")
-        for i in range(FPS * SECONDS + 1):
+        seconds = page.evaluate("T")
+        for i in range(round(FPS * seconds) + 1):
             Path(tmp, f"f{i:05d}.png").write_bytes(png(page.evaluate(GRAB, i / FPS)))
-        (HERE / "post2-mercury-tuned-final.png").write_bytes(png(page.evaluate(GRAB, SECONDS)))
+        (HERE / "post2-mercury-tuned-final.png").write_bytes(png(page.evaluate(GRAB, seconds)))
         browser.close()
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{tmp}/f%05d.png",
                         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-movflags", "+faststart",

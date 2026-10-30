@@ -51,13 +51,12 @@ const CAPTION = "Win rate: share of battles won against the 49 strongest teams i
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
 const seg = (t, a, b) => clamp((t - a) / (b - a));
 const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-const easeOut = u => 1 - Math.pow(1 - u, 3);
 const lerp = (a, b, u) => a + (b - a) * u;
 const on = (t, a, b, f = .3) => seg(t, a, a + f) * (1 - seg(t, b - f, b));
 
-function txt(s, x, y, font, color, { align = "left", alpha = 1, base = "alphabetic" } = {}) {
+function txt(s, x, y, font, color, { align = "left", alpha = 1 } = {}) {
 	if (alpha <= 0) return;
-	ctx.save(); ctx.globalAlpha *= alpha; ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base;
+	ctx.save(); ctx.globalAlpha *= alpha; ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align;
 	ctx.fillText(s, x, y); ctx.restore();
 }
 function lines(s, maxW, font) {
@@ -74,11 +73,6 @@ function para(s, x, y, maxW, lh, font, color, opts = {}) {
 	const ls = lines(s, maxW, font);
 	ls.forEach((l, i) => txt(l, x, y + i * lh, font, color, opts));
 	return y + ls.length * lh;
-}
-function box(x, y, w, h, r, fill, stroke, lw = 2) {
-	ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
-	if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-	if (stroke) { ctx.lineWidth = lw; ctx.strokeStyle = stroke; ctx.stroke(); }
 }
 
 const imgs = {};
@@ -111,7 +105,7 @@ function drawC(tAbs) {
 	const FL = (w, s) => `${w} ${s}px "Helvetica Neue", Arial, sans-serif`;
 	ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
 	const yDek = para("A tuned prompt closed most of the gap", 72, 112, 936, 70, FS(700, 62), C.ink);
-	para(`Mercury 2.5 on ${N.tasks} half-built Pokémon teams: a plain prompt, then DSPy answer types and a GEPA prompt written by GPT-6\u00a0Luna. Jev, TypeSafe AI's decision model, is the reference.`, 72, yDek + 10, 936, 42, FL(400, 32), C.dim);
+	para(`Mercury 2.5 on ${N.tasks} half-built Pokémon teams: a plain prompt, then DSPy answer types that list legal choices and a prompt the GEPA optimizer rewrote with GPT-6\u00a0Luna. Jev, TypeSafe AI's decision model, is the reference.`, 72, yDek + 10, 936, 42, FL(400, 32), C.dim);
 
 	// Scene 0: one real task first.
 	let a = on(tAbs, 0, 2.9);
@@ -180,7 +174,8 @@ function drawC(tAbs) {
 		ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = C.grid; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(px(.30), yA); ctx.lineTo(px(.50), yA); ctx.stroke(); ctx.restore();
 		txt("30%", px(.30) - 16, yA + 11, FL(400, 32), C.dim, { align: "right", alpha: a });
 		txt("50%", px(.50) + 16, yA + 11, FL(400, 32), C.dim, { alpha: a });
-		const m = ease(seg(t, 10.8, 12.6)), tx = px(lerp(N.plainWin, N.tunedWin, m));
+		const m = ease(seg(t, 11.5, 13.2)), tx = px(lerp(N.plainWin, N.tunedWin, m));
+		if (t >= 10.5 && t < 11.5) txt("Guess: how close does the tuned prompt get to Jev?", 72, yA + 112, FL(700, 34), C.ink, { alpha: a * seg(t, 10.5, 10.8) });
 		if (m > 0) {
 			ctx.save(); ctx.globalAlpha = a * .28; ctx.fillStyle = C.tuned; ctx.fillRect(px(N.plainWin), yA - 18, tx - px(N.plainWin), 36); ctx.restore();
 			ctx.save(); ctx.strokeStyle = C.tuned; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(px(N.plainWin), yA); ctx.lineTo(tx, yA); ctx.stroke(); ctx.restore();
@@ -195,13 +190,13 @@ function drawC(tAbs) {
 		txt(`plain ${pct(N.plainWin)}`, px(N.plainWin), yA - 34, FL(600, 32), C.plain, { align: "center", alpha: a * seg(t, 9.9, 10.2) });
 		dot(px(N.jevWin), C.jev, seg(t, 10.2, 10.5), true);
 		txt(`Jev ${pct(N.jevWin)}`, px(N.jevWin), yA - 34, FL(600, 32), C.jev, { align: "center", alpha: a * seg(t, 10.2, 10.5) });
-		dot(tx, C.tuned, seg(t, 10.8, 11.0));
-		txt(`tuned ${pct(lerp(N.plainWin, N.tunedWin, m))}`, tx, yA + 56, FL(600, 32), C.tuned, { align: "center", alpha: a * seg(t, 10.8, 11.0) });
-		const head = `${N.gapText[0].toUpperCase() + N.gapText.slice(1)} of the gap, closed`, ga = a * seg(t, 12.8, 13.3);
+		dot(tx, C.tuned, seg(t, 11.5, 11.7));
+		txt(`tuned ${pct(lerp(N.plainWin, N.tunedWin, m))}`, tx, yA + 56, FL(600, 32), C.tuned, { align: "center", alpha: a * seg(t, 11.5, 11.7) });
+		const head = `${N.gapText[0].toUpperCase() + N.gapText.slice(1)} of the gap, closed`, ga = a * seg(t, 13.4, 13.9);
 		txt(head, 72, yA + 112, FL(700, 36), C.tuned, { alpha: ga });
 		ctx.save(); ctx.font = FL(700, 36); const hw = ctx.measureText(head).width; ctx.restore();
 		txt(`95% range ${Math.round(D.gap.lo * 100)} to ${Math.round(D.gap.hi * 100)}%`, 72 + hw + 20, yA + 112, FL(400, 32), C.dim, { alpha: ga });
-		txt(`Same ${N.sharedMasks} tasks, both legal: Jev ${pct(N.sharedJev)}, tuned Mercury ${pct(N.sharedMercury)}.`, 72, yA + 156, FL(400, 32), C.dim, { alpha: a * seg(t, 13.6, 14.1) });
+		txt(`Same ${N.sharedMasks} tasks, both legal: Jev ${pct(N.sharedJev)}, tuned Mercury ${pct(N.sharedMercury)}.`, 72, yA + 156, FL(400, 32), C.dim, { alpha: a * seg(t, 14.1, 14.6) });
 	}
 	if (t > 15.2) para(CAPTION, 72, 1224, 936, 38, FL(400, 32), C.dim, { alpha: seg(t, 15.2, 15.7) });
 }
