@@ -97,7 +97,7 @@ button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--in
 <div class="fix"><span class="tag">done, no training</span><h3>Round the ask to the nearest tick</h3><p>Ask 0.30 becomes 7/24, ask 0.531 becomes 13/24. Today's on-tick controls are exactly this arm: 0.337 → 0.366 and 0.404 → 0.444.</p></div>
 <div class="fix"><span class="tag">best arm</span><h3>Jitter labels by up to ±1/48</h3><p>Each training row's label moves by a fresh random amount in every batch. A tick's spike becomes a flat block 1/24 wide, so the blocks tile the whole line and 0.30 is no longer a gap.</p><p class="small"><b>Result:</b> dip gone (0.30: +0.008, 0.531: −0.005). Win rate 0.388 at 0.30 and 0.438 at 0.531, against 0.342 and 0.407 for the unchanged-label retrain.</p></div>
 <div class="fix"><span class="tag">dip gone, dial flatter</span><h3>Keep 4 frequencies</h3><p>The fastest wave becomes 8π: one cycle per 0.25 of win rate, six ticks wide. Neighbouring asks then get nearly the same inputs, so the writer cannot treat 0.30 as unseen.</p><p class="small"><b>Result:</b> dip gone (+0.004, +0.003), but win rate stays near 0.41 from ask 0.5 to 0.6.</p></div>
-<div class="fix"><span class="tag run">no help</span><h3>Balance labels in 0.1 buckets</h3><p>Each epoch draws the same number of teams from every win-rate bucket, capped at the 0.5–0.6 bucket's size. The 0.6–0.8 buckets are too small to reach the cap, so they keep all their teams.</p><p class="small"><b>Result:</b> dips stay (−0.023, −0.021) and high asks score lower: 0.385 at 0.6, 0.374 at 0.7.</p></div>
+<div class="fix"><span class="tag run">no help</span><h3>Balance labels in 0.1 buckets</h3><p>Each epoch draws the same number of teams from every win-rate bucket, capped at the 0.5–0.6 bucket's size. The 0.6–0.8 buckets are too small to reach the cap, so they keep all their teams.</p><p class="small"><b>Result:</b> dips stay (−0.023, −0.021) and high asks score lower: 0.385 at 0.6, 0.374 at 0.7.</p><p class="small"><b>Why diversity falls too:</b> training teams get less varied as their label rises. Forty teams drawn from the 0.0–0.1 bucket cover 45 effective species; from 0.5–0.8, about 21. Balancing cuts the varied 0.1–0.4 buckets hardest, so teams labelled 0.4 or more rise from 24% to 36% of the labelled teams the loop-label writer sees (21% to 36% for the matrix-row writer). Its teams then use fewer species than the retrain on unchanged labels at every ask range (11.9 vs 14.4 effective species at asks 12/24–13/24).</p></div>
 </div>
 <svg viewBox="0 0 840 230" id="buckets" style="margin-top:14px"></svg>
 <p class="small">Loop-label writer's labelled teams per bucket. Grey = now; teal = drawn per epoch after balancing (cap 1,132; matrix-row writer cap 1,544).</p>
@@ -107,7 +107,7 @@ button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--in
 <div class="num">6 · Results, all five writers</div>
 <h2>Jittered labels remove the dip and score highest</h2>
 <p class="small">Run 2026-10-30, <code>~/vgc-data/ask_grid</code>. Hover a dot for its win rate and how many distinct line-ups its 64 teams use.</p>
-<iframe src="../../Blog/visuals/label-grid/label-grid.html?embed" title="Win rate by ask for the current writer and four retrained writers" style="width:100%;height:760px;border:0"></iframe>
+<iframe src="../../Blog/visuals/label-grid/label-grid.html?embed" title="Win rate by ask for the current writer and four retrained writers" style="width:100%;height:840px;border:0"></iframe>
 </section>
 </main>
 
