@@ -1,0 +1,458 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway: three video styles for post 2, switchable via ?variant=A|B|C on this page.
+     Built by build_prototype.py; every number comes from the files it names. ?t=12.5 freezes a frame for capture. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post 2 video prototypes</title>
+<style>
+	:root { --page: #e9e7e2; --ink: #222; }
+	html, body { margin: 0; background: var(--page); color: var(--ink); font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif; }
+	.wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px 16px 96px; }
+	.note { width: min(100%, 540px); margin: 0; font-size: 14px; line-height: 1.45; color: #444; }
+	canvas { width: min(100%, 540px, calc((100vh - 210px) * 0.8)); height: auto; aspect-ratio: 1080 / 1350; display: block; border-radius: 6px; box-shadow: 0 2px 14px rgba(0, 0, 0, .18); }
+	.controls { display: flex; align-items: center; gap: 10px; width: min(100%, 540px); }
+	.controls button { font: 600 14px/1 inherit; padding: 9px 14px; border-radius: 999px; border: 1px solid #999; background: #fff; color: #222; cursor: pointer; }
+	.controls input[type=range] { flex: 1; min-width: 0; }
+	.controls output { font: 500 13px/1 ui-monospace, Menlo, monospace; min-width: 64px; text-align: right; }
+	.switcher { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 999px; background: #111; color: #fff; box-shadow: 0 4px 18px rgba(0, 0, 0, .35); font: 600 14px/1 "Helvetica Neue", Arial, sans-serif; z-index: 10; }
+	.switcher button { width: 36px; height: 36px; border: 0; border-radius: 999px; background: #2c2c2c; color: #fff; font-size: 16px; cursor: pointer; }
+	.switcher span { min-width: 190px; text-align: center; }
+	/* ?capture=1: the bare 1080×1350 frame, for screenshots and video export */
+	.capture .note, .capture .controls, .capture .switcher { display: none; }
+	.capture .wrap { padding: 0; }
+	.capture canvas { width: 1080px; border-radius: 0; box-shadow: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+	<p class="note"><b>Prototype, throwaway.</b> Three video styles for post 2: a tuned prompt closes most of Mercury's gap to Jev. Switch with the bar at the bottom or the ← → keys.</p>
+	<canvas id="stage" width="1080" height="1350" role="img" aria-label="Animated figure: Mercury's legal teams and win rate with a plain and a tuned prompt, against Jev"></canvas>
+	<div class="controls">
+		<button id="play" type="button">Pause</button>
+		<button id="restart" type="button">Restart</button>
+		<input id="scrub" type="range" min="0" max="18" step="0.01" value="0" aria-label="Time in the video">
+		<output id="clock">0.0 s</output>
+	</div>
+</div>
+<nav class="switcher" aria-label="Prototype variant">
+	<button id="prev" type="button" aria-label="Previous variant">←</button>
+	<span id="label">A · Scoreboard</span>
+	<button id="next" type="button" aria-label="Next variant">→</button>
+</nav>
+<script>
+const D = __DATA__;
+const T = 18, W = 1080, H = 1350;
+const cv = document.getElementById("stage"), ctx = cv.getContext("2d");
+
+// Numbers every variant shows, rounded once from the raw values.
+const N = {
+	plainHigh: D.plain.legal[3], tunedHigh: D.tuned.legal[3], jevLegal: D.jev.legal, tasks: D.tasks,
+	plainWin: D.plain.usable[3], tunedWin: D.tuned.usable[3], jevWin: D.jev.usable,
+	sharedJev: D.shared.jev, sharedMercury: D.shared.mercury, sharedMasks: D.shared.masks,
+};
+N.gap = (N.tunedWin - N.plainWin) / (N.jevWin - N.plainWin);
+N.gapText = "about " + Math.round(N.gap * 20) * 5 + "%";
+const pct = v => (v * 100).toFixed(1) + "%";
+const plainMove = D.example.plainError.match(/learn (.+?)\.?$/)[1];
+const kleavor = D.example.team[0];
+const tunedMove = kleavor.filled[kleavor.hidden[0]];
+const CAPTION = "Win rate: share of battles won against the top-50 meta teams, 8 battles per opponent, with the behaviour-cloning policy on both sides. Data: " + D.files + ".";
+
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+const easeOut = u => 1 - Math.pow(1 - u, 3);
+const lerp = (a, b, u) => a + (b - a) * u;
+const on = (t, a, b, f = .3) => seg(t, a, a + f) * (1 - seg(t, b - f, b));
+
+function txt(s, x, y, font, color, { align = "left", alpha = 1, base = "alphabetic" } = {}) {
+	if (alpha <= 0) return;
+	ctx.save(); ctx.globalAlpha *= alpha; ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base;
+	ctx.fillText(s, x, y); ctx.restore();
+}
+function lines(s, maxW, font) {
+	ctx.save(); ctx.font = font;
+	const out = []; let line = "";
+	for (const w of s.split(" ")) {
+		const test = line ? line + " " + w : w;
+		if (ctx.measureText(test).width > maxW && line) { out.push(line); line = w; } else line = test;
+	}
+	if (line) out.push(line);
+	ctx.restore(); return out;
+}
+function para(s, x, y, maxW, lh, font, color, opts = {}) {
+	const ls = lines(s, maxW, font);
+	ls.forEach((l, i) => txt(l, x, y + i * lh, font, color, opts));
+	return y + ls.length * lh;
+}
+function box(x, y, w, h, r, fill, stroke, lw = 2) {
+	ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+	if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+	if (stroke) { ctx.lineWidth = lw; ctx.strokeStyle = stroke; ctx.stroke(); }
+}
+
+const imgs = {};
+function loadImages() {
+	return Promise.all(D.example.team.flatMap((p, i) => [["s" + i, p.sprite], ["i" + i, p.itemIcon]].map(([k, src]) => new Promise(res => {
+		const im = new Image(); im.onload = im.onerror = res; im.src = src; imgs[k] = im;
+	}))));
+}
+function pic(key, x, y, size, alpha = 1) {
+	const im = imgs[key]; if (!im || !im.width || alpha <= 0) return;
+	const s = size / Math.max(im.width, im.height);
+	ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingEnabled = false;
+	ctx.drawImage(im, x + (size - im.width * s) / 2, y + (size - im.height * s) / 2, im.width * s, im.height * s);
+	ctx.restore();
+}
+// Six sprites with their items, as the house rule asks.
+function teamStrip(x, y, w, size, alpha) {
+	const cell = w / 6;
+	D.example.team.forEach((p, i) => {
+		const cx = x + i * cell + (cell - size) / 2;
+		pic("s" + i, cx, y, size, alpha);
+		pic("i" + i, cx + size * .62, y + size * .62, size * .42, alpha);
+	});
+}
+
+// ---------- A: broadcast scoreboard ----------
+function drawA(t) {
+	const C = { bg: "#0a1530", panel: "#13224a", line: "#26386a", ink: "#ffffff", dim: "#aab8db", plain: "#8f9ab8", tuned: "#3ad6f2", jev: "#ffc94d" };
+	const F = (w, s) => `${w} ${s}px "Avenir Next Condensed", "Arial Narrow", "Helvetica Neue", sans-serif`;
+	ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+	txt("MERCURY 2.5", 72, 118, F(800, 64), C.ink);
+	txt("PLAIN PROMPT vs TUNED PROMPT", 72, 168, F(600, 34), C.dim);
+	box(764, 74, 244, 108, 16, C.panel);
+	txt("JEV", 886, 118, F(800, 36), C.jev, { align: "center" });
+	txt(`${N.jevLegal} of ${N.tasks} legal`, 886, 160, F(600, 32), C.ink, { align: "center" });
+
+	// Scene 0: the question, and one real task.
+	let a = on(t, 0, 2.7);
+	txt("Can a tuned prompt", 540, 420 - 20 * (1 - seg(t, 0, .5)), F(800, 80), C.ink, { align: "center", alpha: a });
+	txt("catch a decision model?", 540, 510 - 20 * (1 - seg(t, .15, .65)), F(800, 80), C.ink, { align: "center", alpha: a });
+	teamStrip(120, 640, 840, 120, a * seg(t, .5, 1));
+	para(`One of ${N.tasks} half-built teams: unmasked team ${D.example.source}, ${D.example.hidden} moves hidden.`, 540, 860, 860, 44, F(600, 36), C.dim, { align: "center", alpha: a * seg(t, .8, 1.3) });
+
+	// Scene 1: legal teams per reasoning setting.
+	a = on(t, 2.7, 9.7);
+	if (a > 0) {
+		txt(`LEGAL TEAMS OUT OF ${N.tasks}`, 72, 300, F(800, 46), C.ink, { alpha: a });
+		const cols = ["OFF", "LOW", "MEDIUM", "HIGH"], cx = [366, 552, 738, 924], rows = [["PLAIN", D.plain.legal, C.plain, 2.9], ["TUNED", D.tuned.legal, C.tuned, 5.3]];
+		cols.forEach((c, k) => txt(c, cx[k], 380, F(700, 32), C.dim, { align: "center", alpha: a }));
+		rows.forEach(([name, vals, color, start], r) => {
+			const y = 410 + r * 210;
+			txt(name, 72, y + 104, F(800, 40), color, { alpha: a });
+			txt("PROMPT", 72, y + 144, F(600, 32), C.dim, { alpha: a });
+			vals.forEach((v, k) => {
+				const x = cx[k] - 86;
+				box(x, y, 172, 180, 14, C.panel, null);
+				let t0 = start + .55 * k, shown = 1;
+				const guess = r === 1 && k === 3;
+				if (guess) t0 = 8.0;
+				const u = easeOut(seg(t, t0, t0 + .45));
+				if (guess && t >= 6.95 && t < 8.0) {
+					txt("?", cx[k], y + 112, F(800, 80), C.tuned, { align: "center", alpha: a * (.55 + .45 * Math.sin(t * 9)) });
+					txt("GUESS", cx[k], y + 160, F(700, 32), C.dim, { align: "center", alpha: a });
+					shown = 0;
+				}
+				if (shown && u > 0) {
+					txt(String(Math.round(v * u)), cx[k], y + 112, F(800, 72), C.ink, { align: "center", alpha: a });
+					box(x + 16, y + 140, 140, 14, 7, C.line);
+					box(x + 16, y + 140, 140 * (v / N.tasks) * u, 14, 7, color);
+				}
+			});
+		});
+		const d = a * seg(t, 8.6, 9.0);
+		if (d > 0) { ctx.save(); ctx.globalAlpha = d; box(830, 836, 188, 64, 32, C.tuned); ctx.restore(); }
+		txt(`+${N.tunedHigh - N.plainHigh}`, 924, 882, F(800, 44), C.bg, { align: "center", alpha: d });
+		para(`At high reasoning: ${N.plainHigh} → ${N.tunedHigh} legal teams. Jev built all ${N.jevLegal}.`, 72, 980, 936, 46, F(600, 38), C.ink, { alpha: a * seg(t, 8.6, 9) });
+	}
+
+	// Scene 2: the win-rate gap closing.
+	a = on(t, 9.7, 15.7);
+	if (a > 0) {
+		txt("WIN RATE AT HIGH REASONING", 72, 300, F(800, 46), C.ink, { alpha: a });
+		txt("Illegal teams count as losses", 72, 350, F(600, 34), C.dim, { alpha: a });
+		const px = v => 120 + (v - .30) / .20 * 840, y = 560;
+		box(120, y - 10, 840, 20, 10, C.line);
+		[.30, .35, .40, .45, .50].forEach(v => txt(Math.round(v * 100) + "%", px(v), y + 70, F(600, 32), C.dim, { align: "center", alpha: a }));
+		const g = seg(t, 10.5, 11.0);
+		if (g > 0) { ctx.save(); ctx.globalAlpha = a * g * .55; ctx.fillStyle = C.jev; ctx.fillRect(px(N.plainWin), y - 30, px(N.jevWin) - px(N.plainWin), 60); ctx.restore(); }
+		txt(`THE GAP: ${((N.jevWin - N.plainWin) * 100).toFixed(1)} POINTS`, 540, y - 150, F(800, 40), C.jev, { align: "center", alpha: a * g * (1 - seg(t, 11.3, 11.6)) });
+		const m = easeOut(seg(t, 11.3, 13.3)), tx = px(lerp(N.plainWin, N.tunedWin, m));
+		if (m > 0) box(px(N.plainWin), y - 10, tx - px(N.plainWin), 20, 10, C.tuned);
+		const mark = (x, color, label, val, above, alpha) => {
+			if (alpha <= 0) return;
+			ctx.save(); ctx.globalAlpha = a * alpha; ctx.fillStyle = color; ctx.fillRect(x - 4, y - 46, 8, 92); ctx.restore();
+			txt(label, x, above ? y - 96 : y + 130, F(800, 36), color, { align: "center", alpha: a * alpha });
+			txt(val, x, above ? y - 58 : y + 168, F(700, 34), C.ink, { align: "center", alpha: a * alpha });
+		};
+		mark(px(N.plainWin), C.plain, "PLAIN", pct(N.plainWin), true, seg(t, 9.9, 10.3));
+		mark(px(N.jevWin), C.jev, "JEV", pct(N.jevWin), true, seg(t, 10.1, 10.5));
+		mark(tx, C.tuned, "TUNED", pct(lerp(N.plainWin, N.tunedWin, m)), false, seg(t, 11.3, 11.6));
+		txt(`${N.gapText.toUpperCase()} OF THE GAP, CLOSED`, 540, 900, F(800, 52), C.tuned, { align: "center", alpha: a * seg(t, 13.4, 13.9) });
+		para(`Jev still leads on the ${N.sharedMasks} tasks both got legal: ${pct(N.sharedJev)} to ${pct(N.sharedMercury)}.`, 540, 980, 900, 44, F(600, 36), C.dim, { align: "center", alpha: a * seg(t, 14.2, 14.7) });
+	}
+
+	// Scene 3: the claim.
+	a = on(t, 15.7, T + 1);
+	if (a > 0) {
+		txt("TUNING CLOSED", 540, 430, F(800, 84), C.ink, { align: "center", alpha: a });
+		txt(`${N.gapText.toUpperCase()} OF THE GAP`, 540, 525, F(800, 84), C.tuned, { align: "center", alpha: a });
+		txt(`${N.plainHigh} → ${N.tunedHigh} legal teams of ${N.tasks}. Jev: all ${N.jevLegal}.`, 540, 640, F(600, 40), C.ink, { align: "center", alpha: a });
+		teamStrip(180, 720, 720, 104, a);
+	}
+	if (t > 9.7) para(CAPTION, 72, 1180, 936, 40, F(500, 32), C.dim, { alpha: seg(t, 9.7, 10.1) });
+}
+
+// ---------- B: one team, fixed, then all 270 ----------
+function drawB(t) {
+	const C = { bg: "#f4efe4", card: "#fffdf8", edge: "#d8ccb6", ink: "#1f1b16", dim: "#6d6457", plain: "#8a7f71", tuned: "#2e7d57", bad: "#c0392b", jev: "#27466e", hide: "#eee6d6" };
+	const F = (w, s) => `${w} ${s}px "Avenir Next", "Helvetica Neue", Arial, sans-serif`;
+	ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+
+	// Scene 0: the six Pokémon, with the hidden moves marked.
+	let a = on(t, 0, 3.4);
+	if (a > 0) {
+		txt("One of the " + N.tasks + " tasks", 72, 128, F(700, 52), C.ink, { alpha: a });
+		txt(`Unmasked team ${D.example.source}, ${D.example.hidden} moves hidden`, 72, 184, F(500, 36), C.dim, { alpha: a });
+		D.example.team.forEach((p, i) => {
+			const x = 72 + (i % 3) * 320, y = 230 + Math.floor(i / 3) * 470, ap = a * seg(t, .2 + i * .15, .55 + i * .15);
+			const focus = i === 0 ? 1 : 1 - .6 * seg(t, 2.4, 2.9);
+			ctx.save(); ctx.globalAlpha = ap * focus;
+			box(x, y, 296, 450, 18, C.card, i === 0 && t > 2.4 ? C.ink : C.edge, i === 0 && t > 2.4 ? 5 : 2);
+			ctx.restore();
+			pic("s" + i, x + 73, y + 18, 150, ap * focus);
+			pic("i" + i, x + 196, y + 120, 56, ap * focus);
+			txt(p.species, x + 148, y + 224, F(700, 36), C.ink, { align: "center", alpha: ap * focus });
+			txt(p.item, x + 148, y + 266, F(500, 32), C.dim, { align: "center", alpha: ap * focus });
+			p.moves.forEach((mv, j) => {
+				const yy = y + 302 + j * 38;
+				if (mv === null) {
+					ctx.save(); ctx.globalAlpha = ap * focus; ctx.setLineDash([8, 6]); box(x + 30, yy, 236, 34, 8, C.hide, C.dim, 2); ctx.restore();
+					txt("?", x + 148, yy + 28, F(700, 32), C.dim, { align: "center", alpha: ap * focus });
+				} else txt(mv, x + 148, yy + 28, F(500, 32), C.ink, { align: "center", alpha: ap * focus });
+			});
+		});
+	}
+
+	// Scenes 1 and 2: Kleavor's one hidden move, plain then tuned.
+	a = on(t, 3.3, 11.2);
+	if (a > 0) {
+		const zoom = lerp(.92, 1, easeOut(seg(t, 3.3, 3.8)));
+		ctx.save(); ctx.translate(540, 570); ctx.scale(zoom, zoom); ctx.translate(-540, -570);
+		const tuned = t >= 7.2;
+		txt(tuned ? "Tuned prompt, high reasoning" : "Plain prompt, high reasoning", 540, 190, F(700, 44), tuned ? C.tuned : C.ink, { align: "center", alpha: a });
+		if (tuned) txt("DSPy answer types + a GEPA prompt written by GPT-6 Luna", 540, 236, F(500, 32), C.dim, { align: "center", alpha: a * seg(t, 7.2, 7.6) });
+		box(140, 270, 800, 640, 26, C.card, C.edge, 3);
+		pic("s0", 180, 300, 240, a); pic("i0", 360, 440, 84, a);
+		txt(kleavor.species, 470, 380, F(700, 56), C.ink, { alpha: a });
+		txt("@ " + kleavor.item, 470, 430, F(500, 36), C.dim, { alpha: a });
+		kleavor.moves.forEach((mv, j) => {
+			const y = 600 + j * 72;
+			if (mv !== null) { txt("·  " + mv, 200, y, F(600, 44), C.ink, { alpha: a }); return; }
+			ctx.save(); ctx.globalAlpha = a; ctx.setLineDash([10, 8]); box(190, y - 46, 560, 62, 10, C.hide, C.dim, 2); ctx.restore();
+			if (!tuned) {
+				const n = Math.round(plainMove.length * seg(t, 4.3, 5.1));
+				txt("·  " + plainMove.slice(0, n), 200, y, F(600, 44), C.bad, { alpha: a });
+			} else {
+				const s = seg(t, 7.4, 7.8);
+				if (s < 1) txt("·  " + plainMove, 200, y, F(600, 44), C.bad, { alpha: a * (1 - s) });
+				const n = Math.round(tunedMove.length * seg(t, 7.9, 8.6));
+				txt("·  " + tunedMove.slice(0, n), 200, y, F(600, 44), C.tuned, { alpha: a });
+			}
+		});
+		if (!tuned) {
+			const s = easeOut(seg(t, 5.4, 5.8));
+			if (s > 0) {
+				ctx.save(); ctx.globalAlpha = a * s; ctx.translate(800, 500); ctx.rotate(-.18); ctx.scale(lerp(1.4, 1, s), lerp(1.4, 1, s));
+				box(-130, -46, 260, 92, 12, null, C.bad, 7); txt("ILLEGAL", 0, 18, F(800, 52), C.bad, { align: "center" }); ctx.restore();
+				txt(D.example.plainError, 540, 970, F(600, 40), C.bad, { align: "center", alpha: a * s });
+			}
+		} else {
+			const s = easeOut(seg(t, 8.8, 9.2));
+			if (s > 0) {
+				ctx.save(); ctx.globalAlpha = a * s; ctx.translate(800, 500); box(-120, -46, 240, 92, 46, C.tuned, null);
+				txt("LEGAL", 0, 18, F(800, 52), C.card, { align: "center" }); ctx.restore();
+				txt(`All ${D.example.hidden} hidden moves filled with legal picks.`, 540, 970, F(600, 40), C.tuned, { align: "center", alpha: a * s });
+			}
+		}
+		ctx.restore();
+	}
+
+	// Scene 3: zoom out to every task.
+	a = on(t, 11.0, T + 1);
+	if (a > 0) {
+		txt("All " + N.tasks + " tasks", 72, 128, F(700, 52), C.ink, { alpha: a });
+		txt("Each square is one half-built team. Filled means legal.", 72, 184, F(500, 34), C.dim, { alpha: a });
+		const cols = 18, cell = 48, x0 = (W - (cols * cell - 8)) / 2, y0 = 236;
+		const p1 = ease(seg(t, 11.5, 12.9)), p2 = ease(seg(t, 13.9, 15.3)), n = D.grid.length;
+		let filled = 0;
+		D.grid.forEach((g, i) => {
+			const x = x0 + (i % cols) * cell, y = y0 + Math.floor(i / cols) * cell;
+			const phase2 = i < p2 * n, phase1 = i < p1 * n;
+			let fill = null, stroke = C.edge;
+			if (phase2) { if (g.tuned) { fill = C.tuned; filled++; } else stroke = C.bad; }
+			else if (phase1 && g.plain) { fill = C.plain; if (p2 === 0) filled++; }
+			ctx.save(); ctx.globalAlpha = a; box(x, y, 40, 40, 6, fill || C.card, stroke, 2); ctx.restore();
+			if (i === D.exampleIndex) {
+				const pulse = on(t, 11.2, 12.2);
+				if (pulse > 0) { ctx.save(); ctx.globalAlpha = a * pulse; box(x - 6, y - 6, 52, 52, 10, null, C.ink, 4); ctx.restore(); }
+			}
+		});
+		const ex = x0 + (D.exampleIndex % cols) * cell, ey = y0 + Math.floor(D.exampleIndex / cols) * cell + 34, right = ex > 700;
+		txt(D.example.source + "'s task", right ? ex - 20 : ex + 60, ey, F(700, 32), C.ink, { align: right ? "right" : "left", alpha: a * on(t, 11.2, 12.2) });
+		const yT = y0 + Math.ceil(n / cols) * cell + 70;
+		if (t < 13.0) txt(`Plain prompt: ${filled} legal`, 72, yT, F(700, 40), C.dim, { alpha: a * seg(t, 11.5, 11.8) });
+		else if (t < 13.9) txt("Guess: how many with the tuned prompt?", 72, yT, F(700, 40), C.ink, { alpha: a });
+		else txt(`Tuned prompt: ${filled} legal`, 72, yT, F(700, 40), C.tuned, { alpha: a });
+		txt(`Jev: all ${N.jevLegal}`, 1008, yT, F(700, 40), C.jev, { align: "right", alpha: a * seg(t, 13.9, 14.3) });
+		const e = seg(t, 15.6, 16.1);
+		txt(`Win rate with illegal teams as losses: ${pct(N.plainWin)} → ${pct(N.tunedWin)}`, 72, yT + 62, F(600, 36), C.ink, { alpha: a * e });
+		txt(`Jev ${pct(N.jevWin)}. ${N.gapText[0].toUpperCase() + N.gapText.slice(1)} of the gap, closed.`, 72, yT + 112, F(700, 40), C.tuned, { alpha: a * e });
+		para(CAPTION, 72, 1220, 936, 38, F(500, 32), C.dim, { alpha: a * e });
+	}
+}
+
+// ---------- C: annotated editorial chart ----------
+function drawC(t) {
+	const C = { bg: "#ffffff", ink: "#141414", dim: "#5f5f5f", grid: "#e4e4e4", plain: "#767676", tuned: "#d9480f", jev: "#1f4e9c" };
+	const FS = (w, s) => `${w} ${s}px Georgia, "Iowan Old Style", "Times New Roman", serif`;
+	const FL = (w, s) => `${w} ${s}px "Helvetica Neue", Arial, sans-serif`;
+	ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+	const yDek = para("A tuned prompt closed most of the gap", 72, 112, 936, 70, FS(700, 62), C.ink);
+	para(`Mercury 2.5 on ${N.tasks} half-built Pokémon teams: a plain prompt, then DSPy answer types and a GEPA prompt written by GPT-6 Luna.`, 72, yDek + 10, 936, 42, FL(400, 32), C.dim);
+
+	// Scene 0: one real task first.
+	let a = on(t, 0, 1.9);
+	teamStrip(120, 470, 840, 130, a);
+	para(`One task: unmasked team ${D.example.source} with ${D.example.hidden} moves hidden. Mercury fills them in.`, 540, 680, 860, 44, FL(500, 36), C.ink, { align: "center", alpha: a });
+
+	// Chart 1: legal teams by reasoning setting. Only the end of each line is labelled, to the right.
+	a = seg(t, 1.6, 2.2);
+	const x = k => 200 + k * 190, y = v => 820 - v / N.tasks * 330;
+	if (a > 0) {
+		txt(`Legal teams out of ${N.tasks}, by reasoning setting`, 72, 445, FL(700, 32), C.ink, { alpha: a });
+		[0, 90, 180, 270].forEach(v => {
+			ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = C.grid; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(180, y(v)); ctx.lineTo(790, y(v)); ctx.stroke(); ctx.restore();
+			txt(String(v), 160, y(v) + 11, FL(400, 32), C.dim, { align: "right", alpha: a });
+		});
+		D.levels.forEach((lv, k) => txt(lv, x(k), 862, FL(400, 32), C.dim, { align: "center", alpha: a }));
+		const j = seg(t, 2.0, 2.8);
+		ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = C.jev; ctx.lineWidth = 5; ctx.setLineDash([16, 10]);
+		ctx.beginPath(); ctx.moveTo(180, y(N.jevLegal)); ctx.lineTo(lerp(180, 790, j), y(N.jevLegal)); ctx.stroke(); ctx.restore();
+		txt(`Jev ${N.jevLegal}`, 800, y(N.jevLegal) - 12, FL(700, 32), C.jev, { alpha: a * seg(t, 2.5, 2.8) });
+		const series = (vals, color, t0, dt, upTo) => {
+			ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 6; ctx.lineJoin = "round"; ctx.beginPath();
+			let drawn = false;
+			for (let k = 0; k < upTo; k++) {
+				const u = seg(t, t0 + k * dt, t0 + (k + 1) * dt);
+				if (u <= 0) break;
+				if (k === 0) ctx.moveTo(x(0), y(vals[0]));
+				else ctx.lineTo(lerp(x(k - 1), x(k), ease(u)), lerp(y(vals[k - 1]), y(vals[k]), ease(u)));
+				drawn = true;
+			}
+			if (drawn) ctx.stroke(); ctx.restore();
+			for (let k = 0; k < upTo; k++) {
+				const u = seg(t, t0 + k * dt + dt * .7, t0 + (k + 1) * dt);
+				if (u <= 0) continue;
+				ctx.save(); ctx.globalAlpha = u; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x(k), y(vals[k]), 12, 0, 7); ctx.fill(); ctx.restore();
+			}
+		};
+		series(D.plain.legal, C.plain, 2.8, .4, 4);
+		txt(`plain ${D.plain.legal[3]}`, 800, y(D.plain.legal[3]) + 11, FL(700, 32), C.plain, { alpha: seg(t, 4.4, 4.8) });
+		series(D.tuned.legal, C.tuned, 4.8, .45, 3);
+		if (t >= 6.2 && t < 7.4) {
+			const p = .55 + .45 * Math.sin(t * 9);
+			ctx.save(); ctx.globalAlpha = p; ctx.strokeStyle = C.tuned; ctx.lineWidth = 4; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(x(3), y(220), 30, 0, 7); ctx.stroke(); ctx.restore();
+			txt("?", x(3), y(220) + 12, FL(700, 36), C.tuned, { align: "center" });
+			txt("Guess where the tuned line lands", 790, y(20), FL(600, 32), C.ink, { align: "right" });
+		}
+		if (t >= 7.4) {
+			const u = ease(seg(t, 7.4, 8.0));
+			ctx.save(); ctx.strokeStyle = C.tuned; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x(2), y(D.tuned.legal[2]));
+			ctx.lineTo(lerp(x(2), x(3), u), lerp(y(D.tuned.legal[2]), y(D.tuned.legal[3]), u)); ctx.stroke(); ctx.restore();
+			const v = seg(t, 7.8, 8.0);
+			ctx.save(); ctx.globalAlpha = v; ctx.fillStyle = C.tuned; ctx.beginPath(); ctx.arc(x(3), y(D.tuned.legal[3]), 12, 0, 7); ctx.fill(); ctx.restore();
+			txt(`tuned ${D.tuned.legal[3]}`, 800, y(D.tuned.legal[3]) + 44, FL(700, 32), C.tuned, { alpha: v });
+		}
+		txt(`+${N.tunedHigh - N.plainHigh}`, x(3) - 34, (y(D.plain.legal[3]) + y(D.tuned.legal[3])) / 2 + 22, FL(700, 32), C.ink, { align: "right", alpha: seg(t, 8.4, 8.9) });
+	}
+
+	// Chart 2: the win-rate gap at high reasoning.
+	a = seg(t, 9.6, 10.1);
+	if (a > 0) {
+		const px = v => 200 + (v - .30) / .20 * 760, yA = 1010;
+		txt("Win rate at high reasoning, illegal teams as losses", 72, 925, FL(700, 32), C.ink, { alpha: a });
+		ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = C.grid; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(px(.30), yA); ctx.lineTo(px(.50), yA); ctx.stroke(); ctx.restore();
+		txt("30%", px(.30) - 16, yA + 11, FL(400, 32), C.dim, { align: "right", alpha: a });
+		txt("50%", px(.50) + 16, yA + 11, FL(400, 32), C.dim, { alpha: a });
+		const m = ease(seg(t, 10.8, 12.6)), tx = px(lerp(N.plainWin, N.tunedWin, m));
+		if (m > 0) {
+			ctx.save(); ctx.globalAlpha = a * .28; ctx.fillStyle = C.tuned; ctx.fillRect(px(N.plainWin), yA - 18, tx - px(N.plainWin), 36); ctx.restore();
+			ctx.save(); ctx.strokeStyle = C.tuned; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(px(N.plainWin), yA); ctx.lineTo(tx, yA); ctx.stroke(); ctx.restore();
+		}
+		const dot = (xx, color, alpha, diamond) => {
+			if (alpha <= 0) return;
+			ctx.save(); ctx.globalAlpha = a * alpha; ctx.fillStyle = color; ctx.beginPath();
+			if (diamond) { ctx.moveTo(xx, yA - 18); ctx.lineTo(xx + 18, yA); ctx.lineTo(xx, yA + 18); ctx.lineTo(xx - 18, yA); ctx.closePath(); } else ctx.arc(xx, yA, 14, 0, 7);
+			ctx.fill(); ctx.restore();
+		};
+		dot(px(N.plainWin), C.plain, seg(t, 9.9, 10.2));
+		txt(`plain ${pct(N.plainWin)}`, px(N.plainWin), yA - 34, FL(600, 32), C.plain, { align: "center", alpha: a * seg(t, 9.9, 10.2) });
+		dot(px(N.jevWin), C.jev, seg(t, 10.2, 10.5), true);
+		txt(`Jev ${pct(N.jevWin)}`, px(N.jevWin), yA - 34, FL(600, 32), C.jev, { align: "center", alpha: a * seg(t, 10.2, 10.5) });
+		dot(tx, C.tuned, seg(t, 10.8, 11.0));
+		txt(`tuned ${pct(lerp(N.plainWin, N.tunedWin, m))}`, tx, yA + 56, FL(600, 32), C.tuned, { align: "center", alpha: a * seg(t, 10.8, 11.0) });
+		txt(`${N.gapText[0].toUpperCase() + N.gapText.slice(1)} of the gap, closed`, 72, yA + 112, FL(700, 36), C.tuned, { alpha: a * seg(t, 12.8, 13.3) });
+		txt(`Same ${N.sharedMasks} tasks, both legal: Jev ${pct(N.sharedJev)}, Mercury ${pct(N.sharedMercury)}.`, 72, yA + 156, FL(400, 32), C.dim, { alpha: a * seg(t, 13.6, 14.1) });
+	}
+	if (t > 15.2) para(CAPTION, 72, 1215, 936, 36, FL(400, 32), C.dim, { alpha: seg(t, 15.2, 15.7) });
+}
+
+// ---------- player and switcher ----------
+const VARIANTS = [{ key: "A", name: "Scoreboard", draw: drawA }, { key: "B", name: "One team, fixed", draw: drawB }, { key: "C", name: "Annotated chart", draw: drawC }];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const params = new URLSearchParams(location.search);
+let vi = Math.max(0, VARIANTS.findIndex(v => v.key === (params.get("variant") || "A").toUpperCase()));
+let t = params.has("t") ? clamp(+params.get("t"), 0, T) : (reduce ? T : 0);
+let playing = !params.has("t") && !reduce, last = null;
+const $ = id => document.getElementById(id);
+if (params.has("capture")) document.body.classList.add("capture");
+
+function render() {
+	VARIANTS[vi].draw(t);
+	$("scrub").value = t; $("clock").value = t.toFixed(1) + " s";
+	$("play").textContent = playing ? "Pause" : (t >= T ? "Replay" : "Play");
+	$("label").textContent = VARIANTS[vi].key + " · " + VARIANTS[vi].name;
+}
+function tick(now) {
+	if (playing) {
+		if (last !== null) t += (now - last) / 1000;
+		last = now;
+		if (t >= T) { t = T; playing = false; last = null; }
+	} else last = null;
+	render(); requestAnimationFrame(tick);
+}
+function setVariant(i) {
+	vi = (i + VARIANTS.length) % VARIANTS.length;
+	const u = new URL(location.href); u.searchParams.set("variant", VARIANTS[vi].key); u.searchParams.delete("t");
+	history.replaceState(null, "", u);
+	t = reduce ? T : 0; playing = !reduce; last = null;
+}
+$("play").addEventListener("click", () => { if (t >= T) t = 0; playing = !playing; last = null; });
+$("restart").addEventListener("click", () => { t = 0; playing = true; last = null; });
+$("scrub").addEventListener("input", e => { t = +e.target.value; playing = false; });
+$("prev").addEventListener("click", () => setVariant(vi - 1));
+$("next").addEventListener("click", () => setVariant(vi + 1));
+addEventListener("keydown", e => {
+	const el = document.activeElement;
+	if (el && (el.matches("input, textarea, select") || el.isContentEditable)) return;
+	if (e.key === "ArrowLeft") setVariant(vi - 1);
+	if (e.key === "ArrowRight") setVariant(vi + 1);
+});
+loadImages().then(() => requestAnimationFrame(tick));
+</script>
+</body>
+</html>
