@@ -123,7 +123,7 @@ tools/sync.py --dry-run   # show what would change, or which GitHub edits block 
 tools/sync.py             # mirror, commit, push
 ```
 
-A pre-commit hook stops a commit when a note in `notes/` has frontmatter that doesn't parse as YAML, and names the note and line. Notes without frontmatter pass. A pre-push hook runs Ruff on `code/` at the version CI pins, so a lint error stops the push instead of failing the pull request. It runs only when the push changes a Python file under `code/`. Run `pre-commit install` once; worktrees share the hooks.
+A pre-commit hook stops a commit when a note in `notes/` has frontmatter that doesn't parse as YAML, and names the note and line. Notes without frontmatter pass. A pre-push hook runs Ruff on `code/` at the version CI pins, so a lint error stops the push instead of failing the pull request. It runs only when the push changes a Python file, `pyproject.toml` or `requirements.txt` under `code/`. Run `pre-commit install` once; worktrees share the hooks.
 
 ## Licence
 

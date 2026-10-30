@@ -14,5 +14,5 @@ repos:
         entry: bash -c 'cd code && uvx --from "$(grep "^ruff==" requirements.txt | cut -d" " -f1)" ruff check .'
         language: system
         pass_filenames: false
-        files: ^code/.*\.py$
+        files: ^code/(.*\.py|pyproject\.toml|requirements\.txt)$
         stages: [pre-push]
