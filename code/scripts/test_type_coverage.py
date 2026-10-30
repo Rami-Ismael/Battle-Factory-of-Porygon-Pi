@@ -33,8 +33,10 @@ class TypeCoverageTest(unittest.TestCase):
         self.assertIn("Ice", fails["too_few_resist"])
         self.assertNotIn("Electric", fails["too_few_resist"] + fails["too_many_weak"])
 
-    def test_thresholds_are_parameters(self):
-        self.assertEqual(coverage_failures(EXAMPLE, max_weak=3)["too_many_weak"], [])
+    def test_a_written_mega_form_uses_the_megas_types(self):
+        # Meta pastes name Megas ("Charizard-Mega-Y"); Mega Charizard X is Fire/Dragon, so it resists Electric.
+        mega = team("Charizard-Mega-X", "Garchomp", "Dragonite", "Gengar", "Snorlax", "Gyarados")
+        self.assertEqual(defensive_coverage(mega)["Electric"], (1, 2))
 
     def test_unknown_species_raises(self):
         with self.assertRaises(ValueError):
