@@ -24,6 +24,10 @@ Unmasked teams: 47.6% (5 teams).
 | Mercury, medium | 149/270 | 26.4% [22.1, 30.6] | 47.8% over 149 |
 | Mercury, high | 183/270 | 32.8% [26.5, 38.4] | 48.4% over 183 |
 | random legal fill | 267/270 | 32.2% [30.3, 34.1] | 32.5% over 267 |
+| Mercury DSPy, off | 180/270 | 31.6% [28.4, 35.3] | 47.4% over 180 |
+| Mercury DSPy, low | 183/270 | 32.1% [28.4, 35.5] | 47.3% over 183 |
+| Mercury DSPy, medium | 219/270 | 37.9% [33.8, 41.9] | 46.7% over 219 |
+| Mercury DSPy, high | 252/270 | 43.4% [39.4, 47.3] | 46.5% over 252 |
 
 Same masks, Jev against each Mercury setting:
 
@@ -33,6 +37,10 @@ Same masks, Jev against each Mercury setting:
 | Mercury, low | 130 | 48.6% | 47.6% | +1.0 [-0.0, 1.7] |
 | Mercury, medium | 149 | 48.0% | 47.8% | +0.3 [-0.3, 0.8] |
 | Mercury, high | 183 | 48.0% | 48.4% | -0.4 [-0.8, -0.1] |
+| Mercury DSPy, off | 180 | 47.9% | 47.4% | +0.5 [0.2, 0.9] |
+| Mercury DSPy, low | 183 | 47.8% | 47.3% | +0.5 [0.1, 1.0] |
+| Mercury DSPy, medium | 219 | 47.5% | 46.7% | +0.8 [0.5, 1.0] |
+| Mercury DSPy, high | 252 | 47.5% | 46.5% | +1.1 [0.3, 1.8] |
 
 ## held-out grid, re-battled against the held-out teams
 
@@ -46,6 +54,10 @@ Unmasked teams: 47.1% (5 teams).
 | Mercury, medium | 149/270 | 26.1% [22.0, 30.1] | 47.2% over 149 |
 | Mercury, high | 183/270 | 32.1% [25.9, 37.4] | 47.4% over 183 |
 | random legal fill | 267/270 | 30.9% [29.1, 32.7] | 31.2% over 267 |
+| Mercury DSPy, off | 180/270 | 30.7% [28.2, 33.8] | 46.1% over 180 |
+| Mercury DSPy, low | 183/270 | 31.2% [28.0, 34.3] | 46.1% over 183 |
+| Mercury DSPy, medium | 219/270 | 36.7% [33.0, 40.4] | 45.2% over 219 |
+| Mercury DSPy, high | 252/270 | 42.2% [38.5, 45.5] | 45.2% over 252 |
 
 Same masks, Jev against each Mercury setting:
 
@@ -55,6 +67,10 @@ Same masks, Jev against each Mercury setting:
 | Mercury, low | 130 | 47.0% | 46.8% | +0.2 [-0.4, 0.6] |
 | Mercury, medium | 149 | 47.3% | 47.2% | +0.1 [-0.2, 0.3] |
 | Mercury, high | 183 | 47.0% | 47.4% | -0.4 [-0.9, 0.0] |
+| Mercury DSPy, off | 180 | 46.9% | 46.1% | +0.8 [0.2, 1.4] |
+| Mercury DSPy, low | 183 | 46.7% | 46.1% | +0.6 [0.4, 1.0] |
+| Mercury DSPy, medium | 219 | 46.5% | 45.2% | +1.3 [0.8, 1.7] |
+| Mercury DSPy, high | 252 | 46.7% | 45.2% | +1.4 [0.3, 2.6] |
 
 # Diversity of the filled values (held-out grid)
 
