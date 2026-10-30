@@ -1,7 +1,7 @@
 """Mercury 2.5 with its best DSPy prompt on the held-out Mask Lab grid's own masks (2026-10-29).
 
-The best prompt is GEPA's, written by GPT-6 Luna with each task's answer shape shown, on top of the legal-choice
-answer types (docs/dspy-structure-experiment.md, run dspy-optimize-luna4-20261016: 64.6% pooled legality on the
+The best prompt is GEPA's (DSPy's optimizer that rewrites the instructions from the checks' rejection messages),
+written by GPT-6 Luna with each task's answer shape shown, on top of the legal-choice answer types (docs/dspy-structure-experiment.md, run dspy-optimize-luna4-20261016: 64.6% pooled legality on the
 reasoning study's 20 held-out starters). Plain Mercury on this grid got the Mask Lab's regmb prompt (ling_grid.py).
 This sends the DSPy prompt to inception/mercury-2.5 on the same 270 masks at the same four reasoning settings, so its
 fills meet the same re-battle and measurements as Jev and plain Mercury (jev_rebattle.py, jev_numbers.py).
@@ -207,7 +207,9 @@ def diversity(_a):
     values, same = written_by_arm()
     count = lambda c: dict(written=sum(c.values()), distinct=len(c), effective=effective(c))
     out = {"definition": "values each arm wrote into the held-out grid's masks, over its legal fills only: distinct "
-                         "values, and effective values = exp(Shannon entropy) of their frequencies",
+                         "values, and effective values = exp(Shannon entropy) of their frequencies: the number of equally "
+                         "common values that would be as varied (ten values written equally often score 10, one value "
+                         "written every time scores 1)",
            "arms": {arm: {kind: count(c) for kind, c in sorted(fields.items())} for arm, fields in values.items()},
            "jev_same_masks": {arm: {kind: count(c) for kind, c in sorted(fields.items())} for arm, fields in same.items()}}
     results.save(DIVERSITY, out)
