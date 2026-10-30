@@ -30,3 +30,4 @@ test_reverse_score_diversity.py
 test_slot_order.py
 test_temperature_experiment.py
 test_torch_load_ban.py
+test_type_coverage.py
