@@ -1,0 +1,231 @@
+<!doctype html>
+<!-- Post 2 figure: a tuned prompt closed most of Mercury's gap to Jev. Built by build_post2_figure.py;
+     every number comes from the file it names. ?t=12.5 freezes a frame; ?capture=1 shows the bare frame. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuned Mercury closes the gap</title>
+<style>
+	:root { --page: #e9e7e2; --ink: #222; }
+	html, body { margin: 0; background: var(--page); color: var(--ink); font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif; }
+	.wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px 16px 96px; }
+	.note { width: min(100%, 540px); margin: 0; font-size: 14px; line-height: 1.45; color: #444; }
+	canvas { width: min(100%, 540px, calc((100vh - 210px) * 0.8)); height: auto; aspect-ratio: 1080 / 1350; display: block; border-radius: 6px; box-shadow: 0 2px 14px rgba(0, 0, 0, .18); }
+	.controls { display: flex; align-items: center; gap: 10px; width: min(100%, 540px); }
+	.controls button { font: 600 14px/1 inherit; padding: 9px 14px; border-radius: 999px; border: 1px solid #999; background: #fff; color: #222; cursor: pointer; }
+	.controls input[type=range] { flex: 1; min-width: 0; }
+	.controls output { font: 500 13px/1 ui-monospace, Menlo, monospace; min-width: 64px; text-align: right; }
+	/* ?capture=1: the bare 1080×1350 frame, for screenshots and video export */
+	.capture .wrap { padding: 0; }
+	.capture canvas { width: 1080px; border-radius: 0; box-shadow: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+	<p class="note">Post 2 video: a tuned prompt closed most of Mercury's gap to Jev. Press Play or scrub.</p>
+	<canvas id="stage" width="1080" height="1350" role="img" aria-label="Animated figure: Mercury's legal teams and win rate with a plain and a tuned prompt, against Jev"></canvas>
+	<div class="controls">
+		<button id="play" type="button">Pause</button>
+		<button id="restart" type="button">Restart</button>
+		<input id="scrub" type="range" min="0" max="19" step="0.01" value="0" aria-label="Time in the video">
+		<output id="clock">0.0 s</output>
+	</div>
+</div>
+<script>
+const D = __DATA__;
+const T = 19, W = 1080, H = 1350, SHIFT = 1;   // SHIFT: the opening runs 1 s longer than the prototype's
+const cv = document.getElementById("stage"), ctx = cv.getContext("2d");
+
+// Numbers every variant shows, rounded once from the raw values.
+const N = {
+	plainHigh: D.plain.legal[3], tunedHigh: D.tuned.legal[3], jevLegal: D.jev.legal, tasks: D.tasks,
+	plainWin: D.plain.usable[3], tunedWin: D.tuned.usable[3], jevWin: D.jev.usable,
+	sharedJev: D.shared.jev, sharedMercury: D.shared.mercury, sharedMasks: D.shared.masks,
+};
+N.gap = (N.tunedWin - N.plainWin) / (N.jevWin - N.plainWin);
+N.gapText = "about " + Math.round(N.gap * 20) * 5 + "%";
+const pct = v => (v * 100).toFixed(1) + "%";
+const CAPTION = "Win rate: share of battles won against the 49 strongest teams in the current meta, 8 battles each, with the behaviour-cloning policy on both sides. Data: " + D.files + ".";
+
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+const lerp = (a, b, u) => a + (b - a) * u;
+const on = (t, a, b, f = .3) => seg(t, a, a + f) * (1 - seg(t, b - f, b));
+
+function txt(s, x, y, font, color, { align = "left", alpha = 1 } = {}) {
+	if (alpha <= 0) return;
+	ctx.save(); ctx.globalAlpha *= alpha; ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align;
+	ctx.fillText(s, x, y); ctx.restore();
+}
+function lines(s, maxW, font) {
+	ctx.save(); ctx.font = font;
+	const out = []; let line = "";
+	for (const w of s.split(" ")) {
+		const test = line ? line + " " + w : w;
+		if (ctx.measureText(test).width > maxW && line) { out.push(line); line = w; } else line = test;
+	}
+	if (line) out.push(line);
+	ctx.restore(); return out;
+}
+function para(s, x, y, maxW, lh, font, color, opts = {}) {
+	const ls = lines(s, maxW, font);
+	ls.forEach((l, i) => txt(l, x, y + i * lh, font, color, opts));
+	return y + ls.length * lh;
+}
+
+const imgs = {};
+function loadImages() {
+	return Promise.all(D.example.team.flatMap((p, i) => [["s" + i, p.sprite], ["i" + i, p.itemIcon]].map(([k, src]) => new Promise(res => {
+		const im = new Image(); im.onload = im.onerror = res; im.src = src; imgs[k] = im;
+	}))));
+}
+function pic(key, x, y, size, alpha = 1) {
+	const im = imgs[key]; if (!im || !im.width || alpha <= 0) return;
+	const s = size / Math.max(im.width, im.height);
+	ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingEnabled = false;
+	ctx.drawImage(im, x + (size - im.width * s) / 2, y + (size - im.height * s) / 2, im.width * s, im.height * s);
+	ctx.restore();
+}
+// Six sprites with their items, as the house rule asks.
+function teamStrip(x, y, w, size, alpha) {
+	const cell = w / 6;
+	D.example.team.forEach((p, i) => {
+		const cx = x + i * cell + (cell - size) / 2;
+		pic("s" + i, cx, y, size, alpha);
+		pic("i" + i, cx + size * .62, y + size * .62, size * .42, alpha);
+	});
+}
+
+// ---------- C: annotated editorial chart ----------
+function drawC(tAbs) {
+	const C = { bg: "#ffffff", ink: "#141414", dim: "#4d4d4d", grid: "#e4e4e4", plain: "#767676", tuned: "#d9480f", jev: "#1f4e9c" };
+	const FS = (w, s) => `${w} ${s}px Georgia, "Iowan Old Style", "Times New Roman", serif`;
+	const FL = (w, s) => `${w} ${s}px "Helvetica Neue", Arial, sans-serif`;
+	ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+	const yDek = para("A tuned prompt closed most of the gap", 72, 112, 936, 70, FS(700, 62), C.ink);
+	para(`Mercury 2.5 on ${N.tasks} half-built Pokémon teams: a plain prompt, then DSPy answer types that list legal choices and a prompt the GEPA optimizer rewrote with GPT-6\u00a0Luna. Jev, TypeSafe AI's decision model, is the reference.`, 72, yDek + 10, 936, 42, FL(400, 32), C.dim);
+
+	// Scene 0: one real task first.
+	let a = on(tAbs, 0, 2.9);
+	teamStrip(120, 470, 840, 130, a);
+	para(`One task: ${D.example.lead}'s team, with ${D.example.hidden} moves hidden. Mercury fills them in.`, 540, 680, 860, 44, FL(500, 36), C.ink, { align: "center", alpha: a });
+	// Charizard's learnset in Reg M-B has Fly and not Surf (code/data/regmb-vocabulary.json).
+	para("Every pick must be legal: Charizard can learn Fly, not Surf.", 540, 790, 860, 44, FL(700, 36), C.tuned, { align: "center", alpha: a * seg(tAbs, .8, 1.2) });
+	const t = tAbs - SHIFT;
+
+	// Chart 1: legal teams by reasoning setting. Only the end of each line is labelled, to the right.
+	a = seg(t, 1.6, 2.2);
+	const x = k => 200 + k * 190, y = v => 820 - v / N.tasks * 330;
+	if (a > 0) {
+		txt(`Legal teams out of ${N.tasks}, by reasoning setting`, 72, 445, FL(700, 32), C.ink, { alpha: a });
+		[0, 90, 180, 270].forEach(v => {
+			ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = C.grid; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(180, y(v)); ctx.lineTo(790, y(v)); ctx.stroke(); ctx.restore();
+			txt(String(v), 160, y(v) + 11, FL(400, 32), C.dim, { align: "right", alpha: a });
+		});
+		D.levels.forEach((lv, k) => txt(lv, x(k), 862, FL(400, 32), C.dim, { align: "center", alpha: a }));
+		const j = seg(t, 2.0, 2.8);
+		ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = C.jev; ctx.lineWidth = 6; ctx.setLineDash([16, 10]);
+		ctx.beginPath(); ctx.moveTo(180, y(N.jevLegal)); ctx.lineTo(lerp(180, 790, j), y(N.jevLegal)); ctx.stroke(); ctx.restore();
+		txt(`Jev ${N.jevLegal}`, 800, y(N.jevLegal) - 12, FL(700, 32), C.jev, { alpha: a * seg(t, 2.5, 2.8) });
+		const series = (vals, color, t0, dt, upTo) => {
+			ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 8; ctx.lineJoin = "round"; ctx.beginPath();
+			let drawn = false;
+			for (let k = 0; k < upTo; k++) {
+				const u = seg(t, t0 + k * dt, t0 + (k + 1) * dt);
+				if (u <= 0) break;
+				if (k === 0) ctx.moveTo(x(0), y(vals[0]));
+				else ctx.lineTo(lerp(x(k - 1), x(k), ease(u)), lerp(y(vals[k - 1]), y(vals[k]), ease(u)));
+				drawn = true;
+			}
+			if (drawn) ctx.stroke(); ctx.restore();
+			for (let k = 0; k < upTo; k++) {
+				const u = seg(t, t0 + k * dt + dt * .7, t0 + (k + 1) * dt);
+				if (u <= 0) continue;
+				ctx.save(); ctx.globalAlpha = u; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x(k), y(vals[k]), 14, 0, 7); ctx.fill(); ctx.restore();
+			}
+		};
+		series(D.plain.legal, C.plain, 2.8, .4, 4);
+		txt(`plain ${D.plain.legal[3]}`, 800, y(D.plain.legal[3]) + 11, FL(700, 32), C.plain, { alpha: seg(t, 4.4, 4.8) });
+		series(D.tuned.legal, C.tuned, 4.8, .45, 3);
+		if (t >= 6.2 && t < 7.4) {
+			const p = .55 + .45 * Math.sin(t * 9);
+			ctx.save(); ctx.globalAlpha = p; ctx.strokeStyle = C.tuned; ctx.lineWidth = 4; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(x(3), y(220), 30, 0, 7); ctx.stroke(); ctx.restore();
+			txt("?", x(3), y(220) + 12, FL(700, 36), C.tuned, { align: "center" });
+			txt("Guess where the tuned line lands", 790, y(20), FL(600, 32), C.ink, { align: "right" });
+		}
+		if (t >= 7.4) {
+			const u = ease(seg(t, 7.4, 8.0));
+			ctx.save(); ctx.strokeStyle = C.tuned; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(x(2), y(D.tuned.legal[2]));
+			ctx.lineTo(lerp(x(2), x(3), u), lerp(y(D.tuned.legal[2]), y(D.tuned.legal[3]), u)); ctx.stroke(); ctx.restore();
+			const v = seg(t, 7.8, 8.0);
+			ctx.save(); ctx.globalAlpha = v; ctx.fillStyle = C.tuned; ctx.beginPath(); ctx.arc(x(3), y(D.tuned.legal[3]), 14, 0, 7); ctx.fill(); ctx.restore();
+			txt(`tuned ${D.tuned.legal[3]}`, 800, y(D.tuned.legal[3]) + 44, FL(700, 32), C.tuned, { alpha: v });
+		}
+		txt(`+${N.tunedHigh - N.plainHigh} legal`, x(3) - 32, (y(D.plain.legal[3]) + y(D.tuned.legal[3])) / 2 + 38, FL(700, 32), C.ink, { align: "right", alpha: seg(t, 8.4, 8.9) });
+	}
+
+	// Chart 2: the win-rate gap at high reasoning.
+	a = seg(t, 9.6, 10.1);
+	if (a > 0) {
+		const px = v => 200 + (v - .30) / .20 * 760, yA = 1010;
+		txt("Win rate at high reasoning, illegal teams as losses", 72, 925, FL(700, 32), C.ink, { alpha: a });
+		ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = C.grid; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(px(.30), yA); ctx.lineTo(px(.50), yA); ctx.stroke(); ctx.restore();
+		txt("30%", px(.30) - 16, yA + 11, FL(400, 32), C.dim, { align: "right", alpha: a });
+		txt("50%", px(.50) + 16, yA + 11, FL(400, 32), C.dim, { alpha: a });
+		const m = ease(seg(t, 11.5, 13.2)), tx = px(lerp(N.plainWin, N.tunedWin, m));
+		if (t >= 10.5 && t < 11.5) txt("Guess: how close does the tuned prompt get to Jev?", 72, yA + 112, FL(700, 34), C.ink, { alpha: a * seg(t, 10.5, 10.8) });
+		if (m > 0) {
+			ctx.save(); ctx.globalAlpha = a * .28; ctx.fillStyle = C.tuned; ctx.fillRect(px(N.plainWin), yA - 18, tx - px(N.plainWin), 36); ctx.restore();
+			ctx.save(); ctx.strokeStyle = C.tuned; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(px(N.plainWin), yA); ctx.lineTo(tx, yA); ctx.stroke(); ctx.restore();
+		}
+		const dot = (xx, color, alpha, diamond) => {
+			if (alpha <= 0) return;
+			ctx.save(); ctx.globalAlpha = a * alpha; ctx.fillStyle = color; ctx.beginPath();
+			if (diamond) { ctx.moveTo(xx, yA - 18); ctx.lineTo(xx + 18, yA); ctx.lineTo(xx, yA + 18); ctx.lineTo(xx - 18, yA); ctx.closePath(); } else ctx.arc(xx, yA, 16, 0, 7);
+			ctx.fill(); ctx.restore();
+		};
+		dot(px(N.plainWin), C.plain, seg(t, 9.9, 10.2));
+		txt(`plain ${pct(N.plainWin)}`, px(N.plainWin), yA - 34, FL(600, 32), C.plain, { align: "center", alpha: a * seg(t, 9.9, 10.2) });
+		dot(px(N.jevWin), C.jev, seg(t, 10.2, 10.5), true);
+		txt(`Jev ${pct(N.jevWin)}`, px(N.jevWin), yA - 34, FL(600, 32), C.jev, { align: "center", alpha: a * seg(t, 10.2, 10.5) });
+		dot(tx, C.tuned, seg(t, 11.5, 11.7));
+		txt(`tuned ${pct(lerp(N.plainWin, N.tunedWin, m))}`, tx, yA + 56, FL(600, 32), C.tuned, { align: "center", alpha: a * seg(t, 11.5, 11.7) });
+		const head = `${N.gapText[0].toUpperCase() + N.gapText.slice(1)} of the gap, closed`, ga = a * seg(t, 13.4, 13.9);
+		txt(head, 72, yA + 112, FL(700, 36), C.tuned, { alpha: ga });
+		ctx.save(); ctx.font = FL(700, 36); const hw = ctx.measureText(head).width; ctx.restore();
+		txt(`95% range ${Math.round(D.gap.lo * 100)} to ${Math.round(D.gap.hi * 100)}%`, 72 + hw + 20, yA + 112, FL(400, 32), C.dim, { alpha: ga });
+		txt(`Same ${N.sharedMasks} tasks, both legal: Jev ${pct(N.sharedJev)}, tuned Mercury ${pct(N.sharedMercury)}.`, 72, yA + 156, FL(400, 32), C.dim, { alpha: a * seg(t, 14.1, 14.6) });
+	}
+	if (t > 15.2) para(CAPTION, 72, 1224, 936, 38, FL(400, 32), C.dim, { alpha: seg(t, 15.2, 15.7) });
+}
+
+// ---------- player ----------
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const params = new URLSearchParams(location.search);
+let t = params.has("t") ? clamp(+params.get("t"), 0, T) : (reduce ? T : 0);
+let playing = !params.has("t") && !reduce, last = null;
+const $ = id => document.getElementById(id);
+if (params.has("capture")) document.body.classList.add("capture");
+
+function render() {
+	drawC(t);
+	$("scrub").value = t; $("clock").value = t.toFixed(1) + " s";
+	$("play").textContent = playing ? "Pause" : (t >= T ? "Replay" : "Play");
+}
+function tick(now) {
+	if (playing) {
+		if (last !== null) t += (now - last) / 1000;
+		last = now;
+		if (t >= T) { t = T; playing = false; last = null; }
+	} else last = null;
+	render(); requestAnimationFrame(tick);
+}
+$("play").addEventListener("click", () => { if (t >= T) t = 0; playing = !playing; last = null; });
+$("restart").addEventListener("click", () => { t = 0; playing = true; last = null; });
+$("scrub").addEventListener("input", e => { t = +e.target.value; playing = false; });
+loadImages().then(() => requestAnimationFrame(tick));
+</script>
+</body>
+</html>
