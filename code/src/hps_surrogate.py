@@ -118,7 +118,7 @@ def evaluate(pred, y, wins):
             "pool_mean": float(y.mean()),
             "best_possible_top20": float(np.sort(y)[-20:].mean())}
 
-# ---------------------------------------------------------------- active (simulated)
+# ---------------------------------------------------------------- active (simulated)  # noqa: ERA001
 def active_pick(F, Xp, labelled, w, Ainv, n_unc=80, n_top=20):
     free = [i for i in range(len(Xp)) if i not in labelled]
     mu = Xp[free] @ w
