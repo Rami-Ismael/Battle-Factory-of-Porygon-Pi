@@ -26,12 +26,12 @@ h1 .j{color:var(--accent)}
 .pilltext .n{font-variant-numeric:tabular-nums}
 .ph{position:absolute;left:24px;top:20px;display:flex;flex-direction:column;gap:2px}
 .ph b{font-size:34px;font-weight:700}
-.ph span{font-family:var(--mono);font-size:20px;color:var(--mute)}
-.grid{position:absolute;left:20px;top:112px;display:grid;grid-template-columns:repeat(18,20px);gap:2px}
+.ph span{font-size:32px;line-height:1.1;color:var(--mute)}
+.grid{position:absolute;left:20px;top:170px;display:grid;grid-template-columns:repeat(18,20px);gap:2px}
 .grid i{width:20px;height:20px;border-radius:4px;box-sizing:border-box}
 .count{position:absolute;left:24px;bottom:22px;display:flex;align-items:baseline;gap:12px}
 .count b{font-size:64px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.count span{font-size:24px;color:var(--mute)}
+.count span{font-size:32px;color:var(--mute)}
 .fill{position:absolute;left:0;top:0;bottom:0;width:100%;transform-origin:left center}
 .blab{position:absolute;font-size:34px;font-weight:700}
 .bval{position:absolute;font-size:40px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;width:130px}
@@ -39,19 +39,21 @@ h1 .j{color:var(--accent)}
 .wh{position:absolute;height:6px;background:var(--ink);box-shadow:0 0 0 2px var(--paper);border-radius:2px}
 .wh::before,.wh::after{content:"";position:absolute;top:-13px;width:6px;height:32px;background:var(--ink);box-shadow:0 0 0 2px var(--paper);border-radius:2px}
 .wh::before{left:-2px}.wh::after{right:-2px}
-.rng{position:absolute;font-family:var(--mono);font-size:25px;color:var(--ink);width:150px;text-align:right;font-variant-numeric:tabular-nums}
+.rng{position:absolute;font-family:var(--mono);font-size:32px;color:var(--ink);width:200px;text-align:right;font-variant-numeric:tabular-nums}
 .toggle{position:absolute;width:112px;height:60px;border-radius:30px;border:3px solid var(--ink);box-sizing:border-box;background:var(--paper)}
 .knob{position:absolute;top:6px;height:42px;border-radius:21px;background:var(--ink)}
-.tlab{position:absolute;font-size:28px;font-weight:500}
+.tlab{position:absolute;font-size:32px;font-weight:500;white-space:nowrap}
+.glab{position:absolute;font-size:32px;font-weight:500;color:var(--mute);white-space:nowrap}
 .caption{position:absolute;left:90px;width:900px;top:1110px;text-align:center;font-size:37px;line-height:1.3;color:var(--ink);font-weight:500}
-.sum{position:absolute;inset:0;padding:44px 48px;box-sizing:border-box;display:grid;align-content:start;gap:26px}
-.srow{display:grid;grid-template-columns:190px 1fr 1fr;align-items:baseline;gap:12px}
+.sum{position:absolute;inset:0;padding:40px 40px;box-sizing:border-box;display:grid;align-content:start;gap:24px}
+.srow{display:grid;grid-template-columns:180px 1fr 1.35fr;align-items:baseline;gap:12px}
 .srow .who{font-size:38px;font-weight:700}
 .srow .big{font-size:58px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.srow small{display:block;white-space:nowrap;font-size:22px;font-weight:400;color:var(--mute);letter-spacing:0}
-.fair{font-size:26px;line-height:1.38;border-left:6px solid var(--ink);padding:14px 20px;background:var(--canvas)}
+.srow small{display:block;font-size:32px;line-height:1.2;font-weight:400;color:var(--mute);letter-spacing:0}
+.srow small .nw{white-space:nowrap}
+.fair{font-size:32px;line-height:1.3;border-left:6px solid var(--ink);padding:14px 20px;background:var(--canvas)}
 .fair b{font-weight:700}
-.sig{white-space:nowrap;font-family:var(--mono);font-size:20px;color:var(--mute);border-top:2px solid var(--line);padding-top:16px}
+.sig{font-size:32px;line-height:1.25;color:var(--mute);letter-spacing:-.01em;border-top:2px solid var(--line);padding-top:16px}
 .cursor{position:absolute;left:0;top:0;width:44px;height:44px;pointer-events:none}
 .ring{position:absolute;width:70px;height:70px;border-radius:50%;border:3px solid var(--ink);box-sizing:border-box}
 .controls{max-width:1080px;margin:12px auto 0;display:flex;gap:12px;align-items:center;font-family:var(--mono);font-size:13px;color:var(--mute)}
@@ -73,20 +75,20 @@ body.video .controls{display:none}
     <div class="layer" id="Lpanel"><div class="ph"><b style="color:var(--accent)">Jev</b><span>decision model</span></div><div class="grid" id="gJ"></div><div class="count"><b id="cJ" style="color:var(--accent)"></b><span id="cJl"></span></div></div>
     <div class="fill" id="fJ" style="background:var(--accent)"></div>
     <div class="layer" id="Lsum"><div class="sum">
-      <div class="srow"><span class="who" style="color:var(--accent)">Jev</span><span class="big" style="color:var(--accent)">270/270<small>legal teams</small></span><span class="big" style="color:var(--accent)"><span id="sumJ"></span><small>win rate, all 270 tasks<br>95% range <span id="sumJr"></span></small></span></div>
-      <div class="srow"><span class="who">Mercury</span><span class="big"><span id="sumMl"></span><small>legal teams, tuned prompt</small></span><span class="big"><span id="sumM"></span><small>win rate, all 270 tasks<br>95% range <span id="sumMr"></span></small></span></div>
-      <p class="fair" style="margin:0"><b>Fair check:</b> when both teams were legal, <span id="fairNums"></span>. Jev's edge is that it never makes an illegal team. A 95% range is where the result would likely land with five other unmasked teams. With its plain prompt, Mercury made <span id="plainLegal"></span> legal teams.</p>
-      <div class="sig" id="sig">Rami Ismael · github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi</div>
+      <div class="srow"><span class="who" style="color:var(--accent)">Jev</span><span class="big" style="color:var(--accent)">270/270<small>legal teams</small></span><span class="big" style="color:var(--accent)"><span id="sumJ"></span><small>win rate, all 270 tasks <span class="nw">95% range <span id="sumJr"></span></span></small></span></div>
+      <div class="srow"><span class="who">Mercury</span><span class="big"><span id="sumMl"></span><small>legal teams, tuned prompt</small></span><span class="big"><span id="sumM"></span><small>win rate, all 270 tasks <span class="nw">95% range <span id="sumMr"></span></span></small></span></div>
+      <p class="fair" style="margin:0"><b>Fair check:</b> a task is one half-built team to finish. <span id="fairNums"></span>. A 95% range is where the result would likely land with five other unmasked teams. Jev made a legal team for all 270; with its plain prompt, Mercury made <span id="plainLegal"></span>.</p>
+      <div class="sig" id="sig">Rami Ismael<br>github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi</div>
     </div></div>
   </div>
 
   <div class="shape" id="S2">
-    <div class="layer" id="L2panel"><div class="ph"><b>Mercury</b><span>language model, tuned prompt</span></div><div class="grid" id="gM"></div><div class="count"><b id="cM"></b><span id="cMl"></span></div></div>
+    <div class="layer" id="L2panel"><div class="ph"><b>Mercury</b><span>language model,<br>tuned prompt</span></div><div class="grid" id="gM"></div><div class="count"><b id="cM"></b><span id="cMl"></span></div></div>
     <div class="fill" id="gMercBar" style="background:var(--ghost)"></div>
     <div class="fill" id="fM" style="background:var(--ink)"></div>
   </div>
 
-  <div class="btitle" id="btitle">Win rate: share of battles won against the 49 strongest tournament teams</div>
+  <div class="btitle" id="btitle">Win rate: share of battles won against the 49 strongest teams in the current meta</div>
   <div class="wh" id="whJ"></div><div class="wh" id="whM"></div>
   <div class="rng" id="rJ"></div><div class="rng" id="rM"></div>
   <div class="blab" id="lJ" style="color:var(--accent)">Jev</div>
@@ -94,7 +96,8 @@ body.video .controls{display:none}
   <div class="bval" id="vJ" style="color:var(--accent)"></div>
   <div class="bval" id="vM"></div>
   <div class="toggle" id="tog"><div class="knob" id="knob"></div></div>
-  <div class="tlab" id="tlab">Count illegal teams as losses</div>
+  <div class="tlab" id="tlab"></div>
+  <div class="glab" id="glab"></div>
 
   <div class="caption" id="cap"></div>
 
@@ -147,10 +150,10 @@ const cJ = [...$("gJ").children], cM = [...$("gM").children];
 const FLIP = { changed: B(13), rule: B(14), unreadable: B(15) };
 const nFail = (t) => order.reduce((a, s) => a + (s !== "legal" && t >= FLIP[s] ? 1 : 0), 0);
 
-const CAPS = [[B(2), "A real tournament team, with one Pokémon hidden."], [B(4), "An AI fills the gap."], [B(5), "That's one task."],
+const CAPS = [[B(2), "A real tournament team, with one Pokémon hidden."], [B(4), "An AI fills the gap."], [B(5), "That's one task: one half-built team to finish."],
   [B(8), "Two AIs fill every one of the 270."], [B(13), D.caps.changed], [B(14), D.caps.rule], [B(15), D.caps.unreadable],
   [B(16), "Legal = follows the game's rules."], [B(18), D.caps.both], [B(22), "Now count illegal teams as losses, over all 270 tasks."],
-  [B(23), "Jev's edge: it never makes an illegal team."], [B(25), "Thin lines: the 95% range. Re-run this with five other unmasked teams, and the win rate would most likely land inside it."],
+  [B(23), "Jev's edge: it made a legal team for all 270."], [B(25), "Thin lines: the 95% range. Re-run this with five other unmasked teams, and the win rate would most likely land inside it."],
   [B(29), D.caps.ranges], [B(33), ""]];   // the counts and numbers are built from the data in build_post1_figure.py
 
 function geom(el, x, y, w, h, r) { Object.assign(el.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px", borderRadius: r + "px" }); }
@@ -158,14 +161,14 @@ function geom(el, x, y, w, h, r) { Object.assign(el.style, { left: x + "px", top
 function seek(t) {
   // The shape S: tile → team slot → pill → Jev panel → Jev bar track → summary card → tile.
   const sx = track(t, 465, [[B(2), 90], [B(5), 280], [B(9), 90], [B(17), 250], [B(33), 90], [B(36), 465]]);
-  const sy = track(t, 600, [[B(5), 615], [B(9), 330], [B(17), 520], [B(33), 360], [B(36), 600]]);
+  const sy = track(t, 600, [[B(5), 615], [B(9), 330], [B(17), 520], [B(33), 290], [B(36), 600]]);
   const sw = track(t, 150, [[B(5), 520], [B(9), 435], [B(17), 650], [B(33), 900], [B(36), 150]]);
-  const sh = track(t, 150, [[B(5), 120], [B(9), 640], [B(17), 80], [B(33), 680], [B(36), 150]]);
+  const sh = track(t, 150, [[B(5), 120], [B(9), 640], [B(17), 80], [B(33), 920], [B(36), 150]]);
   const sr = track(t, 28, [[B(5), 60], [B(9), 28], [B(17), 20], [B(33), 32], [B(36), 28]]);
   geom($("S"), sx, sy, sw, sh, sr);
   // S2 splits from the pill, becomes Mercury's panel and bar, then folds back into S.
-  const x2 = track(t, 280, [[B(9), 555], [B(17), 250], [B(33), 90]]), y2 = track(t, 615, [[B(9), 330], [B(17), 650], [B(33), 360]]);
-  const w2 = track(t, 520, [[B(9), 435], [B(17), 650], [B(33), 900]]), h2 = track(t, 120, [[B(9), 640], [B(17), 80], [B(33), 680]]);
+  const x2 = track(t, 280, [[B(9), 555], [B(17), 250], [B(33), 90]]), y2 = track(t, 615, [[B(9), 330], [B(17), 650], [B(33), 290]]);
+  const w2 = track(t, 520, [[B(9), 435], [B(17), 650], [B(33), 900]]), h2 = track(t, 120, [[B(9), 640], [B(17), 80], [B(33), 920]]);
   const r2 = track(t, 60, [[B(9), 28], [B(17), 20], [B(33), 32]]);
   geom($("S2"), x2, y2, w2, h2, r2);
   show($("S2"), swap(t, B(9), B(33)));
@@ -216,12 +219,16 @@ function seek(t) {
   [["whJ", "rJ", D.ci.jev, 560, 593], ["whM", "rM", D.ci.mercury, 690, 723]].forEach(([w, r, [lo, hi], y, ty]) => {
     const x0 = 250 + lo * 650, x1 = 250 + (lo + (hi - lo) * grow) * 650;
     Object.assign($(w).style, { left: x0 + "px", top: y - 3 + "px", width: Math.max(0, x1 - x0) + "px" }); show($(w), rangeOn);
-    Object.assign($(r).style, { left: "880px", width: "160px", top: ty + "px" }); $(r).textContent = `${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)}`; show($(r), rangeOn, (1 - rangeOn) * 8);
+    Object.assign($(r).style, { left: "840px", width: "200px", top: ty + "px" }); $(r).textContent = `${(lo * 100).toFixed(1)}–${(hi * 100).toFixed(1)}`; show($(r), rangeOn, (1 - rangeOn) * 8);
   });
   // The toggle: its knob's two edges ride different springs, so the leading edge stretches ahead.
   const togOn = swap(t, B(20), B(33));
-  Object.assign($("tog").style, { left: "250px", top: "800px" }); show($("tog"), togOn, (1 - togOn) * 8);
-  Object.assign($("tlab").style, { left: "384px", top: "811px" }); show($("tlab"), togOn, (1 - togOn) * 8);
+  Object.assign($("tog").style, { left: "250px", top: "840px" }); show($("tog"), togOn, (1 - togOn) * 8);
+  Object.assign($("tlab").style, { left: "384px", top: "849px" }); show($("tlab"), togOn, (1 - togOn) * 8);
+  $("tlab").textContent = t >= B(21) + 0.1 ? "On: illegal teams count as losses" : "Off: only tasks where both were legal";
+  // The grey segment is Mercury's win rate where both were legal, left showing once illegal teams count as losses.
+  const greyOn = swap(t, B(22), B(33));
+  Object.assign($("glab").style, { left: "250px", top: "772px" }); $("glab").textContent = D.grey; show($("glab"), greyOn, (1 - greyOn) * 8);
   const left = 6 + 50 * soft(t - B(21) - 0.06, 18), right = 48 + 50 * soft(t - B(21), 26);
   Object.assign($("knob").style, { left: left + "px", width: (right - left) + "px" });
   $("tog").style.background = t >= B(21) + 0.1 ? "var(--ink)" : "var(--paper)";
@@ -239,7 +246,7 @@ function seek(t) {
   // The cursor: clicks the "?" on beat 3, the toggle on beat 21.
   const curO = swap(t, B(2) + 0.1, B(4) + 0.3) + swap(t, B(20) + 0.1, B(22) + 0.3);
   const cx = track(t, 1000, [[B(2) + 0.1, 150], [B(4) + 0.1, 1000], [B(19), 1000], [B(20) + 0.1, 300], [B(22), 1000]], crit, 11);
-  const cy = track(t, 1280, [[B(2) + 0.1, 650], [B(4) + 0.1, 1280], [B(19), 1280], [B(20) + 0.1, 825], [B(22), 1280]], crit, 11);
+  const cy = track(t, 1280, [[B(2) + 0.1, 650], [B(4) + 0.1, 1280], [B(19), 1280], [B(20) + 0.1, 865], [B(22), 1280]], crit, 11);
   const press = (tc) => { const d = t - tc; return d >= 0 && d < 0.12 ? 0.85 : 1; };
   const ps = Math.min(press(B(3)), press(B(21)));
   $("cur").style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px) scale(${ps})`;
@@ -247,7 +254,7 @@ function seek(t) {
   // A ring where each click lands.
   const ring = $("ring"), ringA = lin(t, B(3), B(3) + 0.35), ringB = lin(t, B(21), B(21) + 0.35);
   const firstOn = ringA > 0 && ringA < 1;
-  const rp = firstOn ? ringA : ringB > 0 && ringB < 1 ? ringB : 0, rx = firstOn ? 150 : 300, ry = firstOn ? 650 : 825;
+  const rp = firstOn ? ringA : ringB > 0 && ringB < 1 ? ringB : 0, rx = firstOn ? 150 : 300, ry = firstOn ? 650 : 865;
   Object.assign(ring.style, { left: rx - 35 + "px", top: ry - 35 + "px", transform: `scale(${(0.6 + 0.8 * rp).toFixed(3)})` });
   show(ring, rp > 0 ? (1 - rp) * 0.8 : 0);
 }

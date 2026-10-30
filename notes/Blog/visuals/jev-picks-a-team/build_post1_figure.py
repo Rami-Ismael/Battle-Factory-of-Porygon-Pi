@@ -120,7 +120,8 @@ def tuned(masks: list[dict], data: dict) -> dict:
     points = f"{n} point{'' if n == 1 else 's'}"
     lo, hi = shared["ci"]
     assert lo > 0, "the fair-check wording below says Jev is ahead"
-    fair = (f"Jev's teams won slightly more often: {p(shared['jev'])}% against {p(shared['mercury'])}%, about {points} ahead (95% interval for the gap {p(lo)} to {p(hi)} points)")
+    fair = (f"On the {len(both)} tasks where both teams were legal, Jev's teams won {p(shared['jev'])}% and Mercury's "
+            f"{p(shared['mercury'])}%: Jev about {points} ahead (95% range for the gap {p(lo)} to {p(hi)} points)")
     (jlo, jhi), (mlo, mhi) = usable["jev"]["ci_teams"], usable["mercury"]["ci_teams"]
     overlap = mhi >= jlo and jhi >= mlo
     gap_all = usable["jev"]["mean"] - usable["mercury"]["mean"]
@@ -130,7 +131,8 @@ def tuned(masks: list[dict], data: dict) -> dict:
             "rule": plural(counts["rule"], "broke a game rule", "broke a game rule"),
             "unreadable": plural(counts["unreadable"], "answer couldn't be read", "answers couldn't be read"),
             "both": f"Both legal ({len(both)} tasks): {p(shared['jev'])}% vs {p(shared['mercury'])}%, Jev about {points} ahead.",
-            "ranges": (f"The ranges overlap: tuned Mercury is close. About {lost * 100:.0f} of the {gap_all * 100:.1f} points "
+            "ranges": (f"The ranges overlap: tuned Mercury is close on win rate, {p(usable['mercury']['mean'])}% against "
+                       f"{p(usable['jev']['mean'])}%. About {lost * 100:.0f} of the {gap_all * 100:.1f} points "
                        f"between them come from its {len(masks) - counts['legal']} illegal teams." if overlap else
                        "The two ranges don't overlap, so the gap is unlikely to be chance.")}
     rows: dict[str, list[str]] = {}
@@ -139,6 +141,7 @@ def tuned(masks: list[dict], data: dict) -> dict:
     return dict(data, mercury=status, counts=counts, rows=list(rows.values()),
                 shared=shared, usable={k: v["mean"] for k, v in usable.items()},
                 ci={k: v["ci_teams"] for k, v in usable.items()}, fair=fair, caps=caps,
+                grey=f"Grey: Mercury when legal, {p(shared['mercury'])}%",   # its 252 legal tasks are the shared ones
                 plain_legal=sum(m.get("mercury") is not None for m in masks),
                 examples=["Whimsicott can't learn Icy Wind", "Whimsicott given 50 Stat Points in Speed (the limit is 32)",
                           "two Pokémon holding Choice Scarf"], sprite=SPRITES["whimsicott"])
