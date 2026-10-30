@@ -102,6 +102,15 @@ footer.col a{color:var(--ink-2)}
 </figure>
 <div class="col">
   <!-- The article goes here. Rami writes the prose; see ../CLAUDE.md. -->
+
+  <h2 id="label-grid">Asking for a win rate between the ticks</h2>
+  <!-- Rami: body for this section. Data: ~/vgc-data/ask_grid/ask_grid.json (2026-10-30). Explainer: notes/Teaching/label-grid/. -->
+</div>
+<figure id="label-grid-results">
+  <iframe src="../../notes/Blog/visuals/label-grid/label-grid.html?embed" title="Win rate by asked win rate for the current team writer and four retrained versions, with asks between the 1/24 ticks marked" loading="lazy" style="height:760px"></iframe>
+  <figcaption>Most training labels are wins out of 24 battles, so they sit on ticks 1/24 apart; asks 0.30 and 0.531 fall between ticks. Each panel is one version of the team writer. Win rate = wins ÷ 49 battles, one against each distinct top-50 meta team, with the same behaviour-cloning bot on both sides; mean of 3 seeds × 64 teams.</figcaption>
+</figure>
+<div class="col">
 </div>
 </article>
 <script>
