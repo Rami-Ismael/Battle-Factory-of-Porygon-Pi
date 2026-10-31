@@ -36,7 +36,7 @@ button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--in
 <main>
 <div class="num">Ask-gap investigation · 2026-10-30</div>
 <h1>Why a win rate of 0.3 is a strange thing to ask for</h1>
-<p class="lead">The team writer learned what a 0.25 team or a 0.29 team looks like. It almost never saw a team labelled exactly 0.30.</p>
+<p class="lead">The discrete diffusion model learned what a 0.25 team or a 0.29 team looks like. It almost never saw a team labelled exactly 0.30.</p>
 
 <section>
 <div class="num">1 · Where one label comes from</div>
@@ -52,20 +52,20 @@ button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--in
 <div class="num">2 · All the labels at once</div>
 <h2>The labels form spikes with nothing between them</h2>
 <div class="row" id="writerBtns">
-<button aria-pressed="true" data-w="F1">Loop-label writer</button>
-<button aria-pressed="false" data-w="G2">Matrix-row writer</button>
+<button aria-pressed="true" data-w="F1">Loop-label member</button>
+<button aria-pressed="false" data-w="G2">Matrix-row member</button>
 <span style="width:12px"></span>
 <button aria-pressed="false" id="zoomBtn">Zoom to 0.25–0.60</button>
 </div>
 <svg viewBox="0 0 840 260" id="hist"></svg>
 <p class="small" id="histNote"></p>
-<p class="small">The two writers are the two members of the current team writer. The <b>loop-label writer</b> (<code>F1_final_medium_noheldout_regmb_v3</code>) trains on search-loop teams and real teams. The <b>matrix-row writer</b> (<code>G2_family_matrix_noprtrain_noheldout_regmb_v3</code>) adds matchup-matrix teams, whose labels average different battle counts and so fall between ticks.</p>
+<p class="small">The discrete diffusion model averages two member networks. The <b>loop-label member</b> (<code>F1_final_medium_noheldout_regmb_v3</code>) trains on search-loop teams and real teams. The <b>matrix-row member</b> (<code>G2_family_matrix_noprtrain_noheldout_regmb_v3</code>) adds matchup-matrix teams, whose labels average different battle counts and so fall between ticks.</p>
 </section>
 
 <section>
 <div class="num">3 · Predict, then check</div>
 <h2>Ask 0.30 sits between 7/24 and 8/24. Where does its win rate land?</h2>
-<p>Same writer, same seeds, 3 × 64 teams per ask, each team battled once against each of the 49 distinct top-50 meta teams (behaviour-cloned policy on both sides). Win rate = the team's share of those 49 battles, averaged over the teams.</p>
+<p>Same model, same seeds, 3 × 64 teams per ask, each team battled once against each of the 49 distinct top-50 meta teams (behaviour-cloned policy on both sides). Win rate = the team's share of those 49 battles, averaged over the teams.</p>
 <div class="guess">
 <button data-g="between">Between its two neighbours</button>
 <button data-g="above">Above both</button>
@@ -81,7 +81,7 @@ button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--in
 <section>
 <div class="num">4 · Why the network can tell the difference</div>
 <h2>Its fastest input wave wiggles faster than the ticks</h2>
-<p>The writer does not read the ask as one number. It turns it into 17 inputs: the number itself plus sin and cos at 8 frequencies, from π up to 128π. Below are the sin waves over 0.25–0.36. Grey lines are ticks; the rose line is ask 0.30.</p>
+<p>The model does not read the ask as one number. It turns it into 17 inputs: the number itself plus sin and cos at 8 frequencies, from π up to 128π. Below are the sin waves over 0.25–0.36. Grey lines are ticks; the rose line is ask 0.30.</p>
 <div class="row" id="freqBtns">
 <button aria-pressed="true" data-f="8">8 frequencies (current)</button>
 <button aria-pressed="false" data-f="4">4 frequencies (proposed)</button>
@@ -91,23 +91,24 @@ button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--in
 </section>
 
 <section>
-<div class="num">5 · The four fixes</div>
+<div class="num">5 · The fixes</div>
 <h2>What each one changes</h2>
 <div class="fixes">
 <div class="fix"><span class="tag">done, no training</span><h3>Round the ask to the nearest tick</h3><p>Ask 0.30 becomes 7/24, ask 0.531 becomes 13/24. Today's on-tick controls are exactly this arm: 0.337 → 0.366 and 0.404 → 0.444.</p></div>
 <div class="fix"><span class="tag">best arm</span><h3>Jitter labels by up to ±1/48</h3><p>Each training row's label moves by a fresh random amount in every batch. A tick's spike becomes a flat block 1/24 wide, so the blocks tile the whole line and 0.30 is no longer a gap.</p><p class="small"><b>Result:</b> dip gone (0.30: +0.008, 0.531: −0.005). Win rate 0.388 at 0.30 and 0.438 at 0.531, against 0.342 and 0.407 for the unchanged-label retrain.</p></div>
-<div class="fix"><span class="tag">dip gone, dial flatter</span><h3>Keep 4 frequencies</h3><p>The fastest wave becomes 8π: one cycle per 0.25 of win rate, six ticks wide. Neighbouring asks then get nearly the same inputs, so the writer cannot treat 0.30 as unseen.</p><p class="small"><b>Result:</b> dip gone (+0.004, +0.003), but win rate stays near 0.41 from ask 0.5 to 0.6.</p></div>
-<div class="fix"><span class="tag run">no help</span><h3>Balance labels in 0.1 buckets</h3><p>Each epoch draws the same number of teams from every win-rate bucket, capped at the 0.5–0.6 bucket's size. The 0.6–0.8 buckets are too small to reach the cap, so they keep all their teams.</p><p class="small"><b>Result:</b> dips stay (−0.023, −0.021) and high asks score lower: 0.385 at 0.6, 0.374 at 0.7.</p><p class="small"><b>Why diversity falls too:</b> training teams get less varied as their label rises. Forty teams drawn from the 0.0–0.1 bucket cover 45 effective species; from 0.5–0.8, about 21. Balancing cuts the varied 0.1–0.4 buckets hardest, so teams labelled 0.4 or more rise from 24% to 36% of the labelled teams the loop-label writer sees (21% to 36% for the matrix-row writer). Its teams then use fewer species than the retrain on unchanged labels at every ask range (11.9 vs 14.4 effective species at asks 12/24–13/24).</p></div>
+<div class="fix"><span class="tag">dip gone, dial flatter</span><h3>Keep 4 frequencies</h3><p>The fastest wave becomes 8π: one cycle per 0.25 of win rate, six ticks wide. Neighbouring asks then get nearly the same inputs, so the model cannot treat 0.30 as unseen.</p><p class="small"><b>Result:</b> dip gone (+0.004, +0.003), but win rate stays near 0.41 from ask 0.5 to 0.6.</p></div>
+<div class="fix"><span class="tag run">no help</span><h3>Win-rate quota</h3><p>Each epoch draws the same number of teams from every win-rate bucket, capped at the 0.5–0.6 bucket's size. The 0.6–0.8 buckets are too small to reach the cap, so they keep all their teams.</p><p class="small"><b>Result:</b> dips stay (−0.023, −0.021) and high asks score lower: 0.385 at 0.6, 0.374 at 0.7.</p><p class="small"><b>Why diversity falls too:</b> training teams get less varied as their label rises. Forty teams drawn from the 0.0–0.1 bucket cover 45 effective species; from 0.5–0.8, about 21. Balancing cuts the varied 0.1–0.4 buckets hardest, so teams labelled 0.4 or more rise from 24% to 36% of the labelled teams the loop-label member sees (21% to 36% for the matrix-row member). Its teams then use fewer species than the retrain on unchanged labels at every ask range (11.9 vs 14.4 effective species at asks 12/24–13/24).</p></div>
+<div class="fix"><span class="tag">most diverse, lowest win rate</span><h3>Species quota</h3><p>Each species is its own group: a training team is kept only while none of its six species is already in K kept teams that epoch (K = 800 or 1,500).</p><p class="small"><b>Result (quota 800):</b> at asks 12/24–13/24, 21.3 effective species against 14.4 for the same-labels retrain, but win rate 0.362 against 0.417. Win rate barely follows the ask any more (0.32–0.39 at every ask).</p></div>
 </div>
 <svg viewBox="0 0 840 230" id="buckets" style="margin-top:14px"></svg>
-<p class="small">Loop-label writer's labelled teams per bucket. Grey = now; teal = drawn per epoch after balancing (cap 1,132; matrix-row writer cap 1,544).</p>
+<p class="small">Loop-label member's labelled teams per bucket. Grey = now; teal = drawn per epoch after balancing (cap 1,132; matrix-row member cap 1,544).</p>
 </section>
 
 <section>
-<div class="num">6 · Results, all five writers</div>
+<div class="num">6 · Results, all seven versions</div>
 <h2>Jittered labels remove the dip and score highest</h2>
-<p class="small">Run 2026-10-30, <code>~/vgc-data/ask_grid</code>. Hover a dot for its win rate and how many distinct line-ups its 64 teams use.</p>
-<iframe src="../../Blog/visuals/label-grid/label-grid.html?embed" title="Win rate by ask for the current writer and four retrained writers" style="width:100%;height:840px;border:0"></iframe>
+<p class="small">Run 2026-10-30, <code>~/vgc-data/ask_grid</code>. Hover a dot for its win rate, effective species and distinct line-ups.</p>
+<iframe src="../../Blog/visuals/label-grid/label-grid.html?embed" title="Win rate by ask for the current model and six retrained versions" style="width:100%;height:1600px;border:0"></iframe>
 </section>
 </main>
 
@@ -183,7 +184,7 @@ function drawWaves(){
     for(let i=0;i<=400;i++){const v=lo+(hi-lo)*i/400;d+=(i?'L':'M')+x(v).toFixed(1)+' '+(cy-Math.sin(2**k*Math.PI*v)*12).toFixed(1)}
     el('path',{d,fill:'none',stroke:on?C.ink:'#e3e9f0','stroke-width':on?1.6:1.2},s);
     el('text',{x:4,y:cy+4,fill:on?C.muted:'#c4cfdb'},s).textContent=(2**k)+'π';}
-  $('waveNote').textContent=nf===8?'At 128π one cycle spans 1/64 of win rate, so a wave swings 2.7 times between two ticks. Each tick, and each point between ticks, gets its own pattern of inputs. The writer trained only on the tick patterns, so 0.30’s pattern is new to it.':'With 4 frequencies the fastest wave (8π) takes 0.25 of win rate per cycle. Over this whole window every wave barely moves, so 0.30 looks almost the same as 7/24 and 8/24.';
+  $('waveNote').textContent=nf===8?'At 128π one cycle spans 1/64 of win rate, so a wave swings 2.7 times between two ticks. Each tick, and each point between ticks, gets its own pattern of inputs. The model trained only on the tick patterns, so 0.30’s pattern is new to it.':'With 4 frequencies the fastest wave (8π) takes 0.25 of win rate per cycle. Over this whole window every wave barely moves, so 0.30 looks almost the same as 7/24 and 8/24.';
 }
 document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{nf=+b.dataset.f;document.querySelectorAll('[data-f]').forEach(o=>o.setAttribute('aria-pressed',o===b));drawWaves()});
 drawWaves();
