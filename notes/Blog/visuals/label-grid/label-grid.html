@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asking between the ticks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Small multiples: one panel per writer, same axes. Data: ~/vgc-data/ask_grid/ask_grid.json and
+   remask_why.json / remask_ask_gap.json (current writer), 2026-10-30. Tokens match repo-sync.html. */
+:root {
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14161b; --ink-2:#474d59; --ink-3:#6b7382; --rule:#dadee6; --wash:#eef1f6;
+  --same:#2f9e6b; --ahead:#2a78d6; --lost:#d4551f; --focus:#2a78d6;
+  --font-body:"Literata",Georgia,serif; --font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#111318; --panel:#191c23; --ink:#eceef2; --ink-2:#b6bcc8; --ink-3:#98a0ae; --rule:#2b303a; --wash:#1d2129;
+  --same:#3fb17f; --ahead:#4b94ee; --lost:#ef7340; --focus:#6da7ec; color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--panel);color:var(--ink);font:400 .95rem/1.5 var(--font-ui)}
+.wrap{max-width:60rem;margin:0 auto;padding:1.2rem 1rem 1rem}
+body.embed .head{display:none}
+h1{font:600 1.6rem/1.2 var(--font-body);margin:0 0 .3rem}
+.sub{color:var(--ink-2);margin:0 0 1rem}
+.legend{display:flex;flex-wrap:wrap;gap:1.1rem;font-size:.82rem;color:var(--ink-2);margin:0 0 .8rem}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:.35rem;vertical-align:-1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:.9rem}
+.panel{border:1px solid var(--rule);border-radius:10px;padding:.7rem .8rem .4rem;background:var(--panel)}
+.panel.best{border-color:var(--same);box-shadow:0 0 0 1px var(--same) inset}
+.panel h2{font:600 .95rem/1.3 var(--font-ui);margin:0}
+.panel .what{font-size:.78rem;color:var(--ink-3);margin:.1rem 0 .2rem;min-height:2.4em}
+.panel .dip{font:500 .8rem var(--font-mono);color:var(--ink-2)}
+svg{width:100%;height:auto;display:block}
+svg text{font:400 11px var(--font-ui);fill:var(--ink-3)}
+.note{font-size:.8rem;color:var(--ink-3);margin:.9rem 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="head">
+<h1>Asking for a win rate between the ticks</h1>
+<p class="sub">Most training labels are wins out of 24 battles, so they sit on ticks 1/24 apart. Asks 0.30 and 0.531 fall between ticks.</p>
+</div>
+<div class="legend">
+<span><i style="background:var(--same)"></i>ask on a tick (7/24, 8/24, 12/24, 13/24)</span>
+<span><i style="background:var(--lost)"></i>ask between ticks (0.30, 0.531)</span>
+<span><i style="border:1.5px solid var(--ink-3)"></i>where it would land on the line through its neighbours</span>
+<span><i style="background:var(--ahead)"></i>higher asks (0.60, 0.70)</span>
+</div>
+<div class="grid" id="grid"></div>
+<p class="note">Win rate = wins ÷ 49 battles, one against each distinct top-50 meta team, behaviour-cloned bot on both sides; mean of 3 seeds × 64 teams, bars = ±1 seed standard deviation. The first panel is the current discrete diffusion model; the other six are both of its member networks fine-tuned 10 more epochs from it, with the same number of steps. "Dip" = actual minus the line value. <b>spp.</b> row = effective species: exp(entropy) of species counts over all 384 slots of a group's 64 teams, averaged over seeds; higher means the teams spread over more Pokémon.</p>
+</div>
+<script>
+'use strict';
+if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
+const R={"current":[{"ask":0.2917,"win":0.3658,"sd":0.0152,"n":3,"lineups":46.3,"species":17.4},{"ask":0.3,"win":0.3369,"sd":0.0242,"n":3,"lineups":48.0,"species":21.7},{"ask":0.3333,"win":0.3796,"sd":0.0108,"n":3,"lineups":43.3,"species":15.4},{"ask":0.5,"win":0.4466,"sd":0.0076,"n":3,"lineups":22.7,"species":9.9},{"ask":0.531,"win":0.404,"sd":0.0053,"n":3,"lineups":27.0,"species":11.6},{"ask":0.5417,"win":0.4445,"sd":0.0088,"n":3,"lineups":23.0,"species":9.9}],"control":[{"ask":0.2917,"win":0.3711,"sd":0.0149,"n":3,"lineups":45.3,"species":19.6},{"ask":0.3,"win":0.3418,"sd":0.0036,"n":3,"lineups":46.3,"species":21.7},{"ask":0.3333,"win":0.3885,"sd":0.0259,"n":3,"lineups":41.0,"species":17.4},{"ask":0.5,"win":0.4281,"sd":0.0369,"n":3,"lineups":28.3,"species":14.0},{"ask":0.531,"win":0.4073,"sd":0.0301,"n":3,"lineups":29.3,"species":15.2},{"ask":0.5417,"win":0.4149,"sd":0.0308,"n":3,"lineups":26.7,"species":14.1},{"ask":0.6,"win":0.3941,"sd":0.0243,"n":3,"lineups":32.3,"species":15.5},{"ask":0.7,"win":0.4099,"sd":0.0095,"n":3,"lineups":32.3,"species":16.2}],"jitter":[{"ask":0.2917,"win":0.375,"sd":0.0114,"n":3,"lineups":47.3,"species":18.7},{"ask":0.3,"win":0.3881,"sd":0.0092,"n":3,"lineups":46.3,"species":18.5},{"ask":0.3333,"win":0.4,"sd":0.0083,"n":3,"lineups":41.3,"species":16.2},{"ask":0.5,"win":0.4424,"sd":0.016,"n":3,"lineups":28.0,"species":12.0},{"ask":0.531,"win":0.4381,"sd":0.0093,"n":3,"lineups":28.7,"species":12.5},{"ask":0.5417,"win":0.4429,"sd":0.0141,"n":3,"lineups":28.0,"species":12.3},{"ask":0.6,"win":0.4271,"sd":0.0138,"n":3,"lineups":29.3,"species":14.2},{"ask":0.7,"win":0.4214,"sd":0.0099,"n":3,"lineups":27.7,"species":15.6}],"freq4":[{"ask":0.2917,"win":0.3653,"sd":0.0134,"n":3,"lineups":44.7,"species":19.4},{"ask":0.3,"win":0.3741,"sd":0.0099,"n":3,"lineups":43.7,"species":19.1},{"ask":0.3333,"win":0.3875,"sd":0.0301,"n":3,"lineups":41.0,"species":18.3},{"ask":0.5,"win":0.4115,"sd":0.0287,"n":3,"lineups":27.3,"species":14.6},{"ask":0.531,"win":0.4165,"sd":0.0267,"n":3,"lineups":26.3,"species":14.1},{"ask":0.5417,"win":0.4147,"sd":0.0269,"n":3,"lineups":27.0,"species":14.3},{"ask":0.6,"win":0.422,"sd":0.0227,"n":3,"lineups":29.7,"species":14.8},{"ask":0.7,"win":0.3918,"sd":0.0094,"n":3,"lineups":33.7,"species":17.3}],"balanced":[{"ask":0.2917,"win":0.3566,"sd":0.0124,"n":3,"lineups":48.7,"species":17.5},{"ask":0.3,"win":0.3378,"sd":0.0109,"n":3,"lineups":48.0,"species":17.7},{"ask":0.3333,"win":0.378,"sd":0.0124,"n":3,"lineups":43.3,"species":15.7},{"ask":0.5,"win":0.4199,"sd":0.0259,"n":3,"lineups":27.7,"species":11.7},{"ask":0.531,"win":0.398,"sd":0.0214,"n":3,"lineups":27.7,"species":12.4},{"ask":0.5417,"win":0.4183,"sd":0.0219,"n":3,"lineups":26.7,"species":11.8},{"ask":0.6,"win":0.385,"sd":0.0198,"n":3,"lineups":29.3,"species":13.5},{"ask":0.7,"win":0.374,"sd":0.0161,"n":3,"lineups":32.3,"species":15.3}],"species800":[{"ask":0.2917,"win":0.3286,"sd":0.0078,"n":3,"lineups":57.3,"species":21.1},{"ask":0.3,"win":0.3136,"sd":0.0081,"n":3,"lineups":59.7,"species":30.3},{"ask":0.3333,"win":0.3438,"sd":0.0174,"n":3,"lineups":55.0,"species":20.0},{"ask":0.5,"win":0.3766,"sd":0.0155,"n":3,"lineups":46.0,"species":20.6},{"ask":0.531,"win":0.3314,"sd":0.0059,"n":3,"lineups":46.7,"species":22.9},{"ask":0.5417,"win":0.377,"sd":0.0105,"n":3,"lineups":46.7,"species":20.3},{"ask":0.6,"win":0.3417,"sd":0.0016,"n":3,"lineups":47.0,"species":21.9},{"ask":0.7,"win":0.3335,"sd":0.0105,"n":3,"lineups":42.3,"species":18.4}],"species1500":[{"ask":0.2917,"win":0.3243,"sd":0.0092,"n":3,"lineups":60.3,"species":26.7},{"ask":0.3,"win":0.3077,"sd":0.0129,"n":3,"lineups":59.7,"species":32.0},{"ask":0.3333,"win":0.3535,"sd":0.0138,"n":3,"lineups":56.3,"species":23.5},{"ask":0.5,"win":0.3433,"sd":0.0132,"n":3,"lineups":46.3,"species":21.7},{"ask":0.531,"win":0.3198,"sd":0.0028,"n":3,"lineups":44.0,"species":19.7},{"ask":0.5417,"win":0.3472,"sd":0.0024,"n":3,"lineups":44.7,"species":20.7},{"ask":0.6,"win":0.3228,"sd":0.0049,"n":3,"lineups":46.0,"species":17.5},{"ask":0.7,"win":0.3362,"sd":0.0156,"n":3,"lineups":44.7,"species":16.3}]};
+const PANELS=[
+ ['current','Current model','No retraining. Labels as they are.'],
+ ['control','Same-labels retrain','Fine-tuned on unchanged labels. Every panel after this one is compared with it.'],
+ ['jitter','Jittered labels','Each label moves by a fresh random amount up to ±1/48 every batch.'],
+ ['freq4','Fewer frequencies','The ask is encoded with 4 waves (π to 8π) instead of 8 (π to 128π).'],
+ ['balanced','Win-rate quota','Each 0.1-wide win-rate band gives at most as many teams per epoch as the 0.5–0.6 band.'],
+ ['species800','Species quota 800','A training team is kept only while none of its six species is already in 800 kept teams that epoch.'],
+ ['species1500','Species quota 1,500','The same rule with a quota of 1,500 teams per species.'],
+];
+const ORDER=[0.2917,0.3,0.3333,0.5,0.531,0.5417,0.6,0.7];
+const LABEL={0.2917:'7/24',0.3:'0.30',0.3333:'8/24',0.5:'12/24',0.531:'0.531',0.5417:'13/24',0.6:'0.60',0.7:'0.70'};
+const OFF={0.3:[0.2917,0.3333],0.531:[0.5,0.5417]};
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.append(e);return e};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const W=300,H=206,L=32,B=46,T=10,lo=.29,hi=.46;
+const xs=[0,1.35,2.7,4.3,5.65,7,8.6,9.95],xmax=9.95;
+const X=i=>L+8+xs[i]/xmax*(W-L-30), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+const dips=k=>{const m=Object.fromEntries(R[k].map(p=>[p.ask,p.win]));const o={};
+  for(const a in OFF){const [l,h]=OFF[a];if(m[a]==null)continue;const line=m[l]+(a-l)/(h-l)*(m[h]-m[l]);o[a]={line,dip:m[a]-line}}return o};
+function draw(){
+ const g=document.getElementById('grid');g.innerHTML='';
+ for(const [k,name,what] of PANELS){
+  const d=dips(k),p=document.createElement('div');p.className='panel'+(k==='jitter'?' best':'');
+  p.innerHTML=`<h2>${name}</h2><div class="what">${what}</div><div class="dip">dip at 0.30: ${d[0.3].dip>=0?'+':''}${d[0.3].dip.toFixed(3)} · at 0.531: ${d[0.531].dip>=0?'+':''}${d[0.531].dip.toFixed(3)}</div>`;
+  const s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`${name}: win rate by ask`},p);
+  [.30,.34,.38,.42,.46].forEach(v=>{el('line',{x1:L,x2:W-4,y1:Y(v),y2:Y(v),stroke:css('--rule'),'stroke-width':.6},s);el('text',{x:L-4,y:Y(v)+3.5,'text-anchor':'end'},s).textContent=v.toFixed(2)});
+  ORDER.forEach((a,i)=>{const t=el('text',{x:X(i),y:H-27,'text-anchor':'middle'},s);t.textContent=LABEL[a];if(OFF[a])t.setAttribute('style','fill:'+css('--lost'))});
+  el('text',{x:(W+L)/2,y:H-15,'text-anchor':'middle'},s).textContent='asked win rate';
+  el('text',{x:L-4,y:H-1,'text-anchor':'end',style:'font-weight:500'},s).textContent='spp.';
+  ORDER.forEach((a,i)=>{const q=R[k].find(r=>r.ask===a);if(q)el('text',{x:X(i),y:H-1,'text-anchor':'middle',style:'font-family:var(--font-mono);font-size:10px;fill:'+css('--ink-2')},s).textContent=q.species.toFixed(0)});
+  const m=Object.fromEntries(R[k].map(q=>[q.ask,q]));
+  [[0,2],[3,5]].forEach(([a,b])=>{if(m[ORDER[a]]&&m[ORDER[b]])el('line',{x1:X(a),y1:Y(m[ORDER[a]].win),x2:X(b),y2:Y(m[ORDER[b]].win),stroke:css('--ink-3'),'stroke-dasharray':'3 3','stroke-width':1},s)});
+  ORDER.forEach((a,i)=>{const q=m[a];if(!q)return;
+   const c=OFF[a]?css('--lost'):(a>=.6?css('--ahead'):css('--same'));
+   if(OFF[a]){const ly=Y(d[a].line);el('circle',{cx:X(i),cy:ly,r:4,fill:'none',stroke:css('--ink-3'),'stroke-width':1.5},s);
+     el('line',{x1:X(i),x2:X(i),y1:ly,y2:Y(q.win),stroke:c,'stroke-width':2.5,opacity:.45},s)}
+   el('line',{x1:X(i),x2:X(i),y1:Y(q.win-q.sd),y2:Y(q.win+q.sd),stroke:c,'stroke-width':1.2},s);
+   const dot=el('circle',{cx:X(i),cy:Y(q.win),r:4.5,fill:c},s);
+   el('title',{},dot).textContent=`ask ${LABEL[a]}: win rate ${q.win.toFixed(3)} ± ${q.sd.toFixed(3)} · ${q.species} effective species · ${q.lineups} distinct line-ups of 64`;});
+  if(!m[0.6]) el('text',{x:(X(6)+X(7))/2,y:Y(.40),'text-anchor':'middle'},s).textContent='not run';
+  g.append(p);
+ }
+}
+draw();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+</script>
+</body>
+</html>
