@@ -85,8 +85,11 @@ cleanup.
 ## Known limits, stated before results
 - One training seed, one epoch over 38% of the rows: a null result does not rule out the model at
   full budget; a positive result at this budget stands.
-- The scratch baseline is an ensemble (F1 + G2) that was also pre-trained on the full 147k pool and
-  warm-started; the text model sees only the F1 cohort. This compares the *deployed* scratch
+- The scratch baseline mixes two models: the loop-teams model (F1, the ~16k loop teams plus the
+  692-team corpus) and the matrix-rows model (G2, the same teams plus 9,272 matchup-matrix teams,
+  each conditioned on its row). Neither was pre-trained on the full 147k pool; that variant (G0 → G1)
+  scored worse and was dropped (see `loss-down.md`). The text model sees only the loop-teams
+  cohort. This compares the *deployed* scratch
   generator with a budget-limited pretrained one, not architectures at matched data.
 - The text model's pretraining corpus is unknown; it may contain real Reg M-B pastes. Copies of any
   training team are counted, but copies of unseen real teams cannot be.
