@@ -202,7 +202,7 @@ const ARMS = [
   {key:'baseline@4096',  short:'Ling · original prompt · 4,096 cap',  c:'var(--a0)', kind:'Ling'},
   {key:'baseline@16384', short:'Ling · original prompt · 16,384 cap', c:'var(--a1)', kind:'Ling'},
   {key:'regmb@16384',    short:'Ling · Reg M-B prompt · 16,384 cap',  c:'var(--a2)', kind:'Ling'},
-  {key:'diffusion@v3',   short:'Pokémon diffusion v3 (F1 + G2)',      c:'var(--a3)', kind:'Diffusion'}];
+  {key:'diffusion@v3',   short:'Pokémon diffusion v3, two models',  c:'var(--a3)', kind:'Diffusion'}];
 const FAM = {stats:'Stat Points', items:'Items', moves:'Moves', pokemon:'Whole Pokémon', abilities:'Abilities', natures:'Stat Alignment'};
 const kmax = f => f === 'moves' ? 24 : 6;
 const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -227,7 +227,7 @@ const res = t => DATA.results[t.id];
 const pad2 = i => String(i + 1).padStart(2, '0');
 /* The earlier grid: 5 starting teams, 6 families, every mask size, 4 writers (2026-10-08). */
 const X5 = {
-  key: '5', label: 'Earlier grid', sub: '5 starting teams · 6 mask families · every mask size · 270 masks per writer',
+  key: '5', label: 'Earlier grid', sub: '5 starting teams · 6 mask families · every mask size · 270 masks per method',
   arms: ARMS, starts: DATA.starts, opps: DATA.opponents, counts: false,
   st: {family: 'pokemon', start: 0, k: 1, writer: 2},
   task() { return taskIdx[`${this.st.start}|${this.st.family}|${this.st.k}`]; },
@@ -244,7 +244,7 @@ const COL20 = {'ling@off': 'var(--l1)', 'ling@on': 'var(--l2)', 'mercury@off': '
 const trial20 = {};
 if (S20) S20.trials.forEach(t => { trial20[`${t.s}|${t.f}`] = t; });
 const X20 = S20 && {
-  key: '20', label: 'Reasoning studies', sub: `20 starting teams · 7 mask families · ${S20.repeats} repeats · ${S20.trials.length * S20.repeats} masks per writer`,
+  key: '20', label: 'Reasoning studies', sub: `20 starting teams · 7 mask families · ${S20.repeats} repeats · ${S20.trials.length * S20.repeats} masks per method`,
   arms: S20.writers.map(w => ({...w, c: COL20[w.key] || 'var(--a0)'})), starts: S20.starts, opps: S20.opponents, counts: true,
   st: {family: 'pokemon', start: 0, rep: 0, writer: S20.writers.length - 1},
   task() { return {...trial20[`${this.st.start}|${this.st.family}`], rep: this.st.rep}; },
@@ -299,7 +299,7 @@ function monRow(C, t, i) {
   return `<div class="mon">${head}<div class="cells">${cell('item', null, true)}${cell('ability')}${cell('nature')}${cell('statPoints')}${[0,1,2,3].map(j => cell('moves', j)).join('')}</div></div>`;
 }
 function inspector(C, t) {
-  if (!S.sel) return `<div class="insp">Click a hatched cell to see what every writer put there.</div>`;
+  if (!S.sel) return `<div class="insp">Click a hatched cell to see what every method put there.</div>`;
   const {i, f, j} = parsePath(S.sel), base = C.starts[t.s].team[i], paths = new Set(t.paths);
   const whole = paths.has(`team[${i}]`);
   const orig = f === 'species' ? show(base) : show(j == null ? base[f] : base[f][j]);
@@ -320,7 +320,7 @@ function gridCard(C, t) {
   const n = t.paths.length;
   return `<div class="card"><div class="kline"><div class="eyebrow">${esc(C.title(t))}</div><span class="note" style="margin:0">${n} masked ${n === 1 ? 'part' : 'parts'}</span></div>
     <div style="margin-top:8px">${[0,1,2,3,4,5].map(i => monRow(C, t, i)).join('')}</div>
-    <div class="legend"><span><i style="background:var(--hatch);border:1px dashed var(--accent)"></i>Masked: the writer may change it</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Fixed: must come back unchanged</span><span><i style="background:color-mix(in srgb,var(--accent) 14%,transparent);border:1px solid var(--accent)"></i>Filled by the selected writer</span></div>
+    <div class="legend"><span><i style="background:var(--hatch);border:1px dashed var(--accent)"></i>Masked: the method may change it</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>Fixed: must come back unchanged</span><span><i style="background:color-mix(in srgb,var(--accent) 14%,transparent);border:1px solid var(--accent)"></i>Filled by the selected method</span></div>
     ${inspector(C, t)}</div>`;
 }
 /* ---------- explorer: stacked writer rows ---------- */
@@ -344,10 +344,10 @@ function writerRows(C, t) {
     const body = !src ? '' : src.ok ? fillChips(C, t, src) + score(src.win, src.opp, a.c) : `<div class="err">${esc(STAGE[src.stage] || src.stage)}: ${esc(src.err || '')}</div>`;
     return `<button class="wrow" data-writer="${k}" aria-pressed="${C.st.writer === k}"><div class="head"><i class="sw" style="background:${a.c}"></i><b>${esc(a.short)}</b>${status}${src ? meta(src) : ''}</div>${body}</button>`; }).join('');
   const rand = C.key === '5' ? `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--muted)"></i><b>Random legal fill</b><span class="pill ref">reference</span></div>${R ? fillChips(C, t, R) + score(R.win, R.opp, 'var(--muted)') : '<div class="note" style="margin:0">No random fill could be made legal for this mask.</div>'}</div>` : '';
-  const unNote = C.key === '20' ? 'Never battled. The reasoning studies gave their 20 starting teams no panel of their own, so this study has no untouched baseline; compare the writers with each other.' : 'Not scored.';
+  const unNote = C.key === '20' ? 'Never battled. The reasoning studies gave their 20 starting teams no panel of their own, so this study has no untouched baseline; compare the methods with each other.' : 'Not scored.';
   const un = `<div class="wrow" style="cursor:default"><div class="head"><i class="sw" style="background:var(--ink2)"></i><b>Untouched team</b><span class="pill ref">reference</span></div>${o ? score(o.win, o.opp, 'var(--ink2)', true) : `<div class="note" style="margin:0">${unNote}</div>`}</div>`;
   const n = C.arms.length;
-  return `<div class="card"><h3 style="margin-top:0">Every writer's fill, side by side</h3><p class="note" style="margin:0 0 4px">Same mask, same battles, ${n === 7 ? 'seven' : 'four'} writers. Click a writer to show its fill in the team above and its battles below. A rejected fill shows the validator's reason and keeps the original team.</p>
+  return `<div class="card"><h3 style="margin-top:0">Every method's fill, side by side</h3><p class="note" style="margin:0 0 4px">Same mask, same battles, ${n === 7 ? 'seven' : 'four'} methods. Click a method to show its fill in the team above and its battles below. A rejected fill shows the validator's reason and keeps the original team.</p>
     <div class="wrows">${rows}${rand}${un}</div></div>`;
 }
 /* ---------- explorer: threat constellation ---------- */
@@ -370,7 +370,7 @@ function starsCard(C, t) {
 }
 function controls() {
   const C = cur();
-  const studies = [X20, X5].filter(Boolean).map(X => `<button data-study="${X.key}" aria-pressed="${S.study === X.key}">${X.label} · ${X.starts.length} teams · ${X.arms.length} writers</button>`).join('');
+  const studies = [X20, X5].filter(Boolean).map(X => `<button data-study="${X.key}" aria-pressed="${S.study === X.key}">${X.label} · ${X.starts.length} teams · ${X.arms.length} methods</button>`).join('');
   const head = `<div class="eyebrow">Which study</div><div class="seg" style="margin:8px 0 4px">${studies}</div><p class="note" style="margin:0 0 6px">Two separate studies with different starting teams, harnesses and seeds. Nothing on this page pools them.</p>`;
   const starts = C.starts.map((s, i) => `<option value="${i}" ${C.st.start === i ? 'selected' : ''}>Team ${pad2(i)} · ${s.team.map(m => m.species).join(', ')}</option>`).join('');
   if (C.key === '20') {
@@ -378,7 +378,7 @@ function controls() {
     const reps = Array.from({length: S20.repeats}, (_, r) => `<button data-rep="${r}" aria-pressed="${C.st.rep === r}">Repeat ${r + 1}</button>`).join('');
     return `${head}<div class="ctl"><label class="f"><span class="eyebrow">What is masked</span><select id="fam">${fams}</select></label>
       <label class="f"><span class="eyebrow">Starting team</span><select id="start">${starts}</select></label></div>
-      <div class="kline"><span class="eyebrow">Repeat: same mask, a fresh sample from every writer</span><div class="seg">${reps}</div></div>`;
+      <div class="kline"><span class="eyebrow">Repeat: same mask, a fresh sample from every method</span><div class="seg">${reps}</div></div>`;
   }
   const fams = Object.keys(FAM).map(f => `<option value="${f}" ${C.st.family === f ? 'selected' : ''}>${FAM[f]}</option>`).join('');
   return `${head}<div class="ctl"><label class="f"><span class="eyebrow">What is masked</span><select id="fam">${fams}</select></label>
@@ -389,9 +389,9 @@ function controls() {
 function xhead(C) {
   const legal = C.arms.map(a => `${dot(a.c)}${esc(a.short)} ${pct(C.legal[a.key], 0)}`).join(' &nbsp; ');
   const intro = C.key === '20'
-    ? `Pick a starting team, what to hide and which of the three repeats to look at. The grid shows the masked team; the rows under it show what each of the seven writers wrote back for that exact mask and how the completed team fared. The writers are Ling 3.0 Flash with reasoning off or on, Mercury 2.5 at four reasoning efforts, and the project's Pokémon diffusion model.`
-    : `Pick what to hide and how much of it. The grid shows the masked team; the rows under it show what each writer wrote back and how the completed team fared. The writers are Ling 3.0 Flash under three prompt settings and the project's Pokémon diffusion model. This earlier grid is kept for its untouched-team and random-fill baselines; its Ling arms are prompt settings, not the reasoning switch, and are never pooled with the reasoning studies.`;
-  return `<div class="eyebrow">Explorer · ${esc(C.sub)}</div><h2>One mask, ${C.arms.length === 7 ? 'seven' : 'four'} writers</h2><p>${intro}</p>
+    ? `Pick a starting team, what to hide and which of the three repeats to look at. The grid shows the masked team; the rows under it show what each of the seven methods wrote back for that exact mask and how the completed team fared. The methods are Ling 3.0 Flash with reasoning off or on, Mercury 2.5 at four reasoning efforts, and the project's Pokémon diffusion model.`
+    : `Pick what to hide and how much of it. The grid shows the masked team; the rows under it show what each method wrote back and how the completed team fared. The methods are Ling 3.0 Flash under three prompt settings and the project's Pokémon diffusion model. This earlier grid is kept for its untouched-team and random-fill baselines; its Ling arms are prompt settings, not the reasoning switch, and are never pooled with the reasoning studies.`;
+  return `<div class="eyebrow">Explorer · ${esc(C.sub)}</div><h2>One mask, ${C.arms.length === 7 ? 'seven' : 'four'} methods</h2><p>${intro}</p>
     <p class="note" style="margin:0 0 4px">Legal fills in this study: ${legal}.</p>`;
 }
 function renderExplorer() {
@@ -430,16 +430,16 @@ function q1() {
   const cohort = methods.map(m => `<tr><td>${dot(MCOL[m.id])}${esc(m.name)}</td><td class="n">${pct(m.battle.mean, 2)}</td><td class="n">${pct(m.battle.low, 2)} – ${pct(m.battle.high, 2)}</td></tr>`).join('');
   return `<section class="q" id="q1"><div class="eyebrow">Question 1 · 20 starting teams · 7 masks · 3 repeats</div><h2>Ling or diffusion?</h2>
     <p class="answer">The diffusion model never fails legality. Where both fill legally, its team wins slightly more of its battles than the language model's: under one point, and only ${clearN} of the ${pw.length} intervals clear zero.</p>
-    <p>The reasoning study gives every writer the same 420 masks: 20 fresh starting teams, the 7 largest mask families, 3 repeats. Two language models answer the prompt: Ling 3.0 Flash with reasoning off or on, and Mercury 2.5 at four reasoning efforts. The project's own Pokémon diffusion model (F1 + G2, version 3) fills the same masks with constrained decoding, so it cannot write an illegal field.</p>
+    <p>The reasoning study gives every method the same 420 masks: 20 fresh starting teams, the 7 largest mask families, 3 repeats. Two language models answer the prompt: Ling 3.0 Flash with reasoning off or on, and Mercury 2.5 at four reasoning efforts. The project's own Pokémon diffusion model (version 3, a mixture of the loop-teams model <code>F1</code> and the matrix-rows model <code>G2</code>) fills the same masks with constrained decoding, so it cannot write an illegal field.</p>
     <div class="card"><div class="eyebrow">Legal fills out of 420</div><div class="rows">${legal}</div>
       <p class="note">A fill is legal when it parses, keeps every unmasked field, and passes the Showdown validator on the first try. Nothing is retried.</p></div>
     <div class="card"><div class="eyebrow">Battles: diffusion minus each language model, same mask and repeat</div>
       <div class="ivals">${ivals}</div><div class="axis-ticks"><span>${pp(-span / 100, 1)}</span><span>0</span><span>${pp(span / 100, 1)}</span></div>
-      <p class="note">Each pair is one mask that both writers filled legally. The difference is in win-rate points: the share of a team's ${BATTLES} battles it wins. Intervals are 95% starter bootstraps (4,000 draws, 20 starters weighted equally); green ones exclude zero.</p></div>
+      <p class="note">Each pair is one mask that both methods filled legally. The difference is in win-rate points: the share of a team's ${BATTLES} battles it wins. Intervals are 95% starter bootstraps (4,000 draws, 20 starters weighted equally); green ones exclude zero.</p></div>
     <div class="card"><div class="eyebrow">Same question on the earlier 5-team grid</div><p style="margin:6px 0 0">On the earlier grid's 270 masks, diffusion v3 against the Reg M-B prompt where both were legal: <b class="mono num">${pp(oldMean)}</b> over ${d.length} pairs. Same answer: level.</p></div>
-    <details><summary>Shared cohort: the 64 masks every writer filled legally</summary>
-      <p>Comparing writers on their own legal subsets mixes easy and hard masks. On the ${NEW.common_pairs} masks all seven filled legally, the win rates (20 starters weighted equally) are:</p>
-      <div class="tscroll"><table class="tbl"><thead><tr><th>Writer</th><th>Win rate</th><th>95% interval</th></tr></thead><tbody>${cohort}</tbody></table></div>
+    <details><summary>Shared cohort: the 64 masks every method filled legally</summary>
+      <p>Comparing methods on their own legal subsets mixes easy and hard masks. On the ${NEW.common_pairs} masks all seven filled legally, the win rates (20 starters weighted equally) are:</p>
+      <div class="tscroll"><table class="tbl"><thead><tr><th>Method</th><th>Win rate</th><th>95% interval</th></tr></thead><tbody>${cohort}</tbody></table></div>
       <p>Mercury high has the highest point estimate; every paired difference against diffusion includes zero. Diffusion's win rate across all 420 of its legal fills is ${pct(methods[0].full_set.legal_win_rate, 1)}; its cohort rate is lower because the shared masks are the easy ones.</p>
       <p>What the comparison is not: diffusion reads only the categorical fields and fills Stat Points from a corpus spread, while the language models read all 49 opponent pastes. It compares two complete systems, not two architectures on equal input.</p></details></section>`;
 }
@@ -521,7 +521,7 @@ const DIVFAM5 = {pokemon:'Whole Pokémon', items:'Items', moves:'Moves', abiliti
 const divX = () => DIV.study === '20' ? X20 : X5;
 const divFams = () => DIV.study === '20' ? Object.fromEntries(Object.entries(S20.families).filter(([f]) => f !== 'mixed')) : DIVFAM5;
 const flat = v => v == null ? null : typeof v === 'object' ? (v.species ? v.species : spread(v)) : String(v);
-function fillsOf(fam, wkey) { // every value a writer wrote into a legal fill of this family
+function fillsOf(fam, wkey) { // every value a method wrote into a legal fill of this family
   const out = [];
   if (DIV.study === '5') {
     for (const t of DATA.tasks) { if (t.f !== fam) continue; const r = res(t), src = wkey === 'random' ? r.random : r.arms[wkey];
@@ -565,26 +565,26 @@ function updateDiversity() {
   $('#div-rows').innerHTML = rows.join('');
   $('#div-note').textContent = (fam === 'pokemon' ? 'The bar is distinct choices over legal fills, the project\'s unique fraction. "In the meta pool" is the share of written species that appear in one of the 49 opponent teams. '
     : fam === 'stats' ? 'Spreads compare exactly. ' : 'The bar is distinct choices over legal fills, the project\'s unique fraction. ')
-    + (DIV.study === '20' ? 'Three repeats of each mask count separately, so a writer that answers the same mask the same way three times shows up as repetition. Mixed masks are left out because their values span every field.' : 'A writer with few legal fills has little room to repeat itself; the random fill draws fresh every time.');
+    + (DIV.study === '20' ? 'Three repeats of each mask count separately, so a method that answers the same mask the same way three times shows up as repetition. Mixed masks are left out because their values span every field.' : 'A method with few legal fills has little room to repeat itself; the random fill draws fresh every time.');
 }
 function qDiv() {
   const keep = DIV.study; DIV.study = X20 ? '20' : '5';
   const X = divX(), ling = X.arms.find(a => a.key === (X20 ? 'ling@on' : 'regmb@16384')), diff = X.arms.find(a => a.key === 'diffusion@v3');
   const L = divStats('pokemon', ling.key), D = divStats('pokemon', diff.key);
   DIV.study = keep;
-  return `<section class="q" id="q4"><div class="eyebrow">Question 4 · both studies · what the writers actually wrote</div><h2>Do the writers keep writing the same thing?</h2>
+  return `<section class="q" id="q4"><div class="eyebrow">Question 4 · both studies · what the methods actually wrote</div><h2>Do the methods keep writing the same thing?</h2>
     <p class="answer">Yes, each in its own way. Asked for a whole Pokémon, ${esc(ling.short)} writes a meta species ${pct(L.meta, 0)} of the time and leans on ${esc(L.top[0][0])} (${L.distinct} species over ${L.n} fills); the diffusion model draws from ${D.distinct} species, ${pct(D.meta, 0)} of them meta.</p>
-    <p>Diversity matters because the search loop that will use a writer needs many different teams, not one good one. This counts every legal fill: how many distinct values a writer produced, and how much of its output its single most common choice takes. The two studies are shown separately and never pooled.</p>
+    <p>Diversity matters because the search loop that will use a method needs many different teams, not one good one. This counts every legal fill: how many distinct values a method produced, and how much of its output its single most common choice takes. The two studies are shown separately and never pooled.</p>
     <div class="card"><div id="div-ctl"></div><div class="rows" id="div-rows"></div><p class="note" id="div-note"></p></div></section>`;
 }
 /* ---------- question 5: verdict ---------- */
 function q4() {
   if (!NEW) return '';
   const rows = NEW.methods.map(m => `<tr><td>${dot(MCOL[m.id])}${esc(m.name)}</td><td class="n">${m.legal}/420</td><td class="n">${pct(m.full_set.legal_win_rate, 1)}</td><td class="n">${m.id === 'diffusion' ? 'none' : '$' + m.cost.toFixed(2) + (m.cost_coverage < 420 ? '*' : '')}</td></tr>`).join('');
-  return `<section class="q" id="q5"><div class="eyebrow">Question 5 · all seven writers</div><h2>So which writer should fill a mask?</h2>
+  return `<section class="q" id="q5"><div class="eyebrow">Question 5 · all seven methods</div><h2>So which method should fill a mask?</h2>
     <p class="answer">The Pokémon diffusion model: always legal, free to run, and level with the best language-model setting in battle. Reasoning in a language model is a legality lever, not a strength lever.</p>
-    <div class="card"><div class="tscroll"><table class="tbl"><thead><tr><th>Writer</th><th>Legal</th><th>Win rate, own legal fills</th><th>API cost</th></tr></thead><tbody>${rows}</tbody></table></div>
-      <p class="note">Win rate is the share of a team's ${BATTLES} battles it wins against the top-49 meta pool, with the behaviour-cloning policy on both sides. Each writer is scored on its own legal fills, so this column is descriptive, not a ranking; the paired charts above are the ranking. *Three medium and two high cost records are missing.</p></div>
+    <div class="card"><div class="tscroll"><table class="tbl"><thead><tr><th>Method</th><th>Legal</th><th>Win rate, own legal fills</th><th>API cost</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="note">Win rate is the share of a team's ${BATTLES} battles it wins against the top-49 meta pool, with the behaviour-cloning policy on both sides. Each method is scored on its own legal fills, so this column is descriptive, not a ranking; the paired charts above are the ranking. *Three medium and two high cost records are missing.</p></div>
     <p>Two things keep every number here small. The starting teams are random legal teams, and a random team loses almost every battle against the meta: the median panel wins one of ${BATTLES}. And one panel is noisy by several points, so a single mask proves nothing; only the paired differences over 420 masks do.</p></section>`;
 }
 /* ---------- page ---------- */
@@ -592,9 +592,9 @@ function header() {
   return `<header class="top"><div class="brand"><i></i>Porygon-Pi / Mask Lab</div><div class="tag">Reg M-B · behaviour cloning<br>on both sides</div></header>
     <div class="eyebrow" style="margin-top:14px">Masked team completion · Experiment 002</div>
     <h1>See what changes. <em>Measure what helps.</em></h1>
-    <p class="lede">Take a random legal Regulation M-B team. Hide one part of it: an item, an ability, a move, a Stat Point spread, or a whole Pokémon. Ask a writer to fill the gap. Check the answer with the Showdown validator, then play the completed team against the frozen top-49 meta pool.</p>
-    <div class="howto"><div class="card"><b>See what changes</b><p>The explorer shows the masked team once and every writer's fill underneath it, cell by cell, with the validator's reason when a fill is rejected.</p></div>
-      <div class="card"><b>Measure what helps</b><p>Every legal fill plays ${BATTLES} battles, one per meta team. Its win rate is compared with the other writers' fills of the same mask; the earlier grid also compares it with the untouched team and a random legal fill.</p></div></div>
+    <p class="lede">Take a random legal Regulation M-B team. Hide one part of it: an item, an ability, a move, a Stat Point spread, or a whole Pokémon. Ask a method to fill the gap. Check the answer with the Showdown validator, then play the completed team against the frozen top-49 meta pool.</p>
+    <div class="howto"><div class="card"><b>See what changes</b><p>The explorer shows the masked team once and every method's fill underneath it, cell by cell, with the validator's reason when a fill is rejected.</p></div>
+      <div class="card"><b>Measure what helps</b><p>Every legal fill plays ${BATTLES} battles, one per meta team. Its win rate is compared with the other methods' fills of the same mask; the earlier grid also compares it with the untouched team and a random legal fill.</p></div></div>
     <div class="toc"><a href="#explorer"><b>0</b>Explorer</a><a href="#q1"><b>1</b>Ling or diffusion?</a><a href="#q2"><b>2</b>Does reasoning help Ling?</a><a href="#q3"><b>3</b>Does more reasoning help Mercury?</a><a href="#q4"><b>4</b>Same thing again?</a><a href="#q5"><b>5</b>Verdict</a><a href="#method"><b>§</b>Method</a></div>`;
 }
 function explorerIntro() {
@@ -606,14 +606,14 @@ function method() {
       <li>Policy: ${esc(DATA.policy)}. No random-action play anywhere.</li>
       <li>A panel is ${BATTLES} battles: one against each of ${DATA.opponents.length} distinct top meta teams, with one team counted twice. Win rate is wins over ${BATTLES}. Simulator randomness is not fixed, so one panel is noisy by several points.</li>
       <li>Regulation: Champions VGC 2026 Reg M-B, Showdown validator, first attempt only. No retries, repairs or best-of selection.</li>
-      <li>Paired differences subtract, for each mask, one writer's win rate from another's. Intervals resample the starting teams (4,000 draws, starters weighted equally, repeats kept together) and are not adjusted for the number of comparisons.</li></ul></details>
+      <li>Paired differences subtract, for each mask, one method's win rate from another's. Intervals resample the starting teams (4,000 draws, starters weighted equally, repeats kept together) and are not adjusted for the number of comparisons.</li></ul></details>
     <details><summary>The two studies</summary><ul>
-      <li>Explorer grid (2026-10-08): 5 random legal starting teams, 6 mask families, every mask size, one sample per writer, 270 masks. Ling via OpenRouter routed to Novita, temperature 0.7, JSON mode off. Diffusion v3: F1 + G2 ensemble, ask 0.5, guidance 2, temperature 1; Stat Points copied from a same-species corpus spread or drawn at random.</li>
-      <li>Reasoning studies (2026-10-12 and 2026-10-13): 20 fresh starting teams, the 7 largest families including mixed masks, 3 repeats, 420 masks per writer. Ling off/on, Mercury off/low/medium/high, diffusion with three generation seeds. The two studies share the opponent pool and the policy checkpoint but not starters, harness or seeds; nothing is pooled across them. The 20 starting teams were never battled untouched, so the reasoning-study explorer has no untouched baseline, and a different meta team is the one counted twice in its panels.</li>
+      <li>Explorer grid (2026-10-08): 5 random legal starting teams, 6 mask families, every mask size, one sample per method, 270 masks. Ling via OpenRouter routed to Novita, temperature 0.7, JSON mode off. Diffusion v3: mixture of the loop-teams and matrix-rows models, ask 0.5, guidance 2, temperature 1; Stat Points copied from a same-species corpus spread or drawn at random.</li>
+      <li>Reasoning studies (2026-10-12 and 2026-10-13): 20 fresh starting teams, the 7 largest families including mixed masks, 3 repeats, 420 masks per method. Ling off/on, Mercury off/low/medium/high, diffusion with three generation seeds. The two studies share the opponent pool and the policy checkpoint but not starters, harness or seeds; nothing is pooled across them. The 20 starting teams were never battled untouched, so the reasoning-study explorer has no untouched baseline, and a different meta team is the one counted twice in its panels.</li>
       <li>The language models see all 49 opponent pastes in the prompt; diffusion sees only the known categorical fields. The largest species overlap between any fill and any meta team is 4 of 6, so no fill copies a meta team.</li></ul></details>
     <details><summary>What this page does not claim</summary><ul>
       <li>Not a live-meta or held-out result: the opponent pool is frozen and visible in the prompts.</li>
-      <li>Not an equal-input architecture test: the writers are complete systems with different inputs and decoders.</li>
+      <li>Not an equal-input architecture test: the methods are complete systems with different inputs and decoders.</li>
       <li>Not a cost comparison: API costs are recorded totals; diffusion's local compute is unmeasured.</li>
       <li>Repeated cached panels count as battles represented, not as independent evidence.</li></ul></details></section>`;
 }
