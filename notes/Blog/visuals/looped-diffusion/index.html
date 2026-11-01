@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Loops inside the denoiser: five ways to give a discrete diffusion model more depth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Distill layout: one reading column, figures break out wider, numbered captions, margin notes inline on phones. */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --ink: #14161b; --ink-2: #474d59; --ink-3: #737b8a; --rule: #dadee6;
+  --new: #2a78d6; --new-soft: #cde2fb; --old: #eb6834; --old-soft: #fbe0d3; --focus: #2a78d6;
+  --font-body: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --col: 42rem; --wide: 62rem;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #111318; --panel: #191c23; --ink: #eceef2; --ink-2: #b6bcc8; --ink-3: #8a91a0; --rule: #2b303a;
+  --new: #3987e5; --new-soft: #12345f; --old: #d95926; --old-soft: #4a2414; --focus: #6da7ec; color-scheme: dark; } }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.65; }
+.page { padding: 2.5rem 1rem 4rem; display: grid; gap: 1.6rem; justify-items: center; }
+.page > * { width: 100%; max-width: var(--col); min-width: 0; }
+.page > .wide { max-width: var(--wide); }
+h1, h2, h3 { font-family: var(--font-ui); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(1.9rem, 4.6vw, 2.7rem); font-weight: 600; letter-spacing: -0.015em; }
+h2 { font-size: 1.4rem; font-weight: 600; margin-top: 1.2rem; }
+h3 { font-size: 1.08rem; font-weight: 600; margin-top: 0.4rem; }
+p { margin: 0; }
+a { color: var(--new); text-underline-offset: 2px; }
+.kicker { font-family: var(--font-ui); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.dek { font-size: 1.18rem; color: var(--ink-2); line-height: 1.55; }
+.byline { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-3); border-block: 1px solid var(--rule); padding-block: 0.7rem; display: flex; flex-wrap: wrap; gap: 0.4rem 1.6rem; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+code, .tok { font-family: var(--font-mono); font-size: 0.86em; }
+.note { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink-2); border-left: 2px solid var(--rule); padding-left: 0.8rem; line-height: 1.5; }
+@media (min-width: 72rem) {
+  .with-note { position: relative; }
+  .with-note > .note { position: absolute; left: calc(100% + 2rem); top: 0.2rem; width: 13rem; }
+}
+.with-note { display: grid; gap: 0.8rem; }
+ul.tight { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.45rem; }
+figure { margin: 0; display: grid; gap: 0.8rem; }
+figcaption { font-family: var(--font-ui); font-size: 0.86rem; color: var(--ink-2); line-height: 1.5; max-width: var(--col); }
+figcaption b { color: var(--ink); font-weight: 600; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem; }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem 1.2rem; font-family: var(--font-ui); font-size: 0.88rem; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; background: transparent; color: var(--ink-2); border: 0; padding: 0.42rem 0.8rem; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.btn { font: inherit; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); border-radius: 8px; padding: 0.42rem 0.8rem; cursor: pointer; transition: transform 140ms var(--ease-out), background-color 160ms ease; }
+.btn.primary { background: var(--new); color: #fff; border-color: var(--new); }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+label.slider { display: inline-flex; align-items: center; gap: 0.5rem; }
+label.slider input { width: 9rem; accent-color: var(--new); }
+label.check { display: inline-flex; align-items: center; gap: 0.4rem; }
+.status { font-family: var(--font-mono); font-size: 0.82rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.status b { color: var(--ink); font-weight: 500; }
+
+/* Figure 1 layout */
+.fig1 { display: grid; gap: 1rem; }
+.variant { display: none; }
+.variant.on { display: grid; gap: 1rem; animation: fade-in 220ms var(--ease-out); }
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.split { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 52rem) { .split { grid-template-columns: 15rem minmax(0, 1fr); } }
+.mini { display: grid; gap: 0.3rem; }
+.mini .t { font-family: var(--font-ui); font-size: 0.8rem; color: var(--ink-2); }
+svg text { font-family: var(--font-ui); fill: var(--ink-2); }
+svg .ink { fill: var(--ink); }
+
+/* Token chips */
+.team-grid { display: grid; gap: 0.35rem; }
+.mon-row { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); align-items: center; gap: 0.4rem; }
+.mon-row img { width: 2.4rem; height: 2.4rem; object-fit: contain; }
+.chips { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.25rem; }
+.chip { position: relative; overflow: hidden; border-radius: 5px; border: 1px solid var(--rule); background: var(--panel); font-family: var(--font-mono); font-size: 0.6rem; line-height: 1.15; padding: 0.22rem 0.25rem; min-height: 2.05rem; color: var(--ink); display: flex; align-items: center; word-break: break-word; }
+.chip .bar { position: absolute; inset: auto 0 0 0; height: 3px; background: var(--new); transform-origin: left; transform: scaleX(0); transition: transform 240ms var(--ease-out); }
+.chip.masked { color: var(--ink-3); background: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--rule) 55%, transparent) 5px 6px), var(--panel); }
+.chip.fresh { background: var(--new-soft); border-color: var(--new); animation: settle 320ms var(--ease-out); }
+.chip .badge { position: absolute; top: 1px; right: 2px; font-size: 0.55rem; color: var(--new); }
+@keyframes settle { from { opacity: 0.4; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+.fieldhead { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 0.4rem; font-family: var(--font-ui); font-size: 0.66rem; color: var(--ink-3); }
+.fieldhead .chips > span { text-align: center; }
+@media (max-width: 40rem) {
+  .fieldhead { display: none; }
+  .team-grid .chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .chip { font-size: 0.62rem; }
+}
+
+/* Variant A stack */
+.stack-svg .blk { fill: var(--panel); stroke: var(--rule); stroke-width: 1.2; }
+.stack-svg .blk.loop { fill: var(--old-soft); stroke: var(--old); }
+.stack-svg .dot { fill: var(--new); transition: transform 230ms var(--ease-in-out); }
+.stack-svg .spin { transform-box: fill-box; transform-origin: center; transition: transform 230ms var(--ease-in-out); }
+
+/* Variant C cards */
+.cards { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr)); }
+.card { border: 1px solid var(--rule); border-radius: 10px; padding: 0.55rem; display: grid; gap: 0.4rem; background: var(--panel); }
+.card header { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-ui); font-size: 0.85rem; }
+.card header img { width: 3.2rem; height: 3.2rem; object-fit: contain; }
+.card header small { display: block; color: var(--ink-3); font-size: 0.74rem; }
+.card .chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.card .chip { min-height: 2.2rem; font-size: 0.62rem; }
+
+/* Figure 2 map */
+.map { display: grid; gap: 0.8rem; }
+.map-grid { display: grid; grid-template-columns: 7.5rem repeat(3, minmax(0, 1fr)); gap: 0.4rem; font-family: var(--font-ui); font-size: 0.8rem; }
+.map-grid .ax { color: var(--ink-3); font-size: 0.74rem; align-self: end; padding: 0.2rem; }
+.map-grid .rowlab { color: var(--ink-3); font-size: 0.74rem; align-self: center; }
+.cell { min-height: 4.6rem; border: 1px dashed var(--rule); border-radius: 8px; padding: 0.35rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.pchip { font: inherit; font-size: 0.78rem; text-align: left; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 0.3rem 0.45rem; cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
+.pchip small { display: block; color: var(--ink-3); font-family: var(--font-mono); font-size: 0.68rem; }
+.pchip[aria-pressed="true"] { border-color: var(--new); background: var(--new-soft); }
+@media (hover: hover) and (pointer: fine) { .pchip:hover { border-color: var(--new); } }
+.detail { font-family: var(--font-ui); font-size: 0.9rem; line-height: 1.5; display: grid; gap: 0.4rem; }
+.detail dl { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 0.25rem 0.8rem; margin: 0; }
+.detail dt { color: var(--ink-3); }
+.detail dd { margin: 0; }
+.band { font-family: var(--font-ui); font-size: 0.8rem; border: 1px dashed var(--old); border-radius: 8px; padding: 0.45rem 0.6rem; color: var(--ink-2); }
+@media (max-width: 40rem) { .map-grid { grid-template-columns: 4.6rem repeat(3, minmax(0, 1fr)); font-size: 0.72rem; } .detail dl { grid-template-columns: 1fr; } }
+
+/* Figure 4: comparison trees */
+:root { --k-compute: #2a78d6; --k-budget: #eb6834; --k-perstep: #8a5cd1; --k-size: #2f9e6e; --k-self: #8a91a0; --k-entropy: #1a9aa6; }
+@media (prefers-color-scheme: dark) { :root { --k-compute: #5b9cf0; --k-budget: #f08a5d; --k-perstep: #a98ae6; --k-size: #4cbf8c; --k-self: #9aa1ae; --k-entropy: #3cc0cc; } }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem; font-family: var(--font-ui); font-size: 0.8rem; }
+.legend button { font: inherit; display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 0.25rem 0.7rem 0.25rem 0.4rem; cursor: pointer; transition: border-color 160ms ease, opacity 160ms ease; }
+.legend button i { width: 1.4rem; height: 4px; border-radius: 2px; background: var(--k); }
+.legend button.dash i { background: repeating-linear-gradient(90deg, var(--k) 0 4px, transparent 4px 7px); }
+.legend button[aria-pressed="true"] { border-color: var(--k); box-shadow: inset 0 0 0 1px var(--k); }
+.units { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; font-family: var(--font-ui); font-size: 0.78rem; color: var(--ink-2); }
+.units span.u { width: 14px; height: 14px; border-radius: 3px; background: var(--k); transition: opacity 200ms ease; }
+.lanes { display: grid; gap: 1.1rem; }
+.lane { display: grid; gap: 0.8rem; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--rule); padding-top: 1rem; }
+@media (min-width: 52rem) { .lane { grid-template-columns: 16rem minmax(0, 1fr); } }
+.lane-head { display: grid; gap: 0.45rem; align-content: start; font-family: var(--font-ui); }
+.lane-head h4 { margin: 0; font-size: 0.98rem; }
+.lane-head h4 a { font-family: var(--font-mono); font-weight: 400; font-size: 0.74rem; display: block; }
+.xchips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.xchips span { font-size: 0.72rem; border: 1px solid var(--rule); border-radius: 4px; padding: 0.1rem 0.4rem; color: var(--ink-2); background: var(--bg); }
+.measures { font-size: 0.78rem; color: var(--ink-3); line-height: 1.45; }
+.tree { font-family: var(--font-ui); font-size: 0.84rem; }
+.root { display: inline-block; border: 1.5px solid var(--ink); border-radius: 8px; padding: 0.35rem 0.6rem; font-weight: 600; background: var(--panel); }
+.root small { display: block; font-weight: 400; color: var(--ink-2); font-size: 0.76rem; }
+.branches { list-style: none; margin: 0 0 0 1.1rem; padding: 0; display: grid; gap: 0.45rem; position: relative; }
+.branches > li { position: relative; padding: 0.55rem 0 0 2.6rem; transition: opacity 200ms ease; }
+.branches > li::before { content: ""; position: absolute; left: 0; top: 0; bottom: calc(100% - 1.75rem); width: 2.3rem; border-left: 3px solid var(--k); border-bottom: 3px solid var(--k); border-bottom-left-radius: 8px; }
+.branches > li.dash::before { border-left-style: dashed; border-bottom-style: dashed; }
+.branches > li + li::after { content: ""; position: absolute; left: 0; top: -0.45rem; height: 0.6rem; border-left: 3px solid var(--rule); }
+.base { display: grid; gap: 0.1rem; border: 1px solid var(--rule); border-left: 4px solid var(--k); border-radius: 6px; padding: 0.35rem 0.6rem; background: var(--panel); }
+.base .m { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--k); font-weight: 600; }
+.base b { font-weight: 600; }
+.base span.r { color: var(--ink-2); font-size: 0.8rem; }
+.k-compute { --k: var(--k-compute); } .k-budget { --k: var(--k-budget); } .k-perstep { --k: var(--k-perstep); } .k-size { --k: var(--k-size); } .k-self { --k: var(--k-self); } .k-entropy { --k: var(--k-entropy); }
+.fig4[data-focus] .branches > li:not(.on), .fig4[data-focus] .units span.u:not(.on) { opacity: 0.18; }
+@media (prefers-reduced-motion: reduce) { .branches > li, .units span.u, .legend button { transition: none; } }
+
+.reading { display: grid; gap: 0.55rem; font-family: var(--font-ui); font-size: 0.9rem; }
+.reading a { font-weight: 500; }
+.reading .kind { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-right: 0.4rem; }
+.foot { font-family: var(--font-ui); font-size: 0.8rem; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 0.8rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .variant.on { animation: none; }
+  .chip.fresh { animation: none; }
+  .stack-svg .dot, .stack-svg .spin, .chip .bar { transition: none; }
+  .btn { transition: background-color 160ms ease; }
+  .btn:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<p class="kicker">Explainer · Discrete diffusion</p>
+<h1>Loops inside the denoiser: five ways to give a discrete diffusion model more depth</h1>
+<p class="dek">A discrete diffusion model already works in a loop. It unmasks a few tokens, reads the result, and unmasks more. Looped models add a second loop inside each of those steps: they run the same few layers several times before they answer. This page shows the idea on a real tournament team and sorts the 2026 papers into five approaches.</p>
+<div class="byline"><span>Draft · 31 October 2026</span><span>Sources: six arXiv papers, May to October 2026, plus one practitioner post</span></div>
+
+<h2>A diffusion model already has one loop</h2>
+<p>The from-scratch discrete diffusion model trained only on valid Pokémon teams writes a team as 48 tokens: species, item, ability, nature and four moves for each of six Pokémon. Sampling starts with every token set to <span class="tok">[MASK]</span>. Each <b>denoising step</b> runs the whole network once, predicts a token for every masked position, and keeps the predictions it is most sure of. The next step reads those kept tokens as context. Call this the <b>outer loop</b>: steps over time, each one a full pass through the network.</p>
+<p>The outer loop gives every masked token the same depth. In a 12-layer model, each token gets 12 layers per step, whether it is easy or hard. Incineroar's ability is easy once the species is known. The fourth move of a support Pokémon is hard, because it depends on the other five. A standard model can put the hard token off to a later step, but it throws away the work it did on that token in this one.</p>
+
+<h2>A looped model adds a second loop inside each step</h2>
+<div class="with-note">
+<p>A <b>looped transformer</b> splits its layers into three groups. The <b>head</b> runs once and turns tokens into vectors. The <b>looped block</b>, a few layers in the middle, runs <i>S</i> times in a row with the same weights. The <b>tail</b> runs once and turns vectors back into token probabilities. Call the loop over the looped block the <b>inner loop</b>, and <i>S</i> the <b>loop count</b>. The model stores the weights of 12 layers but computes like a deeper one, and you can change <i>S</i> after training.</p>
+<p class="note">The layer split in Figure 1 is the one from the looped masked diffusion paper: 12 layers, with layers 1 and 2 (counting from 0) looped. One step then costs 1 + 2<i>S</i> + 9 layer passes.</p>
+</div>
+<p>Figure 1 runs both loops on MB607, a real Regulation M-B team. Thirty of its 48 tokens start masked. Pick a loop count and press <b>Run one step</b>. A higher count fills more tokens per step but makes each step cost more. Tick <b>Each token leaves when ready</b> to switch to the per-token version described in approach 3.</p>
+
+<figure class="wide">
+  <div class="panel fig1">
+    <div class="controls">
+      <span>View</span>
+      <div class="seg" role="group" aria-label="Figure view">
+        <button type="button" data-v="a" aria-pressed="true">Layer stack</button>
+        <button type="button" data-v="b" aria-pressed="false">Unrolled steps</button>
+        <button type="button" data-v="c" aria-pressed="false">Team cards</button>
+      </div>
+    </div>
+    <div class="controls">
+      <label class="slider">Loop count <i>S</i> <input id="s" type="range" min="1" max="12" value="4"> <span class="num" id="s-out">4</span></label>
+      <label class="check"><input id="adaptive" type="checkbox"> Each token leaves when ready</label>
+      <button class="btn primary" id="step" type="button">Run one step</button>
+      <button class="btn" id="all" type="button">Run to the end</button>
+      <button class="btn" id="reset" type="button">Reset</button>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+
+    <!-- Variant A: the layer stack -->
+    <section class="variant on" id="va" aria-label="Layer stack view">
+      <div class="split">
+        <div>
+          <svg class="stack-svg" viewBox="0 0 240 300" width="100%" role="img" aria-label="Head, looped block, and tail of a looped transformer">
+            <rect class="blk" x="40" y="14" width="160" height="44" rx="6"/>
+            <text class="ink" x="120" y="34" text-anchor="middle" font-size="12">Head</text>
+            <text x="120" y="50" text-anchor="middle" font-size="10">embedding + layer 0, runs once</text>
+            <rect class="blk loop" x="40" y="104" width="160" height="62" rx="6"/>
+            <text class="ink" x="120" y="128" text-anchor="middle" font-size="12">Looped block</text>
+            <text x="120" y="144" text-anchor="middle" font-size="10">layers 1–2, same weights</text>
+            <text id="pass-lab" class="ink" x="120" y="159" text-anchor="middle" font-size="10">pass 0 of 4</text>
+            <g class="spin" id="spin"><path d="M214 118 a20 20 0 1 1 -2 30" fill="none" stroke="var(--old)" stroke-width="2"/><path d="M208 150 l5 -2 l-1 6 z" fill="var(--old)"/></g>
+            <rect class="blk" x="40" y="212" width="160" height="44" rx="6"/>
+            <text class="ink" x="120" y="232" text-anchor="middle" font-size="12">Tail</text>
+            <text x="120" y="248" text-anchor="middle" font-size="10">layers 3–11 + output, runs once</text>
+            <path d="M120 58 V104 M120 166 V212" stroke="var(--rule)" stroke-width="1.5"/>
+            <text x="120" y="284" text-anchor="middle" font-size="10" id="depth-lab">depth this step: 18 layer passes</text>
+            <path d="M20 36 V234" stroke="var(--rule)" stroke-width="1" stroke-dasharray="2 3"/>
+            <circle class="dot" id="dot" cx="20" cy="36" r="6"/>
+          </svg>
+          <div class="mini">
+            <span class="t">Depth per step against loop count. The weights stay at 12 layers.</span>
+            <svg id="chart-a" viewBox="0 0 240 130" width="100%" role="img" aria-label="Line chart of depth per step against loop count"></svg>
+          </div>
+        </div>
+        <div>
+          <div class="fieldhead"><span></span><div class="chips"><span>species</span><span>item</span><span>ability</span><span>nature</span><span>move 1</span><span>move 2</span><span>move 3</span><span>move 4</span></div></div>
+          <div class="team-grid" id="grid-a"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Variant B: unrolled steps -->
+    <section class="variant" id="vb" aria-label="Unrolled steps view">
+      <svg id="timeline" viewBox="0 0 620 200" width="100%" role="img" aria-label="Masked tokens left against layer passes spent"></svg>
+      <div class="split">
+        <div class="mini">
+          <span class="t">Training compute saved to reach the non-looped model's validation loss</span>
+          <svg id="chart-b" viewBox="0 0 240 190" width="100%" role="img" aria-label="Bar chart of training compute savings"></svg>
+        </div>
+        <div>
+          <div class="fieldhead"><span></span><div class="chips"><span>species</span><span>item</span><span>ability</span><span>nature</span><span>move 1</span><span>move 2</span><span>move 3</span><span>move 4</span></div></div>
+          <div class="team-grid" id="grid-b"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Variant C: team cards -->
+    <section class="variant" id="vc" aria-label="Team cards view">
+      <div class="cards" id="cards"></div>
+      <div class="mini">
+        <span class="t">Average looped-block passes actually run when the model may stop early</span>
+        <svg id="chart-c" viewBox="0 0 620 150" width="100%" role="img" aria-label="Bar chart of loop passes run with early stopping"></svg>
+      </div>
+    </section>
+  </div>
+  <figcaption><b>Figure 1. One team, two loops.</b> MB607 is a real Regulation M-B tournament team: Sinistcha, Milotic, Incineroar, Raichu, Mimikyu and Alolan Ninetales. Species and the first two moves start visible; the other 30 tokens start masked. The figure is an illustration, and no model ran: each masked token needs an invented number of looped-block passes (ability 1, move 3 two, item 3, nature 4, move 4 five, plus one on every second Pokémon), each step keeps at most 8 tokens, and every finished step makes the remaining tokens one pass easier. With the per-token box ticked, a token commits at the pass where it is ready and makes the other masked tokens on the same Pokémon one pass easier inside that step. The bar under each masked token shows how close it is to ready; the small number on a filled token is the step that filled it, or the pass for per-token exit. The small charts use numbers reported in the papers, named under each chart.</figcaption>
+</figure>
+
+<p>Two things show up at any setting. A loop count of 1 needs many cheap steps, and a loop count of 12 needs few expensive ones. The token total stays fixed, so looping changes how the work is spread out. The papers' claim is about training: a model that learns with random loop counts reaches the same validation loss with 2.3 to 3.3 times less training compute.</p>
+
+<h2>Five approaches to the inner loop</h2>
+<p>The papers differ on two questions. What does the loop carry: hidden states inside one step, or a state passed from one step to the next? And who decides when the loop stops: you, a convergence test, or each token? Figure 2 places each paper on those two axes. Click a paper to read how it loops.</p>
+
+<figure class="wide">
+  <div class="panel map">
+    <div class="map-grid" id="map"></div>
+    <div class="band">Approach 5 sits across every cell: how to spread loop counts over training examples and over denoising steps. See Figure 3.</div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+  </div>
+  <figcaption><b>Figure 2. Where each paper puts its loop.</b> Columns say who decides the loop count; rows say what the loop carries. The fixed-point model sits in the top row but also warm-starts each step from the last one. Paper identifiers appear under each descriptive name.</figcaption>
+</figure>
+
+<h3>1. Loop a middle block, choose the count at run time</h3>
+<p>The looped masked diffusion paper (LoopMDM, Lee et al., KAIST and KRAFTON) loops layers 1 and 2 of a 12-layer, 170-million-parameter masked diffusion model. During training it draws the loop count at random from 1 to 12 for every batch, so one model learns to work at every count. At equal training compute it matches the non-looped model's validation loss with 3.34 times less compute on FineWeb-Edu, 2.95 on OpenWebText and 2.34 on LM1B. On the grade-school math benchmark (GSM8K) it beats a same-size model by up to 8.5 points and a 21-layer model with the same compute per step by 3.4 points. That last result matters most: repeating two layers did better than adding nine new ones.</p>
+<p>The looped uniform diffusion paper (Utpala et al., MBZUAI, Sony and MIT) asks whether this still works when corruption swaps tokens for random words instead of <span class="tok">[MASK]</span>. A uniform model cannot see which tokens are wrong, so each prediction is harder. Looping still pays: 2.8 times less training compute on OpenWebText and 3.3 on FineWeb-Edu, and up to 9.8% lower generation perplexity at the same number of steps. Its analysis found that the extra passes mostly fix the guess at replaced tokens, not the decision about which tokens to keep.</p>
+
+<h3>2. Loop until the block stops changing</h3>
+<p>The fixed-point masked generative model (CoFRe, Miele et al., EPFL) treats the looped block as an equation to solve: run it until its output stops changing, and use that output. The next denoising step starts the solver from the last step's answer instead of from scratch. It treats tokens three ways: an unchanged visible token reuses its old state fully, a still-masked token mostly, a newly revealed token only 20%. On OpenWebText it uses 38.8% fewer parameters than the masked diffusion baseline and, at a budget of 96 block passes, cuts generation perplexity from 193.1 to 101.8 against the distilled baseline.</p>
+
+<h3>3. Let each token leave the loop when it is ready</h3>
+<p>The adaptively looped diffusion model (ALoDLM, Fang, Li et al., Amazon AGI) drops the rule that every token gets the same depth. Inside one step, a token whose prediction is confident enough commits, and its embedding goes back in as context for the next pass. Tokens that are still unsure keep their hidden state and loop again. A learned exit gate decides when to stop the loop for the remaining tokens. Raising the exit threshold moves the average from 1.6 to 2.34 passes per token and the average score over eleven benchmarks from 77.9 to 79.1. At 8 billion parameters, converted from Qwen3-8B, it beats every diffusion model tested and its own autoregressive base on average, and runs about 2.7 times faster on GSM8K than Qwen3-8B served with vLLM.</p>
+
+<h3>4. Carry the loop's state to the next step</h3>
+<p>Self-conditioning closes a different leak. A standard sampler keeps only the sampled tokens between steps and drops the model's uncertainty. Loopholing discrete diffusion (Jo et al., ICLR 2026) passes the last hidden state forward and adds it to the next step's token embeddings. Pure self-conditioning (LAW, Deschenaux, Ilieva et al., EPFL) goes further: it passes only the expected embedding under the model's prediction and samples tokens once, at the end. On GSM8K-style problems it solves 42.2% against 34.5% for uniform Loopholing, and fine-tuning a pretrained uniform model with it lifts accuracy from 17.2% to 48.1%. The authors call this complementary to approaches 1 to 3: those change the work inside a step, this changes what crosses between steps.</p>
+
+<h3>5. Spend the loop budget where it pays</h3>
+<p>Both looped papers found that extra passes help most at middle noise levels, when about half the tokens are known. Very early, there is too little context to refine; very late, little is left to fix. The looped uniform paper tested three training distributions for the loop count (Figure 3). Drawing small counts more often (FLOP-proportional) matched uniform drawing at 12% fewer loops on downstream tasks. Giving noisier inputs more loops (noise-proportional) lost to both. At run time, both papers stop a step's loop once the hidden state changes by less than a set fraction between passes. LoopMDM's rule cut the average from 12 passes to about 5 and kept most of the gain.</p>
+
+<figure>
+  <div class="panel">
+    <svg id="chart-3" viewBox="0 0 640 230" width="100%" role="img" aria-label="Bar chart of loop-count probabilities under uniform and FLOP-proportional sampling"></svg>
+  </div>
+  <figcaption><b>Figure 3. Two ways to draw the loop count during training.</b> Probability of each loop count from 1 to 12. Uniform drawing gives every count 8.3% and averages 6.50 passes per training step. FLOP-proportional drawing gives each count the same share of compute, so small counts come up more often, and averages 5.72 passes. Noise-proportional drawing has the same overall shape as uniform but ties large counts to noisy inputs; its best result trailed FLOP-proportional by 0.029 in validation loss. Source: Looped Uniform Diffusion Language Models, Figure 8a and Finding 2.</figcaption>
+</figure>
+
+<h2>How each paper tests its claim</h2>
+<p>Four of the five papers train small models, about 170 million parameters, from scratch on web text. Each compares the looped model with the same model without the loop, trained on the same budget of floating-point operations. A looped step costs more, so the looped model trains for fewer steps and sees fewer tokens. Every gain they report is net of that handicap. The per-token loop (ALoDLM) is the exception. It converts Qwen3 checkpoints with 5 billion tokens of fine-tuning and compares itself with models other groups released.</p>
+<p>Which control matters depends on the claim. To show that looping beats plain depth, you need a deeper model with the same compute per step. Only LoopMDM runs that test: it gains 3.4 points over a 21-layer model. The fixed-point model holds the sampling budget equal, counted in block passes. The per-token loop holds only model size and decoding rules equal. Its closest control, WeDLM-8B, comes from the same Qwen3-8B and the same block-diffusion framework but used a different training recipe. The sections read for this page show no non-looped model trained on ALoDLM's own 5 billion tokens.</p>
+
+<figure class="wide">
+  <div class="panel fig4" id="fig4">
+    <div class="legend" id="legend" role="group" aria-label="Highlight comparisons by what they hold equal"></div>
+    <div class="units" id="units"></div>
+    <div class="lanes" id="lanes"></div>
+  </div>
+  <figcaption><b>Figure 4. What each paper compares against, and what it holds equal.</b> Each branch joins a looped model to one baseline. The branch colour says what the comparison keeps the same; a dashed green branch keeps only model size, so training data and recipe also differ. The squares count comparisons by kind. Click a colour to light up that kind across all five papers; click it again to clear. Results are as each paper reports them.</figcaption>
+</figure>
+
+<h2>What the papers agree on</h2>
+<ul class="tight">
+  <li>Loop the early-to-middle layers, not the first or the last. LoopMDM's ablation found layers 1 and 2 of 12 best. A practitioner post in the reading list reached the same rule on a 30-layer autoregressive model: loop layers 15 to 24, never the last few.</li>
+  <li>Train with a random loop count. One checkpoint then runs at any count, and LoopMDM kept improving past the largest count it trained on.</li>
+  <li>Spend loops where uncertainty is highest: middle noise levels in approach 5, hard tokens in approach 3.</li>
+  <li>Measure at equal compute. Every number above compares a looped model with a non-looped one trained on the same budget of floating-point operations, so the looped model saw fewer training tokens.</li>
+</ul>
+
+<h2>What this could mean for the team model</h2>
+<p>The discrete diffusion model in this project is a masked model over 48 fields, the same family as LoopMDM. Looping changes the network, not the sampler, so the masking, unmasking and loss stay as they are. The cheapest test copies approach 1: loop two early-middle layers, draw the loop count at random during training, and compare validation loss against the current model at equal training compute. Approach 3 fits the field structure well, because an ability is often fixed by the species while a fourth move depends on the whole team. None of this has been run here.</p>
+
+<h2>Reading list</h2>
+<div class="reading">
+  <div><span class="kind">Blog</span><a href="https://qlabs.sh/10x">10x Data Efficiency, NanoGPT Slowrun</a>. Loops layers 15 to 24 of a 30-layer model four times from halfway through training; found in your Raindrop bookmarks.</div>
+  <div><span class="kind">Project page</span><a href="https://alo-dlm.github.io">ALoDLM: Adaptively Looped Diffusion Language Models</a>. Animated overview of per-token exit.</div>
+  <div><span class="kind">Paper</span><a href="https://www.alphaxiv.org/abs/2605.26106">Looped Diffusion Language Models (LoopMDM)</a>, May 2026. Approach 1, masked corruption.</div>
+  <div><span class="kind">Paper</span><a href="https://www.alphaxiv.org/abs/2610.30066">Looped Uniform Diffusion Language Models</a>, October 2026. Approaches 1 and 5, uniform corruption.</div>
+  <div><span class="kind">Paper</span><a href="https://www.alphaxiv.org/abs/2605.31215">Fixed-Point Masked Generative Modeling (CoFRe)</a>, May 2026. Approach 2.</div>
+  <div><span class="kind">Paper</span><a href="https://www.alphaxiv.org/abs/2610.04198">ALoDLM: Adaptively Looped Diffusion Language Models</a>, October 2026. Approach 3.</div>
+  <div><span class="kind">Paper</span><a href="https://www.alphaxiv.org/abs/2610.30068">Loopholing All the Way: Language Modeling with Pure Self-Conditioning (LAW)</a>, October 2026. Approach 4.</div>
+  <div><span class="kind">Further</span><a href="https://www.alphaxiv.org/abs/2610.36940">TDLM: Adaptive Temporal Integration for Diffusion Language Models</a> keeps unresolved tokens' representations across steps (approach 4). <a href="https://www.alphaxiv.org/abs/2609.40305">Looped Diffusion Transformer</a> loops an image diffusion model. <a href="https://www.alphaxiv.org/abs/2610.06833">Towards Looped Models Done Right, Part II</a> studies fixed points in looped language models. Not read in full for this page.</div>
+</div>
+
+<p class="foot">Every number on this page comes from the paper named beside it; Figure 1's per-token difficulties are invented to show the mechanism. Sprites from Pokémon Showdown.</p>
+</main>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SPRITE = n => `https://play.pokemonshowdown.com/sprites/home-centered/${n}.png`;
+
+  // MB607, from vgc-bench teams/reg_mb/MB607.txt
+  const TEAM = [
+    { name: 'Sinistcha', id: 'sinistcha', item: 'Kasib Berry', ability: 'Hospitality', nature: 'Calm', moves: ['Life Dew', 'Matcha Gotcha', 'Rage Powder', 'Hex'] },
+    { name: 'Milotic', id: 'milotic', item: 'Leftovers', ability: 'Competitive', nature: 'Calm', moves: ['Muddy Water', 'Hypnosis', 'Coil', 'Recover'] },
+    { name: 'Incineroar', id: 'incineroar', item: 'Sitrus Berry', ability: 'Intimidate', nature: 'Adamant', moves: ['Fake Out', 'Parting Shot', 'Darkest Lariat', 'Flare Blitz'] },
+    { name: 'Raichu', id: 'raichu', item: 'Raichunite Y', ability: 'Lightning Rod', nature: 'Timid', moves: ['Zap Cannon', 'Focus Blast', 'Fake Out', 'Protect'] },
+    { name: 'Mimikyu', id: 'mimikyu', item: 'Life Orb', ability: 'Disguise', nature: 'Adamant', moves: ['Play Rough', 'Shadow Sneak', 'Protect', 'Swords Dance'] },
+    { name: 'Alolan Ninetales', id: 'ninetales-alola', item: 'Focus Sash', ability: 'Snow Warning', nature: 'Timid', moves: ['Blizzard', 'Freeze-Dry', 'Protect', 'Encore'] },
+  ];
+  const FIELDS = ['species', 'item', 'ability', 'nature', 'move1', 'move2', 'move3', 'move4'];
+  const BASE = { item: 3, ability: 1, nature: 4, move3: 2, move4: 5 };   // invented passes-to-ready
+  const KEEP = 8;                      // tokens a step may keep
+  const COST = s => 1 + 2 * s + 9;     // layer passes per step: head 1, looped 2 x S, tail 9
+
+  const value = (m, f) => f === 'species' ? m.name : f.startsWith('move') ? m.moves[+f[4] - 1] : m[f];
+
+  let toks, stepNo, spent, history, busy = false;
+  function reset() {
+    toks = [];
+    TEAM.forEach((m, i) => FIELDS.forEach(f => {
+      const masked = f in BASE;
+      toks.push({ mon: i, field: f, value: value(m, f), masked, d: masked ? BASE[f] + (i % 2) : 0, prog: 0, tag: '', fresh: false, pop: false });
+    }));
+    stepNo = 0; spent = 0; history = [{ spent: 0, left: 30, passes: 0 }];
+    buildViews();
+    setPass(0, +sIn.value);
+    renderAll();
+  }
+
+  // Plan one denoising step as a list of frames, one per looped-block pass.
+  function planStep(S, adaptive) {
+    const masked = toks.filter(t => t.masked);
+    const d = new Map(masked.map(t => [t, t.d]));
+    const frames = []; const kept = []; const at = new Map();
+    let passes = 0;
+    for (let p = 1; p <= S; p++) {
+      passes = p;
+      const commits = [];
+      if (adaptive) {
+        const ready = masked.filter(t => !kept.includes(t) && d.get(t) <= p).sort((a, b) => d.get(a) - d.get(b));
+        for (const t of ready) { if (kept.length >= KEEP) break; kept.push(t); commits.push(t); at.set(t, p); }
+        for (const c of commits) for (const t of masked) if (!kept.includes(t) && t.mon === c.mon) d.set(t, Math.max(p + 1, d.get(t) - 1));
+      }
+      frames.push({ p, prog: new Map(masked.map(t => [t, Math.min(1, p / d.get(t))])), commits: commits.slice() });
+      if (adaptive && (kept.length >= KEEP || kept.length === masked.length)) break;
+    }
+    if (!adaptive) {
+      const ready = masked.filter(t => t.d <= S).sort((a, b) => a.d - b.d).slice(0, KEEP);
+      kept.push(...ready);
+    }
+    if (kept.length === 0 && masked.length) {
+      const best = masked.slice().sort((a, b) => a.d - b.d)[0];
+      kept.push(best); at.set(best, passes);
+    }
+    return { frames, kept, passes, at };
+  }
+
+  function setPass(p, S) {
+    passLab.textContent = `pass ${p} of ${S}`;
+    depthLab.textContent = `depth this step: ${COST(S)} layer passes`;
+    spin.style.transform = `rotate(${p * 360}deg)`;
+    const y = p === 0 ? 36 : p === -1 ? 234 : 135;
+    dot.style.transform = `translateY(${y - 36}px)`;
+  }
+
+  async function runStep() {
+    const S = +sIn.value, adaptive = adIn.checked;
+    if (!toks.some(t => t.masked)) return;
+    const { frames, kept, passes, at } = planStep(S, adaptive);
+    toks.forEach(t => t.fresh = false);
+    const tagOf = t => adaptive ? 'p' + at.get(t) : 's' + stepNo;
+    stepNo++;
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    for (const fr of frames) {
+      if (!reduce && !fastForward) {
+        setPass(fr.p, S);
+        toks.forEach(t => { if (fr.prog.has(t)) t.prog = fr.prog.get(t); });
+        fr.commits.forEach(t => { t.masked = false; t.fresh = true; t.pop = true; t.tag = tagOf(t); });
+        renderTokens(); await wait(260);
+      }
+    }
+    kept.forEach(t => { if (t.masked) { t.masked = false; t.fresh = true; t.pop = true; t.tag = tagOf(t); } });
+    toks.forEach(t => { if (t.masked) { t.d = Math.max(1, t.d - 1); t.prog = 0; } });
+    spent += COST(adaptive ? passes : S);
+    history.push({ spent, left: toks.filter(t => t.masked).length, passes: adaptive ? passes : S });
+    if (!reduce && !fastForward) { setPass(-1, S); await wait(220); }
+    setPass(0, S);
+    renderAll();
+  }
+
+  let fastForward = false;
+  async function guard(fn) { if (busy) return; busy = true; buttons(true); try { await fn(); } finally { busy = false; fastForward = false; buttons(false); renderStatus(); } }
+  function buttons(dis) { [stepB, allB, resetB].forEach(b => b.disabled = dis); sIn.disabled = dis; adIn.disabled = dis; }
+
+  // ---------- rendering ----------
+  // Chips are built once per reset and updated in place, so the readiness bars can slide.
+  function makeChip(t) {
+    const c = document.createElement('span'); c.className = 'chip';
+    const txt = document.createElement('span'); const bar = document.createElement('span'); bar.className = 'bar';
+    const badge = document.createElement('span'); badge.className = 'badge';
+    c.append(txt, bar, badge); (t.els ||= []).push({ c, txt, bar, badge }); return c;
+  }
+  function updateChip(t) {
+    for (const e of t.els || []) {
+      e.c.classList.toggle('masked', t.masked); e.c.classList.toggle('fresh', t.fresh);
+      if (t.pop) { e.c.style.animation = 'none'; void e.c.offsetWidth; e.c.style.animation = ''; }
+      e.txt.textContent = t.masked ? '[MASK]' : t.value;
+      e.bar.style.transform = `scaleX(${t.masked ? t.prog.toFixed(3) : 0})`;
+      e.badge.textContent = !t.masked && t.tag ? t.tag.slice(1) : '';
+      e.c.title = `${t.field}: ${t.masked ? 'masked' : t.value}`;
+    }
+    t.pop = false;
+  }
+  function buildViews() {
+    toks.forEach(t => t.els = []);
+    const row = (m, i, wrap) => { const r = document.createElement('div'); r.className = 'mon-row'; r.innerHTML = `<img src="${SPRITE(m.id)}" alt="${m.name}">`; const ch = document.createElement('div'); ch.className = 'chips'; toks.filter(t => t.mon === i).forEach(t => ch.append(makeChip(t))); r.append(ch); wrap.append(r); };
+    gridA.replaceChildren(); gridB.replaceChildren(); cards.replaceChildren();
+    TEAM.forEach((m, i) => {
+      row(m, i, gridA); row(m, i, gridB);
+      const card = document.createElement('div'); card.className = 'card';
+      card.innerHTML = `<header><img src="${SPRITE(m.id)}" alt="${m.name}"><div>${m.name}<small data-item="${i}"></small></div></header>`;
+      const ch = document.createElement('div'); ch.className = 'chips';
+      toks.filter(t => t.mon === i && t.field !== 'species').forEach(t => ch.append(makeChip(t)));
+      card.append(ch); cards.append(card);
+    });
+  }
+  function renderTokens() {
+    toks.forEach(updateChip);
+    TEAM.forEach((m, i) => { const sm = cards.querySelector(`[data-item="${i}"]`); const it = toks.find(t => t.mon === i && t.field === 'item'); sm.textContent = it.masked ? 'item masked' : '@ ' + m.item; });
+  }
+  function renderStatus() {
+    const left = toks.filter(t => t.masked).length;
+    status.innerHTML = `step <b>${stepNo}</b> · <b>${30 - left}</b> of 30 masked tokens filled · <b>${spent}</b> layer passes spent` + (left === 0 ? ' · done' : '');
+    stepB.disabled = allB.disabled = left === 0 || busy;
+  }
+  function renderAll() { renderTokens(); renderStatus(); renderTimeline(); renderChartA(); }
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+
+  function renderTimeline() {
+    const svg = document.getElementById('timeline'); svg.replaceChildren();
+    const W = Math.max(340, Math.round(svg.clientWidth || 620)), H = W < 500 ? 240 : 210, L = 30, R = 8, T = 30, B = 34;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const maxX = Math.max(200, spent * 1.08);
+    const x = v => L + (W - L - R) * v / maxX, y = v => T + (H - T - B) * (1 - v / 30);
+    svg.append(el('line', { x1: L, x2: W - R, y1: y(0), y2: y(0), stroke: 'var(--rule)' }));
+    [0, 10, 20, 30].forEach(v => { svg.append(el('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end', 'font-size': 10 }, v)); svg.append(el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: 'var(--rule)', 'stroke-dasharray': '2 4' })); });
+    svg.append(el('text', { x: L, y: H - 6, 'font-size': 10 }, 'layer passes spent →'));
+    svg.append(el('text', { x: L - 22, y: 11, 'font-size': 10 }, 'masked tokens left ↓'));
+    for (let i = 1; i < history.length; i++) {
+      const a = history[i - 1], b = history[i];
+      const x0 = x(a.spent), x1 = x(b.spent);
+      svg.append(el('rect', { x: x0, y: y(a.left), width: Math.max(1, x1 - x0), height: y(0) - y(a.left), fill: 'var(--new-soft)', stroke: 'var(--new)', 'stroke-width': 0.8 }));
+      const loopW = (x1 - x0) * (2 * b.passes) / COST(b.passes);
+      const lx = x0 + (x1 - x0) * 1 / COST(b.passes);
+      for (let p = 0; p < b.passes; p++) svg.append(el('rect', { x: lx + loopW * p / b.passes + 0.5, y: y(0) + 3, width: Math.max(0.6, loopW / b.passes - 1), height: 6, fill: 'var(--old)' }));
+      if (x1 - x0 > 16) svg.append(el('text', { x: (x0 + x1) / 2, y: y(a.left) - 4, 'text-anchor': 'middle', 'font-size': 9 }, 's' + i));
+    }
+    svg.append(el('text', { x: W - R, y: H - 6, 'text-anchor': 'end', 'font-size': 10 }, W < 500 ? 'orange: loop passes' : 'orange ticks: looped-block passes'));
+    if (history.length === 1) svg.append(el('text', { x: (L + W - R) / 2, y: y(15), 'text-anchor': 'middle', 'font-size': 11 }, 'Run a step to draw it'));
+  }
+
+  function renderChartA() {
+    const svg = document.getElementById('chart-a'); svg.replaceChildren();
+    const W = 240, H = 130, L = 30, R = 8, T = 10, B = 24, S = +sIn.value;
+    const x = s => L + (W - L - R) * (s - 1) / 15, y = d => T + (H - T - B) * (1 - d / 45);
+    [0, 15, 30, 45].forEach(v => { svg.append(el('text', { x: L - 4, y: y(v) + 3, 'text-anchor': 'end', 'font-size': 9 }, v)); svg.append(el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: 'var(--rule)', 'stroke-dasharray': '2 4' })); });
+    svg.append(el('line', { x1: x(12), x2: x(12), y1: T, y2: y(0), stroke: 'var(--ink-3)', 'stroke-dasharray': '3 3' }));
+    svg.append(el('text', { x: x(12) - 3, y: T + 8, 'text-anchor': 'end', 'font-size': 8.5 }, 'trained up to 12'));
+    svg.append(el('line', { x1: x(1), x2: x(16), y1: y(12), y2: y(12), stroke: 'var(--ink-3)' }));
+    svg.append(el('text', { x: x(16), y: y(12) - 4, 'text-anchor': 'end', 'font-size': 8.5 }, 'stored layers: 12'));
+    let d = ''; for (let s = 1; s <= 16; s++) d += (s === 1 ? 'M' : 'L') + x(s) + ' ' + y(COST(s));
+    svg.append(el('path', { d, fill: 'none', stroke: 'var(--old)', 'stroke-width': 2 }));
+    svg.append(el('circle', { cx: x(S), cy: y(COST(S)), r: 4, fill: 'var(--old)' }));
+    svg.append(el('text', { x: x(S) + 6, y: y(COST(S)) + 12, 'font-size': 9, class: 'ink' }, `S=${S}: ${COST(S)}`));
+    svg.append(el('text', { x: L, y: H - 6, 'font-size': 9 }, 'loop count 1 → 16'));
+  }
+
+  function hbars(svg, rows, opts) {
+    svg.replaceChildren();
+    const { W, L, max, fmt, rowH = 20, top = 8, groupGap = 10 } = opts;
+    let yy = top, group = null;
+    for (const r of rows) {
+      if (r.group !== group) { if (group !== null) yy += groupGap; group = r.group; svg.append(el('text', { x: 0, y: yy + 9, 'font-size': 9.5, class: 'ink', 'font-weight': 600 }, r.group)); yy += 14; }
+      svg.append(el('text', { x: L - 6, y: yy + 12, 'text-anchor': 'end', 'font-size': 9.5 }, r.label));
+      const w = (W - L - (opts.room || 46)) * r.v / max;
+      svg.append(el('rect', { x: L, y: yy + 2, width: w, height: rowH - 7, rx: 2, fill: r.color || 'var(--new)' }));
+      svg.append(el('text', { x: L + w + 5, y: yy + 12, 'font-size': 9.5, class: 'ink' }, fmt(r)));
+      yy += rowH;
+    }
+    svg.setAttribute('viewBox', `0 0 ${W} ${yy + 4}`);
+  }
+
+  // Figure 1, variant B chart: LoopMDM Section 5.1; Looped UDLM Figure 1 (uniform loop-count sampling).
+  hbars(document.getElementById('chart-b'), [
+    { group: 'Masked corruption (LoopMDM)', label: 'FineWeb-Edu', v: 3.34 },
+    { group: 'Masked corruption (LoopMDM)', label: 'OpenWebText', v: 2.95 },
+    { group: 'Masked corruption (LoopMDM)', label: 'LM1B', v: 2.34 },
+    { group: 'Uniform corruption (Looped UDLM)', label: 'FineWeb-Edu', v: 3.28, color: 'var(--old)' },
+    { group: 'Uniform corruption (Looped UDLM)', label: 'OpenWebText', v: 2.79, color: 'var(--old)' },
+  ], { W: 240, L: 78, max: 3.5, fmt: r => r.v.toFixed(2) + '× less' });
+
+  // Figure 1, variant C chart: LoopMDM adaptive stop; Looped UDLM Finding 4; ALoDLM Section 4.4.
+  const chartC = () => { const svg = document.getElementById('chart-c'); const W = Math.max(340, Math.round(svg.clientWidth || 620)); hbars(svg, [
+    { group: 'Whole step stops early (passes per step; fixed is 12)', label: 'LoopMDM', v: 5, fmt: 'about 5' },
+    { group: 'Whole step stops early (passes per step; fixed is 12)', label: 'Looped uniform (even)', v: 12 * (1 - 0.260), fmt: '8.9 (26.0% fewer)' },
+    { group: 'Whole step stops early (passes per step; fixed is 12)', label: 'Looped uniform (FLOP)', v: 12 * (1 - 0.348), fmt: '7.8 (34.8% fewer)' },
+    { group: 'Each token leaves when ready (passes per token; ALoDLM 8B)', label: 'low exit threshold', v: 1.6, fmt: '1.6 · score 77.9', color: 'var(--old)' },
+    { group: 'Each token leaves when ready (passes per token; ALoDLM 8B)', label: 'high exit threshold', v: 2.34, fmt: '2.34 · score 79.1', color: 'var(--old)' },
+  ], { W, L: W < 500 ? 118 : 200, max: 12, room: 104, fmt: r => r.fmt }); };
+
+  // Figure 3: Looped UDLM Figure 8a.
+  (function chart3() {
+    const svg = document.getElementById('chart-3');
+    const fp = [12.1, 11.0, 10.2, 9.4, 8.8, 8.2, 7.7, 7.2, 6.9, 6.5, 6.2, 5.9];
+    const W = 640, H = 230, L = 40, R = 10, T = 26, B = 30;
+    const bw = (W - L - R) / 12, y = v => T + (H - T - B) * (1 - v / 14);
+    [0, 4, 8, 12].forEach(v => { svg.append(el('text', { x: L - 6, y: y(v) + 3, 'text-anchor': 'end', 'font-size': 10 }, v + '%')); svg.append(el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: 'var(--rule)', 'stroke-dasharray': '2 4' })); });
+    fp.forEach((v, i) => {
+      const x0 = L + bw * i;
+      svg.append(el('rect', { x: x0 + bw * 0.12, y: y(8.3), width: bw * 0.36, height: y(0) - y(8.3), fill: 'var(--ink-3)', opacity: 0.55 }));
+      svg.append(el('rect', { x: x0 + bw * 0.52, y: y(v), width: bw * 0.36, height: y(0) - y(v), fill: 'var(--new)' }));
+      svg.append(el('text', { x: x0 + bw * 0.7, y: y(v) - 3, 'text-anchor': 'middle', 'font-size': 9, class: 'ink' }, v.toFixed(1)));
+      svg.append(el('text', { x: x0 + bw / 2, y: H - 12, 'text-anchor': 'middle', 'font-size': 10 }, i + 1));
+    });
+    svg.append(el('text', { x: L, y: H - 0.5, 'font-size': 10 }, 'loop count drawn for a training step'));
+    svg.append(el('rect', { x: L, y: 6, width: 10, height: 10, fill: 'var(--ink-3)', opacity: 0.55 }));
+    svg.append(el('text', { x: L + 14, y: 15, 'font-size': 10 }, 'uniform, 8.3% each, mean 6.50'));
+    svg.append(el('rect', { x: L + 210, y: 6, width: 10, height: 10, fill: 'var(--new)' }));
+    svg.append(el('text', { x: L + 224, y: 15, 'font-size': 10 }, 'FLOP-proportional, mean 5.72'));
+  })();
+
+  // ---------- Figure 2 map ----------
+  const PAPERS = [
+    { key: 'loopmdm', name: 'Looped masked model', id: 'LoopMDM · 2605.26106', row: 0, col: 0,
+      loops: 'Layers 1–2 of a 12-layer masked diffusion model, every token the same number of times.',
+      stops: 'You set the count. Training draws it at random from 1 to 12; a stop rule on hidden-state change is optional.',
+      result: '3.34× less training compute on FineWeb-Edu at equal validation loss; +3.4 points on GSM8K over a 21-layer model with the same compute per step.',
+      url: 'https://www.alphaxiv.org/abs/2605.26106' },
+    { key: 'udlm', name: 'Looped uniform model', id: 'Looped UDLM · 2610.30066', row: 0, col: 0,
+      loops: 'Two blocks of a uniform diffusion model, where corruption swaps in random tokens instead of [MASK].',
+      stops: 'You set the count, or it stops when the hidden state changes less than a threshold.',
+      result: '2.8× (OpenWebText) and 3.3× (FineWeb-Edu) less training compute; adaptive stopping runs 26–35% fewer passes at the same accuracy.',
+      url: 'https://www.alphaxiv.org/abs/2610.30066' },
+    { key: 'cofre', name: 'Fixed-point model', id: 'CoFRe · 2605.31215', row: 0, col: 1,
+      loops: 'A shared middle block solved to a fixed point, warm-started from the previous step: full reuse for visible tokens, partial for masked, 20% for newly revealed.',
+      stops: 'When the block output stops changing, within an iteration budget.',
+      result: '38.8% fewer parameters than the masked diffusion baseline; generation perplexity 193.1 → 101.8 at 96 block passes.',
+      url: 'https://www.alphaxiv.org/abs/2605.31215' },
+    { key: 'alodlm', name: 'Per-token loop', id: 'ALoDLM · 2610.04198', row: 0, col: 2,
+      loops: 'A recurrent core in a converted Qwen3 model. Confident tokens commit mid-loop and return as context; unsure tokens keep their hidden state.',
+      stops: 'Each token exits when its prediction entropy falls below a threshold; a learned gate ends the loop for the rest.',
+      result: '1.6 → 2.34 passes per token lifts the 11-benchmark average 77.9 → 79.1; about 2.7× the GSM8K throughput of vLLM-served Qwen3-8B.',
+      url: 'https://www.alphaxiv.org/abs/2610.04198' },
+    { key: 'lddm', name: 'Loopholing', id: 'LDDM · Jo et al., ICLR 2026', row: 1, col: 0,
+      loops: 'One pass per step; the last hidden state is added to the next step’s token embeddings.',
+      stops: 'Follows the sampler’s step count.',
+      result: 'Solves 91.0% of hard Sudoku puzzles against 58.4% for the uniform baseline (as reported in the LAW paper).',
+      url: 'https://www.alphaxiv.org/abs/2610.30068' },
+    { key: 'law', name: 'Pure self-conditioning', id: 'LAW · 2610.30068', row: 1, col: 0,
+      loops: 'Only the expected embedding under the prediction crosses between steps; tokens are sampled once, at the end.',
+      stops: 'Follows the sampler’s step count.',
+      result: 'GSM8K-style problems 42.2% vs 34.5% for uniform Loopholing; fine-tuning a pretrained uniform model lifts it 17.2% → 48.1%.',
+      url: 'https://www.alphaxiv.org/abs/2610.30068' },
+    { key: 'tdlm', name: 'Temporal integration', id: 'TDLM · 2610.36940', row: 1, col: 2,
+      loops: 'Keeps the representations of unresolved tokens and reuses them across steps.',
+      stops: 'Adaptive by token, per its title; not read in full for this page.',
+      result: 'Abstract only; no number quoted here.',
+      url: 'https://www.alphaxiv.org/abs/2610.36940' },
+  ];
+  const COLS = ['You set the count', 'Run to a fixed point', 'Each token decides'];
+  const ROWS = ['Inside one step', 'Between steps'];
+  const map = document.getElementById('map'), detail = document.getElementById('detail');
+  let sel = 'loopmdm';
+  function renderMap() {
+    let h = `<span></span>` + COLS.map(c => `<span class="ax">${c}</span>`).join('');
+    ROWS.forEach((r, ri) => {
+      h += `<span class="rowlab">${r}</span>`;
+      COLS.forEach((_, ci) => {
+        h += `<div class="cell">` + PAPERS.filter(p => p.row === ri && p.col === ci).map(p => `<button type="button" class="pchip" data-k="${p.key}" aria-pressed="${p.key === sel}">${p.name}<small>${p.id}</small></button>`).join('') + `</div>`;
+      });
+    });
+    map.innerHTML = h;
+    const p = PAPERS.find(q => q.key === sel);
+    detail.innerHTML = `<strong>${p.name}</strong> <span class="num">${p.id}</span><dl><dt>What loops</dt><dd>${p.loops}</dd><dt>What stops it</dt><dd>${p.stops}</dd><dt>Headline result</dt><dd>${p.result}</dd><dt>Source</dt><dd><a href="${p.url}">${p.url.replace('https://www.', '')}</a></dd></dl>`;
+  }
+  map.addEventListener('click', e => { const b = e.target.closest('.pchip'); if (!b) return; sel = b.dataset.k; renderMap(); map.querySelector(`[data-k="${sel}"]`).focus(); });
+  renderMap();
+
+
+  // ---------- Figure 4: comparison trees ----------
+  const KINDS = {
+    compute: 'Same training compute',
+    perstep: 'Same compute per denoiser call',
+    budget: 'Same sampling budget',
+    entropy: 'Same sample diversity',
+    self: 'Same model, one setting changed',
+    size: 'Same size only, different training',
+  };
+  const LANES = [
+    { name: 'Looped masked model', id: 'LoopMDM · 2605.26106', url: 'https://www.alphaxiv.org/abs/2605.26106',
+      exps: ['From scratch, 170M', 'FineWeb-Edu, OpenWebText, LM1B', 'Math: TinyGSM → GSM8K, 125M', 'Sudoku probe', 'Attention analysis'],
+      measures: 'Validation loss, generation perplexity, zero-shot perplexity on 7 corpora, accuracy on 9 downstream tasks, GSM8K accuracy.',
+      root: ['Looped model', '12 layers, layers 1–2 looped, loop count drawn from 1 to 12'],
+      base: [
+        { k: 'compute', b: 'Same model without the loop', r: 'Same validation loss with 3.34× (FineWeb-Edu), 2.95× (OpenWebText), 2.34× (LM1B) less compute; +10.8 points on BoolQ' },
+        { k: 'compute', b: 'Same-size 14-layer model on GSM8K', r: 'Up to +8.5 points; reaches its final accuracy with 43% of the compute' },
+        { k: 'perstep', b: 'Deeper 21-layer model on GSM8K', r: '+3.4 points at loop count 16, the test that separates looping from depth' },
+        { k: 'self', b: 'Same 1-layer model, fewer loops (Sudoku)', r: 'Errors fall from 24 to 0 as the loop count grows' },
+      ] },
+    { name: 'Looped uniform model', id: 'Looped UDLM · 2610.30066', url: 'https://www.alphaxiv.org/abs/2610.30066',
+      exps: ['From scratch, 170M', 'OpenWebText, FineWeb-Edu', '3 loop-count distributions', 'Fixed vs adaptive stopping'],
+      measures: 'Validation loss, generation perplexity against sampling steps, zero-shot perplexity on 7 datasets (5 seeds), accuracy on 10 multiple-choice tasks.',
+      root: ['Looped model', 'DUO++ small, blocks 1–2 looped, loop count up to 12'],
+      base: [
+        { k: 'compute', b: 'Same model without the loop, 1M steps (about 0.5 trillion tokens)', r: 'Same validation loss with 2.8× (OpenWebText) and 3.3× (FineWeb-Edu) less compute; zero-shot perplexity 58.57 → 51.82' },
+        { k: 'budget', b: 'Same model without the loop, same number of sampling steps', r: 'Up to 9.8% lower generation perplexity' },
+        { k: 'compute', b: 'Other loop-count distributions', r: 'Noise-proportional loses to uniform and FLOP-proportional; FLOP-proportional needs 12% fewer loops' },
+        { k: 'self', b: 'Same model at a fixed 12 loops', r: 'Adaptive stopping keeps accuracy with 26.0% to 34.8% fewer loops' },
+      ] },
+    { name: 'Fixed-point model', id: 'CoFRe · 2605.31215', url: 'https://www.alphaxiv.org/abs/2605.31215',
+      exps: ['From scratch, 104M vs 170M', 'OpenWebText', 'Images: ImageNette', 'Convert a pretrained model'],
+      measures: 'Generation perplexity and entropy at 96 to 768 block passes, parameters, training time, memory, wall-clock latency, image FID.',
+      root: ['Fixed-point model', 'shared middle block solved to a fixed point, warm-started from the last step'],
+      base: [
+        { k: 'budget', b: 'Masked diffusion model (MDLM, 170M)', r: 'Generation perplexity 830.8 → 101.8 at 96 block passes; 38.8% fewer parameters, 11.5% less training time, 16.9% less memory' },
+        { k: 'budget', b: 'Distilled masked diffusion model (MDLM + SDTT)', r: '193.1 → 101.8 at 96 passes, 47.0 → 37.8 at 768; 1.12× to 1.45× slower per sample' },
+        { k: 'budget', b: 'MaskGIT-Large on ImageNette', r: 'Better FID at every budget; 48.6% less training time, 50.7% less memory' },
+      ] },
+    { name: 'Per-token loop', id: 'ALoDLM · 2610.04198', url: 'https://www.alphaxiv.org/abs/2610.04198',
+      exps: ['Convert Qwen3-1.7B and 8B', '5B tokens of fine-tuning', '11 benchmarks', 'Speed on one B200'],
+      measures: 'Accuracy on reasoning, math, science and code benchmarks with greedy decoding, one token per step; single-stream throughput.',
+      root: ['Per-token loop, 8B', 'middle 16 layers loop, up to 4 passes'],
+      base: [
+        { k: 'size', b: 'Its own autoregressive base, Qwen3-8B', r: 'Average 80.3 vs 78.5 (65.5 vs 63.8 at 1.7B)' },
+        { k: 'size', b: 'Other diffusion models of the same size: LLaDA, Dream, Fast-dLLM-v2, SDAR, WeDLM', r: 'Average 80.3 vs 53.3 to 75.1; WeDLM-8B shares its base and framework' },
+        { k: 'self', b: 'Same model at a lower exit threshold', r: '1.6 → 2.34 passes per token lifts the average 77.9 → 79.1' },
+        { k: 'size', b: 'Qwen3-8B on vLLM and WeDLM-8B, each on its own fast engine', r: 'About 2.7× the GSM8K throughput of Qwen3-8B; frontier crosses WeDLM near 650 tokens per second' },
+      ] },
+    { name: 'Pure self-conditioning', id: 'LAW · 2610.30068', url: 'https://www.alphaxiv.org/abs/2610.30068',
+      exps: ['From scratch, 12-layer', 'Sudoku, Maze', 'Math: TinyGSM → GSM8K', 'OpenWebText', 'Fine-tune pretrained Duo'],
+      measures: 'Solve rate on Sudoku and Maze, GSM8K accuracy against sampling steps, generation perplexity against entropy.',
+      root: ['Pure self-conditioning', 'passes only the expected embedding between steps'],
+      base: [
+        { k: 'compute', b: 'Loopholing, uniform and masked (LDDM-U, LDDM-M)', r: 'Hard Sudoku 96.5% vs 91.0%; GSM8K 42.2% vs 34.5%' },
+        { k: 'compute', b: 'Masked and uniform diffusion (MDLM, Duo), flow language models (FLM, S-FLM)', r: 'Hard Sudoku: Duo 58.4%, flow models at most 45.0%' },
+        { k: 'entropy', b: 'Autoregressive model, at matched unigram entropy', r: 'Comes close with 64 sampling steps against its 1024' },
+        { k: 'self', b: 'Pretrained Duo before 50k steps of fine-tuning', r: 'GSM8K 17.2% → 48.1%' },
+      ] },
+  ];
+  const fig4 = document.getElementById('fig4'), legend = document.getElementById('legend'), units = document.getElementById('units'), lanes = document.getElementById('lanes');
+  const count = k => LANES.reduce((n, l) => n + l.base.filter(b => b.k === k).length, 0);
+  legend.innerHTML = Object.entries(KINDS).map(([k, label]) => `<button type="button" class="k-${k}${k === 'size' ? ' dash' : ''}" data-k="${k}" aria-pressed="false"><i></i>${label} <span class="num">${count(k)}</span></button>`).join('');
+  units.innerHTML = Object.keys(KINDS).flatMap(k => LANES.flatMap(l => l.base.filter(b => b.k === k).map(() => `<span class="u k-${k}" data-k="${k}" title="${KINDS[k]}"></span>`))).join('') + `<span style="margin-left:0.5rem">${LANES.reduce((n, l) => n + l.base.length, 0)} comparisons across ${LANES.length} papers</span>`;
+  lanes.innerHTML = LANES.map(l => `<div class="lane"><div class="lane-head"><h4>${l.name}<a href="${l.url}">${l.id}</a></h4><div class="xchips">${l.exps.map(e => `<span>${e}</span>`).join('')}</div><p class="measures">Measures: ${l.measures}</p></div>
+    <div class="tree"><div class="root">${l.root[0]}<small>${l.root[1]}</small></div><ul class="branches">${l.base.map(b => `<li class="k-${b.k}${b.k === 'size' ? ' dash' : ''}" data-k="${b.k}"><div class="base"><span class="m">${KINDS[b.k]}</span><b>${b.b}</b><span class="r">${b.r}</span></div></li>`).join('')}</ul></div></div>`).join('');
+  legend.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    const k = btn.dataset.k, on = fig4.dataset.focus !== k;
+    legend.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', on && b.dataset.k === k));
+    if (on) fig4.dataset.focus = k; else delete fig4.dataset.focus;
+    fig4.querySelectorAll('[data-k]').forEach(n => { if (n.tagName !== 'BUTTON') n.classList.toggle('on', on && n.dataset.k === k); });
+  });
+
+  // ---------- wiring ----------
+  const sIn = document.getElementById('s'), sOut = document.getElementById('s-out'), adIn = document.getElementById('adaptive');
+  const stepB = document.getElementById('step'), allB = document.getElementById('all'), resetB = document.getElementById('reset');
+  const status = document.getElementById('status'), gridA = document.getElementById('grid-a'), gridB = document.getElementById('grid-b'), cards = document.getElementById('cards');
+  const passLab = document.getElementById('pass-lab'), depthLab = document.getElementById('depth-lab'), spin = document.getElementById('spin'), dot = document.getElementById('dot');
+  const seg = document.querySelectorAll('.seg button');
+  const currentV = () => document.querySelector('.seg button[aria-pressed="true"]').dataset.v;
+  function setV(v) {
+    seg.forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+    ['a', 'b', 'c'].forEach(k => document.getElementById('v' + k).classList.toggle('on', k === v));
+    const u = new URL(location.href); u.searchParams.set('v', v); history_replace(u);
+    renderTokens(); renderTimeline(); chartC();
+  }
+  function history_replace(u) { try { window.history.replaceState(null, '', u); } catch (e) {} }
+  seg.forEach(b => b.addEventListener('click', () => setV(b.dataset.v)));
+  sIn.addEventListener('input', () => { sOut.textContent = sIn.value; setPass(0, +sIn.value); renderChartA(); });
+  stepB.addEventListener('click', () => guard(runStep));
+  allB.addEventListener('click', () => guard(async () => { fastForward = true; while (toks.some(t => t.masked)) await runStep(); }));
+  resetB.addEventListener('click', () => { if (!busy) reset(); });
+
+  const q = new URLSearchParams(location.search);
+  if (q.get('s')) { sIn.value = Math.min(12, Math.max(1, +q.get('s'))); sOut.textContent = sIn.value; }
+  if (q.get('adaptive') === '1') adIn.checked = true;
+  reset();
+  const v0 = q.get('v');
+  setV(['a', 'b', 'c'].includes(v0) ? v0 : 'a');
+  const n0 = +q.get('steps') || 0;
+  if (n0) guard(async () => { fastForward = true; for (let i = 0; i < n0 && toks.some(t => t.masked); i++) await runStep(); });
+  addEventListener('resize', () => { renderTimeline(); chartC(); });
+})();
+</script>
+</body>
+</html>
