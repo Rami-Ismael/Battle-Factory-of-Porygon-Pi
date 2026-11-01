@@ -84,18 +84,21 @@ def walk_pastes(o, out):  # noqa: C901
         for v in o: walk_pastes(v, out)
 
 
-def main():  # noqa: C901
-    t0 = time.perf_counter()
+def gather(observe=None):  # noqa: C901
+    """Every source pooled per 48-field team: dict(pool, stats, xte, wte, top). observe(key, team), if given, is called
+    with each kept appearance's encoding bytes and parsed team (Stat Points included), so a caller can see what the
+    48-field key throws away."""
     corpus, V, *_ = X.setup()
     xte, wte, _, _ = test_split(V)
     test_keys = {r.tobytes() for r in xte}
     held_keys = HO.identities()             # ranks 51-100 (48 fields): never a training row, never a matrix-derived label
 
     pool = {}            # encoding bytes -> dict(x, wins, battles, tags:set, row:None)
-    def add(x, tag, y=None, n=0, fam=None):
+    def add(x, tag, y=None, n=0, fam=None, team=None):
         k = x.tobytes()
         if k in test_keys: return "test"
         if HO.row_key(x, V) in held_keys: return "heldout"
+        if observe is not None and team is not None: observe(k, team)
         e = pool.setdefault(k, dict(x=x, wins=0.0, battles=0, tags=set(), fam=0))
         e["tags"].add(tag)
         if fam: e["fam"] |= 1 << FAM.index(fam)
@@ -105,24 +108,25 @@ def main():  # noqa: C901
 
     cache = {}
     def enc(p):
+        """(48-field encoding or None, parsed team)"""
         if p in cache: return cache[p]
         t = parse_team_text(p)
         e = None
         if len(t) == 6:
             try: e = V.encode(t)
             except ValueError: e = None            # a field outside the corpus vocabulary
-        cache[p] = e
-        return e
+        cache[p] = (e, t)
+        return cache[p]
 
     stats = defaultdict(lambda: defaultdict(int))
     # 1. corpus
     for t in corpus:
-        stats["corpus"][add(V.encode(t), "real", fam="real")] += 1
+        stats["corpus"][add(V.encode(t), "real", fam="real", team=t)] += 1
     # 2. asked_vs_got_data rows (the old training pool, labels already pooled)
     for r in json.load(open(X.DATA))["rows"]:
-        e = enc(r["paste"])
+        e, t = enc(r["paste"])
         if e is None: stats["asked_vs_got_data"]["unencodable"] += 1; continue
-        stats["asked_vs_got_data"][add(e, "model", r["y"], r.get("battles", 24), fam="oldpool")] += 1
+        stats["asked_vs_got_data"][add(e, "model", r["y"], r.get("battles", 24), fam="oldpool", team=t)] += 1
     # 3. every results JSON
     for f in sorted(glob.glob(str(RES / "*.json"))):
         name = Path(f).stem
@@ -134,13 +138,13 @@ def main():  # noqa: C901
         tag = "fill" if name in FILL_FILES else "model"
         seen_lab = set()
         for p, y, n in acc:
-            e = enc(p)
+            e, t = enc(p)
             if e is None: stats[name]["unencodable"] += 1; continue
             # a labelled paste appears in several places in some files; count its label once per file
             lab_key = (p, y)
             if y is not None and lab_key in seen_lab: y = None
             if y is not None: seen_lab.add(lab_key)
-            stats[name][add(e, tag, y, n if y is not None else 0, fam=family(name))] += 1
+            stats[name][add(e, tag, y, n if y is not None else 0, fam=family(name), team=t)] += 1
     # 4. the matchup matrix: every legal team, its top-50 row and its pooled label
     con = MDB.connect()
     top = MDB.set_members(con, "top50")
@@ -157,7 +161,7 @@ def main():  # noqa: C901
                 r = rows.setdefault(me, np.zeros((len(top), 2), np.float32))
                 r[col[op], 0] += w; r[col[op], 1] += n
     for tid, p, origin in con.execute("SELECT team_id, paste, origin FROM team WHERE legal=1"):
-        e = enc(p)
+        e, t = enc(p)
         if e is None: stats["matrix"]["unencodable"] += 1; continue
         tag = "real" if origin.startswith("vgcpastes") else "fill" if origin.startswith("randomfill") else "model"
         r = rows.get(tid)
@@ -167,17 +171,23 @@ def main():  # noqa: C901
             if tid in col: cov[col[tid]] = False            # a team's cell against itself is skipped, as in score()
             if cov.sum() >= 40:                             # asked_vs_got.gather()'s coverage rule
                 y = float((cw[cov] * r[cov, 0] / r[cov, 1]).sum() / cw[cov].sum()); n = int(r[cov, 1].sum())
-        s = add(e, tag, y, n or 0, fam="real" if tag == "real" else "fill" if tag == "fill" else "matrix")
+        s = add(e, tag, y, n or 0, fam="real" if tag == "real" else "fill" if tag == "fill" else "matrix", team=t)
         stats["matrix"][s] += 1
         if s == "ok" and r is not None:
             pr = pool[e.tobytes()].setdefault("row", np.zeros((len(top), 2), np.float32))
             pr += r
     # 5. HPS 100k
     for line in open(HPS):
-        e = enc(json.loads(line)["team"])
+        e, t = enc(json.loads(line)["team"])
         if e is None: stats["hps"]["unencodable"] += 1; continue
-        stats["hps"][add(e, "hps", fam="hps")] += 1
+        stats["hps"][add(e, "hps", fam="hps", team=t)] += 1
+    return dict(pool=pool, stats=stats, xte=xte, wte=wte, top=top)
 
+
+def main():
+    t0 = time.perf_counter()
+    g = gather()
+    pool, stats, xte, wte, top = g["pool"], g["stats"], g["xte"], g["wte"], g["top"]
     keys = list(pool)
     Xa = np.stack([pool[k]["x"] for k in keys])
     W = np.array([pool[k]["wins"] / pool[k]["battles"] if pool[k]["battles"] else np.nan for k in keys], np.float32)
