@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype · paper-style results figure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Prototype surface (not linked from the blog). Data: ~/vgc-data/ask_grid/ask_grid.json, 2026-10-30. */
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#14161b;--ink-2:#474d59;--ink-3:#6b7382;--rule:#dadee6;--wash:#eef1f6;
+  --font-body:"Literata",Georgia,serif;--font-ui:"IBM Plex Sans",-apple-system,"Segoe UI",sans-serif;--font-mono:"IBM Plex Mono",Menlo,monospace;
+  --ease-out:cubic-bezier(0.23,1,0.32,1)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.0625rem/1.65 var(--font-body)}
+.page{max-width:60rem;margin:0 auto;padding:2.5rem 1rem 7rem}
+.col{max-width:42rem;margin:0 auto}
+.col p{margin:0 0 1.1rem;color:var(--ink-2)}
+.col h2{font:600 1.5rem/1.25 var(--font-body);margin:0 0 .8rem;color:var(--ink)}
+figure{margin:1.6rem 0;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:1.2rem 1.2rem 1rem}
+figcaption{max-width:46rem;margin:.9rem auto 0;font:400 .86rem/1.55 var(--font-ui);color:var(--ink-3)}
+figcaption b{color:var(--ink-2);font-weight:600}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font:400 12px var(--font-ui);fill:var(--ink-3)}
+svg .axis-title{font-weight:500;fill:var(--ink-2)}
+svg .lab{font-weight:500}
+.mono{font-family:var(--font-mono)}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;font:400 12px/1.45 var(--font-ui);padding:.45rem .6rem;border-radius:6px;opacity:0;transform:translateY(4px);transition:opacity 150ms ease-out,transform 150ms var(--ease-out);z-index:10;max-width:260px}
+.tip.on{opacity:1;transform:none}
+.enter{opacity:0;animation:enter 220ms var(--ease-out) forwards}
+@keyframes enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.enter{animation:none;opacity:1}.tip{transition:none}}
+.series{transition:opacity 150ms ease-out}
+.dim .series:not(.hot){opacity:.18}
+.legend{display:flex;flex-wrap:wrap;gap:.35rem .5rem;margin:.2rem 0 .6rem;font:400 .8rem var(--font-ui)}
+.legend button{font:inherit;color:var(--ink-2);background:var(--wash);border:1px solid transparent;border-radius:999px;padding:.2rem .65rem .2rem .5rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:background-color 150ms ease-out,border-color 150ms ease-out}
+.legend button:hover{border-color:var(--rule)}
+.legend button[aria-pressed=true]{background:#fff;border-color:var(--ink-3);color:var(--ink)}
+.legend button:active{transform:scale(.97)}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.forest-row{cursor:default}
+.cards{margin:1.6rem 0 0}
+.cards h3{font:600 1.15rem/1.3 var(--font-body);margin:0 0 .2rem}
+.cards-note{font:400 .82rem/1.5 var(--font-ui);color:var(--ink-3);margin:0 0 .8rem}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(16.5rem,1fr));gap:.7rem}
+.xcard{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--c);border-radius:10px;padding:.75rem .85rem .7rem;font:400 .84rem/1.5 var(--font-ui);color:var(--ink-2);transition:border-color 150ms ease-out,box-shadow 150ms ease-out}
+.xcard:hover{box-shadow:0 2px 10px rgba(20,22,27,.08);border-color:var(--c)}
+.xcard h4{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;margin:0 0 .35rem;font:600 .95rem/1.3 var(--font-ui);color:var(--ink)}
+.xcard .tag{font:500 .68rem var(--font-ui);letter-spacing:.02em;padding:.12rem .45rem;border-radius:999px;background:var(--wash);color:var(--ink-2);white-space:nowrap}
+.xcard .tag.good{background:#e6f4ec;color:#1d6b4f}.xcard .tag.bad{background:#fbece4;color:#a3431a}
+.xcard p{margin:0 0 .35rem}
+.xcard .why{color:var(--ink-3)}
+.xcard svg.mdiag{display:block;width:100%;height:auto;margin:.3rem 0 .1rem;overflow:visible}
+.xcard .nums{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--wash)}
+.xcard .nums div{font:400 .72rem var(--font-ui);color:var(--ink-3)}
+.xcard .nums b{display:block;font:500 1rem var(--font-mono);color:var(--ink)}
+.xcard .up{color:#1d6b4f}.xcard .down{color:#a3431a}.xcard .flat{color:var(--ink-3)}
+.ctl{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:0 0 .5rem;font:400 .8rem var(--font-ui);color:var(--ink-3)}
+.steps{display:flex;gap:2px;background:var(--wash);border-radius:999px;padding:3px}
+.steps button,.play{font:500 .78rem var(--font-ui);border:0;background:transparent;color:var(--ink-2);border-radius:999px;padding:.3rem .6rem;cursor:pointer;transition:background-color 150ms ease-out,color 150ms ease-out}
+.steps button.off{color:#d4551f}
+.steps button[aria-checked=true]{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.steps button:active,.play:active{transform:scale(.97)}
+.play{background:var(--ink);color:#fff;width:2rem;height:2rem;padding:0}
+.now{font-family:var(--font-mono);font-size:.78rem}
+.glide,.pt{transition:transform 250ms var(--ease-out),opacity 150ms ease-out}
+rect.glide,line.glide{transition:x 250ms var(--ease-out),y 250ms var(--ease-out),width 250ms var(--ease-out),height 250ms var(--ease-out),x1 250ms var(--ease-out),x2 250ms var(--ease-out),y1 250ms var(--ease-out),y2 250ms var(--ease-out)}
+
+.scrub{position:relative;margin:.2rem 60px 0 72px;padding-top:1.4rem}
+.scrub .ticks{position:absolute;top:0;left:0;right:0;height:1.2rem;font:500 .72rem var(--font-mono);color:var(--ink-3)}
+.scrub .ticks span{position:absolute;transform:translateX(-50%);cursor:pointer;white-space:nowrap}
+.scrub .ticks span.off,.offtxt{color:#d4551f}
+.scrub input{width:100%;accent-color:#14161b;margin:0}
+.readout{font:400 .8rem var(--font-ui);color:var(--ink-2);margin-top:.3rem;min-height:1.2em}
+svg.dragging .pt{transition:none}
+.film{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:0 0 .6rem}
+.film button{border:1px solid var(--rule);background:#fff;border-radius:8px;padding:3px 3px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:border-color 150ms ease-out,box-shadow 150ms ease-out}
+.film button:hover{border-color:var(--ink-3)}
+.film button:active{transform:scale(.97)}
+.film button[aria-checked=true]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.film button svg{width:100%;height:auto}
+.film span{font:500 .72rem var(--font-mono);color:var(--ink-2)}
+.film span.off{color:#d4551f}
+@media (max-width:700px){.film{grid-template-columns:repeat(4,1fr)}}
+svg.fadein{animation:fadein 220ms ease-out both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.glide,.pt,rect.glide,line.glide{transition:none}}
+
+/* ---- picker: verbatim from PICKER.md ---- */
+.proto-picker{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:rgba(10,10,10,0.82);-webkit-backdrop-filter:blur(12px) saturate(1.4);backdrop-filter:blur(12px) saturate(1.4);box-shadow:0 0 0 1px rgba(255,255,255,0.08) inset,0 8px 24px rgba(0,0,0,0.24),0 2px 6px rgba(0,0,0,0.12);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:13px;line-height:1;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+.proto-picker-highlight{position:absolute;top:4px;left:0;height:28px;border-radius:999px;background:rgba(255,255,255,0.12);will-change:transform}
+.proto-picker[data-ready] .proto-picker-highlight{transition:transform 250ms cubic-bezier(0.23,1,0.32,1),width 250ms cubic-bezier(0.23,1,0.32,1)}
+@media (prefers-reduced-motion:reduce){.proto-picker[data-ready] .proto-picker-highlight{transition:none}}
+.proto-picker-item{position:relative;display:flex;align-items:center;height:28px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,0.55);font:inherit;cursor:pointer;transition:color 150ms ease-out}
+.proto-picker-item:hover{color:rgba(255,255,255,0.85)}
+.proto-picker-item:active{transform:scale(0.97)}
+.proto-picker-item:focus-visible{outline:2px solid rgba(255,255,255,0.4);outline-offset:2px}
+.proto-picker-item[data-active]{color:#fff}
+.proto-picker-divider{width:1px;height:16px;margin:0 4px;background:rgba(255,255,255,0.12)}
+.proto-picker-replay{padding:0 10px;font-size:14px}
+.proto-picker[data-position="top"]{bottom:auto;top:24px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="col">
+    <h2>Seven versions of the discrete diffusion model</h2>
+    <p>Each version was fine-tuned with one change to its training labels or training mix, then asked for a win rate. Win rate = wins ÷ 49 battles, one against each distinct top-50 meta team, with the behaviour-cloning bot on both sides. Effective species = exp(entropy) of species counts across a group's 64 teams; higher means the teams use more Pokémon.</p>
+  </div>
+  <div id="stage"></div>
+  <section class="cards" aria-labelledby="cards-title">
+    <h3 id="cards-title">What each version changed</h3>
+    <p class="cards-note">Results at asks 12/24, 0.531 and 13/24, mean of 3 seeds × 64 teams. Δ is against the same-labels retrain. Hover a card to find its version in the chart.</p>
+    <div class="card-grid" id="cards"></div>
+  </section>
+  <section class="cards" aria-labelledby="shelf-title">
+    <h3 id="shelf-title">Which Pokémon each version keeps reaching for</h3>
+    <p class="cards-note">The same seven versions as the cards above, seen through the teams they write at asks 12/24 to 13/24. Each column is one Pokémon, in the same order on every shelf; one sprite per 10% of a version's 576 teams.</p>
+    <iframe class="shelf-frame" src="../prototype-redesign/shelf/shelf.html?embed" title="Pokédex shelf: the Pokémon each of the seven versions puts on its teams" loading="lazy" style="display:block;width:100%;height:1150px;border:0"></iframe>
+  </section>
+  <section class="cards" aria-labelledby="addon-title">
+    <h3 id="addon-title">Every add-on to the cross-entropy method loop: how it works and what it did</h3>
+    <p class="cards-note">Each card is one change to the plain search loop (the cross-entropy method: write teams, battle them, fine-tune on the elites for 40 epochs, repeat), run for 3 generations on 3 seeds. Each diagram shows how the add-on works, on example teams made up for illustration; the numbers under it are the measured results. A elite line-up is a set of six species battled at or above the elite cut 0.531 (items and moves ignored). An add-on works only if it ends above the plain loop in all 3 seeds and its finalist interval stays above −0.03. Data: <code>abl_*_s6060/7070/8080.json</code> and <code>cem_diversity_arms.json</code> in the code repo's <code>results/</code>, and <code>~/vgc-data/ablate_div/queue_spq.log</code>.</p>
+    <div class="card-grid" id="addons"></div>
+  </section>
+  <section class="cards" aria-labelledby="loop-title">
+    <h3 id="loop-title">Species quota inside the search loop: fails the rule</h3>
+    <p class="cards-note">Run finished 2026-10-31 (<code>~/vgc-data/ablate_div/queue_spq.log</code>). Here the quota caps how many elites may share a species when the loop picks its training teams, instead of capping the training mix. Each dot is one loop arm against the plain loop, 3 seeds each. An arm works only if it adds elite line-ups in all 3 seeds and the lower end of its finalist interval stays above −0.03 (the pre-registered rule); only ridge top 512 and DPP-diverse 512 do.</p>
+    <figure style="margin-top:.4rem"><svg id="loopsvg" viewBox="0 0 860 400" style="overflow:visible" role="img" aria-label="Finalist win-rate change against change in elite line-ups for 14 loop arms"></svg>
+    <figcaption><b>Both species-quota arms raise finalist win rate a little (+0.029 at 25% of elites, +0.017 at 50%) but lose elite line-ups in all three seeds (−88, −18, −153 and −122, −24, −6), so neither meets the rule.</b> x = change in elite line-ups (battled line-ups at or above the elite cut 0.531), mean of 3 seeds, with each seed as a tick; y = change in finalist win rate with its 95% bootstrap interval. Finalist win rate = wins against the top-50 meta teams, behaviour-cloning battle policy on both sides, 16 finalists × 192 fresh battles per seed.</figcaption></figure>
+  </section>
+</div>
+<div class="tip" id="tip"></div>
+
+<nav class="proto-picker" aria-label="Prototype variants">
+  <span class="proto-picker-highlight" aria-hidden="true"></span>
+  <button class="proto-picker-item" data-active aria-current="true">Ask slider</button>
+  <button class="proto-picker-item">Scrubber</button>
+  <button class="proto-picker-item">Filmstrip</button>
+  <span class="proto-picker-divider" aria-hidden="true"></span>
+  <button class="proto-picker-item proto-picker-replay" aria-label="Replay animation (R)">↻</button>
+</nav>
+
+<script>
+'use strict';
+const D={"curves":{"current":[{"ask":0.2917,"win":0.3658,"sd":0.0152},{"ask":0.3,"win":0.3369,"sd":0.0242},{"ask":0.3333,"win":0.3796,"sd":0.0108},{"ask":0.5,"win":0.4466,"sd":0.0076},{"ask":0.531,"win":0.404,"sd":0.0053},{"ask":0.5417,"win":0.4445,"sd":0.0088}],"control":[{"ask":0.2917,"win":0.3711,"sd":0.0149},{"ask":0.3,"win":0.3418,"sd":0.0036},{"ask":0.3333,"win":0.3885,"sd":0.0259},{"ask":0.5,"win":0.4281,"sd":0.0369},{"ask":0.531,"win":0.4073,"sd":0.0301},{"ask":0.5417,"win":0.4149,"sd":0.0308},{"ask":0.6,"win":0.3941,"sd":0.0243},{"ask":0.7,"win":0.4099,"sd":0.0095}],"jitter":[{"ask":0.2917,"win":0.375,"sd":0.0114},{"ask":0.3,"win":0.3881,"sd":0.0092},{"ask":0.3333,"win":0.4,"sd":0.0083},{"ask":0.5,"win":0.4424,"sd":0.016},{"ask":0.531,"win":0.4381,"sd":0.0093},{"ask":0.5417,"win":0.4429,"sd":0.0141},{"ask":0.6,"win":0.4271,"sd":0.0138},{"ask":0.7,"win":0.4214,"sd":0.0099}],"freq4":[{"ask":0.2917,"win":0.3653,"sd":0.0134},{"ask":0.3,"win":0.3741,"sd":0.0099},{"ask":0.3333,"win":0.3875,"sd":0.0301},{"ask":0.5,"win":0.4115,"sd":0.0287},{"ask":0.531,"win":0.4165,"sd":0.0267},{"ask":0.5417,"win":0.4147,"sd":0.0269},{"ask":0.6,"win":0.422,"sd":0.0227},{"ask":0.7,"win":0.3918,"sd":0.0094}],"balanced":[{"ask":0.2917,"win":0.3566,"sd":0.0124},{"ask":0.3,"win":0.3378,"sd":0.0109},{"ask":0.3333,"win":0.378,"sd":0.0124},{"ask":0.5,"win":0.4199,"sd":0.0259},{"ask":0.531,"win":0.398,"sd":0.0214},{"ask":0.5417,"win":0.4183,"sd":0.0219},{"ask":0.6,"win":0.385,"sd":0.0198},{"ask":0.7,"win":0.374,"sd":0.0161}],"species800":[{"ask":0.2917,"win":0.3286,"sd":0.0078},{"ask":0.3,"win":0.3136,"sd":0.0081},{"ask":0.3333,"win":0.3438,"sd":0.0174},{"ask":0.5,"win":0.3766,"sd":0.0155},{"ask":0.531,"win":0.3314,"sd":0.0059},{"ask":0.5417,"win":0.377,"sd":0.0105},{"ask":0.6,"win":0.3417,"sd":0.0016},{"ask":0.7,"win":0.3335,"sd":0.0105}],"species1500":[{"ask":0.2917,"win":0.3243,"sd":0.0092},{"ask":0.3,"win":0.3077,"sd":0.0129},{"ask":0.3333,"win":0.3535,"sd":0.0138},{"ask":0.5,"win":0.3433,"sd":0.0132},{"ask":0.531,"win":0.3198,"sd":0.0028},{"ask":0.5417,"win":0.3472,"sd":0.0024},{"ask":0.6,"win":0.3228,"sd":0.0049},{"ask":0.7,"win":0.3362,"sd":0.0156}]},"mid":{"current":{"seeds":{"1":[0.4317,10.8],"2":[0.438,9.8],"3":[0.4253,10.75]},"win":0.4317,"win_sd":0.0064,"spp":10.45,"spp_sd":0.56,"dwin":0.0149,"dwin_sd":0.0261,"dspp":-3.99,"dspp_sd":1.4},"control":{"seeds":{"1":[0.4152,15.94],"2":[0.45,12.23],"3":[0.3851,15.15]},"win":0.4168,"win_sd":0.0325,"spp":14.44,"spp_sd":1.95,"dwin":0.0,"dwin_sd":0.0,"dspp":0.0,"dspp_sd":0.0},"jitter":{"seeds":{"1":[0.4379,12.84],"2":[0.4542,11.05],"3":[0.4314,12.92]},"win":0.4412,"win_sd":0.0117,"spp":12.27,"spp_sd":1.06,"dwin":0.0244,"dwin_sd":0.0211,"dspp":-2.17,"dspp_sd":0.96},"freq4":{"seeds":{"1":[0.424,16.15],"2":[0.4349,12.06],"3":[0.3838,14.77]},"win":0.4142,"win_sd":0.0269,"spp":14.33,"spp_sd":2.08,"dwin":-0.0025,"dwin_sd":0.012,"dspp":-0.11,"dspp_sd":0.3},"balanced":{"seeds":{"1":[0.4088,12.11],"2":[0.4357,10.36],"3":[0.3918,13.32]},"win":0.4121,"win_sd":0.0221,"spp":11.93,"spp_sd":1.49,"dwin":-0.0047,"dwin_sd":0.0106,"dspp":-2.51,"dspp_sd":1.14},"species800":{"seeds":{"1":[0.362,21.85],"2":[0.3608,21.01],"3":[0.3621,20.92]},"win":0.3616,"win_sd":0.0007,"spp":21.26,"spp_sd":0.51,"dwin":-0.0551,"dwin_sd":0.0331,"dspp":6.82,"dspp_sd":1.7},"species1500":{"seeds":{"1":[0.3322,21.02],"2":[0.3367,19.68],"3":[0.3415,21.35]},"win":0.3368,"win_sd":0.0047,"spp":20.68,"spp_sd":0.88,"dwin":-0.08,"dwin_sd":0.0349,"dspp":6.24,"dspp_sd":1.19}}};
+const V=[
+ {k:'current',name:'Current model',c:'#6b7382'},
+ {k:'control',name:'Same-labels retrain',c:'#14161b'},
+ {k:'jitter',name:'Jittered labels',c:'#2a78d6'},
+ {k:'freq4',name:'Fewer frequencies',c:'#7957ad'},
+ {k:'balanced',name:'Win-rate quota',c:'#a16c15'},
+ {k:'species800',name:'Species quota 800',c:'#2f9e6b'},
+ {k:'species1500',name:'Species quota 1,500',c:'#d4551f'},
+];
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.append(e);return e};
+const tip=document.getElementById('tip');
+const show=(e,html)=>{tip.innerHTML=html;tip.classList.add('on');tip.style.left=Math.min(e.clientX+14,innerWidth-270)+'px';tip.style.top=(e.clientY+14)+'px'};
+const hide=()=>tip.classList.remove('on');
+const f3=v=>v.toFixed(3), sg=(v,d=3)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+const stagger=(node,i)=>{node.classList.add('enter');node.style.animationDelay=(i*35)+'ms'};
+function hover(svg,key){svg.classList.toggle('dim',!!key);svg.querySelectorAll('.series').forEach(s=>s.classList.toggle('hot',s.dataset.k===key))}
+
+const P={"current":[{"ask":0.2917,"win":0.3658,"spp":17.43,"seeds":[[0.3484,17.92],[0.3762,16.17],[0.3728,18.19]]},{"ask":0.3,"win":0.3369,"spp":21.69,"seeds":[[0.3322,20.18],[0.3631,20.33],[0.3153,24.55]]},{"ask":0.3333,"win":0.3796,"spp":15.44,"seeds":[[0.3678,15.74],[0.3891,14.59],[0.3819,15.98]]},{"ask":0.5,"win":0.4466,"spp":9.86,"seeds":[[0.4519,9.88],[0.45,9.24],[0.4378,10.46]]},{"ask":0.531,"win":0.404,"spp":11.59,"seeds":[[0.4037,12.13],[0.4094,10.69],[0.3988,11.94]]},{"ask":0.5417,"win":0.4445,"spp":9.91,"seeds":[[0.4394,10.39],[0.4547,9.47],[0.4394,9.86]]}],"control":[{"ask":0.2917,"win":0.3711,"spp":19.65,"seeds":[[0.3591,20.03],[0.3666,20.58],[0.3878,18.33]]},{"ask":0.3,"win":0.3418,"spp":21.7,"seeds":[[0.3394,22.58],[0.3459,21.92],[0.34,20.6]]},{"ask":0.3333,"win":0.3885,"spp":17.36,"seeds":[[0.3659,18.69],[0.3828,16.32],[0.4169,17.06]]},{"ask":0.5,"win":0.4281,"spp":14.05,"seeds":[[0.4234,16.04],[0.4672,11.44],[0.3937,14.66]]},{"ask":0.531,"win":0.4073,"spp":15.21,"seeds":[[0.4106,16.01],[0.4356,13.08],[0.3756,16.53]]},{"ask":0.5417,"win":0.4149,"spp":14.07,"seeds":[[0.4116,15.77],[0.4472,12.18],[0.3859,14.26]]},{"ask":0.6,"win":0.3941,"spp":15.51,"seeds":[[0.3756,17.12],[0.4216,13.45],[0.385,15.97]]},{"ask":0.7,"win":0.4099,"spp":16.21,"seeds":[[0.4016,17.51],[0.4203,15.24],[0.4078,15.89]]}],"jitter":[{"ask":0.2917,"win":0.375,"spp":18.67,"seeds":[[0.3638,19.82],[0.3866,17.2],[0.3747,18.99]]},{"ask":0.3,"win":0.3881,"spp":18.54,"seeds":[[0.3781,19.06],[0.3962,17.83],[0.39,18.71]]},{"ask":0.3333,"win":0.4,"spp":16.22,"seeds":[[0.3934,17.2],[0.3972,14.94],[0.4094,16.53]]},{"ask":0.5,"win":0.4424,"spp":11.95,"seeds":[[0.4294,12.49],[0.4603,10.78],[0.4375,12.59]]},{"ask":0.531,"win":0.4381,"spp":12.53,"seeds":[[0.4372,13.16],[0.4478,11.6],[0.4294,12.84]]},{"ask":0.5417,"win":0.4429,"spp":12.33,"seeds":[[0.4472,12.88],[0.4544,10.76],[0.4272,13.34]]},{"ask":0.6,"win":0.4271,"spp":14.22,"seeds":[[0.4216,15.33],[0.4428,11.97],[0.4169,15.37]]},{"ask":0.7,"win":0.4214,"spp":15.6,"seeds":[[0.4191,15.96],[0.4322,14.66],[0.4128,16.17]]}],"freq4":[{"ask":0.2917,"win":0.3653,"spp":19.45,"seeds":[[0.3556,21.3],[0.3597,19.35],[0.3806,17.7]]},{"ask":0.3,"win":0.3741,"spp":19.08,"seeds":[[0.365,20.64],[0.3725,18.9],[0.3847,17.71]]},{"ask":0.3333,"win":0.3875,"spp":18.3,"seeds":[[0.3591,20.05],[0.3844,17.99],[0.4191,16.85]]},{"ask":0.5,"win":0.4115,"spp":14.61,"seeds":[[0.4141,16.68],[0.4387,12.38],[0.3816,14.76]]},{"ask":0.531,"win":0.4165,"spp":14.08,"seeds":[[0.4325,16.01],[0.4312,11.64],[0.3856,14.59]]},{"ask":0.5417,"win":0.4147,"spp":14.29,"seeds":[[0.4253,15.76],[0.4347,12.16],[0.3841,14.96]]},{"ask":0.6,"win":0.422,"spp":14.78,"seeds":[[0.4219,16.75],[0.4447,13.29],[0.3994,14.3]]},{"ask":0.7,"win":0.3918,"spp":17.29,"seeds":[[0.385,18.0],[0.4025,15.86],[0.3878,18.0]]}],"balanced":[{"ask":0.2917,"win":0.3566,"spp":17.47,"seeds":[[0.3494,17.56],[0.3494,16.72],[0.3709,18.13]]},{"ask":0.3,"win":0.3378,"spp":17.72,"seeds":[[0.3331,16.88],[0.33,17.1],[0.3503,19.19]]},{"ask":0.3333,"win":0.378,"spp":15.74,"seeds":[[0.3678,16.65],[0.3744,14.83],[0.3919,15.74]]},{"ask":0.5,"win":0.4199,"spp":11.66,"seeds":[[0.4094,12.36],[0.4494,10.38],[0.4009,12.24]]},{"ask":0.531,"win":0.398,"spp":12.37,"seeds":[[0.3916,12.26],[0.4219,10.73],[0.3806,14.12]]},{"ask":0.5417,"win":0.4183,"spp":11.77,"seeds":[[0.4253,11.72],[0.4359,9.96],[0.3937,13.62]]},{"ask":0.6,"win":0.385,"spp":13.47,"seeds":[[0.3847,13.65],[0.405,11.1],[0.3653,15.66]]},{"ask":0.7,"win":0.374,"spp":15.27,"seeds":[[0.3747,15.76],[0.3897,13.76],[0.3575,16.29]]}],"species800":[{"ask":0.2917,"win":0.3286,"spp":21.1,"seeds":[[0.3269,19.53],[0.3219,22.28],[0.3372,21.49]]},{"ask":0.3,"win":0.3136,"spp":30.26,"seeds":[[0.3216,31.24],[0.3053,29.42],[0.3141,30.11]]},{"ask":0.3333,"win":0.3438,"spp":20.01,"seeds":[[0.3387,18.68],[0.3294,20.81],[0.3631,20.53]]},{"ask":0.5,"win":0.3766,"spp":20.62,"seeds":[[0.3888,21.07],[0.3819,21.05],[0.3591,19.74]]},{"ask":0.531,"win":0.3314,"spp":22.85,"seeds":[[0.3275,24.5],[0.3284,21.35],[0.3381,22.7]]},{"ask":0.5417,"win":0.377,"spp":20.3,"seeds":[[0.3697,19.97],[0.3722,20.63],[0.3891,20.31]]},{"ask":0.6,"win":0.3417,"spp":21.88,"seeds":[[0.3412,23.27],[0.3434,20.78],[0.3403,21.6]]},{"ask":0.7,"win":0.3335,"spp":18.38,"seeds":[[0.3231,19.42],[0.3334,16.85],[0.3441,18.87]]}],"species1500":[{"ask":0.2917,"win":0.3243,"spp":26.7,"seeds":[[0.3144,26.06],[0.3259,28.44],[0.3325,25.61]]},{"ask":0.3,"win":0.3077,"spp":31.95,"seeds":[[0.3122,32.9],[0.2931,31.37],[0.3178,31.58]]},{"ask":0.3333,"win":0.3535,"spp":23.53,"seeds":[[0.3384,23.61],[0.3566,24.66],[0.3656,22.33]]},{"ask":0.5,"win":0.3433,"spp":21.69,"seeds":[[0.3341,21.87],[0.3375,20.96],[0.3584,22.25]]},{"ask":0.531,"win":0.3198,"spp":19.66,"seeds":[[0.3169,20.47],[0.3225,18.27],[0.32,20.23]]},{"ask":0.5417,"win":0.3472,"spp":20.7,"seeds":[[0.3456,20.7],[0.35,19.81],[0.3459,21.59]]},{"ask":0.6,"win":0.3228,"spp":17.5,"seeds":[[0.3237,18.81],[0.3175,16.34],[0.3272,17.36]]},{"ask":0.7,"win":0.3362,"spp":16.28,"seeds":[[0.3356,17.86],[0.3522,15.31],[0.3209,15.66]]}]};
+const ASKS=[0.2917,0.3,0.3333,0.5,0.531,0.5417,0.6,0.7];
+const ASKLAB={0.2917:'7/24',0.3:'0.30',0.3333:'8/24',0.5:'12/24',0.531:'0.531',0.5417:'13/24',0.6:'0.60',0.7:'0.70'};
+const OFFT=new Set([0.3,0.531,0.6,0.7]); /* every ask not a whole number of 24ths */
+let teardown=null; /* stops the mounted variant's timers */
+function radioKeys(group,getCur,pick){group.addEventListener('keydown',e=>{const d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d)return;e.preventDefault();e.stopPropagation();const f=[...group.children].indexOf(e.target),n=((f>=0?f:getCur())+d+ASKS.length)%ASKS.length;pick(n);group.children[n].focus()})}
+const XL=8,XH=34,YL=.28,YH=.48;
+function frame(s,o={}){
+  const L=70,R=820,T=24,B=410,x=v=>L+(v-XL)/(XH-XL)*(R-L),y=v=>B-(v-YL)/(YH-YL)*(B-T);
+  for(let v=10;v<=34;v+=4){el('line',{x1:x(v),x2:x(v),y1:T,y2:B,stroke:'#eef1f6'},s);el('text',{x:x(v),y:B+18,'text-anchor':'middle'},s).textContent=v}
+  for(let v=.28;v<=.4801;v+=.04){el('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:'#eef1f6'},s);el('text',{x:L-8,y:y(v)+4,'text-anchor':'end'},s).textContent=v.toFixed(2)}
+  el('line',{x1:L,x2:R,y1:B,y2:B,stroke:'#6b7382'},s);el('line',{x1:L,x2:L,y1:T,y2:B,stroke:'#6b7382'},s);
+  el('text',{x:(L+R)/2,y:B+42,'text-anchor':'middle',class:'axis-title'},s).textContent='Effective species → more varied teams';
+  el('text',{x:18,y:(T+B)/2,'text-anchor':'middle',class:'axis-title',transform:`rotate(-90 18 ${(T+B)/2})`},s).textContent='Win rate vs top-50 meta';
+  return {x,y,L,R,T,B};
+}
+const at=(k,a)=>P[k].find(r=>r.ask===a);
+const OFFS=[[10,-9,'start'],[10,17,'start'],[-10,-9,'end'],[-10,17,'end'],[10,-23,'start'],[10,31,'start'],[-10,-23,'end'],[-10,31,'end'],[10,-37,'start'],[10,45,'start'],[-10,-37,'end'],[-10,45,'end']];
+function place(items){ /* items: {px,py,w}; returns [{dx,dy,anchor}] avoiding overlaps between labels and points */
+  const boxes=items.map(it=>({x:it.px-7,y:it.py-7,w:14,h:14}));const out=[];
+  const hit=b=>boxes.some(o=>b.x<o.x+o.w&&o.x<b.x+b.w&&b.y<o.y+o.h&&o.y<b.y+b.h);
+  items.forEach(it=>{let pick=OFFS[0],box=null;
+    for(const o of OFFS){const x=o[2]==='start'?it.px+o[0]:it.px+o[0]-it.w;const b={x,y:it.py+o[1]-11,w:it.w,h:14};if(!hit(b)){pick=o;box=b;break}}
+    if(!box){const o=pick;box={x:o[2]==='start'?it.px+o[0]:it.px+o[0]-it.w,y:it.py+o[1]-11,w:it.w,h:14}}
+    boxes.push(box);out.push({dx:pick[0],dy:pick[1],anchor:pick[2]})});
+  return out}
+const tw=t=>t.length*7.2+6;
+
+
+/* ---------- 1. Ask slider: one ask at a time, points glide ---------- */
+function slider(){
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`<figure><div class="ctl"><button class="play" aria-label="Play through asks">▶</button>
+    <div class="steps" role="radiogroup" aria-label="Asked win rate"></div><span class="now"></span></div>
+    <svg viewBox="0 0 860 470" role="img" aria-label="Win rate against effective species at one asked win rate"></svg>
+    <figcaption><b>Figure 1. Moving the ask moves every version, but none reaches the shaded corner.</b> Each point is one version of the discrete diffusion model at the chosen ask (mean of 3 seeds × 64 teams); each arrow runs from where that version was at the previous ask (small ring) to where it is now. The dashed cross marks the same-labels retrain at the same ask. Orange asks fall between the 1/24 label ticks. The current model was not run at 0.60 or 0.70.</figcaption></figure>`;
+  const s=wrap.querySelector('svg'),steps=wrap.querySelector('.steps'),now=wrap.querySelector('.now'),play=wrap.querySelector('.play');
+  const f=frame(s);
+  const shade=el('rect',{fill:'#2f9e6b',opacity:.07,class:'glide'},s);
+  const vx=el('line',{stroke:'#14161b','stroke-dasharray':'3 4',opacity:.35,class:'glide'},s),hy=el('line',{stroke:'#14161b','stroke-dasharray':'3 4',opacity:.35,class:'glide'},s);
+  const trails=el('g',{},s);
+  const defs=el('defs',{},s);
+  V.forEach(v=>{const m=el('marker',{id:'vec'+v.k,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto'},defs);el('path',{d:'M0 0 L10 5 L0 10 z',fill:v.c},m)});
+  s.classList.add('fadein');const G=V.map((v,i)=>{const g=el('g',{class:'series pt','data-k':v.k},s);
+    el('circle',{cx:0,cy:0,r:v.k==='control'?6.5:6,fill:v.k==='control'?'#fff':v.c,stroke:v.c,'stroke-width':2},g);
+    const t=el('text',{x:10,y:-9,class:'lab',style:'fill:'+v.c},g);t.textContent=v.name;g._t=t;
+    g.addEventListener('pointermove',e=>{const r=at(v.k,ASKS[cur]);if(r)show(e,`<b>${v.name}</b> at ask ${ASKLAB[ASKS[cur]]}<br>win rate ${f3(r.win)} · effective species ${r.spp.toFixed(1)}<br>seeds: ${r.seeds.map(q=>q[0].toFixed(3)).join(', ')}`)});
+    g.addEventListener('pointerleave',hide);return g});
+  let cur=3,prev=null,timer=null;
+  ASKS.forEach((a,i)=>{const b=document.createElement('button');b.setAttribute('role','radio');b.textContent=ASKLAB[a];if(OFFT.has(a))b.classList.add('off');b.onclick=()=>{stop();go(i)};steps.append(b)});
+  function go(i){
+    prev=cur;cur=i;const a=ASKS[i],c=at('control',a);
+    steps.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-checked',j===i));
+    now.textContent=`asked ${a.toFixed(3)}${OFFT.has(a)?' · between ticks':''}`;
+    shade.setAttribute('x',f.x(c.spp));shade.setAttribute('y',f.T);shade.setAttribute('width',f.R-f.x(c.spp));shade.setAttribute('height',Math.max(0,f.y(c.win)-f.T));
+    vx.setAttribute('x1',f.x(c.spp));vx.setAttribute('x2',f.x(c.spp));vx.setAttribute('y1',f.T);vx.setAttribute('y2',f.B);
+    hy.setAttribute('y1',f.y(c.win));hy.setAttribute('y2',f.y(c.win));hy.setAttribute('x1',f.L);hy.setAttribute('x2',f.R);
+    trails.innerHTML='';
+    V.forEach((v,j)=>{const r=at(v.k,a),g=G[j];
+      if(!r){g.style.opacity=0;g.style.pointerEvents='none';return}
+      g.style.opacity='';g.style.pointerEvents='';g.style.transform=`translate(${f.x(r.spp)}px,${f.y(r.win)}px)`;
+      const p=prev!==null&&prev!==i?at(v.k,ASKS[prev]):null;
+      if(p){const x1=f.x(p.spp),y1=f.y(p.win),x2=f.x(r.spp),y2=f.y(r.win),d=Math.hypot(x2-x1,y2-y1);
+        if(d>14){const u=(d-9)/d;el('line',{x1,y1,x2:x1+(x2-x1)*u,y2:y1+(y2-y1)*u,stroke:v.c,'stroke-width':1.8,opacity:.6,'marker-end':`url(#vec${v.k})`},trails);
+          el('circle',{cx:x1,cy:y1,r:3,fill:'none',stroke:v.c,'stroke-width':1.2,opacity:.6},trails)}}});
+    const vis=V.map((v,j)=>({v,j,r:at(v.k,a)})).filter(q=>q.r).sort((m,n)=>m.r.win-n.r.win);
+    place(vis.map(q=>({px:f.x(q.r.spp),py:f.y(q.r.win),w:(G[q.j]._t.getComputedTextLength()||tw(q.v.name))+6}))).forEach((o,n)=>{const t=G[vis[n].j]._t;t.setAttribute('x',o.dx);t.setAttribute('y',o.dy);t.setAttribute('text-anchor',o.anchor)});
+  }
+  function stop(){clearInterval(timer);timer=null;play.textContent='▶'}
+  teardown=stop;radioKeys(steps,()=>cur,n=>{stop();go(n)});
+  play.onclick=()=>{if(timer){stop();return}play.textContent='❚❚';go((cur+1)%ASKS.length);timer=setInterval(()=>go((cur+1)%ASKS.length),1100)};
+  go(3);
+  return wrap;
+}
+
+/* ---------- 2. Scrubber: drag continuously through the asks ---------- */
+function scrubber(){
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`<figure><svg viewBox="0 0 860 470" role="img" aria-label="Win rate against effective species while scrubbing the asked win rate"></svg>
+    <div class="scrub"><div class="ticks"></div><input type="range" min="0.2917" max="0.7" step="any" value="0.5" aria-label="Asked win rate"><div class="readout"></div></div>
+    <figcaption><b>Figure 1. Drag the ask and watch every version move; at every measured ask the shaded corner stays empty.</b> Solid points sit on a measured ask (mean of 3 seeds × 64 teams). Between measured asks the points are hollow: they are drawn on a straight line between the two neighbouring results, not measured, so a hollow point can briefly cross into the corner. Releasing the handle snaps to the nearest measured ask; the arrow keys step from one measured ask to the next. Orange ticks are asks between the 1/24 label ticks. The current model was not run above 13/24.</figcaption></figure>`;
+  const s=wrap.querySelector('svg'),inp=wrap.querySelector('input'),ticks=wrap.querySelector('.ticks'),out=wrap.querySelector('.readout');
+  const f=frame(s);s.classList.add('fadein');
+  const shade=el('rect',{fill:'#2f9e6b',opacity:.07},s);
+  const vx=el('line',{stroke:'#14161b','stroke-dasharray':'3 4',opacity:.35},s),hy=el('line',{stroke:'#14161b','stroke-dasharray':'3 4',opacity:.35},s);
+  const lo=+inp.min,hi=+inp.max;
+  ASKS.forEach(a=>{const t=document.createElement('span');t.style.left=((a-lo)/(hi-lo)*100)+'%';t.textContent=ASKLAB[a];if(OFFT.has(a))t.className='off';t.onclick=()=>{inp.value=a;update(a,true)};ticks.append(t)});
+  const G=V.map(v=>{const g=el('g',{class:'series pt','data-k':v.k},s);
+    const c=el('circle',{r:6,fill:v.k==='control'?'#fff':v.c,stroke:v.c,'stroke-width':2},g);
+    const t=el('text',{class:'lab',style:'fill:'+v.c},g);t.textContent=v.name;g._c=c;g._t=t;return g});
+  function interp(k,a){const rows=P[k];if(a<rows[0].ask-1e-6||a>rows[rows.length-1].ask+1e-6)return null;
+    for(let i=0;i<rows.length;i++){if(Math.abs(rows[i].ask-a)<1e-6)return {...rows[i],measured:true}}
+    for(let i=0;i<rows.length-1;i++){const p=rows[i],q=rows[i+1];if(a>p.ask&&a<q.ask){const u=(a-p.ask)/(q.ask-p.ask);return {win:p.win+u*(q.win-p.win),spp:p.spp+u*(q.spp-p.spp),measured:false}}}return null}
+  function update(a,snap){
+    s.classList.toggle('dragging',!snap);
+    const c=interp('control',a);
+    if(c){shade.setAttribute('x',f.x(c.spp));shade.setAttribute('y',f.T);shade.setAttribute('width',f.R-f.x(c.spp));shade.setAttribute('height',Math.max(0,f.y(c.win)-f.T));
+      vx.setAttribute('x1',f.x(c.spp));vx.setAttribute('x2',f.x(c.spp));vx.setAttribute('y1',f.T);vx.setAttribute('y2',f.B);
+      hy.setAttribute('x1',f.L);hy.setAttribute('x2',f.R);hy.setAttribute('y1',f.y(c.win));hy.setAttribute('y2',f.y(c.win))}
+    const vis=[];
+    V.forEach((v,j)=>{const r=interp(v.k,a),g=G[j];if(!r){g.style.opacity=0;return}
+      g.style.opacity='';g.style.transform=`translate(${f.x(r.spp)}px,${f.y(r.win)}px)`;
+      g._c.setAttribute('fill',r.measured&&v.k!=='control'?v.c:'#fff');g._c.setAttribute('stroke-dasharray',r.measured?'':'2 2');vis.push({j,r,v})});
+    vis.sort((m,n)=>m.r.win-n.r.win);
+    place(vis.map(q=>({px:f.x(q.r.spp),py:f.y(q.r.win),w:G[q.j]._t.getComputedTextLength()+6}))).forEach((o,n)=>{const t=G[vis[n].j]._t;t.setAttribute('x',o.dx);t.setAttribute('y',o.dy);t.setAttribute('text-anchor',o.anchor)});
+    const near=ASKS.find(x=>Math.abs(x-a)<1e-6);
+    out.innerHTML=near!==undefined?`asked <b>${ASKLAB[near]}</b> · measured${OFFT.has(near)?' · <span class="offtxt">between ticks</span>':''}`:`asked ${a.toFixed(3)} · <i>drawn between measured asks</i>`;
+  }
+  inp.addEventListener('input',()=>update(+inp.value,false));
+  const nearest=v=>ASKS.reduce((b,x)=>Math.abs(x-v)<Math.abs(b-v)?x:b);
+  inp.addEventListener('change',()=>{const a=nearest(+inp.value);inp.value=a;update(a,true)});
+  inp.addEventListener('keydown',e=>{const d={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[e.key];if(!d)return;e.preventDefault();
+    const v=+inp.value,i=ASKS.indexOf(nearest(v)),n=Math.abs(ASKS[i]-v)<1e-6?i+d:(d>0?ASKS.findIndex(x=>x>v):ASKS.length-1-[...ASKS].reverse().findIndex(x=>x<v));
+    const a=ASKS[Math.max(0,Math.min(ASKS.length-1,n))];inp.value=a;update(a,true)});
+  update(0.5,true);requestAnimationFrame(()=>update(+inp.value,true)); /* re-place labels once the SVG is on the page and text can be measured */
+  return wrap;
+}
+
+/* ---------- 3. Filmstrip: all eight asks as thumbnails, one enlarged ---------- */
+function filmstrip(){
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`<figure><div class="film" role="radiogroup" aria-label="Asked win rate"></div><svg class="big" viewBox="0 0 860 470" role="img" aria-label="Win rate against effective species at the selected ask"></svg>
+    <figcaption><b>Figure 1. At every ask the shaded corner stays empty.</b> The strip shows all eight asks at once, each a miniature of the chart below; click one to enlarge it. Points are means of 3 seeds × 64 teams. In each miniature the green box is the region that would beat the same-labels retrain on both measures. Orange labels are asks between the 1/24 label ticks.</figcaption></figure>`;
+  const film=wrap.querySelector('.film'),s=wrap.querySelector('svg.big');
+  const f=frame(s);
+  const shade=el('rect',{fill:'#2f9e6b',opacity:.07,class:'glide'},s);
+  const vx=el('line',{stroke:'#14161b','stroke-dasharray':'3 4',opacity:.35,class:'glide'},s),hy=el('line',{stroke:'#14161b','stroke-dasharray':'3 4',opacity:.35,class:'glide'},s);
+  const G=V.map(v=>{const g=el('g',{class:'series pt','data-k':v.k},s);el('circle',{r:v.k==='control'?6.5:6,fill:v.k==='control'?'#fff':v.c,stroke:v.c,'stroke-width':2},g);
+    const t=el('text',{class:'lab',style:'fill:'+v.c},g);t.textContent=v.name;g._t=t;
+    g.addEventListener('pointermove',e=>{const r=at(v.k,ASKS[cur]);if(r)show(e,`<b>${v.name}</b> at ask ${ASKLAB[ASKS[cur]]}<br>win rate ${f3(r.win)} · effective species ${r.spp.toFixed(1)}`)});g.addEventListener('pointerleave',hide);return g});
+  const mx=v=>4+(v-XL)/(XH-XL)*112,my=v=>66-(v-YL)/(YH-YL)*60;
+  ASKS.forEach((a,i)=>{const b=document.createElement('button');b.setAttribute('role','radio');
+    const ms=el('svg',{viewBox:'0 0 120 70'},b);const c=at('control',a);
+    el('rect',{x:0,y:0,width:120,height:70,fill:'#fff'},ms);
+    el('rect',{x:mx(c.spp),y:6,width:116-mx(c.spp),height:Math.max(0,my(c.win)-6),fill:'#2f9e6b',opacity:.12,stroke:'#2f9e6b','stroke-opacity':.4},ms);
+    V.forEach(v=>{const r=at(v.k,a);if(r)el('circle',{cx:mx(r.spp),cy:my(r.win),r:v.k==='control'?3:2.6,fill:v.k==='control'?'#fff':v.c,stroke:v.c,'stroke-width':1.2},ms)});
+    const l=document.createElement('span');l.textContent=ASKLAB[a];if(OFFT.has(a))l.className='off';b.append(l);
+    b.onclick=()=>go(i);film.append(b)});
+  let cur=3;radioKeys(film,()=>cur,n=>go(n));
+  function go(i){cur=i;const a=ASKS[i],c=at('control',a);
+    film.querySelectorAll('button').forEach((b,j)=>b.setAttribute('aria-checked',j===i));
+    shade.setAttribute('x',f.x(c.spp));shade.setAttribute('y',f.T);shade.setAttribute('width',f.R-f.x(c.spp));shade.setAttribute('height',Math.max(0,f.y(c.win)-f.T));
+    vx.setAttribute('x1',f.x(c.spp));vx.setAttribute('x2',f.x(c.spp));vx.setAttribute('y1',f.T);vx.setAttribute('y2',f.B);
+    hy.setAttribute('x1',f.L);hy.setAttribute('x2',f.R);hy.setAttribute('y1',f.y(c.win));hy.setAttribute('y2',f.y(c.win));
+    const vis=[];V.forEach((v,j)=>{const r=at(v.k,a),g=G[j];if(!r){g.style.opacity=0;g.style.pointerEvents='none';return}g.style.opacity='';g.style.pointerEvents='';g.style.transform=`translate(${f.x(r.spp)}px,${f.y(r.win)}px)`;vis.push({j,r})});
+    vis.sort((m,n)=>m.r.win-n.r.win);
+    place(vis.map(q=>({px:f.x(q.r.spp),py:f.y(q.r.win),w:G[q.j]._t.getComputedTextLength()+6}))).forEach((o,n)=>{const t=G[vis[n].j]._t;t.setAttribute('x',o.dx);t.setAttribute('y',o.dy);t.setAttribute('text-anchor',o.anchor)});
+  }
+  requestAnimationFrame(()=>go(3));
+  return wrap;
+}
+
+const variants=[slider,scrubber,filmstrip];
+const LOOP=[{"name": "maximal marginal relevance (λ 0.30)", "strong": [20, 65, -10], "all": [75, 26, 26], "fin": 0.027, "lo": 0.002, "hi": 0.051, "best": 0.003, "works": false}, {"name": "best per line-up, Boltzmann T 0.10", "strong": [-50, 26, -43], "all": [37, 49, 21], "fin": 0.016, "lo": -0.008, "hi": 0.04, "best": -0.009, "works": false}, {"name": "Boltzmann elites T 0.10", "strong": [-30, 34, -97], "all": [24, 19, 16], "fin": 0.014, "lo": -0.01, "hi": 0.037, "best": -0.017, "works": false}, {"name": "peel the 3 commonest species", "strong": [-346, -312, -412], "all": [3, 14, 44], "fin": -0.01, "lo": -0.035, "hi": 0.016, "best": -0.019, "works": false}, {"name": "propose 2,048, ridge top 512", "strong": [113, 172, 166], "all": [-96, -78, -111], "fin": 0.027, "lo": 0.004, "hi": 0.051, "best": 0.019, "works": true}, {"name": "propose 2,048, DPP-diverse 512", "strong": [131, 126, 111], "all": [10, 41, -9], "fin": 0.027, "lo": 0.005, "hi": 0.05, "best": 0.01, "works": true}, {"name": "first species uniform", "strong": [-117, -72, -3], "all": [169, 172, 163], "fin": 0.01, "lo": -0.013, "hi": 0.033, "best": -0.019, "works": false}, {"name": "species repulsion α 256", "strong": [-130, -45, -98], "all": [-68, -66, -68], "fin": -0.001, "lo": -0.024, "hi": 0.023, "best": -0.028, "works": false}, {"name": "condition noise s 0.1", "strong": [-28, -36, -19], "all": [59, 42, 66], "fin": 0.004, "lo": -0.021, "hi": 0.028, "best": -0.012, "works": false}, {"name": "species guidance 1", "strong": [23, -16, 9], "all": [10, 41, 35], "fin": 0.02, "lo": -0.005, "hi": 0.044, "best": 0.024, "works": false}, {"name": "no taboo list (batch 2)", "strong": [-331, -324, -344], "all": [-814, -987, -909], "fin": 0.036, "lo": 0.015, "hi": 0.057, "best": 0.002, "works": false}, {"name": "temperature 1 everywhere (batch 2)", "strong": [-207, -187, -177], "all": [37, 62, -23], "fin": 0.003, "lo": -0.021, "hi": 0.028, "best": 0.017, "works": false}, {"name": "species quota 25% of elites", "strong": [-88, -18, -153], "all": [50, 71, 60], "fin": 0.029, "lo": 0.004, "hi": 0.054, "best": 0.023, "works": false}, {"name": "species quota 50% of elites", "strong": [-122, -24, -6], "all": [58, 43, 26], "fin": 0.017, "lo": -0.009, "hi": 0.041, "best": 0.017, "works": false}];
+/* ---- experiment cards (static, below the figure) ---- */
+const CARDS={
+ current:{tag:'starting point',what:'No extra training: the discrete diffusion model as it is now.',why:'Shows where every other version started.'},
+ control:{tag:'reference',what:'Fine-tuned 10 more epochs on its usual training teams, labels unchanged.',why:'Separates the effect of extra training from the effect of each change below.'},
+ jitter:{tag:'best win rate',cls:'good',what:'Every training label moves by a fresh random amount, up to ±1/48, in every batch, so labels fill the gaps between the 1/24 ticks.',why:'Most labels are wins out of 24, so the model never saw an ask such as 0.30 that falls between ticks.'},
+ freq4:{tag:'dip gone, dial flat',what:'The ask is encoded with 4 waves (π to 8π) instead of 8 (π to 128π); the four fastest are switched off.',why:'The 128π wave repeats 2.7 times between two ticks, so an ask between ticks looks unseen to the model.'},
+ balanced:{tag:'no help',cls:'bad',what:'Each 0.1-wide win-rate band gives at most as many teams per epoch as the 0.5–0.6 band (1,132; 1,544 for the matrix-row member).',why:'Low-scoring teams far outnumber high-scoring ones in training.'},
+ species800:{tag:'most varied, low win rate',cls:'bad',loop:'Inside the search loop (quota on 25% or 50% of elites, 2026-10-31): fails the rule. Finalists +0.029 and +0.017, but fewer elite line-ups in every seed.',what:'A training team is kept only while none of its six species is already in 800 kept teams that epoch.',why:'A few core Pokémon, led by Garchomp, fill most training teams.'},
+ species1500:{tag:'lowest win rate',cls:'bad',loop:'See species quota 800 for the loop test, which used one quota per run as a share of elites.',what:'The same rule with a looser quota of 1,500 teams per species.',why:'Tests whether a gentler quota keeps the variety at less cost.'},
+};
+(function(){
+  const box=document.getElementById('cards'),c=D.mid.control;
+  const delta=(d,dp,good)=>{const cls=Math.abs(d)<(dp?0.05:0.005)?'flat':(d>0)===good?'up':'down';return `<span class="${cls}">${d>=0?'+':'−'}${Math.abs(d).toFixed(dp?1:3)}</span>`};
+  V.forEach(v=>{const m=D.mid[v.k],k=CARDS[v.k],el=document.createElement('article');el.className='xcard';el.style.setProperty('--c',v.c);
+    const dl=v.k==='control'?'<span class="flat">reference</span>':null;
+    el.innerHTML=`<h4>${v.name}<span class="tag ${k.cls||''}">${k.tag}</span></h4><p>${k.what}</p><p class="why">Why: ${k.why}</p>${k.loop?`<p class="why"><b>Loop:</b> ${k.loop}</p>`:''}
+      <div class="nums"><div>Win rate<b>${m.win.toFixed(3)}</b>${dl||'Δ '+delta(m.win-c.win,0,true)}</div><div>Effective species<b>${m.spp.toFixed(1)}</b>${dl||'Δ '+delta(m.spp-c.spp,1,true)}</div></div>`;
+    const svg=()=>document.querySelector('#stage figure > svg');
+    el.addEventListener('pointerenter',()=>{const s=svg();if(s)hover(s,v.k)});
+    el.addEventListener('pointerleave',()=>{const s=svg();if(s)hover(s,null)});
+    box.append(el)});
+})();
+
+
+
+(function(){const s=document.getElementById('loopsvg');const L=90,R=830,T=20,B=340;
+  const mean=a=>a.reduce((x,y)=>x+y,0)/a.length,xl=-360,xh=200,yl=-.04,yh=.065;
+  const X=v=>L+(v-xl)/(xh-xl)*(R-L),Y=v=>B-(v-yl)/(yh-yl)*(B-T);
+  for(let v=-300;v<=200;v+=100){el('line',{x1:X(v),x2:X(v),y1:T,y2:B,stroke:v?'#eef1f6':'#9aa1ad'},s);el('text',{x:X(v),y:B+18,'text-anchor':'middle'},s).textContent=(v>0?'+':'')+v}
+  for(let v=-.03;v<=.061;v+=.03){const w=Math.round(v*100)/100;el('line',{x1:L,x2:R,y1:Y(w),y2:Y(w),stroke:w?'#eef1f6':'#9aa1ad'},s);el('text',{x:L-8,y:Y(w)+4,'text-anchor':'end'},s).textContent=(w>0?'+':'')+w.toFixed(2)}
+  el('text',{x:(L+R)/2,y:B+42,'text-anchor':'middle',class:'axis-title'},s).textContent='change in elite line-ups vs plain loop (more = more varied elite teams) →';
+  el('text',{x:20,y:(T+B)/2,'text-anchor':'middle',class:'axis-title',transform:`rotate(-90 20 ${(T+B)/2})`},s).textContent='finalist win-rate change';
+  /* short reader names for every arm; the full setting stays in the tooltip */
+  const SHORT=n=>n.replace('propose 2,048, ','').replace('maximal marginal relevance (λ 0.30)','max. marginal relevance').replace('best per line-up, Boltzmann T 0.10','best per line-up (Boltzmann)').replace('Boltzmann elites T 0.10','Boltzmann elites').replace('peel the 3 commonest species','peel 3 commonest species').replace('species repulsion α 256','species repulsion').replace('condition noise s 0.1','condition noise').replace(' (batch 2)','');
+  const labs=[];
+  LOOP.forEach(r=>{const q=/species quota/.test(r.name),c=r.works?'#1d6b4f':q?'#d4551f':'#9aa1ad',x=X(mean(r.strong)),y=Y(r.fin);
+    el('line',{x1:x,x2:x,y1:Y(r.lo),y2:Y(r.hi),stroke:c,'stroke-width':1.5,opacity:.6},s);
+    r.strong.forEach(v=>el('line',{x1:X(v),x2:X(v),y1:y-4,y2:y+4,stroke:c,'stroke-width':1.2,opacity:.7},s));
+    const d=el('circle',{cx:x,cy:y,r:r.works||q?6:4.5,fill:r.works||q?c:'#fff',stroke:c,'stroke-width':2},s);
+    d.addEventListener('pointermove',e=>show(e,`<b>${r.name}</b><br>elite line-ups ${r.strong.map(v=>(v>0?'+':'')+v).join(', ')}<br>finalists ${sg(r.fin)} [${sg(r.lo)}, ${sg(r.hi)}] · ${r.works?'works':'fails the rule'}`));d.addEventListener('pointerleave',hide);
+    labs.push({px:x,py:y,name:SHORT(r.name),c:r.works?c:q?c:'#474d59',bold:r.works||q});});
+  /* hand-placed label positions in data units [elite line-ups, finalist change, anchor]; a leader line joins any label set away from its dot */
+  const POS={'no taboo list':[-322,.042,'start'],'peel 3 commonest species':[-345,-.016,'start'],'temperature 1 everywhere':[-198,-.005,'end'],
+    'species quota 25% of elites':[-98,.036,'end'],'species quota 50% of elites':[-110,.020,'end'],'first species uniform':[-140,.012,'end'],
+    'species repulsion':[-80,-.013,'start'],'condition noise':[40,-.006,'start'],'Boltzmann elites':[40,.003,'start'],'best per line-up (Boltzmann)':[40,.011,'start'],
+    'species guidance 1':[40,.019,'start'],'max. marginal relevance':[25,.040,'middle'],'DPP-diverse 512':[140,-.016,'middle'],'ridge top 512':[165,.040,'start']};
+  labs.forEach(l=>{const q=POS[l.name];const lx=q?X(q[0]):l.px+10,ly=q?Y(q[1]):l.py-8,an=q?q[2]:'start';
+    if(Math.hypot(lx-l.px,ly-l.py)>16){const ex=an==='end'?lx+3:an==='start'?lx-3:lx,ey=an==='middle'?ly+3:ly-4;el('line',{x1:l.px,y1:l.py,x2:ex,y2:ey,stroke:l.c,'stroke-width':.8,opacity:.6},s)}
+    el('text',{x:lx,y:ly,'text-anchor':an,class:l.bold?'lab':'',style:`fill:${l.c};font-size:11.5px`},s).textContent=l.name});
+})();
+const ADDON=[{"k": "big", "name": "propose 2,048, ridge top 512", "strong": [113, 172, 166], "fin": 0.027, "ci": [0.004, 0.051], "works": true, "desc": "The model writes 2,048 teams; the 512 the ridge win-rate predictor rates highest are battled.", "curve": [[200, 413, 671], [208, 414, 655], [187, 451, 704]]}, {"k": "dpp", "name": "propose 2,048, DPP-diverse 512", "strong": [131, 126, 111], "fin": 0.027, "ci": [0.005, 0.05], "works": true, "desc": "The model writes 2,048 teams; 512 are battled, picked for predicted score and for having different Pokémon (DPP).", "curve": [[189, 446, 689], [184, 397, 609], [171, 419, 649]]}, {"k": "mmr", "name": "maximal marginal relevance (λ 0.30)", "strong": [20, 65, -10], "fin": 0.027, "ci": [0.002, 0.051], "works": false, "desc": "Elites are picked by score minus a penalty for sharing species with elites already kept (λ 0.30).", "curve": [[183, 373, 578], [170, 354, 548], [156, 333, 528]]}, {"k": "gsp", "name": "species guidance 1", "strong": [23, -16, 9], "fin": 0.02, "ci": [-0.005, 0.044], "works": false, "desc": "Guidance weight 1 instead of 2 on the six species slots.", "curve": [[162, 373, 581], [141, 300, 467], [160, 340, 547]]}, {"k": "niche", "name": "best per line-up, Boltzmann T 0.10", "strong": [-50, 26, -43], "fin": 0.016, "ci": [-0.008, 0.04], "works": false, "desc": "Elites: the best team of each six-Pokémon line-up, drawn with Boltzmann weights (temperature 0.10).", "curve": [[148, 320, 508], [167, 339, 509], [127, 306, 495]]}, {"k": "cads", "name": "condition noise s 0.1", "strong": [-28, -36, -19], "fin": 0.004, "ci": [-0.021, 0.028], "works": false, "desc": "Noise is added to the asked win rate while writing, shrinking as the team fills in (s 0.1).", "curve": [[178, 356, 530], [143, 305, 447], [147, 328, 519]]}, {"k": "boltz", "name": "Boltzmann elites T 0.10", "strong": [-30, 34, -97], "fin": 0.014, "ci": [-0.01, 0.037], "works": false, "desc": "Elites: every battled team, drawn with Boltzmann weights (temperature 0.10) instead of a hard cut.", "curve": [[177, 349, 528], [165, 340, 517], [115, 284, 441]]}, {"k": "spq50", "name": "species quota 50% of elites", "strong": [-122, -24, -6], "fin": 0.017, "ci": [-0.009, 0.041], "works": false, "desc": "Elites are taken best first, but no species may appear in more than 50% of the kept elites.", "curve": [[135, 291, 436], [136, 279, 459], [163, 346, 532]]}, {"k": "pinfirst", "name": "first species uniform", "strong": [-117, -72, -3], "fin": 0.01, "ci": [-0.013, 0.033], "works": false, "desc": "The first species slot is drawn uniformly over all legal species.", "curve": [[124, 266, 441], [118, 271, 411], [111, 318, 535]]}, {"k": "spq25", "name": "species quota 25% of elites", "strong": [-88, -18, -153], "fin": 0.029, "ci": [0.004, 0.054], "works": false, "desc": "Elites are taken best first, but no species may appear in more than 25% of the kept elites.", "curve": [[135, 327, 470], [141, 287, 465], [126, 262, 385]]}, {"k": "repel", "name": "species repulsion α 256", "strong": [-130, -45, -98], "fin": -0.001, "ci": [-0.024, 0.023], "works": false, "desc": "While writing, the six species slots are pushed away from species already chosen (strength 256, fading slot by slot).", "curve": [[136, 269, 428], [143, 274, 438], [144, 295, 440]]}, {"k": "temp1", "name": "temperature 1 everywhere (batch 2)", "strong": [-207, -187, -177], "fin": 0.003, "ci": [-0.021, 0.028], "works": false, "desc": "Every field is sampled at temperature 1. The plain loop samples species at 1 and every other field at 0.5.", "curve": [[110, 216, 352], [112, 211, 297], [107, 230, 361]]}, {"k": "notaboo", "name": "no taboo list (batch 2)", "strong": [-331, -324, -344], "fin": 0.036, "ci": [0.015, 0.057], "works": false, "desc": "The taboo list is switched off. Normally it rejects any written team whose six-Pokémon line-up was battled in an earlier generation, and allows at most 2 teams per line-up within a generation.", "curve": [[110, 180, 227], [107, 144, 159], [108, 163, 194]]}, {"k": "peel", "name": "peel the 3 commonest species", "strong": [-346, -312, -412], "fin": -0.01, "ci": [-0.035, 0.016], "works": false, "desc": "At generations 1 and 3, the 3 most common species among the 16 best teams are banned.", "curve": [[63, 178, 212], [41, 154, 171], [21, 97, 126]]}],ADDBASE=[[166, 345, 558], [158, 324, 483], [164, 323, 538]];
+const MSPR={"Garchomp": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII=", "Basculegion": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAIj76UH43jFnGNVIQEBB5GjLm5uakpKQiYD1BUlJiYmIgMTn+p8hjPikVQCKYDWH3AAAAAXRSTlMAQObYZgAAA0hJREFUeNrtloeimzAMRZHvFbg05f8/t7KQYh5dDl2Lk73OwY7emG5ubm5ubm5u/j34k/3r/IWC6o8MrJ/6RVS/P2P+eWZUzoGWEE4d+Z7AeRUU5xiQB17OrMtsWGW1uzwvAe4/BSIzvgDDKsu6eED1uAS+bSKuXw0YquoBFVHPZGHSSKJ7r/jNZQlagLE79AD2V8z/sJ0RuRhQcbQH/IbN72gE7DLJxQDgU+nq6BDQ/bmHWuAhjwc9MgxnZ9kHRsXJJVDhAVExNR76cPelQCtkQBvYl4T9K4D4wT/s8uIQMfxewK6Xzl6Aovl1ovkHeA76+8a6WsALfREdGKoALMDBgEJD/i4Bnjo9+QMlm3vUH/K0p6uUEtMUdP00ipr/s/ayQ/8m8Dag0zAKdP3JLj0g+vSrB1RHA6lPO6BaHBGxSzn8QKDBqHDIf9DHxJuQJQqlBSiNltlh3HBg9/Wsh0j6O/RXEg3/0O53fR4lKRnokN0Pciigart/1AMtoM0W2xMoGT9cKSa/HTDVtPvzd0ypsABRTqjXBQro08uRgPtVxQw+NrVkQORTfwRSy2/6fXq0ySUT1W4pOATEA6ro/kHi8GP64r+dqv7I1RnR3B6yXRaOB8JfUJtlTwglCmL0HSJYq+mNdSyRC2ApW5OAhBjEOQARgM2/BBz1W8D8swU8RFLgGfQtqorGwU9y1A+yVJk39UCDdpMB1xva/S9uEARVKIuKCuouLIdADUj3j+sjAKkmEfiYsDibB9DtgN9sjM0fZat5vBsFbwIQcWkGQv+a3wMBTQipWxbxvmHazJDLy34r5JZ7QVi2WEAV91nC2Ux/xR9LIKNAl2+lVgi4RMLtyTq9xMymnxdu2dncXwFU185zU67rtQVMnMgPH2a70MwtkH4LtMJsrJG44HdM/qGx7YHw74PvgUxcDFjBGg7T73pzcU68cM3vCa4ZyKlx1blwKcC1bdLcClsEyJyWDGThSsDdbZB8iEIf/lPhGqy0AGtxTL8u58D3F1iefnv8uQAb1/zKJgfCb6zpz8Jq7ssowBYQS4SHbwNr2C/7wRr/dWpKjwFO3wUJndgQQ/vo/jjA3SlCcvoJpJUyrL9eurm5ubm5ufmlfATfaCf9iOvmnQAAAABJRU5ErkJggg==", "Kingambit": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKSlqGBhBQVKUMUHFMTH/LihiYnPMTU2EayK1lRWspLTmvUHe3t7l5eV6WxX9AAAAAXRSTlMAQObYZgAABCFJREFUeNrt2ImW4yoMBFCXkB0iwPn/v32UAoln7Rgf3l6z4zl1kWGW7uWXicvcxEf8xwPJ5vb/CUCyqUCZD1CYCKT5AIV/PJBsJmDTgTJNIFDmAxMFAvPfUerCPxYoMwUC80dIcwV9lNnA5BHex1xmj2BTT6GYzT0Fm36RaFTEJp4C+8vvBZHxETqQAvDL/ptcGKH3b9sW8Iv+U8BxXPERzPuZ9WeCxHPAcV7hCATYzyh+0n8aiEehEEgvIOLH/sj+M8Bb4AgErPWvtQ34of888K1gJfR+RoHv+s8C3wkpNUBjTxNEWO/94wJyHYGA9v4uiG9/EKAgTSCgXq/yFljvi0MAyxohSgEs1dwB6fW9f0ggUaPIDmiVbvJca4/ZPwhQ8A6tdS6o5dpP0J+olzPAcjqAH4MXMRRSMhNt6d2MKpYRgggTu2CmzKEa67pCtQtDSGck2+1YnVK430Pt5ztT6cIlBs8oRFLvD+K5JjAG+EaVpwArxfs7cFkwSzUgQiG+gKCQnnEhhHsIKZViXi+vfgJvAeP1TCg1VoF4HAB6WWBN6IJF/0Nm5XXEUI24BGCteQsdqL+GnzA0XhVwEDgCgfvtdkeAdOEKQKIJPOcDoBAGdUUYYFQQoAscgUCNAxCxKmB/pjJDQFTgXndNgUB6AiJIsEKgJe+76pnqyEisgIDAPfkppDvAATL8/2SoEYareZcT7TvDAbJUgUl+qNAa1H4Cxu9cYP3H/WzPCiaq5ZzhAhA9FahLx35k382n/bVeAf7MTK1tsEZ7fyWFAPsTH1P4/B7pvvffi2IEDKzIWRnWA2JmiQbEg/3z/pybYIZSKmAJ3LL0+wgoLPkLsoS2iip/KABQP2akJ5ASBEAUMMKXZFYKhXS4pKeuqV8iJENJDdh3ja8zMMIlkWt5Ilk/rs8KsJmbTCYSZN9fZ+DbB7AFeYUzZDlxi/gTJFZZQgjbJrK3AOzfmNCIvLP+834sTAg8A96UzSMtG1LrJyHwdkDO3qK6axR/2wnH/8Gvdb31Mzj3h6DfIvbX8BUla/tdI8P1ni5wQ+fSARAAJ1jrxpX5CSCCkX4GicfZBlhDB8IWe32kMDzAGtEPgKEQ1tWBeACwjABx44GuQG1kuScQWMNaaSd45CuWMYD13wc1DvQj5zjLWELvD6H9CEBq8BqK/WMDMDjum5F3msCw/6rADlE5RLE+CX8IDCII7/4YYyeUwWE6/hIYJzpAw3MU4CBdDL8nbQDzPQBpAYYFVbD/pyNA2f3cPgiMCj8FlP1VAEa7OxAfPwcU3r9cC+LjQUBbvxwABXCxX5X9UfQNxNYfVSOWq/UP9j+wtBHY34EHn+HqJ3+11vs1VQL6BlABCnoFANTrGXCE3u9v/rLAsKkFWADhSl+rPEBgWhSg+3/+0/kDYc1F/EUwfgYAAAAASUVORK5CYII=", "Floette-Eternal": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAAAQEBBmYWFAPT2ALS3ZTEz/c3MkOmZAaLhZWVm/v7/4+PhRUVHZB0a6AAAAAXRSTlMAQObYZgAAAgFJREFUeNrt2bFywyAQRVGuDAhY///3ht0dD5moi5YiE91Grt4JsmIXTk9PT/8nYOd64jgONgIcwGurkHgpsLH9Asd+YT/wpwUH9gocx35Ahc1AJlmESeQFqFBsmVccUHP2fQcy0f/X1JoXYEfw/VhhAbnwCgZKqdn3rULQPp4LLCAX7gK2yqGVAlDmpu57hdv7LzgAXVOjMAEtBliPoRKeCQtIt8M3FgELyGQr7LvSWwLFUyNeWPtuBAJ+mwCKlYG4m+QBdvHsRaCwHqZVLiEG+DxlAYsoIYSW8E/SixFCnK1RFFDhGoQAvevl5zSGchug9yEKwOUvh7uCDsuQCTD6etfXKArAXcAu0j/vurUE1Pw1cMoQB0y4dmc+5bPhAPIBLv1yvs9yXYC4EJGvy+wC5Bw0L14uAqI1HKwRQhdvQJG3WGD7M0KAYZspIW99OZl3IOC3iJQMwIAxgaFA7z1C+OzDeBvAe4yRS1U6gsD3h3TE0v0BIOJEROiUKtJt3lFxIg5I0D/zwUJGfAeGzocLuWIzXeQnMCKAXCu6o/sOLKH3mAMk5pSMfgVSigJkEsOAFcTsV3SL1poCwfkBtLPNSH8PyHUBGw/gAGkb4AL7AYjf/wactMa+A5xn2wf4QzTPoMIuQIWNgAstHGDtnecCNgUG7Ax4fg96enp6enra0BeKGhcCpRkuZQAAAABJRU5ErkJggg==", "Charizard": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC", "Whimsicott": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAYShhSOSlqWkFzUkGUakGsSmKslFrFtIvm3s3///9SpEpBe0GsahDmgwBMwSnpAAAAAXRSTlMAQObYZgAAAiVJREFUeNrtmMFu3SAQRXuZa56hJvn/v+0wRnpMFFcK0E3FSVBYnWOPbRb5tXFsNpvNZrM5yfuv8Q/8OSdWfTaWJ8zLpneJpYGUexYVWLkD6l9eIE1FnuZfXTiZH2kFcnbwf6VeARf7Haxrub97WZMujAb45K+/b0jO+90HZssxlqBzuqmcQPZwIvB00ZMFF6C3G+dcwQWYvwPzgWf/6QKzBTZj6t59ZoYwHWhGuqfciiilfElwzK/QBRRaQAkTgW7yAfRPgrf/uq6+gNGDKJSC0wWAaP6JgPMrADpTVEoIwQpjAX4JSIxw/mADGg24G1CT+hWgjUfE/IrGMRRgF7iUGlAtFN18HBKulYGgmDYa8vvzuwAn/DqkoNoWwOcnLFDUH2ZvANcFu9aqbYHjwwJaKAWrAiWoNt5AN+HBPxGA+Q9RaiRU/dufhgNF3eovIUapvF4v1EACkCqmN//Ed2b+iNeNVL+HHA6gBRAjRaguOVMSJTk4eFS3QkgJ7UhNVpcYJwt3IinBpn0w90g80Ml14acBJevPjRyxu6szIwpSB6D+HxfyuwB7/dNtz8DcEzDQCg1YQgsE4OefRwIKkBxAO04r6P32GYwAJoeY2wXaFAcDTI8BSY3lfl8wZgInngKY9isE+BA4lgT8mOQ4jmZXsMLvCzh6BKlB9S8p4HCAnNcbTUT4gIqhLPt3iOp0LgJDLLAaDcDtlwO4/X/GZrPZbDabzR/ZkkXJiXR+yAAAAABJRU5ErkJggg==", "Milotic": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAD/5rTevYsAAAAxMTG0OVLuansIe5w5rNXmUmJ7UlL//+ZiKSmDOTnH2cIeAAAAAXRSTlMAQObYZgAAA65JREFUeNrt1PtWuzoUxHFgZidA6/u/7skk4G4WNQ2K5/br/OHd78cEV4f3/rd77z1b0n41zzSzX+uTek9+IaTTmf2ov3/4VCjHE/FTQCuVdfWvbMcTcUG/bB1H/5ofT8L1gI8L/xuA+v8IoP41gPrT7wOX9V3wvoDWD+FywKqf4YxvAt6vAVv8Rxw4KXjfAf/z6/78IJDoBbzvgP/5zwFSH/cL9/F2y/1prV/LD4B/eA64pQmQUD1dn0fZ2XfBblrqm318lLz3HdCQP3CgS7Aw5gOYhZCIQXn1D8CiLOdzwMKUHTULeeSCY17AIuBUX8I0sQBW6lwWDL4DoPjiT4N4KYzjugOqL/iynyZgyVCuC+oAxpD75DRNgN3bwFIAdj/rdcxb9Z74sBeA3p57FOs0bgM43c0aVzR/AnM34C8TuCXg40sgqgw723cAadY4QYxmG4CYH/U5gAzB2AZihNkyR8RF6+v7FZGcWkAaoll+u/U5dI0F0AQ0BOzK/iTI18a60vtNYO9Hy3noIcho11ddzdZfXwNA1JTXJKCVT9V8dOWB/QRk844ilPd+M5/78Y60uG6AIT4jSpwAzDyPdl4Co6qIAooAhfgMQFGSMLfy6k8+1sBzQX1dB4qhuufb/RxFJB0A02ItQP08aKo3+/6fuT1YswKEAsQ01v0d6H8BfQQmFsDvqBYQebovwYGJGxB2gGne5wlA7ZveeB9YHShC9RhAzjjdFwBkIH0ZAvwI9WMA51PAbQOAIfUFpL0CyNN9dVMvGPbv+B2p/yjoP/8sgEGApSA+n72AYBaOgIRz/QxYyoXPA+xH0NdiJSCeBzAUwG/IjxB2wIUEEN8DwgHIKmuAcSbR03dA/SPgAmuBnCOuAwKoRfpTeCE4sKWw9Q3e3wENZtT8KZwDRhwOUAswjfsl6QixLXimpCw0gSKQsTpCRDcwPgCr31wtCJCwATwDqP8ccAH5jiK5A4xsCXjSN6j/HAgGASKAmADrBbwf9r4DLqSBm0C9MZ2hSzAvrKVfA/YgxF2g6cbagPe3hL7i/R3APbgAbsIJAMAjcDsAwy7Y5yFoeRTQeUemvuJV3wHLAgBS/U7A+xDg/RqQUIBcJ20HvN8SLBjSG/j1PAHCHZDg99MPAKY3e/fYz8I9/Tz8CXi/LTTmgAQBaUAW6P3m1rXVd0CCgEKgCMDweug8QD3kDV1DxwF+NvxqXwOmY/2ivhPTIa5B/YsIePbqvBt4jHv+YqRs+NP33nvv/QWkkTUpPKl6oQAAAABJRU5ErkJggg==", "Sinistcha": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBAjIyY5OT0mVzM7gE1WsF6Hf2+1plu61Fvm3X7//2vl39C0rJR9VilSNhUexholAAAAAXRSTlMAQObYZgAAAlVJREFUeNrtlIey3CAQBBmSuKDl///WswJdKlc6FkdaybG75l1wi8VisVj8WcjBTH8hgmn+6xWkFEwLkEImBsgKrMCfHZAWEJk2QA44YfICTFuAqQs4AGyUwsSUAK4CQVsgUxYAOoH6Y8WMV7jgoByIrZ168FIK3670W45QM+jXQ/W9YDgCQFE7b+DZChC7AnURaPbMC1fBUYCVXyTebkDOPBlItgUaXbxd8i3nfOOtTWAEDgVmgXyhWzPHBLmKWUBFGqA8M9MClhPUUxlQNPMaqEaBWqOaNUA0oPazUOuQv/ZAow3IH4EYB/wiNHgGLu199JNAqhUDfqle/SzcLt3/DHgG6P++UNXfAh1BfgQKfOJZZSwQI/3vMFCan+jKgUCzt0TSs/uRgENf79/7SdNHeltHG0TlpFJP6B8JRIjQ1AIxdbpd2cPgAAjRhtbqg/uDoUDiAWloQOT+RghhJOBAPWqlnLz7932n/67XQMAhIxC0N1CsdT/RyLbdhxYQDwQFSRMItAay9R8QjyE/A6GDjBY45Ft4BpAMAgQBoHzjGbRjHiBNrBMCQz2wxwTjQH91ewCpwA2AV//WA+3RhqDYBegLL4E+BIMB/xroP31evcPT029V6G8gPf35VeH30UDwPM6XoOl5aWBXNGBQONgPAs+gvzbxE/jOKeWUvf9O73BmhW0/oXfzZOsDbAvnlk1/D2cBmFDr5xArfx9B33l1AGcGUOt7oFY4U1DqG4V+68IbcObgJQG4CUQ8iG5KIKUU+3NaIT6eUwDeQsrUUGexWCwWPwAlmC+GrqHtSAAAAABJRU5ErkJggg==", "Tyranitar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAAQEBBKWjlzc3NznGKszZzFxcXe5s3///9KnOYge70ASouUKQDVUgC40AdtAAAAAXRSTlMAQObYZgAAA0pJREFUeNrtl9tS20AUBOnRjCJs/P+/m6wuxxdMSrGWp9AvSZmqbp+ziy3efvjhh/8FSd+rT/hO/a+E75tEvza/vmMSrf7F3tkvLW8/Atl27/ev8MdvKQlpif7+hYgkMp3Xz2YnM70vEM0eKYWKbtdTcq44G/TwJ2Ianc9AlyOOGCa7u778z3Dpj0IsCZBzQ8ebyggTHx8fKDf0u0fiT+TjcvngYUcrXUbhcrkoz4A+W7pMze/O+gLJze/e96hg1jvd71GBfQ1I3/CBhDa/BcqGe305XP00bvx08ZfSXANO6Q9TW6Gh/veo3jTo4cug08dF7rDXgKQ1dNCPUljA9RnmuF8KcKeHRInocUuVhFldCclRGmx+SYf9JjfUrTr2rCplDdji0d/g0LOq4hpAp9P5SSAcOGilAm6BE58DNrYP7EfXAWqECqxvwEf2o22A91agAq7Ogf1E1xN4f38slF/iRX8TeB3gPAfO52vAjtYtIemlQOQa4Ny4GQFbXvwJ5iW/5e0EGqcGtwE7fukY8Oy1aoAK1JKgBZS8UBhGItl6qwEqUCPYLFO8UBgYGSdofqX5K1AF2fYyhf85wDQNE+0/oQXO581//kNIA2yWKfSvz0nDBMylNoQ4vZ9XWiNLAQPmDRiJGIfd/uYtiEJtaD1kCJ5hHnhYNvoSkHBq+vI3wDeFoUUOfaWdViqQWY5r9RwLnFf9OcV6S6HDl3IrLOQKWWfwoQJkKdR+VrQdhA4VlK8DUpqfIwUlxGvh0V+PSToUCEsglL8h1n84VmAukEfKfzgwF8gD1uqXPPNQkHb70ZOCrRRrAG70YfcZiKbAd3rrfhxJ2JLq4HYHVqGxy/4YEA3bibSMrBbY9dcJmxMXFVAjsQVubK8G1Ngzi7CfFEiyVeYirsQMQPbsShFPCqz+hu5/mtvX2fOL4OeFCpjHH26Twa5fNRtsAzwPmAps7NHXirLY27g3DR6+ee6BffpBdYzbQmlU4ekl096PjmGYSKMCG8z40Q/X/M6HlxEGfTVzLUYsbK/vDMA0Dpqm8euFgiRbfC7vK7QG/P2PlKcL2f8oAH/boTJMyKqHoq4Mbbplg2PvQq1hDrzB2D9QY1Cb7E+pf/jhh/+G3w3DK9CzeB3qAAAAAElFTkSuQmCC", "Excadrill": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABaSkGkpKRBMSkQEBC9QUHV1dViYmIpIBiDQUH////ug3uDKTGsUlLNc2pbEtPrAAAAAXRSTlMAQObYZgAAA0tJREFUeNrtlod2gzgQAEE7ao7v/v9zb7USwiTIFd9rTHp4bwYtdTo5OTk5+V+I8cv+wJf9gS/73VcDrAFZOHoBjiqfF0TSsf7Y5Z0kH6vbgJwGnCK/I5IOODfN76KrwDbxUQENREINRNc4rmAnZyC4toLDC5RADK5xeKGdPH0+hwfq8On6bUEKnxXq8HFxb0aSvfc5fRCwCe2D4iuIvF0gDNw4J7MlQOXHBVBmcQVRKfDR9WwTirf2YrrEy8XlrIEtvLWA2Pyx7axw0YDPO4E5vRGI3a5/2e5T/TahTwux+iPYX07EFuR9ndDnBUIweyVeFrzPRwWAdT1d7+s59HkBbv+4LESIA7+kt55migirfnf/5Z1ndAw0/cw/P/+avvzO3nCS+t8MlNsZPz9aQJTZTJs9N4AXAzEELZBmCyjFz7zFtq6N1wMEU+iIQLYBvw0Y8Jo/xOK/Xq8CsvVnvxNQeCkQg0tzvefLNuCVKvxTIOc8PehQA/qp+++vq9/71Z93AwreE3h0+mD+oAug+xPFmrP5NTUIzBCfCmABpPsnit9Xfx4HZsLdgO095ndJOkx4HU7z66/DAu6JQPXHHkhME3U4zwXi2B+duonFHyOpNMDCc+5+bS267b1bBFcCLg4TBIXmL1/U9ab5dgHLGjJ+LYhIfc0PETcOdD/mn4wa2KzB/kR/lUXvYn1JthkNC9RLbNn9aQ0oTW4HwX7gl4K4Zl8DjA4BmohU/V5gNr/RA+ZfCzgtBEbP4uDMP936SyCv/txaYAFxjdgDhFHA/BNs9bIcZf1R19IT814ANwq46Jp8O54WmI1eKJsQ9W8L4IaBOrqt3wKSb/zZYsVvBferQBwHYNoLaCHnPC/YmSq5beJ3ILphgGnfbwFRWsB+102DggXi9BTXbpEtPaA/2Qk86/e5Wvaxtfmdgk3oCainiowpAZ8EVPpOIHuf+0hkA2Ko3+fUbqRWeD6gQF69IMDfQM4ZEVBtGJ1EY5AVsOZCC2QLKASlBRzT00Czs9um+ycIhaiB5/0pSUoURqsDC9h2Yi28MiEQS9xZHUjfTn0peX4FVO5utxeDDgQ0cBxIkiRsoho4urA18tXA8SAI0zeBz/0nJycnJycn/wGLUSSfNFlgcAAAAABJRU5ErkJggg==", "Gholdengo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADxzkfHmzAQEBB4XCy/YDDmujfefjWjfC7/64VZXmkxNTahrb/R2vCbQDykUwNVAAAAAXRSTlMAQObYZgAAA1ZJREFUeNrtmFl2xKoSBJ2ZVSB52v9yH6Skpv3ulw26o8M9fUWogOMeXv7IL79E41Y/diBu9NcGoHsHqNDNA1T9GQNE454AZH2t+x63+a2vgG4KBKyvtwR0heptAT85oPV7MPyQdMMpgg6/JDLXJiLCAetpklqo3wEGAqB4kkyt+yeBzhb2q+HAqhli35HktpVSNj/pRUquCkStFUyVB/aKSWrR9SMp8uGHveKiAUiCKew8KMAh1iI/AFKBvY1iHFhG2EhF3bcW2ADUuj6g9rxhq+2+/G1ZHuAlmtx/69801Xj5MoEDy4nHHtwVwHGKtnv8DnDbtjsD2D3AXYHHm1m9LVB7oN75yW58+P23TRCxdJPx/7ooReuOKQoQz4mITDJiRcBQ6IkY+uL301jkL5TQCVNK01MtQk37LaY/UhQA2f/YkEpJUkv8oDfUzmbtAc+QC/wxAg0l7TVJaUYftYKK/QjwLBwJM69H6uUMeIRHwszqd9TyNaDGkSCZqQk99h3nALgCFMBPaSyUJt8ls4xAIYvIVvi8dvunRzQCJ9kEz4GUA6dW/EEgGkAdAfsN2QcSh1b6vh+NegRqVZ4DmPSiv+lzmzg9OgIS2SPS4+0ms5DJt7c3aTJAHxC55RWqDQAlk+oBSnMfFzOZOmI6B/AItP9NpXCmQNL+HtDr6yuq8WT2kyyMqYB0TvP6/vH+CiO12uGfLVhvmr/9ybx2mh8oLjgwy+uHA3bbL6EzN4IZE4yATv05w5IR1P0XeDACEXOdkDSsMjwD11t/zH/ksvGx96q1BzLI6C+KZv3WX5YIoWSDPcA2AWcD9p/yCJ4DMPywcQtqItCx3/KOgOyIA039WsRMWW6uAbgkANSa+dWFMgaYn8A7YNm1RBaP523bpgfwBFEaR8FqPeyUvm9utIdzgMPPxlGgGsOu70ifzk4AOgZI+cA3GDTftQ/pEQIbCOgYgDoOPLf4qf065Oh2eGWQAejLefyxfaxJni+8swFAnSm7udYkeQZ2FDJwUSbs5loTO6PRA4Fnyk/t5mlNMB6emLJ7gn7JGTFO0DK7kSewNIgGY9g5a3dgRzmv3ed9e7502ydRD1w7bbZx6UtQ49zpIV9mf1on8hb5WKfb5EZmlfyXX375H4lfHhHqGLSiAAAAAElFTkSuQmCC", "Ceruledge": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAABkWqOluN49aNQ0NGcPDw9FRYkdHTa7ldspJSjBWdxEYbLy7fMsQ4XLWdv28vdcw7MfAAAAAXRSTlMAQObYZgAAA6lJREFUeNrt1otq4zoQxnHJ31wiO+l5/7c9801EBVmTpI4M7NKB3eLb/2eJtKT8Y/M7v7OuZwOXcwkKl79bIEDhXADxAzivv6CcJbC/LAvbOAtYCHBOArB0gf/OAnCygK6ctkmgwjlLKH8zIDGjPx1Q2WIEIIAT+hZDIT9CZTqgYrVW21Tj/XX6HyNwATVGOQtCmNtfVKzd+7dtUwJlNtBaq02bbASgU7foigi3tUW/XmW73bQplpnAVVsLQLVezYTAzD4FFbVmWtv1mgCWEwCzFn0uYXqfwqqmtl6vTQPjb4LIVCGAFkC7fv3XWvYxFyi5SS0BKPunAKZfX9GPIyUwWyDQsh+Wx8wFXCX6gDZlv9YqUwmvpvn+rWWfIzJPYNFFNfuzASAAMwrZd/fKQ6vuPqOOBVyBmcNV3QG3SkJqXwPw4RcteA3BwZ0ZP8UqhX4TPvqqWF3cXet9FJoAMQr9LY71OeK5+009u2IhxJDaKHi+xREB+aBUc9+iX9wk8hZAZJX9bQvcQlgOCgXsV4+SxrEbx9kvWrXoxkXdhWOb1IEQlEfi3/1SUqwdiPqxvmQ/BNMBfH/+XWoX/FgeEbAAuPPOIzj7BHnV71f75UMfIqk9z12gBoew77zKM9VocJeAI/ufgLlzlzOHfGUEAIQg37eEh0MLkHyYfQoA2AeUN3CEa6BwAMh+bg9HAckVCFShYL9v0xGAfeNwexjT1nIJtd5/re99gNvUBfx0g1jvewtGW9/wRqCgX+EqxOr7Sxj9rN8f6/0BUEAXYpxrfR/I/e15EUR/GwuoognkfYVACv7+EpjvA267R3/b2B8AhXE/kngXWC8jXwqrvnEGULTFoe69E97pX8bNBLpwE7alL4FiCGPeFti/PPQp3AiIajLuHdgT8KqfwiX7A8i+RlItgFpJ3PaFZX0JpDCAFFzqvacEjGcCEPlTuFzWV31O3jQAy9fvAoFclteqj8DlqbCO/iMwWlq0C/3kELh2Pv2qv37fIaM/WgR2zhb0PoVnAPM7gI6++RD04flXwMr8QeC1MOoD2AulsAdQ6MB7MwDZA/ifPr7jzwDPjFQbnSHsASR+IjjzIiZ/Ahyxqrs7/T5gkuM8eBRo7wE03gZ6X8uewCum5egMwXYqKmLTANmrqOSY6MeA7zY6IDOA3YQGnPrHAAtPhM/6gicJnQLYk4L6BADPCir4TOhf1J8BOBUoCti5gFH4pK8vnlYAxwFlfhpw/CXOBcrv/M7/u7klSbwXei8AAAAASUVORK5CYII=", "Raichu": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAD2rCn/7tXeezEAAACLYhD/vQBaKSlzQTH/3lq9WjGUQUE5OUFiYmrmvYO9GAjnww15AAAAAXRSTlMAQObYZgAAAqxJREFUeNrtl9Fu8yoQBkPY5VtD6r7/255lSdcOp/1VCrnzVLLkmxl92G7V28UwFxcXFxdQ3qpnxnv1TG/0q17e7f9fAF8sCfR+APwFsHyA21NKoDUDzoGmlzSk538H0Cjur/ptk9tv4e1fBZTQiEUTEPNv7p8NFCrhoEAU8ydeEih0p3CiBtgCY0f0U4EjuT8SxUBtgCIATwdkCwe6hTxgL9CvC/zTiUYLAC2ghFpgELX+QGDjbwdsIYfzEdmVboaYf2oCbykE2HvqoRjN70xNwFaNn5+fIIQQNh0U/x5IfQFAsIDS/EoLCDAeaBNY3M+MUEHzWyBpAPYxjxdSLXA6Bzi2AkILpFQDwpXhQLLCKSCcYwkvVH8prIwvSLWQOJ2eBGIfCLHYC6V+odFAKyg+gaLS+Z/3MjrACooHDPQBD2Wh0YB44Dgjqv79fr/vnX/0W/BAP6GEcG9M+r3QBcj8xosfN2P+jMp+dw59cf/0hHI/2D0QaTbA/QBjMuAFOSbAAt2E6QD5BD+hfkKZKbBdpR9wCuTigWHE1NQCCN8FVG+Bj8afAs9C6QPRn3JRNSmPj4/HaMHWEycpoQvk40vwP/yaoMEC3VqBNBB+CORyWMkLg1hg7/3HQ3A8MAq6gAYbsQv8eUJ1nQL46ZfdRCDG8H3gRfkYDDgUlbLvzR/g/qWBWN/WfVctovvxeJz8Gpgo5IwSGyU+yfTQwrRfoWwAyDlG5KcfRA/F9DN+hdASZFhB71SpiQaZfzrxtADZ78hw/WziSwSym6XAHqvnSs5laQGvXy55bg1A908T1Xtap+fQCSkoWKQXrsSXAIIitMTPWgCz5LMOHCPzkgCBGSxC9JpVLDAPicD17l8WUL75UsHCIh5YDwQMxu2NAao/t/dBylL/xcXFxcXFxX/c8x6/sd5iAAAAAABJRU5ErkJggg==", "Incineroar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAXFhUBAQFZCwNEQTrxNSElIyGqFxD/7gYctFT+/v5cYWOHlZpLQUf/cQEaNs1QAAAAAXRSTlMAQObYZgAABERJREFUeNrtmdtym1AQBNmZ3R0HsP7/c5Nz08WUAiLKm9rlQq5auuFg4EHThw8fPrwbw3QH8W6vuePOH+8LJHqgFdj8gbf5M9H8tUBhIuO9ASu4k56UwIh3BcDJ0iwiPJ0Bl8Q3+ieIlkXvXv0eRf/vAZJ9K6X7ze8Rj34710FEbSCo5iQDoU3AHNMp2KREkB7hjMDXfQDW/GcDiIqECAar/yvCdfU7xp1xvqACuvHXry+G9y7q2pjXwEmgBhFU4AsloKonSXNHD/xjgV9wwgts+rIpbjT/aYCWMDOvmMegHry1gOFsIBOgilbVP1t0sJh3YInzgaRk7nRPM5tnNT2Wa8AyEy/cveTUMKsFSrTCvJYfRRBYqr9F7aifZIQY0QtIMyQkqi6MChGKwNICaZREGo7euAyJwdtD2hIAJMaAjFYwT1MPHw6IEmfeXYG6wPr+ZgNYV7IHTFHRsTUiqaLHDHKcQuX7e13XZa0sZUsUfzIq7nmkwAiRKn4o2jyav6ubvnM7AfdDBUZBWGdglfq4Ff9QNv3A3Jq/khKOPDo1A8A8o1cxAlvgdvMfuNIIkdI6Q0AftYB1/xakDX9U9gtBAoDGpHkE/hZQC0RnPyBREjH8JVD8zwtZ/UcLPQAb/seA7wTcE9NuQUKmtUArPAm0Qubwl2mS3Hu9kJm1wNgJLMtSCyp6kk5GhHYKzIJkxnaHShh+93t9BTCTNB6ScaDQ/FKaRfsM3wbclw6gptY6r+1UdgsqVPd9wQuj5MsAE7jOEYF5niOOrJIeAyn4T5Y7/zRxrgGg+Auc9gojMAqLu2eh6x8DmCMgSWBbJmG/UMV9CyxL3rj3f9d5AKpwnmcdeP3gFlAC04Qia/ZHqomhTiuR3C3kCKCNogVG4VrCeBGKHI364VCh628FbdZJIwCgq7lG7AcmoPgfk7po6Du6aMJ6+78BwHleW2A/8TAkpC6t0OXFXwOPk6SK/2V0QQtUd5FLlxrAzqEdDujyVQrF3Y4+Ln/Ycb3gL4FSKOp29O8PtIIuQ87y+7ZAoQQ6fw8YXvQzpOLfFCj8dE+TmYPkS/4/6CEQ1wAf/W7mnogIvuaPegr9EkhksZOCyPtAevdLOOxvqNA29U9SBeg+Ye6ZCRXwgn+LBlVGs+bPiplJwst+kj/sI6AiJZlXzIRX/MOLgrQpZGF8GIkz/qmAxwCqdltI7PrNPW4M/7aA3AYATEcCvvFvCpgm4Bo4ah/+a0Jln2eFkuj+BqajgcFVvy10GzqZOFpApnfK/JPCTxsShWOBQvc/KWTlwQdMR8FfVxR5Q5jOAKkHdgrS6ULjWQHd/38CI6FKnizs7ow+cjZw4L7BGMLpAo4MJYTTgUNT+s8BnQmQ8Qdhd4yUXi6w6vcLY+zVAKOg3cDQt7njsO7C2A9UuU4EGCHtBxDVHa8GEOwnIGBvsE9iegVcOTz4+ar3w4dn/Ab180pwLQf8DgAAAABJRU5ErkJggg=="};
+/* Method diagrams for the add-on cards: how each add-on changes the loop, drawn on made-up example teams.
+   Illustrations only; the measured results sit in each card's numbers row. Uses el() from index.html and MSPR (sprites). */
+const TM={core:['Garchomp','Basculegion','Kingambit','Floette-Eternal','Charizard','Whimsicott'],
+  alt4:['Garchomp','Basculegion','Kingambit','Tyranitar','Charizard','Whimsicott'],
+  alt1:['Garchomp','Kingambit','Milotic','Sinistcha','Charizard','Whimsicott'],
+  alt2:['Milotic','Tyranitar','Excadrill','Sinistcha','Gholdengo','Floette-Eternal'],
+  alt3:['Ceruledge','Raichu','Incineroar','Milotic','Garchomp','Sinistcha']};
+const G='#1d6b4f',BAD='#a3431a',INK='#474d59',MUT='#8a909b';
+function dg(card,h){return el('svg',{viewBox:`0 0 270 ${h}`,class:'mdiag',role:'img'},card)}
+function tx(s,x,y,t,o={}){const e=el('text',{x,y,'text-anchor':o.a||'start',style:`font-size:${o.sz||10}px;fill:${o.f||INK};font-weight:${o.w||400}`},s);e.textContent=t;return e}
+function tm(s,x,y,mons,o={}){const g=el('g',{opacity:o.op==null?1:o.op},s);
+  mons.forEach((m,i)=>el('image',{href:MSPR[m],x:x+i*15,y:y-8,width:16,height:16,style:'image-rendering:pixelated'},g));
+  if(o.strike)el('line',{x1:x-2,x2:x+92,y1:y,y2:y,stroke:BAD,'stroke-width':1.6},g);return g}
+function head(s,t){tx(s,0,11,t,{sz:10.5,f:'#14161b',w:600})}
+function verdict(s,x,y,on,yes,no){tx(s,x,y+4,on?'✓ '+yes:'✗ '+no,{f:on?G:BAD,w:600})}
+const METHOD={
+ big(card){const s=dg(card,150);head(s,'Battle the 512 the ridge rates highest');
+  [['core',.62],['alt4',.60],['alt1',.57],['alt2',.51],['alt3',.47]].forEach(([k,p],i)=>{const y=34+i*23,on=i<3;
+    tm(s,0,y,TM[k],{op:on?1:.35});el('rect',{x:98,y:y-5,width:p*90,height:9,rx:2,fill:on?G:'#c9ccd3'},s);tx(s,100+p*90,y+4,p.toFixed(2),{sz:9.5,f:MUT});verdict(s,205,y,on,'battle','skip')});
+  el('line',{x1:0,x2:270,y1:34+2.5*23,y2:34+2.5*23,stroke:INK,'stroke-dasharray':'3 3'},s);tx(s,0,146,'Dashed line = the cut at the 512th best prediction.',{sz:9.5,f:MUT})},
+ dpp(card){const s=dg(card,150);head(s,'Battle high scorers that differ from picks');
+  [['core',.62,1,''],['core',.61,0,'same six as #1'],['alt4',.60,0,'5 of 6 shared'],['alt1',.57,1,''],['alt2',.51,1,'']].forEach(([k,p,on,why],i)=>{const y=34+i*23;
+    tm(s,0,y,TM[k],{op:on?1:.4,strike:!on});tx(s,100,y+4,p.toFixed(2),{sz:9.5,f:MUT});verdict(s,130,y,on,'battle',why)});
+  tx(s,0,146,'A near copy of a pick loses its place to a different team.',{sz:9.5,f:MUT})},
+ mmr(card){const s=dg(card,150);head(s,'Score = label − 0.30 × shared species ÷ 6');
+  [['core',.70,0,1],['alt4',.68,5,0],['alt2',.60,1,1],['alt1',.58,4,0]].forEach(([k,y0,sh,on],i)=>{const y=36+i*25,sc=y0-.30*sh/6;
+    tm(s,0,y,TM[k],{op:on?1:.4});tx(s,98,y+4,`${y0.toFixed(2)} − ${(0.30*sh/6).toFixed(2)} = ${sc.toFixed(2)}`,{sz:9.5,f:on?INK:MUT});verdict(s,205,y,on,'elite','dropped')});
+  tx(s,0,146,'Shared = species already in a kept elite.',{sz:9.5,f:MUT})},
+ niche(card){const s=dg(card,150);head(s,'Best team per line-up, then draw by weight');
+  [[TM.core,.70,1],[TM.core,.66,0],[TM.core,.61,0],[TM.alt2,.58,1],[TM.alt3,.52,1]].forEach(([m,y0,on],i)=>{const y=32+i*21;tm(s,0,y,m,{op:on?1:.35});tx(s,98,y+4,y0.toFixed(2),{sz:9.5,f:on?INK:MUT})});
+  el('path',{d:'M126 26 h4 v54 h-4',fill:'none',stroke:MUT},s);tx(s,134,56,'one line-up',{sz:9,f:MUT});
+  const w=[.70,.58,.52].map(v=>Math.exp((v-.70)/.1)),t=w.reduce((a,b)=>a+b);[[0,32],[1,95],[2,116]].forEach(([j,y])=>{el('rect',{x:172,y:y-5,width:60*w[j]/t,height:9,rx:2,fill:G},s);tx(s,238,y+4,Math.round(100*w[j]/t)+'%',{sz:9.5,a:'start',f:INK})});
+  tx(s,172,146,'draw chance (T 0.10)',{sz:9.5,f:MUT})},
+ boltz(card){const s=dg(card,150);head(s,'No cut: every team gets a draw chance');
+  const ys=[.70,.62,.55,.50,.45],w=ys.map(v=>Math.exp((v-.70)/.1)),t=w.reduce((a,b)=>a+b);
+  ys.forEach((v,i)=>{const y=32+i*21,k=['core','alt4','alt1','alt2','alt3'][i];tm(s,0,y,TM[k]);tx(s,98,y+4,v.toFixed(2),{sz:9.5,f:MUT});
+    el('rect',{x:128,y:y-5,width:90*w[i]/t,height:9,rx:2,fill:G},s);tx(s,132+90*w[i]/t,y+4,Math.round(100*w[i]/t)+'%',{sz:9.5});tx(s,268,y+4,v>=.531?'plain: keep':'plain: drop',{a:'end',sz:9,f:MUT})});
+  tx(s,0,146,'Plain loop keeps every team ≥ 0.531 instead.',{sz:9.5,f:MUT})},
+ spq25(card){METHOD._quota(card,2,[['core',1],['alt1',1],['alt4',0],['alt2',1]],'25%')},
+ spq50(card){METHOD._quota(card,4,[['core',1],['alt1',1],['alt4',1],['alt3',1],['core',0]],'50%')},
+ _quota(card,cap,rows,pct){const s=dg(card,150);head(s,`No species in more than ${pct} of elites`);let n=0;
+  rows.forEach(([k,on],i)=>{const y=34+i*22,hasG=TM[k].includes('Garchomp');if(on&&hasG)n++;tm(s,0,y,TM[k],{op:on?1:.4,strike:!on});
+    if(hasG){el('image',{href:MSPR.Garchomp,x:104,y:y-8,width:16,height:16},s);tx(s,122,y+4,on?`${n}/${cap}`:`${cap}/${cap} full`,{sz:9.5,f:on?INK:BAD,w:on?400:600})}else tx(s,104,y+4,'no Garchomp',{sz:9.5,f:MUT});verdict(s,190,y,on,'elite','skipped')});
+  tx(s,0,146,`With 8 elites the quota allows ${cap} teams per species.`,{sz:9.5,f:MUT})},
+ peel(card){const s=dg(card,150);head(s,'Ban the 3 commonest species (gens 1, 3)');
+  ['core','alt4','alt1'].forEach((k,i)=>tm(s,0,32+i*20,TM[k]));tx(s,98,56,'→',{sz:16,f:MUT});
+  el('rect',{x:120,y:22,width:120,height:40,rx:6,fill:'#fbece4'},s);['Garchomp','Kingambit','Charizard'].forEach((m,i)=>{el('image',{href:MSPR[m],x:130+i*34,y:28,width:26,height:26},s);el('line',{x1:128+i*34,x2:158+i*34,y1:56,y2:26,stroke:BAD,'stroke-width':2},s)});tx(s,180,76,'banned',{a:'middle',sz:9.5,f:BAD,w:600});
+  tx(s,0,104,'next generation writes without them:',{sz:9.5,f:MUT});tm(s,0,124,TM.alt2)},
+ pinfirst(card){const s=dg(card,150);head(s,'Slot 1: the model’s pick vs uniform');
+  const sp=['Garchomp','Basculegion','Kingambit','Milotic','Raichu','Gholdengo'],m=[.55,.2,.12,.07,.04,.02];
+  [['model',m,96],['uniform',sp.map(()=>1/6),136]].forEach(([lab,p,base])=>{tx(s,0,base-18,lab,{sz:9.5,f:MUT});p.forEach((v,i)=>el('rect',{x:62+i*32,y:base-v*90,width:18,height:v*90,rx:2,fill:lab==='model'?'#9aa1ad':G},s))});
+  sp.forEach((x,i)=>el('image',{href:MSPR[x],x:60+i*32,y:136,width:20,height:20},s));tx(s,0,150,'',{})},
+ repel(card){const s=dg(card,130);head(s,'Chosen species push later slots away');
+  for(let i=0;i<6;i++){el('rect',{x:6+i*43,y:46,width:36,height:36,rx:6,fill:i?'#fff':'#eef1f6',stroke:'#c9ccd3'},s);tx(s,24+i*43,98,'slot '+(i+1),{a:'middle',sz:9,f:MUT})}
+  el('image',{href:MSPR.Garchomp,x:10,y:50,width:28,height:28},s);
+  for(let i=1;i<6;i++){const w=3.2-i*.5;el('path',{d:`M24 44 Q ${(24+24+i*43)/2} ${30-i*3} ${24+i*43} 44`,fill:'none',stroke:BAD,'stroke-width':w,opacity:.8},s)}
+  tx(s,0,122,'Garchomp is less likely again in slots 2–6 (strength 256).',{sz:9.5,f:MUT})},
+ cads(card){const s=dg(card,130);head(s,'Noise on the ask, shrinking as slots fill');
+  const X=t=>20+t*230,Y=v=>70-(v-.5)*250;el('path',{d:`M${X(0)} ${Y(.6)} L${X(1)} ${Y(.5)} L${X(0)} ${Y(.4)} Z`,fill:'#e6f4ec'},s);el('line',{x1:X(0),x2:X(1),y1:Y(.5),y2:Y(.5),stroke:G,'stroke-width':2},s);
+  tx(s,X(0)-4,Y(.6)+4,'0.6',{a:'end',sz:9.5,f:MUT});tx(s,X(0)-4,Y(.4)+4,'0.4',{a:'end',sz:9.5,f:MUT});tx(s,X(1),Y(.5)-6,'ask 0.5',{a:'end',sz:9.5,f:G,w:600});
+  tx(s,X(0),118,'first field',{sz:9.5,f:MUT});tx(s,X(1),118,'last field',{a:'end',sz:9.5,f:MUT})},
+ gsp(card){const s=dg(card,130);head(s,'Guidance pull toward a higher win rate');
+  [['species slots',1,2],['every other field',2,2]].forEach(([lab,v,b],i)=>{const y=46+i*36;tx(s,0,y+4,lab,{sz:10});el('rect',{x:110,y:y-7,width:b*48,height:14,rx:3,fill:'none',stroke:'#c9ccd3','stroke-dasharray':'3 2'},s);el('rect',{x:110,y:y-7,width:v*48,height:14,rx:3,fill:i?'#9aa1ad':G},s);tx(s,114+v*48,y+4,'weight '+v,{sz:9.5,w:600})});
+  tx(s,0,122,'Dashed box = the plain loop’s weight 2.',{sz:9.5,f:MUT})},
+ temp1(card){const s=dg(card,130);head(s,'Item choice: temperature 0.5 (plain) vs 1');
+  const q=[.45,.25,.17,.13],t5=q.map(v=>v*v),z=t5.reduce((a,b)=>a+b),p5=t5.map(v=>v/z);
+  [['T 0.5',p5,'#9aa1ad',20],['T 1',q,G,150]].forEach(([lab,p,c,x0])=>{tx(s,x0,112,lab,{sz:9.5,f:MUT});p.forEach((v,i)=>{el('rect',{x:x0+i*24,y:100-v*100,width:18,height:v*100,rx:2,fill:c},s);tx(s,x0+i*24+9,96-v*100,Math.round(v*100),{a:'middle',sz:9})})});
+  tx(s,0,126,'Species stay at temperature 1 in both.',{sz:9.5,f:MUT})},
+ notaboo(card){const s=dg(card,150);head(s,'Taboo list: plain loop vs switched off');tx(s,170,28,'plain',{a:'middle',sz:9.5,f:MUT,w:600});tx(s,236,28,'off',{a:'middle',sz:9.5,f:MUT,w:600});
+  [['core','1st copy',1],['core','2nd copy',1],['core','3rd copy',0],['alt4','battled before',0],['alt2','new',1]].forEach(([k,lab,on],i)=>{const y=46+i*20;tm(s,0,y,TM[k]);tx(s,98,y+4,lab,{sz:9,f:MUT});tx(s,170,y+4,on?'✓':'✗',{a:'middle',f:on?G:BAD,w:600});tx(s,236,y+4,'✓',{a:'middle',f:G,w:600})});
+  tx(s,0,148,'Without it, repeats of one line-up fill the battles.',{sz:9.5,f:MUT})},
+};
+
+(function(){const box=document.getElementById('addons');const m3=c=>[0,1,2].map(g=>c.reduce((t,s)=>t+s[g],0)/c.length);const bm=m3(ADDBASE);
+  ADDON.forEach(a=>{const c=a.works?'#1d6b4f':/species quota/.test(a.name)?'#d4551f':'#474d59',card=document.createElement('article');card.className='xcard';card.style.setProperty('--c',c);
+    const dm=a.strong.reduce((x,y)=>x+y,0)/3;
+    card.innerHTML=`<h4>${a.name.replace('propose 2,048, ','')}<span class="tag ${a.works?'good':'bad'}">${a.works?'works':'fails'}</span></h4><p>${a.desc}</p>`;
+    METHOD[a.k](card,c);
+    const n=document.createElement('div');n.className='nums';n.innerHTML=`<div>Elite line-ups vs plain, per seed<b>${a.strong.map(x=>(x>0?'+':'−')+Math.abs(x)).join(' ')}</b></div><div>Finalist win-rate change<b>${sg(a.fin)}</b>[${sg(a.ci[0])}, ${sg(a.ci[1])}]</div>`;card.append(n);
+    box.append(card)})})();
+/* ---- picker wiring: verbatim from PICKER.md, mount adapted to DOM nodes ---- */
+const stage=document.getElementById('stage');
+const picker=document.querySelector('.proto-picker');
+const highlight=picker.querySelector('.proto-picker-highlight');
+const items=[...picker.querySelectorAll('.proto-picker-item:not(.proto-picker-replay)')];
+const replay=picker.querySelector('.proto-picker-replay');
+let current=0;
+function moveHighlight(){const el=items[current];highlight.style.width=el.offsetWidth+'px';highlight.style.transform=`translateX(${el.offsetLeft}px)`}
+let mountId=0;
+function mount(i){const id=++mountId;if(teardown){teardown();teardown=null}stage.innerHTML='';hide();requestAnimationFrame(()=>{if(id!==mountId)return;stage.append(variants[i]())})}
+function setActive(i){
+  if(i<0||i>=variants.length)return;current=i;
+  items.forEach((el,j)=>{el.toggleAttribute('data-active',j===i);if(j===i)el.setAttribute('aria-current','true');else el.removeAttribute('aria-current')});
+  moveHighlight();const url=new URL(location);url.searchParams.set('v',i+1);history.replaceState(null,'',url);mount(i);
+}
+items.forEach((el,i)=>el.addEventListener('click',()=>setActive(i)));
+replay?.addEventListener('click',()=>mount(current));
+window.addEventListener('resize',moveHighlight);
+document.addEventListener('keydown',(e)=>{
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable)return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const num=parseInt(e.key,10);
+  if(num>=1&&num<=variants.length)setActive(num-1);
+  else if(e.key==='ArrowRight')setActive((current+1)%variants.length);
+  else if(e.key==='ArrowLeft')setActive((current-1+variants.length)%variants.length);
+  else if(e.key==='r'||e.key==='R')mount(current);
+});
+{const v=parseInt(new URLSearchParams(location.search).get('v'),10);setActive(v>=1&&v<=variants.length?v-1:0)}
+requestAnimationFrame(()=>requestAnimationFrame(()=>picker.setAttribute('data-ready','')));
+/* the embedded shelf reports its height so it never scrolls inside the page */
+addEventListener('message',e=>{const h=e.data&&e.data.figureHeight;if(!h)return;document.querySelectorAll('iframe').forEach(f=>{if(f.contentWindow===e.source)f.style.height=(h+2)+'px'})});
+</script>
+</body>
+</html>
