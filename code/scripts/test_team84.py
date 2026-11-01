@@ -77,5 +77,73 @@ class TinyModelEndToEnd(unittest.TestCase):
         self.assertEqual([e for e in self.errors if e is not None], [])
 
 
+@unittest.skipUnless(VOCAB is not None, "the /tmp/vgc-pilot runtime or the v3 checkpoint is not available")
+class TrainingStoppingAndSaving(unittest.TestCase):
+    """Issues #59 and #60 on tiny models: early stopping, the matchup-row member, the mixture, save and load."""
+
+    @classmethod
+    def setUpClass(cls):
+        import numpy as np
+        import diffusion84 as M
+        cls.M, cls.np = M, np
+        rows = []
+        for team in CORPUS:
+            try: rows.append(T.encode(VOCAB, team))
+            except ValueError: continue
+            if len(rows) == 320: break
+        cls.rows, cls.val = np.stack(rows[:256]), np.stack(rows[256:])
+        cls.val_w = np.full(len(cls.val), np.nan, np.float32)
+        cls.log = []
+        cls.stopped = M.Model84.train_new(VOCAB, CORPUS, cls.rows, passes=6, seed=0, val=(cls.val, cls.val_w),
+                                          patience=1, log=cls.log, d=64, nlayer=2, nhead=4)
+
+    def test_validation_loss_is_the_same_on_every_call(self):
+        f = lambda: self.M.val_loss(self.stopped.net, self.stopped.tables, self.val, self.val_w, self.M.sched84().to(self.M.DEV))
+        self.assertEqual(f(), f())
+
+    def test_early_stopping_keeps_the_best_pass(self):
+        info = self.stopped.info
+        curve = [e["val_loss"] for e in self.log]
+        self.assertEqual(info["best_pass"], 1 + int(self.np.argmin(curve)))
+        self.assertTrue(info["stopped_pass"] == 6 or info["stopped_pass"] - info["best_pass"] == 1)
+        restored = self.M.val_loss(self.stopped.net, self.stopped.tables, self.val, self.val_w, self.M.sched84().to(self.M.DEV))
+        self.assertAlmostEqual(restored, info["best_val_loss"], places=5)
+
+    def test_a_rising_validation_curve_stops_after_patience_and_restores_the_best_pass(self):
+        from unittest import mock
+        curve = iter([3.0, 2.0, 2.5, 2.6, 1.0, 0.5])                   # best at pass 2; passes 3 and 4 fail to beat it
+        best_weights = {}
+        def on_best(model, pass_number):
+            best_weights[pass_number] = {k: v.clone() for k, v in model.net.state_dict().items()}
+        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+            m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, passes=6, seed=0, val=(self.val, self.val_w),
+                                         patience=2, on_best=on_best, d=64, nlayer=2, nhead=4)
+        self.assertEqual((m.info["best_pass"], m.info["stopped_pass"]), (2, 4))
+        for k, v in m.net.state_dict().items():
+            self.assertTrue(bool((v == best_weights[2][k]).all()), k)
+
+    def test_a_saved_model_loads_and_samples_the_same_teams(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            self.stopped.save(f"{d}/m.pt")
+            back = self.M.Model84.load(f"{d}/m.pt", corpus=CORPUS)
+        a = self.stopped.sample(8, ask=0.5, guidance=2.0, seed=3).cpu().numpy()
+        b = back.sample(8, ask=0.5, guidance=2.0, seed=3).cpu().numpy()
+        self.assertTrue((a == b).all())
+        self.assertEqual(back.info["best_pass"], self.stopped.info["best_pass"])
+
+    def test_a_mixture_with_a_matchup_row_member_samples_legal_teams(self):
+        np = self.np
+        rng = np.random.default_rng(0)
+        wm = rng.random((len(self.rows), 51)).astype(np.float32)
+        wm[rng.random(wm.shape) < 0.5] = np.nan
+        records = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, wm, passes=1, seed=1, mrow=50, d=64, nlayer=2, nhead=4)
+        both = self.M.Model84.mixture([self.stopped, records])
+        self.assertEqual(len(both.nets), 2)
+        for r in both.sample(8, ask=0.5, guidance=2.0, seed=0).cpu().numpy():
+            for slot in T.decode(VOCAB, r):
+                self.assertLessEqual(sum(slot["evs"].values()), 66)
+
+
 if __name__ == "__main__":
     unittest.main()
