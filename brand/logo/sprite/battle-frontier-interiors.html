@@ -1,0 +1,61 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Battle Frontier interiors</title>
+<style>
+  :root { --bg: #F3F1EC; --ink: #111; --muted: #6F6B63; --line: #DAD7CF; --tile: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171614; --ink: #F3F1EC; --muted: #A8A49B; --line: #33312D; --tile: #000; } }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 16px/1.45 -apple-system, "Helvetica Neue", sans-serif; padding: 32px 16px 56px; }
+  main { max-width: 1120px; margin: 0 auto; }
+  h1 { font-size: 34px; letter-spacing: -0.02em; line-height: 1.1; }
+  h2 { font-size: 22px; margin: 44px 0 4px; }
+  .lead, .gen { color: var(--muted); }
+  .lead { margin-top: 8px; max-width: 62ch; }
+  section.place { border-top: 1px solid var(--line); padding: 18px 0; display: grid; grid-template-columns: 170px 1fr; gap: 18px; }
+  h3 { font-size: 18px; }
+  .place p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .shots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  figure { min-width: 0; }
+  figure img { display: block; width: 100%; height: 150px; object-fit: contain; background: var(--tile); image-rendering: pixelated; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  footer { color: var(--muted); font-size: 13px; margin-top: 36px; border-top: 1px solid var(--line); padding-top: 14px; }
+  a { color: inherit; }
+  @media (max-width: 760px) { section.place { grid-template-columns: 1fr; } .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+<main>
+  <h1>Inside the Battle Frontier</h1>
+  <p class="lead">Each facility in Emerald and in Platinum, HeartGold and SoulSilver, shown from the outside and then the rooms inside. All images are in-game screenshots hosted by Bulbapedia.</p>
+  <div id="gens"></div>
+  <footer>Images load from <a href="https://bulbapedia.bulbagarden.net/wiki/Battle_Frontier_(Generation_III)">Bulbapedia</a>, so this page needs a connection. Pokémon © Nintendo / Creatures / GAME FREAK. Descriptions under a name come from the facility's Bulbapedia page. Room labels come from the image file names and captions.</footer>
+</main>
+<script>
+const B = 'https://archives.bulbagarden.net/media/upload/';
+const gens = [
+  { title: 'Emerald: the Hoenn Battle Frontier', places: [
+    { name: 'Battle Factory', note: 'More dedicated to research than the other facilities; the scientists study how Trainers battle with rental Pokémon.', shots: [['Outside', '5/5f/Battle_Factory_E.png'], ['Inside', '8/82/Battle_Factory_interior_E.png'], ['Room with rental Pokémon', '8/8a/Battle_Factory_preparation_room_E.png'], ['Battle room', '4/48/Battle_Factory_arena_E.png']] },
+    { name: 'Battle Tower', shots: [['Outside', '2/20/Battle_Tower_E.png'], ['Inside', '2/29/Battle_Tower_interior_E.png'], ['Hallway', '5/59/Battle_Tower_hallway_E.png'], ['Battle room', 'f/f6/Battle_Tower_arena_E.png']] },
+    { name: 'Battle Dome', shots: [['Outside', '6/68/Battle_Dome_E.png'], ['Inside', '9/9c/Battle_Dome_interior_E.png'], ['Preparation room', '8/8b/Battle_Dome_preparation_room_E.png'], ['Battle room', '0/0d/Battle_Dome_arena_E.png']] },
+    { name: 'Battle Palace', shots: [['Outside', 'd/d0/Battle_Palace_E.png'], ['Inside', 'a/a2/Battle_Palace_interior_E.png'], ['Hallway', '1/10/Battle_Palace_hallway_E.png'], ['Battle room', '2/2d/Battle_Palace_arena_E.png']] },
+    { name: 'Battle Arena', shots: [['Outside', 'f/f6/Battle_Arena_E.png'], ['Inside', '5/52/Battle_Arena_interior_E.png'], ['Hallway', 'd/d3/Battle_Arena_hallway_E.png'], ['Battle room', '3/3d/Battle_Arena_battlefield_E.png']] },
+    { name: 'Battle Pike', note: 'The structure is a long pike.', shots: [['Outside', '8/89/Battle_Pike_E.png'], ['Inside', '8/8a/Battle_Pike_interior_E.png'], ['Rooms', 'd/d3/Battle_Pike_rooms_E.png'], ['Battle room', 'f/fd/Battle_Pike_battlefield_E.png']] },
+    { name: 'Battle Pyramid', shots: [['Outside', 'e/e1/Battle_Pyramid_E.png'], ['Inside', '8/85/Battle_Pyramid_interior_E.png'], ['Maze', 'e/eb/Battle_Pyramid_maze_E.png'], ['Summit', 'e/e5/Battle_Pyramid_summit_E.png']] },
+  ] },
+  { title: 'Platinum, HeartGold and SoulSilver: the Generation IV Battle Frontier', places: [
+    { name: 'Battle Factory', note: 'Glass panels hold Poké Balls with rental Pokémon, a long glass panel runs along the floor, and the electronic battle ground lights up before a battle.', shots: [['Outside', 'c/cd/Battle_Factory_exterior_PtHGSS.png'], ['Inside', 'c/c2/Battle_Factory_interior_PtHGSS.png']] },
+    { name: 'Battle Hall', note: 'The stadium is a huge catwalk with spotlights and fans taking photos, and a red carpet runs from the entrance to the stadium.', shots: [['Outside', '3/3c/Battle_Hall_Exterior.png'], ['Inside', '7/75/Battle_Hall_Interior.png']] },
+    { name: 'Battle Castle', shots: [['Outside', '5/5a/Battle_Castle_Exterior.png'], ['Inside', 'e/ea/Battle_Castle_Interior.png']] },
+    { name: 'Battle Tower', note: 'Also part of this Frontier. I found no interior image for it on the pages I read.', shots: [] },
+    { name: 'Battle Arcade', note: 'Dark inside, with circus-tent patterns on the walls and floors, and a large screen called the Game Board in the stadium room.', shots: [['Main image on its page', '1/1d/Battle_Roulette.png']] },
+  ] },
+];
+const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+document.getElementById('gens').append(...gens.flatMap(g => [
+  el('h2', { textContent: g.title }),
+  ...g.places.map(p => el('section', { className: 'place' },
+    el('div', {}, el('h3', { textContent: p.name }), ...(p.note ? [el('p', { textContent: p.note })] : [])),
+    el('div', { className: 'shots' }, ...p.shots.map(([label, file]) => el('figure', {},
+      el('img', { src: B + file, alt: `${p.name}: ${label}`, loading: 'eager', referrerPolicy: 'no-referrer' }),
+      el('figcaption', { textContent: label })))))),
+]));
+</script>
