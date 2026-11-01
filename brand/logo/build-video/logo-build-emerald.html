@@ -1,0 +1,324 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Logo build</title>
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1350px; overflow: hidden; background: #F3F1EC; }
+  body { position: relative; font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif; color: #111; }
+  svg { position: absolute; inset: 0; }
+  #head { position: absolute; left: 60px; right: 60px; top: 72px; }
+  #head h1 { font-size: 76px; font-weight: 650; letter-spacing: -0.025em; line-height: 1.05; }
+  #head p { font-size: 42px; font-weight: 600; letter-spacing: -0.01em; margin-top: 14px; }
+  .cap { position: absolute; left: 60px; right: 60px; top: 1110px; }
+  .cap .plain { font-size: 50px; font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; }
+  .capcode { position: absolute; left: 60px; right: 60px; top: 1188px; font: 500 37px/1.2 ui-monospace, "SF Mono", Menlo, monospace; color: #4A473F; white-space: nowrap; }
+  #credit { position: absolute; left: 60px; right: 60px; top: 1282px; font-size: 24px; color: #8F8B82; white-space: nowrap; }
+  text { font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif; font-weight: 600; font-size: 44px; fill: #111; }
+  text.greek { font-family: "Times New Roman", Times, serif; font-style: italic; font-weight: 400; }
+</style>
+<svg id="stage" width="1080" height="1350" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="stageFade" gradientUnits="userSpaceOnUse" x1="0" y1="230" x2="0" y2="1100">
+      <stop offset="0" stop-color="#000"/><stop offset="0.1" stop-color="#fff"/><stop offset="0.92" stop-color="#fff"/><stop offset="1" stop-color="#000"/>
+    </linearGradient>
+    <mask id="stageMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1350"><rect width="1080" height="1350" fill="url(#stageFade)"/></mask>
+  </defs>
+  <g mask="url(#stageMask)">
+  <g id="facets"></g>
+  <g id="lattice" stroke="#A8A49B" stroke-width="1.5"></g>
+  <polygon id="ghostL" fill="none" stroke="#CFCBC1" stroke-width="4" stroke-dasharray="10 8"/>
+  <polygon id="ghostR" fill="none" stroke="#CFCBC1" stroke-width="4" stroke-dasharray="10 8"/>
+  <circle id="anchorL" r="9" fill="#F3F1EC" stroke="#111" stroke-width="2.5"/>
+  <circle id="anchorR" r="9" fill="#F3F1EC" stroke="#111" stroke-width="2.5"/>
+  <line id="unitLine" stroke="#111" stroke-width="6"/>
+  <line id="rowLine" stroke="#111" stroke-width="6"/>
+  <text id="unitLabel" text-anchor="middle">U</text>
+  <text id="rowLabel">S</text>
+  <clipPath id="factoryReveal"><rect id="factoryRevealRect" x="210" width="660"/></clipPath>
+  <image id="spFactory" x="210" y="442" width="660" height="438" href="data:image/png;base64,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" clip-path="url(#factoryReveal)" style="image-rendering:pixelated"/>
+  <image id="spNoland" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAARVBMVEUBAAAAAABjXoCoqM/epXssPU1QWGB7Slq1hFpPSUOyLj6FIzD/1r1KQVJiYlqUg4Pi4v+9e2PP0dtfYXL1bWMwOEj///87bVIzAAAAAXRSTlMAQObYZgAAAlRJREFUeF7V2Mmu2zAMheH+mj0lueP7P2op6kaI01VEAW1P4KU+HJqwAefX38qmmch9SrbPWWTlVBSUCR4CdXG1i3x2cN3W1S6y/oiCTQIFqpKC4pmDRr1ts3uwLAulAFrTKiq3EJZScoa6artYWEJY5NKe2GdWkEVV5eziEna+g6jfzNnxUvYaGdrej5sEFxqIs4t474WsYAn55twU0bOHEnataxZxFZSK3TMGGdNTMrg6u5XLubbyrhScwHZvD03MKk7wdhWdb6J3Zk/SQBT0bh749YUXdx4Yo4DkfwwMdSde16wgJRu98PbGIxiydeIOkhKOYBJp4K03nAEGbhqiBE/B4s0Fc+iegilZwV3ylh/AZAbDfvdcTHNBBGxiNoL+GSzZsmX8HWyZATYR9/7uML4e2I/juIPvEmLEBB6Xy9Eq0mN5xSLeT0Vi/UnAAh5SEa3YwYh3hoISBYkP4LDItYuPIOMg1+vl6CDRCMKFK9qwWsQWPkZFPFJPvA7aKioEOKcgH01MCV3LGKhxzRNQvaQzm7wnMDEC4k+geFXsoMdUMHWwz/wqiHOPYDo3FPBVEZGc614HU02sIiMDNxP1OjhUEd/TQOAEiojBS/Uw3LccFfSYQA0NFO/lipy8DmrFCAysBehg7KCmSkNf9moSz2ATB0OEk4AZlPAoYAS7NxHsnnnm7p0LGkTifwLyDILpHvLUEL0sfypFnluzDoOr5FwHYB0FUfB8mlUDg9y2bX+C2zZCIlY9+QxGiZDbi3P32f54KoDB5y9qoHtndOAujp36DeelKa7gJm86AAAAAElFTkSuQmCC" style="image-rendering:pixelated"/>
+  <image id="spRed" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAMFBMVEUBAAAAAAA7hJ+yLCxiLCwfYmofHx8lQlLFxc/PjWKyqTv2xampYkr///98hIT2SkIp0JHVAAAAAXRSTlMAQObYZgAAAjFJREFUeNrt1IGKIyEMxvH5akyME+37v+1F3duhxwF0DLAL/cuADPAjoXSOT59+SWkWyD1niSjGG9gSE2K9EJBcKq0V5zwKAd1zMc2wD6bU2ngiwUJU/KEY0J3eZp0SBYCn0hdYwMzY9dTP5LhDeVskO416B0BopqzKx1Y2FnbNTGncVWnTM1Jz7pzppuegEwCpLlGJj71YCcs1Oru3DTIGCFKfr7dScKwA3Ad7Kd1J6+3ybv5n7GQcDnpE7hXBl9eeLt4BTxrrDdAc7LUCE3yaGe54pwG1dvesFweJGQ42O01PugO6MEBmLoVq5QmaOuiH3vcWmHrnXmiBLtqpfkzfBGl46oKDbYCSBWtEVTMDjndBn2KBz9Zbk5LLAJUPViXc+XSZAqAFPqWUInCLZ8eNaI6xwJLGhAKoKu19FWtNqTjoohBXUiLVLZAW6GKtVGHuKYWANMCK5W2BusAlYm9jB5ODRS+QsOUd3xt7cHBoPwtMFzh3DhjwArnuDyjg0XCJ4N4+OET8bd97eJJlcXKEgY9RjgU9xIACxIF5OBmIAmVB8uNBIC84CMw4sGSJBrELfm8qIeDFxIOHBIIyrzniR1kK5nXcZRuUC8ySs2DPw0P8LHBwAeDjFcwhoKx7HiHiR8YFborI4aCL4sYlyn3wMl7A7REvA/Oese8tA3kbhMgrKLIJpnQRg08e3+fAzIlogstnIrot4sGj5M/rm/tg8ZgAvLwpuL3y6t83//E+/QEymBvrnaFagAAAAABJRU5ErkJggg==" style="image-rendering:pixelated"/>
+  <image id="spHilda" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAMFBMVEUBAAAAAAAoICAwMDhAOChISEhwWEB4QECAMEjASGiwgFjYoHj40Ljo6PiYmLgoYJAc3ZKAAAAAAXRSTlMAQObYZgAAAopJREFUeNrt1QeirSoMhWGXiASCOP/ZvhU5nt40vNv/3dtn2M3pX79dCzuvz/PsB41Z5n5JexBJ8dAAng1YNIhhXgAMeQ/XdeWIy8oWP0nHKLuYGSd1g6SWnDMtNgIEsDEAnHGAGNt2Zh/xAHDbuGB5EjHA40lO0D8gE+NYg/8zISh9wiHgshKk+ODZmuEEIUetnaBPhOSHRDrIPF7OQEsq5soJwiNiSRtUtaCB+X9884K611p133RZy+E5PxaoVlYMVPcXe1lWFC0m6rzC5vP/d0FVpNZ5JcjgBAmgaK7lsL0Tzn0iQUmgN2CnAhMlJFX3cp9E5KCaDJwHggh2LY3wAmJuDdFA9YoFCxBDzhvPscyLJhdZap0VEXKAiR5Lz8xSLnqsIKDljIAJc9KjLlKu6bLHVyA0OUCGTpZjOi013fAI2o4vmMi6mHLk8NcHPL1NuGqRyUKf0kS9BnbRQIYsJ9kXHoM9eqlUGU5QKJKceiGE/uFcE0vVCGxHQSQznI/pdZAhxhy3nuSXYiq3RAqtg+1BlOkMuA4WIIR9b/u+h6cRHZWGtgeLLEUv2Nq27zxS27dGTuDztm230QgyACLN45nIWqBIV/stp9e2plV1Qq21mecS+frSGqk0pQNs3glb/88haFdo+wZkT2CqFgce4ZXpBCmPGfAE8cuCrIwDy2SlYe+hpnFg6l4vqd1wg6qYetCiqnB5RqS3Nx3gi5GgFpxgenV7IMjSABBvt+AC0zv33C8WxRuw4LaHGEN4PXQJ98GQc8TbjdwHJYY3r5acb4vvvxYS7oKwAd/dzO0Bw/sT3ltziOCI8u6EuPWBWCLvbCfEOyIyE+CNZ8mdEWF9sB2Cw8LR9GP7D3COJXfbmsXfAAAAAElFTkSuQmCC" style="image-rendering:pixelated"/>
+  <image id="spEthan" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAALVBMVEUBAAAAAAAsMzsZHyWWHx/2xaliLCzPjWLi4vZSEx+Wjak7SkqNWhPPqSW7QkJhS1dwAAAAAXRSTlMAQObYZgAAAjNJREFUeNrt1weWGyEQhGFVF3QDg+b+x3WJkbM3AS9a/+bA92qD0u3Vq1f/UX20jbN+H5GbvOPyjsPILd5zoCnuGdhJobZJpN2p7v3BEesgAKqhbgBJMwPu900gbQS4E8AyCJNIMpR7JtQaCDMweuRwK2H01Y0g2ItHzhklOoOLInBDL8jKc+4RDnmLeUS+6uucu98Q0YcXG7jIPT9EL13ebdXr4iJro4fMZc+0T6LDSuvuvdmal4zRwz1QVA9vpdiKdxoJB1ApqpGUyxUwQUhNqRokUmxLtU6DkhKg1xLB1ArlIaV5cWAXaBBeYQKrNk4HIYDE8eZMhMAfG1dYbTSr53nKU1gDrbV0Vr2uD/AS18GztuE2ww6xDtFqQrPbBlGSohnRMP6hzjWxXr86gnyA0N41UZpIBeD6WGBdBJ//5APEAzTMg62072B7TkxcA5+11i4GZhY+DbJ9J+WNSEYEZkE7aEZA8UI8VMa0ZzRFI58gcuTwpYGKF3mJnrd49pyofB6kjWBUAlez4zBFQLJQrHtDxA22ExQD2yDK2wvyGMlTl7gfXBLJ4W0EDbDLe4JcBaVB4FOEWvE8KPL4QaAdVPNejgA4vCuIC0yDkSX6H5sjfH6g8r8fYwQWQP/HJ6fBEIh/gBnzA/HPT/te8Gu/xI+nuEf4lBcp/fNgmbw75/j3OTSJpXydtFZKw7/AVkSe7ask3vjRYNbGyC+DrZz/PAWgmfoqaNbUv09BfeDNn3r1DWxPFPB9VUeAAAAAAElFTkSuQmCC" style="image-rendering:pixelated"/>
+  <image id="spPorygon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAADFOVr21cV7KUHurJz/YmIIWnNaveYAAAAIg6T///8IrNXFxcWL1e5WMf/tAAAAAXRSTlMAQObYZgAAAWJJREFUeNrtlEFuBCEMBJcw9Njj8P/vpr3DIJQcYw4ruR5QpcYSryRJkiRJkiT5NArZ6v8ibGz1O6Xu9JOjrQUg1k9aWwo4T4nw1+M45oClQL9KhP863owBa8BCA+QOFJkDVEL91/X2z4ApQgdcxP1F4gaQ+jX9TokPLAPk+l78Fh4ga0AVcS9EmvufAM7wE7TWhr+UMSAkoNb7EyhOPfxbPUMDZPqltIOUqjEngAcce/yl3dSQAeg6/KbTPwsS4J8BVfdrbECsdzwDVEVUp5+1f/sZsK4wD9z6GeCaSn9EQQXgANeDgaEn9IcU4GaR08xgNvUxfiJQARPnOfwFbxRhBaJeYID6gm43GlUg8EJV6unvGwpiLNQy/DsKMJv+XYW6+OEoiTwDFr86sQEif/14RbL64wcQsV9+xPoZsMUPidUTKAt49HjFI2aGHW+zFLBTTwRb9USo/1CSJEmSJEmS5AdHBRc5hRQcFgAAAABJRU5ErkJggg==" style="image-rendering:pixelated"/>
+  <text id="bigPi" class="greek" text-anchor="middle" x="0" y="0" style="font-size:1000px">π</text>
+  </g>
+  <g id="flow">
+    <text id="flowBattle" x="205" y="1012" text-anchor="middle">the battle</text>
+    <line id="flowArrow1" x1="325" y1="998" x2="425" y2="998" stroke="#111" stroke-width="4"/>
+    <polyline id="flowHead1" points="409,984 427,998 409,1012" fill="none" stroke="#111" stroke-width="4"/>
+    <text id="flowPi" class="greek" x="478" y="1020" text-anchor="middle" style="font-size:84px">π</text>
+    <line id="flowArrow2" x1="530" y1="998" x2="630" y2="998" stroke="#111" stroke-width="4"/>
+    <polyline id="flowHead2" points="614,984 632,998 614,1012" fill="none" stroke="#111" stroke-width="4"/>
+    <text id="flowMove" x="650" y="1012">the next move</text>
+  </g>
+</svg>
+<div id="head"><h1>How this logo was built</h1><p><span id="wBattle">Battle Factory</span><span id="wOf"> of </span><span id="wPorygon">Porygon</span><span id="wDash">-</span><span id="wPi">Pi</span></p></div>
+<div id="caps"></div>
+<div id="credit">Sprites: Pokémon Showdown. Pokémon © Nintendo / Creatures / GAME FREAK</div>
+<script>
+// Geometry, as in brand/logo/04b-faceted-pi-two-feet/build.mjs.
+const U = 100, S = Math.sqrt(3) / 2 * U;
+const GAP = U / 8;
+const POINT_OVERSHOOT = 0.02 * 4 * S;
+const P = (a, b) => [a * U + b * U / 2, b * S];
+const add = (p, q) => [p[0] + q[0], p[1] + q[1]], mul = (p, s) => [p[0] * s, p[1] * s];
+const D = (a, b) => [[a, b], [a + 1, b], [a, b + 1]];
+const Up = (a, b) => [[a, b], [a, b + 1], [a - 1, b + 1]];
+const cells = [];
+for (let a = 0; a < 6; a++) cells.push(D(a, 0));
+for (let a = 1; a < 6; a++) cells.push(Up(a, 0));
+for (const a0 of [1, 3]) for (let k = 0; k < 3; k++) cells.push(D(a0 - k, 1 + k), Up(a0 - k, 1 + k));
+cells.push(Up(2, 3), D(-2, 3));
+const rho = U / (2 * Math.sqrt(3));
+const BAR_FACETS = 11;
+const PINK = [0xE8, 0x60, 0x7F], BLUE = [0x2F, 0x8F, 0xC9], INK = [0x11, 0x11, 0x11], PALE = [0xDA, 0xD7, 0xCF];
+const WORD_LIT = [0x11, 0x11, 0x11], WORD_DIM = [0xBD, 0xB9, 0xAF];
+
+// One facet at a given gap, tip overshoots and appear scale.
+const incentre = c => mul(c.map(([a, b]) => P(a, b)).reduce(add), 1 / 3);
+function facet(c, gap, leftTip, rightTip, scale = 1) {
+  const ends = { '0,0': [-leftTip, 0], '6,0': [rightTip, 0] };
+  const I = incentre(c);
+  const shrink = (rho - gap / 2) / rho * scale;
+  return c.map(([a, b]) => add(I, mul(add(add(P(a, b), ends[`${a},${b}`] ?? [0, 0]), mul(I, -1)), shrink)));
+}
+const finalFacets = cells.map(c => facet(c, GAP, POINT_OVERSHOOT, POINT_OVERSHOOT));
+const allPts = finalFacets.flat();
+const bx0 = Math.min(...allPts.map(p => p[0])), bx1 = Math.max(...allPts.map(p => p[0]));
+const by0 = Math.min(...allPts.map(p => p[1])), by1 = Math.max(...allPts.map(p => p[1]));
+// The numbers the final SVG writes, for checking this page against mark-color.svg.
+window.finalPathCoords = () => finalFacets.map(t => t.map(p => [+(p[0] - bx0 + 2).toFixed(2), +(p[1] - by0 + 2).toFixed(2)]));
+
+// Camera: screen = focus + k * zoom * (world - centre).
+const MARK_W = 860, k = MARK_W / (bx1 - bx0);
+const markC = [(bx0 + bx1) / 2, (by0 + by1) / 2];
+const screenHome = [540, 650], screenTipL = [340, 400], screenTipR = [740, 400];
+const tipL = P(0, 0), tipR = P(6, 0);
+const homeOf = p => [screenHome[0] + k * (p[0] - markC[0]), screenHome[1] + k * (p[1] - markC[1])];
+const homeTipL = homeOf(tipL), homeTipR = homeOf(tipR);
+
+// Closed-form critically damped spring.
+const spring = (t, t0, w = 14) => { const tau = Math.max(0, t - t0); return 1 - (1 + w * tau) * Math.exp(-w * tau); };
+
+// Liang-Barsky clip, as in brand/logo/lib.mjs.
+function clip(a, b, r) {
+  const [x0, y0, x1, y1] = r, dx = b[0] - a[0], dy = b[1] - a[1];
+  let t0 = -1e9, t1 = 1e9;
+  for (const [p, q] of [[-dx, a[0] - x0], [dx, x1 - a[0]], [-dy, a[1] - y0], [dy, y1 - a[1]]]) {
+    if (p === 0) { if (q < 0) return null; continue; }
+    const v = q / p; if (p < 0) t0 = Math.max(t0, v); else t1 = Math.min(t1, v);
+  }
+  return t0 > t1 ? null : [[a[0] + t0 * dx, a[1] + t0 * dy], [a[0] + t1 * dx, a[1] + t1 * dy]];
+}
+const e = 0.15 * (by1 - by0), frame = [bx0 - e, by0 - e, bx1 + e, by1 + e];
+const range = (lo, hi) => Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
+const family = (makeLine, ids, t0) => {
+  const segs = ids.map(makeLine).map(([a, b]) => clip(a, b, frame)).filter(Boolean);
+  return segs.map((s, i) => ({ s, start: t0 + 0.26 * i / Math.max(1, segs.length - 1) }));
+};
+const latticeLines = [
+  ...family(a => [P(a, 0), P(a, 1)], range(-12, 12), 9.0),         // 60 degree lines
+  ...family(s => [P(s, 0), P(s - 1, 1)], range(-12, 12), 9.5),     // 120 degree lines
+  ...family(b => [P(0, b), P(1, b)], range(0, 4), 10.0),            // horizontal lines
+];
+
+const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+const facetEls = cells.map(() => $('facets').appendChild(document.createElementNS(NS, 'polygon')));
+const lineEls = latticeLines.map(() => $('lattice').appendChild(document.createElementNS(NS, 'line')));
+
+// When each facet appears (grid beats 6.4 to 8.2).
+const appearAt = cells.map((_, i) => {
+  if (i < 6) return 11.5 + i * 0.04;
+  if (i < 11) return 12.0 + (i - 6) * 0.04;
+  if (i < 17) return 12.5 + (i - 11) * 0.05;
+  if (i < 23) return 13.0 + (i - 17) * 0.05;
+  return i === 23 ? 14.0 : 14.5;
+});
+
+// Which words of the name are lit: [Battle Factory, Porygon, Pi].
+const wordChanges = [
+  [1.0, [0, 0, 1]], [4.0, [1, 0, 0]], [8.5, [0, 0, 0]], [11.5, [0, 0, 1]],
+  [15.5, [0, 1, 0]], [16.0, [0, 0, 0]], [18.0, [0, 1, 0]], [21.0, [1, 1, 1]],
+];
+const wordLit = (t, w) => {
+  let v = 1, prev = 1;
+  for (const [t0, lit] of wordChanges) { v += (lit[w] - prev) * spring(t, t0, 18); prev = lit[w]; }
+  return Math.min(1, Math.max(0, v));
+};
+
+// Plain line holds for several beats, the code line changes per beat.
+const plainCaps = [
+  [0, "Porygon's colours, π's shape"],
+  [1.0, 'π is the symbol for a policy'],
+  [3.0, 'A policy picks the move in a battle'],
+  [4.0, 'A battle factory for battle policies'],
+  [8.5, 'Start from a grid'],
+  [10.5, 'Every length comes from one unit'],
+  [11.5, 'One bar, two legs'],
+  [13.0, 'Two legs, no feet: it reads 77'],
+  [14.0, 'The feet turn outward'],
+  [14.5, '25 facets: now it reads π'],
+  [15.5, 'Open a gap between the facets'],
+  [16.0, '60° points read short'],
+  [18.0, 'Porygon is a Pokémon made of polygons'],
+  [19.5, "Pink and blue: Porygon's two tones"],
+  [21.0, "Porygon's colours, π's shape"],
+];
+const codeCaps = [
+  [0, ''],
+  [9.0, 'P = (a, b) => [a * U + b * U / 2, b * S]'],
+  [10.5, 'U = 100'],
+  [11.0, 'S = Math.sqrt(3) / 2 * U'],
+  [11.5, 'cells.push(D(a, 0))'],
+  [12.0, 'cells.push(Up(a, 0))'],
+  [12.5, 'a0 = 1: D(a0 - k, 1 + k), Up(a0 - k, 1 + k)'],
+  [13.0, 'a0 = 3: D(a0 - k, 1 + k), Up(a0 - k, 1 + k)'],
+  [14.0, 'Up(2, 3)'],
+  [14.5, 'D(-2, 3)'],
+  [15.5, 'GAP = U / 8'],
+  [16.0, ''],
+  [16.5, 'POINT_OVERSHOOT = 0.02 * 4 * S'],
+  [17.5, ''],
+  [18.5, "PINK = '#E8607F'"],
+  [19.0, "BLUE = '#2F8FC9'"],
+  [19.5, ''],
+];
+const makeCaps = (list, cls, inner) => list.map(([t0, text]) => {
+  const el = document.createElement('div');
+  el.className = cls;
+  if (inner) { const span = document.createElement('div'); span.className = inner; span.textContent = text; el.appendChild(span); }
+  else el.textContent = text;
+  $('caps').appendChild(el);
+  return { t0, el };
+});
+const plainEls = makeCaps(plainCaps, 'cap', 'plain'), codeEls = makeCaps(codeCaps, 'capcode');
+function placeCaps(list, t) {
+  list.forEach(({ t0, el }, i) => {
+    const next = list[i + 1]?.t0 ?? Infinity;
+    const enter = t0 === 0 ? 1 : Math.min(1, Math.max(0, (t - t0 - 0.05) / 0.14));
+    const exit = Math.min(1, Math.max(0, (t - next) / 0.05));
+    const o = enter * (1 - exit);
+    el.style.opacity = o;
+    el.style.filter = o > 0 && o < 1 ? `blur(${(1 - o) * 7}px)` : 'none';
+  });
+}
+const lerp3 = (a, b, m) => a.map((v, i) => v + (b[i] - v) * m);
+const rgb = c => `rgb(${c.map(v => Math.round(v)).join(',')})`;
+const pointsAttr = pts => pts.map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join(' ');
+const setLine = (el, a, b) => { el.setAttribute('x1', a[0]); el.setAttribute('y1', a[1]); el.setAttribute('x2', b[0]); el.setAttribute('y2', b[1]); };
+
+const GROUND = 880, FACTORY_H = 438;
+// Trainer sprites are 80 px squares at 3x, with their feet 8 px above the bottom of the square.
+function placeSprite(id, cx, feet, size, scale, opacity) {
+  const w = size * scale, el = $(id);
+  el.setAttribute('x', cx - w / 2); el.setAttribute('y', feet - w * 0.97);
+  el.setAttribute('width', w); el.setAttribute('height', w);
+  el.setAttribute('opacity', opacity < 0.001 ? 0 : opacity);
+}
+const walkers = [['spRed', 6.0], ['spHilda', 6.5], ['spEthan', 7.0]];
+
+window.DURATION = 23;
+window.seek = function seek(t) {
+  // Facets vanish before the gap, tips and pale tone reset, so the reset never shows.
+  const hidden = t >= 5 ? 1 : 0;
+  const gap = GAP * (1 - hidden + spring(t, 15.5));
+  const leftTip = POINT_OVERSHOOT * (1 - hidden + spring(t, 16.5));
+  const rightTip = POINT_OVERSHOOT * (1 - hidden + spring(t, 17.15, 22));
+
+  // Camera, one spring per change of target.
+  const zIn = spring(t, 16, 12), zPan = spring(t, 17, 16), zOut = spring(t, 17.5, 12);
+  const zoom = Math.pow(5, zIn - zOut);
+  // The camera scales about a tip, so nothing near that tip whips across the frame.
+  const worldX = tipL[0] + (tipR[0] - tipL[0]) * zPan, worldY = tipL[1] + (tipR[1] - tipL[1]) * zPan;
+  const focusX = homeTipL[0] + (screenTipL[0] - homeTipL[0]) * zIn + (screenTipR[0] - screenTipL[0]) * zPan + (homeTipR[0] - screenTipR[0]) * zOut;
+  const focusY = homeTipL[1] + (screenTipL[1] - homeTipL[1]) * zIn + (screenTipR[1] - screenTipL[1]) * zPan + (homeTipR[1] - screenTipR[1]) * zOut;
+  const T = p => [focusX + k * zoom * (p[0] - worldX), focusY + k * zoom * (p[1] - worldY)];
+
+  // Facets: colour, then pale under the glyph, then ink, then colour again.
+  const paleAmount = hidden ? 0 : spring(t, 1, 12);
+  cells.forEach((c, i) => {
+    const vanish = spring(t, 4.5 + 0.15 * i / 24, 18);
+    const rawScale = 1 - vanish + spring(t, appearAt[i], 16);
+    const scale = rawScale < 0.05 ? 0 : rawScale;  // no specks left behind while a facet finishes shrinking
+    facetEls[i].setAttribute('points', pointsAttr(facet(c, gap, leftTip, rightTip, scale).map(T)));
+    const isBar = i < BAR_FACETS;
+    const colourBack = isBar ? spring(t, 18.5 + 0.2 * i / 10, 12) : spring(t, 19 + 0.2 * (i - 11) / 13, 12);
+    const ink = Math.max(0, hidden - colourBack);
+    facetEls[i].setAttribute('fill', rgb(lerp3(lerp3(isBar ? PINK : BLUE, PALE, paleAmount), INK, ink)));
+  });
+
+  // Why pi: the symbol over the mark, then what a policy does in a battle.
+  const ideaOff = spring(t, 4.5, 20);
+  $('bigPi').setAttribute('opacity', Math.max(0, spring(t, 1, 12) - ideaOff));
+  $('bigPi').setAttribute('transform', `translate(${BIG_PI_X},${BIG_PI_Y}) scale(${BIG_PI_SX},1)`);
+  $('flowBattle').setAttribute('opacity', Math.max(0, spring(t, 2, 16) - ideaOff));
+  const arrow1 = spring(t, 2.5, 16), arrow2 = spring(t, 3, 16);
+  $('flowArrow1').setAttribute('x2', 325 + 100 * arrow1);
+  $('flowArrow2').setAttribute('x2', 530 + 100 * arrow2);
+  for (const id of ['flowArrow1', 'flowHead1', 'flowPi']) $(id).setAttribute('opacity', Math.max(0, arrow1 - ideaOff));
+  for (const id of ['flowArrow2', 'flowHead2', 'flowMove']) $(id).setAttribute('opacity', Math.max(0, arrow2 - ideaOff));
+
+  // Lattice.
+  latticeLines.forEach(({ s, start }, i) => {
+    const drawn = spring(t, start, 12);
+    setLine(lineEls[i], T(s[0]), T([s[0][0] + (s[1][0] - s[0][0]) * drawn, s[0][1] + (s[1][1] - s[0][1]) * drawn]));
+  });
+  $('lattice').setAttribute('opacity', Math.max(0, 1 - 0.68 * spring(t, 15, 12) - 0.32 * spring(t, 19.5, 12)));
+
+  // Unit edge and row height (beats 6.2 and 6.3).
+  const unitOn = spring(t, 10.5, 16), rowOn = spring(t, 11, 16), markOff = spring(t, 11.5, 24);
+  const u0 = P(0, 0), u1 = P(1, 0), apex = P(0, 1), foot = [apex[0], 0];
+  setLine($('unitLine'), T(u0), T([u0[0] + (u1[0] - u0[0]) * unitOn, u0[1]]));
+  $('unitLine').setAttribute('opacity', 1 - markOff);
+  const uMid = T([(u0[0] + u1[0]) / 2, 0]);
+  $('unitLabel').setAttribute('x', uMid[0]); $('unitLabel').setAttribute('y', uMid[1] - 18);
+  $('unitLabel').setAttribute('opacity', unitOn - markOff);
+  setLine($('rowLine'), T(foot), T([foot[0], foot[1] + (apex[1] - foot[1]) * rowOn]));
+  $('rowLine').setAttribute('opacity', 1 - markOff);
+  const rMid = T([foot[0], apex[1] / 2]);
+  $('rowLabel').setAttribute('x', rMid[0] + 12); $('rowLabel').setAttribute('y', rMid[1] + 14);
+  $('rowLabel').setAttribute('opacity', rowOn - markOff);
+
+  // Where the tips sit without the optical correction.
+  const ghostOp = Math.max(0, spring(t, 16, 16) - spring(t, 17.5, 24));
+  const plainL = facet(D(0, 0), GAP, 0, 0).map(T), plainR = facet(D(5, 0), GAP, 0, 0).map(T);
+  $('ghostL').setAttribute('points', pointsAttr(plainL));
+  $('ghostR').setAttribute('points', pointsAttr(plainR));
+  for (const [id, tip] of [['L', plainL[0]], ['R', plainR[1]]]) {
+    $('ghost' + id).setAttribute('opacity', ghostOp);
+    $('anchor' + id).setAttribute('cx', tip[0]); $('anchor' + id).setAttribute('cy', tip[1]);
+    $('anchor' + id).setAttribute('opacity', ghostOp);
+  }
+
+  // The factory scene: the building rises from the ground, the head waits, three players go through the door.
+  const factoryOff = spring(t, 8, 18);
+  const riseH = Math.round(FACTORY_H * spring(t, 5, 10) / 3) * 3;  // whole sprite pixels
+  $('factoryRevealRect').setAttribute('y', GROUND - riseH);
+  $('factoryRevealRect').setAttribute('height', riseH);
+  $('spFactory').setAttribute('opacity', factoryOff > 0.999 ? 0 : 1 - factoryOff);
+  placeSprite('spNoland', 730, GROUND, 240, 1, Math.max(0, spring(t, 5.5, 16) - factoryOff));
+  for (const [id, t0] of walkers) {
+    const walked = spring(t, t0, 8);
+    const through = walked < 0.04 ? 0 : Math.min(1, Math.max(0, (1 - walked) / 0.14));
+    const step = Math.abs(Math.sin(Math.PI * 4 * walked)) * 10 * through;
+    placeSprite(id, -130 + 670 * walked, GROUND - step, 240, 1 - 0.38 * walked, walked < 0.001 ? 0 : through);
+  }
+  placeSprite('spPorygon', 870, 976, 576, 0.94 + 0.06 * spring(t, 18, 16), Math.max(0, spring(t, 18, 16) - spring(t, 21, 18)));
+  $('credit').style.opacity = Math.min(1, Math.max(0, spring(t, 5.5, 16) - factoryOff + spring(t, 18, 16) - spring(t, 21, 18)));
+
+  // The name: each word lights up with its idea.
+  const battleLit = wordLit(t, 0), porygonLit = wordLit(t, 1), piLit = wordLit(t, 2);
+  $('wBattle').style.color = rgb(lerp3(WORD_DIM, WORD_LIT, battleLit));
+  $('wPorygon').style.color = rgb(lerp3(WORD_DIM, WORD_LIT, porygonLit));
+  $('wPi').style.color = rgb(lerp3(WORD_DIM, WORD_LIT, piLit));
+  const joinLit = battleLit * porygonLit * piLit;
+  $('wOf').style.color = rgb(lerp3(WORD_DIM, WORD_LIT, joinLit));
+  $('wDash').style.color = rgb(lerp3(WORD_DIM, WORD_LIT, joinLit));
+
+  placeCaps(plainEls, t);
+  placeCaps(codeEls, t);
+};
+const BIG_PI_X = 540, BIG_PI_Y = 870, BIG_PI_SX = 1.3;
+seek(0);
+</script>
