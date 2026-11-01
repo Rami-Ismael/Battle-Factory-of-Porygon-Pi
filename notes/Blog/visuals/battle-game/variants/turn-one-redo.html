@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PROTOTYPE · Turn One</title>
+<!-- PROTOTYPE (throwaway). Turn One rewritten from scratch: new scenes, new field, three new layouts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Palette: lilac-grey ground, plum-black ink. You are saffron, the opponent is deep violet; weather keeps its own hues. */
+:root{
+  --bg:#ECE8F3; --surface:#FBFAFE; --ink:#1E1A2D; --muted:#5E5873; --faint:#8A83A0; --rule:#D5CFE3;
+  --you:#E9A21B; --you-soft:#FBEBC6; --on-you:#1E1A2D; --you-ink:#8A5A00;
+  --them:#4A2F8A; --them-soft:#E3DBF4; --on-them:#FBFAFE;
+  --chip:#F0EDF7; --rain:#2A77B4; --sun:#D96E1C; --tr:#B8368A; --hp:#3B9A6A;
+  --shadow:0 1px 0 rgba(30,26,45,.04),0 14px 34px -18px rgba(30,26,45,.22);
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --out:cubic-bezier(0.23,1,0.32,1); --move:cubic-bezier(0.77,0,0.175,1); --settle:cubic-bezier(0.34,1.35,0.64,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#14101F; --surface:#1D1830; --ink:#EFEBF8; --muted:#A9A2C0; --faint:#7C7594; --rule:#2F2848;
+    --you:#F2B83A; --you-soft:#3A2E12; --on-you:#1E1A2D; --you-ink:#F2B83A;
+    --them:#A98EF0; --them-soft:#2A2147; --on-them:#14101F;
+    --chip:#241E38; --rain:#62A9E6; --sun:#F09A4A; --tr:#E070B8; --hp:#5CC895;
+    --shadow:0 1px 0 rgba(0,0,0,.3),0 14px 34px -18px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#14101F; --surface:#1D1830; --ink:#EFEBF8; --muted:#A9A2C0; --faint:#7C7594; --rule:#2F2848;
+  --you:#F2B83A; --you-soft:#3A2E12; --on-you:#1E1A2D; --you-ink:#F2B83A;
+  --them:#A98EF0; --them-soft:#2A2147; --on-them:#14101F;
+  --chip:#241E38; --rain:#62A9E6; --sun:#F09A4A; --tr:#E070B8; --hp:#5CC895;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 14px 34px -18px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0;padding-block:24px 120px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+p{margin:0}
+button{font:500 14px/1 var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:9px 13px;min-height:40px;cursor:pointer;touch-action:manipulation;
+  transition:transform 120ms var(--out),background-color .15s ease,border-color .15s ease}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:2px solid var(--them);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--you-soft);border-color:var(--you)}
+@media (hover:hover) and (pointer:fine){button:hover{border-color:var(--faint)}}
+
+/* ---- page */
+.page{max-width:1080px;margin:0 auto;display:grid;gap:22px}
+#heldout-note{padding:12px 16px;border:1px solid rgba(217,110,28,.5);border-left:5px solid var(--sun);border-radius:12px;background:rgba(217,110,28,.09);font:14px/1.5 var(--body)}
+.mast{display:grid;gap:12px;max-width:66ch}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:800 clamp(44px,8vw,88px)/.92 var(--display);letter-spacing:-.025em;margin:0}
+h1 em{font-style:normal;color:var(--them)}
+.lede{color:var(--muted);font-size:17px;text-wrap:pretty}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.seg{display:flex;align-items:center;gap:6px}.seg .lbl{font:500 11px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.note{color:var(--muted);font-size:13px;max-width:76ch}
+
+/* ---- the court: both teams, leads in play, bench of six with items */
+.court{background:var(--surface);border:1px solid var(--rule);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+.lane{padding:12px 14px;display:grid;gap:10px}
+.lane.them{background:linear-gradient(180deg,var(--them-soft),transparent 90%)}
+.lane.you{background:linear-gradient(0deg,var(--you-soft),transparent 90%)}
+.lane-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{font:500 11px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase}
+.them .tag{color:var(--them)}.you .tag{color:var(--you-ink)}
+.net{height:1px;background:var(--rule)}
+.bench{display:flex;gap:5px}
+.bc{position:relative;width:42px;height:42px;border-radius:11px;background:var(--chip);border:1px solid var(--rule);display:grid;place-items:center;opacity:.6;transition:opacity .2s var(--out)}
+.bc.on{opacity:1}.them .bc.on{border-color:var(--them)}.you .bc.on{border-color:var(--you)}
+.bc .bs{width:36px;height:36px;object-fit:contain;image-rendering:pixelated}
+.bc .bi{position:absolute;right:-5px;bottom:-5px;width:19px;height:19px;border-radius:50%;background:var(--surface);border:1px solid var(--rule);display:grid;place-items:center;font:500 10px/1 var(--mono);color:var(--faint)}
+.bc .bi img{width:15px;height:15px;object-fit:contain}
+.leads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lead{display:grid;grid-template-columns:62px minmax(0,1fr);gap:4px 10px;align-items:center;padding:9px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--rule);min-width:0}
+.lead .disc{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;grid-row:span 2}
+.them .lead .disc{background:var(--them-soft);box-shadow:inset 0 0 0 2px var(--them)}
+.you .lead .disc{background:var(--you-soft);box-shadow:inset 0 0 0 2px var(--you)}
+.lead .disc img{width:58px;height:58px;image-rendering:pixelated}
+.lead .nm{font:700 15px/1.15 var(--display);overflow-wrap:anywhere;align-self:end}
+.lead .hp{height:6px;border-radius:99px;background:var(--rule);overflow:hidden;align-self:start}.lead .hp i{display:block;height:100%;width:100%;background:var(--hp)}
+.lead .ord{grid-column:1/-1;min-height:26px;display:flex;align-items:center;justify-content:center;text-align:center;font:500 12px/1.2 var(--mono);border-radius:9px;border:1px dashed var(--rule);padding:4px 6px;color:var(--muted);transition:background-color .2s ease,border-color .2s ease,color .2s ease}
+.lead .ord.on{border-style:solid;border-color:var(--ink);background:var(--surface);color:var(--ink)}
+.lead .ord.set{border-style:solid;background:var(--chip);color:var(--ink)}
+@media (max-width:620px){.lead{grid-template-columns:46px minmax(0,1fr);gap:4px 8px;padding:8px}.lead .disc{width:46px;height:46px}.lead .disc img{width:42px;height:42px}.lead .nm{font-size:13px;overflow-wrap:break-word}}
+
+/* ---- the scene box */
+.scenebox{background:var(--surface);border:1px solid var(--rule);border-radius:20px;padding:16px;min-height:300px;display:grid;place-items:center;box-shadow:var(--shadow);overflow:hidden}
+.scene{width:100%;display:grid;gap:14px;justify-items:center;text-align:center;animation:rise .32s var(--out)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sub{color:var(--muted);font-size:13.5px;max-width:60ch;text-wrap:pretty}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* 1 zero-sum: seesaw */
+.seesaw{width:min(560px,100%);height:auto}
+.seesaw .beam rect{fill:var(--ink)}.seesaw .ful{fill:var(--faint)}
+.seesaw g{transition:transform .9s var(--settle)}
+.seesaw .pan line{stroke:var(--faint);stroke-width:2}
+.seesaw .pan.L rect{fill:var(--you)}.seesaw .pan.R rect{fill:var(--them)}
+.seesaw .pan text{font:500 14px var(--mono);font-variant-numeric:tabular-nums}
+.seesaw .pan.L text{fill:var(--on-you)}.seesaw .pan.R text{fill:var(--on-them)}
+/* 2 simultaneous: sealed orders */
+.flips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:min(640px,100%)}
+.fc{perspective:700px;height:122px}
+.fi{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s var(--move)}
+.fc.flip .fi{transform:rotateY(180deg)}
+.ff{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;border:1px solid var(--rule);display:grid;place-content:center;gap:6px;padding:8px;font:500 12px/1.3 var(--mono)}
+.ff b{font:700 14px/1.1 var(--display)}
+.ff.front{background:var(--chip)}.fc.t .ff.front{border-color:var(--them)}.fc.y .ff.front{border-color:var(--you)}
+.ff.back{transform:rotateY(180deg);background:var(--surface)}.fc.t .ff.back{background:var(--them-soft)}.fc.y .ff.back{background:var(--you-soft)}
+.seal{width:26px;height:26px;border-radius:50%;margin:0 auto;border:2px dashed var(--faint);transition:transform .3s var(--settle),background-color .2s ease,border-color .2s ease}
+.fc.think .seal{animation:breathe 1s ease-in-out infinite}
+.fc.locked .seal{background:var(--ink);border:2px solid var(--ink);transform:scale(1.08)}
+@keyframes breathe{50%{transform:scale(1.18);opacity:.5}}
+.state{font:700 22px/1.1 var(--display)}
+@media (max-width:560px){.flips{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* 3 option count: dot matrix */
+.count{display:flex;gap:26px;align-items:center;justify-content:center;flex-wrap:wrap}
+.mx{display:grid;gap:3px}
+.mx i{width:13px;height:13px;border-radius:4px;background:var(--rule);transition:background-color .25s var(--out),transform .25s var(--out);transform:scale(.7)}
+.mx i.on{background:var(--you);transform:scale(1)}.mx i.x.on{background:transparent;box-shadow:inset 0 0 0 2px var(--them)}
+.calc{display:grid;gap:10px;text-align:left}
+.calc div{font:500 14px/1.3 var(--mono)}.calc small{display:block;font:500 10.5px/1.2 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.calc b{font:700 clamp(24px,4vw,34px)/1.05 var(--display);font-variant-numeric:tabular-nums}
+.calc .big{color:var(--them)}
+/* 4 masks: choice lock */
+.keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:min(640px,100%)}
+.key{position:relative;padding:16px 8px;border-radius:12px;border:1px solid var(--rule);background:var(--chip);font:600 13px/1.2 var(--body);transition:transform .15s var(--out),opacity .3s ease,background-color .25s ease,border-color .25s ease}
+.key.used{background:var(--you);border-color:var(--you);color:var(--on-you);transform:translateY(2px) scale(.97)}
+.key.masked{opacity:.4}.key.masked span{text-decoration:line-through}
+.key svg{position:absolute;right:8px;top:8px;width:14px;height:14px;opacity:0;transform:translateY(-4px);transition:opacity .25s ease,transform .25s var(--out);fill:var(--ink)}
+.key.masked svg{opacity:1;transform:none}
+.legal{font:500 13px/1 var(--mono);color:var(--muted)}.legal b{font:700 26px/1 var(--display);color:var(--ink);margin-right:6px}
+/* 5 chance: three rings */
+.rings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(660px,100%)}
+.ringbox{display:grid;gap:6px;justify-items:center}
+.ringbox h4{margin:0;font:500 11px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ring{width:min(120px,100%);height:auto}
+.ring .tk{stroke:var(--rule);stroke-width:3;stroke-linecap:round;transition:stroke .15s ease}.ring .tk.hot{stroke:var(--them)}.ring .tk.crit{stroke:var(--you)}
+.ring text{font:700 20px var(--display);fill:var(--ink);text-anchor:middle}
+.ring .arc{fill:none;stroke:var(--rain);stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset .6s var(--out),stroke .3s ease}
+.ring .back{fill:none;stroke:var(--rule);stroke-width:9}
+.ringbox p{font-size:12px;color:var(--muted)}
+@media (max-width:560px){.rings{grid-template-columns:1fr}}
+/* 6 stages: counters */
+.tracks{display:grid;grid-template-columns:7.5em repeat(5,minmax(0,1fr));gap:6px;width:min(620px,100%);align-items:center;font:500 12px/1 var(--mono)}
+.tracks .h{color:var(--faint);text-align:center}.tracks .l{text-align:left;color:var(--muted)}
+.seg5{height:22px;border-radius:7px;background:var(--chip);border:2px solid transparent;transition:background-color .3s var(--out),border-color .3s var(--out),opacity .3s ease}
+.seg5.full{background:var(--c)}.seg5.used{background:transparent;border-color:var(--rule)}.seg5.none{opacity:.25}.seg5.now{box-shadow:0 0 0 2px var(--ink)}
+@media (max-width:520px){.tracks{grid-template-columns:5.5em repeat(5,minmax(0,1fr))}}
+/* 7 hidden information: redaction */
+.redtab{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:8px 16px;width:min(660px,100%);text-align:left;font-size:13.5px;align-items:center}
+.redtab .hd{font:500 10.5px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.redtab .k{color:var(--muted)}
+.cell{position:relative;min-height:22px;display:flex;align-items:center}
+.cell .cov{position:absolute;inset:1px 0;border-radius:5px;background:var(--ink);transform-origin:right;transition:transform .5s var(--move)}
+.cell.open .cov{transform:scaleX(0)}.cell.hid .cov{opacity:.9;background-image:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.12) 6px 8px)}
+.cell .q{color:var(--faint);font-family:var(--mono)}
+@media (max-width:560px){.redtab{grid-template-columns:auto minmax(0,1fr)}.redtab .tv{display:none}}
+/* 8 perfect recall: tape + known chips */
+.recall{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:18px;width:min(700px,100%);text-align:left}
+.tape{list-style:none;margin:0;padding:0;display:grid;gap:6px;font:12.5px/1.45 var(--mono)}
+.tape li{opacity:0;transform:translateY(8px);transition:opacity .28s var(--out),transform .28s var(--out);border-left:2px solid var(--rule);padding-left:9px}
+.tape li.in{opacity:1;transform:none}.tape li b{color:var(--them);font-weight:500}
+.known h4{margin:0 0 8px;font:500 10.5px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.kchips{display:flex;flex-wrap:wrap;gap:6px}
+.kc{font:600 12.5px/1 var(--body);padding:7px 10px;border-radius:999px;background:var(--them-soft);color:var(--ink);border:1px solid var(--them);opacity:0;transform:scale(.9);transition:opacity .22s var(--out),transform .22s var(--out)}
+.kc.in{opacity:1;transform:none}
+@media (max-width:560px){.recall{grid-template-columns:1fr}}
+/* 9 matching pennies: chase */
+.chase{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:18px;align-items:center;width:min(660px,100%);text-align:left}
+.chase svg{width:100%;height:auto}
+.chase .nd rect{fill:var(--chip);stroke:var(--rule);stroke-width:1.5;transition:fill .25s ease,stroke .25s ease}
+.chase .nd.on rect{fill:var(--them-soft);stroke:var(--them)}
+.chase .nd text{font:500 10.5px var(--mono);fill:var(--muted);text-anchor:middle}.chase .nd .sg{font:700 20px var(--display)}
+.chase .nd.pos .sg{fill:var(--you-ink)}.chase .nd.neg .sg{fill:var(--them)}
+.chase .arr{fill:none;stroke:var(--faint);stroke-width:1.6}
+.chase .tok{fill:var(--you);stroke:var(--surface);stroke-width:2;transition:transform .7s var(--move)}
+.chase .say{font:700 18px/1.2 var(--display);min-height:3.6em}
+.chase .mix{font-size:13px;color:var(--muted);margin-top:6px}
+@media (max-width:560px){.chase{grid-template-columns:1fr}}
+
+/* ---- layout A: scroll */
+.scrolly{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:36px;align-items:start}
+.scrolly .stick{position:sticky;top:16px;display:grid;gap:12px}
+.steps{display:grid}
+.step{min-height:64vh;display:grid;align-content:center;gap:8px;padding-left:22px;position:relative;opacity:.32;transition:opacity .3s var(--out);cursor:pointer}
+.step::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:3px;border-radius:3px;background:var(--them);transform:scaleY(0);transform-origin:top;transition:transform .45s var(--move)}
+.step.on{opacity:1}.step.on::before{transform:scaleY(1)}
+.step .sn{font:500 12px/1 var(--mono);color:var(--muted);letter-spacing:.06em}
+.step h3{font:700 clamp(22px,3vw,30px)/1.12 var(--display);margin:0;text-wrap:balance}
+.step .def{font-size:16px;text-wrap:pretty}.step .ex{color:var(--muted);font-size:14.5px;text-wrap:pretty}
+@media (max-width:860px){
+  .scrolly{display:block}.scrolly .stick{top:0;z-index:5;background:var(--bg);padding-block:8px}
+  .scrolly .lane{padding:8px 10px;gap:6px}.scrolly .lane-h{justify-content:center}.scrolly .lane-h .tag{display:none}.scrolly .bc{width:30px;height:30px;border-radius:8px}.scrolly .bc .bs{width:26px;height:26px}.scrolly .bc .bi{width:14px;height:14px;right:-4px;bottom:-4px}.scrolly .bc .bi img{width:11px;height:11px}
+  .scrolly .scenebox{min-height:200px;padding:10px}.step{min-height:46vh}
+}
+/* ---- layout B: board */
+.board{display:grid;gap:10px}
+.brow{display:grid;grid-template-columns:7.5em repeat(3,minmax(0,1fr));gap:10px;align-items:stretch}
+.rl{font:500 11px/1.3 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);align-self:center}
+.card{position:relative;display:grid;gap:6px;text-align:left;align-content:start;padding:12px 12px 15px;min-height:112px;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s var(--out),border-color .2s ease,background-color .2s ease}
+.card .cn{font:500 11px/1 var(--mono);color:var(--muted)}.card .ct{font:700 17px/1.15 var(--display);text-wrap:balance}.card .cd{font-size:12.5px;line-height:1.4;color:var(--muted);text-wrap:pretty}
+.card[aria-pressed="true"]{background:var(--them-soft);border-color:var(--them)}
+.card .prog{position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--them);transform-origin:left;transform:scaleX(0)}
+.card.playing .prog{transform:scaleX(1);transition:transform 4.2s linear}
+@media (hover:hover) and (pointer:fine){.card:hover{transform:translateY(-2px)}}
+.focus{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px;align-items:start}
+@media (max-width:860px){.brow{grid-template-columns:repeat(3,minmax(0,1fr))}.rl{grid-column:1/-1}.focus{grid-template-columns:1fr}}
+@media (max-width:560px){.brow{grid-template-columns:1fr}}
+.cap{display:grid;gap:8px;margin-top:12px}.cap .term{font:700 21px/1.2 var(--display)}.cap .term small{font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:8px}
+.cap .def{margin:0}.cap .ex{color:var(--muted);font-size:14px}
+/* ---- layout C: loop */
+.loop{position:relative;padding-top:6px}
+.rail{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;position:relative}
+.rail::before{content:"";position:absolute;left:17px;right:17px;top:17px;height:2px;background:var(--rule)}
+.node{position:relative;display:grid;gap:8px;align-content:start}
+.node .dn{width:34px;height:34px;border-radius:50%;background:var(--surface);border:2px solid var(--rule);display:grid;place-items:center;font:700 14px/1 var(--display);position:relative;z-index:1;transition:border-color .25s ease,background-color .25s ease}
+.node.on .dn{border-color:var(--them);background:var(--them-soft)}
+.node b{font:700 17px/1.1 var(--display)}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pchip{font:500 12.5px/1 var(--body);padding:8px 10px;min-height:36px;border-radius:999px}
+.pchip[aria-pressed="true"]{background:var(--you);border-color:var(--you);color:var(--on-you)}
+.token{position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;pointer-events:none;z-index:2;background:var(--you);box-shadow:0 0 0 4px rgba(233,162,27,.3);transition:transform .7s var(--move);will-change:transform}
+.token.arrive{animation:arrive .5s var(--out)}
+@keyframes arrive{0%{box-shadow:0 0 0 0 rgba(233,162,27,.6)}100%{box-shadow:0 0 0 18px rgba(233,162,27,0)}}
+.loopgrid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px;align-items:start;margin-top:14px}
+@media (max-width:860px){.loopgrid{grid-template-columns:1fr}}
+@media (max-width:640px){.rail{grid-template-columns:1fr;gap:16px}.rail::before{left:17px;right:auto;top:17px;bottom:17px;width:2px;height:auto}.node{grid-template-columns:34px 1fr;column-gap:12px}}
+/* ---- chart */
+.chartfig{background:var(--surface);border:1px solid var(--rule);border-radius:20px;padding:14px 16px;display:grid;gap:8px;box-shadow:var(--shadow);margin:0}
+.chartfig h4{margin:0;font:500 11px/1.3 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.chartfig svg{width:100%;max-width:640px;height:auto;display:block}
+.chartfig text{font:12px var(--mono);fill:var(--muted)}.chartfig text.k{fill:var(--ink)}
+.chartfig figcaption{font-size:13px;color:var(--muted);line-height:1.5;max-width:76ch}.chartfig figcaption b{color:var(--ink)}.chartfig code{overflow-wrap:anywhere}
+details{font-size:13px;color:var(--muted)}details table{border-collapse:collapse;margin-top:6px;font:12px var(--mono)}
+details td,details th{border-bottom:1px solid var(--rule);padding:3px 10px;text-align:right}details td:first-child,details th:first-child{text-align:left}
+/* ---- switcher */
+.switcher{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:6px;background:var(--ink);padding:6px;border-radius:999px;z-index:30;box-shadow:0 6px 24px rgba(20,16,31,.35);max-width:calc(100vw - 24px)}
+.switcher button{background:transparent;color:var(--bg);border:0;border-radius:999px;padding:8px 14px;min-height:0;white-space:nowrap}
+.switcher button[aria-pressed="true"]{background:var(--bg);color:var(--ink)}
+@media (hover:hover) and (pointer:fine){.switcher button:hover{background:rgba(255,255,255,.14)}.switcher button[aria-pressed="true"]:hover{background:var(--bg)}}
+@media (prefers-reduced-motion:reduce){
+  .scene{animation:none}.seesaw g,.fi,.seal,.mx i,.key,.key svg,.ring .tk,.ring .arc,.seg5,.cell .cov,.tape li,.kc,.chase .tok,.chase .nd rect,.step,.step::before,.card,.card.playing .prog,.token,.node .dn,.lead .ord,.bc{transition:none}
+  .fc.think .seal{animation:none}.token.arrive{animation:none}
+}
+</style></head>
+<body>
+<div class="page">
+  <div id="heldout-note" role="note"><b>Data-separation note · 2026-10-14.</b> Placements 51–100 are a held-out evaluation set. MB522 is one of those teams and is used here as a worked example only. Nothing was trained on, searched with or selected with it, and its matrix entries were removed from search on 2026-10-14. See the <a href="https://claude.ai/artifact/Luj92wuAwJCBoiACrKq5DH" target="_blank" rel="noopener">held-out set walkthrough</a>.</div>
+  <header class="mast">
+    <span class="eyebrow">Pokémon Champions · Regulation M-B · the battle</span>
+    <h1>Turn <em>one</em></h1>
+    <p class="lede">After team preview, the battle itself is a game: two players, one winner, moves chosen at the same time, dice everywhere, and much of the board hidden. Here is the first turn of a real matchup, rebuilt in three layouts.</p>
+  </header>
+  <div class="toolbar"><div class="seg" role="group" aria-label="Team sheets"><span class="lbl">Team sheet</span>
+    <button type="button" id="sh-closed" aria-pressed="true">Closed</button><button type="button" id="sh-open" aria-pressed="false">Open</button></div></div>
+  <div id="stage"></div>
+  <p class="note">Teams are real Regulation M-B meta teams: MB763 (1st place) is in the project's top-50 pool, and MB522 is one of the held-out placements 51–100, used as a worked example only. The leads continue the example from "Four of six". Mechanics (accuracy, damage rolls, critical hits, targets, turn counters) are read from Pokémon Showdown's code. The chosen orders, the battle log, the hit points, the seesaw split and the payoff signs are illustrations, not a recorded game. Win rate, wherever it appears in this project, is wins against the top-50 meta teams with the behaviour-cloning policy on both sides.</p>
+</div>
+<nav class="switcher" aria-label="Prototype layout"><button data-v="A">A · Scroll</button><button data-v="B">B · Board</button><button data-v="C">C · Loop</button></nav>
+
+<script>
+const D = {"you": {"id": "MB522", "mons": [{"name": "Charizard", "item": "Charizardite Y", "ability": "Blaze", "moves": ["Heat Wave", "Weather Ball", "Solar Beam", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC"}, {"name": "Grimmsnarl", "item": "Light Clay", "ability": "Prankster", "moves": ["Spirit Break", "Reflect", "Light Screen", "Parting Shot"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAABdRpRDNWgQEBAvGE5HvmI1KVRAlVU1ajz9C0L9/f3Jycn3XJDpN2F8gIkKtcJLAAAAAXRSTlMAQObYZgAABH1JREFUeNrt14di2zAaA+D+ADiy+v6PeyIhlpTPaSU7vRl4D+LLL6ojP/6T853vfKf+7f70FUL9MuB6SU3rh+JXAzWtgOJRINUzgOJLAPWMT8oB0GN7wDRbpOiRDLwsH0XwaUAxAvUBNoBfAZQm1Dr6LdSUXo6ArpdL80jUVEf5dnN/MeD+B0bwvjG1osoB4A0Rav0e4HFAsQOlV22I+xsQ2vrLc4D7u7CVwUDvN3DsfwLwCHirTcBW/2qh9YeeGcCABQXY9hrg62vJ0XeB7UGj/1HAgqKwHZPy+vJaUgNCjB5JsQPSBYCxChvwaqFsd+if+YydoYIPjiBF5MS2ry05BhCYhBTXAI/g+gaUwpdaUikGdiEwjSv90hAkd+G1bJd+xQrEZHjpx5cYjvvfXt9I8uf2uAIz0BWBPqgO+gDc9gAA+YpwGMfg2ghzXZ+AwZ9tgpLIFXhaAMbBYNuEt5IUnwBXzyJGCOv5wn4O3Qe0xcIVQocmof/rRigc6nAaQLoIKI5AoKYKYMzVK1v80AgDV/dZHOcSE4FWbbZhLQY7wUuAj6sEuj9Ii4DHQiOA9rgLugJk/4QQmqAAlkNOuBFCoD25OoKBnOE9teAiA3ul35/CtWOUIzI4gF6Rfw0wAMY6gi4BaOvYK0HXfOQBDAEMbwIuC25pAun+yO8ZEZoAANBQ6g9JugqAQPYz6H0TEOpehkOy9WcDCScFEj5xACKjXZE34ENoyfvNJw5JGUDCKYGKSBinHuk24eP9A8qLQN7+9XgKkKdtghvYDQIfaKWjfa+fgAmd6nc0G1pvX58LW9z+LLCW1Bw9uRQf+vuApDP9uAMU7BuZ7gFp7484AyDdARL2/lQgkkfBS3RiBrUS3AJkTQk7kEIADgajJPTB8achFEjlpp8ESpojRKBnIYj1v5X6fX+6+duRAHzeDqAF0Eow0n6APh9B2m5IHgCzX23lMkCZpwywCNrdz4D2wb4Dff6hqpeVIfhxElzXA+JnG737vh+zu30t9g6tBGcBSIB9/X3AK471U8B0jsQEeni332W+40LOlIQ5wCqHlv5Wznv9EPox7MKhH5gj+O6O4C1w/92o7z5hZ+kHZlGJKId+p69gH510/z1A8hd0AGaf9M/Nuw4Duls+t2Cfju7n2p/RIvbcGMsIvwEEknv/AsD1vZ9k7ukGJjGBzwXNzSEs8FdFXtuHEcAU0Kupz4F1c0hMwf17u45Evv0Fhw04E2v0FnpraGB1mjrqYcD9p0M4AxBlYExCNGF85Xo4+zvAft+gARDOClwXvJh5OIb8iPw8kG+AFbLg/ocFAxbcu0LQ04DGanIdgNy/kA08LOQyhL3Yj5xfcP/DgErd16/Nk4QeB9xfqm6B4zfy4wClsmVZztsq1vKgUFtSMfBJDKQkqV7vdv4ksOzf25ac7i+plrbkBMA0U04KW2+rrsX9Z4HS1p0D3O96tvzpCHnYUk4JBtq1l5/5p6MR1bdTAllTu54+8xpR+40nDxLZrhfSins5+ePvhOy3f1O+853v/AM7XSSoHxEOngAAAABJRU5ErkJggg=="}, {"name": "Pelipper", "item": "Sitrus Berry", "ability": "Drizzle", "moves": ["Weather Ball", "Hurricane", "Tailwind", "Wide Guard"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAQEBCLQTHNQVLFezH2tDH/3kr//6z////N1e6k5v97ze5apM1zc4MxYovieTafAAAAAXRSTlMAQObYZgAAAj5JREFUeNrtlAeW4zgMBf3RpE22SNz/uItPBewkP0uGJqo6B1cJULj9S1xcXFxcXKgB4DR9+/ycmqHAOXoyCmyE+4eegUpaQ7B/Wvx1JbiAysJkfie20GszSgFwTgBlBFCsUcL9BLO/o7NCfzAQYQDAPMYtGrnfpfRCQgPuN6SOCXqoPxEZ/pznc1CDAmlw38iSrDCDCP3j4fLFnzMgMQXTL/7szD9BJCAgMCST9Vuv5YjCAGR8k9hwJNX3ZzC2Dq+kj62RUpb6ZkFk286slw8Cwot2FOZENw7cVzk51G9Y+j4CBoxejL7bP7Rk1WKB+i1ADt0Y8qB+XKgCIrxqHQ+QAw9X81H/Y7IHyJGA639xoJ8SyAx0D9SE2+7C84AkU3vh7EA6Eng831BONBP4ABEjeKD2sgRSDgu43wMVOYUHEj9QyhKgP6jgfg9USGQgr7Dg93FYITsZpZwfiC1kvkUFWHjiDy/Q7IWIAIHb3e8wEFDIjhM1Qkd+UhB44GChF+BHBUFrKO8VlK+HNxwBmqFg4HBBJ7WXa2XjCzfMhaYeOFbQaZpUtanR4Jh4DfiOVLUqdvup4AeNZFiXgK4jDDe/bQ26w982v+oSYAFrD+P3KNrYJGBl5wCqPsAAbGD+FvxJt+OYOzi4IIdiZwQOFNT9iqdzg6v0Lb1aGMflC3oGpgMF+NzD/1IBOwrw/wVeOhwv6EsB3fyv7FO98OprYNz86Pct6RaOF9x/TmEMfg6ABfQsu5+2i4uLi4uLX8l/Cd43EaPQnVQAAAAASUVORK5CYII="}, {"name": "Archaludon", "item": "Leftovers", "ability": "Stamina", "moves": ["Flash Cannon", "Dragon Pulse", "Electro Shot", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAVFRUQHToeLFkkPHkpUJhEcshoYoSKhpuppbng4O3/3527eUTJR0d6PT4QKO1VAAAAAXRSTlMAQObYZgAABJVJREFUeNrt1oma5CoIBeAgMaC1vP/jXjAnreWkFu2++/BNOfv5BWpbfte/q+7dr388/0YPv+7rN8C3Ghput58XeK2RYV1Pgeu3gNgAMYJ7zL+MtHXt8ytA8fhND1zp8/yLdIDdOYRXwPUyBlyrEPYJhW3jNwCEQSBswRoIns8iSzjP15TSNLCFaMfGK2eVZ0DOmj4HRCpAbMK2RV5XtphzQLMD8nF+VqnAaoLnB+sghfgM0JRoAEgNsHJkDmvgizqwnuWPAQrgEHi/PzmwMj9pYGRCDwATlwVcrpbPViTTDZwDkbyDlNJNHSDNctLA4ArOgPvtXoAMoWtAlpEVJGnyHVjD7QuAMD+hDlh3gIgCF+BRkNrAHLCtkayi1dGA31k6gL4DoLYClHgINX8A0BbwfAArgAwAwuSEWiAXYc1lQiHnKiAfE5oHTLCjAhD0Ks2E5gHPWv3YAOiRf70K5dEJLQqgbaB0sDoQEC8omplQD5Qt20+lAcX096I8OaEWsOwiYEJ6BsgyByA/F+FrBacNzAOWX4QC4DkEQPLMhHoAFWN9DrUAFjYDiBU/NsDB4sVqvgG1KvkiKed+BaFEppydIOSPT0hTSQdggikdkGxKpFYyNiEMVSwBQHZhdaO+T+wGGpCJFUsG0LwPrVsLKPJHATSQCyAiBchrBuD5ZUcA8BqbA0RUDSgLLgcADzSj5AMYzk8l3oDgDZQtYwUAkqg2TyEZB0SthEL9rDkm5HbJzCfA9X0+mvZ8oiU0n5YAQLT5SQn5F/msgVTyF8+PbOnsROAKLPIAIB/ABw24QDvAN47+iNsDUPMngSRpB24O2GFAl38KvBQkp6+t2YP2BgA8TKjm94C+BFI8BbZyAED+A/AVqprlZQMx4b13fQKox1p++qUBOUYsrxowQNMLwAQt+TF1gGR5CaCByAxAftnBihmV/IhtARCxYHkDEKM8fwcW2oFyAij5FZDysDPnJA5gI2dAFQwoMzKgZFeAkb8vCwD5oZqSWDyA18QZcAPAXgCOZXm+J0sC8JIIZLHtjABgRriE7GkAVBEP4SXh8S1AEGgH1AQYnl+AJv6Dz+dg6Wz1NSMqgJ2BITSA2tHcXl0I4TXAddly+XVGSQnLEjRQb19+BKY3LRwELTsAAUBJMqMCze01BeS/J8jyRdrnkaUXQMvwfVsA6u018Pt87BqvfMzIzjszZmT5KAWgmD7yPysAzHS3bL7faQe8AbYCQIlw+73xZQyA4ICfwQGr9pkEIAVG/jhwv3t2ObBmByAAOPY2Digh2xgALhBBKEDA9cfzAfQt+N/BMADxtMwBiZgAEADF35HVMS/EzwGhXbML0n4oE64/DSTq1twDiJ/KBxAAQOgAxM8Dibo1S34Alm8CfQs9kOi7+b3wwwDWSFWgFtCfAVSVUBbXAjIBID+1gJc84vWbEU0BKaYKQDgBSL8PCP8wgHwD0ACRA3I6ImIIE4AJxyuJrLr9fBNIsQXOx1eBcYGIDoBoeQ3MtADDAMT3+Q1ALDSTD+PFfgAsA/Fj+6kL+uEiKwAj+eOIAaPTGd/Q7/rn1x+MD2QnZDsM9QAAAABJRU5ErkJggg=="}, {"name": "Basculegion", "item": "Choice Scarf", "ability": "Adaptability", "moves": ["Wave Crash", "Aqua Jet", "Last Respects", "Flip Turn"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAIj76UH43jFnGNVIQEBB5GjLm5uakpKQiYD1BUlJiYmIgMTn+p8hjPikVQCKYDWH3AAAAAXRSTlMAQObYZgAAA0hJREFUeNrtloeimzAMRZHvFbg05f8/t7KQYh5dDl2Lk73OwY7emG5ubm5ubm5u/j34k/3r/IWC6o8MrJ/6RVS/P2P+eWZUzoGWEE4d+Z7AeRUU5xiQB17OrMtsWGW1uzwvAe4/BSIzvgDDKsu6eED1uAS+bSKuXw0YquoBFVHPZGHSSKJ7r/jNZQlagLE79AD2V8z/sJ0RuRhQcbQH/IbN72gE7DLJxQDgU+nq6BDQ/bmHWuAhjwc9MgxnZ9kHRsXJJVDhAVExNR76cPelQCtkQBvYl4T9K4D4wT/s8uIQMfxewK6Xzl6Aovl1ovkHeA76+8a6WsALfREdGKoALMDBgEJD/i4Bnjo9+QMlm3vUH/K0p6uUEtMUdP00ipr/s/ayQ/8m8Dag0zAKdP3JLj0g+vSrB1RHA6lPO6BaHBGxSzn8QKDBqHDIf9DHxJuQJQqlBSiNltlh3HBg9/Wsh0j6O/RXEg3/0O53fR4lKRnokN0Pciigart/1AMtoM0W2xMoGT9cKSa/HTDVtPvzd0ypsABRTqjXBQro08uRgPtVxQw+NrVkQORTfwRSy2/6fXq0ySUT1W4pOATEA6ro/kHi8GP64r+dqv7I1RnR3B6yXRaOB8JfUJtlTwglCmL0HSJYq+mNdSyRC2ApW5OAhBjEOQARgM2/BBz1W8D8swU8RFLgGfQtqorGwU9y1A+yVJk39UCDdpMB1xva/S9uEARVKIuKCuouLIdADUj3j+sjAKkmEfiYsDibB9DtgN9sjM0fZat5vBsFbwIQcWkGQv+a3wMBTQipWxbxvmHazJDLy34r5JZ7QVi2WEAV91nC2Ux/xR9LIKNAl2+lVgi4RMLtyTq9xMymnxdu2dncXwFU185zU67rtQVMnMgPH2a70MwtkH4LtMJsrJG44HdM/qGx7YHw74PvgUxcDFjBGg7T73pzcU68cM3vCa4ZyKlx1blwKcC1bdLcClsEyJyWDGThSsDdbZB8iEIf/lPhGqy0AGtxTL8u58D3F1iefnv8uQAb1/zKJgfCb6zpz8Jq7ssowBYQS4SHbwNr2C/7wRr/dWpKjwFO3wUJndgQQ/vo/jjA3SlCcvoJpJUyrL9eurm5ubm5ufmlfATfaCf9iOvmnQAAAABJRU5ErkJggg=="}, {"name": "Venusaur", "item": "Focus Sash", "ability": "Chlorophyll", "moves": ["Sludge Bomb", "Earth Power", "Sleep Powder", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACDMQD/vb3/e3PevSneQUG9ajEQEBD/7lIQUkFanDkQe2qD3nta1cUgtJz////Qs62tAAAAAXRSTlMAQObYZgAABKBJREFUeNrtlAFvozgYROOmZjJxgP//b+/7xgxJlULJ9lbSSnk92ADmPWxLd/onePPmzZsS7N/+pf3j4+O8yIqOfv8c/DoiTQQki8vPokP3zR8nrFGg1hAPn5+fOuJ3ref8+1XCX1lDXwd8PoK4pfKS+KX/46MOlyysx6UGEaiaoAqv+4s5KxAFrMelrCjwekFvinOVZ7gM5RLiPIZLLpE3P1Hg1e114FyT4SIGHQpUBRJV/mT5vYtVk7jcAaJg+fItShz1+2V/nYpu9EsEXwLHE6VWvWP7l9aQ19auDS9mORjobwB4tKmIUr/eAe5X8QiH/EHqT9L3mHWl9Pk5EKzbUfMPBwMV+WPxOID0O2Gc6IWKl/x1DUhTDFwwOOn/HMub+6BmAktIgUc/8sA3hVONQDkyBWiUApqDDShAwYBs4KQHjsfF8kY5HLC/+v0UDxiGAV4kB4J1zpH+GUCj5V/OyG4pQ6doCt4djXABp0PAW+BZKIBQyz88BCTXL+i9o9jfgaIFRfKhAFry1FYVPhLZfxEoy+frjBOXXQoUKK8FgFrvEZBEqg3Jqx/3ALQ+ryWIdOdxDdqyBblMvF5J9gI8yddgcM1ZOEAiVz8PfX+wBEocAPma/io8CxnJNA+D2rzPgIAGk0cjBJbxauSVgqroZu8XJHYvQw5+vscb3ZPZaWO3b/84D+J2Jb9o6PPd+9j7OoNbsFeIAddrDLm7vCo3h/gc8Djpc1W3/dJfH7DW/pvr8EPjxwmw6dcMgnyZ3/gTNAqN4EOmv3bbXiYJEgovkP039rfBsQPE0JDi5nYAMNjcAP2HaQzI5sqNXZAJdv00sQF5K4sp1m8v0K7/BqowatfsV8Lx0LM0NMByF8T3BYCLH9UFDWeX64w2TeEna81A4inoRMq/AQHqsQvaufzrkOmfwl/qPYCgeR5oJE57ABmqZ97XSH6dwi9aK6UHjAIkW+PpR9gaKr1C/n46oEIkmgKGAJrgAX9Dn4DsjtB+J1wwhj/7G8eERPd7gRxwIouvBjjJP6kAywkFbF4TWEpGwd0C8wX7uS4+G+RvYzdPBjrT396fcs+fcGyhbz0ABfpy5G2rnwvyu7Dvn5gmFTDliZq9AvGQfCrAAbEfYDhGjtIB8S/QHvyM5+0pkIV7lnt+BeZC+UTXLwGWMs8OaEtdWP1tP8BRgY+4WAJ3W/o/HgPtIeB7Iydu+x2Yz98EcuXm8zyPDtABF6jjx4AKI5/8KRzl3wqM/HkLYOv4FPCiPPubC20nQI+z2f4NyLYGRi6B/Qm0bsOhwKJfrJxcaG17Bp470Lb9TT7SehNjvUabgRXMLjzZ29xCP4980kdA+obTfoBZ4NSe9WmnPl5+N1MvkPU2z9wvjL0wN9d89soIgN0/2q/AnIGtgjUyAyR14WWX3cDj2+LPMzDPEN8HussQrakhLBc20MuftAicuOEW1AK6ELME1BDPdhfGNbDptn8NNAUSKGI8++eA2AvYNbuCrw+2VpbH/SICaMjz6Rik3E2nA+MB+HwMzi3Vc8sTT/87nLs6/2nzXygAaIAC3qS/AjDb/fcSp3+aN2/evHnzHxDriT4zBlC+AAAAAElFTkSuQmCC"}]}, "them": {"id": "MB763", "mons": [{"name": "Charizard", "item": "Charizardite Y", "ability": "Blaze", "moves": ["Heat Wave", "Weather Ball", "Solar Beam", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAADugynNUkEIQVIAAACDMRju3nsgc5TutFrmQRD/1RD////2pBDNzc1iYmKaYTFhAAAAAXRSTlMAQObYZgAABAFJREFUeNrt1+limzAcA3BbSFsoYe//uAOZPwGPEYc236LdR/Wr7NIjffLJJy3p393f+8cbAef9wlsP6f524eu9I/r+/jV/T2FIP9YtGei/ptxjhG63nxKiqr/PwgYAfqYfBpYJ61UTOcuCnG8AOZf+r74MWAjmKZCUnSuEJPdnlQO6lwHzjzJhn5dPzNXzTzDwNWfuj2tgFGsOTLxgSDmyXrEXzEpaAZJdifDSjKU+AE8w4Rnr/1naf8/pOuTb7Ybmfk5BALHBK1aAa30Qk6C2/q6ECCCeNA/YAu4OAjmj6fi7CH3JBjzhHvU1EMJzQNn9Ee4n9E+BrGcA3F8BJvSl6A/gwgQhukPQZpzeAVTCOdA9OyMBXZUdAK3/0UAldJ7QOqAGzEOBXQJigLQBsrYApAKgOwLiv58DAhhQPaEQ3Bzltt8Tzvu3QDkHgJUA6RLARz9Y+sHCVQKjvwbOz4joHDe6PzP+zFUQGP210MWEFiC5P3UOAKUlZN7214AnnAMEQMVHy1pgLgf3uxa6CMDzOyCkjOwBi8ApC6DSvxPcnxJD4OljRneXfgNkfHwslxz9D8H9U9gG5Mjc6PYlIB+A+8n4fXJ4DlhgfkQkkTeJN6BYMGtkACGcAszbCFPynlgAlwooi9QIJOZ9YGEXLkA59UWAXgBwu+Us1EAtJIco2Qrg036MekwQuWc4xf2V0ALITeAwBCD56dWDsE39Vzg/IkA5/+awtpXPg6FV2P6LoxBYAKBurTdImmeIco0Awcm7SNoLUgGYzqLoIYmCrcl1JNYTCLR93gv2XoOqvwpqgWBrf99zAXRQL7EGyj23DSD7AvA//XOZ5Fe6ntDUnxIXQAaqdqm8uqwBNXzd5NkBMCX3/5qzM9xGFEGI8BSg38oxLABVKNcfEcQeMPpUAP1xQD2HLB/Dr00OgOjPAZzG7RI0SMox4FCglAOYpxeBz4RlMF2RNgMqQcwO6Kuz0AgIFqZoM6AWiAXAIrUvIHePfvRWAgHRgEJoBRIBUAIYAw4njMTSGf2tQFJ5iqorrgXIVxEAnFsbQA6KR+8YcARIHBn1MaCNKP0BHAriqCwy6mNAc+TpRwAWggSEq/3JNbodAhGAj/4A2vsN/CtEfxF0rd/AsXDTBogJ2f0XgSlr+ZQacPvr/W4pQh1hC4C36L8GgDXAfwEyXQXcUAPYAa5/OXIJHNbAKmCK668Am5A1YKJ+/3BdkDaEROzCbwNaPpy6XZ7wXeD405253SEr4Fp40KCStBEy03cFnun5uvBn5CidCu4HL/YPf8Zx+n4GuP8qQA7j/H3K6Q1hYLoq0D+OQwKjMA4YGoSLC4dh/jHdVXpPODBxHLzyPSH945NPPjnPXxQGM5oAXhO3AAAAAElFTkSuQmCC"}, {"name": "Garchomp", "item": "Life Orb", "ability": "Rough Skin", "moves": ["Earthquake", "Stomping Tantrum", "Dragon Claw", "Protect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKVJBQYtaYqx7e81ze4O9c3u9OUHmSjHFlBD/1RjFzdX///9qOVpaEACJGffCAAAAAXRSTlMAQObYZgAAA+VJREFUeNrt2OGOsjoYBOC+MyOrbrvc/92elokAalgE98/5nI0GzTJPX5pAYvrkn8snn5D82/7T6fRm4nq9omYEasR39n/XXCUaoaQqIL0rdL3TEPjoXQLlAcZwACjF0Wa2RcLAXBBA6iDgvSQAqe6BnoQHBXorKakBHDqHRIQE6CAA0rWoIwhqxd8RJJBSBEkDRwRAElIVyKH/Gh4hmYh0VKgBkYLLuDgO9lsAidSEqCkwgPSuACTh1cZEPL/4dPgqMS43flpI6glASs7u8br88/X1VS6Q7gS6/SDQlaG/v1yWAAA5Rwfoa/1PvlzOZxKIWz2do/0eoLT+/nwbAQDvgrR/gJ+f/tLW33sEt78PSP3F9bX/rJbgIkbTgfRDzi2XoW0huPxoar0B1ZDA8toAXfcWoF4rORExCgRKKUcIUr0BC84kSKWl218vA0shYuxXOSDwdJJ0GYT+MhNQ4gZAhwBJtbZ3/ySUCkQQzQLyLqFtHGTAmQm5RJQBAEnkXUDpnvVbyBmlhPsHIZfc/b7kDgsg46G/78/jECNgYQ1wX42AG9a+yN6Asd53jX4cQnK9JPwGuF+nE+CP6Fq/WudCIFkNtcCAj2Fgrb9OKRPDZ8j9fUQsAcK7P+sXEn4bIGfUqAVAKXkAIlJN3AMW5H4DztoASCBBtcD96pMTd4AFvAC0/ga0PHnS9g9AwmtA60+85eEk8SZwEpCw+ak89IOcE5GeATLgbAe6NAIawgWAClxbKiDNhY2AA9c74X6H4rdzbTZB7AM0Jsb7h/uvI0DVjAJf6E/QE6BEojyABapQwkEgvPoGlJA8gQGpWHgDUKIBuQH6doQGZI6d3AO436t3v2RBBkiX3gFkWg8fgKwhlAUNQGbh2ErNLLwGwP0GmiADZCl8BKgXAWgMufhFoQJ5FCAfUNuB+35RvB0YyAMJTAAHPW0QngMWKGGayAKGfsjOdgCahyMCagpaPMBBANOylwANeK70e7gAwIXgYCGQDQA8wCuAn59edURAY3APDH/ORiGShRZE2KMc0uulhQbwhsZLgAUsb+a0Cm8JRAAE4bWkDeEEWIhJmKVxIGcA3P86MAnBeQDCFDEw3AYkA87d4BF3ggH4cCuAGYAan/eMgJkW8iVhAh73LkbD5YTP0XYgxQQsR5gMx/5412bs+/3uUVj6DbDwMgA3MNZ8A7sEgM7qBOOAfBEAVLPW3yoXlx7bgS4XOWtbJyf2/NJVupIllrW5uR9IEaWUXJ3MWFmGlKVcdo2Qc9feIlb/qc1Zyr4R2itWF+EZsQ/YNiX8+jMAqZVH/isAKUVpb+kPE+l/nk8++eQ/Des0+HhvbhEAAAAASUVORK5CYII="}, {"name": "Incineroar", "item": "Expert Belt", "ability": "Intimidate", "moves": ["Fake Out", "Parting Shot", "Darkest Lariat", "Flare Blitz"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAXFhUBAQFZCwNEQTrxNSElIyGqFxD/7gYctFT+/v5cYWOHlZpLQUf/cQEaNs1QAAAAAXRSTlMAQObYZgAABERJREFUeNrtmdtym1AQBNmZ3R0HsP7/c5Nz08WUAiLKm9rlQq5auuFg4EHThw8fPrwbw3QH8W6vuePOH+8LJHqgFdj8gbf5M9H8tUBhIuO9ASu4k56UwIh3BcDJ0iwiPJ0Bl8Q3+ieIlkXvXv0eRf/vAZJ9K6X7ze8Rj34710FEbSCo5iQDoU3AHNMp2KREkB7hjMDXfQDW/GcDiIqECAar/yvCdfU7xp1xvqACuvHXry+G9y7q2pjXwEmgBhFU4AsloKonSXNHD/xjgV9wwgts+rIpbjT/aYCWMDOvmMegHry1gOFsIBOgilbVP1t0sJh3YInzgaRk7nRPM5tnNT2Wa8AyEy/cveTUMKsFSrTCvJYfRRBYqr9F7aifZIQY0QtIMyQkqi6MChGKwNICaZREGo7euAyJwdtD2hIAJMaAjFYwT1MPHw6IEmfeXYG6wPr+ZgNYV7IHTFHRsTUiqaLHDHKcQuX7e13XZa0sZUsUfzIq7nmkwAiRKn4o2jyav6ubvnM7AfdDBUZBWGdglfq4Ff9QNv3A3Jq/khKOPDo1A8A8o1cxAlvgdvMfuNIIkdI6Q0AftYB1/xakDX9U9gtBAoDGpHkE/hZQC0RnPyBREjH8JVD8zwtZ/UcLPQAb/seA7wTcE9NuQUKmtUArPAm0Qubwl2mS3Hu9kJm1wNgJLMtSCyp6kk5GhHYKzIJkxnaHShh+93t9BTCTNB6ScaDQ/FKaRfsM3wbclw6gptY6r+1UdgsqVPd9wQuj5MsAE7jOEYF5niOOrJIeAyn4T5Y7/zRxrgGg+Auc9gojMAqLu2eh6x8DmCMgSWBbJmG/UMV9CyxL3rj3f9d5AKpwnmcdeP3gFlAC04Qia/ZHqomhTiuR3C3kCKCNogVG4VrCeBGKHI364VCh628FbdZJIwCgq7lG7AcmoPgfk7po6Du6aMJ6+78BwHleW2A/8TAkpC6t0OXFXwOPk6SK/2V0QQtUd5FLlxrAzqEdDujyVQrF3Y4+Ln/Ycb3gL4FSKOp29O8PtIIuQ87y+7ZAoQQ6fw8YXvQzpOLfFCj8dE+TmYPkS/4/6CEQ1wAf/W7mnogIvuaPegr9EkhksZOCyPtAevdLOOxvqNA29U9SBeg+Ye6ZCRXwgn+LBlVGs+bPiplJwst+kj/sI6AiJZlXzIRX/MOLgrQpZGF8GIkz/qmAxwCqdltI7PrNPW4M/7aA3AYATEcCvvFvCpgm4Bo4ah/+a0Jln2eFkuj+BqajgcFVvy10GzqZOFpApnfK/JPCTxsShWOBQvc/KWTlwQdMR8FfVxR5Q5jOAKkHdgrS6ULjWQHd/38CI6FKnizs7ow+cjZw4L7BGMLpAo4MJYTTgUNT+s8BnQmQ8Qdhd4yUXi6w6vcLY+zVAKOg3cDQt7njsO7C2A9UuU4EGCHtBxDVHa8GEOwnIGBvsE9iegVcOTz4+ar3w4dn/Ab180pwLQf8DgAAAABJRU5ErkJggg=="}, {"name": "Farigiraf", "item": "Sitrus Berry", "ability": "Armor Tail", "moves": ["Psyshock", "Trick Room", "Helping Hand", "Protect"], "img": "data:image/png;base64,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"}, {"name": "Sylveon", "item": "Fairy Feather", "ability": "Pixilate", "moves": ["Hyper Voice", "Yawn", "Quick Attack", "Detect"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAACKKEMjWpn6jKpkyPMQEBBSj8zYWnqJXHL/9fXZw8PxiniojYxn8J9sAAAAAXRSTlMAQObYZgAAAmpJREFUeNrtlVliwyAMBS2UFwnF9z9vHyJ2s/2B/5ju20xFbGVbLBaLxWIxCRG+K6Vc5leVUm43XBeg/lr/nf7rjkjsfmeBXFQw1SwAl/lb4Sr95rUygJ9+I+N+ojDDD7sSmRHA/StAe0em+DPwoZ8WoP8zINP8G2qNr4Boo5RhPwH9Vt4DknpW1dI/tgj9PeC+yVNfVJ7+oUUIBowBHA+JND0xNVV0/YC/FcQKA8dD7odfu19yjYwsQsCsZEAy0I+H9O/lohpahCIsmJDmD+96M3Q/YQAYejqjXgkDwfcJjeeiGlyEogdd56qc5OknOqD/uG89wqB6Bug/UiPI8z8nAFohUusvfhkr1FJq0xJrgVoD7vHi16ExnHdSpZ+dEgHjGyJe/AzIUOBeb5Wwcy9hoJ6kHud1gJHArQf44cYRqIIzcOrpHwo41e8BArJtswIEUVvnHhn4gAEbDPCt8xkYH6AXwv2RkfkDkHY8/ng83gLurzc6tiHgtT4e0fw7nno2D7+ZjAUoA5re3XHod8BPvxkGA1WApg10PYsZpD8ZnqCqSB4RM/khaiO86+kfLKiK9kOKpu/+LDW2URDaaL40Rj2hfByn16QFzi13Epjgr+EAlLJTP3OEvOIRO4DUXxEAA0m9INBvWXz4Y9/jKMwK7Ayc9jywOQEwAIB6fxp93x2tEVOuI2o8IhBnAcCGnQDNH+OFYAF7K5xnkgV2EOOBw3IE4iWwzQgQkDNA3RnIgmGbwVege5G7elLBWkCfAZsfMBNN/5UB/RigfzIHvPnl4gHIS2nqAB9kaQ6AGgNXAlzoXywWi8Vi8QcC6iNLXYTIxAAAAABJRU5ErkJggg=="}, {"name": "Aerodactyl", "item": "Aerodactylite", "ability": "Unnerve", "moves": ["Rock Slide", "Dual Wingbeat", "Tailwind", "Wide Guard"], "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAACUg6SsrNVzUpQAAABSQXOUYs0xGGrNzeaDIEHmi5zNOUqsg97Nzc3///8xcyl8rC/7AAAAAXRSTlMAQObYZgAAAxdJREFUeNrtltFu4jAQRX2He4lTSvv/f7sZe9gEVwSD+7Ar5bwhWed4bINIBwcHBwcH/waA1Ls0eMmOnLM6l1rwZL20tT/xK1ZXOyYuTPt+5szkyBYAyHkwuHI2esYMJE/n85npCTSLAgnYSjSagIFlK4v9tOdHoZwPYbrFFBNE6GcCImmG0J8fHY9yAcqZhIwpIAHPSZFobyCb+yf37wV8KWmZGQZlbQYVGSt+DFHtJuOeP/A1IiVAOe65oR2CfsMyg9wfgd2CQwH0p/G4oM0AgAB2+KPgEKD7OwpUBM49gekUEMbUUXAI96+BroLkhr6Cuv3bAs20HzBtA+eXA3g6AuoC+hPqDqwFPQ7wFmB84jsB2rMC8EbAC50BoBZk7R2Pn5HWgMfaKxg/Iy+gwNdPKAr774gImPRewKFBzwKgmbn/9cD5vHNGwg2VK/h8ObAsnQjgZwGohXUATqfPz9cu2fW3n+3WX/9hcB0APE2e6A+E3uFaIJOjNVD98rWR6CpMoW8KNMYA2VgDcQFObXiiIxD6phABLX4Ta6C+0CASTwvTwtoQdfu+roEFScWPjT4SnQ8pKjKKAFWfrITshWgY2OgLqZclUQ6BZbMG+v7/Bu4PKMyv4gV4gSWw9ZtsHeAddxQEQGLd8tYPmHFQ70jKCiMY/giA1Z9GEKpTAmA02wTCzxE/LTvUFbgrIAKD/sTq/75+ocCb/rcC5WLBb5WAwGoPpsUPDt6wbZSEcMc0DQQk3/1WL6AtgO/7s7PqxZkuRMO7AVnRK+TkPJeAfi/gMPZeYUm1Cb0XoDkuoxR+AVQzhJnS+4XbDnWZ58uFANO9XmZDhXrGHnBUWtCaoI0EErUJfHx8CPQAIiGyHNHIN41k8V/d/+UBocCFRBTohTH04QibQPsHdQhdSoD1CrZCUoKjscDs/i8Wr5odc3wEXUvgqqqh9LsB2mVezmimRQDaCjUaIK/zwpcUAUHanrkgjhRo9ABpgMJI3Y3ApKGAccHC75CJq5BgGhzBWQMtxHBBuz/LUeDQQyL3BCLTwcHBwcHBwf/AH8rTHrYEVKitAAAAAElFTkSuQmCC"}]}, "items": {"item-charizarditey": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAJFBMVEX///8xMTHeKRD/tQD/1gDenHPvzsXvvTr////OGQDeY0Lexb2tu88UAAAAAXRSTlMAQObYZgAAAFBJREFUeNoty4UNwEAMxdAGj/bft19WLHyBj0x9BDwyzEbVnbmqZLQ3xkNZlOp0n1RaQxUYXjx8VX6U+HjWnnVJrMvF0BJrcBxhDTwMkdngBxhzAsdHYP+iAAAAAElFTkSuQmCC", "item-lightclay": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQCAMAAAAhxq8pAAAAFVBMVEX///8xMTGMvVK95ntrhELe98X////fWHzaAAAAAXRSTlMAQObYZgAAAGZJREFUeNo0zcENAFEIAtEvqP2XvGHizvEF46O6Hh3JSY0SNBO9MTYp3H3jsmd3QUloNUsMBXkCSZbdxbWFUL6xlBS8C/BI0I88iti7wzn3TOiMKZtdW+ogKidJKiwaTv0NKoQ16ADUFgLFGcSVKgAAAABJRU5ErkJggg==", "item-sitrusberry": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAMAAAC3SZ14AAAAHlBMVEX///8xMTFShEpr1lr/72vmtUKMczrWtUrv1lqtczFwlDxKAAAAAXRSTlMAQObYZgAAAHVJREFUeNpdzgcOhEAMQ1HSmftfeGP97aY/ORHXT8yuf3DHiJmFR2BAZqr1poWqtQhkKw1tD1qYJDktM73KSs+BNENuEZspqtQiKiXobpkhNJnUoIhr5oiIaEvsvxHGoJ7FAo5kbcg5w0/IGlkyCbWWAsTIEx60/gRxVpqwvQAAAABJRU5ErkJggg==", "item-leftovers": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUCAMAAACK2/weAAAAJFBMVEX///8xMTF7lCGcjFLmUlL3Y2N7Skq1Wlr/jGv////O5q3v/9YM7kBCAAAAAXRSTlMAQObYZgAAAHNJREFUeNp90EUCAyAMRFGmUZL737eR2qoffUs4r4DzEx4foiICsGJhEJgZK7Wi6VjdRTth1uZ1qbhVQY0r01ZFoWYWNKiQEYEX1n9IRXoDlBkZhNXNiHImhh5xs6YvzW8x3IZGJu4udb6ebsxsvx+gitET220DqTjn/04AAAAASUVORK5CYII=", "item-choicescarf": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAJ1BMVEX///9Cc2tKUlpKnN5Srfd7xe8xc5yEvf9jtd6c3v8xMTHO7/86jL1ojbCRAAAAAXRSTlMAQObYZgAAALZJREFUeNpVzVFuwDAIg+E5NlCa3v+8s1CndH78gv78fAZgeTgySEWQ+PewUlUXmaoijnaJVyaWVOtoiMxkBMD7T2uyWdXNBfNoKS7rLnUk16stXZfVHE++jelaa28xMmJ4qYNMd3eTVoyq3CVivkvJjVF302Fz5KMaxj1D7FJba/idj83u7t0Ymd3cW+y2xve4zOXNj+fYPCjie2ze7cVp4O6qHjzqRLc8kcRR0HfkFyfxDjj4C9phB3VoPkQHAAAAAElFTkSuQmCC", "item-focussash": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAWCAMAAAD3n0w0AAAAG1BMVEX///8xMTFaWlrec0r/hIT/pVK9MTHvUlL/5lIjIEyuAAAAAXRSTlMAQObYZgAAAHhJREFUeNpdzkESAyAIQ1E+inj/EzftkEX9yzejJAIy3liLcJnwIGzFD2uQcxjMqsqxA909ii2M1L05Nqi49yL62ulOD0H5X+KvfC2Btpn2boVNsRWQoXyoW+RHhZGw3Ss12tSsM9qU5yVVtlEoBeFAvNYymdVDTx/VvAMNiA4zDwAAAABJRU5ErkJggg==", "item-lifeorb": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGFBMVEX///8xMTHetffmQub3vff////FMc7/c3NbByJoAAAAAXRSTlMAQObYZgAAAFJJREFUeNp9j8UBACEQxNDZ/ju+IZxbfgm6CTIkQAtsyVrBaXrrrUoaKRN67wJCLnXsiPAmtjhU1ZAoM1hk4ic8j+h06VoA5xmUjz2+/hzuMf4CgSUC14Hio6EAAAAASUVORK5CYII=", "item-expertbelt": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAD1BMVEX///9KQkoxMTGEe4RjWmNFjH2LAAAAAXRSTlMAQObYZgAAAH9JREFUeNp1z0cCAyAUAtHPwP2vnKKSntn57KMZ5keMNE2Cw5iDYHuPsMJRCcd7r5LoqMAJdapDfJg4OjokYepmvwElen0W9HzKTd8qIFv1gnaSsLQT2DagdVFVjqEbQzlmqsav/6y6OihUY3cJ2S6Ss7YuIEpYWkcrig2g+Lcr+okB71Z7pnsAAAAASUVORK5CYII=", "item-fairyfeather": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAIVBMVEUAAAAxMTH2pM33gbv3uLiVg433np729va7tLjMfIOvdYl0gbpdAAAAAXRSTlMAQObYZgAAAGNJREFUeNptyEESxCAIBEBZBcf9/4PD1ByIVPrYozHq80vv1FRmDJuz3fI8rlK3fEpdxArd3rsyQnMfABZ0So47dEoet04Jz+VVOpi4M9wPcOWJOIlX6Yfsvr/RaDc607X8uAe3rgNXLwpUlgAAAABJRU5ErkJggg==", "item-aerodactylite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAJ1BMVEX///8xMTGlUu9aQoRCQkK1pdbWve+lpa17c4z///+UQt6thPfW1v87GzjMAAAAAXRSTlMAQObYZgAAAFBJREFUeNoty4cNwAAIA8FQU/efN+aFVY8XBzPtYMAjw2xVfWZeVba67zWEYxvV0/2kpgy1wPBdw6/Kx+LHM125pMn0CEWsw+MI6+BhiJktfifPAvCXCNdgAAAAAElFTkSuQmCC"}, "targets": {"heatwave": "allAdjacentFoes", "weatherball": "normal", "solarbeam": "normal", "protect": "self", "spiritbreak": "normal", "reflect": "allySide", "lightscreen": "allySide", "partingshot": "normal", "hurricane": "any", "tailwind": "allySide", "wideguard": "allySide", "flashcannon": "normal", "dragonpulse": "any", "electroshot": "normal", "wavecrash": "normal", "aquajet": "normal", "lastrespects": "normal", "flipturn": "normal", "sludgebomb": "normal", "earthpower": "normal", "sleeppowder": "normal", "earthquake": "allAdjacent", "stompingtantrum": "normal", "dragonclaw": "normal", "fakeout": "normal", "darkestlariat": "normal", "flareblitz": "normal", "psyshock": "normal", "trickroom": "all", "helpinghand": "adjacentAlly", "hypervoice": "allAdjacentFoes", "yawn": "normal", "quickattack": "normal", "detect": "self", "rockslide": "allAdjacentFoes", "dualwingbeat": "normal"}};
+const $q = (s, r = document) => r.querySelector(s);
+const $qa = (s, r = document) => [...r.querySelectorAll(s)];
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const M = (side, n) => D[side].mons.find(m => m.name === n);
+const LEADS = {them:["Incineroar","Farigiraf"], you:["Pelipper","Archaludon"]};
+const ORDERS = {Incineroar:"Fake Out → Pelipper", Farigiraf:"Trick Room", Pelipper:"Hurricane → Farigiraf", Archaludon:"Electro Shot → Incineroar"};
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let sheet = "closed", cur = 0;
+
+/* timers owned by the scene on screen, cancelled together */
+const T = { list: [],
+  every(ms, fn){ fn(); if (reduce) return; const h = setInterval(fn, ms); this.list.push(() => clearInterval(h)); },
+  later(ms, fn){ const h = setTimeout(fn, reduce ? 0 : ms); this.list.push(() => clearTimeout(h)); },
+  tween(node, to, ms = 900, fmt = v => Math.round(v).toLocaleString("en-US")){
+    if (reduce) { node.textContent = fmt(to); node.dataset.v = to; return; }
+    const from = +node.dataset.v || 0, t0 = performance.now(); let id;
+    const step = now => { const k = Math.min(1, (now - t0) / ms), v = from + (to - from) * (1 - Math.pow(1 - k, 3)); node.textContent = fmt(v); node.dataset.v = v; if (k < 1) id = requestAnimationFrame(step); };
+    id = requestAnimationFrame(step); this.list.push(() => cancelAnimationFrame(id)); },
+  clear(){ this.list.forEach(f => f()); this.list = []; } };
+function setOrder(n, text, cls){ const e = $q(`#ord-${n}`); if (!e) return; e.className = "ord" + (cls ? " " + cls : ""); e.textContent = text; }
+const SIDE = {you: "your team", them: "their team"};
+const sub = t => `<p class="sub">${t}</p>`;
+
+/* ---------- data: orders per Pokémon, from the real sets and Showdown's move targets */
+const TG = D.targets, tcount = t => ({normal:3, any:3, adjacentFoe:2, adjacentAllyOrSelf:2}[t] ?? 1);
+const mkey = n => n.toLowerCase().replace(/[^a-z0-9]/g, "");
+const optionsOf = mon => mon.moves.reduce((a, mv) => a + tcount(TG[mkey(mv)]), 0) + 2;
+
+/* ================= the nine scenes, written fresh ================= */
+const SCENES = [
+ { short:"Zero-sum", term:["Two-player, zero-sum game", "Two decision-makers, and whatever one wins the other loses."],
+   ex:"Each player commands two Pokémon on the field but still counts as one player. A battle ends with one winner.",
+   mount(b){
+     b.innerHTML = `<svg class="seesaw" viewBox="0 0 560 230" role="img" aria-label="A seesaw: whatever one side gains, the other loses">
+       <path class="ful" d="M262 172 L298 172 L280 130 Z"/><rect class="ful" x="236" y="172" width="88" height="8" rx="4"/>
+       <g class="beam" style="transform-origin:280px 128px"><rect x="64" y="122" width="432" height="12" rx="6"/></g>
+       <g class="pan L"><line x1="0" y1="0" x2="0" y2="30"/><rect x="-62" y="30" width="124" height="38" rx="12"/><text x="0" y="55" text-anchor="middle"></text></g>
+       <g class="pan R"><line x1="0" y1="0" x2="0" y2="30"/><rect x="-62" y="30" width="124" height="38" rx="12"/><text x="0" y="55" text-anchor="middle"></text></g></svg>` +
+       sub("Whatever one side's chance of winning, the other side has the rest. The split moves as the battle goes; the total never does. (The moving numbers are an illustration.)");
+     const beam = $q(".beam", b), L = $q(".pan.L", b), R = $q(".pan.R", b), r = 216, seq = [50, 58, 44, 63, 50]; let i = 0;
+     const set = p => { const a = -(p - 50) * 0.5, rad = a * Math.PI / 180;
+       beam.style.transform = `rotate(${a}deg)`;
+       L.style.transform = `translate(${280 - r * Math.cos(rad)}px,${128 - r * Math.sin(rad)}px)`; R.style.transform = `translate(${280 + r * Math.cos(rad)}px,${128 + r * Math.sin(rad)}px)`;
+       $q("text", L).textContent = `you ${p}%`; $q("text", R).textContent = `them ${100 - p}%`; };
+     set(50); T.later(500, () => T.every(1500, () => set(seq[i++ % seq.length]))); } },
+ { short:"Simultaneous moves", term:["Simultaneous moves", "Each turn, both players choose without seeing the other's choice."],
+   ex:"Your orders for Pelipper and Archaludon are sealed before theirs for Incineroar and Farigiraf are revealed.",
+   mount(b){
+     const all = [...LEADS.them.map(n => ["t", n]), ...LEADS.you.map(n => ["y", n])];
+     b.innerHTML = `<div class="flips">${all.map(([s, n]) => `<div class="fc ${s}" data-n="${n}"><div class="fi"><div class="ff front"><i class="seal"></i><span>${n}</span></div><div class="ff back"><b>${n}</b><span>${ORDERS[n]}</span></div></div></div>`).join("")}</div><div class="state mono">Choosing…</div>` +
+       sub("Each of the four Pokémon on the field gets an order. Nothing happens until both players have locked in, and neither sees the other's orders first.");
+     const cards = $qa(".fc", b), st = $q(".state", b);
+     const cycle = () => { cards.forEach(c => c.classList.remove("flip", "locked", "think")); st.textContent = "Choosing…"; all.forEach(([, n]) => setOrder(n, "choosing…"));
+       cards.forEach(c => c.classList.add("think"));
+       T.later(1100, () => { cards.forEach(c => { c.classList.remove("think"); c.classList.add("locked"); }); st.textContent = "Both locked in"; all.forEach(([, n]) => setOrder(n, "locked", "on")); });
+       T.later(2200, () => { cards.forEach((c, k) => setTimeout(() => c.classList.add("flip"), reduce ? 0 : 90 * k)); st.textContent = "Revealed together"; all.forEach(([, n]) => setOrder(n, ORDERS[n], "set")); }); };
+     T.every(6800, cycle); } },
+ { short:"How many options", term:["Finite, combinatorial action set", "There are only finitely many choices each turn, and one turn's choice is a combination of smaller choices."],
+   ex:"Your turn is Pelipper's order combined with Archaludon's order, each a move with its target or a switch.",
+   mount(b){
+     const P = optionsOf(M("you", "Pelipper")), A = optionsOf(M("you", "Archaludon")), I = optionsOf(M("them", "Incineroar")), F = optionsOf(M("them", "Farigiraf"));
+     const you = P * A - 2, them = I * F - 2;
+     b.innerHTML = `<div class="count"><div><div class="mx" style="grid-template-columns:repeat(${A},13px)" aria-label="${P} by ${A} grid of order pairs">${Array.from({length: P * A}, (_, k) => { const r = Math.floor(k / A), c = k % A; return `<i class="${(r === P - 2 && c === A - 2) || (r === P - 1 && c === A - 1) ? "x" : ""}"></i>`; }).join("")}</div>
+       <p class="sub" style="margin-top:8px;text-align:center">Pelipper's ${P} orders down, Archaludon's ${A} across</p></div>
+       <div class="calc"><div><small>your orders per turn</small><b class="n-you">0</b> <span>${P} × ${A} − 2</span></div><div><small>theirs</small><b class="n-them">0</b> <span>${I} × ${F} − 2</span></div><div class="big"><small>one turn, both sides</small><b class="n-all">0</b> <span>pairs</span></div></div></div>` +
+       sub("A move aimed at one Pokémon can target either opponent or your own partner, so it counts three times. Your two Pokémon can't both switch into the same back Pokémon, hence the −2 (the two hollow cells).");
+     const cells = $qa(".mx i", b);
+     for (let r = 0; r < P; r++) T.later(36 * r, () => cells.slice(r * A, r * A + A).forEach(c => c.classList.add("on")));
+     T.later(200, () => { T.tween($q(".n-you", b), you, 1000); T.tween($q(".n-them", b), them, 1000); T.tween($q(".n-all", b), you * them, 1400); }); } },
+ { short:"Masked moves", term:["State-dependent action sets", "Which choices are legal changes with the situation. Learning agents handle this with action masking."],
+   ex:"Choice items lock a move; Taunt blocks status moves; a fainted Pokémon forces a switch; Mega Evolution is once per battle.",
+   mount(b){
+     const bm = M("you", "Basculegion"), lock = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7V5a4 4 0 1 1 8 0v2h1v8H3V7h1zm2 0h4V5a2 2 0 1 0-4 0v2z"/></svg>`;
+     b.innerHTML = `<div class="legal"><b>4</b>legal moves · Basculegion holds a Choice Scarf</div><div class="keys">${bm.moves.map(m => `<div class="key">${lock}<span>${m}</span></div>`).join("")}</div><button type="button" class="swbtn">Switch out</button>` +
+       sub(`Before it moves, all four moves are legal. After it uses ${bm.moves[0]}, the other three are masked until it switches out. Click a move, or Switch out, to try it.`);
+     const keys = $qa(".key", b), cnt = $q(".legal b", b), sw = $q(".swbtn", b);
+     const reset = () => { keys.forEach(k => k.className = "key"); cnt.textContent = "4"; sw.style.opacity = .4; };
+     const use = i => { reset(); keys[i].classList.add("used"); keys.forEach((k, j) => { if (j !== i) setTimeout(() => k.classList.add("masked"), reduce ? 0 : 90 * j); }); cnt.textContent = "1"; sw.style.opacity = 1; };
+     keys.forEach((k, i) => k.addEventListener("click", () => { T.clear(); use(i); }));
+     sw.addEventListener("click", () => { T.clear(); reset(); });
+     if (reduce) { use(0); return; }
+     const run = () => { reset(); T.later(900, () => use(0));
+       T.later(3300, () => { sw.animate && sw.animate([{transform:"scale(1)"},{transform:"scale(.94)"},{transform:"scale(1)"}], {duration: 260, easing: "cubic-bezier(0.23,1,0.32,1)"}); });
+       T.later(3700, reset); };
+     T.every(5600, run); } },
+ { short:"Chance", term:["Stochastic game (chance moves)", "Some outcomes are decided by chance after the players choose."],
+   ex:"The same orders can produce different turns: a lower damage roll, a critical hit, a Hurricane that misses outside rain.",
+   mount(b){
+     const ticks = (n, r1, r2) => Array.from({length: n}, (_, i) => { const a = i / n * 2 * Math.PI - Math.PI / 2; return `<line class="tk" x1="${60 + r1 * Math.cos(a)}" y1="${60 + r1 * Math.sin(a)}" x2="${60 + r2 * Math.cos(a)}" y2="${60 + r2 * Math.sin(a)}"/>`; }).join("");
+     const C = 2 * Math.PI * 44;
+     b.innerHTML = `<div class="rings">
+       <div class="ringbox"><h4>Damage roll</h4><svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><g class="d">${ticks(16, 44, 56)}</g><text x="60" y="67" class="rv">100%</text></svg><p>16 equally likely values, 85% to 100%</p></div>
+       <div class="ringbox"><h4>Critical hit</h4><svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><g class="c">${ticks(24, 44, 56)}</g><text x="60" y="67">1 in 24</text></svg><p>one slot in the ring is a critical hit</p></div>
+       <div class="ringbox"><h4>Hurricane accuracy</h4><svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="back" cx="60" cy="60" r="44"/><circle class="arc" cx="60" cy="60" r="44" stroke-dasharray="${C}" stroke-dashoffset="${C * .3}" transform="rotate(-90 60 60)"/><text x="60" y="67" class="av">70%</text></svg><p class="aw">no weather</p></div></div>` +
+       sub('Think of these as moves by a third player, "nature", who rolls dice after both players choose.');
+     const d = $qa(".d .tk", b), c = $qa(".c .tk", b), rv = $q(".rv", b), arc = $q(".arc", b), av = $q(".av", b), aw = $q(".aw", b);
+     if (reduce) { rv.textContent = "85–100%"; c[0].classList.add("crit"); return; }
+     let last = 0; T.every(170, () => { d[last]?.classList.remove("hot"); last = Math.floor(Math.random() * 16); d[last].classList.add("hot"); rv.textContent = (85 + Math.floor(Math.random() * 16)) + "%"; });
+     let lc = 0; T.every(240, () => { c[lc]?.classList.remove("crit"); lc = Math.floor(Math.random() * 24); c[lc].classList.add("crit"); });
+     const W = [["no weather", 70, "var(--rain)"], ["rain (Pelipper's Drizzle)", 100, "var(--rain)"], ["sun (Charizard-Y's Drought)", 50, "var(--sun)"]]; let w = 0;
+     T.every(1900, () => { const [s, a, col] = W[w++ % 3]; arc.style.strokeDashoffset = C * (1 - a / 100); arc.style.stroke = col; av.textContent = a + "%"; aw.textContent = s; }); } },
+ { short:"Many rounds", term:["Multi-stage (dynamic) game", "The game runs over many rounds, and each round's result changes the next."],
+   ex:"If rain, Trick Room and Tailwind all start on turn 1, they end on different turns, and each turn's options depend on which are still running.",
+   mount(b){
+     const rows = [["Rain", 5, "var(--rain)"], ["Trick Room", 5, "var(--tr)"], ["Tailwind", 4, "var(--sun)"]];
+     b.innerHTML = `<div class="tracks"><span></span>${[1, 2, 3, 4, 5].map(t => `<span class="h">turn ${t}</span>`).join("")}${rows.map(([l, n, c]) => `<span class="l">${l}</span>${[1, 2, 3, 4, 5].map(t => `<span class="seg5 ${t <= n ? "full" : "none"}" style="--c:${c}" data-t="${t}" data-n="${n}"></span>`).join("")}`).join("")}</div><div class="mono now-line" style="font-size:13px;color:var(--muted)"></div>` +
+       sub("Each turn starts from where the last one ended. Weather, Trick Room and Tailwind all run on counters that the players can plan around.");
+     const segs = $qa(".seg5", b), line = $q(".now-line", b); let t = 0;
+     T.every(1100, () => { t = t % 5 + 1; let running = 0;
+       segs.forEach(s => { const st = +s.dataset.t, n = +s.dataset.n; s.classList.remove("now", "used", "full"); if (st > n) { s.classList.add("none"); return; } s.classList.remove("none"); s.classList.add(st < t ? "used" : "full"); if (st === t) { s.classList.add("now"); running++; } });
+       line.textContent = `turn ${t}: ${running} of the 3 effects still running`; }); } },
+ { short:"Hidden information", term:() => ["Partially observable, with private information", "You can't see the whole state, and each side knows things the other doesn't."],
+   ex:"Hidden choices, hidden sets, hidden numbers: you decide from what you can see and what you can infer.",
+   mount(b){
+     const closed = sheet === "closed";
+     const rows = [["Farigiraf's HP", "63% of a bar", "an exact number of hit points", 1], ["Farigiraf's item", closed ? "" : "Sitrus Berry", "Sitrus Berry", !closed],
+       ["Farigiraf's moves", closed ? "Trick Room, once used" : "Psyshock, Trick Room, Helping Hand, Protect", "Psyshock, Trick Room, Helping Hand, Protect", 1],
+       ["Its stat spread", "", "set by the opponent", 0], ["Their two in the back", "2 of Charizard, Garchomp, Sylveon, Aerodactyl: 6 possibilities", "known only to them", 1], ["Your own four", "everything", "everything", 1]];
+     b.innerHTML = `<div class="redtab"><span></span><span class="hd">what you see</span><span class="hd tv">what is true</span>${rows.map(([k, a, t, vis]) => `<span class="k">${k}</span><span class="cell ${vis ? "open" : "hid"}"><span class="cov"></span>${vis ? a : '<span class="q">hidden</span>'}</span><span class="tv">${t}</span>`).join("")}</div>` +
+       sub(closed ? "Closed sheet: much of the opponent's side is hidden, and your own sets are private information they don't have." : "Open sheet: items, abilities and moves are shown, but exact hit points, stat spreads and which two are in the back stay hidden.");
+     const cells = $qa(".cell", b); cells.forEach(c => { if (c.classList.contains("open")) c.classList.remove("open"); });
+     cells.forEach((c, i) => { if (rows[i][3]) T.later(250 + 140 * i, () => c.classList.add("open")); }); } },
+ { short:"Perfect recall", term:["Perfect recall", "Players remember everything that happened earlier in the game."],
+   ex:"Once Incineroar has used Fake Out, you know it has Fake Out for the rest of the battle.",
+   mount(b){
+     const L = [["Start: Pelipper's <b>Drizzle</b> makes it rain. Incineroar's <b>Intimidate</b> lowers your leads' Attack.", "Intimidate"], ["Incineroar uses <b>Fake Out</b> on Pelipper (it moves first). Pelipper flinches.", "Fake Out"],
+       ["Archaludon uses <b>Electro Shot</b> on Incineroar: in rain it fires at once, and raises Archaludon's Special Attack.", null], ["Farigiraf uses <b>Trick Room</b> (it moves last). For five turns, slower Pokémon move first.", "Trick Room"]];
+     b.innerHTML = `<div class="recall"><ul class="tape">${L.map(([x]) => `<li>${x}</li>`).join("")}</ul><div class="known"><h4>Known about them</h4><div class="kchips">${["Intimidate", "Fake Out", "Trick Room"].map(k => `<span class="kc" data-k="${k}">${k}</span>`).join("")}</div></div></div>` + sub("Every revealed move, item and ability stays in the battle log. Nothing seen is forgotten.");
+     const li = $qa(".tape li", b);
+     L.forEach(([, k], i) => T.later(700 * i + 200, () => { li[i].classList.add("in"); if (k) $q(`.kc[data-k="${k}"]`, b).classList.add("in"); }));
+     setOrder("Pelipper", "flinched", "set"); setOrder("Archaludon", "Electro Shot → Incineroar", "set"); setOrder("Incineroar", "Fake Out → Pelipper", "set"); setOrder("Farigiraf", "Trick Room", "set"); } },
+ { short:"Matching pennies", term:["Matching pennies and mixed strategies", "A choice where you want to match the opponent and they want to mismatch you. No fixed choice is safe, so you randomise."],
+   ex:"Protect against attack: if you always Protect they aim elsewhere; if you never Protect they aim at you.",
+   mount(b){
+     const N = [["Protect", "they aim at Archaludon", "+", "pos", 60, 40], ["Protect", "they aim at Pelipper", "−", "neg", 200, 40], ["Attack", "they aim at Pelipper", "+", "pos", 200, 150], ["Attack", "they aim at Archaludon", "−", "neg", 60, 150]];
+     const say = ["You Protect; they hit the wall.", "So they aim at Pelipper instead.", "So you attack instead of Protecting.", "So they aim at Archaludon again. The loop never settles."];
+     b.innerHTML = `<div class="chase"><svg viewBox="0 0 270 200" role="img" aria-label="Four states in a loop: each best response undoes the last"><defs><marker id="ah" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="var(--faint)"/></marker></defs>
+       <path class="arr" d="M104 40 H156" marker-end="url(#ah)"/><path class="arr" d="M200 66 V124" marker-end="url(#ah)"/><path class="arr" d="M156 150 H104" marker-end="url(#ah)"/><path class="arr" d="M60 124 V66" marker-end="url(#ah)"/>
+       ${N.map(([a, t, s, c, x, y]) => `<g class="nd ${c}" transform="translate(${x},${y})"><rect x="-44" y="-26" width="88" height="52" rx="12"/><text y="-8">${a}</text><text class="sg" y="14">${s}</text><text y="-26" dy="-5" style="display:none">${t}</text></g>`).join("")}
+       <circle class="tok" r="7" cx="0" cy="0" style="transform:translate(60px,12px)"/></svg>
+       <div><div class="say">${say[0]}</div><p class="mix">The stable answer is to mix: Protect about half the time, at random. Gold plus is good for you; violet minus is good for them.</p></div></div>`;
+     const nodes = $qa(".nd", b), tok = $q(".tok", b), s = $q(".say", b); let i = 0;
+     T.every(1500, () => { const k = i++ % 4, [, , , , x, y] = N[k]; nodes.forEach((n, j) => n.classList.toggle("on", j === k));
+       tok.style.transform = `translate(${x}px,${y - 28}px)`; s.textContent = say[k]; }); } },
+];
+const termOf = i => typeof SCENES[i].term === "function" ? SCENES[i].term() : SCENES[i].term;
+
+/* ---------- the court */
+const slug = item => "item-" + item.toLowerCase().replace(/[^a-z0-9]/g, "");
+const leadCard = (side, n) => `<div class="lead"><span class="disc"><img src="${M(side, n).img}" alt=""></span><span class="nm">${n}</span><span class="hp"><i></i></span><span class="ord" id="ord-${n}"></span></div>`;
+const benchHTML = side => D[side].mons.map(m => { const hide = side === "them" && sheet === "closed", lead = LEADS[side].includes(m.name);
+  return `<span class="bc${lead ? " on" : ""}" title="${m.name}${hide ? "" : " · " + m.item}"><img class="bs" src="${m.img}" alt="${m.name}"><span class="bi">${hide ? "?" : `<img src="${D.items[slug(m.item)]}" alt="${m.item}">`}</span></span>`; }).join("");
+let courts = [];
+function renderCourts(){ courts.forEach(h => { h.innerHTML =
+  `<div class="lane them"><div class="lane-h"><span class="tag">Opponent's team (${D.them.id})</span><div class="bench">${benchHTML("them")}</div></div><div class="leads">${LEADS.them.map(n => leadCard("them", n)).join("")}</div></div><div class="net"></div>` +
+  `<div class="lane you"><div class="leads">${LEADS.you.map(n => leadCard("you", n)).join("")}</div><div class="lane-h"><span class="tag">Your team (${D.you.id})</span><div class="bench">${benchHTML("you")}</div></div></div>`; }); }
+
+/* ---------- show one scene in whichever layout is mounted */
+let sceneHost = null, onShow = null;
+function show(i){
+  T.clear(); cur = i; if (!sceneHost) return;
+  sceneHost.innerHTML = ""; const s = el("div", "scene"); sceneHost.append(s);
+  [...LEADS.them, ...LEADS.you].forEach(n => setOrder(n, ""));
+  SCENES[i].mount(s); if (onShow) onShow(i);
+}
+const captionHTML = i => { const t = termOf(i); return `<div class="term"><small>${i + 1} / ${SCENES.length}</small>${t[0]}</div><p class="def">${t[1]}</p><p class="ex">${SCENES[i].ex}</p>`; };
+for (const [id, v] of [["sh-closed", "closed"], ["sh-open", "open"]]) $q("#" + id).addEventListener("click", () => {
+  sheet = v; $q("#sh-closed").setAttribute("aria-pressed", v === "closed"); $q("#sh-open").setAttribute("aria-pressed", v === "open"); renderCourts(); show(cur); });
+
+/* ---------- chart: orders per turn, from the real files */
+const SRC = "code/data/moves.json";
+function leadPairs(side){ const ms = D[side].mons, out = [];
+  for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) out.push({a: ms[i].name, b: ms[j].name, n: optionsOf(ms[i]) * optionsOf(ms[j]) - 2, ex: LEADS[side].includes(ms[i].name) && LEADS[side].includes(ms[j].name)});
+  return out.sort((x, y) => y.n - x.n); }
+function chartFig(kind, host, title, letter){
+  const fig = el("figure", "chartfig"); fig.append(el("h4", "", title));
+  const W = Math.max(300, Math.min(640, (host.clientWidth || innerWidth - 32) - 32)); let svg = "", rows = "", H = 0, head = [];
+  if (kind === "mons") { const all = ["you", "them"].flatMap(s => D[s].mons.map(m => ({s, name: m.name, n: optionsOf(m)}))); const pitch = 26, L = 104, R = 44, max = 30; H = all.length * pitch + 36; const x = v => L + (W - L - R) * v / max;
+    svg = all.map((d, i) => { const y = 8 + i * pitch, fill = d.s === "you" ? "var(--you)" : "var(--them)"; return `<text x="${L - 8}" y="${y + 13}" text-anchor="end" class="k">${d.name}</text><path d="M${L},${y} h${x(d.n) - L - 4} a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-${x(d.n) - L - 4} z" fill="${fill}"/><text x="${x(d.n) + 6}" y="${y + 13}" class="k">${d.n}</text>`; }).join("") + `<text x="${L}" y="${H - 6}">gold: your team (${D.you.id}) · violet: their team (${D.them.id})</text>`;
+    rows = all.map(d => `<tr><td>${d.name} (${SIDE[d.s]})</td><td>${d.n}</td></tr>`).join(""); head = ["Pokémon (team)", "Orders per turn"];
+  } else if (kind === "pairs") { const p = leadPairs("you"); H = 190; const L = 36, R = 8, T0 = 22, B = 30, max = Math.max(...p.map(d => d.n)), bw = (W - L - R) / p.length, y = v => H - B - (H - B - T0) * v / max;
+    svg = `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--rule)"/>` + [0, max].map(v => `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join("") +
+      p.map((d, i) => `<rect x="${L + i * bw + 2}" y="${y(d.n)}" width="${bw - 4}" height="${H - B - y(d.n)}" rx="3" fill="${d.ex ? "var(--you)" : "var(--faint)"}"><title>${d.a} + ${d.b}: ${d.n}</title></rect>` + (d.ex ? `<text x="${L + i * bw + bw / 2}" y="${y(d.n) - 6}" text-anchor="middle" class="k">${d.a} + ${d.b} · ${d.n}</text>` : "")).join("") +
+      `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">the 15 possible lead pairs of your team (${D.you.id}), most to fewest orders</text>`;
+    rows = p.map(d => `<tr><td>${d.a} + ${d.b}</td><td>${d.n}</td></tr>`).join(""); head = ["Lead pair", "Orders per turn"];
+  } else { const rd = [["you", leadPairs("you")], ["them", leadPairs("them")]]; H = 150; const L = 74, R = 14, lo = 40, hi = 330, x = v => L + (W - L - R) * (v - lo) / (hi - lo);
+    svg = `<line x1="${L}" x2="${W - R}" y1="${H - 36}" y2="${H - 36}" stroke="var(--rule)"/>` + [50, 100, 150, 200, 250, 300].map(v => `<text x="${x(v)}" y="${H - 18}" text-anchor="middle">${v}</text>`).join("") +
+      rd.map(([s, p], r) => { const y = 34 + r * 44, fill = s === "you" ? "var(--you)" : "var(--them)", med = p[Math.floor(p.length / 2)].n;
+        return `<text x="${L - 8}" y="${y + 4}" text-anchor="end" class="k">${SIDE[s]}</text><line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="var(--rule)"/>` +
+          p.map(d => `<circle cx="${x(d.n)}" cy="${y}" r="${d.ex ? 7 : 5}" fill="${fill}" opacity="${d.ex ? 1 : .55}" stroke="var(--surface)" stroke-width="2"><title>${d.a} + ${d.b}: ${d.n}</title></circle>`).join("") +
+          `<line x1="${x(med)}" x2="${x(med)}" y1="${y - 13}" y2="${y + 13}" stroke="var(--ink)" stroke-width="1.5"/><text x="${x(med)}" y="${y - 17}" text-anchor="middle">median ${med}</text>`; }).join("") +
+      `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle">orders in one turn for each possible lead pair</text>`;
+    rows = rd.flatMap(([s, p]) => p.map(d => `<tr><td>${SIDE[s]} · ${d.a} + ${d.b}</td><td>${d.n}</td></tr>`)).join(""); head = ["Team · lead pair", "Orders per turn"]; }
+  fig.insertAdjacentHTML("beforeend", `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}">${svg}</svg><details><summary>Table view</summary><table><thead><tr><th>${head[0]}</th><th>${head[1]}</th></tr></thead><tbody>${rows}</tbody></table></details>`);
+  fig.append(el("figcaption", "", `<b>Chart ${letter}.</b> Each move counts once per legal target, plus two switches; a pair of Pokémon shares one fewer switch pair (−2). Sources: <code>${SRC}</code> (Pokémon Showdown move targets) and the two teams' sets embedded in <code>battle-game/turn-one.html</code>. Your team is ${D.you.id}; their team is ${D.them.id}. No battle results are used here.`));
+  return fig; }
+
+/* ================= layout A: the text scrolls, the court stays */
+const VA = {
+  mount(host){
+    host.innerHTML = `<div class="scrolly"><div class="stick"><div class="court" data-court></div><div class="scenebox"></div></div><div class="steps"></div></div>`;
+    courts = [$q("[data-court]", host)]; sceneHost = $q(".scenebox", host); onShow = i => $qa(".step", host).forEach((s, k) => s.classList.toggle("on", k === i));
+    const steps = $q(".steps", host);
+    SCENES.forEach((s, i) => { const t = termOf(i), a = el("article", "step", `<span class="sn">${String(i + 1).padStart(2, "0")} / ${SCENES.length}</span><h3>${t[0]}</h3><p class="def">${t[1]}</p><p class="ex">${s.ex}</p>`); a.dataset.i = i; a.addEventListener("click", () => show(i)); steps.append(a); });
+    this.io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && +e.target.dataset.i !== cur) show(+e.target.dataset.i); }), {rootMargin: "-42% 0px -50% 0px"});
+    $qa(".step", host).forEach(n => this.io.observe(n));
+    host.append(chartFig("mons", host, "How many orders each Pokémon can give", "A")); renderCourts(); show(0); },
+  unmount(){ this.io && this.io.disconnect(); }
+};
+/* ================= layout B: all nine on one board */
+const PHASES = [["What you know", [6, 7, 5]], ["What you can do", [1, 2, 3]], ["What happens", [8, 4, 0]]], ORDER_B = PHASES.flatMap(p => p[1]);
+const VB = {
+  playing: false, timer: null,
+  mount(host){
+    host.innerHTML = `<div class="board"></div><div class="focus"><div class="court" data-court></div><div><div class="scenebox"></div><div class="cap" aria-live="polite"></div></div></div>`;
+    const board = $q(".board", host); this.cards = {};
+    PHASES.forEach(([label, ids]) => { const row = el("div", "brow", `<span class="rl">${label}</span>`);
+      ids.forEach(i => { const t = termOf(i), b = el("button", "card", `<span class="cn">${String(i + 1).padStart(2, "0")}</span><span class="ct">${SCENES[i].short}</span><span class="cd">${t[1]}</span><span class="prog"></span>`);
+        b.type = "button"; b.addEventListener("click", () => { this.stop(); show(i); }); this.cards[i] = b; row.append(b); }); board.append(row); });
+    this.playBtn = el("button", "", "Play the turn"); this.playBtn.type = "button"; this.playBtn.addEventListener("click", () => this.playing ? this.stop() : this.play());
+    const bar = el("div"); bar.style.cssText = "display:flex;gap:10px;align-items:center;flex-wrap:wrap"; bar.append(this.playBtn, el("span", "note", "Plays the nine properties in order: what you know, what you can do, what happens.")); board.after(bar);
+    courts = [$q("[data-court]", host)]; sceneHost = $q(".scenebox", host); const cap = $q(".cap", host);
+    onShow = i => { cap.innerHTML = captionHTML(i); Object.entries(this.cards).forEach(([k, b]) => b.setAttribute("aria-pressed", String(+k === i))); };
+    host.append(chartFig("pairs", host, "How many orders a turn can have, by lead pair", "B")); renderCourts(); { const q = new URLSearchParams(location.search).get("scene"); show(q != null ? +q : ORDER_B[0]); } },
+  play(){ this.playing = true; this.playBtn.textContent = "Pause"; let k = Math.max(0, ORDER_B.indexOf(cur));
+    const go = () => { if (!this.playing) return; const i = ORDER_B[k]; show(i); Object.values(this.cards).forEach(b => b.classList.remove("playing")); const c = this.cards[i]; void c.offsetWidth; c.classList.add("playing");
+      k++; if (k >= ORDER_B.length) { this.timer = setTimeout(() => this.stop(), reduce ? 400 : 4200); return; } this.timer = setTimeout(go, 4200); }; go(); },
+  stop(){ this.playing = false; clearTimeout(this.timer); if (this.playBtn) this.playBtn.textContent = "Play the turn"; Object.values(this.cards || {}).forEach(b => b.classList.remove("playing")); },
+  unmount(){ this.stop(); }
+};
+/* ================= layout C: the properties sit where they happen in a turn */
+const PH = [["Read the board", [6, 7, 5]], ["Lock in orders", [1, 2, 3, 8]], ["Dice roll", [4]], ["Score", [0]]], phaseOf = i => PH.findIndex(p => p[1].includes(i)), ORDER_C = PH.flatMap(p => p[1]);
+const VC = {
+  playing: false, timer: null,
+  mount(host){
+    host.innerHTML = `<div class="loop"><ol class="rail"></ol><div class="token" aria-hidden="true"></div></div><div class="loopgrid"><div class="court" data-court></div><div><div class="scenebox"></div><div class="cap" aria-live="polite"></div></div></div>`;
+    const rail = $q(".rail", host); this.nodes = []; this.chips = {};
+    PH.forEach(([name, ids], k) => { const li = el("li", "node", `<span class="dn">${k + 1}</span><div><b>${name}</b><div class="pchips"></div></div>`);
+      ids.forEach(i => { const b = el("button", "pchip", SCENES[i].short); b.type = "button"; b.addEventListener("click", () => { this.stop(); show(i); }); this.chips[i] = b; $q(".pchips", li).append(b); }); rail.append(li); this.nodes.push(li); });
+    this.token = $q(".token", host); this.loop = $q(".loop", host); this.lastK = -1;
+    this.playBtn = el("button", "", "Play a turn"); this.playBtn.type = "button"; this.playBtn.addEventListener("click", () => this.playing ? this.stop() : this.play());
+    const bar = el("div"); bar.style.cssText = "display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"; bar.append(this.playBtn, el("span", "note", "A token walks the four moments of a turn and stops at each property.")); this.loop.after(bar);
+    courts = [$q("[data-court]", host)]; sceneHost = $q(".scenebox", host); const cap = $q(".cap", host);
+    onShow = i => { cap.innerHTML = captionHTML(i); const k = phaseOf(i); this.nodes.forEach((n, j) => n.classList.toggle("on", j === k)); Object.entries(this.chips).forEach(([c, b]) => b.setAttribute("aria-pressed", String(+c === i))); this.moveToken(k); };
+    this.ro = new ResizeObserver(() => this.moveToken(phaseOf(cur), true)); this.ro.observe(this.loop);
+    host.append(chartFig("dots", host, "The spread of orders per turn, you against them", "C")); renderCourts(); show(ORDER_C[0]); },
+  moveToken(k, instant){ if (!this.nodes[k]) return; if (this.lastK === k && !instant) return; this.lastK = k;
+    const a = this.loop.getBoundingClientRect(), b = $q(".dn", this.nodes[k]).getBoundingClientRect();
+    this.token.style.transition = instant || reduce ? "none" : ""; this.token.style.transform = `translate(${b.left - a.left}px,${b.top - a.top}px)`;
+    if (!instant && !reduce) { this.token.classList.remove("arrive"); void this.token.offsetWidth; setTimeout(() => this.token.classList.add("arrive"), 650); } },
+  play(){ this.playing = true; this.playBtn.textContent = "Pause"; let k = Math.max(0, ORDER_C.indexOf(cur));
+    const go = () => { if (!this.playing) return; show(ORDER_C[k]); k++; if (k >= ORDER_C.length) { this.timer = setTimeout(() => this.stop(), reduce ? 400 : 4200); return; } this.timer = setTimeout(go, 4200); }; go(); },
+  stop(){ this.playing = false; clearTimeout(this.timer); if (this.playBtn) this.playBtn.textContent = "Play a turn"; },
+  unmount(){ this.stop(); this.ro && this.ro.disconnect(); }
+};
+
+/* ---------- layout switcher */
+const VARIANTS = {A: VA, B: VB, C: VC}; let activeV = null;
+function mountVariant(v){
+  v = VARIANTS[v] ? v : "A"; T.clear(); if (activeV) VARIANTS[activeV].unmount && VARIANTS[activeV].unmount();
+  sceneHost = null; onShow = null; cur = 0; activeV = v; const stage = $q("#stage"); stage.innerHTML = ""; VARIANTS[v].mount(stage);
+  $qa(".switcher button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+}
+$qa(".switcher button").forEach(b => b.addEventListener("click", () => mountVariant(b.dataset.v)));
+mountVariant(location.hash ? location.hash.slice(1, 2) : (new URLSearchParams(location.search).get("variant") || "A"));
+</script>
+</body></html>
