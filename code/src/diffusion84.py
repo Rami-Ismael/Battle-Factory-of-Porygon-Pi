@@ -26,6 +26,7 @@ import asked_vs_got as X
 import diffusion as D
 import lossdown as L
 import stat_points as SP
+from label_noise import noisy_labels
 import team84 as T
 from encode import NF, NSLOT
 from hps_generate import slot_to_text
@@ -183,12 +184,14 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, passes=2, seed=0, batch=256, lr=4e-4, wd=0.01,  # noqa: C901
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every pass (common random numbers). patience=P: stop after P
         passes with no new lowest validation loss and keep the best pass's weights; passes is then the cap, and
-        the learning-rate schedule is sized to it. on_best(model, pass_number) runs at every new lowest."""
+        the learning-rate schedule is sized to it. on_best(model, pass_number) runs at every new lowest.
+        label_noise=W: each batch's labels get fresh uniform noise in [-W, +W]; validation labels stay exact.
+        stop_after=N: end after N passes while keeping the schedule sized to passes, so a shorter run matches a stopped one."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         X84 = np.asarray(rows, dtype=np.int64)
@@ -204,12 +207,14 @@ class Model84:
         lr_at = lambda s: lr * min(1.0, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(s, steps) / steps))
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=passes, patience=patience,
                     lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
+        info.update(label_noise=label_noise, stop_after=stop_after)
+        noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
         best, best_pass, best_sd, step = math.inf, 0, None, 0
         for p in range(passes):
             net.train(); run = 0.0; nb = 0
             for b in torch.randperm(len(x), device=DEV).split(batch):
-                loss = batch_loss(net, tables, x[b], w[b], sw)
+                loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw)
                 for g in opt.param_groups: g["lr"] = lr_at(step)
                 opt.zero_grad(set_to_none=True); loss.backward()
                 nn.utils.clip_grad_norm_(net.parameters(), 1.0); opt.step(); step += 1
@@ -230,6 +235,7 @@ class Model84:
             log.append(entry)
             print("  pass " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
             if patience and p + 1 - best_pass >= patience: break
+            if stop_after and p + 1 >= stop_after: break
         m = avg if avg is not None else net
         if patience and best_sd is not None: m.load_state_dict(best_sd)
         info.update(stopped_pass=len(log), best_pass=best_pass or None, best_val_loss=None if best == math.inf else best,

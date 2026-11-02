@@ -39,7 +39,7 @@ SMOKE = bool(os.environ.get("S84_SMOKE"))
 NET = dict(d=256, nlayer=6, nhead=8)
 RECIPE = dict(batch=256, lr=4e-4, sched=M.SCHED, seed=0)
 NAMES = dict(loop="stat84_same_loop_p80", records="stat84_same_records_p60", mix="stat84_same_teams",
-             all="stat84_all_teams_es3_cap80")
+             all="stat84_all_teams_es3_cap80", all_noise="stat84_all_teams_noise_ep21")
 
 
 def name(arm):
@@ -110,7 +110,11 @@ def main(argv):
         tr = ~d["all_val"]
         train("all", d["all_X"][tr], d["all_W"][tr], (d["all_X"][d["all_val"]], d["all_W"][d["all_val"]]),
               passes=80, patience=3)
-    if arm not in ("same loop", "same records", "same mix", "all", "smoke"):
+    if arm in ("all_noise", "smoke"):                    # same recipe as the run stopped at epoch 21, plus label noise (docs/label-noise-84-fields.md)
+        tr = ~d["all_val"]
+        train("all_noise", d["all_X"][tr], d["all_W"][tr], (d["all_X"][d["all_val"]], d["all_W"][d["all_val"]]),
+              passes=80, patience=3, label_noise=1 / 48, stop_after=21)
+    if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "smoke"):
         sys.exit(__doc__)
 
 
