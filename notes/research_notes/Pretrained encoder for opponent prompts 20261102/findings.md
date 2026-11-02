@@ -9,19 +9,19 @@ tags:
 
 ## Recommendation
 
-**Use UniXcoder-base, frozen, encoding each Pokémon's JSON separately. It ties a plain count of shared species, so this test shows no added value from a pretrained encoder.**
+**Use UniXcoder-base, a frozen encoder trained on code, on each Pokémon's JSON separately. Its score is the highest of the five encoders but only detectably above Qwen2.5-0.5B-Instruct, and it ties a plain count of shared species, so this test shows no added value from a pretrained encoder.**
 
-- **Pick:** UniXcoder-base, one Pokémon at a time. Spearman correlation 0.258, 95% interval [0.173, 0.356]. Its difference from the shared-species count is [-0.062, +0.044].
-- **Runner-up:** BGE-small-en-v1.5, one Pokémon at a time. Spearman correlation 0.225, [0.140, 0.319], at half UniXcoder's output size and 57% of its peak memory.
+- **Pick:** UniXcoder-base, one Pokémon at a time. Spearman correlation 0.258, 95% interval [0.173, 0.356]. UniXcoder minus the shared-species count is [-0.062, +0.044].
+- **Runner-up:** BGE-small-en-v1.5, a small sentence-embedding model, one Pokémon at a time. Spearman correlation 0.225, [0.140, 0.319], at half UniXcoder's output size and 57% of its peak memory. UniXcoder minus BGE-small is [-0.028, +0.094], so choosing BGE-small costs nothing detectable.
 - **Encode per Pokémon.** Every model scored lower on a whole team as one text.
 
-All five encoders read something real, since a random-vector control scores 0.017. None beats counting shared species. The target itself is reliable: two random halves of the row teams agree at 0.91, so most of what predicts matchup similarity is still unread.
+Matchup similarity asks whether two meta teams get beaten by the same teams. It uses row teams, the teams with results against both. Every encoder's interval sits above zero, while a random-vector control's includes zero. None beats counting shared species. The target is stable, because two random halves of the row teams agree at 0.91, so the low scores don't come from noise in the target.
 
 ## Results
 
-Spearman correlation between encoder cosine similarity and matchup similarity, over 1,176 pairs of the 49 top-50 meta teams. Intervals are 95% bootstrap intervals that resample teams, 1,000 times.
+Spearman correlation between encoder cosine similarity and matchup similarity, over 1,176 pairs of the 49 top-50 meta teams. Intervals are 95% percentile bootstrap intervals: 1,000 times, resample the 49 teams and score the pairs among the distinct teams drawn.
 
-| Method | Spearman | 95% interval | Difference from shared species | Seconds per team | Peak memory (MB) |
+| Method | Spearman | 95% interval | Row minus shared species | Seconds per team | Peak memory (MB) |
 |---|---|---|---|---|---|
 | Baseline: shared species count | 0.266 | [0.182, 0.355] | n/a | n/a | n/a |
 | Baseline: shared item, ability, Stat Alignment or move count | 0.259 | [0.171, 0.354] | n/a | n/a | n/a |
@@ -42,7 +42,7 @@ Spearman correlation between encoder cosine similarity and matchup similarity, o
 | Qwen2.5-0.5B-Instruct, JSON whole team | 0.113 | [0.042, 0.199] | [-0.237, -0.066] | 0.829 | 2,086 |
 | Control: random 384-dimension vectors | 0.017 | [-0.052, 0.096] | n/a | n/a | n/a |
 
-Whole-team JSON runs past the input limit of BGE-small and all-MiniLM on every team (longest 692 tokens). Per-Pokémon JSON never truncates on any model (longest 121 tokens). Differences come from paired bootstrap samples. Peak memory is one process's maximum resident memory across all its input forms.
+Whole-team JSON runs past the input limit of BGE-small and all-MiniLM on every team (longest 692 tokens). Per-Pokémon JSON never truncates on any model (longest 121 tokens). Differences are the row's score minus the shared-species score, on the same bootstrap samples. Peak memory is one process's maximum resident memory across all its input forms.
 
 ## Correction to the first version of this file
 
@@ -50,20 +50,20 @@ The first version said every method scored near zero. That came from a bug: the 
 
 ## How the test works
 
-1. **Teams.** The 49 top-50 meta teams, read-only from `~/vgc-data/matchup_regmb.sqlite`. Ranks 51 to 100 were never read.
+1. **Teams.** The 49 top-50 meta teams, read-only from `~/vgc-data/matchup_regmb.sqlite`. No results for ranks 51 to 100 were read: a held-out team has no stored battle in this database under any battle configuration.
 2. **Target.** Battle configuration `policy_id` 1 (behaviour-cloning policy on both sides, `bc_100.zip`), the largest in the database, with 188,114 row teams, each with a result against all 49. Subtract each row team's mean win rate, then correlate two opponents' columns. A win rate is wins ÷ battles. The target is reliable: two random halves of the row teams agree at Spearman 0.91, 0.92 and 0.91 across three splits, computed with each column's mean subtracted.
-3. **Encoders.** Frozen, on CPU with 4 threads, with mean pooling over tokens. Per-Pokémon vectors were averaged into one team vector for the comparison.
+3. **Encoders.** Frozen, on CPU with 4 threads. BGE-small uses CLS-token pooling, as its configuration sets. The other four use mean pooling over tokens. Per-Pokémon vectors were averaged into one team vector for the comparison.
 
 ## What this test cannot show
 
 - **It scores cosine similarity, not cross attention.** A trained attention layer can learn from vectors in ways cosine similarity can't. A tie here doesn't show the encoder is useless in the model.
 - **It's a proxy.** Similar opponents needing similar counters is an assumption this test relies on. It doesn't show that generated teams beat anyone.
 - **Only 49 teams and one battle configuration.** Other configurations and larger team sets weren't tested.
-- **Mean pooling only.** Other pooling might change the order, especially for the language models.
+- **One pooling per model.** Other pooling might change the order, especially for the language models.
 
 ## Sources
 
-| Model | Repository | Commit | Licence | Hidden size | Maximum positions |
+| Model | Repository | Commit | Licence | Output size | Maximum positions |
 |---|---|---|---|---|---|
 | UniXcoder-base | [microsoft/unixcoder-base](https://huggingface.co/microsoft/unixcoder-base) | 5604afdc9 | Apache 2.0 | 768 | 1,026 |
 | BGE-small-en-v1.5 | [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) | 5c38ec7c4 | MIT | 384 | 512 |
