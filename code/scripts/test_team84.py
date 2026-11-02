@@ -122,6 +122,20 @@ class TrainingStoppingAndSaving(unittest.TestCase):
         for k, v in m.net.state_dict().items():
             self.assertTrue(bool((v == best_weights[2][k]).all()), k)
 
+    def test_a_fixed_stop_keeps_the_last_epoch_even_when_an_earlier_one_scored_better(self):
+        from unittest import mock
+        curve = iter([1.0, 2.0, 3.0])
+        saved = {}
+        def on_epoch(model, epoch):
+            saved[epoch] = {k: v.clone() for k, v in model.net.state_dict().items()}
+        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+            m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, passes=6, seed=0, val=(self.val, self.val_w),
+                                         stop_after=3, on_epoch=on_epoch, d=64, nlayer=2, nhead=4)
+        self.assertEqual(sorted(saved), [1, 2, 3])
+        self.assertEqual(m.info["stopped_pass"], 3)
+        for k, v in m.net.state_dict().items():
+            self.assertTrue(bool((v == saved[3][k]).all()), k)
+
     def test_a_saved_model_loads_and_samples_the_same_teams(self):
         import tempfile
         with tempfile.TemporaryDirectory() as d:

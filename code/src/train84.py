@@ -9,6 +9,9 @@
   "Generated, all teams"   all   one network on every kept team, no matchup input: validation loss after every
      pass on the seeded 2%, stop after 3 passes with no new low, keep the best pass, cap 80 passes.
 
+Labelled teams only, label noise: byepoch   to the same stopping rule, one checkpoint per epoch (docs/slope-by-epoch.md)
+                                   ddom_tau01, ddom_tau03   exactly 21 epochs with the DDOM paper's weights (docs/ddom-reweighting-84-fields.md)
+
 Both use the deployed network and recipe: d 256, 6 layers, 8 heads, batch 256, lr 4e-4, exponents 16,4,4,1.5,1 plus
 1 for Stat Points, ask dropout 0.15, EMA 0.999. Data: results/lossdata84.npz (src/lossdata84.py).
 
@@ -83,8 +86,7 @@ def train(arm, rows, labels, val, passes, patience=None, **net_kw):
         net_kw["on_epoch"] = lambda m, epoch: m.save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
     m = M.Model84.train_new(V, corpus, rows, labels, passes=passes, val=val, patience=patience, on_best=on_best,
                             **RECIPE, **NET, **net_kw)
-    m.info.update(ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any())
-    m.info.update(arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
+    m.info.update(ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any(), arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
                   val_rows=len(val[0]), val_share=0.02, val_seed=0)
     m.save(out)
     json.dump(m.info, open(X.RES / f"{name(arm)}.json", "w"), indent=1, default=float)
@@ -129,7 +131,7 @@ def main(argv):
         if arm == "byepoch":
             train(arm, d["all_X"][tr], d["all_W"][tr], val, passes=80, patience=3, label_noise=1 / 48, every_epoch=True)
         else:
-            train(arm, d["all_X"][tr], d["all_W"][tr], val, passes=80, patience=3, label_noise=1 / 48, stop_after=21,
+            train(arm, d["all_X"][tr], d["all_W"][tr], val, passes=80, label_noise=1 / 48, stop_after=21,   # no patience: exactly epoch 21, like its control
                   ddom_tau=dict(ddom_tau01=0.1, ddom_tau03=0.3)[arm])
     if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke"):
         sys.exit(__doc__)

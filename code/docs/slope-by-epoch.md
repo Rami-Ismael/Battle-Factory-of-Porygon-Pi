@@ -2,6 +2,8 @@
 
 Pre-registration, written 2026-11-02 before any run. Map: GitHub issue #102. Code ID: `slope_by_epoch`. Status: **exploratory**, because one training seed cannot separate an epoch effect from training noise.
 
+In these terms, an ask is the win rate the model is told to aim for, got is the win rate its teams then score, and a line-up is a team's six species.
+
 ## Contract
 
 | Row | Value |

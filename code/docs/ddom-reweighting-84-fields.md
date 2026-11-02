@@ -2,6 +2,10 @@
 
 Pre-registration, written 2026-11-02 before any run. Map: GitHub issue #109. Status: **exploratory**, because each arm has one training seed.
 
+In these terms, an ask is the win rate the model is told to aim for, got is the win rate its teams then score, and a line-up is a team's six species.
+
+DDOM is the paper's method, Denoising Diffusion Optimization Models. Its equation 5 gives each win-rate bin a weight: `|B| / (|B| + K) * exp(-(best label - bin middle) / tau)`. Tau sets how fast weight falls away from the best label: a smaller tau favours high labels more strongly.
+
 ## Contract
 
 | Row | Value |
@@ -20,7 +24,7 @@ Pre-registration, written 2026-11-02 before any run. Map: GitHub issue #109. Sta
 
 | Setting | Role | Value |
 | --- | --- | --- |
-| Tau | Scientific | Weights off, 0.1 or 0.3 |
+| Tau | Scientific | No weights, 0.1 or 0.3 |
 | Sampling seed | Nuisance | 1, 2, 3 |
 | Weight formula | Fixed | Equation 5, K = 1% of the teams, 20 equal-width bins over the true labels, weights averaging 1 |
 | Label noise | Fixed | ±1/48, on the condition only. Bins use the true label |
@@ -50,18 +54,18 @@ All arms use label noise ±1/48, seed 0, 23 asks, 3 seeds, 64 teams per seed, 49
 | No weights, 21 epochs | `gen84_noise_byepoch_ep21` |
 | Unlabelled teams included, 21 epochs | `gen84_all_noise_ep21` (existing) |
 
-No weights is epoch 21 of the slope-by-epoch training, so it needs no training of its own. A learning-rate schedule sized to the same cap makes the two runs follow one recipe to epoch 21.
+No weights is epoch 21 of the slope-by-epoch training, so it needs no training of its own. All three follow one recipe to epoch 21, because each schedule is sized to the same cap. The weighted arms use no patience, so each saves exactly epoch 21 and never rolls back to an earlier best. If the slope-by-epoch training stops before epoch 21, the control is missing, its queue stops, and this run does not start.
 
 ## What the weights do
 
-Share of training weight on all 174,348 labelled teams. `code/scripts/test_ddom_weights.py` covers the formula.
+Share of training weight on the 170,785 labelled training teams, before the rule tables drop any. `code/scripts/test_ddom_weights.py` covers the formula.
 
 | Label band | Share of teams | Tau 0.1 | Tau 0.3 |
 | --- | --- | --- | --- |
-| Under 1/4 | 13.01% | 0.35% | 3.86% |
-| 1/4 to 1/2 | 48.22% | 18.01% | 39.97% |
-| 1/2 to 17/24 | 37.92% | 78.63% | 55.36% |
-| 17/24 and above | 0.85% | 3.00% | 0.81% |
+| Under 1/4 | 13.02% | 0.35% | 3.86% |
+| 1/4 to 1/2 | 48.20% | 18.00% | 39.95% |
+| 1/2 to 17/24 | 37.94% | 78.66% | 55.38% |
+| 17/24 and above | 0.85% | 2.99% | 0.81% |
 
 Risk: at tau 0.1, low labels nearly vanish, and an earlier run on an older model found that removing low-scoring teams cost 5 to 11 points, because the condition needs a contrast.
 
@@ -76,11 +80,11 @@ Budget: 216,384 battles per weighted arm, about 46 minutes. Training takes about
 | Probe | Result |
 | --- | --- |
 | Training smoke | Passed 2026-11-02 on 512 labelled teams at tau 0.1: validation loss 2.825. The queue repeats it before each training. |
-| Weight formula | Passed 2026-11-02: reproduces all eight shares above. |
+| Weight formula | Passed 2026-11-02: reproduces the eight shares measured separately on all 174,348 labelled teams. |
 | Ceiling | Passed on asks 1/24 to 17/24: the training teams' 0.715 sits 0.071 above the 21-epoch label-noise model's 0.644. Not measured on all 23 asks. |
 | Round trip, coverage, read teams, controls, separation, condition, copies | Run by the queue on each checkpoint before its battles. A failure stops the queue. |
 | Invariance, repeat | Skipped: the scorer is unchanged, and every battle shuffles slots. |
 
 ## Deviations
 
-None yet.
+Before any training, code review found that patience could stop or roll back a weighted arm before epoch 21. I removed patience from both weighted arms on 2026-11-02, with no result in hand.

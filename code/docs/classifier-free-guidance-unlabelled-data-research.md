@@ -4,9 +4,9 @@ Researched 2026-11-02 from the papers themselves, read through the alphaXiv PDF 
 
 ## What the code does today
 
-- `batch_loss` (`code/src/diffusion84.py:140`) sets the win-rate label to NaN for each row with probability `p_uncond = 0.15`. Rows that have no label already hold NaN (`train_new`, line 188 and 197).
-- `Net84.wvec` (lines 69-72) maps every NaN to the same learned vector `wnull`. Dropped labels and label-less teams therefore take one path.
-- `sample` (lines 293-299) guides in log-probabilities: `guidance * cond + (1 - guidance) * null`. Guidance 2 equals Ho and Salimans' weight w = 1, because their (1 + w) is this code's `guidance`.
+- `batch_loss` in `code/src/diffusion84.py` sets the win-rate label to NaN for each row with probability `p_uncond = 0.15`. Rows that have no label already hold NaN (`train_new`).
+- `Net84.wvec` maps every NaN to the same learned vector `wnull`. Dropped labels and label-less teams therefore take one path.
+- `sample` guides in log-probabilities: `guidance * cond + (1 - guidance) * null`. Guidance 2 equals Ho and Salimans' weight w = 1, because their (1 + w) is this code's `guidance`.
 - Arithmetic from the table: 304,580 teams; 148,196 conditional rows per epoch; 156,384 null-path rows (51.3%), of which 83.3% are label-less teams and 16.7% are dropped labels. A dropout-only table of the 174,348 labelled teams would give the same 148,196 conditional rows and 15% null.
 
 ## 1. What each method trains
