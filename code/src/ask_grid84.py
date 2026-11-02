@@ -44,11 +44,19 @@ MODELS = {
     "gen84_same": dict(checkpoint="stat84_same_teams", reader="Generated, same teams, 80 and 60 epochs",
                        epochs=dict(loop_teams=80, battle_records=60), stopped="fixed epoch counts, as planned"),
 }
+BYEPOCH = "stat84_labelled_noise_byepoch_es3_cap80"
+for _ep in range(1, 81):
+    MODELS[f"gen84_noise_byepoch_ep{_ep:02d}"] = dict(checkpoint=f"{BYEPOCH}/{BYEPOCH}_ep{_ep:02d}", reader=f"Epoch {_ep}, labelled teams, label noise",
+                                                      epochs=dict(labelled_teams=_ep), stopped="one training, a checkpoint per epoch", labelled=True)
+for _t, _r in (("01", "0.1"), ("03", "0.3")):
+    MODELS[f"gen84_ddom_tau{_t}"] = dict(checkpoint=f"stat84_labelled_noise_ddom_tau{_t}_ep21", reader=f"Tau {_r} weights, 21 epochs",
+                                         epochs=dict(labelled_teams=21), stopped="planned stop at epoch 21, to match the control", labelled=True)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 2.0, 64, 96, 1280, 7300, 1
 ASK_NUMERATORS, SEEDS = list(range(1, 24)), [1, 2, 3]
 SCORED_ASKS = range(1, 18)                               # the ask-got map scores 1/24 to 17/24; the rest reported apart
+if os.environ.get("AG84_SEEDS"): SEEDS = [int(s) for s in os.environ["AG84_SEEDS"].split(",")]
 if SMOKE: KEEP, BATCH, MAX_TRIES, ASK_NUMERATORS, SEEDS = 4, 8, 64, [12], [1]
 DIVERSITY_SUBSETS, SUBSET_SIZE = 200, 5
 OFF_GRID_ASKS = [0.3, 0.531, 0.6, 0.7]                   # not multiples of 1/24; the 48-field runs battled these too
@@ -354,7 +362,8 @@ def controls():
 
 def preflight():
     w = load_model(); V = w.V; out = load_out(); pf = {}
-    d = np.load(DATA); tr = d["all_X"][~d["all_val"]].astype(np.int64)
+    d = np.load(DATA); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
+    tr = d["all_X"][tr_rows].astype(np.int64)
     torch.manual_seed(SEED0 + 1)
     rows = w.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()
     pf["round_trip"] = round_trip(w, rows[:20])

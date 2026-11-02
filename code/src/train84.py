@@ -9,6 +9,9 @@
   "Generated, all teams"   all   one network on every kept team, no matchup input: validation loss after every
      pass on the seeded 2%, stop after 3 passes with no new low, keep the best pass, cap 80 passes.
 
+Labelled teams only, label noise: byepoch   to the same stopping rule, one checkpoint per epoch (docs/slope-by-epoch.md)
+                                   ddom_tau01, ddom_tau03   exactly 21 epochs with the DDOM paper's weights (docs/ddom-reweighting-84-fields.md)
+
 Both use the deployed network and recipe: d 256, 6 layers, 8 heads, batch 256, lr 4e-4, exponents 16,4,4,1.5,1 plus
 1 for Stat Points, ask dropout 0.15, EMA 0.999. Data: results/lossdata84.npz (src/lossdata84.py).
 
@@ -30,6 +33,7 @@ import lossdown as L                                     # before diffusion84: i
 sys.path.insert(0, str(HERE))
 import stat_points as SP
 import team84 as T
+from ddom_weights import bin_weights
 import diffusion84 as M
 import asked_vs_got as X
 
@@ -39,7 +43,9 @@ SMOKE = bool(os.environ.get("S84_SMOKE"))
 NET = dict(d=256, nlayer=6, nhead=8)
 RECIPE = dict(batch=256, lr=4e-4, sched=M.SCHED, seed=0)
 NAMES = dict(loop="stat84_same_loop_p80", records="stat84_same_records_p60", mix="stat84_same_teams",
-             all="stat84_all_teams_es3_cap80", all_noise="stat84_all_teams_noise_ep21")
+             all="stat84_all_teams_es3_cap80", all_noise="stat84_all_teams_noise_ep21",
+             byepoch="stat84_labelled_noise_byepoch_es3_cap80",
+             ddom_tau01="stat84_labelled_noise_ddom_tau01_ep21", ddom_tau03="stat84_labelled_noise_ddom_tau03_ep21")
 
 
 def name(arm):
@@ -73,9 +79,14 @@ def train(arm, rows, labels, val, passes, patience=None, **net_kw):
     t0 = time.perf_counter()
     out = CK / f"{name(arm)}.pt"
     on_best = (lambda m, _pass: m.save(out)) if patience else None
+    tau = net_kw.pop("ddom_tau", None)
+    if tau: net_kw["row_weights"] = bin_weights(labels, tau)
+    if net_kw.pop("every_epoch", False):
+        (CK / name(arm)).mkdir(exist_ok=True)
+        net_kw["on_epoch"] = lambda m, epoch: m.save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
     m = M.Model84.train_new(V, corpus, rows, labels, passes=passes, val=val, patience=patience, on_best=on_best,
                             **RECIPE, **NET, **net_kw)
-    m.info.update(arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
+    m.info.update(ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any(), arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
                   val_rows=len(val[0]), val_share=0.02, val_seed=0)
     m.save(out)
     json.dump(m.info, open(X.RES / f"{name(arm)}.json", "w"), indent=1, default=float)
@@ -114,7 +125,15 @@ def main(argv):
         tr = ~d["all_val"]
         train("all_noise", d["all_X"][tr], d["all_W"][tr], (d["all_X"][d["all_val"]], d["all_W"][d["all_val"]]),
               passes=80, patience=3, label_noise=1 / 48, stop_after=21)
-    if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "smoke"):
+    if arm in ("byepoch", "ddom_tau01", "ddom_tau03"):   # labelled teams only, label noise; docs/slope-by-epoch.md, docs/ddom-reweighting-84-fields.md
+        has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
+        val = (d["all_X"][va], d["all_W"][va])
+        if arm == "byepoch":
+            train(arm, d["all_X"][tr], d["all_W"][tr], val, passes=80, patience=3, label_noise=1 / 48, every_epoch=True)
+        else:
+            train(arm, d["all_X"][tr], d["all_W"][tr], val, passes=80, label_noise=1 / 48, stop_after=21,   # no patience: exactly epoch 21, like its control
+                  ddom_tau=dict(ddom_tau01=0.1, ddom_tau03=0.3)[arm])
+    if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke"):
         sys.exit(__doc__)
 
 
