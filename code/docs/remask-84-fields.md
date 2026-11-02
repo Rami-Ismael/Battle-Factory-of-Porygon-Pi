@@ -76,7 +76,7 @@ Without 12/24 the slopes are 0.291, 0.196, 0.287 and 0.251 in the same order. Le
 
 Line-ups new against the 11,690 fixed reference: 335, 147, 333 and 333 in the same order.
 
-Per-seed slopes, paired intervals, novelty and accumulation are in `remask84_slope_analysis.json`, written by `~/vgc-data/remask84/slope_analysis.py`. That script needs `line_up_yield.py`, which is not in this repository. `remask84.py report` writes only the pooled slopes and curves, and it now leaves the fit empty until all four asks have battled.
+Per-seed slopes, paired intervals, novelty and accumulation are in `remask84_slope_analysis.json`, written by `src/remask84_slope_analysis.py`. `remask84.py report` writes only the pooled slopes and curves, and it now leaves the fit empty until all four asks have battled.
 
 ### Random decoding
 
