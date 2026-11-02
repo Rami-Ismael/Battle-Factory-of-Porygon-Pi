@@ -14,6 +14,7 @@ weighting, ask dropout 0.15, AdamW with warm-up and cosine decay, and the struct
 budget mask that keeps each Pokémon's Stat Points at most 32 each and 66 in total.
 """
 import copy
+import time
 import math
 
 import numpy as np
@@ -132,7 +133,7 @@ def elbo_terms(net, tables, x, m, t, w, sched):
     return (ce * sched.view(1, -1) / t.view(-1, 1)).sum(1) / COLS
 
 
-def batch_loss(net, tables, x, w, sched, p_uncond=0.15):
+def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None):
     B = x.shape[0]
     x = shuffle_slots(x)
     t = ((torch.rand(1, device=x.device) + torch.arange(B, device=x.device) / B) % 1.0)[torch.randperm(B, device=x.device)]
@@ -142,7 +143,8 @@ def batch_loss(net, tables, x, w, sched, p_uncond=0.15):
     if ww.dim() == 2:                                          # matchup row: dropped whole, or column by column (lossdown)
         ww[torch.rand(B, device=x.device) < 0.3, 1:] = NAN
         ww[:, 1:][torch.rand(B, ww.shape[1] - 1, device=x.device) < 0.2] = NAN
-    return elbo_terms(net, tables, x, m, t, ww, sched).mean()
+    terms = elbo_terms(net, tables, x, m, t, ww, sched)
+    return (terms * row_w).mean() if row_w is not None else terms.mean()
 
 
 @torch.no_grad()
@@ -184,14 +186,16 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, passes=2, seed=0, batch=256, lr=4e-4, wd=0.01,  # noqa: C901
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every pass (common random numbers). patience=P: stop after P
         passes with no new lowest validation loss and keep the best pass's weights; passes is then the cap, and
         the learning-rate schedule is sized to it. on_best(model, pass_number) runs at every new lowest.
         label_noise=W: each batch's labels get fresh uniform noise in [-W, +W]; validation labels stay exact.
-        stop_after=N: end after N passes while keeping the schedule sized to passes, so a shorter run matches a stopped one."""
+        stop_after=N: end after N passes while keeping the schedule sized to passes, so a shorter run matches a stopped one.
+        on_epoch(model, epoch): runs after every pass, on the weights a checkpoint would save.
+        row_weights: one training weight per row of rows; validation loss stays unweighted."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         X84 = np.asarray(rows, dtype=np.int64)
@@ -199,6 +203,9 @@ class Model84:
         X84 = X84[keep]
         W = np.full(len(keep), NAN, np.float32) if labels is None else np.asarray(labels, np.float32)
         x, w = torch.as_tensor(X84, device=DEV), torch.as_tensor(W[keep], device=DEV)
+        rw = None
+        if row_weights is not None:
+            kept_w = np.asarray(row_weights, np.float32)[keep]; rw = torch.as_tensor(kept_w / kept_w.mean(), device=DEV)
         net = Net84(V, **net_kw).to(DEV)
         avg = copy.deepcopy(net).eval() if ema else None
         sw = sched84(sched).to(DEV)
@@ -211,10 +218,11 @@ class Model84:
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
         best, best_pass, best_sd, step = math.inf, 0, None, 0
+        t_start = time.perf_counter()
         for p in range(passes):
             net.train(); run = 0.0; nb = 0
             for b in torch.randperm(len(x), device=DEV).split(batch):
-                loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw)
+                loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b])
                 for g in opt.param_groups: g["lr"] = lr_at(step)
                 opt.zero_grad(set_to_none=True); loss.backward()
                 nn.utils.clip_grad_norm_(net.parameters(), 1.0); opt.step(); step += 1
@@ -232,6 +240,8 @@ class Model84:
                     best, best_pass = entry["val_loss"], p + 1
                     best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
                     if on_best is not None: on_best(cls(V, corpus, [(m, net_kw)], dict(info, best_pass=best_pass)), best_pass)
+            entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
+            if on_epoch is not None: on_epoch(cls(V, corpus, [(m, net_kw)], dict(info, epoch=p + 1)), p + 1)
             log.append(entry)
             print("  pass " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
             if patience and p + 1 - best_pass >= patience: break

@@ -34,3 +34,4 @@ test_torch_load_ban.py
 test_type_coverage.py
 test_label_noise.py
 test_training_teams_line.py
+scripts/test_ddom_weights.py
