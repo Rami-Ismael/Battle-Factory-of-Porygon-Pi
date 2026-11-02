@@ -32,3 +32,5 @@ test_stat_points.py
 test_temperature_experiment.py
 test_torch_load_ban.py
 test_type_coverage.py
+test_label_noise.py
+test_training_teams_line.py
