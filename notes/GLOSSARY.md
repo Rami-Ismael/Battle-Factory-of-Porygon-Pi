@@ -64,6 +64,10 @@ _Avoid_: valid
 **Battled candidate**:
 A legal candidate with a measured win rate.
 
+**Remasking**:
+Masking some filled fields of a partial candidate again during sampling, so a later draw can change them. Which fields are masked is the rule under test. Resampling and self-correction are accepted words for it.
+_Origin_: correcting during sampling comes from the predictor-corrector sampler in [Song et al. 2021](https://arxiv.org/abs/2011.13456). "Resampling" is from [RePaint](https://arxiv.org/abs/2201.09865), "remasking" from [ReMDM](https://arxiv.org/abs/2503.00307) and "self-correction" from [GIDD](https://arxiv.org/abs/2503.04482).
+
 **Unmasked team**:
 A complete team before a mask hides any field; each Mask Lab grid has five, and every mask is cut from one. Battled unchanged, it is what every fill of its masks is compared with. Its grid says what kind it is: random (random legal HPS teams nobody built), held-out (tournament teams placed 51 to 100) or meta (top-50 meta teams).
 _Avoid_: starting team, original team, starter, source team
