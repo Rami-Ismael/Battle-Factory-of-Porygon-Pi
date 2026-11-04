@@ -20,7 +20,7 @@ Both use the deployed network and recipe: d 256, 6 layers, 8 heads, batch 256, l
 --label-noise WIDTH overrides the arm's width, as 1/48 or 0.02; 0 turns noise off. Without it, all_noise, byepoch and the
 ddom arms use 1/48 and the others use none. The flag adds the width to the checkpoint and results names, for example
 stat84_all_teams_es3_cap80_labelnoise1over48, so no width overwrites another. `same mix --label-noise WIDTH` mixes the
-two members trained at that width.
+two members trained at that width. To battle one, pass its checkpoint name as AG84_MODEL to ask_grid84.py.
 """
 import argparse
 import hashlib

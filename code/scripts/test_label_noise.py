@@ -7,7 +7,7 @@ import unittest
 import torch
 
 import repo_paths  # noqa: F401  (src/ first on sys.path)
-from label_noise import noise_tag, noise_width, noisy_labels
+from label_noise import flagged_checkpoint, flagged_row, noise_tag, noise_width, noisy_labels
 
 
 class NoisyLabels(unittest.TestCase):
@@ -56,6 +56,53 @@ class NoiseWidthFlag(unittest.TestCase):
 
     def test_close_widths_get_different_tags(self):
         self.assertNotEqual(noise_tag(noise_width("1/48")), noise_tag(noise_width("0.0208333")))
+
+
+class FlaggedRow(unittest.TestCase):
+    ALL = "stat84_all_teams_es3_cap80_labelnoise1over100"
+
+    def test_a_name_without_the_flag_has_no_row(self):
+        self.assertIsNone(flagged_checkpoint("gen84_all_ep21"))
+        self.assertIsNone(flagged_checkpoint("stat84_all_teams_es3_cap80"))
+
+    def test_with_patience_the_epochs_count_the_best_epoch_the_file_holds(self):
+        info = dict(label_noise=0.01, patience=3, best_pass=18, stopped_pass=21)
+        row = flagged_row(self.ALL, info)
+        self.assertEqual(row["checkpoint"], self.ALL)
+        self.assertEqual(row["reader"], "Label noise ±1/100, all teams, 18 epochs")
+        self.assertEqual(row["epochs"], dict(all_teams=18))
+        self.assertIn("stopped at epoch 21", row["stopped"])
+        self.assertFalse(row["labelled"])
+
+    def test_with_a_fixed_stop_the_epochs_count_the_last_epoch(self):
+        info = dict(label_noise=0.01, patience=None, best_pass=18, stopped_pass=21, ddom_tau=0.1)
+        row = flagged_row("stat84_labelled_noise_ddom_tau01_ep21_labelnoise1over100", info)
+        self.assertEqual(row["reader"], "Label noise ±1/100, labelled teams, tau 0.1 weights, 21 epochs")
+        self.assertEqual(row["epochs"], dict(labelled_teams=21))
+        self.assertTrue(row["labelled"])
+
+    def test_a_per_epoch_checkpoint_sits_in_its_training_folder(self):
+        base = "stat84_labelled_noise_byepoch_es3_cap80_labelnoise1over100"
+        row = flagged_row(f"{base}_ep03", dict(label_noise=0.01, epoch=3))
+        self.assertEqual(row["checkpoint"], f"{base}/{base}_ep03")
+        self.assertEqual(row["epochs"], dict(labelled_teams=3))
+
+    def test_width_zero_reads_as_no_noise(self):
+        row = flagged_row("stat84_all_teams_es3_cap80_labelnoise0", dict(label_noise=0.0, patience=3, best_pass=5, stopped_pass=8))
+        self.assertEqual(row["reader"], "No label noise, all teams, 5 epochs")
+
+    def test_a_mixture_reads_each_members_epochs(self):
+        member = lambda n: dict(label_noise=0.01, stopped_pass=n)
+        row = flagged_row("stat84_same_teams_labelnoise1over100", dict(members=[member(80), member(60)]))
+        self.assertEqual(row["epochs"], dict(loop_teams=80, battle_records=60))
+
+    def test_a_width_that_disagrees_with_the_name_is_refused(self):
+        with self.assertRaises(ValueError):
+            flagged_row(self.ALL, dict(label_noise=1 / 48, stopped_pass=21))
+
+    def test_a_training_still_running_is_refused(self):
+        with self.assertRaises(ValueError):
+            flagged_row(self.ALL, dict(label_noise=0.01, patience=3, best_pass=4))
 
 
 if __name__ == "__main__":
