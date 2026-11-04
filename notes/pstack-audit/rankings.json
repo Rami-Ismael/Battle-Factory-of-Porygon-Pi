@@ -1558,5 +1558,33 @@
    "basis": "No matching Pstack setup established in the project instructions or inspected skill directories."
   },
   "userSelected": false
+ },
+ {
+  "name": "daily-blog",
+  "catalog": "personal",
+  "userSelected": true,
+  "fit": 10,
+  "benefit": 8,
+  "confidence": "high",
+  "does": "Writes evidence-linked daily HTML posts with separate design feedback, clarification, agent errors, tool failures and expressed frustration. Keeps actions with their owners, groups each method's metrics in one view, and reuses approved visuals. Named-source citation checks remain in place. Each proposed build has three distinct working visual previews with independent button groups, embedded visibly in the blog itself. Reading List balls move saved links into the party only after the file save is confirmed, with state restored on reload. Skills to practice embeds the original prompt, the skill rationale and three switchable exercises for the reader's own writing.",
+  "why": "You requested these changes after design feedback was counted as frustration, agent work became advice for you, and repeated metric checklists obscured the results. The update should address those failure modes; future daily-blog runs still need to demonstrate the benefit. You also requested accompanying prototypes for every item in What to build next, so their workflows can be inspected before choosing a build. The article is the primary place to try them; a separate preview is supplementary. You asked to make the prompt-practice visual repeat in future daily-blog runs.",
+  "revisionBasis": "Updated at user request on 2026-11-04 to make the original-prompt-first practice playground repeatable through one linked visual specification. Benefit and fit remain expected estimates with unchanged scores.",
+  "installed": {
+   "claude": true,
+   "codex": false
+  },
+  "scope": "Personal Claude Code installation across projects; this prompt and its posts concern the Pokémon counter-search project.",
+  "usage": {
+   "mode": "request",
+   "label": "Ask explicitly in Claude Code",
+   "when": "When you ask for yesterday’s daily blog or provide a target date.",
+   "action": "Type /daily-blog or /daily-blog YYYY-MM-DD.",
+   "basis": "The installed SKILL.md sets disable-model-invocation: true and loads the vault prompt fresh.",
+   "path": "/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/.claude/skills/daily-blog/SKILL.md"
+  },
+  "caveat": "All nine case-and-mode combinations on the edited post passed interaction checks. The instruction update has a linked visual specification; a full new daily-blog generation has not been run. Invocation remains explicit in Claude Code; it is not installed in Codex.",
+  "evidence": [
+   "current-chat"
+  ]
  }
 ]
