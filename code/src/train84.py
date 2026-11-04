@@ -15,8 +15,14 @@ Labelled teams only, label noise: byepoch   to the same stopping rule, one check
 Both use the deployed network and recipe: d 256, 6 layers, 8 heads, batch 256, lr 4e-4, exponents 16,4,4,1.5,1 plus
 1 for Stat Points, ask dropout 0.15, EMA 0.999. Data: results/lossdata84.npz (src/lossdata84.py).
 
-    python src/train84.py smoke | same loop | same records | same mix | all
+    python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
+
+--label-noise WIDTH overrides the arm's width, as 1/48 or 0.02; 0 turns noise off. Without it, all_noise, byepoch and the
+ddom arms use 1/48 and the others use none. The flag adds the width to the checkpoint and results names, for example
+stat84_all_teams_es3_cap80_labelnoise1over48, so no width overwrites another. `same mix --label-noise WIDTH` mixes the
+two members trained at that width. To battle one, pass its checkpoint name as AG84_MODEL to ask_grid84.py.
 """
+import argparse
 import hashlib
 import json
 import os
@@ -34,6 +40,7 @@ sys.path.insert(0, str(HERE))
 import stat_points as SP
 import team84 as T
 from ddom_weights import bin_weights
+from label_noise import noise_tag, noise_width
 import diffusion84 as M
 import asked_vs_got as X
 
@@ -49,7 +56,7 @@ NAMES = dict(loop="stat84_same_loop_p80", records="stat84_same_records_p60", mix
 
 
 def name(arm):
-    return ("stat84smoke_" if SMOKE else "") + NAMES[arm]
+    return ("stat84smoke_" if SMOKE else "") + NAMES[arm] + ("" if NOISE is None else noise_tag(NOISE))
 
 
 def load():
@@ -73,6 +80,7 @@ def small(*arrays, n=512):
 
 def train(arm, rows, labels, val, passes, patience=None, **net_kw):
     corpus = X.setup()[0]; V = T.regulation_vocab()
+    if NOISE is not None: net_kw["label_noise"] = float(NOISE)
     if SMOKE: rows, labels = small(rows, labels); val = tuple(small(*val, n=256)); passes = 1
     print(f"[{name(arm)}] {len(rows)} teams · {len(val[0])} validation teams · cap {passes} passes"
           + (f" · patience {patience}" if patience else " · fixed count"), flush=True)
@@ -101,13 +109,21 @@ def check_rows(d):
         assert (v >= 0).all() and (v.reshape(len(v), SP.NSLOT, SP.NSTAT).sum(-1) <= SP.MAX_TOTAL).all(), k
 
 
+def parse_args(argv):
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("arm", nargs="+")
+    p.add_argument("--label-noise", type=noise_width, metavar="WIDTH", help="override the arm's label noise width")
+    return p.parse_args(argv)
+
+
 def main(argv):
-    global DATA_SHA
+    global DATA_SHA, NOISE
+    args = parse_args(argv); NOISE = args.label_noise
     for mod in (M, L, T, SP):
         print(f"{mod.__name__:12s} {mod.__file__}", flush=True)
         assert Path(mod.__file__).resolve().parent == HERE, f"{mod.__name__} did not load from {HERE}"
     d = load(); DATA_SHA = d["sha256"]; check_rows(d)
-    arm = " ".join(argv)
+    arm = " ".join(args.arm)
     if arm in ("same loop", "smoke"):
         train("loop", d["loop_X"], d["loop_W"], unseen_val(d, d["loop_X"]), passes=80)
     if arm in ("same records", "smoke"):
@@ -138,6 +154,7 @@ def main(argv):
 
 
 DATA_SHA = None
+NOISE = None                                             # set by --label-noise; None keeps each arm's own width and name
 
 if __name__ == "__main__":
     main(sys.argv[1:])

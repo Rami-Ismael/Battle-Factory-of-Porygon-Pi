@@ -7,6 +7,10 @@ Fields the model generates: all 84, except that the repair replaces its Stat Ali
 
     AG84_MODEL=gen84_all_ep21 python ask_grid84.py preflight | gen | battle | report      (AG84_SMOKE=1: plumbing check)
 
+AG84_MODEL is a name in MODELS, or the checkpoint name train84.py --label-noise printed, with no row to add:
+    AG84_MODEL=stat84_all_teams_es3_cap80_labelnoise1over48 python ask_grid84.py gen
+    AG84_MODEL=stat84_labelled_noise_byepoch_es3_cap80_labelnoise1over48_ep03 python ask_grid84.py gen
+
 Run preflight with MATCHUP_DB pointing at a private database. Finished cells are skipped, so every step resumes.
 """
 import hashlib
@@ -27,6 +31,8 @@ import lossdown as L                                     # before diffusion84: i
 sys.path.insert(0, str(HERE))
 import asked_vs_got as X
 import diffusion84 as M
+from checkpoints import load_checkpoint
+from label_noise import flagged_checkpoint, flagged_row
 import heldout as HO
 import matchup_db as MDB
 import team84 as T
@@ -52,6 +58,8 @@ for _t, _r in (("01", "0.1"), ("03", "0.3")):
     MODELS[f"gen84_ddom_tau{_t}"] = dict(checkpoint=f"stat84_labelled_noise_ddom_tau{_t}_ep21", reader=f"Tau {_r} weights, 21 epochs",
                                          epochs=dict(labelled_teams=21), stopped="planned stop at epoch 21, to match the control", labelled=True)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
+if MODEL not in MODELS and flagged_checkpoint(MODEL):
+    MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 2.0, 64, 96, 1280, 7300, 1
 ASK_NUMERATORS, SEEDS = list(range(1, 24)), [1, 2, 3]
