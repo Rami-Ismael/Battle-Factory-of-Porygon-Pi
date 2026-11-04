@@ -7,7 +7,7 @@ import unittest
 import torch
 
 import repo_paths  # noqa: F401  (src/ first on sys.path)
-from label_noise import noisy_labels
+from label_noise import noise_tag, noise_width, noisy_labels
 
 
 class NoisyLabels(unittest.TestCase):
@@ -39,6 +39,23 @@ class NoisyLabels(unittest.TestCase):
     def test_each_call_draws_fresh_noise(self):
         w = torch.full((100,), 0.5)
         self.assertFalse(torch.equal(noisy_labels(w, 0.02, self.rng), noisy_labels(w, 0.02, self.rng)))
+
+
+class NoiseWidthFlag(unittest.TestCase):
+    def test_a_fraction_and_its_decimal_give_the_same_width(self):
+        self.assertEqual(noise_width("1/50"), noise_width("0.02"))
+
+    def test_widths_outside_zero_to_one_and_bad_text_are_refused(self):
+        for text in ("-0.1", "1.5", "1/0", "nan", "wide"):
+            with self.subTest(text), self.assertRaises(ValueError):
+                noise_width(text)
+
+    def test_the_tag_names_the_width(self):
+        self.assertEqual(noise_tag(noise_width("1/48")), "_labelnoise1over48")
+        self.assertEqual(noise_tag(noise_width("0")), "_labelnoise0")
+
+    def test_close_widths_get_different_tags(self):
+        self.assertNotEqual(noise_tag(noise_width("1/48")), noise_tag(noise_width("0.0208333")))
 
 
 if __name__ == "__main__":
