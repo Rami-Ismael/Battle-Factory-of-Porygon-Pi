@@ -94,3 +94,21 @@ The owner confirmed the label-noise recipe on 2026-11-02, after training was que
 ## Hindsight-relabeled fine-tune
 
 The map also tests this fine-tune, issue #106, with its own contract before its run. It does not change the plan above.
+
+## Correction, 2026-11-05: the ask-versus-got error judges this, not slope
+
+On 2026-11-05 the owner replaced this plan's primary measure, because it answers the wrong question. A slope says how steep the fitted line is, and a steeper line can sit further from got = ask. The measure the owner settled on 2026-11-01 for [the ask-got map](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/70) is mean squared error between each ask and the mean got at that ask, on asks 1/24 to 17/24, with near the line under 0.001. The glossary calls it the ask-versus-got error, and `src/ask_line.py` reports it first. The contract above stays as written, because it ran under it.
+
+Read from each arm's `summary.line`, with win rate against the 49 distinct top-50 meta teams and the behaviour-cloning policy on both sides:
+
+| Arm | Mean squared error, asks 1/24 to 17/24 | Asks 18/24 to 23/24 | Slope, all 23 asks |
+| --- | --- | --- | --- |
+| Epoch 13 | 0.0077 | 0.1645 | 0.488 |
+| Epoch 21 | 0.0066 | 0.1504 | 0.489 |
+| Epoch 34 | 0.0059 | 0.1344 | 0.509 |
+| Epoch 55 | 0.0061 | 0.1350 | 0.505 |
+| Epoch 80 | 0.0053 | 0.1383 | 0.502 |
+
+No arm is near the line.
+
+By this error epoch 80 beats epoch 21 by 0.0013 (0.0006 to 0.0020). Intervals resample teams only, so they leave out training-seed noise. The smallest effect worth acting on is now 0.001, chosen by Claude and open to the owner's change.

@@ -319,7 +319,7 @@ def report():
         if len(done) == len(ASK_NUMERATORS):                    # a partial grid would label a lower ask as the top ask
             keep =[r for r in done if r["numerator"] != 12]    # 12/24 selects a different team population
             fits[arm] = dict(slope=slope([r["numerator"] / 24 for r in done], [r["win"] for r in done]), slope_without_12=slope([r["numerator"] / 24 for r in keep], [r["win"] for r in keep]),
-                             top_ask_win=done[-1]["win"], accumulation=accumulation([c for c in cells if c["arm"] == arm]))
+                             top_ask_win=done[-1]["win"], line=A.line_measures(done), accumulation=accumulation([c for c in cells if c["arm"] == arm]))
         print(arm, json.dumps({k: v for k, v in fits.get(arm, {}).items() if k != "accumulation"}), flush=True)
     out["summary"] = rows; out["fits"] = fits; save(out)
 
