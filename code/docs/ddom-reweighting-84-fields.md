@@ -88,3 +88,19 @@ Budget: 216,384 battles per weighted arm, about 46 minutes. Training takes about
 ## Deviations
 
 Before any training, code review found that patience could stop or roll back a weighted arm before epoch 21. I removed patience from both weighted arms on 2026-11-02, with no result in hand.
+
+## Correction, 2026-11-05: the ask-versus-got error judges this, not slope
+
+On 2026-11-05 the owner replaced this plan's primary measure, because it answers the wrong question. A slope says how steep the fitted line is, and a steeper line can sit further from got = ask. The measure the owner settled on 2026-11-01 for [the ask-got map](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/70) is mean squared error between each ask and the mean got at that ask, on asks 1/24 to 17/24, with near the line under 0.001. The glossary calls it the ask-versus-got error, and `src/ask_line.py` reports it first. The contract above stays as written, because it ran under it.
+
+Read from each arm's `summary.line`, with win rate against the 49 distinct top-50 meta teams and the behaviour-cloning policy on both sides:
+
+| Arm | Mean squared error, asks 1/24 to 17/24 | Asks 18/24 to 23/24 | Slope, all 23 asks |
+| --- | --- | --- | --- |
+| No weights, epoch 21 | 0.0066 | 0.1504 | 0.489 |
+| DDOM tau 0.3, epoch 21 | 0.0085 | 0.1494 | 0.544 |
+| DDOM tau 0.1, epoch 21 | 0.0117 | 0.1398 | 0.519 |
+
+No arm is near the line.
+
+By this error both DDOM arms are worse than no weights: tau 0.3 by 0.0019 (0.0011 to 0.0027), and tau 0.1 by 0.0051 (0.0042 to 0.0060). The slope rule's pass does not carry over.

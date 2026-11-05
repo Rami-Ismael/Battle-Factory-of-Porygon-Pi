@@ -32,6 +32,7 @@ sys.path.insert(0, str(HERE))
 import asked_vs_got as X
 import diffusion84 as M
 from checkpoints import load_checkpoint
+from ask_line import headline, line_measures
 from label_noise import flagged_checkpoint, flagged_row
 import heldout as HO
 import matchup_db as MDB
@@ -63,7 +64,6 @@ if MODEL not in MODELS and flagged_checkpoint(MODEL):
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 2.0, 64, 96, 1280, 7300, 1
 ASK_NUMERATORS, SEEDS = list(range(1, 24)), [1, 2, 3]
-SCORED_ASKS = range(1, 18)                               # the ask-got map scores 1/24 to 17/24; the rest reported apart
 if os.environ.get("AG84_SEEDS"): SEEDS = [int(s) for s in os.environ["AG84_SEEDS"].split(",")]
 if SMOKE: KEEP, BATCH, MAX_TRIES, ASK_NUMERATORS, SEEDS = 4, 8, 64, [12], [1]
 DIVERSITY_SUBSETS, SUBSET_SIZE = 200, 5
@@ -244,15 +244,6 @@ def ask_table(cells):
     return rows
 
 
-def line_measures(rows):
-    if not rows: return {}
-    a, w = np.array([r["ask"] for r in rows]), np.array([r["win"] for r in rows])
-    slope = float(np.polyfit(a, w, 1)[0]) if len(rows) > 1 else None
-    scored = [r for r in rows if r["numerator"] in SCORED_ASKS]; rest = [r for r in rows if r["numerator"] not in SCORED_ASKS]
-    mse = lambda rs: float(np.mean([(r["win"] - r["ask"]) ** 2 for r in rs])) if rs else None
-    return dict(slope=slope, mean_abs_gap=float(np.mean(np.abs(w - a))), mse_scored_asks=mse(scored), mse_asks_18_to_23=mse(rest))
-
-
 def stat_point_measures(cells, corpus_sets):
     slots = [(T.norm(sp), ev) for c in cells for team in c["stat_points"] for sp, ev in team]   # corpus_sets holds normalised species
     if not slots: return {}
@@ -290,7 +281,9 @@ def report():
     print(f"{'ask':>8s} {'win':>6s} {'95% interval':>17s} {'legal':>7s} {'eff species':>12s} {'line-ups':>9s} {'top share':>10s}")
     for r in rows:
         print(f"{r['numerator']:>5d}/24 {r['win']:6.3f}   [{r['lo']:.3f}, {r['hi']:.3f}] {r['legal']:7.1%} {r['effective_species']:12.1f} {r['distinct_lineups']:9.2f} {r['top_species_share']:10.3f}")
-    print("line:", json.dumps(summary["line"])); print("Stat Points:", json.dumps(summary["stat_points"]))
+    line = summary["line"]
+    print(headline(line))
+    print("line:", json.dumps(line)); print("Stat Points:", json.dumps(summary["stat_points"]))
     print("AG84_REPORT_DONE")
 
 
