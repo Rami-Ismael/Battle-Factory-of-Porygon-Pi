@@ -1,0 +1,65 @@
+title:	Does a fine-tuned masked text diffusion model write stronger teams than the block fine-tunes, for less money?
+state:	OPEN
+author:	Rami-Ismael
+labels:	wayfinder:map
+comments:	0
+assignees:
+projects:
+milestone:
+number:	160
+--
+## Destination
+
+One finished experiment. A masked or fully bidirectional text diffusion model, chosen on a laptop benchmark, fine-tuned on Modal in two stages, uploaded to a public Hugging Face repository, then battled on the laptop, with a verdict against the Fast-dLLM v2 1.5B and Qwen2.5 3B block fine-tunes on every metric below. The map also holds the block-against-bidirectional swap test, and four pre-registrations written but not run. It ends when those are done, or when the owner stops at the gate.
+
+## Notes
+
+This map carries execution: its task tickets build and run things. Nothing launched while charting. Every Modal launch states its cost and the credit left, then waits for the owner's go-ahead. One job at a time.
+
+**Where each step runs.** Only training and its probes run on Modal. When training ends: shut down the GPU, upload to a public repository under `Rami/` with a model card, confirm the SHA-256, download to the laptop, check the SHA-256 again. Text generation and battles run only on the laptop (M4 Pro, 24 GB), in a detached queue, behind any other session's jobs.
+
+**Who does what.** Opus 5.5 runs this map, `pskill:recall` and `build-experiment`. GPT-6.1 Sol at high reasoning effort runs the deep-research skill on research tickets, through `delegate_task`.
+
+**How a research ticket closes.**
+1. GPT-6.1 Sol researches and commits its findings to a throwaway `research/<name>` branch, pushed, with no PR.
+2. A fresh Opus 5.5 agent tries to refute them from the full sources, without seeing any rewrite.
+3. Opus rewrites what survives and adds a visual with `storyboard-figures`.
+4. If the research found a good blog, a subagent checks whether it belongs in `Papers/Reading List.md`.
+
+**Settled with the owner while charting.**
+- The map ends at a finished experiment, not at a launch-ready plan.
+- Step 1 is split around the prompt: candidate research, then the prompt visual counted with each candidate's tokenizer, then approval, then the laptop benchmark, then the prompt-only test.
+- The refutation agent is a fresh Opus 5.5.
+- Modal credit comes later from the dashboard, so Modal steps stay blocked and uncosted until then.
+- Block is out as the base model, for budget reasons only: no one has shown it reaches good teams more slowly. The only block training allowed is the swap test.
+
+**Metrics**, from `What metric do we care about.md`, with a baseline on every row:
+- Mean squared error between the model's ask-versus-got line and the true diagonal.
+- Win rate against the top 1-50 meta teams and against the 51-100 teams in Regulation M-B: wins ÷ battles, behaviour cloning on both sides, slots shuffled.
+- Diversity and novelty, following `Metrics for Diversity.md`. Novelty means six species not seen before, against one named reference.
+- Validity: the share of generated teams Showdown accepts.
+- The share of Pokémon spending all 66 Stat Points. Training teams do this 99.3% of the time.
+
+**Measured while charting (2026-11-05).**
+- Modal workspace `inattentivearcher00`: October metered $27.58, all paid by credits. November so far $0.13 of storage, billed $0.00. No apps running.
+- `lossdata84.npz` holds 304,580 teams in `~/Documents/code/vgc-team-generator-pilot/results/`, and 130,232 of them have no win rate.
+- The Modal launcher `code/scripts/textdiff_modal.py` is not on `main`. It lives only on branch `claude/text-diffusion-modal-training-453ea0`.
+- No swap-test code exists yet.
+
+**Skills.** `build-experiment`, `run-experiment`, `name-experiments`, `early-stopping`, `storyboard-figures`, `grilling`, `domain-modeling`, and `pskill:unslop` for anything a reader sees. Earlier work: `code/docs/textdiff.md`.
+
+## Decisions so far
+
+## Not yet specified
+
+- What happens after a lost gate: which of the laptop-time or money savings would justify keeping the model, and whether the map stops or redraws.
+- Whether generation needs batching or a port for Apple silicon to make the laptop grid affordable. This depends on the benchmark.
+- Whether legality needs a rule table or a choice-from-legal-options output. This depends on how the owner answers the prompt question and on the prompt-only test.
+- What a model card must say beyond the earlier fine-tunes' cards, once the recipe is known.
+
+## Out of scope
+
+- Reinforcement learning, the paper's third stage. The owner excluded it.
+- Running the scaling study, the sampler comparison, one token per name, or the from-scratch text model. This map only pre-registers them.
+- Putting the winner in the search loop or making it the default.
+- Block training other than the swap test.

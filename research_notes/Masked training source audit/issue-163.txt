@@ -1,0 +1,23 @@
+title:	How does masked training work in ZHZisZZ/dllm, and what changes from our block loss?
+state:	OPEN
+author:	Rami-Ismael
+labels:	wayfinder:research
+comments:	0
+assignees:	Rami-Ismael
+projects:
+milestone:
+number:	163
+--
+## Question
+
+`code/src/textdiff_port.py` implements the block loss. What does masked training need instead, read from ZHZisZZ/dllm?
+
+Map:
+- The noise schedule, loss, mask rate and which tokens are scored. Say whether prompt tokens are masked or held fixed, and whether logits are shifted.
+- Trainer entry points and how a fine-tune is configured, including LoRA or full-parameter training.
+- What drives dollars per example, especially prompt length, batch size, gradient checkpointing and data type.
+- Which parts of `textdiff_port.py` carry over and which must not. The block speed results may not be reused.
+- What the Modal launcher on branch `claude/text-diffusion-modal-training-453ea0` would need to change.
+- How to validate at a fixed interval and stop mid-epoch, following the `early-stopping` skill.
+
+Follow the map's Notes for how a research ticket closes.
