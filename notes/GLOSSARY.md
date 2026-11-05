@@ -1,6 +1,6 @@
 ---
 created_at: 2026-10-20
-updated_at: 2026-10-27
+updated_at: 2026-11-05
 tags:
   - vocabulary
 ---
@@ -75,6 +75,13 @@ _Avoid_: starting team, original team, starter, source team
 **Team**:
 Six Pokémon. Species, item, ability, moves, Stat Points and Stat Alignment are all decision variables.
 _Avoid_: roster
+
+**Species replacement distance**:
+The minimum number of species replacements needed to turn one six-species line-up into another, ignoring Pokémon order and sets. It equals six minus the number of shared species. Species forms remain distinct.
+
+**Connected one-swap family**:
+A connected group within the collection being split. Teams belong to the same family when linked, directly or through other teams, by a species replacement distance of at most one. Two teams in the same family can differ by more than one replacement when connected through a chain.
+_Distinguish_: an n-swap family measured from one reference line-up.
 
 **Pokémon**:
 One member of a team: a species with its set.
