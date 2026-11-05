@@ -103,6 +103,7 @@ def main():
         mse = float(((mean[:17] - asks[:17]) ** 2).mean())
         row = dict(epoch=ep, mse=mse, mse_ci=interval(boot_error),
                    upper_mse=float(((mean[17:] - asks[17:]) ** 2).mean()),
+                   slope_all_asks=float(np.polyfit(asks, mean, 1)[0]),
                    rmse=float(np.sqrt(mse)), teams=int(y.size), battles=int(matrix.size),
                    mean_within_ask_sd=float(y.std(axis=1, ddof=1).mean()), asks=[])
         all_lineups, new_lineups, full_points = set(), set(), []
@@ -134,13 +135,13 @@ def main():
         result['differences'].append(dict(earlier=earlier, later=later, error_reduction=a['mse']-b['mse'],
                                            ci=interval(boots[earlier] - boots[later])))
     (args.output / 'metrics.json').write_text(json.dumps(result, indent=2) + '\n')
-    fields = ['epoch','mse','upper_mse','rmse','teams','battles','distinct_lineups','new_lineups','full_points_share','mean_within_ask_sd']
-    with (args.output / 'metrics.csv').open('w') as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
+    fields = ['epoch','mse','upper_mse','rmse','teams','battles','distinct_lineups','new_lineups','full_points_share','mean_within_ask_sd','slope_all_asks']
+    with (args.output / 'metrics.csv').open('w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator='\n')
         writer.writeheader()
         writer.writerows({k:r[k] for k in fields} for r in result['epochs'])
-    with (args.output / 'asks.csv').open('w') as f:
-        writer = csv.DictWriter(f, fieldnames=['epoch', *result['epochs'][0]['asks'][0].keys()])
+    with (args.output / 'asks.csv').open('w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=['epoch', *result['epochs'][0]['asks'][0].keys()], lineterminator='\n')
         writer.writeheader()
         writer.writerows(dict(epoch=r['epoch'], **a) for r in result['epochs'] for a in r['asks'])
     print(json.dumps({'epochs':[{k:r[k] for k in fields[:2]+fields[6:]} for r in result['epochs']], 'differences':result['differences']}, indent=2))

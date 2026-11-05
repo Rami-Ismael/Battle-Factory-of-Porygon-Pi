@@ -79,8 +79,9 @@ pre { white-space:pre-wrap; overflow-wrap:anywhere; font:12px/16px var(--font-mo
 <p class="cp-note">The selected checkpoint appears beside the fixed epoch-34 and epoch-80 curves. Color keeps the same meaning in every figure.</p>
 <p class="cp-note" id="cp-selected-label"></p>
 <svg id="cp-explorer" class="cp-chart" role="img" aria-labelledby="cp-explorer-title cp-explorer-desc"></svg>
-<div class="cp-table-wrap"><table class="cp-table"><thead><tr><th>Checkpoint</th><th>Error<br>1/24–17/24</th><th>Error<br>18/24–23/24</th><th>Distinct<br>line-ups</th><th>New<br>line-ups</th><th>Full<br>66 points</th><th>Team spread<br>percentage points</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+<div class="cp-table-wrap"><table class="cp-table"><thead><tr><th>Checkpoint</th><th>Error<br>1/24–17/24</th><th>Error<br>18/24–23/24</th><th>Distinct<br>line-ups</th><th>New<br>line-ups</th><th>Full<br>66 points</th><th>Team spread<br>percentage points</th><th>Slope<br>all 23 requests</th></tr></thead><tbody>__ROWS__</tbody></table></div>
 <p class="cp-note">A line-up is a team's six species, independent of slot order. Counts are unique across all 1,472 generated teams. Full 66 points is the share of Pokémon spending all available Stat Points. Team spread is the average within-request standard deviation of team win rates.</p>
+<p class="cp-note">Slope is a secondary diagnostic: a straight-line fit of mean achieved win rate against requested win rate across all 23 requests. A slope near 1 can still miss the diagonal, so ask-versus-got error remains the primary measure.</p>
 <p class="cp-note" id="cp-reference"></p><p class="cp-note" id="cp-uncertainty"></p>
 <p class="cp-note">One training run, seed 0; sampling seed 1 at every checkpoint; 64 teams at each of 23 requests. Each team plays the 49 distinct top-50 opponents with behaviour-cloning on both sides and shuffled slots. The duplicated meta entry has score weight 2, giving total weight 50.</p>
 <p class="cp-note">The labelled-only model generates all 84 fields with label noise ±1/48. Stat Alignment is repaired to match the moves. These samples use no search or elite-selection rule.</p>
@@ -153,7 +154,8 @@ def render(source, output):
     rows = ''.join(
         f'<tr data-cp-epoch="{e["epoch"]}"><td>Epoch {e["epoch"]}</td><td>{e["mse"]:.4f}</td>'
         f'<td>{e["upper_mse"]:.4f}</td><td>{e["distinct_lineups"]:,}</td><td>{e["new_lineups"]:,}</td>'
-        f'<td>{100*e["full_points_share"]:.1f}%</td><td>{100*e["mean_within_ask_sd"]:.1f}</td></tr>' for e in epochs)
+        f'<td>{100*e["full_points_share"]:.1f}%</td><td>{100*e["mean_within_ask_sd"]:.1f}</td>'
+        f'<td>{e["slope_all_asks"]:.4f}</td></tr>' for e in epochs)
     payload = json.dumps(data, separators=(',', ':'), ensure_ascii=True).replace('<', '\\u003c')
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(TEMPLATE.replace('__OPTIONS__', options).replace('__ROWS__', rows).replace('__DATA__', payload))
