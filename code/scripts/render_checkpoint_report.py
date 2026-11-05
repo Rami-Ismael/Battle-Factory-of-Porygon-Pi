@@ -249,6 +249,9 @@ def export_figures(source):
     fig.text(.075,.045,'One training run; sampling seed 1; 64 teams per request. Error scores requests 1/24–17/24.\nBars resample teams and shared opponents. Independent training-run variation is unmeasured.',fontsize=12,color=muted,linespacing=1.5)
     for extension in ('png','svg'):fig.savefig(source.with_name(f'checkpoint-teaser.{extension}'),dpi=160,facecolor='white')
     plt.close(fig)
+    for name in ('checkpoint-error.svg', 'checkpoint-teaser.svg'):
+        svg = source.with_name(name)
+        svg.write_text('\n'.join(line.rstrip() for line in svg.read_text().splitlines()) + '\n')
     print('Wrote storyboard evidence and teaser, each as text-preserving SVG and PNG.')
 
 
