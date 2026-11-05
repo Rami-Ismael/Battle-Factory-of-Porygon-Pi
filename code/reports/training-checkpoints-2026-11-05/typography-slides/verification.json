@@ -1,0 +1,49 @@
+{
+  "control_checks": 18,
+  "width_overflow_px": {
+    "1280": 0,
+    "390": 0
+  },
+  "all_images_embedded_and_loaded": true,
+  "console_errors": [],
+  "source_html_sha256": "dbbd13dfb04d04457148bfc22854f23472599dfcc9fe3aceb1d9398641f37a2b",
+  "pure_restyle_comparison": {
+    "1280": {
+      "verdict": "not improved",
+      "before": "4/8",
+      "after": "8/8",
+      "fixed": [
+        "contrast",
+        "body_size",
+        "small_text",
+        "line_length"
+      ],
+      "regressed": [],
+      "still_failing": [],
+      "text_kept": 0.8288,
+      "text_added": 0.3457,
+      "overflow_px": [
+        0,
+        0
+      ]
+    },
+    "390": {
+      "verdict": "not improved",
+      "before": "5/8",
+      "after": "8/8",
+      "fixed": [
+        "contrast",
+        "body_size",
+        "small_text"
+      ],
+      "regressed": [],
+      "still_failing": [],
+      "text_kept": 0.8288,
+      "text_added": 0.3457,
+      "overflow_px": [
+        0,
+        0
+      ]
+    }
+  }
+}

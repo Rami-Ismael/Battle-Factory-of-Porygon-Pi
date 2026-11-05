@@ -1,0 +1,62 @@
+{
+  "skill": "storyboard-figures",
+  "status": "retrospective redesign of figures from recorded results",
+  "timing": "Written after the checkpoint results were known. The expected and surprising patterns below are interpretive contrasts, not preregistered predictions.",
+  "question": "How does ask-versus-got error change with more training epochs, and what mismatch remains?",
+  "evidence": "metrics.json; the same sampling seed at every checkpoint, from one training run",
+  "frames": [
+    {
+      "name": "When training helps",
+      "sketch": [
+        "error | high observation",
+        "      |    \\ early reduction",
+        "      |      \\____ later observations",
+        "      | - - - - - - target",
+        "      +---------------------- epoch"
+      ],
+      "takeaway": "Error drops early, with no clear further improvement among the later checkpoints.",
+      "expected_pattern": "If each additional training period improves agreement, the observed error continues downward.",
+      "surprising_pattern": "The later observations flatten, rise, or resume improving instead of continuing the early reduction.",
+      "observed_design": "Retain true epoch spacing and uncertainty. Directly annotate the early reduction and the uncertain late comparison. Keep the target visible.",
+      "limits": "The lowest observed one-seed error does not establish an optimal epoch or equivalence between later checkpoints."
+    },
+    {
+      "name": "The mismatch that remains",
+      "sketch": [
+        "achieved |               / exact agreement",
+        "         |       _______/",
+        "         |     // late checkpoint curves",
+        "         |   //    | remaining miss",
+        "         +---------------------- requested"
+      ],
+      "takeaway": "Later checkpoints still undershoot higher requests within the scored range.",
+      "expected_pattern": "If more training closes the mismatch, the later curve approaches achieved equals requested.",
+      "surprising_pattern": "The late curves remain close together below the higher requests, while their errors barely change.",
+      "observed_design": "Show epochs 34 and 80 together by default. Directly label their achieved win rates at the same request. Visually separate the sparse upper requests.",
+      "limits": "This is an observed failure pattern, not an identified causal explanation of why the model undershoots."
+    }
+  ],
+  "teaser": {
+    "sketch": [
+      "more training -> early reduction -> further gain uncertain",
+      "                                  requested -> achieved",
+      "                                  remaining miss visible"
+    ],
+    "takeaway": "Early improvement does not close the ask-versus-got gap.",
+    "expected_pattern": "A reader can connect the early-to-late trajectory to the remaining request-versus-achievement miss.",
+    "surprising_pattern": "A reader interprets the lowest observed point as a proven best training length or assumes the late mismatch is resolved.",
+    "observed_design": "Compose the annotated trajectory and one shared-request example into a single figure that can stand alone in an issue comment."
+  },
+  "visual_rules": {
+    "hierarchy": ["the measured finding", "the evidence that supports it", "the uncertainty and scope", "the full data and reproduction details"],
+    "condition_identity": {"epoch_1": "gray dashed", "epoch_34": "blue", "epoch_80": "orange", "agreement_target": "green dashed or diagonal"},
+    "palette_checks": "Validate contrast in rendered light and dark versions; retain text labels and line styles so color is not the only identifier. A dataviz helper was not available in this session.",
+    "type": "Use the typography hierarchy, size scale, spacing and line-length checks; preserve text as text in SVG exports.",
+    "export": "checkpoint-error.svg and checkpoint-teaser.svg retain vector lines and text; PNG companions are used for issue embeds."
+  },
+  "narrative_check": {
+    "figures_alone": "The early reduction, uncertain later comparison and unresolved miss must be legible without the issue prose.",
+    "words_alone": "The issue prose must explain those same observations, including one-run uncertainty and the separate pooled sampling repeats.",
+    "data_change": "None. This redesign changes presentation and annotation only."
+  }
+}

@@ -109,6 +109,8 @@ Read from each arm's `summary.line`, with win rate against the 49 distinct top-5
 | Epoch 55 | 0.0061 | 0.1350 | 0.505 |
 | Epoch 80 | 0.0053 | 0.1383 | 0.502 |
 
+These are the stored file summaries: epochs 21 and 80 pool three sampling seeds, while epochs 13, 34 and 55 use one. They do not form a matched one-seed epoch comparison. The [checkpoint report](../reports/training-checkpoints-2026-11-05/index.html) compares sampling seed 1 at all ten epochs, records the pooled summaries separately, and includes the underlying observations and analysis scripts. In that matched comparison, error falls from 0.01750 at epoch 1 to 0.00591 at epoch 34, then stays near 0.006 through epoch 80. The difference between epochs 34 and 80 is uncertain under a bootstrap of whole teams and shared opponent columns. The report also records line-up diversity, novelty against a fixed labelled-row reference, win-rate scatter, and Stat Points use.
+
 No arm is near the line.
 
 By this error epoch 80 beats epoch 21 by 0.0013 (0.0006 to 0.0020). Intervals resample teams only, so they leave out training-seed noise. The smallest effect worth acting on is now 0.001, chosen by Claude and open to the owner's change.

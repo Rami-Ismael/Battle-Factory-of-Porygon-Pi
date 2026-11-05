@@ -1,0 +1,58 @@
+{
+  "revision": "retrospective storyboard redesign",
+  "metrics_sha256": "a0ce04b779ad6768e117c27a9ffefa2b6ac1d05585545f506060c160b4870b27",
+  "html_sha256": "e83d1b9c680bd2f965ce0489824a19877b9b1e873c4b215c78e1fec4eac04d75",
+  "data_unchanged": true,
+  "browser_checks": {
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "widths": [
+      390,
+      728
+    ],
+    "checkpoint_selections_per_theme": 20,
+    "fixed_epochs_34_and_80_visible": true,
+    "table_header_alignment": "pass",
+    "body_overflow": false,
+    "semantic_text_palette_contrast": "all tested colors at least 4.5:1 in both T3 themes"
+  },
+  "exports": {
+    "svg_text_retained": true,
+    "png_companions": true,
+    "review": "Reviewed desktop, phone, evidence and teaser contact sheets; point-label and caption overlaps fixed."
+  },
+  "typography": {
+    "widths": [
+      1280,
+      390
+    ],
+    "before_passed": [
+      4,
+      5
+    ],
+    "after_passed": [
+      8,
+      8
+    ],
+    "measured_checks": 8,
+    "intentional_content_rewrite": true,
+    "pure_restyle_verdict": "not improved because text retention is 82.88%, below the 98% pure-restyle threshold; no typography check regressed",
+    "font_advisory": "System-font I and l distinction remains advisory."
+  },
+  "independent_agent_review": {
+    "anonymous_preference": "redesign",
+    "reason": "The summary numbers, annotated plateau and marked request-versus-achievement gap make the result explicit.",
+    "finding_read_from_figures": "Error falls about 66% from epoch 1 to 34, stays near 0.006 through epoch 80, and a 70.8% request produces roughly 52%.",
+    "caveat": "The phrase training helps early can sound general; the figures and issue prose scope the result to one recorded training run. This is agent review, not a human comprehension study."
+  },
+  "review_fix": {
+    "finding": "Missing secondary slope diagnostic",
+    "resolution": "Added all-23-request fitted slope for each matched seed-1 checkpoint to data, CSV and optional supporting table. Prior measurements and figure panels are unchanged.",
+    "reviewed_head": "9c5b69c737e348ba2a72ff4ab6e9e9f7e9d0b53e",
+    "prior_metrics_sha256": "02b9c2fc28419b27ed47746dc8622a5b8cf6d0d811db6f338dea29b50c675bfa",
+    "prior_html_sha256": "dbbd13dfb04d04457148bfc22854f23472599dfcc9fe3aceb1d9398641f37a2b",
+    "verification": "All ten slopes match src/ask_line.py; prior metrics unchanged; final JSON, CSV and HTML reproduce byte for byte; eight-column supporting table and twenty selections pass Chrome at 390 and 1280 px."
+  }
+}
