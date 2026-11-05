@@ -118,6 +118,15 @@ details.raw pre{font:400 .74rem/1.45 var(--font-mono);background:var(--wash);bor
 .hist .askline span{position:absolute;top:-.1rem;right:.4rem;width:11rem;text-align:right;font:600 .72rem/1.3 var(--font-ui);color:var(--ink-2)}
 .histx{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;font:400 .7rem var(--font-ui);color:var(--ink-3);margin-top:.2rem}
 @media (prefers-reduced-motion: reduce){.hist .bin{animation:fade .3s ease-out both}}
+/* timeline of the earlier baseline studies */
+.tl{list-style:none;margin:.6rem 0 0;padding:0;border-left:2px solid var(--rule)}
+.tl li{position:relative;padding:0 0 1rem 1.1rem}
+.tl li::before{content:"";position:absolute;left:-.42rem;top:.35rem;width:.7rem;height:.7rem;border-radius:50%;background:var(--bg);border:2px solid var(--ink-3)}
+.tl .when{font:600 .74rem var(--font-ui);color:var(--ink-3);letter-spacing:.04em}
+.tl .what{font:600 .95rem var(--font-ui);margin:.1rem 0}
+.tl .setup{font:400 .82rem/1.45 var(--font-ui);color:var(--ink-2)}
+.tl .head{font:400 .92rem/1.5 var(--font-body);margin:.25rem 0}
+.tl .files{font:400 .72rem/1.4 var(--font-mono);color:var(--ink-3);overflow-wrap:anywhere}
 /* answers */
 .answers{display:grid;gap:0;margin:0 0 2.4rem;border-top:2px solid var(--ink)}
 .answer{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"q q" "a v" "d d";gap:.25rem 1rem;padding:.9rem 0;border-bottom:1px solid var(--rule)}
@@ -511,6 +520,11 @@ function baselineStep() {
       <div class="legend"><span>Dot: the 3B writer's net change minus Mercury's, per mask, in points. Whiskers: 95% interval. Right of zero means the 3B did better.</span></div>
       <figcaption>Same 270 masks per grid, same battles. A fill either writer threw away counts as no change. From <code>sources/baseline_results.json</code>; Mercury's answers are in each grid's <code>mercury.jsonl</code> (<code>code/scripts/ling_grid.py --model mercury</code>).</figcaption></figure>
     <p>Mercury writes more legal fills on good teams, which helps it on held-out teams: ${sign(-D.baseline.heldout.net_3b_minus_mercury.mean)} points per mask over the 3B, with an interval clear of zero. On top-50 and random teams the two are within an interval of each other. The 3B runs on our own GPU time; Mercury costs about $0.002 per fill and reasons for about 3,000 tokens each time.</p>
+    <h3 class="ftitle" style="margin-top:1.6rem">Before these grids: the first baseline week, 4 to 10 October</h3>
+    <p>The grids above grew out of six earlier studies. They used fewer starting teams and older writers, so their numbers do not join the scoreboard, but they set its floor and its questions: how much a random fill costs, whether Ling beats it, and how much a better prompt helps.</p>
+    <ol class="tl">${D.earlier.studies.map((e) => `<li><div class="when">${e.date}</div><div class="what">${e.name}</div>
+      <div class="setup">${e.setup.replace(/ x /g, " × ")}</div><div class="head">${e.headline}</div><div class="files">${e.files}</div></li>`).join("")}</ol>
+    <p style="font-size:.85rem;color:var(--ink-3)">Headline numbers copied from each study's doc; the random-fill numbers recomputed from its results file (<code>sources/earlier_studies.json</code>).</p>
     <h3 class="ftitle" style="margin-top:1.6rem">Where every baseline in the project lives</h3>
     <p>The project has built baselines in many sessions. This table puts them in one place: what each one asks, whether it ran, the file that defines it, where its results are, and the page that shows it.</p>
     <div class="scroll"><table class="reg"><thead><tr><th>Baseline</th><th>Status</th><th>Defined in</th><th>Results</th><th>Page</th></tr></thead><tbody>
@@ -525,6 +539,11 @@ function baselineStep() {
         ["Ranks 51–100, held out", "Teams the search never sees, for a final check.", "run", "<code>code/docs/heldout-51-100.md</code>", "<code>runs/prompt-ab/heldout_report.json</code>", [["Held-out Set Walkthrough", "https://claude.ai/artifact/Luj92wuAwJCBoiACrKq5DH"]]],
         ["Reasoning studies, 20 starting teams", "Ling off and on, Mercury off to high effort, and the scratch team writer on the same 420 fills (2026-10-12 and 13).", "run", "<code>code/docs/reasoning-experiment.md</code>, <code>code/scripts/reasoning_experiment.py</code>", "<code>blog/mask-lab/data.json</code>", [["Mask Lab", "https://claude.ai/artifact/BHnAai6APQf1RVFgFydR63"], ["this page, step 2", "#baseline"]]],
         ["DSPy benchmark, 20 starting teams", "Mercury 2.5 on the reasoning study's masks with typed DSPy fields, legal-choice answer types and GEPA prompt optimization (2026-10-15 and 16).", "run", "<code>code/docs/dspy-structure-experiment.md</code>, <code>code/scripts/dspy_structure_experiment.py</code>, <code>dspy_optimize.py</code>", "run folders <code>dspy-legal-choices-20261015</code>, <code>dspy-optimize-luna4-20261016</code> (not on this laptop); numbers in the doc", [["this page, step 2", "#baseline"]]],
+        ["Random-fill baseline, 43 starting teams", "A random legal fill in every mask kind and size on 43 VGCPastes teams outside the top 50 (2026-10-04).", "run", "<code>code/src/random_fill_baseline.py</code>", "<code>results/random_fill_baseline.json</code> (vgc-team-generator-pilot repository)", [["this page, step 2", "#baseline"]]],
+        ["Ling pilot and scratch diffusion, 63 masks", "The first Ling run, reasoning off, and the scratch diffusion model on the same masks (2026-10-08).", "run", "<code>code/docs/llm-baseline-pilot-results.md</code>, <code>diffusion-baseline-comparison.md</code>", "the docs' tables", [["this page, step 2", "#baseline"]]],
+        ["Ling prompt comparison, 147 masks", "Original against grounded Ling prompt (2026-10-08).", "generated, never battled", "<code>code/docs/ling-mb-prompt-comparison.md</code>", "the doc's table", [["this page, step 2", "#baseline"]]],
+        ["Dense mask grid, 306 masks", "Every mask size, Ling against scratch diffusion (2026-10-08).", "run", "<code>code/docs/dense-mask-grid-results.md</code>", "the doc's table", [["this page, step 2", "#baseline"]]],
+        ["Regulation prompt test, 294 masks", "Ling with the regulation prompt against the original, sampled together (2026-10-10).", "run", "<code>code/docs/prompt-changelog.md</code>, <code>code/scripts/prompt_regulation_test.py</code>", "the changelog's result column", [["this page, step 2", "#baseline"]]],
         ["Ling on 49 meta starters", "An earlier grid: 49 meta teams × 102 masks, original prompt.", "generated, never battled", "<code>code/docs/meta-starter-grid.md</code>", "worktree <code>pokemon-team-llm-regulation</code>, <code>results/llm-baseline-meta-starters</code>", []],
         ["Random search", "A search baseline, not a fill: sample teams at random and keep the best.", "run", "<code>code/docs/trs-port.md</code>", "TRS beat it by +0.057", []],
         ["Decision model, LLM edit, random legal mutation, explanation twin", "Further baselines the note lists.", "not run", "<code>What is the baseline.md</code>", "none", []],

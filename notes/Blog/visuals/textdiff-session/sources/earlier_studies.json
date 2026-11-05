@@ -1,0 +1,47 @@
+{
+ "source": "headline numbers copied from the docs named per study; the random-fill numbers recomputed from results/random_fill_baseline.json (summary, n-weighted)",
+ "studies": [
+  {
+   "date": "2026-10-04",
+   "name": "Random-fill baseline",
+   "setup": "43 VGCPastes starting teams outside the top 50 (mean win rate 0.446); 94 cells of mask kind x size, one random legal fill each",
+   "headline": "A random legal fill costs 18.5 points of win rate on average: natures -0.2, abilities -0.9, Stat Points -1.6, items -6.7, moves -22.1, mixed parts -24.8, whole Pok\u00e9mon -27.4.",
+   "files": "code/src/random_fill_baseline.py; results/random_fill_baseline.json in the vgc-team-generator-pilot repository; vault image Random-fill baseline \u2014 seven tasks.png"
+  },
+  {
+   "date": "2026-10-08",
+   "name": "Ling pilot",
+   "setup": "63 masks on 3 random legal starting teams; Ling with reasoning off, 4,096 tokens",
+   "headline": "27 of 63 legal (42.9%). Legal fills: +1.2 points over the original team, +0.4 over random fills; no reliable advantage. Cost $0.007.",
+   "files": "code/docs/llm-baseline.md, code/docs/llm-baseline-pilot-results.md"
+  },
+  {
+   "date": "2026-10-08",
+   "name": "Scratch diffusion vs Ling",
+   "setup": "The pilot's 63 masks, starting teams and battles",
+   "headline": "Scratch diffusion 62 of 63 legal against Ling's 27 of 63.",
+   "files": "code/docs/diffusion-baseline-comparison.md, diffusion-baseline-protocol.md"
+  },
+  {
+   "date": "2026-10-08",
+   "name": "Ling prompt comparison",
+   "setup": "147 masks; original prompt mb-original-v1 against the grounded mb-grounded-v2",
+   "headline": "Both prompts 65 of 147 legal (44.2%); scratch diffusion v3 147 of 147. Battles never scored.",
+   "files": "code/docs/ling-mb-prompt-comparison.md"
+  },
+  {
+   "date": "2026-10-08",
+   "name": "Dense mask grid",
+   "setup": "306 masks covering every mask size, 3 starting teams",
+   "headline": "Ling 54 of 306 legal, scratch diffusion 303 of 306; on the 54 both got legal, diffusion minus Ling -0.4 points.",
+   "files": "code/docs/dense-mask-grid-results.md, dense-mask-sweep-cost.md"
+  },
+  {
+   "date": "2026-10-10",
+   "name": "Regulation prompt test",
+   "setup": "294 masks; Ling with the regulation prompt mb-regulation-v3 against mb-original-v1 sampled at the same time",
+   "headline": "170 of 294 legal against 139 (+10.5 points [+6.8, +14.3]); win rate of legal teams unchanged (0.498 against 0.496).",
+   "files": "code/docs/prompt-changelog.md, code/scripts/prompt_regulation_test.py"
+  }
+ ]
+}
