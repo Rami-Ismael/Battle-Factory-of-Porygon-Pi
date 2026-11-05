@@ -1,0 +1,31 @@
+{
+  "url": "https://raw.githubusercontent.com/ZHZisZZ/dllm/ca176752fbceec49c6b4777a2c18ae88e4eb10ed/dllm/core/trainers/mdlm.py",
+  "status": 200,
+  "headers": {
+    "Connection": "close",
+    "Content-Length": "7795",
+    "Cache-Control": "max-age=300",
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    "Content-Type": "text/plain; charset=utf-8",
+    "ETag": "\"d01954205bf476b902a298b3e19b6d20adcc649a042aa239eb80fcd408d2f3ef\"",
+    "Strict-Transport-Security": "max-age=31536000",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "deny",
+    "X-XSS-Protection": "1; mode=block",
+    "X-GitHub-Request-Id": "C79E:1D7A7A:EBEA0:1256C9:6AECA72F",
+    "x-github-edge-region": "iad",
+    "Accept-Ranges": "bytes",
+    "Date": "Thu, 05 Nov 2026 15:56:31 GMT",
+    "Via": "1.1 varnish",
+    "X-Served-By": "cache-dfw-kdal2120036-DFW",
+    "X-Cache": "MISS",
+    "X-Cache-Hits": "0",
+    "X-Timer": "S1793894191.485186,VS0,VE81",
+    "Vary": "Authorization,Accept-Encoding",
+    "Access-Control-Allow-Origin": "*",
+    "Cross-Origin-Resource-Policy": "cross-origin",
+    "X-Fastly-Request-ID": "cb93d678ca9e046f3e9a318155fe37d5a6cad3cc",
+    "Expires": "Thu, 05 Nov 2026 16:01:31 GMT",
+    "Source-Age": "0"
+  }
+}

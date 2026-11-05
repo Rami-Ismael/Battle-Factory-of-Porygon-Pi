@@ -1,0 +1,31 @@
+{
+  "url": "https://raw.githubusercontent.com/ZHZisZZ/dllm/ca176752fbceec49c6b4777a2c18ae88e4eb10ed/dllm/core/samplers/utils.py",
+  "status": 200,
+  "headers": {
+    "Connection": "close",
+    "Content-Length": "3350",
+    "Cache-Control": "max-age=300",
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    "Content-Type": "text/plain; charset=utf-8",
+    "ETag": "\"3a405bdc5ed31a743273b46b1c7f2f2d36d72fc4da3cb4fdcaa84f6e349dd76b\"",
+    "Strict-Transport-Security": "max-age=31536000",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "deny",
+    "X-XSS-Protection": "1; mode=block",
+    "X-GitHub-Request-Id": "7EB0:77B52:F0AC3:12AAD9:6AECA771",
+    "x-github-edge-region": "iad",
+    "Accept-Ranges": "bytes",
+    "Date": "Thu, 05 Nov 2026 15:57:38 GMT",
+    "Via": "1.1 varnish",
+    "X-Served-By": "cache-dfw-kdal2120096-DFW",
+    "X-Cache": "MISS",
+    "X-Cache-Hits": "0",
+    "X-Timer": "S1793894259.824781,VS0,VE115",
+    "Vary": "Authorization,Accept-Encoding",
+    "Access-Control-Allow-Origin": "*",
+    "Cross-Origin-Resource-Policy": "cross-origin",
+    "X-Fastly-Request-ID": "5a415c595544c316538a198346c0f2c5b7bbff7e",
+    "Expires": "Thu, 05 Nov 2026 16:02:38 GMT",
+    "Source-Age": "0"
+  }
+}

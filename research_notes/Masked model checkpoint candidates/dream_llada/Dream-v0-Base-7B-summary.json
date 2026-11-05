@@ -1,0 +1,30 @@
+{
+  "repo": "Dream-org/Dream-v0-Base-7B",
+  "revision": "6572adb5535263e4d1a337b56942ba48b6dee2a9",
+  "parameters": 7615616512,
+  "embedding_tensors": {
+    "model.embed_tokens.weight": {
+      "dtype": "BF16",
+      "shape": [
+        152064,
+        3584
+      ],
+      "data_offsets": [
+        0,
+        1089994752
+      ]
+    },
+    "lm_head.weight": {
+      "shape": [
+        152064,
+        3584
+      ],
+      "dtype": "BF16"
+    }
+  },
+  "dtype": [
+    "BF16"
+  ],
+  "weight_file_bytes": 15231271864,
+  "without_input_output_embeddings": 6525621760
+}

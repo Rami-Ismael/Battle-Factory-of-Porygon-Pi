@@ -1,0 +1,21 @@
+{
+  "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/model.safetensors?header=1&part=2",
+  "status": 206,
+  "headers": {
+    "content-type": "application/octet-stream",
+    "accept-ranges": "bytes",
+    "content-disposition": "inline; filename*=UTF-8''model.safetensors; filename=\"model.safetensors\";",
+    "etag": "\"f1ea8e7d41992ed80b4ac519373970a4ee30c79403155aeb30ffde5b96444471\"",
+    "content-security-policy": "default-src 'none'; media-src 'self'; sandbox allow-same-origin",
+    "access-control-allow-headers": "Content-Range, Content-Type, Content-Disposition, ETag",
+    "access-control-expose-headers": "*",
+    "content-length": "35552",
+    "content-range": "bytes 8-35559/1503300328",
+    "vary": "origin, access-control-request-method, access-control-request-headers",
+    "access-control-allow-origin": "*",
+    "x-request-id": "01M6P6SBFQTBDK1K175MF7D53S",
+    "x-hf-cdn-pop": "aws-us-east-1",
+    "date": "Thu, 05 Nov 2026 15:56:06 GMT",
+    "connection": "close"
+  }
+}

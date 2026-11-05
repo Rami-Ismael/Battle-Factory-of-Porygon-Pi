@@ -1,0 +1,8 @@
+{
+  "bos_token": "<|endoftext|>",
+  "eos_token": "<|endoftext|>",
+  "mask_token": "[¨M¨]",
+  "pad_token": "¨",
+  "sep_token": "======",
+  "unk_token": "<|endoftext|>"
+}

@@ -1,0 +1,30 @@
+{
+  "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/modeling_qwen3.py",
+  "status": 200,
+  "headers": {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Content-Length": "7184",
+    "Connection": "close",
+    "Date": "Sun, 01 Nov 2026 14:53:28 GMT",
+    "ETag": "\"44d960d2bcf5e8faa3c79b42de22e9df94903ee6\"",
+    "X-Powered-By": "huggingface-moon",
+    "X-Request-Id": "Root=1-6ae75268-3bf272ae3458a903432e8723",
+    "cross-origin-opener-policy": "same-origin",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Access-Control-Max-Age": "86400",
+    "Access-Control-Allow-Origin": "https://huggingface.co",
+    "Access-Control-Expose-Headers": "X-Repo-Commit,X-Request-Id,X-Error-Code,X-Error-Message,X-Total-Count,ETag,Link,Accept-Ranges,Content-Range,X-Linked-Size,X-Linked-ETag,X-Xet-Hash,RateLimit,RateLimit-Policy",
+    "X-Repo-Commit": "c8d24a3f4adaeef46881b450e1bf7d1005203bd7",
+    "Accept-Ranges": "bytes",
+    "Content-Disposition": "inline; filename*=UTF-8''modeling_qwen3.py; filename=\"modeling_qwen3.py\";",
+    "Content-Security-Policy": "default-src 'none'; sandbox",
+    "Vary": "Origin",
+    "X-Cache": "Hit from cloudfront",
+    "Via": "1.1 5921f03ce61d4617560c1d037b63487e.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Pop": "DFW59-P5",
+    "Alt-Svc": "h3=\":443\"; ma=86400",
+    "X-Amz-Cf-Id": "pALgAfKOCVPIX8He0BYkxaHkO_yK0egUuRue_Nvwa-69fe50FmVuOg==",
+    "Age": "349358",
+    "Strict-Transport-Security": "max-age=31536000"
+  }
+}

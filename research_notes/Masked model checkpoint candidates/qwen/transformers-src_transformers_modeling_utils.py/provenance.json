@@ -1,0 +1,31 @@
+{
+  "url": "https://raw.githubusercontent.com/huggingface/transformers/v4.57.0/src/transformers/modeling_utils.py",
+  "status": 200,
+  "headers": {
+    "Connection": "close",
+    "Content-Length": "309233",
+    "Cache-Control": "max-age=300",
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    "Content-Type": "text/plain; charset=utf-8",
+    "ETag": "\"c9a51f6aadb01be2d6daef270f489a375a0b979945cce005f5ca691f97b41b82\"",
+    "Strict-Transport-Security": "max-age=31536000",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "deny",
+    "X-XSS-Protection": "1; mode=block",
+    "X-GitHub-Request-Id": "CEB4:37763B:E83F5:121AB4:6AECA730",
+    "x-github-edge-region": "iad",
+    "Accept-Ranges": "bytes",
+    "Date": "Thu, 05 Nov 2026 15:56:33 GMT",
+    "Via": "1.1 varnish",
+    "X-Served-By": "cache-dfw-kdal2120079-DFW",
+    "X-Cache": "MISS",
+    "X-Cache-Hits": "0",
+    "X-Timer": "S1793894193.998128,VS0,VE126",
+    "Vary": "Authorization,Accept-Encoding",
+    "Access-Control-Allow-Origin": "*",
+    "Cross-Origin-Resource-Policy": "cross-origin",
+    "X-Fastly-Request-ID": "61f43d6e2bcc55ec65fba00765b78bd7b72ce29c",
+    "Expires": "Thu, 05 Nov 2026 16:01:33 GMT",
+    "Source-Age": "0"
+  }
+}

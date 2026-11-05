@@ -1,0 +1,117 @@
+[
+  {
+    "url": "https://huggingface.co/api/models/diffusionfamily/diffugpt-s?blobs=true",
+    "file": "diffugpt-s-api-tqo4rw00/data",
+    "bytes": 2362
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-s/resolve/391d9850148c0beda355a8874bea958a40164c74/config.json",
+    "file": "config-json-jaheuexd/data",
+    "bytes": 915
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-s/resolve/391d9850148c0beda355a8874bea958a40164c74/tokenizer_config.json",
+    "file": "tokenizer_config-json-dx53xu93/data",
+    "bytes": 536
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-s/resolve/391d9850148c0beda355a8874bea958a40164c74/special_tokens_map.json",
+    "file": "special_tokens_map-json-esw8d7bm/data",
+    "bytes": 131
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-s/resolve/391d9850148c0beda355a8874bea958a40164c74/model.safetensors",
+    "file": "prefix-2cm0m8ld/data",
+    "bytes": 8
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-s/resolve/391d9850148c0beda355a8874bea958a40164c74/model.safetensors",
+    "file": "header-el9jo1qc/data",
+    "bytes": 15176
+  },
+  {
+    "url": "https://huggingface.co/api/models/diffusionfamily/diffugpt-m?blobs=true",
+    "file": "diffugpt-m-api-z1w6kmq7/data",
+    "bytes": 2508
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-m/resolve/ce62f89724018390198ded702c4926791cf17c21/config.json",
+    "file": "config-json-p8tbem2l/data",
+    "bytes": 976
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-m/resolve/ce62f89724018390198ded702c4926791cf17c21/tokenizer_config.json",
+    "file": "tokenizer_config-json-60l6iuas/data",
+    "bytes": 1089
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-m/resolve/ce62f89724018390198ded702c4926791cf17c21/special_tokens_map.json",
+    "file": "special_tokens_map-json-pc2qw2k_/data",
+    "bytes": 172
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-m/resolve/ce62f89724018390198ded702c4926791cf17c21/added_tokens.json",
+    "file": "added_tokens-json-9iv4e3ht/data",
+    "bytes": 23
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-m/resolve/ce62f89724018390198ded702c4926791cf17c21/model.safetensors",
+    "file": "prefix-6t63mrdp/data",
+    "bytes": 8
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffugpt-m/resolve/ce62f89724018390198ded702c4926791cf17c21/model.safetensors",
+    "file": "header-9lfd3s77/data",
+    "bytes": 30608
+  },
+  {
+    "url": "https://huggingface.co/api/models/diffusionfamily/diffullama?blobs=true",
+    "file": "diffullama-api-05_w58zt/data",
+    "bytes": 3706
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/config.json",
+    "file": "config-json-ytlbbow3/data",
+    "bytes": 699
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/tokenizer_config.json",
+    "file": "tokenizer_config-json-2l8p1zdd/data",
+    "bytes": 1030
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/special_tokens_map.json",
+    "file": "special_tokens_map-json-kts4stuv/data",
+    "bytes": 486
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/model-00001-of-00003.safetensors",
+    "file": "prefix-9ipjuk38/data",
+    "bytes": 8
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/model-00001-of-00003.safetensors",
+    "file": "header-u38s3d0v/data",
+    "bytes": 12160
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/model-00002-of-00003.safetensors",
+    "file": "prefix-n3d68dkz/data",
+    "bytes": 8
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/model-00002-of-00003.safetensors",
+    "file": "header-7q9apx31/data",
+    "bytes": 12696
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/model-00003-of-00003.safetensors",
+    "file": "prefix-uz6yxx8t/data",
+    "bytes": 8
+  },
+  {
+    "url": "https://huggingface.co/diffusionfamily/diffullama/resolve/31b22850c7b397d6948ea04076099b9ff7110adc/model-00003-of-00003.safetensors",
+    "file": "header-0u_mxfp8/data",
+    "bytes": 8936
+  }
+]

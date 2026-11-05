@@ -1,0 +1,30 @@
+{
+  "url": "https://huggingface.co/Qwen/Qwen3-0.6B/resolve/c1899de289a04d12100db370d81485cdf75e47ca/LICENSE",
+  "status": 200,
+  "headers": {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Content-Length": "11343",
+    "Connection": "close",
+    "Date": "Fri, 31 Jul 2026 08:09:32 GMT",
+    "ETag": "\"6634c8cc3133b3848ec74b9f275acaaa1ea618ab\"",
+    "X-Powered-By": "huggingface-moon",
+    "X-Request-Id": "Root=1-6a6c583c-02338c0a0ffc5572147679b2",
+    "cross-origin-opener-policy": "same-origin",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Access-Control-Max-Age": "86400",
+    "Access-Control-Allow-Origin": "https://huggingface.co",
+    "Access-Control-Expose-Headers": "X-Repo-Commit,X-Request-Id,X-Error-Code,X-Error-Message,X-Total-Count,ETag,Link,Accept-Ranges,Content-Range,X-Linked-Size,X-Linked-ETag,X-Xet-Hash",
+    "X-Repo-Commit": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "Accept-Ranges": "bytes",
+    "Content-Disposition": "inline; filename*=UTF-8''LICENSE; filename=\"LICENSE\";",
+    "Content-Security-Policy": "default-src 'none'; sandbox",
+    "Vary": "Origin",
+    "X-Cache": "Hit from cloudfront",
+    "Via": "1.1 8217c41da9d2395cb259da1f3fbc7cda.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Pop": "DFW59-P5",
+    "Alt-Svc": "h3=\":443\"; ma=86400",
+    "X-Amz-Cf-Id": "21oUNzR32-H2pICrZbPCHrosIXDy3SqJNKuRmYsSUy8eNLQPDoogIA==",
+    "Age": "8408820",
+    "Strict-Transport-Security": "max-age=31536000"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-bd3lm-v0.1/resolve/60f77bba67ba94231c16f5fb29bc66c500b038f1/README.md",
+  "status": 200,
+  "headers": {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Content-Length": "13600",
+    "Connection": "close",
+    "Date": "Sun, 25 Oct 2026 09:46:23 GMT",
+    "ETag": "\"51907a41401d50fb0d977160e453a3aa7992e78d\"",
+    "X-Powered-By": "huggingface-moon",
+    "X-Request-Id": "Root=1-6addcfef-1904c9d7613e067330e1b5db",
+    "cross-origin-opener-policy": "same-origin",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Access-Control-Max-Age": "86400",
+    "Access-Control-Allow-Origin": "https://huggingface.co",
+    "Access-Control-Expose-Headers": "X-Repo-Commit,X-Request-Id,X-Error-Code,X-Error-Message,X-Total-Count,ETag,Link,Accept-Ranges,Content-Range,X-Linked-Size,X-Linked-ETag,X-Xet-Hash",
+    "X-Repo-Commit": "60f77bba67ba94231c16f5fb29bc66c500b038f1",
+    "Accept-Ranges": "bytes",
+    "Content-Disposition": "inline; filename*=UTF-8''README.md; filename=\"README.md\";",
+    "Content-Security-Policy": "default-src 'none'; sandbox",
+    "Vary": "Origin",
+    "X-Cache": "Hit from cloudfront",
+    "Via": "1.1 8217c41da9d2395cb259da1f3fbc7cda.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Pop": "DFW59-P5",
+    "Alt-Svc": "h3=\":443\"; ma=86400",
+    "X-Amz-Cf-Id": "O7KhBVIgXDRBIrXvqYIguQ3uZqZuzLJHqifjuq1qfVT4fvureKxvFg==",
+    "Age": "972584",
+    "Strict-Transport-Security": "max-age=31536000"
+  }
+}

@@ -1,0 +1,296 @@
+[
+  {
+    "file": "transformers-src_transformers_modeling_utils.py/data",
+    "bytes": 309233,
+    "sha256": "7d5c231470e143232d7dcff7276be68e8a599835d8619e469ef0ff8bd302cb95",
+    "url": "https://raw.githubusercontent.com/huggingface/transformers/v4.57.0/src/transformers/modeling_utils.py"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-config_json/data",
+    "bytes": 1579,
+    "sha256": "02494589af3c9284b381929c576e5865c8f026b5bfed4b9a08d1b38bd4b8623e",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/config.json"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-model.safetensors-prefix/data",
+    "bytes": 8,
+    "sha256": "a42589bdb13bf07bef417a49cbefa64ca429a3e5145e12daaf0f8b582a3f7b60",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/model.safetensors?header=1"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-special_tokens_map_json/data",
+    "bytes": 787,
+    "sha256": "676a177c1945a87fc5297d228bd9a57c325cb69514644fcdda3b22e113671336",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/special_tokens_map.json"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-api/data",
+    "bytes": 5458,
+    "sha256": "0533de1c25fbc98ec1153e652c822620e7021cea1066ce84c1354701f9c6387f",
+    "url": "https://huggingface.co/api/models/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1?blobs=true"
+  },
+  {
+    "file": "dllm-revision/data",
+    "bytes": 97564,
+    "sha256": "7a8a3b495c092e2a0075fbcb92d02f9512485aa3812958e265971a3eb3ffa21d",
+    "url": "https://api.github.com/repos/ZHZisZZ/dllm/commits/main"
+  },
+  {
+    "file": "transformers-src_transformers_models_qwen3_modeling_qwen3.py/data",
+    "bytes": 23067,
+    "sha256": "4b95c371fd26d40c69083dab36ac1eafd8cf82b415a0bb827275097c5ad2305b",
+    "url": "https://raw.githubusercontent.com/huggingface/transformers/v4.57.0/src/transformers/models/qwen3/modeling_qwen3.py"
+  },
+  {
+    "file": "transformers-ref/data",
+    "bytes": 353,
+    "sha256": "fbb1d2ab46049048ad5d7b78a3d7b1ddaaa08a155135c767c2923fd4c14137fc",
+    "url": "https://api.github.com/repos/huggingface/transformers/git/ref/tags/v4.57.0"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-modeling_qwen2_py/data",
+    "bytes": 7140,
+    "sha256": "708c3f667f7b4eac3fd504ace32e1ee7171cfbfbbc6b6d9d95eda0353a779710",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/modeling_qwen2.py"
+  },
+  {
+    "file": "transformers-src_transformers_models_qwen2_modeling_qwen2.py/data",
+    "bytes": 21621,
+    "sha256": "a59fa06524227361fb401baf4d177124a27aec146bc01ec931235a9abbab17cb",
+    "url": "https://raw.githubusercontent.com/huggingface/transformers/v4.57.0/src/transformers/models/qwen2/modeling_qwen2.py"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-tokenizer_json/data",
+    "bytes": 11422839,
+    "sha256": "6d55810de1daf81d1d1259355b4b85810385022ab745be68029295935a4eacf0",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/tokenizer.json"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-model.safetensors-prefix/data",
+    "bytes": 8,
+    "sha256": "8a16e441814691877fc9500b73078ea3050a5c26e10be2c590378f94552e0cd9",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/model.safetensors?header=1"
+  },
+  {
+    "file": "transformers-mask-utils/data",
+    "bytes": 21517,
+    "sha256": "a0810cef6b0d6093bfdaa349b3adde2e633fd3a6be5073d80b5e08b2f12c354b",
+    "url": "https://raw.githubusercontent.com/huggingface/transformers/v4.57.0/src/transformers/modeling_attn_mask_utils.py"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-config_json/data",
+    "bytes": 1446,
+    "sha256": "fd50ab8931745507b3a7f6f12f2ba07ea56757b6a4ebe99bb00e6d7b74af637c",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/config.json"
+  },
+  {
+    "file": "dllm-sampler-utils/data",
+    "bytes": 3350,
+    "sha256": "d02c060b9746349d51ff61eb76a5e123260d144e898e50571ef80d9ed8bae773",
+    "url": "https://raw.githubusercontent.com/ZHZisZZ/dllm/ca176752fbceec49c6b4777a2c18ae88e4eb10ed/dllm/core/samplers/utils.py"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-tokenizer_config_json/data",
+    "bytes": 4926,
+    "sha256": "e24b031ce01a4aa1283ae1425b7316e46d54b5100f9d2d10aec0504972785f27",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/tokenizer_config.json"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-bd3lm-api/data",
+    "bytes": 5247,
+    "sha256": "a2136ab83b9451599fc5f827d9a09058ba3ff0ee78ae9f3008de3a3290e51604",
+    "url": "https://huggingface.co/api/models/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-bd3lm-v0.1?blobs=true"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-tokenizer_config_json/data",
+    "bytes": 5645,
+    "sha256": "ffe505983791f3fd517c246cc8fb173bbefc2ef657ce9cf2182ac9d97951f77b",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/tokenizer_config.json"
+  },
+  {
+    "file": "dllm-dllm_core_trainers_mdlm.py/data",
+    "bytes": 7795,
+    "sha256": "b33a3cd25f17e67e895b72e062d763dc43bac79a814bb82e13989b8da107d667",
+    "url": "https://raw.githubusercontent.com/ZHZisZZ/dllm/ca176752fbceec49c6b4777a2c18ae88e4eb10ed/dllm/core/trainers/mdlm.py"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-api/data",
+    "bytes": 7571,
+    "sha256": "c10aa1e55765745b3b479b339d212d98015c27da8f3fa3feef7d0a864bd4c876",
+    "url": "https://huggingface.co/api/models/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1?blobs=true"
+  },
+  {
+    "file": "Qwen3-0.6B-bd3lm-api/data",
+    "bytes": 7667,
+    "sha256": "963d08e220da13e72d9626db132e6547aec2f042ea99a71f032dd88a0bf7b030",
+    "url": "https://huggingface.co/api/models/dllm-hub/Qwen3-0.6B-diffusion-bd3lm-v0.1?blobs=true"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-README_md/data",
+    "bytes": 11510,
+    "sha256": "7c9312b2300d7d33b095d0a0a0587d5b82dc0b5a8cc3a4f6126a6d13fd5eb77f",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/README.md"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-upstream-config.json/data",
+    "bytes": 659,
+    "sha256": "b1e58593cd31852f7da5c2fc31ddf6135b9c066c0fd9177a4bbe95717083adff",
+    "url": "https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct/resolve/ea3f2471cf1b1f0db85067f1ef93848e38e88c25/config.json"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-README_md/data",
+    "bytes": 10914,
+    "sha256": "6167e663252757bfc7ac5482b1cafa1845043aaff06972361f0ee9bee54a23f6",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/README.md"
+  },
+  {
+    "file": "Qwen3-0.6B-bd3lm-README_md/data",
+    "bytes": 13600,
+    "sha256": "24e12c2fb7f24c87bb34e699fbd82045b3650f4ceae115853960dbf116b9e871",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-bd3lm-v0.1/resolve/60f77bba67ba94231c16f5fb29bc66c500b038f1/README.md"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-bd3lm-tokenizer_config_json/data",
+    "bytes": 4926,
+    "sha256": "e24b031ce01a4aa1283ae1425b7316e46d54b5100f9d2d10aec0504972785f27",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-bd3lm-v0.1/resolve/4bcf3a00ba6ec28d9cf9c3ebc4a5a5dc01c6023c/tokenizer_config.json"
+  },
+  {
+    "file": "dllm-examples_a2d_mdlm_sample.py/data",
+    "bytes": 2039,
+    "sha256": "ad45256bde9dbce00b14709cc0e788239c5d87c25e3cc072aab1b66cd04f2214",
+    "url": "https://raw.githubusercontent.com/ZHZisZZ/dllm/ca176752fbceec49c6b4777a2c18ae88e4eb10ed/examples/a2d/mdlm/sample.py"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-model.safetensors-header/data",
+    "bytes": 35552,
+    "sha256": "399d16f500e925c7e923fe05966c6df6862ab64da60916843119e802f1801bca",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/model.safetensors?header=1&part=2"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-bd3lm-config_json/data",
+    "bytes": 1446,
+    "sha256": "fd50ab8931745507b3a7f6f12f2ba07ea56757b6a4ebe99bb00e6d7b74af637c",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-bd3lm-v0.1/resolve/4bcf3a00ba6ec28d9cf9c3ebc4a5a5dc01c6023c/config.json"
+  },
+  {
+    "file": "transformers-src_transformers_integrations_sdpa_attention.py/data",
+    "bytes": 5163,
+    "sha256": "dc5abe49a98dec3b9026739dfbf2e9a8f3e5272b2916b3c2d404727ac931a013",
+    "url": "https://raw.githubusercontent.com/huggingface/transformers/v4.57.0/src/transformers/integrations/sdpa_attention.py"
+  },
+  {
+    "file": "Qwen3-0.6B-upstream-api/data",
+    "bytes": 9922,
+    "sha256": "1795bdbe6a6bc063fea962d6fde50386ba35a7383b0fc8e6c2cdbe6df0426c60",
+    "url": "https://huggingface.co/api/models/Qwen/Qwen3-0.6B?blobs=true"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-upstream-LICENSE/data",
+    "bytes": 11343,
+    "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+    "url": "https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct/resolve/ea3f2471cf1b1f0db85067f1ef93848e38e88c25/LICENSE"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-special_tokens_map_json/data",
+    "bytes": 787,
+    "sha256": "676a177c1945a87fc5297d228bd9a57c325cb69514644fcdda3b22e113671336",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/special_tokens_map.json"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-upstream-api/data",
+    "bytes": 7586,
+    "sha256": "310e430788c6bc42a1251b9de1772b541c43086a69721802770146811d7dff37",
+    "url": "https://huggingface.co/api/models/Qwen/Qwen2.5-Coder-0.5B-Instruct?blobs=true"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-model.safetensors-header/data",
+    "bytes": 32592,
+    "sha256": "635769e110d680e0554679a2c9fa750995366c646332af620dcb017360fc9adb",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/model.safetensors?header=1&part=2"
+  },
+  {
+    "file": "Qwen3-0.6B-bd3lm-config_json/data",
+    "bytes": 1579,
+    "sha256": "02494589af3c9284b381929c576e5865c8f026b5bfed4b9a08d1b38bd4b8623e",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-bd3lm-v0.1/resolve/60f77bba67ba94231c16f5fb29bc66c500b038f1/config.json"
+  },
+  {
+    "file": "transformers-tag-object/data",
+    "bytes": 679,
+    "sha256": "59f974be0b5294479e0ace430040de320c0093ee8fb17071bc8c420c04f8740d",
+    "url": "https://api.github.com/repos/huggingface/transformers/git/tags/76d27aea82449e921e36afdc886c6e5bf34ea526"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-mdlm-tokenizer_json/data",
+    "bytes": 11422081,
+    "sha256": "a59820ad3f728fff77cf7e4188532fc45e5f80cd0299cde28046bd2b51c64bdf",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/tokenizer.json"
+  },
+  {
+    "file": "model_inventory/data",
+    "bytes": 2841,
+    "sha256": "8b02502262cfb35d1af15dd8e516e2f7a5719733427f88df5b1392a2ce4acb85",
+    "url": "https://huggingface.co/api/models?author=dllm-hub&limit=100"
+  },
+  {
+    "file": "Qwen3-0.6B-upstream-config.json/data",
+    "bytes": 726,
+    "sha256": "660db3b73d788119c04535e48cf9be5f55bc3100841a718637ae695b442f27dd",
+    "url": "https://huggingface.co/Qwen/Qwen3-0.6B/resolve/c1899de289a04d12100db370d81485cdf75e47ca/config.json"
+  },
+  {
+    "file": "Qwen3-0.6B-bd3lm-tokenizer_config_json/data",
+    "bytes": 5645,
+    "sha256": "ffe505983791f3fd517c246cc8fb173bbefc2ef657ce9cf2182ac9d97951f77b",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-bd3lm-v0.1/resolve/60f77bba67ba94231c16f5fb29bc66c500b038f1/tokenizer_config.json"
+  },
+  {
+    "file": "dllm-tree/data",
+    "bytes": 63338,
+    "sha256": "24c9bf4a842beef2d99cf6f6d55f7a00b7d6713e3336161896819b6f3e876736",
+    "url": "https://api.github.com/repos/ZHZisZZ/dllm/git/trees/ca176752fbceec49c6b4777a2c18ae88e4eb10ed?recursive=1"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-bd3lm-README_md/data",
+    "bytes": 12925,
+    "sha256": "3b8f64266dd1cf2ffa313182244ae4b92d9aa0d21acbeda1fcf9dbcd04ed7b51",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-bd3lm-v0.1/resolve/4bcf3a00ba6ec28d9cf9c3ebc4a5a5dc01c6023c/README.md"
+  },
+  {
+    "file": "Qwen3-0.6B-mdlm-modeling_qwen3_py/data",
+    "bytes": 7184,
+    "sha256": "624175f036b6552db473e911e5ec57a09d518c7241b11bc375a7b4bf558675ce",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1/resolve/c8d24a3f4adaeef46881b450e1bf7d1005203bd7/modeling_qwen3.py"
+  },
+  {
+    "file": "Qwen2.5-Coder-0.5B-Instruct-bd3lm-special_tokens_map_json/data",
+    "bytes": 787,
+    "sha256": "676a177c1945a87fc5297d228bd9a57c325cb69514644fcdda3b22e113671336",
+    "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-bd3lm-v0.1/resolve/4bcf3a00ba6ec28d9cf9c3ebc4a5a5dc01c6023c/special_tokens_map.json"
+  },
+  {
+    "file": "dllm-dllm_core_samplers_mdlm.py/data",
+    "bytes": 18352,
+    "sha256": "b653ce0379cbaa9829f6ce1695335f050092e08da72565da0421471a38577d42",
+    "url": "https://raw.githubusercontent.com/ZHZisZZ/dllm/ca176752fbceec49c6b4777a2c18ae88e4eb10ed/dllm/core/samplers/mdlm.py"
+  },
+  {
+    "file": "dllm-LICENSE/data",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "url": "https://raw.githubusercontent.com/ZHZisZZ/dllm/ca176752fbceec49c6b4777a2c18ae88e4eb10ed/LICENSE"
+  },
+  {
+    "file": "Qwen3-0.6B-bd3lm-special_tokens_map_json/data",
+    "bytes": 787,
+    "sha256": "676a177c1945a87fc5297d228bd9a57c325cb69514644fcdda3b22e113671336",
+    "url": "https://huggingface.co/dllm-hub/Qwen3-0.6B-diffusion-bd3lm-v0.1/resolve/60f77bba67ba94231c16f5fb29bc66c500b038f1/special_tokens_map.json"
+  },
+  {
+    "file": "Qwen3-0.6B-upstream-LICENSE/data",
+    "bytes": 11343,
+    "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+    "url": "https://huggingface.co/Qwen/Qwen3-0.6B/resolve/c1899de289a04d12100db370d81485cdf75e47ca/LICENSE"
+  }
+]

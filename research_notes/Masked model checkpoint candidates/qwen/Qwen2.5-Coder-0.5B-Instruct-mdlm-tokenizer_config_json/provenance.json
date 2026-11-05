@@ -1,0 +1,30 @@
+{
+  "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/tokenizer_config.json",
+  "status": 200,
+  "headers": {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Content-Length": "4926",
+    "Connection": "close",
+    "Date": "Thu, 05 Nov 2026 09:01:07 GMT",
+    "ETag": "\"e30a9159e5ddaa1c8eafc59203190bffdf55bafa\"",
+    "X-Powered-By": "huggingface-moon",
+    "X-Request-Id": "49b6ed6c-7a93-4013-aa0b-9679b5321315",
+    "cross-origin-opener-policy": "same-origin",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Access-Control-Max-Age": "86400",
+    "Access-Control-Allow-Origin": "https://huggingface.co",
+    "Access-Control-Expose-Headers": "X-Repo-Commit,X-HF-Warning,X-Request-Id,X-Error-Code,X-Error-Message,X-Total-Count,ETag,Link,Accept-Ranges,Content-Range,X-Linked-Size,X-Linked-ETag,X-Xet-Hash,RateLimit,RateLimit-Policy",
+    "X-Repo-Commit": "a284e895a6248256baf2f60502e54aba61b24c1a",
+    "Accept-Ranges": "bytes",
+    "Content-Disposition": "inline; filename*=UTF-8''tokenizer_config.json; filename=\"tokenizer_config.json\";",
+    "Content-Security-Policy": "default-src 'none'; sandbox",
+    "Vary": "Origin",
+    "X-Cache": "Hit from cloudfront",
+    "Via": "1.1 096596096db6f5b35fb52b76f64a5354.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Pop": "DFW59-P5",
+    "Alt-Svc": "h3=\":443\"; ma=86400",
+    "X-Amz-Cf-Id": "ytIHsp0h8fYijmRr6tssEWv0dZMIfAPjGD2EE4k4rxByUSzcyIVZog==",
+    "Age": "24895",
+    "Strict-Transport-Security": "max-age=31536000"
+  }
+}

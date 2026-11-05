@@ -1,0 +1,31 @@
+{
+  "url": "https://raw.githubusercontent.com/huggingface/transformers/v4.57.0/src/transformers/modeling_attn_mask_utils.py",
+  "status": 200,
+  "headers": {
+    "Connection": "close",
+    "Content-Length": "21517",
+    "Cache-Control": "max-age=300",
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    "Content-Type": "text/plain; charset=utf-8",
+    "ETag": "\"4ba531c72ae714bd2989c2677901131d350213a3c134b36a11584ea77bd4295c\"",
+    "Strict-Transport-Security": "max-age=31536000",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "deny",
+    "X-XSS-Protection": "1; mode=block",
+    "X-GitHub-Request-Id": "A6D2:21DDA3:F6944:130811:6AECA771",
+    "x-github-edge-region": "iad",
+    "Accept-Ranges": "bytes",
+    "Date": "Thu, 05 Nov 2026 15:57:39 GMT",
+    "Via": "1.1 varnish",
+    "X-Served-By": "cache-dfw-kdal2120077-DFW",
+    "X-Cache": "MISS",
+    "X-Cache-Hits": "0",
+    "X-Timer": "S1793894259.975206,VS0,VE155",
+    "Vary": "Authorization,Accept-Encoding",
+    "Access-Control-Allow-Origin": "*",
+    "Cross-Origin-Resource-Policy": "cross-origin",
+    "X-Fastly-Request-ID": "63d682b16de64c8f7183559caebaf8fee265c747",
+    "Expires": "Thu, 05 Nov 2026 16:02:39 GMT",
+    "Source-Age": "0"
+  }
+}

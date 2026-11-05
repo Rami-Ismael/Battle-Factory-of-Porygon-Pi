@@ -1,0 +1,20 @@
+{
+  "url": "https://huggingface.co/dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1/resolve/a284e895a6248256baf2f60502e54aba61b24c1a/tokenizer.json",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json; charset=utf-8",
+    "accept-ranges": "bytes",
+    "content-disposition": "inline; filename*=UTF-8''tokenizer.json; filename=\"tokenizer.json\";",
+    "etag": "\"d0d085d5f117cceca149a6da9485b1255e53661b25f5dd9453964fd3857087a3\"",
+    "content-security-policy": "default-src 'none'; media-src 'self'; sandbox allow-same-origin",
+    "access-control-allow-headers": "Content-Range, Content-Type, Content-Disposition, ETag",
+    "access-control-expose-headers": "*",
+    "content-length": "11422081",
+    "vary": "origin, access-control-request-method, access-control-request-headers",
+    "access-control-allow-origin": "*",
+    "x-request-id": "01M6P6S91Z1HHGCZ7J8QP6M4Q6",
+    "x-hf-cdn-pop": "aws-us-east-1",
+    "date": "Thu, 05 Nov 2026 15:56:03 GMT",
+    "connection": "close"
+  }
+}
