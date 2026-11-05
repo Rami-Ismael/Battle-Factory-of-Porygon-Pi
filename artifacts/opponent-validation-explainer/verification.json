@@ -1,0 +1,56 @@
+{
+  "checks": "Passed agreed split wording, full stat labels, all tabs, keyboard navigation, all training steps, forward/reverse control use, reset, near-copy comparison, offline resource isolation, desktop/mobile overflow, touch targets and chart proportions",
+  "console_errors": [],
+  "source_sha256": {
+    "index.html": "0771541e4252e891aece2c850d80e6ac1806752776263b558a87ce80b32b6327",
+    "swap-family-comparison.html": "e85a3197c9af3a04647d253d58ce8d602b9e3b2ddc880c366eec480097458a74"
+  },
+  "layouts": [
+    {
+      "width": 728,
+      "tab": "split",
+      "height": 1555.05
+    },
+    {
+      "width": 728,
+      "tab": "train",
+      "height": 1594.03
+    },
+    {
+      "width": 728,
+      "tab": "validate",
+      "height": 1403.25
+    },
+    {
+      "width": 390,
+      "tab": "split",
+      "height": 1954.91
+    },
+    {
+      "width": 390,
+      "tab": "train",
+      "height": 2234.89
+    },
+    {
+      "width": 390,
+      "tab": "validate",
+      "height": 1875.31
+    },
+    {
+      "width": 320,
+      "tab": "split",
+      "height": 2236.91
+    },
+    {
+      "width": 320,
+      "tab": "train",
+      "height": 2570.69
+    },
+    {
+      "width": 320,
+      "tab": "validate",
+      "height": 2119.31
+    }
+  ],
+  "scope": "HTML teaching behavior only; no opponent draw, model training, battle evaluation or ranks 51 to 100 access."
+}
