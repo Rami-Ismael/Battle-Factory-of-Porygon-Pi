@@ -1,0 +1,1116 @@
+                                                     Training Diffusion Language Models for Black-Box Optimization
+
+
+                                           Zipeng Sun * 1 2 Can (Sam) Chen * † ‡ 2 3 Ye Yuan 1 2 Haolun Wu 1 2 Jiayao Gu 1 2 Chris Pal 2 4 5 Xue Liu 1 2 6
+
+
+                                                                  Abstract                                    aim to create novel designs that maximize performance met-
+                                               We study offline black-box optimization (BBO),                 rics (Trabucco et al., 2022). Nevertheless, obtaining these
+                                               aiming to discover improved designs from an of-                property measurements often requires direct experimenta-
+                                               fline dataset of designs and labels, a problem com-            tion that is both labor-costly and time-intensive (Hamidieh,
+
+
+
+
+arXiv:2603.17919v3 [cs.CE] 29 May 2026
+                                               mon in robotics and DNA with limited labeled                   2018; Angermueller et al., 2019; Barrera et al., 2016; Sam-
+                                               samples. While recent work applies autoregres-                 ple et al., 2019). This constraint essentially precludes the
+                                               sive LLMs to BBO by formatting tasks as natural-               use of standard iterative online optimization. As an alterna-
+                                               language prompts, their left-to-right design gener-            tive, the community turns to offline black-box optimization
+                                               ation struggles to capture the strong bidirectional            (BBO) (Kim et al., 2026), which operates by utilizing an
+                                               dependencies inherent in design problems. To ad-               existing, static dataset of design-property pairs to propose
+                                               dress this, we propose adapting diffusion LLMs to              superior candidates. The central difficulty in this paradigm
+                                               offline BBO to leverage their bidirectional mod-               is that real-world applications frequently suffer from the
+                                               eling capabilities. However, a domain gap ex-                  lack of labeled data points.
+                                               ists between the natural text pre-training of diffu-           Traditional approaches often rely on training task-specific
+                                               sion LLMs and the heterogeneous signals in BBO                 surrogate models or generative models, but they suffer from
+                                               (prompts, designs, and labels). To bridge this gap,            epistemic uncertainty arising from the aforementioned lim-
+                                               we construct a unified prompt—response corpus                  ited data coverage (Kim et al., 2026). More recent work
+                                               and introduce delimiter tokens to explicitly mark              reformulates task descriptions and offline datasets as natural-
+                                               field boundaries for domain adaptation. We fur-                language prompts, enabling LLMs to directly generate can-
+                                               ther propose a two-stage post-training framework               didate designs (Yang et al., 2024; Zhang et al., 2023; Liu
+                                               to align the diffusion LLM generation with high-               et al., 2024; Nie et al., 2024; Veličković et al., 2024; Novikov
+                                               label designs. The first stage performs supervised             et al., 2025). However, most of these methods employ au-
+                                               fine-tuning on the unified dataset via masked-                 toregressive (AR) LLMs (Brown et al., 2020), which are in-
+                                               response prediction, and the second stage adopts               herently unidirectional. Many design problems (e.g., DNA
+                                               reinforcement learning with rewards defined by la-             sequence generation) exhibit bidirectional dependencies,
+                                               bel improvements. Our method achieves state-of-                where each unit can be influenced by both its prefix and
+                                               the-art results on Design-Bench under small-data               suffix, making AR models insufficient to fully capture these
+                                               settings with highly efficient training, requiring             interactions during left-to-right generation.
+                                               only 1.5 H100 GPU hours for discrete tasks. Code
+                                               for our work is available here.                                In response, we turn to diffusion LLMs for BBO, leverag-
+                                                                                                              ing their inherent bidirectional modeling capabilities. A
+                                                                                                              diffusion LLM is trained by progressively masking tokens
+                                         1. Introduction                                                      and learning to reconstruct them, and at inference time, it
+                                         Across diverse scientific disciplines, including robotic de-         reverses this process by iteratively denoising a fully masked
+                                         sign, DNA synthesis, and materials discovery, researchers            sequence (Nie et al., 2025; Gong et al., 2025; Arriola et al.,
+                                                                                                              2025). This training paradigm naturally enables diffusion
+                                           *
+                                             Equal contribution †Project lead. ‡Work done indepen-            LLMs to capture bidirectional dependencies.
+                                         dent of the author’s position at Amazon AGI. 1 McGill Univer-
+                                         sity 2 MILA - Quebec AI Institute 3 Amazon AGI 4 Polytechnique       As illustrated in Figure 1(a), the BBO setting natu-
+                                         Montreal 5 Canada CIFAR AI Chair 6 Mohamed bin Zayed                 rally involves multiple heterogeneous signals: natural-
+                                         University of Artificial Intelligence.     Correspondence to:        language prompts (task descriptions and instructions)
+                                         Zipeng Sun <zpointsun@gmail.com>, Can (Sam) Chen <chen-              together with offline designs and their associated la-
+                                         can421@gmail.com>.
+                                                                                                              bels. This introduces a domain gap, as the diffusion
+                                         Proceedings of the 43 rd International Conference on Machine         LLM is pretrained solely on natural-language text. To
+                                         Learning, Seoul, South Korea. PMLR 306, 2026. Copyright 2026         bridge this gap, we construct a unified prompt–response
+                                         by the author(s).
+
+                                                                                                          1
+                                  Training Diffusion Language Models for Black-Box Optimization
+
+
+
+
+Figure 1. Overview of the DiBO framework. (a) Unified Prompt–Response Corpus: Heterogeneous BBO signals (natural-language
+prompts, offline designs and their associated labels) are unified using explicit delimiter tokens. (b) Domain Adaptation (DA): The diffusion
+LLM is domain-adapted via joint masked-token prediction over prompts and responses. (c) Post-Training: The model is further aligned
+with high-label designs via supervised fine-tuning (SFT) and reinforcement learning (RL) based on label improvements.
+
+corpus and extend the tokenizer with delimiter to-                       (RL) dataset where rewards are defined as label improve-
+kens—(1)|design-start|/|design-end| to en-                               ments from prompt to response, and employ an efficient
+close designs and (2)|label-start|/|label-end|                           one-step log-probability approximation to compute the RL
+to enclose labels, as shown in the middle part of Figure 1               loss. This stage further integrates fine-grained reward feed-
+(a). These delimiters explicitly mark the semantic roles of              back into the diffusion LLM.
+text, design, and label within a unified input sequence. We
+                                                                         We summarize our main contributions as follows:
+then perform domain adaptation (Figure 1(b)), optimizing
+the diffusion LLM to jointly predict masked tokens in both               • We propose adapting diffusion LLMs to offline BBO to
+the prompt and the response.                                               exploit their bidirectional modeling, and construct a uni-
+                                                                           fied prompt–response corpus with semantic delimiters to
+We further propose a two-stage post-training framework
+                                                                           facilitate domain adaptation.
+illustrated in Figure 1(c), to align the diffusion LLM’s re-
+sponse generation with high-label designs. In the first stage,           • We further propose a two-stage post-training framework
+we perform supervised fine-tuning (SFT) on the unified                     using SFT and RL to effectively align diffusion generation
+dataset via masked-response prediction, which instills an in-              with high-label designs.
+ductive bias towards high-label regions of the design space.             • We demonstrate state-of-the-art performance on Design-
+In the second stage, we construct a reinforcement learning                 Bench in small-data settings.
+
+                                                                     2
+                               Training Diffusion Language Models for Black-Box Optimization
+
+2. Preliminaries and Related Work                                    objective is defined as:
+                                                                                      " L                                    #
+2.1. Offline Black-Box Optimization                                                    1X
+                                                                      LdLLM = −E              1[xit = [M]] log pθ (xi0 | xt ) , (2)
+Offline Black-Box Optimization (BBO) aims to identify an                               t i=1
+optimal design x∗ ∈ X ⊆ RD that maximizes an unknown
+objective function f : X → R associated with the design x:           where t is sampled uniformly from the interval [0, 1], [M]
+                                                                     denotes the [MASK] token used for masking, L is the se-
+                                                                     quence length, and θ represents the parameters of the diffu-
+                   x∗ = arg max f (x).                    (1)        sion LLM. Once trained, the model generates sequences by
+                              x∈X
+                                                                     starting from total occlusion and iteratively denoising the
+                                                                     sequence over a predefined schedule, progressively refining
+A practical example involves identifying a DNA sequence              the sequence until convergence.
+to maximize its binding affinity with a specific protein. In
+many practical scenarios, direct interaction with the objec-         2.3. LLMs for Black-Box Optimization
+tive function is prohibitively expensive or time-consuming.
+Consequently, we operate under the assumption that we                The expressive capacity of LLMs has recently been lever-
+only have access to an offline dataset of previously labeled         aged to advance Black-Box Optimization (BBO) (Song
+designs D = {(xi , yi )}N                                            et al., 2024). Current research generally bifurcates into
+                          i=1 , where yi = f (xi ) (Trabucco
+et al., 2022; Kim et al., 2026). Our work specifically fo-           two paradigms: (1) Predictors, which treat LLMs as surro-
+cuses on small-data settings where the number of labeled             gate models fine-tuned to estimate the objective value y for
+samples N is limited (e.g., N = 500), reflecting the scarcity        a given design x (Raffel et al., 2020; Nguyen et al., 2024;
+of labeled data in real-world applications.                          Tan et al., 2025); and (2) Generators, which utilize the gen-
+                                                                     erative priors of LLMs to directly sample candidate designs
+A common baseline is to fit a surrogate model — such as a            x via task-specific prompting (Zhang et al., 2023; Liu et al.,
+Deep Neural Network or a Gaussian Process — to approx-               2024; Veličković et al., 2024; Novikov et al., 2025).
+imate f (·) in a supervised manner and then leverage it to
+guide the design optimization. However, this approach often          Within the generative paradigm, autoregressive (AR) LLMs
+suffers from the out-of-distribution issue, where the opti-          are typically favored, using task descriptions and collected
+mizer explores regions of the design space that the surrogate        designs as context for design sampling. For instance, by
+model cannot accurately predict. In this paper, we propose           providing a prompt such as “Design a DNA sequence with
+to explore diffusion LLMs due to their robust generalization         high binding affinity” alongside offline data, the LLM can
+and bidirectional modeling capabilities.                             be prompted to generate optimized sequences as a response.
+                                                                     While our work follows this generative lineage, we diverge
+2.2. Diffusion Large Language Models                                 in two fundamental aspects. First, whereas prior efforts
+                                                                     rely on AR models constrained by unidirectional causal
+While autoregressive (AR) models such as GPT (Brown
+                                                                     masking (Zhang et al., 2023; Liu et al., 2024), we employ
+et al., 2020) generate text in a left-to-right way, diffusion
+                                                                     diffusion LLMs to exploit their inherent bidirectional mod-
+LLMs (Nie et al., 2025; Gong et al., 2025) provide a non-
+                                                                     eling. This global context is better suited for capturing
+causal framework by modeling the data distribution through
+                                                                     the intricate structural dependencies common in complex
+iterative refinement. This approach offers the distinct advan-
+                                                                     design spaces. Second, we transition from pure prompt-
+tage of global, bidirectional modeling. Such capabilities are
+                                                                     ing to model adaptation. While extant diffusion LLM re-
+essential in design domains where functional dependencies
+                                                                     search (Yuan et al., 2026) is often restricted to frozen-model
+are often non-sequential; for example, a specific unit within
+                                                                     prompting in few-shot settings, we propose domain adap-
+a DNA sequence is constrained not only by its prefix but
+                                                                     tation and post-training on these models. This allows the
+also by its suffix.
+                                                                     diffusion LLMs to internalize domain-specific constraints
+Diffusion LLMs characterize the distribution pθ (x0 ) via            and navigate the optimization landscape effectively, even in
+two symmetric processes: forward corruption and reverse              data-sparse regimes.
+reconstruction. Given an initial sequence x0 , the forward
+process introduces noise by stochastically replacing tokens          3. Methodology
+with a [MASK] symbol according to a timestep t ∼ U[0, 1].
+This yields a partially corrupted sequence xt , which be-            3.1. Domain Adaptation
+comes fully masked as t → 1.
+                                                                     Heterogeneous Signals The BBO setting inherently in-
+The model optimizes a mask predictor pθ (· | xt ) to recover         volves heterogeneous inputs: natural-language prompts
+the original tokens from their corrupted states. The training        (task descriptions and instructions) alongside offline de-
+
+                                                                 3
+                               Training Diffusion Language Models for Black-Box Optimization
+
+signs and their corresponding labels. Since diffusion                This supervised fine-tuning stage provides a simple and
+LLMs are pretrained on natural text, they would other-               stable alignment signal that encourages the diffusion LLM
+wise treat designs and labels as ordinary text, leading to           to generate improved designs conditioned on the prompt.
+ineffective representations and a domain gap. To address             By reconstructing only masked response tokens, the model
+this problem, we extend the tokenizer with delimiter to-             learns to map the few-shot prompt context to high-label
+kens: (1) |design-start|/|design-end| to mark                        design outputs. This serves as an effective initialization for
+designs, and (2) |label-start|/|label-end| to en-                    the subsequent reinforcement learning stage, which further
+close label values. These delimiters explicitly define the           incorporates fine-grained reward feedback.
+semantic roles of text, design, and label components within
+a unified input sequence.                                            Reward Dataset We then construct a reinforcement learn-
+                                                                     ing dataset Drl , where rewards are defined as label improve-
+Unified Corpus We construct a unified prompt–response                ments from the prompt to the response:
+corpus that serves as the foundation for both domain adapta-
+tion and the subsequent supervised fine-tuning stage. Each                               r(q, o) = y(o) − y(q),                      (5)
+input prompt q is formed by concatenating: (1) a task de-
+                                                                     where y(q) denotes the highest label among designs ap-
+scription specifying the semantics, format, and optimization
+                                                                     pearing in the few-shot prompt. Unlike in SFT, where the
+objective of the design and its associated label, and (2) an
+                                                                     response is always constructed to outperform the prompt
+offline dataset consisting of design–label pairs, followed
+                                                                     and thus yields non-negative rewards, the RL phase imposes
+by an instruction to generate improved designs. The corre-
+                                                                     no such constraint. This construction introduces both posi-
+sponding response o is a design whose label value exceeds
+                                                                     tive and negative rewards while preserving local semantic
+all those in the prompt. An example of the final prompt–
+                                                                     similarity between prompt and response designs, as detailed
+response format can be found in Figure 1(a). Detailed con-
+                                                                     in Appendix A.2 and A.3.
+struction of the dataset Dtext = {(q, o)} is provided in
+Appendix A.1 and A.2. Notably, to facilitate effective rea-
+                                                                     Reinforcement Learning For each pair (q, o), the log
+soning by the diffusion LLM, the target response should
+                                                                     probability required by the RL objective is approximated
+remain within a reasonable distribution of the prompt ex-
+                                                                     using a one-step unmasking strategy (Zhao et al., 2025)
+amples. Consequently, we select prompt designs based on
+                                                                     instead of iterative denoising for efficiency and stability:
+pairwise kernel similarity to the response, and we elaborate
+the details in Appendix A.2.                                                                    |o|
+                                                                                                X
+                                                                             log pθ (o | q) ≈         log pθ (ok | q, ofullmask ),   (6)
+Joint Prompt–Response Loss We adopt a joint loss that                                           k=1
+reconstructs masked tokens in both the prompt q and the
+                                                                     where ok is the k-th token of the response and ofullmask de-
+response o for domain adaptation:
+                                                                     notes a fully masked response sequence.
+          " L
+                                                                #
+         1X
+LDA = −E       1[qt = [M], ot = [M]] log pθ (q0 , o0 | qt , ot ) , Since the designs in offline BBO are collected from external
+                  i         i                 i    i
+         t i=1                                                     real-world processes rather than generated by a known lan-
+                                                            (3)    guage model, the behavior policy (i.e., the old policy) that
+ where t is sampled uniformly from the interval [0, 1], L            produced those designs is inaccessible. Following Yan et al.
+is the sequence length, q0 , o0 are clean samples from Dtext ,       (2025); Fu et al. (2025), we therefore assume this old pol-
+qt , ot are their masked counterparts, and θ denotes the pa-         icy to be uniform. Under this assumption, the denominator
+rameters of the diffusion LLM. This joint objective enables          of the importance-sampling ratio becomes a constant, and
+the model to learn the semantic roles of the delimiter tokens        ratio clipping and KL regularization are not applied. The
+and adapt effectively to the BBO domain context.                     resulting RL objective is:
+                                                                                                                               
+                                                                                            |o|
+3.2. Post-Training                                                                       1  X                           r(q, o) 
+                                                                       LRL = −Eq,o             pθ (ok | q, ofullmask )           , (7)
+We introduce a two-stage post-training framework to align                               |o|                               σ
+                                                                                            k=1
+diffusion LLMs with high-label design generation.
+                                                                     where (q, o) are sampled from Drl , and σ denotes the stan-
+Supervised Fine-Tuning We reuse the unified prompt–                  dard deviation of rewards. In this formulation, the term
+                                                                     r(q,o)
+response corpus but optimize only over the response se-                σ    serves as the advantage signal. We intentionally omit
+quences, using the following objective:                              reward centering (i.e., subtracting the mean) to preserve the
+             " L                                       #             inherent prompt-specific information. The RL optimization
+              1X        i                 i                          integrates fine-grained reward feedback into the diffusion
+ LSFT = −E           1[ot = [M]] log pθ (o0 | q0 , ot ) . (4)
+               t i=1                                                 LLM, in contrast to the coarse binary supervision in SFT.
+
+                                                                 4
+                              Training Diffusion Language Models for Black-Box Optimization
+
+4. Experiments                                                      better suited to high-dimensional Bayesian optimization as
+                                                                    discussed in Appendix A.4. (3) COMs (Trabucco et al.,
+We conduct comprehensive experiments to evaluate the ef-            2021) lower-bounds a neural surrogate’s predictions on out-
+fectiveness of our method in offline black-box optimization,        of-distribution inputs and applies gradient ascent on this con-
+with benchmarks detailed in Section 4.1, baselines in Sec-          servative surrogate. (4) ICT (Yuan et al., 2023) maintains
+tion 4.2, implementation details in Section 4.3, results in         three surrogate networks with a rotating pseudo-labeling
+Section 4.4, ablations in Section 4.5, and hyperparameter           and co-teaching scheme to mitigate overfitting. (5) MATCH-
+settings described in Section 4.6.                                  OPT (Hoang et al., 2024) explicitly bounds the mismatch
+                                                                    between surrogate gradients and true gradients to improve
+4.1. Benchmarks                                                     the quality of surrogate-guided optimization. (6) UniSO-
+Datasets We consider two discrete sequence design prob-             T (Tan et al., 2025) models the black-box function as an
+lems and two continuous-parameter tasks drawn from the              autoregressive sequence-to-sequence model and uses this
+Design-Bench suite (Trabucco et al., 2022). The discrete            learned surrogate to steer design generation.
+tasks are: (1) TF Bind 8 (TF8) (Barrera et al., 2016), which
+                                                                    Inverse Methods These methods learn a conditional dis-
+requires designing an 8-length DNA sequence to maximize
+                                                                    tribution over high-quality designs using generative mod-
+binding activity with the SIX6 REF R1 transcription fac-
+                                                                    els. VAE: (1) CbAS (Brookes et al., 2019) fits a VAE to
+tor; and (2) TF Bind 10 (TF10) (Le et al., 2018), a 10-
+                                                                    the offline data with high-scoring samples emphasized. (2)
+length DNA sequence design task that optimizes transcrip-
+                                                                    ExPT (Nguyen et al., 2023) fits a Transformer-based VAE on
+tion factor binding affinity. Note: The labels of TF Bind 10
+                                                                    offline data, followed by in-context optimization to sample
+in Design-Bench correspond to binding free energy differ-
+                                                                    improved designs. GAN: (3) MIN (Kumar & Levine, 2020)
+ence (ddG), where lower values indicate stronger binding;
+                                                                    employs a GAN to model the inverse mapping from scores
+we therefore negate the ddG values from the original pa-
+                                                                    to designs, conditioning on high scores for direct sampling.
+per (Le et al., 2018) so that higher scores correspond to
+                                                                    Autoregressive: (4) BONET (Mashkaria et al., 2023) mod-
+stronger binding, consistent with the Design-Bench task
+                                                                    els the trajectory from low- to high-scoring samples with an
+description. The continuous tasks are: (3) Ant Morphol-
+                                                                    autoregressive model and unrolls these trajectories at test
+ogy (Ant) (Brockman et al., 2016), which optimizes a 60-
+                                                                    time to produce new candidates. (5) OPRO (Yang et al.,
+dimensional ant body morphology for fast crawling; and (4)
+                                                                    2024) prompts an autoregressive LLM with sequences of
+D’Kitty Morphology (D’Kitty) (Ahn et al., 2020), which
+                                                                    past design-label pairs to directly generate new designs. We
+optimizes a 56-dimensional D’Kitty robot morphology to
+                                                                    instantiate OPRO with LLaMA3-8B-Instruct (Grattafiori
+navigate toward a fixed target location.
+                                                                    et al., 2024), whose scale is comparable to our diffusion
+Evaluation For all methods, we use the task-specific or-            LLM. Diffusion: (6) GTG (Yun et al., 2024) trains a con-
+acle from the Design-Bench Benchmark Tasks (Trabucco                ditional diffusion model on synthetic trajectories derived
+et al., 2022) to score generated designs. Following standard        from offline data to guide designs toward high-score regions.
+practice (Trabucco et al., 2021), each method is allowed            (7) DDOM (Krishnamoorthy et al., 2023) learns a condi-
+to propose 128 candidates per task, and we use the best-            tional diffusion model on the offline dataset and employs
+achieved value (i.e., the 100th percentile) of the normalized       classifier-free guidance during sampling. (8) dLLM (Yuan
+ground-truth score as the main metric. The normalized score         et al., 2026) directly queries a frozen diffusion LLM with
+                          y−ymin                                    prompts and design-label pairs to generate high-scoring de-
+yn is defined as yn = ymax   −ymin , where y denotes the raw
+oracle score of a design, and ymin , ymax are the minimum           signs via MCTS without fine-tuning the model. Finally,
+and maximum scores over the full (unobserved) dataset.              we include (9) MCTS-transfer (Wang et al., 2024), which
+                                                                    employs Monte Carlo Tree Search (MCTS) to adaptively
+4.2. Baselines                                                      explore subspaces for improved design generation, and (10)
+                                                                    CMA-ES (Hansen, 2006), an evolutionary baseline that mod-
+We systematically benchmark our approach against a wide             els the design via a covariance matrix over the design space
+range of prior methods.                                             and samples candidates from there.
+Forward Methods We consider methods that utilize a
+                                                                    4.3. Implementation Details
+learned surrogate to guide design optimization. (1) Grad
+(mean) models the black-box function with a Gaussian Pro-           We initialize our model from the pretrained diffusion lan-
+cess (GP) and performs gradient ascent on the posterior             guage model LL A DA-8B-I NSTRUCT (Nie et al., 2025).
+mean to improve existing designs. (2) Grad (EI) optimizes           The training process follows a sequential pipeline: domain
+the Expected Improvement (EI) acquisition function instead          adaptation (DA), supervised fine-tuning (SFT), and rein-
+of the mean. For GP baselines, we use the dimension-scaled          forcement learning (RL). For discrete tasks, we employ
+GP prior configuration of Hvarfner et al. (2024), which is          learning rates of 2 × 10−5 for DA and SFT, and 1 × 10−6
+
+                                                                5
+                                  Training Diffusion Language Models for Black-Box Optimization
+
+Table 1. Main results on Design-Bench benchmarks. We report the 100-th percentile normalized oracle score over 128 generated
+candidates on four tasks: Ant Morphology, D’Kitty Morphology, TF Bind 8, and TF Bind 10. Results are averaged over 8 random seeds
+(mean ± std). Rank Mean and Rank Median denote the average and median rank across all tasks. The highest and second-highest scores
+per task are highlighted in green and blue , respectively.
+
+    Method       Ant Morphology    D’Kitty Morphology     TF Bind 8          TF Bind 10     Mean Score ↑    Rank Mean ↓   Rank Median ↓
+    D(best)          0.565               0.884              0.439              0.511             −              −              −
+  Grad-mean       0.709 ± 0.002       0.920 ± 0.008     0.843 ± 0.082       0.736 ± 0.016   0.802 ± 0.027      4.25            3.5
+   Grad-EI        0.655 ± 0.002       0.923 ± 0.010     0.864 ± 0.091       0.727 ± 0.024   0.792 ± 0.032      4.25           4.0
+    COMs          0.647 ± 0.020       0.934 ± 0.008     0.843 ± 0.046       0.709 ± 0.025   0.783 ± 0.025       4.5           4.5
+     ICT          0.555 ± 0.045       0.932 ± 0.037     0.753 ± 0.050       0.585 ± 0.014   0.706 ± 0.037      10.0           11.5
+ MATCH-OPT        0.537 ± 0.024       0.925 ± 0.025     0.697 ± 0.008       0.583 ± 0.034   0.686 ± 0.023      11.75          12.5
+   UniSO-T        0.636 ± 0.045       0.939 ± 0.007     0.836 ± 0.027       0.522 ± 0.017   0.733 ± 0.024      6.75           6.5
+    CbAS          0.480 ± 0.019       0.911 ± 0.035     0.721 ± 0.028       0.597 ± 0.005   0.677 ± 0.022      13.0           13.5
+    ExPT          0.929 ± 0.049      0.950 ± 0.041      0.810 ± 0.044       0.703 ± 0.022   0.848 ± 0.039       4.0           4.0
+    MIN           0.570 ± 0.003       0.886 ± 0.017     0.764 ± 0.008       0.517 ± 0.030   0.684 ± 0.015      12.25          12.5
+   BONET          0.632 ± 0.042       0.920 ± 0.040     0.776 ± 0.007       0.492 ± 0.043   0.705 ± 0.033      10.25           8.5
+    OPRO          0.517 ± 0.039       0.856 ± 0.046     0.758 ± 0.017       0.500 ± 0.013   0.658 ± 0.029      14.0           14.5
+    GTG           0.603 ± 0.039       0.917 ± 0.023     0.762 ± 0.016       0.730 ± 0.026   0.753 ± 0.026      8.25           9.5
+   DDOM           0.590 ± 0.026       0.929 ± 0.037     0.739 ± 0.016       0.497 ± 0.002   0.689 ± 0.020      11.25          12.5
+  CMA-ES          0.592 ± 0.010       0.711 ± 0.045     0.784 ± 0.029       0.658 ± 0.031   0.686 ± 0.029      10.25           9.0
+ MCTS-transfer    0.648 ± 0.001       0.910 ± 0.006     0.857 ± 0.015       0.628 ± 0.043   0.761 ± 0.016      7.25           6.5
+  DiBO(ours)     0.932 ± 0.022        0.912 ± 0.017     0.946 ± 0.043      0.741 ± 0.027    0.883 ± 0.027       3.5            1.0
+
+
+
+for RL. For continuous tasks, the learning rates are 1 × 10−5             pipeline for the TF Bind 8 task can be completed within 1.5
+(DA), 2 × 10−5 (SFT), and 1 × 10−6 (RL). Each stage be-                   hours. All results are reported as mean ± standard deviation,
+gins with a 100-step linear warmup followed by a constant                 averaged over 8 different random seeds.
+learning rate schedule. We use a per-device batch size of
+1, with gradient accumulation steps set to 16 for discrete                4.4. Results and Analysis
+tasks and 8 for continuous tasks. For DA stage, we train the
+model for 1, 024 and 2, 048 optimization steps for discrete               Following previous practice (Yuan et al., 2023; Nguyen
+and continuous tasks respectively. For SFT and RL stages,                 et al., 2023), Table 1 reports the normalized 100-th per-
+we optimize all tasks with 1, 024 and 128 steps. Factoring in             centile oracle scores on four Design-Bench tasks. Our
+gradient accumulation, this equates to processing 16, 384 /               method, DiBO, achieves the best overall performance, rank-
+16, 384 / 2, 048 total samples for discrete tasks, and 16, 384            ing first in terms of mean rank and median rank across
+/ 8, 192 / 1, 024 samples for continuous tasks. We adopt                  all compared methods. In addition, we report median (50-
+the PagedAdamW8bit optimizer as implemented in the                        th percentile) results in Appendix A.5, where DiBO also
+bitsandbytes library, building on block-wise quantized                    achieves state-of-the-art performance, highlighting the over-
+optimizers (Dettmers et al., 2022), with Bfloat16 precision.              all effectiveness of our approach.
+All diffusion-related hyperparameters, including the mask-                Across tasks, DiBO consistently outperforms the strongest
+ing schedule and mask ratio, remain consistent with the                   baseline on three out of four benchmarks—Ant Morphology,
+official implementation by Nie et al. (2025).                             TF Bind 8, and TF Bind 10. Notably, on TF Bind 8, DiBO
+For each task, we construct a fixed offline pool of npool =               surpasses the best baseline by 0.082 in normalized score,
+500 samples by evenly sub-sampling the label-sorted dataset.              representing a substantial improvement. On D’Kitty Mor-
+To remain within the memory constraints of a single                       phology, DiBO underperforms the best baseline by 0.038,
+NVIDIA H100 (80 GB) GPU, we use nfew = 7 few-shot                         while remaining competitive with other strong methods.
+examples per prompt. At inference time, for each candi-                   Overall, these results demonstrate the strong effectiveness
+date, we independently resample the corresponding context                 of DiBO across diverse tasks and design domains.
+examples from the offline pool. We complete the masked                    When compared to forward methods, which rely on learned
+response in a single forward pass using greedy token filling              surrogate models and gradient-based optimization, DiBO
+without temperature-based stochastic decoding. Duplicate                  consistently demonstrates superior performance. An expla-
+outputs are discarded, and generation continues until 128                 nation is that forward methods are inherently sensitive to
+unique valid candidates are obtained. Detailed sampling                   surrogate modeling errors and distributional shift: surro-
+rules, text rendering formats, and prompt templates are pro-              gate models trained on offline data may produce inaccurate
+vided in Appendix A.1, A.2, and A.3. All experiments are                  gradients when optimizing toward regions that are poorly
+performed on a single H100 GPU; for instance, the entire                  supported by the dataset. In contrast, DiBO directly models
+
+                                                                      6
+                                Training Diffusion Language Models for Black-Box Optimization
+
+Table 2. Matched comparison between diffusion and autoregressive (AR) backbones. We construct an autoregressive counterpart
+(LLaMA-3.1-8B-Instruct) by keeping the prompt construction, dataset, delimiter tokens, context selection strategy, and the full post-
+training pipeline (DA→SFT→RL) unchanged, and replacing only the backbone architecture (diffusion vs. AR). Results report the 100-th
+percentile normalized oracle score (mean ± std over seeds). The last row (“Performance Gain”) shows the absolute improvement of the
+diffusion backbone over the matched AR backbone at each stage.
+                                                          (a) Discrete Tasks
+
+                                            TF Bind 8                                              TF Bind 10
+       Method
+                             DA                SFT                 RL               DA                SFT                RL
+  Autoregressive        0.803 ± 0.038     0.875 ± 0.008      0.915 ± 0.008     0.623 ± 0.047     0.633 ± 0.036      0.682 ± 0.053
+  DiBO(ours)            0.883 ± 0.032     0.939 ± 0.031      0.946 ± 0.043     0.644 ± 0.039     0.704 ± 0.056      0.741 ± 0.027
+  Performance Gain        0.080 ↑↑           0.064 ↑↑           0.031 ↑           0.021 ↑           0.071 ↑↑          0.059 ↑↑
+
+                                                        (b) Continuous Tasks
+
+                                         Ant Morphology                                        D’Kitty Morphology
+       Method
+                             DA                SFT                 RL               DA                SFT                RL
+  Autoregressive        0.857 ± 0.044     0.894 ± 0.032      0.930 ± 0.000     0.888 ± 0.025     0.905 ± 0.005      0.912 ± 0.011
+  DiBO(ours)            0.875 ± 0.026     0.929 ± 0.017      0.932 ± 0.022     0.903 ± 0.014     0.908 ± 0.009      0.912 ± 0.017
+  Performance Gain         0.018 ↑           0.035 ↑            0.002 ↑           0.015 ↑           0.003 ↑             0.000
+
+
+the design distribution through generative denoising and              Comparison with Inference-Only Diffusion Optimiza-
+avoids explicit reliance on surrogate gradients, resulting in         tion Yuan et al. (2026) also explore diffusion LLMs for
+more robust optimization under limited offline data.                  black-box optimization, but focus on an inference-only set-
+                                                                      ting that queries a frozen diffusion LLM with MCTS guid-
+Relative to inverse methods, including VAE-, GAN-,
+                                                                      ance and does not update model parameters. In contrast,
+autoregressive-, and diffusion-based approaches, DiBO also
+                                                                      DiBO adapts the diffusion LLM to offline BBO through do-
+achieves strong and often superior performance. While exist-
+                                                                      main adaptation, supervised fine-tuning, and reinforcement
+ing LLM-based optimization methods have shown encourag-
+                                                                      learning, enabling the model to internalize BBO-specific
+ing performance, they adopt different modeling assumptions
+                                                                      prompt formats, design-label structures, and reward feed-
+that limit their applicability. AR LLM approaches such as
+                                                                      back. Moreover, their method targets an extremely few-shot
+OPRO (Yang et al., 2024) generate designs sequentially
+                                                                      regime (e.g., npool = 10), whereas our experiments use a
+from left to right, which can make it challenging to capture
+                                                                      small-data offline setting with npool = 500. We therefore
+bidirectional dependencies. Diffusion-based inverse meth-
+                                                                      exclude their method from our main baselines and view it
+ods such as DDOM (Krishnamoorthy et al., 2023) typically
+                                                                      as complementary to our training-based framework.
+operate in continuous design spaces with task-specific ar-
+chitectures, and do not natively support the integration of           4.5. Ablation Studies
+textual task descriptions. DiBO instead performs optimiza-
+tion directly in a unified discrete token space using diffusion       We ablate the key components of our training pipeline to
+language modeling, enabling bidirectional context modeling            assess their individual contributions, conducted under the
+and seamless integration of textual instructions, designs, and        same evaluation protocol as the main experiments.
+labels. This design choice contributes to DiBO’s robust and
+consistent performance across diverse tasks.                          Matched Diffusion vs. Autoregressive Modeling One
+Beyond the main results, Appendix A.6 reports Top-K met-              of our central motivations is that many design problems
+rics and three additional RNA design tasks. Furthermore, we           exhibit bidirectional dependencies, where each design vari-
+audit whether the pretrained LL A DA-8B-I NSTRUCT model               able can be influenced by both its prefix and suffix. To
+already contains task-specific design-label knowledge from            this end, we conduct a matched comparison between dif-
+public benchmark assets, as detailed in Appendix A.7.                 fusion and autoregressive (AR) backbones, by replacing
+Overall, these results demonstrate that DiBO provides a               LL A DA-8B-I NSTRUCT with LL A MA-3.1-8B-I NSTRUCT
+robust and general framework for offline black-box opti-              while keeping all other settings unchanged.
+mization, achieving strong performance across both discrete           As shown in Table 2, the diffusion backbone outperforms
+sequence and continuous domains while maintaining favor-              or matches the corresponding AR backbone across all tasks
+able aggregate rankings across tasks.                                 and training stages. The gains are especially pronounced on
+
+                                                                  7
+                                           Training Diffusion Language Models for Black-Box Optimization
+
+Table 3. Ablation of the usage of delimiter tokens. Plain text (e.g., “Designs:” and “Labels:”) is used to mark boundaries when delimiter
+tokens are absent. We report performance after sequential training up to each stage (DA, SFT, and RL) on TF Bind 8 and Ant Morphology,
+and additionally report the per-stage performance gain brought by using delimiter tokens.
+
+                                                              TF Bind 8                                                  Ant Morphology
+        Method
+                                             DA                    SFT                     RL                DA               SFT                RL
+   w/o delimiter tokens              0.859 ± 0.038         0.918 ± 0.043            0.943 ± 0.035      0.693 ± 0.016      0.903 ± 0.022     0.923 ± 0.019
+   w/ delimiter tokens(ours)         0.883 ± 0.032         0.939 ± 0.031            0.946 ± 0.043      0.875 ± 0.026      0.929 ± 0.017     0.932 ± 0.022
+   Performance Gain                        0.024 ↑                0.021 ↑                0.003 ↑          0.182 ↑↑           0.026 ↑           0.009 ↑
+
+
+Table 4. Ablation of training stages. We remove certain training                          Table 5. Ablation on similarity-conditioned context construc-
+stages from the three-stage pipeline. Performance drop ∆ is mea-                          tion. We compare selecting prompt examples based on design
+sured relative to the full pipeline (DA+SFT+RL). “✗” indicates no                         similarity against removing this locality constraint and using ran-
+valid output is produced due to formatting issues.                                        domly selected context examples.
+
+       Stages                  TF Bind 8                   Ant Morphology                    Setting                    TF Bind 8         Ant Morphology
+  DA    SFT     RL       Score                ∆           Score             ∆
+                                                                                             Random Context            0.730 ± 0.001      0.906 ± 0.008
+  ✓                  0.883 ± 0.032     −0.063 ↓       0.875 ± 0.026      −0.057 ↓
+                                                                                             Similar Context(ours)     0.946 ± 0.043      0.932 ± 0.022
+         ✓           0.938 ± 0.034     −0.008 ↓       0.898 ± 0.027      −0.034 ↓
+                ✓    0.437 ± 0.001     −0.509 ↓↓            ✗               –                Performance Gain            0.216 ↑↑            0.026 ↑
+  ✓      ✓           0.939 ± 0.031         −0.007 ↓   0.929 ± 0.017      −0.003 ↓
+  ✓             ✓    0.928 ± 0.052         −0.018 ↓   0.858 ± 0.032      −0.074 ↓
+         ✓      ✓    0.941 ± 0.030         −0.005 ↓   0.913 ± 0.024      −0.019 ↓
+                                                                                          Training Stages We evaluate variants that remove one
+  ✓      ✓      ✓    0.946 ± 0.043            –       0.932 ± 0.022         –
+                                                                                          stage from the three-stage pipeline (DA+SFT+RL), result-
+                                                                                          ing in DA+SFT, SFT+RL, and DA+RL. As shown in Table 4,
+                                                                                          across both tasks, removing any stage leads to a clear per-
+                                                                                          formance drop compared to the full pipeline, highlighting
+the discrete DNA sequence tasks, where diffusion improves                                 the importance of all three stages.
+over AR by up to 0.080 on TF Bind 8 and 0.071 on TF
+Bind 10. This supports our hypothesis that bidirectional                                  Among the two-stage variants, DA+RL exhibits the largest
+refinement is particularly beneficial for structured design                               degradation in performance, indicating that reinforcement
+problems, where functional dependencies are often non-                                    learning without an intermediate supervised stage is in-
+sequential. The gains are smaller but still positive on the                               sufficient to reliably exploit fine-grained prompt–response
+continuous tasks, suggesting that the advantage of diffusion                              mappings, especially in the continuous domain. Simi-
+modeling also extends beyond discrete sequence generation.                                larly, SFT+RL underperforms the full pipeline, suggest-
+                                                                                          ing that skipping domain adaptation leads to suboptimal
+                                                                                          learning when handling heterogeneous prompt components.
+                                                                                          DA+SFT also exhibits a consistent gap, highlighting that
+Delimiter Tokens We remove the design and label delim-                                    our full pipeline benefits from incorporating reinforcement
+iter tokens (1)|design-start|/|design-end| and                                            learning as a fine-grained optimization stage on top of a
+(2)|label-start|/|label-end| and train the model                                          well-aligned representation space.
+using plain text inputs (e.g., “Designs: ” and “Labels: ”).                               All single-stage variants perform substantially worse than
+Performance is evaluated after sequential training up to each                             the integrated approach. In particular, RL-only fails to pro-
+stage as shown in Table 3.                                                                duce valid outputs on Ant Morphology, highlighting that
+Removing these delimiters leads to consistent performance                                 RL without prior alignment struggles to correctly learn the
+degradation across all three training stages (DA, SFT, and                                heterogeneous components in complex design tasks. Over-
+RL) on both tasks. The performance drop is particularly                                   all, these results confirm that the three training stages are
+pronounced during the domain adaptation stage on Ant                                      complementary and jointly necessary to achieve strong and
+Morphology, which further underscores the importance of                                   consistent performance across tasks. In particular, these re-
+delimiter tokens in enabling effective domain adaptation,                                 sults emphasize the importance of a well-structured training
+especially for complex continuous spaces.                                                 pipeline, where different stages play complementary roles
+                                                                                          rather than acting in isolation.
+Overall, these results demonstrate that explicit delimiter
+tokens play a critical role throughout the entire training                                Similarity-Conditioned Context Construction We study
+pipeline, by providing a clear separation between heteroge-                               the effect of conditioning the target response to remain
+neous input components and facilitating effective learning                                within a reasonable distribution of the prompt examples.
+across different stages.                                                                  As shown in Table 5, this similarity-conditioned context is
+
+                                                                                     8
+                                                     Training Diffusion Language Models for Black-Box Optimization
+
+    Table 6. Comparison between evenly spaced sub-sampling and random sub-sampling of the offline dataset. We report the 100th-
+    percentile normalized oracle score on four tasks, as well as the performance difference between the two strategies.
+
+                             Method                                            Ant Morphology        D’Kitty Morphology                           TF Bind 8                              TF Bind 10
+                             Random sub-sampling                               0.936 ± 0.019               0.909 ± 0.008                        0.960 ± 0.027                           0.743 ± 0.012
+                             Evenly sub-sampling(ours)                         0.932 ± 0.022               0.912 ± 0.017                        0.946 ± 0.043                           0.741 ± 0.027
+                             Difference                                            −0.004                                         +0.003           −0.014                                  −0.002
+
+                   1.02                                                 1.02                                                  1.02                                               1.25
+
+
+
+
+Relative Performance                                 Relative Performance                                  Relative Performance                               Relative Performance
+                   1.00                                                 1.00                                                                                                     1.00
+                                                                                                                                                                                 0.75
+                                                                                                                              1.00
+                                                                                                                                                                                 0.50
+                                             Ant                                                     Ant                                                Ant
+                   0.92                      TF8                        0.92                         TF8                                                TF8                      0.25
+                   0.90 3                                               0.90 100 300 500 700 900                              0.98 0.6 0.8 1.0 1.2 1.4
+                               4     5     6     7                                                                                                                                           TF8           Ant
+                            # Few Shot Examples                                 Size of Offline Dataset                               Learning Rate (×10 6)                             Different Prompt Templates
+            (a) Context length        (b) Size of the offline dataset           (c) Learning rate             (d) Prompt templates
+      Figure 2. Hyperparameter sensitivity at the RL stage. Results are reported as relative performance normalized by our default setting.
+
+    critical for performance. Removing this constraint leads to                                                             Learning Rate of Reinforcement Learning To assess
+    a substantial degradation on both tasks, with a particularly                                                            the stability of the Reinforcement Learning (RL) phase, we
+    severe drop on TF Bind 8. These results indicate that diffu-                                                            vary the learning rate among {0.6, 0.8, 1.0, 1.2, 1.4}×10−6
+    sion LLMs benefit from prompt contexts that preserve local                                                              and report the results in Figure 2(c). We observe that the
+    semantic consistency, which facilitates effective reasoning                                                             model’s performance remains largely invariant across this
+    over the underlying design landscape during generation.                                                                 range, suggesting that our RL training objective is robust
+                                                                                                                            and relatively insensitive to specific learning rate tuning.
+    Evenly Spaced Sub-Sampling We examine the effect of
+    evenly sub-sampling the label-sorted dataset, which pro-                                                               Prompt Template Variation We evaluate sensitivity to
+    vides reproducible coverage of the label spectrum. As                                                                  natural prompt paraphrases by using five sets of prompt
+    shown in Table 6, evenly spaced and random sub-sampling                                                                templates generated by ChatGPT-5.2 and re-training the
+    achieve similar performance across all four tasks, with dif-                                                           model on TF Bind 8 and Ant Morphology. These templates
+    ferences around 0.01 normalized score. Thus, our results                                                               preserve the same task semantics, delimiter tokens, and
+    are not sensitive to this offline-pool sampling strategy.                                                              output format, but vary the surface-level instruction wording.
+                                                                                                                           As shown in Figure 2(d), performance remains stable across
+    4.6. Hyperparameter Sensitivity                                                                                        these paraphrastic variants. These results indicate that DiBO
+    We evaluate the sensitivity of our method to several crit-                                                             is stable under natural paraphrases of the task instruction, as
+    ical hyperparameters. Unless otherwise specified, all ex-                                                              long as the task semantics and structured output format are
+    periments are conducted using the primary configuration                                                                preserved. More details on the prompt examples we use are
+    detailed in Section 4.3.                                                                                               provided in Appendix A.3.
+
+    Context Length We investigate the impact of the number                                                                  5. Conclusion
+    of few-shot examples in the prompt, varying the count from
+                                                                                                                           We present DiBO, a framework for adapting diffusion lan-
+    3 to 7 (see Figure 2(a)). Performance demonstrates a steady
+                                                                                                                           guage models to black-box optimization. To bridge the
+    upward trend as more examples are included. However,
+                                                                                                                           semantic gap between natural language and offline design-
+    due to GPU memory constraints, we capped the context
+                                                                                                                           label data, we introduce explicit delimiter tokens and a joint
+    length at 7 examples. Consequently, we utilize 7 few-shot
+                                                                                                                           prompt–response reconstruction loss for domain adaptation.
+    examples for all main experiments to maximize in-context
+                                                                                                                           We further combine supervised fine-tuning and reinforce-
+    information while remaining within hardware limits.
+                                                                                                                           ment learning in a two-stage post-training pipeline, enabling
+    Size of Offline Dataset We vary the offline pool size npool                                                            the model to synthesize high-label designs from complex,
+    within {100, 300, 500, 700, 900}, where the default size is                                                            heterogeneous inputs. Experiments across diverse discrete
+    500. As shown in Figure 2(b), performance is worst when                                                                and continuous Design-Bench tasks show strong and con-
+    only 100 samples are used, and improves consistently as the                                                            sistent performance, underscoring the promise of diffusion
+    pool size increases on both tasks. A slight drop when npool                                                            language models as a robust, general-purpose paradigm for
+    reaches 900 is observed.                                                                                               offline optimization in high-dimensional design spaces.
+
+                                                                                                           9
+                               Training Diffusion Language Models for Black-Box Optimization
+
+Impact Statement                                                        optimization. ACM Transactions on Evolutionary Learn-
+                                                                        ing and Optimization, 2(2):1–26, 2022.
+This paper presents a diffusion-based language model frame-
+work for offline black-box optimization, aiming to acceler-           Brockman, G., Cheung, V., Pettersson, L., Schneider, J.,
+ate discovery in scientific and engineering domains such as             Schulman, J., Tang, J., and Zaremba, W. Openai gym.
+molecular sequence design, robotics, and materials science.             arXiv preprint arXiv:1606.01540, 2016.
+By reducing reliance on resource-intensive physical exper-
+iments and avoiding online trial-and-error, our approach              Brookes, D., Park, H., and Listgarten, J. Conditioning by
+offers significant advantages in cost-efficiency and safety             adaptive sampling for robust design. In Proc. Int. Conf.
+for sensitive applications.                                             Machine Lea. (ICML), 2019.
+However, as a general-purpose generative optimization                 Brown, T., Mann, B., Ryder, N., Subbiah, M., Kaplan, J. D.,
+method, it carries potential risks if applied without appro-            Dhariwal, P., Neelakantan, A., Shyam, P., Sastry, G.,
+priate safeguards. The model may inherit or amplify biases              Askell, A., et al. Language models are few-shot learners.
+present in the offline training datasets. Furthermore, while            Advances in neural information processing systems, 33:
+intended to assist scientific discovery, we acknowledge the             1877–1901, 2020.
+risk of misuse in generating harmful designs (e.g., in bio-
+chemical contexts). We emphasize that this tool is designed           Chen, C., Zhang, Y., Liu, X., and Coates, M. Bidirectional
+to augment expert judgment, not replace it, and its deploy-             learning for offline model-based biological sequence de-
+ment requires responsible oversight.                                    sign. In Proc. Int. Conf. Machine Lea. (ICML), 2023a.
+
+                                                                      Chen, C. S., Beckham, C., Liu, Z., Liu, X. S., and Pal, C.
+References                                                              Parallel-mentoring for offline model-based optimization.
+Ahn, M., Zhu, H., Hartikainen, K., Ponte, H., Gupta, A.,                Advances in Neural Information Processing Systems, 36:
+  Levine, S., and Kumar, V. Robel: Robotics benchmarks                  76619–76636, 2023b.
+  for learning with low-cost robots. In Conf. on Robot Lea.
+ (CoRL), 2020.                                                        Dettmers, T., Lewis, M., Shleifer, S., and Zettlemoyer, L.
+                                                                        8-bit optimizers via block-wise quantization, 2022. URL
+Angermueller, C., Dohan, D., Belanger, D., Deshpande, R.,               https://arxiv.org/abs/2110.02861.
+  Murphy, K., and Colwell, L. Model-based reinforcement
+  learning for biological sequence design. In Proc. Int.              Du, L., Yuan, Y., Zhao, Z., Lyu, F., Penaloza, E., Chen,
+ Conf. Learning Rep. (ICLR), 2019.                                     X., Sun, Z., Kang, J., Charlin, L., Liu, X., et al.
+                                                                        Optimizing user profiles via contextual bandits for
+Arriola, M., Gokaslan, A., Chiu, J. T., Yang, Z., Qi, Z., Han,          retrieval-augmented llm personalization. arXiv preprint
+  J., Sahoo, S. S., and Kuleshov, V. Block diffusion: Inter-            arXiv:2601.12078, 2026.
+  polating between autoregressive and diffusion language
+                                                                      Fu, Y., Chen, T., Chai, J., Wang, X., Tu, S., Yin, G., Lin,
+  models. arXiv preprint arXiv:2503.09573, 2025.
+                                                                        W., Zhang, Q., Zhu, Y., and Zhao, D. Srft: A single-stage
+Balandat, M., Karrer, B., Jiang, D., Daulton, S.,                       method with supervised and reinforcement fine-tuning
+  Letham, B., Wilson, A. G., and Bakshy, E. Botorch:                    for reasoning. arXiv preprint arXiv:2506.19767, 2025.
+  A framework for efficient monte-carlo bayesian           Garnett, R. Bayesian Optimization. Cambridge University
+  optimization. In Larochelle, H., Ranzato, M., Had-         Press, 2023.
+  sell, R., Balcan, M., and Lin, H. (eds.), Advances
+  in Neural Information Processing Systems, vol-           Gong, S., Zhang, R., Zheng, H., Gu, J., Jaitly, N., Kong, L.,
+  ume 33, pp. 21524–21538. Curran Associates, Inc.,          and Zhang, Y. Diffucoder: Understanding and improving
+  2020. URL https://proceedings.neurips.                     masked diffusion models for code generation. arXiv
+  cc/paper_files/paper/2020/file/                            preprint arXiv:2506.20639, 2025.
+  f5b1b89d98b7286673128a5fb112cb9a-Paper.
+  pdf.                                                     Grattafiori, A., Dubey, A., Jauhri, A., Pandey, A., Kadian,
+                                                             A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A.,
+Barrera, L. A. et al. Survey of variation in human tran-     Vaughan, A., et al. The llama 3 herd of models. arXiv
+  scription factors reveals prevalent dna binding changes.   preprint arXiv:2407.21783, 2024.
+  Science, 2016.
+                                                           Hamidieh, K. A data-driven statistical model for predicting
+Binois, M. and Wycoff, N. A survey on high-dimensional       the critical temperature of a superconductor. Computa-
+  gaussian process modeling with application to bayesian     tional Materials Science, 2018.
+
+                                                                 10
+                              Training Diffusion Language Models for Black-Box Optimization
+
+Hansen, N. The cma evolution strategy: a comparing review.             Computational Linguistics (Volume 1: Long Papers), pp.
+  Towards a new evolutionary computation: Advances in                  10767–10782, 2024.
+  the estimation of distribution algorithms, 2006.
+                                                                     Liu, S., Chen, C., Qu, X., Tang, K., and Ong, Y.-S. Large
+Hoang, M., Fadhel, A., Deshwal, A., Doppa, J., and                     language models as evolutionary optimizers. In 2024
+  Hoang, T. N. Learning surrogates for offline black-                  IEEE Congress on Evolutionary Computation (CEC), pp.
+  box optimization via gradient matching. In Salakhut-                 1–8. IEEE, 2024.
+  dinov, R., Kolter, Z., Heller, K., Weller, A., Oliver,
+  N., Scarlett, J., and Berkenkamp, F. (eds.), Proceed-              Mashkaria, S. M., Krishnamoorthy, S., and Grover, A.
+  ings of the 41st International Conference on Machine                Generative pretraining for black-box optimization. In
+ Learning, volume 235 of Proceedings of Machine Learn-                Krause, A., Brunskill, E., Cho, K., Engelhardt, B.,
+  ing Research, pp. 18374–18393. PMLR, 21–27 Jul                      Sabato, S., and Scarlett, J. (eds.), Proceedings of
+  2024. URL https://proceedings.mlr.press/                            the 40th International Conference on Machine Learn-
+ v235/hoang24a.html.                                                  ing, volume 202 of Proceedings of Machine Learn-
+                                                                      ing Research, pp. 24173–24197. PMLR, 23–29 Jul
+Hvarfner, C., Hellsten, E. O., and Nardi, L. Vanilla Bayesian         2023. URL https://proceedings.mlr.press/
+  optimization performs great in high dimensions. In                  v202/mashkaria23a.html.
+  Salakhutdinov, R., Kolter, Z., Heller, K., Weller, A.,
+  Oliver, N., Scarlett, J., and Berkenkamp, F. (eds.), Pro-          Nguyen, T., Agrawal, S., and Grover, A. Expt: Synthetic
+  ceedings of the 41st International Conference on Ma-                 pretraining for few-shot experimental design. Advances
+  chine Learning, volume 235 of Proceedings of Machine                 in Neural Information Processing Systems, 36:45856–
+  Learning Research, pp. 20793–20817. PMLR, 21–27 Jul                 45869, 2023.
+  2024. URL https://proceedings.mlr.press/
+                                                                     Nguyen, T., Zhang, Q., Yang, B., Lee, C., Bornschein, J.,
+  v235/hvarfner24a.html.
+                                                                       Miao, Y., Perel, S., Chen, Y., and Song, X. Language
+Kim, M., Berto, F., Ahn, S., and Park, J. Bootstrapped train-          model embeddings can be sufficient for bayesian opti-
+  ing of score-conditioned generator for offline design of             mization. CoRR, 2024. URL https://arxiv.org/
+  biological sequences. arXiv preprint arXiv:2306.03111,               abs/2410.10190.
+  2023.
+                                                                     Nie, A., Cheng, C.-A., Kolobov, A., and Swaminathan, A.
+Kim, M., Gu, J., Yuan, Y., Yun, T., Liu, Z., Bengio, Y.,               The importance of directional feedback for llm-based
+  and Chen, C. Offline model-based optimization: Com-                  optimizers. arXiv preprint arXiv:2405.16434, 2024.
+  prehensive review. Transactions on Machine Learning
+  Research, 2026. ISSN 2835-8856. URL https://                       Nie, S., Zhu, F., You, Z., Zhang, X., Ou, J., Hu, J., Zhou, J.,
+  openreview.net/forum?id=QcSZWo1TLl. Sur-                             Lin, Y., Wen, J.-R., and Li, C. Large language diffusion
+  vey Certification.                                                   models. arXiv preprint arXiv:2502.09992, 2025.
+
+Krishnamoorthy, S., Mashkaria, S. M., and Grover, A. Diffu-          Novikov, A., Vũ, N., Eisenberger, M., Dupont, E., Huang,
+  sion models for black-box optimization. In International             P.-S., Wagner, A. Z., Shirobokov, S., Kozlovskii, B., Ruiz,
+  Conference on Machine Learning, pp. 17842–17857.                     F. J., Mehrabian, A., et al. Alphaevolve: A coding agent
+  PMLR, 2023.                                                          for scientific and algorithmic discovery. arXiv preprint
+                                                                       arXiv:2506.13131, 2025.
+Kumar, A. and Levine, S. Model inversion networks for
+  model-based optimization. In Proc. Adv. Neur. Inf. Proc.           Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S.,
+ Syst (NeurIPS), 2020.                                                 Matena, M., Zhou, Y., Li, W., and Liu, P. J. Exploring
+                                                                       the limits of transfer learning with a unified text-to-text
+Le, D. D., Shimko, T. C., Aditham, A. K., Keys, A. M.,                 transformer. Journal of machine learning research, 21
+  Longwell, S. A., Orenstein, Y., and Fordyce, P. M.                   (140):1–67, 2020.
+  Comprehensive, high-resolution binding energy land-
+  scapes reveal context dependencies of transcription factor         Sample, P. J., Wang, B., Reid, D. W., Presnyak, V., Mc-
+  binding. Proceedings of the National Academy of Sci-                 Fadyen, I. J., Morris, D. R., and Seelig, G. Human 5
+  ences, 115(16):E3702–E3711, 2018. doi: 10.1073/pnas.                 UTR design and variant effect prediction from a mas-
+  1715888115. URL https://www.pnas.org/doi/                            sively parallel translation assay. Nature Biotechnology,
+  abs/10.1073/pnas.1715888115.                                         2019.
+Lee, J., Wang, Y., Li, J., and Zhang, M. Multimodal rea-             Song, X., Tian, Y., Lange, R. T., Lee, C., Tang, Y., and Chen,
+  soning with multimodal knowledge graph. In Proceed-                  Y. Position: Leverage foundational models for black-box
+  ings of the 62nd Annual Meeting of the Association for               optimization. arXiv preprint arXiv:2405.03547, 2024.
+
+                                                                11
+                               Training Diffusion Language Models for Black-Box Optimization
+
+Tan, R.-X., Chen, M., Xue, K., Wang, Y., Wang, Y., Fu,                Yuan, Y., Chen, C., Pal, C., and Liu, X. Paretoflow: Guided
+  S., and Qian, C. Towards universal offline black-box                  flows in multi-objective optimization. In International
+  optimization via learning language model embeddings.                  Conference on Learning Representations, volume 2025,
+  arXiv preprint arXiv:2506.07109, 2025.                                pp. 72594–72620, 2025.
+Trabucco, B., Kumar, A., Geng, X., and Levine, S. Conser-             Yuan, Y., Sun, Z., Zhang, D., Pal, C., Liu, X., et al. Diffusion
+  vative objective models for effective offline model-based             large language models for black-box optimization. arXiv
+  optimization. In Proc. Int. Conf. Learning Rep. (ICLR),               preprint arXiv:2601.14446, 2026.
+  2021.
+                                                                      Yun, T., Yun, S., Lee, J., and Park, J. Guided trajectory
+Trabucco, B., Geng, X., Kumar, A., and Levine, S. Design-               generation with diffusion models for offline model-based
+  bench: Benchmarks for data-driven offline model-based                 optimization. Advances in Neural Information Processing
+  optimization. In Chaudhuri, K., Jegelka, S., Song, L.,                Systems, 37:83847–83876, 2024.
+  Szepesvari, C., Niu, G., and Sabato, S. (eds.), Pro-
+  ceedings of the 39th International Conference on Ma-                Zhang, M. R., Desai, N., Bae, J., Lorraine, J., and Ba, J.
+  chine Learning, volume 162 of Proceedings of Machine                  Using large language models for hyperparameter opti-
+  Learning Research, pp. 21658–21676. PMLR, 17–23 Jul                   mization. arXiv preprint arXiv:2312.04528, 2023.
+  2022. URL https://proceedings.mlr.press/
+  v162/trabucco22a.html.                                              Zhang, W., Yuan, Y., Han, C., Tian, Y., Sun, Z., Du, L.,
+                                                                        Kang, J., Kang, H., Liu, X., and Wu, H. Preference
+Veličković, P., Vitvitskyi, A., Markeeva, L., Ibarz, B.,              heads in large language models: A mechanistic frame-
+  Buesing, L., Balog, M., and Novikov, A. Amplifying                    work for interpretable personalization. arXiv preprint
+  human performance in combinatorial competitive pro-                   arXiv:2604.22345, 2026a.
+  gramming. arXiv preprint arXiv:2411.19744, 2024.
+                                                                      Zhang, X., Yan, W., Shi, Y., Qiu, X., He, T., Li, Y., Li, M.,
+Wang, S., Xue, K., Lei, S., Huang, X., and Qian, C. Monte               and Fan, H. 4dpc2 hat: Towards dynamic point cloud
+ carlo tree search based space transfer for black box op-               understanding with failure-aware bootstrapping. arXiv
+ timization. Advances in Neural Information Processing                  preprint arXiv:2602.03890, 2026b.
+ Systems, 37:49591–49624, 2024.
+                                                                      Zhao, S., Gupta, D., Zheng, Q., and Grover, A. d1: Scaling
+Yan, J., Li, Y., Hu, Z., Wang, Z., Cui, G., Qu, X., Cheng,              reasoning in diffusion large language models via rein-
+  Y., and Zhang, Y. Learning to reason under off-policy                 forcement learning. arXiv preprint arXiv:2504.12216,
+  guidance, 2025. URL https://arxiv.org/abs/                            2025.
+  2504.14945.
+Yan, W., Li, H., Xu, H., Ye, N., Ai, Y., Liu, S., and Hu,
+  J. LaS-Comp: Zero-shot 3D Completion with Latent-
+  Spatial Consistency. arXiv preprint arXiv:2602.18735,
+  2026.
+Yang, C., Wang, X., Lu, Y., Liu, H., Le, Q. V., Zhou, D., and
+  Chen, X. Large language models as optimizers. In The
+  Twelfth International Conference on Learning Represen-
+  tations, 2024. URL https://openreview.net/
+  forum?id=Bb4VGOWELI.
+Yang, Y., Yuan, Y., Sun, Z., Du, L., He, B., Wu, H., Chen, C.,
+  and Liu, X. Support-proximity augmented diffusion esti-
+  mation for offline black-box optimization. arXiv preprint
+  arXiv:2605.11246, 2026.
+Yuan, Y., Chen, C., Liu, Z., Neiswanger, W., and Liu, X.
+  Importance-aware co-teaching for offline model-based op-
+  timization. In Proc. Adv. Neur. Inf. Proc. Syst (NeurIPS),
+  2023.
+Yuan, Y., Zhang, Y., Chen, C., Wu, H., Li, Z., Li, J., Clark,
+  J. J., and Liu, X. Design editing for offline model-based
+  optimization. arXiv preprint arXiv:2405.13964, 2024.
+
+                                                                 12
+                                Training Diffusion Language Models for Black-Box Optimization
+
+A. Appendix
+A.1. Offline Data Construction
+For each Design-Bench task, we load the original designs {xraw   i } and their corresponding scalar labels {yi }. Here, xi
+                                                                                                                             raw
+
+denotes the task-specific raw representation of a design (e.g., discrete sequences for TF Bind 8 / 10 tasks or continuous
+vectors for robot design tasks). All samples are sorted by label value, and an evenly spaced subset of size npool is selected to
+form the offline dataset. Unless otherwise stated, the offline pool size npool is set to 500 in all main experiments. This pool
+remains fixed and is used across all training stages of our method as well as for all comparison methods.
+
+A.2. Prompt-Response Construction
+Partitioning Strategy We partition the offline data into two disjoint subsets, D1 and D2 , with a fixed ratio of 0.8 : 0.2.
+D1 corresponds to the sampling pool for prompt context (designs with lower scores), while D2 corresponds to the sampling
+pool for response targets (designs with higher scores). We strictly separate D1 and D2 to prevent data leakage; specifically,
+we ensure that no design used as a target response appears in the few-shot prompt context.
+
+Design Similarity Forming prompt-response pairs by randomly sampling from D1 and D2 is often suboptimal. If the
+designs in the prompt context are structurally dissimilar to the target design in the response, the model faces a significant
+challenge in learning the underlying local optimization landscape. To address this, we construct prompt-response pairs
+by selecting designs from the prompt context that are most similar to the target response. Furthermore, for the RL phase,
+we balance the offline dataset to include an approximately equal distribution of positive and negative reward signals (i.e.,
+improvements vs. degradations relative to the anchor).
+We quantify the similarity between designs using a normalized representation, xnorm . For sequence-based tasks (e.g.,
+TF Bind 8 / 10), xnorm is obtained by applying map to logits() to the discrete sequence, followed by feature-wise
+normalization. For continuous robot tasks, we directly utilize the normalized continuous features provided by Design-Bench.
+The similarity between two designs i and j is defined using an RBF kernel:
+                                                                                  !
+                                                               ∥xnorm
+                                                                  i   − xnorm
+                                                                           j  ∥22
+                                         sim(i, j) = exp −                          ,
+                                                                      2σ 2
+
+where the kernel bandwidth σ is the median of all pairwise Euclidean distances computed across the entire offline pool.
+
+A.3. Prompt Templates
+We use a total of 10 natural-language prompt templates to introduce linguistic diversity: 8 templates are used for training,
+and 2 templates are held out for validation. All templates preserve the same optimization objective, delimiter tokens,
+design-label structure, and output format, and differ only in surface-level natural-language wording. The paraphrases are
+generated by ChatGPT-5.2.
+
+Table 7. Representative prompt paraphrases for TF Bind 8. All variants preserve the same task semantics, delimiter tokens, and output
+format, while varying only the surface-level instruction wording.
+
+  Template     Instruction wording
+     T1       You are a helpful optimization assistant that will help us generate a new length-8 optimal DNA sequence with maximum
+              binding affinity with a particular transcription factor SIX6 REF R1.
+     T2       The goal is to design an 8-length DNA sequence with maximum binding affinity to the transcription factor SIX6 REF R1.
+     T3       Optimization Task: Find a DNA sequence (length = 8) that binds more strongly to SIX6 REF R1. Training data
+              (sequence, affinity) is as follows.
+     T4       You are assisting a molecular biologist in optimizing DNA binding sites.
+     T5       Below is a reference dataset of DNA sequences ranked by binding affinity to the transcription factor SIX6 REF R1.
+
+
+Paraphrased Template Examples Table 7 shows representative prompt-instruction variants for TF Bind 8. All variants
+describe the same optimization goal (i.e., designing a length-8 DNA sequence with improved binding affinity to the same
+transcription factor), but use different surface-level wording. For example, some variants state the task as a direct goal, while
+others introduce it as a reference dataset or an optimization problem. After this instruction part, all variants use the same
+
+                                                                 13
+                              Training Diffusion Language Models for Black-Box Optimization
+
+structured design-label context with |design-start|, |design-end|, |label-start|, and |label-end|,
+and require the response to follow the same delimiter-based design format.
+
+Example Prompt Instantiations We further provide one full prompt instantiation for each task as better reference. These
+examples illustrate how the task description, few-shot design-label context, delimiter tokens, and response format are
+combined in the actual inputs. For continuous tasks, vector entries are abbreviated with ellipses for readability, while the
+actual inputs contain the full design vectors.
+
+   TF Bind 8 (Discrete sequence)
+
+   You are a helpful optimization assistant tasked with generating a length-8 DNA sequence that maximizes binding
+   affinity with a specific transcription factor (SIX6 REF R1).
+   You are given several existing DNA sequences along with their corresponding binding affinities:
+   |design-start|[’A’,’C’,’G’,’T’,’A’,’C’,’G’,’T’]|design-end|
+   |label-start|+000.018|label-end|
+   |design-start|[’T’,’C’,’G’,’C’,’T’,’A’,’G’,’G’]|design-end|
+   |label-start|+000.027|label-end|
+   Please propose a new DNA sequence that is different from the existing sequences and has a higher binding affinity.
+   Response: |design-start|[’G’,’C’,’G’,’T’,’A’,’C’,’G’,’T’]|design-end|
+
+
+   TF Bind 10 (Discrete sequence)
+
+   You are a helpful optimization assistant tasked with generating a length-10 DNA sequence that optimizes binding to
+   a specific transcription factor (Pho4).
+   Goal: maximize −ddG (larger values indicate stronger binding).
+   You are given several existing DNA sequences along with their corresponding −ddG values:
+   |design-start|[’T’,’C’,’C’,’A’,’C’,’G’,’A’,’A’,’G’,’A’]|design-end|
+   |label-start|-001.860|label-end|
+   |design-start|[’G’,’C’,’T’,’T’,’G’,’G’,’A’,’A’,’C’,’A’]|design-end|
+   |label-start|+000.010|label-end|
+   Please propose a new DNA sequence that is different from the existing sequences and achieves a higher −ddG
+   value than all sequences shown above. The DNA sequence should use only A, C, G, and T, and it should differ from
+   each existing sequence in at least one position.
+   Response: |design-start|[’A’,’C’,’G’,’T’,’A’,’C’,’G’,’T’,’A’,’C’]|design-end|
+
+
+   AntMorphology (Continuous control)
+
+   You are a helpful optimization assistant for Ant robot morphology design in OpenAI Gym. The goal is to maximize
+   the running performance of a simulated quadruped robot (Ant). Each morphology is represented by 60 continuous
+   parameters (4 legs × 15 parameters per leg).
+   For each leg, parameters are ordered as follows: x (hip x), y (hip y), z (hip z), a (hip angle), b (thigh angle), c (ankle
+   angle), hip center, hip range, thigh center, thigh range, ankle center, ankle range, hip size, thigh size, ankle size.
+   Existing designs and their performance scores:
+   |design-start|[+001.000, +010.000, ..., -002.345, +000.091]|design-end|
+   |label-start|+000.742|label-end|
+   |design-start|[+002.500, +008.750, ..., -001.120, +000.305]|design-end|
+   |label-start|+000.768|label-end|
+   Please propose one new morphology design that is different from the above designs and is expected to achieve a
+   higher performance score. All parameters must be floating-point numbers rounded to three decimal places.
+   Response:
+   |design-start|[+002.000, +009.500, ..., -001.800, +000.250]|design-end|
+
+
+
+                                                              14
+                                 Training Diffusion Language Models for Black-Box Optimization
+
+    D’KittyMorphology (Continuous control)
+
+    You are a helpful optimization assistant for D’Kitty robot morphology design in simulation.
+    Goal: maximize the performance score (better locomotion/navigation to a fixed target; higher is better).
+    Each design is 56 continuous parameters (4 legs × 14 parameters per leg).
+    Per-leg parameters (in order): x (hip x), y (hip y), z (hip z), a (hip angle), b (knee angle), hip center, hip range, knee
+    center, knee range, hip size, knee size, foot center, foot range, foot size.
+    Existing designs and their performance scores:
+    |design-start|[+001.250, +009.000, ..., -001.400, +000.180]|design-end|
+    |label-start|+000.703|label-end|
+    |design-start|[+002.100, +008.500, ..., -000.950, +000.260]|design-end|
+    |label-start|+000.729|label-end|
+    Please propose one new morphology design to maximize the score.
+    Format: each value must be a signed float with three decimal places (e.g., +000.123, -001.500).
+    Response:
+    |design-start|[+001.800, +009.250, ..., -001.200, +000.220]|design-end|
+
+
+A.4. Effect of High-Dimensional GP Priors
+
+Table 8. Effect of high-dimensional GP kernels on baseline performance. We compare a plain RBF GP with the high-dimensional
+formulation of Hvarfner et al. (2024), which incorporates dimensionality-scaled priors (DSP) for stable modeling in high-dimensional
+settings. We report both the maximum and median scores, and use ∆ to denote the change of performance from plain RBF to the
+high-dimensional configuration.
+                                                       (a) Maximum Scores
+
+              Method         Kernel       Ant Morphology     D’Kitty Morphology        TF Bind 8        TF Bind 10
+                             RBF          0.644 ± 0.039         0.907 ± 0.016        0.666 ± 0.011    0.695 ± 0.027
+              Grad-mean      High-dim     0.709 ± 0.002         0.920 ± 0.008        0.843 ± 0.082    0.736 ± 0.016
+                             ∆              +0.065 ↑              +0.013 ↑             +0.177 ↑         +0.041 ↑
+                             RBF          0.626 ± 0.002         0.901 ± 0.045        0.673 ± 0.012    0.689 ± 0.013
+              Grad-EI        High-dim     0.655 ± 0.002         0.923 ± 0.010        0.864 ± 0.091    0.727 ± 0.024
+                             ∆              +0.029 ↑              +0.022 ↑             +0.191 ↑         +0.038 ↑
+              DiBO(ours)     –            0.932 ± 0.022         0.912 ± 0.017        0.946 ± 0.043    0.741 ± 0.027
+
+                                                         (b) Median Scores
+
+              Method         Kernel       Ant Morphology     D’Kitty Morphology        TF Bind 8        TF Bind 10
+                             RBF          0.351 ± 0.002         0.879 ± 0.015        0.623 ± 0.030    0.394 ± 0.004
+              Grad-mean      High-dim     0.472 ± 0.013         0.858 ± 0.003        0.441 ± 0.008    0.461 ± 0.008
+                             ∆              +0.121 ↑              −0.021 ↓             −0.182 ↓         +0.067 ↑
+                             RBF          0.368 ± 0.046         0.872 ± 0.004        0.595 ± 0.019    0.453 ± 0.047
+              Grad-EI        High-dim     0.504 ± 0.013         0.849 ± 0.008        0.436 ± 0.004    0.459 ± 0.024
+                             ∆              +0.136 ↑              −0.023 ↓             −0.159 ↓         +0.006 ↑
+              DiBO(ours)     –            0.524 ± 0.038         0.775 ± 0.010        0.473 ± 0.020    0.491 ± 0.006
+
+
+
+In Bayesian optimization, GP surrogates provide a standard way to model unknown black-box objectives and guide
+acquisition-based search (Garnett, 2023). However, in high-dimensional settings, the effectiveness of GP-based BO can
+depend strongly on kernel choices and hyperparameter priors, especially the lengthscale prior (Binois & Wycoff, 2022).
+Given that such high-dimensional challenges are increasingly prevalent in recent BBO (Chen et al., 2023a;b; Yuan et al.,
+2024; 2025; Yang et al., 2026) and multi-modal studies (Lee et al., 2024; Zhang et al., 2026b;a; Du et al., 2026; Yan et al.,
+2026), addressing this scaling issue is critical. Fortunately, recent work shows that a simple dimension-scaled GP prior can
+
+                                                                15
+                                  Training Diffusion Language Models for Black-Box Optimization
+
+substantially improve vanilla BO in high-dimensional search spaces (Hvarfner et al., 2024). Following this line of work,
+we implement our GP-based baselines following BoTorch (Balandat et al., 2020) and adopt the dimension-scaled GP prior
+configuration of Hvarfner et al. (2024) for both Grad (mean) and Grad (EI). Readers can refer to a detailed discussion here.
+This configuration scales the GP lengthscale prior with the input dimensionality, making the surrogate better calibrated for
+high-dimensional design spaces. All other components of the baselines are kept fixed.
+To justify this choice, we further compare the adopted high-dimensional GP configuration with a plain RBF GP configuration
+in Table 8. The high-dimensional configuration consistently improves the GP-based baselines in most maximum-score
+comparisons and in several median-score comparisons, empirically confirming that GP prior calibration is an important
+implementation detail in high-dimensional design spaces. These results also show that our main conclusions remain robust
+under a stronger and more carefully calibrated GP-based baseline configuration.
+
+A.5. Median Results
+This section reports the median (50-th percentile) normalized oracle scores on all Design-Bench tasks. Consistent with the
+main results in Table 1, DiBO achieves state-of-the-art or competitive median performance across tasks.
+
+
+Table 9. Experimental results in 50-th percentile normalized scores on four tasks for comparison. Results are averaged over 8
+random seeds (mean ± std). Rank Mean and Rank Median denote the average and median rank across all tasks, respectively. The highest
+and second-highest scores per task are highlighted in green and blue , respectively.
+
+    Method       Ant Morphology    D’Kitty Morphology     TF Bind 8       TF Bind 10     Mean Score ↑    Rank Mean ↓   Rank Median ↓
+    D(best)          0.565               0.884              0.439            0.511            −              −              −
+  Grad-mean       0.472 ± 0.013       0.858 ± 0.003     0.441 ± 0.008    0.461 ± 0.008   0.558 ± 0.008      3.5             3.5
+   Grad-EI        0.504 ± 0.013       0.849 ± 0.008     0.436 ± 0.004    0.459 ± 0.024   0.562 ± 0.012       4.0            4.0
+    COMs          0.375 ± 0.046      0.887 ± 0.007      0.399 ± 0.048    0.487 ± 0.039   0.537 ± 0.035      5.25            5.0
+     ICT          0.407 ± 0.022       0.863 ± 0.049     0.366 ± 0.010    0.365 ± 0.017   0.500 ± 0.025      9.25            9.0
+ MATCH-OPT        0.435 ± 0.049       0.875 ± 0.022     0.431 ± 0.034    0.373 ± 0.007   0.529 ± 0.028      6.25            4.5
+   UniSO-T        0.405 ± 0.026       0.842 ± 0.043     0.418 ± 0.013    0.431 ± 0.015   0.524 ± 0.024      7.25            7.0
+     CbAS         0.302 ± 0.033       0.773 ± 0.047     0.394 ± 0.009    0.373 ± 0.009   0.461 ± 0.025      13.0           13.5
+     ExPT         0.465 ± 0.039       0.792 ± 0.016     0.355 ± 0.011    0.356 ± 0.027   0.492 ± 0.023      11.5           13.0
+     MIN          0.370 ± 0.002       0.841 ± 0.045     0.282 ± 0.012    0.386 ± 0.013   0.470 ± 0.018      11.75          11.5
+    BONET         0.391 ± 0.020       0.885 ± 0.008     0.408 ± 0.046    0.474 ± 0.025   0.540 ± 0.025      4.75           4.5
+     OPRO         0.380 ± 0.045       0.829 ± 0.037     0.407 ± 0.050    0.432 ± 0.014   0.512 ± 0.037       9.0           9.0
+     GTG          0.372 ± 0.024       0.765 ± 0.025     0.360 ± 0.008    0.382 ± 0.034   0.470 ± 0.023      12.75          12.5
+    DDOM          0.323 ± 0.045       0.835 ± 0.007     0.373 ± 0.027    0.454 ± 0.017   0.496 ± 0.024      10.0           10.0
+  CMA-ES          0.335 ± 0.019       0.686 ± 0.035     0.388 ± 0.028    0.436 ± 0.005   0.461 ± 0.022      11.75          11.5
+ MCTS-transfer    0.323 ± 0.049       0.832 ± 0.041     0.310 ± 0.044    0.453 ± 0.022   0.480 ± 0.039      11.5           12.0
+  DiBO(ours)     0.524 ± 0.038        0.775 ± 0.010     0.473 ± 0.020    0.491 ± 0.006   0.566 ± 0.019       4.0            1.0
+
+
+
+
+A.6. Additional Evaluation on Top-K Metrics and RNA Design Tasks
+We provide additional evaluation along two dimensions. First, beyond the 100-th percentile score used in the main results,
+we report Top-K average scores, where Top-K denotes the average oracle score among the top K generated candidates
+out of 128 candidates. We report Top-5, Top-10, Top-20, and the 50-th percentile score to characterize not only the best
+generated candidate but also the quality of the generated candidate set.
+As shown in Table 10, DiBO remains strong on the original Design-Bench tasks under Top-K and median metrics. In
+particular, it achieves the best scores across all reported metrics on Ant Morphology, TF Bind 8, and TF Bind 10, while
+remaining competitive on D’Kitty Morphology as discussed.
+Second, we extend the evaluation to three RNA optimization tasks, RNA-A/B/C, adapted from BootGen (Kim et al., 2023).
+These tasks require designing length-14 RNA sequences to maximize transcription factor binding activity, providing an
+additional biological sequence domain beyond the Design-Bench tasks. We compare DiBO with COMs and ExPT, the two
+representative baselines from our main evaluation. The results are comparable but more mixed on the RNA tasks, as shown
+in Table 11. DiBO achieves the best 100-th percentile score on RNA-A and RNA-C, indicating that it can still discover
+high-scoring candidates in these additional biological sequence tasks.
+
+                                                                    16
+                                 Training Diffusion Language Models for Black-Box Optimization
+
+Table 10. Additional evaluation on Top-K metrics on Design-Bench tasks. We report the 100-th percentile, Top-5/10/20 average, and
+50-th percentile normalized oracle scores over 128 generated candidates. The highest and second-highest scores per task are highlighted
+in green and blue , respectively.
+
+                   Task                     Metric           COMs                   ExPT              DiBO(ours)
+                                            100-th       0.647 ± 0.020         0.929 ± 0.049       0.932 ± 0.022
+                                            Top-5        0.628 ± 0.014         0.904 ± 0.028       0.906 ± 0.012
+                   Ant Morphology           Top-10       0.621 ± 0.020         0.863 ± 0.041       0.880 ± 0.010
+                                            Top-20       0.592 ± 0.012         0.828 ± 0.052       0.847 ± 0.011
+                                            50-th        0.375 ± 0.046         0.465 ± 0.039       0.524 ± 0.038
+                                            100-th       0.934 ± 0.008        0.950 ± 0.041         0.912 ± 0.017
+                                            Top-5        0.912 ± 0.005        0.935 ± 0.020         0.900 ± 0.006
+                   D’Kitty Morphology       Top-10       0.908 ± 0.005        0.918 ± 0.009         0.894 ± 0.006
+                                            Top-20      0.901 ± 0.010          0.892 ± 0.028        0.884 ± 0.005
+                                            50-th       0.887 ± 0.007          0.792 ± 0.016        0.775 ± 0.010
+                                            100-th       0.843 ± 0.046         0.810 ± 0.044       0.946 ± 0.043
+                                            Top-5        0.824 ± 0.053         0.790 ± 0.021       0.879 ± 0.011
+                   TF Bind 8                Top-10       0.742 ± 0.042         0.733 ± 0.058       0.832 ± 0.018
+                                            Top-20       0.701 ± 0.022         0.696 ± 0.062       0.766 ± 0.016
+                                            50-th        0.399 ± 0.048         0.355 ± 0.011       0.473 ± 0.020
+                                            100-th       0.709 ± 0.025         0.703 ± 0.022       0.741 ± 0.027
+                                            Top-5        0.626 ± 0.040         0.652 ± 0.012       0.681 ± 0.021
+                   TF Bind 10               Top-10       0.608 ± 0.016         0.613 ± 0.011       0.652 ± 0.017
+                                            Top-20       0.588 ± 0.013         0.596 ± 0.008       0.621 ± 0.009
+                                            50-th        0.487 ± 0.039         0.356 ± 0.027       0.491 ± 0.006
+
+
+
+
+Table 11. Additional evaluation on RNA design tasks. We extend our evaluation to three RNA optimization tasks (RNA-A/B/C)
+following the BootGen (Kim et al., 2023). These tasks involve designing length-14 RNA sequences to maximize transcription factor
+binding activity. Results report the normalized oracle score under different Top-K metrics, where Top-K denotes the average score of the
+top K generated candidates. We compare against two representative strong baselines, COMs and ExPT, from our original Design-Bench
+evaluation. The highest and second-highest scores per task are highlighted in green and blue , respectively.
+
+                          Task        Metric           COMs                  ExPT               DiBO(ours)
+                                      100-th       0.362 ± 0.011         0.365 ± 0.031       0.395 ± 0.015
+                                      Top-5        0.322 ± 0.024         0.331 ± 0.014       0.335 ± 0.014
+                          RNA-A       Top-10       0.305 ± 0.020        0.308 ± 0.016         0.258 ± 0.012
+                                      Top-20       0.264 ± 0.017        0.294 ± 0.025         0.224 ± 0.007
+                                      50-th       0.155 ± 0.023          0.133 ± 0.019        0.141 ± 0.004
+                                      100-th      0.350 ± 0.063          0.348 ± 0.011         0.299 ± 0.017
+                                      Top-5       0.332 ± 0.023          0.313 ± 0.007         0.229 ± 0.009
+                          RNA-B       Top-10      0.299 ± 0.030          0.292 ± 0.006         0.203 ± 0.009
+                                      Top-20      0.290 ± 0.014          0.275 ± 0.003         0.177 ± 0.059
+                                      50-th       0.162 ± 0.028          0.138 ± 0.009         0.087 ± 0.004
+                                      100-th       0.445 ± 0.018         0.502 ± 0.016       0.528 ± 0.037
+                                      Top-5        0.403 ± 0.009        0.487 ± 0.013         0.413 ± 0.015
+                          RNA-C       Top-10       0.392 ± 0.031        0.430 ± 0.004         0.322 ± 0.013
+                                      Top-20       0.359 ± 0.006        0.415 ± 0.007         0.280 ± 0.009
+                                      50-th        0.205 ± 0.044        0.247 ± 0.023         0.162 ± 0.007
+
+
+                                                                   17
+                                Training Diffusion Language Models for Black-Box Optimization
+
+A.7. Pretraining-Overlap Audit via Ranking Probing
+Since DiBO is initialized from a pretrained diffusion LLM, a natural concern is whether the pretrained checkpoint already
+contains task-specific design-label knowledge from public benchmark assets. Because the pretraining corpus of LL A DA-8B-
+I NSTRUCT is not publicly available, an exact dataset-level overlap audit is not possible. We therefore perform a behavioral
+audit that probes whether the pretrained model can rank candidate designs according to their ground-truth labels before any
+domain adaptation or post-training.
+For each task and each ranking size K ∈ {2, 3, 4, 5}, we sample 500 groups of K candidate designs from the offline pool.
+The pretrained model is given only the rendered designs, without their labels, and is prompted to rank them from highest
+score to lowest score. The following probing prompt shows an example when K = 3, where each <design> is rendered
+in the same format as the corresponding benchmark task.
+                                 You are given 3 candidate designs.
+                                 Rank them from highest score to lowest score.
+                                 Return only a ranking over the option letters and no other text.
+                                 A: <design A>
+                                 B: <design B>
+                                 C: <design C>
+                                 Answer:
+
+For each group, we enumerate all K! possible answer rankings, such as A > B > C, A > C > B, and B > A > C
+when K = 3. We then compute the log probability assigned by the pretrained model to each possible ranking and sort all
+rankings by their model scores. Finally, we record the rank of the ground-truth ordering determined by the oracle labels. If
+the pretrained model already encodes benchmark-specific design-label knowledge, the correct ordering should be ranked
+close to 1; under random ranking, its expected rank is (K! + 1)/2 (e.g., 3.5 when K = 3).
+
+Table 12. Pretraining-overlap audit via ranking probing. We test whether the pretrained LL A DA-8B-I NSTRUCT checkpoint encodes
+task-specific design-label ranking knowledge before any domain adaptation or post-training. For each task and each K ∈ {2, 3, 4, 5}, we
+sample 500 groups of K designs, enumerate all K! possible rankings, and score each ranking by the pretrained model. We report the
+average rank assigned to the ground-truth ordering, where lower is better. The random baseline is (K! + 1)/2.
+
+                                  Task                     K=2           K=3       K=4         K=5
+                                  Random Guess               1.50        3.50       12.5        60.5
+                                  Ant Morphology             1.55        3.39       11.77      64.40
+                                  D’Kitty Morphology         1.55        3.30       11.84      60.90
+                                  TF Bind 8                  1.56        3.43       11.62      61.96
+                                  TF Bind 10                 1.58        3.29       11.62      63.00
+                                  RNA-A                      1.59        3.49       11.85      62.94
+                                  RNA-B                      1.56        3.50       11.51      63.54
+                                  RNA-C                      1.54        3.52       11.58      64.44
+
+
+As shown in Table 12, the average rank of the correct ordering is close to the random baseline across tasks and values of K.
+This suggests that the pretrained checkpoint does not exhibit meaningful prior knowledge of the design-label relationship.
+
+
+
+
+                                                                    18
+

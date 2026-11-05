@@ -1,0 +1,348 @@
+{
+  "repository": "https://github.com/zpointS/DiBO",
+  "commit": "601fef5d502d0088a32841a477cb221beff105ef",
+  "retrieved": "2026-11-05",
+  "execution": "None. Static text inspection only; no code imported or executed, no dependencies installed.",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 78,
+      "sha256": "b80965450f49ec54f674ebc6b7463f0d9206a98b5d155b0c9037951182f55a04"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 290,
+      "sha256": "a34cfc072830079c87fc49932ce527f72e0405898f6d2a60e2d12352d81a8d77"
+    },
+    {
+      "path": "CITATION.cff",
+      "bytes": 2065,
+      "sha256": "2a21417944dfbf0362cc8b62d813861bc5f911ee579ee4f115dd5cfc56232284"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1067,
+      "sha256": "38313f0414dfcffe5131cbf687650e61495c21400f6ff0f68953315e9772705a"
+    },
+    {
+      "path": "LICENSES/Design-Bench.txt",
+      "bytes": 1073,
+      "sha256": "537de16bea47500f8bc6a5ec17909673a717d91ed2da9ea429588786af60b34b"
+    },
+    {
+      "path": "LICENSES/Morphing-Agents.txt",
+      "bytes": 1073,
+      "sha256": "537de16bea47500f8bc6a5ec17909673a717d91ed2da9ea429588786af60b34b"
+    },
+    {
+      "path": "LICENSES/ROBEL.txt",
+      "bytes": 11414,
+      "sha256": "4d9c355f1c50304ef17c6ed50b1ca54e24060daaada2dda8f1804024c8f772bf"
+    },
+    {
+      "path": "README.md",
+      "bytes": 16405,
+      "sha256": "9aec066bb167674b69190e69cbecb58a0c8cfad05ec4802ef9d3aa5078975e58"
+    },
+    {
+      "path": "assets/dibo-overview-full.png",
+      "bytes": 9974791,
+      "sha256": "6249e5a9295cec78376f439134497ea34ebeeebeea3f788480d274a07b651805"
+    },
+    {
+      "path": "assets/dibo-overview.png",
+      "bytes": 1261334,
+      "sha256": "909c297f076333afcb3fda5ee432e3a8b56567e932420f05df74d7a03981dd10"
+    },
+    {
+      "path": "assets/dibo-paper.pdf",
+      "bytes": 4945687,
+      "sha256": "f00c8a458116f1703a8c0ff73eb57a44db2f0e3740191bed4d74c1996fc1cea5"
+    },
+    {
+      "path": "assets/dibo-poster-full.png",
+      "bytes": 5292475,
+      "sha256": "fd1a2835f1443f92e73f08c8d03844b51d9a6ee296faa85dd67deec691045d27"
+    },
+    {
+      "path": "assets/dibo-poster-preview.jpg",
+      "bytes": 523959,
+      "sha256": "9c97680cce95834e8936cf332323ae731a9712283b3e4bcdbc1ee61bcebf963f"
+    },
+    {
+      "path": "assets/dibo-poster.pdf",
+      "bytes": 8027159,
+      "sha256": "7a1db98761b74bf44fd120f3edcd6dfef740f01edbf5a2d3a15a4d5efa6b4c3c"
+    },
+    {
+      "path": "compute_reward_stats.py",
+      "bytes": 15557,
+      "sha256": "1a16c56d27a879e4f413c0ac756b183bb14d9f5a776f3e357e530d026acff02c"
+    },
+    {
+      "path": "configs/hf_release.json",
+      "bytes": 1071,
+      "sha256": "bd538951e49e39973c4ab7677c6deac1d599f49748e36fc7d9f8c13bb21b3014"
+    },
+    {
+      "path": "configs/task.yaml",
+      "bytes": 821,
+      "sha256": "85cf5294eaab8bc97c2c66afdbcd889968e30c34524fb24916ce473950b93b0c"
+    },
+    {
+      "path": "configs/train.yaml",
+      "bytes": 1080,
+      "sha256": "411b716c3f94508d06e7ddb6fb7890fffa01504d247f343cfb88574c24e11eed"
+    },
+    {
+      "path": "data/README.md",
+      "bytes": 5945,
+      "sha256": "42b130eca0e8829530f2abf7f2f3b7f59613ed54a7248e4064e430dba8dfe47f"
+    },
+    {
+      "path": "data/normalization_ranges.json",
+      "bytes": 243,
+      "sha256": "f3daf786939208eaca10c9bc4607d6002610e51ca00b1132ecb10256db4ebded"
+    },
+    {
+      "path": "data/prompts/AntMorphology-Exact-v0_prompts.py",
+      "bytes": 10497,
+      "sha256": "388b1d9df2ccb3dc6db149dafa3f6105e578ad0fd61422d416c8ba4d9f8887ea"
+    },
+    {
+      "path": "data/prompts/DKittyMorphology-Exact-v0_prompts.py",
+      "bytes": 10092,
+      "sha256": "184d7141bd71521e1e5c0ead2913ac4c11220bca5cfc7f74112f5a82e27a23a4"
+    },
+    {
+      "path": "data/prompts/TFBind10-Exact-v0_prompts.py",
+      "bytes": 4668,
+      "sha256": "181ddeb0a0924498778815cfc741c7be0c079e06a4290fe5f3153ec7b3b596a8"
+    },
+    {
+      "path": "data/prompts/TFBind8-Exact-v0_prompts.py",
+      "bytes": 3988,
+      "sha256": "f7c6652b4d7e771027efb262616f464b065ea4c4381995ba45537b247683089f"
+    },
+    {
+      "path": "data/raw/AntMorphology-Exact-v0.npz",
+      "bytes": 5752663,
+      "sha256": "f2edaa6c4b63f2f3bfe99ea4c0b9e3d91d9a20cc67de07723a01a2c3a7e806b2"
+    },
+    {
+      "path": "data/raw/DKittyMorphology-Exact-v0.npz",
+      "bytes": 4967771,
+      "sha256": "2bcc58b2764d86801bf52a5e44934d1a7689cc9e4de71f338cfb4b62c1332a7d"
+    },
+    {
+      "path": "data/raw/TFBind10-Exact-v0.npz",
+      "bytes": 11024320,
+      "sha256": "b3a66a83645fa9ea8899689b7a28e6028759b201cb7ca828509b7521203c137d"
+    },
+    {
+      "path": "data/raw/TFBind8-Exact-v0.npz",
+      "bytes": 377158,
+      "sha256": "fb47157c9586bc87a5c7cdf089dbf83984513b96b4a8affae21436ec75de40ba"
+    },
+    {
+      "path": "data/relabeled/AntMorphology-Exact-v0.npz",
+      "bytes": 2300851,
+      "sha256": "621fc611df60bc0db2eaa71a069ce62a5f06d5b363a525f5a6bb2b862cf8022f"
+    },
+    {
+      "path": "data/relabeled/DKittyMorphology-Exact-v0.npz",
+      "bytes": 1993053,
+      "sha256": "42685b84a1eb8d24e88a488887e28856e8d40f4024250912cef9cca45622d43d"
+    },
+    {
+      "path": "data/reward_stats/reward_stats.json",
+      "bytes": 38813,
+      "sha256": "d7f50cc0dc2ce41d54454aeeeef6ccbc5b1a9721cc26a69586b6879fcef81e80"
+    },
+    {
+      "path": "data/task_bundles/AntMorphology-Exact-v0.npz",
+      "bytes": 4558683,
+      "sha256": "3f5d3064f1404d20b9d3dde4dd8bb816596db39ba5409e472170ed23ab600eec"
+    },
+    {
+      "path": "data/task_bundles/DKittyMorphology-Exact-v0.npz",
+      "bytes": 4023805,
+      "sha256": "4b043dfaa718b0a06768f361dd1e8e3779788cf8ad940407f0b2a5afd27cc26a"
+    },
+    {
+      "path": "data/task_bundles/TFBind10-Exact-v0.npz",
+      "bytes": 8791880,
+      "sha256": "1fd98ae6fabafafb11108512a73a511f15ac383ab3ef37fa073213be0fde5d88"
+    },
+    {
+      "path": "data/task_bundles/TFBind8-Exact-v0.npz",
+      "bytes": 369415,
+      "sha256": "11981266c8d79b8d33e7e85a1f60365e76748660bd4fdd151acc44bbfa523616"
+    },
+    {
+      "path": "docs/installation.md",
+      "bytes": 5711,
+      "sha256": "392ccaad56a155f2748d660f69320b0a876e9109ec8bf741a4fb11aa5f31c57f"
+    },
+    {
+      "path": "eval.py",
+      "bytes": 24831,
+      "sha256": "993220a2a5b3a2ee2803876a74e9bd9e92c77a7c938b0c04d3dbe18b709678b4"
+    },
+    {
+      "path": "main.py",
+      "bytes": 4366,
+      "sha256": "494938886cc7972a2da821b54d89dfc8e4e3425267f88f7c78df1b2d904915c2"
+    },
+    {
+      "path": "requirements-oracle.txt",
+      "bytes": 425,
+      "sha256": "41ac452c1a05692dd343307ff1e3eda418f93a2f496dd39c4877971c935eb1e0"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 194,
+      "sha256": "3ccd5ed61bed6642f0e32bb46d0a08867c231b21e362287a0ecedd15bb2c63c0"
+    },
+    {
+      "path": "scripts/compare_task_bundles.py",
+      "bytes": 7744,
+      "sha256": "8d20a9da9665d2fefaeab2ea720b3b74d0d82c80e1b126753112c0eefa22b140"
+    },
+    {
+      "path": "scripts/export_hf_model.py",
+      "bytes": 6585,
+      "sha256": "e154e2c89a070d59e179c5e582faf93caedd78dbdee7a409a457bcd8eed7d6cd"
+    },
+    {
+      "path": "scripts/prepare_design_bench_data.py",
+      "bytes": 8158,
+      "sha256": "5e3a028c3bc296f36819e77b202253970ad0df331814af46cc20446301408a3e"
+    },
+    {
+      "path": "scripts/render_hf_model_card.py",
+      "bytes": 993,
+      "sha256": "5d39299d34710bd7ae40030bd001e67b26d37a9e96c11686084ffcee89f22781"
+    },
+    {
+      "path": "scripts/run_pipeline.sh",
+      "bytes": 1382,
+      "sha256": "12ca53ca57fe0211938412c68ba86c7a218cdd7a14b53f28292eb7561b357782"
+    },
+    {
+      "path": "scripts/validate_hf_export.py",
+      "bytes": 19125,
+      "sha256": "4afeb54de2587fb94309f7f2b1f768e2a8b9f69911cebd421ef72d4a619522b7"
+    },
+    {
+      "path": "src/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/compat/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/compat/compat_patches.py",
+      "bytes": 748,
+      "sha256": "0a499d6886cc50edad406ca04ece22e5739ba622c5c0ccdd9a1a3def97ea7706"
+    },
+    {
+      "path": "src/dataset/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/dataset/mixed_dataset.py",
+      "bytes": 7944,
+      "sha256": "53c28abd4c579050d27166551deaecac57dbe0e4c1db2f0a32ca8b979f6b7e78"
+    },
+    {
+      "path": "src/dataset/task_bundle.py",
+      "bytes": 7980,
+      "sha256": "a171dbc8a9fb813978eb5d702a1d3fbb70ed9ba411242ea2856eeae7642c3beb"
+    },
+    {
+      "path": "src/dataset/task_pool_dataset.py",
+      "bytes": 25769,
+      "sha256": "1cc7333dcfae2de2a293edfaf3178c16e35cb15808c92d55f004a3f42b8a32a4"
+    },
+    {
+      "path": "src/dataset/utils.py",
+      "bytes": 2391,
+      "sha256": "821cbcc64509f1efd408cdfbe67ce3cbe4f65dd35d6f2bc40a21b365f9ccea19"
+    },
+    {
+      "path": "src/model/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/model/dllm.py",
+      "bytes": 13274,
+      "sha256": "dda8242b8caed469bfa2040e8013f589255734bb171340ac99e85f5fc1fb61a8"
+    },
+    {
+      "path": "src/model/hf_export_remote_code/__init__.py",
+      "bytes": 78,
+      "sha256": "43fcf49d44e62fed8fc79ccd777959f2216e62bac32b8c530d25c3965ff15305"
+    },
+    {
+      "path": "src/model/hf_export_remote_code/modeling_dibo_llada.py",
+      "bytes": 1989,
+      "sha256": "c1d3021bbf2d1291251ea5bc5033f6cbbcdc1e2452285463bae90e0747d8b898"
+    },
+    {
+      "path": "src/pipeline.py",
+      "bytes": 13871,
+      "sha256": "87114a9ba6c66e3d190c7c14963bbb8c148bb21ce238edd4dd6db7ad25769567"
+    },
+    {
+      "path": "src/release/__init__.py",
+      "bytes": 42,
+      "sha256": "ebbe5b2e8fdf229614e1ad4d1213615a449a9d72f41f0a9516a44d89ee061fce"
+    },
+    {
+      "path": "src/release/hf_artifacts.py",
+      "bytes": 13412,
+      "sha256": "03fdab8e8535d3693361a55860195c95d8c47639352c914df23cca6068713098"
+    },
+    {
+      "path": "src/trainer_dllm.py",
+      "bytes": 32163,
+      "sha256": "cf632e09654750cdf18d95183b0ddaaae5510f84145d9758e2f58a39cd3d1389"
+    },
+    {
+      "path": "src/utils.py",
+      "bytes": 5701,
+      "sha256": "f7998561a1dce5d00e9e52ca02bc8b454336264c0d05a5f76bbfecf94b2a4867"
+    },
+    {
+      "path": "tests/test_chunked_ce.py",
+      "bytes": 3481,
+      "sha256": "04d93d781e07398af4b4b1267c56d88b29ccb1336a48b857d4171a7500d86cb7"
+    },
+    {
+      "path": "tests/test_hf_release.py",
+      "bytes": 9714,
+      "sha256": "b95c10d9d9ef58848d0122daf8d1d658bfb632b1b2cee8ae4f716e32d9cdbc3e"
+    },
+    {
+      "path": "tests/test_model_loader.py",
+      "bytes": 2582,
+      "sha256": "9bb28262b64f2cfa9a30c2ae7993be9c05db5191ac60f9ff9825fcc073dc8f2b"
+    },
+    {
+      "path": "tests/test_prepare_design_bench_data.py",
+      "bytes": 7077,
+      "sha256": "c57de45d4e2f01a9c7cf90dd77384d68628828f7db2f133e46ee2634c0a505b8"
+    },
+    {
+      "path": "tests/test_release_data.py",
+      "bytes": 5375,
+      "sha256": "de5728b46e4039704d2d1bdfb122242fa3b69fa500afbabbf3d4213b1ac0bbec"
+    }
+  ]
+}
