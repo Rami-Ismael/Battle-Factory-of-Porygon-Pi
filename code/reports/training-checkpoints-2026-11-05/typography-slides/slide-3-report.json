@@ -1,0 +1,143 @@
+{
+ "usable": true,
+ "url": "file:///Users/ramiismael/.t3/worktrees/Using%20Advance%20method%20search%20in%20the%20whole%20search%20of%20possible%20vgc%20pokemon%20format%20to%20find%20the%20right%20counter%20to%20a%20pokemon%20team/t3-baf9e787/code/reports/training-checkpoints-2026-11-05/typography-slides/index.html#3",
+ "http_status": 200,
+ "title": "Checkpoint figures: before, what changes, after",
+ "width": 1280,
+ "chars": 946,
+ "words": "1 Before 2 What changes 3 After ← → After: the figure tells the result first 4 of 8 checks became 8 of 8 . Pick a step to see the same place, now changed. 1 2 3 4 Show before 1 Hierarchy: make the finding the entry point The finding leads, then the trajectory and the remaining request-versus-achievement mismatch. Finding heading 20 px → 24 px 2 Size scale: enlarge explanatory copy 3 Hierarchy: strengthen text contrast 4 Line length: constrain explanatory copy 5 Font: retain the system font This is a retrospective figure redesign, with intentional changes to words, labels and figure order. It is not a pure typography restyle. The automated comparison keeps 82.9% of the original words, below its 98% pure-restyle gate. Its overall verdict remains not improved despite stronger typography checks and no regressed check. These checks measure typography rules, not reading speed or comprehension. The reader-facing figures and scientific values must be assessed separately.",
+ "overflow_px": 0,
+ "passed": 8,
+ "measured": 8,
+ "checks": [
+  {
+   "key": "contrast",
+   "fault": "low contrast",
+   "tier": "standard",
+   "status": "pass",
+   "value": 0.0,
+   "target": "at most 1% of text below WCAG minimum",
+   "detail": {
+    "text_with_unknown_background": 0.0,
+    "worst": []
+   }
+  },
+  {
+   "key": "hierarchy",
+   "fault": "flat hierarchy",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 1.5,
+   "target": "largest text at least 1.25x body, in the first screen",
+   "detail": {
+    "body_px": 16.0,
+    "largest_px": 24.0,
+    "largest_in_first_screen": true
+   }
+  },
+  {
+   "key": "sizes",
+   "fault": "too many sizes",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 4,
+   "target": "at most 8 sizes, at most 1 pair within 1.08x",
+   "detail": {
+    "sizes_px": [
+     12.0,
+     13.5,
+     16.0,
+     24.0
+    ],
+    "close_pairs": 0
+   }
+  },
+  {
+   "key": "body_size",
+   "fault": "text size",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 16.0,
+   "target": "15 to 24 px",
+   "detail": null
+  },
+  {
+   "key": "small_text",
+   "fault": "text size",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 0.0,
+   "target": "at most 1% of text under 12 px",
+   "detail": null
+  },
+  {
+   "key": "line_length",
+   "fault": "long lines",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 59,
+   "target": "longest line 40 to 85 characters in 80% of body text",
+   "detail": {
+    "blocks": [
+     {
+      "longest_line": 59,
+      "sample": "This is a retrospective figure redesign, with intentional ch"
+     },
+     {
+      "longest_line": 59,
+      "sample": "The automated comparison keeps 82.9% of the original words, "
+     },
+     {
+      "longest_line": 58,
+      "sample": "These checks measure typography rules, not reading speed or "
+     }
+    ]
+   }
+  },
+  {
+   "key": "line_height",
+   "fault": "unset line height",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 1.5,
+   "target": "1.3 to 1.8 times the font size in 80% of wrapped text",
+   "detail": null
+  },
+  {
+   "key": "spacing",
+   "fault": "even gaps",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 1.0,
+   "target": "80% of headings sit closer to what follows, and paragraphs are visibly separated",
+   "detail": {
+    "headings_checked": 1,
+    "headings_closer_to_next": 1,
+    "misplaced": [],
+    "paragraph_pairs": 2,
+    "paragraphs_separated": 2
+   }
+  },
+  {
+   "key": "il1",
+   "fault": "ambiguous letters",
+   "tier": "practitioner",
+   "status": "advisory",
+   "value": 0.031,
+   "target": "letter shapes of I, l and 1 differ by at least 0.15, measured at 96 px",
+   "detail": [
+    {
+     "family": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+     "share": 1.0,
+     "I_l": 0.031,
+     "l_1": 0.919,
+     "I_1": 0.918
+    }
+   ]
+  }
+ ],
+ "needs_eyes": [
+  "Greyscale: is the top-ranked item the first thing you notice? See grey.png.",
+  "Letter shapes: are the openings in c and e open at small sizes? See page.png."
+ ]
+}

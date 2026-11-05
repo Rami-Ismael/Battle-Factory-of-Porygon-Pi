@@ -1,0 +1,150 @@
+{
+ "usable": true,
+ "url": "file:///Users/ramiismael/.t3/worktrees/Using%20Advance%20method%20search%20in%20the%20whole%20search%20of%20possible%20vgc%20pokemon%20format%20to%20find%20the%20right%20counter%20to%20a%20pokemon%20team/t3-baf9e787/code/reports/training-checkpoints-2026-11-05/index.html",
+ "http_status": 200,
+ "title": "Training helps early; the ask-versus-got gap remains",
+ "width": 390,
+ "chars": 4719,
+ "words": "Training helps early. The remaining gap persists. More epochs initially bring achieved win rates closer to requests. The later checkpoints show no clear further reduction in error. Most observed improvement is early 66.2% lower error Epoch 1 → epoch 34, same sampling seed. Further gain uncertain Epochs 34–80 stay near 0.006. 0.000 0.005 0.010 0.015 0.020 0.025 0.030 1 21 34 55 80 Ask-versus-got error Training epoch Later gain uncertain Target < 0.001: none reaches it 0.01750 Epoch 34: 0.00591 0.00600 Error is the mean squared gap between each request and its mean achieved win rate, over requests 1/24 to 17/24. Lower is better. Dots are observed checkpoints; lines guide the eye. Thin bars are 95% intervals from whole-team and shared-opponent bootstraps. They exclude variation between training runs. Higher requests still miss the diagonal Ask 70.8% Epoch 34 gets 51.8% Epoch 80 gets 52.8% This request is 17/24, inside the scored range. Training longer leaves a large observed gap here; these two means do not establish a better checkpoint. Epoch 34 Epoch 80 Epoch 1 Got = ask 0% 0% 25% 25% 50% 50% 75% 75% 100% 100% Achieved win rate Requested win rate Gap The vertical mark shows the remaining miss at request 17/24. The shaded region covers requests 18/24 to 23/24, where training examples are scarce; their error is reported separately. Curves show 64-team means at each request. Inspect all ten checkpoints and supporting evidence Checkpoint to inspect Error 0.0060 Upper-request error 0.1406 Root mean squared gap 7.7 percentage points The selected checkpoint appears beside the fixed epoch-34 and epoch-80 curves. Color keeps the same meaning in every figure. Epoch 80, highlighted in orange. 0% 0% 25% 25% 50% 50% 75% 75% 100% 100% Achieved win rate Requested win rate Gap Checkpoint Error 1/24–17/24 Error 18/24–23/24 Distinct line-ups New line-ups Full 66 points Team spread percentage points Epoch 1 0.0175 0.2831 427 262 24.5% 9.8 Epoch 2 0.0131 0.2401 462 290 25.0% 9.6 Epoch 3 0.0117 0.2281 436 268 26.3% 9.6 Epoch 5 0.0095 0.2020 470 281 27.8% 9.5 Epoch 8 0.0085 0.1931 459 269 29.2% 9.6 Epoch 13 0.0077 0.1645 462 254 28.1% 9.4 Epoch 21 0.0069 0.1525 448 244 27.5% 9.0 Epoch 34 0.0059 0.1344 466 258 27.3% 9.4 Epoch 55 0.0061 0.1350 483 266 27.6% 9.2 Epoch 80 0.0060 0.1406 493 263 26.9% 9.6 A line-up is a team's six species, independent of slot order. Counts are unique across all 1,472 generated teams. Full 66 points is the share of Pokémon spending all available Stat Points. Team spread is the average within-request standard deviation of team win rates. New line-up reference: 54,766 distinct six-species line-ups from 170,785 labelled non-validation rows, fixed before rule-table filtering. Five rows were excluded from actual training. Novelty here is relative to that larger reference. Uncertainty: 95% percentile bootstrap; whole teams within each ask and shared opponent columns across epochs; original opponent weights retained One training run, seed 0; sampling seed 1 at every checkpoint; 64 teams at each of 23 requests. Each team plays the 49 distinct top-50 opponents with behaviour-cloning on both sides and shuffled slots. The duplicated meta entry has score weight 2, giving total weight 50. The labelled-only model generates all 84 fields with label noise ±1/48. Stat Alignment is repaired to match the moves. These samples use no search or elite-selection rule. Three-sampling-seed summaries stay separate: epoch 21, error 0.0066; epoch 80, error 0.0053. They are not substituted into the one-seed curve. This is exploratory evidence from one training run. Epoch 34 is the lowest observed one-seed error, not a proven optimum. Epoch 80 is the training cap and lowest validation-loss checkpoint. No measured checkpoint reaches the near-line threshold of 0.001. All 14,720 seed-1 teams have 49/49 opponent coverage and exactly 49 battles. Weighted matrix scores reproduce every saved score. The original checkpoint files matched all ten recorded hashes. Epoch-80 preflight passed, including its 20-team round trip. The battle database records showdown:unknown for the simulator revision. The figure storyboard was written retrospectively from the recorded results. It orders the explanation as early improvement, remaining mismatch, then a single-view teaser. It is not a pre-registration. Per-epoch data · Per-request data · Vector teaser Recompute from the saved observations python3 code/scripts/analyze_training_checkpoints.py --grids-snapshot code/reports/training-checkpoints-2026-11-05/grids.json.gz --matrices code/reports/training-checkpoints-2026-11-05/outcomes.npz --reference code/reports/training-checkpoints-2026-11-05/reference.json.gz --output code/reports/training-checkpoints-2026-11-05 python3 code/scripts/render_checkpoint_report.py # Add --png to the renderer when matplotlib is available. Training checkpoints decision ticket",
+ "overflow_px": 0,
+ "passed": 8,
+ "measured": 8,
+ "checks": [
+  {
+   "key": "contrast",
+   "fault": "low contrast",
+   "tier": "standard",
+   "status": "pass",
+   "value": 0.0,
+   "target": "at most 1% of text below WCAG minimum",
+   "detail": {
+    "text_with_unknown_background": 0.033,
+    "worst": []
+   }
+  },
+  {
+   "key": "hierarchy",
+   "fault": "flat hierarchy",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 1.5,
+   "target": "largest text at least 1.25x body, in the first screen",
+   "detail": {
+    "body_px": 16.0,
+    "largest_px": 24.0,
+    "largest_in_first_screen": true
+   }
+  },
+  {
+   "key": "sizes",
+   "fault": "too many sizes",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 4,
+   "target": "at most 8 sizes, at most 1 pair within 1.08x",
+   "detail": {
+    "sizes_px": [
+     12.0,
+     16.0,
+     20.0,
+     24.0
+    ],
+    "close_pairs": 0
+   }
+  },
+  {
+   "key": "body_size",
+   "fault": "text size",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 16.0,
+   "target": "15 to 24 px",
+   "detail": null
+  },
+  {
+   "key": "small_text",
+   "fault": "text size",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 0.0,
+   "target": "at most 1% of text under 12 px",
+   "detail": null
+  },
+  {
+   "key": "line_length",
+   "fault": "long lines",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 55,
+   "target": "longest line 40 to 85 characters in 80% of body text",
+   "detail": {
+    "blocks": [
+     {
+      "longest_line": 55,
+      "sample": "New line-up reference: 54,766 distinct six-species line-ups "
+     },
+     {
+      "longest_line": 55,
+      "sample": "The figure storyboard was written retrospectively from the r"
+     },
+     {
+      "longest_line": 54,
+      "sample": "A line-up is a team's six species, independent of slot order"
+     }
+    ]
+   }
+  },
+  {
+   "key": "line_height",
+   "fault": "unset line height",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 1.5,
+   "target": "1.3 to 1.8 times the font size in 80% of wrapped text",
+   "detail": null
+  },
+  {
+   "key": "spacing",
+   "fault": "even gaps",
+   "tier": "practitioner",
+   "status": "pass",
+   "value": 1.0,
+   "target": "80% of headings sit closer to what follows, and paragraphs are visibly separated",
+   "detail": {
+    "headings_checked": 3,
+    "headings_closer_to_next": 3,
+    "misplaced": [],
+    "paragraph_pairs": 10,
+    "paragraphs_separated": 10
+   }
+  },
+  {
+   "key": "il1",
+   "fault": "ambiguous letters",
+   "tier": "practitioner",
+   "status": "advisory",
+   "value": 0.031,
+   "target": "letter shapes of I, l and 1 differ by at least 0.15, measured at 96 px",
+   "detail": [
+    {
+     "family": "system-ui, sans-serif",
+     "share": 0.91,
+     "I_l": 0.031,
+     "l_1": 0.919,
+     "I_1": 0.918
+    },
+    {
+     "family": "monospace",
+     "share": 0.09,
+     "I_l": 0.384,
+     "l_1": 0.259,
+     "I_1": 0.263
+    }
+   ]
+  }
+ ],
+ "needs_eyes": [
+  "Greyscale: is the top-ranked item the first thing you notice? See grey.png.",
+  "Letter shapes: are the openings in c and e open at small sizes? See page.png."
+ ]
+}

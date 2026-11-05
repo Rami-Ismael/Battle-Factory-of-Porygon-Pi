@@ -1,0 +1,81 @@
+{
+  "title": "Checkpoint figures: before, what changes, after",
+  "subject": "small, faint text and a comparison hidden behind a selector",
+  "before_lead": "The original figure shows the measurements. Its explanation is small, and the late-checkpoint comparison takes an extra interaction.",
+  "before_page": "/Users/ramiismael/.cache/verify-typography/checkpoint-storyboard-20261105/original/index.html",
+  "after_page": "/Users/ramiismael/.t3/worktrees/Using Advance method search in the whole search of possible vgc pokemon format to find the right counter to a pokemon team/t3-baf9e787/code/reports/training-checkpoints-2026-11-05/index.html",
+  "before_report": "/Users/ramiismael/.cache/verify-typography/checkpoint-storyboard-20261105/before-1280/report.json",
+  "after_report": "/Users/ramiismael/.cache/verify-typography/checkpoint-storyboard-20261105/after-1280/report.json",
+  "ranking": [
+    "The finding: early improvement leaves a persistent gap",
+    "When the error reduction happens",
+    "What later checkpoints still miss",
+    "Uncertainty, scope and all recorded checkpoints",
+    "Data and reproduction details"
+  ],
+  "changes": [
+    {
+      "step": "Hierarchy: make the finding the entry point",
+      "change": "Give the main finding a larger heading, followed by the two evidence frames in the order of the explanation.",
+      "after": "The finding leads, then the trajectory and the remaining request-versus-achievement mismatch.",
+      "measures": [
+        {
+          "selector": ".cp-lead",
+          "read": "size",
+          "label": "Finding heading"
+        }
+      ]
+    },
+    {
+      "step": "Size scale: enlarge explanatory copy",
+      "change": "Use 16 px explanatory copy and 12 px chart labels rather than 13 px copy and 11 px labels.",
+      "after": "Explanatory copy is 16 px; chart labels are at least 12 px.",
+      "measures": [
+        {
+          "selector": ".cp-note",
+          "read": "size",
+          "label": "Explanatory copy"
+        },
+        {
+          "selector": ".cp-chart text",
+          "read": "size",
+          "label": "Chart label"
+        }
+      ]
+    },
+    {
+      "step": "Hierarchy: strengthen text contrast",
+      "change": "Darken the light-theme caption text so it can be read against the standalone white background.",
+      "after": "Caption text now clears the normal-text contrast minimum in the standalone light rendering.",
+      "measures": [
+        {
+          "selector": ".cp-note",
+          "read": "contrast",
+          "label": "Caption contrast"
+        }
+      ]
+    },
+    {
+      "step": "Line length: constrain explanatory copy",
+      "change": "Give paragraphs a 35 rem maximum width instead of letting their lines span the full desktop chart width.",
+      "after": "Explanations wrap at a shorter line length beside full-width charts.",
+      "measures": [
+        {
+          "selector": ".cp-note",
+          "read": "line",
+          "label": "Longest caption line"
+        }
+      ]
+    },
+    {
+      "step": "Font: retain the system font",
+      "change": "Keep the system font and record the I/l distinction as an unresolved advisory.",
+      "after": "The system font is unchanged; the I/l distinction remains an advisory rather than a claimed improvement."
+    }
+  ],
+  "after_notes": [
+    "This is a retrospective figure redesign, with intentional changes to words, labels and figure order. It is not a pure typography restyle.",
+    "The automated comparison keeps 82.9% of the original words, below its 98% pure-restyle gate. Its overall verdict remains not improved despite stronger typography checks and no regressed check.",
+    "These checks measure typography rules, not reading speed or comprehension. The reader-facing figures and scientific values must be assessed separately."
+  ]
+}
