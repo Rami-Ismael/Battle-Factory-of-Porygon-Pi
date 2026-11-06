@@ -10,7 +10,8 @@ Sources, each tagged so the model can tell distributions apart (metadata conditi
 
 Labels (win rate vs the top-50, BC policy both sides) are pooled per team the same way
 asked_vs_got.gather() does: wins summed over every measurement, divided by battles.
-The matchup matrix adds each team's per-opponent row (top-50 columns, policy 1).
+The matchup matrix adds each team's per-opponent row (top-50 columns), from shuffled-slot battles when they cover
+40 opponents, else from listed-order battles (policy 1); one team's row never mixes the two (top50_rows).
 
 THE TEST SET is asked_vs_got's held-out 500 (same seed, same split as loss_diagnosis).
 Any training team whose 48-field encoding equals a test team's is removed.
@@ -84,6 +85,65 @@ def walk_pastes(o, out):  # noqa: C901
         for v in o: walk_pastes(v, out)
 
 
+LISTED_POLICY = 1                  # behaviour-cloning policy on both sides, Pokémon in listed order
+SHUFFLED_TAG = "+slots-shuffled"   # slot_order.POLICY_TAG: the same players, Pokémon shuffled every battle
+
+
+def shuffled_policy(con):
+    """The policy that battles LISTED_POLICY's players with slots shuffled (the default since 2026-10-28), or None."""
+    listed = con.execute("SELECT row_policy, col_policy FROM policy WHERE policy_id=?", (LISTED_POLICY,)).fetchone()
+    if listed is None: raise ValueError(f"policy {LISTED_POLICY} (listed slot order) is not in the matchup database")
+    row, col = listed
+    ids = [p for (p,) in con.execute("SELECT policy_id FROM policy WHERE row_policy=? AND col_policy=?",
+                                     (row + SHUFFLED_TAG, col + SHUFFLED_TAG))]
+    if len(ids) > 1: raise ValueError(f"several shuffled-slot policies {ids} match policy {LISTED_POLICY}")
+    return ids[0] if ids else None
+
+
+def policy_rows(con, top, policy_ids):
+    """{policy_id: {team_id: (len(top), 2) array of (wins, battles) against each top-50 team}}."""
+    col = {tid: j for j, tid in enumerate(top)}
+    out = {p: {} for p in policy_ids}
+    ph, pp = ",".join("?" * len(top)), ",".join("?" * len(policy_ids))
+    cells = con.execute(f"SELECT policy_id, lo, hi, lo_wins, hi_wins, battles FROM cell WHERE policy_id IN ({pp}) "
+                        f"AND (lo IN ({ph}) OR hi IN ({ph}))", [*policy_ids, *top, *top])
+    for pid, lo, hi, lw, hw, n in cells:
+        for me, op, w in ((lo, hi, lw), (hi, lo, hw)):
+            if op in col:
+                r = out[pid].setdefault(me, np.zeros((len(top), 2), np.float32))
+                r[col[op], 0] += w; r[col[op], 1] += n
+    return out
+
+
+MIN_COVERAGE = 40          # asked_vs_got.gather()'s coverage rule: opponents battled before a team gets a label
+
+
+def coverage(r, own_col):
+    """Which top-50 opponents the row has battles against; a team's cell against itself is skipped, as in score()."""
+    cov = r[:, 1] > 0
+    if own_col is not None: cov[own_col] = False
+    return cov
+
+
+def matrix_label(r, own_col, cw):
+    """(weighted win rate, battles) over the covered opponents, or (None, None) below MIN_COVERAGE."""
+    cov = coverage(r, own_col)
+    if cov.sum() < MIN_COVERAGE: return None, None
+    return float((cw[cov] * r[cov, 0] / r[cov, 1]).sum() / cw[cov].sum()), int(r[cov, 1].sum())
+
+
+def top50_rows(con, top):
+    """Each team's row against the top-50, from one slot order, never both pooled: shuffled when those battles
+    cover MIN_COVERAGE opponents, else listed. Most teams battled since 2026-10-28 have only shuffled battles."""
+    sp = shuffled_policy(con)
+    by_policy = policy_rows(con, top, [LISTED_POLICY] + ([sp] if sp is not None else []))
+    rows = by_policy[LISTED_POLICY]
+    col = {tid: j for j, tid in enumerate(top)}
+    for tid, r in by_policy.get(sp, {}).items():
+        if tid not in rows or coverage(r, col.get(tid)).sum() >= MIN_COVERAGE: rows[tid] = r
+    return rows
+
+
 def gather(observe=None):  # noqa: C901
     """Every source pooled per 48-field team: dict(pool, stats, xte, wte, top). observe(key, team), if given, is called
     with each kept appearance's encoding bytes and parsed team (Stat Points included), so a caller can see what the
@@ -151,26 +211,13 @@ def gather(observe=None):  # noqa: C901
     wt = dict(con.execute("SELECT team_id, weight FROM team_set WHERE set_name='top50'").fetchall())
     col = {tid: j for j, tid in enumerate(top)}
     cw = np.array([wt[t] for t in top], np.float32)
-    rows = {}
-    ph = ",".join("?" * len(top))
-    cells = con.execute(f"SELECT lo, hi, lo_wins, hi_wins, battles FROM cell WHERE policy_id=1 "
-                        f"AND (lo IN ({ph}) OR hi IN ({ph}))", top + top).fetchall()
-    for lo, hi, lw, hw, n in cells:
-        for me, op, w in ((lo, hi, lw), (hi, lo, hw)):
-            if op in col:
-                r = rows.setdefault(me, np.zeros((len(top), 2), np.float32))
-                r[col[op], 0] += w; r[col[op], 1] += n
+    rows = top50_rows(con, top)
     for tid, p, origin in con.execute("SELECT team_id, paste, origin FROM team WHERE legal=1"):
         e, t = enc(p)
         if e is None: stats["matrix"]["unencodable"] += 1; continue
         tag = "real" if origin.startswith("vgcpastes") else "fill" if origin.startswith("randomfill") else "model"
         r = rows.get(tid)
-        y = n = None
-        if r is not None:
-            cov = r[:, 1] > 0
-            if tid in col: cov[col[tid]] = False            # a team's cell against itself is skipped, as in score()
-            if cov.sum() >= 40:                             # asked_vs_got.gather()'s coverage rule
-                y = float((cw[cov] * r[cov, 0] / r[cov, 1]).sum() / cw[cov].sum()); n = int(r[cov, 1].sum())
+        y, n = matrix_label(r, col.get(tid), cw) if r is not None else (None, None)
         s = add(e, tag, y, n or 0, fam="real" if tag == "real" else "fill" if tag == "fill" else "matrix", team=t)
         stats["matrix"][s] += 1
         if s == "ok" and r is not None:
