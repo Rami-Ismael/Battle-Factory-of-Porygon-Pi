@@ -26,6 +26,7 @@ import alignment as AL
 import asked_vs_got as X
 import diffusion as D
 import lossdown as L
+from lookahead import lookahead as lookahead_rule
 import stat_points as SP
 from label_noise import noisy_labels
 import team84 as T
@@ -292,10 +293,12 @@ class Model84:
         if c >= STAT0: return lp["stat"][:, c - STAT0]
         k = L.KEY_OF_COL[c]; return lp[k][:, L.COLS_BY_KEY[k].index(c)]
 
-    def _legal(self, x, c):
-        """Boolean [B, outputs] for column c; never empty, never [MASK]."""
+    def _legal(self, x, c, lookahead=False):
+        """Boolean [B, outputs] for column c; never empty, never [MASK]. lookahead=True also drops the values that
+        would leave a Pokémon whose species is masked with no legal species (lookahead.py); Stat Points are untouched."""
         if c >= STAT0: return SP.allowed_stat_points(x[:, STAT0:])[:, c - STAT0]
-        k = L.KEY_OF_COL[c]; o = self.tables.allowed(x[:, :STAT0])[k][:, L.COLS_BY_KEY[k].index(c)].clone()
+        k = L.KEY_OF_COL[c]; al = self.tables.allowed(x[:, :STAT0]); o = al[k][:, L.COLS_BY_KEY[k].index(c)].clone()
+        if lookahead: o &= lookahead_rule(self.tables, x[:, :STAT0], c, al)
         E = self.tables.EMV
         if c % NF == FIRST_MOVE and E is not None:           # Showdown rejects a Pokémon with no moves
             real = o.clone(); real[:, [0, E]] = False; o[real.any(1), E] = False
@@ -303,8 +306,9 @@ class Model84:
         return o
 
     @torch.no_grad()
-    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None):
-        """n teams in ORDER; ask is the win-rate condition, guidance the classifier-free weight."""
+    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False):
+        """n teams in ORDER; ask is the win-rate condition, guidance the classifier-free weight. lookahead: see _legal;
+        species come first in ORDER, so it draws the same teams on or off."""
         if seed is not None: torch.manual_seed(seed)
         w = torch.full((n,), NAN if ask is None else ask, device=DEV); wn = torch.full((n,), NAN, device=DEV)
         x = torch.zeros(n, COLS, dtype=torch.long, device=DEV)
@@ -313,7 +317,7 @@ class Model84:
             lc = self._column(self._logprobs(x, t, w), c)
             if ask is not None and guidance != 1.0:
                 lc = guidance * lc + (1 - guidance) * self._column(self._logprobs(x, t, wn), c)
-            lc = lc.masked_fill(~self._legal(x, c), -float("inf")) / temperature
+            lc = lc.masked_fill(~self._legal(x, c, lookahead), -float("inf")) / temperature
             v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
             x[:, c] = v + 1 if c >= STAT0 else v                 # a Stat Point output index is its value
         return x

@@ -60,8 +60,9 @@ def even_odds(conf):
     return (torch.rand_like(conf) < ETA_CAP) & conf.isfinite()
 
 
-def fill_pass(w, x, conf, targets, due, redo, ask_w, null_w, temperature=1.0):
-    """One network pass: draws each target field in ORDER, using one set of logits, so legality sees each earlier draw."""
+def fill_pass(w, x, conf, targets, due, redo, ask_w, null_w, temperature=1.0, guidance=A.GUIDANCE, lookahead=False):
+    """One network pass: draws each target field in ORDER, using one set of logits, so legality, and the lookahead when
+    it is on (lookahead.py), see each earlier draw."""
     n = len(x)
     t = (1.0 - (x != 0).sum(1).float() / M.COLS).to(x.device)
     lp = w._logprobs(x, t, ask_w); lpn = w._logprobs(x, t, null_w)
@@ -69,8 +70,8 @@ def fill_pass(w, x, conf, targets, due, redo, ask_w, null_w, temperature=1.0):
     for c in targets:
         rows = everyone if c in due else redo[:, c]
         if not rows.any(): continue
-        lc = A.GUIDANCE * w._column(lp, c) + (1 - A.GUIDANCE) * w._column(lpn, c)
-        lc = lc.masked_fill(~w._legal(x, c), -float("inf")) / temperature
+        lc = guidance * w._column(lp, c) + (1 - guidance) * w._column(lpn, c)
+        lc = lc.masked_fill(~w._legal(x, c, lookahead), -float("inf")) / temperature
         p = torch.softmax(lc, -1)
         v = torch.multinomial(p, 1).squeeze(1)
         conf[rows, c] = p.gather(1, v[:, None]).squeeze(1)[rows]
@@ -201,10 +202,12 @@ RANDOM_TRIES = 384
 
 
 @torch.no_grad()
-def sample_random(w, n, ask, arm, stats):
+def sample_random(w, n, ask, arm, stats, guidance=A.GUIDANCE, temperature=1.0, lookahead=False):
     """Random decoding as the paper does it: each masked field unmasks independently, and a remasked field goes back to the
-    pool until the unmasking odds pick it. Within one pass the drawn fields go in ORDER, so legality sees earlier draws."""
-    ask_w = torch.full((n,), ask, device=M.DEV); null_w = torch.full((n,), M.NAN, device=M.DEV)
+    pool until the unmasking odds pick it. Within one pass the drawn fields go in ORDER, so legality sees earlier draws.
+    ask None: no condition. lookahead: draw only values that leave every Pokémon whose species is masked a legal species;
+    a remasked field counts as masked again."""
+    ask_w = torch.full((n,), M.NAN if ask is None else ask, device=M.DEV); null_w = torch.full((n,), M.NAN, device=M.DEV)
     x = torch.zeros(n, M.COLS, dtype=torch.long, device=M.DEV)
     conf = torch.full((n, M.COLS), float("inf"), device=M.DEV)
 
@@ -215,7 +218,7 @@ def sample_random(w, n, ask, arm, stats):
         remask = rule(conf) if rule is not None else torch.zeros_like(masked)      # chosen from the team the network saw
         targets = sorted(reveal.any(0).nonzero().flatten().tolist(), key=M.ORDER.index)
         if targets:
-            fill_pass(w, x, conf, targets, set(), reveal, ask_w, null_w); stats["passes"] = stats.get("passes", 0) + 1
+            fill_pass(w, x, conf, targets, set(), reveal, ask_w, null_w, temperature, guidance, lookahead); stats["passes"] = stats.get("passes", 0) + 1
         x[remask] = 0; conf[remask] = float("inf")
         stats["remasked"] = stats.get("remasked", 0) + int(remask.sum())
 
@@ -237,6 +240,30 @@ def sample_random(w, n, ask, arm, stats):
         fill(M.COLS - LOOP_START, share, 1.0)
     if (x == 0).any(): raise RuntimeError("a field is still masked after the last pass")
     return x
+
+
+class RandomDecodingArm:
+    """Random decoding as an arm object for ask_grid84.draw: sample() and to_paste(). arm: a RANDOM_ARMS key.
+    lookahead: the switch of sample_random. sample() uses the guidance weight and temperature it is given and refuses
+    any other setting."""
+    def __init__(self, w, arm="rand_plain", lookahead=False):
+        if arm not in RANDOM_ARMS: raise ValueError(f"arm must be one of {sorted(RANDOM_ARMS)}")
+        self.w, self.arm, self.lookahead, self.stats = w, arm, lookahead, {}
+
+    def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
+        return sample_random(self.w, n, ask, self.arm, self.stats, guidance=guidance, temperature=temperature, lookahead=self.lookahead)
+
+    def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
+
+
+class SpeciesFirstArm:
+    """Species-first decoding (Model84.sample) with the lookahead switch, as an arm object for ask_grid84.draw."""
+    def __init__(self, w, lookahead=False): self.w, self.lookahead = w, lookahead
+
+    def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
+        return self.w.sample(n, ask=ask, guidance=guidance, temperature=temperature, lookahead=self.lookahead)
+
+    def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
 
 
 def random_decoding():
