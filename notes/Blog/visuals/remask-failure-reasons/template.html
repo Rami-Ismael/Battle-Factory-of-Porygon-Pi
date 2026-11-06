@@ -1,0 +1,301 @@
+<!doctype html>
+<!-- Why remasking did not close the ask gap (2026-10-30). Static first; motion added after the opportunity sweep.
+     Built by build.py from data.json (build_data.py). Prose drafted by Claude for Rami to edit. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Why remasking didn't close the ask gap</title>
+<style>
+:root{
+  --bg:#fafbfc; --fg:#1c2329; --muted:#5d6974; --faint:#8b97a1; --rule:#dde3e8; --panel:#f0f3f6;
+  --accent:#1d6b88; --neutral:#6b7780; --on:#2a78d6; --off:#eb6834;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease-out:cubic-bezier(0.23, 1, 0.32, 1); --ease-in-out:cubic-bezier(0.77, 0, 0.175, 1);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#13181c; --fg:#e3e8ec; --muted:#9aa6b0; --faint:#76838d; --rule:#2c353c; --panel:#1b2228;
+  --accent:#5fb3d1; --neutral:#8d99a3; --on:#3987e5; --off:#d95926;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--serif);font-size:1.06rem;line-height:1.6}
+main{padding:40px 20px 80px}
+article{max-width:680px;margin:0 auto}
+.wide{width:min(1040px,calc(100vw - 40px));margin:1.6em 0 1.6em 50%;transform:translateX(-50%)}
+h1,h2{font-family:var(--sans);font-weight:600;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(1.6rem,4vw,2.1rem);margin:.2em 0 .3em} h2{font-size:1.2rem;margin:2.2em 0 .5em}
+.eyebrow{font-family:var(--sans);font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.dek{font-size:1.2rem;color:var(--muted);margin:0 0 .5em}
+.byline{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin:0 0 1.6em}
+.def{font-family:var(--sans);font-size:.85rem;color:var(--muted);border-left:3px solid var(--rule);padding:.35em .8em;margin:1.2em 0}
+.reasons{font-family:var(--sans);font-size:.95rem;background:var(--panel);border-radius:8px;padding:12px 16px 12px 34px;margin:1.2em 0}
+.reasons li{margin:.3em 0} .reasons a{color:var(--fg)}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel);padding:.08em .35em;border-radius:3px}
+figcaption{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin-top:.8em;line-height:1.5;max-width:720px}
+svg{display:block;overflow:visible}
+svg text{font-family:var(--sans);fill:var(--muted);font-size:12px}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--sans);font-size:.88rem;margin:0 0 14px}
+.controls .lab{color:var(--muted);margin-right:4px}
+button.pick,button.step{font-family:var(--mono);font-size:.88rem;min-height:40px;padding:.3em .8em;border-radius:6px;border:1px solid var(--rule);background:var(--bg);color:var(--fg);cursor:pointer}
+button.step{font-family:var(--sans)} button.step:disabled{opacity:.4;cursor:default}
+button.pick[aria-pressed=true]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.core{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--sans);font-size:.82rem;color:var(--muted);margin:.4em 0 1em;align-items:center}
+.core span{display:inline-flex;align-items:center;gap:2px}
+.core img,.mini img,.grp img{image-rendering:pixelated}
+.cols{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:860px){.cols{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.col h3{font-family:var(--sans);font-size:.95rem;margin:0 0 .2em}
+.col .sub{font-family:var(--sans);font-size:.8rem;color:var(--muted);margin:0 0 .6em}
+.count{font-family:var(--mono);font-size:1.5rem;color:var(--fg);font-variant-numeric:tabular-nums}
+.count small{font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.box{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;min-height:120px}
+.mini{display:grid;grid-template-columns:repeat(3,16px);grid-template-rows:repeat(2,16px);gap:1px;padding:2px;border:1px solid var(--rule);border-radius:4px;background:var(--bg)}
+.mini img,.mini i{width:16px;height:16px}
+.mini.core6,.grp.core6{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.grp{display:flex;align-items:center;gap:4px;border:1px solid var(--rule);border-radius:4px;padding:2px 6px 2px 2px;background:var(--bg);font-family:var(--mono);font-size:.78rem}
+.grp img,.grp i{width:20px;height:20px}
+.grp b{font-weight:500;margin-left:2px}
+i.nosprite{display:inline-grid;place-items:center;font-style:normal;font-family:var(--mono);font-size:7px;color:var(--muted);background:var(--panel);border-radius:3px;overflow:hidden}
+.stats{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin-top:.6em}
+.stats b{font-family:var(--mono);font-weight:500;color:var(--fg)}
+.grid48{display:grid;grid-template-columns:150px repeat(8,minmax(0,1fr));gap:3px;font-family:var(--mono);font-size:.78rem;align-items:center}
+.grid48 .hd{font-family:var(--sans);font-size:.74rem;color:var(--muted);text-align:center}
+.grid48 .who{display:flex;align-items:center;gap:6px;font-size:.78rem}
+.grid48 .who img{width:32px;height:32px;image-rendering:pixelated}
+.cell{border-radius:4px;text-align:center;padding:6px 0;color:var(--fg);font-variant-numeric:tabular-nums}
+.totals{font-family:var(--sans);font-size:.9rem;margin-top:10px}
+.totals b{font-family:var(--mono);font-weight:500}
+@media (max-width:640px){.grid48{grid-template-columns:96px repeat(8,minmax(0,1fr));font-size:.66rem}.grid48 .who span{display:none}.grid48 .hd{font-size:.6rem}}
+details.deeper{font-family:var(--sans);font-size:.92rem;border-top:1px solid var(--rule);padding:.6em 0}
+details.deeper summary{cursor:pointer;font-weight:600}
+details.deeper p{font-family:var(--serif);font-size:1rem}
+button.pick,button.step{transition:transform 160ms var(--ease-out)}
+button.pick:active:not(:disabled),button.step:active:not(:disabled){transform:scale(0.97)}
+.col{position:relative} .fly{position:absolute;inset:0;pointer-events:none} .fly>div{position:absolute;margin:0}
+.cell{transition:background-color 300ms ease,color 300ms ease}
+@media (prefers-reduced-motion:reduce){.cell{transition:none}}
+.key{display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<article>
+  <div class="eyebrow">Remasking follow-up · working notes</div>
+  <h1>Why remasking didn't close the ask gap</h1>
+  <p class="dek">Three reasons, read off the experiment's own controls</p>
+  <div class="byline">Rami Ismael · Draft · 30 October 2026</div>
+
+  <p>My discrete diffusion model trained from scratch on valid Pokémon teams wins less than the win rate I ask it for. Remasking (<a href="https://arxiv.org/abs/2503.00307">Wang, Schiff et al., 2025</a>) looked like a fix. Before each of the model's 48 decoding passes, it masks again the fields it drew with the lowest probability and redraws them under the ask. If the gap came from early choices the model could never take back, that should close it.</p>
+  <p>It didn't. No remasking setting passed the rule I wrote down before the run, and three things explain why:</p>
+  <ol class="reasons">
+    <li><a href="#mode">Mode-seeking.</a> The least-likely rule pulls teams toward the same few line-ups.</li>
+    <li><a href="#lever">Wrong lever.</a> The gap lives in how the model reads the ask, which a sampler can't change.</li>
+    <li><a href="#reach">Out of reach.</a> Remasking barely reached the choices the hypothesis was about.</li>
+  </ol>
+  <div class="def">Win rate: the share of battles a team wins against the top-50 meta teams, one battle against each of the 49 distinct teams on that list (the team listed twice counts twice), with the same AI player, trained by copying human battles, on both sides. Every number here comes from 64 teams per seed and three seeds, at classifier-free guidance weight 2.</div>
+
+  <h2 id="mode">1. The least-likely rule pulls teams toward the same few line-ups</h2>
+  <p>Redrawing the least likely fields keeps the likely ones, pass after pass. Each team drifts toward what the model already favours, and in my model that is six species. They fill 45% of the species slots in its training data, much of which is its own earlier output:</p>
+  <div class="core" id="core"></div>
+  <p>Ask the model for a win rate below, and compare the 64 teams it writes in one seed with plain decoding, with remasking of the least likely fields, and with remasking of random fields. Then group identical line-ups.</p>
+</article>
+
+<figure class="wide" id="fig1">
+  <div class="controls" id="asks1"><span class="lab">Ask the model for</span></div>
+  <div class="controls"><button class="step" id="back1" disabled>← Back</button><button class="step" id="next1">Group identical line-ups →</button><span class="lab" id="stage1">Step 1 of 2 · every team</span></div>
+  <div class="cols" id="cols"></div>
+  <figcaption>Each block is one team's six Pokémon (seed 1 of 3). A dark outline marks a team made of exactly the six favoured species. Distinct line-ups count teams with the same six species once; the share and win rate pool all three seeds. The random-fields column redraws the same number of fields per pass, chosen at random.</figcaption>
+</figure>
+
+<article>
+  <p>Remasking random fields leaves the teams as plain decoding writes them. Only the least-likely rule produces the pile-up, so the rule, not remasking itself, is what failed. At ask 0.5 it cut distinct line-ups from about 23 to about 7 per seed, and species variety fell at every ask, which is the clause of my pre-registered rule it broke.</p>
+
+  <h2 id="lever">2. The gap lives in how the model reads the ask</h2>
+  <p>The second reason is that the gap was never a sampling problem. Even at asks the model saw hundreds of times in training, its answer is squashed. On the 1/24 grid that its training labels sit on, asking for 0.25 more win rate brings back only 0.08 more. Asks between grid steps lose another 3 to 4 points, for reasons I explain in <a href="../ask-frequencies/index.html">Asking for more, getting less</a>.</p>
+  <p>Remasking can't change how the ask is read. It moved every ask to about 0.5, which narrowed the gap at the high asks and widened it at 0.3, where the model was already close.</p>
+</article>
+
+<figure class="wide" id="fig2">
+  <svg id="ask" role="img" aria-label="Asked against achieved win rate: plain decoding rises slowly on the grid and dips between grid steps; least-likely remasking sits near 0.5 at every ask"></svg>
+  <div><span class="key"><svg width="12" height="12"><circle cx="6" cy="6" r="4.5" fill="var(--on)"/></svg>plain decoding, ask on the 1/24 grid</span><span class="key"><svg width="12" height="12"><circle cx="6" cy="6" r="4" fill="var(--bg)" stroke="var(--off)" stroke-width="2"/></svg>plain decoding, between grid steps</span><span class="key"><svg width="12" height="12"><rect x="2" y="2" width="8" height="8" transform="rotate(45 6 6)" fill="var(--fg)"/></svg>remasking, least likely fields</span><span class="key"><svg width="12" height="12"><line x1="0" y1="11" x2="12" y2="1" stroke="var(--faint)" stroke-dasharray="3 2"/></svg>asked = achieved</span></div>
+  <figcaption>Mean win rate over three seeds at each ask. The bracket measures the squash on the grid: from ask 7/24 to 13/24 the ask rises by 0.25 and the win rate by the amount shown.</figcaption>
+</figure>
+
+<article>
+  <h2 id="reach">3. Remasking barely reached the choices the hypothesis was about</h2>
+  <p>The hypothesis was about early choices, and the model chooses species first. Once a Pokémon's moves and ability are visible, the legality tables let its species come back only as itself. So remasking spent its redraws elsewhere. Here is where they went in one decode at 10% remasking and ask 0.5, averaged over every team:</p>
+</article>
+
+<figure class="wide" id="fig3">
+  <div class="controls"><button class="step" id="back3" disabled>← Back</button><button class="step" id="next3">Show which redraws changed the value →</button><span class="lab" id="stage3">Step 1 of 2 · fields remasked</span></div>
+  <div class="grid48" id="grid48"></div>
+  <div class="totals" id="totals"></div>
+  <figcaption>Each cell is one field of a team, showing how many times that field was masked again and redrawn over one decode (step 1), or how many of those redraws came back with a different value (step 2). Averages over all teams at ask 0.5, three seeds. The six Pokémon shown are the favoured line-up; the counts are per field type, the same for every slot.</figcaption>
+</figure>
+
+<article>
+  <p>About 2 species changed per team. That was enough to drag line-ups toward the favoured six, but not enough to revisit early choices freely, so the experiment never really tested whether those choices were the problem. A fair test would remask species while the sets are still hidden. The evidence points elsewhere, though: to how the ask gets in.</p>
+
+  <h2>Going deeper</h2>
+  <details class="deeper"><summary>The rule it failed</summary>
+    <p>Before the run, I required a remasking setting to narrow the gap between the asked and achieved win rate at every ask by more than seed noise, without lowering legality, distinct line-ups or species entropy. Every setting (5%, 10% and 20% of filled fields, and 10% with twice the passes) lowered line-ups and entropy at every ask. Legality stayed at 100%.</p>
+  </details>
+  <details class="deeper"><summary>More passes didn't help</summary>
+    <p>Remasking 10% with 96 passes instead of 48 did no better than with 48, and it had the fewest line-ups. The paper itself reports lower sample entropy with remasking than without, at every step count it tried, so the variety loss is not peculiar to my model.</p>
+  </details>
+  <details class="deeper"><summary>Sources</summary><p id="sources"></p></details>
+</article>
+</main>
+<script>
+const D = /*DATA*/null;
+const NS = "http://www.w3.org/2000/svg";
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const NAME = s => ({floetteeternal: "Floette-Eternal"})[s] || s.replace(/^./, c => c.toUpperCase());
+const mean = xs => xs.reduce((a, b) => a + b, 0) / xs.length;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+const tip = (n, t) => { n.appendChild(document.createElementNS(NS, "title")).textContent = t; return n; };
+const sprite = s => D.sprites[s] ? `<img alt="${NAME(s)}" title="${NAME(s)}" src="${D.sprites[s]}">` : `<i class="nosprite" title="${NAME(s)}">${s.slice(0, 4)}</i>`;
+const isCore = l => D.core.every(s => l.includes(s));
+
+// ---------- Figure 1: line-ups ----------
+const ARMS = [["plain", "Plain decoding", "the current sampler"], ["remask10", "Remasking: least likely fields", "10% of filled fields per pass"], ["random10", "Remasking: random fields", "same count, chosen at random"]];
+let ask1 = 0.3, stage1 = 0;
+document.getElementById("core").innerHTML = D.core.map(s => `<span>${sprite(s).replace("<img", '<img width="32" height="32"')}${NAME(s)}</span>`).join("");
+const asks1 = document.getElementById("asks1");
+D.asks.forEach(a => { const b = document.createElement("button"); b.className = "pick"; b.textContent = a.toFixed(3); b.setAttribute("aria-pressed", a === ask1);
+  b.onclick = () => { const prev = counts(); ask1 = a; asks1.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); drawCols(prev); }; asks1.appendChild(b); });
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)", EASE_IN_OUT = "cubic-bezier(0.77, 0, 0.175, 1)";
+function ticker(node, from, to, ms) {                // a count that rolls between values (tabular figures)
+  const id = node._roll = (node._roll || 0) + 1;    // a newer roll on the same number cancels this one
+  if (RM || from === to) { node.textContent = to; return; }
+  const t0 = performance.now(), ease = t => 1 - Math.pow(1 - t, 3);
+  (function f(now) { if (node._roll !== id) return; const t = Math.min(1, (now - t0) / ms); node.textContent = Math.round(from + (to - from) * ease(t)); if (t < 1) requestAnimationFrame(f); })(t0);
+}
+let flying = [];                                     // running flights; a new action finishes them first
+function settle() { flying.forEach(a => a.finish()); flying = []; document.querySelectorAll(".fly").forEach(f => f.remove());
+  document.querySelectorAll("#cols .box > *").forEach(c => { c.style.opacity = ""; }); }
+function fillBox(box, arm, stage) {
+  const groups = D.teams[`${arm}@${ask1}`]; box.innerHTML = "";
+  if (!stage) D.order[`${arm}@${ask1}`].forEach(gi => { const g = groups[gi], m = document.createElement("div");
+    m.className = "mini" + (isCore(g.lineup) ? " core6" : ""); m.dataset.g = gi; m.innerHTML = g.lineup.map(sprite).join(""); box.appendChild(m); });
+  else groups.forEach((g, gi) => { const m = document.createElement("div"); m.className = "grp" + (isCore(g.lineup) ? " core6" : ""); m.dataset.g = gi;
+    m.innerHTML = g.lineup.map(sprite).join("") + `<b>×${g.n}</b>`; box.appendChild(m); });
+}
+function drawCols(prev) {                            // prev: the counts shown before, to roll from
+  settle(); const cols = document.getElementById("cols"); cols.innerHTML = "";
+  ARMS.forEach(([arm, title, sub], j) => {
+    const groups = D.teams[`${arm}@${ask1}`], s = D.summary[`${arm}@${ask1}`], n = stage1 ? groups.length : D.order[`${arm}@${ask1}`].length;
+    const col = document.createElement("div"); col.className = "col"; col.dataset.arm = arm;
+    col.innerHTML = `<h3>${title}</h3><p class="sub">${sub}</p><div class="count"><span class="num">${n}</span> <small>${stage1 ? "distinct line-ups" : "teams"}</small></div><div class="box"></div>
+      <div class="stats">All six favoured species: <b>${Math.round(s.core_share * 100)}%</b> of teams · win rate <b>${mean(s.win_seeds).toFixed(3)}</b><br>Distinct line-ups per seed: <b>${s.lineups_seeds.join(" · ")}</b></div>`;
+    fillBox(col.querySelector(".box"), arm, stage1); cols.appendChild(col);
+    if (prev) ticker(col.querySelector(".num"), prev[j], n, 300);
+  });
+  document.getElementById("stage1").textContent = stage1 ? "Step 2 of 2 · identical line-ups grouped" : "Step 1 of 2 · every team";
+  document.getElementById("back1").disabled = !stage1; document.getElementById("next1").disabled = !!stage1;
+}
+const counts = () => [...document.querySelectorAll("#cols .num")].map(x => +x.textContent);
+function regroup(to) {                               // step 1 <-> step 2: teams fly into (or out of) their line-up's stack
+  settle(); const from = stage1; stage1 = to;
+  document.querySelectorAll("#cols .col").forEach(col => {
+    const box = col.querySelector(".box"), arm = col.dataset.arm, base = col.getBoundingClientRect();
+    const rect = el => { const r = el.getBoundingClientRect(); return {x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height}; };
+    const before = [...box.children].map(c => ({g: +c.dataset.g, r: rect(c), html: c.outerHTML}));
+    const n0 = before.length; fillBox(box, arm, to);
+    const after = [...box.children], target = {}; after.forEach(c => { target[c.dataset.g] = rect(c); });
+    const num = col.querySelector(".num"); col.querySelector(".count small").textContent = to ? "distinct line-ups" : "teams";
+    ticker(num, n0, after.length, 450);
+    if (RM) { box.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: "ease"}); return; }   // reduced motion: the fade, no flight
+    const fly = document.createElement("div"); fly.className = "fly"; col.appendChild(fly);
+    after.forEach(c => { c.style.opacity = 0; });
+    if (to) {                                        // every team flies to its stack, then the stacks appear
+      before.forEach(({g, r, html}, i) => { const t = target[g]; fly.insertAdjacentHTML("beforeend", html); const c = fly.lastChild;
+        Object.assign(c.style, {left: r.x + "px", top: r.y + "px"});
+        flying.push(c.animate([{transform: "none", opacity: 1}, {transform: `translate(${t.x - r.x}px, ${t.y - r.y}px)`, opacity: 0}],
+          {duration: 450, delay: Math.min(i * 3, 150), easing: EASE_IN_OUT, fill: "forwards"})); });
+    } else {                                         // each stack sends its teams back to where they were written
+      const src = {}; before.forEach(b => { src[b.g] = b.r; });
+      after.forEach((c, i) => { const r = rect(c), sr = src[c.dataset.g]; fly.insertAdjacentHTML("beforeend", c.outerHTML); const k = fly.lastChild;
+        Object.assign(k.style, {left: r.x + "px", top: r.y + "px", opacity: ""});
+        flying.push(k.animate([{transform: `translate(${sr.x - r.x}px, ${sr.y - r.y}px)`, opacity: 0}, {transform: "none", opacity: 1}],
+          {duration: 450, delay: Math.min(i * 3, 150), easing: EASE_IN_OUT, fill: "forwards"})); });
+    }
+    const reveal = () => { after.forEach(c => { c.style.opacity = ""; }); fly.remove(); };
+    after.forEach(c => flying.push(c.animate([{opacity: 0}, {opacity: 1}], {duration: 200, delay: 420, easing: EASE_OUT, fill: "backwards"})));
+    setTimeout(reveal, 620);
+  });
+  document.getElementById("stage1").textContent = stage1 ? "Step 2 of 2 · identical line-ups grouped" : "Step 1 of 2 · every team";
+  document.getElementById("back1").disabled = !stage1; document.getElementById("next1").disabled = !!stage1;
+}
+document.getElementById("next1").onclick = () => regroup(1);
+document.getElementById("back1").onclick = () => regroup(0);
+
+// ---------- Figure 2: asked against achieved ----------
+function drawAsk() {
+  const svg = document.getElementById("ask"), W = Math.max(320, Math.min(820, svg.parentElement.clientWidth)), H = 340;
+  svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = "";
+  const L = 56, R = W - 20, T = 16, B = H - 46, x0 = 0.25, x1 = 0.58, y0 = 0.25, y1 = 0.58;
+  const X = v => L + (v - x0) / (x1 - x0) * (R - L), Y = v => B - (v - y0) / (y1 - y0) * (B - T);
+  [0.3, 0.4, 0.5].forEach(v => { el("line", {x1: L, x2: R, y1: Y(v), y2: Y(v), stroke: css("--rule")}, svg); el("text", {x: L - 8, y: Y(v) + 4, "text-anchor": "end"}, svg).textContent = v.toFixed(1);
+    el("text", {x: X(v), y: B + 18, "text-anchor": "middle"}, svg).textContent = v.toFixed(1); });
+  el("text", {x: (L + R) / 2, y: B + 38, "text-anchor": "middle"}, svg).textContent = "asked win rate";
+  el("text", {x: L, y: T - 2}, svg).textContent = "achieved win rate";
+  el("line", {x1: X(x0), y1: Y(x0), x2: X(0.55), y2: Y(0.55), stroke: css("--faint"), "stroke-dasharray": "4 3"}, svg);
+  const grid = [[7 / 24, mean(D.grid_asks["0.2917"])], [8 / 24, mean(D.grid_asks["0.3333"])], [0.5, mean(D.summary["plain@0.5"].win_seeds)], [13 / 24, mean(D.grid_asks["0.5417"])]];
+  el("polyline", {points: grid.map(([a, m]) => `${X(a)},${Y(m)}`).join(" "), fill: "none", stroke: css("--on"), "stroke-width": 2}, svg);
+  grid.forEach(([a, m]) => tip(el("circle", {cx: X(a), cy: Y(m), r: 5.5, fill: css("--on")}, svg), `plain decoding, ask ${a.toFixed(4)} (${Math.round(a * 24)}/24): ${m.toFixed(3)}`));
+  [0.3, 0.531].forEach(a => { const m = mean(D.summary[`plain@${a}`].win_seeds);
+    tip(el("circle", {cx: X(a), cy: Y(m), r: 5, fill: css("--bg"), stroke: css("--off"), "stroke-width": 2.5}, svg), `plain decoding, ask ${a}: ${m.toFixed(3)} (between grid steps)`); });
+  D.asks.forEach((a, i) => { const m = mean(D.summary[`remask10@${a}`].win_seeds), p = mean(D.summary[`plain@${a}`].win_seeds), cx = X(a), cy = Y(m);
+    const g = el("g", {class: "rise", "data-dy": Y(p) - cy, "data-i": i}, svg);
+    tip(el("rect", {x: cx - 5, y: cy - 5, width: 10, height: 10, transform: `rotate(45 ${cx} ${cy})`, fill: css("--fg")}, g), `remasking, least likely fields, ask ${a}: ${m.toFixed(3)} (plain decoding ${p.toFixed(3)})`);
+    el("text", {x: cx + 10, y: cy - 8, style: "font-family:var(--mono);font-size:11px"}, g).textContent = m.toFixed(3); });
+  const g0 = grid[0], g3 = grid[3], bx = X(g3[0]) + 18;            // the squash bracket
+  el("path", {d: `M${bx - 6},${Y(g0[1])} H${bx} V${Y(g3[1])} H${bx - 6}`, fill: "none", stroke: css("--on"), "stroke-width": 1.5}, svg);
+  el("text", {x: bx + 6, y: (Y(g0[1]) + Y(g3[1])) / 2 + 4, style: "font-family:var(--mono);font-size:11px;fill:var(--fg)"}, svg).textContent = `+${(g3[1] - g0[1]).toFixed(3)} for +0.25`;
+}
+
+// ---------- Figure 3: where the redraws went ----------
+let stage3 = 0;
+const COLS = [["species", "species"], ["ability", "ability"], ["item", "item"], ["move", "move 1"], ["move", "move 2"], ["move", "move 3"], ["move", "move 4"], ["nature", "Stat Alignment"]];
+const FIELD_NAME = {species: "species", ability: "ability", item: "item", move: "move", nature: "Stat Alignment"};
+const fmtv = v => v < 0.05 ? v.toFixed(2) : v.toFixed(1);
+function rollText(node, from, to, ms) {
+  const id = node._roll = (node._roll || 0) + 1;
+  if (RM) { node.textContent = fmtv(to); return; }
+  const t0 = performance.now(), ease = t => 1 - Math.pow(1 - t, 3);
+  (function f(now) { if (node._roll !== id) return; const t = Math.min(1, (now - t0) / ms); node.textContent = fmtv(from + (to - from) * ease(t)); if (t < 1) requestAnimationFrame(f); })(t0);
+}
+function drawGrid() {
+  const r = D.redraws, per = (f, st) => (st ? r.changed_per_team[f] : r.remasked_per_team[f]) / r.fields[f];
+  const max = Math.max(...Object.keys(r.fields).map(f => r.remasked_per_team[f] / r.fields[f]));
+  const g = document.getElementById("grid48");
+  if (!g.children.length) { g.innerHTML = `<div class="hd"></div>` + COLS.map(([, h]) => `<div class="hd">${h}</div>`).join("");
+    D.core.forEach(s => { g.insertAdjacentHTML("beforeend", `<div class="who">${sprite(s)}<span>${NAME(s)}</span></div>`);
+      COLS.forEach(([f]) => g.insertAdjacentHTML("beforeend", `<div class="cell" data-f="${f}"></div>`)); }); }
+  g.querySelectorAll(".cell").forEach(c => { const f = c.dataset.f, v = per(f, stage3), a = Math.min(1, v / max), old = c.dataset.v;
+    c.title = `${FIELD_NAME[f]}: ${v.toFixed(2)} per field`; c.style.background = `color-mix(in srgb, var(--fg) ${Math.round(4 + a * 70)}%, var(--bg))`; c.style.color = a > .5 ? "var(--bg)" : "var(--fg)";
+    if (old == null) c.textContent = fmtv(v); else rollText(c, +old, v, 300); c.dataset.v = v; });
+  const tot = Object.keys(r.fields).reduce((a, f) => a + (stage3 ? r.changed_per_team[f] : r.remasked_per_team[f]), 0);
+  const parts = Object.keys(r.fields).map(f => `${FIELD_NAME[f]} <b>${(stage3 ? r.changed_per_team[f] : r.remasked_per_team[f]).toFixed(1)}</b>`).join(" + ");
+  document.getElementById("totals").innerHTML = `${stage3 ? "Redraws that changed the value" : "Fields remasked"} per team: ${parts} = <b>${tot.toFixed(0)}</b>`;
+  document.getElementById("stage3").textContent = stage3 ? "Step 2 of 2 · redraws that changed the value" : "Step 1 of 2 · fields remasked";
+  document.getElementById("back3").disabled = !stage3; document.getElementById("next3").disabled = !!stage3;
+}
+document.getElementById("next3").onclick = () => { stage3 = 1; drawGrid(); };
+document.getElementById("back3").onclick = () => { stage3 = 0; drawGrid(); };
+
+document.getElementById("sources").innerHTML = `Plain decoding and least-likely remasking: <code>~/vgc-data/results/remask_ask_gap.json</code>; random-field remasking and the on-grid asks: <code>~/vgc-data/results/remask_why.json</code>; design and pass rule: <code>code/docs/remask-ask-gap.md</code>. The 45% share of the six species in the training data is from <code>results/species_prior_check.json</code> (2026-10-17). Page built by <code>build_data.py</code> and <code>build.py</code> in this folder.`;
+drawCols(); drawAsk(); drawGrid();
+new IntersectionObserver((es, o) => { if (!es[0].isIntersecting) return; o.disconnect();     // once, when the chart first comes into view
+  document.querySelectorAll("#ask .rise").forEach(g => { const dy = +g.dataset.dy, i = +g.dataset.i;
+    g.animate(RM ? [{opacity: 0}, {opacity: 1}] : [{transform: `translateY(${dy}px)`, opacity: .35}, {transform: "none", opacity: 1}],
+      {duration: RM ? 200 : 500, delay: RM ? 0 : 150 + i * 90, easing: RM ? "ease" : EASE_IN_OUT, fill: "backwards"}); }); }, {threshold: 0.6}).observe(document.getElementById("ask"));
+let rt = 0; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawAsk, 150); });
+</script>
+</body>
+</html>

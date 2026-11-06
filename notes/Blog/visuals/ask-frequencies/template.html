@@ -1,0 +1,360 @@
+<!doctype html>
+<!-- Post (2026-10-30): the Scrub variant promoted from the ask-frequencies prototype. Prose drafted by Claude for Rami to edit.
+     Built by build.py from data.json (build_data.py) and the six sprites. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Asking for more, getting less</title>
+<meta name="description" content="Why a discrete diffusion model wins less when asked for 0.531 than for 0.5: the ask is read between its training labels' 1/24 steps.">
+<style>
+:root{
+  --bg:#fafbfc; --fg:#1c2329; --muted:#5d6974; --faint:#8b97a1; --rule:#dde3e8; --panel:#f0f3f6;
+  --accent:#1d6b88; --neutral:#6b7780; --on:#2a78d6; --off:#eb6834;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease-out:cubic-bezier(0.23, 1, 0.32, 1); --ease-in-out:cubic-bezier(0.77, 0, 0.175, 1);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#13181c; --fg:#e3e8ec; --muted:#9aa6b0; --faint:#76838d; --rule:#2c353c; --panel:#1b2228;
+  --accent:#5fb3d1; --neutral:#8d99a3; --on:#3987e5; --off:#d95926;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--serif);font-size:1.06rem;line-height:1.6}
+main{max-width:1080px;margin:0 auto;padding:40px 20px 140px}
+h1,h2{font-family:var(--sans);font-weight:600;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(1.5rem,4vw,2rem);margin:.2em 0 .4em;max-width:760px} h2{font-size:1.2rem;margin:2em 0 .5em}
+p{max-width:680px}
+.eyebrow{font-family:var(--sans);font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.def{font-family:var(--sans);font-size:.85rem;color:var(--muted);border-left:3px solid var(--rule);padding:.35em .8em;margin:1.2em 0;max-width:680px}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel);padding:.08em .35em;border-radius:3px}
+pre{font-family:var(--mono);font-size:.84rem;background:var(--panel);padding:12px 14px;border-radius:6px;overflow-x:auto;max-width:680px}
+#stage{margin-top:1.4em;min-height:420px}
+svg{display:block;overflow:visible}
+svg text{font-family:var(--sans);fill:var(--muted);font-size:12px}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--sans);font-size:.86rem;margin:0 0 12px}
+.controls .lab{color:var(--muted);margin-right:4px}
+button.ask,button.step{font-family:var(--mono);font-size:.86rem;min-height:36px;padding:.3em .75em;border-radius:6px;border:1px solid var(--rule);background:var(--bg);color:var(--fg);cursor:pointer}
+button.ask .grid{font-family:var(--sans);font-size:.72rem;color:var(--muted);margin-left:.35em}
+button.ask[aria-pressed=true]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+button.ask.off{border-style:dashed}
+button.step{font-family:var(--sans)}
+button.step:disabled{opacity:.4;cursor:default}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.readout{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin:10px 0 0;max-width:none}
+.readout b{font-family:var(--mono);font-weight:500;color:var(--fg)}
+.note{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin:.4em 0 .8em;max-width:720px}
+.panel{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:860px){.panel.split{grid-template-columns:minmax(0,1fr) 250px}}
+.side{font-family:var(--sans);font-size:.88rem;background:var(--panel);border-radius:8px;padding:12px 14px}
+.side b{font-family:var(--mono);font-weight:500}
+.team{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.slot{display:grid;grid-template-columns:44px auto;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:6px;padding:4px 8px 4px 4px;font-family:var(--mono);font-size:.74rem;background:var(--bg)}
+.slot img{width:44px;height:44px;image-rendering:pixelated}
+.tok{display:inline-block;border-radius:3px;padding:0 .3em;margin:1px;background:var(--panel)}
+.tok.mask{background:var(--fg);color:var(--bg)}
+.predict{font-family:var(--sans);background:var(--panel);border-radius:8px;padding:14px 16px;margin-top:22px}
+.predict p{margin:0 0 10px;font-size:.95rem;max-width:none}
+.predict button{font-family:var(--sans);font-size:.95rem;min-height:44px;min-width:96px;padding:.3em 1em;border-radius:6px;border:1px solid var(--rule);background:var(--bg);color:var(--fg);cursor:pointer}
+.reveal{display:none} .reveal.on{display:block;animation:fadein .3s var(--ease-out) both}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeonly{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.reveal.on{animation:fadeonly .2s ease both}}
+.key{display:inline-flex;align-items:center;gap:5px;margin-right:12px;font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+details.sources{font-family:var(--sans);font-size:.82rem;color:var(--muted);margin-top:14px} details.sources summary{cursor:pointer}
+table.wr{font-family:var(--sans);font-size:.84rem;border-collapse:collapse;margin-top:8px} table.wr td,table.wr th{padding:3px 10px 3px 0;text-align:left}
+
+
+article{max-width:680px;margin:0 auto}
+.wide{width:min(1040px,calc(100vw - 40px));margin-left:50%;transform:translateX(-50%)}
+.byline{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin:-.2em 0 1.6em}
+.dek{font-size:1.2rem;color:var(--muted);margin:0 0 .6em}
+figure{margin:1.6em 0}
+figcaption{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin-top:.7em;line-height:1.5;max-width:680px}
+.team{margin:.8em 0 1.2em}
+.slot{grid-template-columns:48px auto}
+.slot img{width:48px;height:48px}
+details.deeper{font-family:var(--sans);font-size:.92rem;border-top:1px solid var(--rule);padding:.6em 0}
+details.deeper summary{cursor:pointer;font-weight:600}
+details.deeper p{font-family:var(--serif);font-size:1rem}
+main{padding-bottom:80px}
+</style>
+</head>
+<body>
+
+<main>
+<article>
+  <div class="eyebrow">Pokémon team search · working notes</div>
+  <h1>Asking for more, getting less</h1>
+  <p class="dek">Why my discrete diffusion model wins less when I ask for 0.531 than when I ask for 0.5</p>
+  <div class="byline">Rami Ismael · Draft · 30 October 2026</div>
+
+  <p>I built a model that writes Pokémon teams, and I can tell it what win rate to aim for. Ask for teams that win half their battles, and the teams it writes win 45% of the time. Ask for 53%, and they win 40%.</p>
+  <p>Asking for more got me less. The model isn't confused about Pokémon. It's confused about the number 0.531, because almost none of the win rates it learned from sit anywhere near it. Asks that fall between the steps of its training labels lose 3 to 4 points of win rate to asks right next to them on the steps.</p>
+
+  <h2>The model writes a team one token at a time</h2>
+  <p>A team in Pokémon VGC (Video Game Championships, the official doubles format) is six Pokémon. Each one has a species, an ability, an item, four moves and a Stat Alignment (its nature, such as Adamant), so a team is 48 choices. Asked for 0.5, six in ten of the teams my model writes use exactly these six Pokémon:</p>
+  <div class="team" id="team"></div>
+  <p>The model is a discrete diffusion model trained from scratch on valid Pokémon teams. It starts with all 48 fields hidden behind a <code>[MASK]</code> token and fills them in one at a time. Every field value is a token, a word from a fixed vocabulary of species, abilities, items, moves and Stat Alignments, and the model reads each one by looking it up in an embedding table.</p>
+  <p>It also takes a target, the <em>ask</em>: the win rate I want the team to reach. In training, each team came with the win rate it actually reached. When I generate, I hand the model the win rate I want, and classifier-free guidance, a setting that makes the model lean harder on the ask, pushes its choices toward teams that fit. I use a guidance weight of 2.</p>
+  <div class="def">Win rate: the share of battles a team wins against the top-50 meta teams. It plays one battle against each of the 49 distinct teams on that list, and the one team listed twice counts twice. The same AI player, trained by copying human battles, plays both sides, and the six Pokémon are shuffled every battle. Every ask in this post: 64 teams, three seeds.</div>
+
+  <div class="predict" id="predict">
+    <p>I asked for 0.531 instead of 0.5, and the teams won less.</p>
+    <div class="reveal on" id="reveal">
+      <svg id="two" role="img" aria-label="Win rate at ask 0.5 and ask 0.531, three seeds each"></svg>
+      <p class="readout" id="verdict"></p>
+    </div>
+  </div>
+
+  <h2>The ask is the only input that isn't a token</h2>
+  <p>Every other input comes from a vocabulary. The ask is a number between 0 and 1, so the model needs a different way to read it. Line 206 of <code>code/src/lossdown.py</code> turns it into 17 numbers:</p>
+<pre># w is the ask; the frequencies are π, 2π, 4π, … 128π
+freqs = 2 ** arange(8) * π
+input = [w, sin(w·freqs), cos(w·freqs)]</pre>
+  <p>Sines and cosines like these are how diffusion models usually read a continuous time step. Each frequency doubles the last, which lets the model tell apart values that sit very close together. The fastest pair, at 128π, repeats every 1/64 of win rate, about 0.016. None of this touches the masking, the unmasking or the training loss. It only decides how the ask gets in.</p>
+
+  <h2>The win rates it learned from sit on a grid</h2>
+  <p>Most training labels come from scoring a team over 24 battles. A score over 24 battles is always a multiple of 1/24: 12 wins is 0.5, 13 wins is 0.5417, and nothing lands in between. The model averages two networks. The one I checked learned from 12,712 teams labelled with a win rate, and 95% of those labels sit exactly on that grid.</p>
+  <p>So the model saw plenty of teams labelled 12/24 (493 within 0.005 of it) and 13/24 (344), and almost none near 0.531 (11). The low end is the same: 1,268 teams near 7/24 and 9 near 0.3. Between 12/24 and 13/24, the fastest sine turns through 2.7 full cycles, and almost no labels tell the model what any of those values should mean.</p>
+</article>
+
+<figure class="wide">
+  <div id="scrub"></div>
+  <figcaption>Drag the line, or focus it and use the arrow keys. Each strip is the sine of the ask at one frequency, across win rates from 0.25 to 0.60; grey lines mark the 1/24 grid and grey bars count the training labels in each 1/240 of win rate. The panel shows the 16 sines and cosines the model receives at your ask next to the ones at 0.5 (dark = +1, light = −1, outlined = moved by more than half their range), how many training labels sit near your ask, and how alike the model's own embedding finds your ask and 0.5. Start at 0.531, then tick <b>round the ask to the nearest 1/24</b>.</figcaption>
+</figure>
+
+<article>
+  <h2>Asks between the steps lose 3 to 4 points</h2>
+  <p>To test this, I asked for the win rates on the grid right next to the two odd asks and kept everything else the same: the same model, 64 teams per seed, the same three seeds and the same battles.</p>
+</article>
+<figure class="wide">
+  <svg id="six" role="img" aria-label="Win rate at six asks: the asks on the 1/24 grid rise and level off near 0.445, the two asks between grid steps fall below their neighbours"></svg>
+  <div><span class="key"><span class="dot" style="background:var(--on)"></span>ask on the 1/24 label grid (solid)</span><span class="key"><span class="dot" style="border:2px solid var(--off)"></span>ask between grid steps (hollow, dashed mean)</span></div>
+  <figcaption>Win rate of the teams generated at each ask, with each between-steps ask placed between its two grid neighbours (not to scale); dots are seeds, bars are means, and the dashed line joins the two neighbours. <details style="display:inline"><summary style="display:inline;cursor:pointer">Table</summary><table class="wr" id="wrtable"></table></details></figcaption>
+</figure>
+<article>
+  <p>Ask 0.531 lost to 13/24 in every seed, by 0.036 to 0.045. Ask 0.3 even lost to the lower ask 7/24, in every seed. On the grid, the model follows the ask up to 0.5 and then levels off near 0.445. Off the grid, it falls below that line.</p>
+
+  <h2>Round the ask, then fix the encoding</h2>
+  <p>The cheapest fix costs nothing: round every ask to the nearest 1/24 before generating. Asking for 0.531 becomes asking for 13/24, which won 0.444 here.</p>
+  <p>The lasting fix matches how the model reads everything else. Make the ask a token too, with one embedding per 1/24 step, looked up like a species or a move. Then there is nothing between the steps to misread. Jittering each training label by up to 1/48, or keeping only the slow frequencies, would also smooth it out. I haven't tested any of the training fixes yet.</p>
+  <p>What I take from it: a number you condition on is only as continuous as the labels it learned from. Mine learned almost entirely from 25 values and was asked for the gaps between them.</p>
+
+  <h2>Going deeper</h2>
+  <details class="deeper"><summary>How I found this</summary>
+    <p>I was testing remasking (<a href="https://arxiv.org/abs/2503.00307">Wang, Schiff et al., 2025, "Remasking Discrete Diffusion Models with Inference-Time Scaling"</a>), a sampler change that lets the model take back its least confident choices and redraw them. I hoped it would close the gap between the win rate I ask for and the one I get. It raised win rate at every ask, but by pulling teams toward the single most common team, and it halved their variety without tracking the ask at all. Remasking random fields instead matched plain decoding. While checking the plain decoder's numbers, the dip at 0.531 stood out, and the label grid explained it.</p>
+  </details>
+  <details class="deeper"><summary>Is it a bug in the code?</summary>
+    <p>No bug turned up. An earlier audit of the training code and a fresh review by a second AI model both found that the ask reaches the network the same way in training and in generation. The cause is a design choice, a very sharp encoding of one number, meeting labels that almost all take one of 25 values.</p>
+  </details>
+  <details class="deeper"><summary>What else I ruled out</summary>
+    <p>The old training scores were battled with each team's Pokémon in a fixed order, and the battle AI favours some slots over others. So I re-battled these teams in a fixed order (alphabetical, as the matchup database stores them) instead of shuffled. Average scores moved by less than 0.02, so slot order doesn't explain the dip.</p>
+  </details>
+  <details class="deeper"><summary>Sources</summary><p id="cap"></p></details>
+</article>
+</main>
+
+<script>
+const D = /*DATA*/null;
+const SPRITES = /*SPRITES*/{};
+const NS = "http://www.w3.org/2000/svg";
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FREQS = D.freqs_over_pi.map(f => f * Math.PI);
+const ASKS = [7 / 24, 0.3, 8 / 24, 0.5, 0.531, 13 / 24];
+const CORE = ["garchomp", "basculegion", "kingambit", "whimsicott", "charizard", "floetteeternal"];
+const NAME = {garchomp: "Garchomp", basculegion: "Basculegion", kingambit: "Kingambit", whimsicott: "Whimsicott", charizard: "Charizard", floetteeternal: "Floette-Eternal"};
+const key4 = a => a.toFixed(4);
+const ON = a => Math.abs(a * 24 - Math.round(a * 24)) < 1e-6;
+const LOOP = D.members["loop-teams model"];
+const near = a => { const k = LOOP.rows_near[key4(a)]; if (k != null) return k;          // labels within ±0.005
+  const lo = Math.floor((a - 0.005) * 240), hi = Math.floor((a + 0.005) * 240); let s = 0; for (let i = lo; i <= hi; i++) s += LOOP.label_hist_1_240[i] || 0; return s; };
+const mean = xs => xs.reduce((s, x) => s + x, 0) / xs.length;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+const tip = (node, text) => { node.appendChild(document.createElementNS(NS, "title")).textContent = text; return node; };
+const div = (cls, html, parent) => { const d = document.createElement("div"); if (cls) d.className = cls; if (html != null) d.innerHTML = html; if (parent) parent.appendChild(d); return d; };
+const fmt = a => ON(a) ? `${Math.round(a * 24)}/24 = ${a.toFixed(3)}` : a.toFixed(3);
+const feature = (a, i) => i < 8 ? Math.sin(a * FREQS[i]) : Math.cos(a * FREQS[i - 8]);   // the 16 sin/cos numbers
+const sim = a => { const s = LOOP.similarity_to_0_5, i = Math.max(0, Math.min(s.asks.length - 2, Math.floor((a - s.asks[0]) / (s.asks[1] - s.asks[0]))));
+  const t = (a - s.asks[i]) / (s.asks[i + 1] - s.asks[i]); return s.cos[i] + (s.cos[i + 1] - s.cos[i]) * Math.max(0, Math.min(1, t)); };
+function bezier(x1, y1, x2, y2) {                       // CSS cubic-bezier(x1, y1, x2, y2) as a function of time
+  const c = (a, b, t) => ((1 - 3 * b + 3 * a) * t + (3 * b - 6 * a)) * t * t + 3 * a * t;
+  return t => { let u = t; for (let i = 0; i < 8; i++) { const d = (c(x1, x2, u + 1e-4) - c(x1, x2, u)) / 1e-4; if (!d) break; u -= (c(x1, x2, u) - t) / d; }
+    return c(y1, y2, Math.min(1, Math.max(0, u))); };
+}
+const EASE_IN_OUT = bezier(0.77, 0, 0.175, 1), EASE_OUT = bezier(0.23, 1, 0.32, 1);
+let animOK = true;                                       // false while re-rendering for a resize: no entrance motion then
+function tween(from, to, ms, step, done, ease = EASE_IN_OUT) {
+  if (RM || !animOK || ms <= 0) { step(to); done && done(); return; }
+  const t0 = performance.now();
+  (function f(now) { const t = Math.min(1, (now - t0) / ms); step(from + (to - from) * ease(t)); t < 1 ? requestAnimationFrame(f) : done && done(); })(t0);
+}
+function askButtons(label, asks, initial, onPick) {
+  const c = div("controls", `<span class="lab">${label}</span>`);
+  for (const a of asks) { const b = document.createElement("button"); b.className = "ask" + (ON(a) ? "" : " off");
+    b.innerHTML = `${a.toFixed(3)}<span class="grid">${ON(a) ? Math.round(a * 24) + "/24" : "between steps"}</span>`;
+    b.setAttribute("aria-pressed", a === initial); b.onclick = () => { c.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(a); };
+    c.appendChild(b); }
+  return c;
+}
+// Shared drawing pieces --------------------------------------------------------------------------------------------
+function waves(svg, X, lo, hi, x0, x1, top, rowH, drawIn) {
+  const g = el("g", {}, svg);
+  FREQS.forEach((f, k) => { const y0 = top + rowH * k + rowH / 2, pts = [], n = Math.max(400, Math.round((x1 - x0) * 3));
+    for (let i = 0; i <= n; i++) { const v = lo + (hi - lo) * i / n; pts.push(`${X(v).toFixed(1)},${(y0 - Math.sin(v * f) * rowH * .36).toFixed(1)}`); }
+    const p = el("polyline", {points: pts.join(" "), fill: "none", stroke: css("--fg"), "stroke-width": 1.2, opacity: .85}, g);
+    el("text", {x: x0 - 8, y: y0 + 4, "text-anchor": "end", style: "font-family:var(--mono)"}, g).textContent = (f / Math.PI) + "π";
+    if (drawIn && !RM && animOK) { const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L;
+      p.animate([{strokeDashoffset: L}, {strokeDashoffset: 0}], {duration: 700, delay: k * 110, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards"}); } });
+  return g;
+}
+function grid(svg, X, lo, hi, yTop, yBot, labelY) {
+  const g = el("g", {}, svg);
+  for (let j = Math.ceil(lo * 24 - 1e-9); j <= hi * 24 + 1e-9; j++) { const v = j / 24;
+    el("line", {x1: X(v), x2: X(v), y1: yTop, y2: yBot, stroke: css("--neutral"), opacity: .35}, g);
+    el("text", {x: X(v), y: labelY, "text-anchor": "middle", style: "font-size:11px"}, g).textContent = `${j}/24`; }
+  return g;
+}
+function comb(svg, X, lo, hi, base, h) {                  // every 1/240 bin of training labels, on the grid or not
+  const g = el("g", {}, svg), hist = LOOP.label_hist_1_240;
+  for (let i = Math.floor(lo * 240); i < Math.ceil(hi * 240); i++) { if (!hist[i]) continue;
+    const v = (i + 0.5) / 240; if (v < lo || v > hi) continue;
+    const bh = Math.max(2, Math.min(1, hist[i] / 1300) * h);
+    tip(el("rect", {x: X(v) - 1.5, y: base - bh, width: 3, height: bh, rx: 1, fill: css("--neutral"), opacity: .8}, g),
+        `${hist[i]} training labels in ${(i / 240).toFixed(4)}–${((i + 1) / 240).toFixed(4)}`); }
+  el("line", {x1: X(lo), x2: X(hi), y1: base, y2: base, stroke: css("--rule")}, g);
+  return g;
+}
+function cursor(svg, top, bottom) {                       // an ask line with a dot where it crosses each wave
+  const g = el("g", {}, svg), line = el("line", {y1: top, y2: bottom, "stroke-width": 2}, g), dots = [];
+  for (let k = 0; k < 8; k++) dots.push(el("circle", {r: 4.5}, g));
+  return {g, place(X, a, rowTop, rowH) { const c = ON(a) ? css("--on") : css("--off");
+    line.setAttribute("x1", X(a)); line.setAttribute("x2", X(a)); line.setAttribute("stroke", c);
+    dots.forEach((d, k) => { d.setAttribute("cx", X(a)); d.setAttribute("cy", rowTop + rowH * k + rowH / 2 - Math.sin(a * FREQS[k]) * rowH * .36);
+      d.setAttribute("fill", ON(a) ? c : css("--bg")); d.setAttribute("stroke", c); d.setAttribute("stroke-width", 2); }); }};
+}
+const ink = v => `color-mix(in srgb, var(--fg) ${Math.round(8 + (v + 1) / 2 * 84)}%, var(--bg))`;   // -1 light ... +1 dark
+function fingerprint(svg, x, y, cw, ch, a, ref) {          // 16 cells, sine rows then cosine rows; outlined if far from ref
+  const g = el("g", {}, svg);
+  for (let i = 0; i < 16; i++) { const v = feature(a, i), far = ref != null && Math.abs(v - feature(ref, i)) > 0.5;
+    tip(el("rect", {x, y: y + i * ch + (i >= 8 ? 6 : 0), width: cw, height: ch - 2, rx: 2, style: `fill:${ink(v)}`,
+      stroke: far ? css("--fg") : "none", "stroke-width": far ? 1.6 : 0}, g), `${i < 8 ? "sin" : "cos"} ${D.freqs_over_pi[i % 8]}π at ask ${a.toFixed(4)}: ${v.toFixed(2)}`); }
+  return g;
+}
+
+
+// ---------- 2. Scrub (axis: interaction) - drag one ask anywhere and read its numbers live ----------
+function scrub(host) {
+  let ask = 0.531, snap = false, geo, handle, curs;
+  const wrap = div("panel split", null, host), left = div(null, null, wrap), side = div("side", null, wrap);
+  const tools = div("controls", `<label style="display:inline-flex;gap:8px;align-items:center;min-height:36px"><input type="checkbox" style="width:18px;height:18px"> round the ask to the nearest 1/24</label>`, left);
+  const lo = 0.25, hi = 0.6;
+  function draw() {
+    const old = left.querySelector("svg"); if (old) old.remove();
+    const W = Math.max(300, left.clientWidth), narrow = W < 560, rowH = narrow ? 28 : 34, top = 18, x0 = 46, x1 = W - 10;
+    const X = v => x0 + (v - lo) / (hi - lo) * (x1 - x0), H = top + rowH * 8 + 110;
+    const svg = el("svg", {width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Eight sine waves of the ask from 0.25 to 0.60 over the label grid, with a draggable ask line"}, left);
+    grid(svg, X, lo, hi, top - 6, top + rowH * 8 + 60, top + rowH * 8 + 76);
+    waves(svg, X, lo, hi, x0, x1, top, rowH, false);
+    comb(svg, X, lo, hi, top + rowH * 8 + 58, 48);
+    el("text", {x: x0, y: top + rowH * 8 + 96}, svg).textContent = narrow ? "Grey bars: training labels per 1/240" : "Grey bars: training labels per 1/240 of win rate";
+    curs = cursor(svg, top - 8, top + rowH * 8 + 58);
+    handle = el("rect", {y: top - 12, width: 28, height: rowH * 8 + 74, fill: "transparent", tabindex: 0, role: "slider", "aria-label": "Ask",
+      "aria-valuemin": lo, "aria-valuemax": hi, style: "cursor:ew-resize"}, svg);
+    geo = {X, top, rowH};
+    const toAsk = e => { const r = svg.getBoundingClientRect(); return lo + Math.max(0, Math.min(1, ((e.clientX - r.left) / r.width * W - x0) / (x1 - x0))) * (hi - lo); };
+    let dragging = false;
+    svg.style.touchAction = "none";
+    svg.addEventListener("pointerdown", e => { dragging = true; try { svg.setPointerCapture(e.pointerId); } catch { /* synthetic pointer */ } set(toAsk(e)); });
+    svg.addEventListener("pointermove", e => { if (dragging) set(toAsk(e)); });
+    svg.addEventListener("pointerup", () => { dragging = false; });
+    handle.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault();
+      set(ask + (e.key === "ArrowRight" ? 1 : -1) * (snap ? 1 / 24 : 1 / 240)); } });
+    paint(ask);
+  }
+  function set(a) { a = Math.max(lo, Math.min(hi, a)); ask = snap ? Math.round(a * 24) / 24 : a; paint(ask); }
+  function paint(a) {
+    curs.place(geo.X, a, geo.top, geo.rowH); handle.setAttribute("x", geo.X(a) - 14); handle.setAttribute("aria-valuenow", a.toFixed(4));
+    side.innerHTML = `<div class="eyebrow">Your ask</div><div style="font-family:var(--mono);font-size:1.4rem;color:var(--fg)">${a.toFixed(4)}</div>
+      <div style="margin:2px 0 8px">${ON(a) ? `${Math.round(a * 24)}/24, on the label grid` : "between two grid steps"}</div>
+      <svg width="220" height="306"></svg>
+      <div>Training labels within ±0.005: <b>${near(a).toLocaleString()}</b></div>
+      <div>Model's similarity to 0.5: <b>${sim(a).toFixed(2)}</b></div>`;
+    const fp = side.querySelector("svg");
+    [[0.5, null], [a, 0.5]].forEach(([v, ref], j) => {
+      el("text", {x: 40 + j * 90 + 30, y: 12, "text-anchor": "middle", style: "font-family:var(--mono);fill:var(--fg);font-size:11px"}, fp).textContent = j ? "your ask" : "0.500";
+      fingerprint(fp, 40 + j * 90, 22, 60, 17, v, ref); });
+    el("text", {x: 0, y: 22 + 4 * 17 + 4, style: "font-size:11px"}, fp).textContent = "sin";
+    el("text", {x: 0, y: 28 + 12 * 17 + 4, style: "font-size:11px"}, fp).textContent = "cos";
+  }
+  tools.querySelector("input").addEventListener("change", e => { snap = e.target.checked; const from = ask, to = snap ? Math.round(ask * 24) / 24 : ask;
+    tween(from, to, 220, v => paint(v), () => { ask = to; paint(ask); }, EASE_OUT); });
+  draw();
+  return () => draw();
+}
+
+
+
+// ---------- page pieces ----------
+function teamRow() {
+  const t = document.getElementById("team");
+  CORE.forEach(s => div("slot", `${SPRITES[s] ? `<img alt="${NAME[s]}" src="${SPRITES[s]}">` : "<span></span>"}<div><div>${NAME[s]}</div><div><span class="tok">ability</span><span class="tok">item</span><span class="tok">4 moves</span><span class="tok">Stat Alignment</span></div></div>`, t));
+}
+function dotChart(svg, asks, opts) {
+  const W = Math.max(300, Math.min(opts.maxW, svg.parentElement.clientWidth)), H = opts.H;
+  svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = "";
+  const L = 52, Rr = W - 58, T = 24, B = H - 44, [lo, hi] = opts.x, [ylo, yhi] = opts.y;
+  const X = v => L + (v - lo) / (hi - lo) * (Rr - L), Y = v => B - (v - ylo) / (yhi - ylo) * (B - T);
+  opts.ticks.forEach(v => { el("line", {x1: L, x2: Rr, y1: Y(v), y2: Y(v), stroke: css("--rule")}, svg); el("text", {x: L - 8, y: Y(v) + 4, "text-anchor": "end"}, svg).textContent = v.toFixed(2); });
+  el("text", {x: L, y: 12}, svg).textContent = "win rate";
+  if (opts.line) { const on = asks.filter(ON).map(a => [a, mean(D.winrate[key4(a)].seeds)]);
+    el("polyline", {points: on.map(([a, m]) => `${X(a)},${Y(m)}`).join(" "), fill: "none", stroke: css("--on"), "stroke-dasharray": "4 3", opacity: .7, "stroke-width": 1.5}, svg); }
+  asks.forEach(a => { const r = D.winrate[key4(a)], m = mean(r.seeds), isOn = ON(a), c = isOn ? css("--on") : css("--off");
+    r.seeds.forEach((v, i) => tip(el("circle", {cx: X(a) + (i - 1) * 6, cy: Y(v), r: 4, fill: isOn ? c : css("--bg"), stroke: isOn ? css("--bg") : c, "stroke-width": 2}, svg), `ask ${a.toFixed(4)}, seed ${i + 1}: ${v.toFixed(3)}`));
+    tip(el("line", {x1: X(a) - 13, x2: X(a) + 13, y1: Y(m), y2: Y(m), stroke: c, "stroke-width": 3, "stroke-dasharray": isOn ? "" : "4 2", "stroke-linecap": "round"}, svg), `ask ${a.toFixed(4)}: mean ${m.toFixed(3)} over 3 seeds`);
+    el("text", {x: X(a), y: B + 18, "text-anchor": "middle", style: "font-family:var(--mono);fill:var(--fg);font-size:11px"}, svg).textContent = ON(a) ? `${Math.round(a * 24)}/24` : a.toFixed(3);
+    el("text", {x: X(a) + 17, y: Y(m) + 4, style: "font-family:var(--mono);font-size:11px"}, svg).textContent = m.toFixed(3); });
+  el("text", {x: (L + Rr) / 2, y: B + 36, "text-anchor": "middle"}, svg).textContent = "ask";
+}
+const drawTwo = () => dotChart(document.getElementById("two"), [0.5, 0.531], {maxW: 420, H: 200, x: [0.485, 0.546], y: [0.38, 0.47], ticks: [0.40, 0.42, 0.44, 0.46]});
+function drawSix() {
+  const svg = document.getElementById("six"), W = Math.max(300, Math.min(760, svg.parentElement.clientWidth)), H = 260;
+  svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = "";
+  const L = 52, Rr = W - 16, T = 26, B = H - 58, ylo = 0.30, yhi = 0.48, slot = (Rr - L) / 7;
+  const X = i => L + slot * (i + 0.5), Y = v => B - (v - ylo) / (yhi - ylo) * (B - T);
+  [0.30, 0.35, 0.40, 0.45].forEach(v => { el("line", {x1: L, x2: Rr, y1: Y(v), y2: Y(v), stroke: css("--rule")}, svg); el("text", {x: L - 8, y: Y(v) + 4, "text-anchor": "end"}, svg).textContent = v.toFixed(2); });
+  el("text", {x: L, y: 12}, svg).textContent = "win rate";
+  const groups = [[7 / 24, 0.3, 8 / 24], [0.5, 0.531, 13 / 24]], pos = [[0, 1, 2], [4, 5, 6]];
+  groups.forEach((g, gi) => {
+    const [a0, , a2] = g, m0 = mean(D.winrate[key4(a0)].seeds), m2 = mean(D.winrate[key4(a2)].seeds);
+    tip(el("line", {x1: X(pos[gi][0]), x2: X(pos[gi][2]), y1: Y(m0), y2: Y(m2), stroke: css("--on"), "stroke-dasharray": "4 3", "stroke-width": 1.5, opacity: .8}, svg),
+        "straight line between the two grid neighbours");
+    el("text", {x: X(pos[gi][1]), y: B + 40, "text-anchor": "middle", style: "font-size:11px"}, svg).textContent = gi ? "high asks" : "low asks";
+    g.forEach((a, j) => { const r = D.winrate[key4(a)], m = mean(r.seeds), isOn = ON(a), c = isOn ? css("--on") : css("--off"), x = X(pos[gi][j]);
+      r.seeds.forEach((v, i) => tip(el("circle", {cx: x + (i - 1) * 7, cy: Y(v), r: 4, fill: isOn ? c : css("--bg"), stroke: isOn ? css("--bg") : c, "stroke-width": 2}, svg), `ask ${a.toFixed(4)}, seed ${i + 1}: ${v.toFixed(3)}`));
+      tip(el("line", {x1: x - 14, x2: x + 14, y1: Y(m), y2: Y(m), stroke: c, "stroke-width": 3, "stroke-dasharray": isOn ? "" : "4 2", "stroke-linecap": "round"}, svg), `ask ${a.toFixed(4)}: mean ${m.toFixed(3)} over 3 seeds`);
+      el("text", {x, y: B + 18, "text-anchor": "middle", style: "font-family:var(--mono);fill:var(--fg);font-size:11px"}, svg).textContent = isOn ? `${Math.round(a * 24)}/24` : a.toFixed(3);
+      el("text", {x, y: Y(Math.max(m, ...r.seeds)) - 10, "text-anchor": "middle", style: "font-family:var(--mono);font-size:11px"}, svg).textContent = m.toFixed(3); }); });
+}
+drawTwo();
+{
+  const m = a => mean(D.winrate[key4(a)].seeds);
+  document.getElementById("verdict").innerHTML =
+    `Asked for 0.5, the teams won <b>${m(0.5).toFixed(3)}</b> of their battles. Asked for 0.531, they won <b>${m(0.531).toFixed(3)}</b>, and every seed went down.`;
+}
+document.getElementById("wrtable").innerHTML = "<tr><th>Ask</th><th>Grid</th><th>Seeds 1 · 2 · 3</th><th>Mean</th><th>Labels within ±0.005</th></tr>" +
+  ASKS.map(a => { const r = D.winrate[key4(a)]; return `<tr><td>${a.toFixed(4)}</td><td>${ON(a) ? Math.round(a * 24) + "/24" : "between steps"}</td><td>${r.seeds.map(v => v.toFixed(3)).join(" · ")}</td><td>${mean(r.seeds).toFixed(3)}</td><td>${near(a).toLocaleString()}</td></tr>`; }).join("");
+document.getElementById("cap").innerHTML = `The frequencies and the ask embeddings are read from the deployed networks (<code>code/src/lossdown.py</code>, line 206). Labels and similarity: the network trained on the search loop's teams (<code>F1_final_medium_noheldout_regmb_v3</code>), ${LOOP.labelled_rows.toLocaleString()} labelled rows, ${(LOOP.share_on_24_grid * 100).toFixed(0)}% exactly on the 1/24 grid. Win rates: <code>~/vgc-data/results/remask_ask_gap.json</code> (asks 0.3, 0.5 and 0.531) and <code>~/vgc-data/results/remask_why.json</code> (asks 7/24, 8/24 and 13/24), described in <code>code/docs/remask-ask-gap.md</code>. Page built by <code>build_data.py</code> and <code>build.py</code> in this folder.`;
+teamRow(); drawSix();
+const scrubHost = document.getElementById("scrub"); let redrawScrub = scrub(scrubHost);
+let resizeTimer = 0;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { redrawScrub && redrawScrub(); drawSix();
+  if (document.getElementById("reveal").classList.contains("on")) drawTwo(); }, 150); });
+
+</script>
+</body>
+</html>

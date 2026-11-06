@@ -1,0 +1,990 @@
+<!doctype html>
+<!-- The decoding-order experiment, explained (2026-10-31). Built by build.py from data.json (build_data.py).
+     Prose drafted by Claude for Rami to edit. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Fill the species first: what the decoding-order experiment found</title>
+<style>
+:root{
+  --bg:#fcfcfb; --fg:#1c2329; --muted:#5d6974; --faint:#8b97a1; --rule:#dde3e8; --panel:#f0f3f6;
+  --accent:#1d6b88; --bad:#d03b3b; --good:#0ca30c;
+  --o-species:#2a78d6; --o-pokemon:#eb6834; --o-random1:#1baf7a; --o-random2:#eda100; --o-confidence:#e87ba4;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease-out:cubic-bezier(0.23, 1, 0.32, 1);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#1a1a19; --fg:#e8eaec; --muted:#a3aab0; --faint:#7d858c; --rule:#33383c; --panel:#232527;
+  --accent:#5fb3d1; --bad:#e66767; --good:#3bb83b;
+  --o-species:#3987e5; --o-pokemon:#d95926; --o-random1:#199e70; --o-random2:#c98500; --o-confidence:#d55181;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--serif);font-size:1.06rem;line-height:1.6}
+main{padding:40px 20px 80px}
+article{max-width:680px;margin:0 auto}
+.wide{width:min(1040px,calc(100vw - 40px));margin:1.6em 0 1.6em 50%;transform:translateX(-50%)}
+h1,h2,h3{font-family:var(--sans);font-weight:600;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(1.6rem,4vw,2.1rem);margin:.2em 0 .3em} h2{font-size:1.25rem;margin:2.4em 0 .5em}
+.eyebrow{font-family:var(--sans);font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.dek{font-size:1.2rem;color:var(--muted);margin:0 0 .5em}
+.byline{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin:0 0 1.6em}
+.def{font-family:var(--sans);font-size:.86rem;color:var(--muted);border-left:3px solid var(--rule);padding:.35em .8em;margin:1.2em 0}
+.def b{color:var(--fg)}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel);padding:.08em .35em;border-radius:3px;overflow-wrap:anywhere}
+figure{margin:0}
+figcaption{font-family:var(--sans);font-size:.84rem;color:var(--muted);margin-top:.8em;line-height:1.5;max-width:760px}
+svg{display:block;overflow:visible}
+svg text{font-family:var(--sans);fill:var(--muted);font-size:12px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+img.px{image-rendering:pixelated}
+i.nosprite{display:inline-grid;place-items:center;font-style:normal;font-family:var(--mono);font-size:7px;color:var(--muted);background:var(--panel);border-radius:3px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--sans);font-size:.88rem;margin:0 0 12px}
+.controls .lab{color:var(--muted);margin-right:4px}
+button.ord,button.ctl{font-family:var(--sans);font-size:.88rem;min-height:40px;padding:.3em .8em;border-radius:6px;border:1px solid var(--rule);background:var(--bg);color:var(--fg);cursor:pointer;transition:transform 160ms var(--ease-out)}
+button.ord[aria-pressed=true]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+button.ctl:disabled{opacity:.4;cursor:default}
+button:active:not(:disabled){transform:scale(.97)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=range]{flex:1 1 180px;min-width:140px;accent-color:var(--accent);height:40px}
+.tip{position:fixed;pointer-events:none;z-index:10;font-family:var(--sans);font-size:.8rem;background:var(--fg);color:var(--bg);padding:5px 8px;border-radius:5px;opacity:0;transition:opacity 120ms ease;max-width:260px}
+.tip.on{opacity:1}
+
+/* Figure 0: at a glance */
+.gl{display:grid;grid-template-columns:200px repeat(3,minmax(0,1fr));gap:10px 18px;align-items:center;font-family:var(--sans);font-size:.86rem}
+.gl .hd{font-size:.76rem;color:var(--muted);line-height:1.3}
+.gl .hd span{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:2px}
+.gl .nm{font-weight:600}
+.gl-strip{position:relative;height:30px;border-bottom:1px solid var(--rule)}
+.gl-ref{position:absolute;top:0;bottom:0;border-left:1px dashed var(--faint)}
+.gl-dot{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);opacity:.55}
+.gl-mean{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--bg)}
+.gl-val{position:absolute;top:-3px;font-family:var(--mono);font-size:.72rem;color:var(--fg);white-space:nowrap}
+.gl-bar{position:absolute;left:0;top:9px;height:12px;border-radius:0 4px 4px 0}
+@media (max-width:700px){.gl{grid-template-columns:minmax(0,1fr)}.gl .hd.top{display:none}.gl .cell{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;align-items:center}
+  .gl .cell::before{content:attr(data-lab);font-size:.72rem;color:var(--muted)}.gl .nm{margin-top:10px}}
+
+/* Figure 1: the fill board */
+.board{display:grid;grid-template-columns:88px repeat(8,minmax(0,1fr));gap:3px;font-family:var(--sans);font-size:.74rem}
+.board .bh{font-size:.7rem;color:var(--muted);text-align:center;padding-bottom:2px;line-height:1.2}
+.board .who{font-size:.74rem;color:var(--muted);display:flex;align-items:center}
+.bc{position:relative;min-height:54px;border-radius:5px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3px;line-height:1.15;overflow:hidden}
+.bc .mask{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
+.bc.filled{background:var(--bg);border:1px solid var(--rule)}
+.bc.just{box-shadow:inset 0 0 0 2px var(--cur)}
+.bc.filled.fresh{animation:bc-in 220ms var(--ease-out)}
+@keyframes bc-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.bc.dead{border:2px solid var(--bad)}
+.bc.redo{outline:2px dashed var(--accent);outline-offset:-4px}
+.bc .was{font-size:.6rem;color:var(--muted);text-decoration:line-through;line-height:1.1}
+.bc .rd{position:absolute;top:1px;left:3px;color:var(--accent);font-weight:700;font-size:.7rem}
+.strip{margin-top:8px;font-family:var(--sans);font-size:.74rem;color:var(--muted)}
+.strip svg{display:block;width:100%;height:auto;min-height:44px;cursor:pointer;touch-action:manipulation}
+.strip-lab{margin-bottom:2px}
+.rkey{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:2px 0 8px}
+.rkey-i{padding:2px 8px;border-radius:5px;background:var(--bg);border:1px solid var(--rule)}
+.rkey-new{box-shadow:inset 0 0 0 2px var(--o-random1)} .rkey-redo{outline:2px dashed var(--accent);outline-offset:-3px} .rkey-clash{border:2px solid var(--bad)}
+.gl-rescue{position:absolute;top:-4px;bottom:-4px;border-left:2px dashed var(--fg);opacity:.55}
+.bc .bad{position:absolute;top:1px;right:3px;color:var(--bad);font-weight:700;font-size:.7rem}
+.bc img{width:36px;height:36px} .bc img.it{width:24px;height:24px}
+.bc .v{font-size:.68rem;overflow-wrap:anywhere}
+.status{font-family:var(--sans);font-size:.9rem;min-height:3em;margin:10px 0 0}
+.verdict{font-family:var(--sans);font-size:.88rem;border-radius:6px;padding:8px 12px;margin-top:8px;border:1px solid var(--rule)}
+.verdict.ok{border-color:var(--good)} .verdict.no{border-color:var(--bad)}
+.boardwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.phone-only{display:none} @media (max-width:640px){.phone-only{display:inline}}
+@media (max-width:640px){.board{min-width:620px;grid-template-columns:28px repeat(8,minmax(0,1fr))}.board .who span{display:none}.bc .v{overflow-wrap:normal}}
+
+/* Figures 9-10: the lookahead */
+.bc .fit{display:block;font-size:.6rem;color:var(--muted);line-height:1.15;margin-top:2px}
+.bc .fit.none{color:var(--bad);font-weight:600}
+.bc .fit img{width:22px;height:22px;vertical-align:middle}
+.bc.refused{outline:2px dashed var(--accent);outline-offset:-4px}
+.bc .ref{display:block;font-size:.6rem;color:var(--accent);line-height:1.1;margin-top:1px}
+.bc .ref s{color:var(--muted)} .bc .ref.warn{color:var(--bad);font-weight:600}
+.rkey-ref{outline:2px dashed var(--accent);outline-offset:-3px} .rkey-none{color:var(--bad);font-weight:600}
+.gl.la{grid-template-columns:200px repeat(4,minmax(0,1fr))}
+.la-strip{position:relative;height:42px;border-bottom:1px solid var(--rule)}
+.la-txt{position:absolute;top:0;left:0;font-family:var(--mono);font-size:.72rem;color:var(--fg);white-space:nowrap}
+.la-line{position:absolute;top:29px;height:2px;opacity:.5}
+.la-dot{position:absolute;top:30px;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%)}
+.la-dot.off{background:var(--bg);border:2px solid currentColor}
+.la-dot.on{background:currentColor;box-shadow:0 0 0 2px var(--bg)}
+.la-mark{position:absolute;top:16px;bottom:-4px;border-left:2px dashed var(--fg);opacity:.55}
+.la-key{display:flex;gap:16px;font-family:var(--sans);font-size:.8rem;color:var(--muted);margin:0 0 10px}
+.la-key i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:2px solid var(--fg)}
+.la-key i.on{background:var(--fg)}
+@media (max-width:700px){.gl.la{grid-template-columns:minmax(0,1fr)}}
+
+/* Figure 2: tries */
+.tries{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+.tries .t{font-family:var(--sans);font-size:.82rem}
+.tries h3{font-size:.9rem;margin:0 0 6px}
+.tries canvas{width:100%;height:auto;display:block}
+.tries .c{margin-top:6px;color:var(--muted)} .tries .c b{color:var(--fg);font-family:var(--mono);font-weight:500}
+.dead-row{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;font-family:var(--sans);font-size:.8rem;margin:.6em 0}
+.dead-row .step{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;background:var(--bg);min-width:84px}
+.dead-row .step small{display:block;color:var(--muted);font-size:.7rem}
+.dead-row .step.x{border:2px solid var(--bad)}
+.dead-row .arrow{align-self:center;color:var(--faint)}
+
+
+/* Figure 4 example teams */
+.ex{display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px 14px;font-family:var(--sans);font-size:.82rem;margin-top:16px;align-items:center}
+.ex .tm-row{display:flex;flex-wrap:wrap;gap:6px}
+.tm{display:grid;grid-template-columns:repeat(6,28px);gap:1px;padding:3px;border:1px solid var(--rule);border-radius:5px;background:var(--bg)}
+.tm .p{position:relative;width:28px;height:28px}
+.tm .p img.s{width:28px;height:28px}
+.tm .p img.i{position:absolute;right:-2px;bottom:-2px;width:14px;height:14px}
+@media (max-width:640px){.ex{grid-template-columns:minmax(0,1fr)}.tm{grid-template-columns:repeat(6,22px)}.tm .p,.tm .p img.s{width:22px;height:22px}.tm .p img.i{width:11px;height:11px}}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:4px 8px;font-family:var(--sans);font-size:.82rem;margin:0 0 8px}
+.legend button{font-family:var(--sans);font-size:.82rem;min-height:36px;border:1px solid var(--rule);background:var(--bg);color:var(--fg);border-radius:18px;padding:.2em .8em;cursor:pointer}
+.legend button[aria-pressed=true]{border-color:var(--fg)}
+
+.pred{list-style:none;padding:0;font-family:var(--sans);font-size:.92rem}
+.pred li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;padding:.55em 0;border-top:1px solid var(--rule)}
+.pred .mk{font-weight:700;font-size:1.05rem} .pred .mk.y{color:var(--good)} .pred .mk.n{color:var(--bad)} .pred .mk.u{color:var(--muted)}
+.pred small{display:block;color:var(--muted);font-size:.84rem}
+details.more{font-family:var(--sans);font-size:.9rem;border-top:1px solid var(--rule);padding:.6em 0}
+details.more summary{cursor:pointer;font-weight:600;min-height:32px}
+details.more p,details.more li{font-family:var(--serif);font-size:1rem}
+table.all{border-collapse:collapse;font-family:var(--sans);font-size:.8rem;width:100%;margin-top:8px}
+table.all th,table.all td{padding:5px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+table.all th{text-align:left;color:var(--muted);font-weight:500}
+table.all th.n,table.all td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+@media (prefers-reduced-motion:reduce){.bc.filled.fresh{animation:bc-fade 150ms ease}@keyframes bc-fade{from{opacity:.3}to{opacity:1}}
+  button.ord,button.ctl{transition:none} button:active:not(:disabled){transform:none}}
+</style>
+</head>
+<body>
+<main><article>
+<div class="eyebrow">Experiment result · run 2026-10-30 · remasking and lookahead follow-ups 2026-10-31</div>
+<h1>Fill the species first</h1>
+<p class="dek">I tried five orders for filling in a team's 48 fields. The default, all six species first, still makes the strongest teams. Every other order lost 0.06 to 0.09 of win rate (the share of battles won against the top-50 meta teams), and only some of them got more varied teams in return. <span id="dekMore"></span></p>
+<p class="byline">Rami Ismael · prose drafted by Claude for Rami to edit</p>
+
+<p>The <b>discrete diffusion model trained from scratch on valid Pokémon teams</b> builds a team the way you'd fill in a form with every box blank. Each pass of the network fills one blank field (a species, an ability, an item, one of four moves, or a Stat Alignment, the Pokémon's choice of nature such as Adamant) while seeing everything filled so far. Six Pokémon with eight fields each make 48 passes. Stat Points are not among the 48: they are copied from a training team of the same species when the finished team is written out.</p>
+<p class="def"><b>Decoding order</b> is the order the blanks get filled. The model has always used <b>species-first order</b>: all six species, then abilities and items, then moves, then Stat Alignments. This experiment asked whether a different order makes better teams, more varied teams, or teams that land closer to the win rate I ask for (the <b>ask</b>).</p>
+
+<figure class="wide" id="fig0">
+  <div class="gl" id="glance"></div>
+  <figcaption><b>Figure 1. The result in one look.</b> Each row is a decoding order. <b>Drawn teams that Showdown accepted</b>: each try draws one complete team; this is legal teams ÷ all tries, pooled over the order's 18 cells (for confidence order, 1,152 of 1,838). <b>Win rate</b>: wins against the top-50 meta teams, with the behaviour-cloning policy (a battle policy trained to imitate human players' choices from recorded battles) playing both sides and slot order shuffled; small dots are the three seeds, the big dot their mean over six asks. <b>Variety</b>: effective species in five teams (how many equally common species would give the same spread), averaged over 200 random five-team draws per cell. Dashed line: species-first order. Sources: <code>~/vgc-data/results/decoding_order.json</code> and <code>decoding_order_diversity.json</code>.</figcaption>
+</figure>
+
+<h2>Five orders, one model</h2>
+<p>Nothing about the model changed between arms: the same networks, the same asks, the same seeds, guidance weight 2 and temperature 1. Only the order of the blanks moved. Pick an order and step through how it filled one freshly sampled team at ask 0.5.</p>
+
+<figure class="wide" id="fig1">
+  <div class="controls" role="group" aria-label="Decoding order" id="ordPick"><span class="lab">Order</span></div>
+  <div class="controls">
+    <button class="ctl" id="bStart" aria-label="Back to the blank team">⏮</button>
+    <button class="ctl" id="bPrev" aria-label="One pass back">◀</button>
+    <button class="ctl" id="bPlay">▶ Play</button>
+    <button class="ctl" id="bNext" aria-label="One pass forward">▶︎|</button>
+    <input type="range" id="passRange" min="0" max="48" value="0" aria-label="Pass">
+    <span class="num" id="passLab">0 / 48</span>
+  </div>
+  <div class="boardwrap"><div class="board" id="board"></div></div>
+  <p class="status" id="status"></p>
+  <div id="verdict"></div>
+  <figcaption><b>Figure 2. How each order fills a team.</b> <span class="phone-only">Swipe the board sideways to see every field. </span>Rows are the six Pokémon, columns their eight fields; grey cells are still blank. The outlined cells were filled on the current pass. A red border marks a <b>dead end</b>: a field with no legal value left given what was already filled, so any value was allowed and the team was doomed. One freshly sampled team per order, drawn with the experiment's settings at ask 0.5 (the first legal draw for species-first, Pokémon-by-Pokémon and confidence order; the first draw for the random orders). These boards illustrate the orders; no number on this page comes from them.</figcaption>
+</figure>
+
+<p>Two things stand out on the boards. <b>Random order</b> usually draws part of a Pokémon's set before its species (7 times in 8, by chance), and by the time the species comes up, no species may fit what was drawn. <b>Confidence order</b> fills, at each pass, the blank the model is surest about; in the example above it fills four moves before any species.</p>
+
+<h2>Only two orders reliably make legal teams</h2>
+<p>For each cell (one order, one ask, one seed) I drew teams until 64 passed Showdown's validator, giving up at 1,280 tries.</p>
+
+<figure class="wide" id="fig2">
+  <div class="tries" id="tries"></div>
+  <figcaption><b>Figure 3. Legal teams per 1,000 tries.</b> Each dot is one try; a coloured dot is a team Showdown's validator accepted. Pooled over all 18 cells of each order (six asks × three seeds). Every random-order cell hit the 1,280-try cap.</figcaption>
+</figure>
+
+<p>Why random order fails so badly: here is the first Pokémon of its example team, in the order its fields were filled.</p>
+<div class="dead-row" id="deadRow"></div>
+<p id="deadText"></p>
+<p>The model checks each new field only against fields already filled. Species-first order picks the species while nothing else constrains it, then builds a set around it; all 1,152 of its tries were legal. Random order often draws part of a set before its species, and then the earlier picks may already rule out every species. Confidence order's teams fail far less often (63% legal against under 1%); I did not count its dead ends separately. A follow-up below, <a href="#remask">Remasking raises legality</a>, tries to repair them, and a second, <a href="#lookahead">The lookahead makes most tries legal</a>, prevents them.</p>
+
+<h2>Species-first order makes the strongest teams</h2>
+
+<figure class="wide" id="fig3">
+  <div id="winWrap"><svg id="winChart" role="img" aria-label="Win rate per decoding order"></svg></div>
+  <figcaption><b>Figure 4. Win rate per order.</b> Wins against the top-50 meta teams, with the behaviour-cloning policy playing both sides and slot order shuffled; each team plays each of the 49 distinct meta teams once (the team listed twice counts twice). Dots: the three seeds, each the mean over six asks; bar: their mean. Dashed line: species-first order. A difference counts when it exceeds twice the larger seed standard deviation of the two orders.</figcaption>
+</figure>
+
+<p id="winText"></p>
+
+<h2>The trade: more variety, weaker teams</h2>
+<p>Win rate alone can hide a trade. An order can lose strength because it spreads out into more kinds of team. So here is each order's variety against its win rate.</p>
+
+<figure class="wide" id="fig4">
+  <svg id="tradeChart" role="img" aria-label="Variety against win rate per decoding order"></svg>
+  <div class="ex" id="examples"></div>
+  <figcaption><b>Figure 5. Variety against win rate.</b> Horizontal: effective species in five teams, averaged over 200 random five-team draws per cell (so orders that kept 5 legal teams and orders that kept 64 are measured at the same size). Vertical: win rate as in Figure 4. Lines through each point span ± one seed standard deviation. Below: six legal teams from each order at seed 1 (ask 0.5 where it had them; the random orders pool every ask), each shown as its six Pokémon with their items.</figcaption>
+</figure>
+
+<p id="tradeText"></p>
+
+<h2>No order follows the ask better</h2>
+<p>This experiment started from a gap: when I ask for a 0.531 win rate (the elite cut, the mean win rate of a top-50 meta team against the other 49), the teams fall short. If one order let the ask steer the species, achieved win rate would track the ask more closely.</p>
+
+<figure class="wide" id="fig5">
+  <div class="legend" id="askLegend" role="group" aria-label="Highlight an order"></div>
+  <svg id="askChart" role="img" aria-label="Achieved against asked win rate per decoding order"></svg>
+  <figcaption><b>Figure 6. Achieved against asked win rate.</b> Each point is one order at one ask, averaged over three seeds; win rate as in Figure 4. Most training labels come from scoring a team over 24 battles, so they are multiples of 1/24. Filled points sit on that grid (7/24, 8/24, 0.5, 13/24); open points (0.3 and 0.531) sit between its steps. Dashed line: achieved = asked. Click an order in the legend to highlight it.</figcaption>
+</figure>
+
+<p id="askText"></p>
+
+<h2 id="remask">Remasking raises legality, not enough to rescue random order</h2>
+<p>Random order's teams fail at dead ends: a Pokémon's set drawn before its species leaves no species that fits. <b>Remasking</b> masks some filled fields again before each pass, and that pass redraws them along with its new field. A field redrawn after its Pokémon's species is filled is checked against that species, so remasking can repair a dead end. When a remasking pass runs into a dead end, the team gets back its fields from before the pass and draws only its new field; that pass is <b>undone</b>.</p>
+<p class="def">The follow-up tried four remasking settings, all on random order; Figure 8 lists them. They differ in <b>which</b> filled fields are masked again (the <b>least-likely</b> ones, drawn with the lowest probability, or <b>random</b> ones), <b>how many</b> (10% or 20% of the filled fields), and the number of <b>passes</b>: 48, with one new field per pass, or 96, with a new field on every other pass and only redraws on the passes between. Before the run I set the bar for <b>rescuing</b> random order: its share of legal tries must rise by more than noise and reach at least half (<code>code/docs/remask-random-order.md</code>).</p>
+
+<figure class="wide" id="fig6">
+  <div class="controls" role="group" aria-label="Which team" id="rPick"><span class="lab">Team</span></div>
+  <div class="controls">
+    <button class="ctl" id="rStart" aria-label="Back to the blank team">⏮</button>
+    <button class="ctl" id="rPrev" aria-label="One pass back">◀</button>
+    <button class="ctl" id="rPlay">▶ Play</button>
+    <button class="ctl" id="rNext" aria-label="One pass forward">▶︎|</button>
+    <input type="range" id="rRange" min="0" max="48" value="0" aria-label="Pass">
+    <span class="num" id="rPassLab">0 / 48</span>
+  </div>
+  <div class="rkey" aria-hidden="true"><span class="rkey-i rkey-new">new field</span><span class="rkey-i rkey-redo">↻ masked again, redrawn</span><span class="rkey-i rkey-clash">! clash</span></div>
+  <div class="boardwrap"><div class="board" id="rBoard"></div></div>
+  <div class="strip"><div class="strip-lab">Clashing fields after each pass (red bars) · pass undone at a dead end (blue dot) · click a pass to jump to it</div><div id="rStrip"></div></div>
+  <p class="status" id="rStatus" aria-live="polite"></p>
+  <div id="rVerdict"></div>
+  <figcaption id="rCap"></figcaption>
+</figure>
+
+<p id="rBoardText"></p>
+
+<figure class="wide" id="fig7">
+  <div class="gl" id="rGlance"></div>
+  <div class="ex" id="rExamples"></div>
+  <figcaption id="rGlanceCap"></figcaption>
+</figure>
+
+<p id="rTextA"></p>
+<p id="rTextB"></p>
+
+<h2 id="lookahead">The lookahead makes most tries legal, and the teams get weaker</h2>
+<p>Remasking tries to repair a dead end after it happens. The <b>lookahead</b> stops it from happening. For every Pokémon whose species is still masked, the sampler keeps the list of species that still fit that Pokémon's visible fields and Species Clause (each species at most once per team). Before each draw, it removes every value that would empty that list, and the field is drawn from the values left. Species-first order never needs it: every species is drawn before its set, so species-first sampling with the lookahead on is identical, bit for bit.</p>
+<p class="def">The lookahead follow-up ran three orders with it on: random order with one or two fields per pass, and confidence order, with the same model, asks, seeds and battles as above. Before the run I set two bars (<code>code/docs/lookahead-legality.md</code>). The lookahead <b>fixes</b> an order's legality if the order's legal share rises by more than noise and reaches at least 90%. An order with the lookahead <b>matches species-first order</b> if its win rate is within noise of species-first's.</p>
+
+<figure class="wide" id="fig8">
+  <div class="controls" role="group" aria-label="Which run" id="laPick"><span class="lab">Run</span></div>
+  <div class="controls">
+    <button class="ctl" id="laStart" aria-label="Back to the blank team">⏮</button>
+    <button class="ctl" id="laPrev" aria-label="One pass back">◀</button>
+    <button class="ctl" id="laPlay">▶ Play</button>
+    <button class="ctl" id="laNext" aria-label="One pass forward">▶︎|</button>
+    <input type="range" id="laRange" min="0" max="48" value="0" aria-label="Pass">
+    <span class="num" id="laPassLab">0 / 48</span>
+  </div>
+  <div class="rkey" aria-hidden="true"><span class="rkey-i rkey-new">new field</span><span class="rkey-i rkey-ref">values refused by the lookahead</span><span class="rkey-i rkey-clash">no species fits, or a clash</span></div>
+  <div class="boardwrap"><div class="board" id="laBoard"></div></div>
+  <div class="strip"><div class="strip-lab">Pokémon with no species that fits after each pass (red bars) · the lookahead refused values the model wanted (blue dot) · click a pass to jump to it</div><div id="laStrip"></div></div>
+  <p class="status" id="laStatus" aria-live="polite"></p>
+  <div id="laVerdict"></div>
+  <figcaption id="laCap"></figcaption>
+</figure>
+
+<p id="laBoardText"></p>
+
+<figure class="wide" id="fig9">
+  <div class="la-key" aria-hidden="true"><span><i></i>without the lookahead</span><span><i class="on"></i>with the lookahead</span></div>
+  <div class="gl la" id="laGlance"></div>
+  <div class="ex" id="laExamples"></div>
+  <figcaption id="laGlanceCap"></figcaption>
+</figure>
+
+<p id="laTextA"></p>
+<p id="laTextB"></p>
+
+<h2>What I expected, and what happened</h2>
+<p>I wrote these predictions down before sampling a single team (<code>code/docs/decoding-order.md</code>).</p>
+<ul class="pred" id="pred"></ul>
+<h3>Remasking follow-up</h3>
+<p>Written before the remasking run (<code>code/docs/remask-random-order.md</code>).</p>
+<ul class="pred" id="pred2"></ul>
+<h3>Lookahead follow-up</h3>
+<p>Written before the lookahead run (<code>code/docs/lookahead-legality.md</code>).</p>
+<ul class="pred" id="pred3"></ul>
+
+<h2>What it means</h2>
+<p id="meansText"></p>
+
+<details class="more">
+  <summary>How the numbers were made</summary>
+  <ul>
+    <li><b>Arms:</b> five decoding orders, each at six asks (7/24, 0.3, 8/24, 0.5, 0.531, 13/24) and three seeds: 90 cells.</li>
+    <li><b>Per cell:</b> draw until 64 teams pass Showdown's validator and are not held-out teams (the 50 meta teams placed 51st to 100th, kept out of every training run and search), at most 1,280 tries. Legal = accepted tries ÷ all tries.</li>
+    <li><b>Battles:</b> each kept team once against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slot order shuffled.</li>
+    <li><b>Per order:</b> the mean over six asks per seed, then the mean and standard deviation over the three seeds. Against species-first order the seeds are paired; a difference counts when it exceeds twice the larger seed standard deviation.</li>
+    <li><b>Ask response:</b> the slope of achieved against asked win rate over the four on-grid asks, per seed. A slope of 1 means the model follows the ask exactly.</li>
+    <li><b>Variety</b> was added after sampling, because the random orders kept only 5 to 17 teams per cell and counts such as effective species grow with the number of teams. It is measured on 200 random five-team subsets per cell; slot-matched distance and novelty use every kept team. It has no pass rule.</li>
+    <li><b>Remasking follow-up</b> (2026-10-31, results in <code>~/vgc-data/results/remask_random_order.json</code>): four remasking settings on random order, each at the same six asks and three seeds, 64 legal teams per cell at most 1,280 tries, the same battles. Its no-remasking row reuses the random-order cells above (one field per pass). Each setting is paired with no remasking by seed; a difference counts when it exceeds twice the larger seed standard deviation. Legal share there is the mean over seeds of legal ÷ tries. Code: <code>code/src/remask_random_order.py</code>; boards built by <code>build_remask_data.py</code> beside this page.</li>
+    <li><b>Lookahead follow-up</b> (2026-10-31, results in <code>~/vgc-data/results/lookahead_legality.json</code>): three orders with the lookahead on, each at the same six asks and three seeds, 64 legal teams per cell at most 1,280 tries, the same battles. The rows without the lookahead reuse the decoding-order cells above. Each order with the lookahead is paired by seed with the same order without it and with species-first order; a difference counts when it exceeds twice the larger seed standard deviation. Showdown's rejection reasons were logged as the 8 most common per cell, so they cover most rejections but not all. Code: <code>code/src/lookahead_legality.py</code>; the sampler's <code>lookahead=True</code> option in <code>code/src/discrete_diffusion_model.py</code>; boards built by <code>build_lookahead_data.py</code> beside this page.</li>
+    <li><b>Code:</b> <code>code/src/decoding_order.py</code>, <code>code/src/decoding_order_diversity.py</code>; sampler in <code>code/src/discrete_diffusion_model.py</code>.</li>
+  </ul>
+</details>
+<details class="more">
+  <summary>All numbers as a table</summary>
+  <div class="tablewrap"><table class="all" id="allTable"></table></div>
+  <p>Remasking follow-up, all on random order except the species-first column:</p>
+  <div class="tablewrap"><table class="all" id="rTable"></table></div>
+  <p>Lookahead follow-up, each order without and with the lookahead:</p>
+  <div class="tablewrap"><table class="all" id="laTable"></table></div>
+</details>
+</article></main>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const D = /*DATA*/null;
+const O = D.orders, BY = Object.fromEntries(O.map(o => [o.key, o])), SP = BY.species;
+const COL = k => `var(--o-${k})`;
+const SHORT = {species: "Species-first", pokemon: "Pokémon-by-Pokémon", random1: "Random, 1 per pass", random2: "Random, 2 per pass", confidence: "Confidence"};
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const NAME = id => !id ? "no item" : (D.names[id] || id.replace(/^./, c => c.toUpperCase()));
+const FIELD_HEAD = ["Species", "Ability", "Item", "Move 1", "Move 2", "Move 3", "Move 4", "Stat Alignment"];
+const FIELD_WORD = ["species", "ability", "item", "first move", "second move", "third move", "fourth move", "Stat Alignment"];
+const f3 = x => x.toFixed(3), sgn = (x, d = 3) => (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(d);
+const pct = (x, d = 0) => (100 * x).toFixed(d) + "%";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
+const sprite = (s, cls = "px") => D.sprites[s] ? `<img class="${cls}" alt="${esc(NAME(s))}" title="${esc(NAME(s))}" src="${D.sprites[s]}">` : `<i class="nosprite ${cls}" title="${esc(NAME(s))}">${esc(s.slice(0, 4))}</i>`;
+const itemIcon = (i, cls) => i && D.items[i] ? `<img class="px ${cls}" alt="${esc(NAME(i))}" title="${esc(NAME(i))}" src="${D.items[i]}">` : "";
+const beyond = v => Math.abs(v.diff) > v.noise;
+const ns = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, parent) { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+/* tooltip */
+const tip = document.getElementById("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.classList.add("on"); const r = tip.getBoundingClientRect();
+  tip.style.left = Math.min(e.clientX + 12, innerWidth - r.width - 8) + "px"; tip.style.top = Math.max(8, e.clientY - r.height - 10) + "px"; }
+function hideTip() { tip.classList.remove("on"); }
+function hover(node, html) { node.addEventListener("pointermove", e => showTip(e, html)); node.addEventListener("pointerleave", hideTip); }
+
+/* Figure 1: at a glance */
+(function glance() {
+  const g = document.getElementById("glance");
+  const cols = [
+    {lab: "Drawn teams that Showdown accepted", lo: 0, hi: 1.25, val: o => o.legal_teams / o.tried, seeds: () => [], fmt: x => x < .1 ? pct(x, 1) : pct(x), bar: true},
+    {lab: "Win rate vs top-50 meta", lo: .28, hi: .42, val: o => o.win.mean, seeds: o => o.win.seeds, fmt: f3},
+    {lab: "Variety: effective species in 5 teams", lo: 9, hi: 17, val: o => o.diversity.effective_species.mean, seeds: o => o.diversity.effective_species.seeds, fmt: x => x.toFixed(1)}];
+  const X = (c, v) => 100 * (v - c.lo) / (c.hi - c.lo);
+  let h = `<div class="hd top"></div>` + cols.map(c => `<div class="hd top">${c.lab}${c.bar ? "" : `<span><b>${c.lo}</b><b>${c.hi}</b></span>`}</div>`).join("");
+  for (const o of O) {
+    h += `<div class="nm"><span class="sw" style="background:${COL(o.key)}"></span>${o.name}</div>`;
+    for (const c of cols) {
+      const v = c.val(o), x = Math.max(0, Math.min(100, X(c, v))), ref = X(c, c.val(SP));
+      let inner = c.bar ? `<div class="gl-bar" style="width:${Math.max(x, .6)}%;background:${COL(o.key)}"></div>`
+        : c.seeds(o).map(s => `<div class="gl-dot" style="left:${X(c, s)}%;background:${COL(o.key)}"></div>`).join("") + `<div class="gl-mean" style="left:${x}%;background:${COL(o.key)}"></div>`;
+      const lx = c.bar ? Math.max(x, .6) + 1.5 : x;
+      const lab = c.bar ? `<div class="gl-val" style="left:${lx}%;top:5px">${c.fmt(v)}</div>` : `<div class="gl-val" style="left:${x}%;transform:translate(${x > 70 ? "-110%" : "10px"},-2px)">${c.fmt(v)}</div>`;
+      h += `<div class="cell" data-lab="${c.lab}"><div class="gl-strip">${c.bar ? "" : `<div class="gl-ref" style="left:${ref}%"></div>`}${inner}${lab}</div></div>`;
+    }
+  }
+  g.innerHTML = h;
+})();
+
+/* Figure 2: the fill board */
+const board = document.getElementById("board"), range = document.getElementById("passRange");
+const st = {key: "species", pass: 0, timer: null, lastPass: -1};
+(function buildBoard() {
+  let h = `<div class="bh"></div>` + FIELD_HEAD.map(f => `<div class="bh">${f}</div>`).join("");
+  for (let s = 0; s < 6; s++) { h += `<div class="who"><span>Pokémon&nbsp;</span>${s + 1}</div>`; for (let j = 0; j < 8; j++) h += `<div class="bc" id="bc${s * 8 + j}"></div>`; }
+  board.innerHTML = h;
+  const pick = document.getElementById("ordPick");
+  for (const o of O) { const b = document.createElement("button"); b.className = "ord"; b.dataset.k = o.key; b.textContent = o.name;
+    b.setAttribute("aria-pressed", o.key === st.key); b.onclick = () => { stop(); st.key = o.key; st.pass = 0; st.lastPass = -1;
+      pick.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === o.key)); drawBoard(); }; pick.appendChild(b); }
+})();
+function cellHTML(c, v) {
+  const j = c % 8;
+  if (j === 0) return sprite(v) + `<span class="v t">${esc(NAME(v))}</span>`;
+  if (j === 2) return itemIcon(v, "it") + `<span class="v t">${esc(NAME(v))}</span>`;
+  return `<span class="v">${esc(NAME(v))}</span>`;
+}
+function drawBoard() {
+  const o = BY[st.key], t = o.trace, total = t.passes.length;
+  range.max = total; range.value = st.pass;
+  document.getElementById("passLab").textContent = `${st.pass} / ${total}`;
+  const filled = new Set(t.passes.slice(0, st.pass).flat()), just = new Set(st.pass ? t.passes[st.pass - 1] : []);
+  const forward = st.pass === st.lastPass + 1;
+  for (let c = 0; c < 48; c++) {
+    const n = document.getElementById("bc" + c), on = filled.has(c);
+    n.style.setProperty("--cur", COL(o.key));
+    n.className = "bc" + (on ? " filled" : "") + (just.has(c) ? " just" : "") + (on && just.has(c) && forward ? " fresh" : "") + (on && t.dead.includes(c) ? " dead" : "");
+    n.innerHTML = on ? cellHTML(c, t.values[c]) + (t.dead.includes(c) ? `<span class="bad" title="dead end">!</span>` : "") : `<span class="mask">[MASK]</span>`;
+  }
+  st.lastPass = st.pass;
+  const words = [...just].sort((a, b) => a - b).map(c => `Pokémon ${Math.floor(c / 8) + 1}'s ${FIELD_WORD[c % 8]}`);
+  const dead = [...just].filter(c => t.dead.includes(c));
+  let s = st.pass === 0 ? `A blank team: all 48 fields masked. ${o.name} order takes ${total} passes${total < 48 ? ", two fields per pass" : ""}.`
+    : `Pass ${st.pass}: filled ${words.join(" and ")}.`;
+  if (dead.length) s += ` <b style="color:var(--bad)">Dead end:</b> no ${FIELD_WORD[dead[0] % 8]} was legal with the fields already filled, so any value was allowed (${esc(NAME(t.values[dead[0]]))}).`;
+  document.getElementById("status").innerHTML = s;
+  const vd = document.getElementById("verdict");
+  if (st.pass === total) {
+    vd.className = "verdict " + (t.legal ? "ok" : "no");
+    vd.innerHTML = t.legal ? `Showdown's validator accepted this team.` :
+      `Showdown's validator rejected this team (${t.dead.length} dead ends): <i>${esc(t.verdict.split(";").slice(0, 3).join(";"))}…</i>`;
+  } else { vd.className = ""; vd.innerHTML = ""; }
+  document.getElementById("bPrev").disabled = document.getElementById("bStart").disabled = st.pass === 0;
+  document.getElementById("bNext").disabled = st.pass === total;
+  document.getElementById("bPlay").textContent = st.timer ? "❚❚ Pause" : (st.pass === total ? "↺ Replay" : "▶ Play");
+}
+function stop() { if (st.timer) { clearInterval(st.timer); st.timer = null; } }
+function play() {
+  const total = BY[st.key].trace.passes.length;
+  if (st.timer) { stop(); drawBoard(); return; }
+  if (st.pass === total) { st.pass = 0; st.lastPass = -1; }
+  if (REDUCE) { st.pass = total; drawBoard(); return; }
+  st.timer = setInterval(() => { st.pass++; if (st.pass >= total) { st.pass = total; stop(); } drawBoard(); }, total < 48 ? 320 : 180);
+  drawBoard();
+}
+document.getElementById("bPlay").onclick = play;
+document.getElementById("bStart").onclick = () => { stop(); st.pass = 0; st.lastPass = -1; drawBoard(); };
+document.getElementById("bPrev").onclick = () => { stop(); st.pass = Math.max(0, st.pass - 1); drawBoard(); };
+document.getElementById("bNext").onclick = () => { stop(); st.pass = Math.min(BY[st.key].trace.passes.length, st.pass + 1); drawBoard(); };
+range.oninput = () => { stop(); st.pass = +range.value; drawBoard(); };
+(function fromURL() {                              // ?order=random1&pass=30 opens the board at that state
+  const q = new URLSearchParams(location.search), k = q.get("order");
+  if (BY[k]) { st.key = k; document.querySelectorAll("#ordPick button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === k)); }
+  const n = +q.get("pass"); if (n > 0) { st.pass = Math.min(n, BY[st.key].trace.passes.length); st.lastPass = st.pass; }
+})();
+drawBoard();
+
+/* Figure 3: legal tries per 1,000 */
+(function tries() {
+  const box = document.getElementById("tries");
+  const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const css = getComputedStyle(document.documentElement);
+  O.forEach((o, i) => {
+    const per = Math.round(1000 * o.legal_teams / o.tried);
+    const d = document.createElement("div"); d.className = "t";
+    d.innerHTML = `<h3><span class="sw" style="background:${COL(o.key)}"></span>${o.name}</h3><canvas width="400" height="250" aria-label="${per} of 1,000 tries legal"></canvas>
+      <div class="c"><b>${per.toLocaleString()}</b> per 1,000 · ${o.legal_teams.toLocaleString()} of ${o.tried.toLocaleString()} tries${o.capped ? ` · ${o.capped} of 18 cells capped` : ""}</div>`;
+    box.appendChild(d);
+    const cv = d.querySelector("canvas"), ctx = cv.getContext("2d"), r = rng(17 + i);
+    const idx = [...Array(1000).keys()]; for (let k = 999; k > 0; k--) { const m = Math.floor(r() * (k + 1)); [idx[k], idx[m]] = [idx[m], idx[k]]; }
+    const lit = new Set(idx.slice(0, per)), on = css.getPropertyValue(`--o-${o.key}`).trim(), off = css.getPropertyValue("--rule").trim();
+    for (let k = 0; k < 1000; k++) { const x = k % 40, y = Math.floor(k / 40); ctx.fillStyle = lit.has(k) ? on : off; ctx.beginPath(); ctx.arc(5 + x * 10, 5 + y * 10, lit.has(k) ? 4 : 3, 0, 7); ctx.fill(); }
+  });
+})();
+
+/* dead-end walk-through: the first random-order Pokémon whose species was a dead end */
+(function deadWalk() {
+  const t = BY.random1.trace, order = t.passes.flat();
+  const slot = [0, 1, 2, 3, 4, 5].find(s => t.dead.includes(s * 8)) ?? 0, sc = slot * 8;
+  const mine = order.filter(c => Math.floor(c / 8) === slot), before = mine.slice(0, mine.indexOf(sc));
+  const row = document.getElementById("deadRow");
+  row.innerHTML = mine.slice(0, mine.indexOf(sc) + 1).map((c, i) => `${i ? `<span class="arrow">→</span>` : ""}<div class="step${c === sc ? " x" : ""}"><small>pass ${order.indexOf(c) + 1} · ${FIELD_WORD[c % 8]}</small>${c % 8 === 0 ? sprite(t.values[c]) + " " : c % 8 === 2 ? itemIcon(t.values[c], "it") + " " : ""}${esc(NAME(t.values[c]))}</div>`).join("");
+  const reason = t.verdict.split(";").map(s => s.trim()).filter(s => s.startsWith(NAME(t.values[sc]))).slice(0, 2).join(" ");
+  document.getElementById("deadText").innerHTML = `By the time Pokémon ${slot + 1}'s species came up, ${before.length} of its fields were already filled. No species was legal alongside all of them, so the sampler allowed every species and drew ${esc(NAME(t.values[sc]))}. Showdown's validator then said: <i>${esc(reason || t.verdict.split(";")[0])}</i>`;
+})();
+
+/* Figure 4: win rate */
+(function win() {
+  const svg = document.getElementById("winChart");
+  const W = 760, rowH = 52, top = 30, left = 210, right = 150, H = top + rowH * O.length + 30, lo = .27, hi = .42;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", "100%");
+  const X = v => left + (W - left - right) * (v - lo) / (hi - lo);
+  for (let v = .28; v <= .42001; v += .02) { el("line", {x1: X(v), x2: X(v), y1: top - 8, y2: H - 26, stroke: "var(--rule)"}, svg); el("text", {x: X(v), y: H - 8, "text-anchor": "middle"}, svg).textContent = v.toFixed(2); }
+  el("text", {x: left, y: 14}, svg).textContent = "Win rate against the top-50 meta teams";
+  el("line", {x1: X(SP.win.mean), x2: X(SP.win.mean), y1: top - 8, y2: H - 26, stroke: "var(--faint)", "stroke-dasharray": "4 3"}, svg);
+  O.forEach((o, i) => {
+    const y = top + rowH * i + rowH / 2;
+    el("text", {x: left - 14, y: y + 4, "text-anchor": "end", style: "fill:var(--fg);font-weight:600"}, svg).textContent = o.name;
+    el("rect", {x: X(o.win.mean) - 1.5, y: y - 12, width: 3, height: 24, rx: 1.5, fill: COL(o.key)}, svg);
+    o.win.seeds.forEach((s, k) => { const c = el("circle", {cx: X(s), cy: y, r: 6, fill: COL(o.key), stroke: "var(--bg)", "stroke-width": 2, "fill-opacity": .75}, svg);
+      hover(c, `${o.name}, seed ${D.seeds[k]}: win rate ${f3(s)}`); });
+    const diff = o.vs ? ` (${sgn(o.vs.win.diff)}${beyond(o.vs.win) ? "" : ", within noise"})` : " (reference)";
+    el("text", {x: W - right + 10, y: y + 4, style: "fill:var(--fg)", class: "num"}, svg).textContent = `${f3(o.win.mean)} ± ${f3(o.win.sd)}`;
+    el("text", {x: W - right + 10, y: y + 19, style: "font-size:11px"}, svg).textContent = diff.trim();
+  });
+  const others = O.filter(o => o.vs), lo2 = Math.min(...others.map(o => o.vs.win.diff)), hi2 = Math.max(...others.map(o => o.vs.win.diff));
+  document.getElementById("winText").innerHTML = `Species-first order won ${f3(SP.win.mean)} of its battles. Every other order lost between ${Math.abs(hi2).toFixed(3)} and ${Math.abs(lo2).toFixed(3)} of win rate against it, every difference beyond the noise bound, and all three seeds agreed in sign each time. The surprise is <b>Pokémon-by-Pokémon order</b>: it makes legal teams just as reliably, just as varied, and still wins ${Math.abs(BY.pokemon.vs.win.diff).toFixed(3)} less. On an earlier, smaller model sampled at temperature 0.5, filling one Pokémon at a time had raised win rate by 0.12 at matched variety (2026-10-26); on the deployed model at temperature 1 it lowers it.`;
+})();
+
+/* Figure 5: trade */
+(function trade() {
+  const svg = document.getElementById("tradeChart"), W = 760, H = 380, m = {l: 60, r: 30, t: 20, b: 46};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", "100%");
+  const xlo = 9, xhi = 17.5, ylo = .28, yhi = .42;
+  const X = v => m.l + (W - m.l - m.r) * (v - xlo) / (xhi - xlo), Y = v => H - m.b - (H - m.t - m.b) * (v - ylo) / (yhi - ylo);
+  for (let v = 9; v <= 17; v += 2) { el("line", {x1: X(v), x2: X(v), y1: m.t, y2: H - m.b, stroke: "var(--rule)"}, svg); el("text", {x: X(v), y: H - m.b + 18, "text-anchor": "middle"}, svg).textContent = v; }
+  for (let v = .28; v <= .42001; v += .02) { el("line", {x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: "var(--rule)"}, svg); el("text", {x: m.l - 8, y: Y(v) + 4, "text-anchor": "end"}, svg).textContent = v.toFixed(2); }
+  el("text", {x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle"}, svg).textContent = "Variety: effective species in five teams →";
+  el("text", {x: 14, y: (m.t + H - m.b) / 2, "text-anchor": "middle", transform: `rotate(-90 14 ${(m.t + H - m.b) / 2})`}, svg).textContent = "Win rate →";
+  const place = {species: [10, -12, "start"], pokemon: [10, 28, "start"], random1: [-10, 22, "end"], random2: [-10, 26, "end"], confidence: [10, -12, "start"]};
+  for (const o of O) {
+    const dv = o.diversity.effective_species, x = X(dv.mean), y = Y(o.win.mean);
+    el("line", {x1: X(dv.mean - dv.sd), x2: X(dv.mean + dv.sd), y1: y, y2: y, stroke: COL(o.key), "stroke-width": 2}, svg);
+    el("line", {x1: x, x2: x, y1: Y(o.win.mean - o.win.sd), y2: Y(o.win.mean + o.win.sd), stroke: COL(o.key), "stroke-width": 2}, svg);
+    const c = el("circle", {cx: x, cy: y, r: 8, fill: COL(o.key), stroke: "var(--bg)", "stroke-width": 2}, svg);
+    hover(c, `<b>${o.name}</b><br>win rate ${f3(o.win.mean)} ± ${f3(o.win.sd)}<br>effective species ${dv.mean.toFixed(1)} ± ${dv.sd.toFixed(1)}<br>legal ${pct(o.legal_teams / o.tried, 1)} of tries`);
+    const [dx, dy, a] = place[o.key];
+    const t = el("text", {x: x + dx, y: y + dy, "text-anchor": a, style: "fill:var(--fg);font-weight:600"}, svg); t.textContent = o.name;
+    el("tspan", {style: "font-weight:400;fill:var(--muted)"}, t).textContent = ` · ${pct(o.legal_teams / o.tried, o.legal_teams / o.tried < .1 ? 1 : 0)} legal`;
+  }
+  const ex = document.getElementById("examples");
+  ex.innerHTML = O.map(o => `<div><span class="sw" style="background:${COL(o.key)}"></span><b>${o.name}</b></div><div class="tm-row">` +
+    o.examples.map(t => `<div class="tm">${t.map(p => `<span class="p">${sprite(p.species, "px s")}${itemIcon(p.item, "i")}</span>`).join("")}</div>`).join("") + `</div>`).join("");
+  const C = BY.confidence;
+  document.getElementById("tradeText").innerHTML = `<b>Confidence order</b> is the interesting case. Its teams hold ${sgn(C.vs.effective_species.diff, 1)} effective species, sit ${sgn(C.vs.mean_distance.diff, 1)} fields further apart (out of 48, with Pokémon paired up to make the distance smallest) and include ${sgn(100 * C.vs.new_lineups.diff, 0)} points more line-ups (a line-up is a team's six species) never seen in training, all beyond noise. But it loses ${Math.abs(C.vs.win.diff).toFixed(3)} of win rate, and ${pct(1 - C.legal_teams / C.tried)} of its tries (${(C.tried - C.legal_teams).toLocaleString()} of ${C.tried.toLocaleString()}) fail the validator. Every order on this chart that is more varied than species-first is also weaker. The diversity methods tried in the search loop on 2026-10-08 ran into the same trade: every method that widened the teams also lowered win rate.`;
+})();
+
+/* Figure 6: ask response */
+(function ask() {
+  const svg = document.getElementById("askChart"), W = 760, H = 400, m = {l: 60, r: 190, t: 16, b: 46};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", "100%");
+  const keys = D.asks.map(a => a.toFixed(4)), onGrid = a => Math.abs(a * 24 - Math.round(a * 24)) < 1e-9;
+  const xlo = .27, xhi = .56, ylo = .2, yhi = .56;
+  const X = v => m.l + (W - m.l - m.r) * (v - xlo) / (xhi - xlo), Y = v => H - m.b - (H - m.t - m.b) * (v - ylo) / (yhi - ylo);
+  for (let v = .3; v <= .5501; v += .05) { el("line", {x1: X(v), x2: X(v), y1: m.t, y2: H - m.b, stroke: "var(--rule)"}, svg); el("text", {x: X(v), y: H - m.b + 18, "text-anchor": "middle"}, svg).textContent = v.toFixed(2); }
+  for (let v = .2; v <= .5501; v += .05) { el("line", {x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: "var(--rule)"}, svg); el("text", {x: m.l - 8, y: Y(v) + 4, "text-anchor": "end"}, svg).textContent = v.toFixed(2); }
+  el("line", {x1: X(.27), y1: Y(.27), x2: X(.555), y2: Y(.555), stroke: "var(--faint)", "stroke-dasharray": "5 4"}, svg);
+  el("text", {x: X(.5) - 4, y: Y(.52) - 6, "text-anchor": "end", style: "font-size:11px"}, svg).textContent = "achieved = asked";
+  el("text", {x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle"}, svg).textContent = "Asked win rate →";
+  el("text", {x: 14, y: (m.t + H - m.b) / 2, "text-anchor": "middle", transform: `rotate(-90 14 ${(m.t + H - m.b) / 2})`}, svg).textContent = "Achieved win rate →";
+  const groups = {};
+  const ends = O.map(o => ({o, y: Y(o.win_by_ask[keys[keys.length - 1]].mean)})).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) ends[i].y = Math.max(ends[i].y, ends[i - 1].y + 15);
+  for (const o of O) {
+    const g = groups[o.key] = el("g", {}, svg);
+    el("polyline", {points: D.asks.map((a, i) => `${X(a)},${Y(o.win_by_ask[keys[i]].mean)}`).join(" "), fill: "none", stroke: COL(o.key), "stroke-width": 2}, g);
+    D.asks.forEach((a, i) => { const v = o.win_by_ask[keys[i]];
+      const c = el("circle", {cx: X(a), cy: Y(v.mean), r: 5, fill: onGrid(a) ? COL(o.key) : "var(--bg)", stroke: COL(o.key), "stroke-width": 2}, g);
+      hover(c, `<b>${o.name}</b>, ask ${a.toFixed(3)}${onGrid(a) ? "" : " (between grid steps)"}<br>achieved ${f3(v.mean)} ± ${f3(v.sd)}`); });
+    const e = ends.find(z => z.o === o);
+    el("text", {x: X(D.asks[D.asks.length - 1]) + 10, y: e.y + 4, style: `fill:var(--fg);font-size:11.5px`}, g).textContent = `${SHORT[o.key]} · slope ${o.ask_slope.mean.toFixed(2)}`;
+  }
+  const leg = document.getElementById("askLegend"); let hl = null;
+  for (const o of O) { const b = document.createElement("button"); b.dataset.k = o.key; b.setAttribute("aria-pressed", "false");
+    b.innerHTML = `<span class="sw" style="background:${COL(o.key)}"></span>${o.name}`;
+    b.onclick = () => { hl = hl === o.key ? null : o.key; for (const k in groups) groups[k].style.opacity = !hl || hl === k ? 1 : .15;
+      leg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === hl)); };
+    leg.appendChild(b); }
+  const sl = o => `${o.ask_slope.mean.toFixed(2)} ± ${o.ask_slope.sd.toFixed(2)}`;
+  const rng = o => { const k = D.cellKept[o.key]; return `${Math.min(...k)} to ${Math.max(...k)}`; };
+  const gd = O.filter(o => o.vs).map(o => o.vs.gap.diff), gapRange = `${Math.min(...gd).toFixed(3)} to ${Math.max(...gd).toFixed(3)}`;
+  document.getElementById("askText").innerHTML = `A slope of 1 would mean the model follows the ask exactly. Species-first order's slope is ${sl(SP)}: asking for 0.1 more win rate buys about ${(SP.ask_slope.mean / 10).toFixed(3)}. No order raised it beyond noise: confidence ${sl(BY.confidence)}, random with one field per pass ${sl(BY.random1)} (its seeds disagree widely, probably because each cell kept only ${rng(BY.random1)} teams). Pokémon-by-Pokémon order lowered it beyond noise, to ${sl(BY.pokemon)}. Every alternative also landed further from the ask: the mean distance between asked and achieved win rate grew by ${gapRange} against species-first's ${f3(SP.gap.mean)}, all beyond noise. Every order dips at the two between-grid asks, 0.3 and 0.531; <a href="../ask-frequencies/index.html">Asking for more, getting less</a> shows why. Changing the decoding order did not close the gap; it only widened it.`;
+})();
+
+/* predictions */
+(function pred() {
+  const P = BY.pokemon, R = BY.random1, R2 = BY.random2, C = BY.confidence;
+  const items = [
+    [false, "Pokémon-by-Pokémon order would raise win rate, as it did on an earlier model.", `It lowered it by ${Math.abs(P.vs.win.diff).toFixed(3)} (noise bound ${P.vs.win.noise.toFixed(3)}), with the same legality and variety.`],
+    [true, "Random orders would cost legality, because moves drawn before their species aren't yet held to a movepool.", `Far more than expected: ${pct(R.legal_teams / R.tried, 1)} and ${pct(R2.legal_teams / R2.tried, 1)} of tries were legal, against 100% for species-first.`],
+    [false, "Confidence order would behave like remasking (masking some filled fields again so a later pass redraws them) and pull teams toward common choices, cutting variety.", `It raised variety: ${sgn(C.vs.effective_species.diff, 1)} effective species in five teams, and ${sgn(100 * C.vs.new_lineups.diff, 0)} points more new line-ups.`],
+    [false, "No order would change the ask response much, because the response is already squashed at the first species pick.", `None raised the slope, but Pokémon-by-Pokémon order lowered it beyond noise (${BY.pokemon.ask_slope.mean.toFixed(2)} against ${SP.ask_slope.mean.toFixed(2)}), and every alternative landed further from the ask. The reason in the prediction was never tested.`]];
+  document.getElementById("pred").innerHTML = items.map(([ok, p, r]) => `<li><span class="mk ${ok ? "y" : "n"}" aria-label="${ok ? "right" : "wrong"}">${ok ? "✓" : "✗"}</span><div>${p}<small>${r}</small></div></li>`).join("");
+})();
+
+
+/* table view */
+(function table() {
+  const rows = [["Legal tries", o => pct(o.legal_teams / o.tried, 1)], ["Win rate", o => `${f3(o.win.mean)} ± ${f3(o.win.sd)}`],
+    ["Win rate vs species-first", o => o.vs ? sgn(o.vs.win.diff) + (beyond(o.vs.win) ? "" : " (noise)") : "—"],
+    ["Ask slope", o => `${o.ask_slope.mean.toFixed(2)} ± ${o.ask_slope.sd.toFixed(2)}`], ["Mean |ask − achieved|", o => f3(o.gap.mean)],
+    ["Effective species, 5 teams", o => `${o.diversity.effective_species.mean.toFixed(1)} ± ${o.diversity.effective_species.sd.toFixed(1)}`],
+    ["Distinct line-ups, 5 teams", o => o.diversity.distinct_lineups.mean.toFixed(2)], ["Teams with the top species, 5 teams", o => pct(o.diversity.top_species_share.mean)],
+    ["Fields apart (of 48)", o => o.diversity.mean_distance.mean.toFixed(1)], ["New line-ups", o => pct(o.diversity.new_lineups.mean)],
+    ["Species from nearest training line-up", o => o.diversity.lineup_distance.mean.toFixed(2)], ["Copies of training teams", o => pct(o.diversity.copies.mean)],
+    ["Teams kept", o => o.kept.toLocaleString()], ["Tries", o => o.tried.toLocaleString()], ["Seconds per legal team", o => (o.seconds / o.kept).toFixed(2)]];
+  document.getElementById("allTable").innerHTML = `<thead><tr><th>Measure</th>${O.map(o => `<th class="n">${o.name}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(([lab, f]) => `<tr><th scope="row">${lab}</th>${O.map(o => `<td class="n">${f(o)}</td>`).join("")}</tr>`).join("") + `</tbody>`;
+})();
+
+/* Remasking follow-up (remask.json): every arm uses random order, one new field per pass */
+const R = D.remask, RA = R.arms, RBY = Object.fromEntries(RA.map(a => [a.key, a])), RC = RBY.control, RS = R.species;
+const REM = RA.filter(a => a.key !== "control"), RND = REM.filter(a => a.key.startsWith("random")), LL = RBY.lowest10;
+const RCOL = a => a.key === "control" ? COL("random1") : "var(--accent)";
+const NCELLS = R.asks.length * R.seeds.length;
+const span = (xs, f) => [Math.min(...xs.map(f)), Math.max(...xs.map(f))];
+const listJoin = xs => xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1];
+const fieldName = c => `Pokémon ${Math.floor(c / 8) + 1}'s ${FIELD_WORD[c % 8]}`;
+const clashWords = cs => { const by = {}; [...cs].sort((a, b) => a - b).forEach(c => (by[Math.floor(c / 8)] ??= []).push(FIELD_WORD[c % 8]));
+  return Object.entries(by).map(([s, ws]) => `Pokémon ${+s + 1}'s ${listJoin(ws)}`).join("; "); };
+const RESCUED = REM.filter(a => a.rescues), BESTL = REM.reduce((a, b) => (b.legal.mean > a.legal.mean ? b : a));
+if (RESCUED.length) console.error("The remasking heading says remasking did not rescue random order, but the data says one setting did.");
+
+/* Figure 7: a remasking board */
+const RB = R.boards, rBoard = document.getElementById("rBoard"), rRange = document.getElementById("rRange"), rStrip = document.getElementById("rStrip");
+const rb = {key: RB.repaired ? "repaired" : "rejected", pass: 0, timer: null, last: -1};
+(function buildRBoard() {
+  let h = `<div class="bh"></div>` + FIELD_HEAD.map(f => `<div class="bh">${f}</div>`).join("");
+  for (let s = 0; s < 6; s++) { h += `<div class="who"><span>Pokémon&nbsp;</span>${s + 1}</div>`; for (let j = 0; j < 8; j++) h += `<div class="bc" id="rc${s * 8 + j}"></div>`; }
+  rBoard.innerHTML = h;
+  const pick = document.getElementById("rPick"), lab = {repaired: "Repaired: Showdown accepted it", rejected: "Not repaired: Showdown rejected it"};
+  for (const k of ["repaired", "rejected"]) { if (!RB[k]) continue;
+    const b = document.createElement("button"); b.className = "ord"; b.dataset.k = k; b.textContent = lab[k]; b.setAttribute("aria-pressed", k === rb.key);
+    b.onclick = () => { rStop(); rb.key = k; rb.pass = 0; rb.last = -1; pick.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === k)); drawR(); };
+    pick.appendChild(b); }
+})();
+function drawStrip() {
+  const P = RB[rb.key].passes, n = P.length, W = 760, top = 6, base = 42, H = 58, cw = W / n, mx = Math.max(1, ...P.map(p => p.clash.length));
+  let h = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Clashing fields after each of the ${n} passes">`;
+  P.forEach((p, i) => { const bh = Math.max(3, (base - top) * p.clash.length / mx);
+    h += `<rect data-i="${i}" x="${i * cw}" y="${top}" width="${cw}" height="${base - top + 14}" fill="transparent"/>`;
+    if (p.clash.length) h += `<rect x="${i * cw + 1.5}" y="${base - bh}" width="${cw - 3}" height="${bh}" rx="2" fill="var(--bad)" pointer-events="none"/>`;
+    if (p.undone) h += `<circle cx="${i * cw + cw / 2}" cy="${base + 7}" r="3" fill="var(--accent)" pointer-events="none"/>`; });
+  h += `<line x1="0" x2="${W}" y1="${base}" y2="${base}" stroke="var(--rule)" pointer-events="none"/>`;
+  if (rb.pass) h += `<rect x="${(rb.pass - 1) * cw + .75}" y="${top - 3}" width="${cw - 1.5}" height="${base - top + 16}" fill="none" stroke="var(--fg)" stroke-width="1.5" rx="2" pointer-events="none"/>`;
+  rStrip.innerHTML = h + `</svg>`;
+  rStrip.querySelectorAll("rect[data-i]").forEach(r => { const i = +r.dataset.i, p = P[i];
+    hover(r, `Pass ${i + 1}: ${p.clash.length} clashing field${p.clash.length === 1 ? "" : "s"}${p.undone ? "; redraws undone" : ""}`);
+    r.addEventListener("click", () => { rStop(); rb.pass = i + 1; rb.last = rb.pass; drawR(); }); });
+}
+function drawR() {
+  const t = RB[rb.key], P = t.passes, n = P.length, k = rb.pass, cur = k ? P[k - 1] : null, prev = k > 1 ? P[k - 2] : null;
+  rRange.max = n; rRange.value = k; document.getElementById("rPassLab").textContent = `${k} / ${n}`;
+  const vals = cur ? cur.values : Array(48).fill(""), clash = new Set(cur ? cur.clash : []), fresh = new Set(cur ? cur.new : []), redo = new Set(cur ? cur.redo : []);
+  const forward = k === rb.last + 1;
+  for (let c = 0; c < 48; c++) {
+    const n_ = document.getElementById("rc" + c), v = vals[c], on = !!v, was = cur ? cur.was[c] : undefined, changed = redo.has(c) && was && was !== v;
+    n_.style.setProperty("--cur", COL("random1"));
+    n_.className = "bc" + (on ? " filled" : "") + (fresh.has(c) ? " just" : "") + (on && fresh.has(c) && forward ? " fresh" : "") + (redo.has(c) ? " redo" : "") + (clash.has(c) ? " dead" : "");
+    n_.innerHTML = on ? cellHTML(c, v) + (changed ? `<span class="was">${esc(NAME(was))}</span>` : "") + (redo.has(c) ? `<span class="rd" title="masked again and redrawn">↻</span>` : "")
+      + (clash.has(c) ? `<span class="bad" title="clash">!</span>` : "") : `<span class="mask">[MASK]</span>`;
+  }
+  rb.last = k;
+  let s;
+  if (!k) s = `A blank team: all 48 fields masked. Random order fills one new field per pass; before every pass after the first, 20% of the filled fields are masked again and redrawn.`;
+  else {
+    s = `Pass ${k}: filled ${listJoin(cur.new.map(fieldName))}.`;
+    const m = cur.redo.length, ch = cur.redo.filter(c => cur.was[c] !== cur.values[c]);
+    if (m && cur.undone) s += ` Masked ${m} filled field${m > 1 ? "s" : ""} again, but the pass ran into a dead end, so it was undone: ${m > 1 ? "they" : "it"} kept the old value${m > 1 ? "s" : ""} and only the new field was drawn.`;
+    else if (m) s += ` Masked ${m} filled field${m > 1 ? "s" : ""} again and redrew ${m > 1 ? "them" : "it"}: ${ch.length ? ch.slice(0, 3).map(c => `${fieldName(c)} ${esc(NAME(cur.was[c]))} → ${esc(NAME(cur.values[c]))}`).join(", ") + (ch.length > 3 ? ` and ${ch.length - 3} more` : "") + (ch.length < m ? `; ${m - ch.length} came back the same` : "") : (m > 1 ? "every value came back the same" : "it came back the same")}.`;
+    if (clash.size) s += ` <b style="color:var(--bad)">Clash:</b> by the legality tables, these fields rule each other out: ${clashWords(clash)}.`;
+    else if (prev && prev.clash.length) s += ` <b style="color:var(--good)">Repaired:</b> every field fits the rest of its team again.`;
+  }
+  document.getElementById("rStatus").innerHTML = s;
+  const vd = document.getElementById("rVerdict");
+  if (k === n) { vd.className = "verdict " + (t.legal ? "ok" : "no");
+    vd.innerHTML = t.legal ? `Showdown's validator accepted this team.` : `Showdown's validator rejected this team: <i>${esc(t.verdict.split(";").slice(0, 3).join(";"))}…</i>`; }
+  else { vd.className = ""; vd.innerHTML = ""; }
+  document.getElementById("rPrev").disabled = document.getElementById("rStart").disabled = k === 0;
+  document.getElementById("rNext").disabled = k === n;
+  document.getElementById("rPlay").textContent = rb.timer ? "❚❚ Pause" : (k === n ? "↺ Replay" : "▶ Play");
+  drawStrip();
+}
+function rStop() { if (rb.timer) { clearInterval(rb.timer); rb.timer = null; } }
+document.getElementById("rPlay").onclick = () => {
+  const n = RB[rb.key].passes.length;
+  if (rb.timer) { rStop(); drawR(); return; }
+  if (rb.pass === n) { rb.pass = 0; rb.last = -1; }
+  if (REDUCE) { rb.pass = n; drawR(); return; }
+  rb.timer = setInterval(() => { rb.pass++; if (rb.pass >= n) { rb.pass = n; rStop(); } drawR(); }, 420);
+  drawR();
+};
+document.getElementById("rStart").onclick = () => { rStop(); rb.pass = 0; rb.last = -1; drawR(); };
+document.getElementById("rPrev").onclick = () => { rStop(); rb.pass = Math.max(0, rb.pass - 1); drawR(); };
+document.getElementById("rNext").onclick = () => { rStop(); rb.pass = Math.min(RB[rb.key].passes.length, rb.pass + 1); drawR(); };
+rRange.oninput = () => { rStop(); rb.pass = +rRange.value; drawR(); };
+(function fromURL() {                              // ?team=rejected&rpass=30 opens the remasking board at that state
+  const q = new URLSearchParams(location.search), k = q.get("team");
+  if (RB[k]) { rb.key = k; document.querySelectorAll("#rPick button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === k)); }
+  const n = +q.get("rpass"); if (n > 0) { rb.pass = Math.min(n, RB[rb.key].passes.length); rb.last = rb.pass; }
+})();
+drawR();
+document.getElementById("rCap").innerHTML = `<b>Figure 7. Remasking at work.</b> <span class="phone-only">Swipe the board sideways to see every field. </span>One team at ask 0.5, drawn with random 20% remasked (random order, 48 passes, guidance weight 2, temperature 1) and stepped pass by pass. Solid outline: the pass's new field. Dashed outline and ↻: masked again and redrawn on this pass; a struck-out value is the one the redraw replaced. Red border: a field the model's legality tables rule out given the rest of the team, a <b>clash</b>; a dead end on a pass's new field leaves one. The strip under the board counts clashing fields after each pass.${RB.repaired ? ` <b>Repaired</b> is draw ${RB.repaired.draw}, the first whose clashes were all gone by the last pass and that Showdown's validator accepted.` : ""}${RB.rejected ? ` <b>Not repaired</b> is draw ${RB.rejected.draw}, the first the validator rejected.` : ""} These boards illustrate remasking; no number on this page comes from them.`;
+(function boardText() {
+  const parts = [];
+  if (RB.repaired) {
+    const P = RB.repaired.passes, a = P.findIndex(p => p.clash.length), z = P.findIndex((p, i) => i > a && !p.clash.length);
+    if (a >= 0 && z > a) {
+      const fixed = P[z].redo.filter(c => P[z - 1].clash.includes(c) && P[z].was[c] !== P[z].values[c]);
+      parts.push(`In the repaired team, the first clash appears at pass ${a + 1}: ${clashWords(P[a].clash)}. It cleared at pass ${z + 1}${fixed.length ? `, when remasking redrew ${listJoin(fixed.map(c => `${fieldName(c)} (${esc(NAME(P[z].was[c]))} → ${esc(NAME(P[z].values[c]))})`))}` : ""}.`);
+    }
+  }
+  if (RB.rejected) {
+    const P = RB.rejected.passes, last = P[P.length - 1], undone = P.filter(p => p.undone).length;
+    if (last.clash.length) parts.push(`In the rejected team, a clash in ${clashWords(last.clash)} survived to the last pass; ${undone} of its ${P.length} passes had their redraws undone at a dead end.`);
+  }
+  document.getElementById("rBoardText").innerHTML = parts.join(" ");
+})();
+
+/* Figure 8: remasking on random order at a glance */
+(function rGlance() {
+  const g = document.getElementById("rGlance");
+  const cols = [
+    {lab: "Legal share of tries", lo: 0, hi: 1.25, val: a => a.legal.mean, fmt: x => pct(x, 1), bar: true, mark: R.rescue_floor, key: "legal"},
+    {lab: "Win rate vs top-50 meta", lo: .2, hi: .46, val: a => a.win.mean, seeds: a => a.win.seeds, ref: RS.win.mean, fmt: f3, key: "win"},
+    {lab: "Variety: effective species in 5 teams", lo: 9, hi: 21, val: a => a.effective_species.mean, seeds: a => a.effective_species.seeds, ref: RS.effective_species.mean, fmt: x => x.toFixed(1), key: "effective_species"}];
+  const X = (c, v) => 100 * (v - c.lo) / (c.hi - c.lo);
+  let h = `<div class="hd top"></div>` + cols.map(c => `<div class="hd top">${c.lab}${c.bar ? "" : `<span><b>${c.lo}</b><b>${c.hi}</b></span>`}</div>`).join("");
+  for (const a of RA) {
+    h += `<div class="nm"><span class="sw" style="background:${RCOL(a)}"></span>${a.name}</div>`;
+    for (const c of cols) {
+      const v = c.val(a), x = Math.max(0, Math.min(100, X(c, v)));
+      const d = a.vs_control[c.key], tip = `${a.name}: ${c.fmt(v)}${c.bar ? "" : ` ± ${c.fmt(a[c.key].sd)}`}${d ? `; ${c.bar ? sgn(100 * d.diff, 1) + " points" : sgn(d.diff, c.key === "win" ? 3 : 1)} against no remasking${beyond(d) ? "" : ", within noise"}` : ""}`;
+      const inner = c.bar ? `<div class="gl-bar" data-tip="${esc(tip)}" style="width:${Math.max(x, .6)}%;background:${RCOL(a)}"></div>`
+        : c.seeds(a).map(s => `<div class="gl-dot" style="left:${X(c, s)}%;background:${RCOL(a)}"></div>`).join("") + `<div class="gl-mean" data-tip="${esc(tip)}" style="left:${x}%;background:${RCOL(a)}"></div>`;
+      const lab = c.bar ? `<div class="gl-val" style="left:${Math.max(x, .6) + 1.5}%;top:5px">${c.fmt(v)}</div>` : `<div class="gl-val" style="left:${x}%;transform:translate(${x > 70 ? "-110%" : "10px"},-2px)">${c.fmt(v)}</div>`;
+      const guide = c.bar ? `<div class="gl-rescue" style="left:${X(c, c.mark)}%"></div>` : `<div class="gl-ref" style="left:${X(c, c.ref)}%"></div>`;
+      h += `<div class="cell" data-lab="${c.lab}"><div class="gl-strip">${guide}${inner}${lab}</div></div>`;
+    }
+  }
+  g.innerHTML = h;
+  g.querySelectorAll("[data-tip]").forEach(n => hover(n, n.dataset.tip));
+  const ex = id => id === "control" ? BY.random1.examples : RBY[id].examples;
+  document.getElementById("rExamples").innerHTML = RA.map(a => `<div><span class="sw" style="background:${RCOL(a)}"></span><b>${a.name}</b></div><div class="tm-row">` +
+    ex(a.key).map(t => `<div class="tm">${t.map(p => `<span class="p">${sprite(p.species, "px s")}${itemIcon(p.item, "i")}</span>`).join("")}</div>`).join("") + `</div>`).join("");
+  document.getElementById("rGlanceCap").innerHTML = `<b>Figure 8. Remasking on random order.</b> Every row uses random order: the 48-pass rows fill one new field per pass, the 96-pass row one every other pass. The rows differ in which filled fields are masked again before each pass, how many, and over how many passes. <b>Legal share of tries</b>: legal teams ÷ tries, the mean over three seeds; the dashed line at half is the rescue bar I set before the run. <b>Win rate</b> as in Figure 4; small dots are the three seeds, the big dot their mean. <b>Variety</b> as in Figure 1. Grey dashed lines: species-first order (win rate ${f3(RS.win.mean)}, ${RS.effective_species.mean.toFixed(1)} effective species). Below: six legal teams from each row at seed 1, nearest ask 0.5 first (no remasking pools every ask). Source: <code>~/vgc-data/results/remask_random_order.json</code>.`;
+})();
+
+(function rTexts() {
+  const allUp = REM.every(a => a.vs_control.legal.diff > 0 && beyond(a.vs_control.legal)), [lgLo, lgHi] = span(REM, a => a.legal.mean);
+  const sl = REM.map(a => a.vs_species.ask_slope), slAll = sl.every(v => v.diff < 0 && beyond(v)), [sLo, sHi] = span(REM, a => a.ask_slope.mean);
+  document.getElementById("rTextA").innerHTML = `${allUp ? "Every setting raised the legal share beyond noise" : "Not every setting raised the legal share beyond noise"}, from ${pct(RC.legal.mean, 1)} with no remasking to between ${pct(lgLo, 1)} and ${pct(lgHi, 1)}. ${RESCUED.length ? `${listJoin(RESCUED.map(a => `<b>${a.name}</b>`))} reached the rescue bar.` : `None reached half of tries, so by the rule I set, remasking did not rescue random order.`} The best setting, <b>${BESTL.name}</b>, made ${Math.round(1000 * BESTL.legal.mean)} legal teams per 1,000 tries; species-first order makes all 1,000. ${slAll ? `None followed the ask (the win rate I request) better, either: every setting's ask slope, the slope of achieved against asked win rate (1 would be an exact match; see Figure 6), fell below species-first order's beyond noise, to between ${sLo.toFixed(2)} and ${sHi.toFixed(2)} against ${RS.ask_slope.mean.toFixed(2)}.` : ""}`;
+  const dE = RND.map(a => a.vs_control.effective_species), dW = RND.map(a => a.vs_control.win);
+  const okE = dE.every(v => v.diff > 0 && beyond(v)), okW = dW.every(v => v.diff < 0 && beyond(v));
+  const most = RND.every(a => a.effective_species.mean > Math.max(...O.map(o => o.diversity.effective_species.mean), LL.effective_species.mean, RC.effective_species.mean))
+    && RND.every(a => a.win.mean < Math.min(...O.map(o => o.win.mean), LL.win.mean, RC.win.mean));
+  const lS = LL.vs_species.win, lC = LL.vs_control, top = LL.win.mean > Math.max(...O.map(o => o.win.mean), ...RND.map(a => a.win.mean), RC.win.mean);
+  const alike = lC.distinct_lineups.diff < 0 && lC.mean_distance.diff < 0, alikeB = beyond(lC.distinct_lineups) && beyond(lC.mean_distance);
+  document.getElementById("rTextB").innerHTML = `The random settings ${okE && okW ? "traded strength for variety" : "changed both strength and variety"}. Against no remasking, their teams held ${Math.min(...dE.map(v => v.diff)).toFixed(1)} to ${Math.max(...dE.map(v => v.diff)).toFixed(1)} more effective species in five teams and won ${Math.abs(Math.max(...dW.map(v => v.diff))).toFixed(3)} to ${Math.abs(Math.min(...dW.map(v => v.diff))).toFixed(3)} less${okE && okW ? ", all beyond noise" : ""}.${most ? " They are the most varied teams on this page, and the weakest." : ""} The least-likely setting, <b>${LL.name}</b>, went the other way. Its teams won ${f3(LL.win.mean)}, ${Math.abs(lS.diff).toFixed(3)} ${lS.diff > 0 ? "more" : "less"} than species-first order${beyond(lS) ? ", beyond noise" : ", within noise"}${top ? ", the highest win rate on this page" : ""}. But only ${pct(LL.legal.mean, 1)} of its tries were legal, and ${LL.capped === NCELLS ? `all ${NCELLS}` : `${LL.capped} of its ${NCELLS}`} cells hit the ${R.max_tries.toLocaleString()}-try cap.${alike ? ` Its teams were also more alike than with no remasking: ${LL.distinct_lineups.mean.toFixed(2)} distinct line-ups in five teams against ${RC.distinct_lineups.mean.toFixed(2)}, and ${Math.abs(lC.mean_distance.diff).toFixed(1)} fewer fields apart${alikeB ? ", both beyond noise" : ""}.` : ""} That matches <a href="../remask-failure-reasons/index.html">Why remasking didn't close the ask gap</a>, where masking the least-likely fields pulled species-first order's teams toward the model's most common choices and raised their win rate.`;
+  document.getElementById("dekMore").innerHTML = RESCUED.length ? "" : `A follow-up tried remasking, which redraws filled fields, to repair random order's failed teams: the best setting raised its legal share from ${pct(RC.legal.mean, 1)} to ${pct(BESTL.legal.mean, 1)}, short of the half I had set as the bar.`;
+})();
+
+/* remasking predictions */
+(function pred2() {
+  const R10 = RBY.random10, R20 = RBY.random20, R96 = RBY.random10_96, gains = REM.map(a => a.vs_control.legal.diff), small = LL.vs_control.legal.diff === Math.min(...gains);
+  const [wLo, wHi] = span(RND, a => a.win.mean), below = REM.every(a => a.win.mean < RS.win.mean);
+  let speciesFix = false;
+  if (RB.repaired) { const P = RB.repaired.passes, a = P.findIndex(p => p.clash.length), z = P.findIndex((p, i) => i > a && !p.clash.length);
+    speciesFix = a >= 0 && z > a && P[z].redo.some(c => c % 8 === 0 && P[z - 1].clash.includes(c) && P[z].was[c] !== P[z].values[c]); }
+  const items = [
+    [small, "Least-likely remasking would barely help, because it ranks fields by the probability they were drawn with, before their species existed.", `Its legal share rose from ${pct(RC.legal.mean, 1)} to ${pct(LL.legal.mean, 1)}: ${beyond(LL.vs_control.legal) ? "beyond noise, but" : "within noise, and"} ${small ? "the smallest gain of the four settings" : "not the smallest gain"}. The reason in the prediction was not tested.`],
+    [R20.legal.mean > R10.legal.mean && R96.legal.mean > R10.legal.mean, "Random remasking would raise legality, more at 20% and at 96 passes.", `${pct(R10.legal.mean, 1)} at 10% over 48 passes, ${pct(R20.legal.mean, 1)} at 20%, and ${pct(R96.legal.mean, 1)} at 10% over 96 passes.`],
+    [!RESCUED.length, "No setting would reach half of tries, because a species drawn at a dead end, when no species fit the set, would still clash with that set when redrawn.", `The outcome held: the best reached ${pct(BESTL.legal.mean, 1)}.${speciesFix ? " The reason doesn't always hold: in Figure 7's repaired team, the clash cleared when the species itself was redrawn." : ""}`],
+    [below, "Win rate would stay below species-first order's.", `The random settings won ${f3(wLo)} to ${f3(wHi)}, against species-first order's ${f3(RS.win.mean)}${below ? `, and least-likely remasking ${f3(LL.win.mean)}` : `, but least-likely remasking won ${f3(LL.win.mean)}${beyond(LL.vs_species.win) ? ", above it beyond noise" : ""}`}.`]];
+  document.getElementById("pred2").innerHTML = items.map(([ok, p, r]) => `<li><span class="mk ${ok ? "y" : "n"}" aria-label="${ok ? "right" : "wrong"}">${ok ? "✓" : "✗"}</span><div>${p}<small>${r}</small></div></li>`).join("");
+})();
+
+/* remasking table */
+(function rTable() {
+  const cols = [{name: "Species-first order (reference)", ...RS, kept: SP.kept, tried: SP.tried, capped: SP.capped, undone: 0, vs_control: {}, vs_species: {}}, ...RA];
+  const vsTxt = v => v ? sgn(v.diff) + (beyond(v) ? "" : " (noise)") : "—";
+  const rows = [["Legal share of tries", a => pct(a.legal.mean, 1)], ["Win rate", a => `${f3(a.win.mean)} ± ${f3(a.win.sd)}`],
+    ["Win rate vs no remasking", a => vsTxt(a.vs_control.win)], ["Win rate vs species-first", a => vsTxt(a.vs_species.win)],
+    ["Ask slope", a => `${a.ask_slope.mean.toFixed(2)} ± ${a.ask_slope.sd.toFixed(2)}`], ["Mean |ask − achieved|", a => f3(a.gap.mean)],
+    ["Effective species, 5 teams", a => `${a.effective_species.mean.toFixed(1)} ± ${a.effective_species.sd.toFixed(1)}`],
+    ["Distinct line-ups, 5 teams", a => a.distinct_lineups.mean.toFixed(2)], ["Teams with the top species, 5 teams", a => pct(a.top_species_share.mean)],
+    ["Fields apart (of 48)", a => a.mean_distance.mean.toFixed(1)], ["New line-ups", a => pct(a.new_lineups.mean)],
+    ["Species from nearest training line-up", a => a.lineup_distance.mean.toFixed(2)], ["Copies of training teams", a => pct(a.copies.mean)],
+    ["Teams kept", a => a.kept.toLocaleString()], ["Tries", a => a.tried.toLocaleString()], [`Cells at the try cap (of ${NCELLS})`, a => String(a.capped)],
+    ["Team passes undone at a dead end, over every sampled team", a => a.undone.toLocaleString()]];
+  document.getElementById("rTable").innerHTML = `<thead><tr><th>Measure</th>${cols.map(a => `<th class="n">${a.name}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(([lab, f]) => `<tr><th scope="row">${lab}</th>${cols.map(a => `<td class="n">${f(a)}</td>`).join("")}</tr>`).join("") + `</tbody>`;
+})();
+
+/* Figure 9: the lookahead at work */
+const LA = D.lookahead, LP = LA.pair, LO = LA.orders, LBY = Object.fromEntries(LO.map(o => [o.key, o])), LS = LA.species;
+const LSHORT = {random1: "random order with one field per pass", random2: "random order with two fields per pass", confidence: "confidence order"};
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const pShare = x => x < .001 ? "under 0.1%" : pct(x, x < .1 ? 1 : 0);
+const secs = x => x >= 10 ? x.toFixed(0) + " s" : x >= 1 ? x.toFixed(1) + " s" : x.toFixed(2) + " s";
+const slotOf = c => Math.floor(c / 8);
+const setList = (vals, s) => { const mv = [3, 4, 5, 6].map(j => vals[s * 8 + j]).filter(Boolean).map(v => esc(NAME(v)));
+  return listJoin([vals[s * 8 + 1] && `ability ${esc(NAME(vals[s * 8 + 1]))}`, vals[s * 8 + 2] && `item ${esc(NAME(vals[s * 8 + 2]))}`,
+    mv.length && `move${mv.length > 1 ? "s" : ""} ${listJoin(mv)}`].filter(Boolean)); };
+const stuckSlots = p => [0, 1, 2, 3, 4, 5].filter(s => (p.cand[s] && p.cand[s].n === 0) || p.clash.some(c => slotOf(c) === s));
+const uniqSprites = few => { const seen = new Set(); return few.filter(s => { const k = D.sprites[s] || s; if (seen.has(k)) return false; seen.add(k); return true; }); };
+const fitHTML = cd => cd.n === 0 ? `<span class="fit none">no species fits</span>`
+  : cd.few.length ? `<span class="fit">${uniqSprites(cd.few).map(s => sprite(s, "px")).join("")}<br>${listJoin(cd.few.map(s => esc(NAME(s))))}</span>`
+  : `<span class="fit">${cd.n} species fit</span>`;
+if (!LO.every(o => o.on.legal.mean > .5 && o.vs_without.win.diff < 0))
+  console.error("The lookahead heading says most tries became legal and the teams got weaker, but the data disagrees.");
+const laBoard = document.getElementById("laBoard"), laRange = document.getElementById("laRange"), laStrip = document.getElementById("laStrip");
+const lb = {key: "off", pass: 0, timer: null, last: -1};
+(function buildLABoard() {
+  let h = `<div class="bh"></div>` + FIELD_HEAD.map(f => `<div class="bh">${f}</div>`).join("");
+  for (let s = 0; s < 6; s++) { h += `<div class="who"><span>Pokémon&nbsp;</span>${s + 1}</div>`; for (let j = 0; j < 8; j++) h += `<div class="bc" id="lc${s * 8 + j}"></div>`; }
+  laBoard.innerHTML = h;
+  const pick = document.getElementById("laPick"), word = ok => ok ? "Showdown accepted it" : "Showdown rejected it";
+  const lab = {off: `Without the lookahead: ${word(LP.off.legal)}`, on: `With the lookahead: ${word(LP.on.legal)}`};
+  for (const k of ["off", "on"]) {
+    const b = document.createElement("button"); b.className = "ord"; b.dataset.k = k; b.textContent = lab[k]; b.setAttribute("aria-pressed", k === lb.key);
+    b.onclick = () => { laStop(); lb.key = k; lb.last = lb.pass - 1; pick.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === k)); drawLA(); };
+    pick.appendChild(b); }
+})();
+function drawLAStrip() {
+  const P = LP[lb.key].passes, n = P.length, W = 760, top = 6, base = 42, H = 58, cw = W / n, on = lb.key === "on";
+  const mx = Math.max(1, ...[...LP.off.passes, ...LP.on.passes].map(p => stuckSlots(p).length));
+  let h = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Pokémon with no species that fits after each of the ${n} passes">`;
+  P.forEach((p, i) => { const k = stuckSlots(p).length, bh = Math.max(3, (base - top) * k / mx);
+    h += `<rect data-i="${i}" x="${i * cw}" y="${top}" width="${cw}" height="${base - top + 14}" fill="transparent"/>`;
+    if (k) h += `<rect x="${i * cw + 1.5}" y="${base - bh}" width="${cw - 3}" height="${bh}" rx="2" fill="var(--bad)" pointer-events="none"/>`;
+    if (on && Object.keys(p.refused).length) h += `<circle cx="${i * cw + cw / 2}" cy="${base + 7}" r="3" fill="var(--accent)" pointer-events="none"/>`; });
+  h += `<line x1="0" x2="${W}" y1="${base}" y2="${base}" stroke="var(--rule)" pointer-events="none"/>`;
+  if (lb.pass) h += `<rect x="${(lb.pass - 1) * cw + .75}" y="${top - 3}" width="${cw - 1.5}" height="${base - top + 16}" fill="none" stroke="var(--fg)" stroke-width="1.5" rx="2" pointer-events="none"/>`;
+  laStrip.innerHTML = h + `</svg>`;
+  laStrip.querySelectorAll("rect[data-i]").forEach(r => { const i = +r.dataset.i, p = P[i], k = stuckSlots(p).length, ref = Object.values(p.refused);
+    hover(r, `Pass ${i + 1}: ${k ? `${k} Pokémon with no species that fits` : "every Pokémon has a species that fits"}${on && ref.length ? `; the lookahead refused ${pShare(ref[0].share)} of the model's probability` : ""}`);
+    r.addEventListener("click", () => { laStop(); lb.pass = i + 1; lb.last = lb.pass; drawLA(); }); });
+}
+function drawLA() {
+  const t = LP[lb.key], P = t.passes, n = P.length, k = lb.pass, cur = k ? P[k - 1] : null, prev = k > 1 ? P[k - 2] : null, on = lb.key === "on";
+  laRange.max = n; laRange.value = k; document.getElementById("laPassLab").textContent = `${k} / ${n}`;
+  const vals = cur ? cur.values : Array(48).fill(""), clash = new Set(cur ? cur.clash : []), fresh = new Set(cur ? cur.new : []), forward = k === lb.last + 1;
+  for (let c = 0; c < 48; c++) {
+    const node = document.getElementById("lc" + c), v = vals[c], filled = !!v, r = cur && fresh.has(c) ? cur.refused[c] : null;
+    const cd = cur && c % 8 === 0 && !filled ? cur.cand[slotOf(c)] : null;
+    node.style.setProperty("--cur", COL("random1"));
+    node.className = "bc" + (filled ? " filled" : "") + (fresh.has(c) ? " just" : "") + (filled && fresh.has(c) && forward ? " fresh" : "")
+      + (on && r ? " refused" : "") + (clash.has(c) || (cd && cd.n === 0) ? " dead" : "");
+    node.innerHTML = (filled ? cellHTML(c, v) : `<span class="mask">[MASK]</span>`) + (cd ? fitHTML(cd) : "")
+      + (r && on ? `<span class="ref"><s>${esc(NAME(r.top))}</s> · ${pShare(r.share)} refused</span>` : "")
+      + (r && !on && r.drawn ? `<span class="ref warn">the lookahead would refuse this</span>` : "")
+      + (clash.has(c) ? `<span class="bad" title="clash">!</span>` : "");
+  }
+  lb.last = k;
+  let s;
+  if (!k) s = `A blank team: all 48 fields masked. Random order fills one new field per pass. The field order is drawn before any value, so both runs fill the same fields in the same order, and they draw the same values for the first ${LP.same_until} passes.`;
+  else {
+    const c = cur.new[0], sl = slotOf(c), r = cur.refused[c], cd = cur.cand[sl], pcd = prev ? prev.cand[sl] : null;
+    s = `Pass ${k}: filled ${fieldName(c)}: <b>${esc(NAME(cur.values[c]))}</b>.`;
+    if (on && r) s += ` The lookahead refused ${pShare(r.share)} of the model's probability for this field: the values that no species still fitting Pokémon ${sl + 1} can have, led by ${esc(NAME(r.top))} (${pShare(r.top_p)}).`;
+    if (c % 8 && cd) {
+      if (cd.n === 0 && !(pcd && pcd.n === 0)) s += ` <b style="color:var(--bad)">Dead end:</b> no species fits Pokémon ${sl + 1}'s ${setList(cur.values, sl)}.${r && r.drawn ? ` The lookahead would have refused ${esc(NAME(cur.values[c]))}.` : ""}`;
+      else if (cd.n && (!pcd || pcd.n !== cd.n)) s += ` Species that still fit Pokémon ${sl + 1}: ${cd.few.length ? listJoin(cd.few.map(x => esc(NAME(x)))) : cd.n}.`;
+    }
+    if (c % 8 === 0 && pcd) s += pcd.n === 0 ? " No species fit, so any species was allowed." : ` ${pcd.n === 1 ? "One species was" : `${pcd.n} species were`} left to choose from.`;
+    const cl = cur.clash.filter(x => slotOf(x) === sl);
+    if (cl.length && !(prev && prev.clash.some(x => slotOf(x) === sl))) s += ` <b style="color:var(--bad)">Clash:</b> by the legality tables, these fields rule each other out: ${clashWords(cl)}.`;
+  }
+  document.getElementById("laStatus").innerHTML = s;
+  const vd = document.getElementById("laVerdict");
+  if (k === n) { vd.className = "verdict " + (t.legal ? "ok" : "no");
+    vd.innerHTML = t.legal ? "Showdown's validator accepted this team." : `Showdown's validator rejected this team: <i>${esc(t.verdict.split(";").slice(0, 3).join(";"))}</i>`; }
+  else { vd.className = ""; vd.innerHTML = ""; }
+  document.getElementById("laPrev").disabled = document.getElementById("laStart").disabled = k === 0;
+  document.getElementById("laNext").disabled = k === n;
+  document.getElementById("laPlay").textContent = lb.timer ? "❚❚ Pause" : (k === n ? "↺ Replay" : "▶ Play");
+  drawLAStrip();
+}
+function laStop() { if (lb.timer) { clearInterval(lb.timer); lb.timer = null; } }
+document.getElementById("laPlay").onclick = () => {
+  const n = LP[lb.key].passes.length;
+  if (lb.timer) { laStop(); drawLA(); return; }
+  if (lb.pass === n) { lb.pass = 0; lb.last = -1; }
+  if (REDUCE) { lb.pass = n; drawLA(); return; }
+  lb.timer = setInterval(() => { lb.pass++; if (lb.pass >= n) { lb.pass = n; laStop(); } drawLA(); }, 420);
+  drawLA();
+};
+document.getElementById("laStart").onclick = () => { laStop(); lb.pass = 0; lb.last = -1; drawLA(); };
+document.getElementById("laPrev").onclick = () => { laStop(); lb.pass = Math.max(0, lb.pass - 1); drawLA(); };
+document.getElementById("laNext").onclick = () => { laStop(); lb.pass = Math.min(LP[lb.key].passes.length, lb.pass + 1); drawLA(); };
+laRange.oninput = () => { laStop(); lb.pass = +laRange.value; drawLA(); };
+(function fromURL() {                              // ?run=on&lapass=4 opens the lookahead board at that state
+  const q = new URLSearchParams(location.search), k = q.get("run");
+  if (LP[k] && (k === "off" || k === "on")) { lb.key = k; document.querySelectorAll("#laPick button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === k)); }
+  const n = +q.get("lapass"); if (n > 0) { lb.pass = Math.min(n, LP[lb.key].passes.length); lb.last = lb.pass; }
+})();
+drawLA();
+document.getElementById("laCap").innerHTML = `<b>Figure 9. The lookahead at work.</b> <span class="phone-only">Swipe the board sideways to see every field. </span>One seed sampled twice at ask 0.5 with random order, one field per pass (48 passes, guidance weight 2, temperature 1): once without the lookahead and once with it. While a Pokémon's species is masked, its species cell counts the species that still fit the Pokémon's visible fields and Species Clause, and names them when four or fewer are left. Solid outline: the pass's new field. Dashed outline: the lookahead refused values for this field; the struck-out value is the refused value the model gave the most probability, and the percentage is the share of the model's probability it refused. Red border: a Pokémon no species fits, or a field the legality tables rule out given the rest of the team (a clash). The pair is draw ${LP.draw}, the first seed whose run without the lookahead Showdown's validator rejected, after drawing a value the lookahead would have refused before that Pokémon's species, and whose run with the lookahead the validator accepted. These boards illustrate the lookahead; no number on this page comes from them.`;
+(function laBoardText() {
+  const off = LP.off.passes, on = LP.on.passes, a = off.findIndex(p => p.cand.some(cd => cd && cd.n === 0));
+  if (a < 0) return;
+  const sl = off[a].cand.findIndex(cd => cd && cd.n === 0), z = off.findIndex(p => p.new.includes(sl * 8)), c = off[a].new[0], r = on[a].refused[c];
+  const steps = off.slice(0, a + 1).map((p, i) => ({p, i, c: p.new.find(x => slotOf(x) === sl && x % 8)})).filter(e => e.c !== undefined)
+    .map(e => `${esc(NAME(e.p.values[e.c]))} at pass ${e.i + 1}, which left ${e.p.cand[sl].n ? `${e.p.cand[sl].n} species` : "none"}`);
+  const left = on[a].cand[sl], parts = [];
+  parts.push(`Without the lookahead, Pokémon ${sl + 1} drew ${steps.join(", then ")}. Before a Pokémon's species is filled, nothing checks that some species can have its fields together, so the sampler carried on for ${z - a - 1} more passes until it reached Pokémon ${sl + 1}'s species at pass ${z + 1}. Any species was allowed by then; it drew ${esc(NAME(off[z].values[sl * 8]))}${LP.off.legal ? "" : `, and Showdown rejected the team: <i>${esc(LP.off.verdict.split(";")[0].replace(/\.$/, ""))}</i>`}.`);
+  if (r && left) parts.push(`With the lookahead, pass ${a + 1} refused ${pShare(r.share)} of the model's probability for the same field, every value that would have left Pokémon ${sl + 1} with no species, and drew ${esc(NAME(on[a].values[c]))}, which leaves ${left.few.length ? listJoin(left.few.map(x => esc(NAME(x)))) : `${left.n} species`}. At pass ${z + 1}, Pokémon ${sl + 1} became ${esc(NAME(on[z].values[sl * 8]))}${LP.on.legal ? ", and Showdown accepted the finished team" : ""}.`);
+  document.getElementById("laBoardText").innerHTML = parts.join(" ");
+})();
+
+/* Figure 10: what the lookahead changed */
+(function laGlance() {
+  const cols = [
+    {lab: "Legal share of tries", lo: 0, hi: 1, ends: ["0%", "100%"], val: s => s.legal.mean, fmt: x => pct(x, 1), mark: LA.fix_floor, key: "legal"},
+    {lab: "Seconds per legal team (log scale)", log: true, lo: .05, hi: 50, ends: ["0.05 s", "50 s"], val: s => s.seconds_per_team, fmt: secs},
+    {lab: "Win rate vs top-50 meta", lo: .2, hi: .42, ends: [".20", ".42"], val: s => s.win.mean, fmt: f3, key: "win"},
+    {lab: "Variety: effective species in 5 teams", lo: 9, hi: 21, ends: ["9", "21"], val: s => s.effective_species.mean, fmt: x => x.toFixed(1), key: "effective_species"}];
+  const L10 = Math.log10, X = (c, v) => 3 + 94 * Math.max(0, Math.min(1, c.log ? (L10(v) - L10(c.lo)) / (L10(c.hi) - L10(c.lo)) : (v - c.lo) / (c.hi - c.lo)));   // 3% inset keeps end dots inside the column
+  const cell = (c, off, on, col, tipTxt) => {
+    const xo = off == null ? null : X(c, off), xn = X(c, on);
+    return `<div class="cell" data-lab="${c.lab}"><div class="la-strip" style="color:${col}" data-tip="${esc(tipTxt)}">`
+      + (c.mark != null ? `<div class="la-mark" style="left:${X(c, c.mark)}%"></div>` : "")
+      + (xo == null ? "" : `<div class="la-line" style="left:${Math.min(xo, xn)}%;width:${Math.abs(xn - xo)}%;background:${col}"></div><div class="la-dot off" style="left:${xo}%"></div>`)
+      + `<div class="la-dot on" style="left:${xn}%"></div><div class="la-txt">${off == null ? c.fmt(on) : `${c.fmt(off)} → ${c.fmt(on)}`}</div></div></div>`;
+  };
+  let h = `<div class="hd top"></div>` + cols.map(c => `<div class="hd top">${c.lab}<span><b>${c.ends[0]}</b><b>${c.ends[1]}</b></span></div>`).join("");
+  for (const o of LO) {
+    h += `<div class="nm"><span class="sw" style="background:${COL(o.key)}"></span>${o.name}</div>`;
+    for (const c of cols) {
+      const off = c.val(o.off), on = c.val(o.on), d = c.key ? o.vs_without[c.key] : null;
+      const tipTxt = `${o.name}: ${c.fmt(off)} without the lookahead, ${c.fmt(on)} with it${d ? (beyond(d) ? ", beyond noise" : ", within noise") : ""}`;
+      h += cell(c, off, on, COL(o.key), tipTxt);
+    }
+  }
+  h += `<div class="nm"><span class="sw" style="background:${COL("species")}"></span>Species-first order (the lookahead changes nothing)</div>`;
+  for (const c of cols) h += cell(c, null, c.val(LS), COL("species"), `Species-first order: ${c.fmt(c.val(LS))}`);
+  const g = document.getElementById("laGlance"); g.innerHTML = h;
+  g.querySelectorAll("[data-tip]").forEach(n => hover(n, n.dataset.tip));
+  document.getElementById("laExamples").innerHTML = LO.map(o => `<div><span class="sw" style="background:${COL(o.key)}"></span><b>${o.name}, with the lookahead</b></div><div class="tm-row">` +
+    o.examples.map(t => `<div class="tm">${t.map(p => `<span class="p">${sprite(p.species, "px s")}${itemIcon(p.item, "i")}</span>`).join("")}</div>`).join("") + `</div>`).join("");
+  document.getElementById("laGlanceCap").innerHTML = `<b>Figure 10. What the lookahead changed.</b> Each of the top three rows is one decoding order: hollow dot without the lookahead, filled dot with it. The bottom row is species-first order, which the lookahead leaves unchanged. <b>Legal share of tries</b>: legal teams ÷ tries, the mean over three seeds; the dashed line at ${pct(LA.fix_floor)} is the bar for fixing an order's legality. <b>Seconds per legal team</b>: the wall-clock time to sample and validate every try, divided by the legal teams kept, on a log scale. The runs without and with the lookahead were timed separately on the same laptop, so read it as a rough guide. <b>Win rate</b> as in Figure 4; <b>variety</b> as in Figure 1. Hover a row for whether a change exceeds noise. Below: six legal teams from each order with the lookahead at seed 1, nearest ask 0.5 first. Source: <code>~/vgc-data/results/lookahead_legality.json</code>.`;
+})();
+
+(function laTexts() {
+  const R1 = LBY.random1, CF = LBY.confidence, fixed = LO.filter(o => o.fixes_legality);
+  const up = LO.every(o => o.vs_without.legal.diff > 0 && beyond(o.vs_without.legal));
+  document.getElementById("laTextA").innerHTML = `With the lookahead, the legal share rose for every order${up ? ", all beyond noise" : ""}: ${listJoin(LO.map(o => `${LSHORT[o.key]} from ${pct(o.off.legal.mean, 1)} to ${pct(o.on.legal.mean, 1)}`))}. ${fixed.length ? `Only ${listJoin(fixed.map(o => LSHORT[o.key]))} cleared the ${pct(LA.fix_floor)} bar, so by my rule the lookahead fixes ${fixed.length > 1 ? "their" : "its"} legality and not random order's.` : `No order cleared the ${pct(LA.fix_floor)} bar.`} Legal teams also got cheaper. Random order with one field per pass took ${secs(R1.off.seconds_per_team)} per legal team without the lookahead and ${secs(R1.on.seconds_per_team)} with it, about ${Math.round(R1.off.seconds_per_team / R1.on.seconds_per_team)} times faster, because almost every try now counts. Confidence order went from ${secs(CF.off.seconds_per_team)} to ${secs(CF.on.seconds_per_team)}.`;
+  const dW = LO.map(o => o.vs_without.win), down = dW.every(v => v.diff < 0 && beyond(v)), match = LO.filter(o => o.matches_species_first);
+  const best = LO.reduce((a, b) => (b.on.win.mean > a.on.win.mean ? b : a)), nVar = LO.filter(o => o.vs_without.effective_species.diff > 0 && beyond(o.vs_without.effective_species)).length;
+  document.getElementById("laTextB").innerHTML = `The cost is strength. ${down ? "Every order won less with the lookahead than without it, all beyond noise" : "Win rate did not fall for every order"}: ${listJoin(LO.map(o => `${LSHORT[o.key]} ${f3(o.off.win.mean)} → ${f3(o.on.win.mean)}`))}. ${match.length ? `${listJoin(match.map(o => LSHORT[o.key]))} matched species-first order.` : `None matches species-first order's ${f3(LS.win.mean)}; the closest, ${LSHORT[best.key]}, won ${f3(best.on.win.mean)}.`} Random order's win rate without the lookahead rests on only the ${R1.off.kept} teams that avoided a dead end in ${R1.off.tried.toLocaleString()} tries; with it, on ${R1.on.kept.toLocaleString()} teams. ${nVar === LO.length ? "Besides legal teams, the lookahead adds variety, beyond noise for every order" : `Variety rose for ${LO.every(o => o.vs_without.effective_species.diff > 0) ? "every order" : "some orders"}, beyond noise for ${nVar} of ${LO.length}`}: effective species in five teams went ${listJoin(LO.map(o => `${o.off.effective_species.mean.toFixed(1)} → ${o.on.effective_species.mean.toFixed(1)} for ${LSHORT[o.key]}`))}, against ${LS.effective_species.mean.toFixed(1)} for species-first order. With random order (one field per pass) and the lookahead, ${pct(R1.on.new_lineups.mean)} of teams had six species that no training team has together, against ${pct(LS.new_lineups.mean)} for species-first order.`;
+  const [lo, hi] = span(LO, o => o.on.legal.mean);
+  document.getElementById("dekMore").innerHTML += ` A second follow-up, the lookahead, refuses any value that would leave a Pokémon with no species that fits: ${pct(lo)} to ${pct(hi)} of tries became legal, but every order won less with it.`;
+})();
+
+/* lookahead predictions */
+(function pred3() {
+  const kinds = k => LO.reduce((a, o) => a + (o.reason_kinds[k] || 0), 0), logged = LO.reduce((a, o) => a + o.reasons_logged, 0), rej = LO.reduce((a, o) => a + o.rejected, 0);
+  const inRange = LO.every(o => o.on.legal.mean >= .85 && o.on.legal.mean <= .97);
+  const below = LO.every(o => o.vs_species.win.diff < 0 && beyond(o.vs_species.win)), above = LO.every(o => o.on.effective_species.mean > LS.effective_species.mean);
+  const CF = LBY.confidence, cfMove = CF.reason_kinds.move || 0;
+  const items = [
+    [inRange ? "y" : "n", "Legality would reach 85% to 97% for all three orders.", cap(`${listJoin(LO.map(o => `${LSHORT[o.key]} ${pct(o.on.legal.mean, 1)}`))}.`)],
+    ["u", "The remaining failures would come mostly from the rule that a Pokémon's four moves are stored in sorted order, which the lookahead does not cover.", `Not tested: Showdown says what is wrong with a team, not why. Of the ${logged} rejections whose reasons were logged (of ${rej}), the first complaint was a move the species can't learn in ${kinds("move")} and an ability it can't have in ${kinds("ability")}. A move field left with no legal value by the sorted-order rule would get any move and surface as the first kind, which made up ${cfMove} of confidence order's ${CF.reasons_logged}.`],
+    [below ? "y" : "n", "Win rate would stay below species-first order's, because filling sets before all six species are chosen costs strength on its own.", cap(`${listJoin(LO.map(o => `${LSHORT[o.key]} ${f3(o.on.win.mean)}`))}, against species-first order's ${f3(LS.win.mean)}${below ? ", all below it beyond noise" : ""}. The reason was not tested.`)],
+    [above ? "y" : "n", "Variety would stay above species-first order's.", `Effective species in five teams: ${listJoin(LO.map(o => `${LSHORT[o.key]} ${o.on.effective_species.mean.toFixed(1)}`))}, against ${LS.effective_species.mean.toFixed(1)}.`]];
+  const MK = {y: ["✓", "right"], n: ["✗", "wrong"], u: ["?", "not tested"]};
+  document.getElementById("pred3").innerHTML = items.map(([m, p, r]) => `<li><span class="mk ${m}" aria-label="${MK[m][1]}">${MK[m][0]}</span><div>${p}<small>${r}</small></div></li>`).join("");
+})();
+
+/* lookahead table */
+(function laTable() {
+  const cols = [{name: "Species-first order (reference)", s: {...LS, kept: SP.kept, tried: SP.tried, capped: SP.capped}}];
+  for (const o of LO) cols.push({name: `${o.name}, without`, s: o.off}, {name: `${o.name}, with the lookahead`, s: o.on, vw: o.vs_without, vsp: o.vs_species});
+  const vsTxt = v => v ? sgn(v.diff) + (beyond(v) ? "" : " (noise)") : "—";
+  const rows = [["Legal share of tries", a => pct(a.s.legal.mean, 1)], ["Win rate", a => `${f3(a.s.win.mean)} ± ${f3(a.s.win.sd)}`],
+    ["Win rate vs without the lookahead", a => vsTxt(a.vw && a.vw.win)], ["Win rate vs species-first", a => vsTxt(a.vsp && a.vsp.win)],
+    ["Ask slope", a => `${a.s.ask_slope.mean.toFixed(2)} ± ${a.s.ask_slope.sd.toFixed(2)}`], ["Mean |ask − achieved|", a => f3(a.s.gap.mean)],
+    ["Effective species, 5 teams", a => `${a.s.effective_species.mean.toFixed(1)} ± ${a.s.effective_species.sd.toFixed(1)}`],
+    ["Distinct line-ups, 5 teams", a => a.s.distinct_lineups.mean.toFixed(2)], ["Teams with the top species, 5 teams", a => pct(a.s.top_species_share.mean)],
+    ["Fields apart (of 48)", a => a.s.mean_distance.mean.toFixed(1)], ["New line-ups", a => pct(a.s.new_lineups.mean)],
+    ["Species from nearest training line-up", a => a.s.lineup_distance.mean.toFixed(2)], ["Copies of training teams", a => pct(a.s.copies.mean)],
+    ["Seconds per legal team", a => secs(a.s.seconds_per_team)], ["Teams kept", a => a.s.kept.toLocaleString()], ["Tries", a => a.s.tried.toLocaleString()],
+    [`Cells at the try cap (of ${LA.asks.length * LA.seeds.length})`, a => String(a.s.capped)]];
+  document.getElementById("laTable").innerHTML = `<thead><tr><th>Measure</th>${cols.map(a => `<th class="n">${a.name}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(([lab, f]) => `<tr><th scope="row">${lab}</th>${cols.map(a => `<td class="n">${f(a)}</td>`).join("")}</tr>`).join("") + `</tbody>`;
+})();
+
+document.getElementById("meansText").innerHTML = `Keep species-first order. No other decoding order passed the pre-registered rule for improving on it (<code>code/docs/decoding-order.md</code>): every other order lost win rate, and none followed the ask better. The two findings worth carrying forward: picking all six species up front matters for strength, more than filling each Pokémon as a unit does; and confidence order is a cheap way to get more varied teams (${pct(BY.confidence.legal_teams / BY.confidence.tried)} legal, ${(BY.confidence.seconds / BY.confidence.kept).toFixed(2)} s per legal team) if a search ever wants variety more than strength.${RESCUED.length ? "" : ` Remasking did not rescue random order either: the best setting made ${pct(BESTL.legal.mean, 1)} of tries legal, and the random settings' extra variety came with weaker teams. The least-likely setting won more than species-first order (${f3(LL.win.mean)} against ${f3(RS.win.mean)}), but with ${pct(LL.legal.mean, 1)} of its tries legal it would fail that rule's limit of 2 points of lost legality.`}${(() => { const [lo, hi] = span(LO, o => o.on.legal.mean), m = LO.filter(o => o.matches_species_first); return ` The lookahead does stop the dead ends: with it, ${pct(lo)} to ${pct(hi)} of tries were legal. ${m.length ? `${listJoin(m.map(o => LSHORT[o.key]))} matched species-first order's win rate with it.` : `But every order lost win rate with it and none matched species-first order, so it doesn't change the answer: species-first order never meets a dead end and makes the strongest teams.`}`; })()}`;
+</script>
+</body>
+</html>
