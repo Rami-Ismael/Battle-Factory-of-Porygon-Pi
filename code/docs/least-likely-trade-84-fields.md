@@ -27,8 +27,8 @@ Shared by every arm: all-teams 84-field model, 21 epochs, species first, guidanc
 | Least-likely 20% remasked, 84 passes | `remask_ll_20` | Share |
 | Temperature 0.8 on all fields, no remasking | `cold_all_t08` | Temperature |
 | Temperature 0.6 on all fields, no remasking | `cold_all_t06` | Temperature |
-| Set-field temperature 0.6, species at 1, no remasking | `cold_sets_t06` | Species keep their diversity; sets go colder |
-| Set-field temperature 0.3, species at 1, no remasking | `cold_sets_t03` | Same, colder |
+| Temperature 0.6 split-variance, no remasking | `cold_sets_t06` | Species keep their diversity; sets go colder |
+| Temperature 0.3 split-variance, no remasking | `cold_sets_t03` | Same, colder |
 | Stat Points raised to all 66, same no-remasking teams | `spend66` | Same teams, paired, only the Stat Points line changes |
 
 ## Order and freezing
@@ -50,32 +50,57 @@ One point has 9,408 battles, so battle noise on a mean is about 0.005. Three sam
 
 The controls were chosen after seeing the least-likely results. The first queue crash-looped for an hour at ranks 51 to 100, because those teams had no legality flag in the private database; no such battle was played, and a resumed queue, `ltq2.zsh`, added the flag and a three-crash stop. The queue runs in front of the line-up deletion queue because it takes under an hour and that queue takes days.
 
-## Nucleus sampling and the colder-set re-battle
+## Nucleus sampling and the split-variance re-battle
 
 Exploratory, written after seeing the results below. The owner asked on 2026-11-02 for the code to be reviewed by GPT-6 and for both to run behind the line-up deletion queue. Script: `src/nucleus84.py`, frozen in `~/vgc-data/nucleus_84/run`. Queue: `~/vgc-data/nucleus_84/nq84.zsh`.
 
 | Row | Value |
 | --- | --- |
-| Claim | Removing the unlikely options from the set fields buys some of least-likely's win gain at a smaller cost in Pokemon sets than set-field temperature 0.3. It stops at win rate against the top-50 meta teams under the behaviour-cloning policy. If a nucleus arm matches set-field temperature 0.3's win rate with clearly more distinct sets, it replaces that arm on the curve; if not, temperature stays. |
+| Claim | Removing the unlikely options from the set fields buys some of least-likely's win gain at a smaller cost in Pokemon sets than temperature 0.3 split-variance. It stops at win rate against the top-50 meta teams under the behaviour-cloning policy. If a nucleus arm matches temperature 0.3 split-variance's win rate with clearly more distinct sets, it replaces that arm on the curve; if not, temperature stays. |
 | Fields | All 84 generated, Stat Alignment replaced by the repair. Nucleus filtering runs after guidance and the rule masks, and "set fields" means every field except species, as the temperature arms. |
 | Vocabulary | Unchanged from `stat84_all_teams_ep21.pt`. |
 | Training teams | Unchanged, no training. |
 | Scorer | As above. One battle against each of the 49 distinct top-50 teams, shuffled slots, seed 7300 + sampling seed. Re-battle: 4 games each, seed 7540, new private database copied from the earlier fresh one. |
 | Search region | No loop. 64 legal, non-held-out teams or 1,280 tries per cell. Asks 4/24, 8/24, 12/24, 16/24. Elite cut 0.531. |
 | Settings | Scientific: nucleus share and which fields it covers. Nuisance: ask, seeds 1 to 3. Fixed: temperature 1, guidance 2, species-first order, rule masks. The shares are picks, not derived. |
-| Plan | Primary: win rate at each ask against distinct line-ups and distinct sets, added to the existing curves. Budget: 4 arms x 4 asks x 3 seeds x 64 teams x 49 battles = 150,528. Re-battle: best team of each of set-field temperature 0.3's 68 line-ups at the cut, ties to lowest ask, seed and position: 13,328 battles at most. Smallest effect worth acting on: 0.03 win rate. Ranks 51 to 100 are not spent here; the re-battle freezes no list. |
+| Plan | Primary: win rate at each ask against distinct line-ups and distinct sets, added to the existing curves. Budget: 4 arms x 4 asks x 3 seeds x 64 teams x 49 battles = 150,528. Re-battle: best team of each of temperature 0.3 split-variance's 68 line-ups at the cut, ties to lowest ask, seed and position: 13,328 battles at most. Smallest effect worth acting on: 0.03 win rate. Ranks 51 to 100 are not spent here; the re-battle freezes no list. |
 
 | Reader name | Code ID | What differs |
 | --- | --- | --- |
-| Set-field nucleus 0.9, species untouched | `nucleus_sets_p09` | Keeps the likeliest set options up to 90% of the odds |
-| Set-field nucleus 0.7, species untouched | `nucleus_sets_p07` | Up to 70% |
-| Set-field nucleus 0.5, species untouched | `nucleus_sets_p05` | Up to 50% |
-| All-field nucleus 0.9 | `nucleus_all_p09` | Species filtered too, so line-ups can fall |
+| Nucleus 0.9 split-variance | `nucleus_sets_p09` | Keeps the likeliest set options up to 90% of the odds |
+| Nucleus 0.7 split-variance | `nucleus_sets_p07` | Up to 70% |
+| Nucleus 0.5 split-variance | `nucleus_sets_p05` | Up to 50% |
+| Nucleus 0.9 on all fields | `nucleus_all_p09` | Species filtered too, so line-ups can fall |
 
-Noise floor and inherited probes as above. `check` proves p = 1 matches `Model84.sample` bit for bit, that a set-field filter leaves species draws alone at one seed, and the filter's choices on a known table. `probes` runs round trip and copies per arm; a failed probe stops the queue. `check` also runs the sampler on a stand-in model with known odds and checks which options each arm can draw, with and without a rule mask. The earlier temperature 0.7 with top-p 0.9 result (`src/schemes.py`, 2026-08-27) came from an older model with copied Stat Points, and combined the two.
+Noise floor and inherited probes as above. `check` proves p = 1 matches `Model84.sample` bit for bit, that a split-variance filter leaves species draws alone at one seed, and the filter's choices on a known table. `probes` runs round trip and copies per arm; a failed probe stops the queue. `check` also runs the sampler on a stand-in model with known odds and checks which options each arm can draw, with and without a rule mask. The earlier temperature 0.7 with top-p 0.9 result (`src/schemes.py`, 2026-08-27) came from an older model with copied Stat Points, and combined the two.
 
 GPT-6 (`gpt-6-sol`) reviewed the code before the freeze and found three defects, all fixed before the queue started. Stalls that recovered nothing could loop forever: three now stop the queue, while a stall that recovers battles still retries. The report left out distinct Pokemon sets, which the claim needs. The checks could pass with a sampler that ignored the filter; a test that disables the filter now fails them. Training copies stay reported with no pass mark, as `run-experiment` asks. Of the 68 line-ups at the cut, 52 come from ask 12/24, so the re-battle reports with and without it.
 
 ## Result
 
-Reported on the issue "Is the least-likely trade real at equal win rate?" (#100). Set-field temperature 0.3 matches least-likely 10% at asks 4/24, 8/24 and 16/24 and keeps all line-ups, at a cost in Pokemon set variety. Fresh re-battle: 18 of 52 and 18 of 43 line-ups hold. Ranks 51 to 100, once per list: 0.530 and 0.524. Curves: `least_likely_trade_curves.json`. Analysis: `~/vgc-data/least_likely_trade/curve_analysis.py`.
+Reported on the issue "Is the least-likely trade real at equal win rate?" (#100), closed 2026-11-06. Win rate is against the top-50 meta teams, behaviour-cloning policy on both sides. Every number here is exploratory.
+
+- Temperature 0.3 split-variance gains +0.054 win rate (+0.043 to +0.063) and keeps all 438 line-ups. Least-likely 10% gains +0.063 and keeps 228. Both keep about half the Pokemon sets: 54% and 48%.
+- Nucleus 0.5 split-variance ties temperature 0.3 split-variance at -0.001 (-0.010 to +0.009), with 1,223 sets against 1,252. By the claim's rule, temperature stays. Nucleus 0.7 sits on the temperature line, with and without ask 12/24.
+- The nucleus queue ran on 2026-11-03 from 02:29 to 02:58 with no restart. Its checks and probes passed, and none of the 384 probe teams was identical to a training team.
+- Fresh re-battle, 196 games per team: 18 of 52 line-ups hold for no remasking, 18 of 43 for least-likely 10%, 27 of 68 for temperature 0.3 split-variance. Without ask 12/24: 3 of 14, 1 of 8, 2 of 16.
+- Ranks 51 to 100, once per frozen list: 0.530 and 0.524.
+- Ask-versus-got error, rechecked after the owner replaced slope on 2026-11-05: on asks 4/24 to 16/24 no arm comes closer to got = ask than no remasking's 0.0197. Least-likely 20% moves further away, +0.0045 (+0.0016 to +0.0074). This covers four asks, not the full 1/24 to 17/24.
+- The owner asked for the point on the curve to be picked for him on 2026-11-06: temperature 0.3 split-variance.
+
+Intervals resample teams within each cell, not opponents. Numbers: `~/vgc-data/results/least_likely_trade_storyboard.json`, from `src/trade84_storyboard_data.py`. Pareto curves and paired intervals over opponents: `least_likely_trade_curves.json`, from `src/trade84_curves.py`.
+
+### Storyboard
+
+The figures are cut to one idea each (`storyboard-figures`), in `src/trade84_storyboard_figures.py`. They were drawn after the results, so each line records a reading, not a prediction.
+
+| Figure | The sentence it carries | What would have changed it |
+| --- | --- | --- |
+| Teaser | Split-variance sampling buys most of least-likely's gain and keeps every line-up. | A split-variance arrow that bent left, losing line-ups. |
+| Moves per ask | Least-likely pays in line-ups and sets; split-variance sampling pays only in sets. | A split-variance arrow clearly shorter than least-likely's outside 12/24. |
+| Nucleus against temperature | Cutting unlikely set options costs the same sets per unit of win rate as cooling them. | A nucleus point above the temperature line, which would have replaced temperature. |
+| The menu | Only split-variance sampling gains over 0.05 without losing a line-up. | Another option over 0.05 that keeps every line-up. |
+| Re-battle | Temperature 0.3 split-variance's strong line-ups hold on fresh games as often as the others'. | Far fewer than about a third holding, which would mean its single-battle highs were luck. |
+| Ask-versus-got error | No remasking rule or control brings got closer to the ask. | Any interval wholly left of zero. |
+
+Colours: least-likely remasking orange, temperature aqua, nucleus blue, no remasking ink. These are validated all-pairs on the light surface.
