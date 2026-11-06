@@ -12,9 +12,11 @@ Labels (win rate vs the top-50, BC policy both sides) are pooled per team the sa
 asked_vs_got.gather() does: wins summed over every measurement, divided by battles.
 The matchup matrix adds each team's per-opponent row (top-50 columns), from shuffled-slot battles when they cover
 40 opponents, else from listed-order battles (policy 1); one team's row never mixes the two (top50_rows).
+A neutral or missing nature counts as Serious, as in the matchup database (neutral_as_serious), so a team and its
+battled copy there are one row.
 
 THE TEST SET is asked_vs_got's held-out 500 (same seed, same split as loss_diagnosis).
-Any training team whose 48-field encoding equals a test team's is removed.
+Any training team whose 48-field encoding equals a test team's, as written or with Serious natures, is removed.
 
     python lossdata.py        (run with /tmp/vgc-pilot/.venv/bin/python) -> results/lossdata.npz
 """
@@ -45,12 +47,24 @@ def family(name):
     return "loops08"            # activesearch(2), entropyloop, gradguide, gradloop, dsame, mdts
 
 
-def test_split(V):
-    """asked_vs_got.train()'s held-out 500, rebuilt exactly (loss_diagnosis.load_split)."""
+def neutral_as_serious(team):
+    """The team with every neutral or missing nature written Serious, in place. Neutral natures change no stat and
+    Showdown battles a missing one as Serious, so the matchup database stores them all as Serious
+    (matchup_db.canonical_slots). Without this a team battled there gets a second row, its label on the Serious
+    copy and none on the original (2,271 teams on 2026-11-06)."""
+    for s in team:
+        if not s.get("nature") or MDB._norm(s["nature"]) in MDB.NEUTRAL: s["nature"] = "Serious"
+    return team
+
+
+def test_split(V, nature_as_serious=False):
+    """asked_vs_got.train()'s held-out 500, rebuilt exactly (loss_diagnosis.load_split). nature_as_serious encodes
+    the same teams with neutral_as_serious, the form gather() keys its pool by."""
     rows = json.load(open(X.DATA))["rows"]
     Xs, W = [], []
     for r in rows:
         t = parse_team_text(r["paste"])
+        if nature_as_serious: t = neutral_as_serious(t)
         if len(t) != 6: continue
         try: e = V.encode(t)
         except ValueError: continue                # a field outside the corpus vocabulary
@@ -150,7 +164,7 @@ def gather(observe=None):  # noqa: C901
     48-field key throws away."""
     corpus, V, *_ = X.setup()
     xte, wte, _, _ = test_split(V)
-    test_keys = {r.tobytes() for r in xte}
+    test_keys = {r.tobytes() for r in xte} | {r.tobytes() for r in test_split(V, nature_as_serious=True)[0]}
     held_keys = HO.identities()             # ranks 51-100 (48 fields): never a training row, never a matrix-derived label
 
     pool = {}            # encoding bytes -> dict(x, wins, battles, tags:set, row:None)
@@ -170,7 +184,7 @@ def gather(observe=None):  # noqa: C901
     def enc(p):
         """(48-field encoding or None, parsed team)"""
         if p in cache: return cache[p]
-        t = parse_team_text(p)
+        t = neutral_as_serious(parse_team_text(p))
         e = None
         if len(t) == 6:
             try: e = V.encode(t)
@@ -181,6 +195,7 @@ def gather(observe=None):  # noqa: C901
     stats = defaultdict(lambda: defaultdict(int))
     # 1. corpus
     for t in corpus:
+        t = neutral_as_serious([dict(s) for s in t])
         stats["corpus"][add(V.encode(t), "real", fam="real", team=t)] += 1
     # 2. asked_vs_got_data rows (the old training pool, labels already pooled)
     for r in json.load(open(X.DATA))["rows"]:
