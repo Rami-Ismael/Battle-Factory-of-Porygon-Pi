@@ -12,6 +12,9 @@ ignore = ["F722", "RUF001"]
 [tool.ruff.lint.per-file-ignores]
 # Test fakes take the real object's arguments without using them.
 "scripts/test_*.py" = ["ARG"]
+# Stand-ins for the model take its arguments unused. These two stay byte-identical to their frozen run copies, so they carry no noqa.
+"src/trade84.py" = ["ARG002"]
+"src/nucleus84.py" = ["ARG002", "RUF012"]
 
 [tool.ruff.lint.mccabe]
 # A function scores 1, plus 1 per if, elif, for, while, except, and nested function.
