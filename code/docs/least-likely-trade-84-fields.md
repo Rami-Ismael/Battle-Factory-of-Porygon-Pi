@@ -29,7 +29,7 @@ Shared by every arm: all-teams 84-field model, 21 epochs, species first, guidanc
 | Temperature 0.6 on all fields, no remasking | `cold_all_t06` | Temperature |
 | Set-field temperature 0.6, species at 1, no remasking | `cold_sets_t06` | Species keep their diversity; sets go colder |
 | Set-field temperature 0.3, species at 1, no remasking | `cold_sets_t03` | Same, colder |
-| Stat Points raised to all 66, same no-remasking teams | `spend66` | Same teams, paired, only the EVs line changes |
+| Stat Points raised to all 66, same no-remasking teams | `spend66` | Same teams, paired, only the Stat Points line changes |
 
 ## Order and freezing
 
