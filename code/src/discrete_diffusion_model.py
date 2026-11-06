@@ -30,6 +30,7 @@ import hps_generate
 from hps_generate import slot_to_text
 from checkpoints import load_checkpoint
 from encode import NF, NSLOT, Vocab
+from lookahead import lookahead as lookahead_rule
 
 MEMBERS = ("F1_final_medium_noheldout_regmb_v3", "G2_family_matrix_noprtrain_noheldout_regmb_v3")
 CACHE = L.CK / "team_writer"
@@ -118,40 +119,15 @@ class DiscreteDiffusionModel:
 
     def _legal(self, x, c, lookahead=False):
         """(legal_values(x, c), Boolean [B]: the teams for which no value was legal, so every value was allowed).
-        lookahead=True also drops the values that would leave a Pokémon with no legal species (_lookahead)."""
+        lookahead=True also drops the values that would leave a Pokémon with no legal species (the shared rule in
+        lookahead.py, which the 84-field model calls too)."""
         k = L.KEY_OF_COL[c]; al = self.tables.allowed(x); o = al[k][:, L.COLS_BY_KEY[k].index(c)].clone()
-        if lookahead: o &= self._lookahead(x, c, al)
+        if lookahead: o &= lookahead_rule(self.tables, x, c, al)
         E = self.tables.EMV
         if c % NF == FIRST_MOVE and E is not None:                    # only where a real move is still allowed
             real = o.clone(); real[:, [0, E]] = False; o[real.any(1), E] = False
         empty = ~o.any(1); o[empty] = True; o[:, 0] = False
         return o, empty
-
-    def _lookahead(self, x, c, al):
-        """Boolean [B, values] for column c: the values that keep every Pokémon a legal species, so a sampler that
-        fills sets before species meets no dead end there (docs/lookahead-legality.md). al = tables.allowed(x), whose
-        species entry is each Pokémon's candidate species given its visible fields and Species Clause. A value for a
-        Pokémon whose species is masked must suit at least one candidate (with the visible item or ability where the
-        two are tied); a species may not take the base species another masked Pokémon has as its only one left."""
-        T, s, j = self.tables, c // NF, c % NF
-        if j == 0:
-            bases = torch.nn.functional.one_hot(T.BASE, T.nbase).float()                 # [species, base]
-            sb = (al["species"].float() @ bases) > 0                                     # [B, 6, base] bases still possible
-            only = sb & ((sb.sum(-1) == 1) & (x.view(len(x), NSLOT, NF)[..., 0] == 0)).unsqueeze(-1)
-            only[:, s] = False
-            return ~only.any(1)[:, T.BASE]
-        if j >= FIRST_MOVE + 4: return torch.ones_like(al["nature"][:, s])                   # Stat Alignment: no species tie
-        S = al["species"][:, s].float()                                                  # [B, species] candidates
-        if j == 1: ok = (S @ T.AB.float()) > 0
-        elif j == 2: ok = (S @ T.IT.float()) > 0
-        else: ok = (S @ T.MV.float()) > 0
-        if T.ABIT is not None and j in (1, 2):
-            other = x[:, s * NF + (2 if j == 1 else 1)]                                  # the visible item or ability
-            if (other != 0).any():
-                tied = T.ABIT[:, other].permute(1, 0, 2) if j == 1 else T.ABIT.permute(0, 2, 1)[:, other].permute(1, 0, 2)
-                both = torch.einsum("bn,bnv->bv", S, tied.float()) > 0
-                ok = torch.where((other != 0).unsqueeze(1), ok & both, ok)
-        return torch.where((x[:, s * NF] == 0).unsqueeze(1), ok, torch.ones_like(ok))
 
     # ---------------------------------------------------------------- sampling
     @torch.no_grad()
@@ -164,7 +140,7 @@ class DiscreteDiffusionModel:
         steps (docs/guidance-timing-cads.md). remask, steps, stats: remasking (_sample_remasking). order: the decoding
         order, "species" (species-first, the default), "pokemon" (Pokémon by Pokémon), "random" (each team its own
         random order) or "confidence" (each team's most confident masked field first); docs/decoding-order.md.
-        lookahead: allow only values that leave every Pokémon a legal species (_lookahead; docs/lookahead-legality.md)."""
+        lookahead: allow only values that leave every Pokémon a legal species (lookahead.py; docs/lookahead-legality.md)."""
         if remask or (steps is not None and steps != L.COLS) or stats is not None or order != "species" or lookahead:
             return self._sample_remasking(n, ask, guidance, temperature, top_p, surrogate, lam, species_guidance, cads,
                                           remask, L.COLS if steps is None else steps, stats, order, lookahead)
