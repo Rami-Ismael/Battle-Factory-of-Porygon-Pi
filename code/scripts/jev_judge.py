@@ -29,6 +29,7 @@ from typing import Any
 
 import jev_fill
 import jev_run
+import mask_paste
 
 GRIDS = ('heldout', 'meta', 'random')
 BANDS = ['below 10%', '10 to 25%', '25 to 30%', '30 to 35%', '35 to 40%', '40 to 45%', '45 to 50%',
@@ -68,7 +69,7 @@ def questions() -> dict[str, jev_fill.Question]:
 
 
 def state(team: jev_fill.Team, meta: list[str]) -> dict[str, Any]:
-    return {'format': jev_fill.FORMAT_NAME, 'rules': jev_fill.RULES, 'meta': meta, 'team': team,
+    return {'format': mask_paste.FORMAT_NAME, 'rules': mask_paste.RULES, 'meta': meta, 'team': team,
             'asking_about': 'win rate'}
 
 
