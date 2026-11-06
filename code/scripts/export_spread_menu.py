@@ -12,10 +12,11 @@ import json
 import repo_paths
 import corpus
 import jev_fill
+import mask_paste
 from mb_prompt import norm
 
 OUT = repo_paths.ROOT / 'data/regmb-spread-menu.json'
-STATS = jev_fill.STATS
+STATS = mask_paste.STATS
 GENERIC = [
     {'HP': 2, 'Atk': 32, 'Def': 0, 'SpA': 0, 'SpD': 0, 'Spe': 32},    # fast physical attacker
     {'HP': 2, 'Atk': 0, 'Def': 0, 'SpA': 32, 'SpD': 0, 'Spe': 32},    # fast special attacker

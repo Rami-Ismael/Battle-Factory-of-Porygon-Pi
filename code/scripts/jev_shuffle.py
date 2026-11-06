@@ -36,6 +36,7 @@ import jev_fields  # noqa: F401 -- registers the one-question field builders the
 import jev_fill
 import jev_run
 import jev_species  # noqa: F401 -- registers the species tournament
+import mask_paste
 
 GRIDS = ('heldout', 'meta', 'random')
 KIND = 'jev_shuffle'
@@ -151,7 +152,7 @@ def rows(grid: str) -> list[dict[str, Any]]:
 
 def swapped_team(team: jev_fill.Team, path: str, move: str) -> jev_fill.Team:
     out = copy.deepcopy(team)
-    jev_fill.set_value(out, jev_fill.parse_path(path), move)
+    jev_fill.set_value(out, mask_paste.parse_path(path), move)
     return out
 
 

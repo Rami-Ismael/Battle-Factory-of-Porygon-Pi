@@ -25,6 +25,7 @@ from typing import Any
 
 import jev_fill
 import jev_run
+import mask_paste
 
 OTHER_ARMS = ('random', 'diffusion', 'textdiff', 'textdiff3b', 'llm_regmb', 'llm_baseline', 'llm_mb-original-v1',
               'mercury', 'ling')
@@ -42,7 +43,7 @@ def collect(grid: str) -> dict[str, int]:
         label = f"jev:{r['run']}:{r['task_id']}"
         if r['status'] == 'legal' and label not in have:
             new.append({'label': label, 'kind': 'jev', 'run': r['run'], 'task_id': r['task_id'], 'source': r['source'],
-                        'team': r['team'], 'paste': jev_fill.team_paste(r['team'])})
+                        'team': r['team'], 'paste': mask_paste.team_paste(r['team'])})
             have.add(label)
     if new:
         shutil.copy(path, path.with_name(f"candidates.before-jev-{time.strftime('%Y%m%d-%H%M%S')}.json"))

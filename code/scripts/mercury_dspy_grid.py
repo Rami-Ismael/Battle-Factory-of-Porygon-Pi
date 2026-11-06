@@ -36,6 +36,7 @@ from types import SimpleNamespace
 import repo_paths  # noqa: F401 -- puts src/ first on sys.path
 import jev_fill
 import llm_completion
+import mask_paste
 import results
 import showdown_validator
 from team_masks import masked
@@ -53,7 +54,7 @@ SETTINGS = dict(model="inception/mercury-2.5", format=showdown_validator.FORMAT,
 
 def to_path(text):
     """'team[3].statPoints' -> [3, 'evs']: a Mask Lab path as an llm_completion path."""
-    path = jev_fill.parse_path(text)
+    path = mask_paste.parse_path(text)
     return [path[0], "evs"] if path[1:] == ["statPoints"] else path
 
 
@@ -147,7 +148,7 @@ def collect(_a):
                 status["illegal"] += 1; print(f"{level} {trial['id']}: passed llm_completion, failed the grid: {error}"); continue
             status["legal"] += 1
             cands.append(dict(label=f"mercury-dspy-{level}:{trial['id']}", kind=f"mercury-dspy-{level}", task_id=trial["id"],
-                              source=task["source"], team=team, paste=jev_fill.team_paste(team)))
+                              source=task["source"], team=team, paste=mask_paste.team_paste(team)))
         summary[level] = dict(status, cost_usd=round(cost, 4))
         print(level, dict(status), f"${cost:.3f}")
     results.save(CANDIDATES, {"candidates": cands, "summary": summary})
@@ -163,7 +164,7 @@ def filled(task, team):
     """{field kind: [values written into the mask]}; a whole Pokémon contributes its species."""
     out = {}
     for text in task["masked_paths"]:
-        path = jev_fill.parse_path(text)
+        path = mask_paste.parse_path(text)
         slot = team[path[0]]
         if len(path) == 1:
             out.setdefault("species", []).append(slot["species"])

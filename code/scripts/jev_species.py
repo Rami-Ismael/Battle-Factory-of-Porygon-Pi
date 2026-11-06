@@ -16,6 +16,7 @@ from typing import Any
 import repo_paths
 import jev_fill
 import legal_options
+import mask_paste
 from mb_prompt import norm, regulation
 
 MAX_OPTIONS = 255
@@ -80,7 +81,7 @@ def split(names: list[str], rng: random.Random, fill: jev_fill.Fill, path: jev_f
     while not all(_fits(group, fill, path, instructions) for group in groups):
         n += 1
         if n > len(shuffled):
-            raise jev_fill.QuestionTooLarge(f'{jev_fill.path_text(path)}: one species alone is over the token limit')
+            raise jev_fill.QuestionTooLarge(f'{mask_paste.path_text(path)}: one species alone is over the token limit')
         groups = _cut(shuffled, n)
     return groups
 
