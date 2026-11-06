@@ -12,7 +12,7 @@ scores 0.531 against the other 49.
 ## The loop (`src/cem_v3.py`)
 Per generation g = 0 … 9:
 1. **Model.** g = 0: the v3 checkpoints (F1 + G2 mixture). g ≥ 1: both members fine-tuned **from the
-   original v3 checkpoints** (never from g−1) on the elites, 40 epochs, learning rate 1e-4, batch 64,
+   original v3 checkpoints** (never from g−1) on the elites, 10 epochs (40 before 2026-10-31; the epoch sweep found 10 ties 40), learning rate 1e-4, batch 64,
    their own schedule and legality tables, labels as the win-rate condition.
 2. **Surrogate.** Ridge on field indicators + species pairs: the 44,887-label fit of the foundation
    swap, refit each generation with every loop label added at weight 10. Guidance λ = 35.4 (fixed).

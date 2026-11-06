@@ -35,7 +35,8 @@ TAG = os.environ.get("CEM_TAG", "cem_v3")        # CEM_TAG=cem_v3_noheldout: own
 OUT = L.RES / f"{TAG}.json"
 BASE = L.RES / "cem_v3_ridge_base_noheldout.npz"   # the unsuffixed cache was fitted with ranks 51-100 in it
 GENS, PROPOSE, BATTLE, CUT, ELITE_MIN = 10, 512, 128, 0.531, 64
-FT_EPOCHS, FT_LR, FT_BATCH, LOOP_W = 40, 1e-4, 64, 10.0
+FT_EPOCHS, FT_LR, FT_BATCH, LOOP_W = 10, 1e-4, 64, 10.0
+# FT_EPOCHS was 40 until 2026-10-31; the epoch sweep (~/vgc-data/why-40-epochs/epoch_sweep_report.txt) found 10 ties 40.
 # Elite rule (2026-10-16). "cumulative" (default) = every labelled team so far + the top-50 anchors at >= CUT,
 # topped up to ELITE_MIN. "topfrac" = the owner's intended rule: the top ELITE_FRAC of the PREVIOUS generation's
 # battled teams by label, no anchors, nothing carried over. CEM_FT_EPOCHS / CEM_GENS override for that arm.
@@ -115,7 +116,7 @@ def members(V, tables, elites, g):
     """Fine-tuned copies of the ORIGINAL v3 members (cached per generation)."""
     nets = []
     for name in FD.V3_MEMBERS:
-        ck = L.CK / f"{TAG}_g{g}_{name}.pt"
+        ck = L.CK / (f"{TAG}_g{g}_{name}.pt" if FT_EPOCHS == 40 else f"{TAG}_g{g}_ep{FT_EPOCHS}_{name}.pt")  # 40: the old names
         net, cfg, _ = L.load_net(name, V)
         if ck.exists():
             net.load_state_dict(load_checkpoint(ck, map_location=L.DEV)["sd"])
@@ -193,6 +194,9 @@ def run():  # noqa: C901
     out = json.load(open(OUT)) if OUT.exists() else {"config": dict(gens=GENS, propose=PROPOSE, battle=BATTLE, cut=CUT,
                          elite_min=ELITE_MIN, elite_rule=ELITE_RULE, elite_frac=ELITE_FRAC, ft_epochs=FT_EPOCHS, ft_lr=FT_LR, loop_weight=LOOP_W, seed=SEED,
                          g_species=G_SPECIES), "gens": {}}
+    saved = out["config"].get("ft_epochs", 40)
+    if out["gens"] and saved != FT_EPOCHS:
+        raise SystemExit(f"{OUT} was run with {saved} fine-tune epochs, not {FT_EPOCHS}: set CEM_FT_EPOCHS={saved} to resume it, or use a new CEM_TAG")
     if "anchors" not in out:
         out["anchors"] = anchors(con); save(out)
     G = FD.Gen("v3"); V, tables = G.V, G.tables

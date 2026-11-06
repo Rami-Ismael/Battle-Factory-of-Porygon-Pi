@@ -61,7 +61,7 @@ STEP, Q_CAP, TOP_DELIVER, DELIVER_BATTLES = 0.1, 0.9, 10, 98
 FT_STEPS, FT_BATCH, FT_LR = 300, 64, 1e-4
 FINAL_N, FINAL_BATTLES, SEED = 16, 192, 6060
 # Ablation switches (2026-10-16). Defaults = the Diffusion-BBO arm above.
-#   CEM_TRAIN=elite  re-steer on the elites only (cem_v3.members: >= 0.531, min 64, raw labels, 40 epochs)
+#   CEM_TRAIN=elite  re-steer on the elites only (cem_v3.members: >= 0.531, min 64, raw labels, cem_v3.FT_EPOCHS epochs)
 #   CEM_ASK=fixed    ask FIXED_ASK every generation (contrast FIXED_ASK - 0.2), instead of the moving ask
 # Arms: cem_fixed_elite (elite, fixed) = the fixed loop with this decoder; cem_moving_elite (elite, moving)
 # isolates the moving ask; cem_dbbo (all, moving) adds all-data training and shrinkage on top.
@@ -77,7 +77,7 @@ RANDOM_PICK = bool(os.environ.get("CEM_RANDOM_PICK"))          # battle random p
 #   CEM_ASK=none      no ask: elites trained with the label hidden, every proposal decoded unconditionally
 #   CEM_FROZEN=1      never fine-tune: the original members propose every generation; the ridge still refits and tilts
 #   CEM_CUT=0.50      elite cut (cem_v3.CUT, default 0.531);  CEM_NO_ANCHORS=1  no top-50 anchors among the elites
-#   CEM_FT_EPOCHS=10  elite fine-tune length (read by cem_v3, default 40)
+#   CEM_FT_EPOCHS=40  elite fine-tune length (read by cem_v3, default 10 since 2026-10-31, 40 before)
 #   CEM_BATTLE=512    battle every proposal;  CEM_SEED  search seed
 #   CEM_OWN_G0=1      generation 0 drawn by this sampler from the original members and battled in full, once per seed,
 #                     shared by every arm with that seed (cem_abl_g0_s<seed>.json), instead of cem_v3_noheldout's
