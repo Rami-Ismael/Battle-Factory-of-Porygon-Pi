@@ -1,0 +1,2568 @@
+{
+ "source": "MB158",
+ "ask": 0.55,
+ "limit": 1024,
+ "jev": 24644,
+ "freeText": {
+  "qwen3": 867,
+  "qwen25c": 867,
+  "dream": 867,
+  "llada": 925,
+  "diffugpt": 760,
+  "diffullama": 982
+ },
+ "header": [
+  {
+   "key": "format",
+   "text": "Format: Champions VGC 2026 Reg Set M-B\n"
+  },
+  {
+   "key": "rules",
+   "text": "Rules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause\n"
+  },
+  {
+   "key": "ask",
+   "text": "Target win rate vs top meta teams: 0.55.\n"
+  }
+ ],
+ "masks": [
+  {
+   "id": "b90b461c39429bf2",
+   "name": "One item",
+   "paths": [
+    "team[3].item"
+   ],
+   "segs": [
+    {
+     "k": "lit",
+     "t": "[{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[3].item",
+     "v": "Never-Melt Ice"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]"
+    }
+   ],
+   "hiddenSlots": [
+    3
+   ]
+  },
+  {
+   "id": "12df02000e1dc7de",
+   "name": "One ability",
+   "paths": [
+    "team[2].ability"
+   ],
+   "segs": [
+    {
+     "k": "lit",
+     "t": "[{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[2].ability",
+     "v": "Adaptability"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"Never-Melt Ice\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]"
+    }
+   ],
+   "hiddenSlots": [
+    2
+   ]
+  },
+  {
+   "id": "1517709760661159",
+   "name": "One move",
+   "paths": [
+    "team[4].moves[2]"
+   ],
+   "segs": [
+    {
+     "k": "lit",
+     "t": "[{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"Never-Melt Ice\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[4].moves[2]",
+     "v": "Perish Song"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]"
+    }
+   ],
+   "hiddenSlots": [
+    4
+   ]
+  },
+  {
+   "id": "8c31c95e4f47df9c",
+   "name": "One Stat Alignment",
+   "paths": [
+    "team[2].nature"
+   ],
+   "segs": [
+    {
+     "k": "lit",
+     "t": "[{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[2].nature",
+     "v": "Adamant"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"Never-Melt Ice\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]"
+    }
+   ],
+   "hiddenSlots": [
+    2
+   ]
+  },
+  {
+   "id": "0613d59de0c68499",
+   "name": "One set of Stat Points",
+   "paths": [
+    "team[5].statPoints"
+   ],
+   "segs": [
+    {
+     "k": "lit",
+     "t": "[{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"Never-Melt Ice\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.HP",
+     "v": 31
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.Atk",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.Def",
+     "v": 21
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.SpA",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.SpD",
+     "v": 14
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.Spe",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": "}}]"
+    }
+   ],
+   "hiddenSlots": [
+    5
+   ]
+  },
+  {
+   "id": "22d0b83c75aef17c",
+   "name": "One whole Pokémon",
+   "paths": [
+    "team[3]"
+   ],
+   "segs": [
+    {
+     "k": "lit",
+     "t": "[{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "species",
+     "path": "team[3].species",
+     "v": "Ninetales-Alola"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[3].item",
+     "v": "Never-Melt Ice"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[3].ability",
+     "v": "Snow Warning"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[3].nature",
+     "v": "Timid"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[0]",
+     "v": "Blizzard"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[1]",
+     "v": "Freeze-Dry"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[2]",
+     "v": "Encore"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[3]",
+     "v": "Protect"
+    },
+    {
+     "k": "lit",
+     "t": "\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.HP",
+     "v": 13
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.Atk",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.Def",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.SpA",
+     "v": 21
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.SpD",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.Spe",
+     "v": 32
+    },
+    {
+     "k": "lit",
+     "t": "}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]"
+    }
+   ],
+   "hiddenSlots": [
+    3
+   ]
+  },
+  {
+   "id": "e13544e8791a826d",
+   "name": "All six Pokémon",
+   "paths": [
+    "team[0]",
+    "team[1]",
+    "team[2]",
+    "team[3]",
+    "team[4]",
+    "team[5]"
+   ],
+   "segs": [
+    {
+     "k": "lit",
+     "t": "[{\"species\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "species",
+     "path": "team[0].species",
+     "v": "Blaziken-Mega"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[0].item",
+     "v": "Blazikenite"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[0].ability",
+     "v": "Speed Boost"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[0].nature",
+     "v": "Adamant"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[0].moves[0]",
+     "v": "Close Combat"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[0].moves[1]",
+     "v": "Rock Slide"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[0].moves[2]",
+     "v": "Flare Blitz"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[0].moves[3]",
+     "v": "Detect"
+    },
+    {
+     "k": "lit",
+     "t": "\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[0].statPoints.HP",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[0].statPoints.Atk",
+     "v": 32
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[0].statPoints.Def",
+     "v": 2
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[0].statPoints.SpA",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[0].statPoints.SpD",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[0].statPoints.Spe",
+     "v": 32
+    },
+    {
+     "k": "lit",
+     "t": "}},{\"species\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "species",
+     "path": "team[1].species",
+     "v": "Kingambit"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[1].item",
+     "v": "Life Orb"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[1].ability",
+     "v": "Defiant"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[1].nature",
+     "v": "Adamant"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[1].moves[0]",
+     "v": "Kowtow Cleave"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[1].moves[1]",
+     "v": "Sucker Punch"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[1].moves[2]",
+     "v": "Protect"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[1].moves[3]",
+     "v": "Iron Head"
+    },
+    {
+     "k": "lit",
+     "t": "\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[1].statPoints.HP",
+     "v": 24
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[1].statPoints.Atk",
+     "v": 31
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[1].statPoints.Def",
+     "v": 1
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[1].statPoints.SpA",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[1].statPoints.SpD",
+     "v": 1
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[1].statPoints.Spe",
+     "v": 9
+    },
+    {
+     "k": "lit",
+     "t": "}},{\"species\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "species",
+     "path": "team[2].species",
+     "v": "Basculegion"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[2].item",
+     "v": "Focus Sash"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[2].ability",
+     "v": "Adaptability"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[2].nature",
+     "v": "Adamant"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[2].moves[0]",
+     "v": "Liquidation"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[2].moves[1]",
+     "v": "Last Respects"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[2].moves[2]",
+     "v": "Aqua Jet"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[2].moves[3]",
+     "v": "Protect"
+    },
+    {
+     "k": "lit",
+     "t": "\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[2].statPoints.HP",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[2].statPoints.Atk",
+     "v": 32
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[2].statPoints.Def",
+     "v": 2
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[2].statPoints.SpA",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[2].statPoints.SpD",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[2].statPoints.Spe",
+     "v": 32
+    },
+    {
+     "k": "lit",
+     "t": "}},{\"species\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "species",
+     "path": "team[3].species",
+     "v": "Ninetales-Alola"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[3].item",
+     "v": "Never-Melt Ice"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[3].ability",
+     "v": "Snow Warning"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[3].nature",
+     "v": "Timid"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[0]",
+     "v": "Blizzard"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[1]",
+     "v": "Freeze-Dry"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[2]",
+     "v": "Encore"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[3].moves[3]",
+     "v": "Protect"
+    },
+    {
+     "k": "lit",
+     "t": "\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.HP",
+     "v": 13
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.Atk",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.Def",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.SpA",
+     "v": 21
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.SpD",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[3].statPoints.Spe",
+     "v": 32
+    },
+    {
+     "k": "lit",
+     "t": "}},{\"species\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "species",
+     "path": "team[4].species",
+     "v": "Gengar"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[4].item",
+     "v": "Gengarite"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[4].ability",
+     "v": "Cursed Body"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[4].nature",
+     "v": "Modest"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[4].moves[0]",
+     "v": "Shadow Ball"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[4].moves[1]",
+     "v": "Disable"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[4].moves[2]",
+     "v": "Perish Song"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[4].moves[3]",
+     "v": "Protect"
+    },
+    {
+     "k": "lit",
+     "t": "\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[4].statPoints.HP",
+     "v": 32
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[4].statPoints.Atk",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[4].statPoints.Def",
+     "v": 14
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[4].statPoints.SpA",
+     "v": 1
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[4].statPoints.SpD",
+     "v": 14
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[4].statPoints.Spe",
+     "v": 5
+    },
+    {
+     "k": "lit",
+     "t": "}},{\"species\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "species",
+     "path": "team[5].species",
+     "v": "Incineroar"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"item\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "item",
+     "path": "team[5].item",
+     "v": "Passho Berry"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"ability\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "ability",
+     "path": "team[5].ability",
+     "v": "Intimidate"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"nature\":\""
+    },
+    {
+     "k": "slot",
+     "kind": "nature",
+     "path": "team[5].nature",
+     "v": "Relaxed"
+    },
+    {
+     "k": "lit",
+     "t": "\",\"moves\":[\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[5].moves[0]",
+     "v": "Fake Out"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[5].moves[1]",
+     "v": "Parting Shot"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[5].moves[2]",
+     "v": "Flare Blitz"
+    },
+    {
+     "k": "lit",
+     "t": "\",\""
+    },
+    {
+     "k": "slot",
+     "kind": "move",
+     "path": "team[5].moves[3]",
+     "v": "Protect"
+    },
+    {
+     "k": "lit",
+     "t": "\"],\"statPoints\":{\"HP\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.HP",
+     "v": 31
+    },
+    {
+     "k": "lit",
+     "t": ",\"Atk\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.Atk",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"Def\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.Def",
+     "v": 21
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpA\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.SpA",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": ",\"SpD\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.SpD",
+     "v": 14
+    },
+    {
+     "k": "lit",
+     "t": ",\"Spe\":"
+    },
+    {
+     "k": "slot",
+     "kind": "stat",
+     "path": "team[5].statPoints.Spe",
+     "v": 0
+    },
+    {
+     "k": "lit",
+     "t": "}}]"
+    }
+   ],
+   "hiddenSlots": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+   ]
+  }
+ ],
+ "tokenizers": [
+  {
+   "key": "qwen3",
+   "label": "Masked Qwen3 0.6B",
+   "repo": "dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1",
+   "revision": "c8d24a3f4adaeef46881b450e1bf7d1005203bd7",
+   "lens": {
+    "species": 9,
+    "item": 6,
+    "ability": 5,
+    "move": 6,
+    "nature": 3,
+    "stat": 2
+   },
+   "longest": {
+    "species": "Alcremie-Rainbow-Swirl",
+    "item": "Aerodactylite",
+    "ability": "Sap Sipper",
+    "move": "Kowtow Cleave",
+    "nature": "Bashful",
+    "stat": "10"
+   },
+   "crossings": 0,
+   "counts": {
+    "b90b461c39429bf2": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 434,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      4
+     ],
+     "total": 491,
+     "seam": 0
+    },
+    "12df02000e1dc7de": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 435,
+     "masks": 5,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 491,
+     "seam": 0
+    },
+    "1517709760661159": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 435,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 492,
+     "seam": 0
+    },
+    "8c31c95e4f47df9c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 436,
+     "masks": 3,
+     "start": 0,
+     "fills": [
+      2
+     ],
+     "total": 490,
+     "seam": 0
+    },
+    "0613d59de0c68499": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 429,
+     "masks": 12,
+     "start": 0,
+     "fills": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 492,
+     "seam": 0
+    },
+    "22d0b83c75aef17c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 406,
+     "masks": 59,
+     "start": 0,
+     "fills": [
+      6,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2
+     ],
+     "total": 516,
+     "seam": 0
+    },
+    "e13544e8791a826d": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 260,
+     "masks": 354,
+     "start": 0,
+     "fills": [
+      5,
+      4,
+      2,
+      2,
+      2,
+      2,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      3,
+      2,
+      2,
+      2,
+      6,
+      3,
+      1,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      5,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      6,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      2,
+      1,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1,
+      4,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 665,
+     "seam": 0
+    }
+   },
+   "old": 253
+  },
+  {
+   "key": "qwen25c",
+   "label": "Masked Qwen2.5 Coder 0.5B",
+   "repo": "dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1",
+   "revision": "a284e895a6248256baf2f60502e54aba61b24c1a",
+   "lens": {
+    "species": 9,
+    "item": 6,
+    "ability": 5,
+    "move": 6,
+    "nature": 3,
+    "stat": 2
+   },
+   "longest": {
+    "species": "Alcremie-Rainbow-Swirl",
+    "item": "Aerodactylite",
+    "ability": "Sap Sipper",
+    "move": "Kowtow Cleave",
+    "nature": "Bashful",
+    "stat": "10"
+   },
+   "crossings": 0,
+   "counts": {
+    "b90b461c39429bf2": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 434,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      4
+     ],
+     "total": 491,
+     "seam": 0
+    },
+    "12df02000e1dc7de": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 435,
+     "masks": 5,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 491,
+     "seam": 0
+    },
+    "1517709760661159": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 435,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 492,
+     "seam": 0
+    },
+    "8c31c95e4f47df9c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 436,
+     "masks": 3,
+     "start": 0,
+     "fills": [
+      2
+     ],
+     "total": 490,
+     "seam": 0
+    },
+    "0613d59de0c68499": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 429,
+     "masks": 12,
+     "start": 0,
+     "fills": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 492,
+     "seam": 0
+    },
+    "22d0b83c75aef17c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 406,
+     "masks": 59,
+     "start": 0,
+     "fills": [
+      6,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2
+     ],
+     "total": 516,
+     "seam": 0
+    },
+    "e13544e8791a826d": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 260,
+     "masks": 354,
+     "start": 0,
+     "fills": [
+      5,
+      4,
+      2,
+      2,
+      2,
+      2,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      3,
+      2,
+      2,
+      2,
+      6,
+      3,
+      1,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      5,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      6,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      2,
+      1,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1,
+      4,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 665,
+     "seam": 0
+    }
+   },
+   "old": 274
+  },
+  {
+   "key": "dream",
+   "label": "Dream 7B (Qwen2.5 vocabulary)",
+   "repo": "Qwen/Qwen2.5-7B",
+   "revision": null,
+   "lens": {
+    "species": 9,
+    "item": 6,
+    "ability": 5,
+    "move": 6,
+    "nature": 3,
+    "stat": 2
+   },
+   "longest": {
+    "species": "Alcremie-Rainbow-Swirl",
+    "item": "Aerodactylite",
+    "ability": "Sap Sipper",
+    "move": "Kowtow Cleave",
+    "nature": "Bashful",
+    "stat": "10"
+   },
+   "crossings": 0,
+   "counts": {
+    "b90b461c39429bf2": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 434,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      4
+     ],
+     "total": 491,
+     "seam": 0
+    },
+    "12df02000e1dc7de": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 435,
+     "masks": 5,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 491,
+     "seam": 0
+    },
+    "1517709760661159": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 435,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 492,
+     "seam": 0
+    },
+    "8c31c95e4f47df9c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 436,
+     "masks": 3,
+     "start": 0,
+     "fills": [
+      2
+     ],
+     "total": 490,
+     "seam": 0
+    },
+    "0613d59de0c68499": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 429,
+     "masks": 12,
+     "start": 0,
+     "fills": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 492,
+     "seam": 0
+    },
+    "22d0b83c75aef17c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 406,
+     "masks": 59,
+     "start": 0,
+     "fills": [
+      6,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2
+     ],
+     "total": 516,
+     "seam": 0
+    },
+    "e13544e8791a826d": {
+     "format": 15,
+     "rules": 22,
+     "ask": 14,
+     "team": 260,
+     "masks": 354,
+     "start": 0,
+     "fills": [
+      5,
+      4,
+      2,
+      2,
+      2,
+      2,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      3,
+      2,
+      2,
+      2,
+      6,
+      3,
+      1,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      5,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      6,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      2,
+      1,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1,
+      4,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 665,
+     "seam": 0
+    }
+   },
+   "old": 264
+  },
+  {
+   "key": "llada",
+   "label": "LLaDA 8B",
+   "repo": "GSAI-ML/LLaDA-8B-Base",
+   "revision": "0f2787f2d87eac5eed8a087d5ecd24277e6255b2",
+   "lens": {
+    "species": 10,
+    "item": 5,
+    "ability": 5,
+    "move": 6,
+    "nature": 3,
+    "stat": 2
+   },
+   "longest": {
+    "species": "Tauros-Paldea-Blaze",
+    "item": "Aerodactylite",
+    "ability": "Supersweet Syrup",
+    "move": "Stomping Tantrum",
+    "nature": "Bashful",
+    "stat": "10"
+   },
+   "crossings": 0,
+   "counts": {
+    "b90b461c39429bf2": {
+     "format": 15,
+     "rules": 22,
+     "ask": 15,
+     "team": 449,
+     "masks": 5,
+     "start": 0,
+     "fills": [
+      4
+     ],
+     "total": 506,
+     "seam": 0
+    },
+    "12df02000e1dc7de": {
+     "format": 15,
+     "rules": 22,
+     "ask": 15,
+     "team": 451,
+     "masks": 5,
+     "start": 0,
+     "fills": [
+      2
+     ],
+     "total": 508,
+     "seam": 0
+    },
+    "1517709760661159": {
+     "format": 15,
+     "rules": 22,
+     "ask": 15,
+     "team": 450,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 508,
+     "seam": 0
+    },
+    "8c31c95e4f47df9c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 15,
+     "team": 451,
+     "masks": 3,
+     "start": 0,
+     "fills": [
+      2
+     ],
+     "total": 506,
+     "seam": 0
+    },
+    "0613d59de0c68499": {
+     "format": 15,
+     "rules": 22,
+     "ask": 15,
+     "team": 444,
+     "masks": 12,
+     "start": 0,
+     "fills": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 508,
+     "seam": 0
+    },
+    "22d0b83c75aef17c": {
+     "format": 15,
+     "rules": 22,
+     "ask": 15,
+     "team": 422,
+     "masks": 59,
+     "start": 0,
+     "fills": [
+      5,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2
+     ],
+     "total": 533,
+     "seam": 0
+    },
+    "e13544e8791a826d": {
+     "format": 15,
+     "rules": 22,
+     "ask": 15,
+     "team": 278,
+     "masks": 354,
+     "start": 0,
+     "fills": [
+      5,
+      4,
+      2,
+      2,
+      2,
+      2,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      3,
+      2,
+      2,
+      2,
+      5,
+      3,
+      1,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      5,
+      3,
+      2,
+      2,
+      2,
+      3,
+      3,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      5,
+      4,
+      2,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      3,
+      4,
+      3,
+      2,
+      2,
+      1,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1,
+      4,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      1,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 684,
+     "seam": 0
+    }
+   },
+   "old": 286
+  },
+  {
+   "key": "diffugpt",
+   "label": "DiffuGPT small and medium",
+   "repo": "diffusionfamily/diffugpt-s",
+   "revision": "391d9850148c0beda355a8874bea958a40164c74",
+   "lens": {
+    "species": 10,
+    "item": 6,
+    "ability": 5,
+    "move": 7,
+    "nature": 3,
+    "stat": 1
+   },
+   "longest": {
+    "species": "Alcremie-Caramel-Swirl",
+    "item": "Aerodactylite",
+    "ability": "Supersweet Syrup",
+    "move": "Trick-or-Treat",
+    "nature": "Bashful",
+    "stat": "0"
+   },
+   "crossings": 0,
+   "counts": {
+    "b90b461c39429bf2": {
+     "format": 13,
+     "rules": 18,
+     "ask": 13,
+     "team": 426,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      5
+     ],
+     "total": 476,
+     "seam": 0
+    },
+    "12df02000e1dc7de": {
+     "format": 13,
+     "rules": 18,
+     "ask": 13,
+     "team": 429,
+     "masks": 5,
+     "start": 0,
+     "fills": [
+      2
+     ],
+     "total": 478,
+     "seam": 0
+    },
+    "1517709760661159": {
+     "format": 13,
+     "rules": 18,
+     "ask": 13,
+     "team": 428,
+     "masks": 7,
+     "start": 0,
+     "fills": [
+      3
+     ],
+     "total": 479,
+     "seam": 0
+    },
+    "8c31c95e4f47df9c": {
+     "format": 13,
+     "rules": 18,
+     "ask": 13,
+     "team": 429,
+     "masks": 3,
+     "start": 0,
+     "fills": [
+      2
+     ],
+     "total": 476,
+     "seam": 0
+    },
+    "0613d59de0c68499": {
+     "format": 13,
+     "rules": 18,
+     "ask": 13,
+     "team": 425,
+     "masks": 6,
+     "start": 0,
+     "fills": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "total": 475,
+     "seam": 0
+    },
+    "22d0b83c75aef17c": {
+     "format": 13,
+     "rules": 18,
+     "ask": 13,
+     "team": 400,
+     "masks": 58,
+     "start": 0,
+     "fills": [
+      6,
+      5,
+      2,
+      2,
+      2,
+      5,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "total": 502,
+     "seam": 0
+    },
+    "e13544e8791a826d": {
+     "format": 13,
+     "rules": 18,
+     "ask": 13,
+     "team": 266,
+     "masks": 348,
+     "start": 0,
+     "fills": [
+      5,
+      4,
+      2,
+      2,
+      2,
+      2,
+      3,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      3,
+      2,
+      2,
+      2,
+      6,
+      3,
+      1,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      5,
+      3,
+      2,
+      2,
+      2,
+      3,
+      3,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      6,
+      5,
+      2,
+      2,
+      2,
+      5,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      3,
+      4,
+      3,
+      2,
+      2,
+      1,
+      3,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      4,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "total": 658,
+     "seam": 0
+    }
+   },
+   "old": null
+  },
+  {
+   "key": "diffullama",
+   "label": "DiffuLLaMA 7B",
+   "repo": "diffusionfamily/diffullama",
+   "revision": "31b22850c7b397d6948ea04076099b9ff7110adc",
+   "lens": {
+    "species": 11,
+    "item": 6,
+    "ability": 6,
+    "move": 8,
+    "nature": 3,
+    "stat": 2
+   },
+   "longest": {
+    "species": "Alcremie-Caramel-Swirl",
+    "item": "Aerodactylite",
+    "ability": "Supersweet Syrup",
+    "move": "Trick-or-Treat",
+    "nature": "Adamant",
+    "stat": "10"
+   },
+   "crossings": 0,
+   "counts": {
+    "b90b461c39429bf2": {
+     "format": 16,
+     "rules": 25,
+     "ask": 15,
+     "team": 499,
+     "masks": 6,
+     "start": 1,
+     "fills": [
+      6
+     ],
+     "total": 562,
+     "seam": 1
+    },
+    "12df02000e1dc7de": {
+     "format": 16,
+     "rules": 25,
+     "ask": 15,
+     "team": 501,
+     "masks": 6,
+     "start": 1,
+     "fills": [
+      4
+     ],
+     "total": 564,
+     "seam": 1
+    },
+    "1517709760661159": {
+     "format": 16,
+     "rules": 25,
+     "ask": 15,
+     "team": 502,
+     "masks": 8,
+     "start": 1,
+     "fills": [
+      3
+     ],
+     "total": 567,
+     "seam": 0
+    },
+    "8c31c95e4f47df9c": {
+     "format": 16,
+     "rules": 25,
+     "ask": 15,
+     "team": 502,
+     "masks": 3,
+     "start": 1,
+     "fills": [
+      3
+     ],
+     "total": 562,
+     "seam": 1
+    },
+    "0613d59de0c68499": {
+     "format": 16,
+     "rules": 25,
+     "ask": 15,
+     "team": 501,
+     "masks": 12,
+     "start": 1,
+     "fills": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 570,
+     "seam": -11
+    },
+    "22d0b83c75aef17c": {
+     "format": 16,
+     "rules": 25,
+     "ask": 15,
+     "team": 473,
+     "masks": 70,
+     "start": 1,
+     "fills": [
+      6,
+      6,
+      3,
+      2,
+      3,
+      5,
+      2,
+      3,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2
+     ],
+     "total": 600,
+     "seam": -10
+    },
+    "e13544e8791a826d": {
+     "format": 16,
+     "rules": 25,
+     "ask": 15,
+     "team": 325,
+     "masks": 420,
+     "start": 1,
+     "fills": [
+      6,
+      4,
+      3,
+      3,
+      3,
+      4,
+      4,
+      2,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      4,
+      3,
+      3,
+      3,
+      6,
+      4,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      5,
+      3,
+      4,
+      3,
+      4,
+      4,
+      3,
+      3,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      6,
+      6,
+      3,
+      2,
+      3,
+      5,
+      2,
+      3,
+      2,
+      1,
+      1,
+      2,
+      1,
+      2,
+      3,
+      4,
+      4,
+      2,
+      3,
+      2,
+      3,
+      3,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1,
+      4,
+      4,
+      4,
+      3,
+      3,
+      4,
+      4,
+      3,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1
+     ],
+     "total": 802,
+     "seam": -64
+    }
+   },
+   "old": null
+  }
+ ],
+ "team": [
+  {
+   "species": "Blaziken-Mega",
+   "item": "Blazikenite"
+  },
+  {
+   "species": "Kingambit",
+   "item": "Life Orb"
+  },
+  {
+   "species": "Basculegion",
+   "item": "Focus Sash"
+  },
+  {
+   "species": "Ninetales-Alola",
+   "item": "Never-Melt Ice"
+  },
+  {
+   "species": "Gengar",
+   "item": "Gengarite"
+  },
+  {
+   "species": "Incineroar",
+   "item": "Passho Berry"
+  }
+ ]
+}
