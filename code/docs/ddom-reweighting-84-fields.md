@@ -104,3 +104,33 @@ Read from each arm's `summary.line`, with win rate against the 49 distinct top-5
 No arm is near the line.
 
 By this error both DDOM arms are worse than no weights: tau 0.3 by 0.0019 (0.0011 to 0.0027), and tau 0.1 by 0.0051 (0.0042 to 0.0060). The slope rule's pass does not carry over.
+
+### Beside the error, 2026-11-07 (issue #114)
+
+`src/ddom_error_compare.py` rebuilds the comparison from the three saved grids and adds the measures the plan reports beside the judge. Output: `~/vgc-data/results/ddom_error_compare.json`. Intervals are 95%, from 4,000 bootstrap draws over teams within each ask and seed, with battles not resampled. All arms stop at epoch 21 with label noise ±1/48, and each has 4,416 teams, 1,152 of them at asks 18/24 to 23/24.
+
+| Arm, epoch 21 | Verdict on asks 1/24 to 17/24 | Error | Minus no weights |
+| --- | --- | --- | --- |
+| No weights | control | 0.0066 | |
+| Tau 0.3 weights | loses | 0.0085 | +0.0019 (+0.0011 to +0.0027) |
+| Tau 0.1 weights | loses | 0.0117 | +0.0051 (+0.0042 to +0.0059) |
+
+The upper bound for tau 0.1 differs from the 0.0060 above because the bootstrap draws differ; the point values match.
+
+Asks 18/24 to 23/24, reported apart because training teams are scarce there:
+
+| Arm, epoch 21 | Error | Minus no weights | Win rate | Minus no weights |
+| --- | --- | --- | --- | --- |
+| No weights | 0.1504 | | 0.480 | |
+| Tau 0.3 weights | 0.1494 | -0.0010 (-0.0082 to +0.0061) | 0.479 | 0.000 (-0.009 to +0.008) |
+| Tau 0.1 weights | 0.1398 | -0.0106 (-0.0176 to -0.0036) | 0.489 | +0.009 (+0.001 to +0.018) |
+
+Line-ups, a team's six species. New means absent from the 109,934 training line-ups. The loop and tournament records add 153 line-ups the training teams lack, and no generated team matches one, so new against both references gives the same counts.
+
+| Arm, epoch 21 | Line-ups, all asks | New | Line-ups, asks 18/24 to 23/24 | New | Slope, all 23 asks |
+| --- | --- | --- | --- | --- | --- |
+| No weights | 1,325 | 626 | 335 | 73 | 0.489 |
+| Tau 0.3 weights | 1,329 | 735 | 344 | 61 | 0.544 |
+| Tau 0.1 weights | 1,082 | 513 | 242 | 39 | 0.519 |
+
+Neither weighting reduces the ask-versus-got error on asks 1/24 to 17/24. Tau 0.3 matches no weights at the top asks and on line-ups, and loses only on the scored asks. Tau 0.1 buys about one point of win rate at the top asks and a smaller top-ask error, which is still 140 times the near-the-line bar of 0.001. It pays with 18% fewer line-ups overall and 28% fewer at the top asks. The plan adopts weights only if line-ups do not collapse; whether a drop this size counts is the owner's call. One training seed per arm, so this stays exploratory. The ticket stays open for the owner to close.
