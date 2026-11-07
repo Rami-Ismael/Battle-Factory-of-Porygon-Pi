@@ -58,7 +58,10 @@ for _ep in range(1, 81):
 for _t, _r in (("01", "0.1"), ("03", "0.3")):
     MODELS[f"gen84_ddom_tau{_t}"] = dict(checkpoint=f"stat84_labelled_noise_ddom_tau{_t}_ep21", reader=f"Tau {_r} weights, 21 epochs",
                                          epochs=dict(labelled_teams=21), stopped="planned stop at epoch 21, to match the control", labelled=True)
-MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
+MODELS["ft_hindsight_relabel"] = dict(checkpoint="stat84_labelled_noise_byepoch_ep21_ft_hindsight_relabel_es3_cap40",   # issue #106, src/hindsight_relabel.py
+                                      reader="Hindsight-relabeled fine-tune, epoch 21", epochs=dict(labelled_teams=21, relabelled_fine_tune="early stopping"),
+                                      stopped="epoch 21 fine-tuned on its own battled teams, labelled with measured win rate; best pass by validation loss", labelled=True)
+MODEL =os.environ.get("AG84_MODEL", "gen84_all_ep21")
 if MODEL not in MODELS and flagged_checkpoint(MODEL):
     MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
