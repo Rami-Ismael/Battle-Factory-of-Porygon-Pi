@@ -1,5 +1,5 @@
 """The text a masked diffusion model fills in place, for any Mask Lab mask: single fields (#199), whole
-Pokémon and all six (#200).
+Pokémon and all six (#200), and the check that reads a filled text back and validates it (#196).
 
 The model does not answer a prompt. It gets a short header (format, rules, win-rate ask) and the team
 as compact JSON (mask_paste.team_json), with each hidden field's value replaced by mask tokens between
@@ -19,6 +19,7 @@ value's tokens cross its quotes; slot_lengths asserts that for the tokenizer it 
     in_place_text(task, ask, tokenizer, limit)        the text, where its slots sit, its parts' sizes
     training_target(task, ask, tokenizer, limit, pad) the same text with the real values, padded
     read_filled(text, pad, mask_token)                a filled text back into a team, by a JSON parser
+    check_filled(text, pad, mask_token, validate)     a filled text's legality, with the reason it failed
 
 The tokenizer is a Hugging Face fast tokenizer, or anything with its mask_token and
 `tokenizer(text, add_special_tokens=False, return_offsets_mapping=True)['offset_mapping']`.
@@ -31,13 +32,14 @@ Any other mask by source, task and k, such as Alolan Ninetales's item alone:
 """
 import json
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Protocol
 
 from mask_paste import (FORMAT_NAME, RULES, STATS, Piece, Team, ValuePath, json_pieces, parse_path, team_from_json,
-                        value_text)
+                        team_paste, value_text)
 
 VERSION = 'in-place-json-v1-no-meta-teams'      # stored beside every generated team
 ASK_LINE = 'Target win rate vs top meta teams: {ask}.'     # the earlier text fine-tunes' wording
@@ -264,6 +266,50 @@ def read_filled(text: str, pad: str, mask_token: str) -> Team:
     return team_from_json(team.replace(pad, ''))
 
 
+@dataclass(frozen=True)
+class FilledCheck:
+    """One filled text's legality, stored beside the generated team. A text fails at one of two steps, and
+    the prompt-only test (#171) counts them apart: unreadable says why the filled JSON is not a team, and
+    validator_errors holds each error Showdown's validator gave the team's paste."""
+    version: str                        # the in-place text's VERSION, so teams from later text versions stay apart
+    team: Team | None                   # None when unreadable
+    paste: str | None                   # the battle step's paste, written by the shared paste writer
+    unreadable: str | None = None
+    validator_errors: tuple[str, ...] = ()
+
+    @property
+    def legal(self) -> bool:
+        return self.unreadable is None and not self.validator_errors
+
+
+def _check_value_types(team: Team) -> None:
+    """team_from_json checks the keys; a filled slot can still hold the wrong JSON type, which the paste
+    writer would turn into a crash or a misleading paste."""
+    for i, mon in enumerate(team):
+        texts = {f'team[{i}].{name}': mon[name] for name in ('species', 'item', 'ability', 'nature')}
+        texts |= {f'team[{i}].moves[{j}]': move for j, move in enumerate(mon['moves'])}
+        for where, value in texts.items():
+            if not isinstance(value, str):
+                raise ValueError(f'{where} is {value!r}, not text')
+        for stat, value in mon['statPoints'].items():
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise ValueError(f'team[{i}].statPoints.{stat} is {value!r}, not a whole number')
+
+
+def check_filled(text: str, pad: str, mask_token: str, validate: Callable[[str], str | None]) -> FilledCheck:
+    """Read a filled in-place text into a team, write its paste and validate it. validate takes paste text and
+    returns None for a legal team, else its errors joined with '; ', as showdown_validator.Validator does.
+    Legality is only measured here: nothing in the text or the decoder enforces it."""
+    try:
+        team = read_filled(text, pad, mask_token)
+        _check_value_types(team)
+    except ValueError as error:         # json.JSONDecodeError is a ValueError
+        return FilledCheck(VERSION, None, None, unreadable=str(error))
+    paste = team_paste(team)
+    errors = validate(paste)
+    return FilledCheck(VERSION, team, paste, validator_errors=tuple(errors.split('; ')) if errors else ())
+
+
 def _demo(tokenizer: Tokenizer, source: str, mask: str, k: int) -> None:
     import jev_fill
     task = next(t for t in jev_fill.tasks('meta') if (t['source'], t['task'], t['k']) == (source, mask, k))
@@ -281,10 +327,24 @@ def _demo(tokenizer: Tokenizer, source: str, mask: str, k: int) -> None:
     target = training_target(task, 0.55, tokenizer, 1024, tokenizer.pad_token)
     print(f'Training target, padded with {tokenizer.pad_token}:\n' + target + '\n')
     assert read_filled(target, tokenizer.pad_token, tokenizer.mask_token) == task['original']
-    print('The training target reads back to the unmasked team.\n')
+    print('The training target reads back to the unmasked team.')
+    validate = Validator()
+    try:
+        checked = check_filled(target, tokenizer.pad_token, tokenizer.mask_token, validate)
+        guess = built.text
+        for slot in reversed(built.slots):          # every hidden text value Pikachu, every number 1
+            guess = guess[:slot.start] + ('1' if slot.field == 'statPoints' else 'Pikachu') + guess[slot.end:]
+        guessed = check_filled(guess, tokenizer.pad_token, tokenizer.mask_token, validate)
+    finally:
+        validate.close()
+    print(f'Showdown validator on the training target: legal {checked.legal}, errors {list(checked.validator_errors)}')
+    print(f'Every hidden text value Pikachu and number 1: legal {guessed.legal}, unreadable {guessed.unreadable!r}, '
+          f'errors {list(guessed.validator_errors)[:3]}\n')
 
 
 if __name__ == '__main__':
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+    from showdown_validator import Validator
     from transformers import AutoTokenizer
     qwen = AutoTokenizer.from_pretrained('dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1')
     if len(sys.argv) > 1:

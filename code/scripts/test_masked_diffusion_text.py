@@ -1,4 +1,5 @@
-"""The in-place masked diffusion text (#199, #200), on real Mask Lab tasks, with a fake tokenizer and no model.
+"""The in-place masked diffusion text (#199, #200) and its legality check (#196), on real Mask Lab tasks, with a
+fake tokenizer, a fake validator and no model.
 
 Reads the meta grid's tasks from the vault pipeline, as the Jev fill tests do, so it is not in ci_tests.txt.
 """
@@ -250,6 +251,71 @@ class TrainingTargetTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'mask tokens'):
             D.read_filled(built.text, FAKE.pad_token, FAKE.mask_token)
 
+
+
+class FakeValidator:
+    """Records every paste it is given; calls a team illegal, with two errors, if it holds the word Pikachu."""
+    def __init__(self):
+        self.pastes = []
+
+    def __call__(self, paste):
+        self.pastes.append(paste)
+        return 'Pikachu is not in Reg M-B; Pikachu has no Light Ball here' if 'Pikachu' in paste else None
+
+
+def filled(built, value_for):
+    """The in-place text with each slot filled by value_for(slot)."""
+    text = built.text
+    for slot in reversed(built.slots):
+        text = text[:slot.start] + value_for(slot) + text[slot.end:]
+    return text
+
+
+class CheckFilledTest(unittest.TestCase):
+    def test_a_training_target_is_legal_and_its_paste_is_the_battle_paste(self):
+        for t in (task('items', 1), task('stats', 6), task('pokemon', 1), task('pokemon', 6)):
+            validate = FakeValidator()
+            checked = D.check_filled(D.training_target(t, 0.55, FAKE, LIMIT, FAKE.pad_token), FAKE.pad_token,
+                                     FAKE.mask_token, validate)
+            self.assertTrue(checked.legal)
+            self.assertEqual(checked.team, t['original'])
+            self.assertEqual(checked.paste, M.team_paste(t['original']))
+            self.assertEqual(validate.pastes, [checked.paste])
+
+    def test_each_validator_error_is_kept_as_its_own_reason(self):
+        built = D.in_place_text(task('pokemon', 1), 0.55, FAKE, LIMIT)
+        text = filled(built, lambda slot: '1' if slot.field == 'statPoints' else 'Pikachu')
+        checked = D.check_filled(text, FAKE.pad_token, FAKE.mask_token, FakeValidator())
+        self.assertFalse(checked.legal)
+        self.assertIsNone(checked.unreadable)
+        self.assertEqual(checked.validator_errors, ('Pikachu is not in Reg M-B', 'Pikachu has no Light Ball here'))
+        self.assertIn('Pikachu @ Pikachu', checked.paste)
+
+    def test_text_that_is_not_a_team_is_unreadable_and_never_validated(self):
+        built = D.in_place_text(task('stats', 1), 0.55, FAKE, LIMIT)
+        cases = {'a slot left as mask tokens': built.text,
+                 'a number slot filled with text': filled(built, lambda slot: 'Pikachu'),
+                 'a quote that breaks the JSON': filled(built, lambda slot: '1,"x":"')}
+        for case, text in cases.items():
+            with self.subTest(case):
+                validate = FakeValidator()
+                checked = D.check_filled(text, FAKE.pad_token, FAKE.mask_token, validate)
+                self.assertFalse(checked.legal)
+                self.assertIsNotNone(checked.unreadable)
+                self.assertIsNone(checked.team)
+                self.assertEqual(validate.pastes, [])
+
+    def test_a_number_where_text_belongs_names_its_field(self):
+        built = D.in_place_text(task('items', 1), 0.55, FAKE, LIMIT)
+        text = built.text.replace('"item":"' + FAKE.mask_token * D.slot_lengths(FAKE)['item'] + '"', '"item":7')
+        validate = FakeValidator()
+        self.assertIn('team[3].item is 7', D.check_filled(text, FAKE.pad_token, FAKE.mask_token, validate).unreadable)
+        self.assertEqual(validate.pastes, [])
+
+    def test_every_check_carries_the_text_version(self):
+        built = D.in_place_text(task('items', 1), 0.55, FAKE, LIMIT)
+        for text in (built.text, D.training_target(task('items', 1), 0.55, FAKE, LIMIT, FAKE.pad_token)):
+            self.assertEqual(D.check_filled(text, FAKE.pad_token, FAKE.mask_token, FakeValidator()).version, D.VERSION)
 
 if __name__ == '__main__':
     unittest.main()
