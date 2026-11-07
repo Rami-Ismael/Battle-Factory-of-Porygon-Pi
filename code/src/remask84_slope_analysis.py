@@ -6,7 +6,6 @@ opponents across arms, error against the line, accumulation, new line-ups, and w
     python remask84_slope_analysis.py [output.json]
 """
 import json
-import re
 import sqlite3
 import sys
 from collections import Counter
@@ -14,42 +13,15 @@ from pathlib import Path
 
 import numpy as np
 
-import ask_grid84 as A                                   # also sets up sys.path for the modules below
+import ask_grid84  # noqa: F401  (sets up sys.path for the modules below)
 import heldout as H
 import matchup_db as MDB
-import team84 as T
-from team_diversity import slots_from_paste
+from lineup_reference import references, species_of
 
 RES = Path.home() / "vgc-data/results"
 ASKS, SEEDS, ARMS = [4, 8, 12, 16], [1, 2, 3], ["plain", "remask_ll_10", "remask_conf_loop", "remask_even_loop"]
 B = 4000
 CUT = 0.531
-
-
-def species_of(paste):
-    return tuple(sorted(s["species"] for s in slots_from_paste(paste)))
-
-
-def norm(text):
-    return re.sub(r"[^a-z0-9]", "", str(text).lower())
-
-
-def references():
-    """Line-ups in the training teams, and in the loop and tournament records: the two fixed references for novelty."""
-    data = np.load(A.DATA)
-    data = {k: data[k] for k in ("all_X", "all_val", "loop_X", "records_X")}
-    vocab, names, cols = T.regulation_vocab(), {}, [s * 8 for s in range(6)]
-    for k in ("all_X", "loop_X", "records_X"):
-        rows = data[k]
-        for i in np.unique(rows[:, cols]):
-            if int(i) not in names:
-                at = np.argwhere(rows[:, cols] == i)[0]
-                names[int(i)] = norm(T.decode(vocab, rows[at[0]])[at[1]]["species"])
-
-    def named(rows):
-        return {tuple(sorted(names[int(i)] for i in r)) for r in np.unique(rows[:, cols], axis=0)}
-
-    return named(data["all_X"][~data["all_val"]]), named(data["loop_X"]) | named(data["records_X"])
 
 
 d = json.load(open(RES / "remask84.json"))
