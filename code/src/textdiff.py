@@ -1,5 +1,7 @@
 """Pretrained text diffusion model (Fast-dLLM v2 1.5B) fine-tuned to write Reg M-B teams.
 
+Dropped 2026-11-06: block diffusion is not used (docs/decisions/no-block-diffusion-models.md). Kept as a record, not a baseline.
+
 Pre-registration: docs/textdiff.md. Three stages, two interpreters:
 
     /tmp/vgc-pilot/.venv/bin/python textdiff.py prepare          # project venv: rows -> text examples

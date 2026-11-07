@@ -1,5 +1,7 @@
 """Fast-dLLM v2 (block diffusion, Qwen2.5-1.5B-Instruct adapted) on Apple MPS.
 
+Dropped 2026-11-06: block diffusion is not used (docs/decisions/no-block-diffusion-models.md). Kept as a record, not a baseline.
+
 The released modeling.py trains through torch flex_attention compiled for CUDA. This file
 swaps that one function for a dense boolean mask through scaled_dot_product_attention and
 re-implements the published training loss (per-block mask rate, complementary masks,

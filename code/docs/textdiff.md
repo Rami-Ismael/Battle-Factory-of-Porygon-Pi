@@ -1,5 +1,7 @@
 # Pretrained text diffusion model as the team writer (pre-registration, 2026-10-14)
 
+> **Dropped 2026-11-06, see [the decision](decisions/no-block-diffusion-models.md).** Block diffusion is not used; this page is a record of what ran, not an option or a baseline.
+
 **Question.** The scratch generator is a 6 × 8 categorical masked-diffusion model trained only on this
 project's teams (F1 + G2 mixture, Regulation M-B vocabulary, `src/regmb_model.py`). Does a *pretrained
 text* diffusion model, fine-tuned on the same teams written as Showdown pastes, propose stronger legal
