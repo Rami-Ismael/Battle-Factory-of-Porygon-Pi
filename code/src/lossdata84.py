@@ -18,6 +18,15 @@ The test 500 and the held-out meta teams ranked 51-100 never enter either view (
     /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py         -> results/lossdata84.npz + lossdata84_counts.json
     /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py NAME    -> results/NAME.npz + NAME_counts.json, leaving the
                                                                  stored table that earlier runs recorded untouched
+
+Shuffled-slot table (issue #229): only shuffled-slot battles (policy 8) label a team. A team whose only labels were
+listed-order battles (the policy 1 fallback) or a run's own measurements (the old training pool, every results file:
+no run file records its slot order) leaves the table; a team Showdown's validator rejects leaves it too. A team that
+never had a label stays, unlabelled. The same-teams slices are not built: their labels are the ones the deployed
+models saw. Removed teams go to NAME_removed.npz, and NAME_counts.json is counted from the two saved files.
+
+    /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py --shuffled-only [NAME]
+        -> results/NAME.npz + NAME_removed.npz + NAME_counts.json (NAME defaults to lossdata84_shuffled_only)
 """
 import hashlib
 import io
@@ -72,7 +81,7 @@ def save_npz(path, arrays):
             z.writestr(info, buf.getvalue())
 
 
-def collect(Vreg):
+def collect(Vreg, shuffled_only=False):
     """lossdata.gather() plus, per 48-field key, {Stat Points: 84-field row in the regulation vocabulary or None}."""
     sets = defaultdict(dict)
     def observe(k, team):
@@ -80,7 +89,7 @@ def collect(Vreg):
         if sp in found: return
         try: found[sp] = T.encode(Vreg, team).astype(np.int16)
         except ValueError: found[sp] = None                  # a field outside the regulation, or illegal Stat Points
-    return LD.gather(observe), sets
+    return LD.gather(observe, shuffled_only=shuffled_only), sets
 
 
 def same_team_slices(sets, V):
@@ -122,6 +131,134 @@ def all_teams(g, sets):
     return dict(all_X=Xa, all_W=W, all_NB=NB, all_val=val), counts, keys
 
 
+LOST_RULES = (LD.LISTED_FALLBACK, LD.RUN_FILE)      # bit j of a row's lost mask: it had a label from LOST_RULES[j]
+NOT_SHUFFLED, ILLEGAL = "label_not_shuffled", "illegal"
+REMOVED = (NOT_SHUFFLED, ILLEGAL)                   # removed_reason indexes this
+PREVIOUS = "lossdata84_shuffled_labels"             # the table #229 must leave unchanged
+
+
+def lost_mask(e):
+    """Bit mask of the label sources gather(shuffled_only=True) left out of pool entry e."""
+    return sum(1 << j for j, r in enumerate(LOST_RULES) if r in e.get("dropped", ()))
+
+
+def fate(e, error):
+    """Why pool entry e leaves the shuffled-slot table, or None when it stays. error is the validator's message for
+    its 84-field row (None when legal). A team whose every label was left out leaves, never as an unlabelled row."""
+    if not e["battles"] and e.get("dropped"): return NOT_SHUFFLED
+    if error is not None: return ILLEGAL
+    return None
+
+
+class RowValidator:
+    """Showdown's validator on 84-field rows: each row decoded and written as the paste it stands for."""
+    def __init__(self, Vreg):
+        from hps_generate import Validator, slot_to_text
+        _, _, _, look, _ = X.setup()
+        look.update(Vreg.regulation["names"])
+        self.V, self.look, self.text, self.val = Vreg, look, slot_to_text, Validator()
+
+    def paste(self, row):
+        g = lambda v: self.look.get(v, v)
+        return "\n\n".join(self.text(dict(species=g(s["species"]), ability=g(s["ability"]), item=g(s["item"]),
+                                           nature=g(s["nature"]), moves=[g(m) for m in s["moves"]], evs=s["evs"]))
+                            for s in T.decode(self.V, row)) + "\n"
+
+    def __call__(self, row):
+        return self.val(self.paste(row))
+
+    def close(self):
+        self.val.close()
+
+
+def shuffled_tables(g, sets, check):
+    """(table arrays, removed arrays, illegal errors) for the shuffled-slot table; check(row) is the validator."""
+    pool = g["pool"]
+    keys = [k for k in pool if single(sets.get(k)) is not None]
+    kept, removed, errors = [], [], []
+    for k in keys:
+        e, row = pool[k], single(sets[k])
+        err = None if fate(e, None) == NOT_SHUFFLED else check(row)
+        why = fate(e, err)
+        if why is None: kept.append(k)
+        else: removed.append((k, REMOVED.index(why)))
+        if why == ILLEGAL: errors.append(err)
+    W = np.array([pool[k]["wins"] / pool[k]["battles"] if pool[k]["battles"] else np.nan for k in kept], np.float32)
+    val = np.zeros(len(kept), bool)
+    val[np.random.default_rng(VAL_SEED).permutation(len(kept))[:round(VAL_SHARE * len(kept))]] = True
+    table = dict(all_X=np.stack([single(sets[k]) for k in kept]), all_W=W,
+                 all_NB=np.array([pool[k]["battles"] for k in kept], np.int32), all_val=val,
+                 all_S=np.array([pool[k]["fam"] for k in kept], np.int32),
+                 all_lost=np.array([lost_mask(pool[k]) for k in kept], np.int8))
+    rk = [k for k, _ in removed]
+    gone = dict(X=np.stack([single(sets[k]) for k in rk]) if rk else np.zeros((0, T.COLS), np.int16),
+                reason=np.array([r for _, r in removed], np.int8), S=np.array([pool[k]["fam"] for k in rk], np.int32),
+                lost=np.array([lost_mask(pool[k]) for k in rk], np.int8))
+    return table, gone, errors, kept
+
+
+def by_family(S, sel):
+    """{family: teams selected} over lossdata.FAM; a team in several families counts in each."""
+    return {f: int((sel & ((S >> j) & 1).astype(bool)).sum()) for j, f in enumerate(LD.FAM)}
+
+
+def counts_from_files(table, removed):
+    """Every count of the shuffled-slot table, read back from its two saved files."""
+    t, r = np.load(table), np.load(removed)
+    S, lost = np.concatenate([t["all_S"], r["S"]]), np.concatenate([t["all_lost"], r["lost"]])
+    out = dict(lost_label={})
+    for j, rule in enumerate(LOST_RULES):
+        sel = ((lost >> j) & 1).astype(bool)
+        out["lost_label"][rule] = dict(teams=int(sel.sum()), by_family=by_family(S, sel))
+    out["removed"] = {}
+    for j, why in enumerate(REMOVED):
+        sel = r["reason"] == j
+        out["removed"][why] = dict(teams=int(sel.sum()), by_family=by_family(r["S"], sel))
+    labelled = np.isfinite(t["all_W"])
+    out["table"] = dict(rows=len(t["all_W"]), labelled=int(labelled.sum()), unlabelled=int((~labelled).sum()),
+                        val=int(t["all_val"].sum()), labelled_by_family=by_family(t["all_S"], labelled),
+                        unlabelled_by_family=by_family(t["all_S"], ~labelled),
+                        labelled_battles_min=int(t["all_NB"][labelled].min()) if labelled.any() else None)
+    return out
+
+
+def main_shuffled(name="lossdata84_shuffled_only"):
+    if name == PREVIOUS: raise SystemExit(f"{PREVIOUS}.npz is the table issue #229 keeps unchanged; pick another name")
+    out, gone_path, counts_path = (X.RES / f"{name}{s}" for s in (".npz", "_removed.npz", "_counts.json"))
+    prev = X.RES / f"{PREVIOUS}.npz"
+    prev_sha = hashlib.sha256(prev.read_bytes()).hexdigest() if prev.exists() else None
+    t0 = time.perf_counter()
+    for m in (LD, T, SP, X, HO):
+        print(f"{m.__name__:14s} {m.__file__}", flush=True)
+    _, V, *_ = X.setup()
+    Vreg = T.regulation_vocab()
+    g, sets = collect(Vreg, shuffled_only=True)
+    check = RowValidator(Vreg)
+    try: table, gone, errors, keys = shuffled_tables(g, sets, check)
+    finally: check.close()
+    held = HO.identities()
+    assert not (set(keys) & {r.tobytes() for r in g["xte"]}), "a test team reached the shuffled-slot table"
+    assert not any(HO.row_key(g["pool"][k]["x"], V) in held for k in keys), "a held-out team reached the shuffled-slot table"
+    assert legal_stat_points(table["all_X"]), "the shuffled-slot table has Stat Points outside the limits"
+    save_npz(out, table); save_npz(gone_path, gone)
+
+    counts = counts_from_files(out, gone_path)
+    check = RowValidator(Vreg)                     # every saved row, read back from the file, through the validator
+    try: failures = sum(check(row) is not None for row in np.load(out)["all_X"])
+    finally: check.close()
+    counts["table"]["validator_failures"] = int(failures)
+    counts["illegal_errors"] = errors[:20]
+    counts["pooled_48_field_teams"] = len(g["pool"])
+    counts["sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
+    counts["removed_sha256"] = hashlib.sha256(gone_path.read_bytes()).hexdigest()
+    counts[f"{PREVIOUS}_sha256"] = prev_sha
+    if prev.exists(): assert hashlib.sha256(prev.read_bytes()).hexdigest() == prev_sha, f"{PREVIOUS}.npz changed"
+    counts["minutes"] = round((time.perf_counter() - t0) / 60, 1)
+    json.dump(counts, open(counts_path, "w"), indent=1)
+    print(json.dumps(counts, indent=1))
+    assert failures == 0, f"{failures} saved rows fail the validator"
+
+
 def main(name="lossdata84"):
     out, counts_path = X.RES / f"{name}.npz", X.RES / f"{name}_counts.json"
     t0 = time.perf_counter()
@@ -146,4 +283,5 @@ def main(name="lossdata84"):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:2])
+    if sys.argv[1:2] == ["--shuffled-only"]: main_shuffled(*sys.argv[2:3])
+    else: main(*sys.argv[1:2])
