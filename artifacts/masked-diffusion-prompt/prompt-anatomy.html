@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What the masked diffusion model is sent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+
+/* Layout: one 760px column; a variant picker, then the chosen variant, its token chart, and its caption. */
+:root{
+  --bg:#F1F3EC;--fg:#1B1F16;--muted:#5E6455;--rule:#CDD2C2;--card:#F8F9F4;--cell:#E2E6D8;
+  --jev:#A3226E;--jev-soft:#F4D8E7;--warn:#C4561B;--ok:#3B7A2A;--base:#7C6A12;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;--jev:#E27AB4;--jev-soft:#4A1F38;--warn:#F0935E;--ok:#8FCB76;--base:#D6C25A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141512;--fg:#ECEEE4;--muted:#9BA092;--rule:#30332B;--card:#1A1C17;--cell:#23251F;--jev:#E27AB4;--jev-soft:#4A1F38;--warn:#F0935E;--ok:#8FCB76;--base:#D6C25A;color-scheme:dark}
+*{box-sizing:border-box}
+.jvbody{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 72px}
+.col{max-width:760px;margin:0 auto}
+h1{font-family:var(--display);font-size:clamp(28px,5vw,42px);line-height:1.05;margin:0 0 10px}
+h2{font-family:var(--display);font-size:20px;margin:0 0 6px}
+p{margin:0 0 12px}
+.mono,code{font-family:var(--mono);font-size:.82em}
+.cap{font-size:13.5px;color:var(--muted);line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+.pick{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 18px}
+.pick button,.btn{font-family:var(--mono);font-size:12.5px;border:1px solid var(--fg);border-radius:999px;padding:5px 14px;background:transparent;transition:transform 120ms var(--ease-out),background-color 160ms ease,color 160ms ease}
+.pick button[aria-pressed="true"],.btn.solid{background:var(--fg);color:var(--bg)}
+.pick button:active,.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.35;cursor:default}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;min-width:0}
+.lbl{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.row{display:flex;gap:2px;align-items:center;flex-wrap:wrap}
+.mon{position:relative;width:44px;height:44px}
+.mon img.s{width:44px;height:44px;image-rendering:pixelated}
+.mon img.i{position:absolute;right:-2px;bottom:-2px;width:20px;height:20px;image-rendering:pixelated}
+.mon .q{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:var(--jev);color:var(--bg);font:600 12px/20px var(--mono);text-align:center}
+.mon .t{font:10px var(--mono);color:var(--muted);display:block;width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tid{font:11px var(--mono);color:var(--muted);width:46px;flex:none}
+.meta{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:4px 14px;max-height:340px;overflow:auto;padding-right:4px}
+.meta .row img.s{width:36px;height:36px}.meta .mon{width:36px;height:36px}.meta .mon img.s{width:36px;height:36px}.meta .mon img.i{width:16px;height:16px}
+.items{display:grid;grid-template-columns:repeat(auto-fill,28px);gap:4px}
+.items img{width:28px;height:28px;image-rendering:pixelated;background:var(--cell);border-radius:6px}
+.say{font-size:15px;min-height:3em;margin:10px 0 0}
+.counter{font:600 22px var(--mono);font-variant-numeric:tabular-nums}
+.guess{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.guess input{width:min(100%,260px);accent-color:var(--jev)}
+/* motion primitives */
+.in{animation:rise 340ms var(--ease-out) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows 320ms var(--ease-in-out)}
+.fold>div{overflow:hidden;min-height:0}
+.fold.open{grid-template-rows:1fr}
+pre.code{margin:0;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+.k{color:var(--jev);font-weight:600}.s{color:var(--ok)}.c{color:var(--muted);font-style:italic}
+.xp{font:inherit;color:var(--jev);background:var(--jev-soft);border:0;border-radius:4px;padding:0 4px;text-decoration:underline dotted;transition:background-color 150ms ease,color 150ms ease}
+.xp[aria-expanded="true"]{background:var(--jev);color:var(--bg);text-decoration:none}
+.inset{margin:6px 0 8px 18px;padding:10px 12px;border-left:2px solid var(--jev);background:var(--bg);border-radius:0 8px 8px 0;font-family:var(--body);white-space:normal}
+/* budget bar */
+.bar{position:relative;height:46px;background:var(--cell);border-radius:8px;overflow:hidden;display:flex}
+.seg{height:100%;transform-origin:left center;transform:scaleX(0);transition:transform 520ms var(--ease-out);border-right:2px solid var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font:600 11px var(--mono);color:var(--bg);overflow:hidden;white-space:nowrap}
+.seg.on{transform:scaleX(1)}
+.ticks{display:flex;justify-content:space-between;font:10.5px var(--mono);color:var(--muted);margin-top:4px}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{font:10.5px var(--mono);fill:var(--muted)}
+.chart text.lab{fill:var(--fg)}
+@media (prefers-reduced-motion:reduce){.in{animation:fade 200ms ease both}@keyframes fade{from{opacity:0}to{opacity:1}}.seg{transition:opacity 200ms ease}.seg:not(.on){opacity:0}.seg{transform:scaleX(1)!important}.fold{transition:none}.pick button:active,.btn:active{transform:none}}
+
+/* Built by build_prompt_visual.py from this template; the look is the "What Jev is sent" figure's. */
+body{margin:0;background:var(--bg)}
+.draft{border-left:3px solid var(--warn);padding:6px 0 6px 12px;margin:14px 0;font-size:15.5px}
+.drop{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:15px}
+.drop s{font-family:var(--mono);font-size:12.5px}
+.bar .seg.ans{background-image:repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.14) 6px 12px)}
+.ghost{margin-top:14px}
+.ghost .track{position:relative;height:14px;background:var(--cell);border-radius:4px;overflow:hidden}
+.ghost .fill{position:absolute;inset:0 auto 0 0;background:var(--base)}
+.ghost .ours{position:absolute;inset:0 auto 0 0;background:var(--fg)}
+.paste{font-family:var(--mono);font-size:12px;line-height:1.5;white-space:pre-wrap;margin:6px 0 0;background:var(--cell);border-radius:6px;padding:8px 10px;max-height:260px;overflow:auto}
+.paste mark{background:var(--jev);color:var(--bg);border-radius:3px;padding:0 3px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font:11.5px var(--mono);color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+h2{margin-top:34px}
+.snap *{transition:none!important;animation:none!important}
+</style></head>
+<body><div class="jvbody"><div class="col">
+<h1>What the masked diffusion model is sent</h1>
+<p>The prompt from <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/196">#196</a> is the Jev request without the meta teams and without the legal option lists. The model writes the whole team back as Showdown paste text. Below is the same mask the Jev page uses: meta grid team <span class="mono" id="srcId"></span> with Alolan Ninetales's item hidden.</p>
+<p class="draft"><strong>Superseded on 2026-11-06.</strong> The owner replaced this free-text prompt with in-place filling: the team as compact JSON with mask tokens at the hidden values, and no question or separate answer (<a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/199">#199</a>). <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/201">#201</a> rebuilds this page from that code.</p>
+<p class="draft"><strong>Draft.</strong> The hidden-field marker <code id="mk"></code>, the question wording and the example ask <code id="ak"></code> are placeholders until the owner approves the prompt in <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/168">#168</a>. Token counts are real, from each candidate's own tokenizer.</p>
+<div class="lbl" style="margin-top:18px"><span>count tokens with</span><span></span></div>
+<div class="pick" id="tkPick" role="group" aria-label="Tokenizer"></div>
+
+<h2>A · The prompt, built part by part</h2>
+<div id="figA"></div>
+
+<h2>B · The 1,024-token budget</h2>
+<div id="figB"></div>
+
+<h2>C · The prompt as the model reads it</h2>
+<div id="figC"></div>
+<p class="cap"><strong>Figure.</strong> Built by <code>build_prompt_visual.py</code> from the meta grid's mask and the paste writer the battle step uses. The 1,024-token line is the length masked Qwen3 0.6B was fine-tuned at (#162). The fine-tuning row holds the prompt and the answer, so both count against it. Jev's 24,644 tokens were counted by Jev's server on 2026-10-27 for this same mask. The meta teams wait in <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/197">#197</a>.</p>
+</div></div>
+<script>
+const DATA = {"mask": {"source": "MB158", "paths": ["team[3].item"], "grid": "meta"}, "system": "You write Pokémon VGC teams as Showdown pastes.", "marker": "???", "ask": 0.55, "limit": 1024, "jev_tokens": 24644, "parts": [{"key": "rules", "name": "Format and rules", "text": "Format: Champions VGC 2026 Reg Set M-B\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause"}, {"key": "team", "name": "The team so far", "text": "Team so far (??? marks a hidden field):\nBlaziken-Mega @ Blazikenite\nAbility: Speed Boost\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Close Combat\n- Rock Slide\n- Flare Blitz\n- Detect\n\nKingambit @ Life Orb\nAbility: Defiant\nLevel: 50\nEVs: 24 HP / 31 Atk / 1 Def / 1 SpD / 9 Spe\nAdamant Nature\n- Kowtow Cleave\n- Sucker Punch\n- Protect\n- Iron Head\n\nBasculegion @ Focus Sash\nAbility: Adaptability\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Liquidation\n- Last Respects\n- Aqua Jet\n- Protect\n\nNinetales-Alola @ ???\nAbility: Snow Warning\nLevel: 50\nEVs: 13 HP / 21 SpA / 32 Spe\nTimid Nature\n- Blizzard\n- Freeze-Dry\n- Encore\n- Protect\n\nGengar @ Gengarite\nAbility: Cursed Body\nLevel: 50\nEVs: 32 HP / 14 Def / 1 SpA / 14 SpD / 5 Spe\nModest Nature\n- Shadow Ball\n- Disable\n- Perish Song\n- Protect\n\nIncineroar @ Passho Berry\nAbility: Intimidate\nLevel: 50\nEVs: 31 HP / 21 Def / 14 SpD\nRelaxed Nature\n- Fake Out\n- Parting Shot\n- Flare Blitz\n- Protect"}, {"key": "fields", "name": "The fields to fill", "text": "Fill:\nteam[3].item: Ninetales-Alola's item"}, {"key": "question", "name": "The question", "text": "Write the whole team as Showdown paste text with every ??? filled."}, {"key": "ask", "name": "The win-rate ask", "text": "Target win rate vs top meta teams: 0.55."}], "answer": "Blaziken-Mega @ Blazikenite\nAbility: Speed Boost\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Close Combat\n- Rock Slide\n- Flare Blitz\n- Detect\n\nKingambit @ Life Orb\nAbility: Defiant\nLevel: 50\nEVs: 24 HP / 31 Atk / 1 Def / 1 SpD / 9 Spe\nAdamant Nature\n- Kowtow Cleave\n- Sucker Punch\n- Protect\n- Iron Head\n\nBasculegion @ Focus Sash\nAbility: Adaptability\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Liquidation\n- Last Respects\n- Aqua Jet\n- Protect\n\nNinetales-Alola @ Never-Melt Ice\nAbility: Snow Warning\nLevel: 50\nEVs: 13 HP / 21 SpA / 32 Spe\nTimid Nature\n- Blizzard\n- Freeze-Dry\n- Encore\n- Protect\n\nGengar @ Gengarite\nAbility: Cursed Body\nLevel: 50\nEVs: 32 HP / 14 Def / 1 SpA / 14 SpD / 5 Spe\nModest Nature\n- Shadow Ball\n- Disable\n- Perish Song\n- Protect\n\nIncineroar @ Passho Berry\nAbility: Intimidate\nLevel: 50\nEVs: 31 HP / 21 Def / 14 SpD\nRelaxed Nature\n- Fake Out\n- Parting Shot\n- Flare Blitz\n- Protect", "team": [{"species": "Blaziken-Mega", "item": "Blazikenite", "hidden": []}, {"species": "Kingambit", "item": "Life Orb", "hidden": []}, {"species": "Basculegion", "item": "Focus Sash", "hidden": []}, {"species": "Ninetales-Alola", "item": null, "hidden": ["item"]}, {"species": "Gengar", "item": "Gengarite", "hidden": []}, {"species": "Incineroar", "item": "Passho Berry", "hidden": []}], "tokenizers": [{"key": "qwen3", "label": "Masked Qwen3 0.6B", "repo": "dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1", "counts": {"rules": 36, "team": 383, "fields": 15, "question": 14, "ask": 14, "wrapper": 28, "answer": 377}, "chat": true}, {"key": "qwen25c", "label": "Masked Qwen2.5 Coder 0.5B", "repo": "dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1", "counts": {"rules": 36, "team": 383, "fields": 15, "question": 14, "ask": 14, "wrapper": 28, "answer": 377}, "chat": true}, {"key": "diffugpt", "label": "DiffuGPT small and medium", "repo": "diffusionfamily/diffugpt-s", "counts": {"rules": 30, "team": 336, "fields": 17, "question": 13, "ask": 12, "wrapper": 22, "answer": 330}, "chat": false}, {"key": "dream", "label": "Dream 7B (Qwen2.5 vocabulary)", "repo": "Qwen/Qwen2.5-7B", "counts": {"rules": 36, "team": 383, "fields": 15, "question": 14, "ask": 14, "wrapper": 28, "answer": 377}, "chat": true}, {"key": "llada", "label": "LLaDA 8B", "repo": "GSAI-ML/LLaDA-8B-Base", "counts": {"rules": 36, "team": 388, "fields": 15, "question": 14, "ask": 14, "wrapper": 77, "answer": 381}, "chat": true}, {"key": "diffullama", "label": "DiffuLLaMA 7B", "repo": "diffusionfamily/diffullama", "counts": {"rules": 40, "team": 438, "fields": 19, "question": 15, "ask": 14, "wrapper": 25, "answer": 431}, "chat": false}]};
+const ASSETS = {"SP": {"Blaziken-Mega": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAD/bkXuYmK9QUGDKSliUkpBQUEpKSkBAQGUg2Kci4O9tJTe3rT21WLepFIpe9Wxv5xWAAAAAXRSTlMAQObYZgAABB1JREFUeNrV14mSq7gShGFQVV1SCHTe/22vsogyVrSjbQ9olpzlrP6/luXepvebp6Gbx/bn/2af1aH96M7cmD6789A+N7Bvw/pH1jZ7kTe7Jc9uA6af+c3u6jvQz/K2Zbv6oePsbxl9v2wBzPPF/ivANvaLRf46kDdMqn0/Lv4i4EECmrTvH8BXuf6+5tfA7P1SCPyl5+MlUDb2/TetPA7wWTZar/vxnBRN4O+d/YzP+uemfnN9BjQJ/K/no0/gWr/Oew+oA7Zx3/enH9vrM6CpAV2/4OJH4X3f5zpPD0AUZl/0n8KvD9BW9w7QnO3RfwO8/fSxH5s6QKNfrvb36AdQijRBLPIFv31WqN+9+ectW2FfNQBP27ri8SD/sf5a5370Z2wmScz7ot73tMFWB/bY5/1a9/PIKKaJ/aIipeQAVphZA2rffw/4zj4BIZCtHgfgvO0KunyN/mdXwMfUHYWA/dmrlqwOsE1gg2Gv5+Oi/8kVmMWjCCSrf6qoCmwyTFixbk0gUOORlXn+6i1gdtxiaEgpqfiQzXIDzLBtAH+cPtn8DLA9YTV7nEbZV4hogmVec+QNhu++KidgKwDeXzxZmryPlDTnXMxs8ro5cb5pv+ZPAH5324bjsWr+AoVqBhIacLyU0FbNrMYlvyR+3noDzAFgNai2th3PR24DWh+IFzG393vzuZhj2EBjhbSZ5W0r2bKvZDMEAc/3e1N3YDU7XibC2ZY3Cr7iHzEkqU5tMLNmPL8LzfVN3h/GAVB9EiKf2W8TVRX/sX8nOqKRfz0E4VPduOL9YiTTMU1cAE7UvX70/Qq4KQYX/M33vmqKBRDCXPez//komCu55eHT7gSxj/NLW/8VNbILJsg4VKj0fd+H+f+1LXjq22IOFMsO+NA2fT/PhxAAlkMoJVO4MPYDWIADyARQ2G+7CrAdgh8CW4Ys0gQuhOv9hYAfAg0QUQrMl3Id8GHxgYCKLILsgt0MLIiXpKCUHMJ1oBM0+cD6dUA6gIKkFIIRuQgk1oVATAMAMOE6QEGeBQTgZeAykAjICaicHzsvbmE7BDz6EgIuC3IAiYAg8ocgdwCa+Bxx/RFINFpvANIJKM7+IsKf4QYh1gAFQli0AcvNAKdxgsV/eifgggKt7IAfAdO9zxF7APwgi94NUJh8kOVGQE4gBOjCjQAEDiyxOy+ZAHAzwL6w7T8oc7efQOUwpP1vBMAzQBugAIURAIjwdgFE/04ArkTpfoAbD0w6DQa6YXz/vwuYGYBFhgFY1xXLAcgIYDICMhBA66fEtowBJiA5IAQw5CV0AInCCGBJDsgowPstngYBmnwSn6Dv7zPtEw6j+gEI7u7rUADo+gME9fQToPcKyrAehAIu4FYAABFNiVlgyOsoEUFcyv2Aov3vrOIK8H9ackMn96pZfAAAAABJRU5ErkJggg==", "Kingambit": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAMFBMVEUAAAAQEBApKSlqGBhBQVKUMUHFMTH/LihiYnPMTU2EayK1lRWspLTmvUHe3t7l5eV6WxX9AAAAAXRSTlMAQObYZgAABCFJREFUeNrt2ImW4yoMBFCXkB0iwPn/v32UAoln7Rgf3l6z4zl1kWGW7uWXicvcxEf8xwPJ5vb/CUCyqUCZD1CYCKT5AIV/PJBsJmDTgTJNIFDmAxMFAvPfUerCPxYoMwUC80dIcwV9lNnA5BHex1xmj2BTT6GYzT0Fm36RaFTEJp4C+8vvBZHxETqQAvDL/ptcGKH3b9sW8Iv+U8BxXPERzPuZ9WeCxHPAcV7hCATYzyh+0n8aiEehEEgvIOLH/sj+M8Bb4AgErPWvtQ34of888K1gJfR+RoHv+s8C3wkpNUBjTxNEWO/94wJyHYGA9v4uiG9/EKAgTSCgXq/yFljvi0MAyxohSgEs1dwB6fW9f0ggUaPIDmiVbvJca4/ZPwhQ8A6tdS6o5dpP0J+olzPAcjqAH4MXMRRSMhNt6d2MKpYRgggTu2CmzKEa67pCtQtDSGck2+1YnVK430Pt5ztT6cIlBs8oRFLvD+K5JjAG+EaVpwArxfs7cFkwSzUgQiG+gKCQnnEhhHsIKZViXi+vfgJvAeP1TCg1VoF4HAB6WWBN6IJF/0Nm5XXEUI24BGCteQsdqL+GnzA0XhVwEDgCgfvtdkeAdOEKQKIJPOcDoBAGdUUYYFQQoAscgUCNAxCxKmB/pjJDQFTgXndNgUB6AiJIsEKgJe+76pnqyEisgIDAPfkppDvAATL8/2SoEYareZcT7TvDAbJUgUl+qNAa1H4Cxu9cYP3H/WzPCiaq5ZzhAhA9FahLx35k382n/bVeAf7MTK1tsEZ7fyWFAPsTH1P4/B7pvvffi2IEDKzIWRnWA2JmiQbEg/3z/pybYIZSKmAJ3LL0+wgoLPkLsoS2iip/KABQP2akJ5ASBEAUMMKXZFYKhXS4pKeuqV8iJENJDdh3ja8zMMIlkWt5Ilk/rs8KsJmbTCYSZN9fZ+DbB7AFeYUzZDlxi/gTJFZZQgjbJrK3AOzfmNCIvLP+834sTAg8A96UzSMtG1LrJyHwdkDO3qK6axR/2wnH/8Gvdb31Mzj3h6DfIvbX8BUla/tdI8P1ni5wQ+fSARAAJ1jrxpX5CSCCkX4GicfZBlhDB8IWe32kMDzAGtEPgKEQ1tWBeACwjABx44GuQG1kuScQWMNaaSd45CuWMYD13wc1DvQj5zjLWELvD6H9CEBq8BqK/WMDMDjum5F3msCw/6rADlE5RLE+CX8IDCII7/4YYyeUwWE6/hIYJzpAw3MU4CBdDL8nbQDzPQBpAYYFVbD/pyNA2f3cPgiMCj8FlP1VAEa7OxAfPwcU3r9cC+LjQUBbvxwABXCxX5X9UfQNxNYfVSOWq/UP9j+wtBHY34EHn+HqJ3+11vs1VQL6BlABCnoFANTrGXCE3u9v/rLAsKkFWADhSl+rPEBgWhSg+3/+0/kDYc1F/EUwfgYAAAAASUVORK5CYII=", "Basculegion": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAIj76UH43jFnGNVIQEBB5GjLm5uakpKQiYD1BUlJiYmIgMTn+p8hjPikVQCKYDWH3AAAAAXRSTlMAQObYZgAAA0hJREFUeNrtloeimzAMRZHvFbg05f8/t7KQYh5dDl2Lk73OwY7emG5ubm5ubm5u/j34k/3r/IWC6o8MrJ/6RVS/P2P+eWZUzoGWEE4d+Z7AeRUU5xiQB17OrMtsWGW1uzwvAe4/BSIzvgDDKsu6eED1uAS+bSKuXw0YquoBFVHPZGHSSKJ7r/jNZQlagLE79AD2V8z/sJ0RuRhQcbQH/IbN72gE7DLJxQDgU+nq6BDQ/bmHWuAhjwc9MgxnZ9kHRsXJJVDhAVExNR76cPelQCtkQBvYl4T9K4D4wT/s8uIQMfxewK6Xzl6Aovl1ovkHeA76+8a6WsALfREdGKoALMDBgEJD/i4Bnjo9+QMlm3vUH/K0p6uUEtMUdP00ipr/s/ayQ/8m8Dag0zAKdP3JLj0g+vSrB1RHA6lPO6BaHBGxSzn8QKDBqHDIf9DHxJuQJQqlBSiNltlh3HBg9/Wsh0j6O/RXEg3/0O53fR4lKRnokN0Pciigart/1AMtoM0W2xMoGT9cKSa/HTDVtPvzd0ypsABRTqjXBQro08uRgPtVxQw+NrVkQORTfwRSy2/6fXq0ySUT1W4pOATEA6ro/kHi8GP64r+dqv7I1RnR3B6yXRaOB8JfUJtlTwglCmL0HSJYq+mNdSyRC2ApW5OAhBjEOQARgM2/BBz1W8D8swU8RFLgGfQtqorGwU9y1A+yVJk39UCDdpMB1xva/S9uEARVKIuKCuouLIdADUj3j+sjAKkmEfiYsDibB9DtgN9sjM0fZat5vBsFbwIQcWkGQv+a3wMBTQipWxbxvmHazJDLy34r5JZ7QVi2WEAV91nC2Ux/xR9LIKNAl2+lVgi4RMLtyTq9xMymnxdu2dncXwFU185zU67rtQVMnMgPH2a70MwtkH4LtMJsrJG44HdM/qGx7YHw74PvgUxcDFjBGg7T73pzcU68cM3vCa4ZyKlx1blwKcC1bdLcClsEyJyWDGThSsDdbZB8iEIf/lPhGqy0AGtxTL8u58D3F1iefnv8uQAb1/zKJgfCb6zpz8Jq7ssowBYQS4SHbwNr2C/7wRr/dWpKjwFO3wUJndgQQ/vo/jjA3SlCcvoJpJUyrL9eurm5ubm5ufmlfATfaCf9iOvmnQAAAABJRU5ErkJggg==", "Ninetales-Alola": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAKlBMVEUAAAAAerUQEBA4hY1RYHdms9d6ipyBwsWGqMCh4d6w0+q9y9fq/v79/f0XA7zRAAAAAXRSTlMAQObYZgAABBFJREFUeNrtl4mCo7gSBJ9zytVFqvT/v/ukBJur3WD23nXMPcNEIITU8v/+5Xz48OHDB/8j3f77+SNi76/VHb/LcCIyM1a5UKBu/LjoT2HLXEbzA9sxvV2IDpkN2iqX69t39yuFyCVhtvyrirEvfe0T4vX9gNkyQVsEEDF2I7q+dvD23FouCiQXwVimq6Pz/vOx+1wQDDPb+ZOj+0LgNhW4G8eKN/3CmEm73e7BXmLjWaDlxQGsC4y43+7sKQMopgJWfgUujuF+J023rIQamwAvFixFt6nQE2YUlrkuRITPK+6s/3aLqYDnzKInClb+iPFV9XHFnX4+t3rnFEglRp2X4syZphdabQVooSN3IzLzLv8YyACD+kMLgHOBKVSopc0FgIMCbvecIVWINBrlV0CJNaf3CnCtVyATj4AXp9hWNIDzhZBvGQj5W0AFd+fV9QaYWXDGFKCRUKC461Hl5fUGgDOZSPbAMKB7S6m1KnDRL/CM5CNA+/pSoeG1+HqyovFOwJZ7nJHPgh7RMHh1MjdEnF/KPnpzlIAcAPTCgFq8hXqAvn9Z/VzDa2aG/AoMw1fDWkE33wN9qkFyU2gcJ1x+Y86Frw6Kfw1faAEVtKY3VHFQ0KalgFgUvEBqFaAVc6XgFXAy8vvAWGgM+X0AwI8FnaBAY+4KXvULUPxlQDsGfgg4tGQQuQ24AgJos8HcQ/kVOMC4KrCZMfkFvguQj0A9LNjKH+xqTH4xcBegBiCAnwrWvm+Ojdbdv5b+YVvQspT/EJgOFYIauCXW/rExFyjs9JcEs8caZTw27F1g/R5F4KRehQVGIjNt9CuzK4h3tlPAyKAAkB3s/AosUeGdhECOWNfLf1Q4OIPpnwyBtX+ahXMBL4C/sHutrkAYSUMKjoWjQLo/P3Pi1aPxFrBMDcEiuPhIgyN/1uLjAH56+o9AgJgCnDoGTcSv14GqM8dRwF2BAKYCjSkI2b/1x3iAFD8GSq2FmRaiB7QYcgSvH1DUWhQ4WHIYD29gRI8YqQBjXRjkX2HyA+cOXiAXgVg8pVe7aVofgZ/djjaBeAZsCuw/M1NHgdMnLyPngH6RhH0I1uGmQOKsXwFQBQUQ4BMzSzEmHyEmgbN+r49AgyxzwGVfQhX41udNBdKLAlZKD4T0+oddYCTLuYD7GDDr4jkQXb/zcw6Uc4Em6aJa0AM2B/S3de8nivRn/UDttKtXAfdSRSaF9OwFoAhX4AQYL1YgLNADXoqyDa7QzD4SwMmCLrSiEZh6pWifwQhnJiemxrmCMF0fAY1e/i4TU2L93gP+TgC6bQDq6Cfv9GmSrbG1vRkwXQ5voV7zIlrjlcQ1xNNMdwgr1gNCA8IPM3cFdOZ35MBylV74I8zr8V/nw4cPHz58+D85KnU/fqRgkwAAAABJRU5ErkJggg==", "Gengar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAJ1BMVEUAAADe1d7/9v+9rL20i72Uc7R7YqRaSpxqYntKKUoQEBD/Wlr/lJQQTNuPAAAAAXRSTlMAQObYZgAAAk9JREFUeNrtlYFq4zAUBH3JW233xf//vZeuLSNiUmrLAe7Q0LgphRlvYtA0GAwGg8Hgv4Af1jPys/rAxQGqeR8RKNcGiC3Axc+81g81tx/AaT/Zfip+2Y/lD67+0wMEsDYY8msiHCDEMAA7AoigI4oQA7LfvxTROaAWnpCKgABiw19voA7oLIQQtrcs/nJVYE/1O9BTgANvqP7ewroEgZY6oLcAMAx2BbYBnQ4ojAv7AdWbOFvIqABvB2TiWCD948LbQOE3st7/lH7dUKRCfpd446+BzNwe5fx94Bv57oC9nr58Ux80hew/VoCU2CNhC6z+iKMBwHddEkJDBKDHg03ABXPIbwIU2oJXPdZAqQvW8mG/HQAfagLIeV4ChAMbRwKTtPodeIhbIJ+B2QF5QsHK0aNf9i+BeU7BUI8aENBMOHHuqNSnkM/Aoxbm6s81UE6fCuKTBD1hJha4fMW614Cx/1QhIUuJFul+awN59twXE5CAnd5+0Cg7Dv4EeG8Tkr5utxqoaDpLAuDtSyu++a/qL9cFbtaul/ufOqAzYASAbcDXxGUBq+j79sWBxV+uC0DtBAmG3QGjpaAakIDdgJ5AYkErAPYD+ifsKWwD1PkV+Qu/ydOF8rO/P8Dyo58dfiOS5a1eV/hNebUXmLQ+p76A+EpBJa3vDFCvCZgIoE/vgMncD4hwYepDQFkTWWPCtYE1oSkXJmGhBroLTrSirYArFhAE4MCucEEgBQGZ+dLt91cyq31f8LAP4QABTp9CmYA87mOk9f8Eg8FgMBgM/gLNci4zZlHn4QAAAABJRU5ErkJggg==", "Incineroar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAALVBMVEUAAAAXFhUBAQFZCwNEQTrxNSElIyGqFxD/7gYctFT+/v5cYWOHlZpLQUf/cQEaNs1QAAAAAXRSTlMAQObYZgAABERJREFUeNrtmdtym1AQBNmZ3R0HsP7/c5Nz08WUAiLKm9rlQq5auuFg4EHThw8fPrwbw3QH8W6vuePOH+8LJHqgFdj8gbf5M9H8tUBhIuO9ASu4k56UwIh3BcDJ0iwiPJ0Bl8Q3+ieIlkXvXv0eRf/vAZJ9K6X7ze8Rj34710FEbSCo5iQDoU3AHNMp2KREkB7hjMDXfQDW/GcDiIqECAar/yvCdfU7xp1xvqACuvHXry+G9y7q2pjXwEmgBhFU4AsloKonSXNHD/xjgV9wwgts+rIpbjT/aYCWMDOvmMegHry1gOFsIBOgilbVP1t0sJh3YInzgaRk7nRPM5tnNT2Wa8AyEy/cveTUMKsFSrTCvJYfRRBYqr9F7aifZIQY0QtIMyQkqi6MChGKwNICaZREGo7euAyJwdtD2hIAJMaAjFYwT1MPHw6IEmfeXYG6wPr+ZgNYV7IHTFHRsTUiqaLHDHKcQuX7e13XZa0sZUsUfzIq7nmkwAiRKn4o2jyav6ubvnM7AfdDBUZBWGdglfq4Ff9QNv3A3Jq/khKOPDo1A8A8o1cxAlvgdvMfuNIIkdI6Q0AftYB1/xakDX9U9gtBAoDGpHkE/hZQC0RnPyBREjH8JVD8zwtZ/UcLPQAb/seA7wTcE9NuQUKmtUArPAm0Qubwl2mS3Hu9kJm1wNgJLMtSCyp6kk5GhHYKzIJkxnaHShh+93t9BTCTNB6ScaDQ/FKaRfsM3wbclw6gptY6r+1UdgsqVPd9wQuj5MsAE7jOEYF5niOOrJIeAyn4T5Y7/zRxrgGg+Auc9gojMAqLu2eh6x8DmCMgSWBbJmG/UMV9CyxL3rj3f9d5AKpwnmcdeP3gFlAC04Qia/ZHqomhTiuR3C3kCKCNogVG4VrCeBGKHI364VCh628FbdZJIwCgq7lG7AcmoPgfk7po6Du6aMJ6+78BwHleW2A/8TAkpC6t0OXFXwOPk6SK/2V0QQtUd5FLlxrAzqEdDujyVQrF3Y4+Ln/Ycb3gL4FSKOp29O8PtIIuQ87y+7ZAoQQ6fw8YXvQzpOLfFCj8dE+TmYPkS/4/6CEQ1wAf/W7mnogIvuaPegr9EkhksZOCyPtAevdLOOxvqNA29U9SBeg+Ye6ZCRXwgn+LBlVGs+bPiplJwst+kj/sI6AiJZlXzIRX/MOLgrQpZGF8GIkz/qmAxwCqdltI7PrNPW4M/7aA3AYATEcCvvFvCpgm4Bo4ah/+a0Jln2eFkuj+BqajgcFVvy10GzqZOFpApnfK/JPCTxsShWOBQvc/KWTlwQdMR8FfVxR5Q5jOAKkHdgrS6ULjWQHd/38CI6FKnizs7ow+cjZw4L7BGMLpAo4MJYTTgUNT+s8BnQmQ8Qdhd4yUXi6w6vcLY+zVAKOg3cDQt7njsO7C2A9UuU4EGCHtBxDVHa8GEOwnIGBvsE9iegVcOTz4+ar3w4dn/Ab180pwLQf8DgAAAABJRU5ErkJggg=="}, "IT": {"Blazikenite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAJ1BMVEX///8xMTHeWlKEOjo6Ojrezr33rdbFra2MhHv////WOjrWrYz397X9XqS/AAAAAXRSTlMAQObYZgAAAFBJREFUeNoty4cNwAAIA8FQU/efN+aFVY8XBzPtYMAjw2xVfWZeVba67zWEYxvV0/2kpgy1wPBdw6/Kx+LHM125pMn0CEWsw+MI6+BhiJktfifPAvCXCNdgAAAAAElFTkSuQmCC", "Life Orb": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGFBMVEX///8xMTHetffmQub3vff////FMc7/c3NbByJoAAAAAXRSTlMAQObYZgAAAFJJREFUeNp9j8UBACEQxNDZ/ju+IZxbfgm6CTIkQAtsyVrBaXrrrUoaKRN67wJCLnXsiPAmtjhU1ZAoM1hk4ic8j+h06VoA5xmUjz2+/hzuMf4CgSUC14Hio6EAAAAASUVORK5CYII=", "Focus Sash": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAWCAMAAAD3n0w0AAAAG1BMVEX///8xMTFaWlrec0r/hIT/pVK9MTHvUlL/5lIjIEyuAAAAAXRSTlMAQObYZgAAAHhJREFUeNpdzkESAyAIQ1E+inj/EzftkEX9yzejJAIy3liLcJnwIGzFD2uQcxjMqsqxA909ii2M1L05Nqi49yL62ulOD0H5X+KvfC2Btpn2boVNsRWQoXyoW+RHhZGw3Ss12tSsM9qU5yVVtlEoBeFAvNYymdVDTx/VvAMNiA4zDwAAAABJRU5ErkJggg==", "Gengarite": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAAJFBMVEX///8xMTFjOs6cOpTWOlK9lObFvf/OY5z///9KIdaUY9bFxf/8MaKgAAAAAXRSTlMAQObYZgAAAFBJREFUeNoty4UNwEAMxdAGj/bft19WLHyBj0x9BDwyzEbVnbmqZLQ3xkNZlOp0n1RaQxUYXjx8VX6U+HjWnnVJrMvF0BJrcBxhDTwMkdngBxhzAsdHYP+iAAAAAElFTkSuQmCC", "Passho Berry": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAASCAMAAABsDg4iAAAAG1BMVEX///8xMTExY6XOpTrv5mspa9ZChO97rf+Ec0KC0+6lAAAAAXRSTlMAQObYZgAAAHdJREFUeNpFy8ERBFEIAtFR+K75R7z0yb7xqvgoFX0XVcv2MVRvptvWafX8flEbPUuYD2eiM69bQrEXpL5/EI35/tUvDW8fGiRUqiqwOxvzSto46GzMXgyUw+7npA0uaHLOtou+D5VpowDVClQqkKLhtPlhx3T7D6HZA6honO4DAAAAAElFTkSuQmCC", "Never-Melt Ice": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAWCAMAAAD3n0w0AAAAFVBMVEX///8xMTExe6X3//9zpcXe9/+l1uatd40jAAAAAXRSTlMAQObYZgAAAHhJREFUeNqNz4WRRAEIA9AfIv2XfENu3Rl/+PEp8MKG84wgfsMhNc+FFL5ju6mT4qawiOtGnFAwzoggZCSN1eHtzWIkU7kgwyQF0dYcY26drWLs3WgzXisqJ9ymorJalNTGaHGKWlRByRQHDyjMfo71qQWlxqBxlj8RLQN6dXvgjwAAAABJRU5ErkJggg=="}};
+(() => {
+const SNAP = location.hash === "#open" || window.SNAP; // every figure opened, for a still screenshot
+const REDUCE = SNAP || matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SP = ASSETS.SP, IT = ASSETS.IT;
+const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const marked = (t) => esc(t).split(esc(DATA.marker)).join(`<mark>${esc(DATA.marker)}</mark>`);
+const TKS = DATA.tokenizers.filter((t) => t.counts);
+let TK = TKS[0];
+const COLOR = { wrapper: "var(--muted)", rules: "var(--muted)", team: "var(--jev)", fields: "var(--base)", question: "var(--ok)", ask: "color-mix(in oklab, var(--ok) 50%, var(--bg))", answer: "var(--warn)" };
+const PART = Object.fromEntries(DATA.parts.map((p) => [p.key, p]));
+const ORDER = [["wrapper", "System line and chat markers"], ...DATA.parts.map((p) => [p.key, p.name]), ["answer", "The answer the model writes"]];
+const n = (k) => TK.counts[k];
+const total = () => ORDER.reduce((s, [k]) => s + n(k), 0);
+const fmt = (x) => x.toLocaleString();
+document.getElementById("srcId").textContent = DATA.mask.source;
+document.getElementById("mk").textContent = DATA.marker;
+document.getElementById("ak").textContent = DATA.ask.toFixed(2);
+
+function mon(m, showItem) {
+	const d = h("div", "mon"); d.title = `${m.species} @ ${showItem || !m.hidden.includes("item") ? m.item : "?"}`;
+	d.innerHTML = SP[m.species] ? `<img class="s" src="${SP[m.species]}" alt="${esc(m.species)}">` : `<span class="t">${esc(m.species)}</span>`;
+	if (m.hidden.length && !showItem) d.insertAdjacentHTML("beforeend", `<span class="q" aria-label="hidden field">?</span>`);
+	else if (IT[m.item]) d.insertAdjacentHTML("beforeend", `<img class="i" src="${IT[m.item]}" alt="">`);
+	return d;
+}
+function teamRow(showItems) { const r = h("div", "row"); r.appendChild(h("span", "tid", DATA.mask.source)); DATA.team.forEach((m) => r.appendChild(mon(m, showItems))); return r; }
+function paste(text) { const p = h("pre", "paste"); p.innerHTML = marked(text); return p; }
+function ticker(node, from, to) {
+	if (REDUCE) { node.textContent = fmt(to); return; }
+	const t0 = performance.now();
+	const step = (t) => { const u = Math.min(1, (t - t0) / 500), e = 1 - (1 - u) ** 3; node.textContent = fmt(Math.round(from + (to - from) * e)); if (u < 1) requestAnimationFrame(step); };
+	requestAnimationFrame(step);
+}
+const SHOW = {
+	wrapper: () => h("p", "", `system: <code>${esc(DATA.system)}</code>, plus the chat template's role markers.`),
+	rules: () => paste(PART.rules.text),
+	team: () => { const d = h("div"); d.append(teamRow(false), paste(PART.team.text)); return d; },
+	fields: () => paste(PART.fields.text),
+	question: () => paste(PART.question.text),
+	ask: () => paste(PART.ask.text),
+	answer: () => { const d = h("div"); d.append(teamRow(true), paste(DATA.answer)); return d; },
+};
+
+// ---------- A · Assemble ----------
+function figA(root) {
+	const STEPS = [
+		["rules", "Every prompt starts with the format and the rules, the same two lines Jev sees."],
+		["meta", "Jev's next part was the 48 meta teams, three quarters of its request. They are left out for now; #197 brings them back once a model works without them."],
+		["team", "Then the team so far, as the same paste text the answer uses. Each hidden field reads " + DATA.marker + "."],
+		["fields", "Then the hidden fields by name, in Jev's fill order, so the prompt says what to fill as well as showing it."],
+		["question", "One sentence asks for the whole team. There are no option lists: the model writes free text."],
+		["ask", "The win-rate ask gets its own line, worded as in the old text fine-tunes, so a comparison with them changes only the model. An unlabelled row reads unknown."],
+		["answer", "The model's answer is the complete team. A fine-tuning row holds the prompt and this answer, so both count toward 1,024."],
+	];
+	let at = -1, used = 0;
+	const body = h("div", "panel");
+	body.appendChild(h("div", "lbl", `<span>prompt, built part by part</span><span><span class="counter" id="aTok">0</span> tokens</span>`));
+	const list = h("div"); body.appendChild(list);
+	const nav = h("div", "pick");
+	const next = h("button", "btn solid", "Add the format and rules"); next.type = "button";
+	const reset = h("button", "btn", "Start over"); reset.type = "button";
+	nav.append(next, reset);
+	const say = h("p", "say"); say.setAttribute("aria-live", "polite");
+	root.append(body, nav, say);
+	const label = (k) => k === "meta" ? "the meta teams" : ORDER.find(([x]) => x === k)[1].replace(/^The /, "the ");
+	function go() {
+		at += 1;
+		const [k, text] = STEPS[at];
+		const sec = h("div", REDUCE ? "" : "in"); sec.style.marginTop = "12px";
+		if (k === "meta") {
+			sec.append(h("div", "lbl", `<span>The meta teams</span><span>0 tokens</span>`), h("div", "drop", `<s>[48 meta teams · ~18,340 tokens in Jev's request]</s><span>left out, see #197</span>`));
+		} else {
+			sec.append(h("div", "lbl", `<span>${ORDER.find(([x]) => x === k)[1]}</span><span>${fmt(n(k))} tokens</span>`), SHOW[k]());
+			const add = n(k) + (at === 0 ? n("wrapper") : 0);
+			ticker(body.querySelector("#aTok"), used, used + add); used += add;
+		}
+		list.appendChild(sec);
+		say.textContent = text + (at === 0 ? ` The count includes ${fmt(n("wrapper"))} tokens of system line and chat markers.` : "");
+		next.disabled = at === STEPS.length - 1;
+		next.textContent = at < STEPS.length - 1 ? "Add " + label(STEPS[at + 1][0]) : `Done: ${fmt(total())} of ${fmt(DATA.limit)} tokens`;
+	}
+	next.addEventListener("click", go);
+	reset.addEventListener("click", () => { list.innerHTML = ""; at = -1; used = 0; body.querySelector("#aTok").textContent = "0"; next.disabled = false; next.textContent = "Add the format and rules"; say.textContent = "Press the button to add the first part."; });
+	reset.click();
+}
+
+// ---------- B · Budget ----------
+function figB(root) {
+	const p = h("div", "panel");
+	p.innerHTML = `<div class="lbl"><span>masked Qwen3's fine-tune length: ${fmt(DATA.limit)} tokens</span><span><span class="counter" id="bTok">0</span> used</span></div>`;
+	const bar = h("div", "bar"); p.appendChild(bar);
+	p.appendChild(h("div", "ticks", "<span>0</span><span>256</span><span>512</span><span>768</span><span>1,024</span>"));
+	p.appendChild(h("div", "legend", ORDER.map(([k, name]) => `<span><i style="background:${COLOR[k]}"></i>${name}</span>`).join("")));
+	const view = h("div"); view.style.marginTop = "12px"; p.appendChild(view);
+	const ghost = h("div", "ghost");
+	p.appendChild(ghost);
+	const guess = h("div", "guess", `<label for="bGuess">Guess first: what share of the 1,024 do the prompt and its answer use?</label><input id="bGuess" type="range" min="0" max="100" value="50"><span class="mono" id="bGuessV">50%</span>`);
+	const nav = h("div", "pick");
+	const add = h("button", "btn solid", "Fill the budget"); add.type = "button";
+	nav.appendChild(add);
+	const say = h("p", "say"); say.setAttribute("aria-live", "polite");
+	root.append(guess, p, nav, say);
+	guess.querySelector("input").addEventListener("input", (e) => (guess.querySelector("#bGuessV").textContent = e.target.value + "%"));
+	let segs = [], filled = false;
+	function draw() {
+		bar.innerHTML = "";
+		segs = ORDER.map(([k, name]) => {
+			const s = h("button", "seg" + (k === "answer" ? " ans" : "") + (filled ? " on" : "")); s.type = "button";
+			s.style.width = (100 * n(k) / DATA.limit) + "%"; s.style.background = COLOR[k];
+			s.title = `${name}: ${fmt(n(k))} tokens`; s.textContent = n(k) / DATA.limit > .09 ? name.replace(/^The /, "") : "";
+			s.addEventListener("mouseenter", () => { view.innerHTML = ""; view.append(h("div", "lbl", `<span>${name}</span><span>${fmt(n(k))} tokens</span>`), SHOW[k]()); });
+			s.addEventListener("click", () => s.dispatchEvent(new Event("mouseenter")));
+			bar.appendChild(s); return s;
+		});
+		const share = DATA.limit / DATA.jev_tokens;
+		ghost.innerHTML = `<div class="lbl"><span>the same mask as a Jev request</span><span>${fmt(DATA.jev_tokens)} tokens · ${Math.round(DATA.jev_tokens / DATA.limit)}× the budget</span></div><div class="track"><div class="fill" style="width:100%"></div><div class="ours" style="width:${100 * share}%"></div></div><div class="ticks"><span>▲ 1,024</span><span>24,644</span></div>`;
+		if (filled) p.querySelector("#bTok").textContent = fmt(total());
+	}
+	add.addEventListener("click", () => {
+		add.disabled = true; guess.querySelector("input").disabled = true;
+		let used = 0;
+		segs.forEach((s, k) => setTimeout(() => {
+			s.classList.add("on"); s.dispatchEvent(new Event("mouseenter"));
+			ticker(p.querySelector("#bTok"), used, used + n(ORDER[k][0])); used += n(ORDER[k][0]);
+			if (k === segs.length - 1) {
+				filled = true;
+				say.textContent = `You guessed ${guess.querySelector("input").value}%. The prompt and its answer use ${Math.round(100 * total() / DATA.limit)}% (${fmt(total())} tokens), and the answer alone is ${fmt(n("answer"))}. Hover a block to see what is in it.`;
+			}
+		}, REDUCE ? 0 : k * 450));
+	});
+	say.textContent = "Make your guess, then fill the budget.";
+	draw();
+	return draw;
+}
+
+// ---------- C · Unfold ----------
+function figC(root) {
+	const pre = h("pre", "code");
+	const x = (k, label) => `<button type="button" class="xp" data-k="${k}" aria-expanded="false">${label}</button>`;
+	const fold = (k) => `<div class="fold" data-for="${k}"><div></div></div>`;
+	const team0 = DATA.team.find((m) => m.hidden.length);
+	pre.innerHTML = `<span class="k">system</span>: <span class="s">"${esc(DATA.system)}"</span>
+<span class="k">user</span>:
+  ${x("rules", "Format · Rules")}
+${fold("rules")}  <span class="c">[48 meta teams: left out, #197]</span>
+  ${x("team", `Team so far: 6 Pokémon, ${esc(team0.species)}'s ${team0.hidden.join(", ")} = ${esc(DATA.marker)}`)}
+${fold("team")}  ${x("fields", `Fill: ${DATA.mask.paths.length} field${DATA.mask.paths.length > 1 ? "s" : ""}`)}
+${fold("fields")}  ${x("question", `"Write the whole team … every ${esc(DATA.marker)} filled."`)}
+${fold("question")}  ${x("ask", `Target win rate: ${DATA.ask.toFixed(2)}`)}
+${fold("ask")}<span class="k">assistant</span>:
+  ${x("answer", "the whole team as paste text")}
+${fold("answer")}`;
+	pre.querySelectorAll(".xp").forEach((b) => b.addEventListener("click", () => {
+		const f = pre.querySelector(`.fold[data-for="${b.dataset.k}"]`), open = b.getAttribute("aria-expanded") === "true";
+		const box = f.firstElementChild;
+		box.innerHTML = ""; const inset = h("div", "inset"); inset.append(h("div", "lbl", `<span>${ORDER.find(([k]) => k === b.dataset.k)[1]}</span><span>${fmt(n(b.dataset.k))} tokens</span>`), SHOW[b.dataset.k]()); box.appendChild(inset);
+		b.setAttribute("aria-expanded", String(!open)); f.classList.toggle("open", !open);
+	}));
+	root.append(pre, h("p", "say", "Click a highlighted part to open it inside the prompt."));
+}
+
+const pick = document.getElementById("tkPick");
+DATA.tokenizers.forEach((t) => {
+	const b = h("button", "", t.counts ? esc(t.label) : esc(t.label) + " · not counted"); b.type = "button";
+	b.disabled = !t.counts; b.setAttribute("aria-pressed", String(t === TK));
+	if (!t.counts) b.style.opacity = .4;
+	b.addEventListener("click", () => { TK = t; pick.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); rebuild(); });
+	pick.appendChild(b);
+});
+const roots = ["figA", "figB", "figC"].map((id) => document.getElementById(id));
+function rebuild() {
+	roots.forEach((r) => (r.innerHTML = "")); figA(roots[0]); figB(roots[1]); figC(roots[2]);
+	if (!SNAP) return;
+	document.body.classList.add("snap");
+	const a = roots[0].querySelector(".btn.solid"); while (!a.disabled) a.click();
+	roots[1].querySelector(".btn.solid").click();
+	roots[2].querySelectorAll(".xp").forEach((b) => b.click());
+}
+rebuild();
+})();
+</script>
+</body></html>
