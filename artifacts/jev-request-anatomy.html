@@ -1,0 +1,167 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--chart-1:#4e79a7;--chart-2:#e15759;--chart-3:#59a14f;--chart-4:#9c9c9c;--success:#59a14f;--font-sans:system-ui,sans-serif;--font-mono:ui-monospace,Menlo,monospace;--foreground:#1d1d1f;--muted-foreground:#6e6e73;--code-background:#f2f2f4;--border:#d9d9de;--radius:8px}
+@media (prefers-color-scheme:dark){:root{--foreground:#ececef;--muted-foreground:#a1a1a8;--code-background:#232327;--border:#3a3a40}}
+body{background:Canvas;color-scheme:light dark;padding:16px}
+:root{--meta:var(--chart-1);--opts:var(--chart-2);--team:var(--chart-3);--rest:var(--chart-4)}
+body{margin:0;font-family:var(--font-sans);color:var(--foreground);line-height:1.45}
+.wrap{max-width:720px}
+h2{font-size:17px;margin:0 0 2px}
+h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted-foreground);margin:26px 0 8px;font-weight:600}
+.sub{color:var(--muted-foreground);font-size:13px;margin:0 0 14px}
+.bar{display:flex;height:34px;border-radius:6px;overflow:hidden;position:relative}
+.bar div{height:100%}
+.scale{position:relative;height:56px;font-size:11.5px;color:var(--muted-foreground)}
+.tick{position:absolute;top:0;border-left:2px solid var(--foreground);height:46px}
+.tick span{position:absolute;top:30px;left:4px;white-space:nowrap;color:var(--foreground)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;margin-top:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.part{display:grid;grid-template-columns:8px 1fr;gap:0 12px;margin:0 0 10px}
+.part .stripe{border-radius:3px}
+.part .head{display:flex;justify-content:space-between;gap:10px;font-size:13.5px}
+.part .head b{font-weight:600}
+.part .head code{font-family:var(--font-mono);font-size:11.5px;color:var(--muted-foreground);margin-left:6px}
+.tok{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--muted-foreground);font-size:12.5px}
+.tok b{color:var(--foreground)}
+pre{font-family:var(--font-mono);font-size:11px;background:var(--code-background);border-radius:6px;padding:8px 10px;margin:5px 0 0;white-space:pre-wrap;line-height:1.4;max-height:220px;overflow:auto}
+.note{font-size:12.5px;color:var(--muted-foreground);margin:3px 0 0}
+.box{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px 6px}
+.boxlabel{font-family:var(--font-mono);font-size:11.5px;color:var(--muted-foreground);margin:0 0 8px}
+.team{display:flex;gap:6px;margin:6px 0 0;flex-wrap:wrap}
+.mon{text-align:center;font-size:10.5px;width:74px}
+.mon img{width:56px;height:56px;image-rendering:pixelated;display:block;margin:0 auto}
+.mon.ask{outline:2px dashed var(--opts);border-radius:6px}
+.mon .q{color:var(--opts);font-weight:600}
+.ans{display:grid;grid-template-columns:120px 1fr 44px;gap:4px 8px;align-items:center;font-size:12.5px;margin-top:6px}
+.ans .p{height:12px;border-radius:3px;background:var(--success)}
+.rows{display:grid;grid-template-columns:118px 1fr;gap:7px 10px;align-items:center;font-size:12.5px}
+.rows .lab small{display:block;color:var(--muted-foreground);font-size:11px}
+.track{position:relative;height:22px}
+.track .seg{display:flex;height:100%;border-radius:4px;overflow:hidden}
+.track .num{position:absolute;top:3px;font-size:11.5px;font-variant-numeric:tabular-nums;padding-left:5px}
+.limit{position:absolute;top:-4px;bottom:-4px;border-left:2px solid var(--foreground)}
+.arrow{text-align:center;color:var(--muted-foreground);font-size:12px;margin:2px 0 8px}
+</style></head><body><div class="wrap">
+
+<h2>One Jev request, part by part</h2>
+<p class="sub">The meta grid's item mask: choose the item for Alolan Ninetales in slot 4. This exact request went live on 2026-10-27; Jev's server counted <b>24,644</b> input tokens. Built by <code>jev_fill.request_for</code>.</p>
+
+<div class="bar" id="bigbar"></div>
+<div class="scale" id="scale"></div>
+<div class="legend">
+ <span><i class="sw" style="background:var(--meta)"></i>48 meta teams</span>
+ <span><i class="sw" style="background:var(--opts)"></i>Legal options + their facts</span>
+ <span><i class="sw" style="background:var(--team)"></i>Team so far</span>
+ <span><i class="sw" style="background:var(--rest)"></i>Format, rules, field, question</span>
+</div>
+
+<h3>What the request holds</h3>
+<div class="box">
+ <p class="boxlabel">state: the same for every question in a request</p>
+
+ <div class="part"><div class="stripe" style="background:var(--rest)"></div><div>
+  <div class="head"><span><b>Format and rules</b><code>state.format · state.rules</code></span><span class="tok"><b>~38</b> tokens</span></div>
+  <pre>"Champions VGC 2026 Reg Set M-B"
+"doubles, bring 6 pick 4, level 50, Species Clause, Item Clause"</pre>
+ </div></div>
+
+ <div class="part"><div class="stripe" style="background:var(--meta)"></div><div>
+  <div class="head"><span><b>The meta teams</b><code>state.meta</code></span><span class="tok"><b>~18,340</b> tokens · 74%</span></div>
+  <p class="note">48 teams as Showdown paste text, from <code>data/top50-meta.json</code>, the list the Ling language-model baseline's prompt uses. Identical in every request on every grid.</p>
+  <pre>Torkoal @ Heat Rock
+Ability: Drought
+Level: 50
+EVs: 32 HP / 32 SpA / 2 SpD
+Quiet Nature
+- Eruption
+- Weather Ball
+- Helping Hand
+- Protect
+
+Venusaur @ Life Orb  …  (5 more Pokémon, then 47 more teams)</pre>
+ </div></div>
+
+ <div class="part"><div class="stripe" style="background:var(--team)"></div><div>
+  <div class="head"><span><b>The team so far</b><code>state.team</code></span><span class="tok"><b>~790</b> tokens · 3%</span></div>
+  <p class="note">Six slots as JSON. The hidden field is <code>null</code>. Earlier answers are already written in.</p>
+  <div class="team" id="team"></div>
+  <pre>{"slot": 4, "species": "Ninetales-Alola", "item": null, "ability": "Snow Warning",
+ "moves": ["Blizzard", "Freeze-Dry", "Encore", "Protect"], "nature": "Timid",
+ "statPoints": {"HP": 13, "Atk": 0, "Def": 0, "SpA": 21, "SpD": 0, "Spe": 32}, …}</pre>
+ </div></div>
+
+ <div class="part"><div class="stripe" style="background:var(--rest)"></div><div>
+  <div class="head"><span><b>The field being asked</b><code>state.asking_about</code></span><span class="tok"><b>~6</b> tokens</span></div>
+  <pre>"team[3].item"</pre>
+ </div></div>
+</div>
+
+<div class="arrow">+</div>
+
+<div class="box">
+ <p class="boxlabel">questions["team[3].item"]: one Choice question</p>
+
+ <div class="part"><div class="stripe" style="background:var(--rest)"></div><div>
+  <div class="head"><span><b>The question wording</b><code>instructions</code></span><span class="tok"><b>~31</b> tokens</span></div>
+  <pre>"Which item should Ninetales-Alola in slot 4 hold to do best against the meta?"</pre>
+  <p class="note">Same template on every field. Only the field name, species and slot change.</p>
+ </div></div>
+
+ <div class="part"><div class="stripe" style="background:var(--opts)"></div><div>
+  <div class="head"><span><b>The legal options</b><code>criteria</code></span><span class="tok"><b>~5,380</b> tokens · 22%</span></div>
+  <p class="note">143 items, from <code>legal_options.options</code>: held by no teammate, legal for this species. Each carries its game effect as a fact, never advice.</p>
+  <pre>"Abomasite": {"effect": "If held by an Abomasnow, this item allows it to Mega Evolve in battle."},
+"Absolite":  {"effect": "If held by an Absol, this item allows it to Mega Evolve into Mega Absol in battle."},
+…  141 more</pre>
+ </div></div>
+</div>
+
+<div class="arrow">↓ Jev answers in 0.44 s</div>
+
+<div class="box">
+ <p class="boxlabel">answer: one name from the list, plus a probability for all 143 options</p>
+ <div class="ans" id="ans"></div>
+ <p class="note" style="margin:8px 0 6px">No text is written. A name outside the list is refused (<code>ask_choice</code> raises), so every answer is legal by construction.</p>
+</div>
+
+<h3>Every field type, same scale</h3>
+<p class="sub">The first request of each task type on the meta grid. The item row is the server's count; the others use the same measured rate of 2.54 characters per token. The line marks 1,024 tokens, the length masked Qwen3 was fine-tuned at.</p>
+<div class="rows" id="rows"></div>
+<p class="note" style="margin-top:10px">A whole hidden Pokémon asks 12 of these in a row: three species groups and the final species pick, then ability, item, four moves, Stat Alignment and Stat Points. The meta teams go into every one.</p>
+
+</div>
+<script>
+const RATE = 62548/24644; // characters per token, measured on the item request
+const TASKS = [ // characters per part, from jev_grid.py prompts --grid meta
+ {name:'Species', sub:'1st of 3 groups · 112 options', meta:46554, opts:19878, team:1898, rest:334},
+ {name:'Item', sub:'143 options · measured', meta:46554, opts:13645, team:2005, rest:344},
+ {name:'Move', sub:'73 options', meta:46554, opts:12802, team:2008, rest:352},
+ {name:'Stat Points', sub:'123 spreads', meta:46554, opts:9456, team:1959, rest:363},
+ {name:'Stat Alignment', sub:'25 options', meta:46554, opts:1127, team:2012, rest:353},
+ {name:'Ability', sub:'3 options', meta:46554, opts:293, team:2007, rest:349},
+];
+const KEYS=['meta','opts','team','rest'];
+const tok=c=>c/RATE;
+// big bar
+const item=TASKS[1], total=KEYS.reduce((s,k)=>s+item[k],0);
+document.getElementById('bigbar').innerHTML=KEYS.map(k=>`<div style="width:${item[k]/total*100}%;background:var(--${k})"></div>`).join('');
+const T=24644, ticks=[[231,'231: the old fine-tune prompt + team'],[1024,'1,024: masked Qwen3 fine-tune length']];
+document.getElementById('scale').innerHTML=ticks.map(([t,l],i)=>`<div class="tick" style="left:${t/T*100}%;height:${i?40:20}px"></div><div style="position:absolute;left:calc(${1024/T*100}% + 8px);top:${i?26:6}px;color:var(--foreground)">${i?'◂ ':'◂◂ '}${l}</div>`).join('')
+ +`<div style="position:absolute;right:0;top:4px">24,644 tokens</div>`;
+// team sprites
+const team=['blaziken-mega','kingambit','basculegion','ninetales-alola','gengar','incineroar'];
+const names=['Mega Blaziken','Kingambit','Basculegion','Alolan Ninetales','Gengar','Incineroar'];
+document.getElementById('team').innerHTML=team.map((s,i)=>`<div class="mon ${i==3?'ask':''}"><img src="https://play.pokemonshowdown.com/sprites/gen5/${s}.png" alt="">${names[i]}${i==3?'<div class="q">item = ?</div>':''}</div>`).join('');
+// answer
+const ans=[['Never-Melt Ice',.58],['Choice Scarf',.33],['Icy Rock',.03],['Quick Claw',.03],['139 others',.03]];
+document.getElementById('ans').innerHTML=ans.map(([n,p],i)=>`<span>${i==0?'<b>'+n+'</b>':n}</span><div><div class="p" style="width:${p/.58*100}%;opacity:${i?0.45:1}"></div></div><span class="tok">${p.toFixed(2)}</span>`).join('');
+// rows
+const MAX=30500;
+document.getElementById('rows').innerHTML=TASKS.map(t=>{
+ const tt=KEYS.reduce((s,k)=>s+tok(t[k]),0);
+ const segs=KEYS.map(k=>`<div style="width:${tok(t[k])/tt*100}%;background:var(--${k})" title="${k}: ${Math.round(tok(t[k])).toLocaleString()} tokens"></div>`).join('');
+ return `<div class="lab">${t.name}<small>${t.sub}</small></div><div class="track"><div class="seg" style="width:${tt/MAX*100}%">${segs}</div><span class="num" style="left:${tt/MAX*100}%">${Math.round(tt/10)*10>0?Math.round(tt).toLocaleString():''}</span><div class="limit" style="left:${1024/MAX*100}%"></div></div>`;
+}).join('');
+</script>
+</body></html>

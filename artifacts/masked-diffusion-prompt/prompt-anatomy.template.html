@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What the masked diffusion model is sent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/*JV_CSS*/
+/* Built by build_prompt_visual.py from this template; the look is the "What Jev is sent" figure's. */
+body{margin:0;background:var(--bg)}
+.draft{border-left:3px solid var(--warn);padding:6px 0 6px 12px;margin:14px 0;font-size:15.5px}
+.drop{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:15px}
+.drop s{font-family:var(--mono);font-size:12.5px}
+.bar .seg.ans{background-image:repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.14) 6px 12px)}
+.ghost{margin-top:14px}
+.ghost .track{position:relative;height:14px;background:var(--cell);border-radius:4px;overflow:hidden}
+.ghost .fill{position:absolute;inset:0 auto 0 0;background:var(--base)}
+.ghost .ours{position:absolute;inset:0 auto 0 0;background:var(--fg)}
+.paste{font-family:var(--mono);font-size:12px;line-height:1.5;white-space:pre-wrap;margin:6px 0 0;background:var(--cell);border-radius:6px;padding:8px 10px;max-height:260px;overflow:auto}
+.paste mark{background:var(--jev);color:var(--bg);border-radius:3px;padding:0 3px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font:11.5px var(--mono);color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+h2{margin-top:34px}
+.snap *{transition:none!important;animation:none!important}
+</style></head>
+<body><div class="jvbody"><div class="col">
+<h1>What the masked diffusion model is sent</h1>
+<p>The prompt from <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/196">#196</a> is the Jev request without the meta teams and without the legal option lists. The model writes the whole team back as Showdown paste text. Below is the same mask the Jev page uses: meta grid team <span class="mono" id="srcId"></span> with Alolan Ninetales's item hidden.</p>
+<p class="draft"><strong>Superseded on 2026-11-06.</strong> The owner replaced this free-text prompt with in-place filling: the team as compact JSON with mask tokens at the hidden values, and no question or separate answer (<a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/199">#199</a>). <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/201">#201</a> rebuilds this page from that code.</p>
+<p class="draft"><strong>Draft.</strong> The hidden-field marker <code id="mk"></code>, the question wording and the example ask <code id="ak"></code> are placeholders until the owner approves the prompt in <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/168">#168</a>. Token counts are real, from each candidate's own tokenizer.</p>
+<div class="lbl" style="margin-top:18px"><span>count tokens with</span><span></span></div>
+<div class="pick" id="tkPick" role="group" aria-label="Tokenizer"></div>
+
+<h2>A · The prompt, built part by part</h2>
+<div id="figA"></div>
+
+<h2>B · The 1,024-token budget</h2>
+<div id="figB"></div>
+
+<h2>C · The prompt as the model reads it</h2>
+<div id="figC"></div>
+<p class="cap"><strong>Figure.</strong> Built by <code>build_prompt_visual.py</code> from the meta grid's mask and the paste writer the battle step uses. The 1,024-token line is the length masked Qwen3 0.6B was fine-tuned at (#162). The fine-tuning row holds the prompt and the answer, so both count against it. Jev's 24,644 tokens were counted by Jev's server on 2026-10-27 for this same mask. The meta teams wait in <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/197">#197</a>.</p>
+</div></div>
+<script>
+const DATA = /*DATA*/null;
+const ASSETS = /*ASSETS*/null;
+(() => {
+const SNAP = location.hash === "#open" || window.SNAP; // every figure opened, for a still screenshot
+const REDUCE = SNAP || matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SP = ASSETS.SP, IT = ASSETS.IT;
+const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const marked = (t) => esc(t).split(esc(DATA.marker)).join(`<mark>${esc(DATA.marker)}</mark>`);
+const TKS = DATA.tokenizers.filter((t) => t.counts);
+let TK = TKS[0];
+const COLOR = { wrapper: "var(--muted)", rules: "var(--muted)", team: "var(--jev)", fields: "var(--base)", question: "var(--ok)", ask: "color-mix(in oklab, var(--ok) 50%, var(--bg))", answer: "var(--warn)" };
+const PART = Object.fromEntries(DATA.parts.map((p) => [p.key, p]));
+const ORDER = [["wrapper", "System line and chat markers"], ...DATA.parts.map((p) => [p.key, p.name]), ["answer", "The answer the model writes"]];
+const n = (k) => TK.counts[k];
+const total = () => ORDER.reduce((s, [k]) => s + n(k), 0);
+const fmt = (x) => x.toLocaleString();
+document.getElementById("srcId").textContent = DATA.mask.source;
+document.getElementById("mk").textContent = DATA.marker;
+document.getElementById("ak").textContent = DATA.ask.toFixed(2);
+
+function mon(m, showItem) {
+	const d = h("div", "mon"); d.title = `${m.species} @ ${showItem || !m.hidden.includes("item") ? m.item : "?"}`;
+	d.innerHTML = SP[m.species] ? `<img class="s" src="${SP[m.species]}" alt="${esc(m.species)}">` : `<span class="t">${esc(m.species)}</span>`;
+	if (m.hidden.length && !showItem) d.insertAdjacentHTML("beforeend", `<span class="q" aria-label="hidden field">?</span>`);
+	else if (IT[m.item]) d.insertAdjacentHTML("beforeend", `<img class="i" src="${IT[m.item]}" alt="">`);
+	return d;
+}
+function teamRow(showItems) { const r = h("div", "row"); r.appendChild(h("span", "tid", DATA.mask.source)); DATA.team.forEach((m) => r.appendChild(mon(m, showItems))); return r; }
+function paste(text) { const p = h("pre", "paste"); p.innerHTML = marked(text); return p; }
+function ticker(node, from, to) {
+	if (REDUCE) { node.textContent = fmt(to); return; }
+	const t0 = performance.now();
+	const step = (t) => { const u = Math.min(1, (t - t0) / 500), e = 1 - (1 - u) ** 3; node.textContent = fmt(Math.round(from + (to - from) * e)); if (u < 1) requestAnimationFrame(step); };
+	requestAnimationFrame(step);
+}
+const SHOW = {
+	wrapper: () => h("p", "", `system: <code>${esc(DATA.system)}</code>, plus the chat template's role markers.`),
+	rules: () => paste(PART.rules.text),
+	team: () => { const d = h("div"); d.append(teamRow(false), paste(PART.team.text)); return d; },
+	fields: () => paste(PART.fields.text),
+	question: () => paste(PART.question.text),
+	ask: () => paste(PART.ask.text),
+	answer: () => { const d = h("div"); d.append(teamRow(true), paste(DATA.answer)); return d; },
+};
+
+// ---------- A · Assemble ----------
+function figA(root) {
+	const STEPS = [
+		["rules", "Every prompt starts with the format and the rules, the same two lines Jev sees."],
+		["meta", "Jev's next part was the 48 meta teams, three quarters of its request. They are left out for now; #197 brings them back once a model works without them."],
+		["team", "Then the team so far, as the same paste text the answer uses. Each hidden field reads " + DATA.marker + "."],
+		["fields", "Then the hidden fields by name, in Jev's fill order, so the prompt says what to fill as well as showing it."],
+		["question", "One sentence asks for the whole team. There are no option lists: the model writes free text."],
+		["ask", "The win-rate ask gets its own line, worded as in the old text fine-tunes, so a comparison with them changes only the model. An unlabelled row reads unknown."],
+		["answer", "The model's answer is the complete team. A fine-tuning row holds the prompt and this answer, so both count toward 1,024."],
+	];
+	let at = -1, used = 0;
+	const body = h("div", "panel");
+	body.appendChild(h("div", "lbl", `<span>prompt, built part by part</span><span><span class="counter" id="aTok">0</span> tokens</span>`));
+	const list = h("div"); body.appendChild(list);
+	const nav = h("div", "pick");
+	const next = h("button", "btn solid", "Add the format and rules"); next.type = "button";
+	const reset = h("button", "btn", "Start over"); reset.type = "button";
+	nav.append(next, reset);
+	const say = h("p", "say"); say.setAttribute("aria-live", "polite");
+	root.append(body, nav, say);
+	const label = (k) => k === "meta" ? "the meta teams" : ORDER.find(([x]) => x === k)[1].replace(/^The /, "the ");
+	function go() {
+		at += 1;
+		const [k, text] = STEPS[at];
+		const sec = h("div", REDUCE ? "" : "in"); sec.style.marginTop = "12px";
+		if (k === "meta") {
+			sec.append(h("div", "lbl", `<span>The meta teams</span><span>0 tokens</span>`), h("div", "drop", `<s>[48 meta teams · ~18,340 tokens in Jev's request]</s><span>left out, see #197</span>`));
+		} else {
+			sec.append(h("div", "lbl", `<span>${ORDER.find(([x]) => x === k)[1]}</span><span>${fmt(n(k))} tokens</span>`), SHOW[k]());
+			const add = n(k) + (at === 0 ? n("wrapper") : 0);
+			ticker(body.querySelector("#aTok"), used, used + add); used += add;
+		}
+		list.appendChild(sec);
+		say.textContent = text + (at === 0 ? ` The count includes ${fmt(n("wrapper"))} tokens of system line and chat markers.` : "");
+		next.disabled = at === STEPS.length - 1;
+		next.textContent = at < STEPS.length - 1 ? "Add " + label(STEPS[at + 1][0]) : `Done: ${fmt(total())} of ${fmt(DATA.limit)} tokens`;
+	}
+	next.addEventListener("click", go);
+	reset.addEventListener("click", () => { list.innerHTML = ""; at = -1; used = 0; body.querySelector("#aTok").textContent = "0"; next.disabled = false; next.textContent = "Add the format and rules"; say.textContent = "Press the button to add the first part."; });
+	reset.click();
+}
+
+// ---------- B · Budget ----------
+function figB(root) {
+	const p = h("div", "panel");
+	p.innerHTML = `<div class="lbl"><span>masked Qwen3's fine-tune length: ${fmt(DATA.limit)} tokens</span><span><span class="counter" id="bTok">0</span> used</span></div>`;
+	const bar = h("div", "bar"); p.appendChild(bar);
+	p.appendChild(h("div", "ticks", "<span>0</span><span>256</span><span>512</span><span>768</span><span>1,024</span>"));
+	p.appendChild(h("div", "legend", ORDER.map(([k, name]) => `<span><i style="background:${COLOR[k]}"></i>${name}</span>`).join("")));
+	const view = h("div"); view.style.marginTop = "12px"; p.appendChild(view);
+	const ghost = h("div", "ghost");
+	p.appendChild(ghost);
+	const guess = h("div", "guess", `<label for="bGuess">Guess first: what share of the 1,024 do the prompt and its answer use?</label><input id="bGuess" type="range" min="0" max="100" value="50"><span class="mono" id="bGuessV">50%</span>`);
+	const nav = h("div", "pick");
+	const add = h("button", "btn solid", "Fill the budget"); add.type = "button";
+	nav.appendChild(add);
+	const say = h("p", "say"); say.setAttribute("aria-live", "polite");
+	root.append(guess, p, nav, say);
+	guess.querySelector("input").addEventListener("input", (e) => (guess.querySelector("#bGuessV").textContent = e.target.value + "%"));
+	let segs = [], filled = false;
+	function draw() {
+		bar.innerHTML = "";
+		segs = ORDER.map(([k, name]) => {
+			const s = h("button", "seg" + (k === "answer" ? " ans" : "") + (filled ? " on" : "")); s.type = "button";
+			s.style.width = (100 * n(k) / DATA.limit) + "%"; s.style.background = COLOR[k];
+			s.title = `${name}: ${fmt(n(k))} tokens`; s.textContent = n(k) / DATA.limit > .09 ? name.replace(/^The /, "") : "";
+			s.addEventListener("mouseenter", () => { view.innerHTML = ""; view.append(h("div", "lbl", `<span>${name}</span><span>${fmt(n(k))} tokens</span>`), SHOW[k]()); });
+			s.addEventListener("click", () => s.dispatchEvent(new Event("mouseenter")));
+			bar.appendChild(s); return s;
+		});
+		const share = DATA.limit / DATA.jev_tokens;
+		ghost.innerHTML = `<div class="lbl"><span>the same mask as a Jev request</span><span>${fmt(DATA.jev_tokens)} tokens · ${Math.round(DATA.jev_tokens / DATA.limit)}× the budget</span></div><div class="track"><div class="fill" style="width:100%"></div><div class="ours" style="width:${100 * share}%"></div></div><div class="ticks"><span>▲ 1,024</span><span>24,644</span></div>`;
+		if (filled) p.querySelector("#bTok").textContent = fmt(total());
+	}
+	add.addEventListener("click", () => {
+		add.disabled = true; guess.querySelector("input").disabled = true;
+		let used = 0;
+		segs.forEach((s, k) => setTimeout(() => {
+			s.classList.add("on"); s.dispatchEvent(new Event("mouseenter"));
+			ticker(p.querySelector("#bTok"), used, used + n(ORDER[k][0])); used += n(ORDER[k][0]);
+			if (k === segs.length - 1) {
+				filled = true;
+				say.textContent = `You guessed ${guess.querySelector("input").value}%. The prompt and its answer use ${Math.round(100 * total() / DATA.limit)}% (${fmt(total())} tokens), and the answer alone is ${fmt(n("answer"))}. Hover a block to see what is in it.`;
+			}
+		}, REDUCE ? 0 : k * 450));
+	});
+	say.textContent = "Make your guess, then fill the budget.";
+	draw();
+	return draw;
+}
+
+// ---------- C · Unfold ----------
+function figC(root) {
+	const pre = h("pre", "code");
+	const x = (k, label) => `<button type="button" class="xp" data-k="${k}" aria-expanded="false">${label}</button>`;
+	const fold = (k) => `<div class="fold" data-for="${k}"><div></div></div>`;
+	const team0 = DATA.team.find((m) => m.hidden.length);
+	pre.innerHTML = `<span class="k">system</span>: <span class="s">"${esc(DATA.system)}"</span>
+<span class="k">user</span>:
+  ${x("rules", "Format · Rules")}
+${fold("rules")}  <span class="c">[48 meta teams: left out, #197]</span>
+  ${x("team", `Team so far: 6 Pokémon, ${esc(team0.species)}'s ${team0.hidden.join(", ")} = ${esc(DATA.marker)}`)}
+${fold("team")}  ${x("fields", `Fill: ${DATA.mask.paths.length} field${DATA.mask.paths.length > 1 ? "s" : ""}`)}
+${fold("fields")}  ${x("question", `"Write the whole team … every ${esc(DATA.marker)} filled."`)}
+${fold("question")}  ${x("ask", `Target win rate: ${DATA.ask.toFixed(2)}`)}
+${fold("ask")}<span class="k">assistant</span>:
+  ${x("answer", "the whole team as paste text")}
+${fold("answer")}`;
+	pre.querySelectorAll(".xp").forEach((b) => b.addEventListener("click", () => {
+		const f = pre.querySelector(`.fold[data-for="${b.dataset.k}"]`), open = b.getAttribute("aria-expanded") === "true";
+		const box = f.firstElementChild;
+		box.innerHTML = ""; const inset = h("div", "inset"); inset.append(h("div", "lbl", `<span>${ORDER.find(([k]) => k === b.dataset.k)[1]}</span><span>${fmt(n(b.dataset.k))} tokens</span>`), SHOW[b.dataset.k]()); box.appendChild(inset);
+		b.setAttribute("aria-expanded", String(!open)); f.classList.toggle("open", !open);
+	}));
+	root.append(pre, h("p", "say", "Click a highlighted part to open it inside the prompt."));
+}
+
+const pick = document.getElementById("tkPick");
+DATA.tokenizers.forEach((t) => {
+	const b = h("button", "", t.counts ? esc(t.label) : esc(t.label) + " · not counted"); b.type = "button";
+	b.disabled = !t.counts; b.setAttribute("aria-pressed", String(t === TK));
+	if (!t.counts) b.style.opacity = .4;
+	b.addEventListener("click", () => { TK = t; pick.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); rebuild(); });
+	pick.appendChild(b);
+});
+const roots = ["figA", "figB", "figC"].map((id) => document.getElementById(id));
+function rebuild() {
+	roots.forEach((r) => (r.innerHTML = "")); figA(roots[0]); figB(roots[1]); figC(roots[2]);
+	if (!SNAP) return;
+	document.body.classList.add("snap");
+	const a = roots[0].querySelector(".btn.solid"); while (!a.disabled) a.click();
+	roots[1].querySelector(".btn.solid").click();
+	roots[2].querySelectorAll(".xp").forEach((b) => b.click());
+}
+rebuild();
+})();
+</script>
+</body></html>
