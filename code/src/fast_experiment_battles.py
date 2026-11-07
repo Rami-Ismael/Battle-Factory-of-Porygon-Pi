@@ -18,16 +18,17 @@ def fingerprint(value):
 
 class Backend:
     def __init__(self, directory, runner_factory=None):
+        kw = {}
         if runner_factory is None:
             sys.path.insert(0, str(PIPELINE))
             from fast_battle_runner import FastBattleRunner
-            runner_factory = FastBattleRunner
+            runner_factory, kw = FastBattleRunner, {'slot_order': 'shuffled'}   # every battle shuffles (docs/slot-order.md)
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         # Each process gets a new evidence directory, but failures block resumption.
         if list(self.directory.glob('session-*/failed.json')) or list(self.directory.glob('session-*/inflight.json')):
             raise RuntimeError('A fast battle batch failed; inspect its receipts before resuming')
-        self.runner = runner_factory(self.directory / f'session-{os.getpid()}-{time.time_ns()}', workers=6, concurrency=24)
+        self.runner = runner_factory(self.directory / f'session-{os.getpid()}-{time.time_ns()}', workers=6, concurrency=24, **kw)
         if hasattr(self.runner, 'identity'):
             manifest = self.directory / 'backend.json'
             value = {'identity':self.runner.identity, 'provenance':self.runner.provenance}

@@ -1,5 +1,7 @@
 """Unit tests for src/slot_order.py: every battle gets the same six Pokémon in a new order."""
+import os
 import random
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -34,6 +36,19 @@ class ShufflePaste(unittest.TestCase):
         self.assertEqual(a, b)
 
 
+class OnlyShuffled(unittest.TestCase):
+    """Every battle shuffles: listed order was removed 2026-11-07 (docs/slot-order.md)."""
+    def test_policy_is_tagged_shuffled(self):
+        self.assertEqual((SO.MODE, SO.POLICY_TAG), ("shuffled", "+slots-shuffled"))
+
+    def test_listed_order_refuses_to_start(self):
+        src = str(Path(__file__).resolve().parent.parent / "src")
+        run = subprocess.run([sys.executable, "-c", "import slot_order"], cwd=src, capture_output=True, text=True,
+                             env={**os.environ, "VGC_SLOT_ORDER": "listed"})
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn("every battle shuffles slots", run.stderr)
+
+
 @unittest.skipIf(SO.RandomTeamBuilder is object, "vgc_bench is not importable")
 class Builder(unittest.TestCase):
     def setUp(self):
@@ -51,10 +66,7 @@ class Builder(unittest.TestCase):
         tb = SO.ShuffledTeamBuilder(1, None, "mb", custom_team_paths=[self.path], order_seed=3)
         orders = [tuple(self.species_order(tb.yield_team())) for _ in range(30)]
         self.assertTrue(all(sorted(o) == sorted(orders[0]) for o in orders))
-        if SO.MODE == "shuffled":
-            self.assertGreater(len(set(orders)), 10)
-        else:
-            self.assertEqual(len(set(orders)), 1)
+        self.assertGreater(len(set(orders)), 10)
 
     def test_shuffle_does_not_touch_global_random(self):
         random.seed(5); expected = random.random()

@@ -5,8 +5,9 @@ five starting teams are drawn from ranks 51-100 instead of being random legal te
 their k values (54 masks per starting team, task seed 22), the random legal fill (mask_lab_prepare.random_fill), the
 scratch decoder's settings (ask 0.5, guidance 2, temperature 1), the text writer's constrained infilling
 (mask_lab_textdiff.generate: ask 0.5, guidance 2, threshold 0.9, seed 20261008 + trial index), one battle against
-each of the 49 distinct top-50 teams, the behaviour-cloning policy on both sides, listed slot order, seed 20261008,
-and the 2026-10-15 fast evaluator (identity 4208bc07...). The vault scripts run unchanged; only their paths point
+each of the 49 distinct top-50 teams, the behaviour-cloning policy on both sides, seed 20261008. Slots are shuffled every
+battle on the current fast evaluator (the first grids used listed order on the 2026-10-15 evaluator, identity
+4208bc07...; listed order was removed 2026-11-07 and those grids never count). The vault scripts run unchanged; only their paths point
 here, and the project's own src/ modules are imported first so the stale /tmp/vgc-pilot/src copies are never used.
 
 Two text writers fill the masks: lora_r32/final (the adapter behind every earlier text-writer result) and
@@ -27,7 +28,7 @@ teams. docs/textdiff.md, "Held-out teams as the starting teams".
     /tmp/vgc-pilot/.venv/bin/python scripts/mask_lab_heldout_starters.py battle
     python3 scripts/mask_lab_heldout_starters.py report
 """
-import argparse, collections, contextlib, importlib.util, json, os, random, subprocess, sys, time, uuid
+import argparse, collections, importlib.util, json, os, random, subprocess, sys, time, uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -39,8 +40,6 @@ SOURCE_RUN = PIPELINE / "runs/prompt-ab"               # the random-starter Mask
 WORK = Path.home() / "vgc-data/mask_lab_heldout_starters"
 DATABASE = Path.home() / "vgc-data/mask_lab_heldout_starters.sqlite"
 RUNTIME = Path.home() / ".local/share/vgc-pilot-runtime"
-TOP50_EVIDENCE = PIPELINE / "runs/battle-evaluations/20261015-094649-077c67be"
-TOP50_IDENTITY = "4208bc07b46d240b23059d94b9fcdee5f00b6dea4525e1272f2284083f4906f8"
 BC_HASH, SEED, TASK_SEED, N_STARTERS = "57f5edcab415cf6c", 20261008, 22, 5
 MEMBERS = ["F1_final_medium_noheldout_regmb_v3", "G2_family_matrix_noprtrain_noheldout_regmb_v3"]
 ADAPTERS = {"textdiff": RUNTIME / "textdiff/lora_r32/final", "textdiff_s21": RUNTIME / "textdiff/lora_r32_s20261021/final"}
@@ -217,9 +216,6 @@ def battle(a):  # noqa: C901
         raise SystemExit("bc_100.zip differs from the verified behaviour-cloning checkpoint; refusing to battle")
     if a.database.resolve() == Path(MDB.DEFAULT_DB).resolve():
         raise SystemExit("use a private database, not the shared matchup matrix")
-    sys.path.insert(0, str(PIPELINE.parent))           # battle_speed_lab, imported by the runner
-    spec = importlib.util.spec_from_file_location("fast_battle_runner_20261015", TOP50_EVIDENCE / "source/fast_battle_runner.py")
-    runner_module = importlib.util.module_from_spec(spec); spec.loader.exec_module(runner_module)
     con = MDB.connect(a.database)
     cands = [c for c in json.loads((a.run_dir / "candidates.json").read_text())["candidates"] if c["paste"]]
     val = Validator()
@@ -246,20 +242,16 @@ def battle(a):  # noqa: C901
     print(f"{len(cands)} candidates -> {len(legal)} distinct legal teams ({len(legal & held)} are held-out teams); "
           f"{len(cols)} top-50 opponents; planned battles <= {len(rows) * len(cols)}", flush=True)
     evidence = Path.home() / f"vgc-data/battle-evaluations/{NAME}-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
-    # Slots are shuffled every battle by default (src/slot_order.py, owner 2026-10-28): the current fast evaluator and a
-    # policy tagged +slots-shuffled. VGC_SLOT_ORDER=listed reproduces the pre-2026-10-28 grids on the pinned 2026-10-15 runner.
-    listed = MDB.SLOT_ORDER == "listed"
-    with (runner_module.FastBattleRunner(evidence, a.workers, a.concurrency) if listed else contextlib.nullcontext(MDB.default_runner())) as runner:
-        if listed and runner.identity != TOP50_IDENTITY:
-            raise SystemExit(f"evaluator identity {runner.identity} differs from the top-50 run's {TOP50_IDENTITY}")
-        policy_id = runner.policy_id(con, MDB) if listed else MDB.get_policy(con)
-        t_all = time.time()
-        for i in range(0, len(rows), a.batch):
-            t0 = time.time()
-            MDB.ensure(con, policy_id, rows[i:i + a.batch], cols, 1, seed=SEED, runner=runner,
-                       note=f"{NAME}:fast", evaluation=True)
-            print(f"batch {i // a.batch + 1}/{-(-len(rows) // a.batch)} in {time.time() - t0:.1f}s ({time.time() - t_all:.1f}s total)", flush=True)
-    out = {"policy_id": policy_id, "policy_identity": TOP50_IDENTITY if listed else None,
+    # Every battle shuffles slots (src/slot_order.py; listed order removed 2026-11-07).
+    runner = MDB.default_runner()
+    policy_id = MDB.get_policy(con)
+    t_all = time.time()
+    for i in range(0, len(rows), a.batch):
+        t0 = time.time()
+        MDB.ensure(con, policy_id, rows[i:i + a.batch], cols, 1, seed=SEED, runner=runner,
+                   note=f"{NAME}:fast", evaluation=True)
+        print(f"batch {i // a.batch + 1}/{-(-len(rows) // a.batch)} in {time.time() - t0:.1f}s ({time.time() - t_all:.1f}s total)", flush=True)
+    out = {"policy_id": policy_id, "policy_identity": None,
            "policy": f"bc_100.zip:{BC_HASH} on both sides, {MDB.SLOT_ORDER} slot order", "seed": SEED, "database": str(a.database),
            "evaluator": {"backend": "fast", "workers": a.workers, "concurrency": a.concurrency, "evidence": str(evidence)},
            "opponents": [], "panels": {}}

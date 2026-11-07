@@ -8,9 +8,10 @@ Win rate moved less (order standard deviation about 0.018).
 
 Shuffling every battle gives each Pokémon the policy's average treatment over slots,
 so a team's score no longer depends on how its file happens to be ordered.
-VGC_SLOT_ORDER=listed restores the written order to reproduce earlier results.
-Battles in the two modes are different configurations: get_policy() tags shuffled
-battles so they never share a matchup-database cell with listed-order battles.
+Every battle shuffles (owner, 2026-11-07): listed-order battles never count, so
+VGC_SLOT_ORDER=listed, the switch that once restored the written order, now refuses
+to start. get_policy() tags shuffled battles, so they never share a matchup-database
+cell with the listed-order battles recorded before 2026-10-28.
 """
 import os
 import random
@@ -20,10 +21,11 @@ try:
 except ImportError:          # matchup_db reads MODE and POLICY_TAG without vgc_bench on the path
     RandomTeamBuilder = object
 
-MODE = os.environ.get("VGC_SLOT_ORDER", "shuffled")
-if MODE not in ("shuffled", "listed"):
-    raise ValueError(f"VGC_SLOT_ORDER must be shuffled or listed, not {MODE!r}")
-POLICY_TAG = "+slots-shuffled" if MODE == "shuffled" else ""
+MODE = "shuffled"
+if os.environ.get("VGC_SLOT_ORDER", MODE) != MODE:
+    raise ValueError(f"VGC_SLOT_ORDER={os.environ['VGC_SLOT_ORDER']}: every battle shuffles slots; "
+                     "listed order was removed 2026-11-07 (docs/slot-order.md)")
+POLICY_TAG = "+slots-shuffled"
 
 
 def shuffle_paste(paste, rng):
@@ -45,6 +47,5 @@ class ShuffledTeamBuilder(RandomTeamBuilder):
 
     def _load_team(self, path):
         mons = self.parse_showdown_team(path.read_text())
-        if MODE == "shuffled":
-            self._order_rng.shuffle(mons)
+        self._order_rng.shuffle(mons)
         return self.join_team(mons)

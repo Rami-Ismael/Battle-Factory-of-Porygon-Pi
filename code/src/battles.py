@@ -110,7 +110,7 @@ def fast_runner(folder):
         _fast_runner = FastBattleRunner(Path(folder) / f"{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}-{time.time_ns()}",
                                         workers=int(os.environ.get("MATCHUP_FAST_WORKERS", 6)),
                                         concurrency=int(os.environ.get("MATCHUP_FAST_CONCURRENCY", 24)),
-                                        runtime=db.FAST_EVIDENCE / "runtime")
+                                        runtime=db.FAST_EVIDENCE / "runtime", slot_order=db.SLOT_ORDER)
         atexit.register(_fast_runner.close)
     return _fast_runner
 
