@@ -91,12 +91,11 @@ def _mon_pieces(i: int, mon: Slot) -> list[Piece]:
 
 def json_pieces(team: Team) -> list[Piece]:
     """The compact JSON team split into fixed text and values. A string value's quotes are fixed text,
-    so the value piece is exactly the text between them; a hidden value is None."""
+    so the value piece is exactly the text between them; a hidden value is None. A whole hidden Pokémon
+    keeps its object's keys, brackets and six stat names as fixed text, with all fourteen values None (#200)."""
     pieces: list[Piece] = ['[']
     for i, mon in enumerate(team):
-        if mon is None:
-            raise NotImplementedError(f'team[{i}] is a whole hidden Pokémon; its JSON object is issue #200')
-        pieces += ['{' if i == 0 else ',{', *_mon_pieces(i, mon), '}']
+        pieces += ['{' if i == 0 else ',{', *_mon_pieces(i, blank_slot(i + 1) if mon is None else mon), '}']
     pieces.append(']')
     return pieces
 

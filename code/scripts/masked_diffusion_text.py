@@ -1,9 +1,14 @@
-"""The text a masked diffusion model fills in place, for a Mask Lab mask that hides single fields (#199).
+"""The text a masked diffusion model fills in place, for any Mask Lab mask: single fields (#199), whole
+Pokémon and all six (#200).
 
 The model does not answer a prompt. It gets a short header (format, rules, win-rate ask) and the team
 as compact JSON (mask_paste.team_json), with each hidden field's value replaced by mask tokens between
 its quotes (a Stat Point number has no quotes). It fills only those tokens, so fields that are not
 hidden cannot change. No meta teams, legal option lists or example teams are in the text.
+
+A whole hidden Pokémon keeps its JSON object as fixed text: every key, quote, bracket and the six stat
+names. Each of its fourteen values becomes slots of its field type's length, 9 + 5 + 6 + 4 * 6 + 3 + 6 * 2
+= 59 mask tokens with Masked Qwen3 0.6B. A mask hiding all six is the text for writing a team from scratch.
 
 Every hidden field of one type gets the same number of mask tokens, its slot length: the longest
 Reg M-B value of that type in the given tokenizer, never the hidden value's own length, which would
@@ -19,8 +24,10 @@ The tokenizer is a Hugging Face fast tokenizer, or anything with its mask_token 
 `tokenizer(text, add_special_tokens=False, return_offsets_mapping=True)['offset_mapping']`.
 Which pad token fills the rest of a slot, and whether the loss scores it, belongs to #177.
 
-Demo, Masked Qwen3 0.6B's tokenizer on meta grid mask MB158 (Alolan Ninetales's item hidden):
+Demo, Masked Qwen3 0.6B's tokenizer on meta grid mask MB158, Alolan Ninetales hidden whole, then all six:
     ~/.local/share/vgc-pilot-runtime/venv-dlm/bin/python code/scripts/masked_diffusion_text.py
+Any other mask by source, task and k, such as Alolan Ninetales's item alone:
+    ~/.local/share/vgc-pilot-runtime/venv-dlm/bin/python code/scripts/masked_diffusion_text.py MB158 items 1
 """
 import json
 import sys
@@ -166,8 +173,9 @@ def hidden_values(task: dict[str, Any]) -> list[ValuePath]:
     for text in task['masked_paths']:
         path = parse_path(text)
         if len(path) == 1:
-            raise NotImplementedError(f'{text} hides a whole Pokémon; that text is issue #200')
-        if path[1] == 'statPoints':
+            hidden |= {piece[0] for piece in json_pieces([None] * 6)
+                       if not isinstance(piece, str) and piece[0][0] == path[0]}
+        elif path[1] == 'statPoints':
             hidden |= {(path[0], 'statPoints', stat) for stat in STATS}
         else:
             hidden.add(tuple(path))
@@ -256,10 +264,8 @@ def read_filled(text: str, pad: str, mask_token: str) -> Team:
     return team_from_json(team.replace(pad, ''))
 
 
-def _demo(source: str = 'MB158', mask: str = 'items', k: int = 1) -> None:
-    from transformers import AutoTokenizer
+def _demo(tokenizer: Tokenizer, source: str, mask: str, k: int) -> None:
     import jev_fill
-    tokenizer = AutoTokenizer.from_pretrained('dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1')
     task = next(t for t in jev_fill.tasks('meta') if (t['source'], t['task'], t['k']) == (source, mask, k))
     built = in_place_text(task, 0.55, tokenizer, 1024)
     print(f'Meta grid mask {source}, {mask} k={k}, hides {", ".join(task["masked_paths"])}; version {built.version}')
@@ -275,8 +281,14 @@ def _demo(source: str = 'MB158', mask: str = 'items', k: int = 1) -> None:
     target = training_target(task, 0.55, tokenizer, 1024, tokenizer.pad_token)
     print(f'Training target, padded with {tokenizer.pad_token}:\n' + target + '\n')
     assert read_filled(target, tokenizer.pad_token, tokenizer.mask_token) == task['original']
-    print('The training target reads back to the unmasked team.')
+    print('The training target reads back to the unmasked team.\n')
 
 
 if __name__ == '__main__':
-    _demo(*sys.argv[1:2])
+    from transformers import AutoTokenizer
+    qwen = AutoTokenizer.from_pretrained('dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1')
+    if len(sys.argv) > 1:
+        _demo(qwen, sys.argv[1], sys.argv[2], int(sys.argv[3]))
+    else:
+        _demo(qwen, 'MB158', 'pokemon', 1)
+        _demo(qwen, 'MB158', 'pokemon', 6)

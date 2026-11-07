@@ -1,4 +1,4 @@
-"""The in-place masked diffusion text (#199), on real Mask Lab tasks, with a fake tokenizer and no model.
+"""The in-place masked diffusion text (#199, #200), on real Mask Lab tasks, with a fake tokenizer and no model.
 
 Reads the meta grid's tasks from the vault pipeline, as the Jev fill tests do, so it is not in ci_tests.txt.
 """
@@ -37,6 +37,15 @@ def task(mask, k, source='MB158'):
 
 def single_field_tasks():
     return [t for t in J.tasks('meta') if t['task'] in SINGLE_FIELD]
+
+
+def whole_pokemon_tasks():
+    return [t for t in J.tasks('meta') if t['task'] == 'pokemon']
+
+
+def filled_with_ones(text):
+    """The team in the text with every mask token read as the digit 1, so a hidden number parses as JSON."""
+    return json.loads(text.split('\n' + D.TEAM_LABEL)[1].replace(FAKE.mask_token, '1'))
 
 
 def unmasked(built, task):
@@ -145,9 +154,73 @@ class InPlaceTextTest(unittest.TestCase):
     def test_the_version_names_the_in_place_text_without_meta_teams(self):
         self.assertEqual(D.in_place_text(task('items', 1), 0.55, FAKE, LIMIT).version, 'in-place-json-v1-no-meta-teams')
 
-    def test_a_whole_hidden_pokemon_is_left_to_issue_200(self):
-        with self.assertRaisesRegex(NotImplementedError, '#200'):
-            D.in_place_text(task('pokemon', 1), 0.55, FAKE, LIMIT)
+
+class WholePokemonTest(unittest.TestCase):
+    def test_a_whole_hidden_pokemon_keeps_every_key_with_slots_for_every_value(self):
+        lengths = D.slot_lengths(FAKE)
+        ones = {field: '1' * lengths[field] for field in ('species', 'item', 'ability', 'nature')}
+        for t in whole_pokemon_tasks():
+            team = filled_with_ones(D.in_place_text(t, 0.55, FAKE, LIMIT).text)
+            for i in (M.parse_path(p)[0] for p in t['masked_paths']):
+                self.assertEqual(team[i], {**ones, 'moves': ['1' * lengths['moves']] * 4,
+                                           'statPoints': dict.fromkeys(M.STATS, int('1' * lengths['statPoints']))})
+                self.assertEqual(list(team[i]), list(M.JSON_FIELDS))
+                self.assertEqual(list(team[i]['statPoints']), list(M.STATS))
+
+    def test_a_whole_hidden_pokemon_is_fourteen_slots(self):
+        lengths = D.slot_lengths(FAKE)
+        per_pokemon = sum(lengths[f] for f in ('species', 'ability', 'item', 'nature')) + 4 * lengths['moves'] \
+            + 6 * lengths['statPoints']
+        for t in whole_pokemon_tasks():
+            built = D.in_place_text(t, 0.55, FAKE, LIMIT)
+            self.assertEqual(len(built.slots), 14 * t['k'])
+            self.assertEqual(built.text.count(FAKE.mask_token), per_pokemon * t['k'])
+
+    def test_none_of_a_hidden_pokemons_real_values_appear(self):
+        for t in whole_pokemon_tasks():
+            original = dict(p for p in M.json_pieces(t['original']) if not isinstance(p, str))
+            hidden = set(D.hidden_values(t))
+            shown = [value for path, value in original.items() if path not in hidden]
+            text = D.in_place_text(t, 0.55, FAKE, LIMIT).text
+            for path in hidden:
+                if isinstance(original[path], str):        # numbers recur in other Pokémon's Stat Points
+                    self.assertEqual(text.count(f'"{original[path]}"'), shown.count(original[path]), f'{t["id"]} {path}')
+
+    def test_an_all_six_mask_is_six_such_objects_and_no_values(self):
+        t = task('pokemon', 6)
+        self.assertTrue(all(mon is None for mon in t['masked_team']))
+        text = D.in_place_text(t, 0.55, FAKE, LIMIT).text
+        team = text.split('\n' + D.TEAM_LABEL)[1]
+        self.assertIsNone(re.search(r'\d', team.replace(FAKE.mask_token, '')))
+        self.assertEqual(re.findall(r'"([^"]*)"', team.replace(FAKE.mask_token, '')),
+                         ['species', '', 'item', '', 'ability', '', 'nature', '', 'moves', '', '', '', '',
+                          'statPoints', *M.STATS] * 6)
+        rows = filled_with_ones(text)
+        self.assertEqual(len(rows), 6)
+        self.assertEqual(len({json.dumps(row) for row in rows}), 1)    # every object reads the same
+
+    def test_the_length_check_applies_to_an_all_six_mask(self):
+        t = task('pokemon', 6)
+        built = D.in_place_text(t, 0.55, FAKE, LIMIT)
+        total = sum(built.part_tokens.values())
+        self.assertEqual(total, len(D.offsets(FAKE, built.text)))
+        D.in_place_text(t, 0.55, FAKE, total)
+        with self.assertRaises(D.TextTooLong) as refused:
+            D.in_place_text(t, 0.55, FAKE, total - 1)
+        for name, n in built.part_tokens.items():
+            self.assertIn(f'{name} {n}', str(refused.exception))
+
+    def test_the_target_parses_back_to_the_unmasked_team(self):
+        for t in whole_pokemon_tasks():
+            target = D.training_target(t, 0.55, FAKE, LIMIT, FAKE.pad_token)
+            self.assertEqual(D.read_filled(target, FAKE.pad_token, FAKE.mask_token), t['original'])
+            self.assertEqual(len(D.offsets(FAKE, target)), len(D.offsets(FAKE, D.in_place_text(t, 0.55, FAKE, LIMIT).text)))
+
+    def test_every_field_not_hidden_reads_as_in_the_unmasked_team(self):
+        for t in whole_pokemon_tasks():
+            built = D.in_place_text(t, 0.55, FAKE, LIMIT)
+            header = ''.join(D.header_parts(0.55).values()) + D.TEAM_LABEL
+            self.assertEqual(unmasked(built, t), header + M.team_json(t['original']))
 
 
 class TrainingTargetTest(unittest.TestCase):

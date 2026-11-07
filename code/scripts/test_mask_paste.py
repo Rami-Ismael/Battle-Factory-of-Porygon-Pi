@@ -47,6 +47,14 @@ class SharedHelpersTest(unittest.TestCase):
         team = [dict(NINETALES, slot=n) for n in range(1, 7)]
         self.assertEqual(M.team_from_json(M.team_json(team)), team)
 
+    def test_a_whole_hidden_pokemon_keeps_its_json_object_with_every_value_hidden(self):
+        pieces = M.json_pieces([NINETALES, None, NINETALES, NINETALES, NINETALES, NINETALES])
+        hidden = [p for p in pieces if not isinstance(p, str) and p[0][0] == 1]
+        self.assertEqual(len(hidden), 14)
+        self.assertTrue(all(value is None for _, value in hidden))
+        fixed = [p for p in pieces if isinstance(p, str)]
+        self.assertEqual(fixed, [p for p in M.json_pieces([NINETALES] * 6) if isinstance(p, str)])
+
     def test_a_json_team_with_missing_keys_is_refused(self):
         with self.assertRaises(ValueError):
             M.team_from_json('[' + ','.join(['{"species":"Ninetales-Alola"}'] * 6) + ']')
