@@ -66,7 +66,7 @@ for a, col, dx, dy, ha in (("remask_ll_10", ORANGE, -14, 6, "right"), ("cold_set
     ax.annotate(f"{A[a]['name']}\n{p['gain']:+.3f} win rate · {p['line_ups']} line-ups · {kept:.0%} of the sets", (p["line_ups"], p["win"]), xytext=(dx, dy), textcoords="offset points", ha=ha, va="bottom", fontsize=10, color=INK)
 ax.set_xlim(150, 470); ax.set_ylim(.34, .44)
 ax.set_xlabel("Distinct line-ups among 768 teams (asks 4/24, 8/24, 12/24, 16/24)"); ax.set_ylabel("Mean win rate")
-title(f, "Split-variance sampling buys most of least-likely's gain and keeps every line-up", "Both routes pay about half the Pokémon sets. Least-likely also pays half the line-ups.")
+title(f, "Set-only sharpening buys most of least-likely's gain and keeps every line-up", "Both routes pay about half the Pokémon sets. Least-likely also pays half the line-ups.")
 foot(f, WIN + " 768 teams per rule, 49 battles each. Exploratory.")
 f.tight_layout(rect=(0, .03, 1, .87)); save(f, "01_teaser")
 
@@ -89,9 +89,9 @@ for j, k in enumerate(["4", "8", "16", "12"]):
         if j == 0: ax.set_ylabel("Mean win rate")
 axs[0, 0].scatter([], [], s=50, color=INK, label="No remasking")
 axs[0, 0].scatter([], [], s=50, color=ORANGE, label="Least-likely 10% remasked")
-axs[0, 0].scatter([], [], s=50, color=AQUA, label="Temperature 0.3 split-variance")
+axs[0, 0].scatter([], [], s=50, color=AQUA, label="Temperature 0.3 on sets only")
 axs[0, 0].legend(loc="lower left", frameon=False, fontsize=9, labelcolor=INK2, handletextpad=.3)
-title(f, "Least-likely pays in line-ups and sets; split-variance sampling pays only in sets", "Top row counts line-ups, bottom row counts Pokémon sets. The aqua arrow is vertical on top: no line-up lost at any ask.")
+title(f, "Least-likely pays in line-ups and sets; set-only sharpening pays only in sets", "Top row counts line-ups, bottom row counts Pokémon sets. The aqua arrow is vertical on top: no line-up lost at any ask.")
 foot(f, WIN + " Each point is 192 teams from 3 sampling seeds; bars are 95% intervals over teams. Ask 12/24 sits apart because it selects a different team population.")
 f.tight_layout(rect=(0, .03, 1, .88)); save(f, "02_moves_per_ask")
 
@@ -112,7 +112,7 @@ for ax, tag, lab in ((axs[0], "all", "all four asks, 768 teams"), (axs[1], "with
     xs_all = [Q[a]["distinct_sets"] for a in ("plain", "remask_ll_10", "cold_sets_t03", "nucleus_sets_p05")]
     ax.set_xlim(max(xs_all) * 1.04, min(xs_all) * .86)
 axs[0].set_ylabel("Mean win rate")
-axs[0].plot([], [], color=AQUA, lw=2, label="Temperature split-variance: 1, 0.6, 0.3"); axs[0].plot([], [], color=BLUE, lw=2, label="Nucleus split-variance: 0.9, 0.7, 0.5")
+axs[0].plot([], [], color=AQUA, lw=2, label="Temperature on sets only: 1, 0.6, 0.3"); axs[0].plot([], [], color=BLUE, lw=2, label="Nucleus on sets only: 0.9, 0.7, 0.5")
 axs[1].legend(*axs[0].get_legend_handles_labels(), loc="lower right", frameon=False, fontsize=10, labelcolor=INK2)
 title(f, "Cutting unlikely set options costs the same sets per win as cooling them", "Nucleus 0.5 lands on temperature 0.3: -0.001 win rate (-0.010 to +0.009), 1,223 sets against 1,252. Fewer sets to the right.")
 foot(f, WIN + " Species untouched in both, so every point keeps all line-ups. 95% intervals resample teams within each cell.")
@@ -136,13 +136,13 @@ axs[0].text(.031, len(order) - .4, "smallest effect worth acting on", fontsize=8
 axs[0].set_xlabel("Win-rate gain over no remasking (filled: all four asks; hollow: without 12/24)")
 axs[1].set_xlabel("Line-ups kept"); axs[2].set_xlabel("Pokémon sets kept")
 for ax in axs[1:]: ax.set_xlim(0, 1.18); ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1))
-title(f, "Only split-variance sampling gains over 0.05 without losing a line-up", "Temperature 0.3 split-variance and nucleus 0.5 tie. Higher gains cost line-ups; every gain costs Pokémon sets.")
+title(f, "Set-only sharpening alone gains over 0.05 without losing a line-up", "Temperature 0.3 and nucleus 0.5 on sets only tie. Higher gains cost line-ups; every gain costs Pokémon sets.")
 foot(f, WIN + " Kept shares are against no remasking's 438 line-ups and 2,336 sets over 768 teams. Lines through the dots are 95% intervals over teams.")
 family_legend(f)
 f.tight_layout(rect=(0, .03, 1, .87)); save(f, "04_menu")
 
 # 5. Do strong line-ups hold on fresh games?
-R = D["rebattle"]; rules = [("plain", INK, "No remasking"), ("remask_ll_10", ORANGE, "Least-likely 10% remasked"), ("cold_sets_t03", AQUA, "Temperature 0.3 split-variance")]
+R = D["rebattle"]; rules = [("plain", INK, "No remasking"), ("remask_ll_10", ORANGE, "Least-likely 10% remasked"), ("cold_sets_t03", AQUA, "Temperature 0.3 on sets only")]
 f, axs = fig(12, 4.6, 1, 2, sharey=True)
 for ax, (h, c, lab) in zip(axs, (("held", "candidates", "All four asks"), ("held_without_12", "candidates_without_12", "Without ask 12/24"))):
     for i, (a, col, _) in enumerate(rules):
@@ -152,7 +152,7 @@ for ax, (h, c, lab) in zip(axs, (("held", "candidates", "All four asks"), ("held
     ax.set_title(lab, loc="left", fontsize=11, fontweight="bold"); ax.set_xlabel("Line-ups at the 0.531 elite cut, best team re-battled 196 times")
     ax.set_xlim(0, 82)
 axs[0].set_yticks(range(3)); axs[0].set_yticklabels([r[2] for r in rules], color=INK); axs[0].invert_yaxis()
-title(f, "Temperature 0.3 split-variance's strong line-ups hold on fresh games as often as the others'", "27 of 68 hold, against 18 of 52 and 18 of 43. Without ask 12/24, almost none hold for any rule.", y=.96)
+title(f, "The strong line-ups of temperature 0.3 on sets only hold on fresh games as often as the others'", "27 of 68 hold, against 18 of 52 and 18 of 43. Without ask 12/24, almost none hold for any rule.", y=.96)
 foot(f, WIN + " Fresh games: 4 per opponent, private database. 34 of temperature 0.3's 68 sit within one standard error (0.036) of the cut.")
 f.tight_layout(rect=(0, .05, 1, .8)); save(f, "05_rebattle")
 
