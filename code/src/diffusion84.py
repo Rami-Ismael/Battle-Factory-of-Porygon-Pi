@@ -167,6 +167,19 @@ def val_loss(net, tables, x, w, sched, reps=4, seed=12345, batch=512):
     return tot / (N * reps)
 
 
+def _training_tensors(tables, rows, labels, row_weights=None):
+    """Rows the tables accept, their labels (NaN = unlabelled) and optional weights averaging 1, on the device.
+    Rows whose true value the tables exclude are dropped; keep marks the rows kept."""
+    X84 = np.asarray(rows, dtype=np.int64)
+    keep = ~tables.check(X84[:, :STAT0])
+    W = np.full(len(keep), NAN, np.float32) if labels is None else np.asarray(labels, np.float32)
+    x, w = torch.as_tensor(X84[keep], device=DEV), torch.as_tensor(W[keep], device=DEV)
+    rw = None
+    if row_weights is not None:
+        kept_w = np.asarray(row_weights, np.float32)[keep]; rw = torch.as_tensor(kept_w / kept_w.mean(), device=DEV)
+    return x, w, rw, keep
+
+
 class Model84:
     """One or more trained 84-field networks (a mixture samples from the log-mean of its members, like team_writer)
     plus what sampling and pastes need. Build one with Model84.train_new(), Model84.mixture() or Model84.load()."""
@@ -186,7 +199,7 @@ class Model84:
         return self.nets[0][0]
 
     @classmethod
-    def train_new(cls, V, corpus, rows, labels=None, passes=2, seed=0, batch=256, lr=4e-4, wd=0.01,  # noqa: C901
+    def train_new(cls, V, corpus, rows, labels=None, passes=2, seed=0, batch=256, lr=4e-4, wd=0.01,
                   warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
@@ -199,27 +212,62 @@ class Model84:
         row_weights: one training weight per row of rows; validation loss stays unweighted."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
-        X84 = np.asarray(rows, dtype=np.int64)
-        keep = ~tables.check(X84[:, :STAT0])                   # rows whose true value the tables exclude are dropped
-        X84 = X84[keep]
-        W = np.full(len(keep), NAN, np.float32) if labels is None else np.asarray(labels, np.float32)
-        x, w = torch.as_tensor(X84, device=DEV), torch.as_tensor(W[keep], device=DEV)
-        rw = None
-        if row_weights is not None:
-            kept_w = np.asarray(row_weights, np.float32)[keep]; rw = torch.as_tensor(kept_w / kept_w.mean(), device=DEV)
+        x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
         net = Net84(V, **net_kw).to(DEV)
+        info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=passes, patience=patience,
+                    lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
+        info.update(label_noise=label_noise, stop_after=stop_after)
+        return cls._fit(V, corpus, tables, net, x, w, rw, info, passes=passes, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
+                        ema=ema, sched=sched, log=log, val=val, patience=patience, on_best=on_best, label_noise=label_noise,
+                        stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw)
+
+    def fine_tuned(self, rows, labels, passes, val, patience=3, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
+                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None):
+        """A new model: this one-member model's weights trained further on 84-field rows; self is unchanged.
+        The recipe is train_new's (AdamW, warm-up and cosine decay sized to the cap of `passes`, EMA, ask dropout,
+        label noise on training labels only). Validation loss on val=(rows, labels) is measured before the first pass
+        too, so pass 0 is the starting weights: if no pass beats them, early stopping returns them unchanged.
+        watch={name: (rows, labels)}: more validation sets, logged every pass and never used to stop."""
+        net_kw = self.nets[0][1]
+        start = copy.deepcopy(self.net).to(DEV)
+        torch.manual_seed(seed)
+        x, w, rw, keep = _training_tensors(self.tables, rows, labels)
+        info = dict(base=self.info, fine_tune=True, n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=passes,
+                    patience=patience, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None)
+        return type(self)._fit(self.V, None, self.tables, start, x, w, rw, info, passes=passes, seed=seed, batch=batch, lr=lr, wd=wd,
+                               warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, on_best=None,
+                               label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, pass0=True,
+                               like=self)
+
+    @classmethod
+    def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, passes, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
+             patience, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, pass0=False, like=None):
+        """The training loop train_new and fine_tuned share. pass0=True logs validation loss before any step and
+        lets those starting weights be the best pass. like: a model whose tables and vocabulary the result reuses."""
+        make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
+               (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
         sw = sched84(sched).to(DEV)
         steps = math.ceil(len(x) / batch) * passes; warm = min(warmup, max(1, steps // 10))
         opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=wd, betas=(0.9, 0.98))
         lr_at = lambda s: lr * min(1.0, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(s, steps) / steps))
-        info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=passes, patience=patience,
-                    lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
-        info.update(label_noise=label_noise, stop_after=stop_after)
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
         best, best_pass, best_sd, step = math.inf, 0, None, 0
         t_start = time.perf_counter()
+
+        def measure(m, entry):
+            if val is not None:
+                entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw)
+            for name, (vx, vw) in (watch or {}).items():
+                entry[f"{name}_val_loss"] = val_loss(m, tables, vx, vw, sw)
+
+        if pass0:
+            m = (avg if avg is not None else net).eval(); entry = dict(pass_=0); measure(m, entry)
+            if val is not None:
+                best, best_sd = entry["val_loss"], {k: v.detach().clone() for k, v in m.state_dict().items()}
+            entry["minutes"] = 0.0; log.append(entry)
+            print("  pass " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
         for p in range(passes):
             net.train(); run = 0.0; nb = 0
             for b in torch.randperm(len(x), device=DEV).split(batch):
@@ -235,23 +283,28 @@ class Model84:
             m = avg if avg is not None else net
             m.eval()
             entry = dict(pass_=p + 1, train_loss=run / nb)
-            if val is not None:
-                entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw)
-                if entry["val_loss"] < best:
-                    best, best_pass = entry["val_loss"], p + 1
-                    best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
-                    if on_best is not None: on_best(cls(V, corpus, [(m, net_kw)], dict(info, best_pass=best_pass)), best_pass)
+            measure(m, entry)
+            if val is not None and entry["val_loss"] < best:
+                best, best_pass = entry["val_loss"], p + 1
+                best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
+                if on_best is not None: on_best(make(m, dict(best_pass=best_pass)), best_pass)
             entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
-            if on_epoch is not None: on_epoch(cls(V, corpus, [(m, net_kw)], dict(info, epoch=p + 1)), p + 1)
+            if on_epoch is not None: on_epoch(make(m, dict(epoch=p + 1)), p + 1)
             log.append(entry)
             print("  pass " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
             if patience and p + 1 - best_pass >= patience: break
             if stop_after and p + 1 >= stop_after: break
         m = avg if avg is not None else net
         if patience and best_sd is not None: m.load_state_dict(best_sd)
-        info.update(stopped_pass=len(log), best_pass=best_pass or None, best_val_loss=None if best == math.inf else best,
-                    curves=log)
-        return cls(V, corpus, [(m, net_kw)], info)
+        trained = [e for e in log if e["pass_"] > 0]
+        info.update(stopped_pass=len(trained), best_pass=best_pass or (0 if pass0 and val is not None else None),
+                    best_val_loss=None if best == math.inf else best, curves=log)
+        return make(m, {})
+
+    def _with(self, nets, info):
+        """A model sharing this one's vocabulary, tables and paste lookups, with other networks."""
+        out = copy.copy(self); out.nets = [(net.eval(), kw) for net, kw in nets]; out.info = info
+        return out
 
     @classmethod
     def mixture(cls, models, info=None):
