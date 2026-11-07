@@ -17,7 +17,7 @@ import numpy as np, torch
 from poke_env.ps_client import ServerConfiguration, AccountConfiguration
 from stable_baselines3 import PPO
 from vgc_bench.src.policy_player import BatchPolicyPlayer
-from vgc_bench.src.teams import RandomTeamBuilder
+from slot_order import ShuffledTeamBuilder   # every battle shuffles (docs/slot-order.md)
 from vgc_bench.src.utils import format_map
 
 SERVER = ServerConfiguration("ws://localhost:8123/showdown/websocket",
@@ -31,10 +31,10 @@ async def play(policy, team_path, opp_path, n, conc, tag):
               max_concurrent_battles=conc, accept_open_team_sheet=True, open_timeout=None)
     a = BatchPolicyPlayer(policy=policy,
                           account_configuration=AccountConfiguration(f"a{tag}", None),
-                          team=RandomTeamBuilder(1, None, "mb", custom_team_paths=[Path(team_path)]), **kw)
+                          team=ShuffledTeamBuilder(1, None, "mb", custom_team_paths=[Path(team_path)]), **kw)
     b = BatchPolicyPlayer(policy=policy,
                           account_configuration=AccountConfiguration(f"b{tag}", None),
-                          team=RandomTeamBuilder(1, None, "mb", custom_team_paths=[Path(opp_path)]), **kw)
+                          team=ShuffledTeamBuilder(1, None, "mb", custom_team_paths=[Path(opp_path)]), **kw)
     await a.battle_against(b, n_battles=n)
     w = sum(1 for x in a.battles.values() if x.won)
     f = a.n_finished_battles

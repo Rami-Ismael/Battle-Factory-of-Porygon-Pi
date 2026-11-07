@@ -28,7 +28,7 @@ BENCH = RUNTIME / 'unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2'
 HERE = Path(__file__).resolve().parent
 RUN = HERE / 'runs/prompt-ab'
 PRIVATE_DB = Path.home() / 'vgc-data/mask_lab_matrix.sqlite'
-POLICY, BC_HASH, SEED = 1, '57f5edcab415cf6c', 20261008
+BC_HASH, SEED = '57f5edcab415cf6c', 20261008
 
 sys.path.insert(0, '/tmp/vgc-pilot/src')
 sys.path.insert(0, str(REPO / 'src'))
@@ -112,13 +112,12 @@ def evaluate(con, rows, cols, a):
     evidence = a.evidence_dir or HERE/'runs/battle-evaluations'/(
         time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8])
     with ExitStack() as stack:
-        # Slots are shuffled every battle by default (slot_order.py in the code repo, owner 2026-10-28);
-        # VGC_SLOT_ORDER=listed reproduces the 2026-10-15 grid and its policy 1 cache.
+        # Every battle shuffles slots (slot_order.py in the code repo; listed order removed 2026-11-07).
         if a.backend == 'fast':
             runner = stack.enter_context(FastBattleRunner(evidence, a.workers, a.concurrency, slot_order=MDB.SLOT_ORDER))
             policy_id = runner.policy_id(con, MDB)
         else:
-            policy_id = POLICY if MDB.SLOT_ORDER == 'listed' else MDB.get_policy(con)
+            policy_id = MDB.get_policy(con)
             runner = None
             if MDB.plan(con, policy_id, rows, cols, a.per_cell):
                 procs, ports = start_servers(a.workers)

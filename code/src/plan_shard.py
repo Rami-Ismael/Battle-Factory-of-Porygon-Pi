@@ -22,7 +22,7 @@ import torch
 from poke_env.ps_client import ServerConfiguration, AccountConfiguration
 from stable_baselines3 import PPO
 from vgc_bench.src.policy_player import BatchPolicyPlayer
-from vgc_bench.src.teams import RandomTeamBuilder
+from slot_order import ShuffledTeamBuilder   # every battle shuffles (docs/slot-order.md)
 from vgc_bench.src.utils import format_map
 
 
@@ -87,9 +87,9 @@ async def run_job(pol, job, conc, port):
               max_concurrent_battles=conc, accept_open_team_sheet=True, open_timeout=None)
     tag = os.urandom(4).hex()
     a = FixedPlanPlayer(job["row_plan"], policy=pol, account_configuration=AccountConfiguration(f"p{tag}", None),
-                        team=RandomTeamBuilder(1, None, "mb", custom_team_paths=[Path(job["row_file"])]), **kw)
+                        team=ShuffledTeamBuilder(1, None, "mb", custom_team_paths=[Path(job["row_file"])]), **kw)
     b = ScheduledPlanPlayer(job["schedule"], policy=pol, account_configuration=AccountConfiguration(f"q{tag}", None),
-                            team=RandomTeamBuilder(1, None, "mb", custom_team_paths=[Path(job["col_file"])]), **kw)
+                            team=ShuffledTeamBuilder(1, None, "mb", custom_team_paths=[Path(job["col_file"])]), **kw)
     await a.battle_against(b, n_battles=len(job["schedule"]))
     by_col, finished, lost, violations = defaultdict(lambda: [0, 0, 0]), 0, 0, 0
     for t, x in a.battles.items():
