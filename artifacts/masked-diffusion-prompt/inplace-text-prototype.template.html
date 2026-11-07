@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What the model receives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/*JV_CSS*/
+/* PROTOTYPE for #168, built by build_inplace_text_prototype.py. Throwaway: #199 builds the real text. */
+body{margin:0;background:var(--bg)}
+h2{margin-top:34px}
+.proto{border-left:3px solid var(--warn);padding:6px 0 6px 12px;margin:14px 0;font-size:15.5px}
+.ctl{display:grid;grid-template-columns:96px 1fr;gap:0 10px;align-items:start}
+.ctl .lbl{margin:20px 0 0}
+.ctl .pick{margin:12px 0 6px}
+.txt{margin:10px 0 0;background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.85;white-space:pre-wrap;word-break:break-word;max-height:520px;overflow:auto}
+.p-format,.p-rules{color:var(--muted)}
+.p-ask{color:var(--ok);font-weight:600}
+.m{display:inline-block;width:.95em;height:1.15em;vertical-align:-.25em;margin:0 1px;border-radius:3px;background:var(--jev)}
+.m.pad{background:transparent;border:1.5px dashed var(--muted)}
+.v{background:var(--jev-soft);color:var(--fg);border-radius:3px;padding:0 2px;font-weight:600}
+.slotgrp{white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font:11.5px var(--mono);color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.parts{display:flex;height:30px;border-radius:6px;overflow:hidden;background:var(--cell);margin-top:12px}
+.parts span{height:100%;border-right:2px solid var(--card);display:flex;align-items:center;justify-content:center;font:600 11px var(--mono);color:var(--bg);white-space:nowrap;overflow:hidden;transition:width 380ms var(--ease-out)}
+.cmp{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:10px 12px;align-items:center;margin-top:8px}
+.cmp .name{font-size:14.5px;line-height:1.3}
+.cmp .name small{display:block;font:11px var(--mono);color:var(--muted)}
+.track{position:relative;height:22px;background:var(--cell);border-radius:4px}
+.track .fill{position:absolute;inset:0 auto 0 0;border-radius:4px;transition:width 420ms var(--ease-out)}
+.track .num{position:absolute;top:0;font:600 11.5px/22px var(--mono);padding-left:6px;white-space:nowrap}
+.track .lim{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--fg)}
+.track .off{position:absolute;right:-2px;top:0;font:600 13px/22px var(--mono);color:var(--bg);padding-right:6px}
+.dots svg{width:100%;height:auto;display:block}
+.dots text{font:10.5px var(--mono);fill:var(--muted)}
+.dots text.lab{fill:var(--fg);font-size:11.5px}
+.dots circle{cursor:pointer}
+.ok{list-style:none;padding:0;margin:8px 0 0}
+.ok li{border-top:1px solid var(--rule);padding:10px 0;display:grid;grid-template-columns:1fr;gap:4px}
+.ok li b{font-family:var(--display);font-size:16px}
+.ok li code{background:var(--cell);border-radius:4px;padding:1px 5px}
+.ok li .alt{font-size:14px;color:var(--muted)}
+.lens{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-top:10px}
+.lens div{background:var(--cell);border-radius:6px;padding:6px 8px;font:11.5px var(--mono)}
+.lens div b{display:block;font-size:12px;color:var(--fg)}
+.lens div span{color:var(--muted)}
+@media (max-width:560px){.ctl{grid-template-columns:1fr}.ctl .lbl{margin:10px 0 0}.cmp{grid-template-columns:1fr}.cmp .name{margin-top:6px}}
+</style></head>
+<body><div class="jvbody"><div class="col">
+<h1>What the model receives</h1>
+<p>The masked diffusion model gets a three-line header and the team as one line of compact JSON. Every hidden value is replaced by a fixed run of mask tokens, and the model fills only those. Nothing else in the text can change. The example is meta grid team <span class="mono">MB158</span>, the team on the Jev page.</p>
+<p class="proto"><strong>Prototype for <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/168">#168</a>.</strong> The text below is what <a href="https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/199">#199</a> will build once you approve it. Each mask is a real Mask Lab task. Every count comes from the candidate's own tokenizer. The ask <code id="ak"></code> is an example; an unlabelled row reads <code>unknown</code>.</p>
+
+<h2>A · The exact text</h2>
+<div class="ctl">
+	<div class="lbl"><span>mask</span></div><div class="pick" id="maskPick" role="group" aria-label="Mask"></div>
+	<div class="lbl"><span>tokenizer</span></div><div class="pick" id="tkPick" role="group" aria-label="Tokenizer"></div>
+	<div class="lbl"><span>show</span></div><div class="pick" id="viewPick" role="group" aria-label="View"></div>
+</div>
+<div class="panel">
+	<div class="lbl"><span id="aHead"></span><span><span class="counter" id="aTok">0</span> tokens</span></div>
+	<div class="row" id="strip"></div>
+	<pre class="txt" id="txt"></pre>
+	<div class="parts" id="parts"></div>
+	<div class="legend" id="legend"></div>
+</div>
+<p class="say" id="aSay"></p>
+
+<h2>B · Beside the Jev request and the old prompt</h2>
+<p>The same mask, written three ways, counted with the tokenizer picked above. The dashed line is 1,024 tokens, the length masked Qwen3 0.6B was fine-tuned at.</p>
+<div class="panel"><div class="cmp" id="cmp"></div></div>
+<p class="cap" id="bCap"></p>
+
+<h2>C · Every mask, every tokenizer</h2>
+<p>Each dot is one of the seven masks above. Hiding more adds mask tokens; the all-six mask is the longest text each tokenizer gets. Click a dot to show its text in figure A.</p>
+<div class="panel dots" id="dots"></div>
+<div id="lens"></div>
+
+<h2>D · What you are approving</h2>
+<ul class="ok" id="ok"></ul>
+<p class="cap"><strong>Figure.</strong> Built by <code>artifacts/masked-diffusion-prompt/build_inplace_text_prototype.py</code> from meta grid tasks on team MB158 and the Reg M-B vocabulary. Slot lengths are the longest Reg M-B value of each field type in that tokenizer, measured inside JSON quotes. Jev's 24,644 tokens were counted by Jev's server on 2026-10-27 for the item mask. The free-text counts come from PR #217. The old prompt is <code>src/textdiff.py</code>'s chat prompt plus its team text; DiffuGPT and DiffuLLaMA have no chat template, so it is not counted for them. The meta teams wait in #197.</p>
+</div></div>
+<script>
+const DATA = /*DATA*/null;
+const ASSETS = /*ASSETS*/null;
+(() => {
+const SP = ASSETS.SP, IT = ASSETS.IT;
+const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const fmt = (x) => x.toLocaleString();
+const TKS = DATA.tokenizers.filter((t) => t.counts);
+const KIND = { species: "species", item: "item", ability: "ability", nature: "Stat Alignment", move: "move", stat: "Stat Point" };
+const COLOR = { header: "var(--muted)", ask: "var(--ok)", team: "var(--base)", masks: "var(--jev)" };
+let MASK = DATA.masks[0], TK = TKS[0], VIEW = "in";
+document.getElementById("ak").textContent = DATA.ask.toFixed(2);
+
+function picker(id, items, label, current, set) {
+	const root = document.getElementById(id); root.innerHTML = "";
+	items.forEach((it) => {
+		const b = h("button", "", esc(label(it))); b.type = "button"; b.setAttribute("aria-pressed", String(it === current()));
+		b.addEventListener("click", () => { set(it); root.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); draw(); });
+		root.appendChild(b);
+	});
+}
+const C = () => TK.counts[MASK.id];
+
+function strip() {
+	const r = document.getElementById("strip"); r.innerHTML = "";
+	r.appendChild(h("span", "tid", DATA.source));
+	DATA.team.forEach((m, i) => {
+		const hid = MASK.hiddenSlots.includes(i), whole = MASK.paths.includes(`team[${i}]`);
+		const d = h("div", "mon"); d.title = m.species + (hid ? " · has a hidden field" : "");
+		d.innerHTML = SP[m.species] ? `<img class="s" src="${SP[m.species]}" alt="${esc(m.species)}">` : `<span class="t">${esc(m.species)}</span>`;
+		if (whole && VIEW === "in") d.style.opacity = .25;
+		if (hid && VIEW === "in") d.insertAdjacentHTML("beforeend", `<span class="q" aria-label="hidden">?</span>`);
+		else if (IT[m.item]) d.insertAdjacentHTML("beforeend", `<img class="i" src="${IT[m.item]}" alt="">`);
+		r.appendChild(d);
+	});
+}
+
+function text() {
+	const pre = document.getElementById("txt"); let out = "", k = 0;
+	DATA.header.forEach((p) => (out += `<span class="p-${p.key}">${esc(p.text)}</span>`));
+	MASK.segs.forEach((s) => {
+		if (s.k === "lit") { out += esc(s.t).split("},{").join("},\n{"); return; }
+		const n = TK.lens[s.kind], f = C().fills[k++];
+		const tip = `${s.path}: ${KIND[s.kind]} slot, ${n} tokens`;
+		if (VIEW === "in") out += `<span class="slotgrp" title="${esc(tip)}">${'<i class="m"></i>'.repeat(n)}</span>`;
+		else out += `<span class="slotgrp" title="${esc(tip)}, ${f} of them the value"><span class="v">${esc(s.v)}</span>${'<i class="m pad"></i>'.repeat(Math.max(0, n - f))}</span>`;
+	});
+	pre.innerHTML = out;
+}
+
+function parts() {
+	const c = C(), head = c.format + c.rules + c.start;
+	const P = [["header", "Format and rules", head], ["ask", "Win-rate ask", c.ask], ["team", "Team, shown fields", c.team], ["masks", VIEW === "in" ? "Mask tokens" : "Hidden values and padding", c.masks]];
+	const bar = document.getElementById("parts"); bar.innerHTML = "";
+	P.forEach(([k, name, n]) => { const s = h("span", "", n / c.total > .08 ? fmt(n) : ""); s.style.width = 100 * n / c.total + "%"; s.style.background = COLOR[k]; s.title = `${name}: ${fmt(n)} tokens`; bar.appendChild(s); });
+	document.getElementById("legend").innerHTML = P.map(([k, name, n]) => `<span><i style="background:${COLOR[k]}"></i>${name} · ${fmt(n)}</span>`).join("")
+		+ (VIEW === "in" ? `<span><i style="background:var(--jev);border-radius:3px"></i>one block = one mask token</span>` : `<span><i style="border:1.5px dashed var(--muted)"></i>one block = one padding token</span>`);
+	document.getElementById("aTok").textContent = fmt(c.total);
+	const nSlots = c.fills.length, nMask = c.masks;
+	document.getElementById("aHead").textContent = VIEW === "in" ? "what the model receives" : "what training scores the filled slots against";
+	document.getElementById("aSay").textContent = VIEW === "in"
+		? `${MASK.name}: ${nSlots} slot${nSlots > 1 ? "s" : ""}, ${fmt(nMask)} mask tokens. The model fills only these. Every other character is fixed. ${c.start ? `The count includes ${c.start} start-of-text token.` : ""}`
+		: `The training target is the same text with each real value in its slot, padded to the slot's length. Which padding token, and scoring it in the loss, belongs to #177. The JSON reads back with a JSON parser once the padding is stripped.`;
+}
+
+function compare() {
+	const c = C(), max = 1100, lim = 100 * DATA.limit / max;
+	const rows = [
+		["In-place text", `this mask, ${TK.label}`, c.total, "var(--jev)"],
+		["Free-text draft", "prompt plus answer, PR #217 (item mask)", DATA.freeText[TK.key], "var(--base)"],
+		["Old fine-tune prompt", "src/textdiff.py, prompt plus team", TK.old, "var(--muted)"],
+		["Jev request", "item mask, 48 meta teams and options", DATA.jev, "var(--warn)"],
+	];
+	const root = document.getElementById("cmp"); root.innerHTML = "";
+	rows.forEach(([name, sub, n, col]) => {
+		root.appendChild(h("div", "name", `${name}<small>${esc(sub)}</small>`));
+		const t = h("div", "track");
+		if (n == null) { t.innerHTML = `<span class="num" style="color:var(--muted)">not counted: no chat template</span>`; }
+		else {
+			const w = Math.min(100, 100 * n / max), off = n > max;
+			t.innerHTML = `<div class="fill" style="width:${w}%;background:${col}"></div>` + (off ? `<span class="off">${fmt(n)} →</span>` : `<span class="num" style="left:${w}%">${fmt(n)}</span>`);
+		}
+		t.insertAdjacentHTML("beforeend", `<div class="lim" style="left:${lim}%" title="1,024 tokens"></div>`);
+		root.appendChild(t);
+	});
+	const fr = DATA.freeText[TK.key];
+	document.getElementById("bCap").textContent = `In-place is ${fmt(c.total)} tokens for this mask. The free-text draft wrote the team twice, once with markers and once as the answer, so it needed ${fmt(fr)} for the item mask. Jev's request is ${Math.round(DATA.jev / DATA.limit)} times the budget and runs off the axis.`;
+}
+
+function dots() {
+	const W = 720, rowH = 30, top = 22, left = 200, right = 24, H = top + rowH * TKS.length + 26, max = 1100;
+	const x = (v) => left + (W - left - right) * v / max;
+	let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Text length per mask and tokenizer">`;
+	[0, 256, 512, 768, 1024].forEach((v) => (s += `<line x1="${x(v)}" x2="${x(v)}" y1="${top - 8}" y2="${H - 22}" stroke="var(--rule)"/><text x="${x(v)}" y="${H - 6}" text-anchor="middle">${fmt(v)}</text>`));
+	s += `<line x1="${x(DATA.limit)}" x2="${x(DATA.limit)}" y1="${top - 12}" y2="${H - 22}" stroke="var(--fg)" stroke-dasharray="4 3" stroke-width="1.5"/><text x="${x(DATA.limit)}" y="${top - 12}" text-anchor="end" dx="-4">fine-tune length</text>`;
+	TKS.forEach((t, r) => {
+		const y = top + rowH * r + rowH / 2, all = DATA.masks.map((m) => t.counts[m.id].total);
+		s += `<text class="lab" x="0" y="${y + 4}">${esc(t.label)}</text><line x1="${x(Math.min(...all))}" x2="${x(Math.max(...all))}" y1="${y}" y2="${y}" stroke="var(--muted)" stroke-width="1.5"/>`;
+		DATA.masks.forEach((m) => {
+			const on = t === TK && m === MASK, v = t.counts[m.id].total;
+			s += `<circle data-t="${t.key}" data-m="${m.id}" cx="${x(v)}" cy="${y}" r="${on ? 7 : 5}" fill="${on ? "var(--jev)" : "var(--card)"}" stroke="var(--jev)" stroke-width="1.5"><title>${esc(t.label)} · ${esc(m.name)}: ${fmt(v)} tokens</title></circle>`;
+		});
+		s += `<text x="${x(Math.max(...all)) + 10}" y="${y + 4}">${fmt(Math.max(...all))}</text>`;
+	});
+	const root = document.getElementById("dots"); root.innerHTML = s + "</svg>";
+	root.querySelectorAll("circle").forEach((c) => c.addEventListener("click", () => {
+		TK = TKS.find((t) => t.key === c.dataset.t); MASK = DATA.masks.find((m) => m.id === c.dataset.m); pickers(); draw();
+		document.getElementById("txt").scrollIntoView({ behavior: "smooth", block: "center" });
+	}));
+	const L = TK.lens;
+	document.getElementById("lens").innerHTML = `<div class="lbl" style="margin-top:14px"><span>slot lengths with ${esc(TK.label)}</span><span>${TK.crossings} tokens straddle a quote</span></div><div class="lens">`
+		+ Object.keys(KIND).map((k) => `<div><b>${L[k]} token${L[k] > 1 ? "s" : ""}</b>${KIND[k]}<br><span>${esc(TK.longest[k])}</span></div>`).join("") + "</div>"
+		+ `<p class="cap">Each slot is as long as the longest Reg M-B value of its field type, shown under the count. A slot never takes the hidden value's own length, which would give the answer away.</p>`;
+}
+
+function approve() {
+	const ex = DATA.header.map((p) => p.text.trim());
+	const items = [
+		["Three header lines, no system line and no chat template", `<code>${esc(ex[0])}</code><br><code>${esc(ex[1])}</code><br><code>${esc(ex[2])}</code>`, "The format and rules lines are Jev's, from the shared helpers. The ask line keeps the old fine-tunes' wording, so a comparison with them changes only the model."],
+		["The team as one JSON array, no wrapper key", `<code>[{"species":…},{…}]</code>`, "Alternative: <code>{\"team\":[…]}</code>, one more token with masked Qwen3's tokenizer, and a name for the array."],
+		["Keys in this order in every Pokémon", `<code>species, item, ability, nature, moves, statPoints</code>`, "From #199. <code>nature</code> is Stat Alignment. Jev's fill order is species, ability, item, moves, nature, Stat Points; the order matters less here because the model fills every slot at once."],
+		["Stat Points as all six numbers", `<code>"statPoints":{"HP":0,"Atk":32,"Def":2,"SpA":0,"SpD":0,"Spe":32}</code>`, "Zeros stay, so the six slots are fixed. The battle step's paste keeps skipping zeros."],
+		["No meta teams, legal options or example teams", "", "The meta teams come back in #197 once a model works without them."],
+	];
+	document.getElementById("ok").innerHTML = items.map(([b, code, alt]) => `<li><b>${b}</b>${code ? `<span>${code}</span>` : ""}<span class="alt">${alt}</span></li>`).join("");
+}
+
+function pickers() {
+	picker("maskPick", DATA.masks, (m) => m.name, () => MASK, (m) => (MASK = m));
+	picker("tkPick", TKS, (t) => t.label, () => TK, (t) => (TK = t));
+	picker("viewPick", ["in", "target"], (v) => (v === "in" ? "What the model receives" : "Training target"), () => VIEW, (v) => (VIEW = v));
+}
+function draw() { strip(); text(); parts(); compare(); dots(); }
+pickers(); approve(); draw();
+})();
+</script>
+</body></html>
