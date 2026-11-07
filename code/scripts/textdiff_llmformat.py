@@ -1,5 +1,7 @@
 """Text diffusion writers whose prompts copy the LLM baseline's prompt versions: one fine-tune per version.
 
+Dropped 2026-11-06: block diffusion is not used (docs/decisions/no-block-diffusion-models.md). Kept as a record, not a baseline.
+
 The masked-completion baseline sent Ling five prompt versions: the Mask Lab's `baseline` and `regmb`
 (team_completion_pipeline/pipeline.py) and the registry's `mb-original-v1`, `mb-grounded-v2` and `mb-regulation-v3`
 (scripts/prompt_versions.py, docs/prompt-changelog.md). Each version here keeps that system text and that user

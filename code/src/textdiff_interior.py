@@ -1,4 +1,6 @@
 """Validation loss of saved adapters on the same 256 held-out rows and the same masks as textdiff.validate, split
+
+Dropped 2026-11-06: block diffusion is not used (docs/decisions/no-block-diffusion-models.md). Kept as a record, not a baseline.
 into all masked answer tokens and block-interior tokens only (target position not the first of its 32-token block).
 
 Why: with the token shift (Fast-dLLM v2) a block's first token is predicted from the previous block's last position,

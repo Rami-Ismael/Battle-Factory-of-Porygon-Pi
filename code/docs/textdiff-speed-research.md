@@ -1,5 +1,7 @@
 # Faster fine-tuning of the text diffusion model: sources (2026-10-18)
 
+> **Dropped 2026-11-06, see [the decision](decisions/no-block-diffusion-models.md).** Block diffusion is not used; this page is a record of what ran, not an option or a baseline.
+
 **Question.** Which published ideas could make the Fast-dLLM v2 1.5B LoRA fine-tune (`src/textdiff.py train`) train
 faster on the M4 Pro at the same loss: a smaller pretrained text diffusion model, a lighter optimizer than AdamW,
 Neural Magic-style sparsity, or a cheaper block-diffusion training row? The measured answers are in
