@@ -6,39 +6,11 @@
   ],
   "grid": "meta"
  },
- "system": "You write Pokémon VGC teams as Showdown pastes.",
- "marker": "???",
+ "version": "in-place-json-v1-no-meta-teams",
  "ask": 0.55,
  "limit": 1024,
  "jev_tokens": 24644,
- "parts": [
-  {
-   "key": "rules",
-   "name": "Format and rules",
-   "text": "Format: Champions VGC 2026 Reg Set M-B\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause"
-  },
-  {
-   "key": "team",
-   "name": "The team so far",
-   "text": "Team so far (??? marks a hidden field):\nBlaziken-Mega @ Blazikenite\nAbility: Speed Boost\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Close Combat\n- Rock Slide\n- Flare Blitz\n- Detect\n\nKingambit @ Life Orb\nAbility: Defiant\nLevel: 50\nEVs: 24 HP / 31 Atk / 1 Def / 1 SpD / 9 Spe\nAdamant Nature\n- Kowtow Cleave\n- Sucker Punch\n- Protect\n- Iron Head\n\nBasculegion @ Focus Sash\nAbility: Adaptability\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Liquidation\n- Last Respects\n- Aqua Jet\n- Protect\n\nNinetales-Alola @ ???\nAbility: Snow Warning\nLevel: 50\nEVs: 13 HP / 21 SpA / 32 Spe\nTimid Nature\n- Blizzard\n- Freeze-Dry\n- Encore\n- Protect\n\nGengar @ Gengarite\nAbility: Cursed Body\nLevel: 50\nEVs: 32 HP / 14 Def / 1 SpA / 14 SpD / 5 Spe\nModest Nature\n- Shadow Ball\n- Disable\n- Perish Song\n- Protect\n\nIncineroar @ Passho Berry\nAbility: Intimidate\nLevel: 50\nEVs: 31 HP / 21 Def / 14 SpD\nRelaxed Nature\n- Fake Out\n- Parting Shot\n- Flare Blitz\n- Protect"
-  },
-  {
-   "key": "fields",
-   "name": "The fields to fill",
-   "text": "Fill:\nteam[3].item: Ninetales-Alola's item"
-  },
-  {
-   "key": "question",
-   "name": "The question",
-   "text": "Write the whole team as Showdown paste text with every ??? filled."
-  },
-  {
-   "key": "ask",
-   "name": "The win-rate ask",
-   "text": "Target win rate vs top meta teams: 0.55."
-  }
- ],
- "answer": "Blaziken-Mega @ Blazikenite\nAbility: Speed Boost\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Close Combat\n- Rock Slide\n- Flare Blitz\n- Detect\n\nKingambit @ Life Orb\nAbility: Defiant\nLevel: 50\nEVs: 24 HP / 31 Atk / 1 Def / 1 SpD / 9 Spe\nAdamant Nature\n- Kowtow Cleave\n- Sucker Punch\n- Protect\n- Iron Head\n\nBasculegion @ Focus Sash\nAbility: Adaptability\nLevel: 50\nEVs: 32 Atk / 2 Def / 32 Spe\nAdamant Nature\n- Liquidation\n- Last Respects\n- Aqua Jet\n- Protect\n\nNinetales-Alola @ Never-Melt Ice\nAbility: Snow Warning\nLevel: 50\nEVs: 13 HP / 21 SpA / 32 Spe\nTimid Nature\n- Blizzard\n- Freeze-Dry\n- Encore\n- Protect\n\nGengar @ Gengarite\nAbility: Cursed Body\nLevel: 50\nEVs: 32 HP / 14 Def / 1 SpA / 14 SpD / 5 Spe\nModest Nature\n- Shadow Ball\n- Disable\n- Perish Song\n- Protect\n\nIncineroar @ Passho Berry\nAbility: Intimidate\nLevel: 50\nEVs: 31 HP / 21 Def / 14 SpD\nRelaxed Nature\n- Fake Out\n- Parting Shot\n- Flare Blitz\n- Protect",
+ "all_masks": 810,
  "team": [
   {
    "species": "Blaziken-Mega",
@@ -78,91 +50,561 @@
    "key": "qwen3",
    "label": "Masked Qwen3 0.6B",
    "repo": "dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1",
+   "revision": "c8d24a3f4adaeef46881b450e1bf7d1005203bd7",
+   "draft": 872,
    "counts": {
-    "rules": 36,
-    "team": 383,
-    "fields": 15,
-    "question": 14,
+    "rules": 37,
     "ask": 14,
-    "wrapper": 28,
-    "answer": 377
+    "team": 435,
+    "masks": 6
    },
-   "chat": true
+   "total": 492,
+   "mask_token": "<|mask|>",
+   "slot_lengths": {
+    "species": 9,
+    "item": 6,
+    "ability": 5,
+    "nature": 3,
+    "moves": 6,
+    "statPoints": 2
+   },
+   "slots": [
+    [
+     "team[3].item",
+     6
+    ]
+   ],
+   "text": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "<|mask|><|mask|><|mask|><|mask|><|mask|><|mask|>",
+     "slot"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "filled": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "Never-Melt Ice",
+     "value"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "largest": {
+    "tokens": 666,
+    "name": "random grid HPS003641, all six Pokémon hidden",
+    "ties": 15,
+    "over": 0,
+    "masks": 810
+   }
   },
   {
    "key": "qwen25c",
    "label": "Masked Qwen2.5 Coder 0.5B",
    "repo": "dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1",
+   "revision": "a284e895a6248256baf2f60502e54aba61b24c1a",
+   "draft": 872,
    "counts": {
-    "rules": 36,
-    "team": 383,
-    "fields": 15,
-    "question": 14,
+    "rules": 37,
     "ask": 14,
-    "wrapper": 28,
-    "answer": 377
+    "team": 435,
+    "masks": 6
    },
-   "chat": true
+   "total": 492,
+   "mask_token": "<|mask|>",
+   "slot_lengths": {
+    "species": 9,
+    "item": 6,
+    "ability": 5,
+    "nature": 3,
+    "moves": 6,
+    "statPoints": 2
+   },
+   "slots": [
+    [
+     "team[3].item",
+     6
+    ]
+   ],
+   "text": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "<|mask|><|mask|><|mask|><|mask|><|mask|><|mask|>",
+     "slot"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "filled": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "Never-Melt Ice",
+     "value"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "largest": {
+    "tokens": 666,
+    "name": "random grid HPS003641, all six Pokémon hidden",
+    "ties": 15,
+    "over": 0,
+    "masks": 810
+   }
   },
   {
-   "key": "diffugpt",
-   "label": "DiffuGPT small and medium",
+   "key": "diffugpt_s",
+   "label": "DiffuGPT small",
    "repo": "diffusionfamily/diffugpt-s",
+   "revision": "391d9850148c0beda355a8874bea958a40164c74",
+   "draft": 763,
    "counts": {
-    "rules": 30,
-    "team": 336,
-    "fields": 17,
-    "question": 13,
-    "ask": 12,
-    "wrapper": 22,
-    "answer": 330
+    "rules": 33,
+    "ask": 13,
+    "team": 428,
+    "masks": 6
    },
-   "chat": false
+   "total": 480,
+   "mask_token": "------------",
+   "slot_lengths": {
+    "species": 10,
+    "item": 6,
+    "ability": 5,
+    "nature": 3,
+    "moves": 7,
+    "statPoints": 1
+   },
+   "slots": [
+    [
+     "team[3].item",
+     6
+    ]
+   ],
+   "text": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "------------------------------------------------------------------------",
+     "slot"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "filled": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "Never-Melt Ice",
+     "value"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "largest": {
+    "tokens": 662,
+    "name": "random grid HPS003641, all six Pokémon hidden",
+    "ties": 15,
+    "over": 0,
+    "masks": 810
+   }
   },
   {
-   "key": "dream",
-   "label": "Dream 7B (Qwen2.5 vocabulary)",
-   "repo": "Qwen/Qwen2.5-7B",
+   "key": "diffugpt_m",
+   "label": "DiffuGPT medium",
+   "repo": "diffusionfamily/diffugpt-m",
+   "revision": "ce62f89724018390198ded702c4926791cf17c21",
+   "draft": 763,
    "counts": {
-    "rules": 36,
-    "team": 383,
-    "fields": 15,
-    "question": 14,
-    "ask": 14,
-    "wrapper": 28,
-    "answer": 377
+    "rules": 33,
+    "ask": 13,
+    "team": 428,
+    "masks": 6
    },
-   "chat": true
-  },
-  {
-   "key": "llada",
-   "label": "LLaDA 8B",
-   "repo": "GSAI-ML/LLaDA-8B-Base",
-   "counts": {
-    "rules": 36,
-    "team": 388,
-    "fields": 15,
-    "question": 14,
-    "ask": 14,
-    "wrapper": 77,
-    "answer": 381
+   "total": 480,
+   "mask_token": "[¨M¨]",
+   "slot_lengths": {
+    "species": 10,
+    "item": 6,
+    "ability": 5,
+    "nature": 3,
+    "moves": 7,
+    "statPoints": 1
    },
-   "chat": true
+   "slots": [
+    [
+     "team[3].item",
+     6
+    ]
+   ],
+   "text": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "[¨M¨][¨M¨][¨M¨][¨M¨][¨M¨][¨M¨]",
+     "slot"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "filled": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "Never-Melt Ice",
+     "value"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "largest": {
+    "tokens": 662,
+    "name": "random grid HPS003641, all six Pokémon hidden",
+    "ties": 15,
+    "over": 0,
+    "masks": 810
+   }
   },
   {
    "key": "diffullama",
    "label": "DiffuLLaMA 7B",
    "repo": "diffusionfamily/diffullama",
+   "revision": "31b22850c7b397d6948ea04076099b9ff7110adc",
+   "draft": 985,
    "counts": {
-    "rules": 40,
-    "team": 438,
-    "fields": 19,
-    "question": 15,
-    "ask": 14,
-    "wrapper": 25,
-    "answer": 431
+    "rules": 43,
+    "ask": 15,
+    "team": 501,
+    "masks": 6
    },
-   "chat": false
+   "total": 565,
+   "mask_token": "ти",
+   "slot_lengths": {
+    "species": 11,
+    "item": 6,
+    "ability": 6,
+    "nature": 3,
+    "moves": 8,
+    "statPoints": 2
+   },
+   "slots": [
+    [
+     "team[3].item",
+     6
+    ]
+   ],
+   "text": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "тититититити",
+     "slot"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "filled": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "Never-Melt Ice",
+     "value"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "largest": {
+    "tokens": 805,
+    "name": "random grid HPS003641, all six Pokémon hidden",
+    "ties": 15,
+    "over": 0,
+    "masks": 810
+   }
+  },
+  {
+   "key": "dream",
+   "label": "Dream 7B",
+   "repo": "Dream-org/Dream-v0-Base-7B",
+   "revision": "6572adb5535263e4d1a337b56942ba48b6dee2a9",
+   "draft": 872,
+   "counts": {
+    "rules": 37,
+    "ask": 14,
+    "team": 435,
+    "masks": 6
+   },
+   "total": 492,
+   "mask_token": "<|mask|>",
+   "slot_lengths": {
+    "species": 9,
+    "item": 6,
+    "ability": 5,
+    "nature": 3,
+    "moves": 6,
+    "statPoints": 2
+   },
+   "slots": [
+    [
+     "team[3].item",
+     6
+    ]
+   ],
+   "text": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "<|mask|><|mask|><|mask|><|mask|><|mask|><|mask|>",
+     "slot"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "filled": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "Never-Melt Ice",
+     "value"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "largest": {
+    "tokens": 666,
+    "name": "random grid HPS003641, all six Pokémon hidden",
+    "ties": 15,
+    "over": 0,
+    "masks": 810
+   }
+  },
+  {
+   "key": "llada",
+   "label": "LLaDA 8B",
+   "repo": "GSAI-ML/LLaDA-8B-Base",
+   "revision": "0f2787f2d87eac5eed8a087d5ecd24277e6255b2",
+   "draft": 928,
+   "counts": {
+    "rules": 39,
+    "ask": 15,
+    "team": 451,
+    "masks": 5
+   },
+   "total": 510,
+   "mask_token": "<|mdm_mask|>",
+   "slot_lengths": {
+    "species": 10,
+    "item": 5,
+    "ability": 5,
+    "nature": 3,
+    "moves": 6,
+    "statPoints": 2
+   },
+   "slots": [
+    [
+     "team[3].item",
+     5
+    ]
+   ],
+   "text": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "<|mdm_mask|><|mdm_mask|><|mdm_mask|><|mdm_mask|><|mdm_mask|>",
+     "slot"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "filled": [
+    [
+     "Format: Champions VGC 2026 Reg Set M-B.\nRules: doubles, bring 6 pick 4, level 50, Species Clause, Item Clause.\n",
+     "rules"
+    ],
+    [
+     "Target win rate vs top meta teams: 0.55.\n",
+     "ask"
+    ],
+    [
+     "Team: [{\"species\":\"Blaziken-Mega\",\"item\":\"Blazikenite\",\"ability\":\"Speed Boost\",\"nature\":\"Adamant\",\"moves\":[\"Close Combat\",\"Rock Slide\",\"Flare Blitz\",\"Detect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Kingambit\",\"item\":\"Life Orb\",\"ability\":\"Defiant\",\"nature\":\"Adamant\",\"moves\":[\"Kowtow Cleave\",\"Sucker Punch\",\"Protect\",\"Iron Head\"],\"statPoints\":{\"HP\":24,\"Atk\":31,\"Def\":1,\"SpA\":0,\"SpD\":1,\"Spe\":9}},{\"species\":\"Basculegion\",\"item\":\"Focus Sash\",\"ability\":\"Adaptability\",\"nature\":\"Adamant\",\"moves\":[\"Liquidation\",\"Last Respects\",\"Aqua Jet\",\"Protect\"],\"statPoints\":{\"HP\":0,\"Atk\":32,\"Def\":2,\"SpA\":0,\"SpD\":0,\"Spe\":32}},{\"species\":\"Ninetales-Alola\",\"item\":\"",
+     "team"
+    ],
+    [
+     "Never-Melt Ice",
+     "value"
+    ],
+    [
+     "\",\"ability\":\"Snow Warning\",\"nature\":\"Timid\",\"moves\":[\"Blizzard\",\"Freeze-Dry\",\"Encore\",\"Protect\"],\"statPoints\":{\"HP\":13,\"Atk\":0,\"Def\":0,\"SpA\":21,\"SpD\":0,\"Spe\":32}},{\"species\":\"Gengar\",\"item\":\"Gengarite\",\"ability\":\"Cursed Body\",\"nature\":\"Modest\",\"moves\":[\"Shadow Ball\",\"Disable\",\"Perish Song\",\"Protect\"],\"statPoints\":{\"HP\":32,\"Atk\":0,\"Def\":14,\"SpA\":1,\"SpD\":14,\"Spe\":5}},{\"species\":\"Incineroar\",\"item\":\"Passho Berry\",\"ability\":\"Intimidate\",\"nature\":\"Relaxed\",\"moves\":[\"Fake Out\",\"Parting Shot\",\"Flare Blitz\",\"Protect\"],\"statPoints\":{\"HP\":31,\"Atk\":0,\"Def\":21,\"SpA\":0,\"SpD\":14,\"Spe\":0}}]",
+     "team"
+    ]
+   ],
+   "largest": {
+    "tokens": 688,
+    "name": "random grid HPS003641, all six Pokémon hidden",
+    "ties": 15,
+    "over": 0,
+    "masks": 810
+   }
   }
  ]
 }
