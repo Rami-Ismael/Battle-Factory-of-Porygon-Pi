@@ -15,7 +15,9 @@ Two views:
 
 The test 500 and the held-out meta teams ranked 51-100 never enter either view (48-field match, as today).
 
-    /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py      -> results/lossdata84.npz + lossdata84_counts.json
+    /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py         -> results/lossdata84.npz + lossdata84_counts.json
+    /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py NAME    -> results/NAME.npz + NAME_counts.json, leaving the
+                                                                 stored table that earlier runs recorded untouched
 """
 import hashlib
 import io
@@ -40,8 +42,6 @@ import stat_points as SP
 import team84 as T
 from encode import canon
 
-OUT = X.RES / "lossdata84.npz"
-COUNTS = X.RES / "lossdata84_counts.json"
 VAL_SHARE, VAL_SEED = 0.02, 0
 
 
@@ -122,7 +122,8 @@ def all_teams(g, sets):
     return dict(all_X=Xa, all_W=W, all_NB=NB, all_val=val), counts, keys
 
 
-def main():
+def main(name="lossdata84"):
+    out, counts_path = X.RES / f"{name}.npz", X.RES / f"{name}_counts.json"
     t0 = time.perf_counter()
     for m in (LD, L, T, SP, X, HO):
         print(f"{m.__name__:14s} {m.__file__}", flush=True)
@@ -137,12 +138,12 @@ def main():
     assert not any(HO.row_key(g["pool"][k]["x"], V) in held for k in keys), "a held-out team reached the all-teams set"
     for k in ("all_X", "loop_X", "records_X"):
         assert legal_stat_points(arrays[k]), f"{k} has Stat Points outside the limits"
-    save_npz(OUT, arrays)
-    counts["sha256"] = hashlib.sha256(OUT.read_bytes()).hexdigest()
+    save_npz(out, arrays)
+    counts["sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     counts["minutes"] = round((time.perf_counter() - t0) / 60, 1)
-    json.dump(counts, open(COUNTS, "w"), indent=1)
+    json.dump(counts, open(counts_path, "w"), indent=1)
     print(json.dumps(counts, indent=1))
 
 
 if __name__ == "__main__":
-    main()
+    main(*sys.argv[1:2])
