@@ -59,25 +59,25 @@ def top_win(win_by_ask):
     return float(np.mean([win_by_ask[k] for k in TOP]))
 
 
-def judge(grids, rng):
-    """grids: arm -> its by_ask cells. Error, top-ask win rate and slope per arm, each weighted arm against no weights."""
+def judge(grids, rng, names=NAMES, control=CONTROL):
+    """grids: arm -> its by_ask cells. Error, top-ask win rate and slope per arm, each other arm against the control."""
     point = {a: mean_got(g) for a, g in grids.items()}
     boot = {a: bootstrap(g, rng) for a, g in grids.items()}
     arms = {}
     for a in grids:
         line = line_measures([dict(numerator=k, win=point[a][k]) for k in ASKS])
         top_boot = np.mean([boot[a][k] for k in TOP], 0)
-        row = dict(name=NAMES[a], teams=sum(len(c["y"]) for cs in grids[a].values() for c in cs), win=point[a], slope=line["slope"],
+        row = dict(name=names[a], teams=sum(len(c["y"]) for cs in grids[a].values() for c in cs), win=point[a], slope=line["slope"],
                    top_win=dict(win=top_win(point[a]), interval=[float(np.quantile(top_boot, q)) for q in (.025, .975)]))
         for label, asks in (("scored", SCORED), ("top", TOP)):
             e = dict(error=ask_error(point[a], asks))
             e["near_line"] = e["error"] < NEAR_LINE_MSE
-            if a != CONTROL:
-                e["minus_control"] = dict(difference=e["error"] - ask_error(point[CONTROL], asks), **paired_difference(boot[a], boot[CONTROL], asks))
+            if a != control:
+                e["minus_control"] = dict(difference=e["error"] - ask_error(point[control], asks), **paired_difference(boot[a], boot[control], asks))
             row[label] = e
-        if a != CONTROL:
-            d = top_boot - np.mean([boot[CONTROL][k] for k in TOP], 0)
-            row["top_win"]["minus_control"] = dict(difference=row["top_win"]["win"] - top_win(point[CONTROL]),
+        if a != control:
+            d = top_boot - np.mean([boot[control][k] for k in TOP], 0)
+            row["top_win"]["minus_control"] = dict(difference=row["top_win"]["win"] - top_win(point[control]),
                                                    interval=[float(np.quantile(d, q)) for q in (.025, .975)])
         arms[a] = row
     return arms
