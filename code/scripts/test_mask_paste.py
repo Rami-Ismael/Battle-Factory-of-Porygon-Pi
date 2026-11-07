@@ -34,6 +34,23 @@ class SharedHelpersTest(unittest.TestCase):
                          'EVs: 2 HP / 32 SpA / 32 Spe\nTimid Nature\n'
                          '- Aurora Veil\n- Blizzard\n- Moonblast\n- Protect\n')
 
+    def test_team_json_is_compact_with_all_six_stat_points_and_no_jev_keys(self):
+        text = M.team_json([NINETALES] * 6)
+        self.assertTrue(text.startswith(
+            '[{"species":"Ninetales-Alola","item":"Light Clay","ability":"Snow Warning","nature":"Timid",'
+            '"moves":["Aurora Veil","Blizzard","Moonblast","Protect"],'
+            '"statPoints":{"HP":2,"Atk":0,"Def":0,"SpA":32,"SpD":0,"Spe":32}},{'))
+        self.assertNotIn('ivs', text)
+        self.assertNotIn('level', text)
+
+    def test_team_json_reads_back_to_the_same_slots(self):
+        team = [dict(NINETALES, slot=n) for n in range(1, 7)]
+        self.assertEqual(M.team_from_json(M.team_json(team)), team)
+
+    def test_a_json_team_with_missing_keys_is_refused(self):
+        with self.assertRaises(ValueError):
+            M.team_from_json('[' + ','.join(['{"species":"Ninetales-Alola"}'] * 6) + ']')
+
     def test_format_and_rules_are_the_ones_jev_is_sent(self):
         self.assertEqual(M.FORMAT_NAME, 'Champions VGC 2026 Reg Set M-B')
         self.assertEqual(M.RULES, 'doubles, bring 6 pick 4, level 50, Species Clause, Item Clause')
