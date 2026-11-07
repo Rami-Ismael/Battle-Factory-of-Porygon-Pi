@@ -5,6 +5,7 @@ Every arm keeps species-first order, guidance 2, temperature 1, rule masks and t
 
     python remask84.py check | probes | gen | battle | report      species-first arms
     python remask84.py random_decoding                        the sampling-only legality probe (REMASK84_SMOKE=1: one batch)
+    python remask84.py la_probes | la_gen | la_battle | la_report      random decoding with the lookahead, asks 1/24 to 23/24 (issue #92)
 """
 import hashlib
 import json
@@ -303,6 +304,74 @@ def random_decoding():
     print("REMASK84_RANDOM_DONE", json.dumps(out["summary"]), json.dumps(out["round_trip"]), flush=True)
 
 
+LOOKAHEAD_ARMS = {                                       # code ID -> (random decoding arm, reader name); all with the lookahead on
+    "rand_la_plain": ("rand_plain", "No remasking, 84 passes"),
+    "rand_la_remask_conf": ("rand_remask_conf", "Confidence-weighted 0.3 fields remasked, 210 passes"),
+    "rand_la_remask_even": ("rand_remask_even", "Even-odds 0.5 fields remasked, 210 passes"),
+}
+LOOKAHEAD_ASKS = list(range(1, 24))
+LOOKAHEAD_OUT = A.RES / "remask84_random_lookahead.json"
+
+
+def la_load(): return json.load(open(LOOKAHEAD_OUT)) if LOOKAHEAD_OUT.exists() else {"cells": {}}
+
+
+def la_save(out):
+    tmp = LOOKAHEAD_OUT.with_suffix(".tmp"); json.dump(out, open(tmp, "w")); os.replace(tmp, LOOKAHEAD_OUT)
+
+
+def la_probes():
+    """Random decoding with the lookahead, per arm at ask 8/24: round trip and copies on 96 teams. A failed round trip stops the queue."""
+    w = A.load_model(); out = la_load(); d = np.load(A.DATA); train = d["all_X"][~d["all_val"]].astype(np.int64); pf = {}
+    for code, (arm, _) in LOOKAHEAD_ARMS.items():
+        torch.manual_seed(A.SEED0 + 1)
+        rows = sample_random(w, 96, 8 / 24, arm, {}, lookahead=True).cpu().numpy()
+        pf[code] = dict(round_trip=A.round_trip(w, rows[:20]), copies=A.copies(rows, train)[1])
+        print(code, json.dumps(pf[code]), flush=True)
+    out["preflight"] = pf; la_save(out)
+    if not all(p["round_trip"].get("passed") for p in pf.values()): raise SystemExit("REMASK84_LA_PROBES FAILED")
+    print("REMASK84_LA_PROBES PASS", flush=True)
+
+
+def la_gen():
+    """Each cell draws through ask_grid84.draw: until 64 legal, non-held-out teams or 1,280 tries, guidance 2."""
+    out = la_load(); w = A.load_model()
+    out.update(arms={k: v[1] for k, v in LOOKAHEAD_ARMS.items()}, asks=LOOKAHEAD_ASKS, lookahead=True, keep=KEEP, max_tries=A.MAX_TRIES,
+               checkpoint_sha256=hashlib.sha256(A.checkpoint_path().read_bytes()).hexdigest())
+    for code, (arm, _) in LOOKAHEAD_ARMS.items():
+        for seed in SEEDS:
+            for k in LOOKAHEAD_ASKS:
+                tag = f"{code}_a{k:02d}of24_s{seed}"
+                if tag in out["cells"]: continue
+                armed = RandomDecodingArm(w, arm, lookahead=True); t0 = time.time()
+                kept, stats, counts = A.draw(armed, k / 24, seed)
+                out["cells"][tag] = dict(arm=code, ask=k / 24, numerator=k, seed=seed, **counts, pastes=kept, stat_points=stats, sampler=armed.stats,
+                                         seconds=time.time() - t0, measures=team_measures(kept, stats) if kept else None)
+                la_save(out); m = out["cells"][tag]["measures"] or {}
+                print(f"  {tag:38s} kept {len(kept):3d} of {counts['tried']:4d} legal {counts['legal']:6.1%} line-ups {m.get('lineups', 0):3d} "
+                      f"{time.time() - t0:5.0f}s", flush=True)
+
+
+def la_battle():
+    A.require_shuffled(); con = MDB.connect(); out = la_load()
+    for tag, c in out["cells"].items():
+        if "y" in c or not c["pastes"]: continue
+        sc = MDB.score_pastes(con, c["pastes"], per_cell=A.BATTLES_PER_OPPONENT, seed=A.SEED0 + c["seed"], origin=f"remask84_la:{tag}")
+        if not A.complete(sc): print(f"  {tag} INCOMPLETE: left for the next run", flush=True); continue
+        c["y"] = [s["score"] for s in sc]; la_save(out); print(f"  {tag:38s} win {np.mean(c['y']):.3f}", flush=True)
+
+
+def la_report():
+    """Pooled got per ask and the ask-versus-got error of each arm. The paired comparison is remask84_random_error.py."""
+    out = la_load(); rows = {}
+    for code in LOOKAHEAD_ARMS:
+        rows[code] = [dict(numerator=k, win=float(np.mean([np.mean(c["y"]) for c in at])))
+                      for k in LOOKAHEAD_ASKS if (at := [c for c in out["cells"].values() if c["arm"] == code and c["numerator"] == k and c.get("y")])]
+        line = A.line_measures(rows[code]) if len(rows[code]) == len(LOOKAHEAD_ASKS) else {}
+        print(f"{code:22s} {A.headline(line) if line else 'grid not finished'}", flush=True)
+    out["summary"] = rows; la_save(out)
+
+
 def slope(asks, wins):
     return float(np.polyfit(asks, wins, 1)[0])
 
@@ -359,4 +428,8 @@ if __name__ == "__main__":
     elif what == "gen": gen()
     elif what == "battle": battle()
     elif what == "report": report()
+    elif what == "la_probes": la_probes()
+    elif what == "la_gen": la_gen()
+    elif what == "la_battle": la_battle()
+    elif what == "la_report": la_report()
     else: raise SystemExit(__doc__)

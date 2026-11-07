@@ -45,8 +45,9 @@ def load_cells():
     return {(arm, k, s): files[f][f"{prefix}_a{k:02d}of24_s{s}"] for arm, (f, prefix) in SOURCES.items() for k in ASKS for s in SEEDS}
 
 
-def battle_matrices(cells):
-    """Per cell, one row per team and one column per top-50 opponent: the saved battles' win share. Plus the contract check."""
+def battle_matrices(cells, policy_id=None):
+    """Per cell, one row per team and one column per top-50 opponent: the saved battles' win share. Plus the contract check.
+    policy_id: the battle policy every team was scored under. None looks it up per team, a scan of every cell row (about 100 minutes)."""
     con = sqlite3.connect(f"file:{MDB.DEFAULT_DB}?mode=ro", uri=True)
     held = H.team_ids(con)
     opps = sorted(c for (c,) in con.execute("SELECT team_id FROM team_set WHERE set_name='top50'") if c not in held)
@@ -56,7 +57,7 @@ def battle_matrices(cells):
         for p in c["pastes"]:
             h = MDB.canon_hash(MDB.canonical_paste(p))
             t = con.execute("SELECT team_id FROM team WHERE format_id=? AND canon_hash=?", (MDB.FORMAT, h)).fetchone()[0]
-            policy = con.execute("SELECT policy_id FROM cell WHERE lo=? OR hi=? GROUP BY policy_id ORDER BY COUNT(*) DESC LIMIT 1", (t, t)).fetchone()[0]
+            policy = policy_id or con.execute("SELECT policy_id FROM cell WHERE lo=? OR hi=? GROUP BY policy_id ORDER BY COUNT(*) DESC LIMIT 1", (t, t)).fetchone()[0]
             policies[policy] += 1
             r = MDB.row_cells(con, policy, t, {o: 1 for o in opps})
             rows.append([r[o][0] / r[o][1] if o in r else np.nan for o in opps])
@@ -68,20 +69,20 @@ def battle_matrices(cells):
     return M, len(opps), {arm: {**v, "policies": dict(v["policies"])} for arm, v in contract.items()}
 
 
-def bootstrap_levels(M, n_opps):
+def bootstrap_levels(M, n_opps, arms=SOURCES, asks=ASKS, seeds=SEEDS):
     """arm -> ask -> B draws of the mean got over seeds: teams resampled within each cell, opponents shared across arms."""
     rng = np.random.default_rng(93)
-    boot = {arm: {k: np.zeros(B) for k in ASKS} for arm in SOURCES}
+    boot = {arm: {k: np.zeros(B) for k in asks} for arm in arms}
     for b in range(B):
         ow = rng.multinomial(n_opps, np.full(n_opps, 1 / n_opps)).astype(float)
-        for arm in SOURCES:
-            for k in ASKS:
+        for arm in arms:
+            for k in asks:
                 level = 0.0
-                for s in SEEDS:
+                for s in seeds:
                     m = M[(arm, k, s)]
                     tw = rng.multinomial(len(m), np.full(len(m), 1 / len(m)))
                     level += np.nansum(tw[:, None] * m * ow[None, :]) / (len(m) * ow.sum())
-                boot[arm][k][b] = level / len(SEEDS)
+                boot[arm][k][b] = level / len(seeds)
     return boot
 
 
