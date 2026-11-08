@@ -16,6 +16,11 @@ Both use the deployed network and recipe: d 256, 6 layers, 8 heads, batch 256, l
 1 for Stat Points, ask dropout 0.15, EMA 0.999. Data: results/lossdata84.npz (src/lossdata84.py).
 
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
+                          | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
+
+The four pos_ arms are the position-embedding split (issues #78 and #81 to #83, spec #233): the recipe of all_noise
+(all teams, label noise 1/48, exactly 21 epochs, schedule sized to a cap of 80) with only the network's position option
+changed, or for pos_per_field_s1 only the training seed. Patience is off, so the epoch-21 weights are kept.
 
 --label-noise WIDTH overrides the arm's width, as 1/48 or 0.02; 0 turns noise off. Without it, all_noise, byepoch and the
 ddom arms use 1/48 and the others use none. The flag adds the width to the checkpoint and results names, for example
@@ -53,6 +58,10 @@ NAMES = dict(loop="stat84_same_loop_p80", records="stat84_same_records_p60", mix
              all="stat84_all_teams_es3_cap80", all_noise="stat84_all_teams_noise_ep21",
              byepoch="stat84_labelled_noise_byepoch_es3_cap80",
              ddom_tau01="stat84_labelled_noise_ddom_tau01_ep21", ddom_tau03="stat84_labelled_noise_ddom_tau03_ep21")
+# Position-embedding split arms: code ID -> the network's position option and training seed
+POSITION_ARMS = dict(pos_per_field_s1=dict(pos="per_field", seed=1), pos_slot_learned=dict(pos="slot_learned", seed=0),
+                     pos_slot_fixed=dict(pos="slot_fixed", seed=0), pos_no_slot=dict(pos="no_slot", seed=0))
+NAMES.update({arm: f"stat84_{arm}_noise_ep21" for arm in POSITION_ARMS})
 
 
 def name(arm):
@@ -92,8 +101,9 @@ def train(arm, rows, labels, val, passes, patience=None, **net_kw):
     if net_kw.pop("every_epoch", False):
         (CK / name(arm)).mkdir(exist_ok=True)
         net_kw["on_epoch"] = lambda m, epoch: m.save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
+    recipe = dict(RECIPE, seed=net_kw.pop("seed", RECIPE["seed"]))
     m = M.Model84.train_new(V, corpus, rows, labels, passes=passes, val=val, patience=patience, on_best=on_best,
-                            **RECIPE, **NET, **net_kw)
+                            **recipe, **NET, **net_kw)
     m.info.update(ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any(), arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
                   val_rows=len(val[0]), val_share=0.02, val_seed=0)
     m.save(out)
@@ -107,6 +117,16 @@ def check_rows(d):
     for k in ("all_X", "loop_X", "records_X"):
         v = d[k][:, T.COLS48:] - 1
         assert (v >= 0).all() and (v.reshape(len(v), SP.NSLOT, SP.NSTAT).sum(-1) <= SP.MAX_TOTAL).all(), k
+
+
+def train_position_arms(d, arm):
+    """The position-embedding split arms named by arm (all four for smoke): all_noise's recipe with patience off, so exactly
+    the epoch-21 weights are kept, and only the position option or the training seed changed."""
+    tr = ~d["all_val"]
+    for pos_arm, kw in POSITION_ARMS.items():
+        if arm in (pos_arm, "smoke"):
+            train(pos_arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][d["all_val"]], d["all_W"][d["all_val"]]),
+                  passes=80, label_noise=1 / 48, stop_after=21, **kw)
 
 
 def parse_args(argv):
@@ -149,7 +169,9 @@ def main(argv):
         else:
             train(arm, d["all_X"][tr], d["all_W"][tr], val, passes=80, label_noise=1 / 48, stop_after=21,   # no patience: exactly epoch 21, like its control
                   ddom_tau=dict(ddom_tau01=0.1, ddom_tau03=0.3)[arm])
-    if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke"):
+    train_position_arms(d, arm)
+    if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke",
+                   *POSITION_ARMS):
         sys.exit(__doc__)
 
 

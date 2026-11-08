@@ -43,6 +43,14 @@ FIRST_MOVE = 3                                         # field offset of a Poké
 NAN = float("nan")
 
 
+POSITION_OPTIONS = ("per_field", "slot_learned", "slot_fixed", "no_slot")   # issue #81: how a column's position vector is built
+_COL = torch.arange(COLS)
+_STAT = (_COL - STAT0).clamp(min=0)
+COLUMN_TYPE = torch.where(_COL < STAT0, _COL % NF, NF + _STAT % SP.NSTAT)     # 14 field types: 8 fields, then 6 Stat Points
+COLUMN_SLOT = torch.where(_COL < STAT0, _COL // NF, _STAT // SP.NSTAT)        # team position 1 to 6, counted from 0
+NTYPE = NF + SP.NSTAT
+
+
 def sched84(sched=SCHED):
     return torch.cat([L.sched_tensor(sched), torch.full((SP.COLS,), STAT_EXPONENT)])
 
@@ -50,9 +58,10 @@ def sched84(sched=SCHED):
 class Net84(nn.Module):
     """Transformer denoiser over the 84-field grid."""
 
-    def __init__(self, V, d=256, nhead=8, nlayer=6, dropout=0.1, nfreq=8, mrow=0):
+    def __init__(self, V, d=256, nhead=8, nlayer=6, dropout=0.1, nfreq=8, mrow=0, pos="per_field"):
         super().__init__()
-        self.mrow = mrow
+        if pos not in POSITION_OPTIONS: raise ValueError(f"pos={pos!r}; choose one of {POSITION_OPTIONS}")
+        self.mrow, self.pos_option = mrow, pos
         if mrow:                # the team's matchup row: win rate vs each top-50 meta team, NaN = untested
             self.mproj = nn.Sequential(nn.Linear(2 * mrow, d), nn.SiLU(), nn.Linear(d, d))
             self.mnull = nn.Parameter(torch.zeros(d))
@@ -60,7 +69,14 @@ class Net84(nn.Module):
         self.head = nn.ModuleDict({k: nn.Linear(d, v) for k, v in V.sizes.items()})
         self.stat_emb = nn.Embedding(SP.NVALUES + 1, d)                  # token 0 = [MASK]
         self.stat_head = nn.Linear(d, SP.NVALUES)                         # one output per value 0..32
-        self.pos = nn.Parameter(torch.randn(COLS, d) * .02)
+        if pos == "per_field":
+            self.pos = nn.Parameter(torch.randn(COLS, d) * .02)
+        else:
+            self.pos_type = nn.Parameter(torch.randn(NTYPE, d) * .02)
+            if pos == "slot_learned": self.pos_slot = nn.Parameter(torch.randn(NSLOT, d) * .02)
+            if pos == "slot_fixed": self.register_buffer("pos_slot", torch.randn(NSLOT, d) * .02)   # saved, never trained
+            self.register_buffer("column_type", COLUMN_TYPE.clone(), persistent=False)
+            self.register_buffer("column_slot", COLUMN_SLOT.clone(), persistent=False)
         self.tproj = nn.Sequential(nn.Linear(1, d), nn.SiLU(), nn.Linear(d, d))
         self.register_buffer("freqs", (2.0 ** torch.arange(nfreq)) * math.pi)
         self.wproj = nn.Sequential(nn.Linear(2 * nfreq + 1, d), nn.SiLU(), nn.Linear(d, d))
@@ -79,9 +95,16 @@ class Net84(nn.Module):
         v = self.mproj(torch.cat([torch.nan_to_num(r, 0.0), has.float()], 1))
         return torch.where(has.any(1, keepdim=True), v, self.mnull.expand_as(v))
 
+    def position_vectors(self):
+        """[84, d]: the vector added to each column, built as the position option says."""
+        if self.pos_option == "per_field": return self.pos
+        v = self.pos_type[self.column_type]
+        return v if self.pos_option == "no_slot" else v + self.pos_slot[self.column_slot]
+
     def forward(self, x, t, w):
         """w: [B] win rates, or [B, 1 + mrow] = [win rate, matchup row] (NaN = no condition)."""
-        B, d = x.shape[0], self.pos.shape[1]
+        pos = self.position_vectors()
+        B, d = x.shape[0], pos.shape[1]
         r = None
         if w.dim() == 2:
             r, w = w[:, 1:], w[:, 0]
@@ -90,7 +113,7 @@ class Net84(nn.Module):
         for k, cols in L.COLS_BY_KEY.items():
             h[:, cols] = self.emb[k](x[:, cols])
         h[:, STAT0:] = self.stat_emb(x[:, STAT0:])
-        h = h + self.pos.unsqueeze(0) + self.wvec(w).unsqueeze(1) + self.tproj(t.view(-1, 1).float()).unsqueeze(1)
+        h = h + pos.unsqueeze(0) + self.wvec(w).unsqueeze(1) + self.tproj(t.view(-1, 1).float()).unsqueeze(1)
         if self.mrow: h = h + self.mvec(r).unsqueeze(1)
         return self.ln(self.tr(h))
 

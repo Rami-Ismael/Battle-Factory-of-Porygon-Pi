@@ -61,6 +61,10 @@ for _t, _r in (("01", "0.1"), ("03", "0.3")):
 MODELS["ft_hindsight_relabel"] = dict(checkpoint="stat84_labelled_noise_byepoch_ep21_ft_hindsight_relabel_es3_cap40",   # issue #106, src/hindsight_relabel.py
                                       reader="Hindsight-relabeled fine-tune, epoch 21", epochs=dict(labelled_teams=21, relabelled_fine_tune="early stopping"),
                                       stopped="epoch 21 fine-tuned on its own battled teams, labelled with measured win rate; best pass by validation loss", labelled=True)
+for _arm, _reader in (("pos_per_field_s1", "No split, second seed"), ("pos_slot_learned", "Learned slot vectors"),   # issues #78, #83
+                      ("pos_slot_fixed", "Fixed slot vectors"), ("pos_no_slot", "No slot vectors")):
+    MODELS[_arm] = dict(checkpoint=f"stat84_{_arm}_noise_ep21", reader=f"{_reader}, label noise ±1/48, all teams, 21 epochs",
+                        epochs=dict(all_teams=21), stopped="planned stop at epoch 21, patience off, to match the first seed")
 MODEL =os.environ.get("AG84_MODEL", "gen84_all_ep21")
 if MODEL not in MODELS and flagged_checkpoint(MODEL):
     MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])
