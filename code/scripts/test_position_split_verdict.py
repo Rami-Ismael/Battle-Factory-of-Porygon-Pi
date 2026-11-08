@@ -88,6 +88,59 @@ class Expectations(unittest.TestCase):
         self.assertEqual(out["chance_right"], 0.85)
 
 
+class Luck(unittest.TestCase):
+    def test_luck_is_the_larger_of_the_new_no_split_gap_and_the_earlier_one(self):
+        arms = compare(**{FIRST: grid(lambda a: 0.40), P.SECOND_SEED: grid(lambda a: 0.41, species=20.01)})
+        luck = P.luck(arms)
+        self.assertAlmostEqual(luck["win"], 0.01)                                # new gap 0.01 beats the earlier 0.0035
+        self.assertAlmostEqual(luck["effective_species"], P.EARLIER_GAP["effective_species"])   # earlier 0.07 beats 0.01
+        self.assertAlmostEqual(luck["error"], P.EARLIER_GAP["error"])
+
+    def test_before_the_second_seed_is_battled_luck_is_the_earlier_gap(self):
+        self.assertEqual(P.luck(compare(**{FIRST: grid(lambda a: 0.4)})), P.EARLIER_GAP)
+
+
+class VerdictRule(unittest.TestCase):
+    """The rule on #80 and in docs/position-embedding-split.md (owner, 2026-11-07)."""
+
+    def verdict(self, **arms):
+        base = {FIRST: grid(lambda a: a * 0.8), P.SECOND_SEED: grid(lambda a: a * 0.8)}
+        return P.verdict(compare(**base, **arms))
+
+    def test_an_arm_that_wins_beyond_luck_with_species_held_is_a_switch_waiting_on_its_second_seed(self):
+        v = self.verdict(pos_slot_learned=grid(lambda a: a * 0.8 + 0.02))
+        self.assertTrue(v["arms"]["pos_slot_learned"]["switch_on_win_rate"])
+        self.assertEqual(v["outcome"], "provisional switch")
+        self.assertEqual(v["choice"], "pos_slot_learned")
+        self.assertIn("second seed", v["next"])
+
+    def test_a_species_gain_beyond_luck_switches_while_win_rate_stays_above_minus_0_01(self):
+        v = self.verdict(pos_no_slot=grid(lambda a: a * 0.8 - 0.005, species=21.0))
+        self.assertTrue(v["arms"]["pos_no_slot"]["switch_on_species"])
+        self.assertEqual(v["choice"], "pos_no_slot")
+        v = self.verdict(pos_no_slot=grid(lambda a: a * 0.8 - 0.02, species=21.0))
+        self.assertFalse(v["arms"]["pos_no_slot"]["switch_on_species"])
+
+    def test_a_gain_inside_luck_is_a_tie(self):
+        v = self.verdict(pos_slot_learned=grid(lambda a: a * 0.8 + 0.002))
+        self.assertEqual(v["outcome"], "tie")
+        self.assertIsNone(v["choice"])
+
+    def test_a_switch_fails_its_guard_when_asks_are_followed_worse_beyond_luck(self):
+        v = self.verdict(pos_slot_learned=grid(lambda a: 0.5))           # pooled win rate up 0.1, but every ask gets 0.5
+        row = v["arms"]["pos_slot_learned"]
+        self.assertTrue(row["switch_on_win_rate"])
+        self.assertFalse(row["guard"])
+        self.assertFalse(row["passes"])
+
+    def test_two_arms_passing_within_luck_of_each_other_take_fixed_slot_vectors(self):
+        v = self.verdict(pos_slot_learned=grid(lambda a: a * 0.8 + 0.02), pos_slot_fixed=grid(lambda a: a * 0.8 + 0.0201))
+        self.assertEqual(v["choice"], "pos_slot_fixed")
+        v = self.verdict(pos_slot_learned=grid(lambda a: a * 0.8 + 0.03), pos_slot_fixed=grid(lambda a: a * 0.8 + 0.0201))
+        self.assertIsNone(v["choice"])
+        self.assertEqual(v["outcome"], "several pass, not within luck: the owner decides")
+
+
 class ReportedOnly(unittest.TestCase):
     def test_validation_loss_and_stat_point_shares_come_from_the_training_and_grid_records(self):
         grid_out = dict(summary=dict(stat_points=dict(share_matching_corpus_set=0.037, share_under_four_moves=0.157, pokemon=26496)))

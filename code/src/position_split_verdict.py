@@ -1,11 +1,11 @@
-"""Should the 84-field position embedding split into slot and field-type vectors? The measures for the verdict (GitHub issues #78, #80, #84;
-spec #233).
+"""Should the 84-field position embedding split into slot and field-type vectors? The verdict (docs/position-embedding-split.md;
+GitHub issues #78, #80, #84; spec #233).
 
-Reads the saved 23-ask grids of the first seed and the four new arms, all trained exactly 21 epochs with label noise ±1/48 on all
-teams. Each arm differs from the first seed only in how a column's position vector is built (src/diffusion84.py, POSITION_OPTIONS),
-or for the second No split seed only in its training seed:
+Reads the saved 23-ask grids of the five arms, all trained exactly 21 epochs with label noise ±1/48 on the shuffled-only table.
+Each arm differs from No split, first seed only in how a column's position vector is built (src/diffusion84.py,
+POSITION_OPTIONS), or for the second No split seed only in its training seed:
 
-    No split, first seed     gen84_all_noise_ep21   one learned vector per column (already battled)
+    No split, first seed     pos_per_field_s0       one learned vector per column, training seed 0 (the control)
     No split, second seed    pos_per_field_s1       the same, training seed 1
     Learned slot vectors     pos_slot_learned       learned field-type vector + learned team-position vector
     Fixed slot vectors       pos_slot_fixed         learned field-type vector + random team-position vector that never trains
@@ -13,11 +13,11 @@ or for the second No split seed only in its training seed:
 
 Per arm, each minus the first seed with a 95% interval: pooled win rate over the 23 asks (bootstrap over teams within each ask and
 seed; battles not resampled), effective species and legal share (paired by ask and seed, normal interval over the 69 cells), and
-the ask-versus-got error on asks 1/24 to 17/24 (src/ask_line.py). The second No split seed's differences are the seed gap, the size of
-training luck. Each written expectation from #80 is checked. Reported, not deciding: validation loss, the share of Pokémon whose
-Stat Points match a corpus set for their species, and the share with fewer than four moves.
-
-The verdict rule itself is not here: #80's open questions Q2 to Q6 decide it. This report computes every measure they might use.
+the ask-versus-got error on asks 1/24 to 17/24 (src/ask_line.py). Training luck is the larger of the second No split seed's gap
+and the gap measured earlier without label noise. The owner's rule (2026-11-07) then gives the verdict; each written expectation
+is checked. The old first seed, gen84_all_noise_ep21, trained on labels from listed-order battles, is shown for reference and
+decides nothing. Reported, not deciding: validation loss, the share of Pokémon whose Stat Points match a corpus set for their
+species, and the share with fewer than four moves. Legal share must read 100%.
 
     /tmp/vgc-pilot/.venv/bin/python src/position_split_verdict.py [output.json]   (from code/)
 """
@@ -31,10 +31,15 @@ from ask_error_compare import paired_difference
 from ask_line import SCORED_ASKS
 from ddom_error_compare import ask_error, bootstrap, grid_cells, mean_got
 
-FIRST_SEED = "gen84_all_noise_ep21"
+FIRST_SEED = "pos_per_field_s0"
 SECOND_SEED = "pos_per_field_s1"
+OLD_FIRST_SEED = "gen84_all_noise_ep21"                  # listed-order labels: reference only
+SPLIT_ARMS = ("pos_slot_learned", "pos_slot_fixed", "pos_no_slot")
 NAMES = {FIRST_SEED: "No split, first seed", SECOND_SEED: "No split, second seed", "pos_slot_learned": "Learned slot vectors",
-         "pos_slot_fixed": "Fixed slot vectors", "pos_no_slot": "No slot vectors"}
+         "pos_slot_fixed": "Fixed slot vectors", "pos_no_slot": "No slot vectors", OLD_FIRST_SEED: "Old first seed (reference)"}
+# Two 21-epoch trainings without label noise, dellu_none against gen84_all_ep21, 2026-11-07
+EARLIER_GAP = dict(win=0.0035, effective_species=0.07, error=0.0019)
+WIN_FLOOR = -0.01                                        # a species switch needs the win-rate interval above this
 ASKS = list(range(1, 24))
 SCORED = [k for k in ASKS if k in SCORED_ASKS]
 MEASURES = ("win", "effective_species", "error", "legal")
@@ -91,6 +96,43 @@ def seed_gap(arms):
     return {m: arms[SECOND_SEED][m]["minus_first_seed"]["difference"] for m in MEASURES}
 
 
+def luck(arms):
+    """Per measure, the larger of the new No split gap and the earlier one."""
+    new = seed_gap(arms)
+    return {m: max(abs(new.get(m, 0.0)), g) for m, g in EARLIER_GAP.items()}
+
+
+def judge_arm(row, lk):
+    """The rule's tests for one split arm against No split, first seed."""
+    w, sp, e = (row[m]["minus_first_seed"] for m in ("win", "effective_species", "error"))
+    on_win = w["interval"][0] > 0 and w["difference"] > lk["win"] and sp["difference"] >= -lk["effective_species"]
+    on_species = (w["interval"][0] > WIN_FLOOR and sp["interval"][0] > 0 and sp["difference"] > lk["effective_species"])
+    guard = e["difference"] <= lk["error"]
+    matters = any((d["interval"][0] > 0 or d["interval"][1] < 0) and abs(d["difference"]) > lk[m]
+                  for m, d in (("win", w), ("effective_species", sp)))
+    return dict(switch_on_win_rate=bool(on_win), switch_on_species=bool(on_species), guard=bool(guard),
+                passes=bool((on_win or on_species) and guard), it_matters=bool(matters))
+
+
+def verdict(arms):
+    """The owner's rule (2026-11-07): switch on win rate or on species, guarded by ask-versus-got error, a second seed before a
+    switch counts, Fixed slot vectors on a near tie between passing arms, and a tie otherwise."""
+    lk = luck(arms)
+    rows = {a: judge_arm(arms[a], lk) for a in SPLIT_ARMS if a in arms}
+    passing = [a for a, r in rows.items() if r["passes"]]
+    out = dict(luck=lk, arms=rows, choice=None, next="keep one learned vector per field")
+    if not passing:
+        return dict(out, outcome="tie")
+    if len(passing) > 1:
+        close = all(abs(arms[a][m]["value"] - arms[b][m]["value"]) <= lk[m]
+                    for a in passing for b in passing for m in ("win", "effective_species"))
+        if not (close and "pos_slot_fixed" in passing):
+            return dict(out, outcome="several pass, not within luck: the owner decides", next="the owner picks among " + ", ".join(passing))
+        passing = ["pos_slot_fixed"]
+    return dict(out, outcome="provisional switch", choice=passing[0],
+                next=f"train {NAMES[passing[0]]} again with seed 1 and apply the rule again; the switch counts only if that second seed passes too")
+
+
 def _diff(arms, a, m):
     return arms[a][m]["minus_first_seed"]
 
@@ -117,16 +159,16 @@ def _ties_learned(arms, a, m):
     return abs(_diff(arms, a, m)["difference"] - _diff(arms, "pos_slot_learned", m)["difference"]) <= 0.01
 
 
-# Written on #80 on 2026-11-01, before any run: arm -> measure -> (wording, test), and the stated chance of being right.
-# Legal share is 100% for every arm under the rule masks; #80's Q2 may drop its column.
+# Written on #80 on 2026-11-01, before any run: arm -> measure -> (wording, test), and the stated chance of being right. They
+# now apply against the new No split, first seed; the owner dropped the legal-share column on 2026-11-07.
 EXPECTED = {
-    SECOND_SEED: (dict(win=("within 0.02", _within(0.02)), legal=("within 2 points", _within(0.02)),
+    SECOND_SEED: (dict(win=("within 0.02", _within(0.02)),
                        effective_species=("no clear change", _no_clear_change)), 0.80),
-    "pos_slot_learned": (dict(win=("within 0.01, a tie", _within(0.01)), legal=("within 2 points", _within(0.02)),
+    "pos_slot_learned": (dict(win=("within 0.01, a tie", _within(0.01)),
                               effective_species=("no clear change", _no_clear_change)), 0.75),
-    "pos_slot_fixed": (dict(win=("ties learned slot vectors", _ties_learned), legal=("within 2 points", _within(0.02)),
+    "pos_slot_fixed": (dict(win=("ties learned slot vectors", _ties_learned),
                             effective_species=("no clear change", _no_clear_change)), 0.70),
-    "pos_no_slot": (dict(win=("loses at least 0.05", _loses_at_least(0.05)), legal=("within 2 points", _within(0.02)),
+    "pos_no_slot": (dict(win=("loses at least 0.05", _loses_at_least(0.05)),
                          effective_species=("same or higher", _same_or_higher)), 0.85),
 }
 
@@ -156,24 +198,33 @@ def _gap(d):
 
 def main(path):
     import asked_vs_got as X                              # training records; imports the model code, needs /tmp/vgc-pilot
-    outs = {a: json.load(open(RES / f"stat_points_84_{a}.json")) for a in NAMES}
+    outs = {a: json.load(open(RES / f"stat_points_84_{a}.json")) for a in NAMES if a != OLD_FIRST_SEED}
     grids = {a: grid_cells(o) for a, o in outs.items()}
     for a, g in grids.items():
         missing = [k for k in ASKS if len(g.get(k, [])) != 3]
         if missing: raise SystemExit(f"{a}: asks without three seeds: {missing}")
     arms = compare(grids, np.random.default_rng(BOOT_SEED))
+    old_path = RES / f"stat_points_84_{OLD_FIRST_SEED}.json"
+    if old_path.exists():                                 # reference only: never enters luck, the rule or the expectations
+        outs[OLD_FIRST_SEED] = json.load(open(old_path))
+        arms[OLD_FIRST_SEED] = compare({FIRST_SEED: grids[FIRST_SEED], OLD_FIRST_SEED: grid_cells(outs[OLD_FIRST_SEED])},
+                                       np.random.default_rng(BOOT_SEED))[OLD_FIRST_SEED]
     for a, o in outs.items():
         arms[a]["reported"] = reported(o, json.load(open(X.RES / f"{Path(o['checkpoint']).stem}.json")))
     out = dict(win_rate=WIN_RATE, interval="95%; win rate and error: bootstrap over teams within each ask and seed, battles not resampled; "
                "effective species and legal share: normal, over cells paired by ask and seed", draws=DRAWS, scored_asks=SCORED,
                arms=arms, seed_gap=seed_gap(arms), expectations=expectations(arms),
-               verdict="not applied: the rule waits on #80's open questions Q2 to Q6")
+               verdict=verdict(arms))
     json.dump(out, open(path, "w"), indent=1, default=str)
     for a, r in arms.items():
         print(f"{r['name']:<24} win {r['win']['value']:.4f} {_gap(r['win'].get('minus_first_seed'))} | species "
               f"{r['effective_species']['value']:.2f} {_gap(r['effective_species'].get('minus_first_seed'))} | error "
               f"{r['error']['value']:.4f} {_gap(r['error'].get('minus_first_seed'))} | legal {r['legal']['value']:.1%}")
-    print("seed gap:", out["seed_gap"])
+    print("seed gap:", out["seed_gap"], "| luck:", out["verdict"]["luck"])
+    not_legal = [a for a, r in arms.items() if r["legal"]["value"] < 1.0]
+    if not_legal: print("CHECK FAILED: legal share under 100% for", ", ".join(not_legal))
+    v = out["verdict"]
+    print(f"verdict: {v['outcome']}" + (f" ({NAMES[v['choice']]})" if v["choice"] else "") + f"; next: {v['next']}")
     for a, e in out["expectations"].items():
         print(f"{e['name']:<24}", " | ".join(f"{m} {v['expected']}: {'right' if v['right'] else 'wrong' if v['right'] is False else 'not yet'}"
                                           for m, v in e.items() if isinstance(v, dict)))

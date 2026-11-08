@@ -1,4 +1,4 @@
-"""Training-smoke probe for the four position options, before their 21-epoch trainings (issues #81, #82; spec #233).
+"""Training-smoke probe for the five position-embedding arms, before their 21-epoch trainings (issues #81, #82; spec #233).
 
 Per arm, on the deployed network size (d 256, 6 layers, 8 heads) and on the CPU:
   start      plain per-field cross-entropy of a fully masked team at initialisation, per field type, against ln K for a
@@ -11,7 +11,7 @@ Per arm, on the deployed network size (d 256, 6 layers, 8 heads) and on the CPU:
 Results land in each arm's ask-grid results file under preflight.training_smoke, beside what `ask_grid84.py preflight`
 adds once the arm is trained.
 
-    /tmp/vgc-pilot/.venv/bin/python src/position_split_preflight.py [arm ...]   (from code/; default all four)
+    /tmp/vgc-pilot/.venv/bin/python src/position_split_preflight.py [arm ...]   (from code/; default all five)
 """
 import json
 import math
@@ -84,11 +84,11 @@ def save(arm, result):
 
 
 def main(arms):
-    d = TR.load(); V = T.regulation_vocab(); corpus = X.setup()[0]
+    d = TR.load(TR.SHUFFLED_ONLY); V = T.regulation_vocab(); corpus = X.setup()[0]
     ok, no_split_val = True, None
-    for arm in sorted(arms, key=lambda a: a != TR.SECOND_SEED_ARM):     # No split first: the others are judged against it
+    for arm in sorted(arms, key=lambda a: a != TR.CONTROL_ARM):     # No split first: the others are judged against it
         r = probe(arm, d, V, corpus, no_split_val); save(arm, r); ok &= r["passed"]
-        if arm == TR.SECOND_SEED_ARM: no_split_val = r["overfit"]["last_val_loss"]
+        if arm == TR.CONTROL_ARM: no_split_val = r["overfit"]["last_val_loss"]
         start = ", ".join("%s %.2f/%.2f" % (k, v["cross_entropy"], v["ln_k"]) for k, v in r["start"].items())
         print(f"{arm}: start {'pass' if all(v['passed'] for v in r['start'].values()) else 'FAIL'} "
               f"({start}) | overfit "
