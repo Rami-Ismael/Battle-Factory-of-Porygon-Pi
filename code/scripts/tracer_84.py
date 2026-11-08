@@ -23,7 +23,7 @@ import team84 as T
 from corpus import parse_team_text
 from hps_generate import Validator
 
-N_TEAMS, PASSES, N_SAMPLE, ASK, GUIDANCE, SEED = 2000, 5, 64, 0.5, 2.0, 0
+N_TEAMS, EPOCHS, N_SAMPLE, ASK, GUIDANCE, SEED = 2000, 5, 64, 0.5, 2.0, 0
 OUT = Path.home() / "vgc-data/results/tracer_84.json"
 
 
@@ -53,9 +53,9 @@ def main():
     V = T.regulation_vocab(); corpus = X.setup()[0]
     rows, labels = training_rows(V, corpus)
     log = []
-    model = M.Model84.train_new(V, corpus, rows, labels, passes=PASSES, seed=SEED, log=log)
+    model = M.Model84.train_new(V, corpus, rows, labels, epochs=EPOCHS, seed=SEED, log=log)
     print(f"trained on {len(rows)} teams ({int(np.isfinite(labels).sum())} labelled): "
-          + ", ".join(f"pass {e['pass_']} loss {e['train_loss']:.3f}" for e in log), flush=True)
+          + ", ".join(f"epoch {e['epoch']} loss {e['train_loss']:.3f}" for e in log), flush=True)
 
     sampled = model.sample(N_SAMPLE, ask=ASK, guidance=GUIDANCE, seed=SEED).cpu().numpy()
     pastes = [model.to_paste(r, repair=True)[0] for r in sampled]
@@ -78,7 +78,7 @@ def main():
         print(f"one battle against top-50 meta team {tid}: {battle}", flush=True)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    json.dump(dict(n_train=len(rows), n_labelled=int(np.isfinite(labels).sum()), passes=PASSES, log=log,
+    json.dump(dict(n_train=len(rows), n_labelled=int(np.isfinite(labels).sum()), epochs=EPOCHS, log=log,
                    ask=ASK, guidance=GUIDANCE, sampled=N_SAMPLE, accepted=len(valid),
                    rejections=[str(e).split("\n")[0][:160] for e in errors if e is not None][:10],
                    share_spending_66=float(np.mean(np.array(totals) == 66)), battle=battle,

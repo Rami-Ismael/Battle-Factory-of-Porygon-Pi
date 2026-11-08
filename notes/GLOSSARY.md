@@ -1,6 +1,6 @@
 ---
 created_at: 2026-10-20
-updated_at: 2026-11-07
+updated_at: 2026-11-08
 tags:
   - vocabulary
 ---
@@ -251,6 +251,22 @@ _Avoid_: balanced buckets
 **Species quota K**:
 A training-mix retrain whose groups are species. A team is kept only while none of its six species is already in K kept teams that epoch. Example: species quota 800.
 _Avoid_: Pokémon bucket, species cap
+
+**Epoch**:
+One shuffled trip through every training team during training.
+_Avoid_: pass (a pass is a sampling step)
+
+**Training run**:
+One training or fine-tune of a model, from its first epoch to its last saved checkpoint. Sampling grids, battles and search loops are runs, but not training runs.
+_Avoid_: job, training (alone)
+
+**Learning curve**:
+Training loss and validation loss at each epoch of one training run.
+_Avoid_: curves, loss log
+
+**Experiment tracking**:
+Recording each training run's hyperparameters, learning curve and checkpoints in one place, so runs can be compared side by side.
+_Avoid_: logging (alone), monitoring
 
 ## Sampling
 

@@ -7,8 +7,8 @@ that filter is what separates the search loop from this. Hindsight Experience Re
 
 Recipe: the search loop's fine-tune learning rate and batch (1e-4, 64; src/cem_dbbo.py), the base training's label
 noise, EMA and ask dropout, early stopping on a seeded 20% of the relabelled teams with patience 3 and a cap of 40
-passes. Pass 0 is the starting weights, so a fine-tune that never beats them returns the control unchanged. The
-labelled validation teams the base model held out are logged every pass to show what the fine-tune forgets.
+epochs. Epoch 0 is the starting weights, so a fine-tune that never beats them returns the control unchanged. The
+labelled validation teams the base model held out are logged every epoch to show what the fine-tune forgets.
 
     /tmp/vgc-pilot/.venv/bin/python src/hindsight_relabel.py train     (from code/; HR_SMOKE=1: plumbing check)
 """
@@ -26,7 +26,7 @@ CODE_ID = "ft_hindsight_relabel"
 BASE_MODEL = "gen84_noise_byepoch_ep21"                  # the control's ask-grid name: its results file holds the battled teams
 BASE_CHECKPOINT = "stat84_labelled_noise_byepoch_es3_cap80/stat84_labelled_noise_byepoch_es3_cap80_ep21"   # as ask_grid84.MODELS
 VAL_SHARE, SPLIT_SEED = 0.2, 0
-RECIPE = dict(passes=40, patience=3, lr=1e-4, batch=64, label_noise=1 / 48, seed=0)
+RECIPE = dict(epochs=40, patience=3, lr=1e-4, batch=64, label_noise=1 / 48, seed=0)
 CHECKPOINT = f"stat84_labelled_noise_byepoch_ep21_{CODE_ID}_es3_cap40"
 RES = Path.home() / "vgc-data/results"
 
@@ -90,7 +90,7 @@ def train():
     recipe = dict(RECIPE)
     if smoke:
         rows, labels, val = rows[:96], labels[:96], val[:96]
-        watch = dict(labelled=tuple(a[:64] for a in watch["labelled"])); recipe.update(passes=1)
+        watch = dict(labelled=tuple(a[:64] for a in watch["labelled"])); recipe.update(epochs=1)
     print(f"[{CODE_ID}] {(~val).sum()} relabelled teams to train on, {val.sum()} to stop on; base {base_path.name}", flush=True)
     t0 = time.perf_counter()
     m = base.fine_tuned(rows[~val], labels[~val], val=(rows[val], labels[val]), watch=watch, **recipe)
@@ -100,7 +100,7 @@ def train():
                   relabels_per_ask=per_ask_count(labels), minutes=round((time.perf_counter() - t0) / 60, 2), labelled_only=True)
     m.save(L.CK / f"{name}.pt")
     json.dump({k: v for k, v in m.info.items() if k != "base"}, open(RES / f"{name}.json", "w"), indent=1, default=float)
-    print(f"[{CODE_ID}] best pass {m.info['best_pass']}, stopped {m.info['stopped_pass']}, {m.info['minutes']} min -> {name}.pt", flush=True)
+    print(f"[{CODE_ID}] best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']}, {m.info['minutes']} min -> {name}.pt", flush=True)
     print("HR_TRAIN_DONE")
 
 
