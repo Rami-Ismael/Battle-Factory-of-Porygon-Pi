@@ -2,9 +2,9 @@
 
 Pre-registered 2026-11-07, before any training, sampling or battle of these arms. Map: [issue #78](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/78). Plan ticket: [issue #80](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/80).
 
-**Mode: confirmatory**, once the training length is written in from the training-length decision ([issue #108](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/108)) before the first training. Nothing below may change after that.
+**Mode: confirmatory.** Every value below was fixed on 2026-11-07, before the first training. Nothing below may change after that.
 
-**Blocked on the epoch count**, which comes from #108 (still open). The owner chose on 2026-11-07 to wait for #108 rather than train at 21 epochs. The training table's code ([PR #232](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/pull/232)) merged on 2026-11-07.
+**Changed 2026-11-07 (owner):** every arm trains exactly 21 epochs now, instead of waiting for the training-length decision ([issue #108](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/108)). The verdict holds for 21 epochs. The training table's code ([PR #232](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/pull/232)) merged on 2026-11-07.
 
 Prior work: no project doc or `experiments-index.md` entry tests this split. A web search for a slot-plus-field-type position embedding on a set of entities found no direct match.
 
@@ -47,7 +47,7 @@ Every new vector starts at standard deviation 0.02, like the current table. The 
 | Position embedding | Scientific | The five arms above |
 | Training seed | Nuisance | 0 for every arm; 1 for No split, second seed, which measures training luck |
 | Sampling seed | Nuisance | 1, 2, 3 |
-| Training length | Fixed | From #108, the same for every arm. Patience off; the last epoch's weights kept |
+| Training length | Fixed | Exactly 21 epochs for every arm (owner, 2026-11-07). Patience off; the epoch-21 weights kept |
 | Learning-rate schedule | Fixed | AdamW, warm-up and cosine decay sized to a cap of 80 passes, learning rate 4e-4, batch 256, EMA 0.999 |
 | Label noise | Fixed | ±1/48 on training labels, a separate random generator; validation labels exact |
 | Masking | Fixed | Exponents 16, 4, 4, 1.5, 1 for species, ability, item, move, Stat Alignment; 1 for Stat Points; ask dropout 0.15 |
@@ -95,7 +95,19 @@ Likely verdict: a tie, with about a 10% chance the split wins. The share of Stat
 
 ## Probes
 
-`src/ask_grid84.py preflight` already runs most of these. Each run saves them under `preflight` in its grid JSON. The probes run on the network options from [issue #81](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/81), which do not exist yet, so none has a result today. A failed probe stops the launch.
+`src/ask_grid84.py preflight` runs most of these on each trained checkpoint, before its grid. Each run saves them under `preflight` in its grid JSON (`~/vgc-data/results/stat_points_84_<code ID>.json`), beside the training smoke from `src/position_split_preflight.py`. A failed probe stops that arm's grid.
+
+**Training smoke, 2026-11-07, all five arms passed** on the shuffled-only table, on the CPU, at the deployed network size:
+
+| Arm | Starting cross-entropy, worst field against ln K | Overfit 32 teams, 300 epochs: validation loss | Swap two Pokémon, largest change elsewhere |
+| --- | --- | --- | --- |
+| No split, first seed | nature 3.58 against 3.30 | 3.385 → 1.627 | 0.095 |
+| No split, second seed | ability 5.70 against 5.30 | 3.304 → 1.641 | 0.088 |
+| Learned slot vectors | Stat Points 4.00 against 3.50 | 3.436 → 1.632 | 0.097 |
+| Fixed slot vectors | Stat Points 4.00 against 3.50 | 3.436 → 1.632 | 0.097 |
+| No slot vectors | nature 3.76 against 3.30 | 3.272 → 1.606 | 1.3e-6, rounding only |
+
+Learned and Fixed slot vectors start the same and overfit alike. In a 60-epoch check, the learned team-position vectors moved by up to 0.0056 while the fixed ones stayed put, and the two networks' outputs differed by 0.004.
 
 | Probe | What this experiment checks | Where |
 | --- | --- | --- |
@@ -103,11 +115,11 @@ Likely verdict: a tie, with about a 10% chance the split wins. The share of Stat
 | Round trip | Every one of the 84 fields reaches the paste from the model, for 20 teams per arm | `preflight` |
 | Coverage | Same Regulation M-B tables in every checkpoint; teams the rule tables drop counted | `preflight` |
 | Read teams | 20 decoded teams per arm read by hand; generated and training shares of species, items, abilities and moves | `preflight` |
-| Training smoke | Per-field cross-entropy at the start near `ln K`; a few teams overfit; with no slot vectors, swapping two species changes the other fields only by rounding; fixed slot vectors get no gradient; No split matches today's parameter names, starting values and loss at a fixed seed | #81 tests |
+| Training smoke | Per-field cross-entropy at the start within 20% of `ln K`; 32 teams overfit in 300 epochs (validation loss down 40% and within 10% of No split, first seed); with no slot vectors, swapping two Pokémon changes the other fields only by rounding; fixed slot vectors get no gradient; No split matches today's parameter names, starting values and loss at a fixed seed | `preflight.training_smoke`; #81 tests in `scripts/test_position_options84.py` |
 | Controls | Top-50 meta teams near 0.50; uniform-legal teams near 0.015 | `preflight` |
 | Invariance | Skipped: every battle shuffles slots and the scorer is unchanged | written reason |
 | Repeat | Skipped: the scorer and seed path are unchanged since the line-up repeats run | written reason |
-| Separation | Training teams against the test 500 and ranks 51 to 100: empty. `preflight` reads `lossdata84.npz` today and must read the shuffled-only table | `preflight`, after the table change |
+| Separation | Training teams against the test 500 and ranks 51 to 100: empty. `preflight` reads each arm's own table, the shuffled-only one here | `preflight` |
 | Condition | A fixed sampling seed at asks 0.1 and 0.7 changes more than half the teams | `preflight` |
 | Copies | Share of generated teams identical to a training team, and shared slots with the nearest | `preflight` |
 
@@ -127,11 +139,15 @@ Battle and team noise on win rate is about the size of one measured training-see
 
 | Item | Count | Time |
 | --- | --- | --- |
-| Trainings | 5 (two No split seeds, three split arms), plus 1 if an arm passes | about 1 h 45 min each at 21 epochs, scaled from the old first seed's 146 minutes by training teams (214,608 against 298,488); not measured. Scales with the #108 length |
+| Trainings | 5 (two No split seeds, three split arms), plus 1 if an arm passes | about 1 h 45 min each at 21 epochs, scaled from the old first seed's 146 minutes by training teams (214,608 against 298,488); not measured |
 | Battles | 216,384 per run, 1,081,920 for five, plus 216,384 if an arm passes | about 42 minutes per run |
 
 Trainings run on the laptop at the end of the queue, detached, two at a time. No Modal spend. Each run records its wall-clock minutes.
 
+## Running it
+
+Queue: `~/vgc-data/position_embedding_split/pe84.zsh`, log `queue.log` beside it, code frozen in `run/` with checksums. It waits behind other sessions' jobs, trains two arms at a time (`src/train84.py <code ID>`), then per arm runs `ask_grid84.py preflight`, the 3-seed grid and its battles, and ends with `src/position_split_verdict.py`, which applies the rule above.
+
 ## Deviations
 
-None yet.
+- **2026-11-07, before any training:** the training-smoke bars were set after a first probe run. That run asked for starting loss within 10% of `ln K` and training loss halving in 60 epochs. It failed every arm, No split included, which has no new code. The bars were then set from No split: over five seeds it starts 5.6% to 12.6% above `ln K`, and 300 epochs take its validation loss from 3.33 to 1.60. Each arm's `preflight.training_smoke` keeps the passing run and names the first run's bars under `calibration`.
