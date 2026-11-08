@@ -369,7 +369,7 @@ def controls():
 
 
 def preflight():
-    w = load_model(); V = w.V; out = load_out(); pf = {}
+    w = load_model(); V = w.V; out = load_out(); pf = dict(out.get("preflight", {}))   # keeps a training_smoke probe run before training
     d = np.load(DATA); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
     tr = d["all_X"][tr_rows].astype(np.int64)
     torch.manual_seed(SEED0 + 1)
@@ -382,7 +382,7 @@ def preflight():
     pf["read_teams"] = dict(pastes=[w.to_paste(r, repair=True)[0] for r in rows[:20]],
                             **{f"{f}_generated": shares(f, gen_slots) for f in ("species", "item", "ability", "moves")},
                             **{f"{f}_training": shares(f, real_slots) for f in ("species", "item", "ability", "moves")})
-    pf["training_smoke"] = dict(skipped="the checkpoint is already trained; the loss curve is in the training log and the tracer covers the pipeline")
+    pf.setdefault("training_smoke", dict(skipped="the checkpoint is already trained; the loss curve is in the training log and the tracer covers the pipeline"))
     pf["controls"] = controls()
     pf["invariance"] = dict(skipped="no new scorer; every battle shuffles slots and require_shuffled refuses any other order")
     pf["repeat"] = dict(skipped="scorer unchanged since the line-up repeats run; the seed reaches the schedule through score_pastes as there")

@@ -62,6 +62,7 @@ NAMES = dict(loop="stat84_same_loop_p80", records="stat84_same_records_p60", mix
 POSITION_ARMS = dict(pos_per_field_s1=dict(pos="per_field", seed=1), pos_slot_learned=dict(pos="slot_learned", seed=0),
                      pos_slot_fixed=dict(pos="slot_fixed", seed=0), pos_no_slot=dict(pos="no_slot", seed=0))
 NAMES.update({arm: f"stat84_{arm}_noise_ep21" for arm in POSITION_ARMS})
+SECOND_SEED_ARM = "pos_per_field_s1"                     # No split, training seed 1: the arm with no new code
 
 
 def name(arm):
