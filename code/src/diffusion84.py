@@ -200,12 +200,14 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
         epochs with no new lowest validation loss and keep the best epoch's weights; epochs is then the cap, and
         the learning-rate schedule is sized to it. on_best(model, epoch) runs at every new lowest.
+        early_stopping_threshold=T: as in Hugging Face's EarlyStoppingCallback, only an epoch whose validation loss
+        beats the lowest so far by more than T resets the patience count; a smaller gain still becomes the kept best epoch.
         label_noise=W: each batch's labels get fresh uniform noise in [-W, +W]; validation labels stay exact.
         stop_after=N: end after N epochs while keeping the schedule sized to epochs, so a shorter run matches a stopped one.
         on_epoch(model, epoch): runs after every epoch, on the weights a checkpoint would save.
@@ -215,35 +217,36 @@ class Model84:
         x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
         net = Net84(V, **net_kw).to(DEV)
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs, patience=patience,
-                    lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
+                    early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
         info.update(label_noise=label_noise, stop_after=stop_after)
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
-                        ema=ema, sched=sched, log=log, val=val, patience=patience, on_best=on_best, label_noise=label_noise,
-                        stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw)
+                        ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
+                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw)
 
-    def fine_tuned(self, rows, labels, epochs, val, patience=3, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
+    def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
                    warmup=500, ema=0.999, sched=SCHED, watch=None, log=None):
         """A new model: this one-member model's weights trained further on 84-field rows; self is unchanged.
         The recipe is train_new's (AdamW, warm-up and cosine decay sized to the cap of `epochs`, EMA, ask dropout,
         label noise on training labels only). Validation loss on val=(rows, labels) is measured before the first epoch
         too, so epoch 0 is the starting weights: if no epoch beats them, early stopping returns them unchanged.
+        early_stopping_threshold: the smallest validation-loss gain that resets the patience count, as in train_new.
         watch={name: (rows, labels)}: more validation sets, logged every epoch and never used to stop."""
         net_kw = self.nets[0][1]
         start = copy.deepcopy(self.net).to(DEV)
         torch.manual_seed(seed)
         x, w, rw, keep = _training_tensors(self.tables, rows, labels)
         info = dict(base=self.info, fine_tune=True, n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs,
-                    patience=patience, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None)
+                    patience=patience, early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None)
         return type(self)._fit(self.V, None, self.tables, start, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd,
-                               warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, on_best=None,
-                               label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, epoch0=True,
+                               warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold,
+                               on_best=None, label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, epoch0=True,
                                like=self)
 
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
-             patience, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None):
+             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
-        lets those starting weights be the best epoch. like: a model whose tables and vocabulary the result reuses."""
+        lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses."""
         make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
                (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
@@ -254,6 +257,7 @@ class Model84:
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
         best, best_epoch, best_sd, step = math.inf, 0, None, 0
+        reset_epoch = 0                                   # last epoch that beat the lowest loss by more than threshold
         t_start = time.perf_counter()
 
         def measure(m, entry):
@@ -285,6 +289,7 @@ class Model84:
             entry = dict(epoch=p + 1, train_loss=run / nb)
             measure(m, entry)
             if val is not None and entry["val_loss"] < best:
+                if best - entry["val_loss"] > threshold: reset_epoch = p + 1
                 best, best_epoch = entry["val_loss"], p + 1
                 best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
                 if on_best is not None: on_best(make(m, dict(best_epoch=best_epoch)), best_epoch)
@@ -292,7 +297,7 @@ class Model84:
             if on_epoch is not None: on_epoch(make(m, dict(epoch=p + 1)), p + 1)
             log.append(entry)
             print("  " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
-            if patience and p + 1 - best_epoch >= patience: break
+            if patience and p + 1 - reset_epoch >= patience: break
             if stop_after and p + 1 >= stop_after: break
         m = avg if avg is not None else net
         if patience and best_sd is not None: m.load_state_dict(best_sd)
