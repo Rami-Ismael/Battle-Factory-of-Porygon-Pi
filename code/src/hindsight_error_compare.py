@@ -20,6 +20,7 @@ from pathlib import Path
 import numpy as np
 
 import ddom_error_compare as D
+from checkpoints import epoch_names
 from ask_line import NEAR_LINE_MSE
 
 CONTROL, FINE_TUNE, EPOCH_80 = "gen84_noise_byepoch_ep21", "ft_hindsight_relabel", "gen84_noise_byepoch_ep80"
@@ -95,8 +96,8 @@ def main(path):
                        legal=files[a]["summary"]["legal"], condition=(files[a].get("preflight") or {}).get("condition", {}).get("share_teams_changed"),
                        line_ups=dict(all_asks=D.line_ups(g, species_of, training, records), top_asks=D.line_ups(g, species_of, training, records, D.TOP)))
     arms[FINE_TUNE]["repeats"] = repeats(grids[FINE_TUNE], relabelled, species_of)
-    stop = json.load(open(RES / "stat84_labelled_noise_byepoch_ep21_ft_hindsight_relabel_es3_cap40.json"))
-    arms[FINE_TUNE]["training"] = {k: stop[k] for k in ("best_pass", "stopped_pass", "cap", "patience", "lr", "batch", "label_noise",
+    stop = epoch_names(json.load(open(RES / "stat84_labelled_noise_byepoch_ep21_ft_hindsight_relabel_es3_cap40.json")))
+    arms[FINE_TUNE]["training"] = {k: stop[k] for k in ("best_epoch", "stopped_epoch", "cap", "patience", "lr", "batch", "label_noise",
                                                        "n_train", "relabelled_teams", "val_share", "split_seed", "relabels_per_ask", "curves")}
     out = dict(win_rate="against the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled, one battle per opponent",
                interval="95%, bootstrap over teams within each ask and seed, battles not resampled", draws=D.DRAWS,

@@ -52,7 +52,7 @@ class LookaheadArms(unittest.TestCase):
             try: rows.append(T.encode(VOCAB, team))
             except ValueError: continue
             if len(rows) == 256: break
-        cls.model = M.Model84.train_new(VOCAB, CORPUS, rows, labels=None, passes=2, seed=0)
+        cls.model = M.Model84.train_new(VOCAB, CORPUS, rows, labels=None, epochs=2, seed=0)
         cls.drawn = {la: [cls.draw(R.RandomDecodingArm(cls.model, lookahead=la), s) for s in SEEDS] for la in (False, True)}
         val = Validator()
         try:

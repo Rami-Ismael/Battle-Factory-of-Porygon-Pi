@@ -48,7 +48,7 @@ Every new vector starts at standard deviation 0.02, like the current table. The 
 | Training seed | Nuisance | 0 for every arm; 1 for No split, second seed, which measures training luck |
 | Sampling seed | Nuisance | 1, 2, 3 |
 | Training length | Fixed | From #108, the same for every arm. Patience off; the last epoch's weights kept |
-| Learning-rate schedule | Fixed | AdamW, warm-up and cosine decay sized to a cap of 80 passes, learning rate 4e-4, batch 256, EMA 0.999 |
+| Learning-rate schedule | Fixed | AdamW, warm-up and cosine decay sized to a cap of 80 epochs, learning rate 4e-4, batch 256, EMA 0.999 |
 | Label noise | Fixed | ±1/48 on training labels, a separate random generator; validation labels exact |
 | Masking | Fixed | Exponents 16, 4, 4, 1.5, 1 for species, ability, item, move, Stat Alignment; 1 for Stat Points; ask dropout 0.15 |
 | Network | Fixed | 256 wide, 6 layers, 8 heads, dropout 0.1 |

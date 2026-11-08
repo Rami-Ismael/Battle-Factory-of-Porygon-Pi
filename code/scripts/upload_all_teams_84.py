@@ -167,7 +167,7 @@ def training_losses():
     text = TRAIN_LOG.read_text()
     section = text[text.rindex("[stat84_all_teams_es3_cap80] 298488 teams"):]
     return {int(e): (float(t), float(v)) for e, t, v in
-            re.findall(r"pass pass_ (\d+) · train_loss ([\d.]+) · val_loss ([\d.]+)", section)}
+            re.findall(r"(?:pass pass_|epoch) (\d+) · train_loss ([\d.]+) · val_loss ([\d.]+)", section)}
 
 
 def labelled_training_teams():
@@ -308,7 +308,7 @@ The set holds real corpus teams, earlier search teams, teams from the project's 
 | Planned stopping rule | 3 epochs with no new lowest validation loss |
 | Planned cap | {info['cap']} epochs |
 | Actual stop | Stopped by hand at epoch 21. The stopping rule had not fired. |
-| Kept checkpoint | Epoch {info['best_pass']}, the lowest validation loss |
+| Kept checkpoint | Epoch {info['best_epoch']}, the lowest validation loss |
 
 | Epoch | Training loss | Validation loss |
 |---|---|---|
@@ -373,7 +373,7 @@ def prepare(a):
     ev = battle_results(a.draft)
     ck = load_checkpoint(CK, map_location="cpu")
     if len(ck["members"]) != 1: raise SystemExit("expected one network")
-    if ck["info"]["best_pass"] != 21: raise SystemExit(f"expected epoch 21, found {ck['info']['best_pass']}")
+    if ck["info"]["best_epoch"] != 21: raise SystemExit(f"expected epoch 21, found {ck['info']['best_epoch']}")
     losses = training_losses()
     if max(losses) != 21: raise SystemExit(f"the log ends at epoch {max(losses)}")
 

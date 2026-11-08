@@ -38,11 +38,11 @@ Relabels nearest each ask, out of 4,416. Training teams thin out above 15/24 and
 | Learning rate, batch | Fixed | 1e-4 and 64, the search loop's fine-tune (`src/cem_dbbo.py`) |
 | Schedule | Fixed | AdamW, warm-up and cosine decay sized to the cap, EMA 0.999, ask dropout 0.15, as in the base training |
 | Label noise | Fixed | ±1/48 on training labels, as in the base training; validation labels stay exact |
-| Stopping rule | Fixed | Patience 3 on validation loss over the held-out relabelled teams, cap 40 passes. Pass 0 is the starting weights, so a fine-tune that never beats them returns the control |
+| Stopping rule | Fixed | Patience 3 on validation loss over the held-out relabelled teams, cap 40 epochs. Epoch 0 is the starting weights, so a fine-tune that never beats them returns the control |
 | Fine-tune seed | Fixed | 0 |
 | Network | Fixed | The base checkpoint's: 256 wide, 6 layers, 8 heads |
 
-The original labelled validation teams (3,563) are scored after every pass as a record of what the fine-tune forgets. They never stop training.
+The original labelled validation teams (3,563) are scored after every epoch as a record of what the fine-tune forgets. They never stop training.
 
 ### Plan
 
@@ -70,14 +70,14 @@ Each arm starts from epoch 21 of the 84-field training on labelled teams with la
 
 Noise is a bootstrap over teams within each ask and seed on the control's grid, 4,416 teams. The error of one 3-seed arm has a standard deviation of 0.00025, and the difference between two arms 0.00035. A gap of 0.00097 is detectable at 5% false positives and 80% power, at the 0.001 bar. The response to the ask has a standard deviation of 0.0046 per arm and 0.0063 for a difference. Training-seed noise is not included, and one fine-tune cannot measure it.
 
-Budget: 216,384 battles for the fine-tune's grid, about 46 minutes of battles plus generation, the same as the control. The fine-tune trains on 3,533 teams, 56 batches a pass, at most 40 passes. The smoke run took 0.1 minutes for one pass on 79 teams.
+Budget: 216,384 battles for the fine-tune's grid, about 46 minutes of battles plus generation, the same as the control. The fine-tune trains on 3,533 teams, 56 batches an epoch, at most 40 epochs. The smoke run took 0.1 minutes for one epoch on 79 teams.
 
 ## Probes
 
 | Probe | Result |
 | --- | --- |
 | Ceiling | Passed 2026-11-07, battle-free. If the fine-tune reproduced its relabels exactly, teams drawn at ask k/24 would be teams that scored k/24. Re-battled, such a team regresses toward its cell's mean by the grid's reliability, 0.875 (true variance 0.0283 against battle noise 0.0040 at 49 battles). The predicted error on asks 1/24 to 17/24 is 0.00014, against the control's 0.0066: well past the 0.001 bar. Asks 20/24 and above have no relabels, so no ceiling there. |
-| Training smoke | Passed 2026-11-07 on 96 relabelled teams: pass 0 validation loss 2.059, pass 1 2.027; no team dropped by the rule tables. `scripts/test_fine_tuned84.py` checks that a fine-tune that learns nothing returns its starting weights and that the base model is left unchanged. The refactor of the training loop into `Model84._fit` reproduced a tiny training's losses to six decimals. |
+| Training smoke | Passed 2026-11-07 on 96 relabelled teams: epoch 0 validation loss 2.059, epoch 1 2.027; no team dropped by the rule tables. `scripts/test_fine_tuned84.py` checks that a fine-tune that learns nothing returns its starting weights and that the base model is left unchanged. The refactor of the training loop into `Model84._fit` reproduced a tiny training's losses to six decimals. |
 | Ask-grid smoke | Passed 2026-11-07 after the training-loop refactor: the `verify-ask-grid84` smoke on the control checkpoint drew 4 legal teams at ask 12/24 and recorded 196 battles in a private database. A one-off check loaded the fine-tune's smoke checkpoint and drew 8 teams at ask 12/24, all legal. |
 | Round trip, coverage, read teams, controls, separation, condition, copies | Run by the queue on the fine-tuned checkpoint before any battle (`ask_grid84.py preflight`). A failure stops the queue. Copies there compare with the original labelled training teams; repeats of relabelled teams are counted by `src/hindsight_error_compare.py`. |
 | Invariance, repeat | Skipped: the scorer is unchanged, and every battle shuffles slots. |
