@@ -61,5 +61,63 @@ class ByteIdenticalSaves(unittest.TestCase):
             np.testing.assert_array_equal(back["all_W"], arrays["all_W"])
 
 
+def entry(battles=0, dropped=(), fam=1):
+    e = dict(x=None, wins=0.5 * battles, battles=battles, tags=set(), fam=fam)
+    if dropped: e["dropped"] = set(dropped)
+    return e
+
+
+@unittest.skipUnless(LD84 is not None, "the /tmp/vgc-pilot runtime is not available")
+class ShuffledSlotTable(unittest.TestCase):
+    """Which teams leave the shuffled-slot table (issue #229), and its counts read back from the saved files."""
+
+    def test_a_team_whose_only_labels_were_dropped_leaves(self):
+        self.assertEqual(LD84.fate(entry(dropped={LD84.LD.LISTED_FALLBACK}), None), LD84.NOT_SHUFFLED)
+        self.assertEqual(LD84.fate(entry(dropped={LD84.LD.RUN_FILE}), None), LD84.NOT_SHUFFLED)
+
+    def test_a_team_with_a_shuffled_label_stays_beside_dropped_ones(self):
+        self.assertIsNone(LD84.fate(entry(battles=49, dropped={LD84.LD.RUN_FILE}), None))
+
+    def test_a_team_never_labelled_stays_unlabelled(self):
+        self.assertIsNone(LD84.fate(entry(), None))
+
+    def test_a_team_the_validator_rejects_leaves(self):
+        self.assertEqual(LD84.fate(entry(battles=49), "Archaludon can't learn Hyper Beam"), LD84.ILLEGAL)
+        self.assertEqual(LD84.fate(entry(), "Archaludon can't learn Hyper Beam"), LD84.ILLEGAL)
+
+    def test_lost_mask_names_each_dropped_rule(self):
+        self.assertEqual(LD84.lost_mask(entry()), 0)
+        self.assertEqual(LD84.lost_mask(entry(dropped={LD84.LD.LISTED_FALLBACK, LD84.LD.RUN_FILE})), 3)
+
+    def test_tables_and_counts_from_the_saved_files(self):
+        rows = {bytes([i]): ROW.copy() for i in range(5)}
+        for i, r in enumerate(rows.values()): r[0] = i + 1
+        pool = {bytes([0]): entry(battles=49),                                   # shuffled label: stays labelled
+                bytes([1]): entry(battles=49, dropped={LD84.LD.RUN_FILE}),       # stays, run-file label lost
+                bytes([2]): entry(dropped={LD84.LD.LISTED_FALLBACK}, fam=2),    # leaves: listed only
+                bytes([3]): entry(),                                             # stays unlabelled
+                bytes([4]): entry(battles=49)}                                   # leaves: illegal
+        sets = {k: {(0,): r} for k, r in rows.items()}
+        checked = []
+        def check(row):
+            checked.append(int(row[0])); return "illegal" if row[0] == 5 else None
+        table, gone, errors, kept = LD84.shuffled_tables(dict(pool=pool), sets, check)
+        self.assertEqual(kept, [bytes([0]), bytes([1]), bytes([3])])
+        self.assertNotIn(3, checked)                                             # a team leaving anyway is not validated
+        self.assertEqual(errors, ["illegal"])
+        with tempfile.TemporaryDirectory() as d:
+            t, r = Path(d) / "t.npz", Path(d) / "r.npz"
+            LD84.save_npz(t, table); LD84.save_npz(r, gone)
+            c = LD84.counts_from_files(t, r)
+        self.assertEqual(c["table"]["rows"], 3)
+        self.assertEqual(c["table"]["labelled"], 2)
+        self.assertEqual(c["table"]["unlabelled"], 1)
+        self.assertEqual(c["removed"][LD84.NOT_SHUFFLED]["teams"], 1)
+        self.assertEqual(c["removed"][LD84.NOT_SHUFFLED]["by_family"]["oldpool"], 1)
+        self.assertEqual(c["removed"][LD84.ILLEGAL]["teams"], 1)
+        self.assertEqual(c["lost_label"][LD84.LD.RUN_FILE]["teams"], 1)
+        self.assertEqual(c["lost_label"][LD84.LD.LISTED_FALLBACK]["teams"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

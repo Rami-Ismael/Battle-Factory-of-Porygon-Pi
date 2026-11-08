@@ -12,6 +12,7 @@ Labels (win rate vs the top-50, BC policy both sides) are pooled per team the sa
 asked_vs_got.gather() does: wins summed over every measurement, divided by battles.
 The matchup matrix adds each team's per-opponent row (top-50 columns), from shuffled-slot battles when they cover
 40 opponents, else from listed-order battles (policy 1); one team's row never mixes the two (top50_rows).
+gather(shuffled_only=True) keeps shuffled-slot labels only and records every label it leaves out (issue #229).
 A neutral or missing nature counts as Serious, as in the matchup database (neutral_as_serious), so a team and its
 battled copy there are one row.
 
@@ -146,29 +147,57 @@ def matrix_label(r, own_col, cw):
     return float((cw[cov] * r[cov, 0] / r[cov, 1]).sum() / cw[cov].sum()), int(r[cov, 1].sum())
 
 
-def top50_rows(con, top):
+SHUFFLED, LISTED_FALLBACK, RUN_FILE = "shuffled", "listed_fallback", "run_file"
+# Where a label comes from. Only SHUFFLED is shuffled-slot battles (policy 8). LISTED_FALLBACK is top50_rows' policy 1
+# row. RUN_FILE is a label a run measured itself (the old training pool and every results file); no run file records
+# its slot order, and runs before 2026-10-28 battled in listed order.
+
+
+def top50_rows(con, top, sources=None):
     """Each team's row against the top-50, from one slot order, never both pooled: shuffled when those battles
-    cover MIN_COVERAGE opponents, else listed. Most teams battled since 2026-10-28 have only shuffled battles."""
+    cover MIN_COVERAGE opponents, else listed. Most teams battled since 2026-10-28 have only shuffled battles.
+    sources, a dict, gets each team's SHUFFLED or LISTED_FALLBACK."""
     sp = shuffled_policy(con)
     by_policy = policy_rows(con, top, [LISTED_POLICY] + ([sp] if sp is not None else []))
     rows = by_policy[LISTED_POLICY]
+    src = dict.fromkeys(rows, LISTED_FALLBACK)
     col = {tid: j for j, tid in enumerate(top)}
     for tid, r in by_policy.get(sp, {}).items():
-        if tid not in rows or coverage(r, col.get(tid)).sum() >= MIN_COVERAGE: rows[tid] = r
+        if tid not in rows or coverage(r, col.get(tid)).sum() >= MIN_COVERAGE: rows[tid] = r; src[tid] = SHUFFLED
+    if sources is not None: sources.update(src)
     return rows
 
 
-def gather(observe=None):  # noqa: C901
+def top50_labels(con, top, cw):
+    """{team_id: (row, win rate or None, battles or None, source)} for every team with battles against the top-50."""
+    sources = {}
+    rows = top50_rows(con, top, sources)
+    col = {tid: j for j, tid in enumerate(top)}
+    return {tid: (r, *matrix_label(r, col.get(tid), cw), sources[tid]) for tid, r in rows.items()}
+
+
+def credit(e, y, n, source, shuffled_only=False):
+    """Add a label of win rate y over n battles to pool entry e. With shuffled_only, a label from anything but
+    shuffled-slot battles is not added; its source goes into e["dropped"] so the caller can count and remove it."""
+    if y is None or not n: return
+    if shuffled_only and source != SHUFFLED:
+        e.setdefault("dropped", set()).add(source); return
+    e["wins"] += float(y) * n; e["battles"] += int(n)
+
+
+def gather(observe=None, shuffled_only=False):  # noqa: C901
     """Every source pooled per 48-field team: dict(pool, stats, xte, wte, top). observe(key, team), if given, is called
     with each kept appearance's encoding bytes and parsed team (Stat Points included), so a caller can see what the
-    48-field key throws away."""
+    48-field key throws away.
+    shuffled_only=True labels teams from the matchup database's shuffled-slot battles alone (issue #229): no policy 1
+    fallback and no run-file labels. Each entry's "dropped" set names the label sources it lost."""
     corpus, V, *_ = X.setup()
     xte, wte, _, _ = test_split(V)
     test_keys = {r.tobytes() for r in xte} | {r.tobytes() for r in test_split(V, nature_as_serious=True)[0]}
     held_keys = HO.identities()             # ranks 51-100 (48 fields): never a training row, never a matrix-derived label
 
     pool = {}            # encoding bytes -> dict(x, wins, battles, tags:set, row:None)
-    def add(x, tag, y=None, n=0, fam=None, team=None):
+    def add(x, tag, y=None, n=0, fam=None, team=None, source=RUN_FILE):
         k = x.tobytes()
         if k in test_keys: return "test"
         if HO.row_key(x, V) in held_keys: return "heldout"
@@ -176,8 +205,7 @@ def gather(observe=None):  # noqa: C901
         e = pool.setdefault(k, dict(x=x, wins=0.0, battles=0, tags=set(), fam=0))
         e["tags"].add(tag)
         if fam: e["fam"] |= 1 << FAM.index(fam)
-        if y is not None and n:
-            e["wins"] += float(y) * n; e["battles"] += int(n)
+        credit(e, y, n, source, shuffled_only)
         return "ok"
 
     cache = {}
@@ -224,17 +252,17 @@ def gather(observe=None):  # noqa: C901
     con = MDB.connect()
     top = MDB.set_members(con, "top50")
     wt = dict(con.execute("SELECT team_id, weight FROM team_set WHERE set_name='top50'").fetchall())
-    col = {tid: j for j, tid in enumerate(top)}
     cw = np.array([wt[t] for t in top], np.float32)
-    rows = top50_rows(con, top)
+    labels = top50_labels(con, top, cw)
     for tid, p, origin in con.execute("SELECT team_id, paste, origin FROM team WHERE legal=1"):
         e, t = enc(p)
         if e is None: stats["matrix"]["unencodable"] += 1; continue
         tag = "real" if origin.startswith("vgcpastes") else "fill" if origin.startswith("randomfill") else "model"
-        r = rows.get(tid)
-        y, n = matrix_label(r, col.get(tid), cw) if r is not None else (None, None)
-        s = add(e, tag, y, n or 0, fam="real" if tag == "real" else "fill" if tag == "fill" else "matrix", team=t)
+        r, y, n, source = labels.get(tid, (None, None, None, SHUFFLED))
+        s = add(e, tag, y, n or 0, fam="real" if tag == "real" else "fill" if tag == "fill" else "matrix", team=t,
+                source=source)
         stats["matrix"][s] += 1
+        if shuffled_only and source != SHUFFLED: r = None       # its listed-order cells stay out of the pooled row
         if s == "ok" and r is not None:
             pr = pool[e.tobytes()].setdefault("row", np.zeros((len(top), 2), np.float32))
             pr += r
