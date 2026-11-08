@@ -105,7 +105,11 @@ class TrainingStoppingAndSaving(unittest.TestCase):
         info = self.stopped.info
         curve = [e["val_loss"] for e in self.log]
         self.assertEqual(info["best_epoch"], 1 + int(self.np.argmin(curve)))
-        self.assertTrue(info["stopped_epoch"] == 6 or info["stopped_epoch"] - info["best_epoch"] == 1)
+        reset, low = 0, float("inf")                                  # last epoch that beat the lowest by more than the threshold
+        for epoch, loss in enumerate(curve, 1):
+            if low - loss > info["early_stopping_threshold"]: reset = epoch
+            low = min(low, loss)
+        self.assertTrue(info["stopped_epoch"] == 6 or info["stopped_epoch"] - reset == 1)
         restored = self.M.val_loss(self.stopped.net, self.stopped.tables, self.val, self.val_w, self.M.sched84().to(self.M.DEV))
         self.assertAlmostEqual(restored, info["best_val_loss"], places=5)
 
@@ -121,6 +125,23 @@ class TrainingStoppingAndSaving(unittest.TestCase):
         self.assertEqual((m.info["best_epoch"], m.info["stopped_epoch"]), (2, 4))
         for k, v in m.net.state_dict().items():
             self.assertTrue(bool((v == best_weights[2][k]).all()), k)
+
+    def test_a_gain_under_the_threshold_is_kept_as_best_but_does_not_reset_patience(self):
+        from unittest import mock
+        curve = iter([3.0, 2.0, 1.9995, 1.9991, 1.0, 0.5])            # passes 3 and 4 gain under 0.001 each
+        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+            m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, epochs=6, seed=0, val=(self.val, self.val_w),
+                                         patience=2, early_stopping_threshold=0.001, d=64, nlayer=2, nhead=4)
+        self.assertEqual((m.info["best_epoch"], m.info["stopped_epoch"]), (4, 4))
+        self.assertEqual(m.info["early_stopping_threshold"], 0.001)
+
+    def test_a_zero_threshold_resets_patience_on_any_gain(self):
+        from unittest import mock
+        curve = iter([3.0, 2.0, 1.9995, 1.9991, 1.0, 0.5])
+        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+            m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, epochs=6, seed=0, val=(self.val, self.val_w),
+                                         patience=2, early_stopping_threshold=0.0, d=64, nlayer=2, nhead=4)
+        self.assertEqual((m.info["best_epoch"], m.info["stopped_epoch"]), (6, 6))
 
     def test_a_fixed_stop_keeps_the_last_epoch_even_when_an_earlier_one_scored_better(self):
         from unittest import mock
