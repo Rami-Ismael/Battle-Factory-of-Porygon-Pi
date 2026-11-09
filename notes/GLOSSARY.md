@@ -1,6 +1,6 @@
 ---
 created_at: 2026-10-20
-updated_at: 2026-11-08
+updated_at: 2026-11-09
 tags:
   - vocabulary
 ---
@@ -267,6 +267,14 @@ _Avoid_: curves, loss log
 **Experiment tracking**:
 Recording each training run's hyperparameters, learning curve and checkpoints in one place, so runs can be compared side by side.
 _Avoid_: logging (alone), monitoring
+
+**Early-stopping threshold**:
+The smallest drop in validation loss that resets patience. A new lowest validation loss resets the patience count only when it beats the previous best by more than the threshold: 0.001 in the 84-field training loop since PR #246. A smaller drop still becomes the kept best epoch, so the threshold changes when training stops, not which checkpoint is kept. _Origin_: the stopping criteria of [Prechelt 1998, "Early Stopping — But When?"](https://doi.org/10.1007/3-540-49430-8_3); Hugging Face's `EarlyStoppingCallback` calls it `early_stopping_threshold`.
+_Avoid_: min_delta (Keras's name), tolerance
+
+**Planted bug**:
+A deliberately wrong version of one line of code, run against the test suite to check that at least one test fails. A planted bug that every test passes marks a hole in the tests. _Origin_: mutation testing, [DeMillo, Lipton and Sayward 1978](https://doi.org/10.1109/C-M.1978.218136).
+_Avoid_: mutant (mutation testing's name), injected fault
 
 ## Sampling
 
