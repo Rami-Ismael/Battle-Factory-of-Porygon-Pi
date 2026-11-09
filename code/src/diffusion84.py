@@ -1,10 +1,10 @@
 """The 84-field discrete diffusion model (issue #57): the deployed recipe of `lossdown.py` with six Stat Points
 per Pokémon added as generated fields, built beside the 48-field code, which stays untouched.
 
-    m = Model84.train_new(V, corpus, rows84, labels, passes=2)
+    m = Model84.train_new(V, corpus, rows84, labels, epochs=2)
     rows = m.sample(64, ask=0.5, guidance=2.0)          # [64, 84] tokens, legal by construction
     paste, slots = m.to_paste(rows[0])                  # Stat Points written from the row, never copied
-    m = Model84.train_new(..., passes=80, val=(rows, labels), patience=3)   # early stopping, best pass kept
+    m = Model84.train_new(..., epochs=80, val=(rows, labels), patience=3)   # early stopping, best epoch kept
     both = Model84.mixture([a, b]); both.save(path); Model84.load(path)     # log-mean of the members, like team_writer
 
 What is the same as `lossdown.py`: field embeddings and heads per field type, one position per column, the
@@ -167,6 +167,19 @@ def val_loss(net, tables, x, w, sched, reps=4, seed=12345, batch=512):
     return tot / (N * reps)
 
 
+def _training_tensors(tables, rows, labels, row_weights=None):
+    """Rows the tables accept, their labels (NaN = unlabelled) and optional weights averaging 1, on the device.
+    Rows whose true value the tables exclude are dropped; keep marks the rows kept."""
+    X84 = np.asarray(rows, dtype=np.int64)
+    keep = ~tables.check(X84[:, :STAT0])
+    W = np.full(len(keep), NAN, np.float32) if labels is None else np.asarray(labels, np.float32)
+    x, w = torch.as_tensor(X84[keep], device=DEV), torch.as_tensor(W[keep], device=DEV)
+    rw = None
+    if row_weights is not None:
+        kept_w = np.asarray(row_weights, np.float32)[keep]; rw = torch.as_tensor(kept_w / kept_w.mean(), device=DEV)
+    return x, w, rw, keep
+
+
 class Model84:
     """One or more trained 84-field networks (a mixture samples from the log-mean of its members, like team_writer)
     plus what sampling and pastes need. Build one with Model84.train_new(), Model84.mixture() or Model84.load()."""
@@ -186,44 +199,86 @@ class Model84:
         return self.nets[0][0]
 
     @classmethod
-    def train_new(cls, V, corpus, rows, labels=None, passes=2, seed=0, batch=256, lr=4e-4, wd=0.01,  # noqa: C901
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_pass=None, **net_kw):
+    def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
-        val=(rows, labels): validation loss after every pass (common random numbers). patience=P: stop after P
-        passes with no new lowest validation loss and keep the best pass's weights; passes is then the cap, and
-        the learning-rate schedule is sized to it. on_best(model, pass_number) runs at every new lowest.
+        val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
+        epochs with no new lowest validation loss and keep the best epoch's weights; epochs is then the cap, and
+        the learning-rate schedule is sized to it. on_best(model, epoch) runs at every new lowest.
+        early_stopping_threshold=T: as in Hugging Face's EarlyStoppingCallback, only an epoch whose validation loss
+        beats the lowest so far by more than T resets the patience count; a smaller gain still becomes the kept best epoch.
         label_noise=W: each batch's labels get fresh uniform noise in [-W, +W]; validation labels stay exact.
-        stop_after=N: end after N passes while keeping the schedule sized to passes, so a shorter run matches a stopped one.
-        on_epoch(model, epoch): runs after every pass, on the weights a checkpoint would save.
+        stop_after=N: end after N epochs while keeping the schedule sized to epochs, so a shorter run matches a stopped one.
+        on_epoch(model, epoch): runs after every epoch, on the weights a checkpoint would save.
         row_weights: one training weight per row of rows; validation loss stays unweighted.
-        labels_each_pass(p): [N] labels for rows, drawn fresh before pass p (0-based); replaces labels from then on."""
+        labels_each_epoch(e): [N] labels for rows, drawn fresh before epoch e (0-based); replaces labels from then on."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
-        X84 = np.asarray(rows, dtype=np.int64)
-        keep = ~tables.check(X84[:, :STAT0])                   # rows whose true value the tables exclude are dropped
-        X84 = X84[keep]
-        W = np.full(len(keep), NAN, np.float32) if labels is None else np.asarray(labels, np.float32)
-        x, w = torch.as_tensor(X84, device=DEV), torch.as_tensor(W[keep], device=DEV)
-        rw = None
-        if row_weights is not None:
-            kept_w = np.asarray(row_weights, np.float32)[keep]; rw = torch.as_tensor(kept_w / kept_w.mean(), device=DEV)
+        x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
         net = Net84(V, **net_kw).to(DEV)
+        info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs, patience=patience,
+                    early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
+        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None)
+        relabel = None if labels_each_epoch is None else \
+            (lambda e: torch.as_tensor(np.asarray(labels_each_epoch(e), np.float32)[keep], device=DEV))
+        return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
+                        ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
+                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel)
+
+    def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
+                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None):
+        """A new model: this one-member model's weights trained further on 84-field rows; self is unchanged.
+        The recipe is train_new's (AdamW, warm-up and cosine decay sized to the cap of `epochs`, EMA, ask dropout,
+        label noise on training labels only). Validation loss on val=(rows, labels) is measured before the first epoch
+        too, so epoch 0 is the starting weights: if no epoch beats them, early stopping returns them unchanged.
+        early_stopping_threshold: the smallest validation-loss gain that resets the patience count, as in train_new.
+        watch={name: (rows, labels)}: more validation sets, logged every epoch and never used to stop."""
+        net_kw = self.nets[0][1]
+        start = copy.deepcopy(self.net).to(DEV)
+        torch.manual_seed(seed)
+        x, w, rw, keep = _training_tensors(self.tables, rows, labels)
+        info = dict(base=self.info, fine_tune=True, n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs,
+                    patience=patience, early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None)
+        return type(self)._fit(self.V, None, self.tables, start, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd,
+                               warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold,
+                               on_best=None, label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, epoch0=True,
+                               like=self)
+
+    @classmethod
+    def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
+             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None):
+        """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
+        lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
+        relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps."""
+        make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
+               (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
         sw = sched84(sched).to(DEV)
-        steps = math.ceil(len(x) / batch) * passes; warm = min(warmup, max(1, steps // 10))
+        steps = math.ceil(len(x) / batch) * epochs; warm = min(warmup, max(1, steps // 10))
         opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=wd, betas=(0.9, 0.98))
         lr_at = lambda s: lr * min(1.0, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(s, steps) / steps))
-        info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=passes, patience=patience,
-                    lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
-        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_pass=labels_each_pass is not None)
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
-        best, best_pass, best_sd, step = math.inf, 0, None, 0
+        best, best_epoch, best_sd, step = math.inf, 0, None, 0
+        reset_epoch = 0                                   # last epoch that beat the lowest loss by more than threshold
         t_start = time.perf_counter()
-        for p in range(passes):
-            if labels_each_pass is not None:
-                w = torch.as_tensor(np.asarray(labels_each_pass(p), np.float32)[keep], device=DEV)
+
+        def measure(m, entry):
+            if val is not None:
+                entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw)
+            for name, (vx, vw) in (watch or {}).items():
+                entry[f"{name}_val_loss"] = val_loss(m, tables, vx, vw, sw)
+
+        if epoch0:
+            m = (avg if avg is not None else net).eval(); entry = dict(epoch=0); measure(m, entry)
+            if val is not None:
+                best, best_sd = entry["val_loss"], {k: v.detach().clone() for k, v in m.state_dict().items()}
+            entry["minutes"] = 0.0; log.append(entry)
+            print("  " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
+        for p in range(epochs):
+            if relabel is not None:
+                w = relabel(p)
             net.train(); run = 0.0; nb = 0
             for b in torch.randperm(len(x), device=DEV).split(batch):
                 loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b])
@@ -237,24 +292,30 @@ class Model84:
                 run += float(loss.detach()); nb += 1
             m = avg if avg is not None else net
             m.eval()
-            entry = dict(pass_=p + 1, train_loss=run / nb)
-            if val is not None:
-                entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw)
-                if entry["val_loss"] < best:
-                    best, best_pass = entry["val_loss"], p + 1
-                    best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
-                    if on_best is not None: on_best(cls(V, corpus, [(m, net_kw)], dict(info, best_pass=best_pass)), best_pass)
+            entry = dict(epoch=p + 1, train_loss=run / nb)
+            measure(m, entry)
+            if val is not None and entry["val_loss"] < best:
+                if best - entry["val_loss"] > threshold: reset_epoch = p + 1
+                best, best_epoch = entry["val_loss"], p + 1
+                best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
+                if on_best is not None: on_best(make(m, dict(best_epoch=best_epoch)), best_epoch)
             entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
-            if on_epoch is not None: on_epoch(cls(V, corpus, [(m, net_kw)], dict(info, epoch=p + 1)), p + 1)
+            if on_epoch is not None: on_epoch(make(m, dict(epoch=p + 1)), p + 1)
             log.append(entry)
-            print("  pass " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
-            if patience and p + 1 - best_pass >= patience: break
+            print("  " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
+            if patience and p + 1 - reset_epoch >= patience: break
             if stop_after and p + 1 >= stop_after: break
         m = avg if avg is not None else net
         if patience and best_sd is not None: m.load_state_dict(best_sd)
-        info.update(stopped_pass=len(log), best_pass=best_pass or None, best_val_loss=None if best == math.inf else best,
-                    curves=log)
-        return cls(V, corpus, [(m, net_kw)], info)
+        trained = [e for e in log if e["epoch"] > 0]
+        info.update(stopped_epoch=len(trained), best_epoch=best_epoch or (0 if epoch0 and val is not None else None),
+                    best_val_loss=None if best == math.inf else best, curves=log)
+        return make(m, {})
+
+    def _with(self, nets, info):
+        """A model sharing this one's vocabulary, tables and paste lookups, with other networks."""
+        out = copy.copy(self); out.nets = [(net.eval(), kw) for net, kw in nets]; out.info = info
+        return out
 
     @classmethod
     def mixture(cls, models, info=None):

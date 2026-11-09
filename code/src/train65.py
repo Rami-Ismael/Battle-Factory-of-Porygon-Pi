@@ -54,7 +54,7 @@ def load():
 
 
 def label_rule(arm, C):
-    """(fixed labels, labels_each_pass or None) for one arm."""
+    """(fixed labels, labels_each_epoch or None) for one arm."""
     if ARMS[arm] is None: return full_label(C), None
     lo, hi = ARMS[arm]
     return full_label(C), lambda p: D.subset_labels(C, np.random.default_rng(SUBSET_SEED + p), lo, hi)[1]
@@ -69,14 +69,14 @@ def train(arm):
     name = f"stat65_{arm}"; out = L.CK / f"{name}.pt"
     print(f"[{name}] {READER[arm]} · {int(tr.sum())} teams · {int(va.sum())} validation teams · cap 80, patience 3", flush=True)
     t0 = time.perf_counter()
-    m = M.Model84.train_new(V, corpus, X84[tr], labels, passes=80, val=val, patience=3, on_best=lambda m, _p: m.save(out),
-                            labels_each_pass=each, **RECIPE, **NET)
+    m = M.Model84.train_new(V, corpus, X84[tr], labels, epochs=80, val=val, patience=3, on_best=lambda m, _p: m.save(out),
+                            labels_each_epoch=each, **RECIPE, **NET)
     m.info.update(arm=arm, reader=READER[arm], subset=ARMS[arm], subset_seed=SUBSET_SEED, exclude_within=EXCLUDE_WITHIN,
                   data_sha256=sha, minutes=round((time.perf_counter() - t0) / 60, 1), val_rows=int(va.sum()))
     m.save(out)
     RES.mkdir(parents=True, exist_ok=True)
     json.dump(m.info, open(RES / f"{name}.json", "w"), indent=1, default=float)
-    print(f"[{name}] done in {m.info['minutes']} min; best epoch {m.info['best_pass']}, stopped {m.info['stopped_pass']} -> {out}")
+    print(f"[{name}] done in {m.info['minutes']} min; best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']} -> {out}")
 
 
 @torch.no_grad()
@@ -107,8 +107,8 @@ def smoke():
     def each(p):
         calls.append(p); return D.subset_labels(C, np.random.default_rng(SUBSET_SEED + p), 1, 39)[1]
     ce = init_ce(V, corpus, X84)
-    m = M.Model84.train_new(V, corpus, X84, full_label(C), passes=400, batch=16, lr=1e-3, warmup=10, ema=0, seed=0,
-                            sched=M.SCHED, labels_each_pass=each, **NET)
+    m = M.Model84.train_new(V, corpus, X84, full_label(C), epochs=400, batch=16, lr=1e-3, warmup=10, ema=0, seed=0,
+                            sched=M.SCHED, labels_each_epoch=each, **NET)
     curve = [e["train_loss"] for e in m.info["curves"]]
     first, last = float(np.mean(curve[:5])), float(np.mean(curve[-5:]))
     draws = [D.subset_labels(C, np.random.default_rng(SUBSET_SEED + p), 1, 39)[1] for p in (0, 1)]

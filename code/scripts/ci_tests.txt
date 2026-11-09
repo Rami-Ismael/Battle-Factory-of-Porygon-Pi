@@ -36,5 +36,8 @@ test_ask_line.py
 test_label_noise.py
 test_training_teams_line.py
 test_ddom_weights.py
+test_ddom_error_compare.py
 test_mask_paste.py
 test_ask_error_compare.py
+test_hindsight_relabel.py
+test_matchup_score.py

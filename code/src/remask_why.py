@@ -12,7 +12,8 @@ Two controls, both scored like the remasking grid (64 Showdown-legal, non-held-o
   24-battle scores, so they sit on steps of 1/24; asks 0.3 and 0.531 sit between steps. If plain masking's win rate at
   the off-grid asks breaks the trend of their on-grid neighbours, the ask encoding is to blame.
 
-- Alphabetical order: the plain masking and remasking 10% teams of the grid, re-battled with VGC_SLOT_ORDER=listed.
+- Alphabetical order (ran 2026-10-30; the command was removed 2026-11-07 with listed order, and its results stay
+  under the key "listed"): the plain masking and remasking 10% teams of the grid, re-battled in listed order.
   The matchup database stores every team in canonical form (matchup_db.canonical_slots sorts the six Pokemon by
   species), so "listed" battles them in alphabetical order, not the order the model drew them. Matrix-labelled
   training teams were battled the same way before 2026-10-28; every grid here is shuffled. The paired difference per
@@ -22,7 +23,6 @@ Two controls, both scored like the remasking grid (64 Showdown-legal, non-held-o
 each field type once the other 47 fields are visible.
 
     python remask_why.py probe | gen | battle | report        (run with /tmp/vgc-pilot/.venv/bin/python)
-    VGC_SLOT_ORDER=listed python remask_why.py listed     # alphabetical order, see above
 """
 import json, math, os, sys
 from pathlib import Path
@@ -160,22 +160,5 @@ def report():
     out["summary"] = summ; save(out)
 
 
-def listed():
-    """The grid's plain masking and remasking 10% teams, battled in the database's alphabetical order (VGC_SLOT_ORDER=listed);
-    paired with their shuffled scores. Results stay under the key "listed"."""
-    if MDB.SLOT_ORDER != "listed": raise SystemExit("run with VGC_SLOT_ORDER=listed")
-    con = MDB.connect(); out = json.load(open(OUT)); grid = json.load(open(RA.OUT))["cells"]; res = out.setdefault("listed", {})
-    for tag, c in grid.items():
-        if c["arm"] not in ("plain", "remask10") or tag in res: continue
-        sc = MDB.score_pastes(con, c["pastes"], per_cell=1, seed=RA.SEED0 + c["seed"], origin=f"rmwhy-listed:{tag}")
-        if not RA.complete(sc, 1): print(f"  {tag} INCOMPLETE: left for the next run", flush=True); continue
-        pairs = [(s["score"], y) for s, y in zip(sc, c["y"]) if s["score"] is not None and y is not None]
-        res[tag] = dict(arm=c["arm"], ask=c["ask"], seed=c["seed"], listed=[a for a, _ in pairs], shuffled=[b for _, b in pairs])
-        save(out)
-        d = np.array([a - b for a, b in pairs])
-        print(f"  {tag:22s} alphabetical {np.mean([a for a, _ in pairs]):.3f} · shuffled {np.mean([b for _, b in pairs]):.3f} · "
-              f"alphabetical minus shuffled {d.mean():+.3f}", flush=True)
-
-
 if __name__ == "__main__":
-    {"probe": probe, "gen": gen, "battle": battle, "report": report, "listed": listed}[sys.argv[1]]()
+    {"probe": probe, "gen": gen, "battle": battle, "report": report}[sys.argv[1]]()

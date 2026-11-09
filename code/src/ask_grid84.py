@@ -62,6 +62,9 @@ for _arm, _r in (("subset_10_39", "10 to 39 opponents per label"), ("subset_1_39
                  ("subset_39", "All 39 opponents per label")):    # docs/subset-size-labels.md
     MODELS[f"gen65_{_arm}"] = dict(checkpoint=f"stat65_{_arm}", reader=_r, epochs=dict(shuffled_table="early stopping, cap 80, patience 3"),
                                    stopped="early stopping on validation rows", table65=True)
+MODELS["ft_hindsight_relabel"] = dict(checkpoint="stat84_labelled_noise_byepoch_ep21_ft_hindsight_relabel_es3_cap40",   # issue #106, src/hindsight_relabel.py
+                                      reader="Hindsight-relabeled fine-tune, epoch 21", epochs=dict(labelled_teams=21, relabelled_fine_tune="early stopping"),
+                                      stopped="epoch 21 fine-tuned on its own battled teams, labelled with measured win rate; best pass by validation loss", labelled=True)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 if MODEL not in MODELS and flagged_checkpoint(MODEL):
     MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])

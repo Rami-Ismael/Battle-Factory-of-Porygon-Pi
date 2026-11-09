@@ -1,0 +1,47 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: var(--color-ground, #E9E8E4); }
+    #sv-board { position: absolute; left: 90px; top: 320px; width: 900px; height: 900px; border-radius: 31px; background: #FAFAFA; }
+    #sv-icon { position: absolute; left: 90px; top: 320px; width: 900px; height: 900px; border-radius: 31px; opacity: 0; }
+    #sv-f32 { position: absolute; left: 536px; top: 676px; width: 168px; height: 168px; padding: 20px; background: #FFFFFF; border-radius: 14px; image-rendering: pixelated; opacity: 0; }
+    #sv-f16 { position: absolute; left: 828px; top: 708px; width: 104px; height: 104px; padding: 20px; background: #FFFFFF; border-radius: 10px; image-rendering: pixelated; opacity: 0; }
+    #root .size { position: absolute; top: 930px; width: 220px; text-align: center; font: 400 36px var(--font-display, Outfit), sans-serif; color: #555555; opacity: 0; }
+    #sv-strip { position: absolute; left: 90px; top: 640px; width: 900px; height: 190px; background: #D9D8D3; border-radius: 28px; }
+    #sv-strip .tab { position: absolute; left: 30px; top: 40px; width: 760px; height: 150px; background: #FAFAFA; border-radius: 24px 24px 0 0; }
+    #sv-strip .tab-title { position: absolute; left: 130px; top: 0; font: 400 44px var(--font-display, Outfit), sans-serif; line-height: 150px; color: #222222; white-space: nowrap; }
+    #sv-strip .tab-x { position: absolute; right: 34px; top: 0; font: 400 44px var(--font-display, Outfit), sans-serif; line-height: 150px; color: #6B6B6B; }
+    #sv-fav { position: absolute; left: 160px; top: 723px; width: 64px; height: 64px; image-rendering: pixelated; }
+    #sv-strip, #sv-fav { opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="survivor" data-width="1080" data-height="1350" data-start="0" data-duration="7.8">
+    <img id="sv-board" src="assets/boards/04b.png" alt="Construction board 04b" />
+    <img id="sv-icon" src="assets/icon-512.png" alt="The colour mark" />
+    <img id="sv-f32" src="assets/favicon-32.png" alt="32 px favicon" />
+    <img id="sv-f16" src="assets/favicon-16.png" alt="16 px favicon" />
+    <div id="sv-l512" class="size" style="left: 150px;">512 px</div>
+    <div id="sv-l32" class="size" style="left: 510px;">32 px</div>
+    <div id="sv-l16" class="size" style="left: 770px;">16 px</div>
+    <div id="sv-strip" class="strip">
+      <div class="tab"><span class="tab-title">Battle Factory of Porygon-Pi</span><span class="tab-x">×</span></div>
+    </div>
+    <img id="sv-fav" src="assets/favicon-16.png" alt="" />
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // The construction grid lifts away and the colour mark is left (blur swap on one stage).
+    tl.fromTo("#sv-board", { opacity: 1, scale: 1, filter: "blur(0px)" }, { opacity: 0, scale: 1.03, filter: "blur(8px)", duration: 0.35, ease: "power2.in" }, 0.2);
+    tl.fromTo("#sv-icon", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "power2.out" }, 0.3);
+    // The size test: the 512 px export moves aside, the 32 px and 16 px favicons land at 4x.
+    tl.fromTo("#sv-icon", { x: 0, y: 0, scale: 1 }, { x: -280, y: -10, scale: 0.3333, duration: 0.7, ease: "power3.inOut", immediateRender: false }, 1.8);
+    tl.fromTo("#sv-l512", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 2.4);
+    tl.fromTo("#sv-f32", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out" }, 2.5);
+    tl.fromTo("#sv-l32", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 2.6);
+    tl.fromTo("#sv-f16", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out" }, 3.1);
+    tl.fromTo("#sv-l16", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 3.2);
+    tl.to(["#sv-icon", "#sv-l512", "#sv-f32", "#sv-l32", "#sv-f16", "#sv-l16"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in", stagger: 0.03 }, 5.0);
+    // The favicon in a browser tab.
+    tl.fromTo(["#sv-strip", "#sv-fav"], { opacity: 0, y: 24, filter: "blur(6px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }, 5.15);
+    tl.set({}, {}, 7.8);
+    window.__timelines["survivor"] = tl;
+  </script>
+</template>

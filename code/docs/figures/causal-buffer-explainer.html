@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Causal Autoregressive Buffer</title>
+<style>
+:root{
+  --bg:#fbfbf9; --ink:#1d1d1b; --mute:#6b6b66; --line:#d9d8d2; --cell:#efeee9;
+  --ctx:#2f6fb3; --ctx-soft:#d6e4f3; --buf:#1f9e8a; --buf-soft:#cdeee8; --tgt:#4b4b47; --tgt-soft:#e2e1dc;
+  --off:#f4f3ef;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#181816; --ink:#ecebe6; --mute:#9d9c95; --line:#3a3a36; --cell:#262623;
+    --ctx:#6fa3dc; --ctx-soft:#21364d; --buf:#3cc7b0; --buf-soft:#163f39; --tgt:#c9c8c1; --tgt-soft:#3a3a36;
+    --off:#1f1f1d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181816; --ink:#ecebe6; --mute:#9d9c95; --line:#3a3a36; --cell:#262623;
+  --ctx:#6fa3dc; --ctx-soft:#21364d; --buf:#3cc7b0; --buf-soft:#163f39; --tgt:#c9c8c1; --tgt-soft:#3a3a36;
+  --off:#1f1f1d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:28px;line-height:1.2;margin:0 0 6px}
+.dek{color:var(--mute);margin:0 0 4px}
+.byline{color:var(--mute);font-size:13px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 0;margin:14px 0 28px}
+h2{font-size:19px;margin:40px 0 6px}
+p{margin:8px 0}
+figure{margin:18px 0 8px}
+figcaption{color:var(--mute);font-size:13px;margin-top:8px}
+b.c{color:var(--ctx)} b.b{color:var(--buf)} b.t{color:var(--tgt)}
+/* figure 1 */
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:560px){.lanes{grid-template-columns:1fr}}
+.lane h3{font-size:14px;margin:0 0 8px}
+.step{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:12px;color:var(--mute)}
+.step .lab{width:44px;flex:none}
+.toks{display:flex;gap:2px;flex-wrap:nowrap}
+.tk{width:14px;height:18px;border-radius:3px;background:var(--cell);border:1px solid transparent}
+.tk.ctx{background:var(--ctx-soft);border-color:var(--ctx)}
+.tk.ctx.work{background:var(--ctx)}
+.tk.buf{background:var(--buf-soft);border-color:var(--buf)}
+.tk.buf.work{background:var(--buf)}
+.cost{font-size:13px;margin-top:10px}
+.cost strong{font-variant-numeric:tabular-nums}
+/* figure 2 */
+.maskwrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+table.mask{border-collapse:separate;border-spacing:2px;font-size:12px}
+table.mask th{font-weight:600;padding:0 4px;color:var(--mute);cursor:pointer}
+table.mask th.row{text-align:right}
+table.mask td{width:26px;height:26px;border-radius:4px;background:var(--off)}
+table.mask td.on.c{background:var(--ctx)} table.mask td.on.b{background:var(--buf)}
+table.mask tr.dim td.on{opacity:.25}
+table.mask tr.sel th{color:var(--ink)}
+.readout{flex:1;min-width:220px;font-size:14px}
+.readout .who{font-weight:600}
+.rules{list-style:none;padding:0;margin:10px 0 0;font-size:13px}
+.rules li{padding:4px 0;border-top:1px solid var(--line);color:var(--mute)}
+.rules li.hit{color:var(--ink)}
+.rules li span{display:inline-block;width:30px;font-weight:600}
+/* figure 3 */
+.panels{display:grid;grid-template-columns:1fr 1.4fr;gap:22px}
+@media (max-width:620px){.panels{grid-template-columns:1fr}}
+.panel h3{font-size:14px;margin:0 0 8px}
+.bars .bar{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0}
+.bars .bar .nm{width:120px;flex:none;color:var(--mute)}
+.bars .track{flex:1;height:14px;background:var(--cell);border-radius:3px;position:relative}
+.bars .fill{position:absolute;inset:0 auto 0 0;border-radius:3px;background:var(--buf)}
+.bars .fill.grey{background:var(--mute)}
+.bars .v{width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.toggle{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:10px}
+.toggle button{font:inherit;font-size:13px;padding:5px 10px;border:0;background:transparent;color:var(--mute);cursor:pointer}
+.toggle button.on{background:var(--ink);color:var(--bg)}
+.team{display:grid;grid-template-columns:78px repeat(7,1fr);gap:2px;font-size:11px}
+.team .hd{color:var(--mute);text-align:center;padding-bottom:2px}
+.team .mon{color:var(--mute);display:flex;align-items:center;font-size:12px}
+.team .f{height:22px;border-radius:3px;background:var(--cell);cursor:pointer;border:1px solid transparent}
+.team .f.focus{background:var(--ink)}
+.team .f.same{background:var(--ctx)}
+.team .f.type{border-color:var(--buf);background:var(--buf-soft)}
+.note3{font-size:13px;margin-top:10px;min-height:42px}
+.foot{margin-top:40px;border-top:1px solid var(--line);padding-top:10px;font-size:13px;color:var(--mute)}
+a{color:var(--ctx)}
+</style>
+</head>
+<body>
+<main>
+<h1>Encode the context once, then predict in a buffer</h1>
+<p class="dek">What "Efficient Autoregressive Inference for Transformer Probabilistic Models" changes, and why its positional-embedding result doesn't carry over to the 84-field team model.</p>
+<div class="byline">Hassan, Loka et al., arXiv 2510.09477v2 (April 2026) · figures drawn from the paper's Sections 3 and 5 and Appendix H</div>
+
+<h2>1. The cost: re-reading everything at every step</h2>
+<p>A model like TabPFN reads a set of known points, the <b class="c">context</b>, and predicts new ones. For a joint prediction, it predicts one target, adds it to the context, and reads the whole set again. The paper reads the context once, caches it, and writes predictions into a small <b class="b">buffer</b> that only looks backwards.</p>
+<figure>
+  <div class="lanes">
+    <div class="lane"><h3>Re-encode at every step</h3><div id="laneA"></div><div class="cost" id="costA"></div></div>
+    <div class="lane"><h3>Cached context + buffer</h3><div id="laneB"></div><div class="cost" id="costB"></div></div>
+  </div>
+  <figcaption>Figure 1. Eight context points, three predicted targets. Filled squares are tokens the model recomputes at that step. Attention cost counts query × key pairs: K(N+K)² for re-encoding, N² + NK + K² with the buffer (Sec. 3).</figcaption>
+</figure>
+
+<h2>2. The mask: who may read whom</h2>
+<p>One attention mask enforces four rules, so training covers every target in a single forward pass. Click a row to see what that token reads.</p>
+<figure>
+  <div class="maskwrap">
+    <table class="mask" id="mask"></table>
+    <div class="readout">
+      <div class="who" id="who"></div>
+      <div id="reads"></div>
+      <ul class="rules" id="rules">
+        <li data-r="R1"><span>R1</span>Context is encoded once and cached, read-only</li>
+        <li data-r="R2"><span>R2</span>A buffer token reads the context and earlier buffer tokens only</li>
+        <li data-r="R3"><span>R3</span>Nothing writes back into the context</li>
+        <li data-r="R4"><span>R4</span>A target reads the context and the buffer; targets never read each other</li>
+      </ul>
+    </div>
+  </div>
+  <figcaption>Figure 2. Rows read, columns are read. Blue: reads a context token. Green: reads a buffer token. Four context points, three buffer tokens, two targets; the paper uses buffers of 16 or 32.</figcaption>
+</figure>
+
+<h2>3. The ablation: why it doesn't transfer</h2>
+<p>The paper removed the buffer's positional embedding and the score didn't move. Its causal mask already tells each buffer token how many tokens came before it. Our 84-field model has no such mask: every field reads every other field, and slots are shuffled, so only a slot vector can tell a field which Pokémon it belongs to.</p>
+<figure>
+  <div class="panels">
+    <div class="panel">
+      <h3>Paper, Gaussian-process task (Table A7)</h3>
+      <div class="bars" id="bars"></div>
+      <p style="font-size:13px;color:var(--mute)">Joint log-density, higher is better, K = 16. Standard error 0.02 for each.</p>
+    </div>
+    <div class="panel">
+      <h3>Ours: one team, 6 Pokémon × 14 fields (7 shown)</h3>
+      <div class="toggle" id="tog"><button data-v="split" class="on">Field type + slot</button><button data-v="type">Field type only</button></div>
+      <div class="team" id="team"></div>
+      <div class="note3" id="note3"></div>
+    </div>
+  </div>
+  <figcaption>Figure 3. Left: dropping order embeddings cost nothing when a mask carries the order. Right: click a field. With slot vectors, it knows its own Pokémon (blue). With field type only, all it knows is "I am a Move 1" (green outline), shared with five other Pokémon. That second case is the No slot vectors arm of map #78, expected to lose at least 0.05 win rate.</figcaption>
+</figure>
+
+<div class="foot">Source: <a href="https://arxiv.org/html/2510.09477">arXiv 2510.09477</a>. Longer notes: code/docs/causal-autoregressive-buffer-research.md. Plan: code/docs/position-embedding-split.md.</div>
+</main>
+<script>
+// Figure 1
+(function(){
+  const N=8,K=3;
+  const A=document.getElementById('laneA'),B=document.getElementById('laneB');
+  function row(parent,label,cells){
+    const s=document.createElement('div');s.className='step';
+    s.innerHTML='<span class="lab">'+label+'</span>';
+    const t=document.createElement('div');t.className='toks';
+    cells.forEach(c=>{const d=document.createElement('div');d.className='tk '+c;t.appendChild(d)});
+    s.appendChild(t);parent.appendChild(s);
+  }
+  for(let k=0;k<K;k++){
+    const cells=[];for(let i=0;i<N+k;i++)cells.push(i<N?'ctx work':'buf work');
+    row(A,'step '+(k+1),cells);
+  }
+  row(B,'encode',Array(N).fill('ctx work'));
+  for(let k=0;k<K;k++){
+    const cells=[];for(let i=0;i<N;i++)cells.push('ctx');
+    for(let j=0;j<k;j++)cells.push('buf');cells.push('buf work');
+    row(B,'step '+(k+1),cells);
+  }
+  let a=0;for(let k=0;k<K;k++)a+=(N+k)*(N+k);
+  const b=N*N+N*K+K*K;
+  document.getElementById('costA').innerHTML='Attention pairs: <strong>'+a+'</strong>';
+  document.getElementById('costB').innerHTML='Attention pairs: <strong>'+b+'</strong> (the paper measures 3–20× faster sampling)';
+})();
+
+// Figure 2
+(function(){
+  const toks=[['C1','c'],['C2','c'],['C3','c'],['C4','c'],['B1','b'],['B2','b'],['B3','b'],['T1','t'],['T2','t']];
+  function reads(i,j){
+    const [ri,ki]=[toks[i][1],toks[j][1]];
+    if(ri==='c') return ki==='c';                 // R1, R3: context reads only context
+    if(ri==='b') return ki==='c' || (ki==='b' && j<i); // R2
+    if(ri==='t') return ki==='c' || ki==='b';      // R4
+  }
+  const tb=document.getElementById('mask');
+  let h='<tr><th></th>'+toks.map(t=>'<th>'+t[0]+'</th>').join('')+'</tr>';
+  toks.forEach((t,i)=>{
+    h+='<tr data-i="'+i+'"><th class="row">'+t[0]+'</th>'+toks.map((u,j)=>'<td class="'+(reads(i,j)?'on '+u[1]:'')+'"></td>').join('')+'</tr>';
+  });
+  tb.innerHTML=h;
+  const names={c:'Context point',b:'Buffer token',t:'Target'};
+  const ruleOf={c:['R1','R3'],b:['R2','R3'],t:['R4','R3']};
+  function pick(i){
+    tb.querySelectorAll('tr[data-i]').forEach(r=>{const s=+r.dataset.i===i;r.classList.toggle('sel',s);r.classList.toggle('dim',!s)});
+    const t=toks[i];const r=toks.filter((u,j)=>reads(i,j)).map(u=>u[0]);
+    document.getElementById('who').textContent=names[t[1]]+' '+t[0];
+    let txt='Reads '+r.join(', ')+'.';
+    if(t[1]==='c') txt+=' Never the buffer or targets, so its cached values stay valid.';
+    if(t[1]==='b') txt+= (t[0]==='B1'?' No earlier buffer token yet.':' Never a later buffer token.');
+    if(t[1]==='t') txt+=' Never the other target.';
+    document.getElementById('reads').textContent=txt;
+    document.querySelectorAll('#rules li').forEach(li=>li.classList.toggle('hit',ruleOf[t[1]].includes(li.dataset.r)));
+  }
+  tb.addEventListener('click',e=>{const r=e.target.closest('tr[data-i]');if(r)pick(+r.dataset.i)});
+  pick(5);
+})();
+
+// Figure 3
+(function(){
+  const rows=[['Ours, with order embedding',2.51,'b'],['Ours, without',2.51,'b'],['Re-encode every step',2.57,'g']];
+  const lo=2.0,hi=2.7;
+  document.getElementById('bars').innerHTML=rows.map(r=>'<div class="bar"><span class="nm">'+r[0]+'</span><span class="track"><span class="fill'+(r[2]==='g'?' grey':'')+'" style="width:'+((r[1]-lo)/(hi-lo)*100)+'%"></span></span><span class="v">'+r[1].toFixed(2)+'</span></div>').join('')+'<div style="font-size:11px;color:var(--mute)">Axis starts at 2.0</div>';
+  const mons=['Garchomp','Charizard','Dragonite','Gengar','Kingambit','Amoonguss'];
+  const fields=['Species','Item','Move 1','Move 2','Speed','HP','Attack'];
+  const team=document.getElementById('team');
+  let h='<div></div>'+fields.map(f=>'<div class="hd">'+f+'</div>').join('');
+  mons.forEach((m,i)=>{h+='<div class="mon">'+m+'</div>'+fields.map((f,j)=>'<div class="f" data-i="'+i+'" data-j="'+j+'"></div>').join('')});
+  team.innerHTML=h;
+  let mode='split',sel=[0,2];
+  function draw(){
+    const [si,sj]=sel;
+    team.querySelectorAll('.f').forEach(c=>{
+      const i=+c.dataset.i,j=+c.dataset.j;
+      c.className='f';
+      if(i===si&&j===sj){c.classList.add('focus');return}
+      if(mode==='split'&&i===si)c.classList.add('same');
+      if(j===sj)c.classList.add('type');
+    });
+    const m=mons[si],f=fields[sj];
+    document.getElementById('note3').textContent= mode==='split'
+      ? m+"'s "+f+" knows it is a "+f+" and that the blue fields are its own Pokémon, so it can match "+m+"'s other fields."
+      : "This "+f+" knows only that it is a "+f+". Nothing marks which of the six rows is its Pokémon, and attention has no mask to recover it.";
+  }
+  team.addEventListener('click',e=>{const c=e.target.closest('.f');if(c){sel=[+c.dataset.i,+c.dataset.j];draw()}});
+  document.getElementById('tog').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mode=b.dataset.v;document.querySelectorAll('#tog button').forEach(x=>x.classList.toggle('on',x===b));draw()});
+  draw();
+})();
+</script>
+</body>
+</html>

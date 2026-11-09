@@ -28,9 +28,9 @@ A Pokémon's bring rate moves by a median 0.57 across slots; slot 1 is its lowes
 
 `src/slot_order.py`: `ShuffledTeamBuilder` reorders the six Pokémon on every `yield_team()`, with its own `random.Random` so opponent draws (common random numbers) are unchanged. `shard.py` and `pair_shard.py` use it for both teams. The policy's slot preference is not removed; it is averaged, so every Pokémon gets the same mix of slots and the score no longer depends on how the file is ordered.
 
-- Default `VGC_SLOT_ORDER=shuffled`. `VGC_SLOT_ORDER=listed` restores the written order to reproduce earlier results.
+- Every battle shuffles. `VGC_SLOT_ORDER=listed`, which restored the written order to reproduce earlier results, was removed 2026-11-07: setting it now stops the process at import, because listed-order battles never count (GLOSSARY.md, Shuffled-slot battle).
 - `matchup_db.get_policy()` tags shuffled battles `+slots-shuffled`, so they get their own policy and never share a cell with listed-order battles. The shuffled policy starts with an empty cache.
-- `matchup_db.check_slot_order()` (called by `ensure()`) refuses to add battles to a policy battled in the other order. Experiments pinned to policy 1 need `VGC_SLOT_ORDER=listed`.
+- `matchup_db.check_slot_order()` (called by `ensure()`) refuses to add battles to a policy battled in listed order, so policy 1 and the other listed-order policies take no new battles. Their recorded battles stay in the database.
 - The fast runner (`team_completion_pipeline/fast_battle_runner.py`, in the vault) takes `slot_order='listed'` by default; the working-tree `matchup_db.fast_runner()` passes `SLOT_ORDER`.
 
 Re-check with shuffling on (both teams shuffled every battle):
@@ -44,6 +44,6 @@ Bring rates match across listings to within 0.03. Battle records: `results/slot_
 
 ## Not covered
 
-- Still listed order: `winrate.py` (the early scorer behind `winrate2.py` and `winrate3.py`), `scale_test.py` (throughput only) and `scripts/recover_temperature_challenge.py` (a one-off recovery).
+- Shuffled since 2026-11-07: `winrate.py` (the early scorer behind `winrate2.py` and `winrate3.py`), `scale_test.py`, `plan_shard.py`, and the fast runners that `battles.py` and `fast_experiment_battles.py` start. Still listed order: `scripts/recover_temperature_challenge.py`, a one-off recovery that replays one 2026 search challenge and cannot run on anything else.
 - `plan_shard.py` forces team preview by species, so order does not decide the four. The policy may still index the team by slot when it switches during the battle; that was not tested.
 - Every result recorded before this change was battled in listed order: the database's alphabetical paste for matchup-matrix cells, the file's order for `pool.score` labels.

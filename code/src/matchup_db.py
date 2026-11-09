@@ -345,7 +345,7 @@ def default_runner():
     if backend != "fast": raise ValueError(f"MATCHUP_BACKEND must be fast or legacy, not {backend!r}")
     return fast_runner()
 
-run_jobs.slot_order = SLOT_ORDER     # pair_shard.py reads the same VGC_SLOT_ORDER
+run_jobs.slot_order = SLOT_ORDER     # pair_shard.py shuffles through the same slot_order module
 
 def check_slot_order(con, policy_id, runner):
     """Refuse to add battles to a policy whose cells were battled in the other slot order.
@@ -357,7 +357,7 @@ def check_slot_order(con, policy_id, runner):
     if tagged != (mode == "shuffled"):
         raise ValueError(f"policy {policy_id} ({row_policy}) was battled with "
                          f"{'shuffled' if tagged else 'listed'} slot order but this runner uses {mode}; "
-                         "use get_policy() / runner.policy_id() for the current order, or set VGC_SLOT_ORDER")
+                         "listed-order policies take no new battles; use get_policy() for the shuffled one")
 
 def ensure(con, policy_id, rows, cols, per_cell, seed=None, runner=None, note=None, evaluation=False):
     """The cache entry point: make every (row, col) cell hold >= per_cell battles, running

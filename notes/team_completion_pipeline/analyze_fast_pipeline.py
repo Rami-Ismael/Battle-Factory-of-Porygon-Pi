@@ -4,6 +4,7 @@ import hashlib
 import json
 import sqlite3
 import statistics
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 from benchmark_fast_pipeline import analyze
@@ -11,7 +12,12 @@ from fast_battle_runner import attribute
 
 
 def read_lines(path):
-    return [json.loads(line) for line in path.read_text().splitlines()]
+    packed=path.with_name(path.name+'.zst')
+    if not path.exists() and packed.exists():
+        text=subprocess.run(['zstd','-dcq',str(packed)],check=True,capture_output=True,text=True).stdout
+    else:
+        text=path.read_text()
+    return [json.loads(line) for line in text.splitlines()]
 
 
 def audit(folder):
