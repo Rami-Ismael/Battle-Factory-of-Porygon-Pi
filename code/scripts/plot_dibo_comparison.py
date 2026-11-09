@@ -2,11 +2,36 @@
 import argparse
 import json
 from pathlib import Path
+import sys
+
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from matplotlib.ticker import PercentFormatter
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from echarts_chart import band, write_chart
+
+PCT = "js:v => Math.round(v * 1000) / 10 + '%'"
+NAME = dict(cem="CEM", dibo="DiBO")
+
+
+def pct_axis(name, grid, **kw):
+    return {"type": "value", "gridIndex": grid, "min": 0, "max": 1, "name": name, "nameLocation": "middle", "nameGap": 44,
+            "axisLabel": {"formatter": PCT}, **kw}
+
+
+def curve_series(arm, out, color):
+    """Left panel: batch mean with a ±1.96 standard-error band; right panel: best new candidate so far."""
+    rounds = [r for _, r in sorted(out["rounds"].items(), key=lambda kv: int(kv[0])) if "evaluated" in r]
+    battles = np.cumsum([r["physical_battles"] for r in rounds]).tolist()
+    means = np.array([r["mean"] for r in rounds])
+    errors = np.array([r["se"] for r in rounds]) * 1.96
+    best = np.maximum.accumulate([r["best"] for r in rounds]).tolist()
+    name = NAME[arm]
+    return [
+        {"type": "line", "name": name, "color": color, "data": [list(p) for p in zip(battles, means.tolist())], "emphasis": {"focus": "series"}},
+        *band(name, color, battles, means - errors, means + errors, arm),
+        {"type": "line", "name": name, "color": color, "xAxisIndex": 1, "yAxisIndex": 1, "emphasis": {"focus": "series"},
+         "data": [list(p) for p in zip(battles, best)]},
+    ]
 
 
 def main():
@@ -18,50 +43,34 @@ def main():
     summary = json.loads((root / "summary.json").read_text())
     data = {arm: json.loads((root / f"{arm}.json").read_text()) for arm in ("cem", "dibo")}
     colors = dict(cem="#7c4d94", dibo="#087e8b")
-    plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False,
-                         "figure.facecolor": "white", "savefig.facecolor": "white"})
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.3), layout="constrained")
-    for arm, out in data.items():
-        rounds = [r for _, r in sorted(out["rounds"].items(), key=lambda kv: int(kv[0])) if "evaluated" in r]
-        battles = np.cumsum([r["physical_battles"] for r in rounds])
-        means = np.array([r["mean"] for r in rounds])
-        errors = np.array([r["se"] for r in rounds]) * 1.96
-        best = np.maximum.accumulate([r["best"] for r in rounds])
-        axes[0].plot(battles, means, marker="o", label=arm.upper() if arm == "cem" else "DiBO", color=colors[arm])
-        axes[0].fill_between(battles, means - errors, means + errors, color=colors[arm], alpha=.13)
-        axes[1].plot(battles, best, marker="o", label=arm.upper() if arm == "cem" else "DiBO", color=colors[arm])
-    axes[0].set_title("Mean of each selected battle batch")
-    axes[1].set_title("Best new candidate's noisy search label")
-    for ax in axes:
-        ax.set_xlabel("Fresh search battles spent")
-        ax.set_ylabel("Win rate against the top50 meta")
-        ax.yaxis.set_major_formatter(PercentFormatter(1))
-        ax.set_ylim(0, 1)
-        ax.grid(axis="y", alpha=.2)
-        ax.legend(frameon=False)
-    fig.suptitle("DiBO versus CEM: equal starting labels and fresh-battle budgets")
-    fig.savefig(root / "learning-curves.png", dpi=180)
-    fig.savefig(root / "learning-curves.svg")
-    plt.close(fig)
+    grids = [{"left": "7%", "width": "40%", "top": 60, "bottom": 60}, {"left": "57%", "width": "40%", "top": 60, "bottom": 60}]
+    titles = [{"text": text, "left": g["left"], "top": 20, "textStyle": {"fontSize": 13}}
+              for text, g in zip(("Mean of each selected battle batch", "Best new candidate's noisy search label"), grids)]
+    write_chart({"title": titles, "grid": grids, "tooltip": {"trigger": "axis"}, "legend": {"data": ["CEM", "DiBO"], "bottom": 0},
+                 "xAxis": [{"type": "value", "gridIndex": g, "name": "Fresh search battles spent", "nameLocation": "middle", "nameGap": 28,
+                            "scale": True} for g in (0, 1)],
+                 "yAxis": [pct_axis("Win rate against the top50 meta", g) for g in (0, 1)],
+                 "series": [s for arm, out in data.items() for s in curve_series(arm, out, colors[arm])]},
+                root / "learning-curves.html", "DiBO versus CEM: equal starting labels and fresh-battle budgets", height=440)
     lines = ["# Matched-budget comparison: plots and interpretation", "",
-             "![Learning curves](learning-curves.png)", "",
+             "[Learning curves](learning-curves.html)", "",
              "The left band is ±1.96 standard errors over the selected teams in that round; it does not estimate variability across training seeds. The right plot shows noisy search labels, so selecting maxima can inflate apparent performance. Neither plot uses heldout outcomes.", ""]
     if summary["complete"]:
-        fig, axes = plt.subplots(1, 2, figsize=(10, 4.3), layout="constrained")
-        for ax, stage in zip(axes, ("confirmation", "heldout")):
-            values = [summary[stage]["cem_first"], summary[stage]["dibo_first"]]
-            ax.bar(["CEM", "DiBO"], values, color=[colors["cem"], colors["dibo"]], width=.55)
-            for i, value in enumerate(values):
-                ax.text(i, value + .025, f"{value:.1%}", ha="center")
-            ax.set_title("Fresh top50 confirmation" if stage == "confirmation" else "Fresh heldout ranks 51–100")
-            ax.set_ylim(0, 1)
-            ax.yaxis.set_major_formatter(PercentFormatter(1))
-            ax.set_ylabel("Win rate of first search-selected finalist")
-        fig.suptitle(f"Same preselected finalist rule · {proto['config']['final_battles']} new battles per team per stage")
-        fig.savefig(root / "final-comparison.png", dpi=180)
-        fig.savefig(root / "final-comparison.svg")
-        plt.close(fig)
-        lines += ["![Independent evaluations](final-comparison.png)", "",
+        stages = ("confirmation", "heldout")
+        grids = [{"left": "8%", "width": "39%", "top": 60, "bottom": 40}, {"left": "58%", "width": "39%", "top": 60, "bottom": 40}]
+        titles = [{"text": "Fresh top50 confirmation" if s == "confirmation" else "Fresh heldout ranks 51–100", "left": g["left"], "top": 20,
+                   "textStyle": {"fontSize": 13}} for s, g in zip(stages, grids)]
+        bars = [{"type": "bar", "name": "Win rate of first search-selected finalist", "xAxisIndex": g, "yAxisIndex": g, "barWidth": "55%",
+                 "data": [{"value": summary[stage][f"{arm}_first"], "itemStyle": {"color": colors[arm], "borderRadius": [4, 4, 0, 0]},
+                           "label": {"show": True, "position": "top", "formatter": f"{summary[stage][f'{arm}_first']:.1%}"}} for arm in ("cem", "dibo")]}
+                for g, stage in enumerate(stages)]
+        write_chart({"title": titles, "grid": grids,
+                     "xAxis": [{"type": "category", "gridIndex": g, "data": ["CEM", "DiBO"]} for g in (0, 1)],
+                     "yAxis": [pct_axis("Win rate of first search-selected finalist" if g == 0 else "", g) for g in (0, 1)],
+                     "series": bars},
+                    root / "final-comparison.html", f"Same preselected finalist rule · {proto['config']['final_battles']} new battles per team per stage",
+                    height=400)
+        lines += ["[Independent evaluations](final-comparison.html)", "",
                   "These are the highest-search-score finalists, locked before independent evaluations. They are not picked by the highest heldout or confirmation result.", "",
                   f"Descriptive primary winner in this single matched run: **{summary['descriptive_primary_winner']}**.", "",
                   "| Independent stage | CEM finalist-set mean | DiBO finalist-set mean | DiBO − CEM | Team-cluster bootstrap 95% interval |",

@@ -10,6 +10,7 @@ import json
 import math
 from pathlib import Path
 import statistics
+import sys
 
 
 def paired_estimate(values):
@@ -139,40 +140,48 @@ def markdown(summary):
 
 
 def plot(data, output):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+    """Four panels as one ECharts page beside output (.html): three trajectories over generations, then final fresh win rates."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from echarts_chart import write_chart
     c = data["manifest"]["config"]
     colors = dict(zip(data["manifest"]["arms"], ("#173c68", "#bd4c3c", "#c1892b", "#59864d", "#80539c")))
-    fig, axes = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
     metrics = (("Search batch win rate", lambda x: statistics.mean(r["win_rate"] for r in x["scores"])),
                ("Effective species sets / proposal batch", lambda x: x["proposal"]["diversity"]["effective_species_sets"]),
                ("Selection temperature", lambda x: x["training"]["temperature"]),
                ("Final generator: fresh win rate", None))
-    for ax, (title, metric) in zip(axes.flat, metrics):
+    grids = [{"left": f"{left}%", "width": "40%", "top": top, "height": "30%"} for top in ("14%", "60%") for left in (6, 56)]
+    titles, xs, ys, series = [], [], [], []
+    for g, (title, metric) in enumerate(metrics):
+        titles.append({"text": title, "left": grids[g]["left"], "top": f"{float(grids[g]['top'][:-1]) - 5}%", "textStyle": {"fontSize": 13}})
+        ys.append({"type": "value", "gridIndex": g, "scale": True, "axisLine": {"onZero": False}})
+        on = {"xAxisIndex": g, "yAxisIndex": g}
         if metric:
+            xs.append({"type": "value", "gridIndex": g, "name": "Generation", "nameLocation": "middle", "nameGap": 26, "minInterval": 1})
             for arm, color in colors.items():
-                trajectories = [[metric(data["runs"][f"seed{s}/{arm}"]["generations"][str(g)])
-                                  for g in range(1, c["generations"] + 1)] for s in c["seeds"]]
-                for vals in trajectories:
-                    ax.plot(range(1, len(vals) + 1), vals, color=color, alpha=.20, linewidth=1)
+                trajectories = [[metric(data["runs"][f"seed{s}/{arm}"]["generations"][str(n)])
+                                 for n in range(1, c["generations"] + 1)] for s in c["seeds"]]
+                series += [{"type": "line", "name": arm, "color": color, "symbol": "none", "silent": True, "tooltip": {"show": False},
+                            "lineStyle": {"width": 1, "opacity": 0.25}, "data": [[i + 1, v] for i, v in enumerate(vals)], **on}
+                           for vals in trajectories]
                 means = [statistics.mean(v) for v in zip(*trajectories)]
-                ax.plot(range(1, len(means) + 1), means, color=color, label=arm, linewidth=2)
-            ax.set_xlabel("Generation")
+                series.append({"type": "line", "name": arm, "color": color, "lineStyle": {"width": 2.5}, "symbolSize": 5,
+                               "emphasis": {"focus": "series"}, "data": [[i + 1, v] for i, v in enumerate(means)], **on})
         else:
+            names = list(colors)
+            xs.append({"type": "value", "gridIndex": g, "min": -0.5, "max": len(names) - 0.5, "splitLine": {"show": False},
+                       "axisLabel": {"customValues": list(range(len(names))), "rotate": 20,
+                                     "formatter": "js:v => " + json.dumps(names) + "[Math.round(v)]"},
+                       "axisTick": {"customValues": list(range(len(names)))}})
             for i, (arm, color) in enumerate(colors.items()):
-                vals = [statistics.mean(r["win_rate"] for r in data["runs"][f"seed{s}/{arm}"]["holdout"]["scores"])
-                        for s in c["seeds"]]
-                ax.scatter([i] * len(vals), vals, color=color, s=40)
-                ax.plot([i - .2, i + .2], [statistics.mean(vals)] * 2, color=color, linewidth=2)
-            ax.set_xticks(range(len(colors)), colors, rotation=20)
-        ax.set_title(title)
-        ax.spines[["top", "right"]].set_visible(False)
-        ax.grid(axis="y", alpha=.15)
-    axes[0, 0].legend(fontsize=8)
-    fig.suptitle("Boltzmann selection temperature: matched retraining experiment\nThin lines / dots: individual seeds; thick lines: means", fontsize=13)
-    fig.savefig(output, dpi=180)
-    plt.close(fig)
+                vals = [statistics.mean(r["win_rate"] for r in data["runs"][f"seed{s}/{arm}"]["holdout"]["scores"]) for s in c["seeds"]]
+                series.append({"type": "scatter", "name": arm, "color": color, "symbolSize": 9, "data": [[i, v] for v in vals], **on})
+                series.append({"type": "line", "name": arm, "color": color, "symbol": "none", "lineStyle": {"width": 2.5}, "silent": True,
+                               "data": [[i - .2, statistics.mean(vals)], [i + .2, statistics.mean(vals)]], **on})
+    write_chart({"title": titles, "grid": grids, "xAxis": xs, "yAxis": ys, "series": series, "tooltip": {"trigger": "item"},
+                 "legend": {"data": list(colors), "top": 0, "right": 0}},
+                Path(output).with_suffix(".html"),
+                "Boltzmann selection temperature: matched retraining experiment\nThin lines / dots: individual seeds; thick lines: means",
+                height=720)
 
 
 if __name__ == "__main__":
@@ -185,5 +194,5 @@ if __name__ == "__main__":
     summary["analysis_source_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     args.results.with_suffix(".analysis.json").write_text(json.dumps(summary, indent=2, allow_nan=False) + "\n")
     args.results.with_suffix(".analysis.md").write_text(markdown(summary))
-    plot(data, args.results.with_suffix(".png"))
+    plot(data, args.results.with_suffix(".html"))
     print(markdown(summary))

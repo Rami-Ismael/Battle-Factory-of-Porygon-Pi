@@ -8,16 +8,14 @@ Inside the loop (right panel): one line per cem_dbbo-family loop, joining its lo
 teams (y), pooled over generations 1-3; x = the mean ask of each group. Win rate = wins / battles vs the top-50 meta teams,
 behaviour-cloned policy on both sides.
 
-    python plot_ask_vs_got_loop.py        # writes results/ask_vs_got_loop.png and .json
+    python plot_ask_vs_got_loop.py        # writes results/ask_vs_got_loop.html (ECharts page) and .json
 """
 import json, sys
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 import lossdown as L
+from echarts_chart import write_chart
 
 LOOP_ARMS = ["cem_fixed_elite", "cem_fixed06_elite", "cem_fixed07_elite", "cem_fixed08_elite", "cem_moving_elite",
              "cem_fixed_elite_notilt", "cem_fixed_elite_random", "cem_precise_notilt", "cem_dbbo", "cem_scratch", "cem_scratch_fixed"]
@@ -41,6 +39,53 @@ C1, C2, C3, C4 = "#2a78d6", "#eb6834", "#1baf7a", "#6250d6"
 def mse(y):
     y = np.asarray([v for v in y if v is not None], float)
     return float(y.mean()), float(y.std(ddof=1) / np.sqrt(len(y))), len(y)
+
+
+def _with_bars(name, col, asks, means, ses, g):
+    """A line with markers, plus its ±1.96 standard-error bars as one broken line under the same legend name."""
+    bars = []
+    for a, m, s in zip(asks, means, ses):
+        bars += [[a, m - 1.96 * s], [a, m + 1.96 * s], "-"]
+    on = {"xAxisIndex": g, "yAxisIndex": g}
+    return [{"type": "line", "name": name, "color": col, "lineStyle": {"width": 2}, "symbolSize": 7, "emphasis": {"focus": "series"},
+             "data": [[a, m] for a, m in zip(asks, means)], **on},
+            {"type": "line", "name": name, "color": col, "symbol": "none", "silent": True, "connectNulls": False, "tooltip": {"show": False},
+             "lineStyle": {"width": 1.2}, "data": bars, **on}]
+
+
+def _option(one, sweep, pooled):
+    series = []
+    for g in (0, 1):
+        series.append({"type": "line", "name": "got = asked", "silent": True, "symbol": "none", "tooltip": {"show": False},
+                       "lineStyle": {"type": "dashed", "width": 1, "color": MUTED}, "data": [[0, 0], [1, 1]],
+                       "xAxisIndex": g, "yAxisIndex": g})
+    series.append({"type": "scatter", "silent": True, "symbolSize": 0, "tooltip": {"show": False}, "data": [[0.66, 0.70]],
+                   "label": {"show": True, "formatter": "got = asked", "color": MUTED, "rotate": 38}})
+    series[0]["markLine"] = {"symbol": "none", "silent": True, "lineStyle": {"color": GRID, "width": 2, "type": "solid"},
+                             "label": {"formatter": "highest training\nlabel 0.792", "position": "insideEndBottom", "color": MUTED},
+                             "data": [{"xAxis": TRAIN_MAX}]}
+    lines = [(one["settemp05"], C2, "Earlier model (2026-10-14)")]
+    if "v3_original" in sweep: lines.append((sweep["v3_original"], C1, "v3 model as trained"))
+    if "dbbo_g3" in sweep: lines.append((sweep["dbbo_g3"], C4, "v3 after all-data training, shrunk labels"))
+    if "v3_precise" in sweep: lines.append((sweep["v3_precise"], "#008300", "v3 retrained on 1,105 precise labels"))
+    for pts, col, name in lines:
+        a, m, s_, _ = zip(*pts)
+        series += _with_bars(name, col, a, m, s_, 0)
+    for p in pooled:
+        series += _with_bars(p["name"], LOOP_COLORS[p["arm"]], [p["ask_lo"], p["ask_hi"]], [p["got_lo"][0], p["got_hi"][0]],
+                             [p["got_lo"][1], p["got_hi"][1]], 1)
+    grids = [{"left": "6%", "width": "42%", "top": 80, "bottom": 230}, {"left": "54%", "width": "43%", "top": 80, "bottom": 230}]
+    heads = ["The model alone, no search loop: 64 teams per ask",
+             "Inside the search loop: cross-entropy vs Diffusion-BBO\n(low-ask vs high-ask teams, generations pooled)"]
+    axis = {"type": "value", "name": "Asked win rate", "nameLocation": "middle", "nameGap": 26, "splitLine": {"show": False}}
+    return {"title": [{"text": h, "left": gr["left"], "top": 8, "textStyle": {"fontSize": 13}} for h, gr in zip(heads, grids)],
+            "grid": grids, "tooltip": {"trigger": "item"},
+            "legend": [{"data": [n for _, _, n in lines], "left": "6%", "bottom": 0, "orient": "vertical"},
+                       {"data": [p["name"] for p in pooled], "left": "54%", "bottom": 0, "width": "44%"}],
+            "xAxis": [{**axis, "gridIndex": 0, "min": 0, "max": 1}, {**axis, "gridIndex": 1, "min": 0.1, "max": 0.9}],
+            "yAxis": [{"type": "value", "gridIndex": g, "min": 0, "max": 0.85, "name": "Got: mean win rate of the teams (±95%)" if g == 0 else "",
+                       "nameLocation": "middle", "nameGap": 40, "axisLabel": {"showMaxLabel": False}} for g in (0, 1)],
+            "series": series}
 
 
 def main():  # noqa: C901
@@ -85,45 +130,12 @@ def main():  # noqa: C901
                                ask_hi=float(np.mean(hi_a)), got_hi=mse(hi_y)))
     json.dump(dict(one_shot=one, sweep=sweep, loop=loop, pooled=pooled), open(L.RES / "ask_vs_got_loop.json", "w"), indent=1)
 
-    fig, (ax, bx) = plt.subplots(1, 2, figsize=(11, 5.4), dpi=160, facecolor=SURF, sharey=True,
-                                 gridspec_kw=dict(width_ratios=[1, 1], wspace=0.08))
-    for a_ in (ax, bx):
-        a_.set_facecolor(SURF); a_.plot([0, 1], [0, 1], ls=(0, (4, 4)), lw=1, color=MUTED, zorder=1)
-        for sp in ("top", "right"): a_.spines[sp].set_visible(False)
-        for sp in ("left", "bottom"): a_.spines[sp].set_color(GRID)
-        a_.tick_params(colors=MUTED, labelsize=8); a_.grid(axis="y", color=GRID, lw=0.8); a_.set_axisbelow(True)
-        a_.set_xlabel("Asked win rate", color=INK)
-    ax.text(0.655, 0.69, "got = asked", color=MUTED, fontsize=8, rotation=38)
-    ax.axvline(TRAIN_MAX, color=GRID, lw=2, zorder=0)
-    ax.text(TRAIN_MAX + 0.008, 0.04, "highest training\nlabel 0.792", color=MUTED, fontsize=7.5, va="bottom")
-    series = [(one["settemp05"], C2, "Earlier model (2026-10-14)")]
-    if "v3_original" in sweep: series.append((sweep["v3_original"], C1, "v3 model as trained"))
-    if "dbbo_g3" in sweep: series.append((sweep["dbbo_g3"], C4, "v3 after all-data training, shrunk labels"))
-    if "v3_precise" in sweep: series.append((sweep["v3_precise"], "#008300", "v3 retrained on 1,105 precise labels"))
-    for pts, col, name in series:
-        a, m, s_, _ = zip(*pts)
-        ax.errorbar(a, m, yerr=1.96 * np.array(s_), color=col, lw=2, marker="o", ms=6, capsize=0, elinewidth=1.2,
-                    mec=SURF, mew=1.5, label=name, zorder=3)
-    ax.set_xlim(0, 1); ax.set_ylim(0, 0.85)
-    ax.set_ylabel("Got: mean win rate of the teams (±95%)", color=INK)
-    ax.set_title("The model alone, no search loop: 64 teams per ask", color=INK, fontsize=10, loc="left")
-    ax.legend(loc="upper left", frameon=False, fontsize=8, labelcolor=INK)
-    for i, p in enumerate(pooled):
-        col = LOOP_COLORS[p["arm"]]
-        bx.errorbar([p["ask_lo"], p["ask_hi"]], [p["got_lo"][0], p["got_hi"][0]],
-                    yerr=1.96 * np.array([p["got_lo"][1], p["got_hi"][1]]), color=col, lw=2, marker="o", ms=6, capsize=0,
-                    elinewidth=1.2, mec=SURF, mew=1.5, zorder=3,
-                    label=p["name"])
-    bx.set_xlim(0.1, 0.9)
-    bx.set_title("Inside the search loop: cross-entropy vs Diffusion-BBO\n(low-ask vs high-ask teams, generations pooled)",
-                 color=INK, fontsize=10, loc="left")
-    bx.legend(loc="lower right", frameon=False, fontsize=7.5, labelcolor=INK)
-    fig.text(0.01, 0.015, "Win rate = wins / battles vs the top-50 meta teams, behaviour-cloned policy both sides; 49 battles per team. "
-             "Both panels use the loop's sampling. Inside each loop generation, 96 teams ask y and 32 ask y − 0.2.\n"
-             "A working ask would make a line climb parallel to the dashed line; a flat line means the ask changes nothing.",
-             fontsize=6.5, color=MUTED, va="bottom")
-    fig.subplots_adjust(left=0.06, right=0.99, top=0.93, bottom=0.17, wspace=0.08)
-    fig.savefig(L.RES / "ask_vs_got_loop.png", facecolor=SURF)
+    write_chart(_option(one, sweep, pooled), L.RES / "ask_vs_got_loop.html",
+                "Asked vs got: one-shot decoding against inside the cross-entropy loop",
+                note="Win rate = wins / battles vs the top-50 meta teams, behaviour-cloned policy both sides; 49 battles per team. "
+                     "Both panels use the loop's sampling. Inside each loop generation, 96 teams ask y and 32 ask y − 0.2.\n"
+                     "A working ask would make a line climb parallel to the dashed line; a flat line means the ask changes nothing.",
+                height=680, dark={INK: "#f2f1ee", MUTED: "#c3c2b7", "#085041": "#5dcaa5"})
     print("one-shot:", {k: [(a, round(m, 3)) for a, m, _, _ in v] for k, v in one.items()})
     for p in pooled:
         print(f"{p['name']:40s} asked {p['ask_lo']:.2f} -> {p['got_lo'][0]:.3f} ± {p['got_lo'][1]:.3f} · "
