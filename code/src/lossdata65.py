@@ -184,7 +184,7 @@ def separation(arrays, info, split, Vreg):
 
 
 def noise_floor(arrays, sizes=(5, 10, 20, 30, 39), seed=0):
-    """Reliability of a subset label: 1 - mean battle-noise variance / variance of labels across rows."""
+    """Reliability of a subsampled label: 1 - mean battle-noise variance / variance of labels across rows."""
     C = arrays["C"]
     out = {}
     for k in sizes:

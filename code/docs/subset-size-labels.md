@@ -1,10 +1,10 @@
-# Subset size for training labels: does a noisier subset label help the no-prompt model, or break it?
+# Subset size for training labels: does a noisier subsampled label help the no-prompt model, or break it?
 
 Pre-registration, 2026-11-07, before any of these trainings or battles. Issue: [Training labels: which battles and subset sizes make them?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/118), on the map [Opponent prompt](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/115). Mode: **exploratory**, because each arm gets one training seed.
 
 ## Why this run
 
-Training draws each label as wins ÷ battles over a random subset of the 39 training opponents. The owner asked to test two subset-size rules, 10 to 39 and 1 to 39, for any difference in performance, since label noise has improved this model before. On the same 39 training opponents, the all-teams 84-field model scores an ask-versus-got error of 0.0201 on asks 1/24 to 17/24 without noise. With ±1/48 label noise it scores 0.0070 (`subset_size_labels_gen84_*.json`, rescored from stored battles). A subset label is label noise of the same kind, only larger:
+Training draws each label as wins ÷ battles over a random subset of the 39 training opponents. The owner asked to test two subset-size rules, 10 to 39 and 1 to 39, for any difference in performance, since label noise has improved this model before. On the same 39 training opponents, the all-teams 84-field model scores an ask-versus-got error of 0.0201 on asks 1/24 to 17/24 without noise. With ±1/48 label noise it scores 0.0070 (`subset_size_labels_gen84_*.json`, rescored from stored battles). A subsampled label is label noise of the same kind, only larger:
 
 | Label rule | SD of label minus the all-39 label |
 | --- | --- |
@@ -12,7 +12,7 @@ Training draws each label as wins ÷ battles over a random subset of the 39 trai
 | 10 to 39 opponents per label | 0.063 |
 | 1 to 39 opponents per label | 0.122 |
 
-The opponent-prompt models need cross attention, which does not exist yet (#119). This run uses the no-prompt model, the map's control arm. For that model a subset label is pure label noise, so the run answers "does this much noise help or hurt?" before the prompt models are built.
+The opponent-prompt models need cross attention, which does not exist yet (#119). This run uses the no-prompt model, the map's control arm. For that model a subsampled label is pure label noise, so the run answers "does this much noise help or hurt?" before the prompt models are built.
 
 ## Arms
 
@@ -29,7 +29,7 @@ Checkpoints are `stat65_<code ID>`, and the ask grid names them `gen65_<code ID>
 
 | Row | Value |
 | --- | --- |
-| Claim | Under the behaviour-cloning policy against the 39 training opponents, a subset label of 10 to 39 opponents changes the ask-versus-got error of the no-prompt 84-field model relative to the all-39 label, and 1 to 39 changes it further. **Refuted** if both subset arms land within 0.001 of the control. **If it holds**, the better rule becomes the default for all three opponent-prompt models. If 1 to 39 is no worse than 10 to 39, the prompt models also train on prompts of 1 to 9 teams. Scope: win rate under this policy against these teams, nothing beyond. |
+| Claim | Under the behaviour-cloning policy against the 39 training opponents, a subsampled label of 10 to 39 opponents changes the ask-versus-got error of the no-prompt 84-field model relative to the all-39 label, and 1 to 39 changes it further. **Refuted** if both subset arms land within 0.001 of the control. **If it holds**, the better rule becomes the default for all three opponent-prompt models. If 1 to 39 is no worse than 10 to 39, the prompt models also train on prompts of 1 to 9 teams. Scope: win rate under this policy against these teams, nothing beyond. |
 | Fields | All 84 generated. None copied. Stat Alignment is repaired to match the moves after sampling (`ask_grid84.py`). |
 | Vocabulary | Regulation M-B tables stored in checkpoint `F1_final_medium_noheldout_regmb_v3` (`team84.regulation_vocab`), as for every 84-field model. |
 | Training teams | `lossdata65.npz` (`src/lossdata65.py`, docs/opponent-prompt-training-labels.md): 276,166 teams with shuffled-slot battles. It drops the 5,672 within one species swap of a validation opponent, leaving 265,088 training and 5,406 validation rows (2%, seed 0). Teams that were never battled, and listed-order or other configurations, are not in the table. Ranks 51 to 100 are absent (0 rows). |
