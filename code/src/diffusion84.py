@@ -187,7 +187,7 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, passes=2, seed=0, batch=256, lr=4e-4, wd=0.01,  # noqa: C901
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_pass=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every pass (common random numbers). patience=P: stop after P
@@ -196,7 +196,8 @@ class Model84:
         label_noise=W: each batch's labels get fresh uniform noise in [-W, +W]; validation labels stay exact.
         stop_after=N: end after N passes while keeping the schedule sized to passes, so a shorter run matches a stopped one.
         on_epoch(model, epoch): runs after every pass, on the weights a checkpoint would save.
-        row_weights: one training weight per row of rows; validation loss stays unweighted."""
+        row_weights: one training weight per row of rows; validation loss stays unweighted.
+        labels_each_pass(p): [N] labels for rows, drawn fresh before pass p (0-based); replaces labels from then on."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         X84 = np.asarray(rows, dtype=np.int64)
@@ -215,12 +216,14 @@ class Model84:
         lr_at = lambda s: lr * min(1.0, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(s, steps) / steps))
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=passes, patience=patience,
                     lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
-        info.update(label_noise=label_noise, stop_after=stop_after)
+        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_pass=labels_each_pass is not None)
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
         best, best_pass, best_sd, step = math.inf, 0, None, 0
         t_start = time.perf_counter()
         for p in range(passes):
+            if labels_each_pass is not None:
+                w = torch.as_tensor(np.asarray(labels_each_pass(p), np.float32)[keep], device=DEV)
             net.train(); run = 0.0; nb = 0
             for b in torch.randperm(len(x), device=DEV).split(batch):
                 loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b])

@@ -58,6 +58,10 @@ for _ep in range(1, 81):
 for _t, _r in (("01", "0.1"), ("03", "0.3")):
     MODELS[f"gen84_ddom_tau{_t}"] = dict(checkpoint=f"stat84_labelled_noise_ddom_tau{_t}_ep21", reader=f"Tau {_r} weights, 21 epochs",
                                          epochs=dict(labelled_teams=21), stopped="planned stop at epoch 21, to match the control", labelled=True)
+for _arm, _r in (("subset_10_39", "10 to 39 opponents per label"), ("subset_1_39", "1 to 39 opponents per label"),
+                 ("subset_39", "All 39 opponents per label")):    # docs/subset-size-labels.md
+    MODELS[f"gen65_{_arm}"] = dict(checkpoint=f"stat65_{_arm}", reader=_r, epochs=dict(shuffled_table="early stopping, cap 80, patience 3"),
+                                   stopped="early stopping on validation rows", table65=True)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 if MODEL not in MODELS and flagged_checkpoint(MODEL):
     MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])
@@ -171,6 +175,7 @@ def complete(scores):
 
 def record_scores(cell, scores):
     cell["y"] = [s["score"] for s in scores]; cell["battles"] = sum(s["battles"] for s in scores)
+    cell["team_ids"] = [s["team_id"] for s in scores]
 
 
 def battle():
@@ -363,8 +368,12 @@ def controls():
 
 def preflight():
     w = load_model(); V = w.V; out = load_out(); pf = {}
-    d = np.load(DATA); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
-    tr = d["all_X"][tr_rows].astype(np.int64)
+    if MODELS[MODEL].get("table65"):                        # trained on the shuffled-slot table (src/train65.py)
+        import train65
+        d, tr_rows, _, _ = train65.load(); tr = d["X"][tr_rows].astype(np.int64)
+    else:
+        d = np.load(DATA); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
+        tr = d["all_X"][tr_rows].astype(np.int64)
     torch.manual_seed(SEED0 + 1)
     rows = w.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()
     pf["round_trip"] = round_trip(w, rows[:20])
