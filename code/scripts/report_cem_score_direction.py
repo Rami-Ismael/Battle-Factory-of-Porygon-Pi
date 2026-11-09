@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import statistics
+import sys
 
 from cem_score_direction import ARMS, ROOT
 from reverse_score_diversity import atomic_json, digest, paired
@@ -139,38 +140,41 @@ def report(path, data, summary):
               f"Recorded {summary['total_raw_attempts']:,} raw generation attempts, {summary['total_recorded_battles']:,} completed battles, and {summary['total_training_steps']:,} optimizer steps across {summary['completed_updates']} completed updates. Shared initial selection batches and battles are counted once.", '',
               f"Stopped trajectories: {json.dumps(summary['stopped'])}.", '',
               'The experiment is conditional on one pretrained checkpoint, its fixed species vocabulary, this battle policy, and these update budgets. Policy seeds and opponent schedules are matched; they do not control Showdown\'s internal battle RNG. ID overlap does not establish strategic diversity. Candidate scores use finite battle samples, so ranking can amplify noise.', '',
-              f"![Diversity trajectories]({path.with_suffix('.png')})", '',
+              f"[Diversity trajectories]({path.with_suffix('.html')})", '',
               f"[Protocol]({ROOT / 'docs/cem-score-direction-protocol.md'}) · [Raw results]({path}) · [Analysis JSON]({path.with_suffix('.analysis.json')}) · [Verification receipt]({path.with_suffix('.verification.json')})", '']
     return '\n'.join(lines)
 
 
 def plot(path, data, summary):
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
+    """Four diversity and legality trajectories as one ECharts page beside path (.html): thin lines per seed, thick lines for means."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+    from echarts_chart import write_chart
     colors = dict(normal='#21618c', random='#777777', reverse='#b94735')
     metrics = [('legal_id_diversity', 'Pokemon-ID diversity: legal outputs (%)'),
                ('raw_id_diversity', 'Pokemon-ID diversity: all raw outputs (%)'),
                ('legality_percent', 'Legal generation attempts (%)'),
                ('legal_effective_ids', 'Effective Pokemon IDs: legal outputs')]
-    fig, axes = plt.subplots(2, 2, figsize=(11, 7.5), constrained_layout=True)
-    for ax, (key, title) in zip(axes.flat, metrics):
+    iterations = data['manifest']['config']['iterations']
+    grids = [{'left': f'{left}%', 'width': '40%', 'top': top, 'height': '30%'} for top in ('14%', '60%') for left in (6, 56)]
+    titles, xs, ys, out = [], [], [], []
+    for g, (key, title) in enumerate(metrics):
+        on = {'xAxisIndex': g, 'yAxisIndex': g}
+        titles.append({'text': title, 'left': grids[g]['left'], 'top': f"{float(grids[g]['top'][:-1]) - 5}%", 'textStyle': {'fontSize': 13}})
+        xs.append({'type': 'value', 'gridIndex': g, 'min': 0, 'max': iterations, 'interval': 1, 'name': 'Cumulative CEM update',
+                   'nameLocation': 'middle', 'nameGap': 26})
+        ys.append({'type': 'value', 'gridIndex': g, **({'min': 0, 'max': 100} if key == 'legality_percent' else {'scale': True})})
         for arm in ARMS:
             series = summary['series'][arm]
-            xs = [v['iteration'] for v in series]
-            for seed in data['manifest']['config']['seeds']:
-                values = [v['seeds'][str(seed)][key] for v in series]
-                ax.plot(xs, values, color=colors[arm], alpha=.23, linewidth=1)
-            ax.plot(xs, [v['means'][key] for v in series], '-o', color=colors[arm], label=NAMES[arm], linewidth=2, markersize=4)
-        ax.set_title(title); ax.set_xlabel('Cumulative CEM update')
-        ax.set_xticks(range(data['manifest']['config']['iterations'] + 1))
-        ax.spines[['top', 'right']].set_visible(False); ax.grid(alpha=.15)
-        if key == 'legality_percent':
-            ax.set_ylim(0, 100)
-    axes[0, 0].legend(fontsize=9)
-    fig.suptitle('CEM ranking score and generated diversity\nThin lines: individual seeds; thick lines: means')
-    fig.savefig(path.with_suffix('.png'), dpi=160)
-    plt.close(fig)
+            it = [v['iteration'] for v in series]
+            out += [{'type': 'line', 'name': NAMES[arm], 'color': colors[arm], 'symbol': 'none', 'silent': True, 'tooltip': {'show': False},
+                     'lineStyle': {'width': 1, 'opacity': .25}, 'data': [[x, v['seeds'][str(seed)][key]] for x, v in zip(it, series)], **on}
+                    for seed in data['manifest']['config']['seeds']]
+            out.append({'type': 'line', 'name': NAMES[arm], 'color': colors[arm], 'lineStyle': {'width': 2.5}, 'symbolSize': 6,
+                        'emphasis': {'focus': 'series'}, 'data': [[x, v['means'][key]] for x, v in zip(it, series)], **on})
+    write_chart({'title': titles, 'grid': grids, 'xAxis': xs, 'yAxis': ys, 'series': out, 'tooltip': {'trigger': 'item'},
+                 'legend': {'data': [NAMES[a] for a in ARMS], 'top': 0, 'right': 0}},
+                path.with_suffix('.html'), 'CEM ranking score and generated diversity\nThin lines: individual seeds; thick lines: means',
+                height=700)
 
 
 if __name__ == '__main__':

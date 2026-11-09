@@ -1,9 +1,7 @@
-"""Random-fill baseline figure -> results/random_fill_baseline.png."""
+"""Random-fill baseline figure -> results/random_fill_baseline.html (ECharts page)."""
 import json
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
+
+from echarts_chart import band, write_chart
 
 RES = "/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/"
 S = json.load(open(RES + "random_fill_baseline.json"))["summary"]
@@ -12,30 +10,33 @@ C = {"pokemon": "#2a78d6", "item": "#eb6834", "stats": "#1baf7a", "alignment": "
      "move": "#2a78d6", "mixed": "#eb6834"}
 NAME = {"pokemon": "whole Pokémon", "item": "items", "stats": "Stat Points", "alignment": "Stat Alignment",
         "ability": "abilities", "move": "moves", "mixed": "mixed parts"}
-INK, INK2, GRID = "#1f1f1e", "#5f5e5a", "#e6e5e0"
-plt.rcParams.update({"font.family": "Helvetica Neue", "font.size": 11, "text.color": INK,
-                     "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK2})
-fig, axes = plt.subplots(1, 2, figsize=(13, 5.4), gridspec_kw={"width_ratios": [1, 1.5]})
-for ax, tasks, kmax in ((axes[0], ["pokemon", "item", "stats", "alignment", "ability"], 6), (axes[1], ["move", "mixed"], 40)):
-    for s in ax.spines.values(): s.set_visible(False)
-    ax.grid(axis="y", color=GRID, lw=0.8); ax.set_axisbelow(True); ax.tick_params(length=0)
-    ax.axhline(ORIG, color=INK2, lw=1, ls=":")
-    ax.text(1 if kmax == 6 else kmax, ORIG + (0.065 if kmax == 6 else 0.012), f"original teams, {ORIG:.2f}", color=INK2, fontsize=10, ha="left" if kmax == 6 else "right")
+PANELS = ((["pokemon", "item", "stats", "alignment", "ability"], 6, "Random Stat Points, abilities and alignments barely hurt"),
+          (["move", "mixed"], 40, "Random moves and mixed parts cost steadily"))
+GRIDS = [{"left": "6%", "width": "33%", "top": 60, "bottom": 60}, {"left": "47%", "width": "45%", "top": 60, "bottom": 60}]
+
+series, xs, ys, titles = [], [], [], []
+for g, (tasks, kmax, title) in enumerate(PANELS):
+    axes = {"xAxisIndex": g, "yAxisIndex": g}
+    ticks = list(range(1, 7)) if kmax == 6 else [1, *range(5, 41, 5)]
+    titles.append({"text": title, "left": GRIDS[g]["left"], "top": 16, "textStyle": {"fontSize": 13}})
+    xs.append({"type": "value", "gridIndex": g, "min": 0.7, "max": kmax + (1.6 if kmax == 6 else 7), "name": "k = parts left blank and filled at random",
+               "nameLocation": "middle", "nameGap": 28, "axisLabel": {"customValues": ticks}, "axisTick": {"customValues": ticks},
+               "splitLine": {"show": False}})
+    ys.append({"type": "value", "gridIndex": g, "min": 0, "max": 0.55, "name": "win rate vs the top-50 meta teams" if g == 0 else "",
+               "nameLocation": "middle", "nameGap": 40})
+    series.append({"type": "line", "data": [], "silent": True, **axes, "markLine": {
+        "symbol": "none", "lineStyle": {"type": "dotted", "color": "#5f5e5a"}, "data": [{"yAxis": ORIG}],
+        "label": {"formatter": f"original teams, {ORIG:.2f}", "position": "insideStartTop" if kmax == 6 else "insideEndTop"}}})
     for t in tasks:
         ks = sorted(int(k[len(t):]) for k in S if k.startswith(t) and k[len(t):].isdigit())
-        y = np.array([S[f"{t}{k}"]["filled"] for k in ks])
-        lo = np.array([ORIG + S[f"{t}{k}"]["ci"][0] for k in ks]); hi = np.array([ORIG + S[f"{t}{k}"]["ci"][1] for k in ks])
-        ax.fill_between(ks, lo, hi, color=C[t], alpha=0.15, lw=0)
-        ax.plot(ks, y, color=C[t], lw=2, marker="o" if kmax == 6 else None, ms=6, mec="white", mew=1.5)
-        ax.text(ks[-1] + (0.12 if kmax == 6 else 0.6), y[-1] + {"ability": 0.014, "alignment": -0.02}.get(t, 0), NAME[t], color=INK, fontsize=10, va="center")
-    ax.set_ylim(0, 0.55); ax.set_xlabel("k = parts left blank and filled at random")
-    ax.set_xlim(0.7, kmax + (1.6 if kmax == 6 else 7))
-axes[0].set_ylabel("win rate vs the top-50 meta teams")
-axes[0].set_xticks(range(1, 7))
-axes[0].set_title("Random Stat Points, abilities and alignments barely hurt", loc="left", fontsize=13, pad=12)
-axes[1].set_title("Random moves and mixed parts cost steadily", loc="left", fontsize=13, pad=12)
-fig.text(0.01, 0.005, "50 real VGCPastes teams outside the top 50; one random legal fill per team per k; 49 battles per team "
-         "(one per top-50 opponent), behaviour-cloning policy both sides. Bands: 95% intervals over teams.", color=INK2, fontsize=9)
-fig.tight_layout(rect=(0, 0.03, 1, 1))
-fig.savefig(RES + "random_fill_baseline.png", dpi=160, facecolor="white")
+        y = [S[f"{t}{k}"]["filled"] for k in ks]
+        series += band(NAME[t], C[t], ks, [ORIG + S[f"{t}{k}"]["ci"][0] for k in ks], [ORIG + S[f"{t}{k}"]["ci"][1] for k in ks], t, 0.15, **axes)
+        series.append({"type": "line", "name": NAME[t], "color": C[t], "lineStyle": {"width": 2}, "symbolSize": 7 if kmax == 6 else 0,
+                       "emphasis": {"focus": "series"}, "endLabel": {"show": True, "formatter": NAME[t], "color": "inherit"},
+                       "data": [[k, v] for k, v in zip(ks, y)], **axes})
+
+write_chart({"title": titles, "grid": GRIDS, "xAxis": xs, "yAxis": ys, "series": series, "tooltip": {"trigger": "axis"}},
+            RES + "random_fill_baseline.html", "Random-fill baseline: what filling parts at random costs a real team",
+            note="50 real VGCPastes teams outside the top 50; one random legal fill per team per k; 49 battles per team "
+                 "(one per top-50 opponent), behaviour-cloning policy both sides. Bands: 95% intervals over teams.", height=460)
 print("ok")

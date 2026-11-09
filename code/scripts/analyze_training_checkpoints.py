@@ -71,7 +71,7 @@ def main():
         f'python3 code/scripts/analyze_training_checkpoints.py --grids-snapshot {folder}/grids.json.gz '
         f'--matrices {folder}/outcomes.npz --reference {folder}/reference.json.gz --output {folder}\n'
         'python3 code/scripts/render_checkpoint_report.py\n'
-        '# Add --png to the renderer when matplotlib is available.'
+        '# Add --figures to the renderer for the evidence and teaser ECharts pages.'
     )
     boots = {}
     for ep in EPOCHS:
