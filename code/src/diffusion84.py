@@ -200,7 +200,7 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
@@ -211,17 +211,20 @@ class Model84:
         label_noise=W: each batch's labels get fresh uniform noise in [-W, +W]; validation labels stay exact.
         stop_after=N: end after N epochs while keeping the schedule sized to epochs, so a shorter run matches a stopped one.
         on_epoch(model, epoch): runs after every epoch, on the weights a checkpoint would save.
-        row_weights: one training weight per row of rows; validation loss stays unweighted."""
+        row_weights: one training weight per row of rows; validation loss stays unweighted.
+        labels_each_epoch(e): [N] labels for rows, drawn fresh before epoch e (0-based); replaces labels from then on."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
         net = Net84(V, **net_kw).to(DEV)
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs, patience=patience,
                     early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
-        info.update(label_noise=label_noise, stop_after=stop_after)
+        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None)
+        relabel = None if labels_each_epoch is None else \
+            (lambda e: torch.as_tensor(np.asarray(labels_each_epoch(e), np.float32)[keep], device=DEV))
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
                         ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
-                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw)
+                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel)
 
     def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
                    warmup=500, ema=0.999, sched=SCHED, watch=None, log=None):
@@ -244,9 +247,10 @@ class Model84:
 
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
-             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None):
+             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
-        lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses."""
+        lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
+        relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps."""
         make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
                (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
@@ -273,6 +277,8 @@ class Model84:
             entry["minutes"] = 0.0; log.append(entry)
             print("  " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
         for p in range(epochs):
+            if relabel is not None:
+                w = relabel(p)
             net.train(); run = 0.0; nb = 0
             for b in torch.randperm(len(x), device=DEV).split(batch):
                 loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b])
