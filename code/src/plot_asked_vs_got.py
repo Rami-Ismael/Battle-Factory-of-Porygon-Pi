@@ -1,9 +1,9 @@
-"""Asked vs got figure for experiment A -> results/asked_vs_got.png (light) and _dark.png."""
+"""Asked vs got figure for experiment A -> results/asked_vs_got.html, an ECharts page that follows light and dark mode."""
 import json
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+
 import numpy as np
+
+from echarts_chart import band, write_chart
 
 RES = "/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/"
 d = json.load(open(RES + "asked_vs_got.json"))
@@ -11,52 +11,55 @@ S = d["summary"]
 REAL = 0.531          # top-50 meta teams vs the other 49, same matrix, same policy
 UNC = S["uncond"]["got"]
 TRAIN_MAX = d["training"]["max"]
-THEMES = {
-    "light": dict(bg="#ffffff", ink="#1f1f1e", ink2="#5f5e5a", grid="#e6e5e0",
-                  ramp={1.0: "#86b6ef", 2.0: "#2a78d6", 4.0: "#104281"}, shade="#f3f2ee"),
-    "dark": dict(bg="#1a1a19", ink="#ffffff", ink2="#c3c2b7", grid="#33332f",
-                 ramp={1.0: "#3f6fa6", 2.0: "#3987e5", 4.0: "#b7d3f6"}, shade="#242422"),
-}
+RAMP = {1.0: "#86b6ef", 2.0: "#2a78d6", 4.0: "#104281"}
+DARK_RAMP = {"#86b6ef": "#3f6fa6", "#2a78d6": "#3987e5", "#104281": "#b7d3f6"}  # the old dark PNG's ramp
+INK2 = "#5f5e5a"
+TICKS = [round(0.1 * i, 1) for i in range(10)]
+GRIDS = [{"left": "6%", "width": "52%", "top": 60, "bottom": 56}, {"left": "66%", "width": "31%", "top": 60, "bottom": 56}]
 
-def draw(theme, path):
-    T = THEMES[theme]
-    plt.rcParams.update({"font.family": "Helvetica Neue", "font.size": 11, "text.color": T["ink"],
-                         "axes.labelcolor": T["ink2"], "xtick.color": T["ink2"], "ytick.color": T["ink2"]})
-    fig, (ax, bx) = plt.subplots(1, 2, figsize=(12, 5.2), gridspec_kw={"width_ratios": [1.6, 1]}, facecolor=T["bg"])
-    for a in (ax, bx):
-        a.set_facecolor(T["bg"])
-        for s in a.spines.values(): s.set_visible(False)
-        a.grid(axis="y", color=T["grid"], lw=0.8); a.set_axisbelow(True)
-        a.axvspan(TRAIN_MAX, 0.95, color=T["shade"], zorder=0)
-        a.set_xlim(-0.05, 0.95); a.set_xticks(np.arange(0, 1.0, 0.1))
-        a.tick_params(length=0)
-    ax.plot([0, 0.9], [0, 0.9], ls=(0, (4, 4)), color=T["ink2"], lw=1)
-    ax.text(0.5, 0.55, "got = asked", color=T["ink2"], rotation=33, fontsize=10)
-    ax.axhline(REAL, color=T["ink2"], lw=1, ls=":")
-    ax.text(-0.04, REAL + 0.012, f"top-50 meta team, {REAL:.2f}", color=T["ink2"], fontsize=10)
-    ax.axhline(UNC, color=T["ink2"], lw=1, ls=":")
-    ax.text(0.42, UNC - 0.045, f"no win-rate condition, {UNC:.2f}", color=T["ink2"], fontsize=10)
-    for g in (1.0, 2.0, 4.0):
-        cs = sorted([s for s in S.values() if s["asked"] is not None and s["guidance"] == g], key=lambda s: s["asked"])
-        x = [s["asked"] for s in cs]; y = [s["got"] for s in cs]; e = [1.96 * s["se"] for s in cs]
-        c = T["ramp"][g]
-        ax.fill_between(x, np.array(y) - e, np.array(y) + e, color=c, alpha=0.18, lw=0)
-        ax.plot(x, y, color=c, lw=2, marker="o", ms=6, mec=T["bg"], mew=1.5, label=f"guidance {g:g}")
-        bx.plot(x, [s["species_sets"] for s in cs], color=c, lw=2, marker="o", ms=6, mec=T["bg"], mew=1.5)
-        i = int(np.argmax(y))
-        if g == 4.0: ax.annotate(f"{y[i]:.2f}", (x[i], y[i]), xytext=(0, 9), textcoords="offset points", ha="center",
-                    color=T["ink"], fontsize=10)
-    ax.text(TRAIN_MAX + 0.01, 0.45, "above every\ntraining label", color=T["ink2"], fontsize=9, va="top")
-    ax.set_ylim(0, 0.9); ax.set_xlabel("win rate asked for"); ax.set_ylabel("win rate got (49 battles per team, 64 teams per point)")
-    ax.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 0.93), labelcolor=T["ink"])
-    ax.set_title("Asking for a higher win rate works up to ~0.5, then stops", loc="left", color=T["ink"], fontsize=13, pad=12)
-    bx.set_ylim(0, 68); bx.set_xlabel("win rate asked for"); bx.set_ylabel("different species sets among 64 teams")
-    bx.set_title("…and the teams it gets there with are the same few", loc="left", color=T["ink"], fontsize=13, pad=12)
-    fig.text(0.01, 0.005, "Win rate = wins vs the top-50 meta teams (one battle per opponent), VGC-Bench behaviour-cloning policy both sides. "
-             "Bands: 95% intervals over teams.", color=T["ink2"], fontsize=9)
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
-    fig.savefig(path, dpi=160, facecolor=T["bg"]); plt.close(fig)
 
-draw("light", RES + "asked_vs_got.png")
-draw("dark", RES + "asked_vs_got_dark.png")
+def hline(y, text, g, position):
+    return {"type": "line", "data": [], "silent": True, "xAxisIndex": g, "yAxisIndex": g, "markLine": {
+        "symbol": "none", "lineStyle": {"type": "dotted", "color": INK2}, "data": [{"yAxis": y}],
+        "label": {"formatter": text, "position": position, "color": INK2}}}
+
+
+def shade(g, label):
+    return {"type": "line", "data": [], "silent": True, "xAxisIndex": g, "yAxisIndex": g, "markArea": {
+        "itemStyle": {"color": "rgba(127,127,127,0.10)"}, "data": [[{"xAxis": TRAIN_MAX}, {"xAxis": 0.95}]],
+        "label": {"show": bool(label), "formatter": label, "position": "insideTopLeft", "color": INK2, "fontSize": 11}}}
+
+
+series = [shade(0, "above every\ntraining label"), shade(1, ""),
+          {"type": "line", "name": "got = asked", "silent": True, "symbol": "none", "tooltip": {"show": False},
+           "lineStyle": {"type": "dashed", "color": INK2, "width": 1}, "data": [[0, 0], [0.9, 0.9]],
+           "endLabel": {"show": True, "formatter": "got = asked", "color": INK2}},
+          hline(REAL, f"top-50 meta team, {REAL:.2f}", 0, "insideStartTop"),
+          hline(UNC, f"no win-rate condition, {UNC:.2f}", 0, "insideEndBottom")]
+for g in (1.0, 2.0, 4.0):
+    cs = sorted([s for s in S.values() if s["asked"] is not None and s["guidance"] == g], key=lambda s: s["asked"])
+    x = [s["asked"] for s in cs]; y = np.array([s["got"] for s in cs]); e = np.array([1.96 * s["se"] for s in cs])
+    name, c, top = f"guidance {g:g}", RAMP[g], int(np.argmax(y))
+    series += band(name, c, x, y - e, y + e, name, 0.18)
+    series.append({"type": "line", "name": name, "color": c, "lineStyle": {"width": 2}, "symbolSize": 7, "emphasis": {"focus": "series"},
+                   "data": [{"value": [a, b], **({"label": {"show": True, "position": "top", "formatter": f"{b:.2f}"}} if g == 4.0 and i == top else {})}
+                            for i, (a, b) in enumerate(zip(x, y.tolist()))]})
+    series.append({"type": "line", "name": name, "color": c, "lineStyle": {"width": 2}, "symbolSize": 7, "emphasis": {"focus": "series"},
+                   "xAxisIndex": 1, "yAxisIndex": 1, "data": [[a, s["species_sets"]] for a, s in zip(x, cs)]})
+
+titles = [{"text": t, "left": gr["left"], "top": 16, "textStyle": {"fontSize": 13}} for t, gr in zip(
+    ("Asking for a higher win rate works up to ~0.5, then stops", "…and the teams it gets there with are the same few"), GRIDS)]
+x_axis = {"type": "value", "min": -0.05, "max": 0.95, "name": "win rate asked for", "nameLocation": "middle", "nameGap": 28,
+          "axisLabel": {"customValues": TICKS}, "axisTick": {"customValues": TICKS}, "splitLine": {"show": False}}
+write_chart({"title": titles, "grid": GRIDS, "tooltip": {"trigger": "axis"},
+             "legend": {"data": ["guidance 1", "guidance 2", "guidance 4"], "left": "7%", "top": 44, "orient": "vertical"},
+             "xAxis": [{**x_axis, "gridIndex": 0}, {**x_axis, "gridIndex": 1}],
+             "yAxis": [{"type": "value", "gridIndex": 0, "min": 0, "max": 0.9, "name": "win rate got (49 battles per team, 64 teams per point)",
+                        "nameLocation": "middle", "nameGap": 40},
+                       {"type": "value", "gridIndex": 1, "min": 0, "max": 68, "name": "different species sets among 64 teams",
+                        "nameLocation": "middle", "nameGap": 36}],
+             "series": series},
+            RES + "asked_vs_got.html", "Asked vs got, experiment A",
+            note="Win rate = wins vs the top-50 meta teams (one battle per opponent), VGC-Bench behaviour-cloning policy both sides. "
+                 "Bands: 95% intervals over teams.", height=480, dark=DARK_RAMP)
 print("ok")

@@ -29,25 +29,25 @@ class FineTuned(unittest.TestCase):
         d = np.load(X.RES / "lossdata84.npz"); has = ~np.isnan(d["all_W"])
         x, w = d["all_X"][has][:160].astype(np.int64), d["all_W"][has][:160]
         cls.x, cls.w = x, w
-        cls.base = M.Model84.train_new(T.regulation_vocab(), X.setup()[0], x[:96], w[:96], passes=1, batch=32, **TINY)
+        cls.base = M.Model84.train_new(T.regulation_vocab(), X.setup()[0], x[:96], w[:96], epochs=1, batch=32, **TINY)
 
     def weights(self, m):
         return {k: v.detach().cpu().clone() for k, v in m.net.state_dict().items()}
 
-    def test_with_no_learning_the_starting_weights_are_the_best_pass(self):
+    def test_with_no_learning_the_starting_weights_are_the_best_epoch(self):
         before = self.weights(self.base)
-        m = self.base.fine_tuned(self.x[96:128], self.w[96:128], passes=5, val=(self.x[128:], self.w[128:]), lr=0.0, batch=16,
+        m = self.base.fine_tuned(self.x[96:128], self.w[96:128], epochs=5, val=(self.x[128:], self.w[128:]), lr=0.0, batch=16,
                                  watch=dict(labelled=(self.x[:32], self.w[:32])))
-        self.assertEqual(m.info["best_pass"], 0)
-        self.assertEqual(m.info["stopped_pass"], 3)                  # patience 3 after pass 0
-        self.assertEqual([e["pass_"] for e in m.info["curves"]], [0, 1, 2, 3])
+        self.assertEqual(m.info["best_epoch"], 0)
+        self.assertEqual(m.info["stopped_epoch"], 3)                 # patience 3 after epoch 0
+        self.assertEqual([e["epoch"] for e in m.info["curves"]], [0, 1, 2, 3])
         self.assertIn("labelled_val_loss", m.info["curves"][0])
         after = self.weights(m)
         self.assertTrue(all(torch.equal(before[k], after[k]) for k in before))
 
     def test_fine_tuning_leaves_the_base_model_unchanged(self):
         before = self.weights(self.base)
-        m = self.base.fine_tuned(self.x[96:128], self.w[96:128], passes=2, val=(self.x[128:], self.w[128:]), lr=1e-3, batch=16, patience=None)
+        m = self.base.fine_tuned(self.x[96:128], self.w[96:128], epochs=2, val=(self.x[128:], self.w[128:]), lr=1e-3, batch=16, patience=None)
         self.assertTrue(all(torch.equal(before[k], v) for k, v in self.weights(self.base).items()))
         self.assertFalse(all(torch.equal(before[k], v) for k, v in self.weights(m).items()))
         self.assertIs(m.V, self.base.V)

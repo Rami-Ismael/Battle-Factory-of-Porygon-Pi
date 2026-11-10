@@ -1,12 +1,11 @@
 import json,re
+from pathlib import Path
 R='/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/'
 d=json.load(open(R+'gradloop.json')); rb=json.load(open(R+'rebattle_top.json'))
-dex=json.load(open('/tmp/vgc-pilot/data/pokedex.json'))
 def toid(s): return re.sub(r'[^a-z0-9]','',s.lower())
-def sprite(name):
-    e=dex.get(toid(name),{})
-    if e.get('forme'): return toid(e['baseSpecies'])+'-'+toid(e['forme'])
-    return toid(name)
+# PokeAPI sprite stem for the page's sprite() URL; the table is keyed by Showdown id (toid of the species name)
+PK=json.load(open(Path(__file__).resolve().parent.parent/'search-loop/sprites/pokeapi_ids.json'))['species']
+def sprite(name): return PK[toid(name)]['sprite']
 CORE={'garchomp','kingambit','basculegion','whimsicott','charizard','floetteeternal'}
 def parse(p):
     mons=[]

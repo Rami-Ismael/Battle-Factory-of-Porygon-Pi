@@ -62,18 +62,18 @@ The 304,786 teams include about 100,000 uniform-legal teams. The count grows as 
 
 **Generated, same teams.** The deployed recipe with 84 fields:
 
-- loop-teams model: 80 passes over its rows;
-- battle-records model: 60 passes over its rows, with its results input;
+- loop-teams model: 80 epochs over its rows;
+- battle-records model: 60 epochs over its rows, with its results input;
 - both: width 256, 6 layers, 8 heads, batch 256, classifier-free-guidance dropout 0.15, rules `clause,compat,order`.
 
-Both train directly on the Regulation M-B vocabulary. This replaces the deployed route of training first and then running 2 passes of continued training on Regulation M-B.
+Both train directly on the Regulation M-B vocabulary. This replaces the deployed route of training first and then running 2 epochs of continued training on Regulation M-B.
 
 **Generated, all teams.** One model, with no mixture and no results input, on all teams combined:
 
 - a seeded random 2% of the teams (about 6,000) is held out for validation;
-- validation loss is measured after every pass;
-- training stops after 3 passes with no new lowest validation loss, and keeps the checkpoint with the lowest;
-- at most 80 passes;
+- validation loss is measured after every epoch;
+- training stops after 3 epochs with no new lowest validation loss, and keeps the checkpoint with the lowest;
+- at most 80 epochs;
 - the same width, depth and vocabulary as above.
 
 ## Battles

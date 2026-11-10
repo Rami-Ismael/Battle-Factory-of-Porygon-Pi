@@ -69,7 +69,7 @@ WHAT THE BLOG'S ANIMATION DOES (reproduce this)
 MY VERSION
 - The first node is an empty Pokémon team (six blank slots).
 - As the slider moves forward, each new node shows a current Pokémon team: one generation of the combined loop (results/gradloop.json, gens 1–11), showing that generation's top 3 teams by 24-battle win rate. Link each team to the most similar team in the previous generation (the loop records no parent).
-- Each team is drawn with Pokémon sprites, six per node. Use Pokémon Showdown sprites: https://play.pokemonshowdown.com/sprites/gen5/<id>.png (<id> = lowercase species name, no spaces or punctuation; Mega forms use a hyphen, e.g. "charizard-megax"). Use image-rendering: pixelated, and show a grey silhouette if a sprite fails to load.
+- Each team is drawn with Pokémon sprites, six per node. Use PokeAPI sprites: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/<n>.png (<n> = the sprite number in notes/Blog/visuals/search-loop/sprites/pokeapi_ids.json). Use image-rendering: pixelated, and show a grey silhouette if a sprite fails to load.
 - Colour coding: how many of the final core (garchomp, kingambit, basculegion, whimsicott, charizard, floette-eternal) a team holds: start / 0–3 / 4–5 / all 6. A ★ badge marks teams re-battled 192 times.
 - The tooltip shows the team's details: generation and rank, wins/24, the generation's mean ± SE, the ★ 192-battle win rate ± SE, and per Pokémon: species, item, ability, nature, 4 moves.
 - Data: real teams only: results/gradloop.json (pastes, y) and results/rebattle_top.json. No placeholders.

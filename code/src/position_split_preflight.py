@@ -62,7 +62,7 @@ def probe(arm, d, V, corpus, no_split_val=None):
     start = start_loss(V, net, x)
     gap = swap_gap(net, x[:16])
     t0 = time.perf_counter()
-    m = M.Model84.train_new(V, corpus, d["all_X"][tr[:32]], w[:32], passes=OVERFIT_EPOCHS, batch=32, warmup=10, val=(d["all_X"][tr[:32]], w[:32]),
+    m = M.Model84.train_new(V, corpus, d["all_X"][tr[:32]], w[:32], epochs=OVERFIT_EPOCHS, batch=32, warmup=10, val=(d["all_X"][tr[:32]], w[:32]),
                             label_noise=1 / 48, seed=kw["seed"], lr=TR.RECIPE["lr"], sched=TR.RECIPE["sched"], **TR.NET, pos=kw["pos"])
     c = m.info["curves"]
     overfit = dict(epochs=len(c), first_train_loss=c[0]["train_loss"], last_train_loss=c[-1]["train_loss"],

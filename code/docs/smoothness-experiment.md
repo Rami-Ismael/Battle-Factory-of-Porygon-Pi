@@ -230,7 +230,7 @@ validator; the port connection check alone cannot prove that, so use servers sta
 from the manifest's runtime. No online ladder games or remote paid services are used.
 
 Outputs: `manifest.json`, `teams/`, `opponents/`, `labels/`, worker logs,
-`benchmarks.json`, `analysis.json`, `edits.csv`, `smoothness.png`, `smoothness.pdf`,
+`benchmarks.json`, `analysis.json`, `edits.csv`, `smoothness.html` (an ECharts page; runs before 2026-11-09 have `smoothness.png` and `.pdf`),
 and `report.md`. Raw labels are the audit trail. The figure distinguishes observed
 changes from noise-corrected squared changes and labels small runs as pilots in the
 report. A significant local sensitivity result is not evidence that BO cannot work.

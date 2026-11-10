@@ -152,7 +152,9 @@ document.getElementById('scale').innerHTML=ticks.map(([t,l],i)=>`<div class="tic
 // team sprites
 const team=['blaziken-mega','kingambit','basculegion','ninetales-alola','gengar','incineroar'];
 const names=['Mega Blaziken','Kingambit','Basculegion','Alolan Ninetales','Gengar','Incineroar'];
-document.getElementById('team').innerHTML=team.map((s,i)=>`<div class="mon ${i==3?'ask':''}"><img src="https://play.pokemonshowdown.com/sprites/gen5/${s}.png" alt="">${names[i]}${i==3?'<div class="q">item = ?</div>':''}</div>`).join('');
+// PokeAPI sprites are keyed by number: slug -> sprite stem, from notes/Blog/visuals/search-loop/sprites/pokeapi_ids.json
+const SPRITE_ID={'blaziken-mega':'10050','kingambit':'983','basculegion':'902','ninetales-alola':'10104','gengar':'94','incineroar':'727'};
+document.getElementById('team').innerHTML=team.map((s,i)=>`<div class="mon ${i==3?'ask':''}"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${SPRITE_ID[s]}.png" alt="">${names[i]}${i==3?'<div class="q">item = ?</div>':''}</div>`).join('');
 // answer
 const ans=[['Never-Melt Ice',.58],['Choice Scarf',.33],['Icy Rock',.03],['Quick Claw',.03],['139 others',.03]];
 document.getElementById('ans').innerHTML=ans.map(([n,p],i)=>`<span>${i==0?'<b>'+n+'</b>':n}</span><div><div class="p" style="width:${p/.58*100}%;opacity:${i?0.45:1}"></div></div><span class="tok">${p.toFixed(2)}</span>`).join('');

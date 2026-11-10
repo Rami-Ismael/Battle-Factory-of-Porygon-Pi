@@ -149,6 +149,11 @@ class ReportedOnly(unittest.TestCase):
                                                               training_seed=0, position_option="no_slot",
                                                               share_matching_corpus_set=0.037, share_under_four_moves=0.157))
 
+    def test_records_written_after_the_epoch_rename_read_the_same(self):
+        training = dict(best_val_loss=1.816, best_epoch=21, stopped_epoch=21, seed=0, net_kw=dict(d=256, pos="no_slot"))
+        out = P.reported(dict(summary=dict(stat_points={})), training)
+        self.assertEqual((out["validation_epoch"], out["stopped_epoch"]), (21, 21))
+
     def test_a_checkpoint_saved_before_position_options_reads_as_no_split(self):
         out = P.reported(dict(summary=dict(stat_points={})), dict(best_val_loss=1.8, seed=0, net_kw=dict(d=256)))
         self.assertEqual(out["position_option"], "per_field")

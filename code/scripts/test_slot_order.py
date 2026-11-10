@@ -9,6 +9,9 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+from showdown_validator import VGC_BENCH
+if VGC_BENCH.exists():      # the pinned vgc-bench checkout: Builder runs on the laptop and skips on CI
+    sys.path.insert(0, str(VGC_BENCH))
 import slot_order as SO
 
 PASTE = "\n\n".join(f"{name} @ Leftovers\nAbility: Pressure\nLevel: 50\n- Protect"

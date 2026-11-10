@@ -46,17 +46,17 @@ def flagged_row(name, info):
     members = info.get("members", [info])
     if any(m.get("label_noise") != float(width) for m in members):
         raise ValueError(f"{name}: the run info does not hold the width in this name")
-    if not epoch and any("stopped_pass" not in m for m in members):
+    if not epoch and any("stopped_epoch" not in m for m in members):
         raise ValueError(f"{name}: this training has not finished")
     if "members" in info:
         return dict(checkpoint=name, reader=f"{noise}, same teams", stopped="fixed epoch counts, as the arm sets",
-                    epochs=dict(zip(("loop_teams", "battle_records"), (m["stopped_pass"] for m in members))))
+                    epochs=dict(zip(("loop_teams", "battle_records"), (m["stopped_epoch"] for m in members))))
     teams = next((v for k, v in TEAM_SETS.items() if k in name), "all_teams")
     tau = f", tau {info['ddom_tau']} weights" if info.get("ddom_tau") else ""
     if epoch:
         count, stopped = int(epoch), "one training, a checkpoint per epoch"
     else:
-        count = info["best_pass"] if info.get("patience") else info["stopped_pass"]
-        stopped = f"training stopped at epoch {info['stopped_pass']}; the file holds the weights from epoch {count}"
+        count = info["best_epoch"] if info.get("patience") else info["stopped_epoch"]
+        stopped = f"training stopped at epoch {info['stopped_epoch']}; the file holds the weights from epoch {count}"
     return dict(checkpoint=flagged_checkpoint(name), reader=f"{noise}, {teams.replace('_', ' ')}{tau}, {count} epochs",
                 epochs={teams: count}, stopped=stopped, labelled=teams == "labelled_teams")

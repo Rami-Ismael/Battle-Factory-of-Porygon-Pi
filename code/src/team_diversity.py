@@ -24,8 +24,9 @@ PERMS = np.array(list(itertools.permutations(range(6))))
 
 
 def slots_from_paste(paste):
-    """Six slot dicts (species, ability, item, nature, moves) from a Showdown paste; None if it doesn't parse to six."""
-    t = parse_team_text(paste)
+    """Six slot dicts (species, ability, item, nature, moves) from a Showdown paste; None if it doesn't parse to six.
+    A blank line starts a slot, so an item-less Pokémon after the first keeps its own slot."""
+    t = parse_team_text(paste, blank_ends_slot=True)
     if len(t) != 6: return None
     return [dict(species=norm(s["species"]), ability=norm(s.get("ability") or ""), item=norm(s.get("item") or ""),
                  nature=norm(s.get("nature") or ""), moves=[norm(m) for m in s.get("moves", []) if m]) for s in t]

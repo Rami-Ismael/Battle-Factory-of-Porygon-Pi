@@ -548,64 +548,102 @@ def analyse(args):
     print(json.dumps(summary, indent=2), flush=True)
 
 
-def plot(directory, manifest, report):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    figure, axes = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
-    colors = {"random": "#007c91", "tournament": "#c06425"}
+def _names_axis(g, names, **kw):
+    """A value axis whose integer positions carry names, so points can sit beside a position (jitter, intervals)."""
+    ticks = list(range(len(names)))
+    return {"type": "value", "gridIndex": g, "min": -0.5, "max": len(names) - 0.5, "splitLine": {"show": False},
+            "axisLabel": {"customValues": ticks, "formatter": "js:v => " + json.dumps(names) + "[Math.round(v)]", "width": 80, "overflow": "break"},
+            "axisTick": {"customValues": ticks}, **kw}
+
+
+def _interval(name, color, x, ci, g, width=2):
+    return {"type": "line", "name": name, "color": color, "symbol": "none", "silent": True, "lineStyle": {"width": width},
+            "tooltip": {"show": False}, "data": [[x, ci[0]], [x, ci[1]]], "xAxisIndex": g, "yAxisIndex": g}
+
+
+def _zero_line(g, axis="xAxis"):
+    return {"type": "line", "data": [], "silent": True, "xAxisIndex": g, "yAxisIndex": g,
+            "markLine": {"symbol": "none", "label": {"show": False}, "lineStyle": {"color": "gray", "width": .7, "type": "solid"},
+                         "data": [{axis: 0}]}}
+
+
+def _sensitivity_panels(report, colors):
+    """Upper row: cumulative changes per group (panel 0) and noise-corrected change per original team (panel 1)."""
+    series = [_zero_line(0)]
     for position, group in enumerate(colors):
-        for kind, style in [("edit", "-"), ("null", "--")]:
+        for kind, dash in [("edit", "solid"), ("null", "dashed")]:
             values = sorted(row["delta"] * 100 for row in report["edges"]
                             if row["group"] == group and (row["kind"] == "null") == (kind == "null"))
-            axes[0, 0].step(values, np.arange(1, len(values) + 1) / len(values), where="post",
-                            color=colors[group], linestyle=style, label=f"{GROUP_LABELS[group]}: {kind}")
+            series.append({"type": "line", "name": f"{GROUP_LABELS[group]}: {kind}", "color": colors[group], "step": "end", "symbol": "none",
+                           "lineStyle": {"type": dash, "width": 1.6}, "emphasis": {"focus": "series"},
+                           "data": [[v, (i + 1) / len(values)] for i, v in enumerate(values)]})
         points = [row["corrected_mse"] * 10000 for row in report["anchors"] if row["group"] == group]
         jitter = np.random.default_rng(0).uniform(-.13, .13, len(points))
-        axes[0, 1].scatter(position + jitter, points, color=colors[group], alpha=.5, s=18)
-        statistics = report["summary"][group]
-        axes[0, 1].plot(position, statistics["mean"] * 10000, "ko")
-        if statistics["ci95"]:
-            axes[0, 1].vlines(position, *np.array(statistics["ci95"]) * 10000, color="black", linewidth=2)
-    axes[0, 0].axvline(0, color="gray", linewidth=.7)
-    axes[0, 0].set(xlabel="Edited − original win rate (percentage points)", ylabel="Empirical cumulative fraction",
-                    title="Observed changes, including battle noise")
-    axes[0, 0].legend(fontsize=8)
-    axes[0, 1].set(xticks=[0, 1], xticklabels=["Random legal", "Frozen top placements"],
-                    ylabel="Noise-corrected mean squared change (pp²)", title="Original-team clusters; group 95% intervals")
-    axes[0, 1].axhline(0, color="gray", linewidth=.7)
+        series.append({"type": "scatter", "name": GROUP_LABELS[group], "color": colors[group], "symbolSize": 6, "itemStyle": {"opacity": .5},
+                       "xAxisIndex": 1, "yAxisIndex": 1, "data": [[position + j, v] for j, v in zip(jitter.tolist(), points)]})
+        summary = report["summary"][group]
+        series.append({"type": "scatter", "name": GROUP_LABELS[group] + " mean", "color": "#222222", "symbolSize": 9,
+                       "xAxisIndex": 1, "yAxisIndex": 1, "data": [[position, summary["mean"] * 10000]]})
+        if summary["ci95"]:
+            series.append(_interval(GROUP_LABELS[group] + " mean", "#222222", position, [v * 10000 for v in summary["ci95"]], 1))
+    series.append(_zero_line(1, "yAxis"))
+    xs = [{"type": "value", "gridIndex": 0, "scale": True, "name": "Edited − original win rate (percentage points)", "nameLocation": "middle",
+           "nameGap": 26},
+          _names_axis(1, [GROUP_LABELS[g] for g in colors])]
+    ys = [{"type": "value", "gridIndex": 0, "min": 0, "max": 1, "name": "Empirical cumulative fraction", "nameLocation": "middle", "nameGap": 36},
+          {"type": "value", "gridIndex": 1, "scale": True, "axisLine": {"onZero": False}, "name": "Noise-corrected mean squared change (pp²)", "nameLocation": "middle", "nameGap": 44}]
+    return series, xs, ys
+
+
+def _benchmark_panels(directory, report, colors):
+    """Lower row: groups against benchmark domains on one scale (panel 2), and the benchmark step check (panel 3)."""
+    bench = read_json(directory / "benchmarks.json")
+    if bench["manifest_sha256"] != report["manifest_sha256"]:
+        raise ValueError("benchmark manifest mismatch")
+    primary = [(GROUP_LABELS[group], report["summary"][group]) for group in colors]
+    primary += [(row["domain"], row["summary"]) for row in bench["conditions"]
+                if (row["domain"], row["step"]) in [("pest_control", 1), ("hartmann6", .01)]]
+    series = []
+    for position, (name, summary) in enumerate(primary):
+        series.append({"type": "scatter", "name": "Corrected mean squared change", "color": "#35456b", "symbolSize": 9,
+                       "xAxisIndex": 2, "yAxisIndex": 2, "data": [[position, summary["mean"]]]})
+        if summary["ci95"]:
+            series.append(_interval("Corrected mean squared change", "#35456b", position, summary["ci95"], 2, 1.5))
+    for domain, marker in [("pest_control", "circle"), ("hartmann6", "rect")]:
+        rows = [row for row in bench["conditions"] if row["domain"] == domain]
+        series.append({"type": "line", "name": domain, "symbol": marker, "symbolSize": 8, "xAxisIndex": 3, "yAxisIndex": 3,
+                       "emphasis": {"focus": "series"}, "data": [[row["step"], row["summary"]["mean"]] for row in rows]})
+    log = {"type": "log", "nameLocation": "middle", "nameGap": 48, "axisLabel": {"formatter": "js:v => v.toExponential(0)"}}
+    xs = [_names_axis(2, [name.replace("_", " ") for name, _ in primary]),
+          {**log, "gridIndex": 3, "name": "Step (stage count or coordinate displacement)", "nameGap": 26}]
+    ys = [{**log, "gridIndex": 2, "axisLine": {"onZero": False}, "name": "Corrected mean squared change / fixed range²"},
+          {**log, "gridIndex": 3, "name": "Corrected mean squared change / fixed range²"}]
+    return series, xs, ys
+
+
+def plot(directory, manifest, report):
+    """Four panels as one ECharts page, smoothness.html, in the run's directory."""
+    sys.path.insert(0, str(ROOT / "src"))
+    from echarts_chart import write_chart
+    colors = {"random": "#007c91", "tournament": "#c06425"}
+    grids = [{"left": f"{left}%", "width": "38%", "top": top, "height": "28%"} for top in ("16%", "62%") for left in (8, 58)]
+    heads = ["Observed changes, including battle noise", "Original-team clusters; group 95% intervals",
+             "Declared scales and neighborhoods; descriptive comparison", "Benchmark scale check; different distance units"]
+    series, xs, ys = _sensitivity_panels(report, colors)
     if (directory / "benchmarks.json").exists():
-        bench = read_json(directory / "benchmarks.json")
-        if bench["manifest_sha256"] != report["manifest_sha256"]:
-            raise ValueError("benchmark manifest mismatch")
-        primary = [(GROUP_LABELS[group], report["summary"][group]) for group in colors]
-        primary += [(row["domain"], row["summary"]) for row in bench["conditions"]
-                    if (row["domain"], row["step"]) in [("pest_control", 1), ("hartmann6", .01)]]
-        for position, (name, statistics) in enumerate(primary):
-            axes[1, 0].plot(position, statistics["mean"], "o", color="#35456b")
-            if statistics["ci95"]:
-                axes[1, 0].vlines(position, *statistics["ci95"], color="#35456b")
-        axes[1, 0].set(xticks=range(len(primary)), xticklabels=[name.replace("_", " ") for name, _ in primary],
-                        ylabel="Corrected mean squared change / fixed range²",
-                        title="Declared scales and neighborhoods; descriptive comparison")
-        axes[1, 0].set_yscale("symlog", linthresh=1e-7)
-        axes[1, 0].axhline(0, color="gray", linewidth=.7)
-        for domain, marker in [("pest_control", "o"), ("hartmann6", "s")]:
-            rows = [row for row in bench["conditions"] if row["domain"] == domain]
-            steps = [row["step"] for row in rows]
-            axes[1, 1].plot(steps, [row["summary"]["mean"] for row in rows], marker=marker, label=domain)
-        axes[1, 1].set(xscale="log", yscale="log", xlabel="Step (stage count or coordinate displacement)",
-                        ylabel="Corrected mean squared change / fixed range²", title="Benchmark scale check; different distance units")
-        axes[1, 1].legend(fontsize=8)
+        more = _benchmark_panels(directory, report, colors)
+        series, xs, ys = series + more[0], xs + more[1], ys + more[2]
     else:
-        for axis in axes[1]:
-            axis.text(.5, .5, "Run benchmarks to fill this panel", ha="center")
-            axis.set_axis_off()
-    figure.suptitle(f"Legal-move sensitivity · {manifest['anchors_per_group']} + {manifest['anchors_per_group']} original teams\n"
-                   f"{manifest['neighbors']} edits/team · {manifest['replicates']} × {manifest['battles_per_replicate']} battles/candidate")
-    figure.savefig(directory / "smoothness.png", dpi=180)
-    figure.savefig(directory / "smoothness.pdf")
-    plt.close(figure)
+        heads[2:] = ["Run benchmarks to fill this panel"] * 2
+        grids = grids[:2]
+    titles = [{"text": h, "left": g["left"], "top": f"{float(g['top'][:-1]) - 6}%", "textStyle": {"fontSize": 13}} for h, g in zip(heads, grids * 2)]
+    legend = [s["name"] for s in series if s.get("type") == "line" and s.get("step")] + ["pest_control", "hartmann6"]
+    write_chart({"title": titles, "grid": grids, "xAxis": xs, "yAxis": ys, "series": series, "tooltip": {"trigger": "item"},
+                 "legend": {"data": legend, "top": 0, "right": 0, "width": "60%"}},
+                directory / "smoothness.html",
+                f"Legal-move sensitivity · {manifest['anchors_per_group']} + {manifest['anchors_per_group']} original teams\n"
+                f"{manifest['neighbors']} edits/team · {manifest['replicates']} × {manifest['battles_per_replicate']} battles/candidate",
+                height=820, dark={"#222222": "#f2f1ee", "#35456b": "#8fa3d6"})
 
 
 def write_report(directory, manifest, report):
@@ -622,7 +660,7 @@ def write_report(directory, manifest, report):
     contrast = report["summary"]["tournament_minus_random"]
     lines += ["", f"Top placements minus random corrected mean squared change: {contrast['mean'] * 10000:.3f} pp²; "
               f"95% interval: {None if contrast['ci95'] is None else [round(v * 10000, 3) for v in contrast['ci95']]}.", "",
-              "![Measured sensitivity](smoothness.png)", "",
+              "[Measured sensitivity](smoothness.html)", "",
               "This measures sensitivity to move replacements under one fixed policy and opponent pool. "
               "It does not establish mathematical non-smoothness or performance under optimal play. "
               "Negative noise-corrected squared estimates are possible and are deliberately retained. "

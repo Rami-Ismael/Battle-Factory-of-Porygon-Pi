@@ -187,8 +187,8 @@ def expectations(arms):
 def reported(grid_out, training):
     """Reported, not deciding: from an arm's grid results and its training record."""
     sp = grid_out["summary"].get("stat_points", {})
-    return dict(validation_loss=training.get("best_val_loss"), validation_epoch=training.get("best_pass"),
-                stopped_epoch=training.get("stopped_pass"), training_seed=training.get("seed"),
+    return dict(validation_loss=training.get("best_val_loss"), validation_epoch=training.get("best_epoch", training.get("best_pass")),
+                stopped_epoch=training.get("stopped_epoch", training.get("stopped_pass")), training_seed=training.get("seed"),
                 position_option=training.get("net_kw", {}).get("pos", "per_field"),
                 share_matching_corpus_set=sp.get("share_matching_corpus_set"), share_under_four_moves=sp.get("share_under_four_moves"))
 

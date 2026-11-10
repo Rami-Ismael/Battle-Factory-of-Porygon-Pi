@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactive chart libraries</title>
+<style>
+:root{--page:#f3f2ee;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--grid:#e7e6e2;--grey:#a9a8a2;--blue:#2a78d6;--aqua:#1baf7a;--line:#dddcd7;--good:#1baf7a;--mid:#c9a227;--bad:#c4473a;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0f0f0e;--surface:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;--grid:#2c2b29;--grey:#7c7b76;--blue:#5b9cf0;--aqua:#3cc796;--line:#34332f;--good:#3cc796;--mid:#d8b445;--bad:#e06b5c;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0f0f0e;--surface:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;--grid:#2c2b29;--grey:#7c7b76;--blue:#5b9cf0;--aqua:#3cc796;--line:#34332f;--good:#3cc796;--mid:#d8b445;--bad:#e06b5c;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:1240px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px}
+h2{font-size:18px;margin:40px 0 4px}
+.lede{color:var(--ink2);max-width:72ch;margin:0}
+.top{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+button{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+/* interaction matrix */
+.mx{overflow-x:auto;margin-top:12px}
+.mx table{border-collapse:collapse;width:100%;min-width:620px;font-size:13.5px}
+.mx th,.mx td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.mx tr:last-child td,.mx tr:last-child th{border-bottom:0}
+.mx thead th{font-size:14px}
+.mx tbody th{font-weight:500;color:var(--ink)}
+.st{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.ic{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid currentColor}
+.native{color:var(--good)} .native .ic{background:currentColor}
+.custom{color:var(--mid)} .custom .ic{background:linear-gradient(90deg,currentColor 50%,transparent 50%)}
+.none{color:var(--bad)} .none .ic{background:transparent}
+.st span{color:var(--ink2)}
+.key{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:8px}
+/* panels */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr));gap:16px;margin-top:14px}
+.panel{padding:14px 14px 12px;min-width:0}
+.panel h3{margin:0;font-size:16px}
+.panel .meta{color:var(--ink2);font-size:12.5px;margin:2px 0 8px}
+.try{font-size:12.5px;color:var(--ink2);margin:8px 0 0}
+.chart{width:100%;position:relative}
+.ftitle{font-weight:700;font-size:15px;margin:14px 0 0}
+.fsub{color:var(--ink2);font-size:13px;margin:2px 0 6px}
+.foot{color:var(--ink2);font-size:12px;margin:12px 0 0;max-width:80ch}
+/* Plot's hand-built controls */
+.lg{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 6px;font-size:12px}
+.lg button{border:0;background:none;padding:2px 0;display:inline-flex;gap:6px;align-items:center;color:var(--ink2);font-size:12px;text-align:left}
+.lg button[aria-pressed="false"]{opacity:.35}
+.lg i{width:14px;height:3px;border-radius:2px;flex:none}
+.rng{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink2);margin-top:4px;flex-wrap:wrap}
+.rng input{width:120px}
+.plot-dim g.arm,.plot-dim g.armdot{opacity:.12;transition:opacity .15s}
+.plot-dim g.arm.on,.plot-dim g.armdot.on{opacity:1}
+g.arm,g.armdot{transition:opacity .15s}
+/* phone + python */
+.phones{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:12px}
+.phones figure{margin:0}
+.phones img{width:100%;display:block;border:1px solid var(--line);border-radius:12px}
+.phones figcaption{font-size:13px;margin-top:6px}
+.phones figcaption b{display:block}
+.phones figcaption span{color:var(--ink2)}
+.rank{display:inline-block;min-width:22px;height:22px;border-radius:11px;background:var(--ink);color:var(--surface);text-align:center;font-size:12px;line-height:22px;margin-right:6px;font-weight:700}
+.flow{display:grid;gap:10px;margin-top:12px}
+.fl{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:10px 12px;font-size:13px}
+.fl b{min-width:120px}
+.box{border:1px solid var(--line);border-radius:6px;padding:3px 8px;background:var(--page)}
+.box.br{border-color:var(--mid)}
+.ar{color:var(--ink2)}
+.expl{max-width:76ch;color:var(--ink2);font-size:14px}
+.expl b{color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+  <div>
+    <h1>Which chart library is the most fun to explore?</h1>
+    <p class="lede">The same real figure built four times, each pushed as far as its library goes: got against ask for remasking under random decoding with the lookahead (issue #92). Try every chart below.</p>
+  </div>
+  <button id="theme" type="button">Theme: auto</button>
+</div>
+
+<div class="card mx"><table id="mx"></table></div>
+<div class="key"><span class="st native"><i class="ic"></i>Built in</span><span class="st custom"><i class="ic"></i>I had to write it</span><span class="st none"><i class="ic"></i>Not possible here</span></div>
+
+<p class="ftitle">Remasking lifts got by about 0.01 at every ask; it doesn't make got follow the ask</p>
+<p class="fsub">Random decoding with the lookahead. Above 11/24, got stays near 0.25 in every arm, while species-first decoding reaches about 0.40.</p>
+<div class="grid" id="panels"></div>
+<p class="foot">Win rate: against the 49 distinct top-50 meta teams, behaviour-cloning battle policy on both sides, slots shuffled; 3 seeds × 64 teams per ask, one battle per opponent. Source: ~/vgc-data/results/remask84_random_error.json.</p>
+
+<h2>On a phone</h2>
+<p class="fsub">Each chart at 390 px wide (an iPhone 15), with its legend moved above the plot and fewer ask ticks. Ranked best first.</p>
+<div class="phones" id="phones"></div>
+
+<h2>Getting a chart out of a Python script</h2>
+<p class="expl"><b>"From Python"</b> means writing the chart in Python. The experiment scripts are Python, so a library with a Python version lets the same script that computes the numbers also describe the chart. Without one, the script saves the numbers as JSON and JavaScript in the page draws them.</p>
+<p class="expl"><b>vl-convert</b> is a Python package (<code>pip install vl-convert-python</code>) that turns a Vega-Lite chart into an SVG, PNG or PDF file. It carries its own small JavaScript engine, so it needs no browser. That matters for Obsidian notes, which show a picture rather than a live chart.</p>
+<div class="flow" id="flow"></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6.17/dist/plot.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega@6.4.0/build/vega.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@6.5.0/build/vega-lite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@7.3.0/build/vega-embed.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@4.1.2/plotly.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const RAW = [["rand_la_plain",1,0.0927],["rand_la_plain",2,0.1065],["rand_la_plain",3,0.1459],["rand_la_plain",4,0.1657],["rand_la_plain",5,0.1694],["rand_la_plain",6,0.1881],["rand_la_plain",7,0.2072],["rand_la_plain",8,0.2251],["rand_la_plain",9,0.2302],["rand_la_plain",10,0.2406],["rand_la_plain",11,0.2515],["rand_la_plain",12,0.3058],["rand_la_plain",13,0.2495],["rand_la_plain",14,0.2568],["rand_la_plain",15,0.2442],["rand_la_plain",16,0.2335],["rand_la_plain",17,0.2371],["rand_la_plain",18,0.2381],["rand_la_plain",19,0.217],["rand_la_plain",20,0.228],["rand_la_plain",21,0.2349],["rand_la_plain",22,0.2304],["rand_la_plain",23,0.2189],["rand_la_remask_conf",1,0.0972],["rand_la_remask_conf",2,0.1235],["rand_la_remask_conf",3,0.1542],["rand_la_remask_conf",4,0.1755],["rand_la_remask_conf",5,0.1721],["rand_la_remask_conf",6,0.2048],["rand_la_remask_conf",7,0.2225],["rand_la_remask_conf",8,0.2386],["rand_la_remask_conf",9,0.255],["rand_la_remask_conf",10,0.2603],["rand_la_remask_conf",11,0.2626],["rand_la_remask_conf",12,0.3368],["rand_la_remask_conf",13,0.259],["rand_la_remask_conf",14,0.264],["rand_la_remask_conf",15,0.263],["rand_la_remask_conf",16,0.2353],["rand_la_remask_conf",17,0.2548],["rand_la_remask_conf",18,0.2438],["rand_la_remask_conf",19,0.225],["rand_la_remask_conf",20,0.2368],["rand_la_remask_conf",21,0.2507],["rand_la_remask_conf",22,0.2328],["rand_la_remask_conf",23,0.2243],["rand_la_remask_even",1,0.0851],["rand_la_remask_even",2,0.1077],["rand_la_remask_even",3,0.1378],["rand_la_remask_even",4,0.1677],["rand_la_remask_even",5,0.1733],["rand_la_remask_even",6,0.1957],["rand_la_remask_even",7,0.2184],["rand_la_remask_even",8,0.2394],["rand_la_remask_even",9,0.2419],["rand_la_remask_even",10,0.2543],["rand_la_remask_even",11,0.2724],["rand_la_remask_even",12,0.3239],["rand_la_remask_even",13,0.2546],["rand_la_remask_even",14,0.2662],["rand_la_remask_even",15,0.2497],["rand_la_remask_even",16,0.2406],["rand_la_remask_even",17,0.2579],["rand_la_remask_even",18,0.2397],["rand_la_remask_even",19,0.2245],["rand_la_remask_even",20,0.2353],["rand_la_remask_even",21,0.2559],["rand_la_remask_even",22,0.2456],["rand_la_remask_even",23,0.2223],["species_first_plain",1,0.1516],["species_first_plain",2,0.1826],["species_first_plain",3,0.2229],["species_first_plain",4,0.248],["species_first_plain",5,0.2695],["species_first_plain",6,0.2993],["species_first_plain",7,0.3278],["species_first_plain",8,0.3511],["species_first_plain",9,0.3641],["species_first_plain",10,0.3685],["species_first_plain",11,0.3713],["species_first_plain",12,0.4462],["species_first_plain",13,0.3954],["species_first_plain",14,0.3928],["species_first_plain",15,0.3959],["species_first_plain",16,0.4044],["species_first_plain",17,0.4094],["species_first_plain",18,0.4142],["species_first_plain",19,0.3944],["species_first_plain",20,0.3789],["species_first_plain",21,0.3765],["species_first_plain",22,0.3772],["species_first_plain",23,0.3602]];
+const ARMS = [
+  {id: "rand_la_plain", label: "No remasking, 84 passes", color: "ink"},
+  {id: "rand_la_remask_conf", label: "Confidence-weighted 0.3 fields remasked, 210 passes", color: "blue"},
+  {id: "rand_la_remask_even", label: "Even-odds 0.5 fields remasked, 210 passes", color: "aqua"},
+  {id: "species_first_plain", label: "Species-first decoding, no remasking (reference)", color: "grey", dash: true},
+];
+const LABEL = Object.fromEntries(ARMS.map(a => [a.id, a.label]));
+const ROWS = RAW.map(([arm, ask, got]) => ({arm, label: LABEL[arm], ask, got}));
+const BYASK = d3.range(1, 24).map(k => Object.assign({ask: k}, Object.fromEntries(ROWS.filter(r => r.ask === k).map(r => [r.arm, r.got]))));
+const XT = "Ask (the win rate the model is conditioned on)", YT = "Got (mean win rate)";
+const FONT = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif';
+const H = 400;
+const ticks = w => w < 500 ? [1, 8, 12, 17, 23] : [1, 4, 8, 12, 17, 20, 23];
+const crossText = k => ARMS.map(a => `${a.label}: ${BYASK[k - 1][a.id].toFixed(3)}`).join("\n");
+function tokens(){const s = getComputedStyle(document.documentElement); const o = {}; for (const k of ["surface","ink","ink2","grid","grey","blue","aqua"]) o[k] = s.getPropertyValue("--" + k).trim(); return o;}
+
+/* ---------- Observable Plot: hover, legend, zoom and draw-in are hand-built ---------- */
+function drawPlot(el, t, first){
+  const st = el._st || (el._st = {off: new Set(), lo: 1, hi: 23});
+  const w = el.clientWidth;
+  el.innerHTML = `<div class="lg">${ARMS.map((a, i) => `<button type="button" data-i="${i}" aria-pressed="${!st.off.has(a.id)}"><i style="background:${t[a.color]}"></i>${a.label}</button>`).join("")}</div><div class="pc"></div>
+    <div class="rng">Asks <input type="range" min="1" max="22" value="${st.lo}" aria-label="First ask"> to <input type="range" min="2" max="23" value="${st.hi}" aria-label="Last ask"> <output>${st.lo}/24 – ${st.hi}/24</output></div>`;
+  const on = ARMS.filter(a => !st.off.has(a.id));
+  const svg = Plot.plot({
+    width: w, height: H - 60, marginLeft: 44, marginBottom: 40, marginTop: 12, marginRight: 20,
+    style: {background: t.surface, color: t.ink2, fontFamily: FONT, fontSize: "12px"},
+    x: {domain: [st.lo - 0.5, st.hi + 0.5], ticks: ticks(w).filter(k => k >= st.lo && k <= st.hi), tickFormat: d => d + "/24", label: XT, labelAnchor: "center", labelArrow: "none"},
+    y: {domain: [0, 1], ticks: 5, label: YT, labelAnchor: "center", labelArrow: "none"},
+    marks: [
+      Plot.gridY({stroke: t.grid, strokeOpacity: 1}),
+      Plot.rect([0], {x1: 17.5, x2: 23.5, y1: 0, y2: 1, fill: t.grid, fillOpacity: 0.6, clip: true}),
+      Plot.text([0], {x: 23.3, y: 0.06, text: () => "18/24 to 23/24:\nreported apart", fill: t.ink2, fontSize: 11, textAnchor: "end"}),
+      Plot.line([[0.5, 0.5 / 24], [23.5, 23.5 / 24]], {stroke: t.grey, strokeDasharray: "1.5,3", clip: true}),
+      ...on.map(a => Plot.line(ROWS.filter(r => r.arm === a.id), {x: "ask", y: "got", stroke: t[a.color], strokeWidth: 2.25, strokeDasharray: a.dash ? "5,4" : undefined, className: "arm a-" + a.id, clip: true})),
+      ...on.map(a => Plot.dot(ROWS.filter(r => r.arm === a.id), {x: "ask", y: "got", fill: t[a.color], r: 3.5, className: "armdot a-" + a.id, clip: true})),
+      Plot.ruleX(BYASK, Plot.pointerX({x: "ask", stroke: t.ink2, strokeOpacity: 0.5})),
+      Plot.tip(BYASK, Plot.pointerX({x: "ask", y: d => Math.max(...on.map(a => d[a.id]), 0), title: d => `Ask ${d.ask}/24\n` + on.map(a => `${a.label}: ${d[a.id].toFixed(3)}`).join("\n"), fill: t.surface, stroke: t.grid})),
+    ],
+  });
+  el.querySelector(".pc").append(svg);
+  if (first) { // draw-in: reveal the arm lines left to right through a growing clip rectangle
+    const id = "reveal-" + Math.random().toString(36).slice(2);
+    const s = d3.select(svg), wrap = s.insert("g", "g[aria-label=rule]").attr("clip-path", `url(#${id})`);
+    const rect = s.append("defs").append("clipPath").attr("id", id).append("rect").attr("height", H).attr("width", 0);
+    svg.querySelectorAll("g.arm,g.armdot").forEach(g => wrap.node().append(g));
+    rect.transition().duration(1000).ease(d3.easeCubicOut).attr("width", w);
+    setTimeout(() => wrap.attr("clip-path", null), 1100); // never leave the lines hidden
+  }
+  // hover: nearest arm line stands out
+  svg.addEventListener("pointermove", e => {
+    const [mx, my] = d3.pointer(e, svg); const x = svg.scale("x"), y = svg.scale("y");
+    const k = Math.round(x.invert ? x.invert(mx) : 1), kk = Math.max(st.lo, Math.min(st.hi, k));
+    let best = null, bd = 18;
+    for (const a of on) { const d = Math.abs(y.apply(BYASK[kk - 1][a.id]) - my); if (d < bd) { bd = d; best = a.id; } }
+    svg.classList.toggle("plot-dim", !!best);
+    svg.querySelectorAll("g.arm,g.armdot").forEach(g => g.classList.toggle("on", !!best && g.classList.contains("a-" + best)));
+  });
+  svg.addEventListener("pointerleave", () => svg.classList.remove("plot-dim"));
+  el.querySelectorAll(".lg button").forEach(b => b.onclick = () => { const id = ARMS[+b.dataset.i].id; st.off.has(id) ? st.off.delete(id) : st.off.add(id); drawPlot(el, t, false); });
+  const [r1, r2] = el.querySelectorAll(".rng input");
+  const upd = () => { st.lo = Math.min(+r1.value, +r2.value - 1); st.hi = Math.max(+r2.value, st.lo + 1); drawPlot(el, t, false); };
+  r1.onchange = upd; r2.onchange = upd;
+}
+
+/* ---------- Vega-Lite: every interaction is a declared parameter ---------- */
+async function drawVega(el, t){
+  const w = el.clientWidth, labels = ARMS.map(a => a.label);
+  const X = {field: "ask", type: "quantitative", scale: {domain: [0.5, 23.5], nice: false}, axis: {values: ticks(w), labelExpr: "datum.value + '/24'", title: XT, grid: false}};
+  const Y = {field: "got", type: "quantitative", scale: {domain: [0, 1]}, axis: {title: YT}};
+  const color = {field: "label", type: "nominal", sort: labels, scale: {domain: labels, range: ARMS.map(a => t[a.color])}, legend: {title: null}};
+  const fade = {condition: {param: "pick", value: 1}, value: 0.12};
+  const xy = (x, y) => ({x: {field: x, type: "quantitative"}, y: {field: y, type: "quantitative"}});
+  el._view = (await vegaEmbed(el, {
+    $schema: "https://vega.github.io/schema/vega-lite/v6.json",
+    width: "container", height: w < 500 ? 260 : 300, background: t.surface, padding: {left: 2, right: 14, top: 4, bottom: 2},
+    config: {font: FONT, view: {stroke: null},
+      axis: {gridColor: t.grid, domainColor: t.grey, tickColor: t.grey, labelColor: t.ink2, titleColor: t.ink2, labelFontSize: 12, titleFontSize: 12, titleFontWeight: "normal"},
+      legend: {labelColor: t.ink2, labelFontSize: w < 500 ? 11 : 12, orient: "top", direction: "vertical", labelLimit: 0, symbolStrokeWidth: 3}},
+    layer: [
+      {data: {values: [{x: 17.5, x2: 23.5}]}, mark: {type: "rect", color: t.grid, opacity: 0.6, clip: true}, encoding: {x: {field: "x", type: "quantitative"}, x2: {field: "x2"}}},
+      {data: {values: [{x: 23.3, y: 0.1, t: ["18/24 to 23/24:", "reported apart"]}]}, mark: {type: "text", color: t.ink2, fontSize: 11, align: "right"}, encoding: {...xy("x", "y"), text: {field: "t"}}},
+      {data: {values: [{x: 0.5, y: 0.5 / 24}, {x: 23.5, y: 23.5 / 24}]}, mark: {type: "line", color: t.grey, strokeDash: [1.5, 3], strokeWidth: 1, clip: true}, encoding: xy("x", "y")},
+      {data: {values: ROWS}, mark: {type: "line", strokeWidth: 2.25, clip: true},
+       params: [
+         {name: "pick", select: {type: "point", fields: ["label"]}, bind: "legend"},
+         {name: "hover", select: {type: "point", fields: ["label"], on: "pointerover", clear: "pointerout"}},
+         {name: "zoom", select: {type: "interval", encodings: ["x"]}, bind: "scales"},
+       ],
+       encoding: {x: X, y: Y, color, opacity: fade,
+         strokeDash: {field: "label", type: "nominal", scale: {domain: labels, range: ARMS.map(a => a.dash ? [5, 4] : [1, 0])}, legend: null},
+         strokeWidth: {condition: {param: "hover", empty: false, value: 4.5}, value: 2.25}}},
+      {data: {values: ROWS}, mark: {type: "point", filled: true, size: 40, clip: true}, encoding: {x: X, y: Y, color: {...color, legend: null}, opacity: fade}},
+      {data: {values: BYASK}, mark: {type: "rule", color: t.ink2, strokeWidth: 1},
+       params: [{name: "cross", select: {type: "point", fields: ["ask"], nearest: true, on: "pointermove", clear: "pointerout"}}],
+       encoding: {x: {field: "ask", type: "quantitative"}, opacity: {condition: {param: "cross", empty: false, value: 0.5}, value: 0},
+         tooltip: [{field: "ask", title: "Ask (/24)"}, ...ARMS.map(a => ({field: a.id, type: "quantitative", title: a.label, format: ".3f"}))]}},
+    ],
+  }, {actions: false, renderer: "svg"})).view;
+}
+
+/* ---------- Plotly: crosshair, legend and zoom built in; draw-in is a few lines ---------- */
+async function drawPlotly(el, t, first){
+  const w = el.clientWidth, narrow = w < 500;
+  const line = (a, ys) => ({type: "scatter", mode: "lines+markers", name: a.label, x: d3.range(1, 24), y: ys,
+    line: {color: t[a.color], width: 2.25, dash: a.dash ? "dash" : "solid"}, marker: {size: 7},
+    hovertemplate: `%{y:.3f}<extra></extra>`});
+  const real = ARMS.map(a => ROWS.filter(r => r.arm === a.id).map(r => r.got));
+  const traces = ARMS.map((a, i) => line(a, first ? real[i].map(() => 0) : real[i]));
+  traces.push({x: [0.5, 23.5], y: [0.5 / 24, 23.5 / 24], mode: "lines", line: {color: t.grey, dash: "dot", width: 1}, hoverinfo: "skip", showlegend: false});
+  await Plotly.newPlot(el, traces, {
+    height: narrow ? 470 : H, margin: {l: 48, r: 8, t: narrow ? 8 : 8, b: 44},
+    paper_bgcolor: t.surface, plot_bgcolor: t.surface, font: {family: FONT, size: 12, color: t.ink2},
+    hovermode: "x unified", dragmode: "zoom",
+    xaxis: {range: [0.5, 23.5], tickvals: ticks(w), ticktext: ticks(w).map(k => k + "/24"), title: {text: XT}, showgrid: false, zeroline: false, linecolor: t.grey, showspikes: true, spikecolor: t.ink2, spikethickness: 1, spikedash: "solid"},
+    yaxis: {range: [0, 1], title: {text: YT}, gridcolor: t.grid, zeroline: false, fixedrange: true},
+    legend: narrow ? {orientation: "h", x: 0, y: 1.02, yanchor: "bottom", bgcolor: "rgba(0,0,0,0)", font: {size: 11}} : {x: 0.01, y: 0.99, bgcolor: "rgba(0,0,0,0)"},
+    shapes: [{type: "rect", x0: 17.5, x1: 23.5, y0: 0, y1: 1, fillcolor: t.grid, opacity: 0.6, line: {width: 0}, layer: "below"}],
+    annotations: [{x: 20.5, y: 0.06, text: "18/24 to 23/24:<br>reported apart", showarrow: false, font: {size: 11, color: t.ink2}}],
+    hoverlabel: {bgcolor: t.surface, bordercolor: t.grid, font: {color: t.ink}},
+  }, {displayModeBar: false, responsive: true});
+  if (first) Plotly.animate(el, {data: real.map(y => ({y}))}, {transition: {duration: 900, easing: "cubic-out"}, frame: {duration: 900, redraw: false}});
+}
+
+/* ---------- ECharts: everything below is a built-in option ---------- */
+function drawECharts(el, t){
+  const w = el.clientWidth, narrow = w < 500;
+  el.style.height = (narrow ? 500 : H + 40) + "px";
+  const c = echarts.init(el, null, {renderer: "svg"});
+  const top = narrow ? 92 : 16;
+  c.setOption({
+    backgroundColor: t.surface, textStyle: {fontFamily: FONT, color: t.ink2},
+    animationDuration: 1200, animationEasing: "cubicOut",
+    grid: {left: 50, right: 12, top, bottom: 84},
+    legend: narrow ? {data: ARMS.map(a => a.label), left: 0, right: 0, top: 0, orient: "vertical", textStyle: {color: t.ink2, fontSize: 11}, itemGap: 5}
+                   : {data: ARMS.map(a => a.label), left: 60, top: top + 4, orient: "vertical", textStyle: {color: t.ink2}},
+    tooltip: {trigger: "axis", axisPointer: {type: "line", lineStyle: {color: t.ink2}}, backgroundColor: t.surface, borderColor: t.grid, textStyle: {color: t.ink, fontSize: 12},
+      formatter: ps => `Ask ${ps[0].value[0]}/24<br>` + ps.filter(p => LABEL[ARMS.find(a => a.label === p.seriesName)?.id]).map(p => `${p.marker}${p.seriesName}: <b>${p.value[1].toFixed(3)}</b>`).join("<br>")},
+    xAxis: {type: "value", min: 0.5, max: 23.5, name: XT, nameLocation: "middle", nameGap: 28, splitLine: {show: false},
+      axisLine: {lineStyle: {color: t.grey}}, axisTick: {customValues: ticks(w)}, axisLabel: {customValues: ticks(w), formatter: v => v + "/24", color: t.ink2}},
+    yAxis: {type: "value", min: 0, max: 1, name: YT, nameLocation: "middle", nameGap: 36, splitLine: {lineStyle: {color: t.grid}}, axisLabel: {color: t.ink2}},
+    dataZoom: [{type: "inside", filterMode: "none"}, {type: "slider", height: 18, bottom: 6, filterMode: "none", borderColor: t.grid, fillerColor: "rgba(127,127,127,.15)", textStyle: {color: t.ink2}, labelFormatter: v => Math.round(v) + "/24", dataBackground: {lineStyle: {color: t.grey}, areaStyle: {color: t.grid}}}],
+    series: [
+      ...ARMS.map(a => ({type: "line", name: a.label, data: ROWS.filter(r => r.arm === a.id).map(r => [r.ask, r.got]),
+        symbol: "circle", symbolSize: 7, color: t[a.color], lineStyle: {width: 2.25, type: a.dash ? [5, 4] : "solid"},
+        emphasis: {focus: "series", lineStyle: {width: 4.5}}, blur: {lineStyle: {opacity: 0.12}, itemStyle: {opacity: 0.12}}})),
+      {type: "line", name: "ref", data: [[0.5, 0.5 / 24], [23.5, 23.5 / 24]], symbol: "none", silent: true, tooltip: {show: false},
+        lineStyle: {color: t.grey, width: 1, type: [1.5, 3]},
+        markArea: {silent: true, itemStyle: {color: t.grid, opacity: 0.6},
+          label: {position: "insideBottom", color: t.ink2, fontSize: 11, formatter: "18/24 to 23/24:\nreported apart"},
+          data: [[{xAxis: 17.5}, {xAxis: 23.5}]]}},
+    ],
+  });
+  return () => c.dispose();
+}
+
+const ST = {native: "Built in", custom: "I had to write it", none: "Not possible here"};
+const LIBS = [
+  {key: "echarts", name: "Apache ECharts", ver: "6.1.0", draw: drawECharts, try: "Hover a line; drag inside the chart or the slider below to zoom; click legend entries to hide arms.",
+   ia: {hover: ["native", "focus: series"], cross: ["native", "axis tooltip"], legend: ["native", "click hides"], zoom: ["native", "wheel, drag, slider"], anim: ["native", "on by default"]}},
+  {key: "vega", name: "Vega-Lite", ver: "vega 6.4.0, vega-lite 6.5.0", draw: drawVega, try: "Hover a line; click a legend entry to isolate it (shift-click adds); drag or scroll to zoom, double-click resets.",
+   ia: {hover: ["native", "a hover parameter"], cross: ["native", "nearest-point parameter"], legend: ["native", "click isolates"], zoom: ["native", "drag and wheel"], anim: ["none", "draws at once"]}},
+  {key: "plotly", name: "Plotly", ver: "plotly.js 4.1.2", draw: drawPlotly, try: "Hover anywhere for all four values; drag a box to zoom, double-click resets; click legend entries to hide, double-click to isolate.",
+   ia: {hover: ["none", "the crosshair hover takes over"], cross: ["native", "x unified"], legend: ["native", "click hides"], zoom: ["native", "drag a box"], anim: ["custom", "Plotly.animate, 1 line"]}},
+  {key: "plot", name: "Observable Plot", ver: "0.6.17 + d3 7.9.0", draw: drawPlot, try: "Hover near a line; click legend entries to hide arms; move the sliders to zoom.",
+   ia: {hover: ["custom", "18 lines of event code"], cross: ["native", "pointerX + tip"], legend: ["custom", "HTML buttons, redraw"], zoom: ["custom", "two sliders, redraw"], anim: ["custom", "a growing clip, 8 lines"]}},
+];
+const IA = [["hover", "Hover a line: it stands out, the others fade"], ["cross", "Crosshair: all four arms' values at one ask"], ["legend", "Legend click hides or isolates an arm"], ["zoom", "Zoom into a range of asks"], ["anim", "Lines draw in when the chart appears"]];
+
+document.getElementById("mx").innerHTML = `<thead><tr><th></th>${LIBS.map(L => `<th>${L.name}</th>`).join("")}</tr></thead><tbody>` +
+  IA.map(([k, n]) => `<tr><th>${n}</th>${LIBS.map(L => { const [s, how] = L.ia[k]; return `<td><span class="st ${s}" title="${ST[s]}"><i class="ic"></i><span>${how}</span></span></td>`; }).join("")}</tr>`).join("") + "</tbody>";
+
+const ONLY = new URLSearchParams(location.search).get("only");
+const panels = document.getElementById("panels");
+for (const L of LIBS) {
+  if (ONLY && ONLY !== L.key) continue;
+  const p = document.createElement("section"); p.className = "card panel";
+  p.innerHTML = `<h3>${L.name}</h3><p class="meta">${L.ver}</p><div class="chart" id="c-${L.key}"></div><p class="try">${L.try}</p>`;
+  panels.append(p);
+}
+if (ONLY) for (const s of document.querySelectorAll("main > :not(#panels)")) s.style.display = "none";
+if (ONLY) document.querySelector("main").style.padding = "12px";
+
+const state = {};
+let firstDone = false;
+async function drawAll(){
+  const t = tokens();
+  for (const L of LIBS) {
+    const el = document.getElementById("c-" + L.key); if (!el) continue;
+    if (state[L.key]) state[L.key]();
+    if (L.key === "plotly") Plotly.purge(el);
+    el.innerHTML = "";
+    try { state[L.key] = await L.draw(el, t, !firstDone); } catch (e) { el.textContent = "Failed to draw: " + e.message; console.error(L.key, e); }
+  }
+  firstDone = true;
+}
+
+const PHONES = [
+  ["echarts", "Apache ECharts", "Every label fits, the plot is tall, and the zoom slider is thumb-sized."],
+  ["plotly", "Plotly", "Every label fits and the plot is tall. Zoom is a drag box, which is fiddly with a finger."],
+  ["plot", "Observable Plot", "The legend wraps because it is plain HTML, but my two zoom sliders look bolted on."],
+  ["vega", "Vega-Lite", "The legend can't wrap, so the longest name is cut off, and the plot is the shortest of the four."],
+];
+document.getElementById("phones").innerHTML = PHONES.map(([k, n, why], i) => `<figure><img src="phone-${k}.png" alt="${n} at phone width" loading="lazy"><figcaption><b><span class="rank">${i + 1}</span>${n}</b><span>${why}</span></figcaption></figure>`).join("");
+
+document.getElementById("flow").innerHTML = [
+  ["Apache ECharts", [["Python script", ""], ["options as JSON", ""], ["page draws it", ""]], "pyecharts exists but is a third-party wrapper. A PNG for a note needs a headless browser, or Node's server-side SVG."],
+  ["Vega-Lite", [["Python script with Altair", ""], ["Vega-Lite spec", ""], ["page draws it", ""]], "Same spec → vl-convert → SVG, PNG or PDF, no browser."],
+  ["Plotly", [["Python script with plotly.py", ""], ["figure JSON", ""], ["page draws it", ""]], "PNG via Kaleido, which drives an installed Chrome."],
+  ["Observable Plot", [["Python script", ""], ["numbers as JSON", ""], ["page's JavaScript draws it", ""]], "No Python version. A PNG needs a browser."],
+].map(([n, steps, note]) => `<div class="card fl"><b>${n}</b>${steps.map(s => `<span class="box">${s[0]}</span>`).join('<span class="ar">→</span>')}<span class="ar" style="flex-basis:100%;margin-left:126px;font-size:12.5px">${note}</span></div>`).join("");
+
+const btn = document.getElementById("theme");
+const modes = ["auto", "light", "dark"];
+let mode = "auto";
+try { mode = localStorage.getItem("plotcmp-theme") || "auto"; } catch (e) {}
+const qp = new URLSearchParams(location.search).get("theme"); if (modes.includes(qp)) mode = qp;
+function applyTheme(){ if (mode === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", mode); btn.textContent = "Theme: " + mode; }
+btn.addEventListener("click", () => { mode = modes[(modes.indexOf(mode) + 1) % 3]; try { localStorage.setItem("plotcmp-theme", mode); } catch (e) {} applyTheme(); drawAll(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (mode === "auto") drawAll(); });
+let lastW = innerWidth, rt; addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(rt); rt = setTimeout(drawAll, 200); });
+applyTheme(); drawAll();
+</script>
+</body>
+</html>

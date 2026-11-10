@@ -1,5 +1,5 @@
 {
-  "retrieved": "2026-09-13",
+  "retrieved": "2026-11-09",
   "sprites": {
     "abomasnow": "./sprites/abomasnow.png",
     "absol": "./sprites/absol.png",
@@ -22,6 +22,7 @@
     "azumarill": "./sprites/azumarill.png",
     "banette": "./sprites/banette.png",
     "barbaracle": "./sprites/barbaracle.png",
+    "barbaraclemega": "./sprites/barbaraclemega.png",
     "basculegion": "./sprites/basculegion.png",
     "basculegionf": "./sprites/basculegionf.png",
     "beedrill": "./sprites/beedrill.png",
@@ -48,11 +49,13 @@
     "delphoxmega": "./sprites/delphoxmega.png",
     "ditto": "./sprites/ditto.png",
     "dragalge": "./sprites/dragalge.png",
+    "dragalgemega": "./sprites/dragalgemega.png",
     "dragapult": "./sprites/dragapult.png",
     "dragonite": "./sprites/dragonite.png",
     "dragonitemega": "./sprites/dragonitemega.png",
     "drampa": "./sprites/drampa.png",
     "eelektross": "./sprites/eelektross.png",
+    "eelektrossmega": "./sprites/eelektrossmega.png",
     "emboar": "./sprites/emboar.png",
     "espathra": "./sprites/espathra.png",
     "excadrill": "./sprites/excadrill.png",
@@ -127,8 +130,11 @@
     "politoed": "./sprites/politoed.png",
     "primarina": "./sprites/primarina.png",
     "pyroar": "./sprites/pyroar.png",
+    "pyroarmega": "./sprites/pyroarmega.png",
     "quaquaval": "./sprites/quaquaval.png",
     "raichu": "./sprites/raichu.png",
+    "raichumegax": "./sprites/raichumegax.png",
+    "raichumegay": "./sprites/raichumegay.png",
     "reuniclus": "./sprites/reuniclus.png",
     "rotom": "./sprites/rotom.png",
     "rotomheat": "./sprites/rotomheat.png",
@@ -154,6 +160,7 @@
     "sneasler": "./sprites/sneasler.png",
     "snorlax": "./sprites/snorlax.png",
     "staraptor": "./sprites/staraptor.png",
+    "staraptormega": "./sprites/staraptormega.png",
     "starmie": "./sprites/starmie.png",
     "steelix": "./sprites/steelix.png",
     "swampert": "./sprites/swampert.png",
@@ -188,25 +195,25 @@
     {
       "species": "abomasnow",
       "file": "./sprites/abomasnow.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/abomasnow.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/460.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "753031616e1d9b322e353c47c6251d8f4a40126ca2299cac7227610783c2d899"
+      "sha256": "bd3eeeb640cb09f395e89b2529a7a172d0e7ff9508c7c811f931d2977321d389"
     },
     {
       "species": "absol",
       "file": "./sprites/absol.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/absol.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/359.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a1c2cb9ee36d06f0456d7db218480d451dc25ba4847c9812ec9dc92b042ff655"
+      "sha256": "e08e8fa7c90d52bbc79859342b1c88f353a80eff273a5ce7d3960a6e8374da38"
     },
     {
       "species": "aegislash",
       "file": "./sprites/aegislash.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/aegislash.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/681.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -215,61 +222,61 @@
     {
       "species": "aerodactyl",
       "file": "./sprites/aerodactyl.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/aerodactyl.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/142.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "071a8decea77167477545c35ec05633485a64008f3dcc490b90639819f85b9ec"
+      "sha256": "d983e2e373898aafcfcd92f0ef9d7a80570b3a68e9e2fb6b0d9e724c41ed6d38"
     },
     {
       "species": "aerodactylmega",
       "file": "./sprites/aerodactylmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/aerodactyl-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10042.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "7d93bde66025e9d09ad117baccb042e839378d7f8100f35001ac014c1cd3f2ac"
+      "sha256": "b525d65d4b78fbc1d1968163c96998b5d0d3621554db9c0260da23d201abf7e0"
     },
     {
       "species": "alcremie",
       "file": "./sprites/alcremie.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/alcremie.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/869.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "f977b2ecb5a0f20278c01a9f2db5165ea7cd24f7bdfca803e910083d05d376f9"
+      "sha256": "820e2fe21dcf67a0e7d06b2f34452769e0379b8498213995ea3e40984ad70495"
     },
     {
       "species": "altaria",
       "file": "./sprites/altaria.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/altaria.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/334.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "4632257b4a3affa843bff75899ce70df5472d3d098c28b61b09151b6e77e7520"
+      "sha256": "8b361606c2a8b3b44b1928778c86e374a6d28b4878a837dd4afd591d28b71592"
     },
     {
       "species": "ampharos",
       "file": "./sprites/ampharos.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/ampharos.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/181.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "776df5e38b8d47decf7749bf22f13bf7d192324c6b17bba5ac8e16780857ce8b"
+      "sha256": "731acc5f1ad15a26a2dc851c8bfbbf5eb7c2d5ad53f3af1cf178e980f0723997"
     },
     {
       "species": "annihilape",
       "file": "./sprites/annihilape.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/annihilape.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/979.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a645c20accce33086444c2a5b6228341afa1e827a172dbf7b4d786935bc647d7"
+      "sha256": "eb4bd9a33675b75f6a0d7cbee5e3a985962fb5ad856eade5f4575f8c9494660e"
     },
     {
       "species": "araquanid",
       "file": "./sprites/araquanid.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/araquanid.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/752.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -278,291 +285,295 @@
     {
       "species": "arbok",
       "file": "./sprites/arbok.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/arbok.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/24.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "95deb64e37c4f94e968a8c31f6e458ac8667649e4ff0c88578c3d4de478fcd19"
+      "sha256": "bc7e2f3765edb5f4ff07c4e469e4ec1b457e79afc8cfb8a269ad16e0c5b00019"
     },
     {
       "species": "arcanine",
       "file": "./sprites/arcanine.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/arcanine.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/59.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "cc68bb91296326489be2ab83642c22b2f89e43f60f3ea96d48b3fd69562f0211"
+      "sha256": "67af0d0019c010338d108621830aea946489940b781464994068e595ebb5a0a9"
     },
     {
       "species": "arcaninehisui",
       "file": "./sprites/arcaninehisui.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/arcanine-hisui.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10230.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "df532350318f61e36e73039ffcc126557c9c5293f8110d04eb6ee0c6d259be47"
+      "sha256": "81d572cb0827b1807675f55a0e838ff86d9149e90681040db7347c6e6a6e2a64"
     },
     {
       "species": "archaludon",
       "file": "./sprites/archaludon.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/archaludon.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1018.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c02b0cc10444b3f28ffee110babb84f5cdd9e690de25694692634e0f22afe1cc"
+      "sha256": "35b71113439d2a4605164326996d0f08e26dc633beb99cbd97283ae4e007367d"
     },
     {
       "species": "armarouge",
       "file": "./sprites/armarouge.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/armarouge.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/936.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "89556dd538ccd271d2b1fbbec46b7e7284b8866b00d9104cfe00ee38b9ea5ac5"
+      "sha256": "da5073348ee1eb6225436e7335d6f4e1ed00f4ccd87b4ceb12f35040f251f514"
     },
     {
       "species": "aromatisse",
       "file": "./sprites/aromatisse.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/aromatisse.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/683.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "244ae7b7bb767d110858dba5f460ecda472fab459b4a4fb711b7adeaa0f54fcb"
+      "sha256": "d5559798ad174421029e4452f2e2ec5e03b74675c6aee5925eed3afddd22ca83"
     },
     {
       "species": "audino",
       "file": "./sprites/audino.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/audino.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/531.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "fa6ad5989350a59e05499aadc1d2f9e31df971607ffef984c224ca8d8592d39a"
+      "sha256": "4a091ae8eb3d9fad6b7c1e7c1076c93c15c6b6673672bdebc7472e653896acd0"
     },
     {
       "species": "avalugghisui",
       "file": "./sprites/avalugghisui.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/avalugg-hisui.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10243.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "dfcd9f371dff0ad69594f950e75223f417f1c10488125c38b15d8d442aea63c4"
+      "sha256": "6c7d57d268b0cb88731c8671d5f4f99183ee036cf9e189b1bebeb4a107f43548"
     },
     {
       "species": "azumarill",
       "file": "./sprites/azumarill.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/azumarill.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/184.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "35e9ebb2ab7997a65bbb87ec2b44cfddcb4e8c2ff80f827450b012dd67a8d149"
+      "sha256": "d7d092901d81370ff6d9ec903c0c26145152dd03c2dc1c78ae5520b1918b1d0a"
     },
     {
       "species": "banette",
       "file": "./sprites/banette.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/banette.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/354.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "bf6f76ab108cb96a81479cdb63a134a59fd8a7ec4891c07e2a2dd0a0f472a69b"
+      "sha256": "b0a44403c62f0d27936b19df0e1e8e469652822da754f0f1720aaec428a4a371"
     },
     {
       "species": "barbaracle",
       "file": "./sprites/barbaracle.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/barbaracle.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/689.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "07e2b798da6337f55d93cc11e8ee0f1ef2edc13d18ad0df444239d4279cab492"
+      "sha256": "49deab49b133fe7766cbfe050568774d15640358e26d29cff33a0c6f018736be"
     },
     {
       "species": "barbaraclemega",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/barbaracle-mega.png",
-      "available": false
+      "file": "./sprites/barbaraclemega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10298.png",
+      "available": true,
+      "width": 96,
+      "height": 96,
+      "sha256": "9d81b010aaab7ae6bcd50a0759ff5c6f022c0e276550d17856a9d53222ce9b50"
     },
     {
       "species": "basculegion",
       "file": "./sprites/basculegion.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/basculegion.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/902.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "112be4e391349a9fa46e2d183eaaf2b7601a083936cc989bab387fe657a5234f"
+      "sha256": "dda4522a757818f77b34dcd10851eee4b202bdc8c3b4495bf8aee6cbe540a2fd"
     },
     {
       "species": "basculegionf",
       "file": "./sprites/basculegionf.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/basculegion-f.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10248.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "dcc0ca3c85c1f19c98502866662ffe57acd9b539e64999e9eac158768abcceff"
+      "sha256": "e005afd1b2374518320caa1ae91c0d463580d13863b9beb213c635b4b646a45b"
     },
     {
       "species": "beedrill",
       "file": "./sprites/beedrill.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/beedrill.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/15.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "6d7a3dacb6bda83e2c28ce7aef6b6ee56505a9cdff1d83b37c92a60823416044"
+      "sha256": "e664ed91c3789fe42de1373346f9796f167dfdf8ee39061a97287922f5394b78"
     },
     {
       "species": "bellibolt",
       "file": "./sprites/bellibolt.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/bellibolt.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/939.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a70f8210cad4a812d292d83075422ebd29264660f0210ad1737a678b50d62e7b"
+      "sha256": "e759c3dcce273d9b426cd95131cae87a1f473da8f396d5ed4267c38232e5b4ec"
     },
     {
       "species": "blastoise",
       "file": "./sprites/blastoise.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/blastoise.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "052a87a7be155f154392f1e14e281a2245a4ccc611e1ee543497c056d1ec4350"
+      "sha256": "440579ff6026385631d7fe17377e5e58da3f0088531afffb527fbb8c3936dc34"
     },
     {
       "species": "blastoisemega",
       "file": "./sprites/blastoisemega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/blastoise-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10036.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "9520927731abe549a0033887a7f1e76db0cfd4045ba2d5b1574997fc9f7422fc"
+      "sha256": "e90b6fb83f8fd43b8d0fd4c58adc8ae0e71cc9f5649574ede1c741842d297a1a"
     },
     {
       "species": "blaziken",
       "file": "./sprites/blaziken.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/blaziken.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/257.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "35d26ebe30a77bf20e19019c1eafbafc74e003d92487435c8c3a5a08dbd39eba"
+      "sha256": "3b310181ab42b7f7cb13ca6d168d4e82d8f25bf455dc69e3d0414f2138105c6e"
     },
     {
       "species": "blazikenmega",
       "file": "./sprites/blazikenmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/blaziken-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10050.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "f0bbf0e5cfceda64bdc95eb36381097bc58de04fb0dd65f60d8a3d6d5c6eaf30"
+      "sha256": "f920703c485165c83bd5d52c637554789ab0e46967719d76170794e1d4ab9ea0"
     },
     {
       "species": "camerupt",
       "file": "./sprites/camerupt.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/camerupt.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/323.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "0031f177225c02252fa9052f2569c41779ff5f69e7195c7c269233a7ad2b0796"
+      "sha256": "ff0826e011a95f5cc2bb7358e96d19cf3cb39bfb12b3577e6c4edd984107de00"
     },
     {
       "species": "castform",
       "file": "./sprites/castform.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/castform.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/351.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "158cb99f6132ac5812f32b1bafa02a821e3c93ff0bd8f328036a0d970e043a9c"
+      "sha256": "61f43c989a1f941bef4aa1802d2692e4c98a790b1bb98cc9dab2097801285826"
     },
     {
       "species": "ceruledge",
       "file": "./sprites/ceruledge.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/ceruledge.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/937.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "bc67daaba43ef6c95801228b02108d1362b8687c4fb323cc99b1b87227e9f842"
+      "sha256": "689f629fd364a66432d474234b3ac6e170817a2587816f0b6c853d65038615df"
     },
     {
       "species": "chandelure",
       "file": "./sprites/chandelure.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/chandelure.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/609.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "77972d9147e607fd12b2a2516fbcc9c906da106ff86803042b9b20c00dd31ee4"
+      "sha256": "32ad9ca97bae7d50d45b8f420187391a0237e79a9c199285026f734f8af28a7c"
     },
     {
       "species": "charizard",
       "file": "./sprites/charizard.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/charizard.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "d4b2802dd40b22ba668107e5dd4c0ac4eee33128d251502883c9148abd6a38f7"
+      "sha256": "53358b7e8be91014bd18285862bd56c0549b5d23af175deb59f0e6f6339c878f"
     },
     {
       "species": "charizardmegay",
       "file": "./sprites/charizardmegay.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/charizard-megay.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10035.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8d74345ecb86f73b8d2b5d4c049bbeba28c7a5d130cd675a318218e0b2632618"
+      "sha256": "9c817e415f9acc177dedd8b1c28af47d8353d739dbfb9514b3ed0f2a1ddd79fa"
     },
     {
       "species": "chesnaught",
       "file": "./sprites/chesnaught.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/chesnaught.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/652.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "f5a2d05f097b151b85dced39450433252063b06fe6cd420bcb666d13465ce9e7"
+      "sha256": "5502fda99a4f21dfb38d14167b2eb53902ddb553f07eb0f4964468befb871816"
     },
     {
       "species": "clefable",
       "file": "./sprites/clefable.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/clefable.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/36.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "987d89ea8837d537b0b42be096c273c4da6eacc8353d9d2f31b2afb2ac4b286c"
+      "sha256": "cf394d483b36fe9556e4a862489a2fe64ed01f5702de26c4ada0e91602dadefa"
     },
     {
       "species": "cofagrigus",
       "file": "./sprites/cofagrigus.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/cofagrigus.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/563.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "0e5220bb3c38500b2511d730dd361fa5ab09776dbdae001c207a6699a614d50e"
+      "sha256": "bd0fef2da3a9ecae6961442b7f23f6db5d1d96e8c24499bcfc730ac6b296a026"
     },
     {
       "species": "conkeldurr",
       "file": "./sprites/conkeldurr.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/conkeldurr.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/534.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "6415c64009554fd128c00d9e0a4f2e78d0b49a98f9f9cbf6e46e4cd85090464f"
+      "sha256": "e1b6607ae1af6ac4b76978197cce0824e80474f57b76267a9cd6aa8f2039dc3f"
     },
     {
       "species": "corviknight",
       "file": "./sprites/corviknight.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/corviknight.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/823.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "42d853377011ccae7036d272ee9362dc4bfe62f73ebe3f64dc2baa7cc2a4da99"
+      "sha256": "ebb0103c27f970841c39e07867fa08ddf4b9b612354a30f342410cc6ddb3a6b7"
     },
     {
       "species": "crabominable",
       "file": "./sprites/crabominable.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/crabominable.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/740.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "9dd4f84b7a23592698c548477738c48e1af9b128ed26602731fdbd87092707d0"
+      "sha256": "7f73f04cbd6f1b35f834e4f7ab1f2556d712df341b63b90c36645ef10c4b1cbd"
     },
     {
       "species": "decidueye",
       "file": "./sprites/decidueye.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/decidueye.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/724.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -571,224 +582,232 @@
     {
       "species": "decidueyehisui",
       "file": "./sprites/decidueyehisui.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/decidueye-hisui.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10244.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "f537d06fc82d026dc91b1c2fea541ec90320d1a3115523ce74e37bbc3ef71ee6"
+      "sha256": "f3203d72f4c8f1e8a95d47f2b018f79e3caabf63e8c2dde623eed16ae2a72d84"
     },
     {
       "species": "delphox",
       "file": "./sprites/delphox.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/delphox.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/655.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8fa3cd984393db963a447e6b3f0513c644ea830f317d039a8d52f514304840db"
+      "sha256": "be9ccf628b2ef13cc234c8106807e6163235711f67e46e6a6ad7192a006c09f8"
     },
     {
       "species": "delphoxmega",
       "file": "./sprites/delphoxmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/delphox-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10293.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a143f1254b89b97de805f39220528fba7bc7e80d4f4ff8b921992d376e113c93"
+      "sha256": "d07c9806d43b9bb01e0424d38ab8d1861db025c074b845051f5062a24d61f74c"
     },
     {
       "species": "ditto",
       "file": "./sprites/ditto.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/ditto.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c7a05c4aefb9d638b6b59c3cef91b9f2a19f1600b7bce9a051d5942daa3999cc"
+      "sha256": "57567a3971b2262783eecf8b9d4b80a200b87069b36ab95868f664066876ea5b"
     },
     {
       "species": "dragalge",
       "file": "./sprites/dragalge.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/dragalge.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/691.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "45bd23a962a573e038338c11be9db9d85e2735403003ad2929ce9e030ea64540"
+      "sha256": "ae5eb4d98c80a10c5388bb73d67cb7cf0d4136e67379846d1cea7374f94ff996"
     },
     {
       "species": "dragalgemega",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/dragalge-mega.png",
-      "available": false
+      "file": "./sprites/dragalgemega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10299.png",
+      "available": true,
+      "width": 96,
+      "height": 96,
+      "sha256": "b5a92a2a5a4d2fec837ad3b2186ec74c03c753985b9d21afae4eb394820b99ab"
     },
     {
       "species": "dragapult",
       "file": "./sprites/dragapult.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/dragapult.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/887.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "9ee0ef4f45e85d53f587499ec6e0c48a14af5a989e9cb6680321349660743c96"
+      "sha256": "4c531f288e538d8914f366d1b49a9fab0ee9a9d33b953742ea662f9a005e2c77"
     },
     {
       "species": "dragonite",
       "file": "./sprites/dragonite.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/dragonite.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c97ebd19b812b5a2eca5319870fb74598805f698dd8249fa88b2d73f324a59be"
+      "sha256": "09216753ae96a01d1444a7568548bbfcfb22fe5de7605151e1e01baac7cdda38"
     },
     {
       "species": "dragonitemega",
       "file": "./sprites/dragonitemega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/dragonite-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10281.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "799576a703a9f2397f8f89731c61b715810ea726f1a10783c624516c86bfb897"
+      "sha256": "0ab3140f60f597d1b0c12f520ef2ee79dfcb9e647dcab757baa9c4ce8355df45"
     },
     {
       "species": "drampa",
       "file": "./sprites/drampa.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/drampa.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/780.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "810f6b417b0ee67d05653ef5de674bc66a2c9ecaff50bffda779436f20602ece"
+      "sha256": "51aa4712e71660fa945eefdc033effacb6fc39e226eb047483b66073b226ab87"
     },
     {
       "species": "eelektross",
       "file": "./sprites/eelektross.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/eelektross.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/604.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "638b0dddf32c53dd0b370f5bb7944486c5aa61e3c687732b70dbc0550906ff18"
+      "sha256": "109ef4511cb5283e03e2b4a44ec0c697723b904563a1a4fb052f178df9d8b3a9"
     },
     {
       "species": "eelektrossmega",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/eelektross-mega.png",
-      "available": false
+      "file": "./sprites/eelektrossmega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10290.png",
+      "available": true,
+      "width": 96,
+      "height": 96,
+      "sha256": "fc9251ed073766f0483d4eb1df130c18ef77ca648d3fe25953757c16dcb6a442"
     },
     {
       "species": "emboar",
       "file": "./sprites/emboar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/emboar.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/500.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "114215ad2d5dfb7d5b452c826f74bcd956420d4d75f6eb2fb3c06fbe433e7434"
+      "sha256": "0f18c0f1ce14b29d061af44fb574a951cdf31b44cb9860534cc64483cdff7e5c"
     },
     {
       "species": "espathra",
       "file": "./sprites/espathra.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/espathra.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/956.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a50e5e40e8634d2bcc675d6dfd93324d4202c302dcde52a86cae1b83a1ff2b43"
+      "sha256": "98bdb98ad1b1c32b6101b0de7b344330832b3ebb872b46186ece32ef4c70c9cd"
     },
     {
       "species": "excadrill",
       "file": "./sprites/excadrill.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/excadrill.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/530.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "88af42cd03f6f29edce9763008d9520d6307faaa5046ea5b8792378a215d9205"
+      "sha256": "33e75c9f0ccc5f11033476ee2868aa469b11c0956271a80012150bf338d41f31"
     },
     {
       "species": "falinks",
       "file": "./sprites/falinks.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/falinks.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/870.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "ed59b3ad6dd0fa756ae2e6fa5f9af7f6b4119be9ab9f2b5f84491c7525de1425"
+      "sha256": "3df619457227f32829487c10d55482edc2dc58cde20fcfb90f84407156ed621b"
     },
     {
       "species": "farigiraf",
       "file": "./sprites/farigiraf.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/farigiraf.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/981.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "96d715e282a7db0b84cd607a553f6eb435e41508dca05d0d3122465814c93830"
+      "sha256": "10aca4fa0ca22fe27c329fd8d4f4d7939eec6481aa279dc0ac80537a415e2651"
     },
     {
       "species": "feraligatr",
       "file": "./sprites/feraligatr.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/feraligatr.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/160.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "d33d7a5739c161c86acc0764babd4423dd020d1d9399eacc4bcdcac30e76e23d"
+      "sha256": "2849e4e930dd4235afb97c9582f12c95b6cfa638b641d1ad9cccf528a8d805d7"
     },
     {
       "species": "floetteeternal",
       "file": "./sprites/floetteeternal.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/floette-eternal.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10061.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "951d89ddbacac4d769f2f26f7ef97b0f3ef718018e131df23f933b7212bb94b9"
+      "sha256": "9f7c7be3340682c9b0dd754861bb3b07f2ec22e101778b90d5a5ce3c5f72febb"
     },
     {
       "species": "floettemega",
       "file": "./sprites/floettemega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/floette-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10296.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c57498ca799953462a1f661675c2c4845b2691c0eb27b7b0ec0fc50c1de4f2a8"
+      "sha256": "fc25ba9f9e4ee02efe47067a6ea937eeb73b1ddea4a6fd6b33a4ec52feeca86d"
     },
     {
       "species": "florges",
       "file": "./sprites/florges.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/florges.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/671.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "91cf0af2c22cacd4f7fc5b07e9487ffc67da83e06d02ff39139ae07c8ef15452"
+      "sha256": "4dab1a3c8834aad45d151feee744a9882e4c27fc50706d7a8a091c2e39ffc5a2"
     },
     {
       "species": "froslass",
       "file": "./sprites/froslass.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/froslass.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/478.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "5df28930f8c3cc04900bece575bd3da4e800d0d2b74760dc8e53984b673f0528"
+      "sha256": "946065a3720384578c3975bece598be57c9310bb9b3ef58e3631841c836b8438"
     },
     {
       "species": "froslassmega",
       "file": "./sprites/froslassmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/froslass-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10285.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "9ea3c9e44dd5816aa0ecd3db0c97c3615b13acc51270b39b38db78301f6f8c28"
+      "sha256": "3565aabfa75ef5b7e44decff3de8cb487b8731216d8a562ddacd3774e5d30350"
     },
     {
       "species": "gallade",
       "file": "./sprites/gallade.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/gallade.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/475.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "825f2bdd036afc081fb5d8d55741d96b396540ba8425f3b3c777ea295c7e85b7"
+      "sha256": "3e89a82903bafd7f6e653316f24138bca5c11e8d07ef49ec79f20060893deead"
     },
     {
       "species": "garchomp",
       "file": "./sprites/garchomp.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/garchomp.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/445.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "1ceb7b12f9c6e0ffb4fc6e7247aa50fd561789eb7b04927f2f0ff32463915363"
+      "sha256": "9d27f8854985481789606da367120fd62949f6637ee283e1d5c7d1e52213c476"
     },
     {
       "species": "garchompmega",
       "file": "./sprites/garchompmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/garchomp-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10058.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -797,142 +816,142 @@
     {
       "species": "gardevoir",
       "file": "./sprites/gardevoir.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/gardevoir.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/282.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "0cf5f1e59eb1821350d50044baa1f3f7fe7fdfbba28a5d7a85b4938d3ffb6b28"
+      "sha256": "702fbd5d9b7c2c87f4f2e4b276f3d4f8f58f21f924b767d8fac9da10b95e2cea"
     },
     {
       "species": "gengar",
       "file": "./sprites/gengar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/gengar.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "3145d4f8b51202a3c4353efb5b8d75693b9a248b2c419425259b105cad91d195"
+      "sha256": "00ad4a589f9fc1a88f77dcd512477e2e124ec4030b01d8e786700fad14d38ead"
     },
     {
       "species": "gholdengo",
       "file": "./sprites/gholdengo.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/gholdengo.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1000.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "7ff7197ef5490cef26a84f570dc9f67f1fd676a5b17e230a14011f57124aa20e"
+      "sha256": "eaabdf23d158dafc55b3ffd29e5c98c46e4623a03525175dd3df6fb56fcd1cf9"
     },
     {
       "species": "glaceon",
       "file": "./sprites/glaceon.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/glaceon.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/471.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a63b37c412e19fd10ae9771d535de40e8eb4f1ad190d4940b0db5c04fbdd82d7"
+      "sha256": "54d2d8cdc5f0ed5d2f5da3c4006e4defa226bdd196e30dd4f54c2dd5321de266"
     },
     {
       "species": "glimmora",
       "file": "./sprites/glimmora.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/glimmora.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/970.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "57fbaf72b975738553d7beb2e5f19bef095f323ea3b234daf8a959817264a2c8"
+      "sha256": "d0b70a95842aebda22a2ac9465ebaafe6ad39d8bd4d39b51026c2220a2253285"
     },
     {
       "species": "glimmoramega",
       "file": "./sprites/glimmoramega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/glimmora-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10321.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "70651d703baf26bebe928669b9876adc68594412408193520eee58c039cb2c5b"
+      "sha256": "1d4235b0c3b542c99ab5993d21200fbb23cceac86d5d571b72ba4c06225b70b7"
     },
     {
       "species": "gliscor",
       "file": "./sprites/gliscor.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/gliscor.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/472.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "b9528957759043f73e31909ea3355c29ef7a05950fca5a7f21f0cad7f5753a53"
+      "sha256": "468fee6e6b70a77b8b1e1b0a2bcbabe4a462fc0985fb2e6497f6a9c84c565a0f"
     },
     {
       "species": "golurk",
       "file": "./sprites/golurk.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/golurk.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/623.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "9d80c569a6211938da0c1f22191963a0a579b02894ae6048ed4a29ab691581b1"
+      "sha256": "1125e492a843cf04cd1da2d6fed271322dbca7a10cc36d32979129527076afc3"
     },
     {
       "species": "goodra",
       "file": "./sprites/goodra.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/goodra.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/706.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "35892df43cd731998892e0b28175502cf62d6dc8ac0b3537b5c05eeb0a45ee69"
+      "sha256": "2c43392cb6ea5a0998952ee97f1bde033fef05c15fcfdbfcd8644a799b9f161c"
     },
     {
       "species": "goodrahisui",
       "file": "./sprites/goodrahisui.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/goodra-hisui.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10242.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "30e389c5df74a1d356bd54646ac31885ce71d2f28fc997dc1910f303b21a7fd5"
+      "sha256": "35d68b970fee11a57ebb38ffc77cad3b2bafb700450681fccd0717285d2e9a6d"
     },
     {
       "species": "greninja",
       "file": "./sprites/greninja.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/greninja.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/658.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "7d4986d5646a61ee426e7eb5eabfe7f9d656b34d6d95792336d10af07198d071"
+      "sha256": "b6e0cacfbbc1fb75224397f2a42cd0e8153ac40d7b6849473c67e45cb14dd285"
     },
     {
       "species": "grimmsnarl",
       "file": "./sprites/grimmsnarl.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/grimmsnarl.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/861.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "86ddc125fc62296ca471e71a5700e62f4f98c0302be34ab44909593fdd3a2f14"
+      "sha256": "f64ab1c3987ee121347fa6c199607c876a96383efe15567e208a3c4b4dfbfc28"
     },
     {
       "species": "gyarados",
       "file": "./sprites/gyarados.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/gyarados.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/130.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "10582ca1f3c38ef6c9c5d9fecb25efbe5761503db173127f381219e8de428ea3"
+      "sha256": "113668f60e8a1211c852af22903ebbec2072a91bdb8ddd957056498bd2b8e6f2"
     },
     {
       "species": "hatterene",
       "file": "./sprites/hatterene.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/hatterene.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/858.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "68c829b31554a5081bf1635a714961001b6e2baaffd61b841cfc5bce8b8b3358"
+      "sha256": "55daf06211ee8e6bdba7547a8d325efa7df1560ee539957c5847c550d1700a9d"
     },
     {
       "species": "hawlucha",
       "file": "./sprites/hawlucha.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/hawlucha.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/701.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "460959acfe192ce9a87e9b8c382b42b5c60a273f319a81d21766a0ae581c03c9"
+      "sha256": "f198569330d2764366fd1dffed2f9851dc53f8b707dfe5c93310c624d018b291"
     },
     {
       "species": "heliolisk",
       "file": "./sprites/heliolisk.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/heliolisk.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/695.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -941,133 +960,133 @@
     {
       "species": "hippowdon",
       "file": "./sprites/hippowdon.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/hippowdon.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/450.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "b0084cd8ab1f45aa51eb44211ebf6282c9d85a6a9da79d8e21b4c428902d355e"
+      "sha256": "d8d3f6c316ca38bd7eec489d493773ff7517bd3decb0640c7ce3f66a1694accf"
     },
     {
       "species": "houndoom",
       "file": "./sprites/houndoom.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/houndoom.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/229.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "0ba3c38e05f7bd282b084ce655d1986a3a91dc9d99555a3ae906e43e1a190a19"
+      "sha256": "bbbaa1e9b11a8ddd90198bcd4c27561f41e95659dbe2a50bd1fc3f6d6c0e5b59"
     },
     {
       "species": "houndstone",
       "file": "./sprites/houndstone.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/houndstone.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/972.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a4ddc9dfa589f2571a2daca07fe6ec0c4f325e34d9667c927931192756896a66"
+      "sha256": "debcac4aec839f3a9a44fd2083f7c8466df9084e42ee9fa57471f4ed066ae7f0"
     },
     {
       "species": "hydrapple",
       "file": "./sprites/hydrapple.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/hydrapple.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1019.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8338b598a554e544fad26978f9a0d5628777605b7fe3c6dfe3868f8c2676283d"
+      "sha256": "319330033b6eb182ed46fff9be3b66f688eef18b0da46112d4c6ffe9a339b78a"
     },
     {
       "species": "hydreigon",
       "file": "./sprites/hydreigon.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/hydreigon.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/635.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "aea378daee1303c676c0a47a9cd0c113e491e709f659dc339b8724a1dd4e42a3"
+      "sha256": "2307eb6cfa64b5bc591719fb95e56fa5f0718c8868369c954894a2f1785d8fb5"
     },
     {
       "species": "incineroar",
       "file": "./sprites/incineroar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/incineroar.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/727.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8b67a66a4c3401aceba52f7bac0358d5e0ce964d144c7bd8401041f152901d07"
+      "sha256": "b266476a6c711d6edcdcd31766e3bf146c9703b635b08bf1628da47ae4b5c945"
     },
     {
       "species": "kangaskhan",
       "file": "./sprites/kangaskhan.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/kangaskhan.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/115.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "850342173aa92e3535de4ead2c4bbdd046dd110829beca5b3d16301c9ccca002"
+      "sha256": "8b03d5f245457e8b06179c59aefa148d68ba88eec8245681a5320b4485e55fa3"
     },
     {
       "species": "kingambit",
       "file": "./sprites/kingambit.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/kingambit.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/983.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "ef511f89f2d967970f7ead34cc1c895f9b151a169c246f4f3116c527ce3d85cf"
+      "sha256": "9fbac3463c768564c03b20c39984c109a3a12aece2d024f14d1a5e32674fd1d8"
     },
     {
       "species": "kleavor",
       "file": "./sprites/kleavor.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/kleavor.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/900.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "fa8fe8f720e5a0dfde9be795892dde24531097e1a024c3c9d12de192d96c3b56"
+      "sha256": "d8ae7985a2e736a711f35fabdda2105f43643259c0658a6547eaedfe6aa69e70"
     },
     {
       "species": "klefki",
       "file": "./sprites/klefki.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/klefki.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/707.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "2043ae736b37a12d2c87a3c31350744ae9714dd9d18b39a36110327dd8a5b4b3"
+      "sha256": "38be6e33fb2c0b19b0cfb5d0711e1c25d087c80030aeff0ce326ffc8d25caad8"
     },
     {
       "species": "kommoo",
       "file": "./sprites/kommoo.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/kommoo.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/784.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "3b4956d226148c98c3b913a0563af57aa70b105eb30fbc6ac54f72178b2f7a51"
+      "sha256": "5946d10cd513ff649109a76fd20bf8a663174c2a92660ebd2fd659a1d9ddc25c"
     },
     {
       "species": "liepard",
       "file": "./sprites/liepard.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/liepard.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/510.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "575568e597b7ab234b168301ace00bec2a01003b904850426e9b69f4536a50fc"
+      "sha256": "033c0fd60c9555d3bb8b531b47d345a1767a0da3aa104dfbeac0d5c713f7e50a"
     },
     {
       "species": "lopunny",
       "file": "./sprites/lopunny.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/lopunny.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/428.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "0782a961803571a04afc8f201a2b00f45bcbf365d4401702cd300f0ca2f30616"
+      "sha256": "5a5d5ba06f305ef439b2886bdd48125bf997bf420a4655372e3b903075bcf22c"
     },
     {
       "species": "lucario",
       "file": "./sprites/lucario.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/lucario.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/448.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "6648151b971eaf3aa2d6d437ac04f8eb0fa0ceff7675469ec5d206b89cfe1f41"
+      "sha256": "fff5dbfe77213ab49bde7b7062aee3d851a2ecb5ec727596d32d5bff04d6ddf2"
     },
     {
       "species": "lycanrocdusk",
       "file": "./sprites/lycanrocdusk.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/lycanroc-dusk.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10152.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -1076,151 +1095,151 @@
     {
       "species": "malamar",
       "file": "./sprites/malamar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/malamar.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/687.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c7b821693a6b226b4a2b8c5e2533dae468e2dda0a21996a351e925fb6db00e4f"
+      "sha256": "67c081710d47f52c725937dee0155aa0f871d7c880c90364684b322f0932a473"
     },
     {
       "species": "mamoswine",
       "file": "./sprites/mamoswine.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/mamoswine.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/473.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "5620cb4f397f545646664a7255ae0c18edab38104bc4df489468b18c58981e56"
+      "sha256": "fdb4900138b06285b949ae72cffa41b53feaa2d2861c5aa2e6966b1a8d6c013c"
     },
     {
       "species": "maushold",
       "file": "./sprites/maushold.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/maushold.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10257.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "5abb8d283b88ffdfd3d1c94e7c4322dec8e125447c523ca1018302db05a44443"
+      "sha256": "d5c2c437f3c4bdaca4eda7dd9c101f1e088ed33beddd0637d498daedf225f859"
     },
     {
       "species": "mausholdfour",
       "file": "./sprites/mausholdfour.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/maushold-four.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/925.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "eb5e8386b3cfe8c8f09974692c424e85abe38fafe19ffcedf9f3c1a8d2f94652"
+      "sha256": "a730e0dfab674e2b94507ca5ab87973292ce8bd0aec367ff07d6f75b8e266210"
     },
     {
       "species": "mawile",
       "file": "./sprites/mawile.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/mawile.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/303.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "e7f2325092eb6d9cee06b079681975b6bb89c6d07f10a65df707f5cabe1cb58f"
+      "sha256": "9fba6a7408901606f41d04290c72b41a4e8dda9d20b9ca9afecc1869f18b1348"
     },
     {
       "species": "mawilemega",
       "file": "./sprites/mawilemega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/mawile-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10052.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "4f8a6f9f6565f390eb81f7695b509f81dbdfe9b47c508527ba648fe6962087ca"
+      "sha256": "f60fba71fb26c1dc2f8a1c5e7cb9ff7b85fabb754bb3cf1777e5342360f0aa3d"
     },
     {
       "species": "medicham",
       "file": "./sprites/medicham.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/medicham.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/308.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "4a7d5857d9a9b40f51cd4d156735107b7e45cd8e881a8b55880b3cd35e9feed8"
+      "sha256": "363c7071f27ec4ceb0ddd5d09fd8fb665ce013aabe11b632bfcce639473aa566"
     },
     {
       "species": "meganium",
       "file": "./sprites/meganium.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/meganium.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/154.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "f7ef6983d25ec53879864e2eca81c99c1c52c1a94c3e46d20c562d6bbb983346"
+      "sha256": "9e6d0d23167b212d7595c46554c7660a550540a84bc2d4b732a78f50e0d14ba7"
     },
     {
       "species": "meganiummega",
       "file": "./sprites/meganiummega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/meganium-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10282.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "9cc9d4bbc6dcd2b15961b7cf794d233086f8240d6bb8fb01df1d526a21e25455"
+      "sha256": "e4199f8b23f2651edbb0fbc3be13d82ffcf5ecdb026684ea3d99faa2bf1857f1"
     },
     {
       "species": "meowscarada",
       "file": "./sprites/meowscarada.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/meowscarada.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/908.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "55e02758d4b768a6242dd9017a0f2a584139d052505dd263d7b1c2e136f094c8"
+      "sha256": "59c2c32232370207c59ae83c2c7d9316108ed24091c296e36baa344f28366094"
     },
     {
       "species": "meowstic",
       "file": "./sprites/meowstic.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/meowstic.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/678.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "19748522a3bcae44512d14d9b108183e5a72e6aea20c6c8738d2b2bd540df421"
+      "sha256": "5e1aceee165b59b12ac6dfbb65450196b4767b258a9ad2af2bc567a1543e452d"
     },
     {
       "species": "metagross",
       "file": "./sprites/metagross.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/metagross.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/376.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "ef81ca82e27e1144d87d69d3cbccef29808d810bfba13bdd87b13395359e577a"
+      "sha256": "66e37aa57015e3589338974aefecb917d674cf210935ce834d9e2fc37591c845"
     },
     {
       "species": "metagrossmega",
       "file": "./sprites/metagrossmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/metagross-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10076.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "79923dfae8a7824ba7d2ae0f8bf7e7d350dae6ce3854a8fb13ea977b02aa3dd5"
+      "sha256": "a8a3ce495ab8af871915141ad0ee2e91d92a81d261661ac6a2bf23257ad437ea"
     },
     {
       "species": "milotic",
       "file": "./sprites/milotic.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/milotic.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/350.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "29790b500473a5b006e8d969d831a0654fcd19f091454bb46927400890b28a75"
+      "sha256": "97d8c6e9d7d5766e240f16a811bb15d71b37d5a10d680daacf18763b3f9ab78b"
     },
     {
       "species": "mimikyu",
       "file": "./sprites/mimikyu.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/mimikyu.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/778.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "5ad8791603e024fb4adc64732cc3b3711eef4b00bb02d8a9b201e86180b19772"
+      "sha256": "6207835e48f86fdeded3d90932b22562c889375b13e532c6b0a40e270a6a0a6a"
     },
     {
       "species": "mrrime",
       "file": "./sprites/mrrime.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/mrrime.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/866.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "cb1d7a7336e116925b88217424abcc4032ce29586b399b7a2278361a94b9218e"
+      "sha256": "43e2fb76df568781a6a5feb3c368a7612ba5d5079c951bb892c1a800b59b6911"
     },
     {
       "species": "mudsdale",
       "file": "./sprites/mudsdale.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/mudsdale.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/750.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -1229,97 +1248,97 @@
     {
       "species": "ninetales",
       "file": "./sprites/ninetales.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/ninetales.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/38.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "f5c0f170ea279b86cdaaaca0ec451f92eda8ef184ff2f9f899e764f6b7ada428"
+      "sha256": "b5156cc5c4f2b510115b8c6735cb5fb3e74e6a649e23afeec692185fb0a8d13b"
     },
     {
       "species": "ninetalesalola",
       "file": "./sprites/ninetalesalola.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/ninetales-alola.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10104.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "0fea7748fb3e19d3d1c50349dfab4bc19d2d2fc0d5166d7d9b73f7d52444c3ca"
+      "sha256": "bc942caae47bdf38f21f0f7322f2d685720c1e3810851a2ef4dfb6bc19949af0"
     },
     {
       "species": "oranguru",
       "file": "./sprites/oranguru.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/oranguru.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/765.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "3bcc4058ffe0c0e8e4e5d538f4f1faa92f4e665f86552f028f31ace8ddf8ca3b"
+      "sha256": "a9ee9be06ca549c4ad1c904cfc22be8d9bc5f286d311ac8c3151931faffc18a6"
     },
     {
       "species": "orthworm",
       "file": "./sprites/orthworm.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/orthworm.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/968.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "bd216622cc1200ab8a3eece5311566957a91d67e894a0068ad07fb30fd6d975f"
+      "sha256": "de94fedefb49315462c0525e8f4730e2d8a978a170e583784e53110bb30f4c3b"
     },
     {
       "species": "overqwil",
       "file": "./sprites/overqwil.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/overqwil.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/904.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "01e6c0d67029cfedb4afbcb2067dc0f2eac9f81f639fe2c0b9772e1c6d3df1eb"
+      "sha256": "d4e705c6dceb603a49abe66543c8d5712d5179b71507c02bbbad7987f2646c37"
     },
     {
       "species": "palafin",
       "file": "./sprites/palafin.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/palafin.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/964.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c759999ff4de78f0cd03de7888fb0d48fd18d0ace34cd393457027fc3366f997"
+      "sha256": "b5846472225f8509ca5b730615ea225cf091dd8b408dd040117cea28df000eaf"
     },
     {
       "species": "pelipper",
       "file": "./sprites/pelipper.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/pelipper.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/279.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "ec7dc077d44651316dcf1beef68063d2d964ecc58a5d1518a574edb142a04add"
+      "sha256": "12d64f19c2dd35dcf21ee65418cee9749139cabc4b3a1b070b3673269e62367d"
     },
     {
       "species": "pidgeot",
       "file": "./sprites/pidgeot.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/pidgeot.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/18.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c8e8bab585192d2d87abf880fce3e4393ae4ce6b32c1a787defa3301ea65b069"
+      "sha256": "396bc1cc5bc7173b7c09e3ea379a8c4b716a7af8a2b9cfbbe55df4a937a24e80"
     },
     {
       "species": "pinsir",
       "file": "./sprites/pinsir.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/pinsir.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/127.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "6cd86eb8284ca6d31a708ac37ad7907cfe9c494148be4ad475877e0e6ac56fe1"
+      "sha256": "ae9e6c8c5d5ed0534d63064c133f26bf6a43d3cbccfa39dd9808a7d443672aa2"
     },
     {
       "species": "politoed",
       "file": "./sprites/politoed.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/politoed.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/186.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "ffedffbcae7e4484614c90344f8f262f0c75f00a514e1d20e9b52981e3bd56c5"
+      "sha256": "f4eb8a5b73031203f25dbe9ed92b22c9f0132a6510478bfb40cd249f323460d6"
     },
     {
       "species": "primarina",
       "file": "./sprites/primarina.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/primarina.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/730.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -1328,306 +1347,322 @@
     {
       "species": "pyroar",
       "file": "./sprites/pyroar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/pyroar.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/668.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "5b9c793eff8e975c14262bd51062c08f84a52374c4df42f9e8d0938aefb5bd71"
+      "sha256": "402dc30ff5c20df0937256c69042940b2aa70897d24aeac20899426b318e15d2"
     },
     {
       "species": "pyroarmega",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/pyroar-mega.png",
-      "available": false
+      "file": "./sprites/pyroarmega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10295.png",
+      "available": true,
+      "width": 96,
+      "height": 96,
+      "sha256": "3ec1aca714ec301f083e51d0b75c226491acba00b5fa160e890a8e18a41115e8"
     },
     {
       "species": "quaquaval",
       "file": "./sprites/quaquaval.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/quaquaval.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/914.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a671af85713f098830ccf3ec8c3da2a761c100cc851bfff9347fe6b17c4bad69"
+      "sha256": "35332ebb56329d4b941959c99cb63e410fe1ea4bc88c927c72ba01fd82b567b0"
     },
     {
       "species": "raichu",
       "file": "./sprites/raichu.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/raichu.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "3a5ab73e2d0b6e3e4ffecf39024d94505eb567ef27989a45f852fdeef04d8ec2"
+      "sha256": "95fadcfe8222d6b3218cfccd431d3da14cd65ad76be6d34a84f9457d5b237e44"
     },
     {
       "species": "raichumegax",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/raichu-megax.png",
-      "available": false
+      "file": "./sprites/raichumegax.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10304.png",
+      "available": true,
+      "width": 96,
+      "height": 96,
+      "sha256": "dd5b7b7cd905189bc68fb7633a73865005c95a496fa20d22e170e4f91490d85b"
     },
     {
       "species": "raichumegay",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/raichu-megay.png",
-      "available": false
+      "file": "./sprites/raichumegay.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10305.png",
+      "available": true,
+      "width": 96,
+      "height": 96,
+      "sha256": "31b620f4422613f698b27c6eeec60bb4c85e85627c655396b201e808ef661822"
     },
     {
       "species": "reuniclus",
       "file": "./sprites/reuniclus.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/reuniclus.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/579.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "7501f5b2d03c999bd815f296235667cb5be41f2045b12ef16fd89be39ced7c9a"
+      "sha256": "04a015c366d5653b1dd5bc6b622112c78485d08f0052e552032f8e2c5180a500"
     },
     {
       "species": "rotom",
       "file": "./sprites/rotom.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/rotom.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/479.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "97d44336a8c2d613b12e231639765bbe6cd0ae7ea9b5ffbb63bf39f859b343da"
+      "sha256": "cd5209037083ad8d5af86af199625e9cd59fa7704e296874d4872df2a08e98fa"
     },
     {
       "species": "rotomheat",
       "file": "./sprites/rotomheat.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/rotom-heat.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10008.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "c3d8f1c34e9fe4b4c703df111340f821b40359e77b641dd42da0c7297a742a27"
+      "sha256": "eb40b92fd4fd1c9373a93990d96d37f3290349eabd0b0ea0450a41a1b014f6c4"
     },
     {
       "species": "rotomwash",
       "file": "./sprites/rotomwash.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/rotom-wash.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10009.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "de7d9754622cdb976857e9f9ca91a978f4288bc51a6bef5b927297a860c82b85"
+      "sha256": "d5ac213008d8743364e25c00635f2d4b014418afcccc22fdb4014adbd52061c4"
     },
     {
       "species": "runerigus",
       "file": "./sprites/runerigus.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/runerigus.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/867.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "e1b7078f9bd2bcefe908a33b0ed256c63d06edd572cfa7b475ca20525c8d32a1"
+      "sha256": "d841c3c7be5974eac7ef0206fb1f11459f573fc6220e14a230d34dfcb41b8cb4"
     },
     {
       "species": "sableye",
       "file": "./sprites/sableye.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/sableye.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/302.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "825d581232932a9e2dbaac3d72867c254ff862b07421316714d06525d81fe01d"
+      "sha256": "0580531dc8fb6d289386e4cf9d53d015460eaa2eb31888c20cc1b8df42b34b94"
     },
     {
       "species": "salazzle",
       "file": "./sprites/salazzle.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/salazzle.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/758.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "7c2d9b3974775142c377debe44b3dcab3eb5f75f1a9b7944e22d7304f3c1e6f9"
+      "sha256": "a243dd973240dd26e9e3b960a8f7dec427879754c3b4fdd6bb0b361c70359713"
     },
     {
       "species": "samurotthisui",
       "file": "./sprites/samurotthisui.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/samurott-hisui.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10236.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "2e4b9a76ce2727ca9b6441d1e75c2cf9135a9c41b5e0e3a0e84065dae85f70c6"
+      "sha256": "4e61460eed1368b869289c43d307c284a55063283ea5557a450a3c8d128afccd"
     },
     {
       "species": "sceptile",
       "file": "./sprites/sceptile.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/sceptile.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/254.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "e52213de749c38da428b272faea7faaaf74498bc31f9bdc9e0301ea538ee8244"
+      "sha256": "fb92a03e132e57463976cbb4c28429aad744c569b4fb4a74f7e6486988b60d36"
     },
     {
       "species": "scizor",
       "file": "./sprites/scizor.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/scizor.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/212.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8ffbdc521220c5fcea42e311ba448c19799fec8cb6dcdec342913e1ba387646a"
+      "sha256": "50dd851a200ed14de0d37342b391c4ee6a9e2a9f10d5fec3dc051534aeb4e86e"
     },
     {
       "species": "scolipede",
       "file": "./sprites/scolipede.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/scolipede.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/545.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "d73eef7a67ee74f46bd4cd6aff4e081b66afea423ccd77ef6adfd4b5ffa9d76f"
+      "sha256": "7914d74a339ea03b4a26d5be0cc6b4ad60d76d93e000446e77d09accfdd9d4c6"
     },
     {
       "species": "scovillain",
       "file": "./sprites/scovillain.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/scovillain.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/952.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "6e91b1fe216257706983af466d27e52d95bee545943590d0dd7016bcc816748f"
+      "sha256": "4aaaa7354c398f28471ad53d0990267713bafd2cfaf4a5f5b3af234a82272167"
     },
     {
       "species": "scovillainmega",
       "file": "./sprites/scovillainmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/scovillain-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10320.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "edccd9f083fded49a443e899d1f4572dd1bb8f04fe2deeb416547a27547f9fda"
+      "sha256": "5702ec2e7c6cb9d479209d6ff58d4d769aba3d79d14c5c955cc271130f3ad734"
     },
     {
       "species": "scrafty",
       "file": "./sprites/scrafty.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/scrafty.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/560.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "d00eaa0d081ab0dcf9c38da6d5d2bcd9e6fa814cfc67a6c0560e83c2a039bd99"
+      "sha256": "bf2a8f7b9b5ff8e8f49e5514151d7ff51b665d9526149d28fa9c0e0f829cc65a"
     },
     {
       "species": "simipour",
       "file": "./sprites/simipour.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/simipour.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/516.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "d9540637e221045eb35abe2d55b776d38971205e227b6f4c84252dc67c845cf2"
+      "sha256": "76d2eb7e78cb9b859afab7128eb368ffb0babd20a82ad403b07ffcab5bb1e757"
     },
     {
       "species": "simisear",
       "file": "./sprites/simisear.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/simisear.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/514.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "dead0dc27b5c439a8b3b00a46da3a62958333d52d25c74243d39afe58f3e6475"
+      "sha256": "e04811fc8ae2a3fef9ed010abd648eb597284fa64f1e82f852b3cc5b7d093430"
     },
     {
       "species": "sinistcha",
       "file": "./sprites/sinistcha.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/sinistcha.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1013.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a8492f02cb3cf00bf9d988684cc9692599fbc4a43b76bcea157d607085d65bf6"
+      "sha256": "94af2072e08edbea06f5a2a684d61dfbc7b8642d9b2d1c04c09dacf926ce19bc"
     },
     {
       "species": "sinistchamasterpiece",
       "file": "./sprites/sinistchamasterpiece.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/sinistcha-masterpiece.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1013-masterpiece.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a8492f02cb3cf00bf9d988684cc9692599fbc4a43b76bcea157d607085d65bf6"
+      "sha256": "94af2072e08edbea06f5a2a684d61dfbc7b8642d9b2d1c04c09dacf926ce19bc"
     },
     {
       "species": "skarmory",
       "file": "./sprites/skarmory.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/skarmory.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/227.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "cd0e93a222f9324923c8a69f30264f702d0c697b1fd94cedbbd7a31a0824e630"
+      "sha256": "6dd115778fcf5974b2d098c288be64bc91195a46149d00504bfc56032b6411c3"
     },
     {
       "species": "skeledirge",
       "file": "./sprites/skeledirge.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/skeledirge.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/911.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "9b34366d80c901a90cd0a539c8892fdd8ca88101c04414cfd80b2df975b062da"
+      "sha256": "ad3ced1480650c9db304a5a3ed3821f43be5a1ed7d1c8eae2339198554429d60"
     },
     {
       "species": "slowking",
       "file": "./sprites/slowking.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/slowking.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/199.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "bfc82d43e6067cce50acc68dca3c900b8751b321c8c4e7e28346eb13af5fd06f"
+      "sha256": "ffb59038b5a3e825fb05061e5d40ede1ccb6e6607d6a8c454622cde977165c65"
     },
     {
       "species": "slowkinggalar",
       "file": "./sprites/slowkinggalar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/slowking-galar.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10172.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "7bb35f66b88307fa0df7c14326489fa4b8e85a3617ff6fa79e3ee51c7b9d1929"
+      "sha256": "8a4f9e764148b2af2a25c2006474d9ee7a76933bdc865610c285cc824d450f47"
     },
     {
       "species": "sneasler",
       "file": "./sprites/sneasler.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/sneasler.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/903.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "eb1e858deb514168c10b5c3628e353aa6abd68c7e25a342f404619d7aa7f5cdb"
+      "sha256": "7436540f1ade4a992eb934c02a14b3cb814ae5b4577273437376bd8e369a504e"
     },
     {
       "species": "snorlax",
       "file": "./sprites/snorlax.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/snorlax.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "0225610dc45ff23d91a9403596ca2b4cf1c4216ffff90d11d510f887f6ebef37"
+      "sha256": "116f67650d9e2145e307fe153ba6a8fba3bdd02606ffb0364c05e71b5a0dba4b"
     },
     {
       "species": "staraptor",
       "file": "./sprites/staraptor.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/staraptor.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/398.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "2c7c30aaf625cca016350ef5cb65ca3a6e03f551e05fbb8f1742f247e4c52062"
+      "sha256": "978eb45c6de770423164f26437c34cc4ae6fc09a9b6492c02621546646895ef5"
     },
     {
       "species": "staraptormega",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/staraptor-mega.png",
-      "available": false
+      "file": "./sprites/staraptormega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10308.png",
+      "available": true,
+      "width": 96,
+      "height": 96,
+      "sha256": "755e888cd010019fb5f862c35b4dc2321540dae1f5c17b01b7cc67fc447003ff"
     },
     {
       "species": "starmie",
       "file": "./sprites/starmie.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/starmie.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/121.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "6a3423f05f00081aef172b65125fa5919265148b4321b24ba8eefcc0022c5c78"
+      "sha256": "78a7f2bb3cb19538d44ab6bf0d3d0ef4a685f50109ac8097f3c765e91907bffe"
     },
     {
       "species": "steelix",
       "file": "./sprites/steelix.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/steelix.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/208.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "e30ab24cedc95ee517509878e056bbd69b05b28b5234166ffbe7d1420f52d7dd"
+      "sha256": "61aa353c28ebfbffab36319e31d6825f36454dca7c715ec796b72f7d7102db51"
     },
     {
       "species": "swampert",
       "file": "./sprites/swampert.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/swampert.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/260.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "70ddc81db996d387f5291ec2b8a91130ad7ead1b1308720b9c19a02b8019da43"
+      "sha256": "2ffd66c02c1af9a69df1d7db62a929e3dfa8e71a3df4afa4b6df4a1f434a9c4f"
     },
     {
       "species": "swampertmega",
       "file": "./sprites/swampertmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/swampert-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10064.png",
       "available": true,
       "width": 96,
       "height": 96,
@@ -1636,227 +1671,227 @@
     {
       "species": "sylveon",
       "file": "./sprites/sylveon.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/sylveon.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/700.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "49c1dcbd61d2a15b78b9d33373821b32759dfc31f9dbf3356ecbbdf85c0ca1ab"
+      "sha256": "1ba3ba4d59fbe1e10ac86436cccf58931ec3d23646a496201738e2c6b9d76824"
     },
     {
       "species": "talonflame",
       "file": "./sprites/talonflame.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/talonflame.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/663.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "196d8d9df6e355d94b41e9b81d494fb981656744409ed85b0a4d0f8d51459d61"
+      "sha256": "613c574e4515e43ef2d7dca8d820a9cd6a82f330388a91cfdebc1fec845bae6e"
     },
     {
       "species": "taurospaldeaaqua",
       "file": "./sprites/taurospaldeaaqua.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/tauros-paldeaaqua.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10252.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "91d607fb7ff7503a1622f2e77fe8353dac3fa7fb70cfb8f45108fbe4e6f8d596"
+      "sha256": "3a32b8b5eecc3b1bd69616a7628da3f241cfba4baea6ee356316f023a7314a37"
     },
     {
       "species": "tinkaton",
       "file": "./sprites/tinkaton.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/tinkaton.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/959.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "3fc263e74eacc5a514bfa24fc1a05b47fd8b47a717ecee96e9c3a07fd5658e0a"
+      "sha256": "ad53035895a60b2ab0f455d58d523f088a0c9470b14fc98f61fefc08a9fb3678"
     },
     {
       "species": "torkoal",
       "file": "./sprites/torkoal.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/torkoal.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/324.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8997bdc6ec8a4dd66a7e4fbe3d54cbf312fbf015aa024c04315d07729b7f562d"
+      "sha256": "f679c46f081ce5c4554336e04aa74f4a1539625543ec0f5b9b3c779abce15125"
     },
     {
       "species": "toxapex",
       "file": "./sprites/toxapex.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/toxapex.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/748.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "09603075299bdf420e9cc0a5bbbc597a6ff53d8fad1f99b2ef7c88e234015525"
+      "sha256": "7bf89232e6edcddab08631a5b76aad586dbf404bbd62ee1c962e3a550dcd5875"
     },
     {
       "species": "toxicroak",
       "file": "./sprites/toxicroak.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/toxicroak.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/454.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8e49d618feced51182b7fa455fa063b52fd5c837b09b7839cfc0409029910c46"
+      "sha256": "fed79bc17c217f48136aa01ddfdb240d0996aafc1d64ec9d33499b490667532b"
     },
     {
       "species": "tsareena",
       "file": "./sprites/tsareena.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/tsareena.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/763.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "954926fd643a6b716c5d1047c3482edf84b3b5b8b001aace8ecbd406f22fd2dd"
+      "sha256": "b839515816e5a77970bfb747a8de5f13232dbe3e94609347b13066d0ce1cf860"
     },
     {
       "species": "typhlosionhisui",
       "file": "./sprites/typhlosionhisui.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/typhlosion-hisui.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10233.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "4e1f39564ee98b28fa6e840127d5f355e883dd6697d61ea52c3377d7c2b75473"
+      "sha256": "a5244539b8581c5b75a3808b29ee362415a270b6c1223d0ecd135c9a0fd9c67b"
     },
     {
       "species": "tyranitar",
       "file": "./sprites/tyranitar.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/tyranitar.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/248.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "40e6c46fe10c2901b4a3429484141ddac1ded8aee25b785d4f7642b1da7d69de"
+      "sha256": "92f4a1aaf82fb405720db5c0826acbc626a450a171a2c5ef533b3c23a09981ea"
     },
     {
       "species": "tyranitarmega",
       "file": "./sprites/tyranitarmega.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/tyranitar-mega.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10049.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "e84d8201cac90953e76950121f3041a54cc2c185cc6dee35b112070e5ff0d3e8"
+      "sha256": "c76fb80fbe203f86b9bf2231645fb01b245e633acb2f9be14fa09d0c9ef79e8a"
     },
     {
       "species": "tyrantrum",
       "file": "./sprites/tyrantrum.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/tyrantrum.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/697.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "8ece731bf8f81f2a61b412ebd42889e04e849c26f3503ab469a140b0fd497bef"
+      "sha256": "9b216f8056e23ce0659f7ab1e4ad6d83f2753e75d0138dfde0ad94dec1f892bc"
     },
     {
       "species": "vanilluxe",
       "file": "./sprites/vanilluxe.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/vanilluxe.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/584.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "d57fc0c45bba00d21681da385ddbe0f26be06d4e8e399a392dc220acffea5f69"
+      "sha256": "2a1896d6a2d6c27b92de23967485a8dd3160c143c7093ec92bd9b4566816ffba"
     },
     {
       "species": "vaporeon",
       "file": "./sprites/vaporeon.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/vaporeon.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "75bce3c17ee617fbee47f9a8756e6b121ee50cd95f464d99d0e4686bc8ede504"
+      "sha256": "709755b8676dcabf09ccad8a98b2af918869f8a092b27ee2ac7d25cafdbfee89"
     },
     {
       "species": "venusaur",
       "file": "./sprites/venusaur.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/venusaur.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "b59fed943479add5943cc41141af9e1d0cf1f2c5a65c719a3569d622aad6181e"
+      "sha256": "f3ed13e1666f67ccf6aef1453d4a3fb0ceb6b6c5769c56f9e46ec4ac021542af"
     },
     {
       "species": "victreebel",
       "file": "./sprites/victreebel.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/victreebel.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/71.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "79b36ae0cabfe0e303e03a3f3a04b5b964cc758fb37ebd724a0ff39dbfa87beb"
+      "sha256": "e1c03238814f6dc010f8c28bc7f61a12b5a04ec9af42f0926646ae715b5402da"
     },
     {
       "species": "vileplume",
       "file": "./sprites/vileplume.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/vileplume.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/45.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "a4da246602799aa5d2a4569b2f0b06ce106956f30710ba534046772a0ab94642"
+      "sha256": "86ad784843512f16d00e5fdf386e30ee560671c0ced3105ffa4f16d5ac06924a"
     },
     {
       "species": "vivillon",
       "file": "./sprites/vivillon.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/666.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "bf43759325d2a0e5e40240686e33ddd8813cc18503a77fe755e2252f92c7cf44"
+      "sha256": "b5b3a5a7c0359632709696748497c82ef1cab0f119e8789ab4b1ced6b64288bb"
     },
     {
       "species": "vivillonfancy",
       "file": "./sprites/vivillonfancy.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/vivillon-fancy.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/666-fancy.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "e406cc56ce90ad8c06cc55bd5ff2e6d52466317e6edf8ac2f4c4436516f81f09"
+      "sha256": "3471b4416b3b84338e373364a78f93b1b6aa57d5f66d887094d9ff017c7a9f59"
     },
     {
       "species": "volcarona",
       "file": "./sprites/volcarona.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/volcarona.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/637.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "424ecacf0c79c493ca85f128a3652c064eb161d538719460de09dcbfc77d0976"
+      "sha256": "974c7eeddd9efbbe9a82ff6b82e8165fa92ae654f796c145f29025cb4cefe378"
     },
     {
       "species": "watchog",
       "file": "./sprites/watchog.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/watchog.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/505.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "53cd6497e5d2d6b33bad732d654c3a09caf9965d1a83d2025f16123ae2c90be7"
+      "sha256": "6217c14a78cea95e0fc7f37cf6bbb78733a44ef766b01b5fe1cc69db88d47710"
     },
     {
       "species": "weavile",
       "file": "./sprites/weavile.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/weavile.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/461.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "61b16834141a2c29ca480ce68c1aac62b85aabf22d8eda720a9970a5db816e8b"
+      "sha256": "7251b50e7d1f45683532d57026e555e0c1da8d3e59975ede11df311fd1318140"
     },
     {
       "species": "whimsicott",
       "file": "./sprites/whimsicott.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/whimsicott.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/547.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "53d98f49700b39ad84a29609cf2b8a639682806c07643d503ea20068977c9e5a"
+      "sha256": "be90cc59b35682cd41b078ef8ae9d3c982d3590a4df42a9976f465f072528cec"
     },
     {
       "species": "wyrdeer",
       "file": "./sprites/wyrdeer.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/wyrdeer.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/899.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "23f9cf801893de5384c1207c7682ec572ca03c0cbc9255ab7aa5aa7ff755bb3f"
+      "sha256": "80c41782914229b4e7d86cdc39e45c2326f26d05b87ad1d92f0d548b372fa190"
     },
     {
       "species": "zoroarkhisui",
       "file": "./sprites/zoroarkhisui.png",
-      "source": "https://play.pokemonshowdown.com/sprites/gen5/zoroark-hisui.png",
+      "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10239.png",
       "available": true,
       "width": 96,
       "height": 96,
-      "sha256": "5c1d25e04cf1da79a1fb87fb2d93e4adb749fe86ae3e87061bbe2c9f5f7f9deb"
+      "sha256": "a180e6205d920dce56a22752644d91459951cfff01bf5501ec82f7b829f312d4"
     }
   ]
 }
