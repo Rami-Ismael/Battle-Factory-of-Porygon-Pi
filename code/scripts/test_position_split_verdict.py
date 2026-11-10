@@ -121,9 +121,9 @@ class VerdictRule(unittest.TestCase):
         v = self.verdict(pos_no_slot=grid(lambda a: a * 0.8 - 0.02, species=21.0))
         self.assertFalse(v["arms"]["pos_no_slot"]["switch_on_species"])
 
-    def test_a_gain_inside_luck_is_a_tie(self):
+    def test_a_gain_inside_luck_is_no_evidence_of_a_gain(self):
         v = self.verdict(pos_slot_learned=grid(lambda a: a * 0.8 + 0.002))
-        self.assertEqual(v["outcome"], "tie")
+        self.assertEqual(v["outcome"], P.NO_GAIN)
         self.assertIsNone(v["choice"])
 
     def test_a_switch_fails_its_guard_when_asks_are_followed_worse_beyond_luck(self):

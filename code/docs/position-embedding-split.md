@@ -32,7 +32,7 @@ Every new vector starts at standard deviation 0.02, like the current table. The 
 | --- | --- |
 | Claim | Replacing the 84 per-field position vectors with field-type vectors plus slot vectors changes pooled win rate or effective species by more than the gap between two training seeds. |
 | What refutes it | Every split arm ties No split, first seed under the verdict rule below. |
-| What changes if it holds | The default 84-field network takes the split arm that passes the rule. On a tie it keeps one learned vector per field, and slot vectors stay as they are. |
+| What changes if it holds | The default 84-field network takes the split arm that passes the rule. With no evidence of a gain beyond training luck it keeps one learned vector per field, and slot vectors stay as they are. |
 | How far it reaches | Win rate under the behaviour-cloning policy against the 49 distinct top-50 meta teams, and team measures on the 23-ask grid. Nothing beyond them. |
 | Fields | Generated: all 84. Copied: none. A repair step replaces Stat Alignment to match the moves after sampling (`src/ask_grid84.py`). |
 | Vocabulary | The Regulation M-B tables directly, stored in each checkpoint: 348 species, 201 ability, 150 item, 498 move and 27 Stat Alignment tokens, and Stat Points 0 to 32. The same for every arm. |
@@ -71,7 +71,7 @@ The Pareto question does not apply: no arm trades one measure against cost, and 
 3. **Both switches** also need ask-versus-got error no higher than No split's by more than luck.
 4. **Second seed.** A switch counts only after the passing arm trains again with seed 1 and passes the same rule, about 3 hours of extra training and battles.
 5. **Tie-break.** If two arms pass within luck of each other, take Fixed slot vectors.
-6. **Tie.** Anything else keeps one learned vector per field.
+6. **No evidence of a gain.** Anything else keeps one learned vector per field: no arm improved on No split by more than training luck (owner, 2026-11-09: "It not a tie, but there is no evidence to show it improve performance better than random noise").
 7. **It matters** (reported beside the verdict): an arm's interval against No split, first seed excludes zero on win rate or effective species, and the gap is larger than luck.
 
 Legal share leaves the rule (owner, 2026-11-07): rule masks keep every sampled team legal, so it reads 100% for every arm. It is still printed as a check that must read 100%.
@@ -133,7 +133,7 @@ Measured on the old first seed's grid (4,416 teams, 216,384 battles):
 | Effective species (stratified by ask) | 0.057 | 0.157 | 0.07 |
 | Ask-versus-got error (bootstrap over teams) | 0.00027 | 0.00075 | 0.0019 |
 
-Battle and team noise on win rate is about the size of one measured training-seed gap. With one seed per arm, the rule can detect a win-rate gap of about 0.008 (half-width plus luck). The expected loss of No slot vectors, 0.05, sits far above that. A true tie within 0.004 cannot be told apart from training luck, which is why a tie keeps the current model. Luck rests on one pair of seeds, plus the new No split pair; a larger true seed spread would let a lucky arm pass, and the second-seed rule guards against that.
+Battle and team noise on win rate is about the size of one measured training-seed gap. With one seed per arm, the rule can detect a win-rate gap of about 0.008 (half-width plus luck). The expected loss of No slot vectors, 0.05, sits far above that. A true gain within 0.004 cannot be told apart from training luck, which is why no evidence of a gain keeps the current model. Luck rests on one pair of seeds, plus the new No split pair; a larger true seed spread would let a lucky arm pass, and the second-seed rule guards against that.
 
 **Budget, same for every arm:**
 
@@ -151,3 +151,23 @@ Queue: `~/vgc-data/position_embedding_split/pe84.zsh`, log `queue.log` beside it
 ## Deviations
 
 - **2026-11-07, before any training:** the training-smoke bars were set after a first probe run. That run asked for starting loss within 10% of `ln K` and training loss halving in 60 epochs. It failed every arm, No split included, which has no new code. The bars were then set from No split: over five seeds it starts 5.6% to 12.6% above `ln K`, and 300 epochs take its validation loss from 3.33 to 1.60. Each arm's `preflight.training_smoke` keeps the passing run and names the first run's bars under `calibration`.
+
+## Result (2026-11-09)
+
+No position option improved on No split, first seed by more than training luck, so the default keeps one learned vector per field. The owner's reading: "It not a tie, but there is no evidence to show it improve performance better than random noise." All five runs battled 4,416 teams (216,384 battles) at 100% legal share. Each arm minus No split, first seed:
+
+| Arm | Win rate | Effective species | Ask-versus-got error |
+|---|---|---|---|
+| No split, second seed (luck) | −0.0262 [−0.0308, −0.0218] | +0.96 [+0.38, +1.54] | +0.0006 |
+| Learned slot vectors | +0.0027 [−0.0016, +0.0070] | +0.12 [+0.03, +0.20] | +0.0002 |
+| Fixed slot vectors | +0.0029 [−0.0015, +0.0071] | +0.07 [−0.07, +0.20] | +0.0004 |
+| No slot vectors | −0.0024 [−0.0071, +0.0019] | +0.15 [+0.05, +0.26] | +0.0001 |
+
+- **Training luck.** The two No split seeds set it at 0.026 win rate and 0.96 effective species, about seven times the 0.0035 and 0.07 assumed beforehand. Every split arm's gain sits inside that.
+- **Expectations that were wrong.**
+  - The second seed was expected within 0.02 win rate.
+  - Learned slot vectors were expected to show no clear species change.
+  - No slot vectors were expected to lose at least 0.05 win rate; they matched No split, so position needs no slot identity.
+- **Validation loss** ranged 2.0563 to 2.0587 across the five runs.
+
+Per-arm comments and figures are on #83, and the rule's output on #84.

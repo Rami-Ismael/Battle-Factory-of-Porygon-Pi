@@ -40,6 +40,7 @@ NAMES = {FIRST_SEED: "No split, first seed", SECOND_SEED: "No split, second seed
 # Two 21-epoch trainings without label noise, dellu_none against gen84_all_ep21, 2026-11-07
 EARLIER_GAP = dict(win=0.0035, effective_species=0.07, error=0.0019)
 WIN_FLOOR = -0.01                                        # a species switch needs the win-rate interval above this
+NO_GAIN = "no evidence of a gain beyond training luck"      # owner, 2026-11-09: "It not a tie"
 ASKS = list(range(1, 24))
 SCORED = [k for k in ASKS if k in SCORED_ASKS]
 MEASURES = ("win", "effective_species", "error", "legal")
@@ -116,13 +117,13 @@ def judge_arm(row, lk):
 
 def verdict(arms):
     """The owner's rule (2026-11-07): switch on win rate or on species, guarded by ask-versus-got error, a second seed before a
-    switch counts, Fixed slot vectors on a near tie between passing arms, and a tie otherwise."""
+    switch counts, Fixed slot vectors on a near tie between passing arms, and otherwise no evidence of a gain beyond training luck (owner, 2026-11-09: "not a tie")."""
     lk = luck(arms)
     rows = {a: judge_arm(arms[a], lk) for a in SPLIT_ARMS if a in arms}
     passing = [a for a, r in rows.items() if r["passes"]]
     out = dict(luck=lk, arms=rows, choice=None, next="keep one learned vector per field")
     if not passing:
-        return dict(out, outcome="tie")
+        return dict(out, outcome=NO_GAIN)
     if len(passing) > 1:
         close = all(abs(arms[a][m]["value"] - arms[b][m]["value"]) <= lk[m]
                     for a in passing for b in passing for m in ("win", "effective_species"))
