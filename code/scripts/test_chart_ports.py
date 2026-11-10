@@ -109,6 +109,11 @@ def _reverse_score_diversity(tmp):
     m.write_report(tmp / "reverse_score_diversity.json", _load(tmp / "reverse_score_diversity.json"))
 
 
+def _subset_size_storyboard(tmp):
+    import subset_size_storyboard as m
+    m.figures()
+
+
 def _smoothness_experiment(tmp):
     import smoothness_experiment as m
     src = PILOT / "smoothness_top50_50x50"
@@ -133,6 +138,7 @@ RECIPES = {
     "report_cem_score_direction": (_report_cem_score_direction, [DATA / "cem_score_direction.analysis.json"]),
     "report_diversity_baseline": (_report_diversity_baseline, [PILOT / "diversity_baseline.json"]),
     "reverse_score_diversity": (_reverse_score_diversity, [DATA / "reverse_score_diversity.json"]),
+    "subset_size_storyboard": (_subset_size_storyboard, [DATA / "subset_size_storyboard.json"]),
     "smoothness_experiment": (_smoothness_experiment, [PILOT / "smoothness_top50_50x50/analysis.json"]),
 }
 

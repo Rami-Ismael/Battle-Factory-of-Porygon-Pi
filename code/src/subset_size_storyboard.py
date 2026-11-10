@@ -1,7 +1,7 @@
 """Storyboard figures for the subset-size experiment (docs/subset-size-labels.md, issue #118), from stored battles only.
 
     python src/subset_size_storyboard.py data      -> ~/vgc-data/results/subset_size_storyboard.json
-    python src/subset_size_storyboard.py figures   -> ~/vgc-data/subset_size_labels/storyboard/*.png|svg
+    python src/subset_size_storyboard.py figures   -> ~/vgc-data/subset_size_labels/storyboard/*.html (ECharts)
 
 Every arm whose ask grid exists is drawn; the rest are listed as pending. Got is against the 39 training opponents. Intervals
 resample whole teams within each ask and the 39 opponents, shared across arms in each replicate (run-experiment step 3).
@@ -17,6 +17,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(HERE))
 import train65 as S
+from echarts_chart import write_chart
 
 RES = Path.home() / "vgc-data" / "results"
 OUT = Path.home() / "vgc-data" / "subset_size_labels" / "storyboard"
@@ -97,97 +98,112 @@ def data():
               + (f"  minus control {r['minus_control']:+.4f} [{r['minus_control_ci'][0]:+.4f}, {r['minus_control_ci'][1]:+.4f}]" if "minus_control" in r else ""))
 
 
-SURF, INK, INK2, GRID, GREY, PALE = "#fcfcfb", "#0b0b0b", "#52514e", "#e7e6e2", "#a9a8a2", "#cfcec9"
+
+INK, INK2, GREY, PALE, BAND = "#0b0b0b", "#52514e", "#a9a8a2", "#cfcec9", "rgba(127,127,127,0.18)"
 BLUE, ORANGE = "#2a78d6", "#eb6834"
 COL = {"gen84_all_ep21": PALE, "gen84_all_noise_ep21": GREY, "gen65_subset_39": INK, "gen65_subset_10_39": BLUE, "gen65_subset_1_39": ORANGE}
 
 
-def fig(w, h):
-    import matplotlib.pyplot as plt
-    f, ax = plt.subplots(figsize=(w, h), dpi=180, facecolor=SURF); ax.set_facecolor(SURF); ax.grid(True, color=GRID, lw=.8)
-    ax.set_axisbelow(True)
-    for side in ("top", "right"): ax.spines[side].set_visible(False)
-    return f, ax
+def axis(name, **kw):
+    return {"type": "value", "name": name, "nameLocation": "middle", "nameGap": 30, **kw}
 
 
-def words(f, D, head, sub, intervals=True):
-    import textwrap
-    foot = (f"Got = win rate against the {D['opponents']} training opponents, behaviour-cloning policy on both sides, slots shuffled; "
-            "192 teams per ask, one battle per opponent." + (" 95% intervals resample teams and opponents." if intervals else ""))
+def reported_apart(label=""):
+    """Shade asks 18/24 and above, which the error leaves out and the report shows apart."""
+    return {"type": "line", "data": [], "silent": True, "markArea": {
+        "itemStyle": {"color": BAND}, "label": {"color": INK2, "position": "insideBottom"},
+        "data": [[{"xAxis": 17.5 / 24, **({"name": label} if label else {})}, {"xAxis": 1}]]}}
+
+
+def curve(m, r, key):
+    """One arm's line over the asks; this experiment's arms solid, the earlier models dashed."""
+    pa = r["per_ask"]; arm = r["role"] == "arm"
+    return {"type": "line", "name": r["reader"], "color": COL[m], "symbolSize": 5, "emphasis": {"focus": "series"},
+            "lineStyle": {"width": 2.4 if arm else 1.6, "type": "solid" if arm else "dashed"},
+            "data": [[int(k) / 24, pa[k][key]] for k in sorted(pa, key=int)]}
+
+
+def band(m, r):
+    """95% interval of got over the asks, drawn as one quadrilateral between each pair of neighbouring asks."""
+    pa = r["per_ask"]
+    quad = ("js:(params, api) => { const i = params.dataIndexInside; if (i === 0) return;"
+            " const p = (d, j) => api.coord([api.value(0, j), api.value(d, j)]);"
+            " return {type: 'polygon', shape: {points: [p(1, i - 1), p(1, i), p(2, i), p(2, i - 1)]},"
+            " style: {fill: api.visual('color'), opacity: 0.15}}; }")
+    return {"type": "custom", "name": f"{r['reader']}, 95% interval", "color": COL[m], "renderItem": quad, "silent": True, "tooltip": {"show": False}, "z": 1,
+            "encode": {"x": 0, "y": [1, 2]}, "data": [[int(k) / 24, *pa[k]["ci"]] for k in sorted(pa, key=int)]}
+
+
+def save(option, name, D, head, sub, height, intervals=True):
     pend = [ARMS[m][0] for m in D["pending"]]
-    f.text(.012, .975, head, fontsize=14, fontweight="bold", color=INK, va="top")
-    f.text(.012, .915, sub, fontsize=10, color=INK2, va="top")
-    f.text(.012, .012, textwrap.fill(foot, 150) + (f"\nPending: {', '.join(pend)}." if pend else ""), fontsize=8, color=INK2, va="bottom")
-
-
-def save(f, name):
-    import matplotlib.pyplot as plt
-    for ext in ("png", "svg"): f.savefig(OUT / f"{name}.{ext}", facecolor=SURF)
-    plt.close(f)
+    note = "\n".join([f"Got = win rate against the {D['opponents']} training opponents, behaviour-cloning policy on both sides, slots shuffled; "
+                      "192 teams per ask, one battle per opponent."]
+                     + (["95% intervals resample teams and opponents."] if intervals else [])
+                     + ([f"Pending: {', '.join(pend)}."] if pend else []))
+    print(write_chart(option, OUT / f"{name}.html", head, sub, note, height=height))
 
 
 def fig_error(D):
     """1. Headline: each rule's error minus the control's, paired over the same opponent draws."""
     A = D["arms"]; rows = [m for m in ARMS if m != CONTROL and (m in A or ARMS[m][1] == "arm")]
-    f, ax = fig(9, 4.6); f.subplots_adjust(left=.34, right=.95, top=.8, bottom=.24)
     lim = max([abs(v) for m in A if "minus_control_ci" in A[m] for v in A[m]["minus_control_ci"]] + [.005]) + .003
-    ax.axvline(0, color=INK, lw=1.4)
-    ax.text(0, len(rows) - .45, f" control, error {A[CONTROL]['error']:.4f}", fontsize=9, color=INK)
+    series = [{"type": "line", "data": [], "silent": True, "markLine": {
+        "symbol": "none", "lineStyle": {"color": INK, "type": "solid", "width": 1.4},
+        "label": {"formatter": f"control, error {A[CONTROL]['error']:.4f}", "position": "end", "color": INK}, "data": [{"xAxis": 0}]}}]
     for i, m in enumerate(rows):
         y = len(rows) - 1 - i
         if m not in A:
-            ax.text(0, y, "  pending", va="center", fontsize=9.5, color=GREY); continue
+            series.append({"type": "scatter", "name": ARMS[m][0], "symbolSize": 0, "silent": True, "tooltip": {"show": False},
+                           "data": [{"value": [0, y], "label": {"show": True, "formatter": "pending", "position": "right", "color": GREY}}]})
+            continue
         r = A[m]
-        ax.plot(r["minus_control_ci"], [y, y], color=COL[m], lw=3, solid_capstyle="round")
-        ax.scatter([r["minus_control"]], [y], s=70, color=COL[m], zorder=3, edgecolor=SURF, lw=1.2)
-        ax.text(r["minus_control"], y + .25, f"{r['minus_control']:+.4f}", ha="center", fontsize=9.5, color=INK2)
-    ax.set_yticks(range(len(rows))); ax.set_yticklabels([ARMS[m][0] for m in reversed(rows)])
-    ax.set_xlim(-lim, lim); ax.set_ylim(-.6, len(rows) - .2)
-    ax.set_xlabel("Ask-versus-got error minus the control's (left of zero = closer to the ask)")
-    words(f, D, "Does a noisier label bring got closer to the ask?",
-          "Error on asks 1/24 to 17/24, each label rule minus the all-39 control, with 95% paired intervals.")
-    save(f, "01_error_by_arm")
+        series.append({"type": "line", "name": r["reader"], "color": COL[m], "symbol": "none", "silent": True, "tooltip": {"show": False},
+                       "lineStyle": {"width": 3, "cap": "round"}, "data": [[v, y] for v in r["minus_control_ci"]]})
+        series.append({"type": "scatter", "name": r["reader"], "color": COL[m], "symbolSize": 12, "emphasis": {"focus": "series"},
+                       "itemStyle": {"borderColor": "#fff", "borderWidth": 1.2},
+                       "data": [{"value": [r["minus_control"], y], "label": {"show": True, "formatter": f"{r['minus_control']:+.4f}",
+                                                                           "position": "top", "color": INK2}}]})
+    option = {"tooltip": {"trigger": "item", "valueFormatter": "js:v => typeof v === 'number' ? v.toFixed(4) : v"},
+              "grid": {"left": 250, "right": 40, "top": 36, "bottom": 56},
+              "xAxis": axis("Ask-versus-got error minus the control's (left of zero = closer to the ask)", min=-lim, max=lim),
+              "yAxis": {"type": "category", "data": [ARMS[m][0] for m in reversed(rows)], "axisTick": {"show": False},
+                        "axisLabel": {"width": 230, "overflow": "break"}},
+              "series": series}
+    save(option, "01_error_by_arm", D, "Does a noisier label bring got closer to the ask?",
+         "Error on asks 1/24 to 17/24, each label rule minus the all-39 control, with 95% paired intervals.", 380)
 
 
 def fig_got(D):
     """2. Mechanism: got against ask."""
-    A = D["arms"]; f, ax = fig(9, 5.6); f.subplots_adjust(left=.08, right=.97, top=.84, bottom=.17)
-    ax.axvspan(17.5 / 24, 1, color=GRID, alpha=.6, lw=0); ax.text(20.5 / 24, .03, "reported apart", ha="center", fontsize=9, color=INK2)
-    ax.plot([0, .78], [0, .78], color=INK2, ls=":", lw=1); ax.text(.66, .69, "got = ask", fontsize=9, color=INK2, rotation=33)
-    for m in (m for m in ARMS if m in A):
-        pa = A[m]["per_ask"]; ks = sorted(pa, key=int); x = [int(k) / 24 for k in ks]; arm = A[m]["role"] == "arm"
-        if arm: ax.fill_between(x, [pa[k]["ci"][0] for k in ks], [pa[k]["ci"][1] for k in ks], color=COL[m], alpha=.15, lw=0)
-        ax.plot(x, [pa[k]["got"] for k in ks], color=COL[m], lw=2.4 if arm else 1.6, ls="-" if arm else "--", label=A[m]["reader"])
-    ax.set_xlim(0, 1); ax.set_ylim(0, .78); ax.set_xlabel("Ask"); ax.set_ylabel("Got")
-    ax.legend(frameon=False, fontsize=9, loc="upper left", labelcolor=INK2)
-    words(f, D, "Where along the ask does each label rule miss?",
-          "Got for each of the 23 asks; solid lines are this experiment's arms, dashed the earlier models.")
-    save(f, "02_got_against_ask")
+    A = D["arms"]; shown = [m for m in ARMS if m in A]
+    series = [reported_apart("reported apart"),
+              {"type": "line", "name": "got = ask", "color": INK2, "symbol": "none", "silent": True, "tooltip": {"show": False},
+               "lineStyle": {"type": "dotted", "width": 1}, "endLabel": {"show": True, "formatter": "got = ask", "color": INK2},
+               "data": [[0, 0], [.78, .78]]}]
+    series += [band(m, A[m]) for m in shown if A[m]["role"] == "arm"]
+    series += [curve(m, A[m], "got") for m in shown]
+    option = {"tooltip": {"trigger": "axis", "valueFormatter": "js:v => typeof v === 'number' ? v.toFixed(3) : v"},
+              "legend": {"data": [A[m]["reader"] for m in shown], "top": 0},
+              "grid": {"left": 60, "right": 70, "top": 48, "bottom": 52},
+              "xAxis": axis("Ask", min=0, max=1), "yAxis": axis("Got", min=0, max=.78, nameGap=40), "series": series}
+    save(option, "02_got_against_ask", D, "Where along the ask does each label rule miss?",
+         "Got for each of the 23 asks; solid lines are this experiment's arms, dashed the earlier models.", 520)
 
 
 def fig_variety(D):
     """3. Variety at each ask."""
-    A = D["arms"]; f, ax = fig(9, 5.2); f.subplots_adjust(left=.09, right=.97, top=.84, bottom=.17)
-    ax.axvspan(17.5 / 24, 1, color=GRID, alpha=.6, lw=0)
-    for m in (m for m in ARMS if m in A):
-        pa = A[m]["per_ask"]; ks = sorted(pa, key=int); arm = A[m]["role"] == "arm"
-        ax.plot([int(k) / 24 for k in ks], [pa[k]["lineups"] for k in ks], color=COL[m], marker="o", ms=3.5,
-                lw=2.4 if arm else 1.6, ls="-" if arm else "--", label=A[m]["reader"])
-    ax.set_xlim(0, 1); ax.set_ylim(0, 200); ax.set_xlabel("Ask"); ax.set_ylabel("Distinct line-ups among the 192 teams")
-    ax.legend(frameon=False, fontsize=9, loc="lower left", labelcolor=INK2)
-    words(f, D, "Does the label rule change variety?", "Distinct six-species line-ups among the 192 teams of each ask.", intervals=False)
-    save(f, "03_line_ups_by_ask")
+    A = D["arms"]; shown = [m for m in ARMS if m in A]
+    option = {"tooltip": {"trigger": "axis"}, "legend": {"data": [A[m]["reader"] for m in shown], "top": 0},
+              "grid": {"left": 60, "right": 24, "top": 48, "bottom": 52},
+              "xAxis": axis("Ask", min=0, max=1), "yAxis": axis("Distinct line-ups among the 192 teams", min=0, max=200, nameGap=40),
+              "series": [reported_apart()] + [curve(m, A[m], "lineups") for m in shown]}
+    save(option, "03_line_ups_by_ask", D, "Does the label rule change variety?",
+         "Distinct six-species line-ups among the 192 teams of each ask.", 480, intervals=False)
 
 
 def figures():
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    plt.rcParams.update({"font.family": "Helvetica", "font.size": 10.5, "axes.edgecolor": GREY, "axes.linewidth": .8, "xtick.color": INK2,
-                         "ytick.color": INK2, "axes.labelcolor": INK2, "svg.fonttype": "none"})
     D = json.load(open(DATA)); OUT.mkdir(parents=True, exist_ok=True)
     fig_error(D); fig_got(D); fig_variety(D)
-    print("figures ->", OUT)
 
 
 if __name__ == "__main__":
