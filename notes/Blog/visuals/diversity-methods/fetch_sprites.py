@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Fetch the Pokemon Showdown gen5 front sprites that data.json needs but sprites.json lacks.
+"""Fetch the PokeAPI default front sprites that data.json needs but sprites.json lacks.
+
+Showdown ids resolve through ../search-loop/sprites/pokeapi_ids.json; an id missing there is
+reported (add it with `python3 ../search-loop/sprites/pokeapi_sprites.py --rebuild <id>`).
 
 Every download lands first in the download directory given on the command line. A file is
 copied into the search-loop sprites folder only when no file of that name is already there, and
@@ -10,39 +13,27 @@ Usage: python3 fetch_sprites.py <download-dir>   (the directory must exist and b
 """
 import hashlib
 import json
-import re
 import shutil
 import struct
 import sys
 import time
 import urllib.request
+from datetime import date
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
 
 HERE = Path(__file__).resolve().parent
 SPR = HERE.parent / "search-loop" / "sprites"
-URL = "https://play.pokemonshowdown.com/sprites/gen5/{name}.png"
-HOST = "play.pokemonshowdown.com"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(SPR))
+from pokeapi_sprites import pokeapi_url  # noqa: E402
+
+HOST = "raw.githubusercontent.com"
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-MAX_BYTES = 61440
+MAX_BYTES = 2 * 1024 * 1024
 SIZE = 96
-RETRIEVED = "2026-10-10"
-SPECIAL_NAMES = {"raichumegay": "raichu-megay"}
-
-
-def alnum(s):
-    return re.sub(r"[^a-z0-9]", "", s)
-
-
-def showdown_name(sid, display):
-    if sid in SPECIAL_NAMES:
-        return SPECIAL_NAMES[sid]
-    lower = display.lower()
-    if "-" in lower:
-        base, forme = lower.split("-", 1)
-        return f"{alnum(base)}-{alnum(forme)}"
-    return alnum(lower)
+RETRIEVED = date.today().isoformat()
 
 
 def fetch(url):
@@ -90,7 +81,11 @@ def main():
     for i, sid in enumerate(missing):
         if i:
             time.sleep(0.2)
-        url = URL.format(name=showdown_name(sid, data["names"][sid]))
+        try:
+            url = pokeapi_url(sid)
+        except KeyError:
+            failed.append((sid, "-", "no entry in pokeapi_ids.json"))
+            continue
         body, reason = fetch(url)
         if reason is not None:
             failed.append((sid, url, reason))

@@ -621,7 +621,7 @@ function boot() {
   const day = s => esc((s || '').slice(0, 10));
   $('#app').innerHTML = `${header()}${explorerIntro()}<div id="ctl"></div><div id="grid" style="margin-top:12px"></div><div id="writers" style="margin-top:12px"></div><div id="stars" style="margin-top:12px"></div></section>
     ${q1()}${q2()}${q3()}${qDiv()}${q4()}${method()}
-    <footer>Explorer: the reasoning studies by default, the 2026-10-08 grid behind the study toggle. Reasoning studies verified ${day(DATA.reasoning && DATA.reasoning.audit.verified_at)} (Ling), ${day(DATA.mercury && DATA.mercury.audit.verified_at)} (Mercury) and ${day(DATA.matchedDiffusion && DATA.matchedDiffusion.audit.verified_at)} (diffusion). Sprites from Pokémon Showdown.</footer>`;
+    <footer>Explorer: the reasoning studies by default, the 2026-10-08 grid behind the study toggle. Reasoning studies verified ${day(DATA.reasoning && DATA.reasoning.audit.verified_at)} (Ling), ${day(DATA.mercury && DATA.mercury.audit.verified_at)} (Mercury) and ${day(DATA.matchedDiffusion && DATA.matchedDiffusion.audit.verified_at)} (diffusion). Sprites from PokeAPI's sprites repository.</footer>`;
   $('#ctl').innerHTML = controls();
   renderExplorer();
   updateReasoningFamily(false);

@@ -1,5 +1,5 @@
 // Sprite versions of the 04b faceted π: the same 25 lattice facets rasterised into a 96 px frame, the size of a
-// Pokémon Showdown gen5 front sprite. No anti-aliasing, a black outline, and only colours from Showdown's porygon.png.
+// Gen 5 front sprite. No anti-aliasing, a black outline, and only colours from porygon.png (PokeAPI sprites repository).
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
