@@ -4,6 +4,7 @@ import json
 import math
 from pathlib import Path
 import statistics
+import sys
 
 from capture_diversity_baseline import verify_baseline
 from temperature_experiment import REPO, digest
@@ -53,9 +54,9 @@ def compare(baseline, history):  # noqa: C901
 
 
 def plot(baseline, history, path):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+    """Composition counts and unique-team share over CEM generations, as one ECharts page beside path (.html)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from echarts_chart import write_chart
     config = baseline["manifest"]["config"]
     seeds = config["seeds"]
     arms = sorted({r["arm"] for r in history["rows"]})
@@ -63,33 +64,35 @@ def plot(baseline, history, path):
                    fixed_020="#7250A1", fixed_030="#2965AF")
     labels = dict(adaptive="Adaptive", annealed="Annealed", fixed_010="Fixed 0.10",
                   fixed_020="Fixed 0.20", fixed_030="Fixed 0.30")
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.4), layout="constrained")
-    for ax, key, metric, scale in ((axes[0], "composition", "unique_count", 1),
-                                    (axes[1], "with_spreads", "unique_fraction", 100)):
+    ticks = [0, 1, 3, 5, 7, 9, 11]
+    panels = (("composition", "unique_count", 1, "Distinct six-species/form compositions", "Count per 512 accepted draws", 530),
+              ("with_spreads", "unique_fraction", 100, "Unique teams including stat spreads", "Percent of 512 accepted draws", 105))
+    grids = [{"left": "7%", "width": "40%", "top": 50, "bottom": 70}, {"left": "57%", "width": "40%", "top": 50, "bottom": 70}]
+    titles, xs, ys, series = [], [], [], []
+    for g, (key, metric, scale, title, ylabel, ymax) in enumerate(panels):
+        on = {"xAxisIndex": g, "yAxisIndex": g}
+        titles.append({"text": title, "left": grids[g]["left"], "top": 12, "textStyle": {"fontSize": 13}})
+        xs.append({"type": "value", "gridIndex": g, "min": 0, "max": config["generations"], "name": "CEM generation (0 = before fine-tuning)",
+                   "nameLocation": "middle", "nameGap": 26, "axisLabel": {"customValues": ticks}, "axisTick": {"customValues": ticks}})
+        ys.append({"type": "value", "gridIndex": g, "min": 0, "max": ymax, "name": ylabel, "nameLocation": "middle", "nameGap": 40})
         start = statistics.mean(baseline["runs"][str(seed)]["proposal"]["diversity"]["team_diversity"][key][metric] for seed in seeds)
         for arm in arms:
             values = [start]
             for generation in range(1, config["generations"] + 1):
                 values.append(statistics.mean(r["metrics"][key][metric] for r in history["rows"]
                     if r["arm"] == arm and r["generation"] == generation and r["phase"] == "generation"))
-            ax.plot(range(len(values)), [v * scale for v in values], color=palette[arm],
-                    label=labels[arm], linewidth=2, marker="o", markersize=3)
-        ax.scatter([0], [start * scale], color="#222222", zorder=5, s=35)
-        ax.set_xlabel("CEM generation (0 = before fine-tuning)")
-        ax.spines[["top", "right"]].set_visible(False)
-        ax.grid(axis="y", alpha=.18)
-        ax.set_xticks([0, 1, 3, 5, 7, 9, 11])
-    axes[0].set(title="Distinct six-species/form compositions", ylabel="Count per 512 accepted draws", ylim=(0, 530))
-    axes[0].legend(fontsize=8, frameon=False, loc="lower left", ncol=2)
-    axes[1].set(title="Unique teams including stat spreads", ylabel="Percent of 512 accepted draws", ylim=(0, 105))
+            series.append({"type": "line", "name": labels[arm], "color": palette[arm], "lineStyle": {"width": 2}, "symbolSize": 5,
+                           "emphasis": {"focus": "series"}, "data": [[i, v * scale] for i, v in enumerate(values)], **on})
+        series.append({"type": "scatter", "name": "Before fine-tuning", "color": "#222222", "symbolSize": 10, "data": [[0, start * scale]], **on})
     if all(r["metrics"]["with_spreads"]["unique_fraction"] == 1 for r in history["rows"] if r["phase"] == "generation"):
-        axes[1].text(.5, .65, "All five arms remain at 100%", transform=axes[1].transAxes,
-                     ha="center", color="#40516a", fontsize=11)
-    fig.suptitle("Diversity before and across fine-tuning", fontsize=15, fontweight="bold")
-    fig.supxlabel("Means across three seeds; repeated draws retained. No baseline generator fine-tuning.", fontsize=9)
-    fig.savefig(path, dpi=180)
-    fig.savefig(path.with_suffix(".svg"))
-    plt.close(fig)
+        series.append({"type": "scatter", "silent": True, "symbolSize": 0, "xAxisIndex": 1, "yAxisIndex": 1, "tooltip": {"show": False},
+                       "data": [[config["generations"] / 2, 65]],
+                       "label": {"show": True, "formatter": "All five arms remain at 100%", "color": "#40516a", "fontSize": 13}})
+    write_chart({"title": titles, "grid": grids, "xAxis": xs, "yAxis": ys, "series": series, "tooltip": {"trigger": "axis"},
+                 "legend": {"data": [labels[a] for a in arms] + ["Before fine-tuning"], "bottom": 0}},
+                path.with_suffix(".html"), "Diversity before and across fine-tuning",
+                note="Means across three seeds; repeated draws retained. No baseline generator fine-tuning.", height=440,
+                dark={"#222222": "#f2f1ee", "#40516a": "#a9b4be"})
 
 
 def main():
@@ -102,7 +105,7 @@ def main():
     history = json.loads(args.history.read_text())
     rows = compare(baseline, history)
     config = baseline["manifest"]["config"]
-    image = args.output.with_suffix(".png")
+    image = args.output.with_suffix(".html")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     plot(baseline, history, image)
     lines = ["# Diversity before and across fine-tuning", "",
@@ -113,7 +116,7 @@ def main():
         f"{config['final_sample']}-team unranked sample evaluated for {config['final_battles']} battles per team. "
         f"All {baseline['manifest']['expected_battles']:,} baseline battles completed. "
         "The initial training reference contains 692 teams verified against the checkpoint and source files.", "",
-        f"![Diversity trajectories]({image.resolve()})", "",
+        f"[Diversity trajectories]({image.resolve()})", "",
         "| Model | Distinct compositions / 512 | Unique teams / 512 | Novel teams / 512 | Generator win rate |",
         "| --- | ---: | ---: | ---: | ---: |"]
     order = ["before fine-tuning", *sorted({r["arm"] for r in rows if r["arm"] != "before fine-tuning"})]

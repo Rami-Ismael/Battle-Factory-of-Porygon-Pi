@@ -2,6 +2,7 @@
 """Render the retrospective checkpoint storyboard without changing the observations."""
 import argparse
 import json
+import sys
 from pathlib import Path
 
 
@@ -163,96 +164,101 @@ def render(source, output):
 
 
 def export_figures(source):
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from matplotlib.ticker import PercentFormatter
-    matplotlib.rcParams.update({'svg.fonttype':'none','font.family':'DejaVu Sans','font.size':12,
-                                 'axes.labelsize':12,'xtick.labelsize':12,'ytick.labelsize':12})
+    """Write the evidence sequence and the teaser beside source as ECharts pages (checkpoint-error.html, checkpoint-teaser.html)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+    from echarts_chart import write_chart
     data = json.loads(source.read_text())
     rows = data['epochs']
-    by_epoch = {r['epoch']:r for r in rows}
-    colors = {1:'#687786',34:'#0072b2',80:'#b65b13'}
-    ink, muted, grid, target = '#172a3a','#475a6b','#d9e0e6','#087354'
+    by_epoch = {r['epoch']: r for r in rows}
+    colors = {1: '#687786', 34: '#0072b2', 80: '#b65b13'}
+    ink, muted, target = '#172a3a', '#475a6b', '#087354'
+    dark = {ink: '#f2f1ee', muted: '#a9b4be', '#687786': '#9aa6b2', '#0072b2': '#4ea3e0'}
+    pct = "js:v => Math.round(v * 100) + '%'"
 
-    def setup(ax):
-        ax.spines[['top','right']].set_visible(False)
-        ax.spines[['left','bottom']].set_color(grid)
-        ax.tick_params(colors=muted, length=0, pad=8)
-        ax.grid(axis='y', color=grid, linewidth=.7)
-        ax.set_axisbelow(True)
+    def label(x, y, text, color, g, position='top', size=12):
+        return {'type': 'scatter', 'silent': True, 'symbolSize': 0, 'xAxisIndex': g, 'yAxisIndex': g, 'tooltip': {'show': False},
+                'data': [[x, y]], 'label': {'show': True, 'formatter': text, 'position': position, 'color': color, 'fontSize': size}}
 
-    def trend(ax):
-        setup(ax)
-        xx=np.array([r['epoch'] for r in rows]); yy=np.array([r['mse'] for r in rows]);ci=np.array([r['mse_ci'] for r in rows]).T
-        ax.errorbar(xx,yy,yerr=[yy-ci[0],ci[1]-yy],fmt='none',ecolor='#c2cbd3',linewidth=1,zorder=1)
-        ax.plot(xx,yy,color=muted,linewidth=1.8,zorder=2)
-        ax.scatter(xx,yy,color=muted,s=18,zorder=3)
-        for ep in (1,34,80):
-            r=by_epoch[ep];ax.scatter([ep],[r['mse']],color=colors[ep],s=50,zorder=4)
-        ax.axhline(.001,color=target,linestyle=(0,(4,3)),linewidth=1.2)
-        ax.text(79,.0017,'Target < 0.001: no checkpoint reaches it',ha='right',va='bottom',fontsize=12,color=target)
-        ax.set(xlim=(-1,82),ylim=(0,.029),xlabel='Training epoch',ylabel='Ask-versus-got error')
-        ax.set_xticks([1,21,34,55,80]);ax.set_yticks([0,.01,.02])
-        ax.text(3,.0186,'Epoch 1\n0.01750',fontsize=12,color=colors[1],va='bottom')
-        ax.annotate('Epoch 34\n0.00591',xy=(34,by_epoch[34]['mse']),xytext=(38,.012),ha='left',va='bottom',fontsize=12,color=colors[34],arrowprops={'arrowstyle':'-','color':colors[34],'linewidth':.8})
-        ax.text(80,.0076,'Epoch 80\n0.00600',ha='right',va='bottom',fontsize=12,color=colors[80])
-        ax.plot([34,34,80,80],[.0255,.0262,.0262,.0255],color=muted,linewidth=1)
-        ax.text(57,.027,'Further improvement uncertain',ha='center',fontsize=12,color=muted)
+    def trend(g):
+        on = {'xAxisIndex': g, 'yAxisIndex': g}
+        bars = []
+        for r in rows:
+            bars += [[r['epoch'], r['mse_ci'][0]], [r['epoch'], r['mse_ci'][1]], '-']
+        series = [{'type': 'line', 'silent': True, 'symbol': 'none', 'color': '#c2cbd3', 'lineStyle': {'width': 1}, 'connectNulls': False,
+                   'tooltip': {'show': False}, 'data': bars, **on},
+                  {'type': 'line', 'name': 'Ask-versus-got error', 'color': muted, 'lineStyle': {'width': 1.8}, 'symbolSize': 6,
+                   'data': [[r['epoch'], r['mse']] for r in rows],
+                   'markLine': {'symbol': 'none', 'silent': True, 'lineStyle': {'color': target, 'type': 'dashed', 'width': 1.2},
+                                'label': {'formatter': 'Target < 0.001: no checkpoint reaches it', 'position': 'insideEndTop', 'color': target,
+                                          'fontSize': 12}, 'data': [{'yAxis': .001}]}, **on}]
+        for ep, pos in ((1, 'right'), (34, 'top'), (80, 'top')):
+            series.append({'type': 'scatter', 'name': f'Epoch {ep}', 'color': colors[ep], 'symbolSize': 11, **on,
+                           'data': [{'value': [ep, by_epoch[ep]['mse']],
+                                     'label': {'show': True, 'position': pos, 'distance': 10, 'color': colors[ep], 'fontSize': 12,
+                                               'formatter': f"Epoch {ep}\n{by_epoch[ep]['mse']:.5f}"}}]})
+        series.append({'type': 'line', 'silent': True, 'symbol': 'none', 'color': muted, 'lineStyle': {'width': 1},
+                       'data': [[34, .0255], [34, .0262], [80, .0262], [80, .0255]], **on})
+        series.append(label(57, .027, 'Further improvement uncertain', muted, g))
+        x = {'type': 'value', 'gridIndex': g, 'min': -1, 'max': 82, 'name': 'Training epoch', 'nameLocation': 'middle', 'nameGap': 28,
+             'axisLabel': {'customValues': [1, 21, 34, 55, 80]}, 'axisTick': {'customValues': [1, 21, 34, 55, 80]}, 'splitLine': {'show': False}}
+        y = {'type': 'value', 'gridIndex': g, 'min': 0, 'max': .029, 'interval': .01, 'name': 'Ask-versus-got error',
+             'nameLocation': 'middle', 'nameGap': 48}
+        return series, x, y
 
-    def agreement(ax):
-        setup(ax)
-        ax.axvspan(17.5/24,1,color=muted,alpha=.05)
-        ax.plot([0,1],[0,1],color=target,linewidth=1.3)
-        ax.text(.98,.99,'Got = ask',ha='right',va='bottom',fontsize=12,color=target)
-        for ep in (1,34,80):
-            row=by_epoch[ep]
-            ax.plot([a['ask'] for a in row['asks']],[a['win'] for a in row['asks']],
-                    color=colors[ep],linewidth=1.2 if ep==1 else 2.2,linestyle='--' if ep==1 else '-',
-                    marker='.' if ep!=1 else None,markersize=4,alpha=.65 if ep==1 else 1)
-        for ep,ypos in ((34,.40),(80,.31)):
-            ax.annotate(f'Epoch {ep}',xy=(23/24,by_epoch[ep]['asks'][-1]['win']),xytext=(.99,ypos),ha='right',
-                        color=colors[ep],fontsize=12,arrowprops={'arrowstyle':'-','color':colors[ep],'linewidth':.8})
-        ax.text(.88,.18,'Epoch 1',color=colors[1],fontsize=12)
-        ask=17/24;got=by_epoch[80]['asks'][16]['win']
-        ax.plot([ask,ask],[got,ask],color=ink,linewidth=1,linestyle=(0,(2,3)))
-        ax.text(ask+.02,(ask+got)/2,'Gap remains',fontsize=12,color=ink)
-        ax.set(xlim=(0,1),ylim=(0,1.06),xlabel='Requested win rate',ylabel='Achieved win rate')
-        ax.xaxis.set_major_formatter(PercentFormatter(1));ax.yaxis.set_major_formatter(PercentFormatter(1))
-        ax.set_xticks([0,.25,.5,.75,1]);ax.set_yticks([0,.25,.5,.75,1])
+    def agreement(g):
+        on = {'xAxisIndex': g, 'yAxisIndex': g}
+        series = [{'type': 'line', 'name': 'Got = ask', 'silent': True, 'symbol': 'none', 'color': target, 'lineStyle': {'width': 1.3},
+                   'data': [[0, 0], [1, 1]], 'endLabel': {'show': True, 'formatter': 'Got = ask', 'color': target, 'fontSize': 12},
+                   'markArea': {'silent': True, 'itemStyle': {'color': 'rgba(71,90,107,0.07)'}, 'data': [[{'xAxis': 17.5 / 24}, {'xAxis': 1}]]},
+                   'tooltip': {'show': False}, **on}]
+        for ep in (1, 34, 80):
+            row = by_epoch[ep]
+            series.append({'type': 'line', 'name': f'Epoch {ep}', 'color': colors[ep], 'symbolSize': 0 if ep == 1 else 5,
+                           'lineStyle': {'width': 1.2 if ep == 1 else 2.2, 'type': 'dashed' if ep == 1 else 'solid', 'opacity': .65 if ep == 1 else 1},
+                           'emphasis': {'focus': 'series'}, 'data': [[a['ask'], a['win']] for a in row['asks']],
+                           'endLabel': {'show': True, 'formatter': f'Epoch {ep}', 'color': colors[ep], 'fontSize': 12}, **on})
+        ask, got = 17 / 24, by_epoch[80]['asks'][16]['win']
+        series.append({'type': 'line', 'silent': True, 'symbol': 'none', 'color': ink, 'lineStyle': {'width': 1, 'type': 'dotted'},
+                       'data': [[ask, got], [ask, ask]], 'tooltip': {'show': False}, **on})
+        series.append(label(ask + .02, (ask + got) / 2, 'Gap remains', ink, g, 'right'))
+        ticks = [0, .25, .5, .75, 1]
+        x = {'type': 'value', 'gridIndex': g, 'min': 0, 'max': 1, 'name': 'Requested win rate', 'nameLocation': 'middle', 'nameGap': 28,
+             'axisLabel': {'customValues': ticks, 'formatter': pct}, 'axisTick': {'customValues': ticks}, 'splitLine': {'show': False}}
+        y = {'type': 'value', 'gridIndex': g, 'min': 0, 'max': 1.06, 'name': 'Achieved win rate', 'nameLocation': 'middle', 'nameGap': 44,
+             'axisLabel': {'customValues': ticks, 'formatter': pct}}
+        return series, x, y
 
-    # Evidence sequence: each panel carries one sentence, read from top to bottom.
-    fig=plt.figure(figsize=(12,11.2),facecolor='white')
-    fig.text(.08,.96,'Training helps early. The remaining gap persists.',fontsize=24,weight='bold',color=ink)
-    fig.text(.08,.922,'Same sampling seed at all ten checkpoints; one training run.',fontsize=12,color=muted)
-    ax1=fig.add_axes([.10,.60,.84,.255]);trend(ax1)
-    fig.text(.08,.885,'1  Most observed improvement is early',fontsize=20,weight='bold',color=ink)
-    fig.text(.08,.54,'66.2% lower error from epoch 1 to 34. The later checkpoints show no clear further reduction.',fontsize=12,color=muted)
-    ax2=fig.add_axes([.10,.16,.84,.255]);agreement(ax2)
-    fig.text(.08,.46,'2  Higher requests still miss the diagonal',fontsize=20,weight='bold',color=ink)
-    fig.text(.08,.08,'Ask 70.8%: epoch 34 gets 51.8%; epoch 80 gets 52.8%. This request is inside the scored range.',fontsize=12,color=ink)
-    fig.text(.08,.035,'Error scores requests 1/24–17/24. Shading marks sparse-training requests 18/24–23/24.\nBars: 95% whole-team and shared-opponent intervals, excluding independent training-run variation.',fontsize=12,color=muted,linespacing=1.5)
-    for extension in ('png','svg'):fig.savefig(source.with_name(f'checkpoint-error.{extension}'),dpi=160,facecolor='white')
-    plt.close(fig)
-    # Teaser: one annotated trajectory, then one concrete request/achievement example.
-    fig=plt.figure(figsize=(12,7.2),facecolor='white')
-    fig.text(.075,.94,'More training helps early. It does not close the gap.',fontsize=24,weight='bold',color=ink)
-    fig.text(.075,.89,'66.2% lower error by epoch 34; further improvement through epoch 80 remains uncertain.',fontsize=12,color=muted)
-    ax=fig.add_axes([.10,.38,.84,.43]);trend(ax)
-    fig.text(.075,.22,'A request still missed',fontsize=16,weight='bold',color=ink)
-    fig.text(.075,.16,'Ask 70.8%',fontsize=20,weight='bold',color=ink)
-    fig.text(.29,.16,'→',fontsize=24,color=muted)
-    fig.text(.36,.16,'51.8%',fontsize=24,weight='bold',color=colors[34]);fig.text(.36,.115,'got at epoch 34',fontsize=12,color=colors[34])
-    fig.text(.60,.16,'52.8%',fontsize=24,weight='bold',color=colors[80]);fig.text(.60,.115,'got at epoch 80',fontsize=12,color=colors[80])
-    fig.text(.80,.16,'Gap persists',fontsize=16,weight='bold',color=ink);fig.text(.80,.115,'within scored requests',fontsize=12,color=muted)
-    fig.text(.075,.045,'One training run; sampling seed 1; 64 teams per request. Error scores requests 1/24–17/24.\nBars resample teams and shared opponents. Independent training-run variation is unmeasured.',fontsize=12,color=muted,linespacing=1.5)
-    for extension in ('png','svg'):fig.savefig(source.with_name(f'checkpoint-teaser.{extension}'),dpi=160,facecolor='white')
-    plt.close(fig)
-    for name in ('checkpoint-error.svg', 'checkpoint-teaser.svg'):
-        svg = source.with_name(name)
-        svg.write_text('\n'.join(line.rstrip() for line in svg.read_text().splitlines()) + '\n')
-    print('Wrote storyboard evidence and teaser, each as text-preserving SVG and PNG.')
+    head = {'fontSize': 18, 'fontWeight': 'bold'}
+    s1, x1, y1 = trend(0)
+    s2, x2, y2 = agreement(1)
+    write_chart({'title': [{'text': '1  Most observed improvement is early', 'top': 0, 'left': 8, 'textStyle': head,
+                            'subtext': '66.2% lower error from epoch 1 to 34. The later checkpoints show no clear further reduction.'},
+                           {'text': '2  Higher requests still miss the diagonal', 'top': '50%', 'left': 8, 'textStyle': head,
+                            'subtext': 'Ask 70.8%: epoch 34 gets 51.8%; epoch 80 gets 52.8%. This request is inside the scored range.'}],
+                 'grid': [{'left': 70, 'right': 70, 'top': 70, 'height': '33%'}, {'left': 70, 'right': 70, 'top': '61%', 'height': '33%'}],
+                 'xAxis': [x1, x2], 'yAxis': [y1, y2], 'series': s1 + s2, 'tooltip': {'trigger': 'item'}},
+                source.with_name('checkpoint-error.html'), 'Training helps early. The remaining gap persists.',
+                'Same sampling seed at all ten checkpoints; one training run.',
+                'Error scores requests 1/24–17/24. Shading marks sparse-training requests 18/24–23/24.\n'
+                'Bars: 95% whole-team and shared-opponent intervals, excluding independent training-run variation.', height=900, dark=dark)
+
+    s, x, y = trend(0)
+    big = {'fontSize': 26, 'fontWeight': 'bold'}
+
+    def text(left, top, words, style):
+        return {'type': 'text', 'left': left, 'top': top, 'style': {'text': words, **style}}
+    write_chart({'grid': {'left': 70, 'right': 40, 'top': 20, 'height': '58%'}, 'xAxis': x, 'yAxis': y, 'series': s, 'tooltip': {'trigger': 'item'},
+                 'graphic': [text('2%', '76%', 'A request still missed', {'fontSize': 16, 'fontWeight': 'bold', 'fill': ink}),
+                             text('2%', '84%', 'Ask 70.8%', {**big, 'fill': ink}), text('24%', '84%', '→', {**big, 'fill': muted}),
+                             text('32%', '84%', '51.8%', {**big, 'fill': colors[34]}), text('32%', '93%', 'got at epoch 34', {'fontSize': 12, 'fill': colors[34]}),
+                             text('56%', '84%', '52.8%', {**big, 'fill': colors[80]}), text('56%', '93%', 'got at epoch 80', {'fontSize': 12, 'fill': colors[80]}),
+                             text('78%', '85%', 'Gap persists', {'fontSize': 16, 'fontWeight': 'bold', 'fill': ink}),
+                             text('78%', '93%', 'within scored requests', {'fontSize': 12, 'fill': muted})]},
+                source.with_name('checkpoint-teaser.html'), 'More training helps early. It does not close the gap.',
+                '66.2% lower error by epoch 34; further improvement through epoch 80 remains uncertain.',
+                'One training run; sampling seed 1; 64 teams per request. Error scores requests 1/24–17/24.\n'
+                'Bars resample teams and shared opponents. Independent training-run variation is unmeasured.', height=620, dark=dark)
+    print('Wrote storyboard evidence and teaser as ECharts pages.')
 
 
 def main():
@@ -260,7 +266,7 @@ def main():
     default=Path(__file__).resolve().parents[1]/'reports/training-checkpoints-2026-11-05'
     parser.add_argument('source',nargs='?',type=Path,default=default/'metrics.json')
     parser.add_argument('--output',type=Path)
-    parser.add_argument('--png',action='store_true',help='Also export the evidence and teaser as PNG and text-preserving SVG; requires matplotlib')
+    parser.add_argument('--figures','--png',dest='png',action='store_true',help='Also write the evidence and teaser as ECharts pages')
     args=parser.parse_args()
     render(args.source,args.output or args.source.with_name('index.html'))
     if args.png:export_figures(args.source)

@@ -131,8 +131,7 @@ class SmoothnessTests(unittest.TestCase):
             report = experiment.read_json(directory / "analysis.json")
             self.assertAlmostEqual(report["summary"]["random"]["mean"], 0)
             self.assertAlmostEqual(report["summary"]["tournament"]["mean"], .01)
-            self.assertTrue((directory / "smoothness.png").is_file())
-            self.assertTrue((directory / "smoothness.pdf").is_file())
+            self.assertTrue((directory / "smoothness.html").is_file())
             self.assertEqual(len(report["edges"]), 8)
             (directory / "labels" / f"{jobs[0]['id']}.json").unlink()
             with self.assertRaises(FileNotFoundError):

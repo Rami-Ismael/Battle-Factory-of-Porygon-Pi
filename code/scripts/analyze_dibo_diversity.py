@@ -8,15 +8,12 @@ import math
 from pathlib import Path
 import sys
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.ticker import PercentFormatter
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 from corpus import parse_team_text
 from diversity_metrics import team_keys
+from echarts_chart import write_chart
 
 
 def sha(path):
@@ -128,24 +125,34 @@ def main():
     print(json.dumps({a:{k:{x:v for x,v in d[k].items() if x not in ['composition_frequencies','species_frequencies','teams']} for k in ['all_battled','finalists']} for a,d in result['arms'].items()},indent=2))
 
 
-def plot(result,dest):
-    colors={'cem':'#7c4d94','dibo':'#087e8b'}
-    plt.rcParams.update({'font.size':10,'axes.spines.top':False,'axes.spines.right':False})
-    fig,axs=plt.subplots(2,2,figsize=(11,8),layout='constrained')
-    for arm,d in result['arms'].items():
-        label='CEM' if arm=='cem' else 'DiBO'; c=colors[arm];rs=d['rounds'];x=[r['round'] for r in rs]
-        axs[0,0].plot(x,[r['selected']['distinct_compositions'] for r in rs],'-o',color=c,label=label)
-        axs[0,1].plot(x,[r['selected']['largest_composition_share'] for r in rs],'-o',color=c,label=label)
-        axs[1,0].plot(x,[r['selected']['mean_species_replacements'] for r in rs],'-o',color=c,label=label)
-        axs[1,1].scatter([r['selected']['mean_species_replacements'] for r in rs],[r['search_mean'] for r in rs],color=c,s=50,label=label)
-    axs[0,0].set(title='Distinct rosters among 128 battled teams',ylim=(0,128))
-    axs[0,1].set(title='Most common roster’s share — lower is broader',ylim=(0,1));axs[0,1].yaxis.set_major_formatter(PercentFormatter(1))
-    axs[1,0].set(title='Average species replacements between teams',ylim=(0,6))
-    axs[1,1].set(title='Win rate and diversity of the same battle batch',xlabel='Average species replacements',ylabel='Search win rate',xlim=(0,6),ylim=(0,1));axs[1,1].yaxis.set_major_formatter(PercentFormatter(1))
-    for ax in [axs[0,0],axs[0,1],axs[1,0]]:ax.set_xlabel('Round');ax.set_xticks(range(1,11))
-    for ax in axs.flat:ax.grid(alpha=.15);ax.legend(frameon=False)
-    fig.suptitle('Structural diversity alongside performance · one matched-budget run')
-    fig.savefig(dest/'quality-and-diversity.png',dpi=160);fig.savefig(dest/'quality-and-diversity.svg');plt.close(fig)
+def plot(result, dest):
+    """Four panels as one ECharts page, quality-and-diversity.html in dest. analyze_dibo_diversity_v2.py draws with this too."""
+    colors = {'cem': '#7c4d94', 'dibo': '#087e8b'}
+    pct = "js:v => Math.round(v * 100) + '%'"
+    heads = ['Distinct rosters among 128 battled teams', 'Most common roster’s share — lower is broader',
+             'Average species replacements between teams', 'Win rate and diversity of the same battle batch']
+    grids = [{'left': f'{left}%', 'width': '40%', 'top': top, 'height': '30%'} for top in ('14%', '60%') for left in (6, 56)]
+    rounds = {'type': 'value', 'min': 1, 'max': 10, 'interval': 1, 'name': 'Round', 'nameLocation': 'middle', 'nameGap': 26}
+    xs = [{**rounds, 'gridIndex': g} for g in range(3)] + [
+        {'type': 'value', 'gridIndex': 3, 'min': 0, 'max': 6, 'name': 'Average species replacements', 'nameLocation': 'middle', 'nameGap': 26}]
+    ys = [{'type': 'value', 'gridIndex': 0, 'min': 0, 'max': 128},
+          {'type': 'value', 'gridIndex': 1, 'min': 0, 'max': 1, 'axisLabel': {'formatter': pct}},
+          {'type': 'value', 'gridIndex': 2, 'min': 0, 'max': 6},
+          {'type': 'value', 'gridIndex': 3, 'min': 0, 'max': 1, 'axisLabel': {'formatter': pct}, 'name': 'Search win rate',
+           'nameLocation': 'middle', 'nameGap': 40}]
+    series = []
+    for arm, d in result['arms'].items():
+        label, c, rs = 'CEM' if arm == 'cem' else 'DiBO', colors[arm], d['rounds']
+        x = [r['round'] for r in rs]
+        for g, key in enumerate(('distinct_compositions', 'largest_composition_share', 'mean_species_replacements')):
+            series.append({'type': 'line', 'name': label, 'color': c, 'symbolSize': 6, 'emphasis': {'focus': 'series'},
+                           'xAxisIndex': g, 'yAxisIndex': g, 'data': [[a, r['selected'][key]] for a, r in zip(x, rs)]})
+        series.append({'type': 'scatter', 'name': label, 'color': c, 'symbolSize': 11, 'xAxisIndex': 3, 'yAxisIndex': 3,
+                       'data': [[r['selected']['mean_species_replacements'], r['search_mean']] for r in rs]})
+    titles = [{'text': h, 'left': g['left'], 'top': f"{float(g['top'][:-1]) - 5}%", 'textStyle': {'fontSize': 13}} for h, g in zip(heads, grids)]
+    write_chart({'title': titles, 'grid': grids, 'xAxis': xs, 'yAxis': ys, 'series': series, 'tooltip': {'trigger': 'item'},
+                 'legend': {'data': ['CEM', 'DiBO'], 'top': 0, 'right': 0}},
+                dest / 'quality-and-diversity.html', 'Structural diversity alongside performance · one matched-budget run', height=700)
 
 
 def report(result,dest):
@@ -168,7 +175,7 @@ def report(result,dest):
     for a,d in arms.items():
         f=d['all_battled'];lines.append(f"| {a.upper() if a=='cem' else 'DiBO'} | {f['search_mean']:.1%} | {f['distinct_compositions']} | {f['effective_compositions']:.2f} | {f['largest_composition_share']:.1%} | {f['mean_species_replacements']:.2f} /6 | {f['qualifying_compositions']} |")
     lines += ['', 'The 53.1% cutoff is the existing CEM elite threshold, reused as an explicitly post-hoc quality-and-coverage summary for both methods. These are noisy search labels; one qualifying variant does not establish that its roster reliably exceeds the cutoff. Search scores are weighted across the top50 list and are not independent heldout performance.','',
-              '![Win rate and structural diversity](quality-and-diversity.png)','',
+              '[Win rate and structural diversity](quality-and-diversity.html)','',
               '**How diversity changed during search.** Win rate and selected-roster count below refer to the same 128 teams each round. Proposal counts refer to the separate saved 512-entry pools.','',
               '| Round | CEM proposal rosters /512 | DiBO proposal rosters /512 | CEM battled rosters /128 | DiBO battled rosters /128 | CEM search mean | DiBO search mean |',
               '|---|---:|---:|---:|---:|---:|---:|']

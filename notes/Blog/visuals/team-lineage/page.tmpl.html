@@ -151,7 +151,7 @@
   const byN = new Map(nodes.map((t) => [t.n, t]));
   const ns = 'http://www.w3.org/2000/svg';
   const el = (name, attrs = {}) => { const e = document.createElementNS(ns, name); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
-  const sprite = (id) => `https://play.pokemonshowdown.com/sprites/gen5/${id}.png`;
+  const sprite = (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;  // id = PokeAPI sprite stem
   const $ = (s) => container.querySelector(s);
   const guide = $('.guide'), branchLayer = $('.branches'), nodeLayer = $('.nodes');
   const progress = $('.progress'), scrub = $('input[type=range]'), tip = $('.tip');

@@ -1,0 +1,1458 @@
+{
+ "about": "Showdown species id -> PokeAPI sprite. URL = url_templates[kind] with {sprite} replaced by species[id].sprite; id is the PokeAPI pokemon id; form=true marks a cosmetic pokemon-form. Built by pokeapi_sprites.py --rebuild.",
+ "retrieved_from": "https://pokeapi.co/api/v2/pokemon?limit=3000",
+ "url_templates": {
+  "default": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{sprite}.png",
+  "home": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/{sprite}.png"
+ },
+ "species": {
+  "abomasnow": {
+   "name": "abomasnow",
+   "id": 460,
+   "sprite": "460"
+  },
+  "absol": {
+   "name": "absol",
+   "id": 359,
+   "sprite": "359"
+  },
+  "absolmega": {
+   "name": "absol-mega",
+   "id": 10057,
+   "sprite": "10057"
+  },
+  "aegislash": {
+   "name": "aegislash-shield",
+   "id": 681,
+   "sprite": "681"
+  },
+  "aegislashblade": {
+   "name": "aegislash-blade",
+   "id": 10026,
+   "sprite": "10026"
+  },
+  "aerodactyl": {
+   "name": "aerodactyl",
+   "id": 142,
+   "sprite": "142"
+  },
+  "aerodactylmega": {
+   "name": "aerodactyl-mega",
+   "id": 10042,
+   "sprite": "10042"
+  },
+  "aggron": {
+   "name": "aggron",
+   "id": 306,
+   "sprite": "306"
+  },
+  "aggronmega": {
+   "name": "aggron-mega",
+   "id": 10053,
+   "sprite": "10053"
+  },
+  "alakazam": {
+   "name": "alakazam",
+   "id": 65,
+   "sprite": "65"
+  },
+  "alcremie": {
+   "name": "alcremie",
+   "id": 869,
+   "sprite": "869"
+  },
+  "alcremiecaramelswirl": {
+   "name": "alcremie-caramel-swirl-strawberry-sweet",
+   "id": 869,
+   "form": true,
+   "sprite": "869-caramel-swirl-strawberry-sweet"
+  },
+  "alcremielemoncream": {
+   "name": "alcremie-lemon-cream-strawberry-sweet",
+   "id": 869,
+   "form": true,
+   "sprite": "869-lemon-cream-strawberry-sweet"
+  },
+  "alcremiematchacream": {
+   "name": "alcremie-matcha-cream-strawberry-sweet",
+   "id": 869,
+   "form": true,
+   "sprite": "869-matcha-cream-strawberry-sweet"
+  },
+  "alcremiemintcream": {
+   "name": "alcremie-mint-cream-strawberry-sweet",
+   "id": 869,
+   "form": true,
+   "sprite": "869-mint-cream-strawberry-sweet"
+  },
+  "alcremierainbowswirl": {
+   "name": "alcremie-rainbow-swirl-strawberry-sweet",
+   "id": 869,
+   "form": true,
+   "sprite": "869-rainbow-swirl-strawberry-sweet"
+  },
+  "altaria": {
+   "name": "altaria",
+   "id": 334,
+   "sprite": "334"
+  },
+  "altariamega": {
+   "name": "altaria-mega",
+   "id": 10067,
+   "sprite": "10067"
+  },
+  "ampharos": {
+   "name": "ampharos",
+   "id": 181,
+   "sprite": "181"
+  },
+  "ampharosmega": {
+   "name": "ampharos-mega",
+   "id": 10045,
+   "sprite": "10045"
+  },
+  "annihilape": {
+   "name": "annihilape",
+   "id": 979,
+   "sprite": "979"
+  },
+  "araquanid": {
+   "name": "araquanid",
+   "id": 752,
+   "sprite": "752"
+  },
+  "arbok": {
+   "name": "arbok",
+   "id": 24,
+   "sprite": "24"
+  },
+  "arcanine": {
+   "name": "arcanine",
+   "id": 59,
+   "sprite": "59"
+  },
+  "arcaninehisui": {
+   "name": "arcanine-hisui",
+   "id": 10230,
+   "sprite": "10230"
+  },
+  "archaludon": {
+   "name": "archaludon",
+   "id": 1018,
+   "sprite": "1018"
+  },
+  "armarouge": {
+   "name": "armarouge",
+   "id": 936,
+   "sprite": "936"
+  },
+  "aromatisse": {
+   "name": "aromatisse",
+   "id": 683,
+   "sprite": "683"
+  },
+  "audino": {
+   "name": "audino",
+   "id": 531,
+   "sprite": "531"
+  },
+  "aurorus": {
+   "name": "aurorus",
+   "id": 699,
+   "sprite": "699"
+  },
+  "avalugghisui": {
+   "name": "avalugg-hisui",
+   "id": 10243,
+   "sprite": "10243"
+  },
+  "azumarill": {
+   "name": "azumarill",
+   "id": 184,
+   "sprite": "184"
+  },
+  "banette": {
+   "name": "banette",
+   "id": 354,
+   "sprite": "354"
+  },
+  "banettemega": {
+   "name": "banette-mega",
+   "id": 10056,
+   "sprite": "10056"
+  },
+  "barbaracle": {
+   "name": "barbaracle",
+   "id": 689,
+   "sprite": "689"
+  },
+  "barbaraclemega": {
+   "name": "barbaracle-mega",
+   "id": 10298,
+   "sprite": "10298"
+  },
+  "basculegion": {
+   "name": "basculegion-male",
+   "id": 902,
+   "sprite": "902"
+  },
+  "basculegionf": {
+   "name": "basculegion-female",
+   "id": 10248,
+   "sprite": "10248"
+  },
+  "beedrill": {
+   "name": "beedrill",
+   "id": 15,
+   "sprite": "15"
+  },
+  "beedrillmega": {
+   "name": "beedrill-mega",
+   "id": 10090,
+   "sprite": "10090"
+  },
+  "bellibolt": {
+   "name": "bellibolt",
+   "id": 939,
+   "sprite": "939"
+  },
+  "blastoise": {
+   "name": "blastoise",
+   "id": 9,
+   "sprite": "9"
+  },
+  "blastoisemega": {
+   "name": "blastoise-mega",
+   "id": 10036,
+   "sprite": "10036"
+  },
+  "blaziken": {
+   "name": "blaziken",
+   "id": 257,
+   "sprite": "257"
+  },
+  "blazikenmega": {
+   "name": "blaziken-mega",
+   "id": 10050,
+   "sprite": "10050"
+  },
+  "camerupt": {
+   "name": "camerupt",
+   "id": 323,
+   "sprite": "323"
+  },
+  "cameruptmega": {
+   "name": "camerupt-mega",
+   "id": 10087,
+   "sprite": "10087"
+  },
+  "castform": {
+   "name": "castform",
+   "id": 351,
+   "sprite": "351"
+  },
+  "castformrainy": {
+   "name": "castform-rainy",
+   "id": 10014,
+   "sprite": "10014"
+  },
+  "castformsnowy": {
+   "name": "castform-snowy",
+   "id": 10015,
+   "sprite": "10015"
+  },
+  "ceruledge": {
+   "name": "ceruledge",
+   "id": 937,
+   "sprite": "937"
+  },
+  "chandelure": {
+   "name": "chandelure",
+   "id": 609,
+   "sprite": "609"
+  },
+  "charizard": {
+   "name": "charizard",
+   "id": 6,
+   "sprite": "6"
+  },
+  "charizardmegax": {
+   "name": "charizard-mega-x",
+   "id": 10034,
+   "sprite": "10034"
+  },
+  "charizardmegay": {
+   "name": "charizard-mega-y",
+   "id": 10035,
+   "sprite": "10035"
+  },
+  "chesnaught": {
+   "name": "chesnaught",
+   "id": 652,
+   "sprite": "652"
+  },
+  "chimecho": {
+   "name": "chimecho",
+   "id": 358,
+   "sprite": "358"
+  },
+  "chimechomega": {
+   "name": "chimecho-mega",
+   "id": 10306,
+   "sprite": "10306"
+  },
+  "clefable": {
+   "name": "clefable",
+   "id": 36,
+   "sprite": "36"
+  },
+  "cofagrigus": {
+   "name": "cofagrigus",
+   "id": 563,
+   "sprite": "563"
+  },
+  "conkeldurr": {
+   "name": "conkeldurr",
+   "id": 534,
+   "sprite": "534"
+  },
+  "corviknight": {
+   "name": "corviknight",
+   "id": 823,
+   "sprite": "823"
+  },
+  "crabominable": {
+   "name": "crabominable",
+   "id": 740,
+   "sprite": "740"
+  },
+  "crabominablemega": {
+   "name": "crabominable-mega",
+   "id": 10315,
+   "sprite": "10315"
+  },
+  "decidueye": {
+   "name": "decidueye",
+   "id": 724,
+   "sprite": "724"
+  },
+  "decidueyehisui": {
+   "name": "decidueye-hisui",
+   "id": 10244,
+   "sprite": "10244"
+  },
+  "delphox": {
+   "name": "delphox",
+   "id": 655,
+   "sprite": "655"
+  },
+  "delphoxmega": {
+   "name": "delphox-mega",
+   "id": 10293,
+   "sprite": "10293"
+  },
+  "diggersby": {
+   "name": "diggersby",
+   "id": 660,
+   "sprite": "660"
+  },
+  "ditto": {
+   "name": "ditto",
+   "id": 132,
+   "sprite": "132"
+  },
+  "dragalge": {
+   "name": "dragalge",
+   "id": 691,
+   "sprite": "691"
+  },
+  "dragalgemega": {
+   "name": "dragalge-mega",
+   "id": 10299,
+   "sprite": "10299"
+  },
+  "dragapult": {
+   "name": "dragapult",
+   "id": 887,
+   "sprite": "887"
+  },
+  "dragonite": {
+   "name": "dragonite",
+   "id": 149,
+   "sprite": "149"
+  },
+  "dragonitemega": {
+   "name": "dragonite-mega",
+   "id": 10281,
+   "sprite": "10281"
+  },
+  "drampa": {
+   "name": "drampa",
+   "id": 780,
+   "sprite": "780"
+  },
+  "drampamega": {
+   "name": "drampa-mega",
+   "id": 10302,
+   "sprite": "10302"
+  },
+  "eelektross": {
+   "name": "eelektross",
+   "id": 604,
+   "sprite": "604"
+  },
+  "eelektrossmega": {
+   "name": "eelektross-mega",
+   "id": 10290,
+   "sprite": "10290"
+  },
+  "emboar": {
+   "name": "emboar",
+   "id": 500,
+   "sprite": "500"
+  },
+  "emolga": {
+   "name": "emolga",
+   "id": 587,
+   "sprite": "587"
+  },
+  "empoleon": {
+   "name": "empoleon",
+   "id": 395,
+   "sprite": "395"
+  },
+  "espathra": {
+   "name": "espathra",
+   "id": 956,
+   "sprite": "956"
+  },
+  "espeon": {
+   "name": "espeon",
+   "id": 196,
+   "sprite": "196"
+  },
+  "excadrill": {
+   "name": "excadrill",
+   "id": 530,
+   "sprite": "530"
+  },
+  "excadrillmega": {
+   "name": "excadrill-mega",
+   "id": 10287,
+   "sprite": "10287"
+  },
+  "falinks": {
+   "name": "falinks",
+   "id": 870,
+   "sprite": "870"
+  },
+  "farigiraf": {
+   "name": "farigiraf",
+   "id": 981,
+   "sprite": "981"
+  },
+  "feraligatr": {
+   "name": "feraligatr",
+   "id": 160,
+   "sprite": "160"
+  },
+  "flapple": {
+   "name": "flapple",
+   "id": 841,
+   "sprite": "841"
+  },
+  "flareon": {
+   "name": "flareon",
+   "id": 136,
+   "sprite": "136"
+  },
+  "floetteeternal": {
+   "name": "floette-eternal",
+   "id": 10061,
+   "sprite": "10061"
+  },
+  "floettemega": {
+   "name": "floette-mega",
+   "id": 10296,
+   "sprite": "10296"
+  },
+  "florges": {
+   "name": "florges",
+   "id": 671,
+   "sprite": "671"
+  },
+  "forretress": {
+   "name": "forretress",
+   "id": 205,
+   "sprite": "205"
+  },
+  "froslass": {
+   "name": "froslass",
+   "id": 478,
+   "sprite": "478"
+  },
+  "froslassmega": {
+   "name": "froslass-mega",
+   "id": 10285,
+   "sprite": "10285"
+  },
+  "furfrou": {
+   "name": "furfrou",
+   "id": 676,
+   "sprite": "676"
+  },
+  "gallade": {
+   "name": "gallade",
+   "id": 475,
+   "sprite": "475"
+  },
+  "gallademega": {
+   "name": "gallade-mega",
+   "id": 10068,
+   "sprite": "10068"
+  },
+  "garchomp": {
+   "name": "garchomp",
+   "id": 445,
+   "sprite": "445"
+  },
+  "garchompmega": {
+   "name": "garchomp-mega",
+   "id": 10058,
+   "sprite": "10058"
+  },
+  "gardevoir": {
+   "name": "gardevoir",
+   "id": 282,
+   "sprite": "282"
+  },
+  "garganacl": {
+   "name": "garganacl",
+   "id": 934,
+   "sprite": "934"
+  },
+  "gengar": {
+   "name": "gengar",
+   "id": 94,
+   "sprite": "94"
+  },
+  "gengarmega": {
+   "name": "gengar-mega",
+   "id": 10038,
+   "sprite": "10038"
+  },
+  "gholdengo": {
+   "name": "gholdengo",
+   "id": 1000,
+   "sprite": "1000"
+  },
+  "glaceon": {
+   "name": "glaceon",
+   "id": 471,
+   "sprite": "471"
+  },
+  "glimmora": {
+   "name": "glimmora",
+   "id": 970,
+   "sprite": "970"
+  },
+  "glimmoramega": {
+   "name": "glimmora-mega",
+   "id": 10321,
+   "sprite": "10321"
+  },
+  "gliscor": {
+   "name": "gliscor",
+   "id": 472,
+   "sprite": "472"
+  },
+  "golurk": {
+   "name": "golurk",
+   "id": 623,
+   "sprite": "623"
+  },
+  "golurkmega": {
+   "name": "golurk-mega",
+   "id": 10313,
+   "sprite": "10313"
+  },
+  "goodra": {
+   "name": "goodra",
+   "id": 706,
+   "sprite": "706"
+  },
+  "goodrahisui": {
+   "name": "goodra-hisui",
+   "id": 10242,
+   "sprite": "10242"
+  },
+  "gourgeist": {
+   "name": "gourgeist-average",
+   "id": 711,
+   "sprite": "711"
+  },
+  "gourgeistlarge": {
+   "name": "gourgeist-large",
+   "id": 10031,
+   "sprite": "10031"
+  },
+  "greninja": {
+   "name": "greninja",
+   "id": 658,
+   "sprite": "658"
+  },
+  "greninjamega": {
+   "name": "greninja-mega",
+   "id": 10294,
+   "sprite": "10294"
+  },
+  "grimmsnarl": {
+   "name": "grimmsnarl",
+   "id": 861,
+   "sprite": "861"
+  },
+  "gyarados": {
+   "name": "gyarados",
+   "id": 130,
+   "sprite": "130"
+  },
+  "hatterene": {
+   "name": "hatterene",
+   "id": 858,
+   "sprite": "858"
+  },
+  "hawlucha": {
+   "name": "hawlucha",
+   "id": 701,
+   "sprite": "701"
+  },
+  "heliolisk": {
+   "name": "heliolisk",
+   "id": 695,
+   "sprite": "695"
+  },
+  "heracross": {
+   "name": "heracross",
+   "id": 214,
+   "sprite": "214"
+  },
+  "hippowdon": {
+   "name": "hippowdon",
+   "id": 450,
+   "sprite": "450"
+  },
+  "houndoom": {
+   "name": "houndoom",
+   "id": 229,
+   "sprite": "229"
+  },
+  "houndstone": {
+   "name": "houndstone",
+   "id": 972,
+   "sprite": "972"
+  },
+  "hydrapple": {
+   "name": "hydrapple",
+   "id": 1019,
+   "sprite": "1019"
+  },
+  "hydreigon": {
+   "name": "hydreigon",
+   "id": 635,
+   "sprite": "635"
+  },
+  "incineroar": {
+   "name": "incineroar",
+   "id": 727,
+   "sprite": "727"
+  },
+  "infernape": {
+   "name": "infernape",
+   "id": 392,
+   "sprite": "392"
+  },
+  "jolteon": {
+   "name": "jolteon",
+   "id": 135,
+   "sprite": "135"
+  },
+  "kangaskhan": {
+   "name": "kangaskhan",
+   "id": 115,
+   "sprite": "115"
+  },
+  "kangaskhanmega": {
+   "name": "kangaskhan-mega",
+   "id": 10039,
+   "sprite": "10039"
+  },
+  "kingambit": {
+   "name": "kingambit",
+   "id": 983,
+   "sprite": "983"
+  },
+  "kleavor": {
+   "name": "kleavor",
+   "id": 900,
+   "sprite": "900"
+  },
+  "klefki": {
+   "name": "klefki",
+   "id": 707,
+   "sprite": "707"
+  },
+  "kommoo": {
+   "name": "kommo-o",
+   "id": 784,
+   "sprite": "784"
+  },
+  "krookodile": {
+   "name": "krookodile",
+   "id": 553,
+   "sprite": "553"
+  },
+  "leafeon": {
+   "name": "leafeon",
+   "id": 470,
+   "sprite": "470"
+  },
+  "liepard": {
+   "name": "liepard",
+   "id": 510,
+   "sprite": "510"
+  },
+  "lopunny": {
+   "name": "lopunny",
+   "id": 428,
+   "sprite": "428"
+  },
+  "lucario": {
+   "name": "lucario",
+   "id": 448,
+   "sprite": "448"
+  },
+  "lycanroc": {
+   "name": "lycanroc-midday",
+   "id": 745,
+   "sprite": "745"
+  },
+  "lycanrocdusk": {
+   "name": "lycanroc-dusk",
+   "id": 10152,
+   "sprite": "10152"
+  },
+  "lycanrocmidnight": {
+   "name": "lycanroc-midnight",
+   "id": 10126,
+   "sprite": "10126"
+  },
+  "machamp": {
+   "name": "machamp",
+   "id": 68,
+   "sprite": "68"
+  },
+  "malamar": {
+   "name": "malamar",
+   "id": 687,
+   "sprite": "687"
+  },
+  "mamoswine": {
+   "name": "mamoswine",
+   "id": 473,
+   "sprite": "473"
+  },
+  "manectric": {
+   "name": "manectric",
+   "id": 310,
+   "sprite": "310"
+  },
+  "maushold": {
+   "name": "maushold-family-of-three",
+   "id": 10257,
+   "sprite": "10257"
+  },
+  "mausholdfour": {
+   "name": "maushold-family-of-four",
+   "id": 925,
+   "sprite": "925"
+  },
+  "mawile": {
+   "name": "mawile",
+   "id": 303,
+   "sprite": "303"
+  },
+  "mawilemega": {
+   "name": "mawile-mega",
+   "id": 10052,
+   "sprite": "10052"
+  },
+  "medicham": {
+   "name": "medicham",
+   "id": 308,
+   "sprite": "308"
+  },
+  "meganium": {
+   "name": "meganium",
+   "id": 154,
+   "sprite": "154"
+  },
+  "meganiummega": {
+   "name": "meganium-mega",
+   "id": 10282,
+   "sprite": "10282"
+  },
+  "meowscarada": {
+   "name": "meowscarada",
+   "id": 908,
+   "sprite": "908"
+  },
+  "meowstic": {
+   "name": "meowstic-male",
+   "id": 678,
+   "sprite": "678"
+  },
+  "meowsticf": {
+   "name": "meowstic-female",
+   "id": 10025,
+   "sprite": "10025"
+  },
+  "meowsticfmega": {
+   "name": "meowstic-female-mega",
+   "id": 10326,
+   "sprite": "10326"
+  },
+  "metagross": {
+   "name": "metagross",
+   "id": 376,
+   "sprite": "376"
+  },
+  "metagrossmega": {
+   "name": "metagross-mega",
+   "id": 10076,
+   "sprite": "10076"
+  },
+  "milotic": {
+   "name": "milotic",
+   "id": 350,
+   "sprite": "350"
+  },
+  "mimikyu": {
+   "name": "mimikyu-disguised",
+   "id": 778,
+   "sprite": "778"
+  },
+  "mimikyubusted": {
+   "name": "mimikyu-busted",
+   "id": 10143,
+   "sprite": "10143"
+  },
+  "morpeko": {
+   "name": "morpeko-full-belly",
+   "id": 877,
+   "sprite": "877"
+  },
+  "mrrime": {
+   "name": "mr-rime",
+   "id": 866,
+   "sprite": "866"
+  },
+  "mudsdale": {
+   "name": "mudsdale",
+   "id": 750,
+   "sprite": "750"
+  },
+  "musharna": {
+   "name": "musharna",
+   "id": 518,
+   "sprite": "518"
+  },
+  "ninetales": {
+   "name": "ninetales",
+   "id": 38,
+   "sprite": "38"
+  },
+  "ninetalesalola": {
+   "name": "ninetales-alola",
+   "id": 10104,
+   "sprite": "10104"
+  },
+  "noivern": {
+   "name": "noivern",
+   "id": 715,
+   "sprite": "715"
+  },
+  "oranguru": {
+   "name": "oranguru",
+   "id": 765,
+   "sprite": "765"
+  },
+  "orthworm": {
+   "name": "orthworm",
+   "id": 968,
+   "sprite": "968"
+  },
+  "overqwil": {
+   "name": "overqwil",
+   "id": 904,
+   "sprite": "904"
+  },
+  "palafin": {
+   "name": "palafin-zero",
+   "id": 964,
+   "sprite": "964"
+  },
+  "passimian": {
+   "name": "passimian",
+   "id": 766,
+   "sprite": "766"
+  },
+  "pelipper": {
+   "name": "pelipper",
+   "id": 279,
+   "sprite": "279"
+  },
+  "pidgeot": {
+   "name": "pidgeot",
+   "id": 18,
+   "sprite": "18"
+  },
+  "pidgeotmega": {
+   "name": "pidgeot-mega",
+   "id": 10073,
+   "sprite": "10073"
+  },
+  "pinsir": {
+   "name": "pinsir",
+   "id": 127,
+   "sprite": "127"
+  },
+  "politoed": {
+   "name": "politoed",
+   "id": 186,
+   "sprite": "186"
+  },
+  "porygon": {
+   "name": "porygon",
+   "id": 137,
+   "sprite": "137"
+  },
+  "primarina": {
+   "name": "primarina",
+   "id": 730,
+   "sprite": "730"
+  },
+  "pyroar": {
+   "name": "pyroar-male",
+   "id": 668,
+   "sprite": "668"
+  },
+  "pyroarmega": {
+   "name": "pyroar-mega",
+   "id": 10295,
+   "sprite": "10295"
+  },
+  "quaquaval": {
+   "name": "quaquaval",
+   "id": 914,
+   "sprite": "914"
+  },
+  "qwilfish": {
+   "name": "qwilfish",
+   "id": 211,
+   "sprite": "211"
+  },
+  "raichu": {
+   "name": "raichu",
+   "id": 26,
+   "sprite": "26"
+  },
+  "raichualola": {
+   "name": "raichu-alola",
+   "id": 10100,
+   "sprite": "10100"
+  },
+  "raichumegax": {
+   "name": "raichu-mega-x",
+   "id": 10304,
+   "sprite": "10304"
+  },
+  "raichumegay": {
+   "name": "raichu-mega-y",
+   "id": 10305,
+   "sprite": "10305"
+  },
+  "rampardos": {
+   "name": "rampardos",
+   "id": 409,
+   "sprite": "409"
+  },
+  "reuniclus": {
+   "name": "reuniclus",
+   "id": 579,
+   "sprite": "579"
+  },
+  "rhyperior": {
+   "name": "rhyperior",
+   "id": 464,
+   "sprite": "464"
+  },
+  "roserade": {
+   "name": "roserade",
+   "id": 407,
+   "sprite": "407"
+  },
+  "rotom": {
+   "name": "rotom",
+   "id": 479,
+   "sprite": "479"
+  },
+  "rotomfrost": {
+   "name": "rotom-frost",
+   "id": 10010,
+   "sprite": "10010"
+  },
+  "rotomheat": {
+   "name": "rotom-heat",
+   "id": 10008,
+   "sprite": "10008"
+  },
+  "rotommow": {
+   "name": "rotom-mow",
+   "id": 10012,
+   "sprite": "10012"
+  },
+  "rotomwash": {
+   "name": "rotom-wash",
+   "id": 10009,
+   "sprite": "10009"
+  },
+  "runerigus": {
+   "name": "runerigus",
+   "id": 867,
+   "sprite": "867"
+  },
+  "sableye": {
+   "name": "sableye",
+   "id": 302,
+   "sprite": "302"
+  },
+  "salazzle": {
+   "name": "salazzle",
+   "id": 758,
+   "sprite": "758"
+  },
+  "samurott": {
+   "name": "samurott",
+   "id": 503,
+   "sprite": "503"
+  },
+  "samurotthisui": {
+   "name": "samurott-hisui",
+   "id": 10236,
+   "sprite": "10236"
+  },
+  "sandaconda": {
+   "name": "sandaconda",
+   "id": 844,
+   "sprite": "844"
+  },
+  "sceptile": {
+   "name": "sceptile",
+   "id": 254,
+   "sprite": "254"
+  },
+  "sceptilemega": {
+   "name": "sceptile-mega",
+   "id": 10065,
+   "sprite": "10065"
+  },
+  "scizor": {
+   "name": "scizor",
+   "id": 212,
+   "sprite": "212"
+  },
+  "scizormega": {
+   "name": "scizor-mega",
+   "id": 10046,
+   "sprite": "10046"
+  },
+  "scolipede": {
+   "name": "scolipede",
+   "id": 545,
+   "sprite": "545"
+  },
+  "scovillain": {
+   "name": "scovillain",
+   "id": 952,
+   "sprite": "952"
+  },
+  "scovillainmega": {
+   "name": "scovillain-mega",
+   "id": 10320,
+   "sprite": "10320"
+  },
+  "scrafty": {
+   "name": "scrafty",
+   "id": 560,
+   "sprite": "560"
+  },
+  "serperior": {
+   "name": "serperior",
+   "id": 497,
+   "sprite": "497"
+  },
+  "sharpedo": {
+   "name": "sharpedo",
+   "id": 319,
+   "sprite": "319"
+  },
+  "sharpedomega": {
+   "name": "sharpedo-mega",
+   "id": 10070,
+   "sprite": "10070"
+  },
+  "simipour": {
+   "name": "simipour",
+   "id": 516,
+   "sprite": "516"
+  },
+  "simisage": {
+   "name": "simisage",
+   "id": 512,
+   "sprite": "512"
+  },
+  "simisear": {
+   "name": "simisear",
+   "id": 514,
+   "sprite": "514"
+  },
+  "sinistcha": {
+   "name": "sinistcha",
+   "id": 1013,
+   "sprite": "1013"
+  },
+  "sinistchamasterpiece": {
+   "name": "sinistcha-masterpiece",
+   "id": 1013,
+   "form": true,
+   "sprite": "1013-masterpiece"
+  },
+  "skarmory": {
+   "name": "skarmory",
+   "id": 227,
+   "sprite": "227"
+  },
+  "skeledirge": {
+   "name": "skeledirge",
+   "id": 911,
+   "sprite": "911"
+  },
+  "slowbro": {
+   "name": "slowbro",
+   "id": 80,
+   "sprite": "80"
+  },
+  "slowbrogalar": {
+   "name": "slowbro-galar",
+   "id": 10165,
+   "sprite": "10165"
+  },
+  "slowbromega": {
+   "name": "slowbro-mega",
+   "id": 10071,
+   "sprite": "10071"
+  },
+  "slowking": {
+   "name": "slowking",
+   "id": 199,
+   "sprite": "199"
+  },
+  "slowkinggalar": {
+   "name": "slowking-galar",
+   "id": 10172,
+   "sprite": "10172"
+  },
+  "slurpuff": {
+   "name": "slurpuff",
+   "id": 685,
+   "sprite": "685"
+  },
+  "sneasler": {
+   "name": "sneasler",
+   "id": 903,
+   "sprite": "903"
+  },
+  "snorlax": {
+   "name": "snorlax",
+   "id": 143,
+   "sprite": "143"
+  },
+  "spiritomb": {
+   "name": "spiritomb",
+   "id": 442,
+   "sprite": "442"
+  },
+  "staraptor": {
+   "name": "staraptor",
+   "id": 398,
+   "sprite": "398"
+  },
+  "staraptormega": {
+   "name": "staraptor-mega",
+   "id": 10308,
+   "sprite": "10308"
+  },
+  "starmie": {
+   "name": "starmie",
+   "id": 121,
+   "sprite": "121"
+  },
+  "starmiemega": {
+   "name": "starmie-mega",
+   "id": 10280,
+   "sprite": "10280"
+  },
+  "steelix": {
+   "name": "steelix",
+   "id": 208,
+   "sprite": "208"
+  },
+  "steelixmega": {
+   "name": "steelix-mega",
+   "id": 10072,
+   "sprite": "10072"
+  },
+  "stunfiskgalar": {
+   "name": "stunfisk-galar",
+   "id": 10180,
+   "sprite": "10180"
+  },
+  "swampert": {
+   "name": "swampert",
+   "id": 260,
+   "sprite": "260"
+  },
+  "swampertmega": {
+   "name": "swampert-mega",
+   "id": 10064,
+   "sprite": "10064"
+  },
+  "sylveon": {
+   "name": "sylveon",
+   "id": 700,
+   "sprite": "700"
+  },
+  "talonflame": {
+   "name": "talonflame",
+   "id": 663,
+   "sprite": "663"
+  },
+  "tauros": {
+   "name": "tauros",
+   "id": 128,
+   "sprite": "128"
+  },
+  "taurospaldeaaqua": {
+   "name": "tauros-paldea-aqua-breed",
+   "id": 10252,
+   "sprite": "10252"
+  },
+  "taurospaldeacombat": {
+   "name": "tauros-paldea-combat-breed",
+   "id": 10250,
+   "sprite": "10250"
+  },
+  "tinkaton": {
+   "name": "tinkaton",
+   "id": 959,
+   "sprite": "959"
+  },
+  "torkoal": {
+   "name": "torkoal",
+   "id": 324,
+   "sprite": "324"
+  },
+  "torterra": {
+   "name": "torterra",
+   "id": 389,
+   "sprite": "389"
+  },
+  "toucannon": {
+   "name": "toucannon",
+   "id": 733,
+   "sprite": "733"
+  },
+  "toxapex": {
+   "name": "toxapex",
+   "id": 748,
+   "sprite": "748"
+  },
+  "toxicroak": {
+   "name": "toxicroak",
+   "id": 454,
+   "sprite": "454"
+  },
+  "trevenant": {
+   "name": "trevenant",
+   "id": 709,
+   "sprite": "709"
+  },
+  "tsareena": {
+   "name": "tsareena",
+   "id": 763,
+   "sprite": "763"
+  },
+  "typhlosionhisui": {
+   "name": "typhlosion-hisui",
+   "id": 10233,
+   "sprite": "10233"
+  },
+  "tyranitar": {
+   "name": "tyranitar",
+   "id": 248,
+   "sprite": "248"
+  },
+  "tyranitarmega": {
+   "name": "tyranitar-mega",
+   "id": 10049,
+   "sprite": "10049"
+  },
+  "tyrantrum": {
+   "name": "tyrantrum",
+   "id": 697,
+   "sprite": "697"
+  },
+  "umbreon": {
+   "name": "umbreon",
+   "id": 197,
+   "sprite": "197"
+  },
+  "vanilluxe": {
+   "name": "vanilluxe",
+   "id": 584,
+   "sprite": "584"
+  },
+  "vaporeon": {
+   "name": "vaporeon",
+   "id": 134,
+   "sprite": "134"
+  },
+  "venusaur": {
+   "name": "venusaur",
+   "id": 3,
+   "sprite": "3"
+  },
+  "victreebel": {
+   "name": "victreebel",
+   "id": 71,
+   "sprite": "71"
+  },
+  "vileplume": {
+   "name": "vileplume",
+   "id": 45,
+   "sprite": "45"
+  },
+  "vivillon": {
+   "name": "vivillon",
+   "id": 666,
+   "sprite": "666"
+  },
+  "vivilloncontinental": {
+   "name": "vivillon-continental",
+   "id": 666,
+   "form": true,
+   "sprite": "666-continental"
+  },
+  "vivillonelegant": {
+   "name": "vivillon-elegant",
+   "id": 666,
+   "form": true,
+   "sprite": "666-elegant"
+  },
+  "vivillonfancy": {
+   "name": "vivillon-fancy",
+   "id": 666,
+   "form": true,
+   "sprite": "666-fancy"
+  },
+  "vivillonhighplains": {
+   "name": "vivillon-high-plains",
+   "id": 666,
+   "form": true,
+   "sprite": "666-high-plains"
+  },
+  "vivillonjungle": {
+   "name": "vivillon-jungle",
+   "id": 666,
+   "form": true,
+   "sprite": "666-jungle"
+  },
+  "vivillonmodern": {
+   "name": "vivillon-modern",
+   "id": 666,
+   "form": true,
+   "sprite": "666-modern"
+  },
+  "vivillonmonsoon": {
+   "name": "vivillon-monsoon",
+   "id": 666,
+   "form": true,
+   "sprite": "666-monsoon"
+  },
+  "vivillonpolar": {
+   "name": "vivillon-polar",
+   "id": 666,
+   "form": true,
+   "sprite": "666-polar"
+  },
+  "vivillonriver": {
+   "name": "vivillon-river",
+   "id": 666,
+   "form": true,
+   "sprite": "666-river"
+  },
+  "vivillonsandstorm": {
+   "name": "vivillon-sandstorm",
+   "id": 666,
+   "form": true,
+   "sprite": "666-sandstorm"
+  },
+  "vivillonsavanna": {
+   "name": "vivillon-savanna",
+   "id": 666,
+   "form": true,
+   "sprite": "666-savanna"
+  },
+  "volcarona": {
+   "name": "volcarona",
+   "id": 637,
+   "sprite": "637"
+  },
+  "watchog": {
+   "name": "watchog",
+   "id": 505,
+   "sprite": "505"
+  },
+  "weavile": {
+   "name": "weavile",
+   "id": 461,
+   "sprite": "461"
+  },
+  "whimsicott": {
+   "name": "whimsicott",
+   "id": 547,
+   "sprite": "547"
+  },
+  "wyrdeer": {
+   "name": "wyrdeer",
+   "id": 899,
+   "sprite": "899"
+  },
+  "zoroarkhisui": {
+   "name": "zoroark-hisui",
+   "id": 10239,
+   "sprite": "10239"
+  }
+ },
+ "unresolved": {}
+}

@@ -27,3 +27,5 @@ ignore-variadic-names = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "torch.load".msg = "Use load_checkpoint from src/checkpoints.py, which sets weights_only."
+# ECharts replaced matplotlib on 2026-11-09; every chart script in code/ was ported that day (scripts/test_chart_ports.py guards them).
+"matplotlib".msg = "Charts use ECharts: build the option dict and call write_chart from src/echarts_chart.py (AGENTS.md, Charts)."

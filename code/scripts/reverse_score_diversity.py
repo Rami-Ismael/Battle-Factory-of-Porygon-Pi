@@ -276,30 +276,32 @@ def write_report(path, data):
         interval = f"[{ci[0]:+.1f}, {ci[1]:+.1f}]" if ci else "not computed"
         lines.append(f"| {arm} | {row['mean']:+.1f} | {', '.join(f'{v:+d}' for v in row['differences'])} | {interval} |")
     lines += ["", "Three-seed t intervals are exploratory and require a normal-effects assumption; a Bonferroni correction covers the two primary comparisons. Other metrics are descriptive. The measured effect applies to this checkpoint, this frozen surrogate, the chosen guidance magnitude, and these generation seeds. Surrogate scores in the JSON are predictions, not measured battle win rates.", "",
-              f"![Diversity and legality comparison]({path.with_suffix('.png')})", "",
+              f"[Diversity and legality comparison]({path.with_suffix('.html')})", "",
               f"[Raw proposals and validation outcomes]({path}) · [Analysis JSON]({path.with_suffix('.analysis.json')}) · [Protocol]({ROOT / 'docs/reverse-score-diversity.md'})"]
     path.with_suffix(".md").write_text("\n".join(lines) + "\n")
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(2, 2, figsize=(10, 7), constrained_layout=True)
+    sys.path.insert(0, str(ROOT / "src"))
+    from echarts_chart import write_chart
     colors = ("#21618c", "#777777", "#b94735")
-    for ax, (metric, title) in zip(axes.flat, [(PRIMARY, "Distinct legal species combinations"),
-            ("effective_species_sets", "Effective legal species combinations"),
-            ("novel_distinct_species_sets", "Novel distinct legal combinations"),
-            ("legality_rate", "Legal generation attempts (%)")]):
+    names = ["Normal", "No guidance", "Reversed"]
+    panels = [(PRIMARY, "Distinct legal species combinations"), ("effective_species_sets", "Effective legal species combinations"),
+              ("novel_distinct_species_sets", "Novel distinct legal combinations"), ("legality_rate", "Legal generation attempts (%)")]
+    grids = [{"left": f"{left}%", "width": "40%", "top": top, "height": "30%"} for top in ("16%", "62%") for left in (7, 57)]
+    titles, xs, ys, series = [], [], [], []
+    for g, (metric, title) in enumerate(panels):
+        on = {"xAxisIndex": g, "yAxisIndex": g}
+        titles.append({"text": title, "left": grids[g]["left"], "top": f"{float(grids[g]['top'][:-1]) - 5}%", "textStyle": {"fontSize": 13}})
+        xs.append({"type": "value", "gridIndex": g, "min": -0.5, "max": 2.5, "splitLine": {"show": False},
+                   "axisLabel": {"customValues": [0, 1, 2], "formatter": "js:v => " + json.dumps(names) + "[Math.round(v)]"},
+                   "axisTick": {"customValues": [0, 1, 2]}})
+        ys.append({"type": "value", "gridIndex": g, "min": 0, "axisLine": {"onZero": False}})
         for i, (arm, color) in enumerate(zip(ARMS, colors)):
             values = [(100 * data['runs'][f'seed{s}/{arm}'][metric] if metric == 'legality_rate' else data['runs'][f'seed{s}/{arm}']['legal'][metric]) for s in m['seeds']]
-            ax.scatter([i] * len(values), values, color=color)
-            ax.plot([i-.2, i+.2], [statistics.mean(values)] * 2, color=color, linewidth=2)
-        ax.set_xticks(range(3), ["Normal", "No guidance", "Reversed"])
-        ax.set_title(title)
-        ax.set_ylim(bottom=0)
-        ax.spines[["top", "right"]].set_visible(False)
-        ax.grid(axis="y", alpha=.15)
-    fig.suptitle(f"Score direction and generated diversity\n{m['attempts']} fixed attempts per cell; dots are seeds, bars are means")
-    fig.savefig(path.with_suffix(".png"), dpi=160)
-    plt.close(fig)
+            series.append({"type": "scatter", "name": names[i], "color": color, "symbolSize": 10, "data": [[i, v] for v in values], **on})
+            series.append({"type": "line", "name": names[i], "color": color, "symbol": "none", "silent": True, "lineStyle": {"width": 2.5},
+                           "data": [[i - .2, statistics.mean(values)], [i + .2, statistics.mean(values)]], **on})
+    write_chart({"title": titles, "grid": grids, "xAxis": xs, "yAxis": ys, "series": series, "tooltip": {"trigger": "item"}},
+                path.with_suffix(".html"),
+                f"Score direction and generated diversity\n{m['attempts']} fixed attempts per cell; dots are seeds, bars are means", height=640)
 
 
 def main():
