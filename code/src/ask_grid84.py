@@ -67,6 +67,10 @@ for _arm, _r in (("subset_10_39", "10 to 39 opponents per label"), ("subset_1_39
 MODELS["ft_hindsight_relabel"] = dict(checkpoint="stat84_labelled_noise_byepoch_ep21_ft_hindsight_relabel_es3_cap40",   # issue #106, src/hindsight_relabel.py
                                       reader="Hindsight-relabeled fine-tune, epoch 21", epochs=dict(labelled_teams=21, relabelled_fine_tune="early stopping"),
                                       stopped="epoch 21 fine-tuned on its own battled teams, labelled with measured win rate; best pass by validation loss", labelled=True)
+for _arm, _reader in (("pos_per_field_s0", "No split, first seed"), ("pos_per_field_s1", "No split, second seed"),   # docs/position-embedding-split.md
+                      ("pos_slot_learned", "Learned slot vectors"), ("pos_slot_fixed", "Fixed slot vectors"), ("pos_no_slot", "No slot vectors")):
+    MODELS[_arm] = dict(checkpoint=f"stat84_{_arm}_noise_ep21", reader=f"{_reader}, label noise ±1/48, shuffled-only table, 21 epochs",
+                        epochs=dict(all_teams=21), stopped="planned stop at epoch 21, patience off", table="lossdata84_shuffled_only.npz")
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 if MODEL not in MODELS and flagged_checkpoint(MODEL):
     MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])
@@ -372,12 +376,12 @@ def controls():
 
 
 def preflight():
-    w = load_model(); V = w.V; out = load_out(); pf = {}
+    w = load_model(); V = w.V; out = load_out(); pf = dict(out.get("preflight", {}))   # keeps a training_smoke probe run before training
     if MODELS[MODEL].get("table65"):                        # trained on the shuffled-slot table (src/train65.py)
         import train65
         d, tr_rows, _, _ = train65.load(); tr = d["X"][tr_rows].astype(np.int64)
     else:
-        d = np.load(DATA); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
+        d = np.load(X.RES / MODELS[MODEL].get("table", DATA.name)); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
         tr = d["all_X"][tr_rows].astype(np.int64)
     torch.manual_seed(SEED0 + 1)
     rows = w.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()
@@ -389,7 +393,7 @@ def preflight():
     pf["read_teams"] = dict(pastes=[w.to_paste(r, repair=True)[0] for r in rows[:20]],
                             **{f"{f}_generated": shares(f, gen_slots) for f in ("species", "item", "ability", "moves")},
                             **{f"{f}_training": shares(f, real_slots) for f in ("species", "item", "ability", "moves")})
-    pf["training_smoke"] = dict(skipped="the checkpoint is already trained; the loss curve is in the training log and the tracer covers the pipeline")
+    pf.setdefault("training_smoke", dict(skipped="the checkpoint is already trained; the loss curve is in the training log and the tracer covers the pipeline"))
     pf["controls"] = controls()
     pf["invariance"] = dict(skipped="no new scorer; every battle shuffles slots and require_shuffled refuses any other order")
     pf["repeat"] = dict(skipped="scorer unchanged since the line-up repeats run; the seed reaches the schedule through score_pastes as there")
