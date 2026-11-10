@@ -3,7 +3,7 @@
     python3 build_whole_pokemon_prototype.py
 
 Inlines whole-pokemon-trace.json and the sprites the figure needs: species from
-../diversity-methods/sprites.json and items from ../item-sprites/ (Showdown sprites).
+../diversity-methods/sprites.json (PokeAPI sprites) and items from ../item-sprites/ (Showdown item icons).
 """
 import base64
 import json

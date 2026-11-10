@@ -1,7 +1,7 @@
 """Rebuild the checked-in snapshot from template.html and data.json.
 
 Sprites are kept from the checked-in page. Opponent species that the page
-lacks are added from the vault's Showdown sprite folder so the threat
+lacks are added from the vault's PokeAPI sprite folder so the threat
 constellation can draw every meta team.
 """
 import base64

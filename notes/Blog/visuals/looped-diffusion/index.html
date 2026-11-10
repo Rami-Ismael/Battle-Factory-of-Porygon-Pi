@@ -352,13 +352,15 @@ svg .ink { fill: var(--ink); }
   <div><span class="kind">Further</span><a href="https://www.alphaxiv.org/abs/2610.36940">TDLM: Adaptive Temporal Integration for Diffusion Language Models</a> keeps unresolved tokens' representations across steps (approach 4). <a href="https://www.alphaxiv.org/abs/2609.40305">Looped Diffusion Transformer</a> loops an image diffusion model. <a href="https://www.alphaxiv.org/abs/2610.06833">Towards Looped Models Done Right, Part II</a> studies fixed points in looped language models. Not read in full for this page.</div>
 </div>
 
-<p class="foot">Every number on this page comes from the paper named beside it; Figure 1's per-token difficulties are invented to show the mechanism. Sprites from Pokémon Showdown.</p>
+<p class="foot">Every number on this page comes from the paper named beside it; Figure 1's per-token difficulties are invented to show the mechanism. Sprites from PokeAPI's sprites repository.</p>
 </main>
 
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const SPRITE = n => `https://play.pokemonshowdown.com/sprites/home-centered/${n}.png`;
+  // PokeAPI HOME renders are keyed by number: slug -> sprite stem, from notes/Blog/visuals/search-loop/sprites/pokeapi_ids.json
+  const SPRITE_ID = { 'sinistcha': '1013', 'milotic': '350', 'incineroar': '727', 'raichu': '26', 'mimikyu': '778', 'ninetales-alola': '10104' };
+  const SPRITE = n => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${SPRITE_ID[n]}.png`;
 
   // MB607, from vgc-bench teams/reg_mb/MB607.txt
   const TEAM = [

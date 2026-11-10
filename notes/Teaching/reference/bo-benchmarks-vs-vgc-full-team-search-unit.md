@@ -129,7 +129,7 @@ Read from source: BoTorch `botorch/test_functions/` at commit a1b1ad8 (2026-09-2
 
 A stepper figure for the blog, `Blog/visuals/benchmark-to-team/`. It opens on one Pest Control point (25 cells in a chain, 5 colours each), the most reused benchmark in the table, and turns it into a real team one difference at a time. It follows the one figure that worked in "One Edit Away": real Pokémon, real mechanics, the reader in control.
 
-- **Shell:** dark theme, Showdown sprites bundled with the page, ← Play → buttons, a slider with ticks for the four chapters (shape, domains, constraints, corpus) and a fraction counter. HTML + JavaScript + canvas, one self-contained file; sizes read from `domain.json` when the page is built.
+- **Shell:** dark theme, PokeAPI sprites bundled with the page, ← Play → buttons, a slider with ticks for the four chapters (shape, domains, constraints, corpus) and a fraction counter. HTML + JavaScript + canvas, one self-contained file; sizes read from `domain.json` when the page is built.
 - **Timing:** layout moves 240 ms, `cubic-bezier(0.77, 0, 0.175, 1)`, transform only; entering elements 200 ms ease-out, 30 ms stagger; dragging the slider or clicking cancels motion in progress; with reduced motion on, elements snap and only crossfades remain.
 
 | # | What changes on screen | Motion |
