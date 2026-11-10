@@ -40,8 +40,10 @@ import team84 as T
 import top50 as T50
 from corpus import parse_team_text
 from hps_generate import Validator
-from team_diversity import slots_from_paste
+sys.path.insert(0, str(HERE))                            # the imports above put /tmp/vgc-pilot/src first again, and its
+from team_diversity import slots_from_paste              # team_diversity drops an item-less Pokémon's slot
 from team_diversity import summary as diversity_summary
+sys.path.pop(0)
 
 MODELS = {
     "gen84_all_ep21": dict(checkpoint="stat84_all_teams_ep21", reader="Generated, all teams, 21 epochs", epochs=dict(all_teams=21),
