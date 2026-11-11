@@ -1,0 +1,3061 @@
+[
+ {
+  "title": "Essentials of Metaheuristics",
+  "url": "https://people.cs.gmu.edu/~sean/book/metaheuristics/Essentials.pdf",
+  "section": "Textbooks and foundations",
+  "details": "#188 · Sean Luke. Second print edition, 2013; online version 2.4 dated January 2026. · Free author copy. · First sitting: sections 0.1 and 2.1. Then chapter 3, section 3.2.1, and section 3.3.4 for memetic algorithms / local search. · [[Essentials of Metaheuristics - reading guide]]",
+  "id": "u4bec733a68"
+ },
+ {
+  "title": "Introduction to Evolutionary Computing",
+  "url": "https://link.springer.com/book/10.1007/978-3-662-44874-8",
+  "section": "Textbooks and foundations",
+  "details": "#221 · A. E. Eiben and J. E. Smith. Second edition, 2015. · Purchase or institutional library access. · After Luke: chapter 3, then chapters 4 and 5. Keep chapters 10, 13, and 11 for local search, legality, and noisy evaluation when needed. · [[Introduction to Evolutionary Computing - reading guide]]",
+  "id": "uf5002677ff"
+ },
+ {
+  "title": "Deep Learning, chapter 5: Machine Learning Basics",
+  "url": "https://www.deeplearningbook.org/contents/ml.html",
+  "section": "Textbooks and foundations",
+  "details": "#379 · Ian Goodfellow, Yoshua Bengio and Aaron Courville. 2016. · Free online.",
+  "id": "u8f4c98f52a"
+ },
+ {
+  "title": "Harvard CS197: AI Research Experiences",
+  "url": "https://www.cs197.seas.harvard.edu/",
+  "section": "Textbooks and foundations",
+  "details": "#296 · Pranav Rajpurkar. Fall 2022 lecture notes. · Free online. · Lecture 19, then lectures 10 and 11, then lecture 21.",
+  "id": "ua8e918d824"
+ },
+ {
+  "title": "An Adversarial Approach for Automated Pokémon Team Building and Metagame Balance",
+  "url": "https://doi.org/10.1109/tg.2023.3273157",
+  "section": "Team construction and metagame analysis",
+  "details": "2023 · 8 · #4",
+  "id": "u3fa11dfa47"
+ },
+ {
+  "title": "Pokémon GO Team Optimization",
+  "url": "https://journals-sol.sbc.org.br/index.php/jis/article/view/6773",
+  "section": "Team construction and metagame analysis",
+  "details": "2026 · 0 · #10",
+  "id": "ufa9ebb4a32"
+ },
+ {
+  "title": "A Framework for Predicting the Impact of Game Balance Changes Through Meta Discovery",
+  "url": "https://arxiv.org/abs/2409.07340",
+  "section": "Team construction and metagame analysis",
+  "details": "2024 · 0 · #71",
+  "id": "u7673ac2876"
+ },
+ {
+  "title": "From Rules to Nash Equilibria",
+  "url": "https://arxiv.org/abs/2607.08692",
+  "section": "Team construction and metagame analysis",
+  "details": "2026 · 0 · #82",
+  "id": "uaa37d49a8a"
+ },
+ {
+  "title": "Human-Level Competitive Pokémon via Scalable Offline Reinforcement Learning with Transformers",
+  "url": "wikilink:Human-Level Competitive Pokémon via Scalable Offline Reinforcement Learning with Transformers",
+  "section": "Battle agents",
+  "details": "2025 · 6",
+  "id": "u2e22216e9c"
+ },
+ {
+  "title": "PokéChamp: An Expert-level Minimax Language Agent",
+  "url": "https://arxiv.org/abs/2503.04094",
+  "section": "Battle agents",
+  "details": "2025 · 17 · #68",
+  "id": "ucd7f542f52"
+ },
+ {
+  "title": "PokéLLMon: A Human-Parity Agent for Pokémon Battles with Large Language Models",
+  "url": "https://arxiv.org/abs/2402.01118",
+  "section": "Battle agents",
+  "details": "2024 · 26 · #78",
+  "id": "u409247045b"
+ },
+ {
+  "title": "VGC-Bench Towards Mastering Diverse Team Strategies in Competitive Pokémon",
+  "url": "wikilink:VGC-Bench Towards Mastering Diverse Team Strategies in Competitive Pokémon",
+  "section": "Benchmarks and competitions",
+  "details": "2025 · 3",
+  "id": "ub223ac7048"
+ },
+ {
+  "title": "The PokeAgent Challenge: Competitive and Long-Context Learning at Scale",
+  "url": "https://www.semanticscholar.org/paper/80c6fcde8b5e8190a2e970db128eaf095887a46b",
+  "section": "Benchmarks and competitions",
+  "details": "2026 · 13 · #72",
+  "id": "ud5a7b970a1"
+ },
+ {
+  "title": "Deep Surrogate Assisted MAP-Elites for Automated Hearthstone Deckbuilding",
+  "url": "https://www.semanticscholar.org/paper/e46811df6731df51fb5c209dea7b835d0cd734da",
+  "section": "Quality diversity and deck-space exploration",
+  "details": "2021 · 43 · #1 · direction paper — the loop itself: generate decks → battle vs fixed opponents → refit → repeat · [[Reading List — notes and decision history\\ · Reading notes]]",
+  "id": "u8179799408"
+ },
+ {
+  "title": "Mapping Hearthstone Deck Spaces through MAP-Elites with Sliding Boundaries",
+  "url": "https://arxiv.org/abs/1904.10656",
+  "section": "Quality diversity and deck-space exploration",
+  "details": "2019 · 84 · #3 · 🟢 GECCO 2019 · [Alternate source](https://www.semanticscholar.org/paper/9eb4d5e751b83a2afb240b93c0c2b1ea025ac14f) · [[Reading List — notes and decision history\\ · Reading notes]]",
+  "id": "u45d8fe7389"
+ },
+ {
+  "title": "CabbageCat's Blogs — MAP-Elites, CMA-ME, Differentiable QD step-by-step",
+  "url": "https://szhaovas.github.io/2022-09-15-me/",
+  "section": "Quality diversity and deck-space exploration",
+  "details": "2022 · #26 · 🟢 grad-researcher QD tutorial series (MAP-Elites → CMA-ME → Differentiable QD); read before/with the MAP-Elites Hearthstone papers",
+  "id": "uc7f5b845a7"
+ },
+ {
+  "title": "Exploring the Hearthstone Deck Space",
+  "url": "https://dl.acm.org/doi/10.1145/3235765.3235791",
+  "section": "Quality diversity and deck-space exploration",
+  "details": "2018 · 30 · #13 · 🟢 [open copy: Internet Archive capture of the ACM PDF](https://web.archive.org/web/20200602172549/https://dl.acm.org/doi/pdf/10.1145/3235765.3235791?download=true)",
+  "id": "u6f44f5cd80"
+ },
+ {
+  "title": "Automated playtesting in collectible card games using evolutionary algorithms",
+  "url": "https://doi.org/10.1016/j.knosys.2018.04.030",
+  "section": "Evolutionary deck building and playtesting",
+  "details": "2018 · 46 · #34",
+  "id": "uc6b33a92a9"
+ },
+ {
+  "title": "Evolving the Hearthstone Meta",
+  "url": "https://arxiv.org/abs/1907.01623",
+  "section": "Evolutionary deck building and playtesting",
+  "details": "2019 · 35 · #86",
+  "id": "uf1cc7e3c24"
+ },
+ {
+  "title": "Evolutionary Arena Deckbuilding with Active Genes",
+  "url": "https://arxiv.org/abs/2001.01326",
+  "section": "Evolutionary deck building and playtesting",
+  "details": "2020 · 16 · #45",
+  "id": "u98813a469b"
+ },
+ {
+  "title": "Q-DeckRec: A Fast Deck Recommendation System for Collectible Card Games",
+  "url": "https://www.semanticscholar.org/paper/ca1e69d0d5a74a05ee390ea6aa0129965a83950b",
+  "section": "Drafting and deck recommendation",
+  "details": "2018 · 42 · #9",
+  "id": "u816e7b63cc"
+ },
+ {
+  "title": "Drafting in Collectible Card Games via Reinforcement Learning",
+  "url": "https://www.sbgames.org/proceedings2020/ComputacaoFull/209690.pdf",
+  "section": "Drafting and deck recommendation",
+  "details": "2020 · 9 · #105",
+  "id": "ub881d0059c"
+ },
+ {
+  "title": "Cardiverse: Harnessing LLMs for Novel Card Game Prototyping",
+  "url": "https://www.semanticscholar.org/paper/6590ba146e330de09ce7798164cc1ddeecfc0b17",
+  "section": "Game prototyping and competition reports",
+  "details": "2025 · 8 · #144",
+  "id": "u9932a37cdb"
+ },
+ {
+  "title": "Summarizing Strategy Card Game AI Competition",
+  "url": "https://www.semanticscholar.org/paper/551a4a4d231e24bacbd7a1285e8f44dd553e5b3f",
+  "section": "Game prototyping and competition reports",
+  "details": "2023 · 16 · #193 · · [[Reading List — notes and decision history\\ · Reading notes]]",
+  "id": "ucffc09e4f4"
+ },
+ {
+  "title": "Optimistic Tree Searches for Combinatorial Black-Box Optimization",
+  "url": "https://proceedings.neurips.cc/paper_files/paper/2022/hash/d6099a36f6c1720438de00c366aa1737-Abstract-Conference.html",
+  "section": "Classical search and set functions",
+  "details": "2022 · 3 · #47 · NeurIPS 2022 — first read among the DIFUSCO references for search framing (§§2–3); discrete black-box search, with additional work needed for noisy battle evaluations. · [[DIFUSCO references - relevance to counter-team search\\ · Relevance notes]]",
+  "id": "ub17498864a"
+ },
+ {
+  "title": "Simulating Annealing",
+  "url": "wikilink:Simulating Annealing",
+  "section": "Classical search and set functions",
+  "details": "",
+  "id": "u97f8977a4c"
+ },
+ {
+  "title": "Submodular Function",
+  "url": "wikilink:Submodular Function",
+  "section": "Classical search and set functions",
+  "details": "",
+  "id": "u747b8c8b23"
+ },
+ {
+  "title": "Local Search",
+  "url": "wikilink:Local Search",
+  "section": "Classical search and set functions",
+  "details": "or Direct search",
+  "id": "uaa7f34eea0"
+ },
+ {
+  "title": "A Denoising Diffusion-Based Evolutionary Algorithm Framework: Application to the Maximum Independent Set Problem",
+  "url": "https://www.semanticscholar.org/paper/9b21ee2ac4fde7868f485774eda250973e808694",
+  "section": "Neural combinatorial optimization",
+  "details": "2025 · 2 · #46 · 🟢 arXiv preprint, no venue listed",
+  "id": "ue187be70b1"
+ },
+ {
+  "title": "COExpander: Adaptive Solution Expansion for Combinatorial Optimization",
+  "url": "https://proceedings.mlr.press/v267/ma25r.html",
+  "section": "Neural combinatorial optimization",
+  "details": "2025 · 16 · #69 · ( consider this background information )",
+  "id": "ueb30466c8f"
+ },
+ {
+  "title": "Neural Large Neighborhood Search for the Capacitated Vehicle Routing Problem",
+  "url": "https://arxiv.org/abs/1911.09539",
+  "section": "Neural combinatorial optimization",
+  "details": "2019 · 214 · #233",
+  "id": "u71db9cf77e"
+ },
+ {
+  "title": "DIFUSCO: Graph-based Diffusion Solvers for Combinatorial Optimization",
+  "url": "https://www.semanticscholar.org/paper/5f90d43e6ece5c6ee6e8186e4b57d46c85377713",
+  "section": "Neural combinatorial optimization",
+  "details": "2023 · 363 · #157",
+  "id": "ub4d572dae6"
+ },
+ {
+  "title": "A Diffusion Model Framework for Unsupervised Neural Combinatorial Optimization",
+  "url": "https://www.semanticscholar.org/paper/4a5ba3075d61f6258059dc311f761eb85848b22d",
+  "section": "Neural combinatorial optimization",
+  "details": "2024 · 80 · #126",
+  "id": "udc7c0f56bb"
+ },
+ {
+  "title": "Tackling Prevalent Conditions in Unsupervised Combinatorial Optimization",
+  "url": "https://www.semanticscholar.org/paper/f7daa82747a13314c42a1df0c8eb2d4958ac27d6",
+  "section": "Neural combinatorial optimization",
+  "details": "2024 · 13 · #251",
+  "id": "uae21e5ffa2"
+ },
+ {
+  "title": "From Distribution Learning in Training to Gradient Search in Testing for Combinatorial Optimization",
+  "url": "https://www.semanticscholar.org/paper/b933fb2ab8cc4704953a6e97576a921eee56dd76",
+  "section": "Neural combinatorial optimization",
+  "details": "2023 · 146 · #28 · 🟢 NeurIPS 2023",
+  "id": "uf1acb86253"
+ },
+ {
+  "title": "Design by adaptive sampling",
+  "url": "https://arxiv.org/abs/1810.03714",
+  "section": "Adaptive search distributions and the cross-entropy method (Reading this now)",
+  "details": "2018 · 79 · #14 · It think adaptive sampling can be used for something else, also take about the reiventing the cross entropy method, this should be higher than on the list compare to active search method",
+  "id": "u969d5cb038"
+ },
+ {
+  "title": "Addressing Combinatorial Optimization with Estimation of Distribution Algorithms Based on Diffusion Models",
+  "url": "https://doi.org/10.1145/3795095.3805121",
+  "section": "Adaptive search distributions and the cross-entropy method (Reading this now)",
+  "details": "2026 · 0 · #41 · 🟢 GECCO 2026 · Acceptance, authors and ECOM track verified on 2026-10-20; full text was not retrieved. Method and performance remain unverified in this screening.",
+  "id": "udf3c82aa26"
+ },
+ {
+  "title": "Trust-Region Noise Search for Black-Box Alignment of Diffusion and Flow Models",
+  "url": "wikilink:Trust-Region Noise Search for Black-Box Alignment of Diffusion and Flow Models",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 0 · Paper it reference<br>↳ Scalable Global Optimization via Local Bayesian Optimization<br>I liked the SMC approach that might be a useful direction<br>↳ KF sterring<br>↳ DAS, because it require reward i should not use then instead if I plan to add reward then KF won ahead",
+  "id": "ud210a8b252"
+ },
+ {
+  "title": "Regret Analysis of Guided Diffusion for Black-Box Optimization over Structured Inputs",
+  "url": "Ahttps://arxiv.org/abs/2605.10385",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 1 · I wished it has good diagram it does not any good on<br>I don't know what is an acquistion score is<br>I need to find some youtube vide about regrest anaylsis",
+  "id": "ua067ff9c8e"
+ },
+ {
+  "title": "Diffusion Large Language Model for Black Box Optimization",
+  "url": "wikilink:Diffusion Large Language Model for Black Box Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 2 · 2026, arXiv preprint — combines a prompted diffusion LLM with a Gaussian-process predictor and masked diffusion tree search over partially masked candidates; compares against an autoregressive LLM optimizer and conventional diffusion methods. · I feel like the section in the related work section about llm for bbo will be great for why I choose an llm",
+  "id": "u5e89d9c2aa"
+ },
+ {
+  "title": "Large Language Models as optimizer paper",
+  "url": "wikilink:Large Language Models as optimizer paper",
+  "section": "Generative optimization and learned representations",
+  "details": "2023 · 1,215 · 🟢 ICLR 2024 ( It just propose and just create meta prompt afterward has a lot of citation ) it should be like the baseline",
+  "id": "uaab9d09aff"
+ },
+ {
+  "title": "Language Model Crossover: Variation through Few-Shot Prompting",
+  "url": "https://arxiv.org/abs/2302.12170",
+  "section": "Generative optimization and learned representations",
+  "details": "2023 · 186 · #124 · 🟢 ACM TELO 2024 · Read this next Combinatorial Optimization for All: Using LLMs to Aid Non-Experts in Improving Optimization Algorithms<br>↳ Read this next pyCombinatorial - A library to solve TSP (Travelling Salesman Problem) using Exact Algorithms, Heuristics and Metaheuristics",
+  "id": "u2771ea526f"
+ },
+ {
+  "title": "Steering Generative Models with experimental Data for Protein Fitness Optimization",
+  "url": "wikilink:Steering Generative Models with experimental Data for Protein Fitness Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2025 · 13 · 🟢 NeurIPS 2025 · For through this method of guidance Decoupled Annealing Posterior Sampling (DAPS)",
+  "id": "u618a8554d3"
+ },
+ {
+  "title": "Generative Bayesian Optimization Generative Models as Acquisition Functions",
+  "url": "wikilink:Generative Bayesian Optimization Generative Models as Acquisition Functions",
+  "section": "Generative optimization and learned representations",
+  "details": "2025 · 4 · 🟢 ICLR 2026 · go through this paper",
+  "id": "u01fa1f00f1"
+ },
+ {
+  "title": "From Generation to Discovery: Diffusion Mutation Kernels for Circuit and Physical Design",
+  "url": "https://arxiv.org/abs/2608.27649",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 0 · #2 · 🟢 arXiv preprint, no venue listed",
+  "id": "u2cae1c3662"
+ },
+ {
+  "title": "Active Flow Matching",
+  "url": "wikilink:Active Flow Matching",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 0 · 🟢 arXiv preprint, no venue listed",
+  "id": "u7aafd36298"
+ },
+ {
+  "title": "Posterior Inference with Diffusion Models for High-dimensional Black-box Optimization",
+  "url": "wikilink:Posterior Inference with Diffusion Models for High-dimensional Black-box Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2025 · 14 · 🟢 ICML 2025 Readint this right now · I think the major problem with my method i doing a cross netopy nethod want to do forward prediction but i struggle with diverse set of dataset at allzz",
+  "id": "ud372a55d78"
+ },
+ {
+  "title": "Diffusion Models for Black-Box Optimization",
+  "url": "wikilink:Diffusion Models for Black-Box Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2023 · 112 · 🟢 ICML 2023",
+  "id": "u5972da352b"
+ },
+ {
+  "title": "Bootstrapped Training of Score-Conditioned Generator for Offline Design of Biological Sequences",
+  "url": "https://www.alphaxiv.org/abs/2306.03111",
+  "section": "Generative optimization and learned representations",
+  "details": "2023 · 31 · #33 · 🟢 NeurIPS 2023",
+  "id": "uc006c26a16"
+ },
+ {
+  "title": "Deep Learning-Based Operators for Evolutionary Algorithms",
+  "url": "https://arxiv.org/abs/2407.10477",
+  "section": "Generative optimization and learned representations",
+  "details": "2024 · 4 · #141 · 🟢 GPTP XXI 2024",
+  "id": "ua5f3bfc81e"
+ },
+ {
+  "title": "Evolutionary Discovery of Bivariate Bicycle Codes with LLM-Guided Search",
+  "url": "https://arxiv.org/abs/2606.02418",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 11 · #116 · 🟢 arXiv preprint, no venue listed",
+  "id": "u3b74563cbd"
+ },
+ {
+  "title": "Illuminating Mario Scenes in the Latent Space of a Generative Adversarial Network",
+  "url": "https://www.semanticscholar.org/paper/aa79cd3983e6cfd877a830eb3e55a8ded425fe28",
+  "section": "Generative optimization and learned representations",
+  "details": "2020 · 105 · #109 · 🟢 AAAI 2021",
+  "id": "ubcee6055b0"
+ },
+ {
+  "title": "Diffusion Models are Evolutionary Algorithms",
+  "url": "https://www.semanticscholar.org/paper/cfa4ef02c7ca657506768fb53075caecc1b7161c",
+  "section": "Generative optimization and learned representations",
+  "details": "2024 · 34 · #70 · 🟢 ICLR 2025",
+  "id": "u3969255a3c"
+ },
+ {
+  "title": "Discovering Representations for Black-box Optimization",
+  "url": "https://arxiv.org/abs/2003.04389",
+  "section": "Generative optimization and learned representations",
+  "details": "2020 · 7 · #92 · 🟢 GECCO 2020 · Interesting example that use map elit",
+  "id": "ud17f33ac88"
+ },
+ {
+  "title": "Evolution through Large Models",
+  "url": "https://arxiv.org/abs/2206.08896",
+  "section": "Generative optimization and learned representations",
+  "details": "2022 · 183 · #103 · 🟢 arXiv preprint, no venue listed",
+  "id": "u14a4852746"
+ },
+ {
+  "title": "SMAC3: A Versatile Bayesian Optimization Package for Hyperparameter Optimization",
+  "url": "https://arxiv.org/abs/2109.09831",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2021 · 580 · #77 · JMLR 2022 — practical model-based search baseline to adapt to categorical team choices and noisy battle evaluations; configure repeated evaluations and encode team legality. · [Software documentation](https://automl.github.io/SMAC3/latest/3_getting_started/)",
+  "id": "u9d441669bf"
+ },
+ {
+  "title": "Bayesian Optimization of Combinatorial Structures",
+  "url": "https://proceedings.mlr.press/v80/baptista18a.html",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2018 · 172 · #52 · Ricardo Baptista and Matthias Poloczek, ICML 2018 — owner-selected (2026-09-28): vocabulary and methodology for expensive combinatorial black-box search; study how the model learns interactions between discrete choices from limited evaluations. · [PDF](https://proceedings.mlr.press/v80/baptista18a/baptista18a.pdf)",
+  "id": "u5494b279c9"
+ },
+ {
+  "title": "Think Global and Act Local: Bayesian Optimisation over High-Dimensional Categorical and Mixed Search Spaces",
+  "url": "https://proceedings.mlr.press/v139/wan21b.html",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2021 · 94 · #38 · Xingchen Wan et al., ICML 2021 — owner-selected (2026-09-28): local optimisation and tailored kernels for categorical and mixed search spaces; a reference for representing team-building choices and defining useful search neighborhoods. · [PDF](https://proceedings.mlr.press/v139/wan21b/wan21b.pdf)",
+  "id": "u1c300ca0e6"
+ },
+ {
+  "title": "Using Common Random Numbers for Simulation-based Planning with Rollouts",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper52.pdf",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2026 · 5 · #60",
+  "id": "u852431f2ec"
+ },
+ {
+  "title": "Toward Reliable Uncertainty Quantification in Surrogate-Assisted Evolutionary Algorithms via Temporal Conformal Prediction",
+  "url": "https://doi.org/10.1007/978-3-032-23604-3_24",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2026 · 0 · #118",
+  "id": "u97da5d0b69"
+ },
+ {
+  "title": "Scaling Gaussian Process Optimization by Evaluating a Few Unique Candidates Multiple Times",
+  "url": "https://proceedings.mlr.press/v162/calandriello22a/calandriello22a.pdf",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2022 · 20 · #117 · 🟢 ICML 2022",
+  "id": "u0410bd8656"
+ },
+ {
+  "title": "Bayesian Optimization for Intrinsically Noisy Response Surfaces",
+  "url": "https://arxiv.org/abs/2503.00327",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2025 · 0 · #127 · 🟢 arXiv preprint, no venue listed",
+  "id": "u353d21772e"
+ },
+ {
+  "title": "Efficient Exploration in Binary and Preferential Bayesian Optimization",
+  "url": "https://arxiv.org/abs/2110.09361",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2021 · 9 · #58 · 🟢 arXiv preprint, no venue listed",
+  "id": "u2d81c01299"
+ },
+ {
+  "title": "Scalable Global Optimization via Local Bayesian Optimization",
+  "url": "https://arxiv.org/abs/1910.01739",
+  "section": "Noisy evaluations and Bayesian optimization",
+  "details": "2019 · #114 · 🟢 NeurIPS 2019",
+  "id": "ud1497131ba"
+ },
+ {
+  "title": "Design-Bench: Benchmarks for Data-Driven Offline Model-Based Optimization",
+  "url": "https://www.semanticscholar.org/paper/f23222ad51b9b1f4c1addcf848906db7698ccbff",
+  "section": "Optimization benchmarks and validation",
+  "details": "2022 · 141 · #106 · ICML 2022 — owner-selected focus (2026-09-13): test whether stronger search improves measured battle performance or exploits surrogate errors. Offline benchmark reference; Pokémon experiments would need fresh battle validation. · [Published paper](https://proceedings.mlr.press/v162/trabucco22a.html)",
+  "id": "u1315d5ee77"
+ },
+ {
+  "title": "What's Wrong with Deep Learning in Tree Search for Combinatorial Optimization",
+  "url": "https://arxiv.org/abs/2201.10494",
+  "section": "Optimization benchmarks and validation",
+  "details": "2022 · not checked · #149 · 🟢 ICLR 2022. First selective read from DDEA's references: §§3.1–3.2 test learned versus random guidance while separating reductions and local search. Adapt the ablation to fixed battle budgets; deterministic MIS scores do not address battle noise.",
+  "id": "u559e982548"
+ },
+ {
+  "title": "Machine Learning for Combinatorial Optimization: A Methodological Tour d'Horizon",
+  "url": "https://arxiv.org/abs/1811.06128",
+  "section": "Optimization benchmarks and validation",
+  "details": "2021 · not checked · #196 · 🟢 EJOR 290, 405–421. Selective reading: §§3.2, 4.2, 4.3 and 4.6 distinguish learned-operator fit, actual search performance, held-out generalization and offline cost. DOI 10.1016/j.ejor.2020.07.063.",
+  "id": "u56fc73f99b"
+ },
+ {
+  "title": "Unify ML4TSP: Drawing Methodological Principles for TSP and Beyond from Streamlined Design Space of Learning and Search",
+  "url": "https://proceedings.iclr.cc/paper_files/paper/2025/file/a3dc6e903082902d8e916bb9fccbfcbc-Paper-Conference.pdf",
+  "section": "Optimization benchmarks and validation",
+  "details": "2025 · 14 · #280",
+  "id": "u6df0d1eaf1"
+ },
+ {
+  "title": "What Ails Generative Structure-based Drug Design: Expressivity is Too Little or Too Much?",
+  "url": "https://arxiv.org/abs/2408.06050",
+  "section": "Optimization benchmarks and validation",
+  "details": "2024 · 0 · #271 · 🟢 AISTATS 2025",
+  "id": "u23118dee5e"
+ },
+ {
+  "title": "Exploring validation metrics for offline model-based optimisation with diffusion models",
+  "url": "https://arxiv.org/abs/2211.10747",
+  "section": "Optimization benchmarks and validation",
+  "details": "2022 · 1 · #81 · 🟢 Transactions on Machine Learning Research 2024",
+  "id": "ue79cdd524a"
+ },
+ {
+  "title": "Cross entropy-based memetic algorithms: An application study over the tool switching problem",
+  "url": "https://doi.org/10.1080/18756891.2013.792542",
+  "section": "Constructive and memetic search",
+  "details": "2013 · not checked · #174 · Jhon Edgar Amaya, Carlos Cotta and Antonio J. Fernández-Leiva. International Journal of Computational Intelligence Systems 6(3). [Publisher full text](https://link.springer.com/content/pdf/10.1080/18756891.2013.792542.pdf). · First hybrid read from the 2026-10-20 GECCO follow-up. Section 3 combines cross-entropy probability models with bounded local refinement. Deterministic permutation scheduling differs from noisy battle win rate; charge refinement to the same comparison budget.",
+  "id": "ub8767eb60e"
+ },
+ {
+  "title": "Greedy Randomized Adaptive Search Procedures",
+  "url": "https://doi.org/10.1007/BF01096763",
+  "section": "Constructive and memetic search",
+  "details": "1995 · not checked · #95 · Thomas A. Feo and Mauricio G. C. Resende. Journal of Global Optimization 6. [Author full text](https://mauricio.resende.info/doc/gtut.pdf). · Foundation, sections 1 and 2: incremental randomized construction followed by improvement in a chosen neighborhood. Set-covering and maximum-independent-set examples. A partial-team scoring heuristic still needs validation.",
+  "id": "uea84ee7fe9"
+ },
+ {
+  "title": "Search trajectory networks: A tool for analysing and visualising the behaviour of metaheuristics",
+  "url": "https://doi.org/10.1016/j.asoc.2021.107492",
+  "section": "Landscape analysis",
+  "details": "2021 · not checked · #146 · Gabriela Ochoa, Katherine M. Malan and Christian Blum. Applied Soft Computing 109, 107492. [Accepted manuscript](https://www.storre.stir.ac.uk/bitstream/1893/32613/1/stns_asoc_2021.pdf). [Author code](https://github.com/gabro8a/STNs). · First landscape read. Sections 3 and 5 use actual search traces and a fixed-cardinality p-median case. Reuse candidate identities and transitions where logged; visited trajectories do not map the entire landscape or prove a win-rate improvement.",
+  "id": "u48a3a83118"
+ },
+ {
+  "title": "Local Optima Networks: A New Model of Combinatorial Fitness Landscapes",
+  "url": "https://arxiv.org/abs/1402.2959",
+  "section": "Landscape analysis",
+  "details": "2014 · not checked · #179 · Gabriela Ochoa, Sébastien Verel, Fabio Daolio and Marco Tomassini. Chapter in Recent Advances in the Theory and Application of Fitness Landscapes. [Publisher DOI](https://doi.org/10.1007/978-3-642-41888-4_9). · Foundation for optima, basins and escape transitions, with quadratic-assignment and NK examples. Metadata and abstract verified. VGC needs an explicit legal neighborhood and uncertainty-qualified local-optimum claims; basin sampling can consume many battles.",
+  "id": "u8361929ff0"
+ },
+ {
+  "title": "Exploratory Landscape Analysis for Mixed-Variable Problems",
+  "url": "https://arxiv.org/abs/2402.16467",
+  "section": "Landscape analysis",
+  "details": "2024 · not checked · #162 · Raphael Patrick Prager and Heike Trautmann. IEEE Transactions on Evolutionary Computation, first online 2024, final issue 29(4) in 2025. [Publisher DOI](https://doi.org/10.1109/TEVC.2024.3399560). · Later methodology for mixed continuous, integer and categorical features and algorithm selection on hyperparameter tasks. Species IDs are not meaningful numeric distances. Requires VGC feature, sampling-cost and held-out selector validation.",
+  "id": "u1e531d7b71"
+ },
+ {
+  "title": "Exploring a loss landscape in real time",
+  "url": "https://x.com/vvolhejn/status/2118027589667197425",
+  "section": "Landscape analysis",
+  "details": "#160 · Saved link",
+  "id": "u560bda5611"
+ },
+ {
+  "title": "Alien Optimizers: the Bitter Lesson for Optimization",
+  "url": "https://qlabs.sh/research/alien",
+  "section": "Agentic black-box optimization",
+  "details": "2026 · #212 · 🟢 blog, Q Labs",
+  "id": "u18cfe242c2"
+ },
+ {
+  "title": "A Closer Look at Agentic BBO: Benchmarking LLM Agents for Black-Box Optimization",
+  "url": "https://www.semanticscholar.org/paper/7de0fea89a82a447c4e117988e5f20f5ac297123",
+  "section": "Agentic black-box optimization",
+  "details": "2026 · #138 · 🟢 arXiv preprint · [alphaXiv](https://www.alphaxiv.org/abs/2610.12183)",
+  "id": "uca0ac6f0ca"
+ },
+ {
+  "title": "A blog post on zeroth-order, weight-space programming",
+  "url": "https://x.com/catherineliangq/status/2118129381117939988",
+  "section": "Agentic black-box optimization",
+  "details": "2026 · #202 · X post linking the blog",
+  "id": "u51360d90e5"
+ },
+ {
+  "title": "Diane: Amortized Reasoning Index, a retriever that learns during search",
+  "url": "https://x.com/dianetc_/status/2118738862583271504",
+  "section": "Agentic black-box optimization",
+  "details": "2026 · #215 · X post on a paper",
+  "id": "uae8dcf79b6"
+ },
+ {
+  "title": "Continuous diffusion language models",
+  "url": "https://sander.ai/2026/08/24/continuous-dlms.html",
+  "section": "Discrete diffusion foundations",
+  "details": "2026 · #177 · 🟢 blog, Sander Dieleman",
+  "id": "uf85d407f07"
+ },
+ {
+  "title": "Simplified and Generalized Masked Diffusion for Discrete Data",
+  "url": "https://www.alphaxiv.org/abs/2406.04329",
+  "section": "Discrete diffusion foundations",
+  "details": "2024 · 715 · #169 · 🟢 NeurIPS 2024",
+  "id": "u3031072d3d"
+ },
+ {
+  "title": "Structured Denoising Diffusion Models in Discrete State-Spaces",
+  "url": "https://www.semanticscholar.org/paper/91b32fc0a23f0af53229fceaae9cce43a0406d2e",
+  "section": "Discrete diffusion foundations",
+  "details": "2021 · 2,330 · #194",
+  "id": "u0395d29660"
+ },
+ {
+  "title": "Simple and Effective Masked Diffusion Language Models",
+  "url": "https://www.semanticscholar.org/paper/f8d357d38bbcdd93889fe71762eb57842b2ab063",
+  "section": "Discrete diffusion foundations",
+  "details": "2024 · 993 · #231",
+  "id": "ue02a09ae43"
+ },
+ {
+  "title": "Training for Marathons by Sprinting — Why Exposure Bias is Evil",
+  "url": "https://alexiglad.github.io/blog/2026/exposure_bias/",
+  "section": "Discrete diffusion foundations",
+  "details": "2026 · #166 · 🟢 blog",
+  "id": "u72691969d5"
+ },
+ {
+  "title": "Unlocking lossless speedups in LLMs via discrete diffusion",
+  "url": "https://kempnerinstitute.harvard.edu/research/deeper-learning/unlocking-lossless-speedups-in-llms-via-discrete-diffusion/",
+  "section": "Discrete diffusion foundations",
+  "details": "2026 · #192 · 🟢 blog",
+  "id": "uf6d07c1038"
+ },
+ {
+  "title": "Discrete Diffusion Modeling by Estimating the Ratios of the Data Distribution",
+  "url": "https://www.semanticscholar.org/paper/ce806f8d32f6fb1eaa821248a1bc4fa2cd949fbb",
+  "section": "Discrete diffusion foundations",
+  "details": "2023 · 834 · #241",
+  "id": "ubc16a51877"
+ },
+ {
+  "title": "Argmax Flows and Multinomial Diffusion: Learning Categorical Distributions",
+  "url": "https://www.semanticscholar.org/paper/1913d3edcc00d0aba097a9df190dd16f6fdfbf0c",
+  "section": "Discrete diffusion foundations",
+  "details": "2021 · 799 · #235",
+  "id": "ua9e00d6604"
+ },
+ {
+  "title": "BERT has a Mouth, and It Must Speak: BERT as a Markov Random Field Language Model",
+  "url": "https://www.semanticscholar.org/paper/d79ac7a7bafdc9a782fb8c53285ca11c7f2e3f18",
+  "section": "Discrete diffusion foundations",
+  "details": "2019 · 401 · #273",
+  "id": "ub11d106028"
+ },
+ {
+  "title": "Your Absorbing Discrete Diffusion Secretly Models the Conditional Distributions of Clean Data",
+  "url": "https://www.alphaxiv.org/abs/2406.03736",
+  "section": "Discrete diffusion foundations",
+  "details": "2024 · 423 · #218 · 🟢 ICLR 2025",
+  "id": "u407b097548"
+ },
+ {
+  "title": "Beyond Masked and Unmasked: Discrete Diffusion Models via Partial Masking",
+  "url": "https://www.alphaxiv.org/abs/2505.18495",
+  "section": "Discrete diffusion foundations",
+  "details": "2025 · 21 · #199 · 🟢 NeurIPS 2025",
+  "id": "u25329b5382"
+ },
+ {
+  "title": "Scaling Beyond Masked Diffusion Language Models",
+  "url": "https://www.alphaxiv.org/abs/2602.15014",
+  "section": "Discrete diffusion foundations",
+  "details": "2026 · 29 · #269 · 🟢 ICML 2026",
+  "id": "ufa1b244b51"
+ },
+ {
+  "title": "Bringing Stability to Diffusion: Decomposing and Reducing Variance of Training Masked Diffusion Models",
+  "url": "https://www.alphaxiv.org/abs/2511.18159",
+  "section": "Discrete diffusion foundations",
+  "details": "2025 · 2 · #183 · 🟢 ICLR 2026",
+  "id": "ub765cf1627"
+ },
+ {
+  "title": "Kernel-Gradient Drifting Models",
+  "url": "https://x.com/Maria__Esteban/status/2117972835520094320",
+  "section": "Discrete diffusion foundations",
+  "details": "2026 · #211 · NeurIPS 2026, X post",
+  "id": "ud1d4ac0db8"
+ },
+ {
+  "title": "Masked Diffusion Models are Secretly Learned-Order Autoregressive Models",
+  "url": "https://www.alphaxiv.org/abs/2511.19152",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · 4 · #57 · 🟢 PriGM (EurIPS 2025 workshop)",
+  "id": "u7d30cd3a99"
+ },
+ {
+  "title": "dLLM - Rethinking Generation Beyond Autoregressive Models",
+  "url": "https://iclr-blogposts.github.io/2026/blog/2026/dllm/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #102 · 🟢 ICLR Blogposts 2026",
+  "id": "u2f01246729"
+ },
+ {
+  "title": "Discrete Diffusion: A New Frontier For Language Modeling",
+  "url": "https://kuleshov-group.github.io/blog/blog/2025/diffusion-language-models/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #137 · 🟢 blog, Kuleshov Group",
+  "id": "u1f3800915b"
+ },
+ {
+  "title": "Block Diffusion: Interpolating Between Autoregressive and Diffusion Language Models",
+  "url": "https://m-arriola.com/bd3lms/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #101 · 🟢 author project page, ICLR 2025 oral",
+  "id": "u32ee120d3c"
+ },
+ {
+  "title": "Fast-dLLM: Training-free Acceleration of Diffusion LLM by Enabling KV Cache and Parallel Decoding",
+  "url": "https://nvlabs.github.io/Fast-dLLM/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #159 · 🟢 project page, NVIDIA Labs",
+  "id": "ubed6b2b8a9"
+ },
+ {
+  "title": "How to Build a Diffusion Language Model",
+  "url": "https://kuleshov-group.github.io/blog/blog/2026/how-to-build-a-diffusion-language-model/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #89 · 🟢 blog, Kuleshov Group",
+  "id": "u851da3344e"
+ },
+ {
+  "title": "Fast-dLLM v2: Efficient Block-Diffusion Large Language Model",
+  "url": "https://nvlabs.github.io/Fast-dLLM/v2/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #153 · 🟢 project page, NVIDIA Labs",
+  "id": "ud998a93005"
+ },
+ {
+  "title": "Are Masked Diffusion Language Models Actually Faster?",
+  "url": "https://alechelbling.com/blog/masked-diffusion/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #139 · 🟢 blog, Alec Helbling",
+  "id": "ucb93f9f22c"
+ },
+ {
+  "title": "Encoder-Decoder Diffusion Language Models for Efficient Training and Inference",
+  "url": "https://www.alphaxiv.org/abs/2510.22852",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #130 · 🟢 NeurIPS 2025",
+  "id": "u5f774a4748"
+ },
+ {
+  "title": "A Tale of Two Temperatures: Simple, Efficient, and Diverse Sampling from Diffusion Language Models",
+  "url": "https://arxiv.org/abs/2604.09921",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · 6 · #24 · SPIGM (ICML 2026 workshop) · Compare token temperature with randomness in the order fields are filled.",
+  "id": "ucdbfda906d"
+ },
+ {
+  "title": "Re-evaluating Confidence Remasking in Masked Diffusion Language Models",
+  "url": "https://arxiv.org/abs/2606.12232",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · 1 · #76 · SPIGM (ICML 2026 workshop) · Evaluate whether revisiting generated fields justifies its cost; compare tuned baselines and diversity.",
+  "id": "ufe514a428d"
+ },
+ {
+  "title": "BERT is just a Single Text Diffusion Step",
+  "url": "https://nathan.rs/posts/roberta-diffusion/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #100 · 🟢 blog, nathan.rs",
+  "id": "u0718061cfb"
+ },
+ {
+  "title": "Square Peg, Round Hole: Plugging Non-Sequential Data into Sequential Language Models",
+  "url": "https://iclr-blogposts.github.io/2026/blog/2026/autoregressive-tokenization/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #156 · 🟢 ICLR Blogposts 2026",
+  "id": "u5c463a5e01"
+ },
+ {
+  "title": "Fast-dLLM recipe in the dLLM library",
+  "url": "https://github.com/ZHZisZZ/dllm/blob/main/examples/fastdllm/README.md",
+  "section": "Sampling order, remasking and diversity",
+  "details": "#54 · 🟢 library documentation",
+  "id": "ubd82646375"
+ },
+ {
+  "title": "A Visual Guide to DiffusionGemma",
+  "url": "https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-diffusiongemma",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #98 · 🟢 blog, Maarten Grootendorst",
+  "id": "u8f97d7539b"
+ },
+ {
+  "title": "DiffusionGemma: The Developer Guide",
+  "url": "https://developers.googleblog.com/en/diffusiongemma-the-developer-guide/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #80 · 🟢 blog, Google Developers",
+  "id": "u59b6459052"
+ },
+ {
+  "title": "DiffusionGemma Explained",
+  "url": "https://mlberkeley.substack.com/p/the-annotated-diffusiongemma",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #163 · 🟢 blog, Machine Learning at Berkeley",
+  "id": "u5198450fe1"
+ },
+ {
+  "title": "Free Lunch for Pass@k? Low Cost Diverse Sampling for Diffusion Language Models",
+  "url": "https://www.alphaxiv.org/abs/2603.04893",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #8 · 🟢 arXiv preprint, no venue listed",
+  "id": "ub863a2cf30"
+ },
+ {
+  "title": "D5P4: Partition Determinantal Point Process for Diversity in Parallel Discrete Diffusion Decoding",
+  "url": "https://www.alphaxiv.org/abs/2603.19146",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #11 · 🟢 arXiv preprint, no venue listed",
+  "id": "u291acb02b5"
+ },
+ {
+  "title": "10. LLaDA: Large Language Diffusion Models",
+  "url": "https://mlhonk.substack.com/p/10-llada-large-language-diffusion",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #147 · 🟢 blog, Massimiliano Viola",
+  "id": "uda1a62db66"
+ },
+ {
+  "title": "Diffusion Language Models",
+  "url": "https://jerrickhoang.github.io/machine%20learning/2026/06/20/diffusion-llm/",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2026 · #135 · 🟢 blog, Jerrick Hoang",
+  "id": "ud414fd022c"
+ },
+ {
+  "title": "Particle Guidance: non-I.I.D. Diverse Sampling with Diffusion Models",
+  "url": "https://www.alphaxiv.org/abs/2310.13102",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2023 · #19 · 🟢 ICLR 2024",
+  "id": "u52107b29f1"
+ },
+ {
+  "title": "Efficient Autoregressive Inference for Transformer Probabilistic Models",
+  "url": "https://arxiv.org/abs/2510.09477",
+  "section": "Sampling order, remasking and diversity",
+  "details": "2025 · #259 · 🟢 arXiv preprint",
+  "id": "u7979d5be9a"
+ },
+ {
+  "title": "Semiprime Factorization with Discrete Diffusion and Beam Search: Scaling Laws",
+  "url": "https://www.alphaxiv.org/abs/2611.10202",
+  "section": "Structured generation and application examples",
+  "details": "2026 · #176 · Google DeepMind",
+  "id": "ub95167da93"
+ },
+ {
+  "title": "Grammar-Aligned Decoding",
+  "url": "https://arxiv.org/abs/2405.21047",
+  "section": "Structured generation and application examples",
+  "details": "2024 · #161 · 🟢 NeurIPS 2024",
+  "id": "u779fe231ab"
+ },
+ {
+  "title": "Prompt-to-Slate: Diffusion Models for Prompt-Conditioned Slate Generation",
+  "url": "https://www.semanticscholar.org/paper/da1f9ea84ef798c82a876d37fdf95e4568eafcad",
+  "section": "Structured generation and application examples",
+  "details": "2024 · 9 · #32",
+  "id": "u885d2a3e13"
+ },
+ {
+  "title": "Protein Design with Guided Discrete Diffusion",
+  "url": "wikilink:Protein Design with Guided Discrete Diffusion",
+  "section": "Structured generation and application examples",
+  "details": "2023 · 248 · 🟢 NeurIPS 2023",
+  "id": "u8e65136a8d"
+ },
+ {
+  "title": "SDEdit: Guided Image Synthesis and Editing with Stochastic Differential Equations",
+  "url": "https://www.semanticscholar.org/paper/f671a09e3e5922e6d38cb77dda8d76d5ceac2a27",
+  "section": "Structured generation and application examples",
+  "details": "2021 · 2,489 · #258",
+  "id": "ua8778ef40e"
+ },
+ {
+  "title": "Compositional Visual Generation with Composable Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/3ff7153fd6bd47d08084c7f50f8fd70026c126e7",
+  "section": "Structured generation and application examples",
+  "details": "2022 · 784 · #219",
+  "id": "u53ac0294df"
+ },
+ {
+  "title": "TabDDPM: Modelling Tabular Data with Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/25d3a4e048d0020ba9cffc6442ebd4e7bb548a55",
+  "section": "Structured generation and application examples",
+  "details": "2022 · 733 · #267",
+  "id": "ud02062b1d9"
+ },
+ {
+  "title": "Diffusion-LM Improves Controllable Text Generation",
+  "url": "https://www.semanticscholar.org/paper/1386b8a11929cf02da291c56aca353e33bbc22ed",
+  "section": "Structured generation and application examples",
+  "details": "2022 · 1,576 · #210",
+  "id": "u02875f112c"
+ },
+ {
+  "title": "TabDiff: a Mixed-type Diffusion Model for Tabular Data Generation",
+  "url": "https://www.alphaxiv.org/abs/2410.20626",
+  "section": "Structured generation and application examples",
+  "details": "2024 · 99 · #243 · 🟢 ICLR 2025",
+  "id": "ua4ba371ddf"
+ },
+ {
+  "title": "Beam model tech report",
+  "url": "https://reflection.ai/documents/beam-model-tech-report",
+  "section": "Structured generation and application examples",
+  "details": "2026 · #261 · Tech report, Reflection AI",
+  "id": "ua4e2aa9fcd"
+ },
+ {
+  "title": "Diffusion LLM plus Jev, a question about it",
+  "url": "https://x.com/Xianbao_QIAN/status/2117787965175083210",
+  "section": "Structured generation and application examples",
+  "details": "#359 · Saved link",
+  "id": "ue9192ab9c7"
+ },
+ {
+  "title": "Diffusion Models as Plug-and-Play Priors",
+  "url": "https://arxiv.org/abs/2206.09012",
+  "section": "Guidance methods",
+  "details": "2022 · 325 · #50 · NeurIPS 2022 — conditional reading for steering a diffusion prior with a compatible differentiable matchup surrogate; battle simulation supplies no direct gradient. · [[DIFUSCO references - relevance to counter-team search\\ · Relevance notes]]",
+  "id": "u261d4c3b7d"
+ },
+ {
+  "title": "Gradient Guidance for Diffusion Models: An Optimization Perspective",
+  "url": "https://www.semanticscholar.org/paper/5aabe3a210270711c72bddaa0290c4edd3db7720",
+  "section": "Guidance methods",
+  "details": "2024 · 80 · #67 · 🟢 NeurIPS 2024",
+  "id": "uf0122a7106"
+ },
+ {
+  "title": "Robust Guided Diffusion for Offline Black-Box Optimization",
+  "url": "https://www.semanticscholar.org/paper/45957487086436f6fcbdd88c6a6dd5f268d9310f",
+  "section": "Guidance methods",
+  "details": "2024 · 11 · #15",
+  "id": "uff86768719"
+ },
+ {
+  "title": "Prof. Mengdi Wang \\| Guiding Diffusion Models Towards Generative Optimization by INI Satellite Events",
+  "url": "https://www.youtube.com/watch?v=8W9qHXN0weg",
+  "section": "Guidance methods",
+  "details": "2024 · #108 · talk, Isaac Newton Institute DMLW01 workshop (2024-07-18)",
+  "id": "uc837aaf756"
+ },
+ {
+  "title": "Derivative-Free Guidance in Continuous and Discrete Diffusion Models with Soft Value-Based Decoding",
+  "url": "https://www.semanticscholar.org/paper/a673ef39237e227381fccf5b1d154d96de428f1d",
+  "section": "Guidance methods",
+  "details": "2024 · 151 · #16",
+  "id": "ueec2bf57ac"
+ },
+ {
+  "title": "Practical and Asymptotically Exact Conditional Sampling in Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/79531b47bb27cb18022891eb2ab1fcb41745fca6",
+  "section": "Guidance methods",
+  "details": "2023 · 283 · #74 · 🟢 NeurIPS 2023",
+  "id": "ub5b85f5436"
+ },
+ {
+  "title": "Simple Guidance Mechanisms for Discrete Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/05f9997d61460fea9b586f98722c4be32f4a8b22",
+  "section": "Guidance methods",
+  "details": "2024 · 168 · #65",
+  "id": "u4586a4d7b7"
+ },
+ {
+  "title": "Unlocking Guidance for Discrete State-Space Diffusion and Flow Models",
+  "url": "https://www.semanticscholar.org/paper/c8bfa3abf6a8cbf0a5b3a093661510f34cfa0098",
+  "section": "Guidance methods",
+  "details": "2024 · 146 · #56",
+  "id": "uf46a68f6c4"
+ },
+ {
+  "title": "Classifier-Free Diffusion Guidance",
+  "url": "https://www.semanticscholar.org/paper/af9f365ed86614c800f082bd8eb14be76072ad16",
+  "section": "Guidance methods",
+  "details": "2022 · 7,470 · #167",
+  "id": "u662c3900ff"
+ },
+ {
+  "title": "Diffusion Tree Sampling: Scalable inference-time alignment of diffusion models",
+  "url": "https://www.semanticscholar.org/paper/aabd199f5094c726021f9a4175491549f6feb593",
+  "section": "Guidance methods",
+  "details": "2025 · 44 · #7 · 🟢 NeurIPS 2025",
+  "id": "u2a6ea688d0"
+ },
+ {
+  "title": "UnMaskFork: Test-Time Scaling for Masked Diffusion via Deterministic Action Branching",
+  "url": "https://www.semanticscholar.org/paper/eac84de6e4ce26fbbd7fb2013a923afceda4d797",
+  "section": "Guidance methods",
+  "details": "2026 · 1 · #17 · 🟢 ICML 2026",
+  "id": "u34dd4ce27f"
+ },
+ {
+  "title": "Inference-Time Alignment in Diffusion Models with Reward-Guided Generation: Tutorial and Review",
+  "url": "https://www.semanticscholar.org/paper/78f37226009495fc11f5b64c5462c9470d2726e8",
+  "section": "Guidance methods",
+  "details": "2025 · 97 · #37 · 🟢 arXiv preprint, no venue listed",
+  "id": "uc78bef05df"
+ },
+ {
+  "title": "Plug-and-Play Guidance for Discrete Diffusion Models via Gradient-Informed Logit Correction",
+  "url": "https://www.semanticscholar.org/paper/30aff605819e4a05c309040dc980ff82a767d828",
+  "section": "Guidance methods",
+  "details": "2026 · 3 · #27",
+  "id": "udd0267f3cb"
+ },
+ {
+  "title": "Guess & Guide: Gradient-Free Zero-Shot Diffusion Guidance",
+  "url": "https://arxiv.org/abs/2603.07860v1",
+  "section": "Guidance methods",
+  "details": "2026 · 1 · #107 · 🟢 ReALM-GEN (ICLR 2026 workshop)",
+  "id": "ud76d8be693"
+ },
+ {
+  "title": "Dynamic Search for Inference-Time Alignment in Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/3546ed4907a006c8b4c8379b6059648c912f6a65",
+  "section": "Guidance methods",
+  "details": "2025 · 41 · #5 · 🟢 arXiv preprint, no venue listed",
+  "id": "u37c121b03a"
+ },
+ {
+  "title": "Inference-Time Alignment of Diffusion Models via Evolutionary Algorithms",
+  "url": "https://www.semanticscholar.org/paper/281ea51be4268dbace01236879a56b575436474c",
+  "section": "Guidance methods",
+  "details": "2025 · 1 · #25 · 🟢 arXiv preprint, no venue listed",
+  "id": "uaf4407b072"
+ },
+ {
+  "title": "Diffusion Crossover: Defining Evolutionary Recombination in Diffusion Models via Noise Sequence Interpolation",
+  "url": "https://www.semanticscholar.org/paper/4e598ea023dc54074a89c9b869effefa1b61e8b2",
+  "section": "Guidance methods",
+  "details": "2026 · 0 · #96 · 🟢 arXiv preprint, no venue listed",
+  "id": "u01567b2bcd"
+ },
+ {
+  "title": "Inference-Time Scaling for Diffusion Models beyond Scaling Denoising Steps",
+  "url": "https://www.semanticscholar.org/paper/9c8f548b85af8d3c861c9d97b6172c4ee44673d6",
+  "section": "Guidance methods",
+  "details": "2025 · 266 · #64 · 🟢 arXiv preprint, no venue listed",
+  "id": "uf5d973d96d"
+ },
+ {
+  "title": "What Exactly Does Guidance Do in Masked Discrete Diffusion Models",
+  "url": "https://api.semanticscholar.org/arXiv:2506.10971",
+  "section": "Guidance analysis and correction",
+  "details": "2025 · 8 · #40 · 🟢 arXiv preprint, no venue listed",
+  "id": "u25eb0654f9"
+ },
+ {
+  "title": "Debiasing Guidance for Discrete Diffusion with Sequential Monte Carlo",
+  "url": "https://arxiv.org/abs/2502.06079",
+  "section": "Guidance analysis and correction",
+  "details": "2025 · 32 · #12 · 🟢 Frontiers in Probabilistic Inference (ICLR 2025 workshop)",
+  "id": "u2bf9eebe54"
+ },
+ {
+  "title": "Improving Classifier-Free Guidance in Masked Diffusion: Low-Dim Theoretical Insights with High-Dim Impact",
+  "url": "https://www.alphaxiv.org/abs/2507.08965",
+  "section": "Guidance analysis and correction",
+  "details": "2025 · #49 · 🟢 ICLR 2026",
+  "id": "u8052469745"
+ },
+ {
+  "title": "What does guidance do? A fine-grained analysis in a simple setting",
+  "url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/9a3942c235daa9c5f62a8598ae81a946-Paper-Conference.pdf",
+  "section": "Guidance analysis and correction",
+  "details": "2024 · 56 · #112 · 🟢 NeurIPS 2024",
+  "id": "ue87fa3c2b6"
+ },
+ {
+  "title": "Classifier-Free Guidance is a Predictor-Corrector",
+  "url": "https://arxiv.org/abs/2408.09000",
+  "section": "Guidance analysis and correction",
+  "details": "2024 · 91 · #120 · 🟢 M3L (NeurIPS 2024 workshop)",
+  "id": "u16b17ba34f"
+ },
+ {
+  "title": "Generative Uncertainty in Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/54b4c9a67d0c55b5d430d45ead5d5c7246283232",
+  "section": "Guidance analysis and correction",
+  "details": "2025 · 32 · #119 · 🟢 UAI 2025",
+  "id": "u53636354c6"
+ },
+ {
+  "title": "CADS: Unleashing the Diversity of Diffusion Models through Condition-Annealed Sampling",
+  "url": "https://www.alphaxiv.org/abs/2310.17347",
+  "section": "Guidance analysis and correction",
+  "details": "2023 · #29 · 🟢 ICLR 2024",
+  "id": "u8d390f78fe"
+ },
+ {
+  "title": "Applying Guidance in a Limited Interval Improves Sample and Distribution Quality in Diffusion Models",
+  "url": "https://www.alphaxiv.org/abs/2404.07724",
+  "section": "Guidance analysis and correction",
+  "details": "2024 · #99 · 🟢 NeurIPS 2024",
+  "id": "u738a04d5fe"
+ },
+ {
+  "title": "Guiding a Diffusion Model with a Bad Version of Itself",
+  "url": "https://www.alphaxiv.org/abs/2406.02507",
+  "section": "Guidance analysis and correction",
+  "details": "2024 · #63 · 🟢 NeurIPS 2024",
+  "id": "ubc90fcbeb8"
+ },
+ {
+  "title": "Correction Training for Diffusion Models",
+  "url": "https://www.alphaxiv.org/abs/2610.14136",
+  "section": "Guidance analysis and correction",
+  "details": "2026 · #121 · 🟢 arXiv preprint, no venue listed",
+  "id": "ue8c2e7ed46"
+ },
+ {
+  "title": "Detecting, Explaining, and Mitigating Memorization in Diffusion Models",
+  "url": "https://api.semanticscholar.org/arXiv:2407.21720",
+  "section": "Memorization and data replication",
+  "details": "2024 · 133 · #136 · 🟢 ICLR 2024",
+  "id": "u24120bbd8e"
+ },
+ {
+  "title": "On Memorization in Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/122a7e217fe70d5a1a44a6e2b67e859d1fc8e28d",
+  "section": "Memorization and data replication",
+  "details": "2023 · 143 · #198",
+  "id": "uec85cc86fb"
+ },
+ {
+  "title": "Diffusion Art or Digital Forgery? Investigating Data Replication in Diffusion Models",
+  "url": "https://arxiv.org/abs/2212.03860",
+  "section": "Memorization and data replication",
+  "details": "2022 · 562 · #148",
+  "id": "u47d8417974"
+ },
+ {
+  "title": "Self-Consuming Generative Models Go MAD",
+  "url": "https://api.semanticscholar.org/arXiv:2307.01850",
+  "section": "Recursive training and collapse dynamics",
+  "details": "2023 · 377 · #187 · 🟢 ICLR 2024",
+  "id": "u500e4d910c"
+ },
+ {
+  "title": "On the Stability of Iterative Retraining of Generative Models on their own Data",
+  "url": "https://api.semanticscholar.org/arXiv:2310.00429",
+  "section": "Recursive training and collapse dynamics",
+  "details": "2023 · 125 · #270 · 🟢 ICLR 2024 spotlight",
+  "id": "u1c65e0121e"
+ },
+ {
+  "title": "AI models collapse when trained on recursively generated data",
+  "url": "https://www.nature.com/articles/s41586-024-07566-y",
+  "section": "Recursive training and collapse dynamics",
+  "details": "2024 · 1,120 · #263 · 🟢 Nature 2024",
+  "id": "ufe1c0ba6c6"
+ },
+ {
+  "title": "Sharp Bounds for Genetic Drift in Estimation of Distribution Algorithms",
+  "url": "https://api.semanticscholar.org/arXiv:1910.14389",
+  "section": "Recursive training and collapse dynamics",
+  "details": "2019 · 39 · #254 · 🟢 IEEE Transactions on Evolutionary Computation 2020",
+  "id": "ucbd26b6c0c"
+ },
+ {
+  "title": "A Closer Look at Model Collapse: From a Generalization-to-Memorization Perspective",
+  "url": "https://api.semanticscholar.org/arXiv:2509.16499",
+  "section": "Recursive training and collapse dynamics",
+  "details": "2025 · 22 · #129 · 🟢 NeurIPS 2025 spotlight",
+  "id": "ua10ed18385"
+ },
+ {
+  "title": "Beyond Model Collapse: Scaling Up with Synthesized Data Requires Verification",
+  "url": "https://api.semanticscholar.org/arXiv:2406.07515",
+  "section": "Verification, correction and data mixing",
+  "details": "2024 · 52 · #152 · 🟢 ICLR 2025",
+  "id": "u00ae224922"
+ },
+ {
+  "title": "Self-Correcting Self-Consuming Loops for Generative Model Training",
+  "url": "https://api.semanticscholar.org/arXiv:2402.07087",
+  "section": "Verification, correction and data mixing",
+  "details": "2024 · 42 · #173 · 🟢 ICML 2024",
+  "id": "u0a9ddb5912"
+ },
+ {
+  "title": "Is Model Collapse Inevitable? Breaking the Curse of Recursion by Accumulating Real and Synthetic Data",
+  "url": "https://api.semanticscholar.org/arXiv:2404.01413",
+  "section": "Verification, correction and data mixing",
+  "details": "2024 · 186 · #240 · 🟢 COLM 2024",
+  "id": "u1100238303"
+ },
+ {
+  "title": "The Vendi Score: A Diversity Evaluation Metric for Machine Learning",
+  "url": "https://www.alphaxiv.org/abs/2210.02410",
+  "section": "Diversity measurement and diversity-preserving fine-tuning",
+  "details": "2022 · #84 · 🟢 TMLR 2023",
+  "id": "ub36cdcf3f0"
+ },
+ {
+  "title": "Diversity-Rewarded CFG Distillation",
+  "url": "https://www.alphaxiv.org/abs/2410.06084",
+  "section": "Diversity measurement and diversity-preserving fine-tuning",
+  "details": "2024 · #31 · 🟢 ICLR 2025",
+  "id": "u1b4649d0c3"
+ },
+ {
+  "title": "Quality-Weighted Vendi Scores And Their Application To Diverse Experimental Design",
+  "url": "https://www.alphaxiv.org/abs/2405.02449",
+  "section": "Diversity measurement and diversity-preserving fine-tuning",
+  "details": "2024 · #53 · 🟢 ICML 2024",
+  "id": "uda5b12a260"
+ },
+ {
+  "title": "Exposing Diversity Bias in Deep Generative Models: Statistical Origins and Correction of Diversity Error",
+  "url": "https://www.alphaxiv.org/abs/2602.14682",
+  "section": "Diversity measurement and diversity-preserving fine-tuning",
+  "details": "2026 · #104 · 🟢 ICLR 2026",
+  "id": "u817c64a342"
+ },
+ {
+  "title": "Kaggle paper: merging teams early costs solution variety",
+  "url": "https://x.com/vonRudenberg/status/2120126395242221872",
+  "section": "Diversity measurement and diversity-preserving fine-tuning",
+  "details": "#73 · Saved link",
+  "id": "u0ad0bcb3df"
+ },
+ {
+  "title": "Decision-Focused Learning: Through the Lens of Learning to Rank",
+  "url": "https://proceedings.mlr.press/v162/mandi22a.html",
+  "section": "Learning objectives for team selection",
+  "details": "2021 · 93 · #94 · ICML 2022 — owner-selected focus (2026-09-13): compare surrogate objectives by the strength of discovered teams, rather than prediction error alone. Connection to Pokémon is a proposed experiment, not a result of this paper.",
+  "id": "u7bf41314e3"
+ },
+ {
+  "title": "Constrained Discrete Black-Box Optimization using Mixed-Integer Programming",
+  "url": "https://proceedings.mlr.press/v162/papalexopoulos22a.html",
+  "section": "Structured surrogate models",
+  "details": "2021 · 27 · #51 · ICML 2022 — NN+MILP combines a learned score predictor with constrained optimization; candidate approach for a team-recombination teacher. Assumes noiseless evaluations, so battle noise needs additional handling; optimality applies to the learned acquisition model, not actual team strength. Read §§3.1–3.3.",
+  "id": "u9dd30d3ffd"
+ },
+ {
+  "title": "Distributional Energy-Based Models for Uncertainty-Aware Structured LLM Reasoning",
+  "url": "https://arxiv.org/abs/2605.18871",
+  "section": "Structured surrogate models",
+  "details": "2026 · 2 · #93 · 🟢 EIML (ICML 2026 workshop) — targeted reading: §4.2 and Appendix F.8; test whether a team scorer adds value beyond choosing the strongest proposal source. VGC transfer is an audit design, not a validated scoring method.",
+  "id": "u9bbd866a9b"
+ },
+ {
+  "title": "Active Learning Literature Survey",
+  "url": "https://burrsettles.com/pub/settles.activelearning.pdf",
+  "section": "Active learning and uncertainty sampling",
+  "details": "2009 · 6,858 · #237 · 🟢 Computer Sciences Technical Report 1648, University of Wisconsin-Madison, 2009",
+  "id": "u027a600807"
+ },
+ {
+  "title": "On the Relationship between Data Efficiency and Error for Uncertainty Sampling",
+  "url": "https://proceedings.mlr.press/v80/mussmann18a.html",
+  "section": "Active learning and uncertainty sampling",
+  "details": "2018 · 38 · #238 · 🟢 ICML 2018",
+  "id": "u3f03f84a31"
+ },
+ {
+  "title": "Active Learning for Affinity Prediction of Antibodies",
+  "url": "https://www.alphaxiv.org/abs/2406.07263",
+  "section": "Active learning and uncertainty sampling",
+  "details": "2024 · 10 · #206 · 🟢 BDU (NeurIPS 2024 workshop)",
+  "id": "ue41209a327"
+ },
+ {
+  "title": "Rethinking Aleatoric and Epistemic Uncertainty",
+  "url": "https://www.alphaxiv.org/abs/2412.20892",
+  "section": "Active learning and uncertainty sampling",
+  "details": "2024 · 51 · #266 · 🟢 BDU (NeurIPS 2024 workshop)",
+  "id": "u70354fdf43"
+ },
+ {
+  "title": "Textual Membership Queries",
+  "url": "https://www.ijcai.org/proceedings/2020/0369.pdf",
+  "section": "Membership queries and concept learning",
+  "details": "2020 · 5 · #265 · 🟢 IJCAI 2020",
+  "id": "ue9d04006de"
+ },
+ {
+  "title": "Queries and Concept Learning",
+  "url": "http://machinelearning202.pbworks.com/f/AngluinQueriesConceptLearningfulltext.pdf",
+  "section": "Membership queries and concept learning",
+  "details": "1988 · 1,480 · #327 · 🟢 Machine Learning 2:319-342, 1988",
+  "id": "u99c3a271b4"
+ },
+ {
+  "title": "Active Query Synthesis for Preference Learning",
+  "url": "https://arxiv.org/abs/2605.26072",
+  "section": "Membership queries and concept learning",
+  "details": "2026 · 0 · #190",
+  "id": "u30f4dcfabf"
+ },
+ {
+  "title": "Why is it called PyC?",
+  "url": "https://x.com/pietro_barbiero/status/2118097588155252750",
+  "section": "Membership queries and concept learning",
+  "details": "#334 · Saved link",
+  "id": "u48bdce119a"
+ },
+ {
+  "title": "Constrained Discrete Diffusion",
+  "url": "https://arxiv.org/abs/2503.09790",
+  "section": "Constrained diffusion and decoding",
+  "details": "2025 · 24 · #48 · 🟢 NeurIPS 2025",
+  "id": "u06cc45d29a"
+ },
+ {
+  "title": "Constrained Code Generation with Discrete Diffusion",
+  "url": "https://arxiv.org/abs/2605.16829",
+  "section": "Constrained diffusion and decoding",
+  "details": "2026 · 1 · #61 · 🟢 arXiv preprint, no venue listed",
+  "id": "u346601f4fd"
+ },
+ {
+  "title": "Constrained Decoding of Diffusion LLMs with Context-Free Grammars",
+  "url": "https://arxiv.org/abs/2508.10111",
+  "section": "Constrained diffusion and decoding",
+  "details": "2025 · 21 · #91 · 🟢 arXiv preprint, no venue listed",
+  "id": "u0211fdd310"
+ },
+ {
+  "title": "Binary Discrete Diffusion: Candidate-Set Diffusion for Logic and Planning Tasks",
+  "url": "https://arxiv.org/abs/2610.28543",
+  "section": "Constrained diffusion and decoding",
+  "details": "2026 · #23 · 🟢 arXiv preprint, no venue listed",
+  "id": "ucf6f6b46d7"
+ },
+ {
+  "title": "You could have built Jev",
+  "url": "https://sgnt.ai/p/jev/",
+  "section": "Constrained diffusion and decoding",
+  "details": "2026 · #35 · 🟢 blog, sgnt.ai",
+  "id": "ud4fe68d94d"
+ },
+ {
+  "title": "StreamLLM: Enhancing Constraint Programming with Large Language Model-Generated Streamliners",
+  "url": "https://jair.org/index.php/jair/article/view/18965",
+  "section": "Streamliners",
+  "details": "2025 · 8 · #191",
+  "id": "u18ba392794"
+ },
+ {
+  "title": "Streamlined Constraint Reasoning",
+  "url": "https://www.cs.cornell.edu/gomes/papers/gomes-sellman-cp04.pdf",
+  "section": "Streamliners",
+  "details": "2004 · #339",
+  "id": "uc266c73f3c"
+ },
+ {
+  "title": "A Model Seeker: Extracting Global Constraint Models from Positive Examples",
+  "url": "https://www.semanticscholar.org/paper/d7a118530bc40fe3c2cf3d81fde56b1fc3cb1f30",
+  "section": "Learning constraints from examples and queries",
+  "details": "2012 · 134 · #154",
+  "id": "ue4ed5b8974"
+ },
+ {
+  "title": "Learning Constraints through Partial Queries",
+  "url": "https://www.lirmm.fr/~bessiere/Site/stock/aij23.pdf",
+  "section": "Learning constraints from examples and queries",
+  "details": "2023 · 10 · #234",
+  "id": "ua291832c93"
+ },
+ {
+  "title": "Symmetry in Constraint Programming",
+  "url": "https://sites.cs.st-andrews.ac.uk/people/ipg1/papers/GentPetriePugetFinalDraft.pdf",
+  "section": "Symmetry breaking",
+  "details": "2006 · 146 · #303 · 🟢 author draft (🔒 Elsevier), Handbook of Constraint Programming ch. 10, 2006",
+  "id": "ucc592a23cd"
+ },
+ {
+  "title": "Breaking symmetries in all different problems",
+  "url": "https://www.ijcai.org/Proceedings/05/Papers/1244.pdf",
+  "section": "Symmetry breaking",
+  "details": "2005 · 75 · #319 · 🟢 IJCAI 2005",
+  "id": "u7147ba725f"
+ },
+ {
+  "title": "Symmetry-Breaking Predicates for Search Problems",
+  "url": "https://ix.cs.uoregon.edu/~luks/symmetrybreaking.pdf",
+  "section": "Symmetry breaking",
+  "details": "1996 · 566 · #290 · 🟢 KR 1996",
+  "id": "u3331acca67"
+ },
+ {
+  "title": "Breaking Row and Column Symmetries in Matrix Models",
+  "url": "https://pierre-flener.github.io/research/pub/CP02.pdf",
+  "section": "Symmetry breaking",
+  "details": "2002 · 240 · #363 · 🟢 author preprint, CP 2002",
+  "id": "u577cba3cb9"
+ },
+ {
+  "title": "Dominance breaking constraints",
+  "url": "https://people.eng.unimelb.edu.au/pstuckey/papers/domjournal.pdf",
+  "section": "Dominance breaking",
+  "details": "2015 · 26 · #158 · 🟢 author manuscript (🔒 Springer), Constraints 20(2), 2015",
+  "id": "ude55a89fce"
+ },
+ {
+  "title": "Automatic Generation of Dominance Breaking Nogoods for a Class of Constraint Optimization Problems",
+  "url": "http://www.cse.cuhk.edu.hk/~jlee/publ/23/aij23AutoDomBreak.pdf",
+  "section": "Dominance breaking",
+  "details": "2023 · 2 · #170 · 🟢 author preprint, Artificial Intelligence 323, 2023",
+  "id": "ua4450b2563"
+ },
+ {
+  "title": "G-LNS: Generative Large Neighborhood Search for LLM-Based Automatic Heuristic Design",
+  "url": "https://www.semanticscholar.org/paper/deefec531e1ccc8798e29f9c38125fdbc34a9a74",
+  "section": "Heuristic generation and strategy evolution",
+  "details": "2026 · 10 · #128 · 🟢 arXiv 2602.08253 (2026-02), no venue listed",
+  "id": "uc4ea7f4572"
+ },
+ {
+  "title": "Beyond Static Evaluation: Co-Evolutionary Mechanisms for LLM-Driven Strategy Evolution in Adversarial Games",
+  "url": "https://arxiv.org/abs/2606.10389",
+  "section": "Heuristic generation and strategy evolution",
+  "details": "2026 · 3 · #6 · 🟢 AAMAS 2026 MCTF Competition",
+  "id": "u7f578c0147"
+ },
+ {
+  "title": "Mutation Without Variation: Convergence Dynamics in LLM-Driven Program Evolution",
+  "url": "https://www.alphaxiv.org/abs/2606.05408",
+  "section": "Heuristic generation and strategy evolution",
+  "details": "2026 · 4 · #111 · 🟢 LLMfwEC (GECCO 2026 workshop)",
+  "id": "u6a5151f79b"
+ },
+ {
+  "title": "RuleSmith: Multi-Agent LLMs for Automated Game Balancing",
+  "url": "https://arxiv.org/abs/2602.06232",
+  "section": "Heuristic generation and strategy evolution",
+  "details": "2026 · 2 · #75 · 🟢 arXiv preprint, no venue listed",
+  "id": "ud0b22d95e7"
+ },
+ {
+  "title": "A Classification of Hyper-Heuristic Approaches: Revisited",
+  "url": "https://people.cs.nott.ac.uk/pszeo/docs/publications/HHClassChapterRevisited.pdf",
+  "section": "Hyper-heuristic taxonomy and selection",
+  "details": "2019 · 188 · #207 · 🟢 author PDF (🔒 Springer), Handbook of Metaheuristics 3rd ed. ch. 14, 2019",
+  "id": "u55380b4d95"
+ },
+ {
+  "title": "Recent advances in selection hyper-heuristics",
+  "url": "https://www.sciencedirect.com/science/article/pii/S0377221719306526",
+  "section": "Hyper-heuristic taxonomy and selection",
+  "details": "2020 · 347 · #223 · 🟢 CC-BY open access, European Journal of Operational Research 285(2), 2020",
+  "id": "ue641111aa9"
+ },
+ {
+  "title": "A Survey on Self-play Methods in Reinforcement Learning",
+  "url": "wikilink:A Survey on Self-play Methods in Reinforcement Learning",
+  "section": "Self-play and game-theoretic foundations",
+  "details": "2024 · 37",
+  "id": "u23444faa58"
+ },
+ {
+  "title": "A Unified Game-Theoretic Approach to Multiagent Reinforcement Learning",
+  "url": "https://arxiv.org/abs/1711.00832",
+  "section": "Self-play and game-theoretic foundations",
+  "details": "2017 · 780 · #165",
+  "id": "u6a4a075f3b"
+ },
+ {
+  "title": "Planning in the Presence of Cost Functions Controlled by an Adversary",
+  "url": "https://www.aaai.org/Papers/ICML/2003/ICML03-071.pdf",
+  "section": "Self-play and game-theoretic foundations",
+  "details": "2003 · 392 · #209",
+  "id": "u68916b74d5"
+ },
+ {
+  "title": "Game-Theoretic Multiagent Reinforcement Learning",
+  "url": "https://www.semanticscholar.org/paper/c3662e9176a7ad90020bdd025c179c5925d0b5b0",
+  "section": "Self-play and game-theoretic foundations",
+  "details": "2020 · 217 · #260",
+  "id": "u5241b4ecd8"
+ },
+ {
+  "title": "An Introduction to Counterfactual Regret Minimization",
+  "url": "http://modelai.gettysburg.edu/2013/cfr/cfr.pdf",
+  "section": "Regret minimization",
+  "details": "2013 · 36 · #337",
+  "id": "ue2391a190c"
+ },
+ {
+  "title": "Efficient Monte Carlo Counterfactual Regret Minimization in Games with Many Player Actions",
+  "url": "https://papers.nips.cc/paper/2012/file/3df1d4b96d8976ff5986393e8767f5b2-Paper.pdf",
+  "section": "Regret minimization",
+  "details": "2012 · 39 · #304",
+  "id": "uac463eb36d"
+ },
+ {
+  "title": "Grandmaster level in StarCraft II using multi-agent reinforcement learning",
+  "url": "wikilink:Grandmaster level in StarCraft II using multi-agent reinforcement learning",
+  "section": "Policy learning and game environments",
+  "details": "2019 · 4,567",
+  "id": "uec86f96391"
+ },
+ {
+  "title": "Overcoming Valid Action Suppression in Unmasked Policy Gradient Algorithms",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper1.pdf",
+  "section": "Policy learning and game environments",
+  "details": "2026 · 2 · #245",
+  "id": "u5e97782640"
+ },
+ {
+  "title": "FootsiesGym: A Fighting Game Benchmark for Two-Player Zero-Sum Imperfect-Information Games",
+  "url": "https://arxiv.org/abs/2607.06514",
+  "section": "Policy learning and game environments",
+  "details": "2026 · 0 · #131",
+  "id": "u53d6aedfbc"
+ },
+ {
+  "title": "Superhuman AI for Generals.io Using Self-Play Reinforcement Learning",
+  "url": "https://arxiv.org/abs/2606.23348",
+  "section": "Policy learning and game environments",
+  "details": "2026 · 1 · #185",
+  "id": "ue023b38708"
+ },
+ {
+  "title": "Emergent Complexity via Multi-Agent Competition",
+  "url": "https://arxiv.org/abs/1710.03748",
+  "section": "Policy learning and game environments",
+  "details": "2017 · 444 · #236",
+  "id": "u1f595759ca"
+ },
+ {
+  "title": "Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model",
+  "url": "https://www.semanticscholar.org/paper/c39fb7a46335c23f7529dd6f9f980462fd38653a",
+  "section": "Policy learning and game environments",
+  "details": "2019 · 2,803 · #217",
+  "id": "u5cc989f95b"
+ },
+ {
+  "title": "Language Models that Play Chess and Explain Their Moves",
+  "url": "https://arxiv.org/abs/2610.03695",
+  "section": "Policy learning and game environments",
+  "details": "2026 · #213 · 🟢 arXiv preprint, no venue listed",
+  "id": "u32e1fd4819"
+ },
+ {
+  "title": "Self-Play Search Distillation for Large Language Model Reasoning",
+  "url": "https://arxiv.org/abs/2609.30936",
+  "section": "Policy learning and game environments",
+  "details": "2026 · #155 · 🟢 arXiv preprint, no venue listed",
+  "id": "u9a8c7f69d9"
+ },
+ {
+  "title": "Alpha-Rank Multi-Agent Evaluation by Evolution",
+  "url": "wikilink:Alpha-Rank Multi-Agent Evaluation by Evolution",
+  "section": "Ranking and evaluation in non-transitive games",
+  "details": "2019 · 146",
+  "id": "u3e468076ce"
+ },
+ {
+  "title": "Real World Games Look Like Spinning Tops",
+  "url": "https://arxiv.org/abs/2004.09468",
+  "section": "Ranking and evaluation in non-transitive games",
+  "details": "2020 · 124 · #55",
+  "id": "u4686120d2a"
+ },
+ {
+  "title": "Re-evaluating Evaluation",
+  "url": "https://arxiv.org/abs/1806.02643",
+  "section": "Ranking and evaluation in non-transitive games",
+  "details": "2018 · 123 · #115",
+  "id": "ud53bcf0869"
+ },
+ {
+  "title": "Coevolutionary Principles",
+  "url": "https://www.cs.tufts.edu/comp/150GA/handouts/nchb-main.pdf",
+  "section": "Competitive coevolution",
+  "details": "2012 · #200",
+  "id": "uc9d2a4188c"
+ },
+ {
+  "title": "New Methods for Competitive Coevolution",
+  "url": "https://cseweb.ucsd.edu/~crosin/newmethods.ps",
+  "section": "Competitive coevolution",
+  "details": "1997 · 667 · #222",
+  "id": "uac09dfb3c3"
+ },
+ {
+  "title": "A comparison of evaluation methods in coevolution",
+  "url": "https://arxiv.org/abs/1905.08723",
+  "section": "Competitive coevolution",
+  "details": "2019 · 4 · #123",
+  "id": "u8d707a2688"
+ },
+ {
+  "title": "Tripping Over the Past: Measuring Deceptive Progress in Competitive Coevolutionary Algorithms Employing Hall of Fame",
+  "url": "https://doi.org/10.1007/978-3-032-23607-4_32",
+  "section": "Competitive coevolution",
+  "details": "2026 · 0 · #143",
+  "id": "ua41bde68db"
+ },
+ {
+  "title": "On Warm-Starting Neural Network Training",
+  "url": "https://api.semanticscholar.org/arXiv:1910.08475",
+  "section": "Plasticity loss and recovery",
+  "details": "2019 · 24 · #293",
+  "id": "u63f71045df"
+ },
+ {
+  "title": "Plasticity Loss in Deep Reinforcement Learning: A Survey",
+  "url": "https://api.semanticscholar.org/arXiv:2411.04832",
+  "section": "Plasticity loss and recovery",
+  "details": "2024 · 30 · #286",
+  "id": "u422947fc41"
+ },
+ {
+  "title": "A Study of Plasticity Loss in On-Policy Deep Reinforcement Learning",
+  "url": "https://api.semanticscholar.org/arXiv:2405.19153",
+  "section": "Plasticity loss and recovery",
+  "details": "2024 · 37 · #306",
+  "id": "u736273a198"
+ },
+ {
+  "title": "The Primacy Bias in Deep Reinforcement Learning",
+  "url": "https://api.semanticscholar.org/arXiv:2205.07802",
+  "section": "Plasticity loss and recovery",
+  "details": "2022 · 343 · #268",
+  "id": "ucb9b66b4fb"
+ },
+ {
+  "title": "The Dormant Neuron Phenomenon in Deep Reinforcement Learning",
+  "url": "https://api.semanticscholar.org/arXiv:2302.12902",
+  "section": "Plasticity loss and recovery",
+  "details": "2023 · 210 · #291",
+  "id": "ue462c74859"
+ },
+ {
+  "title": "Loss of Plasticity in Continual Deep Reinforcement Learning",
+  "url": "https://api.semanticscholar.org/arXiv:2303.07507",
+  "section": "Plasticity loss and recovery",
+  "details": "2023 · 158 · #333",
+  "id": "u98697e3f71"
+ },
+ {
+  "title": "Disentangling the Causes of Plasticity Loss in Neural Networks",
+  "url": "https://api.semanticscholar.org/arXiv:2402.18762",
+  "section": "Plasticity loss and recovery",
+  "details": "2024 · 103 · #325",
+  "id": "u0c6f6638bb"
+ },
+ {
+  "title": "Deep Reinforcement Learning with Plasticity Injection",
+  "url": "https://api.semanticscholar.org/arXiv:2305.15555",
+  "section": "Plasticity loss and recovery",
+  "details": "2023 · 99 · #298",
+  "id": "u1ca5d2b820"
+ },
+ {
+  "title": "Maintaining Plasticity in Continual Learning via Regenerative Regularization",
+  "url": "https://api.semanticscholar.org/arXiv:2308.11958",
+  "section": "Plasticity loss and recovery",
+  "details": "2023 · 78 · #346",
+  "id": "u758b4547e3"
+ },
+ {
+  "title": "How well do you understand training dynamics for deep nets?",
+  "url": "https://x.com/tatsu_hashimoto/status/2118040321749860710",
+  "section": "Plasticity loss and recovery",
+  "details": "2026 · #344 · CS312 prediction question, X post",
+  "id": "ueed96e2890"
+ },
+ {
+  "title": "Batch size-invariance for policy optimization",
+  "url": "https://api.semanticscholar.org/arXiv:2110.00641",
+  "section": "Batch size and parallel training",
+  "details": "2021 · 42 · #292",
+  "id": "u741fec40b5"
+ },
+ {
+  "title": "An Empirical Model of Large-Batch Training",
+  "url": "https://api.semanticscholar.org/arXiv:1812.06162",
+  "section": "Batch size and parallel training",
+  "details": "2018 · 457 · #343",
+  "id": "ufce4abbe64"
+ },
+ {
+  "title": "SAPG: Split and Aggregate Policy Gradients",
+  "url": "https://api.semanticscholar.org/arXiv:2407.20230",
+  "section": "Batch size and parallel training",
+  "details": "2024 · 27 · #247",
+  "id": "uedfc06c2e5"
+ },
+ {
+  "title": "Preventing Learning Stagnation in PPO by Scaling to 1 Million Parallel Environments",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper19.pdf",
+  "section": "Batch size and parallel training",
+  "details": "2026 · 4 · #308",
+  "id": "ua18c316ff0"
+ },
+ {
+  "title": "A Recipe for Training Neural Networks",
+  "url": "https://karpathy.github.io/2019/04/25/recipe/",
+  "section": "Batch size and parallel training",
+  "details": "2019 · #278 · 🟢 blog, Andrej Karpathy",
+  "id": "u21e3e719f6"
+ },
+ {
+  "title": "Deep Learning Tuning Playbook",
+  "url": "https://github.com/google-research/tuning_playbook",
+  "section": "Batch size and parallel training",
+  "details": "2023 · #250 · 🟢 GitHub guide, Google Research and Harvard",
+  "id": "uee1e792171"
+ },
+ {
+  "title": "Improving Sample Efficiency in Multi-Agent Reinforcement Learning for Simulated Football Games via Exploration",
+  "url": "https://doi.org/10.1145/3815598.3815627",
+  "section": "Exploration and sample efficiency",
+  "details": "2025 · 1 · #262",
+  "id": "u100400b0f5"
+ },
+ {
+  "title": "Human-Like Goalkeeping in a Realistic Football Simulation a Sample-Efficient Reinforcement Learning Approach",
+  "url": "wikilink:Human-Like Goalkeeping in a Realistic Football Simulation a Sample-Efficient Reinforcement Learning Approach",
+  "section": "Exploration and sample efficiency",
+  "details": "2025 · 2",
+  "id": "u6bec80f273"
+ },
+ {
+  "title": "AMAGO: Scalable In-Context Reinforcement Learning for Adaptive Agents",
+  "url": "https://arxiv.org/abs/2310.09971",
+  "section": "Adaptive and multi-task agents",
+  "details": "2023 · #208",
+  "id": "ua6e102e610"
+ },
+ {
+  "title": "AMAGO-2: Breaking the Multi-Task Barrier in Meta-Reinforcement Learning with Transformers",
+  "url": "https://arxiv.org/abs/2411.11188",
+  "section": "Adaptive and multi-task agents",
+  "details": "2024 · 18 · #272",
+  "id": "ud196e3357d"
+ },
+ {
+  "title": "Multi-Task Reinforcement Learning Enables Parameter Scaling",
+  "url": "https://api.semanticscholar.org/arXiv:2503.05126",
+  "section": "Adaptive and multi-task agents",
+  "details": "2025 · 12 · #312",
+  "id": "u8bc5b0fd91"
+ },
+ {
+  "title": "Accelerating Online Reinforcement Learning with Offline Datasets",
+  "url": "https://arxiv.org/abs/2006.09359",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "2020 · 936 · #224",
+  "id": "ud48225b100"
+ },
+ {
+  "title": "Critic Regularized Regression",
+  "url": "https://arxiv.org/abs/2006.15134",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "2020 · 414 · #226",
+  "id": "ua5e80199e8"
+ },
+ {
+  "title": "Discovering High Quality Chess Puzzles with Offline Reinforcement Learning",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper147.pdf",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "2026 · 0 · #175",
+  "id": "u9ead94df16"
+ },
+ {
+  "title": "Minimal Ingredients for Reward Assignment from Expert Demonstrations",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper86.pdf",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "2025 · 0 · #244",
+  "id": "ueeb32b9fa1"
+ },
+ {
+  "title": "Vanquish Your Past: Shifted Imitation Learning in Hades",
+  "url": "https://doi.org/10.1145/3815598.3815650",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "2026 · 0 · #142",
+  "id": "ue36facd316"
+ },
+ {
+  "title": "What objective is reasoning solving? A back-to-basics RL post",
+  "url": "https://x.com/heyyalexwang/status/2120306644223709215",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "#285 · Saved link",
+  "id": "u9cadc62add"
+ },
+ {
+  "title": "@liangdingNLP: Glad to see our DDCA work cited in Context Language Models!",
+  "url": "https://x.com/liangdingNLP/status/2119445458649039176",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "#256 · Saved link",
+  "id": "uc74eb86529"
+ },
+ {
+  "title": "Ryan Bahlous-Boldi: Vector Policy Optimization for vector-valued rewards",
+  "url": "https://x.com/RyanBoldi/status/2057847412819906658",
+  "section": "Offline data, imitation and reward assignment",
+  "details": "2026 · #79 · X post on a paper",
+  "id": "u6d611de242"
+ },
+ {
+  "title": "Assistax: A Multi-Agent Hardware-Accelerated RL Benchmark for Assistive Robotics",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper110.pdf",
+  "section": "Simulation infrastructure and benchmarks",
+  "details": "2025 · 1 · #387",
+  "id": "ue1a0ddc295"
+ },
+ {
+  "title": "Ludax: A GPU-Accelerated Description Language for Board Games",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper46.pdf",
+  "section": "Simulation infrastructure and benchmarks",
+  "details": "2025 · 3 · #203",
+  "id": "ufb96e3c792"
+ },
+ {
+  "title": "Space-sampled Value Decay: Forgetting Mechanisms for Non-stationary Deep Reinforcement Learning",
+  "url": "https://arxiv.org/abs/2606.11797",
+  "section": "Statistical evaluation and non-stationarity",
+  "details": "2026 · 0 · #228 · 🟢 EIML (ICML 2026 workshop) — stale value estimates under changing opponents; DQN/SAC evidence, VGC state sampling unresolved. Read §§3–6 after HIGH papers.",
+  "id": "u156dd4d62b"
+ },
+ {
+  "title": "Confidence Intervals for the Interquartile Mean",
+  "url": "https://rlj.cs.umass.edu/2026/papers/Paper28.pdf",
+  "section": "Statistical evaluation and non-stationarity",
+  "details": "2026 · 0 · #321",
+  "id": "u562b71afb4"
+ },
+ {
+  "title": "Metadata Conditioning Accelerates Language Model Pre-training",
+  "url": "https://www.alphaxiv.org/abs/2501.01956",
+  "section": "Data mixtures and metadata",
+  "details": "2025 · 22 · #351 · 🟢 ICML 2025",
+  "id": "u4ce31042cb"
+ },
+ {
+  "title": "Why guidance works better on looped LMs",
+  "url": "https://x.com/WangYw251/status/2116710146340425931",
+  "section": "Looping and depth growth",
+  "details": "2026 · #125 · X post",
+  "id": "u9c4510bdbc"
+ },
+ {
+  "title": "Generative Recursive Reasoning",
+  "url": "https://arxiv.org/abs/2605.19376",
+  "section": "Looping and depth growth",
+  "details": "2026 · #178 · 🟢 NeurIPS 2026",
+  "id": "ud9c939de08"
+ },
+ {
+  "title": "Technical writing in the agentic era",
+  "url": "https://huggingface.co/blog/joelniklaus/technical-writing-in-the-agentic-era",
+  "section": "Writing guides",
+  "details": "2026 · #349 · 🟢 Hugging Face blog",
+  "id": "u32da3a1495"
+ },
+ {
+  "title": "Five Principles for Generating Readable AI Text in Bulk",
+  "url": "https://fsdatalab.github.io/blog/agent-text-at-scale/",
+  "section": "Writing guides",
+  "details": "2026 · #376 · 🟢 blog, fsdatalab",
+  "id": "u01456e20e2"
+ },
+ {
+  "title": "Highly Opinionated Advice on How to Write ML Papers",
+  "url": "https://www.alignmentforum.org/posts/eJGptPbbFPZGLpjsp/highly-opinionated-advice-on-how-to-write-ml-papers",
+  "section": "Writing guides",
+  "details": "2025 · #377 · 🟢 Alignment Forum post",
+  "id": "u3dacdfa17b"
+ },
+ {
+  "title": "Ever Growing Academic Writing",
+  "url": "https://docs.google.com/document/d/14Wax8M5w8F_8miDlYJ9-I6wqpelxlXjCEUbkNzNMqqE/mobilebasic",
+  "section": "Writing guides",
+  "details": "#397 · 🟢 shared Google Doc",
+  "id": "u5ea7423755"
+ },
+ {
+  "title": "Why I Write (And You Should Too!)",
+  "url": "https://www.dbreunig.com/2025/12/27/why-i-write.html",
+  "section": "Writing guides",
+  "details": "2025 · #389 · 🟢 blog, dbreunig.com",
+  "id": "u5569d89591"
+ },
+ {
+  "title": "Becoming a Better Writer",
+  "url": "https://newsletter.pragmaticengineer.com/p/becoming-a-better-writer",
+  "section": "Writing guides",
+  "details": "2026 · #407 · The Pragmatic Engineer newsletter",
+  "id": "udf14c751b0"
+ },
+ {
+  "title": "Writing documentation for AI: best practices",
+  "url": "https://docs.kapa.ai/improving/writing-best-practices",
+  "section": "Writing guides",
+  "details": "#390 · 🟢 kapa.ai docs",
+  "id": "u8d2714e0b1"
+ },
+ {
+  "title": "charlax/professional-programming",
+  "url": "https://github.com/charlax/professional-programming",
+  "section": "Writing guides",
+  "details": "#371 · 🟢 GitHub resource list, technical writing section",
+  "id": "ud9cbfb1894"
+ },
+ {
+  "title": "What does writing actually look like?",
+  "url": "https://x.com/manovich/status/2117641700927832265",
+  "section": "Writing guides",
+  "details": "2026 · #388 · 🟢 X video by Lev Manovich",
+  "id": "u9cede88568"
+ },
+ {
+  "title": "Neel Nanda's guide to writing great ML papers",
+  "url": "https://x.com/NeelNanda5/status/1921928364790833651",
+  "section": "Writing guides",
+  "details": "#366 · Saved link",
+  "id": "ud5a129ba86"
+ },
+ {
+  "title": "A banned-words prose guide for agent writing, from HumanLayer",
+  "url": "https://x.com/dexhorthy/status/2120303838813188195",
+  "section": "Writing guides",
+  "details": "#368 · Saved link",
+  "id": "uf7fc00976f"
+ },
+ {
+  "title": "@nedjmaou: I put together some writing lessons drawn from my own experi",
+  "url": "https://x.com/nedjmaou/status/2119833656042602784",
+  "section": "Writing guides",
+  "details": "#400 · Saved link",
+  "id": "u9cb534693e"
+ },
+ {
+  "title": "@zhizdev: This writing stuff matters because the majority of the inter",
+  "url": "https://x.com/zhizdev/status/2119874104681775547",
+  "section": "Writing guides",
+  "details": "#395 · Saved link",
+  "id": "ud74d3e6248"
+ },
+ {
+  "title": "@zhizdev: Why is AI slop so frustrating to read?",
+  "url": "https://x.com/zhizdev/status/2119874095269707977",
+  "section": "Writing guides",
+  "details": "#393 · Saved link",
+  "id": "ua7d2711ba3"
+ },
+ {
+  "title": "Design & UI skills — skills.sh",
+  "url": "https://www.skills.sh/topic/design",
+  "section": "Design skill directories",
+  "details": "#404 · 🟢 skills.sh directory",
+  "id": "uaa79dc7c35"
+ },
+ {
+  "title": "@emilkowalski: Just released documentation for my skills. Each of the 17 sk",
+  "url": "https://x.com/emilkowalski/status/2119780441658212842",
+  "section": "Design skill directories",
+  "details": "#347 · Saved link",
+  "id": "u74975a9261"
+ },
+ {
+  "title": "@arjmahesh: i created a skill for this redline animation",
+  "url": "https://x.com/arjmahesh/status/2119815777390092352",
+  "section": "Design skill directories",
+  "details": "#401 · Saved link",
+  "id": "u0733259c90"
+ },
+ {
+  "title": "Declarative Dragging",
+  "url": "https://x.com/disconcision/status/2117673340676792663",
+  "section": "Interaction design",
+  "details": "2026 · #380 · 🟢 UIST 2026 best paper, X post by Andrew Blinn",
+  "id": "ua479b5a3d7"
+ },
+ {
+  "title": "Things i often say when working in code",
+  "url": "https://x.com/Ash_uxi/status/2117459181636829650",
+  "section": "Interaction design",
+  "details": "2026 · #375 · 🟢 X post by Ashish",
+  "id": "uf044a1ae92"
+ },
+ {
+  "title": "@BraydenWilmoth: Introducing an RFC for intent-driven replay-able generative",
+  "url": "https://x.com/BraydenWilmoth/status/2119813513006993813",
+  "section": "Interaction design",
+  "details": "#367 · Saved link",
+  "id": "u1468802643"
+ },
+ {
+  "title": "@karrisaarinen: a good designer test",
+  "url": "https://x.com/karrisaarinen/status/2119319835759046847",
+  "section": "Interaction design",
+  "details": "#398 · Saved link",
+  "id": "u3d82c7c5bc"
+ },
+ {
+  "title": "Declarative Dragging",
+  "url": "https://declarative-dragging.github.io/",
+  "section": "Interaction design",
+  "details": "2026 · #360 · Project page",
+  "id": "ud1aa7f71e3"
+ },
+ {
+  "title": "Row metadata at rest, also liked",
+  "url": "https://x.com/gabriell_lab/status/2117611847805272267",
+  "section": "Interaction design",
+  "details": "#402 · Saved link",
+  "id": "u3f0f63b873"
+ },
+ {
+  "title": "tell your agents to not use these fonts",
+  "url": "https://x.com/yuwen_lu_/status/2117669852471087354",
+  "section": "Typography",
+  "details": "2026 · #410 · 🟢 X post by yuwen lu",
+  "id": "u0cfda8bd5c"
+ },
+ {
+  "title": "@andreaskruszaki: Design engineering tip: don't let the icon float",
+  "url": "https://x.com/andreaskruszaki/status/2119385433796927751",
+  "section": "Typography",
+  "details": "#411 · Saved link",
+  "id": "u98b60a9dac"
+ },
+ {
+  "title": "Tracer bullets + working backwards: simple framework for solving problems - Caitlin Hudon",
+  "url": "https://www.youtube.com/watch?v=vNZY0zhg3Do",
+  "section": "Talks and interviews",
+  "details": "2022 · #257 · 🟢 talk, NormConf 2022",
+  "id": "u58d9ff98a9"
+ },
+ {
+  "title": "Don't Do Invisible Work - Chris Albon",
+  "url": "https://www.youtube.com/watch?v=HiF83i1OLOM",
+  "section": "Talks and interviews",
+  "details": "2022 · #326 · 🟢 closing keynote, NormConf 2022",
+  "id": "uacecf19dfd"
+ },
+ {
+  "title": "Tracer Bullets and Prototypes: A Conversation with Andy Hunt and Dave Thomas, Part VIII",
+  "url": "https://www.artima.com/articles/tracer-bullets-and-prototypes",
+  "section": "Talks and interviews",
+  "details": "2003 · #322 · 🟢 interview by Bill Venners, Artima",
+  "id": "u4472f92677"
+ },
+ {
+  "title": "Results of Applying the Personal Software Process",
+  "url": "https://www.eecis.udel.edu/~decker/courses/475s06/hw1/ferguson97.pdf",
+  "section": "Reflecting on your own work",
+  "details": "1997 · #372 · 🟢 IEEE Computer",
+  "id": "ufc8432d87a"
+ },
+ {
+  "title": "Beyond Vibe Coding",
+  "url": "https://www.oreilly.com/library/view/beyond-vibe-coding/9798341634749/ch05.html",
+  "section": "Reflecting on your own work",
+  "details": "2025 · #329 · 🔒 book, O'Reilly",
+  "id": "uf107185728"
+ },
+ {
+  "title": "Apprenticeship Patterns",
+  "url": "https://www.oreilly.com/library/view/apprenticeship-patterns/9780596806842/ch01.html",
+  "section": "Reflecting on your own work",
+  "details": "2010 · #342 · 🔒 book, O'Reilly",
+  "id": "uf4eb3f226b"
+ },
+ {
+  "title": "The Reflective Practitioner",
+  "url": "https://search.worldcat.org/title/8709452",
+  "section": "Reflecting on your own work",
+  "details": "1983 · #362 · 🔒 book",
+  "id": "ufd4bec44c2"
+ },
+ {
+  "title": "How to figure out what to do with your life",
+  "url": "https://x.com/Julian/status/2012649856922481118",
+  "section": "Reflecting on your own work",
+  "details": "#409 · Saved link",
+  "id": "u5a45271951"
+ },
+ {
+  "title": "@kuanhaoh_: blog posts on applying for a PhD",
+  "url": "https://x.com/kuanhaoh_/status/2119520156930183400",
+  "section": "Reflecting on your own work",
+  "details": "#391 · Saved link",
+  "id": "u4a26ea6fac"
+ },
+ {
+  "title": "Why creating skills matters",
+  "url": "https://x.com/dbreunig/status/2118014468571701271",
+  "section": "Reflecting on your own work",
+  "details": "#314 · Saved link",
+  "id": "ua1cc154aaf"
+ },
+ {
+  "title": "From QA to /autoqa",
+  "url": "https://x.com/chrisrodz35/status/2117693156481225010",
+  "section": "Working with agents",
+  "details": "2026 · #277 · 🟢 X article by Miguel Ríos Berríos, shared by Christian Rodríguez",
+  "id": "udf9f838102"
+ },
+ {
+  "title": "How to design good verification loops?",
+  "url": "https://x.com/copyconstruct/status/2117431618415784120",
+  "section": "Working with agents",
+  "details": "2026 · #110 · 🟢 X post by Cindy Sridharan",
+  "id": "uab27786163"
+ },
+ {
+  "title": "performance engineering",
+  "url": "https://x.com/codetaur/status/2117344046112997729",
+  "section": "Working with agents",
+  "details": "2026 · #295 · 🟢 X post by Codetaur",
+  "id": "u55289dc06c"
+ },
+ {
+  "title": "thimble: a Claude Code plugin that explains what agents did",
+  "url": "https://x.com/mjoerke/status/2120190288648085651",
+  "section": "Working with agents",
+  "details": "#340 · Saved link",
+  "id": "u81a39b67b4"
+ },
+ {
+  "title": "Firecrawl launches job-search tools for ChatGPT and Claude",
+  "url": "https://x.com/firecrawl/status/2120197091410493731",
+  "section": "Working with agents",
+  "details": "#408 · Saved link",
+  "id": "ubc9bcd52ec"
+ },
+ {
+  "title": "@theo: I really like deepu, golden example of a great community mem",
+  "url": "https://x.com/theo/status/2119695061550043291",
+  "section": "Working with agents",
+  "details": "#406 · Saved link",
+  "id": "ud9d835689c"
+ },
+ {
+  "title": "@koahlabs: Introducing Sidequest, a Claude Code mod that pays developer",
+  "url": "https://x.com/koahlabs/status/2119823800904581432",
+  "section": "Working with agents",
+  "details": "#403 · Saved link",
+  "id": "uf53c3e9446"
+ },
+ {
+  "title": "@badlogicgames",
+  "url": "https://x.com/badlogicgames/status/2119842382023680391",
+  "section": "Working with agents",
+  "details": "#313 · Saved link",
+  "id": "u7844ade4aa"
+ },
+ {
+  "title": "@addyosmani:",
+  "url": "https://x.com/addyosmani/status/2119332146485891501",
+  "section": "Working with agents",
+  "details": "#323 · Saved link",
+  "id": "u0b738e7500"
+ },
+ {
+  "title": "@noahatwhere: Research Loop: 7 open skills that give AI agents a flight pl",
+  "url": "https://x.com/noahatwhere/status/2119257234656174144",
+  "section": "Working with agents",
+  "details": "#253 · Saved link",
+  "id": "u36a8e59700"
+ },
+ {
+  "title": "Chinmay: fine-grained credit assignment with an agentic judge",
+  "url": "https://x.com/ChinmayKak/status/2119086565138022844",
+  "section": "Working with agents",
+  "details": "2026 · #85 · X post linking the blog",
+  "id": "u57705a841c"
+ },
+ {
+  "title": "Effective testing for machine learning systems",
+  "url": "https://www.jeremyjordan.me/testing-ml/",
+  "section": "Working with agents",
+  "details": "2020 · #225 · 🟢 blog, Jeremy Jordan",
+  "id": "ue601225590"
+ },
+ {
+  "title": "@theo: Be thorough in your analysis and bold in your recommendations",
+  "url": "https://x.com/theo/status/2118830837840183628",
+  "section": "Working with agents",
+  "details": "#350 · Saved link",
+  "id": "uc20e95b175"
+ },
+ {
+  "title": "gregd_nlp: smoothing errors in LLM answers",
+  "url": "https://x.com/gregd_nlp/status/2118478140309979632",
+  "section": "Working with agents",
+  "details": "#317 · Saved link",
+  "id": "ubf0d5c53a4"
+ },
+ {
+  "title": "mazeincoding: /untangle-codebase",
+  "url": "https://x.com/mazeincoding/status/2118378945557004477",
+  "section": "Working with agents",
+  "details": "#341 · Saved link",
+  "id": "u84917b21e3"
+ },
+ {
+  "title": "allietheicon: why TypeSafe calls Jev a decision model",
+  "url": "https://x.com/allietheicon/status/2118508404192981040",
+  "section": "Working with agents",
+  "details": "#335 · Saved link",
+  "id": "u15bb9ecffe"
+ },
+ {
+  "title": "mattpocockuk: \"How do we make this change fully verifiable?\"",
+  "url": "https://x.com/mattpocockuk/status/2118313863917564136",
+  "section": "Working with agents",
+  "details": "#297 · Saved link",
+  "id": "u118dbdd4ee"
+ },
+ {
+  "title": "How We Recreated Anthropic's Widget Streaming Using DSPy",
+  "url": "https://unravel.tech/blog/how-we-recreated-anthropic-widget-streaming/",
+  "section": "Working with agents",
+  "details": "#364 · Saved link",
+  "id": "u0de920610f"
+ },
+ {
+  "title": "Jev-Driven SRE Diagnosis: What Worked and What Failed",
+  "url": "https://www.sregym.com/blog/jev-driven-sre-diagnosis",
+  "section": "Working with agents",
+  "details": "#348 · Saved link",
+  "id": "u75c66933b9"
+ },
+ {
+  "title": "A rewritten /reverse-any-video skill",
+  "url": "https://x.com/liu8in/status/2118051283227885833",
+  "section": "Working with agents",
+  "details": "#405 · Saved link",
+  "id": "u9360c929e7"
+ },
+ {
+  "title": "Our priors on code readability",
+  "url": "https://x.com/mattpocockuk/status/2117953152376799498",
+  "section": "Working with agents",
+  "details": "#320 · Saved link",
+  "id": "ub853acd4ed"
+ },
+ {
+  "title": "Synthesizing an inference engine per model and Mac",
+  "url": "https://x.com/mertcemri/status/2118057463488589863",
+  "section": "Working with agents",
+  "details": "#382 · Saved link",
+  "id": "ub5d0a6b212"
+ },
+ {
+  "title": "desloppify, a harness for slop code",
+  "url": "https://x.com/benjaminsehl/status/2117628062275719371",
+  "section": "Working with agents",
+  "details": "#328 · Saved link",
+  "id": "uff923e08df"
+ },
+ {
+  "title": "A risk gate before code review",
+  "url": "https://x.com/BHolmesDev/status/2117743731139129628",
+  "section": "Working with agents",
+  "details": "#336 · Saved link",
+  "id": "u5d62d03a0f"
+ },
+ {
+  "title": "An AGENTS.md habit for feature work",
+  "url": "https://x.com/d0xxed/status/2117672152724083113",
+  "section": "Working with agents",
+  "details": "#316 · Saved link",
+  "id": "u12a6186ce3"
+ },
+ {
+  "title": "Linking paper, concept and project notes",
+  "url": "https://www.emilevankrieken.com/blog/2025/academic-obsidian/",
+  "section": "Academic research and writing",
+  "details": "#299 · Emile van Krieken · Connect one source or idea to several research questions.",
+  "id": "u1db198b986"
+ },
+ {
+  "title": "Mastering Notebook Navigator 3 for Obsidian",
+  "url": "https://www.youtube.com/watch?v=m2maDNtho7Y",
+  "section": "Academic research and writing",
+  "details": "#385 · Johan Sanneblad",
+  "id": "uc61f246259"
+ },
+ {
+  "title": "A visual literature map built around research questions",
+  "url": "https://www.lucasmercier.me/blog/research_workflow",
+  "section": "Academic research and writing",
+  "details": "#330 · Lucas Mercier · Use Canvas to organize papers around the questions they address.",
+  "id": "u52d153df13"
+ },
+ {
+  "title": "Source notes and personal commentary for survey writing",
+  "url": "https://lill.is/site/zotero-obsidian.html",
+  "section": "Academic research and writing",
+  "details": "#365 · David Lillis · Protect your commentary from later imports. The plugin recipe is historical.",
+  "id": "u26b5cf8d7a"
+ },
+ {
+  "title": "From source notes to ideas and a visual argument outline",
+  "url": "https://girlinbluemusic.com/how-to-connect-zotero-and-obsidian-for-the-ultimate-phd-workflow/",
+  "section": "Academic research and writing",
+  "details": "#374 · Amy King · Develop source notes into your own ideas. The article also offers a paid template.",
+  "id": "u23388550ce"
+ },
+ {
+  "title": "Literature notes through cited manuscript export",
+  "url": "https://medium.com/@alexandraphelan/an-updated-academic-workflow-zotero-obsidian-cffef080addd",
+  "section": "Academic research and writing",
+  "details": "#369 · Alexandra Phelan · Draft in Obsidian and export to Word. Documents a 2023 setup corrected in 2024.",
+  "id": "u216ec1cf88"
+ },
+ {
+  "title": "Connected research notes with manuscript writing in Overleaf",
+  "url": "https://juliawasala.nl/blog/paper-management/",
+  "section": "Academic research and writing",
+  "details": "#370 · Julia Wąsala · Compare keeping research notes in Obsidian while drafting papers elsewhere.",
+  "id": "u1a76c74436"
+ },
+ {
+  "title": "A how-to-do-research skill built from Neel Nanda's guides",
+  "url": "https://x.com/menhguin/status/2120151292530315426",
+  "section": "Academic research and writing",
+  "details": "#276",
+  "id": "udf78ce1777"
+ },
+ {
+  "title": "Project context in Obsidian with tasks in Todoist",
+  "url": "https://justinroberts.blog/writing/How-I-Manage-Projects-With-Todoist-and-Obsidian",
+  "section": "Project management",
+  "details": "#307 · Justin Roberts · Keep one authoritative task state while retaining project context and history.",
+  "id": "ufbbe9feef6"
+ },
+ {
+  "title": "Tasks beside meeting and daily-note context",
+  "url": "https://www.curtiscode.dev/post/getting-things-done-with-obsidian-tasks",
+  "section": "Project management",
+  "details": "#384 · Curtis Lane · Compare inline tasks and generated views with a separate task manager.",
+  "id": "u9e23b9d7c4"
+ },
+ {
+  "title": "Current project summaries, decisions and history",
+  "url": "https://www.dev-log.me/obsidian_project_knowledge_management/",
+  "section": "Project management",
+  "details": "#294 · Yannick Gladow · Separate reviewed understanding from incoming notes and external team tools.",
+  "id": "uae817b86e1"
+ },
+ {
+  "title": "Project pages connected to daily notes and task views",
+  "url": "https://forum.obsidian.md/t/my-project-management-workflow-an-in-depth-explanation/82508",
+  "section": "Project management",
+  "details": "#361 · Forum user New · Read the worked forum examples. The linked example vault was unavailable during research.",
+  "id": "u4f752b7e01"
+ },
+ {
+  "title": "Why I'm ditching Obsidian as a task manager",
+  "url": "https://elizabethtai.com/2023/09/10/why-im-ditching-obsidian-as-a-task-manager/",
+  "section": "Project management",
+  "details": "#394 · Elizabeth Tai",
+  "id": "uf6cd1f97e1"
+ },
+ {
+  "title": "Obsidian-Workflow: AI driven project management using Obsidian Vault",
+  "url": "https://github.com/Keilthar/Obsidian-Workflow",
+  "section": "Project management",
+  "details": "#353 · Keilthar",
+  "id": "ucc39c34581"
+ },
+ {
+  "title": "@dillon_mulroy: ask your bot to sync it daily",
+  "url": "https://x.com/dillon_mulroy/status/2118686756254224508",
+  "section": "Project management",
+  "details": "#373",
+  "id": "ub88287de56"
+ },
+ {
+  "title": "Model Collapse in the Self-Consuming Chain of Diffusion Finetuning: A Novel Perspective from Quantitative Trait Modeling",
+  "url": "https://api.semanticscholar.org/arXiv:2407.17493",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2024 · 12 · #195 · 🟢 ICLR 2025",
+  "id": "u6dc7340414"
+ },
+ {
+  "title": "Feedback Efficient Online Fine-Tuning of Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/6a225bb2454f66d1b106bbae7e5129d6569aa260",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2024 · 58 · #42 · 🟢 ICML 2024",
+  "id": "udb67285c5b"
+ },
+ {
+  "title": "Sample-Efficient Optimization in the Latent Space of Deep Generative Models via Weighted Retraining",
+  "url": "https://arxiv.org/abs/2006.09191",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2020 · 190 · #66 · 🟢 NeurIPS 2020",
+  "id": "u02c4a6a4f1"
+ },
+ {
+  "title": "Fine-Tuning Discrete Diffusion Models via Reward Optimization with Applications to DNA and Protein Design",
+  "url": "https://proceedings.iclr.cc/paper_files/paper/2025/hash/771e09dd204ea339da0d8114c48afd21-Abstract-Conference.html",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2024 · 93 · #62 · 🟢 ICLR 2025 · [Alternate source](https://www.semanticscholar.org/paper/d1461167c9fef8fe3ba129c514acfd14bbe7a51e)",
+  "id": "uea97878306"
+ },
+ {
+  "title": "Self-Consuming Generative Models with Curated Data Provably Optimize Human Preferences",
+  "url": "https://api.semanticscholar.org/arXiv:2407.09499",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2024 · 43 · #214 · 🟢 NeurIPS 2024 spotlight",
+  "id": "u64a86ca29b"
+ },
+ {
+  "title": "CADO: From Imitation to Cost Minimization for Heatmap-based Solvers in Combinatorial Optimization",
+  "url": "https://arxiv.org/abs/2602.08210",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2026 · 2 · #44 · 🟢 TMLR 2026",
+  "id": "u8e5e38b08a"
+ },
+ {
+  "title": "Scalable Discrete Diffusion Samplers: Combinatorial Optimization and Statistical Physics",
+  "url": "https://www.semanticscholar.org/paper/ec3d27dbfdd9431720c8a848b0ac33145dac58be",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2025 · 33 · #140 · 🟢 ICLR 2025",
+  "id": "ub0f7bcd23f"
+ },
+ {
+  "title": "Training Diffusion Language Models for Black-Box Optimization (DiBO)",
+  "url": "https://arxiv.org/html/2603.17919v1",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2026 · 4 · #59 · 2026, arXiv preprint — adds domain adaptation, supervised fine-tuning, and reinforcement learning based on label improvements; examines steering generation through training beyond supplying examples in a prompt. · 2.3 LLMs for Black-Box Optimization<br>Inverse Methods.",
+  "id": "udd29a74692"
+ },
+ {
+  "title": "DPOK: Reinforcement Learning for Fine-tuning Text-to-Image Diffusion Models",
+  "url": "https://www.semanticscholar.org/paper/a553bf27d801d09f667fe121c0ba9632257f364b",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2023 · 543 · #151 · 🟢 NeurIPS 2023",
+  "id": "u9de232f5c8"
+ },
+ {
+  "title": "Iterated Denoising Energy Matching for Sampling from Boltzmann Densities",
+  "url": "https://www.semanticscholar.org/paper/9f0f134bc53f9aea130f1a561acb5fa6b08ae4ce",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2024 · 134 · #205 · 🟢 ICML 2024",
+  "id": "ua2fa1dc4a4"
+ },
+ {
+  "title": "Improved sampling via learned diffusions",
+  "url": "https://www.semanticscholar.org/paper/d174e9d35a9d6d899acbc661e05a937a659ffc42",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2023 · 120 · #184 · 🟢 ICLR 2024",
+  "id": "u23565bd101"
+ },
+ {
+  "title": "Reward-Directed Conditional Diffusion: Provable Distribution Estimation and Reward Improvement",
+  "url": "https://arxiv.org/abs/2307.07055",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2023 · 59 · #21 · 🟢 NeurIPS 2023",
+  "id": "u476ac29adc"
+ },
+ {
+  "title": "Training Diffusion Models with Reinforcement Learning",
+  "url": "https://www.semanticscholar.org/paper/d8c78221e4366d6a72a6b3e41e35b706cc45c01d",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2023 · 1,151 · #87 · 🟢 ICLR 2024",
+  "id": "ub4057a8318"
+ },
+ {
+  "title": "The tractability landscape of diffusion alignment: regularization, rewards, and computational primitives",
+  "url": "https://arxiv.org/abs/2605.11361",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2026 · 3 · #83 · 🟢 arXiv preprint, no venue listed",
+  "id": "u0563ed19ad"
+ },
+ {
+  "title": "CRoS: Causality Reward on Scrambled CoTs Improves Accuracy and Reasoning Faithfulness",
+  "url": "https://arxiv.org/abs/2610.42054",
+  "section": "Fine-tuning and reward objectives",
+  "details": "2026 · #338 · 🟢 arXiv preprint, no venue listed",
+  "id": "u25742e9e41"
+ },
+ {
+  "title": "Identifying and Clustering Counter Relationships of Team Compositions in PvP Games for Efficient Balance Analysis",
+  "url": "https://arxiv.org/abs/2408.17180",
+  "section": "Other readings kept for later",
+  "details": "2024 · 0 · #22 · TMLR 2024. Counter-matrix between team compositions; take the measure, not the balance-analysis pipeline.",
+  "id": "u64f6b72494"
+ },
+ {
+  "title": "Team Composition in PES2018 Using Submodular Function Optimization",
+  "url": "https://doi.org/10.1109/ACCESS.2019.2919447",
+  "section": "Other readings kept for later",
+  "details": "2019 · 6 · #122 · IEEE Access 2019. Team selection as a submodular coverage function with a greedy solver; the closest published cousin of the weighted maximum coverage objective.",
+  "id": "uaed94d0eaf"
+ },
+ {
+  "title": "Articulating Design Decisions: Communicate with Stakeholders, Keep Your Sanity, and Deliver the Best User Experience",
+  "url": "https://www.oreilly.com/library/view/articulating-design-decisions/9781492079217/",
+  "section": "Other readings kept for later",
+  "details": "2020 · #396 · 🔒 Book, Tom Greever, O'Reilly, 2nd ed. 2020",
+  "id": "u50d758c796"
+ },
+ {
+  "title": "A Tutorial on Bayesian Optimization",
+  "url": "https://api.semanticscholar.org/arXiv:1807.02811",
+  "section": "Parked directions",
+  "details": "2018 · 2,548 · #230",
+  "id": "u4c7ee7c0ba"
+ },
+ {
+  "title": "Evaluating the Stability of the Smogon Tier List for Competitive Pokémon Battling",
+  "url": "https://ceur-ws.org/Vol-3926/paper2.pdf",
+  "section": "Parked directions",
+  "details": "2024 · 0 · #279 · 🟢 EXAG 2024",
+  "id": "uadf58c7ab9"
+ },
+ {
+  "title": "A QUBO Framework for Team Formation",
+  "url": "https://arxiv.org/abs/2503.23209",
+  "section": "Parked directions",
+  "details": "2025 · 3 · #289",
+  "id": "u60b87e9bcb"
+ },
+ {
+  "title": "A Tutorial on Formulating and Using QUBO Models",
+  "url": "https://api.semanticscholar.org/arXiv:1811.11538",
+  "section": "Parked directions",
+  "details": "2018 · 919 · #324",
+  "id": "ucd197d8a1a"
+ },
+ {
+  "title": "Designing Metamaterials with Quantum Annealing and Factorization Machines",
+  "url": "https://arxiv.org/abs/1902.06573",
+  "section": "Parked directions",
+  "details": "2019 · 161 · #378 · kept only for the pairwise-interaction surrogate idea, not annealing",
+  "id": "u3cd1e1207e"
+ },
+ {
+  "title": "Calculating Pokémon Teams v1.0 by John (JaybeeVGC)",
+  "url": "https://docs.google.com/document/d/1IIXfm49kbrij4FouD3x9RgYdaM2BetE1/edit",
+  "section": "Parked directions",
+  "details": "#246 · PuLP linear programming over type coverage; retired framing",
+  "id": "u4f191b3303"
+ },
+ {
+  "title": "Pokémon team optimization by Nicolas Chagnet",
+  "url": "https://nchagnet.eu/blog/pokemon-team-optimization/",
+  "section": "Parked directions",
+  "details": "2025 · #30 · 🟢 blog + PuLP repo, 2025",
+  "id": "u9c907f54b4"
+ },
+ {
+  "title": "Which Heroes to Pick? Learning to Draft in MOBA Games with Neural Networks and Tree Search",
+  "url": "https://arxiv.org/abs/2012.10171",
+  "section": "Parked directions",
+  "details": "2020 · 36 · #134 · tree search is the right tool class, but the sequential draft model does not fit simultaneous bring-six selection.",
+  "id": "u2cab1e22d7"
+ },
+ {
+  "title": "Introducing Tales of Tribute AI Competition",
+  "url": "https://www.semanticscholar.org/paper/2cd0f87d70a0b6afd79324f959c68f04ef6c0945",
+  "section": "Parked directions",
+  "details": "2023 · 5 · #284 · about playing agents for a card game, not team construction.",
+  "id": "u8805966bbd"
+ },
+ {
+  "title": "Learn from Your Mistakes: Self-Correcting Masked Diffusion Models",
+  "url": "https://arxiv.org/abs/2602.11590",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 20 · #88 · SPIGM (ICML 2026 workshop) · Learned correction is legitimate, but no established benefit beyond current repair or for the active data comparison.",
+  "id": "ufbd7d14f03"
+ },
+ {
+  "title": "Breaking the Factorization Barrier in Diffusion Language Models",
+  "url": "https://arxiv.org/abs/2603.00045",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 11 · #133 · SPIGM (ICML 2026 workshop) · A joint head chiefly addresses simultaneous field generation, which the current sampler does not do.",
+  "id": "uefae059983"
+ },
+ {
+  "title": "Internal Data Repetition Destroys Language Models",
+  "url": "https://arxiv.org/abs/2606.24998",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 4 · #352 · SPIGM (ICML 2026 workshop) · Exact duplicate removal is already available. The paper studies concentrated exact repetition; extending it to distinct mutations did not justify this reading.",
+  "id": "u61b5ef388f"
+ },
+ {
+  "title": "Finetuning Generative Models to Match Feature Distributions",
+  "url": "https://arxiv.org/abs/2606.19496",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 0 · #145 · SPIGM (ICML 2026 workshop) · Outside the two-paper owner-confirmed shortlist.",
+  "id": "u800aa70695"
+ },
+ {
+  "title": "The Confidence Shortcut: A Reasoning Failure Mode of Masked Diffusion Models",
+  "url": "https://arxiv.org/abs/2605.29123",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 1 · #220 · SPIGM (ICML 2026 workshop) · Relevant if confidence-aligned training becomes active; the current model does not use it.",
+  "id": "u3dfd7ebcdb"
+ },
+ {
+  "title": "Uniform Diffusion Models Revisited: Leave-One-Out Denoiser and Absorbing State Reformulation",
+  "url": "https://arxiv.org/abs/2605.22765",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 12 · #186 · SPIGM (ICML 2026 workshop) · A uniform-corruption objective issue does not establish a defect in the current mask-only model.",
+  "id": "u1233c6cefd"
+ },
+ {
+  "title": "Tensor-Train Joint Modeling for Few-Step Discrete Diffusion",
+  "url": "https://arxiv.org/abs/2607.03788",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 1 · #172 · SPIGM (ICML 2026 workshop) · Low-rank joint sampling is a future parallel-decoding option, with ordering and rank assumptions.",
+  "id": "u2edd4078c5"
+ },
+ {
+  "title": "Latent-Augmented Discrete Diffusion Models",
+  "url": "https://arxiv.org/abs/2510.18114",
+  "section": "SPIGM papers not accepted",
+  "details": "2025 · 0 · #204 · SPIGM (ICML 2026 workshop) · A latent channel adds substantial modeling requirements before a demonstrated current need.",
+  "id": "u6552826203"
+ },
+ {
+  "title": "Learned Relay Representations for Forward-Thinking Discrete Diffusion Models",
+  "url": "https://arxiv.org/abs/2605.22967",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 1 · #171 · SPIGM (ICML 2026 workshop) · Compatible with sequential generation, but a persistent-state benefit has not been established here.",
+  "id": "u475b50b8a3"
+ },
+ {
+  "title": "Recursive Scaling in Masked Diffusion Models",
+  "url": "https://arxiv.org/abs/2606.18022",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 2 · #197 · SPIGM (ICML 2026 workshop) · A future capacity-versus-compute study, not evidence about the current data or CEM questions.",
+  "id": "uebf656b211"
+ },
+ {
+  "title": "Understanding and Accelerating the Training of Masked Diffusion Language Models",
+  "url": "https://arxiv.org/abs/2605.13026",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 1 · #310 · SPIGM (ICML 2026 workshop) · The owner confirms diffusion training is not a problem. Mask-context diagnostics do not supply a sufficiently relevant current reading task.",
+  "id": "ua1208a6eae"
+ },
+ {
+  "title": "Time-Annealed Perturbation Sampling: Diverse Generation for Diffusion Language Models",
+  "url": "https://arxiv.org/abs/2601.22629",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 4 · #39 · SPIGM (ICML 2026 workshop) · Weak categorical-conditioning transfer, plus filtering and reporting issues undermine the proposed payoff.",
+  "id": "u384aa2ca52"
+ },
+ {
+  "title": "Hacking Generative Perplexity: Why Unconditional Text Evaluation Needs Distributional Metrics",
+  "url": "https://arxiv.org/abs/2606.08417",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 8 · #318 · SPIGM (ICML 2026 workshop) · The project does not use generative perplexity and already plans full-team/composition diversity measurements. The earlier team-template stress-test connection was an analogy, insufficient to justify reading this paper.",
+  "id": "uad880c146e"
+ },
+ {
+  "title": "DUEL: Exact Likelihood for Masked Diffusion via Deterministic Unmasking",
+  "url": "https://arxiv.org/abs/2603.01367",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 12 · #164 · SPIGM (ICML 2026 workshop) · Exact likelihood for a specified reveal schedule is not a current project requirement.",
+  "id": "u79c03e860f"
+ },
+ {
+  "title": "TUBE: Tangent Upper Bound on Evidence for Discrete Diffusion Language Models",
+  "url": "https://arxiv.org/abs/2605.24292",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 2 · #302 · SPIGM (ICML 2026 workshop) · Sophisticated likelihood bounds do not answer the current team-quality or diversity decisions.",
+  "id": "u73debfa79b"
+ },
+ {
+  "title": "Contrastive Distribution Matching for Amortized Sequential Monte Carlo in Discrete Diffusion",
+  "url": "https://arxiv.org/abs/2605.23346",
+  "section": "SPIGM papers not accepted",
+  "details": "2026 · 5 · #43 · SPIGM (ICML 2026 workshop) · Keep as a future reward-integration reference, requiring a suitable reward and trajectory model.",
+  "id": "uc82e00c438"
+ },
+ {
+  "title": "Variational Search Distributions",
+  "url": "https://arxiv.org/abs/2409.06142",
+  "section": "Rejected readings",
+  "details": "2024 · 9 · #18 · 🟢 ICLR 2025, was HIGH. Rejected at the owner's request, 2026-09-10: 9 citations, and the papers citing it are themselves low-cited.",
+  "id": "uda58aa07d6"
+ },
+ {
+  "title": "Closed-Loop Generative Selection: Convergence, Memory, and Noisy Oracles",
+  "url": "https://arxiv.org/abs/2607.22211",
+  "section": "Rejected readings",
+  "details": "2026 · 0 · #132 · 🟢 arXiv preprint, no venue listed, was MED. Owner's verdict, 2026-09-10: does not belong in the reading list.",
+  "id": "ue9c7d58bd4"
+ },
+ {
+  "title": "Convergence properties of the cross-entropy method for discrete optimization",
+  "url": "https://people.smp.uq.edu.au/DirkKroese/ps/CEconv.pdf",
+  "section": "Rejected readings",
+  "details": "2007 · 143 · #255 · 🟢 Operations Research Letters 2007, was HIGH. Rejected at the owner's request, 2026-09-10: somewhat relevant, but he dislikes the writing.",
+  "id": "u18a74ffaad"
+ },
+ {
+  "title": "Efficient Active Search for Combinatorial Optimization Problems",
+  "url": "https://arxiv.org/abs/2106.05126",
+  "section": "Rejected readings",
+  "details": "2021 · 142 · #274 · ICLR 2022, I just learn what was active search method which is about training the whole model using only insteance to increase probability more likely to generate the examples but the thing only one example not what I am looking for — Rejected 2026-09-10: per-instance fine-tuning is already the CEM loop; saves compute, not battles.",
+  "id": "uc9357ed9ad"
+ },
+ {
+  "title": "Batch Bayesian Optimization for Replicable Experimental Design",
+  "url": "https://arxiv.org/abs/2311.01195",
+  "section": "Rejected readings",
+  "details": "2023 · 11 · #281 · 🟢 NeurIPS 2023, previously MED — Owner's note: not useful for this project.",
+  "id": "u6867fb2d3d"
+ },
+ {
+  "title": "Verifier-Constrained Flow Expansion for Discovery Beyond the Data",
+  "url": "https://arxiv.org/abs/2602.15984",
+  "section": "Rejected readings",
+  "details": "2026 · 7 · #216 · ICLR 2026, was MED. Rejected 2026-09-06: no demonstrated categorical discrete-diffusion update; Appendix G.5 updates only continuous atom positions in the mixed molecular model. Outside the owner's current discrete team-generation scope.",
+  "id": "u690879f72c"
+ },
+ {
+  "title": "Replication or exploration? Sequential design for stochastic simulation experiments",
+  "url": "https://arxiv.org/abs/1710.03206",
+  "section": "Rejected readings",
+  "details": "2017 · 136 · #229 · Technometrics 61(1):7-23, 2019, was MED. Owner's verdict, 2026-09-06: not relevant to the project.",
+  "id": "uab235ab224"
+ },
+ {
+  "title": "Bayesian Optimal Active Search and Surveying",
+  "url": "https://arxiv.org/abs/1206.6406",
+  "section": "Rejected readings",
+  "details": "2012 · 132 · #227 · ICML 2012, was MED. Owner's verdict, 2026-09-06: not relevant to the project.",
+  "id": "ud8a04d02e9"
+ },
+ {
+  "title": "The Offline-Frontier Shift: Diagnosing Distributional Limits in Generative Multi-Objective Optimization",
+  "url": "https://arxiv.org/abs/2602.11126",
+  "section": "Rejected readings",
+  "details": "2026 · 0 · #248 · was MED. Rejected 2026-09-06: offline multi-objective / Pareto-front evaluation is outside the current project scope.",
+  "id": "u307efd7073"
+ },
+ {
+  "title": "Generative Refinement for Low-Budget Black-Box Optimization",
+  "url": "https://arxiv.org/abs/2607.00691",
+  "section": "Rejected readings",
+  "details": "2026 · 0 · #180 · was MED. Rejected at the owner's request, 2026-09-06; not useful for the current scope.",
+  "id": "u49194207df"
+ },
+ {
+  "title": "QUBO, I Choose You: Building an Optimal Pokémon Team with a Quantum Computer",
+  "url": "https://www.dwavequantum.com/events-section/events/webinar-qubo-i-choose-you-building-an-optimal-pokemon-team-with-a-quantum-computer/",
+  "section": "Rejected readings",
+  "details": "2019 · #315 · D-Wave webinar 2019; species/type-level QUBO, formulation only in the recording, no published code; the pairwise-surrogate idea is already carried by the metamaterials entry.",
+  "id": "u9b7b2714a5"
+ },
+ {
+  "title": "A Threshold of ln n for Approximating Set Cover",
+  "url": "https://courses.cs.duke.edu/spring07/cps296.2/papers/p634-feige.pdf",
+  "section": "Rejected readings",
+  "details": "1996 · 867 · #392 · Feige 1996, hardness-of-approximation proof; requires approximation-algorithms background I do not have. The usable result (greedy gets within 1−1/e of optimal max coverage) is already covered by the submodular survey entries.",
+  "id": "u4b465a3d49"
+ },
+ {
+  "title": "Heuristically Adaptive Diffusion-Model Evolutionary Strategy",
+  "url": "https://arxiv.org/abs/2411.13420",
+  "section": "Rejected readings",
+  "details": "2024 · 10 · #275 · HADES: a diffusion model as the offspring sampler inside a continuous-parameter evolutionary strategy (CMA-ES family). Real-valued genomes, toy fitness landscapes (double-peak, Rastrigin) and cart-pole only. Loop shape matches our direction but the object optimized does not; the idea is already carried by Diffusion Models are Evolutionary Algorithms and Design by adaptive sampling. 🟢 Published as Advanced Science 13(20), 2026 (CC BY, PMC13067789): adds MountainCar and Lunar Lander, and says in print “we have applied our algorithm only to continuous parameter spaces.” Owner's verdict, 2026-10-16: rejected.",
+  "id": "uea538f8d90"
+ },
+ {
+  "title": "Evolutionary Optimization in Uncertain Environments — A Survey",
+  "url": "https://www.honda-ri.de/pubs/pdf/1660.pdf",
+  "section": "Rejected readings",
+  "details": "2005 · 1,686 · #309 · Jin & Branke, IEEE Transactions on Evolutionary Computation 2005; superseded by the same group's newer surveys on evolutionary optimization in uncertain and dynamic environments.",
+  "id": "ub53e6a6cd6"
+ },
+ {
+  "title": "DraftRec: Personalized Draft Recommendation for Winning in Multi-Player Online Battle Arena Games",
+  "url": "https://arxiv.org/abs/2204.12750",
+  "section": "Rejected readings",
+  "details": "2022 · 19 · #239 · recommender for each human player's champion preferences; no preference-draft phase exists in this project.",
+  "id": "u9dca777155"
+ },
+ {
+  "title": "Modeling Game Avatar Synergy and Opposition through Embedding in Multiplayer Online Battle Arena Games",
+  "url": "https://arxiv.org/abs/1803.10402",
+  "section": "Rejected readings",
+  "details": "2018 · 9 · #182 · its own arXiv page notes it was rejected by AIIDE 2017; superseded idea.",
+  "id": "ub64e4008cf"
+ },
+ {
+  "title": "A Recommender System for Hero Line-Ups in MOBA Games",
+  "url": "https://ojs.aaai.org/index.php/AIIDE/article/view/12938",
+  "section": "Rejected readings",
+  "details": "2017 · 33 · #150 · association-rule recommender, not an optimizer.",
+  "id": "u746bb85741"
+ },
+ {
+  "title": "Draft-Analysis of the Ancients: Predicting Draft Picks in DotA 2 Using Machine Learning",
+  "url": "https://ojs.aaai.org/index.php/AIIDE/article/view/12899",
+  "section": "Rejected readings",
+  "details": "2016 · 33 · #288 · predicts what humans will pick; the project searches for counters instead.",
+  "id": "u5d21062852"
+ },
+ {
+  "title": "Finding a Team of Experts in Social Networks",
+  "url": "https://cs-people.bu.edu/evimaria/papers/fp525-lappas.pdf",
+  "section": "Rejected readings",
+  "details": "2009 · 764 · #399 · objective is communication cost on a social graph, unrelated to coverage plus clauses.",
+  "id": "u5cdbf429a9"
+ },
+ {
+  "title": "NBA Chemistry: Positive and Negative Synergies in Basketball",
+  "url": "https://philipmaymin.com/papers/Maymin%20Maymin%20and%20Shen%20-%20NBA%20Chemistry%20-%20IJCSS.pdf",
+  "section": "Rejected readings",
+  "details": "2013 · 28 · #386 · heuristic synergy extraction, no transferable search method.",
+  "id": "u016d50df00"
+ },
+ {
+  "title": "OptMatch: Optimized Matchmaking via Modeling the High-Order Interactions on the Arena",
+  "url": "https://linxiagong.github.io/OptMatch/KDD2020_OptMatch.pdf",
+  "section": "Rejected readings",
+  "details": "2020 · 40 · #356 · matchmaking pairs players; it does not build teams.",
+  "id": "u0f1c2de025"
+ },
+ {
+  "title": "Picking Winners in Daily Fantasy Sports Using Integer Programming",
+  "url": "https://arxiv.org/abs/1604.01455",
+  "section": "Rejected readings",
+  "details": "2016 · 7 · #249 · the source list titled this as a football-team paper, but the arXiv record is the fantasy-sports integer-programming paper; either way the framing is retired here.",
+  "id": "u8b95287c44"
+ },
+ {
+  "title": "A Comparison of Coevolution, Fixed, and Hybrid Training for Evolving Agents that Play Tales of Tribute Videogame",
+  "url": "https://doi.org/10.1007/978-3-032-23607-4_33",
+  "section": "Rejected readings",
+  "details": "2026 · 0 · #287 · coevolution for playing agents, not team selection.",
+  "id": "u60113cba3f"
+ },
+ {
+  "title": "Large Language Models As Evolution Strategies",
+  "url": "https://arxiv.org/abs/2402.18381",
+  "section": "Rejected readings",
+  "details": "2024 · 104 · #252 · a large language model used as an in-context recombination operator for evolution strategies; continuous black-box functions, no constraints, no team structure.",
+  "id": "u586a8cde22"
+ },
+ {
+  "title": "SOPL: A Sequential Optimal Learning Approach to Automated Prompt Engineering in Large Language Models",
+  "url": "https://aclanthology.org/2025.findings-emnlp.1155/",
+  "section": "Rejected readings",
+  "details": "2025 · 7 · #383 · optimizes natural-language prompt templates; wrong domain, and it economizes on expensive model queries rather than simulator evaluations.",
+  "id": "u71a1253c01"
+ },
+ {
+  "title": "A Tight Combinatorial Algorithm for Submodular Maximization Subject to a Matroid Constraint",
+  "url": "https://arxiv.org/abs/1204.4526",
+  "section": "Rejected readings",
+  "details": "2012 · 127 · #354 · Filmus & Ward, arXiv 2012 (rev. 2013), no journal venue stated. Gets 1−1/e under a matroid constraint; there is no matroid here. Its restricted-curvature extension (1−e^(−c))/c still assumes the function is submodular, and the non-submodular version of that result is already carried by Guarantees for Greedy Maximization of Non-submodular Functions.",
+  "id": "u97c18fab67"
+ },
+ {
+  "title": "Chamberlin–Courant Rule with Approval Ballots: Approximating the MaxCover Problem with Bounded Frequencies in FPT Time",
+  "url": "https://jair.org/index.php/jair/article/view/11095",
+  "section": "Rejected readings",
+  "details": "2017 · 36 · #358 · Skowron & Faliszewski, Journal of Artificial Intelligence Research 60 (2017). Fixed-parameter-tractable approximation for multiwinner voting; the MaxCover shape matches but the machinery is exact committee election over known ballots, not noisy black-box search.",
+  "id": "ude5ea57aee"
+ },
+ {
+  "title": "An Online Algorithm for Maximizing Submodular Functions",
+  "url": "https://papers.nips.cc/paper/3569-an-online-algorithm-for-maximizing-submodular-functions",
+  "section": "Rejected readings",
+  "details": "2008 · 299 · #332 · Streeter & Golovin, NIPS 2008, pp. 1577–1584. Online no-regret setting, adjacent to the family already ruled out; here f is queried offline in batches, not as a sequential regret game.",
+  "id": "uebabdadf83"
+ },
+ {
+  "title": "Subset Selection by Pareto Optimization",
+  "url": "https://papers.nips.cc/paper_files/paper/2015/hash/b4d168b48157c623fbd095b4a565b5bb-Abstract.html",
+  "section": "Rejected readings",
+  "details": "2015 · 189 · #201 · Qian, Yu & Zhou, NIPS 2015. Bi-objective evolutionary algorithm over k-subsets of a ground set, assuming an exact value oracle; the search unit here is a full team, and f is noisy.",
+  "id": "uadc2929720"
+ },
+ {
+  "title": "Approximation Guarantees of Local Search Algorithms via Localizability of Set Functions",
+  "url": "https://arxiv.org/abs/2006.01400",
+  "section": "Rejected readings",
+  "details": "2020 · 1 · #345 · Kaito Fujii, ICML 2020, PMLR v119 pp. 3327–3336. Localizability has to be derived from restricted strong concavity and smoothness of a differentiable relaxation, which a win rate measured by battles does not have; exact value oracle.",
+  "id": "u4062f74e3c"
+ },
+ {
+  "title": "The Unreasonable Effectiveness of Greedy Algorithms in Multi-Armed Bandit with Many Arms",
+  "url": "https://arxiv.org/abs/2002.10121",
+  "section": "Rejected readings",
+  "details": "2020 · 40 · #357 · Bayati, Hamidi, Johari & Khosravi, NeurIPS 2020. Bandit family ruled out 2026-08-20; the many-armed regret setting is not the search here.",
+  "id": "u51ab0fec65"
+ },
+ {
+  "title": "Sample Efficiency Matters: A Benchmark for Practical Molecular Optimization",
+  "url": "https://www.semanticscholar.org/paper/e318c18e6f3faa5c514e6b85270b2211603fc419",
+  "section": "Rejected readings",
+  "details": "2022 · 234 · #331 · owner's verdict 2026-09-02: does not contribute to this project.",
+  "id": "u289742459a"
+ },
+ {
+  "title": "Diffusion-based Evolutionary Optimization for 3D Multi-Objective Molecular Generation",
+  "url": "https://www.semanticscholar.org/paper/e01f94b7bcf583241e5afe9d4a22bba4504778c9",
+  "section": "Rejected readings",
+  "details": "2025 · 2 · #113 · 2025 preprint, no venue, 1 citation (checked 2026-09-02). Rejected on uptake.",
+  "id": "u19ad3c83c6"
+ },
+ {
+  "title": "Reward-Guided Discrete Diffusion via Clean-Sample Markov Chain for Molecule and Biological Sequence Design",
+  "url": "https://arxiv.org/abs/2602.09424",
+  "section": "Rejected readings",
+  "details": "2026 · 7 · #20 · ReALM-GEN (ICLR 2026 workshop). Rejected 2026-09-02 with the molecular-optimization family.",
+  "id": "u1148f6cc1a"
+ },
+ {
+  "title": "On the Design Space of Discrete Diffusion Online Adaptation for Molecular Optimization",
+  "url": "https://arxiv.org/abs/2607.02834",
+  "section": "Rejected readings",
+  "details": "2026 · 0 · #36 · arXiv preprint, no venue listed. Rejected 2026-09-02 with the molecular-optimization family.",
+  "id": "u914d4a4f6f"
+ },
+ {
+  "title": "On failure modes in molecule generation and optimization",
+  "url": "https://epub.jku.at/obvulioa/download/pdf/5687408?originalFilename=true",
+  "section": "Rejected readings",
+  "details": "2020 · 145 · #305 · Drug Discovery Today: Technologies 2020, was HIGH. Rejected 2026-09-02 with the molecular-optimization family.",
+  "id": "ubbd3569405"
+ },
+ {
+  "title": "Genetic algorithms are strong baselines for molecule generation",
+  "url": "https://arxiv.org/abs/2310.09267",
+  "section": "Rejected readings",
+  "details": "2023 · 45 · #264 · arXiv preprint, no venue listed, was HIGH. Rejected 2026-09-02 with the molecular-optimization family.",
+  "id": "u6aef2e68dd"
+ },
+ {
+  "title": "HardFlow: Hard-Constrained Sampling for Flow-Matching Models via Trajectory Optimization",
+  "url": "https://arxiv.org/abs/2511.08425",
+  "section": "Rejected readings",
+  "details": "2025 · 13 · #232 · ReALM-GEN (ICLR 2026 workshop), was LOW. Continuous optimal control; team legality is categorical, and Constrained Discrete Diffusion carries this job.",
+  "id": "ua139a56137"
+ },
+ {
+  "title": "Trust-Region Noise Search for Black-Box Alignment of Diffusion and Flow Models",
+  "url": "https://arxiv.org/abs/2603.14504",
+  "section": "Rejected readings",
+  "details": "2026 · 0 · #97 · ReALM-GEN (ICLR 2026 workshop), was LOW. Searches a continuous source-noise vector against many reward calls; battles are too costly and too noisy for that. · **Superseded 2026-09-07: accepted MED for selective reading**, with an active entry above. The full paper evaluates expensive rewards; applicability to categorical team generation and noisy battle ranking remains unvalidated. See [[Trust-Region Noise Search for Black-Box Alignment of Diffusion and Flow Models]] for the reassessment.",
+  "id": "ue17651c734"
+ },
+ {
+  "title": "Discrete Diffusion Inference-Time Control with Nested Sequential Monte Carlo",
+  "url": "https://arxiv.org/abs/2608.20123",
+  "section": "Rejected readings",
+  "details": "2026 · 2 · #168 · ReALM-GEN (ICLR 2026 workshop), was LOW. Feynman-Kac particle steering needs a reward on partial sequences; a half-built team cannot be battled.",
+  "id": "u81010a0674"
+ },
+ {
+  "title": "Diffusion Active Learning: Towards Data-Driven Experimental Design in Computed Tomography",
+  "url": "https://arxiv.org/abs/2504.03491",
+  "section": "Rejected readings",
+  "details": "2025 · 5 · #283 · 2025 preprint, no venue, was MED. Inverse problem: acquisition picks the next measurement of a fixed object, informativeness-denominated.",
+  "id": "u26707dd2b3"
+ },
+ {
+  "title": "Active Diffusion-Based Inference for Ill-Posed Inverse Problems under Incomplete Priors",
+  "url": "https://arxiv.org/abs/2608.27080",
+  "section": "Rejected readings",
+  "details": "2026 · 1 · #189 · IJCAI-ECAI 2026 (venue was missing), was LOW. Inverse problem: recovers hidden true parameters, acquisition driven by posterior uncertainty.",
+  "id": "u899aa96791"
+ },
+ {
+  "title": "Offline Model-Based Optimization: Comprehensive Review",
+  "url": "https://arxiv.org/abs/2503.17286",
+  "section": "Rejected readings",
+  "details": "2025 · 27 · #301 · TMLR 2026 (Survey Certification), was HIGH. Offline MBO assumes no oracle access; Showdown gives one on demand. Owner's call 2026-09-02: no surveys.",
+  "id": "u232beb6490"
+ },
+ {
+  "title": "When does return-conditioned supervised learning work for offline reinforcement learning?",
+  "url": "https://arxiv.org/abs/2206.01079",
+  "section": "Rejected readings",
+  "details": "2022 · 108 · #282 · NeurIPS 2022, was HIGH. Owner's verdict 2026-09-02: an offline-RL policy result, no design generator; not useful.",
+  "id": "u1a0d12c0f8"
+ },
+ {
+  "title": "Real-time eSports Match Result Prediction",
+  "url": "https://arxiv.org/abs/1701.03162",
+  "section": "Rejected readings",
+  "details": "2017 · 50 · #311 · Dota 2 win prediction from in-match features; predicts outcomes, does not construct teams.",
+  "id": "ud40ed1d6a7"
+ },
+ {
+  "title": "Win Prediction in Esports: Mixed-Rank Match Prediction in Multi-player Online Battle Arena Games",
+  "url": "https://arxiv.org/abs/1711.06498",
+  "section": "Rejected readings",
+  "details": "2017 · 37 · #242 · same win-prediction family.",
+  "id": "u3f22f70ade"
+ },
+ {
+  "title": "League of Legends: Real-Time Result Prediction",
+  "url": "https://arxiv.org/abs/2309.02449",
+  "section": "Rejected readings",
+  "details": "2023 · 6 · #355 · in-match LSTM prediction; no team construction.",
+  "id": "ue36b4de7fd"
+ },
+ {
+  "title": "Using Machine Learning to Predict Game Outcomes Based on Player-Champion Experience in League of Legends",
+  "url": "https://arxiv.org/abs/2108.02799",
+  "section": "Rejected readings",
+  "details": "2021 · 33 · #381 · predicts outcomes from player skill, explicitly \"regardless of team composition\".",
+  "id": "u8bc99b03e5"
+ },
+ {
+  "title": "MobaQA: MOBA Games Prediction Based on Large Language Model Fine-Tuning",
+  "url": "https://www.semanticscholar.org/paper/MobaQA%3A-MOBA-Games-Prediction-Based-on-Large-Nie-Wang/",
+  "section": "Rejected readings",
+  "details": "2026 · 0 · #300 · LLM fine-tuning to predict real-time win rate and match outcome; prediction, not search (IEEE Transactions on Games 2026).",
+  "id": "ub5394d6506"
+ },
+ {
+  "title": "Unexpected Improvements to Expected Improvement for Bayesian Optimization",
+  "url": "https://www.alphaxiv.org/abs/2310.20708",
+  "section": "Rejected readings",
+  "details": "2023 · 299 · #181 · 🟢 NeurIPS 2023. Rejected 2026-10-28 by a debate judge: it fixes gradient-based optimisation of Expected Improvement on a Gaussian process, and the loop ranks sampled teams without either.",
+  "id": "u87d8aee5c5"
+ },
+ {
+  "title": "Reading List — notes and decision history",
+  "url": "wikilink:Reading List — notes and decision history",
+  "section": "Sources and reading notes",
+  "details": "personal notes, original properties, prior decisions and the complete pre-reorganization list.",
+  "id": "u907c33341b"
+ },
+ {
+  "title": "SPIGM 2026 — paper-by-paper relevance screening",
+  "url": "wikilink:SPIGM 2026 — paper-by-paper relevance screening",
+  "section": "Sources and reading notes",
+  "details": "2 accepted MED readings; remaining screening decisions are historical.",
+  "id": "ub018110d8a"
+ },
+ {
+  "title": "EIML 2026 — paper-by-paper relevance screening",
+  "url": "wikilink:EIML 2026 — paper-by-paper relevance screening",
+  "section": "Sources and reading notes",
+  "details": "2 MED additions; see the screening note for the assessment.",
+  "id": "u7ef10f28e2"
+ },
+ {
+  "title": "_Workshops index",
+  "url": "wikilink:_Workshops index",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "ud8667e9fd9"
+ },
+ {
+  "title": "VGC AI Competition (IEEE CoG)",
+  "url": "wikilink:VGC AI Competition (IEEE CoG)",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "u926308410e"
+ },
+ {
+  "title": "PokeAgent Challenge (NeurIPS 2025)",
+  "url": "wikilink:PokeAgent Challenge (NeurIPS 2025)",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "uc382f1375b"
+ },
+ {
+  "title": "Finding the Frame — papers relevant to the counter-team search",
+  "url": "wikilink:Finding the Frame — papers relevant to the counter-team search",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "u2e5241b5f0"
+ },
+ {
+  "title": "Citation",
+  "url": "wikilink:Citation",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "u55190a74f7"
+ }
+]
