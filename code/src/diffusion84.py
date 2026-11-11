@@ -16,6 +16,7 @@ budget mask that keeps each Pokémon's Stat Points at most 32 each and 66 in tot
 import copy
 import time
 import math
+from typing import NamedTuple
 
 import numpy as np
 import torch
@@ -171,23 +172,56 @@ def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None):
     return (terms * row_w).mean() if row_w is not None else terms.mean()
 
 
+VAL_SEED = 12345                                       # validation draws: the same slot orders, times and masks every epoch
+VAL_ESTIMATORS = ("random", "midpoint", "counts")      # issue #247: how a team's validation draws place t
+TRAIN_TEAMS_SEED = 0                                   # the fixed training teams scored beside validation each epoch
+
+
+class ValLoss(NamedTuple):
+    """A validation-loss estimate: the mean ELBO, its standard error from the per-team terms, and the teams scored."""
+    mean: float
+    se: float
+    n: int
+
+
 @torch.no_grad()
-def val_loss(net, tables, x, w, sched, reps=4, seed=12345, batch=512):
-    """Mean ELBO on fixed teams with common random numbers: the same slot orders, times and masks on every call,
-    so the curve moves only when the model does. t is stratified per team across reps."""
+def val_loss_terms(net, tables, x, w, sched, reps=4, seed=VAL_SEED, estimator="random", batch=512):
+    """Per-draw, per-team ELBO [reps, N] on fixed teams with common random numbers: the same slot orders, times and
+    masks on every call with the same seed, so the value moves only when the model does. estimator places t:
+        random    stratified at random within each of reps equal slices, per team (4 draws: the default)
+        midpoint  the middle of each slice, the same for every team (a fixed t grid); slots and masks stay random
+        counts    on the grid k/84, evenly spaced over the reps draws with one random offset per team (dLLM spacing)"""
+    if estimator not in VAL_ESTIMATORS: raise ValueError(f"estimator={estimator!r}; choose one of {VAL_ESTIMATORS}")
     g = torch.Generator().manual_seed(seed)
     xs, ws, sc = torch.as_tensor(np.asarray(x, np.int64)), torch.as_tensor(np.asarray(w, np.float32)), sched.cpu()
-    N, tot = len(xs), 0.0
+    N = len(xs)
+    if estimator == "counts": k0 = torch.randint(0, COLS, (N,), generator=g)
+    out = torch.zeros(reps, N)
     for r in range(reps):
         ps = torch.rand(N, NSLOT, generator=g).argsort(1)
-        tt = ((r + torch.rand(N, generator=g)) / reps).clamp(min=1e-3)
+        if estimator == "random": tt = (r + torch.rand(N, generator=g)) / reps
+        elif estimator == "midpoint": tt = torch.full((N,), (r + 0.5) / reps)
+        else: tt = (((k0 + (r * COLS) // reps) % COLS) + 1).float() / COLS
+        tt = tt.clamp(min=1e-3)
         u = torch.rand(N, COLS, generator=g)
         for i in range(0, N, batch):
             sl = slice(i, i + batch)
             m = (u[sl] < tt[sl].view(-1, 1) ** sc.view(1, -1)).to(DEV)
             xb = shuffle_slots(xs[sl], ps[sl]).to(DEV)
-            tot += float(elbo_terms(net, tables, xb, m, tt[sl].to(DEV), ws[sl].to(DEV), sched).sum())
-    return tot / (N * reps)
+            out[r, sl] = elbo_terms(net, tables, xb, m, tt[sl].to(DEV), ws[sl].to(DEV), sched).float().cpu()
+    return out
+
+
+def val_loss_estimate(net, tables, x, w, sched, reps=4, seed=VAL_SEED, estimator="random", batch=512):
+    """ValLoss(mean, se, n): each team's terms averaged over its reps draws, then the mean and standard error over teams."""
+    per_team = val_loss_terms(net, tables, x, w, sched, reps, seed, estimator, batch).double().mean(0)
+    n = len(per_team)
+    return ValLoss(float(per_team.mean()), float(per_team.std() / math.sqrt(n)) if n > 1 else NAN, n)
+
+
+def val_loss(net, tables, x, w, sched, reps=4, seed=VAL_SEED, estimator="random", batch=512):
+    """The mean of val_loss_estimate, for callers that need only the number early stopping compares."""
+    return val_loss_estimate(net, tables, x, w, sched, reps, seed, estimator, batch).mean
 
 
 def _training_tensors(tables, rows, labels, row_weights=None):
@@ -223,10 +257,14 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None,
+                  val_estimator="random", val_draws=4, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
-        val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
+        val=(rows, labels): validation loss after every epoch (common random numbers), logged with its standard error,
+        beside the same function on a fixed sample of training rows the same size (train_teams_loss) and their
+        difference (gap, gap_se). val_estimator and val_draws: how val_loss_terms places t, and how many draws per team
+        (default: 4 random stratified draws, until issue #253 picks one). patience=P: stop after P
         epochs with no new lowest validation loss and keep the best epoch's weights; epochs is then the cap, and
         the learning-rate schedule is sized to it. on_best(model, epoch) runs at every new lowest.
         early_stopping_threshold=T: as in Hugging Face's EarlyStoppingCallback, only an epoch whose validation loss
@@ -242,38 +280,44 @@ class Model84:
         net = Net84(V, **net_kw).to(DEV)
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs, patience=patience,
                     early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
-        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None)
+        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None,
+                    val_estimator=dict(kind=val_estimator, draws=val_draws, seed=VAL_SEED))
         relabel = None if labels_each_epoch is None else \
             (lambda e: torch.as_tensor(np.asarray(labels_each_epoch(e), np.float32)[keep], device=DEV))
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
                         ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
-                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel)
+                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel,
+                        val_kw=dict(reps=val_draws, estimator=val_estimator))
 
     def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
-                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None):
+                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, val_estimator="random", val_draws=4):
         """A new model: this one-member model's weights trained further on 84-field rows; self is unchanged.
         The recipe is train_new's (AdamW, warm-up and cosine decay sized to the cap of `epochs`, EMA, ask dropout,
         label noise on training labels only). Validation loss on val=(rows, labels) is measured before the first epoch
         too, so epoch 0 is the starting weights: if no epoch beats them, early stopping returns them unchanged.
         early_stopping_threshold: the smallest validation-loss gain that resets the patience count, as in train_new.
-        watch={name: (rows, labels)}: more validation sets, logged every epoch and never used to stop."""
+        watch={name: (rows, labels)}: more validation sets, logged every epoch and never used to stop.
+        val_estimator, val_draws, and the logged training-teams loss and gap: as in train_new."""
         net_kw = self.nets[0][1]
         start = copy.deepcopy(self.net).to(DEV)
         torch.manual_seed(seed)
         x, w, rw, keep = _training_tensors(self.tables, rows, labels)
         info = dict(base=self.info, fine_tune=True, n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs,
-                    patience=patience, early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None)
+                    patience=patience, early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None,
+                    val_estimator=dict(kind=val_estimator, draws=val_draws, seed=VAL_SEED))
         return type(self)._fit(self.V, None, self.tables, start, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd,
                                warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold,
                                on_best=None, label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, epoch0=True,
-                               like=self)
+                               like=self, val_kw=dict(reps=val_draws, estimator=val_estimator))
 
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
-             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None):
+             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None,
+             val_kw=None):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
         lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
-        relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps."""
+        relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps.
+        val_kw: val_loss_estimate's estimator settings, used for validation, watch sets and the training teams alike."""
         make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
                (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
@@ -287,11 +331,21 @@ class Model84:
         reset_epoch = 0                                   # last epoch that beat the lowest loss by more than threshold
         t_start = time.perf_counter()
 
+        val_kw = val_kw or {}
+        if val is not None:                               # the training rows scored beside validation: fixed, validation-sized
+            pick = np.sort(np.random.default_rng(TRAIN_TEAMS_SEED).choice(len(x), min(len(x), len(val[0])), replace=False))
+            pick_dev = torch.as_tensor(pick, device=x.device); train_teams = x[pick_dev].cpu().numpy()
+            info["val_estimator"] = dict(info.get("val_estimator", {}), train_teams=len(pick), train_teams_seed=TRAIN_TEAMS_SEED)
+
         def measure(m, entry):
             if val is not None:
-                entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw)
+                v = val_loss_estimate(m, tables, val[0], val[1], sw, **val_kw)
+                tr = val_loss_estimate(m, tables, train_teams, w[pick_dev].cpu().numpy(), sw, **val_kw)   # exact labels, no noise
+                entry.update(val_loss=v.mean, val_loss_se=v.se, train_teams_loss=tr.mean, train_teams_loss_se=tr.se,
+                             gap=v.mean - tr.mean, gap_se=math.hypot(v.se, tr.se))
             for name, (vx, vw) in (watch or {}).items():
-                entry[f"{name}_val_loss"] = val_loss(m, tables, vx, vw, sw)
+                o = val_loss_estimate(m, tables, vx, vw, sw, **val_kw)
+                entry[f"{name}_val_loss"], entry[f"{name}_val_loss_se"] = o.mean, o.se
 
         if epoch0:
             m = (avg if avg is not None else net).eval(); entry = dict(epoch=0); measure(m, entry)

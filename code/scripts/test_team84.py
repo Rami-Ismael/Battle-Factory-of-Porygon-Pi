@@ -97,6 +97,12 @@ class TrainingStoppingAndSaving(unittest.TestCase):
         cls.stopped = M.Model84.train_new(VOCAB, CORPUS, cls.rows, epochs=6, seed=0, val=(cls.val, cls.val_w),
                                           patience=1, log=cls.log, d=64, nlayer=2, nhead=4)
 
+    def scripted(self, curve):
+        """A stand-in for val_loss_estimate: the next value of curve on the validation teams, 0 on the training teams."""
+        def estimate(net, tables, x, *a, **k):
+            return self.M.ValLoss(next(curve) if x is self.val else 0.0, 0.0, len(x))
+        return estimate
+
     def test_validation_loss_is_the_same_on_every_call(self):
         f = lambda: self.M.val_loss(self.stopped.net, self.stopped.tables, self.val, self.val_w, self.M.sched84().to(self.M.DEV))
         self.assertEqual(f(), f())
@@ -119,7 +125,7 @@ class TrainingStoppingAndSaving(unittest.TestCase):
         best_weights = {}
         def on_best(model, pass_number):
             best_weights[pass_number] = {k: v.clone() for k, v in model.net.state_dict().items()}
-        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+        with mock.patch.object(self.M, "val_loss_estimate", self.scripted(curve)):
             m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, epochs=6, seed=0, val=(self.val, self.val_w),
                                          patience=2, on_best=on_best, d=64, nlayer=2, nhead=4)
         self.assertEqual((m.info["best_epoch"], m.info["stopped_epoch"]), (2, 4))
@@ -129,7 +135,7 @@ class TrainingStoppingAndSaving(unittest.TestCase):
     def test_a_gain_under_the_threshold_is_kept_as_best_but_does_not_reset_patience(self):
         from unittest import mock
         curve = iter([3.0, 2.0, 1.9995, 1.9991, 1.0, 0.5])            # passes 3 and 4 gain under 0.001 each
-        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+        with mock.patch.object(self.M, "val_loss_estimate", self.scripted(curve)):
             m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, epochs=6, seed=0, val=(self.val, self.val_w),
                                          patience=2, early_stopping_threshold=0.001, d=64, nlayer=2, nhead=4)
         self.assertEqual((m.info["best_epoch"], m.info["stopped_epoch"]), (4, 4))
@@ -138,7 +144,7 @@ class TrainingStoppingAndSaving(unittest.TestCase):
     def test_a_zero_threshold_resets_patience_on_any_gain(self):
         from unittest import mock
         curve = iter([3.0, 2.0, 1.9995, 1.9991, 1.0, 0.5])
-        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+        with mock.patch.object(self.M, "val_loss_estimate", self.scripted(curve)):
             m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, epochs=6, seed=0, val=(self.val, self.val_w),
                                          patience=2, early_stopping_threshold=0.0, d=64, nlayer=2, nhead=4)
         self.assertEqual((m.info["best_epoch"], m.info["stopped_epoch"]), (6, 6))
@@ -149,7 +155,7 @@ class TrainingStoppingAndSaving(unittest.TestCase):
         saved = {}
         def on_epoch(model, epoch):
             saved[epoch] = {k: v.clone() for k, v in model.net.state_dict().items()}
-        with mock.patch.object(self.M, "val_loss", lambda *a, **k: next(curve)):
+        with mock.patch.object(self.M, "val_loss_estimate", self.scripted(curve)):
             m = self.M.Model84.train_new(VOCAB, CORPUS, self.rows, epochs=6, seed=0, val=(self.val, self.val_w),
                                          stop_after=3, on_epoch=on_epoch, d=64, nlayer=2, nhead=4)
         self.assertEqual(sorted(saved), [1, 2, 3])
