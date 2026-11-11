@@ -22,7 +22,9 @@ import ask_grid84 as AG
 
 SMOKE = bool(os.environ.get("GS65_SMOKE"))
 GUIDANCES = [8.0] if SMOKE else [4.0, 8.0]
-ASKS = [20] if SMOKE else [12, 16, 20, 23]
+SWEEP_ASKS = [12, 16, 20, 23]                           # the four asks the stop verdict (#284) is judged on
+ASKS = [20] if SMOKE else list(range(1, 24)) if os.environ.get("GS65_FULL") else SWEEP_ASKS   # GS65_FULL=1: the 23-ask grid
+BAR = 0.001                                             # smallest error difference worth acting on
 SEEDS = [1] if SMOKE else [1, 2, 3]
 OUT = T65.RES / ("guidance_sweep_smoke.json" if SMOKE else f"guidance_sweep_{AG.MODEL}.json")
 
@@ -85,7 +87,7 @@ def split():
     con = sqlite3.connect(f"file:{D.DB}?mode=ro", uri=True)
     sides, policy = T65.sides_and_policy(con)
     base = json.load(open(T65.RES / f"stat_points_84_{AG.MODEL}.json"))["cells"]
-    cells = [dict(c, guidance=2.0) for c in base.values() if round(c["ask"] * 24) in ASKS] + list(out["cells"].values())
+    cells = [dict(c, guidance=2.0) for c in base.values()] + list(out["cells"].values())
     ids2 = {(round(c["ask"] * 24), c["seed"]): set(c["team_ids"]) for c in base.values()}
     rows = {}
     for c in cells:
@@ -101,12 +103,14 @@ def split():
                          legal=(r["tried"] - r["rejected"]) / max(r["tried"], 1), shared_with_guidance_2=float(np.mean(r["shared"])),
                          distinct_lineups=float(np.mean([x for x in r["lineups"] if x is not None])))
                  for k, r in ks.items()} for g, ks in rows.items()}
-    best = {g: max(v["got"] for v in ks.values()) for g, ks in table.items()}
+    best = {g: max(ks[str(k)]["got"] for k in SWEEP_ASKS) for g, ks in table.items()}
+    error = {g: float(np.mean([(ks[str(k)]["got"] - k / 24) ** 2 for k in range(1, 18)])) for g, ks in table.items() if all(str(k) in ks for k in range(1, 18))}
+    full = {g: ("lowers error" if e <= error["2"] - BAR else "raises error" if e >= error["2"] + BAR else "same error") for g, e in error.items() if g != "2"} if "2" in error else {}
     rise = best.get("8", float("nan")) - best["2"]
     verdict = "raises the stop" if rise >= 0.05 else "no change" if abs(rise) <= 0.02 else "undecided"
-    out["result"] = dict(table=table, best_got=best, rise_at_guidance_8=rise, verdict=verdict)
+    out["result"] = dict(table=table, best_got=best, rise_at_guidance_8=rise, verdict=verdict, error_1_to_17=error, full_grid_verdict=full)
     save(out)
-    print(json.dumps(dict(best_got=best, rise_at_guidance_8=rise, verdict=verdict), indent=1))
+    print(json.dumps(dict(best_got=best, rise_at_guidance_8=rise, verdict=verdict, error_1_to_17=error, full_grid_verdict=full), indent=1))
 
 
 if __name__ == "__main__":

@@ -44,3 +44,32 @@ AG84_MODEL=<model> python src/guidance_sweep65.py gen ; battle_supervisor.py src
 ```
 
 Queued as `~/vgc-data/subset_ceiling/gs65.zsh` from a frozen copy in `~/vgc-data/subset_ceiling/run/`.
+
+## Round 2: full grid at higher guidance, and re-battling the strong teams
+
+Pre-registered 2026-11-11 after #284 and #285, before either run. Owner: "complete the next two step for me as well".
+
+### Storyboard
+
+| Frame | Sentence the reader takes | Expected | Surprise |
+| --- | --- | --- | --- |
+| A. Error by guidance, both models | Turning guidance up moves got onto the ask across the whole grid, not only at high asks. | Guidance 4 lowers error on asks 1/24 to 17/24; guidance 8 lowers it less, because low asks overshoot. | Error rises at both: low asks overshoot more than high asks gain. |
+| B. Label against fresh win rate, strong and random teams | The strong training teams were partly lucky: on fresh battles they fall back toward the 0.5 stop. | Strong teams lose about 0.1 on fresh battles; random teams match their labels. | Strong teams hold 0.7: the stop is in the model, not in the data. |
+
+### Full grid at guidance 4 and 8
+
+| Row | Value |
+| --- | --- |
+| Claim | At guidance 4 or 8, ask-versus-got error on asks 1/24 to 17/24 falls by 0.001 or more from guidance 2's (control 0.00967, 1 to 39 0.01506). **Lowers error**, **same error** (within 0.001) or **raises error**, per guidance and model. If one lowers error, that guidance becomes the candidate default for grids. |
+| Scorer, settings | As the guidance sweep above; asks 1/24 to 23/24 (asks 12/24, 16/24, 20/24 and 23/24 reused from the sweep), seeds 1 to 3, 64 legal teams per cell. |
+| Budget | 2 models × 2 guidances × 19 new asks × 3 seeds × 64 = 14,592 teams, about 715,000 battles, about 2.5 hours on the laptop. Error sampling SD over 17 asks is about 0.0003, so 0.001 is about three SDs. |
+| Probe | With no new cells, the split reproduces the stored guidance 2 error exactly: control 0.009666, 1 to 39 0.015056. |
+
+### Re-battling the strong training teams
+
+| Row | Value |
+| --- | --- |
+| Claim | The 868 training teams labelled 0.7 or more win less on fresh battles. **Mostly luck** if their mean drops 0.10 or more from their mean label; **real** if within 0.05; partly luck between. The check: 868 uniformly drawn training teams (the same draw as `strong_teams65.py`) must stay within 0.02 of their labels, or the verdict is a failed measurement. |
+| Scorer | Every cell between these teams and the 39 training opponents is topped up to 3 battles (`matchup_db.ensure`, seed 8600), behaviour-cloning policy, slots shuffled. Each team is scored on the new battles only: stored counts are snapshotted before any battle and subtracted after. |
+| Budget | About 1,736 teams × 39 opponents × 2 new battles = 135,000 battles, about 30 minutes. A team's fresh rate has a standard error of about 0.06; a group mean, under 0.005. |
+| Probes | Smoke on a cloned database, 4 teams per group and 3 opponents: snapshot, 42 battles, report all ran. One strong team got no new battles because its cells already held 3; such teams are counted out. |
