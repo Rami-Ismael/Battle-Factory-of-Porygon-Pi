@@ -18,6 +18,7 @@ import json
 import random
 import re
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -66,7 +67,7 @@ def items() -> None:
     for line in READING_LIST.read_text().splitlines():
         if line.startswith('#'):
             section = line.lstrip('#').strip()
-        m = re.match(r'^\|\s*\[([^\]]+)\]\(([^)\s]+)\)\s*\|(.*)$', line)
+        m = re.match(r'^\|\s*(?:[^\s\[|]+\s+)?\[([^\]]+)\]\(([^)\s]+)\)\s*\|(.*)$', line)   # an icon such as 🔒 may lead
         if m:
             cells = [c.strip() for c in m.group(3).split('|')]
             rows.append(dict(title=m.group(1).strip(), url=m.group(2), section=section, details=' · '.join(c for c in cells if c)))
@@ -114,7 +115,16 @@ def s2_abstracts(ids: list[str]) -> dict[str, str]:
     for i in range(0, len(ids), 400):
         req = urllib.request.Request('https://api.semanticscholar.org/graph/v1/paper/batch?fields=abstract,tldr',
                                      data=json.dumps({'ids': ids[i:i + 400]}).encode(), headers={**AGENT, 'Content-Type': 'application/json'})
-        for k, r in zip(ids[i:i + 400], json.loads(urllib.request.urlopen(req, timeout=60).read())):
+        for attempt in range(3):                               # the batch endpoint answers 429 under load
+            try:
+                got = json.loads(urllib.request.urlopen(req, timeout=60).read())
+                break
+            except urllib.error.HTTPError as err:
+                if err.code != 429 or attempt == 2:
+                    print(f'Semantic Scholar unavailable ({err.code}); those items stay title only')
+                    return out
+                __import__('time').sleep(20 * (attempt + 1))
+        for k, r in zip(ids[i:i + 400], got):
             if r:
                 out[k] = r.get('abstract') or ((r.get('tldr') or {}).get('text')) or ''
     return out
