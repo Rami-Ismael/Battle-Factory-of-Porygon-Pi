@@ -16,7 +16,7 @@ Win rate = wins / battles against the top-50 meta teams, behaviour-cloned policy
 
 ## Forced by the problem
 - The network is the project's masked transformer over 48 categorical fields (the paper's tasks are continuous vectors).
-- Decoding keeps the regulation's legality tables: an illegal team cannot be battled.
+- Decoding keeps the regulation's legal Pokémon construction tables: an illegal team cannot be battled.
 - Labels are 49-battle win rates; the paper's oracles have little or no noise. Labels are used raw, as the paper does.
 
 ## Dropped on purpose

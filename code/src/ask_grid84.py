@@ -1,6 +1,6 @@
 """The 23-ask battle protocol for an 84-field model (issues #61 and #62; docs/stat-points-84-fields.md, "Battles").
 
-Asks 1/24 to 23/24, seeds 1-3, guidance 2, temperature 1, rule masks on, species first, Stat Alignment repaired to match
+Asks 1/24 to 23/24, seeds 1-3, guidance 2, temperature 1, legal Pokémon construction filter on, species first, Stat Alignment repaired to match
 the moves. Each cell draws until 64 teams pass Showdown and are not held-out teams, at most 1,280 tries. Each team plays
 one battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled.
 Fields the model generates: all 84, except that the repair replaces its Stat Alignment.
@@ -387,7 +387,7 @@ def preflight():
     rows = w.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()
     pf["round_trip"] = round_trip(w, rows[:20])
     pf["coverage"] = dict(vocabulary="regulation tables directly", n_train=(w.info or {}).get("n_train"), dropped_by_tables=(w.info or {}).get("dropped_by_tables"),
-                          explanation="teams the rule tables reject are dropped before training")
+                          explanation="teams the legal Pokémon construction tables reject are dropped before training")
     gen_slots = [T.decode(V, r) for r in rows]
     rng = np.random.default_rng(0); real_slots = [T.decode(V, tr[i]) for i in rng.choice(len(tr), 256, replace=False)]
     pf["read_teams"] = dict(pastes=[w.to_paste(r, repair=True)[0] for r in rows[:20]],

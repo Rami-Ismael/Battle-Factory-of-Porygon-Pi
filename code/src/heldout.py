@@ -15,7 +15,7 @@ spelling of a neutral alignment are not part of it. Two pastes with the same 48 
 here, so a held-out team with another Stat Point spread is still the held-out team. One identity
 rule serves every filter: files, pastes, parsed teams, encoded rows and matrix teams.
 
-Vocabularies and rule tables are NOT filtered: removing the held-out teams shrinks them (species
+Vocabularies and legal Pokémon construction tables are NOT filtered: removing the held-out teams shrinks them (species
 190 -> 187, moves 317 -> 311) and would shift every token id in every saved checkpoint. encode.Vocab
 and encode.Legality read the excluded teams back in (excluded_teams) so ids stay where they were.
 
@@ -188,7 +188,7 @@ def _excluded(root):
     return tuple(out)
 
 def excluded_teams(root=None):
-    """Parsed teams of every pool file that is held out: what the vocabulary and rule tables still read."""
+    """Parsed teams of every pool file that is held out: what the vocabulary and legal Pokémon construction tables still read."""
     import corpus
     return list(_excluded(str(root or corpus.TEAMS)))
 

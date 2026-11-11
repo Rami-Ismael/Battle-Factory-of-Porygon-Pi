@@ -38,7 +38,7 @@ Every new vector starts at standard deviation 0.02, like the current table. The 
 | Vocabulary | The Regulation M-B tables directly, stored in each checkpoint: 348 species, 201 ability, 150 item, 498 move and 27 Stat Alignment tokens, and Stat Points 0 to 32. The same for every arm. |
 | Training teams | `lossdata84_shuffled_only.npz` (sha256 `8aca232e…`, built 2026-11-07 by `src/lossdata84.py --shuffled-only`): 218,988 teams, 218,978 labelled from shuffled-slot battles only (at least 49 battles each) and 10 never-battled teams with no label. A seeded 2% (4,380 teams, seed 0) is validation, leaving 214,608 to train on. Excluded: the test 500 and the held-out meta teams ranked 51 to 100; 173,544 teams whose every label came from listed-order battles or run files. |
 | Scorer | Behaviour-cloning policy on both sides, one battle against each of the 49 distinct top-50 meta teams, slots shuffled (`require_shuffled` refuses any other order). Win rate means this throughout. |
-| Search region | No search and no elite rule. Asks 1/24 to 23/24, sampling seeds 1 to 3 with offset 7300, 64 teams per ask and seed, at most 1,280 tries per cell, guidance 2, temperature 1, species first, rule masks on. |
+| Search region | No search and no elite rule. Asks 1/24 to 23/24, sampling seeds 1 to 3 with offset 7300, 64 teams per ask and seed, at most 1,280 tries per cell, guidance 2, temperature 1, species first, legal Pokémon construction filter on. |
 
 ### Settings
 
@@ -74,7 +74,7 @@ The Pareto question does not apply: no arm trades one measure against cost, and 
 6. **No evidence of a gain.** Anything else keeps one learned vector per field: no arm improved on No split by more than training luck (owner, 2026-11-09: "It not a tie, but there is no evidence to show it improve performance better than random noise").
 7. **It matters** (reported beside the verdict): an arm's interval against No split, first seed excludes zero on win rate or effective species, and the gap is larger than luck.
 
-Legal share leaves the rule (owner, 2026-11-07): rule masks keep every sampled team legal, so it reads 100% for every arm. It is still printed as a check that must read 100%.
+Legal share leaves the rule (owner, 2026-11-07): the legal Pokémon construction filter keeps every sampled team legal, so it reads 100% for every arm. It is still printed as a check that must read 100%.
 
 **Reported, not deciding:** validation loss; win rate at asks 18/24 to 23/24; distinct line-ups, new line-ups and elite line-up yield; the share of Pokémon whose Stat Points match a corpus set for their species; the share with fewer than four moves (15.7% on the old first seed, 2.6% in training teams).
 
@@ -113,7 +113,7 @@ Learned and Fixed slot vectors start the same and overfit alike. In a 60-epoch c
 | --- | --- | --- |
 | Ceiling | Pooled win rate can rise only where an ask is requested above what it gets. The old first seed gets 0.509 at most (ask 18/24) against the top-50 meta teams' 0.499 among themselves, so a gain must come at the low and middle asks. The guard catches an arm that gains by ignoring low asks. | This doc; no run needed |
 | Round trip | Every one of the 84 fields reaches the paste from the model, for 20 teams per arm | `preflight` |
-| Coverage | Same Regulation M-B tables in every checkpoint; teams the rule tables drop counted | `preflight` |
+| Coverage | Same Regulation M-B tables in every checkpoint; teams the legal Pokémon construction tables drop counted | `preflight` |
 | Read teams | 20 decoded teams per arm read by hand; generated and training shares of species, items, abilities and moves | `preflight` |
 | Training smoke | Per-field cross-entropy at the start within 20% of `ln K`; 32 teams overfit in 300 epochs (validation loss down 40% and within 10% of No split, first seed); with no slot vectors, swapping two Pokémon changes the other fields only by rounding; fixed slot vectors get no gradient; No split matches today's parameter names, starting values and loss at a fixed seed | `preflight.training_smoke`; #81 tests in `scripts/test_position_options84.py` |
 | Controls | Top-50 meta teams near 0.50; uniform-legal teams near 0.015 | `preflight` |

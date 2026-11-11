@@ -3,7 +3,7 @@ Pre-registration: docs/decoding-order.md.
 
 Orders (DiscreteDiffusionModel.sample(order=, steps=)): species-first (the current sampler), Pokémon-by-Pokémon, random with one
 field per pass, random with two fields per pass (24 passes), and confidence order (each team's most confident masked
-field first). Same model, guidance 2, temperature 1, rule masks on, to_paste(repair=True). Asks 7/24, 0.3, 8/24, 0.5,
+field first). Same model, guidance 2, temperature 1, legal Pokémon construction filter on, to_paste(repair=True). Asks 7/24, 0.3, 8/24, 0.5,
 0.531, 13/24; seeds 1-3 at base 7300; each cell draws until 64 teams pass Showdown's validator and are not held-out
 teams (cap 1,280 tries). Species-first cells redraw remask_ask_gap.py's and remask_why.py's plain teams exactly, so
 their battles come back from the matchup database.

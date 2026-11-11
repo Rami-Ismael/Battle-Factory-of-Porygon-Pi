@@ -63,7 +63,7 @@ the final adapter is used unless validation loss rises, in which case the best c
 | text:ask60 | fine-tuned | ask 0.60 |
 | text:ask50_g2 | fine-tuned | ask 0.50 with classifier-free guidance 2 (cond vs `unknown`) in the block sampler |
 
-The scratch model decodes under its legality tables (clause + compatibility masks); the text model has
+The scratch model decodes under its legal Pokémon construction tables (clause + compatibility masks); the text model has
 no constraints — its outputs are parsed (`corpus.parse_team_text`), given a Stat Point spread exactly
 as the scratch arms (same-species corpus spread, random legal spread otherwise), and validated by the
 pinned Showdown validator. **Raw legality** (valid / attempts) is reported per cell; nothing is
@@ -133,7 +133,7 @@ which no text arm used. The comparison is one-shot decode against one-shot decod
 - **Legality without constraints:** 50% (base) to 88% (ask). Failure types: hallucinated mega formes
   (`Alcremie-Mega @ Alcreite`, 15 of 65 base failures: a pattern generalised from the synthetic mega-stone
   teams), invented items and moves (`lifeherb`, `thundercannon`), Item Clause, wrong slot count. The
-  scratch model decodes under legality tables and reaches 96–100%.
+  scratch model decodes under legal Pokémon construction tables and reaches 96–100%.
 - No team copies a training row; no text arm uses a species outside the corpus vocabulary (scratch base: 34
   of 64 teams do, and they lose).
 - **Cost.** 6.2 h of fine-tuning and 6–18 s per valid team (one team per call, batch 1 sampler) against

@@ -12,7 +12,7 @@ Exploratory. The owner asked on 2026-11-01 what ReMDM does and whether it works 
 | Training teams | Unchanged: `lossdata84.npz` all-teams rows, 304,580 kept of 308,336, 2% validation. No training here. |
 | Scorer | One battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled, seed 7300 + sampling seed. |
 | Search region | No loop. Species-first: each cell draws until 64 legal, non-held-out teams or 1,280 tries. Random decoding: 384 tries per cell, no stop at a number of legal teams, no battles yet. |
-| Settings | Scientific: the remasking rule and decoding order. Nuisance: asks 4/24, 8/24, 12/24, 16/24, seeds 1 to 3. Fixed: guidance 2, temperature 1, rule masks. |
+| Settings | Scientific: the remasking rule and decoding order. Nuisance: asks 4/24, 8/24, 12/24, 16/24, seeds 1 to 3. Fixed: guidance 2, temperature 1, legal Pokémon construction filter. |
 | Plan | Primary: ask-versus-got slope against no remasking, per seed, with and without 12/24. Bonus: win rate at the top ask. Reported beside them: species accumulation curves of line-ups and of line-ups at or above 0.531, and line-ups new against the fixed reference of 11,690. Species-first budget: 3 arms x 4 asks x 3 seeds x 64 teams x 49 battles = 112,896 battles, control reused. Random decoding budget: set after the probe. |
 
 Ask 12/24 is read apart: it selects a different team population ([label noise protocol](label-noise-84-fields.md)).
@@ -53,7 +53,7 @@ Without the lookahead, 64 legal teams per cell would take 5,174 to 11,343 tries 
 | Vocabulary, training teams | Unchanged: checkpoint `stat84_all_teams_ep21.pt`, no training. |
 | Scorer | One battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled, seed 7300 + sampling seed. |
 | Search region | No loop. Each cell draws through `ask_grid84.draw`: until 64 legal, non-held-out teams or 1,280 tries. Asks 1/24 to 23/24, seeds 1 to 3. |
-| Settings | Scientific: the remasking rule. Nuisance: ask and seed. Fixed: random decoding, lookahead on, guidance 2, temperature 1, rule masks, the loop schedule of the probe above. |
+| Settings | Scientific: the remasking rule. Nuisance: ask and seed. Fixed: random decoding, lookahead on, guidance 2, temperature 1, legal Pokémon construction filter, the loop schedule of the probe above. |
 | Plan | Primary: ask-versus-got error on asks 1/24 to 17/24, each arm minus no remasking, 95% bootstrap interval over teams within each cell and opponents shared across arms, and seeds closer out of 3. Reported apart: the same error on 18/24 to 23/24. Reported beside: legal share as a cost, line-ups, line-ups new against training and records, species accumulation curves. Reference, not a control: species-first decoding without remasking, the 23-ask grid of the same checkpoint. Budget: 3 arms x 23 asks x 3 seeds x 64 teams x 49 battles = 649,152 battles. Smallest effect worth acting on: 0.001, the near-the-line threshold. No stopping rule: the grid runs to the end. Slope is not reported. |
 
 Arms, all with random decoding and the lookahead on; amounts are per pass, as in the probe above. Queue: `~/vgc-data/remask84/la84.zsh`, frozen copy in `~/vgc-data/remask84/la_run/`, results `remask84_random_lookahead.json`, analysis `src/remask84_random_error.py` writing `remask84_random_error.json`.
@@ -79,7 +79,7 @@ Noise floor: one ask has 9,408 battles per arm across seeds, so battle noise on 
 | Confidence in the loop | Text combines them; the code's text loop uses even odds only, and gives masked tokens zero odds under confidence, so they would stay masked while alpha is held | Masked fields unmask at 0.3 / masked count, which keeps the count level. My choice |
 | Loop | t_on 0.25 with molecule guidance; T up to 4L | 63 of 84 fields filled; 63 + 126 + 21 = 210 passes |
 | Even-odds value | 0.008, the best of three MAUVE settings on text | 0.008; no value published for this data |
-| Legality | None | Rule masks at each draw, with the fallback to all values when none is allowed |
+| Legality | None | The legal Pokémon construction filter at each draw, with the fallback to all values when none is allowed |
 
 ## Noise floor
 

@@ -1,6 +1,6 @@
 ---
 created_at: 2026-10-20
-updated_at: 2026-11-09
+updated_at: 2026-11-11
 tags:
   - vocabulary
 ---
@@ -62,12 +62,20 @@ A complete candidate that Showdown's validator accepts for Reg M-B.
 _Avoid_: valid
 
 **Validator**:
-Showdown's team validator for Regulation M-B, the regulation this project plays. It judges only complete teams, legal or not, with its reasons; choices during sampling are limited by the model's legality tables instead.
+Showdown's team validator for Regulation M-B, the regulation this project plays. It judges only complete teams, legal or not, with its reasons; choices during sampling are limited by the model's legal Pokémon construction tables instead.
 _Avoid_: legality check (for anything before a team is complete)
 
 **Validator redraw**:
 Showdown's validator checks every generated team and any it rejects is drawn again, so every battled team is legal. The model's target is first-try legality above 50%, averaged over a grid's masks, not 100% (set 2026-11-07).
 _Avoid_: 100% legal model
+
+**Legal Pokémon construction tables**:
+How a Pokémon may be built in Regulation M-B, as the model's lookup tables: each species' abilities, items and moves, plus Species Clause and Item Clause. For a masked field they list the values the filled fields still allow. Stricter than the validator on Mega Stones (#258).
+_Avoid_: rule tables, legality tables
+
+**Legal Pokémon construction filter**:
+Before each draw, the sampler gives zero odds to every value the legal Pokémon construction tables forbid next to the fields already on the team: abilities, items and moves the species can't have, Species Clause, Item Clause, the Stat Points budget. The loss applies it too, as a logit of −10,000.
+_Avoid_: rule mask, rule masks on, rule-table filter
 
 **Battled candidate**:
 A legal candidate with a measured win rate.

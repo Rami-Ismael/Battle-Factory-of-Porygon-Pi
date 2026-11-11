@@ -87,7 +87,7 @@ python src/entropyloop.py compare report
 ```
 
 The runtime requires Torch, the VGC-Bench/poke-env fork, its BC policy, a Showdown
-validator/server, the exact corpus, legality table, and original starting model.
+validator/server, the exact corpus, legal Pokémon construction table, and original starting model.
 Preflight lists missing inputs without importing the heavy runtime. The runner
 hashes checkpoint, policy, labels, corpus, opponents, and implementation files;
 resuming with changed inputs or settings is rejected. New experiments need new

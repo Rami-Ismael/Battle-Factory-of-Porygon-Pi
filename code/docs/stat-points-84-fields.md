@@ -81,7 +81,7 @@ Both train directly on the Regulation M-B vocabulary. This replaces the deployed
 The same protocol for all three models:
 
 - **Asks:** 1/24, 2/24, …, 23/24 (23 asks).
-- **Sampling:** classifier-free guidance weight 2, temperature 1, rule masks on, species first, Stat Alignment repaired to match the moves (`to_paste(repair=True)`). Seeds 1, 2 and 3.
+- **Sampling:** classifier-free guidance weight 2, temperature 1, legal Pokémon construction filter on, species first, Stat Alignment repaired to match the moves (`to_paste(repair=True)`). Seeds 1, 2 and 3.
 - **Per ask and seed:** draw until 64 teams pass Showdown's validator and are not held-out teams, at most 1,280 tries.
 - **Battles:** each team once against each of the 49 distinct top-50 meta teams; the team listed twice counts twice. Behaviour-cloning policy on both sides, slots shuffled.
 

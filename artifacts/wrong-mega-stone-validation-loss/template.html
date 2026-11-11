@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Wrong Mega Stone</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mute:#6f6e69;--line:#e0dfd9;--card:#f3f2ee;--chip:#ffffff;--blue:#2a78d6;--blue-soft:#d6e6f8;--orange:#eb6834;--orange-ink:#b3400f;--orange-soft:#fbe3d8;--grain:#a3a29b;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--ink:#f2f1ee;--ink2:#c3c2b7;--mute:#a09f97;--line:#363632;--card:#222220;--chip:#2b2b28;--blue:#3987e5;--blue-soft:#1f3350;--orange:#d95926;--orange-ink:#f3a07a;--orange-soft:#47261a;--grain:#77766f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161615;--ink:#f2f1ee;--ink2:#c3c2b7;--mute:#a09f97;--line:#363632;--card:#222220;--chip:#2b2b28;--blue:#3987e5;--blue-soft:#1f3350;--orange:#d95926;--orange-ink:#f3a07a;--orange-soft:#47261a;--grain:#77766f;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:1120px;margin:0 auto;padding:28px 16px 120px}
+header{max-width:700px}
+.kicker{font-size:13px;color:var(--mute);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 10px;letter-spacing:-0.01em}
+.dek{font-size:18px;line-height:1.45;color:var(--ink2);margin:0 0 20px}
+h3{font-size:17px;line-height:1.3;margin:0 0 6px}
+p{margin:0 0 10px}
+.num{font-variant-numeric:tabular-nums}
+img.spr,img.itm{image-rendering:pixelated;display:block}
+button{font:inherit;color:inherit}
+
+/* the team, as six sprites with items */
+.team{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:0 0 6px}
+.mh{display:flex;flex-direction:column;align-items:center;text-align:center;font-size:12px;line-height:1.25;color:var(--ink2);min-width:0}
+.mh .pic{position:relative;width:56px;height:56px}
+.mh .pic .spr{width:64px;height:64px;margin:-4px}
+.mh .pic .itm{position:absolute;right:-6px;bottom:-2px;background:var(--chip);border:1px solid var(--line);border-radius:50%;padding:3px;width:28px;height:28px;object-fit:none}
+.mh b{color:var(--ink);font-size:13px}
+.mh.key .pic{outline:2px solid var(--orange);outline-offset:2px;border-radius:10px}
+.teamline{font-size:13px;color:var(--ink2);margin:0 0 14px}
+
+/* the reader's one action: change Whimsicott's item */
+.swap{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 14px;font-size:14px}
+.swap .lab{color:var(--ink2);margin-right:2px}
+.swap button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 12px 4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--chip);cursor:pointer;transition:transform 140ms var(--ease-out),border-color 150ms ease,background-color 150ms ease}
+.swap button img{width:22px;height:22px;object-fit:none}
+.swap button small{color:var(--mute);font-size:12px}
+.swap button[aria-pressed="true"]{border-color:var(--ink);background:var(--card);font-weight:600}
+.swap button:active{transform:scale(0.97)}
+.swap button:focus-visible,.term:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.whatif{font-size:14px;color:var(--ink2);border-left:3px solid var(--blue);padding:2px 0 2px 10px;margin:0 0 14px;min-height:44px}
+
+/* tap a marked word for its definition */
+.term{border:0;background:none;padding:0;cursor:pointer;border-bottom:1.5px dotted var(--mute);line-height:inherit}
+.def{display:block;font-size:14px;line-height:1.45;color:var(--ink2);background:var(--card);border-radius:8px;padding:8px 10px;margin:-2px 0 10px;transition:opacity 180ms var(--ease-out),transform 180ms var(--ease-out)}
+@starting-style{.def{opacity:0;transform:translateY(-4px)}}
+.def b{color:var(--ink)}
+
+.panel{background:var(--card);border-radius:12px;padding:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink2);margin:8px 0 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.sw-vis{background:var(--chip);border:1px solid var(--line)}
+.sw-hid{background-color:var(--chip);background-image:radial-gradient(var(--grain) 1px,transparent 1.2px);background-size:4px 4px;border:1px solid var(--grain)}
+.sw-blue{background:var(--blue)}.sw-ghost{border:1.5px solid var(--blue)}.sw-block{border:1.5px dashed var(--orange);background:var(--orange-soft)}
+.big{font-size:26px;font-weight:700;line-height:1.1}
+.hot{color:var(--orange-ink)}
+.mute{color:var(--ink2);font-size:13.5px}
+.chart{width:100%;height:230px}
+.chartcap{font-size:12.5px;color:var(--ink2);margin:6px 0 0}
+.caption{font-size:13px;line-height:1.5;color:var(--ink2);max-width:760px;margin:22px 0 0;border-top:1px solid var(--line);padding-top:12px}
+.caption b{color:var(--ink)}
+
+/* ---------- the team sheet, step by step ---------- */
+.v1 .step{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:22px;align-items:start;padding:18px 0;border-top:1px solid var(--line)}
+.v1 .step:first-child{border-top:0;padding-top:4px}
+.tagn{display:inline-block;font-size:12px;font-weight:600;color:var(--ink2);border:1px solid var(--line);border-radius:999px;padding:1px 9px;margin:0 0 6px}
+.frames{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.frame{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12.5px;line-height:1.35;color:var(--ink2);opacity:0;transform:translateY(6px);transition:opacity 320ms var(--ease-out),transform 320ms var(--ease-out)}
+.on .frame{opacity:1;transform:none}
+.frame b{display:block;color:var(--ink);font-size:13px}
+.frame .spr{width:48px;height:48px}
+.frame .demo{height:52px;display:flex;align-items:center;justify-content:flex-start;gap:6px}
+.frame .demo .chip .m{opacity:1}
+.minibar{display:block;width:100%;height:12px;border-radius:0 4px 4px 0;background:var(--blue-soft);overflow:hidden}
+.minibar i{display:block;height:100%;background:var(--blue);transform-origin:left;border-radius:0 4px 4px 0}
+.prices{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:13px}
+.prices span{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.sheet{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.card{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:8px;min-width:0}
+.card.key{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+.card .top{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;line-height:1.25}
+.card .top .spr{width:48px;height:48px;flex:none}
+.card .top .itm{width:22px;height:22px;object-fit:none;display:inline-block;vertical-align:-6px}
+.card .top small{display:block;color:var(--ink2)}
+.chips{display:flex;flex-wrap:wrap;gap:3px}
+.chip{display:inline-grid;font-size:11.5px;line-height:1.3;border:1px solid var(--line);border-radius:4px;background:var(--chip);overflow:hidden;max-width:100%}
+.chip>span{grid-area:1/1;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip .m{display:flex;align-items:center;justify-content:center;color:var(--ink2);background-color:var(--chip);background-image:radial-gradient(var(--grain) 1px,transparent 1.2px);background-size:4px 4px;opacity:0;transition:opacity 260ms var(--ease-out)}
+.chip .m span{background:var(--chip);padding:0 3px;border-radius:2px}
+.on .chip.h .m{opacity:1}
+.chip.h{border-color:var(--grain)}
+.chip.pin{outline:2px solid var(--orange);outline-offset:1px}
+.sp{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:4px}
+.sp .chip{text-align:center;font-size:11px;color:var(--ink2)}
+.sp .chip>span{padding:1px 0}
+.count{margin:10px 0 0;font-size:14px}
+.rows{display:grid;gap:3px}
+.row{display:grid;grid-template-columns:150px minmax(0,1fr) 62px;gap:8px;align-items:center;font-size:13px}
+.row .who{display:flex;align-items:center;gap:6px;min-width:0}
+.row .who .spr,.row .who .ph{width:24px;height:24px;flex:none}
+.row .who span{overflow-wrap:anywhere;line-height:1.2}
+.track{position:relative;height:16px}
+.track i{position:absolute;inset:0;border-radius:0 4px 4px 0;transform-origin:left center;transform:scaleX(0);transition:transform 460ms var(--ease-in-out),opacity 300ms ease,background-color 300ms ease}
+.track .g{border:1.5px solid var(--blue);opacity:0}
+.track .f{background:var(--blue)}
+.row .v{text-align:right;font-variant-numeric:tabular-nums}
+.row .st{grid-column:2/4;font-size:12px;color:var(--ink2);margin-top:-3px}
+.row .st:empty{display:none}
+.row.blk .g{border-style:dashed;border-color:var(--orange);background:var(--orange-soft);opacity:1}
+.row.blk .who span{text-decoration:line-through;text-decoration-color:var(--orange)}
+.row.truth .who span{font-weight:700}
+.lookup{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13.5px;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0 0 10px}
+.lookup .itm{width:22px;height:22px;object-fit:none}.lookup .spr{width:32px;height:32px}
+.cost{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;margin-top:12px;font-size:14px}
+.eq{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;font-size:15px}
+.eq .op{color:var(--ink2)}
+.eq small{display:block;font-size:12px;color:var(--ink2);font-weight:400}
+.eq .t{text-align:center}
+.dr{display:grid;grid-template-columns:86px minmax(0,1fr) 70px;gap:8px;align-items:center;font-size:13.5px;margin-bottom:5px}
+.dr .track{height:14px}.dr .f{background:var(--orange)}
+
+.erow{display:grid;grid-template-columns:auto minmax(0,1fr) 58px;gap:4px 10px;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:13px}
+.erow:first-child{border-top:0}
+.erow.this{background:var(--chip);border-radius:8px;border-top-color:transparent;padding:5px 6px;margin:0 -6px}
+.six{display:flex;gap:2px}
+.six span{position:relative;width:34px;height:34px;border-radius:6px}
+.six .spr{width:34px;height:34px}
+.six .itm{position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;object-fit:contain}
+.six span.bad{outline:2px solid var(--orange);outline-offset:-1px;background:var(--orange-soft)}
+.erow .track{height:14px}.erow .f{background:var(--orange)}
+.erow b{text-align:right;font-variant-numeric:tabular-nums}
+.erow small{grid-column:1/4;color:var(--ink2);font-size:12px;line-height:1.3}
+.gap{margin-top:14px;display:grid;gap:6px;font-size:13px}
+.gbar{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) 46px;gap:8px;align-items:center}
+.gbar .t{position:relative;height:16px}
+.gbar .t i{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--grain)}
+.gbar .t i.o{background:var(--orange);transform-origin:left center;transition:transform 460ms var(--ease-in-out)}
+.gbar b{text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:860px){
+  h1{font-size:25px}.dek{font-size:16.5px}
+  .v1 .step{grid-template-columns:minmax(0,1fr);gap:12px}
+  .sheet{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .erow{grid-template-columns:minmax(0,1fr) 58px}
+  .erow .six{grid-column:1/3}
+  .gbar{grid-template-columns:minmax(0,1fr) 46px}
+  .gbar>span:first-child{grid-column:1/3}
+  .frames{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row{grid-template-columns:112px minmax(0,1fr) 54px}
+  .team{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 6px}
+}
+@media (max-width:480px){.sheet{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){
+  .frame{transform:none!important}
+  .track i{transition:opacity 200ms ease}
+  .def{transition:opacity 180ms ease}
+}
+html.static *{transition:none!important;animation:none!important}
+
+html.framed body{background:transparent}
+html.framed main{padding:0 0 24px;width:100%}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <p class="kicker">Issue #258 · validation team 2262</p>
+  <h1>How one wrong Mega Stone becomes a loss of 2,292</h1>
+  <p class="dek">The game accepts this team. The model guesses the hidden Whimsicott correctly. The loss still charges 9,997 for that guess, because a lookup inside the loss says a Glimmoranite can only sit on Glimmora.</p>
+</header>
+<div id="stage"></div>
+<p class="caption" id="caption"></p>
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const D = /*DATA*/null;
+const Q = new URLSearchParams(location.search);
+if (Q.get('theme')) document.documentElement.dataset.theme = Q.get('theme');
+const STATIC = Q.has('static');
+const HOST = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();   /* set by a chat host's theme sheet */
+if (HOST || window.self !== window.top) {                /* shown inside a chat frame: follow the host's surface */
+  document.documentElement.classList.add('framed');
+  try {
+    const host = HOST;
+    if (host) { const x = Object.assign(document.createElement('canvas'), {width: 1, height: 1}).getContext('2d'); x.fillStyle = host; x.fillRect(0, 0, 1, 1);
+      const [r, g, b] = x.getImageData(0, 0, 1, 1).data; document.documentElement.dataset.theme = (0.2126 * r + 0.7152 * g + 0.0722 * b) < 128 ? 'dark' : 'light'; }
+  } catch (e) { /* keep the reader's own light or dark setting */ }
+}
+if (STATIC) document.documentElement.classList.add('static');
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+let item = Q.get('item') === 'sash' ? 'sash' : 'stone';
+const S = () => D.states[item];
+const n = (v, d = 1) => v.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+const pc = p => p <= 0 ? '0%' : p < 0.0001 ? '<0.01%' : p < 0.001 ? (p * 100).toFixed(2) + '%' : (p * 100).toFixed(1) + '%';
+const sd = v => v < 0.001 ? 4 : 3;                       /* decimals for a team's share of the validation loss */
+const spr = (id, cls = 'spr') => `<img class="${cls}" src="${D.sprites[id]}" alt="" width="96" height="96">`;
+const itm = id => `<img class="itm" src="${D.items[id]}" alt="">`;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NAME = 'legal Pokémon construction tables';
+
+/* numbers roll between values so the reader sees which ones moved */
+function roll(el, to, dec = 1, pre = '') {
+  const from = parseFloat(el.dataset.v ?? to); el.dataset.v = to;
+  if (STATIC || REDUCE || from === to) { el.textContent = pre + n(to, dec); return; }
+  const t0 = performance.now(), dur = 520;
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+    el.textContent = pre + n(from + (to - from) * e, dec);
+    if (k < 1 && el.isConnected) requestAnimationFrame(step);
+  })(t0);
+}
+function seen(el, fn) {                                   /* run once when the element scrolls into view */
+  if (STATIC || !('IntersectionObserver' in window)) return fn();
+  let done = false;
+  const fire = () => { if (done) return; done = true; io.disconnect(); fn(); };
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) fire(); }), {threshold: 0.25});
+  io.observe(el);
+  (el.closest('.panel') || el).addEventListener('pointerenter', fire, {once: true});   /* a second way in, if a host frame hides scrolling from the observer */
+}
+const bar = (el, p) => { el.style.transform = `scaleX(${p > 0 ? Math.max(p, 0.004) : 0})`; };
+
+/* tap a marked word to open its definition in place */
+const TERMS = {
+  'validation loss': 'The mean cost over teams the model never trained on. Here that is 5,406 teams with 4 draws each. Lower is better.',
+  'draw': 'One random choice of which of a team’s 84 fields to hide. The validation loss makes 4 draws per team, each at its own noise level.',
+  'noise level': 'A number t from 0 to 1, picked for each draw. A field is hidden with probability t raised to its weight, so a higher t hides more.',
+  'logit': 'The model’s raw score for one value. The scores of all values are turned into probabilities that add up to 100%. A logit of −10,000 becomes a probability of 0.',
+  'cross-entropy': 'Minus the natural log of the probability given to the true value. 100% costs 0, 72% costs 0.32, 1% costs 4.6, and 0% has no finite cost.',
+  [NAME]: 'The model’s lookup of how a Pokémon may be built in Regulation M-B: each species’ abilities, items and moves, plus Species Clause and Item Clause. For a hidden field it lists the values the visible fields still allow. Earlier pages call it the rule tables.',
+  'Species Clause': 'A team may not hold two Pokémon of the same species. The tables use it to block a species that is already visible on the team.',
+};
+const T = (k, text) => `<button class="term" data-term="${k}" aria-expanded="false">${text || k}</button>`;
+document.addEventListener('click', e => {
+  const b = e.target.closest('.term'); if (!b) return;
+  const host = b.closest('p, .zone, .lookup') || b, open = host.nextElementSibling;
+  $$('.def').forEach(d => d.remove()); $$('.term').forEach(t => t.setAttribute('aria-expanded', 'false'));
+  if (open && open.classList.contains('def') && open.dataset.term === b.dataset.term) return;
+  host.insertAdjacentHTML('afterend', `<span class="def" role="note" data-term="${b.dataset.term}"><b>${b.dataset.term[0].toUpperCase() + b.dataset.term.slice(1)}.</b> ${TERMS[b.dataset.term]}</span>`);
+  b.setAttribute('aria-expanded', 'true');
+});
+
+/* shared pieces */
+const teamHead = () => `<div class="team">${S().draws[3].pokemon.map(m => `<div class="mh${m.species === 'Whimsicott' ? ' key' : ''}"><span class="pic">${spr(m.sprite)}${itm(m.item_sprite)}</span><b>${m.species}</b>${m.item}</div>`).join('')}</div>`;
+const teamLine = () => `<p class="teamline">Validation team ${n(D.row, 0).replace(',', '')}. Win rate ${D.label.toFixed(2)}: ${D.label_wins} of ${D.label_battles} battles won.</p>`;
+const swap = () => `<div class="swap" role="group" aria-label="Change Whimsicott’s item"><span class="lab">Whimsicott holds</span>
+  <button data-item="stone" aria-pressed="${item === 'stone'}">${itm('glimmoranite')}Glimmoranite <small>as battled</small></button>
+  <button data-item="sash" aria-pressed="${item === 'sash'}">${itm('focussash')}Focus Sash <small>what if</small></button></div>`;
+const whatIf = () => item === 'sash'
+  ? `What if: with a Focus Sash showing, the tables allow ${S().check.n_allowed} of ${D.n_species} species and block the teammates under ${T('Species Clause')}. That lifts Whimsicott from ${pc(S().check.p_alone)} to ${pc(S().check.p_filter)}, and the validation loss reads ${n(S().validation_loss, 3)}.`
+  : `As battled: with the Glimmoranite showing, the tables allow ${S().check.n_allowed} of ${D.n_species} species, and neither is Whimsicott. The validation loss reads ${n(S().validation_loss, 3)}.`;
+function wireSwap(root, update) {
+  root.addEventListener('click', e => {
+    const b = e.target.closest('.swap button'); if (!b || b.dataset.item === item) return;
+    item = b.dataset.item;
+    $$('.swap button', root).forEach(x => x.setAttribute('aria-pressed', x.dataset.item === item));
+    $$('.whatif', root).forEach(w => w.innerHTML = whatIf());
+    $$('.team', root).forEach(t => t.outerHTML = teamHead());
+    update(true);
+  });
+}
+function chart(el, build) {
+  if (!window.echarts) { el.innerHTML = '<p class="mute">The chart library did not load. The numbers are in the caption.</p>'; return {draw() {}}; }
+  let c;
+  const draw = () => {
+    if (c) c.dispose();
+    const col = {ink: css('--ink'), ink2: css('--ink2'), line: css('--line'), blue: css('--blue'), orange: css('--orange'), grain: css('--grain'), bg: css('--bg'), card: css('--card')};
+    c = echarts.init(el, null, {renderer: 'canvas'});
+    c.setOption({backgroundColor: 'transparent', animation: !STATIC && !REDUCE, textStyle: {color: col.ink2, fontFamily: 'inherit'}, ...build(col)});
+  };
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  addEventListener('resize', () => c && c.resize());
+  draw();
+  return {draw};
+}
+const tip = c => ({backgroundColor: c.bg, borderColor: c.line, textStyle: {color: c.ink, fontSize: 12.5}, extraCssText: 'max-width:260px;white-space:normal'});
+const logAxis = (c, name, min, max) => ({type: 'log', min, max, name, nameLocation: 'middle', nameGap: 28, nameTextStyle: {color: c.ink2}, axisLine: {lineStyle: {color: c.line}}, splitLine: {lineStyle: {color: c.line}}, axisLabel: {color: c.ink2, formatter: v => v >= 1 ? n(v, 0) : String(v)}});
+
+/* ================= the team sheet, step by step ================= */
+function teamSheet() {
+  queueMicrotask(init);
+  const d4 = S().draws[3], cz = d4.pokemon.find(m => m.species === 'Charizard'), ab = cz.fields[1], p = Math.exp(-ab.ce);
+  return `<div class="v1">${teamHead()}${teamLine()}
+  <section class="step"><div><span class="tagn">Reminder</span><h3>How validation loss reads one team</h3>
+    <p>The model never trained on this team. To score it, the ${T('validation loss')} hides some of the team’s 84 fields, asks the model to guess each hidden field, and charges for every guess.</p>
+    <p>The charge is the ${T('cross-entropy')}: minus the log of the probability the model gave the true value. A sure, correct guess costs 0.</p></div>
+    <div class="panel"><div class="frames" id="frames">
+      <div class="frame"><span class="demo">${spr(cz.sprite)}<span class="chip"><span>${ab.value}</span></span></span><b>1. A real team</b>Charizard’s ability is ${ab.value}.</div>
+      <div class="frame" style="transition-delay:120ms"><span class="demo">${spr(cz.sprite)}<span class="chip h"><span>${ab.value}</span><span class="m"><span>ability ?</span></span></span></span><b>2. Hide a field</b>The draw hides the ability.</div>
+      <div class="frame" style="transition-delay:240ms"><span class="demo"><span class="minibar"><i style="transform:scaleX(${p.toFixed(3)})"></i></span></span><b>3. The model guesses</b>It gives ${ab.value} ${pc(p)}.</div>
+      <div class="frame" style="transition-delay:360ms"><span class="demo"><b class="big num">${ab.ce.toFixed(2)}</b></span><b>4. Charge the guess</b>−ln ${p.toFixed(3)} = ${ab.ce.toFixed(2)}</div></div>
+      <div class="prices"><span>100% on the truth costs 0</span><span>72.3% costs 0.32</span><span>10% costs 2.3</span><span>1% costs 4.6</span><span>0% has no finite cost</span></div></div></section>
+
+  <section class="step"><div><span class="tagn">Step 1</span><h3>A draw hides 62 of the 84 fields</h3>
+    <p>A ${T('draw')} is one random choice of which fields to hide. Every validation team gets four, each at its own ${T('noise level')} t. This is the fourth, at t = ${d4.t.toFixed(2)}, so most fields go.</p>
+    <p>On Whimsicott the draw hides the species and leaves the item showing. Those two fields are outlined.</p>
+    ${swap()}<p class="whatif">${whatIf()}</p></div>
+    <div class="panel" id="sheetp"><div class="sheet" id="sheet"></div>
+      <p class="count"><b class="num" id="hidn">0</b> of 84 fields hidden</p>
+      <div class="legend"><span><i class="sw-vis"></i>shown to the model</span><span><i class="sw-hid"></i>hidden, the model must guess it</span></div></div></section>
+
+  <section class="step"><div><span class="tagn">Step 2</span><h3>The model guesses the hidden species, and guesses right</h3>
+    <p>The model reads the 22 visible fields and spreads 100% over the ${D.n_species} species. It puts <b class="num" id="pa1"></b> on Whimsicott, the true one. Left alone, that guess would cost <b class="num" id="ce1"></b>.</p></div>
+    <div class="panel"><div class="rows" id="rows2"></div>
+      <div class="legend"><span><i class="sw-blue"></i>the model’s own guess</span><span>A sliver marks a share under 0.5%.</span></div></div></section>
+
+  <section class="step"><div><span class="tagn">Step 3</span><h3 id="h3"></h3>
+    <p>Before the loss reads the guess, the ${T(NAME)} remove every value they do not allow next to the visible fields. The code blocks a value by setting its ${T('logit')} to −10,000, which makes its probability 0.</p>
+    <p id="p3"></p>
+    <p>The loss does this because sampling does it. When the model builds a team, the same lookup removes the values a Pokémon cannot have, so the loss scores the guess the way sampling would use it.</p></div>
+    <div class="panel"><div class="lookup" id="look"></div><div class="rows" id="rows3"></div>
+      <div class="cost"><span>Cost of this guess <b class="big num" id="ce3"></b></span><span class="mute" id="why3"></span></div>
+      <div class="legend"><span><i class="sw-blue"></i>what the loss reads</span><span><i class="sw-ghost"></i>the model’s own guess</span><span><i class="sw-block"></i>blocked by the tables</span></div></div></section>
+
+  <section class="step"><div><span class="tagn">Step 4</span><h3>The loss weights a species check heavily</h3>
+    <p>Each charge is multiplied by the field’s weight, then divided by t and by the 84 fields. A species has weight 16 because a draw rarely hides one: at t = 0.83 a species is hidden 5% of the time.</p>
+    <p>The other ${S().check.others_n} hidden fields of this draw cost <b class="num" id="oth"></b> together.</p></div>
+    <div class="panel"><div class="eq"><span class="t"><b class="big num" id="e1"></b><small>cross-entropy</small></span><span class="op">×</span><span class="t"><b class="big">16</b><small>species weight</small></span><span class="op">÷</span><span class="t"><b class="big">0.83</b><small>t</small></span><span class="op">÷</span><span class="t"><b class="big">84</b><small>fields</small></span><span class="op">=</span><span class="t"><b class="big num hot" id="e2"></b><small>cost of this one check</small></span></div>
+      <div class="chart" id="c1" role="img" aria-label="Cost of each hidden field in the fourth draw"></div>
+      <p class="chartcap">Cost of each of the 62 hidden fields in this draw, on a log axis. Hover a dot for its field. File: <code>probe_worst_check.json</code>.</p></div></section>
+
+  <section class="step"><div><span class="tagn">Step 5</span><h3>One draw in four spikes, and the team’s loss is 574</h3>
+    <p>The team’s loss is the mean of its four draws. Three of them show both Whimsicott’s species and its stone, so the tables have nothing to block. The fourth splits the pair.</p>
+    <p>The validation loss is the mean over ${n(D.validation_teams, 0)} teams, so this team alone adds <b class="num" id="sh"></b>.</p></div>
+    <div class="panel" id="p5"><div id="drs"></div>
+      <p class="count">Mean of the four draws <b class="num big" id="tl"></b></p></div></section>
+
+  <section class="step"><div><span class="tagn">Step 6</span><h3>Eight teams hold a wrong stone, and ${D.spiked_n} of them carry the whole gap</h3>
+    <p>This team is one of eight. Each holds a Mega Stone on a Pokémon that cannot use it. In ${D.spiked_n} of them a draw split the pair, and each of those teams costs between ${n(D.spiked_min, 0)} and ${n(D.spiked_max, 0)}. In the other ${8 - D.spiked_n} no draw split it, so they cost about 2, like any other team.</p>
+    <p>The log showed a training loss of ${n(D.logged_training_loss, 3)} and a validation loss of ${n(D.validation_loss, 3)}, a gap of ${n(D.validation_loss - D.logged_training_loss, 3)}. The eight teams account for ${n(D.eight_share, 3)} of the validation loss. Without them it is ${n(D.others_mean, 3)}.</p></div>
+    <div class="panel" id="p6"><div id="eight"></div>
+      <div class="gap" id="gap"></div>
+      <div class="legend"><span><i style="outline:2px solid var(--orange);outline-offset:-1px;border-radius:4px"></i>holds a stone it cannot use</span><span><i class="sw-blue" style="background:var(--orange)"></i>loss from the eight teams</span><span><i style="background:var(--grain)"></i>loss from the other ${n(D.validation_teams - 8, 0)} teams</span></div>
+      <p class="chartcap">Each team’s loss is the mean of its four draws. File: <code>per_team_validation_loss.json</code>.</p></div></section>
+  </div>`;
+}
+function init() {
+  const root = $('.v1'); if (!root) return;
+  const rowsHTML = () => S().check.rows.map((r, i) => `<div class="row${r.name === 'Whimsicott' ? ' truth' : ''}" data-i="${i}"><span class="who">${r.sprite ? spr(r.sprite) : '<span class="ph"></span>'}<span>${r.name}</span></span><span class="track"><i class="g"></i><i class="f"></i></span><span class="v num"></span><span class="st"></span></div>`).join('');
+  $('#rows2').innerHTML = rowsHTML(); $('#rows3').innerHTML = rowsHTML();
+  $('#drs').innerHTML = S().draws.map(d => `<div class="dr"><span>Draw ${d.draw} <span class="mute">t ${d.t.toFixed(2)}</span></span><span class="track"><i class="f"></i></span><b class="num" style="text-align:right"></b></div>`).join('');
+  const topLoss = D.eight[0].loss;
+  $('#eight').innerHTML = D.eight.map(e => `<div class="erow${e.this ? ' this' : ''}" data-row="${e.row}"><span class="six">${e.pokemon.map(p => `<span class="${p.wrong ? 'bad' : ''}" title="${p.species} @ ${p.item}">${spr(p.sprite)}${itm(p.item_sprite)}</span>`).join('')}</span><span class="track"><i class="f"></i></span><b class="num"></b><small>${e.this ? 'This team. ' : ''}${e.bad.join(', ')}${e.loss < 50 ? '. No draw split the pair.' : ''}</small></div>`).join('');
+  const full = D.validation_loss;
+  $('#gap').innerHTML = `<div class="gbar"><span>Validation loss, as logged</span><span class="t"><i style="left:0;width:calc(${D.others_share / full * 100}% - 2px)"></i><i class="o" id="go" style="left:${D.others_share / full * 100}%;width:${D.eight_share / full * 100}%"></i></span><b class="num" id="gv"></b></div>
+    <div class="gbar"><span>Training loss, as logged at epoch ${D.logged_epoch}</span><span class="t"><i style="left:0;width:${D.logged_training_loss / full * 100}%"></i></span><b class="num">${n(D.logged_training_loss, 3)}</b></div>
+    <div class="gbar"><span>Validation loss without the eight</span><span class="t"><i style="left:0;width:${D.others_mean / full * 100}%"></i></span><b class="num">${n(D.others_mean, 3)}</b></div>`;
+  let on6 = STATIC;
+  const c1 = chart($('#c1'), c => {
+    const pts = S().draws[3].pokemon.flatMap(m => m.fields.filter(f => f.hidden).map(f => ({value: [Math.max(f.cost, 0.001), 0.5 + (((m.sprite.length * 7 + f.name.length * 13 + Math.round(f.cost * 1e5)) % 60) - 30) / 100], who: m.species, field: f.name, cost: f.cost, big: f.cost > 50})));
+    return {grid: {left: 16, right: 24, top: 26, bottom: 42}, tooltip: {...tip(c), formatter: p => `<b>${p.data.who}</b>, ${p.data.field}<br>cost ${p.data.cost >= 1 ? n(p.data.cost, 1) : p.data.cost.toFixed(3)}`},
+      xAxis: logAxis(c, 'cost of one hidden field', 0.001, 10000), yAxis: {type: 'value', min: 0, max: 1, show: false},
+      series: [{type: 'scatter', data: pts.filter(p => !p.big), symbolSize: 9, itemStyle: {color: c.grain, borderColor: c.card, borderWidth: 1}, emphasis: {scale: 1.5}},
+        {type: 'scatter', data: pts.filter(p => p.big), symbolSize: 15, itemStyle: {color: c.orange, borderColor: c.card, borderWidth: 2}, label: {show: true, position: 'left', color: c.ink, fontSize: 12.5, formatter: p => `Whimsicott’s species: ${n(p.data.cost, 0)}`}},
+        {type: 'scatter', data: [], markArea: {silent: true, itemStyle: {color: 'transparent'}, label: {color: c.ink2, fontSize: 12.5, position: 'insideTop'}, data: pts.some(p => p.big) ? [[{name: `${pts.length - 1} other fields: 0.003 to 0.20`, xAxis: 0.002}, {xAxis: 0.4}]] : [[{name: `all ${pts.length} hidden fields cost under 0.25`, xAxis: 0.002}, {xAxis: 0.4}]]}}]};
+  });
+  function sheet() {
+    const d4 = S().draws[3];
+    let k = 0;
+    $('#sheet').innerHTML = d4.pokemon.map(m => {
+      const key = m.species === 'Whimsicott';
+      const chip = (f, i, short) => { const pin = key && (i === 0 || i === 2); const label = short ? f.name : (f.value || 'no move');
+        return `<span class="chip${f.hidden ? ' h' : ''}${pin ? ' pin' : ''}" title="${f.name}: ${f.value}"><span>${short ? f.name + ' ' + f.value : label}</span>${f.hidden ? `<span class="m" style="transition-delay:${STATIC ? 0 : (k++) * 11}ms"><span>${short ? f.name : f.name + ' ?'}</span></span>` : ''}</span>`; };
+      return `<div class="card${key ? ' key' : ''}"><div class="top">${spr(m.sprite)}<span><b>${m.species}</b><small>${itm(m.item_sprite)} ${m.item}</small></span></div><div class="chips">${m.fields.slice(0, 8).map((f, i) => chip(f, i)).join('')}</div><div class="sp">${m.fields.slice(8).map((f, i) => chip(f, 8 + i, true)).join('')}</div></div>`;
+    }).join('');
+  }
+  let on2 = STATIC, on3 = STATIC;
+  function rows3(final) {                                  /* final = after the tables; before it, the model's own guess */
+    const c = S().check;
+    $$('#rows3 .row').forEach((el, i) => { const r = c.rows[i]; el.classList.toggle('blk', final && !r.allowed);
+      bar($('.g', el), r.prob_model_alone); $('.g', el).style.opacity = final ? 1 : 0; bar($('.f', el), final ? r.prob_with_filter : r.prob_model_alone);
+      $('.v', el).textContent = pc(final ? r.prob_with_filter : r.prob_model_alone);
+      $('.st', el).textContent = !final ? '' : r.allowed ? (r.prob_with_filter > r.prob_model_alone + 1e-4 && (r.prob_with_filter > 0.02 || r.name === 'Whimsicott') ? `allowed, stretched from ${pc(r.prob_model_alone)}` : '') : (r.name === 'Whimsicott' ? `blocked: its logit ${r.logit.toFixed(2)} becomes −10,000` : ''); });
+    if (!final) { $('#ce3').dataset.v = c.ce_alone; $('#ce3').textContent = c.ce_alone.toFixed(2); $('#ce3').classList.toggle('hot', false); return; }
+    roll($('#ce3'), c.ce_filter, c.ce_filter > 100 ? 0 : 2); $('#ce3').classList.toggle('hot', !c.true_allowed);
+  }
+  function update(anim) {
+    const s = S(), c = s.check;
+    sheet(); if (anim || $('#sheetp').classList.contains('on')) requestAnimationFrame(() => $('#sheetp').classList.add('on'));
+    $('#pa1').textContent = pc(c.p_alone); $('#ce1').textContent = `−ln ${c.p_alone.toFixed(3)} = ${c.ce_alone.toFixed(2)}`;
+    $$('#rows2 .row').forEach((el, i) => { const r = c.rows[i]; if (on2) bar($('.f', el), r.prob_model_alone); $('.v', el).textContent = pc(r.prob_model_alone); });
+    $('#h3').textContent = c.true_allowed ? 'The tables allow Whimsicott once the stone is gone' : 'The tables block Whimsicott because the stone is showing';
+    $('#p3').innerHTML = c.true_allowed
+      ? `A Focus Sash fits any Pokémon, so the tables only block the species already on the team. Whimsicott’s share rises to ${pc(c.p_filter)}, and the guess costs −ln ${c.p_filter.toFixed(3)} = ${c.ce_filter.toFixed(2)}.`
+      : `They read Glimmoranite as “this Pokémon is Glimmora”, so only Glimmora and Mega Glimmora stay. Whimsicott’s ${pc(c.p_alone)} is gone, and the cost becomes 10,000 − ${Math.abs(c.logsumexp_allowed).toFixed(2)} = ${n(c.ce_filter, 0)}.`;
+    $('#look').innerHTML = `${itm(s.item_sprite)}<span><b>${s.item}</b> is showing, so the tables allow <b>${c.n_allowed} of ${D.n_species}</b> species</span>` + (c.true_allowed ? '' : c.rows.filter(r => r.allowed && r.sprite).map(r => spr(r.sprite)).join(''));
+    if (on3) rows3(true);
+    $('#why3').textContent = c.true_allowed ? `−ln ${c.p_filter.toFixed(3)}. The model alone: ${c.ce_alone.toFixed(2)}.` : `10,000 for the blocked logit, minus ${Math.abs(c.logsumexp_allowed).toFixed(2)} from the two species still allowed. The model alone: ${c.ce_alone.toFixed(2)}.`;
+    roll($('#e1'), c.ce_filter, c.ce_filter > 100 ? 0 : 2); roll($('#e2'), c.cost, c.cost > 100 ? 0 : 3); $('#e2').classList.toggle('hot', !c.true_allowed);
+    roll($('#oth'), c.others_cost, 2);
+    const mx = D.states.stone.draws[3].cost;
+    $$('#drs .dr').forEach((el, i) => { const d = s.draws[i]; bar($('.f', el), d.cost / mx); roll($('b', el), d.cost, 1); });
+    roll($('#tl'), s.team_loss, 1); $('#tl').classList.toggle('hot', !c.true_allowed);
+    roll($('#sh'), s.team_share, sd(s.team_share), '+');
+    $$('#eight .erow').forEach((el, i) => { const e = D.eight[i], v = e.this ? s.team_loss : e.loss; if (on6) bar($('.f', el), v / topLoss); roll($('b', el), v, 1); });
+    roll($('#gv'), s.validation_loss, 3); $('#go').style.transform = `scaleX(${(D.eight_share - D.states.stone.team_share + s.team_share) / D.eight_share})`;
+    if (anim) c1.draw();
+  }
+  update(false);
+  seen($('#frames'), () => $('#frames').parentElement.classList.add('on'));
+  seen($('#rows2'), () => { on2 = true; update(false); });
+  seen($('#eight'), () => { on6 = true; update(false); });
+  seen($('#rows3'), () => { if (STATIC || REDUCE) { on3 = true; return rows3(true); } rows3(false); setTimeout(() => { on3 = true; rows3(true); }, 900); });
+  seen($('#sheetp'), () => { $('#sheetp').classList.add('on'); $('#hidn').dataset.v = 0; roll($('#hidn'), S().draws[3].hidden, 0); });
+  wireSwap(root, update);
+}
+
+$('#caption').innerHTML = `<b>Figure 1.</b> One check of validation team ${D.row}, replayed with the model trained on labels from all 39 training opponents (checkpoint <code>${D.checkpoint}</code>, data <code>lossdata65.npz</code>, validation seed 12345). Win rate is the share of battles won against the meta, with the behaviour-cloning policy on both sides. This team’s label counts one battle against each of the 39 top-50 meta teams used for training labels: ${D.label_wins} wins, ${D.label.toFixed(2)}. The Focus Sash state is a what-if on the same four draws. It changes this one team and leaves the other ${n(D.validation_teams - 1, 0)} as measured. Numbers: <code>probe_worst_check.json</code> and <code>per_team_validation_loss.json</code>, beside this page.`;
+
+document.getElementById('stage').innerHTML = teamSheet();
+</script>
+</body>
+</html>

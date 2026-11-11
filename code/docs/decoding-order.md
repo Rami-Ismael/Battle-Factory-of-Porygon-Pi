@@ -4,7 +4,7 @@ Pre-registered 2026-10-30, before any experiment sampling. Script: `src/decoding
 
 ## Question
 
-The decoding order is the order in which the from-scratch discrete diffusion model trained only on valid Pokémon teams fills a team's masked fields (`GLOSSARY.md`). The model always uses species-first order: all six species, then abilities and items, then moves, then Stat Alignments. Under that order the species are drawn while nothing else is visible, and once a Pokémon's moves and ability appear the legality tables lock its species. On an earlier model, filling one Pokémon at a time raised win rate by 0.12 at the same diversity (2026-10-26). Which order gives the best mix of legality, diversity, novelty and win rate, and does any order make the model follow the ask more closely?
+The decoding order is the order in which the from-scratch discrete diffusion model trained only on valid Pokémon teams fills a team's masked fields (`GLOSSARY.md`). The model always uses species-first order: all six species, then abilities and items, then moves, then Stat Alignments. Under that order the species are drawn while nothing else is visible, and once a Pokémon's moves and ability appear the legal Pokémon construction tables lock its species. On an earlier model, filling one Pokémon at a time raised win rate by 0.12 at the same diversity (2026-10-26). Which order gives the best mix of legality, diversity, novelty and win rate, and does any order make the model follow the ask more closely?
 
 ## Arms
 
@@ -20,7 +20,7 @@ The model was trained with random masks, so every order shows it partial teams o
 
 ## Design
 
-- **Model and sampling:** `DiscreteDiffusionModel.load()`, classifier-free guidance weight 2, temperature 1, rule masks on, `to_paste(repair=True)`. Within a pass that fills two fields, the fields are drawn in species-first order so the legality tables see the first.
+- **Model and sampling:** `DiscreteDiffusionModel.load()`, classifier-free guidance weight 2, temperature 1, legal Pokémon construction filter on, `to_paste(repair=True)`. Within a pass that fills two fields, the fields are drawn in species-first order so the legal Pokémon construction tables see the first.
 - **Asks:** 7/24, 0.3, 8/24, 0.5, 0.531 and 13/24. Three sit on the 1/24 grid that the training labels mostly sit on; the other three sit between steps.
 - **Seeds:** 1, 2 and 3 at base 7300. Species-first cells redraw the remasking grid's plain-decoding teams exactly, so their battles come back from the matchup database.
 - **Per cell:** draw until 64 teams pass Showdown's validator and are not held-out teams, with a cap of 1,280 tries.
@@ -28,7 +28,7 @@ The model was trained with random masks, so every order shows it partial teams o
 
 ## Measures, per order
 
-- **Legality:** Showdown-accepted tries over all tries. Orders other than species-first can reach fields with no legal value, because the legality tables only check a field against the fields already visible. That shows up here.
+- **Legality:** Showdown-accepted tries over all tries. Orders other than species-first can reach fields with no legal value, because the legal Pokémon construction tables only check a field against the fields already visible. That shows up here.
 - **Win rate:** mean over the six asks, and per ask. **Ask response:** the slope of achieved against asked win rate over the four on-grid asks (12/24 counts once), per seed; a slope of 1 would mean the model follows the ask exactly. **Gap:** mean |ask − achieved|.
 - **Diversity:** distinct line-ups, species entropy (Shannon entropy, in nats, of how often each species appears) and mean slot-matched distance (the number of the 48 fields that differ between two teams after pairing their Pokémon to differ least; `src/team_diversity.py`), per cell, averaged over asks.
 - **Cells with too few legal teams** (added 2026-10-30, after the smoke test, which found 1 legal team in 64 random-order tries): a cell with no legal team has no win rate, and one with a single team has no slot-matched distance. Those cells count toward legality and are left out of the other averages; the report states how many teams each order kept.

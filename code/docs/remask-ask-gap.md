@@ -16,9 +16,9 @@ The remasking option keeps that order for new fields and adds one step before ev
 
 1. For each team, count its filled fields and multiply by the remasking fraction σ. Round stochastically, so 0.1 × 23 fields masks 2 fields with probability 0.7 and 3 with probability 0.3.
 2. Mask that many filled fields, choosing the ones drawn with the lowest probability. A field's confidence is the probability its value had in the distribution it was drawn from: guided, tempered and restricted to legal values.
-3. The pass then redraws the masked fields under the ask, together with the pass's new field. It draws them one at a time in the fixed order, so the legality tables see every earlier draw of the pass. The network sees none of them: its log-probabilities come from the team as it stood when the pass began. A redrawn field keeps the probability of its new value.
+3. The pass then redraws the masked fields under the ask, together with the pass's new field. It draws them one at a time in the fixed order, so the legal Pokémon construction tables see every earlier draw of the pass. The network sees none of them: its log-probabilities come from the team as it stood when the pass began. A redrawn field keeps the probability of its new value.
 
-The number of network passes stays at 48, so the remasking arms get no extra network compute; only the cheap per-field draws multiply. The tests in `scripts/test_discrete_diffusion_model.py` check that σ = 0 reproduces the current sampler bit for bit, that remasking keeps the pass count, and that every remasked team satisfies every legality table and passes Showdown's validator.
+The number of network passes stays at 48, so the remasking arms get no extra network compute; only the cheap per-field draws multiply. The tests in `scripts/test_discrete_diffusion_model.py` check that σ = 0 reproduces the current sampler bit for bit, that remasking keeps the pass count, and that every remasked team satisfies every legal Pokémon construction table and passes Showdown's validator.
 
 ### Where this differs from ReMDM
 
@@ -30,7 +30,7 @@ The number of network passes stays at 48, so the remasking arms get no extra net
 ## Design
 
 - **Model:** `DiscreteDiffusionModel.load()`, an ensemble of the loop-teams model (`F1_final_medium_noheldout_regmb_v3`) and the battle-records model (`G2_family_matrix_noprtrain_noheldout_regmb_v3`). Neither saw the held-out teams (meta ranks 51–100) in training. Every arm uses the same checkpoint.
-- **Sampling, as the loop samples:** classifier-free guidance 2 (the loop's weight, `cem_dbbo.py`), temperature 1, rule masks on, no surrogate tilt, `to_paste(repair=True)`.
+- **Sampling, as the loop samples:** classifier-free guidance 2 (the loop's weight, `cem_dbbo.py`), temperature 1, legal Pokémon construction filter on, no surrogate tilt, `to_paste(repair=True)`.
 - **Arms:**
   - plain masking: the current sampler, σ = 0, 48 passes;
   - remasking 5%, 10% and 20%: σ = 0.05, 0.1 and 0.2 at 48 passes;
@@ -63,7 +63,7 @@ An arm passes if, at every ask, it meets the gap condition that applies there (n
 
 ## Expectation, written before the run
 
-A probe of 96 teams per setting, before the experiment, counted which fields remasking redraws. At 10%, a team has about 113 fields remasked over the decode, three quarters of them items, and about 2 species change per team. Item columns carry the flattest distributions, so they hold the lowest-confidence fields. Species are fixed first, and once a Pokémon's moves and ability are visible, the legality tables usually let its species come back only as itself. On the 2026-09-28 ruggedness test (`docs/ruggedness2.md`), a single species edit moved win rate beyond battle noise, while the other edit types, items and moves included, stayed within it. So remasking mostly redraws fields whose single edits barely move win rate.
+A probe of 96 teams per setting, before the experiment, counted which fields remasking redraws. At 10%, a team has about 113 fields remasked over the decode, three quarters of them items, and about 2 species change per team. Item columns carry the flattest distributions, so they hold the lowest-confidence fields. Species are fixed first, and once a Pokémon's moves and ability are visible, the legal Pokémon construction tables usually let its species come back only as itself. On the 2026-09-28 ruggedness test (`docs/ruggedness2.md`), a single species edit moved win rate beyond battle noise, while the other edit types, items and moves included, stayed within it. So remasking mostly redraws fields whose single edits barely move win rate.
 
 I expect a small win-rate change at best, and no pass. Mean slot-matched distance may fall, because redrawing the least likely items under guidance 2 pulls them toward the most common item.
 

@@ -7,7 +7,7 @@ behind one interface.
     w2 = w.fine_tuned(rows, labels, epochs=40)      # a new model; w is unchanged
 
 Everything a caller used to rebuild from the loss-down training module (lossdown.py) lives here: which
-member checkpoints, the legality tables from the checkpoint's regulation snapshot, the two-member mixture,
+member checkpoints, the legal Pokémon construction tables from the checkpoint's regulation snapshot, the two-member mixture,
 the matchup-row padding of the battle-records model, the sampler (fixed unmasking order, ask and guidance,
 temperature, top-p, surrogate tilt, species guidance, condition-annealed sampling, remasking) and fine-tuning. A fine-tuned model is cached under a key that
 hashes every setting that changes its weights, so changing the budget can never reload a stale copy.
@@ -217,7 +217,7 @@ class DiscreteDiffusionModel:
 
     def _fill_pass(self, x, conf, targets, due, redo, w, wn, draw, old, old_conf, pre=None):
         """One network pass of _sample_remasking. Draws each target column in diffusion.ORDER, for every team if
-        the column is due and for the teams that remasked it otherwise, so the legality tables see each earlier
+        the column is due and for the teams that remasked it otherwise, so the legal Pokémon construction tables see each earlier
         draw of the pass. Writes the values into x and their probabilities into conf. wn = None: no ask.
         Redrawing several columns can reach a dead end: two remasked species where an earlier draw takes, under
         Species Clause, the only species the other's visible set allows. A team that hits one gets its pre-pass

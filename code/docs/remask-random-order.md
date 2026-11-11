@@ -18,7 +18,7 @@ The same model, asks and seeds as the decoding-order experiment; every arm uses 
 
 ## Design
 
-- **Model and sampling:** `DiscreteDiffusionModel.load()`, classifier-free guidance weight 2, temperature 1, rule masks on, `to_paste(repair=True)`.
+- **Model and sampling:** `DiscreteDiffusionModel.load()`, classifier-free guidance weight 2, temperature 1, legal Pokémon construction filter on, `to_paste(repair=True)`.
 - **Asks:** 7/24, 0.3, 8/24, 0.5, 0.531 and 13/24. **Seeds:** 1, 2 and 3 at base 7300, as in the decoding-order experiment.
 - **Per cell:** draw until 64 teams pass Showdown's validator and are not held-out teams, at most 1,280 tries.
 - **Battles:** each team once against each of the 49 distinct top-50 meta teams; the team listed twice counts twice. Behaviour-cloning policy on both sides, Pokémon order shuffled.
