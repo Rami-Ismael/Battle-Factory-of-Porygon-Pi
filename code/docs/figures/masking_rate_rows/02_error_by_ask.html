@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The default model follows its ask up to 12/24, then stops near 0.53</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:420px}
+</style>
+</head>
+<body>
+<main>
+<h1>The default model follows its ask up to 12/24, then stops near 0.53</h1>
+<p class="sub">Mean win rate got at each ask, against the line got = ask. The ask-versus-got error counts asks 1/24 to 17/24.</p>
+<div id="chart"></div>
+<p class="note">Win rate: one battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled. 192 teams for each ask, 3 sampling seeds. Error 0.0053 on asks 1/24 to 17/24, and 0.0007 on asks 1/24 to 12/24 alone. Source: stat_points_84_gen84_noise_byepoch_ep80.json.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0}, "grid": {"left": 56, "right": 24, "top": 48, "bottom": 48}, "tooltip": {"trigger": "axis"}, "xAxis": {"type": "category", "data": ["1/24", "2/24", "3/24", "4/24", "5/24", "6/24", "7/24", "8/24", "9/24", "10/24", "11/24", "12/24", "13/24", "14/24", "15/24", "16/24", "17/24", "18/24", "19/24", "20/24", "21/24", "22/24", "23/24"], "name": "Ask", "nameLocation": "middle", "nameGap": 30}, "yAxis": {"type": "value", "name": "Win rate got", "nameLocation": "middle", "nameGap": 40, "min": 0, "max": 1}, "series": [{"name": "Got", "type": "line", "symbolSize": 6, "lineStyle": {"color": "#2a78d6", "width": 2.5}, "itemStyle": {"color": "#2a78d6"}, "emphasis": {"focus": "series"}, "data": [0.048, 0.0733, 0.1184, 0.1667, 0.1969, 0.2444, 0.2942, 0.318, 0.3565, 0.3779, 0.4142, 0.4389, 0.4773, 0.4975, 0.5051, 0.5132, 0.5272, 0.5201, 0.514, 0.5141, 0.5031, 0.48, 0.4396], "markArea": {"silent": true, "itemStyle": {"color": "#2a78d6", "opacity": 0.08}, "label": {"color": "#6f6e69", "formatter": "91% of the error", "position": "insideTop"}, "data": [[{"xAxis": "13/24"}, {"xAxis": "17/24"}]]}}, {"name": "Got = ask", "type": "line", "symbol": "none", "lineStyle": {"color": "#a9a8a2", "type": "dashed"}, "itemStyle": {"color": "#a9a8a2"}, "emphasis": {"focus": "series"}, "data": [0.0417, 0.0833, 0.125, 0.1667, 0.2083, 0.25, 0.2917, 0.3333, 0.375, 0.4167, 0.4583, 0.5, 0.5417, 0.5833, 0.625, 0.6667, 0.7083, 0.75, 0.7917, 0.8333, 0.875, 0.9167, 0.9583]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
