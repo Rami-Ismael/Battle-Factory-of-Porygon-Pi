@@ -117,6 +117,9 @@ _Avoid_: EVs
 A set's choice of nature, such as Adamant.
 _Avoid_: nature (as the field's name)
 
+**Build**:
+A set without its Stat Points: item, ability, four moves and Stat Alignment. Builds and Stat Points are measured apart.
+
 **Selection**:
 The four Pokémon brought at team preview.
 
@@ -135,6 +138,12 @@ _Avoid_: neighbours
 **Novelty**:
 How many species swaps a generated team's line-up is from the closest line-up in the model's training data: zero (copied), one, two, or three or more (a new line-up).
 _Avoid_: originality, uniqueness
+
+**Nearest training distance**:
+How many of a team's 84 fields differ from the closest team in the model's training data, slots matched to give the fewest. Zero means the team was copied.
+
+**Archetype**:
+A condition a team sets up: sun, rain, sand, snow, one of four terrains, Trick Room or Tailwind. A team is in one when any set has its setting ability or move, or holds a mega stone whose mega form has that ability, since a set stores the base ability; a team can be in several or none.
 
 **Meta**:
 The top-50 meta teams, each counted once. A team's win rate against the meta averages one battle against each of the 50.
