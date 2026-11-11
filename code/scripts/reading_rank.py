@@ -8,8 +8,11 @@ through jev_client.JevChooser. Nothing here writes to the vault: the ranking liv
     python scripts/reading_rank.py pilot      30 random pairs in both orders: order agreement and cost
     python scripts/reading_rank.py rank       stable merge sort of every item, then one Bradley-Terry fit -> ranking.json
     python scripts/reading_rank.py axes       each item scored 0 to 4 on the decision matrix's two axes (#260) -> axes.json
+    python scripts/reading_rank.py insert     daily: binary-search each new Reading List item into the ranking, refit, rewrite
+    python scripts/reading_rank.py save       copy the ranking and its comparison log into code/data/reading-rank/ to commit
 """
 
+import hashlib
 import html
 import json
 import random
@@ -49,6 +52,15 @@ def get(url: str, timeout: float = 20) -> bytes:
     return urllib.request.urlopen(urllib.request.Request(url, headers=AGENT), timeout=timeout).read()
 
 
+def url_key(url: str) -> str:
+    return re.sub(r'^https?://(www\.)?', '', url).rstrip('/')
+
+
+def item_id(url: str) -> str:
+    """Stable across edits of the Reading List: new rows go in at the top, so row order cannot name an item."""
+    return 'u' + hashlib.sha1(url_key(url).encode()).hexdigest()[:10]
+
+
 def items() -> None:
     rows, section = [], ''
     for line in READING_LIST.read_text().splitlines():
@@ -60,11 +72,11 @@ def items() -> None:
             rows.append(dict(title=m.group(1).strip(), url=m.group(2), section=section, details=' · '.join(c for c in cells if c)))
     seen, out = set(), []
     for r in rows:
-        key = re.sub(r'^https?://(www\.)?', '', r['url']).rstrip('/')
+        key = url_key(r['url'])
         if key in seen:
             continue
         seen.add(key)
-        r['id'] = f'r{len(out) + 1:03d}'
+        r['id'] = item_id(r['url'])
         out.append(r)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / 'items.json').write_text(json.dumps(out, indent=1, ensure_ascii=False))
@@ -294,6 +306,13 @@ def axes() -> None:
     its = json.loads((OUT / 'items.json').read_text())
     cs = json.loads((OUT / 'cards.json').read_text())
     chooser = jev_client.JevChooser(OUT / 'jev-calls.jsonl')
+    out = score_axes(chooser, its, cs)
+    (OUT / 'axes.json').write_text(json.dumps(dict(axes={k: dict(question=q, levels=l) for k, (q, l) in AXES.items()},
+                                                   calls=chooser.usage['calls'], dollars=chooser.dollars(), scores=out), indent=1))
+    print(f'{len(out)} items scored, {chooser.usage["calls"]} calls, ${chooser.dollars():.3f}')
+
+
+def score_axes(chooser, its: list[dict], cs: dict) -> dict:
     out = {}
     for i in range(0, len(its), 20):
         chunk = its[i:i + 20]
@@ -303,10 +322,99 @@ def axes() -> None:
         ans = chooser.choose({'asking_about': 'reading-list decision matrix', 'project': BRIEF}, qs)
         for it in chunk:
             out[it['id']] = {ax: float(ans[f'{ax}_{it["id"]}']['score']) for ax in AXES}
-    (OUT / 'axes.json').write_text(json.dumps(dict(axes={k: dict(question=q, levels=l) for k, (q, l) in AXES.items()},
-                                                   calls=chooser.usage['calls'], dollars=chooser.dollars(), scores=out), indent=1))
-    print(f'{len(out)} items scored, {chooser.usage["calls"]} calls, ${chooser.dollars():.3f}')
+    return out
+
+
+def write_ranking(order: list[str], comps: list[dict], extra: dict) -> list[dict]:
+    """Refit Bradley-Terry on every stored comparison among the items in order, and write ranking.json by score."""
+    its = {it['id']: it for it in json.loads((OUT / 'items.json').read_text())}
+    keep = set(order)
+    comps = [c for c in comps if c['a'] in keep and c['b'] in keep]
+    th = bradley_terry(order, comps)
+    score = dict(zip(order, th))
+    ranked = sorted(order, key=lambda k: -score[k])
+    n = len(ranked)
+    count = {}
+    for c in comps:
+        count[c['a']] = count.get(c['a'], 0) + 1
+        count[c['b']] = count.get(c['b'], 0) + 1
+    rows = [dict(rank=r + 1, of=n, top_percent=round(100 * (r + 1) / n, 1), theta=float(score[k]), comparisons=count.get(k, 0),
+                 **{f: its[k][f] for f in ('id', 'title', 'url', 'section')}) for r, k in enumerate(ranked)]
+    out = dict(method='order-swapped Jev pairwise comparisons, stable merge sort, Bradley-Terry fit (issue #301)',
+               brief=BRIEF, question=QUESTION, items=n, judgments=len(comps), **extra, ranking=rows)
+    (OUT / 'ranking.json').write_text(json.dumps(out, indent=1, ensure_ascii=False))
+    return rows
+
+
+def place(chooser, its: dict, cs: dict, order: list[str], new: list[str], log) -> list[str]:
+    """Binary-search every new item into order in lockstep, then judge each against its two new neighbours."""
+    lo, hi = {k: 0 for k in new}, {k: len(order) for k in new}
+    while any(lo[k] < hi[k] for k in new):
+        live = [k for k in new if lo[k] < hi[k]]
+        mids = {k: (lo[k] + hi[k]) // 2 for k in live}
+        for k, p in zip(live, judge(chooser, [(its[k], its[order[mids[k]]]) for k in live], cs, log)):
+            if p >= 0.5:
+                hi[k] = mids[k]
+            else:
+                lo[k] = mids[k] + 1
+    placed = order[:]
+    for k in sorted(new, key=lambda k: -lo[k]):                # insert from the bottom so earlier positions hold
+        placed.insert(lo[k], k)
+    log.flush()
+    done = {(c['a'], c['b']) for c in map(json.loads, (OUT / 'comparisons.jsonl').read_text().splitlines())}
+    nb = [(its[k], its[placed[j]]) for k in new for j in (placed.index(k) - 1, placed.index(k) + 1)
+          if 0 <= j < len(placed) and (k, placed[j]) not in done and (placed[j], k) not in done]
+    if nb:
+        judge(chooser, nb, cs, log)
+    return placed
+
+
+def insert() -> None:
+    """Place every Reading List item the ranking lacks: binary search over the current order (about 9 comparisons,
+    each asked in both orders, run in lockstep across new items), then a check against both new neighbours, then one
+    refit over all comparisons. Items deleted from the Reading List leave the ranking."""
+    import time
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import jev_client
+    items()
+    cards()
+    its = {it['id']: it for it in json.loads((OUT / 'items.json').read_text())}
+    cs = json.loads((OUT / 'cards.json').read_text())
+    old = json.loads((OUT / 'ranking.json').read_text())
+    order = [x['id'] for x in old['ranking'] if x['id'] in its]
+    removed = [x['id'] for x in old['ranking'] if x['id'] not in its]
+    new = [k for k in its if k not in set(order)]
+    if not new and not removed:
+        print(f'nothing to insert: {len(order)} items already ranked')
+        return
+    chooser = jev_client.JevChooser(OUT / 'jev-calls.jsonl')
+    with (OUT / 'comparisons.jsonl').open('a') as log:
+        placed = place(chooser, its, cs, order, new, log)
+    ax = json.loads((OUT / 'axes.json').read_text())
+    ax['scores'].update(score_axes(chooser, [its[k] for k in new], cs) if new else {})
+    (OUT / 'axes.json').write_text(json.dumps(ax, indent=1))
+    comps = [json.loads(line) for line in (OUT / 'comparisons.jsonl').read_text().splitlines()]
+    rows = write_ranking(placed, comps, dict(updated=time.strftime('%Y-%m-%d %H:%M'), calls=chooser.usage['calls'],
+                                              dollars=chooser.dollars()))
+    rank = {x['id']: x['rank'] for x in rows}
+    with (OUT / 'ranking-history.jsonl').open('a') as f:
+        f.write(json.dumps(dict(time=time.strftime('%Y-%m-%dT%H:%M'), items=len(rows), inserted={k: rank[k] for k in new},
+                                removed=removed, calls=chooser.usage['calls'], dollars=chooser.dollars())) + '\n')
+    for k in sorted(new, key=rank.get):
+        print(f'  #{rank[k]} / {len(rows)}  {its[k]["title"]}')
+    print(f'{len(new)} inserted, {len(removed)} removed, {chooser.usage["calls"]} calls, ${chooser.dollars():.3f}')
+
+
+def save() -> None:
+    """Copy the ranking, its comparison log, the axis scores and the item list into the repository to commit."""
+    import shutil
+    dest = Path(__file__).resolve().parents[1] / 'data/reading-rank'
+    dest.mkdir(parents=True, exist_ok=True)
+    for name in ('ranking.json', 'comparisons.jsonl', 'axes.json', 'items.json', 'ranking-history.jsonl'):
+        if (OUT / name).exists():
+            shutil.copy2(OUT / name, dest / name)
+    print(f'saved to {dest}')
 
 
 if __name__ == '__main__':
-    {'items': items, 'cards': cards, 'pilot': pilot, 'rank': rank, 'axes': axes}[sys.argv[1]]()
+    {'items': items, 'cards': cards, 'pilot': pilot, 'rank': rank, 'axes': axes, 'insert': insert, 'save': save}[sys.argv[1]]()
