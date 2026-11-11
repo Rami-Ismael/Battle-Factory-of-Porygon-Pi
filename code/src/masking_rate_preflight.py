@@ -17,9 +17,15 @@ Nothing here changes diffusion84.py; the sampler below copies Model84.sample's l
 Results: ~/vgc-data/results/masking_rate_rows_preflight.json
 
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_preflight.py [probe ...]      (from code/; default all six)
+
+Two switches, added when the owner moved both trainings to the shuffled-only table (2026-11-11). Each saves under its own
+key, so no result overwrites another:
+    MRP_TABLE=shuffled_only   training_smoke reads lossdata84_shuffled_only.npz; saved as training_smoke_shuffled_only
+    MRP_MODEL=<checkpoint>    t_sensitivity runs on lossdown/<checkpoint>.pt; saved as t_sensitivity_<checkpoint>
 """
 import hashlib
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -39,6 +45,8 @@ LINEAR = "1,1,1,1,1"                                    # every field hidden wit
 DEFAULT_MODEL = L.CK / "stat84_labelled_noise_byepoch_es3_cap80" / "stat84_labelled_noise_byepoch_es3_cap80_ep80.pt"
 DEFAULT_MODEL_SHA256 = "c057b8ef47c9bb7446d0155524794568ba6d39f532d695113eeafc8ee17aaa7b"   # recorded by its 23-ask grid
 OUT = Path.home() / "vgc-data/results/masking_rate_rows_preflight.json"
+SHUFFLED_TABLE = os.environ.get("MRP_TABLE") == "shuffled_only"
+OTHER_MODEL = os.environ.get("MRP_MODEL")                # a checkpoint name under lossdown/, for t_sensitivity only
 GUIDANCE, SAMPLING_SEED, TEAMS_PER_ASK = 2.0, 7301, 256                  # the ask grid's guidance and its first sampling seed
 ASK_NUMERATORS = (6, 12, 17)
 # The corrected-t ticket's table (code/docs/research/corrected-t-for-per-field-masking-rate.md, branch research/corrected-t):
@@ -181,22 +189,29 @@ def main(names):
     results = json.load(open(OUT)) if OUT.exists() else {}
     need_model = {"t_sensitivity", "cross_rate_loss"} & set(names)
     need_data = {"cross_rate_loss", "training_smoke", "recipe_replay"} & set(names)
+    if (SHUFFLED_TABLE and set(names) != {"training_smoke"}) or (OTHER_MODEL and set(names) != {"t_sensitivity"}):
+        raise SystemExit("MRP_TABLE goes with training_smoke alone, MRP_MODEL with t_sensitivity alone")
     model = d = None
-    if need_model:
+    if need_model and OTHER_MODEL:
+        model = M.Model84.load(L.CK / f"{OTHER_MODEL}.pt")
+    elif need_model:
         sha = hashlib.sha256(DEFAULT_MODEL.read_bytes()).hexdigest()
         assert sha == DEFAULT_MODEL_SHA256, f"{DEFAULT_MODEL} is not the checkpoint the default model's grid recorded"
         model = M.Model84.load(DEFAULT_MODEL); results["default_model"] = dict(checkpoint=DEFAULT_MODEL.name, sha256=sha)
-    if need_data: d = TR.load(); results["table"] = dict(name=d["table"], sha256=d["sha256"])
+    if need_data:
+        d = TR.load(TR.SHUFFLED_ONLY) if SHUFFLED_TABLE else TR.load()
+        results["table_shuffled_only" if SHUFFLED_TABLE else "table"] = dict(name=d["table"], sha256=d["sha256"])
     probes = dict(hidden_share=hidden_share, corrected_t=corrected_t_values, t_sensitivity=lambda: t_sensitivity(model),
                   cross_rate_loss=lambda: cross_rate_loss(model, d),
                   training_smoke=lambda: training_smoke(d, T.regulation_vocab(), X.setup()[0]),
                   recipe_replay=lambda: recipe_replay(d, T.regulation_vocab(), X.setup()[0]))
+    saved_as = lambda name: name + ("_shuffled_only" if SHUFFLED_TABLE else "") + (f"_{OTHER_MODEL}" if OTHER_MODEL else "")
     for name in names:
-        results[name] = probes[name]()
+        results[saved_as(name)] = probes[name]()
         json.dump(results, open(OUT.with_suffix(".tmp"), "w"), indent=1, default=float); OUT.with_suffix(".tmp").replace(OUT)
-        shown = {k: v for k, v in results[name].items() if k not in ("per_pass", "today", "calibration")}
-        print(f"[{name}] {'PASS' if results[name]['passed'] else 'FAIL'}\n{json.dumps(shown, indent=1, default=float)}", flush=True)
-    print("MASKING_RATE_PREFLIGHT_DONE", "PASS" if all(results[n]["passed"] for n in names) else "FAIL")
+        shown = {k: v for k, v in results[saved_as(name)].items() if k not in ("per_pass", "today", "calibration")}
+        print(f"[{saved_as(name)}] {'PASS' if shown['passed'] else 'FAIL'}\n{json.dumps(shown, indent=1, default=float)}", flush=True)
+    print("MASKING_RATE_PREFLIGHT_DONE", "PASS" if all(results[saved_as(n)]["passed"] for n in names) else "FAIL")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What the code ticket builds</title><style>
+html{background:#fcfcfb;color:#0b0b0b;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+body{margin:0;--ink:#0b0b0b;--soft:#52514e;--box:#f3f2ee;--edge:#dcdbd5;--c1:#2a78d6;--c2:#1baf7a;--c3:#c98a00;--ok:#16803c;--warn:#a16207;--bad:#c0392b;
+--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--r:10px} main{max-width:760px;margin:0 auto;padding:24px 16px}
+@media (prefers-color-scheme:dark){html{background:#161615;color:#f2f1ee}
+body{--ink:#f2f1ee;--soft:#a9a8a2;--box:#1f1f1e;--edge:#34342f;--c1:#5b9bf0;--c2:#2dd4a4;--c3:#f5c04a;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171}}
+
+*{box-sizing:border-box} h1{font-size:17px;line-height:1.3;margin:0 0 4px;font-weight:650} h2{font-size:14px;margin:18px 0 6px;font-weight:650}
+p{margin:0 0 8px} .sub{color:var(--soft);font-size:13px;line-height:1.45;margin:0 0 12px} .note{color:var(--soft);font-size:12px;line-height:1.45;margin:8px 0 0}
+.grid{display:grid;gap:10px} .g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:560px){.g2,.g3{grid-template-columns:1fr}}
+.box{background:var(--box);border:1px solid var(--edge);border-radius:var(--r);padding:14px 16px}
+.box h3{margin:0 0 4px;font-size:14px;line-height:1.3;font-weight:650} .box p{font-size:13px;line-height:1.45;color:var(--soft);margin:0}
+.big{font-size:22px;font-weight:700;line-height:1.15;color:var(--ink);font-variant-numeric:tabular-nums}
+code,.mono{font-family:var(--mono);font-size:12px} .chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:650;margin-top:8px}
+.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,transparent)} .bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent)}
+.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)} .plain{color:var(--soft);background:color-mix(in srgb,var(--soft) 14%,transparent)}
+.flow{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap} .flow .box{flex:1 1 150px} .arrow{align-self:center;color:var(--soft);font-size:18px}
+table{border-collapse:collapse;width:100%;font-size:12.5px} th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--edge);vertical-align:top;line-height:1.35}
+th{color:var(--soft);font-weight:600;font-size:12px} td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.same{background:color-mix(in srgb,var(--ok) 15%,transparent)} .diff{background:color-mix(in srgb,var(--warn) 15%,transparent)} .none{color:var(--soft)}
+.key{display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:12px;color:var(--soft)} .sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--edge)}
+svg text{fill:var(--soft);font-size:9px;font-family:inherit} svg .ink{fill:var(--ink)}
+</style></head><body><main>
+<h1>What the code ticket builds</h1>
+<p class="sub">Add the linear masking rate and the corrected t to the 84-field code, with tests. Five build items, each with the line it changes.</p>
+<div class="flow" style="margin-bottom:10px">
+  <div class="box"><h3>Train</h3><p>Item 1</p><span class="chip plain" style="">train84.py</span></div><div class="arrow">→</div><div class="box"><h3>Sample</h3><p>Items 2, 3 and 5</p><span class="chip plain" style="">diffusion84.py, remask84.py</span></div><div class="arrow">→</div><div class="box"><h3>Battle</h3><p>Item 4</p><span class="chip plain" style="">ask_grid84.py</span></div>
+</div>
+<div class="grid g2"><div class="box"><h3>1. Two training arms</h3><span class="mono" style="color:var(--soft)">train84.py:174, :58, :54</span>
+<p style="margin-top:8px"><b style="color:var(--soft)">Today:</b> One per-field arm, on the older table. Early stopping uses the 0.001 default.</p><p style="margin-top:4px"><b style="color:var(--ink)">After:</b> Per-field and linear arms on the shuffled-only table. Linear is <code>sched="1,1,1,1,1"</code>. Both pass <code>early_stopping_threshold=0.0</code>.</p>
+<span class="chip plain">test: Hidden share at t is t under the linear rate</span></div><div class="box"><h3>2. The sampler's t</h3><span class="mono" style="color:var(--soft)">diffusion84.py:403</span>
+<p style="margin-top:8px"><b style="color:var(--soft)">Today:</b> <code>t = 1.0 - step / COLS</code>, always.</p><p style="margin-top:4px"><b style="color:var(--ink)">After:</b> An option for the corrected t. Today's rule stays the default.</p>
+<span class="chip plain">test: Matches the probe script's corrected t at every pass</span></div><div class="box"><h3>3. Guidance</h3><span class="mono" style="color:var(--soft)">ask_grid84.py:78</span>
+<p style="margin-top:8px"><b style="color:var(--soft)">Today:</b> One constant, <code>GUIDANCE = 2.0</code>.</p><p style="margin-top:4px"><b style="color:var(--ink)">After:</b> A setting: 2, 4 and 8, each with its own results file.</p>
+<span class="chip plain">test: Guidance 2 reproduces a stored cell</span></div><div class="box"><h3>4. Ask-grid rows</h3><span class="mono" style="color:var(--soft)">ask_grid84.py:48, :387</span>
+<p style="margin-top:8px"><b style="color:var(--soft)">Today:</b> The probe step always samples species-first.</p><p style="margin-top:4px"><b style="color:var(--ink)">After:</b> Four code IDs, each with its own decoder in the probe step and the grid. Cells with no ask.</p>
+<span class="chip plain">test: Each code ID loads its checkpoint and decoder</span></div><div class="box"><h3>5. Random order</h3><span class="mono" style="color:var(--soft)">remask84.py:246</span>
+<p style="margin-top:8px"><b style="color:var(--soft)">Today:</b> <code>RandomDecodingArm</code> exists and was battled on 2026-11-07.</p><p style="margin-top:4px"><b style="color:var(--ink)">After:</b> Wired in as the decoder of Linear, random order, lookahead on.</p>
+<span class="chip plain">test: The existing lookahead tests</span></div>
+<div class="box"><h3>Unchanged by default</h3><p>Every new setting defaults to today's behaviour, so stored runs and their checkpoints keep working.</p></div></div>
+</main></body></html>

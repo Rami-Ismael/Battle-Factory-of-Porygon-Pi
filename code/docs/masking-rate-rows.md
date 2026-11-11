@@ -4,7 +4,9 @@ Pre-registration, written 2026-11-11 before the new training and before any of t
 
 Mode: **exploratory** for the two linear rows, because one training seed cannot separate the masking rate from training luck. A run is confirmatory when its plan is fixed before any result and its budget can detect the effect. Per-field, corrected t compares two samplers on one checkpoint under such a plan, so it would be confirmatory for that checkpoint if its grid runs.
 
-**One probe failed before launch.** The default model barely reads the t it is told, so the row Per-field, corrected t cannot move a result by the smallest effect worth acting on. Its battle grid is on hold for the owner. See [Per-field, corrected t is on hold](#per-field-corrected-t-is-on-hold).
+**Changed 2026-11-11, before any training or battle, by two owner decisions.** Both trainings use the shuffled-only table, so the control is a new per-field training and no longer today's default model. Every battled row is sampled at guidance 2, 4 and 8. See [Changes before any result](#changes-before-any-result).
+
+**One probe failed before launch.** Today's default model barely reads the t it is told, so on it the row Per-field, corrected t cannot move a result by the smallest effect worth acting on. The same probe now decides the row: it is rerun on the new per-field model, and the row is battled only if the probe reaches its bar. See [Per-field, corrected t is on hold](#per-field-corrected-t-is-on-hold).
 
 ## Terms
 
@@ -15,6 +17,8 @@ Win rate means one battle against each of the 49 distinct top-50 meta teams, wit
 The masking rate is the chance that a field is hidden at time t during training. Time t runs from 0, nothing hidden, to 1, everything hidden. It is a dial for how much is hidden, not a step count. The network takes t as an input, so the sampler must also tell it a t at every pass. A pass is one run of the network while sampling. The decoding order is the order in which the sampler fills fields.
 
 Showdown is the battle simulator, and its validator accepts or rejects a team. First-try legality is the share of sampled teams the validator accepts before any redraw. The legal Pokémon construction filter gives zero odds to every value the game's rules forbid next to the fields already on the team. The lookahead is a further sampler rule: a value is allowed only if every Pokémon whose species is still hidden keeps at least one species it could be. Stat Alignment is the project's name for a Pokémon's nature, such as Adamant. The remaining project terms follow `notes/GLOSSARY.md`.
+
+A probe is a quick check run before the expensive steps, here without a single battle. A probe's numbers are what that check measured. Guidance is the sampler's dial for how hard it pushes toward the ask: 1 is no push, and higher values push harder.
 
 The two yardstick papers, set by the owner on the map, are MD4 for training and masking rates (Shi et al., "Simplified and Generalized Masked Diffusion for Discrete Data", NeurIPS 2024, [arXiv 2406.04329](https://arxiv.org/abs/2406.04329)) and LLaDA for decoding (Nie et al., "Large Language Diffusion Models", NeurIPS 2025, [arXiv 2502.09992](https://arxiv.org/abs/2502.09992)). Every citation below was checked on 2026-11-11 against each paper's LaTeX source from arXiv, first by a subagent and then line by line by the main session. Section, appendix, algorithm and equation numbers were counted from the order of the source, so a printed number could differ by one.
 
@@ -34,12 +38,14 @@ Each name gives the masking rate used in training, then the one decoding setting
 
 | Masking rate in training, then the decoding setting | Code ID | Checkpoint | t told to the model at each pass | Decoding order |
 | --- | --- | --- | --- | --- |
-| Per-field, uncorrected t. The control, which is today's default model | `sched_species_first` | Epoch 80 of the labelled-teams training with label noise, `stat84_labelled_noise_byepoch_es3_cap80_ep80.pt`. Its grid exists as `gen84_noise_byepoch_ep80` | 1 − filled/84 | Species-first |
-| Per-field, corrected t | `sched_species_first_t` | The same checkpoint. No training | The t whose expected hidden share in training equals the share still hidden | Species-first |
-| Linear, species-first | `sched_linear_species_first` | New training, `stat84_labelled_noise_linear_es3_cap80` | 1 − filled/84 | Species-first |
-| Linear, random order | `sched_linear_random` | The same new checkpoint | 1 − filled/84 | Random |
+| Per-field, uncorrected t. The control | `sched_species_first` | New training on the shuffled-only table, `stat84_shuffled_noise_per_field_es3_cap80` | 1 − filled/84 | Species-first |
+| Per-field, corrected t | `sched_species_first_t` | The same per-field checkpoint. No training | The t whose expected hidden share in training equals the share still hidden | Species-first |
+| Linear, species-first | `sched_linear_species_first` | New training on the same table, `stat84_shuffled_noise_linear_es3_cap80` | 1 − filled/84 | Species-first |
+| Linear, random order | `sched_linear_random` | The same linear checkpoint | 1 − filled/84 | Random |
 
-Each battled row is also sampled with no ask, 64 teams for each of the 3 sampling seeds. These unguided baselines carry the row's code ID with `_unguided` added. The linear model is the new checkpoint that both linear rows share.
+Every battled row is sampled at guidance 2, 4 and 8. Each is also sampled once with no ask, 64 teams for each of the 3 sampling seeds, and these unguided baselines carry the row's code ID with `_unguided` added. The per-field model and the linear model are the two new checkpoints.
+
+Today's default model, epoch 80 of the labelled-teams training on the older table, is a reference and not the control. Its guidance 2 grid exists as `gen84_noise_byepoch_ep80`. It differs from the control in its training table, so no verdict is read against it.
 
 Per-field masking rate with random order is not a row. The map rules it out as already measured, in the second line of the table above.
 
@@ -53,15 +59,15 @@ Per-field masking rate with random order is not a row. The map rules it out as a
 | How far it reaches | Win rate under the behaviour-cloning policy against the 49 distinct top-50 meta teams, slots shuffled, for one checkpoint per masking rate and one training seed. Nothing beyond that. |
 | Fields | The model generates all 84: for each of six Pokémon its species, ability, item, four moves, Stat Alignment and six Stat Points. Nothing is copied and nothing is fixed. After sampling, a repair step replaces Stat Alignment to match the moves (`src/ask_grid84.py`). |
 | Vocabulary | The tables of every value Regulation M-B allows, used directly, stored in each checkpoint (`team84.regulation_vocab`): 348 species, 201 ability, 150 item, 498 move and 27 Stat Alignment tokens, and Stat Points 0 to 32. The training smoke confirmed the head sizes. Labelled training teams use 189, 126, 106, 309 and 19 of the tokens (`docs/slope-by-epoch.md`). The same for every row. |
-| Training teams | The control's table, `lossdata84.npz`, sha256 `02463cbd…`. Labelled teams only: 170,785 train, of which the legal Pokémon construction tables drop 5, and 3,563 validate, a seeded 2% split with seed 0. The tables reject none of the validation teams. Left out: 130,232 unlabelled teams, the 500 test teams, and the held-out meta teams ranked 51 to 100. |
+| Training teams | The shuffled-only table, `lossdata84_shuffled_only.npz`, sha256 `8aca232e…`, chosen by the owner on 2026-11-11. Every label comes from shuffled-slot battles alone, at least 49 for each team. Labelled teams only: 214,598 train and 4,380 validate, a seeded 2% split with seed 0. Both trainings use the same rows. Left out: 10 never-battled teams, the 500 test teams, the held-out meta teams ranked 51 to 100, and every team whose labels came only from listed-order battles. Against the older table of today's default model, only 783 labelled teams are in both, the mean label falls from 0.427 to 0.284, and the teams labelled nearest asks 13/24 to 17/24 fall from 46,013 to 20,732. |
 | Scorer | `src/ask_grid84.py`. One battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled, battle seed 7300 plus the sampling seed. `require_shuffled` refuses any other slot order. |
-| Search region | No search and no elite rule. Asks 1/24 to 23/24, sampling seeds 1 to 3, 64 teams for each ask and seed. Each cell draws until 64 teams pass Showdown's validator and are not held-out teams, at most 1,280 tries. That is 4,416 teams and 216,384 battles for each row. |
+| Search region | No search and no elite rule. Asks 1/24 to 23/24, sampling seeds 1 to 3, 64 teams for each ask and seed, at each of guidance 2, 4 and 8. Each cell draws until 64 teams pass Showdown's validator and are not held-out teams, at most 1,280 tries. That is 4,416 teams and 216,384 battles for each row at each guidance value. |
 
 ### Settings
 
 Every setting names the paper it follows, or is marked ours. "Ours" means no source in the two yardstick papers. The last column gives the evidence this project has for the value.
 
-Settings that differ between rows:
+Settings that vary:
 
 | Setting | Role | Value | Paper or ours | Evidence here |
 | --- | --- | --- | --- | --- |
@@ -71,10 +77,11 @@ Settings that differ between rows:
 | Decoding order | Scientific | Species-first: one field for each of 84 passes, in a fixed order. Random: 84 passes, and in each pass every hidden field is filled with chance 1/(passes left), so a pass can fill none, one or several | Species-first is ours. Random is LLaDA Algorithm 4 with N = 84, where a filled token is hidden again with chance s/t, and MD4 Algorithm 2 on a uniform grid. Code: `remask84.sample_random`, arm `rand_plain` | See What is already known |
 | Lookahead | Bundled with random order | On in Linear, random order. In species-first order it changes no draw, because every species is already filled | Ours | With it off, 1.2% of random-order tries were legal on a per-field model |
 | Sampling seed | Nuisance | 1, 2, 3 with offset 7300, the same in every row | Ours | Rows must be compared seed by seed, see Noise floor |
+| Guidance | Swept in every row, to trace its curve | 2, 4 and 8, owner 2026-11-11 | The mixing rule is LLaDA Appendix A.2, Eq. 16, with guidance = 1 + w. The three values are ours. MD4 uses no guidance | On a sibling model scored against its 39 training opponents, guidance 2, 4 and 8 gave errors 0.0097, 0.0053 and 0.0034, while line-ups in a 5-team sample at ask 10/24 fell from 4.4 to 2.8 (`guidance_sweep_gen65_subset_39.json`) |
 
 Against Linear, species-first, the row Linear, random order changes three things at once: the order, how many fields a pass fills, and the lookahead. That is LLaDA Algorithm 4 as published plus the one rule random order needs to stay legal. This run cannot separate the three.
 
-Settings whose role is fixed: the same value in every row, all inherited from the control.
+Settings whose role is fixed: the same value in every row, all inherited from today's default model.
 
 | Setting | Value | Paper or ours | Evidence here |
 | --- | --- | --- | --- |
@@ -89,13 +96,12 @@ Settings whose role is fixed: the same value in every row, all inherited from th
 | Network | 256 wide, 6 layers, 8 heads, dropout 0.1, one learned position vector per field | Ours | The position split was a tie, 2026-11-09 |
 | Optimizer | AdamW, learning rate 4e-4, weight decay 0.01, 500 warm-up steps, cosine decay sized to 80 epochs, batch 256, gradient clip 1.0, exponential moving average of the weights 0.999 | Ours | None |
 | Training seed | 0 | Ours | Two seeds of one recipe differed by 0.026 pooled win rate, 2026-11-09 |
-| Training length | Validation loss after every epoch on the same 4 mask draws, patience 3, cap 80, every epoch saved. **Early-stopping threshold 0**, the control's rule: any new lowest validation loss resets patience | Ours | Under today's code default of 0.001 the control's own curve would have stopped at epoch 47, not 80. The new training must pass 0 |
+| Training length | Validation loss after every epoch on the same 4 mask draws, patience 3, cap 80, every epoch saved. **Early-stopping threshold 0**, the rule today's default model trained under: any new lowest validation loss resets patience | Ours | Under today's code default of 0.001 the default model's own curve would have stopped at epoch 47, not 80. Both new trainings must pass 0 |
 | Passes | 84, one for each field | LLaDA Appendix B sets "the number of sampling steps equal to the generated length". MD4 §4 warns that a uniform grid "did not perform well" when a step fills several tokens, and suggests a cosine grid. With 84 passes for 84 fields that conflict is small, and absent in species-first order | None |
 | Draw | Sampled at temperature 1 | MD4 Algorithm 2 draws from the distribution. LLaDA Algorithm 4 takes the most likely value. The temperature setting is ours | None on this model |
-| Guidance | 2 | The mixing rule is LLaDA Appendix A.2, Eq. 16, with guidance = 1 + w. The value 2 is ours | On a sibling model scored against its 39 training opponents, guidance 2, 4 and 8 gave errors 0.0097, 0.0053 and 0.0034, while line-ups in a 5-team sample at ask 10/24 fell from 4.4 to 2.8 (`guidance_sweep_gen65_subset_39.json`, 2026-11-11). Guidance 2 is kept so the control's stored grid can be reused |
 | Stat Alignment repair | After sampling | Ours | None |
 
-Two inherited settings are the owner's to change. First, the table `lossdata84.npz` pools labels from run files that include listed-order battles, where the six Pokémon keep their listed order. The owner ruled on 2026-11-07 that only shuffled-slot battles count. The table built that day from shuffled-slot battles alone is not used here, so that the new training differs from the control in the masking rate alone. Second, guidance stays at one value, so each row is one point and not a curve.
+Two settings were the owner's to choose, and both were chosen on 2026-11-11: the training table and the guidance values. See [Changes before any result](#changes-before-any-result).
 
 ### Plan
 
@@ -103,7 +109,7 @@ The primary measure is the ask-versus-got error on asks 1/24 to 17/24. The error
 
 The owner asked for the rows to be read together, so these sit beside the error, every row with the same code:
 
-| Measure | How it is read | The control's value |
+| Measure | How it is read | Today's default model at guidance 2, for reference |
 | --- | --- | --- |
 | Win rate at the top scored asks | Mean got over asks 15/24 to 17/24 | 0.515 |
 | Pooled win rate | Mean got over all 23 asks | 0.371 |
@@ -115,26 +121,28 @@ The owner asked for the rows to be read together, so these sit beside the error,
 | Training-versus-validation gap | The same loss function on 3,563 training and 3,563 validation teams (`~/vgc-data/validation_loss_accuracy/run/validation_accuracy.py`), each model under its own masking rate | +0.0115 ± 0.0063 at epoch 80 |
 | Validation loss under both masking rates | Each checkpoint scored under the per-field rate and under the linear rate. A loss is only comparable with another measured under the same rate | 1.209 under its own per-field rate, 1.404 under the linear rate |
 
-The question is a Pareto question, with the ask-versus-got error on one axis and line-ups on the other. Guidance is fixed, so each row is one point. The strongest previous frontier among labelled-teams models with label noise is the control itself at 0.0053 and 1,437 line-ups. Epoch 21, at 0.0066 and 1,325, and the hindsight-relabeled fine-tune, at 0.0055 and 1,292, sit inside it. A row moves outside the frontier by a lower error with no fewer line-ups, or by the same error with more line-ups.
+The question is a Pareto question, with the ask-versus-got error on one axis and line-ups on the other. Guidance 2, 4 and 8 trace a three-point curve for each row. The frontier to beat is the control's curve. A row moves outside it when one of its points has a lower error than every control point with at least as many line-ups, or more line-ups than every control point with an error at least as low. Today's default model sits on the chart as a reference point at 0.0053 and 1,437 line-ups.
 
-The verdict for each new row, against the control and paired by sampling seed:
+The verdict for each new row is read at each guidance value, against the control at the same guidance and paired by sampling seed:
 
 - It **wins** if its error is at least 0.001 lower and the 95% interval of the difference sits below zero.
 - It **loses** if that interval sits above zero.
 - It **matches** otherwise.
 
+That gives three verdicts for each row. Three chances raise the odds of a false win, so a row counts as winning when it wins at two or more guidance values and loses at none. One win among three is reported as weak.
+
 For the two linear rows, a win or a loss smaller than 0.002 is reported as inside training luck, because two trainings of one recipe have differed by up to 0.0019 in error. A row that wins while its pooled win rate falls by more than 0.026, or its line-ups fall, is a trade and is reported as one. Which default model follows, and whether a row earns a second training seed, is the owner's call on the map's last ticket.
 
-The linear model is read at the epoch early stopping keeps, the one with the lowest validation loss. For the control that was epoch 80. Epochs 34 and 55 are also read with sampling seed 1 and species-first decoding, beside the control's 0.0059 and 0.0061 at those epochs and 0.0060 at epoch 80 with the same seed. An earlier epoch replaces the kept one only if a 3-seed reading of it is at least 0.001 lower, with the interval of the difference clear of zero. That is the rule the glossary sets for replacing the default model. Such a swap would be written under Deviations.
+Each new model is read at the epoch early stopping keeps, the one with the lowest validation loss. No other epoch is battled.
 
 The other fixed parts of the plan:
 
 | Part | Value |
 | --- | --- |
 | Smallest effect worth acting on | 0.001 of error, the gap the glossary requires before a model replaces the default |
-| Comparisons planned | Each new row against the control. Linear, random order against Linear, species-first |
+| Comparisons planned | Each new row against the control at the same guidance. Linear, random order against Linear, species-first |
 | Baselines | The control. The unguided samples of each battled row. The scorer's two controls: top-50 meta teams score near 0.50, and teams drawn uniformly at random from the legal ones score near 0.02 |
-| Stopping rule | One 3-seed grid for each row, with no re-runs to chase a result |
+| Stopping rule | One 3-seed grid for each row at each guidance value, with no re-runs to chase a result |
 | Slope of got on ask | Not reported, owner 2026-11-05 |
 
 ### Expectations
@@ -143,26 +151,27 @@ Written before any result, to be scored afterwards.
 
 | Row | Expected verdict against the control | Chance | Why |
 | --- | --- | --- | --- |
-| Per-field, corrected t | Matches | 90% | The probe below: the corrected t moves the model's drawing distributions by 0.005 at most |
-| Linear, species-first | Matches, or differs by less than training luck | 60%, with 30% for a loss beyond luck and 10% for a win beyond it | On 2026-10-07 the linear rate cost 0.038 in species-first loss, a small gap. 91% of the control's error sits at asks 13/24 to 17/24, where got stops near 0.53, and the masking rate gives no reason for that ceiling to lift |
+| Per-field, uncorrected t, the control | An error above the 0.0053 of today's default model at guidance 2, falling as guidance rises | 70% | The shuffled-only table holds fewer than half as many teams near asks 13/24 to 17/24. The two 21-epoch models already trained on it scored 0.0075 and 0.0081 |
+| Per-field, corrected t | No battle grid: the probe stays under its bar on the new per-field model | 90% | On today's default model the corrected t moved the drawing distributions by 0.005 at most |
+| Linear, species-first | Matches, or differs by less than training luck | 60%, with 30% for a loss beyond luck and 10% for a win beyond it | On 2026-10-07 the linear rate cost 0.038 in species-first loss, a small gap. 91% of the default model's error sits at asks 13/24 to 17/24, where got stops near 0.53, and the masking rate gives no reason for that ceiling to lift |
 | Linear, random order | Loses to Linear, species-first, with an error less than 2.8 times as large. On a per-field model random order's error was 2.8 times species-first's. First-try legality above 84%, and more line-ups | 65% | Linear training shows the model every mix of hidden and visible fields, so moves drawn before their species are no longer new to it |
 
 The largest surprise would be a linear row that wins by 0.002 or more.
 
 ## Probes
 
-Script: `src/masking_rate_preflight.py`, battle-free. Results: `~/vgc-data/results/masking_rate_rows_preflight.json`, run 2026-11-11 from this branch.
+Script: `src/masking_rate_preflight.py`, battle-free. Results: `~/vgc-data/results/masking_rate_rows_preflight.json`, run 2026-11-11 from this branch. The first run used today's default model and its older table. After the owner chose the shuffled-only table, two probes were run again on it, marked below.
 
 | Probe | Result | Pass |
 | --- | --- | --- |
-| Ceiling for the error | Training teams battled again miss the line by 0.0038, interval 0.0033 to 0.0047 (`docs/training-teams-line.md`). The control scores 0.0053, so the best case is 0.0015 better, above the 0.001 bar. Asks 1/24 to 12/24 alone already score 0.0007, so a row can only gain where got stops rising, at asks 13/24 to 17/24. Figure: [got against ask for the default model](figures/masking_rate_rows/02_error_by_ask.html) | yes, narrowly |
-| Ceiling for Per-field, corrected t | **Failed.** See the next section | **no** |
+| Ceiling for the error | Training teams battled again miss the line by 0.0038, interval 0.0033 to 0.0047 (`docs/training-teams-line.md`). Today's default model scores 0.0053, so the best case is 0.0015 better, above the 0.001 bar. Asks 1/24 to 12/24 alone already score 0.0007, so a row can only gain where got stops rising, at asks 13/24 to 17/24. Figure: [got against ask for the default model](figures/masking_rate_rows/02_error_by_ask.html) | yes, narrowly, on the older table. Not measured on the shuffled-only table, whose labels are steadier: at least 49 shuffled-slot battles each, reliability 0.89 against 0.83 |
+| Ceiling for Per-field, corrected t | **Failed** on today's default model, and failed again on a 21-epoch per-field model trained on the shuffled-only table, where the largest reading was 0.008. See the next section | **no** |
 | Hidden share | With every exponent 1, the share of fields hidden at t is t on every field, within 0.007 over 40,000 draws at seven values of t. The loss weight becomes 1/t | yes |
 | Corrected t values | The rule gives 0.650 at half filled and matches the corrected-t ticket's table within 0.00005. Under the linear rate it returns 1 − filled/84 exactly, so the linear rows need no correction | yes |
 | Validation loss under both rates | The default model's validation loss reproduces its logged 1.2091 under the per-field rate, and reads 1.4039 under the linear rate. The linear model's loss is to be compared with 1.4039, never with 1.2091 | yes |
-| Training smoke | A fresh network's cross-entropy with every field hidden sits within 20% of ln K, where K is the number of values the field can take, for every field type: species 5.83 against 5.85, ability 5.72 against 5.30, item 4.97 against 5.01, move 6.38 against 6.21, Stat Alignment 3.57 against 3.30, Stat Points 3.76 against 3.50. Overfitting 32 teams for 300 epochs takes validation loss from 3.624 to 1.865 with the linear rate and from 3.328 to 1.602 with the per-field rate, both past the 40% bar | yes |
-| Recipe replay | One epoch of the control's own recipe, run with today's code and table, lands on the losses the control logged at epoch 1: training 1.7917 against 1.7918, validation 1.47690 against 1.47691. Same table by sha256 and the same 170,780 teams. The bar was 0.01. So the new training differs from the control in the masking rate alone. The epoch took 4.1 minutes | yes |
-| Round trip, coverage, read teams, controls, separation, condition, copies | The control's stored preflight: 20 of 20 teams round-trip; 5 teams dropped by the tables; top-50 teams 0.50 and uniform-legal teams 0.02; 0 of 50 held-out teams among the training teams; all teams change between asks 0.1 and 0.7 at a fixed seed; 0 of 256 teams copy a training team. For each new row, `ask_grid84.py preflight`, the ask grid's own probe step, runs them with that row's decoder before its grid, and a failure stops the row | control yes; new rows before each grid |
+| Training smoke | A fresh network's cross-entropy with every field hidden sits within 20% of ln K, where K is the number of values the field can take, for every field type: species 5.83 against 5.85, ability 5.72 against 5.30, item 4.97 against 5.01, move 6.38 against 6.21, Stat Alignment 3.57 against 3.30, Stat Points 3.76 against 3.50. Overfitting 32 teams for 300 epochs takes validation loss from 3.624 to 1.865 with the linear rate and from 3.328 to 1.602 with the per-field rate, both past the 40% bar Run again on the shuffled-only table: 3.663 to 1.917 with the linear rate and 3.386 to 1.631 with the per-field rate, with every field type within 20% of ln K | yes |
+| Recipe replay | One epoch of the default model's own recipe, run with today's code and its older table, lands on the losses that model logged at epoch 1: training 1.7917 against 1.7918, validation 1.47690 against 1.47691. Same table by sha256 and the same 170,780 teams. The bar was 0.01. So today's code trains as it did then. The two new trainings share one code path and one table, and differ in the masking rate alone. The epoch took 4.1 minutes | yes |
+| Round trip, coverage, read teams, controls, separation, condition, copies | The stored probe step of today's default model: 20 of 20 teams round-trip; 5 teams dropped by the tables; top-50 teams 0.50 and uniform-legal teams 0.02; 0 of 50 held-out teams among the training teams; all teams change between asks 0.1 and 0.7 at a fixed seed; 0 of 256 teams copy a training team. For each row, the new control included, `ask_grid84.py preflight`, the ask grid's own probe step, runs them with that row's decoder before its grid, and a failure stops the row | default model yes; every row before its grids |
 | Invariance, repeat | Skipped. The scorer is unchanged and every battle shuffles slots | not run |
 
 The ask grid's probe step samples species-first today. The code ticket must make it use each row's decoder, or the probes of Linear, random order would test the wrong sampler.
@@ -187,16 +196,20 @@ The corrected t never reaches the bar. Its largest single reading is 0.0050, on 
 
 This agrees with both papers. MD4 §3 says the network can be made independent of t, because the right answer for a partly hidden team does not depend on t. LLaDA Appendix A.1 gives its network no t at all. It also agrees with this project's run of 2026-10-07 that removed the time input and lost nothing.
 
-So the sampler's t is a departure from the papers that has no measurable effect on this model. Two ways forward, for the owner:
+So the sampler's t is a departure from the papers that has no measurable effect on today's default model.
 
-| Choice | Effect |
+**How the row resolves.** The probe decides, on the model the row would use. After the new per-field model trains, the same probe runs on it:
+
+| Probe on the new per-field model | What happens to Per-field, corrected t |
 | --- | --- |
-| Skip the grid of Per-field, corrected t (recommended) | The results table reports the row from this probe: same line-ups, 1% to 2% of fields changed. Saves 216,384 battles, about 46 minutes, and the row cannot show a difference anyway |
-| Run it as planned | A fourth battled row, expected to match the control. Any gap it showed would be battle noise, which the Noise floor section sizes at 0.00034 |
+| Under 0.01 on every field type | No battle grid. The results table reports the probe's numbers for the row: the largest total variation, the share of fields changed and the line-ups changed |
+| 0.01 or more on any field type | The row is battled at guidance 2, 4 and 8 like the others, 649,152 battles and about 2.3 hours |
+
+A preview of that rule exists. On the 21-epoch per-field model already trained on the shuffled-only table, `stat84_pos_per_field_s0_noise_ep21`, the corrected t moved the drawing distributions by 0.008 at most, changed 1% to 2% of fields and 3 line-ups in 768. That is under the bar, so the row is expected to need no battles.
 
 ## Noise floor and budget
 
-All figures are measured on the control's stored grid unless a source is named.
+All figures are measured on the stored guidance 2 grid of today's default model unless a source is named. They size the noise the new rows will carry. The new control gets its own readings.
 
 | Quantity | Value | Source |
 | --- | --- | --- |
@@ -214,23 +227,50 @@ Cost, all on the laptop, queued detached behind other sessions' jobs after `pyth
 
 | Step | Battles | Time |
 | --- | --- | --- |
-| Train the linear model, 80 epochs at about 4 minutes each | none | about 5.4 hours |
-| Grid for Linear, species-first | 216,384 | about 46 minutes |
-| Grid for Linear, random order | 216,384 | about 46 minutes, plus slower sampling |
-| Linear model at epochs 34 and 55, sampling seed 1 | 144,256 | about 31 minutes |
-| Unguided baselines, 192 teams for each of the control and the two linear rows | 28,224 | about 6 minutes |
-| Elite line-up yield re-battles for the control and both linear rows | about 105,000 | about 22 minutes |
-| Grid for Per-field, corrected t, only if the owner keeps it. Its unguided baseline would add 9,408 | 216,384 | about 46 minutes |
+| Train the per-field model on the shuffled-only table, up to 80 epochs | none | about 6.7 hours |
+| Train the linear model on the same table | none | about 6.7 hours |
+| Grids for the control, Linear, species-first and Linear, random order, each at guidance 2, 4 and 8 | 1,947,456 | about 6.9 hours, plus slower sampling in random order |
+| Unguided baselines, 192 teams for each of the three | 28,224 | about 6 minutes |
+| Elite line-up yield re-battles for the nine grids | about 315,000 | about 67 minutes |
+| Grids for Per-field, corrected t at guidance 2, 4 and 8, only if its probe reaches the bar | 649,152 | about 2.3 hours |
 
-That is about 710,000 battles and 2.5 hours of battling after the training, or 936,000 and 3.3 hours with the grid of Per-field, corrected t and its unguided baseline. No cloud compute.
+That is about 13.4 hours of training and 2.3 million battles, about 8.1 hours, or 2.9 million and 10.4 hours if Per-field, corrected t is battled. The training time scales the default model's 320.6 minutes by the larger table. No cloud compute.
 
 ## What the later tickets take from this
 
 | Ticket | What this document fixes for it |
 | --- | --- |
-| [Add the linear masking rate and the corrected t to the 84-field code, with tests](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/295) | A `train84.py` arm that passes `sched="1,1,1,1,1"` and `early_stopping_threshold=0.0` and saves every epoch. A sampler option for the t rule, tested against `masking_rate_preflight.corrected_t`. Ask-grid entries for the four code IDs, a preflight that uses each row's decoder, and the unguided cells. Random order is `remask84.RandomDecodingArm(model, "rand_plain", lookahead=True)` |
-| [Train the 84-field model with the linear masking rate](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/296) | Run `masking_rate_preflight.py recipe_replay training_smoke` from the frozen copy first. Post the validation curve, the training-versus-validation gap, and the validation loss of both checkpoints under both masking rates |
-| [Sample and battle the four rows and post the results table](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/297) | For each row: preflight, the 3-seed grid, battles, report, then its unguided cells and its elite line-up yield. Each row is posted the moment it lands |
+| [Add the linear masking rate and the corrected t to the 84-field code, with tests](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/295) | Five build items. A training arm for each masking rate on the shuffled-only table, with `early_stopping_threshold=0.0`, every epoch saved, and `sched="1,1,1,1,1"` for the linear one. A sampler option for the t rule, tested against `masking_rate_preflight.corrected_t`. Guidance as an ask-grid setting of 2, 4 and 8, where today it is the constant 2.0. Ask-grid entries for the four code IDs, a probe step that uses each row's decoder, and the unguided cells. Random order as `remask84.RandomDecodingArm(model, "rand_plain", lookahead=True)` |
+| [Train the 84-field model with the linear masking rate](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/296) | Two trainings on the shuffled-only table, per-field then linear. First `MRP_TABLE=shuffled_only masking_rate_preflight.py training_smoke`. After the per-field training, `MRP_MODEL=<its checkpoint> masking_rate_preflight.py t_sensitivity`, which decides the grid of Per-field, corrected t. Post both validation curves, both training-versus-validation gaps, and the validation loss of both checkpoints under both masking rates |
+| [Sample and battle the four rows and post the results table](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/297) | For each row at each guidance value: the probe step, the 3-seed grid, battles, report and elite line-up yield. The unguided cells once for each row. Each grid is posted the moment it lands |
+
+## Figures
+
+Storyboarded 2026-11-11 with `storyboard-figures`, before any training or battle. Each frame is a sketch with no real numbers yet, except frame 5, whose first reading exists.
+
+| Frame | Sentence the reader takes | Expected | Surprise |
+| --- | --- | --- | --- |
+| 1. Error against line-ups, one three-point curve for each row, guidance 2, 4 and 8 | A row is better when its curve sits lower and further right than the control's. | Linear, species-first lies on the control's curve. Linear, random order sits to the right and higher. | A linear curve wholly below the control's. |
+| 2. Got against ask for the control and Linear, species-first, one panel for each guidance | The linear masking rate lifts got above 12/24, or it doesn't. | The two lines overlap, and both stop rising at the same got. | The linear line keeps rising where the control stops. |
+| 3. Random order's error as a multiple of species-first's, per-field model beside linear model | Random order stops failing once training shows every mix of hidden and visible fields. | The multiple falls from the 2.8 measured on a per-field model, and stays above 1. | It stays near 2.8, so the order itself is the problem. Or it falls below 1. |
+| 4. Validation loss of both new models under both masking rates, a 2-by-2 grid | Each model is best under the masking rate it trained on. The question is how much the linear model gives up on the species-first path. | The linear model is lower under the linear rate and slightly higher under the per-field rate. | The linear model is lower under both. |
+| 5. How far the drawing distribution moves when a pass is told another t, on the new per-field model | The model barely reads t. | Under 0.01 on every field type, as on today's default model. | 0.01 or more, and then Per-field, corrected t gets its grids. |
+
+Every planned run feeds a frame: the two trainings feed frame 4, the nine grids feed frames 1 to 3, and the probe feeds frame 5. The unguided baselines and the elite line-up yield feed the results table beside frame 1. The readings of the linear model at epochs 34 and 55 fed no frame and were dropped. Sketches: [storyboard](figures/masking_rate_rows/storyboard.html).
+
+Six one-idea explainers sit beside it, built by `src/masking_rate_explainers.py`: [what a probe is](figures/masking_rate_rows/explain_1_probes.html), [what the corrected t corrects](figures/masking_rate_rows/explain_2_corrected_t.html), [the plan after the two decisions](figures/masking_rate_rows/explain_3_plan.html), [the two training tables](figures/masking_rate_rows/explain_4_tables.html), [what the code ticket builds](figures/masking_rate_rows/explain_6_code_ticket.html) and [the departures matrix](figures/masking_rate_rows/explain_7_departures.html).
+
+## Changes before any result
+
+Made 2026-11-11, after the first version of this document and before any training or battle of the experiment.
+
+| Owner's words | What changed |
+| --- | --- |
+| "Yes each row get three guidance value" | Every battled row is sampled at guidance 2, 4 and 8, where the first version kept guidance 2. Each row is now a three-point curve, the verdict is read at each guidance, and the grids triple. |
+| "I perfer shuffled only because it only represent a win rate that is not bias by the error of the rl policy" | Both trainings use the shuffled-only table. Today's default model trained on the older table, so it can no longer be the control: a table difference would mix with the masking rate. The control is a new per-field training on the shuffled-only table, about 6.7 more hours, and today's default model stays as a reference. |
+| "How do I resolve the per-field corrected" | The probe decides, as written under Per-field, corrected t is on hold. |
+
+One change is Claude's. The readings of the linear model at epochs 34 and 55 were dropped, because the new control has no readings at those epochs to compare with.
 
 ## Deviations
 
