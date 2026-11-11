@@ -8,7 +8,7 @@ The sampler fills 84 fields in a fixed ORDER (species first, then abilities, ite
 
 ## What the sources say
 
-- **MD4** (Shi et al., arXiv 2406.04329). Training draws each token's mask independently. Algorithm 2 (Appendix F.2) samples each masked position from a categorical distribution over a time grid: "for n ∈ [N], if x_t^(n) = m, draw x_s^(n) ∼ Cat(...)". Section 6 (GenMD4) generalizes the schedule to a per-token α_t: the loss in Eq. (12) uses "α_t is the elementwise derivative of α_t", and "This generalizes the MD4 loss (4), which is recovered when α_t is a scalar schedule times a vector of ones." So a per-token α_{t,i} is in the paper's own framework. The form α_{t,i} = 1 − t^{w_i} is **UNVERIFIED**: the paper does not use it.
+- **MD4** (Shi et al., arXiv 2406.04329). Training draws each token's mask independently. Algorithm 2 (Appendix F.2) samples each masked position from a categorical distribution over a time grid: "for n ∈ [N], if x_t^(n) = m, draw x_s^(n) ∼ Cat(...)". Section 6 (GenMD4) generalizes the schedule to a per-token α_t: the loss in Eq. (12) uses "α_t is the elementwise derivative of α_t", and "This generalizes the MD4 loss (4), which is recovered when α_t is a scalar schedule times a vector of ones." So a per-token α_{t,i} is in the paper's own framework. The form is in the paper: "we parametrize the m + 1 dimensional function α_t using the polynomial schedule (see Fig. 1) as α_t,i = 1 − t^{w_i}" (§6), with w_i learned per token value (App. I.2). Ours fixes w per field type.
 - **MD4 has no fixed-order rule.** Its sampler unmasks tokens at random times, not in a fixed order. Any rule for a fixed order is ours.
 - **LLaDA** (arXiv 2502.09992). It uses a linear masking probability, which it calls "analogous to but distinct from, the noise schedule in continuous diffusion models", motivated by "the information in the text is proportional to the number of tokens on average". Its Eq. (11) gives the time-free posterior: q_{0|t}(x_s^i | x_t) = p_data(x_0^i | x_t^UM) for every i with x_t^i = M. The extracted text writes x_s^i on the left; x_0^i is probably meant (**UNVERIFIED**, could be an extraction artifact).
 
@@ -47,6 +47,6 @@ This recommendation is ours. MD4 and LLaDA set the masking rate per token or uni
 
 ## Caveats
 
-- The per-token α_{t,i} = 1 − t^{w_i} form is UNVERIFIED against MD4 or GenMD4 text; it is the assumption this note builds on.
+- The per-token form α_{t,i} = 1 − t^{w_i} is MD4 §6's (verified 2026-11-11 by the main session); the fixed per-field-type w is ours.
 - The weights are the project's ORDER weights from `code/src/diffusion84.py`, not values from a paper.
 - Nothing here is tested against model output. Compare the sampler's quality under each rule before adopting one.
