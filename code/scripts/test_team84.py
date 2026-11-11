@@ -100,7 +100,7 @@ class TrainingStoppingAndSaving(unittest.TestCase):
     def scripted(self, curve):
         """A stand-in for val_loss_estimate: the next value of curve on the validation teams, 0 on the training teams."""
         def estimate(net, tables, x, *a, **k):
-            return self.M.ValLoss(next(curve) if x is self.val else 0.0, 0.0, len(x))
+            return self.M.ValLoss(next(curve) if self.np.array_equal(x, self.val) else 0.0, 0.0, len(x))
         return estimate
 
     def test_validation_loss_is_the_same_on_every_call(self):

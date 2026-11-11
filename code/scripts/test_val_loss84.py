@@ -86,6 +86,21 @@ class ValidationLoss(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.estimate(estimator="nearest")
 
+    def test_validation_drops_a_planted_team_the_tables_reject_and_keeps_the_rest(self):
+        import lossdown as L
+        bad = self.val[0].copy()
+        col = L.COLS_BY_KEY["item"][0]                                 # the first Pokémon's item
+        rejected = False
+        for v in range(1, VOCAB.sizes["item"]):                         # first item the tables reject on this Pokémon
+            bad[col] = v
+            if bool(self.tables.check(bad[None, :self.M.STAT0])[0]): rejected = True; break
+        self.assertTrue(rejected, "no item value made the team break the tables")
+        rows = np.concatenate([self.val, bad[None]]); labels = np.full(len(rows), np.nan, np.float32)
+        kept, kept_w, dropped = self.M.validation_rows(self.tables, rows, labels)
+        self.assertEqual(dropped, 1)
+        self.assertTrue((kept == self.val).all())
+        self.assertEqual(len(kept_w), len(self.val))
+
 
 if __name__ == "__main__":
     unittest.main()

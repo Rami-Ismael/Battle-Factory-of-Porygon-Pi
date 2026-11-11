@@ -237,6 +237,14 @@ def _training_tensors(tables, rows, labels, row_weights=None):
     return x, w, rw, keep
 
 
+def validation_rows(tables, rows, labels):
+    """(rows, labels, dropped): a validation set without the rows the tables reject, as training drops them (#252).
+    Those are wrong-stone teams; scored under the tables, one hidden field costs ~10,000 and swamps the mean."""
+    X84 = np.asarray(rows, dtype=np.int64)
+    keep = ~tables.check(X84[:, :STAT0])
+    return X84[keep], np.asarray(labels, np.float32)[keep], int((~keep).sum())
+
+
 class Model84:
     """One or more trained 84-field networks (a mixture samples from the log-mean of its members, like team_writer)
     plus what sampling and pastes need. Build one with Model84.train_new(), Model84.mixture() or Model84.load()."""
@@ -262,6 +270,7 @@ class Model84:
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers), logged with its standard error,
+        on the rows the tables accept (wrong-stone teams dropped, as from training; counted in info),
         beside the same function on a fixed sample of training rows the same size (train_teams_loss) and their
         difference (gap, gap_se). val_estimator and val_draws: how val_loss_terms places t, and how many draws per team
         (default: 4 random stratified draws, until issue #253 picks one). patience=P: stop after P
@@ -332,6 +341,11 @@ class Model84:
         t_start = time.perf_counter()
 
         val_kw = val_kw or {}
+        if val is not None:
+            vx, vw, dropped = validation_rows(tables, *val); val = (vx, vw)
+            info.update(n_val=len(vx), val_dropped_by_tables=dropped)
+        if watch:
+            watch = {name: validation_rows(tables, *rw_)[:2] for name, rw_ in watch.items()}
         if val is not None:                               # the training rows scored beside validation: fixed, validation-sized
             pick = np.sort(np.random.default_rng(TRAIN_TEAMS_SEED).choice(len(x), min(len(x), len(val[0])), replace=False))
             pick_dev = torch.as_tensor(pick, device=x.device); train_teams = x[pick_dev].cpu().numpy()
