@@ -22,8 +22,8 @@ THEMES = {
                  model="#3987e5", train="#d95926", trainall="#a77ae0", anchor="#8f8e86",
                  s0="#4a4945", s1="#2f6e5c", s2="#3fb592", s3="#a8ead5", on=["#f0efec", "#f0efec", "#0b0b0b", "#0b0b0b"]),
 }
-MODEL, TRAIN, TALL = "Default model", "Training, matched to asks", "Training, all win rates"
-COPIED, RANDOM = "One team repeated", "Random legal teams"
+MODEL, TRAIN, TALL = "Default model", "Win-rate-matched training", "Any-win-rate training"
+COPIED, RANDOM = "One training team repeated", "Random legal teams"
 
 
 def mean(xs): return sum(xs) / len(xs)
@@ -51,7 +51,7 @@ def cat_axis(t, data, **kw):
 
 def val_axis(t, name, **kw):
     return {"type": "value", "name": name, "nameLocation": "middle", "nameGap": 26,
-            "nameTextStyle": {"color": t["ink2"], "fontSize": 13}, "splitLine": {"lineStyle": {"color": t["grid"]}},
+            "nameTextStyle": {"color": t["ink2"], "fontSize": 13, "lineHeight": 17}, "splitLine": {"lineStyle": {"color": t["grid"]}},
             "axisLine": {"show": False}, "axisLabel": {"color": t["ink2"], "fontSize": 12}, **kw}
 
 
@@ -63,19 +63,19 @@ def teaser(t, _r, M, seeds):
          mean(seeds("train_all_s", "builds_per_species")), M["copied"]["builds_per_species"], M["random"]["builds_per_species"]]
     n = [mean(seeds("model_s", "nearest_mean")), mean(seeds("train_s", "nearest_mean")),
          mean(seeds("train_all_s", "nearest_mean")), M["copied"]["nearest_mean"], M["random"]["nearest_mean"]]
-    o = base(t, 416, f"The default model writes {b[1] - b[0]:.1f} fewer builds per species than training,\n"
-                     f"yet its teams sit {n[0] - n[1]:.1f} fields further from the closest training team")
+    o = base(t, 436, f"The default model writes {b[1] - b[0]:.1f} fewer builds per species than win-rate-matched\n"
+                     f"training, yet its teams sit {n[0] - n[1]:.1f} fields further from the closest training team")
     head = lambda left, a, bline: [
         {"text": a, "left": left, "top": 78, "textStyle": {"fontSize": 14, "fontWeight": 600, "color": t["ink"], "fontFamily": FONT}},
         {"text": bline, "left": left, "top": 98, "textStyle": {"fontSize": 13, "fontWeight": 400, "color": t["model"], "fontFamily": FONT}}]
-    o["title"] += head(196, "Builds per species at 30 uses", f"model: {b[1] - b[0]:.1f} fewer than matched training")
-    o["title"] += head(512, "Nearest training distance, fields of 84", f"model: {n[0] - n[1]:.1f} more than matched training")
-    o["title"].append({"text": "Model and training bars are means of three sampling seeds or three training draws. One team repeated is a\n"
-                               "training team, so its distance is to the next closest training team.",
+    o["title"] += head(196, "Builds per species at 30 uses", f"{b[1] - b[0]:.1f} fewer than win-rate-matched training")
+    o["title"] += head(512, "Nearest training distance, fields of 84", f"{n[0] - n[1]:.1f} more than win-rate-matched training")
+    o["title"].append({"text": "Model and training bars are means of three sampling seeds or three training draws. One training team repeated\n"
+                               "is left out of its own reference, so its distance is the 17 fields to the next closest training team.",
                        "left": 16, "bottom": 8, "textStyle": {"fontSize": 12, "fontWeight": 400, "color": t["ink2"], "lineHeight": 16, "fontFamily": FONT}})
-    o["grid"] = [{"left": 196, "width": 252, "top": 128, "bottom": 88}, {"left": 512, "width": 230, "top": 128, "bottom": 88}]
-    o["xAxis"] = [val_axis(t, "distinct builds among 30 uses", gridIndex=0, min=0, max=30, interval=10),
-                  val_axis(t, "fields that differ, of 84", gridIndex=1, min=0, max=70, interval=20)]
+    o["grid"] = [{"left": 196, "width": 252, "top": 128, "bottom": 108}, {"left": 512, "width": 218, "top": 128, "bottom": 108}]
+    o["xAxis"] = [val_axis(t, "distinct builds among 30 uses\nhigher means more varied", gridIndex=0, min=0, max=30, interval=10),
+                  val_axis(t, "fields of 84 that differ\nhigher means further from training", gridIndex=1, min=0, max=70, interval=20)]
     o["yAxis"] = [cat_axis(t, rows, gridIndex=0),
                   cat_axis(t, rows, gridIndex=1, axisLabel={"show": False})]
     for g, vals in ((0, b), (1, n)):
@@ -97,10 +97,10 @@ def builds(t, r, _M, seeds):
     gap = mean(tr) - mean(mod)
     lo, hi = mean(tr) + F["lo"], mean(tr) + F["hi"]
     rows = [MODEL, TRAIN, TALL]
-    o = base(t, 356, f"All three seeds of the default model sit {gap:.1f} builds per species below matched\n"
-                     f"training, far outside the band two training draws differ by")
-    o["grid"] = {"left": 196, "right": 40, "top": 100, "bottom": 92}
-    o["xAxis"] = val_axis(t, "distinct builds among 30 uses of one species, mean over species", min=19, max=27, interval=1)
+    o = base(t, 376, f"All three seeds of the default model sit {gap:.1f} builds per species below\n"
+                     f"win-rate-matched training, far outside the band two training draws differ by")
+    o["grid"] = {"left": 196, "right": 40, "top": 100, "bottom": 112}
+    o["xAxis"] = val_axis(t, "distinct builds among 30 uses of one species, mean over species\nhigher means more varied", min=19, max=27, interval=1)
     o["yAxis"] = cat_axis(t, rows)
     rng = lambda xs: f"{min(xs):.1f} to {max(xs):.1f}" if f"{min(xs):.1f}" != f"{max(xs):.1f}" else f"{min(xs):.1f}"
     series = []
@@ -120,7 +120,7 @@ def builds(t, r, _M, seeds):
                              "data": [[{"coord": [round(mean(tr), 4), MODEL]}, {"coord": [round(max(mod) + 0.25, 4), MODEL]}]]}
     o["series"] = series
     o["title"].append({"text": "One dot per sampling seed or training draw. The band is the range of the difference between two "
-                               "training draws, placed\naround matched training; a gap counts when all three seeds land outside it.",
+                               "training draws, placed\naround win-rate-matched training; a gap counts when all three seeds land outside it.",
                        "left": 16, "bottom": 6, "textStyle": {"fontSize": 12, "fontWeight": 400, "color": t["ink2"],
                                                               "lineHeight": 16, "fontFamily": FONT}})
     return o, dict(model=mod, train=tr, train_all=ta, gap=gap, band=(lo, hi))
@@ -133,11 +133,11 @@ def novelty(t, _r, _M, seeds):
     rows = [(MODEL, "model_s", t["model"]), (TRAIN, "train_s", t["train"]), (TALL, "train_all_s", t["trainall"])]
     vals = {m: [mean(seeds(p, m)) for _, p, _ in rows] for m, _ in parts}
     o = base(t, 290, f"The default model copies a training line-up {100 * vals['novelty_swaps_0'][0]:.0f}% of the time against "
-                     f"{100 * vals['novelty_swaps_0'][1]:.0f}% for matched\ntraining; the rest goes to 1 and 2 swaps, "
+                     f"{100 * vals['novelty_swaps_0'][1]:.0f}% for\nwin-rate-matched training; the rest goes to 1 and 2 swaps, "
                      f"not to new line-ups")
     o["legend"] = {"top": 66, "left": 196, "itemWidth": 14, "itemHeight": 12, "itemGap": 18,
                    "textStyle": {"color": t["ink"], "fontSize": 13}}
-    o["grid"] = {"left": 196, "right": 64, "top": 104, "bottom": 56}
+    o["grid"] = {"left": 196, "right": 76, "top": 104, "bottom": 56}
     o["xAxis"] = val_axis(t, "", min=0, max=1, interval=0.25, axisLabel={"show": False})
     o["yAxis"] = cat_axis(t, [{"value": n, "textStyle": {"color": c, "fontWeight": 600}} for n, _, c in rows])
     o["series"] = []
@@ -175,10 +175,10 @@ def archetypes(t, r, _M, seeds):
         verdict = "beyond the floor, every seed" if V[m]["differs"] else f"beyond the floor on {sum(outside)} of 3 seeds"
         right_labels.append(f"{100 * mm:.1f}% vs {100 * tm:.1f}%\n{verdict}")
         info[label] = dict(model=mm, train=tm, diffs=diffs, floor=(lo, hi), outside=outside, differs=V[m]["differs"])
-    o = base(t, 386, "Trick Room and sun teams are more common than in matched training on every seed,\n"
-                     "beyond the noise floor; Tailwind and rain are not")
-    o["grid"] = {"left": left, "width": width, "top": 86, "bottom": 96}
-    o["xAxis"] = val_axis(t, "default model minus matched training, percentage points", min=xmin, max=xmax, interval=2)
+    o = base(t, 402, "Trick Room and sun teams are more common than in win-rate-matched training\n"
+                     "on every seed, beyond the noise floor; Tailwind and rain are not")
+    o["grid"] = {"left": left, "width": width, "top": 86, "bottom": 112}
+    o["xAxis"] = val_axis(t, "default model minus win-rate-matched training, percentage points", min=xmin, max=xmax, interval=2)
     o["yAxis"] = [cat_axis(t, [l for _, l in names], axisLabel={"color": t["ink"], "fontSize": 14, "fontWeight": 600}),
                   cat_axis(t, right_labels, position="right", axisLine={"show": False},
                            axisLabel={"color": t["ink2"], "fontSize": 13, "lineHeight": 18, "margin": 16})]
@@ -195,8 +195,8 @@ def archetypes(t, r, _M, seeds):
          "itemStyle": {"color": "transparent", "borderColor": t["model"], "borderWidth": 2}, "z": 3},
     ]
     o["title"].append({"text": "One dot per sampling seed, filled when it lands outside the grey noise floor. Right: share of teams, "
-                               "default model\nagainst matched training, means of three. Setters only: a team counts when any set "
-                               "carries the setting move, ability or mega stone.",
+                               "default\nmodel against win-rate-matched training, means of three. Setters only: a team counts when any set carries\n"
+                               "the setting move, ability or mega stone.",
                        "left": 16, "bottom": 6, "textStyle": {"fontSize": 12, "fontWeight": 400, "color": t["ink2"],
                                                               "lineHeight": 16, "fontFamily": FONT}})
     return o, info

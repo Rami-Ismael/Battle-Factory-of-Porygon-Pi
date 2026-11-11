@@ -2,7 +2,7 @@
 
 Figures for the result comment on map #263 (issue #264). The reader arrives with the map's question: where does the default model, the 80-epoch labelled 84-field model at guidance 2, lose diversity against its training teams, and is each gap larger than the noise between two training draws?
 
-Rows keep one color in every figure: default model blue, training teams matched to the asks orange, training teams drawn over all win rates purple, the two anchors (one team repeated, random legal teams) grey.
+Rows keep one color and one name in every figure: default model blue; win-rate-matched training, real training teams drawn so their win-rate labels match the asks, orange; any-win-rate training, real training teams drawn regardless of win rate, purple; the two anchors, one training team repeated and random legal teams, grey. Names renamed 2026-11-11 for readers new to the project.
 
 ## Teaser: two gaps on the copy-to-random scale
 
