@@ -22,15 +22,15 @@ Written 2026-11-11 from the comment body and its four light figures only, before
 | 16 | "line-up" | Defined late, in the Novelty section | Measures table, then Novelty section |
 | 17 | "swap", "Novelty" | What one swap looks like | Novelty section, worked example with Garchomp and Dragonite |
 | 18 | "fields", "fields of 84", "12 fields further" | What a field is; how distance is counted | Setup paragraph 1 and Nearest training distance section |
-| 19 | "Nearest training distance" | Distance to which training set, and whether the team itself is excluded | How to read this table and its section |
-| 20 | One team repeated has distance 17 | Why a copy is not at 0 | Reference-row line and Nearest training distance section |
+| 19 | "Nearest training distance" | Distance to which training set, and whether the team itself is excluded | Measures table and its section |
+| 20 | One team repeated has distance 17 | Why a copy is not at 0 | Teaser caption and Nearest training distance section |
 | 21 | "noise floor", "training-split noise floor" | What split, how the band is built and placed | Result paragraph, then paragraph under the tables |
 | 22 | "sampling seeds", "three training draws" | What is resampled | Rows table and figure captions |
 | 23 | "1,088 teams, 64 per ask" | Arithmetic is fine, but why 17 asks | Not answered: no source gives the reason; the glossary only says 18/24 to 23/24 are reported apart |
 | 24 | "archetype", "setter", "Setters only" | Game terms | Archetypes section |
 | 25 | "Trick Room", "Tailwind", "terrains", "mega stone", "Charizardite Y", "Froslassite", "Snow Warning" | Game terms | Mega stone, Charizardite Y, Froslassite, Snow Warning: Archetypes section and caveats. What Trick Room and Tailwind do in battle is not explained; no project source defines it |
 | 26 | "Regulation M-B vocabulary" | Which rules, whose vocabulary | Archetypes section, last sentence |
-| 27 | "copy anchor" | Undefined name | Replaced by "one team repeated" everywhere |
+| 27 | "copy anchor" | Undefined name | Replaced by "one training team repeated" everywhere |
 | 28 | "points" in the noise-floor row | Percentage points or Stat Points | Tables say "percentage points" |
 | 29 | "leaves each team out of its own reference once" | Leave-one-out meaning | Caveats |
 | 30 | "351 of 351 values", "2026-11-09 result" | Which earlier result | Caveats |
