@@ -1,6 +1,6 @@
 **Result of [Measure diversity of the default model's teams](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/264), 2026-11-11.**
 
-The project's default model is a masked discrete diffusion model that writes a Pokémon team of six as 84 fields, 14 per Pokémon: species, item, ability, four moves, Stat Alignment and six Stat Points values. It is conditioned on a target win rate, called the ask, and this measurement asks whether its teams are as varied as the real teams it was trained on. Each comparison puts 1,088 model teams beside 1,088 training teams whose win-rate labels match the asks.
+The project's default model is a masked discrete diffusion model that writes a team of six Pokémon, each a different species, as 84 fields, 14 per Pokémon: species, item, ability, four moves, Stat Alignment and six Stat Points values. It is conditioned on a target win rate, called the ask, and this measurement asks whether its teams are as varied as the real teams it was trained on. Each comparison puts 1,088 model teams beside 1,088 training teams whose win-rate labels match the asks.
 
 The model writes about 5 fewer builds per species than those win-rate-matched training teams, 20.6 against 25.7, and its teams sit about 12 fields further from the closest training team, 36.0 against 24.5 fields of 84. Both gaps are far outside the noise floor, the band within which two draws of training teams differ from each other.
 
