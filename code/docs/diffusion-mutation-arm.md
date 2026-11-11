@@ -27,7 +27,7 @@ behaviour-cloning policy both sides) on this run's own Showdown servers, ports 8
   Item Clause fix), exactly as `scripts/dsame_experiment.py` uses them. Its edit size is the operator's:
   one model field (A–D, 4/6), a Stat Point spread only (E, 1/6), or one whole Pokémon (F, 1/6).
 - **B — uniform refill:** draw a mask on the parent, refill every masked field uniformly at random from the
-  values the v3 legality tables (`lossdown.Tables.allowed`: Species and Item Clause, learnsets, abilities,
+  values the v3 legal Pokémon construction tables (`lossdown.Tables.allowed`: Species and Item Clause, learnsets, abilities,
   Mega stones, sorted move order) allow given every visible field, in the decoder's column order (species,
   ability/item, moves, alignment).
 - **C — diffusion refill:** the same mask, refilled by the frozen v3 members

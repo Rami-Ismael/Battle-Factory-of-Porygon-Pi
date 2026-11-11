@@ -20,9 +20,9 @@ The all-teams 84-field model behaves differently at asks that differ by 0.002. A
 | Claim | Win rate and team measures under this policy against these teams. Nothing beyond them. |
 | Fields | Generated: all 84. Copied: none. Stat Alignment is repaired to match the moves after sampling. |
 | Vocabulary | Regulation M-B tables stored in the checkpoint, as the arm without noise. |
-| Training teams | The all-teams set in `lossdata84.npz`: 298,488 teams before the rule tables, 6,092 in validation, test 500 and ranks 51 to 100 excluded. |
+| Training teams | The all-teams set in `lossdata84.npz`: 298,488 teams before the legal Pokémon construction tables, 6,092 in validation, test 500 and ranks 51 to 100 excluded. |
 | Scorer | Behaviour-cloning policy on both sides, 49 distinct top-50 meta teams, one battle per opponent, slots shuffled. Seeds 7301 to 7303. |
-| Search region | No search loop. 64 valid teams per ask and seed, at most 1,280 tries, guidance 2, temperature 1, species first, rule masks on. |
+| Search region | No search loop. 64 valid teams per ask and seed, at most 1,280 tries, guidance 2, temperature 1, species first, legal Pokémon construction filter on. |
 | Scientific setting | Label noise width. |
 | Fixed settings | Seed 0, batch 256, learning rate 4e-4, masking exponents, network size. The learning-rate schedule stays sized to a cap of 80 and training stops at epoch 21. The noise has its own random generator, so the other random draws match the arm without noise. Validation labels stay exact. |
 | Stopping rule | Epoch 21, or earlier if 3 epochs pass with no new lowest validation loss. This deliberately differs from early stopping alone, because the comparison needs matching epochs. |

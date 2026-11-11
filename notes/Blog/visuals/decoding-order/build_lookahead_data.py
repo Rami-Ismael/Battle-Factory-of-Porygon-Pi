@@ -13,7 +13,7 @@ Sources:
   fill the fields in the same order. Per pass: the new field, the 48 values after the pass, each masked species's
   candidate species (the species that still fit its Pokémon's visible fields and Species Clause), the share of the
   model's probability for the new field that the lookahead refuses (with it on) or would refuse (with it off), and the
-  fields the legality tables say clash with the rest of the team. The pair shown is the first seed whose run without
+  fields the legal Pokémon construction tables say clash with the rest of the team. The pair shown is the first seed whose run without
   the lookahead Showdown rejected, with a value the lookahead would have refused drawn before that Pokémon's species,
   and whose run with the lookahead Showdown accepted. It illustrates the lookahead; no number on the page comes from it.
 """

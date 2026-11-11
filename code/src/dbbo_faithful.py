@@ -12,7 +12,7 @@ Wu, Kuang, Niu, Ma & Yu, "Diffusion-BBO: Diffusion-Based Inverse Modeling for On
   rounds 4 x 128 = 512 battled teams, the same budget as cem_v3_noheldout and the other arms.
 
 Departures forced by this problem, not choices: the network is the project's masked transformer over 48 fields
-(the paper's tasks are continuous vectors); decoding keeps the regulation's legality tables (illegal teams cannot
+(the paper's tasks are continuous vectors); decoding keeps the regulation's legal Pokémon construction tables (illegal teams cannot
 be battled); labels are 49-battle win rates (the paper's oracles are noiseless or nearly). Dropped on purpose: the
 ensemble and its uncertainty term (UaE) that picks w. This project does not use uncertainty acquisition. Without
 that term the paper's argmax over w in {0.6 ... 1.0} reduces to w = 1. No ridge, no taboo, no elite re-steer.

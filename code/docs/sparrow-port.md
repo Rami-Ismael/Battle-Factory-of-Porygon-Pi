@@ -48,7 +48,7 @@ discrete generators are not discussed anywhere.
 The v3 members used by the clean cross-entropy re-run: `F1_final_medium_noheldout_regmb_v3` +
 `G2_family_matrix_noprtrain_noheldout_regmb_v3` (never trained on ranks 51–100), ensembled exactly
 as in `scripts/diffusion_baseline_v3.py`: ask 0.5, guidance 2 (logits = 2·conditional −
-unconditional), temperature 1, legality tables with rules `clause, compat`, distinct-move restriction,
+unconditional), temperature 1, legal Pokémon construction tables with rules `clause, compat`, distinct-move restriction,
 masked columns decoded in `diffusion.ORDER`, Stat Points drawn from the same species' corpus spreads
 (random legal spread if the species has none). No ridge guidance, no surrogate, no nature repair, no
 fine-tuning at any step. The weights' sha256 are recorded in the run config and checked at every

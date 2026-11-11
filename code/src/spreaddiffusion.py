@@ -87,7 +87,7 @@ class SpreadDiffusion(nn.Module):
         return tot / max(n, 1)
 
 class SpreadConstraints:
-    """Rule masks for the 14-field grid, including the Stat Point budget."""
+    """Legal Pokémon construction filter for the 14-field grid, including the Stat Point budget."""
     def __init__(self, V, L):
         self.V, self.L = V, L
         self.species_vals = V.itos["species"]; self.move_vals = V.itos["move"]

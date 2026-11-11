@@ -3,7 +3,7 @@ classifier-free conditions: playstyle, win-rate bin, and LEGALITY.
 
 Legality as a condition token is what "classifier-free guidance for legal teams"
 means: the model is trained on legal teams (token 1) and on manufactured illegal
-ones (token 0, built by enumerating the rule tables), so at inference you can
+ones (token 0, built by enumerating the legal Pokémon construction tables), so at inference you can
 condition on legal=1 and amplify it — no separate classifier, no rule oracle in
 the loop. Whether that beats or adds to exact constrained decoding is the question
 the four-arm evaluation answers.
@@ -121,7 +121,7 @@ def load_model():
 def sample(model, C, n, wbin=5, g_wr=2.0, leg=LEG_NULL, g_leg=1.0, style="none", constrained=True, temp=1.0, device=DEV):
     """Composable classifier-free guidance:
        l = l_u + g_wr * (l_wr - l_u) + g_leg * (l_leg - l_u), each a log-softmax; then
-       (optionally) exact rule masks, then sample. leg=LEG_NULL disables the legality term."""
+       (optionally) the exact legal Pokémon construction filter, then sample. leg=LEG_NULL disables the legality term."""
     ys = D.STYLES.index(style) if style in D.STYLES else D.NULL
     y = torch.full((n,), ys, device=device, dtype=torch.long); yN = torch.full_like(y, D.NULL)
     w = torch.full((n,), wbin, device=device, dtype=torch.long); wN = torch.full_like(w, WNULL)

@@ -91,7 +91,7 @@ class LegalClassifier(nn.Module):
         return out
 
 def synth_rows(V, L, C, base_rows, n, rng):  # noqa: C901
-    """Manufacture n labelled rows that ENUMERATE the rule tables.
+    """Manufacture n labelled rows that ENUMERATE the legal Pokémon construction tables.
 
     Each row starts from a real team, then one slot gets a targeted edit whose label
     is known from the authoritative tables: moves drawn uniformly over that species'

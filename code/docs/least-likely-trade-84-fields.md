@@ -12,7 +12,7 @@ Exploratory: the plan was written after seeing the species-first remasking resul
 | Training teams | Unchanged, no training here. |
 | Scorer | One battle against each of the 49 distinct top-50 meta teams, one listed twice and weighted twice, behaviour-cloning policy on both sides, slots shuffled, seed 7300 + sampling seed. Fresh re-battle: 4 games each, seed 7520, private database. Ranks 51 to 100: 4 games each, seed 7530, same private database. |
 | Search region | No loop. Each cell draws until 64 legal, non-held-out teams or 1,280 tries. Asks 4/24, 8/24, 12/24, 16/24. Elite cut 0.531. |
-| Settings | Scientific: remasking share, temperature, Stat Points. Nuisance: ask, seeds 1 to 3. Fixed: guidance 2, species-first order, rule masks. |
+| Settings | Scientific: remasking share, temperature, Stat Points. Nuisance: ask, seeds 1 to 3. Fixed: guidance 2, species-first order, legal Pokémon construction filter. |
 | Plan | Primary: mean win rate against distinct line-ups at 192 teams per point, drawn as a Pareto curve with no remasking at every ask. Beside it: effective line-ups, new line-ups against training, fresh line-ups holding 0.531. Budget: 7 arms x 4 asks x 3 seeds x 64 teams x 49 battles = 263,424, about 40 minutes. Re-battle: 95 line-ups x 196 battles, 8,820 new after reuse. Ranks 51 to 100: 200 battles per team on the frozen lists. Smallest effect worth acting on: 0.03 win rate. |
 
 ## Arms
@@ -57,12 +57,12 @@ Exploratory, written after seeing the results below. The owner asked on 2026-11-
 | Row | Value |
 | --- | --- |
 | Claim | Removing the unlikely options from the set fields buys some of least-likely's win gain at a smaller cost in Pokemon sets than temperature 0.3 on sets only. It stops at win rate against the top-50 meta teams under the behaviour-cloning policy. If a nucleus arm matches the win rate of temperature 0.3 on sets only with clearly more distinct sets, it replaces that arm on the curve; if not, temperature stays. |
-| Fields | All 84 generated, Stat Alignment replaced by the repair. Nucleus filtering runs after guidance and the rule masks, and "set fields" means every field except species, as the temperature arms. |
+| Fields | All 84 generated, Stat Alignment replaced by the repair. Nucleus filtering runs after guidance and the legal Pokémon construction filter, and "set fields" means every field except species, as the temperature arms. |
 | Vocabulary | Unchanged from `stat84_all_teams_ep21.pt`. |
 | Training teams | Unchanged, no training. |
 | Scorer | As above. One battle against each of the 49 distinct top-50 teams, shuffled slots, seed 7300 + sampling seed. Re-battle: 4 games each, seed 7540, new private database copied from the earlier fresh one. |
 | Search region | No loop. 64 legal, non-held-out teams or 1,280 tries per cell. Asks 4/24, 8/24, 12/24, 16/24. Elite cut 0.531. |
-| Settings | Scientific: nucleus share and which fields it covers. Nuisance: ask, seeds 1 to 3. Fixed: temperature 1, guidance 2, species-first order, rule masks. The shares are picks, not derived. |
+| Settings | Scientific: nucleus share and which fields it covers. Nuisance: ask, seeds 1 to 3. Fixed: temperature 1, guidance 2, species-first order, legal Pokémon construction filter. The shares are picks, not derived. |
 | Plan | Primary: win rate at each ask against distinct line-ups and distinct sets, added to the existing curves. Budget: 4 arms x 4 asks x 3 seeds x 64 teams x 49 battles = 150,528. Re-battle: best team of each of the 68 line-ups of temperature 0.3 on sets only at the cut, ties to lowest ask, seed and position: 13,328 battles at most. Smallest effect worth acting on: 0.03 win rate. Ranks 51 to 100 are not spent here; the re-battle freezes no list. |
 
 | Reader name | Code ID | What differs |
@@ -72,7 +72,7 @@ Exploratory, written after seeing the results below. The owner asked on 2026-11-
 | Nucleus 0.5 on sets only | `nucleus_sets_p05` | Up to 50% |
 | Nucleus 0.9 on all fields | `nucleus_all_p09` | Species filtered too, so line-ups can fall |
 
-Noise floor and inherited probes as above. `check` proves p = 1 matches `Model84.sample` bit for bit, that a sets-only filter leaves species draws alone at one seed, and the filter's choices on a known table. `probes` runs round trip and copies per arm; a failed probe stops the queue. `check` also runs the sampler on a stand-in model with known odds and checks which options each arm can draw, with and without a rule mask. The earlier temperature 0.7 with top-p 0.9 result (`src/schemes.py`, 2026-08-27) came from an older model with copied Stat Points, and combined the two.
+Noise floor and inherited probes as above. `check` proves p = 1 matches `Model84.sample` bit for bit, that a sets-only filter leaves species draws alone at one seed, and the filter's choices on a known table. `probes` runs round trip and copies per arm; a failed probe stops the queue. `check` also runs the sampler on a stand-in model with known odds and checks which options each arm can draw, with and without a legal Pokémon construction filter. The earlier temperature 0.7 with top-p 0.9 result (`src/schemes.py`, 2026-08-27) came from an older model with copied Stat Points, and combined the two.
 
 GPT-6 (`gpt-6-sol`) reviewed the code before the freeze and found three defects, all fixed before the queue started. Stalls that recovered nothing could loop forever: three now stop the queue, while a stall that recovers battles still retries. The report left out distinct Pokemon sets, which the claim needs. The checks could pass with a sampler that ignored the filter; a test that disables the filter now fails them. Training copies stay reported with no pass mark, as `run-experiment` asks. Of the 68 line-ups at the cut, 52 come from ask 12/24, so the re-battle reports with and without it.
 

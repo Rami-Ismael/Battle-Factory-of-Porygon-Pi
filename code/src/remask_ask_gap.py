@@ -5,7 +5,7 @@ suggest an early unmasking choice can't be undone. Remasking (ReMDM; Wang, Schif
 column again and redraws it under the ask. It changes only the sampler: DiscreteDiffusionModel.sample(remask=, steps=).
 
 Model: DiscreteDiffusionModel.load(), the clean v3 members. Every arm samples as the loop does: classifier-free guidance 2
-(cem_dbbo.py), temperature 1, rule masks on, no surrogate tilt, to_paste(repair=True).
+(cem_dbbo.py), temperature 1, legal Pokémon construction filter on, no surrogate tilt, to_paste(repair=True).
 Arms: plain masking (the current sampler); remasking 5%, 10% and 20% of the filled columns before each pass, at
 the same 48 network passes; remasking 10% at 96 passes (inference scaling). Asks 0.3, 0.5 and 0.531 (elite cut).
 Seeds 1-3 at base 7300, shared by every arm, so plain masking at ask 0.5 redraws guidance_legality.py's g2 teams.

@@ -56,7 +56,7 @@ NAN = float("nan")
 COND_NOISE = None      # CADS: (s, gamma) for the current decode step, set by the sampler; None = clean condition
 
 
-# ---------------------------------------------------------------- legality tables (structured output)
+# ---------------------------------------------------------------- legal Pokémon construction tables (structured output)
 class Tables:
     """Boolean compatibility tables on the device. allowed(xin) gives, for every column, the
     values consistent with the fields that are visible (0 = masked). Never excludes a value a
@@ -775,7 +775,7 @@ def load_net(name, V):
     if ck.get('vocabulary') is not None and ck['vocabulary'] != V.itos:
         raise ValueError('checkpoint token identities differ from supplied vocabulary')
     if ck.get('regulation') is not None and ck['regulation'] != getattr(V, 'regulation', None):
-        raise ValueError('checkpoint regulation snapshot differs from supplied legality tables')
+        raise ValueError('checkpoint regulation snapshot differs from supplied legal Pokémon construction tables')
     if getattr(V, 'regulation', None) is not None and ck.get('vocabulary') is None:
         raise ValueError('legacy checkpoint requires explicit token-identity migration')
     cfg = dict(DEFAULT); cfg.update(ck["cfg"])

@@ -37,7 +37,7 @@ candidate that matches a held-out team on 48 fields is not a candidate, whatever
 | Place | What happens |
 |---|---|
 | `corpus.load_corpus()`, `activesearch.load_corpus_files()` | the pool without the set (default); `include_heldout=True` for the whole pool |
-| `encode.Vocab`, `encode.Legality` | read the excluded teams back in: **token ids and rule tables do not move** |
+| `encode.Vocab`, `encode.Legality` | read the excluded teams back in: **token ids and legal Pokémon construction tables do not move** |
 | `asked_vs_got.setup / gather / train`, `lossdown.load_data`, `lossdata.py`, `gradguide.all_labels` | rows, spread donors and labels lose the set |
 | `cem_v3.py` proposals | a proposal that is a held-out team is not a candidate; ridge cache renamed `…_noheldout` |
 | `dsame_experiment.py` | 15 of 328 start teams, mutation children and the baseline arm's battle pick skip the set |
