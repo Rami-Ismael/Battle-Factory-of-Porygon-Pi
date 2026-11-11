@@ -53,8 +53,8 @@ def state(probe, draws_key, loss_key, item):
     watch = [dict(w, name=DISPLAY.get(w["species"], w["species"]), sprite=sid(w["species"])) for w in check["watch"]]
     other_alone = 1 - sum(w["prob_model_alone"] for w in watch)
     other_filter = 1 - sum(w["prob_with_filter"] for w in watch)
-    rows = watch[:8] + [dict(name="Every other species", sprite=None, allowed=other_filter > 1e-4, prob_model_alone=other_alone,
-                             prob_with_filter=max(other_filter, 0.0), logit=None, other=True)] + watch[8:]
+    rows = [*watch[:8], dict(name="Every other species", sprite=None, allowed=other_filter > 1e-4, prob_model_alone=other_alone,
+                             prob_with_filter=other_filter if other_filter > 1e-4 else 0.0, logit=None, other=True), *watch[8:]]
     above = beads([r["prob_model_alone"] for r in rows])
     below = beads([r["prob_with_filter"] for r in rows])
     for r, a, b in zip(rows, above, below):

@@ -19,7 +19,7 @@ import torch
 torch.set_num_threads(1)
 GIST = Path.home() / "vgc-data/validation_loss_accuracy/figures_gist"
 sys.path.insert(0, str(GIST))
-import wrong_mega_stone as W  # noqa: E402  (forces the CPU, then imports the frozen diffusion84)
+import wrong_mega_stone as W  # forces the CPU, then imports the frozen diffusion84
 
 D = W.D
 STAT_NAMES = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"]
@@ -42,9 +42,9 @@ def main():
     species_names = model.V.itos["species"]
     show = lambda v: model.look.get(v, v)
 
-    out = dict(row=int(W.WORST_TEAM), checkpoint=W.CHECKPOINT.name, data="lossdata65.npz", seed=W.SEED,
-               n_species=len(species_names) - 1, win_rate_label=float(label_row[0]), label_wins=float(wins_battles[0]), label_battles=float(wins_battles[1]), validation_teams=int(len(rows)), fields=int(D.COLS),
-               field_weights=dict(zip(W.FIELD_NAMES + ["stat point"], [float(weights[c]) for c in range(8)] + [float(weights[D.STAT0])])),
+    out = dict(row=W.WORST_TEAM, checkpoint=W.CHECKPOINT.name, data="lossdata65.npz", seed=W.SEED,
+               n_species=len(species_names) - 1, win_rate_label=float(label_row[0]), label_wins=float(wins_battles[0]), label_battles=float(wins_battles[1]), validation_teams=len(rows), fields=int(D.COLS),
+               field_weights=dict(zip([*W.FIELD_NAMES, "stat point"], [float(weights[c]) for c in range(8)] + [float(weights[D.STAT0])])),
                what_if_item=WHAT_IF_ITEM)
 
     def replay(name, team):
