@@ -56,6 +56,13 @@
   "id": "uaa37d49a8a"
  },
  {
+  "title": "Human-Level Competitive Pokémon via Scalable Offline Reinforcement Learning with Transformers",
+  "url": "wikilink:Human-Level Competitive Pokémon via Scalable Offline Reinforcement Learning with Transformers",
+  "section": "Battle agents",
+  "details": "2025 · 6",
+  "id": "u2e22216e9c"
+ },
+ {
   "title": "PokéChamp: An Expert-level Minimax Language Agent",
   "url": "https://arxiv.org/abs/2503.04094",
   "section": "Battle agents",
@@ -68,6 +75,13 @@
   "section": "Battle agents",
   "details": "2024 · 26 · #78",
   "id": "u409247045b"
+ },
+ {
+  "title": "VGC-Bench Towards Mastering Diverse Team Strategies in Competitive Pokémon",
+  "url": "wikilink:VGC-Bench Towards Mastering Diverse Team Strategies in Competitive Pokémon",
+  "section": "Benchmarks and competitions",
+  "details": "2025 · 3",
+  "id": "ub223ac7048"
  },
  {
   "title": "The PokeAgent Challenge: Competitive and Long-Context Learning at Scale",
@@ -161,6 +175,27 @@
   "id": "ub17498864a"
  },
  {
+  "title": "Simulating Annealing",
+  "url": "wikilink:Simulating Annealing",
+  "section": "Classical search and set functions",
+  "details": "",
+  "id": "u97f8977a4c"
+ },
+ {
+  "title": "Submodular Function",
+  "url": "wikilink:Submodular Function",
+  "section": "Classical search and set functions",
+  "details": "",
+  "id": "u747b8c8b23"
+ },
+ {
+  "title": "Local Search",
+  "url": "wikilink:Local Search",
+  "section": "Classical search and set functions",
+  "details": "or Direct search",
+  "id": "uaa7f34eea0"
+ },
+ {
   "title": "A Denoising Diffusion-Based Evolutionary Algorithm Framework: Application to the Maximum Independent Set Problem",
   "url": "https://www.semanticscholar.org/paper/9b21ee2ac4fde7868f485774eda250973e808694",
   "section": "Neural combinatorial optimization",
@@ -224,11 +259,32 @@
   "id": "udf3c82aa26"
  },
  {
+  "title": "Trust-Region Noise Search for Black-Box Alignment of Diffusion and Flow Models",
+  "url": "wikilink:Trust-Region Noise Search for Black-Box Alignment of Diffusion and Flow Models",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 0 · Paper it reference<br>↳ Scalable Global Optimization via Local Bayesian Optimization<br>I liked the SMC approach that might be a useful direction<br>↳ KF sterring<br>↳ DAS, because it require reward i should not use then instead if I plan to add reward then KF won ahead",
+  "id": "ud210a8b252"
+ },
+ {
   "title": "Regret Analysis of Guided Diffusion for Black-Box Optimization over Structured Inputs",
   "url": "Ahttps://arxiv.org/abs/2605.10385",
   "section": "Generative optimization and learned representations",
   "details": "2026 · 1 · I wished it has good diagram it does not any good on<br>I don't know what is an acquistion score is<br>I need to find some youtube vide about regrest anaylsis",
   "id": "ua067ff9c8e"
+ },
+ {
+  "title": "Diffusion Large Language Model for Black Box Optimization",
+  "url": "wikilink:Diffusion Large Language Model for Black Box Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 2 · 2026, arXiv preprint — combines a prompted diffusion LLM with a Gaussian-process predictor and masked diffusion tree search over partially masked candidates; compares against an autoregressive LLM optimizer and conventional diffusion methods. · I feel like the section in the related work section about llm for bbo will be great for why I choose an llm",
+  "id": "u5e89d9c2aa"
+ },
+ {
+  "title": "Large Language Models as optimizer paper",
+  "url": "wikilink:Large Language Models as optimizer paper",
+  "section": "Generative optimization and learned representations",
+  "details": "2023 · 1,215 · 🟢 ICLR 2024 ( It just propose and just create meta prompt afterward has a lot of citation ) it should be like the baseline",
+  "id": "uaab9d09aff"
  },
  {
   "title": "Language Model Crossover: Variation through Few-Shot Prompting",
@@ -238,11 +294,46 @@
   "id": "u2771ea526f"
  },
  {
+  "title": "Steering Generative Models with experimental Data for Protein Fitness Optimization",
+  "url": "wikilink:Steering Generative Models with experimental Data for Protein Fitness Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2025 · 13 · 🟢 NeurIPS 2025 · For through this method of guidance Decoupled Annealing Posterior Sampling (DAPS)",
+  "id": "u618a8554d3"
+ },
+ {
+  "title": "Generative Bayesian Optimization Generative Models as Acquisition Functions",
+  "url": "wikilink:Generative Bayesian Optimization Generative Models as Acquisition Functions",
+  "section": "Generative optimization and learned representations",
+  "details": "2025 · 4 · 🟢 ICLR 2026 · go through this paper",
+  "id": "u01fa1f00f1"
+ },
+ {
   "title": "From Generation to Discovery: Diffusion Mutation Kernels for Circuit and Physical Design",
   "url": "https://arxiv.org/abs/2608.27649",
   "section": "Generative optimization and learned representations",
   "details": "2026 · 0 · #2 · 🟢 arXiv preprint, no venue listed",
   "id": "u2cae1c3662"
+ },
+ {
+  "title": "Active Flow Matching",
+  "url": "wikilink:Active Flow Matching",
+  "section": "Generative optimization and learned representations",
+  "details": "2026 · 0 · 🟢 arXiv preprint, no venue listed",
+  "id": "u7aafd36298"
+ },
+ {
+  "title": "Posterior Inference with Diffusion Models for High-dimensional Black-box Optimization",
+  "url": "wikilink:Posterior Inference with Diffusion Models for High-dimensional Black-box Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2025 · 14 · 🟢 ICML 2025 Readint this right now · I think the major problem with my method i doing a cross netopy nethod want to do forward prediction but i struggle with diverse set of dataset at allzz",
+  "id": "ud372a55d78"
+ },
+ {
+  "title": "Diffusion Models for Black-Box Optimization",
+  "url": "wikilink:Diffusion Models for Black-Box Optimization",
+  "section": "Generative optimization and learned representations",
+  "details": "2023 · 112 · 🟢 ICML 2023",
+  "id": "u5972da352b"
  },
  {
   "title": "Bootstrapped Training of Score-Conditioned Generator for Offline Design of Biological Sequences",
@@ -747,6 +838,13 @@
   "section": "Structured generation and application examples",
   "details": "2024 · 9 · #32",
   "id": "u885d2a3e13"
+ },
+ {
+  "title": "Protein Design with Guided Discrete Diffusion",
+  "url": "wikilink:Protein Design with Guided Discrete Diffusion",
+  "section": "Structured generation and application examples",
+  "details": "2023 · 248 · 🟢 NeurIPS 2023",
+  "id": "u8e65136a8d"
  },
  {
   "title": "SDEdit: Guided Image Synthesis and Editing with Stochastic Differential Equations",
@@ -1330,6 +1428,13 @@
   "id": "ue641111aa9"
  },
  {
+  "title": "A Survey on Self-play Methods in Reinforcement Learning",
+  "url": "wikilink:A Survey on Self-play Methods in Reinforcement Learning",
+  "section": "Self-play and game-theoretic foundations",
+  "details": "2024 · 37",
+  "id": "u23444faa58"
+ },
+ {
   "title": "A Unified Game-Theoretic Approach to Multiagent Reinforcement Learning",
   "url": "https://arxiv.org/abs/1711.00832",
   "section": "Self-play and game-theoretic foundations",
@@ -1363,6 +1468,13 @@
   "section": "Regret minimization",
   "details": "2012 · 39 · #304",
   "id": "uac463eb36d"
+ },
+ {
+  "title": "Grandmaster level in StarCraft II using multi-agent reinforcement learning",
+  "url": "wikilink:Grandmaster level in StarCraft II using multi-agent reinforcement learning",
+  "section": "Policy learning and game environments",
+  "details": "2019 · 4,567",
+  "id": "uec86f96391"
  },
  {
   "title": "Overcoming Valid Action Suppression in Unmasked Policy Gradient Algorithms",
@@ -1412,6 +1524,13 @@
   "section": "Policy learning and game environments",
   "details": "2026 · #155 · 🟢 arXiv preprint, no venue listed",
   "id": "u9a8c7f69d9"
+ },
+ {
+  "title": "Alpha-Rank Multi-Agent Evaluation by Evolution",
+  "url": "wikilink:Alpha-Rank Multi-Agent Evaluation by Evolution",
+  "section": "Ranking and evaluation in non-transitive games",
+  "details": "2019 · 146",
+  "id": "u3e468076ce"
  },
  {
   "title": "Real World Games Look Like Spinning Tops",
@@ -1573,6 +1692,13 @@
   "section": "Exploration and sample efficiency",
   "details": "2025 · 1 · #262",
   "id": "u100400b0f5"
+ },
+ {
+  "title": "Human-Like Goalkeeping in a Realistic Football Simulation a Sample-Efficient Reinforcement Learning Approach",
+  "url": "wikilink:Human-Like Goalkeeping in a Realistic Football Simulation a Sample-Efficient Reinforcement Learning Approach",
+  "section": "Exploration and sample efficiency",
+  "details": "2025 · 2",
+  "id": "u6bec80f273"
  },
  {
   "title": "AMAGO: Scalable In-Context Reinforcement Learning for Adaptive Agents",
@@ -2875,5 +3001,61 @@
   "section": "Rejected readings",
   "details": "2023 · 299 · #181 · 🟢 NeurIPS 2023. Rejected 2026-10-28 by a debate judge: it fixes gradient-based optimisation of Expected Improvement on a Gaussian process, and the loop ranks sampled teams without either.",
   "id": "u87d8aee5c5"
+ },
+ {
+  "title": "Reading List — notes and decision history",
+  "url": "wikilink:Reading List — notes and decision history",
+  "section": "Sources and reading notes",
+  "details": "personal notes, original properties, prior decisions and the complete pre-reorganization list.",
+  "id": "u907c33341b"
+ },
+ {
+  "title": "SPIGM 2026 — paper-by-paper relevance screening",
+  "url": "wikilink:SPIGM 2026 — paper-by-paper relevance screening",
+  "section": "Sources and reading notes",
+  "details": "2 accepted MED readings; remaining screening decisions are historical.",
+  "id": "ub018110d8a"
+ },
+ {
+  "title": "EIML 2026 — paper-by-paper relevance screening",
+  "url": "wikilink:EIML 2026 — paper-by-paper relevance screening",
+  "section": "Sources and reading notes",
+  "details": "2 MED additions; see the screening note for the assessment.",
+  "id": "u7ef10f28e2"
+ },
+ {
+  "title": "_Workshops index",
+  "url": "wikilink:_Workshops index",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "ud8667e9fd9"
+ },
+ {
+  "title": "VGC AI Competition (IEEE CoG)",
+  "url": "wikilink:VGC AI Competition (IEEE CoG)",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "u926308410e"
+ },
+ {
+  "title": "PokeAgent Challenge (NeurIPS 2025)",
+  "url": "wikilink:PokeAgent Challenge (NeurIPS 2025)",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "uc382f1375b"
+ },
+ {
+  "title": "Finding the Frame — papers relevant to the counter-team search",
+  "url": "wikilink:Finding the Frame — papers relevant to the counter-team search",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "u2e5241b5f0"
+ },
+ {
+  "title": "Citation",
+  "url": "wikilink:Citation",
+  "section": "Sources and reading notes",
+  "details": "",
+  "id": "u55190a74f7"
  }
 ]

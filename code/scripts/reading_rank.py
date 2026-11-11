@@ -1,7 +1,8 @@
 """Rank the Reading List by relative importance (issue #301; method in research/ranking-a-long-list.md).
 
 Every item is placed against the whole list by pairwise comparisons, each asked in both orders, judged by Jev
-through jev_client.JevChooser. Nothing here writes to the vault: the ranking lives in ~/vgc-data/reading-rank/.
+through jev_client.JevChooser. The ranking lives in ~/vgc-data/reading-rank/; only `fill` writes to the vault, and only
+the Rank cells of Papers/Reading List.md.
 
     python scripts/reading_rank.py items      parse Papers/Reading List.md into items.json
     python scripts/reading_rank.py cards      fetch an abstract or post text per item into cards.json (cached)
@@ -10,6 +11,7 @@ through jev_client.JevChooser. Nothing here writes to the vault: the ranking liv
     python scripts/reading_rank.py axes       each item scored 0 to 4 on the decision matrix's two axes (#260) -> axes.json
     python scripts/reading_rank.py insert     daily: binary-search each new Reading List item into the ranking, refit, rewrite
     python scripts/reading_rank.py save       copy the ranking and its comparison log into code/data/reading-rank/ to commit
+    python scripts/reading_rank.py fill       write each item's current rank (#r) into the Reading List's Rank column
 """
 
 import hashlib
@@ -31,6 +33,7 @@ READING_LIST = VAULT / 'Papers/Reading List.md'
 OUT = Path.home() / 'vgc-data/reading-rank'
 AGENT = {'User-Agent': 'reading-rank/0.1 (personal research reading list)'}
 CARD_CHARS = 900
+WIKI = 'wikilink:'                                              # url of a Reading List row that links a vault note
 
 QUESTION = 'Which would help the counter-team search more if read next?'
 BRIEF = (
@@ -68,6 +71,12 @@ def items() -> None:
         if line.startswith('#'):
             section = line.lstrip('#').strip()
         m = re.match(r'^\|\s*(?:[^\s\[|]+\s+)?\[([^\]]+)\]\(([^)\s]+)\)\s*\|(.*)$', line)   # an icon such as 🔒 may lead
+        w = None if m else re.match(r'^\|\s*(?:[^\s\[|]+\s+)?\[\[([^\]|\\]+)(?:\\?\|([^\]]*))?\]\]\s*\|(.*)$', line)
+        if w:                                                   # a vault note: [[Note]] or [[Note\|alias]]
+            cells = [c.strip() for c in w.group(3).split('|')]
+            rows.append(dict(title=(w.group(2) or w.group(1)).strip(), url=WIKI + w.group(1).strip(), section=section,
+                             details=' · '.join(c for c in cells if c)))
+            continue
         if m:
             cells = [c.strip() for c in m.group(3).split('|')]
             rows.append(dict(title=m.group(1).strip(), url=m.group(2), section=section, details=' · '.join(c for c in cells if c)))
@@ -130,8 +139,20 @@ def s2_abstracts(ids: list[str]) -> dict[str, str]:
     return out
 
 
+def note_text(name: str) -> str:
+    """Body of the vault note a wikilink names, frontmatter removed."""
+    hits = sorted(VAULT.rglob(f'{name}.md'), key=lambda q: len(q.parts))
+    if not hits:
+        return ''
+    text = hits[0].read_text(errors='replace')
+    text = re.sub(r'^---\n.*?\n---\n', '', text, flags=re.S)
+    return ' '.join(re.sub(r'[#>*`\[\]]', ' ', text).split())
+
+
 def page_text(url: str) -> str:
-    """Post text for an X link, otherwise the page's description or first paragraphs."""
+    """A vault note's text, a post's text for an X link, otherwise the page's description or first paragraphs."""
+    if url.startswith(WIKI):
+        return note_text(url[len(WIKI):])
     m = re.match(r'https?://(?:x|twitter)\.com/([^/]+)/status/(\d+)', url)
     if m:
         t = json.loads(get(f'https://api.fxtwitter.com/{m.group(1)}/status/{m.group(2)}'))['tweet']
@@ -164,7 +185,11 @@ def cards() -> None:
     have = json.loads(path.read_text()) if path.exists() else {}
     todo = [it for it in its if it['id'] not in have or not have[it['id']].get('text')]
     ids = {it['id']: arxiv_id(it['url']) for it in todo}
-    abstracts = arxiv_abstracts(sorted({a for a in ids.values() if a}))
+    try:
+        abstracts = arxiv_abstracts(sorted({a for a in ids.values() if a}))
+    except (OSError, ET.ParseError) as err:                    # arXiv down: each item falls back to its page
+        print(f'arXiv unavailable ({type(err).__name__}); using pages')
+        abstracts = {}
     s2 = {it['id']: s2_id(it['url']) for it in todo if not ids[it['id']]}
     s2_text = s2_abstracts(sorted({v for v in s2.values() if v}))
 
@@ -356,6 +381,37 @@ def write_ranking(order: list[str], comps: list[dict], extra: dict) -> list[dict
     return rows
 
 
+AUDIT_CUTS, AUDIT_SEED = (10, 40), 30103
+
+
+def audit_pairs(order: list[str], its: dict) -> list[tuple[dict, dict]]:
+    """The research report's 10 daily check pairs: 4 across the read-next cuts, 2 random pairs from different shelves,
+    2 for the least-compared items against a neighbour, 2 re-asks of the stored comparisons that most contradict the order."""
+    import time
+    rng = random.Random(f'{AUDIT_SEED}-{time.strftime("%Y-%m-%d")}')
+    pos = {k: i for i, k in enumerate(order)}
+    pairs = [(order[c - 1], order[c]) for c in AUDIT_CUTS if c < len(order)]
+    pairs += [(order[c - 2], order[c + 1]) for c in AUDIT_CUTS if c + 1 < len(order)]
+    while len(pairs) < 6 and len(order) > 1:
+        a, b = rng.sample(order, 2)
+        if its[a]['section'] != its[b]['section']:
+            pairs.append((a, b))
+    comps = [json.loads(line) for line in (OUT / 'comparisons.jsonl').read_text().splitlines()] if (OUT / 'comparisons.jsonl').exists() else []
+    seen = {}
+    for c in comps:
+        for k in (c['a'], c['b']):
+            seen[k] = seen.get(k, 0) + 1
+    for k in sorted(order, key=lambda k: seen.get(k, 0))[:2]:
+        j = pos[k] + 1 if pos[k] + 1 < len(order) else pos[k] - 1
+        pairs.append((k, order[j]))
+    def against(c):
+        if c['a'] not in pos or c['b'] not in pos:
+            return 0
+        return (pos[c['a']] - pos[c['b']]) * (1 if c['p_a'] >= 0.5 else -1)   # winner placed lower = positive
+    pairs += [(c['a'], c['b']) for c in sorted(comps, key=against, reverse=True)[:2] if against(c) > 0]
+    return [(its[a], its[b]) for a, b in pairs]
+
+
 def place(chooser, its: dict, cs: dict, order: list[str], new: list[str], log) -> list[str]:
     """Binary-search every new item into order in lockstep, then judge each against its two new neighbours."""
     lo, hi = {k: 0 for k in new}, {k: len(order) for k in new}
@@ -394,12 +450,10 @@ def insert() -> None:
     order = [x['id'] for x in old['ranking'] if x['id'] in its]
     removed = [x['id'] for x in old['ranking'] if x['id'] not in its]
     new = [k for k in its if k not in set(order)]
-    if not new and not removed:
-        print(f'nothing to insert: {len(order)} items already ranked')
-        return
     chooser = jev_client.JevChooser(OUT / 'jev-calls.jsonl')
     with (OUT / 'comparisons.jsonl').open('a') as log:
-        placed = place(chooser, its, cs, order, new, log)
+        placed = place(chooser, its, cs, order, new, log) if new else order[:]
+        judge(chooser, audit_pairs(placed, its), cs, log)
     ax = json.loads((OUT / 'axes.json').read_text())
     ax['scores'].update(score_axes(chooser, [its[k] for k in new], cs) if new else {})
     (OUT / 'axes.json').write_text(json.dumps(ax, indent=1))
@@ -420,11 +474,50 @@ def save() -> None:
     import shutil
     dest = Path(__file__).resolve().parents[1] / 'data/reading-rank'
     dest.mkdir(parents=True, exist_ok=True)
-    for name in ('ranking.json', 'comparisons.jsonl', 'axes.json', 'items.json', 'ranking-history.jsonl'):
+    for name in ('ranking.json', 'comparisons.jsonl', 'axes.json', 'items.json', 'ranking-history.jsonl', 'cards.json'):
         if (OUT / name).exists():
             shutil.copy2(OUT / name, dest / name)
+    import gzip
+    with (OUT / 'jev-calls.jsonl').open('rb') as src, gzip.open(dest / 'jev-calls.jsonl.gz', 'wb') as gz:
+        shutil.copyfileobj(src, gz)                             # every question Jev saw and every probability it gave
     print(f'saved to {dest}')
 
 
+def fill() -> None:
+    """Rewrite the Rank cell of every ranked row; any other change to the file aborts the write."""
+    rank = {url_key(x['url']): x['rank'] for x in json.loads((OUT / 'ranking.json').read_text())['ranking']}
+    cells_of = lambda line: re.split(r'(?<!\\)\|', line)[1:-1]
+    lines, col, changed = READING_LIST.read_text().split('\n'), None, 0
+    for i, line in enumerate(lines):
+        if not line.startswith('|'):
+            col = None
+            continue
+        cells = cells_of(line)
+        if col is None:                                         # header row of a table
+            names = [c.strip() for c in cells]
+            col = names.index('Rank') if 'Rank' in names else -1
+            continue
+        if col < 0 or col >= len(cells):
+            continue
+        link = re.search(r'\]\((https?://[^)\s]+)\)', cells[0]) or re.search(r'\[\[([^\]|\\]+)', cells[0])
+        if not link:
+            continue
+        r = rank.get(url_key(link.group(1) if link.group(0).startswith(']') else WIKI + link.group(1).strip()))
+        new = f' #{r} ' if r else '  '
+        if cells[col] != new:
+            cells[col] = new
+            lines[i] = '|' + '|'.join(cells) + '|'
+            changed += 1
+    old = READING_LIST.read_text()
+    text = '\n'.join(lines)
+    strip = lambda t: re.sub(r'\|\s*(#\d+)?\s*(?=\|)', '|', t)
+    if strip(old) != strip(text):
+        raise SystemExit('fill would change more than Rank cells; nothing written')
+    tmp = READING_LIST.with_suffix('.tmp')
+    tmp.write_text(text)
+    tmp.replace(READING_LIST)
+    print(f'{changed} Rank cells updated')
+
+
 if __name__ == '__main__':
-    {'items': items, 'cards': cards, 'pilot': pilot, 'rank': rank, 'axes': axes, 'insert': insert, 'save': save}[sys.argv[1]]()
+    {'items': items, 'cards': cards, 'pilot': pilot, 'rank': rank, 'axes': axes, 'insert': insert, 'save': save, 'fill': fill}[sys.argv[1]]()
