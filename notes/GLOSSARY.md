@@ -201,9 +201,34 @@ _Avoid_: generator (alone)
 One of the two kinds this project experiments with: the from-scratch discrete diffusion model trained only on valid Pokémon teams, or a pretrained text diffusion model. Always say which.
 _Avoid_: the diffusion model (alone), mask diffusion model, domain (for a kind of model)
 
+**Discrete diffusion model**:
+A generative model for sequences of tokens from a finite vocabulary, such as a team's 84 fields. A forward process corrupts each token on its own, more as a time t runs from 0 to 1, until the sequence is pure noise. Run backwards, the process jumps from a sequence x to a neighbour y at a rate set by the ratio p_t(y)/p_t(x), so the network learns what is needed to estimate those ratios: for a masked model, the probability of each clean token given the visible ones. Sampling starts from pure noise and runs the learned reverse process. What the corruption turns a token into names the kind: a mask token (masked diffusion model) or a random vocabulary value (uniform discrete diffusion model).
+_Origin_: D3PM, [Austin et al. 2021](https://arxiv.org/abs/2107.03006), which defines both kinds as transition matrices. The continuous-time view and the time reversal: [Lou, Meng and Ermon's blog post](https://aaronlou.com/blog/2024/discrete-diffusion/) and [Thiéry's note on masked discrete diffusion](https://alexxthiery.github.io/notes/DiscreteDiff/DiscreteDiff.html).
+_Avoid_: Gaussian diffusion (the continuous kind, for images)
+
 **Masked diffusion model**:
-A diffusion model whose noise replaces tokens with a mask token and which learns to fill them back, seeing both directions. Both kinds here are one, so it names the kind, never one model: say which.
-_Avoid_: mask diffusion model, MDM (alone)
+A discrete diffusion model whose forward process replaces each token with a mask token at a random time and keeps it masked from then on: the mask is absorbing. The reverse process only unmasks, so a filled token is never changed again (carry-over), and the network sees both directions. Training is a cross-entropy on the masked tokens, weighted by the masking rate and averaged over time. Both kinds of diffusion model here are masked, so the term names the kind, never one model: say which.
+_Origin_: the absorbing transition in D3PM (Austin et al. 2021); the weighted cross-entropy in MDLM, [Sahoo et al. 2024](https://arxiv.org/abs/2406.07524), and MD4, [Shi et al. 2024](https://arxiv.org/abs/2406.04329).
+_Avoid_: mask diffusion model, MDM (alone), absorbing diffusion
+
+**Uniform discrete diffusion model**:
+A discrete diffusion model whose forward process replaces each token with a value drawn uniformly from its vocabulary, with no mask token. Pure noise is a random team. Every reverse pass may change any field, including one it already changed, and sampling runs a fixed number of passes because no field is ever finished. The four arms of the uniform discrete diffusion map (#270) are this kind; the default model is not.
+_Origin_: the uniform transition in D3PM (Austin et al. 2021); UDLM, [Schiff et al. 2024](https://arxiv.org/abs/2412.10193), which adds guidance; Duo, [Sahoo et al. 2025](https://s-sahoo.com/duo/), which shows it arises from an underlying Gaussian diffusion.
+_Avoid_: uniform diffusion model (the name until 2026-11-11), uniform-noise model, uniform-state diffusion (the papers' name)
+
+**Masking rate**:
+The probability that the forward process has corrupted a field by time t: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. The per-field masking rate gives each field type its own: t to the power 16 for species, 4 for ability and item, 1.5 for moves, 1 for Stat Alignment and Stat Points. The linear masking rate corrupts every field with probability t.
+_Origin_: the linear masking rate is MD4's "linear schedule" (Shi et al. 2024).
+_Avoid_: noise schedule, scheduler, shared masking rate
+
+**Partial masking**:
+Writing each token's vocabulary index as ℓ digits in base b and masking the digits independently, so a token can be masked, unmasked, or partly revealed in between. On OpenWebText the authors report idle passes falling from 37% to 0.25% at ℓ = 6, and the first masked diffusion model to beat an autoregressive model on perplexity without autoregression (15.36 against 17.54).
+_Origin_: MDM-Prime, [Chao et al., NeurIPS 2025](https://arxiv.org/abs/2505.18495), with a [project page](https://chen-hao-chao.github.io/mdm-prime/).
+_Avoid_: Prime (alone), sub-tokenization (the tokenizer sense)
+
+**Concrete score**:
+For a sequence x and a neighbour y that differs in one token, the ratio p(y)/p(x): the discrete counterpart of the score in continuous diffusion. A model that learns these ratios can run the reverse process without a normalizing constant. Score entropy is the loss that learns them.
+_Origin_: SEDD, [Lou, Meng and Ermon 2024](https://arxiv.org/abs/2310.16834).
 
 **From-scratch discrete diffusion model trained only on valid Pokémon teams**:
 A discrete diffusion model that started from random weights, not from a pretrained model, and learned only from this project's valid Regulation M-B teams. It generates all 84 fields of a team, Stat Points included (set 2026-11-07). Later mentions in the same passage may shorten it to "the discrete diffusion model".
@@ -330,6 +355,16 @@ _Avoid_: decoder, generator (alone)
 **Pass**:
 One run of the network during sampling. A pass fills one or more masked fields; one field per pass fills a team in 84 passes.
 _Avoid_: decoding step, step, iteration
+
+**Carry-over**:
+In a masked diffusion model, a field already unmasked keeps its value: the prediction for it is fixed to that value, and only masked fields are drawn. Plain masking is carry-over; remasking breaks it on purpose.
+_Origin_: MDLM (Sahoo et al. 2024) and MD4 (Shi et al. 2024).
+_Avoid_: copy-over
+
+**Idle pass**:
+A pass that changes no field. A masked sampler that unmasks by a fixed rate over many passes has many: 37% of 1,024 passes on OpenWebText. A sampler that fills exactly one field per pass, as ours does in 84 passes, has none.
+_Origin_: MDM-Prime (Chao et al. 2025), which calls it an idle step.
+_Avoid_: idle step
 
 **Decoding order**:
 The order in which a sampler fills a candidate's masked fields. The four used so far are species-first order, Pokémon-by-Pokémon order, random order and confidence order.
