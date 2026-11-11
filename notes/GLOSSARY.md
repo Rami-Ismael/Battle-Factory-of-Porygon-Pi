@@ -310,6 +310,19 @@ _Avoid_: split-variance sampling, set-field temperature, set-field nucleus, cold
 What a masked text diffusion model receives for infilling: a short header and the team written once as compact JSON, each hidden value replaced by mask tokens it fills where they stand. _Origin_: `MDLMSampler.infill` in dLLM.
 _Avoid_: in-place text, free-text prompt
 
+**Masking rate**:
+The chance that a field is hidden at time t while training the discrete diffusion model. It decides which partly hidden teams the model practises filling.
+_Avoid_: noise schedule, scheduler, schedule (image-diffusion words)
+
+**Per-field masking rate**:
+A masking rate set per field type: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t. Species stay visible until late, so the model mostly practises filling species first. Used by every 48- and 84-field model since 2026-10-07.
+_Origin_: polynomial schedule, [Shi et al. 2024](https://arxiv.org/abs/2406.04329), §6, there learned per token value.
+
+**Linear masking rate**:
+One masking rate for every field: each is hidden with chance t, so the model practises every mix of hidden and visible fields.
+_Origin_: linear schedule, [Shi et al. 2024](https://arxiv.org/abs/2406.04329), App. J.1; LLaDA's rule, [Nie et al. 2025](https://arxiv.org/abs/2502.09992), Eq. 3.
+_Avoid_: shared masking rate, uniform masking (uniform diffusion model is a different model)
+
 **Sampler**:
 How the discrete diffusion model fills a blank candidate until it is complete: its decoding order, how many fields each pass fills, and whether it remasks. The ask, guidance weight and temperature shape each draw; they are not part of the sampler.
 _Avoid_: decoder, generator (alone)
