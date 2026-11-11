@@ -1,0 +1,117 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway (issue #302). Three variants of one view that shows the ranked Reading List as a tree and as the
+     decision matrix, switchable with ?variant=A|B|C and the bar at the bottom. Data: data.js, built from
+     ~/vgc-data/reading-rank/ranking.json (Jev pairwise ranking, 2026-11-11) and axes.json (Jev 0-4 axis scores). -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reading order prototype</title>
+<style>
+:root{--bg:var(--background,#ffffff);--fg:var(--foreground,#1f2328);--mute:var(--muted-foreground,#656d76);--line:var(--border,#d0d7de);--card:var(--secondary,#f6f8fa);--acc:var(--chart-2,#0f9d8a);--t1:#0f9d8a;--t2:#2f6fde;--t3:#8250df;--t4:#afb8c1;--sel:var(--warning,#c96a00);--r:8px;--sans:var(--font-sans,-apple-system,Segoe UI,Helvetica,Arial,sans-serif);--mono:var(--font-mono,ui-monospace,Menlo,monospace)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:var(--background,#0d1117);--fg:var(--foreground,#e6edf3);--mute:var(--muted-foreground,#8b949e);--line:var(--border,#30363d);--card:var(--secondary,#161b22);--t4:#484f58}}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans);padding:12px 12px 84px}
+h1{font-size:16px;margin:0 0 2px}.sub{color:var(--mute);font-size:12.5px;margin:0 0 10px}.tag{font:600 11px var(--mono);color:var(--sel)}
+.ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.seg button{border:0;background:none;color:var(--fg);padding:7px 14px;font:inherit;cursor:pointer;min-height:36px}.seg button.on{background:var(--acc);color:#fff}
+input[type=range]{accent-color:var(--acc);width:min(320px,60vw)}
+svg{width:100%;height:auto;display:block}svg text{fill:var(--fg);font:11px var(--sans)}svg .m{fill:var(--mute)}.g{stroke:var(--line)}
+.dot{cursor:pointer;transition:r .15s}.dot.sel{stroke:var(--sel);stroke-width:2.5}
+#tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12px;max-width:320px;display:none;z-index:9}
+#detail{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:10px 0;min-height:44px;font-size:13px}#detail a{color:var(--acc)}
+.key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute)}.key i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.tree details{margin:2px 0 2px 0}.tree summary{cursor:pointer;padding:3px 0}.tree .shelf{margin-left:18px}.tree .p{margin-left:36px;padding:2px 6px;border-radius:4px;cursor:pointer;display:flex;gap:8px}.tree .p:hover{background:var(--card)}.tree .p.sel{outline:2px solid var(--sel)}
+.badge{font:600 11px var(--mono);color:#fff;border-radius:4px;padding:1px 5px;min-width:30px;text-align:center;flex:none}
+.grid{display:grid;grid-template-columns:70px repeat(5,1fr);gap:3px;font-size:12px}.cell{border-radius:6px;padding:6px;min-height:70px;cursor:pointer;color:var(--fg)}.cell b{font-size:15px}.cell.sel{outline:2px solid var(--sel)}.ax{color:var(--mute);display:flex;align-items:center;justify-content:flex-end;padding-right:6px;text-align:right}
+.list{margin-top:8px;font-size:13px}.list div{padding:2px 0;cursor:pointer}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.split{grid-template-columns:1fr}}
+#bar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 8px;box-shadow:0 4px 16px #0003;z-index:10}#bar button{border:0;background:none;color:var(--fg);font:inherit;cursor:pointer;padding:6px 10px;min-height:36px;border-radius:999px}#bar .name{font-weight:600;padding:0 6px}
+</style></head><body>
+<div class="tag">PROTOTYPE · issue #302 · throwaway</div>
+<h1 id="title"></h1><p class="sub" id="sub"></p>
+<div id="app"></div>
+<div id="detail">Click a paper to see it here. It stays selected when you switch views or variants.</div>
+<div class="key" id="key"></div>
+<div id="tip"></div>
+<div id="bar"><button id="prev" aria-label="previous variant">←</button><span class="name" id="vname"></span><button id="next" aria-label="next variant">→</button></div>
+<script src="data.js"></script>
+<script>
+const P = window.PAPERS, N = P.length;
+const TIER = r => r <= 10 ? ['Next 10', 'var(--t1)'] : r <= 40 ? ['Ranks 11-40', 'var(--t2)'] : r <= 100 ? ['Ranks 41-100', 'var(--t3)'] : ['Ranks 101-' + N, 'var(--t4)'];
+const VARIANTS = {A: 'Morph slider', B: 'Switch and outline', C: 'Read-next cutoff'};
+const qs = new URLSearchParams(location.search); let V = qs.get('variant') || 'A'; if (!VARIANTS[V]) V = 'A';
+let SEL = Number(sessionStorage.getItem('sel') || 0) || null;
+const esc = s => s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+// tree order: topics by their best rank, shelves by their best rank, papers by rank
+const topics = [...new Set(P.map(p => p.p))].map(t => ({t, items: P.filter(p => p.p === t)})).sort((a, b) => a.items[0].r - b.items[0].r);
+topics.forEach(T => T.shelves = [...new Set(T.items.map(p => p.s))].map(s => ({s, items: T.items.filter(p => p.s === s)})).sort((a, b) => a.items[0].r - b.items[0].r));
+const tip = document.getElementById('tip');
+function hover(e, p) { if (!p) { tip.style.display = 'none'; return; } tip.innerHTML = `<b>#${p.r} / ${N}</b> ${esc(p.t)}<br><span style="color:var(--mute)">${esc(p.s)} · future ${p.f.toFixed(1)} · new ${p.n.toFixed(1)}</span>`; tip.style.display = 'block'; tip.style.left = Math.min(e.clientX + 12, innerWidth - 330) + 'px'; tip.style.top = (e.clientY + 12) + 'px'; }
+function select(r) { SEL = r; try { sessionStorage.setItem('sel', r) } catch (e) {} const p = P.find(x => x.r === r); document.getElementById('detail').innerHTML = p ? `<b>#${p.r} / ${N}</b> · top ${(100 * p.r / N).toFixed(1)}% · <a href="${esc(p.u)}" target="_blank" rel="noopener">${esc(p.t)}</a><br><span style="color:var(--mute)">${esc(p.p)} › ${esc(p.s)} · future for the search ${p.f.toFixed(1)} of 4 · new to you ${p.n.toFixed(1)} of 4</span>` : ''; render(); }
+document.getElementById('key').innerHTML = [10, 40, 100, N].map(r => `<span><i style="background:${TIER(r)[1]}"></i>${TIER(r)[0]}</span>`).join('');
+
+// ---------- Variant A: one set of dots, a slider moves each paper from its tree place to its matrix place
+let morph = 0;
+function treePos() {
+  const pos = {}, rows = []; let y = 0;
+  topics.forEach(T => { rows.push({y, label: T.t, top: 1}); y += 16; T.shelves.forEach(S => { rows.push({y, label: S.s}); S.items.forEach((p, i) => pos[p.r] = [230 + i * 9, y + 5]); y += 13; }); y += 4; });
+  return {pos, rows, h: y + 10};
+}
+const TP = treePos();
+function matrixPos(p, H) { const w = 560, x0 = 300, y0 = 40, h = Math.min(H - 80, 520); const j = ((p.r * 2654435761) % 1000) / 1000 - .5; return [x0 + (p.n / 4) * w + j * 10, y0 + (1 - p.f / 4) * h + ((p.r * 40503) % 1000 / 1000 - .5) * 10]; }
+function A() {
+  const H = TP.h, t = morph, mid = [];
+  let s = `<div class="ctl"><div class="seg"><button data-m="0" class="${t === 0 ? 'on' : ''}">Tree</button><button data-m="1" class="${t === 1 ? 'on' : ''}">Matrix</button></div><input type="range" id="mor" min="0" max="1" step="0.01" value="${t}" aria-label="tree to matrix"><span class="sub" style="margin:0">drag to watch each paper travel</span></div>`;
+  let g = '';
+  TP.rows.forEach(r => g += `<text x="${r.top ? 4 : 14}" y="${r.y + 9}" class="${r.top ? '' : 'm'}" opacity="${1 - t}" style="${r.top ? 'font-weight:600' : ''}">${esc(r.label.slice(0, 36))}</text>`);
+  const MX = v => 300 + v / 4 * 560, MY = v => 40 + (1 - v / 4) * Math.min(H - 80, 520);
+  for (let v = 0; v <= 4; v++) g += `<line x1="${MX(v)}" x2="${MX(v)}" y1="${MY(4)}" y2="${MY(0)}" class="g" opacity="${t}"/><text x="${MX(v)}" y="${MY(0) + 16}" class="m" text-anchor="middle" opacity="${t}">${v}</text><line x1="${MX(0)}" x2="${MX(4)}" y1="${MY(v)}" y2="${MY(v)}" class="g" opacity="${t}"/><text x="${MX(0) - 8}" y="${MY(v) + 4}" class="m" text-anchor="end" opacity="${t}">${v}</text>`;
+  g += `<text x="${MX(2)}" y="${MY(0) + 34}" text-anchor="middle" opacity="${t}">how much would be new to you →</text><text x="${MX(0) - 30}" y="${MY(4) - 12}" opacity="${t}">↑ future for the counter-team search</text>`;
+  P.forEach(p => { const a = TP.pos[p.r], b = matrixPos(p, H); const x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t; g += `<circle class="dot ${SEL === p.r ? 'sel' : ''}" data-r="${p.r}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${p.r <= 40 ? 4.2 : 3.2}" fill="${TIER(p.r)[1]}"/>`; });
+  return s + `<svg viewBox="0 0 900 ${H}">${g}</svg>`;
+}
+// ---------- Variant B: a two-state switch between an outline and a 5x5 matrix of counts
+let bView = 'tree', bCell = null;
+function B() {
+  let s = `<div class="ctl"><div class="seg"><button data-b="tree" class="${bView === 'tree' ? 'on' : ''}">Tree</button><button data-b="matrix" class="${bView === 'matrix' ? 'on' : ''}">Matrix</button></div></div>`;
+  if (bView === 'tree') {
+    s += '<div class="tree">' + topics.map((T, i) => `<details ${i < 3 || T.items.some(p => p.r === SEL) ? 'open' : ''}><summary><b>${esc(T.t)}</b> <span class="sub">best #${T.items[0].r} · ${T.items.length} papers</span></summary>` + T.shelves.map(S => `<div class="shelf"><span class="sub">${esc(S.s)}</span></div>` + S.items.map(p => `<div class="p ${SEL === p.r ? 'sel' : ''}" data-r="${p.r}"><span class="badge" style="background:${TIER(p.r)[1]}">#${p.r}</span>${esc(p.t)}</div>`).join('')).join('') + '</details>').join('') + '</div>';
+  } else {
+    const bin = v => Math.min(4, Math.round(v));
+    let gsel = SEL && P.find(p => p.r === SEL); gsel = gsel && [bin(gsel.f), bin(gsel.n)];
+    s += '<div class="grid">';
+    for (let f = 4; f >= 0; f--) { s += `<div class="ax">future ${f}</div>`; for (let n = 0; n <= 4; n++) { const ps = P.filter(p => bin(p.f) === f && bin(p.n) === n); const best = ps[0]; const shade = ps.length ? Math.min(.85, .12 + ps.length / 40) : 0; s += `<div class="cell ${gsel && gsel[0] === f && gsel[1] === n ? 'sel' : ''}" data-c="${f},${n}" style="background:color-mix(in srgb,var(--acc) ${Math.round(shade * 100)}%,transparent)"><b>${ps.length}</b>${best ? `<div class="sub" style="margin:0">best #${best.r}</div>` : ''}</div>`; } }
+    s += '<div></div>' + [0, 1, 2, 3, 4].map(n => `<div class="sub" style="text-align:center;margin:0">new ${n}</div>`).join('') + '</div>';
+    if (bCell) { const [f, n] = bCell; s += `<div class="list"><b>future ${f}, new ${n}</b>, by rank:` + P.filter(p => bin(p.f) === f && bin(p.n) === n).map(p => `<div data-r="${p.r}"><span class="badge" style="background:${TIER(p.r)[1]}">#${p.r}</span> ${esc(p.t)}</div>`).join('') + '</div>'; }
+  }
+  return s;
+}
+// ---------- Variant C: a read-next slider cuts the ranking; tree bars and matrix dots fill to the cut, side by side
+let cut = 40;
+function C() {
+  let s = `<div class="ctl"><label>Read next: top <b>${cut}</b></label><input type="range" id="cut" min="5" max="${N}" step="1" value="${cut}" aria-label="read-next cutoff"><span class="sub" style="margin:0">${(100 * cut / N).toFixed(0)}% of the list</span></div>`;
+  const max = Math.max(...topics.map(T => T.items.length));
+  let tree = '', y = 4;
+  topics.forEach(T => { const k = T.items.filter(p => p.r <= cut).length; tree += `<text x="0" y="${y + 11}" style="font-weight:${k ? 600 : 400}" class="${k ? '' : 'm'}">${esc(T.t.slice(0, 30))}</text><rect x="190" y="${y + 2}" width="${T.items.length / max * 220}" height="12" rx="3" fill="var(--t4)" opacity=".5"/><rect x="190" y="${y + 2}" width="${k / max * 220}" height="12" rx="3" fill="var(--acc)"/><text x="${196 + T.items.length / max * 220}" y="${y + 12}" class="m">${k}/${T.items.length}</text>`; y += 18; });
+  let mx = '';
+  const X = v => 40 + v / 4 * 400, Y = v => 14 + (1 - v / 4) * 340;
+  for (let v = 0; v <= 4; v++) mx += `<line x1="${X(v)}" x2="${X(v)}" y1="${Y(4)}" y2="${Y(0)}" class="g"/><line x1="${X(0)}" x2="${X(4)}" y1="${Y(v)}" y2="${Y(v)}" class="g"/><text x="${X(v)}" y="${Y(0) + 15}" class="m" text-anchor="middle">${v}</text><text x="${X(0) - 6}" y="${Y(v) + 4}" class="m" text-anchor="end">${v}</text>`;
+  P.slice().reverse().forEach(p => { const x = X(p.n) + ((p.r * 2654435761) % 1000 / 1000 - .5) * 10; const yj = Y(p.f) + ((p.r * 40503) % 1000 / 1000 - .5) * 10; const on = p.r <= cut; mx += `<circle class="dot ${SEL === p.r ? 'sel' : ''}" data-r="${p.r}" cx="${x.toFixed(1)}" cy="${yj.toFixed(1)}" r="${on ? 4.2 : 2.6}" fill="${on ? TIER(p.r)[1] : 'var(--t4)'}" opacity="${on ? 1 : .45}"/>`; });
+  mx += `<text x="${X(2)}" y="${Y(0) + 32}" text-anchor="middle">new to you →</text><text x="${X(0)}" y="${Y(4) - 2}" class="m">↑ future for the search</text>`;
+  return s + `<div class="split"><div><b>Tree</b> <span class="sub">topics by best rank; teal = inside the cut</span><svg viewBox="0 0 460 ${y + 6}">${tree}</svg></div><div><b>Matrix</b> <span class="sub">solid = inside the cut</span><svg viewBox="0 0 460 400">${mx}</svg></div></div>`;
+}
+function render() {
+  document.getElementById('title').textContent = `Reading order: ${N} papers, ranked against each other`;
+  document.getElementById('sub').textContent = `Variant ${V}: ${VARIANTS[V]}. Rank from Jev's order-swapped pairwise comparisons (2,950 pairs, 2026-11-11); matrix axes from Jev's 0-4 scores, placement only.`;
+  document.getElementById('vname').textContent = `${V} · ${VARIANTS[V]}`;
+  document.getElementById('app').innerHTML = {A, B, C}[V]();
+}
+document.addEventListener('click', e => {
+  const r = e.target.closest('[data-r]'); if (r) return select(Number(r.dataset.r));
+  const m = e.target.closest('[data-m]'); if (m) { morph = Number(m.dataset.m); return render(); }
+  const b = e.target.closest('[data-b]'); if (b) { bView = b.dataset.b; return render(); }
+  const c = e.target.closest('[data-c]'); if (c) { bCell = c.dataset.c.split(',').map(Number); return render(); }
+});
+document.addEventListener('input', e => { if (e.target.id === 'mor') { morph = Number(e.target.value); const v = e.target.value; render(); const el = document.getElementById('mor'); el.value = v; el.focus(); } if (e.target.id === 'cut') { cut = Number(e.target.value); render(); const el = document.getElementById('cut'); el.focus(); } });
+document.addEventListener('mousemove', e => { const r = e.target.closest && e.target.closest('circle[data-r]'); hover(e, r && P.find(p => p.r === Number(r.dataset.r))); });
+function go(d) { const ks = Object.keys(VARIANTS); V = ks[(ks.indexOf(V) + d + ks.length) % ks.length]; const u = new URL(location); u.searchParams.set('variant', V); history.replaceState(null, '', u); render(); }
+document.getElementById('prev').onclick = () => go(-1); document.getElementById('next').onclick = () => go(1);
+render(); if (SEL) select(SEL);
+</script></body></html>
