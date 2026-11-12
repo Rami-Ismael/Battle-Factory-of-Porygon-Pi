@@ -1,6 +1,6 @@
 # Storyboard: Pre-register the four masking-rate rows
 
-Figure sentence: The plan was fixed before any run, and one failed check now decides a row.
+Figure sentence: The plan was fixed before any run, and one check now decides a row.
 
 ## 1. The plan, from claim to budget
 

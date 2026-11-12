@@ -2,7 +2,7 @@
  "issue": 294,
  "title": "Pre-register the four masking-rate rows",
  "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/294",
- "headline": "The plan was fixed before any run, and one failed check now decides a row",
+ "headline": "The plan was fixed before any run, and one check now decides a row",
  "setup": "A pre-registration writes the plan down before any training or battle, so a result cannot bend it afterwards. This one fixed four rows, each a way to train and sample the model, and ran six quick checks that need no battle. One of those checks now decides whether one row is battled at all.",
  "alt": "The plan fixed four rows before any run. Five checks passed. The t check read 0.005 and 0.008, under its bar of 0.01, so Per-field, corrected t is battled only if the same check reaches the bar on the new model. The battles can detect a gap of 0.001, and training luck alone has reached 0.0019.",
  "terms": [
