@@ -18,10 +18,10 @@ import torch
 torch.backends.mps.is_available = lambda: False        # other sessions are training on the GPU; this is small
 sys.path.insert(0, str(Path(__file__).parent))
 
-from corpus import parse_team          # noqa: E402
-import diffusion84 as M                # noqa: E402
-import lossdown as L                   # noqa: E402
-import team84 as T                     # noqa: E402
+from corpus import parse_team
+import diffusion84 as M
+import lossdown as L
+import team84 as T
 
 CK = Path.home() / "vgc-data/stat_points_84/hub/vgc-regmb-discrete-diffusion-84-fields-all-teams-ep21/stat84_all_teams_ep21.pt"
 TEAM = Path.home() / "vgc-data/teams/reg_mb/MB607.txt"
@@ -100,7 +100,7 @@ def lock_grid(m):
     team = parse_team(TEAM)
     row = torch.as_tensor(T.encode(m.V, team), dtype=torch.long)
     species = [m.V.decode_field(s * NF, int(row[s * NF])) for s in range(NSLOT)]
-    conditions = [None] + list(range(NSLOT))
+    conditions = [None, *range(NSLOT)]
     out = []
     for lock in conditions:
         x = torch.zeros(1, M.COLS, dtype=torch.long)

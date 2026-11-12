@@ -129,14 +129,18 @@ class Net84(nn.Module):
         h = h + pos.unsqueeze(0) + self.wvec(w).unsqueeze(1) + self.tproj(t.view(-1, 1).float()).unsqueeze(1)
         if self.mrow: h = h + self.mvec(r).unsqueeze(1)
         if self.carry: h = h + self.carry_ln(torch.zeros_like(h) if state is None else state)
-        if not self.loop_layers: return self.ln(self.tr(h))
+        return self.ln(self.backbone(h, loops))
+
+    def backbone(self, h, loops=None):
+        """The transformer layers: all at once, or with the loop block run `loops` times (default loop_max)."""
+        if not self.loop_layers: return self.tr(h)
         a, b = self.loop_start, self.loop_start + self.loop_layers
         layers = list(self.tr.layers)
         for layer in layers[:a]: h = layer(h)
         for _ in range(self.loop_max if loops is None else loops):
             for layer in layers[a:b]: h = layer(h)
         for layer in layers[b:]: h = layer(h)
-        return self.ln(h)
+        return h
 
     def logits(self, h):
         out = {k: self.head[k](h[:, cols]) for k, cols in L.COLS_BY_KEY.items()}
