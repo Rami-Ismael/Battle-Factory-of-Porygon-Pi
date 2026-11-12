@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>At every level the training teams sit between one training team repeated and random legal teams, so the score orders the anchors</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:380px}
+</style>
+</head>
+<body>
+<main>
+<h1>At every level the training teams sit between one training team repeated and random legal teams, so the score orders the anchors</h1>
+<p class="sub">The default model sits below win-rate-matched training on builds and the whole team, and level with or above any-win-rate training.</p>
+<div id="chart"></div>
+<p class="note">Model and training points are means of three sampling seeds or three training draws.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"animation": false, "legend": {"top": 0, "left": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "confine": true, "valueFormatter": "js:v => v == null || Number.isNaN(v) ? 'n/a' : Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-US') : Math.abs(v) >= 10 ? v.toFixed(1) : Math.abs(v) >= 1 ? v.toFixed(2) : v.toFixed(3)"}, "grid": {"left": 8, "right": 28, "top": 56, "bottom": 44, "containLabel": true}, "xAxis": {"type": "log", "name": "Vendi Score: effective number of different teams, log scale", "nameLocation": "middle", "nameGap": 28, "min": 1, "max": 1088}, "yAxis": {"type": "category", "data": ["Line-up", "Builds", "Stat Points", "Whole team"], "inverse": true, "axisTick": {"show": false}, "axisLabel": {"fontWeight": 600}}, "series": [{"name": "One training team repeated", "type": "scatter", "symbol": "circle", "symbolSize": 11, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#8a8984"}, "data": [1.0000000000000067, 1.0000000000000067, 1.0000000000000067, 1.0000000000000067]}, {"name": "Random legal teams", "type": "scatter", "symbol": "rect", "symbolSize": 11, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#8a8984"}, "data": [166.7940531225321, 919.4387424246781, 1018.7205121416562, 987.5934376790119]}, {"name": "Validation teams", "type": "scatter", "symbol": "triangle", "symbolSize": 11, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#1d8a6e"}, "data": [21.736453360638208, 105.32953376177001, 186.03126408498167, 160.21733240892226]}, {"name": "Win-rate-matched training", "type": "scatter", "symbol": "circle", "symbolSize": 11, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#eb6834"}, "data": [22.462928386286762, 108.88553702357912, 190.29300403466826, 165.06745564145012]}, {"name": "Any-win-rate training", "type": "scatter", "symbol": "diamond", "symbolSize": 11, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#8a4fc4"}, "data": [18.731953180271955, 80.29472373262722, 167.8529501898931, 133.26106794920634]}, {"name": "Default model", "type": "scatter", "symbol": "circle", "symbolSize": 11, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#2a78d6"}, "data": [22.512198199460826, 81.0659727061411, 223.8761040073499, 146.7050273468209]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#2a78d6": "#3987e5", "#eb6834": "#d95926", "#8a4fc4": "#a77ae0", "#1d8a6e": "#3fb592", "#8a8984": "#8f8e86", "#e4e2dc": "#34332f", "#7a7974": "#97968d", "#c43b3b": "#e05a5a", "#e39a3b": "#e8a84f", "#8fb4de": "#5f86b8"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

@@ -117,6 +117,9 @@ _Avoid_: EVs
 A set's choice of nature, such as Adamant.
 _Avoid_: nature (as the field's name)
 
+**Build**:
+A set without its Stat Points: item, ability, four moves and Stat Alignment. Builds and Stat Points are measured apart.
+
 **Selection**:
 The four Pokémon brought at team preview.
 
@@ -135,6 +138,25 @@ _Avoid_: neighbours
 **Novelty**:
 How many species swaps a generated team's line-up is from the closest line-up in the model's training data: zero (copied), one, two, or three or more (a new line-up).
 _Avoid_: originality, uniqueness
+
+**Nearest training distance**:
+How many of a team's 84 fields differ from the closest team in the model's training data, slots matched to give the fewest. Zero means the team was copied.
+
+**Within-line-up new builds**:
+For a team with a copied line-up, how many of its six Pokémon, 0 to 6, have a build that no training team with the same six species gives that species. Few such training teams push it up.
+_Origin_: GuacaMol's Decorator Hop, [Brown et al. 2019](https://arxiv.org/abs/1811.09621) section 8.3.2, Table 3.
+_Avoid_: novelty
+
+**Set distance by field type**:
+For a team with a copied line-up, the fields that differ from the training team with the same six species that differs least, Pokémon paired by species: items of 6, abilities of 6, moves of 24, Stat Alignments of 6, Stat Points of 36. Stat Points are never summed with the rest, whose 42 fields they would swamp.
+_Distinguish_: Nearest training distance searches all training teams.
+
+**Recombined builds**:
+A team with a copied line-up whose six builds each appear in some training team with the same six species, though no one training team holds all six. More such training teams push its share up.
+_Origin_: scaffold novelty against molecule novelty in MOSES, [Polykovskiy et al. 2018](https://arxiv.org/abs/1811.12823) section 4.
+
+**Archetype**:
+A condition a team sets up: sun, rain, sand, snow, one of four terrains, Trick Room or Tailwind. A team is in one when any set has its setting ability or move, or holds a mega stone whose mega form has that ability, since a set stores the base ability; a team can be in several or none.
 
 **Meta**:
 The top-50 meta teams, each counted once. A team's win rate against the meta averages one battle against each of the 50.

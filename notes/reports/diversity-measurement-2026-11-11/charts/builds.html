@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Default-model bars sit near 20.6 builds per species, win-rate-matched training near 25.7</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:420px}
+</style>
+</head>
+<body>
+<main>
+<h1>Default-model bars sit near 20.6 builds per species, win-rate-matched training near 25.7</h1>
+<p class="sub">Two training samples differ by at most 0.68 builds.</p>
+<div id="chart"></div>
+<p class="note">A build is a set without its Stat Points: item, ability, four moves and Stat Alignment. For each species used at least 30 times in a sample, 30 of its uses are drawn without replacement and their distinct builds counted, 20 draws, averaged over species. 30 uses keeps 36 to 40 species per model seed.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"animation": false, "legend": {"top": 0, "left": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "confine": true, "valueFormatter": "js:v => v == null || Number.isNaN(v) ? 'n/a' : Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-US') : Math.abs(v) >= 10 ? v.toFixed(1) : Math.abs(v) >= 1 ? v.toFixed(2) : v.toFixed(3)"}, "grid": {"left": 8, "right": 28, "top": 16, "bottom": 44, "containLabel": true}, "xAxis": {"type": "value", "name": "distinct builds among 30 uses of one species, mean over species", "nameLocation": "middle", "nameGap": 28}, "yAxis": {"type": "category", "data": ["Default model, sampling seed 1", "Default model, sampling seed 2", "Default model, sampling seed 3", "Win-rate-matched training, draw 1", "Win-rate-matched training, draw 2", "Win-rate-matched training, draw 3", "Any-win-rate training, draw 1", "Any-win-rate training, draw 2", "Any-win-rate training, draw 3", "Validation teams", "One training team repeated", "Random legal teams"], "inverse": true, "axisTick": {"show": false}, "axisLabel": {"fontSize": 11}}, "series": [{"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "Builds per species at 30 uses", "data": [{"value": 20.624358974358973, "itemStyle": {"color": "#2a78d6"}}, {"value": 20.580555555555556, "itemStyle": {"color": "#2a78d6"}}, {"value": 20.497500000000002, "itemStyle": {"color": "#2a78d6"}}, {"value": 25.76388888888889, "itemStyle": {"color": "#eb6834"}}, {"value": 25.654166666666665, "itemStyle": {"color": "#eb6834"}}, {"value": 25.560294117647057, "itemStyle": {"color": "#eb6834"}}, {"value": 23.751612903225805, "itemStyle": {"color": "#8a4fc4"}}, {"value": 23.966129032258067, "itemStyle": {"color": "#8a4fc4"}}, {"value": 23.932258064516123, "itemStyle": {"color": "#8a4fc4"}}, {"value": 25.735714285714284, "itemStyle": {"color": "#1d8a6e"}}, {"value": 1.0, "itemStyle": {"color": "#8a8984"}}, {"value": 30.0, "itemStyle": {"color": "#8a8984"}}]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#2a78d6": "#3987e5", "#eb6834": "#d95926", "#8a4fc4": "#a77ae0", "#1d8a6e": "#3fb592", "#8a8984": "#8f8e86", "#e4e2dc": "#34332f", "#7a7974": "#97968d", "#c43b3b": "#e05a5a", "#e39a3b": "#e8a84f", "#8fb4de": "#5f86b8"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

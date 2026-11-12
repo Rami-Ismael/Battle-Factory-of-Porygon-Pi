@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Diversity Measures</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--panel:#f3f2ef;--ink:#0b0b0b;--ink2:#52514e;--ink3:#7a7974;--rule:#dedcd6;--grid:#e9e7e2;
+--model:#2a78d6;--train:#eb6834;--trainall:#8a4fc4;--val:#1d8a6e;--anchor:#8a8984;--band:#e4e2dc;--good:#008300;--warn:#b25e00;
+--s0:#c43b3b;--s1:#e39a3b;--s2:#8fb4de;--s3:#2a78d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#161615;--panel:#232321;--ink:#f0efec;--ink2:#c3c2b7;--ink3:#97968d;--rule:#3a3a37;--grid:#2c2c2a;
+--model:#3987e5;--train:#d95926;--trainall:#a77ae0;--val:#3fb592;--anchor:#8f8e86;--band:#34332f;--good:#3da13d;--warn:#d98a2b;
+--s0:#e05a5a;--s1:#e8a84f;--s2:#5f86b8;--s3:#5aa0f0}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#161615;--panel:#232321;--ink:#f0efec;--ink2:#c3c2b7;--ink3:#97968d;--rule:#3a3a37;--grid:#2c2c2a;
+--model:#3987e5;--train:#d95926;--trainall:#a77ae0;--val:#3fb592;--anchor:#8f8e86;--band:#34332f;--good:#3da13d;--warn:#d98a2b;
+--s0:#e05a5a;--s1:#e8a84f;--s2:#5f86b8;--s3:#5aa0f0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:900px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:32px;line-height:1.15;margin:0 0 12px;letter-spacing:-.01em}
+h2{font-size:22px;margin:56px 0 8px;line-height:1.25}
+h3{font-size:17px;margin:24px 0 6px}
+p,li{max-width:68ch}
+.lede{font-size:18px;color:var(--ink2)}
+.meta{font-size:13px;color:var(--ink3);margin-bottom:28px}
+figure{margin:16px 0 0}
+figcaption{font-size:14px;color:var(--ink2);margin-top:8px;max-width:68ch}
+iframe.chart{display:block;width:100%;border:0;margin:8px 0 0;background:transparent}
+.see{font-size:15px;color:var(--ink);margin:6px 0 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:12px}
+.card{background:var(--panel);border-radius:8px;padding:14px}
+.card b{display:block;margin-bottom:4px}
+.card p{font-size:14px;margin:0;color:var(--ink2)}
+.tw{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;font-size:14px;width:100%;min-width:560px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;color:var(--ink2);font-size:13px}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{font-size:12px;border-radius:4px;padding:1px 6px;white-space:nowrap;border:1px solid var(--rule)}
+.yes{color:var(--good)}.part{color:var(--warn)}.no{color:var(--ink3)}
+code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--panel);padding:1px 4px;border-radius:4px}
+details{margin-top:10px}summary{cursor:pointer;color:var(--ink2)}
+ol.steps li{margin-bottom:8px}
+.matrix{font:15px ui-monospace,Menlo,monospace;background:var(--panel);display:inline-block;padding:8px 12px;border-radius:6px}
+</style>
+</head>
+<body>
+<main>
+<h1>Team diversity: builds, Novelty, nearest training team, archetypes</h1>
+<p class="lede">At 30 uses of one species, the default model writes about 20.6 different builds where win-rate-matched training shows 25.7, a gap more than seven times the widest difference between two training samples. Its teams sit 36 fields from the closest training team against 24 for a training team, none is a copy, and 59% reuse a training line-up exactly against 71%. It carries Trick Room and sun more often than win-rate-matched training.</p>
+<p class="meta">2026-11-11 · default model: epoch 80 of the labelled 84-field model, guidance 2 · 1,088 teams per sample, three seeds · noise floor from 20 pairs of disjoint training samples · script <code>code/scripts/diversity_vs_training.py</code> · numbers <code>~/vgc-data/results/diversity_vs_training_2026-11-11.json</code> · first run on 2026-11-09, <a href="../diversity-measurement-2026-11-09/index.html">its page</a></p>
+
+<h2>Every measure against win-rate-matched training</h2>
+<!--chart:ratio-->
+
+<h2>Builds per species at equal uses</h2>
+<!--chart:builds-->
+<div class="tw"><!--table:shared--></div>
+<figcaption>The table compares the default model with each training row on the species both use at least 30 times, so a difference in which species appear cannot cause the gap.</figcaption>
+
+<h2>Novelty: species swaps to the closest training line-up</h2>
+<!--chart:novelty-->
+
+<h2>Nearest training distance</h2>
+<!--chart:nearest-->
+<div class="tw"><!--table:nearest--></div>
+
+<h2>Archetypes, setters only</h2>
+<!--chart:archetypes-->
+<details><summary>Which listed setters exist in the Regulation M-B vocabulary</summary><p>Every listed move exists in the vocabulary except Hail, which Generation 9 replaced with Snowscape. Of the listed abilities, Drought, Drizzle, Sand Stream, Sand Spit, Snow Warning and Electric Surge exist; Orichalcum Pulse, Desolate Land, Primordial Sea, Hadron Engine, Grassy Surge, Seed Sower, Misty Surge and Psychic Surge do not, so grassy, misty and psychic terrain can only come from the move. All five listed mega stones exist. A set stores its base ability: of 197 Charizard holding Charizardite Y in the first default-model sample, 1 stores Drought, and in the first win-rate-matched training sample 4 of 228 do. Tyranitar and Abomasnow already have their setting ability as a base ability, and Froslass stores Snow Warning on 30 of 67 holders in the model sample against 3 of 53 in training. Without the stones, the sun archetype would miss nearly every Charizard Y team. Meganiumite is left out: Mega Sol sets no weather on the field.</p></details>
+
+<h2>Any-win-rate training</h2>
+<div class="tw"><!--table:any-win-rate--></div>
+<p class="see">Any-win-rate training keeps about 900 line-ups but drops to 3,427 to 3,470 builds and 23.9 builds per species, and its builds and whole-team Vendi Scores fall to or below the default model's. The default model still writes half the line-ups and fewer builds per species than either training row.</p>
+<figcaption>The second training row: 1,088 labelled, non-validation training teams drawn at random, three draws, so its win-rate labels follow the training data instead of the 17 asks. "Differs" uses the same noise floor and the same rule as win-rate-matched training.</figcaption>
+
+<h2>Vendi Score between its anchors</h2>
+<!--chart:anchors-->
+
+<h2>What "diverse" means at each level</h2>
+<div class="cards">
+<div class="card"><b>Line-up · 6 fields</b><p>The six species, unordered. Diverse means many different line-ups, no line-up taking a large share, and many different species pairs, since pairs of teammates carry a team.</p></div>
+<div class="card"><b>Builds · 48 fields</b><p>Species, ability, item, Stat Alignment and four moves per Pokémon. Diverse means the same species appears with different builds, so two teams on one line-up can still differ.</p></div>
+<div class="card"><b>Stat Points · 36 fields</b><p>Six numbers per Pokémon, 66 points in all. Diverse means different allocations for the same species. Random placement scores highest, so compare against the training teams instead of maximising.</p></div>
+<div class="card"><b>Whole team · 84 fields</b><p>All of the above. Diverse means a high effective number of different teams, where a near-copy counts as partly the same team.</p></div>
+</div>
+
+<h2>The measurement plan, as run</h2>
+<div class="tw"><table>
+<tr><th>Row</th><th>What it is</th><th>Teams</th></tr>
+<tr><td>Default model, sampling seed 1, 2, 3</td><td>The saved ask-grid teams of epoch 80 of the labelled model, <code>gen84_noise_byepoch_ep80</code>, asks 1/24 to 17/24, 64 per ask</td><td class="n">3 × 1,088</td></tr>
+<tr><td>Win-rate-matched training, draw 1, 2, 3</td><td>Labelled teams outside the 2% validation split, 64 per ask group, a team's group being the ask nearest its label, so the label mix matches the model's</td><td class="n">3 × 1,088</td></tr>
+<tr><td>Any-win-rate training, draw 1, 2, 3</td><td>Labelled teams outside the validation split, drawn at random with no regard to the label</td><td class="n">3 × 1,088</td></tr>
+<tr><td>One team repeated</td><td>One training team repeated: the low anchor</td><td class="n">1,088</td></tr>
+<tr><td>Random legal teams</td><td>Random legal sets with 66 Stat Points placed at random, each checked by Showdown: the high anchor</td><td class="n">1,088</td></tr>
+<tr><td>Validation teams</td><td>Real labelled teams the model never trained on, the same 64 per ask group, fewer at the top asks</td><td class="n">1,049</td></tr>
+<tr><td>Noise floor</td><td>20 pairs of disjoint win-rate-matched training samples; the floor is the 2.5% to 97.5% range of their differences, now for every added measure too</td><td class="n">40 × 1,088</td></tr>
+</table></div>
+<h3>Rules fixed before the run</h3>
+<ul>
+<li>The default model differs from win-rate-matched training on a measure when all three seed differences share a sign and each lies outside the noise floor.</li>
+<li>A measure is usable when the training value falls between the two anchors.</li>
+<li>A row drawn from the training teams leaves each team out of its own reference once, for Novelty and for the nearest training distance. The exact-match novelty counts from 11-09 do not.</li>
+<li>Every 11-09 value reproduces exactly: the added rows draw from their own random streams.</li>
+</ul>
+<h3>Settings carried over without a decision of their own</h3>
+<ul>
+<li>The model's teams come from the 11-03 ask grid as it ran: guidance 2, temperature 1, rule masks on, species first, Stat Alignment repaired to match the moves.</li>
+<li>Asks 18/24 to 23/24 are left out of win-rate-matched training, since the training data holds 610 teams or fewer there.</li>
+<li>I picked 30 uses for builds per species, Sand Spit and the five mega stones as setters, and the bins of the nearest training distance. None was tuned on the result.</li>
+</ul>
+<h3>Caveats</h3>
+<ul>
+<li>The Vendi Score ignores duplicates by design. Read it beside distinct teams out of 1,088.</li>
+<li>More Stat Points diversity is not better. Random placement wins that contest, and the 11-04 swap test found the model's Stat Points ignore their Pokémon.</li>
+<li>Archetypes count setters on the team, not whether a battle ever set the weather.</li>
+<li>One model, one checkpoint, guidance 2 only. The guidance sweep reruns this script.</li>
+</ul>
+
+<details><summary>All numbers, one row per sample</summary><div class="tw"><!--table:numbers--></div></details>
+<details><summary>Background from the 11-09 page: the code that existed, the post's metrics, and a Vendi Score exercise</summary>
+<p>See <a href="../diversity-measurement-2026-11-09/index.html">the 11-09 page</a>, unchanged: its tables of what already exists, the metrics from Chaudhary's post on teams of six, the gaps between the code and the post, and the exercise to work the Vendi Score by hand.</p>
+</details>
+</main>
+<script>
+// Size each chart frame to its page when the browser allows reading it; the inline height is the fallback.
+const frames = [...document.querySelectorAll("iframe.chart")];
+function fit(frame) {
+  try { frame.style.height = Math.ceil(frame.contentDocument.body.getBoundingClientRect().height) + "px"; }
+  catch (error) { /* a file:// page counts as another origin: keep the inline height */ }
+}
+for (const frame of frames) {
+  frame.addEventListener("load", () => fit(frame));
+  if (frame.contentDocument && frame.contentDocument.readyState === "complete") fit(frame);
+}
+addEventListener("resize", () => frames.forEach(fit));
+</script>
+</body>
+</html>
