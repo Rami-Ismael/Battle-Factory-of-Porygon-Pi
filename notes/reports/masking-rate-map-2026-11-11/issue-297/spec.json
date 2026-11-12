@@ -1,0 +1,230 @@
+{
+ "issue": 297,
+ "title": "Sample and battle the four rows and post the results table",
+ "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/297",
+ "headline": "A row beats the control when its curve sits lower and further right",
+ "setup": "Each row is a way to train and sample the model. Its teams are battled at guidance 2, 4 and 8, so a row becomes a curve of three points. This ticket runs those battles and judges each row against the control, Per-field, uncorrected t.",
+ "alt": "Nothing has run yet. Each battled row becomes a curve of three points, one for each guidance value. A row wins when its ask-versus-got error is at least 0.001 lower than the control's at two or more guidance values, and it loses at none.",
+ "terms": [
+  [
+   "Row",
+   "One way to train and sample the model. Four are compared. The control is Per-field, uncorrected t: our own settings"
+  ],
+  [
+   "Species-first and random order",
+   "The order fields are filled in: all six species first, or any order"
+  ],
+  [
+   "Ask and got",
+   "The ask is the win rate the model is told to aim for. Got is the win rate its teams then score"
+  ],
+  [
+   "Line-up",
+   "A team's six species. More distinct line-ups means more variety"
+  ],
+  [
+   "Guidance",
+   "How hard the sampler pushes toward the win rate asked for. 1 is no push, and higher pushes harder"
+  ],
+  [
+   "Ask-versus-got error",
+   "How far the win rate the teams get is from the win rate asked for. Lower is better. A row must be 0.001 lower to count"
+  ]
+ ],
+ "frames": [
+  {
+   "title": "1. Error against line-ups, one curve for each row",
+   "kind": "lines",
+   "data": {
+    "x": "line-ups →",
+    "y": "error, lower is better",
+    "diagonal": false,
+    "series": [
+     {
+      "name": "Per-field, uncorrected t",
+      "tone": "plain",
+      "points": [
+       [
+        0.25,
+        0.3
+       ],
+       [
+        0.45,
+        0.4
+       ],
+       [
+        0.65,
+        0.5
+       ]
+      ]
+     },
+     {
+      "name": "Linear, species-first",
+      "tone": "c1",
+      "points": [
+       [
+        0.27,
+        0.27
+       ],
+       [
+        0.47,
+        0.37
+       ],
+       [
+        0.67,
+        0.47
+       ]
+      ]
+     },
+     {
+      "name": "Linear, random order",
+      "tone": "c2",
+      "points": [
+       [
+        0.35,
+        0.5
+       ],
+       [
+        0.55,
+        0.6
+       ],
+       [
+        0.75,
+        0.7
+       ]
+      ]
+     }
+    ]
+   },
+   "takes": "Each row is a three-point curve; the control's curve is the line to beat.",
+   "expected": "Linear, species-first sits on the control's curve. Linear, random order sits further right but higher.",
+   "surprise": "A linear curve lies wholly below the control's."
+  },
+  {
+   "title": "2. Got against ask for the control and Linear, species-first",
+   "kind": "lines",
+   "data": {
+    "x": "ask →",
+    "y": "got",
+    "diagonal": true,
+    "series": [
+     {
+      "name": "Per-field, uncorrected t",
+      "tone": "plain",
+      "points": [
+       [
+        0.05,
+        0.03
+       ],
+       [
+        0.25,
+        0.22
+       ],
+       [
+        0.5,
+        0.45
+       ],
+       [
+        0.75,
+        0.55
+       ],
+       [
+        0.95,
+        0.6
+       ]
+      ]
+     },
+     {
+      "name": "Linear, species-first",
+      "tone": "c1",
+      "points": [
+       [
+        0.05,
+        0.03
+       ],
+       [
+        0.25,
+        0.22
+       ],
+       [
+        0.5,
+        0.47
+       ],
+       [
+        0.75,
+        0.58
+       ],
+       [
+        0.95,
+        0.63
+       ]
+      ]
+     }
+    ]
+   },
+   "takes": "Got should follow ask; a line short of the dashed diagonal misses it.",
+   "expected": "Both lines overlap and stop rising at the same got.",
+   "surprise": "The linear line keeps rising after the control line stops."
+  },
+  {
+   "title": "3. Random order's error as a multiple of species-first's",
+   "kind": "bars",
+   "data": {
+    "bars": [
+     {
+      "label": "Per-field model",
+      "height": 0.8,
+      "style": "solid",
+      "tone": "plain",
+      "note": "2.8, measured"
+     },
+     {
+      "label": "Linear model",
+      "height": 0.45,
+      "style": "dashed",
+      "tone": "c2",
+      "note": "?"
+     }
+    ],
+    "line": {
+     "at": 0.29,
+     "label": "equal to species-first"
+    }
+   },
+   "takes": "On a per-field model, random order's error was 2.8 times species-first's. On the linear model it is unknown.",
+   "expected": "On the linear model the multiple falls below 2.8 but stays above 1.",
+   "surprise": "It stays near 2.8, or falls below 1."
+  },
+  {
+   "title": "4. When a row counts as winning",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "Win at one guidance value: error at least 0.001 lower, interval below zero",
+      "state": "todo"
+     },
+     {
+      "text": "Loss at one value: interval above zero",
+      "state": "todo"
+     },
+     {
+      "text": "Match: anything else",
+      "state": "todo"
+     },
+     {
+      "text": "The row wins: a win at two or more values and a loss at none",
+      "state": "next"
+     },
+     {
+      "text": "One win in three: reported as weak",
+      "state": "todo"
+     }
+    ]
+   },
+   "takes": "A row wins when it wins at two or more guidance values and loses at none. A win needs an error at least 0.001 lower.",
+   "expected": "A row that wins twice and matches once still counts as winning.",
+   "surprise": "A row that wins twice and loses once does not count as winning."
+  }
+ ]
+}
