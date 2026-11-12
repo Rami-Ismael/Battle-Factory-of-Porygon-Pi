@@ -1,0 +1,7098 @@
+{
+ "checkpoint": "stat84_all_teams_ep21.pt",
+ "layers": 6,
+ "n_teams": 256,
+ "seed": 0,
+ "order": [
+  "species",
+  "species",
+  "species",
+  "species",
+  "species",
+  "species",
+  "ability",
+  "item",
+  "ability",
+  "item",
+  "ability",
+  "item",
+  "ability",
+  "item",
+  "ability",
+  "item",
+  "ability",
+  "item",
+  "move 1",
+  "move 2",
+  "move 3",
+  "move 4",
+  "move 1",
+  "move 2"
+ ],
+ "deployed_item_repeats": 0.0,
+ "by_field": [
+  {
+   "step": 0,
+   "column": 0,
+   "field": "species",
+   "pokemon": 0,
+   "entropy": 3.748065710067749,
+   "top1": 0.10013559460639954
+  },
+  {
+   "step": 1,
+   "column": 8,
+   "field": "species",
+   "pokemon": 1,
+   "entropy": 3.511866331100464,
+   "top1": 0.12255756556987762
+  },
+  {
+   "step": 2,
+   "column": 16,
+   "field": "species",
+   "pokemon": 2,
+   "entropy": 3.341839075088501,
+   "top1": 0.14906880259513855
+  },
+  {
+   "step": 3,
+   "column": 24,
+   "field": "species",
+   "pokemon": 3,
+   "entropy": 3.1587839126586914,
+   "top1": 0.18761302530765533
+  },
+  {
+   "step": 4,
+   "column": 32,
+   "field": "species",
+   "pokemon": 4,
+   "entropy": 2.9738056659698486,
+   "top1": 0.24238337576389313
+  },
+  {
+   "step": 5,
+   "column": 40,
+   "field": "species",
+   "pokemon": 5,
+   "entropy": 2.796635150909424,
+   "top1": 0.3215370774269104
+  },
+  {
+   "step": 6,
+   "column": 1,
+   "field": "ability",
+   "pokemon": 0,
+   "entropy": 0.19517101347446442,
+   "top1": 0.9236268401145935
+  },
+  {
+   "step": 7,
+   "column": 2,
+   "field": "item",
+   "pokemon": 0,
+   "entropy": 2.337947130203247,
+   "top1": 0.28442198038101196
+  },
+  {
+   "step": 8,
+   "column": 9,
+   "field": "ability",
+   "pokemon": 1,
+   "entropy": 0.1976882815361023,
+   "top1": 0.9257330298423767
+  },
+  {
+   "step": 9,
+   "column": 10,
+   "field": "item",
+   "pokemon": 1,
+   "entropy": 2.289339542388916,
+   "top1": 0.29787883162498474
+  },
+  {
+   "step": 10,
+   "column": 17,
+   "field": "ability",
+   "pokemon": 2,
+   "entropy": 0.19275496900081635,
+   "top1": 0.9286148548126221
+  },
+  {
+   "step": 11,
+   "column": 18,
+   "field": "item",
+   "pokemon": 2,
+   "entropy": 2.1556596755981445,
+   "top1": 0.3314192593097687
+  },
+  {
+   "step": 12,
+   "column": 25,
+   "field": "ability",
+   "pokemon": 3,
+   "entropy": 0.20039337873458862,
+   "top1": 0.9255222082138062
+  },
+  {
+   "step": 13,
+   "column": 26,
+   "field": "item",
+   "pokemon": 3,
+   "entropy": 2.0516905784606934,
+   "top1": 0.37270820140838623
+  },
+  {
+   "step": 14,
+   "column": 33,
+   "field": "ability",
+   "pokemon": 4,
+   "entropy": 0.17880430817604065,
+   "top1": 0.9327886700630188
+  },
+  {
+   "step": 15,
+   "column": 34,
+   "field": "item",
+   "pokemon": 4,
+   "entropy": 1.9240877628326416,
+   "top1": 0.416655957698822
+  },
+  {
+   "step": 16,
+   "column": 41,
+   "field": "ability",
+   "pokemon": 5,
+   "entropy": 0.18856841325759888,
+   "top1": 0.9289959669113159
+  },
+  {
+   "step": 17,
+   "column": 42,
+   "field": "item",
+   "pokemon": 5,
+   "entropy": 1.7228991985321045,
+   "top1": 0.5088275074958801
+  },
+  {
+   "step": 18,
+   "column": 3,
+   "field": "move",
+   "pokemon": 0,
+   "entropy": 1.4541138410568237,
+   "top1": 0.5512906312942505
+  },
+  {
+   "step": 19,
+   "column": 4,
+   "field": "move",
+   "pokemon": 0,
+   "entropy": 1.2127788066864014,
+   "top1": 0.6008816957473755
+  },
+  {
+   "step": 20,
+   "column": 5,
+   "field": "move",
+   "pokemon": 0,
+   "entropy": 1.079994797706604,
+   "top1": 0.6629031300544739
+  },
+  {
+   "step": 21,
+   "column": 6,
+   "field": "move",
+   "pokemon": 0,
+   "entropy": 1.033883810043335,
+   "top1": 0.6570715308189392
+  },
+  {
+   "step": 22,
+   "column": 11,
+   "field": "move",
+   "pokemon": 1,
+   "entropy": 1.4609757661819458,
+   "top1": 0.5435121059417725
+  },
+  {
+   "step": 23,
+   "column": 12,
+   "field": "move",
+   "pokemon": 1,
+   "entropy": 1.2168421745300293,
+   "top1": 0.6045917272567749
+  },
+  {
+   "step": 24,
+   "column": 13,
+   "field": "move",
+   "pokemon": 1,
+   "entropy": 1.0712363719940186,
+   "top1": 0.6519826054573059
+  },
+  {
+   "step": 25,
+   "column": 14,
+   "field": "move",
+   "pokemon": 1,
+   "entropy": 1.055389642715454,
+   "top1": 0.6375343799591064
+  },
+  {
+   "step": 26,
+   "column": 19,
+   "field": "move",
+   "pokemon": 2,
+   "entropy": 1.4057632684707642,
+   "top1": 0.5709389448165894
+  },
+  {
+   "step": 27,
+   "column": 20,
+   "field": "move",
+   "pokemon": 2,
+   "entropy": 1.1554771661758423,
+   "top1": 0.6239079236984253
+  },
+  {
+   "step": 28,
+   "column": 21,
+   "field": "move",
+   "pokemon": 2,
+   "entropy": 1.0377168655395508,
+   "top1": 0.6748159527778625
+  },
+  {
+   "step": 29,
+   "column": 22,
+   "field": "move",
+   "pokemon": 2,
+   "entropy": 1.0060102939605713,
+   "top1": 0.6634181141853333
+  },
+  {
+   "step": 30,
+   "column": 27,
+   "field": "move",
+   "pokemon": 3,
+   "entropy": 1.4098129272460938,
+   "top1": 0.5667111277580261
+  },
+  {
+   "step": 31,
+   "column": 28,
+   "field": "move",
+   "pokemon": 3,
+   "entropy": 1.0374001264572144,
+   "top1": 0.6659864783287048
+  },
+  {
+   "step": 32,
+   "column": 29,
+   "field": "move",
+   "pokemon": 3,
+   "entropy": 1.0201432704925537,
+   "top1": 0.6729188561439514
+  },
+  {
+   "step": 33,
+   "column": 30,
+   "field": "move",
+   "pokemon": 3,
+   "entropy": 0.9792703986167908,
+   "top1": 0.6582739353179932
+  },
+  {
+   "step": 34,
+   "column": 35,
+   "field": "move",
+   "pokemon": 4,
+   "entropy": 1.425529956817627,
+   "top1": 0.5683507919311523
+  },
+  {
+   "step": 35,
+   "column": 36,
+   "field": "move",
+   "pokemon": 4,
+   "entropy": 1.0391724109649658,
+   "top1": 0.6688805818557739
+  },
+  {
+   "step": 36,
+   "column": 37,
+   "field": "move",
+   "pokemon": 4,
+   "entropy": 1.0138201713562012,
+   "top1": 0.6800826787948608
+  },
+  {
+   "step": 37,
+   "column": 38,
+   "field": "move",
+   "pokemon": 4,
+   "entropy": 0.9307613372802734,
+   "top1": 0.6829149723052979
+  },
+  {
+   "step": 38,
+   "column": 43,
+   "field": "move",
+   "pokemon": 5,
+   "entropy": 1.4077887535095215,
+   "top1": 0.5757002830505371
+  },
+  {
+   "step": 39,
+   "column": 44,
+   "field": "move",
+   "pokemon": 5,
+   "entropy": 1.0085347890853882,
+   "top1": 0.6730956435203552
+  },
+  {
+   "step": 40,
+   "column": 45,
+   "field": "move",
+   "pokemon": 5,
+   "entropy": 0.972135066986084,
+   "top1": 0.6841498613357544
+  },
+  {
+   "step": 41,
+   "column": 46,
+   "field": "move",
+   "pokemon": 5,
+   "entropy": 0.8678070902824402,
+   "top1": 0.7033365964889526
+  },
+  {
+   "step": 42,
+   "column": 7,
+   "field": "Stat Alignment",
+   "pokemon": 0,
+   "entropy": 1.6678447723388672,
+   "top1": 0.352634996175766
+  },
+  {
+   "step": 43,
+   "column": 15,
+   "field": "Stat Alignment",
+   "pokemon": 1,
+   "entropy": 1.6312483549118042,
+   "top1": 0.3657962679862976
+  },
+  {
+   "step": 44,
+   "column": 23,
+   "field": "Stat Alignment",
+   "pokemon": 2,
+   "entropy": 1.5897499322891235,
+   "top1": 0.37709400057792664
+  },
+  {
+   "step": 45,
+   "column": 31,
+   "field": "Stat Alignment",
+   "pokemon": 3,
+   "entropy": 1.536538004875183,
+   "top1": 0.3976064622402191
+  },
+  {
+   "step": 46,
+   "column": 39,
+   "field": "Stat Alignment",
+   "pokemon": 4,
+   "entropy": 1.4464921951293945,
+   "top1": 0.4419161081314087
+  },
+  {
+   "step": 47,
+   "column": 47,
+   "field": "Stat Alignment",
+   "pokemon": 5,
+   "entropy": 1.3166990280151367,
+   "top1": 0.5147262811660767
+  },
+  {
+   "step": 48,
+   "column": 48,
+   "field": "Stat Points",
+   "pokemon": 0,
+   "entropy": 2.5363194942474365,
+   "top1": 0.2817991375923157
+  },
+  {
+   "step": 49,
+   "column": 49,
+   "field": "Stat Points",
+   "pokemon": 0,
+   "entropy": 1.5076420307159424,
+   "top1": 0.559400200843811
+  },
+  {
+   "step": 50,
+   "column": 50,
+   "field": "Stat Points",
+   "pokemon": 0,
+   "entropy": 2.1315157413482666,
+   "top1": 0.44766920804977417
+  },
+  {
+   "step": 51,
+   "column": 51,
+   "field": "Stat Points",
+   "pokemon": 0,
+   "entropy": 1.2803924083709717,
+   "top1": 0.6506640911102295
+  },
+  {
+   "step": 52,
+   "column": 52,
+   "field": "Stat Points",
+   "pokemon": 0,
+   "entropy": 1.222093105316162,
+   "top1": 0.687486469745636
+  },
+  {
+   "step": 53,
+   "column": 53,
+   "field": "Stat Points",
+   "pokemon": 0,
+   "entropy": 1.7416439056396484,
+   "top1": 0.529478907585144
+  },
+  {
+   "step": 54,
+   "column": 54,
+   "field": "Stat Points",
+   "pokemon": 1,
+   "entropy": 2.4798836708068848,
+   "top1": 0.296970009803772
+  },
+  {
+   "step": 55,
+   "column": 55,
+   "field": "Stat Points",
+   "pokemon": 1,
+   "entropy": 1.4700301885604858,
+   "top1": 0.5525299906730652
+  },
+  {
+   "step": 56,
+   "column": 56,
+   "field": "Stat Points",
+   "pokemon": 1,
+   "entropy": 2.1327342987060547,
+   "top1": 0.43056371808052063
+  },
+  {
+   "step": 57,
+   "column": 57,
+   "field": "Stat Points",
+   "pokemon": 1,
+   "entropy": 1.2712135314941406,
+   "top1": 0.6341809630393982
+  },
+  {
+   "step": 58,
+   "column": 58,
+   "field": "Stat Points",
+   "pokemon": 1,
+   "entropy": 1.2837163209915161,
+   "top1": 0.6611294746398926
+  },
+  {
+   "step": 59,
+   "column": 59,
+   "field": "Stat Points",
+   "pokemon": 1,
+   "entropy": 1.7318825721740723,
+   "top1": 0.5225515365600586
+  },
+  {
+   "step": 60,
+   "column": 60,
+   "field": "Stat Points",
+   "pokemon": 2,
+   "entropy": 2.4007859230041504,
+   "top1": 0.3241582214832306
+  },
+  {
+   "step": 61,
+   "column": 61,
+   "field": "Stat Points",
+   "pokemon": 2,
+   "entropy": 1.4259084463119507,
+   "top1": 0.5541566610336304
+  },
+  {
+   "step": 62,
+   "column": 62,
+   "field": "Stat Points",
+   "pokemon": 2,
+   "entropy": 2.13577938079834,
+   "top1": 0.4032701849937439
+  },
+  {
+   "step": 63,
+   "column": 63,
+   "field": "Stat Points",
+   "pokemon": 2,
+   "entropy": 1.1912181377410889,
+   "top1": 0.6519453525543213
+  },
+  {
+   "step": 64,
+   "column": 64,
+   "field": "Stat Points",
+   "pokemon": 2,
+   "entropy": 1.2592722177505493,
+   "top1": 0.6440580487251282
+  },
+  {
+   "step": 65,
+   "column": 65,
+   "field": "Stat Points",
+   "pokemon": 2,
+   "entropy": 1.497799277305603,
+   "top1": 0.569388747215271
+  },
+  {
+   "step": 66,
+   "column": 66,
+   "field": "Stat Points",
+   "pokemon": 3,
+   "entropy": 2.256784200668335,
+   "top1": 0.3699309825897217
+  },
+  {
+   "step": 67,
+   "column": 67,
+   "field": "Stat Points",
+   "pokemon": 3,
+   "entropy": 1.3920742273330688,
+   "top1": 0.5609179735183716
+  },
+  {
+   "step": 68,
+   "column": 68,
+   "field": "Stat Points",
+   "pokemon": 3,
+   "entropy": 2.014329433441162,
+   "top1": 0.3974899649620056
+  },
+  {
+   "step": 69,
+   "column": 69,
+   "field": "Stat Points",
+   "pokemon": 3,
+   "entropy": 1.0242079496383667,
+   "top1": 0.6845629215240479
+  },
+  {
+   "step": 70,
+   "column": 70,
+   "field": "Stat Points",
+   "pokemon": 3,
+   "entropy": 1.1896545886993408,
+   "top1": 0.6341264247894287
+  },
+  {
+   "step": 71,
+   "column": 71,
+   "field": "Stat Points",
+   "pokemon": 3,
+   "entropy": 1.3102977275848389,
+   "top1": 0.5869909524917603
+  },
+  {
+   "step": 72,
+   "column": 72,
+   "field": "Stat Points",
+   "pokemon": 4,
+   "entropy": 1.9564757347106934,
+   "top1": 0.47010794281959534
+  },
+  {
+   "step": 73,
+   "column": 73,
+   "field": "Stat Points",
+   "pokemon": 4,
+   "entropy": 1.2159910202026367,
+   "top1": 0.61234050989151
+  },
+  {
+   "step": 74,
+   "column": 74,
+   "field": "Stat Points",
+   "pokemon": 4,
+   "entropy": 1.974469780921936,
+   "top1": 0.3799518644809723
+  },
+  {
+   "step": 75,
+   "column": 75,
+   "field": "Stat Points",
+   "pokemon": 4,
+   "entropy": 0.8821771740913391,
+   "top1": 0.7367472648620605
+  },
+  {
+   "step": 76,
+   "column": 76,
+   "field": "Stat Points",
+   "pokemon": 4,
+   "entropy": 1.137369155883789,
+   "top1": 0.6098991632461548
+  },
+  {
+   "step": 77,
+   "column": 77,
+   "field": "Stat Points",
+   "pokemon": 4,
+   "entropy": 1.1449611186981201,
+   "top1": 0.6056081056594849
+  },
+  {
+   "step": 78,
+   "column": 78,
+   "field": "Stat Points",
+   "pokemon": 5,
+   "entropy": 1.3242287635803223,
+   "top1": 0.6535415649414062
+  },
+  {
+   "step": 79,
+   "column": 79,
+   "field": "Stat Points",
+   "pokemon": 5,
+   "entropy": 0.6683018803596497,
+   "top1": 0.8130691647529602
+  },
+  {
+   "step": 80,
+   "column": 80,
+   "field": "Stat Points",
+   "pokemon": 5,
+   "entropy": 1.8001091480255127,
+   "top1": 0.4371424913406372
+  },
+  {
+   "step": 81,
+   "column": 81,
+   "field": "Stat Points",
+   "pokemon": 5,
+   "entropy": 0.7567311525344849,
+   "top1": 0.7594069242477417
+  },
+  {
+   "step": 82,
+   "column": 82,
+   "field": "Stat Points",
+   "pokemon": 5,
+   "entropy": 0.9502325057983398,
+   "top1": 0.6301426887512207
+  },
+  {
+   "step": 83,
+   "column": 83,
+   "field": "Stat Points",
+   "pokemon": 5,
+   "entropy": 0.4903237819671631,
+   "top1": 0.7988289594650269
+  }
+ ],
+ "clash_item": {
+  "commit_at_step": 7,
+  "sampled_together": 0.7125,
+  "most_likely_together": 1.0,
+  "n": 2000
+ },
+ "clash_species": {
+  "commit_at_step": 0,
+  "sampled_together": 0.4775,
+  "most_likely_together": 1.0,
+  "n": 2000
+ },
+ "lock_grid": {
+  "team": "MB607",
+  "species": [
+   "incineroar",
+   "milotic",
+   "mimikyu",
+   "ninetalesalola",
+   "raichu",
+   "sinistcha"
+  ],
+  "row": [
+   160,
+   75,
+   129,
+   93,
+   143,
+   161,
+   297,
+   2,
+   201,
+   18,
+   76,
+   77,
+   218,
+   282,
+   340,
+   6,
+   202,
+   28,
+   78,
+   304,
+   320,
+   372,
+   434,
+   2,
+   210,
+   155,
+   53,
+   45,
+   131,
+   175,
+   320,
+   26,
+   233,
+   83,
+   111,
+   143,
+   169,
+   320,
+   496,
+   26,
+   270,
+   60,
+   73,
+   207,
+   249,
+   264,
+   334,
+   6,
+   32,
+   16,
+   11,
+   1,
+   11,
+   1,
+   33,
+   1,
+   28,
+   1,
+   6,
+   3,
+   10,
+   31,
+   3,
+   1,
+   1,
+   26,
+   3,
+   1,
+   1,
+   33,
+   1,
+   33,
+   31,
+   1,
+   14,
+   1,
+   1,
+   24,
+   33,
+   1,
+   15,
+   1,
+   21,
+   1
+  ],
+  "conditions": [
+   {
+    "lock": null,
+    "cells": [
+     {
+      "column": 1,
+      "pokemon": 0,
+      "field": "ability",
+      "entropy": 0.14217509329319,
+      "p_true": 0.9678391218185425
+     },
+     {
+      "column": 2,
+      "pokemon": 0,
+      "field": "item",
+      "entropy": 2.6757659912109375,
+      "p_true": 0.14829230308532715
+     },
+     {
+      "column": 3,
+      "pokemon": 0,
+      "field": "move 1",
+      "entropy": 0.5620185136795044,
+      "p_true": 0.8243042230606079
+     },
+     {
+      "column": 4,
+      "pokemon": 0,
+      "field": "move 2",
+      "entropy": 1.8235878944396973,
+      "p_true": 0.23155400156974792
+     },
+     {
+      "column": 5,
+      "pokemon": 0,
+      "field": "move 3",
+      "entropy": 1.5217690467834473,
+      "p_true": 0.30018264055252075
+     },
+     {
+      "column": 6,
+      "pokemon": 0,
+      "field": "move 4",
+      "entropy": 1.8095623254776,
+      "p_true": 0.35507631301879883
+     },
+     {
+      "column": 7,
+      "pokemon": 0,
+      "field": "Stat Alignment",
+      "entropy": 2.198310136795044,
+      "p_true": 0.17312565445899963
+     },
+     {
+      "column": 9,
+      "pokemon": 1,
+      "field": "ability",
+      "entropy": 0.15631499886512756,
+      "p_true": 0.9636050462722778
+     },
+     {
+      "column": 10,
+      "pokemon": 1,
+      "field": "item",
+      "entropy": 2.684603214263916,
+      "p_true": 0.1912166029214859
+     },
+     {
+      "column": 11,
+      "pokemon": 1,
+      "field": "move 1",
+      "entropy": 0.32390010356903076,
+      "p_true": 0.9214656949043274
+     },
+     {
+      "column": 12,
+      "pokemon": 1,
+      "field": "move 2",
+      "entropy": 1.3330886363983154,
+      "p_true": 0.6590573191642761
+     },
+     {
+      "column": 13,
+      "pokemon": 1,
+      "field": "move 3",
+      "entropy": 0.7416190505027771,
+      "p_true": 0.8450084924697876
+     },
+     {
+      "column": 14,
+      "pokemon": 1,
+      "field": "move 4",
+      "entropy": 0.4726754426956177,
+      "p_true": 0.90964275598526
+     },
+     {
+      "column": 15,
+      "pokemon": 1,
+      "field": "Stat Alignment",
+      "entropy": 2.201348304748535,
+      "p_true": 0.23146739602088928
+     },
+     {
+      "column": 17,
+      "pokemon": 2,
+      "field": "ability",
+      "entropy": -0.0,
+      "p_true": 1.0
+     },
+     {
+      "column": 18,
+      "pokemon": 2,
+      "field": "item",
+      "entropy": 2.6844146251678467,
+      "p_true": 0.04137059301137924
+     },
+     {
+      "column": 19,
+      "pokemon": 2,
+      "field": "move 1",
+      "entropy": 0.8325175642967224,
+      "p_true": 0.7996981143951416
+     },
+     {
+      "column": 20,
+      "pokemon": 2,
+      "field": "move 2",
+      "entropy": 1.9123636484146118,
+      "p_true": 0.48579561710357666
+     },
+     {
+      "column": 21,
+      "pokemon": 2,
+      "field": "move 3",
+      "entropy": 1.4095219373703003,
+      "p_true": 0.6579587459564209
+     },
+     {
+      "column": 22,
+      "pokemon": 2,
+      "field": "move 4",
+      "entropy": 1.9624017477035522,
+      "p_true": 0.1607428789138794
+     },
+     {
+      "column": 23,
+      "pokemon": 2,
+      "field": "Stat Alignment",
+      "entropy": 2.2002668380737305,
+      "p_true": 0.17412512004375458
+     },
+     {
+      "column": 25,
+      "pokemon": 3,
+      "field": "ability",
+      "entropy": 0.2126481980085373,
+      "p_true": 0.9451174139976501
+     },
+     {
+      "column": 26,
+      "pokemon": 3,
+      "field": "item",
+      "entropy": 2.6852285861968994,
+      "p_true": 0.08925163745880127
+     },
+     {
+      "column": 27,
+      "pokemon": 3,
+      "field": "move 1",
+      "entropy": 1.194461703300476,
+      "p_true": 0.5464219450950623
+     },
+     {
+      "column": 28,
+      "pokemon": 3,
+      "field": "move 2",
+      "entropy": 1.519974946975708,
+      "p_true": 0.2282785177230835
+     },
+     {
+      "column": 29,
+      "pokemon": 3,
+      "field": "move 3",
+      "entropy": 1.478872299194336,
+      "p_true": 0.5953733325004578
+     },
+     {
+      "column": 30,
+      "pokemon": 3,
+      "field": "move 4",
+      "entropy": 1.7437491416931152,
+      "p_true": 0.5114059448242188
+     },
+     {
+      "column": 31,
+      "pokemon": 3,
+      "field": "Stat Alignment",
+      "entropy": 2.1996068954467773,
+      "p_true": 0.1649499535560608
+     },
+     {
+      "column": 33,
+      "pokemon": 4,
+      "field": "ability",
+      "entropy": 0.28415247797966003,
+      "p_true": 0.9246452450752258
+     },
+     {
+      "column": 34,
+      "pokemon": 4,
+      "field": "item",
+      "entropy": 0.3924890160560608,
+      "p_true": 0.9395922422409058
+     },
+     {
+      "column": 35,
+      "pokemon": 4,
+      "field": "move 1",
+      "entropy": 0.7816739082336426,
+      "p_true": 0.7633808255195618
+     },
+     {
+      "column": 36,
+      "pokemon": 4,
+      "field": "move 2",
+      "entropy": 1.5430262088775635,
+      "p_true": 0.3463073968887329
+     },
+     {
+      "column": 37,
+      "pokemon": 4,
+      "field": "move 3",
+      "entropy": 2.089383602142334,
+      "p_true": 0.17996808886528015
+     },
+     {
+      "column": 38,
+      "pokemon": 4,
+      "field": "move 4",
+      "entropy": 0.6911565661430359,
+      "p_true": 0.8488113880157471
+     },
+     {
+      "column": 39,
+      "pokemon": 4,
+      "field": "Stat Alignment",
+      "entropy": 2.206557035446167,
+      "p_true": 0.16367536783218384
+     },
+     {
+      "column": 41,
+      "pokemon": 5,
+      "field": "ability",
+      "entropy": 5.326737664290704e-06,
+      "p_true": 0.9999996423721313
+     },
+     {
+      "column": 42,
+      "pokemon": 5,
+      "field": "item",
+      "entropy": 2.688650608062744,
+      "p_true": 0.161248117685318
+     },
+     {
+      "column": 43,
+      "pokemon": 5,
+      "field": "move 1",
+      "entropy": 1.303122878074646,
+      "p_true": 0.3169604539871216
+     },
+     {
+      "column": 44,
+      "pokemon": 5,
+      "field": "move 2",
+      "entropy": 1.5051778554916382,
+      "p_true": 0.27728745341300964
+     },
+     {
+      "column": 45,
+      "pokemon": 5,
+      "field": "move 3",
+      "entropy": 1.1464871168136597,
+      "p_true": 0.4928007423877716
+     },
+     {
+      "column": 46,
+      "pokemon": 5,
+      "field": "move 4",
+      "entropy": 1.4244707822799683,
+      "p_true": 0.4499274790287018
+     },
+     {
+      "column": 47,
+      "pokemon": 5,
+      "field": "Stat Alignment",
+      "entropy": 2.2016761302948,
+      "p_true": 0.22927828133106232
+     },
+     {
+      "column": 48,
+      "pokemon": 0,
+      "field": "Stat Points HP",
+      "entropy": 2.013742446899414,
+      "p_true": 0.09319163858890533
+     },
+     {
+      "column": 49,
+      "pokemon": 0,
+      "field": "Stat Points Atk",
+      "entropy": 1.0668203830718994,
+      "p_true": 0.06513078510761261
+     },
+     {
+      "column": 50,
+      "pokemon": 0,
+      "field": "Stat Points Def",
+      "entropy": 2.929415225982666,
+      "p_true": 0.10557597130537033
+     },
+     {
+      "column": 51,
+      "pokemon": 0,
+      "field": "Stat Points SpA",
+      "entropy": 0.9859524965286255,
+      "p_true": 0.7520607113838196
+     },
+     {
+      "column": 52,
+      "pokemon": 0,
+      "field": "Stat Points SpD",
+      "entropy": 2.002225875854492,
+      "p_true": 0.12354888767004013
+     },
+     {
+      "column": 53,
+      "pokemon": 0,
+      "field": "Stat Points Spe",
+      "entropy": 2.153733730316162,
+      "p_true": 0.3004205524921417
+     },
+     {
+      "column": 54,
+      "pokemon": 1,
+      "field": "Stat Points HP",
+      "entropy": 2.019770622253418,
+      "p_true": 0.4609970152378082
+     },
+     {
+      "column": 55,
+      "pokemon": 1,
+      "field": "Stat Points Atk",
+      "entropy": 1.0705684423446655,
+      "p_true": 0.7408279776573181
+     },
+     {
+      "column": 56,
+      "pokemon": 1,
+      "field": "Stat Points Def",
+      "entropy": 2.9248833656311035,
+      "p_true": 0.05305330455303192
+     },
+     {
+      "column": 57,
+      "pokemon": 1,
+      "field": "Stat Points SpA",
+      "entropy": 0.9828199148178101,
+      "p_true": 0.752944827079773
+     },
+     {
+      "column": 58,
+      "pokemon": 1,
+      "field": "Stat Points SpD",
+      "entropy": 2.0037100315093994,
+      "p_true": 0.06434832513332367
+     },
+     {
+      "column": 59,
+      "pokemon": 1,
+      "field": "Stat Points Spe",
+      "entropy": 2.15635085105896,
+      "p_true": 0.14030428230762482
+     },
+     {
+      "column": 60,
+      "pokemon": 2,
+      "field": "Stat Points HP",
+      "entropy": 2.022707939147949,
+      "p_true": 0.08175082504749298
+     },
+     {
+      "column": 61,
+      "pokemon": 2,
+      "field": "Stat Points Atk",
+      "entropy": 1.0607309341430664,
+      "p_true": 0.065004862844944
+     },
+     {
+      "column": 62,
+      "pokemon": 2,
+      "field": "Stat Points Def",
+      "entropy": 2.926018714904785,
+      "p_true": 0.09609997272491455
+     },
+     {
+      "column": 63,
+      "pokemon": 2,
+      "field": "Stat Points SpA",
+      "entropy": 0.982370138168335,
+      "p_true": 0.754005491733551
+     },
+     {
+      "column": 64,
+      "pokemon": 2,
+      "field": "Stat Points SpD",
+      "entropy": 1.9982914924621582,
+      "p_true": 0.44949495792388916
+     },
+     {
+      "column": 65,
+      "pokemon": 2,
+      "field": "Stat Points Spe",
+      "entropy": 2.1571884155273438,
+      "p_true": 0.058728426694869995
+     },
+     {
+      "column": 66,
+      "pokemon": 3,
+      "field": "Stat Points HP",
+      "entropy": 2.016991138458252,
+      "p_true": 0.1199120357632637
+     },
+     {
+      "column": 67,
+      "pokemon": 3,
+      "field": "Stat Points Atk",
+      "entropy": 1.0673396587371826,
+      "p_true": 0.741527259349823
+     },
+     {
+      "column": 68,
+      "pokemon": 3,
+      "field": "Stat Points Def",
+      "entropy": 2.9271481037139893,
+      "p_true": 0.14471864700317383
+     },
+     {
+      "column": 69,
+      "pokemon": 3,
+      "field": "Stat Points SpA",
+      "entropy": 0.9827007055282593,
+      "p_true": 0.15625183284282684
+     },
+     {
+      "column": 70,
+      "pokemon": 3,
+      "field": "Stat Points SpD",
+      "entropy": 2.0020911693573,
+      "p_true": 0.44776472449302673
+     },
+     {
+      "column": 71,
+      "pokemon": 3,
+      "field": "Stat Points Spe",
+      "entropy": 2.156369209289551,
+      "p_true": 0.236228346824646
+     },
+     {
+      "column": 72,
+      "pokemon": 4,
+      "field": "Stat Points HP",
+      "entropy": 2.016655206680298,
+      "p_true": 0.04731617867946625
+     },
+     {
+      "column": 73,
+      "pokemon": 4,
+      "field": "Stat Points Atk",
+      "entropy": 1.0661592483520508,
+      "p_true": 0.7421315312385559
+     },
+     {
+      "column": 74,
+      "pokemon": 4,
+      "field": "Stat Points Def",
+      "entropy": 2.925431728363037,
+      "p_true": 0.02570991963148117
+     },
+     {
+      "column": 75,
+      "pokemon": 4,
+      "field": "Stat Points SpA",
+      "entropy": 0.9836221933364868,
+      "p_true": 0.7528216242790222
+     },
+     {
+      "column": 76,
+      "pokemon": 4,
+      "field": "Stat Points SpD",
+      "entropy": 2.0036022663116455,
+      "p_true": 0.4476625621318817
+     },
+     {
+      "column": 77,
+      "pokemon": 4,
+      "field": "Stat Points Spe",
+      "entropy": 2.156930923461914,
+      "p_true": 0.10900271683931351
+     },
+     {
+      "column": 78,
+      "pokemon": 5,
+      "field": "Stat Points HP",
+      "entropy": 2.0151493549346924,
+      "p_true": 0.46296656131744385
+     },
+     {
+      "column": 79,
+      "pokemon": 5,
+      "field": "Stat Points Atk",
+      "entropy": 1.063049554824829,
+      "p_true": 0.7431115508079529
+     },
+     {
+      "column": 80,
+      "pokemon": 5,
+      "field": "Stat Points Def",
+      "entropy": 2.9291696548461914,
+      "p_true": 0.12602119147777557
+     },
+     {
+      "column": 81,
+      "pokemon": 5,
+      "field": "Stat Points SpA",
+      "entropy": 0.9809447526931763,
+      "p_true": 0.7535804510116577
+     },
+     {
+      "column": 82,
+      "pokemon": 5,
+      "field": "Stat Points SpD",
+      "entropy": 2.0001816749572754,
+      "p_true": 0.12807783484458923
+     },
+     {
+      "column": 83,
+      "pokemon": 5,
+      "field": "Stat Points Spe",
+      "entropy": 2.1584463119506836,
+      "p_true": 0.30079329013824463
+     }
+    ]
+   },
+   {
+    "lock": 0,
+    "cells": [
+     {
+      "column": 9,
+      "pokemon": 1,
+      "field": "ability",
+      "entropy": 0.12032701075077057,
+      "p_true": 0.9740619659423828
+     },
+     {
+      "column": 10,
+      "pokemon": 1,
+      "field": "item",
+      "entropy": 2.461735725402832,
+      "p_true": 0.22694286704063416
+     },
+     {
+      "column": 11,
+      "pokemon": 1,
+      "field": "move 1",
+      "entropy": 0.21665942668914795,
+      "p_true": 0.9568333625793457
+     },
+     {
+      "column": 12,
+      "pokemon": 1,
+      "field": "move 2",
+      "entropy": 1.3385729789733887,
+      "p_true": 0.6344152092933655
+     },
+     {
+      "column": 13,
+      "pokemon": 1,
+      "field": "move 3",
+      "entropy": 0.6526015996932983,
+      "p_true": 0.8619818091392517
+     },
+     {
+      "column": 14,
+      "pokemon": 1,
+      "field": "move 4",
+      "entropy": 0.2754095792770386,
+      "p_true": 0.9511650204658508
+     },
+     {
+      "column": 15,
+      "pokemon": 1,
+      "field": "Stat Alignment",
+      "entropy": 2.05833101272583,
+      "p_true": 0.30432263016700745
+     },
+     {
+      "column": 17,
+      "pokemon": 2,
+      "field": "ability",
+      "entropy": -0.0,
+      "p_true": 1.0
+     },
+     {
+      "column": 18,
+      "pokemon": 2,
+      "field": "item",
+      "entropy": 2.461524248123169,
+      "p_true": 0.08585871011018753
+     },
+     {
+      "column": 19,
+      "pokemon": 2,
+      "field": "move 1",
+      "entropy": 0.8629676103591919,
+      "p_true": 0.7971775531768799
+     },
+     {
+      "column": 20,
+      "pokemon": 2,
+      "field": "move 2",
+      "entropy": 1.8968387842178345,
+      "p_true": 0.40582308173179626
+     },
+     {
+      "column": 21,
+      "pokemon": 2,
+      "field": "move 3",
+      "entropy": 1.226949691772461,
+      "p_true": 0.6499791741371155
+     },
+     {
+      "column": 22,
+      "pokemon": 2,
+      "field": "move 4",
+      "entropy": 1.8089051246643066,
+      "p_true": 0.17784622311592102
+     },
+     {
+      "column": 23,
+      "pokemon": 2,
+      "field": "Stat Alignment",
+      "entropy": 2.0622191429138184,
+      "p_true": 0.11197680979967117
+     },
+     {
+      "column": 25,
+      "pokemon": 3,
+      "field": "ability",
+      "entropy": 0.13922032713890076,
+      "p_true": 0.9687035083770752
+     },
+     {
+      "column": 26,
+      "pokemon": 3,
+      "field": "item",
+      "entropy": 2.4599616527557373,
+      "p_true": 0.1324680596590042
+     },
+     {
+      "column": 27,
+      "pokemon": 3,
+      "field": "move 1",
+      "entropy": 1.2956784963607788,
+      "p_true": 0.4964558184146881
+     },
+     {
+      "column": 28,
+      "pokemon": 3,
+      "field": "move 2",
+      "entropy": 1.4296425580978394,
+      "p_true": 0.3108981251716614
+     },
+     {
+      "column": 29,
+      "pokemon": 3,
+      "field": "move 3",
+      "entropy": 1.0481764078140259,
+      "p_true": 0.74273282289505
+     },
+     {
+      "column": 30,
+      "pokemon": 3,
+      "field": "move 4",
+      "entropy": 1.533629059791565,
+      "p_true": 0.6413728594779968
+     },
+     {
+      "column": 31,
+      "pokemon": 3,
+      "field": "Stat Alignment",
+      "entropy": 2.0594520568847656,
+      "p_true": 0.22413630783557892
+     },
+     {
+      "column": 33,
+      "pokemon": 4,
+      "field": "ability",
+      "entropy": 0.2013089656829834,
+      "p_true": 0.952075719833374
+     },
+     {
+      "column": 34,
+      "pokemon": 4,
+      "field": "item",
+      "entropy": 0.25972360372543335,
+      "p_true": 0.9613444209098816
+     },
+     {
+      "column": 35,
+      "pokemon": 4,
+      "field": "move 1",
+      "entropy": 0.7735287547111511,
+      "p_true": 0.7883930206298828
+     },
+     {
+      "column": 36,
+      "pokemon": 4,
+      "field": "move 2",
+      "entropy": 1.3009482622146606,
+      "p_true": 0.29490137100219727
+     },
+     {
+      "column": 37,
+      "pokemon": 4,
+      "field": "move 3",
+      "entropy": 2.1996212005615234,
+      "p_true": 0.2927284836769104
+     },
+     {
+      "column": 38,
+      "pokemon": 4,
+      "field": "move 4",
+      "entropy": 0.3818454146385193,
+      "p_true": 0.9302455186843872
+     },
+     {
+      "column": 39,
+      "pokemon": 4,
+      "field": "Stat Alignment",
+      "entropy": 2.0647289752960205,
+      "p_true": 0.22216154634952545
+     },
+     {
+      "column": 41,
+      "pokemon": 5,
+      "field": "ability",
+      "entropy": 5.8180712585453875e-06,
+      "p_true": 0.9999996423721313
+     },
+     {
+      "column": 42,
+      "pokemon": 5,
+      "field": "item",
+      "entropy": 2.464067220687866,
+      "p_true": 0.22615206241607666
+     },
+     {
+      "column": 43,
+      "pokemon": 5,
+      "field": "move 1",
+      "entropy": 1.488665223121643,
+      "p_true": 0.4700184762477875
+     },
+     {
+      "column": 44,
+      "pokemon": 5,
+      "field": "move 2",
+      "entropy": 1.2751163244247437,
+      "p_true": 0.5061497092247009
+     },
+     {
+      "column": 45,
+      "pokemon": 5,
+      "field": "move 3",
+      "entropy": 0.8371036648750305,
+      "p_true": 0.7267832159996033
+     },
+     {
+      "column": 46,
+      "pokemon": 5,
+      "field": "move 4",
+      "entropy": 0.7084315419197083,
+      "p_true": 0.8092844486236572
+     },
+     {
+      "column": 47,
+      "pokemon": 5,
+      "field": "Stat Alignment",
+      "entropy": 2.0596923828125,
+      "p_true": 0.30285319685935974
+     },
+     {
+      "column": 54,
+      "pokemon": 1,
+      "field": "Stat Points HP",
+      "entropy": 1.6994035243988037,
+      "p_true": 0.4680835008621216
+     },
+     {
+      "column": 55,
+      "pokemon": 1,
+      "field": "Stat Points Atk",
+      "entropy": 1.1488593816757202,
+      "p_true": 0.6535804271697998
+     },
+     {
+      "column": 56,
+      "pokemon": 1,
+      "field": "Stat Points Def",
+      "entropy": 2.446877956390381,
+      "p_true": 0.08601797372102737
+     },
+     {
+      "column": 57,
+      "pokemon": 1,
+      "field": "Stat Points SpA",
+      "entropy": 0.7394720911979675,
+      "p_true": 0.7891013622283936
+     },
+     {
+      "column": 58,
+      "pokemon": 1,
+      "field": "Stat Points SpD",
+      "entropy": 1.6520471572875977,
+      "p_true": 0.13164570927619934
+     },
+     {
+      "column": 59,
+      "pokemon": 1,
+      "field": "Stat Points Spe",
+      "entropy": 2.053234815597534,
+      "p_true": 0.15512317419052124
+     },
+     {
+      "column": 60,
+      "pokemon": 2,
+      "field": "Stat Points HP",
+      "entropy": 1.7015700340270996,
+      "p_true": 0.1292378008365631
+     },
+     {
+      "column": 61,
+      "pokemon": 2,
+      "field": "Stat Points Atk",
+      "entropy": 1.1390368938446045,
+      "p_true": 0.15442267060279846
+     },
+     {
+      "column": 62,
+      "pokemon": 2,
+      "field": "Stat Points Def",
+      "entropy": 2.440275192260742,
+      "p_true": 0.13268108665943146
+     },
+     {
+      "column": 63,
+      "pokemon": 2,
+      "field": "Stat Points SpA",
+      "entropy": 0.7442158460617065,
+      "p_true": 0.7884355187416077
+     },
+     {
+      "column": 64,
+      "pokemon": 2,
+      "field": "Stat Points SpD",
+      "entropy": 1.6459577083587646,
+      "p_true": 0.46373289823532104
+     },
+     {
+      "column": 65,
+      "pokemon": 2,
+      "field": "Stat Points Spe",
+      "entropy": 2.052027463912964,
+      "p_true": 0.05194338411092758
+     },
+     {
+      "column": 66,
+      "pokemon": 3,
+      "field": "Stat Points HP",
+      "entropy": 1.7001301050186157,
+      "p_true": 0.18204866349697113
+     },
+     {
+      "column": 67,
+      "pokemon": 3,
+      "field": "Stat Points Atk",
+      "entropy": 1.1408233642578125,
+      "p_true": 0.658062219619751
+     },
+     {
+      "column": 68,
+      "pokemon": 3,
+      "field": "Stat Points Def",
+      "entropy": 2.4443554878234863,
+      "p_true": 0.10367335379123688
+     },
+     {
+      "column": 69,
+      "pokemon": 3,
+      "field": "Stat Points SpA",
+      "entropy": 0.7374454736709595,
+      "p_true": 0.16498123109340668
+     },
+     {
+      "column": 70,
+      "pokemon": 3,
+      "field": "Stat Points SpD",
+      "entropy": 1.6547132730484009,
+      "p_true": 0.4575430452823639
+     },
+     {
+      "column": 71,
+      "pokemon": 3,
+      "field": "Stat Points Spe",
+      "entropy": 2.0559606552124023,
+      "p_true": 0.19465459883213043
+     },
+     {
+      "column": 72,
+      "pokemon": 4,
+      "field": "Stat Points HP",
+      "entropy": 1.6995244026184082,
+      "p_true": 0.03199651464819908
+     },
+     {
+      "column": 73,
+      "pokemon": 4,
+      "field": "Stat Points Atk",
+      "entropy": 1.141341209411621,
+      "p_true": 0.6580160856246948
+     },
+     {
+      "column": 74,
+      "pokemon": 4,
+      "field": "Stat Points Def",
+      "entropy": 2.443107843399048,
+      "p_true": 0.021640023216605186
+     },
+     {
+      "column": 75,
+      "pokemon": 4,
+      "field": "Stat Points SpA",
+      "entropy": 0.7429904341697693,
+      "p_true": 0.7881642580032349
+     },
+     {
+      "column": 76,
+      "pokemon": 4,
+      "field": "Stat Points SpD",
+      "entropy": 1.6516032218933105,
+      "p_true": 0.46028652787208557
+     },
+     {
+      "column": 77,
+      "pokemon": 4,
+      "field": "Stat Points Spe",
+      "entropy": 2.0520272254943848,
+      "p_true": 0.13196516036987305
+     },
+     {
+      "column": 78,
+      "pokemon": 5,
+      "field": "Stat Points HP",
+      "entropy": 1.6958589553833008,
+      "p_true": 0.47085532546043396
+     },
+     {
+      "column": 79,
+      "pokemon": 5,
+      "field": "Stat Points Atk",
+      "entropy": 1.1414843797683716,
+      "p_true": 0.6582962870597839
+     },
+     {
+      "column": 80,
+      "pokemon": 5,
+      "field": "Stat Points Def",
+      "entropy": 2.4462268352508545,
+      "p_true": 0.17155009508132935
+     },
+     {
+      "column": 81,
+      "pokemon": 5,
+      "field": "Stat Points SpA",
+      "entropy": 0.7379049062728882,
+      "p_true": 0.7900459170341492
+     },
+     {
+      "column": 82,
+      "pokemon": 5,
+      "field": "Stat Points SpD",
+      "entropy": 1.6488981246948242,
+      "p_true": 0.1548444926738739
+     },
+     {
+      "column": 83,
+      "pokemon": 5,
+      "field": "Stat Points Spe",
+      "entropy": 2.053319215774536,
+      "p_true": 0.3201407492160797
+     }
+    ]
+   },
+   {
+    "lock": 1,
+    "cells": [
+     {
+      "column": 1,
+      "pokemon": 0,
+      "field": "ability",
+      "entropy": 0.1589040905237198,
+      "p_true": 0.9628114104270935
+     },
+     {
+      "column": 2,
+      "pokemon": 0,
+      "field": "item",
+      "entropy": 2.6775898933410645,
+      "p_true": 0.20255011320114136
+     },
+     {
+      "column": 3,
+      "pokemon": 0,
+      "field": "move 1",
+      "entropy": 0.3823925256729126,
+      "p_true": 0.9018702507019043
+     },
+     {
+      "column": 4,
+      "pokemon": 0,
+      "field": "move 2",
+      "entropy": 1.662652611732483,
+      "p_true": 0.4132321774959564
+     },
+     {
+      "column": 5,
+      "pokemon": 0,
+      "field": "move 3",
+      "entropy": 1.3772767782211304,
+      "p_true": 0.4730120599269867
+     },
+     {
+      "column": 6,
+      "pokemon": 0,
+      "field": "move 4",
+      "entropy": 1.476104736328125,
+      "p_true": 0.5707083344459534
+     },
+     {
+      "column": 7,
+      "pokemon": 0,
+      "field": "Stat Alignment",
+      "entropy": 2.09567928314209,
+      "p_true": 0.15831860899925232
+     },
+     {
+      "column": 17,
+      "pokemon": 2,
+      "field": "ability",
+      "entropy": -0.0,
+      "p_true": 1.0
+     },
+     {
+      "column": 18,
+      "pokemon": 2,
+      "field": "item",
+      "entropy": 2.6826720237731934,
+      "p_true": 0.051578495651483536
+     },
+     {
+      "column": 19,
+      "pokemon": 2,
+      "field": "move 1",
+      "entropy": 0.90301114320755,
+      "p_true": 0.7788004279136658
+     },
+     {
+      "column": 20,
+      "pokemon": 2,
+      "field": "move 2",
+      "entropy": 1.9349040985107422,
+      "p_true": 0.4264445900917053
+     },
+     {
+      "column": 21,
+      "pokemon": 2,
+      "field": "move 3",
+      "entropy": 1.176908016204834,
+      "p_true": 0.694158136844635
+     },
+     {
+      "column": 22,
+      "pokemon": 2,
+      "field": "move 4",
+      "entropy": 1.8479169607162476,
+      "p_true": 0.14133264124393463
+     },
+     {
+      "column": 23,
+      "pokemon": 2,
+      "field": "Stat Alignment",
+      "entropy": 2.096421003341675,
+      "p_true": 0.1587725430727005
+     },
+     {
+      "column": 25,
+      "pokemon": 3,
+      "field": "ability",
+      "entropy": 0.20736899971961975,
+      "p_true": 0.9469606280326843
+     },
+     {
+      "column": 26,
+      "pokemon": 3,
+      "field": "item",
+      "entropy": 2.6857686042785645,
+      "p_true": 0.1005437821149826
+     },
+     {
+      "column": 27,
+      "pokemon": 3,
+      "field": "move 1",
+      "entropy": 1.1263177394866943,
+      "p_true": 0.5880451202392578
+     },
+     {
+      "column": 28,
+      "pokemon": 3,
+      "field": "move 2",
+      "entropy": 1.4391491413116455,
+      "p_true": 0.41186150908470154
+     },
+     {
+      "column": 29,
+      "pokemon": 3,
+      "field": "move 3",
+      "entropy": 1.1880323886871338,
+      "p_true": 0.6944246888160706
+     },
+     {
+      "column": 30,
+      "pokemon": 3,
+      "field": "move 4",
+      "entropy": 1.5312986373901367,
+      "p_true": 0.6519153118133545
+     },
+     {
+      "column": 31,
+      "pokemon": 3,
+      "field": "Stat Alignment",
+      "entropy": 2.0955116748809814,
+      "p_true": 0.24062512814998627
+     },
+     {
+      "column": 33,
+      "pokemon": 4,
+      "field": "ability",
+      "entropy": 0.27364733815193176,
+      "p_true": 0.928474485874176
+     },
+     {
+      "column": 34,
+      "pokemon": 4,
+      "field": "item",
+      "entropy": 0.23953363299369812,
+      "p_true": 0.9661892652511597
+     },
+     {
+      "column": 35,
+      "pokemon": 4,
+      "field": "move 1",
+      "entropy": 0.8440731167793274,
+      "p_true": 0.7468465566635132
+     },
+     {
+      "column": 36,
+      "pokemon": 4,
+      "field": "move 2",
+      "entropy": 1.341803789138794,
+      "p_true": 0.23735736310482025
+     },
+     {
+      "column": 37,
+      "pokemon": 4,
+      "field": "move 3",
+      "entropy": 2.1821255683898926,
+      "p_true": 0.301667720079422
+     },
+     {
+      "column": 38,
+      "pokemon": 4,
+      "field": "move 4",
+      "entropy": 0.3587090075016022,
+      "p_true": 0.933992326259613
+     },
+     {
+      "column": 39,
+      "pokemon": 4,
+      "field": "Stat Alignment",
+      "entropy": 2.1019771099090576,
+      "p_true": 0.23928949236869812
+     },
+     {
+      "column": 41,
+      "pokemon": 5,
+      "field": "ability",
+      "entropy": 3.795721340793534e-06,
+      "p_true": 0.9999997615814209
+     },
+     {
+      "column": 42,
+      "pokemon": 5,
+      "field": "item",
+      "entropy": 2.687062978744507,
+      "p_true": 0.2034854292869568
+     },
+     {
+      "column": 43,
+      "pokemon": 5,
+      "field": "move 1",
+      "entropy": 1.4616451263427734,
+      "p_true": 0.35176724195480347
+     },
+     {
+      "column": 44,
+      "pokemon": 5,
+      "field": "move 2",
+      "entropy": 1.3900959491729736,
+      "p_true": 0.4094143211841583
+     },
+     {
+      "column": 45,
+      "pokemon": 5,
+      "field": "move 3",
+      "entropy": 0.9055108428001404,
+      "p_true": 0.6950905323028564
+     },
+     {
+      "column": 46,
+      "pokemon": 5,
+      "field": "move 4",
+      "entropy": 0.871727705001831,
+      "p_true": 0.754463791847229
+     },
+     {
+      "column": 47,
+      "pokemon": 5,
+      "field": "Stat Alignment",
+      "entropy": 2.100630521774292,
+      "p_true": 0.25267302989959717
+     },
+     {
+      "column": 48,
+      "pokemon": 0,
+      "field": "Stat Points HP",
+      "entropy": 1.7509610652923584,
+      "p_true": 0.10401514917612076
+     },
+     {
+      "column": 49,
+      "pokemon": 0,
+      "field": "Stat Points Atk",
+      "entropy": 1.418320894241333,
+      "p_true": 0.14607714116573334
+     },
+     {
+      "column": 50,
+      "pokemon": 0,
+      "field": "Stat Points Def",
+      "entropy": 2.3794727325439453,
+      "p_true": 0.263698548078537
+     },
+     {
+      "column": 51,
+      "pokemon": 0,
+      "field": "Stat Points SpA",
+      "entropy": 0.5789172053337097,
+      "p_true": 0.8387396931648254
+     },
+     {
+      "column": 52,
+      "pokemon": 0,
+      "field": "Stat Points SpD",
+      "entropy": 1.788944959640503,
+      "p_true": 0.18270175158977509
+     },
+     {
+      "column": 53,
+      "pokemon": 0,
+      "field": "Stat Points Spe",
+      "entropy": 1.906287670135498,
+      "p_true": 0.2777406573295593
+     },
+     {
+      "column": 60,
+      "pokemon": 2,
+      "field": "Stat Points HP",
+      "entropy": 1.756105661392212,
+      "p_true": 0.1305244117975235
+     },
+     {
+      "column": 61,
+      "pokemon": 2,
+      "field": "Stat Points Atk",
+      "entropy": 1.407270908355713,
+      "p_true": 0.1335410177707672
+     },
+     {
+      "column": 62,
+      "pokemon": 2,
+      "field": "Stat Points Def",
+      "entropy": 2.376283884048462,
+      "p_true": 0.12539838254451752
+     },
+     {
+      "column": 63,
+      "pokemon": 2,
+      "field": "Stat Points SpA",
+      "entropy": 0.5743739604949951,
+      "p_true": 0.8411450982093811
+     },
+     {
+      "column": 64,
+      "pokemon": 2,
+      "field": "Stat Points SpD",
+      "entropy": 1.7801368236541748,
+      "p_true": 0.4463542103767395
+     },
+     {
+      "column": 65,
+      "pokemon": 2,
+      "field": "Stat Points Spe",
+      "entropy": 1.910078525543213,
+      "p_true": 0.09890713542699814
+     },
+     {
+      "column": 66,
+      "pokemon": 3,
+      "field": "Stat Points HP",
+      "entropy": 1.7541155815124512,
+      "p_true": 0.16526733338832855
+     },
+     {
+      "column": 67,
+      "pokemon": 3,
+      "field": "Stat Points Atk",
+      "entropy": 1.4175426959991455,
+      "p_true": 0.559391975402832
+     },
+     {
+      "column": 68,
+      "pokemon": 3,
+      "field": "Stat Points Def",
+      "entropy": 2.378854513168335,
+      "p_true": 0.13433837890625
+     },
+     {
+      "column": 69,
+      "pokemon": 3,
+      "field": "Stat Points SpA",
+      "entropy": 0.5740817785263062,
+      "p_true": 0.1341429352760315
+     },
+     {
+      "column": 70,
+      "pokemon": 3,
+      "field": "Stat Points SpD",
+      "entropy": 1.7849169969558716,
+      "p_true": 0.443162739276886
+     },
+     {
+      "column": 71,
+      "pokemon": 3,
+      "field": "Stat Points Spe",
+      "entropy": 1.9101290702819824,
+      "p_true": 0.2228609025478363
+     },
+     {
+      "column": 72,
+      "pokemon": 4,
+      "field": "Stat Points HP",
+      "entropy": 1.754045009613037,
+      "p_true": 0.027261188253760338
+     },
+     {
+      "column": 73,
+      "pokemon": 4,
+      "field": "Stat Points Atk",
+      "entropy": 1.4125847816467285,
+      "p_true": 0.5624886155128479
+     },
+     {
+      "column": 74,
+      "pokemon": 4,
+      "field": "Stat Points Def",
+      "entropy": 2.3782360553741455,
+      "p_true": 0.07917913794517517
+     },
+     {
+      "column": 75,
+      "pokemon": 4,
+      "field": "Stat Points SpA",
+      "entropy": 0.5752905607223511,
+      "p_true": 0.8401200771331787
+     },
+     {
+      "column": 76,
+      "pokemon": 4,
+      "field": "Stat Points SpD",
+      "entropy": 1.7843053340911865,
+      "p_true": 0.444770872592926
+     },
+     {
+      "column": 77,
+      "pokemon": 4,
+      "field": "Stat Points Spe",
+      "entropy": 1.9094223976135254,
+      "p_true": 0.19334381818771362
+     },
+     {
+      "column": 78,
+      "pokemon": 5,
+      "field": "Stat Points HP",
+      "entropy": 1.7491247653961182,
+      "p_true": 0.47373053431510925
+     },
+     {
+      "column": 79,
+      "pokemon": 5,
+      "field": "Stat Points Atk",
+      "entropy": 1.4111340045928955,
+      "p_true": 0.5633885860443115
+     },
+     {
+      "column": 80,
+      "pokemon": 5,
+      "field": "Stat Points Def",
+      "entropy": 2.3842787742614746,
+      "p_true": 0.14574719965457916
+     },
+     {
+      "column": 81,
+      "pokemon": 5,
+      "field": "Stat Points SpA",
+      "entropy": 0.5732078552246094,
+      "p_true": 0.840766966342926
+     },
+     {
+      "column": 82,
+      "pokemon": 5,
+      "field": "Stat Points SpD",
+      "entropy": 1.7843717336654663,
+      "p_true": 0.1775713413953781
+     },
+     {
+      "column": 83,
+      "pokemon": 5,
+      "field": "Stat Points Spe",
+      "entropy": 1.9105327129364014,
+      "p_true": 0.2766815423965454
+     }
+    ]
+   },
+   {
+    "lock": 2,
+    "cells": [
+     {
+      "column": 1,
+      "pokemon": 0,
+      "field": "ability",
+      "entropy": 0.07115313410758972,
+      "p_true": 0.9865869879722595
+     },
+     {
+      "column": 2,
+      "pokemon": 0,
+      "field": "item",
+      "entropy": 2.32737135887146,
+      "p_true": 0.19324438273906708
+     },
+     {
+      "column": 3,
+      "pokemon": 0,
+      "field": "move 1",
+      "entropy": 0.7343078851699829,
+      "p_true": 0.7111546397209167
+     },
+     {
+      "column": 4,
+      "pokemon": 0,
+      "field": "move 2",
+      "entropy": 1.6431347131729126,
+      "p_true": 0.07051319628953934
+     },
+     {
+      "column": 5,
+      "pokemon": 0,
+      "field": "move 3",
+      "entropy": 1.510575771331787,
+      "p_true": 0.10049115121364594
+     },
+     {
+      "column": 6,
+      "pokemon": 0,
+      "field": "move 4",
+      "entropy": 1.7634031772613525,
+      "p_true": 0.0708659291267395
+     },
+     {
+      "column": 7,
+      "pokemon": 0,
+      "field": "Stat Alignment",
+      "entropy": 1.8959003686904907,
+      "p_true": 0.17850466072559357
+     },
+     {
+      "column": 9,
+      "pokemon": 1,
+      "field": "ability",
+      "entropy": 0.05665469914674759,
+      "p_true": 0.9898579716682434
+     },
+     {
+      "column": 10,
+      "pokemon": 1,
+      "field": "item",
+      "entropy": 2.3379886150360107,
+      "p_true": 0.23067890107631683
+     },
+     {
+      "column": 11,
+      "pokemon": 1,
+      "field": "move 1",
+      "entropy": 0.4362703561782837,
+      "p_true": 0.8755563497543335
+     },
+     {
+      "column": 12,
+      "pokemon": 1,
+      "field": "move 2",
+      "entropy": 0.9115474820137024,
+      "p_true": 0.7339362502098083
+     },
+     {
+      "column": 13,
+      "pokemon": 1,
+      "field": "move 3",
+      "entropy": 0.6119446158409119,
+      "p_true": 0.860895037651062
+     },
+     {
+      "column": 14,
+      "pokemon": 1,
+      "field": "move 4",
+      "entropy": 0.5265473127365112,
+      "p_true": 0.8916375637054443
+     },
+     {
+      "column": 15,
+      "pokemon": 1,
+      "field": "Stat Alignment",
+      "entropy": 1.9006516933441162,
+      "p_true": 0.07150999456644058
+     },
+     {
+      "column": 25,
+      "pokemon": 3,
+      "field": "ability",
+      "entropy": 0.08872950077056885,
+      "p_true": 0.9823542833328247
+     },
+     {
+      "column": 26,
+      "pokemon": 3,
+      "field": "item",
+      "entropy": 2.3406994342803955,
+      "p_true": 0.14305223524570465
+     },
+     {
+      "column": 27,
+      "pokemon": 3,
+      "field": "move 1",
+      "entropy": 0.930976390838623,
+      "p_true": 0.6964554190635681
+     },
+     {
+      "column": 28,
+      "pokemon": 3,
+      "field": "move 2",
+      "entropy": 1.1666843891143799,
+      "p_true": 0.047757770866155624
+     },
+     {
+      "column": 29,
+      "pokemon": 3,
+      "field": "move 3",
+      "entropy": 1.8629668951034546,
+      "p_true": 0.28210192918777466
+     },
+     {
+      "column": 30,
+      "pokemon": 3,
+      "field": "move 4",
+      "entropy": 1.5138218402862549,
+      "p_true": 0.39071255922317505
+     },
+     {
+      "column": 31,
+      "pokemon": 3,
+      "field": "Stat Alignment",
+      "entropy": 1.899664044380188,
+      "p_true": 0.1486656367778778
+     },
+     {
+      "column": 33,
+      "pokemon": 4,
+      "field": "ability",
+      "entropy": 0.21295836567878723,
+      "p_true": 0.9472181797027588
+     },
+     {
+      "column": 34,
+      "pokemon": 4,
+      "field": "item",
+      "entropy": 0.3489925265312195,
+      "p_true": 0.9441110491752625
+     },
+     {
+      "column": 35,
+      "pokemon": 4,
+      "field": "move 1",
+      "entropy": 0.5942955613136292,
+      "p_true": 0.8396891355514526
+     },
+     {
+      "column": 36,
+      "pokemon": 4,
+      "field": "move 2",
+      "entropy": 1.5455965995788574,
+      "p_true": 0.23299367725849152
+     },
+     {
+      "column": 37,
+      "pokemon": 4,
+      "field": "move 3",
+      "entropy": 1.7055766582489014,
+      "p_true": 0.10955331474542618
+     },
+     {
+      "column": 38,
+      "pokemon": 4,
+      "field": "move 4",
+      "entropy": 1.1677653789520264,
+      "p_true": 0.610099196434021
+     },
+     {
+      "column": 39,
+      "pokemon": 4,
+      "field": "Stat Alignment",
+      "entropy": 1.9074939489364624,
+      "p_true": 0.15001775324344635
+     },
+     {
+      "column": 41,
+      "pokemon": 5,
+      "field": "ability",
+      "entropy": 5.553218215936795e-06,
+      "p_true": 0.9999996423721313
+     },
+     {
+      "column": 42,
+      "pokemon": 5,
+      "field": "item",
+      "entropy": 2.3437061309814453,
+      "p_true": 0.12203727662563324
+     },
+     {
+      "column": 43,
+      "pokemon": 5,
+      "field": "move 1",
+      "entropy": 0.7716420888900757,
+      "p_true": 0.07865295559167862
+     },
+     {
+      "column": 44,
+      "pokemon": 5,
+      "field": "move 2",
+      "entropy": 0.8378829956054688,
+      "p_true": 0.043528567999601364
+     },
+     {
+      "column": 45,
+      "pokemon": 5,
+      "field": "move 3",
+      "entropy": 0.6810236573219299,
+      "p_true": 0.07205361872911453
+     },
+     {
+      "column": 46,
+      "pokemon": 5,
+      "field": "move 4",
+      "entropy": 1.321042537689209,
+      "p_true": 0.05808265134692192
+     },
+     {
+      "column": 47,
+      "pokemon": 5,
+      "field": "Stat Alignment",
+      "entropy": 1.9025729894638062,
+      "p_true": 0.07143132388591766
+     },
+     {
+      "column": 48,
+      "pokemon": 0,
+      "field": "Stat Points HP",
+      "entropy": 2.014113187789917,
+      "p_true": 0.08446594327688217
+     },
+     {
+      "column": 49,
+      "pokemon": 0,
+      "field": "Stat Points Atk",
+      "entropy": 0.7965636253356934,
+      "p_true": 0.05738183110952377
+     },
+     {
+      "column": 50,
+      "pokemon": 0,
+      "field": "Stat Points Def",
+      "entropy": 3.0136451721191406,
+      "p_true": 0.0860837921500206
+     },
+     {
+      "column": 51,
+      "pokemon": 0,
+      "field": "Stat Points SpA",
+      "entropy": 1.2112220525741577,
+      "p_true": 0.7076293230056763
+     },
+     {
+      "column": 52,
+      "pokemon": 0,
+      "field": "Stat Points SpD",
+      "entropy": 2.1361870765686035,
+      "p_true": 0.09364695101976395
+     },
+     {
+      "column": 53,
+      "pokemon": 0,
+      "field": "Stat Points Spe",
+      "entropy": 2.164968729019165,
+      "p_true": 0.2945941686630249
+     },
+     {
+      "column": 54,
+      "pokemon": 1,
+      "field": "Stat Points HP",
+      "entropy": 2.0158026218414307,
+      "p_true": 0.41028892993927
+     },
+     {
+      "column": 55,
+      "pokemon": 1,
+      "field": "Stat Points Atk",
+      "entropy": 0.8038784861564636,
+      "p_true": 0.82416170835495
+     },
+     {
+      "column": 56,
+      "pokemon": 1,
+      "field": "Stat Points Def",
+      "entropy": 3.008817195892334,
+      "p_true": 0.05902296304702759
+     },
+     {
+      "column": 57,
+      "pokemon": 1,
+      "field": "Stat Points SpA",
+      "entropy": 1.2068884372711182,
+      "p_true": 0.7090755701065063
+     },
+     {
+      "column": 58,
+      "pokemon": 1,
+      "field": "Stat Points SpD",
+      "entropy": 2.135408401489258,
+      "p_true": 0.0649915561079979
+     },
+     {
+      "column": 59,
+      "pokemon": 1,
+      "field": "Stat Points Spe",
+      "entropy": 2.1663432121276855,
+      "p_true": 0.159571573138237
+     },
+     {
+      "column": 66,
+      "pokemon": 3,
+      "field": "Stat Points HP",
+      "entropy": 2.0165610313415527,
+      "p_true": 0.05854368582367897
+     },
+     {
+      "column": 67,
+      "pokemon": 3,
+      "field": "Stat Points Atk",
+      "entropy": 0.8028525114059448,
+      "p_true": 0.8241910934448242
+     },
+     {
+      "column": 68,
+      "pokemon": 3,
+      "field": "Stat Points Def",
+      "entropy": 3.011415958404541,
+      "p_true": 0.1513788104057312
+     },
+     {
+      "column": 69,
+      "pokemon": 3,
+      "field": "Stat Points SpA",
+      "entropy": 1.2079036235809326,
+      "p_true": 0.1502905637025833
+     },
+     {
+      "column": 70,
+      "pokemon": 3,
+      "field": "Stat Points SpD",
+      "entropy": 2.1340036392211914,
+      "p_true": 0.4300917685031891
+     },
+     {
+      "column": 71,
+      "pokemon": 3,
+      "field": "Stat Points Spe",
+      "entropy": 2.167525291442871,
+      "p_true": 0.19117212295532227
+     },
+     {
+      "column": 72,
+      "pokemon": 4,
+      "field": "Stat Points HP",
+      "entropy": 2.0132040977478027,
+      "p_true": 0.09380233287811279
+     },
+     {
+      "column": 73,
+      "pokemon": 4,
+      "field": "Stat Points Atk",
+      "entropy": 0.8038937449455261,
+      "p_true": 0.8240622878074646
+     },
+     {
+      "column": 74,
+      "pokemon": 4,
+      "field": "Stat Points Def",
+      "entropy": 3.010103225708008,
+      "p_true": 0.032149575650691986
+     },
+     {
+      "column": 75,
+      "pokemon": 4,
+      "field": "Stat Points SpA",
+      "entropy": 1.2084932327270508,
+      "p_true": 0.7083613872528076
+     },
+     {
+      "column": 76,
+      "pokemon": 4,
+      "field": "Stat Points SpD",
+      "entropy": 2.135185480117798,
+      "p_true": 0.42990612983703613
+     },
+     {
+      "column": 77,
+      "pokemon": 4,
+      "field": "Stat Points Spe",
+      "entropy": 2.1669564247131348,
+      "p_true": 0.045049507170915604
+     },
+     {
+      "column": 78,
+      "pokemon": 5,
+      "field": "Stat Points HP",
+      "entropy": 2.0136377811431885,
+      "p_true": 0.4149778187274933
+     },
+     {
+      "column": 79,
+      "pokemon": 5,
+      "field": "Stat Points Atk",
+      "entropy": 0.7987793684005737,
+      "p_true": 0.8255097270011902
+     },
+     {
+      "column": 80,
+      "pokemon": 5,
+      "field": "Stat Points Def",
+      "entropy": 3.0119659900665283,
+      "p_true": 0.10815536975860596
+     },
+     {
+      "column": 81,
+      "pokemon": 5,
+      "field": "Stat Points SpA",
+      "entropy": 1.2091890573501587,
+      "p_true": 0.7083336710929871
+     },
+     {
+      "column": 82,
+      "pokemon": 5,
+      "field": "Stat Points SpD",
+      "entropy": 2.1320579051971436,
+      "p_true": 0.13578423857688904
+     },
+     {
+      "column": 83,
+      "pokemon": 5,
+      "field": "Stat Points Spe",
+      "entropy": 2.169644832611084,
+      "p_true": 0.2941778004169464
+     }
+    ]
+   },
+   {
+    "lock": 3,
+    "cells": [
+     {
+      "column": 1,
+      "pokemon": 0,
+      "field": "ability",
+      "entropy": 0.09970952570438385,
+      "p_true": 0.9795696139335632
+     },
+     {
+      "column": 2,
+      "pokemon": 0,
+      "field": "item",
+      "entropy": 2.6105217933654785,
+      "p_true": 0.15253229439258575
+     },
+     {
+      "column": 3,
+      "pokemon": 0,
+      "field": "move 1",
+      "entropy": 0.5050467252731323,
+      "p_true": 0.8691469430923462
+     },
+     {
+      "column": 4,
+      "pokemon": 0,
+      "field": "move 2",
+      "entropy": 1.6280159950256348,
+      "p_true": 0.4006614089012146
+     },
+     {
+      "column": 5,
+      "pokemon": 0,
+      "field": "move 3",
+      "entropy": 1.270570158958435,
+      "p_true": 0.4562867283821106
+     },
+     {
+      "column": 6,
+      "pokemon": 0,
+      "field": "move 4",
+      "entropy": 0.8182172179222107,
+      "p_true": 0.8139525651931763
+     },
+     {
+      "column": 7,
+      "pokemon": 0,
+      "field": "Stat Alignment",
+      "entropy": 2.122077703475952,
+      "p_true": 0.14024166762828827
+     },
+     {
+      "column": 9,
+      "pokemon": 1,
+      "field": "ability",
+      "entropy": 0.12146487087011337,
+      "p_true": 0.9737474918365479
+     },
+     {
+      "column": 10,
+      "pokemon": 1,
+      "field": "item",
+      "entropy": 2.6176817417144775,
+      "p_true": 0.2309015989303589
+     },
+     {
+      "column": 11,
+      "pokemon": 1,
+      "field": "move 1",
+      "entropy": 0.34834492206573486,
+      "p_true": 0.9127942323684692
+     },
+     {
+      "column": 12,
+      "pokemon": 1,
+      "field": "move 2",
+      "entropy": 1.299678921699524,
+      "p_true": 0.659040093421936
+     },
+     {
+      "column": 13,
+      "pokemon": 1,
+      "field": "move 3",
+      "entropy": 0.8300191760063171,
+      "p_true": 0.814857542514801
+     },
+     {
+      "column": 14,
+      "pokemon": 1,
+      "field": "move 4",
+      "entropy": 0.4201727509498596,
+      "p_true": 0.9141451120376587
+     },
+     {
+      "column": 15,
+      "pokemon": 1,
+      "field": "Stat Alignment",
+      "entropy": 2.121626615524292,
+      "p_true": 0.30496254563331604
+     },
+     {
+      "column": 17,
+      "pokemon": 2,
+      "field": "ability",
+      "entropy": -0.0,
+      "p_true": 1.0
+     },
+     {
+      "column": 18,
+      "pokemon": 2,
+      "field": "item",
+      "entropy": 2.618232488632202,
+      "p_true": 0.06568410247564316
+     },
+     {
+      "column": 19,
+      "pokemon": 2,
+      "field": "move 1",
+      "entropy": 1.1500803232192993,
+      "p_true": 0.6650310754776001
+     },
+     {
+      "column": 20,
+      "pokemon": 2,
+      "field": "move 2",
+      "entropy": 2.024752616882324,
+      "p_true": 0.38648784160614014
+     },
+     {
+      "column": 21,
+      "pokemon": 2,
+      "field": "move 3",
+      "entropy": 1.1516236066818237,
+      "p_true": 0.6941441297531128
+     },
+     {
+      "column": 22,
+      "pokemon": 2,
+      "field": "move 4",
+      "entropy": 1.8373273611068726,
+      "p_true": 0.15608949959278107
+     },
+     {
+      "column": 23,
+      "pokemon": 2,
+      "field": "Stat Alignment",
+      "entropy": 2.121249198913574,
+      "p_true": 0.14134597778320312
+     },
+     {
+      "column": 33,
+      "pokemon": 4,
+      "field": "ability",
+      "entropy": 0.20613013207912445,
+      "p_true": 0.9500885009765625
+     },
+     {
+      "column": 34,
+      "pokemon": 4,
+      "field": "item",
+      "entropy": 0.36602920293807983,
+      "p_true": 0.9437348246574402
+     },
+     {
+      "column": 35,
+      "pokemon": 4,
+      "field": "move 1",
+      "entropy": 0.8716968894004822,
+      "p_true": 0.7663353085517883
+     },
+     {
+      "column": 36,
+      "pokemon": 4,
+      "field": "move 2",
+      "entropy": 1.353799819946289,
+      "p_true": 0.2875312864780426
+     },
+     {
+      "column": 37,
+      "pokemon": 4,
+      "field": "move 3",
+      "entropy": 2.238666534423828,
+      "p_true": 0.32192113995552063
+     },
+     {
+      "column": 38,
+      "pokemon": 4,
+      "field": "move 4",
+      "entropy": 0.3996538519859314,
+      "p_true": 0.9205989241600037
+     },
+     {
+      "column": 39,
+      "pokemon": 4,
+      "field": "Stat Alignment",
+      "entropy": 2.124810218811035,
+      "p_true": 0.17295101284980774
+     },
+     {
+      "column": 41,
+      "pokemon": 5,
+      "field": "ability",
+      "entropy": 6.925984962435905e-06,
+      "p_true": 0.9999995231628418
+     },
+     {
+      "column": 42,
+      "pokemon": 5,
+      "field": "item",
+      "entropy": 2.620379686355591,
+      "p_true": 0.1667761653661728
+     },
+     {
+      "column": 43,
+      "pokemon": 5,
+      "field": "move 1",
+      "entropy": 1.2712205648422241,
+      "p_true": 0.5694222450256348
+     },
+     {
+      "column": 44,
+      "pokemon": 5,
+      "field": "move 2",
+      "entropy": 1.4803091287612915,
+      "p_true": 0.4103412926197052
+     },
+     {
+      "column": 45,
+      "pokemon": 5,
+      "field": "move 3",
+      "entropy": 0.7093486189842224,
+      "p_true": 0.7919144630432129
+     },
+     {
+      "column": 46,
+      "pokemon": 5,
+      "field": "move 4",
+      "entropy": 0.7870820164680481,
+      "p_true": 0.795422375202179
+     },
+     {
+      "column": 47,
+      "pokemon": 5,
+      "field": "Stat Alignment",
+      "entropy": 2.124145984649658,
+      "p_true": 0.3022056818008423
+     },
+     {
+      "column": 48,
+      "pokemon": 0,
+      "field": "Stat Points HP",
+      "entropy": 1.8848267793655396,
+      "p_true": 0.13372693955898285
+     },
+     {
+      "column": 49,
+      "pokemon": 0,
+      "field": "Stat Points Atk",
+      "entropy": 1.1769858598709106,
+      "p_true": 0.08769653737545013
+     },
+     {
+      "column": 50,
+      "pokemon": 0,
+      "field": "Stat Points Def",
+      "entropy": 2.5316083431243896,
+      "p_true": 0.1998549997806549
+     },
+     {
+      "column": 51,
+      "pokemon": 0,
+      "field": "Stat Points SpA",
+      "entropy": 0.770207941532135,
+      "p_true": 0.7995163798332214
+     },
+     {
+      "column": 52,
+      "pokemon": 0,
+      "field": "Stat Points SpD",
+      "entropy": 1.9186440706253052,
+      "p_true": 0.19756029546260834
+     },
+     {
+      "column": 53,
+      "pokemon": 0,
+      "field": "Stat Points Spe",
+      "entropy": 1.9165496826171875,
+      "p_true": 0.34306347370147705
+     },
+     {
+      "column": 54,
+      "pokemon": 1,
+      "field": "Stat Points HP",
+      "entropy": 1.8868218660354614,
+      "p_true": 0.40212711691856384
+     },
+     {
+      "column": 55,
+      "pokemon": 1,
+      "field": "Stat Points Atk",
+      "entropy": 1.1793917417526245,
+      "p_true": 0.681130051612854
+     },
+     {
+      "column": 56,
+      "pokemon": 1,
+      "field": "Stat Points Def",
+      "entropy": 2.529116630554199,
+      "p_true": 0.07449345290660858
+     },
+     {
+      "column": 57,
+      "pokemon": 1,
+      "field": "Stat Points SpA",
+      "entropy": 0.7653061747550964,
+      "p_true": 0.8009618520736694
+     },
+     {
+      "column": 58,
+      "pokemon": 1,
+      "field": "Stat Points SpD",
+      "entropy": 1.9161474704742432,
+      "p_true": 0.06687755882740021
+     },
+     {
+      "column": 59,
+      "pokemon": 1,
+      "field": "Stat Points Spe",
+      "entropy": 1.9175066947937012,
+      "p_true": 0.1842450350522995
+     },
+     {
+      "column": 60,
+      "pokemon": 2,
+      "field": "Stat Points HP",
+      "entropy": 1.8876945972442627,
+      "p_true": 0.06522936373949051
+     },
+     {
+      "column": 61,
+      "pokemon": 2,
+      "field": "Stat Points Atk",
+      "entropy": 1.1703271865844727,
+      "p_true": 0.08227016776800156
+     },
+     {
+      "column": 62,
+      "pokemon": 2,
+      "field": "Stat Points Def",
+      "entropy": 2.527534246444702,
+      "p_true": 0.10266949236392975
+     },
+     {
+      "column": 63,
+      "pokemon": 2,
+      "field": "Stat Points SpA",
+      "entropy": 0.7669664025306702,
+      "p_true": 0.8011762499809265
+     },
+     {
+      "column": 64,
+      "pokemon": 2,
+      "field": "Stat Points SpD",
+      "entropy": 1.9107263088226318,
+      "p_true": 0.39025047421455383
+     },
+     {
+      "column": 65,
+      "pokemon": 2,
+      "field": "Stat Points Spe",
+      "entropy": 1.9185426235198975,
+      "p_true": 0.049008894711732864
+     },
+     {
+      "column": 72,
+      "pokemon": 4,
+      "field": "Stat Points HP",
+      "entropy": 1.8838434219360352,
+      "p_true": 0.034606728702783585
+     },
+     {
+      "column": 73,
+      "pokemon": 4,
+      "field": "Stat Points Atk",
+      "entropy": 1.173954963684082,
+      "p_true": 0.683122992515564
+     },
+     {
+      "column": 74,
+      "pokemon": 4,
+      "field": "Stat Points Def",
+      "entropy": 2.5271172523498535,
+      "p_true": 0.018069349229335785
+     },
+     {
+      "column": 75,
+      "pokemon": 4,
+      "field": "Stat Points SpA",
+      "entropy": 0.7675546407699585,
+      "p_true": 0.8001892566680908
+     },
+     {
+      "column": 76,
+      "pokemon": 4,
+      "field": "Stat Points SpD",
+      "entropy": 1.9151313304901123,
+      "p_true": 0.388811856508255
+     },
+     {
+      "column": 77,
+      "pokemon": 4,
+      "field": "Stat Points Spe",
+      "entropy": 1.918375849723816,
+      "p_true": 0.06004459410905838
+     },
+     {
+      "column": 78,
+      "pokemon": 5,
+      "field": "Stat Points HP",
+      "entropy": 1.881090521812439,
+      "p_true": 0.4039824604988098
+     },
+     {
+      "column": 79,
+      "pokemon": 5,
+      "field": "Stat Points Atk",
+      "entropy": 1.1703382730484009,
+      "p_true": 0.6844543218612671
+     },
+     {
+      "column": 80,
+      "pokemon": 5,
+      "field": "Stat Points Def",
+      "entropy": 2.532313585281372,
+      "p_true": 0.15109001100063324
+     },
+     {
+      "column": 81,
+      "pokemon": 5,
+      "field": "Stat Points SpA",
+      "entropy": 0.7654015421867371,
+      "p_true": 0.8014021515846252
+     },
+     {
+      "column": 82,
+      "pokemon": 5,
+      "field": "Stat Points SpD",
+      "entropy": 1.9150311946868896,
+      "p_true": 0.17021258175373077
+     },
+     {
+      "column": 83,
+      "pokemon": 5,
+      "field": "Stat Points Spe",
+      "entropy": 1.9207379817962646,
+      "p_true": 0.3414705693721771
+     }
+    ]
+   },
+   {
+    "lock": 4,
+    "cells": [
+     {
+      "column": 1,
+      "pokemon": 0,
+      "field": "ability",
+      "entropy": 0.13782794773578644,
+      "p_true": 0.9691084027290344
+     },
+     {
+      "column": 2,
+      "pokemon": 0,
+      "field": "item",
+      "entropy": 2.6371548175811768,
+      "p_true": 0.1424294412136078
+     },
+     {
+      "column": 3,
+      "pokemon": 0,
+      "field": "move 1",
+      "entropy": 0.48766499757766724,
+      "p_true": 0.8709363341331482
+     },
+     {
+      "column": 4,
+      "pokemon": 0,
+      "field": "move 2",
+      "entropy": 1.660050630569458,
+      "p_true": 0.265417218208313
+     },
+     {
+      "column": 5,
+      "pokemon": 0,
+      "field": "move 3",
+      "entropy": 1.2524887323379517,
+      "p_true": 0.3219612240791321
+     },
+     {
+      "column": 6,
+      "pokemon": 0,
+      "field": "move 4",
+      "entropy": 1.3880916833877563,
+      "p_true": 0.5780879855155945
+     },
+     {
+      "column": 7,
+      "pokemon": 0,
+      "field": "Stat Alignment",
+      "entropy": 2.1464710235595703,
+      "p_true": 0.1583475023508072
+     },
+     {
+      "column": 9,
+      "pokemon": 1,
+      "field": "ability",
+      "entropy": 0.14742811024188995,
+      "p_true": 0.9662853479385376
+     },
+     {
+      "column": 10,
+      "pokemon": 1,
+      "field": "item",
+      "entropy": 2.6454007625579834,
+      "p_true": 0.21469746530056
+     },
+     {
+      "column": 11,
+      "pokemon": 1,
+      "field": "move 1",
+      "entropy": 0.32730913162231445,
+      "p_true": 0.9207034111022949
+     },
+     {
+      "column": 12,
+      "pokemon": 1,
+      "field": "move 2",
+      "entropy": 1.368956446647644,
+      "p_true": 0.631103515625
+     },
+     {
+      "column": 13,
+      "pokemon": 1,
+      "field": "move 3",
+      "entropy": 0.5846284031867981,
+      "p_true": 0.8805952668190002
+     },
+     {
+      "column": 14,
+      "pokemon": 1,
+      "field": "move 4",
+      "entropy": 0.4641594886779785,
+      "p_true": 0.9022153615951538
+     },
+     {
+      "column": 15,
+      "pokemon": 1,
+      "field": "Stat Alignment",
+      "entropy": 2.1465775966644287,
+      "p_true": 0.30274662375450134
+     },
+     {
+      "column": 17,
+      "pokemon": 2,
+      "field": "ability",
+      "entropy": -0.0,
+      "p_true": 1.0
+     },
+     {
+      "column": 18,
+      "pokemon": 2,
+      "field": "item",
+      "entropy": 2.6457626819610596,
+      "p_true": 0.048344459384679794
+     },
+     {
+      "column": 19,
+      "pokemon": 2,
+      "field": "move 1",
+      "entropy": 1.0549516677856445,
+      "p_true": 0.7065693736076355
+     },
+     {
+      "column": 20,
+      "pokemon": 2,
+      "field": "move 2",
+      "entropy": 1.923276662826538,
+      "p_true": 0.40903010964393616
+     },
+     {
+      "column": 21,
+      "pokemon": 2,
+      "field": "move 3",
+      "entropy": 1.2407774925231934,
+      "p_true": 0.6347953677177429
+     },
+     {
+      "column": 22,
+      "pokemon": 2,
+      "field": "move 4",
+      "entropy": 1.7043240070343018,
+      "p_true": 0.1534113585948944
+     },
+     {
+      "column": 23,
+      "pokemon": 2,
+      "field": "Stat Alignment",
+      "entropy": 2.1482367515563965,
+      "p_true": 0.15941815078258514
+     },
+     {
+      "column": 25,
+      "pokemon": 3,
+      "field": "ability",
+      "entropy": 0.13270306587219238,
+      "p_true": 0.9705848693847656
+     },
+     {
+      "column": 26,
+      "pokemon": 3,
+      "field": "item",
+      "entropy": 2.6441123485565186,
+      "p_true": 0.08190897107124329
+     },
+     {
+      "column": 27,
+      "pokemon": 3,
+      "field": "move 1",
+      "entropy": 1.3115743398666382,
+      "p_true": 0.6032392978668213
+     },
+     {
+      "column": 28,
+      "pokemon": 3,
+      "field": "move 2",
+      "entropy": 1.4130258560180664,
+      "p_true": 0.30493712425231934
+     },
+     {
+      "column": 29,
+      "pokemon": 3,
+      "field": "move 3",
+      "entropy": 1.1043858528137207,
+      "p_true": 0.7195499539375305
+     },
+     {
+      "column": 30,
+      "pokemon": 3,
+      "field": "move 4",
+      "entropy": 1.3622992038726807,
+      "p_true": 0.6995312571525574
+     },
+     {
+      "column": 31,
+      "pokemon": 3,
+      "field": "Stat Alignment",
+      "entropy": 2.1463403701782227,
+      "p_true": 0.147959902882576
+     },
+     {
+      "column": 41,
+      "pokemon": 5,
+      "field": "ability",
+      "entropy": 5.872978363186121e-06,
+      "p_true": 0.9999996423721313
+     },
+     {
+      "column": 42,
+      "pokemon": 5,
+      "field": "item",
+      "entropy": 2.649332284927368,
+      "p_true": 0.16194473206996918
+     },
+     {
+      "column": 43,
+      "pokemon": 5,
+      "field": "move 1",
+      "entropy": 1.3251566886901855,
+      "p_true": 0.4279375374317169
+     },
+     {
+      "column": 44,
+      "pokemon": 5,
+      "field": "move 2",
+      "entropy": 1.39755117893219,
+      "p_true": 0.41620323061943054
+     },
+     {
+      "column": 45,
+      "pokemon": 5,
+      "field": "move 3",
+      "entropy": 0.9852399230003357,
+      "p_true": 0.6315081119537354
+     },
+     {
+      "column": 46,
+      "pokemon": 5,
+      "field": "move 4",
+      "entropy": 0.8876025676727295,
+      "p_true": 0.7541469931602478
+     },
+     {
+      "column": 47,
+      "pokemon": 5,
+      "field": "Stat Alignment",
+      "entropy": 2.1492841243743896,
+      "p_true": 0.29976409673690796
+     },
+     {
+      "column": 48,
+      "pokemon": 0,
+      "field": "Stat Points HP",
+      "entropy": 1.8309235572814941,
+      "p_true": 0.13833282887935638
+     },
+     {
+      "column": 49,
+      "pokemon": 0,
+      "field": "Stat Points Atk",
+      "entropy": 1.2108908891677856,
+      "p_true": 0.08408383280038834
+     },
+     {
+      "column": 50,
+      "pokemon": 0,
+      "field": "Stat Points Def",
+      "entropy": 2.7236878871917725,
+      "p_true": 0.11983451247215271
+     },
+     {
+      "column": 51,
+      "pokemon": 0,
+      "field": "Stat Points SpA",
+      "entropy": 0.8111959099769592,
+      "p_true": 0.836134672164917
+     },
+     {
+      "column": 52,
+      "pokemon": 0,
+      "field": "Stat Points SpD",
+      "entropy": 1.977065086364746,
+      "p_true": 0.14256992936134338
+     },
+     {
+      "column": 53,
+      "pokemon": 0,
+      "field": "Stat Points Spe",
+      "entropy": 2.052351951599121,
+      "p_true": 0.2913367748260498
+     },
+     {
+      "column": 54,
+      "pokemon": 1,
+      "field": "Stat Points HP",
+      "entropy": 1.8305574655532837,
+      "p_true": 0.4950619041919708
+     },
+     {
+      "column": 55,
+      "pokemon": 1,
+      "field": "Stat Points Atk",
+      "entropy": 1.212772250175476,
+      "p_true": 0.6883499026298523
+     },
+     {
+      "column": 56,
+      "pokemon": 1,
+      "field": "Stat Points Def",
+      "entropy": 2.727778911590576,
+      "p_true": 0.15641529858112335
+     },
+     {
+      "column": 57,
+      "pokemon": 1,
+      "field": "Stat Points SpA",
+      "entropy": 0.8046002984046936,
+      "p_true": 0.8376142382621765
+     },
+     {
+      "column": 58,
+      "pokemon": 1,
+      "field": "Stat Points SpD",
+      "entropy": 1.976789951324463,
+      "p_true": 0.06366724520921707
+     },
+     {
+      "column": 59,
+      "pokemon": 1,
+      "field": "Stat Points Spe",
+      "entropy": 2.0567710399627686,
+      "p_true": 0.22724732756614685
+     },
+     {
+      "column": 60,
+      "pokemon": 2,
+      "field": "Stat Points HP",
+      "entropy": 1.830704689025879,
+      "p_true": 0.08217303454875946
+     },
+     {
+      "column": 61,
+      "pokemon": 2,
+      "field": "Stat Points Atk",
+      "entropy": 1.1998193264007568,
+      "p_true": 0.09567610174417496
+     },
+     {
+      "column": 62,
+      "pokemon": 2,
+      "field": "Stat Points Def",
+      "entropy": 2.7267818450927734,
+      "p_true": 0.07767635583877563
+     },
+     {
+      "column": 63,
+      "pokemon": 2,
+      "field": "Stat Points SpA",
+      "entropy": 0.8087694644927979,
+      "p_true": 0.8369884490966797
+     },
+     {
+      "column": 64,
+      "pokemon": 2,
+      "field": "Stat Points SpD",
+      "entropy": 1.9727476835250854,
+      "p_true": 0.42908909916877747
+     },
+     {
+      "column": 65,
+      "pokemon": 2,
+      "field": "Stat Points Spe",
+      "entropy": 2.055816650390625,
+      "p_true": 0.06673367321491241
+     },
+     {
+      "column": 66,
+      "pokemon": 3,
+      "field": "Stat Points HP",
+      "entropy": 1.8337955474853516,
+      "p_true": 0.07583735138177872
+     },
+     {
+      "column": 67,
+      "pokemon": 3,
+      "field": "Stat Points Atk",
+      "entropy": 1.2098807096481323,
+      "p_true": 0.6892538666725159
+     },
+     {
+      "column": 68,
+      "pokemon": 3,
+      "field": "Stat Points Def",
+      "entropy": 2.720582962036133,
+      "p_true": 0.09481554478406906
+     },
+     {
+      "column": 69,
+      "pokemon": 3,
+      "field": "Stat Points SpA",
+      "entropy": 0.8070744276046753,
+      "p_true": 0.06332895159721375
+     },
+     {
+      "column": 70,
+      "pokemon": 3,
+      "field": "Stat Points SpD",
+      "entropy": 1.9743766784667969,
+      "p_true": 0.4276074469089508
+     },
+     {
+      "column": 71,
+      "pokemon": 3,
+      "field": "Stat Points Spe",
+      "entropy": 2.055811643600464,
+      "p_true": 0.17905355989933014
+     },
+     {
+      "column": 78,
+      "pokemon": 5,
+      "field": "Stat Points HP",
+      "entropy": 1.8256710767745972,
+      "p_true": 0.4977191388607025
+     },
+     {
+      "column": 79,
+      "pokemon": 5,
+      "field": "Stat Points Atk",
+      "entropy": 1.204155683517456,
+      "p_true": 0.6915895938873291
+     },
+     {
+      "column": 80,
+      "pokemon": 5,
+      "field": "Stat Points Def",
+      "entropy": 2.729008913040161,
+      "p_true": 0.16340883076190948
+     },
+     {
+      "column": 81,
+      "pokemon": 5,
+      "field": "Stat Points SpA",
+      "entropy": 0.8045957684516907,
+      "p_true": 0.8378850817680359
+     },
+     {
+      "column": 82,
+      "pokemon": 5,
+      "field": "Stat Points SpD",
+      "entropy": 1.9748399257659912,
+      "p_true": 0.15105359256267548
+     },
+     {
+      "column": 83,
+      "pokemon": 5,
+      "field": "Stat Points Spe",
+      "entropy": 2.056732177734375,
+      "p_true": 0.2917032837867737
+     }
+    ]
+   },
+   {
+    "lock": 5,
+    "cells": [
+     {
+      "column": 1,
+      "pokemon": 0,
+      "field": "ability",
+      "entropy": 0.16733035445213318,
+      "p_true": 0.9601929783821106
+     },
+     {
+      "column": 2,
+      "pokemon": 0,
+      "field": "item",
+      "entropy": 2.5302858352661133,
+      "p_true": 0.14885711669921875
+     },
+     {
+      "column": 3,
+      "pokemon": 0,
+      "field": "move 1",
+      "entropy": 0.47767940163612366,
+      "p_true": 0.8875663876533508
+     },
+     {
+      "column": 4,
+      "pokemon": 0,
+      "field": "move 2",
+      "entropy": 1.6152191162109375,
+      "p_true": 0.33580443263053894
+     },
+     {
+      "column": 5,
+      "pokemon": 0,
+      "field": "move 3",
+      "entropy": 1.5233172178268433,
+      "p_true": 0.5161700248718262
+     },
+     {
+      "column": 6,
+      "pokemon": 0,
+      "field": "move 4",
+      "entropy": 0.8375856876373291,
+      "p_true": 0.8184247612953186
+     },
+     {
+      "column": 7,
+      "pokemon": 0,
+      "field": "Stat Alignment",
+      "entropy": 2.101085901260376,
+      "p_true": 0.16659903526306152
+     },
+     {
+      "column": 9,
+      "pokemon": 1,
+      "field": "ability",
+      "entropy": 0.25305667519569397,
+      "p_true": 0.9302260279655457
+     },
+     {
+      "column": 10,
+      "pokemon": 1,
+      "field": "item",
+      "entropy": 2.540070056915283,
+      "p_true": 0.3174329996109009
+     },
+     {
+      "column": 11,
+      "pokemon": 1,
+      "field": "move 1",
+      "entropy": 0.2723945677280426,
+      "p_true": 0.9438881874084473
+     },
+     {
+      "column": 12,
+      "pokemon": 1,
+      "field": "move 2",
+      "entropy": 1.485059142112732,
+      "p_true": 0.549894392490387
+     },
+     {
+      "column": 13,
+      "pokemon": 1,
+      "field": "move 3",
+      "entropy": 1.0212969779968262,
+      "p_true": 0.7580162286758423
+     },
+     {
+      "column": 14,
+      "pokemon": 1,
+      "field": "move 4",
+      "entropy": 0.49033141136169434,
+      "p_true": 0.9006609916687012
+     },
+     {
+      "column": 15,
+      "pokemon": 1,
+      "field": "Stat Alignment",
+      "entropy": 2.103020668029785,
+      "p_true": 0.18727688491344452
+     },
+     {
+      "column": 17,
+      "pokemon": 2,
+      "field": "ability",
+      "entropy": -0.0,
+      "p_true": 1.0
+     },
+     {
+      "column": 18,
+      "pokemon": 2,
+      "field": "item",
+      "entropy": 2.540146827697754,
+      "p_true": 0.06489285826683044
+     },
+     {
+      "column": 19,
+      "pokemon": 2,
+      "field": "move 1",
+      "entropy": 1.2026822566986084,
+      "p_true": 0.6403466463088989
+     },
+     {
+      "column": 20,
+      "pokemon": 2,
+      "field": "move 2",
+      "entropy": 2.057814121246338,
+      "p_true": 0.3519309461116791
+     },
+     {
+      "column": 21,
+      "pokemon": 2,
+      "field": "move 3",
+      "entropy": 1.231044054031372,
+      "p_true": 0.6608090400695801
+     },
+     {
+      "column": 22,
+      "pokemon": 2,
+      "field": "move 4",
+      "entropy": 1.807990312576294,
+      "p_true": 0.16242635250091553
+     },
+     {
+      "column": 23,
+      "pokemon": 2,
+      "field": "Stat Alignment",
+      "entropy": 2.0991320610046387,
+      "p_true": 0.16741988062858582
+     },
+     {
+      "column": 25,
+      "pokemon": 3,
+      "field": "ability",
+      "entropy": 0.2116580754518509,
+      "p_true": 0.9454649090766907
+     },
+     {
+      "column": 26,
+      "pokemon": 3,
+      "field": "item",
+      "entropy": 2.5366764068603516,
+      "p_true": 0.1044485867023468
+     },
+     {
+      "column": 27,
+      "pokemon": 3,
+      "field": "move 1",
+      "entropy": 1.4907352924346924,
+      "p_true": 0.5230745673179626
+     },
+     {
+      "column": 28,
+      "pokemon": 3,
+      "field": "move 2",
+      "entropy": 1.4834551811218262,
+      "p_true": 0.30253782868385315
+     },
+     {
+      "column": 29,
+      "pokemon": 3,
+      "field": "move 3",
+      "entropy": 1.2477545738220215,
+      "p_true": 0.6805729269981384
+     },
+     {
+      "column": 30,
+      "pokemon": 3,
+      "field": "move 4",
+      "entropy": 1.6331701278686523,
+      "p_true": 0.6170876622200012
+     },
+     {
+      "column": 31,
+      "pokemon": 3,
+      "field": "Stat Alignment",
+      "entropy": 2.1004505157470703,
+      "p_true": 0.297268271446228
+     },
+     {
+      "column": 33,
+      "pokemon": 4,
+      "field": "ability",
+      "entropy": 0.38011279702186584,
+      "p_true": 0.8836450576782227
+     },
+     {
+      "column": 34,
+      "pokemon": 4,
+      "field": "item",
+      "entropy": 0.35682445764541626,
+      "p_true": 0.9444041848182678
+     },
+     {
+      "column": 35,
+      "pokemon": 4,
+      "field": "move 1",
+      "entropy": 0.9770389199256897,
+      "p_true": 0.7377402782440186
+     },
+     {
+      "column": 36,
+      "pokemon": 4,
+      "field": "move 2",
+      "entropy": 1.3643884658813477,
+      "p_true": 0.3610715866088867
+     },
+     {
+      "column": 37,
+      "pokemon": 4,
+      "field": "move 3",
+      "entropy": 2.184544086456299,
+      "p_true": 0.2871103584766388
+     },
+     {
+      "column": 38,
+      "pokemon": 4,
+      "field": "move 4",
+      "entropy": 0.3164792060852051,
+      "p_true": 0.9445957541465759
+     },
+     {
+      "column": 39,
+      "pokemon": 4,
+      "field": "Stat Alignment",
+      "entropy": 2.1068289279937744,
+      "p_true": 0.2939997613430023
+     },
+     {
+      "column": 48,
+      "pokemon": 0,
+      "field": "Stat Points HP",
+      "entropy": 1.7658039331436157,
+      "p_true": 0.12499639391899109
+     },
+     {
+      "column": 49,
+      "pokemon": 0,
+      "field": "Stat Points Atk",
+      "entropy": 1.3838821649551392,
+      "p_true": 0.1969466358423233
+     },
+     {
+      "column": 50,
+      "pokemon": 0,
+      "field": "Stat Points Def",
+      "entropy": 2.268678665161133,
+      "p_true": 0.2875852882862091
+     },
+     {
+      "column": 51,
+      "pokemon": 0,
+      "field": "Stat Points SpA",
+      "entropy": 0.7159071564674377,
+      "p_true": 0.7957969903945923
+     },
+     {
+      "column": 52,
+      "pokemon": 0,
+      "field": "Stat Points SpD",
+      "entropy": 1.666661262512207,
+      "p_true": 0.17912541329860687
+     },
+     {
+      "column": 53,
+      "pokemon": 0,
+      "field": "Stat Points Spe",
+      "entropy": 1.902605652809143,
+      "p_true": 0.28224122524261475
+     },
+     {
+      "column": 54,
+      "pokemon": 1,
+      "field": "Stat Points HP",
+      "entropy": 1.7665860652923584,
+      "p_true": 0.4146699011325836
+     },
+     {
+      "column": 55,
+      "pokemon": 1,
+      "field": "Stat Points Atk",
+      "entropy": 1.3839606046676636,
+      "p_true": 0.5448400974273682
+     },
+     {
+      "column": 56,
+      "pokemon": 1,
+      "field": "Stat Points Def",
+      "entropy": 2.279714345932007,
+      "p_true": 0.14662128686904907
+     },
+     {
+      "column": 57,
+      "pokemon": 1,
+      "field": "Stat Points SpA",
+      "entropy": 0.7084437608718872,
+      "p_true": 0.7985429167747498
+     },
+     {
+      "column": 58,
+      "pokemon": 1,
+      "field": "Stat Points SpD",
+      "entropy": 1.6689497232437134,
+      "p_true": 0.13307736814022064
+     },
+     {
+      "column": 59,
+      "pokemon": 1,
+      "field": "Stat Points Spe",
+      "entropy": 1.9032162427902222,
+      "p_true": 0.18362784385681152
+     },
+     {
+      "column": 60,
+      "pokemon": 2,
+      "field": "Stat Points HP",
+      "entropy": 1.7696847915649414,
+      "p_true": 0.14365935325622559
+     },
+     {
+      "column": 61,
+      "pokemon": 2,
+      "field": "Stat Points Atk",
+      "entropy": 1.3723015785217285,
+      "p_true": 0.12751159071922302
+     },
+     {
+      "column": 62,
+      "pokemon": 2,
+      "field": "Stat Points Def",
+      "entropy": 2.2678046226501465,
+      "p_true": 0.153763547539711
+     },
+     {
+      "column": 63,
+      "pokemon": 2,
+      "field": "Stat Points SpA",
+      "entropy": 0.7090926766395569,
+      "p_true": 0.7993852496147156
+     },
+     {
+      "column": 64,
+      "pokemon": 2,
+      "field": "Stat Points SpD",
+      "entropy": 1.663413405418396,
+      "p_true": 0.4565507173538208
+     },
+     {
+      "column": 65,
+      "pokemon": 2,
+      "field": "Stat Points Spe",
+      "entropy": 1.8991551399230957,
+      "p_true": 0.10016287118196487
+     },
+     {
+      "column": 66,
+      "pokemon": 3,
+      "field": "Stat Points HP",
+      "entropy": 1.7703516483306885,
+      "p_true": 0.19100265204906464
+     },
+     {
+      "column": 67,
+      "pokemon": 3,
+      "field": "Stat Points Atk",
+      "entropy": 1.3783224821090698,
+      "p_true": 0.5471023917198181
+     },
+     {
+      "column": 68,
+      "pokemon": 3,
+      "field": "Stat Points Def",
+      "entropy": 2.2732207775115967,
+      "p_true": 0.11407557129859924
+     },
+     {
+      "column": 69,
+      "pokemon": 3,
+      "field": "Stat Points SpA",
+      "entropy": 0.7065327763557434,
+      "p_true": 0.15926985442638397
+     },
+     {
+      "column": 70,
+      "pokemon": 3,
+      "field": "Stat Points SpD",
+      "entropy": 1.6684902906417847,
+      "p_true": 0.4534597396850586
+     },
+     {
+      "column": 71,
+      "pokemon": 3,
+      "field": "Stat Points Spe",
+      "entropy": 1.904026746749878,
+      "p_true": 0.21948261559009552
+     },
+     {
+      "column": 72,
+      "pokemon": 4,
+      "field": "Stat Points HP",
+      "entropy": 1.7681922912597656,
+      "p_true": 0.041938163340091705
+     },
+     {
+      "column": 73,
+      "pokemon": 4,
+      "field": "Stat Points Atk",
+      "entropy": 1.3757245540618896,
+      "p_true": 0.5495420098304749
+     },
+     {
+      "column": 74,
+      "pokemon": 4,
+      "field": "Stat Points Def",
+      "entropy": 2.273223876953125,
+      "p_true": 0.028439318761229515
+     },
+     {
+      "column": 75,
+      "pokemon": 4,
+      "field": "Stat Points SpA",
+      "entropy": 0.7091373801231384,
+      "p_true": 0.7987805008888245
+     },
+     {
+      "column": 76,
+      "pokemon": 4,
+      "field": "Stat Points SpD",
+      "entropy": 1.6688663959503174,
+      "p_true": 0.4534585177898407
+     },
+     {
+      "column": 77,
+      "pokemon": 4,
+      "field": "Stat Points Spe",
+      "entropy": 1.900038480758667,
+      "p_true": 0.1409693956375122
+     }
+    ]
+   }
+  ],
+  "decoded": [
+   {
+    "species": "incineroar",
+    "ability": "intimidate",
+    "item": "sitrusberry",
+    "nature": "adamant",
+    "moves": [
+     "darkestlariat",
+     "fakeout",
+     "flareblitz",
+     "partingshot"
+    ],
+    "evs": {
+     "HP": 31,
+     "Atk": 15,
+     "Def": 10,
+     "SpA": 0,
+     "SpD": 10,
+     "Spe": 0
+    }
+   },
+   {
+    "species": "milotic",
+    "ability": "competitive",
+    "item": "leftovers",
+    "nature": "calm",
+    "moves": [
+     "coil",
+     "hypnosis",
+     "muddywater",
+     "recover"
+    ],
+    "evs": {
+     "HP": 32,
+     "Atk": 0,
+     "Def": 27,
+     "SpA": 0,
+     "SpD": 5,
+     "Spe": 2
+    }
+   },
+   {
+    "species": "mimikyu",
+    "ability": "disguise",
+    "item": "lifeorb",
+    "nature": "adamant",
+    "moves": [
+     "playrough",
+     "protect",
+     "shadowsneak",
+     "swordsdance"
+    ],
+    "evs": {
+     "HP": 9,
+     "Atk": 30,
+     "Def": 2,
+     "SpA": 0,
+     "SpD": 0,
+     "Spe": 25
+    }
+   },
+   {
+    "species": "ninetalesalola",
+    "ability": "snowwarning",
+    "item": "focussash",
+    "nature": "timid",
+    "moves": [
+     "blizzard",
+     "encore",
+     "freezedry",
+     "protect"
+    ],
+    "evs": {
+     "HP": 2,
+     "Atk": 0,
+     "Def": 0,
+     "SpA": 32,
+     "SpD": 0,
+     "Spe": 32
+    }
+   },
+   {
+    "species": "raichu",
+    "ability": "lightningrod",
+    "item": "raichunitey",
+    "nature": "timid",
+    "moves": [
+     "fakeout",
+     "focusblast",
+     "protect",
+     "zapcannon"
+    ],
+    "evs": {
+     "HP": 30,
+     "Atk": 0,
+     "Def": 13,
+     "SpA": 0,
+     "SpD": 0,
+     "Spe": 23
+    }
+   },
+   {
+    "species": "sinistcha",
+    "ability": "hospitality",
+    "item": "kasibberry",
+    "nature": "calm",
+    "moves": [
+     "hex",
+     "lifedew",
+     "matchagotcha",
+     "ragepowder"
+    ],
+    "evs": {
+     "HP": 32,
+     "Atk": 0,
+     "Def": 14,
+     "SpA": 0,
+     "SpD": 20,
+     "Spe": 0
+    }
+   }
+  ]
+ },
+ "seconds": 116.2053759098053,
+ "script": "code/src/loop_field_difficulty.py",
+ "no_looped_model_ran": true,
+ "ck_dir": "/Users/ramiismael/.local/share/vgc-pilot-runtime/lossdown",
+ "item_choice": {
+  "free": {
+   "0": [
+    [
+     "leftovers",
+     0.1924
+    ],
+    [
+     "kasibberry",
+     0.1626
+    ],
+    [
+     "sitrusberry",
+     0.1483
+    ],
+    [
+     "focussash",
+     0.0896
+    ],
+    [
+     "nevermeltice",
+     0.0614
+    ]
+   ],
+   "1": [
+    [
+     "leftovers",
+     0.1912
+    ],
+    [
+     "kasibberry",
+     0.1612
+    ],
+    [
+     "sitrusberry",
+     0.1482
+    ],
+    [
+     "focussash",
+     0.0893
+    ],
+    [
+     "nevermeltice",
+     0.0615
+    ]
+   ],
+   "2": [
+    [
+     "leftovers",
+     0.1901
+    ],
+    [
+     "kasibberry",
+     0.1611
+    ],
+    [
+     "sitrusberry",
+     0.1488
+    ],
+    [
+     "focussash",
+     0.0897
+    ],
+    [
+     "nevermeltice",
+     0.062
+    ]
+   ],
+   "3": [
+    [
+     "leftovers",
+     0.192
+    ],
+    [
+     "kasibberry",
+     0.1605
+    ],
+    [
+     "sitrusberry",
+     0.1484
+    ],
+    [
+     "focussash",
+     0.0893
+    ],
+    [
+     "nevermeltice",
+     0.0615
+    ]
+   ],
+   "4": [
+    [
+     "raichunitey",
+     0.9396
+    ],
+    [
+     "leftovers",
+     0.0114
+    ],
+    [
+     "kasibberry",
+     0.0096
+    ],
+    [
+     "sitrusberry",
+     0.0088
+    ],
+    [
+     "focussash",
+     0.0053
+    ]
+   ],
+   "5": [
+    [
+     "leftovers",
+     0.19
+    ],
+    [
+     "kasibberry",
+     0.1612
+    ],
+    [
+     "sitrusberry",
+     0.1475
+    ],
+    [
+     "focussash",
+     0.0895
+    ],
+    [
+     "nevermeltice",
+     0.0622
+    ]
+   ]
+  },
+  "given": {
+   "0|leftovers": {
+    "1": [
+     [
+      "sitrusberry",
+      0.1993
+     ],
+     [
+      "kasibberry",
+      0.1957
+     ],
+     [
+      "focussash",
+      0.1154
+     ],
+     [
+      "nevermeltice",
+      0.0865
+     ],
+     [
+      "colburberry",
+      0.0839
+     ]
+    ],
+    "2": [
+     [
+      "sitrusberry",
+      0.1999
+     ],
+     [
+      "kasibberry",
+      0.1952
+     ],
+     [
+      "focussash",
+      0.1158
+     ],
+     [
+      "nevermeltice",
+      0.0871
+     ],
+     [
+      "colburberry",
+      0.0837
+     ]
+    ],
+    "3": [
+     [
+      "sitrusberry",
+      0.1998
+     ],
+     [
+      "kasibberry",
+      0.1952
+     ],
+     [
+      "focussash",
+      0.1153
+     ],
+     [
+      "nevermeltice",
+      0.0866
+     ],
+     [
+      "colburberry",
+      0.0831
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9545
+     ],
+     [
+      "sitrusberry",
+      0.0089
+     ],
+     [
+      "kasibberry",
+      0.0088
+     ],
+     [
+      "focussash",
+      0.0052
+     ],
+     [
+      "nevermeltice",
+      0.0038
+     ]
+    ],
+    "5": [
+     [
+      "sitrusberry",
+      0.1981
+     ],
+     [
+      "kasibberry",
+      0.1957
+     ],
+     [
+      "focussash",
+      0.1153
+     ],
+     [
+      "nevermeltice",
+      0.0872
+     ],
+     [
+      "colburberry",
+      0.0837
+     ]
+    ]
+   },
+   "0|kasibberry": {
+    "1": [
+     [
+      "leftovers",
+      0.2794
+     ],
+     [
+      "sitrusberry",
+      0.1782
+     ],
+     [
+      "focussash",
+      0.1068
+     ],
+     [
+      "colburberry",
+      0.0632
+     ],
+     [
+      "lifeorb",
+      0.0553
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2778
+     ],
+     [
+      "sitrusberry",
+      0.1794
+     ],
+     [
+      "focussash",
+      0.1075
+     ],
+     [
+      "colburberry",
+      0.0631
+     ],
+     [
+      "lifeorb",
+      0.055
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2799
+     ],
+     [
+      "sitrusberry",
+      0.1787
+     ],
+     [
+      "focussash",
+      0.107
+     ],
+     [
+      "colburberry",
+      0.0625
+     ],
+     [
+      "lifeorb",
+      0.0552
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9242
+     ],
+     [
+      "leftovers",
+      0.021
+     ],
+     [
+      "sitrusberry",
+      0.0134
+     ],
+     [
+      "focussash",
+      0.008
+     ],
+     [
+      "colburberry",
+      0.0046
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2778
+     ],
+     [
+      "sitrusberry",
+      0.1776
+     ],
+     [
+      "focussash",
+      0.1072
+     ],
+     [
+      "colburberry",
+      0.0633
+     ],
+     [
+      "lifeorb",
+      0.0549
+     ]
+    ]
+   },
+   "0|sitrusberry": {
+    "1": [
+     [
+      "leftovers",
+      0.2289
+     ],
+     [
+      "kasibberry",
+      0.1959
+     ],
+     [
+      "focussash",
+      0.1149
+     ],
+     [
+      "colburberry",
+      0.077
+     ],
+     [
+      "nevermeltice",
+      0.0737
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2276
+     ],
+     [
+      "kasibberry",
+      0.196
+     ],
+     [
+      "focussash",
+      0.1154
+     ],
+     [
+      "colburberry",
+      0.077
+     ],
+     [
+      "nevermeltice",
+      0.0745
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2296
+     ],
+     [
+      "kasibberry",
+      0.1951
+     ],
+     [
+      "focussash",
+      0.1147
+     ],
+     [
+      "colburberry",
+      0.0763
+     ],
+     [
+      "nevermeltice",
+      0.0738
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9566
+     ],
+     [
+      "leftovers",
+      0.0098
+     ],
+     [
+      "kasibberry",
+      0.0084
+     ],
+     [
+      "focussash",
+      0.0049
+     ],
+     [
+      "colburberry",
+      0.0032
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2273
+     ],
+     [
+      "kasibberry",
+      0.196
+     ],
+     [
+      "focussash",
+      0.1149
+     ],
+     [
+      "colburberry",
+      0.0769
+     ],
+     [
+      "nevermeltice",
+      0.0746
+     ]
+    ]
+   },
+   "0|focussash": {
+    "1": [
+     [
+      "leftovers",
+      0.2133
+     ],
+     [
+      "sitrusberry",
+      0.1829
+     ],
+     [
+      "kasibberry",
+      0.1736
+     ],
+     [
+      "colburberry",
+      0.0845
+     ],
+     [
+      "nevermeltice",
+      0.0706
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2121
+     ],
+     [
+      "sitrusberry",
+      0.1838
+     ],
+     [
+      "kasibberry",
+      0.1735
+     ],
+     [
+      "colburberry",
+      0.0845
+     ],
+     [
+      "nevermeltice",
+      0.0713
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2138
+     ],
+     [
+      "sitrusberry",
+      0.1832
+     ],
+     [
+      "kasibberry",
+      0.1729
+     ],
+     [
+      "colburberry",
+      0.0836
+     ],
+     [
+      "nevermeltice",
+      0.0707
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9539
+     ],
+     [
+      "leftovers",
+      0.0096
+     ],
+     [
+      "sitrusberry",
+      0.0083
+     ],
+     [
+      "kasibberry",
+      0.0079
+     ],
+     [
+      "colburberry",
+      0.0037
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2119
+     ],
+     [
+      "sitrusberry",
+      0.1822
+     ],
+     [
+      "kasibberry",
+      0.1738
+     ],
+     [
+      "colburberry",
+      0.0843
+     ],
+     [
+      "nevermeltice",
+      0.0715
+     ]
+    ]
+   },
+   "1|leftovers": {
+    "0": [
+     [
+      "sitrusberry",
+      0.2002
+     ],
+     [
+      "kasibberry",
+      0.1972
+     ],
+     [
+      "focussash",
+      0.1162
+     ],
+     [
+      "nevermeltice",
+      0.0869
+     ],
+     [
+      "colburberry",
+      0.0842
+     ]
+    ],
+    "2": [
+     [
+      "sitrusberry",
+      0.2004
+     ],
+     [
+      "kasibberry",
+      0.1949
+     ],
+     [
+      "focussash",
+      0.116
+     ],
+     [
+      "nevermeltice",
+      0.0874
+     ],
+     [
+      "colburberry",
+      0.084
+     ]
+    ],
+    "3": [
+     [
+      "sitrusberry",
+      0.2003
+     ],
+     [
+      "kasibberry",
+      0.1949
+     ],
+     [
+      "focussash",
+      0.1156
+     ],
+     [
+      "nevermeltice",
+      0.0869
+     ],
+     [
+      "colburberry",
+      0.0834
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9548
+     ],
+     [
+      "sitrusberry",
+      0.0089
+     ],
+     [
+      "kasibberry",
+      0.0087
+     ],
+     [
+      "focussash",
+      0.0051
+     ],
+     [
+      "nevermeltice",
+      0.0038
+     ]
+    ],
+    "5": [
+     [
+      "sitrusberry",
+      0.1986
+     ],
+     [
+      "kasibberry",
+      0.1955
+     ],
+     [
+      "focussash",
+      0.1155
+     ],
+     [
+      "nevermeltice",
+      0.0875
+     ],
+     [
+      "colburberry",
+      0.084
+     ]
+    ]
+   },
+   "1|kasibberry": {
+    "0": [
+     [
+      "leftovers",
+      0.282
+     ],
+     [
+      "sitrusberry",
+      0.1788
+     ],
+     [
+      "focussash",
+      0.1075
+     ],
+     [
+      "colburberry",
+      0.0625
+     ],
+     [
+      "lifeorb",
+      0.0554
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2781
+     ],
+     [
+      "sitrusberry",
+      0.1794
+     ],
+     [
+      "focussash",
+      0.1075
+     ],
+     [
+      "colburberry",
+      0.0626
+     ],
+     [
+      "lifeorb",
+      0.0551
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2802
+     ],
+     [
+      "sitrusberry",
+      0.1786
+     ],
+     [
+      "focussash",
+      0.107
+     ],
+     [
+      "colburberry",
+      0.062
+     ],
+     [
+      "lifeorb",
+      0.0553
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9244
+     ],
+     [
+      "leftovers",
+      0.0209
+     ],
+     [
+      "sitrusberry",
+      0.0133
+     ],
+     [
+      "focussash",
+      0.008
+     ],
+     [
+      "colburberry",
+      0.0046
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2782
+     ],
+     [
+      "sitrusberry",
+      0.1775
+     ],
+     [
+      "focussash",
+      0.1072
+     ],
+     [
+      "colburberry",
+      0.0628
+     ],
+     [
+      "lifeorb",
+      0.0549
+     ]
+    ]
+   },
+   "1|sitrusberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2305
+     ],
+     [
+      "kasibberry",
+      0.1975
+     ],
+     [
+      "focussash",
+      0.1153
+     ],
+     [
+      "colburberry",
+      0.0767
+     ],
+     [
+      "nevermeltice",
+      0.0738
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2277
+     ],
+     [
+      "kasibberry",
+      0.1964
+     ],
+     [
+      "focussash",
+      0.1154
+     ],
+     [
+      "colburberry",
+      0.0768
+     ],
+     [
+      "nevermeltice",
+      0.0745
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2297
+     ],
+     [
+      "kasibberry",
+      0.1955
+     ],
+     [
+      "focussash",
+      0.1147
+     ],
+     [
+      "colburberry",
+      0.0762
+     ],
+     [
+      "nevermeltice",
+      0.0739
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9568
+     ],
+     [
+      "leftovers",
+      0.0097
+     ],
+     [
+      "kasibberry",
+      0.0084
+     ],
+     [
+      "focussash",
+      0.0049
+     ],
+     [
+      "colburberry",
+      0.0032
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2273
+     ],
+     [
+      "kasibberry",
+      0.1964
+     ],
+     [
+      "focussash",
+      0.1148
+     ],
+     [
+      "colburberry",
+      0.0768
+     ],
+     [
+      "nevermeltice",
+      0.0746
+     ]
+    ]
+   },
+   "1|focussash": {
+    "0": [
+     [
+      "leftovers",
+      0.215
+     ],
+     [
+      "sitrusberry",
+      0.1838
+     ],
+     [
+      "kasibberry",
+      0.1745
+     ],
+     [
+      "colburberry",
+      0.0847
+     ],
+     [
+      "nevermeltice",
+      0.0708
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2125
+     ],
+     [
+      "sitrusberry",
+      0.1845
+     ],
+     [
+      "kasibberry",
+      0.1733
+     ],
+     [
+      "colburberry",
+      0.0848
+     ],
+     [
+      "nevermeltice",
+      0.0714
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2142
+     ],
+     [
+      "sitrusberry",
+      0.1838
+     ],
+     [
+      "kasibberry",
+      0.1726
+     ],
+     [
+      "colburberry",
+      0.0839
+     ],
+     [
+      "nevermeltice",
+      0.0709
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9542
+     ],
+     [
+      "leftovers",
+      0.0096
+     ],
+     [
+      "sitrusberry",
+      0.0082
+     ],
+     [
+      "kasibberry",
+      0.0078
+     ],
+     [
+      "colburberry",
+      0.0037
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2123
+     ],
+     [
+      "sitrusberry",
+      0.1829
+     ],
+     [
+      "kasibberry",
+      0.1735
+     ],
+     [
+      "colburberry",
+      0.0846
+     ],
+     [
+      "nevermeltice",
+      0.0716
+     ]
+    ]
+   },
+   "2|leftovers": {
+    "0": [
+     [
+      "sitrusberry",
+      0.2
+     ],
+     [
+      "kasibberry",
+      0.1974
+     ],
+     [
+      "focussash",
+      0.1164
+     ],
+     [
+      "nevermeltice",
+      0.0866
+     ],
+     [
+      "colburberry",
+      0.0839
+     ]
+    ],
+    "1": [
+     [
+      "sitrusberry",
+      0.1995
+     ],
+     [
+      "kasibberry",
+      0.1956
+     ],
+     [
+      "focussash",
+      0.1158
+     ],
+     [
+      "nevermeltice",
+      0.0864
+     ],
+     [
+      "colburberry",
+      0.084
+     ]
+    ],
+    "3": [
+     [
+      "sitrusberry",
+      0.2001
+     ],
+     [
+      "kasibberry",
+      0.1952
+     ],
+     [
+      "focussash",
+      0.1157
+     ],
+     [
+      "nevermeltice",
+      0.0865
+     ],
+     [
+      "colburberry",
+      0.0831
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9545
+     ],
+     [
+      "sitrusberry",
+      0.0089
+     ],
+     [
+      "kasibberry",
+      0.0088
+     ],
+     [
+      "focussash",
+      0.0052
+     ],
+     [
+      "nevermeltice",
+      0.0038
+     ]
+    ],
+    "5": [
+     [
+      "sitrusberry",
+      0.1983
+     ],
+     [
+      "kasibberry",
+      0.1957
+     ],
+     [
+      "focussash",
+      0.1157
+     ],
+     [
+      "nevermeltice",
+      0.0871
+     ],
+     [
+      "colburberry",
+      0.0837
+     ]
+    ]
+   },
+   "2|kasibberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2815
+     ],
+     [
+      "sitrusberry",
+      0.1784
+     ],
+     [
+      "focussash",
+      0.1076
+     ],
+     [
+      "colburberry",
+      0.0625
+     ],
+     [
+      "lifeorb",
+      0.0556
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2793
+     ],
+     [
+      "sitrusberry",
+      0.1778
+     ],
+     [
+      "focussash",
+      0.107
+     ],
+     [
+      "colburberry",
+      0.0628
+     ],
+     [
+      "lifeorb",
+      0.0555
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2797
+     ],
+     [
+      "sitrusberry",
+      0.1783
+     ],
+     [
+      "focussash",
+      0.1071
+     ],
+     [
+      "colburberry",
+      0.0621
+     ],
+     [
+      "lifeorb",
+      0.0555
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9239
+     ],
+     [
+      "leftovers",
+      0.021
+     ],
+     [
+      "sitrusberry",
+      0.0134
+     ],
+     [
+      "focussash",
+      0.0081
+     ],
+     [
+      "colburberry",
+      0.0046
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2777
+     ],
+     [
+      "sitrusberry",
+      0.1772
+     ],
+     [
+      "focussash",
+      0.1073
+     ],
+     [
+      "colburberry",
+      0.0628
+     ],
+     [
+      "lifeorb",
+      0.0551
+     ]
+    ]
+   },
+   "2|sitrusberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2305
+     ],
+     [
+      "kasibberry",
+      0.1971
+     ],
+     [
+      "focussash",
+      0.1154
+     ],
+     [
+      "colburberry",
+      0.0766
+     ],
+     [
+      "nevermeltice",
+      0.0736
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.229
+     ],
+     [
+      "kasibberry",
+      0.1959
+     ],
+     [
+      "focussash",
+      0.115
+     ],
+     [
+      "colburberry",
+      0.0768
+     ],
+     [
+      "nevermeltice",
+      0.0736
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2297
+     ],
+     [
+      "kasibberry",
+      0.1951
+     ],
+     [
+      "focussash",
+      0.1148
+     ],
+     [
+      "colburberry",
+      0.0761
+     ],
+     [
+      "nevermeltice",
+      0.0737
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9563
+     ],
+     [
+      "leftovers",
+      0.0098
+     ],
+     [
+      "kasibberry",
+      0.0084
+     ],
+     [
+      "focussash",
+      0.0049
+     ],
+     [
+      "colburberry",
+      0.0032
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2274
+     ],
+     [
+      "kasibberry",
+      0.196
+     ],
+     [
+      "focussash",
+      0.1149
+     ],
+     [
+      "colburberry",
+      0.0767
+     ],
+     [
+      "nevermeltice",
+      0.0744
+     ]
+    ]
+   },
+   "2|focussash": {
+    "0": [
+     [
+      "leftovers",
+      0.2149
+     ],
+     [
+      "sitrusberry",
+      0.1835
+     ],
+     [
+      "kasibberry",
+      0.1747
+     ],
+     [
+      "colburberry",
+      0.0845
+     ],
+     [
+      "nevermeltice",
+      0.0708
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2135
+     ],
+     [
+      "sitrusberry",
+      0.1832
+     ],
+     [
+      "kasibberry",
+      0.1735
+     ],
+     [
+      "colburberry",
+      0.0846
+     ],
+     [
+      "nevermeltice",
+      0.0707
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2141
+     ],
+     [
+      "sitrusberry",
+      0.1835
+     ],
+     [
+      "kasibberry",
+      0.1728
+     ],
+     [
+      "colburberry",
+      0.0837
+     ],
+     [
+      "nevermeltice",
+      0.0708
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9541
+     ],
+     [
+      "leftovers",
+      0.0096
+     ],
+     [
+      "sitrusberry",
+      0.0083
+     ],
+     [
+      "kasibberry",
+      0.0079
+     ],
+     [
+      "colburberry",
+      0.0037
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2122
+     ],
+     [
+      "sitrusberry",
+      0.1825
+     ],
+     [
+      "kasibberry",
+      0.1737
+     ],
+     [
+      "colburberry",
+      0.0844
+     ],
+     [
+      "nevermeltice",
+      0.0716
+     ]
+    ]
+   },
+   "3|leftovers": {
+    "0": [
+     [
+      "sitrusberry",
+      0.1998
+     ],
+     [
+      "kasibberry",
+      0.1971
+     ],
+     [
+      "focussash",
+      0.1161
+     ],
+     [
+      "nevermeltice",
+      0.0872
+     ],
+     [
+      "colburberry",
+      0.0842
+     ]
+    ],
+    "1": [
+     [
+      "sitrusberry",
+      0.1994
+     ],
+     [
+      "kasibberry",
+      0.1953
+     ],
+     [
+      "focussash",
+      0.1156
+     ],
+     [
+      "nevermeltice",
+      0.087
+     ],
+     [
+      "colburberry",
+      0.0843
+     ]
+    ],
+    "2": [
+     [
+      "sitrusberry",
+      0.2
+     ],
+     [
+      "kasibberry",
+      0.1949
+     ],
+     [
+      "focussash",
+      0.116
+     ],
+     [
+      "nevermeltice",
+      0.0876
+     ],
+     [
+      "colburberry",
+      0.084
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9541
+     ],
+     [
+      "sitrusberry",
+      0.009
+     ],
+     [
+      "kasibberry",
+      0.0088
+     ],
+     [
+      "focussash",
+      0.0052
+     ],
+     [
+      "nevermeltice",
+      0.0039
+     ]
+    ],
+    "5": [
+     [
+      "sitrusberry",
+      0.1982
+     ],
+     [
+      "kasibberry",
+      0.1954
+     ],
+     [
+      "focussash",
+      0.1154
+     ],
+     [
+      "nevermeltice",
+      0.0877
+     ],
+     [
+      "colburberry",
+      0.084
+     ]
+    ]
+   },
+   "3|kasibberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2814
+     ],
+     [
+      "sitrusberry",
+      0.1782
+     ],
+     [
+      "focussash",
+      0.1074
+     ],
+     [
+      "colburberry",
+      0.0627
+     ],
+     [
+      "lifeorb",
+      0.0552
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2792
+     ],
+     [
+      "sitrusberry",
+      0.1775
+     ],
+     [
+      "focussash",
+      0.1067
+     ],
+     [
+      "colburberry",
+      0.063
+     ],
+     [
+      "lifeorb",
+      0.0551
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2776
+     ],
+     [
+      "sitrusberry",
+      0.1787
+     ],
+     [
+      "focussash",
+      0.1074
+     ],
+     [
+      "colburberry",
+      0.0628
+     ],
+     [
+      "lifeorb",
+      0.0548
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9233
+     ],
+     [
+      "leftovers",
+      0.0212
+     ],
+     [
+      "sitrusberry",
+      0.0135
+     ],
+     [
+      "focussash",
+      0.0081
+     ],
+     [
+      "colburberry",
+      0.0047
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2776
+     ],
+     [
+      "sitrusberry",
+      0.1769
+     ],
+     [
+      "focussash",
+      0.107
+     ],
+     [
+      "colburberry",
+      0.063
+     ],
+     [
+      "lifeorb",
+      0.0547
+     ]
+    ]
+   },
+   "3|sitrusberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2302
+     ],
+     [
+      "kasibberry",
+      0.1972
+     ],
+     [
+      "focussash",
+      0.115
+     ],
+     [
+      "colburberry",
+      0.0765
+     ],
+     [
+      "nevermeltice",
+      0.0739
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2287
+     ],
+     [
+      "kasibberry",
+      0.1959
+     ],
+     [
+      "focussash",
+      0.1146
+     ],
+     [
+      "colburberry",
+      0.0768
+     ],
+     [
+      "nevermeltice",
+      0.0739
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2274
+     ],
+     [
+      "kasibberry",
+      0.196
+     ],
+     [
+      "focussash",
+      0.1151
+     ],
+     [
+      "colburberry",
+      0.0767
+     ],
+     [
+      "nevermeltice",
+      0.0747
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.956
+     ],
+     [
+      "leftovers",
+      0.0099
+     ],
+     [
+      "kasibberry",
+      0.0085
+     ],
+     [
+      "focussash",
+      0.0049
+     ],
+     [
+      "colburberry",
+      0.0033
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.227
+     ],
+     [
+      "kasibberry",
+      0.196
+     ],
+     [
+      "focussash",
+      0.1145
+     ],
+     [
+      "colburberry",
+      0.0766
+     ],
+     [
+      "nevermeltice",
+      0.0748
+     ]
+    ]
+   },
+   "3|focussash": {
+    "0": [
+     [
+      "leftovers",
+      0.2147
+     ],
+     [
+      "sitrusberry",
+      0.1832
+     ],
+     [
+      "kasibberry",
+      0.1746
+     ],
+     [
+      "colburberry",
+      0.0845
+     ],
+     [
+      "nevermeltice",
+      0.071
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2134
+     ],
+     [
+      "sitrusberry",
+      0.183
+     ],
+     [
+      "kasibberry",
+      0.1735
+     ],
+     [
+      "colburberry",
+      0.0846
+     ],
+     [
+      "nevermeltice",
+      0.0709
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2122
+     ],
+     [
+      "sitrusberry",
+      0.1838
+     ],
+     [
+      "kasibberry",
+      0.1734
+     ],
+     [
+      "colburberry",
+      0.0846
+     ],
+     [
+      "nevermeltice",
+      0.0716
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9538
+     ],
+     [
+      "leftovers",
+      0.0097
+     ],
+     [
+      "sitrusberry",
+      0.0083
+     ],
+     [
+      "kasibberry",
+      0.0079
+     ],
+     [
+      "colburberry",
+      0.0038
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.212
+     ],
+     [
+      "sitrusberry",
+      0.1822
+     ],
+     [
+      "kasibberry",
+      0.1737
+     ],
+     [
+      "colburberry",
+      0.0844
+     ],
+     [
+      "nevermeltice",
+      0.0718
+     ]
+    ]
+   },
+   "4|raichunitey": {
+    "0": [
+     [
+      "leftovers",
+      0.1989
+     ],
+     [
+      "sitrusberry",
+      0.1604
+     ],
+     [
+      "kasibberry",
+      0.1593
+     ],
+     [
+      "focussash",
+      0.0902
+     ],
+     [
+      "nevermeltice",
+      0.0664
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.1975
+     ],
+     [
+      "sitrusberry",
+      0.1604
+     ],
+     [
+      "kasibberry",
+      0.1579
+     ],
+     [
+      "focussash",
+      0.0899
+     ],
+     [
+      "nevermeltice",
+      0.0666
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.1963
+     ],
+     [
+      "sitrusberry",
+      0.1611
+     ],
+     [
+      "kasibberry",
+      0.1578
+     ],
+     [
+      "focussash",
+      0.0903
+     ],
+     [
+      "nevermeltice",
+      0.0672
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.1983
+     ],
+     [
+      "sitrusberry",
+      0.1606
+     ],
+     [
+      "kasibberry",
+      0.1572
+     ],
+     [
+      "focussash",
+      0.0897
+     ],
+     [
+      "nevermeltice",
+      0.0666
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.1962
+     ],
+     [
+      "sitrusberry",
+      0.1596
+     ],
+     [
+      "kasibberry",
+      0.1581
+     ],
+     [
+      "focussash",
+      0.0899
+     ],
+     [
+      "nevermeltice",
+      0.0674
+     ]
+    ]
+   },
+   "4|leftovers": {
+    "0": [
+     [
+      "sitrusberry",
+      0.1994
+     ],
+     [
+      "kasibberry",
+      0.1976
+     ],
+     [
+      "focussash",
+      0.1162
+     ],
+     [
+      "nevermeltice",
+      0.0865
+     ],
+     [
+      "colburberry",
+      0.0834
+     ]
+    ],
+    "1": [
+     [
+      "sitrusberry",
+      0.199
+     ],
+     [
+      "kasibberry",
+      0.1958
+     ],
+     [
+      "focussash",
+      0.1156
+     ],
+     [
+      "nevermeltice",
+      0.0863
+     ],
+     [
+      "colburberry",
+      0.0835
+     ]
+    ],
+    "2": [
+     [
+      "sitrusberry",
+      0.1996
+     ],
+     [
+      "kasibberry",
+      0.1953
+     ],
+     [
+      "focussash",
+      0.116
+     ],
+     [
+      "nevermeltice",
+      0.0869
+     ],
+     [
+      "colburberry",
+      0.0832
+     ]
+    ],
+    "3": [
+     [
+      "sitrusberry",
+      0.1995
+     ],
+     [
+      "kasibberry",
+      0.1953
+     ],
+     [
+      "focussash",
+      0.1155
+     ],
+     [
+      "nevermeltice",
+      0.0865
+     ],
+     [
+      "colburberry",
+      0.0826
+     ]
+    ],
+    "5": [
+     [
+      "sitrusberry",
+      0.1978
+     ],
+     [
+      "kasibberry",
+      0.1958
+     ],
+     [
+      "focussash",
+      0.1154
+     ],
+     [
+      "nevermeltice",
+      0.087
+     ],
+     [
+      "colburberry",
+      0.0832
+     ]
+    ]
+   },
+   "4|kasibberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2807
+     ],
+     [
+      "sitrusberry",
+      0.1784
+     ],
+     [
+      "focussash",
+      0.1077
+     ],
+     [
+      "colburberry",
+      0.063
+     ],
+     [
+      "lifeorb",
+      0.0555
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2785
+     ],
+     [
+      "sitrusberry",
+      0.1777
+     ],
+     [
+      "focussash",
+      0.107
+     ],
+     [
+      "colburberry",
+      0.0632
+     ],
+     [
+      "lifeorb",
+      0.0554
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2768
+     ],
+     [
+      "sitrusberry",
+      0.179
+     ],
+     [
+      "focussash",
+      0.1076
+     ],
+     [
+      "colburberry",
+      0.0631
+     ],
+     [
+      "lifeorb",
+      0.0551
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2789
+     ],
+     [
+      "sitrusberry",
+      0.1783
+     ],
+     [
+      "focussash",
+      0.1072
+     ],
+     [
+      "colburberry",
+      0.0625
+     ],
+     [
+      "lifeorb",
+      0.0554
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.2769
+     ],
+     [
+      "sitrusberry",
+      0.1771
+     ],
+     [
+      "focussash",
+      0.1073
+     ],
+     [
+      "colburberry",
+      0.0633
+     ],
+     [
+      "lifeorb",
+      0.055
+     ]
+    ]
+   },
+   "4|sitrusberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2301
+     ],
+     [
+      "kasibberry",
+      0.197
+     ],
+     [
+      "focussash",
+      0.115
+     ],
+     [
+      "colburberry",
+      0.0764
+     ],
+     [
+      "nevermeltice",
+      0.074
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2286
+     ],
+     [
+      "kasibberry",
+      0.1957
+     ],
+     [
+      "focussash",
+      0.1146
+     ],
+     [
+      "colburberry",
+      0.0766
+     ],
+     [
+      "nevermeltice",
+      0.074
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2274
+     ],
+     [
+      "kasibberry",
+      0.1958
+     ],
+     [
+      "focussash",
+      0.1151
+     ],
+     [
+      "colburberry",
+      0.0766
+     ],
+     [
+      "nevermeltice",
+      0.0748
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2293
+     ],
+     [
+      "kasibberry",
+      0.195
+     ],
+     [
+      "focussash",
+      0.1144
+     ],
+     [
+      "colburberry",
+      0.0759
+     ],
+     [
+      "nevermeltice",
+      0.0741
+     ]
+    ],
+    "5": [
+     [
+      "leftovers",
+      0.227
+     ],
+     [
+      "kasibberry",
+      0.1958
+     ],
+     [
+      "focussash",
+      0.1145
+     ],
+     [
+      "colburberry",
+      0.0765
+     ],
+     [
+      "nevermeltice",
+      0.0748
+     ]
+    ]
+   },
+   "5|leftovers": {
+    "0": [
+     [
+      "sitrusberry",
+      0.2
+     ],
+     [
+      "kasibberry",
+      0.1972
+     ],
+     [
+      "focussash",
+      0.1164
+     ],
+     [
+      "nevermeltice",
+      0.0869
+     ],
+     [
+      "colburberry",
+      0.0841
+     ]
+    ],
+    "1": [
+     [
+      "sitrusberry",
+      0.1996
+     ],
+     [
+      "kasibberry",
+      0.1954
+     ],
+     [
+      "focussash",
+      0.1158
+     ],
+     [
+      "nevermeltice",
+      0.0867
+     ],
+     [
+      "colburberry",
+      0.0842
+     ]
+    ],
+    "2": [
+     [
+      "sitrusberry",
+      0.2002
+     ],
+     [
+      "kasibberry",
+      0.1949
+     ],
+     [
+      "focussash",
+      0.1162
+     ],
+     [
+      "nevermeltice",
+      0.0874
+     ],
+     [
+      "colburberry",
+      0.084
+     ]
+    ],
+    "3": [
+     [
+      "sitrusberry",
+      0.2001
+     ],
+     [
+      "kasibberry",
+      0.1949
+     ],
+     [
+      "focussash",
+      0.1157
+     ],
+     [
+      "nevermeltice",
+      0.0869
+     ],
+     [
+      "colburberry",
+      0.0833
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.954
+     ],
+     [
+      "sitrusberry",
+      0.009
+     ],
+     [
+      "kasibberry",
+      0.0089
+     ],
+     [
+      "focussash",
+      0.0052
+     ],
+     [
+      "nevermeltice",
+      0.0039
+     ]
+    ]
+   },
+   "5|kasibberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2819
+     ],
+     [
+      "sitrusberry",
+      0.1786
+     ],
+     [
+      "focussash",
+      0.1079
+     ],
+     [
+      "colburberry",
+      0.0628
+     ],
+     [
+      "lifeorb",
+      0.0559
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2797
+     ],
+     [
+      "sitrusberry",
+      0.1779
+     ],
+     [
+      "focussash",
+      0.1072
+     ],
+     [
+      "colburberry",
+      0.0631
+     ],
+     [
+      "lifeorb",
+      0.0559
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.278
+     ],
+     [
+      "sitrusberry",
+      0.1792
+     ],
+     [
+      "focussash",
+      0.1079
+     ],
+     [
+      "colburberry",
+      0.0629
+     ],
+     [
+      "lifeorb",
+      0.0556
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2801
+     ],
+     [
+      "sitrusberry",
+      0.1785
+     ],
+     [
+      "focussash",
+      0.1074
+     ],
+     [
+      "colburberry",
+      0.0624
+     ],
+     [
+      "lifeorb",
+      0.0558
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9232
+     ],
+     [
+      "leftovers",
+      0.0212
+     ],
+     [
+      "sitrusberry",
+      0.0135
+     ],
+     [
+      "focussash",
+      0.0082
+     ],
+     [
+      "colburberry",
+      0.0047
+     ]
+    ]
+   },
+   "5|sitrusberry": {
+    "0": [
+     [
+      "leftovers",
+      0.2304
+     ],
+     [
+      "kasibberry",
+      0.1967
+     ],
+     [
+      "focussash",
+      0.1152
+     ],
+     [
+      "colburberry",
+      0.0766
+     ],
+     [
+      "nevermeltice",
+      0.0738
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.229
+     ],
+     [
+      "kasibberry",
+      0.1955
+     ],
+     [
+      "focussash",
+      0.1148
+     ],
+     [
+      "colburberry",
+      0.0768
+     ],
+     [
+      "nevermeltice",
+      0.0738
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2277
+     ],
+     [
+      "kasibberry",
+      0.1956
+     ],
+     [
+      "focussash",
+      0.1153
+     ],
+     [
+      "colburberry",
+      0.0768
+     ],
+     [
+      "nevermeltice",
+      0.0745
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2297
+     ],
+     [
+      "kasibberry",
+      0.1948
+     ],
+     [
+      "focussash",
+      0.1146
+     ],
+     [
+      "colburberry",
+      0.0761
+     ],
+     [
+      "nevermeltice",
+      0.0739
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9559
+     ],
+     [
+      "leftovers",
+      0.0099
+     ],
+     [
+      "kasibberry",
+      0.0085
+     ],
+     [
+      "focussash",
+      0.005
+     ],
+     [
+      "colburberry",
+      0.0033
+     ]
+    ]
+   },
+   "5|focussash": {
+    "0": [
+     [
+      "leftovers",
+      0.215
+     ],
+     [
+      "sitrusberry",
+      0.1836
+     ],
+     [
+      "kasibberry",
+      0.1745
+     ],
+     [
+      "colburberry",
+      0.0846
+     ],
+     [
+      "nevermeltice",
+      0.0708
+     ]
+    ],
+    "1": [
+     [
+      "leftovers",
+      0.2136
+     ],
+     [
+      "sitrusberry",
+      0.1834
+     ],
+     [
+      "kasibberry",
+      0.1733
+     ],
+     [
+      "colburberry",
+      0.0848
+     ],
+     [
+      "nevermeltice",
+      0.0707
+     ]
+    ],
+    "2": [
+     [
+      "leftovers",
+      0.2125
+     ],
+     [
+      "sitrusberry",
+      0.1843
+     ],
+     [
+      "kasibberry",
+      0.1732
+     ],
+     [
+      "colburberry",
+      0.0847
+     ],
+     [
+      "nevermeltice",
+      0.0714
+     ]
+    ],
+    "3": [
+     [
+      "leftovers",
+      0.2142
+     ],
+     [
+      "sitrusberry",
+      0.1836
+     ],
+     [
+      "kasibberry",
+      0.1726
+     ],
+     [
+      "colburberry",
+      0.0838
+     ],
+     [
+      "nevermeltice",
+      0.0708
+     ]
+    ],
+    "4": [
+     [
+      "raichunitey",
+      0.9535
+     ],
+     [
+      "leftovers",
+      0.0098
+     ],
+     [
+      "sitrusberry",
+      0.0084
+     ],
+     [
+      "kasibberry",
+      0.0079
+     ],
+     [
+      "colburberry",
+      0.0038
+     ]
+    ]
+   }
+  },
+  "true_items": [
+   "sitrusberry",
+   "leftovers",
+   "lifeorb",
+   "focussash",
+   "raichunitey",
+   "kasibberry"
+  ]
+ },
+ "n_parameters": 5542633,
+ "binding": {
+  "model_within_team_total_variation": 0.20652698751247953,
+  "teams": 40,
+  "corpus_teams": 591,
+  "corpus_between_species_total_variation": 0.9318115936681891,
+  "species_with_20_appearances": 44,
+  "n_train": 297954
+ }
+}

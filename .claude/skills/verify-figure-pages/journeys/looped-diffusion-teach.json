@@ -1,0 +1,103 @@
+{
+ "page": "notes/Blog/visuals/looped-diffusion-teach/index.html",
+ "viewport": "1440x900",
+ "theme": "light",
+ "steps": [
+  {
+   "id": "one-run",
+   "scroll": "#skySteps p[data-k='0']"
+  },
+  {
+   "id": "one-run",
+   "expect": "#skyOut",
+   "text": "No loop: 12 runs of the block over 12 steps.",
+   "within": 2000
+  },
+  {
+   "id": "one-run",
+   "expect": "#skySteps p[data-k='0'].on",
+   "count": 1
+  },
+  {
+   "id": "fixed-count",
+   "scroll": "#skySteps p[data-k='1']"
+  },
+  {
+   "id": "fixed-count",
+   "expect": "#skyOut",
+   "text": "Fixed loop count 6: 72 runs over 12 steps.",
+   "within": 2000
+  },
+  {
+   "id": "fixed-count",
+   "expect": "#skySteps p[data-k='1'].on",
+   "count": 1
+  },
+  {
+   "shot": "looped-diffusion-teach-fixed-count"
+  },
+  {
+   "id": "adaptive-stop",
+   "scroll": "#skySteps p[data-k='2']"
+  },
+  {
+   "id": "adaptive-stop",
+   "expect": "#skyOut",
+   "text": "Adaptive stop: tall columns in the middle, short ones at each end.",
+   "within": 2000
+  },
+  {
+   "id": "adaptive-stop",
+   "expect": "#skySteps p[data-k='2'].on",
+   "count": 1
+  },
+  {
+   "id": "per-token-exit",
+   "scroll": "#skySteps p[data-k='3']"
+  },
+  {
+   "id": "per-token-exit",
+   "expect": "#skyOut",
+   "text": "Per-token exit: at most 4 loops, and each one covers fewer tokens.",
+   "within": 2000
+  },
+  {
+   "id": "per-token-exit",
+   "expect": "#skySteps p[data-k='3'].on",
+   "count": 1
+  },
+  {
+   "id": "carried-state",
+   "scroll": "#skySteps p[data-k='4']"
+  },
+  {
+   "id": "carried-state",
+   "expect": "#skyOut",
+   "text": "Carried state: one run per step, and part of each step's work crosses to the next.",
+   "within": 2000
+  },
+  {
+   "id": "carried-state",
+   "expect": "#skySteps p[data-k='4'].on",
+   "count": 1
+  },
+  {
+   "shot": "looped-diffusion-teach-carried-state"
+  },
+  {
+   "id": "carry-only-state",
+   "scroll": "#skySteps p[data-k='5']"
+  },
+  {
+   "id": "carry-only-state",
+   "expect": "#skyOut",
+   "text": "Pure self-conditioning: tokens appear only at the end.",
+   "within": 2000
+  },
+  {
+   "id": "carry-only-state",
+   "expect": "#skySteps p[data-k='5'].on",
+   "count": 1
+  }
+ ]
+}

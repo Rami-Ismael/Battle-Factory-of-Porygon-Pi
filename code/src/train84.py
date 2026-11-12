@@ -22,6 +22,21 @@ files. They run only with --older-table, so no training reads those labels by ac
 
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
                           | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
+                          | shuffled_per_field | shuffled_linear
+                          | loop_block_equal_compute | loop_block_equal_epochs | carry_state_equal_compute | carry_state_equal_epochs
+
+The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking rate where every field
+is hidden with chance t (owner, 2026-11-12); their control is that model. Each
+changes the network in one way: the loop block runs layers 1 and 2 (counted from 0) up to 4 times with shared weights
+(LoopMDM), or the carried state hands each pass's hidden state to the next (Loopholing). "Equal epochs" trains to the
+control's cap of 80. "Equal compute" stops the cap where the arm's training multiply-adds reach the control's
+(diffusion84.training_macs), and sizes the learning-rate schedule to that cap.
+
+shuffled_per_field and shuffled_linear are the two trainings of the masking-rate rows (docs/masking-rate-rows.md; issue #296):
+labelled teams of the shuffled-only table, the byepoch recipe (label noise 1/48, validation loss after every epoch, patience 3,
+cap 80, one checkpoint per epoch) with early-stopping threshold 0, so any new lowest validation loss resets patience. They
+differ only in the masking rate: the per-field exponents 16,4,4,1.5,1, or the linear rate 1,1,1,1,1 where every field is
+hidden with chance t.
 
 The five pos_ arms are the position-embedding split (docs/position-embedding-split.md; issues #78, #80 to #83, spec #233):
 all teams of the shuffled-only table (results/lossdata84_shuffled_only.npz), label noise 1/48, exactly 21 epochs with the
@@ -76,6 +91,23 @@ POSITION_ARMS = dict(pos_per_field_s0=dict(pos="per_field", seed=0), pos_per_fie
                      pos_slot_fixed=dict(pos="slot_fixed", seed=0), pos_no_slot=dict(pos="no_slot", seed=0))
 NAMES.update({arm: f"stat84_{arm}_noise_ep21" for arm in POSITION_ARMS})
 CONTROL_ARM = "pos_per_field_s0"                         # No split, training seed 0: the control, with no new code
+LINEAR_MASKING_RATE = "1,1,1,1,1"                        # every field hidden with chance t (MD4 Appendix J.1; LLaDA Eq. 3)
+# Masking-rate rows: code ID -> the exponents of the masking rate in training, the only setting that differs
+MASKING_RATE_ARMS = dict(shuffled_per_field=dict(sched=M.SCHED), shuffled_linear=dict(sched=LINEAR_MASKING_RATE))
+NAMES.update(shuffled_per_field="stat84_shuffled_noise_per_field_es3_cap80", shuffled_linear="stat84_shuffled_noise_linear_es3_cap80")
+CONTROL_EPOCHS = 80                                       # the cap of the loop arms' control, shuffled_linear
+LOOP_BLOCK = dict(loop_start=1, loop_layers=2, loop_max=4)              # 6 needs 13 GB of GPU memory per step (docs/looped-84-fields.md)
+LOOP_NETS = dict(loop_block=LOOP_BLOCK, carry_state=dict(carry=True))
+
+
+def equal_compute_cap(net_kw):
+    """The largest whole number of epochs whose training multiply-adds do not exceed the control's 80 epochs."""
+    V = T.regulation_vocab()
+    return int(CONTROL_EPOCHS * M.training_macs(V, **NET) / M.training_macs(V, **NET, **net_kw))
+
+
+LOOP_ARMS = {f"{k}_{match}": dict(net=v, match=match) for k, v in LOOP_NETS.items() for match in ("equal_compute", "equal_epochs")}
+NAMES.update({arm: f"stat84_shuffled_noise_{arm}" for arm in LOOP_ARMS})
 
 
 def name(arm):
@@ -115,7 +147,7 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     if net_kw.pop("every_epoch", False):
         (CK / name(arm)).mkdir(exist_ok=True)
         net_kw["on_epoch"] = lambda m, epoch: stamped(m, arm).save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
-    recipe = dict(RECIPE, seed=net_kw.pop("seed", RECIPE["seed"]))
+    recipe = dict(RECIPE, seed=net_kw.pop("seed", RECIPE["seed"]), sched=net_kw.pop("sched", RECIPE["sched"]))
     m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
                             **recipe, **NET, **net_kw)
     m.info.update(table=DATA_TABLE, ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any(), arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
@@ -151,6 +183,30 @@ def train_position_arms(arm):
         if arm in (pos_arm, "smoke"):
             train(pos_arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][d["all_val"]], d["all_W"][d["all_val"]]),
                   epochs=80, label_noise=1 / 48, stop_after=21, **kw)
+
+
+def train_masking_rate_arms(arm):
+    """The masking-rate training named by arm, on the labelled teams of the shuffled-only table. Both arms get the same rows
+    and the default model's recipe with early-stopping threshold 0 and every epoch saved; only sched differs."""
+    global DATA_SHA, DATA_TABLE
+    if arm not in MASKING_RATE_ARMS: return
+    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
+    train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
+          early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS[arm])
+
+
+def train_loop_arms(arm):
+    """The loop arm named by arm: shuffled_linear's rows and call with one network option added, and for the
+    equal-compute arms a cap of equal_compute_cap epochs in place of 80."""
+    global DATA_SHA, DATA_TABLE
+    if arm not in LOOP_ARMS: return
+    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
+    net = LOOP_ARMS[arm]["net"]
+    cap = CONTROL_EPOCHS if LOOP_ARMS[arm]["match"] == "equal_epochs" else equal_compute_cap(net)
+    train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=cap, patience=3,
+          early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS["shuffled_linear"], **net)
 
 
 def parse_args(argv):
@@ -205,8 +261,10 @@ def main(argv):
             train(arm, d["all_X"][tr], d["all_W"][tr], val, epochs=80, label_noise=1 / 48, stop_after=21,   # no patience: exactly epoch 21, like its control
                   ddom_tau=dict(ddom_tau01=0.1, ddom_tau03=0.3)[arm])
     train_position_arms(arm)
+    train_masking_rate_arms(arm)
+    train_loop_arms(arm)
     if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke",
-                   *POSITION_ARMS):
+                   *POSITION_ARMS, *MASKING_RATE_ARMS, *LOOP_ARMS):
         sys.exit(__doc__)
 
 
