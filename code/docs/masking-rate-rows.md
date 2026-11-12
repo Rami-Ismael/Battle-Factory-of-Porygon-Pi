@@ -276,4 +276,7 @@ One change is Claude's. The readings of the linear model at epochs 34 and 55 wer
 
 ## Deviations
 
-None yet.
+| When | What changed | Why |
+| --- | --- | --- |
+| 2026-11-12, before either training started | The training-versus-validation gap is measured on about 4,380 training and 4,380 validation teams, where the Plan says 3,563 of each. The measurement takes as many training teams as there are labelled validation teams, and the shuffled-only table has 4,380 of those. The 3,563 was the older table's count | The count follows the table, and the Plan's number was carried over from today's default model |
+| 2026-11-12, before either training started | The gap and the validation loss under both masking rates come from a new script, `src/masking_rate_training_report.py`. Its gap function is a port of `~/vgc-data/validation_loss_accuracy/run/validation_accuracy.py`, tested equal to it within 1e-6 on a stored model. The two trainings are the arms `shuffled_per_field` and `shuffled_linear` of `src/train84.py` | The earlier script and the probe for both rates were tied to today's default model and the older table |
