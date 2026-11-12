@@ -41,6 +41,7 @@ SCHED = "16,4,4,1.5,1"                                 # deployed exponents: spe
 STAT_EXPONENT = 1.0                                    # Stat Points masked like Stat Alignment
 FIRST_MOVE = 3                                         # field offset of a Pokémon's first move
 NAN = float("nan")
+CARRY_P = 0.9                                          # share of training steps that run the two-pass carried-state loss "p = 0.9 by default" for Loopholing Discrete Diffusion Models (Loopholing All the Way, Deschenaux et al. 2026, §2.2)
 
 
 POSITION_OPTIONS = ("per_field", "slot_learned", "slot_fixed", "no_slot")   # issue #81: how a column's position vector is built
@@ -58,10 +59,20 @@ def sched84(sched=SCHED):
 class Net84(nn.Module):
     """Transformer denoiser over the 84-field grid."""
 
-    def __init__(self, V, d=256, nhead=8, nlayer=6, dropout=0.1, nfreq=8, mrow=0, pos="per_field"):
+    def __init__(self, V, d=256, nhead=8, nlayer=6, dropout=0.1, nfreq=8, mrow=0, pos="per_field",
+                 loop_start=1, loop_layers=0, loop_max=1, carry=False):
+        """Two looping options, both off by default (docs/looped-84-fields.md):
+        loop_layers=n, loop_start=a, loop_max=S: layers a..a+n-1 form a block run S times per pass with shared weights
+            (LoopMDM, Lee et al. 2026, Eq. 4); training draws the count uniformly from 1..S each step (Eq. 5), and a pass
+            runs S times unless told otherwise. The parameters are those of the plain network.
+        carry=True: the hidden state a pass returns can be handed to the next pass, which adds its layer norm to the
+            field embeddings (Loopholing, Jo et al. 2026, Eq. 5 and Algorithm 1). Adds one LayerNorm."""
         super().__init__()
         if pos not in POSITION_OPTIONS: raise ValueError(f"pos={pos!r}; choose one of {POSITION_OPTIONS}")
+        if loop_layers and not (0 <= loop_start and loop_start + loop_layers <= nlayer and loop_max >= 1):
+            raise ValueError(f"loop block {loop_start}..{loop_start + loop_layers - 1} x {loop_max} does not fit {nlayer} layers")
         self.mrow, self.pos_option = mrow, pos
+        self.loop_start, self.loop_layers, self.loop_max, self.carry = loop_start, loop_layers, loop_max, carry
         if mrow:                # the team's matchup row: win rate vs each top-50 meta team, NaN = untested
             self.mproj = nn.Sequential(nn.Linear(2 * mrow, d), nn.SiLU(), nn.Linear(d, d))
             self.mnull = nn.Parameter(torch.zeros(d))
@@ -84,6 +95,7 @@ class Net84(nn.Module):
         layer = nn.TransformerEncoderLayer(d, nhead, 4 * d, dropout, batch_first=True, norm_first=True, activation="gelu")
         self.tr = nn.TransformerEncoder(layer, nlayer, enable_nested_tensor=False)
         self.ln = nn.LayerNorm(d)
+        if carry: self.carry_ln = nn.LayerNorm(d)
 
     def wvec(self, w):
         null = torch.isnan(w); z = torch.nan_to_num(w, 0.0).view(-1, 1)
@@ -101,8 +113,9 @@ class Net84(nn.Module):
         v = self.pos_type[self.column_type]
         return v if self.pos_option == "no_slot" else v + self.pos_slot[self.column_slot]
 
-    def forward(self, x, t, w):
-        """w: [B] win rates, or [B, 1 + mrow] = [win rate, matchup row] (NaN = no condition)."""
+    def forward(self, x, t, w, loops=None, state=None):
+        """w: [B] win rates, or [B, 1 + mrow] = [win rate, matchup row] (NaN = no condition).
+        loops: how many times the loop block runs (default loop_max); state: [B, 84, d] carried hidden state (default zeros)."""
         pos = self.position_vectors()
         B, d = x.shape[0], pos.shape[1]
         r = None
@@ -115,12 +128,38 @@ class Net84(nn.Module):
         h[:, STAT0:] = self.stat_emb(x[:, STAT0:])
         h = h + pos.unsqueeze(0) + self.wvec(w).unsqueeze(1) + self.tproj(t.view(-1, 1).float()).unsqueeze(1)
         if self.mrow: h = h + self.mvec(r).unsqueeze(1)
-        return self.ln(self.tr(h))
+        if self.carry: h = h + self.carry_ln(torch.zeros_like(h) if state is None else state)
+        if not self.loop_layers: return self.ln(self.tr(h))
+        a, b = self.loop_start, self.loop_start + self.loop_layers
+        layers = list(self.tr.layers)
+        for layer in layers[:a]: h = layer(h)
+        for _ in range(self.loop_max if loops is None else loops):
+            for layer in layers[a:b]: h = layer(h)
+        for layer in layers[b:]: h = layer(h)
+        return self.ln(h)
 
     def logits(self, h):
         out = {k: self.head[k](h[:, cols]) for k, cols in L.COLS_BY_KEY.items()}
         out["stat"] = self.stat_head(h[:, STAT0:])
         return out
+
+
+def pass_macs(V, d=256, nlayer=6, loop_layers=0, loop_max=1, loops=None, **_):
+    """Multiply-adds of one forward pass for one team: each layer's projections and feed-forward (12 d^2 per field) and
+    attention (2 x 84 x d per field), run once, or loops times for the loop block, plus the output heads."""
+    layer = COLS * (12 * d * d + 2 * COLS * d)
+    heads = d * (sum(V.sizes[L.KEY_OF_COL[c]] for c in range(STAT0)) + SP.NVALUES * (COLS - STAT0))
+    runs = nlayer + ((loop_max if loops is None else loops) - 1) * loop_layers
+    return runs * layer + heads
+
+
+def training_macs(V, carry=False, loop_layers=0, loop_max=1, **net_kw):
+    """Mean multiply-adds of one training step for one team, with the backward pass counted as twice the forward
+    (the 6ND rule LoopMDM Eq. 6 follows). A loop block averages over the uniform count 1..loop_max (Eq. 6); a
+    carried-state network adds a forward pass without gradient on CARRY_P of its steps (Loopholing All the Way, Appendix B.1,
+    matches compute this way)."""
+    mean = sum(pass_macs(V, loop_layers=loop_layers, loop_max=loop_max, loops=s, **net_kw) for s in range(1, loop_max + 1)) / loop_max
+    return 3 * mean + (CARRY_P * mean if carry else 0.0)
 
 
 def allowed(tables, x):
@@ -148,11 +187,18 @@ def per_column_ce(lg, x):
     return ce
 
 
-def elbo_terms(net, tables, x, m, t, w, sched):
-    """Per-team ELBO [B] of the true tokens x with the fields in m masked, legality-masked as in sampling."""
+def elbo_terms(net, tables, x, m, t, w, sched, loops=None, self_condition=None):
+    """Per-team ELBO [B] of the true tokens x with the fields in m masked, legality-masked as in sampling.
+    loops: loop-block count (default the network's loop_max). self_condition (carried-state networks; default True):
+    a first pass with a zero state, without gradient, hands its hidden state to the scored second pass (Loopholing §3.2,
+    Algorithm 3); False scores one pass with a zero state."""
     xin = x.masked_fill(m, 0)
     al = allowed(tables, xin)
-    lg = {k: v.masked_fill(~al[k], -1e4) for k, v in net.logits(net(xin, t, w)).items()}
+    state = None
+    if getattr(net, "carry", False) and (self_condition is None or self_condition):
+        with torch.no_grad(): state = net(xin, t, w, loops=loops).detach()
+    kw = {} if loops is None and state is None else dict(loops=loops, state=state)
+    lg = {k: v.masked_fill(~al[k], -1e4) for k, v in net.logits(net(xin, t, w, **kw)).items()}
     ce = per_column_ce(lg, x) * m
     return (ce * sched.view(1, -1) / t.view(-1, 1)).sum(1) / COLS
 
@@ -167,7 +213,10 @@ def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None):
     if ww.dim() == 2:                                          # matchup row: dropped whole, or column by column (lossdown)
         ww[torch.rand(B, device=x.device) < 0.3, 1:] = NAN
         ww[:, 1:][torch.rand(B, ww.shape[1] - 1, device=x.device) < 0.2] = NAN
-    terms = elbo_terms(net, tables, x, m, t, ww, sched)
+    kw = {}                                                     # drawn only for looping networks, so the plain recipe's random stream is unchanged
+    if getattr(net, "loop_layers", 0): kw["loops"] = int(torch.randint(1, net.loop_max + 1, (1,)))          # LoopMDM Eq. 5
+    if getattr(net, "carry", False): kw["self_condition"] = bool(torch.rand(1) < CARRY_P)                 # Loopholing §3.2, probability p
+    terms = elbo_terms(net, tables, x, m, t, ww, sched, **kw)
     return (terms * row_w).mean() if row_w is not None else terms.mean()
 
 
@@ -347,6 +396,7 @@ class Model84:
         out = cls.__new__(cls)
         out.V, out.tables, out.look, out.modes, out.natures = m0.V, m0.tables, m0.look, m0.modes, m0.natures
         out.nets = [nk for m in models for nk in m.nets]
+        if any(getattr(net, "carry", False) for net, _ in out.nets): raise ValueError("a carried-state network cannot join a mixture")
         out.info = info or dict(members=[m.info for m in models])
         return out
 
@@ -367,11 +417,15 @@ class Model84:
             net = Net84(V, **mem["net_kw"]); net.load_state_dict(mem["sd"]); nets.append((net.to(DEV), mem["net_kw"]))
         return cls(V, corpus, nets, ck.get("info"))
 
-    def _logprobs(self, x, t, w):
+    def _logprobs(self, x, t, w, loops=None, state=None, keep=None):
+        """Log-probabilities per field type. loops: loop-block count; state: carried hidden state of a one-member model;
+        keep: a list that receives the hidden state of each network, for the next pass."""
         al = allowed(self.tables, x)
         outs = []
         for net, _ in self.nets:
-            lg = net.logits(net(x, t, w))
+            h = net(x, t, w) if loops is None and state is None else net(x, t, w, loops=loops, state=state)
+            if keep is not None: keep.append(h)
+            lg = net.logits(h)
             outs.append({k: F.log_softmax(v.masked_fill(~al[k], -1e4).float(), -1) for k, v in lg.items()})
         if len(outs) == 1: return outs[0]
         return {k: torch.logsumexp(torch.stack([o[k] for o in outs]), 0) - math.log(len(outs)) for k in outs[0]}
@@ -393,17 +447,28 @@ class Model84:
         return o
 
     @torch.no_grad()
-    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False):
+    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False, loops=None):
         """n teams in ORDER; ask is the win-rate condition, guidance the classifier-free weight. lookahead: see _legal;
-        species come first in ORDER, so it draws the same teams on or off."""
+        species come first in ORDER, so it draws the same teams on or off. loops: loop-block count (default loop_max).
+        A carried-state network starts from a zero state and hands each pass's hidden state to the next pass; the
+        guided and unguided passes each carry their own (Loopholing Algorithm 2, here one field per pass)."""
         if seed is not None: torch.manual_seed(seed)
         w = torch.full((n,), NAN if ask is None else ask, device=DEV); wn = torch.full((n,), NAN, device=DEV)
         x = torch.zeros(n, COLS, dtype=torch.long, device=DEV)
+        carry = any(getattr(net, "carry", False) for net, _ in self.nets)
+        if carry and len(self.nets) > 1: raise ValueError("a carried state belongs to one network; sample a carried-state model alone")
+        state = dict(ask=None, none=None)
+
+        def logprobs(t, cond, key):
+            if not carry: return self._logprobs(x, t, cond, loops=loops)
+            keep = []; lp = self._logprobs(x, t, cond, loops=loops, state=state[key], keep=keep); state[key] = keep[0]
+            return lp
+
         for step, c in enumerate(ORDER):
             t = torch.full((n,), 1.0 - step / COLS, device=DEV)
-            lc = self._column(self._logprobs(x, t, w), c)
+            lc = self._column(logprobs(t, w, "ask"), c)
             if ask is not None and guidance != 1.0:
-                lc = guidance * lc + (1 - guidance) * self._column(self._logprobs(x, t, wn), c)
+                lc = guidance * lc + (1 - guidance) * self._column(logprobs(t, wn, "none"), c)
             lc = lc.masked_fill(~self._legal(x, c, lookahead), -float("inf")) / temperature
             v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
             x[:, c] = v + 1 if c >= STAT0 else v                 # a Stat Point output index is its value

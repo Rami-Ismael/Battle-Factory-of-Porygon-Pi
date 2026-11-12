@@ -1,0 +1,105 @@
+{
+  "_note": "Numbers copied from the papers named here, read 2026-11-02 through alphaXiv. Nothing here was measured in this project. Each entry gives the arXiv id and where in the paper the number sits.",
+  "looped_masked": {
+    "paper": "Looped Diffusion Language Models (LoopMDM), Lee et al.",
+    "arxiv": "2605.26106",
+    "setup": "12 layers, 170 million parameters, layers 1 and 2 looped, loop count drawn from 1 to 12 in training (Section 4.1)",
+    "training_compute_saved": {"FineWeb-Edu": 3.34, "OpenWebText": 2.95, "LM1B": 2.34, "where": "Section 4.1, Figure 2"},
+    "math_points_over_same_size": 8.5,
+    "math_points_over_21_layers_equal_compute_per_step": 3.4,
+    "math_share_of_compute_to_match_final_accuracy": 0.43,
+    "math_where": "Section 4.2, Figure 3",
+    "sudoku_errors_by_loop_count": {"1": 24, "2": 7, "3": 0, "where": "Figure 4, one puzzle, fixed left-to-right order, one layer"},
+    "sudoku_exact_solve_no_loop": 0.109,
+    "ptb_perplexity": {"no_loop": 108.5, "looped_run_at_1": 124.6, "looped_run_at_12": 90.2, "where": "Table 2"},
+    "adaptive_stop": {"from_loops": 12, "to_loops_about": 5, "where": "Table 5"}
+  },
+  "adaptive_looped": {
+    "paper": "ALoDLM: Adaptively Looped Diffusion Language Models, Fang, Li et al.",
+    "arxiv": "2610.04198",
+    "average_score_8b": {"ALoDLM": 80.3, "Qwen3": 78.5, "WeDLM": 75.1, "where": "Table 1, eleven benchmarks"},
+    "loops_per_token_vs_average_score": [[1.60, 77.9], [2.34, 79.1]],
+    "scaling_where": "Figure 4 middle, Section 4.4",
+    "first_loop_halt_probability": {"word": 0.428, "number": 0.369, "where": "Figure 4 right"},
+    "throughput_vs_vllm_qwen3_8b": 2.7,
+    "max_loops": 4,
+    "limitation": "Throughput depends on the input, and the speed advantage can reverse on unfamiliar domains (Section 5)"
+  },
+  "looped_uniform": {
+    "paper": "Looped Uniform Diffusion Language Models, Utpala et al.",
+    "arxiv": "2610.30066",
+    "training_compute_saved": {"OpenWebText": 2.8, "FineWeb-Edu": 3.3, "where": "Abstract, Finding 1"},
+    "generation_perplexity_lower_percent": 9.8,
+    "loss_gain_by_diffusion_time": {"t": [0.1, 0.3, 0.5, 0.7, 0.9], "nats": [0.02, 0.09, 0.15, 0.15, 0.04], "where": "Figure 5b, top row, gain from loop count 1 to 12 on the uniform checkpoint"},
+    "adaptive_fewer_loops_percent": {"uniform_training": 26.0, "flop_proportional_training": 34.8, "where": "Finding 4 summary, Section 1"},
+    "flop_proportional_fewer_loops_percent": 12,
+    "noise_proportional_trails_by_loss": 0.029,
+    "inference_cost": {"loop_count_6": 1.48, "loop_count_12": 2.05, "where": "Section 5.2, relative to loop count 1"},
+    "generation_average_loops_adaptive": 5.5
+  },
+  "recursive_masked": {
+    "paper": "Recursive Scaling in Masked Diffusion Models (R-MDM), Carballo-Castro et al.",
+    "arxiv": "2606.18022",
+    "sudoku_valid_rate": {"5_steps": {"1_loop": 65.2, "5_loops": 93.6}, "40_steps": {"1_loop": 95.8, "5_loops": 98.0}, "where": "Section 3.2"},
+    "sudoku_equal_compute": {"6_layers_5_loops_10.8M": 93.6, "30_layers_53.1M": 77.8},
+    "dependence_share_of_clashes_at_5_loops": [0.83, 0.88],
+    "where_dependence": "Remark A.9; the conditional claim that loops cannot change the dependence term is in Appendix A"
+  },
+  "fixed_point": {
+    "paper": "Fixed-Point Masked Generative Modeling (CoFRe), Miele et al.",
+    "arxiv": "2605.31215",
+    "fewer_parameters_percent": 38.8,
+    "generation_perplexity_budget_96": {"distilled_non_looped": 193.05, "CoFRe": 101.79, "where": "Table 23"},
+    "reuse_weights": {"visible_unchanged": 1.0, "still_masked": [0.75, 0.90], "newly_revealed": 0.2, "where": "Section 3.3, Appendix C.2"}
+  },
+  "pure_self_conditioning": {
+    "paper": "Loopholing All the Way (LAW), Deschenaux, Ilieva et al.",
+    "arxiv": "2610.30068",
+    "math_accuracy": {"LAW": 42.2, "uniform_Loopholing": 34.5, "where": "Abstract, temperature 1, 1024 denoiser calls"},
+    "fine_tune_math_accuracy": {"before": 17.2, "after_50k_steps": 48.1}
+  },
+  "working_memory": {
+    "paper": "MetaState, Xia et al.",
+    "arxiv": "2603.01331",
+    "average_gain_points": 4.5,
+    "added_parameters_percent": 0.6,
+    "memory_slots": 64,
+    "correct_somewhere_vs_correct_at_end": {"ever": 79.0, "end_before": 63.0, "end_after": 66.0, "where": "Table 4, subset of the grade-school math benchmark"}
+  },
+  "temporal_history": {
+    "paper": "TDLM: Adaptive Temporal Integration, Sun et al.",
+    "arxiv": "2610.36940",
+    "fastest_speedup": 7.15,
+    "added_parameters_percent": 0.84,
+    "history_restriction_math": {"last_1": 77.62, "full": 79.08, "where": "Table 2"}
+  },
+  "on_policy_residual": {
+    "paper": "On-Policy Residual Learning (ORL), Yu et al.",
+    "arxiv": "2610.20687",
+    "tokens_per_forward_gain": [2.5, 6.2]
+  },
+  "denoising_recursion": {
+    "paper": "Denoising Recursion Models (DRM), Cameron et al.",
+    "arxiv": "2604.18839",
+    "arc_agi_2_public_eval_percent": 24.9
+  },
+  "representation_supervised": {
+    "paper": "LoopREG, Wang et al. Image model on ImageNet, not a discrete diffusion model.",
+    "arxiv": "2610.17877",
+    "depth_sweep_trained_at_3": {
+      "run_loop_count": [1, 2, 3, 4, 5, 6, 7, 8],
+      "fid": [117.78, 66.71, 13.75, 5.20, 4.91, 5.72, 6.81, 9.53],
+      "recall": [0.487, 0.706, 0.634, 0.524, 0.452, 0.411, 0.397, 0.398],
+      "where": "Appendix H.1, LoopREG-B/2, K_train = 3"
+    },
+    "no_supervision_extra_loop_fid": {"trained_depth": 34.45, "one_extra": 46.41},
+    "supervised_extra_loop_fid": {"trained_depth": 14.71, "one_extra": 5.34},
+    "non_looped_recall": 0.640
+  },
+  "parallel_sampler": {
+    "paper": "Efficient Parallel Samplers for Recurrent-Depth Models, Geiping et al.",
+    "arxiv": "2510.14961",
+    "tokens_per_second_gain": [4.36, 4.81],
+    "where": "Table 1"
+  }
+}
