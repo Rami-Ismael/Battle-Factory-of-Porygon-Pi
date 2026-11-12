@@ -10,11 +10,16 @@ Every team is its 84 tokens (src/team84.py), slots sorted by species. Two teams 
 slot by slot by species, so no matching is needed. Per team whose line-up appears in the reference:
   reference_count             same-line-up reference teams
   distance_78                 fields out of the 78 non-species fields that differ from the closest same-line-up team
-                              (ties: the lowest reference row), split into item_fields (of 6), ability_fields (6),
-                              stat_alignment_fields (6), move_fields (24; per Pokémon 4 minus the shared moves,
-                              compared as multisets of four tokens so a blank move matches a blank) and
-                              stat_point_fields (36); points_moved_per_pokemon is half the summed absolute Stat Point
-                              difference, averaged over the six Pokémon
+  item_fields, ability_fields, stat_alignment_fields, move_fields
+                              fields of 6, 6, 6 and 24 that differ from the same-line-up team closest on these 42
+                              fields; a move field is per Pokémon 4 minus the shared moves, compared as multisets of
+                              four tokens so a blank move matches a blank
+  stat_point_fields, points_moved_per_pokemon
+                              Stat Point fields of 36 that differ, and half the summed absolute Stat Point difference
+                              averaged over the six Pokémon, both against the same-line-up team closest on the 36
+                              Stat Point fields. Each closest team is chosen on its own fields only, so Stat Points
+                              never pick the team the other field types are read against; ties go to the lowest
+                              reference row
   new_*_for_line_up           share of the six Pokémon whose item, build (ability, item, Stat Alignment, four moves)
                               or exact six Stat Points no same-line-up reference team gives that species
   new_*_for_species           the same against that species anywhere in the reference
@@ -84,6 +89,7 @@ PER_TEAM_MEASURES = ("distance_78", "item_fields", "ability_fields", "stat_align
                      "fewest_differing_builds", "stat_point_total_per_pokemon", "share_pokemon_spending_66")
 STAT_POINT_TOKEN_OFFSET = 1                             # a Stat Point token is the value plus one (src/stat_points.py)
 FULL_STAT_POINT_BUDGET = 66
+NON_STAT_POINT_FIELD_TYPES = ("item_fields", "ability_fields", "stat_alignment_fields", "move_fields")   # 6 + 6 + 6 + 24
 OWN_STAT_POINT_MEASURES = ("stat_point_total_per_pokemon", "share_pokemon_spending_66")   # the team itself, no reference
 # Added 2026-11-11 (second pass). Per-team build measures; HEADLINE_MEASURES are the summary keys the report leads with.
 BUILD_MEASURES = ("within_line_up_new_builds", "copied_whole", "recombined", "has_new_build",
@@ -102,13 +108,13 @@ def slot_column(slot, offset):
     return slot * FIELDS_PER_SLOT_IN_FIRST_48 + offset
 
 
-SPECIES_COLUMNS = [slot_column(s, SPECIES_OFFSET) for s in range(SLOT_COUNT)]
-ABILITY_COLUMNS = [slot_column(s, ABILITY_OFFSET) for s in range(SLOT_COUNT)]
-ITEM_COLUMNS = [slot_column(s, ITEM_OFFSET) for s in range(SLOT_COUNT)]
-STAT_ALIGNMENT_COLUMNS = [slot_column(s, STAT_ALIGNMENT_OFFSET) for s in range(SLOT_COUNT)]
-MOVE_COLUMNS = [[slot_column(s, m) for m in MOVE_OFFSETS] for s in range(SLOT_COUNT)]
-STAT_POINT_COLUMNS = [[FIRST_48_COLUMNS + s * STAT_POINTS_PER_SLOT + k for k in range(STAT_POINTS_PER_SLOT)]
-                      for s in range(SLOT_COUNT)]
+SPECIES_COLUMNS = [slot_column(slot, SPECIES_OFFSET) for slot in range(SLOT_COUNT)]
+ABILITY_COLUMNS = [slot_column(slot, ABILITY_OFFSET) for slot in range(SLOT_COUNT)]
+ITEM_COLUMNS = [slot_column(slot, ITEM_OFFSET) for slot in range(SLOT_COUNT)]
+STAT_ALIGNMENT_COLUMNS = [slot_column(slot, STAT_ALIGNMENT_OFFSET) for slot in range(SLOT_COUNT)]
+MOVE_COLUMNS = [[slot_column(slot, move_offset) for move_offset in MOVE_OFFSETS] for slot in range(SLOT_COUNT)]
+STAT_POINT_COLUMNS = [[FIRST_48_COLUMNS + slot * STAT_POINTS_PER_SLOT + stat for stat in range(STAT_POINTS_PER_SLOT)]
+                      for slot in range(SLOT_COUNT)]
 
 
 # ---------------------------------------------------------------- pure measures on encoded rows
@@ -128,9 +134,9 @@ def species_keys(row):
     keys = []
     for slot in range(SLOT_COUNT):
         species = int(row[SPECIES_COLUMNS[slot]])
-        moves = tuple(sorted(int(m) for m in row[MOVE_COLUMNS[slot]]))
+        moves = tuple(sorted(int(move) for move in row[MOVE_COLUMNS[slot]]))
         build = (int(row[ABILITY_COLUMNS[slot]]), int(row[ITEM_COLUMNS[slot]]), int(row[STAT_ALIGNMENT_COLUMNS[slot]]), moves)
-        keys.append(((species, build[1]), (species, build), (species, tuple(int(v) for v in row[STAT_POINT_COLUMNS[slot]]))))
+        keys.append(((species, build[1]), (species, build), (species, tuple(int(value) for value in row[STAT_POINT_COLUMNS[slot]]))))
     return keys
 
 
@@ -195,12 +201,17 @@ def compare_team(index, query_row, self_reference_id=-1):
         return record
     group_rows = index.rows[ids]
     differences = per_slot_differences(query_row, group_rows)
-    field_types = ("item_fields", "ability_fields", "stat_alignment_fields", "move_fields", "stat_point_fields")
-    totals = sum(differences[name].sum(1) for name in field_types)
-    closest = int(np.argmin(totals))
-    record["distance_78"] = int(totals[closest])
-    record.update({name: int(differences[name][closest].sum()) for name in field_types})
-    record["points_moved_per_pokemon"] = float(differences["points_moved"][closest].mean())
+    # Each field-type group is read against the team closest on that group (np.argmin: ties go to the lowest
+    # reference row): the 42 non-Stat-Point fields against the team closest on those 42, the 36 Stat Point fields and
+    # points moved against the team closest on those 36. distance_78 is the 78-field minimum, its own closest team.
+    non_stat_point_totals = sum(differences[name].sum(1) for name in NON_STAT_POINT_FIELD_TYPES)
+    stat_point_totals = differences["stat_point_fields"].sum(1)
+    record["distance_78"] = int((non_stat_point_totals + stat_point_totals).min())
+    closest_on_42 = int(np.argmin(non_stat_point_totals))
+    closest_on_36 = int(np.argmin(stat_point_totals))
+    record.update({name: int(differences[name][closest_on_42].sum()) for name in NON_STAT_POINT_FIELD_TYPES})
+    record["stat_point_fields"] = int(stat_point_totals[closest_on_36])
+    record["points_moved_per_pokemon"] = float(differences["points_moved"][closest_on_36].mean())
     item_same = differences["item_fields"] == 0
     build_same = item_same & (differences["ability_fields"] == 0) & (differences["stat_alignment_fields"] == 0) \
         & (differences["move_fields"] == 0)
@@ -224,8 +235,7 @@ def build_measures(differences, build_same):
     """BUILD_MEASURES of one team from its [k, 6] differences to the k same-line-up reference teams."""
     within_line_up_new_builds = int((~build_same.any(0)).sum())
     copied_whole = int(build_same.all(1).any())
-    non_stat_point_fields = sum(differences[name].sum(1) for name in
-                                ("item_fields", "ability_fields", "stat_alignment_fields", "move_fields"))
+    non_stat_point_fields = sum(differences[name].sum(1) for name in NON_STAT_POINT_FIELD_TYPES)
     return dict(within_line_up_new_builds=within_line_up_new_builds, copied_whole=copied_whole,
                 recombined=int(within_line_up_new_builds == 0 and not copied_whole),
                 has_new_build=int(within_line_up_new_builds > 0),
@@ -239,43 +249,47 @@ def mean_or_nan(values):
 
 def summarize(records):
     """Flat dict of headline numbers for one sample: shares over all teams, the rest over copied line-ups."""
-    copied = [r for r in records if r["reference_count"] > 0]
-    counts = np.array([r["reference_count"] for r in copied])
+    copied = [record for record in records if record["reference_count"] > 0]
+    counts = np.array([record["reference_count"] for record in copied])
     summary = dict(teams=len(records), share_copied_line_up=len(copied) / len(records),
                    median_reference_count=float(np.median(counts)) if len(counts) else float("nan"),
-                   share_exact_copy_of_all_teams=sum(r["distance_78"] == 0 for r in copied) / len(records),
-                   share_exact_copy=mean_or_nan([r["distance_78"] == 0 for r in copied]))
-    for q in (10, 25, 75, 90):
-        summary[f"reference_count_percentile_{q}"] = float(np.percentile(counts, q)) if len(counts) else float("nan")
-    summary.update({f"mean_{m}": mean_or_nan([r[m] for r in copied]) for m in PER_TEAM_MEASURES})
+                   share_exact_copy_of_all_teams=sum(record["distance_78"] == 0 for record in copied) / len(records),
+                   share_exact_copy=mean_or_nan([record["distance_78"] == 0 for record in copied]))
+    for percentile in (10, 25, 75, 90):
+        summary[f"reference_count_percentile_{percentile}"] = (float(np.percentile(counts, percentile)) if len(counts)
+                                                              else float("nan"))
+    summary.update({f"mean_{measure}": mean_or_nan([record[measure] for record in copied]) for measure in PER_TEAM_MEASURES})
     for name, low, high in REFERENCE_COUNT_BUCKETS:
         inside = in_bucket(copied, low, high)
         summary[f"{name}/share_of_teams"] = len(inside) / len(records)
-        summary[f"{name}/share_exact_copy"] = mean_or_nan([r["distance_78"] == 0 for r in inside])
-        summary.update({f"{name}/mean_{m}": mean_or_nan([r[m] for r in inside]) for m in PER_TEAM_MEASURES})
+        summary[f"{name}/share_exact_copy"] = mean_or_nan([record["distance_78"] == 0 for record in inside])
+        summary.update({f"{name}/mean_{measure}": mean_or_nan([record[measure] for record in inside])
+                        for measure in PER_TEAM_MEASURES})
     summary.update(headline_numbers(copied))
     for name, low, high in LINE_UP_POPULARITY_BUCKETS:
         inside = in_bucket(copied, low, high)
         summary[f"{name}/share_of_teams"] = len(inside) / len(records)
-        summary.update({f"{name}/{k}": v for k, v in headline_numbers(inside).items()})
+        summary.update({f"{name}/{key}": value for key, value in headline_numbers(inside).items()})
     return summary
 
 
 def in_bucket(records, low, high):
-    return [r for r in records if r["reference_count"] >= low and (high is None or r["reference_count"] <= high)]
+    return [record for record in records
+            if record["reference_count"] >= low and (high is None or record["reference_count"] <= high)]
 
 
 def headline_numbers(copied):
     """HEADLINE_MEASURES plus the 0-to-6 distribution of within-line-up new builds, over copied-line-up records."""
-    numbers = dict(mean_within_line_up_new_builds=mean_or_nan([r["within_line_up_new_builds"] for r in copied]),
-                   share_copied_whole=mean_or_nan([r["copied_whole"] for r in copied]),
-                   share_recombined=mean_or_nan([r["recombined"] for r in copied]),
-                   share_has_new_build=mean_or_nan([r["has_new_build"] for r in copied]),
-                   mean_non_stat_point_distance_42=mean_or_nan([r["non_stat_point_distance_42"] for r in copied]),
-                   mean_stat_point_distance_36=mean_or_nan([r["stat_point_distance_36"] for r in copied]))
+    def mean_of(measure):
+        return mean_or_nan([record[measure] for record in copied])
+    numbers = dict(mean_within_line_up_new_builds=mean_of("within_line_up_new_builds"),
+                   share_copied_whole=mean_of("copied_whole"), share_recombined=mean_of("recombined"),
+                   share_has_new_build=mean_of("has_new_build"),
+                   mean_non_stat_point_distance_42=mean_of("non_stat_point_distance_42"),
+                   mean_stat_point_distance_36=mean_of("stat_point_distance_36"))
     for count in range(SLOT_COUNT + 1):
         numbers[f"share_within_line_up_new_builds_{count}"] = mean_or_nan(
-            [r["within_line_up_new_builds"] == count for r in copied])
+            [record["within_line_up_new_builds"] == count for record in copied])
     return numbers
 
 
@@ -303,14 +317,14 @@ def random_set_for_species(sampler, rng, species, used_items):
             return None
     legal_moves = sampler["legal_moves"][species]
     move_count = min(len(MOVE_OFFSETS), len(legal_moves))      # Ditto knows only Transform
-    moves = [legal_moves[i] for i in rng.choice(len(legal_moves), move_count, replace=False)]
+    moves = [legal_moves[position] for position in rng.choice(len(legal_moves), move_count, replace=False)]
     abilities = tables["abil"][species]
     ability = abilities[rng.integers(0, len(abilities))]
     display = tables["disp"]
     used_items.add(item)
     return dict(species=display.get(species, species), item=display.get(item, item),
                 ability=display.get(ability, ability), nature=sampler["natures"][rng.integers(0, len(sampler["natures"]))],
-                moves=[display.get(m, m) for m in moves], evs=sampler["draw_stat_points"](rng))
+                moves=[display.get(move, move) for move in moves], evs=sampler["draw_stat_points"](rng))
 
 
 def refill_line_ups(line_ups, sampler, rng, validate, encode):
@@ -339,18 +353,18 @@ def refill_line_ups(line_ups, sampler, rng, validate, encode):
     return teams, dict(outcomes)
 
 
-def random_sets_on_training_line_ups(T, V, line_ups):
+def random_sets_on_training_line_ups(team84, vocabulary, line_ups):
     """The high anchor's rows: each line-up refilled with random legal sets, every team checked by Showdown."""
-    import hps_generate as H
+    import hps_generate
     from corpus import MEGA_STONE_OF, NATURES
-    sampler = dict(tables=H.build_tables(), legal_moves=H.TRUE, mega_stone_of=MEGA_STONE_OF, natures=NATURES,
-                   draw_stat_points=H.sample_spread)
-    validator = H.Validator()
+    sampler = dict(tables=hps_generate.build_tables(), legal_moves=hps_generate.TRUE, mega_stone_of=MEGA_STONE_OF,
+                   natures=NATURES, draw_stat_points=hps_generate.sample_spread)
+    validator = hps_generate.Validator()
     try:
         teams, outcomes = refill_line_ups(
             line_ups, sampler, np.random.default_rng(REFILL_SEED),
-            validate=lambda slots: validator("\n\n".join(H.slot_to_text(s) for s in slots) + "\n"),
-            encode=lambda slots: T.encode(V, slots))
+            validate=lambda slots: validator("\n\n".join(hps_generate.slot_to_text(slot) for slot in slots) + "\n"),
+            encode=lambda slots: team84.encode(vocabulary, slots))
     finally:
         validator.close()
     return np.stack(teams), outcomes
@@ -360,15 +374,15 @@ def verdicts(floor_differences, model_by_seed, training_by_seed):
     """Per measure: the floor range, the three model-minus-training differences, and whether they differ."""
     out = {}
     for measure in floor_differences[0]:
-        values = np.array([d[measure] for d in floor_differences], dtype=float)
+        values = np.array([difference[measure] for difference in floor_differences], dtype=float)
         values = values[np.isfinite(values)]
-        differences = [model_by_seed[s][measure] - training_by_seed[s][measure] for s in SEEDS]
+        differences = [model_by_seed[seed][measure] - training_by_seed[seed][measure] for seed in SEEDS]
         if len(values) < len(floor_differences) or not np.all(np.isfinite(differences)):
             out[measure] = dict(diffs=differences, floor_pairs_defined=len(values), differs=False, sign=0)
             continue
         low, high = np.percentile(values, [2.5, 97.5])
-        outside = all(x < low or x > high for x in differences)
-        same_sign = all(x > 0 for x in differences) or all(x < 0 for x in differences)
+        outside = all(value < low or value > high for value in differences)
+        same_sign = all(value > 0 for value in differences) or all(value < 0 for value in differences)
         out[measure] = dict(floor_lo=float(low), floor_hi=float(high), diffs=differences,
                             differs=bool(outside and same_sign), sign=int(np.sign(np.mean(differences))) if same_sign else 0)
     return out
@@ -382,7 +396,7 @@ def measure_sample(index, rows, self_reference_ids=None):
 
 
 def reference_count_histogram(records):
-    return dict(sorted(Counter(min(r["reference_count"], 1000) for r in records).items()))
+    return dict(sorted(Counter(min(record["reference_count"], 1000) for record in records).items()))
 
 
 def sanity_checks(summaries):
@@ -402,61 +416,64 @@ def sanity_checks(summaries):
 def draw_samples(rng, train, tgroups, vgroups):
     """The ask-matched and all-win-rate training rows of diversity_vs_training.run, drawn in its order, leaving rng
     where its noise-floor pairs start; plus the row of its copied anchor."""
-    import diversity_vs_training as D
-    n = len(D.ASKS) * D.PER_ASK
-    rows_of = {f"train_s{s}": D.stratified(tgroups, rng) for s in SEEDS}
+    import diversity_vs_training
+    sample_size = len(diversity_vs_training.ASKS) * diversity_vs_training.PER_ASK
+    rows_of = {f"train_s{seed}": diversity_vs_training.stratified(tgroups, rng) for seed in SEEDS}
     copied_anchor_row = int(rng.choice(train))
-    D.stratified(vgroups, rng)                            # the validation sample
-    for s in SEEDS:
-        rows_of[f"train_all_s{s}"] = np.random.default_rng(SEED0 + 100 + s).choice(train, n, replace=False)
+    diversity_vs_training.stratified(vgroups, rng)        # the validation sample
+    for seed in SEEDS:
+        rows_of[f"train_all_s{seed}"] = np.random.default_rng(SEED0 + 100 + seed).choice(train, sample_size, replace=False)
     return rows_of, copied_anchor_row
 
 
 def headline_keys(summary):
     """Every summary key built from a HEADLINE_MEASURES entry, its distribution, or a popularity bucket of them."""
-    names = set(HEADLINE_MEASURES) | {f"share_within_line_up_new_builds_{k}" for k in range(SLOT_COUNT + 1)}
+    names = set(HEADLINE_MEASURES) | {f"share_within_line_up_new_builds_{count}" for count in range(SLOT_COUNT + 1)}
     return [key for key in summary if key.split("/")[-1] in names
             or (key.endswith("/share_of_teams") and key.startswith("line_up_shared_by"))]
 
 
 def run(out_path=OUT):
     started = time.perf_counter()
-    import diversity_vs_training as D
-    T, V, X, train, tgroups, vgroups, decode_row, model, dropped = D.load()
-    index = ReferenceIndex(X[train])
+    import diversity_vs_training
+    team84, vocabulary, table_rows, train, tgroups, vgroups, decode_row, model, dropped = diversity_vs_training.load()
+    index = ReferenceIndex(table_rows[train])
     print(f"reference: {len(train)} teams, {len(index.groups)} line-ups ({time.perf_counter() - started:.0f} s)", flush=True)
     position_in_reference = lambda rows: np.searchsorted(train, rows)
     rng = np.random.default_rng(SEED0)
     training_rows, copied_anchor_row = draw_samples(rng, train, tgroups, vgroups)
-    records = {f"model_s{s}": measure_sample(index, np.stack([T.encode(V, t) for t in model[s]])) for s in SEEDS}
+    records = {f"model_s{seed}": measure_sample(index, np.stack([team84.encode(vocabulary, team) for team in model[seed]]))
+               for seed in SEEDS}
     for name, rows in training_rows.items():
-        records[name] = measure_sample(index, X[rows], position_in_reference(rows))
+        records[name] = measure_sample(index, table_rows[rows], position_in_reference(rows))
     sample_size = len(training_rows["train_s1"])
     # Anchors are measured against the whole reference, nothing left out.
-    records["anchor_copied_one_reference_team"] = measure_sample(index, np.repeat(X[[copied_anchor_row]], sample_size, 0))
+    records["anchor_copied_one_reference_team"] = measure_sample(index, np.repeat(table_rows[[copied_anchor_row]], sample_size, 0))
     anchor_line_ups = [[slot["species"] for slot in decode_row(row)] for row in training_rows["train_s1"]]
-    refilled_rows, refill_outcomes = random_sets_on_training_line_ups(T, V, anchor_line_ups)
+    refilled_rows, refill_outcomes = random_sets_on_training_line_ups(team84, vocabulary, anchor_line_ups)
     records["anchor_random_sets_on_training_line_ups"] = measure_sample(index, refilled_rows)
     print(f"random-set anchor: {len(refilled_rows)} teams, {refill_outcomes} ({time.perf_counter() - started:.0f} s)",
           flush=True)
-    summaries = {name: summarize(r) for name, r in records.items()}
-    for name, s in summaries.items():
-        print(f"{name:40s} copied line-up {s['share_copied_line_up']:.3f} new builds "
-              f"{s['mean_within_line_up_new_builds']:.2f} whole/recombined/new {s['share_copied_whole']:.3f}/"
-              f"{s['share_recombined']:.3f}/{s['share_has_new_build']:.3f} distance 42 "
-              f"{s['mean_non_stat_point_distance_42']:.2f} 36 {s['mean_stat_point_distance_36']:.2f}", flush=True)
+    summaries = {name: summarize(sample_records) for name, sample_records in records.items()}
+    for name, summary in summaries.items():
+        print(f"{name:40s} copied line-up {summary['share_copied_line_up']:.3f} new builds "
+              f"{summary['mean_within_line_up_new_builds']:.2f} whole/recombined/new {summary['share_copied_whole']:.3f}/"
+              f"{summary['share_recombined']:.3f}/{summary['share_has_new_build']:.3f} distance 42 "
+              f"{summary['mean_non_stat_point_distance_42']:.2f} 36 {summary['mean_stat_point_distance_36']:.2f}", flush=True)
     floor_differences = []
     for pair in range(FLOOR_PAIRS):
-        a = D.stratified(tgroups, rng); b = D.stratified(tgroups, rng, exclude=a)
-        sa = summarize(measure_sample(index, X[a], position_in_reference(a)))
-        sb = summarize(measure_sample(index, X[b], position_in_reference(b)))
-        floor_differences.append({m: sa[m] - sb[m] for m in sa})
+        first_rows = diversity_vs_training.stratified(tgroups, rng)
+        second_rows = diversity_vs_training.stratified(tgroups, rng, exclude=first_rows)
+        first_summary = summarize(measure_sample(index, table_rows[first_rows], position_in_reference(first_rows)))
+        second_summary = summarize(measure_sample(index, table_rows[second_rows], position_in_reference(second_rows)))
+        floor_differences.append({key: first_summary[key] - second_summary[key] for key in first_summary})
         print(f"floor pair {pair + 1}/{FLOOR_PAIRS}", flush=True)
-    model_by_seed = {s: summaries[f"model_s{s}"] for s in SEEDS}
+    model_by_seed = {seed: summaries[f"model_s{seed}"] for seed in SEEDS}
     floor_check = json.loads(DIVERSITY_RESULT.read_text())["floor"]["novelty_swaps_0"]
-    own_floor = np.percentile([d["share_copied_line_up"] for d in floor_differences], [2.5, 97.5])
-    verdict = verdicts(floor_differences, model_by_seed, {s: summaries[f"train_s{s}"] for s in SEEDS})
-    verdict_all_win_rates = verdicts(floor_differences, model_by_seed, {s: summaries[f"train_all_s{s}"] for s in SEEDS})
+    own_floor = np.percentile([difference["share_copied_line_up"] for difference in floor_differences], [2.5, 97.5])
+    verdict = verdicts(floor_differences, model_by_seed, {seed: summaries[f"train_s{seed}"] for seed in SEEDS})
+    verdict_all_win_rates = verdicts(floor_differences, model_by_seed,
+                                     {seed: summaries[f"train_all_s{seed}"] for seed in SEEDS})
     headlines = headline_keys(summaries["model_s1"])
     out = dict(reference_teams=len(train), reference_line_ups=len(index.groups), dropped=dict(dropped),
                reference_count_buckets=REFERENCE_COUNT_BUCKETS, line_up_popularity_buckets=LINE_UP_POPULARITY_BUCKETS,
@@ -464,11 +481,13 @@ def run(out_path=OUT):
                anchors=dict(anchor_copied_one_reference_team=dict(training_row=copied_anchor_row),
                             anchor_random_sets_on_training_line_ups=dict(line_ups_from="train_s1", seed=REFILL_SEED,
                                                                          outcomes=refill_outcomes)),
-               reference_count_histogram={k: reference_count_histogram(r) for k, r in records.items()},
+               reference_count_histogram={name: reference_count_histogram(sample_records)
+                                          for name, sample_records in records.items()},
                verdict=verdict, verdict_all_win_rates=verdict_all_win_rates,
                headline_verdict={key: verdict[key] for key in headlines},
                headline_verdict_all_win_rates={key: verdict_all_win_rates[key] for key in headlines},
-               sanity=dict(per_sample=sanity_checks({k: v for k, v in summaries.items() if not k.startswith("anchor")}),
+               sanity=dict(per_sample=sanity_checks({name: summary for name, summary in summaries.items()
+                                                     if not name.startswith("anchor")}),
                            floor_pairs_match=dict(own=own_floor.tolist(), diversity_vs_training=[floor_check["lo"], floor_check["hi"]],
                                                   matches=bool(np.allclose(own_floor, [floor_check["lo"], floor_check["hi"]])))))
     Path(out_path).write_text(json.dumps(out, indent=1, default=str))

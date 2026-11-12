@@ -26,7 +26,7 @@ from pathlib import Path
 
 import numpy as np
 
-import novelty_within_lineup as NW
+import novelty_within_lineup
 
 STATS = ("HP", "Atk", "Def", "SpA", "SpD", "Spe")
 SLOT_COUNT = 6
@@ -35,8 +35,8 @@ STAT_POINT_TOKEN_OFFSET = 1
 FULL_BUDGET = 66
 MAX_PER_STAT = 32
 TOTAL_BINS = (("66", 66, 66), ("60_to_65", 60, 65), ("40_to_59", 40, 59), ("0_to_39", 0, 39))
-SEEDS = NW.SEEDS
-OUT = NW.RESULTS / "stat_points_spent_2026-11-11.json"
+SEEDS = novelty_within_lineup.SEEDS
+OUT = novelty_within_lineup.RESULTS / "stat_points_spent_2026-11-11.json"
 
 
 def stat_point_values(rows):
@@ -54,7 +54,7 @@ def measures(values):
     out = dict(pokemon=len(values), share_spending_66=float(np.mean(totals == FULL_BUDGET)), mean_total=float(totals.mean()))
     for name, low, high in TOTAL_BINS:
         out[f"share_total_{name}"] = float(np.mean((totals >= low) & (totals <= high)))
-    out.update({f"mean_{stat}": float(values[:, k].mean()) for k, stat in enumerate(STATS)})
+    out.update({f"mean_{stat}": float(values[:, column].mean()) for column, stat in enumerate(STATS)})
     out["mean_speed_room"] = float(speed_room.mean())
     out["share_speed_below_room"] = float(np.mean(values[:, 5] < speed_room))
     out["share_first_five_reach_66"] = float(np.mean(first_five >= FULL_BUDGET))
@@ -62,27 +62,32 @@ def measures(values):
 
 
 def run(out_path=OUT):
-    import diversity_vs_training as D
-    T, V, X, train, tgroups, vgroups, _decode_row, model, dropped = D.load()
-    rng = np.random.default_rng(NW.SEED0)
-    training_rows, _copied_anchor_row = NW.draw_samples(rng, train, tgroups, vgroups)
-    summaries = {f"model_s{s}": measures(stat_point_values(np.stack([T.encode(V, t) for t in model[s]]))) for s in SEEDS}
-    summaries.update({name: measures(stat_point_values(X[rows])) for name, rows in training_rows.items()})
-    summaries["training_reference"] = measures(stat_point_values(X[train]))
+    import diversity_vs_training
+    team84, vocabulary, table_rows, train, tgroups, vgroups, _decode_row, model, dropped = diversity_vs_training.load()
+    rng = np.random.default_rng(novelty_within_lineup.SEED0)
+    training_rows, _copied_anchor_row = novelty_within_lineup.draw_samples(rng, train, tgroups, vgroups)
+    summaries = {f"model_s{seed}": measures(stat_point_values(np.stack([team84.encode(vocabulary, team)
+                                                                         for team in model[seed]])))
+                 for seed in SEEDS}
+    summaries.update({name: measures(stat_point_values(table_rows[rows])) for name, rows in training_rows.items()})
+    summaries["training_reference"] = measures(stat_point_values(table_rows[train]))
     floor_differences = []
-    for _ in range(NW.FLOOR_PAIRS):
-        a = D.stratified(tgroups, rng); b = D.stratified(tgroups, rng, exclude=a)
-        sa, sb = measures(stat_point_values(X[a])), measures(stat_point_values(X[b]))
-        floor_differences.append({m: sa[m] - sb[m] for m in sa})
-    model_by_seed = {s: summaries[f"model_s{s}"] for s in SEEDS}
-    out = dict(source=str(D.GEN), dropped=dict(dropped), stats=STATS, summaries=summaries,
-               verdict=NW.verdicts(floor_differences, model_by_seed, {s: summaries[f"train_s{s}"] for s in SEEDS}),
-               verdict_all_win_rates=NW.verdicts(floor_differences, model_by_seed,
-                                                 {s: summaries[f"train_all_s{s}"] for s in SEEDS}))
+    for _ in range(novelty_within_lineup.FLOOR_PAIRS):
+        first_rows = diversity_vs_training.stratified(tgroups, rng)
+        second_rows = diversity_vs_training.stratified(tgroups, rng, exclude=first_rows)
+        first_summary = measures(stat_point_values(table_rows[first_rows]))
+        second_summary = measures(stat_point_values(table_rows[second_rows]))
+        floor_differences.append({key: first_summary[key] - second_summary[key] for key in first_summary})
+    model_by_seed = {seed: summaries[f"model_s{seed}"] for seed in SEEDS}
+    out = dict(source=str(diversity_vs_training.GEN), dropped=dict(dropped), stats=STATS, summaries=summaries,
+               verdict=novelty_within_lineup.verdicts(floor_differences, model_by_seed,
+                                                      {seed: summaries[f"train_s{seed}"] for seed in SEEDS}),
+               verdict_all_win_rates=novelty_within_lineup.verdicts(floor_differences, model_by_seed,
+                                                                    {seed: summaries[f"train_all_s{seed}"] for seed in SEEDS}))
     Path(out_path).write_text(json.dumps(out, indent=1))
-    for name, s in summaries.items():
-        print(f"{name:20s} Pokémon {s['pokemon']:7d} spend 66 {s['share_spending_66']:.3f} mean total {s['mean_total']:.2f} "
-              f"Speed {s['mean_Spe']:.2f} room {s['mean_speed_room']:.2f}")
+    for name, summary in summaries.items():
+        print(f"{name:20s} Pokémon {summary['pokemon']:7d} spend 66 {summary['share_spending_66']:.3f} "
+              f"mean total {summary['mean_total']:.2f} Speed {summary['mean_Spe']:.2f} room {summary['mean_speed_room']:.2f}")
     print(f"wrote {out_path}")
 
 

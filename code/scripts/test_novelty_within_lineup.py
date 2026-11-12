@@ -98,6 +98,42 @@ class TestFieldTypeBreakdown(unittest.TestCase):
         self.assertEqual(record["distance_78"], 6)
         self.assertAlmostEqual(record["points_moved_per_pokemon"], 1 / 6)
 
+    def test_each_field_type_group_takes_its_own_closest_team(self):
+        base = base_slots()
+        one_stat_point_moved = (12, 10, 11, 11, 11, 11)
+        closest_on_78 = with_change(with_change(base, 0, ITEM, 99), 1, ITEM, 98)          # 42 fields: 2, 36 fields: 2
+        closest_on_78 = with_change(closest_on_78, 2, STAT_POINTS, one_stat_point_moved)
+        closest_on_42 = with_change(base, 0, ITEM, 99)                                       # 42 fields: 1, 36 fields: 4
+        closest_on_42 = with_change(with_change(closest_on_42, 3, STAT_POINTS, one_stat_point_moved),
+                                    4, STAT_POINTS, one_stat_point_moved)
+        closest_on_36 = base                                                                 # 42 fields: 6, 36 fields: 0
+        for slot in range(5):
+            closest_on_36 = with_change(closest_on_36, slot, ITEM, 90 + slot)
+        closest_on_36 = with_change(closest_on_36, 5, ABILITY, 89)
+        record = compare(base, [closest_on_78, closest_on_42, closest_on_36])
+        self.assertEqual(record["distance_78"], 4)
+        self.assertEqual((record["item_fields"], record["ability_fields"], record["stat_alignment_fields"],
+                          record["move_fields"]), (1, 0, 0, 0))
+        self.assertEqual(record["stat_point_fields"], 0)
+        self.assertEqual(record["points_moved_per_pokemon"], 0)
+        self.assertEqual(record["non_stat_point_distance_42"], 1)
+        self.assertEqual(record["stat_point_distance_36"], 0)
+
+    def test_a_tie_on_the_42_fields_goes_to_the_lowest_reference_row(self):
+        base = base_slots()
+        item_differs, ability_differs = with_change(base, 0, ITEM, 99), with_change(base, 0, ABILITY, 98)
+        first = compare(base, [item_differs, ability_differs])
+        self.assertEqual((first["item_fields"], first["ability_fields"]), (1, 0))
+        second = compare(base, [ability_differs, item_differs])
+        self.assertEqual((second["item_fields"], second["ability_fields"]), (0, 1))
+
+    def test_a_tie_on_the_36_fields_goes_to_the_lowest_reference_row(self):
+        base = base_slots()
+        one_point = with_change(base, 0, STAT_POINTS, (12, 10, 11, 11, 11, 11))
+        ten_points = with_change(base, 0, STAT_POINTS, (21, 1, 11, 11, 11, 11))
+        self.assertAlmostEqual(compare(base, [one_point, ten_points])["points_moved_per_pokemon"], 1 / 6)
+        self.assertAlmostEqual(compare(base, [ten_points, one_point])["points_moved_per_pokemon"], 10 / 6)
+
     def test_moves_compared_as_sets(self):
         base = base_slots()
         reordered = with_change(base, 0, MOVES, (70, 60, 50, 40))
@@ -223,7 +259,7 @@ class TestStandaloneDistances(unittest.TestCase):
         one_item_off_and_stat_points = with_change(with_change(base, 0, ITEM, 1), 4, STAT_POINTS, (1, 1, 1, 1, 1, 1))
         record = compare(base, [three_items_off, one_item_off_and_stat_points])
         self.assertEqual(record["distance_78"], 3)                          # closest on 78 fields: three items off
-        self.assertEqual(record["item_fields"], 3)                          # breakdown stays against that team
+        self.assertEqual(record["item_fields"], 1)                          # breakdown against the 42-field closest
         self.assertEqual(record["non_stat_point_distance_42"], 1)
         self.assertEqual(record["stat_point_distance_36"], 0)
 

@@ -1,4 +1,5 @@
-"""The diversity measures behind diversity_vs_training.py, on made-up teams. No game data, checkpoints or Showdown.
+"""The diversity measures behind diversity_vs_training.py, on made-up teams. No checkpoints or Showdown; the
+mega stone tests read code/data/pokedex.json.
 
     .venv/bin/python scripts/test_diversity_vs_training.py   (from code/)
 """
@@ -126,6 +127,29 @@ class Archetypes(unittest.TestCase):
     def test_a_mega_stone_whose_mega_ability_sets_weather_counts_with_the_base_ability_stored(self):
         t = team("x"); t[0] = slot("charizard", item="charizarditey", ability="blaze")
         self.assertEqual(D.archetype_shares([t])["sun"], 1.0)
+
+    def test_a_mega_stone_held_by_another_species_does_not_count(self):
+        holder_team = team("x"); holder_team[0] = slot("Pikachu", item="Charizardite Y", ability="Static")
+        self.assertEqual(D.archetype_shares([holder_team])["sun"], 0.0)
+        self.assertEqual(D.archetype_shares([holder_team])["none"], 1.0)
+
+    def test_a_mega_stone_held_by_the_species_it_mega_evolves_counts_in_display_spelling(self):
+        holder_team = team("x"); holder_team[0] = slot("Charizard", item="Charizardite Y", ability="Blaze")
+        self.assertEqual(D.archetype_shares([holder_team])["sun"], 1.0)
+
+    def test_a_mega_stone_held_by_its_mega_form_counts(self):
+        holder_team = team("x"); holder_team[0] = slot("Charizard-Mega-Y", item="Charizardite Y", ability="Drought")
+        self.assertEqual(D.archetype_shares([holder_team])["sun"], 1.0)
+
+    def test_a_mega_stone_held_by_a_regional_form_of_its_species_does_not_count(self):
+        holder_team = team("x"); holder_team[0] = slot("Raichu-Alola", item="Raichunite X", ability="Surge Surfer")
+        self.assertEqual(D.archetype_shares([holder_team])["electric terrain"], 0.0)
+
+    def test_every_listed_setter_stone_has_a_mega_species_in_the_pokedex(self):
+        holders = D.mega_stone_species()
+        for parts in D.ARCHETYPE_SETTERS.values():
+            for stone in parts["items"]:
+                self.assertTrue(holders.get(D.comparable(stone)), stone)
 
     def test_names_match_in_the_vocabulary_spelling(self):
         shares = D.archetype_shares([team("x", moves=("trickroom", "m2", "m3", "m4"), ability="sandspit")])

@@ -72,10 +72,12 @@ All three are in `notes/GLOSSARY.md`.
 - `code/src/diffusion84.py` line 39 sets the draw order with every Stat Point last, each Pokémon's in the order HP, Attack, Defense, Sp. Attack, Sp. Defense, Speed. In training, Speed nearly always takes its whole room; in the model's teams it falls short of that room for 62.9% to 65.4% of Pokémon.
 - Which of the network or guidance 2 causes the shortfall is untested; the guidance 1 run above would answer it.
 - Against any-win-rate training, the 42 other fields do differ beyond the floor on every seed, by 0.85 to 1.27 fields. That comparison reuses the floor from win-rate-matched pairs.
-- Splitting the 78 non-species fields by type against the single closest training team, rather than one closest team per part, puts items 0.25 to 0.36 fields of 6 above training and Stat Alignment 0.51 to 0.56 below, both beyond the floor. That closest team is chosen on all 78 fields, Stat Points included, so these splits can inherit the Stat Point gap; the 42-field measure picks its own closest team and avoids it.
+- Splitting the 42 fields by type, against the training team closest on those 42 fields, puts items 0.33 to 0.46 fields of 6 above win-rate-matched training and Stat Alignment 0.37 to 0.42 below, both beyond the floor. The Stat Point fields are read against the team closest on the 36 Stat Point fields, so Stat Points never choose the team the other field types are compared with.
 - Code: `code/scripts/novelty_within_lineup.py`, `code/scripts/stat_points_spent.py` and their tests. Figures: `notes/reports/diversity-measurement-2026-11-11/build_figures_within_line_up.py`. Result files: `~/vgc-data/results/novelty_within_lineup_2026-11-11.json` and `~/vgc-data/results/stat_points_spent_2026-11-11.json`.
 - No model team holds all six builds of one training team, and no win-rate-matched training team does either, since no two training teams share all 48 non-Stat-Point fields.
 
 </details>
 
 Commit `{short_sha}` on branch `t3/queue-experiments-from-issues`; files are listed under the caveats.
+
+Corrected 2026-11-11: the item and Stat Alignment split is now read against the training team closest on the 42 non-Stat-Point fields instead of the one closest on all 78, which turns the item gap above win-rate-matched training, 0.25 to 0.36 fields, into 0.33 to 0.46, and the Stat Alignment gap below it, 0.51 to 0.56, into 0.37 to 0.42; both stay beyond the floor.
