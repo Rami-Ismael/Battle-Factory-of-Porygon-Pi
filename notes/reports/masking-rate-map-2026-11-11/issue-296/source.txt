@@ -1,0 +1,16 @@
+Train the 84-field model with the linear masking rate
+
+## Question
+
+Train two models on the shuffled-only table with the default model's recipe, one with the per-field masking rate and one with the linear masking rate, one seed each. Run the probes from the pre-registration first. After the per-field training, run the t probe on it: it decides whether Per-field, corrected t is battled. Post both validation curves, both training-versus-validation gaps measured with the same function on both sides, and the validation loss of both checkpoints under both masking rates.
+
+![The plan after the two decisions](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/3_plan.png)
+
+Plan: [code/docs/masking-rate-rows.md](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md)
+
+Parent map: [Masking-rate map: per-field versus linear masking rate on the 84-field model, and where our code departs from MD4 and LLaDA](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/291)
+
+
+**From the pre-registration, 2026-11-11.** Run `masking_rate_preflight.py recipe_replay training_smoke` from the frozen copy first. Both passed on 2026-11-11: one epoch of the control's recipe landed on its logged epoch-1 losses, 1.7917 against 1.7918 in training and 1.47690 against 1.47691 in validation. Read the new model's validation loss against 1.404, the default model's loss under the linear masking rate, never against its 1.209 under the per-field rate. Post the validation loss of both checkpoints under both masking rates. Detail: https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md
+
+**2026-11-11, body rewritten.** Owner: "I perfer shuffled only because it only represent a win rate that is not bias by the error of the rl policy". The ticket was one training on the default model's table. It is now two trainings on the shuffled-only table, per-field and linear, because today's default model trained on the older table and a table difference would mix with the masking rate. The earlier comment's 1.404 and the recipe replay were measured on the older table. On the shuffled-only table the training smoke passes, 3.663 to 1.917 with the linear rate.

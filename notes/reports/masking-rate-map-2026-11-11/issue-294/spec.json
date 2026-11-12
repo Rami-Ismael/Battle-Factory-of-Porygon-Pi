@@ -1,0 +1,153 @@
+{
+ "issue": 294,
+ "title": "Pre-register the four masking-rate rows",
+ "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/294",
+ "headline": "The plan was fixed before any run, and one check now decides a row",
+ "setup": "A pre-registration writes the plan down before any training or battle, so a result cannot bend it afterwards. This one fixed four rows, each a way to train and sample the model, and ran six quick checks that need no battle. One of those checks now decides whether one row is battled at all.",
+ "alt": "The plan fixed four rows before any run. Five checks passed. The t check read 0.005 and 0.008, under its bar of 0.01, so Per-field, corrected t is battled only if the same check reaches the bar on the new model. The battles can detect a gap of 0.001, and training luck alone has reached 0.0019.",
+ "terms": [
+  [
+   "Row",
+   "One way to train and sample the model. Four are compared. The control is Per-field, uncorrected t: our own settings"
+  ],
+  [
+   "Masking rate",
+   "The chance a field is hidden in training. Per-field, ours: species are almost never hidden. Linear, the papers': every field has the same chance"
+  ],
+  [
+   "Corrected t",
+   "The t at which training hid as many fields as are still hidden at this pass"
+  ],
+  [
+   "t check",
+   "Measures how far the model's choices move when told the corrected t: 0 is no change. Under 0.01, the correction cannot matter, and the row is not battled"
+  ],
+  [
+   "Smallest detectable gap",
+   "The smallest difference in error the planned battles can tell from noise: 0.001"
+  ],
+  [
+   "Training luck",
+   "The gap two trainings of one recipe show by chance alone: up to 0.0019 in error. A win under 0.002 is treated as luck"
+  ],
+  [
+   "Shuffled-only table",
+   "The training teams whose win-rate labels come only from battles that shuffle a team's six Pokémon"
+  ]
+ ],
+ "frames": [
+  {
+   "title": "1. The plan, from claim to budget",
+   "kind": "flow",
+   "data": {
+    "boxes": [
+     {
+      "label": "Claim",
+      "sub": "Do the papers' settings do better?",
+      "tone": "plain"
+     },
+     {
+      "label": "Four rows",
+      "sub": "Fixed in writing, with their settings and cost",
+      "tone": "c1"
+     },
+     {
+      "label": "Probes",
+      "sub": "Checks with no battles. One failed.",
+      "tone": "warn"
+     },
+     {
+      "label": "Noise and cost",
+      "sub": "Gap the battles can detect: 0.001. Training: 13.4 hours",
+      "tone": "ok"
+     }
+    ]
+   },
+   "takes": "Each stage was written down before any run.",
+   "measured": "Per-field, corrected t is battled only if the check reaches 0.01 on the new per-field model."
+  },
+  {
+   "title": "2. Six checks, and the one that decides a row",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "The linear masking rate hides the right share of fields",
+      "state": "done"
+     },
+     {
+      "text": "The corrected t is computed right",
+      "state": "done"
+     },
+     {
+      "text": "The t check: under its bar, so the corrected t barely matters",
+      "state": "hold"
+     },
+     {
+      "text": "The validation loss reproduces the logged value",
+      "state": "done"
+     },
+     {
+      "text": "A fresh network learns under the linear masking rate",
+      "state": "done"
+     },
+     {
+      "text": "Today's code replays the old training's first epoch",
+      "state": "done"
+     }
+    ]
+   },
+   "takes": "Five checks passed with no battle. The sixth showed the model barely reads t.",
+   "measured": "The t check read 0.005 on today's default model and 0.008 on a model trained on the shuffled-only table. Its bar is 0.01."
+  },
+  {
+   "title": "3. The smallest detectable gap against training luck",
+   "kind": "bars",
+   "data": {
+    "bars": [
+     {
+      "label": "Smallest detectable gap",
+      "height": 0.5,
+      "tone": "ok",
+      "note": "0.001"
+     },
+     {
+      "label": "Training luck",
+      "height": 0.95,
+      "tone": "warn",
+      "note": "0.0019"
+     }
+    ]
+   },
+   "takes": "The battles detect a gap near 0.001, but training luck alone reached 0.0019.",
+   "measured": "Two trainings of one recipe differed by up to 0.0019 in error, so a linear win under 0.002 is treated as training luck."
+  },
+  {
+   "title": "4. The plan before and after the two decisions",
+   "kind": "compare",
+   "data": {
+    "left": {
+     "title": "Before",
+     "lines": [
+      "Control: today's default model",
+      "One training, 5.4 hours",
+      "Guidance 2 only",
+      "710,000 battles, 2.5 hours"
+     ]
+    },
+    "right": {
+     "title": "After",
+     "tone": "c1",
+     "lines": [
+      "Control: a new per-field model",
+      "Two trainings, 13.4 hours",
+      "Guidance 2, 4 and 8",
+      "2.3 million battles, 8.1 hours"
+     ]
+    }
+   },
+   "takes": "The owner's two decisions added one training and tripled the grids.",
+   "measured": "Training goes from 5.4 to 13.4 hours, and battles from 710,000 to 2.3 million."
+  }
+ ]
+}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The two training tables</title><style>
+html{background:#fcfcfb;color:#0b0b0b;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+body{margin:0;--ink:#0b0b0b;--soft:#52514e;--box:#f3f2ee;--edge:#dcdbd5;--c1:#2a78d6;--c2:#1baf7a;--c3:#c98a00;--ok:#16803c;--warn:#a16207;--bad:#c0392b;
+--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--r:10px} main{max-width:760px;margin:0 auto;padding:24px 16px}
+@media (prefers-color-scheme:dark){html{background:#161615;color:#f2f1ee}
+body{--ink:#f2f1ee;--soft:#a9a8a2;--box:#1f1f1e;--edge:#34342f;--c1:#5b9bf0;--c2:#2dd4a4;--c3:#f5c04a;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171}}
+
+*{box-sizing:border-box} h1{font-size:17px;line-height:1.3;margin:0 0 4px;font-weight:650} h2{font-size:14px;margin:18px 0 6px;font-weight:650}
+p{margin:0 0 8px} .sub{color:var(--soft);font-size:13px;line-height:1.45;margin:0 0 12px} .note{color:var(--soft);font-size:12px;line-height:1.45;margin:8px 0 0}
+.grid{display:grid;gap:10px} .g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:560px){.g2,.g3{grid-template-columns:1fr}}
+.box{background:var(--box);border:1px solid var(--edge);border-radius:var(--r);padding:14px 16px}
+.box h3{margin:0 0 4px;font-size:14px;line-height:1.3;font-weight:650} .box p{font-size:13px;line-height:1.45;color:var(--soft);margin:0}
+.big{font-size:22px;font-weight:700;line-height:1.15;color:var(--ink);font-variant-numeric:tabular-nums}
+code,.mono{font-family:var(--mono);font-size:12px} .chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:650;margin-top:8px}
+.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,transparent)} .bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent)}
+.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)} .plain{color:var(--soft);background:color-mix(in srgb,var(--soft) 14%,transparent)}
+.flow{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap} .flow .box{flex:1 1 150px} .arrow{align-self:center;color:var(--soft);font-size:18px}
+table{border-collapse:collapse;width:100%;font-size:12.5px} th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--edge);vertical-align:top;line-height:1.35}
+th{color:var(--soft);font-weight:600;font-size:12px} td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.same{background:color-mix(in srgb,var(--ok) 15%,transparent)} .diff{background:color-mix(in srgb,var(--warn) 15%,transparent)} .none{color:var(--soft)}
+.key{display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:12px;color:var(--soft)} .sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--edge)}
+svg text{fill:var(--soft);font-size:9px;font-family:inherit} svg .ink{fill:var(--ink)}
+</style></head><body><main>
+<h1>The two training tables</h1>
+<p class="sub">"The control's table" was the older table that today's default model trained on. You chose the shuffled-only one.</p>
+<div class="grid g2">
+  <div class="box"><h3>Older table</h3><p>Labels pool every battle on record, including battles where the six Pokémon kept their listed order. As few as 24 battles for a label.</p>
+    <div class="big" style="margin-top:8px">170,785 teams</div><p>Mean label 0.43. Near asks 13/24 to 17/24: 46,013.</p><span class="chip plain">today's default model</span></div>
+  <div class="box"><h3>Shuffled-only table</h3><p>Every label comes from shuffled-slot battles alone, at least 49 for each team. The battle player's slot habit cannot tilt it.</p>
+    <div class="big" style="margin-top:8px">214,598 teams</div><p>Mean label 0.28. Near asks 13/24 to 17/24: 20,732.</p><span class="chip ok">your choice</span></div>
+</div>
+<h2>Labelled training teams at each ask</h2>
+<div id="chart" style="width:100%;height:260px"></div>
+<p class="note">Only 783 labelled teams are in both tables. On those, the older label is higher by 0.014 on average, and half differ by more than 0.05. The cost of the choice: fewer than half as many strong teams to learn the high asks from. The gain: labels the slot order cannot bias.</p>
+</main><script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script><script>
+const option = {"legend": {"top": 0}, "grid": {"left": 52, "right": 10, "top": 34, "bottom": 28}, "tooltip": {"trigger": "axis"}, "xAxis": {"type": "category", "data": ["1/24", "2/24", "3/24", "4/24", "5/24", "6/24", "7/24", "8/24", "9/24", "10/24", "11/24", "12/24", "13/24", "14/24", "15/24", "16/24", "17/24", "18/24", "19/24", "20/24", "21/24", "22/24", "23/24"]}, "yAxis": {"type": "value"}, "series": [{"name": "Older table", "type": "line", "data": [2105, 2958, 3820, 4761, 5891, 7145, 8787, 10953, 13640, 16051, 18607, 28216, 17232, 13300, 8661, 4776, 2044, 610, 119, 30, 10, 0, 0], "symbol": "none", "emphasis": {"focus": "series"}, "lineStyle": {"color": "#a9a8a2", "width": 2}, "itemStyle": {"color": "#a9a8a2"}}, {"name": "Shuffled-only table", "type": "line", "data": [11815, 11222, 12534, 14300, 15289, 16140, 16285, 15802, 14980, 14165, 12929, 16917, 8575, 6103, 3588, 1832, 634, 175, 27, 3, 0, 0, 0], "symbol": "none", "emphasis": {"focus": "series"}, "lineStyle": {"color": "#2a78d6", "width": 2.5}, "itemStyle": {"color": "#2a78d6"}, "markArea": {"silent": true, "itemStyle": {"color": "#2a78d6", "opacity": 0.08}, "label": {"color": "#6f6e69", "formatter": "strong teams", "position": "insideTop"}, "data": [[{"xAxis": "13/24"}, {"xAxis": "17/24"}]]}}]}, darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart; function draw() { if (chart) chart.dispose(); chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)}); }
+draw(); addEventListener("resize", () => chart.resize()); dark.addEventListener("change", draw);
+</script></body></html>

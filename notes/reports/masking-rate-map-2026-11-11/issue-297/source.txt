@@ -1,0 +1,16 @@
+Sample and battle the four rows and post the results table
+
+## Question
+
+For each battled row, run the ask grid with 3 sampling seeds at each of guidance 2, 4 and 8 (run `verify-ask-grid84` first) and battle against the top-50 meta teams in shuffled slots. The battled rows are the control, Linear, species-first and Linear, random order. Per-field, corrected t joins them only if its probe reached 0.01. Post one table with every measure in the map's Notes, as a visual first, each grid the moment it lands. Draw the five storyboarded figures:
+
+![Storyboard: the five figures this experiment will draw](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/5_storyboard.png)
+
+Plan: [code/docs/masking-rate-rows.md](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md)
+
+Parent map: [Masking-rate map: per-field versus linear masking rate on the 84-field model, and where our code departs from MD4 and LLaDA](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/291)
+
+
+**From the pre-registration, 2026-11-11.** Three points for this ticket. Compare rows seed by seed: sampling seed 1 reads the highest error on 15 of 20 stored 3-seed grids. Beside each grid, run the row's cells with no ask and its elite line-up yield, and read the linear model at epochs 34 and 55 with sampling seed 1. The grid of Per-field, corrected t is on hold: its ceiling probe failed, and the owner decides whether it runs. Detail: https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md
+
+**2026-11-11, body rewritten.** Owner: "Yes each row get three guidance value". Each battled row now runs at guidance 2, 4 and 8: nine grids, 1.95 million battles, about 6.9 hours. Per-field, corrected t is battled only if the t probe on the new per-field model reaches 0.01. It read 0.005 on today's default model and 0.008 on a 21-epoch model trained on the shuffled-only table. The readings of the linear model at epochs 34 and 55 from the earlier comment are dropped.

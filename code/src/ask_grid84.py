@@ -45,6 +45,7 @@ from team_diversity import slots_from_paste              # team_diversity drops 
 from team_diversity import summary as diversity_summary
 sys.path.pop(0)
 
+OLDER_TABLE, DEFAULT_TABLE = "lossdata84.npz", "lossdata84_shuffled_only.npz"   # a new model row trains on the shuffled-only table
 MODELS = {
     "gen84_all_ep21": dict(checkpoint="stat84_all_teams_ep21", reader="Generated, all teams, 21 epochs", epochs=dict(all_teams=21),
                            stopped="owner stopped training at epoch 21 of a cap of 80; validation loss was still falling"),
@@ -72,8 +73,19 @@ for _arm, _reader in (("pos_per_field_s0", "No split, first seed"), ("pos_per_fi
     MODELS[_arm] = dict(checkpoint=f"stat84_{_arm}_noise_ep21", reader=f"{_reader}, label noise ±1/48, shuffled-only table, 21 epochs",
                         epochs=dict(all_teams=21), stopped="planned stop at epoch 21, patience off", table="lossdata84_shuffled_only.npz")
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
+
+
+def table_from_info(info):
+    """The training table a checkpoint's run info names (train84 records it). A checkpoint saved before the info
+    carried one trained on the older table."""
+    return (info or {}).get("table", OLDER_TABLE)
+
+
 if MODEL not in MODELS and flagged_checkpoint(MODEL):
-    MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])
+    _info = load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"]
+    MODELS[MODEL] = dict(flagged_row(MODEL, _info), table=table_from_info(_info))
+for _row in MODELS.values():                             # every row so far trained on the older table unless it names another
+    if not _row.get("table65"): _row.setdefault("table", OLDER_TABLE)
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 2.0, 64, 96, 1280, 7300, 1
 ASK_NUMERATORS, SEEDS = list(range(1, 24)), [1, 2, 3]
@@ -85,7 +97,7 @@ NUDGE_NUMERATORS, NUDGES = (6, 8, 10, 11, 12, 13, 14, 16), (0.0, 0.002, -0.002, 
 if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
 RES = Path.home() / "vgc-data/results"
 OUT = RES / f"stat_points_84_{MODEL}{'_smoke' if SMOKE else ''}.json"
-DATA = X.RES / "lossdata84.npz"                          # as train84
+DATA = X.RES / OLDER_TABLE                               # training teams of the older-table models that remask84, nucleus84, trade84 and lineup_reference score
 UNIFORM_LEGAL = Path.home() / "vgc-data/teams/hps_reg_mb_100k.jsonl"
 
 
@@ -105,6 +117,12 @@ def checkpoint_path(): return L.CK / f"{MODELS[MODEL]['checkpoint']}.pt"
 
 def load_model():
     return M.Model84.load(checkpoint_path())
+
+
+def table_of(row):
+    """The training table a model row names. A row that names none trained on the shuffled-only table, the default
+    since 2026-11-11, so a new model is never compared with the older table's teams by accident."""
+    return row.get("table", DEFAULT_TABLE)
 
 
 def reason(err):
@@ -381,7 +399,7 @@ def preflight():
         import train65
         d, tr_rows, _, _ = train65.load(); tr = d["X"][tr_rows].astype(np.int64)
     else:
-        d = np.load(X.RES / MODELS[MODEL].get("table", DATA.name)); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
+        d = np.load(X.RES / table_of(MODELS[MODEL])); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
         tr = d["all_X"][tr_rows].astype(np.int64)
     torch.manual_seed(SEED0 + 1)
     rows = w.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()

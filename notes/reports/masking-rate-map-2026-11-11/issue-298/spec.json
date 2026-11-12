@@ -1,0 +1,166 @@
+{
+ "issue": 298,
+ "title": "Results and diagnosis: what do the four rows and the departures list mean for our code?",
+ "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/298",
+ "headline": "The results either name a new default model or keep our three departures",
+ "setup": "This is the last ticket: a conversation with the owner once the battles are done. Three rows are battled for sure, and a fourth only if its check says so. A linear row that wins becomes the candidate to replace the default model. If no row wins, our three tested departures from the papers stay as ours.",
+ "alt": "Each battled row gets a verdict at guidance 2, 4 and 8. A linear row that wins at two or more of them, and loses at none, becomes the candidate to replace the default model. A win under 0.002 is treated as training luck and can earn a second training seed. If no row wins, the three tested departures stay as ours.",
+ "terms": [
+  [
+   "Departure",
+   "A place where our code differs from the papers MD4 and LLaDA. Three are tested here: the masking rate, the decoding order and the t told while sampling"
+  ],
+  [
+   "Row",
+   "One way to train and sample the model. Four are compared. The control is Per-field, uncorrected t: our own settings"
+  ],
+  [
+   "Default model",
+   "The model every run uses unless it names another. Today it is a per-field model trained on an older table"
+  ],
+  [
+   "Guidance",
+   "How hard the sampler pushes toward the win rate asked for. 1 is no push, and higher pushes harder"
+  ],
+  [
+   "Training luck",
+   "The gap two trainings of one recipe show by chance alone: up to 0.0019 in error. A win under 0.002 is treated as luck"
+  ],
+  [
+   "Weak",
+   "One win among the three guidance values. It does not make a row a candidate"
+  ]
+ ],
+ "frames": [
+  {
+   "title": "1. From the results to the owner's decision",
+   "kind": "flow",
+   "data": {
+    "boxes": [
+     {
+      "label": "Results table",
+      "sub": "Error and win rate per row",
+      "tone": "plain"
+     },
+     {
+      "label": "Verdict at each guidance value",
+      "sub": "Wins, matches or loses, at 2, 4 and 8",
+      "tone": "c1"
+     },
+     {
+      "label": "Owner's decision",
+      "sub": "Default model, or a second training seed",
+      "tone": "ok"
+     }
+    ]
+   },
+   "takes": "Each new row gets one verdict at guidance 2, 4 and 8, and the owner decides from them.",
+   "expected": "Both linear rows match or lose, and the owner keeps our three departures.",
+   "surprise": "A linear row wins at two guidance values, and the owner picks a new default model."
+  },
+  {
+   "title": "2. Each verdict and what follows",
+   "kind": "grid",
+   "data": {
+    "cols": [
+     "Rule",
+     "What follows"
+    ],
+    "rows": [
+     "Row wins",
+     "Row matches",
+     "Row loses"
+    ],
+    "cells": [
+     [
+      {
+       "text": "Wins at two or more guidance values, loses at none"
+      },
+      {
+       "text": "Candidate to replace the default model",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "No loss, and fewer than two wins"
+      },
+      {
+       "text": "Not a candidate"
+      }
+     ],
+     [
+      {
+       "text": "Loses at one or more values"
+      },
+      {
+       "text": "Not a candidate"
+      }
+     ]
+    ]
+   },
+   "takes": "Only a row that wins at two or more guidance values can replace the default model.",
+   "expected": "Matches and losses are the likely verdicts for both linear rows.",
+   "surprise": "One row wins at a single value, which is reported as weak and does not make it a candidate."
+  },
+  {
+   "title": "3. A win must clear training luck",
+   "kind": "bars",
+   "data": {
+    "bars": [
+     {
+      "label": "Win needs",
+      "height": 0.4,
+      "note": "0.001"
+     },
+     {
+      "label": "Training luck",
+      "height": 0.76,
+      "note": "0.0019"
+     }
+    ],
+    "line": {
+     "at": 0.8,
+     "label": "0.002 rule"
+    }
+   },
+   "takes": "A linear win under 0.002 is reported as inside training luck and can earn a second training seed.",
+   "measured": "Two trainings of one recipe have differed by up to 0.0019 in error."
+  },
+  {
+   "title": "4. Three departures tested here, three still to decide",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "Masking rate: battled here, the linear rows",
+      "state": "next"
+     },
+     {
+      "text": "Species-first order: battled here, against random order",
+      "state": "next"
+     },
+     {
+      "text": "t told while sampling: decided by a check, which read 0.008 against a bar of 0.01",
+      "state": "hold"
+     },
+     {
+      "text": "Legal filter inside the loss",
+      "state": "todo"
+     },
+     {
+      "text": "Slot shuffling",
+      "state": "todo"
+     },
+     {
+      "text": "Ask dropout: 0.15 of teams train with no ask",
+      "state": "todo"
+     }
+    ]
+   },
+   "takes": "Three departures are tested by this map, and three more wait for the owner.",
+   "expected": "The battled departures get a verdict, and the three others wait for the owner.",
+   "surprise": "The check on the new per-field model reaches 0.01, and Per-field, corrected t is battled after all."
+  }
+ ]
+}

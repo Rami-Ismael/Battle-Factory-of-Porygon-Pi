@@ -13,7 +13,12 @@ Labelled teams only, label noise: byepoch   to the same stopping rule, one check
                                    ddom_tau01, ddom_tau03   exactly 21 epochs with the DDOM paper's weights (docs/ddom-reweighting-84-fields.md)
 
 Both use the deployed network and recipe: d 256, 6 layers, 8 heads, batch 256, lr 4e-4, exponents 16,4,4,1.5,1 plus
-1 for Stat Points, ask dropout 0.15, EMA 0.999. Data: results/lossdata84.npz (src/lossdata84.py).
+1 for Stat Points, ask dropout 0.15, EMA 0.999.
+
+Training table. The default is the shuffled-only table, results/lossdata84_shuffled_only.npz: every label comes from
+shuffled-slot battles alone (owner, 2026-11-11; src/lossdata84.py --shuffled-only). The arms above this paragraph
+reproduce models trained on the older table, results/lossdata84.npz, whose labels pool listed-order battles and run
+files. They run only with --older-table, so no training reads those labels by accident.
 
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
                           | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
@@ -50,8 +55,13 @@ from label_noise import noise_tag, noise_width
 import diffusion84 as M
 import asked_vs_got as X
 
-DATA = X.RES / "lossdata84.npz"
+OLDER_TABLE = X.RES / "lossdata84.npz"                  # labels pool listed-order battles and run files; only to reproduce its models
 SHUFFLED_ONLY = X.RES / "lossdata84_shuffled_only.npz"   # labels from shuffled-slot battles only (issue #229)
+DATA = SHUFFLED_ONLY                                     # the default training table (owner, 2026-11-11)
+OLDER_TABLE_ARMS = ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke")
+OLDER_TABLE_REFUSAL = ("{arm}: this arm reproduces a model trained on the older table (lossdata84.npz), whose labels include "
+                       "listed-order battles and run files. Training reads the shuffled-only table by default. "
+                       "Pass --older-table to rerun this arm on the older table.")
 CK = L.CK
 SMOKE = bool(os.environ.get("S84_SMOKE"))
 NET = dict(d=256, nlayer=6, nhead=8)
@@ -99,12 +109,12 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
           + (f" · patience {patience}" if patience else " · fixed count"), flush=True)
     t0 = time.perf_counter()
     out = CK / f"{name(arm)}.pt"
-    on_best = (lambda m, _pass: m.save(out)) if patience else None
+    on_best = (lambda m, _pass: stamped(m, arm).save(out)) if patience else None
     tau = net_kw.pop("ddom_tau", None)
     if tau: net_kw["row_weights"] = bin_weights(labels, tau)
     if net_kw.pop("every_epoch", False):
         (CK / name(arm)).mkdir(exist_ok=True)
-        net_kw["on_epoch"] = lambda m, epoch: m.save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
+        net_kw["on_epoch"] = lambda m, epoch: stamped(m, arm).save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
     recipe = dict(RECIPE, seed=net_kw.pop("seed", RECIPE["seed"]))
     m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
                             **recipe, **NET, **net_kw)
@@ -115,6 +125,13 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     print(f"[{name(arm)}] done in {m.info['minutes']} min; best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']}"
           f" -> {out}", flush=True)
     return m
+
+
+def stamped(model, arm):
+    """The model with its training table written into its run info, so a checkpoint saved during training, the best one
+    so far or one epoch's, names the table it trained on. The ask grid reads that name to pick the right training teams."""
+    model.info.update(table=DATA_TABLE, data_sha256=DATA_SHA, arm=arm)
+    return model
 
 
 def check_rows(d):
@@ -140,17 +157,28 @@ def parse_args(argv):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("arm", nargs="+")
     p.add_argument("--label-noise", type=noise_width, metavar="WIDTH", help="override the arm's label noise width")
+    p.add_argument("--older-table", action="store_true", help="allow an arm that trains on the older table, lossdata84.npz")
     return p.parse_args(argv)
+
+
+def older_table(arm, allowed):
+    """The older table, for an arm that reproduces one of its models; None for every other arm. Such an arm stops here
+    unless --older-table was passed, before any table is read or any checkpoint written."""
+    global DATA_SHA, DATA_TABLE
+    if arm not in OLDER_TABLE_ARMS: return None
+    if not allowed: sys.exit(OLDER_TABLE_REFUSAL.format(arm=arm))
+    d = load(OLDER_TABLE); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]; check_rows(d)
+    return d
 
 
 def main(argv):
     global DATA_SHA, DATA_TABLE, NOISE
     args = parse_args(argv); NOISE = args.label_noise
+    arm = " ".join(args.arm)
+    d = older_table(arm, args.older_table)
     for mod in (M, L, T, SP):
         print(f"{mod.__name__:12s} {mod.__file__}", flush=True)
         assert Path(mod.__file__).resolve().parent == HERE, f"{mod.__name__} did not load from {HERE}"
-    d = load(); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]; check_rows(d)
-    arm = " ".join(args.arm)
     if arm in ("same loop", "smoke"):
         train("loop", d["loop_X"], d["loop_W"], unseen_val(d, d["loop_X"]), epochs=80)
     if arm in ("same records", "smoke"):
