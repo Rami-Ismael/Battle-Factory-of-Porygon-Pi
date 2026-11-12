@@ -180,9 +180,9 @@ Before the grid of Linear, random order, a sampling-only probe also reports its 
 
 ### Per-field, corrected t is on hold
 
-The probe asked how far the default model's drawing distribution moves when a pass is told the corrected t and not 1 − filled/84, on the same partly filled teams. The bar, set before the run, was a mean total variation of 0.01 on at least one field type. Total variation is half the summed absolute difference between two distributions, so 0 means identical and 1 means no overlap.
+The probe asked how far the default model's drawing distribution moves when a pass is told the corrected t and not 1 − filled/84, on the same partly filled teams. The bar, set before the run, was 0.01 for one field type at one ask: the mean total variation over that field type's passes and the 256 teams. One field type reaching it at any of the three asks is enough. Total variation is half the summed absolute difference between two distributions, so 0 means identical and 1 means no overlap.
 
-Mean total variation over asks 6/24, 12/24 and 17/24, 256 teams each, guidance 2:
+For reading, the table averages the three asks, 6/24, 12/24 and 17/24, with 256 teams each at guidance 2. The verdict uses each ask's own reading:
 
 | Rule the pass is told | Species | Ability and item | Moves | Stat Alignment | Stat Points |
 | --- | --- | --- | --- | --- | --- |
@@ -202,8 +202,8 @@ So the sampler's t is a departure from the papers that has no measurable effect 
 
 | Probe on the new per-field model | What happens to Per-field, corrected t |
 | --- | --- |
-| Under 0.01 on every field type | No battle grid. The results table reports the probe's numbers for the row: the largest total variation, the share of fields changed and the line-ups changed |
-| 0.01 or more on any field type | The row is battled at guidance 2, 4 and 8 like the others, 649,152 battles and about 2.3 hours |
+| Under 0.01 on every field type at every ask | No battle grid. The results table reports the probe's numbers for the row: the largest total variation, the share of fields changed and the line-ups changed |
+| 0.01 or more on any field type at any ask | The row is battled at guidance 2, 4 and 8 like the others, 649,152 battles and about 2.3 hours |
 
 A preview of that rule exists. On the 21-epoch per-field model already trained on the shuffled-only table, `stat84_pos_per_field_s0_noise_ep21`, the corrected t moved the drawing distributions by 0.008 at most, changed 1% to 2% of fields and 3 line-ups in 768. That is under the bar, so the row is expected to need no battles.
 

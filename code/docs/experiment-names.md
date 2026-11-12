@@ -1215,7 +1215,7 @@ Shared by every arm: five real teams from ranks 51–100 as starting teams, 270 
 
 Source: [`masking-rate-rows.md`](masking-rate-rows.md)
 
-Shared by every arm: the 84-field model trained on labelled teams with label noise ±1/48; 23 asks, 3 sampling seeds, 64 teams for each ask and seed, each battled once against the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled; guidance 2. Each name gives the masking rate used in training, then the one decoding setting that sets the arm apart from its sibling. Both per-field arms decode species-first, and both linear arms tell the model t = 1 − filled/84.
+Shared by every arm: the 84-field model trained on the labelled teams of the shuffled-only table with label noise ±1/48; 23 asks, 3 sampling seeds, 64 teams for each ask and seed, each battled once against the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled; every battled arm sampled at guidance 2, 4 and 8. Each name gives the masking rate used in training, then the one decoding setting that sets the arm apart from its sibling. Both per-field arms decode species-first, and both linear arms tell the model t = 1 − filled/84.
 
 | Reader name | Code ID |
 | --- | --- |

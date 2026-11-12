@@ -48,5 +48,25 @@ class CorrectedT(unittest.TestCase):
         self.assertTrue(all(v > 1 - filled / 84 for filled, v in enumerate(values) if filled))
 
 
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
+class CorrectedTGate(unittest.TestCase):
+    """The reading that decides whether Per-field, corrected t is battled (docs/masking-rate-rows.md)."""
+
+    @staticmethod
+    def readings(**by_ask):
+        return {ask: dict(total_variation_by_rule_and_field_type=dict(corrected=fields, always_1=dict(species=0.9))) for ask, fields in by_ask.items()}
+
+    def test_one_ask_above_the_bar_is_enough_even_when_the_mean_over_asks_is_below(self):
+        by_ask = self.readings(low=dict(species=0.001, moves=0.002), mid=dict(species=0.001, moves=0.003), high=dict(species=0.001, moves=0.012))
+        self.assertAlmostEqual(P.largest_reading(by_ask), 0.012)
+        self.assertLess((0.002 + 0.003 + 0.012) / 3, P.MIN_TOTAL_VARIATION)
+        self.assertGreaterEqual(P.largest_reading(by_ask), P.MIN_TOTAL_VARIATION)
+
+    def test_only_the_corrected_rule_is_judged(self):
+        by_ask = self.readings(low=dict(species=0.001), high=dict(species=0.004))
+        self.assertAlmostEqual(P.largest_reading(by_ask), 0.004)
+        self.assertAlmostEqual(P.largest_reading(by_ask, rule="always_1"), 0.9)
+
+
 if __name__ == "__main__":
     unittest.main()

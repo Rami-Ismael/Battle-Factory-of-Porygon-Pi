@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The shuffled-only table holds fewer strong teams</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:420px}
+</style>
+</head>
+<body>
+<main>
+<h1>The shuffled-only table holds fewer strong teams</h1>
+<p class="sub">Labelled training teams at each ask, the win rate nearest each team&#x27;s label.</p>
+<div id="chart"></div>
+<p class="note">Older table: 170,785 labelled training teams. Shuffled-only table: 214,598. Near asks 13/24 to 17/24: 46,013 against 20,732. Source: masking_rate_rows_tables.json.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0}, "grid": {"left": 52, "right": 10, "top": 34, "bottom": 28}, "tooltip": {"trigger": "axis"}, "xAxis": {"type": "category", "data": ["1/24", "2/24", "3/24", "4/24", "5/24", "6/24", "7/24", "8/24", "9/24", "10/24", "11/24", "12/24", "13/24", "14/24", "15/24", "16/24", "17/24", "18/24", "19/24", "20/24", "21/24", "22/24", "23/24"]}, "yAxis": {"type": "value"}, "series": [{"name": "Older table", "type": "line", "data": [2105, 2958, 3820, 4761, 5891, 7145, 8787, 10953, 13640, 16051, 18607, 28216, 17232, 13300, 8661, 4776, 2044, 610, 119, 30, 10, 0, 0], "symbol": "none", "emphasis": {"focus": "series"}, "lineStyle": {"color": "#a9a8a2", "width": 2}, "itemStyle": {"color": "#a9a8a2"}}, {"name": "Shuffled-only table", "type": "line", "data": [11815, 11222, 12534, 14300, 15289, 16140, 16285, 15802, 14980, 14165, 12929, 16917, 8575, 6103, 3588, 1832, 634, 175, 27, 3, 0, 0, 0], "symbol": "none", "emphasis": {"focus": "series"}, "lineStyle": {"color": "#2a78d6", "width": 2.5}, "itemStyle": {"color": "#2a78d6"}, "markArea": {"silent": true, "itemStyle": {"color": "#2a78d6", "opacity": 0.08}, "label": {"color": "#6f6e69", "formatter": "strong teams", "position": "insideTop"}, "data": [[{"xAxis": "13/24"}, {"xAxis": "17/24"}]]}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

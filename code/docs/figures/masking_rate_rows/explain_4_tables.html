@@ -36,15 +36,11 @@ svg text{fill:var(--soft);font-size:9px;font-family:inherit} svg .ink{fill:var(-
 <div id="chart" style="width:100%;height:260px"></div>
 <p class="note">Only 783 labelled teams are in both tables. On those, the older label is higher by 0.014 on average, and half differ by more than 0.05. The cost of the choice: fewer than half as many strong teams to learn the high asks from. The gain: labels the slot order cannot bias.</p>
 </main><script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script><script>
-const d = {"counts_old": [2105, 2958, 3820, 4761, 5891, 7145, 8787, 10953, 13640, 16051, 18607, 28216, 17232, 13300, 8661, 4776, 2044, 610, 119, 30, 10, 0, 0], "counts_new": [11815, 11222, 12534, 14300, 15289, 16140, 16285, 15802, 14980, 14165, 12929, 16917, 8575, 6103, 3588, 1832, 634, 175, 27, 3, 0, 0, 0], "labels": ["1/24", "2/24", "3/24", "4/24", "5/24", "6/24", "7/24", "8/24", "9/24", "10/24", "11/24", "12/24", "13/24", "14/24", "15/24", "16/24", "17/24", "18/24", "19/24", "20/24", "21/24", "22/24", "23/24"]}, css = n => getComputedStyle(document.body).getPropertyValue(n).trim(), el = document.getElementById("chart");
-let chart; function draw() { if (chart) chart.dispose(); chart = echarts.init(el, null, {renderer: "svg"});
-  const soft = css("--soft"), ink = css("--ink"), edge = css("--edge");
-  chart.setOption({backgroundColor: "transparent", legend: {top: 0, textStyle: {color: ink}}, grid: {left: 52, right: 10, top: 34, bottom: 28},
-    tooltip: {trigger: "axis"}, xAxis: {type: "category", data: d.labels, axisLabel: {color: soft}, axisLine: {lineStyle: {color: edge}}},
-    yAxis: {type: "value", axisLabel: {color: soft}, splitLine: {lineStyle: {color: edge}}},
-    series: [{name: "Older table", type: "line", data: d.counts_old, symbol: "none", lineStyle: {color: soft, width: 2}, itemStyle: {color: soft}, emphasis: {focus: "series"}},
-             {name: "Shuffled-only table", type: "line", data: d.counts_new, symbol: "none", lineStyle: {color: css("--c1"), width: 2.5}, itemStyle: {color: css("--c1")},
-               emphasis: {focus: "series"}, markArea: {silent: true, itemStyle: {color: css("--c1"), opacity: 0.08}, label: {color: soft, formatter: "strong teams", position: "insideTop"},
-               data: [[{xAxis: "13/24"}, {xAxis: "17/24"}]]}}]}); }
-draw(); addEventListener("resize", () => chart.resize()); matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+const option = {"legend": {"top": 0}, "grid": {"left": 52, "right": 10, "top": 34, "bottom": 28}, "tooltip": {"trigger": "axis"}, "xAxis": {"type": "category", "data": ["1/24", "2/24", "3/24", "4/24", "5/24", "6/24", "7/24", "8/24", "9/24", "10/24", "11/24", "12/24", "13/24", "14/24", "15/24", "16/24", "17/24", "18/24", "19/24", "20/24", "21/24", "22/24", "23/24"]}, "yAxis": {"type": "value"}, "series": [{"name": "Older table", "type": "line", "data": [2105, 2958, 3820, 4761, 5891, 7145, 8787, 10953, 13640, 16051, 18607, 28216, 17232, 13300, 8661, 4776, 2044, 610, 119, 30, 10, 0, 0], "symbol": "none", "emphasis": {"focus": "series"}, "lineStyle": {"color": "#a9a8a2", "width": 2}, "itemStyle": {"color": "#a9a8a2"}}, {"name": "Shuffled-only table", "type": "line", "data": [11815, 11222, 12534, 14300, 15289, 16140, 16285, 15802, 14980, 14165, 12929, 16917, 8575, 6103, 3588, 1832, 634, 175, 27, 3, 0, 0, 0], "symbol": "none", "emphasis": {"focus": "series"}, "lineStyle": {"color": "#2a78d6", "width": 2.5}, "itemStyle": {"color": "#2a78d6"}, "markArea": {"silent": true, "itemStyle": {"color": "#2a78d6", "opacity": 0.08}, "label": {"color": "#6f6e69", "formatter": "strong teams", "position": "insideTop"}, "data": [[{"xAxis": "13/24"}, {"xAxis": "17/24"}]]}}]}, darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart; function draw() { if (chart) chart.dispose(); chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)}); }
+draw(); addEventListener("resize", () => chart.resize()); dark.addEventListener("change", draw);
 </script></body></html>

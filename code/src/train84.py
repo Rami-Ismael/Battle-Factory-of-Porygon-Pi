@@ -109,12 +109,12 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
           + (f" · patience {patience}" if patience else " · fixed count"), flush=True)
     t0 = time.perf_counter()
     out = CK / f"{name(arm)}.pt"
-    on_best = (lambda m, _pass: m.save(out)) if patience else None
+    on_best = (lambda m, _pass: stamped(m, arm).save(out)) if patience else None
     tau = net_kw.pop("ddom_tau", None)
     if tau: net_kw["row_weights"] = bin_weights(labels, tau)
     if net_kw.pop("every_epoch", False):
         (CK / name(arm)).mkdir(exist_ok=True)
-        net_kw["on_epoch"] = lambda m, epoch: m.save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
+        net_kw["on_epoch"] = lambda m, epoch: stamped(m, arm).save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
     recipe = dict(RECIPE, seed=net_kw.pop("seed", RECIPE["seed"]))
     m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
                             **recipe, **NET, **net_kw)
@@ -125,6 +125,13 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     print(f"[{name(arm)}] done in {m.info['minutes']} min; best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']}"
           f" -> {out}", flush=True)
     return m
+
+
+def stamped(model, arm):
+    """The model with its training table written into its run info, so a checkpoint saved during training, the best one
+    so far or one epoch's, names the table it trained on. The ask grid reads that name to pick the right training teams."""
+    model.info.update(table=DATA_TABLE, data_sha256=DATA_SHA, arm=arm)
+    return model
 
 
 def check_rows(d):

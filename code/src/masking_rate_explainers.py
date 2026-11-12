@@ -1,6 +1,7 @@
 """Seven one-idea explainer pages for the masking-rate rows (docs/masking-rate-rows.md), one per question the owner asked
-on 2026-11-11. Diagrams are plain HTML and SVG; the one chart is ECharts. Numbers come from the stored probe and table
-results, or are quoted from the pre-registration.
+on 2026-11-11. Diagrams are plain HTML and SVG. The one chart is ECharts: `teams_by_ask_option` builds its option as a
+Python dict, `write_chart` draws it as its own page, and the tables explainer embeds the same dict. Numbers come from the
+stored probe and table results, or are quoted from the pre-registration.
 
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_explainers.py      (from code/)
 
@@ -10,6 +11,8 @@ copy without its own background under verify-evidence/, which a chat thread can 
 import html
 import json
 from pathlib import Path
+
+from echarts_chart import DARK, write_chart
 
 CODE = Path(__file__).resolve().parent.parent
 OUT = CODE / "docs/figures/masking_rate_rows"
@@ -167,6 +170,19 @@ def plan():
     return write("explain_3_plan", "The plan after two decisions", body)
 
 
+def teams_by_ask_option(old, new):
+    """Labelled training teams at each ask, older table against shuffled-only table: the ECharts option as a dict."""
+    blue, grey, plain = "#2a78d6", "#a9a8a2", "#6f6e69"
+    line = lambda name, counts, color, width: dict(name=name, type="line", data=counts[1:24], symbol="none", emphasis=dict(focus="series"),
+                                                   lineStyle=dict(color=color, width=width), itemStyle=dict(color=color))
+    shuffled = line("Shuffled-only table", new["counts"], blue, 2.5)
+    shuffled["markArea"] = dict(silent=True, itemStyle=dict(color=blue, opacity=0.08), label=dict(color=plain, formatter="strong teams", position="insideTop"),
+                                data=[[dict(xAxis="13/24"), dict(xAxis="17/24")]])
+    return dict(legend=dict(top=0), grid=dict(left=52, right=10, top=34, bottom=28), tooltip=dict(trigger="axis"),
+                xAxis=dict(type="category", data=[f"{k}/24" for k in range(1, 24)]), yAxis=dict(type="value"),
+                series=[line("Older table", old["counts"], grey, 2), shuffled])
+
+
 def tables():
     t = json.load(open(RES / "masking_rate_rows_tables.json")); old, new = t["lossdata84.npz"], t["lossdata84_shuffled_only.npz"]
     strong = lambda x: sum(x["counts"][13:18])
@@ -181,19 +197,19 @@ def tables():
 <h2>Labelled training teams at each ask</h2>
 <div id="chart" style="width:100%;height:260px"></div>
 <p class="note">Only 783 labelled teams are in both tables. On those, the older label is higher by 0.014 on average, and half differ by more than 0.05. The cost of the choice: fewer than half as many strong teams to learn the high asks from. The gain: labels the slot order cannot bias.</p>"""
-    option = dict(counts_old=old["counts"][1:24], counts_new=new["counts"][1:24], labels=[f"{k}/24" for k in range(1, 24)])
+    option = teams_by_ask_option(old, new)
+    write_chart(option, OUT / "04_teams_by_ask.html", title="The shuffled-only table holds fewer strong teams",
+                subtitle="Labelled training teams at each ask, the win rate nearest each team's label.",
+                note=f"Older table: {old['train']:,} labelled training teams. Shuffled-only table: {new['train']:,}. Near asks 13/24 to 17/24: "
+                     f"{strong(old):,} against {strong(new):,}. Source: masking_rate_rows_tables.json.")
     script = f"""<script src="{ECHARTS}"></script><script>
-const d = {json.dumps(option)}, css = n => getComputedStyle(document.body).getPropertyValue(n).trim(), el = document.getElementById("chart");
-let chart; function draw() {{ if (chart) chart.dispose(); chart = echarts.init(el, null, {{renderer: "svg"}});
-  const soft = css("--soft"), ink = css("--ink"), edge = css("--edge");
-  chart.setOption({{backgroundColor: "transparent", legend: {{top: 0, textStyle: {{color: ink}}}}, grid: {{left: 52, right: 10, top: 34, bottom: 28}},
-    tooltip: {{trigger: "axis"}}, xAxis: {{type: "category", data: d.labels, axisLabel: {{color: soft}}, axisLine: {{lineStyle: {{color: edge}}}}}},
-    yAxis: {{type: "value", axisLabel: {{color: soft}}, splitLine: {{lineStyle: {{color: edge}}}}}},
-    series: [{{name: "Older table", type: "line", data: d.counts_old, symbol: "none", lineStyle: {{color: soft, width: 2}}, itemStyle: {{color: soft}}, emphasis: {{focus: "series"}}}},
-             {{name: "Shuffled-only table", type: "line", data: d.counts_new, symbol: "none", lineStyle: {{color: css("--c1"), width: 2.5}}, itemStyle: {{color: css("--c1")}},
-               emphasis: {{focus: "series"}}, markArea: {{silent: true, itemStyle: {{color: css("--c1"), opacity: 0.08}}, label: {{color: soft, formatter: "strong teams", position: "insideTop"}},
-               data: [[{{xAxis: "13/24"}}, {{xAxis: "17/24"}}]]}}}}]}}); }}
-draw(); addEventListener("resize", () => chart.resize()); matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+const option = {json.dumps(option)}, darkMap = {json.dumps({k.lower(): v for k, v in DARK.items()})};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart; function draw() {{ if (chart) chart.dispose(); chart = echarts.init(el, dark.matches ? "dark" : null, {{renderer: "svg"}});
+  chart.setOption({{backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)}}); }}
+draw(); addEventListener("resize", () => chart.resize()); dark.addEventListener("change", draw);
 </script>"""
     return write("explain_4_tables", "The two training tables", body, script)
 

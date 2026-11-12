@@ -12,6 +12,7 @@ import sys
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 import repo_paths  # noqa: F401  (src/ first on sys.path)
@@ -47,6 +48,12 @@ class TrainingTable(unittest.TestCase):
     def test_the_flag_is_parsed(self):
         self.assertTrue(TR.parse_args(["byepoch", "--older-table"]).older_table)
         self.assertFalse(TR.parse_args(["byepoch"]).older_table)
+
+    def test_a_checkpoint_saved_during_training_names_its_table(self):
+        with mock.patch.object(TR, "DATA_TABLE", "lossdata84_shuffled_only.npz"), mock.patch.object(TR, "DATA_SHA", "abc"):
+            saved = TR.stamped(SimpleNamespace(info={}), "linear")
+        self.assertEqual(saved.info["table"], "lossdata84_shuffled_only.npz")
+        self.assertEqual(A.table_from_info(saved.info), "lossdata84_shuffled_only.npz")
 
     def test_no_arm_is_in_both_groups(self):
         self.assertFalse(set(TR.OLDER_TABLE_ARMS) & set(TR.POSITION_ARMS))

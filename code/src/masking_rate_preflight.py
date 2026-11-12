@@ -118,6 +118,13 @@ def sample_with_t(model, n, ask, t_of_pass, seed, other_rules=None):
     return x.cpu().numpy(), total_variation
 
 
+def largest_reading(by_ask, rule="corrected"):
+    """The reading the corrected-t row is judged on: the largest mean total variation of any one field type at any one
+    ask. Each reading is already a mean over that field type's passes and over the teams. Asks are not averaged first,
+    so one ask where a field type moves is enough to reach the bar."""
+    return max(reading for ask in by_ask.values() for reading in ask["total_variation_by_rule_and_field_type"][rule].values())
+
+
 def t_sensitivity(model):
     """passed judges the corrected t alone. The two extreme rules (every pass told t = 1, or t = 1/84) show how much
     any t could move the model."""
@@ -125,19 +132,19 @@ def t_sensitivity(model):
     corrected = [corrected_t(M.sched84(model.info.get("sched", M.SCHED)).double().numpy(), k) for k in range(M.COLS)]
     rules = dict(corrected=corrected, always_1=[1.0] * M.COLS, always_1_over_84=[1 / M.COLS] * M.COLS)
     species_columns = [slot * 8 for slot in range(6)]
-    by_ask, largest = {}, 0.0
+    by_ask = {}
     for k in ASK_NUMERATORS:
         reference = model.sample(TEAMS_PER_ASK, ask=k / 24, guidance=GUIDANCE, seed=SAMPLING_SEED).cpu().numpy()
         same, total_variation = sample_with_t(model, TEAMS_PER_ASK, k / 24, today, SAMPLING_SEED, other_rules=rules)
         moved, _ = sample_with_t(model, TEAMS_PER_ASK, k / 24, corrected, SAMPLING_SEED)
         by_type = {rule: {name: float(np.mean([per_pass[i] for i in passes])) for name, passes in PASS_GROUPS.items()}
                    for rule, per_pass in total_variation.items()}
-        largest = max(largest, *by_type["corrected"].values())
         by_ask[f"{k}/24"] = dict(
             copy_matches_model84_sample=bool((same == reference).all()), total_variation_by_rule_and_field_type=by_type,
             share_of_teams_changed=float((moved != same).any(1).mean()), share_of_fields_changed=float((moved != same).mean()),
             share_of_line_ups_changed=float(np.mean([sorted(a[species_columns]) != sorted(b[species_columns]) for a, b in zip(moved, same)])))
     copies = all(v["copy_matches_model84_sample"] for v in by_ask.values())
+    largest = largest_reading(by_ask)
     return dict(teams_per_ask=TEAMS_PER_ASK, sampling_seed=SAMPLING_SEED, guidance=GUIDANCE, bar=MIN_TOTAL_VARIATION, by_ask=by_ask,
                 largest_total_variation_corrected=largest, passed=copies and largest >= MIN_TOTAL_VARIATION)
 
