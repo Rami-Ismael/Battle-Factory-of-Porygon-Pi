@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tailwind is the commonest archetype everywhere, on 42% to 50% of teams</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:640px}
+</style>
+</head>
+<body>
+<main>
+<h1>Tailwind is the commonest archetype everywhere, on 42% to 50% of teams</h1>
+<p class="sub">The default model puts Trick Room on 28% to 37% of its teams and sun on 32% to 35%, against 25% and 29% for win-rate-matched training.</p>
+<div id="chart"></div>
+<p class="note">A team is in an archetype when any of its sets has the setting ability or move, or holds a mega stone whose mega form has the setting ability. Read from team fields, not from battle logs, so a team in the Trick Room archetype carries Trick Room but may never use it. A team can be in several archetypes or none.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"animation": false, "legend": {"top": 0, "left": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "confine": true, "valueFormatter": "js:v => (100 * v).toFixed(1) + '%'"}, "grid": {"left": 8, "right": 28, "top": 76, "bottom": 44, "containLabel": true}, "xAxis": {"type": "value", "name": "share of teams in the archetype", "nameLocation": "middle", "nameGap": 28, "axisLabel": {"formatter": "js:v => Math.round(v * 100) + '%'"}}, "yAxis": {"type": "category", "data": ["sun", "rain", "sand", "snow", "electric terrain", "grassy terrain", "misty terrain", "psychic terrain", "Trick Room", "Tailwind", "none"], "inverse": true, "axisTick": {"show": false}, "axisLabel": {"fontSize": 12}}, "series": [{"name": "Default model, mean of 3 seeds", "type": "bar", "barMaxWidth": 8, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#2a78d6"}, "data": [0.33762254901960786, 0.12438725490196079, 0.12346813725490197, 0.16329656862745098, 0.0009191176470588236, 0.0, 0.0, 0.0009191176470588234, 0.3125, 0.4598651960784314, 0.13357843137254902]}, {"name": "Win-rate-matched training, mean of 3 draws", "type": "bar", "barMaxWidth": 8, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#eb6834"}, "data": [0.2870710784313726, 0.08884803921568628, 0.10202205882352942, 0.16973039215686272, 0.0006127450980392157, 0.0, 0.0, 0.0006127450980392157, 0.2518382352941177, 0.49080882352941174, 0.15808823529411764]}, {"name": "Any-win-rate training, mean of 3 draws", "type": "bar", "barMaxWidth": 8, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#8a4fc4"}, "data": [0.3020833333333333, 0.05392156862745098, 0.10876225490196079, 0.17892156862745098, 0.0006127450980392157, 0.0, 0.0, 0.0009191176470588234, 0.23590686274509806, 0.4794730392156863, 0.16574754901960784]}, {"name": "Validation teams", "type": "bar", "barMaxWidth": 8, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#1d8a6e"}, "data": [0.2783603431839847, 0.07530981887511916, 0.10581506196377502, 0.16968541468064824, 0.0, 0.0, 0.0, 0.0, 0.2430886558627264, 0.5176358436606292, 0.1534795042897998]}, {"name": "Random legal teams", "type": "bar", "barMaxWidth": 8, "emphasis": {"focus": "series"}, "itemStyle": {"color": "#8a8984"}, "data": [0.34558823529411764, 0.359375, 0.18658088235294118, 0.07904411764705882, 0.02389705882352941, 0.0, 0.0, 0.034926470588235295, 0.08088235294117647, 0.058823529411764705, 0.25]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#2a78d6": "#3987e5", "#eb6834": "#d95926", "#8a4fc4": "#a77ae0", "#1d8a6e": "#3fb592", "#8a8984": "#8f8e86", "#e4e2dc": "#34332f", "#7a7974": "#97968d", "#c43b3b": "#e05a5a", "#e39a3b": "#e8a84f", "#8fb4de": "#5f86b8"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

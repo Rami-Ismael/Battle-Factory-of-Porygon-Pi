@@ -7,16 +7,17 @@ import { createRequire } from "node:module";
 
 const require = createRequire(path.join(process.env.NODE_PATH || process.cwd(), "x.js"));
 const echarts = require("echarts");
-const [src, dst] = process.argv.slice(2);
-fs.mkdirSync(dst, { recursive: true });
-for (const f of fs.readdirSync(src).filter(f => f.endsWith(".json") && f !== "shown_numbers.json")) {
-  const option = JSON.parse(fs.readFileSync(path.join(src, f), "utf8"));
+const [optionsDir, figuresDir] = process.argv.slice(2);
+fs.mkdirSync(figuresDir, { recursive: true });
+for (const optionFile of fs.readdirSync(optionsDir).filter(name => name.endsWith(".json") && name !== "shown_numbers.json")) {
+  const option = JSON.parse(fs.readFileSync(path.join(optionsDir, optionFile), "utf8"));
   const { width, height } = option;
   delete option.width; delete option.height;
   const chart = echarts.init(null, null, { renderer: "svg", ssr: true, width, height });
   chart.setOption(option);
   const svg = chart.renderToSVGString();
   chart.dispose();
-  fs.writeFileSync(path.join(dst, f.replace(/\.json$/, ".svg")), svg);
-  console.log("wrote", path.join(dst, f.replace(/\.json$/, ".svg")));
+  const svgPath = path.join(figuresDir, optionFile.replace(/\.json$/, ".svg"));
+  fs.writeFileSync(svgPath, svg);
+  console.log("wrote", svgPath);
 }
