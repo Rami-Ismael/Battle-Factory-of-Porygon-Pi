@@ -2,7 +2,7 @@
 
 The model fills a team's 84 fields one pass at a time. This ticket adds five pieces of code, called build items, so that each of the four rows can be trained, sampled and battled. A row is one way to train and sample the model.
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/COMMIT/notes/reports/masking-rate-map-2026-11-11/issue-295/figures/storyboard-dark.svg"><img width="800" alt="Five build items: two training arms, the corrected t option, the guidance setting, the ask-grid rows and random order. One part of the first is done: training already reads the shuffled-only table by default. Each item has one test." src="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/COMMIT/notes/reports/masking-rate-map-2026-11-11/issue-295/figures/storyboard-light.svg"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/f764a81592b8637b9bfe6c359d003c8dcba8ab9e/notes/reports/masking-rate-map-2026-11-11/issue-295/figures/storyboard-dark.svg"><img width="800" alt="Five build items: two training arms, the corrected t option, the guidance setting, the ask-grid rows and random order. One part of the first is done: training already reads the shuffled-only table by default. Each item has one test." src="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/f764a81592b8637b9bfe6c359d003c8dcba8ab9e/notes/reports/masking-rate-map-2026-11-11/issue-295/figures/storyboard-light.svg"></picture>
 
 ### How to read this
 

@@ -2,7 +2,7 @@
 
 Our model writes a team of six Pokémon as 84 fields, such as a species or a move. Two published papers, MD4 and LLaDA, train and sample such models differently from us. This map asks whether their settings do better. A row is one way to train and sample the model, and four are compared.
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/COMMIT/notes/reports/masking-rate-map-2026-11-11/issue-291/figures/storyboard-dark.svg"><img width="800" alt="Nothing has run yet. Three tickets are closed and the code ticket is next. Four rows are compared, two trainings and nine grids will answer, and a row wins when its error is at least 0.001 lower at two or more guidance values." src="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/COMMIT/notes/reports/masking-rate-map-2026-11-11/issue-291/figures/storyboard-light.svg"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/f764a81592b8637b9bfe6c359d003c8dcba8ab9e/notes/reports/masking-rate-map-2026-11-11/issue-291/figures/storyboard-dark.svg"><img width="800" alt="Nothing has run yet. Three tickets are closed and the code ticket is next. Four rows are compared, two trainings and nine grids will answer, and a row wins when its error is at least 0.001 lower at two or more guidance values." src="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/f764a81592b8637b9bfe6c359d003c8dcba8ab9e/notes/reports/masking-rate-map-2026-11-11/issue-291/figures/storyboard-light.svg"></picture>
 
 ### How to read this
 

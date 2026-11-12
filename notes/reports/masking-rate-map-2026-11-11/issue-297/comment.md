@@ -2,7 +2,7 @@
 
 Each row is a way to train and sample the model. Its teams are battled at guidance 2, 4 and 8, so a row becomes a curve of three points. This ticket runs those battles and judges each row against the control, Per-field, uncorrected t.
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/COMMIT/notes/reports/masking-rate-map-2026-11-11/issue-297/figures/storyboard-dark.svg"><img width="800" alt="Nothing has run yet. Each battled row becomes a curve of three points, one for each guidance value. A row wins when its ask-versus-got error is at least 0.001 lower than the control&#x27;s at two or more guidance values, and it loses at none." src="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/COMMIT/notes/reports/masking-rate-map-2026-11-11/issue-297/figures/storyboard-light.svg"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/f764a81592b8637b9bfe6c359d003c8dcba8ab9e/notes/reports/masking-rate-map-2026-11-11/issue-297/figures/storyboard-dark.svg"><img width="800" alt="Nothing has run yet. Each battled row becomes a curve of three points, one for each guidance value. A row wins when its ask-versus-got error is at least 0.001 lower than the control&#x27;s at two or more guidance values, and it loses at none." src="https://raw.githubusercontent.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/f764a81592b8637b9bfe6c359d003c8dcba8ab9e/notes/reports/masking-rate-map-2026-11-11/issue-297/figures/storyboard-light.svg"></picture>
 
 ### How to read this
 
