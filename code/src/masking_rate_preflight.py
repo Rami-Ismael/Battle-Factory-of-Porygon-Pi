@@ -16,11 +16,13 @@
 Nothing here changes diffusion84.py; the sampler below copies Model84.sample's loop and only swaps the t of each pass.
 Results: ~/vgc-data/results/masking_rate_rows_preflight.json
 
-    /tmp/vgc-pilot/.venv/bin/python src/masking_rate_preflight.py [probe ...]      (from code/; default all six)
+    /tmp/vgc-pilot/.venv/bin/python src/masking_rate_preflight.py [probe ...]      (from code/; default the five that train nothing on the older table)
 
-Two switches, added when the owner moved both trainings to the shuffled-only table (2026-11-11). Each saves under its own
-key, so no result overwrites another:
-    MRP_TABLE=shuffled_only   training_smoke reads lossdata84_shuffled_only.npz; saved as training_smoke_shuffled_only
+Tables. training_smoke reads the shuffled-only table, the default training table since 2026-11-11, and saves as
+training_smoke_shuffled_only. cross_rate_loss scores today's default model, so it reads the older table that model
+trained on, and trains nothing. recipe_replay trains one epoch on that older table, so it runs only when asked for by
+name with MRP_TABLE=older. Two switches, each saving under its own key so no result overwrites another:
+    MRP_TABLE=older           training_smoke or recipe_replay on the older table, as first run on 2026-11-11
     MRP_MODEL=<checkpoint>    t_sensitivity runs on lossdown/<checkpoint>.pt; saved as t_sensitivity_<checkpoint>
 """
 import hashlib
@@ -45,7 +47,7 @@ LINEAR = "1,1,1,1,1"                                    # every field hidden wit
 DEFAULT_MODEL = L.CK / "stat84_labelled_noise_byepoch_es3_cap80" / "stat84_labelled_noise_byepoch_es3_cap80_ep80.pt"
 DEFAULT_MODEL_SHA256 = "c057b8ef47c9bb7446d0155524794568ba6d39f532d695113eeafc8ee17aaa7b"   # recorded by its 23-ask grid
 OUT = Path.home() / "vgc-data/results/masking_rate_rows_preflight.json"
-SHUFFLED_TABLE = os.environ.get("MRP_TABLE") == "shuffled_only"
+OLDER = os.environ.get("MRP_TABLE") == "older"           # training_smoke on the older table
 OTHER_MODEL = os.environ.get("MRP_MODEL")                # a checkpoint name under lossdown/, for t_sensitivity only
 GUIDANCE, SAMPLING_SEED, TEAMS_PER_ASK = 2.0, 7301, 256                  # the ask grid's guidance and its first sampling seed
 ASK_NUMERATORS = (6, 12, 17)
@@ -188,24 +190,31 @@ def recipe_replay(d, V, corpus):
 def main(names):
     results = json.load(open(OUT)) if OUT.exists() else {}
     need_model = {"t_sensitivity", "cross_rate_loss"} & set(names)
-    need_data = {"cross_rate_loss", "training_smoke", "recipe_replay"} & set(names)
-    if (SHUFFLED_TABLE and set(names) != {"training_smoke"}) or (OTHER_MODEL and set(names) != {"t_sensitivity"}):
-        raise SystemExit("MRP_TABLE goes with training_smoke alone, MRP_MODEL with t_sensitivity alone")
-    model = d = None
+    if (OLDER and not set(names) <= {"training_smoke", "recipe_replay"}) or (OTHER_MODEL and set(names) != {"t_sensitivity"}):
+        raise SystemExit("MRP_TABLE=older goes with training_smoke and recipe_replay only, MRP_MODEL with t_sensitivity alone")
+    if "recipe_replay" in names and not OLDER:
+        raise SystemExit("recipe_replay trains one epoch on the older table, whose labels include listed-order battles: set MRP_TABLE=older to run it")
+    model, loaded = None, {}
     if need_model and OTHER_MODEL:
         model = M.Model84.load(L.CK / f"{OTHER_MODEL}.pt")
     elif need_model:
         sha = hashlib.sha256(DEFAULT_MODEL.read_bytes()).hexdigest()
         assert sha == DEFAULT_MODEL_SHA256, f"{DEFAULT_MODEL} is not the checkpoint the default model's grid recorded"
         model = M.Model84.load(DEFAULT_MODEL); results["default_model"] = dict(checkpoint=DEFAULT_MODEL.name, sha256=sha)
-    if need_data:
-        d = TR.load(TR.SHUFFLED_ONLY) if SHUFFLED_TABLE else TR.load()
-        results["table_shuffled_only" if SHUFFLED_TABLE else "table"] = dict(name=d["table"], sha256=d["sha256"])
+
+    def table(older):
+        path = TR.OLDER_TABLE if older else TR.SHUFFLED_ONLY
+        if path not in loaded:
+            loaded[path] = TR.load(path)
+            results["table" if older else "table_shuffled_only"] = dict(name=loaded[path]["table"], sha256=loaded[path]["sha256"])
+        return loaded[path]
+
     probes = dict(hidden_share=hidden_share, corrected_t=corrected_t_values, t_sensitivity=lambda: t_sensitivity(model),
-                  cross_rate_loss=lambda: cross_rate_loss(model, d),
-                  training_smoke=lambda: training_smoke(d, T.regulation_vocab(), X.setup()[0]),
-                  recipe_replay=lambda: recipe_replay(d, T.regulation_vocab(), X.setup()[0]))
-    saved_as = lambda name: name + ("_shuffled_only" if SHUFFLED_TABLE else "") + (f"_{OTHER_MODEL}" if OTHER_MODEL else "")
+                  cross_rate_loss=lambda: cross_rate_loss(model, table(older=True)),
+                  training_smoke=lambda: training_smoke(table(older=OLDER), T.regulation_vocab(), X.setup()[0]),
+                  recipe_replay=lambda: recipe_replay(table(older=True), T.regulation_vocab(), X.setup()[0]))
+    saved_as = lambda name: (name + ("_shuffled_only" if name == "training_smoke" and not OLDER else "")
+                             + (f"_{OTHER_MODEL}" if OTHER_MODEL else ""))
     for name in names:
         results[saved_as(name)] = probes[name]()
         json.dump(results, open(OUT.with_suffix(".tmp"), "w"), indent=1, default=float); OUT.with_suffix(".tmp").replace(OUT)
@@ -215,4 +224,4 @@ def main(names):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["hidden_share", "corrected_t", "t_sensitivity", "cross_rate_loss", "training_smoke", "recipe_replay"])
+    main(sys.argv[1:] or ["hidden_share", "corrected_t", "t_sensitivity", "cross_rate_loss", "training_smoke"])

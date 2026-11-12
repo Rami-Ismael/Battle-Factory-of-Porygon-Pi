@@ -289,14 +289,14 @@ MATRIX = [
     ("Time input", "The network is told t", (S, "Yes, and says it is optional"), (D, "No t given"), ""),
     ("Slot shuffling", "Random Pokémon order each batch", (N, "Not in the paper"), (N, "Not in the paper"), ""),
     ("Legal filter in the loss", "Forbidden values set to −10,000", (N, "Only the mask token is excluded"), (N, "Not in the paper"), ""),
-    ("Legal filter while sampling", "On, at every draw", (N, "Not in the paper"), (N, "Not in the paper"), ""),
+    ("Legal filter while sampling", "On, at every draw. If no value is legal, every value reopens", (N, "Not in the paper"), (N, "Not in the paper"), ""),
     ("Ask dropout in training", "15% of teams train with no ask", (N, "No guidance at all"), (D, "Never drops the prompt"), ""),
-    ("Guidance mixing", "Push toward the ask by a weight", (N, "Left for future work"), (S, "Eq. 16"), ""),
-    ("Decoding order", "Fixed: species first", (D, "Random"), (D, "Random, or least confident last"), "tested here"),
+    ("Guidance mixing", "Push toward the ask by a weight", (N, "Left for future work"), (S, "Eq. 16, used only in an appendix test"), ""),
+    ("Decoding order", "Fixed: species first", (D, "Random"), (D, "Random, or most confident first"), "tested here"),
     ("t told while sampling", "1 − filled/84, one field per pass", (D, "Its grid time, with the training rate"), (D, "None"), "tested: no effect"),
     ("The draw", "Sampled at temperature 1", (S, "Sampled"), (D, "Takes the most likely value"), ""),
-    ("Validation draws", "4 fixed draws for each team", (N, "No count given"), (D, "An exact count hidden, 128 draws"), ""),
-    ("Stat Points as tokens", "Values 0 to 32", (N, "Not in the paper"), (N, "Not in the paper"), ""),
+    ("Validation draws", "4 fixed draws for each team", (D, "32 draws, on one benchmark scored by likelihood"), (D, "An exact count hidden. 128 draws, or 1 for one-token answers"), ""),
+    ("Stat Points as tokens", "Values 0 to 32, order ignored", (S, "Pixel values as 256 tokens, order ignored"), (N, "Not in the paper"), ""),
 ]
 WORD = {S: "Same", D: "Differs"}
 
@@ -316,7 +316,7 @@ def departures():
 <p class="sub">{either} of {len(MATRIX)} parts match at least one paper. MD4 matches {count(2, S)}, LLaDA matches {count(3, S)}.</p>
 <p><span class="key"><span class="sw same"></span>Same as ours</span><span class="key"><span class="sw diff"></span>Differs from ours</span><span class="key"><span class="sw"></span>Grey text: the paper has no such part</span></p>
 <table><tr><th style="width:22%">Part</th><th style="width:26%">Ours</th><th style="width:26%">MD4</th><th style="width:26%">LLaDA</th></tr>{rows}</table>
-<p class="note">MD4: Shi et al., NeurIPS 2024, arXiv 2406.04329. LLaDA: Nie et al., NeurIPS 2025, arXiv 2502.09992. Each cell was checked against the paper's LaTeX source on 2026-11-11. The ticket's "loss weight divided by 84" row is split in two here, because the two halves have different answers.</p>"""
+<p class="note">MD4: Shi et al., NeurIPS 2024, arXiv 2406.04329. LLaDA: Nie et al., NeurIPS 2025, arXiv 2502.09992. Each cell was checked against the paper's LaTeX source on 2026-11-11, and a second pass by three subagents the same day corrected five cells. The ticket's "loss weight divided by 84" row is split in two here, because the two halves have different answers.</p>"""
     return write("explain_7_departures", "Departures matrix", body)
 
 
