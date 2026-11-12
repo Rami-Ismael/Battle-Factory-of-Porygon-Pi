@@ -1,0 +1,94 @@
+<svg width="800" height="436" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" viewBox="0 0 800 436">
+<rect width="800" height="436" x="0" y="0" fill="none"></rect>
+<path d="M196.5 128L196.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M280.5 128L280.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M364.5 128L364.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M448.5 128L448.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M512.5 128L512.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M574.5 128L574.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M636.5 128L636.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M699.5 128L699.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M730.5 128L730.5 328" fill="none" pointer-events="visible" stroke="#e9e7e2" class="zr7-cls-31"></path>
+<path d="M196.5 128L196.5 328" fill="none" pointer-events="visible" stroke="#cfcdc6" stroke-linecap="round" class="zr7-cls-31"></path>
+<path d="M512.5 128L512.5 328" fill="none" pointer-events="visible" stroke="#cfcdc6" stroke-linecap="round" class="zr7-cls-31"></path>
+<path d="M-85.6 0l171.2 0l0 34l-171.2 0Z" transform="translate(322 354)" fill="none" pointer-events="visible" class="zr7-cls-31"></path>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" y="8.5" transform="translate(322 354)" fill="#52514e">distinct builds among 30 uses</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" y="25.5" transform="translate(322 354)" fill="#52514e">higher means more varied</text>
+<path d="M-98.2 0l196.4 0l0 34l-196.4 0Z" transform="translate(621 354)" fill="none" pointer-events="visible" class="zr7-cls-31"></path>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" y="8.5" transform="translate(621 354)" fill="#52514e">fields of 84 that differ</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" y="25.5" transform="translate(621 354)" fill="#52514e">higher means further from training</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(188 148)" fill="#0b0b0b">Default model</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(188 188)" fill="#0b0b0b">Win-rate-matched training</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(188 228)" fill="#0b0b0b">Any-win-rate training</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(188 268)" fill="#0b0b0b">One training team repeated</text>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(188 308)" fill="#0b0b0b">Random legal teams</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(196 336)" fill="#52514e">0</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(280 336)" fill="#52514e">10</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(364 336)" fill="#52514e">20</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(448 336)" fill="#52514e">30</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(512 336)" fill="#52514e">0</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(574.2857 336)" fill="#52514e">20</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(636.5714 336)" fill="#52514e">40</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(698.8571 336)" fill="#52514e">60</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(730 336)" fill="#52514e">70</text>
+<path d="M196 139l172.8 0l0 18l-172.8 0Z" fill="#2a78d6" ecmeta_series_index="0" ecmeta_data_index="0" ecmeta_ssr_type="chart" class="zr7-cls-32"></path>
+<path d="M196 179l215.5 0l0 18l-215.5 0Z" fill="#eb6834" ecmeta_series_index="0" ecmeta_data_index="1" ecmeta_ssr_type="chart" class="zr7-cls-33"></path>
+<path d="M196 219l200.6 0l0 18l-200.6 0Z" fill="#8a4fc4" ecmeta_series_index="0" ecmeta_data_index="2" ecmeta_ssr_type="chart" class="zr7-cls-34"></path>
+<path d="M196 259l8.4 0l0 18l-8.4 0Z" fill="#8a8984" ecmeta_series_index="0" ecmeta_data_index="3" ecmeta_ssr_type="chart" class="zr7-cls-35"></path>
+<path d="M196 299l252 0l0 18l-252 0Z" fill="#8a8984" ecmeta_series_index="0" ecmeta_data_index="4" ecmeta_ssr_type="chart" class="zr7-cls-35"></path>
+<path d="M512 139l112 0l0 18l-112 0Z" fill="#2a78d6" ecmeta_series_index="1" ecmeta_data_index="0" ecmeta_ssr_type="chart" class="zr7-cls-32"></path>
+<path d="M512 179l76.3 0l0 18l-76.3 0Z" fill="#eb6834" ecmeta_series_index="1" ecmeta_data_index="1" ecmeta_ssr_type="chart" class="zr7-cls-33"></path>
+<path d="M512 219l72 0l0 18l-72 0Z" fill="#8a4fc4" ecmeta_series_index="1" ecmeta_data_index="2" ecmeta_ssr_type="chart" class="zr7-cls-34"></path>
+<path d="M512 259l52.9 0l0 18l-52.9 0Z" fill="#8a8984" ecmeta_series_index="1" ecmeta_data_index="3" ecmeta_ssr_type="chart" class="zr7-cls-35"></path>
+<path d="M512 299l213.3 0l0 18l-213.3 0Z" fill="#8a8984" ecmeta_series_index="1" ecmeta_data_index="4" ecmeta_ssr_type="chart" class="zr7-cls-35"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(373.767 148)" fill="#0b0b0b">20.6</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(416.539 188)" fill="#0b0b0b">25.7</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(401.6197 228)" fill="#0b0b0b">23.9</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(209.4 268)" fill="#0b0b0b">1</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(453 308)" fill="#0b0b0b">30</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(628.9969 148)" fill="#0b0b0b">36.0</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(593.2514 188)" fill="#0b0b0b">24.5</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(588.9512 228)" fill="#0b0b0b">23.1</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(569.9429 268)" fill="#0b0b0b">17</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" transform="translate(730.2741 308)" fill="#0b0b0b">68.5</text>
+<path d="M-5 -5l586.5 0l0 56l-586.5 0Z" transform="translate(21 17)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr7-cls-31"></path>
+<path d="M-5 -5l192.8 0l0 24l-192.8 0Z" transform="translate(201 83)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr7-cls-31"></path>
+<path d="M-5 -5l243.5 0l0 23l-243.5 0Z" transform="translate(201 103)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr7-cls-31"></path>
+<path d="M-5 -5l241.3 0l0 24l-241.3 0Z" transform="translate(517 83)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr7-cls-31"></path>
+<path d="M-5 -5l248.6 0l0 23l-248.6 0Z" transform="translate(517 103)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr7-cls-31"></path>
+<path d="M-5 -5l604 0l0 42l-604 0Z" transform="translate(21 391)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr7-cls-31"></path>
+<path d="M0 0l576.5 0l0 46l-576.5 0Z" transform="translate(21 17)" fill="none" pointer-events="visible" class="zr7-cls-31"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:17px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" y="11.5" transform="translate(21 17)" fill="#0b0b0b">The default model writes 5.1 fewer builds per species than win-rate-matched</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:17px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" y="34.5" transform="translate(21 17)" fill="#0b0b0b">training, yet its teams sit 11.5 fields further from the closest training team</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:14px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" y="7" transform="translate(201 83)" fill="#0b0b0b">Builds per species at 30 uses</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:400;" xml:space="preserve" y="6.5" transform="translate(201 103)" fill="#2a78d6">5.1 fewer than win-rate-matched training</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:14px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" y="7" transform="translate(517 83)" fill="#0b0b0b">Nearest training distance, fields of 84</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:400;" xml:space="preserve" y="6.5" transform="translate(517 103)" fill="#2a78d6">11.5 more than win-rate-matched training</text>
+<path d="M0 0l594 0l0 32l-594 0Z" transform="translate(21 391)" fill="none" pointer-events="visible" class="zr7-cls-31"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:400;" xml:space="preserve" y="8" transform="translate(21 391)" fill="#52514e">Model and training bars are means of three sampling seeds or three training draws. One training team repeated</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:400;" xml:space="preserve" y="24" transform="translate(21 391)" fill="#52514e">is left out of its own reference, so its distance is the 17 fields to the next closest training team.</text>
+<style ><![CDATA[
+.zr7-cls-31:hover {
+pointer-events:none;
+}
+.zr7-cls-32:hover {
+cursor:pointer;
+fill:rgba(46,132,235,1);
+}
+.zr7-cls-33:hover {
+cursor:pointer;
+fill:rgba(255,114,57,1);
+}
+.zr7-cls-34:hover {
+cursor:pointer;
+fill:rgba(151,86,215,1);
+}
+.zr7-cls-35:hover {
+cursor:pointer;
+fill:rgba(151,150,145,1);
+}
+
+]]>
+
+</style>
+</svg>

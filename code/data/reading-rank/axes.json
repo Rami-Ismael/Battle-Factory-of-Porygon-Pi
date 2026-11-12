@@ -1,0 +1,1776 @@
+{
+ "axes": {
+  "future": {
+   "question": "After reading only its abstract: how much of a future does it have for the counter-team search?",
+   "levels": [
+    "none",
+    "a little: background only",
+    "some: one idea worth trying later",
+    "clear: a method to try soon",
+    "strong: it changes what the search does next"
+   ]
+  },
+  "new": {
+   "question": "While reading it: how much of it would be new to the reader?",
+   "levels": [
+    "almost nothing new",
+    "a little new",
+    "about half new",
+    "mostly new",
+    "nearly all new"
+   ]
+  }
+ },
+ "calls": 20,
+ "dollars": 0.00861399,
+ "scores": {
+  "u5a45271951": {
+   "future": 0.12,
+   "new": 2.18
+  },
+  "u0ad0bcb3df": {
+   "future": 2.27,
+   "new": 1.73
+  },
+  "ud5a129ba86": {
+   "future": 0.37,
+   "new": 1.81
+  },
+  "u81a39b67b4": {
+   "future": 0.79,
+   "new": 2.22
+  },
+  "ubc9bcd52ec": {
+   "future": 0.1,
+   "new": 2.3
+  },
+  "udf78ce1777": {
+   "future": 0.93,
+   "new": 1.43
+  },
+  "u9cadc62add": {
+   "future": 1.15,
+   "new": 1.5
+  },
+  "uf7fc00976f": {
+   "future": 0.34,
+   "new": 2.25
+  },
+  "ud9d835689c": {
+   "future": 0.04,
+   "new": 1.64
+  },
+  "u74975a9261": {
+   "future": 0.3,
+   "new": 1.61
+  },
+  "uf53c3e9446": {
+   "future": 0.05,
+   "new": 2.53
+  },
+  "u0733259c90": {
+   "future": 0.07,
+   "new": 2.18
+  },
+  "u9cb534693e": {
+   "future": 0.09,
+   "new": 1.76
+  },
+  "u7844ade4aa": {
+   "future": 0.56,
+   "new": 0.47
+  },
+  "u1468802643": {
+   "future": 0.52,
+   "new": 2.84
+  },
+  "ud74d3e6248": {
+   "future": 0.1,
+   "new": 1.25
+  },
+  "ua7d2711ba3": {
+   "future": 0.23,
+   "new": 1.62
+  },
+  "u0b738e7500": {
+   "future": 0.52,
+   "new": 1.72
+  },
+  "u3d82c7c5bc": {
+   "future": 0.07,
+   "new": 1.12
+  },
+  "u36a8e59700": {
+   "future": 1.54,
+   "new": 2.08
+  },
+  "uc74eb86529": {
+   "future": 1.29,
+   "new": 2.03
+  },
+  "u4a26ea6fac": {
+   "future": 0.1,
+   "new": 1.91
+  },
+  "u98b60a9dac": {
+   "future": 0.02,
+   "new": 1.61
+  },
+  "u6d611de242": {
+   "future": 2.53,
+   "new": 2.23
+  },
+  "u57705a841c": {
+   "future": 1.95,
+   "new": 2.23
+  },
+  "u21e3e719f6": {
+   "future": 1.14,
+   "new": 0.94
+  },
+  "uee1e792171": {
+   "future": 1.38,
+   "new": 1.6
+  },
+  "ue601225590": {
+   "future": 1.34,
+   "new": 1.63
+  },
+  "ua4e2aa9fcd": {
+   "future": 0.76,
+   "new": 2.26
+  },
+  "ud1aa7f71e3": {
+   "future": 0.43,
+   "new": 3.04
+  },
+  "ub88287de56": {
+   "future": 0.22,
+   "new": 0.79
+  },
+  "uc20e95b175": {
+   "future": 0.19,
+   "new": 0.58
+  },
+  "ubf0d5c53a4": {
+   "future": 1.0,
+   "new": 2.27
+  },
+  "u84917b21e3": {
+   "future": 0.4,
+   "new": 1.8
+  },
+  "u15bb9ecffe": {
+   "future": 0.38,
+   "new": 2.0
+  },
+  "u118dbdd4ee": {
+   "future": 1.27,
+   "new": 1.88
+  },
+  "u0de920610f": {
+   "future": 0.4,
+   "new": 2.3
+  },
+  "u75c66933b9": {
+   "future": 0.77,
+   "new": 2.65
+  },
+  "u9360c929e7": {
+   "future": 0.06,
+   "new": 1.71
+  },
+  "u560bda5611": {
+   "future": 1.19,
+   "new": 1.8
+  },
+  "ub853acd4ed": {
+   "future": 1.0,
+   "new": 2.09
+  },
+  "ua1cc154aaf": {
+   "future": 0.75,
+   "new": 1.55
+  },
+  "u48bdce119a": {
+   "future": 1.04,
+   "new": 2.47
+  },
+  "ub5d0a6b212": {
+   "future": 0.78,
+   "new": 2.6
+  },
+  "ud1d4ac0db8": {
+   "future": 0.85,
+   "new": 2.62
+  },
+  "u51360d90e5": {
+   "future": 1.89,
+   "new": 1.87
+  },
+  "ueed96e2890": {
+   "future": 0.81,
+   "new": 1.83
+  },
+  "u3f0f63b873": {
+   "future": 0.18,
+   "new": 1.29
+  },
+  "uff923e08df": {
+   "future": 0.66,
+   "new": 2.09
+  },
+  "ue9192ab9c7": {
+   "future": 0.52,
+   "new": 2.26
+  },
+  "u5d62d03a0f": {
+   "future": 0.7,
+   "new": 1.9
+  },
+  "u12a6186ce3": {
+   "future": 0.9,
+   "new": 2.2
+  },
+  "u7979d5be9a": {
+   "future": 1.57,
+   "new": 2.16
+  },
+  "uae8dcf79b6": {
+   "future": 1.56,
+   "new": 2.39
+  },
+  "u4bec733a68": {
+   "future": 1.68,
+   "new": 1.41
+  },
+  "uf5002677ff": {
+   "future": 1.49,
+   "new": 1.65
+  },
+  "u8f4c98f52a": {
+   "future": 0.88,
+   "new": 0.76
+  },
+  "ua8e918d824": {
+   "future": 1.02,
+   "new": 1.49
+  },
+  "ufa9ebb4a32": {
+   "future": 1.7,
+   "new": 1.69
+  },
+  "u7673ac2876": {
+   "future": 1.72,
+   "new": 1.9
+  },
+  "uaa37d49a8a": {
+   "future": 1.59,
+   "new": 2.26
+  },
+  "ucd7f542f52": {
+   "future": 1.77,
+   "new": 2.21
+  },
+  "u409247045b": {
+   "future": 1.64,
+   "new": 2.12
+  },
+  "ud5a7b970a1": {
+   "future": 1.86,
+   "new": 2.33
+  },
+  "u8179799408": {
+   "future": 3.16,
+   "new": 1.69
+  },
+  "u45d8fe7389": {
+   "future": 2.79,
+   "new": 1.73
+  },
+  "uc7f5b845a7": {
+   "future": 2.44,
+   "new": 1.45
+  },
+  "uf1cc7e3c24": {
+   "future": 1.59,
+   "new": 1.36
+  },
+  "u98813a469b": {
+   "future": 1.79,
+   "new": 1.89
+  },
+  "u816e7b63cc": {
+   "future": 2.26,
+   "new": 1.89
+  },
+  "ub881d0059c": {
+   "future": 1.38,
+   "new": 1.68
+  },
+  "u9932a37cdb": {
+   "future": 1.37,
+   "new": 2.25
+  },
+  "ucffc09e4f4": {
+   "future": 1.02,
+   "new": 2.02
+  },
+  "ub17498864a": {
+   "future": 2.35,
+   "new": 2.14
+  },
+  "ue187be70b1": {
+   "future": 2.45,
+   "new": 1.95
+  },
+  "ueb30466c8f": {
+   "future": 1.97,
+   "new": 2.05
+  },
+  "u71db9cf77e": {
+   "future": 1.52,
+   "new": 2.03
+  },
+  "ub4d572dae6": {
+   "future": 1.81,
+   "new": 1.76
+  },
+  "udc7c0f56bb": {
+   "future": 1.88,
+   "new": 1.89
+  },
+  "uae21e5ffa2": {
+   "future": 1.37,
+   "new": 2.12
+  },
+  "uf1acb86253": {
+   "future": 2.7,
+   "new": 1.76
+  },
+  "u969d5cb038": {
+   "future": 2.83,
+   "new": 1.92
+  },
+  "udf3c82aa26": {
+   "future": 2.61,
+   "new": 2.07
+  },
+  "ua067ff9c8e": {
+   "future": 1.98,
+   "new": 2.48
+  },
+  "u2771ea526f": {
+   "future": 1.99,
+   "new": 2.14
+  },
+  "u2cae1c3662": {
+   "future": 3.08,
+   "new": 2.05
+  },
+  "uc006c26a16": {
+   "future": 2.7,
+   "new": 1.93
+  },
+  "ua5f3bfc81e": {
+   "future": 2.0,
+   "new": 1.97
+  },
+  "u3b74563cbd": {
+   "future": 1.8,
+   "new": 2.31
+  },
+  "ubcee6055b0": {
+   "future": 1.94,
+   "new": 1.4
+  },
+  "u3969255a3c": {
+   "future": 2.26,
+   "new": 1.74
+  },
+  "ud17f33ac88": {
+   "future": 2.13,
+   "new": 1.48
+  },
+  "u14a4852746": {
+   "future": 2.25,
+   "new": 1.97
+  },
+  "u9d441669bf": {
+   "future": 2.5,
+   "new": 1.75
+  },
+  "u5494b279c9": {
+   "future": 2.58,
+   "new": 1.8
+  },
+  "u1c300ca0e6": {
+   "future": 2.67,
+   "new": 1.96
+  },
+  "u852431f2ec": {
+   "future": 2.42,
+   "new": 1.93
+  },
+  "u0410bd8656": {
+   "future": 1.97,
+   "new": 1.89
+  },
+  "u353d21772e": {
+   "future": 1.83,
+   "new": 1.73
+  },
+  "u2d81c01299": {
+   "future": 2.43,
+   "new": 1.92
+  },
+  "ud1497131ba": {
+   "future": 2.3,
+   "new": 1.8
+  },
+  "u1315d5ee77": {
+   "future": 1.56,
+   "new": 1.7
+  },
+  "u559e982548": {
+   "future": 1.87,
+   "new": 1.89
+  },
+  "u56fc73f99b": {
+   "future": 1.73,
+   "new": 1.73
+  },
+  "u6df0d1eaf1": {
+   "future": 1.05,
+   "new": 1.49
+  },
+  "u23118dee5e": {
+   "future": 1.31,
+   "new": 2.09
+  },
+  "ue79cdd524a": {
+   "future": 1.98,
+   "new": 1.87
+  },
+  "ub8767eb60e": {
+   "future": 1.97,
+   "new": 2.1
+  },
+  "uea84ee7fe9": {
+   "future": 2.19,
+   "new": 1.8
+  },
+  "u48a3a83118": {
+   "future": 1.78,
+   "new": 2.3
+  },
+  "u8361929ff0": {
+   "future": 1.63,
+   "new": 2.41
+  },
+  "u1e531d7b71": {
+   "future": 1.79,
+   "new": 2.2
+  },
+  "u18cfe242c2": {
+   "future": 1.41,
+   "new": 2.14
+  },
+  "uca0ac6f0ca": {
+   "future": 1.43,
+   "new": 1.9
+  },
+  "uf85d407f07": {
+   "future": 1.36,
+   "new": 1.86
+  },
+  "u3031072d3d": {
+   "future": 1.92,
+   "new": 1.5
+  },
+  "u0395d29660": {
+   "future": 1.91,
+   "new": 1.48
+  },
+  "ue02a09ae43": {
+   "future": 1.73,
+   "new": 1.26
+  },
+  "u72691969d5": {
+   "future": 1.41,
+   "new": 1.38
+  },
+  "uf6d07c1038": {
+   "future": 1.23,
+   "new": 1.78
+  },
+  "ubc16a51877": {
+   "future": 1.6,
+   "new": 1.51
+  },
+  "ua9e00d6604": {
+   "future": 1.28,
+   "new": 1.26
+  },
+  "ub11d106028": {
+   "future": 1.33,
+   "new": 1.07
+  },
+  "u407b097548": {
+   "future": 1.82,
+   "new": 1.74
+  },
+  "u25329b5382": {
+   "future": 1.66,
+   "new": 1.91
+  },
+  "ufa1b244b51": {
+   "future": 1.44,
+   "new": 1.83
+  },
+  "ub765cf1627": {
+   "future": 2.0,
+   "new": 2.27
+  },
+  "u7d30cd3a99": {
+   "future": 2.67,
+   "new": 1.99
+  },
+  "u2f01246729": {
+   "future": 1.94,
+   "new": 1.55
+  },
+  "u1f3800915b": {
+   "future": 1.58,
+   "new": 1.14
+  },
+  "u32ee120d3c": {
+   "future": 2.43,
+   "new": 2.12
+  },
+  "ubed6b2b8a9": {
+   "future": 1.93,
+   "new": 2.08
+  },
+  "u851da3344e": {
+   "future": 1.9,
+   "new": 1.41
+  },
+  "ud998a93005": {
+   "future": 1.9,
+   "new": 1.92
+  },
+  "ucb93f9f22c": {
+   "future": 1.77,
+   "new": 1.6
+  },
+  "u5f774a4748": {
+   "future": 2.19,
+   "new": 1.91
+  },
+  "ucdbfda906d": {
+   "future": 2.87,
+   "new": 1.9
+  },
+  "ufe514a428d": {
+   "future": 2.21,
+   "new": 1.62
+  },
+  "u0718061cfb": {
+   "future": 2.04,
+   "new": 1.58
+  },
+  "u5c463a5e01": {
+   "future": 1.84,
+   "new": 1.75
+  },
+  "ubd82646375": {
+   "future": 2.38,
+   "new": 1.71
+  },
+  "u8f97d7539b": {
+   "future": 1.47,
+   "new": 1.56
+  },
+  "u59b6459052": {
+   "future": 2.05,
+   "new": 1.83
+  },
+  "u5198450fe1": {
+   "future": 1.66,
+   "new": 1.85
+  },
+  "ub863a2cf30": {
+   "future": 3.03,
+   "new": 1.79
+  },
+  "u291acb02b5": {
+   "future": 3.0,
+   "new": 1.97
+  },
+  "uda1a62db66": {
+   "future": 1.79,
+   "new": 1.53
+  },
+  "ud414fd022c": {
+   "future": 1.62,
+   "new": 1.47
+  },
+  "u52107b29f1": {
+   "future": 2.88,
+   "new": 1.95
+  },
+  "ub95167da93": {
+   "future": 1.64,
+   "new": 1.91
+  },
+  "u779fe231ab": {
+   "future": 1.96,
+   "new": 2.11
+  },
+  "u885d2a3e13": {
+   "future": 2.42,
+   "new": 1.78
+  },
+  "ua8778ef40e": {
+   "future": 1.53,
+   "new": 1.72
+  },
+  "u53ac0294df": {
+   "future": 1.59,
+   "new": 1.86
+  },
+  "ud02062b1d9": {
+   "future": 1.39,
+   "new": 1.5
+  },
+  "u02875f112c": {
+   "future": 1.46,
+   "new": 1.33
+  },
+  "ua4ba371ddf": {
+   "future": 1.51,
+   "new": 1.84
+  },
+  "u261d4c3b7d": {
+   "future": 2.41,
+   "new": 1.64
+  },
+  "uf0122a7106": {
+   "future": 2.42,
+   "new": 1.57
+  },
+  "uff86768719": {
+   "future": 2.86,
+   "new": 1.75
+  },
+  "ueec2bf57ac": {
+   "future": 2.96,
+   "new": 1.92
+  },
+  "ub5b85f5436": {
+   "future": 2.64,
+   "new": 2.23
+  },
+  "u4586a4d7b7": {
+   "future": 2.85,
+   "new": 1.61
+  },
+  "uf46a68f6c4": {
+   "future": 2.98,
+   "new": 2.06
+  },
+  "u662c3900ff": {
+   "future": 1.97,
+   "new": 0.38
+  },
+  "u2a6ea688d0": {
+   "future": 3.25,
+   "new": 2.09
+  },
+  "u34dd4ce27f": {
+   "future": 3.09,
+   "new": 1.99
+  },
+  "uc78bef05df": {
+   "future": 2.72,
+   "new": 1.66
+  },
+  "udd0267f3cb": {
+   "future": 2.87,
+   "new": 1.75
+  },
+  "ud76d8be693": {
+   "future": 1.76,
+   "new": 2.0
+  },
+  "u37c121b03a": {
+   "future": 3.11,
+   "new": 1.81
+  },
+  "uaf4407b072": {
+   "future": 2.8,
+   "new": 1.4
+  },
+  "u01567b2bcd": {
+   "future": 2.27,
+   "new": 2.03
+  },
+  "uf5d973d96d": {
+   "future": 2.19,
+   "new": 1.84
+  },
+  "u25eb0654f9": {
+   "future": 2.53,
+   "new": 2.04
+  },
+  "u2bf9eebe54": {
+   "future": 2.95,
+   "new": 2.09
+  },
+  "u8052469745": {
+   "future": 2.95,
+   "new": 1.89
+  },
+  "ue87fa3c2b6": {
+   "future": 1.61,
+   "new": 1.31
+  },
+  "u16b17ba34f": {
+   "future": 2.04,
+   "new": 1.86
+  },
+  "u53636354c6": {
+   "future": 2.35,
+   "new": 1.99
+  },
+  "u8d390f78fe": {
+   "future": 2.85,
+   "new": 1.64
+  },
+  "u738a04d5fe": {
+   "future": 2.61,
+   "new": 1.57
+  },
+  "ubc90fcbeb8": {
+   "future": 2.42,
+   "new": 1.8
+  },
+  "ue8c2e7ed46": {
+   "future": 2.0,
+   "new": 1.53
+  },
+  "u24120bbd8e": {
+   "future": 2.06,
+   "new": 2.06
+  },
+  "uec85cc86fb": {
+   "future": 1.39,
+   "new": 1.76
+  },
+  "u47d8417974": {
+   "future": 1.78,
+   "new": 1.43
+  },
+  "u500e4d910c": {
+   "future": 1.5,
+   "new": 1.74
+  },
+  "u1c65e0121e": {
+   "future": 1.31,
+   "new": 1.96
+  },
+  "ufe1c0ba6c6": {
+   "future": 1.59,
+   "new": 1.72
+  },
+  "ucbd26b6c0c": {
+   "future": 1.52,
+   "new": 2.3
+  },
+  "ua10ed18385": {
+   "future": 2.14,
+   "new": 1.85
+  },
+  "u00ae224922": {
+   "future": 2.05,
+   "new": 2.0
+  },
+  "u0a9ddb5912": {
+   "future": 2.0,
+   "new": 1.89
+  },
+  "u1100238303": {
+   "future": 1.75,
+   "new": 1.84
+  },
+  "ub36cdcf3f0": {
+   "future": 2.58,
+   "new": 1.71
+  },
+  "u1b4649d0c3": {
+   "future": 2.97,
+   "new": 1.62
+  },
+  "uda5b12a260": {
+   "future": 2.59,
+   "new": 1.68
+  },
+  "u817c64a342": {
+   "future": 1.9,
+   "new": 1.61
+  },
+  "u7bf41314e3": {
+   "future": 2.13,
+   "new": 2.01
+  },
+  "u9dd30d3ffd": {
+   "future": 2.43,
+   "new": 2.12
+  },
+  "u9bbd866a9b": {
+   "future": 2.25,
+   "new": 2.07
+  },
+  "u027a600807": {
+   "future": 1.61,
+   "new": 1.53
+  },
+  "u3f03f84a31": {
+   "future": 1.42,
+   "new": 2.27
+  },
+  "ue41209a327": {
+   "future": 1.79,
+   "new": 1.9
+  },
+  "u70354fdf43": {
+   "future": 1.28,
+   "new": 1.77
+  },
+  "ue9d04006de": {
+   "future": 1.51,
+   "new": 2.7
+  },
+  "u99c3a271b4": {
+   "future": 1.02,
+   "new": 2.48
+  },
+  "u30f4dcfabf": {
+   "future": 1.79,
+   "new": 2.04
+  },
+  "u06cc45d29a": {
+   "future": 2.82,
+   "new": 1.91
+  },
+  "u346601f4fd": {
+   "future": 2.46,
+   "new": 2.0
+  },
+  "u0211fdd310": {
+   "future": 2.27,
+   "new": 2.15
+  },
+  "ucf6f6b46d7": {
+   "future": 2.81,
+   "new": 2.22
+  },
+  "ud4fe68d94d": {
+   "future": 1.48,
+   "new": 1.91
+  },
+  "u18ba392794": {
+   "future": 1.79,
+   "new": 2.5
+  },
+  "uc266c73f3c": {
+   "future": 1.09,
+   "new": 2.25
+  },
+  "ue4ed5b8974": {
+   "future": 1.82,
+   "new": 2.11
+  },
+  "ua291832c93": {
+   "future": 1.52,
+   "new": 1.91
+  },
+  "ucc592a23cd": {
+   "future": 1.03,
+   "new": 2.31
+  },
+  "u7147ba725f": {
+   "future": 1.0,
+   "new": 2.01
+  },
+  "u3331acca67": {
+   "future": 1.32,
+   "new": 2.16
+  },
+  "u577cba3cb9": {
+   "future": 0.82,
+   "new": 2.14
+  },
+  "ude55a89fce": {
+   "future": 1.62,
+   "new": 2.31
+  },
+  "ua4450b2563": {
+   "future": 1.46,
+   "new": 2.45
+  },
+  "uc4ea7f4572": {
+   "future": 1.92,
+   "new": 2.31
+  },
+  "u7f578c0147": {
+   "future": 2.91,
+   "new": 2.1
+  },
+  "u6a5151f79b": {
+   "future": 1.8,
+   "new": 2.1
+  },
+  "ud0b22d95e7": {
+   "future": 1.99,
+   "new": 1.98
+  },
+  "u55380b4d95": {
+   "future": 1.22,
+   "new": 1.6
+  },
+  "ue641111aa9": {
+   "future": 1.41,
+   "new": 1.91
+  },
+  "u6a4a075f3b": {
+   "future": 1.96,
+   "new": 2.19
+  },
+  "u68916b74d5": {
+   "future": 1.3,
+   "new": 2.31
+  },
+  "u5241b4ecd8": {
+   "future": 1.28,
+   "new": 2.04
+  },
+  "ue2391a190c": {
+   "future": 1.07,
+   "new": 2.57
+  },
+  "uac463eb36d": {
+   "future": 1.04,
+   "new": 2.28
+  },
+  "u5e97782640": {
+   "future": 1.05,
+   "new": 2.07
+  },
+  "u53d6aedfbc": {
+   "future": 1.28,
+   "new": 1.94
+  },
+  "ue023b38708": {
+   "future": 1.41,
+   "new": 2.07
+  },
+  "u1f595759ca": {
+   "future": 1.56,
+   "new": 1.32
+  },
+  "u5cc989f95b": {
+   "future": 1.51,
+   "new": 1.85
+  },
+  "u32e1fd4819": {
+   "future": 1.44,
+   "new": 2.22
+  },
+  "u9a8c7f69d9": {
+   "future": 1.82,
+   "new": 2.07
+  },
+  "u4686120d2a": {
+   "future": 2.04,
+   "new": 2.35
+  },
+  "ud53bcf0869": {
+   "future": 2.29,
+   "new": 2.06
+  },
+  "uc9d2a4188c": {
+   "future": 1.69,
+   "new": 1.43
+  },
+  "uac09dfb3c3": {
+   "future": 1.27,
+   "new": 1.69
+  },
+  "u8d707a2688": {
+   "future": 1.8,
+   "new": 1.72
+  },
+  "u63f71045df": {
+   "future": 1.17,
+   "new": 1.98
+  },
+  "u422947fc41": {
+   "future": 1.33,
+   "new": 2.33
+  },
+  "u736273a198": {
+   "future": 1.02,
+   "new": 2.44
+  },
+  "ucb9b66b4fb": {
+   "future": 1.65,
+   "new": 2.25
+  },
+  "ue462c74859": {
+   "future": 1.31,
+   "new": 2.25
+  },
+  "u98697e3f71": {
+   "future": 1.05,
+   "new": 2.35
+  },
+  "u0c6f6638bb": {
+   "future": 1.18,
+   "new": 2.46
+  },
+  "u1ca5d2b820": {
+   "future": 1.33,
+   "new": 2.53
+  },
+  "u758b4547e3": {
+   "future": 0.88,
+   "new": 1.73
+  },
+  "u741fec40b5": {
+   "future": 1.16,
+   "new": 2.01
+  },
+  "ufce4abbe64": {
+   "future": 1.0,
+   "new": 1.79
+  },
+  "uedfc06c2e5": {
+   "future": 1.53,
+   "new": 2.03
+  },
+  "ua18c316ff0": {
+   "future": 1.12,
+   "new": 1.46
+  },
+  "u100400b0f5": {
+   "future": 1.18,
+   "new": 2.25
+  },
+  "ua6e102e610": {
+   "future": 1.47,
+   "new": 2.29
+  },
+  "ud196e3357d": {
+   "future": 1.31,
+   "new": 2.48
+  },
+  "u8bc5b0fd91": {
+   "future": 1.15,
+   "new": 2.23
+  },
+  "ud48225b100": {
+   "future": 1.54,
+   "new": 1.7
+  },
+  "ua5e80199e8": {
+   "future": 1.52,
+   "new": 1.89
+  },
+  "u9ead94df16": {
+   "future": 1.26,
+   "new": 1.58
+  },
+  "ueeb32b9fa1": {
+   "future": 1.15,
+   "new": 1.75
+  },
+  "ue36facd316": {
+   "future": 1.26,
+   "new": 2.0
+  },
+  "ue1a0ddc295": {
+   "future": 0.33,
+   "new": 2.73
+  },
+  "ufb96e3c792": {
+   "future": 1.27,
+   "new": 2.35
+  },
+  "u156dd4d62b": {
+   "future": 1.48,
+   "new": 2.45
+  },
+  "u562b71afb4": {
+   "future": 0.93,
+   "new": 2.25
+  },
+  "u4ce31042cb": {
+   "future": 0.83,
+   "new": 2.3
+  },
+  "u9c4510bdbc": {
+   "future": 1.53,
+   "new": 2.23
+  },
+  "ud9c939de08": {
+   "future": 2.12,
+   "new": 2.2
+  },
+  "u32da3a1495": {
+   "future": 0.55,
+   "new": 2.02
+  },
+  "u01456e20e2": {
+   "future": 0.27,
+   "new": 2.23
+  },
+  "u3dacdfa17b": {
+   "future": 0.27,
+   "new": 1.65
+  },
+  "u5ea7423755": {
+   "future": 0.13,
+   "new": 1.97
+  },
+  "u5569d89591": {
+   "future": 0.61,
+   "new": 1.12
+  },
+  "udf14c751b0": {
+   "future": 0.28,
+   "new": 2.09
+  },
+  "u8d2714e0b1": {
+   "future": 0.34,
+   "new": 1.83
+  },
+  "ud9cbfb1894": {
+   "future": 0.54,
+   "new": 1.05
+  },
+  "u9cede88568": {
+   "future": 0.51,
+   "new": 1.88
+  },
+  "uaa79dc7c35": {
+   "future": 0.2,
+   "new": 2.49
+  },
+  "ua479b5a3d7": {
+   "future": 0.46,
+   "new": 2.83
+  },
+  "uf044a1ae92": {
+   "future": 0.38,
+   "new": 1.99
+  },
+  "u0cfda8bd5c": {
+   "future": 0.01,
+   "new": 2.1
+  },
+  "u58d9ff98a9": {
+   "future": 1.46,
+   "new": 1.88
+  },
+  "uacecf19dfd": {
+   "future": 0.63,
+   "new": 1.82
+  },
+  "u4472f92677": {
+   "future": 1.08,
+   "new": 1.7
+  },
+  "ufc8432d87a": {
+   "future": 0.54,
+   "new": 2.31
+  },
+  "uf107185728": {
+   "future": 0.76,
+   "new": 1.86
+  },
+  "uf4eb3f226b": {
+   "future": 0.88,
+   "new": 1.92
+  },
+  "ufd4bec44c2": {
+   "future": 0.92,
+   "new": 2.05
+  },
+  "udf9f838102": {
+   "future": 1.12,
+   "new": 2.05
+  },
+  "uab27786163": {
+   "future": 1.34,
+   "new": 1.69
+  },
+  "u55289dc06c": {
+   "future": 0.7,
+   "new": 1.55
+  },
+  "u1db198b986": {
+   "future": 1.08,
+   "new": 1.78
+  },
+  "uc61f246259": {
+   "future": 0.34,
+   "new": 2.45
+  },
+  "u52d153df13": {
+   "future": 0.73,
+   "new": 1.71
+  },
+  "u26b5cf8d7a": {
+   "future": 0.41,
+   "new": 1.61
+  },
+  "u23388550ce": {
+   "future": 0.62,
+   "new": 1.9
+  },
+  "u216ec1cf88": {
+   "future": 0.25,
+   "new": 0.97
+  },
+  "u1a76c74436": {
+   "future": 0.46,
+   "new": 1.61
+  },
+  "ufbbe9feef6": {
+   "future": 0.77,
+   "new": 1.82
+  },
+  "u9e23b9d7c4": {
+   "future": 0.24,
+   "new": 1.75
+  },
+  "uae817b86e1": {
+   "future": 1.15,
+   "new": 1.88
+  },
+  "u4f752b7e01": {
+   "future": 0.18,
+   "new": 1.69
+  },
+  "uf6cd1f97e1": {
+   "future": 0.16,
+   "new": 1.39
+  },
+  "ucc39c34581": {
+   "future": 0.39,
+   "new": 2.61
+  },
+  "u6dc7340414": {
+   "future": 1.89,
+   "new": 2.11
+  },
+  "udb67285c5b": {
+   "future": 2.59,
+   "new": 2.06
+  },
+  "u02c4a6a4f1": {
+   "future": 2.67,
+   "new": 1.89
+  },
+  "uea97878306": {
+   "future": 2.67,
+   "new": 1.68
+  },
+  "u64a86ca29b": {
+   "future": 1.66,
+   "new": 2.03
+  },
+  "u8e5e38b08a": {
+   "future": 2.86,
+   "new": 2.0
+  },
+  "ub0f7bcd23f": {
+   "future": 2.05,
+   "new": 2.01
+  },
+  "udd29a74692": {
+   "future": 2.59,
+   "new": 1.97
+  },
+  "u9de232f5c8": {
+   "future": 1.82,
+   "new": 1.93
+  },
+  "ua2fa1dc4a4": {
+   "future": 1.73,
+   "new": 2.33
+  },
+  "u23565bd101": {
+   "future": 1.86,
+   "new": 2.06
+  },
+  "u476ac29adc": {
+   "future": 2.71,
+   "new": 1.77
+  },
+  "ub4057a8318": {
+   "future": 2.5,
+   "new": 1.82
+  },
+  "u0563ed19ad": {
+   "future": 2.15,
+   "new": 1.93
+  },
+  "u25742e9e41": {
+   "future": 0.97,
+   "new": 2.45
+  },
+  "u64f6b72494": {
+   "future": 2.22,
+   "new": 2.15
+  },
+  "uaed94d0eaf": {
+   "future": 1.64,
+   "new": 1.94
+  },
+  "u50d758c796": {
+   "future": 0.49,
+   "new": 2.46
+  },
+  "u4c7ee7c0ba": {
+   "future": 1.44,
+   "new": 1.8
+  },
+  "uadf58c7ab9": {
+   "future": 0.82,
+   "new": 1.83
+  },
+  "u60b87e9bcb": {
+   "future": 1.0,
+   "new": 2.19
+  },
+  "ucd197d8a1a": {
+   "future": 1.1,
+   "new": 2.35
+  },
+  "u3cd1e1207e": {
+   "future": 1.18,
+   "new": 2.62
+  },
+  "u9c907f54b4": {
+   "future": 1.66,
+   "new": 1.99
+  },
+  "u2cab1e22d7": {
+   "future": 1.62,
+   "new": 1.84
+  },
+  "u8805966bbd": {
+   "future": 0.93,
+   "new": 2.4
+  },
+  "ufbd7d14f03": {
+   "future": 2.03,
+   "new": 1.59
+  },
+  "uefae059983": {
+   "future": 2.24,
+   "new": 2.15
+  },
+  "u61b5ef388f": {
+   "future": 0.78,
+   "new": 1.65
+  },
+  "u800aa70695": {
+   "future": 2.0,
+   "new": 2.06
+  },
+  "u3dfd7ebcdb": {
+   "future": 1.63,
+   "new": 2.1
+  },
+  "u1233c6cefd": {
+   "future": 1.06,
+   "new": 1.76
+  },
+  "u2edd4078c5": {
+   "future": 1.94,
+   "new": 2.36
+  },
+  "u6552826203": {
+   "future": 1.65,
+   "new": 2.26
+  },
+  "u475b50b8a3": {
+   "future": 1.84,
+   "new": 2.13
+  },
+  "uebf656b211": {
+   "future": 1.39,
+   "new": 2.14
+  },
+  "ua1208a6eae": {
+   "future": 0.66,
+   "new": 1.26
+  },
+  "u384aa2ca52": {
+   "future": 2.2,
+   "new": 1.65
+  },
+  "uad880c146e": {
+   "future": 0.69,
+   "new": 1.2
+  },
+  "u79c03e860f": {
+   "future": 1.22,
+   "new": 1.99
+  },
+  "u73debfa79b": {
+   "future": 0.64,
+   "new": 1.98
+  },
+  "uc82e00c438": {
+   "future": 2.73,
+   "new": 2.05
+  },
+  "uda58aa07d6": {
+   "future": 2.86,
+   "new": 2.02
+  },
+  "ue9c7d58bd4": {
+   "future": 1.8,
+   "new": 1.89
+  },
+  "u18a74ffaad": {
+   "future": 1.7,
+   "new": 1.66
+  },
+  "uc9357ed9ad": {
+   "future": 1.14,
+   "new": 0.92
+  },
+  "u6867fb2d3d": {
+   "future": 1.01,
+   "new": 1.69
+  },
+  "u690879f72c": {
+   "future": 0.91,
+   "new": 1.54
+  },
+  "uab235ab224": {
+   "future": 1.45,
+   "new": 1.95
+  },
+  "ud8a04d02e9": {
+   "future": 1.58,
+   "new": 1.85
+  },
+  "u307efd7073": {
+   "future": 1.44,
+   "new": 1.89
+  },
+  "u49194207df": {
+   "future": 1.16,
+   "new": 1.54
+  },
+  "u9b7b2714a5": {
+   "future": 0.64,
+   "new": 0.68
+  },
+  "u4b465a3d49": {
+   "future": 0.36,
+   "new": 0.6
+  },
+  "uea538f8d90": {
+   "future": 1.0,
+   "new": 0.8
+  },
+  "ub53e6a6cd6": {
+   "future": 0.95,
+   "new": 0.85
+  },
+  "u9dca777155": {
+   "future": 1.03,
+   "new": 1.72
+  },
+  "ub64e4008cf": {
+   "future": 1.27,
+   "new": 1.64
+  },
+  "u746bb85741": {
+   "future": 1.38,
+   "new": 1.71
+  },
+  "u5d21062852": {
+   "future": 0.71,
+   "new": 1.78
+  },
+  "u5cdbf429a9": {
+   "future": 0.27,
+   "new": 1.85
+  },
+  "u016d50df00": {
+   "future": 0.6,
+   "new": 1.13
+  },
+  "u0f1c2de025": {
+   "future": 0.7,
+   "new": 1.79
+  },
+  "u8b95287c44": {
+   "future": 1.26,
+   "new": 2.1
+  },
+  "u60113cba3f": {
+   "future": 1.0,
+   "new": 1.92
+  },
+  "u586a8cde22": {
+   "future": 1.4,
+   "new": 2.03
+  },
+  "u71a1253c01": {
+   "future": 0.56,
+   "new": 1.58
+  },
+  "ud40ed1d6a7": {
+   "future": 0.76,
+   "new": 2.01
+  },
+  "u3f22f70ade": {
+   "future": 1.21,
+   "new": 1.66
+  },
+  "ue36b4de7fd": {
+   "future": 0.49,
+   "new": 1.93
+  },
+  "u8bc99b03e5": {
+   "future": 0.39,
+   "new": 1.7
+  },
+  "ub5394d6506": {
+   "future": 1.1,
+   "new": 1.74
+  },
+  "u87d8aee5c5": {
+   "future": 1.37,
+   "new": 1.77
+  },
+  "u3fa11dfa47": {
+   "future": 2.41,
+   "new": 2.08
+  },
+  "u6f44f5cd80": {
+   "future": 2.06,
+   "new": 1.59
+  },
+  "uc6b33a92a9": {
+   "future": 2.04,
+   "new": 1.89
+  },
+  "u97da5d0b69": {
+   "future": 1.96,
+   "new": 2.1
+  },
+  "uc837aaf756": {
+   "future": 1.42,
+   "new": 1.6
+  },
+  "ua41bde68db": {
+   "future": 1.26,
+   "new": 1.74
+  },
+  "u4f191b3303": {
+   "future": 0.84,
+   "new": 1.42
+  },
+  "u97c18fab67": {
+   "future": 0.72,
+   "new": 1.82
+  },
+  "ude5ea57aee": {
+   "future": 0.73,
+   "new": 2.5
+  },
+  "uebabdadf83": {
+   "future": 0.85,
+   "new": 2.12
+  },
+  "uadc2929720": {
+   "future": 1.33,
+   "new": 1.64
+  },
+  "u4062f74e3c": {
+   "future": 0.59,
+   "new": 2.21
+  },
+  "u51ab0fec65": {
+   "future": 0.26,
+   "new": 1.8
+  },
+  "u289742459a": {
+   "future": 0.82,
+   "new": 1.52
+  },
+  "u19ad3c83c6": {
+   "future": 2.26,
+   "new": 1.82
+  },
+  "u1148f6cc1a": {
+   "future": 2.65,
+   "new": 1.86
+  },
+  "u914d4a4f6f": {
+   "future": 2.35,
+   "new": 1.83
+  },
+  "ubbd3569405": {
+   "future": 1.14,
+   "new": 1.43
+  },
+  "u6aef2e68dd": {
+   "future": 1.34,
+   "new": 1.11
+  },
+  "ua139a56137": {
+   "future": 1.03,
+   "new": 1.8
+  },
+  "ue17651c734": {
+   "future": 1.62,
+   "new": 1.75
+  },
+  "u81010a0674": {
+   "future": 1.01,
+   "new": 1.78
+  },
+  "u26707dd2b3": {
+   "future": 1.5,
+   "new": 2.04
+  },
+  "u899aa96791": {
+   "future": 1.7,
+   "new": 2.09
+  },
+  "u232beb6490": {
+   "future": 1.04,
+   "new": 1.64
+  },
+  "u1a0d12c0f8": {
+   "future": 0.74,
+   "new": 1.91
+  },
+  "u2e22216e9c": {
+   "future": 1.95,
+   "new": 2.14
+  },
+  "ub223ac7048": {
+   "future": 1.7,
+   "new": 1.9
+  },
+  "u97f8977a4c": {
+   "future": 2.16,
+   "new": 1.58
+  },
+  "u747b8c8b23": {
+   "future": 2.0,
+   "new": 1.77
+  },
+  "uaa7f34eea0": {
+   "future": 2.61,
+   "new": 1.16
+  },
+  "ud210a8b252": {
+   "future": 1.98,
+   "new": 2.07
+  },
+  "u5e89d9c2aa": {
+   "future": 3.08,
+   "new": 2.06
+  },
+  "uaab9d09aff": {
+   "future": 1.02,
+   "new": 1.76
+  },
+  "u618a8554d3": {
+   "future": 2.37,
+   "new": 2.3
+  },
+  "u01fa1f00f1": {
+   "future": 2.53,
+   "new": 2.15
+  },
+  "u7aafd36298": {
+   "future": 1.31,
+   "new": 2.12
+  },
+  "ud372a55d78": {
+   "future": 1.55,
+   "new": 1.85
+  },
+  "u5972da352b": {
+   "future": 2.11,
+   "new": 1.7
+  },
+  "u8e65136a8d": {
+   "future": 2.72,
+   "new": 1.58
+  },
+  "u23444faa58": {
+   "future": 1.84,
+   "new": 2.46
+  },
+  "uec86f96391": {
+   "future": 2.05,
+   "new": 2.04
+  },
+  "u3e468076ce": {
+   "future": 2.25,
+   "new": 2.06
+  },
+  "u6bec80f273": {
+   "future": 1.62,
+   "new": 2.2
+  },
+  "u907c33341b": {
+   "future": 2.0,
+   "new": 1.39
+  },
+  "ub018110d8a": {
+   "future": 1.37,
+   "new": 1.25
+  },
+  "u7ef10f28e2": {
+   "future": 1.42,
+   "new": 1.54
+  },
+  "ud8667e9fd9": {
+   "future": 1.89,
+   "new": 1.94
+  },
+  "u926308410e": {
+   "future": 1.96,
+   "new": 2.2
+  },
+  "uc382f1375b": {
+   "future": 1.02,
+   "new": 1.84
+  },
+  "u2e5241b5f0": {
+   "future": 1.42,
+   "new": 1.59
+  },
+  "u55190a74f7": {
+   "future": 1.72,
+   "new": 2.16
+  }
+ }
+}

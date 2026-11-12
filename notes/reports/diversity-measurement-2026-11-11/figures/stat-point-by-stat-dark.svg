@@ -1,0 +1,100 @@
+<svg width="800" height="440" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" viewBox="0 0 800 440">
+<rect width="800" height="440" x="0" y="0" fill="none"></rect>
+<path d="M150.5 86L150.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M181.5 86L181.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M212.5 86L212.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M242.5 86L242.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M273.5 86L273.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M304.5 86L304.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M335.5 86L335.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M366.5 86L366.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M397.5 86L397.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M428.5 86L428.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M459.5 86L459.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M490.5 86L490.5 322" fill="none" pointer-events="visible" stroke="#2c2c2a" class="zr0-cls-0"></path>
+<path d="M366.5 86L366.5 322" fill="none" pointer-events="visible" stroke="#4a4a46" stroke-linecap="round" class="zr0-cls-0"></path>
+<path d="M-187.1 0l374.1 0l0 17l-374.1 0Z" transform="translate(320 348)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" y="8.5" transform="translate(320 348)" fill="#c3c2b7">default model minus win-rate-matched training, mean Stat Points</text>
+<path d="M-18.1 -8.5l18.1 0l0 17l-18.1 0Z" transform="translate(142 105.6667)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" transform="translate(142 105.6667)" fill="#f0efec">HP</text>
+<path d="M-36.3 -8.5l36.3 0l0 17l-36.3 0Z" transform="translate(142 145)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" transform="translate(142 145)" fill="#f0efec">Attack</text>
+<path d="M-48.6 -8.5l48.6 0l0 17l-48.6 0Z" transform="translate(142 184.3333)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" transform="translate(142 184.3333)" fill="#f0efec">Defense</text>
+<path d="M-59.5 -8.5l59.5 0l0 17l-59.5 0Z" transform="translate(142 223.6667)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" transform="translate(142 223.6667)" fill="#f0efec">Sp. Attack</text>
+<path d="M-71.9 -8.5l71.9 0l0 17l-71.9 0Z" transform="translate(142 263)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" transform="translate(142 263)" fill="#f0efec">Sp. Defense</text>
+<path d="M-37.8 -8.5l37.8 0l0 17l-37.8 0Z" transform="translate(142 302.3333)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="end" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" transform="translate(142 302.3333)" fill="#f0efec">Speed</text>
+<path d="M0 -9l158.6 0l0 18l-158.6 0Z" transform="translate(504 105.6667)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(504 105.6667)" fill="#c3c2b7">20.6 to 21.2 vs 15.8 to 16.3</text>
+<path d="M0 -9l158.6 0l0 18l-158.6 0Z" transform="translate(504 145)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(504 145)" fill="#c3c2b7">11.9 to 12.9 vs 11.2 to 11.6</text>
+<path d="M0 -9l129.5 0l0 18l-129.5 0Z" transform="translate(504 184.3333)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(504 184.3333)" fill="#c3c2b7">7.9 to 8.8 vs 6.7 to 6.8</text>
+<path d="M0 -9l129.5 0l0 18l-129.5 0Z" transform="translate(504 223.6667)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(504 223.6667)" fill="#c3c2b7">6.7 to 7.1 vs 9.0 to 9.7</text>
+<path d="M0 -9l129.5 0l0 18l-129.5 0Z" transform="translate(504 263)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(504 263)" fill="#c3c2b7">2.9 to 3.0 vs 3.6 to 3.8</text>
+<path d="M0 -9l144 0l0 18l-144 0Z" transform="translate(504 302.3333)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" xml:space="preserve" transform="translate(504 302.3333)" fill="#c3c2b7">6.8 to 7.1 vs 18.5 to 18.9</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(150 330)" fill="#c3c2b7">-14</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(180.9091 330)" fill="#c3c2b7">-12</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(211.8182 330)" fill="#c3c2b7">-10</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(242.7273 330)" fill="#c3c2b7">-8</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(273.6364 330)" fill="#c3c2b7">-6</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(304.5455 330)" fill="#c3c2b7">-4</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(335.4545 330)" fill="#c3c2b7">-2</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(366.3636 330)" fill="#c3c2b7">0</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(397.2727 330)" fill="#c3c2b7">2</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(428.1818 330)" fill="#c3c2b7">4</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(459.0909 330)" fill="#c3c2b7">6</text>
+<text dominant-baseline="central" text-anchor="middle" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;" y="6" transform="translate(490 330)" fill="#c3c2b7">8</text>
+<path d="M-1 -1l2 0l0 2l-2 0Z" transform="matrix(5.665,0,0,15,366.9045,105.6667)" fill="#34332f" fill-opacity="0.8" ecmeta_series_index="0" ecmeta_data_index="0" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr0-cls-0"></path>
+<path d="M-1 -1l2 0l0 2l-2 0Z" transform="matrix(5.92,0,0,15,365.8536,145)" fill="#34332f" fill-opacity="0.8" ecmeta_series_index="0" ecmeta_data_index="1" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr0-cls-0"></path>
+<path d="M-1 -1l2 0l0 2l-2 0Z" transform="matrix(3.015,0,0,15,366.2075,184.3333)" fill="#34332f" fill-opacity="0.8" ecmeta_series_index="0" ecmeta_data_index="2" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr0-cls-0"></path>
+<path d="M-1 -1l2 0l0 2l-2 0Z" transform="matrix(5.855,0,0,15,367.0591,223.6667)" fill="#34332f" fill-opacity="0.8" ecmeta_series_index="0" ecmeta_data_index="3" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr0-cls-0"></path>
+<path d="M-1 -1l2 0l0 2l-2 0Z" transform="matrix(3.545,0,0,15,366.1766,263)" fill="#34332f" fill-opacity="0.8" ecmeta_series_index="0" ecmeta_data_index="4" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr0-cls-0"></path>
+<path d="M-1 -1l2 0l0 2l-2 0Z" transform="matrix(5.24,0,0,15,366.7005,302.3333)" fill="#34332f" fill-opacity="0.8" ecmeta_series_index="0" ecmeta_data_index="5" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr0-cls-0"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,435.8256,105.6667)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="0" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,442.0739,105.6667)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="1" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,440.8932,105.6667)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="2" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,391.2934,145)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="3" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,372.0865,145)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="4" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,377.6841,145)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="5" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,385.1069,184.3333)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="6" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,389.5686,184.3333)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="7" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,397.4242,184.3333)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="8" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,324.131,223.6667)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="9" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,333.549,223.6667)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="10" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,327.1045,223.6667)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="11" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,353.6384,263)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="12" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,352.4885,263)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="13" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,357.8791,263)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="14" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,185.2395,302.3333)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="15" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,184.1175,302.3333)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="16" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M1 0A1 1 0 1 1 1 -0.1A1 1 0 0 1 1 0" transform="matrix(6,0,0,6,180.1966,302.3333)" fill="#3987e5" fill-opacity="0.9" ecmeta_series_index="1" ecmeta_data_index="17" ecmeta_ssr_type="chart" class="zr0-cls-1"></path>
+<path d="M366.5 86L366.5 322" fill="none" pointer-events="visible" stroke="#a9a8a2" ecmeta_series_index="0" ecmeta_data_index="0" ecmeta_ssr_type="chart" ecmeta_silent="true" class="zr0-cls-0"></path>
+<path d="M-5 -5l547.4 0l0 56l-547.4 0Z" transform="translate(21 17)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr0-cls-0"></path>
+<path d="M-5 -5l584.6 0l0 58l-584.6 0Z" transform="translate(21 381)" fill="rgb(0,0,0)" fill-opacity="0" stroke="#3c3c41" stroke-width="0" class="zr0-cls-0"></path>
+<path d="M0 0l537.4 0l0 46l-537.4 0Z" transform="translate(21 17)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:17px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" y="11.5" transform="translate(21 17)" fill="#f0efec">Speed carries the gap: the default model gives it 11.9 fewer Stat Points</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:17px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:600;" xml:space="preserve" y="34.5" transform="translate(21 17)" fill="#f0efec">than win-rate-matched training, and Speed is the last stat it draws</text>
+<path d="M0 0l574.6 0l0 48l-574.6 0Z" transform="translate(21 381)" fill="none" pointer-events="visible" class="zr0-cls-0"></path>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:400;" xml:space="preserve" y="8" transform="translate(21 381)" fill="#c3c2b7">One dot per sampling seed, filled when it lands outside the grey noise floor. Right: mean Stat Points per</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:400;" xml:space="preserve" y="24" transform="translate(21 381)" fill="#c3c2b7">Pokémon, default model against win-rate-matched training. The model draws each Pokémon&#39;s Stat Points</text>
+<text dominant-baseline="central" text-anchor="start" style="font-size:12px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;font-weight:400;" xml:space="preserve" y="40" transform="translate(21 381)" fill="#c3c2b7">in the order HP, Attack, Defense, Sp. Attack, Sp. Defense, Speed.</text>
+<style ><![CDATA[
+.zr0-cls-0:hover {
+pointer-events:none;
+}
+.zr0-cls-1:hover {
+cursor:pointer;
+fill:rgba(62,148,251,1);
+}
+
+]]>
+
+</style>
+</svg>

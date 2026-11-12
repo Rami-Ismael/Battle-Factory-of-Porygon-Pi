@@ -42,3 +42,4 @@ test_ask_error_compare.py
 test_hindsight_relabel.py
 test_matchup_score.py
 test_masked_diffusion_memory_bench.py
+test_position_split_verdict.py

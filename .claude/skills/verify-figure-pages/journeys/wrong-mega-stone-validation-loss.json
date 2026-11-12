@@ -1,0 +1,41 @@
+{
+  "page": "artifacts/wrong-mega-stone-validation-loss/index.html",
+  "viewport": "1440x900",
+  "theme": "dark",
+  "steps": [
+    {"id": "draw-hides", "scroll": "#sheet"},
+    {"id": "draw-hides", "expect": "#hidn", "text": "62", "within": 3000},
+    {"id": "draw-hides", "expect": "#sheet .chip.h", "count": 62},
+
+    {"id": "block-replays", "scroll": "#rows3"},
+    {"id": "block-replays", "expect": "#ce3", "text": "0.32", "within": 800},
+    {"shot": "step3-model-alone"},
+    {"id": "block-replays", "expect": "#ce3", "text": "9,997", "within": 4000},
+    {"id": "block-replays", "expect": "#rows3 .row.blk", "count": 9},
+    {"id": "block-replays", "expect": "#rows3 .row.truth .v", "text": "0%"},
+    {"shot": "step3-after-tables"},
+
+    {"id": "swap-item", "click": {"role": "button", "name": "Focus Sash"}},
+    {"id": "swap-item", "expect": {"role": "button", "name": "Focus Sash"}, "attr": "aria-pressed", "value": "true"},
+    {"id": "swap-item", "expect": "#ce3", "text": "0.12", "within": 3000},
+    {"id": "swap-item", "expect": "#rows3 .row.truth .v", "text": "88.6%"},
+    {"id": "swap-item", "expect": "#e2", "text": "0.028", "within": 3000},
+    {"id": "swap-item", "expect": "#tl", "text": "0.9", "within": 3000},
+    {"id": "swap-item", "expect": "#eight .erow.this b", "text": "0.9", "within": 3000},
+    {"id": "swap-item", "expect": "#gv", "text": "1.681", "within": 3000},
+    {"shot": "focus-sash"},
+
+    {"id": "swap-back", "click": {"role": "button", "name": "Glimmoranite"}},
+    {"id": "swap-back", "expect": "#ce3", "text": "9,997", "within": 3000},
+    {"id": "swap-back", "expect": "#e2", "text": "2,292", "within": 3000},
+    {"id": "swap-back", "expect": "#eight .erow.this b", "text": "574.1", "within": 3000},
+    {"id": "swap-back", "expect": "#gv", "text": "1.787", "within": 3000},
+
+    {"id": "definition", "click": {"role": "button", "name": "draw", "exact": true}},
+    {"id": "definition", "expect": ".def", "contains": "One random choice", "within": 1500},
+    {"id": "definition", "expect": {"role": "button", "name": "draw", "exact": true}, "attr": "aria-expanded", "value": "true"},
+    {"shot": "definition-open"},
+    {"id": "definition", "click": {"role": "button", "name": "draw", "exact": true}},
+    {"id": "definition", "expect": ".def", "count": 0, "within": 1500}
+  ]
+}

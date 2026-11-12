@@ -14,9 +14,9 @@ In these terms, an ask is the win rate the model is told to aim for, got is the 
 | How far it reaches | Win rate under the behaviour-cloning policy against the top-50 meta teams, no further. |
 | Fields | The model generates all 84 fields. A repair step replaces Stat Alignment to match the moves (`ask_grid84.py` docstring). Nothing is copied. |
 | Vocabulary | The Regulation M-B tables directly: 348 species, 201 ability, 150 item, 498 move and 27 Stat Alignment tokens. Labelled training teams use 189, 126, 106, 309 and 19 of them. |
-| Training teams | Only teams with a known win rate against the top-50 meta teams (owner, 2026-11-02): 170,785 labelled teams from the all-teams table in `lossdata84.npz`, before the rule tables drop any. Validation holds the 3,563 labelled teams in its existing 2% split. The 130,232 unlabelled teams, the 500 test teams and the held-out teams ranked 51 to 100 stay out. |
+| Training teams | Only teams with a known win rate against the top-50 meta teams (owner, 2026-11-02): 170,785 labelled teams from the all-teams table in `lossdata84.npz`, before the legal Pokémon construction tables drop any. Validation holds the 3,563 labelled teams in its existing 2% split. The 130,232 unlabelled teams, the 500 test teams and the held-out teams ranked 51 to 100 stay out. |
 | Scorer | One battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled. Win rate means this throughout. |
-| Search region | No search and no elite rule. Asks 1/24 to 23/24, guidance 2, temperature 1, rule masks on, species first. Each cell draws until 64 teams pass Showdown and are not held-out teams, at most 1,280 tries. |
+| Search region | No search and no elite rule. Asks 1/24 to 23/24, guidance 2, temperature 1, legal Pokémon construction filter on, species first. Each cell draws until 64 teams pass Showdown and are not held-out teams, at most 1,280 tries. |
 
 ### Settings
 

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Wrong Mega Stone: Storyboard</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mute:#6f6e69;--line:#e0dfd9;--card:#f3f2ee;--chip:#ffffff;--blue:#2a78d6;--blue-soft:#d6e6f8;--orange:#eb6834;--orange-ink:#b3400f;--orange-soft:#fbe3d8;--grain:#a3a29b;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--ink:#f2f1ee;--ink2:#c3c2b7;--mute:#a09f97;--line:#363632;--card:#222220;--chip:#2b2b28;--blue:#3987e5;--blue-soft:#1f3350;--orange:#d95926;--orange-ink:#f3a07a;--orange-soft:#47261a;--grain:#77766f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161615;--ink:#f2f1ee;--ink2:#c3c2b7;--mute:#a09f97;--line:#363632;--card:#222220;--chip:#2b2b28;--blue:#3987e5;--blue-soft:#1f3350;--orange:#d95926;--orange-ink:#f3a07a;--orange-soft:#47261a;--grain:#77766f;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+#board{width:760px;padding:22px 22px 16px;background:var(--bg)}
+h1{font-size:23px;line-height:1.15;margin:0 0 6px;letter-spacing:-0.01em}
+.sub{font-size:13.5px;color:var(--ink2);margin:0 0 12px}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+img.spr{display:block}img.spr.big{image-rendering:pixelated}
+img.itm{image-rendering:pixelated}
+.num{font-variant-numeric:tabular-nums}
+.hot{color:var(--orange-ink)}
+.big{font-size:22px;font-weight:700;line-height:1.1}
+
+.team{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:0 0 12px}
+.mh{display:flex;flex-direction:column;align-items:center;text-align:center;font-size:11.5px;line-height:1.25;color:var(--ink2)}
+.mh .pic{position:relative;width:48px;height:48px}
+.mh .pic .spr{width:48px;height:48px}
+.mh .pic .itm{position:absolute;right:-12px;bottom:-2px;background:var(--chip);border:1px solid var(--line);border-radius:50%;padding:2px;width:26px;height:26px;object-fit:none}
+.mh b{color:var(--ink);font-size:12.5px}
+.mh.key .pic{outline:2px solid var(--orange);outline-offset:2px;border-radius:10px}
+
+.fr{display:grid;grid-template-columns:208px minmax(0,1fr);gap:18px;padding:13px 0;border-top:1px solid var(--line);align-items:start}
+.k{display:inline-flex;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:12px;font-weight:700;align-items:center;justify-content:center}
+.say h3{font-size:15px;line-height:1.28;margin:6px 0 5px}
+.say p{font-size:12.5px;line-height:1.42;color:var(--ink2);margin:0 0 5px}
+.vis{background:var(--card);border-radius:10px;padding:10px 12px;min-width:0}
+
+.flow{display:grid;grid-template-columns:1fr 14px 1fr 14px 1fr 14px 1fr;align-items:stretch;gap:4px}
+.flow .c{background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:6px 7px;font-size:12px;line-height:1.3;color:var(--ink2);display:flex;flex-direction:column;gap:4px;justify-content:space-between}
+.flow .c b{color:var(--ink);font-size:12.5px}
+.flow .a{align-self:center;color:var(--mute);font-size:14px;text-align:center}
+.flow .d{display:flex;align-items:center;gap:5px;min-height:26px}
+.flow .spr{width:24px;height:24px}
+.prices{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;font-size:12px}
+.prices span{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:1px 9px}
+.chip{display:inline-block;font-size:12px;line-height:1.3;border:1px solid var(--line);border-radius:4px;padding:1px 6px;background:var(--chip);white-space:nowrap}
+.chip.h{border-color:var(--grain);color:var(--ink2);background-color:var(--chip);background-image:radial-gradient(var(--grain) 1px,transparent 1.2px);background-size:4px 4px}
+.chip.h span{background:var(--chip);padding:0 3px;border-radius:2px}
+.chip.pin{outline:2px solid var(--orange);outline-offset:1px}
+.chip .itm{display:inline-block;vertical-align:-4px;width:16px;height:16px;object-fit:contain;margin-right:3px}
+.minibar{display:block;flex:1;height:10px;border-radius:0 4px 4px 0;background:var(--blue-soft);overflow:hidden}
+.minibar i{display:block;height:100%;background:var(--blue);border-radius:0 4px 4px 0}
+
+.six14{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:8px}
+.m14 .spr{width:24px;height:24px;margin-bottom:2px}
+.m14.key .spr{outline:2px solid var(--orange);outline-offset:1px;border-radius:5px}
+.cells{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}
+.cells i{display:block;height:9px;border-radius:2px;background:var(--ink2);opacity:.5}
+.cells i.s{grid-row:2}
+.cells i.h{opacity:1;background-color:transparent;background-image:radial-gradient(var(--grain) 1px,transparent 1.2px);background-size:3px 3px;box-shadow:inset 0 0 0 1px var(--grain)}
+.cells i.pin{outline:2px solid var(--orange);outline-offset:1px;opacity:1}
+.whim{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:8px}
+.whim .spr{width:48px;height:48px;flex:none}
+.whim .chips{display:flex;flex-wrap:wrap;gap:4px;flex:1}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2);margin-top:7px}
+.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.colx{background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:8px 9px;min-width:0;display:flex;flex-direction:column}
+.colx.o{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+.colx h4{font-size:12.5px;margin:0 0 6px;font-weight:600}
+.colx .look{font-size:12px;color:var(--ink2);margin:0 0 6px;line-height:1.35}
+.colx .look .itm{display:inline-block;vertical-align:-4px;width:16px;height:16px;object-fit:contain}
+.r{display:grid;grid-template-columns:106px minmax(0,1fr) 44px;gap:5px;align-items:center;font-size:12px;margin-bottom:3px}
+.r .who{display:flex;align-items:center;gap:4px;min-width:0;line-height:1.15}
+.r .spr{width:20px;height:20px;flex:none}
+.r .t{position:relative;height:11px}
+.r .t i{position:absolute;left:0;top:0;bottom:0;border-radius:0 3px 3px 0;background:var(--blue);min-width:1px}
+.r .t i.g{background:var(--orange-soft);border:1.5px dashed var(--orange)}
+.r .v{text-align:right;font-variant-numeric:tabular-nums}
+.r.blk .who span{text-decoration:line-through;text-decoration-color:var(--orange)}
+.r .st{grid-column:1/4;font-size:11.5px;color:var(--ink2);margin:-1px 0 2px 24px}
+.costl b{color:var(--ink)}
+.costl b.hot{color:var(--orange-ink)}
+.costl{margin-top:auto;padding-top:7px;font-size:12.5px;color:var(--ink2);display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+
+.eq{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 9px;font-size:14px;margin-bottom:8px}
+.eq .op{color:var(--ink2)}.eq .t{text-align:center}
+.eq small{display:block;font-size:11.5px;color:var(--ink2);font-weight:400}
+.b{display:grid;grid-template-columns:172px minmax(0,1fr) 60px;gap:8px;align-items:center;font-size:12.5px;margin-bottom:4px}
+.b .t{position:relative;height:12px}
+.b .t i{position:absolute;left:0;top:0;bottom:0;border-radius:0 3px 3px 0;background:var(--orange);min-width:1px}
+.b .t i.n{background:var(--grain)}
+.b b{text-align:right;font-variant-numeric:tabular-nums}
+.b span small{color:var(--ink2);font-size:11.5px}
+.b.dr{grid-template-columns:262px minmax(0,1fr) 60px}
+.sum{font-size:13px;margin:7px 0 0}
+
+.e{display:grid;grid-template-columns:auto minmax(0,1fr) 46px;gap:2px 10px;align-items:center;padding:4px 0;border-top:1px solid var(--line);font-size:12.5px}
+.e:first-child{border-top:0}
+.e.this{background:var(--chip);border-radius:7px;border-top-color:transparent;padding:4px 6px;margin:0 -6px}
+.six{display:flex;gap:3px}
+.six span{position:relative;width:30px;height:30px;border-radius:5px}
+.six .spr{width:30px;height:30px}
+.six .itm{position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;object-fit:contain}
+.six span.bad{outline:2px solid var(--orange);outline-offset:-1px;background:var(--orange-soft)}
+.e .t{position:relative;height:12px}
+.e .t i{position:absolute;left:0;top:0;bottom:0;border-radius:0 3px 3px 0;background:var(--orange);min-width:1px}
+.e b{text-align:right;font-variant-numeric:tabular-nums}
+.e small{grid-column:1/4;color:var(--ink2);font-size:11.5px;line-height:1.25}
+.g{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.g .b{grid-template-columns:200px minmax(0,1fr) 44px}
+.g .t i.o{background:var(--orange)}
+.foot{font-size:11.5px;line-height:1.45;color:var(--ink2);border-top:1px solid var(--line);padding-top:9px;margin:0}
+</style>
+</head>
+<body>
+<div id="board"></div>
+<script>
+const D = /*DATA*/null;
+const Q = new URLSearchParams(location.search);
+if (Q.get('theme')) document.documentElement.dataset.theme = Q.get('theme');
+const n = (v, d = 1) => v.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+const pc = p => p <= 0 ? '0%' : p < 0.0001 ? '<0.01%' : p < 0.001 ? (p * 100).toFixed(2) + '%' : (p * 100).toFixed(1) + '%';
+const spr = (id, cls = '') => `<img class="spr ${cls}" src="${D.sprites[id]}" alt="">`;
+const itm = id => `<img class="itm" src="${D.items[id]}" alt="">`;
+const S = D.states.stone, c = S.check, d4 = S.draws[3];
+const frame = (k, h, notes, vis) => `<section class="fr"><div class="say"><span class="k">${k}</span><h3>${h}</h3>${notes.map(x => `<p>${x}</p>`).join('')}</div><div class="vis">${vis}</div></section>`;
+
+/* reminder: one ordinary field of the same draw */
+const cz = d4.pokemon.find(m => m.species === 'Charizard'), ab = cz.fields[1], p0 = Math.exp(-ab.ce);
+const reminder = `<div class="flow">
+  <div class="c"><span class="d">${spr(cz.sprite)}<span class="chip">${ab.value}</span></span><span><b>A real field</b><br>Charizard’s ability</span></div><span class="a">→</span>
+  <div class="c"><span class="d"><span class="chip h"><span>ability ?</span></span></span><span><b>The draw hides it</b><br>the model sees a blank</span></div><span class="a">→</span>
+  <div class="c"><span class="d"><span class="minibar"><i style="width:${p0 * 100}%"></i></span></span><span><b>The model guesses</b><br>${ab.value}: ${pc(p0)}</span></div><span class="a">→</span>
+  <div class="c"><span class="d"><b class="big num">${ab.ce.toFixed(2)}</b></span><span><b>The charge</b><br>−ln ${p0.toFixed(3)}</span></div></div>
+  <div class="prices"><span>100% on the truth costs 0</span><span>72.3% costs 0.32</span><span>1% costs 4.6</span><span>0% has no finite cost</span></div>`;
+
+/* 1: what the draw hides */
+const cells = m => `<div class="cells">${m.fields.map((f, k) => `<i class="${f.hidden ? 'h' : ''}${k >= 8 ? ' s' : ''}${m.species === 'Whimsicott' && (k === 0 || k === 2) ? ' pin' : ''}"></i>`).join('')}</div>`;
+const w = d4.pokemon.find(m => m.species === 'Whimsicott');
+const draw = `<div class="six14">${d4.pokemon.map(m => `<div class="m14${m.species === 'Whimsicott' ? ' key' : ''}">${spr(m.sprite)}${cells(m)}</div>`).join('')}</div>
+  <div class="whim">${spr(w.sprite, 'big')}<div class="chips">${w.fields.slice(0, 8).map((f, k) => f.hidden ? `<span class="chip h${k === 0 ? ' pin' : ''}"><span>${f.name} ?</span></span>` : `<span class="chip${k === 2 ? ' pin' : ''}">${k === 2 ? itm(w.item_sprite) : ''}${f.value}</span>`).join('')}</div></div>
+  <div class="leg"><span><i style="background:var(--ink2);opacity:.5"></i>shown to the model</span><span><i style="box-shadow:inset 0 0 0 1px var(--grain)"></i>hidden: the model must guess it</span><span><i style="outline:2px solid var(--orange);outline-offset:-1px"></i>Whimsicott’s species and item</span></div>`;
+
+/* 2: the same five species, before and after the tables */
+const pick = ['Whimsicott', 'Garchomp', 'Eternal Floette', 'Glimmora', 'Mega Glimmora'].map(nm => c.rows.find(r => r.name === nm));
+const before = pick.map(r => `<div class="r"><span class="who">${spr(r.sprite)}<span>${r.name}</span></span><span class="t"><i style="width:${r.prob_model_alone * 100}%"></i></span><span class="v">${pc(r.prob_model_alone)}</span></div>`).join('');
+const after = pick.map(r => `<div class="r${r.allowed ? '' : ' blk'}"><span class="who">${spr(r.sprite)}<span>${r.name}</span></span><span class="t">${r.allowed ? `<i style="width:${r.prob_with_filter * 100}%"></i>` : `<i class="g" style="width:${Math.max(r.prob_model_alone * 100, 3)}%"></i>`}</span><span class="v">${pc(r.prob_with_filter)}</span>${r.name === 'Whimsicott' ? `<span class="st">blocked: logit ${r.logit.toFixed(2)} set to −10,000</span>` : ''}</div>`).join('');
+const guess = `<div class="two"><div class="colx"><h4>The model alone</h4><p class="look">It reads the ${D.fields - d4.hidden} visible fields and spreads 100% over ${D.n_species} species.</p>${before}<div class="costl">cost −ln ${c.p_alone.toFixed(3)} = <b class="big num">${c.ce_alone.toFixed(2)}</b></div></div>
+  <div class="colx o"><h4>After the legal Pokémon construction tables</h4><p class="look">${itm('glimmoranite')} Glimmoranite is showing, so they allow ${c.n_allowed} of ${D.n_species} species.</p>${after}<div class="costl">cost 10,000 − ${Math.abs(c.logsumexp_allowed).toFixed(2)} = <b class="big num hot">${n(c.ce_filter, 0)}</b></div></div></div>`;
+
+/* 3: the weight */
+const weight = `<div class="eq"><span class="t"><b class="big num">${n(c.ce_filter, 0)}</b><small>cross-entropy</small></span><span class="op">×</span><span class="t"><b class="big">16</b><small>species weight</small></span><span class="op">÷</span><span class="t"><b class="big">${d4.t.toFixed(2)}</b><small>t</small></span><span class="op">÷</span><span class="t"><b class="big">${D.fields}</b><small>fields</small></span><span class="op">=</span><span class="t"><b class="big num hot">${n(c.cost, 0)}</b><small>cost of this one field</small></span></div>
+  <div class="b"><span>Whimsicott’s species</span><span class="t"><i style="width:100%"></i></span><b>${n(c.cost, 0)}</b></div>
+  <div class="b"><span>The other ${c.others_n} hidden fields</span><span class="t"><i class="n" style="width:${c.others_cost / c.cost * 100}%"></i></span><b>${c.others_cost.toFixed(2)}</b></div>`;
+
+/* 4: the four draws */
+const pair = d => { const m = d.pokemon.find(x => x.species === 'Whimsicott'), sh = m.fields[0].hidden, ih = m.fields[2].hidden; return !sh && !ih ? 'both shown' : sh && ih ? 'both hidden' : sh ? 'species hidden, stone shown' : 'stone hidden, species shown'; };
+const draws = S.draws.map(d => `<div class="b dr"><span>Draw ${d.draw} <small>t ${d.t.toFixed(2)}, ${pair(d)}</small></span><span class="t"><i style="width:${d.cost / d4.cost * 100}%"></i></span><b>${n(d.cost, 1)}</b></div>`).join('')
+  + `<p class="sum">Mean of the four draws <b class="big num hot">${n(S.team_loss, 1)}</b> &nbsp;÷ ${n(D.validation_teams, 0)} validation teams = <b class="num">+${n(S.team_share, 3)}</b></p>`;
+
+/* 5: the eight teams and the gap */
+const topLoss = D.eight[0].loss, full = D.validation_loss;
+const eight = D.eight.map(e => `<div class="e${e.this ? ' this' : ''}"><span class="six">${e.pokemon.map(p => `<span class="${p.wrong ? 'bad' : ''}">${spr(p.sprite)}${itm(p.item_sprite)}</span>`).join('')}</span><span class="t"><i style="width:${e.loss / topLoss * 100}%"></i></span><b>${n(e.loss, 1)}</b><small>${e.this ? 'The team above. ' : ''}${e.bad.join(', ')}${e.loss < 50 ? '. No draw split the pair.' : ''}</small></div>`).join('')
+  + `<div class="g"><div class="b"><span>Validation loss, as logged</span><span class="t"><i class="n" style="width:calc(${D.others_share / full * 100}% - 2px)"></i><i class="o" style="left:${D.others_share / full * 100}%;width:${D.eight_share / full * 100}%"></i></span><b>${n(full, 3)}</b></div>
+  <div class="b"><span>Training loss, as logged</span><span class="t"><i class="n" style="width:${D.logged_training_loss / full * 100}%"></i></span><b>${n(D.logged_training_loss, 3)}</b></div>
+  <div class="b"><span>Validation loss without the eight</span><span class="t"><i class="n" style="width:${D.others_mean / full * 100}%"></i></span><b>${n(D.others_mean, 3)}</b></div></div>
+  <div class="leg"><span><i style="outline:2px solid var(--orange);outline-offset:-1px"></i>holds a stone it cannot use</span><span><i style="background:var(--orange)"></i>loss from the eight teams: ${n(D.eight_share, 3)}</span><span><i style="background:var(--grain)"></i>the other ${n(D.validation_teams - 8, 0)} teams</span></div>`;
+
+document.getElementById('board').innerHTML = `
+  <h1>How one wrong Mega Stone becomes a loss of 2,292</h1>
+  <p class="sub">Validation team ${D.row}. The game accepts it: it battled the meta and won ${D.label_wins} of ${D.label_battles}. Only Glimmora can use a Glimmoranite, so on Whimsicott the stone does nothing.</p>
+  <div class="team">${d4.pokemon.map(m => `<div class="mh${m.species === 'Whimsicott' ? ' key' : ''}"><span class="pic">${spr(m.sprite, 'big')}${itm(m.item_sprite)}</span><b>${m.species}</b>${m.item}</div>`).join('')}</div>
+  ${frame('Reminder', 'The validation loss hides fields, asks the model to guess them, and charges each guess.', ['The charge is minus the log of the share the model gave the true value.', 'A draw is one random choice of which fields to hide. Each validation team gets four.'], reminder)}
+  ${frame('1', 'This draw hides Whimsicott’s species and leaves its stone showing.', [`Draw 4 of 4, noise level t = ${d4.t.toFixed(2)}. It hides ${d4.hidden} of the team’s ${D.fields} fields.`], draw)}
+  ${frame('2', 'The model guesses right. The tables then set its answer to 0%.', ['The tables are the model’s lookup of how a Pokémon may be built. The loss blocks every value they do not allow by setting its logit to −10,000, because sampling blocks the same values.', `So ${n(c.ce_filter, 0)} is that stand-in showing through. It is not the model’s error.`], guess)}
+  ${frame('3', `The loss counts a species 16 times, so ${n(c.ce_filter, 0)} becomes ${n(c.cost, 0)}.`, ['A draw rarely hides a species: 5% of the time at this noise level. The weight makes up for that.'], weight)}
+  ${frame('4', `One draw in four spikes, and the team’s loss is ${n(S.team_loss, 0)}.`, ['The tables only bite when a draw splits the pair: one of the species and the stone hidden, the other showing. So the number moves with the seed.'], draws)}
+  ${frame('5', `Eight teams hold a wrong stone. ${D.spiked_n === 5 ? 'Five' : D.spiked_n} of them carry the whole gap.`, [`The log showed training ${n(D.logged_training_loss, 3)} against validation ${n(full, 3)}: a gap of ${n(full - D.logged_training_loss, 3)}.`, `The eight teams account for ${n(D.eight_share, 3)} of the validation loss, and ${D.spiked_n === 5 ? 'five' : D.spiked_n} of them for ${n(D.spiked_share, 3)}. They are 8 of ${n(D.validation_teams, 0)} teams.`], eight)}
+  <p class="foot">Model: trained on labels from all 39 training opponents, checkpoint <code>${D.checkpoint}</code>, data <code>lossdata65.npz</code>, validation seed 12345. Each team’s loss is the mean of its four draws. Win rate is the share of battles won against the meta, with the behaviour-cloning policy on both sides. Team ${D.row}’s label is one battle against each of the 39 top-50 meta teams used for training labels. Numbers: <code>probe_worst_check.json</code>, <code>per_team_validation_loss.json</code>.</p>`;
+</script>
+</body>
+</html>

@@ -61,7 +61,7 @@ def main():
         'audit': 'All 14,720 seed-1 teams have 49/49 opponent coverage and exactly 49 battles. Weighted matrix scores reproduce every saved score. The original checkpoint files matched all ten recorded hashes. Epoch-80 preflight passed, including its 20-team round trip. The battle database records showdown:unknown for the simulator revision.',
         'win_rate_definition': 'Weighted win rate against the top-50 list: 49 distinct opponents, one duplicated list entry has weight 2; behaviour-cloning policy on both sides, shuffled slots.',
         'reference': {k: v for k, v in reference.items() if k != 'lineups'},
-        'reference_description': '54,766 distinct six-species line-ups from 170,785 labelled non-validation rows, fixed before rule-table filtering. Five rows were excluded from actual training. Novelty here is relative to that larger reference.',
+        'reference_description': '54,766 distinct six-species line-ups from 170,785 labelled non-validation rows, fixed before the legal Pokémon construction tables dropped any row. Five rows were excluded from actual training. Novelty here is relative to that larger reference.',
         'matrix_sha256': sha(args.matrices), 'reference_sha256': sha(args.reference),
         'grids': [], 'best_validation_epoch': 80, 'stopped_epoch': 80,
         'stopping_reason': '80-epoch cap, not patience',

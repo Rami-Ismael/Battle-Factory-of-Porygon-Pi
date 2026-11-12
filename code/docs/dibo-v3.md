@@ -94,7 +94,7 @@ round, two selected teams, and two RTB updates. It is an integration check,
 not sufficient posterior training or a performance comparison.
 
 Runtime dependencies are the project's regulation-v3 checkpoints, vocabulary,
-legality tables, seeded top50 matchup database, pinned simulator and BC policy,
+legal Pokémon construction tables, seeded top50 matchup database, pinned simulator and BC policy,
 and battle server stack. It does not download or silently substitute models.
 The existing `/tmp/vgc-pilot` fallback is used for legacy imports, as in the
 other pilot scripts. Pure mathematical tests require only torch.

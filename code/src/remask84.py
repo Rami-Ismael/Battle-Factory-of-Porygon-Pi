@@ -1,7 +1,7 @@
 """Remasking on the all-teams 84-field model (docs/remask-84-fields.md): the least-likely rule, the paper's rules, and random decoding.
 
 The control, "No remasking", is the existing grid in results/stat_points_84_gen84_all_ep21.json, same asks, seeds and scorer.
-Every arm keeps species-first order, guidance 2, temperature 1, rule masks and the Stat Alignment repair.
+Every arm keeps species-first order, guidance 2, temperature 1, legal Pokémon construction filter and the Stat Alignment repair.
 
     python remask84.py check | probes | gen | battle | report      species-first arms
     python remask84.py random_decoding                        the sampling-only legality probe (REMASK84_SMOKE=1: one batch)

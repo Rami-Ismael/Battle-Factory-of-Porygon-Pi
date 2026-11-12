@@ -9,7 +9,7 @@ Sources:
   field per pass; reference = species-first order). Pre-registration: code/docs/remask-random-order.md.
 - Remasking boards: fresh teams at ask 0.5 with the run's settings for random 20% remasked (random decoding order,
   48 passes, guidance 2, temperature 1), recording each pass's new field, its remasked fields with their old values,
-  whether the pass was undone, and which filled fields the legality tables say clash with the rest of the team.
+  whether the pass was undone, and which filled fields the legal Pokémon construction tables say clash with the rest of the team.
   Two boards: the first draw in which a clash appeared and was gone by the last pass with Showdown accepting the team,
   and the first draw Showdown rejected. They illustrate remasking; no number on the page comes from them.
 """
@@ -64,7 +64,7 @@ def vs(s, k=6):
 
 
 def clashes(w, x):
-    """Filled columns of the one team in x whose value the legality tables rule out given every other filled field."""
+    """Filled columns of the one team in x whose value the legal Pokémon construction tables rule out given every other filled field."""
     out = []
     for c in (x[0] != 0).nonzero().flatten().tolist():
         y = x.clone(); y[0, c] = 0

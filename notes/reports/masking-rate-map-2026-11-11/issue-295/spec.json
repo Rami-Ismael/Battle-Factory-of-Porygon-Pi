@@ -1,0 +1,154 @@
+{
+ "issue": 295,
+ "title": "Add the linear masking rate and the corrected t to the 84-field code, with tests",
+ "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/295",
+ "headline": "Five build items let the four rows run, and the default table is done",
+ "setup": "The model fills a team's 84 fields one pass at a time. This ticket adds five pieces of code, called build items, so that each of the four rows can be trained, sampled and battled. A row is one way to train and sample the model.",
+ "alt": "Five build items: two training arms, the corrected t option, the guidance setting, the ask-grid rows and random order. One part of the first is done: training already reads the shuffled-only table by default. Each item has one test.",
+ "terms": [
+  [
+   "Row",
+   "One way to train and sample the model. Four are compared. The control is Per-field, uncorrected t: our own settings"
+  ],
+  [
+   "Build item",
+   "One piece of code this ticket adds. There are five, numbered in frame 2"
+  ],
+  [
+   "Training arm",
+   "A named training run in the code. This ticket adds one for each masking rate"
+  ],
+  [
+   "Shuffled-only table",
+   "The training teams whose win-rate labels come only from battles that shuffle a team's six Pokémon"
+  ],
+  [
+   "Guidance",
+   "How hard the sampler pushes toward the win rate asked for. 1 is no push, and higher pushes harder"
+  ],
+  [
+   "Corrected t",
+   "The t at which training hid as many fields as are still hidden at this pass"
+  ],
+  [
+   "Stored cell",
+   "Teams an earlier run already sampled and battled, kept on disk. New code must reproduce them"
+  ]
+ ],
+ "frames": [
+  {
+   "title": "1. Train, sample, battle: where each build item sits",
+   "kind": "flow",
+   "data": {
+    "boxes": [
+     {
+      "label": "Train",
+      "sub": "Item 1: two training arms",
+      "tone": "c1"
+     },
+     {
+      "label": "Sample",
+      "sub": "Items 2 and 5: corrected t, random order",
+      "tone": "c2"
+     },
+     {
+      "label": "Battle",
+      "sub": "Items 3 and 4: guidance, ask grid",
+      "tone": "c3"
+     }
+    ]
+   },
+   "takes": "Each row goes through training, sampling and battles, and each step needs build items.",
+   "measured": "One part of item 1 is done: the shuffled-only table is already the default training table."
+  },
+  {
+   "title": "2. Five build items and their state",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "1. Two training arms. Done already: the shuffled-only default table",
+      "state": "next"
+     },
+     {
+      "text": "2. Corrected t option in the sampler",
+      "state": "todo"
+     },
+     {
+      "text": "3. Guidance as a setting: 2, 4 and 8",
+      "state": "todo"
+     },
+     {
+      "text": "4. Ask-grid rows: code names, a check step and cells with no ask",
+      "state": "todo"
+     },
+     {
+      "text": "5. Random order as a decoding arm",
+      "state": "todo"
+     }
+    ]
+   },
+   "takes": "The default table is in place, and the two training arms of item 1 come next.",
+   "measured": "Done in commit b00a71ff: training reads the shuffled-only table unless --older-table is passed."
+  },
+  {
+   "title": "3. Code today against code after this ticket",
+   "kind": "compare",
+   "data": {
+    "left": {
+     "title": "Today",
+     "lines": [
+      "Guidance is fixed at 2",
+      "The sampler's t is always 1 − filled/84",
+      "The check step samples species-first only",
+      "Default early stopping would end near epoch 47"
+     ]
+    },
+    "right": {
+     "title": "After",
+     "tone": "c1",
+     "lines": [
+      "Guidance is a setting: 2, 4 and 8",
+      "The corrected t is an option",
+      "Each row samples with its own decoder",
+      "Both arms pass early-stopping threshold 0"
+     ]
+    }
+   },
+   "takes": "Four fixed behaviours become settings, and today's behaviour stays the default.",
+   "expected": "Stored runs reproduce unchanged, because every new setting defaults to today's behaviour.",
+   "surprise": "A stored result changes under the new code."
+  },
+  {
+   "title": "4. What each test proves",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "Training arms: under the linear rate, the share hidden at t is t",
+      "state": "todo"
+     },
+     {
+      "text": "Corrected t: matches the check script's value at every pass",
+      "state": "todo"
+     },
+     {
+      "text": "Guidance: guidance 2 reproduces a stored cell",
+      "state": "todo"
+     },
+     {
+      "text": "Ask-grid rows: each code name loads its checkpoint and decoder",
+      "state": "todo"
+     },
+     {
+      "text": "Random order: the existing lookahead tests pass",
+      "state": "todo"
+     }
+    ]
+   },
+   "takes": "Each build item has one test that checks the one thing it must do.",
+   "expected": "All five pass before any training starts.",
+   "surprise": "Guidance 2 fails to reproduce a stored cell, so the new setting changed old behaviour."
+  }
+ ]
+}

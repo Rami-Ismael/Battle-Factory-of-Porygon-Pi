@@ -1,0 +1,28 @@
+Add the linear masking rate and the corrected t to the 84-field code, with tests
+
+## Question
+
+Build the five items in the picture, each defaulting to today's behaviour so stored runs keep working, and test each one.
+
+![What the code ticket builds](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/6_code_ticket.png)
+
+| Build item | Where | Test |
+| --- | --- | --- |
+| 1. Training arms for the per-field and the linear masking rate, with `early_stopping_threshold=0.0` and every epoch saved. Linear is `sched="1,1,1,1,1"`. The shuffled-only table is already the default and older-table arms already need `--older-table` (commit `b00a71ff`), so the new arms only have to use the default | `train84.py` | Under the linear rate, the share hidden at t is t. `scripts/test_train84_tables.py` already guards the table |
+| 2. A sampler option for the corrected t | `diffusion84.py`, `Model84.sample` | Matches `masking_rate_preflight.corrected_t` at every pass |
+| 3. Guidance as an ask-grid setting: 2, 4 and 8 | `ask_grid84.py` | Guidance 2 reproduces a stored cell |
+| 4. Ask-grid entries for the four code IDs, a probe step that samples with each row's own decoder, and cells with no ask | `ask_grid84.py` | Each code ID loads its checkpoint and decoder |
+| 5. Random order as `remask84.RandomDecodingArm(model, "rand_plain", lookahead=True)` | `remask84.py` | The existing lookahead tests |
+
+Plan: [code/docs/masking-rate-rows.md](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md)
+
+Parent map: [Masking-rate map: per-field versus linear masking rate on the 84-field model, and where our code departs from MD4 and LLaDA](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/291)
+
+
+
+**From the pre-registration, 2026-11-11.** Four things this ticket must build, beyond the two settings in the question. First, the training arm passes `sched="1,1,1,1,1"` and `early_stopping_threshold=0.0` and saves every epoch. With today's default of 0.001 the control's own curve would have stopped at epoch 47, where it ran to 80. Second, the corrected t is tested against `masking_rate_preflight.corrected_t`, which matches the corrected-t ticket's table within 0.00005. Third, the ask grid gets entries for the four code IDs, a probe step that samples with each row's own decoder, and cells with no ask. Fourth, random order is `remask84.RandomDecodingArm(model, "rand_plain", lookahead=True)`. The corrected t failed its ceiling probe, so its battle grid is on hold for the owner. Detail: https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md
+
+**2026-11-11, body rewritten.** The owner agreed the build list belongs on the ticket and asked for it as a visual: "Agree this should be on the map ... but don't forget please use visual". The body now holds the picture and five build items. Two are new since the first list, from the owner's decisions the same day: guidance becomes a setting of 2, 4 and 8, and both training arms read the shuffled-only table. The earlier comment's four items are covered by items 1, 2, 4 and 5.
+
+**2026-11-11, body updated.** Owner: "please use only shuffle example. The default bevahior should be shuffling". Part of item 1 has landed in commit `b00a71ff`: the shuffled-only table is the default training table, an arm that reproduces a model trained on the older table stops without `--older-table`, and a new ask-grid row is compared with the shuffled-only table unless it names another. Item 1 now only adds the two arms. One thing left for this ticket to decide: `lineup_reference.py` still reads the older table for its novelty references, so new rows need references built from the shuffled-only table.
+

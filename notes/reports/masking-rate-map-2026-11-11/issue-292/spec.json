@@ -1,0 +1,145 @@
+{
+ "issue": 292,
+ "title": "Departures: where does our 84-field discrete diffusion code depart from MD4 and LLaDA?",
+ "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/292",
+ "headline": "Seven of 15 parts follow MD4 or LLaDA; the other eight are ours alone",
+ "setup": "Our model writes a team of six Pokémon as 84 fields. We split its code into 15 parts, such as how fields are hidden in training and in what order they are filled. Each part was compared with two published papers, MD4 and LLaDA. A second check then verified all 45 cells: 15 parts for ours and for each paper.",
+ "alt": "Seven of the 15 parts match MD4 or LLaDA: five match MD4, three match LLaDA, and one matches both. The other eight are ours alone. Two of those, the masking rate and the decoding order, are tested by the four new rows. A third, the t told while sampling, was tested and had no effect.",
+ "terms": [
+  [
+   "Part",
+   "One design choice in our code, such as the masking rate or the decoding order. There are 15"
+  ],
+  [
+   "Follows a paper",
+   "Our code does the same thing as that paper in this part"
+  ],
+  [
+   "Ours alone",
+   "No paper does it our way: the paper differs, or has no such part"
+  ],
+  [
+   "t",
+   "A number from 0 to 1 that the model is told: how much of the team is still hidden"
+  ],
+  [
+   "Decoding order",
+   "The order the sampler fills fields in. Ours: all six species first. The papers: random, or most confident first"
+  ],
+  [
+   "The four new rows",
+   "The four ways of training and sampling that this map will battle, to test the masking rate and the decoding order"
+  ]
+ ],
+ "frames": [
+  {
+   "title": "1. Parts each paper matches",
+   "kind": "bars",
+   "data": {
+    "bars": [
+     {
+      "label": "MD4",
+      "height": 0.33,
+      "style": "solid",
+      "note": "5 of 15"
+     },
+     {
+      "label": "LLaDA",
+      "height": 0.2,
+      "style": "solid",
+      "note": "3 of 15"
+     },
+     {
+      "label": "Either paper",
+      "height": 0.47,
+      "style": "solid",
+      "note": "7 of 15"
+     }
+    ]
+   },
+   "takes": "Five of our 15 parts match MD4 and three match LLaDA. One, the loss weight, matches both, so seven match at least one.",
+   "measured": "Counts from the matrix in the issue's last comment, after the second check."
+  },
+  {
+   "title": "2. Follows a paper, or ours alone",
+   "kind": "compare",
+   "data": {
+    "left": {
+     "title": "Follows a paper: 7 parts",
+     "lines": [
+      "Both papers: loss weight",
+      "LLaDA: dividing the loss by 84",
+      "MD4: how t is drawn, and time input",
+      "LLaDA: guidance mixing",
+      "MD4: drawing a sample, and Stat Points as tokens"
+     ]
+    },
+    "right": {
+     "title": "Ours alone: 8 parts",
+     "lines": [
+      "Per-field masking rate",
+      "Decoding order, and the t told while sampling",
+      "Ask dropout in training",
+      "Validation draws",
+      "Slot shuffling, and the two legal filters"
+     ]
+    }
+   },
+   "takes": "Seven parts do what a paper does; the other eight are ours alone.",
+   "measured": "The division by 84 matches LLaDA's Algorithm 1, not MD4's."
+  },
+  {
+   "title": "3. What the second check changed",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "Stat Points as tokens, MD4: now the same. Pixel values are 256 tokens",
+      "state": "done"
+     },
+     {
+      "text": "Validation draws, MD4: now differs. 32 draws on one benchmark",
+      "state": "done"
+     },
+     {
+      "text": "Validation draws, LLaDA: 128 draws, or 1 for one-token answers",
+      "state": "done"
+     },
+     {
+      "text": "Guidance mixing, LLaDA: same form, used only in an appendix test",
+      "state": "done"
+     },
+     {
+      "text": "Legal filter while sampling, ours: every value reopens if none is legal",
+      "state": "done"
+     }
+    ]
+   },
+   "takes": "A second check changed five of 45 cells, and the matching count rose from 6 to 7 of 15.",
+   "measured": "Each correction was confirmed at its quoted line in the paper's LaTeX source."
+  },
+  {
+   "title": "4. The three departures this map tests",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "Masking rate: per-field against linear, tested by the four new rows",
+      "state": "next"
+     },
+     {
+      "text": "Decoding order: species first against random, tested by the four new rows",
+      "state": "next"
+     },
+     {
+      "text": "t told while sampling: tested, no effect",
+      "state": "done"
+     }
+    ]
+   },
+   "takes": "Masking rate and decoding order are not run yet; the four rows written before any result test them.",
+   "expected": "Linear, random order loses to Linear, species-first, with an error under 2.8 times as large.",
+   "surprise": "A linear row that wins by 0.002 or more."
+  }
+ ]
+}

@@ -107,7 +107,7 @@ class ContinuousWR(H.TeamDiffusionHPS):
 def setup():
     """(training corpus, vocabulary, constraints, display names, spreads).
 
-    The vocabulary, rule tables and display names come from every corpus file: removing the held-out
+    The vocabulary, legal Pokémon construction tables and display names come from every corpus file: removing the held-out
     teams shrinks them and would move every token id in every saved checkpoint. What is learned from
     or sampled (rows, spread donors) is the training corpus, without ranks 51-100."""
     cf = A.load_corpus_files(); full = [t for _, t in cf]

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The default model reuses a training line-up exactly for 59% of its teams, against 71% for win-rate-matched training</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:460px}
+</style>
+</head>
+<body>
+<main>
+<h1>The default model reuses a training line-up exactly for 59% of its teams, against 71% for win-rate-matched training</h1>
+<p class="sub">It moves one or two species away more often; three or more swaps stays rare at 0.9% to 3.7%.</p>
+<div id="chart"></div>
+<p class="note">Swaps are six minus the species a team shares with the closest of the 170,785 training line-ups. Rows drawn from the training teams leave each team out of its own reference once, so a training row at zero swaps means another training team has the same line-up.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"animation": false, "legend": {"top": 0, "left": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "confine": true, "valueFormatter": "js:v => (100 * v).toFixed(1) + '%'"}, "grid": {"left": 8, "right": 28, "top": 48, "bottom": 44, "containLabel": true}, "xAxis": {"type": "value", "name": "share of teams", "nameLocation": "middle", "nameGap": 28, "max": 1, "axisLabel": {"formatter": "js:v => Math.round(v * 100) + '%'"}}, "yAxis": {"type": "category", "data": ["Default model, sampling seed 1", "Default model, sampling seed 2", "Default model, sampling seed 3", "Win-rate-matched training, draw 1", "Win-rate-matched training, draw 2", "Win-rate-matched training, draw 3", "Any-win-rate training, draw 1", "Any-win-rate training, draw 2", "Any-win-rate training, draw 3", "Validation teams", "One training team repeated", "Random legal teams"], "inverse": true, "axisTick": {"show": false}, "axisLabel": {"fontSize": 11}}, "series": [{"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "0 swaps, a training line-up copied", "stack": "swaps", "itemStyle": {"color": "#c43b3b"}, "data": [0.5873161764705882, 0.5928308823529411, 0.59375, 0.71875, 0.7077205882352942, 0.7058823529411765, 0.7380514705882353, 0.7637867647058824, 0.7711397058823529, 0.7244995233555768, 1.0, 0.0]}, {"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "1 swap", "stack": "swaps", "itemStyle": {"color": "#e39a3b"}, "data": [0.28768382352941174, 0.26378676470588236, 0.27481617647058826, 0.22334558823529413, 0.23345588235294118, 0.23253676470588236, 0.23253676470588236, 0.20772058823529413, 0.19944852941176472, 0.2221163012392755, 0.0, 0.0009191176470588235]}, {"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "2 swaps", "stack": "swaps", "itemStyle": {"color": "#8fb4de"}, "data": [0.11580882352941177, 0.11948529411764706, 0.09466911764705882, 0.05238970588235294, 0.05330882352941176, 0.05514705882352941, 0.029411764705882353, 0.025735294117647058, 0.02665441176470588, 0.04671115347950429, 0.0, 0.034926470588235295]}, {"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "3 or more swaps, a new line-up", "stack": "swaps", "itemStyle": {"color": "#2a78d6"}, "data": [0.009191176470588236, 0.02389705882352941, 0.03676470588235294, 0.0055147058823529415, 0.0055147058823529415, 0.006433823529411764, 0.0, 0.0027573529411764708, 0.0027573529411764708, 0.00667302192564347, 0.0, 0.9641544117647058]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#2a78d6": "#3987e5", "#eb6834": "#d95926", "#8a4fc4": "#a77ae0", "#1d8a6e": "#3fb592", "#8a8984": "#8f8e86", "#e4e2dc": "#34332f", "#7a7974": "#97968d", "#c43b3b": "#e05a5a", "#e39a3b": "#e8a84f", "#8fb4de": "#5f86b8"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

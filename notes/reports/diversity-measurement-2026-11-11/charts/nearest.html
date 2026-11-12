@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>No team in any row copies a training team at all 84 fields</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:460px}
+</style>
+</head>
+<body>
+<main>
+<h1>No team in any row copies a training team at all 84 fields</h1>
+<p class="sub">The default model&#x27;s teams sit a median 34 fields from the closest one, against 24 for training and validation teams.</p>
+<div id="chart"></div>
+<p class="note">Fields out of 84 that differ from the closest training team, slots matched to give the fewest, moves compared as a set within a slot. Exact search over all 170,785 training teams. Training rows and the repeated team leave the team itself out once.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"animation": false, "legend": {"top": 0, "left": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "confine": true, "valueFormatter": "js:v => (100 * v).toFixed(1) + '%'"}, "grid": {"left": 8, "right": 28, "top": 48, "bottom": 44, "containLabel": true}, "xAxis": {"type": "value", "name": "share of teams", "nameLocation": "middle", "nameGap": 28, "max": 1, "axisLabel": {"formatter": "js:v => Math.round(v * 100) + '%'"}}, "yAxis": {"type": "category", "data": ["Default model, sampling seed 1", "Default model, sampling seed 2", "Default model, sampling seed 3", "Win-rate-matched training, draw 1", "Win-rate-matched training, draw 2", "Win-rate-matched training, draw 3", "Any-win-rate training, draw 1", "Any-win-rate training, draw 2", "Any-win-rate training, draw 3", "Validation teams", "One training team repeated", "Random legal teams"], "inverse": true, "axisTick": {"show": false}, "axisLabel": {"fontSize": 11}}, "series": [{"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "0 fields, a training team copied", "stack": "fields", "itemStyle": {"color": "#c43b3b"}, "data": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "1 to 5 fields", "stack": "fields", "itemStyle": {"color": "#e39a3b"}, "data": [0.0, 0.0, 0.0, 0.05330882352941176, 0.046875, 0.050551470588235295, 0.03216911764705882, 0.04503676470588235, 0.04871323529411765, 0.03813155386081983, 0.0, 0.0]}, {"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "6 to 20 fields", "stack": "fields", "itemStyle": {"color": "#8fb4de"}, "data": [0.0009191176470588235, 0.003676470588235294, 0.003676470588235294, 0.2702205882352941, 0.23621323529411764, 0.27481617647058826, 0.2959558823529412, 0.2665441176470588, 0.2913602941176471, 0.25929456625357483, 1.0, 0.0]}, {"type": "bar", "barMaxWidth": 16, "emphasis": {"focus": "series"}, "name": "over 20 fields", "stack": "fields", "itemStyle": {"color": "#2a78d6"}, "data": [0.9990808823529411, 0.9963235294117647, 0.9963235294117647, 0.6764705882352942, 0.7169117647058824, 0.6746323529411765, 0.671875, 0.6884191176470589, 0.6599264705882353, 0.7025738798856054, 0.0, 1.0]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#2a78d6": "#3987e5", "#eb6834": "#d95926", "#8a4fc4": "#a77ae0", "#1d8a6e": "#3fb592", "#8a8984": "#8f8e86", "#e4e2dc": "#34332f", "#7a7974": "#97968d", "#c43b3b": "#e05a5a", "#e39a3b": "#e8a84f", "#8fb4de": "#5f86b8"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

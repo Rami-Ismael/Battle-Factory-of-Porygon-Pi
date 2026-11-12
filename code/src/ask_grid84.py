@@ -1,6 +1,6 @@
 """The 23-ask battle protocol for an 84-field model (issues #61 and #62; docs/stat-points-84-fields.md, "Battles").
 
-Asks 1/24 to 23/24, seeds 1-3, guidance 2, temperature 1, rule masks on, species first, Stat Alignment repaired to match
+Asks 1/24 to 23/24, seeds 1-3, guidance 2, temperature 1, legal Pokémon construction filter on, species first, Stat Alignment repaired to match
 the moves. Each cell draws until 64 teams pass Showdown and are not held-out teams, at most 1,280 tries. Each team plays
 one battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled.
 Fields the model generates: all 84, except that the repair replaces its Stat Alignment.
@@ -45,6 +45,7 @@ from team_diversity import slots_from_paste              # team_diversity drops 
 from team_diversity import summary as diversity_summary
 sys.path.pop(0)
 
+OLDER_TABLE, DEFAULT_TABLE = "lossdata84.npz", "lossdata84_shuffled_only.npz"   # a new model row trains on the shuffled-only table
 MODELS = {
     "gen84_all_ep21": dict(checkpoint="stat84_all_teams_ep21", reader="Generated, all teams, 21 epochs", epochs=dict(all_teams=21),
                            stopped="owner stopped training at epoch 21 of a cap of 80; validation loss was still falling"),
@@ -67,9 +68,24 @@ for _arm, _r in (("subset_10_39", "10 to 39 opponents per label"), ("subset_1_39
 MODELS["ft_hindsight_relabel"] = dict(checkpoint="stat84_labelled_noise_byepoch_ep21_ft_hindsight_relabel_es3_cap40",   # issue #106, src/hindsight_relabel.py
                                       reader="Hindsight-relabeled fine-tune, epoch 21", epochs=dict(labelled_teams=21, relabelled_fine_tune="early stopping"),
                                       stopped="epoch 21 fine-tuned on its own battled teams, labelled with measured win rate; best pass by validation loss", labelled=True)
+for _arm, _reader in (("pos_per_field_s0", "No split, first seed"), ("pos_per_field_s1", "No split, second seed"),   # docs/position-embedding-split.md
+                      ("pos_slot_learned", "Learned slot vectors"), ("pos_slot_fixed", "Fixed slot vectors"), ("pos_no_slot", "No slot vectors")):
+    MODELS[_arm] = dict(checkpoint=f"stat84_{_arm}_noise_ep21", reader=f"{_reader}, label noise ±1/48, shuffled-only table, 21 epochs",
+                        epochs=dict(all_teams=21), stopped="planned stop at epoch 21, patience off", table="lossdata84_shuffled_only.npz")
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
+
+
+def table_from_info(info):
+    """The training table a checkpoint's run info names (train84 records it). A checkpoint saved before the info
+    carried one trained on the older table."""
+    return (info or {}).get("table", OLDER_TABLE)
+
+
 if MODEL not in MODELS and flagged_checkpoint(MODEL):
-    MODELS[MODEL] = flagged_row(MODEL, load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"])
+    _info = load_checkpoint(L.CK / f"{flagged_checkpoint(MODEL)}.pt", map_location="cpu")["info"]
+    MODELS[MODEL] = dict(flagged_row(MODEL, _info), table=table_from_info(_info))
+for _row in MODELS.values():                             # every row so far trained on the older table unless it names another
+    if not _row.get("table65"): _row.setdefault("table", OLDER_TABLE)
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 2.0, 64, 96, 1280, 7300, 1
 ASK_NUMERATORS, SEEDS = list(range(1, 24)), [1, 2, 3]
@@ -81,7 +97,7 @@ NUDGE_NUMERATORS, NUDGES = (6, 8, 10, 11, 12, 13, 14, 16), (0.0, 0.002, -0.002, 
 if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
 RES = Path.home() / "vgc-data/results"
 OUT = RES / f"stat_points_84_{MODEL}{'_smoke' if SMOKE else ''}.json"
-DATA = X.RES / "lossdata84.npz"                          # as train84
+DATA = X.RES / OLDER_TABLE                               # training teams of the older-table models that remask84, nucleus84, trade84 and lineup_reference score
 UNIFORM_LEGAL = Path.home() / "vgc-data/teams/hps_reg_mb_100k.jsonl"
 
 
@@ -101,6 +117,12 @@ def checkpoint_path(): return L.CK / f"{MODELS[MODEL]['checkpoint']}.pt"
 
 def load_model():
     return M.Model84.load(checkpoint_path())
+
+
+def table_of(row):
+    """The training table a model row names. A row that names none trained on the shuffled-only table, the default
+    since 2026-11-11, so a new model is never compared with the older table's teams by accident."""
+    return row.get("table", DEFAULT_TABLE)
 
 
 def reason(err):
@@ -372,24 +394,24 @@ def controls():
 
 
 def preflight():
-    w = load_model(); V = w.V; out = load_out(); pf = {}
+    w = load_model(); V = w.V; out = load_out(); pf = dict(out.get("preflight", {}))   # keeps a training_smoke probe run before training
     if MODELS[MODEL].get("table65"):                        # trained on the shuffled-slot table (src/train65.py)
         import train65
         d, tr_rows, _, _ = train65.load(); tr = d["X"][tr_rows].astype(np.int64)
     else:
-        d = np.load(DATA); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
+        d = np.load(X.RES / table_of(MODELS[MODEL])); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
         tr = d["all_X"][tr_rows].astype(np.int64)
     torch.manual_seed(SEED0 + 1)
     rows = w.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()
     pf["round_trip"] = round_trip(w, rows[:20])
     pf["coverage"] = dict(vocabulary="regulation tables directly", n_train=(w.info or {}).get("n_train"), dropped_by_tables=(w.info or {}).get("dropped_by_tables"),
-                          explanation="teams the rule tables reject are dropped before training")
+                          explanation="teams the legal Pokémon construction tables reject are dropped before training")
     gen_slots = [T.decode(V, r) for r in rows]
     rng = np.random.default_rng(0); real_slots = [T.decode(V, tr[i]) for i in rng.choice(len(tr), 256, replace=False)]
     pf["read_teams"] = dict(pastes=[w.to_paste(r, repair=True)[0] for r in rows[:20]],
                             **{f"{f}_generated": shares(f, gen_slots) for f in ("species", "item", "ability", "moves")},
                             **{f"{f}_training": shares(f, real_slots) for f in ("species", "item", "ability", "moves")})
-    pf["training_smoke"] = dict(skipped="the checkpoint is already trained; the loss curve is in the training log and the tracer covers the pipeline")
+    pf.setdefault("training_smoke", dict(skipped="the checkpoint is already trained; the loss curve is in the training log and the tracer covers the pipeline"))
     pf["controls"] = controls()
     pf["invariance"] = dict(skipped="no new scorer; every battle shuffles slots and require_shuffled refuses any other order")
     pf["repeat"] = dict(skipped="scorer unchanged since the line-up repeats run; the seed reaches the schedule through score_pastes as there")

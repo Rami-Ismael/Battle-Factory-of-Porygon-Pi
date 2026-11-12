@@ -1,0 +1,36 @@
+Departures: where does our 84-field discrete diffusion code depart from MD4 and LLaDA?
+
+## Question
+
+List every place the 84-field model's training (`code/src/diffusion84.py`, `code/src/lossdown.py`) and sampling depart from MD4 (Shi et al. 2024, https://arxiv.org/abs/2406.04329) for training and masking rates, and from LLaDA (Nie et al. 2025, https://arxiv.org/abs/2502.09992) for decoding. For each: what our code does (file and function), what the paper does (section, equation or algorithm, quoted), and whether it is our own choice with no published source. Candidates already known: the per-field masking rate, the t given while decoding, the fixed species-first order, the legal Pokémon construction filter's −10,000 in the loss and while sampling, slot shuffling, the ÷84 per-field average, t spread evenly within each team's validation draws, ask dropout, the time input. Read the papers' released code where the paper is silent (MD4: google-deepmind/md4; LLaDA: ML-GSAI/LLaDA).
+
+Parent map: [Masking-rate map: per-field versus linear masking rate on the 84-field model, and where our code departs from MD4 and LLaDA](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/291)
+
+
+**Resolved 2026-11-11.** Findings: branch `research/diffusion84-departures`, file `code/docs/research/diffusion84-departures-from-md4-llada.md` (no PR; never merged).
+
+Of 14 parts of the 84-field model, 3 follow the papers: t spread evenly across the batch (MD4 Algorithm 1), the time input (MD4 App. I.2) and guidance mixing (LLaDA Eq. 16). The rest are ours, with no published source: the per-field masking rate's fixed exponents (MD4 §6 learns them per token value), the ÷84 average, slot shuffling, the legal Pokémon construction filter in the loss and while sampling, the fixed species-first order, the sampler's t = 1 − filled/84, temperature, Stat Point tokens, the 0.15 ask dropout, and the validation draws' 4 samples with a fixed seed. Still unchecked: MD4 Algorithm 2's time grid against ours.
+
+**Correction, 2026-11-11.** The division of the loss by 84 is not ours. LLaDA Algorithm 1 computes the loss as −1/(t × L) times the sum over hidden tokens, so dividing by the 84 fields follows it. MD4 Algorithm 1 sums without dividing. Found while checking citations for the pre-registration against each paper's LaTeX source: https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md
+
+**2026-11-11, the departures as a matrix.** The owner asked for a matrix that tells the three apart. Green is the same as ours, amber differs, grey means the paper has no such part. 6 of 15 parts match at least one paper.
+
+![Where our 84-field code matches MD4 and LLaDA, and where it departs](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/7_departures.png)
+
+Two cells changed against the ticket's text. Dividing the loss by 84 follows LLaDA Algorithm 1. Drawing a sample, where LLaDA takes the most likely value, follows MD4 Algorithm 2. Each cell was checked against the paper's LaTeX source.
+
+
+**2026-11-11, the matrix after a second check.** The owner asked for every claim to be verified. Three subagents checked the three columns, ours against the code and each paper against its LaTeX source, and I confirmed each correction at the quoted line. 40 of 45 cells held. Five changed, and the count is now 7 of 15 parts matching at least one paper.
+
+![Where our 84-field code matches MD4 and LLaDA, and where it departs](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/77240c51bc595ea73b87cfca1e467c44242623a6/7_departures.png)
+
+| Cell | Was | Now |
+| --- | --- | --- |
+| Stat Points as tokens, MD4 | Not in the paper | Same: MD4 treats pixel values as 256 tokens and ignores their order |
+| Validation draws, MD4 | No count given | Differs: 32 draws, on one benchmark scored by likelihood |
+| Validation draws, LLaDA | 128 draws | 128 draws, or 1 for one-token answers |
+| Guidance mixing, LLaDA | Same, Eq. 16 | Same form, but LLaDA uses it only in an appendix test |
+| Legal filter while sampling, ours | On at every draw | On at every draw, and if no value is legal every value reopens |
+
+The picture in the comment above is the first version.
+

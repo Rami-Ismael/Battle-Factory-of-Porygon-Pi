@@ -1,0 +1,80 @@
+Masking-rate map: per-field versus linear masking rate on the 84-field model, and where our code departs from MD4 and LLaDA
+
+## Destination
+
+Final results for four ways of training and decoding the 84-field model, read side by side, plus a diagnosis of possible errors in our code: every place our discrete diffusion code departs from published work, cited to the paper, with its measured effect where these runs measure it. Runs happen inside this map (owner, 2026-11-11: "The map end when we have our final result and plus diagnosis for potential error in my code").
+
+## Notes
+
+- **Why:** our 84-field model hides fields at a per-field masking rate and decodes in a fixed order, unlike the papers. The owner suspects these departures cause decoding errors and wants the work to "closely resemble other people work" (2026-11-11).
+- **Yardsticks (owner, 2026-11-11):** MD4 for training and masking rates (Shi et al., "Simplified and Generalized Masked Diffusion for Discrete Data", NeurIPS 2024, https://arxiv.org/abs/2406.04329); LLaDA for decoding (Nie et al., "Large Language Diffusion Models", NeurIPS 2025, https://arxiv.org/abs/2502.09992). Cite every design choice to a section, equation or algorithm, or mark it as our own.
+- **The plan in one picture** (changed by the owner on 2026-11-11: shuffled-only table, guidance 2, 4 and 8):
+
+  ![The plan after the two decisions](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/3_plan.png)
+
+- **The four rows** (one training seed for each new model; 3 sampling seeds at each of guidance 2, 4 and 8):
+
+  | Masking rate in training | Decoding order | t given to the model while decoding | Source |
+  | --- | --- | --- | --- |
+  | Per-field: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t | Species-first | 1 − filled/84 (today) | MD4 §6 polynomial rate, but MD4 learns the exponent per token value; fixed per field type is ours. **Control: a new per-field training on the shuffled-only table.** Today's default model (`gen84_noise_byepoch_ep80`) trained on the older table and stays as a reference only |
+  | Per-field | Species-first | Corrected to the t its training used | MD4 Algorithm 2 samples with the same αₜ as training. Same checkpoint as the control, no training. Battled only if the t probe on that checkpoint reaches 0.01; on today's default model it read 0.005 |
+  | Linear: every field t | Species-first | 1 − filled/84, which now matches training | MD4 App. J.1 "linear masking schedule αₜ = 1 − t"; LLaDA Eq. 3 |
+  | Linear | Random | 1 − filled/84 | LLaDA Algorithm 4 (random remasking); MD4 Algorithm 2 |
+
+  Code IDs: `sched_species_first`, `sched_species_first_t`, `sched_linear_species_first`, `sched_linear_random`.
+- **The two trainings:** per-field and linear, both on the shuffled-only table `lossdata84_shuffled_only.npz`, labelled teams only (owner, 2026-11-11: "I perfer shuffled only because it only represent a win rate that is not bias by the error of the rl policy"). Both use the default model's recipe (network 256 wide, 6 layers, 8 heads; ask dropout 0.15; label noise; EMA; batch 256; learning rate 4e-4; seed 0; validation loss sets the length, patience 3, early-stopping threshold 0, cap 80, every epoch saved). Only the masking rate differs between them.
+- **Shuffled-only is the default (owner, 2026-11-11: "please use only shuffle example. The default bevahior should be shuffling"):** the training code reads the shuffled-only table unless told otherwise, and an arm that reproduces a model trained on the older table stops without `--older-table` (commit `b00a71ff`). The table holds 218,978 labelled teams, each with at least 49 shuffled-slot battles. The 173,544 teams labelled only by listed-order battles or run files are not in it.
+- **Guidance:** every battled row is sampled at guidance 2, 4 and 8, so each row is a three-point curve (owner, 2026-11-11: "Yes each row get three guidance value").
+- **Measures, read together (owner: "holistic"):** ask-versus-got error on asks 1/24 to 17/24; win rate against the top-50 meta teams, shuffled slots, behaviour cloning on both sides; first-try legality (battles use the validator redraw); novelty (new line-ups); distinct line-ups, effective species, elite yield; the training-versus-validation gap measured with the same function on both sides (`~/vgc-data/validation_loss_accuracy/run/validation_accuracy.py`). The default model's gap is +0.0115 ± 0.0063 at epoch 80. More training seeds only if a new row performs against the win rate above.
+- **Settled while charting:** per-field masking rate with random order is not a row; it already failed on this model (random decoding with lookahead: ask-versus-got error 2.5× species-first's, 2026-11-07) and on the older model (0.7% legal on first try, −0.074 win rate, 2026-10-30; remasking and lookahead did not rescue it, 2026-10-31).
+- **Wording:** say **masking rate**, never noise schedule or scheduler (owner, 2026-11-11). Glossary: **Masking rate**, **Per-field masking rate**, **Linear masking rate** (added 2026-11-11).
+- **Compute:** laptop only. Check `python3 ~/vgc-data/whats_running.py`, then queue detached behind other sessions' jobs. Two trainings of about 6.7 hours each, then nine grids, 1.95 million battles and about 6.9 hours.
+- **Standing preferences:** post each result as an issue comment the moment it lands; results as visuals first, ECharts checked in dark mode; full variable names in code shown to the owner; no user stories.
+- **Skills:** `grilling` and `domain-modeling` for grilling tickets; `research` for research tickets; `build-experiment` before a run and `run-experiment` while it runs; `early-stopping`, `name-experiments`, `verify-ask-grid84`, `storyboard-figures`, `dataviz`.
+
+## Decisions so far
+
+- [Departures: where does our 84-field discrete diffusion code depart from MD4 and LLaDA?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/292): 7 of 15 parts match at least one paper, shown as a matrix in the ticket's last comment; the per-field exponents, the legal Pokémon construction filter, slot shuffling, the fixed order and the sampler's t are ours.
+- [Corrected t: how should a per-field-masking-rate model be given t while decoding in a fixed order, to match MD4?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/293): give each pass the t whose expected hidden share matches training (0.650 at half hidden, against 0.500 today); our rule, modelled on MD4 Algorithm 2.
+- [Pre-register the four masking-rate rows](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/294): contract, probes, noise floor and storyboard are in `code/docs/masking-rate-rows.md`. The model barely reads t, 0.005 on today's default model and 0.008 on a shuffled-only model against a bar of 0.01, so Per-field, corrected t is battled only if the same probe reaches the bar on the new per-field model. The owner approved that rule ("I am fine with a prob"). Both trainings must pass early-stopping threshold 0.
+
+## Not yet specified
+
+- What to do about each departure the diagnosis finds beyond the masking rate and t (for example the legal Pokémon construction filter's −10,000 inside the loss and slot shuffling; the ÷84 average turned out to follow LLaDA Algorithm 1): fix, test as a new row, or keep as ours.
+- Whether a new row earns more training seeds, and which model becomes the default if one wins.
+
+## Out of scope
+
+- Per-field masking rate with random order: already measured and failed (Notes).
+- Uniform discrete diffusion, which replaces fields with random values instead of hiding them: the uniform discrete diffusion map #270.
+- Regularization against overfitting: the corrected gap shows none (map #250).
+
+
+
+
+
+
+
+**2026-11-11, body updated after the pre-registration ticket closed.** Decisions so far gained the line for Pre-register the four masking-rate rows. Not yet specified gained one question: whether Per-field, corrected t gets its battle grid, because its ceiling probe failed. The example list of departures lost the ÷84 average, which follows LLaDA Algorithm 1 and is not ours. The four rows in Notes are unchanged: dropping or keeping the corrected-t grid is the owner's decision. Detail: https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md
+
+**2026-11-11, body rewritten after two owner decisions, made before any training or battle.**
+
+"Yes each row get three guidance value": every battled row runs at guidance 2, 4 and 8. Notes now say so, and the compute line reads nine grids.
+
+"I perfer shuffled only because it only represent a win rate that is not bias by the error of the rl policy": both trainings use the shuffled-only table. The control is no longer today's default model, which trained on the older table. It is a new per-field training on the shuffled-only table, and the default model stays as a reference. This adds one training of about 6.7 hours.
+
+"How do I resolve the per-field corrected": the t probe decides. It is rerun on the new per-field model, and Per-field, corrected t is battled only at 0.01 or more. That question left Not yet specified.
+
+The bodies of the three open tickets were rewritten to match, each with a picture. The departures ticket has the matrix as a comment.
+
+
+**2026-11-11, body updated after three more owner answers.**
+
+"I am fine with a prob": the probe rule for Per-field, corrected t is approved. Decisions so far says so.
+
+"delete any training example in where the win rate did go through shuffle at all. Because, shuffle give use more accurate representation of the true win rate" and "please use only shuffle example. The default bevahior should be shuffling": Notes gained a line. The training code now reads the shuffled-only table by default, and an arm on the older table stops without `--older-table`. An audit of the table found 218,978 labelled teams, each with at least 49 shuffled-slot battles, and no kept team carrying a listed-order label. The older table's file is still on disk, unused by default, because the default model and its stored results were built from it. Deleting that file is a separate step the owner has not asked for by name.
+
+"The storyboard figure are good": the five frames stand.
+
+The departures matrix was checked claim by claim and five cells changed, so its line now reads 7 of 15.
+

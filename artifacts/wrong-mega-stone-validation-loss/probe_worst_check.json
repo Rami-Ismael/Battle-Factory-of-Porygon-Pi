@@ -1,0 +1,7829 @@
+{
+ "row": 2262,
+ "checkpoint": "stat65_subset_39.pt",
+ "data": "lossdata65.npz",
+ "seed": 12345,
+ "n_species": 347,
+ "win_rate_label": 0.28205129504203796,
+ "label_wins": 11.0,
+ "label_battles": 39.0,
+ "validation_teams": 5406,
+ "fields": 84,
+ "field_weights": {
+  "species": 16.0,
+  "ability": 4.0,
+  "item": 4.0,
+  "move 1": 1.5,
+  "move 2": 1.5,
+  "move 3": 1.5,
+  "move 4": 1.5,
+  "nature": 1.0,
+  "stat point": 1.0
+ },
+ "what_if_item": "Focus Sash",
+ "draws": [
+  {
+   "draw": 1,
+   "t": 0.01175515353679657,
+   "hidden": 0,
+   "cost": 0.0,
+   "pokemon": [
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Glimmoranite",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Glimmoranite",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    }
+   ],
+   "species_checks": []
+  },
+  {
+   "draw": 2,
+   "t": 0.3783990144729614,
+   "hidden": 21,
+   "cost": 0.8856946229934692,
+   "pokemon": [
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": true,
+       "ce_model_alone": 6.658663749694824,
+       "ce_with_mask": 0.8959635496139526,
+       "weight": 1.5,
+       "cost": 0.04228168725967407
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.04614802077412605,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Glimmoranite",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Glimmoranite",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.027567386627197,
+       "ce_with_mask": 0.3368806838989258,
+       "weight": 1.5,
+       "cost": 0.0158978383988142
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": true,
+       "ce_model_alone": 12.07606029510498,
+       "ce_with_mask": 5.563096046447754,
+       "weight": 1.5,
+       "cost": 0.26252976059913635
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": true,
+       "ce_model_alone": 1.793718934059143,
+       "ce_with_mask": 0.013368376530706882,
+       "weight": 1.5,
+       "cost": 0.0006308711017481983
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.202183723449707,
+       "ce_with_mask": 0.15547707676887512,
+       "weight": 1.5,
+       "cost": 0.007337165996432304
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": true,
+       "ce_model_alone": 0.6156893968582153,
+       "ce_with_mask": 0.36706769466400146,
+       "weight": 1.0,
+       "cost": 0.011548268608748913
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.33227619528770447,
+       "ce_with_mask": 0.33227619528770447,
+       "weight": 1.0,
+       "cost": 0.010453698225319386
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.04766380786895752,
+       "ce_with_mask": 0.04766380786895752,
+       "weight": 1.0,
+       "cost": 0.0014995448291301727
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.1050315648317337,
+       "ce_with_mask": 0.1050315648317337,
+       "weight": 1.0,
+       "cost": 0.0033043844159692526
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": true,
+       "ce_model_alone": 0.6102303862571716,
+       "ce_with_mask": 0.3648044764995575,
+       "weight": 1.0,
+       "cost": 0.011477066203951836
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.3935959339141846,
+       "ce_with_mask": 1.3935959339141846,
+       "weight": 1.0,
+       "cost": 0.04384373873472214
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.09588029235601425,
+       "ce_with_mask": 0.09588029235601425,
+       "weight": 1.0,
+       "cost": 0.0030164774507284164
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.10470020025968552,
+       "ce_with_mask": 0.10470020025968552,
+       "weight": 1.0,
+       "cost": 0.0032939594238996506
+      }
+     ]
+    },
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": true,
+       "ce_model_alone": 0.3952680230140686,
+       "ce_with_mask": 0.06870607286691666,
+       "weight": 4.0,
+       "cost": 0.008646211586892605
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": true,
+       "ce_model_alone": 1.7719857692718506,
+       "ce_with_mask": 0.05119049549102783,
+       "weight": 1.5,
+       "cost": 0.0024157462175935507
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": true,
+       "ce_model_alone": 9.530872344970703,
+       "ce_with_mask": 9.272186279296875,
+       "weight": 1.0,
+       "cost": 0.29171106219291687
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 1.5032739639282227,
+       "ce_with_mask": 1.5032739639282227,
+       "weight": 1.0,
+       "cost": 0.04729430750012398
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 1.0497608184814453,
+       "ce_with_mask": 1.0497608184814453,
+       "weight": 1.0,
+       "cost": 0.03302638977766037
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.09682420641183853,
+       "ce_with_mask": 0.09682420641183853,
+       "weight": 1.0,
+       "cost": 0.0030461738351732492
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": true,
+       "ce_model_alone": 2.620405673980713,
+       "ce_with_mask": 2.620405673980713,
+       "weight": 1.0,
+       "cost": 0.08244024217128754
+      }
+     ]
+    }
+   ],
+   "species_checks": []
+  },
+  {
+   "draw": 3,
+   "t": 0.5407098531723022,
+   "hidden": 32,
+   "cost": 1.0084772109985352,
+   "pokemon": [
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.426255702972412,
+       "ce_with_mask": 0.13612857460975647,
+       "weight": 1.5,
+       "cost": 0.004495696630328894
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 1.5350974798202515,
+       "ce_with_mask": 1.5350974798202515,
+       "weight": 1.0,
+       "cost": 0.033798106014728546
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9472348690032959,
+       "ce_with_mask": 0.9472348690032959,
+       "weight": 1.0,
+       "cost": 0.020855186507105827
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 2.5890238285064697,
+       "ce_with_mask": 2.5890238285064697,
+       "weight": 1.0,
+       "cost": 0.05700231343507767
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 1.4674261808395386,
+       "ce_with_mask": 1.4674261808395386,
+       "weight": 1.0,
+       "cost": 0.032308194786310196
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Glimmoranite",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Glimmoranite",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": true,
+       "ce_model_alone": 9.943400382995605,
+       "ce_with_mask": 6.662688732147217,
+       "weight": 1.5,
+       "cost": 0.22003775835037231
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": true,
+       "ce_model_alone": 3.1832332611083984,
+       "ce_with_mask": 0.384728342294693,
+       "weight": 1.5,
+       "cost": 0.012705795466899872
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 3.0718488693237305,
+       "ce_with_mask": 0.4304812252521515,
+       "weight": 1.5,
+       "cost": 0.014216801151633263
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.15349352359771729,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": true,
+       "ce_model_alone": 2.7243685722351074,
+       "ce_with_mask": 0.3962269127368927,
+       "weight": 1.5,
+       "cost": 0.013085540384054184
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": true,
+       "ce_model_alone": 1.2445238828659058,
+       "ce_with_mask": 0.02402304857969284,
+       "weight": 1.5,
+       "cost": 0.0007933700690045953
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 1.4766347408294678,
+       "ce_with_mask": 1.4766347408294678,
+       "weight": 1.0,
+       "cost": 0.03251093998551369
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.7776079177856445,
+       "ce_with_mask": 0.7776079177856445,
+       "weight": 1.0,
+       "cost": 0.017120525240898132
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 3.0155577659606934,
+       "ce_with_mask": 3.0155577659606934,
+       "weight": 1.0,
+       "cost": 0.06639327108860016
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9300060272216797,
+       "ce_with_mask": 0.9300060272216797,
+       "weight": 1.0,
+       "cost": 0.020475860685110092
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": true,
+       "ce_model_alone": 5.992131233215332,
+       "ce_with_mask": 0.0016264794394373894,
+       "weight": 4.0,
+       "cost": 0.00014324022049549967
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": true,
+       "ce_model_alone": 3.45538330078125,
+       "ce_with_mask": 0.5623461604118347,
+       "weight": 4.0,
+       "cost": 0.04952450469136238
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": true,
+       "ce_model_alone": 4.428386211395264,
+       "ce_with_mask": 0.7777984142303467,
+       "weight": 1.5,
+       "cost": 0.0256870798766613
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": true,
+       "ce_model_alone": 4.308490753173828,
+       "ce_with_mask": 0.34418606758117676,
+       "weight": 1.5,
+       "cost": 0.011366872116923332
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": true,
+       "ce_model_alone": 5.3655900955200195,
+       "ce_with_mask": 1.177856206893921,
+       "weight": 1.5,
+       "cost": 0.03889913484454155
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 1.686073899269104,
+       "ce_with_mask": 1.686073899269104,
+       "weight": 1.0,
+       "cost": 0.03712214156985283
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9240393042564392,
+       "ce_with_mask": 0.9240393042564392,
+       "weight": 1.0,
+       "cost": 0.02034449204802513
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": true,
+       "ce_model_alone": 1.1793415546417236,
+       "ce_with_mask": 1.1793415546417236,
+       "weight": 1.0,
+       "cost": 0.025965459644794464
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.7820249199867249,
+       "ce_with_mask": 0.7820249199867249,
+       "weight": 1.0,
+       "cost": 0.01721777394413948
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9234635829925537,
+       "ce_with_mask": 0.9234635829925537,
+       "weight": 1.0,
+       "cost": 0.020331816747784615
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.028894221410155296,
+       "ce_with_mask": 0.028894221410155296,
+       "weight": 1.0,
+       "cost": 0.0006361615378409624
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": true,
+       "ce_model_alone": 5.609806060791016,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": true,
+       "ce_model_alone": 10.111703872680664,
+       "ce_with_mask": 4.964907646179199,
+       "weight": 1.5,
+       "cost": 0.16396790742874146
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9560657143592834,
+       "ce_with_mask": 0.31349483132362366,
+       "weight": 1.0,
+       "cost": 0.006902188528329134
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.1569277048110962,
+       "ce_with_mask": 0.15574133396148682,
+       "weight": 1.0,
+       "cost": 0.003428943455219269
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": true,
+       "ce_model_alone": 2.1023921966552734,
+       "ce_with_mask": 1.8391199111938477,
+       "weight": 1.0,
+       "cost": 0.0404917411506176
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.029488518834114075,
+       "ce_with_mask": 0.029446156695485115,
+       "weight": 1.0,
+       "cost": 0.0006483134347945452
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    }
+   ],
+   "species_checks": []
+  },
+  {
+   "draw": 4,
+   "t": 0.830633282661438,
+   "hidden": 62,
+   "cost": 2294.55322265625,
+   "pokemon": [
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": true,
+       "ce_model_alone": 6.091892242431641,
+       "ce_with_mask": 0.11606218665838242,
+       "weight": 4.0,
+       "cost": 0.0066536832600831985
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": true,
+       "ce_model_alone": 1.7061619758605957,
+       "ce_with_mask": 0.16353639960289001,
+       "weight": 1.5,
+       "cost": 0.0035157427191734314
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": true,
+       "ce_model_alone": 2.0777640342712402,
+       "ce_with_mask": 0.26266366243362427,
+       "weight": 1.5,
+       "cost": 0.005646802950650454
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": true,
+       "ce_model_alone": 2.0578784942626953,
+       "ce_with_mask": 0.4881054162979126,
+       "weight": 1.5,
+       "cost": 0.010493401437997818
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": true,
+       "ce_model_alone": 9.94745922088623,
+       "ce_with_mask": 9.753063201904297,
+       "weight": 1.0,
+       "cost": 0.1397823691368103
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 2.783900260925293,
+       "ce_with_mask": 2.783900260925293,
+       "weight": 1.0,
+       "cost": 0.039899278432130814
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 2.775825262069702,
+       "ce_with_mask": 2.775825262069702,
+       "weight": 1.0,
+       "cost": 0.039783548563718796
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 2.324563980102539,
+       "ce_with_mask": 2.324563980102539,
+       "weight": 1.0,
+       "cost": 0.033316001296043396
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.23003455996513367,
+       "ce_with_mask": 0.23003455996513367,
+       "weight": 1.0,
+       "cost": 0.003296890063211322
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": true,
+       "ce_model_alone": 3.004877805709839,
+       "ce_with_mask": 3.004877805709839,
+       "weight": 1.0,
+       "cost": 0.0430663637816906
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Glimmoranite",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": true,
+       "ce_model_alone": 0.32447224855422974,
+       "ce_with_mask": 9997.1318359375,
+       "weight": 16.0,
+       "cost": 2292.486572265625
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": true,
+       "ce_model_alone": 0.32086068391799927,
+       "ce_with_mask": 0.31806638836860657,
+       "weight": 4.0,
+       "cost": 0.01823430135846138
+      },
+      {
+       "name": "item",
+       "value": "Glimmoranite",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": true,
+       "ce_model_alone": 8.464872360229492,
+       "ce_with_mask": 8.457234382629395,
+       "weight": 1.5,
+       "cost": 0.18181554973125458
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": true,
+       "ce_model_alone": 2.1707189083099365,
+       "ce_with_mask": 2.1295135021209717,
+       "weight": 1.5,
+       "cost": 0.045780766755342484
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": true,
+       "ce_model_alone": 9.226924896240234,
+       "ce_with_mask": 9.205183982849121,
+       "weight": 1.5,
+       "cost": 0.1978951394557953
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": true,
+       "ce_model_alone": 2.0328543186187744,
+       "ce_with_mask": 1.8410639762878418,
+       "weight": 1.0,
+       "cost": 0.026386406272649765
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.2153648138046265,
+       "ce_with_mask": 1.2153648138046265,
+       "weight": 1.0,
+       "cost": 0.017418792471289635
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.7839508652687073,
+       "ce_with_mask": 0.7839508652687073,
+       "weight": 1.0,
+       "cost": 0.011235701851546764
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.8219924569129944,
+       "ce_with_mask": 0.8219924569129944,
+       "weight": 1.0,
+       "cost": 0.011780920438468456
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 1.803241491317749,
+       "ce_with_mask": 1.803241491317749,
+       "weight": 1.0,
+       "cost": 0.025844329968094826
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.23177576065063477,
+       "ce_with_mask": 0.23177576065063477,
+       "weight": 1.0,
+       "cost": 0.003321845317259431
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.6241224408149719,
+       "ce_with_mask": 0.6241224408149719,
+       "weight": 1.0,
+       "cost": 0.008945017121732235
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": true,
+       "ce_model_alone": 2.8752965927124023,
+       "ce_with_mask": 1.5922191143035889,
+       "weight": 4.0,
+       "cost": 0.09127970039844513
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": true,
+       "ce_model_alone": 1.7268928289413452,
+       "ce_with_mask": 0.6914834976196289,
+       "weight": 1.5,
+       "cost": 0.014865669421851635
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": true,
+       "ce_model_alone": 2.367852210998535,
+       "ce_with_mask": 0.2945341467857361,
+       "weight": 1.5,
+       "cost": 0.006331962067633867
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.376923084259033,
+       "ce_with_mask": 0.7797158360481262,
+       "weight": 1.5,
+       "cost": 0.0167625080794096
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": true,
+       "ce_model_alone": 1.5569225549697876,
+       "ce_with_mask": 1.3636806011199951,
+       "weight": 1.0,
+       "cost": 0.01954447664320469
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.2159919738769531,
+       "ce_with_mask": 1.2159919738769531,
+       "weight": 1.0,
+       "cost": 0.017427779734134674
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 1.1312572956085205,
+       "ce_with_mask": 1.1312572956085205,
+       "weight": 1.0,
+       "cost": 0.016213349997997284
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.8251670002937317,
+       "ce_with_mask": 0.8251670002937317,
+       "weight": 1.0,
+       "cost": 0.011826418340206146
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.6191384792327881,
+       "ce_with_mask": 0.6191384792327881,
+       "weight": 1.0,
+       "cost": 0.008873586542904377
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.22961679100990295,
+       "ce_with_mask": 0.22961679100990295,
+       "weight": 1.0,
+       "cost": 0.003290902590379119
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.6216474771499634,
+       "ce_with_mask": 0.6216474771499634,
+       "weight": 1.0,
+       "cost": 0.008909545838832855
+      }
+     ]
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": true,
+       "ce_model_alone": 2.5658721923828125,
+       "ce_with_mask": 1.281548023223877,
+       "weight": 4.0,
+       "cost": 0.07346935570240021
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": true,
+       "ce_model_alone": 3.7380852699279785,
+       "ce_with_mask": 0.8496668338775635,
+       "weight": 1.5,
+       "cost": 0.018266331404447556
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 3.492497444152832,
+       "ce_with_mask": 1.2126578092575073,
+       "weight": 1.5,
+       "cost": 0.026069993153214455
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": true,
+       "ce_model_alone": 3.7042758464813232,
+       "ce_with_mask": 1.8111557960510254,
+       "weight": 1.5,
+       "cost": 0.038936641067266464
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": true,
+       "ce_model_alone": 10.76518726348877,
+       "ce_with_mask": 7.817017078399658,
+       "weight": 1.5,
+       "cost": 0.16805201768875122
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": true,
+       "ce_model_alone": 1.6020838022232056,
+       "ce_with_mask": 1.4137660264968872,
+       "weight": 1.0,
+       "cost": 0.020262308418750763
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": true,
+       "ce_model_alone": 3.219879150390625,
+       "ce_with_mask": 3.219879150390625,
+       "weight": 1.0,
+       "cost": 0.04614779353141785
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.7851372957229614,
+       "ce_with_mask": 0.7851372957229614,
+       "weight": 1.0,
+       "cost": 0.011252705939114094
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.8204025626182556,
+       "ce_with_mask": 0.8204025626182556,
+       "weight": 1.0,
+       "cost": 0.01175813376903534
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": true,
+       "ce_model_alone": 2.4044134616851807,
+       "ce_with_mask": 2.4044134616851807,
+       "weight": 1.0,
+       "cost": 0.03446041792631149
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.23022983968257904,
+       "ce_with_mask": 0.23022983968257904,
+       "weight": 1.0,
+       "cost": 0.003299688920378685
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": true,
+       "ce_model_alone": 3.643587112426758,
+       "ce_with_mask": 3.643587112426758,
+       "weight": 1.0,
+       "cost": 0.05222044140100479
+      }
+     ]
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": true,
+       "ce_model_alone": 3.2235281467437744,
+       "ce_with_mask": 1.939892053604126,
+       "weight": 4.0,
+       "cost": 0.11121130734682083
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": true,
+       "ce_model_alone": 5.198735237121582,
+       "ce_with_mask": 3.2967569828033447,
+       "weight": 1.5,
+       "cost": 0.07087443023920059
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.3708367347717285,
+       "ce_with_mask": 1.6062617301940918,
+       "weight": 1.5,
+       "cost": 0.03453177958726883
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": true,
+       "ce_model_alone": 1.7199372053146362,
+       "ce_with_mask": 1.5299370288848877,
+       "weight": 1.0,
+       "cost": 0.02192728780210018
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 1.8135429620742798,
+       "ce_with_mask": 1.8135429620742798,
+       "weight": 1.0,
+       "cost": 0.025991972535848618
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 2.2749733924865723,
+       "ce_with_mask": 2.2749733924865723,
+       "weight": 1.0,
+       "cost": 0.032605260610580444
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.8199481964111328,
+       "ce_with_mask": 0.8199481964111328,
+       "weight": 1.0,
+       "cost": 0.011751621030271053
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.6180280447006226,
+       "ce_with_mask": 0.6180280447006226,
+       "weight": 1.0,
+       "cost": 0.008857671171426773
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": true,
+       "ce_model_alone": 2.6508357524871826,
+       "ce_with_mask": 2.6508357524871826,
+       "weight": 1.0,
+       "cost": 0.03799217939376831
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": true,
+       "ce_model_alone": 1.2497355937957764,
+       "ce_with_mask": 0.6390199661254883,
+       "weight": 1.5,
+       "cost": 0.013737796805799007
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": true,
+       "ce_model_alone": 1.713452935218811,
+       "ce_with_mask": 0.5987917184829712,
+       "weight": 1.5,
+       "cost": 0.012872960418462753
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": true,
+       "ce_model_alone": 1.2806673049926758,
+       "ce_with_mask": 0.17236310243606567,
+       "weight": 1.5,
+       "cost": 0.003705501090735197
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 1.9466274976730347,
+       "ce_with_mask": 1.9466274976730347,
+       "weight": 1.0,
+       "cost": 0.027899358421564102
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 1.1279706954956055,
+       "ce_with_mask": 1.1279706954956055,
+       "weight": 1.0,
+       "cost": 0.016166245564818382
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.7424896955490112,
+       "ce_with_mask": 1.7424896955490112,
+       "weight": 1.0,
+       "cost": 0.02497362531721592
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.6209450960159302,
+       "ce_with_mask": 0.6209450960159302,
+       "weight": 1.0,
+       "cost": 0.008899479173123837
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.6213635206222534,
+       "ce_with_mask": 0.6213635206222534,
+       "weight": 1.0,
+       "cost": 0.008905475959181786
+      }
+     ]
+    }
+   ],
+   "species_checks": [
+    {
+     "slot": 1,
+     "true": "Whimsicott",
+     "true_allowed": false,
+     "true_logit": 4.063168525695801,
+     "true_prob_model_alone": 0.7229086756706238,
+     "true_prob_with_mask": 0.0,
+     "top_model_alone": [
+      {
+       "species": "Whimsicott",
+       "prob": 0.7229086756706238,
+       "logit": 4.063168525695801,
+       "allowed": false
+      },
+      {
+       "species": "Garchomp",
+       "prob": 0.04506104812026024,
+       "logit": 1.2879037857055664,
+       "allowed": false
+      },
+      {
+       "species": "Floette-Eternal",
+       "prob": 0.04321793466806412,
+       "logit": 1.2461411952972412,
+       "allowed": false
+      },
+      {
+       "species": "Maushold-Four",
+       "prob": 0.029145486652851105,
+       "logit": 0.852185845375061,
+       "allowed": false
+      },
+      {
+       "species": "Basculegion",
+       "prob": 0.02627497911453247,
+       "logit": 0.7485027313232422,
+       "allowed": false
+      },
+      {
+       "species": "Chandelure",
+       "prob": 0.012104496359825134,
+       "logit": -0.026537399739027023,
+       "allowed": false
+      },
+      {
+       "species": "Gholdengo",
+       "prob": 0.011257443577051163,
+       "logit": -0.09908496588468552,
+       "allowed": false
+      },
+      {
+       "species": "[MASK]",
+       "prob": 0.009617905132472515,
+       "logit": -0.2564879059791565,
+       "allowed": false
+      }
+     ],
+     "n_allowed": 2,
+     "allowed": [
+      {
+       "species": "Glimmora",
+       "prob_model_alone": 0.0006245167460292578,
+       "prob_with_mask": 0.884087324142456,
+       "logit": -2.990891695022583
+      },
+      {
+       "species": "Glimmora-Mega",
+       "prob_model_alone": 8.188034553313628e-05,
+       "prob_with_mask": 0.11591259390115738,
+       "logit": -5.022611141204834
+      }
+     ],
+     "logsumexp_allowed": -2.867692232131958,
+     "allowed_share_model_alone": 0.0007063971133902669,
+     "mask_token_prob": 0.009617905132472515,
+     "watch": [
+      {
+       "species": "Whimsicott",
+       "allowed": false,
+       "prob_model_alone": 0.7229086756706238,
+       "prob_with_filter": 0.0,
+       "logit": 4.063168525695801
+      },
+      {
+       "species": "Garchomp",
+       "allowed": false,
+       "prob_model_alone": 0.04506104812026024,
+       "prob_with_filter": 0.0,
+       "logit": 1.2879037857055664
+      },
+      {
+       "species": "Floette-Eternal",
+       "allowed": false,
+       "prob_model_alone": 0.04321793466806412,
+       "prob_with_filter": 0.0,
+       "logit": 1.2461411952972412
+      },
+      {
+       "species": "Maushold-Four",
+       "allowed": false,
+       "prob_model_alone": 0.029145486652851105,
+       "prob_with_filter": 0.0,
+       "logit": 0.852185845375061
+      },
+      {
+       "species": "Basculegion",
+       "allowed": false,
+       "prob_model_alone": 0.02627497911453247,
+       "prob_with_filter": 0.0,
+       "logit": 0.7485027313232422
+      },
+      {
+       "species": "Chandelure",
+       "allowed": false,
+       "prob_model_alone": 0.012104496359825134,
+       "prob_with_filter": 0.0,
+       "logit": -0.026537399739027023
+      },
+      {
+       "species": "Gholdengo",
+       "allowed": false,
+       "prob_model_alone": 0.011257443577051163,
+       "prob_with_filter": 0.0,
+       "logit": -0.09908496588468552
+      },
+      {
+       "species": "Charizard",
+       "allowed": false,
+       "prob_model_alone": 0.0064317150972783566,
+       "prob_with_filter": 0.0,
+       "logit": -0.6588730812072754
+      },
+      {
+       "species": "Glimmora",
+       "allowed": true,
+       "prob_model_alone": 0.0006245167460292578,
+       "prob_with_filter": 0.884087324142456,
+       "logit": -2.990891695022583
+      },
+      {
+       "species": "Glimmora-Mega",
+       "allowed": true,
+       "prob_model_alone": 8.188034553313628e-05,
+       "prob_with_filter": 0.11591259390115738,
+       "logit": -5.022611141204834
+      }
+     ],
+     "ce_model_alone": 0.32447224855422974,
+     "ce_with_mask": 9997.1318359375,
+     "cost": 2292.486572265625
+    }
+   ]
+  }
+ ],
+ "what_if_flagged_by_tables": false,
+ "what_if_draws": [
+  {
+   "draw": 1,
+   "t": 0.01175515353679657,
+   "hidden": 0,
+   "cost": 0.0,
+   "pokemon": [
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Focus Sash",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Focus Sash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    }
+   ],
+   "species_checks": []
+  },
+  {
+   "draw": 2,
+   "t": 0.3783990144729614,
+   "hidden": 21,
+   "cost": 0.8316423892974854,
+   "pokemon": [
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": true,
+       "ce_model_alone": 6.320043087005615,
+       "ce_with_mask": 0.6340073943138123,
+       "weight": 1.5,
+       "cost": 0.029919635504484177
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.034783829003572464,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Focus Sash",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Focus Sash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.218474864959717,
+       "ce_with_mask": 0.38671961426734924,
+       "weight": 1.5,
+       "cost": 0.01824980229139328
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": true,
+       "ce_model_alone": 11.484891891479492,
+       "ce_with_mask": 5.148274898529053,
+       "weight": 1.5,
+       "cost": 0.2429538071155548
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": true,
+       "ce_model_alone": 1.0895037651062012,
+       "ce_with_mask": 0.00649235537275672,
+       "weight": 1.5,
+       "cost": 0.00030638271709904075
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.0136637687683105,
+       "ce_with_mask": 0.08465079218149185,
+       "weight": 1.5,
+       "cost": 0.00399478105828166
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": true,
+       "ce_model_alone": 0.9380438327789307,
+       "ce_with_mask": 0.5045920014381409,
+       "weight": 1.0,
+       "cost": 0.01587490364909172
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.3304330110549927,
+       "ce_with_mask": 0.3304330110549927,
+       "weight": 1.0,
+       "cost": 0.010395710356533527
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.03556528314948082,
+       "ce_with_mask": 0.03556528314948082,
+       "weight": 1.0,
+       "cost": 0.0011189148062840104
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.1945773959159851,
+       "ce_with_mask": 0.1945773959159851,
+       "weight": 1.0,
+       "cost": 0.006121573969721794
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": true,
+       "ce_model_alone": 0.9357908964157104,
+       "ce_with_mask": 0.5032746195793152,
+       "weight": 1.0,
+       "cost": 0.015833457931876183
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.016780972480774,
+       "ce_with_mask": 1.016780972480774,
+       "weight": 1.0,
+       "cost": 0.03198881447315216
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.10462000221014023,
+       "ce_with_mask": 0.10462000221014023,
+       "weight": 1.0,
+       "cost": 0.0032914362382143736
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.19438523054122925,
+       "ce_with_mask": 0.19438523054122925,
+       "weight": 1.0,
+       "cost": 0.006115528289228678
+      }
+     ]
+    },
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": true,
+       "ce_model_alone": 0.4074115753173828,
+       "ce_with_mask": 0.008527650497853756,
+       "weight": 4.0,
+       "cost": 0.0010731492657214403
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": true,
+       "ce_model_alone": 1.2521734237670898,
+       "ce_with_mask": 0.019377337768673897,
+       "weight": 1.5,
+       "cost": 0.0009144418290816247
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": true,
+       "ce_model_alone": 9.510071754455566,
+       "ce_with_mask": 9.05550479888916,
+       "weight": 1.0,
+       "cost": 0.28489404916763306
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 1.6392254829406738,
+       "ce_with_mask": 1.6392254829406738,
+       "weight": 1.0,
+       "cost": 0.05157145857810974
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 1.2527424097061157,
+       "ce_with_mask": 1.2527424097061157,
+       "weight": 1.0,
+       "cost": 0.03941236436367035
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.10471286624670029,
+       "ce_with_mask": 0.10471286624670029,
+       "weight": 1.0,
+       "cost": 0.0032943577971309423
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": true,
+       "ce_model_alone": 2.0443742275238037,
+       "ce_with_mask": 2.0443742275238037,
+       "weight": 1.0,
+       "cost": 0.06431779265403748
+      }
+     ]
+    }
+   ],
+   "species_checks": []
+  },
+  {
+   "draw": 3,
+   "t": 0.5407098531723022,
+   "hidden": 32,
+   "cost": 0.9350297451019287,
+   "pokemon": [
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 4.5757246017456055,
+       "ce_with_mask": 0.09132099151611328,
+       "weight": 1.5,
+       "cost": 0.003015909343957901
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 1.423809289932251,
+       "ce_with_mask": 1.423809289932251,
+       "weight": 1.0,
+       "cost": 0.031347885727882385
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 1.0342319011688232,
+       "ce_with_mask": 1.0342319011688232,
+       "weight": 1.0,
+       "cost": 0.0227705929428339
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 2.3227500915527344,
+       "ce_with_mask": 2.3227500915527344,
+       "weight": 1.0,
+       "cost": 0.05113978683948517
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 1.3347238302230835,
+       "ce_with_mask": 1.3347238302230835,
+       "weight": 1.0,
+       "cost": 0.029386498034000397
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Focus Sash",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Focus Sash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": true,
+       "ce_model_alone": 10.598511695861816,
+       "ce_with_mask": 7.0077128410339355,
+       "weight": 1.5,
+       "cost": 0.23143230378627777
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": true,
+       "ce_model_alone": 3.5129501819610596,
+       "ce_with_mask": 0.3904885947704315,
+       "weight": 1.5,
+       "cost": 0.012896030209958553
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 2.946662187576294,
+       "ce_with_mask": 0.29472798109054565,
+       "weight": 1.5,
+       "cost": 0.009733499959111214
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.21169251203536987,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 1.0,
+       "cost": -0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": true,
+       "ce_model_alone": 3.1784558296203613,
+       "ce_with_mask": 0.22865042090415955,
+       "weight": 1.5,
+       "cost": 0.007551264483481646
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": true,
+       "ce_model_alone": 1.8349686861038208,
+       "ce_with_mask": 0.02297741360962391,
+       "weight": 1.5,
+       "cost": 0.000758837559260428
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 1.5951851606369019,
+       "ce_with_mask": 1.5951851606369019,
+       "weight": 1.0,
+       "cost": 0.03512105345726013
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.7155988216400146,
+       "ce_with_mask": 0.7155988216400146,
+       "weight": 1.0,
+       "cost": 0.01575527712702751
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 2.5645859241485596,
+       "ce_with_mask": 2.5645859241485596,
+       "weight": 1.0,
+       "cost": 0.056464266031980515
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9002923965454102,
+       "ce_with_mask": 0.9002923965454102,
+       "weight": 1.0,
+       "cost": 0.019821658730506897
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": true,
+       "ce_model_alone": 6.036259651184082,
+       "ce_with_mask": 0.0012484145117923617,
+       "weight": 4.0,
+       "cost": 0.00010994493641192093
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": true,
+       "ce_model_alone": 3.3114631175994873,
+       "ce_with_mask": 0.09955283999443054,
+       "weight": 4.0,
+       "cost": 0.00876738503575325
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": true,
+       "ce_model_alone": 4.401614189147949,
+       "ce_with_mask": 0.4016481339931488,
+       "weight": 1.5,
+       "cost": 0.013264577835798264
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": true,
+       "ce_model_alone": 4.780251502990723,
+       "ce_with_mask": 0.2539048492908478,
+       "weight": 1.5,
+       "cost": 0.008385301567614079
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": true,
+       "ce_model_alone": 5.640273571014404,
+       "ce_with_mask": 1.0414851903915405,
+       "weight": 1.5,
+       "cost": 0.03439543396234512
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 1.6779677867889404,
+       "ce_with_mask": 1.6779677867889404,
+       "weight": 1.0,
+       "cost": 0.036943670362234116
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.897006094455719,
+       "ce_with_mask": 0.897006094455719,
+       "weight": 1.0,
+       "cost": 0.01974930427968502
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": true,
+       "ce_model_alone": 1.0514869689941406,
+       "ce_with_mask": 1.0514869689941406,
+       "weight": 1.0,
+       "cost": 0.023150496184825897
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.7195819616317749,
+       "ce_with_mask": 0.7195819616317749,
+       "weight": 1.0,
+       "cost": 0.015842972323298454
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.8951747417449951,
+       "ce_with_mask": 0.8951747417449951,
+       "weight": 1.0,
+       "cost": 0.019708983600139618
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.02976326085627079,
+       "ce_with_mask": 0.02976326085627079,
+       "weight": 1.0,
+       "cost": 0.0006552950944751501
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": true,
+       "ce_model_alone": 5.114611625671387,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": true,
+       "ce_model_alone": 10.787413597106934,
+       "ce_with_mask": 5.116945266723633,
+       "weight": 1.5,
+       "cost": 0.16898900270462036
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 1.0392630100250244,
+       "ce_with_mask": 0.3459555208683014,
+       "weight": 1.0,
+       "cost": 0.007616872433573008
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.21693794429302216,
+       "ce_with_mask": 0.21558523178100586,
+       "weight": 1.0,
+       "cost": 0.004746521357446909
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": true,
+       "ce_model_alone": 2.272470474243164,
+       "ce_with_mask": 2.0370962619781494,
+       "weight": 1.0,
+       "cost": 0.04485056921839714
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.029979737475514412,
+       "ce_with_mask": 0.029910553246736526,
+       "weight": 1.0,
+       "cost": 0.0006585380178876221
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      }
+     ]
+    }
+   ],
+   "species_checks": []
+  },
+  {
+   "draw": 4,
+   "t": 0.830633282661438,
+   "hidden": 62,
+   "cost": 1.865372657775879,
+   "pokemon": [
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Naughty",
+     "moves": [
+      "Heat Wave",
+      "Protect",
+      "Solar Beam",
+      "Weather Ball"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Charizard",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Blaze",
+       "hidden": true,
+       "ce_model_alone": 5.652494430541992,
+       "ce_with_mask": 0.07363325357437134,
+       "weight": 4.0,
+       "cost": 0.004221291746944189
+      },
+      {
+       "name": "item",
+       "value": "Charizardite Y",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Heat Wave",
+       "hidden": true,
+       "ce_model_alone": 1.69211745262146,
+       "ce_with_mask": 0.06258939206600189,
+       "weight": 1.5,
+       "cost": 0.001345561002381146
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Solar Beam",
+       "hidden": true,
+       "ce_model_alone": 2.7407689094543457,
+       "ce_with_mask": 0.3260638117790222,
+       "weight": 1.5,
+       "cost": 0.007009794004261494
+      },
+      {
+       "name": "move 4",
+       "value": "Weather Ball",
+       "hidden": true,
+       "ce_model_alone": 1.906549096107483,
+       "ce_with_mask": 0.39868634939193726,
+       "weight": 1.5,
+       "cost": 0.008571050129830837
+      },
+      {
+       "name": "nature",
+       "value": "Naughty",
+       "hidden": true,
+       "ce_model_alone": 9.839349746704102,
+       "ce_with_mask": 9.496782302856445,
+       "weight": 1.0,
+       "cost": 0.13610932230949402
+      },
+      {
+       "name": "HP",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 1.8937501907348633,
+       "ce_with_mask": 1.8937501907348633,
+       "weight": 1.0,
+       "cost": 0.02714151330292225
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Def",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 2.2294082641601562,
+       "ce_with_mask": 2.2294082641601562,
+       "weight": 1.0,
+       "cost": 0.03195221722126007
+      },
+      {
+       "name": "SpA",
+       "value": 11,
+       "hidden": true,
+       "ce_model_alone": 2.097695827484131,
+       "ce_with_mask": 2.097695827484131,
+       "weight": 1.0,
+       "cost": 0.030064493417739868
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.08917555212974548,
+       "ce_with_mask": 0.08917555212974548,
+       "weight": 1.0,
+       "cost": 0.0012780774850398302
+      },
+      {
+       "name": "Spe",
+       "value": 24,
+       "hidden": true,
+       "ce_model_alone": 1.7086608409881592,
+       "ce_with_mask": 1.7086608409881592,
+       "weight": 1.0,
+       "cost": 0.02448878437280655
+      }
+     ]
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Focus Sash",
+     "ability": "Prankster",
+     "nature": "Timid",
+     "moves": [
+      "Giga Drain",
+      "Moonblast",
+      "Protect",
+      "Round"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Whimsicott",
+       "hidden": true,
+       "ce_model_alone": 0.3266684114933014,
+       "ce_with_mask": 0.12076348811388016,
+       "weight": 16.0,
+       "cost": 0.02769280970096588
+      },
+      {
+       "name": "ability",
+       "value": "Prankster",
+       "hidden": true,
+       "ce_model_alone": 0.1742197871208191,
+       "ce_with_mask": 0.16872425377368927,
+       "weight": 4.0,
+       "cost": 0.009672725573182106
+      },
+      {
+       "name": "item",
+       "value": "Focus Sash",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Giga Drain",
+       "hidden": true,
+       "ce_model_alone": 8.645386695861816,
+       "ce_with_mask": 8.639491081237793,
+       "weight": 1.5,
+       "cost": 0.18573375046253204
+      },
+      {
+       "name": "move 2",
+       "value": "Moonblast",
+       "hidden": true,
+       "ce_model_alone": 1.9548053741455078,
+       "ce_with_mask": 1.9279369115829468,
+       "weight": 1.5,
+       "cost": 0.0414472259581089
+      },
+      {
+       "name": "move 3",
+       "value": "Protect",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Round",
+       "hidden": true,
+       "ce_model_alone": 9.697992324829102,
+       "ce_with_mask": 9.661355972290039,
+       "weight": 1.5,
+       "cost": 0.20770202577114105
+      },
+      {
+       "name": "nature",
+       "value": "Timid",
+       "hidden": true,
+       "ce_model_alone": 1.9756160974502563,
+       "ce_with_mask": 1.6379811763763428,
+       "weight": 1.0,
+       "cost": 0.02347579412162304
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.1101980209350586,
+       "ce_with_mask": 1.1101980209350586,
+       "weight": 1.0,
+       "cost": 0.01591152511537075
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9562201499938965,
+       "ce_with_mask": 0.9562201499938965,
+       "weight": 1.0,
+       "cost": 0.013704692013561726
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.4226292371749878,
+       "ce_with_mask": 0.4226292371749878,
+       "weight": 1.0,
+       "cost": 0.006057186052203178
+      },
+      {
+       "name": "SpA",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 2.0142014026641846,
+       "ce_with_mask": 2.0142014026641846,
+       "weight": 1.0,
+       "cost": 0.02886783890426159
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.08974304795265198,
+       "ce_with_mask": 0.08974304795265198,
+       "weight": 1.0,
+       "cost": 0.0012862109579145908
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.9881409406661987,
+       "ce_with_mask": 0.9881409406661987,
+       "weight": 1.0,
+       "cost": 0.014162185601890087
+      }
+     ]
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "ability": "Technician",
+     "nature": "Jolly",
+     "moves": [
+      "Feint",
+      "Follow Me",
+      "Population Bomb",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Maushold-Four",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Technician",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Wide Lens",
+       "hidden": true,
+       "ce_model_alone": 2.40598726272583,
+       "ce_with_mask": 1.299824833869934,
+       "weight": 4.0,
+       "cost": 0.0745171457529068
+      },
+      {
+       "name": "move 1",
+       "value": "Feint",
+       "hidden": true,
+       "ce_model_alone": 1.0593245029449463,
+       "ce_with_mask": 0.4157271385192871,
+       "weight": 1.5,
+       "cost": 0.008937397040426731
+      },
+      {
+       "name": "move 2",
+       "value": "Follow Me",
+       "hidden": true,
+       "ce_model_alone": 1.3484656810760498,
+       "ce_with_mask": 0.045155130326747894,
+       "weight": 1.5,
+       "cost": 0.0009707552380859852
+      },
+      {
+       "name": "move 3",
+       "value": "Population Bomb",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 3.6162853240966797,
+       "ce_with_mask": 0.23350250720977783,
+       "weight": 1.5,
+       "cost": 0.005019890144467354
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": true,
+       "ce_model_alone": 1.913975477218628,
+       "ce_with_mask": 1.5726189613342285,
+       "weight": 1.0,
+       "cost": 0.022539012134075165
+      },
+      {
+       "name": "HP",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.1175527572631836,
+       "ce_with_mask": 1.1175527572631836,
+       "weight": 1.0,
+       "cost": 0.01601693406701088
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.9986336827278137,
+       "ce_with_mask": 0.9986336827278137,
+       "weight": 1.0,
+       "cost": 0.014312569051980972
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.42345550656318665,
+       "ce_with_mask": 0.42345550656318665,
+       "weight": 1.0,
+       "cost": 0.0060690282844007015
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.6090328693389893,
+       "ce_with_mask": 0.6090328693389893,
+       "weight": 1.0,
+       "cost": 0.008728750981390476
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.08780912309885025,
+       "ce_with_mask": 0.08780912309885025,
+       "weight": 1.0,
+       "cost": 0.001258493633940816
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.9823031425476074,
+       "ce_with_mask": 0.9823031425476074,
+       "weight": 1.0,
+       "cost": 0.014078517444431782
+      }
+     ]
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Protect",
+      "Shadow Ball",
+      "Thunder Punch"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Gholdengo",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 16.0,
+       "cost": -0.0
+      },
+      {
+       "name": "ability",
+       "value": "Good as Gold",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": -0.0,
+       "weight": 4.0,
+       "cost": -0.0
+      },
+      {
+       "name": "item",
+       "value": "Life Orb",
+       "hidden": true,
+       "ce_model_alone": 2.2392024993896484,
+       "ce_with_mask": 1.1397199630737305,
+       "weight": 4.0,
+       "cost": 0.06533855199813843
+      },
+      {
+       "name": "move 1",
+       "value": "Make It Rain",
+       "hidden": true,
+       "ce_model_alone": 2.7727670669555664,
+       "ce_with_mask": 0.36240896582603455,
+       "weight": 1.5,
+       "cost": 0.007791150361299515
+      },
+      {
+       "name": "move 2",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 3.8437576293945312,
+       "ce_with_mask": 1.5987811088562012,
+       "weight": 1.5,
+       "cost": 0.03437095880508423
+      },
+      {
+       "name": "move 3",
+       "value": "Shadow Ball",
+       "hidden": true,
+       "ce_model_alone": 4.324303150177002,
+       "ce_with_mask": 1.9937338829040527,
+       "weight": 1.5,
+       "cost": 0.04286174476146698
+      },
+      {
+       "name": "move 4",
+       "value": "Thunder Punch",
+       "hidden": true,
+       "ce_model_alone": 11.188423156738281,
+       "ce_with_mask": 8.605926513671875,
+       "weight": 1.5,
+       "cost": 0.18501216173171997
+      },
+      {
+       "name": "nature",
+       "value": "Modest",
+       "hidden": true,
+       "ce_model_alone": 1.2977663278579712,
+       "ce_with_mask": 0.9646458625793457,
+       "weight": 1.0,
+       "cost": 0.013825450092554092
+      },
+      {
+       "name": "HP",
+       "value": 16,
+       "hidden": true,
+       "ce_model_alone": 2.87738037109375,
+       "ce_with_mask": 2.87738037109375,
+       "weight": 1.0,
+       "cost": 0.04123904928565025
+      },
+      {
+       "name": "Atk",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.9527217149734497,
+       "ce_with_mask": 0.9527217149734497,
+       "weight": 1.0,
+       "cost": 0.013654551468789577
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.42496973276138306,
+       "ce_with_mask": 0.42496973276138306,
+       "weight": 1.0,
+       "cost": 0.006090730428695679
+      },
+      {
+       "name": "SpA",
+       "value": 27,
+       "hidden": true,
+       "ce_model_alone": 1.8394674062728882,
+       "ce_with_mask": 1.8394674062728882,
+       "weight": 1.0,
+       "cost": 0.026363525539636612
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.08907359838485718,
+       "ce_with_mask": 0.08907359838485718,
+       "weight": 1.0,
+       "cost": 0.0012766162399202585
+      },
+      {
+       "name": "Spe",
+       "value": 23,
+       "hidden": true,
+       "ce_model_alone": 1.7833398580551147,
+       "ce_with_mask": 1.7833398580551147,
+       "weight": 1.0,
+       "cost": 0.025559095665812492
+      }
+     ]
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Dragon Claw",
+      "Earthquake",
+      "Liquidation",
+      "Protect"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Garchomp",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Rough Skin",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Lum Berry",
+       "hidden": true,
+       "ce_model_alone": 2.1406779289245605,
+       "ce_with_mask": 1.0367188453674316,
+       "weight": 4.0,
+       "cost": 0.05943364277482033
+      },
+      {
+       "name": "move 1",
+       "value": "Dragon Claw",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Earthquake",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 3",
+       "value": "Liquidation",
+       "hidden": true,
+       "ce_model_alone": 5.40479850769043,
+       "ce_with_mask": 3.107712984085083,
+       "weight": 1.5,
+       "cost": 0.06681031733751297
+      },
+      {
+       "name": "move 4",
+       "value": "Protect",
+       "hidden": true,
+       "ce_model_alone": 3.6108522415161133,
+       "ce_with_mask": 1.1796436309814453,
+       "weight": 1.5,
+       "cost": 0.025360247120261192
+      },
+      {
+       "name": "nature",
+       "value": "Adamant",
+       "hidden": true,
+       "ce_model_alone": 1.9393738508224487,
+       "ce_with_mask": 1.6018991470336914,
+       "weight": 1.0,
+       "cost": 0.02295866049826145
+      },
+      {
+       "name": "HP",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 1.8307933807373047,
+       "ce_with_mask": 1.8307933807373047,
+       "weight": 1.0,
+       "cost": 0.02623920701444149
+      },
+      {
+       "name": "Atk",
+       "value": 20,
+       "hidden": true,
+       "ce_model_alone": 1.6375900506973267,
+       "ce_with_mask": 1.6375900506973267,
+       "weight": 1.0,
+       "cost": 0.023470187559723854
+      },
+      {
+       "name": "Def",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.4173542559146881,
+       "ce_with_mask": 0.4173542559146881,
+       "weight": 1.0,
+       "cost": 0.005981584079563618
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.6032085418701172,
+       "ce_with_mask": 0.6032085418701172,
+       "weight": 1.0,
+       "cost": 0.008645275607705116
+      },
+      {
+       "name": "SpD",
+       "value": 5,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 9,
+       "hidden": true,
+       "ce_model_alone": 1.8039873838424683,
+       "ce_with_mask": 1.8039873838424683,
+       "weight": 1.0,
+       "cost": 0.025855019688606262
+      }
+     ]
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects",
+      "Wave Crash"
+     ],
+     "evs_from_paste": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "fields": [
+      {
+       "name": "species",
+       "value": "Basculegion",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 16.0,
+       "cost": 0.0
+      },
+      {
+       "name": "ability",
+       "value": "Adaptability",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "item",
+       "value": "Choice Scarf",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 4.0,
+       "cost": 0.0
+      },
+      {
+       "name": "move 1",
+       "value": "Aqua Jet",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.5,
+       "cost": 0.0
+      },
+      {
+       "name": "move 2",
+       "value": "Flip Turn",
+       "hidden": true,
+       "ce_model_alone": 1.5651105642318726,
+       "ce_with_mask": 0.473369300365448,
+       "weight": 1.5,
+       "cost": 0.010176600888371468
+      },
+      {
+       "name": "move 3",
+       "value": "Last Respects",
+       "hidden": true,
+       "ce_model_alone": 2.103174924850464,
+       "ce_with_mask": 0.5769746899604797,
+       "weight": 1.5,
+       "cost": 0.012403933331370354
+      },
+      {
+       "name": "move 4",
+       "value": "Wave Crash",
+       "hidden": true,
+       "ce_model_alone": 1.5613824129104614,
+       "ce_with_mask": 0.3025917410850525,
+       "weight": 1.5,
+       "cost": 0.006505186203867197
+      },
+      {
+       "name": "nature",
+       "value": "Jolly",
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "HP",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 1.629607081413269,
+       "ce_with_mask": 1.629607081413269,
+       "weight": 1.0,
+       "cost": 0.023355774581432343
+      },
+      {
+       "name": "Atk",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.9973605871200562,
+       "ce_with_mask": 0.9973605871200562,
+       "weight": 1.0,
+       "cost": 0.014294322580099106
+      },
+      {
+       "name": "Def",
+       "value": 2,
+       "hidden": true,
+       "ce_model_alone": 1.9016116857528687,
+       "ce_with_mask": 1.9016116857528687,
+       "weight": 1.0,
+       "cost": 0.02725418657064438
+      },
+      {
+       "name": "SpA",
+       "value": 0,
+       "hidden": true,
+       "ce_model_alone": 0.6135784983634949,
+       "ce_with_mask": 0.6135784983634949,
+       "weight": 1.0,
+       "cost": 0.008793899789452553
+      },
+      {
+       "name": "SpD",
+       "value": 0,
+       "hidden": false,
+       "ce_model_alone": 0.0,
+       "ce_with_mask": 0.0,
+       "weight": 1.0,
+       "cost": 0.0
+      },
+      {
+       "name": "Spe",
+       "value": 32,
+       "hidden": true,
+       "ce_model_alone": 0.9842550158500671,
+       "ce_with_mask": 0.9842550158500671,
+       "weight": 1.0,
+       "cost": 0.014106491580605507
+      }
+     ]
+    }
+   ],
+   "species_checks": [
+    {
+     "slot": 1,
+     "true": "Whimsicott",
+     "true_allowed": true,
+     "true_logit": 2.7210500240325928,
+     "true_prob_model_alone": 0.7213228940963745,
+     "true_prob_with_mask": 0.886243462562561,
+     "top_model_alone": [
+      {
+       "species": "Whimsicott",
+       "prob": 0.7213228940963745,
+       "logit": 2.7210500240325928,
+       "allowed": true
+      },
+      {
+       "species": "Garchomp",
+       "prob": 0.06832810491323471,
+       "logit": 0.3642841577529907,
+       "allowed": false
+      },
+      {
+       "species": "[MASK]",
+       "prob": 0.047010067850351334,
+       "logit": -0.009674944914877415,
+       "allowed": false
+      },
+      {
+       "species": "Floette-Eternal",
+       "prob": 0.02549317479133606,
+       "logit": -0.6216262578964233,
+       "allowed": true
+      },
+      {
+       "species": "Basculegion",
+       "prob": 0.025037478655576706,
+       "logit": -0.6396629214286804,
+       "allowed": false
+      },
+      {
+       "species": "Maushold-Four",
+       "prob": 0.022600922733545303,
+       "logit": -0.7420461773872375,
+       "allowed": false
+      },
+      {
+       "species": "Gholdengo",
+       "prob": 0.01237080991268158,
+       "logit": -1.344697117805481,
+       "allowed": false
+      },
+      {
+       "species": "Charizard",
+       "prob": 0.009319623000919819,
+       "logit": -1.6279146671295166,
+       "allowed": false
+      }
+     ],
+     "n_allowed": 263,
+     "allowed": [
+      {
+       "species": "Whimsicott",
+       "prob_model_alone": 0.7213228940963745,
+       "prob_with_mask": 0.886243462562561,
+       "logit": 2.7210500240325928
+      },
+      {
+       "species": "Floette-Eternal",
+       "prob_model_alone": 0.02549317479133606,
+       "prob_with_mask": 0.03132183849811554,
+       "logit": -0.6216262578964233
+      },
+      {
+       "species": "Sylveon",
+       "prob_model_alone": 0.006204117555171251,
+       "prob_with_mask": 0.007622603792697191,
+       "logit": -2.0348238945007324
+      },
+      {
+       "species": "Incineroar",
+       "prob_model_alone": 0.005921768955886364,
+       "prob_with_mask": 0.007275700103491545,
+       "logit": -2.0814015865325928
+      },
+      {
+       "species": "Archaludon",
+       "prob_model_alone": 0.005333792418241501,
+       "prob_with_mask": 0.006553290411829948,
+       "logit": -2.185974597930908
+      },
+      {
+       "species": "Kingambit",
+       "prob_model_alone": 0.0043333289213478565,
+       "prob_with_mask": 0.005324084777384996,
+       "logit": -2.39370059967041
+      },
+      {
+       "species": "Venusaur",
+       "prob_model_alone": 0.003962190356105566,
+       "prob_with_mask": 0.004868090618401766,
+       "logit": -2.4832398891448975
+      },
+      {
+       "species": "Milotic",
+       "prob_model_alone": 0.0039153811521828175,
+       "prob_with_mask": 0.0048105791211128235,
+       "logit": -2.495124340057373
+      }
+     ],
+     "logsumexp_allowed": 2.841813564300537,
+     "allowed_share_model_alone": 0.8139104843139648,
+     "mask_token_prob": 0.047010067850351334,
+     "watch": [
+      {
+       "species": "Whimsicott",
+       "allowed": true,
+       "prob_model_alone": 0.7213228940963745,
+       "prob_with_filter": 0.886243462562561,
+       "logit": 2.7210500240325928
+      },
+      {
+       "species": "Garchomp",
+       "allowed": false,
+       "prob_model_alone": 0.06832810491323471,
+       "prob_with_filter": 0.0,
+       "logit": 0.3642841577529907
+      },
+      {
+       "species": "Floette-Eternal",
+       "allowed": true,
+       "prob_model_alone": 0.02549317479133606,
+       "prob_with_filter": 0.03132183849811554,
+       "logit": -0.6216262578964233
+      },
+      {
+       "species": "Maushold-Four",
+       "allowed": false,
+       "prob_model_alone": 0.022600922733545303,
+       "prob_with_filter": 0.0,
+       "logit": -0.7420461773872375
+      },
+      {
+       "species": "Basculegion",
+       "allowed": false,
+       "prob_model_alone": 0.025037478655576706,
+       "prob_with_filter": 0.0,
+       "logit": -0.6396629214286804
+      },
+      {
+       "species": "Chandelure",
+       "allowed": true,
+       "prob_model_alone": 0.0019392584217712283,
+       "prob_with_filter": 0.0023826430551707745,
+       "logit": -3.1977312564849854
+      },
+      {
+       "species": "Gholdengo",
+       "allowed": false,
+       "prob_model_alone": 0.01237080991268158,
+       "prob_with_filter": 0.0,
+       "logit": -1.344697117805481
+      },
+      {
+       "species": "Charizard",
+       "allowed": false,
+       "prob_model_alone": 0.009319623000919819,
+       "prob_with_filter": 0.0,
+       "logit": -1.6279146671295166
+      },
+      {
+       "species": "Glimmora",
+       "allowed": true,
+       "prob_model_alone": 0.0003511219983920455,
+       "prob_with_filter": 0.0004314012185204774,
+       "logit": -4.90665864944458
+      },
+      {
+       "species": "Glimmora-Mega",
+       "allowed": false,
+       "prob_model_alone": 5.326946848072112e-06,
+       "prob_with_filter": 0.0,
+       "logit": -9.095013618469238
+      }
+     ],
+     "ce_model_alone": 0.3266684114933014,
+     "ce_with_mask": 0.12076348811388016,
+     "cost": 0.02769280970096588
+    }
+   ]
+  }
+ ],
+ "what_if_team_loss": 0.9080111980438232,
+ "eight_teams": [
+  {
+   "row": 1348,
+   "pokemon": [
+    {
+     "species": "Farigiraf",
+     "item": "Sitrus Berry",
+     "wrong_stone": false
+    },
+    {
+     "species": "Mamoswine",
+     "item": "Chesnaughtite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Pyroar",
+     "item": "Pyroarite",
+     "wrong_stone": false
+    },
+    {
+     "species": "Scrafty",
+     "item": "Scraftinite",
+     "wrong_stone": false
+    },
+    {
+     "species": "Torkoal",
+     "item": "Heat Rock",
+     "wrong_stone": false
+    },
+    {
+     "species": "Venusaur",
+     "item": "Sharp Beak",
+     "wrong_stone": false
+    }
+   ]
+  },
+  {
+   "row": 1770,
+   "pokemon": [
+    {
+     "species": "Basculegion",
+     "item": "Focus Sash",
+     "wrong_stone": false
+    },
+    {
+     "species": "Blaziken-Mega",
+     "item": "Blazikenite",
+     "wrong_stone": false
+    },
+    {
+     "species": "Gengar",
+     "item": "Victreebelite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Incineroar",
+     "item": "Passho Berry",
+     "wrong_stone": false
+    },
+    {
+     "species": "Kingambit",
+     "item": "Sablenite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Ninetales-Alola",
+     "item": "Never-Melt Ice",
+     "wrong_stone": false
+    }
+   ]
+  },
+  {
+   "row": 2262,
+   "pokemon": [
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "wrong_stone": false
+    },
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "wrong_stone": false
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "wrong_stone": false
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "wrong_stone": false
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "wrong_stone": false
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Glimmoranite",
+     "wrong_stone": true
+    }
+   ]
+  },
+  {
+   "row": 2284,
+   "pokemon": [
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "wrong_stone": false
+    },
+    {
+     "species": "Charizard",
+     "item": "Emboarite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Garchomp",
+     "item": "Lum Berry",
+     "wrong_stone": false
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "wrong_stone": false
+    },
+    {
+     "species": "Maushold-Four",
+     "item": "Wide Lens",
+     "wrong_stone": false
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Golurkite",
+     "wrong_stone": true
+    }
+   ]
+  },
+  {
+   "row": 2584,
+   "pokemon": [
+    {
+     "species": "Basculegion",
+     "item": "Mystic Water",
+     "wrong_stone": false
+    },
+    {
+     "species": "Floette-Eternal",
+     "item": "Floettite",
+     "wrong_stone": false
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "wrong_stone": false
+    },
+    {
+     "species": "Hydreigon",
+     "item": "Choice Scarf",
+     "wrong_stone": false
+    },
+    {
+     "species": "Sneasler",
+     "item": "Pidgeotite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Whimsicott",
+     "item": "Focus Sash",
+     "wrong_stone": false
+    }
+   ]
+  },
+  {
+   "row": 3500,
+   "pokemon": [
+    {
+     "species": "Delphox",
+     "item": "Emboarite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Garchomp",
+     "item": "Choice Scarf",
+     "wrong_stone": false
+    },
+    {
+     "species": "Hydreigon",
+     "item": "Steelixite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Incineroar",
+     "item": "Beedrillite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Mawile",
+     "item": "Roseli Berry",
+     "wrong_stone": false
+    },
+    {
+     "species": "Sinistcha",
+     "item": "Wacan Berry",
+     "wrong_stone": false
+    }
+   ]
+  },
+  {
+   "row": 4248,
+   "pokemon": [
+    {
+     "species": "Aerodactyl",
+     "item": "Aerodactylite",
+     "wrong_stone": false
+    },
+    {
+     "species": "Charizard",
+     "item": "Skarmorite",
+     "wrong_stone": true
+    },
+    {
+     "species": "Farigiraf",
+     "item": "Scope Lens",
+     "wrong_stone": false
+    },
+    {
+     "species": "Garchomp",
+     "item": "Life Orb",
+     "wrong_stone": false
+    },
+    {
+     "species": "Kingambit",
+     "item": "Focus Sash",
+     "wrong_stone": false
+    },
+    {
+     "species": "Sylveon",
+     "item": "Fairy Feather",
+     "wrong_stone": false
+    }
+   ]
+  },
+  {
+   "row": 39202,
+   "pokemon": [
+    {
+     "species": "Basculegion",
+     "item": "Fairy Feather",
+     "wrong_stone": false
+    },
+    {
+     "species": "Charizard",
+     "item": "Charcoal",
+     "wrong_stone": false
+    },
+    {
+     "species": "Floette-Eternal",
+     "item": "Leftovers",
+     "wrong_stone": false
+    },
+    {
+     "species": "Meowstic-M-Mega",
+     "item": "Meowsticite",
+     "wrong_stone": false
+    },
+    {
+     "species": "Musharna",
+     "item": "Charizardite Y",
+     "wrong_stone": true
+    },
+    {
+     "species": "Sylveon",
+     "item": "Focus Sash",
+     "wrong_stone": false
+    }
+   ]
+  }
+ ],
+ "team_loss": 574.1118486225605
+}

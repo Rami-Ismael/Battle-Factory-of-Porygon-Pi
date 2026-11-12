@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Diversity Measurement</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--panel:#f3f2ef;--ink:#0b0b0b;--ink2:#52514e;--ink3:#7a7974;--rule:#dedcd6;--grid:#e9e7e2;
+--model:#2a78d6;--train:#eb6834;--anchor:#8a8984;--band:#e4e2dc;--good:#008300;--warn:#b25e00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--panel:#232321;--ink:#f0efec;--ink2:#c3c2b7;--ink3:#97968d;--rule:#3a3a37;--grid:#2c2c2a;
+--model:#3987e5;--train:#d95926;--anchor:#8f8e86;--band:#34332f;--good:#3da13d;--warn:#d98a2b}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--panel:#232321;--ink:#f0efec;--ink2:#c3c2b7;--ink3:#97968d;--rule:#3a3a37;--grid:#2c2c2a;
+--model:#3987e5;--train:#d95926;--anchor:#8f8e86;--band:#34332f;--good:#3da13d;--warn:#d98a2b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:32px;line-height:1.15;margin:0 0 12px;letter-spacing:-.01em}
+h2{font-size:22px;margin:56px 0 8px;line-height:1.25}
+h3{font-size:17px;margin:24px 0 6px}
+p,li{max-width:68ch}
+.lede{font-size:18px;color:var(--ink2)}
+.meta{font-size:13px;color:var(--ink3);margin-bottom:28px}
+figure{margin:24px 0 0}
+figcaption{font-size:14px;color:var(--ink2);margin-top:8px;max-width:68ch}
+.chart{width:100%;overflow:visible}
+.chart text{fill:var(--ink2);font-size:12px}
+.chart .lv{fill:var(--ink);font-weight:600;font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--ink2);margin:8px 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.tip{position:fixed;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:6px 9px;font-size:13px;line-height:1.4;max-width:280px;display:none;z-index:9}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:12px}
+.card{background:var(--panel);border-radius:8px;padding:14px}
+.card b{display:block;margin-bottom:4px}
+.card p{font-size:14px;margin:0;color:var(--ink2)}
+.team{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.team span{background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:3px 10px;font-size:14px}
+.tw{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;font-size:14px;width:100%;min-width:560px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;color:var(--ink2);font-size:13px}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{font-size:12px;border-radius:4px;padding:1px 6px;white-space:nowrap;border:1px solid var(--rule)}
+.yes{color:var(--good)}.part{color:var(--warn)}.no{color:var(--ink3)}
+code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--panel);padding:1px 4px;border-radius:4px}
+details{margin-top:10px}summary{cursor:pointer;color:var(--ink2)}
+ol.steps li{margin-bottom:8px}
+.matrix{font:15px ui-monospace,Menlo,monospace;background:var(--panel);display:inline-block;padding:8px 12px;border-radius:6px}
+</style>
+</head>
+<body>
+<main>
+<h1>Team diversity</h1>
+<p class="lede">The 80-epoch labelled model writes its teams on about half as many line-ups and 40% fewer Pokémon sets as the same number of training teams, while its Stat Points vary more. One team in six repeats an earlier team exactly. No team copies a training team.</p>
+<p class="meta">2026-11-09 · 1,088 teams per sample, three seeds · noise floor from 20 pairs of training samples · script <code>code/scripts/diversity_vs_training.py</code> · numbers <code>~/vgc-data/results/diversity_vs_training.json</code></p>
+
+<figure>
+<div class="legend"><span><i style="background:var(--model)"></i>Model, one dot per seed</span><span><i style="background:var(--band);border-radius:2px"></i>Noise floor: how far two training samples differ</span></div>
+<svg id="ratio" class="chart" role="img" aria-label="Model value divided by training value, per measure"></svg>
+<figcaption><b>Figure 1.</b> The model's value divided by the training teams' value, both at 1,088 teams with the same mix of win-rate labels. Left of 1 means less diverse. A dot outside the grey band is a difference two training samples rarely show. Hover a row for the raw numbers.</figcaption>
+</figure>
+
+<h3>What the figure says</h3>
+<ul>
+<li><b>Line-ups:</b> 469 distinct line-ups against 911, and 99 species against 136. The commonest line-up takes about 5% of teams in both samples:</li>
+</ul>
+<div class="team"><span>Basculegion</span><span>Charizard</span><span>Floette-Eternal</span><span>Garchomp</span><span>Kingambit</span><span>Whimsicott</span></div>
+<ul>
+<li style="list-style:none;margin-left:-1.2em">So the model has not collapsed onto a new core. It drops the rare line-ups.</li>
+<li><b>Sets:</b> 2,429 distinct Pokémon sets against 4,064. On the Vendi Score, the effective number of different teams, the model reaches 81 against 109 at the sets level.</li>
+<li><b>Stat Points:</b> 2,972 distinct Stat Points per Pokémon against 1,628. The 11-04 swap test found the model's Stat Points ignore their Pokémon, so this reads as scatter, not as a strength.</li>
+<li><b>Whole team:</b> 899 of 1,088 model teams are distinct at all 84 fields. Every training team in a sample is distinct. No model team matches a training team at 48 or 84 fields. 59% reuse a training line-up, against 72% for validation teams.</li>
+<li><b>Two measures missed the gaps.</b> Mean pairwise distance, the measure <code>team_diversity.py</code> reports, saw no sets gap (0.825 against 0.820). The line-up Vendi Score saw no line-up gap, because a Vendi Score stays the same when every team is duplicated.</li>
+</ul>
+
+<figure>
+<div class="legend"><span><i style="background:var(--anchor)"></i>Anchors: one team copied, random legal teams</span><span><i style="background:var(--train)"></i>Training teams</span><span><i style="background:var(--model)"></i>Model</span></div>
+<svg id="anchors" class="chart" role="img" aria-label="Vendi Score per level with anchors"></svg>
+<figcaption><b>Figure 2.</b> The Vendi Score reads as a number of different teams, from 1 (one team copied 1,088 times) to 1,088 (no two teams share anything). Random legal teams sit near the top at every level, and real teams sit far below them. Log scale.</figcaption>
+</figure>
+
+<h2>What "diverse" means at each level</h2>
+<div class="cards">
+<div class="card"><b>Line-up · 6 fields</b><p>The six species, unordered. Diverse means many different line-ups, no line-up taking a large share, and many different species pairs, since pairs of teammates carry a team.</p></div>
+<div class="card"><b>Sets · 48 fields</b><p>Species, ability, item, nature and four moves per Pokémon. Diverse means the same species appears with different sets, so two teams on one line-up can still differ.</p></div>
+<div class="card"><b>Stat Points · 36 fields</b><p>Six numbers per Pokémon, 66 points in all. Diverse means different allocations for the same species. Random placement scores highest, so compare against the training teams instead of maximising.</p></div>
+<div class="card"><b>Whole team · 84 fields</b><p>All of the above. Diverse means a high effective number of different teams, where a near-copy counts as partly the same team.</p></div>
+</div>
+
+<h2>What already exists</h2>
+<div class="tw"><table>
+<tr><th>Source</th><th>Measure</th><th>What it counts</th><th>Level</th><th>All 84 fields?</th></tr>
+<tr><td rowspan="5"><code>team_diversity.py</code></td><td>distinct_lineups</td><td>Distinct sorted six-species sets</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td>distinct_species</td><td>Species used anywhere</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td>effective_species</td><td>exp(entropy) of species frequency over all slots</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td>top_species_share</td><td>Share of <i>teams</i> carrying the commonest species</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td>mean_distance</td><td>Mean pairwise distance in fields out of 48, slots matched, on 128 teams</td><td>Sets</td><td class="no">No, Stat Points left out</td></tr>
+<tr><td rowspan="3"><code>diversity_metrics.py</code></td><td>unique / repeat fraction</td><td>Exact repeats at three keys: composition, categorical_48, with_spreads</td><td>Line-up, sets, team</td><td class="part">Only as exact equality</td></tr>
+<tr><td>novel draw / novel unique fraction</td><td>Share absent from a fixed reference, same three keys</td><td>Line-up, sets, team</td><td class="part">Only as exact equality</td></tr>
+<tr><td>composition frequencies, largest share</td><td>Count of every line-up</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td rowspan="3"><code>diversity_loops.py</code></td><td>diversity()</td><td>Per generation on 512 proposals: distinct and effective compositions, largest share, top three, composition novelty, plus the fractions above</td><td>Line-up, sets, team</td><td class="part">Only as exact equality</td></tr>
+<tr><td>DPP selection kernel</td><td>Species overlap between teams; picks teams, does not report a score</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td>Taboo list</td><td>At most two copies of a line-up per generation; a limit, not a measure</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td><code>novel_elite_rebattle.py</code></td><td>novel_elites()</td><td>Keeps elite teams whose line-up is absent from training, then re-battles them. A novelty filter with no diversity score</td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td><code>ask_grid84.py</code> (also found)</td><td>subset_diversity()</td><td>Means over 5-team subsets: effective species, distinct line-ups (at most 5), top_species_share as a share of <i>slots</i></td><td>Line-up</td><td class="no">No</td></tr>
+<tr><td>Diversity — collected project notes</td><td colspan="4">An index of 73 notes. It keeps four questions apart: are complete teams different, are compositions different, are teams absent from a corpus, do teams play differently. It points to "Metrics for Diversity", which is not in the vault root; only the repository's <code>notes/</code> copy exists.</td></tr>
+<tr><td>Metrics for Diversity (repository copy)</td><td colspan="4">The measurement contract: exact uniqueness, repeats, novelty against a fixed reference, composition entropy as 2<sup>H</sup>, and surprisal −log p as a model-dependent amount that is not a distance between teams.</td></tr>
+<tr><td>Quality Diversity</td><td colspan="4">The problem class: QD score, MAP-Elites, CVT, CMA-MEGA, novelty search. The descriptor axis is an open checkbox. Nothing measured.</td></tr>
+<tr><td>Handwritten notes</td><td colspan="4">Define when two teams are the same; unique teams by species and by every relevant field; repeat fraction; unique fraction U/N; novelty against the training set and its degree; an information-theory distance; a visual; generalisation to structures such as hard Trick Room.</td></tr>
+</table></div>
+
+<h2>The post's metrics on teams of six</h2>
+<p>From <a href="https://amitness.com/posts/diversity-evals/">Chaudhary, "Evals for Diversity in Synthetic Data"</a>, checked against each primary paper.</p>
+<div class="tw"><table>
+<tr><th>Metric</th><th>Fits teams?</th><th>How it carries over</th></tr>
+<tr><td>Distinct-k (Li et al. 2016)</td><td><span class="pill yes">Fits, adapted</span></td><td>A team has no word order, so count unordered groups instead of n-grams: k = 1 species, k = 2 species pairs, k = 6 line-ups. The ratio falls as the sample grows, so compare only at equal sample size.</td></tr>
+<tr><td>N-gram entropy (Zhang et al. 2018)</td><td><span class="pill yes">Fits</span></td><td>Effective species is exp of the 1-gram entropy. Pair entropy is the 2-gram version.</td></tr>
+<tr><td>Compression ratio (Shaib et al. 2024a)</td><td><span class="pill part">Partly</span></td><td>gzip runs on pastes, but it also counts repeated paste formatting and depends on slot order. The paper finds it correlates 0.95 with n-gram diversity, so it adds little beyond the counts.</td></tr>
+<tr><td>Embedding diversity (Tevet &amp; Berant 2021)</td><td><span class="pill part">With a team similarity</span></td><td>A sentence encoder does not know that an item matters on its own Pokémon. Replace it with a team similarity; one minus the mean similarity is the "mean distance" here.</td></tr>
+<tr><td>DCScore (Zhu et al., ICML 2025)</td><td><span class="pill yes">Fits</span></td><td>Works with any similarity. The post's code takes the mean of the diagonal (0 to 1); the paper defines the trace (1 to n). Its temperature τ changes the answer, and at τ 0.1 it ranked Stat Points the opposite way to the other measures.</td></tr>
+<tr><td>Cluster inertia (Du &amp; Black 2019)</td><td><span class="pill part">Weak</span></td><td>Runs on any embedding, but depends on the cluster count (10), on the embedding scale and on sample size, with no reading as a number of teams.</td></tr>
+<tr><td>Part-of-speech compression (Shaib et al. 2024b)</td><td><span class="pill no">Free text only</span></td><td>Needs a grammar tagger. Teams have nothing that plays that role.</td></tr>
+<tr><td>Self-BLEU, homogenization (Zhu et al. 2018)</td><td><span class="pill part">Homogenization fits</span></td><td>Self-BLEU needs text. Homogenization is the mean pairwise similarity, which is the mean distance again.</td></tr>
+<tr><td>Vendi Score (Friedman &amp; Dieng 2023), the comparison metric in the DCScore paper</td><td><span class="pill yes">Fits</span></td><td>Any similarity, no temperature. With exact-match similarity it equals exp(entropy) of team frequencies, the effective number the project already uses.</td></tr>
+</table></div>
+<p>The idea that carries over best is a method, not a metric. Tevet &amp; Berant check a diversity measure by correlating it with a setting whose effect on diversity is known. Here the anchor sets play that part: a measure that does not order one-team-copied, training and random teams correctly does not measure diversity.</p>
+
+<h2>Gaps between the code and the post</h2>
+<ol>
+<li>No graded measure covered all 84 fields. Stat Points entered only through exact equality, so a team one point away from another counted as fully new. <i>Now:</i> a similarity at four levels.</li>
+<li>Every effective number counted exact identity. <i>Now:</i> the Vendi Score lets a near-copy count as partly the same team.</li>
+<li>No pair-level count, the team version of distinct-2. <i>Now:</i> distinct and effective species pairs.</li>
+<li>No anchors and no noise floor, so no check that a measure moves between its extremes, and no idea how far two samples of the same teams differ. <i>Now:</i> both.</li>
+<li>Different sample sizes: 5-team subsets in <code>ask_grid84.py</code>, 128 teams for distance in <code>team_diversity.py</code>, 512 proposals in <code>diversity_loops.py</code>. Counts at different sizes cannot be compared.</li>
+<li><code>top_species_share</code> means a share of teams in one file and a share of slots in another.</li>
+<li>Whether teams play differently: nothing measures it, and the post's "semantic" level would mean battle behaviour here. Still open.</li>
+</ol>
+
+<h2>The measurement plan, as run</h2>
+<div class="tw"><table>
+<tr><th>Sample</th><th>What it is</th><th>Teams</th></tr>
+<tr><td>Model</td><td>The 80-epoch labelled model's saved ask-grid teams (<code>gen84_noise_byepoch_ep80</code>), asks 1/24 to 17/24, 64 per ask; one sample per seed</td><td class="n">3 × 1,088</td></tr>
+<tr><td>Training teams</td><td>Labelled teams outside the 2% validation split, 64 per ask group (a team's group is the ask nearest its label), so the label mix matches the model's; one sample per seed</td><td class="n">3 × 1,088</td></tr>
+<tr><td>One team copied</td><td>One training team repeated: the low anchor</td><td class="n">1,088</td></tr>
+<tr><td>Random legal teams</td><td>Random legal sets with 66 Stat Points placed at random, each checked by Showdown: the high anchor</td><td class="n">1,088</td></tr>
+<tr><td>Validation teams</td><td>Real labelled teams the model never trained on, same 64 per ask group (fewer at the top asks)</td><td class="n">1,049</td></tr>
+<tr><td>Noise floor</td><td>20 pairs of disjoint training samples drawn the same way; the floor is the 2.5% to 97.5% range of their differences</td><td class="n">40 × 1,088</td></tr>
+</table></div>
+<h3>Rules fixed before the run</h3>
+<ul>
+<li>The model differs from its training teams on a measure when all three seed differences share a sign and each lies outside the noise floor.</li>
+<li>A measure is usable when the training value falls between the two anchors. Every measure passed except the two distinct-team counts. Those hit their ceiling: every training and random team was distinct, so they only detect repeats.</li>
+<li>Similarity between two teams: the share of their fields that match on the same species (cosine of species-tied feature sets). The same item on two different species does not count as shared.</li>
+</ul>
+<h3>Settings carried over without a decision of their own</h3>
+<ul>
+<li>The model's teams come from the 11-03 ask grid as it ran: guidance 2, temperature 1, rule masks on, species first, Stat Alignment repaired to match the moves.</li>
+<li>Asks 18/24 to 23/24 are left out, since the training data holds 610 teams or fewer there.</li>
+<li>I chose DCScore's τ = 0.1 and the species-tied similarity before the run. Neither was tuned.</li>
+</ul>
+<h3>Caveats</h3>
+<ul>
+<li>The Vendi Score ignores duplicates by design. Always read it beside distinct teams out of n.</li>
+<li>More Stat Points diversity is not better. Random placement wins that contest.</li>
+<li>The repeats may come from guidance 2. That was not tested.</li>
+<li>One model, one checkpoint. A challenger needs the same script at the same sample size.</li>
+</ul>
+
+<h2>The exercise to work by hand</h2>
+<p>The Vendi Score is the measure to rely on, always read beside distinct teams out of n. It has no temperature, it gives a count of teams from 1 to n at every level, it passed the anchor check at all four levels, and it found the sets gap that mean distance missed. Work it on teams of two Pokémon, comparing line-ups only. Similarity is shared species divided by 2.</p>
+<ol class="steps">
+<li><b>Two teams.</b> A = Garchomp, Dragonite. C = Charizard, Dragonite. Write K, divide by n = 2, and find the eigenvalues. For <span class="matrix">[[1, s], [s, 1]] / 2</span> they are (1 + s)/2 and (1 − s)/2. Compute exp(−Σ λ ln λ).</li>
+<li><b>Predict first:</b> what is the score when C shares nothing with A (Charizard, Kingambit)? And when C is a copy of A?</li>
+<li><b>Three teams:</b> A, a copy of A, and C sharing nothing. K is block-diagonal; read the eigenvalues of K/3 off the blocks. Compare the score with exp(entropy) of the frequencies 2/3 and 1/3.</li>
+<li><b>Predict, then check:</b> does the step-1 score change if you duplicate the whole set (A, C, A, C)?</li>
+<li><b>Check with code:</b> <code>l = np.linalg.eigvalsh(K / len(K)); np.exp(-(l[l > 1e-12] * np.log(l[l > 1e-12])).sum())</code>. Then build K for three real teams from the training data with <code>kernel()</code> in the script.</li>
+</ol>
+<details><summary>Answers</summary>
+<ol>
+<li>s = 0.5, eigenvalues 0.75 and 0.25, score 1.75.</li>
+<li>Nothing shared: 2. A copy: 1.</li>
+<li>Eigenvalues 2/3 and 1/3, score 1.89. That equals exp(entropy) of 2/3 and 1/3. With exact-match similarity, the Vendi Score is the effective number you already use for species.</li>
+<li>No. It stays 1.75. This is why the line-up Vendi Score missed the model's repeats, and why distinct teams out of n sits beside it.</li>
+</ol></details>
+
+<details><summary>All numbers (table view of Figure 1)</summary><div class="tw"><table id="numbers"></table></div></details>
+</main>
+<div class="tip" id="tip"></div>
+<script>
+const D = {"rows": [{"level": "Line-up", "key": "distinct_lineups", "name": "Distinct line-ups", "model": [461, 475, 471], "train": [902, 909, 922], "tmean": 911.0, "mmean": 469.0, "lo": 0.9727497255762898, "hi": 1.028018660812294, "val": 869, "copied": 1, "random": 1088, "differs": true, "ordered": true}, {"level": "Line-up", "key": "effective_lineups", "name": "Effective line-ups", "model": [303.00428649228326, 326.3210416312151, 301.8908428722322], "train": [676.4137042124894, 654.8672378424557, 683.0447343822963], "tmean": 671.4418921457471, "mmean": 310.4053903319102, "lo": 0.8750492592125285, "hi": 1.1019267692295442, "val": 635.5115856917736, "copied": 1.0, "random": 1087.9999999999998, "differs": true, "ordered": true}, {"level": "Line-up", "key": "distinct_species", "name": "Distinct species", "model": [93, 103, 102], "train": [138, 133, 138], "tmean": 136.33333333333334, "mmean": 99.33333333333333, "lo": 0.9046454767726162, "hi": 1.0737163814180928, "val": 127, "copied": 6, "random": 188, "differs": true, "ordered": true}, {"level": "Line-up", "key": "effective_species", "name": "Effective species", "model": [36.64424394035448, 38.392858501911206, 37.00031034081496], "train": [35.53419111227553, 34.8013927685294, 35.39817653373284], "tmean": 35.24458680484592, "mmean": 37.34580426102688, "lo": 0.9639903996211436, "hi": 1.0502018081997804, "val": 34.46955255773676, "copied": 5.999999999999998, "random": 184.67148367996103, "differs": false, "ordered": true}, {"level": "Line-up", "key": "distinct_pairs", "name": "Distinct species pairs", "model": [1349, 1372, 1394], "train": [1995, 1948, 2010], "tmean": 1984.3333333333333, "mmean": 1371.6666666666667, "lo": 0.9512934654795902, "hi": 1.075516546279187, "val": 1845, "copied": 15, "random": 10573, "differs": true, "ordered": true}, {"level": "Line-up", "key": "vendi_lineup", "name": "Vendi Score", "model": [21.890488702330476, 23.403531872594336, 22.242574023457664], "train": [22.564153245346663, 22.12060161115124, 22.704030302362376], "tmean": 22.462928386286762, "mmean": 22.512198199460826, "lo": 0.9427059709270037, "hi": 1.0607458437221484, "val": 21.736453360638208, "copied": 1.0000000000000067, "random": 166.7940531225321, "differs": false, "ordered": true}, {"level": "Sets", "key": "distinct_sets", "name": "Distinct Pok\u00e9mon sets", "model": [2452, 2434, 2402], "train": [4069, 4052, 4072], "tmean": 4064.3333333333335, "mmean": 2429.3333333333335, "lo": 0.9728799311080127, "hi": 1.024893381448372, "val": 3883, "copied": 6, "random": 6528, "differs": true, "ordered": true}, {"level": "Sets", "key": "effective_sets", "name": "Effective Pok\u00e9mon sets", "model": [1305.7841877799324, 1266.888892388966, 1241.3789653457302], "train": [2241.6732188257, 2232.357298627134, 2261.4691692661177], "tmean": 2245.1665622396504, "mmean": 1271.3506818382095, "lo": 0.9311046141429521, "hi": 1.0570001907327762, "val": 2165.6219361929334, "copied": 5.999999999999998, "random": 6527.999999999995, "differs": true, "ordered": true}, {"level": "Sets", "key": "sets_per_species", "name": "Sets per species", "model": [26.365591397849464, 23.631067961165048, 23.54901960784314], "train": [29.485507246376812, 30.466165413533833, 29.507246376811594], "tmean": 29.81963967890741, "mmean": 24.515226322285883, "lo": 0.9163133596468646, "hi": 1.1137982146728196, "val": 30.5748031496063, "copied": 1.0, "random": 34.723404255319146, "differs": true, "ordered": true}, {"level": "Sets", "key": "vendi_sets", "name": "Vendi Score", "model": [79.96696801379996, 82.50299904766601, 80.72795105695731], "train": [108.82819263113852, 107.75593705371408, 110.07248138588477], "tmean": 108.88553702357912, "mmean": 81.0659727061411, "lo": 0.9523120126821757, "hi": 1.0522385811892152, "val": 105.32953376177001, "copied": 1.0000000000000067, "random": 919.4387424246781, "differs": true, "ordered": true}, {"level": "Sets", "key": "distance_sets", "name": "Mean distance", "model": [0.8181210952357836, 0.8305684981170282, 0.8253753194565965], "train": [0.8217918279871801, 0.8176175806359551, 0.820746334033454], "tmean": 0.820051914218863, "mmean": 0.8246883042698028, "lo": 0.9912424243367368, "hi": 1.0112918179038575, "val": 0.8174111390386628, "copied": 0.0, "random": 0.992077260843384, "differs": false, "ordered": true}, {"level": "Stat Points", "key": "distinct_statpoints", "name": "Distinct Stat Points", "model": [2946, 2976, 2993], "train": [1657, 1593, 1633], "tmean": 1627.6666666666667, "mmean": 2971.6666666666665, "lo": 0.9492525087036658, "hi": 1.0341439688715954, "val": 1562, "copied": 6, "random": 6526, "differs": true, "ordered": true}, {"level": "Stat Points", "key": "effective_statpoints", "name": "Effective Stat Points", "model": [2237.2900321629986, 2298.112883151723, 2204.007881938631], "train": [721.5672423128267, 707.9480980855242, 708.9883852303487], "tmean": 712.8345752095665, "mmean": 2246.4702657511175, "lo": 0.9349144814566869, "hi": 1.0352417575800588, "val": 707.0384390563877, "copied": 5.999999999999998, "random": 6525.227999984862, "differs": true, "ordered": true}, {"level": "Stat Points", "key": "vendi_statpoints", "name": "Vendi Score", "model": [220.5153890780755, 225.17515005500366, 225.93777288897058], "train": [191.3455464974182, 189.98912731724474, 189.54433828934185], "tmean": 190.29300403466826, "mmean": 223.8761040073499, "lo": 0.9455018758526292, "hi": 1.0391758852105994, "val": 186.03126408498167, "copied": 1.0000000000000067, "random": 1018.7205121416562, "differs": true, "ordered": true}, {"level": "Stat Points", "key": "distance_statpoints", "name": "Mean distance", "model": [0.9199477466162378, 0.923689700696247, 0.9239231206895019], "train": [0.8786724307171248, 0.8759479604475713, 0.8761919498709994], "tmean": 0.8769374470118985, "mmean": 0.9225201893339956, "lo": 0.9922830237031416, "hi": 1.008292623460497, "val": 0.8749788259103515, "copied": 0.0, "random": 0.9969911885713909, "differs": true, "ordered": true}, {"level": "Whole team", "key": "distinct_teams84", "name": "Distinct teams (84 fields)", "model": [908, 889, 901], "train": [1088, 1088, 1088], "tmean": 1088.0, "mmean": 899.3333333333334, "lo": 1.0, "hi": 1.0, "val": 1049, "copied": 1, "random": 1088, "differs": true, "ordered": false}, {"level": "Whole team", "key": "vendi_team", "name": "Vendi Score", "model": [144.86802565816697, 147.965295053177, 147.2817613291188], "train": [165.2206344050574, 164.38554811269933, 165.5961844065936], "tmean": 165.06745564145012, "mmean": 146.7050273468209, "lo": 0.9597040249157337, "hi": 1.0433441716282963, "val": 160.21733240892226, "copied": 1.0000000000000067, "random": 987.5934376790119, "differs": true, "ordered": true}, {"level": "Whole team", "key": "dcscore_team", "name": "DCScore (\u03c4 0.1)", "model": [489.2188244513011, 500.27335943024906, 502.3486643210056], "train": [697.9564505989711, 699.5004972587699, 701.3950017669467], "tmean": 699.6173165415626, "mmean": 497.2802827341852, "lo": 0.9762886138613933, "hi": 1.0212872063339538, "val": 676.271104473268, "copied": 1.0, "random": 1033.337297780211, "differs": true, "ordered": true}, {"level": "Whole team", "key": "distance_team", "name": "Mean distance", "model": [0.8623512695166857, 0.870865164602304, 0.8682124555403563], "train": [0.8462423797507888, 0.842714155678894, 0.8446041686365979], "tmean": 0.8445202346887601, "mmean": 0.867142963219782, "lo": 0.9917338494531288, "hi": 1.0099603584167125, "val": 0.8421714862383392, "copied": 0.0, "random": 0.9941832298696618, "differs": true, "ordered": true}], "vendi": [{"level": "Line-up", "key": "vendi_lineup", "model_s1": 21.890488702330476, "model_s2": 23.403531872594336, "model_s3": 22.242574023457664, "train_s1": 22.564153245346663, "train_s2": 22.12060161115124, "train_s3": 22.704030302362376, "copied": 1.0000000000000067, "val": 21.736453360638208, "random": 166.7940531225321}, {"level": "Sets", "key": "vendi_sets", "model_s1": 79.96696801379996, "model_s2": 82.50299904766601, "model_s3": 80.72795105695731, "train_s1": 108.82819263113852, "train_s2": 107.75593705371408, "train_s3": 110.07248138588477, "copied": 1.0000000000000067, "val": 105.32953376177001, "random": 919.4387424246781}, {"level": "Stat Points", "key": "vendi_statpoints", "model_s1": 220.5153890780755, "model_s2": 225.17515005500366, "model_s3": 225.93777288897058, "train_s1": 191.3455464974182, "train_s2": 189.98912731724474, "train_s3": 189.54433828934185, "copied": 1.0000000000000067, "val": 186.03126408498167, "random": 1018.7205121416562}, {"level": "Whole team", "key": "vendi_team", "model_s1": 144.86802565816697, "model_s2": 147.965295053177, "model_s3": 147.2817613291188, "train_s1": 165.2206344050574, "train_s2": 164.38554811269933, "train_s3": 165.5961844065936, "copied": 1.0000000000000067, "val": 160.21733240892226, "random": 987.5934376790119}], "novelty": {"model_s1": {"lineup_in_train": 0.5873161764705882, "sets48_in_train": 0.0, "team84_in_train": 0.0}, "model_s2": {"lineup_in_train": 0.5928308823529411, "sets48_in_train": 0.0, "team84_in_train": 0.0}, "model_s3": {"lineup_in_train": 0.59375, "sets48_in_train": 0.0, "team84_in_train": 0.0}, "copied": {"lineup_in_train": 1.0, "sets48_in_train": 1.0, "team84_in_train": 1.0}, "val": {"lineup_in_train": 0.7244995233555768, "sets48_in_train": 0.0, "team84_in_train": 0.0}, "random": {"lineup_in_train": 0.0, "sets48_in_train": 0.0, "team84_in_train": 0.0}}, "n": 1088};
+const NS = "http://www.w3.org/2000/svg", tip = document.getElementById("tip");
+const f = v => Math.abs(v) >= 100 ? Math.round(v).toLocaleString("en-US") : (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(3));
+function el(p, tag, a, txt){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e}
+function hover(e, html){e.addEventListener("pointermove",ev=>{tip.style.display="block";tip.innerHTML=html;const x=Math.min(ev.clientX+14,innerWidth-290);tip.style.left=x+"px";tip.style.top=(ev.clientY+14)+"px"});e.addEventListener("pointerleave",()=>tip.style.display="none")}
+function logx(lo, hi, x0, x1){const a=Math.log(lo),b=Math.log(hi);return v=>x0+(Math.log(v)-a)/(b-a)*(x1-x0)}
+
+function ratio(){
+  const svg=document.getElementById("ratio"), W=svg.clientWidth||800, narrow=W<560;
+  const L=narrow?132:200, R=16, rowH=24, gap=18, top=26;
+  let y=top, rows=[]; let lv=null;
+  for(const r of D.rows){ if(r.level!==lv){ if(lv) y+=gap; lv=r.level; rows.push({head:lv,y}); y+=rowH; } rows.push({r,y}); y+=rowH; }
+  const H=y+30; svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("height",H);
+  const x=logx(0.3,3.5,L,W-R);
+  for(const t of [0.3,0.5,1,2,3.5]){ el(svg,"line",{x1:x(t),x2:x(t),y1:top-6,y2:H-26,stroke:t===1?"var(--ink3)":"var(--grid)","stroke-width":t===1?1.5:1}); el(svg,"text",{x:x(t),y:H-10,"text-anchor":"middle"},t===1?"1 = same as training":"×"+t); }
+  el(svg,"text",{x:x(0.3),y:14},"← less diverse"); el(svg,"text",{x:W-R,y:14,"text-anchor":"end"},"more diverse →");
+  for(const o of rows){
+    if(o.head){ el(svg,"text",{x:0,y:o.y+16,class:"lv"},o.head); continue; }
+    const r=o.r, cy=o.y+rowH/2;
+    const g=el(svg,"g",{});
+    el(g,"rect",{x:0,y:o.y,width:W,height:rowH,fill:"transparent"});
+    el(g,"text",{x:narrow?6:12,y:cy+4},r.name);
+    el(g,"rect",{x:x(Math.max(r.lo,0.3)),y:cy-7,width:Math.max(2,x(Math.min(r.hi,3.5))-x(Math.max(r.lo,0.3))),height:14,rx:3,fill:"var(--band)"});
+    r.model.forEach((m,i)=>{const v=Math.min(Math.max(m/r.train[i],0.3),3.5);el(g,"circle",{cx:x(v),cy,r:4.5,fill:"var(--model)",stroke:"var(--bg)","stroke-width":2})});
+    const rv=r.mmean/r.tmean; el(g,"text",{x:x(Math.min(Math.max(rv,0.3),3.5))+(rv>2.6?-10:10),y:cy+4,"text-anchor":rv>2.6?"end":"start","font-size":11},"×"+rv.toFixed(2));
+    hover(g,`<b>${r.level} · ${r.name}</b><br>Model: ${r.model.map(f).join(", ")}<br>Training: ${r.train.map(f).join(", ")}<br>Validation ${f(r.val)} · copied ${f(r.copied)} · random ${f(r.random)}<br>${r.differs?"Outside the noise floor, seeds agree":"Inside the noise floor or seeds disagree"}`);
+  }
+}
+function anchors(){
+  const svg=document.getElementById("anchors"), W=svg.clientWidth||800, narrow=W<560;
+  const L=narrow?92:120, R=24, rowH=60, top=30, H=top+rowH*D.vendi.length+30;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("height",H);
+  const x=logx(1,D.n,L,W-R);
+  for(const t of [1,10,100,1000]){ el(svg,"line",{x1:x(t),x2:x(t),y1:top-8,y2:H-26,stroke:"var(--grid)"}); el(svg,"text",{x:x(t),y:H-10,"text-anchor":"middle"},t.toLocaleString("en-US")); }
+  el(svg,"text",{x:x(D.n),y:16,"text-anchor":"end"},"n = "+D.n.toLocaleString("en-US"));
+  D.vendi.forEach((v,i)=>{
+    const cy=top+i*rowH+rowH/2; el(svg,"text",{x:0,y:cy+4,class:"lv"},v.level);
+    el(svg,"line",{x1:x(1),x2:x(D.n),y1:cy,y2:cy,stroke:"var(--rule)"});
+    const tm=(v.train_s1+v.train_s2+v.train_s3)/3, mm=(v.model_s1+v.model_s2+v.model_s3)/3;
+    const pts=[["One team copied",v.copied,"var(--anchor)"],["Random legal",v.random,"var(--anchor)"],["Training",tm,"var(--train)"],["Model",mm,"var(--model)"]];
+    pts.forEach(([name,val,c])=>{const g=el(svg,"g",{});el(g,"circle",{cx:x(val),cy,r:6,fill:c,stroke:"var(--bg)","stroke-width":2});el(g,"circle",{cx:x(val),cy,r:12,fill:"transparent"});hover(g,`<b>${v.level}: ${name}</b><br>Vendi Score ${f(val)}`)});
+    const lab=(val,txt,dy,anchor)=>el(svg,"text",{x:x(val),y:cy+dy,"text-anchor":anchor||"middle","font-size":11},txt);
+    if(i===0){lab(v.copied,"copied",-11,"start");lab(v.random,"random",-11);}
+    const lo=Math.min(tm,mm), hi=Math.max(tm,mm);
+    lab(hi,f(hi===mm?mm:tm)+(hi===mm?" model":" training"),-11,"start"); lab(lo,f(lo===mm?mm:tm)+(lo===mm?" model":" training"),19,"end");
+  });
+}
+function table(){
+  const t=document.getElementById("numbers"); let h="<tr><th>Level</th><th>Measure</th><th>Model (3 seeds)</th><th>Training (3 seeds)</th><th>Validation</th><th>Copied</th><th>Random</th><th>Floor ratio</th></tr>";
+  for(const r of D.rows) h+=`<tr><td>${r.level}</td><td>${r.name}</td><td class="n">${r.model.map(f).join(" · ")}</td><td class="n">${r.train.map(f).join(" · ")}</td><td class="n">${f(r.val)}</td><td class="n">${f(r.copied)}</td><td class="n">${f(r.random)}</td><td class="n">${r.lo.toFixed(2)}–${r.hi.toFixed(2)}</td></tr>`;
+  t.innerHTML=h;
+}
+function draw(){for(const id of ["ratio","anchors"])document.getElementById(id).innerHTML="";ratio();anchors()}
+table(); draw(); let to; addEventListener("resize",()=>{clearTimeout(to);to=setTimeout(draw,120)});
+</script>
+</body>
+</html>

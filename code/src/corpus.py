@@ -155,7 +155,7 @@ def parse_team_text(text, blank_ends_slot=False):  # noqa: C901
 
 def load_corpus(include_heldout=False):
     """(teams, file names) of the 6-slot pool teams, without ranks 51-100 (heldout.py, 48-field identity).
-    Vocabulary and Legality read the excluded teams back in, so token ids and rule tables do not move.
+    Vocabulary and Legality read the excluded teams back in, so token ids and legal Pokémon construction tables do not move.
     include_heldout=True returns the whole pool (only for building those tables)."""
     import heldout
     held = set() if include_heldout else heldout.identities()

@@ -1,0 +1,81 @@
+Pre-register the four masking-rate rows
+
+## Question
+
+Write the pre-registration in `code/docs/` with the `build-experiment` skill for the four rows in the map's Notes: the contract, the probes and the noise floor. Name the rows with `name-experiments`. Every setting cites its paper or is marked as ours.
+
+Parent map: [Masking-rate map: per-field versus linear masking rate on the 84-field model, and where our code departs from MD4 and LLaDA](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/291)
+
+
+**Resolved 2026-11-11.** The four rows are pre-registered, and one probe failed before launch: the default model barely reads the t it is told, so the row Per-field, corrected t cannot change a result. Its battle grid is on hold for the owner.
+
+Document: [`code/docs/masking-rate-rows.md`](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md) on branch `t3/preregister-masking-rate-rows`, commit `fdb8ce2c`. Probes: `code/src/masking_rate_preflight.py`, results in `~/vgc-data/results/masking_rate_rows_preflight.json`.
+
+## The failed probe
+
+The table shows how far the default model's drawing distribution moves when a pass is told another t, on the same partly filled teams. The measure is mean total variation, where 0 means the same distribution and 1 means no overlap. The bar set before the run was 0.01 on at least one field type. The baseline is today's sampler, which tells the model t = 1 − filled/84.
+
+| Rule the pass is told | Species | Ability and item | Moves | Stat Alignment | Stat Points |
+| --- | --- | --- | --- | --- | --- |
+| Corrected t | 0.0007 | 0.0010 | 0.0025 | 0.0040 | 0.0030 |
+| Always t = 1 | 0.0011 | 0.0019 | 0.0067 | 0.0149 | 0.0275 |
+| Always t = 1/84 | 0.0369 | 0.0109 | 0.0123 | 0.0118 | 0.0066 |
+
+The corrected t never reaches the bar. With the same sampling seed it changes 1% to 2% of fields and 1 line-up in 768 teams. This agrees with both papers: MD4 §3 says the network can be made independent of t, and LLaDA Appendix A.1 gives its network no t. It also agrees with the 2026-10-07 run that removed the time input and lost nothing (`code/docs/loss-down.md`, run `N1`). So the sampler's t departs from the papers and has no measurable effect on this model.
+
+## The rows
+
+Each name gives the masking rate used in training, then the one decoding setting that sets the row apart.
+
+| Row | Code ID | Checkpoint | State |
+| --- | --- | --- | --- |
+| Per-field, uncorrected t | `sched_species_first` | The default model. Its grid exists: error 0.0053, 1,437 line-ups, 100% first-try legality | Control |
+| Per-field, corrected t | `sched_species_first_t` | The same checkpoint | On hold, failed its ceiling probe |
+| Linear, species-first | `sched_linear_species_first` | New training | Ready once the code ticket lands |
+| Linear, random order | `sched_linear_random` | The same new checkpoint | Ready once the code ticket lands |
+
+## What else the pre-registration found
+
+| Finding | Number | What it changes |
+| --- | --- | --- |
+| Today's early-stopping threshold would cut the new training short | Replayed on the control's own curve, a threshold of 0.001 stops at epoch 47. The control ran to 80 | The new training must pass `early_stopping_threshold=0.0`, or training length mixes with the masking rate |
+| Today's code reproduces the control's training | Epoch 1 lands on training loss 1.7917 against the logged 1.7918, validation 1.47690 against 1.47691 | The new training differs from the control in the masking rate alone |
+| The error has a ceiling near asks 13/24 to 17/24 | 91% of the control's 0.0053 comes from those five asks. Asks 1/24 to 12/24 alone score 0.0007 | A row can only gain by lifting got above about 0.53 |
+| Sampling seeds share an effect | Seed 1 reads the highest error on 15 of 20 stored 3-seed grids | Rows are compared seed by seed. Paired, the budget detects a gap of about 0.001 |
+| One training seed limits the linear rows | Two trainings of one recipe have differed by up to 0.0019 in error and 0.026 in pooled win rate | The linear rows are exploratory, and a gap under 0.002 is reported as inside training luck |
+| The division by 84 is published | LLaDA Algorithm 1 divides the loss by t × L | The departures ticket listed it as ours. That entry is wrong |
+| A loss is only comparable under one masking rate | The default model scores 1.209 under its own per-field rate and 1.404 under the linear rate | The linear model's validation loss is read against 1.404 |
+
+Every citation in the document was checked against each paper's LaTeX source from arXiv. Cost after this ticket: about 5.4 hours of training and 710,000 battles, about 2.5 hours, all on the laptop.
+
+## For the owner
+
+1. Per-field, corrected t. Skip its battle grid and report the row from the probe, or run it as planned for 216,384 battles and about 46 minutes. The document recommends skipping.
+2. Guidance stays at 2, so each row is one point. Tracing a curve with guidance 2, 4 and 8 would triple the battles.
+3. The new training uses the control's table, `lossdata84.npz`, which pools labels from listed-order battles. That keeps one cause. Retraining both models on the shuffled-only table is a separate run.
+
+
+**2026-11-11, the pre-registration in pictures, with the plan as the owner changed it the same day.** The text above this comment describes the first version. Two things changed: both trainings use the shuffled-only table, and every battled row runs at guidance 2, 4 and 8. The [document](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/blob/t3/preregister-masking-rate-rows/code/docs/masking-rate-rows.md) holds the current plan.
+
+The plan now:
+
+![The plan after the two decisions](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/3_plan.png)
+
+The five figures the experiment will draw, sketched before any result:
+
+![Storyboard](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/5_storyboard.png)
+
+What a probe is, and what "the probe's numbers" are:
+
+![What a probe is](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/1_probes.png)
+
+What the corrected t corrects, and how the row resolves:
+
+![What the corrected t corrects](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/2_corrected_t.png)
+
+The older table against the shuffled-only one:
+
+![The two training tables](https://gist.githubusercontent.com/Rami-Ismael/bb4f002c73843ae03e776a87e3a2e66f/raw/941de5ba3b8c35df303b3a49b9a2d1fe21dce7ae/4_tables.png)
+
+Source pages and the script that builds them: `code/docs/figures/masking_rate_rows/` and `code/src/masking_rate_explainers.py`, commit `eac4064d`.
+

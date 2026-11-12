@@ -1,7 +1,7 @@
 """The lookahead: forward checking for a sampler that may draw a Pokémon's set before its species (issue #205).
 
 One rule for both diffusion models. The 84-field model calls it on its first 48 fields; the 48-field model moves onto
-it when the rename branch is reconciled (#65). It reads only the legality tables in lossdown.Tables (BASE: each
+it when the rename branch is reconciled (#65). It reads only the legal Pokémon construction tables in lossdown.Tables (BASE: each
 species' base species; AB, IT, MV: which species can have which ability, item and move; ABIT: the item and ability
 pairs Showdown ties) and the candidates tables.allowed() gives.
 
@@ -11,7 +11,7 @@ For a Pokémon whose species is masked, a value is allowed only if at least one 
 the visible item or ability where Showdown ties the two. A candidate is a species legal with the Pokémon's visible
 fields and Species Clause. A species draw may not take the base species that another masked Pokémon has as its only
 candidate left. Stat Alignment is never restricted: no species depends on it. Once a Pokémon's species is filled the
-rule allows every value, and the legality tables alone decide.
+rule allows every value, and the legal Pokémon construction tables alone decide.
 """
 import torch
 import torch.nn.functional as F

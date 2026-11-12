@@ -151,7 +151,7 @@ The model does not guarantee a legal team. To use a team, validate it first with
 
 ## Use the weights without the project's code
 
-To read only the weights, load `model.safetensors` with `safetensors.torch.load_file`. To read the vocabulary and rule tables, load `regulation.json`.
+To read only the weights, load `model.safetensors` with `safetensors.torch.load_file`. To read the vocabulary and legal Pokémon construction tables, load `regulation.json`.
 """
 
 
@@ -219,7 +219,7 @@ def model_card(ck, ev, losses):
     files = "\n".join(f"| `{n}` | {d} |" for n, d in (
         (CHECKPOINT, "The checkpoint the project's code loads. PyTorch format. Load it only with `weights_only=True`."),
         ("model.safetensors", "The same weights in safetensors format."),
-        ("regulation.json", "The vocabulary and the per-species rule tables, as stored in the checkpoint."),
+        ("regulation.json", "The vocabulary and the per-species legal Pokémon construction tables, as stored in the checkpoint."),
         ("sampling_tables.json", "Stat Alignment counts per species, read by the Stat Alignment repair."),
         ("config.json", "Network size, training settings and the training and validation loss per epoch."),
         ("evaluation.json", "The evaluation results below, as data."),
@@ -291,7 +291,7 @@ Sampling allows a Stat Point only if it keeps that stat at 32 or less and the Po
 |---|---|
 | All-teams set | {rows:,} |
 | Validation split, seeded 2% | {validation:,} |
-| Trained on, after the rule tables dropped {info['dropped_by_tables']} | {info['n_train']:,} |
+| Trained on, after the legal Pokémon construction tables dropped {info['dropped_by_tables']} | {info['n_train']:,} |
 | With a win-rate label, before that drop | {labelled:,} |
 
 The set holds real corpus teams, earlier search teams, teams from the project's battle records and 100,000 uniform-legal teams, keeping a team only if it has one set of Stat Points. A label is the team's pooled wins divided by its pooled battles. The test 500 teams and the held-out meta teams ranked 51 to 100 are excluded.
