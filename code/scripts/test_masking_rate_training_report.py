@@ -113,6 +113,16 @@ class OnTheStoredCheckpoint(unittest.TestCase):
             self.assertAlmostEqual(mine[key]["gap_se"], theirs[key]["gap_se"], delta=1e-6)
             self.assertEqual(mine[key]["validation_teams"], theirs[key]["validation_teams"])
 
+    def test_cross_rate_also_scores_without_the_teams_the_tables_exclude(self):
+        import math
+        result = R.cross_rate(self.model, self.table, self.validation, limit=96)
+        accepted, teams = R.comparable_losses(result)
+        self.assertEqual(teams, result["validation_teams_tables_accepted"])
+        self.assertLessEqual(teams, result["validation_teams"])
+        self.assertTrue(all(math.isfinite(accepted[key]) for key in R.RATES))
+        self.assertEqual(R.comparable_losses(dict(validation_loss=dict(per_field=1.0, linear=2.0), validation_teams=7)),
+                         (dict(per_field=1.0, linear=2.0), 7))
+
     def test_cross_rate_gives_two_different_finite_losses(self):
         result = R.cross_rate(self.model, self.table, self.validation, limit=96)
         per_field, linear = result["validation_loss"]["per_field"], result["validation_loss"]["linear"]
