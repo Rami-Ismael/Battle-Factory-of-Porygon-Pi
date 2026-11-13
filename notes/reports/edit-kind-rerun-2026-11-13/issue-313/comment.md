@@ -8,12 +8,13 @@ A team is six Pokemon, listed in six slots. The meta is the 50 highest-placing t
 
 | Term | What it means here |
 |---|---|
-| Edit kind | What one rule-abiding edit changes on one Pokemon: one of its four moves, its ability, the item it holds, its stat alignment, its Stat Points, or the whole Pokemon. Frame 2 shows one real edit of each kind |
+| Edit kind | What one rule-abiding edit changes on one Pokemon. Four kinds pick a new legal value at random: one of its four moves, its ability, the item it holds, its stat alignment |
+| Copied edits | The other two kinds copy from real teams. Stat Points: all six numbers are replaced by those of another real set of the same species. Whole Pokemon: the slot is replaced by a real set of a species not on the team, with its moves, item, ability, stat alignment and Stat Points |
 | Stat alignment, Stat Points | Two settings of a Pokemon's numbers: which stat is raised and which lowered, and how its training points are divided among its stats |
 | Shuffled slots | The six Pokemon get a new random order before every battle. The battle policy picks by position, so a fixed order biases scores |
 | Replay | The same team battled 384 more times with nothing changed. Every starting team gets 3 replays |
 | Battle noise | How far a win rate moves on a replay, by luck alone. Here a replay typically moves a score by 3.40 points |
-| Change, in points | The typical size of the win-rate move from one edit, in percentage points, in either direction, with the typical replay move taken out |
+| Change, in points | The size of the real move one edit causes, in win-rate percentage points, in either direction. Computed as the square root of the mean squared move after an edit minus the mean squared move of a replay, because independent parts add as squares |
 | 5-point cutoff | How large the change must be for an edit kind to count as beyond battle noise. Written into the plan on 2026-09-28, before any battle. The plan gives no reason for the number 5 |
 | Beyond battle noise | Test 1. A larger share of edits than of replays moves the win rate past what chance allows, and the change is at least 5 points |
 | Rougher than Pest Control | Test 2. Pest Control is a standard optimisation benchmark where one step barely changes the score. Passing means a team's score predicts its edited neighbour's score less well than there, by correlation |

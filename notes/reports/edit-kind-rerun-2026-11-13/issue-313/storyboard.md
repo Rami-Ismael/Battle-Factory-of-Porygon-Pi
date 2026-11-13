@@ -9,8 +9,8 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 
 ## 2. The six kinds of edit, on one real team
 
-- Sentence: An edit changes one thing on one Pokemon and leaves the other five alone.
-- What we measured: These are real edits from the run. The team is Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon, one of the 24 real starting teams from outside the top 50.
+- Sentence: Four kinds pick a new legal value at random. Two kinds copy from real teams: Stat Points from another set of the same species, and a whole Pokemon of a new species.
+- What we measured: These are real edits from the run, each on one Pokemon with the other five left alone. The team is Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon.
 
 ## 3. Three different edits of each kind
 
@@ -24,8 +24,8 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 
 ## 5. From scores to a change in points
 
-- Sentence: The change in points is the typical move after an edit, with the typical replay move taken out.
-- What we measured: The two are taken apart as squares: 6.81 squared minus 3.40 squared is 5.90 squared.
+- Sentence: What we measure after an edit is its real move plus battle noise. The two are independent, so they add as squares, like the short sides of a right triangle.
+- What we measured: For the whole Pokemon swap: 6.81 squared minus 3.40 squared is 5.90 squared. Plain subtraction would give 3.41 and undercount the edit.
 
 ## 6. Change in points for each kind, from real teams outside the top 50
 

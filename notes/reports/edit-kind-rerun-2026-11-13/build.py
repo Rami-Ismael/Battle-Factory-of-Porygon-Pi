@@ -30,6 +30,7 @@ spec.json:
     squares    {"groups": [{"label", "count", "filled"}], "per_row": 42}
     checklist  {"items": [{"text", "state"}]}                            state is done, next, todo or hold
     examples   {"head": ["", "Before", "After"], "rows": [{"label", "before", "after"}]}   at most 6 rows
+    triangle   {"base": {"label", "value"}, "height": {...}, "hypotenuse": {...}}   a right triangle drawn to scale
   tone is plain, ok, warn, bad, c1, c2 or c3; style is solid, dashed or muted.
 """
 import html
@@ -135,7 +136,7 @@ def lines(g, x, y, d, h=SKETCH_H):
 
 
 def grid(g, x, y, d, h=SKETCH_H):
-    cols, rows = d["cols"][:3], d["rows"][:8]; head_w, head_h = 78, 34
+    cols, rows = d["cols"][:3], d["rows"][:8]; head_w, head_h = 104, 34
     cw, ch = (SKETCH_W - head_w) / len(cols), (h - head_h - 4) / len(rows)
     for j, c in enumerate(cols): g.block(x + head_w + j * cw + cw / 2, y + 12, c, cw - 6, 10.5, leading=1.2, anchor="middle", limit=2)
     for i, r in enumerate(rows):
@@ -185,14 +186,26 @@ def examples(g, x, y, d, h=SKETCH_H):
     for i, row in enumerate(d["rows"][:6]):
         ry = top + 10 + i * EXAMPLE_ROW
         g.path(f"M{x} {ry}H{x + SKETCH_W}", g.t["edge"], 1)
-        g.block(x, ry + 19, row["label"], 90, 11.5, "ink", True, 1.25, limit=2)
+        g.block(x, ry + 19, row["label"], 90, 11.5, "ink", True, 1.25, limit=3)
         g.block(before, ry + 19, row["before"], 112, 10.5, "soft", False, 1.3, limit=3)
         g.text(after - 18, ry + 19, "→", 12, "c1", True)
-        g.block(after, ry + 19, row["after"], 114, 10.5, "ink", False, 1.3, limit=3)
+        g.block(after, ry + 19, row["after"], 114, 10.5, "ink", False, 1.3, limit=4)
 
 
-EXAMPLE_ROW = 48
-KINDS = dict(flow=flow, bars=bars, lines=lines, grid=grid, compare=compare, squares=squares, checklist=checklist, examples=examples)
+def triangle(g, x, y, d, h=SKETCH_H):
+    """A right triangle to scale: two independent parts on the short sides, what is measured on the long side."""
+    base, height = float(d["base"]["value"]), float(d["height"]["value"]); scale = min(150 / base, (h - 62) / height)
+    left, bottom = x + 96, y + h - 34; right, top = left + base * scale, bottom - height * scale
+    g.path(f"M{left} {bottom}H{right}", g.color("plain"), 3); g.path(f"M{left} {bottom}V{top}", g.color("ok"), 3)
+    g.path(f"M{left} {top}L{right} {bottom}", g.color("c1"), 3)
+    g.path(f"M{left + 10} {bottom}V{bottom - 10}H{left}", g.t["soft"], 1)
+    g.block(left + base * scale / 2, bottom + 15, f'{d["base"]["label"]}: {d["base"]["value"]}', 190, 10.5, "soft", True, 1.25, "middle", 2)
+    g.block(left - 8, (top + bottom) / 2 - 8, f'{d["height"]["label"]}: {d["height"]["value"]}', 88, 10.5, "ok", True, 1.25, "end", 3)
+    g.block((left + right) / 2 + 12, (top + bottom) / 2 - 12, f'{d["hypotenuse"]["label"]}: {d["hypotenuse"]["value"]}', 120, 10.5, "c1", True, 1.25, "start", 3)
+
+
+EXAMPLE_ROW = 60
+KINDS = dict(flow=flow, bars=bars, lines=lines, grid=grid, compare=compare, squares=squares, checklist=checklist, examples=examples, triangle=triangle)
 LABELS = (("takes", "The point", "ink"), ("measured", "What we measured", "c1"), ("expected", "Expected", "ok"), ("surprise", "Surprise", "warn"))
 
 
@@ -210,6 +223,8 @@ def sketch_height(frame):
         need = max(60 + len(wrap(b["label"], w, 12, True)[:3]) * 16.8 + len(wrap(b.get("sub", ""), w, 10.5)[:6]) * 14.7 for b in d["boxes"][:4])
     elif kind == "examples":
         need = 38 + EXAMPLE_ROW * len(d["rows"][:6])
+    elif kind == "triangle":
+        need = 210
     elif kind == "grid":
         need = 38 + 34 * len(d["rows"][:8])      # the original drew three rows; a longer grid gets 34 px a row
     return max(SKETCH_H, need)

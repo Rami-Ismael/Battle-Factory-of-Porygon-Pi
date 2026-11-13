@@ -8,7 +8,11 @@
  "terms": [
   [
    "Edit kind",
-   "What one rule-abiding edit changes on one Pokemon: one of its four moves, its ability, the item it holds, its stat alignment, its Stat Points, or the whole Pokemon. Frame 2 shows one real edit of each kind"
+   "What one rule-abiding edit changes on one Pokemon. Four kinds pick a new legal value at random: one of its four moves, its ability, the item it holds, its stat alignment"
+  ],
+  [
+   "Copied edits",
+   "The other two kinds copy from real teams. Stat Points: all six numbers are replaced by those of another real set of the same species. Whole Pokemon: the slot is replaced by a real set of a species not on the team, with its moves, item, ability, stat alignment and Stat Points"
   ],
   [
    "Stat alignment, Stat Points",
@@ -28,7 +32,7 @@
   ],
   [
    "Change, in points",
-   "The typical size of the win-rate move from one edit, in percentage points, in either direction, with the typical replay move taken out"
+   "The size of the real move one edit causes, in win-rate percentage points, in either direction. Computed as the square root of the mean squared move after an edit minus the mean squared move of a replay, because independent parts add as squares"
   ],
   [
    "5-point cutoff",
@@ -104,19 +108,19 @@
       "after": "Sylveon is Rash"
      },
      {
-      "label": "Stat Points",
+      "label": "Stat Points, copied",
       "before": "Raichu: Special Attack 32, Speed 32, Defense 2",
-      "after": "Raichu: HP 32, Speed 24, Defense 10"
+      "after": "Another real Raichu's set: HP 32, Speed 24, Defense 10"
      },
      {
-      "label": "Whole Pokemon",
+      "label": "Whole Pokemon, copied",
       "before": "Charizard and its whole set",
-      "after": "Mawile and its whole set"
+      "after": "A real Mawile set from another team"
      }
     ]
    },
-   "takes": "An edit changes one thing on one Pokemon and leaves the other five alone.",
-   "measured": "These are real edits from the run. The team is Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon, one of the 24 real starting teams from outside the top 50."
+   "takes": "Four kinds pick a new legal value at random. Two kinds copy from real teams: Stat Points from another set of the same species, and a whole Pokemon of a new species.",
+   "measured": "These are real edits from the run, each on one Pokemon with the other five left alone. The team is Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon."
   },
   {
    "title": "3. Three different edits of each kind",
@@ -175,28 +179,23 @@
   },
   {
    "title": "5. From scores to a change in points",
-   "kind": "flow",
+   "kind": "triangle",
    "data": {
-    "boxes": [
-     {
-      "label": "Edits move it",
-      "sub": "6.81 points after a whole Pokemon swap",
-      "tone": "c1"
-     },
-     {
-      "label": "Replays move it",
-      "sub": "3.40 points with no change at all",
-      "tone": "plain"
-     },
-     {
-      "label": "What is left",
-      "sub": "5.90 points that noise cannot explain",
-      "tone": "ok"
-     }
-    ]
+    "base": {
+     "label": "Battle noise, from replays",
+     "value": "3.40"
+    },
+    "height": {
+     "label": "Real move of the edit",
+     "value": "5.90"
+    },
+    "hypotenuse": {
+     "label": "What we measure after an edit",
+     "value": "6.81"
+    }
    },
-   "takes": "The change in points is the typical move after an edit, with the typical replay move taken out.",
-   "measured": "The two are taken apart as squares: 6.81 squared minus 3.40 squared is 5.90 squared."
+   "takes": "What we measure after an edit is its real move plus battle noise. The two are independent, so they add as squares, like the short sides of a right triangle.",
+   "measured": "For the whole Pokemon swap: 6.81 squared minus 3.40 squared is 5.90 squared. Plain subtraction would give 3.41 and undercount the edit."
   },
   {
    "title": "6. Change in points for each kind, from real teams outside the top 50",
@@ -204,7 +203,7 @@
    "data": {
     "bars": [
      {
-      "label": "Whole Pokemon",
+      "label": "Whole Pokemon, copied",
       "height": 0.84,
       "tone": "ok",
       "note": "5.90"
@@ -234,7 +233,7 @@
       "note": "1.95"
      },
      {
-      "label": "Stat Points",
+      "label": "Stat Points, copied",
       "height": 0.23,
       "tone": "plain",
       "note": "1.60"
@@ -283,12 +282,12 @@
      "Rougher than Pest Control"
     ],
     "rows": [
-     "Whole Pokemon",
+     "Whole Pokemon, copied",
      "One move",
      "Held item",
      "Ability",
      "Stat alignment",
-     "Stat Points"
+     "Stat Points, copied"
     ],
     "cells": [
      [
