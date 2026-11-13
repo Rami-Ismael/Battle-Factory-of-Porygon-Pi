@@ -1,6 +1,6 @@
 ---
 created_at: 2026-10-20
-updated_at: 2026-11-11
+updated_at: 2026-11-13
 tags:
   - vocabulary
 ---
@@ -205,6 +205,11 @@ _Avoid_: pass/fail, beats the baseline
 **Matchup predictor**:
 A model that predicts a team's win rate without battling it.
 _Avoid_: oracle
+
+**Surrogate model**:
+A network that predicts a team's win rate, and any measures, from the team itself, standing in for battles during search. Search runs on the surrogate in an inner loop; the best teams it finds are battled in an outer loop, and the surrogate is retrained on them, including the teams that fooled it (online training).
+_Origin_: Deep Surrogate Assisted MAP-Elites, Zhang et al., GECCO 2022, [arXiv 2112.03534](https://arxiv.org/abs/2112.03534), §3.1 to §3.3; cites Gaier et al. 2018 (SAIL).
+_Distinguish_: matchup predictor, the model alone; a surrogate model is a matchup predictor used inside search and retrained on the battled teams search finds.
 
 **Battle policy**:
 The program that plays each battle.
