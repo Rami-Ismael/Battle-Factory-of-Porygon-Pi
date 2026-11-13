@@ -243,11 +243,6 @@ A discrete diffusion model whose forward process replaces each token with a valu
 _Origin_: the uniform transition in D3PM (Austin et al. 2021); UDLM, [Schiff et al. 2024](https://arxiv.org/abs/2412.10193), which adds guidance; Duo, [Sahoo et al. 2025](https://s-sahoo.com/duo/), which shows it arises from an underlying Gaussian diffusion.
 _Avoid_: uniform diffusion model (the name until 2026-11-11), uniform-noise model, uniform-state diffusion (the papers' name)
 
-**Masking rate**:
-The probability that the forward process has corrupted a field by time t: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. The per-field masking rate gives each field type its own: t to the power 16 for species, 4 for ability and item, 1.5 for moves, 1 for Stat Alignment and Stat Points. The linear masking rate corrupts every field with probability t.
-_Origin_: the linear masking rate is MD4's "linear schedule" (Shi et al. 2024).
-_Avoid_: noise schedule, scheduler, shared masking rate
-
 **Partial masking**:
 Writing each token's vocabulary index as ℓ digits in base b and masking the digits independently, so a token can be masked, unmasked, or partly revealed in between. On OpenWebText the authors report idle passes falling from 37% to 0.25% at ℓ = 6, and the first masked diffusion model to beat an autoregressive model on perplexity without autoregression (15.36 against 17.54).
 _Origin_: MDM-Prime, [Chao et al., NeurIPS 2025](https://arxiv.org/abs/2505.18495), with a [project page](https://chen-hao-chao.github.io/mdm-prime/).
@@ -363,8 +358,8 @@ What a masked text diffusion model receives for infilling: a short header and th
 _Avoid_: in-place text, free-text prompt
 
 **Masking rate**:
-The chance that a field is hidden at time t while training the discrete diffusion model. It decides which partly hidden teams the model practises filling.
-_Avoid_: noise schedule, scheduler, schedule (image-diffusion words)
+The probability that the forward process has corrupted a field by time t: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. Training and validation loss draw their masks with it, so it decides which partly corrupted teams the model practises filling. Two are in use: the per-field masking rate and the linear masking rate.
+_Avoid_: noise schedule, scheduler, schedule (image-diffusion words), shared masking rate
 
 **Per-field masking rate**:
 A masking rate set per field type: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t. Species stay visible until late, so the model mostly practises filling species first. Used by every 48- and 84-field model since 2026-10-07.
