@@ -5,7 +5,7 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 ## 1. Why the study ran again
 
 - Sentence: The rerun fixes the opponents and the slot order, and changes nothing else on purpose.
-- What we measured: One thing changed by accident: the 24 real starting teams from outside the top 50 are a fresh draw, 2 shared with September, so the two runs are not paired.
+- What we measured: One thing changed by accident: the 24 tournament-ready starting teams are a fresh draw, 2 shared with September, so the two runs are not paired.
 
 ## 2. The six kinds of edit, on one real team
 
@@ -27,7 +27,7 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 - Sentence: What we measure after an edit is its real move plus battle noise. The two are independent, so they add as squares, like the short sides of a right triangle.
 - What we measured: For the whole Pokemon swap: 6.81 squared minus 3.40 squared is 5.90 squared. Plain subtraction would give 3.41 and undercount the edit.
 
-## 6. Change in points for each kind, from real teams outside the top 50
+## 6. Change in points for each kind, from tournament-ready teams
 
 - Sentence: Only the whole Pokemon swap clears the 5-point cutoff, and a move edit stops just under it.
 - What we measured: From search-found teams the whole Pokemon swap is 5.85 points and a move edit 4.92.
@@ -35,7 +35,7 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 ## 7. Where the 5-point cutoff comes from
 
 - Sentence: The cutoff is a line drawn in advance for how large a change must be to count. Nobody derived the number 5.
-- What we measured: A move edit misses it by 0.16 points from real teams outside the top 50 and 0.08 from search-found teams. The analysis saved no interval for that size.
+- What we measured: A move edit misses it by 0.16 points from tournament-ready teams and 0.08 from search-found teams. The analysis saved no interval for that size.
 
 ## 8. Which kinds pass which test
 
@@ -45,6 +45,6 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 
 - The search-found group's bars: frame 6 keeps one group so the six kinds are the comparison. Its two headline numbers sit in the frame's measured line.
 - Neighbour correlations and their intervals: the grid carries the test verdicts; the numbers are in the result comment.
-- The September sizes: not a paired baseline, because the real starting teams from outside the top 50 differ.
+- The September sizes: not a paired baseline, because the tournament-ready starting teams differ.
 - Limits such as twelve cells with no multiple-testing correction and one opponent pool: in the verdict comment.
 - Second version, 2026-11-13, after the owner's read: one frame to a row for room, and four new frames for the six kinds, the three edits of a kind, the replay and the origin of the 5-point cutoff.

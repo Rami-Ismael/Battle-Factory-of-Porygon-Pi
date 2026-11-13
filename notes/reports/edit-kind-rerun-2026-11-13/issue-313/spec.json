@@ -47,8 +47,8 @@
    "Test 2. Pest Control is a standard optimisation benchmark where one step barely changes the score. Passing means a team's score predicts its edited neighbour's score less well than there, by correlation"
   ],
   [
-   "Real teams outside the top 50, search-found teams",
-   "The two groups of starting teams: 24 real teams from outside the top 50, and 16 teams an earlier search produced"
+   "Tournament-ready teams, search-found teams",
+   "The two groups of starting teams: 24 real teams players built for tournaments, drawn from outside the top 50, and 16 teams an earlier search produced"
   ]
  ],
  "frames": [
@@ -75,7 +75,7 @@
     }
    },
    "takes": "The rerun fixes the opponents and the slot order, and changes nothing else on purpose.",
-   "measured": "One thing changed by accident: the 24 real starting teams from outside the top 50 are a fresh draw, 2 shared with September, so the two runs are not paired."
+   "measured": "One thing changed by accident: the 24 tournament-ready starting teams are a fresh draw, 2 shared with September, so the two runs are not paired."
   },
   {
    "title": "2. The six kinds of edit, on one real team",
@@ -198,7 +198,7 @@
    "measured": "For the whole Pokemon swap: 6.81 squared minus 3.40 squared is 5.90 squared. Plain subtraction would give 3.41 and undercount the edit."
   },
   {
-   "title": "6. Change in points for each kind, from real teams outside the top 50",
+   "title": "6. Change in points for each kind, from tournament-ready teams",
    "kind": "bars",
    "data": {
     "bars": [
@@ -271,7 +271,7 @@
     ]
    },
    "takes": "The cutoff is a line drawn in advance for how large a change must be to count. Nobody derived the number 5.",
-   "measured": "A move edit misses it by 0.16 points from real teams outside the top 50 and 0.08 from search-found teams. The analysis saved no interval for that size."
+   "measured": "A move edit misses it by 0.16 points from tournament-ready teams and 0.08 from search-found teams. The analysis saved no interval for that size."
   },
   {
    "title": "8. Which kinds pass which test",
@@ -316,7 +316,7 @@
        "tone": "bad"
       },
       {
-       "text": "Outside top 50 only",
+       "text": "Tournament-ready only",
        "tone": "warn"
       }
      ],
@@ -326,7 +326,7 @@
        "tone": "bad"
       },
       {
-       "text": "Outside top 50 only",
+       "text": "Tournament-ready only",
        "tone": "warn"
       }
      ],
