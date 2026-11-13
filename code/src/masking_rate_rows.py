@@ -3,6 +3,7 @@
 Three rows are battled, each at guidance 2, 4 and 8: nine grids of ask_grid84.py. This script reads their results files.
 
     python masking_rate_rows.py legality_probe            random order with the lookahead off: sampling only, no battles
+    python masking_rate_rows.py check NAME CELLS          exit non-zero unless results file NAME has CELLS cells, all battled
     python masking_rate_rows.py opponents ROW GUIDANCE    save each team's win rate against each opponent beside the grid
     python masking_rate_rows.py summary                   every measure and verdict for the grids that have finished
     python masking_rate_rows.py post ROW GUIDANCE DIR     that grid's figure, light and dark, and its comment text, into DIR
@@ -91,9 +92,18 @@ def opponents(row, guidance):
             for c, (wins, battles) in MDB.row_cells(con, policy, team, cols).items(): rate[i, cols.index(c)] = wins / battles
         arrays[f"a{k:02d}_s{seed}"] = rate
         worst = max(worst, float(np.abs(team_scores(rate, arrays["weights"]) - np.array(cell["y"], float)).max()))
-    np.savez_compressed(opponents_path(row, guidance), **arrays)
     print(f"{grid_name(row, guidance)}: {len(out['by_ask_seed'])} cells, {len(cols)} opponents, largest gap from the stored scores {worst:.2e}")
-    if worst > 1e-9: raise SystemExit("a team's per-opponent win rates no longer give the score its grid stored")
+    if worst > 1e-9: raise SystemExit("a team's per-opponent win rates no longer give the score its grid stored; nothing saved")
+    np.savez_compressed(opponents_path(row, guidance), **arrays)
+
+
+def check(name, cells_wanted):
+    """Exit non-zero unless the results file `name` holds every cell, each with teams and one finished battle per opponent."""
+    path = RES / f"stat_points_84_{name}.json"
+    cells = list(json.load(open(path))["cells"].values()) if path.exists() else []
+    short = [f"a{c['numerator']:02d}_s{c['seed']}" for c in cells if not c["pastes"] or len(c.get("y", [])) != len(c["pastes"]) or None in c["y"] or c.get("battles", 0) < 49 * len(c["pastes"])]
+    print(f"{name}: {len(cells)} of {cells_wanted} cells, {len(short)} without teams or with battles missing {short[:5]}")
+    if len(cells) != cells_wanted or short: raise SystemExit(1)
 
 
 def team_scores(rate, weights):
@@ -163,7 +173,7 @@ def measures(out, refs):
                 new_against_search_and_tournaments=float(np.mean([lu not in refs[1] for lu in line_ups])),
                 effective_species=float(np.mean([c["div"]["effective_species"] for c in cells.values() if c["div"]])),
                 top_species_share=float(np.mean([c["div"]["top_species_share"] for c in cells.values() if c["div"]])),
-                rejections=Counter({r: n for c in cells.values() for r, n in c["reasons"]}).most_common(3))
+                rejections=sum((Counter(dict(c["reasons"])) for c in cells.values()), Counter()).most_common(3))
 
 
 def verdict(arm, control, arm_draws, control_draws, linear):
@@ -184,12 +194,12 @@ def outside_frontier(point, frontier):
     cannot rule out, and "lower" and "more" need the intervals apart. Error has its 95% bootstrap interval; line-ups have
     the range over the three sampling seeds, because a bootstrap of teams undercounts distinct line-ups."""
     seeds = lambda g: g["line_ups_by_seed"].values()
-    as_many = [c for c in frontier if max(seeds(c)) >= min(seeds(point))]
-    by_error = bool(as_many) and all(point["error_interval"][1] < c["error_interval"][0] for c in as_many)
-    as_low = [c for c in frontier if c["error_interval"][0] <= point["error_interval"][1]]
-    by_line_ups = bool(as_low) and all(min(seeds(point)) > max(seeds(c)) for c in as_low)
-    plain = (all(point["error"] < c["error"] for c in frontier if c["line_ups"] >= point["line_ups"]) and any(c["line_ups"] >= point["line_ups"] for c in frontier)) or \
-            (all(point["line_ups"] > c["line_ups"] for c in frontier if c["error"] <= point["error"]) and any(c["error"] <= point["error"] for c in frontier))
+    as_many = [c for c in frontier if max(seeds(c)) >= min(seeds(point))]      # none: the point has more line-ups than every control point
+    by_error = all(point["error_interval"][1] < c["error_interval"][0] for c in as_many)
+    as_low = [c for c in frontier if c["error_interval"][0] <= point["error_interval"][1]]   # none: its error is below every control point's
+    by_line_ups = all(min(seeds(point)) > max(seeds(c)) for c in as_low)
+    plain = all(point["error"] < c["error"] for c in frontier if c["line_ups"] >= point["line_ups"]) or \
+            all(point["line_ups"] > c["line_ups"] for c in frontier if c["error"] <= point["error"])
     return dict(lower_error_than_every_control_point_with_as_many_line_ups=by_error,
                 more_line_ups_than_every_control_point_with_error_as_low=by_line_ups, outside=by_error or by_line_ups,
                 outside_by_point_estimates_alone=bool(plain))
@@ -306,7 +316,7 @@ def legality_probe():
         val.close()
     cells = out["cells"].values(); tried = sum(c["tried"] for c in cells)
     out["summary"] = dict(tried=tried, first_try_legality=(tried - sum(c["rejected"] for c in cells)) / tried,
-                          rejections=Counter({r: n for c in cells for r, n in c["reasons"]}).most_common(3))
+                          rejections=sum((Counter(dict(c["reasons"])) for c in cells), Counter()).most_common(3))
     json.dump(out, open(LEGALITY, "w")); print("MRR_LEGALITY_DONE", json.dumps(out["summary"]))
 
 
@@ -445,6 +455,7 @@ if __name__ == "__main__":
     step, args = (sys.argv[1] if len(sys.argv) > 1 else ""), sys.argv[2:]
     if step == "legality_probe": legality_probe()
     elif step == "opponents": opponents(args[0], float(args[1]))
+    elif step == "check": check(args[0], int(args[1]))
     elif step == "summary": print(json.dumps({k: v for k, v in summary().items() if k in ("verdicts_against_control", "row_verdicts", "pareto")}, indent=1)); print("MRR_SUMMARY_DONE")
     elif step == "post": post(args[0], float(args[1]), args[2])
     else: sys.exit(__doc__)

@@ -123,6 +123,8 @@ class Measures(unittest.TestCase):
         wider = R.outside_frontier(grid("sched_linear_random", 2, 0.0060, 2400), frontier)
         self.assertFalse(inside["outside"]); self.assertTrue(below["lower_error_than_every_control_point_with_as_many_line_ups"])
         self.assertTrue(wider["more_line_ups_than_every_control_point_with_error_as_low"])
+        best = R.outside_frontier(grid("sched_linear_random", 2, 0.0030, 2400), frontier)     # more line-ups and a lower error than every control point
+        self.assertTrue(best["outside"]); self.assertTrue(best["outside_by_point_estimates_alone"])
 
 
 class Post(unittest.TestCase):
