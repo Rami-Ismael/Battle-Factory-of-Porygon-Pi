@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validation loss by epoch, each model under its own masking rate</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:420px}
+</style>
+</head>
+<body>
+<main>
+<h1>Validation loss by epoch, each model under its own masking rate</h1>
+<p class="sub">The two curves are measured under different masking rates, so they are not comparable with each other. Read each curve for its own lowest epoch; compare the models in the 2-by-2 chart.</p>
+<div id="chart"></div>
+<p class="note">Pins mark the epoch early stopping kept: the lowest validation loss, patience 3, cap 80. Validation loss: the 84-field model&#x27;s loss on the labelled validation teams of the shuffled-only table, 4 mask draws, seed 12345.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0}, "grid": {"left": 56, "right": 24, "top": 48, "bottom": 72}, "tooltip": {"trigger": "axis"}, "xAxis": {"type": "value", "name": "Epoch", "nameLocation": "middle", "nameGap": 28, "minInterval": 1, "min": 1}, "yAxis": {"type": "value", "name": "Validation loss", "nameLocation": "middle", "nameGap": 44, "scale": true}, "series": [{"name": "Per-field masking rate", "type": "line", "symbolSize": 5, "lineStyle": {"color": "#2a78d6", "width": 2.5}, "itemStyle": {"color": "#2a78d6"}, "emphasis": {"focus": "series"}, "data": [[1, 2.2539], [2, 2.1999], [3, 2.1758], [4, 2.1598], [5, 2.1468], [6, 2.1356], [7, 2.126], [8, 2.1177], [9, 2.1103], [10, 2.1038], [11, 2.0984], [12, 2.0933], [13, 2.0878], [14, 2.0828], [15, 2.0787], [16, 2.0753], [17, 2.0717], [18, 2.0684], [19, 2.0649], [20, 2.0616], [21, 2.0591], [22, 2.0565], [23, 2.054], [24, 2.0516], [25, 2.0492], [26, 2.0473], [27, 2.0451], [28, 2.0435], [29, 2.0419], [30, 2.0399], [31, 2.038], [32, 2.0363], [33, 2.0345], [34, 2.033], [35, 2.0311], [36, 2.0296], [37, 2.028], [38, 2.0268], [39, 2.0257], [40, 2.0245], [41, 2.0233], [42, 2.022], [43, 2.0208], [44, 2.0197], [45, 2.0184], [46, 2.0172], [47, 2.0161], [48, 2.0153], [49, 2.0147], [50, 2.0139], [51, 2.0132], [52, 2.0124], [53, 2.0115], [54, 2.0105], [55, 2.0097], [56, 2.0093], [57, 2.0088], [58, 2.0081], [59, 2.0075], [60, 2.007], [61, 2.0065], [62, 2.0062], [63, 2.0057], [64, 2.0054], [65, 2.0051], [66, 2.0049], [67, 2.0045], [68, 2.0041], [69, 2.0039], [70, 2.0036], [71, 2.0035], [72, 2.0033], [73, 2.0031], [74, 2.003], [75, 2.0029], [76, 2.0028], [77, 2.0027], [78, 2.0027], [79, 2.0027], [80, 2.0026]], "markPoint": {"symbol": "pin", "symbolSize": 38, "itemStyle": {"color": "#2a78d6"}, "label": {"formatter": "kept\n80", "fontSize": 10}, "data": [{"name": "kept epoch 80", "coord": [80, 2.0026], "value": 2.0026}]}}, {"name": "Linear masking rate", "type": "line", "symbolSize": 5, "lineStyle": {"color": "#1baf7a", "width": 2.5}, "itemStyle": {"color": "#1baf7a"}, "emphasis": {"focus": "series"}, "data": [[1, 2.2923], [2, 2.2252], [3, 2.1972], [4, 2.1778], [5, 2.1645], [6, 2.1528], [7, 2.1428], [8, 2.1333], [9, 2.1254], [10, 2.1186], [11, 2.1126], [12, 2.1073], [13, 2.1023], [14, 2.0973], [15, 2.0925], [16, 2.0884], [17, 2.0845], [18, 2.0814], [19, 2.0778], [20, 2.0744], [21, 2.072], [22, 2.0696], [23, 2.0674], [24, 2.0644], [25, 2.0621], [26, 2.06], [27, 2.0581], [28, 2.0564], [29, 2.0546], [30, 2.0529], [31, 2.0506], [32, 2.0486], [33, 2.0468], [34, 2.0452], [35, 2.0435], [36, 2.042], [37, 2.0405], [38, 2.0392], [39, 2.0378], [40, 2.0366], [41, 2.0356], [42, 2.0345], [43, 2.0332], [44, 2.032], [45, 2.0311], [46, 2.0302], [47, 2.0292], [48, 2.0284], [49, 2.0273], [50, 2.0265], [51, 2.0255], [52, 2.0245], [53, 2.0237], [54, 2.0229], [55, 2.022], [56, 2.0213], [57, 2.0207], [58, 2.0201], [59, 2.0195], [60, 2.019], [61, 2.0185], [62, 2.0181], [63, 2.0176], [64, 2.0172], [65, 2.0168], [66, 2.0165], [67, 2.0161], [68, 2.0158], [69, 2.0154], [70, 2.0151], [71, 2.0149], [72, 2.0148], [73, 2.0146], [74, 2.0146], [75, 2.0144], [76, 2.0144], [77, 2.0143], [78, 2.0143], [79, 2.0142], [80, 2.0142]], "markPoint": {"symbol": "pin", "symbolSize": 38, "itemStyle": {"color": "#1baf7a"}, "label": {"formatter": "kept\n80", "fontSize": 10}, "data": [{"name": "kept epoch 80", "coord": [80, 2.0142], "value": 2.0142}]}}], "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 18, "bottom": 8}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

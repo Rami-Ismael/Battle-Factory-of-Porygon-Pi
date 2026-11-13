@@ -175,12 +175,23 @@ def cross_rate(model, table, validation, limit=None):
     rows, labels = table["all_X"][validation], table["all_W"][validation]
     if limit: rows, labels = rows[:limit], labels[:limit]
     net = model.net.eval()
-    losses, seconds = {}, {}
+    accepted = ~model.tables.check(np.asarray(rows, np.int64)[:, :M.STAT0])   # training drops the teams the tables exclude
+    losses, losses_accepted, seconds = {}, {}, {}
     for key, exponents in RATES.items():
         started = time.time()
         losses[key] = M.val_loss(net, model.tables, rows, labels, masking_rate_tensor(model, exponents))
         seconds[key] = time.time() - started
-    return dict(validation_loss=losses, seconds=seconds, validation_teams=len(rows), own_masking_rate=own_rate(model.info))
+        losses_accepted[key] = M.val_loss(net, model.tables, rows[accepted], labels[accepted], masking_rate_tensor(model, exponents))
+    return dict(validation_loss=losses, seconds=seconds, validation_teams=len(rows), own_masking_rate=own_rate(model.info),
+                validation_loss_tables_accepted=losses_accepted, validation_teams_tables_accepted=int(accepted.sum()))
+
+
+def comparable_losses(cross):
+    """The losses to compare between models: without the validation teams the legal Pokémon construction tables exclude,
+    whose forbidden values cost about 10,000 each when hidden. Results saved before that reading existed give all teams."""
+    if "validation_loss_tables_accepted" in cross:
+        return cross["validation_loss_tables_accepted"], cross["validation_teams_tables_accepted"]
+    return cross["validation_loss"], cross["validation_teams"]
 
 
 def own_rate_check(result, info):
@@ -300,18 +311,18 @@ def two_by_two_chart(found, out_dir):
     colors = dict(per_field="#2a78d6", linear="#1baf7a")
     series = [dict(name=f"Scored under the {RATE_WORDS[key]}", type="bar", barGap="12%", itemStyle=dict(color=colors[key]),
                    emphasis=dict(focus="series"), label=dict(show=True, position="top", color=PLAIN),
-                   data=[round(result["validation_loss"][key], 4) for result in have.values()]) for key in RATES]
+                   data=[round(comparable_losses(result)[0][key], 4) for result in have.values()]) for key in RATES]
     option = dict(legend=dict(top=0), grid=dict(left=56, right=24, top=56, bottom=48),
                   tooltip=dict(trigger="axis", axisPointer=dict(type="shadow")),
                   xAxis=dict(type="category", data=labels, name="Model, by the masking rate it trained with", nameLocation="middle", nameGap=30),
                   yAxis=dict(type="value", name="Validation loss", nameLocation="middle", nameGap=44, scale=True), series=series)
-    teams = sorted({result["validation_teams"] for result in have.values()})
+    teams = sorted({comparable_losses(result)[1] for result in have.values()})
     return write_chart(option, Path(out_dir) / "04b_validation_loss_two_by_two.html",
                        title="Validation loss of each model under each masking rate",
                        subtitle="Expected: each model is lowest under the masking rate it trained on. Only bars of one color are comparable "
                                 "with each other: a loss is comparable only with another measured under the same masking rate.",
                        note=f"Each model at its kept epoch, scored on {', '.join(map(str, teams))} labelled validation teams of the shuffled-only "
-                            "table, 4 mask draws, seed 12345. Source: masking_rate_cross_rate_<checkpoint>.json.")
+                            "table, without the teams the legal Pokémon construction tables exclude, 4 mask draws, seed 12345. Source: masking_rate_cross_rate_<checkpoint>.json.")
 
 
 def gap_chart(found, out_dir):
@@ -366,7 +377,7 @@ def summary(run_info_dir=X.RES, results_dir=RESULTS):
         info = entry["run"]
         if info is None: continue
         cross, gap_result = entry["cross"], entry["gap"]
-        losses = [f"{cross['validation_loss'][key]:.4f}" if cross else "not measured" for key in RATES]
+        losses = [f"{comparable_losses(cross)[0][key]:.4f}" if cross else "not measured" for key in RATES]
         if gap_result:
             reading = headline_gap(gap_result); low, high = gap_interval(reading)
             gap_text = f"{reading['gap']:+.4f} ({low:+.4f} to {high:+.4f})"
@@ -376,7 +387,7 @@ def summary(run_info_dir=X.RES, results_dir=RESULTS):
         lines.append(f"| {MODELS[checkpoint]['label']} | {kept_epoch(info)} | {stopped_epoch(info)} | "
                      f"{'' if minutes is None else f'{minutes:.1f}'} | {' | '.join(losses)} | {gap_text} |")
     lines += ["", "Each model is read at its kept epoch, the lowest validation loss. Validation loss on the labelled validation teams "
-              "of the shuffled-only table; a loss is comparable only with another measured under the same masking rate. "
+              "of the shuffled-only table, without the teams the legal Pokémon construction tables exclude; a loss is comparable only with another measured under the same masking rate. "
               "Gap: validation minus training loss, the same function on as many training teams as validation teams, each model "
               "under its own masking rate, 128 mask draws; the interval is ± 1.96 standard errors."]
     absent = [path for paths in missing.values() for path in paths]

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13"><rect width="1000" height="640" fill="#ffffff"/>
+<text x="20" y="28" fill="#1f2328" font-size="16" font-weight="600" text-anchor="start">Both trainings ran all 80 epochs. Each model is best under the masking rate it trained on.</text>
+<text x="20" y="62" fill="#1f2328" font-size="13" font-weight="600" text-anchor="start">1. Validation loss by epoch, as logged in training</text>
+<text x="20" y="80" fill="#59636e" font-size="12" font-weight="400" text-anchor="start">Each under its own masking rate, so the two lines are not comparable</text>
+<line x1="60" x2="440" y1="270.0" y2="270.0" stroke="#d1d9e0"/>
+<text x="52" y="274.0" fill="#59636e" font-size="12" font-weight="400" text-anchor="end">2.0</text>
+<line x1="60" x2="440" y1="213.33333333333326" y2="213.33333333333326" stroke="#d1d9e0"/>
+<text x="52" y="217.33333333333326" fill="#59636e" font-size="12" font-weight="400" text-anchor="end">2.1</text>
+<line x1="60" x2="440" y1="156.66666666666652" y2="156.66666666666652" stroke="#d1d9e0"/>
+<text x="52" y="160.66666666666652" fill="#59636e" font-size="12" font-weight="400" text-anchor="end">2.2</text>
+<line x1="60" x2="440" y1="100.0" y2="100.0" stroke="#d1d9e0"/>
+<text x="52" y="104.0" fill="#59636e" font-size="12" font-weight="400" text-anchor="end">2.3</text>
+<text x="60.0" y="288" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">1</text>
+<text x="151.39240506329114" y="288" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">20</text>
+<text x="247.59493670886076" y="288" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">40</text>
+<text x="343.79746835443035" y="288" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">60</text>
+<text x="440.0" y="288" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">80</text>
+<text x="250.0" y="306" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">epoch</text>
+<polyline points="60.0,126.1 64.8,156.7 69.6,170.4 74.4,179.5 79.2,186.8 84.1,193.2 88.9,198.6 93.7,203.3 98.5,207.5 103.3,211.2 108.1,214.3 112.9,217.1 117.7,220.2 122.5,223.1 127.3,225.4 132.2,227.4 137.0,229.4 141.8,231.2 146.6,233.2 151.4,235.1 156.2,236.5 161.0,238.0 165.8,239.4 170.6,240.8 175.4,242.1 180.3,243.2 185.1,244.4 189.9,245.4 194.7,246.2 199.5,247.4 204.3,248.5 209.1,249.4 213.9,250.5 218.7,251.3 223.5,252.3 228.4,253.2 233.2,254.1 238.0,254.8 242.8,255.4 247.6,256.1 252.4,256.8 257.2,257.5 262.0,258.2 266.8,258.8 271.6,259.6 276.5,260.2 281.3,260.9 286.1,261.3 290.9,261.7 295.7,262.1 300.5,262.5 305.3,263.0 310.1,263.5 314.9,264.1 319.7,264.5 324.6,264.8 329.4,265.0 334.2,265.4 339.0,265.7 343.8,266.0 348.6,266.3 353.4,266.5 358.2,266.8 363.0,267.0 367.8,267.1 372.7,267.2 377.5,267.4 382.3,267.7 387.1,267.8 391.9,267.9 396.7,268.0 401.5,268.1 406.3,268.2 411.1,268.3 415.9,268.4 420.8,268.4 425.6,268.5 430.4,268.5 435.2,268.5 440.0,268.5" fill="none" stroke="#bc4c00" stroke-width="2"/>
+<polyline points="60.0,104.4 64.8,142.4 69.6,158.3 74.4,169.2 79.2,176.8 84.1,183.4 88.9,189.1 93.7,194.4 98.5,198.9 103.3,202.8 108.1,206.2 112.9,209.2 117.7,212.0 122.5,214.9 127.3,217.6 132.2,219.9 137.0,222.1 141.8,223.9 146.6,225.9 151.4,227.8 156.2,229.2 161.0,230.6 165.8,231.8 170.6,233.5 175.4,234.8 180.3,236.0 185.1,237.1 189.9,238.0 194.7,239.1 199.5,240.0 204.3,241.3 209.1,242.5 213.9,243.5 218.7,244.4 223.5,245.3 228.4,246.2 233.2,247.1 238.0,247.8 242.8,248.6 247.6,249.2 252.4,249.8 257.2,250.4 262.0,251.2 266.8,251.9 271.6,252.4 276.5,252.9 281.3,253.4 286.1,253.9 290.9,254.5 295.7,255.0 300.5,255.6 305.3,256.1 310.1,256.6 314.9,257.0 319.7,257.5 324.6,258.0 329.4,258.3 334.2,258.6 339.0,259.0 343.8,259.2 348.6,259.5 353.4,259.7 358.2,260.0 363.0,260.3 367.8,260.5 372.7,260.7 377.5,260.9 382.3,261.1 387.1,261.3 391.9,261.5 396.7,261.6 401.5,261.6 406.3,261.7 411.1,261.7 415.9,261.8 420.8,261.9 425.6,261.9 430.4,261.9 435.2,261.9 440.0,261.9" fill="none" stroke="#0969da" stroke-width="2"/>
+<text x="436" y="122" fill="#0969da" font-size="12" font-weight="400" text-anchor="end">Linear model, 2.0142 at epoch 80</text>
+<text x="436" y="140" fill="#bc4c00" font-size="12" font-weight="400" text-anchor="end">Per-field model, 2.0026 at epoch 80</text>
+<text x="540" y="62" fill="#1f2328" font-size="13" font-weight="600" text-anchor="start">2. Validation loss under both masking rates</text>
+<text x="540" y="80" fill="#59636e" font-size="12" font-weight="400" text-anchor="start">4,368 validation teams. Compare within a column. Lower is better</text>
+<text x="740.0" y="110" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">scored under the</text>
+<text x="740.0" y="126" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">per-field masking rate</text>
+<text x="890.0" y="110" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">scored under the</text>
+<text x="890.0" y="126" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">linear masking rate</text>
+<text x="540" y="170.0" fill="#bc4c00" font-size="13" font-weight="600" text-anchor="start">Per-field model</text>
+<rect x="668" y="137" width="144" height="56" rx="6" fill="none" stroke="#1a7f37" stroke-width="2"/>
+<text x="740.0" y="172.0" fill="#1f2328" font-size="19" font-weight="600" text-anchor="middle">1.4541</text>
+<rect x="818" y="137" width="144" height="56" rx="6" fill="none" stroke="#d1d9e0" stroke-width="1"/>
+<text x="890.0" y="172.0" fill="#1f2328" font-size="19" font-weight="400" text-anchor="middle">1.6477</text>
+<text x="540" y="232.0" fill="#0969da" font-size="13" font-weight="600" text-anchor="start">Linear model</text>
+<rect x="668" y="199" width="144" height="56" rx="6" fill="none" stroke="#d1d9e0" stroke-width="1"/>
+<text x="740.0" y="234.0" fill="#1f2328" font-size="19" font-weight="400" text-anchor="middle">1.4735</text>
+<rect x="818" y="199" width="144" height="56" rx="6" fill="none" stroke="#1a7f37" stroke-width="2"/>
+<text x="890.0" y="234.0" fill="#1f2328" font-size="19" font-weight="600" text-anchor="middle">1.5987</text>
+<text x="740.0" y="278" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">linear model +0.0194</text>
+<text x="890.0" y="278" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">linear model -0.0491</text>
+<text x="540" y="302" fill="#1a7f37" font-size="12" font-weight="400" text-anchor="start">Green outline: the lower loss in that column</text>
+<text x="20" y="350" fill="#1f2328" font-size="13" font-weight="600" text-anchor="start">3. Training-versus-validation gap</text>
+<text x="20" y="368" fill="#59636e" font-size="12" font-weight="400" text-anchor="start">Validation minus training loss on about 4,370 teams a side. 95% interval</text>
+<line x1="200.0" x2="200.0" y1="384" y2="480" stroke="#59636e" stroke-dasharray="4 3"/>
+<text x="200.0" y="498" fill="#59636e" font-size="12" font-weight="400" text-anchor="middle">0, no gap</text>
+<text x="20" y="416" fill="#bc4c00" font-size="13" font-weight="600" text-anchor="start">Per-field model</text>
+<line x1="182.27541972954472" x2="290.2000136200647" y1="412" y2="412" stroke="#bc4c00" stroke-width="3"/><circle cx="236.2377166748047" cy="412" r="5" fill="#bc4c00"/>
+<text x="330" y="416" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">+0.0121 (-0.0059 to +0.0301)</text>
+<text x="20" y="460" fill="#0969da" font-size="13" font-weight="600" text-anchor="start">Linear model</text>
+<line x1="162.08180107156508" x2="269.94019828756575" y1="456" y2="456" stroke="#0969da" stroke-width="3"/><circle cx="216.01099967956543" cy="456" r="5" fill="#0969da"/>
+<text x="330" y="460" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">+0.0053 (-0.0126 to +0.0233)</text>
+<text x="20" y="522" fill="#59636e" font-size="12" font-weight="400" text-anchor="start">Both intervals include 0: no measured overfitting in either model</text>
+<text x="540" y="350" fill="#1f2328" font-size="13" font-weight="600" text-anchor="start">4. t check on the per-field model</text>
+<text x="540" y="368" fill="#59636e" font-size="12" font-weight="400" text-anchor="start">Largest move of the drawing distribution under the corrected t</text>
+<text x="540" y="402" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">Species</text>
+<rect x="660" y="390" width="21.1" height="15" rx="3" fill="#bc4c00"/>
+<text x="687.0781053869546" y="402" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">0.0010</text>
+<text x="540" y="426" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">Ability and item</text>
+<rect x="660" y="414" width="44.6" height="15" rx="3" fill="#bc4c00"/>
+<text x="710.5952954921975" y="426" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">0.0021</text>
+<text x="540" y="450" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">Moves</text>
+<rect x="660" y="438" width="108.5" height="15" rx="3" fill="#bc4c00"/>
+<text x="774.5360049101938" y="450" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">0.0050</text>
+<text x="540" y="474" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">Stat Alignment</text>
+<rect x="660" y="462" width="168.2" height="15" rx="3" fill="#bc4c00"/>
+<text x="834.221322948941" y="474" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">0.0078</text>
+<text x="540" y="498" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">Stat Points</text>
+<rect x="660" y="486" width="75.1" height="15" rx="3" fill="#bc4c00"/>
+<text x="741.1415316200884" y="498" fill="#1f2328" font-size="12" font-weight="400" text-anchor="start">0.0035</text>
+<line x1="876.6666666666667" x2="876.6666666666667" y1="382" y2="512" stroke="#1f2328" stroke-dasharray="4 3"/>
+<text x="876.6666666666667" y="528" fill="#1f2328" font-size="12" font-weight="400" text-anchor="middle">bar 0.01</text>
+<text x="540" y="554" fill="#1a7f37" font-size="12" font-weight="400" text-anchor="start">All under the bar: Per-field, corrected t gets no battle grid</text>
+<text x="20" y="606" fill="#59636e" font-size="12" font-weight="400" text-anchor="start">Models: 84-field, labelled teams of the shuffled-only table, 214,066 training teams, training seed 0. Panels 2 and 3 leave out the 12 validation teams</text>
+<text x="20" y="624" fill="#59636e" font-size="12" font-weight="400" text-anchor="start">that the legal Pokémon construction tables exclude. The logged losses in panel 1 include them.</text>
+</svg>
