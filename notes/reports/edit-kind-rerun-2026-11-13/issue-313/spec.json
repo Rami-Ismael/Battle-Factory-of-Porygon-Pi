@@ -2,9 +2,9 @@
  "issue": 313,
  "title": "Rerun the one-edit study per edit kind with shuffled slots against the full meta",
  "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/313",
- "headline": "Swapping a whole Pokemon or one move changes win rate more than a step on a standard benchmark does",
+ "headline": "Swapping one whole Pokemon moves a team further than one step moves a standard benchmark",
  "setup": "A team is six Pokemon, listed in six slots. The meta is the 50 highest-placing team files, one team listed twice. We change one thing on a team, battle the old and the new team against the meta, and see how far the win rate moves. September's battles used rules the project no longer counts, so the study ran again.",
- "alt": "Eight frames. The rerun battled every team against all 50 meta files with the six Pokemon shuffled before each battle. An edit changes one thing on one Pokemon, in one of six kinds, and each kind is tried 3 times on a team. Replays of the unchanged team show battle noise, about 3.40 points. With noise removed, one edit moves win rate by 5.90 points for a whole Pokemon swap, 4.84 for a move, 4.35 for an item, 3.66 for an ability, 1.95 for stat alignment and 1.60 for Stat Points. No size cutoff is used. Four kinds have a 95% interval above zero from tournament-ready teams, and the two Stat kinds do not. As a share of the 9.04-point spread between teams, the same four kinds are larger than one step on the Pest Control benchmark, which is 0.14 of its own spread. From search-found teams only the whole Pokemon swap and the move edit hold.",
+ "alt": "Eight frames. The rerun battled every team against all 50 meta files with the six Pokemon shuffled before each battle. An edit changes one thing on one Pokemon, in one of six kinds, and each kind is tried 3 times on a team. Replays of the unchanged team show battle noise, about 3.40 points. With noise removed, one edit moves win rate by 5.90 points for a whole Pokemon swap, 4.84 for a move, 4.35 for an item, 3.66 for an ability, 1.95 for stat alignment and 1.60 for Stat Points. No size cutoff is used. Four kinds have a 95% interval above zero from tournament-ready teams, and the two Stat kinds do not. As a share of the 9.04-point spread between teams, the whole Pokemon swap is 0.65, larger than one step on the Pest Control benchmark, which is 0.37 of the spread between its random starting points and 0.32 between its hill-climbed ones. Move, item and ability edits are undecided against that step. From search-found teams only the whole Pokemon swap and the move edit are above zero.",
  "terms": [
   [
    "Edit kind",
@@ -48,11 +48,11 @@
   ],
   [
    "Share of the spread",
-   "An edit's size divided by the spread between teams. A share of 0.65 means one edit moves a team about two thirds as far as teams differ from each other"
+   "An edit's size divided by the spread between teams. A share of 0.65 means one edit moves a team by 0.65 of one standard deviation of team scores"
   ],
   [
    "One Pest Control step",
-   "Reading 2. Pest Control is a standard optimisation benchmark where one step barely changes the score: 0.14 of that benchmark's own spread. An edit kind is larger when the interval of its share minus the step's share sits above zero, and undecided when that interval includes zero"
+   "Reading 2. Pest Control is a standard optimisation benchmark. One step on it is 0.37 of the spread between its random starting points and 0.32 between its hill-climbed ones. The two kinds of starting point are not pooled, because their average scores differ and that gap would make the step look small. An edit kind is larger when the interval of its share minus the step's share sits above zero for both, and undecided when that interval includes zero"
   ],
   [
    "The dropped 5-point line",
@@ -82,12 +82,12 @@
      "lines": [
       "All 50 meta files as opponents",
       "Pokemon shuffled before every battle",
-      "Same edits and the same analysis plan"
+      "Same six kinds of edit"
      ]
     }
    },
    "takes": "The rerun fixes the opponents and the slot order, and changes nothing else on purpose.",
-   "measured": "One thing changed by accident: the 24 tournament-ready starting teams are a fresh draw, 2 shared with September, so the two runs are not paired."
+   "measured": "Two things changed that were not planned. The 24 tournament-ready starting teams are a fresh draw, 2 shared with September, so the two runs are not paired. And the reading in frames 6 to 8 was chosen after the result."
   },
   {
    "title": "2. The six kinds of edit, on one real team",
@@ -276,7 +276,7 @@
      }
     ]
    },
-   "takes": "An edit kind is real when its whole interval, the thin capped line, sits above zero. Four kinds are. Stat alignment and Stat Points reach zero, so they may do nothing.",
+   "takes": "An edit kind is real when its whole interval, the thin capped line, sits above zero. Four kinds are. Stat alignment and Stat Points reach zero, so no effect is shown for them, which is not proof they do nothing.",
    "measured": "The whole Pokemon swap is 5.90 points, interval 4.78 to 7.01. From search-found teams only the whole Pokemon swap, 5.85, and the move edit, 4.92, stay above zero."
   },
   {
@@ -301,7 +301,7 @@
        0.35,
        0.82
       ],
-      "tone": "c1",
+      "tone": "plain",
       "note": "0.54"
      },
      {
@@ -311,7 +311,7 @@
        0.26,
        0.73
       ],
-      "tone": "c1",
+      "tone": "plain",
       "note": "0.48"
      },
      {
@@ -321,7 +321,7 @@
        0.24,
        0.62
       ],
-      "tone": "c1",
+      "tone": "plain",
       "note": "0.40"
      },
      {
@@ -346,14 +346,14 @@
      }
     ],
     "line": {
-     "at": 0.14,
-     "label": "one Pest Control step, 0.14",
+     "at": 0.37,
+     "label": "one Pest Control step, 0.32 to 0.37",
      "corner": true,
      "tone": "c3"
     }
    },
-   "takes": "The yardstick is a benchmark, not a number someone picked. Each size is divided by how far teams' scores spread, 9.04 points. One step on Pest Control is 0.14 of that benchmark's own spread.",
-   "measured": "A whole Pokemon swap is 0.65 of the spread, more than four times the benchmark's step. The four real kinds are larger than the step. The two Stat kinds cannot be told apart from it."
+   "takes": "The yardstick is a benchmark, not a number someone picked. Each size is divided by how far teams' scores spread, 9.04 points. One step on Pest Control is 0.37 of the spread between its random starting points, and 0.32 between its hill-climbed ones.",
+   "measured": "A whole Pokemon swap is 0.65 of the spread, and its interval clears the step. Move, item and ability edits sit above the step, but their intervals reach it, so they are undecided."
   },
   {
    "title": "8. The two readings, kind by kind",
@@ -378,27 +378,17 @@
        "tone": "ok"
       },
       {
-       "text": "Yes, both groups",
-       "tone": "ok"
-      }
-     ],
-     [
-      {
-       "text": "Yes, both groups",
-       "tone": "ok"
-      },
-      {
-       "text": "Yes, both groups",
-       "tone": "ok"
-      }
-     ],
-     [
-      {
        "text": "Tournament-ready only",
        "tone": "warn"
+      }
+     ],
+     [
+      {
+       "text": "Yes, both groups",
+       "tone": "ok"
       },
       {
-       "text": "Tournament-ready only",
+       "text": "Undecided",
        "tone": "warn"
       }
      ],
@@ -408,7 +398,17 @@
        "tone": "warn"
       },
       {
+       "text": "Undecided",
+       "tone": "warn"
+      }
+     ],
+     [
+      {
        "text": "Tournament-ready only",
+       "tone": "warn"
+      },
+      {
+       "text": "Undecided",
        "tone": "warn"
       }
      ],
@@ -434,8 +434,8 @@
      ]
     ]
    },
-   "takes": "Two kinds are real and larger than the benchmark's step from both groups of teams: the whole Pokemon swap and the move edit. Item and ability edits join them from tournament-ready teams only.",
-   "measured": "The plan of 2026-09-28 also required a change of at least 5 points, with no reason for the number, and under it only the whole Pokemon swap passed. That line was removed on 2026-11-13, after the result, so this frame is a reading made afterwards."
+   "takes": "Two kinds are real from both groups of teams: the whole Pokemon swap and the move edit. Only the whole Pokemon swap is shown larger than the benchmark's step, and only from tournament-ready teams.",
+   "measured": "Corrected 2026-11-13: an earlier version pooled the benchmark's two kinds of starting point, which made its step 0.14 and four kinds larger. The plan of 2026-09-28 also required a change of at least 5 points, with no reason for the number. That line was removed after the result, so this frame is a reading made afterwards."
   }
  ]
 }
