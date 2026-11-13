@@ -130,15 +130,30 @@ def record_option(option, texts=()):
     _, ycat = _category_axes(option)
     pts = set()
     for s in option.get("series", []):
-        pts |= _series_points(s, ycat[s.get("yAxisIndex", 0)] if ycat else False)
+        axis = s.get("yAxisIndex", 0)
+        if not 0 <= axis < len(ycat):
+            raise ValueError(f"series {s.get('name', '(unnamed)')!r} has yAxisIndex {axis}, but the option has {len(ycat)} y axis"
+                             + ("" if len(ycat) == 1 else "es"))
+        pts |= _series_points(s, ycat[axis])
     words = _option_texts(option, set()) | {t.strip() for t in texts if t and t.strip()}
     return {"texts": sorted(w for w in words if w), "points": sorted([list(p) for p in pts])}
 
 
 def missing(golden, record, digits=DIGITS - 1):
     """Golden words and points the record does not carry, as two lists. Empty lists mean the port says the same.
-    Points match after rounding both sides to `digits` decimals."""
+    A golden point is carried when a recorded point lies within 10^-digits of it on both coordinates. Rounding both
+    sides and comparing would split two values that sit either side of a rounding boundary."""
     words = sorted(set(golden["texts"]) - set(record["texts"]))
-    have = {(round(x, digits), round(y, digits)) for x, y in record["points"]}
-    lost = [p for p in golden["points"] if (round(p[0], digits), round(p[1], digits)) not in have]
+    tolerance = 10.0 ** -digits * (1 + 1e-9)             # the 1e-9 absorbs float error at exactly one unit apart
+    cell = lambda value: math.floor(value / tolerance)   # points within the tolerance fall in the same or a neighbouring cell
+    by_cell = {}
+    for x, y in record["points"]:
+        by_cell.setdefault((cell(x), cell(y)), []).append((x, y))
+
+    def carried(x, y):
+        return any(abs(x - other_x) <= tolerance and abs(y - other_y) <= tolerance
+                   for step_x in (-1, 0, 1) for step_y in (-1, 0, 1)
+                   for other_x, other_y in by_cell.get((cell(x) + step_x, cell(y) + step_y), ()))
+
+    lost = [p for p in golden["points"] if not carried(p[0], p[1])]
     return words, lost
