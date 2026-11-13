@@ -1,6 +1,6 @@
 ---
 created_at: 2026-10-20
-updated_at: 2026-11-11
+updated_at: 2026-11-13
 tags:
   - vocabulary
 ---
@@ -206,6 +206,11 @@ _Avoid_: pass/fail, beats the baseline
 A model that predicts a team's win rate without battling it.
 _Avoid_: oracle
 
+**Surrogate model**:
+A network that predicts a team's win rate, and any measures, from the team itself, standing in for battles during search. Search runs on the surrogate in an inner loop; the best teams it finds are battled in an outer loop, and the surrogate is retrained on them, including the teams that fooled it (online training).
+_Origin_: Deep Surrogate Assisted MAP-Elites, Zhang et al., GECCO 2022, [arXiv 2112.03534](https://arxiv.org/abs/2112.03534), §3.1 to §3.3; cites Gaier et al. 2018 (SAIL).
+_Distinguish_: matchup predictor, the model alone; a surrogate model is a matchup predictor used inside search and retrained on the battled teams search finds.
+
 **Battle policy**:
 The program that plays each battle.
 _Avoid_: bot
@@ -238,15 +243,24 @@ A discrete diffusion model whose forward process replaces each token with a valu
 _Origin_: the uniform transition in D3PM (Austin et al. 2021); UDLM, [Schiff et al. 2024](https://arxiv.org/abs/2412.10193), which adds guidance; Duo, [Sahoo et al. 2025](https://s-sahoo.com/duo/), which shows it arises from an underlying Gaussian diffusion.
 _Avoid_: uniform diffusion model (the name until 2026-11-11), uniform-noise model, uniform-state diffusion (the papers' name)
 
-**Masking rate**:
-The probability that the forward process has corrupted a field by time t: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. The per-field masking rate gives each field type its own: t to the power 16 for species, 4 for ability and item, 1.5 for moves, 1 for Stat Alignment and Stat Points. The linear masking rate corrupts every field with probability t.
-_Origin_: the linear masking rate is MD4's "linear schedule" (Shi et al. 2024).
-_Avoid_: noise schedule, scheduler, shared masking rate
-
 **Partial masking**:
 Writing each token's vocabulary index as ℓ digits in base b and masking the digits independently, so a token can be masked, unmasked, or partly revealed in between. On OpenWebText the authors report idle passes falling from 37% to 0.25% at ℓ = 6, and the first masked diffusion model to beat an autoregressive model on perplexity without autoregression (15.36 against 17.54).
 _Origin_: MDM-Prime, [Chao et al., NeurIPS 2025](https://arxiv.org/abs/2505.18495), with a [project page](https://chen-hao-chao.github.io/mdm-prime/).
 _Avoid_: Prime (alone), sub-tokenization (the tokenizer sense)
+
+**Soft masking**:
+Feeding a still-masked field into the next pass as a blend of the mask embedding and its k most likely values: (1 − λ)·mask + λ·Σ πᵢ·valueᵢ, where π renormalises the top-k probabilities and λ, between 0 and 1, rises as the field's entropy falls. k = 3 by default. Filled fields are unchanged. Not yet run here.
+_Origin_: [Hersche et al., ICLR 2026](https://arxiv.org/abs/2510.17206), §3.1.
+_Distinguish_: partial masking reveals part of a token's index; soft masking keeps the mask and adds the model's guesses.
+
+**Temporal oscillation**:
+A sample that is right at some middle pass and wrong at the last. Measured as the ever-pass rate, the share right at any pass, minus the final pass rate; LLaDA on GSM8K: 80.5% against 68.5%. Under plain masking a filled field never changes, so here it can show only in the model's prediction of the finished team, or under remasking and in uniform discrete diffusion models. "Right" would mean legal, or got near the ask.
+_Origin_: [Wang et al. 2025](https://arxiv.org/abs/2508.09138), §3.2.
+
+**Training–sampling mismatch**:
+Training shows the model partly masked teams drawn by the masking rate, but sampling starts fully masked and follows one decoding order, so many training states never occur while sampling. Under species-first order, the linear masking rate spends training on states, such as moves visible with species masked, that the sampler never reaches; the per-field masking rate keeps species visible and so matches that order.
+_Origin_: the [dLLM ICLR 2026 blog post](https://iclr-blogposts.github.io/2026/blog/2026/dllm/), Reverse Process.
+_Avoid_: training–inference discrepancy, exposure bias (the autoregressive term)
 
 **Concrete score**:
 For a sequence x and a neighbour y that differs in one token, the ratio p(y)/p(x): the discrete counterpart of the score in continuous diffusion. A model that learns these ratios can run the reverse process without a normalizing constant. Score entropy is the loss that learns them.
@@ -358,8 +372,8 @@ What a masked text diffusion model receives for infilling: a short header and th
 _Avoid_: in-place text, free-text prompt
 
 **Masking rate**:
-The chance that a field is hidden at time t while training the discrete diffusion model. It decides which partly hidden teams the model practises filling.
-_Avoid_: noise schedule, scheduler, schedule (image-diffusion words)
+The probability that the forward process has corrupted a field by time t: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. Training and validation loss draw their masks with it, so it decides which partly corrupted teams the model practises filling. Two are in use: the per-field masking rate and the linear masking rate.
+_Avoid_: noise schedule, scheduler, schedule (image-diffusion words), shared masking rate
 
 **Per-field masking rate**:
 A masking rate set per field type: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t. Species stay visible until late, so the model mostly practises filling species first. Used by every 48- and 84-field model since 2026-10-07.
@@ -374,9 +388,19 @@ _Avoid_: shared masking rate, uniform masking (uniform diffusion model is a diff
 How the discrete diffusion model fills a blank candidate until it is complete: its decoding order, how many fields each pass fills, and whether it remasks. The ask, guidance weight and temperature shape each draw; they are not part of the sampler.
 _Avoid_: decoder, generator (alone)
 
+**Guidance weight**:
+How hard each pass pushes toward the ask. The sampler mixes the field's log-probabilities with and without the ask, z = z_no ask + s·(z_ask − z_no ask): s = 1 is the plain conditional model, a larger s sticks closer to the ask and gives less varied teams. Training drops the ask on 15% of teams so one network gives both terms. Ask grids test s = 2, 4 and 8.
+_Origin_: classifier-free guidance, [Ho and Salimans 2022](https://arxiv.org/abs/2207.12598); covered in the [dLLM ICLR 2026 blog post](https://iclr-blogposts.github.io/2026/blog/2026/dllm/), Classifier-Free Guidance.
+_Avoid_: guidance scale, CFG (alone), guidance (alone)
+
 **Pass**:
 One run of the network during sampling. A pass fills one or more masked fields; one field per pass fills a team in 84 passes.
 _Avoid_: decoding step, step, iteration
+
+**Fields per pass**:
+How many masked fields a sampler fills in each pass. A fixed count fills the same number every pass; a confidence threshold fills every field the model is surer about than the threshold, with a minimum count. Ours is fixed at one field per pass.
+_Origin_: the [dLLM ICLR 2026 blog post](https://iclr-blogposts.github.io/2026/blog/2026/dllm/), Unmasking/Remasking Schedules.
+_Avoid_: commitment schedule, unmasking schedule (we avoid "schedule")
 
 **Carry-over**:
 In a masked diffusion model, a field already unmasked keeps its value: the prediction for it is fixed to that value, and only masked fields are drawn. Plain masking is carry-over; remasking breaks it on purpose.
@@ -405,6 +429,19 @@ A decoding order drawn at random for each candidate, so species, sets and Pokém
 **Confidence order**:
 The decoding order in which each pass fills, for each candidate, the masked field the model is surest about.
 _Avoid_: greedy order
+
+**Entropy order**:
+A variant of confidence order that fills, each pass, the masked field whose predicted distribution has the lowest entropy, H = −Σ p log p. Not yet run here.
+_Origin_: Dream's default decoding, [Ye et al. 2025](https://arxiv.org/abs/2508.15487), as reported by DiffuCoder (Gong et al. 2025), App. B.2; described in the [dLLM ICLR 2026 blog post](https://iclr-blogposts.github.io/2026/blog/2026/dllm/), Decoding Strategies.
+
+**Margin order**:
+A variant of confidence order that fills, each pass, the masked field with the largest gap between its two most likely values, so a field split between two close values waits. On Sudoku it solved 89.5% of puzzles where the confidence order solved 18.5%. Not yet run here.
+_Origin_: top probability margin, [Kim et al., ICML 2025](https://arxiv.org/abs/2502.06768), §4.1 and Table 2.
+
+**AR-ness**:
+How closely a decoding order follows the fields' listed order, left to right. Local AR-ness@k is the share of passes whose filled field comes right after the k fields filled before it; global AR-ness@k is the share of passes that fill one of the k earliest masked fields. Both are 1 for a left-to-right writer. Here it measures whether confidence order drifts into listed order.
+_Origin_: DiffuCoder, [Gong et al. 2025](https://arxiv.org/abs/2506.20639), §4.1 and App. A.2.
+_Avoid_: autoregressiveness (spell it AR-ness, autoregressive-ness, on first use)
 
 **Plain masking**:
 Sampling in which a filled field is never masked again, so every choice is final once drawn. The default sampler is plain masking in species-first order.
