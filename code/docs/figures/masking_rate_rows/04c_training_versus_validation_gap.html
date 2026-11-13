@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Training-versus-validation gap of each model</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:420px}
+</style>
+</head>
+<body>
+<main>
+<h1>Training-versus-validation gap of each model</h1>
+<p class="sub">The same loss function on as many training teams as validation teams, each model under its own masking rate. Above zero, the model fits its training teams better than teams it never saw.</p>
+<div id="chart"></div>
+<p class="note">Point: validation loss minus training loss; bar: 95% interval, ± 1.96 standard errors. 128 mask draws per team, seed 12345, 4368 validation teams; the teams the legal Pokémon construction tables exclude are removed from both sides. Ported from validation_accuracy.py. Source: masking_rate_gap_&lt;checkpoint&gt;.json.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0, "data": ["Gap"]}, "grid": {"left": 64, "right": 24, "top": 48, "bottom": 40}, "tooltip": {"trigger": "axis"}, "xAxis": {"type": "category", "data": ["Per-field masking rate", "Linear masking rate"]}, "yAxis": {"type": "value", "name": "Validation minus training loss", "nameLocation": "middle", "nameGap": 50}, "series": [{"name": "Gap", "type": "scatter", "symbolSize": 12, "itemStyle": {"color": "#6f6e69"}, "emphasis": {"focus": "series"}, "data": [0.0121, 0.0053], "markLine": {"symbol": "none", "silent": true, "lineStyle": {"color": "#a9a8a2", "type": "dashed"}, "label": {"formatter": "no gap", "position": "insideEndTop", "color": "#6f6e69"}, "data": [{"yAxis": 0}]}}, {"name": "95% interval, Per-field masking rate", "type": "line", "symbol": "none", "silent": true, "tooltip": {"show": false}, "lineStyle": {"color": "#2a78d6", "width": 3}, "data": [["Per-field masking rate", -0.0059], ["Per-field masking rate", 0.0301]]}, {"name": "95% interval, Linear masking rate", "type": "line", "symbol": "none", "silent": true, "tooltip": {"show": false}, "lineStyle": {"color": "#1baf7a", "width": 3}, "data": [["Linear masking rate", -0.0126], ["Linear masking rate", 0.0233]]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
