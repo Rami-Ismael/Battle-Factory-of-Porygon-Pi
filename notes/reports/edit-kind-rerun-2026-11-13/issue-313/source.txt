@@ -1,0 +1,84 @@
+Rerun the one-edit study per edit kind with shuffled slots against the full meta
+
+## What this run answers
+
+How much does one legal edit to a team move its win rate, for each of six kinds of edit, when every battle shuffles slot order and the opponents are the full meta?
+
+The smoothness post wants to say an edit can be a move, an item or a whole Pokemon. The only numbers for items and whole Pokemon come from the 2026-09-28 study, which faced 36 of the 50 meta files and battled in listed slot order. Listed-order battles never count (owner, 2026-11-07). This run replaces those numbers.
+
+## What runs
+
+| | Rerun | 2026-09-28 study |
+|---|---|---|
+| Opponents | all 50 meta files, 49 distinct teams (MB493 and MB494 are the same team, weight 2) | 36 of the 50 |
+| Slot order | shuffled every battle, both sides | listed |
+| Starting teams | 24 meta teams, 16 search-found teams | same |
+| Edit kinds | one move, ability, held item, stat alignment, Stat Points, whole Pokemon; 3 edits each | same kinds, edits drawn again by the same seeded code |
+| Battles per score | 384, behaviour-cloning policy on both sides | 384 |
+| Tests | T1 beyond battle noise, T2 rougher than Pest Control, cutoffs unchanged | same |
+
+Budget: 880 scores × 384 = 337,920 battles on the laptop, about 3 hours. No Modal.
+
+Pre-registration: `code/docs/ruggedness2.md`, section "Rerun with shuffled slots against the full meta". Queue: `~/vgc-data/edit_kind_rerun/ek.zsh`, waiting behind the masking-rate trainings (#296).
+
+## Done when
+
+The queue posts the result table here: per edit kind and starting group, the noise-corrected change in percentage points, the neighbour correlation with its interval, and both test verdicts, beside the September numbers.
+
+Owner request, 2026-11-12: "rerun the experiment with 49 pokemon with a shuffle battle policy on".
+
+
+**The rerun finished, 2026-11-13 00:23.** Every battle shuffled slot order. Opponents were all 50 meta files, 49 distinct teams. Each score is 384 battles with the behaviour-cloning policy on both sides.
+
+**Starting from 24 meta teams**
+
+| Edit | Noise-corrected change, percentage points | Neighbour correlation, 95% interval | Beyond battle noise (T1) | Rougher than Pest Control (T2) | September change, percentage points |
+|---|---:|---|---|---|---:|
+| One move replaced (`A_move_swap`) | 4.84 | 0.857 [0.661, 0.938] | fails | passes | 3.46 |
+| Ability replaced (`B_ability_swap`) | 3.66 | 0.918 [0.807, 0.971] | fails | passes | 0.28 |
+| Held item replaced (`C_item_swap`) | 4.35 | 0.885 [0.730, 0.965] | fails | passes | 3.12 |
+| Stat alignment replaced (`D_alignment_swap`) | 1.95 | 0.977 [0.928, 1.000] | fails | fails | 0.67 |
+| Stat Points copied from another set (`E_spread_copy`) | 1.60 | 0.984 [0.943, 1.000] | fails | fails | 0.45 |
+| Whole Pokemon replaced by a real set of a new species (`F_candidate_copy`) | 5.90 | 0.787 [0.576, 0.881] | passes | passes | 5.54 |
+
+**Starting from 16 search-found teams**
+
+| Edit | Noise-corrected change, percentage points | Neighbour correlation, 95% interval | Beyond battle noise (T1) | Rougher than Pest Control (T2) | September change, percentage points |
+|---|---:|---|---|---|---:|
+| One move replaced (`A_move_swap`) | 4.92 | 0.852 [0.588, 0.973] | fails | passes | 4.16 |
+| Ability replaced (`B_ability_swap`) | 1.35 | 0.989 [0.936, 1.000] | fails | fails | 3.40 |
+| Held item replaced (`C_item_swap`) | 1.44 | 0.987 [0.920, 1.000] | fails | fails | 4.97 |
+| Stat alignment replaced (`D_alignment_swap`) | 0.00 | 1.000 [0.955, 1.000] | fails | fails | 1.19 |
+| Stat Points copied from another set (`E_spread_copy`) | 1.72 | 0.982 [0.941, 1.000] | fails | fails | 1.45 |
+| Whole Pokemon replaced by a real set of a new species (`F_candidate_copy`) | 5.85 | 0.791 [0.580, 0.906] | passes | passes | 7.36 |
+
+Pest Control neighbour correlation: 0.991 from random points, 0.990 from hill-climbed points.
+Sphere sanity check passes: True. Verdict string saved by the analysis: 'rugged beyond battle noise and beyond Pest Control'.
+
+Posted by the queue the moment the analysis ended. Nobody has read these numbers yet: the checks of run-experiment step 3 (planned against actual counts, intervals, what the result can't show) still follow.
+
+
+**Checked, 2026-11-13. One deviation first: the 24 meta starting teams are not September's.** The pre-registration said the seeded code would draw the same 24. It drew 24 others (2 shared), because the team corpus has grown since September. My check before the run read the old result file by mistake. So the "September" column in the queue's table compares different teams as well as different battle rules. It is not a paired comparison. The 16 search-found teams are the same ones.
+
+| Edit kind | Beyond battle noise (T1) | Rougher than Pest Control (T2) | Why T1 fails |
+|---|---|---|---|
+| Whole Pokemon replaced | **passes in both groups** | **passes in both groups** | |
+| One move replaced | fails in both | passes in both | size only: 4.84 and 4.92 points against the 5-point cutoff. The share of edits beyond noise is above the replicates' share in both groups (24% and 17% against 4%, intervals above zero) |
+| Held item replaced | fails in both | passes from meta teams only | 4.35 points from meta teams, 1.44 from search-found teams |
+| Ability replaced | fails in both | passes from meta teams only | 3.66 and 1.35 points |
+| Stat alignment replaced | fails | fails | 1.95 and 0.00 points |
+| Stat Points copied | fails | fails | 1.60 and 1.72 points |
+
+**Verdict, in the pre-registered wording:** win rate is rugged under a single legal edit, beyond battle noise and beyond Pest Control, for one edit type: replacing a whole Pokemon with a real set of a new species. That holds from both the 24 meta teams (5.90 points, neighbour correlation 0.787 [0.576, 0.881]) and the 16 search-found teams (5.85 points, 0.791 [0.580, 0.906]). September reached the same verdict for the same edit type.
+
+**Run against plan:** 880 scores, each 384 battles, 337,920 battles in all. 50 opponent files, 49 distinct teams. Every battle shuffled slots. 3 edits per kind per team, 3 replicates per team. All as planned. The sphere sanity check passes (0.994).
+
+**What this cannot show**
+- That a move edit is small. It misses T1 by 0.16 and 0.08 points on a cutoff, and the analysis saves no interval for that size.
+- Direction. The statistic squares the change, so a large edit can be a harmful one.
+- Anything about good teams. The search-found teams average 0.445 against the meta under shuffled slots, below the meta teams' 0.507, so they are not a high-scoring group.
+- A corrected family of tests. Twelve cells are tested and none is corrected for multiple testing. Intervals resample starting teams only.
+- Other opponents or another battle policy. One pool, one behaviour-cloning policy.
+
+Team files are saved in `~/vgc-data/edit_kind_rerun/teams/`. Results: `run/results/ruggedness2_shuffled50.json`.
+

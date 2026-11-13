@@ -1,0 +1,232 @@
+{
+ "issue": 313,
+ "title": "Rerun the one-edit study per edit kind with shuffled slots against the full meta",
+ "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/313",
+ "headline": "Swapping a whole Pokemon is the one edit that clears both tests",
+ "setup": "A team is six Pokemon, listed in six slots. The meta is the 50 highest-placing team files, one team listed twice. We change one thing on a team, battle the old and the new team against the meta, and see how far the win rate moves. September's battles used rules the project no longer counts, so the study ran again.",
+ "alt": "The rerun battled every team against all 50 meta files with slot order shuffled. From 24 meta teams, one edit moves win rate by 5.90 points for a whole Pokemon swap, 4.84 for a move, 4.35 for an item, 3.66 for an ability, 1.95 for stat alignment and 1.60 for Stat Points. Only the whole Pokemon swap passes both tests, from both groups of starting teams.",
+ "terms": [
+  [
+   "Edit kind",
+   "What one rule-abiding edit changes on one Pokemon: one of its four moves, its ability, the item it holds, its stat alignment, its Stat Points, or the whole Pokemon"
+  ],
+  [
+   "Stat alignment, Stat Points",
+   "Two settings of a Pokemon's numbers: which stat is raised and which lowered, and how its training points are divided among its stats"
+  ],
+  [
+   "Shuffled slots",
+   "The six Pokemon get a new random order before every battle. The battle policy picks by position, so a fixed order biases scores"
+  ],
+  [
+   "Change, in points",
+   "The typical size of the win-rate move from one edit, in percentage points, in either direction, with the size of replay noise subtracted"
+  ],
+  [
+   "Battle noise",
+   "How far a win rate moves when the same team is simply battled again. Measured by 3 replays of each starting team"
+  ],
+  [
+   "Beyond battle noise",
+   "Test 1. A larger share of edits than of replays moves the win rate past what chance allows, and the change is at least 5 points"
+  ],
+  [
+   "Rougher than Pest Control",
+   "Test 2. Pest Control is a standard optimisation benchmark where one step barely changes the score. Passing means a team's score predicts its edited neighbour's score less well than there, by correlation"
+  ],
+  [
+   "Meta teams, search-found teams",
+   "The two groups of starting teams: 24 real teams from outside the top 50, and 16 teams an earlier search produced"
+  ]
+ ],
+ "frames": [
+  {
+   "title": "1. Why it ran again, and what changed",
+   "kind": "compare",
+   "data": {
+    "left": {
+     "title": "September study",
+     "lines": [
+      "Opponents: 36 of the 50 meta files",
+      "Slot order: as listed, which biases scores",
+      "24 meta starting teams",
+      "These battles no longer count"
+     ]
+    },
+    "right": {
+     "title": "Rerun, 2026-11-12",
+     "lines": [
+      "Opponents: all 50 files, 49 distinct teams",
+      "Slot order: shuffled every battle",
+      "24 meta starting teams, a fresh draw",
+      "Same edit kinds, tests and cutoffs"
+     ]
+    }
+   },
+   "takes": "The rerun fixes the opponents and the slot order, and keeps every test as it was.",
+   "measured": "The 24 meta starting teams came out as a fresh draw, 2 shared with September, so the two runs are not paired."
+  },
+  {
+   "title": "2. How one edit is scored",
+   "kind": "flow",
+   "data": {
+    "boxes": [
+     {
+      "label": "Starting team",
+      "sub": "24 meta, 16 search-found",
+      "tone": "plain"
+     },
+     {
+      "label": "One edit",
+      "sub": "6 kinds, 3 edits each",
+      "tone": "c1"
+     },
+     {
+      "label": "384 battles each",
+      "sub": "Old team, new team, 3 replays",
+      "tone": "c2"
+     },
+     {
+      "label": "Change, in points",
+      "sub": "Edit against replay noise",
+      "tone": "ok"
+     }
+    ]
+   },
+   "takes": "Each edited team is battled like its starting team, and replays show what noise alone does.",
+   "measured": "40 teams, each scored with its 18 edits and 3 replays: 880 scores of 384 battles, 337,920 in all."
+  },
+  {
+   "title": "3. Typical size of one edit's win-rate change, from meta teams",
+   "kind": "bars",
+   "data": {
+    "bars": [
+     {
+      "label": "Whole Pokemon",
+      "height": 0.84,
+      "tone": "ok",
+      "note": "5.90"
+     },
+     {
+      "label": "One move",
+      "height": 0.69,
+      "tone": "c1",
+      "note": "4.84"
+     },
+     {
+      "label": "Held item",
+      "height": 0.62,
+      "tone": "c1",
+      "note": "4.35"
+     },
+     {
+      "label": "Ability",
+      "height": 0.52,
+      "tone": "c1",
+      "note": "3.66"
+     },
+     {
+      "label": "Stat alignment",
+      "height": 0.28,
+      "tone": "plain",
+      "note": "1.95"
+     },
+     {
+      "label": "Stat Points",
+      "height": 0.23,
+      "tone": "plain",
+      "note": "1.60"
+     }
+    ],
+    "line": {
+     "at": 0.71,
+     "label": "5-point cutoff"
+    }
+   },
+   "takes": "Only the whole Pokemon swap clears the 5-point cutoff, and a move edit stops just under it.",
+   "measured": "From search-found teams the whole Pokemon swap is 5.85 points and a move edit 4.92."
+  },
+  {
+   "title": "4. Which edit kinds pass which test",
+   "kind": "grid",
+   "data": {
+    "cols": [
+     "Beyond battle noise",
+     "Rougher than Pest Control"
+    ],
+    "rows": [
+     "Whole Pokemon",
+     "One move",
+     "Held item",
+     "Ability",
+     "Stat alignment",
+     "Stat Points"
+    ],
+    "cells": [
+     [
+      {
+       "text": "Passes, both groups",
+       "tone": "ok"
+      },
+      {
+       "text": "Passes, both groups",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "Misses on size alone",
+       "tone": "warn"
+      },
+      {
+       "text": "Passes, both groups",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "Fails",
+       "tone": "bad"
+      },
+      {
+       "text": "Meta teams only",
+       "tone": "warn"
+      }
+     ],
+     [
+      {
+       "text": "Fails",
+       "tone": "bad"
+      },
+      {
+       "text": "Meta teams only",
+       "tone": "warn"
+      }
+     ],
+     [
+      {
+       "text": "Fails",
+       "tone": "bad"
+      },
+      {
+       "text": "Fails",
+       "tone": "bad"
+      }
+     ],
+     [
+      {
+       "text": "Fails",
+       "tone": "bad"
+      },
+      {
+       "text": "Fails",
+       "tone": "bad"
+      }
+     ]
+    ]
+   },
+   "takes": "One edit kind passes both tests, and three more are rougher than the benchmark from at least one group.",
+   "measured": "September reached this verdict too, on battles that no longer count. The change ignores direction, so a large one can be harmful."
+  }
+ ]
+}
