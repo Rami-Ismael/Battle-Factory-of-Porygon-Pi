@@ -17,6 +17,6 @@ A team is six Pokemon, listed in six slots. The meta is the 50 highest-placing t
 | 5-point cutoff | How large the change must be for an edit kind to count as beyond battle noise. Written into the plan on 2026-09-28, before any battle. The plan gives no reason for the number 5 |
 | Beyond battle noise | Test 1. A larger share of edits than of replays moves the win rate past what chance allows, and the change is at least 5 points |
 | Rougher than Pest Control | Test 2. Pest Control is a standard optimisation benchmark where one step barely changes the score. Passing means a team's score predicts its edited neighbour's score less well than there, by correlation |
-| Meta teams, search-found teams | The two groups of starting teams: 24 real teams from outside the top 50, and 16 teams an earlier search produced |
+| Real teams outside the top 50, search-found teams | The two groups of starting teams: 24 real teams from outside the top 50, and 16 teams an earlier search produced |
 
 The frames and their sentences are in `notes/reports/edit-kind-rerun-2026-11-13/issue-313/`. The plan is `code/docs/ruggedness2.md`.
