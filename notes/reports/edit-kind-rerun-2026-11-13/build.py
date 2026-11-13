@@ -1,7 +1,8 @@
 """Storyboard figures and issue comments for the edit-kind rerun (GitHub issue 313), one folder for each issue.
 
 Copied from notes/reports/masking-rate-map-2026-11-11/build.py. Differences: the plan path, the date, the folder name,
-and a grid may have up to eight rows, with the frame growing to fit them.
+a grid may have up to eight rows, a new frame kind `examples`, and one frame to a row: the sketch on the left and
+its sentences on the right in larger type, so each frame has room.
 
 Each folder holds a spec.json written for a reader new to the project. This script draws the spec as a static SVG, light
 and dark, with text kept as text, and assembles the comment that embeds it. It follows the diversity result comment on
@@ -28,6 +29,7 @@ spec.json:
     compare    {"left": {"title", "lines": [...]}, "right": {"title", "lines": [...]}}
     squares    {"groups": [{"label", "count", "filled"}], "per_row": 42}
     checklist  {"items": [{"text", "state"}]}                            state is done, next, todo or hold
+    examples   {"head": ["", "Before", "After"], "rows": [{"label", "before", "after"}]}   at most 6 rows
   tone is plain, ok, warn, bad, c1, c2 or c3; style is solid, dashed or muted.
 """
 import html
@@ -44,8 +46,9 @@ THEMES = {
     "dark": dict(ink="#f2f1ee", soft="#a9a8a2", box="#1f1f1e", edge="#3a3a35", c1="#5b9bf0", c2="#2dd4a4", c3="#f5c04a", ok="#4ade80", warn="#fbbf24", bad="#f87171", plain="#a9a8a2"),
 }
 FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
-WIDTH, PAD, GAP, CARD_PAD, SKETCH_W, SKETCH_H = 800, 16, 16, 14, 348, 150
-CARD_W = (WIDTH - 2 * PAD - GAP) // 2
+WIDTH, PAD, GAP, CARD_PAD, SKETCH_W, SKETCH_H = 800, 16, 18, 22, 348, 150
+CARD_W, COL_GAP = WIDTH - 2 * PAD, 30
+TEXT_W = CARD_W - 2 * CARD_PAD - SKETCH_W - COL_GAP
 
 
 def wrap(text, width, size, bold=False):
@@ -175,8 +178,22 @@ def checklist(g, x, y, d, h=SKETCH_H):
         g.text(x + 4, end, mark, 13, tone, True); end = g.block(x + 24, end, item["text"], SKETCH_W - 28, 11.5, "ink" if item.get("state") != "todo" else "soft", limit=3) + 5
 
 
-KINDS = dict(flow=flow, bars=bars, lines=lines, grid=grid, compare=compare, squares=squares, checklist=checklist)
-LABELS = (("takes", "Reader takes", "ink"), ("measured", "Measured", "c1"), ("expected", "Expected", "ok"), ("surprise", "Surprise", "warn"))
+def examples(g, x, y, d, h=SKETCH_H):
+    """Rows of one real change each: a label, what was there, an arrow, what replaced it."""
+    head = d.get("head", ["", "Before", "After"]); before, after, top = x + 98, x + 232, y + 16
+    g.text(before, top, head[1], 10.5, "soft", True); g.text(after, top, head[2], 10.5, "soft", True)
+    for i, row in enumerate(d["rows"][:6]):
+        ry = top + 10 + i * EXAMPLE_ROW
+        g.path(f"M{x} {ry}H{x + SKETCH_W}", g.t["edge"], 1)
+        g.block(x, ry + 19, row["label"], 90, 11.5, "ink", True, 1.25, limit=2)
+        g.block(before, ry + 19, row["before"], 112, 10.5, "soft", False, 1.3, limit=3)
+        g.text(after - 18, ry + 19, "→", 12, "c1", True)
+        g.block(after, ry + 19, row["after"], 114, 10.5, "ink", False, 1.3, limit=3)
+
+
+EXAMPLE_ROW = 48
+KINDS = dict(flow=flow, bars=bars, lines=lines, grid=grid, compare=compare, squares=squares, checklist=checklist, examples=examples)
+LABELS = (("takes", "The point", "ink"), ("measured", "What we measured", "c1"), ("expected", "Expected", "ok"), ("surprise", "Surprise", "warn"))
 
 
 def sketch_height(frame):
@@ -191,40 +208,37 @@ def sketch_height(frame):
     elif kind == "flow":
         n = len(d["boxes"][:4]); w = (SKETCH_W - 14 * (n - 1)) / n - 16
         need = max(60 + len(wrap(b["label"], w, 12, True)[:3]) * 16.8 + len(wrap(b.get("sub", ""), w, 10.5)[:6]) * 14.7 for b in d["boxes"][:4])
+    elif kind == "examples":
+        need = 38 + EXAMPLE_ROW * len(d["rows"][:6])
     elif kind == "grid":
         need = 38 + 34 * len(d["rows"][:8])      # the original drew three rows; a longer grid gets 34 px a row
     return max(SKETCH_H, need)
 
 
+def notes_height(frame):
+    """The room the sentences beside a sketch need: a small label, then the sentence in 13 px type."""
+    return sum(18 + len(wrap(frame[key], TEXT_W, 13)) * 19.5 + 14 for key, _, _ in LABELS if frame.get(key))
+
+
 def card_height(frame):
-    h = CARD_PAD + len(wrap(frame["title"], CARD_W - 2 * CARD_PAD, 13, True)) * 18 + 6 + sketch_height(frame) + 10
-    for key, label, _ in LABELS:
-        if frame.get(key): h += len(wrap(f"{label}: {frame[key]}", CARD_W - 2 * CARD_PAD, 11.5)) * 16 + 4
-    return h + CARD_PAD - 4
+    title = len(wrap(frame["title"], CARD_W - 2 * CARD_PAD, 14.5, True)) * 20
+    return CARD_PAD + title + 12 + max(sketch_height(frame), notes_height(frame)) + CARD_PAD
 
 
 def draw(spec, theme):
-    g = Svg(theme); frames = spec["frames"]
-    y = PAD + 18
-    y = g.block(PAD, y, spec["headline"], WIDTH - 2 * PAD, 16, "ink", True, 1.35) + 8
-    for r in range(0, len(frames), 2):
-        row = frames[r:r + 2]; height = max(card_height(f) for f in row)
-        for i, f in enumerate(row):
-            x = PAD + i * (CARD_W + GAP)
-            g.rect(x, y, CARD_W, height, fill=g.t["box"], stroke=g.t["edge"], r=10, opacity=0.55)
-            ty = g.block(x + CARD_PAD, y + CARD_PAD + 12, f["title"], CARD_W - 2 * CARD_PAD, 13, "ink", True, 18 / 13)
-            KINDS[f["kind"]](g, x + CARD_PAD, ty - 6, f["data"], sketch_height(f))
-            ty = ty + sketch_height(f) + 14
-            for key, label, tone in LABELS:
-                if not f.get(key): continue
-                for n, line in enumerate(wrap(f"{label}: {f[key]}", CARD_W - 2 * CARD_PAD, 11.5)):
-                    if n == 0:
-                        rest = html.escape(line[len(label) + 1:].strip())
-                        g.out.append(f'<text x="{x + CARD_PAD}" y="{ty:.1f}" font-size="11.5" fill="{g.t["soft"]}">'
-                                     f'<tspan font-weight="650" fill="{g.color(tone)}">{label}:</tspan> {rest}</text>')
-                    else: g.text(x + CARD_PAD, ty, line, 11.5, "soft")
-                    ty += 16
-                ty += 4
+    """One frame to a row: its sketch on the left, its sentences on the right."""
+    g = Svg(theme); y = PAD + 20
+    y = g.block(PAD, y, spec["headline"], WIDTH - 2 * PAD, 18, "ink", True, 1.35) + 10
+    for f in spec["frames"]:
+        height, x = card_height(f), PAD
+        g.rect(x, y, CARD_W, height, fill=g.t["box"], stroke=g.t["edge"], r=10, opacity=0.55)
+        ty = g.block(x + CARD_PAD, y + CARD_PAD + 12, f["title"], CARD_W - 2 * CARD_PAD, 14.5, "ink", True, 20 / 14.5)
+        KINDS[f["kind"]](g, x + CARD_PAD, ty - 2, f["data"], sketch_height(f))
+        nx, ny = x + CARD_PAD + SKETCH_W + COL_GAP, ty + 16
+        for key, label, tone in LABELS:
+            if not f.get(key): continue
+            g.text(nx, ny, label, 11, tone if tone != "ink" else "soft", True)
+            ny = g.block(nx, ny + 21, f[key], TEXT_W, 13, "ink", False, 1.5) + 12
         y += height + GAP
     total = y + PAD - GAP
     return (f'<svg width="{WIDTH}" height="{total:.0f}" viewBox="0 0 {WIDTH} {total:.0f}" xmlns="http://www.w3.org/2000/svg" font-family=\'{FONT}\' role="img">'

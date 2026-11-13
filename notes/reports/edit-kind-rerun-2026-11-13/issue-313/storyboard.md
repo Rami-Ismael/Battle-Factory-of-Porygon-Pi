@@ -2,28 +2,49 @@
 
 Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests.
 
-## 1. Why it ran again, and what changed
+## 1. Why the study ran again
 
-- Sentence: The rerun fixes the opponents and the slot order, and keeps every test as it was.
-- Measured: The 24 meta starting teams came out as a fresh draw, 2 shared with September, so the two runs are not paired.
+- Sentence: The rerun fixes the opponents and the slot order, and changes nothing else on purpose.
+- What we measured: One thing changed by accident: the 24 meta starting teams are a fresh draw, 2 shared with September, so the two runs are not paired.
 
-## 2. How one edit is scored
+## 2. The six kinds of edit, on one real team
 
-- Sentence: Each edited team is battled like its starting team, and replays show what noise alone does.
-- Measured: 40 teams, each scored with its 18 edits and 3 replays: 880 scores of 384 battles, 337,920 in all.
+- Sentence: An edit changes one thing on one Pokemon and leaves the other five alone.
+- What we measured: These are real edits from the run. The team is Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon, one of the 24 meta starting teams.
 
-## 3. Typical size of one edit's win-rate change, from meta teams
+## 3. Three different edits of each kind
+
+- Sentence: Each kind is tried 3 times on a team, each time with a different change, so one lucky pick cannot decide the result.
+- What we measured: These are the same team's three move edits. 6 kinds times 3 edits is 18 edited teams for each starting team, and 720 across the 40 starting teams.
+
+## 4. A replay: the same team, battled again
+
+- Sentence: A replay shows how far a score moves by luck alone. That move is battle noise.
+- What we measured: The team in frame 2 scored 56.25%, then 52.3%, 53.1% and 52.9% on its 3 replays. A typical replay moves a score by 3.40 points.
+
+## 5. From scores to a change in points
+
+- Sentence: The change in points is the typical move after an edit, with the typical replay move taken out.
+- What we measured: The two are taken apart as squares: 6.81 squared minus 3.40 squared is 5.90 squared.
+
+## 6. Change in points for each kind, from meta teams
 
 - Sentence: Only the whole Pokemon swap clears the 5-point cutoff, and a move edit stops just under it.
-- Measured: From search-found teams the whole Pokemon swap is 5.85 points and a move edit 4.92.
+- What we measured: From search-found teams the whole Pokemon swap is 5.85 points and a move edit 4.92.
 
-## 4. Which edit kinds pass which test
+## 7. Where the 5-point cutoff comes from
+
+- Sentence: The cutoff is a line drawn in advance for how large a change must be to count. Nobody derived the number 5.
+- What we measured: A move edit misses it by 0.16 points from meta teams and 0.08 from search-found teams. The analysis saved no interval for that size.
+
+## 8. Which kinds pass which test
 
 - Sentence: One edit kind passes both tests, and three more are rougher than the benchmark from at least one group.
-- Measured: September reached this verdict too, on battles that no longer count. The change ignores direction, so a large one can be harmful.
+- What we measured: September reached this verdict too, on battles that no longer count. The change ignores direction, so a large one can be harmful.
 ## Cut
 
-- The search-found group's bars: frame 3 keeps one group so the six kinds are the comparison. Its two headline numbers sit in the frame's measured line.
+- The search-found group's bars: frame 6 keeps one group so the six kinds are the comparison. Its two headline numbers sit in the frame's measured line.
 - Neighbour correlations and their intervals: the grid carries the test verdicts; the numbers are in the result comment.
 - The September sizes: not a paired baseline, because the meta starting teams differ.
-- Limits such as twelve untested-for-multiplicity cells and one opponent pool: in the verdict comment.
+- Limits such as twelve cells with no multiple-testing correction and one opponent pool: in the verdict comment.
+- Second version, 2026-11-13, after the owner's read: one frame to a row for room, and four new frames for the six kinds, the three edits of a kind, the replay and the origin of the 5-point cutoff.

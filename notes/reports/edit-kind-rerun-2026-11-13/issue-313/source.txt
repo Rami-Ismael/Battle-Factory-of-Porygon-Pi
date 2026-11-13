@@ -82,3 +82,13 @@ Posted by the queue the moment the analysis ended. Nobody has read these numbers
 
 Team files are saved in `~/vgc-data/edit_kind_rerun/teams/`. Results: `run/results/ruggedness2_shuffled50.json`.
 
+
+
+## Facts read from the result files, 2026-11-13
+
+From ~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, ruggedness2_shuffled50.json and the saved team files in teams/.
+
+- Meta starting team a09 is MB20: Raichu, Staraptor, Garchomp, Charizard, Gholdengo, Sylveon. It scored 0.5625, 56.25%, and 0.5234, 0.5312, 0.5286 on its 3 replays: 52.3%, 53.1%, 52.9%.
+- Its edits: moves Raichu Nuzzle to Helping Hand, Nuzzle to Volt Tackle, Charm to Thunder Punch. Ability Garchomp Rough Skin to Sand Veil. Item Charizard Charizardite Y to Miracle Seed. Stat alignment Sylveon Modest to Rash. Stat Points Raichu 2 Defense, 32 Special Attack, 32 Speed to 32 HP, 10 Defense, 24 Speed. Whole Pokemon Charizard to Mawile.
+- Meta teams, root mean square move in points: replays 3.40; whole Pokemon edits 6.81; left after removing noise 5.90.
+- 40 starting teams, 18 edits each, 720 edited teams. 5 points minus 4.84 is 0.16; minus 4.92 is 0.08.

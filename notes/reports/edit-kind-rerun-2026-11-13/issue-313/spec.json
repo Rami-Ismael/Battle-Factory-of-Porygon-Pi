@@ -4,11 +4,11 @@
  "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/313",
  "headline": "Swapping a whole Pokemon is the one edit that clears both tests",
  "setup": "A team is six Pokemon, listed in six slots. The meta is the 50 highest-placing team files, one team listed twice. We change one thing on a team, battle the old and the new team against the meta, and see how far the win rate moves. September's battles used rules the project no longer counts, so the study ran again.",
- "alt": "The rerun battled every team against all 50 meta files with slot order shuffled. From 24 meta teams, one edit moves win rate by 5.90 points for a whole Pokemon swap, 4.84 for a move, 4.35 for an item, 3.66 for an ability, 1.95 for stat alignment and 1.60 for Stat Points. Only the whole Pokemon swap passes both tests, from both groups of starting teams.",
+ "alt": "Eight frames. The rerun battled every team against all 50 meta files with the six Pokemon shuffled before each battle. An edit changes one thing on one Pokemon, in one of six kinds, and each kind is tried 3 times on a team. Replays of the unchanged team show battle noise, about 3.40 points. With noise removed, one edit moves win rate by 5.90 points for a whole Pokemon swap, 4.84 for a move, 4.35 for an item, 3.66 for an ability, 1.95 for stat alignment and 1.60 for Stat Points. Only the whole Pokemon swap clears the 5-point cutoff set in the plan on 2026-09-28, and only it passes both tests, from both groups of starting teams.",
  "terms": [
   [
    "Edit kind",
-   "What one rule-abiding edit changes on one Pokemon: one of its four moves, its ability, the item it holds, its stat alignment, its Stat Points, or the whole Pokemon"
+   "What one rule-abiding edit changes on one Pokemon: one of its four moves, its ability, the item it holds, its stat alignment, its Stat Points, or the whole Pokemon. Frame 2 shows one real edit of each kind"
   ],
   [
    "Stat alignment, Stat Points",
@@ -19,12 +19,20 @@
    "The six Pokemon get a new random order before every battle. The battle policy picks by position, so a fixed order biases scores"
   ],
   [
-   "Change, in points",
-   "The typical size of the win-rate move from one edit, in percentage points, in either direction, with the size of replay noise subtracted"
+   "Replay",
+   "The same team battled 384 more times with nothing changed. Every starting team gets 3 replays"
   ],
   [
    "Battle noise",
-   "How far a win rate moves when the same team is simply battled again. Measured by 3 replays of each starting team"
+   "How far a win rate moves on a replay, by luck alone. Here a replay typically moves a score by 3.40 points"
+  ],
+  [
+   "Change, in points",
+   "The typical size of the win-rate move from one edit, in percentage points, in either direction, with the typical replay move taken out"
+  ],
+  [
+   "5-point cutoff",
+   "How large the change must be for an edit kind to count as beyond battle noise. Written into the plan on 2026-09-28, before any battle. The plan gives no reason for the number 5"
   ],
   [
    "Beyond battle noise",
@@ -41,63 +49,157 @@
  ],
  "frames": [
   {
-   "title": "1. Why it ran again, and what changed",
+   "title": "1. Why the study ran again",
    "kind": "compare",
    "data": {
     "left": {
      "title": "September study",
      "lines": [
-      "Opponents: 36 of the 50 meta files",
-      "Slot order: as listed, which biases scores",
-      "24 meta starting teams",
+      "36 of the 50 meta files as opponents",
+      "Pokemon kept in listed order",
       "These battles no longer count"
      ]
     },
     "right": {
      "title": "Rerun, 2026-11-12",
+     "tone": "c1",
      "lines": [
-      "Opponents: all 50 files, 49 distinct teams",
-      "Slot order: shuffled every battle",
-      "24 meta starting teams, a fresh draw",
-      "Same edit kinds, tests and cutoffs"
+      "All 50 meta files as opponents",
+      "Pokemon shuffled before every battle",
+      "Same edits, tests and cutoffs"
      ]
     }
    },
-   "takes": "The rerun fixes the opponents and the slot order, and keeps every test as it was.",
-   "measured": "The 24 meta starting teams came out as a fresh draw, 2 shared with September, so the two runs are not paired."
+   "takes": "The rerun fixes the opponents and the slot order, and changes nothing else on purpose.",
+   "measured": "One thing changed by accident: the 24 meta starting teams are a fresh draw, 2 shared with September, so the two runs are not paired."
   },
   {
-   "title": "2. How one edit is scored",
+   "title": "2. The six kinds of edit, on one real team",
+   "kind": "examples",
+   "data": {
+    "head": [
+     "",
+     "Before",
+     "After"
+    ],
+    "rows": [
+     {
+      "label": "One move",
+      "before": "Raichu knows Nuzzle",
+      "after": "Raichu knows Volt Tackle"
+     },
+     {
+      "label": "Ability",
+      "before": "Garchomp has Rough Skin",
+      "after": "Garchomp has Sand Veil"
+     },
+     {
+      "label": "Held item",
+      "before": "Charizard holds Charizardite Y",
+      "after": "Charizard holds Miracle Seed"
+     },
+     {
+      "label": "Stat alignment",
+      "before": "Sylveon is Modest",
+      "after": "Sylveon is Rash"
+     },
+     {
+      "label": "Stat Points",
+      "before": "Raichu: Special Attack 32, Speed 32, Defense 2",
+      "after": "Raichu: HP 32, Speed 24, Defense 10"
+     },
+     {
+      "label": "Whole Pokemon",
+      "before": "Charizard and its whole set",
+      "after": "Mawile and its whole set"
+     }
+    ]
+   },
+   "takes": "An edit changes one thing on one Pokemon and leaves the other five alone.",
+   "measured": "These are real edits from the run. The team is Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon, one of the 24 meta starting teams."
+  },
+  {
+   "title": "3. Three different edits of each kind",
+   "kind": "examples",
+   "data": {
+    "head": [
+     "",
+     "Before",
+     "After"
+    ],
+    "rows": [
+     {
+      "label": "Move edit 1",
+      "before": "Raichu knows Nuzzle",
+      "after": "Raichu knows Helping Hand"
+     },
+     {
+      "label": "Move edit 2",
+      "before": "Raichu knows Nuzzle",
+      "after": "Raichu knows Volt Tackle"
+     },
+     {
+      "label": "Move edit 3",
+      "before": "Raichu knows Charm",
+      "after": "Raichu knows Thunder Punch"
+     }
+    ]
+   },
+   "takes": "Each kind is tried 3 times on a team, each time with a different change, so one lucky pick cannot decide the result.",
+   "measured": "These are the same team's three move edits. 6 kinds times 3 edits is 18 edited teams for each starting team, and 720 across the 40 starting teams."
+  },
+  {
+   "title": "4. A replay: the same team, battled again",
+   "kind": "compare",
+   "data": {
+    "left": {
+     "title": "An edit",
+     "lines": [
+      "Change one thing",
+      "Battle the new team 384 times",
+      "The win rate moves"
+     ]
+    },
+    "right": {
+     "title": "A replay",
+     "tone": "c2",
+     "lines": [
+      "Change nothing",
+      "Battle the same team 384 more times",
+      "The win rate still moves"
+     ]
+    }
+   },
+   "takes": "A replay shows how far a score moves by luck alone. That move is battle noise.",
+   "measured": "The team in frame 2 scored 56.25%, then 52.3%, 53.1% and 52.9% on its 3 replays. A typical replay moves a score by 3.40 points."
+  },
+  {
+   "title": "5. From scores to a change in points",
    "kind": "flow",
    "data": {
     "boxes": [
      {
-      "label": "Starting team",
-      "sub": "24 meta, 16 search-found",
-      "tone": "plain"
-     },
-     {
-      "label": "One edit",
-      "sub": "6 kinds, 3 edits each",
+      "label": "Edits move it",
+      "sub": "6.81 points after a whole Pokemon swap",
       "tone": "c1"
      },
      {
-      "label": "384 battles each",
-      "sub": "Old team, new team, 3 replays",
-      "tone": "c2"
+      "label": "Replays move it",
+      "sub": "3.40 points with no change at all",
+      "tone": "plain"
      },
      {
-      "label": "Change, in points",
-      "sub": "Edit against replay noise",
+      "label": "What is left",
+      "sub": "5.90 points that noise cannot explain",
       "tone": "ok"
      }
     ]
    },
-   "takes": "Each edited team is battled like its starting team, and replays show what noise alone does.",
-   "measured": "40 teams, each scored with its 18 edits and 3 replays: 880 scores of 384 battles, 337,920 in all."
+   "takes": "The change in points is the typical move after an edit, with the typical replay move taken out.",
+   "measured": "The two are taken apart as squares: 6.81 squared minus 3.40 squared is 5.90 squared."
   },
   {
-   "title": "3. Typical size of one edit's win-rate change, from meta teams",
+   "title": "6. Change in points for each kind, from meta teams",
    "kind": "bars",
    "data": {
     "bars": [
@@ -147,7 +249,33 @@
    "measured": "From search-found teams the whole Pokemon swap is 5.85 points and a move edit 4.92."
   },
   {
-   "title": "4. Which edit kinds pass which test",
+   "title": "7. Where the 5-point cutoff comes from",
+   "kind": "checklist",
+   "data": {
+    "items": [
+     {
+      "text": "Written into the plan on 2026-09-28, before any battle was run",
+      "state": "done"
+     },
+     {
+      "text": "Kept unchanged for the rerun, so the result could not move it",
+      "state": "done"
+     },
+     {
+      "text": "The plan gives no reason for picking 5 and not 4 or 6",
+      "state": "hold"
+     },
+     {
+      "text": "For scale, a replay alone moves a score by 3.40 points",
+      "state": "next"
+     }
+    ]
+   },
+   "takes": "The cutoff is a line drawn in advance for how large a change must be to count. Nobody derived the number 5.",
+   "measured": "A move edit misses it by 0.16 points from meta teams and 0.08 from search-found teams. The analysis saved no interval for that size."
+  },
+  {
+   "title": "8. Which kinds pass which test",
    "kind": "grid",
    "data": {
     "cols": [
