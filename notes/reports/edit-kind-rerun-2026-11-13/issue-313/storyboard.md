@@ -1,6 +1,6 @@
 # Storyboard: Rerun the one-edit study per edit kind with shuffled slots against the full meta
 
-Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests.
+Figure sentence: Swapping a whole Pokemon or one move changes win rate more than a step on a standard benchmark does.
 
 ## 1. Why the study ran again
 
@@ -27,20 +27,20 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 - Sentence: What we measure after an edit is its real move plus battle noise. The two are independent, so they add as squares, like the short sides of a right triangle.
 - What we measured: For the whole Pokemon swap: 6.81 squared minus 3.40 squared is 5.90 squared. Plain subtraction would give 3.41 and undercount the edit.
 
-## 6. Change in points for each kind, from tournament-ready teams
+## 6. Is the edit real? Change in points with its 95% interval, tournament-ready teams
 
-- Sentence: Only the whole Pokemon swap clears the 5-point cutoff, and a move edit stops just under it.
-- What we measured: From search-found teams the whole Pokemon swap is 5.85 points and a move edit 4.92.
+- Sentence: An edit kind is real when its whole interval, the thin capped line, sits above zero. Four kinds are. Stat alignment and Stat Points reach zero, so they may do nothing.
+- What we measured: The whole Pokemon swap is 5.90 points, interval 4.78 to 7.01. From search-found teams only the whole Pokemon swap, 5.85, and the move edit, 4.92, stay above zero.
 
-## 7. Where the 5-point cutoff comes from
+## 7. Is the edit large? Its share of the spread between teams, against one step on a benchmark
 
-- Sentence: The cutoff is a line drawn in advance for how large a change must be to count. Nobody derived the number 5.
-- What we measured: A move edit misses it by 0.16 points from tournament-ready teams and 0.08 from search-found teams. The analysis saved no interval for that size.
+- Sentence: The yardstick is a benchmark, not a number someone picked. Each size is divided by how far teams' scores spread, 9.04 points. One step on Pest Control is 0.14 of that benchmark's own spread.
+- What we measured: A whole Pokemon swap is 0.65 of the spread, more than four times the benchmark's step. The four real kinds are larger than the step. The two Stat kinds cannot be told apart from it.
 
-## 8. Which kinds pass which test
+## 8. The two readings, kind by kind
 
-- Sentence: One edit kind passes both tests, and three more are rougher than the benchmark from at least one group.
-- What we measured: September reached this verdict too, on battles that no longer count. The change ignores direction, so a large one can be harmful.
+- Sentence: Two kinds are real and larger than the benchmark's step from both groups of teams: the whole Pokemon swap and the move edit. Item and ability edits join them from tournament-ready teams only.
+- What we measured: The plan of 2026-09-28 also required a change of at least 5 points, with no reason for the number, and under it only the whole Pokemon swap passed. That line was removed on 2026-11-13, after the result, so this frame is a reading made afterwards.
 ## Cut
 
 - The search-found group's bars: frame 6 keeps one group so the six kinds are the comparison. Its two headline numbers sit in the frame's measured line.
@@ -48,3 +48,4 @@ Figure sentence: Swapping a whole Pokemon is the one edit that clears both tests
 - The September sizes: not a paired baseline, because the tournament-ready starting teams differ.
 - Limits such as twelve cells with no multiple-testing correction and one opponent pool: in the verdict comment.
 - Second version, 2026-11-13, after the owner's read: one frame to a row for room, and four new frames for the six kinds, the three edits of a kind, the replay and the origin of the 5-point cutoff.
+- Third version, 2026-11-13: the owner said the 5-point cutoff cannot be justified. Its line and its origin frame are gone. Frames 6 to 8 now show the 95% intervals, the size as a share of the spread between teams against one Pest Control step, and the two readings kind by kind. The dropped line is kept as one sentence in frame 8 and one row of the terms table.

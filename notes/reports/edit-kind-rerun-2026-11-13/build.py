@@ -23,7 +23,7 @@ spec.json:
   frames                      [{title, kind, data, takes, expected, surprise} or {..., takes, measured}]
   kinds and their data:
     flow       {"boxes": [{"label", "sub", "tone"}]}                      left to right, at most 4
-    bars       {"bars": [{"label", "height", "style", "note"}], "line": {"at", "label"}}   height and at are 0 to 1
+    bars       {"bars": [{"label", "height", "style", "note", "range": [low, high]}], "line": {"at", "label", "corner", "tone"}}   height, range and at are 0 to 1
     lines      {"x", "y", "diagonal", "series": [{"name", "tone", "points": [[x, y], ...]}]}   points are 0 to 1
     grid       {"cols": [...], "rows": [...], "cells": [[{"text", "tone"}, ...], ...]}
     compare    {"left": {"title", "lines": [...]}, "right": {"title", "lines": [...]}}
@@ -99,21 +99,32 @@ def flow(g, x, y, d, h=SKETCH_H):
 
 
 def bars(g, x, y, d, h=SKETCH_H):
-    items = d["bars"][:6]; n = len(items); base, top, slot = y + SKETCH_H - 38, y + 18, SKETCH_W / max(n, 1)
+    """Bars from a zero line. A bar with a `range` also gets a whisker for its interval, and the frame gets more height."""
+    items = d["bars"][:6]; n = len(items); base, top, slot = y + h - 38, y + 22, SKETCH_W / max(n, 1)
     g.path(f"M{x} {base}H{x + SKETCH_W}", g.t["soft"], 1)
+    scale = lambda value: float(value) * (base - top)
     for i, b in enumerate(items):
-        h = max(2.0, float(b["height"]) * (base - top)); bw = min(48, slot * 0.55); bx = x + i * slot + (slot - bw) / 2
+        tall = max(2.0, scale(b["height"])); bw = min(48, slot * 0.55); bx = x + i * slot + (slot - bw) / 2; mid = bx + bw / 2
         style, tone = b.get("style", "solid"), b.get("tone", "c1")
-        if style == "dashed": g.rect(bx, base - h, bw, h, stroke=g.color(tone), r=2, dash=True, width=1.5)
-        else: g.rect(bx, base - h, bw, h, fill=g.t["soft"] if style == "muted" else g.color(tone), r=2)
-        if b.get("note"): g.text(bx + bw / 2, base - h - 5, b["note"], 11, "ink", True, "middle")
+        if style == "dashed": g.rect(bx, base - tall, bw, tall, stroke=g.color(tone), r=2, dash=True, width=1.5)
+        else: g.rect(bx, base - tall, bw, tall, fill=g.t["soft"] if style == "muted" else g.color(tone), r=2, opacity=0.6 if b.get("range") else 1.0)
+        peak = tall
+        if b.get("range"):                                  # the interval: a vertical line with a cap at each end
+            low, high = (scale(v) for v in b["range"]); peak = max(tall, high)
+            g.path(f"M{mid} {base - low}V{base - high}M{mid - 6} {base - low}H{mid + 6}M{mid - 6} {base - high}H{mid + 6}", g.t["ink"], 1.6)
+        if b.get("note"): g.text(mid, base - peak - 6, b["note"], 11, "ink", True, "middle")
         g.block(x + i * slot + slot / 2, base + 12, b["label"], slot - 4, 10, leading=1.2, anchor="middle", limit=3)
     line = d.get("line")
     if line:
-        ly = base - float(line["at"]) * (base - top)
-        g.path(f"M{x} {ly}H{x + SKETCH_W}", g.t["soft"], 1, True)
-        width = len(line["label"]) * 5.7 + 8                 # a patch behind the label keeps it readable over a bar
-        g.rect(x + SKETCH_W - width, ly - 15, width, 13, fill=g.t["box"], r=3, opacity=0.9); g.text(x + SKETCH_W - 4, ly - 5, line["label"], 10.5, anchor="end")
+        ly = base - scale(line["at"])
+        g.path(f"M{x} {ly}H{x + SKETCH_W}", g.color(line.get("tone", "soft")), 1.4 if line.get("corner") else 1, True)
+        if line.get("corner"):                              # the label sits in the top right corner, clear of the bars
+            width = len(line["label"]) * 5.7
+            g.path(f"M{x + SKETCH_W - width - 26} {y + 8}h18", g.color(line.get("tone", "soft")), 1.4, True)
+            g.text(x + SKETCH_W, y + 12, line["label"], 10.5, line.get("tone", "soft"), True, "end")
+        else:
+            width = len(line["label"]) * 5.7 + 8             # a patch behind the label keeps it readable over a bar
+            g.rect(x + SKETCH_W - width, ly - 15, width, 13, fill=g.t["box"], r=3, opacity=0.9); g.text(x + SKETCH_W - 4, ly - 5, line["label"], 10.5, anchor="end")
 
 
 def lines(g, x, y, d, h=SKETCH_H):
@@ -225,6 +236,8 @@ def sketch_height(frame):
         need = 38 + EXAMPLE_ROW * len(d["rows"][:6])
     elif kind == "triangle":
         need = 210
+    elif kind == "bars" and any(b.get("range") for b in d["bars"]):
+        need = 230
     elif kind == "grid":
         need = 38 + 34 * len(d["rows"][:8])      # the original drew three rows; a longer grid gets 34 px a row
     return max(SKETCH_H, need)
