@@ -9,6 +9,7 @@ import json
 import os
 import subprocess
 import unittest
+import warnings
 import xml.dom.minidom
 from pathlib import Path
 
@@ -128,6 +129,26 @@ class Measures(unittest.TestCase):
         self.assertTrue(best["outside"]); self.assertTrue(best["outside_by_point_estimates_alone"])
 
 
+    @unittest.skipUnless(Path("/tmp/vgc-pilot/src/asked_vs_got.py").exists(), "line_up_yield needs /tmp/vgc-pilot/src")
+    def test_training_and_novel_line_ups_are_distinct_counts_that_add_up_to_the_line_ups(self):
+        import line_up_yield as LY
+        paste = lambda *species: "\n\n".join(f"{s} @ Leftovers\nAbility: Pressure" for s in species)
+        trained, other = ("Incineroar", "Rillaboom", "Urshifu", "Amoonguss", "Tornadus", "Landorus"), ("Pikachu", "Eevee", "Snorlax", "Ditto", "Mew", "Abra")
+        third = ("Garchomp", "Dragonite", "Charizard", "Gengar", "Lucario", "Gyarados")
+        pastes = {1: [paste(*trained), paste(*reversed(trained)), paste(*other)], 2: [paste(*other), paste(*third)]}     # 3 distinct line-ups, 5 teams
+        cells = {}
+        for k in R.ALL_ASKS:
+            for s in R.SEEDS:
+                p = pastes.get(s, []) if k == R.ALL_ASKS[0] else []
+                cells[(k, s)] = dict(pastes=p, y=[0.5] * len(p) or [0.5], tried=len(p), rejected=0, battles=49 * len(p), div=None, reasons=[])
+        out = dict(by_ask_seed=cells, reader="r", guidance=2.0, checkpoint="c", checkpoint_sha256="h", keep=64)
+        with warnings.catch_warnings():                       # the asks without teams give empty means; only the line-up counts are checked
+            warnings.simplefilter("ignore", RuntimeWarning)
+            m = R.measures(out, (frozenset({LY.line_up(paste(*trained))}), frozenset()))
+        self.assertEqual((m["distinct_training_line_ups"], m["distinct_novel_line_ups_against_training"], m["line_ups"]), (1, 2, 3))
+        self.assertAlmostEqual(m["new_against_training"], 3 / 5)
+
+
 class Post(unittest.TestCase):
     def result(self):
         grids = {R.grid_name(R.CONTROL, 2): grid(R.CONTROL, 2, 0.0060, 1400), R.grid_name("sched_linear_species_first", 2): grid("sched_linear_species_first", 2, 0.0045, 1380)}
@@ -195,6 +216,83 @@ class Figures(unittest.TestCase):
         self.assertEqual(intervals["data"], [[1, 3.5, 6.5], [2, 4.5, 7.5], [3, 5.5, 8.5]])
         self.assertEqual(bars["markLine"]["data"], [dict(yAxis=1)])
         self.assertEqual(title, "On the linear model, random order's error is 4.5 to 6.5 times species-first's, higher than the 2.8 measured on a per-field model")
+
+    def with_line_ups_by_ask(self, per_ask):
+        summary = self.summary()
+        for row, counts in per_ask.items():
+            for i, (g, n) in enumerate(zip(R.GUIDANCES, counts)):
+                summary["grids"][R.grid_name(row, g)].update(line_ups_by_ask={str(k): n for k in range(1, 24)}, asks_sharing_a_line_up=2.5 - 0.5 * i)
+        return summary
+
+    def test_line_ups_by_ask_draws_one_panel_for_each_row_with_a_line_for_each_guidance(self):
+        per_ask = {R.CONTROL: (180, 150, 120), "sched_linear_species_first": (170, 150, 130), "sched_linear_random": (192, 191, 191)}
+        option, title, subtitle = F.line_ups_by_ask(self.with_line_ups_by_ask(per_ask))
+        self.assertEqual(len(option["grid"]), 3); self.assertEqual(len(option["series"]), 9)
+        self.assertEqual([t["text"] for t in option["title"]], [F.label(row) for row in R.ROWS])
+        self.assertEqual({(y["min"], y["max"]) for y in option["yAxis"]}, {(0, 192)})
+        self.assertEqual([d["name"] for d in option["legend"]["data"]], ["Guidance 2", "Guidance 4", "Guidance 8"])
+        row_colours = set(F.COLORS.values())
+        for r, row in enumerate(R.ROWS):
+            lines = [s for s in option["series"] if s["xAxisIndex"] == r]
+            self.assertEqual([s["name"] for s in lines], ["Guidance 2", "Guidance 4", "Guidance 8"])
+            self.assertEqual([s["data"] for s in lines], [[n] * 23 for n in per_ask[row]])
+            self.assertEqual(len({s["lineStyle"]["type"] for s in lines}), 3)       # guidance is marked by line style and shade, never by another row's colour
+            self.assertEqual({s["lineStyle"]["color"] for s in lines} & row_colours - {F.COLORS[row]}, set())
+        self.assertNotIn(F.BLUE, option["legend"]["data"][1]["icon"] + option["legend"]["data"][2]["icon"])
+        self.assertEqual(title, "Within one ask, raising guidance from 2 to 8 cuts the mean line-ups from 180 to 120 for the control and from 170 to 130 "
+                                "for Linear, species-first. Linear, random order stays at the ceiling, 191 to 192 of 192 at every guidance")
+        self.assertIn("1,500 to 2,300, 1,580 to 2,380 and 2,600 to 3,400", subtitle)
+
+    def test_line_ups_by_ask_names_a_row_that_rises_and_fails_without_a_row(self):
+        per_ask = {R.CONTROL: (120, 150, 180), "sched_linear_species_first": (170, 150, 130), "sched_linear_random": (150, 160, 170)}
+        _, title, _ = F.line_ups_by_ask(self.with_line_ups_by_ask(per_ask))
+        self.assertTrue(title.startswith("Within one ask, from guidance 2 to 8 the mean line-ups rise from 120 to 180 for the control, "
+                                         "fall from 170 to 130 for Linear, species-first and rise from 150 to 170 for Linear, random order"), title)
+        self.assertNotIn("ceiling", title)
+        summary = self.with_line_ups_by_ask(per_ask); del summary["grids"][R.grid_name("sched_linear_random", 4)]
+        with self.assertRaises(KeyError): F.line_ups_by_ask(summary)
+
+    def test_line_ups_shared_between_asks_splits_the_ask_by_ask_count_into_the_grid_total_and_the_repeats(self):
+        summary = self.summary()
+        per_ask = {R.CONTROL: (180, 150, 120), "sched_linear_species_first": (180, 150, 120), "sched_linear_random": (191, 190, 189)}
+        for row, counts in per_ask.items():
+            for g, n in zip(R.GUIDANCES, counts):
+                summary["grids"][R.grid_name(row, g)].update(line_ups_by_ask={str(k): n for k in range(1, 24)})
+        option, title, _ = F.line_ups_shared_between_asks(summary)
+        self.assertEqual(len(option["grid"]), 3); self.assertEqual(len(option["series"]), 6)
+        self.assertEqual([t["text"] for t in option["title"]], [F.label(row) for row in R.ROWS])
+        self.assertEqual(len({(y["min"], y["max"]) for y in option["yAxis"]}), 1)
+        self.assertEqual([d["name"] for d in option["legend"]["data"]], ["Distinct line-ups over the grid", "Repeats: a line-up already counted at another ask"])
+        for r, row in enumerate(R.ROWS):
+            total, repeats = [s for s in option["series"] if s["xAxisIndex"] == r]
+            grid_total = [summary["grids"][R.grid_name(row, g)]["line_ups"] for g in R.GUIDANCES]
+            counted = [n * 23 for n in per_ask[row]]
+            self.assertEqual(total["data"], grid_total); self.assertEqual(repeats["data"], [c - t for c, t in zip(counted, grid_total)])
+            self.assertEqual(total["stack"], repeats["stack"]); self.assertEqual(total["itemStyle"]["color"], F.COLORS[row])
+            self.assertEqual(repeats["itemStyle"]["color"], F.GREY)
+            self.assertEqual(option["xAxis"][r]["data"], [f"Guidance {g}\n{c:,} counted\nask by ask" for g, c in zip(R.GUIDANCES, counted)])
+        self.assertEqual(title, "In all three rows, raising guidance from 2 to 8 cuts the repeats between asks by 846 to 2,180, "
+                                "so the grid total grows by 800 line-ups while the ask-by-ask count falls by 46 to 1,380")
+
+    def test_training_and_novel_line_ups_stack_to_the_grid_total_in_each_row(self):
+        summary = self.summary()
+        parts = {R.CONTROL: ((1000, 1080, 890), (500, 820, 1410)), "sched_linear_species_first": ((1040, 1080, 840), (540, 900, 1140)),
+                 "sched_linear_random": ((250, 320, 320), (2350, 2680, 3080))}
+        for row, (training, new) in parts.items():
+            for g, t, n in zip(R.GUIDANCES, training, new):
+                summary["grids"][R.grid_name(row, g)].update(distinct_training_line_ups=t, distinct_novel_line_ups_against_training=n)
+        option, title, _ = F.training_and_novel_line_ups(summary)
+        self.assertEqual(len(option["grid"]), 3); self.assertEqual(len(option["series"]), 6)
+        self.assertEqual([t["text"] for t in option["title"]], [F.label(row) for row in R.ROWS])
+        self.assertEqual(len({(y["min"], y["max"]) for y in option["yAxis"]}), 1); self.assertEqual(option["yAxis"][0]["max"], 3500)
+        self.assertEqual([d["name"] for d in option["legend"]["data"]], [F.TRAINING_PART, F.NOVEL_PART])
+        for r, (row, (training, new)) in enumerate(parts.items()):
+            low, high = [s for s in option["series"] if s["xAxisIndex"] == r]
+            self.assertEqual((low["name"], low["data"], high["name"], high["data"]), (F.TRAINING_PART, list(training), F.NOVEL_PART, list(new)))
+            self.assertEqual(low["stack"], high["stack"]); self.assertEqual(high["itemStyle"]["color"], F.COLORS[row]); self.assertEqual(low["itemStyle"]["color"], F.GREY)
+            self.assertEqual(option["xAxis"][r]["data"], [f"Guidance {g}\n{t + n:,} in all" for g, t, n in zip(R.GUIDANCES, training, new)])
+        self.assertEqual(title, "In all three rows, the line-ups that guidance 8 adds over guidance 2 are novel line-ups: they rise by 600 to 910 "
+                                "while training line-ups move by at most 200. Linear, random order is 89% to 91% novel line-ups at every guidance")
 
 
 if __name__ == "__main__":

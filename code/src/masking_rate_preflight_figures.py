@@ -2,6 +2,7 @@
 
   01_t_sensitivity   the default model's drawing distributions barely move when a pass is told another t
   02_error_by_ask    the default model's got against its ask: where the ask-versus-got error sits
+  11_t_sensitivity_new_per_field_model   the same check for the new per-field model, the control of #297, beside the default model
 
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_preflight_figures.py      (from code/)
 """
@@ -40,6 +41,44 @@ def t_sensitivity():
                             "6/24, 12/24 and 17/24, 256 teams each. Uncorrected t is 1 − filled/84. Source: masking_rate_rows_preflight.json.")
 
 
+NEW_PER_FIELD_MODEL = "stat84_shuffled_noise_per_field_es3_cap80"     # the control's model of #297, trained on the shuffled-only table
+NEW_BLUES = ("#174f94", "#2a78d6", "#86b4ec")
+DEFAULT_GREYS = ("#5c5b57", "#94938d", "#cfcec8")  # outside echarts_chart.DARK, so the three stay apart in dark mode
+
+
+def t_sensitivity_new_per_field_model(results=None, out=OUT):
+    """Frame 5 for the new per-field model: the corrected t's total variation by field type, one bar per ask, beside the
+    default model's at the same asks. results is masking_rate_rows_preflight.json; the new model's key is saved_as in
+    masking_rate_preflight.py, t_sensitivity_<checkpoint>."""
+    results = results if results is not None else json.load(open(RES / "masking_rate_rows_preflight.json"))
+    new, default = results[f"t_sensitivity_{NEW_PER_FIELD_MODEL}"], results["t_sensitivity"]
+    assert new["bar"] == default["bar"]
+    corrected = lambda probe, ask: probe["by_ask"][ask]["total_variation_by_rule_and_field_type"]["corrected"]
+    series = [dict(name=f"{who}, ask {ask}", type="bar", itemStyle=dict(color=color), emphasis=dict(focus="series"),
+                   barGap="8%", data=[round(corrected(probe, ask)[field], 4) for field in FIELD_TYPES])
+              for who, probe, colors in (("New per-field model", new, NEW_BLUES), ("Default model", default, DEFAULT_GREYS))
+              for ask, color in zip(probe["by_ask"], colors)]
+    series[0]["markLine"] = dict(symbol="none", silent=True, lineStyle=dict(color=PLAIN, type="dashed"),
+                                 label=dict(formatter="bar set before the run: 0.01", position="insideStartTop", color=PLAIN),
+                                 data=[dict(yAxis=new["bar"])])
+    largest = lambda probe: max((v, f, a) for a in probe["by_ask"] for f, v in corrected(probe, a).items())
+    (top, field, ask), (default_top, *_) = largest(new), largest(default)
+    option = dict(legend=dict(top=0), grid=dict(left=64, right=24, top=64, bottom=40),
+                  tooltip=dict(trigger="axis", axisPointer=dict(type="shadow")),
+                  xAxis=dict(type="category", data=list(FIELD_TYPES.values())),
+                  yAxis=dict(type="value", name="Total variation, corrected t", nameLocation="middle", nameGap=48, max=0.012),
+                  series=series)
+    return write_chart(option, out / "11_t_sensitivity_new_per_field_model.html",
+                       title=f"The new per-field model moves {top:.4f} at most against a bar of {new['bar']:g}, "
+                             f"so it barely reads the t it is told",
+                       subtitle="How far each model's drawing distribution moves when a pass is told the corrected t and not 1 − filled/84, "
+                                "on the same partly filled teams. 0 means the same distribution, 1 means no overlap.",
+                       note=f"New per-field model: the control of #297, per-field masking rate, trained on the shuffled-only table, checkpoint "
+                            f"{NEW_PER_FIELD_MODEL}. Its largest reading is {FIELD_TYPES[field]} at ask {ask}; the default model's largest is "
+                            f"{default_top:.4f}. Each bar is one ask, 256 teams, guidance 2, sampling seed {new['sampling_seed']}. "
+                            "Source: masking_rate_rows_preflight.json.", height=460)
+
+
 def error_by_ask():
     rows = json.load(open(RES / "stat_points_84_gen84_noise_byepoch_ep80.json"))["summary"]["asks"]
     labels = [f"{r['numerator']}/24" for r in rows]
@@ -63,4 +102,4 @@ def error_by_ask():
 
 
 if __name__ == "__main__":
-    for page in (t_sensitivity(), error_by_ask()): print(page)
+    for page in (t_sensitivity(), error_by_ask(), t_sensitivity_new_per_field_model()): print(page)
