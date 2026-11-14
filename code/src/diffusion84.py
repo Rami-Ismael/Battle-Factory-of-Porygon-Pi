@@ -202,10 +202,9 @@ class Refusals:
 
     Per team: kept share, the product over drawn fields of (1 - refused share), and its logarithm; refused share,
     1 - kept share; refusing fields, the draws where the lookahead refused any value the plain sampler allows (a
-    remasked field counts each time it is drawn); fallback fields, the draws where no value was legal, or where the
-    lookahead let in a value the plain sampler refuses (the empty first move, when it refused every real one). Without
-    remasking and with no fallback field, the kept share is the team's probability under the plain sampler over its
-    probability under the lookahead sampler. It adds up on the CPU in float64, which
+    remasked field counts each time it is drawn); fallback fields, the draws where no value was legal, so every value
+    was allowed. Without remasking and with no fallback field, the kept share is the team's probability under the plain
+    sampler over its probability under the lookahead sampler. It adds up on the CPU in float64, which
     the MPS device lacks."""
     def __init__(self, n):
         self.log_kept = torch.zeros(n, dtype=torch.float64)
@@ -503,9 +502,8 @@ class Model84:
 
     def _legal_parts(self, x, c, lookahead=False):
         """(legal, plain, kept, fallback) for column c. legal: what _legal gives. plain: the same with the switch off.
-        kept: the plain values the lookahead leaves before any fallback. fallback [B]: no value was legal, or the
-        lookahead's set holds a value the plain set does not (the empty first move, let back in when the lookahead
-        refused every real one). With the switch off, kept is plain and nothing is refused."""
+        kept: the plain values the lookahead leaves before any fallback. fallback [B]: no value was legal, so every
+        value was allowed. With the switch off, kept is plain and nothing is refused."""
         if c >= STAT0:
             o = SP.allowed_stat_points(x[:, STAT0:])[:, c - STAT0]
             return o, o, o, torch.zeros(len(x), dtype=torch.bool, device=x.device)
@@ -515,7 +513,7 @@ class Model84:
         pre = self._no_moves(tab & lookahead_rule(self.tables, x[:, :STAT0], c, al), c)
         kept = plain & pre
         legal, empty = self._with_fallback(pre.clone())
-        return legal, plain, kept, empty | (legal & ~plain).any(1)
+        return legal, plain, kept, empty
 
     def _no_moves(self, o, c):
         E = self.tables.EMV
