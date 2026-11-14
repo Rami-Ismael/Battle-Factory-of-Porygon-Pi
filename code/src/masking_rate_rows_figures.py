@@ -1,12 +1,13 @@
-"""Five figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and a later check; issue #297).
+"""Six figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and later checks; issue #297).
 
   05_error_against_line_ups       ask-versus-got error against distinct line-ups, one three-point curve for each row
   06_got_against_ask              got against ask, the control beside Linear, species-first, one panel for each guidance
   07_random_order_error_multiple  random order's error as a multiple of species-first's on the same checkpoint
   08_line_ups_by_ask              the control's distinct line-ups among one ask's teams, a line for each guidance
   09_line_ups_shared_between_asks each row's line-ups counted ask by ask, split into the grid total and the repeats between asks
+  10_training_and_new_line_ups    each row's distinct line-ups split into training line-ups and new line-ups
 
-Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title); the fourth and fifth also return a subtitle.
+Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title); the fourth to sixth also return a subtitle.
 
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_rows_figures.py      (from code/)
 """
@@ -200,6 +201,59 @@ def line_ups_shared_between_asks(summary):
     return option, title, subtitle
 
 
+TRAINING_PART, NEW_PART = "Training line-ups: the six species appear together in a training team", "New line-ups: they do not"
+
+
+def training_and_new_line_ups(summary):
+    """Each grid's distinct line-ups split into training line-ups and new line-ups. One panel for each row, on one shared y scale;
+    each bar is the grid total, its two parts the training line-ups below and the new line-ups above."""
+    rows = list(COLORS)
+    training = {row: [g["distinct_training_line_ups"] for g in grids_of(summary, row)] for row in rows}
+    new = {row: [g["distinct_new_line_ups_against_training"] for g in grids_of(summary, row)] for row in rows}
+    total = {row: [t + n for t, n in zip(training[row], new[row])] for row in rows}
+    top = -(-max(max(t) for t in total.values()) // 500) * 500
+    comma = "js:p => p.value.toLocaleString('en-US')"
+    stripes = "".join(f"<rect x='{8 * i}' width='8' height='14' fill='{COLORS[row]}'/>" for i, row in enumerate(rows)).replace("#", "%23")
+    width, gap, left = 28.0, 3.5, 8.0
+    grids_, xs, ys, titles, series = [], [], [], [], []
+    for i, row in enumerate(rows):
+        x0 = left + i * (width + gap)
+        grids_.append(dict(left=f"{x0}%", width=f"{width}%", top=74, bottom=62))
+        titles.append(dict(text=label(row), left=f"{x0 + width / 2}%", top=40, textAlign="center", textStyle=dict(fontSize=13, fontWeight="normal")))
+        xs.append(dict(type="category", gridIndex=i, axisTick=dict(show=False), axisLabel=dict(interval=0, lineHeight=16, fontSize=11.5),
+                       data=[f"Guidance {g}\n{t:,} in all" for g, t in zip(GUIDANCES, total[row])]))
+        ys.append(dict(type="value", gridIndex=i, min=0, max=top, interval=1000, axisLabel=dict(show=i == 0),
+                       name="Distinct line-ups among 4,416 teams" if i == 0 else "", nameLocation="middle", nameGap=48))
+        axes = dict(xAxisIndex=i, yAxisIndex=i)
+        on_color = "#fefefe" if row == CONTROL else "#161615"     # neither is in DARK, so both stay put on the coloured bar in dark mode
+        series.append(dict(name=TRAINING_PART, type="bar", stack=f"grid {i}", barWidth="56%", itemStyle=dict(color=GREY, opacity=0.5),
+                           emphasis=dict(focus="series"), label=dict(show=True, formatter=comma, color="#0b0b0b", fontSize=12, opacity=1),
+                           data=training[row], **axes))
+        series.append(dict(name=NEW_PART, type="bar", stack=f"grid {i}", itemStyle=dict(color=COLORS[row]),
+                           emphasis=dict(focus="series"), label=dict(show=True, formatter=comma, color=on_color, fontWeight="bold", fontSize=13),
+                           data=new[row], **axes))
+    legend = dict(top=0, data=[dict(name=TRAINING_PART),
+                               dict(name=NEW_PART, icon=f"image://data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='14'>{stripes}</svg>")])
+    option = dict(title=titles, legend=legend, grid=grids_, xAxis=xs, yAxis=ys, series=series,
+                  tooltip=dict(trigger="axis", axisPointer=dict(type="shadow"), valueFormatter="js:v => v.toLocaleString('en-US')"))
+    lo, hi = GUIDANCES[0], GUIDANCES[-1]
+    new_gain = [new[row][-1] - new[row][0] for row in rows]; total_gain = [total[row][-1] - total[row][0] for row in rows]
+    training_move = max(abs(training[row][-1] - training[row][0]) for row in rows)
+    span = lambda v: f"{min(v):,}" if min(v) == max(v) else f"{min(v):,} to {max(v):,}"
+    pct = lambda v: f"{min(v):.0%}" if round(min(v), 2) == round(max(v), 2) else f"{min(v) * 100:.0f}% to {max(v):.0%}"
+    if min(total_gain) > 0 and min(n / t for n, t in zip(new_gain, total_gain)) >= 0.9 and training_move < min(new_gain):
+        title = (f"In all three rows, the line-ups that guidance {hi} adds over guidance {lo} are new line-ups: they rise by {span(new_gain)} "
+                 f"while training line-ups move by at most {training_move:,}")
+    else:
+        title = f"From guidance {lo} to {hi}, new line-ups change by {span(new_gain)} and training line-ups by at most {training_move:,}"
+    random_share = [n / t for n, t in zip(new[RANDOM], total[RANDOM])]
+    if min(random_share) > 0.5:
+        title += f". {label(RANDOM)} is {pct(random_share)} new line-ups at every guidance"
+    subtitle = ("One panel for each row, all on the same scale. Each bar is the grid's distinct line-ups. The grey part is training line-ups, "
+                "the coloured part new line-ups.")
+    return option, title, subtitle
+
+
 def main(summary_path=SUMMARY, out=OUT):
     summary = json.load(open(summary_path))
     note = f"{ERROR} {WIN_RATE} Source: {Path(summary_path).name}."
@@ -227,6 +281,13 @@ def main(summary_path=SUMMARY, out=OUT):
                                   "line-ups. A row is one model decoded in one order: the per-field masking rate or the linear masking rate, filled species-first "
                                   f"or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model how many fields are still hidden. "
                                   f"Source: {Path(summary_path).name}."))
+    option, title, subtitle = training_and_new_line_ups(summary)
+    pages.append(write_chart(option, out / "10_training_and_new_line_ups.html", title, subtitle=subtitle, height=500,
+                             note="A line-up is a distinct set of six species. A training line-up is the line-up of one of the labelled training teams "
+                                  "of the shuffled-only table, validation teams left out; every other line-up is new. Each grid has 4,416 teams: 23 asks, "
+                                  "3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking rate or the linear masking "
+                                  "rate, filled species-first or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model "
+                                  f"how many fields are still hidden. Source: {Path(summary_path).name}."))
     return pages
 
 

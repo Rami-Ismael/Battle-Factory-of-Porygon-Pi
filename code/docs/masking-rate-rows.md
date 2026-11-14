@@ -379,6 +379,8 @@ Random order's first-try legality is 89.2% to 90.5% with the lookahead on. With 
 
 Not battled. On the control's checkpoint the corrected t moves the drawing distribution by 0.0078 at most, against the bar of 0.01. It changes at most 3.3% of fields and 0.8% of line-ups at one ask.
 
+The largest move is Stat Alignment at ask 6/24, the same field type and ask as the default model's largest, 0.0050. Figure: [the new per-field model barely reads the t it is told](figures/masking_rate_rows/11_t_sensitivity_new_per_field_model.html), built by `src/masking_rate_preflight_figures.py`. It is the storyboard's frame 5.
+
 ### Expectations, scored
 
 | Row | Expected | Result |
@@ -443,6 +445,8 @@ Two earlier runs agree. At the single ask 0.5 on 48-field models, 2026-10-28, th
 So the line-ups axis of the Pareto chart rewards guidance for separating the asks. The verdicts compare rows at one guidance value and are not affected. Read across guidance values, the grid total is not a diversity measure, and the count for one ask is. Linear, random order is at 191 or 192 of 192 at every ask and guidance, so its rising total comes only from less overlap between asks. Figure: [the control's line-ups at each ask](figures/masking_rate_rows/08_line_ups_by_ask.html).
 
 ### Why the totals differ, row by row
+
+Figure: [each grid's line-ups split into training line-ups and new line-ups](figures/masking_rate_rows/10_training_and_new_line_ups.html). In all three rows the line-ups that guidance 8 adds over guidance 2 are new ones: they rise by 734, 677 and 1,110, while training line-ups move by −121, −195 and +64. Linear, random order is 90% to 92% new line-ups at every guidance.
 
 Measured 2026-11-14 from the stored teams. One model analysed each row, and a fourth recounted 19 of their claims with its own parser: 18 matched, and one had two numbers off by 5 and 1, corrected below. A training line-up is a line-up of one of the labelled training teams. An ask slot of a line-up is one ask at which it is drawn.
 

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The new per-field model moves 0.0078 at most against a bar of 0.01, so it barely reads the t it is told</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:460px}
+</style>
+</head>
+<body>
+<main>
+<h1>The new per-field model moves 0.0078 at most against a bar of 0.01, so it barely reads the t it is told</h1>
+<p class="sub">How far each model&#x27;s drawing distribution moves when a pass is told the corrected t and not 1 − filled/84, on the same partly filled teams. 0 means the same distribution, 1 means no overlap.</p>
+<div id="chart"></div>
+<p class="note">New per-field model: the control of #297, per-field masking rate, trained on the shuffled-only table, checkpoint stat84_shuffled_noise_per_field_es3_cap80. Its largest reading is Stat Alignment at ask 6/24; the default model&#x27;s largest is 0.0050. Each bar is one ask, 256 teams, guidance 2, sampling seed 7301. Source: masking_rate_rows_preflight.json.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0}, "grid": {"left": 64, "right": 24, "top": 64, "bottom": 40}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}}, "xAxis": {"type": "category", "data": ["Species", "Ability and item", "Moves", "Stat Alignment", "Stat Points"]}, "yAxis": {"type": "value", "name": "Total variation, corrected t", "nameLocation": "middle", "nameGap": 48, "max": 0.012}, "series": [{"name": "New per-field model, ask 6/24", "type": "bar", "itemStyle": {"color": "#174f94"}, "emphasis": {"focus": "series"}, "barGap": "8%", "data": [0.0009, 0.0021, 0.005, 0.0078, 0.0035], "markLine": {"symbol": "none", "silent": true, "lineStyle": {"color": "#6f6e69", "type": "dashed"}, "label": {"formatter": "bar set before the run: 0.01", "position": "insideStartTop", "color": "#6f6e69"}, "data": [{"yAxis": 0.01}]}}, {"name": "New per-field model, ask 12/24", "type": "bar", "itemStyle": {"color": "#2a78d6"}, "emphasis": {"focus": "series"}, "barGap": "8%", "data": [0.001, 0.0012, 0.0031, 0.0056, 0.0033]}, {"name": "New per-field model, ask 17/24", "type": "bar", "itemStyle": {"color": "#86b4ec"}, "emphasis": {"focus": "series"}, "barGap": "8%", "data": [0.0009, 0.0015, 0.0026, 0.0055, 0.0034]}, {"name": "Default model, ask 6/24", "type": "bar", "itemStyle": {"color": "#5c5b57"}, "emphasis": {"focus": "series"}, "barGap": "8%", "data": [0.0008, 0.0014, 0.0038, 0.005, 0.0032]}, {"name": "Default model, ask 12/24", "type": "bar", "itemStyle": {"color": "#94938d"}, "emphasis": {"focus": "series"}, "barGap": "8%", "data": [0.0005, 0.0007, 0.002, 0.0038, 0.0029]}, {"name": "Default model, ask 17/24", "type": "bar", "itemStyle": {"color": "#cfcec8"}, "emphasis": {"focus": "series"}, "barGap": "8%", "data": [0.0007, 0.0009, 0.0018, 0.003, 0.0029]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

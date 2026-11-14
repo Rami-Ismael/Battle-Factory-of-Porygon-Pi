@@ -174,6 +174,8 @@ def measures(out, refs):
                 line_ups_by_ask={str(k): sum(k in asks for asks in asks_of.values()) for k in ALL_ASKS},      # distinct among one ask's teams
                 asks_sharing_a_line_up=float(np.mean([len(asks) for asks in asks_of.values()])),
                 new_against_training=float(np.mean([lu not in refs[0] for lu in line_ups])),
+                distinct_training_line_ups=len({lu for lu in line_ups if lu in refs[0]}),          # counts of distinct line-ups; they add up to line_ups
+                distinct_new_line_ups_against_training=len({lu for lu in line_ups if lu not in refs[0]}),
                 new_against_search_and_tournaments=float(np.mean([lu not in refs[1] for lu in line_ups])),
                 effective_species=float(np.mean([c["div"]["effective_species"] for c in cells.values() if c["div"]])),
                 top_species_share=float(np.mean([c["div"]["top_species_share"] for c in cells.values() if c["div"]])),

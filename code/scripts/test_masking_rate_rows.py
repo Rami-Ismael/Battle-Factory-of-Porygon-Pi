@@ -9,6 +9,7 @@ import json
 import os
 import subprocess
 import unittest
+import warnings
 import xml.dom.minidom
 from pathlib import Path
 
@@ -128,6 +129,26 @@ class Measures(unittest.TestCase):
         self.assertTrue(best["outside"]); self.assertTrue(best["outside_by_point_estimates_alone"])
 
 
+    @unittest.skipUnless(Path("/tmp/vgc-pilot/src/asked_vs_got.py").exists(), "line_up_yield needs /tmp/vgc-pilot/src")
+    def test_training_and_new_line_ups_are_distinct_counts_that_add_up_to_the_line_ups(self):
+        import line_up_yield as LY
+        paste = lambda *species: "\n\n".join(f"{s} @ Leftovers\nAbility: Pressure" for s in species)
+        trained, other = ("Incineroar", "Rillaboom", "Urshifu", "Amoonguss", "Tornadus", "Landorus"), ("Pikachu", "Eevee", "Snorlax", "Ditto", "Mew", "Abra")
+        third = ("Garchomp", "Dragonite", "Charizard", "Gengar", "Lucario", "Gyarados")
+        pastes = {1: [paste(*trained), paste(*reversed(trained)), paste(*other)], 2: [paste(*other), paste(*third)]}     # 3 distinct line-ups, 5 teams
+        cells = {}
+        for k in R.ALL_ASKS:
+            for s in R.SEEDS:
+                p = pastes.get(s, []) if k == R.ALL_ASKS[0] else []
+                cells[(k, s)] = dict(pastes=p, y=[0.5] * len(p) or [0.5], tried=len(p), rejected=0, battles=49 * len(p), div=None, reasons=[])
+        out = dict(by_ask_seed=cells, reader="r", guidance=2.0, checkpoint="c", checkpoint_sha256="h", keep=64)
+        with warnings.catch_warnings():                       # the asks without teams give empty means; only the line-up counts are checked
+            warnings.simplefilter("ignore", RuntimeWarning)
+            m = R.measures(out, (frozenset({LY.line_up(paste(*trained))}), frozenset()))
+        self.assertEqual((m["distinct_training_line_ups"], m["distinct_new_line_ups_against_training"], m["line_ups"]), (1, 2, 3))
+        self.assertAlmostEqual(m["new_against_training"], 3 / 5)
+
+
 class Post(unittest.TestCase):
     def result(self):
         grids = {R.grid_name(R.CONTROL, 2): grid(R.CONTROL, 2, 0.0060, 1400), R.grid_name("sched_linear_species_first", 2): grid("sched_linear_species_first", 2, 0.0045, 1380)}
@@ -227,6 +248,26 @@ class Figures(unittest.TestCase):
             self.assertEqual(option["xAxis"][r]["data"], [f"Guidance {g}\n{c:,} counted\nask by ask" for g, c in zip(R.GUIDANCES, counted)])
         self.assertEqual(title, "In all three rows, raising guidance from 2 to 8 cuts the repeats between asks by 846 to 2,180, "
                                 "so the grid total grows by 800 line-ups while the ask-by-ask count falls by 46 to 1,380")
+
+    def test_training_and_new_line_ups_stack_to_the_grid_total_in_each_row(self):
+        summary = self.summary()
+        parts = {R.CONTROL: ((1000, 1080, 890), (500, 820, 1410)), "sched_linear_species_first": ((1040, 1080, 840), (540, 900, 1140)),
+                 "sched_linear_random": ((250, 320, 320), (2350, 2680, 3080))}
+        for row, (training, new) in parts.items():
+            for g, t, n in zip(R.GUIDANCES, training, new):
+                summary["grids"][R.grid_name(row, g)].update(distinct_training_line_ups=t, distinct_new_line_ups_against_training=n)
+        option, title, _ = F.training_and_new_line_ups(summary)
+        self.assertEqual(len(option["grid"]), 3); self.assertEqual(len(option["series"]), 6)
+        self.assertEqual([t["text"] for t in option["title"]], [F.label(row) for row in R.ROWS])
+        self.assertEqual(len({(y["min"], y["max"]) for y in option["yAxis"]}), 1); self.assertEqual(option["yAxis"][0]["max"], 3500)
+        self.assertEqual([d["name"] for d in option["legend"]["data"]], [F.TRAINING_PART, F.NEW_PART])
+        for r, (row, (training, new)) in enumerate(parts.items()):
+            low, high = [s for s in option["series"] if s["xAxisIndex"] == r]
+            self.assertEqual((low["name"], low["data"], high["name"], high["data"]), (F.TRAINING_PART, list(training), F.NEW_PART, list(new)))
+            self.assertEqual(low["stack"], high["stack"]); self.assertEqual(high["itemStyle"]["color"], F.COLORS[row]); self.assertEqual(low["itemStyle"]["color"], F.GREY)
+            self.assertEqual(option["xAxis"][r]["data"], [f"Guidance {g}\n{t + n:,} in all" for g, t, n in zip(R.GUIDANCES, training, new)])
+        self.assertEqual(title, "In all three rows, the line-ups that guidance 8 adds over guidance 2 are new line-ups: they rise by 600 to 910 "
+                                "while training line-ups move by at most 200. Linear, random order is 89% to 91% new line-ups at every guidance")
 
 
 if __name__ == "__main__":
