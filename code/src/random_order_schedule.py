@@ -35,7 +35,7 @@ PER_FIELD_RANDOM, LINEAR_RANDOM = "sched_per_field_random", "sched_linear_random
 LINEAR_SPECIES_FIRST, CONTROL = "sched_linear_species_first", MRR.CONTROL
 ROWS = (PER_FIELD_RANDOM, LINEAR_RANDOM, LINEAR_SPECIES_FIRST, CONTROL)
 READER = {PER_FIELD_RANDOM: "Per-field, random order", LINEAR_RANDOM: "Linear, random order",
-          LINEAR_SPECIES_FIRST: "Linear, species-first", CONTROL: "Per-field, species-first (the control)"}
+          LINEAR_SPECIES_FIRST: "Linear, species-first", CONTROL: "Per-field, species-first"}
 STREAM = {row: i for i, row in enumerate(ROWS)}            # each row's own bootstrap stream, fixed so a new row moves no other
 BAR, TRAINING_LUCK = MRR.BAR, MRR.TRAINING_LUCK            # 0.001 and 0.002, the map's bar
 OUT = MRR.RES / f"random_order_schedule{'_smoke' if MRR.SMOKE else ''}.json"
