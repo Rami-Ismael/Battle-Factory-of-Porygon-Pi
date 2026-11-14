@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decoding rules compared</title>
+<style>
+:root{--fg:#0b0b0b;--mu:#52514e;--ln:#e3e1da;--cb:#ffffff;--bg:#fcfcfb;--a:#2f6fb3;--b:#2e9e6a;--c:#d0632a;--d:#8a5cc2;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fg:#f2f1ee;--mu:#a9a8a2;--ln:#2f2e2b;--cb:#1d1d1b;--bg:#161615;--a:#6aa6e8;--b:#5cc795;--c:#f08a52;--d:#b48ee6;color-scheme:dark}}
+:root[data-theme="dark"]{--fg:#f2f1ee;--mu:#a9a8a2;--ln:#2f2e2b;--cb:#1d1d1b;--bg:#161615;--a:#6aa6e8;--b:#5cc795;--c:#f08a52;--d:#b48ee6;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px}
+h1{font-size:1.4rem;margin:0 0 4px}h2{font-size:1.05rem;margin:26px 0 8px}
+.sub{color:var(--mu);margin:0 0 14px;max-width:70ch}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px}
+.card{background:var(--cb);border:1px solid var(--ln);border-radius:10px;padding:12px 14px}
+.card h3{font-size:.95rem;margin:0 0 6px}.card ol{margin:0;padding-left:18px;font-size:.88rem}.card li{margin:2px 0}
+code{word-break:break-all;font-size:.85em}
+.who{font-size:.75rem;color:var(--mu);margin-top:8px}
+.pill{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:99px;border:1px solid var(--ln);margin-bottom:6px}
+.ran{border-color:var(--b);color:var(--b)}.not{color:var(--mu)}.bad{border-color:var(--c);color:var(--c)}
+svg text{fill:var(--fg);font:12px var(--font-sans,system-ui,sans-serif)}svg .m{fill:var(--mu)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.card p{margin:0;font-size:.9rem;color:var(--mu)}.card b{display:block;margin-bottom:4px;color:var(--fg)}
+.rank{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;margin:8px 0}
+.n{width:24px;height:24px;border-radius:50%;background:var(--a);color:#fff;display:grid;place-items:center;font-size:.8rem;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>One pass, five rules</h1>
+<p class="sub">Every rule makes two choices: which field to fill and which value to draw. The papers disagree about the order of those two steps, and that order is what decides diversity.</p>
+<div class="rules">
+  <div class="card"><span class="pill bad">LLaDA default · not run here</span><h3>Surest-draw order</h3><div class="who" style="margin:-4px 0 6px">LLaDA calls it low-confidence remasking</div><ol><li>Draw a value in every masked field</li><li>Keep only the most probable draw</li><li>Throw the other draws away</li></ol><div class="who">Unlikely values almost never survive: 0.7% of committed tokens were not the top token, even at temperature 1.2 (Jeon §5).</div></div>
+  <div class="card"><span class="pill ran">ran 2026-10-30 · confidence order</span><h3>Top-probability position selection</h3><ol><li>Score each field by its top probability</li><li>Pick the highest field</li><li>Draw from it at full temperature</li></ol><div class="who">Pass@k about equal to left-to-right decoding (Jeon §6.1). Ours is this rule (<code>discrete_diffusion_model.py:282</code>).</div></div>
+  <div class="card"><span class="pill not">not run</span><h3>Position temperature</h3><ol><li>Draw a value in every masked field</li><li>Pick a field with odds c<sup>1/T<sub>pos</sub></sup></li><li>Keep that draw</li></ol><div class="who">T<sub>pos</sub> = 0 is confidence-style, ∞ is random order. T<sub>pos</sub> 0.5 to 1 matched left-to-right decoding at high k (Olausson Fig. 8, v2).</div></div>
+  <div class="card"><span class="pill not">not run</span><h3>Entropy-guided initialization</h3><ol><li>First pass only: pick the most uncertain field</li><li>Draw it at temperature 0.9</li><li>Then confidence order at 0.6</li></ol><div class="who">Beat left-to-right decoding: Potential@64 (how often 64 samples recover a problem one sample misses) on HumanEval went from 54.5 to 69.7 (Jeon Table 2).</div></div>
+  <div class="card"><span class="pill ran">default · species-first</span><h3>Fixed order</h3><ol><li>Take the next field in a set order</li><li>Draw from it at full temperature</li></ol><div class="who">The papers' left-to-right baseline is this kind. Ours puts all six species first (<code>diffusion84.py:494</code>).</div></div>
+</div>
+
+<h2>The position temperature runs between two arms you tested separately</h2>
+<svg viewBox="0 0 760 150" width="100%" role="img" aria-label="Position temperature axis from confidence order to random order, with past win rates">
+  <line x1="60" y1="70" x2="700" y2="70" stroke="currentColor" stroke-opacity=".35" stroke-width="2"/>
+  <rect x="250" y="58" width="240" height="24" rx="6" fill="var(--a)" fill-opacity=".14" stroke="var(--a)" stroke-dasharray="4 3"/>
+  <text x="370" y="74" text-anchor="middle">never run · T<tspan baseline-shift="sub" font-size="9">pos</tspan> 0.5 to 1</text>
+  <circle cx="60" cy="70" r="8" fill="var(--b)"/><circle cx="700" cy="70" r="8" fill="var(--c)"/>
+  <text x="60" y="44" text-anchor="middle">T<tspan baseline-shift="sub" font-size="9">pos</tspan> = 0</text>
+  <text x="700" y="44" text-anchor="middle">T<tspan baseline-shift="sub" font-size="9">pos</tspan> = ∞</text>
+  <text x="60" y="102" text-anchor="start">confidence order</text>
+  <text x="60" y="120" class="m" text-anchor="start">win rate 0.335 · 63.5% legal</text>
+  <text x="700" y="102" text-anchor="end">random order</text>
+  <text x="700" y="120" class="m" text-anchor="end">win rate 0.322 · 0.7% legal</text>
+  <text x="380" y="140" class="m" text-anchor="middle">species-first, off this axis: 0.396 · 48-field model, 2026-10-30, mean over each batch</text>
+</svg>
+
+<h2>What each paper changes in the draft</h2>
+<div class="grid2">
+  <div class="card"><b>Your 2026-10-30 verdict measured only Pass@1</b><p>Win rate averaged over a batch is a one-sample measure. Both papers show their gains at large k, not at k = 1. Confidence order lost 0.06 in mean win rate but drew 2.8 more effective species in size-matched 5-team subsets. A Pass@k or Potential@k re-read of the stored teams could reverse that verdict, without new battles.</p></div>
+  <div class="card"><b>Species-first already puts the forks first</b><p>Olausson's fix keeps a fork token from being drawn after its anchors. In a team, species are the forks: they settle which team it is, and moves and items follow from them. Species-first draws all six species before any set is visible. That is the paper's reason why a fixed order stays diverse, and it gives the post a reason, not just a result.</p></div>
+  <div class="card"><b>Write the decoding rule as its two steps</b><p>Jeon found four papers whose released code ran surest-draw order while the text described top-probability position selection. Name the step order ("pick the field, then draw at temperature 1") and link the code line. One number proves it: the share of fields where the drawn value was not the top value.</p></div>
+  <div class="card"><b>Count cost in passes per legal team</b><p>Olausson compare samplers at equal compute with Pass@NFE: Pass@k plotted against the network passes spent, not the number of samples. Your arms all run about 84 passes per try. Without the lookahead, linear random order is legal on 1.9% of first tries, so a legal team costs about 50 times the passes; with it, 90%, plus the lookahead's own checks. Put passes per legal team on the x axis, not just k.</p></div>
+  <div class="card"><b>Diversity pays only with a good selector</b><p>Olausson's diverse sampler fell behind under majority voting and closed the gap, or beat left-to-right decoding, with an outcome reward model. Your selector is real battles, which plays the reward model's part, so diversity can pay. Picking teams with a surrogate model might not let it.</p></div>
+  <div class="card"><b>Their domain is not yours</b><p>Text has no dead ends. Here a field filled before its species can leave no legal species, which is why confidence and random orders lost legality. Any position temperature run needs the lookahead turned on, and its cost counted.</p></div>
+</div>
+
+<h2>Experiments it suggests, cheapest first</h2>
+<div class="rank"><div class="n">1</div><div><b>Pass@k and Potential@k re-read</b> of the masking-schedule and decoding-order grids, by ask. Stored teams and battles only.</div></div>
+<div class="rank"><div class="n">2</div><div><b>Entropy-guided initialization on the 84-field model:</b> first field by entropy, then confidence order with the lookahead. One sampler arm on the existing checkpoint.</div></div>
+<div class="rank"><div class="n">3</div><div><b>Position temperature sweep</b> at T<sub>pos</sub> 0.25, 0.5, 1 and 2 with the lookahead, read as one curve against species-first's guidance curve.</div></div>
+</main>
+</body>
+</html>
