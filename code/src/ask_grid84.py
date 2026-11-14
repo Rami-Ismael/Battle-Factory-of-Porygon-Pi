@@ -11,6 +11,10 @@ AG84_MODEL is a name in MODELS, or the checkpoint name train84.py --label-noise 
     AG84_MODEL=stat84_all_teams_es3_cap80_labelnoise1over48 python ask_grid84.py gen
     AG84_MODEL=stat84_labelled_noise_byepoch_es3_cap80_labelnoise1over48_ep03 python ask_grid84.py gen
 
+AG84_GUIDANCE sets the guidance, default 2. Another value gets its own results file and cell tags, with "_g4" or "_g8"
+after the model name, so guidance 2 keeps every stored name. AG84_UNGUIDED=1 draws one cell per seed with no ask and no
+guidance into "<model>_unguided". A model row that names decoder="random" samples in random order with the lookahead on.
+
 Run preflight with MATCHUP_DB pointing at a private database. Finished cells are skipped, so every step resumes.
 """
 import hashlib
@@ -72,6 +76,12 @@ for _arm, _reader in (("pos_per_field_s0", "No split, first seed"), ("pos_per_fi
                       ("pos_slot_learned", "Learned slot vectors"), ("pos_slot_fixed", "Fixed slot vectors"), ("pos_no_slot", "No slot vectors")):
     MODELS[_arm] = dict(checkpoint=f"stat84_{_arm}_noise_ep21", reader=f"{_reader}, label noise ±1/48, shuffled-only table, 21 epochs",
                         epochs=dict(all_teams=21), stopped="planned stop at epoch 21, patience off", table="lossdata84_shuffled_only.npz")
+SCHED_EPOCHS = dict(labelled_teams=80)                   # docs/masking-rate-rows.md: three battled rows on two checkpoints
+for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-field, uncorrected t. The control", "species_first"),
+                                      ("sched_linear_species_first", "linear", "Linear, species-first", "species_first"),
+                                      ("sched_linear_random", "linear", "Linear, random order", "random")):
+    MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
+                       stopped="early stopping never fired in 80 epochs, so the model is read at the cap", table=DEFAULT_TABLE)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
@@ -87,16 +97,18 @@ if MODEL not in MODELS and flagged_checkpoint(MODEL):
 for _row in MODELS.values():                             # every row so far trained on the older table unless it names another
     if not _row.get("table65"): _row.setdefault("table", OLDER_TABLE)
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
-GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 2.0, 64, 96, 1280, 7300, 1
-ASK_NUMERATORS, SEEDS = list(range(1, 24)), [1, 2, 3]
+UNGUIDED = bool(os.environ.get("AG84_UNGUIDED"))           # one cell per seed with no ask: the row's unguided baseline
+GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, 1280, 7300, 1
+SUFFIX = "_unguided" if UNGUIDED else "" if GUIDANCE == 2 else f"_g{GUIDANCE:g}"   # guidance 2 keeps the stored names
+ASK_NUMERATORS, SEEDS = [0] if UNGUIDED else list(range(1, 24)), [1, 2, 3]
 if os.environ.get("AG84_SEEDS"): SEEDS = [int(s) for s in os.environ["AG84_SEEDS"].split(",")]
-if SMOKE: KEEP, BATCH, MAX_TRIES, ASK_NUMERATORS, SEEDS = 4, 8, 64, [12], [1]
+if SMOKE: KEEP, BATCH, MAX_TRIES, ASK_NUMERATORS, SEEDS = 4, 8, 64, [0] if UNGUIDED else [12], [1]
 DIVERSITY_SUBSETS, SUBSET_SIZE = 200, 5
 OFF_GRID_ASKS = [0.3, 0.531, 0.6, 0.7]                   # not multiples of 1/24; the 48-field runs battled these too
 NUDGE_NUMERATORS, NUDGES = (6, 8, 10, 11, 12, 13, 14, 16), (0.0, 0.002, -0.002, 1 / 48)
 if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
 RES = Path.home() / "vgc-data/results"
-OUT = RES / f"stat_points_84_{MODEL}{'_smoke' if SMOKE else ''}.json"
+OUT = RES / f"stat_points_84_{MODEL}{SUFFIX}{'_smoke' if SMOKE else ''}.json"
 DATA = X.RES / OLDER_TABLE                               # training teams of the older-table models that remask84, nucleus84, trade84 and lineup_reference score
 UNIFORM_LEGAL = Path.home() / "vgc-data/teams/hps_reg_mb_100k.jsonl"
 
@@ -109,7 +121,12 @@ def save(out):
     tmp = OUT.with_suffix(".tmp"); json.dump(out, open(tmp, "w")); os.replace(tmp, OUT)
 
 
-def tag_of(numerator, seed): return f"{MODEL}_a{numerator:02d}of24_s{seed}"
+def tag_of(numerator, seed): return f"{MODEL}{SUFFIX}_a{numerator:02d}of24_s{seed}"
+
+
+def ask_of(numerator):
+    """The ask of a cell: numerator/24, or no ask at all in an unguided cell."""
+    return None if UNGUIDED else numerator / 24
 
 
 def checkpoint_path(): return L.CK / f"{MODELS[MODEL]['checkpoint']}.pt"
@@ -117,6 +134,15 @@ def checkpoint_path(): return L.CK / f"{MODELS[MODEL]['checkpoint']}.pt"
 
 def load_model():
     return M.Model84.load(checkpoint_path())
+
+
+def load_sampler(w=None):
+    """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order, and for a
+    row that names random order, LLaDA's random decoding with the lookahead on (remask84.RandomDecodingArm)."""
+    w = w or load_model()
+    if MODELS[MODEL].get("decoder", "species_first") == "species_first": return w
+    import remask84
+    return remask84.RandomDecodingArm(w, "rand_plain", lookahead=True)
 
 
 def table_of(row):
@@ -177,15 +203,15 @@ def gen():
     out = load_out(); sha = require_same_checkpoint(out)
     out.update(reader=MODELS[MODEL]["reader"], epochs_trained=MODELS[MODEL]["epochs"], stopped=MODELS[MODEL]["stopped"],
                checkpoint=checkpoint_path().name, checkpoint_sha256=sha,
-               guidance=GUIDANCE, keep=KEEP, max_tries=MAX_TRIES, seed0=SEED0)
+               guidance=GUIDANCE, unguided=UNGUIDED, decoder=MODELS[MODEL].get("decoder", "species_first"), keep=KEEP, max_tries=MAX_TRIES, seed0=SEED0)
     save(out)
-    w = load_model()
+    w = load_sampler()
     for seed in SEEDS:
         for k in ASK_NUMERATORS:
             t = tag_of(k, seed)
             if t in out["cells"]: continue
-            kept, stats, counts = draw(w, k / 24, seed)
-            out["cells"][t] = dict(ask=k / 24, numerator=k, seed=seed, **counts, pastes=kept, stat_points=stats,
+            kept, stats, counts = draw(w, ask_of(k), seed)
+            out["cells"][t] = dict(ask=ask_of(k), numerator=k, seed=seed, **counts, pastes=kept, stat_points=stats,
                                    div=subset_diversity(kept, SEED0 + seed) if kept else None)
             save(out)
             print(f"  {t:32s} kept {len(kept):3d} · legal {counts['legal']:6.1%} · eff species "
@@ -395,6 +421,7 @@ def controls():
 
 def preflight():
     w = load_model(); V = w.V; out = load_out(); pf = dict(out.get("preflight", {}))   # keeps a training_smoke probe run before training
+    sampler = load_sampler(w)                               # the probes read teams drawn by the row's own decoder
     if MODELS[MODEL].get("table65"):                        # trained on the shuffled-slot table (src/train65.py)
         import train65
         d, tr_rows, _, _ = train65.load(); tr = d["X"][tr_rows].astype(np.int64)
@@ -402,12 +429,13 @@ def preflight():
         d = np.load(X.RES / table_of(MODELS[MODEL])); tr_rows = ~d["all_val"] & (~np.isnan(d["all_W"]) if MODELS[MODEL].get("labelled") else True)
         tr = d["all_X"][tr_rows].astype(np.int64)
     torch.manual_seed(SEED0 + 1)
-    rows = w.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()
+    rows = sampler.sample(256, ask=0.5, guidance=GUIDANCE).cpu().numpy()
     pf["round_trip"] = round_trip(w, rows[:20])
     pf["coverage"] = dict(vocabulary="regulation tables directly", n_train=(w.info or {}).get("n_train"), dropped_by_tables=(w.info or {}).get("dropped_by_tables"),
                           explanation="teams the legal Pokémon construction tables reject are dropped before training")
     gen_slots = [T.decode(V, r) for r in rows]
     rng = np.random.default_rng(0); real_slots = [T.decode(V, tr[i]) for i in rng.choice(len(tr), 256, replace=False)]
+    pf["decoder"] = dict(name=MODELS[MODEL].get("decoder", "species_first"), sampler=type(sampler).__name__, guidance=GUIDANCE)
     pf["read_teams"] = dict(pastes=[w.to_paste(r, repair=True)[0] for r in rows[:20]],
                             **{f"{f}_generated": shares(f, gen_slots) for f in ("species", "item", "ability", "moves")},
                             **{f"{f}_training": shares(f, real_slots) for f in ("species", "item", "ability", "moves")})
@@ -417,8 +445,8 @@ def preflight():
     pf["repeat"] = dict(skipped="scorer unchanged since the line-up repeats run; the seed reaches the schedule through score_pastes as there")
     keys, pf["copies"] = copies(rows, tr)
     pf["separation"] = separation(V, keys)
-    torch.manual_seed(SEED0); low = w.sample(128, ask=0.1, guidance=GUIDANCE).cpu().numpy()
-    torch.manual_seed(SEED0); high = w.sample(128, ask=0.7, guidance=GUIDANCE).cpu().numpy()
+    torch.manual_seed(SEED0); low = sampler.sample(128, ask=0.1, guidance=GUIDANCE).cpu().numpy()
+    torch.manual_seed(SEED0); high = sampler.sample(128, ask=0.7, guidance=GUIDANCE).cpu().numpy()
     a, b = shares("species", [T.decode(V, r) for r in low], 8), shares("species", [T.decode(V, r) for r in high], 8)
     pf["condition"] = dict(share_teams_changed=float(np.mean((low != high).any(1))), species_low_ask=a, species_high_ask=b, passed=bool((low != high).any(1).mean() > 0.5),
                            note="direction is measured by the grid itself")
