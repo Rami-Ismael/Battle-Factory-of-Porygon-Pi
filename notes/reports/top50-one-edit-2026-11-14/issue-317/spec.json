@@ -1,0 +1,603 @@
+{
+ "issue": 317,
+ "title": "One edit on the top-50 teams themselves, and edit size against a team's rank",
+ "url": "https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/317",
+ "headline": "On the top-50 teams, swapping a whole Pokemon, a move or an item changes win rate by more than battle luck",
+ "setup": "A team is six Pokemon. The top 50 are the 50 highest-placing team files, one team listed twice, so 49 distinct teams. We change one thing on a top-50 team, battle the old and the new team against all 50 files, and see how far the win rate moves. Every score is 384 battles with the six Pokemon shuffled and the same behaviour-cloning policy playing both sides.",
+ "alt": "Nine frames. The 49 distinct top-50 teams each got 18 edits, 3 of each of six kinds, and 3 replays with nothing changed. A replay moves a score by 3.73 points of battle luck. With luck removed, one edit moves a top-50 team's win rate by 4.91 points for a whole Pokemon swap, 3.04 for a move and 3.12 for an item, all with 95% intervals above zero. Ability edits read 2.11 with an interval that reaches zero, and stat alignment and Stat Points read 0.00. Using all four unchanged scores as the comparison gives 5.28, 3.87, 3.62 and 2.76, and the ability edit then sits above zero. As a share of the 7.90-point spread between teams, only the whole Pokemon swap, 0.62, is larger than one Pest Control step, 0.32 to 0.37. Random edits lower win rate on average for four kinds. No difference between the three groups of teams is shown, and no trend with a team's rank.",
+ "terms": [
+  [
+   "Top-50 teams",
+   "The 50 highest-placing team files in the project's pool, 49 distinct teams. In this run they are both the teams being edited and the opponents"
+  ],
+  [
+   "Edit kind",
+   "What one rule-abiding edit changes on one Pokemon. Four kinds pick a new legal value at random: one of its four moves, its ability, the item it holds, its stat alignment"
+  ],
+  [
+   "Copied edits",
+   "The other two kinds copy from real teams. Stat Points: all six numbers are replaced by those of another real set of the same species. Whole Pokemon: the slot is replaced by a real set of a species not on the team"
+  ],
+  [
+   "Stat alignment, Stat Points",
+   "Two settings of a Pokemon's numbers: which stat is raised and which lowered, and how its training points are divided among its stats"
+  ],
+  [
+   "Replay",
+   "The same team battled 384 more times with nothing changed. Every starting team gets 3 replays"
+  ],
+  [
+   "Battle luck",
+   "How far a win rate moves on a replay, with nothing changed. For top-50 teams a replay moves a score by 3.73 points"
+  ],
+  [
+   "Change, in points",
+   "The size of the real move one edit causes, in win-rate percentage points, in either direction. Computed as the square root of the mean squared move after an edit minus the mean squared move of a replay"
+  ],
+  [
+   "95% interval",
+   "The range the true size plausibly lies in. Found by redrawing the starting teams 2,000 times and recomputing the size each time"
+  ],
+  [
+   "Above zero",
+   "Reading 1. The whole interval of an edit kind's size sits above zero, so the edit does something a replay does not"
+  ],
+  [
+   "First score, four unchanged scores",
+   "Each team has four scores with nothing changed: the first score and three replays. The plan measures every edit against the first score. The check in frame 5 uses each of the four in turn and averages"
+  ],
+  [
+   "Spread between teams",
+   "How far the starting teams' true win rates lie from one another, as a standard deviation with battle luck removed: 7.90 points over the three groups together"
+  ],
+  [
+   "One Pest Control step",
+   "Reading 2. Pest Control is a standard optimisation benchmark. One step on it is 0.37 of the spread between its random starting points and 0.32 between its hill-climbed ones. An edit kind is larger when the interval of its share minus the step's share sits above zero for both, smaller when it sits below zero for both, and undecided otherwise"
+  ],
+  [
+   "Average change",
+   "The mean of the edits' moves with their sign kept, so a kind that usually lowers win rate reads negative"
+  ],
+  [
+   "Tournament-ready teams, search-found teams",
+   "The two groups from the earlier run: 24 real teams players built for tournaments, drawn from outside the top 50, and 16 teams an earlier search produced"
+  ],
+  [
+   "Rank correlation",
+   "Whether teams that win more also change more when edited. Minus 1 means the strongest teams change most, 0 means no link"
+  ]
+ ],
+ "frames": [
+  {
+   "title": "1. What is new: the top 50 are the teams being edited",
+   "kind": "compare",
+   "data": {
+    "left": {
+     "title": "Earlier run, 2026-11-12",
+     "lines": [
+      "Edits start from 24 tournament-ready teams and 16 search-found teams",
+      "The top 50 are only the opponents"
+     ]
+    },
+    "right": {
+     "title": "This run, 2026-11-13",
+     "tone": "c1",
+     "lines": [
+      "Edits start from the 49 distinct top-50 teams",
+      "The same 50 files are the opponents",
+      "Same six kinds, 3 edits of each"
+     ]
+    }
+   },
+   "takes": "The earlier run edited strong teams from outside the top 50. This run edits the top-50 teams themselves, so the result speaks about the teams a search has to beat.",
+   "measured": "The run matched its plan: 49 teams, 882 edited teams and 147 replays, which is 1,078 scores of 384 battles and 413,952 battles."
+  },
+  {
+   "title": "2. The six kinds of edit, on one real top-50 team",
+   "kind": "examples",
+   "data": {
+    "head": [
+     "",
+     "Before",
+     "After"
+    ],
+    "rows": [
+     {
+      "label": "One move",
+      "before": "Incineroar knows Darkest Lariat",
+      "after": "Incineroar knows Sleep Talk"
+     },
+     {
+      "label": "Ability",
+      "before": "Garchomp has Rough Skin",
+      "after": "Garchomp has Sand Veil"
+     },
+     {
+      "label": "Held item",
+      "before": "Charizard holds Charizardite Y",
+      "after": "Charizard holds Big Root"
+     },
+     {
+      "label": "Stat alignment",
+      "before": "Sylveon is Modest",
+      "after": "Sylveon is Hasty"
+     },
+     {
+      "label": "Stat Points, copied",
+      "before": "Charizard: HP 30, Defense 30, 6 elsewhere",
+      "after": "Another real Charizard's: HP 20, Defense 32, 14 elsewhere"
+     },
+     {
+      "label": "Whole Pokemon, copied",
+      "before": "Aerodactyl and its whole set",
+      "after": "A real Sinistcha set from another team"
+     }
+    ]
+   },
+   "takes": "Four kinds pick a new legal value at random, so many edits are not what a player would choose. Two kinds copy from real teams.",
+   "measured": "This team scored 52.3%, and 56.3%, 50.5% and 51.0% on its 3 replays. The six edited teams scored 49.5%, 45.1%, 41.7%, 49.5%, 52.1% and 46.9%, in the order shown."
+  },
+  {
+   "title": "3. From scores to a change in points",
+   "kind": "triangle",
+   "data": {
+    "base": {
+     "label": "Battle luck, from replays",
+     "value": "3.73"
+    },
+    "height": {
+     "label": "Real move of the edit",
+     "value": "4.91"
+    },
+    "hypotenuse": {
+     "label": "What we measure after an edit",
+     "value": "6.16"
+    }
+   },
+   "takes": "What we measure after an edit is its real move plus battle luck. The two are independent, so they add as squares, like the short sides of a right triangle.",
+   "measured": "For the whole Pokemon swap on top-50 teams: 6.16 squared minus 3.73 squared is 4.91 squared."
+  },
+  {
+   "title": "4. Is the edit real? Change in points with its 95% interval, top-50 teams",
+   "kind": "bars",
+   "data": {
+    "bars": [
+     {
+      "label": "Whole Pokemon, copied",
+      "height": 0.614,
+      "range": [
+       0.468,
+       0.729
+      ],
+      "tone": "c1",
+      "note": "4.91"
+     },
+     {
+      "label": "One move",
+      "height": 0.38,
+      "range": [
+       0.131,
+       0.512
+      ],
+      "tone": "c1",
+      "note": "3.04"
+     },
+     {
+      "label": "Held item",
+      "height": 0.39,
+      "range": [
+       0.151,
+       0.54
+      ],
+      "tone": "c1",
+      "note": "3.12"
+     },
+     {
+      "label": "Ability",
+      "height": 0.264,
+      "range": [
+       0.0,
+       0.414
+      ],
+      "tone": "plain",
+      "note": "2.11"
+     },
+     {
+      "label": "Stat alignment",
+      "height": 0.0,
+      "range": [
+       0.0,
+       0.226
+      ],
+      "tone": "plain",
+      "note": "0.00"
+     },
+     {
+      "label": "Stat Points, copied",
+      "height": 0.0,
+      "range": [
+       0.0,
+       0.126
+      ],
+      "tone": "plain",
+      "note": "0.00"
+     }
+    ]
+   },
+   "takes": "An edit kind is real when its whole interval, the thin capped line, sits above zero. On top-50 teams three kinds are: the whole Pokemon swap, the move edit and the item edit.",
+   "measured": "Ability edits read 2.11 with an interval that reaches zero. Stat alignment and Stat Points read 0.00, with intervals up to 1.81 and 1.01. No effect is shown for those three, which is not proof they do nothing."
+  },
+  {
+   "title": "5. A check made after the result: does the comparison score matter?",
+   "kind": "grid",
+   "data": {
+    "cols": [
+     "As planned: against the first score",
+     "Check: against all four unchanged scores"
+    ],
+    "rows": [
+     "Whole Pokemon, copied",
+     "One move",
+     "Held item",
+     "Ability",
+     "Stat alignment",
+     "Stat Points, copied"
+    ],
+    "cells": [
+     [
+      {
+       "text": "4.91, above zero",
+       "tone": "ok"
+      },
+      {
+       "text": "5.28, above zero",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "3.04, above zero",
+       "tone": "ok"
+      },
+      {
+       "text": "3.87, above zero",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "3.12, above zero",
+       "tone": "ok"
+      },
+      {
+       "text": "3.62, above zero",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "2.11, not shown",
+       "tone": "warn"
+      },
+      {
+       "text": "2.76, above zero",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "0.00, not shown",
+       "tone": "plain"
+      },
+      {
+       "text": "1.06, not shown",
+       "tone": "plain"
+      }
+     ],
+     [
+      {
+       "text": "0.00, not shown",
+       "tone": "plain"
+      },
+      {
+       "text": "0.00, not shown",
+       "tone": "plain"
+      }
+     ]
+    ]
+   },
+   "takes": "Each team has four scores with nothing changed. The plan measured every edit against the first one only. Using all four gives the same three real kinds and adds the ability edit.",
+   "measured": "The first scores of the top-50 teams came out 0.78 points below their replays. Edits mostly lower win rate, so part of each drop was hidden and the planned sizes read low. The right column was computed after seeing the result, so it is a check, not the registered result."
+  },
+  {
+   "title": "6. Is the edit large? Its share of the spread between teams, against one step on a benchmark",
+   "kind": "bars",
+   "data": {
+    "bars": [
+     {
+      "label": "Whole Pokemon, copied",
+      "height": 0.62,
+      "range": [
+       0.47,
+       0.8
+      ],
+      "tone": "c1",
+      "note": "0.62"
+     },
+     {
+      "label": "One move",
+      "height": 0.39,
+      "range": [
+       0.14,
+       0.54
+      ],
+      "tone": "plain",
+      "note": "0.39"
+     },
+     {
+      "label": "Held item",
+      "height": 0.4,
+      "range": [
+       0.15,
+       0.56
+      ],
+      "tone": "plain",
+      "note": "0.40"
+     },
+     {
+      "label": "Ability",
+      "height": 0.27,
+      "range": [
+       0.0,
+       0.43
+      ],
+      "tone": "plain",
+      "note": "0.27"
+     },
+     {
+      "label": "Stat alignment",
+      "height": 0.0,
+      "range": [
+       0.0,
+       0.23
+      ],
+      "tone": "plain",
+      "note": "0.00"
+     },
+     {
+      "label": "Stat Points, copied",
+      "height": 0.0,
+      "range": [
+       0.0,
+       0.13
+      ],
+      "tone": "plain",
+      "note": "0.00"
+     }
+    ],
+    "line": {
+     "at": 0.37,
+     "label": "one Pest Control step, 0.32 to 0.37",
+     "corner": true,
+     "tone": "c3"
+    }
+   },
+   "takes": "Each size is divided by how far teams' scores spread, 7.90 points. One step on the Pest Control benchmark is 0.37 of the spread between its random starting points, and 0.32 between its hill-climbed ones.",
+   "measured": "The whole Pokemon swap is 0.62 of the spread and reads larger than the step, narrowly: the interval of the difference starts at 0.01. Move, item and ability edits are undecided. Stat alignment and Stat Points read smaller than a step."
+  },
+  {
+   "title": "7. Which way does a random edit push a top-50 team?",
+   "kind": "grid",
+   "data": {
+    "cols": [
+     "Average change, points",
+     "95% interval"
+    ],
+    "rows": [
+     "Whole Pokemon, copied",
+     "One move",
+     "Held item",
+     "Ability",
+     "Stat alignment",
+     "Stat Points, copied"
+    ],
+    "cells": [
+     [
+      {
+       "text": "−2.51",
+       "tone": "bad"
+      },
+      {
+       "text": "−3.53 to −1.48",
+       "tone": "bad"
+      }
+     ],
+     [
+      {
+       "text": "−2.08",
+       "tone": "bad"
+      },
+      {
+       "text": "−2.93 to −1.23",
+       "tone": "bad"
+      }
+     ],
+     [
+      {
+       "text": "−1.52",
+       "tone": "bad"
+      },
+      {
+       "text": "−2.55 to −0.57",
+       "tone": "bad"
+      }
+     ],
+     [
+      {
+       "text": "−1.25",
+       "tone": "bad"
+      },
+      {
+       "text": "−2.10 to −0.43",
+       "tone": "bad"
+      }
+     ],
+     [
+      {
+       "text": "−0.04",
+       "tone": "plain"
+      },
+      {
+       "text": "−0.82 to 0.78",
+       "tone": "plain"
+      }
+     ],
+     [
+      {
+       "text": "+0.52",
+       "tone": "plain"
+      },
+      {
+       "text": "−0.24 to 1.30",
+       "tone": "plain"
+      }
+     ]
+    ]
+   },
+   "takes": "A random legal edit to a top-50 team usually costs win rate. Four kinds lower it on average. Stat alignment and Stat Points show no direction.",
+   "measured": "The edits are random legal values, not choices a player would make: 38 of the 147 item edits take away a Mega Stone, and 27 of the 147 move edits take away Protect."
+  },
+  {
+   "title": "8. Top-50 teams beside the other two groups, change in points",
+   "kind": "grid",
+   "data": {
+    "cols": [
+     "Top-50, 49 teams",
+     "Tournament- ready, 24",
+     "Search- found, 16"
+    ],
+    "rows": [
+     "Whole Pokemon, copied",
+     "One move",
+     "Held item",
+     "Ability",
+     "Stat alignment",
+     "Stat Points, copied"
+    ],
+    "cells": [
+     [
+      {
+       "text": "4.91",
+       "tone": "ok"
+      },
+      {
+       "text": "5.90",
+       "tone": "ok"
+      },
+      {
+       "text": "5.85",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "3.04",
+       "tone": "ok"
+      },
+      {
+       "text": "4.84",
+       "tone": "ok"
+      },
+      {
+       "text": "4.92",
+       "tone": "ok"
+      }
+     ],
+     [
+      {
+       "text": "3.12",
+       "tone": "ok"
+      },
+      {
+       "text": "4.35",
+       "tone": "ok"
+      },
+      {
+       "text": "1.44",
+       "tone": "plain"
+      }
+     ],
+     [
+      {
+       "text": "2.11",
+       "tone": "plain"
+      },
+      {
+       "text": "3.66",
+       "tone": "ok"
+      },
+      {
+       "text": "1.35",
+       "tone": "plain"
+      }
+     ],
+     [
+      {
+       "text": "0.00",
+       "tone": "plain"
+      },
+      {
+       "text": "1.95",
+       "tone": "plain"
+      },
+      {
+       "text": "0.00",
+       "tone": "plain"
+      }
+     ],
+     [
+      {
+       "text": "0.00",
+       "tone": "plain"
+      },
+      {
+       "text": "1.60",
+       "tone": "plain"
+      },
+      {
+       "text": "1.72",
+       "tone": "plain"
+      }
+     ]
+    ]
+   },
+   "takes": "Green means the interval sits above zero. The whole Pokemon swap and the move edit are real in all three groups.",
+   "measured": "The top-50 sizes look smaller than the tournament-ready ones, 3.04 against 4.84 for a move. Against all four unchanged scores they are 3.87 and 4.52 with overlapping intervals, so no difference between the groups is shown."
+  },
+  {
+   "title": "9. Do teams that win more change more?",
+   "kind": "compare",
+   "data": {
+    "left": {
+     "title": "As planned",
+     "lines": [
+      "Rank by the three replays",
+      "Edit size against the first score",
+      "Rank correlation −0.28, interval −0.53 to −0.00"
+     ]
+    },
+    "right": {
+     "title": "Checked another way",
+     "tone": "c3",
+     "lines": [
+      "Rank by two replays the edits share no seed with",
+      "Edit size against the replay on the edits' own seed",
+      "Rank correlation −0.01, interval −0.28 to 0.26"
+     ]
+    }
+   },
+   "takes": "The planned reading leans slightly towards stronger teams changing more. It vanishes when the comparison score changes, so no trend with rank is shown.",
+   "measured": "Both readings are for the 49 top-50 teams. Over all 89 teams the planned correlation is −0.17, interval −0.37 to 0.02. Each team's edit size rests on one noisy comparison score, which is why the answer moves."
+  }
+ ]
+}
