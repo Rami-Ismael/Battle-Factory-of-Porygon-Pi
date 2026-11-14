@@ -1,11 +1,12 @@
-"""Four figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and a later check; issue #297).
+"""Five figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and a later check; issue #297).
 
   05_error_against_line_ups       ask-versus-got error against distinct line-ups, one three-point curve for each row
   06_got_against_ask              got against ask, the control beside Linear, species-first, one panel for each guidance
   07_random_order_error_multiple  random order's error as a multiple of species-first's on the same checkpoint
   08_line_ups_by_ask              the control's distinct line-ups among one ask's teams, a line for each guidance
+  09_line_ups_shared_between_asks the control's line-ups counted ask by ask, split into the grid total and the repeats between asks
 
-Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title); the fourth also returns its subtitle.
+Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title); the fourth and fifth also return a subtitle.
 
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_rows_figures.py      (from code/)
 """
@@ -151,6 +152,26 @@ def line_ups_by_ask(summary, row=CONTROL):
     return option, title, subtitle
 
 
+def line_ups_shared_between_asks(summary, row=CONTROL):
+    """The grid total is the ask-by-ask counts added up, minus the repeats between asks. The bar is the first, its two parts the others."""
+    grids = grids_of(summary, row)
+    counted = [sum(g["line_ups_by_ask"].values()) for g in grids]; total = [g["line_ups"] for g in grids]; repeats = [c - d for c, d in zip(counted, total)]
+    comma = "js:p => p.value.toLocaleString('en-US')"
+    series = [dict(name="Distinct line-ups over the grid", type="bar", stack="counted", barWidth="52%", itemStyle=dict(color=COLORS[row]), emphasis=dict(focus="series"),
+                   label=dict(show=True, formatter=comma, color="#fefefe", fontWeight="bold", fontSize=15), data=total),
+              dict(name="Repeats: a line-up already counted at another ask", type="bar", stack="counted", itemStyle=dict(color=GREY, opacity=0.5), emphasis=dict(focus="series"),
+                   label=dict(show=True, formatter=comma, color="#0b0b0b"), data=repeats)]
+    option = dict(legend=dict(top=0), tooltip=dict(trigger="axis", axisPointer=dict(type="shadow")), grid=dict(left=64, right=30, top=40, bottom=64),
+                  xAxis=dict(type="category", axisLabel=dict(interval=0, lineHeight=18),
+                             data=[f"Guidance {g}\n{c:,} counted ask by ask" for g, c in zip(GUIDANCES, counted)]),
+                  yAxis=dict(type="value", min=0, name="Line-ups, each ask counted separately", nameLocation="middle", nameGap=48), series=series)
+    title = (f"Repeats between asks go from {repeats[0]:,} to {repeats[-1]:,} as guidance rises, so the grid total goes from {total[0]:,} to {total[-1]:,} "
+             "though each ask has fewer line-ups")
+    subtitle = (f"{label(row)}. The whole bar is the distinct line-ups of each ask, added over the 23 asks. "
+                "The grey part is the line-ups that were already counted at another ask. What is left is the grid total.")
+    return option, title, subtitle
+
+
 def main(summary_path=SUMMARY, out=OUT):
     summary = json.load(open(summary_path))
     note = f"{ERROR} {WIN_RATE} Source: {Path(summary_path).name}."
@@ -172,6 +193,9 @@ def main(summary_path=SUMMARY, out=OUT):
     option, title, subtitle = line_ups_by_ask(summary)
     pages.append(write_chart(option, out / "08_line_ups_by_ask.html", title, subtitle=subtitle, height=440,
                              note=f"A line-up is a distinct set of six species. Each point pools 3 sampling seeds of 64 teams. Source: {Path(summary_path).name}."))
+    option, title, subtitle = line_ups_shared_between_asks(summary)
+    pages.append(write_chart(option, out / "09_line_ups_shared_between_asks.html", title, subtitle=subtitle, height=440,
+                             note=f"A line-up is a distinct set of six species. Each ask has 192 teams, 64 from each of 3 sampling seeds. Source: {Path(summary_path).name}."))
     return pages
 
 

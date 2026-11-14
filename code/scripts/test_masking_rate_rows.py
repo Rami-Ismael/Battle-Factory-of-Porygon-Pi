@@ -206,6 +206,16 @@ class Figures(unittest.TestCase):
         self.assertIn("line-ups fall from 180 to 120", title); self.assertIn("they rise from 1,500 to 2,300", title)
         self.assertIn("2.50, 2.00 and 1.50 asks on average at guidance 2, 4 and 8", subtitle)
 
+    def test_line_ups_shared_between_asks_splits_the_ask_by_ask_count_into_the_grid_total_and_the_repeats(self):
+        summary = self.summary()
+        for i, g in enumerate(R.GUIDANCES):
+            summary["grids"][R.grid_name(R.CONTROL, g)].update(line_ups_by_ask={str(k): 180 - 30 * i for k in range(1, 24)})
+        option, title, _ = F.line_ups_shared_between_asks(summary)
+        total, repeats = option["series"]
+        self.assertEqual(total["data"], [1500, 1900, 2300]); self.assertEqual(repeats["data"], [180 * 23 - 1500, 150 * 23 - 1900, 120 * 23 - 2300])
+        self.assertEqual(total["stack"], repeats["stack"]); self.assertIn("4,140 counted ask by ask", option["xAxis"]["data"][0])
+        self.assertIn("Repeats between asks go from 2,640 to 460", title); self.assertIn("grid total goes from 1,500 to 2,300", title)
+
 
 if __name__ == "__main__":
     unittest.main()
