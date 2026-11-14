@@ -135,8 +135,13 @@ _Avoid_: species change, mutation
 The line-ups that differ from a reference line-up by exactly n species, in any slot order. A one-swap family shares five species with the reference and replaces the sixth.
 _Avoid_: neighbours
 
+**Novel line-up**:
+A line-up that no team in the model's training data has: its six species appear together in no training team. One species swapped from a training line-up is enough. A line-up that a training team has is a training line-up.
+_Distinguish_: Novelty counts how many swaps away the closest training line-up is.
+_Avoid_: new line-up
+
 **Novelty**:
-How many species swaps a generated team's line-up is from the closest line-up in the model's training data: zero (copied), one, two, or three or more (a new line-up).
+How many species swaps a generated team's line-up is from the closest line-up in the model's training data: zero (copied), one, two, or three or more. Every count above zero is a novel line-up.
 _Avoid_: originality, uniqueness
 
 **Nearest training distance**:

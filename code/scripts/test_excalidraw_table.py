@@ -13,7 +13,7 @@ COMMENT = """Lead sentence.
 
 | Row | Why its total differs | Evidence |
 | --- | --- | --- |
-| Per-field, uncorrected t, the control | Neighbouring asks draw the same line-ups | 2,216 of 2,329 repeats. The top 20 take 239 slots. New line-ups go from 502 to 1,236. Training line-ups fall to 890 |
+| Per-field, uncorrected t, the control | Neighbouring asks draw the same line-ups | 2,216 of 2,329 repeats. The top 20 take 239 slots. Novel line-ups go from 502 to 1,236. Training line-ups fall to 890 |
 | Linear, species-first | The **same** thing | The rows share 776 line-ups. The gap is `noise` |
 | Linear, random order | It rarely draws a training line-up | 12% of teams. Teams win 0.236, against 0.323 |
 
