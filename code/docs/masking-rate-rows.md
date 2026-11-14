@@ -412,7 +412,7 @@ Linear, random order has more line-ups than every control point: 2,646 to 3,820 
 
 Added 2026-11-13 after the owner asked whether the line-up count was wrong, because the grid total rises with guidance while the papers report that guidance lowers diversity. The count is right. A recount from the stored teams with a separate parser gave the same nine totals.
 
-The grid total pools 23 asks. The papers measure diversity among samples that share one condition, and among the 192 teams of one ask the line-ups fall with guidance on both species-first rows:
+The grid total pools 23 asks. The papers measure diversity among samples that share one condition, and the mean count among the 192 teams of one ask falls with guidance on both species-first rows. It does not fall at every ask: from guidance 2 to 8 the control has fewer line-ups at 16 of the 23 asks, the same at 1 and more at 6, and Linear, species-first has fewer at 16, the same at 2 and more at 5:
 
 | Row | Guidance | Distinct line-ups over the grid's 4,416 teams | Mean distinct line-ups among one ask's 192 teams | Mean at asks 15/24 to 17/24 | Asks that share one line-up, mean |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -428,7 +428,7 @@ The grid total pools 23 asks. The papers measure diversity among samples that sh
 
 Stronger guidance makes each ask's teams more specific to that ask. A line-up of the control is drawn at 2.54 asks on average at guidance 2 and at 1.46 at guidance 8, so the asks overlap less and their union grows while each ask repeats itself more. At asks 15/24 to 17/24 the control goes from 172 line-ups to 112.
 
-The grid total is the count of each ask, added over the 23 asks, minus the repeats between asks. For the control:
+The grid total is the count of each ask, added over the 23 asks, minus the repeats between asks. For the control, with all three rows in the figure:
 
 | | Guidance 2 | Guidance 4 | Guidance 8 |
 | --- | ---: | ---: | ---: |
@@ -436,7 +436,7 @@ The grid total is the count of each ask, added over the 23 asks, minus the repea
 | Repeats of a line-up already counted at another ask | 2,329 | 1,676 | 976 |
 | Distinct over the grid, the first row minus the second | 1,513 | 1,918 | 2,126 |
 
-The repeats fall faster than the counts do. Figure: [the control's line-ups counted ask by ask, split into the grid total and the repeats](figures/masking_rate_rows/09_line_ups_shared_between_asks.html).
+The repeats fall faster than the counts do. Figure: [each row's line-ups counted ask by ask, split into the grid total and the repeats](figures/masking_rate_rows/09_line_ups_shared_between_asks.html).
 
 Two earlier runs agree. At the single ask 0.5 on 48-field models, 2026-10-28, the line-ups among 192 teams were 120, 54, 23 and 8 at guidance 1, 2, 4 and 8 (`guidance_legality.json`). On the 84-field model with all 39 opponents for each label, 2026-11-11, the grid total rose from 1,427 to 1,774 to 1,891 while the mean for one ask fell from 167.5 to 153.2 to 128.0 (`guidance_sweep_gen65_subset_39.json`).
 

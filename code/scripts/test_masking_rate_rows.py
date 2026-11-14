@@ -203,18 +203,30 @@ class Figures(unittest.TestCase):
         option, title, subtitle = F.line_ups_by_ask(summary)
         self.assertEqual([s["name"] for s in option["series"]], ["Guidance 2", "Guidance 4", "Guidance 8"])
         self.assertEqual(option["series"][2]["data"], [120] * 23)
-        self.assertIn("line-ups fall from 180 to 120", title); self.assertIn("they rise from 1,500 to 2,300", title)
+        self.assertIn("The mean line-ups of one ask fall from 180 to 120", title); self.assertIn("they rise from 1,500 to 2,300", title)
         self.assertIn("2.50, 2.00 and 1.50 asks on average at guidance 2, 4 and 8", subtitle)
 
     def test_line_ups_shared_between_asks_splits_the_ask_by_ask_count_into_the_grid_total_and_the_repeats(self):
         summary = self.summary()
-        for i, g in enumerate(R.GUIDANCES):
-            summary["grids"][R.grid_name(R.CONTROL, g)].update(line_ups_by_ask={str(k): 180 - 30 * i for k in range(1, 24)})
+        per_ask = {R.CONTROL: (180, 150, 120), "sched_linear_species_first": (180, 150, 120), "sched_linear_random": (191, 190, 189)}
+        for row, counts in per_ask.items():
+            for g, n in zip(R.GUIDANCES, counts):
+                summary["grids"][R.grid_name(row, g)].update(line_ups_by_ask={str(k): n for k in range(1, 24)})
         option, title, _ = F.line_ups_shared_between_asks(summary)
-        total, repeats = option["series"]
-        self.assertEqual(total["data"], [1500, 1900, 2300]); self.assertEqual(repeats["data"], [180 * 23 - 1500, 150 * 23 - 1900, 120 * 23 - 2300])
-        self.assertEqual(total["stack"], repeats["stack"]); self.assertIn("4,140 counted ask by ask", option["xAxis"]["data"][0])
-        self.assertIn("Repeats between asks go from 2,640 to 460", title); self.assertIn("grid total goes from 1,500 to 2,300", title)
+        self.assertEqual(len(option["grid"]), 3); self.assertEqual(len(option["series"]), 6)
+        self.assertEqual([t["text"] for t in option["title"]], [F.label(row) for row in R.ROWS])
+        self.assertEqual(len({(y["min"], y["max"]) for y in option["yAxis"]}), 1)
+        self.assertEqual([d["name"] for d in option["legend"]["data"]], ["Distinct line-ups over the grid", "Repeats: a line-up already counted at another ask"])
+        for r, row in enumerate(R.ROWS):
+            total, repeats = [s for s in option["series"] if s["xAxisIndex"] == r]
+            grid_total = [summary["grids"][R.grid_name(row, g)]["line_ups"] for g in R.GUIDANCES]
+            counted = [n * 23 for n in per_ask[row]]
+            self.assertEqual(total["data"], grid_total); self.assertEqual(repeats["data"], [c - t for c, t in zip(counted, grid_total)])
+            self.assertEqual(total["stack"], repeats["stack"]); self.assertEqual(total["itemStyle"]["color"], F.COLORS[row])
+            self.assertEqual(repeats["itemStyle"]["color"], F.GREY)
+            self.assertEqual(option["xAxis"][r]["data"], [f"Guidance {g}\n{c:,} counted\nask by ask" for g, c in zip(R.GUIDANCES, counted)])
+        self.assertEqual(title, "In all three rows, raising guidance from 2 to 8 cuts the repeats between asks by 846 to 2,180, "
+                                "so the grid total grows by 800 line-ups while the ask-by-ask count falls by 46 to 1,380")
 
 
 if __name__ == "__main__":
