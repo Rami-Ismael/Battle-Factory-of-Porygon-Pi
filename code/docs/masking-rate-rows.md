@@ -442,7 +442,7 @@ The repeats fall faster than the counts do. Figure: [each row's line-ups counted
 
 Two earlier runs agree. At the single ask 0.5 on 48-field models, 2026-10-28, the line-ups among 192 teams were 120, 54, 23 and 8 at guidance 1, 2, 4 and 8 (`guidance_legality.json`). On the 84-field model with all 39 opponents for each label, 2026-11-11, the grid total rose from 1,427 to 1,774 to 1,891 while the mean for one ask fell from 167.5 to 153.2 to 128.0 (`guidance_sweep_gen65_subset_39.json`).
 
-So the line-ups axis of the Pareto chart rewards guidance for separating the asks. The verdicts compare rows at one guidance value and are not affected. Read across guidance values, the grid total is not a diversity measure, and the count for one ask is. Linear, random order is at 191 or 192 of 192 at every ask and guidance, so its rising total comes only from less overlap between asks. Figure: [the control's line-ups at each ask](figures/masking_rate_rows/08_line_ups_by_ask.html).
+So the line-ups axis of the Pareto chart rewards guidance for separating the asks. The verdicts compare rows at one guidance value and are not affected. Read across guidance values, the grid total is not a diversity measure, and the count for one ask is. Linear, random order is at 191 or 192 of 192 at every ask and guidance, so its rising total comes only from less overlap between asks. Figure: [line-ups at each ask for the control, Linear, species-first and Linear, random order](figures/masking_rate_rows/08_line_ups_by_ask.html).
 
 ### Why the totals differ, row by row
 

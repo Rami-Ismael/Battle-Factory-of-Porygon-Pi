@@ -3,7 +3,7 @@
   05_error_against_line_ups       ask-versus-got error against distinct line-ups, one three-point curve for each row
   06_got_against_ask              got against ask, the control beside Linear, species-first, one panel for each guidance
   07_random_order_error_multiple  random order's error as a multiple of species-first's on the same checkpoint
-  08_line_ups_by_ask              the control's distinct line-ups among one ask's teams, a line for each guidance
+  08_line_ups_by_ask              each row's distinct line-ups among one ask's teams, one panel for each row, a line for each guidance
   09_line_ups_shared_between_asks each row's line-ups counted ask by ask, split into the grid total and the repeats between asks
   10_training_and_novel_line_ups    each row's distinct line-ups split into training line-ups and novel line-ups
 
@@ -136,20 +136,70 @@ def spoken(values):
     return ", ".join(values[:-1]) + " and " + values[-1]
 
 
-def line_ups_by_ask(summary, row=CONTROL):
-    """Within one ask guidance narrows the line-ups; over the grid the asks share fewer, so the total can still rise."""
-    grids = grids_of(summary, row); asks = sorted(int(k) for k in grids[0]["line_ups_by_ask"])
-    means = [sum(g["line_ups_by_ask"].values()) / len(asks) for g in grids]; totals = [g["line_ups"] for g in grids]
+# Guidance is marked by line style and shade of the panel's own row colour, so it never reads as a change of row.
+GUIDANCE_MARKS = {2: dict(type="dotted", opacity=0.55), 4: dict(type="dashed", opacity=0.78), 8: dict(type="solid", opacity=1.0)}
+LEGEND_GREY = "#8f8e88"     # reads on both surfaces; an image icon is not swapped in dark mode
+CEILING_SHARE = 0.99        # a row whose mean is at least this share of the teams of one ask at every guidance sits at the ceiling
+
+
+def guidance_icon(guidance):
+    dash = {"dotted": "2 3", "dashed": "6 3", "solid": "none"}[GUIDANCE_MARKS[guidance]["type"]]
+    svg = (f"<svg xmlns='http://www.w3.org/2000/svg' width='28' height='10'><line x1='1' y1='5' x2='27' y2='5' stroke='{LEGEND_GREY}' "
+           f"stroke-width='2.5' stroke-dasharray='{dash}' opacity='{GUIDANCE_MARKS[guidance]['opacity']}'/></svg>")
+    return "image://data:image/svg+xml;utf8," + svg.replace("#", "%23")
+
+
+def line_ups_by_ask(summary):
+    """Within one ask guidance narrows the line-ups of the species-first rows; over the grid the asks share fewer, so the total can still rise.
+    One panel for each row on one shared y scale from 0 to the teams of one ask; in each, a line for each guidance over the asks."""
+    rows = list(COLORS)
+    grids = {row: grids_of(summary, row) for row in rows}
+    asks = sorted(int(k) for k in grids[CONTROL][0]["line_ups_by_ask"]); per_ask = grids[CONTROL][0]["teams"] // len(asks)
+    means = {row: [round(sum(g["line_ups_by_ask"].values()) / len(asks)) for g in grids[row]] for row in rows}
+    totals = {row: [g["line_ups"] for g in grids[row]] for row in rows}
+    shown = {0, len(asks) // 4, len(asks) // 2, 3 * len(asks) // 4, len(asks) - 1}
+    width, gap, left = 28.0, 3.5, 8.0
+    grids_, xs, ys, titles, series = [], [], [], [], []
+    for i, row in enumerate(rows):
+        x0 = left + i * (width + gap)
+        grids_.append(dict(left=f"{x0}%", width=f"{width}%", top=74, bottom=58))
+        titles.append(dict(text=label(row), left=f"{x0 + width / 2}%", top=40, textAlign="center", textStyle=dict(fontSize=13, fontWeight="normal")))
+        xs.append(dict(type="category", gridIndex=i, boundaryGap=False, data=[f"{k}/24" for k in asks],
+                       axisLabel=dict(interval=f"js:i => {sorted(shown)}.includes(i)"),
+                       name="Win rate asked for" if i == 1 else "", nameLocation="middle", nameGap=30))
+        ys.append(dict(type="value", gridIndex=i, min=0, max=per_ask, interval=per_ask // 4, axisLabel=dict(show=i == 0),
+                       name="Distinct line-ups among one ask's teams" if i == 0 else "", nameLocation="middle", nameGap=44))
+        for guidance, g in zip(GUIDANCES, grids[row]):
+            mark = GUIDANCE_MARKS[guidance]
+            series.append(dict(name=f"Guidance {guidance:g}", type="line", xAxisIndex=i, yAxisIndex=i, symbolSize=4, emphasis=dict(focus="series"),
+                               lineStyle=dict(width=2.2, color=COLORS[row], **mark), itemStyle=dict(color=COLORS[row], opacity=mark["opacity"]),
+                               data=[g["line_ups_by_ask"][str(k)] for k in asks]))
+    legend = dict(top=0, itemWidth=28, itemHeight=10, data=[dict(name=f"Guidance {g:g}", icon=guidance_icon(g)) for g in GUIDANCES])
+    # Phone width: panel titles break onto two lines and the asks axis shows only its two ends.
+    narrow = dict(title=[dict(text=label(row).replace(", ", ",\n", 1), textStyle=dict(fontSize=11), top=30) for row in rows],
+                  grid=[dict(top=70) for _ in rows], xAxis=[dict(axisLabel=dict(interval=f"js:i => i === 0 || i === {len(asks) - 1}", fontSize=10)) for _ in rows])
+    option = dict(title=titles, legend=legend, grid=grids_, xAxis=xs, yAxis=ys, series=series, tooltip=dict(trigger="axis"),
+                  media=[dict(query=dict(maxWidth=560), option=narrow)])
+    lo, hi = GUIDANCES[0], GUIDANCES[-1]
+    ceiling = [row for row in rows if min(means[row]) >= CEILING_SHARE * per_ask]
+    moving = [row for row in rows if row not in ceiling]
+    who = lambda row: "for the control" if row == CONTROL else f"for {ROWS[row]}"
     move = lambda first, last: "fall" if last < first else "rise" if last > first else "stay"
-    series = [dict(name=f"Guidance {guidance:g}", type="line", symbolSize=6, lineStyle=dict(width=2.5), itemStyle=dict(color=color), emphasis=dict(focus="series"),
-                   data=[g["line_ups_by_ask"][str(k)] for k in asks]) for guidance, color, g in zip(GUIDANCES, (BLUE, AQUA, ORANGE), grids)]
-    option = dict(legend=dict(top=0), tooltip=dict(trigger="axis"), grid=dict(left=64, right=30, top=40, bottom=50),
-                  xAxis=dict(type="category", data=[f"{k}/24" for k in asks], name="Win rate asked for", nameLocation="middle", nameGap=30),
-                  yAxis=dict(type="value", min=0, name="Distinct line-ups among the teams of one ask", nameLocation="middle", nameGap=44), series=series)
-    title = (f"The mean line-ups of one ask {move(means[0], means[-1])} from {means[0]:.0f} to {means[-1]:.0f} as guidance goes from {GUIDANCES[0]} to {GUIDANCES[-1]}. "
-             f"Over the whole grid they {move(totals[0], totals[-1])} from {totals[0]:,} to {totals[-1]:,}")
-    subtitle = (f"{label(row)}. Each ask has 192 teams, and the grid pools {len(asks)} asks. A line-up is drawn at "
-                f"{spoken([format(g['asks_sharing_a_line_up'], '.2f') for g in grids])} asks on average at guidance {spoken([str(g) for g in GUIDANCES])}.")
+    if moving and all(means[row][-1] < means[row][0] for row in moving):
+        title = f"Within one ask, raising guidance from {lo} to {hi} cuts the mean line-ups " + spoken([f"from {means[r][0]} to {means[r][-1]} {who(r)}" for r in moving])
+    elif moving:
+        title = f"Within one ask, from guidance {lo} to {hi} the mean line-ups " + spoken(
+            [f"{move(means[r][0], means[r][-1])} from {means[r][0]} to {means[r][-1]} {who(r)}" for r in moving])
+    else:
+        title = "Within one ask, every row stays at the ceiling"
+    for row in ceiling:
+        span = f"{min(means[row])}" if min(means[row]) == max(means[row]) else f"{min(means[row])} to {max(means[row])}"
+        title += f". {ROWS[row]} stays at the ceiling, {span} of {per_ask} at every guidance"
+    grid_moves = {move(totals[r][0], totals[r][-1]) for r in rows}
+    told = spoken([f"{totals[r][0]:,} to {totals[r][-1]:,}" for r in rows])
+    subtitle = (f"Over the whole grid the totals {grid_moves.pop() if len(grid_moves) == 1 else 'go'}: {told} line-ups, panel by panel, "
+                f"because the asks share fewer line-ups as guidance rises. One panel for each row, all on the same scale. "
+                f"Each ask has {per_ask} teams, so {per_ask} is the most one ask can hold. The darker and more solid the line, the higher the guidance.")
     return option, title, subtitle
 
 
@@ -273,8 +323,11 @@ def main(summary_path=SUMMARY, out=OUT):
              "per-field model after 21 epochs, 2026-11-07. That model differs from the linear model in its training table and its epochs as well as in its "
              f"masking rate. Lines on the linear model's bars are 95% bootstrap intervals. {ERROR} Source: {Path(summary_path).name}."))
     option, title, subtitle = line_ups_by_ask(summary)
-    pages.append(write_chart(option, out / "08_line_ups_by_ask.html", title, subtitle=subtitle, height=440,
-                             note=f"A line-up is a distinct set of six species. Each point pools 3 sampling seeds of 64 teams. Source: {Path(summary_path).name}."))
+    pages.append(write_chart(option, out / "08_line_ups_by_ask.html", title, subtitle=subtitle, height=460,
+                             note="A line-up is a distinct set of six species. Each point pools 3 sampling seeds of 64 teams. A row is one model decoded in one "
+                                  "order: the per-field masking rate or the linear masking rate, filled species-first or in random order. Uncorrected t is the "
+                                  "sampler's usual setting: on each pass it tells the model how many fields are still hidden. "
+                                  f"Source: {Path(summary_path).name}."))
     option, title, subtitle = line_ups_shared_between_asks(summary)
     pages.append(write_chart(option, out / "09_line_ups_shared_between_asks.html", title, subtitle=subtitle, height=500,
                              note="A line-up is a distinct set of six species. Each ask has 192 teams, 64 from each of 3 sampling seeds, so one ask holds at most 192 "
