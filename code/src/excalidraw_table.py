@@ -39,7 +39,7 @@ INK, PAPER, HEADER_FILL = "#1e1e1e", "#ffffff", "#343a40"
 BLUE, TEAL, ORANGE = ("#a5d8ff", "#e7f5ff", "#1971c2"), ("#96f2d7", "#e6fcf5", "#099268"), ("#ffd8a8", "#fff4e6", "#e8590c")
 VIOLET, YELLOW, GREY = ("#d0bfff", "#f3f0ff", "#6741d9"), ("#ffec99", "#fff9db", "#f08c00"), ("#dee2e6", "#f8f9fa", "#495057")
 CYCLE = (BLUE, TEAL, ORANGE, VIOLET, YELLOW)
-# the three rows of the masking-rate experiment keep the colours their figures use
+# the three rows of the masking-schedule experiment keep the colours their figures use
 ROW_COLOURS = (("random", ORANGE), ("control", BLUE), ("per-field", BLUE), ("species-first", TEAL))
 BULLET_FROM_SENTENCES = 4                                            # a column turns into bullets when one of its cells has this many sentences
 SENTENCE_END = re.compile(r"(?<=[A-Za-z0-9%])\. (?=[A-Z0-9])")

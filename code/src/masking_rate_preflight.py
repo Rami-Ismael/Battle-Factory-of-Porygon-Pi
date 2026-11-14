@@ -1,17 +1,17 @@
-"""Battle-free probes for the four masking-rate rows, run before any of their trainings or grids
-(docs/masking-rate-rows.md; issue #294 on the masking-rate map #291).
+"""Battle-free probes for the four masking-schedule rows, run before any of their trainings or grids
+(docs/masking-rate-rows.md; issue #294 on the masking-schedule map #291).
 
-  hidden_share      with every exponent 1 (the linear masking rate) the share of fields hidden at t is t, on every field
+  hidden_share      with every exponent 1 (the linear masking schedule) the share of fields hidden at t is t, on every field
   corrected_t       the expected-share rule of the corrected-t ticket (#293): the t each of the 84 passes gets, checked
-                    against the values that ticket published; under the linear masking rate it gives 1 - filled/84
+                    against the values that ticket published; under the linear masking schedule it gives 1 - filled/84
   t_sensitivity     the ceiling for the corrected-t row: with the same sampling seed, how far the default model's drawing
                     distributions and teams move when a pass is told the corrected t and not 1 - filled/84
-  cross_rate_loss   the default model's validation loss under its own per-field masking rate and under the linear one,
+  cross_rate_loss   the default model's validation loss under its own per-field masking schedule and under the linear one,
                     so the linear model's loss is read against the right number
-  training_smoke    the linear masking rate through the real training code: per-field cross-entropy at the start against
+  training_smoke    the linear masking schedule through the real training code: per-field cross-entropy at the start against
                     ln K, then 32 teams overfit for 300 epochs, beside the per-field rate on the same teams and seed
   recipe_replay     one epoch of the default model's own recipe (per-field rate) with today's code and table must land on
-                    the losses that model logged at epoch 1, so the new training differs from it in the masking rate alone
+                    the losses that model logged at epoch 1, so the new training differs from it in the masking schedule alone
 
 Nothing here changes diffusion84.py; the sampler below copies Model84.sample's loop and only swaps the t of each pass.
 Results: ~/vgc-data/results/masking_rate_rows_preflight.json

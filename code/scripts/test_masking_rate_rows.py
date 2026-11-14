@@ -1,4 +1,4 @@
-"""The masking-rate rows in the ask grid, and the rules that judge them (docs/masking-rate-rows.md, issues #295 and #297).
+"""The masking-schedule rows in the ask grid, and the rules that judge them (docs/masking-rate-rows.md, issues #295 and #297).
 
 The ask-grid settings are read from the environment at import, so each case runs ask_grid84 in its own process.
 Those cases need this laptop's /tmp/vgc-pilot data and the two checkpoints; they are skipped without them.
@@ -33,7 +33,7 @@ def ask_grid(model, **env):
     return json.loads(done.stdout.strip().splitlines()[-1])
 
 
-@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data and the two masking-rate checkpoints")
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data and the two masking-schedule checkpoints")
 class AskGridRows(unittest.TestCase):
     def test_each_code_id_loads_its_checkpoint_and_decoder(self):
         want = {"sched_species_first": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Model84", None, "16,4,4,1.5,1"),

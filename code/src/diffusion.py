@@ -95,7 +95,7 @@ class TeamDiffusion(nn.Module):
         for c in range(COLS):
             mc = m[:, c]
             if mc.any():
-                # MDLM weighting: divide by the masking rate t
+                # MDLM weighting: divide by the masking schedule t
                 w = (1.0 / t[mc].clamp(min=1e-3))
                 ce = F.cross_entropy(self.logits(h, c)[mc], x[mc, c], reduction="none")
                 tot = tot + (w * ce).sum(); n += int(mc.sum())

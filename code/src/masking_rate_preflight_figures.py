@@ -1,4 +1,4 @@
-"""Two figures for the masking-rate rows' pre-registration (docs/masking-rate-rows.md), from stored results only.
+"""Two figures for the masking-schedule rows' pre-registration (docs/masking-rate-rows.md), from stored results only.
 
   01_t_sensitivity   the default model's drawing distributions barely move when a pass is told another t
   02_error_by_ask    the default model's got against its ask: where the ask-versus-got error sits
@@ -73,7 +73,7 @@ def t_sensitivity_new_per_field_model(results=None, out=OUT):
                              f"so it barely reads the t it is told",
                        subtitle="How far each model's drawing distribution moves when a pass is told the corrected t and not 1 − filled/84, "
                                 "on the same partly filled teams. 0 means the same distribution, 1 means no overlap.",
-                       note=f"New per-field model: the control of #297, per-field masking rate, trained on the shuffled-only table, checkpoint "
+                       note=f"New per-field model: the control of #297, per-field masking schedule, trained on the shuffled-only table, checkpoint "
                             f"{NEW_PER_FIELD_MODEL}. Its largest reading is {FIELD_TYPES[field]} at ask {ask}; the default model's largest is "
                             f"{default_top:.4f}. Each bar is one ask, 256 teams, guidance 2, sampling seed {new['sampling_seed']}. "
                             "Source: masking_rate_rows_preflight.json.", height=460)

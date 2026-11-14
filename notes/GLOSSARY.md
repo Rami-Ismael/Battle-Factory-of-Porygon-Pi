@@ -234,7 +234,7 @@ _Origin_: D3PM, [Austin et al. 2021](https://arxiv.org/abs/2107.03006), which de
 _Avoid_: Gaussian diffusion (the continuous kind, for images)
 
 **Masked diffusion model**:
-A discrete diffusion model whose forward process replaces each token with a mask token at a random time and keeps it masked from then on: the mask is absorbing. The reverse process only unmasks, so a filled token is never changed again (carry-over), and the network sees both directions. Training is a cross-entropy on the masked tokens, weighted by the masking rate and averaged over time. Both kinds of diffusion model here are masked, so the term names the kind, never one model: say which.
+A discrete diffusion model whose forward process replaces each token with a mask token at a random time and keeps it masked from then on: the mask is absorbing. The reverse process only unmasks, so a filled token is never changed again (carry-over), and the network sees both directions. Training is a cross-entropy on the masked tokens, weighted by the masking schedule and averaged over time. Both kinds of diffusion model here are masked, so the term names the kind, never one model: say which.
 _Origin_: the absorbing transition in D3PM (Austin et al. 2021); the weighted cross-entropy in MDLM, [Sahoo et al. 2024](https://arxiv.org/abs/2406.07524), and MD4, [Shi et al. 2024](https://arxiv.org/abs/2406.04329).
 _Avoid_: mask diffusion model, MDM (alone), absorbing diffusion
 
@@ -243,10 +243,10 @@ A discrete diffusion model whose forward process replaces each token with a valu
 _Origin_: the uniform transition in D3PM (Austin et al. 2021); UDLM, [Schiff et al. 2024](https://arxiv.org/abs/2412.10193), which adds guidance; Duo, [Sahoo et al. 2025](https://s-sahoo.com/duo/), which shows it arises from an underlying Gaussian diffusion.
 _Avoid_: uniform diffusion model (the name until 2026-11-11), uniform-noise model, uniform-state diffusion (the papers' name)
 
-**Masking rate**:
-The probability that the forward process has corrupted a field by time t: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. The per-field masking rate gives each field type its own: t to the power 16 for species, 4 for ability and item, 1.5 for moves, 1 for Stat Alignment and Stat Points. The linear masking rate corrupts every field with probability t.
-_Origin_: the linear masking rate is MD4's "linear schedule" (Shi et al. 2024).
-_Avoid_: noise schedule, scheduler, shared masking rate
+**Masking schedule**:
+The probability that the forward process has corrupted a field by time t while training: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. It decides which partly hidden teams the model practises filling. The per-field masking schedule gives each field type its own: t to the power 16 for species, 4 for ability and item, 1.5 for moves, 1 for Stat Alignment and Stat Points. The linear masking schedule corrupts every field with probability t. MD4 writes the schedule as α_t, the probability that a token is still unmasked, which is one minus ours: its linear schedule 1 − t is our t.
+_Origin_: [Shi et al. 2024](https://arxiv.org/abs/2406.04329), Table 4, "Masking schedule formulas", and Appendix A, Eq. 14. Owner, 2026-11-14: the project's word, replacing masking rate.
+_Avoid_: masking rate (the project's word from 2026-11-11 to 2026-11-14), noise schedule, scheduler, shared masking schedule
 
 **Partial masking**:
 Writing each token's vocabulary index as ℓ digits in base b and masking the digits independently, so a token can be masked, unmasked, or partly revealed in between. On OpenWebText the authors report idle passes falling from 37% to 0.25% at ℓ = 6, and the first masked diffusion model to beat an autoregressive model on perplexity without autoregression (15.36 against 17.54).
@@ -362,23 +362,14 @@ _Avoid_: split-variance sampling, set-field temperature, set-field nucleus, cold
 What a masked text diffusion model receives for infilling: a short header and the team written once as compact JSON, each hidden value replaced by mask tokens it fills where they stand. _Origin_: `MDLMSampler.infill` in dLLM.
 _Avoid_: in-place text, free-text prompt
 
-**Masking rate**:
-The chance that a field is hidden at time t while training the discrete diffusion model. It decides which partly hidden teams the model practises filling.
-_Avoid_: noise schedule, scheduler, schedule (image-diffusion words)
-
-**Per-field masking rate**:
-A masking rate set per field type: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t. Species stay visible until late, so the model mostly practises filling species first. Used by every 48- and 84-field model since 2026-10-07.
+**Per-field masking schedule**:
+A masking schedule set per field type: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t. Species stay visible until late, so the model mostly practises filling species first. Used by every 48- and 84-field model since 2026-10-07.
 _Origin_: polynomial schedule, [Shi et al. 2024](https://arxiv.org/abs/2406.04329), §6, there learned per token value.
 
-**Linear masking rate**:
-One masking rate for every field: each is hidden with chance t, so the model practises every mix of hidden and visible fields.
+**Linear masking schedule**:
+One masking schedule for every field: each is hidden with chance t, so the model practises every mix of hidden and visible fields.
 _Origin_: linear schedule, [Shi et al. 2024](https://arxiv.org/abs/2406.04329), App. J.1; LLaDA's rule, [Nie et al. 2025](https://arxiv.org/abs/2502.09992), Eq. 3.
-_Avoid_: shared masking rate, uniform masking (uniform diffusion model is a different model)
-
-**Masking schedule**:
-The papers' name for α_t, the probability that a token is still unmasked at time t. It is one minus the masking rate: the linear masking schedule 1 − t is the linear masking rate t, and the polynomial one, 1 − t^w, is the masking rate t^w. Use it to read the papers; our own prose says masking rate.
-_Origin_: [Shi et al. 2024](https://arxiv.org/abs/2406.04329), Table 4, "Masking schedule formulas", and Appendix A, Eq. 14.
-_Avoid_: noise schedule, scheduler
+_Avoid_: linear masking rate, shared masking schedule, uniform masking (uniform diffusion model is a different model)
 
 **Sampler**:
 How the discrete diffusion model fills a blank candidate until it is complete. It makes two choices at each pass: the decoding order picks which masked field to fill next, and the draw picks the value that goes into it. How many fields a pass fills, and whether it remasks, belong to the decoding order.

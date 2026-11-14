@@ -1,4 +1,4 @@
-"""The corrected t and the linear masking rate of the masking-rate rows (src/masking_rate_preflight.py; docs/masking-rate-rows.md).
+"""The corrected t and the linear masking schedule of the masking-schedule rows (src/masking_rate_preflight.py; docs/masking-rate-rows.md).
 
 Needs this laptop's /tmp/vgc-pilot data; skipped without it.
 

@@ -2,7 +2,7 @@
 
   training_smoke   for the loop block and the carried state: cross-entropy of a fresh network with every field hidden
                    against ln K for each field type, then 32 teams overfit for 300 epochs, beside the plain network on
-                   the same teams and seed, all under the linear masking rate. Pass: every field type within 20% of ln K, validation loss falls by 40% or
+                   the same teams and seed, all under the linear masking schedule. Pass: every field type within 20% of ln K, validation loss falls by 40% or
                    more, and ends within 10% of the plain network's (position_split_preflight's bars)
   step_time        mean seconds per training step at batch 256 on 2,048 training teams, after 12 untimed steps, for the plain network and both
                    options, against the multiply-add ratio that sets the equal-compute caps. Reported, no pass bar:
@@ -11,7 +11,7 @@
   control          the control checkpoint: its run info (table, epochs, best validation loss) and that its network
                    has neither option
 
-Results: ~/vgc-data/results/loop_arms_preflight.json. Every training probe uses the linear masking rate of the loop arms;
+Results: ~/vgc-data/results/loop_arms_preflight.json. Every training probe uses the linear masking schedule of the loop arms;
 the per-field results of the first run, 2026-11-12, are kept under the keys ending _per_field.
 
     /tmp/vgc-pilot/.venv/bin/python src/loop_preflight84.py [probe ...]      (from code/; default all four)
@@ -33,7 +33,7 @@ import team84 as T
 from checkpoints import load_checkpoint
 
 OUT = Path.home() / "vgc-data/results/loop_arms_preflight.json"
-CONTROL = L.CK / f"{TR.NAMES['shuffled_linear']}.pt"           # the linear masking rate (owner, 2026-11-12)
+CONTROL = L.CK / f"{TR.NAMES['shuffled_linear']}.pt"           # the linear masking schedule (owner, 2026-11-12)
 SCHED = TR.LINEAR_MASKING_RATE
 OPTIONS = dict(plain={}, **TR.LOOP_NETS)
 
@@ -124,9 +124,9 @@ def main(names):
     if d is not None: results["table"] = dict(name=d["table"], sha256=d["sha256"])
     probes = dict(training_smoke=lambda: training_smoke(d, V, corpus), step_time=lambda: step_time(d, V, corpus),
                   sampling_time=lambda: sampling_time(V, corpus), control=control)
-    for old in ("training_smoke", "step_time", "control"):            # the first run used the per-field masking rate
+    for old in ("training_smoke", "step_time", "control"):            # the first run used the per-field masking schedule
         if old in results and "_per_field_note" not in results.get(old, {}) and results[old].get("masking_rate") is None:
-            results[old + "_per_field"] = dict(results.pop(old), _per_field_note="first run, per-field masking rate")
+            results[old + "_per_field"] = dict(results.pop(old), _per_field_note="first run, per-field masking schedule")
     for name in names:
         results[name] = probes[name]()
         if isinstance(results[name], dict): results[name]["masking_rate"] = SCHED

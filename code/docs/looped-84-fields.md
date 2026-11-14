@@ -1,6 +1,6 @@
 # Looped 84-field model: a repeated block and a carried state, each at equal compute and at equal epochs
 
-Pre-registration, written 2026-11-12 before any loop training or grid. Map: [Loop map: does a repeated block or a carried state move the 84-field model's trade-offs?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/306). The owner chose the scope on 2026-11-12 in answer to the loop explainer's questions (`notes/Blog/visuals/looped-diffusion-teach/`): quality is judged as a trade-off, both ways of matching the control are trained, and the two loops that change training are tested. Early exit is left out as an inference-time saving. Every row uses the linear masking rate, where every field is hidden with chance t, and no row has a separate rate per field (owner, 2026-11-12).
+Pre-registration, written 2026-11-12 before any loop training or grid. Map: [Loop map: does a repeated block or a carried state move the 84-field model's trade-offs?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/306). The owner chose the scope on 2026-11-12 in answer to the loop explainer's questions (`notes/Blog/visuals/looped-diffusion-teach/`): quality is judged as a trade-off, both ways of matching the control are trained, and the two loops that change training are tested. Early exit is left out as an inference-time saving. Every row uses the linear masking schedule, where every field is hidden with chance t, and no row has a separate rate per field (owner, 2026-11-12).
 
 Mode: **exploratory**. One training seed per arm cannot separate the loop from training luck, which has reached 0.0019 of error between two trainings of one recipe.
 
@@ -31,7 +31,7 @@ Training compute is counted in multiply-adds per team, with the backward pass co
 
 ## Rows
 
-Each reader name gives the loop, then the training length. All rows share the control's teams, recipe and linear masking rate, so that rate is not repeated in the names.
+Each reader name gives the loop, then the training length. All rows share the control's teams, recipe and linear masking schedule, so that rate is not repeated in the names.
 
 | Loop, then training length | Code ID | Checkpoint | Training compute against the control |
 | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ Each reader name gives the loop, then the training length. All rows share the co
 | Carried state, 61 epochs | `carry_state_equal_compute` | `stat84_shuffled_noise_carry_state_equal_compute` | 0.99 |
 | Carried state, 80 epochs | `carry_state_equal_epochs` | `stat84_shuffled_noise_carry_state_equal_epochs` | 1.30 |
 
-The control is the masking-rate experiment's row Linear, species-first (`docs/masking-rate-rows.md`). It is trained there (issue #296) and its grids at guidance 2, 4 and 8 are sampled and battled there (issue #297), so this experiment adds no control training or grid. If it stops early at epoch E, its compute is E epochs, and the equal-compute caps are recomputed from E before launch and recorded under Deviations. The ask grid gets a code ID for each new row when the code ticket lands.
+The control is the masking-schedule experiment's row Linear, species-first (`docs/masking-rate-rows.md`). It is trained there (issue #296) and its grids at guidance 2, 4 and 8 are sampled and battled there (issue #297), so this experiment adds no control training or grid. If it stops early at epoch E, its compute is E epochs, and the equal-compute caps are recomputed from E before launch and recorded under Deviations. The ask grid gets a code ID for each new row when the code ticket lands.
 
 The 53 and 61 are the largest whole numbers of epochs whose training compute stays at or below the control's 80 epochs: 80 / 1.495 = 53.5 and 80 / 1.3 = 61.5 (`train84.equal_compute_cap`).
 
@@ -76,7 +76,7 @@ The 53 and 61 are the largest whole numbers of epochs whose training compute sta
 | Sampling seed | Nuisance | 1, 2, 3 with offset 7300 | Rows compared seed by seed |
 | Guidance | Swept | 2, 4 and 8 | The project's ask-grid values |
 
-Fixed and inherited from the control, unchanged: the linear masking rate (`1,1,1,1,1`, Stat Points 1, MD4 Appendix J.1), loss weight 1/t, t drawn evenly across the batch, sum divided by 84, time input, slot shuffling, legal Pokémon construction filter in loss and sampling, ask dropout 0.15, label noise ±1/48, network 256 wide with 8 heads and dropout 0.1, AdamW at 4e-4 with weight decay 0.01, 500 warm-up steps and cosine decay sized to the arm's cap, batch 256, gradient clip 1.0, weight average 0.999, training seed 0, validation loss each epoch on the same 4 mask draws, patience 3, early-stopping threshold 0, every epoch saved, 84 passes in species-first order, temperature 1, Stat Alignment repair.
+Fixed and inherited from the control, unchanged: the linear masking schedule (`1,1,1,1,1`, Stat Points 1, MD4 Appendix J.1), loss weight 1/t, t drawn evenly across the batch, sum divided by 84, time input, slot shuffling, legal Pokémon construction filter in loss and sampling, ask dropout 0.15, label noise ±1/48, network 256 wide with 8 heads and dropout 0.1, AdamW at 4e-4 with weight decay 0.01, 500 warm-up steps and cosine decay sized to the arm's cap, batch 256, gradient clip 1.0, weight average 0.999, training seed 0, validation loss each epoch on the same 4 mask draws, patience 3, early-stopping threshold 0, every epoch saved, 84 passes in species-first order, temperature 1, Stat Alignment repair.
 
 With both options off, the code reproduces the old network exactly: the same loss, the same random-number stream and the same validation loss as `diffusion84.py` before this change (`scripts/test_looped84.py`).
 
@@ -84,11 +84,11 @@ With both options off, the code reproduces the old network exactly: the same los
 
 There are two Pareto questions. Neither has a single winner.
 
-**1. Training compute against validation loss.** One point per saved epoch: the training compute spent so far, in control epochs, against the validation loss under the linear masking rate. Validation loss is measured with `masking_rate_training_report.py`, which drops the 12 validation teams the construction tables reject. The control's 80 points are the frontier. A loop moves outside it when its equal-compute endpoint has a lower loss than the control's last epoch. The papers' headline figure is also read off: the share of the control's compute at which the equal-epochs curve first reaches the control's final loss. The cosine schedule cools only at each run's own end, so a mid-run point understates the loss that run would reach if stopped there. That is why the equal-compute run exists.
+**1. Training compute against validation loss.** One point per saved epoch: the training compute spent so far, in control epochs, against the validation loss under the linear masking schedule. Validation loss is measured with `masking_rate_training_report.py`, which drops the 12 validation teams the construction tables reject. The control's 80 points are the frontier. A loop moves outside it when its equal-compute endpoint has a lower loss than the control's last epoch. The papers' headline figure is also read off: the share of the control's compute at which the equal-epochs curve first reaches the control's final loss. The cosine schedule cools only at each run's own end, so a mid-run point understates the loss that run would reach if stopped there. That is why the equal-compute run exists.
 
 The repeat block's validation loss is read at loop counts 1, 2, 4 and 8, with no battles, to show whether more loops at sampling keep helping (LoopMDM Figure 2). Only loop count 4 is battled.
 
-**2. Error against line-ups.** As in the masking-rate rows. Guidance 2, 4 and 8 trace each row's three-point curve, and the control's curve is the frontier. A row moves outside it when one of its points has a lower error than every control point with at least as many line-ups, or more line-ups than every control point with an error at least as low.
+**2. Error against line-ups.** As in the masking-schedule rows. Guidance 2, 4 and 8 trace each row's three-point curve, and the control's curve is the frontier. A row moves outside it when one of its points has a lower error than every control point with at least as many line-ups, or more line-ups than every control point with an error at least as low.
 
 The verdict for each row at each guidance value, paired with the control by sampling seed:
 
@@ -111,7 +111,7 @@ Read beside both, every row by the same code:
 | Sampling time | Seconds per 64 teams at guidance 2, on this laptop |
 | Training time | Minutes, beside the compute count |
 | Stat Points swap reading | The 2026-11-04 reading on each new model: how far slot 1's Stat Point distribution moves when slots 1 and 2 swap Pokémon |
-| Training-versus-validation gap | As in the masking-rate rows |
+| Training-versus-validation gap | As in the masking-schedule rows |
 
 | Part | Value |
 | --- | --- |
@@ -147,22 +147,22 @@ Script: `src/loop_preflight84.py`, battle-free. Results: `~/vgc-data/results/loo
 | Memory at loop count 6 | One training step at batch 256: 0.6 s at count 1, rising about 0.17 s per extra count to 1.48 s at 5, then 13 to 36 s at 6, with 13.3 GB of GPU memory. Another training was running. So the maximum is 4 | count 6 **no**, count 4 yes |
 | Step time | Seconds per training step at batch 256 under the linear rate, after 12 untimed steps, another training sharing the GPU: plain 0.628, repeat block 0.870 (1.39×, against 1.49× in multiply-adds), carried state 0.890 (1.42×, against 1.30×) | reported |
 | Sampling time | 64 teams at guidance 2: plain 10.9 s, repeat block 17.3 s (1.59×), carried state 10.7 s (0.99×) | yes |
-| Training smoke, plain network on the linear rate | Overfitting 32 teams for 300 epochs takes validation loss from 3.663 to 1.917, the same numbers the masking-rate training smoke logged, so the probe replays that run | yes |
+| Training smoke, plain network on the linear rate | Overfitting 32 teams for 300 epochs takes validation loss from 3.663 to 1.917, the same numbers the masking-schedule training smoke logged, so the probe replays that run | yes |
 | Training smoke, repeat block | Every field type starts within 20% of ln K. Validation loss falls from 3.646 to 1.993, a 45% fall, within 10% of the plain network (bar 2.109) | yes |
 | Training smoke, carried state | Every field type starts within 20% of ln K. Validation loss falls from 3.682 to 2.090, a 43% fall, just inside the bar of 2.109 | yes, narrowly |
 | Ceiling for the error | Training teams battled again miss the line by 0.0038 (`docs/training-teams-line.md`, older table). The control's own error arrives with its grid on #297. If it is under 0.0048, no row can gain the 0.001 bar on error, and the verdict rests on validation loss and line-ups | after #297 |
-| Round trip, coverage, read teams, controls, separation, condition, copies | Run by `ask_grid84.py preflight` with each row's checkpoint before its grid, as in the masking-rate rows; a failure stops the row. Separation holds by construction: same table and split as the control | before each grid |
+| Round trip, coverage, read teams, controls, separation, condition, copies | Run by `ask_grid84.py preflight` with each row's checkpoint before its grid, as in the masking-schedule rows; a failure stops the row. Separation holds by construction: same table and split as the control | before each grid |
 | Invariance, repeat | Skipped: the scorer is unchanged and shuffles slots every battle | not run |
 
-**The carried-state smoke under the per-field rate.** The first run used the per-field masking rate, and there the carried state failed: 1.869 against a bar of 1.794. The new layer norm starts with weight 1, so from the first step every field embedding gets a unit-scale state added. The overfit ends at 1.855 even when scored with a zero state, so the whole network learns slower, not only the carried path. With the weight started at 0, the overfit ends at 1.670, inside the bar, but the weight is still 0.004 after 300 epochs: on 32 teams the network barely uses the state. Loopholing's from-scratch recipe uses the default start (Algorithm 1); it starts the norm at zero only when adding the path to a trained model (Appendix D.10). The bar was set for position options of the plain network, where it caught pipeline bugs. Under the linear rate the weight-1 start passes, by 0.019. The owner decides between the two starts before the carried-state arms launch ([Carried state: should its new layer norm start at weight 1 or 0?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/307)).
+**The carried-state smoke under the per-field rate.** The first run used the per-field masking schedule, and there the carried state failed: 1.869 against a bar of 1.794. The new layer norm starts with weight 1, so from the first step every field embedding gets a unit-scale state added. The overfit ends at 1.855 even when scored with a zero state, so the whole network learns slower, not only the carried path. With the weight started at 0, the overfit ends at 1.670, inside the bar, but the weight is still 0.004 after 300 epochs: on 32 teams the network barely uses the state. Loopholing's from-scratch recipe uses the default start (Algorithm 1); it starts the norm at zero only when adding the path to a trained model (Appendix D.10). The bar was set for position options of the plain network, where it caught pipeline bugs. Under the linear rate the weight-1 start passes, by 0.019. The owner decides between the two starts before the carried-state arms launch ([Carried state: should its new layer norm start at weight 1 or 0?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/307)).
 
 Other samplers that call `Model84._logprobs` directly (`remask84.py`, `nucleus84.py`, `trade84.py`) would give a carried-state model a zero state at every pass. The ask grid samples through `Model84.sample`, which carries the state.
 
 ## Noise floor and budget
 
-Same scorer and grid as the masking-rate rows, so their measured noise applies: the difference between two rows has a standard deviation of 0.00034 to 0.00037, putting the smallest detectable gap near 0.001. Training luck is up to 0.0019 of error and 0.026 of pooled win rate, which one seed per arm cannot remove. Hence exploratory.
+Same scorer and grid as the masking-schedule rows, so their measured noise applies: the difference between two rows has a standard deviation of 0.00034 to 0.00037, putting the smallest detectable gap near 0.001. Training luck is up to 0.0019 of error and 0.026 of pooled win rate, which one seed per arm cannot remove. Hence exploratory.
 
-Cost, all on this laptop, queued behind the masking-rate queue (`~/vgc-data/masking_rate_rows/mr84.zsh`, linear training running at 2026-11-12 13:10, then the #297 grids):
+Cost, all on this laptop, queued behind the masking-schedule queue (`~/vgc-data/masking_rate_rows/mr84.zsh`, linear training running at 2026-11-12 13:10, then the #297 grids):
 
 | Step | Battles | Time |
 | --- | --- | --- |

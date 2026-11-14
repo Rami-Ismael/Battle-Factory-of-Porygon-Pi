@@ -1,4 +1,4 @@
-"""Six figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and later checks; issue #297).
+"""Six figures from the finished masking-schedule rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and later checks; issue #297).
 
   05_error_against_line_ups       ask-versus-got error against distinct line-ups, one three-point curve for each row
   06_got_against_ask              got against ask, the control beside Linear, species-first, one panel for each guidance
@@ -105,8 +105,8 @@ def got_against_ask(summary):
     lift = max(lin - con for con, lin in top.values())
     spread = max(abs(lin - con) for con, lin in top.values())
     if lift > 0.02:
-        return option, f"The linear masking rate lifts got at the top scored asks, by up to {lift:.3f}"
-    return option, f"The linear masking rate does not lift got at the top scored asks: at 15/24 to 17/24 the two lines differ by at most {spread:.3f}"
+        return option, f"The linear masking schedule lifts got at the top scored asks, by up to {lift:.3f}"
+    return option, f"The linear masking schedule does not lift got at the top scored asks: at 15/24 to 17/24 the two lines differ by at most {spread:.3f}"
 
 
 def random_order_error_multiple(summary):
@@ -278,22 +278,22 @@ def main(summary_path=SUMMARY, out=OUT):
                  "Shorter bars are better. Each pair is one model and guidance, so the two orders share everything but the order.",
         note=f"The faded pair is the earlier measurement, errors {PER_FIELD_MULTIPLE['species_first']} and {PER_FIELD_MULTIPLE['random']}, on the all-teams "
              "per-field model after 21 epochs, 2026-11-07. That model differs from the linear model in its training table and its epochs as well as in its "
-             f"masking rate, so it is not a before and after. {ERROR} Source: {Path(summary_path).name}."))
+             f"masking schedule, so it is not a before and after. {ERROR} Source: {Path(summary_path).name}."))
     option, title, subtitle = line_ups_by_ask(summary)
     pages.append(write_chart(option, out / "08_line_ups_by_ask.html", title, subtitle=subtitle, height=440,
                              note=f"A line-up is a distinct set of six species. Each point pools 3 sampling seeds of 64 teams. Source: {Path(summary_path).name}."))
     option, title, subtitle = line_ups_shared_between_asks(summary)
     pages.append(write_chart(option, out / "09_line_ups_shared_between_asks.html", title, subtitle=subtitle, height=500,
                              note="A line-up is a distinct set of six species. Each ask has 192 teams, 64 from each of 3 sampling seeds, so one ask holds at most 192 "
-                                  "line-ups. A row is one model decoded in one order: the per-field masking rate or the linear masking rate, filled species-first "
+                                  "line-ups. A row is one model decoded in one order: the per-field masking schedule or the linear masking schedule, filled species-first "
                                   f"or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model how many fields are still hidden. "
                                   f"Source: {Path(summary_path).name}."))
     option, title, subtitle = training_and_novel_line_ups(summary)
     pages.append(write_chart(option, out / "10_training_and_novel_line_ups.html", title, subtitle=subtitle, height=500,
                              note="A line-up is a distinct set of six species. A training line-up is the line-up of one of the labelled training teams "
                                   "of the shuffled-only table, validation teams left out; every other line-up is novel. Each grid has 4,416 teams: 23 asks, "
-                                  "3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking rate or the linear masking "
-                                  "rate, filled species-first or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model "
+                                  "3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking schedule or the linear masking "
+                                  "schedule, filled species-first or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model "
                                   f"how many fields are still hidden. Source: {Path(summary_path).name}."))
     return pages
 

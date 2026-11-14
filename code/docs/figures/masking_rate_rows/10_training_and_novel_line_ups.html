@@ -21,7 +21,7 @@ h1,.sub,.note{white-space:pre-line}
 <h1>In all three rows, the line-ups that guidance 8 adds over guidance 2 are novel line-ups: they rise by 677 to 1,110 while training line-ups move by at most 195. Linear, random order is 90% to 92% novel line-ups at every guidance</h1>
 <p class="sub">One panel for each row, all on the same scale. Each bar is the grid&#x27;s distinct line-ups. The grey part is training line-ups, the coloured part novel line-ups.</p>
 <div id="chart"></div>
-<p class="note">A line-up is a distinct set of six species. A training line-up is the line-up of one of the labelled training teams of the shuffled-only table, validation teams left out; every other line-up is novel. Each grid has 4,416 teams: 23 asks, 3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking rate or the linear masking rate, filled species-first or in random order. Uncorrected t is the sampler&#x27;s usual setting: on each pass it tells the model how many fields are still hidden. Source: masking_rate_rows_summary.json.</p>
+<p class="note">A line-up is a distinct set of six species. A training line-up is the line-up of one of the labelled training teams of the shuffled-only table, validation teams left out; every other line-up is novel. Each grid has 4,416 teams: 23 asks, 3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking schedule or the linear masking schedule, filled species-first or in random order. Uncorrected t is the sampler&#x27;s usual setting: on each pass it tells the model how many fields are still hidden. Source: masking_rate_rows_summary.json.</p>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
 <script>
