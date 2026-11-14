@@ -121,6 +121,32 @@ def _smoothness_experiment(tmp):
     m.plot(tmp, _load(src / "manifest.json"), _load(src / "analysis.json"))
 
 
+
+def _masking_rate_preflight_figures(tmp):
+    import masking_rate_preflight_figures as m
+    m.t_sensitivity(); m.error_by_ask(); m.t_sensitivity_new_per_field_model(out=tmp)
+
+
+def _masking_rate_rows_figures(tmp):
+    import masking_rate_rows_figures as m
+    m.main(DATA / "masking_rate_rows_summary.json", tmp)
+
+
+def _masking_rate_explainers(tmp):
+    import masking_rate_explainers as m
+    m.OUT, m.FRAMED = tmp, tmp / "framed"                  # tables() also writes its explainer page; keep it in tmp
+    m.tables()
+
+
+def _masking_rate_training_report(tmp):
+    import masking_rate_training_report as m
+    m.figures(out_dir=tmp)
+
+
+def _species_late(tmp):
+    import species_late as m
+    m.stored_figure(tmp); m.grid_figure(tmp)
+
 # script -> (recipe, inputs it reads). Scripts with no recipe:
 #   analyze_dibo_diversity_v2.py: no saved run passes its own checks (the full v4 run never chose finalists, the harness run
 #     has too few teams). Its plot() calls analyze_dibo_diversity.plot, which the first recipe covers.
@@ -140,6 +166,14 @@ RECIPES = {
     "reverse_score_diversity": (_reverse_score_diversity, [DATA / "reverse_score_diversity.json"]),
     "subset_size_storyboard": (_subset_size_storyboard, [DATA / "subset_size_storyboard.json"]),
     "smoothness_experiment": (_smoothness_experiment, [PILOT / "smoothness_top50_50x50/analysis.json"]),
+    "masking_rate_preflight_figures": (_masking_rate_preflight_figures, [DATA / "masking_rate_rows_preflight.json",
+                                                                         DATA / "stat_points_84_gen84_noise_byepoch_ep80.json"]),
+    "masking_rate_rows_figures": (_masking_rate_rows_figures, [DATA / "masking_rate_rows_summary.json"]),
+    "masking_rate_explainers": (_masking_rate_explainers, [DATA / "masking_rate_rows_tables.json"]),
+    "masking_rate_training_report": (_masking_rate_training_report,
+                                     [DATA / f"masking_rate_{kind}_stat84_shuffled_noise_{rate}_es3_cap80.json"
+                                      for kind in ("gap", "cross_rate") for rate in ("per_field", "linear")]),
+    "species_late": (_species_late, [DATA / "species_late_stored.json", DATA / "species_late_grid.json"]),
 }
 
 

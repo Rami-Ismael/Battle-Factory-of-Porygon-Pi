@@ -401,7 +401,7 @@ def audit_pairs(order: list[str], its: dict) -> list[tuple[dict, dict]]:
     for c in comps:
         for k in (c['a'], c['b']):
             seen[k] = seen.get(k, 0) + 1
-    for k in sorted(order, key=lambda k: seen.get(k, 0))[:2]:
+    for k in sorted(order, key=lambda k: seen.get(k, 0))[:2] if len(order) > 1 else []:   # one item has no neighbour to compare with
         j = pos[k] + 1 if pos[k] + 1 < len(order) else pos[k] - 1
         pairs.append((k, order[j]))
     def against(c):

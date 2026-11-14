@@ -26,6 +26,15 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 RES = Path.home() / "vgc-data/results"
 SMOKE = bool(os.environ.get("MRR_SMOKE"))
+# matchup_db and the other battle modules load from the laptop's pilot copy, the copy every grid here was battled with
+# (code/docs/subset-size-labels.md, 2026-11-10). VGC_PILOT_SRC points elsewhere on another machine.
+PILOT_SRC = Path(os.environ.get("VGC_PILOT_SRC", "/tmp/vgc-pilot/src"))
+
+
+def use_pilot_src():
+    if not PILOT_SRC.is_dir():
+        raise SystemExit(f"{PILOT_SRC} is missing: set VGC_PILOT_SRC to the folder that holds matchup_db.py")
+    sys.path.insert(0, str(PILOT_SRC))
 ROWS = {"sched_species_first": "Per-field, uncorrected t", "sched_linear_species_first": "Linear, species-first",
         "sched_linear_random": "Linear, random order"}
 ROW_NOTES = {"sched_species_first": "the control: our own settings", "sched_linear_species_first": "the published masking schedule, our decoding order",
@@ -78,7 +87,7 @@ def error(got_by_ask, asks=SCORED_ASKS):
 def opponents(row, guidance):
     """Each team's win rate against each of the 49 opponents, read from the battle database the moment the grid ends.
     The bootstrap resamples opponents from these, and the weighted mean of a row must equal the score the grid stored."""
-    sys.path.insert(0, "/tmp/vgc-pilot/src")
+    use_pilot_src()
     import matchup_db as MDB
     out = load_grid(row, guidance)
     if out is None: raise SystemExit(f"{grid_name(row, guidance)}: the grid has cells without battles")
@@ -137,8 +146,9 @@ def pooled(draws, sizes, seeds=None):
 
 
 def error_draws(got):
+    """[DRAWS] bootstrap errors. None when none of the scored asks was run, as error() returns."""
     asks = [k for k in SCORED_ASKS if k in got]
-    return np.mean([(got[k] - k / 24) ** 2 for k in asks], 0) if asks else np.full(DRAWS, np.nan)
+    return np.mean([(got[k] - k / 24) ** 2 for k in asks], 0) if asks else None
 
 
 def interval(values):
@@ -251,7 +261,7 @@ def finished_grids(refs):
             sizes = {key: len(c["pastes"]) for key, c in out["by_ask_seed"].items()}; got = pooled(bootstrap(row, g, counts), sizes)
             draws[name] = dict(error=error_draws(got), pooled_win=np.mean([got[k] for k in ALL_ASKS], 0),
                                win_top=np.mean([got[k] for k in TOP_ASKS if k in ALL_ASKS] or [np.full(DRAWS, np.nan)], 0))
-            m.update(error_interval=interval(draws[name]["error"]), win_top_asks_interval=interval(draws[name]["win_top"]), pooled_win_interval=interval(draws[name]["pooled_win"]))
+            m.update(error_interval=interval(draws[name]["error"]) if draws[name]["error"] is not None else None, win_top_asks_interval=interval(draws[name]["win_top"]), pooled_win_interval=interval(draws[name]["pooled_win"]))
     return grids, draws
 
 
@@ -280,7 +290,7 @@ def comparisons(grids, draws):
 
 def summary():
     """Every measure for every finished grid, the verdicts against the control, and the Pareto reading."""
-    sys.path.insert(0, "/tmp/vgc-pilot/src"); sys.path.insert(0, str(HERE))
+    use_pilot_src(); sys.path.insert(0, str(HERE))
     grids, draws = finished_grids(references()); verdicts, order, rows = comparisons(grids, draws)
     frontier = [grids[n] for n in (grid_name(CONTROL, g) for g in GUIDANCES) if n in draws]
     pareto = {n: outside_frontier(m, frontier) for n, m in grids.items() if m["row"] != CONTROL and n in draws and len(frontier) == len(GUIDANCES)}

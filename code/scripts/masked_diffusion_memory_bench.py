@@ -482,14 +482,16 @@ def fetch(info: dict[str, Any]) -> None:
 def drop(info: dict[str, Any]) -> None:
     """Delete the candidate's downloaded weight files, keeping its tokenizer and code, to make room for the next."""
     from huggingface_hub import scan_cache_dir
-    freed = 0
+    freed, blobs = 0, set()
     for repo in scan_cache_dir().repos:
         if repo.repo_id != info['repo']:
             continue
         for revision in repo.revisions:
             for f in revision.files:
                 if f.file_name.endswith('.safetensors'):
-                    freed += f.size_on_disk
+                    if f.blob_path not in blobs:                     # revisions share blobs; count each blob's space once
+                        blobs.add(f.blob_path)
+                        freed += f.size_on_disk
                     f.blob_path.unlink(missing_ok=True)
                     f.file_path.unlink(missing_ok=True)
     print(f"{info['label']}: deleted {freed / 1e9:.2f} GB of weights", flush=True)
