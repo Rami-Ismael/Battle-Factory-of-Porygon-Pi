@@ -82,7 +82,8 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
                                       ("sched_species_first_t", "per_field", "Per-field, corrected t", "species_first_corrected_t"),
                                       ("sched_linear_species_first", "linear", "Linear, species-first", "species_first"),
                                       ("sched_linear_random", "linear", "Linear, random order", "random"),
-                                      ("sched_linear_species_then_random", "linear", "Linear, species then random order", "species_then_random")):   # issue #322
+                                      ("sched_linear_species_then_random", "linear", "Linear, species then random order", "species_then_random"),   # issue #322
+                                      ("sched_per_field_random", "per_field", "Per-field, random order", "random")):   # issue #335
     MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
                        stopped="early stopping never fired in 80 epochs, so the model is read at the cap", table=DEFAULT_TABLE)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")

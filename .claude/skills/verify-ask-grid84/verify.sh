@@ -14,7 +14,8 @@ SRC="$REPO/code/src"
 PY=/tmp/vgc-pilot/.venv/bin/python
 MODEL="${AG84_MODEL:-gen84_all_ep21}"
 ROOT="$HOME/vgc-data/verify/ask-grid84"
-SMOKE_FILE="$HOME/vgc-data/results/stat_points_84_${MODEL}_smoke.json"
+GUIDANCE_SUFFIX="$("$PY" -c 'import os; g = float(os.environ.get("AG84_GUIDANCE", "2")); print("" if g == 2 else f"_g{g:g}")')"   # ask_grid84.SUFFIX
+SMOKE_FILE="$HOME/vgc-data/results/stat_points_84_${MODEL}${GUIDANCE_SUFFIX}_smoke.json"
 fail=0
 
 check() {   # check <label> <command...>: print PASS or FAIL for one condition

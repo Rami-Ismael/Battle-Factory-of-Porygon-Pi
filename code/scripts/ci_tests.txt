@@ -44,3 +44,4 @@ test_matchup_score.py
 test_masked_diffusion_memory_bench.py
 test_position_split_verdict.py
 test_pass_at_k.py
+test_random_order_schedule.py
