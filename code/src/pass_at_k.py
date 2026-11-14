@@ -192,7 +192,7 @@ def counts_at(grid, asks, definition, counts, rng):
 
 def pass_curves(c, n, k_max=K_MAX):
     """[k_max, ...] Pass@k for arrays of successes c and team counts n of the same shape."""
-    c, n = np.asarray(c), np.asarray(n); out = np.empty((k_max,) + c.shape)
+    c, n = np.asarray(c), np.asarray(n); out = np.empty((k_max, *c.shape))
     for size in np.unique(n):
         if size < 4 * k_max: raise SystemExit(f"{size} teams at an ask: fewer than 4 x {k_max}, as Fang et al. App. E advise")
         table = pass_table(int(size), k_max); here = n == size
