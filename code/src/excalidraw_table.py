@@ -8,7 +8,13 @@ colour. It writes three files beside each other:
   <name>-light.png    Excalidraw's own export
   <name>-dark.png     the same scene exported with Excalidraw's dark mode
 
+Both PNGs carry their own page colour, white and Excalidraw's dark grey, so that a picture stays readable
+when a reader's GitHub theme and system theme disagree.
+
 Run:  python src/excalidraw_table.py <markdown file> <output folder> <name> [--table 0] [--widths 220,430,630]
+
+For a design that is not a plain grid, build the element skeletons in Python and call `render_scene`.
+`missing_from_scene` then lists any number or word of the table that the scene dropped.
 
 How it works: Excalidraw's library (`@excalidraw/excalidraw` 0.18.0, loaded from esm.sh) lays out the
 text and draws the scene inside headless Chrome. One Chrome run needs the network for the library and
@@ -97,6 +103,16 @@ try {
   const widthOf = (column, block) => spec.widths[column] - 2 * PAD - (block.bullet ? INDENT : 0);
   const label = (text, size, align, vertical, colour) => ({ text, fontSize: size, fontFamily: HAND, textAlign: align, verticalAlign: vertical, strokeColor: colour });
   const holder = (id, x, y, width, height, text) => ({ type: "rectangle", id, x, y, width, height, strokeColor: "transparent", backgroundColor: "transparent", roughness: 0, label: text });
+  // The fonts must be in the page before Excalidraw measures text, or the text wraps for the wrong font. Excalidraw's export carries the fonts a scene uses, so export once and adopt them.
+  const adopt = async elements => {
+    const fonts = (await exportToSvg({ elements, appState: { exportBackground: false }, files: {} })).querySelector("style.style-fonts");
+    if (fonts) document.head.appendChild(document.importNode(fonts, true));
+    await Promise.all([...document.fonts].map(face => face.load().catch(() => null)));
+    await document.fonts.ready;
+  };
+  let skeleton = spec.skeleton;
+  if (skeleton) await adopt(convertToExcalidrawElements(skeleton, { regenerateIds: false }));
+  else {
   const cellsOf = () => [spec.header.map(text => [{ text, bullet: false }]), ...spec.rows.map(row => row.cells)];
 
   // Pass 1 measures: every text block sits in a container of its column's width, and Excalidraw grows the container to fit the wrapped text.
@@ -106,16 +122,12 @@ try {
       skeleton.push(holder(`m-${r}-${c}-${b}`, 0, 0, widthOf(c, block), 10, label(block.text, r ? spec.body_font_size : spec.header_font_size, r && c ? "left" : "center", "top", spec.ink))))));
     return convertToExcalidrawElements(skeleton, { regenerateIds: false });
   };
-  // The fonts must be in the page before measuring, or the text wraps for the wrong font. Excalidraw's export carries them, so export once and adopt its fonts.
-  const fonts = (await exportToSvg({ elements: measure(), appState: { exportBackground: false }, files: {} })).querySelector("style.style-fonts");
-  if (fonts) document.head.appendChild(document.importNode(fonts, true));
-  const everything = cellsOf().flat(2).map(block => block.text).join(" ");
-  await Promise.all([spec.body_font_size, spec.header_font_size].map(size => document.fonts.load(`${size}px Excalifont`, everything)));
-  await document.fonts.ready;
+  await adopt(measure());
   const measured = Object.fromEntries(measure().filter(element => element.type === "rectangle").map(element => [element.id, element.height]));
 
   // Pass 2 places: a filled rectangle for each cell, then its text blocks stacked inside, with a dot before each bullet.
-  const skeleton = [], lefts = spec.widths.map((_, c) => spec.widths.slice(0, c).reduce((sum, width) => sum + width, 0));
+  skeleton = [];
+  const lefts = spec.widths.map((_, c) => spec.widths.slice(0, c).reduce((sum, width) => sum + width, 0));
   let top = 0;
   cellsOf().forEach((row, r) => {
     const stack = (c, blocks) => blocks.reduce((sum, _, b) => sum + measured[`m-${r}-${c}-${b}`], 0) + GAP * (blocks.length - 1);
@@ -136,10 +148,11 @@ try {
     });
     top += height;
   });
+  }
   const elements = convertToExcalidrawElements(skeleton, { regenerateIds: false });
   elements.forEach((element, index) => { element.seed = 7919 + 104729 * index; element.versionNonce = 1 + index; });    // fixed seeds, so the hand-drawn lines are the same on every run
   for (const [theme, dark] of [["light", false], ["dark", true]]) {
-    const svg = await exportToSvg({ elements, appState: { exportBackground: false, exportWithDarkMode: dark }, files: {}, exportPadding: 12 });
+    const svg = await exportToSvg({ elements, appState: { exportBackground: spec.background !== false, viewBackgroundColor: "#ffffff", exportWithDarkMode: dark }, files: {}, exportPadding: 12 });
     const box = document.createElement("div"); box.id = theme; box.appendChild(svg); document.body.appendChild(box);
   }
   const scene = { type: "excalidraw", version: 2, source: "excalidraw_table.py", elements, appState: { viewBackgroundColor: "#ffffff", gridSize: null }, files: {} };
@@ -181,8 +194,19 @@ class Browser:
         self.socket.close(); self.process.terminate(); self.process.wait(timeout=10)
 
 
-def render(spec, folder, name, scale=2, wait=120):
-    """Draw the spec with Excalidraw and write <name>.excalidraw, <name>-light.png and <name>-dark.png into the folder."""
+def render(spec, folder, name, scale=2, wait=120, attempts=3):
+    """Draw the spec with Excalidraw and write <name>.excalidraw, <name>-light.png and <name>-dark.png into the folder.
+    The library comes over the network, so a failed fetch is tried again."""
+    for attempt in range(attempts):
+        try:
+            return render_once(spec, folder, name, scale, wait)
+        except RuntimeError as error:
+            if "fetch" not in str(error) or attempt == attempts - 1: raise
+            time.sleep(3)
+    return None
+
+
+def render_once(spec, folder, name, scale=2, wait=120):
     folder = Path(folder); folder.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as work:
         page = Path(work) / "table.html"
@@ -210,6 +234,29 @@ def render(spec, folder, name, scale=2, wait=120):
         finally:
             browser.close()
     return written
+
+
+def render_scene(skeleton, folder, name, scale=2, background=True):
+    """Draw a free-form scene. `skeleton` is a list of element skeletons as `convertToExcalidrawElements` takes them:
+    rectangle, ellipse, diamond, text, line and arrow dicts, where a shape's `label` is text bound inside it."""
+    return render(dict(skeleton=skeleton, background=background), folder, name, scale)
+
+
+def texts_of(scene_path):
+    """Every text a scene shows, unwrapped."""
+    return [element.get("originalText") or element["text"] for element in json.loads(Path(scene_path).read_text(encoding="utf-8"))["elements"]
+            if element["type"] == "text" and not element.get("isDeleted")]
+
+
+NUMBER, WORD = re.compile(r"\d[\d,]*(?:\.\d+)?"), re.compile(r"[A-Za-z][A-Za-z'’-]{3,}")
+
+
+def missing_from_scene(header, rows, scene_path):
+    """The numbers and the words of four letters or more that the table has and the scene does not show. An empty list means no cell was dropped."""
+    shown = " ".join(texts_of(scene_path))
+    shown_numbers, shown_words = set(NUMBER.findall(shown)), {word.lower() for word in WORD.findall(shown)}
+    cells = " ".join(plain(cell) for row in [header, *rows] for cell in row)
+    return sorted({number for number in NUMBER.findall(cells) if number not in shown_numbers} | {word for word in WORD.findall(cells) if word.lower() not in shown_words})
 
 
 def main(arguments):
