@@ -436,10 +436,13 @@ _Avoid_: slot-by-slot order
 
 **Random order**:
 A decoding order drawn at random for each candidate, so species, sets and Pokémon interleave.
+_Avoid_: random remasking (LLaDA's name for it; it masks no filled field)
 
 **Confidence order**:
 The decoding order in which each pass fills, for each candidate, the masked field the model is surest about.
-_Avoid_: greedy order
+_Origin_: Top-K probability, [Kim et al., ICML 2025](https://arxiv.org/abs/2502.06768), §4.1, which picks the field by its largest value probability and only then draws; [Jeon et al. 2026](https://arxiv.org/abs/2609.34509), §2.1, name this rule top-probability position selection.
+_Distinguish_: surest-draw order draws first and picks the field after.
+_Avoid_: greedy order, confidence-based decoding (papers use it for both rules)
 
 **Entropy order**:
 A variant of confidence order that fills, each pass, the masked field whose predicted distribution has the lowest entropy, H = −Σ p log p. Not yet run here.
@@ -448,6 +451,58 @@ _Origin_: Dream's default decoding, [Ye et al. 2025](https://arxiv.org/abs/2508.
 **Margin order**:
 A variant of confidence order that fills, each pass, the masked field with the largest gap between its two most likely values, so a field split between two close values waits. On Sudoku it solved 89.5% of puzzles where the confidence order solved 18.5%. Not yet run here.
 _Origin_: top probability margin, [Kim et al., ICML 2025](https://arxiv.org/abs/2502.06768), §4.1 and Table 2.
+
+**Surest-draw order**:
+LLaDA's default decoding order. Each pass draws a value for every masked field at the chosen temperature, scores each draw by its probability under the model, fills only the field with the highest-scoring draw and throws the other draws away, so those fields stay masked. No filled field is ever masked again, so this is not remasking. One likely draw anywhere rejects every unlikely draw: an unlikely value survives only when every competing draw is less likely. In Jeon et al.'s independent-field model the share of filled values that are not the field's top value falls exponentially as more fields compete; in LLaDA-8B on GSM8K at temperature 1.2 it was 0.7%, against 37.6% under confidence order. The two orders give the same samples at temperature zero. Not yet run here.
+_Origin_: MaskGIT, [Chang et al., CVPR 2022](https://arxiv.org/abs/2202.04200); LLaDA, [Nie et al. 2025](https://arxiv.org/abs/2502.09992), which calls it low-confidence remasking. The suppression: [Jeon et al. 2026](https://arxiv.org/abs/2609.34509), §4.1 (the independent-field model), §5 and Fig. 1 (LLaDA). Name: owner, 2026-11-14, so that remasking keeps one meaning.
+_Distinguish_: confidence order picks the field first, then draws its value at the full temperature, which keeps the diversity the temperature asks for. Remasking masks filled fields again.
+_Avoid_: low-confidence remasking (LLaDA's name), LCR, confidence-based decoding (names both orders)
+
+**Quality–exploration trade-off**:
+The tension between how good one candidate is and how much a batch of candidates covers. A decoding order that commits only confident values makes each candidate better and the batch more alike; one that commits at random spreads the batch and weakens each candidate. In the papers quality is Pass@1 and exploration is Pass@k. Here quality is the ask-versus-got error and the elite line-ups that held in a re-battle, and exploration is the count of distinct line-ups. Random order sits at the exploration end: on the linear masking schedule model it drew 2,646 to 3,820 line-ups, more than any point of the per-field control (2,126 at most), but 7 to 28 of its elite line-ups held against the control's 81 to 162 (#297). Each arm is read as a curve traced by one swept setting, temperature in the paper and the guidance weight here, and the question is which curve lies outside the other.
+_Origin_: [Fang et al., COLM 2026](https://arxiv.org/abs/2604.00375), Fig. 1 and Fig. 3 (left).
+_Avoid_: quality–exploration dilemma (the paper's word, fine in a quotation), exploration–exploitation (the bandit term)
+
+**Pass@k**:
+The chance that at least one of k samples drawn for one problem is correct. From n ≥ k samples of which c are correct, the unbiased estimate is 1 − C(n−c, k) / C(n, k). Papers on decoding order use it as the measure of exploration: a sampler whose samples repeat each other stops gaining as k grows. Not yet measured here. Its counterpart would be the chance that at least one of k teams drawn at one ask is an elite line-up that held in the re-battle.
+_Origin_: [Chen et al. 2021](https://arxiv.org/abs/2107.03374), the unbiased estimator; [Fang et al., COLM 2026](https://arxiv.org/abs/2604.00375), Eq. 2 and App. E, as the exploration measure.
+_Distinguish_: elite line-ups held counts line-ups over a whole grid, not the chance for k draws at one ask.
+
+**Effective branching factor**:
+exp(H(X) / L): the per-position perplexity of the distribution of whole samples, read as the geometric-mean number of values a sampler really chooses among at each position. A sampler that commits a value only when its top probability is at least 1 − δ caps it at exp(h_V(δ)), with h_V(δ) = h_b(δ) + δ·log(|V| − 1) and h_b the binary entropy: for |V| = 50,000 and δ = 0.05 the cap is below 2.1. A team has L = 84 fields, each field type with its own vocabulary, so the cap would add one h_V(δ) per field. Species-first order draws every value at the full temperature with no such threshold, so the cap does not apply to it. Not yet measured here.
+_Origin_: [Fang et al., COLM 2026](https://arxiv.org/abs/2604.00375), Proposition 2, the entropy cap under confidence gating. [Jeon et al. 2026](https://arxiv.org/abs/2609.34509), App. A.2, note that the cap models confidence order and not surest-draw order's discarded draws.
+_Avoid_: diversity (alone)
+
+**Global tempering**:
+Sampling whole samples in proportion to q(x)^α, the model's probability of the complete sample raised to a power α ≥ 0: α above 1 sharpens toward likely samples, below 1 flattens, and 1 leaves the model unchanged. It is the one distribution that maximises α·E[log q(x)] + H(p), quality weighted by α plus entropy. Temperature on each field's distribution is local tempering and gives a different distribution. A masked diffusion model has no tractable probability for a whole sample, so Fang et al. approximate the target one position at a time: each pass draws T proposals from the locally tempered distribution and accepts them by an Independent Metropolis–Hastings step whose ratio depends only on a lookahead correction, estimated by mean field. Not yet run here.
+_Origin_: [Fang et al., COLM 2026](https://arxiv.org/abs/2604.00375), Proposition 3, Eqs. 6 to 10 and Algorithm 1; the autoregressive version, [Karan and Du 2025](https://arxiv.org/abs/2510.14901).
+_Distinguish_: guidance weight pushes toward the ask, not toward likely samples.
+_Avoid_: power sampling (the autoregressive paper's name), temperature (alone)
+
+**Position temperature**:
+A second temperature, T_pos, that softens which field a pass fills, separate from the temperature that softens which value the draw picks. Each masked field gets a score from its confidence c, and the pass picks fields in proportion to c^(1/T_pos), without replacement, instead of always taking the most confident. T_pos near 0 gives confidence-style decoding, the deterministic low-confidence remasking of [Olausson et al., COLM 2026](https://arxiv.org/abs/2604.09921), §3.2 (here, surest-draw order); T_pos toward infinity gives random order. One knob therefore traces a curve between the two orders this project ran as separate arms. Olausson et al. fix T_pos = 1 for the fixed-count version and 0.1 for the threshold version, and report that 0.5 to 1 matched or beat left-to-right decoding at high k on HumanEval, while 2 lost quality like random order. Raising the value temperature alone does not move the fill order, so it cannot do this job. Not yet run here.
+_Origin_: Tempered low-confidence (TLC) and tempered confidence thresholding (TCT), [Olausson et al., COLM 2026](https://arxiv.org/abs/2604.09921), §3.2, Algorithms 2 and 4, Fig. 8 (v2); [code](https://github.com/metodj/2-temps-dLLM).
+_Distinguish_: temperature (alone) means the value temperature in the draw.
+_Avoid_: order temperature, remasking temperature
+
+**Fork token**:
+A position whose value nearly settles what the finished sample means, so its entropy bounds the sample's semantic diversity from both sides. An anchor token is a position the model is surer about than the fork, whose reveal lowers the fork's entropy. Under the anchor-fork degeneracy ([Olausson et al., COLM 2026](https://arxiv.org/abs/2604.09921), §3.1 and Assumption 1, App. C), every anchor stays more confident than the fork and each revealed anchor cuts the fork's entropy by a fixed amount, so a confidence-first order reveals every anchor first and draws the fork with the least entropy it can have. Any order that sometimes reveals the fork before its anchors keeps more of that entropy; left-to-right decoding does so whenever an anchor comes after the fork. In a team the species are the likely forks: species-first order draws them before any set is visible.
+_Origin_: [Olausson et al., COLM 2026](https://arxiv.org/abs/2604.09921), §3.1, Definition 1, Assumption 1 and Propositions 1 to 3 (App. C), building on the forking tokens of [Ni et al., ICML 2026](https://arxiv.org/abs/2601.15165).
+_Avoid_: branching token, pivot token
+
+**Entropy-guided initialization**:
+A sampler that changes only the first pass: it fills the masked field with the highest predictive entropy, drawing its value at a raised temperature (0.9 against 0.6 for every later pass, in the rollout experiments of §6.2), then continues with confidence order. Starting every sample at its most uncertain field forces the samples apart at the first choice, and the orders that follow diverge too: the normalised edit distance between fill orders rose from 0.45 to 0.52 on GSM8K. Against left-to-right decoding on LLaDA, Potential@64 on HumanEval rose from 54.5 to 69.7, and GRPO trained on its samples beat GRPO trained on left-to-right samples at matched compute on all four benchmarks. Raising only the first value's temperature in left-to-right decoding gave much smaller gains. Not yet run here.
+_Origin_: EGI, [Jeon et al. 2026](https://arxiv.org/abs/2609.34509), §6.2 and §6.3, Tables 2 to 4.
+
+**Potential@k**:
+How often more samples recover a problem one sample misses: Σ Pass@k(q)·(1 − Pass@1(q)) / Σ (1 − Pass@1(q)) over problems q, so each problem counts by how often a single sample fails it, and problems one sample already solves add almost nothing. Here it would read as how often k teams at one ask reach an elite line-up that held where one team does not. Not yet measured here.
+_Origin_: [Yao et al., NeurIPS 2025](https://arxiv.org/abs/2505.23433), as used by [Jeon et al. 2026](https://arxiv.org/abs/2609.34509), §2.2, §6.2 and App. C.4.
+_Distinguish_: Pass@k counts every problem solved, including the easy ones.
+
+**Pass@NFE**:
+Pass@k plotted against the number of network passes spent rather than the number of samples, so samplers that spend different compute per sample compare fairly. NFE is the number of function evaluations: network passes, counting a guided pass as two. A sampler that fills several fields per pass, or whose samples are seldom legal, looks different on this axis than on k. Here the matching cost is passes per legal team: species-first order is legal at the first try, while linear random order without the lookahead is legal on 1.9% of tries. Not yet measured here.
+_Origin_: [Olausson et al., COLM 2026](https://arxiv.org/abs/2604.09921), §4.1 and Fig. 3, after [Shen et al. 2026](https://arxiv.org/abs/2601.20339).
+_Avoid_: compute-matched Pass@k (fine as a description)
 
 **AR-ness**:
 How closely a decoding order follows the fields' listed order, left to right. Local AR-ness@k is the share of passes whose filled field comes right after the k fields filled before it; global AR-ness@k is the share of passes that fill one of the k earliest masked fields. Both are 1 for a left-to-right writer. Here it measures whether confidence order drifts into listed order.
@@ -459,13 +514,15 @@ Sampling in which a filled field is never masked again, so every choice is final
 _Avoid_: vanilla sampling, standard sampling
 
 **Remasking**:
-Masking again some filled fields of a partial candidate so a later pass draws them anew and an early choice can be undone. The remasking rule says which fields and how many.
-_Avoid_: resampling, ReMDM (the paper's name for it)
+Masking again a field that an earlier pass already filled, so a later pass draws it anew and an early choice can be undone. It breaks carry-over on purpose. The remasking rule says which filled fields and how many: least-likely, random-field, confidence-weighted and even-odds remasking are the four run here, and the remasking loop says when they run.
+_Origin_: ReMDM, [Wang et al., NeurIPS 2025](https://arxiv.org/abs/2503.00307), §3 and §4, which introduced the remasking sampler for pretrained masked diffusion models and shows that the earlier forward-backward and discrete flow matching correctors are special cases of it (§4.3).
+_Distinguish_: the "remasking" of MaskGIT and LLaDA (low-confidence remasking, random remasking) never touches a filled field. Each pass draws every masked field, keeps some draws and leaves the rest masked, so here these are decoding orders: surest-draw order and random order. Jeon et al. 2026, footnote 2, draw the same line.
+_Avoid_: resampling, ReMDM (the paper's sampler), remasking (for a rule that only chooses which masked fields to fill)
 
 **Least-likely remasking**:
 Our rule (2026-10-30): before each pass after the first, mask again a fixed share of filled fields, those whose values were least likely when drawn, and redraw them in that pass. Run at 5%, 10% and 20%.
 _Origin_: no paper; closest is Informed Correctors at temperature zero, [Zhao et al. 2024](https://arxiv.org/abs/2407.21243).
-_Avoid_: low-confidence remasking (LLaDA's rule touches only fields filled in the current pass)
+_Avoid_: low-confidence remasking (LLaDA's name for surest-draw order, which masks no filled field)
 
 **Random-field remasking**:
 Least-likely remasking's count of fields, picked at random among the filled ones instead. Run at 10% and 20% under random order.

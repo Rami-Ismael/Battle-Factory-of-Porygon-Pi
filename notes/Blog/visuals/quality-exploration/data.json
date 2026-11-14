@@ -1,0 +1,11 @@
+{
+  "source": "code/docs/masking-rate-rows.md, table 'Every measure' (issue #297): Line-ups, and the second number of 'Elite line-ups, then those that held'",
+  "rows": [
+    {"name": "Per-field, species-first (the control)", "color": "#2f6fb3", "dark": "#6aa6e8",
+     "points": [{"guidance": 2, "line_ups": 1513, "held": 81}, {"guidance": 4, "line_ups": 1918, "held": 132}, {"guidance": 8, "line_ups": 2126, "held": 162}]},
+    {"name": "Linear, species-first", "color": "#2e9e6a", "dark": "#5cc795",
+     "points": [{"guidance": 2, "line_ups": 1578, "held": 64}, {"guidance": 4, "line_ups": 1971, "held": 95}, {"guidance": 8, "line_ups": 2060, "held": 127}]},
+    {"name": "Linear, random order", "color": "#d0632a", "dark": "#f08a52",
+     "points": [{"guidance": 2, "line_ups": 2646, "held": 7}, {"guidance": 4, "line_ups": 3336, "held": 17}, {"guidance": 8, "line_ups": 3820, "held": 28}]}
+  ]
+}
