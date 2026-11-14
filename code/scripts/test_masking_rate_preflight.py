@@ -1,4 +1,4 @@
-"""The corrected t and the linear masking rate of the masking-rate rows (src/masking_rate_preflight.py; docs/masking-rate-rows.md).
+"""The corrected t and the linear masking schedule of the masking-schedule rows (src/masking_rate_preflight.py; docs/masking-rate-rows.md).
 
 Needs this laptop's /tmp/vgc-pilot data; skipped without it.
 
@@ -68,7 +68,7 @@ class LinearMaskingRate(unittest.TestCase):
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
 class SamplerT(unittest.TestCase):
     """Model84.sample's corrected_t option (issue #295, build item 2): pass k is told the corrected t of the model's
-    own masking rate. Off, the sampler keeps telling pass k 1 - k/84, so stored runs draw the same teams."""
+    own masking schedule. Off, the sampler keeps telling pass k 1 - k/84, so stored runs draw the same teams."""
 
     @classmethod
     def setUpClass(cls):

@@ -30,7 +30,7 @@ TINY = dict(d=32, nlayer=3, nhead=2)
 LOOP = dict(loop_start=1, loop_layers=1, loop_max=3)
 
 # Recorded 2026-11-12 on this laptop (device mps) from diffusion84.py before the looping options existed (main at 94678bdb,
-# plus the masking-rate arms 03e4ed4f): torch.manual_seed(0), Net84(V, **TINY).train(); torch.manual_seed(5), then
+# plus the masking-schedule arms 03e4ed4f): torch.manual_seed(0), Net84(V, **TINY).train(); torch.manual_seed(5), then
 # batch_loss on the first 64 rows of the shuffled-only table, then one torch.rand(1); val_loss with reps=2 in eval mode.
 OLD_BATCH_LOSS, OLD_NEXT_RANDOM, OLD_VAL_LOSS = 3.4148964881896973, 0.8302518725395203, 3.1996374130249023
 

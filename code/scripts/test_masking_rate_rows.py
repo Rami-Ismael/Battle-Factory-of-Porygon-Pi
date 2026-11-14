@@ -1,4 +1,4 @@
-"""The masking-rate rows in the ask grid, and the rules that judge them (docs/masking-rate-rows.md, issues #295 and #297).
+"""The masking-schedule rows in the ask grid, and the rules that judge them (docs/masking-rate-rows.md, issues #295 and #297).
 
 The ask-grid settings are read from the environment at import, so each case runs ask_grid84 in its own process.
 Those cases need this laptop's /tmp/vgc-pilot data and the two checkpoints; they are skipped without them.
@@ -33,7 +33,7 @@ def ask_grid(model, **env):
     return json.loads(done.stdout.strip().splitlines()[-1])
 
 
-@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data and the two masking-rate checkpoints")
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data and the two masking-schedule checkpoints")
 class AskGridRows(unittest.TestCase):
     def test_each_code_id_loads_its_checkpoint_and_decoder(self):
         want = {"sched_species_first": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Model84", None, False, "16,4,4,1.5,1"),
@@ -210,14 +210,19 @@ class Figures(unittest.TestCase):
         self.assertEqual(option["series"][0]["markLine"]["data"], [dict(xAxis=17)])
         self.assertIn("does not lift got", title); self.assertIn("at most 0.010", title)
 
-    def test_random_order_multiple_puts_the_earlier_bar_first_then_the_three_guidance_values(self):
-        option, title = F.random_order_error_multiple(self.summary())
-        bars, intervals = option["series"]
-        self.assertEqual([b["value"] for b in bars["data"]], [round(0.0534 / 0.0192, 2), 4.5, 5.5, 6.5])
-        self.assertEqual(bars["data"][0]["itemStyle"]["color"], F.GREY)
-        self.assertEqual(intervals["data"], [[1, 3.5, 6.5], [2, 4.5, 7.5], [3, 5.5, 8.5]])
-        self.assertEqual(bars["markLine"]["data"], [dict(yAxis=1)])
-        self.assertEqual(title, "On the linear model, random order's error is 4.5 to 6.5 times species-first's, higher than the 2.8 measured on a per-field model")
+    def test_random_order_figure_shows_both_misses_side_by_side_with_the_ratio_in_the_labels(self):
+        summary = self.summary()
+        for g, (s, r) in zip(R.GUIDANCES, ((0.0081, 0.0361), (0.0049, 0.0289), (0.0036, 0.0256))):
+            summary["grids"][R.grid_name(F.LINEAR, g)]["error"], summary["grids"][R.grid_name(F.RANDOM, g)]["error"] = s, r
+        option, title = F.random_order_error_multiple(summary)
+        species_first, random_order = option["series"]
+        self.assertEqual([b["value"] for b in species_first["data"]], [round(0.0192 ** 0.5, 3), 0.09, 0.07, 0.06])
+        self.assertEqual([b["value"] for b in random_order["data"]], [round(0.0534 ** 0.5, 3), 0.19, 0.17, 0.16])
+        self.assertEqual([b["itemStyle"]["opacity"] for b in random_order["data"]], [0.45, 1.0, 1.0, 1.0])
+        self.assertTrue(option["xAxis"]["data"][0].startswith("Older per-field model, guidance 2, a different model"))
+        self.assertIn("random order's error: 4.5 times", option["xAxis"]["data"][1])
+        self.assertEqual(title, "On the linear model random order misses the asked win rate by about 0.10 more than species-first at every guidance. "
+                                "The error ratio grows from 4.5 to 6.5 times only because species-first's own miss shrinks")
 
     def with_line_ups_by_ask(self, per_ask):
         summary = self.summary()
