@@ -13,10 +13,12 @@ A = D["arms"]
 OUT = Path.home() / "vgc-data/least_likely_trade/storyboard"
 PLAIN, GREY, PALE = "#6f6e69", "#a9a8a2", "rgba(127,127,127,0.18)"
 BLUE, ORANGE, AQUA = "#2a78d6", "#eb6834", "#1baf7a"      # validated all-pairs on the light surface
-FAMILY = {"plain": PLAIN, "spend66": GREY, "remask_conf_loop": GREY, "remask_even_loop": GREY}
+FAMILY = {"plain": "plain", "spend66": "other", "remask_conf_loop": "other", "remask_even_loop": "other"}   # arm -> family
 for _a in A:
-    FAMILY.setdefault(_a, ORANGE if _a.startswith("remask") else BLUE if _a.startswith("nucleus") else AQUA)
-FAMILY_NAME = {ORANGE: "Least-likely remasking", AQUA: "Temperature", BLUE: "Nucleus", GREY: "Other: Stat Points, paper rules"}
+    FAMILY.setdefault(_a, "remask" if _a.startswith("remask") else "nucleus" if _a.startswith("nucleus") else "temperature")
+FAMILY_COLOUR = {"plain": PLAIN, "remask": ORANGE, "temperature": AQUA, "nucleus": BLUE, "other": GREY}
+FAMILY_NAME = {"remask": "Least-likely remasking", "temperature": "Temperature", "nucleus": "Nucleus", "other": "Other: Stat Points, paper rules"}
+COLOUR = {a: FAMILY_COLOUR[f] for a, f in FAMILY.items()}                    # arm -> colour; keyed by family so two families may share a colour
 WIN = "Win rate against the top-50 meta teams, behaviour-cloning policy on both sides."
 PCT = "js:v => Math.round(v * 100) + '%'"
 RULES = (("plain", PLAIN, "No remasking"), ("remask_ll_10", ORANGE, "Least-likely 10% remasked"), ("cold_sets_t03", AQUA, "Temperature 0.3 on sets only"))
@@ -154,8 +156,9 @@ def nucleus_vs_temperature():
 def family_dots(order, value, hollow=False):
     """One scatter series per family, so the legend names families; y is the arm's row."""
     out = []
-    for col, name in FAMILY_NAME.items():
-        pts = [(value(a), i) for i, a in enumerate(order) if FAMILY[a] == col]
+    for family, name in FAMILY_NAME.items():
+        col = FAMILY_COLOUR[family]
+        pts = [(value(a), i) for i, a in enumerate(order) if FAMILY[a] == family]
         style = {"itemStyle": {"color": "transparent", "borderColor": col, "borderWidth": 1.6}} if hollow else {}
         if pts:
             out.append(dot(name, col, pts, 9 if hollow else 12, **style))
@@ -172,14 +175,14 @@ def menu():
     xs = [axis("Win-rate gain over no remasking (filled: all four asks; hollow: without 12/24)", gridIndex=0),
           axis("Line-ups kept", gridIndex=1, min=0, max=1.18, scale=False, axisLabel={"formatter": PCT}),
           axis("Pokémon sets kept", gridIndex=2, min=0, max=1.18, scale=False, axisLabel={"formatter": PCT})]
-    series = [segment(FAMILY_NAME.get(FAMILY[a]), FAMILY[a], (A[a]["pooled"]["all"]["gain_ci"][0], i), (A[a]["pooled"]["all"]["gain_ci"][1], i))
+    series = [segment(FAMILY_NAME.get(FAMILY[a]), COLOUR[a], (A[a]["pooled"]["all"]["gain_ci"][0], i), (A[a]["pooled"]["all"]["gain_ci"][1], i))
               for i, a in enumerate(order)]
     series += family_dots(order, lambda a: A[a]["pooled"]["all"]["gain"])
     series += family_dots(order, lambda a: A[a]["pooled"]["without_12"]["gain"], hollow=True)
     series += [rule(0, ""), rule(.03, "smallest effect worth acting on", dashed=True)]
     for g, key in ((1, "line_ups"), (2, "distinct_sets")):
         series.append({"type": "bar", "name": xs[g]["name"], "xAxisIndex": g, "yAxisIndex": g, "barWidth": "56%",
-                       "data": [{"value": p[key] / base[key], "itemStyle": {"color": FAMILY[a], "borderRadius": [0, 4, 4, 0]},
+                       "data": [{"value": p[key] / base[key], "itemStyle": {"color": COLOUR[a], "borderRadius": [0, 4, 4, 0]},
                                  "label": {"show": True, "position": "right", "formatter": f"{p[key] / base[key]:.0%}"}}
                                 for a in order for p in [A[a]["pooled"]["all"]]]})
     save({"legend": {"data": list(FAMILY_NAME.values()), "bottom": 0}, "grid": gs, "xAxis": xs, "yAxis": ys, "series": series},
@@ -208,7 +211,7 @@ def rebattle():
 
 def ask_versus_got_error():
     order = sorted([a for a in A if a != "plain"], key=lambda a: A[a]["error"]["all"]["diff_vs_plain"])
-    series = [segment(FAMILY_NAME.get(FAMILY[a]), FAMILY[a], (A[a]["error"]["all"]["diff_vs_plain_ci"][0], i),
+    series = [segment(FAMILY_NAME.get(FAMILY[a]), COLOUR[a], (A[a]["error"]["all"]["diff_vs_plain_ci"][0], i),
                       (A[a]["error"]["all"]["diff_vs_plain_ci"][1], i)) for i, a in enumerate(order)]
     series += family_dots(order, lambda a: A[a]["error"]["all"]["diff_vs_plain"])
     series += [rule(0, ""), rule(-.001, "smallest effect, 0.001 closer", dashed=True)]
