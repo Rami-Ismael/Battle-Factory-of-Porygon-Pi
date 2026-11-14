@@ -98,6 +98,19 @@ class LookaheadArms(unittest.TestCase):
         steered = [r for records in self.records[True] for r in records if r["fallback_fields"] == 0 and r["refusing_fields"]]
         self.assertTrue(all(0.0 < r["kept_share"] < 1.0 for r in steered))
 
+    def test_a_fallback_field_refuses_nothing(self):
+        fell_back = [r for records in self.records[True] for r in records if r["fallback_fields"]]
+        self.assertTrue(all(r["refusing_fields"] + r["fallback_fields"] <= 84 for r in fell_back))
+        self.assertTrue(any(r["kept_share"] > 0 for r in fell_back) or not fell_back)
+
+    def test_the_draw_loop_refuses_records_that_do_not_pair_with_the_teams(self):
+        import ask_grid84 as A
+        class Short(self.R.RandomDecodingArm):
+            def sample(self, n, **kw):
+                x = super().sample(n, **kw); self.last_refusals = self.last_refusals[1:]; return x
+        with mock.patch.multiple(A, KEEP=4, BATCH=8, MAX_TRIES=32), self.assertRaises(ValueError):
+            A.draw(Short(self.model, lookahead=True), ASK, SEEDS[0])
+
     def test_a_remasking_arm_with_the_lookahead_carries_the_record_too(self):
         arm = self.R.RandomDecodingArm(self.model, "rand_remask_even", lookahead=True)
         self.draw(arm, SEEDS[0], n=8)

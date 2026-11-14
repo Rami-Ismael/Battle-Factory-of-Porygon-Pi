@@ -190,6 +190,8 @@ def draw(w, ask, seed):
     try:
         while len(kept) < KEEP and tried < MAX_TRIES:
             rows = w.sample(BATCH, ask=ask, guidance=GUIDANCE).cpu().numpy(); records = w.last_refusals if records_refusals else None
+            if records is not None and len(records) != len(rows):
+                raise ValueError(f"the arm gave {len(records)} refusal records for {len(rows)} teams; they must pair one to one")
             for i, r in enumerate(rows):
                 tried += 1
                 p, slots = w.to_paste(r, repair=True)
