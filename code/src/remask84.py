@@ -258,11 +258,12 @@ class RandomDecodingArm:
 
 
 class SpeciesFirstArm:
-    """Species-first decoding (Model84.sample) with the lookahead switch, as an arm object for ask_grid84.draw."""
-    def __init__(self, w, lookahead=False): self.w, self.lookahead = w, lookahead
+    """Species-first decoding (Model84.sample) with the lookahead and corrected-t switches, as an arm object for
+    ask_grid84.draw."""
+    def __init__(self, w, lookahead=False, corrected_t=False): self.w, self.lookahead, self.corrected_t = w, lookahead, corrected_t
 
     def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
-        return self.w.sample(n, ask=ask, guidance=guidance, temperature=temperature, lookahead=self.lookahead)
+        return self.w.sample(n, ask=ask, guidance=guidance, temperature=temperature, lookahead=self.lookahead, corrected_t=self.corrected_t)
 
     def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
 

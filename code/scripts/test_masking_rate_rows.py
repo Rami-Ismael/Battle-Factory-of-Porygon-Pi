@@ -25,7 +25,7 @@ HERE = Path("/tmp/vgc-pilot/data/pokedex.json").exists() and (CHECKPOINTS / "sta
 PROBE = ("import json, ask_grid84 as A; s = A.load_sampler(); "
          "print(json.dumps(dict(out=A.OUT.name, tag=A.tag_of(A.ASK_NUMERATORS[0], 1), guidance=A.GUIDANCE, asks=len(A.ASK_NUMERATORS), ask=A.ask_of(A.ASK_NUMERATORS[0]), "
          "checkpoint=A.checkpoint_path().name, exists=A.checkpoint_path().exists(), table=A.table_of(A.MODELS[A.MODEL]), sampler=type(s).__name__, "
-         "lookahead=getattr(s, 'lookahead', None), sched=A.load_model().info.get('sched'))))")
+         "lookahead=getattr(s, 'lookahead', None), corrected_t=getattr(s, 'corrected_t', False), sched=A.load_model().info.get('sched'))))")
 
 
 def ask_grid(model, **env):
@@ -36,12 +36,14 @@ def ask_grid(model, **env):
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data and the two masking-schedule checkpoints")
 class AskGridRows(unittest.TestCase):
     def test_each_code_id_loads_its_checkpoint_and_decoder(self):
-        want = {"sched_species_first": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Model84", None, "16,4,4,1.5,1"),
-                "sched_linear_species_first": ("stat84_shuffled_noise_linear_es3_cap80.pt", "Model84", None, "1,1,1,1,1"),
-                "sched_linear_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", True, "1,1,1,1,1")}
-        for row, (checkpoint, sampler, lookahead, sched) in want.items():
+        want = {"sched_species_first": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Model84", None, False, "16,4,4,1.5,1"),
+                "sched_species_first_t": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "SpeciesFirstArm", False, True, "16,4,4,1.5,1"),
+                "sched_linear_species_first": ("stat84_shuffled_noise_linear_es3_cap80.pt", "Model84", None, False, "1,1,1,1,1"),
+                "sched_linear_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", True, False, "1,1,1,1,1")}
+        for row, (checkpoint, sampler, lookahead, corrected_t, sched) in want.items():
             got = ask_grid(row)
-            self.assertEqual((got["checkpoint"], got["sampler"], got["lookahead"], got["sched"]), (checkpoint, sampler, lookahead, sched), row)
+            self.assertEqual((got["checkpoint"], got["sampler"], got["lookahead"], got["corrected_t"], got["sched"]),
+                             (checkpoint, sampler, lookahead, corrected_t, sched), row)
             self.assertTrue(got["exists"]); self.assertEqual(got["table"], "lossdata84_shuffled_only.npz")
 
     def test_guidance_2_keeps_the_stored_names(self):
@@ -222,15 +224,40 @@ class Figures(unittest.TestCase):
         self.assertEqual(title, "On the linear model random order misses the asked win rate by about 0.10 more than species-first at every guidance. "
                                 "The error ratio grows from 4.5 to 6.5 times only because species-first's own miss shrinks")
 
-    def test_line_ups_by_ask_draws_a_line_for_each_guidance_and_names_both_directions(self):
+    def with_line_ups_by_ask(self, per_ask):
         summary = self.summary()
-        for i, g in enumerate(R.GUIDANCES):
-            summary["grids"][R.grid_name(R.CONTROL, g)].update(line_ups_by_ask={str(k): 180 - 30 * i for k in range(1, 24)}, asks_sharing_a_line_up=2.5 - 0.5 * i)
-        option, title, subtitle = F.line_ups_by_ask(summary)
-        self.assertEqual([s["name"] for s in option["series"]], ["Guidance 2", "Guidance 4", "Guidance 8"])
-        self.assertEqual(option["series"][2]["data"], [120] * 23)
-        self.assertIn("The mean line-ups of one ask fall from 180 to 120", title); self.assertIn("they rise from 1,500 to 2,300", title)
-        self.assertIn("2.50, 2.00 and 1.50 asks on average at guidance 2, 4 and 8", subtitle)
+        for row, counts in per_ask.items():
+            for i, (g, n) in enumerate(zip(R.GUIDANCES, counts)):
+                summary["grids"][R.grid_name(row, g)].update(line_ups_by_ask={str(k): n for k in range(1, 24)}, asks_sharing_a_line_up=2.5 - 0.5 * i)
+        return summary
+
+    def test_line_ups_by_ask_draws_one_panel_for_each_row_with_a_line_for_each_guidance(self):
+        per_ask = {R.CONTROL: (180, 150, 120), "sched_linear_species_first": (170, 150, 130), "sched_linear_random": (192, 191, 191)}
+        option, title, subtitle = F.line_ups_by_ask(self.with_line_ups_by_ask(per_ask))
+        self.assertEqual(len(option["grid"]), 3); self.assertEqual(len(option["series"]), 9)
+        self.assertEqual([t["text"] for t in option["title"]], [F.label(row) for row in R.ROWS])
+        self.assertEqual({(y["min"], y["max"]) for y in option["yAxis"]}, {(0, 192)})
+        self.assertEqual([d["name"] for d in option["legend"]["data"]], ["Guidance 2", "Guidance 4", "Guidance 8"])
+        row_colours = set(F.COLORS.values())
+        for r, row in enumerate(R.ROWS):
+            lines = [s for s in option["series"] if s["xAxisIndex"] == r]
+            self.assertEqual([s["name"] for s in lines], ["Guidance 2", "Guidance 4", "Guidance 8"])
+            self.assertEqual([s["data"] for s in lines], [[n] * 23 for n in per_ask[row]])
+            self.assertEqual(len({s["lineStyle"]["type"] for s in lines}), 3)       # guidance is marked by line style and shade, never by another row's colour
+            self.assertEqual({s["lineStyle"]["color"] for s in lines} & row_colours - {F.COLORS[row]}, set())
+        self.assertNotIn(F.BLUE, option["legend"]["data"][1]["icon"] + option["legend"]["data"][2]["icon"])
+        self.assertEqual(title, "Within one ask, raising guidance from 2 to 8 cuts the mean line-ups from 180 to 120 for the control and from 170 to 130 "
+                                "for Linear, species-first. Linear, random order stays at the ceiling, 191 to 192 of 192 at every guidance")
+        self.assertIn("1,500 to 2,300, 1,580 to 2,380 and 2,600 to 3,400", subtitle)
+
+    def test_line_ups_by_ask_names_a_row_that_rises_and_fails_without_a_row(self):
+        per_ask = {R.CONTROL: (120, 150, 180), "sched_linear_species_first": (170, 150, 130), "sched_linear_random": (150, 160, 170)}
+        _, title, _ = F.line_ups_by_ask(self.with_line_ups_by_ask(per_ask))
+        self.assertTrue(title.startswith("Within one ask, from guidance 2 to 8 the mean line-ups rise from 120 to 180 for the control, "
+                                         "fall from 170 to 130 for Linear, species-first and rise from 150 to 170 for Linear, random order"), title)
+        self.assertNotIn("ceiling", title)
+        summary = self.with_line_ups_by_ask(per_ask); del summary["grids"][R.grid_name("sched_linear_random", 4)]
+        with self.assertRaises(KeyError): F.line_ups_by_ask(summary)
 
     def test_line_ups_shared_between_asks_splits_the_ask_by_ask_count_into_the_grid_total_and_the_repeats(self):
         summary = self.summary()
