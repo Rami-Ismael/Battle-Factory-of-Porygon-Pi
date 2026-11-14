@@ -99,9 +99,16 @@ class LookaheadArms(unittest.TestCase):
         self.assertTrue(all(0.0 < r["kept_share"] < 1.0 for r in steered))
 
     def test_a_fallback_field_refuses_nothing(self):
-        fell_back = [r for records in self.records[True] for r in records if r["fallback_fields"]]
-        self.assertTrue(all(r["refusing_fields"] + r["fallback_fields"] <= 84 for r in fell_back))
-        self.assertTrue(any(r["kept_share"] > 0 for r in fell_back) or not fell_back)
+        # A lookahead that refuses every value makes each of the 48 fields before the Stat Points fall back to allowing
+        # every value; each is drawn once without remasking, so each team has 48 fallback fields and nothing refused.
+        import diffusion84 as M
+        refuse_all = lambda tables, x, c, al=None: self.torch.zeros_like(al[M.L.KEY_OF_COL[c]][:, 0])
+        arm = self.R.RandomDecodingArm(self.model, lookahead=True)
+        with mock.patch.object(M, "lookahead_rule", refuse_all):
+            self.draw(arm, SEEDS[0], n=8)
+        self.assert_records(arm.last_refusals, 8)
+        for r in arm.last_refusals:
+            self.assertEqual((r["fallback_fields"], r["refusing_fields"], r["kept_share"]), (M.STAT0, 0, 1.0))
 
     def test_the_draw_loop_refuses_records_that_do_not_pair_with_the_teams(self):
         import ask_grid84 as A

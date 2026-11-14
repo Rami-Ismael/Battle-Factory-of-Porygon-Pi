@@ -226,7 +226,8 @@ class Refusals:
         self.refusing += (refused & rows).long(); self.fallback += (fallback & rows).long()
 
     def records(self):
-        """One dict per team; log_kept_share is None where the kept share is 0."""
+        """One dict per team. log_kept_share is None where some draw's lookahead refused every value the plain sampler
+        allows; a very small kept share can also round to 0.0 while its logarithm stays finite."""
         return [dict(kept_share=math.exp(lk), log_kept_share=lk if lk > -math.inf else None, refused_share=-math.expm1(lk),
                      refusing_fields=r, fallback_fields=f)
                 for lk, r, f in zip(self.log_kept.tolist(), self.refusing.tolist(), self.fallback.tolist())]
