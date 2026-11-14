@@ -161,6 +161,8 @@ def measures(out, refs):
     by_seed = {s: {k: float(np.mean(cells[(k, s)]["y"])) for k in ALL_ASKS} for s in SEEDS}
     tried, rejected = sum(c["tried"] for c in cells.values()), sum(c["rejected"] for c in cells.values())
     top = [y for a, _, _, y in teams if a in TOP_ASKS]
+    asks_of = {}                                                    # line-up -> the asks it was drawn at
+    for (a, _, _, _), lu in zip(teams, line_ups): asks_of.setdefault(lu, set()).add(a)
     return dict(reader=out["reader"], guidance=out["guidance"], decoder=out.get("decoder"), checkpoint=out["checkpoint"], checkpoint_sha256=out["checkpoint_sha256"],
                 teams=len(teams), battles=sum(c["battles"] for c in cells.values()), cells=len(cells),
                 cells_short_of_64=sum(len(c["pastes"]) < out["keep"] for c in cells.values()),
@@ -169,6 +171,8 @@ def measures(out, refs):
                 win_top_asks=float(np.mean(top)) if top else None, pooled_win=float(np.mean([y for *_, y in teams])),
                 first_try_legality=(tried - rejected) / max(tried, 1), tries=tried,
                 line_ups=len(set(line_ups)), line_ups_by_seed={str(s): len({lu for (_, t, _, _), lu in zip(teams, line_ups) if t == s}) for s in SEEDS},
+                line_ups_by_ask={str(k): sum(k in asks for asks in asks_of.values()) for k in ALL_ASKS},      # distinct among one ask's teams
+                asks_sharing_a_line_up=float(np.mean([len(asks) for asks in asks_of.values()])),
                 new_against_training=float(np.mean([lu not in refs[0] for lu in line_ups])),
                 new_against_search_and_tournaments=float(np.mean([lu not in refs[1] for lu in line_ups])),
                 effective_species=float(np.mean([c["div"]["effective_species"] for c in cells.values() if c["div"]])),

@@ -196,6 +196,16 @@ class Figures(unittest.TestCase):
         self.assertEqual(bars["markLine"]["data"], [dict(yAxis=1)])
         self.assertEqual(title, "On the linear model, random order's error is 4.5 to 6.5 times species-first's, higher than the 2.8 measured on a per-field model")
 
+    def test_line_ups_by_ask_draws_a_line_for_each_guidance_and_names_both_directions(self):
+        summary = self.summary()
+        for i, g in enumerate(R.GUIDANCES):
+            summary["grids"][R.grid_name(R.CONTROL, g)].update(line_ups_by_ask={str(k): 180 - 30 * i for k in range(1, 24)}, asks_sharing_a_line_up=2.5 - 0.5 * i)
+        option, title, subtitle = F.line_ups_by_ask(summary)
+        self.assertEqual([s["name"] for s in option["series"]], ["Guidance 2", "Guidance 4", "Guidance 8"])
+        self.assertEqual(option["series"][2]["data"], [120] * 23)
+        self.assertIn("line-ups fall from 180 to 120", title); self.assertIn("they rise from 1,500 to 2,300", title)
+        self.assertIn("2.50, 2.00 and 1.50 asks on average at guidance 2, 4 and 8", subtitle)
+
 
 if __name__ == "__main__":
     unittest.main()

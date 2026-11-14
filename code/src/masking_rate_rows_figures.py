@@ -1,10 +1,11 @@
-"""Three figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3; issue #297).
+"""Four figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and a later check; issue #297).
 
   05_error_against_line_ups       ask-versus-got error against distinct line-ups, one three-point curve for each row
   06_got_against_ask              got against ask, the control beside Linear, species-first, one panel for each guidance
   07_random_order_error_multiple  random order's error as a multiple of species-first's on the same checkpoint
+  08_line_ups_by_ask              the control's distinct line-ups among one ask's teams, a line for each guidance
 
-Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title).
+Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title); the fourth also returns its subtitle.
 
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_rows_figures.py      (from code/)
 """
@@ -129,6 +130,27 @@ def random_order_error_multiple(summary):
     return option, f"On the linear model, random order's error is {lo:.1f} to {hi:.1f} times species-first's, {verdict}"
 
 
+def spoken(values):
+    return ", ".join(values[:-1]) + " and " + values[-1]
+
+
+def line_ups_by_ask(summary, row=CONTROL):
+    """Within one ask guidance narrows the line-ups; over the grid the asks share fewer, so the total can still rise."""
+    grids = grids_of(summary, row); asks = sorted(int(k) for k in grids[0]["line_ups_by_ask"])
+    means = [sum(g["line_ups_by_ask"].values()) / len(asks) for g in grids]; totals = [g["line_ups"] for g in grids]
+    move = lambda first, last: "fall" if last < first else "rise" if last > first else "stay"
+    series = [dict(name=f"Guidance {guidance:g}", type="line", symbolSize=6, lineStyle=dict(width=2.5), itemStyle=dict(color=color), emphasis=dict(focus="series"),
+                   data=[g["line_ups_by_ask"][str(k)] for k in asks]) for guidance, color, g in zip(GUIDANCES, (BLUE, AQUA, ORANGE), grids)]
+    option = dict(legend=dict(top=0), tooltip=dict(trigger="axis"), grid=dict(left=64, right=30, top=40, bottom=50),
+                  xAxis=dict(type="category", data=[f"{k}/24" for k in asks], name="Win rate asked for", nameLocation="middle", nameGap=30),
+                  yAxis=dict(type="value", min=0, name="Distinct line-ups among the teams of one ask", nameLocation="middle", nameGap=44), series=series)
+    title = (f"Within one ask the line-ups {move(means[0], means[-1])} from {means[0]:.0f} to {means[-1]:.0f} as guidance goes from {GUIDANCES[0]} to {GUIDANCES[-1]}. "
+             f"Over the whole grid they {move(totals[0], totals[-1])} from {totals[0]:,} to {totals[-1]:,}")
+    subtitle = (f"{label(row)}. Each ask has 192 teams, and the grid pools {len(asks)} asks. A line-up is drawn at "
+                f"{spoken([format(g['asks_sharing_a_line_up'], '.2f') for g in grids])} asks on average at guidance {spoken([str(g) for g in GUIDANCES])}.")
+    return option, title, subtitle
+
+
 def main(summary_path=SUMMARY, out=OUT):
     summary = json.load(open(summary_path))
     note = f"{ERROR} {WIN_RATE} Source: {Path(summary_path).name}."
@@ -147,6 +169,9 @@ def main(summary_path=SUMMARY, out=OUT):
         note=f"The grey bar is the earlier measurement, {PER_FIELD_MULTIPLE['random']} against {PER_FIELD_MULTIPLE['species_first']}, on the all-teams "
              "per-field model after 21 epochs, 2026-11-07. That model differs from the linear model in its training table and its epochs as well as in its "
              f"masking rate. Lines on the linear model's bars are 95% bootstrap intervals. {ERROR} Source: {Path(summary_path).name}."))
+    option, title, subtitle = line_ups_by_ask(summary)
+    pages.append(write_chart(option, out / "08_line_ups_by_ask.html", title, subtitle=subtitle, height=440,
+                             note=f"A line-up is a distinct set of six species. Each point pools 3 sampling seeds of 64 teams. Source: {Path(summary_path).name}."))
     return pages
 
 

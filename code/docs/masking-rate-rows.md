@@ -292,6 +292,7 @@ One change is Claude's. The readings of the linear model at epochs 34 and 55 wer
 | 2026-11-13, during the grids | The post for the control at guidance 8 failed on a network reset at 20:42 and was posted by hand at 22:30, after the post for Linear, species-first at guidance 8. Its numbers and figure are the ones the queue wrote at 20:27 | The queue keeps a failed post's text and goes on |
 | 2026-11-13, after the grids | The elite line-up yield re-battles came to about 546,000 battles on 2,786 teams, where the budget said about 315,000. The count is from the private yield database: 273,028 stored pairings of 4 battles, each battle stored from both sides. It includes the re-battle of today's default model | The script re-battles the elite teams of all 23 asks. The budget counted the asks 1/24 to 17/24 only |
 | 2026-11-13, after the grids | The queue ran 11 hours 58 minutes, from 11:18 to 23:16, where the budget said about 8.1 hours | The restart above, the yield re-battles above, and sampling in random order: 36 minutes for the guidance 8 grid against 9 for a species-first grid |
+| 2026-11-13, after the results were posted | The summary gained two measures for each grid: the distinct line-ups among each ask's teams, and the mean number of asks that share one line-up. Every other number in the summary file is unchanged | The Plan counted line-ups over the whole grid only, and that total rises with guidance for a reason that is not diversity. See Line-ups within one ask |
 | 2026-11-13, after the grids | The Pareto rule's first clause is true for every point of Linear, random order only because no control point has as many line-ups, so the clause compares it with nothing. The reading under Results rests on the second clause alone and says so | Found when the rule called a row with 4 to 8 times the control's error "outside" on both clauses |
 
 ## Results of the two trainings
@@ -406,6 +407,30 @@ None of these was run. The stopping rule allows no re-run to chase a result, and
 Linear, species-first is inside the control's curve at every guidance, by the intervals and by the measured values alone. Its three points lie on the control's curve.
 
 Linear, random order has more line-ups than every control point: 2,646 to 3,820 against 2,126 at most. By the rule that puts it outside the control's curve. The cost is an error 4 to 8 times the control's, a pooled win rate lower by 0.11 to 0.12, and 7 to 28 elite line-ups that held against the control's 81 to 162. The extra line-ups are weak ones.
+
+### Line-ups within one ask
+
+Added 2026-11-13 after the owner asked whether the line-up count was wrong, because the grid total rises with guidance while the papers report that guidance lowers diversity. The count is right. A recount from the stored teams with a separate parser gave the same nine totals.
+
+The grid total pools 23 asks. The papers measure diversity among samples that share one condition, and among the 192 teams of one ask the line-ups fall with guidance on both species-first rows:
+
+| Row | Guidance | Distinct line-ups over the grid's 4,416 teams | Mean distinct line-ups among one ask's 192 teams | Mean at asks 15/24 to 17/24 | Asks that share one line-up, mean |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Per-field, uncorrected t, the control | 2 | 1,513 | 167.0 | 172 | 2.54 |
+| Per-field, uncorrected t, the control | 4 | 1,918 | 156.3 | 159 | 1.87 |
+| Per-field, uncorrected t, the control | 8 | 2,126 | 134.9 | 112 | 1.46 |
+| Linear, species-first | 2 | 1,578 | 162.9 | 161 | 2.37 |
+| Linear, species-first | 4 | 1,971 | 155.3 | 145 | 1.81 |
+| Linear, species-first | 8 | 2,060 | 132.4 | 96 | 1.48 |
+| Linear, random order | 2 | 2,646 | 191.7 | 192 | 1.67 |
+| Linear, random order | 4 | 3,336 | 191.6 | 192 | 1.32 |
+| Linear, random order | 8 | 3,820 | 191.2 | 192 | 1.15 |
+
+Stronger guidance makes each ask's teams more specific to that ask. A line-up of the control is drawn at 2.54 asks on average at guidance 2 and at 1.46 at guidance 8, so the asks overlap less and their union grows while each ask repeats itself more. At asks 15/24 to 17/24 the control goes from 172 line-ups to 112.
+
+Two earlier runs agree. At the single ask 0.5 on 48-field models, 2026-10-28, the line-ups among 192 teams were 120, 54, 23 and 8 at guidance 1, 2, 4 and 8 (`guidance_legality.json`). On the 84-field model with all 39 opponents for each label, 2026-11-11, the grid total rose from 1,427 to 1,774 to 1,891 while the mean for one ask fell from 167.5 to 153.2 to 128.0 (`guidance_sweep_gen65_subset_39.json`).
+
+So the line-ups axis of the Pareto chart rewards guidance for separating the asks. The verdicts compare rows at one guidance value and are not affected. Read across guidance values, the grid total is not a diversity measure, and the count for one ask is. Linear, random order is at 191 or 192 of 192 at every ask and guidance, so its rising total comes only from less overlap between asks. Figure: [the control's line-ups at each ask](figures/masking_rate_rows/08_line_ups_by_ask.html).
 
 ### What this result cannot show
 
