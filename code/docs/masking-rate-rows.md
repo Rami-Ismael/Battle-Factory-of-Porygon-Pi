@@ -288,6 +288,11 @@ One change is Claude's. The readings of the linear model at epochs 34 and 55 wer
 | 2026-11-13, before any grid | The elite line-up yield script is now `src/line_up_yield.py`, ported from `~/vgc-data/line_up_deletion_84/run/` with the reference table as a setting. It scores three sets of asks. The Plan's count of 176 line-ups for today's default model is the set of asks 1/24 to 17/24 | The Plan named a script outside the repository |
 | 2026-11-13, before any grid | The grids run guidance by guidance, the control first at each: 2, then 4, then 8. Each grid runs the ask grid's probe step with its own decoder and guidance first. The unguided baseline of a row follows its guidance 2 grid | With the control first, every other grid has its verdict the moment it lands |
 | 2026-11-13, before any grid | The code ticket's remaining items were built in this ticket: guidance as a setting of the ask grid (`AG84_GUIDANCE`, with guidance 2 keeping the stored file names), the three code IDs with their decoders, the unguided cells (`AG84_UNGUIDED`) and a probe step that samples with the row's decoder. Guidance 2 redrew a stored cell of today's default model exactly, 64 of 64 teams. The corrected t sampler option was not built, because its row is not battled | [Add the linear masking rate and the corrected t to the 84-field code, with tests](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/295) was still open when this ticket started |
+| 2026-11-13, during the grids | In the control's grid at guidance 4, one battle worker timed out. The battle supervisor restarted the battle step and it finished. No battle was lost or counted twice: the grid holds 69 of 69 cells and 216,384 battles, and each team's win rate against each opponent adds up to the stored scores exactly. The grid took 2 hours 19 minutes in battles, where the others took about 35 minutes | A `TimeoutError` in one worker of the battle runner. The cause inside the worker was not looked for |
+| 2026-11-13, during the grids | The post for the control at guidance 8 failed on a network reset at 20:42 and was posted by hand at 22:30, after the post for Linear, species-first at guidance 8. Its numbers and figure are the ones the queue wrote at 20:27 | The queue keeps a failed post's text and goes on |
+| 2026-11-13, after the grids | The elite line-up yield re-battles came to about 546,000 battles on 2,786 teams, where the budget said about 315,000. The count is from the private yield database: 273,028 stored pairings of 4 battles, each battle stored from both sides. It includes the re-battle of today's default model | The script re-battles the elite teams of all 23 asks. The budget counted the asks 1/24 to 17/24 only |
+| 2026-11-13, after the grids | The queue ran 11 hours 58 minutes, from 11:18 to 23:16, where the budget said about 8.1 hours | The restart above, the yield re-battles above, and sampling in random order: 36 minutes for the guidance 8 grid against 9 for a species-first grid |
+| 2026-11-13, after the grids | The Pareto rule's first clause is true for every point of Linear, random order only because no control point has as many line-ups, so the clause compares it with nothing. The reading under Results rests on the second clause alone and says so | Found when the rule called a row with 4 to 8 times the control's error "outside" on both clauses |
 
 ## Results of the two trainings
 
@@ -299,3 +304,117 @@ Measured 2026-11-12 for [Train the 84-field model with the linear masking rate](
 | Linear masking rate, `stat84_shuffled_noise_linear_es3_cap80` | 1.4735 | 1.5987 | +0.0053, −0.0126 to +0.0233 | 2.0142 |
 
 Frame 4 came out as expected: the linear model is lower under the linear masking rate, by 0.0491, and slightly higher under the per-field rate, by 0.0194. Frame 5 came out as expected too. On the new per-field model the corrected t moves the drawing distribution by 0.0078 at most, on Stat Alignment at ask 6/24, under the 0.01 bar, so Per-field, corrected t gets no battle grid. The corrected t changes at most 3.3% of fields and 0.8% of line-ups at one ask. Charts: [validation loss by epoch](figures/masking_rate_rows/04a_validation_loss_by_epoch.html), [loss under both masking rates](figures/masking_rate_rows/04b_validation_loss_two_by_two.html), [gap](figures/masking_rate_rows/04c_training_versus_validation_gap.html). Script: `src/masking_rate_training_report.py`.
+
+## Results of the nine grids
+
+Measured 2026-11-13 for [Sample and battle the four rows and post the results table](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/297). Win rate is one battle against each of the 49 distinct top-50 meta teams, with the behaviour-cloning policy on both sides and slots shuffled. Script: `src/masking_rate_rows.py summary`, which wrote `~/vgc-data/results/masking_rate_rows_summary.json`. A second run of the script from this branch gave the same file byte for byte.
+
+**The linear masking rate matches the per-field one when decoding species-first. Random order loses.**
+
+### Planned against actual counts
+
+| Step | Planned | Actual |
+| --- | --- | --- |
+| Grids | 9, each of 4,416 teams and 216,384 battles | 9, each of 4,416 teams and 216,384 battles. No cell short of 64 teams. 1,947,456 battles in all |
+| Probe step before each grid | 9, each with its row's decoder | 9 of 9 passed |
+| Unguided baselines | 3, each of 192 teams | 3, each of 192 teams and 9,408 battles |
+| Lookahead-off legality probe | 4,608 tries, no battles | 4,608 tries |
+| Elite line-up yield | 9 grids, about 315,000 battles | 9 grids and today's default model, about 546,000 battles. See Deviations |
+| Grids of Per-field, corrected t | None unless its probe reaches 0.01 | None. The probe read 0.0078 |
+
+### Every measure
+
+| Row | Guidance | Error on asks 1/24 to 17/24, with 95% interval | Error on asks 18/24 to 23/24 | Win rate at asks 15/24 to 17/24 | Pooled win rate | First-try legality | Line-ups | New line-ups against training teams | Effective species | Top-species share | Elite line-ups, then those that held |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Per-field, uncorrected t, the control | 2 | 0.0084, 0.0045 to 0.0134 | 0.1352 | 0.497 | 0.354 | 100.0% | 1,513 | 17.5% | 15.0 | 0.136 | 186, then 81 |
+| Per-field, uncorrected t, the control | 4 | 0.0049, 0.0022 to 0.0091 | 0.1079 | 0.532 | 0.375 | 100.0% | 1,918 | 24.4% | 14.2 | 0.143 | 254, then 132 |
+| Per-field, uncorrected t, the control | 8 | 0.0033, 0.0014 to 0.0068 | 0.0909 | 0.556 | 0.390 | 100.0% | 2,126 | 31.9% | 13.2 | 0.147 | 314, then 162 |
+| Linear, species-first | 2 | 0.0075, 0.0039 to 0.0126 | 0.1521 | 0.503 | 0.353 | 100.0% | 1,578 | 18.3% | 14.9 | 0.138 | 172, then 64 |
+| Linear, species-first | 4 | 0.0049, 0.0022 to 0.0092 | 0.1210 | 0.527 | 0.373 | 100.0% | 1,971 | 26.4% | 14.1 | 0.143 | 231, then 95 |
+| Linear, species-first | 8 | 0.0038, 0.0017 to 0.0074 | 0.1087 | 0.539 | 0.385 | 100.0% | 2,060 | 35.6% | 13.1 | 0.145 | 230, then 127 |
+| Linear, random order | 2 | 0.0358, 0.0276 to 0.0447 | 0.2879 | 0.340 | 0.247 | 90.4% | 2,646 | 87.8% | 20.0 | 0.110 | 31, then 7 |
+| Linear, random order | 4 | 0.0293, 0.0220 to 0.0377 | 0.2529 | 0.364 | 0.266 | 90.5% | 3,336 | 88.3% | 19.5 | 0.114 | 79, then 17 |
+| Linear, random order | 8 | 0.0269, 0.0198 to 0.0352 | 0.2492 | 0.368 | 0.272 | 89.2% | 3,820 | 90.2% | 19.0 | 0.118 | 91, then 28 |
+| Today's default model, for reference | 2 | 0.0053 | not read here | 0.515 | 0.371 | 100.0% | 1,437 | not comparable | 14.9 | 0.135 | 176, then 81 |
+
+The last column counts line-ups with a team at or above the elite cut of 0.531 on asks 1/24 to 17/24, then how many still reach the cut in a fresh re-battle of 4 games against each opponent. New line-ups of today's default model were counted against a different training table, so the cell is left out. The single-grid intervals are wide because they resample the 49 opponents. The differences below draw the same opponents for both rows and are narrower.
+
+### Verdicts against the control at the same guidance
+
+| Row | Guidance | Error minus the control's | 95% interval of the difference | Sampling seeds with a lower error | Verdict |
+| --- | ---: | ---: | --- | ---: | --- |
+| Linear, species-first | 2 | -0.0008 | -0.0022 to +0.0005 | 2 of 3 | matches |
+| Linear, species-first | 4 | +0.0000 | -0.0009 to +0.0010 | 1 of 3 | matches |
+| Linear, species-first | 8 | +0.0005 | -0.0002 to +0.0013 | 0 of 3 | matches |
+| Linear, random order | 2 | +0.0274 | +0.0228 to +0.0319 | 0 of 3 | loses |
+| Linear, random order | 4 | +0.0245 | +0.0196 to +0.0290 | 0 of 3 | loses |
+| Linear, random order | 8 | +0.0236 | +0.0182 to +0.0287 | 0 of 3 | loses |
+
+Linear, species-first matches at all three guidance values, so the row matches. Its gap moves from 0.0008 lower at guidance 2 to 0.0005 higher at guidance 8, and the count of sampling seeds with a lower error falls from 2 to 1 to 0. No gap reaches the 0.002 of training luck. Its pooled win rate differs from the control's by 0.001 to 0.005, inside the 0.026 of training luck. At guidance 2 the interval still admits a gain as large as 0.0022, so that grid does not rule out the 0.001 effect.
+
+Linear, random order loses at all three, on every sampling seed, so the row loses.
+
+One reading outside the verdict rule: fewer of Linear, species-first's elite line-ups held in the re-battle than the control's at every guidance, 64 against 81, 95 against 132 and 127 against 162. The yield has no interval, and the three counts share one checkpoint.
+
+### Random order against species-first on the linear model
+
+| Guidance | Random order's error minus species-first's | 95% interval | Error multiple, with 95% interval | Pooled win rate change | Line-ups change |
+| ---: | ---: | --- | --- | ---: | ---: |
+| 2 | +0.0283 | +0.0233 to +0.0329 | 4.8, 3.5 to 7.1 | -0.106 | +1,068 |
+| 4 | +0.0244 | +0.0195 to +0.0290 | 6.0, 4.0 to 10.0 | -0.107 | +1,365 |
+| 8 | +0.0232 | +0.0179 to +0.0281 | 7.2, 4.6 to 11.8 | -0.113 | +1,760 |
+
+Random order's first-try legality is 89.2% to 90.5% with the lookahead on. With the lookahead off it is 1.9%: 86 legal teams in 4,608 tries. The per-field model read 1.2% on 2026-11-07. So training with the linear masking rate did not teach the model which moves a species can learn when the moves are drawn first. The lookahead does that work.
+
+### Unguided baselines
+
+| Row | Unguided win rate | By sampling seed | Line-ups among 192 teams | First-try legality |
+| --- | ---: | --- | ---: | ---: |
+| Per-field, uncorrected t, the control | 0.219 | 0.206, 0.218, 0.233 | 167 | 100.0% |
+| Linear, species-first | 0.220 | 0.223, 0.210, 0.226 | 169 | 100.0% |
+| Linear, random order | 0.165 | 0.177, 0.161, 0.156 | 192 | 91.0% |
+
+### Per-field, corrected t
+
+Not battled. On the control's checkpoint the corrected t moves the drawing distribution by 0.0078 at most, against the bar of 0.01. It changes at most 3.3% of fields and 0.8% of line-ups at one ask.
+
+### Expectations, scored
+
+| Row | Expected | Result |
+| --- | --- | --- |
+| Per-field, uncorrected t, the control | An error above 0.0053 at guidance 2, falling as guidance rises. 70% | Came true: 0.0084, then 0.0049, then 0.0033 |
+| Per-field, corrected t | No battle grid. 90% | Came true |
+| Linear, species-first | Matches, or differs by less than training luck. 60% | Came true |
+| Linear, random order | Loses to Linear, species-first with an error less than 2.8 times as large, first-try legality above 84%, and more line-ups. 65% | Missed on the multiple: 4.8, 6.0 and 7.2, and the low end of every interval is 3.5 or more. The other three parts came true |
+
+The largest surprise named in advance, a linear row that wins by 0.002 or more, did not happen.
+
+### Why the multiple missed
+
+The expectation said linear training would make random order safe, because the model would have seen moves visible while their species is hidden. Three suspects, each with the test that would settle it:
+
+| Suspect | What points to it | Test |
+| --- | --- | --- |
+| The 2.8 came from a weaker model, so its species-first error was large and the ratio small | That model was the all-teams model after 21 epochs: 0.0534 against 0.0192. Random order's own error fell to 0.0358 here. Species-first's fell further, to 0.0075 | Random order on the control's checkpoint, the same three grids. A multiple near 4.8 there says the masking rate changed nothing |
+| Random order draws weaker teams whatever the ask | Got stays between 0.32 and 0.39 from ask 13/24 to 21/24, where species-first on the same model reads 0.46 to 0.55. The unguided win rate is 0.165 against 0.220 | Decode the six species first and the other 78 fields in random order. If got returns to 0.50, the loss comes from drawing species late |
+| The lookahead bends the draw | Without it 98% of the teams drawn are illegal, so it overrides the model's own draw often. 88% to 90% of the teams have a line-up no training team has | Compare the species the model wanted with the species the lookahead left, at the passes where a species is drawn after its moves |
+
+None of these was run. The stopping rule allows no re-run to chase a result, and a new row is the owner's call.
+
+### Pareto reading
+
+Linear, species-first is inside the control's curve at every guidance, by the intervals and by the measured values alone. Its three points lie on the control's curve.
+
+Linear, random order has more line-ups than every control point: 2,646 to 3,820 against 2,126 at most. By the rule that puts it outside the control's curve. The cost is an error 4 to 8 times the control's, a pooled win rate lower by 0.11 to 0.12, and 7 to 28 elite line-ups that held against the control's 81 to 162. The extra line-ups are weak ones.
+
+### What this result cannot show
+
+- Each masking rate has one training seed. Two trainings of one recipe have differed by 0.0019 in error and 0.026 in pooled win rate, so "matches" cannot separate the two masking rates more finely than that.
+- The three guidance values share one checkpoint for each masking rate. Three matches are three readings of one training, not three tests of the masking rate.
+- One opponent set, the 49 distinct top-50 meta teams, and one battle policy, behaviour cloning.
+- Both models are read at epoch 80, where early stopping had not fired.
+- The elite line-up yield has no interval.
+
+Figures: [error against line-ups](figures/masking_rate_rows/05_error_against_line_ups.html), [got against ask](figures/masking_rate_rows/06_got_against_ask.html), [random order's error multiple](figures/masking_rate_rows/07_random_order_error_multiple.html), built by `src/masking_rate_rows_figures.py`. Frame 1 came out as expected. Frame 2 came out as expected: the two lines overlap and stop rising at the same got. Frame 3 came out as its surprise: the multiple rose above 2.8.
+
+The rejection reasons stored with the random-order grids repeat a word, as in "can'tcan't learn Heat Wave". The fault is in how `ask_grid84.py` shortens a validator message. The counts are right.

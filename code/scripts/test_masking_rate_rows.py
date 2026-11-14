@@ -16,6 +16,7 @@ import numpy as np
 
 import repo_paths  # noqa: F401  (src/ first on sys.path)
 import masking_rate_rows as R
+import masking_rate_rows_figures as F
 
 PY, SRC = "/tmp/vgc-pilot/.venv/bin/python", Path(__file__).resolve().parents[1] / "src"
 CHECKPOINTS = Path.home() / ".local/share/vgc-pilot-runtime/lossdown"
@@ -147,6 +148,53 @@ class Post(unittest.TestCase):
 
     def test_a_control_grid_is_named_as_the_control(self):
         self.assertIn("The control, Per-field, uncorrected t at guidance 2, reads", R.headline_of(self.result(), R.CONTROL))
+
+
+class Figures(unittest.TestCase):
+    """Each option builder carries the fake summary's numbers into its series; nothing is read from ~/vgc-data or written."""
+
+    def summary(self):
+        numbers = {R.CONTROL: (0.0080, 0.0050, 0.0030, 1500), "sched_linear_species_first": (0.0075, 0.0049, 0.0037, 1580),
+                   "sched_linear_random": (0.0350, 0.0290, 0.0270, 2600)}
+        grids = {}
+        for row, (*errors, line_ups) in numbers.items():
+            for i, (g, e) in enumerate(zip(R.GUIDANCES, errors)):
+                grids[R.grid_name(row, g)] = dict(grid(row, g, e, line_ups + 400 * i), got_by_ask={str(k): k / 24 - 0.01 * (row != R.CONTROL) for k in range(1, 24)},
+                                                  win_top_asks=0.50 - 0.01 * (row != R.CONTROL))
+        multiples = {f"guidance_{g}": dict(error_multiple=m, error_multiple_interval=[m - 1, m + 2]) for g, m in zip(R.GUIDANCES, (4.5, 5.5, 6.5))}
+        return dict(grids=grids, random_order_against_species_first=multiples,
+                    row_verdicts={"sched_linear_species_first": dict(overall="matches"), "sched_linear_random": dict(overall="loses")})
+
+    def test_error_against_line_ups_draws_a_curve_and_bars_for_each_row_and_the_default_model(self):
+        option, title = F.error_against_line_ups(self.summary())
+        lines = {s["name"]: s for s in option["series"] if s["type"] == "line"}
+        self.assertEqual(list(lines), [F.label(row) for row in R.ROWS])
+        self.assertEqual([p["value"] for p in lines[F.label(R.CONTROL)]["data"]], [[1500, 0.008, 2], [1900, 0.005, 4], [2300, 0.003, 8]])
+        bars = [s for s in option["series"] if s["type"] == "custom"]
+        self.assertEqual(bars[2]["data"][0], [2600, 0.035 - 0.0004, 0.035 + 0.0004])
+        default = next(s for s in option["series"] if s["type"] == "scatter")
+        self.assertEqual((default["name"], default["data"]), ("Today's default model, guidance 2", [[1437, 0.0053, 2]]))
+        self.assertEqual(option["yAxis"]["type"], "log")
+        self.assertIn("matches the control at every guidance", title); self.assertIn("adds at least 1,100 line-ups at 4 to 9 times", title)
+
+    def test_got_against_ask_has_three_panels_without_random_order(self):
+        option, title = F.got_against_ask(self.summary())
+        self.assertEqual(len(option["grid"]), 3)
+        names = {s["name"] for s in option["series"]}
+        self.assertEqual(names, {"Got equals ask", F.label(R.CONTROL), F.label("sched_linear_species_first")})
+        linear_g8 = next(s for s in option["series"] if s["name"] == F.label("sched_linear_species_first") and s["xAxisIndex"] == 2)
+        self.assertEqual(linear_g8["data"][11], [12, round(12 / 24 - 0.01, 4)])
+        self.assertEqual(option["series"][0]["markLine"]["data"], [dict(xAxis=17)])
+        self.assertIn("does not lift got", title); self.assertIn("at most 0.010", title)
+
+    def test_random_order_multiple_puts_the_earlier_bar_first_then_the_three_guidance_values(self):
+        option, title = F.random_order_error_multiple(self.summary())
+        bars, intervals = option["series"]
+        self.assertEqual([b["value"] for b in bars["data"]], [round(0.0534 / 0.0192, 2), 4.5, 5.5, 6.5])
+        self.assertEqual(bars["data"][0]["itemStyle"]["color"], F.GREY)
+        self.assertEqual(intervals["data"], [[1, 3.5, 6.5], [2, 4.5, 7.5], [3, 5.5, 8.5]])
+        self.assertEqual(bars["markLine"]["data"], [dict(yAxis=1)])
+        self.assertEqual(title, "On the linear model, random order's error is 4.5 to 6.5 times species-first's, higher than the 2.8 measured on a per-field model")
 
 
 if __name__ == "__main__":
