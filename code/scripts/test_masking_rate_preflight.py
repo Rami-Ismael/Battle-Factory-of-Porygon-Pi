@@ -8,14 +8,18 @@ import sys
 import unittest
 from itertools import pairwise
 from pathlib import Path
+from unittest import mock
 
 import repo_paths  # noqa: F401  (src/ first on sys.path)
 
 HERE = Path("/tmp/vgc-pilot/data/pokedex.json").exists()
 if HERE:
     sys.path.insert(1, "/tmp/vgc-pilot/src")
+    import torch
+    import asked_vs_got as X
     import diffusion84 as M
     import masking_rate_preflight as P
+    import team84 as T
 
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
@@ -46,6 +50,69 @@ class CorrectedT(unittest.TestCase):
         self.assertEqual(values[0], 1.0)
         self.assertTrue(all(a > b for a, b in pairwise(values)))
         self.assertTrue(all(v > 1 - filled / 84 for filled, v in enumerate(values) if filled))
+
+
+TINY = dict(d=32, nlayer=2, nhead=2)
+
+
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
+class LinearMaskingRate(unittest.TestCase):
+    def test_under_the_linear_rate_the_share_hidden_at_t_is_t(self):
+        probe = P.hidden_share()
+        self.assertTrue(probe["every_exponent_is_1"])
+        for t, row in probe["by_t"].items():
+            self.assertAlmostEqual(row["linear_hidden_share"], float(t), delta=0.01)
+        self.assertLess(probe["largest_gap_any_field"], 0.01)
+
+
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
+class SamplerT(unittest.TestCase):
+    """Model84.sample's corrected_t option (issue #295, build item 2): pass k is told the corrected t of the model's
+    own masking rate. Off, the sampler keeps telling pass k 1 - k/84, so stored runs draw the same teams."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.vocab, cls.corpus = T.regulation_vocab(), X.setup()[0]
+
+    def model(self, sched):
+        torch.manual_seed(0)
+        net = M.Net84(self.vocab, **TINY).to(M.DEV)
+        return M.Model84(self.vocab, self.corpus, [(net, TINY)], info=dict(sched=sched))
+
+    @staticmethod
+    def t_told(model, **kw):
+        """The t each pass hands the network, and the teams drawn."""
+        told, real = [], model._logprobs
+
+        def spy(x, t, w, **k):
+            told.append(float(t[0])); return real(x, t, w, **k)
+        with mock.patch.object(model, "_logprobs", spy): rows = model.sample(4, seed=3, **kw)
+        return told, rows
+
+    def test_off_by_default_each_pass_is_told_one_minus_filled_over_84(self):
+        told, _ = self.t_told(self.model(M.SCHED))
+        self.assertEqual(len(told), M.COLS)
+        for filled, t in enumerate(told): self.assertAlmostEqual(t, 1 - filled / M.COLS, delta=1e-6)
+
+    def test_on_each_pass_is_told_the_preflight_corrected_t_of_the_per_field_rate(self):
+        per_field = M.sched84(M.SCHED).double().numpy()
+        told, _ = self.t_told(self.model(M.SCHED), corrected_t=True)
+        self.assertEqual(len(told), M.COLS)
+        for filled, t in enumerate(told):
+            self.assertAlmostEqual(t, P.corrected_t(per_field, filled), delta=1e-6)
+            self.assertAlmostEqual(float((t ** per_field).mean()), 1 - filled / M.COLS, delta=1e-5)   # the rule itself, not its code
+        for filled, published in P.PUBLISHED_CORRECTED_T.items(): self.assertAlmostEqual(told[filled], published, delta=5e-4)
+
+    def test_guided_and_unguided_passes_are_told_the_same_corrected_t(self):
+        told, _ = self.t_told(self.model(M.SCHED), corrected_t=True, ask=0.5, guidance=2.0)
+        self.assertEqual(len(told), 2 * M.COLS)
+        self.assertEqual(told[0::2], told[1::2])
+
+    def test_on_the_linear_rate_the_corrected_t_draws_the_same_teams(self):
+        model = self.model(P.LINEAR)
+        _, plain = self.t_told(model)
+        _, corrected = self.t_told(model, corrected_t=True)
+        self.assertTrue(torch.equal(plain, corrected))
 
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")

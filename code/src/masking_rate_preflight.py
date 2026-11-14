@@ -60,16 +60,7 @@ PASS_GROUPS = dict(species=range(0, 6), ability_and_item=range(6, 18), moves=ran
                    stat_points=range(48, 84))           # passes of the species-first order, by the field type they fill
 
 
-def corrected_t(exponents, filled):
-    """The t whose expected hidden share in training, mean(t ** exponent), equals the share of fields still hidden."""
-    still_hidden = 1 - filled / len(exponents)
-    if still_hidden >= 1: return 1.0
-    low, high = 0.0, 1.0
-    for _ in range(100):
-        middle = (low + high) / 2
-        if float((middle ** exponents).mean()) < still_hidden: low = middle
-        else: high = middle
-    return (low + high) / 2
+corrected_t = M.corrected_t             # the expected-share rule; Model84.sample(corrected_t=True) uses it
 
 
 def hidden_share():

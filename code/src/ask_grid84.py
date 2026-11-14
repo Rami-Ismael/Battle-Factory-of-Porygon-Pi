@@ -13,7 +13,8 @@ AG84_MODEL is a name in MODELS, or the checkpoint name train84.py --label-noise 
 
 AG84_GUIDANCE sets the guidance, default 2. Another value gets its own results file and cell tags, with "_g4" or "_g8"
 after the model name, so guidance 2 keeps every stored name. AG84_UNGUIDED=1 draws one cell per seed with no ask and no
-guidance into "<model>_unguided". A model row that names decoder="random" samples in random order with the lookahead on.
+guidance into "<model>_unguided". A model row that names decoder="random" samples in random order with the lookahead on;
+decoder="species_first_corrected_t" samples in species-first order and tells each pass the corrected t.
 
 Run preflight with MATCHUP_DB pointing at a private database. Finished cells are skipped, so every step resumes.
 """
@@ -76,8 +77,9 @@ for _arm, _reader in (("pos_per_field_s0", "No split, first seed"), ("pos_per_fi
                       ("pos_slot_learned", "Learned slot vectors"), ("pos_slot_fixed", "Fixed slot vectors"), ("pos_no_slot", "No slot vectors")):
     MODELS[_arm] = dict(checkpoint=f"stat84_{_arm}_noise_ep21", reader=f"{_reader}, label noise ±1/48, shuffled-only table, 21 epochs",
                         epochs=dict(all_teams=21), stopped="planned stop at epoch 21, patience off", table="lossdata84_shuffled_only.npz")
-SCHED_EPOCHS = dict(labelled_teams=80)                   # docs/masking-rate-rows.md: three battled rows on two checkpoints
+SCHED_EPOCHS = dict(labelled_teams=80)                   # docs/masking-rate-rows.md: four rows on two checkpoints, three battled
 for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-field, uncorrected t. The control", "species_first"),
+                                      ("sched_species_first_t", "per_field", "Per-field, corrected t", "species_first_corrected_t"),
                                       ("sched_linear_species_first", "linear", "Linear, species-first", "species_first"),
                                       ("sched_linear_random", "linear", "Linear, random order", "random")):
     MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
@@ -137,12 +139,16 @@ def load_model():
 
 
 def load_sampler(w=None):
-    """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order, and for a
-    row that names random order, LLaDA's random decoding with the lookahead on (remask84.RandomDecodingArm)."""
+    """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order; for a row
+    that names the corrected t, species-first order told the corrected t (remask84.SpeciesFirstArm); for a row that
+    names random order, LLaDA's random decoding with the lookahead on (remask84.RandomDecodingArm)."""
     w = w or load_model()
-    if MODELS[MODEL].get("decoder", "species_first") == "species_first": return w
+    decoder = MODELS[MODEL].get("decoder", "species_first")
+    if decoder == "species_first": return w
     import remask84
-    return remask84.RandomDecodingArm(w, "rand_plain", lookahead=True)
+    if decoder == "species_first_corrected_t": return remask84.SpeciesFirstArm(w, corrected_t=True)
+    if decoder == "random": return remask84.RandomDecodingArm(w, "rand_plain", lookahead=True)
+    raise ValueError(f"unknown decoder {decoder!r}")
 
 
 def table_of(row):
