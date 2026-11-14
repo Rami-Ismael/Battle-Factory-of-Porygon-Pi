@@ -42,7 +42,7 @@ CYCLE = (BLUE, TEAL, ORANGE, VIOLET, YELLOW)
 # the three rows of the masking-schedule experiment keep the colours their figures use
 ROW_COLOURS = (("random", ORANGE), ("control", BLUE), ("per-field", BLUE), ("species-first", TEAL))
 BULLET_FROM_SENTENCES = 4                                            # a column turns into bullets when one of its cells has this many sentences
-SENTENCE_END = re.compile(r"(?<=[A-Za-z0-9%])\. (?=[A-Z0-9])")
+SENTENCE_END = re.compile(r"(?<=[A-Za-z0-9%])(?<!\bvs)(?<!\betc)(?<!\be\.g)(?<!\bi\.e)(?<!\bFig)(?<!\bNo)\. (?=[A-Z0-9])")   # abbreviations do not end a sentence
 
 
 def tables_in(markdown):
@@ -79,9 +79,9 @@ def spec_of(header, rows, widths=None, body_font_size=20, header_font_size=22):
     header, rows = [plain(cell) for cell in header], [[plain(cell) for cell in row] for row in rows]
     columns = len(header)
     if widths is None:                                               # share 1,280 px by the square root of each column's longest cell
-        longest = [max(len(header[c]), *(len(row[c]) for row in rows)) ** 0.5 for c in range(columns)]
+        longest = [max([len(header[c]), *(len(row[c]) for row in rows)]) ** 0.5 for c in range(columns)]
         widths = [max(140, round(1280 * share / sum(longest))) for share in longest]
-    bulleted = [c > 0 and max(len(sentences(row[c])) for row in rows) >= BULLET_FROM_SENTENCES for c in range(columns)]
+    bulleted = [c > 0 and max((len(sentences(row[c])) for row in rows), default=0) >= BULLET_FROM_SENTENCES for c in range(columns)]
     plan = []
     for position, row in enumerate(rows):
         label, tint, strong = colours_of(row[0], position)
@@ -262,7 +262,10 @@ def missing_from_scene(header, rows, scene_path):
 def main(arguments):
     source, folder, name, *options = arguments
     chosen = dict(zip(options[::2], options[1::2], strict=True))
-    _, _, header, rows = tables_in(Path(source).read_text(encoding="utf-8"))[int(chosen.get("--table", 0))]
+    tables, which = tables_in(Path(source).read_text(encoding="utf-8")), int(chosen.get("--table", 0))
+    if not tables: raise SystemExit(f"{source}: no Markdown table found")
+    if not 0 <= which < len(tables): raise SystemExit(f"{source}: --table {which} asked for, but the file has {len(tables)} table(s), numbered from 0")
+    _, _, header, rows = tables[which]
     widths = [int(width) for width in chosen["--widths"].split(",")] if "--widths" in chosen else None
     for path in render(spec_of(header, rows, widths), folder, name): print(path)
 

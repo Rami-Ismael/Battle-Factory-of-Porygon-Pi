@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality versus exploration</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--line:#e3e1da;--card:#ffffff;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;--line:#2f2e2b;--card:#1d1d1b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;--line:#2f2e2b;--card:#1d1d1b;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px}
+h1{font-size:1.5rem;margin:0 0 4px}h2{font-size:1.1rem;margin:28px 0 8px}
+p.sub{color:var(--ink2);margin:0 0 16px;max-width:68ch}
+iframe{width:100%;height:680px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.track{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card b{display:block;margin-bottom:4px}.card span{color:var(--ink2);font-size:.93rem}
+.tag{display:inline-block;font-size:.75rem;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--ink2);margin-bottom:6px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.flow .card{flex:1 1 200px}
+</style>
+</head>
+<body>
+<main>
+<h1>Your grids already show the paper's dilemma</h1>
+<p class="sub">Fang et al. (COLM 2026) put Pass@1, how good one sample is, against Pass@k, how much a batch of k samples covers. In #297 the same split shows up as line-ups drawn against elite line-ups that held in the re-battle.</p>
+<iframe src="chart.html" title="Distinct line-ups against elite line-ups that held, for three rows at guidance 2, 4 and 8"></iframe>
+
+<h2>What to take for the draft</h2>
+<div class="track">
+  <div class="card"><span class="tag">framing</span><b>The schedule is training, the order is decoding</b><span>The paper trains on the linear masking schedule and only changes decoding. Your result points the same way: the masking schedule moved nothing, and the decoding order moved everything.</span></div>
+  <div class="card"><span class="tag">framing</span><b>Name random order's loss for what it is</b><span>More line-ups (2,646 to 3,820) and weaker teams (7 to 28 held, against 81 to 162). That is the exploration end of the trade-off, not a broken model.</span></div>
+  <div class="card"><span class="tag">design</span><b>Add a Pass@k-style curve</b><span>At one ask, plot the chance that at least one of k teams is an elite line-up that held, for k = 1 to 48 of the 192 teams. Your stored teams are enough, so it needs no new battles. It tests whether random order's extra line-ups ever pay off.</span></div>
+  <div class="card"><span class="tag">design</span><b>Split by difficulty</b><span>Their gap opens on hard AIME problems (a maths competition benchmark). On today's default model, asks 13/24 to 17/24 hold 91% of the ask-versus-got error. Put a split by ask first in the post.</span></div>
+  <div class="card"><span class="tag">design</span><b>State the decoding rule exactly</b><span>Species-first order draws each field at full temperature in a fixed order. It is not LLaDA's surest-draw order (the paper calls it low-confidence remasking), so the paper's entropy cap does not apply to it. A reader who knows LLaDA will ask.</span></div>
+  <div class="card"><span class="tag">don't copy</span><b>Their gaps are your gaps too</b><span>The paper has no comparison at equal compute, no seeds, and judges similarity with one sample per problem scored by an LLM judge with no reported validation. Say plainly that each masking schedule had one training seed.</span></div>
+</div>
+
+<h2>Is global tempering used? Not yet. A cheaper fix came next</h2>
+<div class="flow">
+  <div class="card"><span class="tag">Apr 2026 · COLM</span><b>Global tempering (Fang et al.)</b><span>An Independent Metropolis–Hastings step at each pass. No code release found. No compute-matched test.</span></div>
+  <div class="card"><span class="tag">Apr 2026 · COLM</span><b>Position temperature (Olausson et al.)</b><span>Two temperatures, one for which field and one for which value. Code released. Does not cite Fang.</span></div>
+  <div class="card"><span class="tag">Sep 2026</span><b>Confidence order + entropy-guided initialization (Jeon et al.)</b><span>Pick the field first, then draw from it. That alone brings Pass@k up to left-to-right decoding, with no Markov chain Monte Carlo. It also argues that Fang's entropy cap models the wrong rule. Nobody has run it against global tempering.</span></div>
+</div>
+</main>
+</body>
+</html>

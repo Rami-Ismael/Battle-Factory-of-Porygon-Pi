@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random order draws more line-ups and far fewer that hold</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:440px}
+</style>
+</head>
+<body>
+<main>
+<h1>Random order draws more line-ups and far fewer that hold</h1>
+<p class="sub">Each line is one row of the masking-schedule grids; its three points are guidance 2, 4 and 8.</p>
+<div id="chart"></div>
+<p class="note">Elite: a team&#x27;s win rate against the top-50 meta teams is at least 0.531. Held: its line-up still reaches 0.531 in a fresh re-battle of 4 games per opponent. Source: code/docs/masking-rate-rows.md, table &#x27;Every measure&#x27; (issue #297): Line-ups, and the second number of &#x27;Elite line-ups, then those that held&#x27;.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0}, "grid": {"left": 64, "right": 24, "top": 48, "bottom": 56}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "cross"}, "formatter": "js:ps => ps.map(p => p.marker + p.seriesName + ', guidance ' + p.data.guidance + ': ' + p.value[0].toLocaleString() + ' line-ups, ' + p.value[1] + ' held').join('<br>')"}, "xAxis": {"type": "value", "min": 1200, "name": "Distinct line-ups over the grid's 4,416 teams (exploration)", "nameLocation": "middle", "nameGap": 32}, "yAxis": {"type": "value", "name": "Elite line-ups that held in the re-battle (quality)", "nameLocation": "middle", "nameGap": 44}, "series": [{"name": "Per-field, species-first (the control)", "type": "line", "color": "#2f6fb3", "symbol": "circle", "showSymbol": true, "symbolSize": 10, "lineStyle": {"width": 2}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "formatter": "js:p => 'guidance ' + p.data.guidance"}, "data": [{"value": [1513, 81], "guidance": 2}, {"value": [1918, 132], "guidance": 4}, {"value": [2126, 162], "guidance": 8}]}, {"name": "Linear, species-first", "type": "line", "color": "#2e9e6a", "symbol": "circle", "showSymbol": true, "symbolSize": 10, "lineStyle": {"width": 2}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "formatter": "js:p => 'guidance ' + p.data.guidance"}, "data": [{"value": [1578, 64], "guidance": 2}, {"value": [1971, 95], "guidance": 4}, {"value": [2060, 127], "guidance": 8}]}, {"name": "Linear, random order", "type": "line", "color": "#d0632a", "symbol": "circle", "showSymbol": true, "symbolSize": 10, "lineStyle": {"width": 2}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "formatter": "js:p => 'guidance ' + p.data.guidance"}, "data": [{"value": [2646, 7], "guidance": 2}, {"value": [3336, 17], "guidance": 4}, {"value": [3820, 28], "guidance": 8}]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#2f6fb3": "#6aa6e8", "#2e9e6a": "#5cc795", "#d0632a": "#f08a52"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
