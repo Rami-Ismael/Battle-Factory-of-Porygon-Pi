@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>In all three rows, raising guidance from 2 to 8 cuts the repeats between asks by 1,182 to 1,353, so the grid total grows by 482 to 1,174 line-ups while the ask-by-ask count falls by 10 to 740</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:500px}
+</style>
+</head>
+<body>
+<main>
+<h1>In all three rows, raising guidance from 2 to 8 cuts the repeats between asks by 1,182 to 1,353, so the grid total grows by 482 to 1,174 line-ups while the ask-by-ask count falls by 10 to 740</h1>
+<p class="sub">One panel for each row, all on the same scale. The whole bar is the distinct line-ups of each ask, added over the 23 asks. The grey part is the line-ups already counted at another ask. The coloured part is what is left: the distinct line-ups over the whole grid.</p>
+<div id="chart"></div>
+<p class="note">A line-up is a distinct set of six species. Each ask has 192 teams, 64 from each of 3 sampling seeds, so one ask holds at most 192 line-ups. A row is one model decoded in one order: the per-field masking rate or the linear masking rate, filled species-first or in random order. Uncorrected t is the sampler&#x27;s usual setting: on each pass it tells the model how many fields are still hidden. Source: masking_rate_rows_summary.json.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"title": [{"text": "Per-field, uncorrected t, the control", "left": "22.0%", "top": 40, "textAlign": "center", "textStyle": {"fontSize": 13, "fontWeight": "normal"}}, {"text": "Linear, species-first", "left": "53.5%", "top": 40, "textAlign": "center", "textStyle": {"fontSize": 13, "fontWeight": "normal"}}, {"text": "Linear, random order", "left": "85.0%", "top": 40, "textAlign": "center", "textStyle": {"fontSize": 13, "fontWeight": "normal"}}], "legend": {"top": 0, "data": [{"name": "Distinct line-ups over the grid", "icon": "image://data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='14'><rect x='0' width='8' height='14' fill='%232a78d6'/><rect x='8' width='8' height='14' fill='%231baf7a'/><rect x='16' width='8' height='14' fill='%23e0702a'/><\/svg>"}, {"name": "Repeats: a line-up already counted at another ask"}]}, "grid": [{"left": "8.0%", "width": "28.0%", "top": 74, "bottom": 78}, {"left": "39.5%", "width": "28.0%", "top": 74, "bottom": 78}, {"left": "71.0%", "width": "28.0%", "top": 74, "bottom": 78}], "xAxis": [{"type": "category", "gridIndex": 0, "axisTick": {"show": false}, "axisLabel": {"interval": 0, "lineHeight": 16, "fontSize": 11.5}, "data": ["Guidance 2\n3,842 counted\nask by ask", "Guidance 4\n3,594 counted\nask by ask", "Guidance 8\n3,102 counted\nask by ask"]}, {"type": "category", "gridIndex": 1, "axisTick": {"show": false}, "axisLabel": {"interval": 0, "lineHeight": 16, "fontSize": 11.5}, "data": ["Guidance 2\n3,746 counted\nask by ask", "Guidance 4\n3,571 counted\nask by ask", "Guidance 8\n3,046 counted\nask by ask"]}, {"type": "category", "gridIndex": 2, "axisTick": {"show": false}, "axisLabel": {"interval": 0, "lineHeight": 16, "fontSize": 11.5}, "data": ["Guidance 2\n4,408 counted\nask by ask", "Guidance 4\n4,406 counted\nask by ask", "Guidance 8\n4,398 counted\nask by ask"]}], "yAxis": [{"type": "value", "gridIndex": 0, "min": 0, "max": 4500, "interval": 1000, "axisLabel": {"show": true}, "name": "Line-ups, each ask counted separately", "nameLocation": "middle", "nameGap": 48}, {"type": "value", "gridIndex": 1, "min": 0, "max": 4500, "interval": 1000, "axisLabel": {"show": false}, "name": "", "nameLocation": "middle", "nameGap": 48}, {"type": "value", "gridIndex": 2, "min": 0, "max": 4500, "interval": 1000, "axisLabel": {"show": false}, "name": "", "nameLocation": "middle", "nameGap": 48}], "series": [{"name": "Distinct line-ups over the grid", "type": "bar", "stack": "counted 0", "barWidth": "56%", "itemStyle": {"color": "#2a78d6"}, "emphasis": {"focus": "series"}, "label": {"show": true, "formatter": "js:p => p.value.toLocaleString('en-US')", "color": "#fefefe", "fontWeight": "bold", "fontSize": 13}, "data": [1513, 1918, 2126], "xAxisIndex": 0, "yAxisIndex": 0}, {"name": "Repeats: a line-up already counted at another ask", "type": "bar", "stack": "counted 0", "itemStyle": {"color": "#a9a8a2", "opacity": 0.5}, "emphasis": {"focus": "series"}, "label": {"show": true, "formatter": "js:p => p.value.toLocaleString('en-US')", "color": "#0b0b0b", "fontSize": 12, "opacity": 1}, "data": [2329, 1676, 976], "xAxisIndex": 0, "yAxisIndex": 0}, {"name": "Distinct line-ups over the grid", "type": "bar", "stack": "counted 1", "barWidth": "56%", "itemStyle": {"color": "#1baf7a"}, "emphasis": {"focus": "series"}, "label": {"show": true, "formatter": "js:p => p.value.toLocaleString('en-US')", "color": "#161615", "fontWeight": "bold", "fontSize": 13}, "data": [1578, 1971, 2060], "xAxisIndex": 1, "yAxisIndex": 1}, {"name": "Repeats: a line-up already counted at another ask", "type": "bar", "stack": "counted 1", "itemStyle": {"color": "#a9a8a2", "opacity": 0.5}, "emphasis": {"focus": "series"}, "label": {"show": true, "formatter": "js:p => p.value.toLocaleString('en-US')", "color": "#0b0b0b", "fontSize": 12, "opacity": 1}, "data": [2168, 1600, 986], "xAxisIndex": 1, "yAxisIndex": 1}, {"name": "Distinct line-ups over the grid", "type": "bar", "stack": "counted 2", "barWidth": "56%", "itemStyle": {"color": "#e0702a"}, "emphasis": {"focus": "series"}, "label": {"show": true, "formatter": "js:p => p.value.toLocaleString('en-US')", "color": "#161615", "fontWeight": "bold", "fontSize": 13}, "data": [2646, 3336, 3820], "xAxisIndex": 2, "yAxisIndex": 2}, {"name": "Repeats: a line-up already counted at another ask", "type": "bar", "stack": "counted 2", "itemStyle": {"color": "#a9a8a2", "opacity": 0.5}, "emphasis": {"focus": "series"}, "label": {"show": true, "formatter": "js:p => p.value.toLocaleString('en-US')", "color": "#0b0b0b", "fontSize": 12, "opacity": 1}, "data": [1762, 1070, 578], "xAxisIndex": 2, "yAxisIndex": 2}], "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "valueFormatter": "js:v => v.toLocaleString('en-US')"}}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

@@ -1,10 +1,13 @@
-"""Three figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3; issue #297).
+"""Six figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and later checks; issue #297).
 
   05_error_against_line_ups       ask-versus-got error against distinct line-ups, one three-point curve for each row
   06_got_against_ask              got against ask, the control beside Linear, species-first, one panel for each guidance
   07_random_order_error_multiple  random order's error as a multiple of species-first's on the same checkpoint
+  08_line_ups_by_ask              the control's distinct line-ups among one ask's teams, a line for each guidance
+  09_line_ups_shared_between_asks each row's line-ups counted ask by ask, split into the grid total and the repeats between asks
+  10_training_and_novel_line_ups    each row's distinct line-ups split into training line-ups and novel line-ups
 
-Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title).
+Each builder takes the loaded summary (masking_rate_rows_summary.json) and returns (option, title); the fourth to sixth also return a subtitle.
 
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_rows_figures.py      (from code/)
 """
@@ -129,6 +132,128 @@ def random_order_error_multiple(summary):
     return option, f"On the linear model, random order's error is {lo:.1f} to {hi:.1f} times species-first's, {verdict}"
 
 
+def spoken(values):
+    return ", ".join(values[:-1]) + " and " + values[-1]
+
+
+def line_ups_by_ask(summary, row=CONTROL):
+    """Within one ask guidance narrows the line-ups; over the grid the asks share fewer, so the total can still rise."""
+    grids = grids_of(summary, row); asks = sorted(int(k) for k in grids[0]["line_ups_by_ask"])
+    means = [sum(g["line_ups_by_ask"].values()) / len(asks) for g in grids]; totals = [g["line_ups"] for g in grids]
+    move = lambda first, last: "fall" if last < first else "rise" if last > first else "stay"
+    series = [dict(name=f"Guidance {guidance:g}", type="line", symbolSize=6, lineStyle=dict(width=2.5), itemStyle=dict(color=color), emphasis=dict(focus="series"),
+                   data=[g["line_ups_by_ask"][str(k)] for k in asks]) for guidance, color, g in zip(GUIDANCES, (BLUE, AQUA, ORANGE), grids)]
+    option = dict(legend=dict(top=0), tooltip=dict(trigger="axis"), grid=dict(left=64, right=30, top=40, bottom=50),
+                  xAxis=dict(type="category", data=[f"{k}/24" for k in asks], name="Win rate asked for", nameLocation="middle", nameGap=30),
+                  yAxis=dict(type="value", min=0, name="Distinct line-ups among the teams of one ask", nameLocation="middle", nameGap=44), series=series)
+    title = (f"The mean line-ups of one ask {move(means[0], means[-1])} from {means[0]:.0f} to {means[-1]:.0f} as guidance goes from {GUIDANCES[0]} to {GUIDANCES[-1]}. "
+             f"Over the whole grid they {move(totals[0], totals[-1])} from {totals[0]:,} to {totals[-1]:,}")
+    subtitle = (f"{label(row)}. Each ask has 192 teams, and the grid pools {len(asks)} asks. A line-up is drawn at "
+                f"{spoken([format(g['asks_sharing_a_line_up'], '.2f') for g in grids])} asks on average at guidance {spoken([str(g) for g in GUIDANCES])}.")
+    return option, title, subtitle
+
+
+def line_ups_shared_between_asks(summary):
+    """The grid total is the ask-by-ask counts added up, minus the repeats between asks. One panel for each row, on one shared y scale;
+    each bar is the ask-by-ask count, its two parts the grid total and the repeats."""
+    rows = list(COLORS)
+    counted, total, repeats = {}, {}, {}
+    for row in rows:
+        grids = grids_of(summary, row)
+        counted[row] = [sum(g["line_ups_by_ask"].values()) for g in grids]; total[row] = [g["line_ups"] for g in grids]
+        repeats[row] = [c - d for c, d in zip(counted[row], total[row])]
+    top = -(-max(max(c) for c in counted.values()) // 500) * 500
+    comma = "js:p => p.value.toLocaleString('en-US')"
+    stripes = "".join(f"<rect x='{8 * i}' width='8' height='14' fill='{COLORS[row]}'/>" for i, row in enumerate(rows)).replace("#", "%23")
+    width, gap, left = 28.0, 3.5, 8.0
+    grids_, xs, ys, titles, series = [], [], [], [], []
+    for i, row in enumerate(rows):
+        x0 = left + i * (width + gap)
+        grids_.append(dict(left=f"{x0}%", width=f"{width}%", top=74, bottom=78))
+        titles.append(dict(text=label(row), left=f"{x0 + width / 2}%", top=40, textAlign="center", textStyle=dict(fontSize=13, fontWeight="normal")))
+        xs.append(dict(type="category", gridIndex=i, axisTick=dict(show=False), axisLabel=dict(interval=0, lineHeight=16, fontSize=11.5),
+                       data=[f"Guidance {g}\n{c:,} counted\nask by ask" for g, c in zip(GUIDANCES, counted[row])]))
+        ys.append(dict(type="value", gridIndex=i, min=0, max=top, interval=1000, axisLabel=dict(show=i == 0),
+                       name="Line-ups, each ask counted separately" if i == 0 else "", nameLocation="middle", nameGap=48))
+        axes = dict(xAxisIndex=i, yAxisIndex=i)
+        on_color = "#fefefe" if row == CONTROL else "#161615"     # neither is in DARK, so both stay put on the coloured bar in dark mode
+        series.append(dict(name="Distinct line-ups over the grid", type="bar", stack=f"counted {i}", barWidth="56%", itemStyle=dict(color=COLORS[row]),
+                           emphasis=dict(focus="series"), label=dict(show=True, formatter=comma, color=on_color, fontWeight="bold", fontSize=13),
+                           data=total[row], **axes))
+        series.append(dict(name="Repeats: a line-up already counted at another ask", type="bar", stack=f"counted {i}", itemStyle=dict(color=GREY, opacity=0.5),
+                           emphasis=dict(focus="series"), label=dict(show=True, formatter=comma, color="#0b0b0b", fontSize=12, opacity=1), data=repeats[row], **axes))   # a label takes its bar's opacity unless set
+    legend = dict(top=0, data=[dict(name="Distinct line-ups over the grid", icon=f"image://data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' "
+                                    f"width='24' height='14'>{stripes}</svg>"),
+                               dict(name="Repeats: a line-up already counted at another ask")])
+    option = dict(title=titles, legend=legend, grid=grids_, xAxis=xs, yAxis=ys, series=series,
+                  tooltip=dict(trigger="axis", axisPointer=dict(type="shadow"), valueFormatter="js:v => v.toLocaleString('en-US')"))
+    cut = [repeats[row][0] - repeats[row][-1] for row in rows]; gain = [total[row][-1] - total[row][0] for row in rows]
+    span = lambda v: f"{min(v):,}" if min(v) == max(v) else f"{min(v):,} to {max(v):,}"
+    lo, hi = GUIDANCES[0], GUIDANCES[-1]
+    if min(cut) > 0 and min(gain) > 0:
+        title = f"In all three rows, raising guidance from {lo} to {hi} cuts the repeats between asks by {span(cut)}, so the grid total grows by {span(gain)} line-ups"
+        if all(counted[row][-1] < counted[row][0] for row in rows):
+            title += f" while the ask-by-ask count falls by {span([counted[row][0] - counted[row][-1] for row in rows])}"
+    else:
+        title = f"From guidance {lo} to {hi} the repeats between asks change by {span([-c for c in cut])} and the grid total by {span(gain)} line-ups"
+    subtitle = ("One panel for each row, all on the same scale. The whole bar is the distinct line-ups of each ask, added over the 23 asks. "
+                "The grey part is the line-ups already counted at another ask. The coloured part is what is left: the distinct line-ups over the whole grid.")
+    return option, title, subtitle
+
+
+TRAINING_PART, NOVEL_PART = "Training line-ups: the six species appear together in a training team", "Novel line-ups: they do not"
+
+
+def training_and_novel_line_ups(summary):
+    """Each grid's distinct line-ups split into training line-ups and novel line-ups. One panel for each row, on one shared y scale;
+    each bar is the grid total, its two parts the training line-ups below and the novel line-ups above."""
+    rows = list(COLORS)
+    training = {row: [g["distinct_training_line_ups"] for g in grids_of(summary, row)] for row in rows}
+    new = {row: [g["distinct_novel_line_ups_against_training"] for g in grids_of(summary, row)] for row in rows}
+    total = {row: [t + n for t, n in zip(training[row], new[row])] for row in rows}
+    top = -(-max(max(t) for t in total.values()) // 500) * 500
+    comma = "js:p => p.value.toLocaleString('en-US')"
+    stripes = "".join(f"<rect x='{8 * i}' width='8' height='14' fill='{COLORS[row]}'/>" for i, row in enumerate(rows)).replace("#", "%23")
+    width, gap, left = 28.0, 3.5, 8.0
+    grids_, xs, ys, titles, series = [], [], [], [], []
+    for i, row in enumerate(rows):
+        x0 = left + i * (width + gap)
+        grids_.append(dict(left=f"{x0}%", width=f"{width}%", top=74, bottom=62))
+        titles.append(dict(text=label(row), left=f"{x0 + width / 2}%", top=40, textAlign="center", textStyle=dict(fontSize=13, fontWeight="normal")))
+        xs.append(dict(type="category", gridIndex=i, axisTick=dict(show=False), axisLabel=dict(interval=0, lineHeight=16, fontSize=11.5),
+                       data=[f"Guidance {g}\n{t:,} in all" for g, t in zip(GUIDANCES, total[row])]))
+        ys.append(dict(type="value", gridIndex=i, min=0, max=top, interval=1000, axisLabel=dict(show=i == 0),
+                       name="Distinct line-ups among 4,416 teams" if i == 0 else "", nameLocation="middle", nameGap=48))
+        axes = dict(xAxisIndex=i, yAxisIndex=i)
+        on_color = "#fefefe" if row == CONTROL else "#161615"     # neither is in DARK, so both stay put on the coloured bar in dark mode
+        series.append(dict(name=TRAINING_PART, type="bar", stack=f"grid {i}", barWidth="56%", itemStyle=dict(color=GREY, opacity=0.5),
+                           emphasis=dict(focus="series"), label=dict(show=True, formatter=comma, color="#0b0b0b", fontSize=12, opacity=1),
+                           data=training[row], **axes))
+        series.append(dict(name=NOVEL_PART, type="bar", stack=f"grid {i}", itemStyle=dict(color=COLORS[row]),
+                           emphasis=dict(focus="series"), label=dict(show=True, formatter=comma, color=on_color, fontWeight="bold", fontSize=13),
+                           data=new[row], **axes))
+    legend = dict(top=0, data=[dict(name=TRAINING_PART),
+                               dict(name=NOVEL_PART, icon=f"image://data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='14'>{stripes}</svg>")])
+    option = dict(title=titles, legend=legend, grid=grids_, xAxis=xs, yAxis=ys, series=series,
+                  tooltip=dict(trigger="axis", axisPointer=dict(type="shadow"), valueFormatter="js:v => v.toLocaleString('en-US')"))
+    lo, hi = GUIDANCES[0], GUIDANCES[-1]
+    new_gain = [new[row][-1] - new[row][0] for row in rows]; total_gain = [total[row][-1] - total[row][0] for row in rows]
+    training_move = max(abs(training[row][-1] - training[row][0]) for row in rows)
+    span = lambda v: f"{min(v):,}" if min(v) == max(v) else f"{min(v):,} to {max(v):,}"
+    pct = lambda v: f"{min(v):.0%}" if round(min(v), 2) == round(max(v), 2) else f"{min(v) * 100:.0f}% to {max(v):.0%}"
+    if min(total_gain) > 0 and min(n / t for n, t in zip(new_gain, total_gain)) >= 0.9 and training_move < min(new_gain):
+        title = (f"In all three rows, the line-ups that guidance {hi} adds over guidance {lo} are novel line-ups: they rise by {span(new_gain)} "
+                 f"while training line-ups move by at most {training_move:,}")
+    else:
+        title = f"From guidance {lo} to {hi}, novel line-ups change by {span(new_gain)} and training line-ups by at most {training_move:,}"
+    random_share = [n / t for n, t in zip(new[RANDOM], total[RANDOM])]
+    if min(random_share) > 0.5:
+        title += f". {label(RANDOM)} is {pct(random_share)} novel line-ups at every guidance"
+    subtitle = ("One panel for each row, all on the same scale. Each bar is the grid's distinct line-ups. The grey part is training line-ups, "
+                "the coloured part novel line-ups.")
+    return option, title, subtitle
+
+
 def main(summary_path=SUMMARY, out=OUT):
     summary = json.load(open(summary_path))
     note = f"{ERROR} {WIN_RATE} Source: {Path(summary_path).name}."
@@ -147,6 +272,22 @@ def main(summary_path=SUMMARY, out=OUT):
         note=f"The grey bar is the earlier measurement, {PER_FIELD_MULTIPLE['random']} against {PER_FIELD_MULTIPLE['species_first']}, on the all-teams "
              "per-field model after 21 epochs, 2026-11-07. That model differs from the linear model in its training table and its epochs as well as in its "
              f"masking rate. Lines on the linear model's bars are 95% bootstrap intervals. {ERROR} Source: {Path(summary_path).name}."))
+    option, title, subtitle = line_ups_by_ask(summary)
+    pages.append(write_chart(option, out / "08_line_ups_by_ask.html", title, subtitle=subtitle, height=440,
+                             note=f"A line-up is a distinct set of six species. Each point pools 3 sampling seeds of 64 teams. Source: {Path(summary_path).name}."))
+    option, title, subtitle = line_ups_shared_between_asks(summary)
+    pages.append(write_chart(option, out / "09_line_ups_shared_between_asks.html", title, subtitle=subtitle, height=500,
+                             note="A line-up is a distinct set of six species. Each ask has 192 teams, 64 from each of 3 sampling seeds, so one ask holds at most 192 "
+                                  "line-ups. A row is one model decoded in one order: the per-field masking rate or the linear masking rate, filled species-first "
+                                  f"or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model how many fields are still hidden. "
+                                  f"Source: {Path(summary_path).name}."))
+    option, title, subtitle = training_and_novel_line_ups(summary)
+    pages.append(write_chart(option, out / "10_training_and_novel_line_ups.html", title, subtitle=subtitle, height=500,
+                             note="A line-up is a distinct set of six species. A training line-up is the line-up of one of the labelled training teams "
+                                  "of the shuffled-only table, validation teams left out; every other line-up is novel. Each grid has 4,416 teams: 23 asks, "
+                                  "3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking rate or the linear masking "
+                                  "rate, filled species-first or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model "
+                                  f"how many fields are still hidden. Source: {Path(summary_path).name}."))
     return pages
 
 

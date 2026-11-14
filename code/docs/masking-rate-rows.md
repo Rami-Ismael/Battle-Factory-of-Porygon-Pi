@@ -115,7 +115,7 @@ The owner asked for the rows to be read together, so these sit beside the error,
 | Pooled win rate | Mean got over all 23 asks | 0.371 |
 | First-try legality | Share of sampled teams the validator accepts before any redraw | 100% |
 | Line-ups | Distinct line-ups among the grid's 4,416 teams | 1,437 |
-| New line-ups | Share of teams whose line-up is absent from the training teams, and from the line-ups of earlier search runs and tournament records (`src/lineup_reference.py`) | 26.6% and 73.1% |
+| Novel line-ups | Share of teams whose line-up is absent from the training teams, and from the line-ups of earlier search runs and tournament records (`src/lineup_reference.py`) | 26.6% and 73.1% |
 | Effective species, top-species share | Mean over random 5-team subsets of each cell | 14.9 and 0.135 |
 | Elite line-up yield | Line-ups with a team at or above the elite cut that still reach it in a fresh re-battle of 4 games against each opponent. The elite cut is 0.531, the mean win rate of a top-50 meta team against the other 49. The script is `line_up_yield.py`, which so far exists only in `~/vgc-data/line_up_deletion_84/run/` | Not yet measured. 176 line-ups to re-battle |
 | Training-versus-validation gap | The same loss function on 3,563 training and 3,563 validation teams (`~/vgc-data/validation_loss_accuracy/run/validation_accuracy.py`), each model under its own masking rate | +0.0115 ± 0.0063 at epoch 80 |
@@ -284,7 +284,7 @@ One change is Claude's. The readings of the linear model at epochs 34 and 55 wer
 | 2026-11-12, after both trainings | Early stopping never fired. Both trainings lowered the validation loss at every one of the 80 epochs, so both stopped at the cap and are read at epoch 80 | Threshold 0 counts any new lowest loss, and the last epochs still gained about 0.00002 each |
 | 2026-11-13, before any grid | The interval of an error difference resamples the 49 opponents as well as the teams. The opponents are drawn once for both rows, and the teams within each ask and seed, separately in each row. The noise floor above resampled teams only | Battles against one opponent are correlated, so teams alone give an interval that is too narrow. Each grid saves every team's win rate against every opponent the moment it ends (`src/masking_rate_rows.py opponents`) |
 | 2026-11-13, before any grid | The Pareto reading counts a point as outside the control's curve only when the intervals clear. Error uses its 95% bootstrap interval. Line-ups use the range over the three sampling seeds. The reading by the measured values alone is reported beside it | The Plan gave the rule without intervals. A bootstrap of teams undercounts distinct line-ups, so the seeds give the spread |
-| 2026-11-13, before any grid | New line-ups are counted against the labelled training teams of the shuffled-only table. The Plan pointed at `src/lineup_reference.py`, which reads the older table. The line-ups of earlier search runs and tournament records still come from the older table, the only one that stores them | Both new models trained on the shuffled-only table |
+| 2026-11-13, before any grid | Novel line-ups are counted against the labelled training teams of the shuffled-only table. The Plan pointed at `src/lineup_reference.py`, which reads the older table. The line-ups of earlier search runs and tournament records still come from the older table, the only one that stores them | Both new models trained on the shuffled-only table |
 | 2026-11-13, before any grid | The elite line-up yield script is now `src/line_up_yield.py`, ported from `~/vgc-data/line_up_deletion_84/run/` with the reference table as a setting. It scores three sets of asks. The Plan's count of 176 line-ups for today's default model is the set of asks 1/24 to 17/24 | The Plan named a script outside the repository |
 | 2026-11-13, before any grid | The grids run guidance by guidance, the control first at each: 2, then 4, then 8. Each grid runs the ask grid's probe step with its own decoder and guidance first. The unguided baseline of a row follows its guidance 2 grid | With the control first, every other grid has its verdict the moment it lands |
 | 2026-11-13, before any grid | The code ticket's remaining items were built in this ticket: guidance as a setting of the ask grid (`AG84_GUIDANCE`, with guidance 2 keeping the stored file names), the three code IDs with their decoders, the unguided cells (`AG84_UNGUIDED`) and a probe step that samples with the row's decoder. Guidance 2 redrew a stored cell of today's default model exactly, 64 of 64 teams. The corrected t sampler option was not built, because its row is not battled | [Add the linear masking rate and the corrected t to the 84-field code, with tests](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/295) was still open when this ticket started |
@@ -292,6 +292,7 @@ One change is Claude's. The readings of the linear model at epochs 34 and 55 wer
 | 2026-11-13, during the grids | The post for the control at guidance 8 failed on a network reset at 20:42 and was posted by hand at 22:30, after the post for Linear, species-first at guidance 8. Its numbers and figure are the ones the queue wrote at 20:27 | The queue keeps a failed post's text and goes on |
 | 2026-11-13, after the grids | The elite line-up yield re-battles came to about 546,000 battles on 2,786 teams, where the budget said about 315,000. The count is from the private yield database: 273,028 stored pairings of 4 battles, each battle stored from both sides. It includes the re-battle of today's default model | The script re-battles the elite teams of all 23 asks. The budget counted the asks 1/24 to 17/24 only |
 | 2026-11-13, after the grids | The queue ran 11 hours 58 minutes, from 11:18 to 23:16, where the budget said about 8.1 hours | The restart above, the yield re-battles above, and sampling in random order: 36 minutes for the guidance 8 grid against 9 for a species-first grid |
+| 2026-11-13, after the results were posted | The summary gained two measures for each grid: the distinct line-ups among each ask's teams, and the mean number of asks that share one line-up. Every other number in the summary file is unchanged | The Plan counted line-ups over the whole grid only, and that total rises with guidance for a reason that is not diversity. See Line-ups within one ask |
 | 2026-11-13, after the grids | The Pareto rule's first clause is true for every point of Linear, random order only because no control point has as many line-ups, so the clause compares it with nothing. The reading under Results rests on the second clause alone and says so | Found when the rule called a row with 4 to 8 times the control's error "outside" on both clauses |
 
 ## Results of the two trainings
@@ -324,7 +325,7 @@ Measured 2026-11-13 for [Sample and battle the four rows and post the results ta
 
 ### Every measure
 
-| Row | Guidance | Error on asks 1/24 to 17/24, with 95% interval | Error on asks 18/24 to 23/24 | Win rate at asks 15/24 to 17/24 | Pooled win rate | First-try legality | Line-ups | New line-ups against training teams | Effective species | Top-species share | Elite line-ups, then those that held |
+| Row | Guidance | Error on asks 1/24 to 17/24, with 95% interval | Error on asks 18/24 to 23/24 | Win rate at asks 15/24 to 17/24 | Pooled win rate | First-try legality | Line-ups | Novel line-ups against training teams | Effective species | Top-species share | Elite line-ups, then those that held |
 | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Per-field, uncorrected t, the control | 2 | 0.0084, 0.0045 to 0.0134 | 0.1352 | 0.497 | 0.354 | 100.0% | 1,513 | 17.5% | 15.0 | 0.136 | 186, then 81 |
 | Per-field, uncorrected t, the control | 4 | 0.0049, 0.0022 to 0.0091 | 0.1079 | 0.532 | 0.375 | 100.0% | 1,918 | 24.4% | 14.2 | 0.143 | 254, then 132 |
@@ -337,7 +338,7 @@ Measured 2026-11-13 for [Sample and battle the four rows and post the results ta
 | Linear, random order | 8 | 0.0269, 0.0198 to 0.0352 | 0.2492 | 0.368 | 0.272 | 89.2% | 3,820 | 90.2% | 19.0 | 0.118 | 91, then 28 |
 | Today's default model, for reference | 2 | 0.0053 | not read here | 0.515 | 0.371 | 100.0% | 1,437 | not comparable | 14.9 | 0.135 | 176, then 81 |
 
-The last column counts line-ups with a team at or above the elite cut of 0.531 on asks 1/24 to 17/24, then how many still reach the cut in a fresh re-battle of 4 games against each opponent. New line-ups of today's default model were counted against a different training table, so the cell is left out. The single-grid intervals are wide because they resample the 49 opponents. The differences below draw the same opponents for both rows and are narrower.
+The last column counts line-ups with a team at or above the elite cut of 0.531 on asks 1/24 to 17/24, then how many still reach the cut in a fresh re-battle of 4 games against each opponent. Novel line-ups of today's default model were counted against a different training table, so the cell is left out. The single-grid intervals are wide because they resample the 49 opponents. The differences below draw the same opponents for both rows and are narrower.
 
 ### Verdicts against the control at the same guidance
 
@@ -378,6 +379,8 @@ Random order's first-try legality is 89.2% to 90.5% with the lookahead on. With 
 
 Not battled. On the control's checkpoint the corrected t moves the drawing distribution by 0.0078 at most, against the bar of 0.01. It changes at most 3.3% of fields and 0.8% of line-ups at one ask.
 
+The largest move is Stat Alignment at ask 6/24, the same field type and ask as the default model's largest, 0.0050. Figure: [the new per-field model barely reads the t it is told](figures/masking_rate_rows/11_t_sensitivity_new_per_field_model.html), built by `src/masking_rate_preflight_figures.py`. It is the storyboard's frame 5.
+
 ### Expectations, scored
 
 | Row | Expected | Result |
@@ -406,6 +409,54 @@ None of these was run. The stopping rule allows no re-run to chase a result, and
 Linear, species-first is inside the control's curve at every guidance, by the intervals and by the measured values alone. Its three points lie on the control's curve.
 
 Linear, random order has more line-ups than every control point: 2,646 to 3,820 against 2,126 at most. By the rule that puts it outside the control's curve. The cost is an error 4 to 8 times the control's, a pooled win rate lower by 0.11 to 0.12, and 7 to 28 elite line-ups that held against the control's 81 to 162. The extra line-ups are weak ones.
+
+### Line-ups within one ask
+
+Added 2026-11-13 after the owner asked whether the line-up count was wrong, because the grid total rises with guidance while the papers report that guidance lowers diversity. The count is right. A recount from the stored teams with a separate parser gave the same nine totals.
+
+The grid total pools 23 asks. The papers measure diversity among samples that share one condition, and the mean count among the 192 teams of one ask falls with guidance on both species-first rows. It does not fall at every ask: from guidance 2 to 8 the control has fewer line-ups at 16 of the 23 asks, the same at 1 and more at 6, and Linear, species-first has fewer at 16, the same at 2 and more at 5:
+
+| Row | Guidance | Distinct line-ups over the grid's 4,416 teams | Mean distinct line-ups among one ask's 192 teams | Mean at asks 15/24 to 17/24 | Asks that share one line-up, mean |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Per-field, uncorrected t, the control | 2 | 1,513 | 167.0 | 172 | 2.54 |
+| Per-field, uncorrected t, the control | 4 | 1,918 | 156.3 | 159 | 1.87 |
+| Per-field, uncorrected t, the control | 8 | 2,126 | 134.9 | 112 | 1.46 |
+| Linear, species-first | 2 | 1,578 | 162.9 | 161 | 2.37 |
+| Linear, species-first | 4 | 1,971 | 155.3 | 145 | 1.81 |
+| Linear, species-first | 8 | 2,060 | 132.4 | 96 | 1.48 |
+| Linear, random order | 2 | 2,646 | 191.7 | 192 | 1.67 |
+| Linear, random order | 4 | 3,336 | 191.6 | 192 | 1.32 |
+| Linear, random order | 8 | 3,820 | 191.2 | 192 | 1.15 |
+
+Stronger guidance makes each ask's teams more specific to that ask. A line-up of the control is drawn at 2.54 asks on average at guidance 2 and at 1.46 at guidance 8, so the asks overlap less and their union grows while each ask repeats itself more. At asks 15/24 to 17/24 the control goes from 172 line-ups to 112.
+
+The grid total is the count of each ask, added over the 23 asks, minus the repeats between asks. For the control, with all three rows in the figure:
+
+| | Guidance 2 | Guidance 4 | Guidance 8 |
+| --- | ---: | ---: | ---: |
+| Distinct line-ups in each ask, added over the 23 asks | 3,842 | 3,594 | 3,102 |
+| Repeats of a line-up already counted at another ask | 2,329 | 1,676 | 976 |
+| Distinct over the grid, the first row minus the second | 1,513 | 1,918 | 2,126 |
+
+The repeats fall faster than the counts do. Figure: [each row's line-ups counted ask by ask, split into the grid total and the repeats](figures/masking_rate_rows/09_line_ups_shared_between_asks.html).
+
+Two earlier runs agree. At the single ask 0.5 on 48-field models, 2026-10-28, the line-ups among 192 teams were 120, 54, 23 and 8 at guidance 1, 2, 4 and 8 (`guidance_legality.json`). On the 84-field model with all 39 opponents for each label, 2026-11-11, the grid total rose from 1,427 to 1,774 to 1,891 while the mean for one ask fell from 167.5 to 153.2 to 128.0 (`guidance_sweep_gen65_subset_39.json`).
+
+So the line-ups axis of the Pareto chart rewards guidance for separating the asks. The verdicts compare rows at one guidance value and are not affected. Read across guidance values, the grid total is not a diversity measure, and the count for one ask is. Linear, random order is at 191 or 192 of 192 at every ask and guidance, so its rising total comes only from less overlap between asks. Figure: [the control's line-ups at each ask](figures/masking_rate_rows/08_line_ups_by_ask.html).
+
+### Why the totals differ, row by row
+
+Figure: [each grid's line-ups split into training line-ups and novel line-ups](figures/masking_rate_rows/10_training_and_novel_line_ups.html). In all three rows the line-ups that guidance 8 adds over guidance 2 are novel ones: they rise by 734, 677 and 1,110, while training line-ups move by −121, −195 and +64. Linear, random order is 90% to 92% novel line-ups at every guidance.
+
+Measured 2026-11-14 from the stored teams. One model analysed each row, and a fourth recounted 19 of their claims with its own parser: 18 matched, and one had two numbers off by 5 and 1, corrected below. A training line-up is a line-up of one of the labelled training teams. An ask slot of a line-up is one ask at which it is drawn.
+
+| Row | Why its total differs | Evidence |
+| --- | --- | --- |
+| Per-field, uncorrected t, the control | At guidance 2 the asks blur together: neighbouring asks draw the same training line-ups, so one line-up is counted at many asks. Stronger guidance pins each line-up to a few asks. The low asks then fill with novel line-ups that are drawn at one ask only, and the high asks narrow onto a few training line-ups | 2,216 of the 2,329 repeats at guidance 2 are a line-up drawn at the next ask too, and 45 of the 50 most widespread line-ups are training line-ups. The 20 most widespread take 239 ask slots at guidance 2, 96 at guidance 4 and 34 at guidance 8. Novel line-ups go from 502 to 834 to 1,236, and 1,130 of the 1,236 are drawn at one ask. Training line-ups go from 1,011 to 890. At ask 21 the count falls from 151 to 58 and the most common line-up goes from 6 teams to 35 |
+| Linear, species-first | The same thing happens, on many of the same line-ups. Its gap to the control is small and mostly inside the spread between sampling seeds | The two rows share 776 line-ups at guidance 2. The gap of +65 at guidance 2 is +48, +6 and +25 by sampling seed. The gap of −66 at guidance 8 is −2, +2 and +20 by seed, so it is noise. One difference stands out: at asks 15/24 to 23/24 under guidance 8 the control holds 226 line-ups, 93% of its teams on training line-ups, and this row holds 345, with 77% |
+| Linear, random order | It is the same model as Linear, species-first, but it rarely puts a training team's six species together, so almost every team in an ask has its own line-up. Its total rises with guidance only because the few repeats between asks disappear | 12% of its teams have a training line-up at guidance 2, against 82% for species-first. Its 10 most used species take 43% of species slots, against 64%. It draws 58 species that appear nowhere in the training table, in 24% of its teams, and species-first draws none. Repeats fall from 1,762 to 578, and most of the lost repeats are novel line-ups: 1,486 to 479. Teams with a novel line-up win 0.236, against 0.323 for teams with a training line-up |
+
+Two readings are inferences, not measurements. The first is why the low asks leave the training line-ups under strong guidance: few training teams carry low win-rate labels, or guidance extrapolates past the data. Counting, for each training line-up, its labels at or below 8/24 would separate them. The second is where random order's 58 unseen species come from. The likely source is the lookahead: once a Pokémon's moves are drawn, only species that learn them stay possible, whatever the model would have chosen. Logging the fill order of each team, and counting the fields drawn before each species, would test it. That is the third suspect under Why the multiple missed, now with a number behind it.
 
 ### What this result cannot show
 
