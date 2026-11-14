@@ -5,6 +5,7 @@ Needs this laptop's /tmp/vgc-pilot data and the v3 loop-teams checkpoint (for th
     /tmp/vgc-pilot/.venv/bin/python scripts/test_lookahead84.py   (from code/)
 """
 import importlib.util
+import math
 import subprocess
 import sys
 import tempfile
@@ -16,6 +17,7 @@ import repo_paths                # src/ first on sys.path; ROOT finds the reposi
 
 BEFORE = "3115c395"                  # main before the lookahead: random decoding as it drew then
 ASK, GUIDANCE, SEEDS, N = 0.5, 2.0, (1, 2), 48
+RECORD = {"kept_share", "log_kept_share", "refused_share", "refusing_fields", "fallback_fields"}   # issue #207
 
 VOCAB = None
 if Path("/tmp/vgc-pilot/data/pokedex.json").exists():
@@ -53,7 +55,14 @@ class LookaheadArms(unittest.TestCase):
             except ValueError: continue
             if len(rows) == 256: break
         cls.model = M.Model84.train_new(VOCAB, CORPUS, rows, labels=None, epochs=2, seed=0)
-        cls.drawn = {la: [cls.draw(R.RandomDecodingArm(cls.model, lookahead=la), s) for s in SEEDS] for la in (False, True)}
+        cls.drawn, cls.records = {}, {}
+        for la in (False, True):
+            arm = R.RandomDecodingArm(cls.model, lookahead=la)
+            cls.drawn[la], cls.records[la] = zip(*[(cls.draw(arm, s), arm.last_refusals) for s in SEEDS])
+        cls.species_first = {}
+        for la in (False, True):
+            arm = R.SpeciesFirstArm(cls.model, lookahead=la)
+            cls.species_first[la] = [(cls.draw(arm, s), arm.last_refusals) for s in SEEDS]
         val = Validator()
         try:
             cls.accepted = {la: sum(val(cls.model.to_paste(r, repair=True)[0]) is None for rows in cls.drawn[la] for r in rows)
@@ -67,10 +76,39 @@ class LookaheadArms(unittest.TestCase):
         return arm.sample(n, ask=ASK, guidance=guidance).cpu().numpy()
 
     def test_species_first_draws_the_same_rows_with_the_lookahead_on_and_off(self):
-        for seed in SEEDS:
-            off = self.draw(self.R.SpeciesFirstArm(self.model, lookahead=False), seed)
-            on = self.draw(self.R.SpeciesFirstArm(self.model, lookahead=True), seed)
+        for (off, _), (on, _) in zip(self.species_first[False], self.species_first[True]):
             self.assertTrue((off == on).all())
+
+    def assert_records(self, records, n):
+        self.assertEqual(len(records), n)
+        for r in records:
+            self.assertEqual(set(r), RECORD)
+            self.assertIsInstance(r["refusing_fields"], int); self.assertIsInstance(r["fallback_fields"], int)
+            self.assertGreaterEqual(r["fallback_fields"], 0)
+            self.assertTrue(0.0 <= r["refused_share"] <= 1.0)
+            self.assertAlmostEqual(r["kept_share"] + r["refused_share"], 1.0, places=12)
+            if r["log_kept_share"] is None: self.assertEqual(r["kept_share"], 0.0)
+            else: self.assertAlmostEqual(math.exp(r["log_kept_share"]), r["kept_share"], places=12)
+            if r["refusing_fields"] == 0: self.assertEqual(r["refused_share"], 0.0)
+
+    def test_each_lookahead_team_carries_a_record_of_what_was_refused(self):
+        for records in self.records[True]: self.assert_records(records, N)
+        refusing = [r["refusing_fields"] for records in self.records[True] for r in records]
+        self.assertGreater(max(refusing), 0, "random decoding with the lookahead should refuse something on some team")
+        steered = [r for records in self.records[True] for r in records if r["fallback_fields"] == 0 and r["refusing_fields"]]
+        self.assertTrue(all(0.0 < r["kept_share"] < 1.0 for r in steered))
+
+    def test_a_remasking_arm_with_the_lookahead_carries_the_record_too(self):
+        arm = self.R.RandomDecodingArm(self.model, "rand_remask_even", lookahead=True)
+        self.draw(arm, SEEDS[0], n=8)
+        self.assert_records(arm.last_refusals, 8)
+
+    def test_nothing_is_refused_in_species_first_order_or_with_the_switch_off(self):
+        records = [r for la in (False, True) for _, rs in self.species_first[la] for r in rs]
+        records += [r for rs in self.records[False] for r in rs]
+        self.assert_records(records, N * len(SEEDS) * 3)
+        self.assertEqual(sum(r["refusing_fields"] for r in records), 0)
+        self.assertTrue(all(r["refused_share"] == 0.0 and r["kept_share"] == 1.0 and r["log_kept_share"] == 0.0 for r in records))
 
     def test_random_decoding_with_the_switch_off_draws_the_rows_it_drew_before_the_lookahead(self):
         before = module_at(BEFORE, "src/remask84.py", "remask84_before")
@@ -113,6 +151,7 @@ class LookaheadArms(unittest.TestCase):
         self.assertAlmostEqual(counts["legal"], (counts["tried"] - counts["rejected"]) / counts["tried"])
         self.assertEqual(sum(n for _, n in counts["reasons"]), counts["rejected"])
         self.assertEqual(len(stat_points), len(kept))
+        self.assert_records(counts["refusals"], len(kept))         # saved beside the pastes in each cell
         self.assertTrue(len(kept) == 4 or counts["tried"] == 32)
 
 

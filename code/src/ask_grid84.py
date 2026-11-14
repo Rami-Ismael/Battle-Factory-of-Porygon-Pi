@@ -181,23 +181,30 @@ def subset_diversity(pastes, seed):
 
 
 def draw(w, ask, seed):
-    """Sample until KEEP teams pass Showdown and are not held-out teams, counting every try and every rejection."""
+    """Sample until KEEP teams pass Showdown and are not held-out teams, counting every try and every rejection.
+    An arm that keeps last_refusals (remask84's lookahead arms) also gives counts["refusals"]: the record of what the
+    lookahead refused for each kept team, in the order of the pastes."""
     torch.manual_seed(SEED0 + seed)
-    val = Validator(); kept, stats, tried, rejected, heldout, reasons = [], [], 0, 0, 0, Counter()
+    val = Validator(); kept, stats, tried, rejected, heldout, reasons, refusals = [], [], 0, 0, 0, Counter(), []
+    records_refusals = hasattr(w, "last_refusals")
     try:
         while len(kept) < KEEP and tried < MAX_TRIES:
-            for r in w.sample(BATCH, ask=ask, guidance=GUIDANCE).cpu().numpy():
+            rows = w.sample(BATCH, ask=ask, guidance=GUIDANCE).cpu().numpy(); records = w.last_refusals if records_refusals else None
+            for i, r in enumerate(rows):
                 tried += 1
                 p, slots = w.to_paste(r, repair=True)
                 err = val(p)
                 if err is not None: rejected += 1; reasons[reason(err)] += 1
                 elif HO.is_heldout_text(p): heldout += 1
-                else: kept.append(p); stats.append([(s["species"], s["evs"]) for s in slots])
+                else:
+                    kept.append(p); stats.append([(s["species"], s["evs"]) for s in slots])
+                    if records is not None: refusals.append(records[i])
                 if len(kept) >= KEEP or tried >= MAX_TRIES: break
     finally:
         val.close()
-    return kept, stats, dict(tried=tried, rejected=rejected, heldout_dropped=heldout, legal=(tried - rejected) / max(tried, 1),
-                             reasons=reasons.most_common(10))
+    counts = dict(tried=tried, rejected=rejected, heldout_dropped=heldout, legal=(tried - rejected) / max(tried, 1), reasons=reasons.most_common(10))
+    if records_refusals: counts["refusals"] = refusals
+    return kept, stats, counts
 
 
 def require_same_checkpoint(out):
