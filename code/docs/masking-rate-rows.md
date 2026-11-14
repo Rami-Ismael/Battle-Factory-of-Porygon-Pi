@@ -466,6 +466,6 @@ Two readings are inferences, not measurements. The first is why the low asks lea
 - Both models are read at epoch 80, where early stopping had not fired.
 - The elite line-up yield has no interval.
 
-Figures: [error against line-ups](figures/masking_rate_rows/05_error_against_line_ups.html), [got against ask](figures/masking_rate_rows/06_got_against_ask.html), [random order's error multiple](figures/masking_rate_rows/07_random_order_error_multiple.html), built by `src/masking_rate_rows_figures.py`. Frame 1 came out as expected. Frame 2 came out as expected: the two lines overlap and stop rising at the same got. Frame 3 came out as its surprise: the multiple rose above 2.8.
+Figures: [error against line-ups](figures/masking_rate_rows/05_error_against_line_ups.html), [got against ask](figures/masking_rate_rows/06_got_against_ask.html), [typical miss of each order](figures/masking_rate_rows/07_random_order_error_multiple.html), built by `src/masking_rate_rows_figures.py`. Frame 1 came out as expected. Frame 2 came out as expected: the two lines overlap and stop rising at the same got. Frame 3 came out as its surprise: the multiple rose above 2.8.
 
 The rejection reasons stored with the random-order grids repeat a word, as in "can'tcan't learn Heat Wave". The fault is in how `ask_grid84.py` shortens a validator message. The counts are right.
