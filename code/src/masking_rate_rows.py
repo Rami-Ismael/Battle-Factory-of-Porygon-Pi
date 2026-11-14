@@ -1,4 +1,4 @@
-"""Judge the masking-rate rows and write each grid's post (docs/masking-rate-rows.md, GitHub issue #297).
+"""Judge the masking-schedule rows and write each grid's post (docs/masking-rate-rows.md, GitHub issue #297).
 
 Three rows are battled, each at guidance 2, 4 and 8: nine grids of ask_grid84.py. This script reads their results files.
 
@@ -28,8 +28,8 @@ RES = Path.home() / "vgc-data/results"
 SMOKE = bool(os.environ.get("MRR_SMOKE"))
 ROWS = {"sched_species_first": "Per-field, uncorrected t", "sched_linear_species_first": "Linear, species-first",
         "sched_linear_random": "Linear, random order"}
-ROW_NOTES = {"sched_species_first": "the control: our own settings", "sched_linear_species_first": "the published masking rate, our decoding order",
-             "sched_linear_random": "the published masking rate and decoding order"}
+ROW_NOTES = {"sched_species_first": "the control: our own settings", "sched_linear_species_first": "the published masking schedule, our decoding order",
+             "sched_linear_random": "the published masking schedule and decoding order"}
 CONTROL, CORRECTED_T = "sched_species_first", "Per-field, corrected t"
 GUIDANCES = (2, 4, 8)
 BAR, TRAINING_LUCK, WIN_RATE_LUCK = 0.001, 0.002, 0.026   # the plan's verdict rule, docs/masking-rate-rows.md
@@ -337,7 +337,7 @@ WIDTH, PAD, LABEL_W, ROW_H = 800, 20, 204, 92
 READING = [
     "Big number: the ask-versus-got error. The ask is the win rate the model is told to aim for, and got is the win rate its teams then score. "
     "The error is the mean squared gap between the two on asks 1/24 to 17/24. Lower is better.",
-    "Row: one way to train and sample the model. Per-field and linear name the masking rate, the chance a field is hidden during training: "
+    "Row: one way to train and sample the model. Per-field and linear name the masking schedule, the chance a field is hidden during training: "
     "set by field type, or the same for every field. Species-first and random order name the order the sampler fills fields in.",
     "Guidance: how hard the sampler pushes toward the ask. 1 is no push.",
     "Line-ups: distinct sets of six species among the grid's teams. Win: mean win rate at asks 15/24 to 17/24, one battle against each of "
@@ -364,7 +364,7 @@ def figure(result, landed, theme, headline):
         f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="6" fill="{fill}" stroke="{stroke}" stroke-width="{width}"{" stroke-dasharray=" + chr(34) + "5 4" + chr(34) if dash else ""}/>')
     y = PAD + 18
     for line in wrap(headline, WIDTH - 2 * PAD, 18, True): text(PAD, y, line, 18, "ink", True); y += 24
-    text(PAD, y, "Results so far for the masking-rate rows. The thick border marks the grid that just finished.", 12); y += 22
+    text(PAD, y, "Results so far for the masking-schedule rows. The thick border marks the grid that just finished.", 12); y += 22
     cell_w = (WIDTH - 2 * PAD - LABEL_W) / len(GUIDANCES)
     for i, g in enumerate(GUIDANCES): text(PAD + LABEL_W + cell_w * (i + .5), y, f"guidance {g}", 12, "soft", True, "middle")
     y += 10

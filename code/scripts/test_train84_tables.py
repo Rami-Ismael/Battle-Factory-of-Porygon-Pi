@@ -61,8 +61,8 @@ class TrainingTable(unittest.TestCase):
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
 class MaskingRateArms(unittest.TestCase):
-    """The two trainings of the masking-rate rows (docs/masking-rate-rows.md, issue #296): the same table, rows and recipe,
-    and only the masking rate differs. train and load are replaced first, so no test starts a real training."""
+    """The two trainings of the masking-schedule rows (docs/masking-rate-rows.md, issue #296): the same table, rows and recipe,
+    and only the masking schedule differs. train and load are replaced first, so no test starts a real training."""
 
     def fake_table(self):
         import numpy as np

@@ -25,17 +25,17 @@ files. They run only with --older-table, so no training reads those labels by ac
                           | shuffled_per_field | shuffled_linear
                           | loop_block_equal_compute | loop_block_equal_epochs | carry_state_equal_compute | carry_state_equal_epochs
 
-The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking rate where every field
+The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking schedule where every field
 is hidden with chance t (owner, 2026-11-12); their control is that model. Each
 changes the network in one way: the loop block runs layers 1 and 2 (counted from 0) up to 4 times with shared weights
 (LoopMDM), or the carried state hands each pass's hidden state to the next (Loopholing). "Equal epochs" trains to the
 control's cap of 80. "Equal compute" stops the cap where the arm's training multiply-adds reach the control's
 (diffusion84.training_macs), and sizes the learning-rate schedule to that cap.
 
-shuffled_per_field and shuffled_linear are the two trainings of the masking-rate rows (docs/masking-rate-rows.md; issue #296):
+shuffled_per_field and shuffled_linear are the two trainings of the masking-schedule rows (docs/masking-rate-rows.md; issue #296):
 labelled teams of the shuffled-only table, the byepoch recipe (label noise 1/48, validation loss after every epoch, patience 3,
 cap 80, one checkpoint per epoch) with early-stopping threshold 0, so any new lowest validation loss resets patience. They
-differ only in the masking rate: the per-field exponents 16,4,4,1.5,1, or the linear rate 1,1,1,1,1 where every field is
+differ only in the masking schedule: the per-field exponents 16,4,4,1.5,1, or the linear rate 1,1,1,1,1 where every field is
 hidden with chance t.
 
 The five pos_ arms are the position-embedding split (docs/position-embedding-split.md; issues #78, #80 to #83, spec #233):
@@ -92,7 +92,7 @@ POSITION_ARMS = dict(pos_per_field_s0=dict(pos="per_field", seed=0), pos_per_fie
 NAMES.update({arm: f"stat84_{arm}_noise_ep21" for arm in POSITION_ARMS})
 CONTROL_ARM = "pos_per_field_s0"                         # No split, training seed 0: the control, with no new code
 LINEAR_MASKING_RATE = "1,1,1,1,1"                        # every field hidden with chance t (MD4 Appendix J.1; LLaDA Eq. 3)
-# Masking-rate rows: code ID -> the exponents of the masking rate in training, the only setting that differs
+# Masking-schedule rows: code ID -> the exponents of the masking schedule in training, the only setting that differs
 MASKING_RATE_ARMS = dict(shuffled_per_field=dict(sched=M.SCHED), shuffled_linear=dict(sched=LINEAR_MASKING_RATE))
 NAMES.update(shuffled_per_field="stat84_shuffled_noise_per_field_es3_cap80", shuffled_linear="stat84_shuffled_noise_linear_es3_cap80")
 CONTROL_EPOCHS = 80                                       # the cap of the loop arms' control, shuffled_linear
@@ -186,7 +186,7 @@ def train_position_arms(arm):
 
 
 def train_masking_rate_arms(arm):
-    """The masking-rate training named by arm, on the labelled teams of the shuffled-only table. Both arms get the same rows
+    """The masking-schedule training named by arm, on the labelled teams of the shuffled-only table. Both arms get the same rows
     and the default model's recipe with early-stopping threshold 0 and every epoch saved; only sched differs."""
     global DATA_SHA, DATA_TABLE
     if arm not in MASKING_RATE_ARMS: return

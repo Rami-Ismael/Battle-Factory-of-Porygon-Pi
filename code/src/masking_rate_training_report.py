@@ -1,11 +1,11 @@
-"""Measurements and figures after each masking-rate training (docs/masking-rate-rows.md, Plan and Figures frame 4; issue #296).
+"""Measurements and figures after each masking-schedule training (docs/masking-rate-rows.md, Plan and Figures frame 4; issue #296).
 
 The two trainings are train84.py's shuffled_per_field and shuffled_linear: 84-field models on the labelled teams of the
-shuffled-only table, which differ only in the masking rate. Reader names: "Per-field masking rate" and "Linear masking rate".
+shuffled-only table, which differ only in the masking schedule. Reader names: "Per-field masking schedule" and "Linear masking schedule".
 
   gap <checkpoint>         training-versus-validation gap, the same loss function on both sides: as many training teams as
                            validation teams (seeded), every team scored with 128 mask draws at seed 12345, EMA network in
-                           eval mode, exact labels, the checkpoint's own masking rate. -> masking_rate_gap_<checkpoint>.json
+                           eval mode, exact labels, the checkpoint's own masking schedule. -> masking_rate_gap_<checkpoint>.json
   cross_rate <checkpoint>  validation loss on every labelled validation team under the per-field and under the linear masking
                            rate (diffusion84.val_loss). The loss under the checkpoint's own rate must reproduce its logged
                            best_val_loss within 1e-4; a mismatch is written into the JSON and the command exits non-zero.
@@ -45,11 +45,11 @@ FIGURES = Path(__file__).resolve().parent.parent / "docs/figures/masking_rate_ro
 DRAWS, DRAW_SEED, SIZES_SEED = 128, 12345, 0
 OWN_RATE_TOLERANCE = 1e-4
 Z95 = 1.96
-RATES = dict(per_field=M.SCHED, linear=TR.LINEAR_MASKING_RATE)          # masking-rate key -> exponents
-RATE_WORDS = dict(per_field="per-field masking rate", linear="linear masking rate")
-# The two trainings: checkpoint -> reader name, own masking rate, color
-MODELS = {TR.NAMES["shuffled_per_field"]: dict(label="Per-field masking rate", rate="per_field", color="#2a78d6"),
-          TR.NAMES["shuffled_linear"]: dict(label="Linear masking rate", rate="linear", color="#1baf7a")}
+RATES = dict(per_field=M.SCHED, linear=TR.LINEAR_MASKING_RATE)          # masking-schedule key -> exponents
+RATE_WORDS = dict(per_field="per-field masking schedule", linear="linear masking schedule")
+# The two trainings: checkpoint -> reader name, own masking schedule, color
+MODELS = {TR.NAMES["shuffled_per_field"]: dict(label="Per-field masking schedule", rate="per_field", color="#2a78d6"),
+          TR.NAMES["shuffled_linear"]: dict(label="Linear masking schedule", rate="linear", color="#1baf7a")}
 PLAIN, GREY = "#6f6e69", "#a9a8a2"
 
 
@@ -80,11 +80,11 @@ def load_model(checkpoint):
 
 
 def own_rate(info):
-    """The masking-rate key the checkpoint trained with, from its run info."""
+    """The masking-schedule key the checkpoint trained with, from its run info."""
     exponents = info.get("sched", M.SCHED)
     for key, value in RATES.items():
         if exponents == value: return key
-    raise ValueError(f"masking-rate exponents {exponents!r} are neither the per-field nor the linear rate")
+    raise ValueError(f"masking-schedule exponents {exponents!r} are neither the per-field nor the linear rate")
 
 
 def masking_rate_tensor(model, exponents=None):
@@ -169,7 +169,7 @@ def run_gap(checkpoint, results_dir=RESULTS, draws=DRAWS, limit=None):
     return result
 
 
-# ---------------------------------------------------------------- validation loss under both masking rates
+# ---------------------------------------------------------------- validation loss under both masking schedules
 
 def cross_rate(model, table, validation, limit=None):
     rows, labels = table["all_X"][validation], table["all_W"][validation]
@@ -195,7 +195,7 @@ def comparable_losses(cross):
 
 
 def own_rate_check(result, info):
-    """Does the loss under the checkpoint's own masking rate reproduce the best_val_loss its training logged?"""
+    """Does the loss under the checkpoint's own masking schedule reproduce the best_val_loss its training logged?"""
     logged = info.get("best_val_loss")
     measured = result["validation_loss"][result["own_masking_rate"]]
     if logged is None:
@@ -216,8 +216,8 @@ def run_cross_rate(checkpoint, results_dir=RESULTS, limit=None):
                   data_sha256=table["sha256"], table=table["table"], device=M.DEV, limit=limit)
     path = write_json(result, Path(results_dir) / f"masking_rate_cross_rate_{checkpoint}.json")
     losses = result["validation_loss"]
-    print(f"{checkpoint}: validation loss {losses['per_field']:.4f} under the per-field masking rate, {losses['linear']:.4f} under "
-          f"the linear masking rate, on {result['validation_teams']} teams -> {path}", flush=True)
+    print(f"{checkpoint}: validation loss {losses['per_field']:.4f} under the per-field masking schedule, {losses['linear']:.4f} under "
+          f"the linear masking schedule, on {result['validation_teams']} teams -> {path}", flush=True)
     if not check["passed"]:
         print(f"OWN-RATE CHECK FAILED: measured {check['measured']} against logged {check['logged']}"
               + ("" if check["difference"] is None else f" (difference {check['difference']:+.6f}, tolerance {OWN_RATE_TOLERANCE})"), flush=True)
@@ -296,8 +296,8 @@ def epochs_chart(found, out_dir):
     if longest > 20: option["dataZoom"] = [dict(type="inside"), dict(type="slider", height=18, bottom=8)]
     missing = [MODELS[checkpoint]["label"] for checkpoint in MODELS if checkpoint not in have]
     return write_chart(option, Path(out_dir) / "04a_validation_loss_by_epoch.html",
-                       title="Validation loss by epoch, each model under its own masking rate",
-                       subtitle="The two curves are measured under different masking rates, so they are not comparable with each other. "
+                       title="Validation loss by epoch, each model under its own masking schedule",
+                       subtitle="The two curves are measured under different masking schedules, so they are not comparable with each other. "
                                 "Read each curve for its own lowest epoch; compare the models in the 2-by-2 chart.",
                        note="Pins mark the epoch early stopping kept: the lowest validation loss, patience 3, cap 80. Validation loss: the "
                             "84-field model's loss on the labelled validation teams of the shuffled-only table, 4 mask draws, seed 12345."
@@ -314,13 +314,13 @@ def two_by_two_chart(found, out_dir):
                    data=[round(comparable_losses(result)[0][key], 4) for result in have.values()]) for key in RATES]
     option = dict(legend=dict(top=0), grid=dict(left=56, right=24, top=56, bottom=48),
                   tooltip=dict(trigger="axis", axisPointer=dict(type="shadow")),
-                  xAxis=dict(type="category", data=labels, name="Model, by the masking rate it trained with", nameLocation="middle", nameGap=30),
+                  xAxis=dict(type="category", data=labels, name="Model, by the masking schedule it trained with", nameLocation="middle", nameGap=30),
                   yAxis=dict(type="value", name="Validation loss", nameLocation="middle", nameGap=44, scale=True), series=series)
     teams = sorted({comparable_losses(result)[1] for result in have.values()})
     return write_chart(option, Path(out_dir) / "04b_validation_loss_two_by_two.html",
-                       title="Validation loss of each model under each masking rate",
-                       subtitle="Expected: each model is lowest under the masking rate it trained on. Only bars of one color are comparable "
-                                "with each other: a loss is comparable only with another measured under the same masking rate.",
+                       title="Validation loss of each model under each masking schedule",
+                       subtitle="Expected: each model is lowest under the masking schedule it trained on. Only bars of one color are comparable "
+                                "with each other: a loss is comparable only with another measured under the same masking schedule.",
                        note=f"Each model at its kept epoch, scored on {', '.join(map(str, teams))} labelled validation teams of the shuffled-only "
                             "table, without the teams the legal Pokémon construction tables exclude, 4 mask draws, seed 12345. Source: masking_rate_cross_rate_<checkpoint>.json.")
 
@@ -344,7 +344,7 @@ def gap_chart(found, out_dir):
                   yAxis=dict(type="value", name="Validation minus training loss", nameLocation="middle", nameGap=50), series=series)
     return write_chart(option, Path(out_dir) / "04c_training_versus_validation_gap.html",
                        title="Training-versus-validation gap of each model",
-                       subtitle="The same loss function on as many training teams as validation teams, each model under its own masking rate. "
+                       subtitle="The same loss function on as many training teams as validation teams, each model under its own masking schedule. "
                                 "Above zero, the model fits its training teams better than teams it never saw.",
                        note=f"Point: validation loss minus training loss; bar: 95% interval, ± 1.96 standard errors. 128 mask draws per team, "
                             f"seed 12345, {', '.join(map(str, teams))} validation teams; the teams the legal Pokémon construction tables "
@@ -370,9 +370,9 @@ def figures(run_info_dir=X.RES, results_dir=RESULTS, out_dir=FIGURES):
 
 def summary(run_info_dir=X.RES, results_dir=RESULTS):
     found, missing = read_results(run_info_dir, results_dir)
-    header = ("| Model | Kept epoch | Stopped epoch | Training minutes | Validation loss under the per-field masking rate "
-              "| Validation loss under the linear masking rate | Training-versus-validation gap, 95% interval |")
-    lines = ["**Masking-rate trainings** (issue #296)", "", header, "| --- | ---: | ---: | ---: | ---: | ---: | --- |"]
+    header = ("| Model | Kept epoch | Stopped epoch | Training minutes | Validation loss under the per-field masking schedule "
+              "| Validation loss under the linear masking schedule | Training-versus-validation gap, 95% interval |")
+    lines = ["**Masking-schedule trainings** (issue #296)", "", header, "| --- | ---: | ---: | ---: | ---: | ---: | --- |"]
     for checkpoint, entry in found.items():
         info = entry["run"]
         if info is None: continue
@@ -387,9 +387,9 @@ def summary(run_info_dir=X.RES, results_dir=RESULTS):
         lines.append(f"| {MODELS[checkpoint]['label']} | {kept_epoch(info)} | {stopped_epoch(info)} | "
                      f"{'' if minutes is None else f'{minutes:.1f}'} | {' | '.join(losses)} | {gap_text} |")
     lines += ["", "Each model is read at its kept epoch, the lowest validation loss. Validation loss on the labelled validation teams "
-              "of the shuffled-only table, without the teams the legal Pokémon construction tables exclude; a loss is comparable only with another measured under the same masking rate. "
+              "of the shuffled-only table, without the teams the legal Pokémon construction tables exclude; a loss is comparable only with another measured under the same masking schedule. "
               "Gap: validation minus training loss, the same function on as many training teams as validation teams, each model "
-              "under its own masking rate, 128 mask draws; the interval is ± 1.96 standard errors."]
+              "under its own masking schedule, 128 mask draws; the interval is ± 1.96 standard errors."]
     absent = [path for paths in missing.values() for path in paths]
     if absent:
         lines += ["", "Missing inputs: " + ", ".join(f"`{path.name}`" for path in absent)]

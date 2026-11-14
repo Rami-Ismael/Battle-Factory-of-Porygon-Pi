@@ -1,4 +1,4 @@
-"""Six figures from the finished masking-rate rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and later checks; issue #297).
+"""Six figures from the finished masking-schedule rows (docs/masking-rate-rows.md, Figures frames 1 to 3 and later checks; issue #297).
 
   05_error_against_line_ups       ask-versus-got error against distinct line-ups, one three-point curve for each row
   06_got_against_ask              got against ask, the control beside Linear, species-first, one panel for each guidance
@@ -12,6 +12,7 @@ Each builder takes the loaded summary (masking_rate_rows_summary.json) and retur
     /tmp/vgc-pilot/.venv/bin/python src/masking_rate_rows_figures.py      (from code/)
 """
 import json
+import math
 from pathlib import Path
 
 from echarts_chart import write_chart
@@ -104,32 +105,37 @@ def got_against_ask(summary):
     lift = max(lin - con for con, lin in top.values())
     spread = max(abs(lin - con) for con, lin in top.values())
     if lift > 0.02:
-        return option, f"The linear masking rate lifts got at the top scored asks, by up to {lift:.3f}"
-    return option, f"The linear masking rate does not lift got at the top scored asks: at 15/24 to 17/24 the two lines differ by at most {spread:.3f}"
+        return option, f"The linear masking schedule lifts got at the top scored asks, by up to {lift:.3f}"
+    return option, f"The linear masking schedule does not lift got at the top scored asks: at 15/24 to 17/24 the two lines differ by at most {spread:.3f}"
 
 
 def random_order_error_multiple(summary):
+    """Frame 3, redrawn 2026-11-14: the typical miss of each order side by side, not the ratio of their errors. A ratio grows
+    when the number under it shrinks, so the bars show both misses and the axis labels carry the ratio."""
     measured = summary["random_order_against_species_first"]
-    earlier = PER_FIELD_MULTIPLE["random"] / PER_FIELD_MULTIPLE["species_first"]
-    names = ["Per-field model, guidance 2, earlier measurement"] + [f"Linear model, guidance {g}" for g in GUIDANCES]
-    values = [earlier] + [measured[f"guidance_{g}"]["error_multiple"] for g in GUIDANCES]
-    intervals = [measured[f"guidance_{g}"]["error_multiple_interval"] for g in GUIDANCES]
-    bars = [dict(value=round(v, 2), itemStyle=dict(color=GREY if i == 0 else ORANGE)) for i, v in enumerate(values)]
-    series = [dict(name="Random order's error over species-first's", type="bar", barWidth="46%", data=bars, emphasis=dict(focus="series"),
-                   label=dict(show=True, position="insideBottom", formatter="js:p => p.value.toFixed(1) + ' times'", color="#161615"),
-                   markLine=dict(symbol="none", silent=True, lineStyle=dict(color=PLAIN, type="dashed"),
-                                 label=dict(formatter="same error as\nspecies-first", position="end", color=PLAIN),
-                                 data=[dict(yAxis=1)])),
-              error_bars("95% interval", PLAIN, [[i + 1, *iv] for i, iv in enumerate(intervals)], z=4)]
-    option = dict(grid=dict(left=64, right=110, top=24, bottom=56), tooltip=dict(trigger="item", valueFormatter="js:v => v.toFixed(2) + ' times'"),
-                  xAxis=dict(type="category", data=names, axisLabel=dict(interval=0, width=190, overflow="break")),
-                  yAxis=dict(type="value", name="Random order's error over species-first's", nameLocation="middle", nameGap=40, min=0),
+    miss = lambda error: math.sqrt(error)
+    groups = [("Older per-field model, guidance 2, a different model", PER_FIELD_MULTIPLE["species_first"], PER_FIELD_MULTIPLE["random"], 0.45)]
+    groups += [(f"Linear model, guidance {g}", summary["grids"][grid_name(LINEAR, g)]["error"], summary["grids"][grid_name(RANDOM, g)]["error"], 1.0)
+               for g in GUIDANCES]
+    multiples = [PER_FIELD_MULTIPLE["random"] / PER_FIELD_MULTIPLE["species_first"]] + [measured[f"guidance_{g}"]["error_multiple"] for g in GUIDANCES]
+    names = [f"{name}\nrandom order's error: {m:.1f} times" for (name, *_), m in zip(groups, multiples)]
+    bar = lambda value, colour, opacity: dict(value=round(value, 3), itemStyle=dict(color=colour, opacity=opacity))
+    label = dict(show=True, position="top", formatter="js:p => p.value.toFixed(2)")
+    series = [dict(name="Species-first order", type="bar", barGap="12%", itemStyle=dict(color=AQUA), data=[bar(miss(s), AQUA, o) for _, s, _, o in groups], label=label, emphasis=dict(focus="series")),
+              dict(name="Random order", type="bar", itemStyle=dict(color=ORANGE), data=[bar(miss(r), ORANGE, o) for _, _, r, o in groups], label=label, emphasis=dict(focus="series"))]
+    option = dict(grid=dict(left=64, right=24, top=48, bottom=72), legend=dict(top=0),
+                  tooltip=dict(trigger="axis", valueFormatter="js:v => v.toFixed(3)"),
+                  xAxis=dict(type="category", data=names, axisLabel=dict(interval=0, width=210, overflow="break")),
+                  yAxis=dict(type="value", name="Typical miss of the asked win rate", nameLocation="middle", nameGap=44, min=0),
                   series=series)
-    lo, hi = min(values[1:]), max(values[1:])
-    if lo > earlier: verdict = f"higher than the {earlier:.1f} measured on a per-field model"
-    elif hi < 1: verdict = "below species-first's"
-    else: verdict = f"against {earlier:.1f} on a per-field model"
-    return option, f"On the linear model, random order's error is {lo:.1f} to {hi:.1f} times species-first's, {verdict}"
+    gaps = [miss(r) - miss(s) for _, s, r, _ in groups[1:]]
+    lo, hi = min(gaps), max(gaps)
+    if hi - lo <= 0.01 and lo > 0:
+        title = (f"On the linear model random order misses the asked win rate by about {(lo + hi) / 2:.2f} more than species-first at every guidance. "
+                 f"The error ratio grows from {multiples[1]:.1f} to {multiples[-1]:.1f} times only because species-first's own miss shrinks")
+    else:
+        title = f"On the linear model random order misses the asked win rate by {lo:.2f} to {hi:.2f} more than species-first"
+    return option, title
 
 
 def spoken(values):
@@ -317,29 +323,30 @@ def main(summary_path=SUMMARY, out=OUT):
                              subtitle="Mean win rate got at each ask, against the dashed line where got equals ask. Linear, random order is left out."))
     option, title = random_order_error_multiple(summary)
     pages.append(write_chart(
-        option, out / "07_random_order_error_multiple.html", title,
-        subtitle="Random order's error divided by species-first's error on the same checkpoint and guidance. Above 1, random order is worse.",
-        note=f"The grey bar is the earlier measurement, {PER_FIELD_MULTIPLE['random']} against {PER_FIELD_MULTIPLE['species_first']}, on the all-teams "
+        option, out / "07_random_order_error_multiple.html", title, height=460,
+        subtitle="Typical miss: how far a team's win rate usually lands from the win rate it was asked for, the square root of the error. "
+                 "Shorter bars are better. Each pair is one model and guidance, so the two orders share everything but the order.",
+        note=f"The faded pair is the earlier measurement, errors {PER_FIELD_MULTIPLE['species_first']} and {PER_FIELD_MULTIPLE['random']}, on the all-teams "
              "per-field model after 21 epochs, 2026-11-07. That model differs from the linear model in its training table and its epochs as well as in its "
-             f"masking rate. Lines on the linear model's bars are 95% bootstrap intervals. {ERROR} Source: {Path(summary_path).name}."))
+             f"masking schedule, so it is not a before and after. {ERROR} Source: {Path(summary_path).name}."))
     option, title, subtitle = line_ups_by_ask(summary)
     pages.append(write_chart(option, out / "08_line_ups_by_ask.html", title, subtitle=subtitle, height=460,
                              note="A line-up is a distinct set of six species. Each point pools 3 sampling seeds of 64 teams. A row is one model decoded in one "
-                                  "order: the per-field masking rate or the linear masking rate, filled species-first or in random order. Uncorrected t is the "
+                                  "order: the per-field masking schedule or the linear masking schedule, filled species-first or in random order. Uncorrected t is the "
                                   "sampler's usual setting: on each pass it tells the model how many fields are still hidden. "
                                   f"Source: {Path(summary_path).name}."))
     option, title, subtitle = line_ups_shared_between_asks(summary)
     pages.append(write_chart(option, out / "09_line_ups_shared_between_asks.html", title, subtitle=subtitle, height=500,
                              note="A line-up is a distinct set of six species. Each ask has 192 teams, 64 from each of 3 sampling seeds, so one ask holds at most 192 "
-                                  "line-ups. A row is one model decoded in one order: the per-field masking rate or the linear masking rate, filled species-first "
+                                  "line-ups. A row is one model decoded in one order: the per-field masking schedule or the linear masking schedule, filled species-first "
                                   f"or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model how many fields are still hidden. "
                                   f"Source: {Path(summary_path).name}."))
     option, title, subtitle = training_and_novel_line_ups(summary)
     pages.append(write_chart(option, out / "10_training_and_novel_line_ups.html", title, subtitle=subtitle, height=500,
                              note="A line-up is a distinct set of six species. A training line-up is the line-up of one of the labelled training teams "
                                   "of the shuffled-only table, validation teams left out; every other line-up is novel. Each grid has 4,416 teams: 23 asks, "
-                                  "3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking rate or the linear masking "
-                                  "rate, filled species-first or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model "
+                                  "3 sampling seeds, 64 teams each. A row is one model decoded in one order: the per-field masking schedule or the linear masking "
+                                  "schedule, filled species-first or in random order. Uncorrected t is the sampler's usual setting: on each pass it tells the model "
                                   f"how many fields are still hidden. Source: {Path(summary_path).name}."))
     return pages
 

@@ -1,4 +1,4 @@
-"""The report run after each masking-rate training (src/masking_rate_training_report.py; docs/masking-rate-rows.md; issue #296).
+"""The report run after each masking-schedule training (src/masking_rate_training_report.py; docs/masking-rate-rows.md; issue #296).
 
 No test calls a training entry point: train84.main runs only with train, load and check_rows replaced. The gap and
 cross-rate tests score a stored checkpoint, stat84_pos_per_field_s0_noise_ep21, on small slices.
@@ -178,9 +178,9 @@ class FiguresAndSummary(unittest.TestCase):
             self.assertEqual(len(pages), 3)
             texts = {page.name: page.read_text() for page in pages}
         everything = "\n".join(texts.values())
-        for words in ("Per-field masking rate", "Linear masking rate", "not comparable"):
+        for words in ("Per-field masking schedule", "Linear masking schedule", "not comparable"):
             self.assertIn(words, everything)
-        self.assertNotIn("schedule", everything.lower())
+        self.assertNotIn("noise schedule", everything.lower()); self.assertNotIn("masking rate", everything.lower())
         self.assertNotIn("spread", everything.lower())
         by_epoch, two_by_two, gap_page = (texts[name] for name in sorted(texts))
         for value in ("1.2543", "1.4391", "1.2577"):
@@ -210,18 +210,18 @@ class FiguresAndSummary(unittest.TestCase):
             text = R.summary(run_info_dir=Path(tmp), results_dir=Path(tmp))
         lines = [line for line in text.splitlines() if line.startswith("| ")]
         self.assertEqual(len(lines), 4)                  # header, rule, two models
-        self.assertIn("Per-field masking rate", lines[2])
-        self.assertIn("Linear masking rate", lines[3])
+        self.assertIn("Per-field masking schedule", lines[2])
+        self.assertIn("Linear masking schedule", lines[3])
         for value in ("| 4 |", "| 7 |", "401.5", "1.2543", "1.4471", "+0.0123"):
             self.assertIn(value, lines[2])
-        self.assertNotIn("schedule", text.lower())
+        self.assertNotIn("noise schedule", text.lower()); self.assertNotIn("masking rate", text.lower())
 
     def test_summary_skips_a_model_without_run_info(self):
         with tempfile.TemporaryDirectory() as tmp:
             write_fakes(tmp, with_linear=False)
             text = R.summary(run_info_dir=Path(tmp), results_dir=Path(tmp))
-        self.assertIn("Per-field masking rate", text)
-        self.assertNotIn("| Linear masking rate", text)
+        self.assertIn("Per-field masking schedule", text)
+        self.assertNotIn("| Linear masking schedule", text)
         self.assertIn(f"{LINEAR}.json", text)
 
 

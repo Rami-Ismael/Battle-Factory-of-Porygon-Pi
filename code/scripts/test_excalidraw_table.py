@@ -2,9 +2,12 @@
 
 Run:  python scripts/test_excalidraw_table.py
 """
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import excalidraw_table as drawn
@@ -72,6 +75,38 @@ class Plan(unittest.TestCase):
     def test_unknown_rows_cycle_through_the_palette(self):
         spec = drawn.spec_of(["A", "B"], [["one", "x"], ["two", "y"]])
         self.assertEqual([row["label"] for row in spec["rows"]], [drawn.BLUE[0], drawn.TEAL[0]])
+
+
+class Scene(unittest.TestCase):
+    def scene(self, texts):
+        elements = [dict(type="rectangle"), *(dict(type="text", text=wrapped, originalText=whole) for wrapped, whole in texts)]
+        folder = tempfile.TemporaryDirectory(); self.addCleanup(folder.cleanup)
+        path = Path(folder.name) / "scene.excalidraw"
+        path.write_text(json.dumps(dict(elements=elements)), encoding="utf-8")
+        return path
+
+    def test_texts_are_read_unwrapped(self):
+        self.assertEqual(drawn.texts_of(self.scene([("Novel line-\nups", "Novel line-ups"), ("1,236", None)])), ["Novel line-ups", "1,236"])
+
+    def test_a_dropped_number_or_word_is_reported_and_a_full_scene_is_not(self):
+        header, rows = ["Row", "Guidance", "Line-ups"], [["Linear, **random** order", "8", "3,820"]]
+        self.assertEqual(drawn.missing_from_scene(header, rows, self.scene([("Row Guidance Line-ups", None), ("Linear, random order at 8: 3,820", None)])), [])
+        self.assertEqual(drawn.missing_from_scene(header, rows, self.scene([("Row Guidance Line-ups", None), ("Linear order 8 and 3,82", None)])), ["3,820", "random"])
+
+
+class Retry(unittest.TestCase):
+    def test_a_failed_fetch_is_tried_again_and_another_error_is_not(self):
+        calls = []
+        def once(*arguments):
+            calls.append(arguments)
+            if len(calls) == 1: raise RuntimeError("Failed to fetch dynamically imported module")
+            return ["scene"]
+        with mock.patch.object(drawn, "render_once", once), mock.patch.object(drawn.time, "sleep"):
+            self.assertEqual(drawn.render(dict(skeleton=[]), "folder", "name"), ["scene"])
+        self.assertEqual(len(calls), 2)
+        with mock.patch.object(drawn, "render_once", side_effect=RuntimeError("the page says 'working'")) as broken, self.assertRaises(RuntimeError):
+            drawn.render(dict(skeleton=[]), "folder", "name")
+        self.assertEqual(broken.call_count, 1)
 
 
 if __name__ == "__main__":

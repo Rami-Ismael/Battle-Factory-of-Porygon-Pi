@@ -1,4 +1,4 @@
-"""Seven one-idea explainer pages for the masking-rate rows (docs/masking-rate-rows.md), one per question the owner asked
+"""Seven one-idea explainer pages for the masking-schedule rows (docs/masking-rate-rows.md), one per question the owner asked
 on 2026-11-11. Diagrams are plain HTML and SVG. The one chart is ECharts: `teams_by_ask_option` builds its option as a
 Python dict, `write_chart` draws it as its own page, and the tables explainer embeds the same dict. Numbers come from the
 stored probe and table results, or are quoted from the pre-registration.
@@ -139,7 +139,7 @@ def corrected_t():
   <div class="box"><h3>Does the fix matter?</h3><p>The model's choices moved by <b style="color:var(--ink)">{p['t_sensitivity']['largest_total_variation_corrected']:.3f}</b> at most. The bar was 0.01. The model barely reads t.</p>
   <span class="chip warn">How it resolves</span><p style="margin-top:6px">After the new per-field model trains, the same check runs on it. Under 0.01: no battles, the row is reported from the check. 0.01 or more: the row is battled.</p></div>
 </div>
-<p class="note">Per-field masking rate: species hidden with chance t^16, ability and item t^4, moves t^1.5, Stat Alignment and Stat Points t. Measured on today's default model.</p>"""
+<p class="note">Per-field masking schedule: species hidden with chance t^16, ability and item t^4, moves t^1.5, Stat Alignment and Stat Points t. Measured on today's default model.</p>"""
     return write("explain_2_corrected_t", "What the corrected t corrects", body)
 
 
@@ -166,7 +166,7 @@ def plan():
     <tr><td>Training time</td><td class=num>5.4 hours</td><td class=num>13.4 hours</td></tr>
     <tr><td>Today's default model</td><td class=num>the control</td><td class=num>a reference only</td></tr></table></div>
 </div>
-<p class="note">Why a new control: today's default model trained on the older table. Compared with a linear model from the shuffled-only table, the table and the masking rate would both differ, and a gap could not be pinned on either. Per-field, corrected t is battled only if its check reaches the bar, 3 more grids and 2.3 hours.</p>"""
+<p class="note">Why a new control: today's default model trained on the older table. Compared with a linear model from the shuffled-only table, the table and the masking schedule would both differ, and a gap could not be pinned on either. Per-field, corrected t is battled only if its check reaches the bar, 3 more grids and 2.3 hours.</p>"""
     return write("explain_3_plan", "The plan after two decisions", body)
 
 
@@ -248,11 +248,11 @@ def sketch(kind):
 FRAMES = [
     ("curves", "1. Error against line-ups", "A row is better when its curve sits lower and further right than the control's.",
      "Linear, species-first lies on the control's curve. Linear, random order sits right and higher.", "A linear curve wholly below the control's."),
-    ("got", "2. Got against ask", "The linear masking rate lifts got above 12/24, or it doesn't.",
+    ("got", "2. Got against ask", "The linear masking schedule lifts got above 12/24, or it doesn't.",
      "The two lines overlap and stop rising at the same got.", "The linear line keeps rising where the control stops."),
     ("ratio", "3. Random order's error as a multiple of species-first's", "Random order stops failing once training shows every mix of hidden and visible fields.",
      "The multiple falls from 2.8 and stays above 1.", "It stays near 2.8, so the order itself is the problem."),
-    ("grid", "4. Validation loss under both masking rates", "Each model is best under the rate it trained on. How much does the linear model give up on the species-first path?",
+    ("grid", "4. Validation loss under both masking schedules", "Each model is best under the rate it trained on. How much does the linear model give up on the species-first path?",
      "Linear model lower under the linear rate, slightly higher under the per-field rate.", "The linear model is lower under both."),
     ("bars", "5. How far the choices move when told another t", "The model barely reads t.",
      "Under 0.01 on every field type, as on today's default model.", "0.01 or more: Per-field, corrected t gets its grids."),
@@ -267,7 +267,7 @@ def storyboard():
 <p class="sub">Sketched before any training or battle, so no frame holds a real number yet. Grey is the control, blue and green are the linear rows.</p>
 <div class="grid g2">{cards}
 <div class="box"><h3>What feeds each frame</h3><p>Two trainings feed frame 4. Nine grids feed frames 1 to 3. One check on the new per-field model feeds frame 5. A run that fed no frame was dropped: the linear model's readings at epochs 34 and 55.</p></div></div>"""
-    return write("storyboard", "Storyboard for the masking-rate rows", body)
+    return write("storyboard", "Storyboard for the masking-schedule rows", body)
 
 
 BUILD = [
@@ -287,7 +287,7 @@ def build_items():
 <p style="margin-top:8px"><b style="color:var(--soft)">Today:</b> {today}</p><p style="margin-top:4px"><b style="color:var(--ink)">After:</b> {after}</p>
 <span class="chip plain">test: {test}</span></div>""" for title, where, today, after, test in BUILD)
     body = f"""<h1>What the code ticket builds</h1>
-<p class="sub">Add the linear masking rate and the corrected t to the 84-field code, with tests. Five build items, each with the line it changes.</p>
+<p class="sub">Add the linear masking schedule and the corrected t to the 84-field code, with tests. Five build items, each with the line it changes.</p>
 <div class="flow" style="margin-bottom:10px">
   {box("Train", "Item 1", "", "train84.py")}<div class="arrow">→</div>{box("Sample", "Items 2, 3 and 5", "", "diffusion84.py, remask84.py")}<div class="arrow">→</div>{box("Battle", "Item 4", "", "ask_grid84.py")}
 </div>
@@ -298,7 +298,7 @@ def build_items():
 
 S, D, N = "same", "diff", "none"
 MATRIX = [
-    ("Masking rate", "Set per field type: species t^16 down to Stat Points t", (D, "One rate, linear by default. §6 learns one per token value"), (D, "Linear: every token t"), "tested here"),
+    ("Masking schedule", "Set per field type: species t^16 down to Stat Points t", (D, "One rate, linear by default. §6 learns one per token value"), (D, "Linear: every token t"), "tested here"),
     ("Loss weight", "Exponent ÷ t", (S, "w ÷ t, and 1 ÷ t when linear"), (S, "1 ÷ t, Eq. 3, the linear case"), ""),
     ("Dividing the loss by 84", "Yes", (D, "Sums, no division"), (S, "Divides by t × length, Algorithm 1"), "was listed as ours"),
     ("How t is drawn in training", "Evenly spaced across the batch", (S, "Algorithm 1"), (D, "Uniform at random"), ""),

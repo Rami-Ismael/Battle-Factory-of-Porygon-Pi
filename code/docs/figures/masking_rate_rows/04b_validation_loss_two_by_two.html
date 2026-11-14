@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Validation loss of each model under each masking rate</title>
+<title>Validation loss of each model under each masking schedule</title>
 <style>
 :root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
@@ -18,8 +18,8 @@ h1,.sub,.note{white-space:pre-line}
 </head>
 <body>
 <main>
-<h1>Validation loss of each model under each masking rate</h1>
-<p class="sub">Expected: each model is lowest under the masking rate it trained on. Only bars of one color are comparable with each other: a loss is comparable only with another measured under the same masking rate.</p>
+<h1>Validation loss of each model under each masking schedule</h1>
+<p class="sub">Expected: each model is lowest under the masking schedule it trained on. Only bars of one color are comparable with each other: a loss is comparable only with another measured under the same masking schedule.</p>
 <div id="chart"></div>
 <p class="note">Each model at its kept epoch, scored on 4368 labelled validation teams of the shuffled-only table, without the teams the legal Pokémon construction tables exclude, 4 mask draws, seed 12345. Source: masking_rate_cross_rate_&lt;checkpoint&gt;.json.</p>
 </main>
@@ -27,7 +27,7 @@ h1,.sub,.note{white-space:pre-line}
 <script>
 const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
   : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
-const option = revive({"legend": {"top": 0}, "grid": {"left": 56, "right": 24, "top": 56, "bottom": 48}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}}, "xAxis": {"type": "category", "data": ["Per-field masking rate", "Linear masking rate"], "name": "Model, by the masking rate it trained with", "nameLocation": "middle", "nameGap": 30}, "yAxis": {"type": "value", "name": "Validation loss", "nameLocation": "middle", "nameGap": 44, "scale": true}, "series": [{"name": "Scored under the per-field masking rate", "type": "bar", "barGap": "12%", "itemStyle": {"color": "#2a78d6"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "color": "#6f6e69"}, "data": [1.4541, 1.4735]}, {"name": "Scored under the linear masking rate", "type": "bar", "barGap": "12%", "itemStyle": {"color": "#1baf7a"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "color": "#6f6e69"}, "data": [1.6477, 1.5987]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const option = revive({"legend": {"top": 0}, "grid": {"left": 56, "right": 24, "top": 56, "bottom": 48}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}}, "xAxis": {"type": "category", "data": ["Per-field masking schedule", "Linear masking schedule"], "name": "Model, by the masking schedule it trained with", "nameLocation": "middle", "nameGap": 30}, "yAxis": {"type": "value", "name": "Validation loss", "nameLocation": "middle", "nameGap": 44, "scale": true}, "series": [{"name": "Scored under the per-field masking schedule", "type": "bar", "barGap": "12%", "itemStyle": {"color": "#2a78d6"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "color": "#6f6e69"}, "data": [1.4541, 1.4735]}, {"name": "Scored under the linear masking schedule", "type": "bar", "barGap": "12%", "itemStyle": {"color": "#1baf7a"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "color": "#6f6e69"}, "data": [1.6477, 1.5987]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
 const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
   : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
 const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");

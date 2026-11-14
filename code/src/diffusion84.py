@@ -56,6 +56,26 @@ def sched84(sched=SCHED):
     return torch.cat([L.sched_tensor(sched), torch.full((SP.COLS,), STAT_EXPONENT)])
 
 
+def corrected_t(exponents, filled):
+    """The t whose expected hidden share in training, mean(t ** exponent), equals the share of fields still hidden once
+    `filled` of the 84 are filled (the expected-share rule of issue #293; our rule, modelled on MD4 Algorithm 2,
+    which samples with the training masking schedule). Under the linear masking schedule it is 1 - filled/84."""
+    still_hidden = 1 - filled / len(exponents)
+    if still_hidden >= 1: return 1.0
+    low, high = 0.0, 1.0
+    for _ in range(100):
+        middle = (low + high) / 2
+        if float((middle ** exponents).mean()) < still_hidden: low = middle
+        else: high = middle
+    return (low + high) / 2
+
+
+def corrected_t_per_pass(sched=SCHED):
+    """corrected_t for each pass of a fixed order, under a masking schedule given as the sched string training used."""
+    exponents = sched84(sched).double().numpy()
+    return [corrected_t(exponents, filled) for filled in range(COLS)]
+
+
 class Net84(nn.Module):
     """Transformer denoiser over the 84-field grid."""
 
@@ -451,9 +471,11 @@ class Model84:
         return o
 
     @torch.no_grad()
-    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False, loops=None):
+    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False, loops=None, corrected_t=False):
         """n teams in ORDER; ask is the win-rate condition, guidance the classifier-free weight. lookahead: see _legal;
         species come first in ORDER, so it draws the same teams on or off. loops: loop-block count (default loop_max).
+        corrected_t: pass k is told corrected_t_per_pass of the masking schedule this model trained with (info["sched"]),
+        not 1 - k/84; off by default, so stored runs draw the same teams.
         A carried-state network starts from a zero state and hands each pass's hidden state to the next pass; the
         guided and unguided passes each carry their own (Loopholing Algorithm 2, here one field per pass)."""
         if seed is not None: torch.manual_seed(seed)
@@ -468,8 +490,9 @@ class Model84:
             keep = []; lp = self._logprobs(x, t, cond, loops=loops, state=state[key], keep=keep); state[key] = keep[0]
             return lp
 
+        t_of_pass = corrected_t_per_pass(self.info.get("sched", SCHED)) if corrected_t else [1.0 - step / COLS for step in range(COLS)]
         for step, c in enumerate(ORDER):
-            t = torch.full((n,), 1.0 - step / COLS, device=DEV)
+            t = torch.full((n,), t_of_pass[step], device=DEV)
             lc = self._column(logprobs(t, w, "ask"), c)
             if ask is not None and guidance != 1.0:
                 lc = guidance * lc + (1 - guidance) * self._column(logprobs(t, wn, "none"), c)

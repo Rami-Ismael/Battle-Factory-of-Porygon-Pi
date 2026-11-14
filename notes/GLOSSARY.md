@@ -1,6 +1,6 @@
 ---
 created_at: 2026-10-20
-updated_at: 2026-11-13
+updated_at: 2026-11-14
 tags:
   - vocabulary
 ---
@@ -239,7 +239,7 @@ _Origin_: D3PM, [Austin et al. 2021](https://arxiv.org/abs/2107.03006), which de
 _Avoid_: Gaussian diffusion (the continuous kind, for images)
 
 **Masked diffusion model**:
-A discrete diffusion model whose forward process replaces each token with a mask token at a random time and keeps it masked from then on: the mask is absorbing. The reverse process only unmasks, so a filled token is never changed again (carry-over), and the network sees both directions. Training is a cross-entropy on the masked tokens, weighted by the masking rate and averaged over time. Both kinds of diffusion model here are masked, so the term names the kind, never one model: say which.
+A discrete diffusion model whose forward process replaces each token with a mask token at a random time and keeps it masked from then on: the mask is absorbing. The reverse process only unmasks, so a filled token is never changed again (carry-over), and the network sees both directions. Training is a cross-entropy on the masked tokens, weighted by the masking schedule and averaged over time. Both kinds of diffusion model here are masked, so the term names the kind, never one model: say which.
 _Origin_: the absorbing transition in D3PM (Austin et al. 2021); the weighted cross-entropy in MDLM, [Sahoo et al. 2024](https://arxiv.org/abs/2406.07524), and MD4, [Shi et al. 2024](https://arxiv.org/abs/2406.04329).
 _Avoid_: mask diffusion model, MDM (alone), absorbing diffusion
 
@@ -247,6 +247,11 @@ _Avoid_: mask diffusion model, MDM (alone), absorbing diffusion
 A discrete diffusion model whose forward process replaces each token with a value drawn uniformly from its vocabulary, with no mask token. Pure noise is a random team. Every reverse pass may change any field, including one it already changed, and sampling runs a fixed number of passes because no field is ever finished. The four arms of the uniform discrete diffusion map (#270) are this kind; the default model is not.
 _Origin_: the uniform transition in D3PM (Austin et al. 2021); UDLM, [Schiff et al. 2024](https://arxiv.org/abs/2412.10193), which adds guidance; Duo, [Sahoo et al. 2025](https://s-sahoo.com/duo/), which shows it arises from an underlying Gaussian diffusion.
 _Avoid_: uniform diffusion model (the name until 2026-11-11), uniform-noise model, uniform-state diffusion (the papers' name)
+
+**Masking schedule**:
+The probability that the forward process has corrupted a field by time t while training: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. Training and validation loss draw their masks with it, so it decides which partly corrupted teams the model practises filling. Two are in use. The per-field masking schedule gives each field type its own: t to the power 16 for species, 4 for ability and item, 1.5 for moves, 1 for Stat Alignment and Stat Points. The linear masking schedule corrupts every field with probability t. MD4 writes the schedule as α_t, the probability that a token is still unmasked, which is one minus ours: its linear schedule 1 − t is our t.
+_Origin_: [Shi et al. 2024](https://arxiv.org/abs/2406.04329), Table 4, "Masking schedule formulas", and Appendix A, Eq. 14. Owner, 2026-11-14: the project's word, replacing masking rate.
+_Avoid_: masking rate (the project's word from 2026-11-11 to 2026-11-14), noise schedule, scheduler, shared masking schedule
 
 **Partial masking**:
 Writing each token's vocabulary index as ℓ digits in base b and masking the digits independently, so a token can be masked, unmasked, or partly revealed in between. On OpenWebText the authors report idle passes falling from 37% to 0.25% at ℓ = 6, and the first masked diffusion model to beat an autoregressive model on perplexity without autoregression (15.36 against 17.54).
@@ -263,7 +268,7 @@ A sample that is right at some middle pass and wrong at the last. Measured as th
 _Origin_: [Wang et al. 2025](https://arxiv.org/abs/2508.09138), §3.2.
 
 **Training–sampling mismatch**:
-Training shows the model partly masked teams drawn by the masking rate, but sampling starts fully masked and follows one decoding order, so many training states never occur while sampling. Under species-first order, the linear masking rate spends training on states, such as moves visible with species masked, that the sampler never reaches; the per-field masking rate keeps species visible and so matches that order.
+Training shows the model partly masked teams drawn by the masking schedule, but sampling starts fully masked and follows one decoding order, so many training states never occur while sampling. Under species-first order, the linear masking schedule spends training on states, such as moves visible with species masked, that the sampler never reaches; the per-field masking schedule keeps species visible and so matches that order.
 _Origin_: the [dLLM ICLR 2026 blog post](https://iclr-blogposts.github.io/2026/blog/2026/dllm/), Reverse Process.
 _Avoid_: training–inference discrepancy, exposure bias (the autoregressive term)
 
@@ -376,27 +381,23 @@ _Avoid_: split-variance sampling, set-field temperature, set-field nucleus, cold
 What a masked text diffusion model receives for infilling: a short header and the team written once as compact JSON, each hidden value replaced by mask tokens it fills where they stand. _Origin_: `MDLMSampler.infill` in dLLM.
 _Avoid_: in-place text, free-text prompt
 
-**Masking rate**:
-The probability that the forward process has corrupted a field by time t: masked, for a masked diffusion model, or replaced by a random value, for a uniform one. Training and validation loss draw their masks with it, so it decides which partly corrupted teams the model practises filling. Two are in use: the per-field masking rate and the linear masking rate.
-_Avoid_: noise schedule, scheduler, schedule (image-diffusion words), shared masking rate
-
-**Per-field masking rate**:
-A masking rate set per field type: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t. Species stay visible until late, so the model mostly practises filling species first. Used by every 48- and 84-field model since 2026-10-07.
+**Per-field masking schedule**:
+A masking schedule set per field type: species t^16, ability and item t^4, move t^1.5, Stat Alignment and Stat Points t. Species stay visible until late, so the model mostly practises filling species first. Used by every 48- and 84-field model since 2026-10-07.
 _Origin_: polynomial schedule, [Shi et al. 2024](https://arxiv.org/abs/2406.04329), §6, there learned per token value.
 
-**Linear masking rate**:
-One masking rate for every field: each is hidden with chance t, so the model practises every mix of hidden and visible fields.
+**Linear masking schedule**:
+One masking schedule for every field: each is hidden with chance t, so the model practises every mix of hidden and visible fields.
 _Origin_: linear schedule, [Shi et al. 2024](https://arxiv.org/abs/2406.04329), App. J.1; LLaDA's rule, [Nie et al. 2025](https://arxiv.org/abs/2502.09992), Eq. 3.
-_Avoid_: shared masking rate, uniform masking (uniform diffusion model is a different model)
-
-**Masking schedule**:
-The papers' name for α_t, the probability that a token is still unmasked at time t. It is one minus the masking rate: the linear masking schedule 1 − t is the linear masking rate t, and the polynomial one, 1 − t^w, is the masking rate t^w. Use it to read the papers; our own prose says masking rate.
-_Origin_: [Shi et al. 2024](https://arxiv.org/abs/2406.04329), Table 4, "Masking schedule formulas", and Appendix A, Eq. 14.
-_Avoid_: noise schedule, scheduler
+_Avoid_: linear masking rate, shared masking schedule, uniform masking (uniform diffusion model is a different model)
 
 **Sampler**:
-How the discrete diffusion model fills a blank candidate until it is complete: its decoding order, how many fields each pass fills, and whether it remasks. The ask, guidance weight and temperature shape each draw; they are not part of the sampler.
+How the discrete diffusion model fills a blank candidate until it is complete. It makes two choices at each pass: the decoding order picks which masked field to fill next, and the draw picks the value that goes into it. How many fields a pass fills, and whether it remasks, belong to the decoding order.
+_Origin_: Kim et al. 2025, §4.1, separate "the position of the next token to decode" from "the value", [arXiv 2502.06768](https://arxiv.org/abs/2502.06768). Thimmaiah et al. 2026, §2.2, call the two parts the scheduler and the decoder, [arXiv 2609.35609](https://arxiv.org/abs/2609.35609).
 _Avoid_: decoder, generator (alone)
+
+**Draw**:
+Picking the value for one masked field. The field's own output head allows only that field type's values, so a species field can only receive a species. The legal Pokémon construction tables, the lookahead when it is on, the ask through guidance, and temperature then set the odds, and one value is drawn at random from them. LLaDA instead takes the most likely value.
+_Avoid_: sampling (papers use it for the whole sampler), decoding (one paper calls this step the decoder)
 
 **Guidance weight**:
 How hard each pass pushes toward the ask. The sampler mixes the field's log-probabilities with and without the ask, z = z_no ask + s·(z_ask − z_no ask): s = 1 is the plain conditional model, a larger s sticks closer to the ask and gives less varied teams. Training drops the ask on 15% of teams so one network gives both terms. Ask grids test s = 2, 4 and 8.
@@ -423,7 +424,7 @@ _Origin_: MDM-Prime (Chao et al. 2025), which calls it an idle step.
 _Avoid_: idle step
 
 **Decoding order**:
-The order in which a sampler fills a candidate's masked fields. The four used so far are species-first order, Pokémon-by-Pokémon order, random order and confidence order.
+The order in which a sampler picks the next masked field to fill. It never picks the value; that is the draw. The four used so far are species-first order, Pokémon-by-Pokémon order, random order and confidence order.
 _Avoid_: unmasking order, generation order, slot order (slot order is the order of Pokémon in a battle)
 
 **Species-first order**:
