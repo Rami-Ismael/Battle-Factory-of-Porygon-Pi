@@ -381,8 +381,13 @@ _Origin_: [Shi et al. 2024](https://arxiv.org/abs/2406.04329), Table 4, "Masking
 _Avoid_: noise schedule, scheduler
 
 **Sampler**:
-How the discrete diffusion model fills a blank candidate until it is complete: its decoding order, how many fields each pass fills, and whether it remasks. The ask, guidance weight and temperature shape each draw; they are not part of the sampler.
+How the discrete diffusion model fills a blank candidate until it is complete. It makes two choices at each pass: the decoding order picks which masked field to fill next, and the draw picks the value that goes into it. How many fields a pass fills, and whether it remasks, belong to the decoding order.
+_Origin_: Kim et al. 2025, §4.1, separate "the position of the next token to decode" from "the value", [arXiv 2502.06768](https://arxiv.org/abs/2502.06768). Thimmaiah et al. 2026, §2.2, call the two parts the scheduler and the decoder, [arXiv 2609.35609](https://arxiv.org/abs/2609.35609).
 _Avoid_: decoder, generator (alone)
+
+**Draw**:
+Picking the value for one masked field. The field's own output head allows only that field type's values, so a species field can only receive a species. The legal Pokémon construction tables, the lookahead when it is on, the ask through guidance, and temperature then set the odds, and one value is drawn at random from them. LLaDA instead takes the most likely value.
+_Avoid_: sampling (papers use it for the whole sampler), decoding (one paper calls this step the decoder)
 
 **Pass**:
 One run of the network during sampling. A pass fills one or more masked fields; one field per pass fills a team in 84 passes.
@@ -399,7 +404,7 @@ _Origin_: MDM-Prime (Chao et al. 2025), which calls it an idle step.
 _Avoid_: idle step
 
 **Decoding order**:
-The order in which a sampler fills a candidate's masked fields. The four used so far are species-first order, Pokémon-by-Pokémon order, random order and confidence order.
+The order in which a sampler picks the next masked field to fill. It never picks the value; that is the draw. The four used so far are species-first order, Pokémon-by-Pokémon order, random order and confidence order.
 _Avoid_: unmasking order, generation order, slot order (slot order is the order of Pokémon in a battle)
 
 **Species-first order**:
