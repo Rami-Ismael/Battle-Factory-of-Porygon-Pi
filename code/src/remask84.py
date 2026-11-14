@@ -198,7 +198,9 @@ RANDOM_ARMS = {
     "rand_plain": "No remasking, 84 passes",
     "rand_remask_conf": "Confidence-weighted 0.3 fields remasked, 210 passes",
     "rand_remask_even": "Even-odds 0.5 fields remasked, 210 passes",
+    "species_then_random": "Species first, then random order: 6 passes, then 78",
 }
+SPECIES = list(M.ORDER[:6])                              # species-first order begins with the six species
 RANDOM_TRIES = 384
 
 
@@ -230,17 +232,31 @@ def sample_random(w, n, ask, arm, stats, guidance=A.GUIDANCE, temperature=1.0, l
 
     if arm == "rand_plain":
         fill(M.COLS, 0.0, 1.0)
+    elif arm == "species_then_random":
+        species_then_random(step, fill, conf)
     else:
-        share = LOOP_START / M.COLS
-        fill(LOOP_START, 0.0, share)
-        if arm == "rand_remask_even":
-            for _ in range(LOOP_PASSES): step(ETA_CAP * share / (1 - share), even_odds)    # the paper's sigma alpha / (1 - alpha)
-        else:
-            # The paper gives masked fields zero remasking odds, which never unmasks them while alpha is held; these odds keep the count level.
-            for _ in range(LOOP_PASSES): step(lambda m: SIGMA_CONF / m.sum(1, keepdim=True).clamp_min(1), odds_by_confidence)
-        fill(M.COLS - LOOP_START, share, 1.0)
+        remask_loop(arm, step, fill)
     if (x == 0).any(): raise RuntimeError("a field is still masked after the last pass")
     return x
+
+
+def remask_loop(arm, step, fill):
+    """Fill 63 fields, loop LOOP_PASSES passes that remask and redraw, then fill the last 21."""
+    share = LOOP_START / M.COLS
+    fill(LOOP_START, 0.0, share)
+    if arm == "rand_remask_even":
+        for _ in range(LOOP_PASSES): step(ETA_CAP * share / (1 - share), even_odds)    # the paper's sigma alpha / (1 - alpha)
+    else:
+        # The paper gives masked fields zero remasking odds, which never unmasks them while alpha is held; these odds keep the count level.
+        for _ in range(LOOP_PASSES): step(lambda m: SIGMA_CONF / m.sum(1, keepdim=True).clamp_min(1), odds_by_confidence)
+    fill(M.COLS - LOOP_START, share, 1.0)
+
+
+def species_then_random(step, fill, conf):
+    """Issue #322: one species per pass in species-first order, then the 78 set fields as rand_plain fills them."""
+    for c in SPECIES:
+        odds = torch.zeros_like(conf); odds[:, c] = 1.0; step(odds)
+    fill(M.COLS - len(SPECIES), len(SPECIES) / M.COLS, 1.0)
 
 
 class RandomDecodingArm:

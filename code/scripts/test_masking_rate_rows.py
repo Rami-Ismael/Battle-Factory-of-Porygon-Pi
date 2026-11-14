@@ -25,7 +25,7 @@ HERE = Path("/tmp/vgc-pilot/data/pokedex.json").exists() and (CHECKPOINTS / "sta
 PROBE = ("import json, ask_grid84 as A; s = A.load_sampler(); "
          "print(json.dumps(dict(out=A.OUT.name, tag=A.tag_of(A.ASK_NUMERATORS[0], 1), guidance=A.GUIDANCE, asks=len(A.ASK_NUMERATORS), ask=A.ask_of(A.ASK_NUMERATORS[0]), "
          "checkpoint=A.checkpoint_path().name, exists=A.checkpoint_path().exists(), table=A.table_of(A.MODELS[A.MODEL]), sampler=type(s).__name__, "
-         "lookahead=getattr(s, 'lookahead', None), sched=A.load_model().info.get('sched'))))")
+         "lookahead=getattr(s, 'lookahead', None), arm=getattr(s, 'arm', None), sched=A.load_model().info.get('sched'))))")
 
 
 def ask_grid(model, **env):
@@ -36,12 +36,13 @@ def ask_grid(model, **env):
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data and the two masking-rate checkpoints")
 class AskGridRows(unittest.TestCase):
     def test_each_code_id_loads_its_checkpoint_and_decoder(self):
-        want = {"sched_species_first": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Model84", None, "16,4,4,1.5,1"),
-                "sched_linear_species_first": ("stat84_shuffled_noise_linear_es3_cap80.pt", "Model84", None, "1,1,1,1,1"),
-                "sched_linear_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", True, "1,1,1,1,1")}
-        for row, (checkpoint, sampler, lookahead, sched) in want.items():
+        want = {"sched_species_first": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Model84", None, None, "16,4,4,1.5,1"),
+                "sched_linear_species_first": ("stat84_shuffled_noise_linear_es3_cap80.pt", "Model84", None, None, "1,1,1,1,1"),
+                "sched_linear_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", True, "rand_plain", "1,1,1,1,1"),
+                "sched_linear_species_then_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", True, "species_then_random", "1,1,1,1,1")}
+        for row, (checkpoint, sampler, lookahead, arm, sched) in want.items():
             got = ask_grid(row)
-            self.assertEqual((got["checkpoint"], got["sampler"], got["lookahead"], got["sched"]), (checkpoint, sampler, lookahead, sched), row)
+            self.assertEqual((got["checkpoint"], got["sampler"], got["lookahead"], got["arm"], got["sched"]), (checkpoint, sampler, lookahead, arm, sched), row)
             self.assertTrue(got["exists"]); self.assertEqual(got["table"], "lossdata84_shuffled_only.npz")
 
     def test_guidance_2_keeps_the_stored_names(self):

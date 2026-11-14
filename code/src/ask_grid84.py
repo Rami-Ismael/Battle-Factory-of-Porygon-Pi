@@ -79,7 +79,8 @@ for _arm, _reader in (("pos_per_field_s0", "No split, first seed"), ("pos_per_fi
 SCHED_EPOCHS = dict(labelled_teams=80)                   # docs/masking-rate-rows.md: three battled rows on two checkpoints
 for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-field, uncorrected t. The control", "species_first"),
                                       ("sched_linear_species_first", "linear", "Linear, species-first", "species_first"),
-                                      ("sched_linear_random", "linear", "Linear, random order", "random")):
+                                      ("sched_linear_random", "linear", "Linear, random order", "random"),
+                                      ("sched_linear_species_then_random", "linear", "Linear, species then random order", "species_then_random")):   # issue #322
     MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
                        stopped="early stopping never fired in 80 epochs, so the model is read at the cap", table=DEFAULT_TABLE)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
@@ -138,11 +139,13 @@ def load_model():
 
 def load_sampler(w=None):
     """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order, and for a
-    row that names random order, LLaDA's random decoding with the lookahead on (remask84.RandomDecodingArm)."""
+    row that names random order, LLaDA's random decoding with the lookahead on (remask84.RandomDecodingArm). The row
+    that names species then random order draws the six species first and the other 78 fields in random order (#322)."""
     w = w or load_model()
-    if MODELS[MODEL].get("decoder", "species_first") == "species_first": return w
+    decoder = MODELS[MODEL].get("decoder", "species_first")
+    if decoder == "species_first": return w
     import remask84
-    return remask84.RandomDecodingArm(w, "rand_plain", lookahead=True)
+    return remask84.RandomDecodingArm(w, {"random": "rand_plain", "species_then_random": "species_then_random"}[decoder], lookahead=True)
 
 
 def table_of(row):
