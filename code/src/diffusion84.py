@@ -193,6 +193,46 @@ def allowed(tables, x):
     return al
 
 
+class Refusals:
+    """What the lookahead refused while drawing each of n teams (issue #207). Each drawn field adds its refused share:
+    the probability the lookahead removed from the base distribution, the model's guided, temperature-scaled
+    distribution after the legal Pokémon construction tables and before the lookahead.
+
+        rec = Refusals(n); ... rec.add(scores, plain, kept, fallback, rows) per drawn field ...; rec.records()
+
+    Per team: kept share, the product over drawn fields of (1 - refused share), and its logarithm; refused share,
+    1 - kept share; refusing fields, the draws where the lookahead refused any value the plain sampler allows (a
+    remasked field counts each time it is drawn); fallback fields, the draws where no value was legal, so every value
+    was allowed and nothing counts as refused. Without remasking and with no fallback field, the kept share is the
+    team's probability under the plain sampler over its probability under the lookahead sampler; it is 0 only for a
+    team the plain sampler cannot draw (the empty first move, let in when the lookahead refused every real one). For a
+    team with a fallback field the ratio does not hold: leave the team out, as the fallback count allows. It adds up on the CPU in float64, which
+    the MPS device lacks."""
+    def __init__(self, n):
+        self.log_kept = torch.zeros(n, dtype=torch.float64)
+        self.refusing = torch.zeros(n, dtype=torch.long)
+        self.fallback = torch.zeros(n, dtype=torch.long)
+
+    def add(self, scores, plain, kept, fallback, rows=None):
+        """scores [B, outputs]: the base distribution's logits before any legality mask; plain, kept, fallback: from
+        Model84._legal_parts; rows [B]: the teams this field was drawn for (default all)."""
+        plain, kept, fallback = plain.cpu(), kept.cpu(), fallback.cpu()
+        rows = torch.ones_like(fallback) if rows is None else rows.cpu()
+        refused = (plain & ~kept).any(1)
+        s = scores.cpu().double()
+        lse = lambda m: torch.logsumexp(s.masked_fill(~m, -float("inf")), 1)
+        log_kept = torch.where(refused, (lse(kept) - lse(plain)).clamp(max=0.0), torch.zeros_like(self.log_kept))
+        self.log_kept += torch.where(rows, log_kept, torch.zeros_like(log_kept))
+        self.refusing += (refused & rows).long(); self.fallback += (fallback & rows).long()
+
+    def records(self):
+        """One dict per team. log_kept_share is None where some draw's lookahead refused every value the plain sampler
+        allows; a very small kept share can also round to 0.0 while its logarithm stays finite."""
+        return [dict(kept_share=math.exp(lk), log_kept_share=lk if lk > -math.inf else None, refused_share=-math.expm1(lk),
+                     refusing_fields=r, fallback_fields=f)
+                for lk, r, f in zip(self.log_kept.tolist(), self.refusing.tolist(), self.fallback.tolist())]
+
+
 def shuffle_slots(x, ps=None):
     """The same Pokémon order (random unless ps [B, 6] is given) applied to the 48-field block and the Stat Points."""
     B = x.shape[0]
@@ -461,19 +501,42 @@ class Model84:
     def _legal(self, x, c, lookahead=False):
         """Boolean [B, outputs] for column c; never empty, never [MASK]. lookahead=True also drops the values that
         would leave a Pokémon whose species is masked with no legal species (lookahead.py); Stat Points are untouched."""
-        if c >= STAT0: return SP.allowed_stat_points(x[:, STAT0:])[:, c - STAT0]
-        k = L.KEY_OF_COL[c]; al = self.tables.allowed(x[:, :STAT0]); o = al[k][:, L.COLS_BY_KEY[k].index(c)].clone()
-        if lookahead: o &= lookahead_rule(self.tables, x[:, :STAT0], c, al)
+        return self._legal_parts(x, c, lookahead)[0]
+
+    def _legal_parts(self, x, c, lookahead=False):
+        """(legal, plain, kept, fallback) for column c. legal: what _legal gives. plain: the same with the switch off.
+        kept: the plain values the lookahead leaves; at a fallback field every value is allowed, so kept is plain and
+        nothing counts as refused. fallback [B]: no value was legal, so every value was allowed. With the switch off,
+        kept is plain and nothing is refused."""
+        if c >= STAT0:
+            o = SP.allowed_stat_points(x[:, STAT0:])[:, c - STAT0]
+            return o, o, o, torch.zeros(len(x), dtype=torch.bool, device=x.device)
+        k = L.KEY_OF_COL[c]; al = self.tables.allowed(x[:, :STAT0]); tab = al[k][:, L.COLS_BY_KEY[k].index(c)]
+        plain, empty = self._with_fallback(self._no_moves(tab.clone(), c))
+        if not lookahead: return plain, plain, plain, empty
+        pre = self._no_moves(tab & lookahead_rule(self.tables, x[:, :STAT0], c, al), c)
+        legal, empty = self._with_fallback(pre.clone())
+        kept = torch.where(empty.unsqueeze(1), plain, plain & pre)
+        return legal, plain, kept, empty
+
+    def _no_moves(self, o, c):
         E = self.tables.EMV
         if c % NF == FIRST_MOVE and E is not None:           # Showdown rejects a Pokémon with no moves
             real = o.clone(); real[:, [0, E]] = False; o[real.any(1), E] = False
-        o[~o.any(1)] = True; o[:, 0] = False
         return o
 
+    @staticmethod
+    def _with_fallback(o):
+        """o with every value allowed where none was, and never [MASK]; and the rows that fell back."""
+        empty = ~o.any(1); o[empty] = True; o[:, 0] = False
+        return o, empty
+
     @torch.no_grad()
-    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False, loops=None, corrected_t=False):
+    def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False, loops=None, corrected_t=False,
+               refusals=None):
         """n teams in ORDER; ask is the win-rate condition, guidance the classifier-free weight. lookahead: see _legal;
-        species come first in ORDER, so it draws the same teams on or off. loops: loop-block count (default loop_max).
+        species come first in ORDER, so it draws the same teams on or off. refusals: a Refusals for the n teams, which
+        records what the lookahead refused. loops: loop-block count (default loop_max).
         corrected_t: pass k is told corrected_t_per_pass of the masking schedule this model trained with (info["sched"]),
         not 1 - k/84; off by default, so stored runs draw the same teams.
         A carried-state network starts from a zero state and hands each pass's hidden state to the next pass; the
@@ -496,7 +559,9 @@ class Model84:
             lc = self._column(logprobs(t, w, "ask"), c)
             if ask is not None and guidance != 1.0:
                 lc = guidance * lc + (1 - guidance) * self._column(logprobs(t, wn, "none"), c)
-            lc = lc.masked_fill(~self._legal(x, c, lookahead), -float("inf")) / temperature
+            legal, plain, kept, fallback = self._legal_parts(x, c, lookahead)
+            if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback)
+            lc = lc.masked_fill(~legal, -float("inf")) / temperature
             v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
             x[:, c] = v + 1 if c >= STAT0 else v                 # a Stat Point output index is its value
         return x
