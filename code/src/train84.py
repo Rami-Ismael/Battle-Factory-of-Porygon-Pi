@@ -26,7 +26,7 @@ files. They run only with --older-table, so no training reads those labels by ac
 
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
                           | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
-                          | shuffled_per_field | shuffled_linear
+                          | shuffled_per_field | shuffled_linear | shuffled_linear_all_teams
                           | loop_block_equal_compute | loop_block_equal_epochs | carry_state_equal_compute | carry_state_equal_epochs
 
 The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking schedule where every field
@@ -100,6 +100,8 @@ LINEAR_MASKING_RATE = M.LINEAR_SCHED                     # every field hidden wi
 # Masking-schedule rows: code ID -> the exponents of the masking schedule in training, the only setting that differs
 MASKING_RATE_ARMS = dict(shuffled_per_field=dict(sched=M.PER_FIELD_SCHED), shuffled_linear=dict(sched=LINEAR_MASKING_RATE))
 NAMES.update(shuffled_per_field="stat84_shuffled_noise_per_field_es3_cap80", shuffled_linear="stat84_shuffled_noise_linear_es3_cap80")
+ALL_TEAMS_ARM = "shuffled_linear_all_teams"             # issue #60 on today's defaults: shuffled_linear's recipe on every team
+NAMES[ALL_TEAMS_ARM] = "stat84_shuffled_noise_linear_all_teams_es3_cap80"
 CONTROL_EPOCHS = 80                                       # the cap of the loop arms' control, shuffled_linear
 LOOP_BLOCK = dict(loop_start=1, loop_layers=2, loop_max=4)              # 6 needs 13 GB of GPU memory per step (docs/looped-84-fields.md)
 LOOP_NETS = dict(loop_block=LOOP_BLOCK, carry_state=dict(carry=True))
@@ -170,8 +172,17 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     m.save(out)
     json.dump(m.info, open(X.RES / f"{name(arm)}.json", "w"), indent=1, default=float)
     print(f"[{name(arm)}] done in {m.info['minutes']} min; best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']}"
-          f" -> {out}", flush=True)
+          f" ({stop_reason(m.info)}) -> {out}", flush=True)
     return m
+
+
+def stop_reason(info):
+    """Why a training ended, from its run info."""
+    if info.get("patience") and info["stopped_epoch"] < info["cap"]:
+        return f"no new lowest validation loss for {info['patience']} epochs after epoch {info['best_epoch']}"
+    if info.get("stop_after") and info["stopped_epoch"] == info["stop_after"] < info["cap"]:
+        return f"planned stop at epoch {info['stop_after']}"
+    return f"reached the cap of {info['cap']} epochs"
 
 
 def stamped(model, arm):
@@ -209,6 +220,18 @@ def train_masking_rate_arms(arm):
     has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
     train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
           early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS[arm])
+
+
+def train_all_teams_arm(arm):
+    """The all-teams model (issue #60, retrained 2026-11-15 on the defaults of that day): shuffled_linear's call on every
+    team of the shuffled-only table, labelled or not, and validation loss on every seeded 2% validation team. One network,
+    no matchup input, early stopping with patience 3 and threshold 0, cap 80, the best epoch kept and every epoch saved."""
+    global DATA_SHA, DATA_TABLE
+    if arm != ALL_TEAMS_ARM: return
+    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    tr, va = ~d["all_val"], d["all_val"]
+    train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
+          early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS["shuffled_linear"])
 
 
 def train_loop_arms(arm):
@@ -277,9 +300,10 @@ def main(argv):
                   ddom_tau=dict(ddom_tau01=0.1, ddom_tau03=0.3)[arm])
     train_position_arms(arm)
     train_masking_rate_arms(arm)
+    train_all_teams_arm(arm)
     train_loop_arms(arm)
     if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke",
-                   *POSITION_ARMS, *MASKING_RATE_ARMS, *LOOP_ARMS):
+                   *POSITION_ARMS, *MASKING_RATE_ARMS, ALL_TEAMS_ARM, *LOOP_ARMS):
         sys.exit(__doc__)
 
 

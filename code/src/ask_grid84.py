@@ -11,6 +11,7 @@ AG84_MODEL is a name in MODELS, or the checkpoint name train84.py --label-noise 
     AG84_MODEL=stat84_all_teams_es3_cap80_labelnoise1over48 python ask_grid84.py gen
     AG84_MODEL=stat84_labelled_noise_byepoch_es3_cap80_labelnoise1over48_ep03 python ask_grid84.py gen
 
+AG84_ASKS=12 draws only ask 12/24 (comma-separated numerators for several); AG84_SEEDS=1 likewise narrows the seeds.
 AG84_GUIDANCE sets the guidance, default 2. Another value gets its own results file and cell tags, with "_g4" or "_g8"
 after the model name, so guidance 2 keeps every stored name. AG84_UNGUIDED=1 draws one cell per seed with no ask and no
 guidance into "<model>_unguided". A model row that names decoder="random" samples in random order with the lookahead on;
@@ -86,6 +87,10 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
                                       ("sched_per_field_random", "per_field", "Per-field, random order", "random")):   # issue #335
     MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
                        stopped="early stopping never fired in 80 epochs, so the model is read at the cap", table=DEFAULT_TABLE)
+MODELS["gen84_linear_all_teams"] = dict(checkpoint="stat84_shuffled_noise_linear_all_teams_es3_cap80",   # issue #60, train84.py shuffled_linear_all_teams
+                                        reader="All teams, linear masking schedule, label noise ±1/48",
+                                        epochs=dict(all_teams="early stopping, cap 80, patience 3"), table=DEFAULT_TABLE,
+                                        stopped="early stopping on every validation team, labelled or not; the best epoch is kept")
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
@@ -104,7 +109,12 @@ SMOKE = bool(os.environ.get("AG84_SMOKE"))
 UNGUIDED = bool(os.environ.get("AG84_UNGUIDED"))           # one cell per seed with no ask: the row's unguided baseline
 GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, 1280, 7300, 1
 SUFFIX = "_unguided" if UNGUIDED else "" if GUIDANCE == 2 else f"_g{GUIDANCE:g}"   # guidance 2 keeps the stored names
-ASK_NUMERATORS, SEEDS = [0] if UNGUIDED else list(range(1, 24)), [1, 2, 3]
+def ask_numerators(env):
+    """The ask numerators k of k/24 to draw: all 23, or the comma-separated ones AG84_ASKS names."""
+    return [int(k) for k in env["AG84_ASKS"].split(",")] if env.get("AG84_ASKS") else list(range(1, 24))
+
+
+ASK_NUMERATORS, SEEDS = [0] if UNGUIDED else ask_numerators(os.environ), [1, 2, 3]
 if os.environ.get("AG84_SEEDS"): SEEDS = [int(s) for s in os.environ["AG84_SEEDS"].split(",")]
 if SMOKE: KEEP, BATCH, MAX_TRIES, ASK_NUMERATORS, SEEDS = 4, 8, 64, [0] if UNGUIDED else [12], [1]
 DIVERSITY_SUBSETS, SUBSET_SIZE = 200, 5
