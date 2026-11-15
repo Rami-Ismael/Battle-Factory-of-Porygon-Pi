@@ -131,30 +131,7 @@ class MaskingRateArms(unittest.TestCase):
 
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
-class AllTeamsArm(unittest.TestCase):
-    """The all-teams model of issue #60 on today's defaults: every team of the shuffled-only table, labelled or not, with
-    shuffled_linear's recipe. train and load are replaced first, so no test starts a real training."""
-
-    run_arm = MaskingRateArms.run_arm
-    fake_table = MaskingRateArms.fake_table
-
-    def test_checkpoint_name(self):
-        self.assertEqual(TR.NAMES["shuffled_linear_all_teams"], "stat84_shuffled_noise_linear_all_teams_es3_cap80")
-
-    def test_it_reads_the_shuffled_only_table_without_the_flag(self):
-        self.assertNotIn("shuffled_linear_all_teams", TR.OLDER_TABLE_ARMS)
-        self.assertNotIn("shuffled_linear_all_teams", TR.PER_FIELD_ARMS)
-        _train, load = self.run_arm("shuffled_linear_all_teams")
-        load.assert_called_once_with(TR.SHUFFLED_ONLY)
-
-    def test_every_team_trains_and_validates_labelled_or_not(self):
-        train, _load = self.run_arm("shuffled_linear_all_teams")
-        arm, rows, labels, (val_rows, val_labels) = train.call_args.args
-        self.assertEqual(arm, "shuffled_linear_all_teams")
-        self.assertEqual(repr(labels.tolist()), repr([0.5, float("nan"), 0.25, 0.1]))
-        self.assertEqual(repr(val_labels.tolist()), repr([0.75, float("nan")]))
-        self.assertEqual((len(rows), len(val_rows)), (4, 2))
-
+class StopReason(unittest.TestCase):
     def test_the_log_says_why_training_stopped(self):
         self.assertEqual(TR.stop_reason(dict(cap=80, patience=3, stopped_epoch=34, best_epoch=31)),
                          "no new lowest validation loss for 3 epochs after epoch 31")
@@ -162,13 +139,6 @@ class AllTeamsArm(unittest.TestCase):
         self.assertEqual(TR.stop_reason(dict(cap=80, patience=None, stopped_epoch=21, stop_after=21, best_epoch=None)),
                          "planned stop at epoch 21")
         self.assertEqual(TR.stop_reason(dict(cap=80, patience=None, stopped_epoch=80, best_epoch=None)), "reached the cap of 80 epochs")
-
-    def test_the_recipe_is_shuffled_linears(self):
-        mine, _load = self.run_arm("shuffled_linear_all_teams")
-        theirs, _load = self.run_arm("shuffled_linear")
-        self.assertEqual(mine.call_args.kwargs, theirs.call_args.kwargs)
-        self.assertEqual(mine.call_args.kwargs, dict(epochs=80, patience=3, early_stopping_threshold=0.0, label_noise=1 / 48,
-                                                     every_epoch=True, sched="1,1,1,1,1"))
 
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
@@ -189,13 +159,8 @@ class AskGridTable(unittest.TestCase):
         self.assertEqual(A.table_from_info(None), "lossdata84.npz")
 
     def test_models_trained_on_the_shuffled_only_table_say_so(self):
-        for name in ("pos_per_field_s0", "pos_no_slot", "gen84_linear_all_teams"):
+        for name in ("pos_per_field_s0", "pos_no_slot"):
             self.assertEqual(A.table_of(A.MODELS[name]), "lossdata84_shuffled_only.npz", name)
-
-    def test_the_all_teams_row_reads_the_kept_checkpoint_and_every_training_team(self):
-        row = A.MODELS["gen84_linear_all_teams"]
-        self.assertEqual(row["checkpoint"], TR.NAMES["shuffled_linear_all_teams"])
-        self.assertFalse(row.get("labelled"))
 
     def test_asks_can_be_narrowed_to_one(self):
         self.assertEqual(A.ask_numerators({}), list(range(1, 24)))

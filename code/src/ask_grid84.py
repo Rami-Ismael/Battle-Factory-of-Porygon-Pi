@@ -87,10 +87,6 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
                                       ("sched_per_field_random", "per_field", "Per-field, random order", "random")):   # issue #335
     MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
                        stopped="early stopping never fired in 80 epochs, so the model is read at the cap", table=DEFAULT_TABLE)
-MODELS["gen84_linear_all_teams"] = dict(checkpoint="stat84_shuffled_noise_linear_all_teams_es3_cap80",   # issue #60, train84.py shuffled_linear_all_teams
-                                        reader="All teams, linear masking schedule, label noise ±1/48",
-                                        epochs=dict(all_teams="early stopping, cap 80, patience 3"), table=DEFAULT_TABLE,
-                                        stopped="early stopping on every validation team, labelled or not; the best epoch is kept")
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
