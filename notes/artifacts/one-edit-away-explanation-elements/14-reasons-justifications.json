@@ -1,0 +1,85 @@
+{
+ "action": "Talk about the subject",
+ "element": "Why: reasons and justifications",
+ "what_it_does": "It answers the reader's own why about smoothness, so the claim arrives with the reason it is true and the reason it matters.",
+ "when_to_use": "Right after the draft defines smoothness, where an engineer will ask why a search method cares, why the benchmarks are smooth, and why one Pokemon edit could move the win rate so far.",
+ "sentence_pattern": "x matters because y.",
+ "dllm_example": "coding or reasoning ... often non-linear",
+ "anchor_in_draft": "Why they are mostly smooth.",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "A 2024 survey of Bayesian optimisation on discrete sequences found that on its harder sequence design problems, the ones with longer sequences and more motifs to satisfy, Bayesian optimisation did as well as or worse than a greedy search that mutates the best sequence so far. The survey measures problem size and motif count, not smoothness. My own reading is that smoothness is part of why: a method that learns from nearby points gains little when one edit can move the score a long way, and on Pokemon a whole-Pokemon swap moves a tournament-ready team's win rate by 5.90 points, 0.65 of the spread between teams.",
+   "facts": [
+    {
+     "claim": "Section 4.2.1, word for word: 'Problems of low complexity (i.e. PestControlEquiv and Ehrlich with seq. length 5) are readily solvable using one-hot BO, with Bounce solving PestControlEquiv in all 5 replications. Such problems are also easily solvable by naïve baselines like DirectedEvolution. For more complex problems, BO optimizers perform equally or worse than greedy baselines.'",
+     "source": "González-Duque, Michael, Bartels, Zainchkovskyy, Hauberg, Boomsma 2024, A survey and benchmark of high-dimensional Bayesian optimization of discrete sequences, NeurIPS 2024, Section 4.2.1 and Table 1, https://arxiv.org/abs/2406.04739"
+    },
+    {
+     "claim": "Complexity in Section 4.2.1 means sequence length, motif count and motif length: 'sequence lengths of 5, 15, and 64 are tested. The motif lengths and number of motifs are (4, 1), (7, 2) and (10, 4) respectively.' The greedy method is 'DirectedEvolution (i.e. greedily mutating the incumbent in sequence space)'.",
+     "source": "González-Duque, Michael, Bartels, Zainchkovskyy, Hauberg, Boomsma 2024, A survey and benchmark of high-dimensional Bayesian optimization of discrete sequences, NeurIPS 2024, Section 4.2.1, https://arxiv.org/abs/2406.04739"
+    },
+    {
+     "claim": "The paper does not use the words smooth, rugged or epistasis about its test functions. The nearest statement is a hypothesis in the other direction, about greedy search: 'We hypothesize that naïve baselines will perform worse on black boxes with higher-order effects.' The step from 'harder problem' to 'less smooth problem' is Rami's inference, not the paper's finding.",
+     "source": "González-Duque, Michael, Bartels, Zainchkovskyy, Hauberg, Boomsma 2024, A survey and benchmark of high-dimensional Bayesian optimization of discrete sequences, NeurIPS 2024, Section 4.2.1 last paragraph, https://arxiv.org/abs/2406.04739; full text searched for smooth, rugged, epista, interaction, landscape"
+    },
+    {
+     "claim": "Whole-Pokemon swap on tournament-ready teams: 5.90 win-rate points, 95% interval 4.78 to 7.01, share 0.65 of the 9.04-point spread of true scores between teams. Size of a change, not its direction, under one behaviour-cloning battle policy against the 50 top-placing teams.",
+     "source": "code/docs/ruggedness2.md, 'Reading without the 5-point cutoff (2026-11-13, after the result, post hoc)', table row 'Whole Pokemon copied from a real set'"
+    }
+   ]
+  },
+  {
+   "sentence": "Bayesian optimisation guesses the score of an untested point from the points it has already scored, and that guess is only as good as the smoothness the method assumes. The authors of the combinatorial method that introduced the Pest Control benchmark say it directly: Gaussian processes rely on the smoothness defined by a kernel. When a whole-Pokemon swap moves a team's win rate by 0.65 of the spread between teams, a team one swap away is a weak guide to the team you have.",
+   "facts": [
+    {
+     "claim": "Section 1, word for word: 'As GPs rely on the smoothness defined by a kernel to model uncertainty [37], they are originally proposed for, and mostly used in, continuous input spaces.' Section 2.2: 'The role of the surrogate model is to smoothly interpolate and extrapolate neighboring data.' Two points are neighbours when 'their respective set of combinatorial choices differ only by a single combinatorial choice.' This describes how the method works, not how benchmarks are built.",
+     "source": "Oh, Tomczak, Gavves, Welling 2019, Combinatorial Bayesian Optimization using the Graph Cartesian Product, NeurIPS 2019, Sections 1 and 2.2, https://arxiv.org/abs/1902.00448"
+    },
+    {
+     "claim": "Pest Control has 25 stations with 5 choices each. González-Duque et al. footnote 6: 'PestControl is a black box whose input are 25 categorical variables, each of which has 5 potential categories.'",
+     "source": "González-Duque, Michael, Bartels, Zainchkovskyy, Hauberg, Boomsma 2024, A survey and benchmark of high-dimensional Bayesian optimization of discrete sequences, NeurIPS 2024, Section 4.2.1 footnote 6, https://arxiv.org/abs/2406.04739"
+    },
+    {
+     "claim": "Whole-Pokemon swap: 0.65 of the spread between teams in both groups, 5.90 and 5.85 points. Larger than a Pest Control step on either way of computing that step's share. Move, item and ability edits read undecided against the step.",
+     "source": "code/docs/ruggedness2.md, 'Reading without the 5-point cutoff (2026-11-13, after the result, post hoc)', table row 'Whole Pokemon copied from a real set'; FACTS.md, 'Decision on the benchmark spread'"
+    }
+   ]
+  },
+  {
+   "sentence": "Which search method wins depends on how much the parts of a solution interact. On NK landscapes, a test family where each bit's contribution depends on k other bits, a model-building evolutionary method lost to simpler genetic algorithms when k was small and beat all of them as k grew. Our hypothesis, not yet measured, is that a Pokemon edit's effect depends on the other five Pokemon, which would make teams a high-interaction problem of this kind.",
+   "facts": [
+    {
+     "claim": "Section 4.5, word for word: 'While for small values of k, hBOA is outperformed by other algorithms included in the comparison, as k increases, the situation changes rapidly. More specifically, for larger k, hBOA outperforms all other algorithms and its relative performance with respect to other algorithms improves with increasing problem size.' hBOA is the hierarchical Bayesian optimization algorithm, an estimation-of-distribution method, not Gaussian-process Bayesian optimisation.",
+     "source": "Pelikan 2008, Analysis of Estimation of Distribution Algorithms and Genetic Algorithms on NK Landscapes, Section 4.5, https://arxiv.org/abs/0801.3111"
+    },
+    {
+     "claim": "Section 1: 'NK fitness landscapes [14, 15] were introduced by Kauffman as tunable models of rugged fitness landscape.' k is 'the neighborhood size. For each bit, k neighbors are specified'. Section 4.3: a stochastic hill climber 'was far inferior compared to any other algorithm included in the comparison'. That is a result on NK landscapes only, never a claim about Pokemon.",
+     "source": "Pelikan 2008, Sections 1 and 4.3, https://arxiv.org/abs/0801.3111"
+    },
+    {
+     "claim": "Hypothesis, not measured: the effect of one edit depends on the other five Pokemon. No current result measures the same edit on two different teams. The edit-kind rerun measures the size of each edit, not whether that size changes with the rest of the team.",
+     "source": "FACTS.md, wording rules, 'Depends on the other five Pokemon is a hypothesis until measured'; code/docs/ruggedness2.md, 'Rerun with shuffled slots against the full meta'"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "Answered 2026-11-13: González-Duque et al. Section 4.2.1 is about problem complexity, sequence length and motif count, not smoothness. Candidate 0 says only that and marks the step to smoothness as your inference. Keep that step, or let the survey stand alone and give the reason through Oh et al. in candidate 1?",
+  "Answered 2026-11-12: say only that the measured benchmarks are smooth, and name them. Five of your 10 measured tasks stay smooth and five turn rough near good points, and the molecule tasks are rougher than Pokemon. No paper says benchmarks are smooth because methods need smoothness. Will you replace 'they are mostly smooth' with the named benchmarks?",
+  "The survey's own hypothesis is that greedy search does worse on functions with higher-order effects, which pulls against reading its result as 'rough problems defeat Bayesian optimisation'. Do you want the post to quote that hypothesis, or leave it in the facts?",
+  "'One edit's effect depends on the other five Pokemon' is a hypothesis. Candidate 2 labels it so. Measuring it would need the same edit applied to several different teams. Should it stay in the post as a labelled hypothesis or come out?",
+  "Removed: the Charizard Heat Wave to Rest edit from the October 1 study. FACTS.md retires every September and October Pokemon number. A replacement example can come from the edit-kind rerun's real edits in notes/reports/edit-kind-rerun-2026-11-13/issue-313/spec.json."
+ ],
+ "picked": 0,
+ "applied": "Rebuilt the element around González-Duque et al. Section 4.2.1 as candidate 1, picked, saying only that Bayesian optimisation matched or trailed greedy search as problems grew, with the smoothness step marked as Rami's inference, and added the owner answer with exact quotes. Replaced the other two candidates with checked quotes from Oh et al. 2019 and Pelikan 2008, labelled 'depends on the other five Pokemon' as a hypothesis, and dropped the retired October Charizard numbers.",
+ "owner_answers": [
+  {
+   "label": "What Section 4.2.1 does and does not support",
+   "text": "Section 4.2.1 tests Bayesian optimisation on Ehrlich sequence design functions whose difficulty is set by sequence length, motif count and motif length, and it reports: \"For more complex problems, BO optimizers perform equally or worse than greedy baselines.\" It supports the sentence that Bayesian optimisation did no better than greedy mutation as these problems grew, and the conclusion repeats that simpler methods \"tend to perform as well or better than most BO methods\" at low budgets. It does not measure smoothness, ruggedness or epistasis, and its only related line is a hypothesis pointing the other way: \"We hypothesize that naïve baselines will perform worse on black boxes with higher-order effects.\" So the link from this paper to \"smoothness matters for search\" is your inference, and the candidate marks it as yours, while Oh et al. 2019 and Pelikan 2008 carry the mechanism directly."
+  }
+ ],
+ "owner_note": [
+  "González-Duque et al., NeurIPS 2024, [A survey and benchmark of high-dimensional Bayesian optimization of discrete sequences](https://arxiv.org/abs/2406.04739), Section 4.2.1"
+ ]
+}

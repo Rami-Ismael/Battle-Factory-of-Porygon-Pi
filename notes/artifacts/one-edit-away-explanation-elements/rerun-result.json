@@ -1,0 +1,461 @@
+{
+ "design": {
+  "battles": 384,
+  "edits_per_op": 3,
+  "bench_edits": 15,
+  "replicates": 3,
+  "climb_proposals": 100,
+  "boot": 2000,
+  "vgc_anchors": {
+   "meta": 24,
+   "search": 16
+  }
+ },
+ "benchmarks": {
+  "pest_control": {
+   "random": {
+    "rho": 0.9905205964883527,
+    "delta_star": 0.32105190719120685,
+    "s": 0.13769098381264716,
+    "E_d2": 0.146214604888889,
+    "E_r2": 0.04314027777777769,
+    "var_f": 5.436751742051282,
+    "var_f_within_start": 0.7727964129951688,
+    "rho_within_start_var": 0.933310814221031,
+    "rho_ci95": [
+     0.9868905523498228,
+     0.9929395856412391
+    ]
+   },
+   "search": {
+    "rho": 0.9899418906862388,
+    "delta_star": 0.33070664744856054,
+    "s": 0.14183165594296054,
+    "E_d2": 0.12303146999999984,
+    "E_r2": 0.013664583333333329,
+    "var_f": 5.436751742051282,
+    "var_f_within_start": 1.0997242570000005,
+    "rho_within_start_var": 0.9502753140296212,
+    "rho_ci95": [
+     0.9864823809427905,
+     0.9923907621430097
+    ]
+   }
+  },
+  "sphere_step": {
+   "random": {
+    "rho": 0.9936586453816753,
+    "delta_star": 0.6043821454822915,
+    "s": 0.11261753520944005,
+    "E_d2": 0.36527777777777776,
+    "E_r2": 0.0,
+    "var_f": 28.801241987179484,
+    "var_f_within_start": 4.285212862318841,
+    "rho_within_start_var": 0.9573792726856378,
+    "rho_ci95": [
+     0.992565609348797,
+     0.9944892160222641
+    ]
+   },
+   "search": {
+    "rho": 0.9973236107884637,
+    "delta_star": 0.39264063297965823,
+    "s": 0.0731626846354929,
+    "E_d2": 0.15416666666666667,
+    "E_r2": 0.0,
+    "var_f": 28.801241987179484,
+    "var_f_within_start": 0.3875,
+    "rho_within_start_var": 0.8010752688172043,
+    "rho_ci95": [
+     0.9965051847658243,
+     0.9979486384163466
+    ]
+   }
+  },
+  "sphere_level": {
+   "random": {
+    "rho": 0.993356168198995,
+    "delta_star": 0.6410440702479042,
+    "s": 0.11527212847002548,
+    "E_d2": 0.4109375,
+    "E_r2": 0.0,
+    "var_f": 30.926241987179484,
+    "var_f_within_start": 5.640285326086956,
+    "rho_within_start_var": 0.9635712134899127,
+    "rho_ci95": [
+     0.9917245080755537,
+     0.9945330118967944
+    ]
+   },
+   "search": {
+    "rho": 0.9925014800775729,
+    "delta_star": 0.6810301633065405,
+    "s": 0.12246240176010835,
+    "E_d2": 0.46380208333333334,
+    "E_r2": 0.0,
+    "var_f": 30.926241987179484,
+    "var_f_within_start": 0.7791666666666667,
+    "rho_within_start_var": 0.7023729946524064,
+    "rho_ci95": [
+     0.9907224301213592,
+     0.9938199731143394
+    ]
+   }
+  }
+ },
+ "vgc": {
+  "meta": {
+   "A_move_swap": {
+    "rho": 0.8568162832894837,
+    "delta_star": 0.048381908062598955,
+    "s": 0.5351330987904156,
+    "E_d2": 0.003499799583333334,
+    "E_r2": 0.0011589905555555561,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.008433946171497586,
+    "rho_within_start_var": 0.8612269404985942,
+    "rho_ci95": [
+     0.660801947806338,
+     0.9383174548397094
+    ],
+    "frac_beyond_noise": 0.2361111111111111,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     0.11111111111111112,
+     0.2777777777777778
+    ],
+    "rho_minus_pest_ci95": [
+     -0.3296775346742228,
+     -0.051958079612093366
+    ],
+    "edits": 72,
+    "T1": false,
+    "T2": true
+   },
+   "B_ability_swap": {
+    "rho": 0.9180018507172776,
+    "delta_star": 0.03661324327799073,
+    "s": 0.4049645645799702,
+    "E_d2": 0.00249952013888889,
+    "E_r2": 0.0011589905555555561,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.008433946171497586,
+    "rho_within_start_var": 0.9205277365971556,
+    "rho_ci95": [
+     0.8071178198072553,
+     0.9712257498357882
+    ],
+    "frac_beyond_noise": 0.16666666666666666,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     0.0,
+     0.25
+    ],
+    "rho_minus_pest_ci95": [
+     -0.1843754476730603,
+     -0.019176278153101092
+    ],
+    "edits": 72,
+    "T1": false,
+    "T2": true
+   },
+   "C_item_swap": {
+    "rho": 0.8845195957147228,
+    "delta_star": 0.04345005434084314,
+    "s": 0.48058382054596305,
+    "E_d2": 0.003046897777777778,
+    "E_r2": 0.0011589905555555561,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.008433946171497586,
+    "rho_within_start_var": 0.8880768750574684,
+    "rho_ci95": [
+     0.7302278753649779,
+     0.9654509504295463
+    ],
+    "frac_beyond_noise": 0.1527777777777778,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     0.0,
+     0.2361111111111111
+    ],
+    "rho_minus_pest_ci95": [
+     -0.2610633206765077,
+     -0.024151800539100904
+    ],
+    "edits": 72,
+    "T1": false,
+    "T2": true
+   },
+   "D_alignment_swap": {
+    "rho": 0.9767676102954792,
+    "delta_star": 0.019488711119802434,
+    "s": 0.2155569052687519,
+    "E_d2": 0.0015388004166666672,
+    "E_r2": 0.0011589905555555561,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.008433946171497586,
+    "rho_within_start_var": 0.9774832650465168,
+    "rho_ci95": [
+     0.9279177373417091,
+     1.0
+    ],
+    "frac_beyond_noise": 0.041666666666666664,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     -0.05555555555555555,
+     0.05555555555555555
+    ],
+    "rho_minus_pest_ci95": [
+     -0.06196320907407483,
+     0.009742373517467585
+    ],
+    "edits": 72,
+    "T1": false,
+    "T2": false
+   },
+   "E_spread_copy": {
+    "rho": 0.9842433323656572,
+    "delta_star": 0.01604975337297534,
+    "s": 0.17751995738137602,
+    "E_d2": 0.0014165851388888895,
+    "E_r2": 0.0011589905555555561,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.008433946171497586,
+    "rho_within_start_var": 0.9847287036165899,
+    "rho_ci95": [
+     0.9431001140032028,
+     1.0
+    ],
+    "frac_beyond_noise": 0.041666666666666664,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     -0.041666666666666664,
+     0.041666666666666664
+    ],
+    "rho_minus_pest_ci95": [
+     -0.047235305241355656,
+     0.011141554347724455
+    ],
+    "edits": 72,
+    "T1": false,
+    "T2": false
+   },
+   "F_candidate_copy": {
+    "rho": 0.7870855054975762,
+    "delta_star": 0.058998203833299505,
+    "s": 0.6525557363205442,
+    "E_d2": 0.004639778611111112,
+    "E_r2": 0.0011589905555555561,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.008433946171497586,
+    "rho_within_start_var": 0.79364416224763,
+    "rho_ci95": [
+     0.5758241337866412,
+     0.8807023103961095
+    ],
+    "frac_beyond_noise": 0.3333333333333333,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     0.18055555555555555,
+     0.41666666666666663
+    ],
+    "rho_minus_pest_ci95": [
+     -0.4141393875666255,
+     -0.10965122354000849
+    ],
+    "edits": 72,
+    "T1": true,
+    "T2": true
+   },
+   "anchor_mean_win_rate": 0.5071666666666667
+  },
+  "search": {
+   "A_move_swap": {
+    "rho": 0.8516799452687078,
+    "delta_star": 0.04924204885055048,
+    "s": 0.5446467749492182,
+    "E_d2": 0.0038129454166666676,
+    "E_r2": 0.0013881660416666679,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.005863110270833334,
+    "rho_within_start_var": 0.7932173144463679,
+    "rho_ci95": [
+     0.5883714458430597,
+     0.9734206831012763
+    ],
+    "frac_beyond_noise": 0.16666666666666666,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     0.02083333333333333,
+     0.24999999999999997
+    ],
+    "rho_minus_pest_ci95": [
+     -0.39960321118428405,
+     -0.01483738721107512
+    ],
+    "edits": 48,
+    "T1": false,
+    "T2": true
+   },
+   "B_ability_swap": {
+    "rho": 0.9887811283703978,
+    "delta_star": 0.013542871741251914,
+    "s": 0.14979233377981793,
+    "E_d2": 0.0015715754166666675,
+    "E_r2": 0.0013881660416666679,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.005863110270833334,
+    "rho_within_start_var": 0.9843590375647215,
+    "rho_ci95": [
+     0.9359659556513814,
+     1.0
+    ],
+    "frac_beyond_noise": 0.10416666666666667,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     -0.04166666666666667,
+     0.1875
+    ],
+    "rho_minus_pest_ci95": [
+     -0.05454442334485414,
+     0.012732036946741548
+    ],
+    "edits": 48,
+    "T1": false,
+    "T2": false
+   },
+   "C_item_swap": {
+    "rho": 0.9872959833027757,
+    "delta_star": 0.014411417637877717,
+    "s": 0.15939897551254376,
+    "E_d2": 0.0015958550000000008,
+    "E_r2": 0.0013881660416666679,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.005863110270833334,
+    "rho_within_start_var": 0.9822884997262883,
+    "rho_ci95": [
+     0.9203161288558872,
+     1.0
+    ],
+    "frac_beyond_noise": 0.08333333333333333,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     -0.0625,
+     0.16666666666666666
+    ],
+    "rho_minus_pest_ci95": [
+     -0.06989495131253293,
+     0.012698347739189885
+    ],
+    "edits": 48,
+    "T1": false,
+    "T2": false
+   },
+   "D_alignment_swap": {
+    "rho": 1.0,
+    "delta_star": 0.0,
+    "s": 0.0,
+    "E_d2": 0.0013490587500000005,
+    "E_r2": 0.0013881660416666679,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.005863110270833334,
+    "rho_within_start_var": 1.0,
+    "rho_ci95": [
+     0.9550473261106518,
+     1.0
+    ],
+    "frac_beyond_noise": 0.041666666666666664,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     -0.08333333333333334,
+     0.08333333333333333
+    ],
+    "rho_minus_pest_ci95": [
+     -0.03522151618215,
+     0.013058266100936976
+    ],
+    "edits": 48,
+    "T1": false,
+    "T2": false
+   },
+   "E_spread_copy": {
+    "rho": 0.9818238006237611,
+    "delta_star": 0.017238033288825776,
+    "s": 0.19066305030728364,
+    "E_d2": 0.0016853158333333335,
+    "E_r2": 0.0013881660416666679,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.005863110270833334,
+    "rho_within_start_var": 0.97465937207894,
+    "rho_ci95": [
+     0.9414229422260685,
+     1.0
+    ],
+    "frac_beyond_noise": 0.0625,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     -0.041666666666666664,
+     0.08333333333333334
+    ],
+    "rho_minus_pest_ci95": [
+     -0.04860389799023294,
+     0.01128075875415505
+    ],
+    "edits": 48,
+    "T1": false,
+    "T2": false
+   },
+   "F_candidate_copy": {
+    "rho": 0.7909862021084583,
+    "delta_star": 0.05845526779797808,
+    "s": 0.6465505361401253,
+    "E_d2": 0.004805184375000001,
+    "E_r2": 0.0013881660416666679,
+    "var_f": 0.008174145362179489,
+    "var_f_within_start": 0.005863110270833334,
+    "rho_within_start_var": 0.7086001989139064,
+    "rho_ci95": [
+     0.5796351431694946,
+     0.9060816876305082
+    ],
+    "frac_beyond_noise": 0.3125,
+    "frac_replicates_beyond_noise": 0.041666666666666664,
+    "frac_diff_ci95": [
+     0.10416666666666669,
+     0.4375
+    ],
+    "rho_minus_pest_ci95": [
+     -0.40852189777787695,
+     -0.0839069929257722
+    ],
+    "edits": 48,
+    "T1": true,
+    "T2": true
+   },
+   "anchor_mean_win_rate": 0.44465625
+  }
+ },
+ "sanity_sphere_step_rho_ge_0.95": true,
+ "verdict": "rugged beyond battle noise and beyond Pest Control",
+ "T1_cells": [
+  [
+   "meta",
+   "F_candidate_copy"
+  ],
+  [
+   "search",
+   "F_candidate_copy"
+  ]
+ ],
+ "T1_and_T2_cells": [
+  [
+   "meta",
+   "F_candidate_copy"
+  ],
+  [
+   "search",
+   "F_candidate_copy"
+  ]
+ ],
+ "checked": "Run matched its plan, 880 scores of 384 battles. Read without a size cutoff: a whole-Pokemon swap and a move edit are above zero from both groups of starting teams; item and ability edits are above zero from tournament-ready teams only; stat alignment and Stat Points edits are not shown above zero. As registered before the run, with a size cutoff that was dropped on 2026-11-13, only the whole-Pokemon swap passed both tests, so the reading here was chosen after the result. Against one Pest Control step, taken as a share of the spread between benchmark starting points of its own kind, only the whole-Pokemon swap from tournament-ready teams is larger. The 24 tournament-ready starting teams are a fresh draw, not September's."
+}

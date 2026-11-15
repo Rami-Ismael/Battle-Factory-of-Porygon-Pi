@@ -1,0 +1,84 @@
+{
+ "action": "Provide context",
+ "element": "Implications",
+ "what_it_does": "It tells the reader what a search method has to do differently once one edit can move win rate by more than battle noise.",
+ "when_to_use": "Right after the post shows that one edit can beat battle noise, before it names the two searchers, so the reader sees why the result matters for optimisation.",
+ "sentence_pattern": "One edit of kind x moves win rate by a points, while battle luck moves a score by b points, so a search that takes x steps has to [consequence that follows from a and b].",
+ "dllm_example": "cause errors to propagate",
+ "anchor_in_draft": "It interesting problem it require to solve the problem with different method.",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "A search that changes one move at a time takes steps of about 5 points of win rate. Battle luck alone moves a score by about 3.4 points when the same team is battled again. So with 384 battles per score, the luck in one comparison is about two thirds the size of the step, and a search has to replay a team or battle more before it can trust that one step was better.",
+   "facts": [
+    {
+     "claim": "One move edit changes win rate by 4.84 points, 95% interval 3.35 to 6.23, from tournament-ready teams, and 4.92 points, 2.05 to 7.24, from search-found teams, after battle luck is removed.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, vgc.meta and vgc.search, A_move_swap.delta_star; code/docs/ruggedness2.md, table in 'Reading without the 5-point cutoff'"
+    },
+    {
+     "claim": "Two scores of the same unchanged team differ by 3.40 points for tournament-ready teams and 3.73 for search-found teams, root mean square, at 384 battles each.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, square root of vgc.meta and vgc.search E_r2, 0.0340 and 0.0373"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, design.battles"
+    }
+   ]
+  },
+  {
+   "sentence": "The six kinds of edit do not take steps of one size. Swapping a whole Pokemon moves win rate by about 5.9 points, while copying a Pokemon's Stat Points from another real set moves it by 1.6 points, an amount not shown to differ from zero. A search that mixes these edits, like the cross-entropy method that samples teams, keeps the best and samples again near them, gets its step size from that mix. We measured the sizes. Which mix searches best is untested.",
+   "facts": [
+    {
+     "claim": "Whole-Pokemon swap 5.90 points, interval 4.78 to 7.01, and Stat Points copy 1.60 points, interval 0 to 2.63, from tournament-ready teams. From search-found teams 5.85 and 1.72.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, vgc.meta and vgc.search, F_candidate_copy and E_spread_copy delta_star; SITE/rerun-readings.json"
+    },
+    {
+     "claim": "Stat alignment and Stat Points edits are not shown above zero in either group. Not shown above zero does not mean the edit does nothing.",
+     "source": "code/docs/ruggedness2.md, table in 'Reading without the 5-point cutoff', column 'Above zero'; v2/FACTS.md, 'Reading one'"
+    },
+    {
+     "claim": "Neither study determines the best mutation probabilities or number of edits for the cross-entropy method.",
+     "source": "notes/research_notes/Landscape analysis inside CEM 20261020/one-edit-evidence.md, section 'Consequences for the CEM explanation', first paragraph"
+    }
+   ]
+  },
+  {
+   "sentence": "Pest Control, a standard benchmark for Bayesian optimisation, has 25 settings, and one step changes one of them. There a step moves the score by about a third of the spread between its starting points, 0.37 from random points and 0.32 from hill-climbed ones. Swapping one Pokemon moves a team's win rate by 0.65 of the spread between teams. So a method tuned where one step is small meets steps about twice as large when its step is a Pokemon swap.",
+   "facts": [
+    {
+     "claim": "One Pest Control step is 0.138 of that benchmark's spread from random points and 0.142 from hill-climbed points, pooled over both kinds of starting point. Decided 2026-11-13: the two kinds of starting point are not pooled, so the step is 0.37 and 0.32 and the pooled 0.14 is not used.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, benchmarks.pest_control.random.s and .search.s"
+    },
+    {
+     "claim": "With each kind of starting point on its own spread, the step is 0.37 from random points and 0.32 from hill-climbed points.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, benchmarks.pest_control delta_star divided by the square root of var_f_within_start, 0.321 / 0.879 and 0.331 / 1.049"
+    },
+    {
+     "claim": "The whole-Pokemon swap is 0.65 of the 9.04-point spread of true scores between teams in both groups, interval 0.49 to 0.92 from tournament-ready teams.",
+     "source": "SITE/rerun-readings.json, spread_between_teams_points and F_candidate_copy.share_of_spread"
+    },
+    {
+     "claim": "The whole-Pokemon swap is larger than a Pest Control step. Move, item and ability edits read undecided against it. Decided 2026-11-13: the two kinds of starting point are not pooled, so the step is 0.37 and 0.32 and the pooled 0.14 is not used.",
+     "source": "v2/FACTS.md, 'Decision on the benchmark spread'"
+    },
+    {
+     "claim": "Pest Control has 25 stations with 5 choices each, and an edit sets one station to another value.",
+     "source": "code/docs/ruggedness2.md, section 'What is added'"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "None of the listed sources says why the project also built MAP-Elites, which keeps the best team in each cell of a grid of team types. Was it built because of the one-edit result, or for a different reason such as getting several distinct teams?",
+  "Has the project ever run Bayesian optimisation on teams? The claim that its guesses go wrong where one edit moves the score a lot was argued, not measured, so the first candidate of the earlier draft was dropped.",
+  "Did the cross-entropy method's edit mix change after the September study, for example a different chance of whole-Pokemon swaps? The audit says the studies do not settle that.",
+  "Answered 2026-11-13 in part: the rerun spends 384 battles per score. Still open: what battle count per team does the cross-entropy method or MAP-Elites spend, so the post can compare a search's budget with the 3.4-point battle luck?",
+  "Answered 2026-11-13: you chose each kind of benchmark starting point on its own spread. One Pest Control step is then 0.37 from random points and 0.32 from hill-climbed points. Only the whole-Pokemon swap from tournament-ready teams reads larger than a step. Move, item and ability edits read undecided."
+ ],
+ "picked": null,
+ "applied": "Dropped the October Charizard edit and the 400,000-battle and 18.870 numbers, the neighbour correlations, the 5-point cutoff and the 'top 50 meta teams' wording, and the claim that moves are rougher than Pest Control. The three implications now follow from rerun numbers: move steps of about 5 points against 3.4 points of luck, unequal step sizes across edit kinds, and the whole-Pokemon swap against one Pest Control step.",
+ "owner_answers": [],
+ "owner_note": [
+  "etc"
+ ]
+}

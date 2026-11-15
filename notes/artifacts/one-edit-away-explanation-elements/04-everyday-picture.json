@@ -1,0 +1,102 @@
+{
+ "action": "Make connections",
+ "element": "An everyday picture",
+ "what_it_does": "It hands a reader who has never met smoothness a scene they already know, with a starting team, one small edit, the change in score and the luck that moves the score even when nothing changes, so they can feel why some edits move a team's score far more than others.",
+ "when_to_use": "Right after Rami's definition of smoothness, before the experiment, where an engineer who knows gradient descent but not Pokemon needs a picture of why the last step stops predicting the next one.",
+ "sentence_pattern": "Picture [a thing that competes] entered [N] times against the same [50 rivals]. Enter it again unchanged and its share of wins still moves by luck. Change [one large part] and the share moves a lot, change [one small setting] and it moves far less. In the Pokemon study the luck was [noise], and with luck removed [edit kind] moved win rate by [size].",
+ "dllm_example": "Errors can ... snowball",
+ "anchor_in_draft": "However, when the space is smooth the value change drastically you need more input space to get meaning near the value of thenext point you travel too.",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "Picture a football club that plays the same 50 rivals 384 times. Play that run of matches twice with the same line-up and the club's share of wins still moves, by luck alone. In the Pokemon study, two scores of the same unchanged team differed by 3.40 win-rate points. With that luck taken out, bringing in one new player, a real Pokemon of a species not on the team, moved a team's win rate by 5.90 points. Copying one player's training plan, which in Pokemon are its Stat Points, from another real set moved it by 1.60 points, a size the study could not tell apart from zero.",
+   "facts": [
+    {
+     "claim": "Mapping, part by part. Starting team: the club's line-up, a fixed group of players as a Pokemon team is a fixed group of six. One small edit: one player brought in, or one player's training plan copied from elsewhere, as one Pokemon or its Stat Points are replaced. Change in score: the change in the club's share of wins over 384 matches against the same 50 rivals, as win rate is measured over 384 battles against the same 50 top-placing teams. Battle luck: the same line-up replaying the same run of matches and getting a different record. The picture says how far the record moves, not whether it rises or falls, which matches a measurement of size only.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, sections The finished measurement and Scope limits"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams, 49 of them distinct, with the same behaviour-cloning battle policy on both sides and team slots shuffled. Each starting team was replayed three times unchanged.",
+     "source": "code/docs/ruggedness2.md, section Rerun with shuffled slots against the full meta, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key design"
+    },
+    {
+     "claim": "Two scores of the same unchanged tournament-ready team differ by 3.40 win-rate points, root mean square, at 384 battles each.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta, square root of E_r2 = 0.0340"
+    },
+    {
+     "claim": "For tournament-ready teams, one whole-Pokemon swap, a real set of a species not on the team, moved win rate by 5.90 points after battle luck is removed, 95% interval 4.78 to 7.01.",
+     "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff, table row Whole Pokemon copied from a real set, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta.F_candidate_copy.delta_star"
+    },
+    {
+     "claim": "For tournament-ready teams, copying one Pokemon's Stat Points from another real set of the same species moved win rate by 1.60 points after battle luck is removed, 95% interval 0 to 2.63, so it is not shown above zero. Not shown above zero does not mean it does nothing.",
+     "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff, table row Stat Points copied from another set, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta.E_spread_copy.delta_star"
+    }
+   ]
+  },
+  {
+   "sentence": "Picture a dish entered in 384 blind tastings against the same 50 rival dishes. Cook the same recipe again and its share of wins still shifts, because tastings vary. Now pull one ingredient off the shelf at random and swap it in. In the Pokemon study, two scores of the same unchanged team differed by 3.40 win-rate points. With that luck taken out, one move swapped at random on one Pokemon moved a team's win rate by 4.84 points, and copying one Pokemon's Stat Points from another real set moved it by 1.60 points, a size the study could not tell apart from zero.",
+   "facts": [
+    {
+     "claim": "Mapping, part by part. Starting team: the recipe. One small edit: one ingredient pulled off the shelf at random, as four of the six edit kinds replace one field with a random legal value rather than one a player would choose. Change in score: the change in the dish's share of wins over 384 tastings against the same 50 rival dishes, as win rate is measured over 384 battles against the same 50 top-placing teams. Battle luck: the same recipe cooked again and scoring differently. The picture names how far the score shifts, not which way, which matches a measurement of size only.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, sections The finished measurement and Scope limits"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams, 49 of them distinct, with the same behaviour-cloning battle policy on both sides and team slots shuffled. Each starting team was replayed three times unchanged.",
+     "source": "code/docs/ruggedness2.md, section Rerun with shuffled slots against the full meta, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key design"
+    },
+    {
+     "claim": "Two scores of the same unchanged tournament-ready team differ by 3.40 win-rate points, root mean square, at 384 battles each.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta, square root of E_r2 = 0.0340"
+    },
+    {
+     "claim": "For tournament-ready teams, replacing one move with a random legal move moved win rate by 4.84 points after battle luck is removed, 95% interval 3.35 to 6.23.",
+     "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff, table row One move replaced, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta.A_move_swap.delta_star"
+    },
+    {
+     "claim": "For tournament-ready teams, copying one Pokemon's Stat Points from another real set of the same species moved win rate by 1.60 points after battle luck is removed, 95% interval 0 to 2.63, so it is not shown above zero. Not shown above zero does not mean it does nothing.",
+     "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff, table row Stat Points copied from another set, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta.E_spread_copy.delta_star"
+    }
+   ]
+  },
+  {
+   "sentence": "Picture a racing car entered in 384 races against the same 50 rival cars. Enter the same car in another 384 races and its share of wins still moves, because races have luck in them. Fit an engine taken from another real car and the share moves a lot. Copy the suspension settings from another car of the same model and it moves far less. In the Pokemon study, two scores of the same unchanged team differed by 3.40 win-rate points. With that luck taken out, swapping in a whole Pokemon from a real team moved win rate by 5.90 points, and copying one Pokemon's Stat Points from another real set of the same species moved it by 1.60 points, a size the study could not tell apart from zero.",
+   "facts": [
+    {
+     "claim": "Mapping, part by part. Starting team: the car. One small edit: an engine copied from another real car, as a whole Pokemon is copied from a real set of another species, or suspension settings copied from another car of the same model, as Stat Points are copied from another real set of the same species. Change in score: the change in the car's share of wins over 384 races against the same 50 rivals, as win rate is measured over 384 battles against the same 50 top-placing teams. Battle luck: the same car entered in another 384 races and winning a different share. The picture is weaker on one point: a car is one machine, a Pokemon team is six members. It names how far the share moves, not which way.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, sections The finished measurement and Scope limits"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams, 49 of them distinct, with the same behaviour-cloning battle policy on both sides and team slots shuffled. Each starting team was replayed three times unchanged.",
+     "source": "code/docs/ruggedness2.md, section Rerun with shuffled slots against the full meta, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key design"
+    },
+    {
+     "claim": "Two scores of the same unchanged tournament-ready team differ by 3.40 win-rate points, root mean square, at 384 battles each.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta, square root of E_r2 = 0.0340"
+    },
+    {
+     "claim": "For tournament-ready teams, one whole-Pokemon swap, a real set of a species not on the team, moved win rate by 5.90 points after battle luck is removed, 95% interval 4.78 to 7.01.",
+     "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff, table row Whole Pokemon copied from a real set, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta.F_candidate_copy.delta_star"
+    },
+    {
+     "claim": "For tournament-ready teams, copying one Pokemon's Stat Points from another real set of the same species moved win rate by 1.60 points after battle luck is removed, 95% interval 0 to 2.63, so it is not shown above zero. Not shown above zero does not mean it does nothing.",
+     "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff, table row Stat Points copied from another set, and ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, key vgc.meta.E_spread_copy.delta_star"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "Answered 2026-11-13: the six-edit-kind study was rerun against all 50 top-placing teams with shuffled slot order, and every candidate now quotes that rerun only. The October move-edit pilot in notes/Blog/visuals/smoothness/ used 3 panels of 50 battles and counts among the retired September and October numbers, so its single-team examples, the Charizard and Floette-Eternal edits and the coverage-extension Incineroar edits, are gone.",
+  "Should the picture carry one real edit from the rerun, such as Charizard's Charizardite Y replaced by a Miracle Seed from the issue #313 storyboard, or only the averaged sizes? A single edit's score is noisy at 384 battles, so a single example would need its own replay beside it.",
+  "The candidates quote the tournament-ready group only. Do you want the search-found group's numbers too, 5.85 for a whole Pokemon swap and 3.73 points of luck, or does one group keep the picture simple?",
+  "Answered 2026-11-13: you chose each kind of benchmark starting point on its own spread. One Pest Control step is then 0.37 from random points and 0.32 from hill-climbed points. Only the whole-Pokemon swap from tournament-ready teams reads larger than a step. Move, item and ability edits read undecided."
+ ],
+ "picked": null,
+ "applied": "Replaced the foggy hillside and the cake and goalkeeper pictures, which suggested a direction of change, carried no battle luck and quoted the retired October pilot, with a football club, a blind tasting and a racing car that each carry all four parts. Each candidate now has a mapping fact and quotes only rerun numbers from issue #313, checked in the result file.",
+ "owner_answers": [
+  {
+   "label": "Which picture to use",
+   "text": "Use the football club, candidate 0. A team of players maps straight onto a team of six Pokemon, and every reader has seen the same side win one season and lose the next with nobody changed, so battle luck needs no explaining."
+  }
+ ],
+ "owner_note": null
+}

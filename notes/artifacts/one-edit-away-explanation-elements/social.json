@@ -1,0 +1,373 @@
+{
+ "claim": "I changed one thing on a strong Pokemon team and measured how far its win rate moved. Swapping one whole Pokemon moved it about 6 points and swapping one move about 5, both clearly more than battle luck. Changing Stat Points or stat alignment moved it under 2 points, which I could not tell from zero. Relative to how much teams differ from each other, one whole-Pokemon swap is 0.65 of that spread, more than one step on a standard optimisation benchmark, which is 0.32 to 0.37 of the spread between its own starting points. Scope: one battle policy, one opponent pool, random legal edits.",
+ "skipped": [
+  "DSPy, #show-and-tell: this is not a DSPy post, and the channel is for DSPy write-ups.",
+  "Kaggle Discord: Rami has not joined yet."
+ ],
+ "versions": [
+  {
+   "id": "linkedin",
+   "site": "LinkedIn",
+   "place": "Rami's own feed, posted first",
+   "reader": "Data science and machine learning hiring managers and engineers who know what an optimiser is and do not know competitive Pokemon",
+   "limit": 3000,
+   "hooks": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.",
+    "Most optimisation benchmarks are built so that a small step gives a small change. I wanted to know whether Pokemon team building works that way.",
+    "Swapping one Pokemon out of six moved a team's win rate about 6 points. Changing its Stat Points moved it by an amount I could not tell from zero."
+   ],
+   "posts": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.\n\nThird post in my build-in-public series. This one covers one reason Pokemon team building is a hard optimisation problem. Today: smoothness. Do two teams one edit apart score about the same?\n\nI took 40 teams, 24 built by players for tournaments and 16 found by an earlier search, and gave each 18 random legal edits of six kinds. Every score is 384 battles against the 50 top-placing tournament teams. Replaying each unchanged team three times measured battle luck.\n\nWhat one edit did, once battle luck is removed:\nSwapping one whole Pokemon moved win rate about 6 points.\nSwapping one move moved it about 5 points.\nBoth are clearly more than luck. Their 95% intervals stay above zero.\nChanging Stat Points or stat alignment moved it under 2 points. I could not tell that from zero, which is not proof it does nothing.\n\nIs 6 points a lot? Teams differ from each other by 9.04 points, one standard deviation. So one whole-Pokemon swap is 0.65 of that spread. On Pest Control, a standard Bayesian optimisation benchmark, one step is 0.32 to 0.37 of the spread between its own starting points. One Pokemon swap is a bigger step than that.\n\nWhy it matters: Bayesian optimisation guesses a team's score from teams it already tried nearby, and that guess leans on neighbours scoring alike.\n\nLimits: one battle policy, behaviour cloning, played both sides. One opponent pool. Random edits, not a player's choices. And I measured how far a score moves, not which way.\n\nEdit-by-edit visual: {link}\n\nWhat the project keeps teaching me: in mathematics the answer is not the only goal, the tools and understanding you build on the way are. This problem pushed me into metaheuristics, the cross-entropy method, reinforcement learning and diffusion models. I will write up my mistakes in a later post."
+   ],
+   "attach": "Frame 6 of storyboard-light.svg, cropped: the size of each edit kind with its 95% interval for tournament-ready teams. It shows the post's two readings at once, which kinds clear zero and which do not, and it carries no benchmark claim.",
+   "cautions": [
+    "Rami writes this post himself. Treat this as material to edit, not as finished prose.",
+    "The closing lines paraphrase the last item of his checklist note. Check that they still say what he means.",
+    "Keep the line about Bayesian optimisation leaning on neighbours as a reason the measurement matters. Do not turn it into a claim that a search method fails on Pokemon, which was not measured.",
+    "The closing names reinforcement learning. The project studied it and never trained it, and every battle uses a behaviour-cloning policy. Keep the word only as something you studied.",
+    "Frames 7 and 8 of the storyboard were corrected on 2026-11-13 and can be attached. The benchmark comparison is shown for tournament-ready teams. From search-found teams the whole-Pokemon swap misses it narrowly."
+   ],
+   "characters": [
+    1874
+   ]
+  },
+  {
+   "id": "x",
+   "site": "X",
+   "place": "Thread from Rami's account, after the LinkedIn post",
+   "reader": "Machine learning and optimisation people on X, some Pokemon players",
+   "limit": 280,
+   "hooks": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.",
+    "Is Pokemon team building smooth? I made one edit at a time to 40 teams and measured how far each win rate moved.",
+    "One Pokemon swapped out of six moved win rate about 6 points. One Stat Points change moved it by an amount I could not tell from zero."
+   ],
+   "posts": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.\n\nSome edits moved it a lot. Some I could not tell from zero.\n\nA short thread on smoothness in Pokemon team building.",
+    "Setup: 40 starting teams, 18 random legal edits each, six kinds of edit.\n\nEvery score is 384 battles against the 50 top-placing tournament teams. I replayed each unchanged team three times to measure battle luck.",
+    "Once luck is removed:\n\nSwapping one whole Pokemon moved win rate about 6 points.\nSwapping one move, about 5.\nBoth clearly more than luck.\n\nChanging Stat Points or stat alignment moved it under 2 points. I could not tell that from zero.",
+    "Is 6 points big? Teams differ from each other by 9.04 points, one standard deviation. One whole-Pokemon swap is 0.65 of that.\n\nOne step on Pest Control, a standard Bayesian optimisation benchmark, is 0.32 to 0.37 of the spread between its own starting points.",
+    "So one Pokemon swap is a bigger step than the benchmark's.\n\nThat matters because Bayesian optimisation guesses a team's score from teams it tried nearby. The guess leans on neighbours scoring alike.",
+    "Limits: one battle policy, behaviour cloning, on both sides. One opponent pool. Random legal edits, not a player's choices. It measures how far a score moves, not which way.\n\nEdit-by-edit visual: {link}"
+   ],
+   "attach": "Frame 6 of storyboard-light.svg on post 3, where the sizes appear. It is the picture of that post's numbers.",
+   "cautions": [
+    "X counts any link as 23 characters. The last post is under the limit with a full link.",
+    "Swap the first line of post 1 for the chosen hook and recount it.",
+    "Frames 7 and 8 of the storyboard were corrected on 2026-11-13 and can be attached. The benchmark comparison is shown for tournament-ready teams. From search-found teams the whole-Pokemon swap misses it narrowly."
+   ],
+   "characters": [
+    202,
+    212,
+    235,
+    259,
+    198,
+    202
+   ]
+  },
+  {
+   "id": "bluesky",
+   "site": "Bluesky",
+   "place": "Thread from Rami's account",
+   "reader": "Researchers and engineers who moved from X, some Pokemon players",
+   "limit": 300,
+   "hooks": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.",
+    "Optimisation benchmarks are mostly smooth: a small step, a small change. I measured whether a Pokemon team is.",
+    "Swap one Pokemon and win rate moves about 6 points. Change its Stat Points and I could not tell the move from zero."
+   ],
+   "posts": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved. Some edits moved it a lot. Some I could not tell from zero. A thread on smoothness, the property most optimisation benchmarks have and Pokemon team building may not.",
+    "Setup: 40 starting teams, each given 18 random legal edits of six kinds. Every score is 384 battles against the 50 top-placing tournament teams. Each unchanged team was replayed three times, so I could measure battle luck and remove it.",
+    "Swapping one whole Pokemon moved win rate about 6 points. Swapping one move moved it about 5. Both are clearly above luck. Changing Stat Points or stat alignment moved it under 2 points, which I could not tell from zero.",
+    "Teams differ from each other by 9.04 points, one standard deviation. A whole-Pokemon swap is 0.65 of that. One step on Pest Control, a standard Bayesian optimisation benchmark, is 0.32 to 0.37 of the spread between its own starting points. The swap is bigger.",
+    "Limits: one battle policy, behaviour cloning, played both sides. One opponent pool. Random legal edits, not what a player would pick. I measured how far a score moves, not which way. The edit-by-edit visual: {link}"
+   ],
+   "attach": "Frame 6 of storyboard-light.svg on post 3. Bluesky shows a link card for the last post, so attach the figure to the results post instead.",
+   "cautions": [
+    "Bluesky counts the full link text. Keep the link under 55 characters or the last post goes over 300.",
+    "Swap the first line of post 1 for the chosen hook and recount it.",
+    "Frames 7 and 8 of the storyboard were corrected on 2026-11-13 and can be attached. The benchmark comparison is shown for tournament-ready teams. From search-found teams the whole-Pokemon swap misses it narrowly."
+   ],
+   "characters": [
+    251,
+    236,
+    220,
+    259,
+    214
+   ]
+  },
+  {
+   "id": "threads",
+   "site": "Threads",
+   "place": "One post from Rami's account",
+   "reader": "General tech readers who follow him from Instagram or LinkedIn",
+   "limit": 500,
+   "hooks": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.",
+    "How much does one change to a Pokemon team matter? I measured it.",
+    "One Pokemon swap moved a team's win rate about 6 points. A Stat Points change, too little to tell from zero."
+   ],
+   "posts": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved. Swapping one whole Pokemon moved it about 6 points, one move about 5. Both are clearly more than battle luck. Stat Points or stat alignment changes moved it under 2, which I could not tell from zero. One Pokemon swap is 0.65 of the spread between teams, a benchmark step 0.32 to 0.37. One battle policy, one opponent pool, random legal edits. {link}"
+   ],
+   "attach": "Frame 6 of storyboard-light.svg, cropped. One picture of the sizes suits a single post.",
+   "cautions": [
+    "Threads counts the full link. Keep the link under 70 characters or the post goes over 500."
+   ],
+   "characters": [
+    435
+   ]
+  },
+  {
+   "id": "reddit-ml",
+   "site": "Reddit",
+   "place": "r/MachineLearning as a project post, or r/learnmachinelearning",
+   "reader": "Machine learning readers who want the method and the numbers before the story",
+   "limit": 40000,
+   "hooks": [
+    "How smooth is Pokemon team building? One-edit win-rate changes, with battle noise removed",
+    "Measuring smoothness on a combinatorial space: one random edit to a Pokemon team, scored against noise from replays",
+    "One edit to a Pokemon team moves win rate 0.65 of the spread between teams. A step on Pest Control is 0.32 to 0.37"
+   ],
+   "posts": [
+    "How smooth is Pokemon team building? One-edit win-rate changes, with battle noise removed",
+    "Method. I wanted to know whether two Pokemon teams one edit apart score about the same, the property most optimisation benchmarks have. I took 40 starting teams: 24 tournament-ready teams that players built for tournaments, drawn from outside the top 50, and 16 teams an earlier search produced. Each team got 18 edits, three of each of six kinds. Move, ability, item and stat alignment edits replace one field with a random legal value. A Stat Points edit copies the Stat Points of a real set of the same species. A whole-Pokemon edit replaces one Pokemon with a real set of a different species.\n\nEvery score is a win rate over 384 battles against the 50 top-placing tournament teams, 49 of them distinct. One behaviour cloning policy plays both sides, and team slots are shuffled before every battle. Each starting team was also replayed three times with nothing changed. That gives 880 scores.\n\nRemoving battle luck. Two scores of the same unchanged team differ by 3.40 points root mean square for tournament-ready teams and 3.73 for search-found teams. An edit's observed change is its real change plus that luck, and the two add as squares. So the size of an edit is the square root of the mean squared change after the edit minus the mean squared change on a replay.\n\nResults, size of one edit in win-rate points, tournament-ready teams then search-found teams, with 95% intervals:\nWhole Pokemon: 5.90, interval 4.78 to 7.01. And 5.85, interval 3.83 to 7.47.\nMove: 4.84, interval 3.35 to 6.23. And 4.92, interval 2.05 to 7.24.\nItem: 4.35, interval 2.33 to 5.89. And 1.44, interval 0 to 3.33.\nAbility: 3.66, interval 2.22 to 4.71. And 1.35, interval 0 to 2.96.\nStat alignment: 1.95, interval 0 to 2.92. And 0.00, interval 0 to 2.53.\nStat Points: 1.60, interval 0 to 2.63. And 1.72, interval 0 to 2.69.\n\nWhole Pokemon and move edits are above zero in both groups. Item and ability are above zero for tournament-ready teams only. Stat alignment and Stat Points are above zero in neither, which means I could not tell them from zero, not that they do nothing.\n\nA yardstick. The spread of true scores between starting teams is 9.04 points. A whole-Pokemon swap is 0.65 of that spread in both groups. On Pest Control, the Bayesian optimisation benchmark from Oh et al. 2019, one step changes one of 25 stations. That step is 0.37 of the spread between the benchmark's random starting points and 0.32 between its hill-climbed ones. I keep the two kinds apart because their average scores differ. The whole-Pokemon swap on tournament-ready teams is larger than that step. Move, item and ability edits are undecided against it.\n\nLimits. One battle policy stands in for team strength. One opponent pool. Edits are random legal values, not what a player or a search would choose, and about a quarter of item edits remove a Mega Stone. This measures the size of a change, not its direction. My pre-registered plan also had a fixed size cutoff, under which only the whole-Pokemon swap passed. I dropped that cutoff after seeing the result, so read the per-kind verdicts as post hoc.\n\nWrite-up and figures: {link}. Happy to hear how you would measure smoothness on a space like this."
+   ],
+   "attach": "Frame 6 of storyboard-light.svg as an image in the post or the comments. Reddit readers will ask for the intervals, and that frame shows them.",
+   "cautions": [
+    "Check each subreddit's self-promotion rule before posting. r/MachineLearning asks for a project tag in the title and limits links to your own content, and other subreddits cap the share of self-promotion in your history.",
+    "The body names Oh et al. 2019 for Pest Control. Add the link https://arxiv.org/abs/1902.00448 if the subreddit allows it.",
+    "The body says the per-kind reading is post hoc. Keep that line: these readers will ask about the pre-registered plan.",
+    "Frames 7 and 8 of the storyboard were corrected on 2026-11-13 and can be attached. The benchmark comparison is shown for tournament-ready teams. From search-found teams the whole-Pokemon swap misses it narrowly."
+   ],
+   "characters": [
+    89,
+    3175
+   ]
+  },
+  {
+   "id": "reddit-pokemon-and-showdown",
+   "site": "Reddit and the Pokemon Showdown forum",
+   "place": "r/VGC or r/stunfisk, and a thread on the Pokemon Showdown forum",
+   "reader": "Competitive Pokemon players who know team building and do not know optimisation",
+   "limit": 10000,
+   "hooks": [
+    "I measured which single change to a team moves its win rate the most. A whole Pokemon swap and a move swap did, Stat Points barely registered",
+    "Which single change to a team matters most? I tested 18 on each of 40 teams",
+    "I swapped one thing at a time on real tournament teams and let a bot battle 384 games each. Here is what moved win rate"
+   ],
+   "posts": [
+    "I measured which single change to a team moves its win rate the most. A whole Pokemon swap and a move swap did, Stat Points barely registered",
+    "I wanted to know how much one change to a team moves its win rate. Before anything else: people did not play these battles. A battle policy trained by behaviour cloning, copying moves from human replays, played both sides of every battle. So this tells you about teams under that policy, not about your ladder games.\n\nWhat I did. I took 24 real tournament teams from outside the top 50, plus 16 teams an earlier search had found. On each team I made 18 single changes, three of each kind. Every version played 384 battles against the 50 top-placing tournament teams, with the six Pokemon shuffled before every battle. I also replayed each unchanged team three times to see how much a score moves from luck alone.\n\nHere are real changes from the run, all on one team of Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon:\nOne move: Raichu's Nuzzle became Volt Tackle.\nAbility: Garchomp's Rough Skin became Sand Veil.\nItem: Charizard's Charizardite Y became a Miracle Seed.\nStat alignment: Sylveon went from Modest to Rash.\nStat Points: Raichu got another real Raichu's Stat Points.\nWhole Pokemon: Charizard and its set were replaced by a real Mawile set from another team.\n\nHow far each kind moved win rate, on the tournament teams, once luck is taken out:\nWhole Pokemon swap: about 6 points.\nOne move: about 5 points.\nItem: about 4 points.\nAbility: about 4 points.\nStat alignment: under 2 points.\nStat Points: under 2 points.\n\nWhole Pokemon and move swaps clearly beat luck on both kinds of team. Item and ability did on the tournament teams but not on the search-found ones. Stat alignment and Stat Points I could not tell from zero. That does not mean they do nothing, only that this test could not see it.\n\nTwo things to keep in mind. The changes were random legal picks, not changes a player would make, and about a quarter of the item changes took away a Mega Stone, which you would expect to hurt. And I measured how far the score moved, not whether it went up or down.\n\nFull write-up with the edit-by-edit visual: {link}. I would like to hear which of these matches your experience building teams."
+   ],
+   "attach": "Frame 2 of storyboard-light.svg, the six real edits on the Raichu team. Players will recognise the changes before they read the numbers.",
+   "cautions": [
+    "Check each subreddit's and the forum's self-promotion rule before posting.",
+    "The rounded item and ability sizes, about 4 points, are 4.35 and 3.66 from FACTS.md, tournament-ready teams.",
+    "Player readers may ask what format and which policy. Have the format name and a one-line description of the behaviour cloning policy ready."
+   ],
+   "characters": [
+    141,
+    2115
+   ]
+  },
+  {
+   "id": "hacker-news",
+   "site": "Hacker News",
+   "place": "Link submission, with Rami's first comment",
+   "reader": "Engineers who distrust hype and will read the method",
+   "limit": 80,
+   "hooks": [
+    "How far one edit moves a Pokemon team's win rate",
+    "Measuring how smooth Pokemon team building is, one edit at a time",
+    "One edit to a Pokemon team, scored against battle luck"
+   ],
+   "posts": [
+    "How far one edit moves a Pokemon team's win rate",
+    "Author here. I changed one thing on 40 Pokemon teams, 18 edits each, and scored every version over 384 battles against the 50 top-placing tournament teams. Replaying unchanged teams three times let me subtract battle luck. Swapping a whole Pokemon moved win rate about 6 points and swapping one move about 5, both clearly above luck. Stat Points and stat alignment edits moved it under 2 points, which I could not tell from zero. The whole-Pokemon swap is 0.65 of the spread between teams, while one step on Pest Control, a common Bayesian optimisation benchmark, is 0.32 to 0.37 of its own spread. Limits: one behaviour cloning policy played both sides, one opponent pool, and the edits were random rather than chosen. Questions and criticism welcome."
+   ],
+   "attach": "Nothing. Hacker News takes a link only, so the page at {link} must show frame 6 near the top.",
+   "cautions": [
+    "The 80-character limit applies to the title only. The first comment is about 120 words.",
+    "Link to the write-up page, not to the LinkedIn post. Hacker News readers will not open LinkedIn."
+   ],
+   "characters": [
+    48,
+    752
+   ]
+  },
+  {
+   "id": "discord-cscareers",
+   "site": "Discord",
+   "place": "cscareers.dev, #socials",
+   "reader": "People job hunting in tech who share and boost each other's LinkedIn posts",
+   "limit": 2000,
+   "hooks": [
+    "Third post in my build-in-public series on Pokemon team search.",
+    "New LinkedIn post on measuring smoothness in Pokemon team building.",
+    "Sharing my latest LinkedIn post: what one edit does to a Pokemon team's win rate."
+   ],
+   "posts": [
+    "Third post in my build-in-public series on Pokemon team search, this one on smoothness: I changed one thing on a team and measured how far its win rate moved. Swapping one Pokemon moved it about 6 points, while Stat Points changes stayed under 2 and I could not tell them from zero. LinkedIn post here: {link}"
+   ],
+   "attach": "None. The LinkedIn link shows its own preview.",
+   "cautions": [
+    "Link the LinkedIn post itself here, since the channel is for sharing LinkedIn posts."
+   ],
+   "characters": [
+    309
+   ]
+  },
+  {
+   "id": "discord-code-and-coffee",
+   "site": "Discord",
+   "place": "Code & Coffee, #content-share",
+   "reader": "Developers who share blog posts and videos",
+   "limit": 2000,
+   "hooks": [
+    "New write-up: how smooth is Pokemon team building?",
+    "I measured what one random edit does to a Pokemon team's win rate.",
+    "Sharing a write-up on smoothness, measured on Pokemon teams."
+   ],
+   "posts": [
+    "New write-up: I measured how smooth Pokemon team building is by making one random edit to a team and scoring it over 384 battles. A whole Pokemon swap is 0.65 of the spread between teams, bigger than one step on the Pest Control optimisation benchmark. Post and edit-by-edit visual: {link}"
+   ],
+   "attach": "None, or the video once it exists.",
+   "cautions": [
+    "Link the write-up page or the video, whichever is newer."
+   ],
+   "characters": [
+    289
+   ]
+  },
+  {
+   "id": "discord-typesafe",
+   "site": "Discord",
+   "place": "Theo's Typesafe Cult, #showcase",
+   "reader": "Developers who want a project with a GitHub repository",
+   "limit": 2000,
+   "hooks": [
+    "Showcase: a Pokemon team search project.",
+    "Project showcase: measuring what one edit does to a Pokemon team.",
+    "Sharing my Pokemon team search repository and its latest measurement."
+   ],
+   "posts": [
+    "Showcase: a Pokemon team search project where I measured what one edit does to a team's win rate, with battle luck subtracted using replays of the unchanged team. A whole Pokemon swap moved win rate about 6 points, one move about 5, Stat Points under 2. Write-up and code: {link}"
+   ],
+   "attach": "None. Put the GitHub repository link at {link}, the channel wants projects with a repository.",
+   "cautions": [
+    "Make sure the repository link is public before posting."
+   ],
+   "characters": [
+    279
+   ]
+  },
+  {
+   "id": "discord-pyboy",
+   "site": "Discord",
+   "place": "PyBoy, #ai_projects",
+   "reader": "People building Pokemon game AI, there for discussion rather than promotion",
+   "limit": 2000,
+   "hooks": [
+    "For anyone working on Pokemon game AI.",
+    "A measurement that might interest people building Pokemon battle agents.",
+    "Question for the Pokemon AI folks, with a result attached."
+   ],
+   "posts": [
+    "For anyone working on Pokemon game AI: I measured how far one edit to a team moves its win rate, with a behaviour cloning policy playing both sides of every battle. A whole Pokemon swap moved it about 6 points and one move about 5, while Stat Points and stat alignment changes stayed under 2. I would like to hear how others here measure team strength: {link}"
+   ],
+   "attach": "Frame 6 of storyboard-light.svg inline, so people can discuss it without clicking out.",
+   "cautions": [
+    "The channel is for discussion, not promotion. Lead with the question and reply to answers."
+   ],
+   "characters": [
+    359
+   ]
+  },
+  {
+   "id": "short-video",
+   "site": "TikTok and YouTube Shorts",
+   "place": "Vertical video, 45 to 60 seconds, YouTube link also posted to United States Pokemon Association #advertising",
+   "reader": "Pokemon players and curious tech viewers scrolling short video",
+   "limit": "45 to 60 seconds spoken, about 110 to 150 words",
+   "hooks": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.",
+    "Does one move really matter on a Pokemon team? I measured it.",
+    "Swap one Pokemon and your win rate moves about 6 points. Change its Stat Points and I could not tell."
+   ],
+   "posts": [
+    "I changed one thing on a strong Pokemon team and measured how far its win rate moved.",
+    "One move, one ability, one item, its stat alignment, its Stat Points, or a whole Pokemon. 40 teams, 18 edits each, 384 battles per score.",
+    "Battles are luck heavy. So I replayed every unchanged team three times, measured how much the score moves by luck, and took that out.",
+    "Swapping a whole Pokemon moved win rate about 6 points. One move, about 5. Both clearly beat luck. Stat Points and stat alignment moved it under 2. I could not tell those from zero.",
+    "Measured against how much teams differ, one Pokemon swap is 0.65. One step on a standard optimisation benchmark is 0.32 to 0.37.",
+    "A bot played these battles, not people. One opponent pool, random edits. Full write-up in the description."
+   ],
+   "shots": [
+    {
+     "start_s": 0,
+     "end_s": 6,
+     "figure": "storyboard-light.svg, frame 2",
+     "show": "Crop of the six before-and-after edits on the Raichu team",
+     "voice": "I changed one thing on a strong Pokemon team and measured how far its win rate moved."
+    },
+    {
+     "start_s": 6,
+     "end_s": 16,
+     "figure": "storyboard-light.svg, frame 2",
+     "show": "Slow pan down the six rows: move, ability, item, stat alignment, Stat Points, whole Pokemon",
+     "voice": "One move, one ability, one item, its stat alignment, its Stat Points, or a whole Pokemon. 40 teams, 18 edits each, 384 battles per score."
+    },
+    {
+     "start_s": 16,
+     "end_s": 26,
+     "figure": "storyboard-light.svg, frame 4",
+     "show": "The unchanged team replayed three times, scores moving a little",
+     "voice": "Battles are luck heavy. So I replayed every unchanged team three times, measured how much the score moves by luck, and took that out."
+    },
+    {
+     "start_s": 26,
+     "end_s": 40,
+     "figure": "storyboard-light.svg, frame 6",
+     "show": "Bar chart with intervals, highlight the whole Pokemon bar, then the move bar, then the two Stat bars touching zero",
+     "voice": "Swapping a whole Pokemon moved win rate about 6 points. One move, about 5. Both clearly beat luck. Stat Points and stat alignment moved it under 2. I could not tell those from zero."
+    },
+    {
+     "start_s": 40,
+     "end_s": 50,
+     "figure": "text card, no storyboard frame",
+     "show": "Two bars drawn on a plain card: 0.65 for one Pokemon swap, 0.32 to 0.37 for one benchmark step",
+     "voice": "Measured against how much teams differ, one Pokemon swap is 0.65. One step on a standard optimisation benchmark is 0.32 to 0.37."
+    },
+    {
+     "start_s": 50,
+     "end_s": 58,
+     "figure": "storyboard-light.svg, frame 6",
+     "show": "Hold on the chart, caption with the three limits",
+     "voice": "A bot played these battles, not people. One opponent pool, random edits. Full write-up in the description."
+    }
+   ],
+   "figures_available": [
+    "notes/reports/edit-kind-rerun-2026-11-13/issue-313/figures/storyboard-light.svg",
+    "notes/reports/edit-kind-rerun-2026-11-13/issue-313/figures/storyboard-dark.svg"
+   ],
+   "figures_used": "storyboard-light.svg frames 2, 4 and 6. Frame 7 is replaced by a text card for the reason in cautions. Use storyboard-dark.svg instead if the video is dark themed.",
+   "uspa_advertising": "New short: I changed one thing on real Pokemon tournament teams and measured how far win rate moved, with a bot playing the battles. {link}",
+   "attach": "The storyboard frames named in shots, cropped to vertical. The figures are two versions of one 8-frame storyboard, light and dark.",
+   "cautions": [
+    "The voice says a bot played the battles. On screen, name it once as a behaviour cloning battle policy.",
+    "Read the script aloud with a timer. At about 120 words it should land near 55 seconds.",
+    "Frames 7 and 8 of the storyboard were corrected on 2026-11-13 and can be attached. The benchmark comparison is shown for tournament-ready teams. From search-found teams the whole-Pokemon swap misses it narrowly."
+   ],
+   "characters": [
+    85,
+    137,
+    133,
+    181,
+    128,
+    106
+   ]
+  }
+ ]
+}

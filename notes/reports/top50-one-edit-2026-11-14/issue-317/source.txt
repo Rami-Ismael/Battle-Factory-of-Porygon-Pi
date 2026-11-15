@@ -1,0 +1,662 @@
+**The run finished, 2026-11-14 01:30.** Every score is 384 battles against all 50 meta files with slots shuffled and the behaviour-cloning policy on both sides.
+
+**Top-50 meta teams, one edit of each kind**
+
+| Edit | Size, points | 95% interval | Above zero | Share of the spread between teams | Against one Pest Control step | Average direction, points |
+|---|---:|---|---|---:|---|---:|
+| One move replaced | 3.04 | 1.05 to 4.10 | yes | 0.39 | undecided | -2.08 |
+| Ability replaced | 2.11 | 0.00 to 3.31 | not shown | 0.27 | undecided | -1.25 |
+| Held item replaced | 3.12 | 1.21 to 4.32 | yes | 0.40 | undecided | -1.52 |
+| Stat alignment replaced | 0.00 | 0.00 to 1.81 | not shown | 0.00 | smaller | -0.04 |
+| Stat Points copied from another set | 0.00 | 0.00 to 1.01 | not shown | 0.00 | smaller | +0.52 |
+| Whole Pokemon copied from a real set | 4.91 | 3.74 to 5.83 | yes | 0.62 | larger | -2.51 |
+
+The spread of true scores between the starting teams is 7.90 points. One Pest Control step is 0.37 and 0.32 of the spread between benchmark starting points of its own kind, random and hill-climbed, which are never pooled. No size cutoff is used: an edit kind is above zero when its interval excludes zero, and larger than a Pest Control step when the interval of the difference in shares lies above zero.
+
+**The three groups of starting teams, size in points**
+
+| Edit | Top-50 meta teams (49) | Tournament-ready teams (24) | Search-found teams (16) |
+|---|---:|---:|---:|
+| One move replaced | 3.04 | 4.84 | 4.92 |
+| Ability replaced | 2.11 | 3.66 | 1.35 |
+| Held item replaced | 3.12 | 4.35 | 1.44 |
+| Stat alignment replaced | 0.00 | 1.95 | 0.00 |
+| Stat Points copied from another set | 0.00 | 1.60 | 1.72 |
+| Whole Pokemon copied from a real set | 4.91 | 5.90 | 5.85 |
+| Mean first score | 0.494 | 0.507 | 0.445 |
+
+Rank correlation between a team's rank and the size of its edits: -0.17, interval -0.37 to +0.02, over all 89 teams; -0.28, interval -0.53 to -0.00, over the top-50 teams alone. Negative means teams that win more change more.
+
+Checks: Uniform-legal teams near 0 passes; One team twice on one seed passes; Top-50 first scores near 0.50 passes.
+
+Posted by the queue the moment the analysis ended. Nobody has read these numbers yet: the checks of run-experiment step 3 still follow.
+
+Top-50 meta teams              One move replaced                     3.04 [1.05, 4.10] points  above zero True  share of spread 0.39, against a Pest Control step: undecided
+Top-50 meta teams              Ability replaced                      2.11 [0.00, 3.31] points  above zero False  share of spread 0.27, against a Pest Control step: undecided
+Top-50 meta teams              Held item replaced                    3.12 [1.21, 4.32] points  above zero True  share of spread 0.40, against a Pest Control step: undecided
+Top-50 meta teams              Stat alignment replaced               0.00 [0.00, 1.81] points  above zero False  share of spread 0.00, against a Pest Control step: smaller
+Top-50 meta teams              Stat Points copied from another set   0.00 [0.00, 1.01] points  above zero False  share of spread 0.00, against a Pest Control step: smaller
+Top-50 meta teams              Whole Pokemon copied from a real set  4.91 [3.74, 5.83] points  above zero True  share of spread 0.62, against a Pest Control step: larger
+Tournament-ready teams         One move replaced                     4.84 [3.36, 6.18] points  above zero True  share of spread 0.61, against a Pest Control step: undecided
+Tournament-ready teams         Ability replaced                      3.66 [2.20, 4.74] points  above zero True  share of spread 0.46, against a Pest Control step: undecided
+Tournament-ready teams         Held item replaced                    4.35 [2.33, 5.92] points  above zero True  share of spread 0.55, against a Pest Control step: undecided
+Tournament-ready teams         Stat alignment replaced               1.95 [0.00, 2.90] points  above zero False  share of spread 0.25, against a Pest Control step: undecided
+Tournament-ready teams         Stat Points copied from another set   1.60 [0.00, 2.64] points  above zero False  share of spread 0.20, against a Pest Control step: undecided
+Tournament-ready teams         Whole Pokemon copied from a real set  5.90 [4.67, 7.03] points  above zero True  share of spread 0.75, against a Pest Control step: larger
+Search-found teams             One move replaced                     4.92 [2.17, 7.28] points  above zero True  share of spread 0.62, against a Pest Control step: undecided
+Search-found teams             Ability replaced                      1.35 [0.00, 2.93] points  above zero False  share of spread 0.17, against a Pest Control step: undecided
+Search-found teams             Held item replaced                    1.44 [0.00, 3.41] points  above zero False  share of spread 0.18, against a Pest Control step: undecided
+Search-found teams             Stat alignment replaced               0.00 [0.00, 2.53] points  above zero False  share of spread 0.00, against a Pest Control step: undecided
+Search-found teams             Stat Points copied from another set   1.72 [0.00, 2.69] points  above zero False  share of spread 0.22, against a Pest Control step: undecided
+Search-found teams             Whole Pokemon copied from a real set  5.85 [3.74, 7.43] points  above zero True  share of spread 0.74, against a Pest Control step: larger
+rank correlation {"all_teams": -0.17213142662580866, "all_teams_ci95": [-0.36642662580864827, 0.023259278175008398], "top50_only": -0.28397959183673466, "top50_only_ci95": [-0.5341862244897959, -0.0010969387755103432]}
+
+{
+"label": "Top-50 meta teams",
+"mean_first_score": 0.4941020408163265,
+"kinds": {
+"A_move_swap": {
+"label": "One move replaced",
+"edits": 147,
+"mean_signed_change_points": -2.0802040816326537,
+"mean_signed_change_points_ci95": [
+-2.9345442176870753,
+-1.229549319727892
+],
+"change_points": 3.0439767669650717,
+"change_points_ci95": [
+1.046376247280535,
+4.104273933134175
+],
+"share_of_spread": 0.3853723269512524,
+"share_of_spread_ci95": [
+0.1411897914297021,
+0.5356582876474265
+],
+"share_minus_pest_step_ci95": {
+"random": [
+-0.30279592247831577,
+0.19717728195544573
+],
+"search": [
+-0.22145359644915974,
+0.23043784542902307
+]
+},
+"neighbour_correlation": 0.9257440848100885,
+"neighbour_correlation_ci95": [
+0.8565350990087162,
+0.9900327081749432
+],
+"share_edits_beyond_noise": 0.1292517006802721,
+"share_replays_beyond_noise": 0.061224489795918366,
+"share_gap_ci95": [
+-0.02040816326530613,
+0.14965986394557823
+],
+"above_zero": true,
+"against_pest_control_step": "undecided"
+},
+"B_ability_swap": {
+"label": "Ability replaced",
+"edits": 147,
+"mean_signed_change_points": -1.2457142857142867,
+"mean_signed_change_points_ci95": [
+-2.099345238095239,
+-0.4333877551020436
+],
+"change_points": 2.113900383161888,
+"change_points_ci95": [
+0.0,
+3.3119033661861343
+],
+"share_of_spread": 0.2676231692840606,
+"share_of_spread_ci95": [
+0.0,
+0.43115053574070145
+],
+"share_minus_pest_step_ci95": {
+"random": [
+-0.44302757827184747,
+0.08392207166633958
+],
+"search": [
+-0.3744026271299917,
+0.11573894667729591
+]
+},
+"neighbour_correlation": 0.9641889196311775,
+"neighbour_correlation_ci95": [
+0.9070546065027453,
+1.0
+],
+"share_edits_beyond_noise": 0.10204081632653061,
+"share_replays_beyond_noise": 0.061224489795918366,
+"share_gap_ci95": [
+-0.0272108843537415,
+0.09523809523809526
+],
+"above_zero": false,
+"against_pest_control_step": "undecided"
+},
+"C_item_swap": {
+"label": "Held item replaced",
+"edits": 147,
+"mean_signed_change_points": -1.519863945578232,
+"mean_signed_change_points_ci95": [
+-2.5477857142857148,
+-0.5662057823129251
+],
+"change_points": 3.122094731138708,
+"change_points_ci95": [
+1.2118245260745217,
+4.317373133904016
+],
+"share_of_spread": 0.39526218615024483,
+"share_of_spread_ci95": [
+0.1547239796542917,
+0.5574107038116624
+],
+"share_minus_pest_step_ci95": {
+"random": [
+-0.2903171118893213,
+0.21282474754304098
+],
+"search": [
+-0.2253926800233091,
+0.24775125926172176
+]
+},
+"neighbour_correlation": 0.9218839020998646,
+"neighbour_correlation_ci95": [
+0.844646498405017,
+0.9880301932183939
+],
+"share_edits_beyond_noise": 0.1360544217687075,
+"share_replays_beyond_noise": 0.061224489795918366,
+"share_gap_ci95": [
+0.0,
+0.1564625850340136
+],
+"above_zero": true,
+"against_pest_control_step": "undecided"
+},
+"D_alignment_swap": {
+"label": "Stat alignment replaced",
+"edits": 147,
+"mean_signed_change_points": -0.04421768707483054,
+"mean_signed_change_points_ci95": [
+-0.8242704081632654,
+0.7778945578231266
+],
+"change_points": 0.0,
+"change_points_ci95": [
+0.0,
+1.8102734495257442
+],
+"share_of_spread": 0.0,
+"share_of_spread_ci95": [
+0.0,
+0.2349220596218912
+],
+"share_minus_pest_step_ci95": {
+"random": [
+-0.5442281307228616,
+-0.1162796585956692
+],
+"search": [
+-0.4408326540456478,
+-0.08149692450056353
+]
+},
+"neighbour_correlation": 1.0,
+"neighbour_correlation_ci95": [
+0.9724057576150805,
+1.0
+],
+"share_edits_beyond_noise": 0.061224489795918366,
+"share_replays_beyond_noise": 0.061224489795918366,
+"share_gap_ci95": [
+-0.04761904761904762,
+0.04081632653061225
+],
+"above_zero": false,
+"against_pest_control_step": "smaller"
+},
+"E_spread_copy": {
+"label": "Stat Points copied from another set",
+"edits": 147,
+"mean_signed_change_points": 0.5242857142857136,
+"mean_signed_change_points_ci95": [
+-0.2381938775510214,
+1.2973894557823114
+],
+"change_points": 0.0,
+"change_points_ci95": [
+0.0,
+1.011709634724887
+],
+"share_of_spread": 0.0,
+"share_of_spread_ci95": [
+0.0,
+0.1275572684037699
+],
+"share_minus_pest_step_ci95": {
+"random": [
+-0.5586969000471899,
+-0.23257850881726724
+],
+"search": [
+-0.4536044700694947,
+-0.1889985538722828
+]
+},
+"neighbour_correlation": 1.0,
+"neighbour_correlation_ci95": [
+0.9918645709400289,
+1.0
+],
+"share_edits_beyond_noise": 0.047619047619047616,
+"share_replays_beyond_noise": 0.061224489795918366,
+"share_gap_ci95": [
+-0.061224489795918366,
+0.03401360544217687
+],
+"above_zero": false,
+"against_pest_control_step": "smaller"
+},
+"F_candidate_copy": {
+"label": "Whole Pokemon copied from a real set",
+"edits": 147,
+"mean_signed_change_points": -2.5089795918367352,
+"mean_signed_change_points_ci95": [
+-3.534940476190477,
+-1.4803588435374158
+],
+"change_points": 4.905817107944265,
+"change_points_ci95": [
+3.7358988704087817,
+5.834719670556826
+],
+"share_of_spread": 0.6210842917735838,
+"share_of_spread_ci95": [
+0.4658257338950713,
+0.800096436520709
+],
+"share_minus_pest_step_ci95": {
+"random": [
+0.008287839933273925,
+0.46194948190450363
+],
+"search": [
+0.10227260282526873,
+0.48951429828895243
+]
+},
+"neighbour_correlation": 0.8071271512560529,
+"neighbour_correlation_ci95": [
+0.679922803804063,
+0.8915031928195076
+],
+"share_edits_beyond_noise": 0.30612244897959184,
+"share_replays_beyond_noise": 0.061224489795918366,
+"share_gap_ci95": [
+0.14285714285714285,
+0.3469387755102041
+],
+"above_zero": true,
+"against_pest_control_step": "larger"
+}
+}
+}
+{
+"top50": {
+"A_move_swap": {
+"label": "One move replaced",
+"size": 3.871926101398873,
+"size_ci": [
+2.958947979155804,
+4.692181882862838
+],
+"signed": -2.6674999999999893,
+"signed_ci": [
+-3.4273005952381093,
+-1.944682397959193
+],
+"by_reference": [
+3.0439767669650717,
+4.482899101445568,
+4.36702797487414,
+3.3961941484369746
+]
+},
+"B_ability_swap": {
+"label": "Ability replaced",
+"size": 2.759967495864996,
+"size_ci": [
+1.8094700167735716,
+3.5005037486321355
+],
+"signed": -1.8330102040816254,
+"signed_ci": [
+-2.489860969387762,
+-1.2044294217687077
+],
+"by_reference": [
+2.113900383161888,
+3.39460255856444,
+3.054994015603657,
+2.2682135078089116
+]
+},
+"C_item_swap": {
+"label": "Held item replaced",
+"size": 3.6223077969038195,
+"size_ci": [
+2.577307061676604,
+4.4598890427036535
+],
+"signed": -2.1071598639455793,
+"signed_ci": [
+-2.924655187074832,
+-1.2759260204081648
+],
+"by_reference": [
+3.122094731138708,
+3.8565463383530023,
+3.8937907137452807,
+3.5640459886937226
+]
+},
+"D_alignment_swap": {
+"label": "Stat alignment replaced",
+"size": 1.0634313445116226,
+"size_ci": [
+0.0,
+2.0208063439204844
+],
+"signed": -0.6315136054421633,
+"signed_ci": [
+-1.2228516156462623,
+-0.030421343537414568
+],
+"by_reference": [
+0.0,
+1.6411771948921354,
+1.1672506798712357,
+1.1999311204721526
+]
+},
+"E_spread_copy": {
+"label": "Stat Points copied from another set",
+"size": 0.0,
+"size_ci": [
+0.0,
+0.5808605746676274
+],
+"signed": -0.06301020408163716,
+"signed_ci": [
+-0.6060042517006803,
+0.48403741496600033
+],
+"by_reference": [
+0.0,
+0.0,
+0.0,
+0.0
+]
+},
+"F_candidate_copy": {
+"label": "Whole Pokemon copied from a real set",
+"size": 5.278752477725058,
+"size_ci": [
+4.542963084733915,
+5.983220762323221
+],
+"signed": -3.0962755102040775,
+"signed_ci": [
+-3.8718133503401306,
+-2.3403431122449008
+],
+"by_reference": [
+4.905817107944265,
+5.8774899774796845,
+5.407016416713773,
+4.859336829421141
+]
+}
+},
+"outside_top50": {
+"A_move_swap": {
+"label": "One move replaced",
+"size": 4.518578930986551,
+"size_ci": [
+3.0221401801216197,
+5.919728705556078
+],
+"signed": -2.7515277777777793,
+"signed_ci": [
+-3.9425026041666658,
+-1.6395008680555452
+],
+"by_reference": [
+4.838190806259895,
+4.569655044116812,
+3.883731739219667,
+4.721971251500797
+]
+},
+"B_ability_swap": {
+"label": "Ability replaced",
+"size": 3.565726414226295,
+"size_ci": [
+2.1949809414724637,
+4.685302628937499
+],
+"signed": -1.8654166666666805,
+"signed_ci": [
+-3.124347222222212,
+-0.6345147569444483
+],
+"by_reference": [
+3.6613243277990737,
+3.9846434386696807,
+3.4115135937000165,
+3.152223862256261
+]
+},
+"C_item_swap": {
+"label": "Held item replaced",
+"size": 4.15702701592269,
+"size_ci": [
+2.737690260741033,
+5.344194009941489
+],
+"signed": -2.1300000000000043,
+"signed_ci": [
+-3.3788133680555523,
+-0.9871467013888853
+],
+"by_reference": [
+4.345005434084315,
+3.949569772632063,
+3.8798702369480806,
+4.426276965778097
+]
+},
+"D_alignment_swap": {
+"label": "Stat alignment replaced",
+"size": 1.4387130147770575,
+"size_ci": [
+0.0,
+2.2751781379977065
+],
+"signed": -0.8487500000000092,
+"signed_ci": [
+-1.53177517361112,
+-0.12842187499999594
+],
+"by_reference": [
+1.9488711119802442,
+0.0,
+1.0700584096207084,
+2.00476965980855
+]
+},
+"E_spread_copy": {
+"label": "Stat Points copied from another set",
+"size": 0.6085513308030969,
+"size_ci": [
+0.0,
+1.7122132179028522
+],
+"signed": 0.2681944444444362,
+"signed_ci": [
+-0.583683159722229,
+1.0861753472222184
+],
+"by_reference": [
+1.6049753372975348,
+0.0,
+1.1471849603849111,
+0.0
+]
+},
+"F_candidate_copy": {
+"label": "Whole Pokemon copied from a real set",
+"size": 5.139646550752946,
+"size_ci": [
+4.099012890940266,
+6.130038564324665
+],
+"signed": -2.3358333333333317,
+"signed_ci": [
+-3.779914062499997,
+-0.9927144097222229
+],
+"by_reference": [
+5.89982038332995,
+4.793114998504509,
+4.607367138013254,
+5.162770843043274
+]
+}
+},
+"search_found": {
+"A_move_swap": {
+"label": "One move replaced",
+"size": 5.8553374422402,
+"size_ci": [
+3.0394034780197057,
+8.331359531688769
+],
+"signed": -2.570572916666669,
+"signed_ci": [
+-4.21549739583333,
+-0.8521263020833333
+],
+"by_reference": [
+4.924204885055048,
+6.165062854505216,
+5.996625092499947,
+6.23895824637415
+]
+},
+"B_ability_swap": {
+"label": "Ability replaced",
+"size": 1.8874148711487182,
+"size_ci": [
+0.0,
+3.117063692624653
+],
+"signed": -1.236406250000005,
+"signed_ci": [
+-2.049227864583337,
+-0.4331835937500085
+],
+"by_reference": [
+1.354287174125193,
+0.6979046018857672,
+1.770887254081034,
+2.965153171985105
+]
+},
+"C_item_swap": {
+"label": "Held item replaced",
+"size": 2.03498861073799,
+"size_ci": [
+0.0,
+3.6647155117791463
+],
+"signed": -1.2684895833333432,
+"signed_ci": [
+-2.1791171874999917,
+-0.3756080729166687
+],
+"by_reference": [
+1.4411417637877733,
+2.417968327611703,
+2.343314959624507,
+1.774860323142829
+]
+},
+"D_alignment_swap": {
+"label": "Stat alignment replaced",
+"size": 0.0,
+"size_ci": [
+0.0,
+1.7996056567996421
+],
+"signed": 0.4027604166666643,
+"signed_ci": [
+-0.3620052083333229,
+1.216125000000002
+],
+"by_reference": [
+0.0,
+0.0,
+0.0,
+0.27380041392711496
+]
+},
+"E_spread_copy": {
+"label": "Stat Points copied from another set",
+"size": 0.0,
+"size_ci": [
+0.0,
+1.0602359166906026
+],
+"signed": 0.7331770833333306,
+"signed_ci": [
+-0.10652213541667191,
+1.5736666666666648
+],
+"by_reference": [
+1.723803328882579,
+0.0,
+0.0,
+0.0
+]
+},
+"F_candidate_copy": {
+"label": "Whole Pokemon copied from a real set",
+"size": 6.003655527051832,
+"size_ci": [
+4.294437810017994,
+7.585409135663056
+],
+"signed": -2.6028645833333366,
+"signed_ci": [
+-4.5999361979166755,
+-0.5903333333333305
+],
+"by_reference": [
+5.845526779797808,
+6.265858380940316,
+6.246056589294294,
+5.633039255144597
+]
+}
+}
+}
+Audit of 2026-11-14 on battles.json: first scores 0.78 points below replays; whole Pokemon measured move 6.16; rank check -0.01 interval -0.28 to 0.26; planned -0.28 interval -0.53 to -0.00 and -0.17 interval -0.37 to 0.02; 38 of 147 item edits remove a Mega Stone; 27 of 147 move edits remove Protect; all four references 5.28 3.87 3.62 2.76 1.06 0.00; tournament-ready move 4.52; example team MB763 52.3 56.3 50.5 51.0 49.5 45.1 41.7 49.5 52.1 46.9; share intervals 0.47 0.80 0.14 0.54 0.15 0.56 0.43 0.23 0.13; difference starts 0.01; signed -2.51 -3.53 -1.48 -2.08 -2.93 -1.23 -1.52 -2.55 -0.57 -1.25 -2.10 -0.43 -0.04 -0.82 0.78 0.52 -0.24 1.30; Charizard HP 30 Def 30 Spe 3 to HP 20 Def 32 SpA 9 Spe 5; 147 replays; 2026-11-12 2026-11-13 2,000

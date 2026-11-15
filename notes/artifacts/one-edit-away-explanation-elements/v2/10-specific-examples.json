@@ -1,0 +1,91 @@
+{
+  "action": "Provide context",
+  "element": "Specific examples",
+  "what_it_does": "It shows the reader one real team, one real edit and its measured win rates before or beside the general claim, so the claim has something concrete to stand on.",
+  "when_to_use": "Right after Rami says he measures whether one edit changes the win rate by more than noise, so the reader sees a big edit, a tiny edit and an unchanged repeat side by side.",
+  "sentence_pattern": "Take team x. Change y to z. Its win rate moves from a to b. Battled again with nothing changed, it scores c, d and e.",
+  "dllm_example": "Michael [MASK] to New York.",
+  "anchor_in_draft": "If change greater than noise it change it hard.",
+  "extra": null,
+  "candidates": [
+    {
+      "sentence": "Take one tournament-ready team: Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon. It won 56.25% of 384 battles against the 50 top-placing teams. Swap Charizard for a real Mawile set from another team and it wins 43.49%. Battle the unchanged team three more times and it scores 52.34%, 53.12% and 52.86%. One example carries about 3.4 points of battle luck, so it illustrates the measurement and proves nothing on its own.",
+      "facts": [
+        {
+          "claim": "Starting team a09, from MB20.txt, has Raichu, Staraptor, Garchomp, Charizard, Gholdengo and Sylveon.",
+          "source": "~/vgc-data/edit_kind_rerun/teams/ruggedness/a09.txt; ~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, vgc.anchors[9].name"
+        },
+        {
+          "claim": "a09 scored 0.5625 over 384 battles, 216 wins, and its three replays scored 0.5234, 0.5312 and 0.5286.",
+          "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, vgc.anchors[9].f and .reps"
+        },
+        {
+          "claim": "Edit m09_F0 replaces Charizard @ Charizardite Y with Mawile @ Mawilite, Hyper Cutter, Iron Head, Play Rough, Rock Slide, Sucker Punch, copied from a real set.",
+          "source": "diff of ~/vgc-data/edit_kind_rerun/teams/ruggedness/a09.txt and ~/vgc-data/edit_kind_rerun/teams/ruggedness2/m09_F0.txt"
+        },
+        {
+          "claim": "m09_F0 won 167 of 384 battles, 0.4349.",
+          "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50_parts/vgc_battles.json, edits, entry m09_F0.txt"
+        },
+        {
+          "claim": "Two scores of the same unchanged team differ by about 3.40 points for tournament-ready teams.",
+          "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, square root of vgc.meta E_r2"
+        },
+        {
+          "claim": "The same team and edits appear in the issue #313 storyboard, frames 2 and 4.",
+          "source": "notes/reports/edit-kind-rerun-2026-11-13/issue-313/spec.json, frames 2 and 4"
+        }
+      ]
+    },
+    {
+      "sentence": "On the same team, change only the item Charizard holds, from Charizardite Y to Miracle Seed, and its win rate drops from 56.25% to 45.57%. Charizardite Y is a Mega Stone, the item that lets Charizard Mega Evolve, so this random edit takes away Charizard's Mega Evolution. About a quarter of the item edits in the study remove a Mega Stone, and that may be one reason item edits move win rate as much as they do, a guess we have not tested.",
+      "facts": [
+        {
+          "claim": "Edit a09_C0 changes Charizard @ Charizardite Y to Charizard @ Miracle Seed and nothing else.",
+          "source": "diff of ~/vgc-data/edit_kind_rerun/teams/ruggedness/a09.txt and ~/vgc-data/edit_kind_rerun/teams/ruggedness/a09_C0.txt"
+        },
+        {
+          "claim": "a09_C0 scored 0.4557 over 384 battles. The starting team scored 0.5625.",
+          "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, vgc.anchors[9].edits, file a09_C0.txt, and vgc.anchors[9].f"
+        },
+        {
+          "claim": "32 of the 120 item edits remove a Mega Stone, such as Floettite, Charizardite Y or Raichunite Y.",
+          "source": "count of removed items over ~/vgc-data/edit_kind_rerun/teams/ruggedness/a??_C?.txt and ~/vgc-data/edit_kind_rerun/teams/ruggedness2/s??_C?.txt against their starting teams, 2026-11-13; v2/FACTS.md, 'Scope limits'"
+        },
+        {
+          "claim": "Item edits are random legal values, not the edits a player or a search would choose.",
+          "source": "v2/FACTS.md, 'Scope limits'"
+        },
+        {
+          "claim": "That a lost Mega Stone explains part of the item-edit size is a hypothesis. The study did not split item edits by Mega Stone.",
+          "source": "no source; marked as a hypothesis"
+        }
+      ]
+    },
+    {
+      "sentence": "Now change one of Raichu's moves, Nuzzle to Volt Tackle. The win rate goes from 56.25% to 55.21%, a single point. That is closer to the starting score than any of the team's three unchanged replays, which landed between 52.34% and 53.12%. Measured over 72 move edits from tournament-ready teams, a move edit moves win rate by 4.84 points once luck is removed, so a single small result like this one says little about moves in general.",
+      "facts": [
+        {
+          "claim": "Edit a09_A1 changes Raichu's Nuzzle to Volt Tackle and nothing else.",
+          "source": "diff of ~/vgc-data/edit_kind_rerun/teams/ruggedness/a09.txt and ~/vgc-data/edit_kind_rerun/teams/ruggedness/a09_A1.txt"
+        },
+        {
+          "claim": "a09_A1 scored 0.5521 over 384 battles. The starting team scored 0.5625, replays 0.5234, 0.5312 and 0.5286.",
+          "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, vgc.anchors[9].edits, file a09_A1.txt, and vgc.anchors[9].f and .reps"
+        },
+        {
+          "claim": "The move-edit size from tournament-ready teams is 4.84 points, interval 3.35 to 6.23, over 72 edits.",
+          "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, vgc.meta.A_move_swap.delta_star and .edits; code/docs/ruggedness2.md, table in 'Reading without the 5-point cutoff'"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "Answered 2026-11-13: neither October edit leads. Both the Meganium and the Charizard Heat Wave edits come from battles in listed slot order, which no longer count. All three candidates now use one tournament-ready team from the rerun, the Raichu team of the issue #313 storyboard.",
+    "Answered 2026-11-13 in each sentence: the first candidate says one example carries about 3.4 points of battle luck and proves nothing alone, and the third points to the 72-edit average. Do you also want a line saying these three edits were picked from one team?",
+    "The starting score of 56.25% sits above all three replays, 52.34% to 53.12%, so part of each drop may be luck in that first score. Do you want the examples measured against the replay average, about 52.8%, instead?",
+    "The second candidate's link between Mega Stone removal and item-edit size is a hypothesis. Should it stay as one, or be cut?"
+  ],
+  "picked": null,
+  "applied": "Replaced all three October examples, which came from listed-order battles that no longer count, with real rerun edits on one tournament-ready team: a whole-Pokemon swap to Mawile, a Charizardite Y item swap and a Nuzzle to Volt Tackle move swap, each with its score and the team's three replays. Each example is framed as an illustration carrying about 3.4 points of battle luck."
+}

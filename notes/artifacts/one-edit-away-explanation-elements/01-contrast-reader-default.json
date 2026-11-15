@@ -1,0 +1,108 @@
+{
+ "action": "Make connections",
+ "element": "Contrast with the reader's default",
+ "what_it_does": "It puts the picture the reader already holds next to the new finding in one sentence, so the reader sees exactly which assumption the finding breaks.",
+ "when_to_use": "Right where the draft claims that benchmarks are smooth and before it describes the one-edit measurement, because that is where the reader's picture of a small step is about to be tested.",
+ "sentence_pattern": "'You would expect X, as with Y, although in Pokemon Z' or 'Instead of X, as on Y, one edit to a team does Z.'",
+ "dllm_example": "instead of ... next token ... as AR models do",
+ "anchor_in_draft": "If you look other academic benchmark for optimization they are smooth.",
+ "extra": {
+  "label": "The reader's default",
+  "text": "An engineer expects a small step in the input to give a small step in the score. Bayesian optimisation builds that expectation into its model: Gaussian processes rely on the smoothness defined by a kernel, Oh et al. 2019, Section 1, https://arxiv.org/abs/1902.00448. On Pest Control, a benchmark from that paper, one step moves the score by 0.14 of that benchmark's spread when the spread is pooled, or 0.37 and 0.32 when each kind of starting point uses its own spread, source: v2/FACTS.md, Reading two, and rerun-readings.json, pest_control. No paper found says benchmarks are smooth because methods need smoothness. That link is an inference. Decided 2026-11-13: the two kinds of starting point are not pooled, so the step is 0.37 and 0.32 and the pooled 0.14 is not used."
+ },
+ "candidates": [
+  {
+   "sentence": "You would expect one small change to a team to move its score only a little, the way a Bayesian optimiser's Gaussian process assumes nearby points score alike, yet replacing one Pokemon on a tournament-ready team moved its win rate by 5.90 points once battle luck was removed. That is 0.65 of the spread of true scores between teams.",
+   "facts": [
+    {
+     "claim": "Gaussian processes rely on the smoothness defined by a kernel to model uncertainty",
+     "source": "Oh et al. 2019, Combinatorial Bayesian Optimization using the Graph Cartesian Product, Section 1, https://arxiv.org/abs/1902.00448"
+    },
+    {
+     "claim": "Whole Pokemon replaced on tournament-ready teams: 5.90 points, 95% interval 4.78 to 7.01, share of spread 0.65",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, groups.outside_top50.kinds.F_candidate_copy; code/docs/ruggedness2.md, section 'Reading without the 5-point cutoff (2026-11-13, after the result, post hoc)'"
+    },
+    {
+     "claim": "The spread of true scores between teams is 9.04 points",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, spread_between_teams_points"
+    },
+    {
+     "claim": "A share of 0.65 means 0.65 of one standard deviation of team scores, not two thirds of the gap between two typical teams",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, Scope limits"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams, with the same behaviour cloning policy playing both sides and team slots shuffled",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement'"
+    }
+   ]
+  },
+  {
+   "sentence": "If you expect one small step to barely move a score, Pest Control, a standard Bayesian optimisation benchmark, agrees, because changing one station moves its score by 0.32 to 0.37 of the spread between its starting points. Swapping one Pokemon on a tournament-ready team moved win rate by 0.65 of the spread between teams, larger than the benchmark step.",
+   "facts": [
+    {
+     "claim": "Pest Control step share of spread is 0.14 pooled, 0.37 and 0.32 when each kind of starting point uses its own spread. Decided 2026-11-13: the two kinds of starting point are not pooled, so the step is 0.37 and 0.32 and the pooled 0.14 is not used.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, Reading two; 0.138 and 0.142 also in notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, pest_control"
+    },
+    {
+     "claim": "Pest Control comes from Oh et al. 2019",
+     "source": "Oh et al. 2019, Combinatorial Bayesian Optimization using the Graph Cartesian Product, Section 1, https://arxiv.org/abs/1902.00448, Section 4 and Supplement 4.2.2, 'Multi-categorical variables: pest control'"
+    },
+    {
+     "claim": "Whole-Pokemon swap at 0.65 is larger than a Pest Control step for tournament-ready teams. Move, item and ability edits read undecided against it. Decided 2026-11-13: the two kinds of starting point are not pooled, so the step is 0.37 and 0.32 and the pooled 0.14 is not used.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, Decision on the benchmark spread"
+    },
+    {
+     "claim": "Whole Pokemon replaced on tournament-ready teams: share of spread 0.65, 95% interval 0.49 to 0.92",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, groups.outside_top50.kinds.F_candidate_copy.share_of_spread"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams, with the same behaviour cloning policy playing both sides and team slots shuffled",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement'"
+    }
+   ]
+  },
+  {
+   "sentence": "The usual picture says a smaller change should move the score less, and on tournament-ready teams a single move, item or ability replaced still moved win rate by 3.66 to 4.84 points, each with an interval above zero. Copied Stat Points and a new stat alignment could not be told apart from zero, which is not the same as doing nothing.",
+   "facts": [
+    {
+     "claim": "Tournament-ready teams: move 4.84 [3.35, 6.23], item 4.35 [2.33, 5.89], ability 3.66 [2.22, 4.71] points, all intervals exclude zero",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, groups.outside_top50.kinds A_move_swap, C_item_swap, B_ability_swap; code/docs/ruggedness2.md, section 'Reading without the 5-point cutoff (2026-11-13, after the result, post hoc)'"
+    },
+    {
+     "claim": "Stat alignment 1.95 [0, 2.92] and Stat Points 1.60 [0, 2.63] are not shown above zero, which does not mean they do nothing",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, D_alignment_swap and E_spread_copy; notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, Reading one"
+    },
+    {
+     "claim": "Edits are random legal values, not the edits a player or a search would choose, and about a quarter of item edits remove a Mega Stone",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, Scope limits"
+    },
+    {
+     "claim": "The reading without a size cutoff was chosen after the result was seen",
+     "source": "code/docs/ruggedness2.md, section 'Reading without the 5-point cutoff (2026-11-13, after the result, post hoc)'"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams, with the same behaviour cloning policy playing both sides and team slots shuffled",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement'"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "Answered 2026-11-13: Which study to quote. The September pilot and the October 100-team study are retired, so every candidate now uses the edit-kind rerun of issue #313.",
+  "Answered 2026-11-13: What the reader default is. owner_answer defines it and grounds it in Oh et al. 2019, Section 1.",
+  "Answered 2026-11-13: A citation for the claim that Bayesian optimisation assumes smoothness. Oh et al. 2019, Section 1: Gaussian processes rely on the smoothness defined by a kernel. No source on record covers gradient descent, which rests on general knowledge.",
+  "Your draft says optimisation benchmarks are mostly smooth. Your own comparison note found five of 10 tasks stay smooth and five turn rough near good points, and no paper says benchmarks are smooth because methods need it. Do you want 'some benchmarks, such as Pest Control' instead of 'most benchmarks'?",
+  "Answered 2026-11-13: you chose each kind of benchmark starting point on its own spread. One Pest Control step is then 0.37 from random points and 0.32 from hill-climbed points. Only the whole-Pokemon swap from tournament-ready teams reads larger than a step. Move, item and ability edits read undecided."
+ ],
+ "picked": null,
+ "applied": "Added owner_answer defining the reader default and its source in Oh et al. 2019, Section 1, and rewrote all three candidates to open with that default. Replaced every retired September and October number, including the Hartmann-6 and 0.99 neighbour correlation claims, with edit-kind rerun results that FACTS.md allows.",
+ "owner_answers": [
+  {
+   "label": "The reader's default, defined",
+   "text": "The reader is an engineer or student who has trained a model or tuned one with an optimiser, but has never built a Pokemon team. Their default is that when one input changes by one small step, the score moves only a little, so points that sit close together score close together. That habit comes from the methods they use: gradient descent walks downhill one small step at a time, and Bayesian optimisation models a black-box score with a Gaussian process, which in the words of Oh et al. 2019 relies \"on the smoothness defined by a kernel to model uncertainty\". Pest Control, the benchmark from that same paper, behaves this way, since one changed station moves its score by a small share of the spread between its points."
+  }
+ ],
+ "owner_note": [
+  "Define what is the reader default"
+ ]
+}

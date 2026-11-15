@@ -1,0 +1,79 @@
+{
+  "action": "Make connections",
+  "element": "A term from a neighbouring field",
+  "what_it_does": "It hands the reader a word they already own from another field, so a new idea about Pokemon teams arrives with its meaning attached.",
+  "when_to_use": "It earns its place right after the draft reports how far one edit moves win rate, where the reader asks why a single change can matter that much. Epistasis names the likely cause. Lipschitz continuity and signal versus noise are the fallbacks for the smoothness definition itself.",
+  "sentence_pattern": "In [home field], [term] means [plain meaning]. Here it means [what it means for one team edit].",
+  "dllm_example": "entropy as a confidence measure",
+  "anchor_in_draft": "Smoothness is mathematic term",
+  "extra": null,
+  "candidates": [
+    {
+      "sentence": "Mathematics has a stricter word for smoothness, Lipschitz continuity: one step in the input can move the output by at most a fixed amount. For a Pokemon team, one step is one legal edit. In our rerun, swapping one whole Pokemon moved win rate by about 5.9 points on tournament-ready teams after removing battle luck. That is a typical size, not the largest one, so it shows how big the fixed amount would have to be without proving that no bound exists.",
+      "facts": [
+        {
+          "claim": "Whole-Pokemon swap on tournament-ready teams: 5.90 win-rate points after removing battle luck, 95% interval 4.78 to 7.01, from 384 battles per score against the 50 top-placing team files with shuffled slots and one behaviour-cloning policy on both sides.",
+          "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff (2026-11-13, after the result, post hoc), table row Whole Pokemon copied from a real set"
+        },
+        {
+          "claim": "The size is a root mean square over edits with replay noise subtracted, not a maximum, and it measures size, not direction.",
+          "source": "notes/reports/edit-kind-rerun-2026-11-13/issue-313/spec.json, terms entry 'Change, in points'"
+        }
+      ]
+    },
+    {
+      "sentence": "Statistics gives us the test: a change counts as signal only when it is still above zero after you subtract the noise you see by replaying the same team unchanged. Two replays of one unchanged tournament-ready team differ by about 3.4 win-rate points from luck alone. With that luck removed, replacing one move still moves win rate by 4.84 points, and its 95% interval, 3.35 to 6.23, stays above zero.",
+      "facts": [
+        {
+          "claim": "Two scores of the same unchanged team differ by 3.40 points root mean square for tournament-ready teams, 384 battles each.",
+          "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section The finished measurement, paragraph Noise; notes/reports/edit-kind-rerun-2026-11-13/issue-313/spec.json, terms entry 'Battle noise'"
+        },
+        {
+          "claim": "One move replaced on tournament-ready teams: 4.84 points, interval 3.35 to 6.23, reads above zero.",
+          "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff (2026-11-13, after the result, post hoc), table row One move replaced"
+        },
+        {
+          "claim": "The above-zero reading was chosen after the result was seen. The pre-registered reading was that only the whole-Pokemon swap passes both tests.",
+          "source": "code/docs/ruggedness2.md, sections Result (issue #313) and Reading without the 5-point cutoff"
+        }
+      ]
+    },
+    {
+      "sentence": "Genetics has a word for what could make single edits matter this much: epistasis, which means the effect of one mutation depends on the rest of the genes it lands among. Our hypothesis is that Pokemon teams work the same way, so a move swap's effect depends on the other five Pokemon and the same swap could help one team and hurt another. We have not tested that yet. What we measured is size: with battle luck removed, one move swap moved win rate by about 4.8 points and one whole Pokemon swap by about 5.9 on tournament-ready teams.",
+      "facts": [
+        {
+          "claim": "Definition, quoted word for word: \"Epistasis occurs when the effect of a mutation depends on its carrier’s genetic background.\"",
+          "source": "Claudia Bank 2022, Epistasis and Adaptation on Fitness Landscapes, Annual Review of Ecology, Evolution, and Systematics, preprint https://arxiv.org/abs/2204.13321, Abstract, first sentence"
+        },
+        {
+          "claim": "Sign epistasis, quoted word for word: \"sign epistasis occurs when mutations are beneficial in some genetic backgrounds, but not in others.\" The same section says sign epistasis \"introduces ruggedness into the landscapes\" and cites Weinreich, Watson and Chao 2005 for the distinction between magnitude and sign epistasis.",
+          "source": "Szendro, Schenk, Franke, Krug and de Visser, Quantitative analyses of empirical fitness landscapes, https://arxiv.org/abs/1202.4378, Section 1 Introduction"
+        },
+        {
+          "claim": "Magnitude epistasis, quoted word for word: \"Magnitude epistasis is present when the fitness effect of a mutation at a given locus has a definite sign (beneficial or deleterious) irrespective of the alleles at other loci, while the magnitude depends on the genetic background.\"",
+          "source": "Szendro et al., https://arxiv.org/abs/1202.4378, Section 1 Introduction"
+        },
+        {
+          "claim": "One move replaced, tournament-ready teams: 4.84 points, interval 3.35 to 6.23. Whole Pokemon copied from a real set: 5.90 points, interval 4.78 to 7.01. Both after removing replay noise.",
+          "source": "code/docs/ruggedness2.md, section Reading without the 5-point cutoff (2026-11-13, after the result, post hoc), table"
+        },
+        {
+          "claim": "The measurement is the size of a change, not its direction, and each edit was applied to one team only, so no data here shows the same edit with different effects on two teams.",
+          "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section Scope limits; notes/reports/edit-kind-rerun-2026-11-13/issue-313/spec.json, terms entry 'Change, in points'"
+        }
+      ]
+    }
+  ],
+  "picked": 2,
+  "applied": "Picked the epistasis candidate, the only one of the three that uses the term, and rewrote it to define epistasis from Bank 2022 with a checked quote, present it as the name for what would explain the measured size, and mark 'depends on the other five Pokemon' as an untested hypothesis. Replaced every retired October number in all three candidates with the 2026-11-13 rerun figures and their sources.",
+  "owner_answer": {
+    "label": "Using epistasis in the post",
+    "text": "Introduce it with the biology first and the Pokemon second: in genetics, epistasis means the effect of one mutation depends on the rest of the genes around it, the way a move swap might depend on the other five Pokemon. Then say plainly that this is your hypothesis for why one edit moves win rate by about 5 points, and that a separate test is needed to check it. Do not claim the measured edit sizes show epistasis, because a large edit could be large on every team, and the rerun applied each edit to one team only, so it never compared the same edit on two teams."
+  },
+  "gaps": [
+    "Is there any measured case where the identical edit was applied to two different teams? Another subagent is checking project data on 2026-11-13. Until one exists, epistasis and sign epistasis can only be named as a hypothesis, not shown.",
+    "Do you want 'ruggedness' or 'fitness landscape' in the post? The Szendro et al. quote links sign epistasis to ruggedness, and your memory records 'fitness landscape' as a banned phrase, so the picked sentence avoids both.",
+    "Candidate 0 gives the Lipschitz definition without a cited source. If you keep it, it needs a textbook or paper reference that I did not open.",
+    "Is there a Lipschitz-style number for the benchmarks, such as the largest one-step change on Pest Control in the same units? The sources give noise-corrected typical sizes, not a per-step maximum."
+  ]
+}

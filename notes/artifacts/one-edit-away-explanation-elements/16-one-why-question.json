@@ -1,0 +1,55 @@
+{
+ "action": "Keep it bounded",
+ "element": "Scope set by one real or imagined \"why\" question",
+ "what_it_does": "It tells the reader the one question the post answers and what it will not cover, so every later sentence can be checked against that question.",
+ "when_to_use": "At the top of the post, because the draft currently opens with the series goal and ends with optimisation methods, and one stated question tells the reader which of those topics this post is about.",
+ "sentence_pattern": "This post answers: why x? It does not cover y.",
+ "dllm_example": "Rethinking Generation Beyond Autoregressive Models",
+ "anchor_in_draft": "Today, I will be discussing about the smoothness in optimization space pokemon.",
+ "extra": {
+  "label": "What each sentence of the draft does under the question",
+  "text": "Question used: candidate 1, why can one legal edit to a Pokemon team break hill climbing when edits to benchmark points mostly do not. 1. \"During, I am planning to make the case...\" OUT: the series goal, a wider question than this post. 2. \"Today, I will be discussing about...\" IN: names the topic the question is about. 3. \"If you look other academic benchmark...\" IN: the benchmark half of the contrast. 4. \"Why they are mostly smooth.\" OUT: asks why benchmarks are smooth, which is a different question that the draft never answers. 5. \"Smoothness is mathematic term...\" IN: the reader needs the definition to follow the question. 6. \"This is useful information in ML context...\" IN: says why smoothness helps hill climbing, the thing the question says breaks. 7. \"However, when the space is smooth the value change drastically...\" IN: the failure case the question asks about. 8. \"We make the transition function simple...\" IN: defines the one edit. 9. \"We measure how much change.\" IN: the measurement. 10. \"If change greater than noise it change it hard.\" IN: the test that answers the question. 11. \"We are using the One edit away artifact...\" OUT as a sentence: a note about files; the figure itself stays as a link. 12. \"It interesting problem it require to solve...\" OUT: moves to how to solve it, a later question. 13. \"One build two optimziation metha MAP and Cross entropy method...\" OUT: the methods belong to a later post."
+ },
+ "candidates": [
+  {
+   "sentence": "This post answers one question: how far does one legal edit move a Pokemon team's win rate, and is that further than one step moves a standard optimisation benchmark? It does not cover which search methods cope with that, such as MAP-Elites, which keeps the best team in each cell of a grid of team traits, or the cross-entropy method, which refits a sampling distribution to its best samples.",
+   "facts": [
+    {
+     "claim": "The edit is one legal change: a move, an item or a whole Pokemon.",
+     "source": "notes/research_notes/Landscape analysis inside CEM 20261020/one-edit-evidence.md, section 'September 28 study: different legal edit operators'"
+    },
+    {
+     "claim": "The figure compares Pokemon edits with steps on the Pest Control and Hartmann-6 benchmarks.",
+     "source": "notes/Blog/visuals/smoothness/README.md, section 'Three connected views', Benchmarks"
+    }
+   ]
+  },
+  {
+   "sentence": "This post answers one question: why should a team that wins become a different team after one changed move? It leaves out the benchmark comparison and the search methods, and stays with what one edit does to one team's win rate.",
+   "facts": [
+    {
+     "claim": "The rerun gave each of 40 starting teams 18 legal edits of six kinds and replayed each unchanged team three times, with every score taken over 384 battles against the 50 top-placing teams under one behaviour-cloning policy.",
+     "source": "code/docs/ruggedness2.md, last sections"
+    },
+    {
+     "claim": "The figure does not establish mathematical non-smoothness.",
+     "source": "notes/Blog/visuals/smoothness/README.md, section 'Learning question'"
+    }
+   ]
+  },
+  {
+   "sentence": "This post answers one question: why is Pokemon team building worth studying as a scientific problem? It gives one reason, that one edit can move win rate by more than battle noise, and leaves the other reasons for later posts in the series.",
+   "facts": [
+    {
+     "claim": "Each per-edit change is compared with the change from an unchanged-team repeat, which shows battle noise.",
+     "source": "notes/Blog/visuals/smoothness/README.md, section 'Three connected views', Try one edit"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "Which other reasons will the series give for studying Pokemon, so candidate 3 can name what this post leaves for later?",
+  "Answered 2026-11-13: say that the benchmarks you measured are smooth and name them. No source says benchmarks are mostly smooth. See the four questions you handed back.",
+  "Answered 2026-11-13: use neither the 8-team pilot nor the 400,000-battle study. Both ran in listed slot order and no longer count. Use the rerun of 2026-11-13."
+ ]
+}

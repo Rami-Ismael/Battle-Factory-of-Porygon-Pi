@@ -1,0 +1,50 @@
+{
+  "action": "Make connections",
+  "element": "Borrow from a sibling method",
+  "what_it_does": "It lets the reader reuse a method they already know by naming the method the one-edit test borrows from, what it borrows, and what had to change for Pokemon.",
+  "when_to_use": "Right after the draft says smoothness makes hill climbing easier, so the reader sees the one-edit test as a familiar measurement applied to a new space.",
+  "sentence_pattern": "The test borrows a from sibling method b, and changes c because Pokemon d",
+  "dllm_example": "replaces tokens with a special token",
+  "anchor_in_draft": "make it easier to hill climb",
+  "extra": null,
+  "candidates": [
+    {
+      "sentence": "Neural architecture search researchers already test smoothness with neighbours. The NAS-Bench-101 benchmark calls two networks neighbours when one change separates them, one operation swapped or one connection flipped, and it takes a long random walk to see how well each network's accuracy predicts the next one's. I borrowed the neighbour and the question. For Pokemon one change is a legal move, ability, item, stat alignment, Stat Points or whole Pokemon. Instead of a long walk I take one step from each of 40 starting teams, and I subtract the battle luck I see when the same team is replayed with nothing changed.",
+      "facts": [
+        {"claim": "NAS-Bench-101 defines closeness by edit distance, where one change flips the operation at a vertex or the presence of an edge, and measures locality with random-walk autocorrelation over a long walk of random changes, citing Weinberger 1990.", "source": "Ying et al. 2019, NAS-Bench-101, Section 3.3 Locality, https://arxiv.org/abs/1902.09635"},
+        {"claim": "The project's measurement takes one step per edit, not a random walk: the size of one edit is the root of the mean squared move of edits minus the mean squared move of unchanged replays, against the team's first score.", "source": "code/scripts/top50_one_edit.py, functions squared_moves and edit_size"},
+        {"claim": "40 starting teams, 24 tournament-ready and 16 search-found, each got 18 edits across six kinds and three replays with nothing changed.", "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement'"},
+        {"claim": "The neighbour correlation the project reports is implied by the edit size, 1 minus share squared over 2, so it maps to the idea of random-walk autocorrelation and not to the exact estimator.", "source": "code/scripts/top50_one_edit.py, function edit_size docstring, and code/docs/ruggedness2.md, section 'Statistics'"}
+      ]
+    },
+    {
+      "sentence": "Biologists call this picture a fitness landscape, and the one-edit test comes from it. A team plays the role of a genome, one legal edit plays the role of one mutation, and win rate plays the role of fitness. The question carried over is how well a point's fitness predicts its neighbour's. What changed for Pokemon is that fitness comes from 384 battles, which carry luck, so each starting team is also replayed three times untouched and only the movement beyond that luck counts as the edit.",
+      "facts": [
+        {"claim": "Weinberger 1990, 'Correlated and uncorrelated fitness landscapes and how to tell the difference', Biological Cybernetics, is the source NAS-Bench-101 cites for random-walk autocorrelation as a measure of locality.", "source": "Ying et al. 2019, NAS-Bench-101, Section 3.3 and reference list, https://arxiv.org/abs/1902.09635"},
+        {"claim": "Each score is a win rate over 384 battles, and each starting team was replayed three times with nothing changed to measure battle luck.", "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement'"},
+        {"claim": "The noise of unchanged replays is subtracted from the edits' squared moves before the size is taken, and a negative remainder is set to zero.", "source": "code/scripts/top50_one_edit.py, function edit_size"}
+      ]
+    },
+    {
+      "sentence": "Combinatorial Bayesian optimisation gave me the yardstick. On its Pest Control benchmark, 25 stations each pick one of five options, four pesticides or none, and two settings are neighbours when exactly one station differs. I ran the same one-step test on Pest Control from random and hill-climbed starting points and divided each step by that benchmark's own spread of scores. Replacing one whole Pokemon on a tournament-ready team moves win rate by 0.65 of the spread between teams, larger than a Pest Control step however that benchmark's spread is counted.",
+      "facts": [
+        {"claim": "In COMBO's combinatorial graph, two vertices are connected when their choices differ by a single combinatorial choice.", "source": "Oh et al. 2019, Combinatorial Bayesian Optimization using the Graph Cartesian Product, Section 2.2, https://arxiv.org/abs/1902.00448"},
+        {"claim": "Pest Control has 25 variables with 5 categories each: 4 pesticides and the choice of using none.", "source": "Oh et al. 2019, Supplement Section 4.2.2, https://arxiv.org/abs/1902.00448"},
+        {"claim": "The benchmark side uses random starting points and points found by a first-improvement hill climb, with one edit setting one station to another value.", "source": "code/docs/ruggedness2.md, section 'What is added'"},
+        {"claim": "A Pest Control step is 0.14 of that benchmark's spread pooled over both kinds of starting point, and 0.37 and 0.32 when each kind uses its own spread.", "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'Reading two, against a benchmark step'"},
+        {"claim": "The whole-Pokemon swap on tournament-ready teams is 5.90 points, 0.65 of the 9.04-point spread of true scores between teams.", "source": "notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, keys spread_between_teams_points and groups.outside_top50, and code/docs/ruggedness2.md, section 'Reading without the 5-point cutoff'"}
+      ]
+    }
+  ],
+  "gaps": [
+    "Answered 2026-11-13: Weinberger 1990 is itself a fitness-landscape paper in Biological Cybernetics, per its title in the NAS-Bench-101 reference list, so it can stand behind the genome and mutation mapping. Its full citation is still being checked by another pass, so it is cited as 'Weinberger 1990' for now.",
+    "The full citation for Weinberger 1990 is being checked by another pass. Until that report lands, the post should cite it only as 'Weinberger 1990'.",
+    "The glossary lists 'mutation' under Avoid for a species swap. Is the word acceptable inside the biology sentence, where it names the sibling's part and not your edit?",
+    "Answered 2026-11-13: NAS-Bench-101 Section 3.3 gives no one-step correlation number in its text. It says the random-walk autocorrelation is high at short distances and indistinguishable from noise beyond a distance of about 6, and the values are only drawn in Figure 6. The post cannot put a number from it beside yours without reading that figure.",
+    "Answered 2026-11-13: the invented Garchomp example and the 150-battle panels are gone. The hill-climbing candidate was dropped because hill climbing is not a method the measurement borrows from. The Pest Control yardstick took its place.",
+    "Oh et al. 2019 main text, Section 4.2, says 21 Pest Control stations, while its Supplement Section 4.2.2 and this project's code use 25. Do you want the post to say 25 stations, matching the code, or avoid the count?",
+    "Which spread the Pest Control step is divided by is still your open decision. Candidate three only claims the whole-Pokemon swap, which is larger on every count. Do not extend it to move, item or ability edits until you decide."
+  ],
+  "picked": null,
+  "applied": "Rewrote all three candidates to describe the current measurement, one step from 40 starting teams at 384 battles with unchanged replays subtracted, and dropped the retired 50-battle panels and the invented Garchomp example. Each candidate now names its sibling method, NAS-Bench-101 random-walk autocorrelation, the fitness landscape of Weinberger 1990, and the Pest Control step from combinatorial Bayesian optimisation, with what was borrowed and what changed, and every paper fact was checked against the opened paper."
+}

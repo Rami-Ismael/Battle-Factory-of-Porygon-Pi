@@ -1,0 +1,106 @@
+{
+ "action": "Talk about the subject",
+ "element": "The bigger picture",
+ "what_it_does": "It places smoothness inside the larger thing it belongs to, so the reader knows why this one small experiment exists.",
+ "when_to_use": "At the opening, right after Rami says he will make the case for studying Pokemon, so the reader sees smoothness as one piece of that case before any measurement appears.",
+ "sentence_pattern": "x is one part of y. It sits between a and b.",
+ "dllm_example": "As the bitter lesson shows",
+ "anchor_in_draft": "I am planning to make the case why more people should study pokemon as a real scientific problem to understand",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "This post starts a run on why Pokemon team building is a hard optimisation problem worth studying. My notes sort the difficulty into three families: what a team is, how a team gets scored, and the shape of the scores across all possible teams. Smoothness belongs to the third family. It asks how far one small change to a team moves its win rate.",
+   "facts": [
+    {
+     "claim": "The note groups the ways team building differs from other search problems into search-space properties, 'what a team is, before any win rate', evaluation properties, 'how f can be observed', and landscape properties, 'the shape of f over the space, given an edit operator'. Smoothness is listed under landscape properties.",
+     "source": "notes/What makes Pokémon a unique problem set.md, section 'Search Perspective and objective function how different from other search spaces for optimization', items 1, 2 and 4"
+    },
+    {
+     "claim": "Other faces listed beside smoothness: variable type, evaluation cost and budget, noise, meta drift over time, high-order interaction, ill-conditioning, non-stationary relevance, no single global optimum, and whether good parts combine into a good team.",
+     "source": "notes/What makes Pokémon a unique problem set.md, same section, sub-items of 1, 2 and 4"
+    },
+    {
+     "claim": "Status of each other face, checked 2026-11-13. Published or planned LinkedIn post: none. The first two LinkedIn posts cover the Jev and Mercury decision models and DSPy prompt optimisation, and this smoothness post is the third. Drafted prose in a note: team preview with its count of 90 selections, 'Version 2', and the battle as a game, 'Version 6', both in notes/What makes Pokémon a unique problem set.md. Planned as a section of the final blog only: 'Why should you care about team building in competitive pokemon as an academic question', listed under 'Blog Section Orders' in notes/Blog.md, whose open checkbox asks for a scaffold built from the 'Search Perspective' list. A note with a short stub and no measurement: variable type 8 lines, evaluation cost 6, noise 13, meta drift 7, ill-conditioning 7, non-stationary relevance 12, no global optimum 17, high-order interaction 53 lines of examples and todos. The 16-point benchmark comparison sits in notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md.",
+     "source": "notes/Blog.md; notes/What makes Pokémon a unique problem set.md; the vault notes 'First post comparing jev to mercury and post on linkedin to get a job.md', 'Second Post on linked in about using DSpy and promp optimization to narrow the gap between mercury and jev.md' and 'Third Post on Linkedin about one edit away ...md'; line counts of each face note in notes/ by wc -l"
+    }
+   ]
+  },
+  {
+   "sentence": "A competitive match has three levels. First you build a team of six Pokemon. Then, at team preview, each player secretly brings four of their six and picks two to lead, which gives 90 possible choices. Then comes the battle. Each level is scored by how the levels after it play out, and this post is only about the first one. I hold the rest fixed: every team faces the same 50 top-placing tournament teams, and the same battle program, trained by behaviour cloning on human replays, plays both sides.",
+   "facts": [
+    {
+     "claim": "Team building, team selection and the battle are three layers, nested rather than parallel: 'each layer is scored by the value of the layer below it'.",
+     "source": "notes/What makes Pokémon a unique problem set.md, section 'Todo', first ticked item"
+    },
+    {
+     "claim": "There are 90 ways for one player to bring four of six with two leads: C(6,2) = 15 lead pairs times C(4,2) = 6 back pairs. Arithmetic checked.",
+     "source": "notes/What makes Pokémon a unique problem set.md, section 'Team Selection 4x4 from your 6 pokemon team', 'Writing', Version 2, item 4"
+    },
+    {
+     "claim": "A selection is the four Pokemon brought at team preview.",
+     "source": "notes/GLOSSARY.md, entry 'Selection'"
+    },
+    {
+     "claim": "The scope of the team search covers species, ability, item, moves, Stat Points and stat alignment. Team preview and the battle are out of scope.",
+     "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, frontmatter 'scope'"
+    },
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams, 49 of them distinct, with the same behaviour-cloning battle policy playing both sides and team slots shuffled.",
+     "source": "code/docs/ruggedness2.md, section 'Rerun with shuffled slots against the full meta — pre-registered 2026-11-12'; SITE/v2/FACTS.md, 'Design'"
+    }
+   ]
+  },
+  {
+   "sentence": "Papers on Bayesian optimisation, a method that predicts a new point's score from nearby points it has already scored, test themselves on a shared set of benchmarks. The most reused one in my comparison is Pest Control: 25 stations with 5 choices each. One step there, changing one station, moves the score by only a fraction of the spread between points. This post asks how far one step moves a Pokemon team's win rate, measured the same way. The comparison describes two landscapes. It does not show that Bayesian optimisation fails on teams.",
+   "facts": [
+    {
+     "claim": "Bayesian optimisation guesses a team's score from the teams it has already tried nearby.",
+     "source": "notes/Landscape properties comparison with other black box function by smoothness.md, section 'Writing', item 3 'Why smoothness matters for search'"
+    },
+    {
+     "claim": "Pest Control is 25 categorical variables with 5 values each, introduced in COMBO and reused by CASMOPOLITAN, BODi and Bounce.",
+     "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, table 'The benchmarks', row 'Pest control'"
+    },
+    {
+     "claim": "Pest Control is the most reused benchmark in the comparison table.",
+     "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, section 'Figure plan — one benchmark point becomes a team (not built)'"
+    },
+    {
+     "claim": "Gaussian-process Bayesian optimisation relies on smoothness: 'GPs rely on the smoothness defined by a kernel to model uncertainty'. Pest Control comes from this paper.",
+     "source": "Oh et al. 2019, Section 1, https://arxiv.org/abs/1902.00448, as recorded in SITE/v2/FACTS.md"
+    },
+    {
+     "claim": "Where 0.99 comes from. The project measured Pest Control itself on 2026-09-28: 24 random starting points and 16 hill-climbed ones, each a first-improvement hill climb of 100 single-edit proposals from a random point, 15 one-station edits and 3 replicates per point. Neighbour correlation 0.991, interval 0.987 to 0.993, from random points and 0.990 from hill-climbed points. Both divide by the spread pooled over both kinds of starting point, a step share of 0.138 and 0.142. With each kind's own spread the correlation is 0.933 from random points and 0.950 from hill-climbed points, a share of 0.37 and 0.32. So 0.99 is the pooled count only, and you chose each kind's own spread on 2026-11-13, which gives 0.93 and 0.95. The sentence states no number for that reason. The benchmark rows in the 2026-11-13 rerun file are identical, so the rerun reused them. These are benchmark numbers, not Pokemon numbers, so they are not retired. Decided 2026-11-13: the two kinds of starting point are not pooled, so the step is 0.37 and 0.32 and the pooled 0.14 is not used.",
+     "source": "~/vgc-data/results/ruggedness2.json, key benchmarks.pest_control, fields rho, rho_ci95, s, rho_within_start_var for 'random' and 'search'; same key in ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json; method in code/docs/ruggedness2.md, sections 'What is added' and 'Statistics'; shares in section 'Reading without the 5-point cutoff'"
+    },
+    {
+     "claim": "The project's benchmark comparisons are descriptive comparisons using different input spaces and step definitions, 'not a universal smoothness ranking or evidence that Bayesian optimisation cannot work'.",
+     "source": "code/docs/smoothness-experiment.md, section 'Full measured results — 2026-10-01'"
+    },
+    {
+     "claim": "Ranking of search methods reverses as ruggedness is turned up: 'While for small values of k, hBOA is outperformed by other algorithms included in the comparison, as k increases, the situation changes rapidly. More specifically, for larger k, hBOA outperforms all other algorithms.' The paper calls NK landscapes 'tunable models of rugged fitness landscape'. It implies and does not state that ruggedness grows with k.",
+     "source": "Pelikan 2008, GECCO-2008 pp. 1033-1040, Section 4.5, https://arxiv.org/abs/0801.3111"
+    },
+    {
+     "claim": "Nearby support, not about smoothness: 'For more complex problems, BO optimizers perform equally or worse than greedy baselines', with complexity meaning sequence length and motif count.",
+     "source": "Gonzalez-Duque et al. 2024, Section 4.2.1, https://arxiv.org/abs/2406.04739"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "Answered 2026-11-12, in a narrower form than the sentence claims. Your notes hold no source for it. One checked paper does: Pelikan, GECCO 2008, 'Analysis of Estimation of Distribution Algorithms and Genetic Algorithms on NK Landscapes'. On NK landscapes, as the interaction count k grows, the hierarchical Bayesian optimisation algorithm goes from being outperformed to outperforming every other algorithm compared. Will you narrow the sentence to 'how rugged a benchmark is can change which method comes out on top'?",
+  "Answered 2026-11-13: the count of 90 selections is now sourced, from 'What makes Pokémon a unique problem set.md', Version 2 of the team-preview writing, and candidate 2 carries it. Drop the clause if you want the frame shorter.",
+  "Answered 2026-11-13: no other face of the difficulty has a published or planned LinkedIn post. Team preview and the battle have drafted prose in 'What makes Pokémon a unique problem set.md'. The rest are short stub notes, and the final blog plans one section on all of them. Candidate 1 therefore says this post starts a run and names no next post. Which face do you want to post next, so the closing line can point to it?",
+  "Candidate 3 avoids the number 0.99 for Pest Control. That figure divides by the spread pooled over random and hill-climbed starting points, and you chose each kind's own spread on 2026-11-13. With each kind's own spread it is 0.93 and 0.95."
+ ],
+ "picked": null,
+ "applied": "Rewrote all three frames for a reader who knows optimisers but not Pokemon. The series frame now uses the three families of difficulty from the problem-set note with each other face's status recorded, the three-levels frame carries the sourced 90 selections and the current rerun's opponents, and the benchmark frame drops the 0.99 figure because it depends on the open spread decision, with its origin and both starting points recorded in a fact.",
+ "owner_answers": [
+  {
+   "label": "Which bigger picture to use",
+   "text": "Use the benchmark comparison, candidate 3. Your reader already knows what an optimiser is, so a standard Bayesian optimisation benchmark is the one frame they can picture without learning any Pokemon first, and it sets up the measurement the rest of the post reports. The series frame promises posts that do not exist yet, and the three-levels frame spends the opening on game rules this reader has to learn before they reach smoothness."
+  }
+ ],
+ "owner_note": []
+}

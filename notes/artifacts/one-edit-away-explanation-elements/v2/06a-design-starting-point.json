@@ -1,0 +1,41 @@
+{
+  "owner_answer": {
+    "label": "What it takes to make a good team, as far as this measurement can say",
+    "text": "On the 24 tournament-ready teams, swapping a whole Pokemon or one move moved the win rate by about 5 to 6 points, and replacing an item or an ability moved it by about 4 points, all clearly beyond battle luck. Changing the stat alignment or copying Stat Points from another real set did not show an effect above zero in either group, which is not the same as doing nothing. On the 16 search-found teams only the whole Pokemon swap and the move swap showed an effect. Every edit was a random legal value scored by its size and not its direction, with one behaviour cloning policy playing both sides against the 50 top-placing teams, so this says which parts a good team is sensitive to and not which choices make it good."
+  },
+  "candidates": [
+    {
+      "sentence": "We chose to start every edit from tournament-ready teams, real teams that players built for tournaments, over random legal teams because a random team loses almost every battle, so there is little win rate left for an edit to move and the result would tell us nothing about good teams.",
+      "facts": [
+        {"claim": "The 24 tournament-ready starting teams are real Regulation M-B teams from the VGCPastes corpus that are not in the top-50 opponent pool.", "source": "code/docs/ruggedness.md, Design paragraph; code/docs/ruggedness2.md, Rerun with shuffled slots against the full meta"},
+        {"claim": "In the finished rerun with shuffled slots, the 24 tournament-ready teams won 50.7% of their battles on average against the 50 top-placing teams, from 35.4% to 70.8%, 384 battles each, behaviour cloning on both sides.", "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, key vgc.summary.anchor_mean_win_rate and vgc.anchors[].f, computed 2026-11-13"},
+        {"claim": "Random legal teams won 1.845% of their battles on average. This is from the 2026-10-01 study: 50 teams drawn from the hierarchical product sampler, which is not uniform over all legal teams, 400 battles each against the 50 top-placing teams, behaviour cloning on both sides, listed slot order. Listed-order battles are retired, so this number may be quoted only with that caveat.", "source": "code/docs/smoothness-experiment.md, Full measured results 2026-10-01 and Frozen design"},
+        {"claim": "Older still: 'random legal teams score median 0.000' over the 4,850 labelled teams, battled before shuffling existed. Opponent count for this label set is not recorded in the summary.", "source": "code/docs/plan-vs-results-2026-08-28.md, row 4.1.2"}
+      ]
+    },
+    {
+      "sentence": "We chose strong teams over random ones as the starting point because the question is how sensitive a good team is, and a team that wins about half its games against the best tournament teams has room to fall and room to climb after a single change.",
+      "facts": [
+        {"claim": "Tournament-ready starting teams averaged 50.7% and search-found starting teams averaged 44.5%, from 24.5% to 59.6%, in the finished rerun, 384 shuffled-slot battles each against the 50 top-placing teams.", "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, vgc.anchors[].f; ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50_parts/vgc_battles.json, key anchor, computed 2026-11-13"},
+        {"claim": "Edits were random legal values measured by the size of the change, not its direction.", "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, The finished measurement, scope limits"},
+        {"claim": "Under the retired listed-order setup of 2026-10-01, move edits on random legal teams changed win rate by a noise-corrected 0.292 squared points against 18.870 for top-placing teams, consistent with random teams sitting near the floor. Quote only with the listed-order caveat.", "source": "code/docs/smoothness-experiment.md, Full measured results 2026-10-01"}
+      ]
+    },
+    {
+      "sentence": "The opponents are the 50 highest-placing complete teams in VGCPastes, a public sheet of teams from official tournaments, taken one per tournament from the newest event back, and we chose to edit real tournament teams from outside that list over random teams because random teams fall so far below those opponents that one change cannot show what separates a good team from a great one.",
+      "facts": [
+        {"claim": "Teams missing any moves, abilities, items, natures or Stat Points were filtered out, teams were grouped by tournament and ranked by placement, tournaments were sorted newest to oldest, and the top eligible team of each tournament was taken, then the second of each, until there were 50.", "source": "notes/How did we create the top 50 placement pokemon team we consider top meta threat to atleast counter and show my method is effective.md, Version 3, Step of production"},
+        {"claim": "The 50 entries hold 49 distinct teams because MB493 and MB494 are the same paste.", "source": "code/docs/top50-36-opponents.md, second paragraph"},
+        {"claim": "The 2026-08-21 snapshot includes six ranked-season and four Showdown-ladder entries, so it is not strictly tournament-only.", "source": "code/docs/smoothness-experiment.md, Frozen design, Originals"},
+        {"claim": "Editing the 49 distinct top-50 teams themselves is queued as issue #317 and has no result.", "source": "code/docs/top50-one-edit.md; v2/FACTS.md, Queued, no result yet"}
+      ]
+    }
+  ],
+  "gaps": [
+    "No random-team win rate exists under the current shuffled-slot setup. The only numbers are 1.845% from the 2026-10-01 listed-order study, with random teams from a sampler that is not uniform over legal teams, and a median of 0.000 from August labels. Do you want to quote the October number with the retired-setup caveat, leave the number out and say random teams lose almost every battle, or run a small shuffled panel of random teams first?",
+    "Your note says the starting point is the top 50, but the finished rerun started from 24 tournament-ready teams outside the top 50 and 16 search-found teams, and the top 50 are its opponents. Editing the top 50 themselves is issue #317, not yet run. Should the post describe the starting point as tournament-ready teams now and add the top 50 when #317 finishes?",
+    "Your top-50 note says a language model did the selection steps and may have made mistakes, and the snapshot holds six ranked-season and four Showdown-ladder entries. Should the post call the opponents 'top-placing tournament teams' anyway, or say 'top-placing teams' and leave tournaments out?",
+    "The owner answer uses the reading without a size cutoff, which was chosen after the result was seen. The registered reading was that only the whole Pokemon swap passes both tests. Do you want the post to say that?"
+  ],
+  "applied": "I turned your note into the decision 'start from strong teams, not random ones' and gave three phrasings: the random-team floor, the sensitivity question, and how the top 50 were built. I made clear that the measured starting teams are tournament-ready teams outside the top 50, and the only random-team number comes from a retired listed-order run, so it carries that caveat."
+}

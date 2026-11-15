@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How far one edit moves a team, against how much the team wins</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:460px}
+</style>
+</head>
+<body>
+<main>
+<h1>How far one edit moves a team, against how much the team wins</h1>
+<p class="sub">Each dot is one starting team: 49 top-50 meta teams, 24 tournament-ready teams, 16 search-found teams. Rank correlation -0.17; negative means teams that win more change more.</p>
+<div id="chart"></div>
+<p class="note">A dot&#x27;s height is the typical move of that team&#x27;s 18 edits, battle noise included; the dashed line is what replaying an unchanged team does. Each score is 384 shuffled-slot battles against all 50 meta files with the behaviour-cloning policy on both sides. Rank uses the mean of a team&#x27;s three replays, not the first score its edits are measured against.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0}, "grid": {"left": 56, "right": 24, "top": 44, "bottom": 52}, "tooltip": {"trigger": "item", "formatter": "js:p => `${p.data[2]}<br>rank ${p.data[0]}, wins ${p.data[3]}%<br>one edit moves it ${p.data[1]} points`"}, "xAxis": {"type": "value", "name": "Rank of the starting team by win rate (1 wins most)", "nameLocation": "middle", "nameGap": 30, "min": 0, "max": 90}, "yAxis": {"type": "value", "name": "How far one edit moves win rate, points", "nameLocation": "middle", "nameGap": 38, "min": 0}, "series": [{"type": "scatter", "name": "Top-50 meta teams", "color": "#2a78d6", "symbolSize": 11, "emphasis": {"focus": "series"}, "data": [[5, 5.3, "MB518", 60.8], [6, 6.54, "MB682", 60.2], [7, 3.88, "MB181", 59.9], [8, 4.29, "MB759", 59.7], [9, 5.21, "MB399", 59.5], [10, 5.38, "MB712", 59.3], [11, 5.35, "MB417", 59.2], [12, 2.67, "MB582", 59.1], [13, 4.94, "MB366", 58.8], [14, 6.34, "MB210", 58.6], [15, 4.1, "MB728", 58.4], [16, 4.38, "MB95", 58.3], [17, 5.62, "MB681", 57.6], [18, 3.46, "MB493", 56.9], [22, 4.32, "MB183", 55.3], [23, 5.16, "MB182", 54.3], [26, 5.51, "MB604", 53.7], [27, 5.89, "MB587", 53.5], [29, 5.01, "MB683", 52.8], [31, 3.67, "MB169", 52.7], [32, 4.47, "MB763", 52.6], [34, 4.75, "MB322", 51.7], [35, 2.87, "MB684", 51.5], [36, 4.82, "MB715", 51.3], [37, 3.12, "MB581", 51.3], [43, 4.28, "MB691", 49.2], [44, 4.15, "MB722", 48.8], [45, 3.56, "MB689", 48.7], [52, 3.16, "MB307", 46.7], [53, 5.59, "MB268", 46.6], [54, 5.5, "MB168", 46.6], [55, 4.22, "MB166", 46.3], [56, 5.08, "MB517", 46.2], [57, 3.44, "MB155", 45.9], [63, 5.49, "MB686", 45.0], [64, 5.45, "MB200", 45.0], [66, 4.69, "MB129", 44.7], [67, 3.23, "MB573", 44.7], [68, 2.94, "MB290", 44.5], [69, 4.05, "MB128", 44.4], [72, 4.12, "MB126", 42.2], [77, 3.34, "MB292", 40.5], [78, 3.98, "MB158", 40.5], [80, 4.21, "MB230", 40.3], [81, 6.28, "MB383", 40.3], [82, 4.64, "MB756", 40.1], [83, 2.89, "MB580", 40.0], [84, 4.69, "MB368", 39.8], [88, 4.09, "MB583", 35.5]], "markLine": {"silent": true, "symbol": "none", "lineStyle": {"color": "#52514e", "type": "dashed"}, "label": {"formatter": "replay alone: 3.6 points", "position": "insideEndTop", "color": "#52514e"}, "data": [{"yAxis": 3.64}]}}, {"type": "scatter", "name": "Tournament-ready teams", "color": "#14946a", "symbolSize": 11, "emphasis": {"focus": "series"}, "data": [[1, 4.35, "MB655", 69.3], [2, 4.62, "MB607", 68.8], [3, 6.17, "MB480", 64.3], [4, 4.56, "MB122", 61.2], [19, 4.16, "MB42", 56.3], [21, 2.83, "MB688", 55.7], [24, 4.94, "MB57", 54.2], [28, 7.3, "MB63", 53.1], [30, 7.47, "MB20", 52.8], [39, 8.29, "MB187", 50.9], [40, 6.84, "MB337", 50.5], [46, 3.19, "MB69", 48.4], [47, 5.64, "MB138", 48.2], [48, 4.68, "MB476", 47.8], [60, 3.69, "MB132", 45.7], [61, 4.67, "MB303", 45.4], [62, 4.44, "MB564", 45.3], [65, 4.98, "MB314", 44.9], [70, 3.7, "MB53", 42.7], [71, 7.32, "MB566", 42.6], [74, 5.76, "MB81", 41.9], [85, 3.18, "MB25", 38.8], [86, 5.41, "MB338", 38.7], [87, 2.9, "MB141", 35.5]]}, {"type": "scatter", "name": "Search-found teams", "color": "#b07800", "symbolSize": 11, "emphasis": {"focus": "series"}, "data": [[20, 6.39, "search rank 3", 56.2], [25, 4.54, "search rank 5", 54.2], [33, 3.89, "search rank 1", 51.8], [38, 5.96, "search rank 11", 51.3], [41, 5.39, "search rank 4", 49.6], [42, 4.19, "search rank 6", 49.3], [49, 4.44, "search rank 7", 47.7], [50, 3.06, "search rank 2", 47.4], [51, 2.7, "search rank 13", 46.9], [58, 2.46, "search rank 9", 45.9], [59, 8.94, "search rank 8", 45.7], [73, 5.72, "search rank 10", 42.0], [75, 2.12, "search rank 14", 41.6], [76, 5.9, "search rank 15", 40.8], [79, 2.81, "search rank 12", 40.4], [89, 5.85, "search rank 16", 29.0]]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

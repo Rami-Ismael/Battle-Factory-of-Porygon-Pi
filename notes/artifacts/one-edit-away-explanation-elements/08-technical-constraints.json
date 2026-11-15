@@ -1,0 +1,92 @@
+{
+ "action": "Provide context",
+ "element": "Technical constraints",
+ "what_it_does": "It names the cost that set the size of the experiment, so the reader knows which limits of the result come from the budget and not from the method.",
+ "when_to_use": "Right after Rami says the transition is one edit, where a reader will ask why he did not test bigger edits or every possible edit.",
+ "sentence_pattern": "Because scoring one team costs x battles, we only tested z, so read the result as w.",
+ "dllm_example": "using KV-caches",
+ "anchor_in_draft": "We make the transition function simple to be changine one properties of the pokemon",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "One team has 24 move slots, and a Pokemon in this format can learn about 61 moves on average, so a single team has roughly 1,400 one-move neighbours. Scoring all of them at 384 battles each would cost about 527,000 battles, more than three hours on my laptop for a single team, so the study scored three random move edits per team, and the result describes those samples rather than every neighbour.",
+   "facts": [
+    {
+     "claim": "A team is six Pokemon with up to four distinct moves each, so at most 24 move slots. All 40 starting teams of the edit-kind rerun fill all 24.",
+     "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, paragraph 'The VGC search unit'; counted from the starting team files ~/vgc-data/edit_kind_rerun/teams/ruggedness/a00.txt to a23.txt and ~/vgc-data/edit_kind_rerun/teams/ruggedness2/s00.txt to s15.txt"
+    },
+    {
+     "claim": "The Showdown validator pull for the format gen9championsvgc2026regmb, dated 2026-09-18, lists 14,191 form-move pairs over 232 roster entries. Recomputed from the file: the mean movepool is 14,191 / 232 = 61.2 moves, median 60, range 1 to 105. This is an unweighted mean over every roster entry, not over the Pokemon players actually use.",
+     "source": "notes/Blog/visuals/team-search-space/domain.json, keys 'format', 'created' and 'roster', each entry's 'pairs' moves taken as a union; matches notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, quantity table, column 'Showdown validator pull, 2026-09-18'"
+    },
+    {
+     "claim": "Computed: a move edit replaces one move with a legal move that Pokemon does not already know, so 24 x (61.2 - 4) = 1,372 one-move neighbours per team, which rounds to the 1,400 in the sentence. At 384 battles each that is 526,861 battles, 3.4 hours at 43 battles a second.",
+     "source": "computed from the two facts above, the 384-battle score in v2/FACTS.md, section 'The finished measurement', and the pace in code/docs/top50-one-edit.md, bullet 'Budget'"
+    },
+    {
+     "claim": "Counted on the real starting teams with each Pokemon's own validator movepool: the 24 tournament-ready teams have 1,136 to 1,644 one-move neighbours, mean 1,340, and the 16 search-found teams 1,088 to 1,280, mean 1,199. Mega forms were counted with their base form's movepool.",
+     "source": "computed from domain.json above and the team files in ~/vgc-data/edit_kind_rerun/teams/, which match the plan in ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50_parts/vgc_plan.json"
+    },
+    {
+     "claim": "What the count leaves out: it counts move edits only, not item, ability, stat alignment, Stat Points or whole-Pokemon edits. It excludes the four moves a Pokemon already knows and treats move order as meaningless. The rerun's move edit drew from a narrower list, moves that are both legal and seen on a training-corpus team, a mean of 47.1 moves over 189 species, which gives about 1,019 move neighbours per tournament-ready team.",
+     "source": "~/vgc-data/edit_kind_rerun/run/scripts/mutation_closure_test.py, function op_A and constant LEARNSET; /tmp/vgc-pilot/src/build_learnset.py, docstring and main; /tmp/vgc-pilot/learnset_true.json, recounted"
+    },
+    {
+     "claim": "Each team got 18 edits, three of each of six kinds, so three of its roughly 1,340 move neighbours were scored, about 0.2 percent.",
+     "source": "v2/FACTS.md, section 'The finished measurement'; code/docs/ruggedness2.md, section on the rerun, 'six edit types x 3 edits'"
+    }
+   ]
+  },
+  {
+   "sentence": "Every score is a win rate over 384 battles against the 50 top-placing tournament teams, about nine seconds of battling on my laptop at 43 battles a second. That budget is why the study gave each of its 40 starting teams 18 random one-edit neighbours, three of each of six edit kinds, out of well over a thousand move edits alone. The whole measurement came to 880 scores and 337,920 battles, a little over two hours.",
+   "facts": [
+    {
+     "claim": "Each score is a win rate over 384 battles against the 50 top-placing tournament teams. 40 starting teams, 18 edits each, three replays each, 880 scores in all.",
+     "source": "v2/FACTS.md, section 'The finished measurement'; code/docs/ruggedness2.md, section on the rerun, 'Budget: 880 scores x 384 = 337,920 battles'"
+    },
+    {
+     "claim": "Measured pace: the rerun's battle logs record 175,104 battles in 4,943 seconds for the first stage and 162,816 battles in about 2,847 seconds of battle time for the second, on 7 battle servers. 337,920 battles over 7,790 seconds is 43.4 battles a second, 2.2 hours. One 384-battle score is 8.8 seconds at that pace. The battle steps alone ran at 46 to 58 battles a second.",
+     "source": "~/vgc-data/edit_kind_rerun/stage1.log, lines '7 servers ... /sec' and 'battles done in 4943s'; ~/vgc-data/edit_kind_rerun/stage2_battle.log, lines '7 servers ... /sec'"
+    },
+    {
+     "claim": "The project's plan states the same pace and the machine: 'about 2.7 hours at the rerun's pace of 43 battles a second. Laptop only.'",
+     "source": "code/docs/top50-one-edit.md, bullet 'Budget'"
+    },
+    {
+     "claim": "Scoring every validator-legal one-move neighbour of all 40 starting teams would take 51,344 scores, 19.7 million battles, about 5.3 days at 43.4 battles a second, before any other edit kind.",
+     "source": "computed from the neighbour counts in candidate 1 and the pace above"
+    },
+    {
+     "claim": "The top-50 study applied the same six edit kinds to the 49 distinct top-50 teams, 18 edits each, for 413,952 battles. It was planned at about 2.7 hours and took 2.1.",
+     "source": "code/docs/top50-one-edit.md, bullet 'Budget'; v2/FACTS.md, section 'Result of the top-50 study'"
+    }
+   ]
+  },
+  {
+   "sentence": "The study changes one thing at a time. A team has roughly 900,000 two-move neighbours, and scoring each at 384 battles would keep my laptop busy for about three months, so this measurement says nothing yet about how two edits combine.",
+   "facts": [
+    {
+     "claim": "Computed: two-move neighbours of one team are about C(24, 2) x 57.2 squared = 276 x 3,272 = 902,000, using the mean movepool of 61.2 minus the four known moves. At 384 battles each that is 346 million battles, 92 days at 43.4 battles a second. This ignores that two new moves on the same Pokemon must differ, so it is a slight overcount.",
+     "source": "computed from notes/Blog/visuals/team-search-space/domain.json and the pace in ~/vgc-data/edit_kind_rerun/stage1.log and stage2_battle.log"
+    },
+    {
+     "claim": "Every edit in the rerun changes one field or swaps one Pokemon. No edit combines two changes.",
+     "source": "v2/FACTS.md, section 'The finished measurement', paragraph 'The six edit kinds'; ~/vgc-data/edit_kind_rerun/run/scripts/mutation_closure_test.py, operators op_A to op_F each change one of the six slots, and op_F's Item Clause fix only redraws the new Pokemon's own item; ~/vgc-data/edit_kind_rerun/run/scripts/ruggedness2.py, constant OPS lists those six"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "Answered 2026-11-13: the rerun ran on this laptop. code/docs/top50-one-edit.md says 'Laptop only' and the battle logs sit in ~/vgc-data/edit_kind_rerun on this machine. Do you want the post to name the laptop model? No source records it.",
+  "Answered 2026-11-13: the pilot and the 400,000-battle study of October used 36 opponents in listed slot order and are retired, so this element no longer cites them or their pace. The pace now comes from the rerun's own logs.",
+  "Answered 2026-11-13: the post cites the rerun, 40 starting teams, 880 scores at 384 battles each. The old figure's 150-battle panels and its 100-team study are out.",
+  "Which pace should the post quote? 43 battles a second is wall-clock over the whole rerun, setup included. The battle steps alone ran at 46 to 58 a second. The candidates use 43, which is the slower and safer number.",
+  "Which neighbour count fits the post? 1,400 uses every validator-legal move, averaged over all 232 roster entries. The real tournament-ready teams average 1,340. The rerun's move edit drew only from moves seen in the training corpus, about 1,019 per team. Your sentence is accurate as a rough figure for the format."
+ ],
+ "picked": 0,
+ "applied": "Rami's sentence checks out and is kept word for word as candidate 1: 14,191 moves over 232 roster entries in the 2026-09-18 validator pull give 61.2, and 24 x 57.2 = 1,372, with real teams at 1,088 to 1,644; its second sentence now costs the neighbours at the rerun's 384 battles. Added the budget candidate with the measured 43 battles a second from the rerun logs, replaced the retired October pilot and 400,000-battle numbers, and removed the claim that an edit is larger than a Pest Control step from the gaps.",
+ "owner_answers": [],
+ "owner_note": [
+  "One team has 24 move slots, and a Pokemon in this format can learn about 61 moves on average, so a single team has roughly 1,400 one-move neighbours."
+ ]
+}

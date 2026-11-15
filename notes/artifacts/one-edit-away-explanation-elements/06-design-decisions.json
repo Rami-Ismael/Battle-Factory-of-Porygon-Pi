@@ -1,0 +1,165 @@
+{
+ "action": "Provide context",
+ "element": "Design decisions",
+ "what_it_does": "It tells the reader why the experiment was built this way and not another way, so they can judge whether a win-rate change really comes from the edit.",
+ "when_to_use": "Right after Rami says how the change is measured, before the reader sees any result, because a reader who does not trust the measurement will not trust the claim.",
+ "sentence_pattern": "We chose x over y because ...",
+ "dllm_example": "chosen to be the mask strength",
+ "anchor_in_draft": "We measure how much change.",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "We chose to start every edit from tournament-ready teams, real teams that players built for tournaments, over random legal teams because a random team loses almost every battle, so there is little win rate left for an edit to move and the result would tell us nothing about good teams.",
+   "facts": [
+    {
+     "claim": "The 24 tournament-ready starting teams are real Regulation M-B teams from the VGCPastes corpus that are not in the top-50 opponent pool.",
+     "source": "code/docs/ruggedness.md, Design paragraph; code/docs/ruggedness2.md, Rerun with shuffled slots against the full meta"
+    },
+    {
+     "claim": "In the finished rerun with shuffled slots, the 24 tournament-ready teams won 50.7% of their battles on average against the 50 top-placing teams, from 35.4% to 70.8%, 384 battles each, behaviour cloning on both sides.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, key vgc.summary.anchor_mean_win_rate and vgc.anchors[].f, computed 2026-11-13"
+    },
+    {
+     "claim": "Random legal teams won 1.845% of their battles on average. This is from the 2026-10-01 study: 50 teams drawn from the hierarchical product sampler, which is not uniform over all legal teams, 400 battles each against the 50 top-placing teams, behaviour cloning on both sides, listed slot order. Listed-order battles are retired, so this number may be quoted only with that caveat.",
+     "source": "code/docs/smoothness-experiment.md, Full measured results 2026-10-01 and Frozen design"
+    },
+    {
+     "claim": "Older still: 'random legal teams score median 0.000' over the 4,850 labelled teams, battled before shuffling existed. Opponent count for this label set is not recorded in the summary.",
+     "source": "code/docs/plan-vs-results-2026-08-28.md, row 4.1.2"
+    }
+   ]
+  },
+  {
+   "sentence": "We chose strong teams over random ones as the starting point because the question is how sensitive a good team is, and a team that wins about half its games against the best tournament teams has room to fall and room to climb after a single change.",
+   "facts": [
+    {
+     "claim": "Tournament-ready starting teams averaged 50.7% and search-found starting teams averaged 44.5%, from 24.5% to 59.6%, in the finished rerun, 384 shuffled-slot battles each against the 50 top-placing teams.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json, vgc.anchors[].f; ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50_parts/vgc_battles.json, key anchor, computed 2026-11-13"
+    },
+    {
+     "claim": "Edits were random legal values measured by the size of the change, not its direction.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, The finished measurement, scope limits"
+    },
+    {
+     "claim": "Under the retired listed-order setup of 2026-10-01, move edits on random legal teams changed win rate by a noise-corrected 0.292 squared points against 18.870 for top-placing teams, consistent with random teams sitting near the floor. Quote only with the listed-order caveat.",
+     "source": "code/docs/smoothness-experiment.md, Full measured results 2026-10-01"
+    }
+   ]
+  },
+  {
+   "sentence": "The opponents are the 50 highest-placing complete teams in VGCPastes, a public sheet of teams from official tournaments, taken one per tournament from the newest event back, and we chose to edit real tournament teams from outside that list over random teams because random teams fall so far below those opponents that one change cannot show what separates a good team from a great one.",
+   "facts": [
+    {
+     "claim": "Teams missing any moves, abilities, items, natures or Stat Points were filtered out, teams were grouped by tournament and ranked by placement, tournaments were sorted newest to oldest, and the top eligible team of each tournament was taken, then the second of each, until there were 50.",
+     "source": "notes/How did we create the top 50 placement pokemon team we consider top meta threat to atleast counter and show my method is effective.md, Version 3, Step of production"
+    },
+    {
+     "claim": "The 50 entries hold 49 distinct teams because MB493 and MB494 are the same paste.",
+     "source": "code/docs/top50-36-opponents.md, second paragraph"
+    },
+    {
+     "claim": "The 2026-08-21 snapshot includes six ranked-season and four Showdown-ladder entries, so it is not strictly tournament-only.",
+     "source": "code/docs/smoothness-experiment.md, Frozen design, Originals"
+    },
+    {
+     "claim": "Editing the 49 distinct top-50 teams themselves ran on 2026-11-13 and 2026-11-14, issue #317. A whole-Pokemon swap moved a top-50 team by 4.91 points, a move edit by 3.04 and an item edit by 3.12, all above zero.",
+     "source": "code/docs/top50-one-edit.md; v2/FACTS.md, Result of the top-50 study"
+    }
+   ]
+  },
+  {
+   "sentence": "We chose to replay every starting team three times with nothing changed over trusting the textbook formula for coin-flip noise, because the replays measure the luck of this exact setup. They agreed with the formula. Two scores of the same team differ by 3.40 win-rate points for tournament-ready teams, and the formula predicts 3.61.",
+   "facts": [
+    {
+     "claim": "Each of the 40 starting teams was replayed three times with nothing changed, on seeds 202, 303 and 404, 384 battles per score.",
+     "source": "code/docs/ruggedness2.md, Rerun with shuffled slots against the full meta, What stays"
+    },
+    {
+     "claim": "A replay is compared with the team's first score, the same reference the edits are compared with.",
+     "source": "code/scripts/top50_one_edit.py, function squared_moves"
+    },
+    {
+     "claim": "Two scores of the same unchanged team differ by 3.40 points for tournament-ready teams and 3.73 points for search-found teams, root mean square. Recomputed today from the saved scores: 3.404 and 3.726.",
+     "source": "v2/FACTS.md, Noise; code/docs/top50-one-edit.md, Noise floor; ~/vgc-data/edit_kind_rerun/run/results/ruggedness_shuffled50.json and ruggedness2_shuffled50_parts/vgc_battles.json"
+    },
+    {
+     "claim": "One score near 0.5 over 384 battles has a standard error of sqrt(0.25 / 384) = 2.55 points. The difference of two independent such scores has 2.55 times sqrt(2) = 3.61 points. The measured 3.40 and 3.73 sit on either side of 3.61, so battle luck behaves about like independent coin flips. The tournament-ready teams' mean first score was 0.507 and the search-found teams' 0.445, both close enough to 0.5 for this check.",
+     "source": "Arithmetic checked in python3 today; code/docs/top50-one-edit.md, Noise floor, for 2.55"
+    }
+   ]
+  },
+  {
+   "sentence": "We chose to subtract the replays' squared change from the edits' squared change over reading the raw change, because luck and a real change add as squares, so the raw number overstates every edit. A whole-Pokemon swap moved tournament-ready teams by 6.81 win-rate points before the correction and 5.90 after it. A stat alignment edit shrank from 3.92 to 1.95.",
+   "facts": [
+    {
+     "claim": "The size of an edit kind is the square root of the edits' mean squared change minus the replays' mean squared change, floored at zero: signal = max(edits - replays, 0.0), size = sqrt(signal).",
+     "source": "code/scripts/top50_one_edit.py, functions squared_moves and edit_size; same formula in ~/vgc-data/edit_kind_rerun/run/scripts/ruggedness2.py line 175 to 178"
+    },
+    {
+     "claim": "Why squares: a measured move is the real move plus battle noise, the two are independent, so their variances add. A replay is the same measurement with a real move of zero.",
+     "source": "code/docs/top50-one-edit.md, Primary measure"
+    },
+    {
+     "claim": "Tournament-ready teams, before and after the correction, in points: whole Pokemon 6.81 to 5.90, move 5.92 to 4.84, item 5.52 to 4.35, ability 5.00 to 3.66, stat alignment 3.92 to 1.95, Stat Points 3.76 to 1.60. The corrected values match FACTS.md.",
+     "source": "Recomputed today with python3 from ~/vgc-data/edit_kind_rerun/run/results, applying squared_moves to the saved scores"
+    },
+    {
+     "claim": "The correction assumes an edited team is about as noisy as its starting team, which holds while both win rates are near 0.5.",
+     "source": "code/docs/top50-one-edit.md, Primary measure"
+    }
+   ]
+  },
+  {
+   "sentence": "We chose to show the corrected sizes with their limits over presenting them as clean numbers, because the correction leaves three things a reader should still doubt. It removes luck only on average, so it cannot tell which single edit was real. It floors a size at zero, which pushes the small sizes upward. And every team scored on the same seed met the same opponents in the same order with the same slot shuffles, so part of the luck is shared between teams rather than independent.",
+   "facts": [
+    {
+     "claim": "The correction is computed from means over all edits of a kind and all replays of a group, so it has no per-edit reading.",
+     "source": "code/scripts/top50_one_edit.py, functions squared_moves and edit_size"
+    },
+    {
+     "claim": "The size is floored at zero with max(edits - replays, 0.0). The search-found stat alignment edits came out below the replays, minus 0.39 squared points, and are reported as 0.00. Several intervals have a lower end of exactly 0.",
+     "source": "code/scripts/top50_one_edit.py, function edit_size; recomputed today from the saved scores; v2/FACTS.md, size table"
+    },
+    {
+     "claim": "Every score on one seed uses the same fixed opponent schedule, the same seed for the team's own slot shuffle, seed plus one for the opponents' slot shuffle, and the same reseed of the battle random number generators. So all teams on seed 101 meet the same opponent sequence and the same shuffle sequence.",
+     "source": "/tmp/vgc-pilot/src/shard.py, function score_one and class ScheduledTeamBuilder; /tmp/vgc-pilot/src/slot_order.py, ShuffledTeamBuilder; scorer passes opp_schedule and seed in ~/vgc-data/edit_kind_rerun/run/scripts/ruggedness2.py line 131"
+    },
+    {
+     "claim": "Sign of shared luck in the data: the 16 search-found teams' replays averaged 1.78 points above their first scores, a t statistic of 2.6, where independent luck would centre on zero. The tournament-ready teams' replays averaged 0.59 points below, a t statistic of 1.0.",
+     "source": "Recomputed today with python3 from ruggedness2_shuffled50_parts/vgc_battles.json and ruggedness_shuffled50.json"
+    },
+    {
+     "claim": "Replay noise differed between replay seeds. Tournament-ready teams: 3.31, 3.34 and 3.56 points on seeds 202, 303 and 404. Search-found teams: 3.44, 2.79 and 4.70 points.",
+     "source": "Recomputed today with python3 from the saved replay scores"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "No random-team win rate exists under the current shuffled-slot setup. The only numbers are 1.845% from the 2026-10-01 listed-order study, with random teams from a sampler that is not uniform over legal teams, and a median of 0.000 from August labels. Do you want to quote the October number with the retired-setup caveat, leave the number out and say random teams lose almost every battle, or run a small shuffled panel of random teams first?",
+  "Your note says the starting point is the top 50. The study that edits the top 50 themselves has now run, issue #317: whole Pokemon 4.91 points, move 3.04, item 3.12, all above zero. The earlier rerun started from tournament-ready and search-found teams. Which starting point should the post lead with?",
+  "Your top-50 note says a language model did the selection steps and may have made mistakes, and the snapshot holds six ranked-season and four Showdown-ladder entries. Should the post call the opponents 'top-placing tournament teams' anyway, or say 'top-placing teams' and leave tournaments out?",
+  "The owner answer uses the reading without a size cutoff, which was chosen after the result was seen. The registered reading was that only the whole Pokemon swap passes both tests. Do you want the post to say that?",
+  "Does the post give the coin-flip prediction of 3.61 points beside the measured 3.40 and 3.73, or only the measured numbers?",
+  "Shared luck is confirmed in the code, and the search-found replays sit 1.78 points above their first scores on average. My reading, not measured: a shift shared by a whole seed hits the edits and the replays alike, since both are compared with the seed 101 score, so the subtraction should mostly cancel it. The bigger cost is that the bootstrap treats teams as independent, so the intervals may be too narrow. Do you want this caveat in the post, or only in the notes?",
+  "Answered 2026-11-14: the top-50 study ran with the same seed design. A check found no luck shared between an edit and the replay on its seed. It did find that measuring every edit against one first score shifts all of a team's edits together, so the next study should compare against several unchanged scores.",
+  "Replay noise ranged from 2.79 to 4.70 points across seeds for the 16 search-found teams. I did not test whether that spread is more than chance for 16 teams. My rough estimate says it is within chance. Is that worth a check before the post goes out?",
+  "Which word does the reader see: battle luck, noise, or both with one defined by the other?"
+ ],
+ "picked": null,
+ "owner_answers": [
+  {
+   "label": "What it takes to make a good team, as far as this measurement can say",
+   "text": "On the 24 tournament-ready teams, swapping a whole Pokemon or one move moved the win rate by about 5 to 6 points, and replacing an item or an ability moved it by about 4 points, all clearly beyond battle luck. Changing the stat alignment or copying Stat Points from another real set did not show an effect above zero in either group, which is not the same as doing nothing. On the 16 search-found teams only the whole Pokemon swap and the move swap showed an effect. Every edit was a random legal value scored by its size and not its direction, with one behaviour cloning policy playing both sides against the 50 top-placing teams, so this says which parts a good team is sensitive to and not which choices make it good."
+  },
+  {
+   "label": "What we can say about noise",
+   "text": "We measured battle luck by replaying each of the 40 starting teams three more times with nothing changed, 384 battles each time, and comparing every replay with the team's first score. Two scores of the same unchanged team differ by 3.40 win-rate points for tournament-ready teams and 3.73 points for search-found teams, root mean square, which is close to the 3.61 points that coin-flip arithmetic predicts for two independent scores near a 0.5 win rate over 384 battles. That luck is almost as large as the edits themselves, since a whole-Pokemon swap moved a tournament-ready team by 6.81 points before the correction and 5.90 points after it. We removed the luck by subtracting the replays' mean squared change from the edits' mean squared change and taking the square root, because a real change and independent luck add as squares. The correction works only on average over many edits, so it cannot say which single edit was real, and it cannot widen the measurement beyond one behaviour cloning policy against one pool of 50 opponent teams. It also floors a size at zero, which pushes small sizes upward, and every team scored on the same seed met the same opponent order and the same slot shuffles, so part of the luck is shared between teams."
+  }
+ ],
+ "applied": "I turned your note into the decision 'start from strong teams, not random ones' and gave three phrasings: the random-team floor, the sensitivity question, and how the top 50 were built. I made clear that the measured starting teams are tournament-ready teams outside the top 50, and the only random-team number comes from a retired listed-order run, so it carries that caveat. Rami's note asked what we can say about noise, so I answered it in six sentences from the edit-kind rerun and checked each number against the code and the saved scores. I dropped the older panel design from 06-design-decisions.json and wrote three candidates on the replays, the squared subtraction, and the limits that remain, each limit confirmed in code or data.",
+ "owner_note": [
+  "The starting point of the pokemon is [[How did we create the top 50 placement pokemon team we consider top meta threat to atleast counter and show my method is effective]] a random pokemon team is mostly perform terrible.  We can see how senetive the strong pokemon. What does it take to make a good competitive pokemon team",
+  "What can we say about nosie"
+ ]
+}
