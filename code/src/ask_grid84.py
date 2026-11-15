@@ -143,7 +143,7 @@ def load_model():
 def load_sampler(w=None):
     """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order; for a row
     that names the corrected t, species-first order told the corrected t (remask84.SpeciesFirstArm); for a row that
-    names random order, LLaDA's random decoding with the lookahead on (remask84.RandomDecodingArm). The row that names
+    names random order, the sampler of LLaDA Algorithm 4 with the lookahead on (remask84.RandomDecodingArm). The row that names
     species then random order draws the six species first and the other 78 fields in random order (#322)."""
     w = w or load_model()
     decoder = MODELS[MODEL].get("decoder", "species_first")

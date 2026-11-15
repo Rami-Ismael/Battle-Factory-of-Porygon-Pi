@@ -436,7 +436,8 @@ _Avoid_: slot-by-slot order
 
 **Random order**:
 A decoding order drawn at random for each candidate, so species, sets and Pokémon interleave.
-_Avoid_: random remasking (LLaDA's name for it; it masks no filled field)
+_Origin_: LLaDA Algorithm 4, [Nie et al. 2025](https://arxiv.org/abs/2502.09992), run with one pass per field; MD4 Algorithm 2 on an even grid, [Shi et al. 2024](https://arxiv.org/abs/2406.04329), is the same sampler. When citing it, write "random order (LLaDA Algorithm 4)".
+_Avoid_: random remasking (LLaDA's name for it; it masks no filled field); LLaDA order, LLaDA decoding (LLaDA's default decoding is surest-draw order, Algorithm 5)
 
 **Confidence order**:
 The decoding order in which each pass fills, for each candidate, the masked field the model is surest about.
