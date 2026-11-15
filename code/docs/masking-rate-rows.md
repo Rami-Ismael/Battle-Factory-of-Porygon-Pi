@@ -47,7 +47,7 @@ Every battled row is sampled at guidance 2, 4 and 8. Each is also sampled once w
 
 Today's default model, epoch 80 of the labelled-teams training on the older table, is a reference and not the control. Its guidance 2 grid exists as `gen84_noise_byepoch_ep80`. It differs from the control in its training table, so no verdict is read against it.
 
-Per-field masking schedule with random order is not a row. The map rules it out as already measured, in the second line of the table above.
+Per-field masking schedule with random order was left out of this pre-registration as already measured, in the second line of the table above. Issue #335 later ran it on the shuffled-only per-field checkpoint (`sched_per_field_random`) against Linear, random order and found no measured difference: errors of 0.0363, 0.0300 and 0.0272 against 0.0358, 0.0293 and 0.0269 at guidance 2, 4 and 8, every paired gap inside training luck ([verdict](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/335#issuecomment-6886245511)).
 
 ## Contract
 
