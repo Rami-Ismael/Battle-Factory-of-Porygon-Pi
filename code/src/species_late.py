@@ -6,9 +6,10 @@ species, the loss is in the sets. If they win about as well, the loss is in whic
 
     python species_late.py stored        the comparison at guidance 2, 4 and 8, into results/species_late_stored.json
     python species_late.py stored_figure DIR    its chart as an ECharts page in DIR
-    python species_late.py grid          step two: Linear, species then random order at guidance 2 against the two rows, into results/species_late_grid.json
-    python species_late.py grid_figure DIR      got against ask for the three rows, as an ECharts page in DIR
-    python species_late.py grid_comment URL     the verdict comment; URL holds {theme} for light or dark
+    python species_late.py grid [G]      step two: Linear, species then random order at guidance G (default 2) against the two rows
+                                         at the same guidance, into results/species_late_grid.json (G = 2) or species_late_grid_gG.json
+    python species_late.py grid_figure DIR [G]  got against ask for the three rows, as an ECharts page in DIR
+    python species_late.py grid_comment URL [G] the verdict comment; URL holds {theme} for light or dark
 
 The interval is a bootstrap that resamples teams within each line-up at each ask, separately in each row, and the 49
 opponents once for both rows, as masking_rate_rows.py does for its grids.
@@ -31,7 +32,12 @@ STREAM = {SPECIES_THEN_RANDOM: 0, SPECIES_FIRST: 1, RANDOM: 2}                # 
 HIGH_ASKS = range(13, 24)                                # where got stops following the ask on Linear, random order
 VERDICT_ASKS = range(13, 18)                             # the ticket reads got at asks 13/24 to 17/24
 GOT_MARGIN = 0.03                                        # within 0.03 of a row's got, as the ticket states
-STORED, GRID = MRR.RES / "species_late_stored.json", MRR.RES / "species_late_grid.json"
+STORED = MRR.RES / "species_late_stored.json"
+
+
+def grid_path(guidance):
+    """Step two's results at one guidance: species_late_grid.json at guidance 2 (#322), species_late_grid_g4.json at 4 (#329)."""
+    return MRR.RES / ("species_late_grid.json" if float(guidance) == 2 else f"species_late_grid_g{float(guidance):g}.json")
 
 
 def scores(rate, weights, counts=None):
@@ -157,11 +163,14 @@ def paired(a, b):
     return dict(difference=float(diff), interval=MRR.interval(draws))
 
 
-def grid():
-    counts = MRR.opponent_draws(len(np.load(MRR.opponents_path(RANDOM, 2))["weights"]))
-    rows = {row: read_row(row, counts) for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)}
+def grid(guidance=2):
+    """Step two at one guidance. Guidance 2 resamples with #322's streams, so its file reads as before; 4 and 8 with #329's."""
+    guidance = float(guidance)
+    counts = MRR.opponent_draws(len(np.load(MRR.opponents_path(RANDOM, guidance))["weights"]))
+    stream = (lambda row: None) if guidance == 2 else (lambda row: [MRR.DRAW_SEED, 329, STREAM[row], int(guidance)])
+    rows = {row: read_row(row, counts, guidance, stream(row)) for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)}
     new, first, rand = rows[SPECIES_THEN_RANDOM], rows[SPECIES_FIRST], rows[RANDOM]
-    result = dict(guidance=2, verdict=verdict(new["got_verdict_asks"], first["got_verdict_asks"], rand["got_verdict_asks"], new["error"], first["error"]),
+    result = dict(guidance=int(guidance) if guidance.is_integer() else guidance, verdict=verdict(new["got_verdict_asks"], first["got_verdict_asks"], rand["got_verdict_asks"], new["error"], first["error"]),
                   rule=f"confirmed: got at asks 13/24 to 17/24 within {GOT_MARGIN} of {READER[SPECIES_FIRST]} and error within {MRR.TRAINING_LUCK} of its error; "
                        f"cleared: got within {GOT_MARGIN} of {READER[RANDOM]}; otherwise partial",
                   error_against_species_first=paired(new, first), error_against_random=paired(new, rand),
@@ -178,7 +187,7 @@ def grid():
                                    got_asks_13_to_17=m["got_verdict_asks"], got_asks_13_to_17_interval=MRR.interval(m["got_verdict_asks_draws"]),
                                    got_by_ask={str(k): v for k, v in m["got_by_ask"].items()},
                                    got_by_ask_interval={str(k): MRR.interval(v) for k, v in m["got_by_ask_draws"].items()})
-    json.dump(result, open(GRID, "w"), indent=1)
+    json.dump(result, open(grid_path(guidance), "w"), indent=1)
     for row, m in result["rows"].items():
         print(f"{m['reader']:38s} error {m['error']:.4f} {m['error_interval']}  got 13-17 {m['got_asks_13_to_17']:.3f} {m['got_asks_13_to_17_interval']}")
     print("against species-first:", result["error_against_species_first"], result["got_against_species_first"])
@@ -224,10 +233,11 @@ AQUA = "#1baf7a"
 ROW_COLOR = {SPECIES_THEN_RANDOM: AQUA, SPECIES_FIRST: BLUE, RANDOM: ORANGE}
 
 
-def grid_figure(folder):
-    """Got against ask at guidance 2 for the three rows, each with its 95% band, beside the line got = ask."""
+def grid_figure(folder, guidance=2):
+    """Got against ask at one guidance for the three rows, each with its 95% band, beside the line got = ask.
+    The page is species-late-grid.html at guidance 2 and species-late-grid-gG.html at G."""
     from echarts_chart import band, write_chart
-    result = json.load(open(GRID)); asks = [int(k) for k in result["rows"][RANDOM]["got_by_ask"]]
+    result = json.load(open(grid_path(guidance))); asks = [int(k) for k in result["rows"][RANDOM]["got_by_ask"]]
     xs = [k / 24 for k in asks]; series = []
     for i, (row, m) in enumerate(result["rows"].items()):
         lo = [m["got_by_ask_interval"][str(k)][0] for k in asks]; hi = [m["got_by_ask_interval"][str(k)][1] for k in asks]
@@ -246,20 +256,27 @@ def grid_figure(folder):
     title = {"confirmed": "Confirmed: drawing the species first brings random order's teams back to species-first's",
              "cleared": "Cleared: drawing the species first leaves random order's teams as weak as before",
              "partial": "Partial: drawing the species first brings random order's teams part of the way back"}[result["verdict"]]
-    return write_chart(option, Path(folder) / "species-late-grid.html", height=460, title=title,
-                       subtitle=f"Guidance 2, linear masking rate. Ask-versus-got error: {new['error']:.4f} with species first then random order, "
+    g = result["guidance"]; page = "species-late-grid.html" if float(g) == 2 else f"species-late-grid-g{g}.html"
+    return write_chart(option, Path(folder) / page, height=460, title=title,
+                       subtitle=f"Guidance {g}, linear masking rate. Ask-versus-got error: {new['error']:.4f} with species first then random order, "
                                 f"{result['rows'][SPECIES_FIRST]['error']:.4f} species-first, {result['rows'][RANDOM]['error']:.4f} random order.",
                        note="Band: 95% bootstrap interval over teams and the 49 opponents. Got: one battle against each of the 49 distinct top-50 meta teams, "
                             "behaviour-cloning policy on both sides, slots shuffled; 192 teams per ask over 3 sampling seeds.")
 
 
-def grid_comment(figure_url):
-    """The verdict comment, picture first. figure_url has {theme} where light or dark goes."""
-    r = json.load(open(GRID)); m = r["rows"]; new, first, rand = m[SPECIES_THEN_RANDOM], m[SPECIES_FIRST], m[RANDOM]
+def grid_comment(figure_url, guidance=2):
+    """The verdict comment at one guidance, picture first. figure_url has {theme} where light or dark goes."""
+    return comment_text(json.load(open(grid_path(guidance))), figure_url)
+
+
+def comment_text(r, figure_url):
+    """The verdict comment for one guidance's results r: step two of #322 at guidance 2, the same read at 4 or 8 for #329."""
+    g = r["guidance"]; m = r["rows"]; new, first, rand = m[SPECIES_THEN_RANDOM], m[SPECIES_FIRST], m[RANDOM]
     iv = lambda x: f"[{x[0]:+.4f}, {x[1]:+.4f}]"
-    lines = [f"**Step two, {datetime.date.today()}: verdict {r['verdict']}.** {READER[SPECIES_THEN_RANDOM]} draws the six species first, in species-first order, "
-             "then the other 78 fields as Linear, random order fills them. Same linear checkpoint, guidance 2.", "",
-             f'<picture><source media="(prefers-color-scheme: dark)" srcset="{figure_url.format(theme="dark")}"><img alt="Got against ask for the three rows at guidance 2" src="{figure_url.format(theme="light")}"></picture>', "",
+    lead = f"**Step two, {datetime.date.today()}: verdict {r['verdict']}.**" if float(g) == 2 else f"**Guidance {g}, {datetime.date.today()}: verdict {r['verdict']}.**"
+    lines = [f"{lead} {READER[SPECIES_THEN_RANDOM]} draws the six species first, in species-first order, "
+             f"then the other 78 fields as Linear, random order fills them. Same linear checkpoint, guidance {g}; both other rows at guidance {g} too.", "",
+             f'<picture><source media="(prefers-color-scheme: dark)" srcset="{figure_url.format(theme="dark")}"><img alt="Got against ask for the three rows at guidance {g}" src="{figure_url.format(theme="light")}"></picture>', "",
              f"- Got at asks 13/24 to 17/24: {new['got_asks_13_to_17']:.3f}, against {first['got_asks_13_to_17']:.3f} for Linear, species-first "
              f"(gap {r['got_against_species_first']['difference']:+.3f} {iv(r['got_against_species_first']['interval'])}) and {rand['got_asks_13_to_17']:.3f} for Linear, random order.",
              f"- Ask-versus-got error on asks 1/24 to 17/24: {new['error']:.4f}, against {first['error']:.4f} for Linear, species-first "
@@ -278,5 +295,7 @@ def grid_comment(figure_url):
 
 
 if __name__ == "__main__":
-    {"stored": stored, "stored_figure": lambda: print(stored_figure(sys.argv[2])), "grid": grid,
-     "grid_figure": lambda: print(grid_figure(sys.argv[2])), "grid_comment": lambda: print(grid_comment(sys.argv[2]), end="")}[sys.argv[1]]()
+    arg = lambda i, default: sys.argv[i] if len(sys.argv) > i else default
+    {"stored": stored, "stored_figure": lambda: print(stored_figure(sys.argv[2])), "grid": lambda: grid(arg(2, 2)),
+     "grid_figure": lambda: print(grid_figure(sys.argv[2], arg(3, 2))),
+     "grid_comment": lambda: print(grid_comment(sys.argv[2], arg(3, 2)), end="")}[sys.argv[1]]()

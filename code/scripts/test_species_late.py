@@ -76,5 +76,32 @@ class StepTwoVerdict(unittest.TestCase):
         self.assertEqual(self.verdict(0.41, 0.0150), "partial")
 
 
+class GridAtEachGuidance(unittest.TestCase):
+    """Issue #329: the step-two grid read at guidance 4 and 8 beside the guidance-2 grid of #322."""
+    def test_guidance_2_keeps_the_results_file_of_issue_322(self):
+        self.assertEqual(S.grid_path(2).name, "species_late_grid.json")
+
+    def test_guidance_4_and_8_each_get_their_own_results_file(self):
+        self.assertEqual((S.grid_path(4).name, S.grid_path(8).name), ("species_late_grid_g4.json", "species_late_grid_g8.json"))
+
+    def result(self, guidance):
+        row = lambda reader, err, got: dict(reader=reader, error=err, error_interval=[err - 0.001, err + 0.001], error_by_seed={"1": err, "2": err, "3": err},
+                                            got_asks_13_to_17=got, got_asks_13_to_17_interval=[got - 0.03, got + 0.03])
+        gap = dict(difference=-0.0003, interval=[-0.0018, 0.0011])
+        return dict(guidance=guidance, verdict="confirmed", rule="the rule", error_against_species_first=gap, error_against_random=gap,
+                    got_against_species_first=gap, got_against_random=gap,
+                    rows={S.SPECIES_THEN_RANDOM: row(S.READER[S.SPECIES_THEN_RANDOM], 0.0040, 0.50), S.SPECIES_FIRST: row(S.READER[S.SPECIES_FIRST], 0.0049, 0.51),
+                          S.RANDOM: row(S.READER[S.RANDOM], 0.0290, 0.35)})
+
+    def test_the_comment_at_guidance_4_names_guidance_4_and_never_guidance_2(self):
+        text = S.comment_text(self.result(4), "https://example.org/{theme}.png")
+        self.assertIn("Guidance 4", text.splitlines()[0])
+        self.assertIn("at guidance 4", text)
+        self.assertNotIn("guidance 2", text.lower())
+
+    def test_the_comment_at_guidance_2_still_reads_as_step_two_of_issue_322(self):
+        self.assertTrue(S.comment_text(self.result(2), "https://example.org/{theme}.png").startswith("**Step two, "))
+
+
 if __name__ == "__main__":
     unittest.main()
