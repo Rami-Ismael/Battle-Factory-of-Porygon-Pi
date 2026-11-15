@@ -170,8 +170,17 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     m.save(out)
     json.dump(m.info, open(X.RES / f"{name(arm)}.json", "w"), indent=1, default=float)
     print(f"[{name(arm)}] done in {m.info['minutes']} min; best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']}"
-          f" -> {out}", flush=True)
+          f" ({stop_reason(m.info)}) -> {out}", flush=True)
     return m
+
+
+def stop_reason(info):
+    """Why a training ended, from its run info."""
+    if info.get("patience") and info["stopped_epoch"] < info["cap"]:
+        return f"no new lowest validation loss for {info['patience']} epochs after epoch {info['best_epoch']}"
+    if info.get("stop_after") and info["stopped_epoch"] == info["stop_after"] < info["cap"]:
+        return f"planned stop at epoch {info['stop_after']}"
+    return f"reached the cap of {info['cap']} epochs"
 
 
 def stamped(model, arm):

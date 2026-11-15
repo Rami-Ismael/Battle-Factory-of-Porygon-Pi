@@ -109,7 +109,7 @@ class MaskingRateArms(unittest.TestCase):
     def test_train_hands_the_arms_masking_rate_to_the_model(self):
         """train() merges the arm's sched into the shared recipe; passing it twice would raise before any epoch."""
         import tempfile
-        model = mock.MagicMock(); model.info = dict(best_epoch=1, stopped_epoch=1)
+        model = mock.MagicMock(); model.info = dict(best_epoch=1, stopped_epoch=1, cap=80, patience=3)   # train_new always records cap and patience
         with (tempfile.TemporaryDirectory() as tmp, mock.patch.object(TR, "CK", Path(tmp)), mock.patch.object(TR.X, "RES", Path(tmp)),
               mock.patch.object(TR.X, "setup", return_value=[None]), mock.patch.object(TR.T, "regulation_vocab", return_value=None),
               mock.patch.object(TR.M.Model84, "train_new", return_value=model) as train_new, redirect_stdout(io.StringIO())):
@@ -128,6 +128,17 @@ class MaskingRateArms(unittest.TestCase):
         for t in (0.1, 0.5, 0.9):
             hidden = torch.rand(20000, len(exponents), generator=generator) < torch.tensor(t) ** exponents
             self.assertLess((hidden.float().mean(0) - t).abs().max().item(), 0.015)
+
+
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
+class StopReason(unittest.TestCase):
+    def test_the_log_says_why_training_stopped(self):
+        self.assertEqual(TR.stop_reason(dict(cap=80, patience=3, stopped_epoch=34, best_epoch=31)),
+                         "no new lowest validation loss for 3 epochs after epoch 31")
+        self.assertEqual(TR.stop_reason(dict(cap=80, patience=3, stopped_epoch=80, best_epoch=80)), "reached the cap of 80 epochs")
+        self.assertEqual(TR.stop_reason(dict(cap=80, patience=None, stopped_epoch=21, stop_after=21, best_epoch=None)),
+                         "planned stop at epoch 21")
+        self.assertEqual(TR.stop_reason(dict(cap=80, patience=None, stopped_epoch=80, best_epoch=None)), "reached the cap of 80 epochs")
 
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
@@ -150,6 +161,11 @@ class AskGridTable(unittest.TestCase):
     def test_models_trained_on_the_shuffled_only_table_say_so(self):
         for name in ("pos_per_field_s0", "pos_no_slot"):
             self.assertEqual(A.table_of(A.MODELS[name]), "lossdata84_shuffled_only.npz", name)
+
+    def test_asks_can_be_narrowed_to_one(self):
+        self.assertEqual(A.ask_numerators({}), list(range(1, 24)))
+        self.assertEqual(A.ask_numerators({"AG84_ASKS": "12"}), [12])
+        self.assertEqual(A.ask_numerators({"AG84_ASKS": "6,12"}), [6, 12])
 
 
 if __name__ == "__main__":
