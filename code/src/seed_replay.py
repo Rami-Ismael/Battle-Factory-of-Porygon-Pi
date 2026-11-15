@@ -84,7 +84,7 @@ def figure(folder):
                   yAxis=dict(type="category", data=labels, inverse=True, axisTick=dict(show=False), axisLabel=dict(fontSize=13)),
                   series=series, animation=False)
     return write_chart(option, Path(folder) / "seed-replay.html", height=420,
-                       title="On seeds of their own, species-first grids draw far more novel line-ups",
+                       title="On seeds of their own, species-first grids draw about twice the novel line-ups at guidance 2",
                        subtitle="The stored grids drew on seeds 7301 to 7303, where they redrew earlier grids' teams that are now training teams.",
                        note="Novel line-up: six species that appear together in no labelled training team of the shuffled-only table. "
                             "4,416 teams per grid: 23 asks, 3 sampling seeds, 64 teams per cell. Redraws are not battled.")
@@ -92,9 +92,15 @@ def figure(folder):
 
 def comment(figure_url):
     r = json.load(open(OUT)); G = r["grids"]
-    lo = min(g["redrawn"]["novel_share"] / g["stored"]["novel_share"] for g in G.values()); hi = max(g["redrawn"]["novel_share"] / g["stored"]["novel_share"] for g in G.values())
-    lines = [f"**Result, {datetime.date.today()}: on seeds of their own the species-first grids' novel share rises {lo:.1f} to {hi:.1f} times.** "
+    g2 = [g for n, g in G.items() if split(n)[1] == 2]; g8 = [g for n, g in G.items() if split(n)[1] == 8]
+    pair = lambda gs: " and ".join(f"{g['stored']['novel_share']:.2f} → {g['redrawn']['novel_share']:.2f}" for g in gs)
+    lines = [f"**Result, {datetime.date.today()}: on seeds of their own, the species-first grids' novel share roughly doubles at guidance 2 ({pair(g2)}) "
+             f"and barely moves at guidance 8 ({pair(g8)}).** "
              "The stored grids' low novelty came from the seeds they shared with earlier grids, not from species-first decoding.", "",
+             f"The rise is largest at guidance 2, the only guidance any grid before 2026-11-13 used, so the replayed teams were drawn there. "
+             f"Redrawn, the novel share sits between {min(g['redrawn']['novel_share'] for g in G.values()):.2f} and {max(g['redrawn']['novel_share'] for g in G.values()):.2f} at every guidance: "
+             "the rise with guidance in the stored grids was mostly the replay. Distinct line-ups and effective species barely move, so diversity did not depend on the seeds. "
+             "Linear, species then random order's 0.341 at guidance 2 ([#329](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/329)) now matches Linear, species-first redrawn.", "",
              f'<picture><source media="(prefers-color-scheme: dark)" srcset="{figure_url.format(theme="dark")}"><img alt="Novel share of six species-first grids, stored on seeds 7301 to 7303 against redrawn on seeds of their own" src="{figure_url.format(theme="light")}"></picture>', "",
              "| Grid | Novel share, stored → redrawn | Copied / 1 swap / 2 / 3+ swaps, redrawn | Distinct line-ups, stored → redrawn | Effective species, stored → redrawn |",
              "|---|---|---|---|---|"]
