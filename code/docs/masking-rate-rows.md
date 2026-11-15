@@ -63,7 +63,7 @@ The lookahead in Linear, random order rarely overrides the model's species (issu
 | Vocabulary | The tables of every value Regulation M-B allows, used directly, stored in each checkpoint (`team84.regulation_vocab`): 348 species, 201 ability, 150 item, 498 move and 27 Stat Alignment tokens, and Stat Points 0 to 32. The training smoke confirmed the head sizes. Labelled training teams use 189, 126, 106, 309 and 19 of the tokens (`docs/slope-by-epoch.md`). The same for every row. |
 | Training teams | The shuffled-only table, `lossdata84_shuffled_only.npz`, sha256 `8aca232e…`, chosen by the owner on 2026-11-11. Every label comes from shuffled-slot battles alone, at least 49 for each team. Labelled teams only: 214,598 train and 4,380 validate, a seeded 2% split with seed 0. Both trainings use the same rows, and this table is the default in the training code. Left out: 10 never-battled teams, the 500 test teams, the held-out meta teams ranked 51 to 100, and every team whose labels came only from listed-order battles. Against the older table of today's default model, only 783 labelled teams are in both, the mean label falls from 0.427 to 0.284, and the teams labelled nearest asks 13/24 to 17/24 fall from 46,013 to 20,732. |
 | Scorer | `src/ask_grid84.py`. One battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled, battle seed 7300 plus the sampling seed. `require_shuffled` refuses any other slot order. |
-| Search region | No search and no elite rule. Asks 1/24 to 23/24, sampling seeds 1 to 3, 64 teams for each ask and seed, at each of guidance 2, 4 and 8. Each cell draws until 64 teams pass Showdown's validator and are not held-out teams, at most 1,280 tries. That is 4,416 teams and 216,384 battles for each row at each guidance value. |
+| Search region | No search and no elite rule. Asks 1/24 to 23/24, sampling seeds 1 to 3, 64 teams for each ask and seed, at each of guidance 2, 4 and 8. Each cell draws until 64 teams pass Showdown's validator and are not held-out teams, at most 1,280 tries. That is 23 asks × 3 seeds × 64 = 4,416 teams, and 4,416 × 49 opponents = 216,384 battles, for each row at each guidance value. |
 
 ### Settings
 
@@ -116,7 +116,7 @@ The owner asked for the rows to be read together, so these sit beside the error,
 | Win rate at the top scored asks | Mean got over asks 15/24 to 17/24 | 0.515 |
 | Pooled win rate | Mean got over all 23 asks | 0.371 |
 | First-try legality | Share of sampled teams the validator accepts before any redraw | 100% |
-| Line-ups | Distinct line-ups among the grid's 4,416 teams | 1,437 |
+| Line-ups | Distinct line-ups among the grid's 4,416 teams, the 23 asks pooled. A line-up drawn at several asks counts once. See Line-ups within one ask | 1,437 |
 | Novel line-ups | Share of teams whose line-up is absent from the training teams, and from the line-ups of earlier search runs and tournament records (`src/lineup_reference.py`) | 26.6% and 73.1% |
 | Effective species, top-species share | Mean over random 5-team subsets of each cell | 14.9 and 0.135 |
 | Elite line-up yield | Line-ups with a team at or above the elite cut that still reach it in a fresh re-battle of 4 games against each opponent. The elite cut is 0.531, the mean win rate of a top-50 meta team against the other 49. The script is `line_up_yield.py`, which so far exists only in `~/vgc-data/line_up_deletion_84/run/` | Not yet measured. 176 line-ups to re-battle |
@@ -319,7 +319,7 @@ Measured 2026-11-13 for [Sample and battle the four rows and post the results ta
 
 | Step | Planned | Actual |
 | --- | --- | --- |
-| Grids | 9, each of 4,416 teams and 216,384 battles | 9, each of 4,416 teams and 216,384 battles. No cell short of 64 teams. 1,947,456 battles in all |
+| Grids | 9, each of 4,416 teams and 216,384 battles | 9, each of 4,416 teams (23 asks × 3 seeds × 64) and 216,384 battles (× 49 opponents). No cell short of 64 teams. 1,947,456 battles in all |
 | Probe step before each grid | 9, each with its row's decoder | 9 of 9 passed |
 | Unguided baselines | 3, each of 192 teams | 3, each of 192 teams and 9,408 battles |
 | Lookahead-off legality probe | 4,608 tries, no battles | 4,608 tries |
@@ -328,7 +328,7 @@ Measured 2026-11-13 for [Sample and battle the four rows and post the results ta
 
 ### Every measure
 
-| Row | Guidance | Error on asks 1/24 to 17/24, with 95% interval | Error on asks 18/24 to 23/24 | Win rate at asks 15/24 to 17/24 | Pooled win rate | First-try legality | Line-ups | Novel line-ups against training teams | Effective species | Top-species share | Elite line-ups, then those that held |
+| Row | Guidance | Error on asks 1/24 to 17/24, with 95% interval | Error on asks 18/24 to 23/24 | Win rate at asks 15/24 to 17/24 | Pooled win rate | First-try legality | Line-ups, all 23 asks pooled | Novel line-ups against training teams | Effective species | Top-species share | Elite line-ups, then those that held |
 | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Per-field, uncorrected t, the control | 2 | 0.0084, 0.0045 to 0.0134 | 0.1352 | 0.497 | 0.354 | 100.0% | 1,513 | 17.5% | 15.0 | 0.136 | 186, then 81 |
 | Per-field, uncorrected t, the control | 4 | 0.0049, 0.0022 to 0.0091 | 0.1079 | 0.532 | 0.375 | 100.0% | 1,918 | 24.4% | 14.2 | 0.143 | 254, then 132 |

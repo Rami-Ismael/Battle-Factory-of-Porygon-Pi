@@ -21,11 +21,11 @@ ROWS = [
     ["Win rate at asks 15/24 to 17/24", "0.368 (0.333 to 0.405)", "0.556 (0.518 to 0.594)"],
     ["Win rate over all 23 asks", "0.272 (0.248 to 0.296)", "0.390 (0.364 to 0.418)"],
     ["First-try legality", "89.2%", "100.0%"],
-    ["Distinct line-ups", "3,820", "2,126"],
+    ["Distinct line-ups, all 23 asks pooled", "3,820", "2,126"],
     ["Teams with a line-up absent from the training teams", "90.2%", "31.9%"],
     ["Teams with a line-up absent from earlier search runs and tournament records", "97.6%", "86.2%"],
     ["Effective species and top-species share, in 5-team subsets", "19.0 and 0.118", "13.2 and 0.147"],
-    ["Teams and battles", "4,416 and 216,384", "4,416 and 216,384"],
+    ["Teams (23 asks × 3 seeds × 64) and battles (× 49 opponents)", "4,416 and 216,384", "4,416 and 216,384"],
 ]
 
 NUNITO, POSTER, MONO = 6, 7, 8

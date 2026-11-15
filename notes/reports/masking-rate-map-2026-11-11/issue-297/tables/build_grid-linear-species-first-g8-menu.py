@@ -25,11 +25,11 @@ ROWS = [
     ["Win rate at asks 15/24 to 17/24", "0.539 (0.497 to 0.582)", "0.556 (0.518 to 0.594)"],
     ["Win rate over all 23 asks", "0.385 (0.358 to 0.413)", "0.390 (0.364 to 0.418)"],
     ["First-try legality", "100.0%", "100.0%"],
-    ["Distinct line-ups", "2,060", "2,126"],
+    ["Distinct line-ups, all 23 asks pooled", "2,060", "2,126"],
     ["Teams with a line-up absent from the training teams", "35.6%", "31.9%"],
     ["Teams with a line-up absent from earlier search runs and tournament records", "85.7%", "86.2%"],
     ["Effective species and top-species share, in 5-team subsets", "13.1 and 0.145", "13.2 and 0.147"],
-    ["Teams and battles", "4,416 and 216,384", "4,416 and 216,384"],
+    ["Teams (23 asks × 3 seeds × 64) and battles (× 49 opponents)", "4,416 and 216,384", "4,416 and 216,384"],
 ]
 GROUPS = [[0, 1, 2], [3, 4], [5, 6, 7, 8], [9, 10]]          # ornaments sit between these groups of rows; the groups carry no names
 

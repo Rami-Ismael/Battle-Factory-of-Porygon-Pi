@@ -18,11 +18,11 @@ ROWS = [
 	["Win rate at asks 15/24 to 17/24", "0.556 (0.518 to 0.594)"],
 	["Win rate over all 23 asks", "0.390 (0.364 to 0.418)"],
 	["First-try legality", "100.0%"],
-	["Distinct line-ups", "2,126"],
+	["Distinct line-ups, all 23 asks pooled", "2,126"],
 	["Teams with a line-up absent from the training teams", "31.9%"],
 	["Teams with a line-up absent from earlier search runs and tournament records", "86.2%"],
 	["Effective species and top-species share, in 5-team subsets", "13.2 and 0.147"],
-	["Teams and battles", "4,416 and 216,384"],
+	["Teams (23 asks × 3 seeds × 64) and battles (× 49 opponents)", "4,416 and 216,384"],
 ]
 # the kind of each measure, in table order, and the shade of blue each kind wears: fill, text colour
 KINDS = ["error", "error", "error", "win rate", "win rate", "legality", "line-ups", "line-ups", "line-ups", "species", "counts"]

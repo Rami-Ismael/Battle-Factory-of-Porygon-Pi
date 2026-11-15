@@ -18,11 +18,11 @@ ROWS = [
     ["Win rate at asks 15/24 to 17/24", "0.532 (0.492 to 0.574)"],
     ["Win rate over all 23 asks", "0.375 (0.349 to 0.403)"],
     ["First-try legality", "100.0%"],
-    ["Distinct line-ups", "1,918"],
+    ["Distinct line-ups, all 23 asks pooled", "1,918"],
     ["Teams with a line-up absent from the training teams", "24.4%"],
     ["Teams with a line-up absent from earlier search runs and tournament records", "84.4%"],
     ["Effective species and top-species share, in 5-team subsets", "14.2 and 0.143"],
-    ["Teams and battles", "4,416 and 216,384"],
+    ["Teams (23 asks × 3 seeds × 64) and battles (× 49 opponents)", "4,416 and 216,384"],
 ]
 GROUPS = [[0, 1, 2], [3, 4], [5, 6, 7, 8], [9]]                    # item lines between rows of dashes; row 10 is the bottom line
 
@@ -53,7 +53,7 @@ def leader(id, x0, x1, y):
 def item(r, top, size):
     """One item line: the name at the left, wrapped, the value at the right on the name's last line, a dotted leader between."""
     name, value = plain(ROWS[r][0]), plain(ROWS[r][1])
-    lines = textwrap.wrap(name, WRAP, break_on_hyphens=False) if size == ITEM else [name]
+    lines = textwrap.wrap(name, max(8, int(WRAP * ITEM / size)), break_on_hyphens=False)
     step = 1.25 * size
     parts = [text(f"name-{r}", LEFT, top, "\n".join(lines), size),
              text(f"value-{r}", RIGHT, top + step * (len(lines) - 1), value, size, "right")]
