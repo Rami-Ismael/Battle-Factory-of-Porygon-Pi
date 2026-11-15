@@ -31,7 +31,8 @@ import diffusion84 as M
 import lossdata65 as D
 import team84 as T
 import asked_vs_got as X
-from train84 import NET, RECIPE
+from train84 import NET
+from train84 import PER_FIELD_RECIPE as RECIPE   # the 65-field arms keep the per-field masking schedule they started with
 
 DATA = D.OUT / "lossdata65.npz"
 RES = Path.home() / "vgc-data" / "results"
@@ -108,7 +109,7 @@ def smoke():
         calls.append(p); return D.subset_labels(C, np.random.default_rng(SUBSET_SEED + p), 1, 39)[1]
     ce = init_ce(V, corpus, X84)
     m = M.Model84.train_new(V, corpus, X84, full_label(C), epochs=400, batch=16, lr=1e-3, warmup=10, ema=0, seed=0,
-                            sched=M.SCHED, labels_each_epoch=each, **NET)
+                            sched=M.PER_FIELD_SCHED, labels_each_epoch=each, **NET)
     curve = [e["train_loss"] for e in m.info["curves"]]
     first, last = float(np.mean(curve[:5])), float(np.mean(curve[-5:]))
     draws = [D.subset_labels(C, np.random.default_rng(SUBSET_SEED + p), 1, 39)[1] for p in (0, 1)]

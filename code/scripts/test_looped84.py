@@ -60,10 +60,10 @@ class PlainNetworkIsUnchanged(unittest.TestCase):
     def test_loss_random_stream_and_validation_loss_match_the_old_code(self):
         m = net().train(); x, _, w = batch()
         torch.manual_seed(5)
-        self.assertAlmostEqual(float(M.batch_loss(m, TABLES, x, w, M.sched84().to(M.DEV))), OLD_BATCH_LOSS, places=4)
+        self.assertAlmostEqual(float(M.batch_loss(m, TABLES, x, w, M.sched84(M.PER_FIELD_SCHED).to(M.DEV))), OLD_BATCH_LOSS, places=4)
         self.assertAlmostEqual(float(torch.rand(1)), OLD_NEXT_RANDOM, places=6)      # no extra draw for the plain network
         m.eval()
-        self.assertAlmostEqual(M.val_loss(m, TABLES, ROWS, LABELS, M.sched84().to(M.DEV), reps=2), OLD_VAL_LOSS, places=4)
+        self.assertAlmostEqual(M.val_loss(m, TABLES, ROWS, LABELS, M.sched84(M.PER_FIELD_SCHED).to(M.DEV), reps=2), OLD_VAL_LOSS, places=4)
 
     def test_options_change_no_starting_weight(self):
         plain = net().state_dict()
@@ -101,7 +101,7 @@ class LoopBlock(unittest.TestCase):
         original = m.forward
         m.forward = lambda *a, loops=None, state=None: (seen.add(loops), original(*a, loops=loops, state=state))[1]
         for s in range(40):
-            torch.manual_seed(s); M.batch_loss(m, TABLES, x[:8], w[:8], M.sched84().to(M.DEV))
+            torch.manual_seed(s); M.batch_loss(m, TABLES, x[:8], w[:8], M.sched84(M.PER_FIELD_SCHED).to(M.DEV))
         self.assertEqual(seen, {1, 2, 3})
 
     def test_a_block_that_does_not_fit_is_refused(self):
@@ -123,16 +123,16 @@ class CarriedState(unittest.TestCase):
         hidden = torch.rand(len(x), M.COLS, device=M.DEV) < 0.5
         with torch.no_grad():
             torch.nn.init.normal_(m.carry_ln.weight)
-            one = M.elbo_terms(m, TABLES, x, hidden, t, w, M.sched84().to(M.DEV), self_condition=False)
-            two = M.elbo_terms(m, TABLES, x, hidden, t, w, M.sched84().to(M.DEV))
+            one = M.elbo_terms(m, TABLES, x, hidden, t, w, M.sched84(M.PER_FIELD_SCHED).to(M.DEV), self_condition=False)
+            two = M.elbo_terms(m, TABLES, x, hidden, t, w, M.sched84(M.PER_FIELD_SCHED).to(M.DEV))
             xin = x.masked_fill(hidden, 0)
             lg = m.logits(m(xin, t, w, state=m(xin, t, w)))
         self.assertFalse(close(one, two, 1e-4))
         al = M.allowed(TABLES, xin)
         ref = (M.per_column_ce({k: v.masked_fill(~al[k], -1e4) for k, v in lg.items()}, x) * hidden
-               * M.sched84().to(M.DEV).view(1, -1) / t.view(-1, 1)).sum(1) / M.COLS
+               * M.sched84(M.PER_FIELD_SCHED).to(M.DEV).view(1, -1) / t.view(-1, 1)).sum(1) / M.COLS
         self.assertTrue(close(two, ref, 1e-3))
-        m.train(); M.batch_loss(m, TABLES, x[:8], w[:8], M.sched84().to(M.DEV)).backward()
+        m.train(); M.batch_loss(m, TABLES, x[:8], w[:8], M.sched84(M.PER_FIELD_SCHED).to(M.DEV)).backward()
         self.assertIsNotNone(m.carry_ln.weight.grad)
 
     def test_a_carried_state_network_cannot_join_a_mixture(self):
