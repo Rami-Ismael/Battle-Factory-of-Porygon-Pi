@@ -405,7 +405,11 @@ The expectation said linear training would make random order safe, because the m
 | Random order draws weaker teams whatever the ask | Got stays between 0.32 and 0.39 from ask 13/24 to 21/24, where species-first on the same model reads 0.46 to 0.55. The unguided win rate is 0.165 against 0.220 | Decode the six species first and the other 78 fields in random order. If got returns to 0.50, the loss comes from drawing species late |
 | The lookahead bends the draw | Without it 98% of the teams drawn are illegal, so it overrides the model's own draw often. 88% to 90% of the teams have a line-up no training team has | Compare the species the model wanted with the species the lookahead left, at the passes where a species is drawn after its moves |
 
-None of these was run. The stopping rule allows no re-run to chase a result, and a new row is the owner's call.
+None of these was run as part of this plan. The stopping rule allows no re-run to chase a result, and a new row is the owner's call. All three were tested afterwards, each in its own ticket:
+
+- Weaker model, confirmed (#323, 2026-11-15). On the control's checkpoint random order's error is 4.34 times species-first's (95% interval 3.28 to 6.34) at guidance 2, read from the #335 grid with no new battles. The interval holds the linear checkpoint's 4.76 and sits above the 21-epoch model's 2.77 (2.52 to 3.01). So the masking schedule did not change how much random order costs: the 2.8 came from the 21-epoch model's large species-first error. Script `src/random_order_multiple.py`.
+- Species drawn late, confirmed (#322): species first, then random order, brings the error to 0.0073 against 0.0075.
+- The lookahead, cleared (#321): it removes 0.7% to 1.1% of the model's probability at species drawn after their moves.
 
 ### Pareto reading
 
