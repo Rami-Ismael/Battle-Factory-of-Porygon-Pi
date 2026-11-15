@@ -125,12 +125,13 @@ def verdict(got, got_first, got_random, error, error_first):
     return "partial"
 
 
-def read_row(row, counts, guidance=2):
-    """Point estimates and [DRAWS] bootstrap draws of one grid: got by ask, error, error by seed, got at asks 13 to 17."""
+def read_row(row, counts, guidance=2, stream=None):
+    """Point estimates and [DRAWS] bootstrap draws of one grid: got by ask, error, error by seed, got at asks 13 to 17.
+    stream seeds the team resampling; by default each row's own stream of #322."""
     out = MRR.load_grid(row, guidance)
     if out is None: raise SystemExit(f"{MRR.grid_name(row, guidance)}: the grid is missing or has cells without battles")
     data = np.load(MRR.opponents_path(row, guidance)); weights = data["weights"]
-    rng = np.random.default_rng([MRR.DRAW_SEED, 322, STREAM[row]])
+    rng = np.random.default_rng([MRR.DRAW_SEED, 322, STREAM[row]] if stream is None else stream)
     point, draws = {}, {}
     for k in MRR.ALL_ASKS:
         for seed in MRR.SEEDS:
