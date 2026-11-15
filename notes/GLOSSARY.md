@@ -164,7 +164,7 @@ _Origin_: scaffold novelty against molecule novelty in MOSES, [Polykovskiy et al
 A condition a team sets up: sun, rain, sand, snow, one of four terrains, Trick Room or Tailwind. A team is in one when any set has its setting ability or move, or holds a mega stone whose mega form has that ability, since a set stores the base ability; a team can be in several or none.
 
 **Meta**:
-The top-50 meta teams, each counted once. A team's win rate against the meta averages one battle against each of the 50.
+The top-50 meta teams. One team is listed twice, so there are 49 distinct teams: a team battles each of the 49 once, and its win rate counts the duplicated team twice, so the weights sum to 50.
 _Avoid_: usage-weighted meta, species usage %
 
 **Validation opponent**:
@@ -223,6 +223,16 @@ _Avoid_: bot
 **Monte Carlo evaluation**:
 Estimating f by running battles. The only ground truth is ladder validation.
 _Avoid_: ground truth
+
+**Weakness pressure**:
+Reweighting the meta after each new best team: the meta team it beats least often gets double weight and the others shrink so the weights still sum to one, so the next score leans on that team's worst matchup. The score it changes is the win rate against the meta; no run here has used it yet.
+_Origin_: Li et al. 2026, *Beyond Static Evaluation*, §4.5, Eq. 3–4, [arXiv 2606.10389](https://arxiv.org/abs/2606.10389).
+_Avoid_: hard-opponent weighting, adversarial weights
+
+**Deep evaluation**:
+Re-scoring only the few best candidates with many more battles than the search used to rank them, because a short score ranks teams poorly. In the paper, 3-game scores and 20–40-game scores of the same strategies correlated at Spearman ρ = 0.11. Here the re-battle of elite line-ups, 4 battles against each meta team, is one instance.
+_Origin_: Li et al. 2026, *Beyond Static Evaluation*, §4.6, [arXiv 2606.10389](https://arxiv.org/abs/2606.10389).
+_Distinguish_: Monte Carlo evaluation, which scores every candidate; deep evaluation spends extra battles only on the top few.
 
 **Team writer**:
 *Retired 2026-10-28 — neither model is called a writer any more. Use **From-scratch discrete diffusion model trained only on valid Pokémon teams** or **Pretrained text diffusion model fine-tuned on pastes**.*
