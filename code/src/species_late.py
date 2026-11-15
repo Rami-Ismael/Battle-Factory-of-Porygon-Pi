@@ -10,6 +10,9 @@ species, the loss is in the sets. If they win about as well, the loss is in whic
                                          at the same guidance, into results/species_late_grid.json (G = 2) or species_late_grid_gG.json
     python species_late.py grid_figure DIR [G]  got against ask for the three rows, as an ECharts page in DIR
     python species_late.py grid_comment URL [G] the verdict comment; URL holds {theme} for light or dark
+    python species_late.py guidances             step two at guidance 2, 4 and 8 together (#329), into results/species_late_guidances.json
+    python species_late.py guidances_figure DIR  got at asks 13/24 to 17/24 for the three rows at each guidance, as an ECharts page in DIR
+    python species_late.py guidances_comment URL the resolution comment of #329; URL holds {theme}
 
 The interval is a bootstrap that resamples teams within each line-up at each ask, separately in each row, and the 49
 opponents once for both rows, as masking_rate_rows.py does for its grids.
@@ -32,7 +35,7 @@ STREAM = {SPECIES_THEN_RANDOM: 0, SPECIES_FIRST: 1, RANDOM: 2}                # 
 HIGH_ASKS = range(13, 24)                                # where got stops following the ask on Linear, random order
 VERDICT_ASKS = range(13, 18)                             # the ticket reads got at asks 13/24 to 17/24
 GOT_MARGIN = 0.03                                        # within 0.03 of a row's got, as the ticket states
-STORED = MRR.RES / "species_late_stored.json"
+STORED, GUIDANCES = MRR.RES / "species_late_stored.json", MRR.RES / "species_late_guidances.json"
 
 
 def grid_path(guidance):
@@ -154,6 +157,11 @@ def read_row(row, counts, guidance=2, stream=None):
     return dict(got_by_ask=got_p, got_by_ask_draws=got_d, error=MRR.error(got_p), error_draws=MRR.error_draws(got_d),
                 error_by_seed=by_seed_p, error_by_seed_draws=by_seed_d,
                 got_verdict_asks=float(np.mean([got_p[k] for k in VERDICT_ASKS])), got_verdict_asks_draws=np.mean([got_d[k] for k in VERDICT_ASKS], 0))
+
+
+def share_recovered(got, got_first, got_random):
+    """The part of random order's got gap to species-first that a row wins back: 1 is all of it, 0 none."""
+    return (got - got_random) / (got_first - got_random)
 
 
 def paired(a, b):
@@ -294,8 +302,97 @@ def comment_text(r, figure_url):
     return "\n".join(lines) + "\n"
 
 
+def guidances():
+    """Step two at guidance 2, 4 and 8, read with the streams grid() uses, plus the share of random order's got gap won back.
+    Each guidance's own file (grid_path) must exist; this adds the share's interval, which needs the bootstrap draws."""
+    out = dict(rule=None, resampled="teams within each ask and sampling seed, separately in each row; the 49 opponents once for all three rows",
+               draws=MRR.DRAWS, draw_seed=MRR.DRAW_SEED, guidance={})
+    for g in MRR.GUIDANCES:
+        saved = json.load(open(grid_path(g))); out["rule"] = saved["rule"]
+        counts = MRR.opponent_draws(len(np.load(MRR.opponents_path(RANDOM, g))["weights"]))
+        stream = (lambda row: None) if g == 2 else (lambda row: [MRR.DRAW_SEED, 329, STREAM[row], int(g)])
+        rows = {row: read_row(row, counts, g, stream(row)) for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)}
+        got = {row: m["got_verdict_asks"] for row, m in rows.items()}
+        if any(abs(got[row] - saved["rows"][row]["got_asks_13_to_17"]) > 1e-12 for row in got): raise SystemExit(f"guidance {g}: reread differs from {grid_path(g).name}")
+        draws = share_recovered(*(rows[r]["got_verdict_asks_draws"] for r in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)))
+        out["guidance"][str(g)] = dict(verdict=saved["verdict"], share_recovered=float(share_recovered(*(got[r] for r in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)))),
+                                       share_recovered_interval=MRR.interval(draws),
+                                       got_against_species_first=saved["got_against_species_first"], error_against_species_first=saved["error_against_species_first"],
+                                       rows={row: {k: saved["rows"][row][k] for k in ("reader", "error", "error_interval", "got_asks_13_to_17", "got_asks_13_to_17_interval")}
+                                             for row in saved["rows"]})
+    json.dump(out, open(GUIDANCES, "w"), indent=1)
+    for g, v in out["guidance"].items():
+        print(f"guidance {g}: {v['verdict']}, share won back {v['share_recovered']:.2f} {v['share_recovered_interval']}, "
+              f"got gap to species-first {v['got_against_species_first']['difference']:+.3f} {v['got_against_species_first']['interval']}")
+    print("SPECIES_LATE_GUIDANCES_DONE")
+
+
+def guidances_figure(folder):
+    """Got at asks 13/24 to 17/24 for the three rows at guidance 2, 4 and 8: a dot for the estimate, a whisker for its 95% interval."""
+    from echarts_chart import write_chart
+    r = json.load(open(GUIDANCES)); gs = list(r["guidance"]); offset = {SPECIES_THEN_RANDOM: 0.0, SPECIES_FIRST: -0.18, RANDOM: 0.18}
+    series = []
+    for row in (SPECIES_FIRST, SPECIES_THEN_RANDOM, RANDOM):
+        m = [r["guidance"][g]["rows"][row] for g in gs]
+        for i, v in enumerate(m):
+            lo, hi = v["got_asks_13_to_17_interval"]
+            series.append(dict(type="line", name=READER[row], color=ROW_COLOR[row], symbol="none", silent=True, lineStyle=dict(width=2.5),
+                               tooltip=dict(show=False), data=[[i + offset[row], lo], [i + offset[row], hi]]))
+        series.append(dict(type="scatter", name=READER[row], color=ROW_COLOR[row], symbolSize=13, emphasis=dict(focus="series"),
+                           label=dict(show=True, position="right", fontSize=12, formatter="js:p => p.value[1].toFixed(3)"),
+                           data=[[i + offset[row], v["got_asks_13_to_17"]] for i, v in enumerate(m)]))
+    labels = {i: f"Guidance {g}" for i, g in enumerate(gs)}
+    option = dict(grid=dict(left=64, right=40, top=56, bottom=48), legend=dict(top=0, data=[READER[row] for row in (SPECIES_FIRST, SPECIES_THEN_RANDOM, RANDOM)]),
+                  tooltip=dict(trigger="item", formatter="js:p => p.seriesName + ': ' + (p.value[1] * 100).toFixed(1) + '%'"),
+                  xAxis=[dict(type="value", min=-0.5, max=len(gs) - 0.5, show=False),                 # where the dots sit
+                         dict(type="category", data=[labels[i] for i in range(len(gs))], position="bottom", axisLabel=dict(fontSize=13), axisTick=dict(show=False))],
+                  yAxis=dict(type="value", min=0.25, max=0.6, axisLine=dict(onZero=False), name="Got: measured win rate, asks 13/24 to 17/24", nameLocation="middle", nameGap=46,
+                             axisLabel=dict(formatter="js:v => Math.round(v * 100) + '%'")),
+                  series=series, animation=False)
+    shares = ", ".join(f"{100 * r['guidance'][g]['share_recovered']:.0f}%" for g in gs)
+    return write_chart(option, Path(folder) / "species-late-guidances.html", height=440,
+                       title="Drawing the species first wins back most of random order's loss at every guidance",
+                       subtitle=f"Linear masking schedule. Share of random order's gap to species-first won back: {shares} at guidance {', '.join(gs)}.",
+                       note="Whisker: 95% bootstrap interval over teams and the 49 opponents. Got: one battle against each of the 49 distinct top-50 meta teams, "
+                            "behaviour-cloning policy on both sides, slots shuffled; 960 teams per row and guidance (asks 13/24 to 17/24, 3 sampling seeds).")
+
+
+def guidances_comment(figure_url):
+    """The resolution comment of #329, picture first: the verdict at guidance 4 and 8 beside #322's guidance 2."""
+    r = json.load(open(GUIDANCES)); G = r["guidance"]
+    iv = lambda x, f="+.4f": f"[{x[0]:{f}}, {x[1]:{f}}]"
+    verdicts = {g: v["verdict"] for g, v in G.items()}
+    head = "confirmed at guidance 4 and 8" if verdicts["4"] == verdicts["8"] == "confirmed" else f"{verdicts['4']} at guidance 4, {verdicts['8']} at guidance 8"
+    gaps = [G[g]["got_against_species_first"]["difference"] for g in G]
+    shares = ", ".join(f"{100 * v['share_recovered']:.0f}%" for v in G.values())
+    e8 = G["8"]["error_against_species_first"]
+    lines = [f"**Resolved, {datetime.date.today()}: {head}.** Linear, species then random order still matches Linear, species-first by the ticket's rule. "
+             f"It wins back {shares} of Linear, random order's win-rate gap at guidance {', '.join(G)}.", "",
+             f'<picture><source media="(prefers-color-scheme: dark)" srcset="{figure_url.format(theme="dark")}"><img alt="Got at asks 13/24 to 17/24 for the three rows at guidance 2, 4 and 8" src="{figure_url.format(theme="light")}"></picture>', "",
+             "The green dot sits beside the blue one at every guidance, and both sit far above the orange one. "
+             f"The small lag behind species-first grows with guidance: {', '.join(f'{x:+.3f}' for x in gaps)}. At guidance 4 and 8 its interval no longer crosses zero, "
+             "so the order of the other 78 fields costs a little at high guidance. "
+             f"The error says the same at guidance 8: {e8['difference']:+.4f} {iv(e8['interval'])} against species-first, paired by sampling seed. "
+             "Both stay inside the rule's margins (got within 0.03, error within training luck).", "",
+             "| | Guidance 2 ([#322](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/322)) | Guidance 4 | Guidance 8 |", "|---|---|---|---|",
+             "| Verdict | " + " | ".join(v["verdict"] for v in G.values()) + " |",
+             "| Got gap to species-first, asks 13/24 to 17/24 | " + " | ".join(f"{v['got_against_species_first']['difference']:+.3f} {iv(v['got_against_species_first']['interval'], '+.3f')}" for v in G.values()) + " |",
+             "| Error gap to species-first, paired by seed | " + " | ".join(f"{v['error_against_species_first']['difference']:+.4f} {iv(v['error_against_species_first']['interval'])}" for v in G.values()) + " |",
+             "| Share of random order's gap won back | " + " | ".join(f"{100 * v['share_recovered']:.0f}% [{100 * v['share_recovered_interval'][0]:.0f}%, {100 * v['share_recovered_interval'][1]:.0f}%]" for v in G.values()) + " |"]
+    for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM):
+        lines.append(f"| {READER[row]}: error, got | " + " | ".join(f"{v['rows'][row]['error']:.4f}, {v['rows'][row]['got_asks_13_to_17']:.3f}" for v in G.values()) + " |")
+    lines += ["", "- **Got**: mean win rate of the teams drawn at asks 13/24 to 17/24, one battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled.",
+              "- **Error**: ask-versus-got error, the mean squared gap between ask and got over asks 1/24 to 17/24.",
+              "- **Share won back**: (this row's got minus random order's) over (species-first's minus random order's). 100% means all of random order's loss is gone.",
+              f"- **Rule**: {r['rule']}. Training luck is {MRR.TRAINING_LUCK}.",
+              "- **Interval**: 95% bootstrap, teams resampled within each ask and sampling seed, the 49 opponents resampled once for all three rows.", "",
+              "The per-guidance comments above carry each got-against-ask figure. Script: `code/src/species_late.py guidances`. Results: `~/vgc-data/results/species_late_guidances.json`."]
+    return "\n".join(lines) + "\n"
+
+
 if __name__ == "__main__":
     arg = lambda i, default: sys.argv[i] if len(sys.argv) > i else default
     {"stored": stored, "stored_figure": lambda: print(stored_figure(sys.argv[2])), "grid": lambda: grid(arg(2, 2)),
      "grid_figure": lambda: print(grid_figure(sys.argv[2], arg(3, 2))),
-     "grid_comment": lambda: print(grid_comment(sys.argv[2], arg(3, 2)), end="")}[sys.argv[1]]()
+     "grid_comment": lambda: print(grid_comment(sys.argv[2], arg(3, 2)), end=""), "guidances": guidances,
+     "guidances_figure": lambda: print(guidances_figure(sys.argv[2])), "guidances_comment": lambda: print(guidances_comment(sys.argv[2]), end="")}[sys.argv[1]]()

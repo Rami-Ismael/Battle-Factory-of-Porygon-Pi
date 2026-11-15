@@ -99,6 +99,11 @@ class GridAtEachGuidance(unittest.TestCase):
         self.assertIn("at guidance 4", text)
         self.assertNotIn("guidance 2", text.lower())
 
+    def test_share_recovered_is_the_part_of_random_order_s_got_gap_that_species_first_drawing_wins_back(self):
+        # species-first 0.50, random order 0.30: a row at 0.45 wins back 0.15 of the 0.20 gap
+        self.assertAlmostEqual(S.share_recovered(got=0.45, got_first=0.50, got_random=0.30), 0.75)
+        self.assertAlmostEqual(S.share_recovered(got=0.50, got_first=0.50, got_random=0.30), 1.0)
+
     def test_the_comment_at_guidance_2_still_reads_as_step_two_of_issue_322(self):
         self.assertTrue(S.comment_text(self.result(2), "https://example.org/{theme}.png").startswith("**Step two, "))
 
