@@ -18,11 +18,11 @@ ROWS = [
     ["Win rate at asks 15/24 to 17/24", "0.340 (0.304 to 0.378)", "0.497 (0.458 to 0.538)"],
     ["Win rate over all 23 asks", "0.247 (0.224 to 0.271)", "0.354 (0.328 to 0.381)"],
     ["First-try legality", "90.4%", "100.0%"],
-    ["Distinct line-ups", "2,646", "1,513"],
+    ["Distinct line-ups, all 23 asks pooled", "2,646", "1,513"],
     ["Teams with a line-up absent from the training teams", "87.8%", "17.5%"],
     ["Teams with a line-up absent from earlier search runs and tournament records", "97.5%", "82.7%"],
     ["Effective species and top-species share, in 5-team subsets", "20.0 and 0.110", "15.0 and 0.136"],
-    ["Teams and battles", "4,416 and 216,384", "4,416 and 216,384"],
+    ["Teams (23 asks × 3 seeds × 64) and battles (× 49 opponents)", "4,416 and 216,384", "4,416 and 216,384"],
 ]
 
 INK, BROWN, BROWN_DARK, SHEET, RULE = "#1e1e1e", "#a9713b", "#6b4220", "#fff9db", "#a5d8ff"

@@ -15,11 +15,11 @@ ROWS = [
     ["Win rate at asks 15/24 to 17/24", "0.364 (0.328 to 0.401)", "0.532 (0.492 to 0.574)"],
     ["Win rate over all 23 asks", "0.266 (0.242 to 0.290)", "0.375 (0.349 to 0.403)"],
     ["First-try legality", "90.5%", "100.0%"],
-    ["Distinct line-ups", "3,336", "1,918"],
+    ["Distinct line-ups, all 23 asks pooled", "3,336", "1,918"],
     ["Teams with a line-up absent from the training teams", "88.3%", "24.4%"],
     ["Teams with a line-up absent from earlier search runs and tournament records", "97.6%", "84.4%"],
     ["Effective species and top-species share, in 5-team subsets", "19.5 and 0.114", "14.2 and 0.143"],
-    ["Teams and battles", "4,416 and 216,384", "4,416 and 216,384"],
+    ["Teams (23 asks × 3 seeds × 64) and battles (× 49 opponents)", "4,416 and 216,384", "4,416 and 216,384"],
 ]
 
 INK, PAGE, CAPTION = "#1e1e1e", "#fff9db", "#ffec99"

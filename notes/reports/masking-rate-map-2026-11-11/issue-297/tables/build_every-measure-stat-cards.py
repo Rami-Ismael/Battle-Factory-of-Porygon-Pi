@@ -15,7 +15,7 @@ sys.path.insert(0, str(HERE.parents[4] / "code" / "src"))
 from excalidraw_table import missing_from_scene, plain, render_scene  # noqa: E402
 
 NAME = "every-measure-stat-cards"
-HEADER = ["Row", "Guidance", "Error on asks 1/24 to 17/24, with 95% interval", "Error on asks 18/24 to 23/24", "Win rate at asks 15/24 to 17/24", "Pooled win rate", "First-try legality", "Line-ups", "Novel line-ups against training teams", "Effective species", "Top-species share", "Elite line-ups, then those that held"]
+HEADER = ["Row", "Guidance", "Error on asks 1/24 to 17/24, with 95% interval", "Error on asks 18/24 to 23/24", "Win rate at asks 15/24 to 17/24", "Pooled win rate", "First-try legality", "Line-ups, all 23 asks pooled", "Novel line-ups against training teams", "Effective species", "Top-species share", "Elite line-ups, then those that held"]
 ROWS = [
     ["Per-field, uncorrected t, the control", "2", "0.0084, 0.0045 to 0.0134", "0.1352", "0.497", "0.354", "100.0%", "1,513", "17.5%", "15.0", "0.136", "186, then 81"],
     ["Per-field, uncorrected t, the control", "4", "0.0049, 0.0022 to 0.0091", "0.1079", "0.532", "0.375", "100.0%", "1,918", "24.4%", "14.2", "0.143", "254, then 132"],

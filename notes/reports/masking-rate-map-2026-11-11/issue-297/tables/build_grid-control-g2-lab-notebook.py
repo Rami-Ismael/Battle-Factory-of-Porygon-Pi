@@ -18,11 +18,11 @@ ROWS = [
     ["Win rate at asks 15/24 to 17/24", "0.497 (0.458 to 0.538)"],
     ["Win rate over all 23 asks", "0.354 (0.328 to 0.381)"],
     ["First-try legality", "100.0%"],
-    ["Distinct line-ups", "1,513"],
+    ["Distinct line-ups, all 23 asks pooled", "1,513"],
     ["Teams with a line-up absent from the training teams", "17.5%"],
     ["Teams with a line-up absent from earlier search runs and tournament records", "82.7%"],
     ["Effective species and top-species share, in 5-team subsets", "15.0 and 0.136"],
-    ["Teams and battles", "4,416 and 216,384"],
+    ["Teams (23 asks × 3 seeds × 64) and battles (× 49 opponents)", "4,416 and 216,384"],
 ]
 
 HAND = 5
@@ -85,7 +85,7 @@ def skeleton():
 def measure_lines(text, limit=45):
     """Break a measure into lines short enough for one ruled space each, keeping the break after 'share,'."""
     lines = []
-    for part in text.replace("share, in ", "share,\nin ").split("\n"):
+    for part in text.replace("share, in ", "share,\nin ").replace(") and battles ", ")\nand battles ").split("\n"):
         line = ""
         for word in part.split(" "):
             if line and len(line) + 1 + len(word) > limit:
