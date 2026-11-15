@@ -1,0 +1,130 @@
+{
+ "owner_text": "In mathematic, my understanding the solution to the problem is the goal is the new tools and understanding is the goal. My work create so far help me bring new understanding in machine learning, statisitic into programatic aspect. Incentive me to learn subject that I don't know like like metaheuristic for myself. Able to apply MAP-Elite , reinforcement learning and Cross Entropy method. Go deep in understandin diffusion model. I would later build show the mistake and learning more post laterb",
+ "claims": [
+  {
+   "sentence": "In mathematic, my understanding the solution to the problem is the goal is the new tools and understanding is the goal.",
+   "says": "In mathematics, as he understands it, solving the problem is not the goal. The new tools and the understanding gained along the way are the goal.",
+   "check": "This is his view, so it needs no project source. A mathematician has said much the same: William Thurston argues that what mathematicians produce is human understanding, not a quota of theorems or a pile of answers. Quotes opened and read in the paper's text, see source_for_the_idea.",
+   "source": "Thurston 1994, 'On Proof and Progress in Mathematics', Bulletin of the American Mathematical Society 30(2) pp. 161-177, https://arxiv.org/abs/math/9404236, Section 1 'What is it that mathematicians accomplish?' and Section 5 'What motivates people to do mathematics?'"
+  },
+  {
+   "sentence": "My work create so far help me bring new understanding in machine learning, statisitic into programatic aspect.",
+   "says": "The project so far has given him new understanding of machine learning and statistics, and of how to turn both into working code.",
+   "check": "Supported. The smoothness rerun alone uses three statistical tools he coded: replaying each unchanged team three times to measure battle luck, a noise-corrected edit size computed as the square root of the mean squared edit change minus the mean squared replay change, and 95% intervals by bootstrap over starting teams with 2,000 resamples. Whether these were new to him is his to say.",
+   "source": "code/docs/ruggedness2.md, section 'Statistics (per landscape x start type x edit type)' and section 'Reading without the 5-point cutoff (2026-11-13, after the result, post hoc)'; SITE/v2/FACTS.md, section 'The finished measurement'"
+  },
+  {
+   "sentence": "Incentive me to learn subject that I don't know like like metaheuristic for myself.",
+   "says": "The project pushed him to teach himself subjects he did not know, such as metaheuristics, the family of general-purpose search methods.",
+   "check": "Supported. Both search methods he names in the next sentence that were actually built, MAP-Elites and the cross-entropy method, are metaheuristics, and the project also tried other search loops recorded in its failed-methods list. That he did not know them before is his own statement.",
+   "source": "code/docs/dsame-experiment.md, opening paragraph; code/docs/cem-v3-loop.md, section 'The loop'; code/docs/failed-methods.md, opening paragraph"
+  },
+  {
+   "sentence": "Able to apply MAP-Elite , reinforcement learning and Cross Entropy method.",
+   "says": "He was able to apply three methods: MAP-Elites, reinforcement learning and the cross-entropy method.",
+   "check": "Two of three hold. MAP-Elites: built and run. Deep-surrogate MAP-Elites, after Zhang et al. 2022, was pre-registered 2026-09-30 and run 2026-10-01 over 3 seeds and 6 generations against the existing search loop, and it found stronger teams at that budget. Cross-entropy method: built and run. The cross-entropy loop on the version-3 foundation ran 2026-10-08, with a clean re-run on 2026-10-14 scored on held-out teams. Their win rates come from September and October listed-slot battles, which no longer count, so quote neither number. Reinforcement learning: studied only, never trained. The 2026-08-18 plan was behaviour cloning followed by self-play, and on 2026-10-02 he parked the battle-policy work indefinitely. The policy that plays every battle in the smoothness rerun is VGC-Bench's behaviour-cloning policy, which learns by imitating human replays. That is imitation learning, not reinforcement learning, even though the code calls it the 'behaviour-cloning PPO policy' because it is stored in a reinforcement-learning policy format. His reinforcement-learning work is reading and notes: VGC-Bench's self-play variants and invalid action masking.",
+   "source": "code/docs/dsame-experiment.md, title and section 'Arms'; memory/dsame-experiment-2026-10-01.md; code/docs/cem-v3-loop.md, sections 'The loop' and 'Clean re-run, scored once on ranks 51-100 (2026-10-14)'; memory/battle-policy-plan-2026-08-18.md, 'Training arms'; memory/deliverable-is-a-proposer-battle-policy-parked.md, item 2; code/docs/failed-methods.md, lines 3 to 6 'VGC-Bench behaviour-cloning policy playing both sides'; code/src/battles.py, module docstring; notes/Behavior cloning a VGC battle policy from human Showdown replays.md, frontmatter 'status: open'; notes/How do you implementing maskout in reinforcement learning and whey do you need to mask out.md"
+  },
+  {
+   "sentence": "Go deep in understandin diffusion model.",
+   "says": "He went deep into understanding diffusion models.",
+   "check": "Supported, and this is the deepest of the four. He trained a from-scratch discrete diffusion model on valid Pokemon teams that writes all 84 fields of a team, fine-tuned a pretrained text diffusion model on team pastes, and ran experiments on masking rates, remasking, decoding order and a uniform discrete diffusion model. The glossary defines each with its origin paper.",
+   "source": "notes/GLOSSARY.md, entries 'Discrete diffusion model', 'Masked diffusion model', 'Uniform discrete diffusion model', 'From-scratch discrete diffusion model trained only on valid Pokemon teams', 'Pretrained text diffusion model fine-tuned on pastes'; memory/experiments-index.md, entries 'Slot-order decoding 2026-10-26' and 'Binary diffusion kernel tests 2026-10-25'; code/docs/masking-rate-rows.md"
+  },
+  {
+   "sentence": "I would later build show the mistake and learning more post laterb",
+   "says": "He plans a later post that shows his mistakes and what he learned from them.",
+   "check": "A plan, nothing to check. There is material for it: the listed slot order that biased every score before 2026-11-07, and the 5-point cutoff dropped on 2026-11-13.",
+   "source": "notes/GLOSSARY.md, entry 'Shuffled-slot battle'; SITE/v2/FACTS.md, section 'Numbers that no longer count'"
+  }
+ ],
+ "source_for_the_idea": {
+  "verdict": "Yes. William Thurston says the product of mathematics is human understanding, not answers or theorems. Quotes below were read in the paper's text, extracted from the arXiv PDF.",
+  "author": "William P. Thurston",
+  "work": "On Proof and Progress in Mathematics, Bulletin of the American Mathematical Society, Volume 30, Number 2, April 1994, pages 161-177",
+  "link": "https://arxiv.org/abs/math/9404236",
+  "quotes": [
+   {
+    "text": "We are not trying to meet some abstract production quota of definitions, theorems and proofs. The measure of our success is whether what we do enables people to understand and think more clearly and effectively about mathematics.",
+    "section": "Section 1, 'What is it that mathematicians accomplish?', page 3"
+   },
+   {
+    "text": "What we are producing is human understanding.",
+    "section": "Section 5, 'What motivates people to do mathematics?', last paragraph"
+   },
+   {
+    "text": "They discover by this kind of experience that what they really want is usually not some collection of “answers”—what they want is understanding.",
+    "section": "Section 1, 'What is it that mathematicians accomplish?', page 2. The original contains an em dash, so in the post quote one of the two quotes above instead."
+   }
+  ],
+  "fit": "Thurston speaks of mathematicians and mathematics, not of a person learning tools through a project. The quote supports Rami's first sentence. It does not say the tools matter more than the answer, only that understanding does."
+ },
+ "where_it_fits": "It belongs at the close of the post, after the draft's last sentence about building MAP-Elites and the cross-entropy method, because it answers why the work was worth doing once the reader has seen the measurement. Element 11, 'The bigger picture', places smoothness in the series and Rami's reasons, and this paragraph widens that frame from Pokemon to what the project taught him. It is his opinion, so it falls under the 'Admit opinion and perspective' action, but it is not element 15, which weighs other approaches and counter-examples, so it should stand as a short closing paragraph of its own.",
+ "questions": [
+  {
+   "sentence": "My work create so far help me bring new understanding in machine learning, statisitic into programatic aspect.",
+   "question": "Which one thing did the smoothness measurement teach you that you did not know before: measuring battle luck by replaying unchanged teams, subtracting that luck from each edit, or bootstrapping an interval?"
+  },
+  {
+   "sentence": "Able to apply MAP-Elite , reinforcement learning and Cross Entropy method.",
+   "question": "Reinforcement learning was planned and studied but never trained, and the battles use a behaviour-cloning policy. Do you want to keep reinforcement learning in the list as something you studied, or name the two search methods you built and ran?"
+  },
+  {
+   "sentence": "I would later build show the mistake and learning more post laterb",
+   "question": "Which mistake will the later post lead with: the listed slot order that biased every score before 2026-11-07, the 5-point cutoff you dropped, or another one?"
+  }
+ ],
+ "candidates": [
+  {
+   "sentence": "In mathematics, as I understand it, the answer is not the goal. The new tools and the understanding are. William Thurston wrote it in 1994: \"What we are producing is human understanding.\"",
+   "facts": [
+    {
+     "claim": "Thurston: \"What we are producing is human understanding.\"",
+     "source": "Thurston 1994, 'On Proof and Progress in Mathematics', Bulletin of the American Mathematical Society 30(2) pp. 161-177, https://arxiv.org/abs/math/9404236, Section 5, 'What motivates people to do mathematics?'"
+    },
+    {
+     "claim": "Thurston: \"We are not trying to meet some abstract production quota of definitions, theorems and proofs.\"",
+     "source": "Thurston 1994, 'On Proof and Progress in Mathematics', Bulletin of the American Mathematical Society 30(2) pp. 161-177, https://arxiv.org/abs/math/9404236, Section 1, 'What is it that mathematicians accomplish?'"
+    }
+   ]
+  },
+  {
+   "sentence": "This project pushed me into methods I had never used. I built and ran two search methods, MAP-Elites and the cross-entropy method, and I trained diffusion models that write whole teams. Reinforcement learning I have only studied so far, since every battle here is played by a behaviour-cloning policy that imitates human players.",
+   "facts": [
+    {
+     "claim": "Deep-surrogate MAP-Elites was built and run over 3 seeds and 6 generations.",
+     "source": "code/docs/dsame-experiment.md, section 'Arms'; memory/dsame-experiment-2026-10-01.md"
+    },
+    {
+     "claim": "The cross-entropy loop was built and run, with a clean re-run on 2026-10-14.",
+     "source": "code/docs/cem-v3-loop.md, sections 'The loop' and 'Clean re-run, scored once on ranks 51-100 (2026-10-14)'"
+    },
+    {
+     "claim": "A from-scratch discrete diffusion model generates all 84 fields of a team.",
+     "source": "notes/GLOSSARY.md, entry 'From-scratch discrete diffusion model trained only on valid Pokemon teams'"
+    },
+    {
+     "claim": "The VGC-Bench behaviour-cloning policy plays both sides. No reinforcement-learning policy was trained, and battle-policy work was parked on 2026-10-02.",
+     "source": "code/docs/failed-methods.md, opening paragraph; memory/deliverable-is-a-proposer-battle-policy-parked.md, item 2"
+    }
+   ]
+  },
+  {
+   "sentence": "Measuring smoothness taught me statistics I had only read about. I replayed each unchanged team three times to measure battle luck, removed that luck from the size of every edit, and bootstrapped a 95% interval over the starting teams. I will show the mistakes I made on the way in a later post.",
+   "facts": [
+    {
+     "claim": "Each starting team was replayed three times with nothing changed to measure battle luck.",
+     "source": "SITE/v2/FACTS.md, section 'The finished measurement', paragraph 'Design'"
+    },
+    {
+     "claim": "The edit size is noise-corrected: the square root of the mean squared edit change minus the mean squared replay change.",
+     "source": "code/docs/ruggedness2.md, section 'Statistics (per landscape x start type x edit type)'"
+    },
+    {
+     "claim": "The 95% intervals are bootstrapped over starting teams with 2,000 resamples.",
+     "source": "code/docs/ruggedness2.md, section 'Statistics (per landscape x start type x edit type)'"
+    }
+   ]
+  }
+ ]
+}

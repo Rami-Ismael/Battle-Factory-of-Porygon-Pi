@@ -1,0 +1,47 @@
+{
+  "action": "Make connections",
+  "element": "Looks like x, but differs",
+  "what_it_does": "It grants the reader the likeness they will assume anyway, then names the one difference that stops them treating the two as the same.",
+  "when_to_use": "Right where the post compares Pokemon team building with optimisation benchmarks, because an engineer who sees a team as slots of choices will assume it behaves like Pest Control.",
+  "sentence_pattern": "x looks like y, but ...",
+  "dllm_example": "similar to masked language modeling",
+  "anchor_in_draft": "If you look other academic benchmark for optimization they are smooth.",
+  "extra": null,
+  "candidates": [
+    {
+      "sentence": "A Pokemon team looks like a point on Pest Control, a standard benchmark for Bayesian optimisation: a row of slots, each set to one choice from a list. But the steps are not the same size. One Pest Control step moves the score by 0.14 to 0.37 of that benchmark's spread between points, depending on how the spread is counted. Swapping one whole Pokemon on a tournament-ready team moved its win rate by 0.65 of the spread between teams, after removing battle luck.",
+      "facts": [
+        {"claim": "Pest Control has 25 variables with 5 categories each, a chain of pest control stations where each station takes one of 4 pesticides or none", "source": "Oh et al. 2019, Combinatorial Bayesian Optimization using the Graph Cartesian Product, https://arxiv.org/abs/1902.00448, Supplement 4.2.2"},
+        {"claim": "One Pest Control step changes one station. Its share of the benchmark's own spread is 0.14 pooled over random and hill-climbed starting points, and 0.37 and 0.32 when each kind of starting point uses its own spread. Which spread to use is an open decision", "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, Reading two and Open decision"},
+        {"claim": "Whole-Pokemon swap on tournament-ready teams: 5.90 win-rate points after removing battle luck, 95% interval 4.78 to 7.01, share 0.65 of the 9.04-point spread of true scores between teams, share interval 0.49 to 0.92", "source": "notes/artifacts/one-edit-away-explanation-elements/rerun-readings.json, groups.outside_top50.kinds.F_candidate_copy, and code/docs/ruggedness2.md, Reading without the 5-point cutoff"},
+        {"claim": "The whole-Pokemon swap is larger than a Pest Control step on either count of the benchmark's spread for tournament-ready teams", "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, Open decision"},
+        {"claim": "Scope: each score is a win rate over 384 battles against the 50 top-placing tournament teams, the same behaviour-cloning battle policy plays both sides, slots shuffled. The swap replaces one Pokemon with a real set of a different species. 0.65 is a share of one standard deviation of team scores, not of the gap between two typical teams", "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, The finished measurement and Scope limits"}
+      ]
+    },
+    {
+      "sentence": "A Pokemon team looks like a Pest Control point, a row of slots where each slot takes one choice from a list. But every one of Pest Control's 25 slots offers the same 5 choices, while on a team the species decides what the other slots may hold: Ditto can learn one move and Gallade can learn 105.",
+      "facts": [
+        {"claim": "Pest Control has 25 variables and each variable has 5 categories", "source": "Oh et al. 2019, https://arxiv.org/abs/1902.00448, Supplement 4.2.2"},
+        {"claim": "Each benchmark variable has one domain shared by every point. In VGC the form fixes the ability list and the movepool, so one choice rewrites another slot's list of values", "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, Differences in the search unit, difference 4"},
+        {"claim": "Movepool range is 1 to 105, Ditto to Gallade, in the 2026-09-18 Showdown validator pull", "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, sizes table, Movepool range row, and difference 4, Checked 2026-09-28"}
+      ]
+    },
+    {
+      "sentence": "A Pokemon team looks like Pest Control in another way too: its choices affect each other. On Pest Control a pesticide used often earlier in the chain gets cheaper and works less well further on. But no choice there is forbidden, and every pesticide works at every station. On a team no two Pokemon may hold the same item, and Charizardite Y turns Charizard into its Mega form while on Garchomp it is legal and does nothing.",
+      "facts": [
+        {"claim": "In Pest Control the price and effectiveness of pesticides are adjusted depending on the previously made choices: frequent purchase earns a discount and frequent use builds pest tolerance", "source": "Oh et al. 2019, https://arxiv.org/abs/1902.00448, Supplement 4.2.2"},
+        {"claim": "Pest Control has no built-in constraints, and in Pest Control every pesticide acts at every station", "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, The benchmarks table, Pest control row, and difference 12"},
+        {"claim": "Species Clause and Item Clause are all-different constraints across the six records, with no item exempt. No benchmark has an all-different constraint across separate records", "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, The VGC search unit paragraph and difference 9"},
+        {"claim": "A Mega Stone is legal on any Pokemon but only does anything on its own species. Charizardite Y on Garchomp is 'legal, does nothing'", "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, difference 12 and Figure plan stop 12"}
+      ]
+    }
+  ],
+  "gaps": [
+    "Answered 2026-11-13: neither study. The 40-times comparison and the October move study both used battles against 36 opponents in listed slot order, which FACTS.md retires. Candidate one now quotes the edit-kind rerun of issue #313 instead.",
+    "Answered 2026-11-13, correcting this morning's answer: in the rerun only the whole-Pokemon swap from tournament-ready teams is safely larger than a Pest Control step. For move, item and ability edits that comparison depends on which spread the benchmark step is divided by, so no candidate says they are larger or smaller. Move and whole-Pokemon edits are above zero in both groups, item and ability from tournament-ready teams only.",
+    "Open: which spread should the Pest Control step be divided by, pooled over random and hill-climbed starting points for 0.14, or each kind of starting point on its own for 0.37 and 0.32? Candidate one quotes the range until you decide.",
+    "Open: Oh et al. 2019 say 21 stations in Section 4.2 and 25 variables in Supplement 4.2.2. The candidates use 25, the benchmark's usual size. Do you want the post to say 25, or leave the count out?"
+  ],
+  "picked": null,
+  "applied": "Replaced the old move candidate, which used retired October numbers and a move-versus-Pest-Control claim the open spread decision does not allow, with the whole-Pokemon swap at 0.65 of the spread against a Pest Control step of 0.14 to 0.37. Fixed candidate three, which wrongly said Pest Control stations are set on their own, after the paper showed earlier choices change later prices and effectiveness, re-sourced the 25-by-5 count to the paper, and answered both old gaps."
+}

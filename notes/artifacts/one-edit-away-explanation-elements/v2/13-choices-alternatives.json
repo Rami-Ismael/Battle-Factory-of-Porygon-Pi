@@ -1,0 +1,74 @@
+{
+  "action": "Talk about the subject",
+  "element": "Choices, alternatives, possibilities",
+  "what_it_does": "It lays out the other ways smoothness could have been measured, so the reader sees the one-move test as one option among several.",
+  "when_to_use": "Right after Rami says how he measures change, where a reader would otherwise assume one move is the only possible step and squared change the only possible statistic.",
+  "sentence_pattern": "There are N ways to do x: a, b and c.",
+  "dllm_example": "a continuous noising schedule",
+  "anchor_in_draft": "We make the transition function simple to be changine one properties of the pokemon it can be item, moves, entire pokemon then measure the win rate.",
+  "extra": null,
+  "candidates": [
+    {
+      "sentence": "There are several ways to define one step away from a team. You can replace one move, one ability, one held item, one stat alignment or the Stat Points, or you can swap in a whole Pokemon with its own moves, item and ability. A study against the 50 top-placing tournament teams tried all six, and the figure in this post uses only the first.",
+      "facts": [
+        {
+          "claim": "The six-edit-kind study, checked 2026-11-13, used six edit kinds: one move replaced, ability replaced, held item replaced, stat alignment replaced, Stat Points copied from a real set of the same species, and whole Pokemon replaced by a real set of a different species; 3 edits per kind per team, each score 384 battles against the 50 top-placing tournament teams, 49 of them distinct, with slot order shuffled.",
+          "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, checked in GitHub issue #313"
+        },
+        {
+          "claim": "The whole-Pokemon edit replaces a slot with a real corpus set of a species absent from the team, including its item, ability, moves and Stat Points.",
+          "source": "notes/research_notes/Landscape analysis inside CEM 20261020/one-edit-evidence.md, section 'September 28 study: different legal edit operators'"
+        },
+        {
+          "claim": "The 'One edit away' figure shows single legal move replacements only.",
+          "source": "notes/Blog/visuals/smoothness/README.md, section 'Learning question' and 'Data provenance and limits'"
+        }
+      ]
+    },
+    {
+      "sentence": "There are three ways to turn one edit into a number. You can take the squared change in win rate and subtract the part battle noise adds, you can report the raw absolute change with the noise still inside it, or you can ask how well a team's score predicts the score of its neighbour. The third is how the NAS-Bench-101 benchmark paper measures its own space, by walking one edit at a time.",
+      "facts": [
+        {
+          "claim": "The primary statistic is the mean noise-corrected squared expected win-rate change, computed as mean(d) squared minus sample variance of d over the number of replicate panels.",
+          "source": "code/docs/smoothness-experiment.md, section 'Noise and uncertainty'"
+        },
+        {
+          "claim": "Observed absolute changes are also saved and shown in a second figure view, and they explicitly retain battle noise.",
+          "source": "notes/Blog/visuals/smoothness/README.md, section 'Three connected views', 'Compare the teams'"
+        },
+        {
+          "claim": "Neighbour correlation measures how strongly a point's score predicts the score of a point one edit away; NAS-Bench-101 section 3.3 measures it as random-walk autocorrelation where one edit flips one operation or one edge.",
+          "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, section 'Smoothness — added 2026-09-28'"
+        },
+        {
+          "claim": "The earlier project statistic called rho is a normalized one-step increment statistic, not a multi-step random-walk autocorrelation.",
+          "source": "notes/research_notes/Landscape analysis inside CEM 20261020/one-edit-evidence.md, section 'The reported rho is a normalized increment statistic'"
+        }
+      ]
+    },
+    {
+      "sentence": "There are several places to start the one-edit test: teams players built for tournaments, teams an earlier search found, or points inside an optimisation benchmark. The Pokemon test uses the first two, and the benchmark side uses Pest Control, where one of 25 stations changes its pesticide.",
+      "facts": [
+        {
+          "claim": "Starting teams come from two groups: 24 tournament-ready teams, real teams players built for tournaments drawn from outside the top 50, and 16 search-found teams that an earlier search produced.",
+          "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement', Design; ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json"
+        },
+        {
+          "claim": "Pest Control has 25 stations with 5 choices each, and one step changes one station. The rerun measured it from random and from hill-climbed starting points.",
+          "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, 'Reading two, against a benchmark step'; ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, benchmarks.pest_control.random and .search"
+        },
+        {
+          "claim": "Other common benchmarks that could serve as the comparison include Contamination control, Weighted MaxSAT-60, LABS-50, NAS-Bench-101 and NAS-Bench-201.",
+          "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, section 'The benchmarks'"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "Answered 2026-11-13: the rerun measured all six edit kinds against the 50 top-placing tournament teams with shuffled slot order. Whole-Pokemon and move replacement are above zero in both groups of starting teams. Whether a move edit is larger than one Pest Control step depends on the open choice of spread in FACTS.md, so this section should not say it is or is not. Should it quote the above-zero result, or only name the other edit kinds as options?",
+    "Do you want to cite NAS-Bench-101's own neighbour-correlation numbers? The benchmark note says section 3.3 has not been read yet, so no value is available.",
+    "The eight-team pilot and the 50 random plus 50 top-placement study used September and October battles that are now retired. Should the post describe the November rerun instead?"
+  ],
+  "picked": null,
+  "applied": "Only removed claims FACTS.md puts off limits: 'meta teams' wording, the move-larger-than-Pest-Control claim and the 5-point cutoff in the first gap, and candidate 3's retired random-team design and Hartmann-6 benchmark, which the rerun did not use. Counter-examples and the fitness-distance alternative live in element 15, so random-walk correlation stays here only."
+}

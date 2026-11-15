@@ -1,0 +1,79 @@
+{
+ "action": "Admit opinion and perspective",
+ "element": "Alternatives, counter-examples, other approaches",
+ "what_it_does": "It names the strongest evidence against the post's claim, shows that evidence, and then says which part of the claim survives it.",
+ "when_to_use": "Right after the draft says benchmarks are smooth and Pokemon is not, because a reader who knows Bayesian optimisation will ask whether every edit really matters and whether benchmarks are really all smooth.",
+ "sentence_pattern": "One could argue x. The evidence for that is y. I still think z because ...",
+ "dllm_example": "AR baselines typically train faster",
+ "anchor_in_draft": "If you look other academic benchmark for optimization they are smooth.",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "Not every direction of a team is rough. Changing a Pokemon's stat alignment or its Stat Points was not shown to move win rate above zero, for tournament-ready teams or for teams an earlier search found. On the search-found teams, changing a held item or an ability was not shown above zero either, at about 1.4 win-rate points each. That does not prove these edits do nothing, but it does mean some directions of a team may be smooth. The roughness I can show sits in moves and in whole Pokemon.",
+   "facts": [
+    {
+     "claim": "Size of one edit after removing battle luck, 95% interval in brackets. Stat alignment: 1.95 [0, 2.92] tournament-ready, 0.00 [0, 2.53] search-found. Stat Points: 1.60 [0, 2.63] tournament-ready, 1.72 [0, 2.69] search-found. Item: 1.44 [0, 3.33] search-found. Ability: 1.35 [0, 2.96] search-found. An interval that reaches zero means the edit kind is not shown above zero.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement', table and 'Reading one, above zero'; ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json"
+    },
+    {
+     "claim": "Whole-Pokemon replacement and move replacement are above zero in both groups: 5.90 [4.78, 7.01] and 4.84 [3.35, 6.23] for tournament-ready teams, 5.85 [3.83, 7.47] and 4.92 [2.05, 7.24] for search-found teams.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement'"
+    },
+    {
+     "claim": "Scope: 24 tournament-ready and 16 search-found starting teams, 3 edits of each kind per team, 384 battles per score against the 50 top-placing tournament teams with the behaviour-cloning policy on both sides. Edits are random legal values, not the edits a player would choose. 'Not shown above zero' does not mean 'does nothing'.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, sections 'Design' and 'Scope limits'"
+    }
+   ]
+  },
+  {
+   "sentence": "Roughness alone does not set Pokemon apart from benchmarks. I measured ten benchmark tasks the same way, by asking how well a point's score predicts the score one small edit away. Five stayed smooth. Five turned rough, at least near good points, and the molecule design tasks are rougher than Pokemon: near good points that number falls to 0.08 for a dopamine receptor task and 0.03 for a drug-likeness task, while replacing one whole Pokemon on a tournament-ready team gives 0.79. What stands out in Pokemon is the mix inside one team, with smooth directions next to rough ones. Against one step on the Pest Control benchmark, only the whole-Pokemon swap on a tournament-ready team is shown larger. Move, item and ability edits cannot be told apart from that step.",
+   "facts": [
+    {
+     "claim": "Neighbour correlation, start points then hill-climbed points: contamination control 0.96 and 0.95, Ising sparsification 0.93 and 0.92, Pest Control 0.99 and 0.99, weighted MaxSAT-60 0.995 and 0.999, Ackley-53 0.998 and 0.98 stay smooth. LABS-50 0.98 then 0.67, Therapeutics Data Commons DRD2 0.99 then 0.08, GuacaMol Perindopril 0.43 then 0.03, GuacaMol Zaleplon 0.86 then 0.53, penalised logP below zero at both. Molecule edits replace one SELFIES token. Verdict: 'Overall roughness does not set VGC apart, because the molecule tasks are rougher by this measure, and ρ depends on which start points are used.'",
+     "source": "notes/Teaching/reference/bo-benchmark-derived-vgc-research-comparison.md, Version 4, section 'Smoothness is inside the benchmark range, but it differs by field' and line 121 on edits"
+    },
+    {
+     "claim": "Rami's own words: 'Overall, VGC is mid-pack. Pokémon swaps alone are rougher than every combinatorial benchmark, but the molecule tasks are rougher still.' The ten-task table is not in this note. The second half of the quote depends on retired September numbers and LABS-50 near good points, 0.67, is rougher than the rerun's whole-Pokemon 0.79, so do not reuse it.",
+     "source": "notes/Landscape properties comparison with other black box function by smoothness.md, Writing, Third version, point 4"
+    },
+    {
+     "claim": "Rerun neighbour correlation for whole-Pokemon replacement: 0.787 [0.576, 0.881] tournament-ready, 0.791 [0.580, 0.906] search-found. The VGC row in the comparison table, 0.96 and 0.92, comes from the retired September study and is not used.",
+     "source": "~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, vgc.meta.F_candidate_copy and vgc.search.F_candidate_copy; FACTS.md, 'Numbers that no longer count'"
+    },
+    {
+     "claim": "A Pest Control step is 0.14 of that benchmark's spread when the spread is pooled over random and hill-climbed starting points, and 0.37 and 0.32 when each kind of starting point uses its own spread. The whole-Pokemon swap, at 0.65 of the spread between teams, is larger than a Pest Control step for tournament-ready teams. Move, item and ability edits read undecided against it. Decided 2026-11-13: the two kinds of starting point are not pooled, so the step is 0.37 and 0.32 and the pooled 0.14 is not used.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, 'Reading two, against a benchmark step' and 'Decision on the benchmark spread'; ~/vgc-data/edit_kind_rerun/run/results/ruggedness2_shuffled50.json, benchmarks.pest_control"
+    }
+   ]
+  },
+  {
+   "sentence": "There are other ways to measure roughness that I did not use. Fitness-distance correlation asks whether scores rise as you get closer to the best point, and counting local optima asks how many points no single edit can improve. Neither fits Pokemon: nobody knows the best team, and proving one team is a local optimum means scoring every one of its neighbours. I used the one-edit measure because it needs only a team, one random legal edit and enough battles to see past luck.",
+   "facts": [
+    {
+     "claim": "'In computer science, a frequently used measure of landscape ruggedness is the number of local maxima or the modality of a landscape.' On fitness-distance correlation: 'Jones & Forrest thus provide a quantitatively informed qualitative assessment of how difficult a landscape is to navigate in, which, however, requires an a priori knowledge of the global optimum.'",
+     "source": "Vuculescu, Pedersen, Sherson, Bergenholtz 2019, Human search in a fitness landscape: How to assess the difficulty of a search problem, https://arxiv.org/abs/1912.07954, section 'Landscape ruggedness: modality and locality measures'"
+    },
+    {
+     "claim": "'VGC has none and no bound tighter than 1.0, so regret cannot be computed.' 'Certifying one VGC local optimum would mean evaluating 10^8.9 or more teams at 384 battles each.'",
+     "source": "notes/Teaching/reference/bo-benchmark-derived-vgc-research-comparison.md, Version 4, sections 'There is no known optimum, and the search now matches the best human-built team' and 'Benchmarks are multimodal where climbs converge, and VGC climbs stall first'"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "Answered 2026-11-13: the molecule tasks are rougher by the measured table in notes/Teaching/reference/bo-benchmark-derived-vgc-research-comparison.md, Version 4, smoothness section, at 0.08 for DRD2 and 0.03 for GuacaMol Perindopril near good points. Your smoothness note holds only the sentence, not the ten-task table, and that sentence's 'rougher than every combinatorial benchmark' no longer holds against the rerun because LABS-50 reaches 0.67 near good points.",
+  "Answered 2026-11-13: the September 36-opponent numbers are retired, so no candidate quotes them.",
+  "Answered 2026-11-13: you chose each kind of benchmark starting point on its own spread. One Pest Control step is then 0.37 from random points and 0.32 from hill-climbed points. Only the whole-Pokemon swap from tournament-ready teams reads larger than a step. Move, item and ability edits read undecided.",
+  "Open: the Teaching folder was trashed in the vault on 2026-11-09 but its copy remains in this worktree. Should candidate 2 and 3 cite it there, or should the ten-task table move into the smoothness comparison note first?",
+  "Answered 2026-11-14: on the top-50 teams themselves stat alignment and Stat Points both read 0.00 points, with intervals up to 1.81 and 1.01, and both read smaller than a Pest Control step. Candidate 1 can add that."
+ ],
+ "picked": null,
+ "applied": "Replaced all three candidates: one admission from the rerun's own data on stat alignment, Stat Points, and item and ability for search-found teams, one from the ten-task benchmark table with the open spread choice stated as FACTS.md states it, and one on fitness-distance correlation and local-optimum counting with a checked source. Removed the retired September and pilot numbers, the 5-point cutoff and the claim that move edits are larger than a Pest Control step.",
+ "owner_answers": [
+  {
+   "label": "Which admission to make in the post",
+   "text": "Make the admission in candidate 2, that roughness alone does not set Pokemon apart because the molecule tasks are rougher. It is the counter-example a reader who knows Bayesian optimisation would raise first, and it answers your draft's own line that benchmarks are smooth. Admitting it moves the post's claim to the mix of smooth and rough directions inside one team, which is a claim the data supports."
+  }
+ ],
+ "owner_note": []
+}

@@ -1,0 +1,211 @@
+{
+ "note": "Top-50 one-edit study, issue #317, checked 2026-11-14. size = as registered, against the first score; check = against all four unchanged scores, computed after the result.",
+ "spread_between_teams_points": 7.898794371268177,
+ "rank_correlation": {
+  "all_teams": -0.17213142662580866,
+  "all_teams_ci95": [
+   -0.36642662580864827,
+   0.023259278175008398
+  ],
+  "top50_only": -0.28397959183673466,
+  "top50_only_ci95": [
+   -0.5341862244897959,
+   -0.0010969387755103432
+  ]
+ },
+ "rank_correlation_check": {
+  "top50_only": -0.01,
+  "ci95": [
+   -0.28,
+   0.26
+  ]
+ },
+ "rows": [
+  {
+   "label": "Whole Pokemon copied from a real set",
+   "size": 4.905817107944265,
+   "size_ci": [
+    3.7358988704087817,
+    5.834719670556826
+   ],
+   "above_zero": true,
+   "check": 5.278752477725058,
+   "check_ci": [
+    4.542963084733915,
+    5.983220762323221
+   ],
+   "share": 0.6210842917735838,
+   "against_pest_control_step": "larger",
+   "signed": -2.5089795918367352,
+   "signed_ci": [
+    -3.534940476190477,
+    -1.4803588435374158
+   ],
+   "other_groups": {
+    "outside_top50": {
+     "size": 5.89982038332995,
+     "check": 5.139646550752946
+    },
+    "search_found": {
+     "size": 5.845526779797808,
+     "check": 6.003655527051832
+    }
+   }
+  },
+  {
+   "label": "One move replaced",
+   "size": 3.0439767669650717,
+   "size_ci": [
+    1.046376247280535,
+    4.104273933134175
+   ],
+   "above_zero": true,
+   "check": 3.871926101398873,
+   "check_ci": [
+    2.958947979155804,
+    4.692181882862838
+   ],
+   "share": 0.3853723269512524,
+   "against_pest_control_step": "undecided",
+   "signed": -2.0802040816326537,
+   "signed_ci": [
+    -2.9345442176870753,
+    -1.229549319727892
+   ],
+   "other_groups": {
+    "outside_top50": {
+     "size": 4.838190806259895,
+     "check": 4.518578930986551
+    },
+    "search_found": {
+     "size": 4.924204885055048,
+     "check": 5.8553374422402
+    }
+   }
+  },
+  {
+   "label": "Held item replaced",
+   "size": 3.122094731138708,
+   "size_ci": [
+    1.2118245260745217,
+    4.317373133904016
+   ],
+   "above_zero": true,
+   "check": 3.6223077969038195,
+   "check_ci": [
+    2.577307061676604,
+    4.4598890427036535
+   ],
+   "share": 0.39526218615024483,
+   "against_pest_control_step": "undecided",
+   "signed": -1.519863945578232,
+   "signed_ci": [
+    -2.5477857142857148,
+    -0.5662057823129251
+   ],
+   "other_groups": {
+    "outside_top50": {
+     "size": 4.345005434084314,
+     "check": 4.15702701592269
+    },
+    "search_found": {
+     "size": 1.4411417637877717,
+     "check": 2.03498861073799
+    }
+   }
+  },
+  {
+   "label": "Ability replaced",
+   "size": 2.113900383161888,
+   "size_ci": [
+    0.0,
+    3.3119033661861343
+   ],
+   "above_zero": false,
+   "check": 2.759967495864996,
+   "check_ci": [
+    1.8094700167735716,
+    3.5005037486321355
+   ],
+   "share": 0.2676231692840606,
+   "against_pest_control_step": "undecided",
+   "signed": -1.2457142857142867,
+   "signed_ci": [
+    -2.099345238095239,
+    -0.4333877551020436
+   ],
+   "other_groups": {
+    "outside_top50": {
+     "size": 3.6613243277990732,
+     "check": 3.565726414226295
+    },
+    "search_found": {
+     "size": 1.3542871741251914,
+     "check": 1.8874148711487182
+    }
+   }
+  },
+  {
+   "label": "Stat alignment replaced",
+   "size": 0.0,
+   "size_ci": [
+    0.0,
+    1.8102734495257442
+   ],
+   "above_zero": false,
+   "check": 1.0634313445116226,
+   "check_ci": [
+    0.0,
+    2.0208063439204844
+   ],
+   "share": 0.0,
+   "against_pest_control_step": "smaller",
+   "signed": -0.04421768707483054,
+   "signed_ci": [
+    -0.8242704081632654,
+    0.7778945578231266
+   ],
+   "other_groups": {
+    "outside_top50": {
+     "size": 1.9488711119802433,
+     "check": 1.4387130147770575
+    },
+    "search_found": {
+     "size": 0.0,
+     "check": 0.0
+    }
+   }
+  },
+  {
+   "label": "Stat Points copied from another set",
+   "size": 0.0,
+   "size_ci": [
+    0.0,
+    1.011709634724887
+   ],
+   "above_zero": false,
+   "check": 0.0,
+   "check_ci": [
+    0.0,
+    0.5808605746676274
+   ],
+   "share": 0.0,
+   "against_pest_control_step": "smaller",
+   "signed": 0.5242857142857136,
+   "signed_ci": [
+    -0.2381938775510214,
+    1.2973894557823114
+   ],
+   "other_groups": {
+    "outside_top50": {
+     "size": 1.6049753372975342,
+     "check": 0.6085513308030969
+    },
+    "search_found": {
+     "size": 1.7238033288825776,
+     "check": 0.0
+    }
+   }
+  }
+ ]
+}

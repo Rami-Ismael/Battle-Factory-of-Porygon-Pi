@@ -1,0 +1,540 @@
+{
+ "note": "Computed 2026-11-13 by analyse_groups of code/scripts/top50_one_edit.py on the rerun's saved scores. No size cutoff. The benchmark step is a share of the spread between starting points of its own kind (owner decision, 2026-11-13).",
+ "spread_between_teams_points": 9.041098031865094,
+ "pest_control": {
+  "random": {
+   "step_share_of_spread": 0.36521003759198345,
+   "spread_between_starting_points": 0.8790883988514288,
+   "step_share_of_spread_ci95": [
+    0.2790646221750704,
+    0.5401927168659755
+   ]
+  },
+  "search": {
+   "step_share_of_spread": 0.31535594483180074,
+   "spread_between_starting_points": 1.0486773846135906,
+   "step_share_of_spread_ci95": [
+    0.2660476810989892,
+    0.44751158424625775
+   ]
+  }
+ },
+ "groups": {
+  "outside_top50": {
+   "label": "Tournament-ready teams",
+   "mean_first_score": 0.5071666666666667,
+   "kinds": {
+    "A_move_swap": {
+     "label": "One move replaced",
+     "edits": 72,
+     "mean_signed_change_points": -3.1940277777777784,
+     "mean_signed_change_points_ci95": [
+      -4.731614583333333,
+      -1.7726006944444452
+     ],
+     "change_points": 4.838190806259895,
+     "change_points_ci95": [
+      3.351926927230754,
+      6.2348735648455875
+     ],
+     "share_of_spread": 0.5351330987904156,
+     "share_of_spread_ci95": [
+      0.3512336655441548,
+      0.8236480407913123
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.09528272376012722,
+       0.4676335777384727
+      ],
+      "search": [
+       -0.007623351001000062,
+       0.48678006241157695
+      ]
+     },
+     "neighbour_correlation": 0.8568162832894837,
+     "neighbour_correlation_ci95": [
+      0.660801947806338,
+      0.9383174548397094
+     ],
+     "share_edits_beyond_noise": 0.2361111111111111,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      0.11111111111111112,
+      0.2777777777777778
+     ],
+     "above_zero": true,
+     "against_pest_control_step": "undecided"
+    },
+    "B_ability_swap": {
+     "label": "Ability replaced",
+     "edits": 72,
+     "mean_signed_change_points": -2.307916666666667,
+     "mean_signed_change_points_ci95": [
+      -3.7486527777777776,
+      -0.8233229166666675
+     ],
+     "change_points": 3.6613243277990732,
+     "change_points_ci95": [
+      2.2246695116547617,
+      4.705476335943545
+     ],
+     "share_of_spread": 0.4049645645799702,
+     "share_of_spread_ci95": [
+      0.23989268477916761,
+      0.6210989286761668
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.21005954744658403,
+       0.2577636850465271
+      ],
+      "search": [
+       -0.12903918818306048,
+       0.2882497548990778
+      ]
+     },
+     "neighbour_correlation": 0.9180018507172776,
+     "neighbour_correlation_ci95": [
+      0.8071178198072553,
+      0.9712257498357882
+     ],
+     "share_edits_beyond_noise": 0.16666666666666666,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      0.0,
+      0.25
+     ],
+     "above_zero": true,
+     "against_pest_control_step": "undecided"
+    },
+    "C_item_swap": {
+     "label": "Held item replaced",
+     "edits": 72,
+     "mean_signed_change_points": -2.5725,
+     "mean_signed_change_points_ci95": [
+      -4.069881944444446,
+      -1.2209652777777764
+     ],
+     "change_points": 4.345005434084314,
+     "change_points_ci95": [
+      2.3301493404064013,
+      5.891549300288684
+     ],
+     "share_of_spread": 0.48058382054596305,
+     "share_of_spread_ci95": [
+      0.2628651726929742,
+      0.7345367526677847
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.19321111464951737,
+       0.3794820270002885
+      ],
+      "search": [
+       -0.09523984517852419,
+       0.4173152939829271
+      ]
+     },
+     "neighbour_correlation": 0.8845195957147228,
+     "neighbour_correlation_ci95": [
+      0.7302278753649779,
+      0.9654509504295463
+     ],
+     "share_edits_beyond_noise": 0.1527777777777778,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      0.0,
+      0.2361111111111111
+     ],
+     "above_zero": true,
+     "against_pest_control_step": "undecided"
+    },
+    "D_alignment_swap": {
+     "label": "Stat alignment replaced",
+     "edits": 72,
+     "mean_signed_change_points": -1.2912500000000002,
+     "mean_signed_change_points_ci95": [
+      -2.4913958333333333,
+      -0.19497569444444535
+     ],
+     "change_points": 1.9488711119802433,
+     "change_points_ci95": [
+      0.0,
+      2.9213203738421303
+     ],
+     "share_of_spread": 0.2155569052687519,
+     "share_of_spread_ci95": [
+      0.0,
+      0.3796899885737045
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.4139018043679129,
+       0.030010338738193084
+      ],
+      "search": [
+       -0.33426730156700857,
+       0.0636749792057265
+      ]
+     },
+     "neighbour_correlation": 0.9767676102954792,
+     "neighbour_correlation_ci95": [
+      0.9279177373417091,
+      1.0
+     ],
+     "share_edits_beyond_noise": 0.041666666666666664,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      -0.05555555555555555,
+      0.05555555555555555
+     ],
+     "above_zero": false,
+     "against_pest_control_step": "undecided"
+    },
+    "E_spread_copy": {
+     "label": "Stat Points copied from another set",
+     "edits": 72,
+     "mean_signed_change_points": -0.1743055555555561,
+     "mean_signed_change_points_ci95": [
+      -1.5483715277777783,
+      1.0702986111111092
+     ],
+     "change_points": 1.6049753372975342,
+     "change_points_ci95": [
+      0.0,
+      2.6305868778567403
+     ],
+     "share_of_spread": 0.17751995738137602,
+     "share_of_spread_ci95": [
+      0.0,
+      0.337342115629042
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.4562741958611463,
+       -0.005126417499487378
+      ],
+      "search": [
+       -0.38016850897508997,
+       0.026176879472515343
+      ]
+     },
+     "neighbour_correlation": 0.9842433323656572,
+     "neighbour_correlation_ci95": [
+      0.9431001140032028,
+      1.0
+     ],
+     "share_edits_beyond_noise": 0.041666666666666664,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      -0.041666666666666664,
+      0.041666666666666664
+     ],
+     "above_zero": false,
+     "against_pest_control_step": "undecided"
+    },
+    "F_candidate_copy": {
+     "label": "Whole Pokemon copied from a real set",
+     "edits": 72,
+     "mean_signed_change_points": -2.7783333333333333,
+     "mean_signed_change_points_ci95": [
+      -4.811208333333334,
+      -0.7962395833333333
+     ],
+     "change_points": 5.89982038332995,
+     "change_points_ci95": [
+      4.780823562666567,
+      7.0137698237627095
+     ],
+     "share_of_spread": 0.6525557363205442,
+     "share_of_spread_ci95": [
+      0.4884622553387814,
+      0.9210601133560222
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       0.044322662815245585,
+       0.5601145225202624
+      ],
+      "search": [
+       0.12734732142650151,
+       0.6027944873896717
+      ]
+     },
+     "neighbour_correlation": 0.7870855054975762,
+     "neighbour_correlation_ci95": [
+      0.5758241337866412,
+      0.8807023103961095
+     ],
+     "share_edits_beyond_noise": 0.3333333333333333,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      0.18055555555555555,
+      0.41666666666666663
+     ],
+     "above_zero": true,
+     "against_pest_control_step": "larger"
+    }
+   }
+  },
+  "search_found": {
+   "label": "Search-found teams",
+   "mean_first_score": 0.44465625,
+   "kinds": {
+    "A_move_swap": {
+     "label": "One move replaced",
+     "edits": 48,
+     "mean_signed_change_points": -1.2366666666666664,
+     "mean_signed_change_points_ci95": [
+      -3.0336302083333337,
+      0.6582447916666646
+     ],
+     "change_points": 4.924204885055048,
+     "change_points_ci95": [
+      2.045713454393702,
+      7.24107934529422
+     ],
+     "share_of_spread": 0.5446467749492182,
+     "share_of_spread_ci95": [
+      0.23056126447062705,
+      0.9073350960844111
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.1889860171533446,
+       0.5334300959511745
+      ],
+      "search": [
+       -0.12334751281808072,
+       0.573157771599737
+      ]
+     },
+     "neighbour_correlation": 0.8516799452687078,
+     "neighbour_correlation_ci95": [
+      0.5883714458430597,
+      0.9734206831012763
+     ],
+     "share_edits_beyond_noise": 0.16666666666666666,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      0.02083333333333333,
+      0.24999999999999997
+     ],
+     "above_zero": true,
+     "against_pest_control_step": "undecided"
+    },
+    "B_ability_swap": {
+     "label": "Ability replaced",
+     "edits": 48,
+     "mean_signed_change_points": 0.09749999999999973,
+     "mean_signed_change_points_ci95": [
+      -1.3641458333333345,
+      1.5190937499999992
+     ],
+     "change_points": 1.3542871741251914,
+     "change_points_ci95": [
+      0.0,
+      2.961344666105512
+     ],
+     "share_of_spread": 0.14979233377981793,
+     "share_of_spread_ci95": [
+      0.0,
+      0.3578659396027107
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.49206241559623826,
+       0.018160672492959974
+      ],
+      "search": [
+       -0.4165461881308001,
+       0.0524730044449031
+      ]
+     },
+     "neighbour_correlation": 0.9887811283703978,
+     "neighbour_correlation_ci95": [
+      0.9359659556513814,
+      1.0
+     ],
+     "share_edits_beyond_noise": 0.10416666666666667,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      -0.04166666666666667,
+      0.1875
+     ],
+     "above_zero": false,
+     "against_pest_control_step": "undecided"
+    },
+    "C_item_swap": {
+     "label": "Held item replaced",
+     "edits": 48,
+     "mean_signed_change_points": 0.065416666666666,
+     "mean_signed_change_points_ci95": [
+      -1.442505208333334,
+      1.5250052083333332
+     ],
+     "change_points": 1.4411417637877717,
+     "change_points_ci95": [
+      0.0,
+      3.326111859024762
+     ],
+     "share_of_spread": 0.15939897551254376,
+     "share_of_spread_ci95": [
+      0.0,
+      0.3992088940307015
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.4959937538316704,
+       0.047457533391376004
+      ],
+      "search": [
+       -0.4152628682210084,
+       0.07979374149852163
+      ]
+     },
+     "neighbour_correlation": 0.9872959833027757,
+     "neighbour_correlation_ci95": [
+      0.9203161288558872,
+      1.0
+     ],
+     "share_edits_beyond_noise": 0.08333333333333333,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      -0.0625,
+      0.16666666666666666
+     ],
+     "above_zero": false,
+     "against_pest_control_step": "undecided"
+    },
+    "D_alignment_swap": {
+     "label": "Stat alignment replaced",
+     "edits": 48,
+     "mean_signed_change_points": 1.7366666666666666,
+     "mean_signed_change_points_ci95": [
+      0.5051979166666665,
+      2.9314843749999984
+     ],
+     "change_points": 0.0,
+     "change_points_ci95": [
+      0.0,
+      2.5264435569474903
+     ],
+     "share_of_spread": 0.0,
+     "share_of_spread_ci95": [
+      0.0,
+      0.2998422017691515
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.5192660514305396,
+       -0.055821763968868836
+      ],
+      "search": [
+       -0.4262382534067686,
+       -0.01875242406851889
+      ]
+     },
+     "neighbour_correlation": 1.0,
+     "neighbour_correlation_ci95": [
+      0.9550473261106518,
+      1.0
+     ],
+     "share_edits_beyond_noise": 0.041666666666666664,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      -0.08333333333333334,
+      0.08333333333333333
+     ],
+     "above_zero": false,
+     "against_pest_control_step": "smaller"
+    },
+    "E_spread_copy": {
+     "label": "Stat Points copied from another set",
+     "edits": 48,
+     "mean_signed_change_points": 2.0670833333333323,
+     "mean_signed_change_points_ci95": [
+      0.46016666666666667,
+      3.586989583333332
+     ],
+     "change_points": 1.7238033288825776,
+     "change_points_ci95": [
+      0.0,
+      2.685295559057737
+     ],
+     "share_of_spread": 0.19066305030728364,
+     "share_of_spread_ci95": [
+      0.0,
+      0.34227772962779934
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.4482978077039419,
+       0.0007061137122054585
+      ],
+      "search": [
+       -0.35173401820340805,
+       0.025274190602885886
+      ]
+     },
+     "neighbour_correlation": 0.9818238006237611,
+     "neighbour_correlation_ci95": [
+      0.9414229422260685,
+      1.0
+     ],
+     "share_edits_beyond_noise": 0.0625,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      -0.041666666666666664,
+      0.08333333333333334
+     ],
+     "above_zero": false,
+     "against_pest_control_step": "undecided"
+    },
+    "F_candidate_copy": {
+     "label": "Whole Pokemon copied from a real set",
+     "edits": 48,
+     "mean_signed_change_points": -1.268958333333333,
+     "mean_signed_change_points_ci95": [
+      -3.863484375,
+      1.260437499999999
+     ],
+     "change_points": 5.845526779797808,
+     "change_points_ci95": [
+      3.8250005758367767,
+      7.468628901867653
+     ],
+     "share_of_spread": 0.6465505361401253,
+     "share_of_spread_ci95": [
+      0.43340118281561735,
+      0.9169131393315356
+     ],
+     "share_minus_pest_step_ci95": {
+      "random": [
+       -0.010920490876053159,
+       0.5570427642623593
+      ],
+      "search": [
+       0.06971719268610543,
+       0.5971982022736256
+      ]
+     },
+     "neighbour_correlation": 0.7909862021084583,
+     "neighbour_correlation_ci95": [
+      0.5796351431694946,
+      0.9060816876305082
+     ],
+     "share_edits_beyond_noise": 0.3125,
+     "share_replays_beyond_noise": 0.041666666666666664,
+     "share_gap_ci95": [
+      0.10416666666666669,
+      0.4375
+     ],
+     "above_zero": true,
+     "against_pest_control_step": "undecided"
+    }
+   }
+  }
+ }
+}

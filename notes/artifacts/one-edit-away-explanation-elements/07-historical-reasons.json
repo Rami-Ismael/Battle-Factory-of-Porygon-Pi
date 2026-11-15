@@ -1,0 +1,91 @@
+{
+ "action": "Provide context",
+ "element": "Historical reasons",
+ "what_it_does": "It tells the reader how this project arrived at the one-edit measurement, step by step, so the small experiment reads as the latest move in a path rather than an arbitrary choice.",
+ "when_to_use": "Right after Rami says the transition is one edit, where a reader may ask why only one edit and why moves get so much attention.",
+ "sentence_pattern": "We started with x. After y, we changed to z.",
+ "dllm_example": "continue pre-training it",
+ "anchor_in_draft": "We make the transition function simple to be changine one properties of the pokemon it can be item, moves, entire pokemon then measure the win rate.",
+ "extra": null,
+ "candidates": [
+  {
+   "sentence": "We first measured one edit at a time in September, with six kinds of edit. Those battles kept each team's six Pokemon in a fixed listed order and faced 36 of the 50 top-placing teams. On November 7 we stopped counting listed-order battles, because the battle policy picks by position and a fixed order biases scores. So on November 12 we ran the study again against all 50 top-placing teams with the six Pokemon shuffled before every battle, 880 scores of 384 battles each, and that rerun is the only one-edit result we now report.",
+   "facts": [
+    {
+     "claim": "The September battles faced 36 of the 50 meta files and used listed slot order, and listed-order battles never count, an owner rule of 2026-11-07.",
+     "source": "code/docs/ruggedness2.md, section 'Rerun with shuffled slots against the full meta, pre-registered 2026-11-12', paragraph 'Why'"
+    },
+    {
+     "claim": "A fixed order biases scores because the battle policy picks by position.",
+     "source": "notes/reports/edit-kind-rerun-2026-11-13/issue-313/spec.json, terms, 'Shuffled slots'"
+    },
+    {
+     "claim": "The rerun used all 50 opponent files, 49 distinct teams, shuffled the six Pokemon of both teams every battle, and ran 880 scores of 384 battles, 337,920 battles.",
+     "source": "code/docs/ruggedness2.md, section 'Rerun with shuffled slots against the full meta', lists 'What changes' and 'What stays', and subsection 'Deviations of the rerun'"
+    },
+    {
+     "claim": "The September study used six edit kinds, and the rerun kept the same six.",
+     "source": "code/docs/ruggedness2.md, sections 'What is added' and 'What stays'"
+    },
+    {
+     "claim": "The 24 tournament-ready starting teams of the rerun are a fresh draw with 2 shared with September, so September's numbers are not a paired comparison for it.",
+     "source": "code/docs/ruggedness2.md, subsection 'Deviations of the rerun, written 2026-11-13'"
+    }
+   ]
+  },
+  {
+   "sentence": "The September plan also asked that an edit move win rate by at least 5 points, and it gave no reason for that number. When the rerun came in on November 13, I dropped that line. An edit kind now counts as real when its 95% interval sits above zero, and its size is compared with one step on Pest Control, a standard benchmark for Bayesian optimisation. I chose this reading after seeing the result, so for this rerun it is exploratory.",
+   "facts": [
+    {
+     "claim": "The plan of 2026-09-28 gives no reason for the number 5, and the owner removed the cutoff on 2026-11-13 with the words 'you cannot make a 5 point cutoff justifcation you should eliminated or replacing with something'.",
+     "source": "code/docs/ruggedness2.md, subsection 'Reading without the 5-point cutoff, 2026-11-13, after the result, post hoc'"
+    },
+    {
+     "claim": "The two readings are above zero, the 95% bootstrap interval excludes zero, and against one Pest Control step, the size divided by the spread of true scores between teams.",
+     "source": "code/docs/ruggedness2.md, same subsection, bullets 'Above zero' and 'Against one Pest Control step'"
+    },
+    {
+     "claim": "The reading was picked after the result was known, from three options shown to the owner, so it is exploratory for this rerun and pre-registered for the top-50 study.",
+     "source": "code/docs/ruggedness2.md, same subsection, first paragraph"
+    },
+    {
+     "claim": "Pest Control comes from Oh et al. 2019, Combinatorial Bayesian Optimization using the Graph Cartesian Product, and has 25 stations with 5 choices each.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, 'Research already on record from 2026-11-12', and code/docs/ruggedness2.md, section 'What is added', 'Pest Control, 25 stages by 5 choices'. The paper itself, https://arxiv.org/abs/1902.00448, was not reopened on this pass."
+    }
+   ]
+  },
+  {
+   "sentence": "In October we also changed one move at a time on the top-placing teams themselves, but those battles used listed slot order too, so they no longer count. So we ran it again under the current rules: the same six kinds of edit on the 49 distinct top-50 teams, 413,952 battles, finished on 2026-11-14.",
+   "facts": [
+    {
+     "claim": "The October move-edit study edited the top-50 teams with move edits only and in listed slot order, so its battles no longer count, and no study under the current battle rules has edited the top-50 teams.",
+     "source": "code/docs/top50-one-edit.md, section 'Why'"
+    },
+    {
+     "claim": "The October study changed moves only.",
+     "source": "code/docs/smoothness-experiment.md, title 'Legal-move sensitivity experiment' and section 'Frozen design'"
+    },
+    {
+     "claim": "The top-50 study plans 49 teams times 22 scores, 1,078 scores of 384 battles, 413,952 battles.",
+     "source": "code/docs/top50-one-edit.md, bullet 'Budget'"
+    },
+    {
+     "claim": "The top-50 study, GitHub issue #317, ran on 2026-11-13 and 2026-11-14 with 413,952 battles, as planned.",
+     "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, 'Result of the top-50 study'"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  "No source records why you moved from six edit kinds in September to move edits only on October 1. Do you want that step in the story at all, now that its battles no longer count?",
+  "Answered 2026-11-13: the October figure and its README should not carry the post. Its battles used listed slot order and no longer count, per code/docs/top50-one-edit.md, section 'Why'. Use the rerun figures of issue #313 instead.",
+  "The git history only dates the October 8 laptop sync, the October 25 lint change and the November 9 chart port. Candidates now use only experiment and decision dates from the docs: September, November 7, November 12 and November 13. Is that the story you want?",
+  "Do you want the dropped 5-point line told in public as history, as in the second candidate, or left out of the post?"
+ ],
+ "picked": null,
+ "applied": "Removed every September and October Pokemon number, including the 5.5 to 7.4 point September sizes, the 400,000-battle October study and its 18.870 result, and the 'meta teams' wording. The history now runs September study, November 7 slot-order rule, November 12 rerun, November 13 cutoff drop and the planned top-50 study, each checked against code/docs/ruggedness2.md and code/docs/top50-one-edit.md.",
+ "owner_answers": [],
+ "owner_note": [
+  "etc"
+ ]
+}

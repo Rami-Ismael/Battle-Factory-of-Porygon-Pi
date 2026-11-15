@@ -1,0 +1,42 @@
+[
+ {
+  "question": "Do you have a source saying that a benchmark's smoothness decides which optimisation methods look good on it?",
+  "verdict": "The post can say: how rugged a test problem is can change which search method looks best on it. No source supports \"smoothness decides the ranking\".",
+  "sources": [
+   "Li, Arnold and others 2024, Results and Figure 2c, https://doi.org/10.1101/2024.10.24.619774: on 16 protein landscapes the gain of model-guided search over greedy hill climbing grows with ruggedness. A preprint, and the order never flips.",
+   "Santoni, Doerr and others 2024, Section 6, https://arxiv.org/abs/2303.00890: on the BBOB functions one Bayesian optimisation method wins on single-basin functions and another on functions with many basins.",
+   "Pelikan 2008, Section 4.5, https://arxiv.org/abs/0801.3111: the ranking reverses as the interaction count k grows. Its hierarchical Bayesian optimization algorithm is an estimation-of-distribution algorithm, so do not let it read as Bayesian optimisation."
+  ],
+  "report": "v2/q-smoothness-decides-methods.md"
+ },
+ {
+  "question": "What is the full Weinberger citation, and what landscape did he first measure neighbour correlation on?",
+  "verdict": "Kauffman's N-k model. Your sentence is accurate as written, and can end \"on Kauffman's N-k model of fitness landscapes from evolutionary biology\".",
+  "sources": [
+   "Weinberger, E. 1990. Correlated and uncorrelated fitness landscapes and how to tell the difference. Biological Cybernetics 63(5), 325-336. https://doi.org/10.1007/BF00202749. Full text is behind a paywall, so the answer rests on the abstract.",
+   "Ying and others 2019, NAS-Bench-101, Section 3.3, credits Weinberger 1990 for the random-walk autocorrelation and is free to read."
+  ],
+  "report": "v2/q-weinberger-citation.md"
+ },
+ {
+  "question": "Why are academic optimisation benchmarks mostly smooth?",
+  "verdict": "Say only that the benchmarks you measured are smooth, and name them. Papers give a reason why benchmarks are simple and synthetic, cost and isolating one difficulty. None says designers pick smooth functions.",
+  "sources": [
+   "Your own table of ten tasks: five stay smooth and five are rough, at least near good points. Only LABS-50 and DRD2 turn rough near good points. notes/Teaching/reference/bo-benchmark-derived-vgc-research-comparison.md",
+   "Kononova and others 2025, Section 1, https://arxiv.org/abs/2511.12264: academic suites are \"deliberately constructed to isolate algorithmic phenomena\".",
+   "Stanton and others 2024, Section 2.2, https://arxiv.org/abs/2407.00236: closed-form test functions \"are so easy to solve that they are mostly used to catch major bugs\".",
+   "Hansen and others, COCO, Section 2, https://arxiv.org/abs/1603.08785: the suite models ruggedness on purpose."
+  ],
+  "report": "v2/q-why-benchmarks-smooth.md"
+ },
+ {
+  "question": "Does the effect of one move depend on the other five Pokemon?",
+  "verdict": "Keep it as a hypothesis, and do not cite the interaction result. That result swapped whole Pokemon in retired battles. No saved data scores the same move edit on the same set on two teams under the current setup.",
+  "sources": [
+   "The rerun holds one near match, picked after looking: Sylveon's Detect replaced by Giga Impact moved one team up 5.8 points and another down 5.1, about 2.7 times its noise. The two sets' Stat Points differ.",
+   "A measurement that would settle it: 48 sets that recur on two teams with different teammates, one identical move edit each, 192 scores, 73,728 battles, about 29 minutes. 49 of 168 sets in the top 50 recur on two or more teams.",
+   "Szendro and others 2013, Section 1, https://arxiv.org/abs/1202.4378, names the idea: \"sign epistasis occurs when mutations are beneficial in some genetic backgrounds, but not in others.\""
+  ],
+  "report": "v2/q-move-depends-on-teammates.md"
+ }
+]

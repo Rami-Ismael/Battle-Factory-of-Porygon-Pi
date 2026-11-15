@@ -1,0 +1,68 @@
+{
+  "action": "Talk about the subject",
+  "element": "History",
+  "what_it_does": "It shows the reader that measuring roughness by comparing neighbours one edit apart is an established method in the field, with a named origin and a named benchmark that used it, so the Pokemon measurement reads as an application of known practice.",
+  "when_to_use": "Right after Rami says he measures how much the win rate changes after one edit, so the reader learns the method has a history before seeing the Pokemon numbers.",
+  "sentence_pattern": "x was first measured by y in year z, on w. Later, v used the same check on its own benchmark.",
+  "dllm_example": "similar to masked language modeling",
+  "anchor_in_draft": "We measure how much change.",
+  "extra": null,
+  "candidates": [
+    {
+      "sentence": "Comparing neighbours one edit apart is an old way to measure how rough a search space is. Weinberger proposed it in 1990: check how well one point's score predicts the score of a point one edit away.",
+      "facts": [
+        {
+          "claim": "Weinberger 1990 is credited with the neighbour correlation method: how well one point's score predicts the score of a point one edit away.",
+          "source": "notes/Teaching/reference/bo-benchmarks-vs-vgc-full-team-search-unit.md, section 'Smoothness — added 2026-09-28', bullet 'Method: neighbour correlation'. Independently, NAS-Bench-101 Section 3.3 cites '(Weinberger, 1990; Stadler, 1996)' for random-walk autocorrelation, Ying, Klein, Real, Christiansen, Murphy, Hutter 2019, NAS-Bench-101: Towards Reproducible Neural Architecture Search, Proceedings of the 36th International Conference on Machine Learning, https://arxiv.org/abs/1902.09635"
+        },
+        {
+          "claim": "How this project's measurement differs: it compares each starting team with neighbours one edit away, 18 edits per team over six edit kinds, scores each by win rate over 384 battles, and removes battle luck by replaying each unchanged starting team three times and subtracting that replay noise from the size of each edit.",
+          "source": "notes/artifacts/one-edit-away-explanation-elements/v2/FACTS.md, section 'The finished measurement: the edit-kind rerun', paragraphs 'Design' and 'Noise'; code/docs/ruggedness2.md, last sections"
+        }
+      ]
+    },
+    {
+      "sentence": "Optimisation benchmarks run the same kind of check on themselves. In 2019 the NAS-Bench-101 paper by Ying and colleagues took long walks of random single edits through its space of about 423,000 neural network designs and found that scores stop resembling each other after about six edits. One edit there flips one operation or one connection.",
+      "facts": [
+        {
+          "claim": "Section 3.3 'Locality' quotes: 'one change entails flipping the operation at a vertex or the presence/absence of an edge'. 'A popular measure of locality is the random-walk autocorrelation (RWA), defined as the autocorrelation of the accuracies of points visited as we perform a long walk of random changes through the space (Weinberger, 1990; Stadler, 1996).' 'The correlations become indistinguishable from noise beyond a distance of about 6.'",
+          "source": "Section 3.3, Ying, Klein, Real, Christiansen, Murphy, Hutter 2019, NAS-Bench-101: Towards Reproducible Neural Architecture Search, Proceedings of the 36th International Conference on Machine Learning, https://arxiv.org/abs/1902.09635"
+        },
+        {
+          "claim": "Abstract: 'exploiting graph isomorphisms to identify 423k unique convolutional architectures'.",
+          "source": "Abstract, Ying, Klein, Real, Christiansen, Murphy, Hutter 2019, NAS-Bench-101: Towards Reproducible Neural Architecture Search, Proceedings of the 36th International Conference on Machine Learning, https://arxiv.org/abs/1902.09635"
+        },
+        {
+          "claim": "Authors Chris Ying, Aaron Klein, Esteban Real, Eric Christiansen, Kevin Murphy, Frank Hutter, ICML 2019.",
+          "source": "Title page, Ying, Klein, Real, Christiansen, Murphy, Hutter 2019, NAS-Bench-101: Towards Reproducible Neural Architecture Search, Proceedings of the 36th International Conference on Machine Learning, https://arxiv.org/abs/1902.09635"
+        }
+      ]
+    },
+    {
+      "sentence": "The idea of a search space as a landscape is older still. Sewall Wright introduced fitness landscapes in 1932, and Stuart Kauffman later built the NK model, a landscape whose roughness can be turned up with one setting.",
+      "facts": [
+        {
+          "claim": "'Sewall Wright (1932) introduced the concept of adaptive fitness landscapes'. Bibliography: Wright, S. 1932, 'The Roles of Mutation, Inbreeding, Crossbreeding, and Selection in Evolution', edited by D. F. Jones, Menasha, WI, 356 to 366. Secondary source, Wright's own paper not opened.",
+          "source": "Christoph Adami, 'Tripping the Walks Fantastic', SFI Press essay on Kauffman and Levin 1987, https://www.sfipress.org/64-kauffman-1987"
+        },
+        {
+          "claim": "Kauffman and Levin 1987, 'Towards a General Theory of Adaptive Walks on Rugged Landscapes', Journal of Theoretical Biology 128(1): 11 to 45. Kauffman and Weinberger 1989, 'The NK Model of Rugged Fitness Landscapes and Its Application to Maturation of the Immune Response', Journal of Theoretical Biology 141(2): 211 to 245.",
+          "source": "Christoph Adami, 'Tripping the Walks Fantastic', SFI Press essay on Kauffman and Levin 1987, https://www.sfipress.org/64-kauffman-1987, bibliography"
+        },
+        {
+          "claim": "The NK model's current form 'first appeared in Kauffman and Weinberger (1989)'. Kauffman and Levin 1987 was an early version covering only the smoothest and most rugged cases. 'Increasing K thus increases the ruggedness of the fitness landscape.'",
+          "source": "Wikipedia, NK model, https://en.wikipedia.org/wiki/NK_model, sections on history and the model. Secondary source, the 1987 and 1989 papers were not opened."
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "The full Weinberger citation is being checked by the citation subagent.",
+    "Answered 2026-11-13: NAS-Bench-101 Section 3.3 was read. It measures random-walk autocorrelation over long walks and finds scores stop correlating beyond about six edits. Candidate 1 now says so.",
+    "Answered 2026-11-13: Wright 1932 and the NK model. Candidate 2 cites both, but only through secondary sources, an SFI Press essay and Wikipedia. Wright's paper and the two Kauffman papers were not opened. Do you want them read before publishing?",
+    "Answered 2026-11-13: Pest Control comes from Oh et al. 2019, Combinatorial Bayesian Optimization using the Graph Cartesian Product, https://arxiv.org/abs/1902.00448, per FACTS.md.",
+    "Your picked sentence says Weinberger 'proposed it'. NAS-Bench-101 credits Weinberger 1990 alongside Stadler 1996 for random-walk autocorrelation. Whether Weinberger 1990 is the first proposal of one-edit neighbour correlation is for the citation subagent to confirm."
+  ],
+  "picked": 0,
+  "applied": "Picked candidate 0, Rami's sentence word for word, cited Weinberger 1990 and added a fact on how the project differs: one-edit neighbours with battle luck removed by three replays of each unchanged team. Rewrote candidate 1 from the NAS-Bench-101 paper itself and replaced the old candidate 2, which cited a retired rho note, with a Wright 1932 and Kauffman NK model history checked against secondary sources."
+}
