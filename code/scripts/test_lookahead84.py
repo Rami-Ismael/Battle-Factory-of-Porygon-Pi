@@ -195,8 +195,9 @@ class LookaheadArms(unittest.TestCase):
                 self.assertEqual(len({len(v) for v in d.values()}), 1)
                 self.assertTrue(all(0.0 <= v <= 1.0 for v in d["removed_share"]))
                 self.assertTrue(all(v > 0 for v, top in zip(d["removed_share"], d["top_removed"]) if top))
-                # the per-team kept share is the product of the per-draw kept shares
-                self.assertAlmostEqual(sum(math.log1p(-v) for v in d["removed_share"]), r["log_kept_share"], places=6)
+                # the per-team kept share is the product of the per-draw kept shares, where none was refused outright (a fallback)
+                if max(d["removed_share"]) < 1.0:
+                    self.assertAlmostEqual(sum(math.log1p(-v) for v in d["removed_share"]), r["log_kept_share"], places=6)
 
     def test_a_species_draw_counts_the_fields_of_its_pokemon_drawn_before_it(self):
         import diffusion84 as M

@@ -242,7 +242,7 @@ def figure(folder):
                            lineStyle=dict(type="dotted", width=1.5), data=[[int(k) / 24, s] for k, s in v["set_by_ask"].items()],
                            endLabel=None if g != gs[-1] else dict(show=True, formatter="Set draws", fontSize=12)))
         whiskers = []
-        for i, band in enumerate(bands): whiskers += [[i + offset[g], band["interval"][0]], [i + offset[g], band["interval"][1]], "-"]
+        for i, band in enumerate(bands): whiskers += [[i + offset[g], band["interval"][0]], [i + offset[g], band["interval"][1]], "-"] if band["interval"] else []
         series.append(dict(type="line", name=f"Guidance {g}", color=COLORS[g], xAxisIndex=1, yAxisIndex=1, symbol="none", silent=True,
                            tooltip=dict(show=False), lineStyle=dict(width=2), data=whiskers))
         series.append(dict(type="scatter", name=f"Guidance {g}", color=COLORS[g], xAxisIndex=1, yAxisIndex=1, symbolSize=11, emphasis=dict(focus="series"),
@@ -264,7 +264,7 @@ def figure(folder):
                   series=series, animation=False)
     g2 = r["guidance"]["2"]["late_species"]
     shares = [r["guidance"][g]["late_species"]["removed_share"]["mean"] for g in gs]
-    falls = [g for g in gs if r["guidance"][g]["verdict"] == "partial"]
+    falls = [g for g in gs if r["guidance"][g]["win_rate_slope"]["interval"][1] < 0]
     title = {"confirmed": "Confirmed: the lookahead overrides most of the model's late species choices, and those teams win less",
              "cleared": f"Cleared: the lookahead removes {min(shares):.1%} to {max(shares):.1%} of the model's late species choice",
              "partial": f"Partial: the lookahead removes only {min(shares):.1%} to {max(shares):.1%} of the model's late species choice, "
@@ -284,11 +284,13 @@ def comment(figure_url):
     late = {g: v["late_species"] for g, v in gv.items()}; slopes = {g: v["win_rate_slope"] for g, v in gv.items()}
     band = {g: v["win_rate_by_removed_share"][-1] for g, v in gv.items()}
     iv = lambda x: f"[{x[0]:+.2f}, {x[1]:+.2f}]"
+    signed = lambda x: "none (no teams)" if x is None else format(x, "+.3f")
     teams, matched, cells = sum(v["teams"] for v in gv.values()), sum(v["matched_cells"] for v in gv.values()), sum(v["cells"] for v in gv.values())
     words = ", ".join(f"guidance {g} {v['verdict']}" for g, v in gv.items())
     falls = [g for g in gs if slopes[g]["interval"][1] < 0]
     pick = lambda f: ", ".join(f(g) for g in gs)
     removed = pick(lambda g: format(late[g]["removed_share"]["mean"], ".1%"))
+    few = pick(lambda g: str(band[g]["teams"]) + " of " + format(gv[g]["teams"], ","))
     slope_text = pick(lambda g: format(slopes[g]["slope"], "+.2f") + " " + iv(slopes[g]["interval"]))
     lines = [f"**Verdict {datetime.date.today()}: {r['verdict']} ({words}). The lookahead almost never overrides the model's species: at species drawn after "
              f"their Pokémon's other fields it removed {min(late[g]['removed_share']['mean'] for g in gs):.1%} to {max(late[g]['removed_share']['mean'] for g in gs):.1%} "
@@ -300,8 +302,8 @@ def comment(figure_url):
              f"of the model's probability at guidance {', '.join(gs)}, and the model's top species at {pick(lambda g: format(late[g]['top_removed']['mean'], '.1%'))} of them. "
              f"At every other field it removed {pick(lambda g: format(gv[g]['set']['removed_share']['mean'], '.1%'))}.",
              f"- **Win rate** falls with the team's removed share at guidance {', '.join(falls) or 'none'}: slope {slope_text} "
-             f"at guidance {', '.join(gs)}. The fall comes from the few teams with 5% or more removed ({pick(lambda g: str(band[g]['teams']))} of 4,416), which win "
-             f"{pick(lambda g: format(band[g]['win_rate_against_cell'], '+.3f'))} against the other teams at their ask and sampling seed.",
+             f"at guidance {', '.join(gs)}. The fall comes from the few teams with 5% or more removed ({few}), which win "
+             f"{pick(lambda g: signed(band[g]['win_rate_against_cell']))} against the other teams at their ask and sampling seed.",
              "- **Why so little:** the legal Pokémon construction tables, which the model trained under, already give zero odds to every species that cannot have the moves, "
              "item or ability already drawn, before the lookahead runs. At a species draw the lookahead itself removes only a species that another hidden Pokémon needs as "
              "its last option. The species-removing step this ticket pictured is the tables' work, inside the model's own distribution.", "",
@@ -320,7 +322,7 @@ def comment(figure_url):
     lines += ["", "Win rate against the team's cell, by the team's removed share (mean over its six species draws), with 95% intervals:", "",
               "| Guidance | " + " | ".join(b[0] for b in BANDS) + " |", "|---|" + "---|" * len(BANDS)]
     for g, v in gv.items():
-        lines.append(f"| {g} | " + " | ".join(f"{b['win_rate_against_cell']:+.3f} [{b['interval'][0]:+.3f}, {b['interval'][1]:+.3f}], {b['teams']} teams"
+        lines.append(f"| {g} | " + " | ".join("no teams" if b["interval"] is None else f"{b['win_rate_against_cell']:+.3f} [{b['interval'][0]:+.3f}, {b['interval'][1]:+.3f}], {b['teams']} teams"
                                                for b in v["win_rate_by_removed_share"]) + " |")
     fb = gv[gs[0]]["by_fields_before"]
     lines += ["", f"Removed share by how many of the Pokémon's other fields were drawn before its species, guidance {gs[0]}:", "",
