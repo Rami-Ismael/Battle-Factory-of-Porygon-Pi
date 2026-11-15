@@ -215,14 +215,18 @@ class Refusals:
     team the plain sampler cannot draw (the empty first move, let in when the lookahead refused every real one). For a
     team with a fallback field the ratio does not hold: leave the team out, as the fallback count allows. It adds up on the CPU in float64, which
     the MPS device lacks."""
-    def __init__(self, n):
+    def __init__(self, n, draws=False):
+        """draws=True also keeps every draw of every team (issue #321): its column, removed share, whether the most
+        likely value was removed, and for a species draw how many of that Pokémon's other fields were drawn before it."""
         self.log_kept = torch.zeros(n, dtype=torch.float64)
         self.refusing = torch.zeros(n, dtype=torch.long)
         self.fallback = torch.zeros(n, dtype=torch.long)
+        self.draws = [dict(column=[], removed_share=[], top_removed=[], fields_before=[]) for _ in range(n)] if draws else None
 
-    def add(self, scores, plain, kept, fallback, rows=None):
+    def add(self, scores, plain, kept, fallback, rows=None, column=None, x=None):
         """scores [B, outputs]: the base distribution's logits before any legality mask; plain, kept, fallback: from
-        Model84._legal_parts; rows [B]: the teams this field was drawn for (default all)."""
+        Model84._legal_parts; rows [B]: the teams this field was drawn for (default all). column: the field drawn; x
+        [B, COLS]: the teams before this draw. Both are needed only when every draw is kept."""
         plain, kept, fallback = plain.cpu(), kept.cpu(), fallback.cpu()
         rows = torch.ones_like(fallback) if rows is None else rows.cpu()
         refused = (plain & ~kept).any(1)
@@ -231,13 +235,33 @@ class Refusals:
         log_kept = torch.where(refused, (lse(kept) - lse(plain)).clamp(max=0.0), torch.zeros_like(self.log_kept))
         self.log_kept += torch.where(rows, log_kept, torch.zeros_like(log_kept))
         self.refusing += (refused & rows).long(); self.fallback += (fallback & rows).long()
+        if self.draws is not None: self._keep_draws(s, plain, kept, refused, log_kept, rows, column, x)
+
+    def _keep_draws(self, s, plain, kept, refused, log_kept, rows, column, x):
+        if column is None or x is None: raise ValueError("keeping every draw needs the column and the team before the draw")
+        top = s.masked_fill(~plain, -float("inf")).argmax(1)
+        top_removed = refused & ~kept.gather(1, top[:, None]).squeeze(1)
+        removed = (-torch.expm1(log_kept)).tolist()
+        before = [None] * len(rows)
+        if column < STAT0 and column % NF == 0:                # a species: count its Pokémon's other fields already drawn
+            slot, xc = column // NF, x.cpu()
+            drawn = (xc[:, slot * NF + 1:(slot + 1) * NF] != 0).sum(1) + (xc[:, STAT0 + slot * SP.NSTAT:STAT0 + (slot + 1) * SP.NSTAT] != 0).sum(1)
+            before = drawn.tolist()
+        for i in rows.nonzero().flatten().tolist():
+            d = self.draws[i]
+            d["column"].append(column); d["removed_share"].append(removed[i]); d["top_removed"].append(bool(top_removed[i]))
+            d["fields_before"].append(before[i])
 
     def records(self):
         """One dict per team. log_kept_share is None where some draw's lookahead refused every value the plain sampler
-        allows; a very small kept share can also round to 0.0 while its logarithm stays finite."""
-        return [dict(kept_share=math.exp(lk), log_kept_share=lk if lk > -math.inf else None, refused_share=-math.expm1(lk),
-                     refusing_fields=r, fallback_fields=f)
-                for lk, r, f in zip(self.log_kept.tolist(), self.refusing.tolist(), self.fallback.tolist())]
+        allows; a very small kept share can also round to 0.0 while its logarithm stays finite. With draws=True each
+        record also holds "draws": parallel lists in the order drawn; fields_before is None at a draw that is not a species."""
+        out = [dict(kept_share=math.exp(lk), log_kept_share=lk if lk > -math.inf else None, refused_share=-math.expm1(lk),
+                    refusing_fields=r, fallback_fields=f)
+               for lk, r, f in zip(self.log_kept.tolist(), self.refusing.tolist(), self.fallback.tolist())]
+        if self.draws is not None:
+            for r, d in zip(out, self.draws): r["draws"] = d
+        return out
 
 
 def shuffle_slots(x, ps=None):
@@ -567,7 +591,7 @@ class Model84:
             if ask is not None and guidance != 1.0:
                 lc = guidance * lc + (1 - guidance) * self._column(logprobs(t, wn, "none"), c)
             legal, plain, kept, fallback = self._legal_parts(x, c, lookahead)
-            if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback)
+            if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback, column=c, x=x)
             lc = lc.masked_fill(~legal, -float("inf")) / temperature
             v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
             x[:, c] = v + 1 if c >= STAT0 else v                 # a Stat Point output index is its value

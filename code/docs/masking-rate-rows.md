@@ -49,6 +49,8 @@ Today's default model, epoch 80 of the labelled-teams training on the older tabl
 
 Per-field masking schedule with random order was left out of this pre-registration as already measured, in the second line of the table above. Issue #335 later ran it on the shuffled-only per-field checkpoint (`sched_per_field_random`) against Linear, random order and found no measured difference: errors of 0.0363, 0.0300 and 0.0272 against 0.0358, 0.0293 and 0.0269 at guidance 2, 4 and 8, every paired gap inside training luck ([verdict](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/335#issuecomment-6886245511)).
 
+The lookahead in Linear, random order rarely overrides the model's species (issue #321, `src/lookahead_override.py`). Redrawing all 13,248 stored teams with every draw recorded, at species drawn after their Pokémon's other fields it removed 0.7% to 1.1% of the model's probability at guidance 2, 4 and 8, against 6.1% to 6.9% at the other fields. The legal Pokémon construction tables already remove the species that cannot have the drawn fields ([verdict](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/321#issuecomment-6889817212)).
+
 ## Contract
 
 | Row | Value |
