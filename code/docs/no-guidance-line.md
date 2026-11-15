@@ -60,3 +60,16 @@ The training-teams limit came from the all-teams set on the older table, while t
 ## Run
 
 `~/vgc-data/no_guidance_line/ngl.zsh`, a frozen copy of this commit in `run/`, queued behind other sessions' jobs. It runs the probes, sampling and battles of `ask_grid84.py` with `AG84_MODEL=sched_linear_species_first AG84_GUIDANCE=1`, saves the per-opponent win rates, then `python src/no_guidance_line.py read`, the figure and the comment, which it posts to #73.
+
+## Result, 2026-11-15
+
+Posted to #73: https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/73#issuecomment-6903180083
+
+| Arm | Error, asks 1/24 to 17/24 | Against guidance 1 | Error, asks 18/24 to 23/24 | Line-ups per 64 teams |
+|---|---|---|---|---:|
+| Guidance 1, no push | 0.0162 [0.0112, 0.0224] | baseline | 0.2093 | 58.1 |
+| Guidance 2 | 0.0075 [0.0039, 0.0126] | nearer, −0.0086 [−0.0108, −0.0067] | 0.1521 | 57.5 |
+| Guidance 4 | 0.0049 [0.0022, 0.0092] | nearer, −0.0112 [−0.0139, −0.0087] | 0.1210 | 57.2 |
+| Guidance 8 | 0.0038 [0.0017, 0.0074] | nearer, −0.0124 [−0.0156, −0.0094] | 0.1087 | 53.1 |
+
+With no guidance the model is not near the line. Every guided arm is nearer. The prediction held on all three parts. For the map: data limit 0.0038, fit above it 0.0124, guidance 2 takes away 0.0086.

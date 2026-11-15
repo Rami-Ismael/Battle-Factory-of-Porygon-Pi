@@ -65,6 +65,10 @@ class Comment(unittest.TestCase):
         text = N.comment(self.RESULT, "https://x/{theme}.png")
         self.assertIn("https://x/dark.png", text); self.assertIn("https://x/light.png", text)
 
+    def test_what_guidance_2_takes_away_has_no_plus_sign(self):
+        text = N.comment(self.RESULT, "https://x/{theme}.png")
+        self.assertIn("takes away 0.0126", text); self.assertNotIn("+0.0126", text)
+
 
 if __name__ == "__main__":
     unittest.main()

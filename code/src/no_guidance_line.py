@@ -156,7 +156,7 @@ def comment(r, figure_url):
                      f"{arm['error_asks_18_to_23']:.4f} | {arm['line_ups_per_64']:.1f} |")
     lines += ["", "## For the map", "",
               f"The miss with no guidance splits into the data limit, {s['data_limit']:.4f} (re-battled training teams, #72), and the fit above it, {s['fit']:.4f}. "
-              f"Guidance 2 then takes away {s['guidance_2_removes']:+.4f}. #74 reads these side by side. The data limit came from the all-teams set on the older table, so the split is approximate.", "",
+              f"Guidance 2 then takes away {s['guidance_2_removes']:.4f}. #74 reads these side by side. The data limit came from the all-teams set on the older table, so the split is approximate.", "",
               f"Prediction (`code/docs/no-guidance-line.md`): guidance 2 nearer, guidance 1's error between {PREDICTED[0]} and {PREDICTED[1]}, and at least as many line-ups per 64 teams with no guidance. "
               f"**{'Held' if r['prediction_held'] else 'Did not hold'}.**", "",
               "<details><summary>Method</summary>", "",
