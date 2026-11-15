@@ -18,6 +18,7 @@ import repo_paths                # src/ first on sys.path; ROOT finds the reposi
 BEFORE = "3115c395"                  # main before the lookahead: random decoding as it drew then
 ASK, GUIDANCE, SEEDS, N = 0.5, 2.0, (1, 2), 48
 RECORD = {"kept_share", "log_kept_share", "refused_share", "refusing_fields", "fallback_fields"}   # issue #207
+DRAW_KEYS = {"column", "removed_share", "top_removed", "fields_before"}                                 # issue #321, one entry per draw
 
 VOCAB = None
 if Path("/tmp/vgc-pilot/data/pokedex.json").exists():
@@ -59,10 +60,16 @@ class LookaheadArms(unittest.TestCase):
         for la in (False, True):
             arm = R.RandomDecodingArm(cls.model, lookahead=la)
             cls.drawn[la], cls.records[la] = zip(*[(cls.draw(arm, s), arm.last_refusals) for s in SEEDS])
+        arm = R.RandomDecodingArm(cls.model, lookahead=True, record_draws=True)
+        cls.drawn_with_draws, cls.records_with_draws = zip(*[(cls.draw(arm, s), arm.last_refusals) for s in SEEDS])
         cls.species_first = {}
         for la in (False, True):
             arm = R.SpeciesFirstArm(cls.model, lookahead=la)
             cls.species_first[la] = [(cls.draw(arm, s), arm.last_refusals) for s in SEEDS]
+        arm = R.SpeciesFirstArm(cls.model, lookahead=True, record_draws=True)
+        cls.species_first_draws = []
+        for s in SEEDS:
+            cls.draw(arm, s); cls.species_first_draws += arm.last_refusals
         val = Validator()
         try:
             cls.accepted = {la: sum(val(cls.model.to_paste(r, repair=True)[0]) is None for rows in cls.drawn[la] for r in rows)
@@ -173,6 +180,45 @@ class LookaheadArms(unittest.TestCase):
         self.assertEqual(len(stat_points), len(kept))
         self.assert_records(counts["refusals"], len(kept))         # saved beside the pastes in each cell
         self.assertTrue(len(kept) == 4 or counts["tried"] == 32)
+
+    def test_recording_every_draw_leaves_the_random_draws_untouched(self):
+        for off, on in zip(self.drawn[True], self.drawn_with_draws):
+            self.assertTrue((off == on).all())
+
+    def test_each_team_records_every_draw_in_the_order_it_was_drawn(self):
+        import diffusion84 as M
+        for records in self.records_with_draws:
+            for r in records:
+                self.assertEqual(set(r), RECORD | {"draws"}); d = r["draws"]
+                self.assertEqual(set(d), DRAW_KEYS)
+                self.assertEqual(sorted(d["column"]), list(range(M.COLS)))          # no remasking: each field drawn once
+                self.assertEqual(len({len(v) for v in d.values()}), 1)
+                self.assertTrue(all(0.0 <= v <= 1.0 for v in d["removed_share"]))
+                self.assertTrue(all(v > 0 for v, top in zip(d["removed_share"], d["top_removed"]) if top))
+                # the per-team kept share is the product of the per-draw kept shares
+                self.assertAlmostEqual(sum(math.log1p(-v) for v in d["removed_share"]), r["log_kept_share"], places=6)
+
+    def test_a_species_draw_counts_the_fields_of_its_pokemon_drawn_before_it(self):
+        import diffusion84 as M
+        slot_of = lambda c: c // M.NF if c < M.STAT0 else (c - M.STAT0) // M.SP.NSTAT
+        late = 0
+        for records in self.records_with_draws:
+            for r in records:
+                cols, before = r["draws"]["column"], r["draws"]["fields_before"]
+                for i, c in enumerate(cols):
+                    if c < M.STAT0 and c % M.NF == 0:
+                        want = sum(slot_of(e) == slot_of(c) for e in cols[:i])
+                        self.assertEqual(before[i], want); late += want > 0
+                    else:
+                        self.assertIsNone(before[i])
+        self.assertGreater(late, 0, "random order should draw some species after one of its Pokémon's fields")
+
+    def test_species_first_order_draws_every_species_before_its_fields_and_removes_nothing(self):
+        import diffusion84 as M
+        for r in self.species_first_draws:
+            d = r["draws"]; self.assertEqual(d["column"], list(M.ORDER))
+            self.assertEqual([b for b in d["fields_before"] if b is not None], [0] * M.NSLOT)
+            self.assertEqual(set(d["removed_share"]), {0.0}); self.assertFalse(any(d["top_removed"]))
 
 
 if __name__ == "__main__":

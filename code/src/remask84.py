@@ -73,7 +73,7 @@ def fill_pass(w, x, conf, targets, due, redo, ask_w, null_w, temperature=1.0, gu
         if not rows.any(): continue
         lc = guidance * w._column(lp, c) + (1 - guidance) * w._column(lpn, c)
         legal, plain, kept, fallback = w._legal_parts(x, c, lookahead)
-        if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback, rows)
+        if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback, rows, column=c, x=x)
         lc = lc.masked_fill(~legal, -float("inf")) / temperature
         p = torch.softmax(lc, -1)
         v = torch.multinomial(p, 1).squeeze(1)
@@ -265,13 +265,14 @@ def species_then_random(step, fill, conf):
 class RandomDecodingArm:
     """Random decoding as an arm object for ask_grid84.draw: sample() and to_paste(). arm: a RANDOM_ARMS key.
     lookahead: the switch of sample_random. sample() uses the guidance weight and temperature it is given and refuses
-    any other setting. last_refusals: one diffusion84.Refusals record per team of the last sample() call (issue #207)."""
-    def __init__(self, w, arm="rand_plain", lookahead=False):
+    any other setting. last_refusals: one diffusion84.Refusals record per team of the last sample() call (issue #207);
+    record_draws=True adds every draw to each record (issue #321) and leaves the draws themselves unchanged."""
+    def __init__(self, w, arm="rand_plain", lookahead=False, record_draws=False):
         if arm not in RANDOM_ARMS: raise ValueError(f"arm must be one of {sorted(RANDOM_ARMS)}")
-        self.w, self.arm, self.lookahead, self.stats, self.last_refusals = w, arm, lookahead, {}, None
+        self.w, self.arm, self.lookahead, self.stats, self.last_refusals, self.record_draws = w, arm, lookahead, {}, None, record_draws
 
     def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
-        rec = M.Refusals(n)
+        rec = M.Refusals(n, draws=self.record_draws)
         x = sample_random(self.w, n, ask, self.arm, self.stats, guidance=guidance, temperature=temperature, lookahead=self.lookahead, refusals=rec)
         self.last_refusals = rec.records()
         return x
@@ -281,12 +282,12 @@ class RandomDecodingArm:
 
 class SpeciesFirstArm:
     """Species-first decoding (Model84.sample) with the lookahead and corrected-t switches, as an arm object for
-    ask_grid84.draw. last_refusals: as RandomDecodingArm's."""
-    def __init__(self, w, lookahead=False, corrected_t=False):
-        self.w, self.lookahead, self.corrected_t, self.last_refusals = w, lookahead, corrected_t, None
+    ask_grid84.draw. last_refusals and record_draws: as RandomDecodingArm's."""
+    def __init__(self, w, lookahead=False, corrected_t=False, record_draws=False):
+        self.w, self.lookahead, self.corrected_t, self.last_refusals, self.record_draws = w, lookahead, corrected_t, None, record_draws
 
     def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
-        rec = M.Refusals(n)
+        rec = M.Refusals(n, draws=self.record_draws)
         x = self.w.sample(n, ask=ask, guidance=guidance, temperature=temperature, lookahead=self.lookahead, corrected_t=self.corrected_t,
                           refusals=rec)
         self.last_refusals = rec.records()
