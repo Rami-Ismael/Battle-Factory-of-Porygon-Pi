@@ -171,12 +171,16 @@ def paired(a, b):
     return dict(difference=float(diff), interval=MRR.interval(draws))
 
 
+def stream_for(row, guidance):
+    """The row's bootstrap stream at one guidance: #322's own at guidance 2 (None), #329's at 4 and 8."""
+    return None if float(guidance) == 2 else [MRR.DRAW_SEED, 329, STREAM[row], int(guidance)]
+
+
 def grid(guidance=2):
     """Step two at one guidance. Guidance 2 resamples with #322's streams, so its file reads as before; 4 and 8 with #329's."""
     guidance = float(guidance)
     counts = MRR.opponent_draws(len(np.load(MRR.opponents_path(RANDOM, guidance))["weights"]))
-    stream = (lambda row: None) if guidance == 2 else (lambda row: [MRR.DRAW_SEED, 329, STREAM[row], int(guidance)])
-    rows = {row: read_row(row, counts, guidance, stream(row)) for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)}
+    rows = {row: read_row(row, counts, guidance, stream_for(row, guidance)) for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)}
     new, first, rand = rows[SPECIES_THEN_RANDOM], rows[SPECIES_FIRST], rows[RANDOM]
     result = dict(guidance=int(guidance) if guidance.is_integer() else guidance, verdict=verdict(new["got_verdict_asks"], first["got_verdict_asks"], rand["got_verdict_asks"], new["error"], first["error"]),
                   rule=f"confirmed: got at asks 13/24 to 17/24 within {GOT_MARGIN} of {READER[SPECIES_FIRST]} and error within {MRR.TRAINING_LUCK} of its error; "
@@ -310,8 +314,7 @@ def guidances():
     for g in MRR.GUIDANCES:
         saved = json.load(open(grid_path(g))); out["rule"] = saved["rule"]
         counts = MRR.opponent_draws(len(np.load(MRR.opponents_path(RANDOM, g))["weights"]))
-        stream = (lambda row: None) if g == 2 else (lambda row: [MRR.DRAW_SEED, 329, STREAM[row], int(g)])
-        rows = {row: read_row(row, counts, g, stream(row)) for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)}
+        rows = {row: read_row(row, counts, g, stream_for(row, g)) for row in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)}
         got = {row: m["got_verdict_asks"] for row, m in rows.items()}
         if any(abs(got[row] - saved["rows"][row]["got_asks_13_to_17"]) > 1e-12 for row in got): raise SystemExit(f"guidance {g}: reread differs from {grid_path(g).name}")
         draws = share_recovered(*(rows[r]["got_verdict_asks_draws"] for r in (SPECIES_THEN_RANDOM, SPECIES_FIRST, RANDOM)))
