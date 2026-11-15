@@ -66,7 +66,7 @@ corrected_t = M.corrected_t             # the expected-share rule; Model84.sampl
 def hidden_share():
     """Mask draws exactly as batch_loss makes them, at seven values of t."""
     torch.manual_seed(0)
-    linear, per_field = M.sched84(LINEAR), M.sched84(M.SCHED)
+    linear, per_field = M.sched84(LINEAR), M.sched84(M.PER_FIELD_SCHED)
     rows, worst = {}, 0.0
     for t in (0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95):
         hidden = (torch.rand(40000, M.COLS) < torch.full((40000, 1), t) ** linear.view(1, -1)).float().mean(0)
@@ -77,7 +77,7 @@ def hidden_share():
 
 
 def corrected_t_values():
-    per_field, linear = M.sched84(M.SCHED).double().numpy(), M.sched84(LINEAR).double().numpy()
+    per_field, linear = M.sched84(M.PER_FIELD_SCHED).double().numpy(), M.sched84(LINEAR).double().numpy()
     per_pass = [corrected_t(per_field, filled) for filled in range(M.COLS)]
     gap_from_ticket = max(abs(per_pass[k] - v) for k, v in PUBLISHED_CORRECTED_T.items())
     gap_linear = max(abs(corrected_t(linear, k) - (1 - k / M.COLS)) for k in range(M.COLS))
@@ -120,7 +120,7 @@ def t_sensitivity(model):
     """passed judges the corrected t alone. The two extreme rules (every pass told t = 1, or t = 1/84) show how much
     any t could move the model."""
     today = [1.0 - step / M.COLS for step in range(M.COLS)]
-    corrected = [corrected_t(M.sched84(model.info.get("sched", M.SCHED)).double().numpy(), k) for k in range(M.COLS)]
+    corrected = [corrected_t(M.sched84(M.trained_sched(model.info)).double().numpy(), k) for k in range(M.COLS)]
     rules = dict(corrected=corrected, always_1=[1.0] * M.COLS, always_1_over_84=[1 / M.COLS] * M.COLS)
     species_columns = [slot * 8 for slot in range(6)]
     by_ask = {}
@@ -143,7 +143,7 @@ def t_sensitivity(model):
 def cross_rate_loss(model, d):
     labelled = ~np.isnan(d["all_W"]); rows = d["all_val"] & labelled
     vx, vw = d["all_X"][rows], d["all_W"][rows]
-    own = M.val_loss(model.net, model.tables, vx, vw, M.sched84(M.SCHED).to(M.DEV))
+    own = M.val_loss(model.net, model.tables, vx, vw, M.sched84(M.PER_FIELD_SCHED).to(M.DEV))
     linear = M.val_loss(model.net, model.tables, vx, vw, M.sched84(LINEAR).to(M.DEV))
     logged = load_checkpoint(DEFAULT_MODEL.parent.with_suffix(".pt"), map_location="cpu")["info"]["best_val_loss"]   # its best epoch is 80
     return dict(validation_teams=int(rows.sum()), teams_the_tables_reject=int(model.tables.check(vx[:, :M.STAT0]).sum()),
@@ -155,7 +155,7 @@ def training_smoke(d, V, corpus):
     x, w = torch.as_tensor(d["all_X"][labelled]), d["all_W"][labelled]
     torch.manual_seed(TR.RECIPE["seed"]); start = PP.start_loss(V, M.Net84(V, **TR.NET).eval(), x)
     out = dict(start=start, calibration=PP.CALIBRATION, device=M.DEV)
-    for name, exponents in (("per_field", M.SCHED), ("linear", LINEAR)):
+    for name, exponents in (("per_field", M.PER_FIELD_SCHED), ("linear", LINEAR)):
         t0 = time.perf_counter()
         m = M.Model84.train_new(V, corpus, d["all_X"][labelled[:32]], w[:32], epochs=PP.OVERFIT_EPOCHS, batch=32, warmup=10,
                                 val=(d["all_X"][labelled[:32]], w[:32]), label_noise=1 / 48, seed=TR.RECIPE["seed"], lr=TR.RECIPE["lr"],
@@ -175,7 +175,7 @@ def recipe_replay(d, V, corpus):
     logged = load_checkpoint(DEFAULT_MODEL.parent.with_suffix(".pt"), map_location="cpu")["info"]
     labelled = ~np.isnan(d["all_W"]); train, validation = ~d["all_val"] & labelled, d["all_val"] & labelled
     m = M.Model84.train_new(V, corpus, d["all_X"][train], d["all_W"][train], epochs=80, val=(d["all_X"][validation], d["all_W"][validation]),
-                            patience=3, early_stopping_threshold=0.0, label_noise=1 / 48, stop_after=1, **TR.RECIPE, **TR.NET)
+                            patience=3, early_stopping_threshold=0.0, label_noise=1 / 48, stop_after=1, **TR.PER_FIELD_RECIPE, **TR.NET)
     now, then = m.info["curves"][0], logged["curves"][0]
     gaps = dict(training_loss=abs(now["train_loss"] - then["train_loss"]), validation_loss=abs(now["val_loss"] - then["val_loss"]))
     same_table = d["sha256"] == logged["data_sha256"]

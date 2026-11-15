@@ -15,6 +15,10 @@ Labelled teams only, label noise: byepoch   to the same stopping rule, one check
 Both use the deployed network and recipe: d 256, 6 layers, 8 heads, batch 256, lr 4e-4, exponents 16,4,4,1.5,1 plus
 1 for Stat Points, ask dropout 0.15, EMA 0.999.
 
+Masking schedule. A new arm trains with the linear masking schedule, every field hidden with chance t (owner, 2026-11-14,
+after #297 and #335 found the per-field one no better). Every arm listed here trained before that day, and those in
+PER_FIELD_ARMS keep the per-field exponents 16,4,4,1.5,1 so a rerun reproduces its model.
+
 Training table. The default is the shuffled-only table, results/lossdata84_shuffled_only.npz: every label comes from
 shuffled-slot battles alone (owner, 2026-11-11; src/lossdata84.py --shuffled-only). The arms above this paragraph
 reproduce models trained on the older table, results/lossdata84.npz, whose labels pool listed-order battles and run
@@ -80,7 +84,8 @@ OLDER_TABLE_REFUSAL = ("{arm}: this arm reproduces a model trained on the older 
 CK = L.CK
 SMOKE = bool(os.environ.get("S84_SMOKE"))
 NET = dict(d=256, nlayer=6, nhead=8)
-RECIPE = dict(batch=256, lr=4e-4, sched=M.SCHED, seed=0)
+PER_FIELD_RECIPE = dict(batch=256, lr=4e-4, sched=M.PER_FIELD_SCHED, seed=0)   # the recipe of every model trained before 2026-11-14
+RECIPE = dict(PER_FIELD_RECIPE, sched=M.SCHED)          # new arms: the linear masking schedule (owner, 2026-11-14)
 NAMES = dict(loop="stat84_same_loop_p80", records="stat84_same_records_p60", mix="stat84_same_teams",
              all="stat84_all_teams_es3_cap80", all_noise="stat84_all_teams_noise_ep21",
              byepoch="stat84_labelled_noise_byepoch_es3_cap80",
@@ -91,9 +96,9 @@ POSITION_ARMS = dict(pos_per_field_s0=dict(pos="per_field", seed=0), pos_per_fie
                      pos_slot_fixed=dict(pos="slot_fixed", seed=0), pos_no_slot=dict(pos="no_slot", seed=0))
 NAMES.update({arm: f"stat84_{arm}_noise_ep21" for arm in POSITION_ARMS})
 CONTROL_ARM = "pos_per_field_s0"                         # No split, training seed 0: the control, with no new code
-LINEAR_MASKING_RATE = "1,1,1,1,1"                        # every field hidden with chance t (MD4 Appendix J.1; LLaDA Eq. 3)
+LINEAR_MASKING_RATE = M.LINEAR_SCHED                     # every field hidden with chance t (MD4 Appendix J.1; LLaDA Eq. 3)
 # Masking-schedule rows: code ID -> the exponents of the masking schedule in training, the only setting that differs
-MASKING_RATE_ARMS = dict(shuffled_per_field=dict(sched=M.SCHED), shuffled_linear=dict(sched=LINEAR_MASKING_RATE))
+MASKING_RATE_ARMS = dict(shuffled_per_field=dict(sched=M.PER_FIELD_SCHED), shuffled_linear=dict(sched=LINEAR_MASKING_RATE))
 NAMES.update(shuffled_per_field="stat84_shuffled_noise_per_field_es3_cap80", shuffled_linear="stat84_shuffled_noise_linear_es3_cap80")
 CONTROL_EPOCHS = 80                                       # the cap of the loop arms' control, shuffled_linear
 LOOP_BLOCK = dict(loop_start=1, loop_layers=2, loop_max=4)              # 6 needs 13 GB of GPU memory per step (docs/looped-84-fields.md)
@@ -133,6 +138,16 @@ def small(*arrays, n=512):
     return [a[:n] for a in arrays]
 
 
+# Arms that reproduce a model trained before the linear default; train() gives them the per-field recipe
+PER_FIELD_ARMS = ("loop", "records", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", *POSITION_ARMS)
+
+
+def recipe_for(arm, net_kw):
+    """The training recipe of arm, with the seed and masking schedule taken out of net_kw when the arm sets them."""
+    base = PER_FIELD_RECIPE if arm in PER_FIELD_ARMS else RECIPE
+    return dict(base, seed=net_kw.pop("seed", base["seed"]), sched=net_kw.pop("sched", base["sched"]))
+
+
 def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     corpus = X.setup()[0]; V = T.regulation_vocab()
     if NOISE is not None: net_kw["label_noise"] = float(NOISE)
@@ -147,7 +162,7 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     if net_kw.pop("every_epoch", False):
         (CK / name(arm)).mkdir(exist_ok=True)
         net_kw["on_epoch"] = lambda m, epoch: stamped(m, arm).save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
-    recipe = dict(RECIPE, seed=net_kw.pop("seed", RECIPE["seed"]), sched=net_kw.pop("sched", RECIPE["sched"]))
+    recipe = recipe_for(arm, net_kw)
     m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
                             **recipe, **NET, **net_kw)
     m.info.update(table=DATA_TABLE, ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any(), arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),

@@ -45,7 +45,7 @@ FIGURES = Path(__file__).resolve().parent.parent / "docs/figures/masking_rate_ro
 DRAWS, DRAW_SEED, SIZES_SEED = 128, 12345, 0
 OWN_RATE_TOLERANCE = 1e-4
 Z95 = 1.96
-RATES = dict(per_field=M.SCHED, linear=TR.LINEAR_MASKING_RATE)          # masking-schedule key -> exponents
+RATES = dict(per_field=M.PER_FIELD_SCHED, linear=TR.LINEAR_MASKING_RATE)          # masking-schedule key -> exponents
 RATE_WORDS = dict(per_field="per-field masking schedule", linear="linear masking schedule")
 # The two trainings: checkpoint -> reader name, own masking schedule, color
 MODELS = {TR.NAMES["shuffled_per_field"]: dict(label="Per-field masking schedule", rate="per_field", color="#2a78d6"),
@@ -81,7 +81,7 @@ def load_model(checkpoint):
 
 def own_rate(info):
     """The masking-schedule key the checkpoint trained with, from its run info."""
-    exponents = info.get("sched", M.SCHED)
+    exponents = M.trained_sched(info)
     for key, value in RATES.items():
         if exponents == value: return key
     raise ValueError(f"masking-schedule exponents {exponents!r} are neither the per-field nor the linear rate")
@@ -89,7 +89,7 @@ def own_rate(info):
 
 def masking_rate_tensor(model, exponents=None):
     """The exponents as the loss uses them, on the device: the checkpoint's own (as the source's load()) unless given."""
-    return M.sched84(model.info.get("sched", M.SCHED) if exponents is None else exponents).to(M.DEV)
+    return M.sched84(M.trained_sched(model.info) if exponents is None else exponents).to(M.DEV)
 
 
 # ---------------------------------------------------------------- the gap, ported from validation_accuracy.py
@@ -158,7 +158,7 @@ def run_gap(checkpoint, results_dir=RESULTS, draws=DRAWS, limit=None):
         reading["interval_95"] = gap_interval(reading)
         reading["training_teams"] = len(training_index) if key == "all_teams" else accepted_training
     result = dict(checkpoint=checkpoint, checkpoint_path=str(checkpoint_path(checkpoint)), masking_rate=own_rate(model.info),
-                  exponents=model.info.get("sched", M.SCHED), estimator=f"random, {draws} draws, seed {DRAW_SEED}",
+                  exponents=M.trained_sched(model.info), estimator=f"random, {draws} draws, seed {DRAW_SEED}",
                   teams_each_side=len(validation_index), data_sha256=table["sha256"], table=table["table"],
                   source=str(SOURCE), source_sha256=SOURCE_SHA256, device=M.DEV, limit=limit, **measured,
                   minutes=(time.time() - started) / 60)
@@ -211,7 +211,7 @@ def run_cross_rate(checkpoint, results_dir=RESULTS, limit=None):
     _training, validation = labelled_split(table)
     result = cross_rate(model, table, validation, limit)
     result["own_rate_check"] = check = own_rate_check(result, model.info)
-    result.update(checkpoint=checkpoint, checkpoint_path=str(checkpoint_path(checkpoint)), exponents=model.info.get("sched", M.SCHED),
+    result.update(checkpoint=checkpoint, checkpoint_path=str(checkpoint_path(checkpoint)), exponents=M.trained_sched(model.info),
                   kept_epoch=model.info.get("best_epoch", model.info.get("best_pass")), patience=model.info.get("patience"),
                   data_sha256=table["sha256"], table=table["table"], device=M.DEV, limit=limit)
     path = write_json(result, Path(results_dir) / f"masking_rate_cross_rate_{checkpoint}.json")

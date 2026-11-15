@@ -37,7 +37,9 @@ DEV = L.DEV
 COLS = T.COLS                                          # 84
 STAT0 = T.COLS48                                       # first Stat Point column
 ORDER = list(D.ORDER) + list(range(STAT0, COLS))       # species first, ..., Stat Alignment, then Stat Points
-SCHED = "16,4,4,1.5,1"                                 # deployed exponents: species, ability, item, move, Stat Alignment
+PER_FIELD_SCHED = "16,4,4,1.5,1"                       # per-field exponents: species, ability, item, move, Stat Alignment; every model trained before 2026-11-14
+LINEAR_SCHED = "1,1,1,1,1"                             # every field hidden with chance t (MD4 Appendix J.1; LLaDA Eq. 3)
+SCHED = LINEAR_SCHED                                   # default for new trainings (owner, 2026-11-14; issues #297 and #335)
 STAT_EXPONENT = 1.0                                    # Stat Points masked like Stat Alignment
 FIRST_MOVE = 3                                         # field offset of a Pokémon's first move
 NAN = float("nan")
@@ -50,6 +52,11 @@ _STAT = (_COL - STAT0).clamp(min=0)
 COLUMN_TYPE = torch.where(_COL < STAT0, _COL % NF, NF + _STAT % SP.NSTAT)     # 14 field types: 8 fields, then 6 Stat Points
 COLUMN_SLOT = torch.where(_COL < STAT0, _COL // NF, _STAT // SP.NSTAT)        # team position 1 to 6, counted from 0
 NTYPE = NF + SP.NSTAT
+
+
+def trained_sched(info):
+    """The masking schedule a checkpoint trained with. One that never wrote it down predates the linear default: per-field."""
+    return info.get("sched", PER_FIELD_SCHED)
 
 
 def sched84(sched=SCHED):
@@ -553,7 +560,7 @@ class Model84:
             keep = []; lp = self._logprobs(x, t, cond, loops=loops, state=state[key], keep=keep); state[key] = keep[0]
             return lp
 
-        t_of_pass = corrected_t_per_pass(self.info.get("sched", SCHED)) if corrected_t else [1.0 - step / COLS for step in range(COLS)]
+        t_of_pass = corrected_t_per_pass(trained_sched(self.info)) if corrected_t else [1.0 - step / COLS for step in range(COLS)]
         for step, c in enumerate(ORDER):
             t = torch.full((n,), t_of_pass[step], device=DEV)
             lc = self._column(logprobs(t, w, "ask"), c)

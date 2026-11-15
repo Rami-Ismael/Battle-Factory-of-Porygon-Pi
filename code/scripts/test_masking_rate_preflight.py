@@ -25,7 +25,7 @@ if HERE:
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
 class CorrectedT(unittest.TestCase):
     def setUp(self):
-        self.per_field = M.sched84(M.SCHED).double().numpy()
+        self.per_field = M.sched84(M.PER_FIELD_SCHED).double().numpy()
         self.linear = M.sched84(P.LINEAR).double().numpy()
 
     def test_linear_masking_rate_hides_every_field_alike(self):
@@ -90,13 +90,13 @@ class SamplerT(unittest.TestCase):
         return told, rows
 
     def test_off_by_default_each_pass_is_told_one_minus_filled_over_84(self):
-        told, _ = self.t_told(self.model(M.SCHED))
+        told, _ = self.t_told(self.model(M.PER_FIELD_SCHED))
         self.assertEqual(len(told), M.COLS)
         for filled, t in enumerate(told): self.assertAlmostEqual(t, 1 - filled / M.COLS, delta=1e-6)
 
     def test_on_each_pass_is_told_the_preflight_corrected_t_of_the_per_field_rate(self):
-        per_field = M.sched84(M.SCHED).double().numpy()
-        told, _ = self.t_told(self.model(M.SCHED), corrected_t=True)
+        per_field = M.sched84(M.PER_FIELD_SCHED).double().numpy()
+        told, _ = self.t_told(self.model(M.PER_FIELD_SCHED), corrected_t=True)
         self.assertEqual(len(told), M.COLS)
         for filled, t in enumerate(told):
             self.assertAlmostEqual(t, P.corrected_t(per_field, filled), delta=1e-6)
@@ -104,7 +104,7 @@ class SamplerT(unittest.TestCase):
         for filled, published in P.PUBLISHED_CORRECTED_T.items(): self.assertAlmostEqual(told[filled], published, delta=5e-4)
 
     def test_guided_and_unguided_passes_are_told_the_same_corrected_t(self):
-        told, _ = self.t_told(self.model(M.SCHED), corrected_t=True, ask=0.5, guidance=2.0)
+        told, _ = self.t_told(self.model(M.PER_FIELD_SCHED), corrected_t=True, ask=0.5, guidance=2.0)
         self.assertEqual(len(told), 2 * M.COLS)
         self.assertEqual(told[0::2], told[1::2])
 
