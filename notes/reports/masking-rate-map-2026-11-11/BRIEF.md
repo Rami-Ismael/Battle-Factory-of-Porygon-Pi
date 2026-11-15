@@ -29,7 +29,7 @@ Also save the issue text first, it is your source of numbers:
   `build.py` (read its first 35 lines). Keep labels short: a box label at most 4 words, a bar label at most 3 words.
 - Row names, exactly: "Per-field, uncorrected t" (the control), "Per-field, corrected t", "Linear, species-first",
   "Linear, random order". In drawings the control is tone "plain", Linear, species-first is "c1", Linear, random order "c2".
-- Words: say "masking rate", never "noise schedule" or "scheduler". Say "Stat Points" and "Stat Alignment". Say "the
+- Words: say "masking schedule", never "masking rate", "noise schedule" or "scheduler". Say "Stat Points" and "Stat Alignment". Say "the
   shuffled-only table". Write model and method names in full. No em dashes, no parentheses, no abbreviations.
 
 ## Facts that are true today, 2026-11-11

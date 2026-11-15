@@ -1,3 +1,8 @@
+---
+status: superseded
+superseded_reason: "Its battles used listed slot order, which no longer counts since the shuffled-slot rule of 2026-11-07 (GLOSSARY.md, Shuffled-slot battle)."
+---
+
 # Experiment A — asked vs got (pre-registration, 2026-10-04)
 
 **Question.** The owner's loop asks the diffusion model for a win rate just above the
