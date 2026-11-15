@@ -17,6 +17,10 @@ after the model name, so guidance 2 keeps every stored name. AG84_UNGUIDED=1 dra
 guidance into "<model>_unguided". A model row that names decoder="random" samples in random order with the lookahead on;
 decoder="species_first_corrected_t" samples in species-first order and tells each pass the corrected t.
 
+Cell seed s draws with torch.manual_seed(seed0 + s) (grid_seeds.py): a stored grid keeps the base its file records,
+7300 for every grid before 2026-11-15; a new grid gets a base from its own name, so it cannot replay another grid's teams.
+AG84_SEED0=N redraws on base N into its own file, "..._seedN".
+
 Run preflight with MATCHUP_DB pointing at a private database. Finished cells are skipped, so every step resumes.
 """
 import hashlib
@@ -37,6 +41,7 @@ import lossdown as L                                     # before diffusion84: i
 sys.path.insert(0, str(HERE))
 import asked_vs_got as X
 import diffusion84 as M
+import grid_seeds
 from checkpoints import load_checkpoint
 from ask_line import headline, line_measures
 from label_noise import flagged_checkpoint, flagged_row
@@ -103,7 +108,7 @@ for _row in MODELS.values():                             # every row so far trai
     if not _row.get("table65"): _row.setdefault("table", OLDER_TABLE)
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 UNGUIDED = bool(os.environ.get("AG84_UNGUIDED"))           # one cell per seed with no ask: the row's unguided baseline
-GUIDANCE, KEEP, BATCH, MAX_TRIES, SEED0, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, 1280, 7300, 1
+GUIDANCE, KEEP, BATCH, MAX_TRIES, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, 1280, 1
 SUFFIX = "_unguided" if UNGUIDED else "" if GUIDANCE == 2 else f"_g{GUIDANCE:g}"   # guidance 2 keeps the stored names
 def ask_numerators(env):
     """The ask numerators k of k/24 to draw: all 23, or the comma-separated ones AG84_ASKS names."""
@@ -118,7 +123,9 @@ OFF_GRID_ASKS = [0.3, 0.531, 0.6, 0.7]                   # not multiples of 1/24
 NUDGE_NUMERATORS, NUDGES = (6, 8, 10, 11, 12, 13, 14, 16), (0.0, 0.002, -0.002, 1 / 48)
 if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
 RES = Path.home() / "vgc-data/results"
-OUT = RES / f"stat_points_84_{MODEL}{SUFFIX}{'_smoke' if SMOKE else ''}.json"
+SEED_OVERRIDE = os.environ.get("AG84_SEED0")             # a redraw on other seeds, into its own file "..._seed<N>"
+OUT = RES / f"stat_points_84_{MODEL}{SUFFIX}{f'_seed{SEED_OVERRIDE}' if SEED_OVERRIDE else ''}{'_smoke' if SMOKE else ''}.json"
+SEED0 = int(SEED_OVERRIDE) if SEED_OVERRIDE else grid_seeds.seed0(f"{MODEL}{SUFFIX}", OUT)   # stored grids keep 7300; new ones their own
 DATA = X.RES / OLDER_TABLE                               # training teams of the older-table models that remask84, nucleus84, trade84 and lineup_reference score
 UNIFORM_LEGAL = Path.home() / "vgc-data/teams/hps_reg_mb_100k.jsonl"
 
