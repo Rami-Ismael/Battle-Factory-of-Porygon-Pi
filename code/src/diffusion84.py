@@ -534,15 +534,16 @@ class Model84:
         would leave a Pokémon whose species is masked with no legal species (lookahead.py); Stat Points are untouched."""
         return self._legal_parts(x, c, lookahead)[0]
 
-    def _legal_parts(self, x, c, lookahead=False):
+    def _legal_parts(self, x, c, lookahead=False, al=None):
         """(legal, plain, kept, fallback) for column c. legal: what _legal gives. plain: the same with the switch off.
         kept: the plain values the lookahead leaves; at a fallback field every value is allowed, so kept is plain and
         nothing counts as refused. fallback [B]: no value was legal, so every value was allowed. With the switch off,
-        kept is plain and nothing is refused."""
+        kept is plain and nothing is refused. al: allowed(self.tables, x) when the caller already has it for this x,
+        so a pass that scores every column computes it once; the result is the same."""
         if c >= STAT0:
-            o = SP.allowed_stat_points(x[:, STAT0:])[:, c - STAT0]
+            o = (SP.allowed_stat_points(x[:, STAT0:]) if al is None else al["stat"])[:, c - STAT0]
             return o, o, o, torch.zeros(len(x), dtype=torch.bool, device=x.device)
-        k = L.KEY_OF_COL[c]; al = self.tables.allowed(x[:, :STAT0]); tab = al[k][:, L.COLS_BY_KEY[k].index(c)]
+        k = L.KEY_OF_COL[c]; al = self.tables.allowed(x[:, :STAT0]) if al is None else al; tab = al[k][:, L.COLS_BY_KEY[k].index(c)]
         plain, empty = self._with_fallback(self._no_moves(tab.clone(), c))
         if not lookahead: return plain, plain, plain, empty
         pre = self._no_moves(tab & lookahead_rule(self.tables, x[:, :STAT0], c, al), c)
