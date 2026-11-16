@@ -1,3 +1,9 @@
+---
+status: superseded
+superseded_on: 2026-11-16
+reason: "Its purpose was to fill the feature table in Teaching/reference/bo-benchmark-derived-vgc-research-comparison.md; Teaching/ was retired on 2026-11-09. The measured results stay in results/bench_features.json."
+---
+
 # Landscape features of the collected BO benchmarks vs VGC — pre-registration (2026-09-30)
 
 Written before any benchmark in this file is run. Scripts: `scripts/bench_features.py` (benchmarks,

@@ -238,7 +238,7 @@ class Engine:
         files.update(map(Path, self.opponents))
         files.update(ROOT.joinpath('scripts', name) for name in ('cem_score_direction.py', 'cem_direction_runtime.py',
                                                                'pokemon_id_diversity.py', 'reverse_score_diversity.py'))
-        files.add(ROOT / 'docs/cem-score-direction-protocol.md')
+        files.add(ROOT / 'docs/cem-score-direction-results.md')   # the protocol now lives in its Protocol section
         files.update(map(Path, (self.c['checkpoint'], self.c['checkpoint_metadata'], '/tmp/bc_100.zip',
                                 '/tmp/vgc-pilot/learnset_true.json', '/tmp/vgc-pilot/top50_evs.json')))
         bench = Path('/tmp/vgc-pilot/vgc-bench')

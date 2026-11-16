@@ -141,7 +141,7 @@ def report(path, data, summary):
               f"Stopped trajectories: {json.dumps(summary['stopped'])}.", '',
               'The experiment is conditional on one pretrained checkpoint, its fixed species vocabulary, this battle policy, and these update budgets. Policy seeds and opponent schedules are matched; they do not control Showdown\'s internal battle RNG. ID overlap does not establish strategic diversity. Candidate scores use finite battle samples, so ranking can amplify noise.', '',
               f"[Diversity trajectories]({path.with_suffix('.html')})", '',
-              f"[Protocol]({ROOT / 'docs/cem-score-direction-protocol.md'}) · [Raw results]({path}) · [Analysis JSON]({path.with_suffix('.analysis.json')}) · [Verification receipt]({path.with_suffix('.verification.json')})", '']
+              f"[Protocol]({ROOT / 'docs/cem-score-direction-results.md'}#protocol) · [Raw results]({path}) · [Analysis JSON]({path.with_suffix('.analysis.json')}) · [Verification receipt]({path.with_suffix('.verification.json')})", '']
     return '\n'.join(lines)
 
 
