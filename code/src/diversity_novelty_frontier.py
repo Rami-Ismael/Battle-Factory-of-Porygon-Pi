@@ -15,6 +15,7 @@ at least one, seed for seed: the diversity map's rule that a difference counts w
     python diversity_novelty_frontier.py read          # ~/vgc-data/results/diversity_novelty_frontier.json
     python diversity_novelty_frontier.py figure DIR    # DIR/frontier-diversity-novelty.html, DIR/frontier-win.html
     python diversity_novelty_frontier.py comment URL HEADLINE   # issue comment; URL has {name} and {theme} placeholders
+    python diversity_novelty_frontier.py confidence_headline     # the headline of #363's post
 """
 import json
 import sys
@@ -256,5 +257,19 @@ def comment(url, headline):
 Script: `code/src/diversity_novelty_frontier.py`. Results: `~/vgc-data/results/diversity_novelty_frontier.json`.""")
 
 
+def confidence_headline():
+    """The headline of the guidance 4 and 8 post (#363), with its prediction checked: guidance 8 on the front of all
+    three axes and a win rate above guidance 2's."""
+    r = json.load(open(OUT)); on3 = r["fronts"]["all_three"]["on_front"]
+    conf = {p["guidance"]: p for p in r["points"] if p["row"] == "sched_linear_confidence"}
+    if not {2, 4, 8} <= set(conf): raise SystemExit(f"confidence order has guidance {sorted(conf)} only")
+    g8 = conf[8]; held = label(g8) in on3 and g8["win"] > conf[2]["win"]
+    parts = "; ".join(f"guidance {g:g}: {p['line_ups']:,} line-ups, {p['novel_share']:.0%} novel, win rate {p['win']:.3f}"
+                      f"{', on the front of all three axes' if label(p) in on3 else ''}" for g, p in sorted(conf.items()))
+    print(f"**Confidence order across guidance, {__import__('datetime').date.today()}: the prediction {'held' if held else 'missed'}.** "
+          f"{parts}. Prediction, written before the run: guidance 8 lands on the front of all three axes and wins more than guidance 2's {conf[2]['win']:.3f}.")
+
+
 if __name__ == "__main__":
-    {"read": read, "figure": lambda: figure(sys.argv[2]), "comment": lambda: comment(sys.argv[2], sys.argv[3])}[sys.argv[1]]()
+    {"read": read, "figure": lambda: figure(sys.argv[2]), "comment": lambda: comment(sys.argv[2], sys.argv[3]),
+     "confidence_headline": confidence_headline}[sys.argv[1]]()
