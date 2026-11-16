@@ -228,7 +228,7 @@ Shared by every arm: the same starting checkpoint (trained on 692 six-member cor
 
 ## Score sign in the cross-entropy method, locked protocol
 
-Source: [`cem-score-direction-protocol.md`](cem-score-direction-protocol.md)
+Source: [`cem-score-direction-results.md`, Protocol](cem-score-direction-results.md#protocol)
 
 Shared by every arm: the same starting checkpoint (temperature_p0.pt, 692-team corpus), decoding temperature 1.0 with no score guidance, identical battle schedules and policy seeds within each seed and iteration, five cumulative updates, seeds 2101, 2202 and 2303.
 
