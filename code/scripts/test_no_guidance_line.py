@@ -50,23 +50,24 @@ class Split(unittest.TestCase):
         self.assertAlmostEqual(got["guidance_2_removes"], 0.0125)
 
 
-class Comment(unittest.TestCase):
-    RESULT = dict(near_line=False, arms={
+RESULT = dict(near_line=False, arms={
         "1": dict(reader="Guidance 1, no push", error=0.0201, error_interval=[0.015, 0.026], error_asks_18_to_23=0.05, line_ups_per_64=40.1, got_by_ask={"1": 0.1}),
         "2": dict(reader="Guidance 2", error=0.0075, error_interval=[0.0039, 0.0126], error_asks_18_to_23=0.01, line_ups_per_64=37.0, got_by_ask={"1": 0.03},
                   against_no_guidance=dict(difference=-0.0126, interval=[-0.018, -0.007], verdict="nearer"))},
         split=dict(data_limit=0.0038, fit=0.0163, guidance_2_removes=0.0126), prediction_held=True)
 
+
+class Comment(unittest.TestCase):
     def test_the_first_line_states_the_error_against_the_bar_and_what_guidance_2_does(self):
-        first = N.comment(self.RESULT, "https://x/{theme}.png").splitlines()[0]
+        first = N.comment(RESULT, "https://x/{theme}.png").splitlines()[0]
         self.assertIn("0.0201", first); self.assertIn("0.001", first); self.assertIn("nearer", first); self.assertIn("0.0075", first)
 
     def test_the_picture_follows_light_and_dark(self):
-        text = N.comment(self.RESULT, "https://x/{theme}.png")
+        text = N.comment(RESULT, "https://x/{theme}.png")
         self.assertIn("https://x/dark.png", text); self.assertIn("https://x/light.png", text)
 
     def test_what_guidance_2_takes_away_has_no_plus_sign(self):
-        text = N.comment(self.RESULT, "https://x/{theme}.png")
+        text = N.comment(RESULT, "https://x/{theme}.png")
         self.assertIn("takes away 0.0126", text); self.assertNotIn("+0.0126", text)
 
 
