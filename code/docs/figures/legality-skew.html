@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random order&#x27;s lookahead removes up to 22% of a draw&#x27;s probability; species-first order removes almost none</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:700px}
+</style>
+</head>
+<body>
+<main>
+<h1>Random order&#x27;s lookahead removes up to 22% of a draw&#x27;s probability; species-first order removes almost none</h1>
+<p class="sub">Share of the trained model&#x27;s guided probability each sampling-only rule removes. 6,912 teams, two checkpoints, guidance 2, 4 and 8, asks 4, 12 and 20 of 24. In species-first order the 90th-percentile team is at most 1.0008 times as likely under the sampler as under the trained model.</p>
+<div id="chart"></div>
+<p class="note">Log ratio: the sum over a team&#x27;s 84 draws of -log(1 - removed share), the log of how much more likely the sampler makes that team than the trained model does along the same fill path. Training already masks what the legal Pokémon construction tables forbid, so the tables count here only for values a draw earlier in the same pass made illegal.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": [{"left": 64, "right": 24, "top": 96, "height": 230}, {"left": 64, "right": 24, "top": 470, "height": 190}], "legend": [{"top": 0, "data": ["[MASK]", "Empty first move", "Same-pass legality rules", "Lookahead"]}, {"top": 405, "data": ["Linear, random order", "Linear, species-first", "Per-field, random order", "Per-field, species-first"], "textStyle": {"fontSize": 11}}], "tooltip": {"trigger": "axis"}, "xAxis": [{"type": "category", "gridIndex": 0, "data": ["Species", "Ability", "Item", "Moves", "Stat\nPoints"], "axisLabel": {"interval": 0, "fontSize": 11}}, {"type": "value", "gridIndex": 1, "min": 1, "max": 9, "interval": 1, "name": "Guidance weight", "nameLocation": "middle", "nameGap": 28, "axisLabel": {"formatter": "js:v => [2, 4, 8].includes(v) ? v : ''"}}], "yAxis": [{"type": "value", "gridIndex": 0, "name": "Random order: share removed per draw", "axisLabel": {"formatter": "js:v => (v * 100).toFixed(0) + '%'"}}, {"type": "value", "gridIndex": 1, "name": "Median team, log ratio (nats)"}], "series": [{"type": "bar", "name": "[MASK]", "stack": "removed", "color": "#6f6e69", "xAxisIndex": 0, "yAxisIndex": 0, "emphasis": {"focus": "series"}, "data": [4.1019228040300844e-05, 4.078757447331245e-06, 1.6075102880658434e-05, 2.2999017675640832e-06, 0.0]}, {"type": "bar", "name": "Empty first move", "stack": "removed", "color": "#1baf7a", "xAxisIndex": 0, "yAxisIndex": 0, "emphasis": {"focus": "series"}, "data": [0.0, 0.0, 0.0, 1.1209969213032313e-06, 0.0]}, {"type": "bar", "name": "Same-pass legality rules", "stack": "removed", "color": "#2a78d6", "xAxisIndex": 0, "yAxisIndex": 0, "emphasis": {"focus": "series"}, "data": [0.0013354258386440916, 0.010142042590070968, 0.010059541658332194, 0.009266890519346196, 0.0036330543795375287]}, {"type": "bar", "name": "Lookahead", "stack": "removed", "color": "#e0702a", "xAxisIndex": 0, "yAxisIndex": 0, "emphasis": {"focus": "series"}, "data": [0.011093514117360155, 0.21758327173439487, 0.09663334296553887, 0.14566393153875545, 0.0]}, {"type": "line", "name": "Linear, random order", "color": "#e0702a", "xAxisIndex": 1, "yAxisIndex": 1, "symbolSize": 8, "emphasis": {"focus": "series"}, "lineStyle": {"type": "solid"}, "data": [[2.0, 11.765187271936123], [4.0, 13.049081291774552], [8.0, 14.86962085853031]]}, {"type": "line", "name": "Linear, species-first", "color": "#2a78d6", "xAxisIndex": 1, "yAxisIndex": 1, "symbolSize": 8, "emphasis": {"focus": "series"}, "lineStyle": {"type": "dashed"}, "data": [[2.0, 2.582496404307719e-05], [4.0, 2.7177590755315137e-05], [8.0, 4.5336745111901935e-05]]}, {"type": "line", "name": "Per-field, random order", "color": "#b0452a", "xAxisIndex": 1, "yAxisIndex": 1, "symbolSize": 8, "emphasis": {"focus": "series"}, "lineStyle": {"type": "solid"}, "data": [[2.0, 13.433736075844223], [4.0, 13.899118630473067], [8.0, 16.79113791933672]]}, {"type": "line", "name": "Per-field, species-first", "color": "#1b4f9a", "xAxisIndex": 1, "yAxisIndex": 1, "symbolSize": 8, "emphasis": {"focus": "series"}, "lineStyle": {"type": "dashed"}, "data": [[2.0, 6.424345282982518e-06], [4.0, 1.1232960309204638e-06], [8.0, 4.784015052579216e-07]]}], "animation": false}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
