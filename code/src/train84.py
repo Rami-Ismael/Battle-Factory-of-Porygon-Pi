@@ -51,6 +51,11 @@ option, or for pos_per_field_s1 only in the training seed.
 ddom arms use 1/48 and the others use none. The flag adds the width to the checkpoint and results names, for example
 stat84_all_teams_es3_cap80_labelnoise1over48, so no width overwrites another. `same mix --label-noise WIDTH` mixes the
 two members trained at that width. To battle one, pass its checkpoint name as AG84_MODEL to ask_grid84.py.
+
+First-try legality (issue #248). After every epoch the weights a checkpoint would save draw 64 teams at the elite cut, 0.531,
+the way the ask grid draws, and Showdown's validator checks each; the epoch's curve entry in the results JSON gains the
+illegal share, its top rejection reasons and the seconds the check took. The draw leaves training's random numbers alone,
+so an arm trains the same model with the check on or off. --legality-teams N changes the 64; 0 turns the check off.
 """
 import argparse
 import hashlib
@@ -164,7 +169,7 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
         net_kw["on_epoch"] = lambda m, epoch: stamped(m, arm).save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
     recipe = recipe_for(arm, net_kw)
     m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
-                            **recipe, **NET, **net_kw)
+                            legality_teams=LEGALITY_TEAMS, **recipe, **NET, **net_kw)
     m.info.update(table=DATA_TABLE, ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any(), arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
                   val_rows=len(val[0]), val_share=0.02, val_seed=0)
     m.save(out)
@@ -238,6 +243,8 @@ def parse_args(argv):
     p.add_argument("arm", nargs="+")
     p.add_argument("--label-noise", type=noise_width, metavar="WIDTH", help="override the arm's label noise width")
     p.add_argument("--older-table", action="store_true", help="allow an arm that trains on the older table, lossdata84.npz")
+    p.add_argument("--legality-teams", type=int, default=64, metavar="N",
+                   help="teams the validator checks after every epoch (default 64); 0 turns the check off")
     return p.parse_args(argv)
 
 
@@ -252,8 +259,8 @@ def older_table(arm, allowed):
 
 
 def main(argv):
-    global DATA_SHA, DATA_TABLE, NOISE
-    args = parse_args(argv); NOISE = args.label_noise
+    global DATA_SHA, DATA_TABLE, NOISE, LEGALITY_TEAMS
+    args = parse_args(argv); NOISE = args.label_noise; LEGALITY_TEAMS = args.legality_teams
     arm = " ".join(args.arm)
     d = older_table(arm, args.older_table)
     for mod in (M, L, T, SP):
@@ -294,6 +301,7 @@ def main(argv):
 
 DATA_SHA = DATA_TABLE = None
 NOISE = None                                             # set by --label-noise; None keeps each arm's own width and name
+LEGALITY_TEAMS = 64                                      # set by --legality-teams; teams checked after every epoch (issue #248)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

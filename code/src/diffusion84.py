@@ -29,6 +29,7 @@ import lossdown as L
 from lookahead import lookahead as lookahead_rule
 import stat_points as SP
 from label_noise import noisy_labels
+from epoch_legality import EpochLegality
 import team84 as T
 from encode import NF, NSLOT
 from hps_generate import slot_to_text
@@ -334,6 +335,12 @@ def val_loss(net, tables, x, w, sched, reps=4, seed=12345, batch=512):
     return tot / (N * reps)
 
 
+def _print_entry(entry):
+    """One epoch's numbers on one line; the rejection reasons stay in the log entry."""
+    print("  " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()
+                            if k != "rejection_reasons"), flush=True)
+
+
 def _training_tensors(tables, rows, labels, row_weights=None):
     """Rows the tables accept, their labels (NaN = unlabelled) and optional weights averaging 1, on the device.
     Rows whose true value the tables exclude are dropped; keep marks the rows kept."""
@@ -367,7 +374,7 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, legality_teams=0, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
@@ -379,45 +386,52 @@ class Model84:
         stop_after=N: end after N epochs while keeping the schedule sized to epochs, so a shorter run matches a stopped one.
         on_epoch(model, epoch): runs after every epoch, on the weights a checkpoint would save.
         row_weights: one training weight per row of rows; validation loss stays unweighted.
-        labels_each_epoch(e): [N] labels for rows, drawn fresh before epoch e (0-based); replaces labels from then on."""
+        labels_each_epoch(e): [N] labels for rows, drawn fresh before epoch e (0-based); replaces labels from then on.
+        legality_teams=K: after every epoch the weights a checkpoint would save draw K teams at the elite cut and the
+        validator checks them (epoch_legality.py); the epoch's entry gains illegal_share and its reasons. 0: no check."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
         net = Net84(V, **net_kw).to(DEV)
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs, patience=patience,
                     early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
-        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None)
+        info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None, legality_teams=legality_teams)
         relabel = None if labels_each_epoch is None else \
             (lambda e: torch.as_tensor(np.asarray(labels_each_epoch(e), np.float32)[keep], device=DEV))
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
                         ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
-                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel)
+                        label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel,
+                        legality=EpochLegality(legality_teams))
 
     def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
-                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None):
+                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, legality_teams=0):
         """A new model: this one-member model's weights trained further on 84-field rows; self is unchanged.
         The recipe is train_new's (AdamW, warm-up and cosine decay sized to the cap of `epochs`, EMA, ask dropout,
         label noise on training labels only). Validation loss on val=(rows, labels) is measured before the first epoch
         too, so epoch 0 is the starting weights: if no epoch beats them, early stopping returns them unchanged.
         early_stopping_threshold: the smallest validation-loss gain that resets the patience count, as in train_new.
-        watch={name: (rows, labels)}: more validation sets, logged every epoch and never used to stop."""
+        watch={name: (rows, labels)}: more validation sets, logged every epoch and never used to stop.
+        legality_teams=K: first-try legality every epoch, epoch 0 included, as in train_new."""
         net_kw = self.nets[0][1]
         start = copy.deepcopy(self.net).to(DEV)
         torch.manual_seed(seed)
         x, w, rw, keep = _training_tensors(self.tables, rows, labels)
         info = dict(base=self.info, fine_tune=True, n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs,
-                    patience=patience, early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None)
+                    patience=patience, early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None,
+                    legality_teams=legality_teams)
         return type(self)._fit(self.V, None, self.tables, start, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd,
                                warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold,
                                on_best=None, label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, epoch0=True,
-                               like=self)
+                               like=self, legality=EpochLegality(legality_teams))
 
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
-             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None):
+             patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None,
+             legality=None):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
         lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
-        relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps."""
+        relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps.
+        legality: an EpochLegality whose fields join every measured entry; its draw leaves training's random numbers untouched."""
         make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
                (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
@@ -431,7 +445,12 @@ class Model84:
         reset_epoch = 0                                   # last epoch that beat the lowest loss by more than threshold
         t_start = time.perf_counter()
 
+        checked = []                                      # the one model the legality check samples; its network is m
+
         def measure(m, entry):
+            if legality is not None and legality.teams:
+                if not checked: checked.append(make(m, {}))
+                entry.update(legality(checked[0]))
             if val is not None:
                 entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw)
             for name, (vx, vw) in (watch or {}).items():
@@ -442,7 +461,7 @@ class Model84:
             if val is not None:
                 best, best_sd = entry["val_loss"], {k: v.detach().clone() for k, v in m.state_dict().items()}
             entry["minutes"] = 0.0; log.append(entry)
-            print("  " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
+            _print_entry(entry)
         for p in range(epochs):
             if relabel is not None:
                 w = relabel(p)
@@ -469,9 +488,10 @@ class Model84:
             entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
             if on_epoch is not None: on_epoch(make(m, dict(epoch=p + 1)), p + 1)
             log.append(entry)
-            print("  " + " · ".join(f"{k} {v:.4f}" if isinstance(v, float) else f"{k} {v}" for k, v in entry.items()), flush=True)
+            _print_entry(entry)
             if patience and p + 1 - reset_epoch >= patience: break
             if stop_after and p + 1 >= stop_after: break
+        if legality is not None: legality.close()
         m = avg if avg is not None else net
         if patience and best_sd is not None: m.load_state_dict(best_sd)
         trained = [e for e in log if e["epoch"] > 0]
