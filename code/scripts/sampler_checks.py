@@ -22,6 +22,14 @@ dLLM's MDLMSampler.infill, and shifts the logits right by one for DiffuGPT, Diff
     compare A B                                             check 1, differing tokens and the first step they part
     copy --key K --out O [--device mps]                     check 2 for one candidate (venv-dlm, laptop GPU)
     quotes --dir D                                          check 3 as a Markdown table, from the benchmark's runs
+    dream-own --canvas F --out O --alg A [--samples N]      Dream's own sampler on the benchmark text (venv-dlm, GPU)
+
+Dream's own sampler. Dream's model repo ships its decoding code (generation_utils.py, diffusion_generate). Its default
+order, alg='origin', reveals each mask at random with probability 1 - s/t; its confidence orders (maskgit_plus and
+others) reveal int(masks * (1 - s/t)) of them, rounded down. Ours reveals the most confident ones on dLLM's schedule.
+dream-own fills the benchmark text with Dream's own code, so the share of values inside their quotes can be read for
+Dream's own sampler beside ours. Dream's code appends max_new_tokens masks after the text and refuses zero; one is
+appended and dropped.
 """
 import argparse
 import json
@@ -107,6 +115,14 @@ def quote_rows(directory: Path) -> list[dict[str, Any]]:
                      'by_field': {f: [sum(stays_inside(v) for g, v in flat if g == f), sum(g == f for g, _ in flat)]
                                   for f in dict.fromkeys(FIELDS)}})
     return rows
+
+
+def inside_shares(texts: list[list[str]]) -> dict[str, int]:
+    """How many hidden values, and how many species values, stay inside their quotes."""
+    flat = [(FIELDS[i % len(FIELDS)], v) for values in texts for i, v in enumerate(values)]
+    species = [v for f, v in flat if f == 'species']
+    return {'values': len(flat), 'inside': sum(stays_inside(v) for _, v in flat),
+            'species': len(species), 'species_inside': sum(stays_inside(v) for v in species)}
 
 
 def quote_table(rows: list[dict[str, Any]]) -> str:
@@ -262,6 +278,53 @@ def copy_check(key: str, out: Path, device: str) -> dict[str, Any]:
     return result
 
 
+# ---------- Dream's own sampler ----------
+
+def dream_own_samples(model: Any, canvas: dict[str, Any], alg: str, steps: int, temperature: float,
+                      seeds: Sequence[int], device: str, done: list[dict[str, Any]] | None = None,
+                      on_sample: Callable[[list[dict[str, Any]]], None] | None = None) -> list[dict[str, Any]]:
+    """The benchmark text filled by Dream's own diffusion_generate, one sample per seed; seeds in done are skipped."""
+    samples = list(done or [])
+    x = torch.tensor([canvas['ids']], device=device)
+    for seed in seeds:
+        if any(s['seed'] == seed for s in samples):
+            continue
+        torch.manual_seed(seed)
+        begin = time.perf_counter()
+        with torch.no_grad():
+            out = model.diffusion_generate(x, max_new_tokens=1, steps=steps, temperature=temperature, alg=alg,
+                                           mask_token_id=canvas['candidate']['mask_id'])
+        samples.append({'seed': seed, 'seconds': time.perf_counter() - begin,
+                        'filled_ids': out[0, :x.shape[1]].cpu().tolist()})
+        if on_sample:
+            on_sample(samples)
+    return samples
+
+
+def dream_own(canvas: dict[str, Any], out: Path, alg: str, steps: int, temperature: float, seeds: Sequence[int]
+              ) -> dict[str, Any]:
+    """Dream's own sampler on the laptop GPU. Samples already in out are kept, so a killed run resumes."""
+    info, family = canvas['candidate'], canvas['family']
+    assert family == 'dream', family
+    tokenizer = B.load_tokenizer(info)
+    torch.mps.set_per_process_memory_fraction(1.0)
+    model = B.load_model(info, family, 'native', 'mps')
+    result = json.loads(out.read_text()) if out.exists() else {
+        'candidate': info, 'family': family, 'sampler': f"Dream's own diffusion_generate, alg={alg}", 'alg': alg,
+        'steps': steps, 'temperature': temperature, 'environment': B.environment(), 'samples': []}
+
+    def save(samples: list[dict[str, Any]]) -> None:
+        result['samples'] = samples
+        result['filled_ids'] = [s['filled_ids'] for s in samples]
+        values, _ = benchmark_values(canvas, result, tokenizer.decode, tokenizer.mask_token)
+        result['values'] = values
+        result['shares'] = inside_shares(values)
+        out.write_text(json.dumps(result, ensure_ascii=False) + '\n')
+
+    save(dream_own_samples(model, canvas, alg, steps, temperature, seeds, 'mps', result['samples'], save))
+    return result
+
+
 # ---------- the command line ----------
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -284,6 +347,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     copy.add_argument('--out', type=Path, required=True)
     copy.add_argument('--device', default='mps')
     sub.add_parser('quotes').add_argument('--dir', type=Path, required=True)
+    own = sub.add_parser('dream-own')
+    own.add_argument('--canvas', type=Path, required=True)
+    own.add_argument('--out', type=Path, required=True)
+    own.add_argument('--alg', choices=('origin', 'maskgit_plus', 'topk_margin', 'entropy'), required=True)
+    own.add_argument('--steps', type=int, default=128)
+    own.add_argument('--temperature', type=float, default=1.0)
+    own.add_argument('--samples', type=int, default=4)
+    own.add_argument('--seed', type=int, default=2026)
     args = parser.parse_args(argv)
     if args.command in ('dllm', 'ours'):
         canvas = json.loads(args.canvas.read_text())
@@ -316,6 +387,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         s = copy_check(args.key, args.out, args.device)['summary']
         print(f"{args.key}: {s['cases']} values; copied whole with the shift {s['shift']['exact']}, "
               f"without {s['no_shift']['exact']}", flush=True)
+    elif args.command == 'dream-own':
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        seeds = range(args.seed, args.seed + args.samples)
+        s = dream_own(json.loads(args.canvas.read_text()), args.out, args.alg, args.steps, args.temperature,
+                      seeds)['shares']
+        print(f"Dream, alg={args.alg}: {s['inside']} of {s['values']} values inside their quotes, "
+              f"{s['species_inside']} of {s['species']} species", flush=True)
     else:
         rows = quote_rows(args.dir)
         print(quote_table(rows))

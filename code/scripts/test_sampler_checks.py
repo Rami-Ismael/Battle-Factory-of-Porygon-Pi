@@ -154,3 +154,45 @@ class RecordingTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class DreamOwnModel:
+    """Stands in for Dream's diffusion_generate: fills every mask with 'x' and, as Dream's code does, appends
+    max_new_tokens more positions. It records the settings it was called with and the seed it saw."""
+
+    def __init__(self):
+        self.calls = []
+
+    def diffusion_generate(self, inputs, **kwargs):
+        self.calls.append({**kwargs, 'seed': torch.initial_seed()})
+        filled = torch.where(inputs == kwargs['mask_token_id'], ord('x'), inputs)
+        return torch.cat([filled, torch.full((1, kwargs['max_new_tokens']), ord('y'))], 1)
+
+
+class DreamOwnTest(unittest.TestCase):
+    def setUp(self):
+        text = f'{{"species":"{MASK_TOKEN * 3}"}}'
+        self.canvas = {'ids': [ord(c) for c in text], 'candidate': {'mask_id': MASK_ID}}
+        self.model = DreamOwnModel()
+
+    def test_each_sample_is_dreams_fill_of_the_canvas_without_the_appended_position(self):
+        samples = S.dream_own_samples(self.model, self.canvas, 'origin', 16, 1.0, [7, 8], 'cpu')
+        self.assertEqual([s['seed'] for s in samples], [7, 8])
+        for s in samples:
+            self.assertEqual(decode(s['filled_ids']), '{"species":"xxx"}')
+
+    def test_dream_is_called_with_its_own_order_and_one_seed_per_sample(self):
+        S.dream_own_samples(self.model, self.canvas, 'maskgit_plus', 16, 0.5, [7, 8], 'cpu')
+        self.assertEqual([(c['alg'], c['steps'], c['temperature'], c['seed']) for c in self.model.calls],
+                         [('maskgit_plus', 16, 0.5, 7), ('maskgit_plus', 16, 0.5, 8)])
+        self.assertEqual({c['max_new_tokens'] for c in self.model.calls}, {1})
+
+    def test_samples_already_drawn_are_not_drawn_again(self):
+        done = S.dream_own_samples(self.model, self.canvas, 'origin', 16, 1.0, [7], 'cpu')
+        S.dream_own_samples(self.model, self.canvas, 'origin', 16, 1.0, [7, 8], 'cpu', done)
+        self.assertEqual([c['seed'] for c in self.model.calls], [7, 8])
+
+    def test_inside_shares_count_all_values_and_species_values(self):
+        row = ['Mew', 'a",'] + ['Or'] * (len(S.FIELDS) - 2)
+        self.assertEqual(S.inside_shares([row]), {'values': len(S.FIELDS), 'inside': len(S.FIELDS) - 1,
+                                                   'species': 1, 'species_inside': 1})
