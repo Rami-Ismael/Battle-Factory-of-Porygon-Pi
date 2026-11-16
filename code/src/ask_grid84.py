@@ -40,6 +40,7 @@ import lossdown as L                                     # before diffusion84: i
 sys.path.insert(0, str(HERE))
 import asked_vs_got as X
 import diffusion84 as M
+import grid_novelty
 import grid_seeds
 from checkpoints import load_checkpoint
 from ask_line import headline, line_measures
@@ -360,7 +361,8 @@ def report():
                    legal=sum(c["tried"] - c["rejected"] for c in cells) / max(sum(c["tried"] for c in cells), 1),
                    tries=sum(c["tried"] for c in cells), teams=sum(len(c["pastes"]) for c in cells),
                    battles=sum(c.get("battles", BATTLES_PER_OPPONENT * 49 * len(c.get("y", []))) for c in cells), rejections=reasons.most_common(10),
-                   win_rate_definition="against the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled, one battle per opponent")
+                   win_rate_definition="against the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled, one battle per opponent",
+                   novelty=grid_novelty.from_cells(cells, grid_novelty.training_line_ups()))
     out["summary"] = summary; save(out)
     print(f"{out['reader']} ({MODEL}): {summary['teams']} teams, {summary['battles']} battles, legal {summary['legal']:.1%}")
     print(f"{'ask':>8s} {'win':>6s} {'95% interval':>17s} {'legal':>7s} {'eff species':>12s} {'line-ups':>9s} {'top share':>10s}")
@@ -368,6 +370,7 @@ def report():
         print(f"{r['numerator']:>5d}/24 {r['win']:6.3f}   [{r['lo']:.3f}, {r['hi']:.3f}] {r['legal']:7.1%} {r['effective_species']:12.1f} {r['distinct_lineups']:9.2f} {r['top_species_share']:10.3f}")
     line = summary["line"]
     print(headline(line))
+    print(grid_novelty.summary_line(summary["novelty"]))
     print("line:", json.dumps(line)); print("Stat Points:", json.dumps(summary["stat_points"]))
     print("AG84_REPORT_DONE")
 
