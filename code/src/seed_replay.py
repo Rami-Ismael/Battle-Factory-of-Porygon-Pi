@@ -17,6 +17,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import grid_novelty
 import masking_rate_rows as MRR
 
 BASES = Path.home() / "vgc-data/seed_replay/bases.txt"
@@ -24,15 +25,7 @@ OUT = MRR.RES / "seed_replay.json"
 READER = {"sched_species_first": "Per-field, species-first (control)", "sched_linear_species_first": "Linear, species-first"}
 
 
-def swaps(line_ups, train):
-    """For each line-up, how many species swaps from the closest training line-up: 0 (copied) to 6."""
-    names = sorted({s for lu in train for s in lu} | {s for lu in line_ups for s in lu}); idx = {s: i for i, s in enumerate(names)}
-    def onehot(lus):
-        m = np.zeros((len(lus), len(names)), np.float32)
-        for i, lu in enumerate(lus): m[i, [idx[s] for s in lu]] = 1
-        return m
-    T, V = onehot(sorted(train)), onehot(line_ups)
-    return np.concatenate([6 - (V[i:i + 512] @ T.T).max(1) for i in range(0, len(V), 512)])
+swaps = grid_novelty.swaps
 
 
 def measures(path, train):
