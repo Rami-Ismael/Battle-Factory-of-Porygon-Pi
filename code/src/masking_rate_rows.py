@@ -66,13 +66,14 @@ def opponents_path(row, guidance):
     return RES / f"masking_rate_rows_opponents_{grid_name(row, guidance)}{'_smoke' if SMOKE else ''}.npz"
 
 
-def load_grid(row, guidance):
-    """The grid's results, or None until every cell has drawn its teams and battled them."""
+def load_grid(row, guidance, asks=None):
+    """The grid's results, or None until every cell has drawn its teams and battled them. asks: the ask numerators the
+    grid holds, all 23 unless named (the no-lookahead rejection row of #358 draws asks 13 to 17 only)."""
     path = grid_path(row, guidance)
     if not path.exists(): return None
     out = json.load(open(path))
     cells = {(c["numerator"], c["seed"]): c for c in out["cells"].values()}
-    if any((k, s) not in cells or "y" not in cells[(k, s)] for k in ALL_ASKS for s in SEEDS): return None
+    if any((k, s) not in cells or "y" not in cells[(k, s)] for k in (asks or ALL_ASKS) for s in SEEDS): return None
     out["by_ask_seed"] = cells
     return out
 
@@ -84,12 +85,12 @@ def error(got_by_ask, asks=SCORED_ASKS):
 
 
 # ---------------------------------------------------------------- per-opponent win rates, saved beside each grid
-def opponents(row, guidance):
+def opponents(row, guidance, asks=None):
     """Each team's win rate against each of the 49 opponents, read from the battle database the moment the grid ends.
     The bootstrap resamples opponents from these, and the weighted mean of a row must equal the score the grid stored."""
     use_pilot_src()
     import matchup_db as MDB
-    out = load_grid(row, guidance)
+    out = load_grid(row, guidance, asks)
     if out is None: raise SystemExit(f"{grid_name(row, guidance)}: the grid has cells without battles")
     con = MDB.connect(); policy = MDB.get_policy(con); held = MDB.H.team_ids(con)
     members = dict(con.execute("SELECT team_id, weight FROM team_set WHERE set_name='top50'").fetchall())
