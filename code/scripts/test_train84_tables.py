@@ -120,6 +120,20 @@ class MaskingRateArms(unittest.TestCase):
         self.assertEqual((sent["sched"], sent["early_stopping_threshold"], sent["seed"], sent["batch"], sent["lr"]), ("1,1,1,1,1", 0.0, 0, 256, 4e-4))
         self.assertTrue(callable(sent["on_epoch"]))
 
+    def test_every_training_checks_64_teams_per_epoch_unless_the_flag_says_otherwise(self):
+        """Issue #248: train() hands the flag's teams per epoch to the model; 0 turns the legality check off."""
+        import tempfile
+        model = mock.MagicMock(); model.info = dict(best_epoch=1, stopped_epoch=1, cap=80, patience=3)
+        self.assertEqual(TR.parse_args(["shuffled_linear"]).legality_teams, 64)
+        for flag, teams in (([], 64), (["--legality-teams", "0"], 0)):
+            with (self.subTest(flag=flag), tempfile.TemporaryDirectory() as tmp, mock.patch.object(TR, "CK", Path(tmp)),
+                  mock.patch.object(TR.X, "RES", Path(tmp)), mock.patch.object(TR.X, "setup", return_value=[None]),
+                  mock.patch.object(TR.T, "regulation_vocab", return_value=None), mock.patch.object(TR, "LEGALITY_TEAMS", TR.parse_args(["x", *flag]).legality_teams),
+                  mock.patch.object(TR.M.Model84, "train_new", return_value=model) as train_new, redirect_stdout(io.StringIO())):
+                table = self.fake_table()
+                TR.train("shuffled_linear", table["all_X"][:3], table["all_W"][:3], (table["all_X"][3:4], table["all_W"][3:4]), epochs=80)
+            self.assertEqual(train_new.call_args.kwargs["legality_teams"], teams)
+
     def test_under_the_linear_rate_the_share_hidden_at_t_is_t(self):
         import torch
         exponents = TR.M.sched84("1,1,1,1,1")

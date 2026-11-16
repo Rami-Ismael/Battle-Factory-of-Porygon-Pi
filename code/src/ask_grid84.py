@@ -26,7 +26,6 @@ Run preflight with MATCHUP_DB pointing at a private database. Finished cells are
 import hashlib
 import json
 import os
-import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -50,6 +49,7 @@ import matchup_db as MDB
 import team84 as T
 import top50 as T50
 from corpus import parse_team_text
+from epoch_legality import reason
 from hps_generate import Validator
 sys.path.insert(0, str(HERE))                            # the imports above put /tmp/vgc-pilot/src first again, and its
 from team_diversity import slots_from_paste              # team_diversity drops an item-less Pokémon's slot
@@ -172,11 +172,6 @@ def table_of(row):
     """The training table a model row names. A row that names none trained on the shuffled-only table, the default
     since 2026-11-11, so a new model is never compared with the older table's teams by accident."""
     return row.get("table", DEFAULT_TABLE)
-
-
-def reason(err):
-    """A rejection's first line with its Pokémon, move and item names removed, so counts group by kind of error."""
-    return re.sub(r"\s+", " ", re.sub(r"[^:]*?(can't|cannot|has|is|must|needs)\b", r"\1", str(err).split("\n")[0])).strip()[:80]
 
 
 def subset_diversity(pastes, seed):
