@@ -26,7 +26,7 @@ files. They run only with --older-table, so no training reads those labels by ac
 
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
                           | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
-                          | shuffled_per_field | shuffled_linear
+                          | shuffled_per_field | shuffled_linear | shuffled_linear_no_table_loss
                           | loop_block_equal_compute | loop_block_equal_epochs | carry_state_equal_compute | carry_state_equal_epochs
 
 The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking schedule where every field
@@ -41,6 +41,12 @@ labelled teams of the shuffled-only table, the byepoch recipe (label noise 1/48,
 cap 80, one checkpoint per epoch) with early-stopping threshold 0, so any new lowest validation loss resets patience. They
 differ only in the masking schedule: the per-field exponents 16,4,4,1.5,1, or the linear rate 1,1,1,1,1 where every field is
 hidden with chance t.
+
+shuffled_linear_no_table_loss is "No tables in the loss" (issue #361; docs/no-tables-in-the-loss.md): shuffled_linear's rows
+and recipe with the legal Pokémon construction tables and the Stat Point budget left out of the training and validation loss.
+The rows the tables reject are still dropped. Its per-epoch legality check draws without the tables, so the illegal share
+shows what the network learned. Its control is shuffled_linear's 80 saved epoch checkpoints, checked the same way by
+src/checkpoint_legality.py.
 
 The five pos_ arms are the position-embedding split (docs/position-embedding-split.md; issues #78, #80 to #83, spec #233):
 all teams of the shuffled-only table (results/lossdata84_shuffled_only.npz), label noise 1/48, exactly 21 epochs with the
@@ -105,6 +111,9 @@ LINEAR_MASKING_RATE = M.LINEAR_SCHED                     # every field hidden wi
 # Masking-schedule rows: code ID -> the exponents of the masking schedule in training, the only setting that differs
 MASKING_RATE_ARMS = dict(shuffled_per_field=dict(sched=M.PER_FIELD_SCHED), shuffled_linear=dict(sched=LINEAR_MASKING_RATE))
 NAMES.update(shuffled_per_field="stat84_shuffled_noise_per_field_es3_cap80", shuffled_linear="stat84_shuffled_noise_linear_es3_cap80")
+# No tables in the loss (issue #361): code ID -> what changes from shuffled_linear, the loss mask and the check's draw
+TABLE_LOSS_ARMS = dict(shuffled_linear_no_table_loss=dict(table_loss=False, legality_tables=False, legality_copies=True))
+NAMES.update(shuffled_linear_no_table_loss="stat84_shuffled_noise_linear_no_table_loss_es3_cap80")
 CONTROL_EPOCHS = 80                                       # the cap of the loop arms' control, shuffled_linear
 LOOP_BLOCK = dict(loop_start=1, loop_layers=2, loop_max=4)              # 6 needs 13 GB of GPU memory per step (docs/looped-84-fields.md)
 LOOP_NETS = dict(loop_block=LOOP_BLOCK, carry_state=dict(carry=True))
@@ -225,6 +234,16 @@ def train_masking_rate_arms(arm):
           early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS[arm])
 
 
+def train_table_loss_arms(arm):
+    """No tables in the loss: shuffled_linear's rows and call with the loss mask off and the legality check drawing without the tables."""
+    global DATA_SHA, DATA_TABLE
+    if arm not in TABLE_LOSS_ARMS: return
+    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
+    train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
+          early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS["shuffled_linear"], **TABLE_LOSS_ARMS[arm])
+
+
 def train_loop_arms(arm):
     """The loop arm named by arm: shuffled_linear's rows and call with one network option added, and for the
     equal-compute arms a cap of equal_compute_cap epochs in place of 80."""
@@ -293,9 +312,10 @@ def main(argv):
                   ddom_tau=dict(ddom_tau01=0.1, ddom_tau03=0.3)[arm])
     train_position_arms(arm)
     train_masking_rate_arms(arm)
+    train_table_loss_arms(arm)
     train_loop_arms(arm)
     if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke",
-                   *POSITION_ARMS, *MASKING_RATE_ARMS, *LOOP_ARMS):
+                   *POSITION_ARMS, *MASKING_RATE_ARMS, *TABLE_LOSS_ARMS, *LOOP_ARMS):
         sys.exit(__doc__)
 
 
