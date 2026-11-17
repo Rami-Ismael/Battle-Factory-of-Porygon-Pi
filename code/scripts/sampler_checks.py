@@ -23,6 +23,13 @@ dLLM's MDLMSampler.infill, and shifts the logits right by one for DiffuGPT, Diff
     copy --key K --out O [--device mps]                     check 2 for one candidate (venv-dlm, laptop GPU)
     quotes --dir D                                          check 3 as a Markdown table, from the benchmark's runs
     dream-own --canvas F --out O --alg A [--samples N]      Dream's own sampler on the benchmark text (venv-dlm, GPU)
+    start-canvas --canvas F --out O                         the benchmark text with the tokenizer's start token first
+
+DiffuLLaMA's start token (docs/diffullama-start-token.md). Check 2 found DiffuLLaMA 7B filling nearly every hidden
+value with newlines. Every text here is encoded without special tokens, so DiffuLLaMA, a LLaMA-2 model, never sees
+the start token <s> that LLaMA-2 and DiffuLLaMA's own inference script put first. copy --start-token prepends it to
+the copy texts, start-canvas to the benchmark text, and copy --attention eager runs DiffuLLaMA's attention code as its
+own inference script defaults to.
 
 Dream's own sampler. Dream's model repo ships its decoding code (generation_utils.py, diffusion_generate). Its default
 order, alg='origin', reveals each mask at random with probability 1 - s/t; its confidence orders (maskgit_plus and
@@ -194,10 +201,11 @@ def _fill_result(sampler: str, canvas: dict[str, Any], steps: int, states: list[
 
 # ---------- check 2: does the right shift copy a visible answer ----------
 
-def copy_cases(team: list[dict[str, Any]], tokenizer: Any, mask_id: int) -> list[dict[str, Any]]:
+def copy_cases(team: list[dict[str, Any]], tokenizer: Any, mask_id: int,
+               start_id: int | None = None) -> list[dict[str, Any]]:
     """The team written twice, then one case per value of the second copy with that value's own tokens masked.
     Each case holds the masked token ids, the masked positions and the answer's ids. A value whose tokens cross
-    its quotes is left out."""
+    its quotes is left out. start_id, when given, is put before the text, and every position moves up by one."""
     pieces = json_pieces(team)
     rendered, where = D.render(pieces, lambda _, value: value_text(value))
     text = COPY_LABELS[0] + rendered + COPY_LABELS[1] + rendered
@@ -215,8 +223,11 @@ def copy_cases(team: list[dict[str, Any]], tokenizer: Any, mask_id: int) -> list
         masked = list(ids)
         for n in positions:
             masked[n] = mask_id
+        answer = [ids[n] for n in positions]
+        if start_id is not None:
+            masked, positions = [start_id, *masked], [n + 1 for n in positions]
         cases.append({'path': D.value_label(path), 'value': text[second + a:second + b], 'ids': masked,
-                      'positions': positions, 'answer': [ids[n] for n in positions]})
+                      'positions': positions, 'answer': answer})
     return cases
 
 
@@ -243,32 +254,40 @@ def copy_teams() -> list[list[dict[str, Any]]]:
     return [team[i:i + COPY_POKEMON] for team in teams for i in (0, COPY_POKEMON)]
 
 
-def copy_check(key: str, out: Path, device: str) -> dict[str, Any]:
-    """Check 2 for one candidate. Cases already in out are kept, so a killed run resumes."""
+def copy_check(key: str, out: Path, device: str, start_token: bool = False, attention: str = 'sdpa',
+               limit: int | None = None) -> dict[str, Any]:
+    """Check 2 for one candidate. Cases already in out are kept, so a killed run resumes. start_token puts the
+    tokenizer's start token first; attention picks DiffuLLaMA's attention code; limit stops after that many
+    values, for the repeat probe."""
     canvas = json.loads((Path.home() / 'vgc-data/masked_memory_bench/canvas' / f'{key}.json').read_text())
     info, family = canvas['candidate'], canvas['family']
     tokenizer = B.load_tokenizer(info)
+    start_id = tokenizer.bos_token_id if start_token else None
+    if start_token and start_id is None:
+        raise SystemExit(f"{info['label']}: its tokenizer has no start token")
     if device == 'mps':
         torch.mps.set_per_process_memory_fraction(1.0)
-    model = B.load_model(info, family, 'native', device)
+    model = B.load_model(info, family, 'native', device, attention)
     result = json.loads(out.read_text()) if out.exists() else {
         'candidate': info, 'family': family, 'trained_shifted': family in B.SHIFTED, 'device': device,
-        'precision': B.dtype_name(family), 'environment': B.environment(), 'cases': []}
+        'precision': B.dtype_name(family), 'environment': B.environment(), 'start_token': start_id,
+        'attention': attention, 'cases': []}
     done = {(c['team'], c['path']) for c in result['cases']}
-    for t, team in enumerate(copy_teams()):
-        for case in copy_cases(team, tokenizer, info['mask_id']):
-            if (t, case['path']) in done:
-                continue
-            assert len(case['ids']) <= 1024, len(case['ids'])
-            row = {'team': t, 'path': case['path'], 'value': case['value'], 'tokens': len(case['positions'])}
-            for shift in (True, False):
-                filled = fill_case(lambda x: B.full_logits(model, family, x), case, info['mask_id'], shift, device)
-                exact, share = copied(filled, case)
-                row['shift' if shift else 'no_shift'] = {
-                    'exact': exact, 'token_share': share,
-                    'got': tokenizer.decode([filled[n] for n in case['positions']])}
-            result['cases'].append(row)
-            out.write_text(json.dumps(result, ensure_ascii=False) + '\n')
+    cases = [(t, case) for t, team in enumerate(copy_teams())
+             for case in copy_cases(team, tokenizer, info['mask_id'], start_id)][:limit]
+    for t, case in cases:
+        if (t, case['path']) in done:
+            continue
+        assert len(case['ids']) <= 1024, len(case['ids'])
+        row = {'team': t, 'path': case['path'], 'value': case['value'], 'tokens': len(case['positions'])}
+        for shift in (True, False):
+            filled = fill_case(lambda x: B.full_logits(model, family, x), case, info['mask_id'], shift, device)
+            exact, share = copied(filled, case)
+            row['shift' if shift else 'no_shift'] = {
+                'exact': exact, 'token_share': share,
+                'got': tokenizer.decode([filled[n] for n in case['positions']])}
+        result['cases'].append(row)
+        out.write_text(json.dumps(result, ensure_ascii=False) + '\n')
     result['summary'] = {name: {'exact': sum(c[name]['exact'] for c in result['cases']),
                                 'tokens': sum(c[name]['token_share'] * c['tokens'] for c in result['cases'])}
                          for name in ('shift', 'no_shift')}
@@ -276,6 +295,15 @@ def copy_check(key: str, out: Path, device: str) -> dict[str, Any]:
     result['summary']['answer_tokens'] = sum(c['tokens'] for c in result['cases'])
     out.write_text(json.dumps(result, ensure_ascii=False) + '\n')
     return result
+
+
+def with_start_token(canvas: dict[str, Any], start_id: int) -> dict[str, Any]:
+    """The benchmark canvas with start_id before its first token: every slot moves up by one, and the text, which
+    the start token does not appear in, stays as it was."""
+    if canvas['ids'][:1] == [start_id]:
+        raise ValueError('the canvas already starts with the start token')
+    return canvas | {'ids': [start_id, *canvas['ids']], 'slots': [n + 1 for n in canvas['slots']],
+                     'tokens': canvas['tokens'] + 1, 'start_token': start_id}
 
 
 # ---------- Dream's own sampler ----------
@@ -327,6 +355,20 @@ def dream_own(canvas: dict[str, Any], out: Path, alg: str, steps: int, temperatu
 
 # ---------- the command line ----------
 
+def copy_or_start_canvas(args: argparse.Namespace) -> None:
+    """Check 2 for one candidate, or the benchmark canvas with the start token first."""
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    if args.command == 'copy':
+        s = copy_check(args.key, args.out, args.device, args.start_token, args.attention, args.limit)['summary']
+        print(f"{args.key}: {s['cases']} values; copied whole with the shift {s['shift']['exact']}, "
+              f"without {s['no_shift']['exact']}", flush=True)
+        return
+    canvas = json.loads(args.canvas.read_text())
+    start_id = B.load_tokenizer(canvas['candidate']).bos_token_id
+    args.out.write_text(json.dumps(with_start_token(canvas, start_id), ensure_ascii=False) + '\n')
+    print(f"{canvas['candidate']['label']}: start token {start_id} put first", flush=True)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     sub = parser.add_subparsers(dest='command', required=True)
@@ -346,6 +388,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     copy.add_argument('--key', choices=B.ORDER, required=True)
     copy.add_argument('--out', type=Path, required=True)
     copy.add_argument('--device', default='mps')
+    copy.add_argument('--start-token', action='store_true', help="put the tokenizer's start token first")
+    copy.add_argument('--attention', choices=('sdpa', 'eager'), default='sdpa')
+    copy.add_argument('--limit', type=int, default=None, help='only the first N values (the repeat probe)')
+    start = sub.add_parser('start-canvas')
+    start.add_argument('--canvas', type=Path, required=True)
+    start.add_argument('--out', type=Path, required=True)
     sub.add_parser('quotes').add_argument('--dir', type=Path, required=True)
     own = sub.add_parser('dream-own')
     own.add_argument('--canvas', type=Path, required=True)
@@ -383,10 +431,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         d = differences(a['states'], b['states'])
         print(f"{a['sampler']} against {b['sampler']}: {d['differing_tokens']} differing tokens, "
               f"first differing step {d['first_step']}")
-    elif args.command == 'copy':
-        s = copy_check(args.key, args.out, args.device)['summary']
-        print(f"{args.key}: {s['cases']} values; copied whole with the shift {s['shift']['exact']}, "
-              f"without {s['no_shift']['exact']}", flush=True)
+    elif args.command in ('copy', 'start-canvas'):
+        copy_or_start_canvas(args)
     elif args.command == 'dream-own':
         args.out.parent.mkdir(parents=True, exist_ok=True)
         seeds = range(args.seed, args.seed + args.samples)

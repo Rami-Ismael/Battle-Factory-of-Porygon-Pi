@@ -252,8 +252,10 @@ def quantize_linears(model: torch.nn.Module, device: str | torch.device) -> int:
     return len(names)
 
 
-def load_model(info: dict[str, Any], family: str, precision: str = 'native', device: str = 'mps') -> Any:
-    """The candidate on device; int8 always ends on the GPU, after loading on the CPU and rounding there."""
+def load_model(info: dict[str, Any], family: str, precision: str = 'native', device: str = 'mps',
+               attention: str = 'sdpa') -> Any:
+    """The candidate on device; int8 always ends on the GPU, after loading on the CPU and rounding there. attention
+    picks DiffuLLaMA's attention code: sdpa, or eager as its own inference script defaults to."""
     from transformers import AutoModel, AutoModelForMaskedLM, LlamaForCausalLM
     dtype = getattr(torch, dtype_name(family))
     first = device if precision == 'native' else 'cpu'
@@ -261,7 +263,7 @@ def load_model(info: dict[str, Any], family: str, precision: str = 'native', dev
     if family == 'gpt2':
         model = load_diffugpt(info, dtype, first)
     elif family == 'llama':
-        model = LlamaForCausalLM.from_pretrained(info['repo'], attn_implementation='sdpa', **common)
+        model = LlamaForCausalLM.from_pretrained(info['repo'], attn_implementation=attention, **common)
     elif family == 'a2d':
         with ignoring_main_only_imports():
             model = AutoModelForMaskedLM.from_pretrained(info['repo'], trust_remote_code=True, **common)

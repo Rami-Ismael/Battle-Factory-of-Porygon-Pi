@@ -1,7 +1,9 @@
 """The three sampler checks of #236 with a character-level fake tokenizer and a fake model on the CPU.
 
-No checkpoint, GPU, dllm or vault file is read, so it is in ci_tests.txt.
+No checkpoint, GPU, dllm or vault file is read, so it is in ci_tests.txt. The LLaMA attention test builds a random
+two-layer model and runs only where transformers is installed (venv-dlm).
 """
+import importlib.util
 import unittest
 
 import torch
@@ -10,6 +12,7 @@ import masked_diffusion_memory_bench as B
 import sampler_checks as S
 
 MASK_TOKEN, MASK_ID = '\x00', 0
+START_ID = 1                                           # a code point no team text holds
 
 
 class Characters:
@@ -97,6 +100,66 @@ class CopyCasesTest(unittest.TestCase):
         exact, share = S.copied(filled, case)
         self.assertFalse(exact)
         self.assertAlmostEqual(share, 6 / 7)
+
+
+class StartTokenTest(unittest.TestCase):
+    """DiffuLLaMA's start token (docs/diffullama-start-token.md): the texts move up by one position."""
+
+    def test_copy_cases_put_the_start_token_first_and_move_every_position_up(self):
+        plain = S.copy_cases(TEAM, Characters(), MASK_ID)
+        started = S.copy_cases(TEAM, Characters(), MASK_ID, start_id=START_ID)
+        self.assertEqual(len(started), len(plain))
+        for a, b in zip(plain, started):
+            self.assertEqual(b['ids'], [START_ID] + a['ids'])
+            self.assertEqual(b['positions'], [n + 1 for n in a['positions']])
+            self.assertEqual(b['answer'], a['answer'])
+            self.assertTrue(all(b['ids'][n] == MASK_ID for n in b['positions']))
+
+    def test_the_benchmark_canvas_keeps_its_masks_on_its_slots(self):
+        canvas = {'ids': [7, MASK_ID, MASK_ID, 8, MASK_ID], 'slots': [1, 2, 4], 'tokens': 5, 'text': 'x'}
+        started = S.with_start_token(canvas, START_ID)
+        self.assertEqual(started['ids'][0], START_ID)
+        self.assertEqual(started['tokens'], 6)
+        self.assertTrue(all(started['ids'][n] == MASK_ID for n in started['slots']))
+        self.assertEqual(started['ids'].count(MASK_ID), len(started['slots']))
+        self.assertEqual(started['text'], 'x')
+        with self.assertRaises(ValueError):
+            S.with_start_token(started, START_ID)
+
+
+@unittest.skipUnless(importlib.util.find_spec('transformers'), 'transformers is installed only in venv-dlm')
+class LlamaAttentionTest(unittest.TestCase):
+    """DiffuLLaMA runs as LlamaForCausalLM with an all-zero 4D mask. A random two-layer LLaMA shows that the mask
+    reaches attention in the installed transformers: the first position sees the last token, under either
+    attention code, and the two codes agree."""
+
+    def setUp(self):
+        from transformers import LlamaConfig, LlamaForCausalLM
+        torch.manual_seed(0)
+        config = LlamaConfig(vocab_size=40, hidden_size=32, intermediate_size=64, num_hidden_layers=2,
+                             num_attention_heads=4, num_key_value_heads=4, max_position_embeddings=64)
+        self.models = {}
+        for attention in ('sdpa', 'eager'):
+            config._attn_implementation = attention
+            torch.manual_seed(0)
+            self.models[attention] = LlamaForCausalLM(config).eval()
+        self.x = torch.tensor([[1, 5, 6, 7, 8, 9]])
+        self.other = self.x.clone()
+        self.other[0, -1] = 10
+
+    def test_the_first_position_sees_the_last_token(self):
+        for attention, model in self.models.items():
+            with torch.no_grad():
+                a = B.full_logits(model, 'llama', self.x)[0, 0]
+                b = B.full_logits(model, 'llama', self.other)[0, 0]
+                causal = model(input_ids=self.x).logits[0, 0] - model(input_ids=self.other).logits[0, 0]
+            self.assertGreater(float((a - b).abs().max()), 1e-4, attention)
+            self.assertEqual(float(causal.abs().max()), 0.0, attention)
+
+    def test_sdpa_and_eager_give_the_same_logits(self):
+        with torch.no_grad():
+            a, b = (B.full_logits(self.models[k], 'llama', self.x) for k in ('sdpa', 'eager'))
+        self.assertLess(float((a - b).abs().max()), 1e-4)
 
 
 class Copier(torch.nn.Module):
