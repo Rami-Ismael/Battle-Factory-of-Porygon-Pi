@@ -29,9 +29,8 @@ Shared recipe (`src/train84.py`): labelled teams of the shuffled-only table, the
 ## Measures
 
 - **Illegal share** (primary): teams the validator rejects on the first draw, over the 64 teams drawn. The first-try legal share is 1 minus it.
-- **Errors per team**: the mean count of the validator's errors over the 64 teams, 0 for a legal team. Added 2026-11-16 after the preflight: without the tables a team breaks about 19 rules at once, so the whole-team share can sit at 1 while the network improves. This line keeps moving then.
-- **Copied share**: drawn teams identical to a training team, with slot and move order ignored. An exact copy is always legal, so a falling illegal share needs this beside it.
 - **Top rejection reasons**: each kind of error, with names and numbers removed, counted once per team that has it.
+- Errors per team and the copied share (drawn teams identical to a training team) are logged in the result files but are not measures of this experiment. They were proposed on 2026-11-16 after the preflight, and the owner declined them on 2026-11-17: "let see what happen". The copied share is read only as a check: an exact copy is always legal, so the result comment names it if any epoch has one.
 - **Validation loss** of each arm on its own loss. The two arms' losses are not comparable: the new arm's includes the forbidden values (owner, 2026-11-16).
 
 ## Plan
@@ -39,15 +38,15 @@ Shared recipe (`src/train84.py`): labelled teams of the shuffled-only table, the
 A single primary measure, nothing trades against it, so the question is better, no worse or the same, with a margin.
 
 - **Primary comparison:** the new arm's illegal share against the control's at the same epoch, over epochs 1 to the new arm's stopping epoch. The control's line is read from `results/stat84_shuffled_noise_linear_es3_cap80_legality_no_tables.json` (`src/checkpoint_legality.py`), the new arm's from the curve in `results/stat84_shuffled_noise_linear_no_table_loss_es3_cap80.json`.
-- **Smallest effect worth acting on:** 0.125 in illegal share, two standard errors at 64 teams and p = 0.5. For errors per team, 0.84 errors at one epoch.
+- **Smallest effect worth acting on:** 0.125 in illegal share, two standard errors at 64 teams and p = 0.5.
 - **Predictions, written before the new arm runs:**
-  1. The control's illegal share is 1.0 at every epoch, since nothing ever taught it the forbidden values. Its errors per team stay between 18 and 21.
-  2. The new arm's errors per team sit below the control's by more than 0.84 from epoch 1 on. Discrete diffusion models learn the data's support before its frequencies ("Support Before Frequency in Discrete Diffusion", Müller et al. 2026), so most of the drop should come early.
-  3. The new arm's illegal share falls below 0.875 at some epoch. This is the uncertain one: a legal team needs about 36 fields right at once.
+  1. The control's illegal share is 1.0 at every epoch, since nothing ever taught it the forbidden values.
+  2. The new arm's illegal share falls below 0.875 at some epoch. This is uncertain: a legal team needs about 36 fields right at once. Discrete diffusion models learn the data's support before its frequencies ("Support Before Frequency in Discrete Diffusion", Müller et al. 2026), so if it falls, most of the drop should come early.
 - **Stopping rule:** the new arm trains to its own early stop (patience 3 on its unmasked validation loss) or the cap of 80. The control's checkpoint check covers all 80 epochs.
 - **Baselines:** the untrained network drawn without the tables, at 20.5 errors per team and 100% illegal (test run 2026-11-16), and the default model with the tables, at 0% illegal (preflight).
 - **Budget and cost:** no battles. The control's check takes about 5 seconds a checkpoint, so about 10 minutes for 80. The new arm's training took the control 431.5 minutes for 80 epochs on this laptop's GPU, and the check adds about 5 seconds an epoch. Run it behind other sessions' jobs.
-- **Result:** one ECharts chart of illegal share by epoch, one line per arm, with the top rejection reasons beside it, posted on issue #361. A second chart shows errors per team on the same epochs. No ask grid, no battles (owner, 2026-11-16).
+- **Result:** one ECharts chart of illegal share by epoch, one line per arm, with the top rejection reasons beside it, posted on issue #361 (`src/no_tables_in_the_loss_figure.py`). No ask grid, no battles (owner, 2026-11-16).
+- **Run:** the queue `~/vgc-data/no_tables_in_the_loss/ntl_queue.sh` runs a frozen copy of `src/` behind other sessions' jobs: the control's check over its 80 checkpoints, then the new arm's training, then the chart and the comment on #361.
 
 ## Preflight
 
@@ -70,8 +69,11 @@ Saved under `preflight` in `results/no_tables_in_the_loss.json` (`src/no_tables_
 ## Noise floor
 
 - **Illegal share:** standard error `sqrt(p(1-p)/64)`, at most 0.0625. One epoch against one epoch separates arms that differ by about 0.25 (`3.9 / δ²` teams per arm at 5% false positives and 80% power). Pooling the last 10 epochs of each arm, 640 teams, separates 0.078.
-- **Errors per team:** standard deviation 1.5 to 1.8 per team at epoch 80, so a standard error of 0.22 at 64 teams. The mean across four draw seeds moves by 0.13. One epoch against one epoch separates 0.84 errors; the last 10 epochs pooled separate 0.27.
 - **Draws:** every epoch draws from seed 12345, so the curve moves only when the model does. Epoch-to-epoch wiggles are model changes, not draw noise.
-- **Training seed:** one training per arm, so a gap mixes the loss mask with the training seed's effect. The prediction is a gap of many errors per team, far beyond what a training seed moves. A gap within 2 errors per team would need a second seed before it is read as the mask's effect.
+- **Training seed:** one training per arm, so a gap mixes the loss mask with the training seed's effect. A gap within 0.25 in illegal share would need a second seed before it is read as the mask's effect.
 
-The budget can detect the smallest effect worth acting on in both measures when the last 10 epochs are pooled.
+The budget can detect the smallest effect worth acting on when the last 10 epochs are pooled.
+
+## Deviations
+
+- 2026-11-17, before the new arm trained: errors per team and the copied share, added to the measures after the preflight, were taken out at the owner's word ("I don't agree with the table, let see what happen"). The illegal share is the only measure, as the issue planned. The second chart was dropped with them.
