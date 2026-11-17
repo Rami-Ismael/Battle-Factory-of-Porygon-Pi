@@ -89,6 +89,10 @@ def figure(folder=FOLDER):
     print(share_chart(data, folder)); print(binding_chart(folder))
 
 
+def pct(v):
+    return f"{int(v * 100 + 0.5)}%"                         # half up, like the chart's labels
+
+
 def comment(image):
     data = lines(); arm, control = data[NEW], data[OLD]
     b = binding()
@@ -111,9 +115,9 @@ def comment(image):
         "",
         "| Probability legal for… | Ability | First move |",
         "| --- | --- | --- |",
-        *[f"| {part} | {b['ability'][i]:.0%} | {b['first move'][i]:.0%} |" for i, part in enumerate(PARTS)],
+        *[f"| {part} | {pct(b['ability'][i])} | {pct(b['first move'][i])} |" for i, part in enumerate(PARTS)],
         "",
-        f"Only {b['ability'][2]:.0%} and {b['first move'][2]:.0%} go to values no team member could have, so the data's "
+        f"Only {pct(b['ability'][2])} and {pct(b['first move'][2])} go to values no team member could have, so the data's "
         "legality was learned at the team level. One ability or move placed on the wrong team member makes the whole "
         "team illegal. This matches the 2026-11-04 swap test (Stat "
         "Points barely move when two Pokémon swap) and #84 (removing the slot vectors changed nothing). The tables hide it "
