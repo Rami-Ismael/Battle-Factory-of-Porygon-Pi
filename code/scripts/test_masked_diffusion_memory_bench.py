@@ -50,6 +50,13 @@ class ScheduleTest(unittest.TestCase):
         self.assertEqual(B.schedule(3, 6), [1, 1, 1])
         self.assertEqual(max(B.schedule(354, 128)) - min(B.schedule(354, 128)), 1)
 
+    def test_an_exact_half_rounds_as_dllm_does(self):
+        """dLLM ca176752's get_num_transfer_tokens gives these (#236): its float32 ratio puts 18 / 12 and 3 / 2
+        just under the half, so they round down where exact arithmetic would round to even."""
+        self.assertEqual(B.schedule(22, 16), [1, 1, 1, 1, 1, 2, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1])
+        self.assertEqual(B.schedule(5, 4), [1, 1, 2, 1])
+        self.assertEqual(B.schedule(354, 128)[66:72], [3, 3, 2, 3, 2, 3])
+
 
 class FillTest(unittest.TestCase):
     def test_fills_every_slot_and_leaves_the_rest(self):

@@ -15,7 +15,7 @@ correctly on the masked Qwen models), written here because dllm is not installed
 schedule and Gumbel noise use float64, which the laptop's GPU refuses:
     one window over the whole text; at each step the model scores the text, each mask draws a token by
     Gumbel-max at the given temperature, and the most confident masks are committed (low-confidence remasking).
-    The number committed per step follows dLLM's linear schedule, computed in Python integers on the CPU.
+    The number committed per step follows dLLM's linear schedule with dLLM's own float32 rounding, on the CPU.
     The Gumbel noise is float32 in log form, argmax(logits - T * log(-log u)), which draws from the same
     distribution as dLLM's exp(logits) / (-log u)^T and cannot overflow.
 Temperature and step count are always explicit (dLLM's defaults are 0, which draws one team n times, and 128).
@@ -73,14 +73,21 @@ GIB = 2**30
 # ---------- the sampler: pure torch, so the tests run on the CPU ----------
 
 def schedule(masks: int, steps: int) -> list[int]:
-    """Tokens committed per step under dLLM's linear schedule, zeros dropped: step j commits
-    round(remaining / (steps - j)), rounding half to even as torch.round does."""
+    """Tokens committed per step under dLLM's linear schedule (get_num_transfer_tokens with LinearAlphaScheduler),
+    zeros dropped. Step j commits remaining * (1 - s / t), t = (steps - j) / steps and s = t - 1 / steps, rounded
+    half to even. dLLM takes the ratio s / t in float32 and the product in float64, so an exact half such as
+    18 / 12 lands just under it and rounds down; the same arithmetic is copied here, on the CPU (#236)."""
     counts, remaining = [], masks
     for j in range(steps):
-        n = min(round(remaining / (steps - j)), remaining)
+        t = torch.tensor((steps - j) / steps, dtype=torch.float32)
+        s = torch.tensor((steps - j - 1) / steps, dtype=torch.float32)
+        kept = ((1 - (1 - s)) / (1 - (1 - t))).item()        # dLLM's reverse_mask_prob: (1 - alpha_s) / (1 - alpha_t)
+        n = min(round(remaining * (1 - kept)), remaining)    # Python floats are float64; round is half to even
         remaining -= n
         if n:
             counts.append(n)
+        if not remaining:
+            break
     assert sum(counts) == masks
     return counts
 
@@ -374,6 +381,7 @@ def run(canvas: dict[str, Any], batch: int, scope: str, steps: int, temperature:
         out['sample_seconds'] = time.perf_counter() - begin
         out['seconds_per_team'] = out['sample_seconds'] / batch
         out['filled'] = [tokenizer.decode(row.tolist()) for row in filled.cpu()]
+        out['filled_ids'] = filled.cpu().tolist()    # each hidden value's own tokens, for #236's quote count
         out['status'] = 'fits'
     except Exception as error:
         if not is_over_ceiling(error):
