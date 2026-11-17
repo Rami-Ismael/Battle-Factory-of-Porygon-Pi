@@ -16,11 +16,15 @@ drew 32 of 32 teams illegal), so the whole-team share can sit at 1 while the net
 count of the validator's errors over all teams drawn (0 for a legal team), keeps moving then. rejection_reasons counts
 each kind of error once per team that has it.
 
+rule_shares (owner, 2026-11-17: "more measurement than just legality"): for each rule in RULES, the share of drawn
+teams that break it, read off the tokens with the tables' compatibility data rather than the validator's wording. A
+team breaking several rules counts once under each.
+
 known=team_keys(training rows) adds copied_share: the share of drawn teams identical to a training team, with slot order
 and move order ignored. An exact copy is always legal, so a falling illegal share needs this beside it.
 
     check = EpochLegality(teams=64)        # teams=0: no check, no fields; tables=False: draw without the tables
-    entry.update(check(model))             # illegal_share, errors_per_team, legality_teams, rejection_reasons, legality_seconds
+    entry.update(check(model))             # illegal_share, errors_per_team, legality_teams, rejection_reasons, rule_shares, legality_seconds
     check.close()
 """
 import re
@@ -30,6 +34,7 @@ from collections import Counter
 import numpy as np
 import torch
 
+from corpus import MEGA_STONE_OF, norm
 from hps_generate import Validator
 
 TEAMS = 64                                  # standard error about ±0.06 on the share (owner, 2026-11-08)
@@ -46,6 +51,49 @@ NAMED = re.compile(r"\b(can't have|can't learn|can't hold|multiple copies of|tra
 
 FIELDS, SLOTS, STAT_POINTS = 8, 6, 6                 # fields per Pokémon in the 48-field block, Pokémon, Stat Points per Pokémon
 MOVES = slice(3, 7)
+STAT0 = FIELDS * SLOTS                               # first Stat Point column
+MAX_TOTAL = 66                                       # Stat Points per Pokémon (stat_points.MAX_TOTAL)
+RULES = ("item used more than once", "wrong Mega Stone", "other item the species can't hold", "species used more than once",
+         "ability the species can't have", "move the species can't learn", "same move twice on one Pokémon", "Stat Points over 66")
+
+
+def is_mega_stone(name):
+    return norm(name) in MEGA_STONE_OF
+
+
+def _repeated(v, ignore):
+    """[B] whether a row of v [B, n] holds a value twice, values in ignore aside."""
+    s = v.sort(1).values; dup = s[:, 1:] == s[:, :-1]
+    for i in ignore:
+        if i is not None: dup &= s[:, 1:] != i
+    return dup.any(1)
+
+
+@torch.no_grad()
+def rule_breaks(model, rows):
+    """{rule: bool array [teams]}, one entry per rule in RULES, for full rows (no [MASK])."""
+    t = model.tables; dev = t.AB.device
+    x = torch.as_tensor(np.asarray(rows), device=dev).long()
+    f = x[:, :STAT0].view(-1, SLOTS, FIELDS); sp, ab, it, mv = f[..., 0], f[..., 1], f[..., 2], f[..., MOVES]
+    stone = torch.tensor([is_mega_stone(n) for n in model.V.itos["item"]], device=dev)
+    held = (it != 0) & (it != (t.EIT if t.EIT is not None else -1))
+    item_ok = t.IT[sp, it]; real_move = (mv != 0) & (mv != (t.EMV if t.EMV is not None else -1))
+    out = {
+        "item used more than once": _repeated(it, [0, t.EIT]),
+        "wrong Mega Stone": (held & stone[it] & ~item_ok).any(1),
+        "other item the species can't hold": (held & ~stone[it] & ~item_ok).any(1),
+        "species used more than once": _repeated(t.BASE[sp], [0]),
+        "ability the species can't have": ((ab != 0) & ~t.AB[sp, ab]).any(1),
+        "move the species can't learn": (real_move & ~t.MV[sp.unsqueeze(-1), mv]).any(2).any(1),
+        "same move twice on one Pokémon": _repeated(mv.reshape(-1, 4), [0, t.EMV]).view(-1, SLOTS).any(1),
+        "Stat Points over 66": ((x[:, STAT0:].view(-1, SLOTS, STAT_POINTS) - 1).clamp(min=0).sum(-1) > MAX_TOTAL).any(1),
+    }
+    return {k: v.cpu().numpy() for k, v in out.items()}
+
+
+def rule_shares(model, rows):
+    """{rule: share of teams breaking it}."""
+    return {k: float(v.mean()) for k, v in rule_breaks(model, rows).items()}
 
 
 def team_key(row):
@@ -103,7 +151,7 @@ class EpochLegality:
             reasons.update({kind(e) for e in found})
         copies = {} if self.known is None else dict(copied_share=sum(team_key(r) in self.known for r in rows) / len(rows))
         return dict(illegal_share=rejected / len(rows), errors_per_team=count / len(rows), **copies, legality_teams=len(rows),
-                    rejection_reasons=[[r, n] for r, n in reasons.most_common(TOP_REASONS)],
+                    rejection_reasons=[[r, n] for r, n in reasons.most_common(TOP_REASONS)], rule_shares=rule_shares(model, rows),
                     legality_seconds=round(time.perf_counter() - t0, 3))
 
     def _draw(self, model):

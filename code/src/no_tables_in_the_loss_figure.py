@@ -1,6 +1,8 @@
 """Figures and result comment of "No tables in the loss" (issue #361; docs/no-tables-in-the-loss.md).
 
 1. Illegal share by epoch, one line per arm, both drawn without the legal Pokémon construction tables.
+3. Each rule a drawn team breaks, by epoch: one heatmap per network, rules down the side (epoch_legality.RULES,
+   owner 2026-11-17: "more measurement than just legality"). Read from the checkpoint files of both networks.
 2. Whose value the network picks: at a Pokémon's ability and first move, the share of probability legal for its own
    species, for another team member's species, or for none of the six (src/slot_binding_probe.py).
 
@@ -22,6 +24,7 @@ from echarts_chart import write_chart
 
 CONTROL = X.RES / "stat84_shuffled_noise_linear_es3_cap80_legality_no_tables.json"
 ARM = X.RES / "stat84_shuffled_noise_linear_no_table_loss_es3_cap80.json"
+ARM_CHECKS = X.RES / "stat84_shuffled_noise_linear_no_table_loss_es3_cap80_legality_no_tables.json"
 RESULT = X.RES / "no_tables_in_the_loss.json"
 FOLDER = Path.home() / "vgc-data" / "no_tables_in_the_loss" / "figure"
 NEW, OLD = "No tables in the loss", "Tables in the loss"
@@ -83,10 +86,70 @@ def binding_chart(folder):
                                 "probability by the species the chosen value is legal for.")
 
 
+def rule_lines():
+    """{reader name: [epoch entries with rule_shares]} from the checkpoint files."""
+    out = {}
+    for arm, path in ((NEW, ARM_CHECKS), (OLD, CONTROL)):
+        if path.exists(): out[arm] = [e for e in json.loads(path.read_text())["epochs"] if "rule_shares" in e]
+    return {k: v for k, v in out.items() if v}
+
+
+def rules_chart(folder):
+    data = rule_lines()
+    if not data: return None
+    import epoch_legality as E
+    rules = list(E.RULES); arms = [a for a in (NEW, OLD) if a in data]; epochs = max(e["epoch"] for v in data.values() for e in v)
+    grids, xs, ys, series = [], [], [], []
+    for i, arm in enumerate(arms):
+        top = 70 + i * 270
+        grids.append(dict(left=230, right=24, top=top, height=200))
+        xs.append(dict(type="category", gridIndex=i, data=list(range(1, epochs + 1)), name="Training epoch" if i == len(arms) - 1 else "",
+                       nameLocation="middle", nameGap=28, axisLabel=dict(interval=9)))
+        ys.append(dict(type="category", gridIndex=i, data=rules, inverse=True, name=arm, nameLocation="start",
+                       nameTextStyle=dict(fontWeight="bold", align="left", padding=[0, 0, 0, -210])))
+        series.append(dict(type="heatmap", name=arm, xAxisIndex=i, yAxisIndex=i, emphasis=dict(itemStyle=dict(borderColor="#000", borderWidth=1)),
+                           data=[[e["epoch"] - 1, r, e["rule_shares"][rule]] for e in data[arm] for r, rule in enumerate(rules)]))
+    last = {arm: data[arm][-1] for arm in arms}
+    worst = max(rules, key=lambda r: last[arms[0]]["rule_shares"][r])
+    option = dict(animation=False, grid=grids, xAxis=xs, yAxis=ys, series=series,
+                  tooltip=dict(position="top", formatter="js:p => p.seriesName + ', epoch ' + (p.value[0] + 1) + ': ' + Math.round(p.value[2] * 100) + '% of teams'"),
+                  visualMap=dict(min=0, max=1, orient="horizontal", left="center", top=0, itemHeight=160,
+                                 text=["100% of teams", "0%"], inRange=dict(color=["#f4efe6", "#c2410c", "#5c1d05"])))
+    title = (f"Rule by rule: at epoch {last[arms[0]]['epoch']}, {arms[0]} draws '{worst}' in "
+             f"{last[arms[0]]['rule_shares'][worst]:.0%} of teams")
+    return write_chart(option, folder / "rules-by-epoch.html", height=70 + 270 * len(arms) + 20, title=title,
+                       subtitle="Each cell: the share of the 64 teams drawn at that epoch, without the tables, that break the rule. "
+                                "Counted from the drawn tokens with the tables' compatibility data. A team breaking several rules counts under each.")
+
+
 def figure(folder=FOLDER):
     folder = Path(folder); data = lines()
     if not data: raise SystemExit("no legality results yet")
     print(share_chart(data, folder)); print(binding_chart(folder))
+    r = rules_chart(folder)
+    if r: print(r)
+
+
+def rules_comment(image):
+    """The #361 comment for the per-rule counts."""
+    import epoch_legality as E
+    data = rule_lines(); arms = [a for a in (NEW, OLD) if a in data]
+    first, last = {a: data[a][0] for a in arms}, {a: data[a][-1] for a in arms}
+    repeat = all(e.get("previous_illegal_share", e["illegal_share"]) == e["illegal_share"] for v in data.values() for e in v)
+    head = "| Rule broken, share of 64 teams | " + " | ".join(f"{a}, epoch {first[a]['epoch']} → {last[a]['epoch']}" for a in arms) + " |"
+    print("\n".join([
+        f"![Each rule a drawn team breaks, by epoch, for both networks]({image.format(name='rules', theme='light')})",
+        "",
+        "**Rule by rule** (owner, 2026-11-17: \"more measurement than just legality\"): the same 64 teams per epoch, drawn "
+        "without the tables, counted against each rule.",
+        "",
+        head, "| --- |" + " --- |" * len(arms),
+        *[f"| {r} | " + " | ".join(f"{pct(first[a]['rule_shares'][r])} → {pct(last[a]['rule_shares'][r])}" for a in arms) + " |" for r in E.RULES],
+        "",
+        "Counted from the drawn tokens with the legal Pokémon construction tables' compatibility data, so a team breaking "
+        "several rules counts under each. Exploratory: added after the first result. Repeat check: every redone epoch "
+        + ("gave the same illegal share as before." if repeat else "did NOT give the same illegal share as before; see the result files."),
+    ]))
 
 
 def pct(v):
@@ -133,4 +196,4 @@ def comment(image):
 
 if __name__ == "__main__":
     mode, *rest = sys.argv[1:] or ["figure"]
-    {"figure": figure, "comment": comment}[mode](*rest)
+    {"figure": figure, "comment": comment, "rules_comment": rules_comment}[mode](*rest)

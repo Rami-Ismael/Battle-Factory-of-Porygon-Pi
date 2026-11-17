@@ -10,7 +10,8 @@ check existed, and its 80 epoch checkpoints are reused instead of retrained.
     python src/checkpoint_legality.py stat84_shuffled_noise_linear_es3_cap80 --tables   # tables on: 0 by construction
 
 Writes results/<training>_legality_<no_tables|tables>.json after every checkpoint; a rerun skips the epochs already
-written, so a stopped run resumes where it stopped. Each epoch also logs copied_share against the training teams the
+written, so a stopped run resumes where it stopped. An epoch written before the per-rule counts existed (rule_shares,
+2026-11-17) is redone once, and keeps its old illegal share as previous_illegal_share: same seed, so a repeat check. Each epoch also logs copied_share against the training teams the
 checkpoint's run info names (its table, labelled rows, training split), when that table is on this laptop.
 """
 import argparse
@@ -65,7 +66,8 @@ def run(training, tables=False, teams=E.TEAMS, epochs=None, root=L.CK, out=None)
         seed=E.SEED, order="species-first", epochs=[])
     if (result["tables"], result["teams"]) != (tables, teams):
         raise SystemExit(f"{out} was written with tables={result['tables']}, teams={result['teams']}; pass the same or remove it")
-    done = {e["epoch"] for e in result["epochs"]}
+    done = {e["epoch"] for e in result["epochs"] if "rule_shares" in e}     # entries from before the rule counts are redone
+    before = {e["epoch"]: e["illegal_share"] for e in result["epochs"] if e["epoch"] not in done}
     todo = {k: p for k, p in checkpoints(training, root).items() if k not in done and (epochs is None or k in epochs)}
     if not todo: return result
     check, model = None, None
@@ -80,7 +82,8 @@ def run(training, tables=False, teams=E.TEAMS, epochs=None, root=L.CK, out=None)
                 if len(ck["members"]) != 1 or ck["members"][0]["net_kw"] != kw: raise SystemExit(f"{path.name}: another network")
                 model.net.load_state_dict(ck["members"][0]["sd"]); model.info = ck.get("info") or {}
             entry = dict(epoch=epoch, checkpoint=path.name, **check(model))
-            result["epochs"] = sorted(result["epochs"] + [entry], key=lambda e: e["epoch"])
+            if epoch in before: entry["previous_illegal_share"] = before[epoch]      # same seed: a repeat check
+            result["epochs"] = sorted([e for e in result["epochs"] if e["epoch"] != epoch] + [entry], key=lambda e: e["epoch"])
             tmp = out.with_suffix(".tmp"); tmp.write_text(json.dumps(result, indent=1)); os.replace(tmp, out)
             print(f"epoch {epoch:2d} · illegal share {entry['illegal_share']:.3f} · errors per team {entry['errors_per_team']:.2f} · {entry['legality_seconds']:.0f} s · "
                   + "; ".join(f"{n}× {r}" for r, n in entry["rejection_reasons"][:2]), flush=True)

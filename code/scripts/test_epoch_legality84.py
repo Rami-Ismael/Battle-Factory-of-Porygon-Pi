@@ -26,7 +26,7 @@ if Path("/tmp/vgc-pilot/data/pokedex.json").exists():
     if (X.RES / "lossdata84.npz").exists(): HERE = True
 
 TINY = dict(d=32, nlayer=1, nhead=2, batch=32, epochs=2)
-LEGALITY_FIELDS = {"illegal_share", "errors_per_team", "legality_teams", "rejection_reasons", "legality_seconds"}
+LEGALITY_FIELDS = {"illegal_share", "errors_per_team", "legality_teams", "rejection_reasons", "rule_shares", "legality_seconds"}
 
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot and lossdata84.npz")
@@ -151,6 +151,69 @@ class NoTablesInTheLoss(unittest.TestCase):
             self.assertEqual(both["epochs"][0], first["epochs"][0])
             self.assertEqual(both["epochs"][0]["illegal_share"], both["epochs"][1]["illegal_share"])   # same weights, same seed
             with self.assertRaises(SystemExit): CL.run("tiny", teams=8, root=root, out=out)
+            import json
+            old = json.loads(out.read_text()); del old["epochs"][0]["rule_shares"]; out.write_text(json.dumps(old))
+            again = CL.run("tiny", teams=4, root=root, out=out)          # an entry saved before rule counts is redone once
+            self.assertEqual([e["epoch"] for e in again["epochs"]], [1, 2])
+            self.assertIn("rule_shares", again["epochs"][0])
+            self.assertEqual(again["epochs"][0]["previous_illegal_share"], again["epochs"][0]["illegal_share"])
+
+
+
+
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot and lossdata84.npz")
+class RuleBreaks(unittest.TestCase):
+    """Each rule a team can break, counted from its tokens: the owner asked for more than legality (2026-11-17)."""
+    @classmethod
+    def setUpClass(cls):
+        EpochLegality.setUpClass.__func__(cls)
+        cls.model = M.Model84(cls.V, cls.corpus, [(M.Net84(cls.V, **NET).to(M.DEV), NET)])
+        rows = cls.args[0]
+        cls.rows = rows[~cls.model.tables.check(rows[:, :M.STAT0])]  # teams every table accepts
+
+    def breaks(self, row):
+        return {k: bool(v[0]) for k, v in E.rule_breaks(self.model, row[None]).items()}
+
+    def edited(self, slot, field, value):
+        row = self.rows[0].copy(); row[slot * E.FIELDS + field] = value; return row
+
+    def test_a_legal_team_breaks_no_rule(self):
+        for row in self.rows[:16]: self.assertEqual(set(), {k for k, v in self.breaks(row).items() if v})
+
+    def test_the_same_item_on_two_pokemon_breaks_the_item_clause_only(self):
+        row = next(r for r in self.rows if len({r[s * 8 + 2] for s in range(6)} - {0, 1}) == 6)
+        self.rows = np.array([row]); edited = self.edited(1, 2, row[2])
+        found = self.breaks(edited)
+        self.assertTrue(found["item used more than once"])
+        self.assertFalse(found["species used more than once"])
+
+    def test_a_mega_stone_its_species_cannot_use_is_a_wrong_mega_stone(self):
+        t, sp = self.model.tables, self.rows[0][0]
+        stone = next(i for i, name in enumerate(self.V.itos["item"]) if i > 1 and E.is_mega_stone(name) and not t.IT[sp, i])
+        found = self.breaks(self.edited(0, 2, stone))
+        self.assertTrue(found["wrong Mega Stone"])
+        self.assertFalse(found["move the species can't learn"])
+
+    def test_a_move_the_species_cannot_learn_and_a_wrong_ability_are_each_counted(self):
+        t, sp = self.model.tables, self.rows[0][0]
+        move = next(i for i in range(2, self.V.sizes["move"]) if not t.MV[sp, i])
+        ability = next(i for i in range(1, self.V.sizes["ability"]) if not t.AB[sp, i])
+        self.assertTrue(self.breaks(self.edited(0, 3, move))["move the species can't learn"])
+        self.assertTrue(self.breaks(self.edited(0, 1, ability))["ability the species can't have"])
+
+    def test_the_same_species_twice_and_the_same_move_twice_are_counted(self):
+        self.assertTrue(self.breaks(self.edited(1, 0, self.rows[0][0]))["species used more than once"])
+        self.assertTrue(self.breaks(self.edited(0, 4, self.rows[0][3]))["same move twice on one Pokémon"])
+
+    def test_stat_points_over_66_on_one_pokemon_are_counted(self):
+        row = self.rows[0].copy(); row[M.STAT0:M.STAT0 + 6] = 33          # token 33 is the value 32
+        self.assertTrue(self.breaks(row)["Stat Points over 66"])
+
+    def test_rule_shares_are_the_share_of_teams_breaking_each_rule(self):
+        rows = np.stack([self.rows[0], self.edited(1, 0, self.rows[0][0])])
+        shares = E.rule_shares(self.model, rows)
+        self.assertEqual(shares["species used more than once"], 0.5)
+        self.assertEqual(set(shares), set(E.RULES))
 
 
 if __name__ == "__main__":
