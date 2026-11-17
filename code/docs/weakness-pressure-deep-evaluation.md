@@ -46,6 +46,20 @@ Results, 2026-11-17, saved under `preflight` in `~/vgc-data/results/line_up_yiel
 
 Invariance is skipped: every battle shuffles slots and the re-battle refuses any other order.
 
+### Figures (storyboard)
+
+Storyboarded 2026-11-17 after guidance 2, before guidance 4 and 8 (`storyboard-figures`). `deep_evaluation_post.py figure` draws all three with ECharts; the queue posts them on #345 after each guidance, in this order. Colors keep one meaning in all three: blue held at both depths, orange held at 4 only, green held at 16 only, grey held at neither, violet the flip share, amber the prediction.
+
+| Frame | The reader should take | Expected | Would surprise |
+| --- | --- | --- | --- |
+| **Scores** (teaser): each elite line-up's best team, 4-battle score across, 16-battle score up, the cut on both axes, one panel per guidance | Verdicts flip for line-ups whose 4-battle score sat near the cut; those far from it keep their verdict | Flipped line-ups within 0.07 (two standard errors at 196 battles) of the cut; the cloud on the diagonal, no shift | Flips far from the cut (pairing or scorer fault), or 16-battle scores shifted below the diagonal (a bias in the stored 4-battle scores) |
+| **Flip share**: share of verdicts that flip per guidance, its 95% interval, the prediction from battle noise alone, the 0.10 rule | About a quarter of verdicts flip at every guidance, well above the rule and where battle noise predicts | 0.20 to 0.25, each interval above 0.10 and around its prediction | A share far below its prediction (the re-battles share battles, or scores are less noisy than binomial) or far above it (noise beyond binomial: the policy, Showdown's random numbers) |
+| **Held**: line-ups held at each depth, split into held at both and held at one only | The held counts reported on #297 and #335 barely move, but a quarter of the line-ups they count are different ones | Counts within 10% of each other; a quarter to a third of held line-ups lost | A large net move in one direction, which would mean the 4-battle counts were biased, not only noisy |
+
+Each frame needs both re-battles and nothing else; no planned measurement lacks a frame. Titles state the figure's sentence from the data (`scores_title`, `held_title`), so a result that misses the sketch changes the title instead of contradicting it.
+
+Guidance 2 (2026-11-17): 96% of the 68 flipped line-ups sat within 0.07 of the cut; flip share 0.250 against a prediction of 0.244; held 114 at 4 and 118 at 16, with 32 lost and 36 gained, so 28% of the line-ups held at 4 are not held at 16. All three frames came out as sketched.
+
 ### Commands
 
 ```

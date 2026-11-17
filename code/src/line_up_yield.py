@@ -345,6 +345,7 @@ def flips(model=None):
     s.update(depth=DEPTH, verdict=depth_verdict(s["flip_share_interval"]), rule=f"{DEPTH} when the interval lies above {FLIP_RULE}",
              near_cut_at_4=int((abs(p4 - CUT) < NEAR).sum()), mean_at_4=float(p4.mean()), mean_at_deep=float(p16.mean()),
              correlation=float(np.corrcoef(p4, p16)[0, 1]), seeds=dict(shallow=SHALLOW_SEED, deep=SEED),
+             scores=[[float(a), float(b)] for a, b in zip(p4, p16)],          # each line-up's score at 4 and at 16, for the figures
              predicted_from_4=predicted_flip_share(p4, np.full(len(lus), PER_CELL * k), DEPTH * k))
     data["flips"] = s
     json.dump(data, open(path, "w"))

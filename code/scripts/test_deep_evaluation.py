@@ -147,7 +147,7 @@ class Comment(unittest.TestCase):
     def block(self, share, lo, hi, verdict):
         return dict(line_ups=272, flips=round(share * 272), flip_share=share, flip_share_interval=[lo, hi], held_to_not_held=40,
                     not_held_to_held=25, held_at_4=114, held_at_16=99, depth=16, verdict=verdict, correlation=0.6,
-                    predicted_from_4=dict(mean=0.24))
+                    predicted_from_4=dict(mean=0.24), scores=[[0.54, 0.52], [0.52, 0.54], [0.60, 0.61], [0.45, 0.44]])
 
     def test_the_comment_leads_with_the_verdict_and_lists_every_guidance(self):
         load(LY_PER_CELL="16")
@@ -159,17 +159,30 @@ class Comment(unittest.TestCase):
         self.assertIn("| 2 | 272 |", text); self.assertIn("| 4 | 272 |", text)
         self.assertIn("Held at 4 battles per meta team", text); self.assertIn("Flip share (95% interval)", text)
         self.assertNotIn("| 16 |", text)                       # verdicts in words, not codes
-        self.assertIn('<picture><source media="(prefers-color-scheme: dark)" srcset="u-dark.png">', P.comment([(2, self.block(0.22, 0.17, 0.27, "16"))], "u-{theme}.png"))
+        self.assertIn('<picture><source media="(prefers-color-scheme: dark)" srcset="u-scores-dark.png">', P.comment([(2, self.block(0.22, 0.17, 0.27, "16"))], "u-{name}-{theme}.png"))
 
     def test_the_figure_draws_interval_measured_prediction_and_rule(self):
         load(LY_PER_CELL="16")
         import deep_evaluation_post as P
-        o = P.option([(2, self.block(0.22, 0.17, 0.27, "16")), (4, self.block(0.21, 0.17, 0.26, "16"))])
+        o = P.flip_share_option([(2, self.block(0.22, 0.17, 0.27, "16")), (4, self.block(0.21, 0.17, 0.26, "16"))])
         interval, measured, predicted = o["series"]
         self.assertEqual(interval["data"], [[0, 0.17, 0.27], [1, 0.17, 0.26]])
         self.assertEqual((measured["data"], predicted["data"]), ([0.22, 0.21], [0.24, 0.24]))
         self.assertEqual(measured["markLine"]["data"], [{"yAxis": 0.10}])
         self.assertEqual(o["tooltip"]["trigger"], "axis")
+
+    def test_the_other_two_figures_and_titles_follow_the_data(self):
+        load(LY_PER_CELL="16")
+        import deep_evaluation_post as P
+        r = [(2, self.block(0.22, 0.17, 0.27, "16"))]
+        dots = {x["name"]: x["data"] for x in P.scores_option(r)["series"] if x["type"] == "scatter"}
+        self.assertEqual([len(v) for v in dots.values()], [1, 1, 1, 1])        # both, lost, gained, neither
+        self.assertTrue(P.scores_title(r).startswith("Flipped line-ups sat near the cut: 100%"))
+        held = P.held_option(r)["series"]
+        self.assertEqual([x["data"] for x in held], [[74, 74], [40, None], [None, 25]])   # 114 held at 4 = 74 at both + 40 lost
+        self.assertEqual(P.held_title(r), "The held count moves by up to 13% between the depths")   # 114 at 4, 99 at 16
+        r2 = [(2, {**self.block(0.22, 0.17, 0.27, "16"), "held_at_16": 109, "not_held_to_held": 35})]
+        self.assertIn("35% of the line-ups held at 4 are not held at 16", P.held_title(r2))
 
     def test_a_low_share_stops_the_run(self):
         load(LY_PER_CELL="16")
