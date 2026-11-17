@@ -16,7 +16,8 @@ AG84_GUIDANCE sets the guidance, default 2. Another value gets its own results f
 after the model name, so guidance 2 keeps every stored name. AG84_UNGUIDED=1 draws one cell per seed with no ask and no
 guidance into "<model>_unguided". A model row that names decoder="random" samples in random order with the lookahead on;
 decoder="species_first_corrected_t" samples in species-first order and tells each pass the corrected t; decoder="confidence"
-fills each team's most confident masked field each pass (confidence_order84.py).
+fills each team's most confident masked field each pass (confidence_order84.py); decoder="entropy_init" fills the field with
+the highest entropy first, at temperature 1.5, then follows confidence order (entropy-guided initialization, entropy_init84.py).
 
 Cell seed s draws with torch.manual_seed(seed0 + s) (grid_seeds.py): a stored grid keeps the base its file records,
 7300 for every grid before 2026-11-15; a new grid gets a base from its own name, so it cannot replay another grid's teams.
@@ -92,7 +93,8 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
                                       ("sched_linear_random", "linear", "Linear, random order", "random"),
                                       ("sched_linear_species_then_random", "linear", "Linear, species then random order", "species_then_random"),   # issue #322
                                       ("sched_per_field_random", "per_field", "Per-field, random order", "random"),   # issue #335
-                                      ("sched_linear_confidence", "linear", "Linear, confidence order", "confidence")):   # issue #332
+                                      ("sched_linear_confidence", "linear", "Linear, confidence order", "confidence"),   # issue #332
+                                      ("sched_linear_entropy_init", "linear", "Linear, entropy-guided initialization then confidence order", "entropy_init")):   # issue #333
     MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
                        stopped="early stopping never fired in 80 epochs, so the model is read at the cap", table=DEFAULT_TABLE)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
@@ -161,7 +163,8 @@ def load_sampler(w=None):
     that names the corrected t, species-first order told the corrected t (remask84.SpeciesFirstArm); for a row that
     names random order, the sampler of LLaDA Algorithm 4 with the lookahead on (remask84.RandomDecodingArm). The row that names
     species then random order draws the six species first and the other 78 fields in random order (#322). The row that
-    names confidence order fills each team's most confident masked field each pass, lookahead on (#332)."""
+    names confidence order fills each team's most confident masked field each pass, lookahead on (#332). The row that
+    names entropy-guided initialization fills each team's highest-entropy field at temperature 1.5 on pass 1, then confidence order (#333)."""
     w = w or load_model()
     decoder = MODELS[MODEL].get("decoder", "species_first")
     if decoder == "species_first": return w
@@ -172,6 +175,9 @@ def load_sampler(w=None):
     if decoder == "confidence":
         import confidence_order84
         return confidence_order84.ConfidenceOrderArm(w, lookahead=True)
+    if decoder == "entropy_init":
+        import entropy_init84
+        return entropy_init84.arm(w)
     raise ValueError(f"unknown decoder {decoder!r}")
 
 
