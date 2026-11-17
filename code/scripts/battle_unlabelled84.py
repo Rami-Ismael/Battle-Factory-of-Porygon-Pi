@@ -39,7 +39,7 @@ def listing():
         try: found[sp] = T.encode(Vreg, team).astype("int16")
         except ValueError: found[sp] = None
     g = LD.gather(observe)
-    _, counts, keys = L84.all_teams(g, sets)
+    _, counts, keys = L84.all_teams(g, sets, L84.table_rejects(Vreg))   # no battles for a wrong Mega Stone (#368)
     OUT.mkdir(parents=True, exist_ok=True)
     n = missing = 0
     with open(TEAMS, "w") as f:
