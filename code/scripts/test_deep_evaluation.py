@@ -14,7 +14,8 @@ import numpy as np
 
 import repo_paths  # noqa: F401  (src/ first on sys.path)
 
-HERE = Path("/tmp/vgc-pilot/src/hps_generate.py").exists()
+# line_up_yield imports the Showdown validator, which reads the pilot staging folder at import.
+PILOT_STAGED = Path("/tmp/vgc-pilot/src/hps_generate.py").exists() and Path("/tmp/vgc-pilot/learnset_true.json").exists()
 
 
 def load(**env):
@@ -26,7 +27,7 @@ def load(**env):
     return importlib.reload(line_up_yield)
 
 
-@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot/src")
+@unittest.skipUnless(PILOT_STAGED, "needs the /tmp/vgc-pilot staging")
 class Depth(unittest.TestCase):
     def test_default_depth_keeps_the_stored_names_seed_and_database(self):
         L = load(LY_MODEL="sched_species_first")
@@ -42,6 +43,11 @@ class Depth(unittest.TestCase):
         self.assertNotEqual(L.SEED, 7520)
         self.assertGreater(abs(L.SEED - 7520), 10 ** 5)      # worker seeds are seed + job id; the arms' ranges must not overlap
         self.assertEqual(L.DB.name, "fresh_d16.sqlite")
+
+    def test_only_4_and_16_battles_per_meta_team(self):
+        for depth in ("8", "1"):
+            with self.assertRaises(SystemExit):
+                load(LY_PER_CELL=depth)
 
     def test_a_smoke_at_depth_16_never_claims_the_real_database(self):
         L = load(LY_PER_CELL="16", LY_SMOKE="1")
@@ -61,7 +67,7 @@ class Depth(unittest.TestCase):
         self.assertEqual(L.teams_to_battle([a, b, c], depth=4), ["A", "B", "C"])
 
 
-@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot/src")
+@unittest.skipUnless(PILOT_STAGED, "needs the /tmp/vgc-pilot staging")
 class OneDepthPerDatabase(unittest.TestCase):
     """A 16-battle cell topped up from 4 stored battles would share those 4 with the other arm."""
 
@@ -86,7 +92,7 @@ class OneDepthPerDatabase(unittest.TestCase):
             L.claim_depth(con2, 16)
 
 
-@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot/src")
+@unittest.skipUnless(PILOT_STAGED, "needs the /tmp/vgc-pilot staging")
 class Flips(unittest.TestCase):
     def test_flip_share_counts_and_directions(self):
         L = load()
@@ -108,11 +114,35 @@ class Flips(unittest.TestCase):
     def test_the_prediction_flips_more_near_the_cut(self):
         L = load()
         near = L.predicted_flip_share(np.full(200, L.CUT + 0.005), np.full(200, 196), 784, draws=200, seed=0, prior=(0.53, 0.04))
+        self.assertAlmostEqual(L.effective_columns(), 50 ** 2 / 52, places=6)   # 48 meta teams once, one twice
         far = L.predicted_flip_share(np.full(200, L.CUT + 0.15), np.full(200, 196), 784, draws=200, seed=0, prior=(0.53, 0.04))
         self.assertGreater(near["mean"], 0.3); self.assertLess(far["mean"], near["mean"])
 
 
-@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot/src")
+@unittest.skipUnless(PILOT_STAGED, "needs the /tmp/vgc-pilot staging")
+class Provenance(unittest.TestCase):
+    """flips refuses results that did not run at the planned depth and seed, or whose teams changed."""
+
+    def deep(self, L, **over):
+        team = "Pikachu @ Light Ball\nAbility: Static\n- Protect\n\nGarchomp @ Life Orb\nAbility: Rough Skin\n- Protect"
+        return dict(per_cell=16, seed=L.DEEP_SEED, fresh=[dict(paste=team, fresh=0.55, battles=16 * 49)], **over)
+
+    def test_the_planned_deep_re_battle_passes(self):
+        L = load(LY_PER_CELL="16")
+        self.assertEqual(len(L.deep_rows("m", self.deep(L))), 1)
+
+    def test_wrong_depth_seed_or_battle_count_is_refused(self):
+        L = load(LY_PER_CELL="16")
+        for bad in (dict(per_cell=4), dict(seed=L.SHALLOW_SEED)):
+            d = self.deep(L); d.update(bad)
+            with self.assertRaises(SystemExit):
+                L.deep_rows("m", d)
+        d = self.deep(L); d["fresh"][0]["battles"] = 4 * 49 + 16 * 49        # topped up from the stored 4
+        with self.assertRaises(SystemExit):
+            L.deep_rows("m", d)
+
+
+@unittest.skipUnless(PILOT_STAGED, "needs the /tmp/vgc-pilot staging")
 class Comment(unittest.TestCase):
     def block(self, share, lo, hi, verdict):
         return dict(line_ups=272, flips=round(share * 272), flip_share=share, flip_share_interval=[lo, hi], held_to_not_held=40,
@@ -127,14 +157,26 @@ class Comment(unittest.TestCase):
         first = text.splitlines()[0]
         self.assertTrue(first.startswith("**Deep evaluation, guidance 4:")); self.assertIn("16 battles per meta team becomes", first)
         self.assertIn("| 2 | 272 |", text); self.assertIn("| 4 | 272 |", text)
-        row = next(line for line in text.splitlines() if line.startswith("guidance 2  "))
-        self.assertLess(row.index("|"), row.index("["))   # the 0.10 rule sits left of an interval above it
-        self.assertLess(row.index("["), row.index("●")); self.assertLess(row.index("●"), row.index("]"))
+        self.assertIn("Held at 4 battles per meta team", text); self.assertIn("Flip share (95% interval)", text)
+        self.assertNotIn("| 16 |", text)                       # verdicts in words, not codes
+        self.assertIn('<picture><source media="(prefers-color-scheme: dark)" srcset="u-dark.png">', P.comment([(2, self.block(0.22, 0.17, 0.27, "16"))], "u-{theme}.png"))
+
+    def test_the_figure_draws_interval_measured_prediction_and_rule(self):
+        load(LY_PER_CELL="16")
+        import deep_evaluation_post as P
+        o = P.option([(2, self.block(0.22, 0.17, 0.27, "16")), (4, self.block(0.21, 0.17, 0.26, "16"))])
+        interval, measured, predicted = o["series"]
+        self.assertEqual(interval["data"], [[0, 0.17, 0.27], [1, 0.17, 0.26]])
+        self.assertEqual((measured["data"], predicted["data"]), ([0.22, 0.21], [0.24, 0.24]))
+        self.assertEqual(measured["markLine"]["data"], [{"yAxis": 0.10}])
+        self.assertEqual(o["tooltip"]["trigger"], "axis")
 
     def test_a_low_share_stops_the_run(self):
         load(LY_PER_CELL="16")
         import deep_evaluation_post as P
         self.assertIn("the run stops here", P.comment([(2, self.block(0.04, 0.02, 0.07, "4"))]).splitlines()[0])
+        later = P.comment([(2, self.block(0.22, 0.17, 0.27, "16")), (4, self.block(0.04, 0.02, 0.07, "4"))]).splitlines()[0]
+        self.assertNotIn("stops", later); self.assertIn("below the rule at this guidance", later)
 
 
 if __name__ == "__main__":
