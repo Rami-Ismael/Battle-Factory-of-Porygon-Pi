@@ -112,5 +112,30 @@ class Flips(unittest.TestCase):
         self.assertGreater(near["mean"], 0.3); self.assertLess(far["mean"], near["mean"])
 
 
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot/src")
+class Comment(unittest.TestCase):
+    def block(self, share, lo, hi, verdict):
+        return dict(line_ups=272, flips=round(share * 272), flip_share=share, flip_share_interval=[lo, hi], held_to_not_held=40,
+                    not_held_to_held=25, held_at_4=114, held_at_16=99, depth=16, verdict=verdict, correlation=0.6,
+                    predicted_from_4=dict(mean=0.24))
+
+    def test_the_comment_leads_with_the_verdict_and_lists_every_guidance(self):
+        load(LY_PER_CELL="16")
+        import deep_evaluation_post as P
+        P = importlib.reload(P)
+        text = P.comment([(2, self.block(0.22, 0.17, 0.27, "16")), (4, self.block(0.21, 0.17, 0.26, "16"))])
+        first = text.splitlines()[0]
+        self.assertTrue(first.startswith("**Deep evaluation, guidance 4:")); self.assertIn("16 battles per meta team becomes", first)
+        self.assertIn("| 2 | 272 |", text); self.assertIn("| 4 | 272 |", text)
+        row = next(line for line in text.splitlines() if line.startswith("guidance 2  "))
+        self.assertLess(row.index("|"), row.index("["))   # the 0.10 rule sits left of an interval above it
+        self.assertLess(row.index("["), row.index("●")); self.assertLess(row.index("●"), row.index("]"))
+
+    def test_a_low_share_stops_the_run(self):
+        load(LY_PER_CELL="16")
+        import deep_evaluation_post as P
+        self.assertIn("the run stops here", P.comment([(2, self.block(0.04, 0.02, 0.07, "4"))]).splitlines()[0])
+
+
 if __name__ == "__main__":
     unittest.main()
