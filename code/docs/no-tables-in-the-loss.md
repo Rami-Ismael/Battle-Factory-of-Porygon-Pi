@@ -77,3 +77,13 @@ The budget can detect the smallest effect worth acting on when the last 10 epoch
 ## Deviations
 
 - 2026-11-17, before the new arm trained: errors per team and the copied share, added to the measures after the preflight, were taken out at the owner's word ("I don't agree with the table, let see what happen"). The illegal share is the only measure, as the issue planned. The second chart was dropped with them.
+- 2026-11-17 04:08, epoch 33 of the new arm: the training stopped with no error logged and no reboot (its keep-awake process ended; two other sessions' queues had died the same way at 01:10). It cannot resume mid-run. Having seen the 33 epochs and the slot-binding probe below, the owner chose to report these epochs rather than retrain (2026-11-17). The stopping rule was therefore not reached, and the refutation rule is read on epochs 1 to 33 only.
+- 2026-11-17, after seeing the curve: the slot-binding probe (`src/slot_binding_probe.py`) was added to explain it. It is exploratory.
+
+## Result
+
+Reported 2026-11-17 on issue #361. Numbers in `results/no_tables_in_the_loss.json` (`arm_epochs`, `slot_binding_epoch33`) and the control's file.
+
+- **Illegal share:** 100% at every epoch for both arms, epochs 1 to 33 of "No tables in the loss" and 1 to 80 of "Tables in the loss". Prediction 1 held. Prediction 2 failed on the epochs trained: the new arm never fell below 0.875. Validation loss was still falling, 2.40 to 2.00, so a longer run could still differ, but the probe below suggests why it would not.
+- **Why (exploratory):** at epoch 33, on 256 real validation teams with the true earlier fields shown, the new arm's probability at a Pokémon's ability splits 39% legal for its own species, 56% legal only for another team member's species, and 5% legal for none of the six. At the first move: 47%, 50%, 3%. The network learned which values belong on the team, not which Pokémon they belong to. One value on the wrong team member makes the team illegal. This matches the 2026-11-04 Stat Point swap test and the #84 position-split result. The tables do this binding in every default-model draw.
+- **What it can't show:** one training seed per arm; 33 of up to 80 epochs; first-try legality only, no battles.

@@ -1,12 +1,16 @@
-"""Figure and result comment of "No tables in the loss" (issue #361; docs/no-tables-in-the-loss.md): illegal share by
-epoch, one line per arm, both drawn without the legal Pokémon construction tables. Either arm may still be partial;
-each line shows the epochs it has.
+"""Figures and result comment of "No tables in the loss" (issue #361; docs/no-tables-in-the-loss.md).
 
-    python src/no_tables_in_the_loss_figure.py figure [folder]     # default ~/vgc-data/no_tables_in_the_loss/figure
-    python src/no_tables_in_the_loss_figure.py comment <image url>  # the #361 result comment, Markdown on stdout
+1. Illegal share by epoch, one line per arm, both drawn without the legal Pokémon construction tables.
+2. Whose value the network picks: at a Pokémon's ability and first move, the share of probability legal for its own
+   species, for another team member's species, or for none of the six (src/slot_binding_probe.py).
+
+The new arm's line comes from its finished training file when there is one, else from the epochs saved in
+results/no_tables_in_the_loss.json (the run stopped after epoch 33 on 2026-11-17).
+
+    python src/no_tables_in_the_loss_figure.py figure [folder]          # default ~/vgc-data/no_tables_in_the_loss/figure
+    python src/no_tables_in_the_loss_figure.py comment <image url with {name} and {theme}>
 """
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -17,94 +21,109 @@ import asked_vs_got as X
 from echarts_chart import write_chart
 
 CONTROL = X.RES / "stat84_shuffled_noise_linear_es3_cap80_legality_no_tables.json"
-ARM_NAME = "stat84_shuffled_noise_linear_no_table_loss_es3_cap80"
-ARM = X.RES / f"{ARM_NAME}.json"
+ARM = X.RES / "stat84_shuffled_noise_linear_no_table_loss_es3_cap80.json"
+RESULT = X.RES / "no_tables_in_the_loss.json"
 FOLDER = Path.home() / "vgc-data" / "no_tables_in_the_loss" / "figure"
-LINES = {"No tables in the loss": "#c2410c", "Tables in the loss": "#52514e"}
+NEW, OLD = "No tables in the loss", "Tables in the loss"
+LINES = {NEW: "#c2410c", OLD: "#52514e"}
+PARTS = {"its own species": "#2f6f9f", "another team member's species": "#9333ea", "none of the six": "#b8b3ab"}
 REFUTED_ABOVE = 0.875                                    # the plan: refuted if the new arm stays above this at every epoch
-POOL = 10                                                # last epochs pooled for the comparison
 
 
 def lines():
     """{reader name: [epoch entries]} for the arms that have any."""
     out = {}
-    if ARM.exists(): out["No tables in the loss"] = [e for e in json.loads(ARM.read_text())["curves"] if "illegal_share" in e]
-    if CONTROL.exists(): out["Tables in the loss"] = json.loads(CONTROL.read_text())["epochs"]
+    if ARM.exists(): out[NEW] = [e for e in json.loads(ARM.read_text())["curves"] if "illegal_share" in e]
+    elif RESULT.exists() and "arm_epochs" in json.loads(RESULT.read_text()):
+        out[NEW] = json.loads(RESULT.read_text())["arm_epochs"]["epochs"]
+    if CONTROL.exists(): out[OLD] = json.loads(CONTROL.read_text())["epochs"]
     return {k: v for k, v in out.items() if v}
 
 
-def reasons(entries):
-    last = entries[-1]
-    return f"epoch {last['epoch']}: " + "; ".join(f"{n} of {last['legality_teams']} {r}" for r, n in last["rejection_reasons"][:3])
+def binding():
+    return json.loads(RESULT.read_text())["slot_binding_epoch33"]["arms"][NEW]
 
 
-def figure(folder=FOLDER):
-    folder = Path(folder); folder.mkdir(parents=True, exist_ok=True)
-    data = lines()
-    if not data: raise SystemExit("no legality results yet")
-    head = " · ".join(f"{arm} {v[-1]['illegal_share']:.0%} illegal at epoch {v[-1]['epoch']}" for arm, v in data.items())
+def share_chart(data, folder):
     epochs = max(e["epoch"] for v in data.values() for e in v)
-    series = [dict(type="line", name=arm, color=LINES[arm], symbolSize=5, emphasis=dict(focus="series"),
-                   data=[[e["epoch"], e["illegal_share"]] for e in v]) for arm, v in data.items()]
+    order = [a for a in (OLD, NEW) if a in data]          # the new arm last, so it draws on top where the lines meet
+    series = [dict(type="line", name=f"{arm}, {len(data[arm])} epochs", color=LINES[arm], emphasis=dict(focus="series"),
+                   symbolSize=7 if arm == NEW else 0, lineStyle=dict(width=3) if arm == NEW else dict(width=2, type="dashed"),
+                   data=[[e["epoch"], e["illegal_share"]] for e in data[arm]]) for arm in order]
     option = dict(grid=dict(left=64, right=24, top=56, bottom=80), legend=dict(top=0), animation=False,
                   tooltip=dict(trigger="axis", valueFormatter="js:v => v == null ? '' : (v * 100).toFixed(1) + '%'"),
                   xAxis=dict(type="value", min=1, max=epochs, name="Training epoch", nameLocation="middle", nameGap=30),
                   yAxis=dict(type="value", min=0, max=1, name="Illegal share of first draws", nameLocation="middle", nameGap=46,
                              axisLabel=dict(formatter="js:v => Math.round(v * 100) + '%'")),
                   dataZoom=[dict(type="inside"), dict(type="slider", bottom=8, height=18)], series=series)
-    subtitle = ("64 teams per epoch at the elite cut 0.531, guidance 2, species-first, drawn without the tables and the Stat Point "
-                "budget. Top reasons, " + " | ".join(f"{arm}, {reasons(v)}" for arm, v in data.items()))
-    print(write_chart(option, folder / "illegal-share-by-epoch.html", title=f"Illegal share by epoch: {head}",
-                      subtitle=subtitle, height=440))
+    worst = max(e["illegal_share"] for v in data.values() for e in v); best = min(e["illegal_share"] for v in data.values() for e in v)
+    title = ("Drawn without the tables, every team is illegal at every epoch, with or without the tables in the loss"
+             if best == worst == 1 else f"Illegal share by epoch, {best:.0%} to {worst:.0%}")
+    return write_chart(option, folder / "illegal-share-by-epoch.html", title=title, height=440,
+                       subtitle="64 teams per epoch at the elite cut 0.531, guidance 2, species-first order, drawn without the legal "
+                                "Pokémon construction tables and the Stat Point budget, then checked by Showdown's validator. "
+                                f"{NEW} stopped after epoch {len(data.get(NEW, []))} of its 80-epoch cap.")
 
 
-def pooled(entries):
-    """(share, teams) over the last POOL epochs."""
-    tail = entries[-POOL:]; n = sum(e["legality_teams"] for e in tail)
-    return sum(e["illegal_share"] * e["legality_teams"] for e in tail) / n, n
+def binding_chart(folder):
+    b = binding(); fields = list(b)
+    series = [dict(type="bar", stack="all", name=part, color=color, emphasis=dict(focus="series"), barWidth=34,
+                   label=dict(show=True, formatter="js:p => Math.round(p.value * 100) + '%'", color="#fff" if i < 2 else None),
+                   data=[b[f][i] for f in fields]) for i, (part, color) in enumerate(PARTS.items())]
+    option = dict(grid=dict(left=96, right=24, top=56, bottom=40), legend=dict(top=0), animation=False,
+                  tooltip=dict(trigger="axis", axisPointer=dict(type="shadow"),
+                               valueFormatter="js:v => (v * 100).toFixed(1) + '%'"),
+                  xAxis=dict(type="value", min=0, max=1, axisLabel=dict(formatter="js:v => Math.round(v * 100) + '%'")),
+                  yAxis=dict(type="category", data=[f"{f[0].upper()}{f[1:]}" for f in fields], inverse=True), series=series)
+    return write_chart(option, folder / "whose-value.html", height=280, dark={"#fff": "#fff"},
+                       title=f"The network picks a team member's ability, but often not this Pokémon's: "
+                             f"{b['ability'][1]:.0%} of the probability goes to another team member's",
+                       subtitle=f"{NEW} at epoch 33. 256 real validation teams; at each Pokémon's ability and first move, "
+                                "the true earlier fields of the draw order are shown, no tables. The bar splits the network's "
+                                "probability by the species the chosen value is legal for.")
 
 
-def round_trip():
-    """The Round trip probe rerun on the new arm's saved model (run-experiment step 3.1)."""
-    import diffusion84 as M
-    import lossdown as L
-    from no_tables_in_the_loss_preflight import round_trip as probe, training_rows
-    return probe(M.Model84.load(L.CK / f"{ARM_NAME}.pt", X.setup()[0]), training_rows()[0])
+def figure(folder=FOLDER):
+    folder = Path(folder); data = lines()
+    if not data: raise SystemExit("no legality results yet")
+    print(share_chart(data, folder)); print(binding_chart(folder))
 
 
 def comment(image):
-    data = lines()
-    arm, control = data["No tables in the loss"], data["Tables in the loss"]
-    info = json.loads(ARM.read_text())
-    low = min(arm, key=lambda e: e["illegal_share"])
+    data = lines(); arm, control = data[NEW], data[OLD]
+    b = binding()
     below = [e["epoch"] for e in arm if e["illegal_share"] <= REFUTED_ABOVE]
-    same = {e["epoch"]: e for e in control}
-    shared = [e for e in arm if e["epoch"] in same]
-    (pa, na), (pc, nc) = pooled(shared), pooled([same[e["epoch"]] for e in shared])
-    gap = pa - pc; half = 1.96 * math.sqrt(pa * (1 - pa) / na + pc * (1 - pc) / nc)
-    trip = round_trip()
-    verdict = (f"**The claim holds:** the illegal share falls to {REFUTED_ABOVE:.3f} or below at epoch {below[0]}." if below else
-               f"**Refuted:** the illegal share stays above {REFUTED_ABOVE:.3f} at every epoch, as the plan defined.")
-    copies = max(e.get("copied_share", 0) for e in arm)
+    img = lambda name, alt: f"![{alt}]({image.format(name=name, theme='light')})"
+    verdict = (f"**The illegal share falls to {REFUTED_ABOVE:.3f} or below at epoch {below[0]}.**" if below else
+               f"**No: the illegal share stays at 100% for all {len(arm)} epochs the new arm trained, against the "
+               f"plan's refutation line of {REFUTED_ABOVE:.3f}.** The run stopped silently after epoch {len(arm)} of 80 "
+               f"(2026-11-17 04:08, no error logged); the owner chose to report these epochs rather than retrain.")
     print("\n".join([
-        f"![Illegal share by training epoch, drawn without the tables: No tables in the loss {arm[-1]['illegal_share']:.0%} at "
-        f"epoch {arm[-1]['epoch']}, Tables in the loss {control[-1]['illegal_share']:.0%} at epoch {control[-1]['epoch']}]({image})",
+        img("illegal-share", f"Illegal share by training epoch, drawn without the tables: {NEW} 100% at all {len(arm)} epochs, "
+                             f"{OLD} 100% at all {len(control)}"),
         "",
         verdict,
         "",
-        "| | No tables in the loss (`shuffled_linear_no_table_loss`) | Tables in the loss (`shuffled_linear`) |",
-        "| --- | --- | --- |",
-        f"| Illegal share at epoch 1 | {arm[0]['illegal_share']:.0%} | {control[0]['illegal_share']:.0%} |",
-        f"| Lowest illegal share | {low['illegal_share']:.0%} at epoch {low['epoch']} | {min(e['illegal_share'] for e in control):.0%} |",
-        f"| Last {POOL} shared epochs pooled | {pa:.3f} ({na} teams) | {pc:.3f} ({nc} teams) |",
-        f"| Epochs trained | {info['stopped_epoch']} (best {info['best_epoch']}, patience 3) | 80 |",
-        f"| Top reasons, last epoch | {reasons(arm)} | {reasons(control)} |",
+        img("whose-value", f"At epoch 33, {b['ability'][1]:.0%} of the ability probability and {b['first move'][1]:.0%} of the "
+                           f"first-move probability go to values legal for another team member, not the Pokémon itself"),
         "",
-        f"Difference over the last {POOL} shared epochs: {gap:+.3f}, 95% interval {gap - half:+.3f} to {gap + half:+.3f} "
-        f"(smallest effect worth acting on 0.125). Both drawn without the tables: 64 teams per epoch at the elite cut 0.531, "
-        f"guidance 2, species-first, seed 12345. All 84 fields generated, none copied. No battles. Confirmatory. "
-        f"One training seed per arm. Round trip on the new arm's saved model: {trip['identical']} of {trip['teams']} identical."
-        + (f" Up to {copies:.0%} of an epoch's teams copy a training team." if copies else ""),
+        "**Why:** the network learned what belongs on the team, not which Pokémon it belongs to.",
+        "",
+        "| Probability legal for… | Ability | First move |",
+        "| --- | --- | --- |",
+        *[f"| {part} | {b['ability'][i]:.0%} | {b['first move'][i]:.0%} |" for i, part in enumerate(PARTS)],
+        "",
+        f"Only {b['ability'][2]:.0%} and {b['first move'][2]:.0%} go to values no team member could have, so the data's "
+        "legality was learned at the team level. One ability or move placed on the wrong team member makes the whole "
+        "team illegal. This matches the 2026-11-04 swap test (Stat "
+        "Points barely move when two Pokémon swap) and #84 (removing the slot vectors changed nothing). The tables hide it "
+        "in every default-model draw because they do the binding.",
+        "",
+        f"Measurement checks: 64 real training teams through the same paste and validator are all legal; the validator's "
+        f"about {arm[-1]['errors_per_team']:.0f} errors per drawn team match the network's about 18 expected forbidden fields. "
+        f"Validation loss of the new arm still fell, {arm[0]['val_loss']:.2f} to {arm[-1]['val_loss']:.2f}. No drawn team "
+        "copied a training team. All 84 fields generated, none copied. No battles. One training seed per arm. Confirmatory "
+        "for the curve; the binding probe was added after seeing it (exploratory).",
     ]))
 
 
