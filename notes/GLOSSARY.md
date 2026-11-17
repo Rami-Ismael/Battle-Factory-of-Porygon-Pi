@@ -296,8 +296,12 @@ The earlier from-scratch discrete diffusion model, which generated every field e
 _Avoid_: copied mixture, deployed mixture
 
 **Default model**:
-The discrete diffusion model checkpoint that every run uses unless the run names another. It is the battled checkpoint closest to got = ask. A challenger replaces it only when its ask-versus-got error, read from 3 sampling seeds, is lower by at least 0.001 with the interval above zero. Validation loss still sets how long a model trains; the error only chooses among saved checkpoints. Since 2026-11-07 it has been the 80-epoch labelled model.
+The discrete diffusion model checkpoint that every run uses unless the run names another. Only a checkpoint trained on labels from shuffled-slot battles qualifies (owner, 2026-11-17). Among qualifying battled checkpoints, the default is the one closest to got = ask, and a qualifying challenger replaces it only when its ask-versus-got error, read from 3 sampling seeds, is lower by at least 0.001 with the interval above zero. A checkpoint that does not qualify is never the bar to beat. Validation loss still sets how long a model trains; the error only chooses among saved checkpoints. The 80-epoch labelled model, chosen 2026-11-07, no longer qualifies; its replacement is being retrained.
 _Avoid_: deployed model, best model, the 80 epoch (alone)
+
+**Departure**:
+A part of the 84-field discrete diffusion model that matches neither yardstick paper, MD4 for training and masking schedules nor LLaDA for decoding. A departure is ours whether or not it was measured; a measured one is recorded with its effect.
+_Avoid_: deviation (a change to a pre-registered plan), bug
 
 **Pretrained text diffusion model fine-tuned on pastes**:
 A text diffusion model pretrained on general text by others, then fine-tuned on this project's Showdown team pastes. Later mentions in the same passage may shorten it to "the pretrained text diffusion model".
@@ -475,7 +479,7 @@ _Origin_: [Fang et al., COLM 2026](https://arxiv.org/abs/2604.00375), Fig. 1 and
 _Avoid_: quality–exploration dilemma (the paper's word, fine in a quotation), exploration–exploitation (the bandit term)
 
 **Pass@k**:
-The chance that at least one of k samples drawn for one problem is correct. From n ≥ k samples of which c are correct, the unbiased estimate is 1 − C(n−c, k) / C(n, k). Papers on decoding order use it as the measure of exploration: a sampler whose samples repeat each other stops gaining as k grows. Not yet measured here. Its counterpart would be the chance that at least one of k teams drawn at one ask is an elite line-up that held in the re-battle.
+The chance that at least one of k samples drawn for one problem is correct. From n ≥ k samples of which c are correct, the unbiased estimate is 1 − C(n−c, k) / C(n, k). Papers on decoding order use it as the measure of exploration: a sampler whose samples repeat each other stops gaining as k grows. Here it is the chance that at least one of k teams drawn at one ask scores at least the elite cut and its line-up also reaches the cut in the re-battle of 4 games per opponent, averaged over a band of asks (first measured 2026-11-14, #331).
 _Origin_: [Chen et al. 2021](https://arxiv.org/abs/2107.03374), the unbiased estimator; [Fang et al., COLM 2026](https://arxiv.org/abs/2604.00375), Eq. 2 and App. E, as the exploration measure.
 _Distinguish_: elite line-ups held counts line-ups over a whole grid, not the chance for k draws at one ask.
 
