@@ -476,3 +476,30 @@ Two readings are inferences, not measurements. The first is why the low asks lea
 Figures: [error against line-ups](figures/masking_rate_rows/05_error_against_line_ups.html), [got against ask](figures/masking_rate_rows/06_got_against_ask.html), [typical miss of each order](figures/masking_rate_rows/07_random_order_error_multiple.html), built by `src/masking_rate_rows_figures.py`. Frame 1 came out as expected. Frame 2 came out as expected: the two lines overlap and stop rising at the same got. Frame 3 came out as its surprise: the multiple rose above 2.8.
 
 The rejection reasons stored with the random-order grids repeat a word, as in "can'tcan't learn Heat Wave". The fault is in how `ask_grid84.py` shortens a validator message. The counts are right.
+
+## Diagnosis
+
+Decided 2026-11-17 with the owner on [Results and diagnosis: what do the four rows and the departures list mean for our code?](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/298). The owner's hypothesis was that the places where our code departs from MD4 and LLaDA cause decoding errors. None of the departures measured here explains the ask-versus-got error of species-first decoding. One departure, the decoding order, is ours because it is better: the published random order loses.
+
+A departure is one of the 15 parts of the 84-field code that matches neither paper (matrix: [the departures matrix](figures/masking_rate_rows/explain_7_departures.html), ticket [#292](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/292)). Seven parts match at least one paper. The eight that match neither:
+
+| Departure | What was measured | Decision for the code |
+| --- | --- | --- |
+| Masking schedule set per field type | No effect beyond training luck. Linear, species-first against the control: −0.0008, 0.0000 and +0.0005 in error at guidance 2, 4 and 8. Under random order the two schedules also match ([#335](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/335)) | Removed for new trainings. The linear masking schedule is the default since 2026-11-14 (LLaDA Eq. 3, MD4 App. J.1). Older arms keep per-field |
+| t told while sampling | On the per-field checkpoint the corrected t moves the drawing distribution by 0.0078 at most, under the 0.01 bar. Not battled | Keep 1 − filled/84. Under the linear schedule it is already the t of training. `corrected_t` stays, off by default |
+| Fixed species-first decoding order | Random order loses by +0.0236 to +0.0274 in error at every guidance, because it draws species late ([#322](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/322), [#323](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/323)). Confidence order trades win rate for line-ups ([#332](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/332), [#363](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/363)) | Keep species-first as the default. Confidence order is the order to reach for when a search needs spread. The open decoding-order tickets on the map add their own lines |
+| Legal filter inside the training loss | Without it, every drawn team is illegal at all 33 epochs trained, because the network puts fields on a teammate's Pokémon ([#361](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/361)) | Keep. Binding fields to their own Pokémon is [#367](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/367) |
+| Legal filter while sampling | Species-first order has no tilt, because the same tables are in the loss and in every pass ([#357](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/357)). The tilt of random order comes from the lookahead | Keep |
+| Slot shuffling each batch | Not measured | Keep. A team is an unordered set of six Pokémon; the papers model ordered text and have no such part |
+| Ask dropout of 0.15 | Not measured | Keep. Classifier-free guidance is published (Ho and Salimans, arXiv 2207.12598); 0.15 is the p_uncond Diffusion-BBO uses |
+| Validation draws, 4 fixed draws per team | Not measured | Keep. They set how validation loss is read and never touch sampling |
+
+No new rows come from the diagnosis.
+
+### The error that no departure explains
+
+91% of the default model's error sits at asks 13/24 to 17/24, where got stops near 0.53. Neither the linear masking schedule (frame 2: both lines stop at the same got) nor the corrected t lifts it. The diagnosis therefore puts the ceiling outside the code: few training teams carry labels that high. That work belongs to the training-data tickets, such as the training teams line ([#72](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/72)) and the hindsight-relabel fine-tune ([#106](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/106)), and is out of scope for this map.
+
+### The default model
+
+Today's default model was sampled at guidance 2 only, where it beats both shuffled-only checkpoints: 0.0053 against 0.0075 (linear) and 0.0084 (per-field). At guidance 8 both shuffled-only checkpoints read 0.0033 to 0.0038. The default model is battled at guidance 4 and 8 before the default-model rule is applied at each guidance value ([#377](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/377)). Until then [#64](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/64) keeps its target.

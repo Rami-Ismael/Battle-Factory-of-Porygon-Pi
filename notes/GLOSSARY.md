@@ -299,6 +299,10 @@ _Avoid_: copied mixture, deployed mixture
 The discrete diffusion model checkpoint that every run uses unless the run names another. It is the battled checkpoint closest to got = ask. A challenger replaces it only when its ask-versus-got error, read from 3 sampling seeds, is lower by at least 0.001 with the interval above zero. Validation loss still sets how long a model trains; the error only chooses among saved checkpoints. Since 2026-11-07 it has been the 80-epoch labelled model.
 _Avoid_: deployed model, best model, the 80 epoch (alone)
 
+**Departure**:
+A part of the 84-field discrete diffusion model that matches neither yardstick paper, MD4 for training and masking schedules nor LLaDA for decoding. A departure is ours whether or not it was measured; a measured one is recorded with its effect.
+_Avoid_: deviation (a change to a pre-registered plan), bug
+
 **Pretrained text diffusion model fine-tuned on pastes**:
 A text diffusion model pretrained on general text by others, then fine-tuned on this project's Showdown team pastes. Later mentions in the same passage may shorten it to "the pretrained text diffusion model".
 _Avoid_: writer, text writer, text team writer
