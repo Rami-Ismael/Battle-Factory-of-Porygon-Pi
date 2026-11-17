@@ -296,7 +296,7 @@ The earlier from-scratch discrete diffusion model, which generated every field e
 _Avoid_: copied mixture, deployed mixture
 
 **Default model**:
-The discrete diffusion model checkpoint that every run uses unless the run names another. It is the battled checkpoint closest to got = ask. A challenger replaces it only when its ask-versus-got error, read from 3 sampling seeds, is lower by at least 0.001 with the interval above zero. Validation loss still sets how long a model trains; the error only chooses among saved checkpoints. Since 2026-11-07 it has been the 80-epoch labelled model.
+The discrete diffusion model checkpoint that every run uses unless the run names another. It is the battled checkpoint closest to got = ask. Only a checkpoint trained on labels from shuffled-slot battles qualifies. A challenger replaces it only when its ask-versus-got error, read from 3 sampling seeds, is lower by at least 0.001 with the interval above zero. Validation loss still sets how long a model trains; the error only chooses among saved checkpoints. Since 2026-11-07 it has been the 80-epoch labelled model.
 _Avoid_: deployed model, best model, the 80 epoch (alone)
 
 **Departure**:
