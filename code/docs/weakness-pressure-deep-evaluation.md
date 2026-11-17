@@ -1,6 +1,6 @@
 # Weakness pressure and deep evaluation: pre-registration (2026-11-15)
 
-Status: part A **built 2026-11-17, not launched** (probes below); part B **draft**. Written before any battle of either arm. Source idea: Li et al. 2026, *Beyond Static Evaluation*, [arXiv 2606.10389](https://arxiv.org/abs/2606.10389), §4.5 (weakness pressure) and §4.6 (deep evaluation). Glossary: **Weakness pressure**, **Deep evaluation** (added 2026-11-15).
+Status: part A **built and queued 2026-11-17** (`~/vgc-data/deep_evaluation/deep_rebattle.sh`, frozen copy of `5fc4000f`; probes below); part B **draft**. Written before any battle of either arm. Source idea: Li et al. 2026, *Beyond Static Evaluation*, [arXiv 2606.10389](https://arxiv.org/abs/2606.10389), §4.5 (weakness pressure) and §4.6 (deep evaluation). Glossary: **Weakness pressure**, **Deep evaluation** (added 2026-11-15).
 
 Owner decisions, 2026-11-15: put weakness pressure in a new 84-field elite loop, not `cem_v3.py`; judge it as a Pareto question, fixed-weight win rate against worst-matchup win rate; test deep evaluation at 4 against 16 battles per meta team.
 
