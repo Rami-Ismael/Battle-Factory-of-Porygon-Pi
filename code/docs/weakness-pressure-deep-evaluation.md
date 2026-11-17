@@ -1,10 +1,10 @@
 # Weakness pressure and deep evaluation: pre-registration (2026-11-15)
 
-Status: **draft, not run.** Written before any battle. Source idea: Li et al. 2026, *Beyond Static Evaluation*, [arXiv 2606.10389](https://arxiv.org/abs/2606.10389), §4.5 (weakness pressure) and §4.6 (deep evaluation). Glossary: **Weakness pressure**, **Deep evaluation** (added 2026-11-15).
+Status: part A **built 2026-11-17, not launched** (probes below); part B **draft**. Written before any battle of either arm. Source idea: Li et al. 2026, *Beyond Static Evaluation*, [arXiv 2606.10389](https://arxiv.org/abs/2606.10389), §4.5 (weakness pressure) and §4.6 (deep evaluation). Glossary: **Weakness pressure**, **Deep evaluation** (added 2026-11-15).
 
 Owner decisions, 2026-11-15: put weakness pressure in a new 84-field elite loop, not `cem_v3.py`; judge it as a Pareto question, fixed-weight win rate against worst-matchup win rate; test deep evaluation at 4 against 16 battles per meta team.
 
-Prior work searched: `experiments-index.md` (no run reweights opponents; `novel-elite-rebattle-2026-10-31` and `line_up_yield.py` set today's 4-battle re-battle), `code/docs/` (no match for opponent reweighting). The web was not searched.
+Prior work searched: `experiments-index.md` (no run reweights opponents; `novel-elite-rebattle-2026-10-31` and `line_up_yield.py` set today's 4-battle re-battle), `code/docs/` (no match for opponent reweighting). Web, 2026-11-17, for re-evaluation depth and verdict flips after selection: no direct match; the nearest framing is best-arm identification under a trial budget (re-battling only the line-ups near the cut), noted under Noise and budget.
 
 Map: #344. Tickets: part A #345; part B settings #346 (grilling); part B run #347, blocked by both.
 
@@ -18,10 +18,10 @@ Two parts, run in this order because part B uses part A's depth.
 | Fields | No generation. The teams are the stored best team per elite line-up of the control grid, `line_up_yield_sched_species_first*.json`. |
 | Vocabulary | Not applicable: no model runs. |
 | Training teams | Not applicable. |
-| Scorer | `matchup_db.score_pastes` into a fresh private database; behaviour-cloning policy on both sides; slots shuffled; the 49 distinct top-50 meta teams, the duplicated one weighted twice (weights sum to 50). Arm 4: the stored `fresh` results, seed 7520. Arm 16: 16 battles per meta team, new seed. |
-| Search region | The elite line-ups of the control checkpoint `stat84_shuffled_noise_per_field_es3_cap80` re-battled on 2026-11-13: 272 at guidance 2, 334 at guidance 4, 352 at guidance 8 (`rebattled` in the `all_23_asks` view). |
+| Scorer | `matchup_db.score_pastes`; behaviour-cloning policy on both sides; slots shuffled; the 49 distinct top-50 meta teams, the duplicated one weighted twice (weights sum to 50). Arm 4: the stored `fresh` results in `line_up_yield_sched_species_first*.json`, seed 7520, database `~/vgc-data/masking_rate_battles/fresh.sqlite`. Arm 16: `LY_PER_CELL=16`, seed 1,007,520 (worker seeds are seed + job id, so the arms' ranges never meet), its own database `~/vgc-data/deep_evaluation/fresh_d16.sqlite`, results `line_up_yield_<grid>_d16.json`. A database records its depth and refuses another (`claim_depth`): in a shared database a cell asked for 16 would be topped up from the stored 4, and the arms would share those battles. The re-battle also refuses a team holding more than 16 per meta team. |
+| Search region | The elite line-ups of the control checkpoint `stat84_shuffled_noise_per_field_es3_cap80` re-battled on 2026-11-13: 272 at guidance 2, 334 at guidance 4, 352 at guidance 8 (`rebattled` in the `all_23_asks` view). Arm 16 battles only these teams, not the other two views' best teams that the 4-battle re-battle also covered (309, 372, 393 teams). |
 | Settings | Scientific: battles per meta team (4, 16). Nuisance: the battle seed (new for arm 16). Fixed: elite cut 0.531, policy, opponents, the team per line-up. |
-| Plan | Primary measure: the share of line-ups whose verdict at 16 differs from the verdict at 4, with a 95% bootstrap interval over line-ups. Second: held counts at 4 and 16 per guidance. A single measure with nothing traded against it except cost, so the question is whether the flip share exceeds 10%. Budget: 958 line-ups × 49 × 16 = 751,072 battles; guidance 2 alone is 213,248. Stop after guidance 2 if its flip share's interval lies below 10%. Baseline: arm 4 is today's rule. |
+| Plan | Primary measure (`line_up_yield.py flips`): the share of line-ups whose verdict at 16 differs from the verdict at 4, with a 95% bootstrap interval over line-ups (2,000 resamples). Second: held counts at 4 and 16 per guidance. A single measure with nothing traded against it except cost, so the question is whether the flip share exceeds 10%. Budget: 958 line-ups × 49 × 16 = 751,072 battles; guidance 2 alone is 213,248. Stop after guidance 2 if its flip share's interval lies below 10%. Baseline: arm 4 is today's rule. |
 
 ### Arms
 
@@ -32,9 +32,39 @@ Two parts, run in this order because part B uses part A's depth.
 
 Generation probes (round trip, coverage, read teams, training smoke, condition, copies) do not apply: no model runs. Run before launch: **controls** (5 top-50 teams and 5 uniform-legal teams from `~/vgc-data/teams/hps_reg_mb_100k.jsonl` through the same `score_pastes` call at 16, near 0.50 and near 0.015), **repeat** (one line-up twice at one seed: same schedule, scores within battle noise), **separation** (no held-out team among the 958). Save each in the result JSON under `preflight`.
 
+Results, 2026-11-17, saved under `preflight` in `~/vgc-data/results/line_up_yield_sched_species_first_d16.json`; all pass:
+
+| Probe | Result |
+| --- | --- |
+| Controls, 16 per meta team | 5 top-50 teams 0.550; 5 uniform-legal teams 0.018 |
+| Repeat, one line-up twice at one seed | identical opponent schedule and slot orders; 0.440 and 0.464 over 784 battles each, gap 0.024 inside the 99% bound 0.061 |
+| Separation | 0 held-out teams among the 272, 334 and 352 teams |
+| The 4-battle arm | every line-up present at all three guidances, 196 battles each, seed 7520 |
+| Independence | `fresh_d16.sqlite` holds no cells and records depth 16 |
+| Prediction | flip share 0.24, 0.24, 0.20 at guidance 2, 4, 8 (see Noise and budget) |
+| Smoke | 2 teams at 1 per meta team through `rebattle` into a scratch database: 49 battles each, depth recorded; a smoke now defaults to `fresh_d16_smoke.sqlite` |
+
+Invariance is skipped: every battle shuffles slots and the re-battle refuses any other order.
+
+### Commands
+
+```
+cd code/src
+LY_PER_CELL=16 LY_MODEL=sched_species_first python line_up_yield.py preflight   # probes, private databases
+LY_PER_CELL=16 LY_MODEL=sched_species_first python line_up_yield.py rebattle    # 213,248 battles
+LY_PER_CELL=16 LY_MODEL=sched_species_first python line_up_yield.py report      # all-23-asks view at 16
+LY_PER_CELL=16 LY_MODEL=sched_species_first python line_up_yield.py flips       # flip share, verdict by the rule
+```
+
+Then `_g4` and `_g8` unless guidance 2 stops the run. Tests: `scripts/test_deep_evaluation.py`.
+
 ### Noise and budget
 
 One line-up's win rate has standard error 0.036 at 196 battles (arm 4) and 0.018 at 784 (arm 16), at p = 0.5. On 2026-11-13, 124 of 272 guidance-2 line-ups sat near the cut, so a flip share well above 10% is plausible. The bootstrap over 272 line-ups resolves a flip share to about ±0.05. **Confirmatory.**
+
+Predicted before any 16-battle result (the `prediction` probe, 2026-11-17): battle noise alone, with each team's true win rate drawn from an empirical-Bayes posterior fitted to the spread of the 4-battle scores, gives a flip share of 0.24 (90% of draws 0.20 to 0.28) at guidance 2, 0.24 (0.20 to 0.27) at 4 and 0.20 (0.17 to 0.23) at 8. A flat prior gives 0.19, 0.19 and 0.17. Every version lies above 10%, so the rule's verdict, 16, is close to settled before the run; the run's value is the held counts at 16, which re-read #297 and #335, and the check that the noise model holds. A measured share far below the prediction would mean the 4-battle scores are less noisy than binomial, or the two arms share something they should not.
+
+Time: the 4-battle re-battle ran 60,564 battles in about 9 minutes on 2026-11-13, so guidance 2 at 16 takes about 35 minutes and all three about 2 hours on the laptop. A cheaper design, re-battling only line-ups within 0.036 of the cut (124 of 272 at guidance 2), would answer the held counts but not the flip share the rule reads, so the run keeps every line-up.
 
 ## Part B: weakness pressure in an 84-field elite loop
 
