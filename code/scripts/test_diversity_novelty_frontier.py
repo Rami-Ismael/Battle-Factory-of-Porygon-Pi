@@ -1,5 +1,5 @@
 """The diversity-novelty frontier's dominance rule: a point beats another only when it is at least as high on every axis
-on each of the three sampling seeds, seed for seed, and higher somewhere.
+on each of the three sampling seeds, seed for seed, and higher somewhere. And its elite line-ups that held, per seed.
 
     python scripts/test_diversity_novelty_frontier.py   (from code/)
 """
@@ -40,6 +40,43 @@ class Dominance(unittest.TestCase):
         broad = pt("broad", (20, 20, 20), (.9, .9, .9))
         self.assertIn("winner, guidance 2", F.front([narrow_winner, broad], F.AXES)[0])
         self.assertNotIn("winner, guidance 2", F.front([narrow_winner, broad], AXES)[0])
+
+    def test_a_grid_never_rebattled_is_left_out_of_elite_fronts(self):
+        held = dict(pt("held", (10, 10, 10), (.5, .5, .5)), elite_held=5, elite_held_by_seed={"1": 5, "2": 5, "3": 5})
+        unbattled = dict(pt("unbattled", (20, 20, 20), (.9, .9, .9)), elite_held=None)
+        on, _ = F.front([held, unbattled], ("line_ups", "elite_held"))
+        self.assertEqual(on, ["held, guidance 2"])
+
+
+def team(*species):
+    return "\n\n".join(f"{s} @ Leftovers\nAbility: Pressure" for s in species)
+
+
+class EliteHeld(unittest.TestCase):
+    A, B, C = ("Garchomp", "Charizard", "Pikachu", "Snorlax", "Gengar", "Lucario"), \
+              ("Garchomp", "Charizard", "Pikachu", "Snorlax", "Gengar", "Dragonite"), \
+              ("Garchomp", "Charizard", "Pikachu", "Snorlax", "Gengar", "Gyarados")
+
+    def cells(self):
+        # seed 1 draws A elite and B below the cut; seed 2 draws A and B elite; seed 3 draws C elite (C did not hold)
+        return [dict(seed=1, pastes=[team(*self.A), team(*self.B)], y=[0.6, 0.4]),
+                dict(seed=2, pastes=[team(*self.A), team(*self.B)], y=[0.55, 0.7]),
+                dict(seed=3, pastes=[team(*self.C)], y=[0.9])]
+
+    def held(self):
+        import line_up_yield as LY
+        return [list(LY.line_up(team(*x))) for x in (self.A, self.B)]
+
+    def test_each_seed_counts_the_held_line_ups_it_drew_as_elite(self):
+        import line_up_yield as LY
+        out = F.elite(self.cells(), self.held(), training={LY.line_up(team(*self.A))})
+        self.assertEqual(out["elite_held"], 2)
+        self.assertEqual(out["elite_held_by_seed"], {"1": 1, "2": 2, "3": 0})
+        self.assertEqual(out["novel_elite_held"], 1)
+        self.assertEqual(out["novel_elite_held_by_seed"], {"1": 0, "2": 1, "3": 0})
+
+    def test_not_rebattled_gives_no_value(self):
+        self.assertEqual(F.elite(self.cells(), None, set()), dict(elite_held=None, novel_elite_held=None))
 
 
 if __name__ == "__main__":
