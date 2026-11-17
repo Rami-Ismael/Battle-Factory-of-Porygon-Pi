@@ -2,7 +2,7 @@
 
 Pre-registration, written 2026-11-16 before any team of the new arm was sampled or battled. Ticket: [Start each team at its most uncertain field (entropy-guided initialization), then confidence order](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/333), on the [Masking-schedule map](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/291). It builds on the confidence-order grid of [#332](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/332) and its guidance 4 and 8 grids ([#363](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/363)).
 
-Mode: **confirmatory** once the owner settles the primary measure (see [Ceiling probe](#ceiling-probe-fails-for-pass48)). One training seed, so the result describes this checkpoint, not every training of it.
+Mode: **confirmatory**. The owner fixed the primary test on 2026-11-17, before any team of the new arm was sampled: the Pareto test under [Plan](#plan), in place of the ticket's Pass@48 prediction (see [Ceiling probe](#ceiling-probe-fails-for-pass48)). One training seed, so the result describes this checkpoint, not every training of it.
 
 ## Terms
 
@@ -51,7 +51,7 @@ Saved in `~/vgc-data/results/entropy_init_probe.json`; the grid's own `ask_grid8
 | Condition | Pass: the pass-1 field and its entropy move with the ask, from 5.07 nats at ask 1/24 to 2.62 at ask 14/24. |
 | Ceiling | **Fails for Pass@48**, see below. |
 | Ceiling of the mechanism | Weak headroom. Jeon et al. credit the gain to fill orders spreading apart (edit distance 0.45 to 0.52 on GSM8K). Confidence order's fill orders here already differ by 0.877 of 84 places at one ask; two random orders differ by 0.977. |
-| Reader smoke | Pass: `read`, `figure` and `comment` ran end to end with confidence order's guidance 4 grid standing in for the new row (output in the session scratchpad, not in results). |
+| Reader smoke | Pass: `read`, `figure` and `comment` ran end to end with confidence order's guidance 4 grid standing in for the new row (output in the session scratchpad, not in results); the Pareto test read that stand-in as on the curve, as it should. |
 | Round trip, coverage, read teams, controls, invariance, repeat, separation | Run by `ask_grid84.py preflight` on this row's own sampler before sampling; same checkpoint and scorer as #332, whose preflight passed. |
 | Training smoke | Skipped: no training; the checkpoint is #296's. |
 | Copies | Reported in the verdict: novel share against the training line-ups and swaps to the nearest one (`grid_novelty.py`). |
@@ -61,15 +61,18 @@ Saved in `~/vgc-data/results/entropy_init_probe.json`; the grid's own `ask_grid8
 
 The ticket predicts Pass@48 above confidence order's. Confidence order reads 0.970 [0.704, 0.998]. The best possible result, 1.0, sits 0.03 above that point and 0.002 above the interval's upper end, so only a perfect result could confirm the prediction, and a real gain of a few points could not be told from noise. Smaller k does not rescue it: Pass@8 reads 0.493 [0.22, 0.71]. Pass@k rests on a few hundred elite line-ups and carries their opponent and re-battle noise.
 
-Pass@48 stays reported but cannot be the primary measure. The owner chooses the primary measure before launch.
+Pass@48 stays reported but cannot be the primary measure. The owner chose the Pareto test below on 2026-11-17 ("yes").
 
 ## Plan
 
-**Primary question (proposed):** a Pareto question on two axes, mean win rate over the 23 asks and distinct line-ups of the 4,416 teams, the axes of the diversity front on [#263](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/263#issuecomment-6927342360).
+**Primary question (owner, 2026-11-17):** a Pareto question on two axes, mean win rate over the 23 asks and distinct line-ups of the 4,416 teams, the axes of the diversity front on [#263](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/263#issuecomment-6927342360).
 
 - Strongest previous front: confidence order's curve over guidance 2, 4 and 8, at (3,600 line-ups, 0.331), (3,405, 0.349) and (3,090, 0.364), with species-first and random order beside it.
 - Sweep: guidance 2 only in this ticket. Guidance 4 and 8 run only if guidance 2 lands outside the curve, as #363 did for confidence order.
-- Outside the curve: at least 100 more line-ups than 3,600 with win rate no lower than 0.331 − 0.007, or a win rate above confidence order's curve at the same line-up count by more than 0.007.
+- **Outside** the curve: at least 100 more line-ups than 3,600 with win rate no lower than 0.331 − 0.007, or a win rate above confidence order's curve at the same line-up count by more than 0.007. The curve joins its three points with straight lines and stays flat beyond its ends.
+- **Inside**: some confidence order point has at least 100 more line-ups and at least 0.007 more win rate.
+- **On the curve**: neither, within the margins.
+- Code: `entropy_init84.pareto`, tested in `scripts/test_entropy_init84.py` (`ParetoRule`).
 
 **Secondary, reported with intervals:** Pass@k and Potential@k for k = 1 to 48, the ticket's prediction part by part, ask-versus-got error paired by seed, elite line-ups that held, novel share, effective species, fill-order edit distance, pass of the last species, non-top draw share.
 
@@ -84,4 +87,4 @@ Pass@48 stays reported but cannot be the primary measure. The owner chooses the 
 
 ## Run
 
-`~/vgc-data/entropy_init/ei_queue.sh`, a frozen copy of this commit in `run/`, queued behind other sessions' jobs. It runs `ask_grid84.py preflight`, `gen`, `battle` and `report` with `AG84_MODEL=sched_linear_entropy_init AG84_GUIDANCE=2`, the opponent snapshot, the elite re-battle, `pass_at_k.py read`, then `entropy_init84.py read`, `figure` and `comment`, which it posts to #333.
+`~/vgc-data/entropy_init/ei_queue.sh`, a frozen copy of this commit in `run/`, queued behind other sessions' jobs. It runs `ask_grid84.py preflight`, `gen`, `battle` and `report` with `AG84_MODEL=sched_linear_entropy_init AG84_GUIDANCE=2`, the opponent snapshot, the elite re-battle, `pass_at_k.py read`, then `entropy_init84.py read`, `figure` (Pareto front first) and `comment`, which it posts to #333.

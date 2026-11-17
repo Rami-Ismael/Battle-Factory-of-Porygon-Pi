@@ -190,6 +190,39 @@ def prediction(new, conf, k=C.K_PREDICTED):
                 verdict="confirmed" if held == 2 else "not confirmed" if held == 0 else "partly confirmed")
 
 
+LINE_UP_MARGIN, WIN_MARGIN = 100, 0.007                    # owner, 2026-11-17: the primary test (docs/entropy-first-then-confidence.md)
+
+
+def frontier_points():
+    """(row, guidance) -> {line_ups, win} from the diversity front of #263 (diversity_novelty_frontier.py)."""
+    f = json.load(open(results_dir() / "diversity_novelty_frontier.json"))
+    return {(p["row"], int(p["guidance"])): dict(line_ups=p["line_ups"], win=p["win"], arm=p["arm"]) for p in f["points"]}
+
+
+def confidence_curve_win(curve, line_ups):
+    """Confidence order's win rate at this many line-ups: straight lines between its guidance points (ordered by
+    line-ups); the end point's win rate beyond either end."""
+    pts = sorted((c["line_ups"], c["win"]) for c in curve)
+    if line_ups <= pts[0][0]: return pts[0][1]
+    if line_ups >= pts[-1][0]: return pts[-1][1]
+    return float(np.interp(line_ups, [x for x, _ in pts], [y for _, y in pts]))
+
+
+def pareto(new, curve):
+    """The primary test. new and each curve point: {line_ups, win}. Outside: at least LINE_UP_MARGIN more line-ups than
+    the curve's widest point at a win rate no more than WIN_MARGIN below it, or a win rate more than WIN_MARGIN above
+    the curve at the same line-up count. Inside: some curve point has at least LINE_UP_MARGIN more line-ups and at least
+    WIN_MARGIN more win rate. Otherwise on the curve, within the margins."""
+    widest = max(curve, key=lambda c: c["line_ups"])
+    at = confidence_curve_win(curve, new["line_ups"])
+    wider = new["line_ups"] >= widest["line_ups"] + LINE_UP_MARGIN and new["win"] >= widest["win"] - WIN_MARGIN
+    higher = new["win"] > at + WIN_MARGIN
+    inside = any(c["line_ups"] >= new["line_ups"] + LINE_UP_MARGIN and c["win"] >= new["win"] + WIN_MARGIN for c in curve)
+    verdict = "outside" if wider or higher else "inside" if inside else "on the curve"
+    return dict(verdict=verdict, wider=bool(wider), higher=bool(higher), dominated=bool(inside), curve_win_at_line_ups=at,
+                line_up_margin=LINE_UP_MARGIN, win_margin=WIN_MARGIN, point=new, curve=curve)
+
+
 def read():
     import grid_novelty as GN
     import masking_rate_rows as MRR
@@ -229,6 +262,10 @@ def read():
     result["first_field_types"] = {row: first_field_types(cells[row]) for row in (ROW, CONFIDENCE)}
     new, conf = result["rows"][ROW], result["rows"][CONFIDENCE]
     result["prediction"] = prediction(new, conf) if new["pass_at_k"] and conf["pass_at_k"] else None
+    points = frontier_points()
+    curve = [dict(guidance=g, line_ups=points[(CONFIDENCE, g)]["line_ups"], win=points[(CONFIDENCE, g)]["win"]) for g in (2, 4, 8)]
+    result["pareto"] = pareto(dict(line_ups=new["line_ups"], win=new["pooled_win"]), curve)
+    result["front_points"] = [dict(row=r_, guidance=g, **v) for (r_, g), v in sorted(points.items())]
     json.dump(result, open(out_path(), "w"), indent=1)
     for row, m in result["rows"].items():
         print(f"{m['reader']:45s} error {m['error']:.4f} win {m['pooled_win']:.3f} legal {m['first_try_legality']:.1%} line-ups {m['line_ups']} "
@@ -236,23 +273,51 @@ def read():
     print("against confidence order:", result["against"][CONFIDENCE])
     print("edit distance:", {r: round(v["mean"], 3) for r, v in result["edit_distance"].items()})
     print("pass 1 field types:", result["first_field_types"][ROW])
-    print("VERDICT", (result["prediction"] or {}).get("verdict")); print("ENTROPY_INIT_READ_DONE")
+    print("ticket prediction:", (result["prediction"] or {}).get("verdict"))
+    print("VERDICT", result["pareto"]["verdict"]); print("ENTROPY_INIT_READ_DONE")
 
 
 def headline(r):
-    p = r["prediction"] or {}
-    new, conf = r["rows"][ROW], r["rows"][CONFIDENCE]
-    if not p: return "Entropy-guided initialization: Pass@48 not read"
-    k = C.K_PREDICTED - 1
-    a, b = new["pass_at_k"]["pass_at_k"][k], conf["pass_at_k"]["pass_at_k"][k]
-    return (f"Starting at the most uncertain field {'raises' if p['parts']['pass_at_48_above_confidence_order'] else 'does not raise'} "
-            f"Pass@48 above confidence order's ({a:.3f} against {b:.3f})")
+    p = r["pareto"]; n = p["point"]
+    word = {"outside": "lands outside", "inside": "lands inside", "on the curve": "lands on"}[p["verdict"]]
+    return (f"Entropy-guided initialization {word} confidence order's win rate and line-up curve "
+            f"({n['line_ups']:,} line-ups at {n['win']:.3f}, against {p['curve_win_at_line_ups']:.3f} on the curve)")
+
+
+FRONT_ROWS = {CONFIDENCE: "Confidence order", SPECIES_FIRST: "Species-first order", RANDOM: "Random order"}
+
+
+def pareto_figure(folder, r):
+    """Win rate against distinct line-ups: each order's guidance curve (labelled by guidance) and the new point."""
+    from echarts_chart import write_chart
+    series = []
+    for row, name in FRONT_ROWS.items():
+        pts = sorted((p for p in r["front_points"] if p["row"] == row), key=lambda p: p["guidance"])
+        series.append(dict(type="line", name=name, color=COLOR[row], symbolSize=8, emphasis=dict(focus="series"),
+                           label=dict(show=True, position="top", formatter="js:p => 'g' + p.data[2]"),
+                           data=[[p["line_ups"], p["win"], p["guidance"]] for p in pts]))
+    n = r["pareto"]["point"]
+    series.append(dict(type="scatter", name=READER[ROW], color=COLOR[ROW], symbolSize=18, symbol="diamond",
+                       label=dict(show=True, position="right", formatter="g2, new"), data=[[n["line_ups"], n["win"], 2]]))
+    option = dict(grid=dict(left=64, right=40, top=72, bottom=56), legend=dict(top=0),
+                  tooltip=dict(trigger="item", formatter="js:p => p.seriesName + ', guidance ' + p.data[2] + ': ' + p.data[0].toLocaleString() + ' line-ups, win ' + (p.data[1] * 100).toFixed(1) + '%'"),
+                  xAxis=dict(type="value", scale=True, name="Distinct line-ups of 4,416 teams (more is more diverse)", nameLocation="middle", nameGap=34),
+                  yAxis=dict(type="value", scale=True, name="Mean win rate, 23 asks", nameLocation="middle", nameGap=50,
+                             axisLabel=dict(formatter="js:v => (v * 100).toFixed(0) + '%'")),
+                  series=series, animation=False)
+    write_chart(option, Path(folder) / "entropy-pareto.html", height=480, title=headline(r),
+                subtitle=f"Outside means at least {LINE_UP_MARGIN} more line-ups than confidence order's widest point at a win rate within {WIN_MARGIN}, "
+                         f"or a win rate more than {WIN_MARGIN} above its curve at the same line-up count. Linear schedule; g: guidance.",
+                note="Win rate: one battle against each of the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled. "
+                     "Species-first line-ups from its grids redrawn on seeds of their own (#353).")
 
 
 def figure(folder):
-    """Three pages: got against ask for the four rows, Pass@k at asks 13/24 to 17/24, and fill-order edit distance by ask."""
+    """Four pages: the win rate against line-ups front, got against ask for the four rows, Pass@k at asks 13/24 to
+    17/24, and fill-order edit distance by ask."""
     from echarts_chart import band, write_chart
     r = json.load(open(out_path())); rows = r["rows"]; pct = "js:v => Math.round(v * 100) + '%'"
+    pareto_figure(folder, r)
     asks = [int(k) for k in rows[ROW]["got_by_ask"]]; xs = [k / 24 for k in asks]; series = []
     for i, (row, m) in enumerate(rows.items()):
         series += band(m["reader"], COLOR[row], xs, [m["got_by_ask_interval"][str(k)][0] for k in asks], [m["got_by_ask_interval"][str(k)][1] for k in asks], stack=f"b{i}")
@@ -342,7 +407,7 @@ MEASURES = (("Pass@48, asks 13/24 to 17/24", lambda r, row: _pass(r, row, "pass"
 
 
 def comment(figure_url):
-    """The verdict comment, picture first. figure_url holds {name} (got, pass-at-k or edit-distance) and {theme}."""
+    """The verdict comment, picture first. figure_url holds {name} (pareto, got, pass-at-k or edit-distance) and {theme}."""
     import datetime
     r = json.load(open(out_path())); rows = r["rows"]; new, conf = rows[ROW], rows[CONFIDENCE]
     iv = lambda x, f="+.4f": f"[{x[0]:{f}}, {x[1]:{f}}]"
@@ -351,10 +416,15 @@ def comment(figure_url):
     pred = r["prediction"] or {"verdict": "not read", "parts": {}}
     word = lambda ok: "held" if ok else "did not hold"
     g = r["against"][CONFIDENCE]; ed = r["edit_distance"]; ft = r["first_field_types"][ROW]
-    lines = [f"**Result, {datetime.date.today()}: {headline(r)}. Prediction {pred['verdict']}.**", "",
+    pa = r["pareto"]
+    lines = [f"**Result, {datetime.date.today()}: {headline(r)}. Primary test: {pa['verdict']}.**", "",
+             pic("pareto", "Mean win rate against distinct line-ups for each decoding order's guidance curve, and the new arm at guidance 2"), "",
+             f"Primary test (owner, 2026-11-17): outside confidence order's curve means at least {LINE_UP_MARGIN} more line-ups than its widest point "
+             f"({max(c['line_ups'] for c in pa['curve']):,}) at a win rate within {WIN_MARGIN}, or more than {WIN_MARGIN} win rate above the curve at the same "
+             f"line-up count. More line-ups: {'yes' if pa['wider'] else 'no'}. Higher win rate: {'yes' if pa['higher'] else 'no'}.", "",
              pic("pass-at-k", "Pass@k at asks 13/24 to 17/24 for entropy-guided initialization, confidence order, species-first order and random order"), "",
-             "Prediction, written before the run, part by part: "
-             + "; ".join(f"{k.replace('_', ' ')}: {word(v)}" for k, v in pred["parts"].items()) + ".", "",
+             "The ticket's Pass@48 prediction, reported but not the test (its ceiling probe failed: confidence order's interval reaches 0.998), part by part: "
+             + "; ".join(f"{k.replace('_', ' ')}: {word(v)}" for k, v in pred["parts"].items()) + f" (overall {pred['verdict']}).", "",
              pic("got", "Got against ask for the four rows at guidance 2"), "",
              f"- Mean win rate over the 23 asks: {new['pooled_win']:.3f}, against {conf['pooled_win']:.3f} {iv(conf['pooled_win_interval'], '.3f')} for confidence order "
              f"(gap {g['pooled_win']['difference']:+.3f} {iv(g['pooled_win']['interval'], '+.3f')}), {rows[SPECIES_FIRST]['pooled_win']:.3f} species-first, "

@@ -61,6 +61,37 @@ class EditDistance(unittest.TestCase):
         self.assertAlmostEqual(r["by_ask"]["4"], levenshtein(list(range(84)), list(range(84))[::-1]) / 84)
 
 
+CURVE = (dict(line_ups=3600, win=0.331), dict(line_ups=3405, win=0.349), dict(line_ups=3090, win=0.364))   # confidence order, guidance 2, 4, 8
+
+
+class ParetoRule(unittest.TestCase):
+    """The primary test against confidence order's guidance curve (owner, 2026-11-17)."""
+    def verdict(self, line_ups, win):
+        import entropy_init84 as E
+        return E.pareto(dict(line_ups=line_ups, win=win), CURVE)["verdict"]
+
+    def test_more_line_ups_at_the_same_win_rate_is_outside(self):
+        self.assertEqual(self.verdict(3700, 0.331 - 0.006), "outside")
+        self.assertEqual(self.verdict(3699, 0.331), "on the curve", "99 more line-ups is inside the margin")
+        self.assertEqual(self.verdict(3700, 0.331 - 0.008), "on the curve", "more line-ups bought with more than the win margin")
+
+    def test_higher_win_rate_at_the_same_line_ups_is_outside(self):
+        import entropy_init84 as E
+        mid = E.confidence_curve_win(CURVE, 3500)
+        self.assertAlmostEqual(mid, 0.331 + (0.349 - 0.331) * 100 / 195)
+        self.assertEqual(self.verdict(3500, mid + 0.0071), "outside")
+        self.assertEqual(self.verdict(3500, mid + 0.0069), "on the curve")
+
+    def test_a_point_a_curve_point_beats_on_both_axes_is_inside(self):
+        self.assertEqual(self.verdict(3300, 0.330), "inside")
+        self.assertEqual(self.verdict(3300, 0.345), "on the curve", "within the win margin of every wider point")
+
+    def test_beyond_the_curve_ends_uses_the_end_point(self):
+        import entropy_init84 as E
+        self.assertEqual(E.confidence_curve_win(CURVE, 2000), 0.364)
+        self.assertEqual(E.confidence_curve_win(CURVE, 5000), 0.331)
+
+
 @unittest.skipUnless(VOCAB is not None, "the /tmp/vgc-pilot runtime is not available")
 class EntropyFirst(unittest.TestCase):
     @classmethod
