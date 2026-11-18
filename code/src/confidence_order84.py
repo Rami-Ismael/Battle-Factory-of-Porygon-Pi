@@ -31,19 +31,27 @@ import diffusion84 as M
 
 
 @torch.no_grad()
-def sample_confidence(w, n, ask=None, guidance=1.0, temperature=1.0, lookahead=True, refusals=None, order=None):
+def sample_confidence(w, n, ask=None, guidance=1.0, temperature=1.0, lookahead=True, refusals=None, order=None,
+                      first_pick="confidence", first_temperature=None, passes=None, score_log=None):
     """(teams [n, COLS], fill order [n, COLS], non-top [n, COLS]). Each pass, every team fills the masked field whose
     drawing distribution puts the most probability on one value, and draws that field's value from the distribution.
     Ties go to the lower column. order: a fixed column order shared by every team instead of confidence order; with
     lookahead off and order=M.ORDER it draws the same teams as Model84.sample. refusals: a diffusion84.Refusals, told
     what each draw's lookahead refused. fill order [i, k]: the column team i filled at pass k. non-top [i, c]: the
-    value drawn at column c was not that distribution's most likely value."""
+    value drawn at column c was not that distribution's most likely value. first_pick="entropy": pass 1 instead fills
+    the masked field whose drawing distribution at `temperature` has the highest entropy, -sum p log p, and draws its
+    value at first_temperature (entropy-guided initialization, issue #333); passes 2 to 84 stay confidence order.
+    passes: stop after this many passes and return the part-filled teams (a probe of the first picks). score_log: a list
+    that receives each pass's scores [n, COLS] on the CPU, -1 at filled fields."""
     ask_w = torch.full((n,), M.NAN if ask is None else ask, device=M.DEV); null_w = torch.full((n,), M.NAN, device=M.DEV)
     x = torch.zeros(n, M.COLS, dtype=torch.long, device=M.DEV)
     fill_order = torch.zeros(n, M.COLS, dtype=torch.long)
     non_top = torch.zeros(n, M.COLS, dtype=torch.bool)
     guided = ask is not None and guidance != 1.0
-    for step in range(M.COLS):
+    if first_pick not in ("confidence", "entropy"): raise ValueError(f"unknown first pick {first_pick!r}")
+    for step in range(M.COLS if passes is None else passes):
+        by_entropy = step == 0 and first_pick == "entropy" and order is None
+        draw_temperature = first_temperature if by_entropy and first_temperature is not None else temperature
         t = torch.full((n,), 1.0 - step / M.COLS, device=M.DEV)
         lp = w._logprobs(x, t, ask_w); lpn = w._logprobs(x, t, null_w) if guided else None
         al = M.allowed(w.tables, x)
@@ -54,20 +62,24 @@ def sample_confidence(w, n, ask=None, guidance=1.0, temperature=1.0, lookahead=T
             lc = w._column(lp, c)
             if guided: lc = guidance * lc + (1 - guidance) * w._column(lpn, c)
             legal, plain, kept, fallback = w._legal_parts(x, c, lookahead, al=al)
-            p = torch.softmax(lc.masked_fill(~legal, -float("inf")) / temperature, -1)
+            logits = lc.masked_fill(~legal, -float("inf"))
+            p = torch.softmax(logits / temperature, -1)
+            ranked = torch.special.entr(p).sum(1) if by_entropy else p.max(1).values
+            if draw_temperature != temperature: p = torch.softmax(logits / draw_temperature, -1)
             parts[c] = (lc, plain, kept, fallback, p)
-            score[:, c] = torch.where(masked[:, c], p.max(1).values, torch.full_like(score[:, c], -1.0))
+            score[:, c] = torch.where(masked[:, c], ranked, torch.full_like(score[:, c], -1.0))
+        if score_log is not None: score_log.append(score.cpu())
         pick = torch.full((n,), order[step], device=M.DEV) if order is not None else score.argmax(1)
         before = x.clone()
         for c in sorted(set(pick.tolist())):
             rows = pick == c
             lc, plain, kept, fallback, p = parts[c]
-            if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback, rows, column=c, x=before)
+            if refusals is not None: refusals.add(lc / draw_temperature, plain, kept, fallback, rows, column=c, x=before)
             v = torch.multinomial(p if bool(rows.all()) else p[rows], 1).squeeze(1)
             non_top[rows.cpu(), c] = (v != p[rows].argmax(1)).cpu()
             x[rows, c] = v + 1 if c >= M.STAT0 else v          # a Stat Point output index is its value
         fill_order[:, step] = pick.cpu()
-    if (x == 0).any(): raise RuntimeError("a field is still masked after the last pass")
+    if passes is None and (x == 0).any(): raise RuntimeError("a field is still masked after the last pass")
     return x, fill_order, non_top
 
 
@@ -75,13 +87,16 @@ class ConfidenceOrderArm:
     """Confidence order as an arm object for ask_grid84.draw: sample() and to_paste(). lookahead on by default, as the
     ticket's run. last_refusals: one diffusion84.Refusals record per team of the last sample() call, with two more
     keys: "fill_order", the column filled at each pass, and "non_top_fields", how many drawn values were not their
-    distribution's most likely value. order: a fixed column order instead of confidence order (non_top_species_first)."""
-    def __init__(self, w, lookahead=True, order=None):
+    distribution's most likely value. order: a fixed column order instead of confidence order (non_top_species_first).
+    first_pick="entropy" with first_temperature: entropy-guided initialization (issue #333, entropy_init84.py)."""
+    def __init__(self, w, lookahead=True, order=None, first_pick="confidence", first_temperature=None):
         self.w, self.lookahead, self.order, self.last_refusals = w, lookahead, order, None
+        self.first_pick, self.first_temperature = first_pick, first_temperature
 
     def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
         rec = M.Refusals(n)
-        x, fill_order, non_top = sample_confidence(self.w, n, ask, guidance, temperature, self.lookahead, rec, self.order)
+        x, fill_order, non_top = sample_confidence(self.w, n, ask, guidance, temperature, self.lookahead, rec, self.order,
+                                                   self.first_pick, self.first_temperature)
         self.last_refusals = [dict(r, fill_order=o, non_top_fields=int(k))
                               for r, o, k in zip(rec.records(), fill_order.tolist(), non_top.sum(1).tolist())]
         return x
