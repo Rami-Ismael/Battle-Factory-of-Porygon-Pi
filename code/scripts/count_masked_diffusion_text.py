@@ -53,6 +53,7 @@ class Candidate:
     mask_id: int                    # the mask token id #162 found
     mask_token: str | None = None   # set when the tokenizer does not load it (LLaDA)
     qwen2_files: bool = False       # load the repo's vocabulary into Qwen2TokenizerFast (Dream)
+    start_token: bool = False       # put the tokenizer's start token first (DiffuLLaMA: #236 copy test)
 
 
 CANDIDATES = (                      # the seven of #162, at the revisions it pinned
@@ -65,7 +66,7 @@ CANDIDATES = (                      # the seven of #162, at the revisions it pin
     Candidate('diffugpt_m', 'DiffuGPT medium', 'diffusionfamily/diffugpt-m',
               'ce62f89724018390198ded702c4926791cf17c21', 50257),
     Candidate('diffullama', 'DiffuLLaMA 7B', 'diffusionfamily/diffullama',
-              '31b22850c7b397d6948ea04076099b9ff7110adc', 811),
+              '31b22850c7b397d6948ea04076099b9ff7110adc', 811, start_token=True),
     Candidate('dream', 'Dream 7B', 'Dream-org/Dream-v0-Base-7B',
               '6572adb5535263e4d1a337b56942ba48b6dee2a9', 151666, qwen2_files=True),
     Candidate('llada', 'LLaDA 8B', 'GSAI-ML/LLaDA-8B-Base',

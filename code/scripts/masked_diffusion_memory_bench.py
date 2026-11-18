@@ -139,11 +139,29 @@ def is_over_ceiling(error: BaseException) -> bool:
 
 def candidate_info(candidate: Any) -> dict[str, Any]:
     return {'key': candidate.key, 'label': candidate.label, 'repo': candidate.repo, 'revision': candidate.revision,
-            'mask_id': candidate.mask_id, 'mask_token': candidate.mask_token, 'qwen2_files': candidate.qwen2_files}
+            'mask_id': candidate.mask_id, 'mask_token': candidate.mask_token, 'qwen2_files': candidate.qwen2_files,
+            'start_token': candidate.start_token}
+
+
+def wants_start_token(key: str) -> bool:
+    """Whether the candidate's texts put its start token first: DiffuLLaMA 7B copies nothing without <s> and 168 of
+    168 values with it (#236, docs/diffullama-start-token.md)."""
+    import count_masked_diffusion_text as C
+    return next(c for c in C.CANDIDATES if c.key == key).start_token
+
+
+def with_start_token(canvas: dict[str, Any], start_id: int) -> dict[str, Any]:
+    """The canvas with start_id before its first token: every slot moves up by one, and the text, which has no
+    start token in it, stays as it was."""
+    if canvas['ids'][:1] == [start_id]:
+        raise ValueError(f'the canvas already starts with token {start_id}')
+    return canvas | {'ids': [start_id, *canvas['ids']], 'slots': [n + 1 for n in canvas['slots']],
+                     'tokens': canvas['tokens'] + 1, 'start_token': start_id}
 
 
 def build_canvas(candidate: Any, tokenizer: Any, task: dict[str, Any], grid: str) -> dict[str, Any]:
-    """The in-place text for task with the candidate's longest ask, as token ids with the slot positions."""
+    """The in-place text for task with the candidate's longest ask, as token ids with the slot positions. A candidate
+    marked start_token (DiffuLLaMA) gets its tokenizer's start token first."""
     import count_masked_diffusion_text as C
     import masked_diffusion_text as D
     ask = C.longest_ask(tokenizer, task)
@@ -151,9 +169,10 @@ def build_canvas(candidate: Any, tokenizer: Any, task: dict[str, Any], grid: str
     ids = tokenizer(built.text, add_special_tokens=False).input_ids
     slots = [n for s in built.slots for n in range(s.first_token, s.first_token + s.length)]
     assert all(ids[n] == candidate.mask_id for n in slots) and ids.count(candidate.mask_id) == len(slots)
-    return {'candidate': candidate_info(candidate), 'family': FAMILY[candidate.key], 'version': built.version,
-            'mask': {'grid': grid, 'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k']},
-            'ask': D.ask_text(ask), 'text': built.text, 'ids': ids, 'slots': slots, 'tokens': len(ids)}
+    canvas = {'candidate': candidate_info(candidate), 'family': FAMILY[candidate.key], 'version': built.version,
+              'mask': {'grid': grid, 'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k']},
+              'ask': D.ask_text(ask), 'text': built.text, 'ids': ids, 'slots': slots, 'tokens': len(ids)}
+    return with_start_token(canvas, tokenizer.bos_token_id) if candidate.start_token else canvas
 
 
 def prepare(directory: Path) -> None:

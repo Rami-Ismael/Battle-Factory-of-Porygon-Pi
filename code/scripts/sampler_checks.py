@@ -27,9 +27,10 @@ dLLM's MDLMSampler.infill, and shifts the logits right by one for DiffuGPT, Diff
 
 DiffuLLaMA's start token (docs/diffullama-start-token.md). Check 2 found DiffuLLaMA 7B filling nearly every hidden
 value with newlines. Every text here is encoded without special tokens, so DiffuLLaMA, a LLaMA-2 model, never sees
-the start token <s> that LLaMA-2 and DiffuLLaMA's own inference script put first. copy --start-token prepends it to
-the copy texts, start-canvas to the benchmark text, and copy --attention eager runs DiffuLLaMA's attention code as its
-own inference script defaults to.
+the start token <s> that LLaMA-2 and DiffuLLaMA's own inference script put first. With <s> first it copied 168 of
+168 values (11-17), so DiffuLLaMA's candidate entry now sets start_token and every DiffuLLaMA text, copy test and
+benchmark canvas alike, starts with it; copy --no-start-token runs the old setting. start-canvas puts <s> before a
+canvas built without it, and copy --attention eager runs DiffuLLaMA's attention code as its inference script does.
 
 Dream's own sampler. Dream's model repo ships its decoding code (generation_utils.py, diffusion_generate). Its default
 order, alg='origin', reveals each mask at random with probability 1 - s/t; its confidence orders (maskgit_plus and
@@ -254,14 +255,16 @@ def copy_teams() -> list[list[dict[str, Any]]]:
     return [team[i:i + COPY_POKEMON] for team in teams for i in (0, COPY_POKEMON)]
 
 
-def copy_check(key: str, out: Path, device: str, start_token: bool = False, attention: str = 'sdpa',
+def copy_check(key: str, out: Path, device: str, start_token: bool | None = None, attention: str = 'sdpa',
                limit: int | None = None) -> dict[str, Any]:
     """Check 2 for one candidate. Cases already in out are kept, so a killed run resumes. start_token puts the
-    tokenizer's start token first; attention picks DiffuLLaMA's attention code; limit stops after that many
+    tokenizer's start token first (None: the candidate's own setting, on for DiffuLLaMA); attention picks DiffuLLaMA's attention code; limit stops after that many
     values, for the repeat probe."""
     canvas = json.loads((Path.home() / 'vgc-data/masked_memory_bench/canvas' / f'{key}.json').read_text())
     info, family = canvas['candidate'], canvas['family']
     tokenizer = B.load_tokenizer(info)
+    if start_token is None:
+        start_token = B.wants_start_token(key)
     start_id = tokenizer.bos_token_id if start_token else None
     if start_token and start_id is None:
         raise SystemExit(f"{info['label']}: its tokenizer has no start token")
@@ -295,15 +298,6 @@ def copy_check(key: str, out: Path, device: str, start_token: bool = False, atte
     result['summary']['answer_tokens'] = sum(c['tokens'] for c in result['cases'])
     out.write_text(json.dumps(result, ensure_ascii=False) + '\n')
     return result
-
-
-def with_start_token(canvas: dict[str, Any], start_id: int) -> dict[str, Any]:
-    """The benchmark canvas with start_id before its first token: every slot moves up by one, and the text, which
-    the start token does not appear in, stays as it was."""
-    if canvas['ids'][:1] == [start_id]:
-        raise ValueError('the canvas already starts with the start token')
-    return canvas | {'ids': [start_id, *canvas['ids']], 'slots': [n + 1 for n in canvas['slots']],
-                     'tokens': canvas['tokens'] + 1, 'start_token': start_id}
 
 
 # ---------- Dream's own sampler ----------
@@ -365,7 +359,7 @@ def copy_or_start_canvas(args: argparse.Namespace) -> None:
         return
     canvas = json.loads(args.canvas.read_text())
     start_id = B.load_tokenizer(canvas['candidate']).bos_token_id
-    args.out.write_text(json.dumps(with_start_token(canvas, start_id), ensure_ascii=False) + '\n')
+    args.out.write_text(json.dumps(B.with_start_token(canvas, start_id), ensure_ascii=False) + '\n')
     print(f"{canvas['candidate']['label']}: start token {start_id} put first", flush=True)
 
 
@@ -388,7 +382,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     copy.add_argument('--key', choices=B.ORDER, required=True)
     copy.add_argument('--out', type=Path, required=True)
     copy.add_argument('--device', default='mps')
-    copy.add_argument('--start-token', action='store_true', help="put the tokenizer's start token first")
+    copy.add_argument('--start-token', action=argparse.BooleanOptionalAction, default=None,
+                      help="put the tokenizer's start token first (default: the candidate's own setting)")
     copy.add_argument('--attention', choices=('sdpa', 'eager'), default='sdpa')
     copy.add_argument('--limit', type=int, default=None, help='only the first N values (the repeat probe)')
     start = sub.add_parser('start-canvas')

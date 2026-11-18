@@ -117,14 +117,17 @@ class StartTokenTest(unittest.TestCase):
 
     def test_the_benchmark_canvas_keeps_its_masks_on_its_slots(self):
         canvas = {'ids': [7, MASK_ID, MASK_ID, 8, MASK_ID], 'slots': [1, 2, 4], 'tokens': 5, 'text': 'x'}
-        started = S.with_start_token(canvas, START_ID)
+        started = B.with_start_token(canvas, START_ID)
         self.assertEqual(started['ids'][0], START_ID)
         self.assertEqual(started['tokens'], 6)
         self.assertTrue(all(started['ids'][n] == MASK_ID for n in started['slots']))
         self.assertEqual(started['ids'].count(MASK_ID), len(started['slots']))
         self.assertEqual(started['text'], 'x')
         with self.assertRaises(ValueError):
-            S.with_start_token(started, START_ID)
+            B.with_start_token(started, START_ID)
+
+    def test_only_diffullama_puts_the_start_token_first_by_default(self):
+        self.assertEqual([k for k in B.ORDER if B.wants_start_token(k)], ['diffullama'])
 
 
 @unittest.skipUnless(importlib.util.find_spec('transformers'), 'transformers is installed only in venv-dlm')

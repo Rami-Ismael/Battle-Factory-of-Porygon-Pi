@@ -24,6 +24,8 @@ Sources: [LLaDA paper](https://arxiv.org/html/2502.09992v3), [official code, gen
 
 **Sampler.** Algorithm 1 in Section 3.3 includes "Right shift logits by one position," so the model predicts the masked token from the position before it, as the autoregressive model did. Evaluation (`eval_diffugpt.py`, `eval_diffullama.py`) sets `diffusion_steps` to the masked-token count and `logits_temp` to 1.0 on Lambada. A commented-out alternative applies `top_p_logits(logits/0.8, p=0.8)` and categorical sampling. The sampler body is imported from external `llamafactory.train.ddm.trainer`, which is not in the repository, so its default shift and step handling are unconfirmed.
 
+**Start token.** DiffuLLaMA's `inf_diffullama.py` puts the LLaMA-2 start token `<s>` before the text. Without it, DiffuLLaMA 7B filled nearly every hidden value of #236's copy test with newlines and copied 23 of 168; with it, it copied 168 of 168 (2026-11-17, `code/docs/diffullama-start-token.md`). Our DiffuLLaMA texts now start with `<s>`.
+
 **Performance.** Appendix B.3 gives the decoding settings (LoRA rank 8; reasoning uses T=64; top-k 0.98 and top-p 0.9 for medium; top-k 1.0 and top-p 0.9 for small). Appendix C.1 (Figure 5) and Appendix C.3 (Table 6) hold the results; not extracted in this pass. Table 8 (HumanEval infilling) is also not extracted.
 
 Sources: [DiffuGPT and DiffuLLaMA paper](https://arxiv.org/html/2410.17891v3), [repository](https://github.com/HKUNLP/DiffuLLaMA).
