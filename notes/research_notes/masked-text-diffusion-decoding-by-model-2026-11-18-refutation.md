@@ -88,7 +88,7 @@ No models were run. Code was read at the revisions the note pins. Papers were re
 - Overstated: rows 2, 3, 20, 35, 45.
 - Wrong: rows 14, 22, 24.
 - Unverifiable: rows 37, 52.
-- Eight of the 45 "holds" carry a qualifier the rewrite should act on: rows 6, 12, 13, 17, 30, 36, 42 (incomplete, imprecise, misapplied or wrong page).
+- Seven of the 45 "holds" carry a qualifier the rewrite should act on: rows 6, 12, 13, 17, 30, 36, 42 (incomplete, imprecise, misapplied or wrong page).
 
 ## Missed papers
 
