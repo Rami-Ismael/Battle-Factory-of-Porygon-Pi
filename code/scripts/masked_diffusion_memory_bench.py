@@ -15,7 +15,7 @@ correctly on the masked Qwen models), written here because dllm is not installed
 schedule and Gumbel noise use float64, which the laptop's GPU refuses:
     one window over the whole text; at each step the model scores the text, each mask draws a token by
     Gumbel-max at the given temperature, and the most confident masks are committed (low-confidence remasking).
-    The number committed per step follows dLLM's linear schedule, computed in Python integers on the CPU.
+    The number committed per step follows dLLM's linear schedule with dLLM's own float32 rounding, on the CPU.
     The Gumbel noise is float32 in log form, argmax(logits - T * log(-log u)), which draws from the same
     distribution as dLLM's exp(logits) / (-log u)^T and cannot overflow.
 Temperature and step count are always explicit (dLLM's defaults are 0, which draws one team n times, and 128).
@@ -73,14 +73,21 @@ GIB = 2**30
 # ---------- the sampler: pure torch, so the tests run on the CPU ----------
 
 def schedule(masks: int, steps: int) -> list[int]:
-    """Tokens committed per step under dLLM's linear schedule, zeros dropped: step j commits
-    round(remaining / (steps - j)), rounding half to even as torch.round does."""
+    """Tokens committed per step under dLLM's linear schedule (get_num_transfer_tokens with LinearAlphaScheduler),
+    zeros dropped. Step j commits remaining * (1 - s / t), t = (steps - j) / steps and s = t - 1 / steps, rounded
+    half to even. dLLM takes the ratio s / t in float32 and the product in float64, so an exact half such as
+    18 / 12 lands just under it and rounds down; the same arithmetic is copied here, on the CPU (#236)."""
     counts, remaining = [], masks
     for j in range(steps):
-        n = min(round(remaining / (steps - j)), remaining)
+        t = torch.tensor((steps - j) / steps, dtype=torch.float32)
+        s = torch.tensor((steps - j - 1) / steps, dtype=torch.float32)
+        kept = ((1 - (1 - s)) / (1 - (1 - t))).item()        # dLLM's reverse_mask_prob: (1 - alpha_s) / (1 - alpha_t)
+        n = min(round(remaining * (1 - kept)), remaining)    # Python floats are float64; round is half to even
         remaining -= n
         if n:
             counts.append(n)
+        if not remaining:
+            break
     assert sum(counts) == masks
     return counts
 
@@ -132,11 +139,29 @@ def is_over_ceiling(error: BaseException) -> bool:
 
 def candidate_info(candidate: Any) -> dict[str, Any]:
     return {'key': candidate.key, 'label': candidate.label, 'repo': candidate.repo, 'revision': candidate.revision,
-            'mask_id': candidate.mask_id, 'mask_token': candidate.mask_token, 'qwen2_files': candidate.qwen2_files}
+            'mask_id': candidate.mask_id, 'mask_token': candidate.mask_token, 'qwen2_files': candidate.qwen2_files,
+            'start_token': candidate.start_token}
+
+
+def wants_start_token(key: str) -> bool:
+    """Whether the candidate's texts put its start token first: DiffuLLaMA 7B copies nothing without <s> and 168 of
+    168 values with it (#236, docs/diffullama-start-token.md)."""
+    import count_masked_diffusion_text as C
+    return next(c for c in C.CANDIDATES if c.key == key).start_token
+
+
+def with_start_token(canvas: dict[str, Any], start_id: int) -> dict[str, Any]:
+    """The canvas with start_id before its first token: every slot moves up by one, and the text, which has no
+    start token in it, stays as it was."""
+    if canvas['ids'][:1] == [start_id]:
+        raise ValueError(f'the canvas already starts with token {start_id}')
+    return canvas | {'ids': [start_id, *canvas['ids']], 'slots': [n + 1 for n in canvas['slots']],
+                     'tokens': canvas['tokens'] + 1, 'start_token': start_id}
 
 
 def build_canvas(candidate: Any, tokenizer: Any, task: dict[str, Any], grid: str) -> dict[str, Any]:
-    """The in-place text for task with the candidate's longest ask, as token ids with the slot positions."""
+    """The in-place text for task with the candidate's longest ask, as token ids with the slot positions. A candidate
+    marked start_token (DiffuLLaMA) gets its tokenizer's start token first."""
     import count_masked_diffusion_text as C
     import masked_diffusion_text as D
     ask = C.longest_ask(tokenizer, task)
@@ -144,9 +169,10 @@ def build_canvas(candidate: Any, tokenizer: Any, task: dict[str, Any], grid: str
     ids = tokenizer(built.text, add_special_tokens=False).input_ids
     slots = [n for s in built.slots for n in range(s.first_token, s.first_token + s.length)]
     assert all(ids[n] == candidate.mask_id for n in slots) and ids.count(candidate.mask_id) == len(slots)
-    return {'candidate': candidate_info(candidate), 'family': FAMILY[candidate.key], 'version': built.version,
-            'mask': {'grid': grid, 'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k']},
-            'ask': D.ask_text(ask), 'text': built.text, 'ids': ids, 'slots': slots, 'tokens': len(ids)}
+    canvas = {'candidate': candidate_info(candidate), 'family': FAMILY[candidate.key], 'version': built.version,
+              'mask': {'grid': grid, 'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k']},
+              'ask': D.ask_text(ask), 'text': built.text, 'ids': ids, 'slots': slots, 'tokens': len(ids)}
+    return with_start_token(canvas, tokenizer.bos_token_id) if candidate.start_token else canvas
 
 
 def prepare(directory: Path) -> None:
@@ -245,8 +271,10 @@ def quantize_linears(model: torch.nn.Module, device: str | torch.device) -> int:
     return len(names)
 
 
-def load_model(info: dict[str, Any], family: str, precision: str = 'native', device: str = 'mps') -> Any:
-    """The candidate on device; int8 always ends on the GPU, after loading on the CPU and rounding there."""
+def load_model(info: dict[str, Any], family: str, precision: str = 'native', device: str = 'mps',
+               attention: str = 'sdpa') -> Any:
+    """The candidate on device; int8 always ends on the GPU, after loading on the CPU and rounding there. attention
+    picks DiffuLLaMA's attention code: sdpa, or eager as its own inference script defaults to."""
     from transformers import AutoModel, AutoModelForMaskedLM, LlamaForCausalLM
     dtype = getattr(torch, dtype_name(family))
     first = device if precision == 'native' else 'cpu'
@@ -254,7 +282,7 @@ def load_model(info: dict[str, Any], family: str, precision: str = 'native', dev
     if family == 'gpt2':
         model = load_diffugpt(info, dtype, first)
     elif family == 'llama':
-        model = LlamaForCausalLM.from_pretrained(info['repo'], attn_implementation='sdpa', **common)
+        model = LlamaForCausalLM.from_pretrained(info['repo'], attn_implementation=attention, **common)
     elif family == 'a2d':
         with ignoring_main_only_imports():
             model = AutoModelForMaskedLM.from_pretrained(info['repo'], trust_remote_code=True, **common)
@@ -374,6 +402,7 @@ def run(canvas: dict[str, Any], batch: int, scope: str, steps: int, temperature:
         out['sample_seconds'] = time.perf_counter() - begin
         out['seconds_per_team'] = out['sample_seconds'] / batch
         out['filled'] = [tokenizer.decode(row.tolist()) for row in filled.cpu()]
+        out['filled_ids'] = filled.cpu().tolist()    # each hidden value's own tokens, for #236's quote count
         out['status'] = 'fits'
     except Exception as error:
         if not is_over_ceiling(error):
