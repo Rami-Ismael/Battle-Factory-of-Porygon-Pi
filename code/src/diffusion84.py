@@ -29,7 +29,7 @@ import lossdown as L
 from lookahead import lookahead as lookahead_rule
 import stat_points as SP
 from label_noise import noisy_labels
-from epoch_legality import EpochLegality
+from epoch_legality import EpochLegality, team_keys
 import team84 as T
 from encode import NF, NSLOT
 from hps_generate import slot_to_text
@@ -283,23 +283,26 @@ def per_column_ce(lg, x):
     return ce
 
 
-def elbo_terms(net, tables, x, m, t, w, sched, loops=None, self_condition=None):
+def elbo_terms(net, tables, x, m, t, w, sched, loops=None, self_condition=None, table_loss=True):
     """Per-team ELBO [B] of the true tokens x with the fields in m masked, legality-masked as in sampling.
+    table_loss=False (issue #361): the logits go to the cross-entropy unmasked, so the network is taught to avoid the
+    values the legal Pokémon construction tables and the Stat Point budget forbid instead of never seeing them.
     loops: loop-block count (default the network's loop_max). self_condition (carried-state networks; default True):
     a first pass with a zero state, without gradient, hands its hidden state to the scored second pass (Loopholing §3.2,
     Algorithm 3); False scores one pass with a zero state."""
     xin = x.masked_fill(m, 0)
-    al = allowed(tables, xin)
     state = None
     if getattr(net, "carry", False) and (self_condition is None or self_condition):
         with torch.no_grad(): state = net(xin, t, w, loops=loops).detach()
     kw = {} if loops is None and state is None else dict(loops=loops, state=state)
-    lg = {k: v.masked_fill(~al[k], -1e4) for k, v in net.logits(net(xin, t, w, **kw)).items()}
+    lg = net.logits(net(xin, t, w, **kw))
+    if table_loss:
+        al = allowed(tables, xin); lg = {k: v.masked_fill(~al[k], -1e4) for k, v in lg.items()}
     ce = per_column_ce(lg, x) * m
     return (ce * sched.view(1, -1) / t.view(-1, 1)).sum(1) / COLS
 
 
-def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None):
+def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None, table_loss=True):
     B = x.shape[0]
     x = shuffle_slots(x)
     t = ((torch.rand(1, device=x.device) + torch.arange(B, device=x.device) / B) % 1.0)[torch.randperm(B, device=x.device)]
@@ -312,14 +315,14 @@ def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None):
     kw = {}                                                     # drawn only for looping networks, so the plain recipe's random stream is unchanged
     if getattr(net, "loop_layers", 0): kw["loops"] = int(torch.randint(1, net.loop_max + 1, (1,)))          # LoopMDM Eq. 5
     if getattr(net, "carry", False): kw["self_condition"] = bool(torch.rand(1) < CARRY_P)                 # Loopholing §3.2, probability p
-    terms = elbo_terms(net, tables, x, m, t, ww, sched, **kw)
+    terms = elbo_terms(net, tables, x, m, t, ww, sched, table_loss=table_loss, **kw)
     return (terms * row_w).mean() if row_w is not None else terms.mean()
 
 
 @torch.no_grad()
-def val_loss(net, tables, x, w, sched, reps=4, seed=12345, batch=512):
+def val_loss(net, tables, x, w, sched, reps=4, seed=12345, batch=512, table_loss=True):
     """Mean ELBO on fixed teams with common random numbers: the same slot orders, times and masks on every call,
-    so the curve moves only when the model does. t is stratified per team across reps."""
+    so the curve moves only when the model does. t is stratified per team across reps. table_loss: as in elbo_terms."""
     g = torch.Generator().manual_seed(seed)
     xs, ws, sc = torch.as_tensor(np.asarray(x, np.int64)), torch.as_tensor(np.asarray(w, np.float32)), sched.cpu()
     N, tot = len(xs), 0.0
@@ -331,7 +334,7 @@ def val_loss(net, tables, x, w, sched, reps=4, seed=12345, batch=512):
             sl = slice(i, i + batch)
             m = (u[sl] < tt[sl].view(-1, 1) ** sc.view(1, -1)).to(DEV)
             xb = shuffle_slots(xs[sl], ps[sl]).to(DEV)
-            tot += float(elbo_terms(net, tables, xb, m, tt[sl].to(DEV), ws[sl].to(DEV), sched).sum())
+            tot += float(elbo_terms(net, tables, xb, m, tt[sl].to(DEV), ws[sl].to(DEV), sched, table_loss=table_loss).sum())
     return tot / (N * reps)
 
 
@@ -374,7 +377,8 @@ class Model84:
 
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
-                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, legality_teams=0, **net_kw):
+                  warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, legality_teams=0,
+                  table_loss=True, legality_tables=True, legality_copies=False, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
@@ -388,7 +392,11 @@ class Model84:
         row_weights: one training weight per row of rows; validation loss stays unweighted.
         labels_each_epoch(e): [N] labels for rows, drawn fresh before epoch e (0-based); replaces labels from then on.
         legality_teams=K: after every epoch the weights a checkpoint would save draw K teams at the elite cut and the
-        validator checks them (epoch_legality.py); the epoch's entry gains illegal_share and its reasons. 0: no check."""
+        validator checks them (epoch_legality.py); the epoch's entry gains illegal_share and its reasons. 0: no check.
+        table_loss=False: training and validation loss leave out the mask of the legal Pokémon construction tables and the
+        Stat Point budget (issue #361); the rows the tables reject are still dropped. legality_tables=False: the legality
+        check draws without that mask, so its illegal share shows what the network learned. legality_copies=True: the check
+        also logs copied_share, the drawn teams identical to a training team (epoch_legality.team_key)."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
@@ -396,12 +404,15 @@ class Model84:
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs, patience=patience,
                     early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
         info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None, legality_teams=legality_teams)
+        if not table_loss: info.update(table_loss=False)          # written only when off, so stored run infos keep their keys
+        if legality_teams and not legality_tables: info.update(legality_tables=False)
+        known = team_keys(x.cpu().numpy()) if legality_teams and legality_copies else None
         relabel = None if labels_each_epoch is None else \
             (lambda e: torch.as_tensor(np.asarray(labels_each_epoch(e), np.float32)[keep], device=DEV))
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
                         ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
                         label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel,
-                        legality=EpochLegality(legality_teams))
+                        legality=EpochLegality(legality_teams, tables=legality_tables, known=known), table_loss=table_loss)
 
     def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
                    warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, legality_teams=0):
@@ -427,11 +438,12 @@ class Model84:
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
              patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None,
-             legality=None):
+             legality=None, table_loss=True):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
         lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
         relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps.
-        legality: an EpochLegality whose fields join every measured entry; its draw leaves training's random numbers untouched."""
+        legality: an EpochLegality whose fields join every measured entry; its draw leaves training's random numbers untouched.
+        table_loss: as in elbo_terms, for training and validation loss alike."""
         make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
                (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
@@ -452,9 +464,9 @@ class Model84:
                 if not checked: checked.append(make(m, {}))
                 entry.update(legality(checked[0]))
             if val is not None:
-                entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw)
+                entry["val_loss"] = val_loss(m, tables, val[0], val[1], sw, table_loss=table_loss)
             for name, (vx, vw) in (watch or {}).items():
-                entry[f"{name}_val_loss"] = val_loss(m, tables, vx, vw, sw)
+                entry[f"{name}_val_loss"] = val_loss(m, tables, vx, vw, sw, table_loss=table_loss)
 
         if epoch0:
             m = (avg if avg is not None else net).eval(); entry = dict(epoch=0); measure(m, entry)
@@ -467,7 +479,8 @@ class Model84:
                 w = relabel(p)
             net.train(); run = 0.0; nb = 0
             for b in torch.randperm(len(x), device=DEV).split(batch):
-                loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b])
+                loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b],
+                                  table_loss=table_loss)
                 for g in opt.param_groups: g["lr"] = lr_at(step)
                 opt.zero_grad(set_to_none=True); loss.backward()
                 nn.utils.clip_grad_norm_(net.parameters(), 1.0); opt.step(); step += 1
@@ -532,16 +545,16 @@ class Model84:
             net = Net84(V, **mem["net_kw"]); net.load_state_dict(mem["sd"]); nets.append((net.to(DEV), mem["net_kw"]))
         return cls(V, corpus, nets, ck.get("info"))
 
-    def _logprobs(self, x, t, w, loops=None, state=None, keep=None):
+    def _logprobs(self, x, t, w, loops=None, state=None, keep=None, tables=True):
         """Log-probabilities per field type. loops: loop-block count; state: carried hidden state of a one-member model;
-        keep: a list that receives the hidden state of each network, for the next pass."""
-        al = allowed(self.tables, x)
+        keep: a list that receives the hidden state of each network, for the next pass. tables=False: no legality mask."""
+        al = allowed(self.tables, x) if tables else None
         outs = []
         for net, _ in self.nets:
             h = net(x, t, w) if loops is None and state is None else net(x, t, w, loops=loops, state=state)
             if keep is not None: keep.append(h)
             lg = net.logits(h)
-            outs.append({k: F.log_softmax(v.masked_fill(~al[k], -1e4).float(), -1) for k, v in lg.items()})
+            outs.append({k: F.log_softmax((v if al is None else v.masked_fill(~al[k], -1e4)).float(), -1) for k, v in lg.items()})
         if len(outs) == 1: return outs[0]
         return {k: torch.logsumexp(torch.stack([o[k] for o in outs]), 0) - math.log(len(outs)) for k in outs[0]}
 
@@ -571,6 +584,13 @@ class Model84:
         kept = torch.where(empty.unsqueeze(1), plain, plain & pre)
         return legal, plain, kept, empty
 
+    def _unmasked_parts(self, x, c):
+        """_legal_parts with no legality mask (issue #361): every value but [MASK] for a field, every value 0..32 for a Stat Point."""
+        k = "stat" if c >= STAT0 else L.KEY_OF_COL[c]
+        o = torch.ones(len(x), SP.NVALUES if c >= STAT0 else self.V.sizes[k], dtype=torch.bool, device=x.device)
+        if c < STAT0: o[:, 0] = False
+        return o, o, o, torch.zeros(len(x), dtype=torch.bool, device=x.device)
+
     def _no_moves(self, o, c):
         E = self.tables.EMV
         if c % NF == FIRST_MOVE and E is not None:           # Showdown rejects a Pokémon with no moves
@@ -585,14 +605,17 @@ class Model84:
 
     @torch.no_grad()
     def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False, loops=None, corrected_t=False,
-               refusals=None):
+               refusals=None, tables=True):
         """n teams in ORDER; ask is the win-rate condition, guidance the classifier-free weight. lookahead: see _legal;
         species come first in ORDER, so it draws the same teams on or off. refusals: a Refusals for the n teams, which
         records what the lookahead refused. loops: loop-block count (default loop_max).
         corrected_t: pass k is told corrected_t_per_pass of the masking schedule this model trained with (info["sched"]),
         not 1 - k/84; off by default, so stored runs draw the same teams.
         A carried-state network starts from a zero state and hands each pass's hidden state to the next pass; the
-        guided and unguided passes each carry their own (Loopholing Algorithm 2, here one field per pass)."""
+        guided and unguided passes each carry their own (Loopholing Algorithm 2, here one field per pass).
+        tables=False (issue #361): no legal Pokémon construction tables and no Stat Point budget, at any pass; any value
+        but [MASK] can be drawn, so a team can be illegal. The lookahead needs the tables."""
+        if not tables and lookahead: raise ValueError("the lookahead works on the legal Pokémon construction tables; draw with tables=True")
         if seed is not None: torch.manual_seed(seed)
         w = torch.full((n,), NAN if ask is None else ask, device=DEV); wn = torch.full((n,), NAN, device=DEV)
         x = torch.zeros(n, COLS, dtype=torch.long, device=DEV)
@@ -601,8 +624,8 @@ class Model84:
         state = dict(ask=None, none=None)
 
         def logprobs(t, cond, key):
-            if not carry: return self._logprobs(x, t, cond, loops=loops)
-            keep = []; lp = self._logprobs(x, t, cond, loops=loops, state=state[key], keep=keep); state[key] = keep[0]
+            if not carry: return self._logprobs(x, t, cond, loops=loops, tables=tables)
+            keep = []; lp = self._logprobs(x, t, cond, loops=loops, state=state[key], keep=keep, tables=tables); state[key] = keep[0]
             return lp
 
         t_of_pass = corrected_t_per_pass(trained_sched(self.info)) if corrected_t else [1.0 - step / COLS for step in range(COLS)]
@@ -611,7 +634,7 @@ class Model84:
             lc = self._column(logprobs(t, w, "ask"), c)
             if ask is not None and guidance != 1.0:
                 lc = guidance * lc + (1 - guidance) * self._column(logprobs(t, wn, "none"), c)
-            legal, plain, kept, fallback = self._legal_parts(x, c, lookahead)
+            legal, plain, kept, fallback = self._legal_parts(x, c, lookahead) if tables else self._unmasked_parts(x, c)
             if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback, column=c, x=x)
             lc = lc.masked_fill(~legal, -float("inf")) / temperature
             v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
