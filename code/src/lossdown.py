@@ -172,6 +172,19 @@ class Tables:
                     bad[i:i + batch] |= (~ok).any(1).cpu()
         return bad.numpy()
 
+    @torch.no_grad()
+    def rejects(self, X, rules=("clause", "compat", "order"), batch=4096):
+        """True for each team whose true value is excluded with every field visible. A mask only hides fields, and
+        every rule here conditions on visible fields, so a team rejects() passes also passes check() under any mask."""
+        bad = np.zeros(len(X), bool)
+        for i in range(0, len(X), batch):
+            x = torch.as_tensor(np.asarray(X[i:i + batch], np.int64), device=DEV)
+            al = self.allowed(x, rules)
+            for k, cols in COLS_BY_KEY.items():
+                ok = torch.gather(al[k], 2, x[:, cols].unsqueeze(-1)).squeeze(-1)
+                bad[i:i + batch] |= (~ok).any(1).cpu().numpy()
+        return bad
+
 
 def _cols_by_key():
     out = {}

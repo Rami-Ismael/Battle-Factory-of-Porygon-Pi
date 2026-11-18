@@ -4,16 +4,21 @@ each traced across guidance 1, 2, 4 and 8, with win rate as the third axis.
     diversity  = distinct line-ups among the grid's 4,416 teams (1,472 per sampling seed)
     novelty    = novel share: teams whose six species appear together in no labelled training team of the shuffled-only table
     quality    = pooled win rate against the 49 top-50 meta teams, slots shuffled, all 23 asks
+    elite held = elite line-ups that held: line-ups with a team at or above the elite cut (0.531) on one battle that still
+                 reach the cut over 4 fresh games against each meta team (line_up_yield.py, all 23 asks); novel elite held
+                 counts the ones whose six species are in no labelled training team. Per seed: the held line-ups that seed
+                 drew as elite on one battle (a line-up two seeds both drew counts on both, so the seeds sum past the pool)
 
 Species-first grids drawn on seeds 7301-7303 replay earlier grids' teams, which are now training teams (#353), so their
 diversity and novelty are read from the redraws on seeds of their own (`..._seed<base>.json`, no battles); their win
-rate is read from the battled grid, which the replay does not bias. Every other decoder's stored grid escapes the replay.
+rate and elite line-ups that held are read from the battled grid, the only one re-battled, so their elite held
+includes replayed training teams while their novel elite held does not. Every other decoder's stored grid escapes the replay.
 
 One point dominates another when it is at least as high on every axis on each of the three sampling seeds and higher on
 at least one, seed for seed: the diversity map's rule that a difference counts when all three seeds agree (#263).
 
     python diversity_novelty_frontier.py read          # ~/vgc-data/results/diversity_novelty_frontier.json
-    python diversity_novelty_frontier.py figure DIR    # DIR/frontier-diversity-novelty.html, DIR/frontier-win.html
+    python diversity_novelty_frontier.py figure DIR    # DIR/frontier-diversity-novelty.html, frontier-win.html, frontier-elite.html
     python diversity_novelty_frontier.py comment URL HEADLINE   # issue comment; URL has {name} and {theme} placeholders
     python diversity_novelty_frontier.py confidence_headline     # the headline of #363's post
 """
@@ -40,6 +45,11 @@ COLOR = {"Species-first, linear schedule": "#2a78d6", "Species then random order
          "Species-first, per-field schedule": "#7fb2ea", "Random order, per-field schedule": "#f0b07a"}
 REPLAYED = {"sched_linear_species_first", "sched_species_first"}      # decoders whose stored seeds replay training teams
 AXES = ("line_ups", "novel_share", "win")
+ELITE = ("elite_held", "novel_elite_held")
+COUNTS = ("line_ups", *ELITE)                          # per-seed counts out of 1,472 teams, not shares of them
+FRONTS = dict(diversity_novelty=("line_ups", "novel_share"), diversity_win=("line_ups", "win"), novelty_win=("novel_share", "win"),
+              all_three=AXES, diversity_elite=("line_ups", "elite_held"), novelty_elite=("novel_share", "novel_elite_held"),
+              all_four=(*AXES, "elite_held"))
 
 
 def redraw_bases():
@@ -68,6 +78,25 @@ def win(cells):
     return dict(win=float(np.mean(ys(lambda _: True))), win_by_seed={str(s): float(np.mean(ys(lambda t, s=s: t == s))) for s in MRR.SEEDS})
 
 
+def elite(cells, held, training):
+    """Elite line-ups that held and the novel ones among them, pooled and per seed. held is the re-battle's held
+    line-ups (None when the grid was not re-battled)."""
+    if held is None: return dict(elite_held=None, novel_elite_held=None)
+    import line_up_yield as LY
+    held = {tuple(x) for x in held}
+    drew = {s: {LY.line_up(p) for c in cells if c["seed"] == s for p, y in zip(c["pastes"], c["y"]) if y >= LY.CUT} & held for s in MRR.SEEDS}
+    assert set().union(*drew.values()) == held, "a held line-up with no elite team in the grid"
+    novel = lambda x: {lu for lu in x if lu not in training}
+    return dict(elite_held=len(held), novel_elite_held=len(novel(held)),
+                elite_held_by_seed={str(s): len(v) for s, v in drew.items()}, novel_elite_held_by_seed={str(s): len(novel(v)) for s, v in drew.items()})
+
+
+def held_line_ups(name):
+    path = MRR.RES / f"line_up_yield_{name}.json"
+    views = json.load(open(path)).get("views") if path.exists() else None
+    return views["all_23_asks"]["held_line_ups"] if views else None
+
+
 def point(arm, row, guidance, training, bases):
     name = MRR.grid_name(row, guidance); stored = MRR.grid_path(row, guidance)
     if not stored.exists() or len(cells_of(stored)) < len(MRR.ALL_ASKS) * len(MRR.SEEDS): return None
@@ -77,9 +106,9 @@ def point(arm, row, guidance, training, bases):
         source = MRR.RES / f"stat_points_84_{name}_seed{bases[name]}.json"
         if not source.exists() or len(cells_of(source)) < len(MRR.ALL_ASKS) * len(MRR.SEEDS):
             return dict(arm=arm, row=row, guidance=guidance, missing=f"{source.name} is not finished")
-    held = (MRR.elite_yield(name) or {}).get("all_23_asks", {}).get("held")
+    battled = cells_of(stored)
     return dict(arm=arm, row=row, guidance=guidance, breadth_from=source.name, win_from=stored.name,
-                **breadth(cells_of(source), training), **win(cells_of(stored)), elite_held=held)
+                **breadth(cells_of(source), training), **win(battled), **elite(battled, held_line_ups(name), training))
 
 
 def by_seed(p, axis):
@@ -94,7 +123,9 @@ def dominates(a, b, axes):
 
 
 def front(points, axes):
-    """Labels of the points no other point dominates on these axes, and for each dominated point who dominates it."""
+    """Labels of the points no other point dominates on these axes, and for each dominated point who dominates it.
+    A point with no value on one of the axes (a grid never re-battled) is left out."""
+    points = [p for p in points if all(p.get(f"{a}_by_seed") is not None for a in axes)]
     beaten = {label(p): [label(q) for q in points if q is not p and dominates(q, p, axes)] for p in points}
     return [k for k, v in beaten.items() if not v], {k: v for k, v in beaten.items() if v}
 
@@ -107,15 +138,16 @@ def read():
     training = MRR.references()[0]; bases = redraw_bases()
     pts = [point(arm, row, g, training, bases) for arm, row in ARMS.items() for g in GUIDANCES]
     missing = [p for p in pts if p and "missing" in p]; pts = [p for p in pts if p and "missing" not in p]
-    result = dict(question="Diversity (distinct line-ups) against novelty (novel share), with win rate as the third axis",
+    result = dict(question="Diversity (distinct line-ups) against novelty (novel share), with win rate and elite line-ups that held as further axes",
                   reference=f"line-ups of the labelled training teams of {MRR.TABLE} ({len(training):,})",
                   dominance="seed for seed on all three sampling seeds", points=pts, missing=missing, fronts={})
-    for key, axes in dict(diversity_novelty=("line_ups", "novel_share"), diversity_win=("line_ups", "win"),
-                          novelty_win=("novel_share", "win"), all_three=AXES).items():
-        on, beaten = front(pts, axes); result["fronts"][key] = dict(axes=list(axes), on_front=on, dominated_by=beaten)
+    for key, axes in FRONTS.items():
+        on, beaten = front(pts, axes)
+        result["fronts"][key] = dict(axes=list(axes), on_front=on, dominated_by=beaten,
+                                     left_out=[label(p) for p in pts if any(p.get(a) is None for a in axes)])
     OUT.write_text(json.dumps(result, indent=1))
     for p in pts:
-        print(f"{label(p):58s} line-ups {p['line_ups']:5d}  novel {p['novel_share']:.3f}  win {p['win']:.3f}  held {p['elite_held']}")
+        print(f"{label(p):58s} line-ups {p['line_ups']:5d}  novel {p['novel_share']:.3f}  win {p['win']:.3f}  held {p['elite_held']}  novel held {p['novel_elite_held']}")
     for k, f in result["fronts"].items(): print(f"\n{k}: on the front\n  " + "\n  ".join(f["on_front"]))
     for p in missing: print("missing:", p["missing"])
     print(f"\nwrote {OUT}")
@@ -133,8 +165,9 @@ TIP = "js:p => p.data && p.data.tip ? p.data.tip : ''"
 
 
 def tip(p):
-    held = "not re-battled" if p["elite_held"] is None else f"{p['elite_held']}"
     seeds = lambda axis, f: " / ".join(f.format(v) for v in by_seed(p, axis))
+    held = "not re-battled" if p["elite_held"] is None else (
+        f"{p['elite_held']} (seeds {seeds('elite_held', '{:.0f}')}), {p['novel_elite_held']} novel (seeds {seeds('novel_elite_held', '{:.0f}')})")
     return (f"<b>{p['arm']}</b><br>guidance {p['guidance']:g}<br>"
             f"distinct line-ups {p['line_ups']:,} (seeds {seeds('line_ups', '{:.0f}')})<br>"
             f"novel share {p['novel_share']:.1%} (seeds {seeds('novel_share', '{:.1%}')})<br>"
@@ -144,11 +177,11 @@ def tip(p):
 def series_for(points, xa, ya, grid=0):
     out = []
     for arm in ARMS:
-        mine = sorted((p for p in points if p["arm"] == arm), key=lambda p: p["guidance"])
+        mine = sorted((p for p in points if p["arm"] == arm and p.get(xa) is not None and p.get(ya) is not None), key=lambda p: p["guidance"])
         if not mine: continue
         common = dict(name=arm, color=COLOR[arm], xAxisIndex=grid, yAxisIndex=grid)
-        # seed range; per-seed line-up counts (of 1,472 teams) are scaled so their mean is the pooled count (of 4,416)
-        xs = lambda p, a: by_seed(p, a) * (100 if a == "novel_share" else p[a] / by_seed(p, a).mean() if a == "line_ups" else 1)
+        # seed range; per-seed counts (of 1,472 teams) are scaled so their mean is the pooled count (of 4,416)
+        xs = lambda p, a: by_seed(p, a) * (100 if a == "novel_share" else p[a] / max(by_seed(p, a).mean(), 1e-9) if a in COUNTS else 1)
         val = lambda p, a: p[a] * (1 if a != "novel_share" else 100)
         out.append({**common, "type": "line", "symbolSize": 10, "emphasis": {"focus": "series"},
                     "label": {"show": True, "formatter": "js:p => 'g' + p.data.g", "position": "right", "fontSize": 10, "color": COLOR[arm]},
@@ -165,10 +198,11 @@ def front_rings(points, on, xa, ya, grid=0):
     return {"type": "scatter", "name": "On the Pareto front", "symbol": "circle", "symbolSize": 22, "z": 0, "silent": True,
             "itemStyle": {"color": "transparent", "borderColor": "#6f6e69", "borderWidth": 1.6, "borderType": "dashed"},
             "tooltip": {"show": False}, "xAxisIndex": grid, "yAxisIndex": grid,
-            "data": [[p[xa] * scale(xa), p[ya] * scale(ya)] for p in points if label(p) in on]}
+            "data": [[p[xa] * scale(xa), p[ya] * scale(ya)] for p in points if label(p) in on and p.get(xa) is not None and p.get(ya) is not None]}
 
 
-AXIS = {"line_ups": "Distinct line-ups (of 4,416 teams)", "novel_share": "Novel share (% of teams)", "win": "Win rate against the top-50 meta teams"}
+AXIS = {"line_ups": "Distinct line-ups (of 4,416 teams)", "novel_share": "Novel share (% of teams)", "win": "Win rate against the top-50 meta teams",
+        "elite_held": "Elite line-ups that held", "novel_elite_held": "Novel elite line-ups that held"}
 
 
 def axis(a, grid=0, **kw):
@@ -185,6 +219,7 @@ def short(p):
 
 def short_list(points, on):
     names = [short(p) for p in sorted(points, key=lambda p: (list(ARMS).index(p["arm"]), p["guidance"])) if label(p) in on]
+    if not names: return "none"
     return ", ".join(names[:-1]) + (" and " if len(names) > 1 else "") + names[-1]
 
 
@@ -221,7 +256,24 @@ def figure(folder):
                 title="Win rate against breadth: the front of all three axes runs from " + ends(pts, on3),
                 subtitle="Left: win rate against distinct line-ups. Right: win rate against novel share. Ringed: on that plane's Pareto front.",
                 note="On the front of all three axes: " + short_list(pts, on3) + ".")
-    print(f"wrote {folder}/frontier-diversity-novelty.html and frontier-win.html")
+    f = r["fronts"]; on4 = f["all_four"]["on_front"]
+    top = lambda a: max((p for p in pts if p.get(a) is not None), key=lambda p: p[a])
+    write_chart({"legend": legend, "tooltip": tooltip, "grid": grids,
+                 "xAxis": [axis("line_ups", 0), axis("novel_share", 1)],
+                 "yAxis": [axis("elite_held", 0, nameGap=44), axis("novel_elite_held", 1, nameGap=44)],
+                 "series": [front_rings(pts, f["diversity_elite"]["on_front"], "line_ups", "elite_held", 0), *series_for(pts, "line_ups", "elite_held", 0),
+                            front_rings(pts, f["novelty_elite"]["on_front"], "novel_share", "novel_elite_held", 1),
+                            *series_for(pts, "novel_share", "novel_elite_held", 1)]},
+                folder / "frontier-elite.html", height=520,
+                title=f"Most elite line-ups that held: {short(top('elite_held'))} ({top('elite_held')['elite_held']}); "
+                      f"most novel ones: {short(top('novel_elite_held'))} ({top('novel_elite_held')['novel_elite_held']})",
+                subtitle="Left: elite line-ups that held against distinct line-ups. Right: the novel ones among them against novel share. "
+                         "Ringed: on that plane's Pareto front. Whiskers span the three seeds, scaled so their mean is the pooled count.",
+                note="An elite line-up has a team at or above the elite cut (0.531) on one battle against each of the 49 top-50 meta teams; "
+                     "it held when that team still reaches the cut over 4 fresh games against each. Not re-battled, so not drawn: "
+                     + short_list(pts, f["all_four"]["left_out"]) + ". On the front of all four axes (distinct line-ups, novel share, win rate, "
+                     "elite line-ups that held): " + short_list(pts, on4) + ".")
+    print(f"wrote {folder}/frontier-diversity-novelty.html, frontier-win.html and frontier-elite.html")
 
 
 def comment(url, headline):
@@ -231,8 +283,10 @@ def comment(url, headline):
                              f'<img alt="{alt}" src="{url.format(name=name, theme="light")}"></picture>')
     rows = "\n".join(f"| {p['arm']} | {p['guidance']:g} | {p['line_ups']:,} | {p['novel_share']:.1%} | {p['win']:.3f} | "
                       f"{'not re-battled' if p['elite_held'] is None else p['elite_held']} | "
+                      f"{'' if p['novel_elite_held'] is None else p['novel_elite_held']} | "
                       f"{'yes' if label(p) in r['fronts']['diversity_novelty']['on_front'] else ''} | "
-                      f"{'yes' if label(p) in r['fronts']['all_three']['on_front'] else ''} |" for p in pts)
+                      f"{'yes' if label(p) in r['fronts']['all_three']['on_front'] else ''} | "
+                      f"{'yes' if label(p) in r['fronts']['all_four']['on_front'] else ''} |" for p in pts)
     missing = "".join(f"\n- Not on the charts yet: {m['missing']}." for m in r["missing"])
     print(f"""{headline}
 
@@ -240,16 +294,19 @@ def comment(url, headline):
 
 {pic("frontier-win", "Win rate against distinct line-ups and against novel share")}
 
+{pic("frontier-elite", "Elite line-ups that held against distinct line-ups, and the novel ones against novel share")}
+
 - Diversity is the number of distinct line-ups among a grid's 4,416 teams (23 asks × 3 sampling seeds × 64 teams).
 - Novelty is the novel share: teams whose six species appear together in no labelled training team of the shuffled-only table.
 - Win rate is pooled over all 23 asks, from one battle against each of the 49 top-50 meta teams, slots shuffled.
+- Elite line-ups that held: line-ups with a team at or above the elite cut (0.531) on one battle that still reach the cut over 4 fresh games against each meta team. The novel ones are the held line-ups in no labelled training team.
 - A point is on the front when no other point is at least as high on every axis on each of the three sampling seeds, seed for seed. The training-split noise floor is not applied yet.
-- Species-first grids give diversity and novelty from redraws on seeds of their own (#353) and win rate from the battled grid.{missing}
+- Species-first grids give diversity and novelty from redraws on seeds of their own (#353) and win rate and elite line-ups that held from the battled grid, whose replayed training teams count among the held but not among the novel held.{missing}
 
 <details><summary>Every point</summary>
 
-| Decoding order, schedule | Guidance | Distinct line-ups | Novel share | Win rate | Elite line-ups that held | Diversity–novelty front | Front of all three |
-|---|---|---|---|---|---|---|---|
+| Decoding order, schedule | Guidance | Distinct line-ups | Novel share | Win rate | Elite line-ups that held | Novel ones that held | Diversity–novelty front | Front of three axes | Front of four axes |
+|---|---|---|---|---|---|---|---|---|---|
 {rows}
 
 </details>

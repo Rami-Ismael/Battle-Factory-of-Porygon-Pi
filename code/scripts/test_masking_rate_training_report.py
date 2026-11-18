@@ -69,10 +69,10 @@ class RowSplit(unittest.TestCase):
         np.testing.assert_array_equal(table["all_X"][validation], val_rows)
         np.testing.assert_array_equal(table["all_W"][validation], val_labels)
 
-    def test_the_real_table_has_4380_labelled_validation_teams(self):
-        table = R.load_table()
+    def test_the_real_table_has_4368_labelled_validation_teams(self):
+        table = R.load_table()                    # 4,380 until the 12 wrong-stone teams left (issue #368)
         training, validation = R.labelled_split(table)
-        self.assertEqual(int(validation.sum()), 4380)
+        self.assertEqual(int(validation.sum()), 4368)
         self.assertFalse((training & validation).any())
         self.assertFalse(np.isnan(table["all_W"][training | validation]).any())
 

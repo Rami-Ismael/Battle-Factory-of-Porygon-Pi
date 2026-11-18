@@ -15,6 +15,10 @@ Two views:
 
 The test 500 and the held-out meta teams ranked 51-100 never enter either view (48-field match, as today).
 
+Wrong Mega Stone (issue #368): a team the legal Pokémon construction tables reject, a Mega Stone on a Pokémon it does
+not belong to, is bad data and leaves every table and slice. It leaves after the validation split is drawn, so every
+other team keeps its training or validation side.
+
     /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py         -> results/lossdata84.npz + lossdata84_counts.json
     /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py NAME    -> results/NAME.npz + NAME_counts.json, leaving the
                                                                  stored table that earlier runs recorded untouched
@@ -27,6 +31,12 @@ models saw. Removed teams go to NAME_removed.npz, and NAME_counts.json is counte
 
     /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py --shuffled-only [NAME]
         -> results/NAME.npz + NAME_removed.npz + NAME_counts.json (NAME defaults to lossdata84_shuffled_only)
+
+A stored table keeps its teams and split while dropping its wrong-stone teams: a rebuild from the sources would take
+in every team battled since and re-draw the split (owner, 2026-11-17). The stored bytes are copied to
+NAME_before_wrong_stone_drop.npz first; NAME_removed.npz, when it exists, gains the dropped rows.
+
+    /tmp/vgc-pilot/.venv/bin/python src/lossdata84.py --drop-wrong-stones NAME   -> results/NAME.npz rewritten
 """
 import hashlib
 import io
@@ -92,8 +102,9 @@ def collect(Vreg, shuffled_only=False):
     return LD.gather(observe, shuffled_only=shuffled_only), sets
 
 
-def same_team_slices(sets, V):
-    """The deployed members' training rows (lossdown.train_run with final=1), restricted to kept teams."""
+def same_team_slices(sets, V, rejects):
+    """The deployed members' training rows (lossdown.train_run with final=1), restricted to kept teams without a
+    wrong Mega Stone."""
     d = L.load_data(include_heldout=True)
     keep = HO.row_mask(d["X"], V)
     tag = L.tag_of(d["S"])
@@ -107,33 +118,55 @@ def same_team_slices(sets, V):
         assert not any(d["X"][i].tobytes() in test for i in idx), f"a test team is in the {name} slice"
         found = [single(sets.get(d["X"][i].tobytes())) for i in idx]
         ok = np.array([r is not None for r in found], bool)
-        out[f"{name}_X"] = np.stack([r for r in found if r is not None])
-        out[f"{name}_W"] = d["W"][idx[ok]].astype(np.float32)
-        if name == "records": out["records_WM"] = L.cond_matrix(d, idx[ok]).astype(np.float32)
-        counts[name] = dict(rows=len(idx), kept=int(ok.sum()), dropped=int((~ok).sum()))
+        wrong = np.zeros(len(idx), bool)
+        wrong[ok] = rejects(np.stack([r for r in found if r is not None]))
+        out[f"{name}_X"] = np.stack([r for r, w in zip(found, wrong) if r is not None and not w])
+        out[f"{name}_W"] = d["W"][idx[ok & ~wrong]].astype(np.float32)
+        if name == "records": out["records_WM"] = L.cond_matrix(d, idx[ok & ~wrong]).astype(np.float32)
+        counts[name] = dict(rows=len(idx), kept=int((ok & ~wrong).sum()), dropped=int((~ok).sum()),
+                            wrong_mega_stone=int(wrong.sum()))
     return out, counts
 
 
-def all_teams(g, sets):
+def table_rejects(Vreg):
+    """rejects(rows): True for each 84-field row the legal Pokémon construction tables reject, every field visible."""
+    tables = L.Tables(Vreg, [])
+    return lambda rows: tables.rejects(np.asarray(rows)[:, :T.COLS48])
+
+
+def validation_split(n):
+    """The seeded validation marks over n teams."""
+    val = np.zeros(n, bool)
+    val[np.random.default_rng(VAL_SEED).permutation(n)[:round(VAL_SHARE * n)]] = True
+    return val
+
+
+def without_wrong_stones(keys, val, rows, rejects):
+    """(keys, val, rows) without the teams rejects() flags, and the flags. The split is drawn before this call,
+    so every other team keeps its side."""
+    wrong = rejects(rows) if len(rows) else np.zeros(0, bool)
+    return [k for k, w in zip(keys, wrong) if not w], val[~wrong], rows[~wrong], wrong
+
+
+def all_teams(g, sets, rejects):
     pool = g["pool"]
     keys = [k for k in pool if single(sets.get(k)) is not None]
-    Xa = np.stack([single(sets[k]) for k in keys])
+    val = validation_split(len(keys))
+    keys, val, Xa, wrong = without_wrong_stones(keys, val, np.stack([single(sets[k]) for k in keys]), rejects)
     W = np.array([pool[k]["wins"] / pool[k]["battles"] if pool[k]["battles"] else np.nan for k in keys], np.float32)
     NB = np.array([pool[k]["battles"] for k in keys], np.int32)
-    val = np.zeros(len(keys), bool)
-    val[np.random.default_rng(VAL_SEED).permutation(len(keys))[:round(VAL_SHARE * len(keys))]] = True
     n_sets = np.array([len(sets.get(k, ())) for k in pool])
     labelled = np.array([pool[k]["battles"] > 0 for k in pool])
     counts = dict(rows=len(pool), kept=len(keys), several_sets=int((n_sets > 1).sum()), no_paste=int((n_sets == 0).sum()),
                   not_encodable=int(((n_sets == 1) & np.array([single(sets.get(k)) is None for k in pool])).sum()),
                   labelled_kept=int(np.isfinite(W).sum()), labelled_several_sets=int((labelled & (n_sets > 1)).sum()),
-                  val=int(val.sum()))
+                  val=int(val.sum()), wrong_mega_stone=int(wrong.sum()))
     return dict(all_X=Xa, all_W=W, all_NB=NB, all_val=val), counts, keys
 
 
 LOST_RULES = (LD.LISTED_FALLBACK, LD.RUN_FILE)      # bit j of a row's lost mask: it had a label from LOST_RULES[j]
-NOT_SHUFFLED, ILLEGAL = "label_not_shuffled", "illegal"
-REMOVED = (NOT_SHUFFLED, ILLEGAL)                   # removed_reason indexes this
+NOT_SHUFFLED, ILLEGAL, WRONG_STONE = "label_not_shuffled", "illegal", "wrong_mega_stone"
+REMOVED = (NOT_SHUFFLED, ILLEGAL, WRONG_STONE)      # removed_reason indexes this
 PREVIOUS = "lossdata84_shuffled_labels"             # the table #229 must leave unchanged
 
 
@@ -171,8 +204,9 @@ class RowValidator:
         self.val.close()
 
 
-def shuffled_tables(g, sets, check):
-    """(table arrays, removed arrays, illegal errors) for the shuffled-slot table; check(row) is the validator."""
+def shuffled_tables(g, sets, check, rejects):
+    """(table arrays, removed arrays, illegal errors, kept keys) for the shuffled-slot table. check(row) is the
+    validator; rejects(rows) flags a wrong Mega Stone, and those teams leave after the validation split is drawn."""
     pool = g["pool"]
     keys = [k for k in pool if single(sets.get(k)) is not None]
     kept, removed, errors = [], [], []
@@ -183,10 +217,13 @@ def shuffled_tables(g, sets, check):
         if why is None: kept.append(k)
         else: removed.append((k, REMOVED.index(why)))
         if why == ILLEGAL: errors.append(err)
+    val = validation_split(len(kept))
+    rows = np.stack([single(sets[k]) for k in kept]) if kept else np.zeros((0, T.COLS), np.int16)
+    before = kept
+    kept, val, rows, wrong = without_wrong_stones(kept, val, rows, rejects)
+    removed += [(k, REMOVED.index(WRONG_STONE)) for k, w in zip(before, wrong) if w]
     W = np.array([pool[k]["wins"] / pool[k]["battles"] if pool[k]["battles"] else np.nan for k in kept], np.float32)
-    val = np.zeros(len(kept), bool)
-    val[np.random.default_rng(VAL_SEED).permutation(len(kept))[:round(VAL_SHARE * len(kept))]] = True
-    table = dict(all_X=np.stack([single(sets[k]) for k in kept]), all_W=W,
+    table = dict(all_X=rows, all_W=W,
                  all_NB=np.array([pool[k]["battles"] for k in kept], np.int32), all_val=val,
                  all_S=np.array([pool[k]["fam"] for k in kept], np.int32),
                  all_lost=np.array([lost_mask(pool[k]) for k in kept], np.int8))
@@ -195,6 +232,13 @@ def shuffled_tables(g, sets, check):
                 reason=np.array([r for _, r in removed], np.int8), S=np.array([pool[k]["fam"] for k in rk], np.int32),
                 lost=np.array([lost_mask(pool[k]) for k in rk], np.int8))
     return table, gone, errors, kept
+
+
+def tables_check_by_side(Vreg, rows, val):
+    """Teams lossdown.Tables.check rejects on each side of the split, each side checked on its own as training and
+    validation read it. The build asserts 0 on both."""
+    tables, X48 = L.Tables(Vreg, []), np.asarray(rows, np.int64)[:, :T.COLS48]
+    return dict(training=int(tables.check(X48[~val]).sum()), validation=int(tables.check(X48[val]).sum()))
 
 
 def by_family(S, sel):
@@ -234,7 +278,7 @@ def main_shuffled(name="lossdata84_shuffled_only"):
     Vreg = T.regulation_vocab()
     g, sets = collect(Vreg, shuffled_only=True)
     check = RowValidator(Vreg)
-    try: table, gone, errors, keys = shuffled_tables(g, sets, check)
+    try: table, gone, errors, keys = shuffled_tables(g, sets, check, table_rejects(Vreg))
     finally: check.close()
     held = HO.identities()
     assert not (set(keys) & {r.tobytes() for r in g["xte"]}), "a test team reached the shuffled-slot table"
@@ -247,6 +291,8 @@ def main_shuffled(name="lossdata84_shuffled_only"):
     try: failures = sum(check(row) is not None for row in np.load(out)["all_X"])
     finally: check.close()
     counts["table"]["validator_failures"] = int(failures)
+    saved = np.load(out)
+    counts["table"]["tables_check_rejects"] = tables_check_by_side(Vreg, saved["all_X"], saved["all_val"])
     counts["illegal_errors"] = errors[:20]
     counts["pooled_48_field_teams"] = len(g["pool"])
     counts["sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
@@ -257,6 +303,7 @@ def main_shuffled(name="lossdata84_shuffled_only"):
     json.dump(counts, open(counts_path, "w"), indent=1)
     print(json.dumps(counts, indent=1))
     assert failures == 0, f"{failures} saved rows fail the validator"
+    assert not any(counts["table"]["tables_check_rejects"].values()), "saved rows fail the legal Pokémon construction tables"
 
 
 def main(name="lossdata84"):
@@ -265,9 +312,11 @@ def main(name="lossdata84"):
     for m in (LD, L, T, SP, X, HO):
         print(f"{m.__name__:14s} {m.__file__}", flush=True)
     _, V, *_ = X.setup()
-    g, sets = collect(T.regulation_vocab())
-    arrays, counts, keys = all_teams(g, sets)
-    slices, slice_counts = same_team_slices(sets, V)
+    Vreg = T.regulation_vocab()
+    g, sets = collect(Vreg)
+    rejects = table_rejects(Vreg)
+    arrays, counts, keys = all_teams(g, sets, rejects)
+    slices, slice_counts = same_team_slices(sets, V, rejects)
     arrays.update(slices); counts.update(slice_counts)
 
     held = HO.identities()
@@ -276,12 +325,74 @@ def main(name="lossdata84"):
     for k in ("all_X", "loop_X", "records_X"):
         assert legal_stat_points(arrays[k]), f"{k} has Stat Points outside the limits"
     save_npz(out, arrays)
+    saved = np.load(out)
+    counts["tables_check_rejects"] = tables_check_by_side(Vreg, saved["all_X"], saved["all_val"])
+    for k in ("loop", "records"):
+        counts[k]["tables_check_rejects"] = tables_check_by_side(Vreg, saved[f"{k}_X"], np.zeros(len(saved[f"{k}_X"]), bool))["training"]
     counts["sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
     counts["minutes"] = round((time.perf_counter() - t0) / 60, 1)
     json.dump(counts, open(counts_path, "w"), indent=1)
     print(json.dumps(counts, indent=1))
+    assert not any(counts["tables_check_rejects"].values()), "saved rows fail the legal Pokémon construction tables"
+    assert not any(counts[k]["tables_check_rejects"] for k in ("loop", "records")), "a slice fails the tables"
+
+
+def drop_wrong_stones(arrays, rejects):
+    """(arrays without the wrong-stone rows of every *_X group, {group: rows dropped}). Each array of a group
+    (all_X, all_W, all_val, ...) loses the same rows; nothing else changes, the split included."""
+    out, wrong = dict(arrays), {}
+    for p in sorted(k[:-2] for k in arrays if k.endswith("_X")):
+        wrong[p] = rejects(arrays[f"{p}_X"])
+        for k in arrays:
+            if k.startswith(f"{p}_") and len(arrays[k]) == len(wrong[p]): out[k] = arrays[k][~wrong[p]]
+    return out, wrong
+
+
+def with_removed(gone, arrays, wrong):
+    """The removed-teams arrays plus the dropped shuffled-slot rows, each under reason WRONG_STONE."""
+    w = wrong["all"]
+    return dict(X=np.concatenate([gone["X"], arrays["all_X"][w]]),
+                reason=np.concatenate([gone["reason"], np.full(int(w.sum()), REMOVED.index(WRONG_STONE), np.int8)]),
+                S=np.concatenate([gone["S"], arrays["all_S"][w]]), lost=np.concatenate([gone["lost"], arrays["all_lost"][w]]))
+
+
+def main_drop_wrong_stones(name):
+    out, gone_path, counts_path = (X.RES / f"{name}{s}" for s in (".npz", "_removed.npz", "_counts.json"))
+    backup = X.RES / f"{name}_before_wrong_stone_drop.npz"
+    Vreg = T.regulation_vocab()
+    arrays = dict(np.load(out))
+    kept, wrong = drop_wrong_stones(arrays, table_rejects(Vreg))
+    print({p: int(w.sum()) for p, w in wrong.items()}, "wrong-stone rows in", out, flush=True)
+    if not any(w.any() for w in wrong.values()): return                     # already dropped: nothing to rewrite
+    if not backup.exists(): backup.write_bytes(out.read_bytes())
+    counts = json.load(open(counts_path))
+    if gone_path.exists():
+        gone_backup = X.RES / f"{name}_removed_before_wrong_stone_drop.npz"
+        if not gone_backup.exists(): gone_backup.write_bytes(gone_path.read_bytes())
+        save_npz(gone_path, with_removed(dict(np.load(gone_path)), arrays, wrong))
+    save_npz(out, kept)
+    saved = np.load(out)
+    side = tables_check_by_side(Vreg, saved["all_X"], saved["all_val"])
+    if gone_path.exists():
+        fresh = counts_from_files(out, gone_path)
+        counts["table"].update(fresh.pop("table"), tables_check_rejects=side)
+        counts.update(fresh)
+        counts["removed_sha256"] = hashlib.sha256(gone_path.read_bytes()).hexdigest()
+    else:
+        counts.update(kept=len(saved["all_X"]), val=int(saved["all_val"].sum()), wrong_mega_stone=int(wrong["all"].sum()),
+                      labelled_kept=int(np.isfinite(saved["all_W"]).sum()), tables_check_rejects=side)
+        for p in ("loop", "records"):
+            if p in wrong: counts[p].update(kept=len(saved[f"{p}_X"]), wrong_mega_stone=int(wrong[p].sum()))
+    counts["wrong_stone_drop"] = dict(before_sha256=hashlib.sha256(backup.read_bytes()).hexdigest(),
+                                      rows={p: int(w.sum()) for p, w in wrong.items()},
+                                      validation=int((wrong["all"] & arrays["all_val"]).sum()))
+    counts["sha256"] = hashlib.sha256(out.read_bytes()).hexdigest()
+    json.dump(counts, open(counts_path, "w"), indent=1)
+    print(json.dumps(counts["wrong_stone_drop"] | dict(tables_check_rejects=side)), flush=True)
+    assert not any(side.values()), "saved rows fail the legal Pokémon construction tables"
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["--shuffled-only"]: main_shuffled(*sys.argv[2:3])
+    if sys.argv[1:2] == ["--drop-wrong-stones"]: main_drop_wrong_stones(sys.argv[2])
+    elif sys.argv[1:2] == ["--shuffled-only"]: main_shuffled(*sys.argv[2:3])
     else: main(*sys.argv[1:2])
