@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>More steps make DiffuGPT text more fluent and less varied</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:380px}
+</style>
+</head>
+<body>
+<main>
+<h1>More steps make DiffuGPT text more fluent and less varied</h1>
+<p class="sub">Released DiffuGPT checkpoints, authors&#x27; sampler, unconditional text at temperature 1.0</p>
+<div id="chart"></div>
+<p class="note">UNIFUSION (arXiv 2607.24507v1), Appendix C.3 table: mean of five seeds of 1,024 samples, 512 tokens (small) or 1,024 (medium); perplexity scored by GPT-2 large. Standard deviations are at most 7.9 perplexity and 0.007 nats, too small to draw. Free text, not teams.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"tooltip": {"trigger": "axis"}, "legend": {"top": 0}, "grid": [{"left": 56, "right": "54%", "top": 64, "bottom": 44}, {"left": "56%", "right": 16, "top": 64, "bottom": 44}], "xAxis": [{"type": "log", "logBase": 2, "min": 16, "max": 256, "name": "sampler steps", "nameLocation": "middle", "nameGap": 26, "gridIndex": 0}, {"type": "log", "logBase": 2, "min": 16, "max": 256, "name": "sampler steps", "nameLocation": "middle", "nameGap": 26, "gridIndex": 1}], "yAxis": [{"type": "value", "gridIndex": 0, "name": "perplexity (lower = more fluent)", "min": 0}, {"type": "value", "gridIndex": 1, "name": "unigram entropy, nats (higher = more varied)", "scale": true}], "series": [{"type": "line", "name": "DiffuGPT small", "xAxisIndex": 0, "yAxisIndex": 0, "color": "#2f6fdb", "symbolSize": 7, "emphasis": {"focus": "series"}, "data": [[16, 494.491], [32, 271.21], [64, 185.117], [128, 144.98], [256, 117.334]]}, {"type": "line", "name": "DiffuGPT small", "xAxisIndex": 1, "yAxisIndex": 1, "color": "#2f6fdb", "symbolSize": 7, "emphasis": {"focus": "series"}, "data": [[16, 5.5106], [32, 5.4427], [64, 5.3821], [128, 5.3333], [256, 5.2792]]}, {"type": "line", "name": "DiffuGPT medium", "xAxisIndex": 0, "yAxisIndex": 0, "color": "#c2571a", "symbolSize": 7, "emphasis": {"focus": "series"}, "data": [[16, 535.982], [32, 229.408], [64, 147.867], [128, 111.603], [256, 90.645]]}, {"type": "line", "name": "DiffuGPT medium", "xAxisIndex": 1, "yAxisIndex": 1, "color": "#c2571a", "symbolSize": 7, "emphasis": {"focus": "series"}, "data": [[16, 5.9229], [32, 5.8319], [64, 5.7685], [128, 5.7099], [256, 5.6472]]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

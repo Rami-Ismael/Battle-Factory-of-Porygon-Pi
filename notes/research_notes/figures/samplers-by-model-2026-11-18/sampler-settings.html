@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Each model&#x27;s own sampler differs from ours in two to five settings</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:470px}
+</style>
+</head>
+<body>
+<main>
+<h1>Each model&#x27;s own sampler differs from ours in two to five settings</h1>
+<p class="sub">Blue cells differ from the shared sampler we run on every masked model (first column). Grey cells match it. DiffuGPT rows hold for small and medium; Qwen3 is Masked Qwen3 0.6B.</p>
+<div id="chart"></div>
+<p class="note">Sources: DiffuLLaMA repository at c17e897f (trainer.py generate_samples, model.py, inf_diffugpt.py); Qwen3-0.6B-diffusion-mdlm-v0.1 card at c8d24a3f; dllm at ca176752 (examples/a2d/mdlm/eval.sh). Ours: code/scripts/masked_diffusion_memory_bench.py defaults (128 steps) on the #170 benchmark text, about 350 masks, so about 2.7 tokens per step; the right shift follows each model&#x27;s training. Authors&#x27; tokens per step: steps equal masked tokens, except the standalone script&#x27;s 64 steps over 512 or 1,024 tokens. &#x27;At most linear&#x27;: committed tokens take part in the ranking but are never remasked, so fewer masks can remain than the linear count. &#x27;Random&#x27;: each mask is revealed with probability 1/(t+1).</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"tooltip": {"formatter": "js:p => p.data.text"}, "grid": {"left": 84, "right": 4, "top": 44, "bottom": 8}, "xAxis": {"type": "category", "data": ["Ours (every model)", "DiffuGPT, evaluation", "DiffuGPT, inference script", "Qwen3, model card", "Qwen3, dLLM evaluation"], "position": "top", "axisTick": {"show": false}, "axisLine": {"show": false}, "axisLabel": {"interval": 0, "width": 56, "fontSize": 10.5, "overflow": "break", "color": "#1f1f1e", "fontWeight": "bold"}}, "yAxis": {"type": "category", "data": ["Right shift", "Tokens per step", "Block length", "Top-p", "Temperature", "Masks left after each step", "Fill order"], "axisTick": {"show": false}, "axisLine": {"show": false}, "axisLabel": {"color": "#52514e", "width": 80, "overflow": "break", "fontSize": 11}}, "series": [{"type": "heatmap", "data": [{"value": [0, 6, 0], "text": "most confident first", "itemStyle": {"color": "#ffffff", "borderColor": "#6f6e69"}, "label": {"color": "#1f1f1e"}}, {"value": [0, 5, 0], "text": "exactly linear", "itemStyle": {"color": "#ffffff", "borderColor": "#6f6e69"}, "label": {"color": "#1f1f1e"}}, {"value": [0, 4, 0], "text": "1.0", "itemStyle": {"color": "#ffffff", "borderColor": "#6f6e69"}, "label": {"color": "#1f1f1e"}}, {"value": [0, 3, 0], "text": "off", "itemStyle": {"color": "#ffffff", "borderColor": "#6f6e69"}, "label": {"color": "#1f1f1e"}}, {"value": [0, 2, 0], "text": "whole text", "itemStyle": {"color": "#ffffff", "borderColor": "#6f6e69"}, "label": {"color": "#1f1f1e"}}, {"value": [0, 1, 0], "text": "about 2.7", "itemStyle": {"color": "#ffffff", "borderColor": "#6f6e69"}, "label": {"color": "#1f1f1e"}}, {"value": [0, 0, 0], "text": "per model", "itemStyle": {"color": "#ffffff", "borderColor": "#6f6e69"}, "label": {"color": "#1f1f1e"}}, {"value": [1, 6, 1], "text": "most confident first", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [1, 5, 2], "text": "at most linear", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [1, 4, 1], "text": "1.0", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [1, 3, 1], "text": "off", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [1, 2, 1], "text": "whole text", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [1, 1, 2], "text": "1", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [1, 0, 1], "text": "yes", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [2, 6, 2], "text": "random", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [2, 5, 2], "text": "random", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [2, 4, 2], "text": "0.95", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [2, 3, 2], "text": "0.9", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [2, 2, 1], "text": "whole text", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [2, 1, 2], "text": "8 or 16", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [2, 0, 1], "text": "yes", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [3, 6, 1], "text": "most confident first", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [3, 5, 1], "text": "exactly linear", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [3, 4, 2], "text": "0", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [3, 3, 1], "text": "off", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [3, 2, 2], "text": "64", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [3, 1, 2], "text": "1", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [3, 0, 1], "text": "no", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [4, 6, 1], "text": "most confident first", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [4, 5, 1], "text": "exactly linear", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [4, 4, 2], "text": "0", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [4, 3, 1], "text": "off", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}, {"value": [4, 2, 2], "text": "256", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [4, 1, 2], "text": "1", "itemStyle": {"color": "#2f6fdb", "borderColor": "#2f6fdb"}, "label": {"color": "#fefefe"}}, {"value": [4, 0, 1], "text": "no", "itemStyle": {"color": "#e6e5e0", "borderColor": "#e6e5e0"}, "label": {"color": "#1f1f1e"}}], "itemStyle": {"borderWidth": 3}, "label": {"show": true, "formatter": "js:p => p.data.text", "width": 54, "overflow": "break", "fontSize": 10.5}, "emphasis": {"disabled": true}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#e6e5e0": "#3a3936"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
