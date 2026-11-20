@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why a win rate of 0.3 is a strange thing to ask for</title>
+<style>
+:root{--ice:#edf4fb;--paper:#fff;--ink:#20334b;--muted:#53647a;--blue:#2457ce;--teal:#087f87;--rose:#aa4673;--amber:#a16c15;--line:#cbd9e8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ice);color:var(--ink);font:16px/1.55 'Avenir Next','Trebuchet MS',sans-serif}
+main{max-width:880px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px}
+h2{font-size:22px;margin:0 0 6px}
+.lead{color:var(--muted);font-size:18px;margin:0 0 28px}
+section{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px 22px 18px;margin:0 0 22px}
+.num{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);font-weight:600}
+p{margin:6px 0 12px}.small{font-size:14px;color:var(--muted)}
+svg{width:100%;height:auto;display:block}
+svg text{font:13px 'Avenir Next','Trebuchet MS',sans-serif;fill:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+button{font:inherit;font-size:14px;border:1px solid var(--line);background:#f6f9fd;color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.battles{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin:10px 0}
+.battles button{padding:0;aspect-ratio:1;border-radius:4px;background:#e6edf5;border:none}
+.battles button.win{background:var(--teal)}
+.big{font-size:28px;font-weight:600;color:var(--ink)}
+.guess{display:flex;gap:8px;flex-wrap:wrap}
+.reveal{display:none;margin-top:12px}.reveal.on{display:block}
+.fixes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.fix{border:1px solid var(--line);border-radius:10px;padding:12px}
+.fix h3{margin:0 0 4px;font-size:16px}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:#e8f4ef;color:#1d6b4f;margin-bottom:6px}
+.tag.run{background:#fdf2e3;color:#87570f}
+</style>
+</head>
+<body>
+<main>
+<div class="num">Ask-gap investigation · 2026-10-30</div>
+<h1>Why a win rate of 0.3 is a strange thing to ask for</h1>
+<p class="lead">The discrete diffusion model learned what a 0.25 team or a 0.29 team looks like. It almost never saw a team labelled exactly 0.30.</p>
+
+<section>
+<div class="num">1 · Where one label comes from</div>
+<h2>A team plays 24 battles. Its label is wins ÷ 24.</h2>
+<p>Most training labels were scored this way: 24 battles against meta opponents. Click squares to flip a battle between win and loss.</p>
+<div class="battles" id="battles"></div>
+<p><span class="big" id="frac">7 / 24</span> &nbsp;=&nbsp; <span class="big" id="dec">0.2917</span></p>
+<svg viewBox="0 0 840 70" id="ruler"></svg>
+<p class="small">However you click, the dot only lands on one of 25 ticks, spaced 1/24 ≈ 0.042 apart. 0.30 is not one of them: 7 wins gives 0.2917 and 8 wins gives 0.3333.</p>
+</section>
+
+<section>
+<div class="num">2 · All the labels at once</div>
+<h2>The labels form spikes with nothing between them</h2>
+<div class="row" id="writerBtns">
+<button aria-pressed="true" data-w="F1">Loop-label member</button>
+<button aria-pressed="false" data-w="G2">Matrix-row member</button>
+<span style="width:12px"></span>
+<button aria-pressed="false" id="zoomBtn">Zoom to 0.25–0.60</button>
+</div>
+<svg viewBox="0 0 840 260" id="hist"></svg>
+<p class="small" id="histNote"></p>
+<p class="small">The discrete diffusion model averages two member networks. The <b>loop-label member</b> (<code>F1_final_medium_noheldout_regmb_v3</code>) trains on search-loop teams and real teams. The <b>matrix-row member</b> (<code>G2_family_matrix_noprtrain_noheldout_regmb_v3</code>) adds matchup-matrix teams, whose labels average different battle counts and so fall between ticks.</p>
+</section>
+
+<section>
+<div class="num">3 · Predict, then check</div>
+<h2>Ask 0.30 sits between 7/24 and 8/24. Where does its win rate land?</h2>
+<p>Same model, same seeds, 3 × 64 teams per ask, each team battled once against each of the 49 distinct top-50 meta teams (behaviour-cloned policy on both sides). Win rate = the team's share of those 49 battles, averaged over the teams.</p>
+<div class="guess">
+<button data-g="between">Between its two neighbours</button>
+<button data-g="above">Above both</button>
+<button data-g="below">Below both</button>
+</div>
+<div class="reveal" id="reveal">
+<svg viewBox="0 0 840 250" id="got"></svg>
+<p id="verdict"></p>
+<p class="small">Asks between ticks (rose) both land below the line joining their on-tick neighbours (teal): 0.032 lower at 0.30 and 0.041 lower at 0.531. Seed-to-seed spread is 0.005–0.024, so the 0.531 dip is clear and the 0.30 dip is near the noise.</p>
+</div>
+</section>
+
+<section>
+<div class="num">4 · Why the network can tell the difference</div>
+<h2>Its fastest input wave wiggles faster than the ticks</h2>
+<p>The model does not read the ask as one number. It turns it into 17 inputs: the number itself plus sin and cos at 8 frequencies, from π up to 128π. Below are the sin waves over 0.25–0.36. Grey lines are ticks; the rose line is ask 0.30.</p>
+<div class="row" id="freqBtns">
+<button aria-pressed="true" data-f="8">8 frequencies (current)</button>
+<button aria-pressed="false" data-f="4">4 frequencies (proposed)</button>
+</div>
+<svg viewBox="0 0 840 300" id="waves"></svg>
+<p class="small" id="waveNote"></p>
+</section>
+
+<section>
+<div class="num">5 · The fixes</div>
+<h2>What each one changes</h2>
+<div class="fixes">
+<div class="fix"><span class="tag">done, no training</span><h3>Round the ask to the nearest tick</h3><p>Ask 0.30 becomes 7/24, ask 0.531 becomes 13/24. Today's on-tick controls are exactly this arm: 0.337 → 0.366 and 0.404 → 0.444.</p></div>
+<div class="fix"><span class="tag">best arm</span><h3>Jitter labels by up to ±1/48</h3><p>Each training row's label moves by a fresh random amount in every batch. A tick's spike becomes a flat block 1/24 wide, so the blocks tile the whole line and 0.30 is no longer a gap.</p><p class="small"><b>Result:</b> dip gone (0.30: +0.008, 0.531: −0.005). Win rate 0.388 at 0.30 and 0.438 at 0.531, against 0.342 and 0.407 for the unchanged-label retrain.</p></div>
+<div class="fix"><span class="tag">dip gone, dial flatter</span><h3>Keep 4 frequencies</h3><p>The fastest wave becomes 8π: one cycle per 0.25 of win rate, six ticks wide. Neighbouring asks then get nearly the same inputs, so the model cannot treat 0.30 as unseen.</p><p class="small"><b>Result:</b> dip gone (+0.004, +0.003), but win rate stays near 0.41 from ask 0.5 to 0.6.</p></div>
+<div class="fix"><span class="tag run">no help</span><h3>Win-rate quota</h3><p>Each epoch draws the same number of teams from every win-rate bucket, capped at the 0.5–0.6 bucket's size. The 0.6–0.8 buckets are too small to reach the cap, so they keep all their teams.</p><p class="small"><b>Result:</b> dips stay (−0.023, −0.021) and high asks score lower: 0.385 at 0.6, 0.374 at 0.7.</p><p class="small"><b>Why diversity falls too:</b> training teams get less varied as their label rises. Forty teams drawn from the 0.0–0.1 bucket cover 45 effective species; from 0.5–0.8, about 21. Balancing cuts the varied 0.1–0.4 buckets hardest, so teams labelled 0.4 or more rise from 24% to 36% of the labelled teams the loop-label member sees (21% to 36% for the matrix-row member). Its teams then use fewer species than the retrain on unchanged labels at every ask range (11.9 vs 14.4 effective species at asks 12/24–13/24).</p></div>
+<div class="fix"><span class="tag">most diverse, lowest win rate</span><h3>Species quota</h3><p>Each species is its own group: a training team is kept only while none of its six species is already in K kept teams that epoch (K = 800 or 1,500).</p><p class="small"><b>Result (quota 800):</b> at asks 12/24–13/24, 21.3 effective species against 14.4 for the same-labels retrain, but win rate 0.362 against 0.417. Win rate barely follows the ask any more (0.32–0.39 at every ask).</p></div>
+</div>
+<svg viewBox="0 0 840 230" id="buckets" style="margin-top:14px"></svg>
+<p class="small">Loop-label member's labelled teams per bucket. Grey = now; teal = drawn per epoch after balancing (cap 1,132; matrix-row member cap 1,544).</p>
+</section>
+
+<section>
+<div class="num">6 · Results, all seven versions</div>
+<h2>Jittered labels remove the dip and score highest</h2>
+<p class="small">Run 2026-10-30, <code>~/vgc-data/ask_grid</code>. Hover a dot for its win rate, effective species and distinct line-ups.</p>
+<iframe src="../../Blog/visuals/label-grid/label-grid.html?embed" title="Win rate by ask for the current model and six retrained versions" style="width:100%;height:1600px;border:0"></iframe>
+</section>
+</main>
+
+<script>
+'use strict';
+const D={"hist":{"F1":{"n":12712,"on":0.9498898678414097,"h":[169,0,0,0,0,0,1,0,1,0,4,0,3,0,1,2,1,0,0,6,437,3,1,0,1,2,0,1,2,0,7,1,1,3,1,0,2,3,3,693,12,1,0,4,2,1,1,0,1,7,7,2,0,1,1,3,2,0,1,2,895,0,2,2,3,3,1,0,2,7,15,0,2,2,5,0,4,0,0,15,1065,1,1,1,2,3,6,2,0,0,11,3,2,4,0,0,1,2,0,1274,20,1,0,1,2,3,2,1,2,8,4,0,0,2,2,2,1,1,0,0,1326,0,1,1,1,1,3,1,2,5,8,0,1,2,4,0,0,0,2,10,1255,1,2,1,2,0,6,4,2,1,16,0,0,1,3,0,0,1,1,1138,11,0,1,0,0,4,3,2,1,11,9,0,3,0,1,2,1,1,2,1,1029,2,3,0,2,0,1,6,1,11,7,0,12,0,5,2,5,0,2,8,847,6,1,0,5,2,3,0,4,1,15,13,4,3,1,2,1,2,0,649,11,0,0,2,0,6,1,5,0,10,8,0,3,2,1,2,0,4,1,0,484,2,3,0,8,1,1,9,1,7,5,5,0,2,1,0,8,0,5,7,330,2,0,2,4,1,1,1,2,0,11,2,2,4,0,4,0,0,1,207,5,0,1,2,0,0,1,0,2,1,2,0,5,0,0,4,0,0,0,0,97,1,2,0,1,0,1,1,0,1,0,1,0,0,0,0,0,0,0,0,63,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,33,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"buckets":[1370,2086,3956,2290,1649,1132,183,46,0,0],"cap":1132},"G2":{"n":21454,"on":0.5775612939312016,"h":[377,0,0,0,0,0,1,0,1,292,4,0,3,0,0,2,1,0,0,333,437,3,1,0,1,2,0,1,336,0,7,1,1,3,1,0,2,3,360,693,12,1,0,5,2,1,1,0,351,7,7,1,0,1,1,3,2,383,1,2,895,0,1,2,3,3,1,372,2,7,15,0,2,2,4,0,401,0,0,14,1065,1,1,1,2,3,380,1,0,0,11,3,2,4,0,0,410,2,0,1274,20,1,0,1,2,421,2,1,1,8,4,0,0,2,2,419,1,1,0,0,1325,0,1,1,400,1,3,1,3,6,8,0,1,2,417,0,0,0,1,10,1255,1,1,1,382,0,5,3,3,1,17,0,0,375,3,0,0,1,2,1138,11,0,1,342,0,3,4,2,1,11,8,0,339,0,1,1,1,1,2,0,1029,1,284,0,1,0,3,7,1,9,7,0,288,0,5,2,5,2,3,8,846,251,1,0,5,2,2,1,4,2,15,203,4,4,1,1,2,3,0,649,195,0,0,7,0,7,1,6,0,12,165,1,4,1,1,3,0,6,1,1,591,2,3,3,10,2,1,11,2,95,6,6,1,3,4,2,9,1,6,83,330,2,2,2,4,1,1,1,58,1,10,3,2,2,0,4,1,0,63,207,5,1,1,1,0,0,1,0,38,1,2,0,5,0,0,4,0,23,0,0,97,1,2,0,1,0,0,19,0,1,0,1,0,0,0,0,15,0,0,0,63,1,0,0,0,0,7,0,0,0,0,0,0,0,0,4,0,0,0,33,1,0,0,0,0,2,0,0,0,0,0,0,0,0,0,2,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"buckets":[2888,3957,6010,4000,2720,1544,285,50,0,0],"cap":1544}},"got":[{"ask":0.2916666666666667,"win":0.366,"sd":0.015,"on":true,"label":"7/24"},{"ask":0.3,"win":0.337,"sd":0.024,"on":false,"label":"0.30"},{"ask":0.3333333333333333,"win":0.38,"sd":0.011,"on":true,"label":"8/24"},{"ask":0.5,"win":0.447,"sd":0.008,"on":true,"label":"12/24"},{"ask":0.531,"win":0.404,"sd":0.005,"on":false,"label":"0.531"},{"ask":0.5416666666666666,"win":0.444,"sd":0.009,"on":true,"label":"13/24"}]};
+const NS='http://www.w3.org/2000/svg',$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.append(e);return e};
+const C={ink:'#20334b',muted:'#53647a',teal:'#087f87',rose:'#aa4673',line:'#cbd9e8',grey:'#b7c4d3',blue:'#2457ce'};
+
+// 1. battles -> ruler
+let wins=Array.from({length:24},(_,i)=>i<7);
+const B=$('battles');
+wins.forEach((w,i)=>{const b=document.createElement('button');b.setAttribute('aria-label','battle '+(i+1));b.onclick=()=>{wins[i]=!wins[i];drawRuler()};B.append(b)});
+function drawRuler(){
+  const n=wins.filter(Boolean).length;[...B.children].forEach((b,i)=>b.classList.toggle('win',wins[i]));
+  $('frac').textContent=n+' / 24';$('dec').textContent=(n/24).toFixed(4);
+  const s=$('ruler');s.innerHTML='';const x=v=>20+v*800;
+  el('line',{x1:20,x2:820,y1:30,y2:30,stroke:C.line,'stroke-width':2},s);
+  for(let k=0;k<=24;k++)el('line',{x1:x(k/24),x2:x(k/24),y1:22,y2:38,stroke:C.grey},s);
+  [0,.25,.5,.75,1].forEach(v=>el('text',{x:x(v),y:60,'text-anchor':'middle'},s).textContent=v);
+  el('line',{x1:x(.3),x2:x(.3),y1:12,y2:48,stroke:C.rose,'stroke-dasharray':'3 3','stroke-width':2},s);
+  el('text',{x:x(.3)+5,y:14,fill:C.rose},s).textContent='0.30';
+  el('circle',{cx:x(n/24),cy:30,r:7,fill:C.teal},s);
+}
+drawRuler();
+
+// 2. histogram
+let writer='F1',zoom=false;
+function drawHist(){
+  const s=$('hist');s.innerHTML='';const d=D.hist[writer];const lo=zoom?.25:0,hi=zoom?.6:.85;
+  const x=v=>40+(v-lo)/(hi-lo)*780,H=200,top=20;
+  const bins=d.h.map((c,i)=>[i/480,c]).filter(([v])=>v>=lo&&v<hi);const m=Math.max(...bins.map(b=>b[1]));
+  for(let k=0;k<=24;k++){const v=k/24;if(v<lo||v>hi)continue;el('line',{x1:x(v),x2:x(v),y1:top,y2:top+H,stroke:'#eef2f7'},s)}
+  const w=Math.max(1,780/((hi-lo)*480)-.5);
+  bins.forEach(([v,c])=>{if(!c)return;const h=c/m*H;el('rect',{x:x(v),y:top+H-h,width:w,height:h,fill:C.ink},s)});
+  [.3,.531].forEach(a=>{if(a<lo||a>hi)return;el('line',{x1:x(a),x2:x(a),y1:top-8,y2:top+H,stroke:C.rose,'stroke-width':2,'stroke-dasharray':'4 3'},s);el('text',{x:x(a)+4,y:top+2,fill:C.rose},s).textContent='ask '+a});
+  el('line',{x1:40,x2:820,y1:top+H,y2:top+H,stroke:C.muted},s);
+  const ticks=zoom?[.25,.3,.35,.4,.45,.5,.55,.6]:[0,.1,.2,.3,.4,.5,.6,.7,.8];
+  ticks.forEach(v=>el('text',{x:x(v),y:top+H+18,'text-anchor':'middle'},s).textContent=v.toFixed(2));
+  el('text',{x:430,y:top+H+36,'text-anchor':'middle'},s).textContent='training label (win rate), bars 1/480 wide';
+  $('histNote').textContent=`${d.n.toLocaleString()} labelled teams; ${Math.round(d.on*100)}% sit exactly on a multiple of 1/24. Faint lines mark the 25 ticks.`;
+}
+document.querySelectorAll('#writerBtns [data-w]').forEach(b=>b.onclick=()=>{writer=b.dataset.w;document.querySelectorAll('#writerBtns [data-w]').forEach(o=>o.setAttribute('aria-pressed',o===b));drawHist()});
+$('zoomBtn').onclick=()=>{zoom=!zoom;$('zoomBtn').setAttribute('aria-pressed',zoom);drawHist()};
+drawHist();
+
+// 3. predict then reveal
+document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-g]').forEach(o=>o.setAttribute('aria-pressed',o===b));
+  $('reveal').classList.add('on');
+  $('verdict').innerHTML=b.dataset.g==='below'?'<b>Right.</b> Ask 0.30 got 0.337, below both 7/24 (0.366) and 8/24 (0.380).':'<b>Not quite.</b> Ask 0.30 got 0.337, below both 7/24 (0.366) and 8/24 (0.380).';
+  drawGot();
+});
+function drawGot(){
+  const s=$('got');s.innerHTML='';const P=D.got;const x=v=>60+(v-.27)/(.57-.27)*740,y=v=>210-(v-.31)/(.47-.31)*190;
+  [.32,.36,.40,.44].forEach(v=>{el('line',{x1:60,x2:800,y1:y(v),y2:y(v),stroke:'#eef2f7'},s);el('text',{x:52,y:y(v)+4,'text-anchor':'end'},s).textContent=v.toFixed(2)});
+  [[0,2],[3,5]].forEach(([a,b])=>el('line',{x1:x(P[a].ask),y1:y(P[a].win),x2:x(P[b].ask),y2:y(P[b].win),stroke:C.teal,'stroke-dasharray':'5 4'},s));
+  P.forEach(p=>{const c=p.on?C.teal:C.rose;
+    el('line',{x1:x(p.ask),x2:x(p.ask),y1:y(p.win-p.sd),y2:y(p.win+p.sd),stroke:c,'stroke-width':2},s);
+    el('circle',{cx:x(p.ask),cy:y(p.win),r:7,fill:c},s);
+    el('text',{x:x(p.ask),y:235,'text-anchor':'middle',fill:c},s).textContent=p.label;
+    el('text',{x:x(p.ask)+10,y:y(p.win)-8,fill:c},s).textContent=p.win.toFixed(3)});
+}
+
+// 4. waves
+let nf=8;
+function drawWaves(){
+  const s=$('waves');s.innerHTML='';const lo=.25,hi=.36,x=v=>40+(v-lo)/(hi-lo)*780;const row=34;
+  for(let k=0;k<=24;k++){const v=k/24;if(v<lo||v>hi)continue;el('line',{x1:x(v),x2:x(v),y1:6,y2:8*row+6,stroke:C.grey},s);el('text',{x:x(v),y:8*row+24,'text-anchor':'middle'},s).textContent=k+'/24'}
+  el('line',{x1:x(.3),x2:x(.3),y1:6,y2:8*row+6,stroke:C.rose,'stroke-width':2,'stroke-dasharray':'4 3'},s);
+  for(let k=0;k<8;k++){const cy=row*k+row/2+6,on=k<nf;let d='';
+    for(let i=0;i<=400;i++){const v=lo+(hi-lo)*i/400;d+=(i?'L':'M')+x(v).toFixed(1)+' '+(cy-Math.sin(2**k*Math.PI*v)*12).toFixed(1)}
+    el('path',{d,fill:'none',stroke:on?C.ink:'#e3e9f0','stroke-width':on?1.6:1.2},s);
+    el('text',{x:4,y:cy+4,fill:on?C.muted:'#c4cfdb'},s).textContent=(2**k)+'π';}
+  $('waveNote').textContent=nf===8?'At 128π one cycle spans 1/64 of win rate, so a wave swings 2.7 times between two ticks. Each tick, and each point between ticks, gets its own pattern of inputs. The model trained only on the tick patterns, so 0.30’s pattern is new to it.':'With 4 frequencies the fastest wave (8π) takes 0.25 of win rate per cycle. Over this whole window every wave barely moves, so 0.30 looks almost the same as 7/24 and 8/24.';
+}
+document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{nf=+b.dataset.f;document.querySelectorAll('[data-f]').forEach(o=>o.setAttribute('aria-pressed',o===b));drawWaves()});
+drawWaves();
+
+// 5. buckets
+(function(){const s=$('buckets');const b=D.hist.F1.buckets.slice(0,8),cap=D.hist.F1.cap;const m=Math.max(...b);const x=i=>60+i*95,y=v=>190-v/m*170;
+  [0,1000,2000,3000,4000].forEach(v=>{el('line',{x1:55,x2:820,y1:y(v),y2:y(v),stroke:'#eef2f7'},s);el('text',{x:50,y:y(v)+4,'text-anchor':'end'},s).textContent=v.toLocaleString()});
+  el('line',{x1:55,x2:820,y1:y(cap),y2:y(cap),stroke:C.teal,'stroke-dasharray':'4 3'},s);el('text',{x:820,y:y(cap)-6,'text-anchor':'end',fill:C.teal},s).textContent='cap '+cap.toLocaleString();
+  b.forEach((c,i)=>{el('rect',{x:x(i),y:y(c),width:38,height:190-y(c),fill:C.grey},s);const k=Math.min(c,cap);el('rect',{x:x(i)+42,y:y(k),width:38,height:190-y(k),fill:C.teal},s);
+    el('text',{x:x(i)+40,y:208,'text-anchor':'middle'},s).textContent=(i/10).toFixed(1)+'–'+((i+1)/10).toFixed(1);
+    el('text',{x:x(i)+19,y:y(c)-4,'text-anchor':'middle'},s).textContent=c.toLocaleString()});
+})();
+</script>
+</body>
+</html>
