@@ -231,6 +231,59 @@ def figure(folder):
     print(gap_figure(folder, r)); print(got_figure(folder, r))
 
 
+SPECIES_THEN_RANDOM = "sched_linear_species_then_random"
+TWISTER_ESTIMATE = (0.84, 0.89)       # #357: reweighting stored random-order teams to TWISTER's target, guidance 2, both checkpoints
+
+
+def share_figure(folder):
+    """The masking-schedule map's frame for #358: how much of Linear, random order's win-rate gap to species-first each fix wins back.
+
+    Storyboard. Sentence: turning the lookahead off wins back half of random order's gap; drawing species first wins back
+    nearly all of it. Expected: the exact draw lands near #357's reweighting estimate, 84% to 89%. Surprise: it lands at half.
+    Share = (row - random order) / (species-first - random order); the interval comes from paired draws that resample
+    teams within each row and the 49 opponents once for all four rows."""
+    from echarts_chart import write_chart
+    READER.setdefault(SPECIES_THEN_RANDOM, "Linear, species then random order"); STREAM.setdefault(SPECIES_THEN_RANDOM, 3)
+    counts = MRR.opponent_draws(len(np.load(MRR.opponents_path(FIRST, GUIDANCE))["weights"]))
+    rows = {row: read_row(row, counts) for row in (ROW, SPECIES_THEN_RANDOM, FIRST, RANDOM)}
+    first, rand = rows[FIRST], rows[RANDOM]
+    share = lambda m: (m["mean_win"] - rand["mean_win"]) / (first["mean_win"] - rand["mean_win"])
+    share_draws = lambda m: (m["mean_win_draws"] - rand["mean_win_draws"]) / (first["mean_win_draws"] - rand["mean_win_draws"])
+    names = ["Reweighting stored teams to the same target (#357)", "Lookahead off, redrawn until legal (#358)", "Species first, then random order (#322)"]
+    measured = [(names[2], SPECIES_THEN_RANDOM, "#1baf7a"), (names[1], ROW, ROW_COLOR[ROW])]
+    points = {name: (share(rows[row]), MRR.interval(share_draws(rows[row])), color) for name, row, color in measured}
+    line = "js:(p, api) => { const y = api.coord([0, api.value(2)])[1], a = api.coord([api.value(0), 0])[0], b = api.coord([api.value(1), 0])[0]; " \
+           "return {type: 'line', shape: {x1: a, y1: y, x2: b, y2: y}, style: {stroke: api.value(3), lineWidth: api.value(4)}}; }"
+    pct = "js:v => Math.round(v * 100) + '%'"
+    series = [dict(type="custom", name="Estimate, not battled", renderItem=line, z=2, tooltip=dict(show=False),
+                   data=[[TWISTER_ESTIMATE[0], TWISTER_ESTIMATE[1], names.index(names[0]), "rgba(138,92,214,0.45)", 14]]),
+              dict(type="custom", name="95% interval", renderItem=line, z=2, tooltip=dict(show=False),
+                   data=[[iv[0], iv[1], names.index(n), "#8f8d86", 3] for n, (_, iv, _) in points.items()]),
+              dict(type="scatter", name="Battled", symbolSize=15, z=3, emphasis=dict(focus="series"),
+                   data=[dict(value=[s, names.index(n)], itemStyle=dict(color=c)) for n, (s, _, c) in points.items()],
+                   label=dict(show=True, position="top", distance=8, formatter="js:p => Math.round(p.value[0] * 100) + '%'", fontSize=13, fontWeight="bold")),
+              dict(type="scatter", name="Estimate", symbolSize=0, data=[dict(value=[sum(TWISTER_ESTIMATE) / 2, names.index(names[0])])], tooltip=dict(show=False),
+                   label=dict(show=True, position="top", distance=12, formatter=f"{TWISTER_ESTIMATE[0]:.0%} to {TWISTER_ESTIMATE[1]:.0%}, estimate", fontSize=12)),
+              dict(type="line", name="ends", data=[], markLine=dict(silent=True, symbol="none", data=[
+                  dict(xAxis=0, lineStyle=dict(color=ROW_COLOR[RANDOM], type="dashed", width=1.5),
+                       label=dict(formatter=f"Random order, lookahead on\n{rand['mean_win']:.3f}", position="start", color=ROW_COLOR[RANDOM])),
+                  dict(xAxis=1, lineStyle=dict(color=ROW_COLOR[FIRST], type="dashed", width=1.5),
+                       label=dict(formatter=f"Species-first\n{first['mean_win']:.3f}", position="start", color=ROW_COLOR[FIRST]))]))]
+    option = dict(grid=dict(left=310, right=48, top=72, bottom=56),
+                  tooltip=dict(trigger="item", formatter="js:p => p.value ? Math.round(p.value[0] * 100) + '% of the gap' : ''"),
+                  xAxis=dict(type="value", min=0, max=1.1, interval=0.1, name="Share of random order's win-rate gap to species-first won back, asks 13/24 to 17/24",
+                             nameLocation="middle", nameGap=34, axisLabel=dict(formatter=pct), splitLine=dict(show=False)),
+                  yAxis=dict(type="category", data=names, axisTick=dict(show=False), inverse=True), series=series, animation=False)
+    s = points[names[1]]
+    print({n: (round(v[0], 3), [round(x, 3) for x in v[1]]) for n, v in points.items()})
+    return write_chart(option, Path(folder) / "plain-reject-share.html", height=350,
+                       title=f"Turning the lookahead off wins back {s[0]:.0%} of random order's gap; drawing species first wins back {points[names[2]][0]:.0%}",
+                       subtitle="Linear checkpoint, guidance 2. 0% is random order with the lookahead (mean win rate "
+                                f"{rand['mean_win']:.3f}), 100% is species-first ({first['mean_win']:.3f}). The reweighting estimate predicted most of the gap; battled, the exact draw got half.",
+                       note="Line: 95% bootstrap interval, teams resampled in each row, the 49 opponents once for all four rows. Faded bar: #357's estimate from stored teams, "
+                            "the range over the linear and per-field checkpoints, no new battles. Mean win rate: " + WIN_RATE + "; 960 teams per row.")
+
+
 def within(x, band): return "inside" if band[0] <= x <= band[1] else "outside"
 
 
@@ -276,5 +329,5 @@ def comment(url):
 
 
 if __name__ == "__main__":
-    {"smoke": lambda: smoke(sys.argv[2]), "opponents": opponents, "read": read, "figure": lambda: figure(sys.argv[2]),
+    {"smoke": lambda: smoke(sys.argv[2]), "opponents": opponents, "read": read, "figure": lambda: figure(sys.argv[2]), "share": lambda: print(share_figure(sys.argv[2])),
      "headline": lambda: print(headline()), "comment": lambda: comment(sys.argv[2])}[sys.argv[1]]()
