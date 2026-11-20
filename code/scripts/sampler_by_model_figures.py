@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
-from echarts_chart import write_chart  # noqa: E402
+from echarts_chart import write_chart
 
 OUT = Path(__file__).resolve().parents[2] / 'notes' / 'research_notes' / 'figures' / 'samplers-by-model-2026-11-18'
 
