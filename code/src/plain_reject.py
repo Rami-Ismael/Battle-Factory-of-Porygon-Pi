@@ -296,8 +296,8 @@ def comment(url):
     P = r["prediction"]; g = r["mean_win_against_species_first"]
     lines = [f"**{datetime.date.today()}: {headline(r)}.**", "",
              pic("plain-reject-gap", TITLE[r["verdict"]]), "",
-             f"Random order without the lookahead draws every field from the model's own random-order distribution; keeping only the teams Showdown accepts gives that distribution among legal teams, "
-             f"the target TWISTER corrects towards, with no weights. Same linear checkpoint, guidance 2, asks 13/24 to 17/24, seeds 1 to 3 on seed base 7300.", "",
+             "Random order without the lookahead draws every field from the model's own random-order distribution; keeping only the teams Showdown accepts gives that distribution among legal teams, "
+             "the target TWISTER corrects towards, with no weights. Same linear checkpoint, guidance 2, asks 13/24 to 17/24, seeds 1 to 3 on seed base 7300.", "",
              f"- Mean win rate at asks 13/24 to 17/24: {new['mean_win']:.3f}, against {first['mean_win']:.3f} for Linear, species-first (gap {g['difference']:+.3f} {iv(g)}) "
              f"and {rand['mean_win']:.3f} for Linear, random order with the lookahead ({r['mean_win_against_random']['difference']:+.3f} {iv(r['mean_win_against_random'])}). "
              f"That wins back {r['share_of_random_order_gap_won_back']:.0%} of random order's gap.",

@@ -142,7 +142,7 @@ class Reader(unittest.TestCase):
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf): self.P.comment("https://example.invalid/{name}-{theme}.png")
         text = buf.getvalue()
-        self.assertTrue(text.startswith(f"**"), text[:80]); self.assertIn(f"Verdict {self.result['verdict']}", text.splitlines()[0])
+        self.assertTrue(text.startswith("**"), text[:80]); self.assertIn(f"Verdict {self.result['verdict']}", text.splitlines()[0])
         for name in ("plain-reject-gap", "plain-reject-got"):
             for theme in ("light", "dark"): self.assertIn(f"{name}-{theme}.png", text)
 
