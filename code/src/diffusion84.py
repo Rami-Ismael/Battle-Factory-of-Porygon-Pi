@@ -201,68 +201,11 @@ def allowed(tables, x):
     return al
 
 
-class Refusals:
-    """What the lookahead refused while drawing each of n teams (issue #207). Each drawn field adds its refused share:
-    the probability the lookahead removed from the base distribution, the model's guided, temperature-scaled
-    distribution after the legal Pokémon construction tables and before the lookahead.
-
-        rec = Refusals(n); ... rec.add(scores, plain, kept, fallback, rows) per drawn field ...; rec.records()
-
-    Per team: kept share, the product over drawn fields of (1 - refused share), and its logarithm; refused share,
-    1 - kept share; refusing fields, the draws where the lookahead refused any value the plain sampler allows (a
-    remasked field counts each time it is drawn); fallback fields, the draws where no value was legal, so every value
-    was allowed and nothing counts as refused. Without remasking and with no fallback field, the kept share is the
-    team's probability under the plain sampler over its probability under the lookahead sampler; it is 0 only for a
-    team the plain sampler cannot draw (the empty first move, let in when the lookahead refused every real one). For a
-    team with a fallback field the ratio does not hold: leave the team out, as the fallback count allows. It adds up on the CPU in float64, which
-    the MPS device lacks."""
-    def __init__(self, n, draws=False):
-        """draws=True also keeps every draw of every team (issue #321): its column, removed share, whether the most
-        likely value was removed, and for a species draw how many of that Pokémon's other fields were drawn before it."""
-        self.log_kept = torch.zeros(n, dtype=torch.float64)
-        self.refusing = torch.zeros(n, dtype=torch.long)
-        self.fallback = torch.zeros(n, dtype=torch.long)
-        self.draws = [dict(column=[], removed_share=[], top_removed=[], fields_before=[]) for _ in range(n)] if draws else None
-
-    def add(self, scores, plain, kept, fallback, rows=None, column=None, x=None):
-        """scores [B, outputs]: the base distribution's logits before any legality mask; plain, kept, fallback: from
-        Model84._legal_parts; rows [B]: the teams this field was drawn for (default all). column: the field drawn; x
-        [B, COLS]: the teams before this draw. Both are needed only when every draw is kept."""
-        plain, kept, fallback = plain.cpu(), kept.cpu(), fallback.cpu()
-        rows = torch.ones_like(fallback) if rows is None else rows.cpu()
-        refused = (plain & ~kept).any(1)
-        s = scores.cpu().double()
-        lse = lambda m: torch.logsumexp(s.masked_fill(~m, -float("inf")), 1)
-        log_kept = torch.where(refused, (lse(kept) - lse(plain)).clamp(max=0.0), torch.zeros_like(self.log_kept))
-        self.log_kept += torch.where(rows, log_kept, torch.zeros_like(log_kept))
-        self.refusing += (refused & rows).long(); self.fallback += (fallback & rows).long()
-        if self.draws is not None: self._keep_draws(s, plain, kept, refused, log_kept, rows, column, x)
-
-    def _keep_draws(self, s, plain, kept, refused, log_kept, rows, column, x):
-        if column is None or x is None: raise ValueError("keeping every draw needs the column and the team before the draw")
-        top = s.masked_fill(~plain, -float("inf")).argmax(1)
-        top_removed = refused & ~kept.gather(1, top[:, None]).squeeze(1)
-        removed = (-torch.expm1(log_kept)).tolist()
-        before = [None] * len(rows)
-        if column < STAT0 and column % NF == 0:                # a species: count its Pokémon's other fields already drawn
-            slot, xc = column // NF, x.cpu()
-            drawn = (xc[:, slot * NF + 1:(slot + 1) * NF] != 0).sum(1) + (xc[:, STAT0 + slot * SP.NSTAT:STAT0 + (slot + 1) * SP.NSTAT] != 0).sum(1)
-            before = drawn.tolist()
-        for i in rows.nonzero().flatten().tolist():
-            d = self.draws[i]
-            d["column"].append(column); d["removed_share"].append(removed[i]); d["top_removed"].append(bool(top_removed[i]))
-            d["fields_before"].append(before[i])
-
-    def records(self):
-        """One dict per team. log_kept_share is None where some draw's lookahead refused every value the plain sampler
-        allows; a very small kept share can also round to 0.0 while its logarithm stays finite. With draws=True each
-        record also holds "draws": parallel lists in the order drawn; fields_before is None at a draw that is not a species."""
-        out = [dict(kept_share=math.exp(lk), log_kept_share=lk if lk > -math.inf else None, refused_share=-math.expm1(lk),
-                    refusing_fields=r, fallback_fields=f)
-               for lk, r, f in zip(self.log_kept.tolist(), self.refusing.tolist(), self.fallback.tolist())]
-        if self.draws is not None:
-            for r, d in zip(out, self.draws): r["draws"] = d
-        return out
+def __getattr__(name):
+    if name == "Refusals":
+        import sampler84 as S
+        return S.Refusals
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def shuffle_slots(x, ps=None):
@@ -606,40 +549,10 @@ class Model84:
     @torch.no_grad()
     def sample(self, n, ask=None, guidance=1.0, temperature=1.0, seed=None, lookahead=False, loops=None, corrected_t=False,
                refusals=None, tables=True):
-        """n teams in ORDER; ask is the win-rate condition, guidance the classifier-free weight. lookahead: see _legal;
-        species come first in ORDER, so it draws the same teams on or off. refusals: a Refusals for the n teams, which
-        records what the lookahead refused. loops: loop-block count (default loop_max).
-        corrected_t: pass k is told corrected_t_per_pass of the masking schedule this model trained with (info["sched"]),
-        not 1 - k/84; off by default, so stored runs draw the same teams.
-        A carried-state network starts from a zero state and hands each pass's hidden state to the next pass; the
-        guided and unguided passes each carry their own (Loopholing Algorithm 2, here one field per pass).
-        tables=False (issue #361): no legal Pokémon construction tables and no Stat Point budget, at any pass; any value
-        but [MASK] can be drawn, so a team can be illegal. The lookahead needs the tables."""
-        if not tables and lookahead: raise ValueError("the lookahead works on the legal Pokémon construction tables; draw with tables=True")
-        if seed is not None: torch.manual_seed(seed)
-        w = torch.full((n,), NAN if ask is None else ask, device=DEV); wn = torch.full((n,), NAN, device=DEV)
-        x = torch.zeros(n, COLS, dtype=torch.long, device=DEV)
-        carry = any(getattr(net, "carry", False) for net, _ in self.nets)
-        if carry and len(self.nets) > 1: raise ValueError("a carried state belongs to one network; sample a carried-state model alone")
-        state = dict(ask=None, none=None)
-
-        def logprobs(t, cond, key):
-            if not carry: return self._logprobs(x, t, cond, loops=loops, tables=tables)
-            keep = []; lp = self._logprobs(x, t, cond, loops=loops, state=state[key], keep=keep, tables=tables); state[key] = keep[0]
-            return lp
-
-        t_of_pass = corrected_t_per_pass(trained_sched(self.info)) if corrected_t else [1.0 - step / COLS for step in range(COLS)]
-        for step, c in enumerate(ORDER):
-            t = torch.full((n,), t_of_pass[step], device=DEV)
-            lc = self._column(logprobs(t, w, "ask"), c)
-            if ask is not None and guidance != 1.0:
-                lc = guidance * lc + (1 - guidance) * self._column(logprobs(t, wn, "none"), c)
-            legal, plain, kept, fallback = self._legal_parts(x, c, lookahead) if tables else self._unmasked_parts(x, c)
-            if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback, column=c, x=x)
-            lc = lc.masked_fill(~legal, -float("inf")) / temperature
-            v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
-            x[:, c] = v + 1 if c >= STAT0 else v                 # a Stat Point output index is its value
-        return x
+        """n teams in ORDER; delegates to sampler84.sample_species_first."""
+        import sampler84 as S
+        return S.sample_species_first(self, n, ask=ask, guidance=guidance, temperature=temperature, seed=seed,
+                                      lookahead=lookahead, loops=loops, corrected_t=corrected_t, refusals=refusals, tables=tables)
 
     def to_paste(self, row, repair=False):
         """(Showdown paste, slot dicts) with the row's own Stat Points; repair=True aligns the Stat Alignment."""

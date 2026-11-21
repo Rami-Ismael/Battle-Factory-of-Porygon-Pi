@@ -20,8 +20,10 @@ import torch
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import diffusion84 as M
+import sampler84 as S
 import trade84 as T
-A, M, R, MDB = T.A, T.M, T.R, T.MDB
+A, R, MDB = T.A, T.R, T.MDB
 from team_diversity import slots_from_paste
 
 ARMS = {
@@ -48,36 +50,12 @@ def save(out):
     tmp = OUT.with_suffix(".tmp"); json.dump(out, open(tmp, "w")); os.replace(tmp, OUT)
 
 
-def top_p_keep(probs, p):
-    """A mask over the likeliest options, in order, until their odds reach p. The likeliest option always stays."""
-    sp, idx = torch.sort(probs, descending=True, dim=-1)
-    keep = (sp.cumsum(-1) - sp) < p
-    return torch.zeros_like(probs, dtype=torch.bool).scatter(-1, idx, keep)
+top_p_keep = S.top_p_keep
 
 
-@torch.no_grad()
-def sample_nucleus(w, n, ask, p_species, p_sets):
-    """trade84.sample_cold at temperature 1, with nucleus filtering after guidance and the rule masks. p = 1 skips the filter, so it matches Model84.sample bit for bit."""
-    a = torch.full((n,), M.NAN if ask is None else ask, device=M.DEV); an = torch.full((n,), M.NAN, device=M.DEV)
-    x = torch.zeros(n, M.COLS, dtype=torch.long, device=M.DEV)
-    for step, c in enumerate(M.ORDER):
-        t = torch.full((n,), 1.0 - step / M.COLS, device=M.DEV)
-        lc = w._column(w._logprobs(x, t, a), c)
-        lc = A.GUIDANCE * lc + (1 - A.GUIDANCE) * w._column(w._logprobs(x, t, an), c)
-        lc = lc.masked_fill(~w._legal(x, c), -float("inf"))
-        p = p_species if c < M.STAT0 and c % 8 == 0 else p_sets
-        if p < 1: lc = lc.masked_fill(~top_p_keep(torch.softmax(lc, -1), p), -float("inf"))
-        v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
-        x[:, c] = v + 1 if c >= M.STAT0 else v
-    return x
-
-
-class Armed:
-    def __init__(self, w, arm): self.w, self.arm = w, arm
-
-    def sample(self, n, ask=None, guidance=None): return sample_nucleus(self.w, n, ask, *TOP_P[self.arm])
-
-    def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
+def sampler(w, arm):
+    """Configured Sampler84 for one nucleus84 arm."""
+    return S.Sampler84(w, top_p=TOP_P[arm], guidance=A.GUIDANCE)
 
 
 class FixedLogits:
@@ -95,11 +73,11 @@ class FixedLogits:
 
 
 def support_test():
-    """Runs sample_nucleus itself and checks which options each arm can draw, for species and set fields, with and without a rule mask."""
+    """Runs Sampler84 with top_p itself and checks which options each arm can draw, for species and set fields, with and without a rule mask."""
     w = FixedLogits(); w.n = 4000
     want = {1.0: ({0, 1, 2, 3, 4}, {1, 2, 3, 4}), .9: ({0, 1, 2}, {1, 2, 3}), .7: ({0, 1}, {1, 2}), .5: ({0}, {1})}
     for arm, (p_species, p_sets) in {**TOP_P, "no_filter": (1.0, 1.0)}.items():
-        torch.manual_seed(1); x = sample_nucleus(w, w.n, 0.5, p_species, p_sets).cpu().numpy()
+        torch.manual_seed(1); x = S.Sampler84(w, top_p=(p_species, p_sets), guidance=A.GUIDANCE).sample(w.n, ask=0.5).cpu().numpy()
         for c in M.ORDER:
             species = c < M.STAT0 and c % 8 == 0
             drawn = set((x[:, c] - (1 if c >= M.STAT0 else 0)).tolist())
@@ -114,10 +92,10 @@ def check():
     support_test()
     w = A.load_model()
     torch.manual_seed(1); a = w.sample(16, ask=0.5, guidance=A.GUIDANCE)
-    torch.manual_seed(1); b = sample_nucleus(w, 16, 0.5, 1.0, 1.0)
+    torch.manual_seed(1); b = S.Sampler84(w, top_p=(1.0, 1.0), guidance=A.GUIDANCE).sample(16, ask=0.5)
     if not torch.equal(a, b): raise SystemExit("NUCLEUS CHECK FAILED: p = 1 differs from Model84.sample")
     # Same species seed: filtering only the set fields must leave the species draw alone, since species fill first.
-    torch.manual_seed(1); c = sample_nucleus(w, 16, 0.5, 1.0, 0.5)
+    torch.manual_seed(1); c = S.Sampler84(w, top_p=(1.0, 0.5), guidance=A.GUIDANCE).sample(16, ask=0.5)
     sp = [i for i in M.ORDER if i < M.STAT0 and i % 8 == 0]
     if not torch.equal(a[:, sp], c[:, sp]): raise SystemExit("NUCLEUS CHECK FAILED: set-field filter changed species")
     if torch.equal(a, c): raise SystemExit("NUCLEUS CHECK FAILED: the set-field filter changed nothing")
@@ -128,7 +106,7 @@ def probes():
     w = A.load_model(); out = load(); d = np.load(A.DATA); train = d["all_X"][~d["all_val"]].astype(np.int64); pf = {}
     for arm in ARMS:
         torch.manual_seed(A.SEED0 + 1)
-        rows = Armed(w, arm).sample(96, ask=8 / 24).cpu().numpy()
+        rows = sampler(w, arm).sample(96, ask=8 / 24).cpu().numpy()
         pf[arm] = dict(round_trip=A.round_trip(w, rows[:20]), copies=A.copies(rows, train)[1])
         print(arm, json.dumps(pf[arm]), flush=True)
     out["preflight"] = pf; save(out)
@@ -145,7 +123,7 @@ def gen():
                 tag = f"{arm}_a{k:02d}of24_s{seed}"
                 if tag in out["cells"]: continue
                 t0 = time.time()
-                kept, stats, counts = A.draw(Armed(w, arm), k / 24, seed)
+                kept, stats, counts = A.draw(sampler(w, arm), k / 24, seed)
                 out["cells"][tag] = dict(arm=arm, ask=k / 24, numerator=k, seed=seed, **counts, pastes=kept, stat_points=stats, seconds=time.time() - t0, measures=R.team_measures(kept, stats) if kept else None)
                 save(out); m = out["cells"][tag]["measures"] or {}
                 print(f"  {tag:30s} kept {len(kept):3d} legal {counts['legal']:6.1%} line-ups {m.get('lineups', 0):3d} 66 {m.get('spend_66', 0):.0%} {time.time() - t0:5.0f}s", flush=True)

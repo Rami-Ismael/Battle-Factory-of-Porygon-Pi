@@ -118,13 +118,9 @@ def seed_of(tag): return int(hashlib.sha256(tag.encode()).hexdigest()[:8], 16)
 
 
 def draw_cell(w, order, ask, guidance, n, seed):
+    import sampler84 as S
     log = SkewLog(w, n)
-    if order == "species_first":
-        w.sample(n, ask=ask, guidance=guidance, seed=seed, refusals=log)
-    else:
-        import remask84
-        torch.manual_seed(seed)
-        remask84.sample_random(w, n, ask, "rand_plain", {}, guidance=guidance, lookahead=True, refusals=log)
+    S.Sampler84(w, order, lookahead=(order != "species_first")).sample(n, ask=ask, guidance=guidance, seed=seed, refusals=log)
     return log.summary()
 
 

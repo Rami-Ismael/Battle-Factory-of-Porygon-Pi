@@ -37,8 +37,8 @@ class ConfidenceOrder(unittest.TestCase):
     def setUpClass(cls):
         import torch
         import diffusion84 as M
-        import confidence_order84 as C
-        cls.torch, cls.M, cls.C = torch, M, C
+        import sampler84 as S
+        cls.torch, cls.M, cls.S = torch, M, S
         rows = []
         for team in CORPUS:
             try: rows.append(T.encode(VOCAB, team))
@@ -57,7 +57,7 @@ class ConfidenceOrder(unittest.TestCase):
 
     def draw(self, model, n=N, seed=1, **kw):
         self.torch.manual_seed(seed)
-        arm = self.C.ConfidenceOrderArm(model, **kw)
+        arm = self.S.Sampler84(model, "confidence", **kw)
         return arm.sample(n, ask=ASK, guidance=GUIDANCE), arm
 
     def test_each_pass_fills_the_masked_field_with_the_highest_top_probability(self):

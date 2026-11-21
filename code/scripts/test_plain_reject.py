@@ -52,7 +52,7 @@ class Row(unittest.TestCase):
     def test_the_row_samples_random_order_with_the_lookahead_off_on_the_linear_checkpoint(self):
         got = run(PROBE, "sched_linear_random_reject")
         self.assertEqual((got["checkpoint"], got["sampler"], got["lookahead"], got["arm"]),
-                         ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", False, "rand_plain"))
+                         ("stat84_shuffled_noise_linear_es3_cap80.pt", "Sampler84", False, "rand_plain"))
         self.assertEqual((got["out"], got["seed0"], got["keep"]), ("stat_points_84_sched_linear_random_reject.json", 7300, 64))
 
     def test_only_this_row_raises_the_try_cap(self):
@@ -70,7 +70,7 @@ class Sampler(unittest.TestCase):
         import torch
         import asked_vs_got as X
         import diffusion84 as M
-        import remask84 as R
+        import sampler84 as S
         import team84 as T
         vocab, corpus, rows = T.regulation_vocab(), X.setup()[0], []
         for team in corpus:
@@ -79,10 +79,10 @@ class Sampler(unittest.TestCase):
             if len(rows) == 256: break
         model = M.Model84.train_new(vocab, corpus, rows, labels=None, epochs=2, seed=0)
         for seed in (1, 2):
-            torch.manual_seed(seed); arm = R.RandomDecodingArm(model, "rand_plain", lookahead=False).sample(48, ask=15 / 24, guidance=2.0)
-            torch.manual_seed(seed); direct = R.sample_random(model, 48, 15 / 24, "rand_plain", {}, guidance=2.0, lookahead=False)
+            torch.manual_seed(seed); arm = S.Sampler84(model, "random", lookahead=False).sample(48, ask=15 / 24, guidance=2.0)
+            torch.manual_seed(seed); direct = S.sample_random(model, 48, 15 / 24, "rand_plain", {}, guidance=2.0, lookahead=False)
             self.assertTrue(bool((arm == direct).all()), f"seed {seed}")
-            torch.manual_seed(seed); on = R.sample_random(model, 48, 15 / 24, "rand_plain", {}, guidance=2.0, lookahead=True)
+            torch.manual_seed(seed); on = S.sample_random(model, 48, 15 / 24, "rand_plain", {}, guidance=2.0, lookahead=True)
             self.assertFalse(bool((on == direct).all()), f"seed {seed}: the lookahead changed nothing, so the test cannot tell the arms apart")
 
 

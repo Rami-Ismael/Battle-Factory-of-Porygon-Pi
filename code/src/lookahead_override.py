@@ -63,12 +63,12 @@ def redraw(guidance):
     os.environ["AG84_MODEL"], os.environ["AG84_GUIDANCE"] = ROW, str(guidance)
     import torch
     import ask_grid84 as A
-    import remask84
+    import sampler84 as S
     stored = json.load(open(MRR.grid_path(ROW, guidance)))
     if stored["checkpoint_sha256"] != A.require_same_checkpoint({}): raise SystemExit("the checkpoint is not the one the stored grid drew with")
     if stored.get("decoder") != "random" or float(stored["guidance"]) != guidance: raise SystemExit("the stored grid is not Linear, random order at this guidance")
     FOLDER.mkdir(parents=True, exist_ok=True)
-    arm = remask84.RandomDecodingArm(A.load_model(), "rand_plain", lookahead=True, record_draws=True)
+    arm = S.Sampler84(A.load_model(), "rand_plain", lookahead=True, record_draws=True)
     cells = sorted(stored["cells"].values(), key=lambda c: (c["seed"], c["numerator"]))   # the order the grid drew them
     for c in cells[:1] if SMOKE else cells:
         k, seed, path = c["numerator"], c["seed"], cell_path(guidance, c["numerator"], c["seed"])
