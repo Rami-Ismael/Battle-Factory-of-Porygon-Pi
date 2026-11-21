@@ -15,9 +15,11 @@ AG84_ASKS=12 draws only ask 12/24 (comma-separated numerators for several); AG84
 AG84_GUIDANCE sets the guidance, default 2. Another value gets its own results file and cell tags, with "_g4" or "_g8"
 after the model name, so guidance 2 keeps every stored name. AG84_UNGUIDED=1 draws one cell per seed with no ask and no
 guidance into "<model>_unguided". A model row that names decoder="random" samples in random order with the lookahead on;
-decoder="species_first_corrected_t" samples in species-first order and tells each pass the corrected t; decoder="confidence"
-fills each team's most confident masked field each pass (confidence_order84.py); decoder="entropy_init" fills the field with
-the highest entropy first, at temperature 1.5, then follows confidence order (entropy-guided initialization, entropy_init84.py).
+decoder="random_no_lookahead" samples in random order with the lookahead off, so only Showdown's validator stops illegal
+teams (issue #358); decoder="species_first_corrected_t" samples in species-first order and tells each pass the corrected t;
+decoder="confidence" fills each team's most confident masked field each pass (confidence_order84.py); decoder="entropy_init"
+fills the field with the highest entropy first, at temperature 1.5, then follows confidence order (entropy-guided
+initialization, entropy_init84.py). A row may name its own try cap per cell (max_tries) and seed base (seed0).
 
 Cell seed s draws with torch.manual_seed(seed0 + s) (grid_seeds.py): a stored grid keeps the base its file records,
 7300 for every grid before 2026-11-15; a new grid gets a base from its own name, so it cannot replay another grid's teams.
@@ -97,6 +99,10 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
                                       ("sched_linear_entropy_init", "linear", "Linear, entropy-guided initialization then confidence order", "entropy_init")):   # issue #333
     MODELS[_id] = dict(checkpoint=f"stat84_shuffled_noise_{_rate}_es3_cap80", reader=_reader, epochs=SCHED_EPOCHS, labelled=True, decoder=_decoder,
                        stopped="early stopping never fired in 80 epochs, so the model is read at the cap", table=DEFAULT_TABLE)
+# Issue #358: Linear, random order with the lookahead off, redrawn until Showdown accepts. At about 1% accepted per try,
+# 64 legal teams need about 6,400 tries, so the row has its own cap. Seed base 7300, the stored random-order row's.
+MODELS["sched_linear_random_reject"] = dict(MODELS["sched_linear_random"], reader="Linear, random order, no lookahead, redrawn until legal",
+                                            decoder="random_no_lookahead", max_tries=20_000, seed0=grid_seeds.LEGACY)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
@@ -113,7 +119,7 @@ for _row in MODELS.values():                             # every row so far trai
     if not _row.get("table65"): _row.setdefault("table", OLDER_TABLE)
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 UNGUIDED = bool(os.environ.get("AG84_UNGUIDED"))           # one cell per seed with no ask: the row's unguided baseline
-GUIDANCE, KEEP, BATCH, MAX_TRIES, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, 1280, 1
+GUIDANCE, KEEP, BATCH, MAX_TRIES, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, MODELS[MODEL].get("max_tries", 1280), 1
 SUFFIX = "_unguided" if UNGUIDED else "" if GUIDANCE == 2 else f"_g{GUIDANCE:g}"   # guidance 2 keeps the stored names
 def ask_numerators(env):
     """The ask numerators k of k/24 to draw: all 23, or the comma-separated ones AG84_ASKS names."""
@@ -130,7 +136,7 @@ if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
 RES = Path.home() / "vgc-data/results"
 SEED_OVERRIDE = os.environ.get("AG84_SEED0")             # a redraw on other seeds, into its own file "..._seed<N>"
 OUT = RES / f"stat_points_84_{MODEL}{SUFFIX}{f'_seed{SEED_OVERRIDE}' if SEED_OVERRIDE else ''}{'_smoke' if SMOKE else ''}.json"
-SEED0 = int(SEED_OVERRIDE) if SEED_OVERRIDE else grid_seeds.seed0(f"{MODEL}{SUFFIX}", OUT)   # stored grids keep 7300; new ones their own
+SEED0 = int(SEED_OVERRIDE) if SEED_OVERRIDE else MODELS[MODEL].get("seed0") or grid_seeds.seed0(f"{MODEL}{SUFFIX}", OUT)   # stored grids keep 7300; new ones their own
 DATA = X.RES / OLDER_TABLE                               # training teams of the older-table models that remask84, nucleus84, trade84 and lineup_reference score
 UNIFORM_LEGAL = Path.home() / "vgc-data/teams/hps_reg_mb_100k.jsonl"
 
@@ -168,6 +174,7 @@ def load_sampler(w=None):
     if decoder == "species_first_corrected_t": return S.Sampler84(w, decoder)
     if decoder in ("random", "species_then_random", "confidence", "entropy_init"):
         return S.Sampler84(w, decoder, lookahead=True)
+    if decoder == "random_no_lookahead": return S.Sampler84(w, "random", lookahead=False)
     raise ValueError(f"unknown decoder {decoder!r}")
 
 
