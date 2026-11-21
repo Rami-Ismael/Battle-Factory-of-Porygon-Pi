@@ -38,11 +38,11 @@ def ask_grid(model, **env):
 class AskGridRows(unittest.TestCase):
     def test_each_code_id_loads_its_checkpoint_and_decoder(self):
         want = {"sched_species_first": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Model84", None, None, False, "16,4,4,1.5,1"),
-                "sched_species_first_t": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "SpeciesFirstArm", False, None, True, "16,4,4,1.5,1"),
+                "sched_species_first_t": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Sampler84", False, None, True, "16,4,4,1.5,1"),
                 "sched_linear_species_first": ("stat84_shuffled_noise_linear_es3_cap80.pt", "Model84", None, None, False, "1,1,1,1,1"),
-                "sched_linear_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", True, "rand_plain", False, "1,1,1,1,1"),
-                "sched_linear_species_then_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "RandomDecodingArm", True, "species_then_random", False, "1,1,1,1,1"),
-                "sched_per_field_random": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "RandomDecodingArm", True, "rand_plain", False, "16,4,4,1.5,1")}
+                "sched_linear_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "Sampler84", True, "rand_plain", False, "1,1,1,1,1"),
+                "sched_linear_species_then_random": ("stat84_shuffled_noise_linear_es3_cap80.pt", "Sampler84", True, "species_then_random", False, "1,1,1,1,1"),
+                "sched_per_field_random": ("stat84_shuffled_noise_per_field_es3_cap80.pt", "Sampler84", True, "rand_plain", False, "16,4,4,1.5,1")}
         for row, (checkpoint, sampler, lookahead, arm, corrected_t, sched) in want.items():
             got = ask_grid(row)
             self.assertEqual((got["checkpoint"], got["sampler"], got["lookahead"], got["arm"], got["corrected_t"], got["sched"]),

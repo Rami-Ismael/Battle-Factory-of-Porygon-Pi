@@ -18,8 +18,8 @@ import torch
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import remask84 as R
+import sampler84 as S
 A = R.A
-M = R.M
 MDB = R.MDB
 from team_diversity import slots_from_paste
 
@@ -55,39 +55,18 @@ def save(out):
     tmp = OUT.with_suffix(".tmp"); json.dump(out, open(tmp, "w")); os.replace(tmp, OUT)
 
 
-@torch.no_grad()
-def sample_cold(w, n, ask, t_species, t_sets):
-    """Model84.sample with one temperature for species fields and another for every other field. Equal temperatures match Model84.sample bit for bit."""
-    a = torch.full((n,), M.NAN if ask is None else ask, device=M.DEV); an = torch.full((n,), M.NAN, device=M.DEV)
-    x = torch.zeros(n, M.COLS, dtype=torch.long, device=M.DEV)
-    for step, c in enumerate(M.ORDER):
-        t = torch.full((n,), 1.0 - step / M.COLS, device=M.DEV)
-        lc = w._column(w._logprobs(x, t, a), c)
-        lc = A.GUIDANCE * lc + (1 - A.GUIDANCE) * w._column(w._logprobs(x, t, an), c)
-        temp = t_species if c < M.STAT0 and c % 8 == 0 else t_sets
-        lc = lc.masked_fill(~w._legal(x, c), -float("inf")) / temp
-        v = torch.multinomial(torch.softmax(lc, -1), 1).squeeze(1)
-        x[:, c] = v + 1 if c >= M.STAT0 else v
-    return x
-
-
-class Armed:
-    def __init__(self, w, arm): self.w, self.arm, self.stats = w, arm, {}
-
-    def sample(self, n, ask=None, guidance=None):
-        if self.arm in SHARE:
-            R.LEAST_LIKELY = SHARE[self.arm]
-            return R.sample(self.w, n, ask, "remask_ll_10", self.stats)
-        return sample_cold(self.w, n, ask, *TEMPS[self.arm])
-
-    def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
+def sampler(w, arm):
+    """Configured Sampler84 for one trade84 arm (remasking share or set-only temperature sharpening)."""
+    if arm in SHARE:
+        return S.Sampler84(w, arm, remask_share=SHARE[arm], guidance=A.GUIDANCE)
+    return S.Sampler84(w, temperature=TEMPS[arm], guidance=A.GUIDANCE)
 
 
 def check():
     w = A.load_model()
     torch.manual_seed(1); a = w.sample(16, ask=0.5, guidance=A.GUIDANCE)
-    torch.manual_seed(1); b = sample_cold(w, 16, 0.5, 1.0, 1.0)
-    if not torch.equal(a, b): raise SystemExit("TRADE84 CHECK FAILED: sample_cold at temperature 1 differs from Model84.sample")
+    torch.manual_seed(1); b = S.Sampler84(w, temperature=(1.0, 1.0), guidance=A.GUIDANCE).sample(16, ask=0.5)
+    if not torch.equal(a, b): raise SystemExit("TRADE84 CHECK FAILED: Sampler84 at temperature (1, 1) differs from Model84.sample")
     print("TRADE84_CHECK PASS", flush=True)
 
 
@@ -96,7 +75,7 @@ def probes():
     for arm in ARMS:
         if arm == "spend66": continue
         torch.manual_seed(A.SEED0 + 1)
-        rows = Armed(w, arm).sample(96, ask=8 / 24).cpu().numpy()
+        rows = sampler(w, arm).sample(96, ask=8 / 24).cpu().numpy()
         pf[arm] = dict(round_trip=A.round_trip(w, rows[:20]), copies=A.copies(rows, train)[1])
         print(arm, json.dumps(pf[arm]), flush=True)
     out["preflight"] = pf; save(out)
@@ -158,7 +137,7 @@ def gen():
                     finally: val.close()
                     counts = dict(tried=len(kept), rejected=bad, heldout_dropped=0, legal=1 - bad / len(kept), reasons=[])
                 else:
-                    armed = Armed(w, arm); kept, stats, counts = A.draw(armed, k / 24, seed)
+                    armed = sampler(w, arm); kept, stats, counts = A.draw(armed, k / 24, seed)
                 out["cells"][tag] = dict(arm=arm, ask=k / 24, numerator=k, seed=seed, **counts, pastes=kept, stat_points=stats, seconds=time.time() - t0, measures=R.team_measures(kept, stats) if kept else None)
                 save(out); m = out["cells"][tag]["measures"] or {}
                 print(f"  {tag:30s} kept {len(kept):3d} legal {counts['legal']:6.1%} line-ups {m.get('lineups', 0):3d} 66 {m.get('spend_66', 0):.0%} {time.time() - t0:5.0f}s", flush=True)

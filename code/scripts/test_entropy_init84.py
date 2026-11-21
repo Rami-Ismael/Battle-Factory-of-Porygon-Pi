@@ -139,7 +139,7 @@ class EntropyFirst(unittest.TestCase):
         def spy(p, k, *a, **kw):
             seen.append(p.detach().clone()); return real(p, k, *a, **kw)
         watched = Watched(self.model)
-        with mock.patch.object(self.E.C.torch, "multinomial", side_effect=spy):
+        with mock.patch.object(self.torch, "multinomial", side_effect=spy):
             _, arm = self.draw(watched, n=6, seed=3)
         c = arm.last_refusals[0]["fill_order"][0]
         lg = self.logits(self.empty().expand(6, -1).contiguous(), 0, c)
@@ -179,9 +179,9 @@ class EntropyFirst(unittest.TestCase):
         self.assertAlmostEqual(p["entropy"], max(p["entropy_by_field_type"].values()), places=5)
 
     def test_confidence_first_pick_is_unchanged(self):
-        import confidence_order84 as C
-        self.torch.manual_seed(9); a = C.ConfidenceOrderArm(self.model).sample(16, ask=ASK, guidance=GUIDANCE)
-        self.torch.manual_seed(9); b = C.ConfidenceOrderArm(self.model, first_pick="confidence", first_temperature=None).sample(16, ask=ASK, guidance=GUIDANCE)
+        import sampler84 as S
+        self.torch.manual_seed(9); a = S.Sampler84(self.model, "confidence").sample(16, ask=ASK, guidance=GUIDANCE)
+        self.torch.manual_seed(9); b = S.Sampler84(self.model, "confidence", first_pick="confidence", first_temperature=None).sample(16, ask=ASK, guidance=GUIDANCE)
         self.assertTrue(bool((a == b).all()))
 
 

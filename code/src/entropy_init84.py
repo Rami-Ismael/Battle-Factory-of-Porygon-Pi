@@ -29,8 +29,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import confidence_order84 as C
 import diffusion84 as M
+import sampler84 as S
 
-FIRST_TEMPERATURE = 1.5                                    # Jeon et al.'s 0.9 / 0.6, times our base temperature 1
+FIRST_TEMPERATURE = S.FIRST_TEMPERATURE                    # Jeon et al.'s 0.9 / 0.6, times our base temperature 1
 SPECIES_RULE = 0.95                                        # the ticket's stop: species fields for >= 95% of teams
 ROW, CONFIDENCE, SPECIES_FIRST, RANDOM = "sched_linear_entropy_init", C.ROW, C.SPECIES_FIRST, C.RANDOM
 READER = {ROW: "Entropy-guided initialization, then confidence order", CONFIDENCE: "Confidence order",
@@ -44,7 +45,7 @@ GUIDANCE = 2.0
 
 def arm(w):
     """The ask grid's arm: confidence order whose first pass picks by entropy and draws at FIRST_TEMPERATURE."""
-    return C.ConfidenceOrderArm(w, lookahead=True, first_pick="entropy", first_temperature=FIRST_TEMPERATURE)
+    return S.Sampler84(w, "entropy_init", first_temperature=FIRST_TEMPERATURE)
 
 
 def field_type(col):
@@ -65,7 +66,7 @@ def out_path(): return results_dir() / "entropy_init.json"
 def first_pass(w, ask, guidance=GUIDANCE, n=4):
     """Pass 1 at one ask: the column picked, its field type, and the highest entropy of each field type."""
     log = []
-    _, order, _ = C.sample_confidence(w, n, ask, guidance, 1.0, True, None, None, "entropy", FIRST_TEMPERATURE, passes=1, score_log=log)
+    _, order, _ = S.sample_confidence(w, n, ask, guidance, 1.0, True, None, None, "entropy", FIRST_TEMPERATURE, passes=1, score_log=log)
     picks = set(order[:, 0].tolist())
     if len(picks) != 1: raise RuntimeError(f"ask {ask}: teams with the same empty start picked different first fields {picks}")
     col = picks.pop(); h = log[0][0]

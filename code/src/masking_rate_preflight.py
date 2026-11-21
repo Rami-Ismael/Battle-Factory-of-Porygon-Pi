@@ -40,6 +40,7 @@ import asked_vs_got as X
 import diffusion84 as M
 import lossdown as L
 import position_split_preflight as PP
+import sampler84 as S
 import team84 as T
 from checkpoints import load_checkpoint
 
@@ -86,27 +87,7 @@ def corrected_t_values():
                 passed=gap_from_ticket < 5e-4 and gap_linear < 1e-9)
 
 
-@torch.no_grad()
-def sample_with_t(model, n, ask, t_of_pass, seed, other_rules=None):
-    """Model84.sample's loop (species-first order, guidance 2, temperature 1) with pass k told t_of_pass[k]. other_rules:
-    {name: a second t per pass}; then also returns, per rule and pass, the mean total variation between that rule's
-    drawing distribution and this one's on the same partly filled teams."""
-    torch.manual_seed(seed)
-    ask_w, null_w = torch.full((n,), ask, device=M.DEV), torch.full((n,), M.NAN, device=M.DEV)
-    x = torch.zeros(n, M.COLS, dtype=torch.long, device=M.DEV); total_variation = {name: [] for name in other_rules or {}}
-
-    def drawing_distribution(t_value, c):
-        t = torch.full((n,), t_value, device=M.DEV)
-        log_odds = GUIDANCE * model._column(model._logprobs(x, t, ask_w), c) + (1 - GUIDANCE) * model._column(model._logprobs(x, t, null_w), c)
-        return torch.softmax(log_odds.masked_fill(~model._legal(x, c), -float("inf")), -1)
-
-    for step, c in enumerate(M.ORDER):
-        p = drawing_distribution(t_of_pass[step], c)
-        for name, other_t in (other_rules or {}).items():
-            total_variation[name].append(float(0.5 * (p - drawing_distribution(other_t[step], c)).abs().sum(-1).mean()))
-        v = torch.multinomial(p, 1).squeeze(1)
-        x[:, c] = v + 1 if c >= M.STAT0 else v
-    return x.cpu().numpy(), total_variation
+sample_with_t = S.sample_with_t
 
 
 def largest_reading(by_ask, rule="corrected"):

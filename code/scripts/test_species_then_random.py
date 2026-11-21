@@ -35,8 +35,8 @@ class SpeciesThenRandom(unittest.TestCase):
     def setUpClass(cls):
         import torch
         import diffusion84 as M
-        import remask84 as R
-        cls.torch, cls.M, cls.R = torch, M, R
+        import sampler84 as S
+        cls.torch, cls.M, cls.S = torch, M, S
         rows = []
         for team in CORPUS:
             try: rows.append(T.encode(VOCAB, team))
@@ -47,7 +47,7 @@ class SpeciesThenRandom(unittest.TestCase):
 
     def draw(self, model, seed, lookahead=True):
         self.torch.manual_seed(seed)
-        return self.R.RandomDecodingArm(model, "species_then_random", lookahead=lookahead).sample(N, ask=ASK, guidance=GUIDANCE)
+        return self.S.Sampler84(model, "species_then_random", lookahead=lookahead).sample(N, ask=ASK, guidance=GUIDANCE)
 
     def test_every_species_is_filled_before_any_other_field(self):
         watched = Watched(self.model)

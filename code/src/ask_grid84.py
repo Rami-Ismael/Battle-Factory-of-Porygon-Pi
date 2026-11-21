@@ -159,25 +159,15 @@ def load_model():
 
 
 def load_sampler(w=None):
-    """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order; for a row
-    that names the corrected t, species-first order told the corrected t (remask84.SpeciesFirstArm); for a row that
-    names random order, the sampler of LLaDA Algorithm 4 with the lookahead on (remask84.RandomDecodingArm). The row that names
-    species then random order draws the six species first and the other 78 fields in random order (#322). The row that
-    names confidence order fills each team's most confident masked field each pass, lookahead on (#332). The row that
-    names entropy-guided initialization fills each team's highest-entropy field at temperature 1.5 on pass 1, then confidence order (#333)."""
+    """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order; for any
+    other decoding order, a configured Sampler84 (sampler84.py)."""
     w = w or load_model()
     decoder = MODELS[MODEL].get("decoder", "species_first")
     if decoder == "species_first": return w
-    import remask84
-    if decoder == "species_first_corrected_t": return remask84.SpeciesFirstArm(w, corrected_t=True)
-    if decoder in ("random", "species_then_random"):
-        return remask84.RandomDecodingArm(w, {"random": "rand_plain", "species_then_random": "species_then_random"}[decoder], lookahead=True)
-    if decoder == "confidence":
-        import confidence_order84
-        return confidence_order84.ConfidenceOrderArm(w, lookahead=True)
-    if decoder == "entropy_init":
-        import entropy_init84
-        return entropy_init84.arm(w)
+    import sampler84 as S
+    if decoder == "species_first_corrected_t": return S.Sampler84(w, decoder)
+    if decoder in ("random", "species_then_random", "confidence", "entropy_init"):
+        return S.Sampler84(w, decoder, lookahead=True)
     raise ValueError(f"unknown decoder {decoder!r}")
 
 

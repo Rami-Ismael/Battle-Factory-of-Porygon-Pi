@@ -21,8 +21,8 @@ import torch
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import ask_grid84 as A                                   # also sets up sys.path for the modules below
-import diffusion84 as M
 import matchup_db as MDB
+import sampler84 as S
 from team_diversity import slots_from_paste
 
 ARMS = {
@@ -31,101 +31,12 @@ ARMS = {
     "remask_even_loop": "Even-odds 0.5 fields remasked, 210 passes",
 }
 ASK_NUMERATORS, SEEDS, KEEP = [4, 8, 12, 16], [1, 2, 3], A.KEEP
-LOOP_START = 63                                          # alpha 0.75: the paper's t_on 0.25 on 84 fields
-LOOP_PASSES = 126                                        # the paper's T = 4L has 3T/8 loop steps; L = 84
-SIGMA_CONF = 0.3                                         # paper: 0.9 x min(1, (1 - alpha) / alpha) at alpha 0.75
-ETA_CAP = 0.008                                          # the paper's best MAUVE setting on text (its Table 5)
-LEAST_LIKELY = 0.10
+LOOP_START, LOOP_PASSES, SIGMA_CONF, ETA_CAP, LEAST_LIKELY = S.LOOP_START, S.LOOP_PASSES, S.SIGMA_CONF, S.ETA_CAP, S.LEAST_LIKELY
 OUT = A.RES / "remask84.json"
 CONTROL = A.RES / "stat_points_84_gen84_all_ep21.json"
 
-
-def least_likely(conf, fraction):
-    """[B, COLS]: per team, round(fraction x filled), rounded stochastically, of its filled fields drawn with the lowest probability."""
-    filled = conf.isfinite()
-    k = torch.floor(fraction * filled.sum(1) + torch.rand(len(conf), device=conf.device)).long()
-    columns = torch.arange(conf.shape[1], device=conf.device).expand_as(conf)
-    rank = torch.empty_like(columns).scatter_(1, conf.argsort(1), columns)
-    return (rank < k[:, None]) & filled
-
-
-def odds_by_confidence(conf):
-    """[B, COLS]: the paper's ReMDM-conf: odds sigma x exp(-p) / sum(exp(-p)) over filled fields, drawn independently."""
-    filled = conf.isfinite()
-    weight = torch.exp(-conf.masked_fill(~filled, 0.0)) * filled
-    return torch.rand_like(conf) < SIGMA_CONF * weight / weight.sum(1, keepdim=True).clamp_min(1e-9)
-
-
-def even_odds(conf):
-    """[B, COLS]: the paper's ReMDM-cap: every filled field remasked with odds eta, independently."""
-    return (torch.rand_like(conf) < ETA_CAP) & conf.isfinite()
-
-
-def fill_pass(w, x, conf, targets, due, redo, ask_w, null_w, temperature=1.0, guidance=A.GUIDANCE, lookahead=False, refusals=None):
-    """One network pass: draws each target field in ORDER, using one set of logits, so legality, and the lookahead when
-    it is on (lookahead.py), see each earlier draw. refusals: a diffusion84.Refusals, told what each draw refused."""
-    n = len(x)
-    t = (1.0 - (x != 0).sum(1).float() / M.COLS).to(x.device)
-    lp = w._logprobs(x, t, ask_w); lpn = w._logprobs(x, t, null_w)
-    everyone = torch.ones(n, dtype=torch.bool, device=x.device)
-    for c in targets:
-        rows = everyone if c in due else redo[:, c]
-        if not rows.any(): continue
-        lc = guidance * w._column(lp, c) + (1 - guidance) * w._column(lpn, c)
-        legal, plain, kept, fallback = w._legal_parts(x, c, lookahead)
-        if refusals is not None: refusals.add(lc / temperature, plain, kept, fallback, rows, column=c, x=x)
-        lc = lc.masked_fill(~legal, -float("inf")) / temperature
-        p = torch.softmax(lc, -1)
-        v = torch.multinomial(p, 1).squeeze(1)
-        conf[rows, c] = p.gather(1, v[:, None]).squeeze(1)[rows]
-        x[rows, c] = (v + 1 if c >= M.STAT0 else v)[rows]    # a Stat Point output index is its value
-
-
-def run_schedule(arm, step, conf, none):
-    if arm == "remask_ll_10":
-        for i, c in enumerate(M.ORDER):
-            step([c], least_likely(conf, LEAST_LIKELY) if i else none)
-    elif arm is None:
-        for c in M.ORDER: step([c], none)
-    else:
-        rule = odds_by_confidence if arm == "remask_conf_loop" else even_odds
-        for c in M.ORDER[:LOOP_START]: step([c], none)
-        for _ in range(LOOP_PASSES): step([], rule(conf))
-        for c in M.ORDER[LOOP_START:]: step([c], none)
-
-
-@torch.no_grad()
-def sample(w, n, ask, arm, stats=None):
-    """n teams. arm None: the plain decode, one field per pass. remask_ll_10: remask before every pass. The others: fill 63 fields,
-    loop LOOP_PASSES passes that only redraw, then fill the last 21."""
-    ask_w = torch.full((n,), ask, device=M.DEV); null_w = torch.full((n,), M.NAN, device=M.DEV)
-    x = torch.zeros(n, M.COLS, dtype=torch.long, device=M.DEV)
-    conf = torch.full((n, M.COLS), float("inf"), device=M.DEV)
-    stats = stats if stats is not None else {}
-    stats.setdefault("passes", 0); stats.setdefault("redrawn", 0); stats.setdefault("changed", 0); stats.setdefault("redrawn_species", 0)
-    none = torch.zeros_like(x, dtype=torch.bool)
-
-    def step(new, redo):
-        old = x.clone(); x[redo] = 0; conf[redo] = float("inf")
-        targets = sorted(set(new) | set(redo.any(0).nonzero().flatten().tolist()), key=M.ORDER.index)
-        if not targets: return
-        fill_pass(w, x, conf, targets, set(new), redo, ask_w, null_w)
-        stats["passes"] += 1; stats["redrawn"] += int(redo.sum()); stats["changed"] += int((redo & (old != x)).sum())
-        stats["redrawn_species"] += int(redo[:, ::8][:, :6].sum())
-
-    run_schedule(arm, step, conf, none)
-    if (x == 0).any(): raise RuntimeError("a field is still masked after the last pass")
-    return x
-
-
-class Armed:
-    """What ask_grid84.draw needs: sample() and to_paste(), for one arm."""
-    def __init__(self, w, arm): self.w, self.arm, self.stats = w, arm, {}
-
-    def sample(self, n, ask=None, **_):
-        return sample(self.w, n, ask, self.arm, self.stats)
-
-    def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
+sample = S.sample_remask
+sample_random = S.sample_random
 
 
 def load(): return json.load(open(OUT)) if OUT.exists() else {"cells": {}}
@@ -178,7 +89,7 @@ def gen(seeds=SEEDS):
             for k in ASK_NUMERATORS:
                 tag = f"{arm}_a{k:02d}of24_s{seed}"
                 if tag in out["cells"]: continue
-                armed = Armed(w, arm); t0 = time.time()
+                armed = S.Sampler84(w, arm, guidance=A.GUIDANCE); t0 = time.time()
                 kept, stats, counts = A.draw(armed, k / 24, seed)
                 out["cells"][tag] = dict(arm=arm, ask=k / 24, numerator=k, seed=seed, **counts, pastes=kept, stat_points=stats, sampler=armed.stats,
                                          seconds=time.time() - t0, measures=team_measures(kept, stats) if kept else None)
@@ -202,98 +113,8 @@ RANDOM_ARMS = {
     "rand_remask_even": "Even-odds 0.5 fields remasked, 210 passes",
     "species_then_random": "Species first, then random order: 6 passes, then 78",
 }
-SPECIES = list(M.ORDER[:6])                              # species-first order begins with the six species
+SPECIES = S.SPECIES
 RANDOM_TRIES = 384
-
-
-@torch.no_grad()
-def sample_random(w, n, ask, arm, stats, guidance=A.GUIDANCE, temperature=1.0, lookahead=False, refusals=None):
-    """Random decoding as the paper does it: each masked field unmasks independently, and a remasked field goes back to the
-    pool until the unmasking odds pick it. Within one pass the drawn fields go in ORDER, so legality sees earlier draws.
-    ask None: no condition. lookahead: draw only values that leave every Pokémon whose species is masked a legal species;
-    a remasked field counts as masked again. refusals: a diffusion84.Refusals for the n teams; every draw adds to it,
-    redraws of remasked fields included."""
-    ask_w = torch.full((n,), M.NAN if ask is None else ask, device=M.DEV); null_w = torch.full((n,), M.NAN, device=M.DEV)
-    x = torch.zeros(n, M.COLS, dtype=torch.long, device=M.DEV)
-    conf = torch.full((n, M.COLS), float("inf"), device=M.DEV)
-
-    def step(unmask_odds, rule=None):
-        masked = x == 0
-        odds = unmask_odds(masked) if callable(unmask_odds) else unmask_odds
-        reveal = masked & (torch.rand_like(conf) < odds)
-        remask = rule(conf) if rule is not None else torch.zeros_like(masked)      # chosen from the team the network saw
-        targets = sorted(reveal.any(0).nonzero().flatten().tolist(), key=M.ORDER.index)
-        if targets:
-            fill_pass(w, x, conf, targets, set(), reveal, ask_w, null_w, temperature, guidance, lookahead, refusals); stats["passes"] = stats.get("passes", 0) + 1
-        x[remask] = 0; conf[remask] = float("inf")
-        stats["remasked"] = stats.get("remasked", 0) + int(remask.sum())
-
-    def fill(passes, start, end):                       # filled share moves from start to end, linear in alpha as the paper's schedule
-        for i in range(passes):
-            a_t, a_s = start + (end - start) * i / passes, start + (end - start) * (i + 1) / passes
-            step(1.0 if i == passes - 1 and end == 1.0 else (a_s - a_t) / (1 - a_t))
-
-    if arm == "rand_plain":
-        fill(M.COLS, 0.0, 1.0)
-    elif arm == "species_then_random":
-        species_then_random(step, fill, conf)
-    else:
-        remask_loop(arm, step, fill)
-    if (x == 0).any(): raise RuntimeError("a field is still masked after the last pass")
-    return x
-
-
-def remask_loop(arm, step, fill):
-    """Fill 63 fields, loop LOOP_PASSES passes that remask and redraw, then fill the last 21."""
-    share = LOOP_START / M.COLS
-    fill(LOOP_START, 0.0, share)
-    if arm == "rand_remask_even":
-        for _ in range(LOOP_PASSES): step(ETA_CAP * share / (1 - share), even_odds)    # the paper's sigma alpha / (1 - alpha)
-    else:
-        # The paper gives masked fields zero remasking odds, which never unmasks them while alpha is held; these odds keep the count level.
-        for _ in range(LOOP_PASSES): step(lambda m: SIGMA_CONF / m.sum(1, keepdim=True).clamp_min(1), odds_by_confidence)
-    fill(M.COLS - LOOP_START, share, 1.0)
-
-
-def species_then_random(step, fill, conf):
-    """Issue #322: one species per pass in species-first order, then the 78 set fields as rand_plain fills them."""
-    for c in SPECIES:
-        odds = torch.zeros_like(conf); odds[:, c] = 1.0; step(odds)
-    fill(M.COLS - len(SPECIES), len(SPECIES) / M.COLS, 1.0)
-
-
-class RandomDecodingArm:
-    """Random decoding as an arm object for ask_grid84.draw: sample() and to_paste(). arm: a RANDOM_ARMS key.
-    lookahead: the switch of sample_random. sample() uses the guidance weight and temperature it is given and refuses
-    any other setting. last_refusals: one diffusion84.Refusals record per team of the last sample() call (issue #207);
-    record_draws=True adds every draw to each record (issue #321) and leaves the draws themselves unchanged."""
-    def __init__(self, w, arm="rand_plain", lookahead=False, record_draws=False):
-        if arm not in RANDOM_ARMS: raise ValueError(f"arm must be one of {sorted(RANDOM_ARMS)}")
-        self.w, self.arm, self.lookahead, self.stats, self.last_refusals, self.record_draws = w, arm, lookahead, {}, None, record_draws
-
-    def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
-        rec = M.Refusals(n, draws=self.record_draws)
-        x = sample_random(self.w, n, ask, self.arm, self.stats, guidance=guidance, temperature=temperature, lookahead=self.lookahead, refusals=rec)
-        self.last_refusals = rec.records()
-        return x
-
-    def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
-
-
-class SpeciesFirstArm:
-    """Species-first decoding (Model84.sample) with the lookahead and corrected-t switches, as an arm object for
-    ask_grid84.draw. last_refusals and record_draws: as RandomDecodingArm's."""
-    def __init__(self, w, lookahead=False, corrected_t=False, record_draws=False):
-        self.w, self.lookahead, self.corrected_t, self.last_refusals, self.record_draws = w, lookahead, corrected_t, None, record_draws
-
-    def sample(self, n, ask=None, guidance=1.0, temperature=1.0):
-        rec = M.Refusals(n, draws=self.record_draws)
-        x = self.w.sample(n, ask=ask, guidance=guidance, temperature=temperature, lookahead=self.lookahead, corrected_t=self.corrected_t,
-                          refusals=rec)
-        self.last_refusals = rec.records()
-        return x
-
-    def to_paste(self, row, repair=False): return self.w.to_paste(row, repair=repair)
 
 
 def random_decoding():
@@ -372,7 +193,7 @@ def la_gen():
             for k in LOOKAHEAD_ASKS:
                 tag = f"{code}_a{k:02d}of24_s{seed}"
                 if tag in out["cells"]: continue
-                armed = RandomDecodingArm(w, arm, lookahead=True); t0 = time.time()
+                armed = S.Sampler84(w, arm, lookahead=True, guidance=A.GUIDANCE); t0 = time.time()
                 kept, stats, counts = A.draw(armed, k / 24, seed)
                 out["cells"][tag] = dict(arm=code, ask=k / 24, numerator=k, seed=seed, **counts, pastes=kept, stat_points=stats, sampler=armed.stats,
                                          seconds=time.time() - t0, measures=team_measures(kept, stats) if kept else None)

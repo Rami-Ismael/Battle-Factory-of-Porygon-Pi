@@ -311,11 +311,11 @@ def legality_probe():
     sys.path.insert(0, str(HERE))
     import torch
     import ask_grid84 as A
-    import remask84
+    import sampler84 as S
     tries, asks, seeds = (48, (8,), [1]) if SMOKE else (PROBE_TRIES, PROBE_ASKS, SEEDS)
     out = json.load(open(LEGALITY)) if LEGALITY.exists() else dict(cells={})
     out.update(row="sched_linear_random", lookahead=False, guidance=A.GUIDANCE, tries_per_cell=tries, checkpoint=A.checkpoint_path().name)
-    w = A.load_model(); arm = remask84.RandomDecodingArm(w, "rand_plain", lookahead=False); val = A.Validator()
+    w = A.load_model(); arm = S.Sampler84(w, "rand_plain", lookahead=False); val = A.Validator()
     try:
         for seed in seeds:
             for k in asks:
