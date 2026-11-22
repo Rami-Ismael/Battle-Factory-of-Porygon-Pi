@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Archive atlas</title>
+<meta name="description" content="Pyribs explained as a map of measure space that fills in: archive, emitter, scheduler, the novelty search rules and two tutorials.">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0b1216;--surface:#111b21;--surface2:#16232a;--surface3:#1d2c34;--line:rgba(255,255,255,.09);
+  --ink:#eef3f2;--ink2:#b3c0be;--muted:#7b8a87;
+  --accent:#7fe3c6;--accent-ink:#06231b;--warn:#e8b45a;--bad:#ef7d72;
+  --a1:#8fa6d1;--a3:#b6a8ff;
+  --glow:rgba(127,227,198,.16);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--surface3:#e3e9e7;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
+  --a1:#5c7db5;--a3:#6a55d8;
+  --glow:rgba(13,138,109,.14);
+}}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--surface3:#e3e9e7;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
+  --a1:#5c7db5;--a3:#6a55d8;
+  --glow:rgba(13,138,109,.14);
+}
+:root[data-theme="dark"]{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px))}
+code,.mono{font-family:var(--mono);font-size:.9em}
+p code,li code,td code{background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:0 4px;overflow-wrap:anywhere}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font:600 11px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+a{color:var(--accent)}
+header.top{padding:22px 0 8px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.brand{display:flex;align-items:center;gap:10px;font:700 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.brand i{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),#5b8cff);display:inline-block}
+h1{font-size:clamp(32px,6vw,46px);line-height:1.04;letter-spacing:-.02em;margin:18px 0 12px;font-weight:700;text-wrap:balance;max-width:820px}
+h1 em{display:block;color:var(--accent);font:italic 500 clamp(30px,5.6vw,44px)/1.08 var(--serif)}
+.lede{color:var(--ink2);font-size:17px;max-width:680px;margin:0 0 8px}
+h2{font-size:24px;line-height:1.15;letter-spacing:-.01em;margin:4px 0 10px;text-wrap:balance}
+h3{font-size:15px;margin:16px 0 6px}
+p{margin:0 0 10px}
+section.s{margin-top:44px;padding-top:22px;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:900px){.row{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:start}.row.flip{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}.row.flip>.prose{order:2}}
+.prose{max-width:620px;min-width:0}
+.prose p{color:var(--ink)}
+.answer{font-size:16px;padding-left:12px;border-left:3px solid var(--accent);margin:0 0 12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+figure{margin:0;min-width:0}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
+.illus{display:inline-block;font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:3px 7px;vertical-align:2px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.seg button,.btn{background:var(--surface2);color:var(--ink2);border:1px solid var(--line);border-radius:999px;padding:8px 12px;font:600 12.5px var(--sans);cursor:pointer;transition:background-color .15s ease,color .15s ease}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn:active,.seg button:active{transform:scale(.97)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.ctrls input[type=range]{flex:1 1 160px;min-width:120px;accent-color:var(--accent)}
+.ctrls .ro{font:600 12px var(--mono);color:var(--ink2);min-width:84px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--sans);fill:var(--muted);font-size:12px}
+.verdict{margin-top:10px;font-size:14px;min-height:66px}
+.verdict .vh{font-weight:700}
+.verdict .add{font:12px/1.5 var(--mono);color:var(--ink2);margin-top:4px;overflow-wrap:anywhere}
+.st2{color:var(--accent)}.st1{color:var(--warn)}.st0{color:var(--bad)}
+.tell{display:flex;align-items:center;gap:8px;margin-top:8px;font:12px var(--mono);color:var(--muted);min-height:30px;flex-wrap:wrap}
+.chip{display:inline-block;border-radius:999px;padding:5px 10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:600 12px var(--mono)}
+.chip.in{animation:chipIn 220ms var(--ease-out) both}
+@keyframes chipIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th,table.t td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t th{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+table.t td.n{font:600 13px var(--mono);text-align:right;white-space:nowrap}
+.tw{overflow-x:auto;max-width:100%}
+.formula{font:14px/1.6 var(--mono);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0;overflow-x:auto;white-space:nowrap}
+.grid3{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:760px){.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.grid3 .card h3{margin-top:0}
+.grid3 .card p{font-size:14px}
+.note{font-size:13px;color:var(--ink2);border-left:2px solid var(--line);padding-left:10px;margin:10px 0}
+.term{all:unset;cursor:pointer;color:inherit;border-bottom:1.5px dotted var(--accent);-webkit-tap-highlight-color:transparent}
+.term:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+#pop{position:absolute;z-index:20;max-width:min(340px,calc(100vw - 32px));background:var(--surface3);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,.35);opacity:0;transform:scale(.97);pointer-events:none;transition:opacity 160ms var(--ease-out),transform 160ms var(--ease-out)}
+#pop.open{opacity:1;transform:none;pointer-events:auto}
+#pop b{display:block;margin-bottom:2px}
+.loop .node rect{fill:var(--surface2);stroke:var(--line)}
+.loop .node text{fill:var(--ink);font-weight:600;font-size:13px}
+.loop .node text.sub{fill:var(--muted);font-weight:400;font-size:11px;font-family:var(--mono)}
+.loop .arr{stroke:var(--ink2);stroke-width:1.5;fill:none}
+.loop .arr.fb{stroke:var(--accent)}
+.loop .lbl{font-family:var(--mono);font-size:11px;fill:var(--ink2)}
+.loop .lbl.fb{fill:var(--accent)}
+.stack{display:grid;gap:10px}
+.layer{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.layer .who{font:700 13px var(--sans)}
+.layer .who small{display:block;font:500 11px var(--mono);color:var(--muted);margin-top:4px}
+.layer pre{margin:6px 0 0;font:12px/1.5 var(--mono);color:var(--ink2);white-space:pre-wrap;overflow-wrap:anywhere}
+.layer .bar{height:6px;border-radius:3px;background:var(--accent);margin-top:6px;transform-origin:left}
+@media (max-width:480px){.layer{grid-template-columns:1fr}}
+.rlog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}
+@media (min-width:600px){.rlog{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.rlog div{border:1px solid var(--line);border-radius:10px;padding:6px 8px;font:11.5px/1.4 var(--mono);color:var(--ink2);transition:border-color .2s ease,background-color .2s ease}
+.rlog div.on{border-color:var(--accent);background:var(--glow);color:var(--ink)}
+.rlog b{color:var(--ink);font-size:12px}
+#chart{width:100%;height:340px}
+.stat{display:flex;flex-wrap:wrap;gap:6px 18px;font:12.5px var(--mono);color:var(--ink2);margin-top:8px}
+.stat b{color:var(--ink)}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+footer code{font-size:11.5px}
+/* entrance on load */
+.rise{animation:rise 260ms var(--ease-out) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.lit{animation:lit 240ms var(--ease-out) both}
+@keyframes lit{from{opacity:0}to{opacity:1}}
+.fade{animation:fadeOut 240ms var(--ease-out) both}
+@keyframes fadeOut{from{opacity:1}to{opacity:.25}}
+.dot{transition:transform 700ms var(--ease-in-out),opacity 300ms var(--ease-out)}
+@media (prefers-reduced-motion:reduce){
+  .rise{animation:lit 160ms ease both}
+  .chip.in{animation:lit 120ms ease both}
+  .dot{transition:opacity 160ms ease}
+  #pop{transform:none;transition:opacity 120ms ease}
+  .btn:active,.seg button:active{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top rise">
+  <div class="brand"><i></i>Archive atlas</div>
+  <div class="eyebrow">pyribs 0.12.1</div>
+</header>
+
+<h1 class="rise" style="animation-delay:60ms">Pyribs, drawn as a map
+<em>that lights up as it fills</em></h1>
+<p class="lede rise" style="animation-delay:120ms">Every <button class="term" data-t="qd">quality diversity</button> run in pyribs is a map. Its axes are the <button class="term" data-t="measure">measures</button> you choose, each stored solution is a lit spot on it, and the brightness is the <button class="term" data-t="objective">objective</button>. This page follows one stream of candidates onto that map and shows which ones each admission rule keeps.</p>
+
+<!-- 1. RIBS + hero -->
+<section class="s rise" style="animation-delay:180ms" id="ribs">
+<div class="row">
+  <div class="prose">
+    <div class="eyebrow">What RIBS means</div>
+    <h2>Rapid Illumination of Behavior Space</h2>
+    <p class="answer">RIBS is the design pyribs implements: an archive that stores solutions, one or more emitters that propose new ones, and a scheduler that connects them. Your own code evaluates each candidate between the scheduler's ask and tell.</p>
+    <p>The name comes from the title of Fontaine and coauthors, "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space". Pyribs is Python plus RIBS.</p>
+    <p><button class="term" data-t="illumination">Illumination</button> means finding good solutions all over measure space, not one global best. Behavior space is the older name for measure space. Measures were once called behavior characteristics or behavior descriptors.</p>
+    <p>The map beside this text is that space. An <button class="term" data-t="emitter">emitter</button> throws each candidate from a stored solution. The <button class="term" data-t="archive">archive</button> decides whether it stays. The <button class="term" data-t="scheduler">scheduler</button> carries the verdict back to the emitter.</p>
+    <p>Pick a rule and the same stream gets judged again. Step through to see the reason for each verdict: the k neighbour links, a dashed ring at the novelty threshold, and a solid ring at the candidate's mean neighbour distance. When the solid ring is wider than the dashed one, the candidate counts as novel.</p>
+  </div>
+  <figure class="card" id="hero">
+    <div class="seg" role="group" aria-label="Admission rule">
+      <button data-mode="grid" aria-pressed="true">GridArchive, best per cell</button>
+      <button data-mode="ns" aria-pressed="false">Plain novelty search</button>
+      <button data-mode="nslc" aria-pressed="false">Novelty Search with Local Competition</button>
+      <button data-mode="decay" aria-pressed="false">Novelty with threshold decay</button>
+    </div>
+    <svg id="atlas" viewBox="-30 -6 436 436" role="img" aria-label="Measure space map with candidates landing"></svg>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>stored, status 2 new</span>
+      <span><i style="background:var(--warn)"></i>status 1, replaced a stored one</span>
+      <span><i style="border:1.5px solid var(--bad)"></i>status 0, rejected</span>
+      <span><i style="border:1.5px dashed var(--muted)"></i>throw from a parent</span>
+    </div>
+    <div class="verdict" id="verdict" aria-live="polite"></div>
+    <div class="tell" id="tell"></div>
+    <div class="ctrls">
+      <button class="btn" id="hPlay">Pause</button>
+      <button class="btn" id="hPrev" aria-label="Previous candidate">Back</button>
+      <button class="btn" id="hNext" aria-label="Next candidate">Next</button>
+      <input type="range" id="hStep" min="1" max="48" value="1" aria-label="Candidate number">
+      <span class="ro" id="hRo">1 of 48</span>
+    </div>
+    <figcaption><span class="illus">illustrative</span> The 48 candidates, their objective values, the 10 by 10 grid, k = 3, the starting threshold 0.10 and the decay settings are made up for this page. The rules are the pyribs formulas. Throws are drawn in measure space to keep the picture flat. A real emitter changes solution parameters, and evaluation decides where the result lands. The stream is replayed unchanged under every rule, so a throw can start from a parent that this rule rejected. A live emitter samples only stored solutions.</figcaption>
+    <h3>Same 48 candidates, four rules</h3>
+    <div class="tw"><table class="t" id="tally"></table></div>
+  </figure>
+</div>
+</section>
+
+<!-- 2. definitions -->
+<section class="s" id="parts">
+<div class="row flip">
+  <div class="prose">
+    <div class="eyebrow">The three parts</div>
+    <h2>Archive, emitter and scheduler</h2>
+    <h3>Archive</h3>
+    <p>Pyribs defines it as a data structure that stores the solutions the search generates, together with each solution's objective, measures and other fields. Its <code>add</code> method returns an <button class="term" data-t="addinfo"><code>add_info</code></button> dictionary. For <code>GridArchive</code>, status 0 means not added, 1 means it beat the cell's incumbent, 2 means it found a new cell.</p>
+    <p>The grid is one geometry among several. <code>CVTArchive</code> splits space into Voronoi regions around fixed centroids. <code>ProximityArchive</code> has no cells at all and admits by distance to stored points.</p>
+    <h3>Emitter</h3>
+    <p>Pyribs calls emitters "algorithms that generate solutions and adapt to objective, measure, and archive insertion feedback." <code>ask()</code> returns a batch of candidates. <code>tell(...)</code> receives them back with their evaluations and <code>add_info</code>. <code>GaussianEmitter</code> samples stored parents and adds Gaussian noise. <code>EvolutionStrategyEmitter</code> runs an evolution strategy and adapts it from a ranking of the feedback.</p>
+    <h3>Scheduler</h3>
+    <p>Pyribs calls it "A basic class that composes an archive with multiple emitters." <code>Scheduler.ask()</code> asks every emitter and joins their batches. <code>Scheduler.tell(objective, measures)</code> adds the batch to the archive, cuts the results back into each emitter's share, and calls each emitter's <code>tell</code>.</p>
+  </div>
+  <figure class="card">
+    <svg class="loop" viewBox="0 0 520 330" role="img" aria-label="The ask, evaluate, tell loop">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="var(--ink2)"/></marker>
+        <marker id="ahf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="var(--accent)"/></marker>
+      </defs>
+      <g class="node"><rect x="190" y="10" width="140" height="52" rx="10"/><text x="260" y="33" text-anchor="middle">Your code</text><text class="sub" x="260" y="51" text-anchor="middle">evaluate(solutions)</text></g>
+      <g class="node"><rect x="190" y="138" width="140" height="52" rx="10"/><text x="260" y="161" text-anchor="middle">Scheduler</text><text class="sub" x="260" y="179" text-anchor="middle">ask, tell</text></g>
+      <g class="node"><rect x="10" y="258" width="170" height="60" rx="10"/><text x="95" y="282" text-anchor="middle">Emitters</text><text class="sub" x="95" y="301" text-anchor="middle">ask() and tell(add_info)</text></g>
+      <g class="node"><rect x="340" y="258" width="170" height="60" rx="10"/><text x="425" y="282" text-anchor="middle">Archive</text><text class="sub" x="425" y="301" text-anchor="middle">add() returns add_info</text></g>
+      <path class="arr" d="M225 138 V62" marker-end="url(#ah)"/><text class="lbl" x="218" y="104" text-anchor="end">1 solutions</text>
+      <path class="arr" d="M295 62 V138" marker-end="url(#ah)"/><text class="lbl" x="302" y="104">2 objective, measures</text>
+      <path class="arr" d="M190 178 C130 190 105 220 100 256" marker-end="url(#ah)" style="stroke-dasharray:4 4"/><text class="lbl" x="56" y="208">ask</text>
+      <path class="arr" d="M330 178 C390 190 415 220 420 256" marker-end="url(#ah)"/><text class="lbl" x="410" y="208">3 add</text>
+      <path class="arr fb" d="M340 300 C290 300 230 300 180 300" marker-end="url(#ahf)"/><text class="lbl fb" x="260" y="292" text-anchor="middle">4 add_info, per emitter</text>
+      <path class="arr" d="M400 258 C380 236 360 226 352 222" style="stroke-dasharray:2 4" /><text class="lbl" x="452" y="240">elites</text>
+      <path class="arr" d="M340 268 C260 240 200 252 182 262" style="stroke-dasharray:2 4" marker-end="url(#ah)"/><text class="lbl" x="262" y="244" text-anchor="middle">sample_elites for parents</text>
+    </svg>
+    <figcaption>One iteration. The scheduler asks the emitters for candidates and hands them to you. You return objective and measures. The scheduler adds them to the archive and routes each emitter its slice of the feedback, drawn in the accent colour. Emitters such as <code>GaussianEmitter</code> also sample stored elites as parents.</figcaption>
+  </figure>
+</div>
+</section>
+
+<!-- 3. abstraction -->
+<section class="s" id="levels">
+<div class="row">
+  <div class="prose">
+    <div class="eyebrow">Level of abstraction</div>
+    <h2>Where your code touches each one</h2>
+    <p class="answer">In the ordinary loop your code calls only the scheduler. You build the archive and the emitters once, then read the archive for results. You touch an emitter's internals only when you write your own.</p>
+    <p>The bar under each part shows how often the ordinary loop calls it from your code: every iteration, at setup and readout, or at setup only.</p>
+    <p>Two exceptions sit lower down. A run with differentiable objectives also calls <code>ask_dqd()</code> and <code>tell_dqd(objective, measures, jacobian)</code> first. Code that imports solutions it already evaluated, or runs its own control flow, can call <code>archive.add</code> directly.</p>
+  </div>
+  <div class="stack">
+    <div class="layer"><div class="who">Scheduler<small>every iteration</small></div><div><pre>solutions = scheduler.ask()
+objective, measures = evaluate(solutions)
+scheduler.tell(objective, measures)</pre><div class="bar" style="width:100%"></div></div></div>
+    <div class="layer"><div class="who">Archive<small>setup and readout</small></div><div><pre>archive = GridArchive(solution_dim=..., dims=..., ranges=...)
+archive.data()   archive.stats   archive.sample_elites(n)</pre><div class="bar" style="width:55%;opacity:.7"></div></div></div>
+    <div class="layer"><div class="who">Emitter<small>setup, or a subclass</small></div><div><pre>emitters = [GaussianEmitter(archive, sigma=0.1, ...)]
+class MyEmitter(EmitterBase): def ask(self): ...</pre><div class="bar" style="width:22%;opacity:.5"></div></div></div>
+  </div>
+</div>
+</section>
+
+<!-- 4. why scheduler -->
+<section class="s" id="why">
+<div class="row flip">
+  <div class="prose">
+    <div class="eyebrow">Why a scheduler</div>
+    <h2>Several throwers, one map, one verdict each</h2>
+    <p class="answer">With more than one emitter, someone has to join their batches, send one batch through your evaluation, and return each emitter only the verdicts on its own candidates. The scheduler does that bookkeeping.</p>
+    <p>The pyribs paper gives the scheduler the job of managing how archive and emitters interact. Running several emitters lets the search explore several regions at once. Evaluation stays outside because its dependencies and hardware differ from one application to the next.</p>
+    <p><code>BanditScheduler</code> goes further and decides where effort goes. It uses <button class="term" data-t="ucb">Upper Confidence Bound 1</button> to pick <code>num_active</code> emitters from a pool, fed by insertion success. A third scheduler, <code>BayesianOptimizationScheduler</code>, pairs with <code>BayesianOptimizationEmitter</code>.</p>
+    <p class="note">The pyribs docs do not say outright that the scheduler exists to save you this join and slice code. That reason is inferred from the source.</p>
+  </div>
+  <figure class="card">
+    <svg viewBox="0 0 520 220" role="img" aria-label="Two emitter batches joined and sliced back">
+      <text x="10" y="22">Emitter A, batch 3</text><text x="10" y="200">Emitter B, batch 2</text>
+      <g id="slots"></g>
+      <text x="260" y="22" text-anchor="middle" style="fill:var(--ink2);font-family:var(--mono);font-size:11px">ask: join 3 + 2</text>
+      <text x="260" y="204" text-anchor="middle" style="fill:var(--accent);font-family:var(--mono);font-size:11px">tell: slice add_info back 3 | 2</text>
+    </svg>
+    <figcaption>The join and slice <code>Scheduler</code> does each iteration. Two emitters fill one batch of five, your code scores all five at once, and each emitter's <code>tell</code> receives only its own rows. Batch sizes here are an example.</figcaption>
+  </figure>
+</div>
+</section>
+
+<!-- 5. novelty -->
+<section class="s" id="novelty">
+  <div class="eyebrow">Novelty search in pyribs</div>
+  <h2>Three admission rules on one <code>ProximityArchive</code></h2>
+  <p class="prose">All three use <code>ProximityArchive</code>, an archive with no cells. A candidate's <button class="term" data-t="novelty">novelty</button> is its mean Euclidean distance to its <button class="term" data-t="knn">k nearest stored neighbours</button>. The rules differ in what happens next. Switch the map above to each rule to watch them disagree.</p>
+  <div class="formula">ρ(x) = (1/k_eff) · Σ dist(x, μ_i),  k_eff = min(k_neighbors, archive size),  novel if ρ(x) ≥ novelty_threshold</div>
+  <div class="grid3">
+    <div class="card"><h3>Plain novelty search</h3>
+      <p><code>local_competition=False</code>. Admit if novel, otherwise reject. Objective values are stored but never decide admission. Nothing is replaced. <code>add_info</code> holds <code>status</code>, 0 or 2, and <code>novelty</code>.</p>
+      <p>Emitter side: <code>EvolutionStrategyEmitter(ranker="nov")</code> ranks candidates by novelty. <code>GaussianEmitter</code> and <code>IsoLineEmitter</code> also work.</p></div>
+    <div class="card"><h3>Novelty Search with Local Competition</h3>
+      <p><code>local_competition=True</code>, objectives required. A novel candidate is added whatever its objective. A non-novel one replaces its single closest neighbour only if its objective is strictly higher. <code>status</code> 1 marks a replacement.</p>
+      <div class="formula" style="font-size:12.5px">LC(x) = Σ 1[ f(x) &gt; f(μ_i) ]</div>
+      <p>The <button class="term" data-t="lc">local competition</button> count is returned but does not decide replacement. <code>ranker="nslc"</code> sorts by Pareto fronts over novelty and that count.</p></div>
+    <div class="card"><h3>Novelty with threshold decay</h3>
+      <p>Set <code>threshold_decay_rate</code>. After <code>threshold_decay_itrs</code> add calls in a row with no novel insert, the threshold becomes <code>max(threshold_decay_min, threshold * rate)</code> and the counter resets. Any novel insert resets it too. Replacements alone do not.</p>
+      <p>Decay only lowers the cutoff. The distance formula stays the same. The supported algorithms page has no recipe by this name. It is an archive setting, added in v0.12.0.</p></div>
+  </div>
+  <div class="row" style="margin-top:16px">
+    <div class="prose">
+      <h3>The maze tutorial, the published novelty run</h3>
+      <p>Robot policies with 138 parameters, measures are the robot's final x and y in [0, 1]. <code>ProximityArchive</code> with <code>k_neighbors=15</code> and <code>novelty_threshold=0.01</code>. Five <code>EvolutionStrategyEmitter</code>s with <code>ranker="nov"</code> and batch 30 each, for 2500 iterations. A passive 100 by 100 <code>GridArchive</code> measures coverage and does not steer the search.</p>
+    </div>
+    <div class="card">
+      <div class="stat"><span>proximity archive entries <b>23,633</b></span><span>passive grid coverage <b>88.930%</b></span><span>at iteration <b>2500</b></span></div>
+      <p style="font-size:13px;color:var(--ink2);margin-top:8px">One published run, not an average. The tutorial logs no result for local competition or threshold decay. History: <code>ProximityArchive</code> and local competition in it came in v0.8.0, <code>NSLCRanker</code> in v0.11.0, threshold decay in v0.12.0.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. stories -->
+<section class="s" id="stories">
+<div class="row">
+  <div class="prose">
+    <div class="eyebrow">Tutorial one</div>
+    <h2>Orchestrating LLMs to Write Diverse Stories with Quality Diversity through AI Feedback</h2>
+    <p class="answer">Each solution is a story string. A 20 by 20 <code>GridArchive</code> over romance and happy ending, both rated 1 to 10, keeps the best story in each of its 400 cells. After 200 iterations, 28.5% of the cells are lit.</p>
+    <p>One large language model, Llama 3.1 8B instruct at q4_K_M, does both jobs. It rewrites stories, and it rates every candidate five times each for quality, romance and happy ending. That makes 15 rating calls per story, each clipped to [1, 10] and averaged.</p>
+    <p>The emitter is a custom <code>LLMDirectionalEmitter</code>, a subclass of <code>EmitterBase</code>. With an empty archive it returns three seed stories. After that it samples one stored story and picks up or down for each measure, for example "make the story sound more like a romance story" and "make the ending of the story less happy". The four diagonal arrows in the map are those four choices. It defines no <code>tell</code>, so it never adapts.</p>
+    <p>A plain <code>Scheduler(archive, emitters)</code> runs 200 iterations, one new story each. The saved run took 35:21.</p>
+  </div>
+  <figure class="card">
+    <svg id="smap" viewBox="-34 -6 438 440" role="img" aria-label="Stories archive, 20 by 20 grid"></svg>
+    <div class="ctrls">
+      <button class="btn" id="sPlay">Replay</button>
+      <input type="range" id="sItr" min="0" max="39" value="39" aria-label="Iteration">
+      <span class="ro" id="sRo"></span>
+    </div>
+    <div class="stat" id="sStat"></div>
+    <figcaption>Cell counts are the logged coverage times 400, from <code>qdaif.ipynb</code>. <span class="illus">illustrative</span> Which cells light up, their brightness, and the arrow's parent cell are made up. The notebook's own heatmap uses the same axes and colours cells by quality from 1 to 10.</figcaption>
+  </figure>
+</div>
+</section>
+
+<!-- 7. images -->
+<section class="s" id="images">
+<div class="row flip">
+  <div class="prose">
+    <div class="eyebrow">Tutorial two</div>
+    <h2>Incorporating Human Feedback into Quality Diversity for Diversified Text-to-Image Generation</h2>
+    <p class="answer">Here the map's axes are learned, and they are relearned at iterations 21, 51 and 101. Each time, every stored elite is scored again, gets new coordinates, and is put into a fresh 20 by 20 archive. Coverage drops at each of those iterations, then climbs again.</p>
+    <p>A solution is a Stable Diffusion latent of 4 by 32 by 32, 4096 numbers, decoded to a 256 by 256 image for "an astronaut riding a horse on mars". The objective is a rescaled <button class="term" data-t="clip">CLIP</button> score, computed once per image.</p>
+    <p>The measures come from <button class="term" data-t="divproj">DivProj</button>, one linear layer from 512 CLIP image features to two coordinates. It is trained on <button class="term" data-t="triplet">triplets</button> labelled by <button class="term" data-t="dreamsim">DreamSim</button>, which stands in for a human. Each retrain adds 1000 triplets and fits a fresh model. Grid bounds are the 1st and 99th percentiles of the new coordinates.</p>
+    <p>The emitter is a new <code>GaussianEmitter</code> with <code>sigma=0.1</code> and batch 4. It inherits a <code>tell</code> that does nothing. The saved run of 200 iterations took 14:21.</p>
+    <p class="note">The axes have no names. The notebook's collage shows smaller objects toward the upper left and a darker sky toward the top, trends seen after the fact.</p>
+  </div>
+  <figure class="card">
+    <svg id="imap" viewBox="-34 -6 438 440" role="img" aria-label="Image archive whose axes are relearned"></svg>
+    <div class="ctrls">
+      <button class="btn" id="iPlay">Replay</button>
+      <input type="range" id="iItr" min="1" max="200" value="200" aria-label="Iteration">
+      <span class="ro" id="iRo"></span>
+    </div>
+    <div class="stat" id="iStat"></div>
+    <div class="rlog" id="rlog"></div>
+    <figcaption>Elite counts are the logged coverage times 400, and the retrain results are the notebook's own log lines, from <code>qdhf.ipynb</code>. <span class="illus">illustrative</span> Elite positions and brightness are made up. The page draws a coverage drop as elites landing in shared cells, of which the archive keeps one. The notebook logs only the counts.</figcaption>
+  </figure>
+</div>
+</section>
+
+<!-- 8. chart -->
+<section class="s" id="logs">
+<div class="row">
+  <div class="prose">
+    <div class="eyebrow">Logged progress</div>
+    <h2>Coverage over the two saved runs</h2>
+    <p>Both maps have 400 cells, so coverage compares directly. The story run lights cells slowly, one story per iteration. The image run starts from 200 random latents at 34.5% and steps down at each retrain: 42.0% to 29.5% at 21, 42.75% to 30.0% at 51, 45.5% to 32.0% at 101. It ends at 57.5%.</p>
+    <p>The logs also report a quality diversity score, raw for stories at 955.8, normalized for images at 41.93, so the two are not on one scale. Neither log prints a maximum objective.</p>
+  </div>
+  <figure class="card">
+    <div id="chart" role="img" aria-label="Coverage by iteration for the two tutorials"></div>
+    <figcaption>Coverage, percent of 400 cells, from the saved outputs of <code>tutorials/qdaif.ipynb</code>, logged every 5 iterations, and <code>tutorials/qdhf.ipynb</code>, logged every iteration, pyribs v0.12.1. Vertical lines mark the image run's retrains.</figcaption>
+  </figure>
+</div>
+</section>
+
+<footer>
+  Facts come from three research notes in <code>research_notes/Pyribs framework and tutorials/</code>: <code>ribs_framework_components.md</code>, <code>novelty_search_variants.md</code> and <code>qdaif_qdhf_tutorials.md</code>, which cite pyribs v0.12.1 source, the pyribs paper and the tutorial notebooks, checked 11 November 2026. Everything marked illustrative is simulated for this page.
+</footer>
+</div>
+<div id="pop" role="dialog" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const METRICS = {"story":[[5,1.75,51.8],[10,2.75,85.8],[15,4.0,125.8],[20,4.75,148.2],[25,5.25,165.6],[30,6.0,190.0],[35,7.25,232.0],[40,8.25,267.6],[45,8.75,285.6],[50,9.75,318.2],[55,11.0,361.8],[60,11.75,388.0],[65,12.5,414.6],[70,13.5,449.8],[75,14.0,467.2],[80,14.75,491.2],[85,15.75,527.0],[90,16.75,562.4],[95,17.5,588.4],[100,18.0,606.4],[105,18.75,628.8],[110,19.25,646.0],[115,19.75,659.4],[120,19.75,659.8],[125,20.5,686.6],[130,21.25,704.8],[135,22.25,739.4],[140,23.0,765.6],[145,24.0,795.6],[150,24.5,816.0],[155,24.5,816.0],[160,25.0,833.0],[165,25.25,842.0],[170,25.75,860.2],[175,26.25,877.6],[180,26.75,896.0],[185,27.25,913.4],[190,27.5,921.4],[195,28.0,938.6],[200,28.5,955.8]],"image":[[1,34.5,24.97],[2,35.25,25.52],[3,36.0,26.06],[4,36.25,26.24],[5,36.75,26.6],[6,37.25,26.97],[7,37.75,27.33],[8,38.5,27.86],[9,38.75,28.03],[10,39.0,28.2],[11,39.5,28.57],[12,39.5,28.58],[13,40.0,28.94],[14,40.25,29.12],[15,41.0,29.67],[16,41.25,29.85],[17,41.5,30.04],[18,41.75,30.21],[19,42.0,30.39],[20,42.0,30.39],[21,29.5,21.38],[22,29.75,21.57],[23,30.5,22.11],[24,31.0,22.49],[25,31.25,22.67],[26,32.0,23.23],[27,32.75,23.76],[28,33.25,24.13],[29,33.5,24.3],[30,34.5,25.03],[31,34.5,25.03],[32,35.5,25.75],[33,35.75,25.92],[34,36.25,26.29],[35,36.75,26.66],[36,37.75,27.39],[37,38.0,27.57],[38,38.5,27.94],[39,39.25,28.48],[40,39.5,28.65],[41,40.0,29.02],[42,40.75,29.57],[43,41.25,29.92],[44,41.5,30.09],[45,42.0,30.44],[46,42.25,30.63],[47,42.5,30.81],[48,42.5,30.81],[49,42.75,31.01],[50,42.75,31.01],[51,30.0,21.81],[52,30.0,21.81],[53,30.25,22.0],[54,30.75,22.37],[55,31.25,22.72],[56,32.0,23.25],[57,32.25,23.43],[58,32.75,23.8],[59,33.0,23.98],[60,33.0,23.98],[61,33.5,24.34],[62,33.75,24.51],[63,34.0,24.69],[64,34.25,24.87],[65,35.0,25.41],[66,36.0,26.13],[67,36.25,26.31],[68,37.0,26.86],[69,37.25,27.05],[70,37.5,27.22],[71,37.75,27.4],[72,38.0,27.58],[73,38.5,27.94],[74,38.5,27.94],[75,38.75,28.13],[76,39.0,28.31],[77,39.25,28.5],[78,39.75,28.86],[79,40.5,29.42],[80,40.75,29.6],[81,41.0,29.78],[82,41.75,30.33],[83,41.75,30.33],[84,42.0,30.51],[85,42.25,30.69],[86,42.5,30.87],[87,42.5,30.87],[88,42.5,30.87],[89,43.0,31.25],[90,43.25,31.43],[91,43.5,31.62],[92,43.5,31.62],[93,44.0,31.98],[94,44.5,32.35],[95,44.5,32.35],[96,44.5,32.35],[97,44.5,32.35],[98,45.0,32.71],[99,45.25,32.88],[100,45.5,33.07],[101,32.0,23.27],[102,32.25,23.44],[103,32.5,23.63],[104,32.75,23.81],[105,33.25,24.16],[106,33.5,24.34],[107,33.75,24.53],[108,34.0,24.71],[109,34.25,24.9],[110,34.5,25.09],[111,35.0,25.43],[112,35.5,25.79],[113,36.0,26.16],[114,36.5,26.53],[115,37.0,26.92],[116,37.5,27.27],[117,38.25,27.83],[118,38.5,28.01],[119,39.0,28.38],[120,39.25,28.57],[121,39.75,28.93],[122,40.25,29.3],[123,40.75,29.66],[124,41.25,30.03],[125,41.75,30.39],[126,41.75,30.4],[127,41.75,30.4],[128,42.0,30.57],[129,42.5,30.92],[130,43.0,31.28],[131,43.5,31.65],[132,44.25,32.19],[133,44.5,32.37],[134,44.75,32.56],[135,45.0,32.74],[136,45.25,32.92],[137,45.5,33.1],[138,45.5,33.11],[139,45.75,33.29],[140,46.25,33.64],[141,46.5,33.82],[142,46.5,33.83],[143,46.5,33.83],[144,46.5,33.83],[145,46.75,34.01],[146,47.0,34.2],[147,47.5,34.56],[148,47.5,34.56],[149,47.75,34.75],[150,47.75,34.75],[151,48.25,35.11],[152,48.5,35.28],[153,48.75,35.46],[154,49.0,35.65],[155,49.25,35.84],[156,49.5,36.02],[157,49.75,36.22],[158,50.0,36.4],[159,50.0,36.42],[160,50.5,36.79],[161,50.75,36.97],[162,50.75,36.97],[163,51.0,37.15],[164,51.0,37.15],[165,51.25,37.33],[166,51.75,37.69],[167,51.75,37.69],[168,51.75,37.69],[169,52.0,37.88],[170,52.0,37.89],[171,52.25,38.07],[172,52.25,38.07],[173,52.75,38.44],[174,52.75,38.45],[175,53.0,38.63],[176,53.0,38.65],[177,53.0,38.67],[178,53.25,38.85],[179,53.5,39.04],[180,53.5,39.04],[181,53.75,39.21],[182,54.0,39.4],[183,54.0,39.4],[184,54.5,39.76],[185,55.0,40.11],[186,55.0,40.11],[187,55.0,40.11],[188,55.25,40.3],[189,55.25,40.3],[190,55.25,40.3],[191,55.5,40.48],[192,56.0,40.82],[193,56.25,41.0],[194,56.5,41.17],[195,56.75,41.35],[196,56.75,41.36],[197,57.25,41.73],[198,57.25,41.73],[199,57.25,41.74],[200,57.5,41.93]]};
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(r){ let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const f2 = v => v.toFixed(2), f3 = v => v.toFixed(3);
+
+/* ---------- glossary ---------- */
+const TERMS = {
+  qd:['Quality diversity','Optimization that seeks many high-performing solutions with different measured properties. Ideally it maximizes the objective at every reachable point of measure space, relaxed to a finite archive of representatives.'],
+  measure:['Measures','A vector of functions m that place a solution on the map. Older papers call them behavior characteristics, behavior descriptors or feature descriptors.'],
+  objective:['Objective','The scalar f that the search maximizes. In the pyribs paper heatmaps, position is the measures and colour is the objective.'],
+  illumination:['Illumination','Discovering representative high-quality solutions throughout measure space, rather than returning only a single global optimum.'],
+  archive:['Archive','A data structure that stores the solutions the search generates, with their objective, measures and other information. Its add method returns insertion feedback.'],
+  emitter:['Emitter','"Algorithms that generate solutions and adapt to objective, measure, and archive insertion feedback." ask() proposes a batch, tell() receives the verdicts.'],
+  scheduler:['Scheduler','"A basic class that composes an archive with multiple emitters." It owns the ask, add, tell routing. Your code owns evaluation.'],
+  addinfo:['add_info','The dictionary archive.add returns. For GridArchive it holds status and value. Status is judged against the archive before the batch, so it is not a final survival flag. Other archives return other fields.'],
+  ucb:['Upper Confidence Bound 1','The selection rule BanditScheduler uses to choose num_active emitters from a pool, using insertion success as feedback. Plain Scheduler asks every emitter.'],
+  novelty:['Novelty','ρ(x) = mean Euclidean distance from the candidate\'s measures to its k_eff nearest stored neighbours. With an empty archive, novelty is set to the current threshold, so the first candidate passes.'],
+  knn:['k nearest neighbours','The k_eff = min(k_neighbors, archive size) stored points closest in measure space. pyribs compares against the current archive only, so candidates in one batch are not each other\'s neighbours.'],
+  lc:['Local competition','The count of the k_eff neighbours whose objective the candidate strictly beats, from 0 to k_eff. Ties do not count. It is returned in add_info and used by the nslc ranker.'],
+  clip:['CLIP','CLIP ViT-B/32, an image and text model. The objective is (10 - 100/L) * 10 for its raw image-text logit L. Its 512-dimensional image features feed the measure model.'],
+  divproj:['DivProj','One nn.Linear layer projecting 512 CLIP image features to 2 coordinates. Squared L2 distances, margin 0.05, Adam at learning rate 0.001, batch 32, at most 200 epochs, a 75% and 25% train and validation split, early stopping on validation.'],
+  triplet:['Triplet','Three images: a reference and two others. The label is 1 if the second is closer to the reference by cosine similarity of DreamSim features, otherwise 0.'],
+  dreamsim:['DreamSim','A pretrained model, here open_clip_vitb32, whose features the tutorial compares by cosine similarity to simulate a human judging which image looks more like a reference.']
+};
+const pop = document.getElementById('pop'); let popFor = null;
+function openPop(btn){
+  const [h, d] = TERMS[btn.dataset.t]; pop.innerHTML = '<b></b><span></span>'; pop.firstChild.textContent = h; pop.lastChild.textContent = d;
+  const r = btn.getBoundingClientRect(); const w = Math.min(340, innerWidth - 32);
+  let left = clamp(r.left + scrollX, 16 + scrollX, scrollX + innerWidth - 16 - w);
+  pop.style.left = left + 'px'; pop.style.top = (r.bottom + scrollY + 8) + 'px';
+  pop.style.transformOrigin = (r.left + scrollX - left + r.width / 2) + 'px 0';
+  pop.classList.add('open'); popFor = btn; btn.setAttribute('aria-expanded', 'true');
+}
+function closePop(){ pop.classList.remove('open'); if (popFor) popFor.setAttribute('aria-expanded', 'false'); popFor = null; }
+document.querySelectorAll('.term').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.addEventListener('click', e => { e.stopPropagation(); popFor === b ? closePop() : openPop(b); }); });
+document.addEventListener('click', e => { if (!pop.contains(e.target)) closePop(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePop(); });
+addEventListener('resize', closePop);
+
+/* ---------- hero: stream and the four admission rules ---------- */
+const N = 48, K = 3, TAU0 = 0.10, DEC = {rate: 0.7, itrs: 3, min: 0.03}, G = 10;
+const stream = (() => {
+  const r = rng(3), out = [], seeds = [[.22, .25], [.72, .3], [.45, .74]];
+  const obj = (x, y) => clamp(0.55 + 0.33 * Math.sin(5 * x + 1) * Math.cos(4 * y - .5) + 0.09 * gauss(r), 0.03, 0.98);
+  for (let i = 0; i < N; i++) {
+    let x, y, parent = -1;
+    if (i < 3) [x, y] = seeds[i];
+    else {
+      parent = r() < 0.6 ? i - 1 - Math.floor(r() * Math.min(i, 5)) : Math.floor(r() * i);
+      const s = i < 22 ? 0.13 : 0.045;
+      x = clamp(out[parent].x + s * gauss(r), 0.03, 0.97); y = clamp(out[parent].y + s * gauss(r), 0.03, 0.97);
+    }
+    out.push({i, x, y, f: obj(x, y), parent});
+  }
+  return out;
+})();
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const cellOf = c => Math.min(G - 1, Math.floor(c.x * G)) + G * Math.min(G - 1, Math.floor(c.y * G));
+function simGrid(){
+  const cells = new Map(), recs = [];
+  for (const c of stream) {
+    const k = cellOf(c), inc = cells.get(k); let status, value, replaced = null;
+    if (!inc) { status = 2; value = c.f; cells.set(k, c); }
+    else if (c.f > inc.f) { status = 1; value = c.f - inc.f; replaced = inc.i; cells.set(k, c); }
+    else { status = 0; value = c.f - inc.f; }
+    recs.push({status, value, replaced, incumbent: inc ? inc.i : null, cell: k, stored: [...cells.values()].map(e => e.i)});
+  }
+  return recs;
+}
+function simProx(lc, decay){
+  let arch = [], tau = TAU0, streak = 0; const recs = [];
+  for (const c of stream) {
+    const kEff = Math.min(K, arch.length); let nbrs = [], nov;
+    if (!kEff) nov = tau;
+    else { nbrs = arch.slice().sort((a, b) => dist(c, stream[a]) - dist(c, stream[b])).slice(0, kEff); nov = nbrs.reduce((s, j) => s + dist(c, stream[j]), 0) / kEff; }
+    const lcCount = lc ? nbrs.filter(j => c.f > stream[j].f).length : null;
+    const tauUsed = tau; let status, value = null, replaced = null, decayed = false;
+    if (nov >= tau) { status = 2; arch.push(c.i); if (lc) value = c.f; }
+    else if (lc) { const near = nbrs[0]; value = c.f - stream[near].f; if (c.f > stream[near].f) { status = 1; arch[arch.indexOf(near)] = c.i; replaced = near; } else status = 0; }
+    else status = 0;
+    if (decay) { if (status === 2) streak = 0; else { streak++; if (streak >= DEC.itrs) { tau = Math.max(DEC.min, tau * DEC.rate); streak = 0; decayed = true; } } }
+    recs.push({status, nov, kEff, nbrs, lc: lcCount, value, replaced, tauUsed, tauAfter: tau, streak, decayed, stored: arch.slice()});
+  }
+  return recs;
+}
+const SIM = {grid: simGrid(), ns: simProx(false, false), nslc: simProx(true, false), decay: simProx(false, true)};
+const MODE_NAME = {grid: 'GridArchive, best per cell', ns: 'Plain novelty search', nslc: 'Novelty Search with Local Competition', decay: 'Novelty with threshold decay'};
+
+/* tally table, visible without interaction */
+(function(){
+  const t = document.getElementById('tally');
+  t.innerHTML = '<thead><tr><th>Rule</th><th style="text-align:right">new, 2</th><th style="text-align:right">replaced, 1</th><th style="text-align:right">rejected, 0</th><th style="text-align:right">stored at end</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  for (const m in SIM) {
+    const rs = SIM[m], cnt = s => rs.filter(r => r.status === s).length;
+    const tr = document.createElement('tr');
+    let name = MODE_NAME[m]; if (m === 'decay') name += ', threshold ends at ' + f3(rs[N - 1].tauAfter);
+    tr.innerHTML = `<td></td><td class="n">${cnt(2)}</td><td class="n">${cnt(1)}</td><td class="n">${cnt(0)}</td><td class="n">${rs[N - 1].stored.length}</td>`;
+    tr.firstChild.textContent = name; tb.appendChild(tr);
+  }
+  t.appendChild(tb);
+})();
+
+const S = 400, sx = x => x * S, sy = y => S - y * S;
+const atlas = document.getElementById('atlas');
+function axes(svg, xl, yl, cells){
+  el('rect', {x: 0, y: 0, width: S, height: S, fill: 'var(--surface2)', stroke: 'var(--line)'}, svg);
+  const g = el('g', {stroke: 'var(--line)', 'stroke-width': 1}, svg);
+  for (let i = 1; i < cells; i++) { el('line', {x1: i * S / cells, y1: 0, x2: i * S / cells, y2: S}, g); el('line', {x1: 0, y1: i * S / cells, x2: S, y2: i * S / cells}, g); }
+  const tx = el('text', {x: S / 2, y: S + 22, 'text-anchor': 'middle'}, svg); tx.textContent = xl;
+  const ty = el('text', {x: -14, y: S / 2, 'text-anchor': 'middle', transform: `rotate(-90 -14 ${S / 2})`}, svg); ty.textContent = yl;
+}
+axes(atlas, 'measure 1, illustrative', 'measure 2, illustrative', G);
+const gCells = el('g', {}, atlas), gGlow = el('g', {}, atlas), gLinks = el('g', {}, atlas), gPts = el('g', {}, atlas), gCand = el('g', {}, atlas);
+let mode = 'grid', step = 1, playing = !RM, timer = null;
+
+function verdictHTML(m, r, c){
+  const st = `<span class="st${r.status}">`;
+  const id = `Candidate ${c.i + 1}, objective ${f2(c.f)}. `;
+  if (m === 'grid') {
+    if (r.status === 2) return [`${st}Lands in an empty cell. Stored.</span>`, id + 'No incumbent, so it opens a new cell.', `status=2, value=${f2(r.value)}`];
+    if (r.status === 1) return [`${st}Beats the cell's incumbent. Replaces it.</span>`, id + `Incumbent ${r.incumbent + 1} had ${f2(stream[r.incumbent].f)}.`, `status=1, value=${f2(r.value)}`];
+    return [`${st}Loses to the cell's incumbent. Rejected.</span>`, id + `Incumbent ${r.incumbent + 1} has ${f2(stream[r.incumbent].f)}.`, `status=0, value=${f2(r.value)}`];
+  }
+  const nv = r.kEff ? `Mean distance to ${r.kEff} nearest is ${f3(r.nov)}, threshold ${f3(r.tauUsed)}. ` : `Empty archive, so novelty is set to the threshold ${f3(r.tauUsed)} and passes. `;
+  let extra = '';
+  if (m === 'decay') extra = r.decayed ? ` Third add call in a row with no novel insert, so the threshold drops to ${f3(r.tauAfter)}.` : (r.status === 2 ? ' Novel insert resets the counter.' : ` Add calls without a novel insert: ${r.streak} of ${DEC.itrs}.`);
+  let add = `status=${r.status}, novelty=${f3(r.nov)}`;
+  if (m === 'nslc') add += `, local_competition=${r.lc}, value=${f2(r.value)}`;
+  if (r.status === 2) return [`${st}Novel enough. Added.</span>`, id + nv + (m === 'nslc' ? 'Novel candidates are added whatever their objective.' : '') + extra, add];
+  if (r.status === 1) { const nb = stream[r.replaced]; return [`${st}Not novel, but beats its closest neighbour. Replaces it.</span>`, id + nv + `Closest stored point ${nb.i + 1} had ${f2(nb.f)}.`, add]; }
+  let why = 'Not novel enough. Rejected.';
+  if (m === 'nslc') { const nb = stream[r.nbrs[0]]; why = 'Not novel, and no better than its closest neighbour. Rejected.'; extra = ` Closest stored point ${nb.i + 1} has ${f2(nb.f)}.`; }
+  return [`${st}${why}</span>`, id + nv + (m === 'ns' ? 'Its objective plays no part.' : '') + extra, add];
+}
+
+function renderHero(animate){
+  const recs = SIM[mode], r = recs[step - 1], c = stream[step - 1];
+  const pre = step >= 2 ? recs[step - 2].stored : [];
+  [gCells, gGlow, gLinks, gPts, gCand].forEach(g => g.replaceChildren());
+  const post = r.stored;
+  if (mode === 'grid') {
+    for (const j of post) { const p = stream[j], k = cellOf(p);
+      const rc = el('rect', {x: (k % G) * S / G + 1, y: S - (Math.floor(k / G) + 1) * S / G + 1, width: S / G - 2, height: S / G - 2, rx: 3, fill: 'var(--accent)', 'fill-opacity': (0.12 + 0.6 * p.f).toFixed(2)}, gCells);
+      if (animate && j === c.i && !RM) rc.classList.add('lit'); }
+    const k = cellOf(c); el('rect', {x: (k % G) * S / G, y: S - (Math.floor(k / G) + 1) * S / G, width: S / G, height: S / G, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.5}, gCand);
+  } else {
+    for (const j of post) { const p = stream[j]; const gl = el('circle', {cx: sx(p.x), cy: sy(p.y), r: 18, fill: 'var(--glow)', opacity: (0.4 + 0.6 * p.f).toFixed(2)}, gGlow); if (animate && j === c.i && !RM) gl.classList.add('lit'); }
+    if (r.nbrs.length) {
+      for (const j of r.nbrs) el('line', {x1: sx(c.x), y1: sy(c.y), x2: sx(stream[j].x), y2: sy(stream[j].y), stroke: 'var(--ink2)', 'stroke-width': 1.2, opacity: .8}, gLinks);
+      el('circle', {cx: sx(c.x), cy: sy(c.y), r: r.tauUsed * S, fill: 'none', stroke: 'var(--muted)', 'stroke-dasharray': '4 4', 'stroke-width': 1.3}, gLinks);
+      el('circle', {cx: sx(c.x), cy: sy(c.y), r: r.nov * S, fill: 'none', stroke: r.nov >= r.tauUsed ? 'var(--accent)' : 'var(--bad)', 'stroke-width': 1.5}, gLinks);
+      if (animate && !RM) gLinks.classList.add('lit'), setTimeout(() => gLinks.classList.remove('lit'), 260);
+    }
+  }
+  for (const j of post) { if (j === c.i) continue; const p = stream[j]; el('circle', {cx: sx(p.x), cy: sy(p.y), r: 4, fill: 'var(--accent)'}, gPts); }
+  if (r.replaced != null) { const g = stream[r.replaced]; const gh = el('circle', {cx: sx(g.x), cy: sy(g.y), r: 5, fill: 'none', stroke: 'var(--warn)', 'stroke-dasharray': '2 2', 'stroke-width': 1.5}, gCand); if (animate && !RM) gh.classList.add('fade'); }
+  if (c.parent >= 0) { const p = stream[c.parent]; const mx = (sx(p.x) + sx(c.x)) / 2, my = Math.min(sy(p.y), sy(c.y)) - 26;
+    el('path', {d: `M${sx(p.x)} ${sy(p.y)} Q${mx} ${my} ${sx(c.x)} ${sy(c.y)}`, fill: 'none', stroke: 'var(--muted)', 'stroke-dasharray': '3 4', 'stroke-width': 1.2}, gCand);
+    if (!pre.includes(c.parent) && !post.includes(c.parent)) el('circle', {cx: sx(p.x), cy: sy(p.y), r: 3, fill: 'none', stroke: 'var(--muted)'}, gCand); }
+  const col = r.status === 2 ? 'var(--accent)' : r.status === 1 ? 'var(--warn)' : 'none';
+  const cand = el('circle', {cx: sx(c.x), cy: sy(c.y), r: 6.5, fill: col, stroke: r.status === 0 ? 'var(--bad)' : 'var(--ink)', 'stroke-width': r.status === 0 ? 2 : 1.2}, gCand);
+  if (animate && !RM && c.parent >= 0) { const p = stream[c.parent];
+    cand.animate([{transform: `translate(${sx(p.x) - sx(c.x)}px,${sy(p.y) - sy(c.y)}px)`, opacity: .4}, {transform: 'translate(0,0)', opacity: 1}], {duration: 260, easing: 'cubic-bezier(0.23,1,0.32,1)'}); }
+  const [h, b, add] = verdictHTML(mode, r, c);
+  document.getElementById('verdict').innerHTML = `<div class="vh">${h}</div><div>${b}</div><div class="add">add_info: ${add}</div>`;
+  const tell = document.getElementById('tell');
+  tell.innerHTML = `<span>scheduler.tell carries back</span><span class="chip">status ${r.status}</span><span>to the emitter</span>`;
+  if (animate) { const ch = tell.querySelector('.chip'); ch.style.animationDelay = RM ? '0ms' : '200ms'; ch.classList.add('in'); }
+  document.getElementById('hStep').value = step; document.getElementById('hRo').textContent = `${step} of ${N}`;
+}
+function setPlaying(p){ playing = p; document.getElementById('hPlay').textContent = p ? 'Pause' : (step >= N ? 'Replay' : 'Play'); clearInterval(timer);
+  if (p) { if (step >= N) { step = 1; renderHero(true); } timer = setInterval(() => { if (step >= N) return setPlaying(false); step++; renderHero(true); }, 420); } }
+document.querySelectorAll('#hero .seg button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode; document.querySelectorAll('#hero .seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); renderHero(false); }));
+document.getElementById('hPlay').addEventListener('click', () => setPlaying(!playing));
+document.getElementById('hPrev').addEventListener('click', () => { setPlaying(false); step = Math.max(1, step - 1); renderHero(false); });
+document.getElementById('hNext').addEventListener('click', () => { setPlaying(false); step = Math.min(N, step + 1); renderHero(true); });
+document.getElementById('hStep').addEventListener('input', e => { setPlaying(false); step = +e.target.value; renderHero(false); });
+if (RM) { step = N; renderHero(false); setPlaying(false); } else { step = 1; renderHero(true); setPlaying(true); }
+
+/* ---------- join and slice diagram ---------- */
+(function(){
+  const g = document.getElementById('slots'); const A = 'var(--a1)', B = 'var(--a3)';
+  const box = (x, y, c, t) => { el('rect', {x, y, width: 40, height: 30, rx: 6, fill: c, 'fill-opacity': .35, stroke: c}, g); const tt = el('text', {x: x + 20, y: y + 20, 'text-anchor': 'middle', style: 'fill:var(--ink);font-family:var(--mono);font-size:11px'}, g); tt.textContent = t; };
+  [0, 1, 2].forEach(i => box(10 + i * 46, 34, A, 'a' + (i + 1))); [0, 1].forEach(i => box(10 + i * 46, 150, B, 'b' + (i + 1)));
+  ['a1', 'a2', 'a3', 'b1', 'b2'].forEach((t, i) => box(170 + i * 46, 92, i < 3 ? A : B, t));
+  const lbl = el('text', {x: 285, y: 140, 'text-anchor': 'middle', style: 'fill:var(--ink2);font-family:var(--mono);font-size:11px'}, g); lbl.textContent = 'evaluate all 5';
+  const outA = el('text', {x: 516, y: 60, 'text-anchor': 'end', style: 'fill:var(--a1);font-family:var(--mono);font-size:11px'}, g); outA.textContent = 'A.tell(3 rows)';
+  const outB = el('text', {x: 516, y: 172, 'text-anchor': 'end', style: 'fill:var(--a3);font-family:var(--mono);font-size:11px'}, g); outB.textContent = 'B.tell(2 rows)';
+  const ln = (d, c) => el('path', {d, fill: 'none', stroke: c, 'stroke-width': 1.3, opacity: .8}, g);
+  ln('M148 49 C160 49 165 100 170 104', A); ln('M102 165 C150 165 160 120 170 112', B);
+  ln('M400 100 C420 90 420 64 412 56', 'var(--accent)'); ln('M400 116 C420 130 420 160 412 168', 'var(--accent)');
+})();
+
+/* ---------- stories map ---------- */
+const SM = METRICS.story; const SG = 20;
+const smap = document.getElementById('smap');
+axes(smap, 'Romance Story, rated 1 to 10', 'Happy Ending, rated 1 to 10', SG);
+[1, 10].forEach((v, i) => { const t = el('text', {x: i ? S : 0, y: S + 12, 'text-anchor': i ? 'end' : 'start', style: 'font-size:10px'}, smap); t.textContent = v; const u = el('text', {x: -4, y: i ? 8 : S, 'text-anchor': 'end', style: 'font-size:10px'}, smap); u.textContent = v; });
+const storyOrder = (() => {
+  const r = rng(11), lit = [], seen = new Set(), seeds = [[4, 5], [13, 3], [8, 12]];
+  for (const [x, y] of seeds) { lit.push({x, y, q: 4 + 4 * r()}); seen.add(x + ',' + y); }
+  while (lit.length < 114) {
+    const p = lit[Math.floor(r() * lit.length)], dx = (r() < .5 ? -1 : 1) * (1 + Math.floor(r() * 2)), dy = (r() < .5 ? -1 : 1) * (1 + Math.floor(r() * 2));
+    const x = p.x + dx, y = p.y + dy; if (x < 0 || y < 0 || x >= SG || y >= SG || seen.has(x + ',' + y)) continue;
+    seen.add(x + ',' + y); lit.push({x, y, q: clamp(p.q + gauss(r), 1, 10), px: p.x, py: p.y});
+  }
+  return lit;
+})();
+const gS = el('g', {}, smap), gSa = el('g', {}, smap); const cw = S / SG; const sRects = [];
+storyOrder.forEach(c => { const rc = el('rect', {x: c.x * cw + 1, y: S - (c.y + 1) * cw + 1, width: cw - 2, height: cw - 2, rx: 2, fill: 'var(--accent)', 'fill-opacity': (0.1 + 0.08 * c.q).toFixed(2), opacity: 0}, gS); sRects.push(rc); });
+function storyArrows(n){
+  gSa.replaceChildren(); const p = storyOrder[Math.min(n, storyOrder.length) - 1]; if (!p) return;
+  const cx = (p.x + .5) * cw, cy = S - (p.y + .5) * cw;
+  el('rect', {x: p.x * cw, y: S - (p.y + 1) * cw, width: cw, height: cw, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.5}, gSa);
+  [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([dx, dy]) => el('line', {x1: cx + dx * 9, y1: cy - dy * 9, x2: cx + dx * 30, y2: cy - dy * 30, stroke: 'var(--ink2)', 'stroke-width': 1.4, 'marker-end': 'url(#sah)'}, gSa));
+}
+el('defs', {}, smap).innerHTML = '<marker id="sah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--ink2)"/></marker>';
+let sShown = 0;
+function renderStory(idx, animate){
+  const [itr, cov, qd] = SM[idx]; const n = Math.round(cov * 4);
+  sRects.forEach((rc, i) => { const on = i < n; if (on && i >= sShown && animate && !RM) rc.classList.add('lit'); else rc.classList.remove('lit'); rc.setAttribute('opacity', on ? 1 : 0); });
+  sShown = n; storyArrows(n);
+  document.getElementById('sItr').value = idx; document.getElementById('sRo').textContent = 'iteration ' + itr;
+  document.getElementById('sStat').innerHTML = `<span>coverage <b>${cov.toFixed(3)}%</b></span><span>cells <b>${n} of 400</b></span><span>quality diversity score, raw <b>${qd.toFixed(1)}</b></span>`;
+}
+document.getElementById('sItr').addEventListener('input', e => { sDone = true; clearInterval(sTimer); renderStory(+e.target.value, true); });
+let sTimer = null, sDone = false, iDone = false;
+function playStory(){ clearInterval(sTimer); sShown = 0; let i = 0; renderStory(0, true); sTimer = setInterval(() => { i++; if (i >= SM.length) return clearInterval(sTimer); renderStory(i, true); }, 110); }
+document.getElementById('sPlay').addEventListener('click', () => RM ? renderStory(SM.length - 1, false) : playStory());
+renderStory(SM.length - 1, false);
+
+/* ---------- image map with relearned axes ---------- */
+const IM = METRICS.image; const RETR = [1, 21, 51, 101];
+const RLOG = [['1', 'initial fit', 1000, 14, '0.74'], ['21', 'retrain', 2000, 15, '0.774'], ['51', 'retrain', 3000, 15, '0.807'], ['101', 'retrain', 4000, 12, '0.80']];
+document.getElementById('rlog').innerHTML = RLOG.map(r => `<div data-it="${r[0]}"><b>iteration ${r[0]}</b><br>${r[1]}, ${r[2]} triplets<br>${r[3]} epochs, validation accuracy ${r[4]}</div>`).join('');
+const imgStates = (() => {
+  const r = rng(23); const D = 4; const W = RETR.map(() => [Array.from({length: D}, () => gauss(r)), Array.from({length: D}, () => gauss(r))]);
+  const elites = []; const mk = f => { const e = {id: elites.length, f, q: clamp(0.5 + 0.2 * gauss(r), 0.05, 1)}; elites.push(e); return e; };
+  const proj = (w, f) => [w[0].reduce((s, v, i) => s + v * f[i], 0), w[1].reduce((s, v, i) => s + v * f[i], 0)];
+  const pct = (a, p) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(p * (s.length - 1))]; };
+  let stage = -1, bounds = null, occ = new Map(), states = [];
+  const cellFor = f => { const [u, v] = proj(W[stage], f); const cx = clamp(Math.floor((u - bounds[0]) / (bounds[1] - bounds[0]) * SG), 0, SG - 1), cy = clamp(Math.floor((v - bounds[2]) / (bounds[3] - bounds[2]) * SG), 0, SG - 1); return cx + SG * cy; };
+  const rebuild = (pool, target) => {
+    const P = pool.map(e => proj(W[stage], e.f)); bounds = [pct(P.map(p => p[0]), .01), pct(P.map(p => p[0]), .99), pct(P.map(p => p[1]), .01), pct(P.map(p => p[1]), .99)];
+    occ = new Map(); for (const e of pool) { const k = cellFor(e.f), inc = occ.get(k); if (!inc || e.q > inc.q) occ.set(k, e); }
+    const ks = [...occ.keys()]; while (occ.size > target) occ.delete(ks.pop());
+  };
+  for (let t = 1; t <= 200; t++) {
+    const target = Math.round(IM[t - 1][1] * 4);
+    if (RETR.includes(t)) { stage++; const pool = t === 1 ? Array.from({length: 200}, () => mk(Array.from({length: D}, () => gauss(r)))) : [...occ.values()]; rebuild(pool, target); }
+    let tries = 0;
+    while (occ.size < target && tries < 4000) { tries++; const ps = [...occ.values()], p = ps[Math.floor(r() * ps.length)]; const f = p.f.map(v => v + 0.35 * gauss(r)); const k = cellFor(f); if (!occ.has(k)) { const e = mk(f); occ.set(k, e); } }
+    states.push({stage, map: new Map([...occ].map(([k, e]) => [e.id, {k, q: e.q}]))});
+  }
+  return states;
+})();
+const imap = document.getElementById('imap');
+axes(imap, 'Diversity Metric 1, learned', 'Diversity Metric 2, learned', SG);
+const gI = el('g', {}, imap); const iDots = new Map();
+function renderImage(t, animate){
+  const st = imgStates[t - 1]; const seen = new Set();
+  for (const [id, {k, q}] of st.map) {
+    seen.add(id); let d = iDots.get(id);
+    const tx = (k % SG) * cw + 1, ty = S - (Math.floor(k / SG) + 1) * cw + 1;
+    if (!d) { d = el('rect', {x: 0, y: 0, width: cw - 2, height: cw - 2, rx: 2, fill: 'var(--a3)', 'fill-opacity': (0.25 + 0.7 * q).toFixed(2), class: 'dot'}, gI); d.style.transition = 'none'; d.style.transform = `translate(${tx}px,${ty}px)`; d.style.opacity = animate && !RM ? 0 : 1; iDots.set(id, d); d.getBoundingClientRect(); d.style.transition = ''; }
+    d.style.transform = `translate(${tx}px,${ty}px)`; d.style.opacity = 1;
+  }
+  for (const [id, d] of iDots) if (!seen.has(id)) { d.style.opacity = 0; iDots.delete(id); setTimeout(() => d.remove(), animate ? 320 : 0); }
+  const [itr, cov, qd] = IM[t - 1]; const n = st.map.size;
+  document.getElementById('iItr').value = t; document.getElementById('iRo').textContent = 'iteration ' + itr;
+  document.getElementById('iStat').innerHTML = `<span>coverage <b>${(+cov.toFixed(2))}%</b></span><span>elites <b>${n} of 400</b></span><span>quality diversity score, normalized <b>${qd}</b></span>`;
+  const active = RETR.filter(x => x <= t).pop();
+  document.querySelectorAll('#rlog div').forEach(d => d.classList.toggle('on', +d.dataset.it === active));
+}
+let iTimer = null;
+function playImage(){ clearTimeout(iTimer); let t = 1; renderImage(1, true);
+  const tick = () => { t++; if (t > 200) return; renderImage(t, true); iTimer = setTimeout(tick, RETR.includes(t) ? 1100 : (RETR.includes(t + 1) ? 600 : 28)); };
+  iTimer = setTimeout(tick, 400); }
+document.getElementById('iItr').addEventListener('input', e => { iDone = true; clearTimeout(iTimer); renderImage(+e.target.value, true); });
+document.getElementById('iPlay').addEventListener('click', () => RM ? renderImage(200, false) : playImage());
+renderImage(200, false);
+if (!RM && 'IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return;
+    if (e.target.id === 'smap' && !sDone) { sDone = true; playStory(); }
+    if (e.target.id === 'imap' && !iDone) { iDone = true; playImage(); } }), {threshold: .5});
+  io.observe(smap); io.observe(imap);
+}
+
+/* ---------- chart ---------- */
+let chart = null;
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function drawChart(){
+  if (!window.echarts) { document.getElementById('chart').textContent = 'Chart library did not load.'; return; }
+  if (chart) chart.dispose();
+  chart = echarts.init(document.getElementById('chart'), null, {renderer: 'svg'});
+  const ink2 = css('--ink2'), muted = css('--muted'), line = css('--line');
+  chart.setOption({
+    animation: false, backgroundColor: 'transparent', textStyle: {fontFamily: css('--sans')},
+    grid: {left: 44, right: 16, top: 56, bottom: 64},
+    legend: {top: 0, left: 0, textStyle: {color: ink2}, itemWidth: 14},
+    tooltip: {trigger: 'axis', backgroundColor: css('--surface3'), borderColor: line, textStyle: {color: css('--ink')}, valueFormatter: v => v == null ? 'not logged' : (+v).toFixed(2) + '%'},
+    xAxis: {type: 'value', min: 0, max: 200, name: 'iteration', nameLocation: 'middle', nameGap: 26, nameTextStyle: {color: muted}, axisLabel: {color: muted}, axisLine: {lineStyle: {color: line}}, splitLine: {show: false}},
+    yAxis: {type: 'value', min: 0, max: 60, name: 'coverage %', nameLocation: 'middle', nameGap: 30, nameTextStyle: {color: muted}, axisLabel: {color: muted}, splitLine: {lineStyle: {color: line}}},
+    dataZoom: [{type: 'inside'}, {type: 'slider', height: 16, bottom: 6, borderColor: line, textStyle: {color: muted}}],
+    series: [
+      {name: 'Stories, qdaif.ipynb', type: 'line', data: METRICS.story.map(r => [r[0], r[1]]), color: css('--accent'), symbolSize: 4, emphasis: {focus: 'series'}},
+      {name: 'Images, qdhf.ipynb', type: 'line', data: METRICS.image.map(r => [r[0], r[1]]), color: css('--a3'), showSymbol: false, emphasis: {focus: 'series'},
+        markLine: {symbol: 'none', silent: true, label: {formatter: 'retrain {c}', color: muted, fontSize: 10}, lineStyle: {color: muted, type: 'dashed'}, data: [{xAxis: 21}, {xAxis: 51}, {xAxis: 101}]}}
+    ]
+  });
+}
+drawChart();
+addEventListener('resize', () => chart && chart.resize());
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
+new MutationObserver(drawChart).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+</script>
+</body>
+</html>

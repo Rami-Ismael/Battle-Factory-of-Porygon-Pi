@@ -1,0 +1,17 @@
+tiles 12  sheets 2  tile scale 0.462
+smallest text 13.0px -> 6.0px in the sheet (floor 6.0)
+tokens  Claude Code 3126 (vs 12525 reading tiles separately)  Codex 2848 (vs 11526)
+sheet-1.png  1710x1245
+  A  A1-loop-machine-dark1200-top  -> tiles/A1-loop-machine-dark1200-top.png
+  B  B1-archive-atlas-dark1200-top  -> tiles/B1-archive-atlas-dark1200-top.png
+  C  C1-two-recipes-dark1200-top  -> tiles/C1-two-recipes-dark1200-top.png
+  D  A2-loop-machine-dark1200-after-clicks  -> tiles/A2-loop-machine-dark1200-after-clicks.png
+  E  B2-archive-atlas-dark1200-after-clicks  -> tiles/B2-archive-atlas-dark1200-after-clicks.png
+  F  C2-two-recipes-dark1200-after-clicks  -> tiles/C2-two-recipes-dark1200-after-clicks.png
+  G  A7-loop-machine-light1200-top  -> tiles/A7-loop-machine-light1200-top.png
+  H  B7-archive-atlas-light1200-top  -> tiles/B7-archive-atlas-light1200-top.png
+  I  C7-two-recipes-light1200-top  -> tiles/C7-two-recipes-light1200-top.png
+sheet-2.png  588x444
+  A  A6b-loop-machine-dark390-top  -> tiles/A6b-loop-machine-dark390-top.png
+  B  B6b-archive-atlas-dark390-top  -> tiles/B6b-archive-atlas-dark390-top.png
+  C  C6b-two-recipes-dark390-top  -> tiles/C6b-two-recipes-dark390-top.png

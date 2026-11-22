@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pyribs loop machine</title>
+<meta name="description" content="One turn of the pyribs ask, evaluate, tell loop, stepped across four lanes: your code, the scheduler, the emitters and the archive.">
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0b1216;--surface:#111b21;--surface2:#16232a;--surface3:#1d2c34;--line:rgba(255,255,255,.09);
+  --ink:#eef3f2;--ink2:#b3c0be;--muted:#7b8a87;
+  --accent:#7fe3c6;--accent-ink:#06231b;--warn:#e8b45a;--bad:#ef7d72;
+  --a0:#68767a;--a1:#8fa6d1;--a2:#7fe3c6;--a3:#b6a8ff;
+  --l1:#6f8fc4;--l2:#a9c0ec;--m1:#9a7a3a;--m2:#b8923f;--m3:#d6ab49;--m4:#f0c663;
+  --hatch:rgba(127,227,198,.2);--win:rgba(127,227,198,.22);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--surface3:#e3e9e7;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
+  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--a3:#6a55d8;
+  --l1:#5c7db5;--l2:#2f5aa0;--m1:#c9a45a;--m2:#b58a2c;--m3:#9a7013;--m4:#7a5604;
+  --hatch:rgba(13,138,109,.16);--win:rgba(13,138,109,.18);
+}}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f4f6f5;--surface:#fff;--surface2:#eef2f1;--surface3:#e3e9e7;--line:rgba(11,18,22,.12);
+  --ink:#0d1a1f;--ink2:#41524f;--muted:#6b7b78;
+  --accent:#0d8a6d;--accent-ink:#fff;--warn:#a96f0c;--bad:#c2392d;
+  --a0:#aab2b0;--a1:#5c7db5;--a2:#0d8a6d;--a3:#6a55d8;
+  --l1:#5c7db5;--l2:#2f5aa0;--m1:#c9a45a;--m2:#b58a2c;--m3:#9a7013;--m4:#7a5604;
+  --hatch:rgba(13,138,109,.16);--win:rgba(13,138,109,.18);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 120px}
+code,.mono{font-family:var(--mono);font-size:.9em}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font:600 11px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+a{color:var(--accent)}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 0 10px}
+.brand{display:flex;align-items:center;gap:10px;font:700 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.brand i{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#5b8cff);display:inline-block}
+.tag{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:right}
+h1{font-size:clamp(32px,6vw,46px);line-height:1.04;letter-spacing:-.02em;margin:22px 0 14px;font-weight:700;text-wrap:balance;max-width:820px}
+h1 em{display:block;color:var(--accent);font:italic 500 clamp(30px,5.6vw,46px)/1.08 var(--serif)}
+.lede{color:var(--ink2);font-size:17px;max-width:680px;margin:0 0 10px}
+h2{font-size:24px;line-height:1.15;letter-spacing:-.01em;margin:4px 0 10px;text-wrap:balance}
+h3{font-size:15px;margin:18px 0 6px}
+p{margin:0 0 12px}
+section.q{margin-top:56px;padding-top:24px;border-top:1px solid var(--line)}
+.answer{font-size:16px;margin:0 0 14px;padding-left:12px;border-left:3px solid var(--accent)}
+.row{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+@media (min-width:960px){.row{grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:44px}.row>.prose{padding-top:4px}}
+.prose p,.prose li{color:var(--ink2)}
+.prose p strong{color:var(--ink);font-weight:600}
+.prose ul{padding-left:18px;margin:0 0 12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.cap{font-size:13px;color:var(--muted);margin:8px 2px 0}
+.ill{display:inline-block;font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--warn);border:1px solid currentColor;border-radius:999px;padding:3px 7px;vertical-align:middle}
+.note{font-size:13px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;margin:10px 0}
+
+/* terms */
+.term{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;border-bottom:1px dotted var(--accent);line-height:inherit;text-align:inherit}
+.term:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+#pop{position:absolute;z-index:20;max-width:min(320px,calc(100vw - 32px));background:var(--surface3);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;transform:scale(.97);transform-origin:top left;pointer-events:none;transition:opacity 160ms var(--ease-out),transform 160ms var(--ease-out)}
+#pop.on{opacity:1;transform:none;pointer-events:auto}
+#pop b{display:block;font:600 11px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+
+/* entrance */
+.rise{animation:rise 260ms var(--ease-out) both;animation-delay:var(--d,0ms)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* machine */
+.machine-card{padding:0;overflow:hidden}
+.mtools{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:2px;gap:2px}
+.seg button{font:600 12px/1 var(--sans);color:var(--ink2);background:none;border:0;border-radius:8px;padding:8px 10px;cursor:pointer;min-height:32px}
+.seg button[aria-pressed="true"]{background:var(--surface3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);cursor:pointer;user-select:none;min-height:32px}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .tr{width:34px;height:20px;border-radius:999px;background:var(--surface3);border:1px solid var(--line);position:relative;flex:none}
+.switch .tr::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform 160ms var(--ease-out),opacity 160ms var(--ease-out)}
+.switch input:checked+.tr{background:var(--win)}
+.switch input:checked+.tr::after{transform:translateX(14px);background:var(--accent)}
+.switch input:focus-visible+.tr{outline:2px solid var(--accent);outline-offset:2px}
+.mbody{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"m" "s" "c";gap:0}
+.mbody>.machine{grid-area:m}.mbody>.side{grid-area:s}.mbody>.codebox{grid-area:c}
+@media (min-width:1100px){.mbody{grid-template-columns:minmax(0,1fr) 300px;grid-template-areas:"m s" "c s"}}
+.machine{position:relative;padding:8px 10px 10px}
+.lane{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;border-radius:10px;padding:8px 10px;margin:4px 0;background:var(--surface2);border:1px solid var(--line)}
+@media (min-width:640px){.lane{grid-template-columns:118px minmax(0,1fr);gap:12px}}
+.lane::before{content:"";position:absolute;inset:-1px;border-radius:10px;border:1px solid var(--accent);background:var(--win);opacity:0;transition:opacity 180ms ease;pointer-events:none}
+.lane.on::before{opacity:1}
+.lane .lh{position:relative;min-width:0}
+.lane .lh .nm{font:600 12px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.lane .lh .how{font-size:11.5px;color:var(--muted);line-height:1.35;margin-top:3px;overflow-wrap:anywhere}
+.lane .lb{position:relative;min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.slot{position:relative;min-height:28px;flex:1 1 140px;border:1px dashed var(--line);border-radius:8px;min-width:0}
+.ledger{font:12px/1.4 var(--mono);color:var(--accent);padding:4px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--line);opacity:0;transition:opacity 180ms var(--ease-out);align-self:center}
+.ledger.on{opacity:1}
+.machine.nosched .lane[data-lane="sched"]{display:none}
+.emits{display:flex;gap:6px;flex:1 1 100%;min-width:0}
+.em{flex:1 1 0;min-width:0;border:1px solid var(--line);border-radius:8px;padding:5px 6px;background:var(--surface)}
+.em .en{font:600 11px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.em .en i{width:8px;height:8px;border-radius:50%;flex:none}
+.em .slot{margin-top:5px;flex:none;border-style:dotted}
+.em .fb{font:11px/1.35 var(--mono);color:var(--ink2);margin-top:4px;min-height:15px;opacity:0;transition:opacity 180ms var(--ease-out);word-break:break-word}
+.em .fb.on{opacity:1}
+.archwrap{display:flex;flex-wrap:wrap;gap:10px;flex:1 1 100%;min-width:0;align-items:flex-start}
+.archbox{position:relative;flex:0 1 auto;min-width:0}
+.archbox svg{display:block}
+.archside{flex:1 1 150px;min-width:0;font-size:12px;color:var(--ink2)}
+.archside .kv{font:12px/1.5 var(--mono);color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--muted);margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.lg{width:12px;height:12px;border-radius:50%;border:2px solid var(--a1);display:inline-block}
+.lg.f{background:var(--a1)}
+.tokens{position:absolute;inset:0;pointer-events:none}
+.tk{position:absolute;left:0;top:0;border-radius:50%;border:2px solid var(--c);transition:transform 340ms var(--ease-in-out),opacity 200ms var(--ease-out);will-change:transform;display:flex;align-items:center;justify-content:center}
+.tk>b{position:absolute;inset:0;border-radius:50%;background:var(--c);opacity:.28;transition:opacity 180ms var(--ease-out)}
+.tk.ev>b{opacity:1}
+.tk.st0>b{opacity:0}
+.tk>span{position:relative;font:700 10px/1 var(--mono);color:var(--accent-ink);opacity:0;transition:opacity 160ms var(--ease-out)}
+.tk.st0>span{color:var(--ink2)}
+.tk.show>span{opacity:1}
+.tk.dot{border-width:1.5px}
+.machine.snap .tk,.machine.snap .tk>b{transition:none}
+.cell{transition:opacity 200ms var(--ease-out)}
+.par{transition:opacity 180ms var(--ease-out)}
+.side{border-top:1px solid var(--line);padding:12px 14px;min-width:0;align-self:start}
+@media (min-width:1100px){.side{border-top:0;border-left:1px solid var(--line)}}
+.stepbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.btn{font:600 13px/1 var(--sans);border-radius:10px;padding:10px 14px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);cursor:pointer;min-height:38px}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.itr{font:12px var(--mono);color:var(--muted);margin-left:auto}
+.caption{font-size:14px;color:var(--ink);min-height:66px;margin:0 0 8px}
+.readout{font:12px/1.5 var(--mono);color:var(--ink2);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;word-break:break-word;margin-bottom:12px}
+.readout .s0{color:var(--muted)}.readout .s1{color:var(--warn)}.readout .s2{color:var(--accent)}
+ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+ol.steps li{counter-increment:s}
+ol.steps button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;width:100%;padding:5px 6px;border-radius:8px;font-size:12.5px;color:var(--ink2);cursor:pointer;line-height:1.35}
+ol.steps button::before{content:counter(s);font:600 11px/1.6 var(--mono);color:var(--muted)}
+ol.steps button[aria-current="step"]{background:var(--win);color:var(--ink)}
+ol.steps button[aria-current="step"]::before{color:var(--accent)}
+ol.steps button:focus-visible{outline:2px solid var(--accent)}
+.codebox{border-top:1px solid var(--line);padding:10px 0 4px}
+.codehead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:0 14px 6px;flex-wrap:wrap}
+.code{font:12px/1.6 var(--mono);overflow-x:auto;padding:0 0 6px}
+.cl{display:grid;grid-template-columns:66px max-content;align-items:center;min-width:max-content;padding-right:14px;position:relative}
+.cl .dots{display:flex;gap:3px;padding-left:14px}
+.cl .dots i{width:7px;height:7px;border-radius:2px;background:var(--surface3)}
+.cl .dots i.y{background:var(--ink2)}
+.cl.on{background:var(--win)}
+.cl.on .dots i.y{background:var(--accent)}
+.cl pre{margin:0;font:inherit;color:var(--ink2);white-space:pre}
+.cl.on pre{color:var(--ink)}
+.cl.dim pre{color:var(--muted)}
+.dothead{display:flex;gap:3px;font:9px/1 var(--mono);color:var(--muted)}
+.dothead span{width:7px;text-align:center}
+
+/* illumination */
+.illum{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.illum figure{margin:0}
+.illum svg{width:100%;height:auto;display:block;border-radius:8px;background:var(--surface2)}
+.illum figcaption{font-size:12.5px;color:var(--ink2);margin-top:6px}
+.icell{animation:cellin 200ms var(--ease-out) both;animation-delay:var(--d,0ms)}
+@keyframes cellin{from{opacity:0}to{opacity:var(--o,1)}}
+
+/* ladder */
+.ladder{display:grid;gap:6px}
+.rung{display:grid;grid-template-columns:minmax(0,1fr);gap:4px 14px;padding:10px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--line)}
+@media (min-width:640px){.rung{grid-template-columns:130px minmax(0,1fr) minmax(0,1fr)}}
+.rung .nm{font:600 12px/1.3 var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.rung .k{font:600 10.5px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.rung div{font-size:13px;color:var(--ink2);min-width:0}
+
+/* compare */
+.cmp{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media (min-width:720px){.cmp{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}}
+.cmp pre{margin:0;font:11.5px/1.6 var(--mono);color:var(--ink2);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.cmp pre .hl{color:var(--accent)}
+.cmp h3{margin:0 0 6px;font-size:13px}
+.duties{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:12px}
+.duty{font-size:12.5px;color:var(--ink2);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.duty b{display:block;color:var(--ink);font-weight:600;font-size:12.5px}
+
+/* novelty */
+.nov{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media (min-width:720px){.nov{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.nov .card{padding:12px}
+.nov h3{margin:0 0 2px;font-size:14px}
+.nov .sub{font:11.5px/1.4 var(--mono);color:var(--muted);margin-bottom:8px;word-break:break-word}
+.nov svg{width:100%;height:auto;display:block}
+.nov p{font-size:12.5px;color:var(--ink2);margin:8px 0 0}
+.formula{font:14px/1.5 var(--mono);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px;overflow-x:auto;white-space:nowrap}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th,.tbl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font:600 10.5px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tbl td{color:var(--ink2)}
+.tblwrap{overflow-x:auto}
+
+/* tutorials */
+.loadout{display:grid;gap:6px}
+.lo{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 14px;padding:9px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--line)}
+@media (min-width:640px){.lo{grid-template-columns:118px minmax(0,1fr)}}
+.lo .nm{font:600 11.5px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.lo div{font-size:13px;color:var(--ink2);min-width:0}
+.lo code{color:var(--ink)}
+.dirs{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:4px 10px;font-size:12.5px;margin-top:10px;align-items:start}
+.dirs .h{font:600 10.5px/1.3 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.dirs div{color:var(--ink2)}
+.refits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.refit{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px}
+.refit .i{font:600 10.5px/1.2 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.refit .v{font:700 18px/1.2 var(--mono);color:var(--ink);margin-top:4px}
+.refit .s{font-size:11px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:10px}
+.stat{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.stat .v{font:700 18px/1.2 var(--mono)}
+.stat .s{font-size:11.5px;color:var(--muted)}
+#chart{width:100%;height:340px}
+.foot{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.foot p{max-width:760px}
+
+@media (prefers-reduced-motion:reduce){
+  .rise{animation:fadeonly 150ms ease both;animation-delay:0ms}
+  @keyframes fadeonly{from{opacity:0}to{opacity:1}}
+  .icell{animation:cellin 150ms ease both;animation-delay:0ms}
+  .tk{transition:opacity 150ms ease}
+  #pop{transform:none;transition:opacity 150ms ease}
+  .switch .tr::after{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top rise" style="--d:0ms"><div class="brand"><i></i>Porygon-Pi notes</div><div class="tag">pyribs v0.12.1 · checked 11 Nov 2026</div></header>
+
+<h1 class="rise" style="--d:40ms">The pyribs loop, <em>one turn at a time</em></h1>
+<p class="lede rise" style="--d:80ms">pyribs is a Python library for <button class="term" data-t="qd">quality diversity</button> optimization. It implements RIBS, short for Rapid Illumination of Behavior Space: an <button class="term" data-t="archive">archive</button>, one or more <button class="term" data-t="emitter">emitters</button> and a <button class="term" data-t="scheduler">scheduler</button>. Your code sits between their ask and their tell. Step the machine below to watch one batch go round.</p>
+
+<!-- HERO -->
+<section class="q" id="machine-sec" style="margin-top:28px">
+<div class="row">
+<div class="prose">
+<div class="eyebrow">The machine</div>
+<h2>Four lanes, one batch</h2>
+<p>Each lane is one level of abstraction. Your code is on top. Below it the scheduler routes, the emitters propose candidates, and the archive stores what it keeps.</p>
+<p><strong>The archive</strong> is the data structure that stores the solutions the algorithm generates, together with each one's <button class="term" data-t="objective">objective</button>, <button class="term" data-t="measures">measures</button> and other fields.</p>
+<p><strong>An emitter</strong> is one of the "algorithms that generate solutions and adapt to objective, measure, and archive insertion feedback." Its <code>ask()</code> returns a batch. Its <code>tell()</code> takes that batch back with its scores and the archive's verdict.</p>
+<p><strong>The scheduler</strong> is "a basic class that composes an archive with multiple emitters." It calls every emitter, joins their batches, hands them to you, and after you score them it adds them to the archive and returns each emitter its own slice.</p>
+<p>Press Next, or tap any step in the list. The coloured squares beside each code line mark which lanes that line touches.</p>
+</div>
+<div>
+<div class="card machine-card rise" style="--d:120ms">
+  <div class="mtools">
+    <div class="seg" role="group" aria-label="Loadout" id="loadouts">
+      <button data-lo="generic" aria-pressed="true">Default</button>
+      <button data-lo="stories">Stories tutorial</button>
+      <button data-lo="images">Images tutorial</button>
+      <button data-lo="maze">Maze, novelty</button>
+    </div>
+    <label class="switch"><input type="checkbox" id="schedsw" checked><span class="tr"></span><span>Scheduler</span></label>
+  </div>
+  <div class="mbody">
+      <div class="machine" id="machine">
+        <div class="lane rise" data-lane="code" style="--d:160ms"><div class="lh"><div class="nm">Your code</div><div class="how" id="how-code">calls ask and tell, runs evaluate</div></div>
+          <div class="lb"><div class="slot" id="slot-code"></div><div class="ledger" id="ledger-code"></div></div></div>
+        <div class="lane rise" data-lane="sched" style="--d:210ms"><div class="lh"><div class="nm">Scheduler</div><div class="how">routes; you call it every iteration</div></div>
+          <div class="lb"><div class="slot" id="slot-sched"></div><div class="ledger" id="ledger-sched"></div></div></div>
+        <div class="lane rise" data-lane="emit" style="--d:260ms"><div class="lh"><div class="nm">Emitters</div><div class="how" id="how-emit">built once; subclass EmitterBase to customise</div></div>
+          <div class="lb"><div class="emits" id="emits"></div></div></div>
+        <div class="lane rise" data-lane="arch" style="--d:310ms"><div class="lh"><div class="nm">Archive</div><div class="how">built once; you read data(), stats</div></div>
+          <div class="lb"><div class="archwrap"><div class="archbox" id="archbox"></div><div class="archside" id="archside"></div></div></div></div>
+        <div class="tokens" id="tokens" aria-hidden="true"></div>
+      </div>
+    <div class="codebox">
+        <div class="codehead"><span class="eyebrow" id="codetitle">Your loop</span><span class="dothead" aria-label="Lane columns: code, scheduler, emitters, archive"><span>C</span><span>S</span><span>E</span><span>A</span></span></div>
+        <div class="code" id="code"></div>
+        <p class="cap" style="padding:0 14px" id="codecap"></p>
+    </div>
+    <div class="side">
+      <div class="stepbar">
+        <button class="btn" id="back">Back</button>
+        <button class="btn pri" id="next">Next</button>
+        <button class="btn" id="reset">Reset</button>
+        <span class="itr num" id="itr">iteration 1</span>
+      </div>
+      <p class="caption" id="caption" aria-live="polite"></p>
+      <div class="readout num" id="readout"></div>
+      <ol class="steps" id="steps"></ol>
+      <p class="cap" id="illnote"></p>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Q1 -->
+<section class="q">
+<div class="row">
+<div class="prose">
+<div class="eyebrow">Question 1</div>
+<h2>What Rapid Illumination of Behavior Space means</h2>
+<p class="answer">RIBS is the conceptual framework of archive, emitters and scheduler. pyribs is Python plus RIBS.</p>
+<p>The name comes from a paper title by Fontaine and colleagues, "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space."</p>
+<p>A quality diversity problem has one scalar objective <code>f</code> and a vector of measure functions <code>m</code>. The ideal is the best objective at every reachable measure vector, relaxed to a finite archive of representatives.</p>
+<p><button class="term" data-t="illum">Illumination</button> means finding representative high-quality solutions throughout measure space instead of one global optimum. "Behavior space" is measure space under its older name: measures were once called behavior characteristics or behavior descriptors.</p>
+<p>The paper's heatmaps draw it this way: coordinates are measures, colour is objective.</p>
+</div>
+<div class="card">
+  <div class="illum">
+    <figure><svg id="ill-opt" viewBox="0 0 200 130" role="img" aria-label="A single best point in an otherwise dark measure space"></svg><figcaption>A single-objective optimizer returns one point.</figcaption></figure>
+    <figure><svg id="ill-qd" viewBox="0 0 200 130" role="img" aria-label="A grid of measure space cells, most filled, shaded by objective"></svg><figcaption>Illumination returns the best solution found in each region it reaches.</figcaption></figure>
+  </div>
+  <p class="cap">Both panels: horizontal and vertical position are the two measures, shade is objective. <span class="ill">illustrative</span> values.</p>
+</div>
+</div>
+</section>
+
+<!-- Q3 -->
+<section class="q">
+<div class="row">
+<div class="prose">
+<div class="eyebrow">Question 3</div>
+<h2>Where your code meets each part</h2>
+<p class="answer">You build all three once. In the loop you call only the scheduler. You reach the emitter lane by subclassing, and the archive lane by reading results.</p>
+<p>The ordinary loop is three lines: <code>scheduler.ask()</code>, your evaluation, <code>scheduler.tell(objective, measures)</code>. Evaluation runs outside pyribs and can run in parallel.</p>
+<p>Two exceptions. Differentiable workflows first call <code>ask_dqd()</code> and <code>tell_dqd(objective, measures, jacobian)</code>. Custom control flow, or importing solutions you already scored, calls <code>archive.add</code> directly.</p>
+</div>
+<div class="ladder" id="ladder">
+  <div class="rung rise" style="--d:0ms"><div class="nm">Your code</div><div><div class="k">You own</div>evaluation: turning solutions into objectives and measures. pyribs never sees how.</div><div><div class="k">Touches pyribs by</div>constructing the three parts, then the loop.</div></div>
+  <div class="rung"><div class="nm" style="color:var(--accent)">Scheduler</div><div><div class="k">Every iteration</div><code>scheduler.ask()</code> and <code>scheduler.tell(objective, measures)</code>. Ask twice without a tell and it raises an error.</div><div><div class="k">Choices</div><code>Scheduler</code> asks all emitters. <code>BanditScheduler</code> picks <code>num_active</code> of a pool by Upper Confidence Bound 1. <code>BayesianOptimizationScheduler</code> pairs with its own emitter.</div></div>
+  <div class="rung"><div class="nm">Emitters</div><div><div class="k">Construct</div>pass the archive, a batch size, a step size. Stateless ones leave <code>tell</code> as a no-op.</div><div><div class="k">Customise</div>subclass <code>EmitterBase</code>, override generation and, when needed, adaptation. The stories tutorial does exactly this.</div></div>
+  <div class="rung"><div class="nm">Archive</div><div><div class="k">Construct</div>its geometry: grid dims and ranges, Voronoi centroids, or a novelty threshold.</div><div><div class="k">Read</div><code>data()</code>, <code>stats</code>, <code>sample_elites(n)</code>. Heatmaps and plots read the archive's data.</div></div>
+</div>
+</div>
+</section>
+
+<!-- Q4 -->
+<section class="q">
+<div class="row">
+<div class="prose">
+<div class="eyebrow">Question 4</div>
+<h2>Why a scheduler</h2>
+<p class="answer">With several emitters, someone must remember which rows came from whom, add the joined batch to the archive once, and hand each emitter only its slice. The scheduler does that bookkeeping.</p>
+<p>Turn the Scheduler switch off in the machine above. Its lane disappears and the ledger of batch lengths moves into your code. The code panel shows the loop you would then write.</p>
+<p>The paper gives two reasons for the design. The scheduler manages how archive and emitters interact, and several emitters can explore several regions at once. Evaluation stays in your code because dependencies and hardware differ across applications.</p>
+<p class="note">The docs never say the scheduler exists to save you the slicing code. That reason is read from the <code>Scheduler</code> source, and the loop on the right is a reconstruction from it, not a recipe from the docs.</p>
+</div>
+<div class="card">
+  <div class="cmp">
+    <div><h3>With <code>Scheduler</code>, 3 loop lines</h3>
+<pre>solutions = scheduler.ask()
+objective, measures = evaluate(solutions)
+scheduler.tell(objective, measures)</pre></div>
+    <div><h3>Without it, 11 loop lines</h3>
+<pre><span class="hl">batches = [e.ask() for e in emitters]
+lengths = [len(b) for b in batches]
+solutions = np.concatenate(batches)</span>
+objective, measures = evaluate(solutions)
+<span class="hl">add_info = archive.add(solutions, objective, measures)
+start = 0
+for e, n in zip(emitters, lengths):
+    s = slice(start, start + n)
+    e.tell(solutions[s], objective[s], measures[s],
+           {k: v[s] for k, v in add_info.items()})
+    start += n</span></pre></div>
+  </div>
+  <div class="duties">
+    <div class="duty"><b>Fan out</b>calls every emitter's <code>ask</code></div>
+    <div class="duty"><b>Remember</b>keeps each batch's length</div>
+    <div class="duty"><b>Join</b>concatenates along axis 0</div>
+    <div class="duty"><b>Check</b>validates lengths at <code>tell</code></div>
+    <div class="duty"><b>Insert</b><code>archive.add</code>, plus an optional result archive</div>
+    <div class="duty"><b>Slice</b>solutions, evaluations and <code>add_info</code> per emitter</div>
+    <div class="duty"><b>Guard</b>ask twice without tell raises an error</div>
+    <div class="duty"><b>Allocate</b>only <code>BanditScheduler</code>: chooses which emitters run</div>
+  </div>
+  <p class="cap">Highlighted lines are the work the scheduler does for you. Duties transcribed from the <code>Scheduler</code> and <code>BanditScheduler</code> source in v0.12.1.</p>
+</div>
+</div>
+</section>
+
+<!-- Q5 -->
+<section class="q">
+<div class="row">
+<div class="prose">
+<div class="eyebrow">Question 5</div>
+<h2>Novelty search: the archive lane, swapped</h2>
+<p class="answer">Replace the grid with a <code>ProximityArchive</code>. It has no cells. It admits a candidate when it is far enough from what is already stored.</p>
+<p>A candidate's <button class="term" data-t="novelty">novelty</button> is its mean Euclidean distance to its nearest archived neighbours. pyribs measures against the current archive only; candidates in the same batch are not each other's neighbours. Admission is <code>novelty &gt;= novelty_threshold</code>, so equality passes.</p>
+<p>Three modes change one rule each. Plain novelty search ignores the objective. <button class="term" data-t="lc">Local competition</button> lets a candidate that is not novel replace its single closest neighbour if it is strictly better. Threshold decay lowers the cutoff after add calls that admit nothing. The novelty formula never changes.</p>
+<p>The emitter side changes its <button class="term" data-t="ranker">ranker</button>: <code>ranker="nov"</code> sorts by novelty, <code>ranker="nslc"</code> runs a <button class="term" data-t="pareto">Pareto</button> sort on novelty and local competition. Threshold decay changes only the archive.</p>
+<p>The Maze loadout in the machine runs the plain mode with the tutorial's settings.</p>
+</div>
+<div>
+  <div class="formula">ρ(x) = (1/k) · Σ<sub>i=1..k</sub> dist(x, μ<sub>i</sub>)   k = min(k_neighbors, archive size)</div>
+  <div class="nov" id="nov"></div>
+  <p class="cap">Same archive and candidates in every panel; the decay panel sends only B and C, so its first add call admits nothing. Lines join each candidate to its k = 3 nearest stored neighbours. Dot shade and the small number are objective. Bars compare novelty with the threshold. <span class="ill">illustrative</span> points, objectives, k, threshold 0.24 and decay rate 0.5. Status codes and rules are from the v0.12.1 source.</p>
+  <div class="card" style="margin-top:12px">
+  <div class="tblwrap"><table class="tbl">
+    <thead><tr><th>Mode</th><th>Archive arguments</th><th>Emitter ranker</th><th>Status codes returned</th></tr></thead>
+    <tbody>
+      <tr><td>Novelty search</td><td><code>local_competition=False</code></td><td><code>"nov"</code></td><td>0 rejected, 2 added. Fields <code>status</code>, <code>novelty</code>.</td></tr>
+      <tr><td>Novelty Search with Local Competition</td><td><code>local_competition=True</code>, objectives required</td><td><code>"nslc"</code>, or <code>"nslc_classic"</code> with a genotypic diversity field you supply</td><td>0 no improvement, 1 improves a neighbour, 2 added. Adds <code>local_competition</code> and <code>value</code>.</td></tr>
+      <tr><td>Threshold decay</td><td><code>threshold_decay_rate</code>, <code>threshold_decay_itrs=1</code>, <code>threshold_decay_min=0.0</code></td><td>unchanged</td><td>as the mode it decorates</td></tr>
+    </tbody></table></div>
+  <p class="cap">Decay is off by default, <code>threshold_decay_rate=None</code>. The rate must lie in the interval from 0, exclusive, to 1. After <code>threshold_decay_itrs</code> consecutive add calls with no novel addition the threshold becomes <code>max(threshold_decay_min, threshold * rate)</code>. Replacements alone do not reset the counter. The docs' supported-algorithms page lists novelty search and Novelty Search with Local Competition but has no entry named threshold decay. History: <code>ProximityArchive</code> and local competition arrived in v0.8.0, <code>NSLCRanker</code> in v0.11.0, threshold decay in v0.12.0.</p>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- Q6 -->
+<section class="q" id="tutorials">
+<div class="eyebrow">Question 6</div>
+<h2>Two tutorials, two loadouts of the same machine</h2>
+<p class="lede" style="font-size:15.5px">Both notebooks use one <code>GridArchive</code> of 20 by 20 cells, one emitter and the plain <code>Scheduler</code>. What changes is what a solution is, who scores it, and what your code does between ask and tell.</p>
+
+<div class="row" style="margin-top:24px">
+<div class="prose">
+<h3 style="margin-top:0">Orchestrating LLMs to Write Diverse Stories with Quality Diversity through AI Feedback</h3>
+<p>A solution is a Python string: a story about a suspicious spy and a rich politician. A language model, Llama 3.1 8B instruct at q4_K_M, both rewrites stories and rates them.</p>
+<p>The objective asks whether it is a high-quality short story about those two characters. Measure 0 asks whether it is a romance, measure 1 whether it has a happy ending. Each rating is clipped to 1 to 10 and averaged over five calls, so one story costs 15 rating calls.</p>
+<p>The custom emitter samples an elite, picks up or down for each measure, and asks the model to rewrite. It defines no <code>tell</code>, so the inherited one adapts nothing.</p>
+<p><button class="btn" data-goto="stories">Load into the machine</button></p>
+</div>
+<div class="card">
+  <div class="loadout">
+    <div class="lo"><div class="nm">Your code</div><div><code>evaluator.evaluate(solutions)</code>: 3 questions, 5 calls each, ratings clipped to [1, 10]</div></div>
+    <div class="lo"><div class="nm" style="color:var(--accent)">Scheduler</div><div><code>Scheduler(archive, emitters)</code></div></div>
+    <div class="lo"><div class="nm">Emitter</div><div><code>LLMDirectionalEmitter</code>, subclass of <code>EmitterBase</code>, <code>batch_size=1</code>. Returns three seed stories while the archive is empty.</div></div>
+    <div class="lo"><div class="nm">Archive</div><div><code>GridArchive(solution_dim=(), dims=[20, 20], ranges=[(1, 10), (1, 10)], solution_dtype=object)</code>: 400 cells, x Romance Story, y Happy Ending, colour quality</div></div>
+  </div>
+  <div class="dirs">
+    <span class="h"></span><span class="h">down</span><span class="h">up</span>
+    <span class="h">measure 0</span><div>"make the story sound less like a romance story"</div><div>"make the story sound more like a romance story"</div>
+    <span class="h">measure 1</span><div>"make the ending of the story less happy"</div><div>"make the ending of the story more happy"</div>
+  </div>
+  <p class="cap">The four direction strings the emitter splices into its mutation prompt, quoted from <code>qdaif.ipynb</code>.</p>
+  <div class="stats">
+    <div class="stat"><div class="v num">200</div><div class="s">iterations, batch 1</div></div>
+    <div class="stat"><div class="v num">28.5%</div><div class="s">final coverage</div></div>
+    <div class="stat"><div class="v num">955.8</div><div class="s">raw quality diversity score</div></div>
+    <div class="stat"><div class="v num">~1 h</div><div class="s">on a Colab T4, about half on an RTX A6000</div></div>
+  </div>
+</div>
+</div>
+
+<div class="row" style="margin-top:36px">
+<div class="prose">
+<h3 style="margin-top:0">Incorporating Human Feedback into Quality Diversity for Diversified Text-to-Image Generation</h3>
+<p>A solution is a Stable Diffusion starting latent, 4 by 32 by 32, flattened to 4096 numbers. Your code renders it at 256 by 256 with miniSD for the prompt "an astronaut riding a horse on mars".</p>
+<p><button class="term" data-t="clip">CLIP</button> ViT-B/32 scores each image once for the objective. The two measures are learned: <button class="term" data-t="divproj">DivProj</button>, one linear layer, maps 512 CLIP image features to two coordinates.</p>
+<p>Human feedback is simulated. <button class="term" data-t="dreamsim">DreamSim</button> judges <button class="term" data-t="triplet">triplets</button> of images, and DivProj trains so its distances agree.</p>
+<p>So your code lane grows: at iterations 1, 21, 51 and 101 it adds 1000 triplets, fits a fresh DivProj, re-scores the current elites, and builds a new archive and scheduler.</p>
+<p><button class="btn" data-goto="images">Load into the machine</button></p>
+</div>
+<div class="card">
+  <div class="loadout">
+    <div class="lo"><div class="nm">Your code</div><div><code>evaluate_lsi(...)</code>: render, CLIP score <code>(10 - 100/L)*10</code>, DivProj measures. Plus the refit at <code>update_schedule = [1, 21, 51, 101]</code>.</div></div>
+    <div class="lo"><div class="nm" style="color:var(--accent)">Scheduler</div><div><code>Scheduler(archive, emitters)</code>, rebuilt at each refit</div></div>
+    <div class="lo"><div class="nm">Emitter</div><div><code>GaussianEmitter(archive=archive, sigma=0.1, batch_size=4, seed=123)</code>. Samples elites and adds noise. Its <code>tell</code> is the base no-op.</div></div>
+    <div class="lo"><div class="nm">Archive</div><div><code>GridArchive(dims=(20, 20), ranges=archive_bounds, seed=123)</code>. Bounds are the 1st and 99th percentiles of the newly projected coordinates.</div></div>
+  </div>
+  <div class="refits">
+    <div class="refit"><div class="i">itr 1</div><div class="v num">0.74</div><div class="s">n=1000 · 14 epochs</div></div>
+    <div class="refit"><div class="i">itr 21</div><div class="v num">0.774</div><div class="s">n=2000 · 15 epochs</div></div>
+    <div class="refit"><div class="i">itr 51</div><div class="v num">0.807</div><div class="s">n=3000 · 15 epochs</div></div>
+    <div class="refit"><div class="i">itr 101</div><div class="v num">0.80</div><div class="s">n=4000 · 12 epochs</div></div>
+  </div>
+  <p class="cap">DivProj validation accuracy at each refit, from the retraining log in <code>qdhf.ipynb</code>. Triplets are kept between refits, so n grows by 1000 each time.</p>
+  <div class="stats">
+    <div class="stat"><div class="v num">200</div><div class="s">iterations, batch 4</div></div>
+    <div class="stat"><div class="v num">57.5%</div><div class="s">final coverage</div></div>
+    <div class="stat"><div class="v num">41.93</div><div class="s">normalized quality diversity score</div></div>
+    <div class="stat"><div class="v num">~45 min</div><div class="s">stated, on a graphics processor</div></div>
+  </div>
+  <p class="cap">The final 4 by 4 collage shows smaller objects upper left, larger bottom right, dark sky at top and dusty sky at bottom. The notebook reads these trends off afterwards; the axes carry no supervised labels.</p>
+</div>
+</div>
+
+<div class="row" style="margin-top:36px">
+<div class="prose">
+<h3 style="margin-top:0">How the two runs filled their archives</h3>
+<p>Both archives have 400 cells, so <button class="term" data-t="coverage">coverage</button> is comparable. Their <button class="term" data-t="qdscore">quality diversity scores</button> are not: one is raw, one normalized.</p>
+<p>The images curve falls at each refit. A new projection means a new archive, rebuilt only from the current elites: 42.0% drops to 29.5% at iteration 21, 42.75% to 30.0% at 51, 45.5% to 32.0% at 101.</p>
+<p>Neither saved log records the maximum objective.</p>
+</div>
+<div class="card">
+  <div id="chart" role="img" aria-label="Coverage percent against iteration for the stories and images tutorials"></div>
+  <p class="cap">Archive coverage per iteration from the saved outputs of <code>qdaif.ipynb</code>, logged every 5 iterations, and <code>qdhf.ipynb</code>, logged every iteration, pyribs v0.12.1 tutorials. Dashed lines mark the DivProj refits. Neither notebook pins a ribs version.</p>
+</div>
+</div>
+</section>
+
+<div class="foot">
+<p>Facts from three research notes in <code>research_notes/Pyribs framework and tutorials/</code>: <code>ribs_framework_components.md</code>, <code>novelty_search_variants.md</code> and <code>qdaif_qdhf_tutorials.md</code>, which cite the RIBS paper, the pyribs v0.12.1 source and the two tutorial notebooks. Anything marked illustrative is invented for the demonstration.</p>
+</div>
+</div>
+<div id="pop" role="dialog" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+
+/* ---------- term definitions ---------- */
+const TERMS = {
+  qd:["quality diversity","An optimization problem that asks for many high-performing solutions that differ in measured properties, instead of one best solution."],
+  archive:["archive","The data structure that stores the solutions the algorithm generates, with each one's objective, measures and other fields. Its add method returns feedback on every candidate."],
+  emitter:["emitter","“Algorithms that generate solutions and adapt to objective, measure, and archive insertion feedback.” ask() returns a batch; tell() takes it back with scores and add_info."],
+  scheduler:["scheduler","“A basic class that composes an archive with multiple emitters.” It routes batches between the emitters, your code and the archive."],
+  objective:["objective","One scalar per solution, f. pyribs maximizes it."],
+  measures:["measures","A vector per solution, m, that places it in measure space. Older papers call them behavior characteristics, behavior descriptors or feature descriptors."],
+  illum:["illumination","Discovering representative high-quality solutions throughout measure space, rather than returning only a single global optimum."],
+  novelty:["novelty","Mean Euclidean distance from a candidate's measures to its k nearest neighbours in the current archive, with k = min(k_neighbors, archive size). An empty archive gives the current threshold."],
+  lc:["local competition","The count of a candidate's k nearest neighbours with a strictly lower objective. Ties do not count. In pyribs replacement uses only the single closest neighbour, not this count."],
+  ranker:["ranker","Decides the order an adaptive emitter, such as EvolutionStrategyEmitter, gives its candidates before it adapts. Options include objective, improvement, novelty, density and local competition."],
+  pareto:["Pareto sort","Fast non-dominated sorting that maximizes novelty and local competition together, with crowding distance breaking ties inside a front. Not a sum or product of the two."],
+  clip:["CLIP","ViT-B/32 image and text model. The notebook turns its raw image and text logit L into the objective with (10 - 100/L)*10; nothing clips the range."],
+  divproj:["DivProj","One nn.Linear layer from 512 CLIP image features to 2 measures. Trained on squared L2 distances with margin 0.05, Adam at lr 1e-3, batch 32, up to 200 epochs, a 75/25 split and early stopping. A fresh model at every refit."],
+  dreamsim:["DreamSim","Image similarity model, open_clip_vitb32, standing in for a human judge. Preference is 1 when cosine(ref, x2) > cosine(ref, x1), otherwise 0."],
+  triplet:["triplet","Three images: a reference and two others. The label says which of the two is closer to the reference."],
+  coverage:["coverage","archive.stats.coverage, printed by both notebooks as a percentage of the archive's 400 cells."],
+  qdscore:["quality diversity score","archive.stats.qd_score. The stories notebook logs this raw value; the images notebook logs norm_qd_score, a normalized value."],
+  status:["status","Per-candidate code in add_info. For GridArchive: 0 not added, 1 improved an occupied cell, 2 discovered a new cell. Computed against the archive before the batch, so two candidates can both get 2 for one cell."]
+};
+const pop = $("#pop"); let popFor = null;
+function showPop(btn){
+  const t = TERMS[btn.dataset.t]; if(!t) return;
+  pop.innerHTML = "<b></b><span></span>"; pop.firstChild.textContent=t[0]; pop.lastChild.textContent=t[1];
+  const r = btn.getBoundingClientRect(); const w = Math.min(320, innerWidth-32);
+  let left = r.left + scrollX; left = Math.max(16, Math.min(left, scrollX + innerWidth - 16 - w));
+  pop.style.width = w+"px"; pop.style.left = left+"px"; pop.style.top = (r.bottom + scrollY + 6)+"px";
+  pop.style.transformOrigin = Math.max(0, r.left + scrollX - left) + "px 0";
+  pop.classList.add("on"); popFor = btn; btn.setAttribute("aria-expanded","true");
+}
+function hidePop(){ pop.classList.remove("on"); if(popFor) popFor.setAttribute("aria-expanded","false"); popFor=null; }
+document.addEventListener("click", e => {
+  const b = e.target.closest(".term");
+  if(b){ if(popFor===b) hidePop(); else showPop(b); return; }
+  if(!e.target.closest("#pop")) hidePop();
+});
+document.addEventListener("keydown", e => { if(e.key==="Escape") hidePop(); });
+$$(".term").forEach(b => b.setAttribute("aria-expanded","false"));
+
+/* ---------- seeded random ---------- */
+function rng(seed){ let a = seed>>>0; return () => { a = (a + 0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; }
+function gauss(r){ let u=0,v=0; while(!u)u=r(); while(!v)v=r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+const bump = (x,y) => 0.15 + 0.85*Math.exp(-((x-.7)**2+(y-.62)**2)/0.09);
+
+/* ---------- loadouts ---------- */
+const EC = ["--a1","--a3","--m4","--l2","--bad"];
+const LOADOUTS = {
+  generic:{
+    archive:{type:"grid",dims:[10,6],lo:[0,0],hi:[1,1],ax:["measure 0","measure 1"],objRange:[0,1]},
+    emitters:[{name:"GaussianEmitter",n:3,samples:true},{name:"IsoLineEmitter",n:3,samples:true}],
+    tok:18, evalName:"evaluate(solutions)",
+    howCode:"calls ask and tell, runs evaluate", howEmit:"built once; subclass EmitterBase to customise",
+    setup:[["archive = GridArchive(solution_dim=D, dims=[10, 6], ranges=[(0, 1), (0, 1)])","a"],
+           ["emitters = [GaussianEmitter(archive, ...), IsoLineEmitter(archive, ...)]","ea"],
+           ["scheduler = Scheduler(archive, emitters)","s"]],
+    note:"Default loadout: archive size, batch sizes, every objective and measure value and every landing spot are illustrative. Status codes follow the GridArchive.add rules.",
+    tellNote:()=>"receives its slice",
+    prefill:null
+  },
+  stories:{
+    archive:{type:"grid",dims:[20,20],lo:[1,1],hi:[10,10],ax:["Romance Story","Happy Ending"],objRange:[1,10]},
+    emitters:[{name:"LLMDirectionalEmitter",n:1,samples:true,seed:3}],
+    tok:20, evalName:"evaluator.evaluate(solutions)",
+    howCode:"calls ask and tell; evaluate prompts the language model 15 times per story", howEmit:"LLMDirectionalEmitter subclasses EmitterBase",
+    setup:[["archive = GridArchive(solution_dim=(), dims=[20, 20], ranges=[(1, 10), (1, 10)], ...)","a"],
+           ["emitters = [LLMDirectionalEmitter(archive, model=model, batch_size=1, ...)]","ea"],
+           ["scheduler = Scheduler(archive, emitters)","s"]],
+    note:"Stories loadout: the configuration is the notebook's. Story ratings and landing spots are illustrative. The archive starts empty, so iteration 1 carries the three seed stories.",
+    tellNote:()=>"inherited tell: no adaptation",
+    prefill:null
+  },
+  images:{
+    archive:{type:"grid",dims:[20,20],lo:[0,0],hi:[1,1],ax:["Diversity Metric 1","Diversity Metric 2"],objRange:[0,100]},
+    emitters:[{name:"GaussianEmitter",n:4,samples:true}],
+    tok:16, evalName:"evaluate_lsi(sols, prompt, ...)", evalLine:"objs, measures, clip_features, dreamsim_features = evaluate_lsi(sols, prompt, ...)",
+    howCode:"calls ask and tell; renders, scores, projects; refits DivProj at 1, 21, 51, 101", howEmit:"GaussianEmitter, sigma=0.1",
+    setup:[["if itr in update_schedule:  # 1, 21, 51, 101","ca"],
+           ["    archive, scheduler = create_scheduler(...)","sea"]],
+    loopVar:"sols", objVar:"objs",
+    note:"Images loadout: configuration from the notebook. The pre-filled archive stands for the rebuild from 200 random latents; its cells, scores and landing spots are illustrative.",
+    tellNote:()=>"base tell: no-op",
+    prefill:{cells:136}
+  },
+  maze:{
+    archive:{type:"prox",k:15,thr:0.01,ax:["final x","final y"]},
+    emitters:[1,2,3,4,5].map(i=>({name:"EvolutionStrategyEmitter",short:"#"+i,n:30,samples:false})),
+    tok:6, evalName:"evaluate(solutions)",
+    howCode:"calls ask and tell; simulates 150 robots per iteration", howEmit:"5 × EvolutionStrategyEmitter, ranker=\"nov\", each adapts on its slice",
+    setup:[["archive = ProximityArchive(solution_dim=138, measure_dim=2, k_neighbors=15, novelty_threshold=0.01)","a"],
+           ["emitters = [EvolutionStrategyEmitter(archive, sigma0=0.5, ranker=\"nov\", batch_size=30, ...) for _ in range(5)]","ea"],
+           ["scheduler = Scheduler(archive, emitters, ...)  # plus a passive 100x100 GridArchive","s"]],
+    note:"Maze loadout: k_neighbors=15, novelty_threshold=0.01, 5 emitters of 30 and 138 parameters are the tutorial's. The stored points, emitter positions and candidates are illustrative. The tutorial's own run ended at iteration 2500 with 23,633 stored entries and 88.930% coverage of the passive grid.",
+    tellNote:(s)=>"tell ranks by novelty, adapts",
+    prefill:{prox:true}
+  }
+};
+
+/* ---------- archive helpers ---------- */
+function cellOf(A, m){ const c = A.dims.map((d,i)=>clamp(Math.floor((m[i]-A.lo[i])/(A.hi[i]-A.lo[i])*d),0,d-1)); return c[1]*A.dims[0]+c[0]; }
+function cellCenter(A, idx){ const cx=idx%A.dims[0], cy=Math.floor(idx/A.dims[0]); return [A.lo[0]+(cx+.5)/A.dims[0]*(A.hi[0]-A.lo[0]), A.lo[1]+(cy+.5)/A.dims[1]*(A.hi[1]-A.lo[1])]; }
+function novelty(points, m, k, thr){
+  if(!points.length) return thr;
+  const d = points.map(p=>Math.hypot(p.m[0]-m[0],p.m[1]-m[1])).sort((a,b)=>a-b);
+  const ke = Math.min(k, d.length); let s=0; for(let i=0;i<ke;i++) s+=d[i]; return s/ke;
+}
+const PATH=[[.08,.08],[.08,.62],[.46,.62],[.46,.3],[.72,.3]];
+function makePrefill(L, r){
+  const A=L.archive;
+  if(A.type==="grid"){
+    const g=new Map(); if(!L.prefill) return g;
+    let tries=0;
+    while(g.size<L.prefill.cells && tries<5000){ tries++;
+      const m=[clamp(.5+gauss(r)*.22,0,.999),clamp(.5+gauss(r)*.22,0,.999)];
+      const idx=cellOf(A,m); if(g.has(idx)) continue;
+      const c=cellCenter(A,idx); g.set(idx,{obj:objFor(A,c,r),m:c});
+    }
+    return g;
+  }
+  const pts=[]; const segs=[]; let tot=0;
+  for(let i=0;i<PATH.length-1;i++){const a=PATH[i],b=PATH[i+1];const l=Math.hypot(b[0]-a[0],b[1]-a[1]);segs.push([a,b,l]);tot+=l;}
+  for(let i=0;i<1300;i++){
+    let t=r()*tot; let s=segs[0]; for(const sg of segs){ if(t<=sg[2]){s=sg;break;} t-=sg[2]; }
+    const [a,b,l]=s; const f=t/l; const px=a[0]+(b[0]-a[0])*f, py=a[1]+(b[1]-a[1])*f;
+    pts.push({m:[clamp(px+gauss(r)*.006,0,1),clamp(py+gauss(r)*.006,0,1)],obj:0});
+  }
+  return pts;
+}
+function objFor(A, m, r){
+  const u=[(m[0]-A.lo[0])/(A.hi[0]-A.lo[0]),(m[1]-A.lo[1])/(A.hi[1]-A.lo[1])];
+  const v=clamp(bump(u[0],u[1])+gauss(r)*.08,0,1);
+  return A.objRange[0]+v*(A.objRange[1]-A.objRange[0]);
+}
+const EMEANS=[[.08,.36],[.27,.62],[.46,.46],[.75,.3],[.08,.67]];
+
+/* generate one iteration from a pre-archive */
+function makeIteration(L, pre, iter){
+  const r=rng(1000*iter+ (L===LOADOUTS.maze?7:L===LOADOUTS.images?3:L===LOADOUTS.stories?5:1));
+  const A=L.archive; const toks=[]; const parents=new Set();
+  L.emitters.forEach((E,ei)=>{
+    let n=E.n;
+    const empty = A.type==="grid" ? pre.size===0 : pre.length===0;
+    if(E.seed && empty) n=E.seed;
+    for(let j=0;j<n;j++){
+      let m;
+      if(A.type==="grid"){
+        const elites=[...pre.entries()];
+        if(elites.length && E.samples){
+          const [pidx,p]=elites[Math.floor(r()*elites.length)]; parents.add(pidx);
+          const sp=(A.hi[0]-A.lo[0])*.13;
+          m=[clamp(p.m[0]+gauss(r)*sp,A.lo[0],A.hi[0]-1e-6),clamp(p.m[1]+gauss(r)*sp,A.lo[1],A.hi[1]-1e-6)];
+        } else {
+          const sp=(A.hi[0]-A.lo[0])*.22, c0=(A.lo[0]+A.hi[0])/2, c1=(A.lo[1]+A.hi[1])/2;
+          m=[clamp(c0+gauss(r)*sp,A.lo[0],A.hi[0]-1e-6),clamp(c1+gauss(r)*sp,A.lo[1],A.hi[1]-1e-6)];
+        }
+        toks.push({e:ei,m,obj:objFor(A,m,r)});
+      } else {
+        const c=EMEANS[ei]; const drift=Math.min(iter-1,6)*.012;
+        const cc = ei===3?[c[0]+drift,c[1]]:ei===4?[c[0],c[1]+drift]:c;
+        m=[clamp(cc[0]+gauss(r)*.014,0,1),clamp(cc[1]+gauss(r)*.014,0,1)];
+        toks.push({e:ei,m,obj:0});
+      }
+    }
+  });
+  let post;
+  if(A.type==="grid"){
+    post=new Map(pre); const best=new Map();
+    toks.forEach((t,i)=>{
+      const idx=cellOf(A,t.m); t.cell=idx; const inc=pre.get(idx);
+      t.status = !inc ? 2 : (t.obj>inc.obj ? 1 : 0);
+      if(t.status>0){ const b=best.get(idx); if(!b || t.obj>toks[b].obj) best.set(idx,i); }
+    });
+    best.forEach((i,idx)=>{ const t=toks[i]; post.set(idx,{obj:t.obj,m:cellCenter(A,idx),fresh:true}); });
+    for(const [k,v] of post) if(!best.has(k)) post.set(k,{obj:v.obj,m:v.m});
+    toks.forEach((t,i)=>{ t.wins = best.get(t.cell)===i; });
+  } else {
+    toks.forEach(t=>{ t.nov=novelty(pre,t.m,A.k,A.thr); t.status = t.nov>=A.thr?2:0; });
+    post=pre.concat(toks.filter(t=>t.status===2).map(t=>({m:t.m,obj:0,fresh:true})));
+    pre.forEach(p=>{p.fresh=false;});
+  }
+  return {toks, parents, post};
+}
+
+/* ---------- state ---------- */
+const S={lo:"generic",sched:true,step:0,iter:1,hist:[]};
+function L(){ return LOADOUTS[S.lo]; }
+function cur(){ return S.hist[S.iter-1]; }
+function ensureIter(){
+  while(S.hist.length<S.iter){
+    const pre = S.hist.length ? S.hist[S.hist.length-1].post : makePrefill(L(), rng(42));
+    const preCopy = L().archive.type==="grid" ? new Map([...pre].map(([k,v])=>[k,{obj:v.obj,m:v.m}])) : pre.map(p=>({m:p.m,obj:p.obj}));
+    const it = makeIteration(L(), preCopy, S.hist.length+1);
+    S.hist.push({pre:preCopy, ...it});
+  }
+}
+
+/* ---------- steps ---------- */
+function fmt(x,d=2){ return Number(x).toFixed(d); }
+function lengths(){ return L().emitters.map((E,i)=>cur().toks.filter(t=>t.e===i).length); }
+function statusHTML(){
+  const toks=cur().toks;
+  if(toks.length>12){
+    return L().emitters.map((E,i)=>{const s=toks.filter(t=>t.e===i); const a=s.filter(t=>t.status===2).length; return `emitter ${E.short||E.name}: <span class="s2">${a} added</span>, <span class="s0">${s.length-a} rejected</span>`;}).join("<br>");
+  }
+  const parts=L().emitters.map((E,i)=>toks.filter(t=>t.e===i).map(t=>`<span class="s${t.status}">${t.status}</span>`).join(", "));
+  return "add_info[\"status\"] = [" + parts.join(" <b style=\"color:var(--ink)\">|</b> ") + "]";
+}
+function evalHTML(){
+  const toks=cur().toks, A=L().archive;
+  if(toks.length>12) return `objective: ${toks.length} values · measures: ${toks.length} × 2, each the robot's final x, y`;
+  const d=A.type==="grid" && A.objRange[1]>10?1:2;
+  return "objective = [" + toks.map(t=>fmt(t.obj,d)).join(", ") + "]<br>measures = [" + toks.map(t=>"("+fmt(t.m[0],2)+", "+fmt(t.m[1],2)+")").join(", ") + "]";
+}
+function sliceHTML(){
+  const toks=cur().toks; let start=0;
+  return L().emitters.map((E,i)=>{const n=toks.filter(t=>t.e===i).length; const s=`emitter ${E.short||E.name}.tell(rows ${start} to ${start+n-1})`; start+=n; return s;}).join("<br>");
+}
+function archiveSummary(map){
+  const A=L().archive;
+  if(A.type==="grid"){ const D=A.dims[0]*A.dims[1]; return `${map.size} of ${D} cells hold an elite`; }
+  return `${map.length} stored points, threshold ${A.thr}`;
+}
+function stepList(){
+  const lo=L(); const ln=lengths(); const N=cur().toks.length; const many=lo.emitters.length>1;
+  const sv = lo.loopVar||"solutions"; const ov = lo.objVar||"objective";
+  const ready={id:"ready",loc:"none",line:null,lanes:[],t:"Ready",
+    cap:`Iteration ${S.iter} is about to start. The archive holds what earlier iterations kept.` + (S.lo==="images"&&S.iter===1?" At iteration 1 your code has just run the refit and built a fresh archive and scheduler.":""),
+    ro:()=>archiveSummary(cur().pre)};
+  const askE = lo.emitters.some(e=>e.samples) ? " Each emitter samples elites from the archive as parents, highlighted in the archive lane." : " Each evolution strategy samples from its own distribution; it does not draw parents from the archive.";
+  if(S.sched) return [ready,
+    {id:"ask",loc:"emit",line:"ask",lanes:["sched","emit","arch"],ledger:"sched",t:"Scheduler fans out to every emitter's ask()",
+      cap:`<code>${sv} = scheduler.ask()</code> calls <code>ask()</code> on ${many?"each of the "+lo.emitters.length+" emitters":"the emitter"} and remembers how many rows each returned.`+askE+(lo.emitters[0].seed&&N===3?" The archive is empty, so this emitter returns its three seed stories.":""),
+      ro:()=>`lengths remembered: [${ln.join(", ")}]`},
+    {id:"join",loc:"sched",line:"ask",lanes:["sched"],ledger:"sched",t:"Batches join into one",
+      cap:`The scheduler concatenates the batches along axis 0, in emitter order. ${N} rows now travel together.`,ro:()=>`${sv}: ${N} rows`},
+    {id:"ret",loc:"code",line:"ask",lanes:["code","sched"],ledger:"sched",t:"Your code receives the joined batch",
+      cap:`<code>${sv}</code> arrives in your code as one array of ${N} candidates. Pale fill means not yet scored.`,ro:()=>`${sv}.shape = (${N}, ...)`},
+    {id:"eval",loc:"code",line:"eval",lanes:["code"],ledger:"sched",ev:true,t:"You evaluate: objectives and measures",
+      cap:`<code>${lo.evalName}</code> runs entirely in your code. pyribs is not involved and does not care how you score.`,ro:evalHTML},
+    {id:"tell",loc:"sched",line:"tell",lanes:["code","sched"],ledger:"sched",ev:true,t:"tell() checks lengths against the ledger",
+      cap:`<code>scheduler.tell(${ov}, measures)</code> validates that ${N} objectives and ${N} measure rows match the ${N} remembered solutions.`,ro:()=>`ledger [${ln.join(", ")}] sums to ${N}: ok`},
+    {id:"add",loc:"arch",line:"tell",lanes:["sched","arch"],ledger:"sched",ev:true,st:true,post:true,t:"archive.add() files the batch",
+      cap:addCap(),ro:statusHTML},
+    {id:"slice",loc:"back",line:"tell",lanes:["sched","emit"],ledger:"sched",ev:true,st:true,post:true,fb:true,t:"Each emitter gets only its own slice",
+      cap:`The scheduler cuts solutions, evaluations and <code>add_info</code> at the remembered lengths and calls each emitter's <code>tell()</code> with its slice and the archive's verdict.`+(S.lo==="stories"||S.lo==="images"?" This emitter's tell does nothing with it.":""),ro:sliceHTML}
+  ];
+  return [ready,
+    {id:"ask",loc:"emit",line:"h-ask",lanes:["code","emit","arch"],ledger:"code",t:"You call every emitter's ask()",
+      cap:`No scheduler. Your loop calls each emitter's <code>ask()</code> and must store <code>lengths</code> itself.`+askE,ro:()=>`lengths = [${ln.join(", ")}]`},
+    {id:"join",loc:"code",line:"h-cat",lanes:["code"],ledger:"code",t:"You concatenate",
+      cap:`<code>np.concatenate(batches)</code> joins them in your code. Keep the order: the slices later depend on it.`,ro:()=>`solutions: ${N} rows`},
+    {id:"eval",loc:"code",line:"eval",lanes:["code"],ledger:"code",ev:true,t:"You evaluate",cap:`Evaluation is unchanged: <code>${lo.evalName}</code>.`,ro:evalHTML},
+    {id:"add",loc:"arch",line:"h-add",lanes:["code","arch"],ledger:"code",ev:true,st:true,post:true,t:"You call archive.add()",
+      cap:addCap()+" No one checks lengths for you.",ro:statusHTML},
+    {id:"slice",loc:"back",line:"h-tell",lanes:["code","emit"],ledger:"code",ev:true,st:true,post:true,fb:true,t:"You slice and tell each emitter",
+      cap:`Your for loop walks <code>lengths</code>, cuts every array and every <code>add_info</code> field, and calls each emitter's <code>tell()</code>. Get an offset wrong and an emitter learns from another emitter's candidates.`,ro:sliceHTML}
+  ];
+}
+function addCap(){
+  if(L().archive.type==="prox") return `<code>ProximityArchive.add</code> computes each candidate's novelty against the stored points before this batch. Novelty of at least 0.01 means status 2, added. Hollow dots were rejected.`;
+  return `<code>GridArchive.add</code> maps each candidate's measures to a cell. Status 2: new cell. 1: beats the incumbent. 0: not added, drawn hollow. Statuses compare against the archive before the batch.`;
+}
+
+/* ---------- code panel ---------- */
+function codeLines(){
+  const lo=L(); const sv=lo.loopVar||"solutions", ov=lo.objVar||"objective";
+  const setup=lo.setup.map(([t,f])=>({t,f,dim:true}));
+  if(S.sched){
+    const head = S.lo==="images" ? [{t:"for itr in trange(1, TOTAL_ITRS + 1):",f:"c",dim:true},...setup.map(x=>({...x,t:"    "+x.t}))] : [...setup,{t:"for itr in range(total_itrs):",f:"c",dim:true}];
+    return [...head,
+      {k:"ask",t:`    ${sv} = scheduler.ask()`,f:"sea"},
+      {k:"eval",t:"    "+(lo.evalLine||`${ov}, measures = ${lo.evalName}`),f:"c"},
+      {k:"tell",t:`    scheduler.tell(${ov}, measures)`,f:"sea"},
+      {t:"archive.data(), archive.stats",f:"a",dim:true}];
+  }
+  const s0 = lo.setup.filter(([t])=>!t.startsWith("scheduler")&&!t.includes("create_scheduler")).map(([t,f])=>({t:t.replace(/^if .*/,"").trim(),f,dim:true})).filter(x=>x.t);
+  return [...s0,{t:"for itr in range(total_itrs):",f:"c",dim:true},
+    {k:"h-ask",t:"    batches = [e.ask() for e in emitters]",f:"cea"},
+    {k:"h-ask",t:"    lengths = [len(b) for b in batches]",f:"c"},
+    {k:"h-cat",t:"    solutions = np.concatenate(batches)",f:"c"},
+    {k:"eval",t:`    objective, measures = ${lo.evalName.replace("sols","solutions")}`,f:"c"},
+    {k:"h-add",t:"    add_info = archive.add(solutions, objective, measures)",f:"ca"},
+    {k:"h-tell",t:"    start = 0",f:"c"},
+    {k:"h-tell",t:"    for e, n in zip(emitters, lengths):",f:"c"},
+    {k:"h-tell",t:"        s = slice(start, start + n)",f:"c"},
+    {k:"h-tell",t:"        e.tell(solutions[s], objective[s], measures[s],",f:"ce"},
+    {k:"h-tell",t:"               {k: v[s] for k, v in add_info.items()})",f:"ce"},
+    {k:"h-tell",t:"        start += n",f:"c"}];
+}
+function renderCode(){
+  const box=$("#code"); box.innerHTML="";
+  codeLines().forEach(l=>{
+    const d=document.createElement("div"); d.className="cl"+(l.dim?" dim":""); if(l.k) d.dataset.k=l.k;
+    const dots=document.createElement("span"); dots.className="dots";
+    "csea".split("").forEach(c=>{const i=document.createElement("i"); if(l.f.includes(c)) i.className="y"; dots.appendChild(i);});
+    const pre=document.createElement("pre"); pre.textContent=l.t;
+    d.append(dots,pre); box.appendChild(d);
+  });
+  $("#codetitle").textContent = S.sched ? "Your loop, with the scheduler" : "Your loop, scheduler removed";
+  $("#codecap").textContent = S.sched ? "Squares mark the lanes a line touches: code, scheduler, emitters, archive." : "Reconstructed from the Scheduler source, not a recipe from the docs. Every bookkeeping line now lives in your lane.";
+}
+
+/* ---------- machine DOM ---------- */
+const machine=$("#machine"), tokLayer=$("#tokens");
+let tokEls=[], archSvg=null, archG=null, archPx={w:0,h:0};
+function buildMachine(){
+  const lo=L();
+  $("#how-code").textContent=lo.howCode; $("#how-emit").textContent=lo.howEmit;
+  const em=$("#emits"); em.innerHTML="";
+  lo.emitters.forEach((E,i)=>{
+    const d=document.createElement("div"); d.className="em";
+    d.innerHTML=`<div class="en"><i style="background:var(${EC[i]})"></i><span></span></div><div class="slot"></div><div class="fb"></div>`;
+    d.querySelector(".en span").textContent=E.short||E.name; em.appendChild(d);
+  });
+  machine.classList.toggle("nosched",!S.sched);
+  tokLayer.innerHTML=""; tokEls=[];
+  const N=Math.max(...S.hist.map(h=>h.toks.length), 1);
+  for(let i=0;i<N;i++){ const t=document.createElement("i"); t.className="tk"+(lo.tok<10?" dot":""); t.innerHTML="<b></b><span></span>"; t.style.width=t.style.height=lo.tok+"px"; t.style.opacity=0; tokLayer.appendChild(t); tokEls.push(t); }
+  $("#illnote").textContent=lo.note;
+  renderCode(); renderSteps();
+}
+function ensureTokens(){
+  const N=cur().toks.length; const lo=L();
+  while(tokEls.length<N){ const t=document.createElement("i"); t.className="tk"+(lo.tok<10?" dot":""); t.innerHTML="<b></b><span></span>"; t.style.width=t.style.height=lo.tok+"px"; t.style.opacity=0; tokLayer.appendChild(t); tokEls.push(t); }
+}
+function slotSize(slot, n, s, g){ const w=slot.clientWidth-8; const per=Math.max(1,Math.floor((w+g)/(s+g))); const rows=Math.ceil(n/per); return {per,h:Math.max(28, rows*(s+g)-g+8)}; }
+function sizeSlots(){
+  const lo=L(), s=lo.tok, g=lo.tok<10?2:4; const toks=cur().toks; const N=toks.length;
+  ["#slot-code","#slot-sched"].forEach(q=>{const sl=$(q); sl.style.height=slotSize(sl,N,s,g).h+"px";});
+  const ln=lengths(); $$("#emits .slot").forEach((sl,i)=>{ sl.style.height=slotSize(sl,Math.max(ln[i],lo.emitters[i].n),s,g).h+"px"; });
+}
+function packPos(slot, idx, n, s, g){
+  const mr=machine.getBoundingClientRect(), r=slot.getBoundingClientRect();
+  const {per}=slotSize(slot,n,s,g);
+  const cx=idx%per, cy=Math.floor(idx/per);
+  return [r.left-mr.left+4+cx*(s+g), r.top-mr.top+4+cy*(s+g)];
+}
+function renderArchiveFrame(){
+  const lo=L(), A=lo.archive, box=$("#archbox");
+  const avail=box.parentElement.clientWidth;
+  let w,h; const room=avail-16-2;
+  if(A.type==="grid"){ const ar=A.dims[1]/A.dims[0]; w=Math.min(room, A.dims[0]>=20?260:340); h=Math.round(w*ar); if(A.dims[0]>=20){ h=w; } }
+  else { w=Math.min(room,260); h=w; }
+  box.innerHTML=""; archPx={w,h,pad:16};
+  const W=w+archPx.pad, H=h+archPx.pad;
+  archSvg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":"Archive"},box);
+  const g=el("g",{transform:`translate(${archPx.pad},0)`},archSvg); archG=g;
+  el("rect",{x:0,y:0,width:w,height:h,fill:"var(--surface)",stroke:"var(--line)"},g);
+  const tx=el("text",{x:archPx.pad+w/2,y:H-3,"text-anchor":"middle","font-size":"10","fill":"var(--muted)","font-family":"var(--mono)"},archSvg); tx.textContent=A.ax[0]+" →";
+  const ty=el("text",{x:10,y:h/2,"text-anchor":"middle","font-size":"10","fill":"var(--muted)","font-family":"var(--mono)",transform:`rotate(-90 10 ${h/2})`},archSvg); ty.textContent=A.ax[1]+" →";
+  if(A.type==="grid"){
+    const cw=w/A.dims[0], ch=h/A.dims[1];
+    const lines=el("g",{stroke:"var(--line)","stroke-width":"1"},g);
+    for(let i=1;i<A.dims[0];i++) el("line",{x1:i*cw,y1:0,x2:i*cw,y2:h},lines);
+    for(let j=1;j<A.dims[1];j++) el("line",{x1:0,y1:j*ch,x2:w,y2:j*ch},lines);
+    const cells=el("g",{},g); const pars=el("g",{},g);
+    for(let idx=0;idx<A.dims[0]*A.dims[1];idx++){
+      const cx=idx%A.dims[0], cy=Math.floor(idx/A.dims[0]);
+      const x=cx*cw, y=h-(cy+1)*ch;
+      el("rect",{x:x+.5,y:y+.5,width:cw-1,height:ch-1,fill:"var(--accent)",class:"cell","data-i":idx,style:"opacity:0"},cells);
+      el("rect",{x:x+1,y:y+1,width:cw-2,height:ch-2,fill:"none",stroke:"var(--ink)","stroke-width":"1.5",class:"par","data-i":idx,style:"opacity:0"},pars);
+    }
+  } else {
+    el("g",{class:"pts"},g);
+  }
+  const side=$("#archside");
+  if(A.type==="grid") side.innerHTML=`<div class="kv" id="archkv"></div><div class="legend"><span><i class="lg f"></i>scored, added</span><span><i class="lg"></i>status 0, not added</span><span><i style="width:12px;height:12px;background:var(--accent);opacity:.8;display:inline-block;border-radius:2px"></i>elite, darker = higher objective</span><span><i style="width:12px;height:12px;border:1.5px solid var(--ink);display:inline-block;border-radius:2px"></i>sampled parent</span></div>`;
+  else side.innerHTML=`<div class="kv" id="archkv"></div><div class="legend"><span><i class="lg f"></i>status 2, novel</span><span><i class="lg"></i>status 0, rejected</span><span><i style="width:6px;height:6px;background:var(--muted);display:inline-block;border-radius:50%"></i>stored point</span><span><i style="width:6px;height:6px;background:var(--accent);display:inline-block;border-radius:50%"></i>added this iteration</span></div>`;
+}
+function m2px(m){
+  const A=L().archive; const {w,h,pad}=archPx;
+  const box=$("#archbox").getBoundingClientRect(), mr=machine.getBoundingClientRect();
+  let u,v;
+  if(A.type==="grid"){ u=(m[0]-A.lo[0])/(A.hi[0]-A.lo[0]); v=(m[1]-A.lo[1])/(A.hi[1]-A.lo[1]); }
+  else { u=m[0]; v=m[1]; }
+  return [box.left-mr.left+pad+u*w, box.top-mr.top+(1-v)*h];
+}
+function paintArchive(map, step){
+  const A=L().archive;
+  if(A.type==="grid"){
+    const lo=A.objRange[0], span=A.objRange[1]-A.objRange[0];
+    $$(".cell",archSvg).forEach(c=>{ const e=map.get(+c.dataset.i); c.style.opacity = e ? (0.2+0.75*(e.obj-lo)/span).toFixed(3) : 0; });
+    const showPar = step.id==="ask";
+    $$(".par",archSvg).forEach(p=>{ p.style.opacity = showPar && cur().parents.has(+p.dataset.i) ? 1 : 0; });
+    $("#archkv").textContent = archiveSummary(map);
+  } else {
+    const g=$(".pts",archSvg); g.innerHTML="";
+    const {w,h}=archPx;
+    map.forEach(p=>el("circle",{cx:p.m[0]*w,cy:(1-p.m[1])*h,r:p.fresh&&step.post?1.8:1.1,fill:p.fresh&&step.post?"var(--accent)":"var(--muted)",opacity:p.fresh&&step.post?1:.55},g));
+    $("#archkv").textContent = archiveSummary(map) + " · k_neighbors 15";
+  }
+}
+
+/* ---------- render ---------- */
+function renderSteps(){
+  const ol=$("#steps"); ol.innerHTML="";
+  stepList().forEach((st,i)=>{ const li=document.createElement("li"); const b=document.createElement("button"); b.type="button"; b.textContent=st.t; b.addEventListener("click",()=>{S.step=i; render();}); li.appendChild(b); ol.appendChild(li); });
+}
+function render(opts={}){
+  ensureIter(); ensureTokens();
+  const lo=L(), steps=stepList(); S.step=clamp(S.step,0,steps.length-1); const st=steps[S.step];
+  if(opts.snap){ machine.classList.add("snap"); }
+  sizeSlots();
+  $$(".lane",machine).forEach(l=>l.classList.toggle("on",st.lanes.includes(l.dataset.lane)));
+  $$(".cl").forEach(c=>c.classList.toggle("on",!!st.line && c.dataset.k===st.line));
+  $$("#steps button").forEach((b,i)=>{ if(i===S.step) b.setAttribute("aria-current","step"); else b.removeAttribute("aria-current"); });
+  $("#caption").innerHTML=st.cap; $("#readout").innerHTML=st.ro();
+  $("#itr").textContent="iteration "+S.iter;
+  const ln=lengths();
+  const ledText = S.sched ? `lengths [${ln.join(", ")}]` : `lengths = [${ln.join(", ")}]`;
+  const lc=$("#ledger-code"), ls=$("#ledger-sched");
+  ls.textContent=ledText; lc.textContent=ledText;
+  ls.classList.toggle("on", st.ledger==="sched" && st.id!=="ready");
+  lc.classList.toggle("on", st.ledger==="code" && st.id!=="ready");
+  const it=cur(); paintArchive(st.post?it.post:it.pre, st);
+  const s=lo.tok, g=lo.tok<10?2:4, N=it.toks.length;
+  const emSlots=$$("#emits .slot"), fbs=$$("#emits .fb");
+  const counters=lo.emitters.map(()=>0);
+  const order=[]; it.toks.forEach((t,i)=>order.push(i));
+  tokEls.forEach((te,i)=>{
+    const t=it.toks[i];
+    if(!t){ te.style.opacity=0; return; }
+    te.style.setProperty("--c",`var(${EC[t.e]})`);
+    const k=counters[t.e]++;
+    let p;
+    if(st.loc==="none"||st.loc==="emit"||st.loc==="back") p=packPos(emSlots[t.e],k,ln[t.e],s,g);
+    else if(st.loc==="sched") p=packPos($("#slot-sched"),i,N,s,g);
+    else if(st.loc==="code") p=packPos($("#slot-code"),i,N,s,g);
+    else { const c=m2px(lo.archive.type==="grid"?cellCenter(lo.archive,t.cell):t.m); const j=lo.archive.type==="grid"?(i%3-1)*3:0; p=[c[0]-s/2+j,c[1]-s/2+j]; }
+    const sc = st.loc==="none" ? (reduce?1:.9) : 1;
+    te.style.transform=`translate(${p[0].toFixed(1)}px,${p[1].toFixed(1)}px) scale(${sc})`;
+    te.style.opacity = st.loc==="none"?0:1;
+    te.style.transitionDelay = opts.snap||reduce ? "0ms" : Math.round(i/Math.max(N,1)*120)+"ms";
+    te.classList.toggle("ev",!!st.ev);
+    te.classList.remove("st0","st1","st2");
+    if(st.st) te.classList.add("st"+t.status);
+    const sp=te.querySelector("span"); sp.textContent = s>=14 ? t.status : "";
+    te.classList.toggle("show", !!st.st && s>=14);
+  });
+  fbs.forEach((f,i)=>{
+    const slice=it.toks.filter(t=>t.e===i);
+    let txt;
+    if(slice.length>12){ const a=slice.filter(t=>t.status===2).length; txt=`${a} of ${slice.length} novel`; }
+    else txt=`status [${slice.map(t=>t.status).join(", ")}] · ` + lo.tellNote();
+    f.textContent = txt;
+    f.classList.toggle("on",!!st.fb);
+  });
+  $("#back").disabled = S.step===0 && S.iter===1;
+  $("#next").textContent = S.step===steps.length-1 ? "Next iteration" : "Next";
+  if(opts.snap){ requestAnimationFrame(()=>requestAnimationFrame(()=>machine.classList.remove("snap"))); }
+}
+function full(){ ensureIter(); renderArchiveFrame(); buildMachine(); render({snap:true}); }
+
+$("#next").addEventListener("click",()=>{ const n=stepList().length; if(S.step<n-1) S.step++; else { S.iter++; S.step=0; ensureIter(); ensureTokens(); render({snap:true}); return; } render(); });
+$("#back").addEventListener("click",()=>{ if(S.step>0) S.step--; else if(S.iter>1){ S.iter--; S.step=stepList().length-1; render({snap:true}); return; } render(); });
+$("#reset").addEventListener("click",()=>{ S.hist=[]; S.iter=1; S.step=0; full(); });
+$("#schedsw").addEventListener("change",e=>{ S.sched=e.target.checked; S.step=0; machine.classList.toggle("nosched",!S.sched); renderCode(); renderSteps(); render({snap:true}); });
+$$("#loadouts button").forEach(b=>b.addEventListener("click",()=>setLoadout(b.dataset.lo)));
+function setLoadout(k){ S.lo=k; S.hist=[]; S.iter=1; S.step=0; $$("#loadouts button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.lo===k))); full(); }
+$$("[data-goto]").forEach(b=>b.addEventListener("click",()=>{ setLoadout(b.dataset.goto); $("#machine-sec").scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"}); }));
+let rz; new ResizeObserver(()=>{ clearTimeout(rz); rz=setTimeout(()=>{ renderArchiveFrame(); render({snap:true}); },60); }).observe(machine);
+
+/* ---------- illumination mini figure ---------- */
+(function(){
+  const r=rng(9); const s1=$("#ill-opt"), s2=$("#ill-qd");
+  el("rect",{x:0,y:0,width:200,height:130,fill:"var(--surface2)"},s1);
+  el("circle",{cx:140,cy:48,r:6,fill:"var(--accent)",class:"icell",style:"--d:200ms"},s1);
+  const t=el("text",{x:150,y:44,"font-size":"10",fill:"var(--ink2)","font-family":"var(--mono)"},s1); t.textContent="best";
+  const cols=10, rows=6, cw=200/cols, ch=130/rows;
+  for(let j=0;j<rows;j++) for(let i=0;i<cols;i++){
+    const u=(i+.5)/cols, v=1-(j+.5)/rows; if(r()<.12) { el("rect",{x:i*cw+.5,y:j*ch+.5,width:cw-1,height:ch-1,fill:"none",stroke:"var(--line)"},s2); continue; }
+    const o=(0.2+0.75*bump(u,v)).toFixed(2);
+    el("rect",{x:i*cw+.5,y:j*ch+.5,width:cw-1,height:ch-1,fill:"var(--accent)",class:"icell",style:`--o:${o};--d:${(i+j)*28}ms;opacity:${o}`},s2);
+  }
+})();
+
+/* ---------- novelty figure ---------- */
+(function(){
+  const Z=p=>[.4+(p[0]-.4)*1.6,.5+(p[1]-.5)*1.6,p[2]];
+  const ARCH=[[.30,.55,4],[.38,.47,6],[.33,.40,3],[.45,.58,5],[.25,.45,7],[.42,.36,2],[.60,.70,5],[.20,.68,4]].map(Z);
+  const CAND={A:[.88,.2,3],B:Z([.36,.52,2]),C:Z([.40,.43,8])};
+  const K=3, THR=.24, RATE=.5;
+  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  function nn(c){ return ARCH.map((p,i)=>({i,d:dist(c,p)})).sort((a,b)=>a.d-b.d).slice(0,K); }
+  const info={}; for(const k in CAND){ const c=CAND[k]; const n=nn(c); info[k]={n,nov:n.reduce((s,x)=>s+x.d,0)/K,lc:n.filter(x=>c[2]>ARCH[x.i][2]).length,closest:n[0].i}; }
+  const modes=[
+    {h:"Novelty search",sub:"local_competition=False",mode:"plain"},
+    {h:"Novelty Search with Local Competition",sub:"local_competition=True",mode:"lc"},
+    {h:"Threshold decay",sub:"threshold_decay_rate=0.5, threshold_decay_itrs=1",mode:"decay"}];
+  function outcome(mode,k,thr){
+    const I=info[k], c=CAND[k];
+    if(I.nov>=thr) return 2;
+    if(mode==="lc" && c[2]>ARCH[I.closest][2]) return 1;
+    return 0;
+  }
+  const box=$("#nov");
+  modes.forEach(M=>{
+    const card=document.createElement("div"); card.className="card";
+    card.innerHTML=`<h3></h3><div class="sub"></div>`; card.querySelector("h3").textContent=M.h; card.querySelector(".sub").textContent=M.sub;
+    const keys = M.mode==="decay" ? ["B","C"] : ["A","B","C"]; const nk=keys.length;
+    const W=240, P=220, rows = M.mode==="decay" ? 2 : 1; const GH=nk*18+36; const H=P+14+rows*GH;
+    const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":M.h+": candidates against the archive"},card);
+    const g=el("g",{transform:"translate(10,0)"},svg); const sc=P;
+    el("rect",{x:0,y:0,width:sc,height:sc,fill:"var(--surface2)",stroke:"var(--line)",rx:6},g);
+    const X=v=>v*sc, Y=v=>(1-v)*sc;
+    const replaced = M.mode==="lc" ? info.C.closest : -1;
+    for(const k of keys){ const c=CAND[k]; info[k].n.forEach(x=>el("line",{x1:X(c[0]),y1:Y(c[1]),x2:X(ARCH[x.i][0]),y2:Y(ARCH[x.i][1]),stroke:"var(--ink2)","stroke-width":".7",opacity:.45,"stroke-dasharray":"2 2"},g)); }
+    ARCH.forEach((p,i)=>{
+      const rep=i===replaced;
+      el("circle",{cx:X(p[0]),cy:Y(p[1]),r:5,fill:rep?"none":"var(--muted)",stroke:rep?"var(--muted)":"none","stroke-dasharray":rep?"2 2":"",opacity:(.35+p[2]/12).toFixed(2)},g);
+      const t=el("text",{x:X(p[0])+7,y:Y(p[1])+3,"font-size":"8",fill:"var(--muted)","font-family":"var(--mono)"},g); t.textContent=p[2];
+    });
+    const finalThr = M.mode==="decay" ? THR*RATE : THR;
+    for(const k of keys){
+      const c=CAND[k]; const st=outcome(M.mode,k,finalThr);
+      const col = st===2?"var(--accent)":st===1?"var(--warn)":"var(--ink2)";
+      el("circle",{cx:X(c[0]),cy:Y(c[1]),r:6.5,fill:st>0?col:"var(--surface2)",stroke:col,"stroke-width":"1.6"},g);
+      const t=el("text",{x:X(c[0]),y:Y(c[1])-10,"text-anchor":"middle","font-size":"10","font-weight":"700",fill:"var(--ink)","font-family":"var(--mono)"},g); t.textContent=k+" "+c[2];
+      if(M.mode==="lc" && st===1){ const p=ARCH[info[k].closest]; el("line",{x1:X(c[0]),y1:Y(c[1]),x2:X(p[0]),y2:Y(p[1]),stroke:"var(--warn)","stroke-width":"1.6"},g); }
+    }
+    const max=.8, bw=sc-92, bx=40;
+    function bars(y0,thr,label,ghost){
+      const lt=el("text",{x:0,y:y0+8,"font-size":"9",fill:"var(--muted)","font-family":"var(--mono)"},g); lt.textContent=label;
+      keys.forEach((k,j)=>{
+        const y=y0+16+j*18, I=info[k], st=outcome(M.mode,k,thr);
+        const col = st===2?"var(--accent)":st===1?"var(--warn)":"var(--ink2)";
+        const n=el("text",{x:0,y:y+8,"font-size":"10","font-weight":"700",fill:"var(--ink)","font-family":"var(--mono)"},g); n.textContent=k;
+        el("rect",{x:bx-28,y:y,width:bw+28,height:10,fill:"var(--surface3)",rx:2,opacity:0},g);
+        el("rect",{x:bx-26,y:y+1,width:Math.min(I.nov,max)/max*bw,height:8,fill:col,opacity:st===0?.45:1,rx:2},g);
+        const v=el("text",{x:bx-26+Math.min(I.nov,max)/max*bw+4,y:y+8,"font-size":"9",fill:"var(--ink2)","font-family":"var(--mono)"},g);
+        v.textContent=I.nov.toFixed(3)+(M.mode==="lc"?" · beats "+I.lc:"")+" → "+st;
+      });
+      if(ghost!=null){ const gx=bx-26+ghost/max*bw; el("line",{x1:gx,y1:y0+12,x2:gx,y2:y0+16+nk*18-4,stroke:"var(--muted)","stroke-width":"1","stroke-dasharray":"2 2"},g); }
+      const tx=bx-26+thr/max*bw;
+      el("line",{x1:tx,y1:y0+12,x2:tx,y2:y0+16+nk*18-4,stroke:"var(--bad)","stroke-width":"1.5"},g);
+      const tl=el("text",{x:tx,y:y0+16+nk*18+8,"text-anchor":"middle","font-size":"9",fill:"var(--bad)","font-family":"var(--mono)"},g); tl.textContent="threshold "+(+thr.toFixed(3));
+    }
+    if(M.mode==="decay"){
+      bars(P+14,THR,"add call 1",null);
+      bars(P+14+GH,THR*RATE,"add call 2",THR);
+    } else bars(P+14,THR,"novelty → status",null);
+    const p=document.createElement("p");
+    if(M.mode==="plain") p.textContent=`Only A is far enough: status 2. C has the best objective here, 8, and is still rejected. The objective plays no part in admission.`;
+    if(M.mode==="lc") p.textContent=`A is novel, so it is added whatever its objective. B and C are not novel. C scores 8 and beats its single closest neighbour, scored 6, so it replaces that point: status 1. B scores 2 and loses: status 0.`;
+    if(M.mode==="decay") p.textContent=`A batch of only B and C. Call 1 adds nothing, so after 1 such call the threshold halves from 0.24 to 0.12. In call 2 B clears it and is added. C, at ${info.C.nov.toFixed(3)}, still misses. Novelty itself never changed.`;
+    card.appendChild(p); box.appendChild(card);
+  });
+})();
+
+/* ---------- chart ---------- */
+const STORIES=[[5,1.75],[10,2.75],[15,4],[20,4.75],[25,5.25],[30,6],[35,7.25],[40,8.25],[45,8.75],[50,9.75],[55,11],[60,11.75],[65,12.5],[70,13.5],[75,14],[80,14.75],[85,15.75],[90,16.75],[95,17.5],[100,18],[105,18.75],[110,19.25],[115,19.75],[120,19.75],[125,20.5],[130,21.25],[135,22.25],[140,23],[145,24],[150,24.5],[155,24.5],[160,25],[165,25.25],[170,25.75],[175,26.25],[180,26.75],[185,27.25],[190,27.5],[195,28],[200,28.5]];
+const IMG=[34.5,35.25,36,36.25,36.75,37.25,37.75,38.5,38.75,39,39.5,39.5,40,40.25,41,41.25,41.5,41.75,42,42,29.5,29.75,30.5,31,31.25,32,32.75,33.25,33.5,34.5,34.5,35.5,35.75,36.25,36.75,37.75,38,38.5,39.25,39.5,40,40.75,41.25,41.5,42,42.25,42.5,42.5,42.75,42.75,30,30,30.25,30.75,31.25,32,32.25,32.75,33,33,33.5,33.75,34,34.25,35,36,36.25,37,37.25,37.5,37.75,38,38.5,38.5,38.75,39,39.25,39.75,40.5,40.75,41,41.75,41.75,42,42.25,42.5,42.5,42.5,43,43.25,43.5,43.5,44,44.5,44.5,44.5,44.5,45,45.25,45.5,32,32.25,32.5,32.75,33.25,33.5,33.75,34,34.25,34.5,35,35.5,36,36.5,37,37.5,38.25,38.5,39,39.25,39.75,40.25,40.75,41.25,41.75,41.75,41.75,42,42.5,43,43.5,44.25,44.5,44.75,45,45.25,45.5,45.5,45.75,46.25,46.5,46.5,46.5,46.5,46.75,47,47.5,47.5,47.75,47.75,48.25,48.5,48.75,49,49.25,49.5,49.75,50,50,50.5,50.75,50.75,51,51,51.25,51.75,51.75,51.75,52,52,52.25,52.25,52.75,52.75,53,53,53,53.25,53.5,53.5,53.75,54,54,54.5,55,55,55,55.25,55.25,55.25,55.5,56,56.25,56.5,56.75,56.75,57.25,57.25,57.25,57.5].map((v,i)=>[i+1,v]);
+let chart=null;
+function chartOpt(){
+  const ink2=css("--ink2"), muted=css("--muted"), line=css("--line"), surf=css("--surface3"), ink=css("--ink");
+  return {
+    animationDuration:280, animationEasing:"cubicOut",
+    textStyle:{fontFamily:css("--sans")},
+    grid:{left:44,right:16,top:56,bottom:62},
+    legend:{top:0,left:0,textStyle:{color:ink2,fontSize:12},itemWidth:14,itemHeight:3},
+    tooltip:{trigger:"axis",confine:true,backgroundColor:surf,borderColor:line,textStyle:{color:ink,fontSize:12},
+      formatter:ps=>{ if(!ps.length) return ""; const x=ps[0].value[0]; return "iteration "+x+ps.map(p=>"<br>"+p.marker+p.seriesName+": <b>"+(+p.value[1].toFixed(2))+"%</b>").join(""); }},
+    xAxis:{type:"value",min:0,max:200,name:"iteration",nameLocation:"middle",nameGap:24,nameTextStyle:{color:muted},axisLine:{lineStyle:{color:line}},axisLabel:{color:muted},splitLine:{show:false}},
+    yAxis:{type:"value",min:0,max:60,name:"coverage %",nameGap:12,nameTextStyle:{color:muted,align:"left"},axisLabel:{color:muted},splitLine:{lineStyle:{color:line}}},
+    dataZoom:[{type:"slider",height:16,bottom:4,borderColor:line,textStyle:{color:muted},fillerColor:"rgba(127,127,127,.15)"}],
+    series:[
+      {name:"Stories, qdaif.ipynb",type:"line",data:STORIES,showSymbol:false,lineStyle:{width:2,color:css("--a1")},itemStyle:{color:css("--a1")},emphasis:{focus:"series"}},
+      {name:"Images, qdhf.ipynb",type:"line",data:IMG,showSymbol:false,lineStyle:{width:2,color:css("--a3")},itemStyle:{color:css("--a3")},emphasis:{focus:"series"},
+        markLine:{silent:true,symbol:"none",lineStyle:{color:muted,type:"dashed"},label:{color:muted,formatter:"refit {c}",fontSize:10,position:"insideEndTop"},data:[{xAxis:21},{xAxis:51},{xAxis:101}]}}
+    ]};
+}
+function drawChart(){
+  if(!window.echarts){ $("#chart").textContent="Chart library failed to load."; return; }
+  if(!chart) chart=echarts.init($("#chart"),null,{renderer:"canvas"});
+  chart.setOption(chartOpt(),true);
+}
+drawChart();
+new ResizeObserver(()=>chart&&chart.resize()).observe($("#chart"));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{ drawChart(); full(); });
+
+full();
+})();
+</script>
+</body>
+</html>

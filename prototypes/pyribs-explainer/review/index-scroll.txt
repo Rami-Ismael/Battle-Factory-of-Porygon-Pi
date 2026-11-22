@@ -1,0 +1,13 @@
+tiles 9  sheets 1  tile scale 0.462
+smallest text 13.0px -> 6.0px in the sheet (floor 6.0)
+tokens  Claude Code 2790 (vs 11223 reading tiles separately)  Codex 2528 (vs 10260)
+scroll/sheet-1.png  1710x1245
+  A  A3-loop-machine-dark1200-at30  -> tiles/A3-loop-machine-dark1200-at30.png
+  B  A4-loop-machine-dark1200-at55  -> tiles/A4-loop-machine-dark1200-at55.png
+  C  A5-loop-machine-dark1200-at80  -> tiles/A5-loop-machine-dark1200-at80.png
+  D  B3-archive-atlas-dark1200-at30  -> tiles/B3-archive-atlas-dark1200-at30.png
+  E  B4-archive-atlas-dark1200-at55  -> tiles/B4-archive-atlas-dark1200-at55.png
+  F  B5-archive-atlas-dark1200-at80  -> tiles/B5-archive-atlas-dark1200-at80.png
+  G  C3-two-recipes-dark1200-at30  -> tiles/C3-two-recipes-dark1200-at30.png
+  H  C4-two-recipes-dark1200-at55  -> tiles/C4-two-recipes-dark1200-at55.png
+  I  C5-two-recipes-dark1200-at80  -> tiles/C5-two-recipes-dark1200-at80.png

@@ -1,0 +1,250 @@
+ARCHIVE ATLAS
+PYRIBS 0.12.1
+Pyribs, drawn as a map
+that lights up as it fills
+
+Every quality diversity run in pyribs is a map. Its axes are the measures you choose, each stored solution is a lit spot on it, and the brightness is the objective. This page follows one stream of candidates onto that map and shows which ones each admission rule keeps.
+
+WHAT RIBS MEANS
+Rapid Illumination of Behavior Space
+
+RIBS is the design pyribs implements: an archive that stores solutions, one or more emitters that propose new ones, and a scheduler that connects them. Your own code evaluates each candidate between the scheduler's ask and tell.
+
+The name comes from the title of Fontaine and coauthors, "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space". Pyribs is Python plus RIBS.
+
+Illumination means finding good solutions all over measure space, not one global best. Behavior space is the older name for measure space. Measures were once called behavior characteristics or behavior descriptors.
+
+The map on the right is that space. An emitter throws each candidate from a stored solution. The archive decides whether it stays. The scheduler carries the verdict back to the emitter.
+
+Pick a rule and the same stream gets judged again. Step through to see the reason for each verdict: the k neighbour links, a dashed ring at the novelty threshold, and a solid ring at the candidate's mean neighbour distance. When the solid ring is wider than the dashed one, the candidate counts as novel.
+
+GridArchive, best per cell
+Plain novelty search
+Novelty Search with Local Competition
+Novelty with threshold decay
+measure 1, illustrative
+measure 2, illustrative
+stored, status 2 new
+status 1, replaced a stored one
+status 0, rejected
+throw from a parent
+Lands in an empty cell. Stored.
+Candidate 8, objective 0.46. No incumbent, so it opens a new cell.
+add_info: status=2, value=0.46
+scheduler.tell carries back
+status 2
+to the emitter
+Pause
+Back
+Next
+8 of 48
+ILLUSTRATIVE The 48 candidates, their objective values, the 10 by 10 grid, k = 3, the starting threshold 0.10 and the decay settings are made up for this page. The rules are the pyribs formulas. Throws are drawn in measure space to keep the picture flat. A real emitter changes solution parameters, and evaluation decides where the result lands. The stream is replayed unchanged under every rule, so a throw can start from a parent that this rule rejected. A live emitter samples only stored solutions.
+Same 48 candidates, four rules
+RULE	NEW, 2	REPLACED, 1	REJECTED, 0	STORED AT END
+GridArchive, best per cell	22	16	10	22
+Plain novelty search	26	0	22	26
+Novelty Search with Local Competition	25	10	13	25
+Novelty with threshold decay, threshold ends at 0.034	34	0	14	34
+THE THREE PARTS
+Archive, emitter and scheduler
+Archive
+
+Pyribs defines it as a data structure that stores the solutions the search generates, together with each solution's objective, measures and other fields. Its add method returns an add_info dictionary. For GridArchive, status 0 means not added, 1 means it beat the cell's incumbent, 2 means it found a new cell.
+
+The grid is one geometry among several. CVTArchive splits space into Voronoi regions around fixed centroids. ProximityArchive has no cells at all and admits by distance to stored points.
+
+Emitter
+
+Pyribs calls emitters "algorithms that generate solutions and adapt to objective, measure, and archive insertion feedback." ask() returns a batch of candidates. tell(...) receives them back with their evaluations and add_info. GaussianEmitter samples stored parents and adds Gaussian noise. EvolutionStrategyEmitter runs an evolution strategy and adapts it from a ranking of the feedback.
+
+Scheduler
+
+Pyribs calls it "A basic class that composes an archive with multiple emitters." Scheduler.ask() asks every emitter and joins their batches. Scheduler.tell(objective, measures) adds the batch to the archive, cuts the results back into each emitter's share, and calls each emitter's tell.
+
+Your code
+evaluate(solutions)
+Scheduler
+ask, tell
+Emitters
+ask() and tell(add_info)
+Archive
+add() returns add_info
+1 solutions
+2 objective, measures
+ask
+3 add
+4 add_info, per emitter
+elites
+sample_elites for parents
+One iteration. The scheduler asks the emitters for candidates and hands them to you. You return objective and measures. The scheduler adds them to the archive and routes each emitter its slice of the feedback, drawn in the accent colour. Emitters such as GaussianEmitter also sample stored elites as parents.
+LEVEL OF ABSTRACTION
+Where your code touches each one
+
+In the ordinary loop your code calls only the scheduler. You build the archive and the emitters once, then read the archive for results. You touch an emitter's internals only when you write your own.
+
+The bar under each part shows how often the ordinary loop calls it from your code: every iteration, at setup and readout, or at setup only.
+
+Two exceptions sit lower down. A run with differentiable objectives also calls ask_dqd() and tell_dqd(objective, measures, jacobian) first. Code that imports solutions it already evaluated, or runs its own control flow, can call archive.add directly.
+
+Scheduler
+every iteration
+solutions = scheduler.ask()
+objective, measures = evaluate(solutions)
+scheduler.tell(objective, measures)
+Archive
+setup and readout
+archive = GridArchive(solution_dim=..., dims=..., ranges=...)
+archive.data()   archive.stats   archive.sample_elites(n)
+Emitter
+setup, or a subclass
+emitters = [GaussianEmitter(archive, sigma=0.1, ...)]
+class MyEmitter(EmitterBase): def ask(self): ...
+WHY A SCHEDULER
+Several throwers, one map, one verdict each
+
+With more than one emitter, someone has to join their batches, send one batch through your evaluation, and return each emitter only the verdicts on its own candidates. The scheduler does that bookkeeping.
+
+The pyribs paper gives the scheduler the job of managing how archive and emitters interact. Running several emitters lets the search explore several regions at once. Evaluation stays outside because its dependencies and hardware differ from one application to the next.
+
+BanditScheduler goes further and decides where effort goes. It uses Upper Confidence Bound 1 to pick num_active emitters from a pool, fed by insertion success. A third scheduler, BayesianOptimizationScheduler, pairs with BayesianOptimizationEmitter.
+
+The pyribs docs do not say outright that the scheduler exists to save you this join and slice code. That reason is inferred from the source.
+
+Emitter A, batch 3
+Emitter B, batch 2
+a1
+a2
+a3
+b1
+b2
+a1
+a2
+a3
+b1
+b2
+evaluate all 5
+A.tell(3 rows)
+B.tell(2 rows)
+ask: join 3 + 2
+tell: slice add_info back 3 | 2
+The join and slice Scheduler does each iteration. Two emitters fill one batch of five, your code scores all five at once, and each emitter's tell receives only its own rows. Batch sizes here are an example.
+NOVELTY SEARCH IN PYRIBS
+Three admission rules on one ProximityArchive
+
+All three use ProximityArchive, an archive with no cells. A candidate's novelty is its mean Euclidean distance to its k nearest stored neighbours. The rules differ in what happens next. Switch the map above to each rule to watch them disagree.
+
+ρ(x) = (1/k_eff) · Σ dist(x, μ_i), k_eff = min(k_neighbors, archive size), novel if ρ(x) ≥ novelty_threshold
+Plain novelty search
+
+local_competition=False. Admit if novel, otherwise reject. Objective values are stored but never decide admission. Nothing is replaced. add_info holds status, 0 or 2, and novelty.
+
+Emitter side: EvolutionStrategyEmitter(ranker="nov") ranks candidates by novelty. GaussianEmitter and IsoLineEmitter also work.
+
+Novelty Search with Local Competition
+
+local_competition=True, objectives required. A novel candidate is added whatever its objective. A non-novel one replaces its single closest neighbour only if its objective is strictly higher. status 1 marks a replacement.
+
+LC(x) = Σ 1[ f(x) > f(μ_i) ]
+
+The local competition count is returned but does not decide replacement. ranker="nslc" sorts by Pareto fronts over novelty and that count.
+
+Novelty with threshold decay
+
+Set threshold_decay_rate. After threshold_decay_itrs add calls in a row with no novel insert, the threshold becomes max(threshold_decay_min, threshold * rate) and the counter resets. Any novel insert resets it too. Replacements alone do not.
+
+Decay only lowers the cutoff. The distance formula stays the same. The supported algorithms page has no recipe by this name. It is an archive setting, added in v0.12.0.
+
+The maze tutorial, the published novelty run
+
+Robot policies with 138 parameters, measures are the robot's final x and y in [0, 1]. ProximityArchive with k_neighbors=15 and novelty_threshold=0.01. Five EvolutionStrategyEmitters with ranker="nov" and batch 30 each, for 2500 iterations. A passive 100 by 100 GridArchive measures coverage and does not steer the search.
+
+proximity archive entries 23,633
+passive grid coverage 88.930%
+at iteration 2500
+
+One published run, not an average. The tutorial logs no result for local competition or threshold decay. History: ProximityArchive and local competition in it came in v0.8.0, NSLCRanker in v0.11.0, threshold decay in v0.12.0.
+
+TUTORIAL ONE
+Orchestrating LLMs to Write Diverse Stories with Quality Diversity through AI Feedback
+
+Each solution is a story string. A 20 by 20 GridArchive over romance and happy ending, both rated 1 to 10, keeps the best story in each of its 400 cells. After 200 iterations, 28.5% of the cells are lit.
+
+One large language model, Llama 3.1 8B instruct at q4_K_M, does both jobs. It rewrites stories, and it rates every candidate five times each for quality, romance and happy ending. That makes 15 rating calls per story, each clipped to [1, 10] and averaged.
+
+The emitter is a custom LLMDirectionalEmitter, a subclass of EmitterBase. With an empty archive it returns three seed stories. After that it samples one stored story and picks up or down for each measure, for example "make the story sound more like a romance story" and "make the ending of the story less happy". The four diagonal arrows in the map are those four choices. It defines no tell, so it never adapts.
+
+A plain Scheduler(archive, emitters) runs 200 iterations, one new story each. The saved run took 35:21.
+
+Romance Story, rated 1 to 10
+Happy Ending, rated 1 to 10
+1
+1
+10
+10
+Replay
+iteration 200
+coverage 28.500%
+cells 114 of 400
+quality diversity score, raw 955.8
+Cell counts are the logged coverage times 400, from qdaif.ipynb. ILLUSTRATIVE Which cells light up, their brightness, and the arrow's parent cell are made up. The notebook's own heatmap uses the same axes and colours cells by quality from 1 to 10.
+TUTORIAL TWO
+Incorporating Human Feedback into Quality Diversity for Diversified Text-to-Image Generation
+
+Here the map's axes are learned, and they are relearned at iterations 21, 51 and 101. Each time, every stored elite is scored again, gets new coordinates, and is put into a fresh 20 by 20 archive. Coverage drops at each of those iterations, then climbs again.
+
+A solution is a Stable Diffusion latent of 4 by 32 by 32, 4096 numbers, decoded to a 256 by 256 image for "an astronaut riding a horse on mars". The objective is a rescaled CLIP score, computed once per image.
+
+The measures come from DivProj, one linear layer from 512 CLIP image features to two coordinates. It is trained on triplets labelled by DreamSim, which stands in for a human. Each retrain adds 1000 triplets and fits a fresh model. Grid bounds are the 1st and 99th percentiles of the new coordinates.
+
+The emitter is a new GaussianEmitter with sigma=0.1 and batch 4. It inherits a tell that does nothing. The saved run of 200 iterations took 14:21.
+
+The axes have no names. The notebook's collage shows smaller objects toward the upper left and a darker sky toward the top, trends seen after the fact.
+
+Diversity Metric 1, learned
+Diversity Metric 2, learned
+Replay
+iteration 200
+coverage 57.5%
+elites 230 of 400
+quality diversity score, normalized 41.93
+iteration 1
+initial fit, 1000 triplets
+14 epochs, validation accuracy 0.74
+iteration 21
+retrain, 2000 triplets
+15 epochs, validation accuracy 0.774
+iteration 51
+retrain, 3000 triplets
+15 epochs, validation accuracy 0.807
+iteration 101
+retrain, 4000 triplets
+12 epochs, validation accuracy 0.80
+Elite counts are the logged coverage times 400, and the retrain results are the notebook's own log lines, from qdhf.ipynb. ILLUSTRATIVE Elite positions and brightness are made up. The page draws a coverage drop as elites landing in shared cells, of which the archive keeps one. The notebook logs only the counts.
+LOGGED PROGRESS
+Coverage over the two saved runs
+
+Both maps have 400 cells, so coverage compares directly. The story run lights cells slowly, one story per iteration. The image run starts from 200 random latents at 34.5% and steps down at each retrain: 42.0% to 29.5% at 21, 42.75% to 30.0% at 51, 45.5% to 32.0% at 101. It ends at 57.5%.
+
+The logs also report a quality diversity score, raw for stories at 955.8, normalized for images at 41.93, so the two are not on one scale. Neither log prints a maximum objective.
+
+coverage %
+iteration
+0
+10
+20
+30
+40
+50
+60
+0
+50
+100
+150
+200
+Stories, qdaif.ipynb
+Images, qdhf.ipynb
+retrain 21
+retrain 51
+retrain 101
+Coverage, percent of 400 cells, from the saved outputs of tutorials/qdaif.ipynb, logged every 5 iterations, and tutorials/qdhf.ipynb, logged every iteration, pyribs v0.12.1. Vertical lines mark the image run's retrains.
+Facts come from three research notes in research_notes/Pyribs framework and tutorials/: ribs_framework_components.md, novelty_search_variants.md and qdaif_qdhf_tutorials.md, which cite pyribs v0.12.1 source, the pyribs paper and the tutorial notebooks, checked 11 November 2026. Everything marked illustrative is simulated for this page.

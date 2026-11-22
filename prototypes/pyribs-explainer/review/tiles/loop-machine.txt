@@ -1,0 +1,378 @@
+PORYGON-PI NOTES
+PYRIBS V0.12.1 · CHECKED 11 NOV 2026
+The pyribs loop,
+one turn at a time
+
+pyribs is a Python library for quality diversity optimization. It implements RIBS, short for Rapid Illumination of Behavior Space: an archive, one or more emitters and a scheduler. Your code sits between their ask and their tell. Step the machine below to watch one batch go round.
+
+THE MACHINE
+Four lanes, one batch
+
+Each lane is one level of abstraction. Your code is on top. Below it the scheduler routes, the emitters propose candidates, and the archive stores what it keeps.
+
+The archive is the data structure that stores the solutions the algorithm generates, together with each one's objective, measures and other fields.
+
+An emitter is one of the "algorithms that generate solutions and adapt to objective, measure, and archive insertion feedback." Its ask() returns a batch. Its tell() takes that batch back with its scores and the archive's verdict.
+
+The scheduler is "a basic class that composes an archive with multiple emitters." It calls every emitter, joins their batches, hands them to you, and after you score them it adds them to the archive and returns each emitter its own slice.
+
+Press Next, or tap any step in the list. The coloured squares beside each code line mark which lanes that line touches.
+
+Default
+Stories tutorial
+Images tutorial
+Maze, novelty
+Scheduler
+YOUR CODE
+calls ask and tell, runs evaluate
+lengths [3, 3]
+SCHEDULER
+routes; you call it every iteration
+lengths [3, 3]
+EMITTERS
+built once; subclass EmitterBase to customise
+GaussianEmitter
+status [2, 2, 2] · adapts to the slice
+IsoLineEmitter
+status [2, 2, 2] · adapts to the slice
+ARCHIVE
+built once; you read data(), stats
+measure 0 →
+measure 1 →
+0 of 60 cells hold an elite
+scored, added
+status 0, not added
+elite, darker = higher objective
+sampled parent
+2
+2
+2
+2
+2
+2
+YOUR LOOP, WITH THE SCHEDULER
+C
+S
+E
+A
+archive = GridArchive(solution_dim=D, dims=[10, 6], ranges=[(0, 1), (0, 1)])
+emitters = [GaussianEmitter(archive, ...), IsoLineEmitter(archive, ...)]
+scheduler = Scheduler(archive, emitters)
+for itr in range(total_itrs):
+    solutions = scheduler.ask()
+    objective, measures = evaluate(solutions)
+    scheduler.tell(objective, measures)
+archive.data(), archive.stats
+
+Squares mark the lanes a line touches: code, scheduler, emitters, archive.
+
+Back
+Next
+Reset
+iteration 1
+
+Iteration 1 is about to start. The archive holds what earlier iterations kept.
+
+0 of 60 cells hold an elite
+Ready
+Scheduler fans out to every emitter's ask()
+Batches join into one
+Your code receives the joined batch
+You evaluate: objectives and measures
+tell() checks lengths against the ledger
+archive.add() files the batch
+Each emitter gets only its own slice
+
+Default loadout: archive size, batch sizes, every objective and measure value and every landing spot are illustrative. Status codes follow the GridArchive.add rules.
+
+QUESTION 1
+What Rapid Illumination of Behavior Space means
+
+RIBS is the conceptual framework of archive, emitters and scheduler. pyribs is Python plus RIBS.
+
+The name comes from a paper title by Fontaine and colleagues, "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space."
+
+A quality diversity problem has one scalar objective f and a vector of measure functions m. The ideal is the best objective at every reachable measure vector, relaxed to a finite archive of representatives.
+
+Illumination means finding representative high-quality solutions throughout measure space instead of one global optimum. "Behavior space" is measure space under its older name: measures were once called behavior characteristics or behavior descriptors.
+
+The paper's heatmaps draw it this way: coordinates are measures, colour is objective.
+
+best
+A single-objective optimizer returns one point.
+Illumination returns the best solution found in each region it reaches.
+
+Both panels: horizontal and vertical position are the two measures, shade is objective. ILLUSTRATIVE values.
+
+QUESTION 3
+Where your code meets each part
+
+You build all three once. In the loop you call only the scheduler. You reach the emitter lane by subclassing, and the archive lane by reading results.
+
+The ordinary loop is three lines: scheduler.ask(), your evaluation, scheduler.tell(objective, measures). Evaluation runs outside pyribs and can run in parallel.
+
+Two exceptions. Differentiable workflows first call ask_dqd() and tell_dqd(objective, measures, jacobian). Custom control flow, or importing solutions you already scored, calls archive.add directly.
+
+YOUR CODE
+YOU OWN
+evaluation: turning solutions into objectives and measures. pyribs never sees how.
+TOUCHES PYRIBS BY
+constructing the three parts, then the loop.
+SCHEDULER
+EVERY ITERATION
+scheduler.ask() and scheduler.tell(objective, measures). Ask twice without a tell and it raises an error.
+CHOICES
+Scheduler asks all emitters. BanditScheduler picks num_active of a pool by Upper Confidence Bound 1. BayesianOptimizationScheduler pairs with its own emitter.
+EMITTERS
+CONSTRUCT
+pass the archive, a batch size, a step size. Stateless ones leave tell as a no-op.
+CUSTOMISE
+subclass EmitterBase, override generation and, when needed, adaptation. The stories tutorial does exactly this.
+ARCHIVE
+CONSTRUCT
+its geometry: grid dims and ranges, Voronoi centroids, or a novelty threshold.
+READ
+data(), stats, sample_elites(n). Heatmaps and plots read the archive's data.
+QUESTION 4
+Why a scheduler
+
+With several emitters, someone must remember which rows came from whom, add the joined batch to the archive once, and hand each emitter only its slice. The scheduler does that bookkeeping.
+
+Turn the Scheduler switch off in the machine above. Its lane disappears and the ledger of batch lengths moves into your code. The code panel shows the loop you would then write.
+
+The paper gives two reasons for the design. The scheduler manages how archive and emitters interact, and several emitters can explore several regions at once. Evaluation stays in your code because dependencies and hardware differ across applications.
+
+The docs never say the scheduler exists to save you the slicing code. That reason is read from the Scheduler source, and the loop on the right is a reconstruction from it, not a recipe from the docs.
+
+With Scheduler, 3 loop lines
+solutions = scheduler.ask()
+objective, measures = evaluate(solutions)
+scheduler.tell(objective, measures)
+Without it, 10 loop lines
+batches = [e.ask() for e in emitters]
+lengths = [len(b) for b in batches]
+solutions = np.concatenate(batches)
+objective, measures = evaluate(solutions)
+add_info = archive.add(solutions, objective, measures)
+start = 0
+for e, n in zip(emitters, lengths):
+    s = slice(start, start + n)
+    e.tell(solutions[s], objective[s], measures[s],
+           {k: v[s] for k, v in add_info.items()})
+    start += n
+Fan out
+calls every emitter's ask
+Remember
+keeps each batch's length
+Join
+concatenates along axis 0
+Check
+validates lengths at tell
+Insert
+archive.add, plus an optional result archive
+Slice
+solutions, evaluations and add_info per emitter
+Guard
+ask twice without tell raises an error
+Allocate
+only BanditScheduler: chooses which emitters run
+
+Highlighted lines are the work the scheduler does for you. Duties transcribed from the Scheduler and BanditScheduler source in v0.12.1.
+
+QUESTION 5
+Novelty search: the archive lane, swapped
+
+Replace the grid with a ProximityArchive. It has no cells. It admits a candidate when it is far enough from what is already stored.
+
+A candidate's novelty is its mean Euclidean distance to its nearest archived neighbours. pyribs measures against the current archive only; candidates in the same batch are not each other's neighbours. Admission is novelty >= novelty_threshold, so equality passes.
+
+Three modes change one rule each. Plain novelty search ignores the objective. Local competition lets a candidate that is not novel replace its single closest neighbour if it is strictly better. Threshold decay lowers the cutoff after add calls that admit nothing. The novelty formula never changes.
+
+The emitter side changes its ranker: ranker="nov" sorts by novelty, ranker="nslc" runs a Pareto sort on novelty and local competition. Threshold decay changes only the archive.
+
+The Maze loadout in the machine runs the plain mode with the tutorial's settings.
+
+ρ(x) = (1/k) · Σi=1..k dist(x, μi) k = min(k_neighbors, archive size)
+Novelty search
+local_competition=False
+4
+6
+3
+5
+7
+2
+5
+4
+A 3
+B 2
+C 8
+novelty → status
+A
+0.537 → 2
+B
+0.122 → 0
+C
+0.103 → 0
+threshold 0.24
+
+Only A is far enough: status 2. C has the best objective here, 8, and is still rejected. The objective plays no part in admission.
+
+Novelty Search with Local Competition
+local_competition=True
+4
+6
+3
+5
+7
+2
+5
+4
+A 3
+B 2
+C 8
+novelty → status
+A
+0.537 · beats 1 → 2
+B
+0.122 · beats 0 → 0
+C
+0.103 · beats 3 → 1
+threshold 0.24
+
+A is novel, so it is added whatever its objective. B and C are not novel. C scores 8 and beats its single closest neighbour, scored 6, so it replaces that point: status 1. B scores 2 and loses: status 0.
+
+Threshold decay
+threshold_decay_rate=0.5, threshold_decay_itrs=1
+4
+6
+3
+5
+7
+2
+5
+4
+B 2
+C 8
+add call 1
+B
+0.122 → 0
+C
+0.103 → 0
+threshold 0.24
+add call 2
+B
+0.122 → 2
+C
+0.103 → 0
+threshold 0.12
+
+A batch of only B and C. Call 1 adds nothing, so after 1 such call the threshold halves from 0.24 to 0.12. In call 2 B clears it and is added. C, at 0.103, still misses. Novelty itself never changed.
+
+Same archive and candidates in every panel; the decay panel sends only B and C, so its first add call admits nothing. Lines join each candidate to its k = 3 nearest stored neighbours. Dot shade and the small number are objective. Bars compare novelty with the threshold. ILLUSTRATIVE points, objectives, k, threshold 0.24 and decay rate 0.5. Status codes and rules are from the v0.12.1 source.
+
+MODE	ARCHIVE ARGUMENTS	EMITTER RANKER	STATUS CODES RETURNED
+Novelty search	local_competition=False	"nov"	0 rejected, 2 added. Fields status, novelty.
+Novelty Search with Local Competition	local_competition=True, objectives required	"nslc", or "nslc_classic" with a genotypic diversity field you supply	0 no improvement, 1 improves a neighbour, 2 added. Adds local_competition and value.
+Threshold decay	threshold_decay_rate, threshold_decay_itrs=1, threshold_decay_min=0.0	unchanged	as the mode it decorates
+
+Decay is off by default, threshold_decay_rate=None. The rate must lie in the interval from 0, exclusive, to 1. After threshold_decay_itrs consecutive add calls with no novel addition the threshold becomes max(threshold_decay_min, threshold * rate). Replacements alone do not reset the counter. The docs' supported-algorithms page lists novelty search and Novelty Search with Local Competition but has no entry named threshold decay. History: ProximityArchive and local competition arrived in v0.8.0, NSLCRanker in v0.11.0, threshold decay in v0.12.0.
+
+QUESTION 6
+Two tutorials, two loadouts of the same machine
+
+Both notebooks use one GridArchive of 20 by 20 cells, one emitter and the plain Scheduler. What changes is what a solution is, who scores it, and what your code does between ask and tell.
+
+Orchestrating LLMs to Write Diverse Stories with Quality Diversity through AI Feedback
+
+A solution is a Python string: a story about a suspicious spy and a rich politician. A language model, Llama 3.1 8B instruct at q4_K_M, both rewrites stories and rates them.
+
+The objective asks whether it is a high-quality short story about those two characters. Measure 0 asks whether it is a romance, measure 1 whether it has a happy ending. Each rating is clipped to 1 to 10 and averaged over five calls, so one story costs 15 rating calls.
+
+The custom emitter samples an elite, picks up or down for each measure, and asks the model to rewrite. It defines no tell, so the inherited one adapts nothing.
+
+Load into the machine
+
+YOUR CODE
+evaluator.evaluate(solutions): 3 questions, 5 calls each, ratings clipped to [1, 10]
+SCHEDULER
+Scheduler(archive, emitters)
+EMITTER
+LLMDirectionalEmitter, subclass of EmitterBase, batch_size=1. Returns three seed stories while the archive is empty.
+ARCHIVE
+GridArchive(solution_dim=(), dims=[20, 20], ranges=[(1, 10), (1, 10)], solution_dtype=object): 400 cells, x Romance Story, y Happy Ending, colour quality
+DOWN
+UP
+MEASURE 0
+"make the story sound less like a romance story"
+"make the story sound more like a romance story"
+MEASURE 1
+"make the ending of the story less happy"
+"make the ending of the story more happy"
+
+The four direction strings the emitter splices into its mutation prompt, quoted from qdaif.ipynb.
+
+200
+iterations, batch 1
+28.5%
+final coverage
+955.8
+raw quality diversity score
+~1 h
+on a Colab T4, about half on an RTX A6000
+Incorporating Human Feedback into Quality Diversity for Diversified Text-to-Image Generation
+
+A solution is a Stable Diffusion starting latent, 4 by 32 by 32, flattened to 4096 numbers. Your code renders it at 256 by 256 with miniSD for the prompt "an astronaut riding a horse on mars".
+
+CLIP ViT-B/32 scores each image once for the objective. The two measures are learned: DivProj, one linear layer, maps 512 CLIP image features to two coordinates.
+
+Human feedback is simulated. DreamSim judges triplets of images, and DivProj trains so its distances agree.
+
+So your code lane grows: at iterations 1, 21, 51 and 101 it adds 1000 triplets, fits a fresh DivProj, re-scores the current elites, and builds a new archive and scheduler.
+
+Load into the machine
+
+YOUR CODE
+evaluate_lsi(...): render, CLIP score (10 - 100/L)*10, DivProj measures. Plus the refit at update_schedule = [1, 21, 51, 101].
+SCHEDULER
+Scheduler(archive, emitters), rebuilt at each refit
+EMITTER
+GaussianEmitter(archive=archive, sigma=0.1, batch_size=4, seed=123). Samples elites and adds noise. Its tell is the base no-op.
+ARCHIVE
+GridArchive(dims=(20, 20), ranges=archive_bounds, seed=123). Bounds are the 1st and 99th percentiles of the newly projected coordinates.
+ITR 1
+0.74
+n=1000 · 14 epochs
+ITR 21
+0.774
+n=2000 · 15 epochs
+ITR 51
+0.807
+n=3000 · 15 epochs
+ITR 101
+0.80
+n=4000 · 12 epochs
+
+DivProj validation accuracy at each refit, from the retraining log in qdhf.ipynb. Triplets are kept between refits, so n grows by 1000 each time.
+
+200
+iterations, batch 4
+57.5%
+final coverage
+41.93
+normalized quality diversity score
+~45 min
+stated, on a graphics processor
+
+The final 4 by 4 collage shows smaller objects upper left, larger bottom right, dark sky at top and dusty sky at bottom. The notebook reads these trends off afterwards; the axes carry no supervised labels.
+
+How the two runs filled their archives
+
+Both archives have 400 cells, so coverage is comparable. Their quality diversity scores are not: one is raw, one normalized.
+
+The images curve falls at each refit. A new projection means a new archive, rebuilt only from the current elites: 42.0% drops to 29.5% at iteration 21, 42.75% to 30.0% at 51, 45.5% to 32.0% at 101.
+
+Neither saved log records the maximum objective.
+
+Archive coverage per iteration from the saved outputs of qdaif.ipynb, logged every 5 iterations, and qdhf.ipynb, logged every iteration, pyribs v0.12.1 tutorials. Dashed lines mark the DivProj refits. Neither notebook pins a ribs version.
+
+Facts from three research notes in research_notes/Pyribs framework and tutorials/: ribs_framework_components.md, novelty_search_variants.md and qdaif_qdhf_tutorials.md, which cite the RIBS paper, the pyribs v0.12.1 source and the two tutorial notebooks. Anything marked illustrative is invented for the demonstration.
