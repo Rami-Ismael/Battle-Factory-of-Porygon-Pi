@@ -1,0 +1,1142 @@
+[
+  {
+    "key": "bc_det_noshuffle",
+    "label": "Behaviour cloning, deterministic, fixed slot order",
+    "policy": "bc_det",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.1726190476190476,
+    "single_game_sd": 0.41547448491940825,
+    "true_matchup_sd": 0.2850098069577814,
+    "icc": 0.31999490251051366,
+    "decisive_share": 0.5416666666666666,
+    "label_se_49": 0.059353497845629745,
+    "label_se_24": 0.08480837409985123,
+    "split_half_r": 0.5235017230669389,
+    "ci95": {
+      "within_pair_var": [
+        0.13095238095238096,
+        0.21279761904761904
+      ],
+      "single_game_sd": [
+        0.36187343222787294,
+        0.4612999230951801
+      ],
+      "true_matchup_sd": [
+        0.19222816977399124,
+        0.34684460142293105
+      ],
+      "icc": [
+        0.14817543972062924,
+        0.4782943004517349
+      ],
+      "label_se_49": [
+        0.051696204603981846,
+        0.06589998901359716
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.348958333333334,
+    "mean_seconds": 0.7628953977499998,
+    "iterations_per_decision": 0.0,
+    "fallbacks": 0,
+    "seconds_this_run": 5.142646541004069,
+    "config": {
+      "command": "noise",
+      "policy": "bc_det",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": false,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 4,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_montecarlo",
+    "label": "Rust Reg M-B Flat Monte Carlo (30k iters)",
+    "policy": "rust_montecarlo",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.18229166666666666,
+    "single_game_sd": 0.42695628191498325,
+    "true_matchup_sd": 0.26760901205552357,
+    "icc": 0.2820512820512821,
+    "decisive_share": 0.375,
+    "label_se_49": 0.060993754559283325,
+    "label_se_24": 0.08715208609729953,
+    "split_half_r": 0.6352888744681341,
+    "ci95": {
+      "within_pair_var": [
+        0.14285714285714285,
+        0.21949404761904764
+      ],
+      "single_game_sd": [
+        0.3779644730092272,
+        0.46850191847958067
+      ],
+      "true_matchup_sd": [
+        0.1677629575856607,
+        0.3308900491669116
+      ],
+      "icc": [
+        0.11399843301123012,
+        0.4347784780061437
+      ],
+      "label_se_49": [
+        0.05399492471560389,
+        0.06692884549708294
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 5.208333333333333,
+    "mean_seconds": 1.6050489455208325,
+    "iterations_per_decision": 27855.718085106382,
+    "fallbacks": 0,
+    "seconds_this_run": 80.11648291700112,
+    "config": {
+      "command": "noise",
+      "policy": "rust_montecarlo",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 30000,
+      "workers": 4,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_uct_rollout",
+    "label": "Rust Reg M-B UCT with random playouts (30k iters)",
+    "policy": "rust_uct_rollout",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.18675595238095236,
+    "single_game_sd": 0.43215269567706316,
+    "true_matchup_sd": 0.25616745501790805,
+    "icc": 0.26001409985259244,
+    "decisive_share": 0.4166666666666667,
+    "label_se_49": 0.06173609938243759,
+    "label_se_24": 0.08821279961475555,
+    "split_half_r": 0.5263245587591909,
+    "ci95": {
+      "within_pair_var": [
+        0.150297619047619,
+        0.22172619047619047
+      ],
+      "single_game_sd": [
+        0.3876823687603281,
+        0.47087810575157396
+      ],
+      "true_matchup_sd": [
+        0.1573139243914963,
+        0.31998034683437737
+      ],
+      "icc": [
+        0.10168145107904139,
+        0.4073745002221235
+      ],
+      "label_se_49": [
+        0.055383195537189726,
+        0.06726830082165343
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 7.682291666666667,
+    "mean_seconds": 2.2718487256979167,
+    "iterations_per_decision": 28016.032064128256,
+    "fallbacks": 0,
+    "seconds_this_run": 111.8900910000084,
+    "config": {
+      "command": "noise",
+      "policy": "rust_uct_rollout",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 30000,
+      "workers": 4,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_foulplay_det",
+    "label": "Rust Reg M-B Foul Play, deterministic argmax (30k iters)",
+    "policy": "rust_foulplay_det",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.19345238095238096,
+    "single_game_sd": 0.43983221909312303,
+    "true_matchup_sd": 0.23922158530054516,
+    "icc": 0.22828752097044777,
+    "decisive_share": 0.375,
+    "label_se_49": 0.06283317415616044,
+    "label_se_24": 0.08978037576784736,
+    "split_half_r": 0.6259807120445902,
+    "ci95": {
+      "within_pair_var": [
+        0.1644345238095238,
+        0.2217261904761905
+      ],
+      "single_game_sd": [
+        0.4055052697678833,
+        0.47087810575157396
+      ],
+      "true_matchup_sd": [
+        0.15245786506808368,
+        0.2927506844578123
+      ],
+      "icc": [
+        0.09703184756489659,
+        0.34285714285714275
+      ],
+      "label_se_49": [
+        0.05792932425255476,
+        0.06726830082165343
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.692708333333334,
+    "mean_seconds": 0.9585011367499998,
+    "iterations_per_decision": 28005.898366606172,
+    "fallbacks": 0,
+    "seconds_this_run": 48.0841253749968,
+    "config": {
+      "command": "noise",
+      "policy": "rust_foulplay_det",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 30000,
+      "workers": 4,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_uct_rollout_100k",
+    "label": "Rust Reg M-B UCT with random playouts (100k iters, 1 sample)",
+    "policy": "rust_uct_rollout",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.1986607142857143,
+    "single_game_sd": 0.4457137133695959,
+    "true_matchup_sd": 0.2332302530369442,
+    "icc": 0.21495685522531158,
+    "decisive_share": 0.375,
+    "label_se_49": 0.06367338762422799,
+    "label_se_24": 0.09098093075971889,
+    "split_half_r": 0.4903883968054548,
+    "ci95": {
+      "within_pair_var": [
+        0.1577380952380952,
+        0.2358630952380952
+      ],
+      "single_game_sd": [
+        0.39716255518124466,
+        0.4856573846222203
+      ],
+      "true_matchup_sd": [
+        0.1172203844475043,
+        0.30676676622685783
+      ],
+      "icc": [
+        0.055049735929754096,
+        0.3723080902800233
+      ],
+      "label_se_49": [
+        0.05673750788303495,
+        0.0693796263746029
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.244791666666666,
+    "mean_seconds": 6.327735626765623,
+    "iterations_per_decision": 93268.54704906375,
+    "fallbacks": 0,
+    "seconds_this_run": 156.83330970900715,
+    "config": {
+      "command": "noise",
+      "policy": "rust_uct_rollout",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 100000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_uct_rollout_4x25k",
+    "label": "Rust Reg M-B UCT with random playouts (4 samples \u00d7 25k iters)",
+    "policy": "rust_uct_rollout",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.20089285714285712,
+    "single_game_sd": 0.4482107285003976,
+    "true_matchup_sd": 0.21967694024301726,
+    "icc": 0.19368974583698514,
+    "decisive_share": 0.3333333333333333,
+    "label_se_49": 0.06403010407148536,
+    "label_se_24": 0.09149063183892499,
+    "split_half_r": 0.3748245840327921,
+    "ci95": {
+      "within_pair_var": [
+        0.15997023809523808,
+        0.2380952380952381
+      ],
+      "single_game_sd": [
+        0.39996279588886524,
+        0.4879500364742666
+      ],
+      "true_matchup_sd": [
+        0.0895247834568846,
+        0.29487019901137923
+      ],
+      "icc": [
+        0.03316912972085388,
+        0.3523809523809524
+      ],
+      "label_se_49": [
+        0.05713754226983789,
+        0.06970714806775237
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 7.71875,
+    "mean_seconds": 6.257156439010416,
+    "iterations_per_decision": 93431.93782902983,
+    "fallbacks": 0,
+    "seconds_this_run": 158.46724800000084,
+    "config": {
+      "command": "noise",
+      "policy": "rust_uct_rollout",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 4,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 25000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_foulplay",
+    "label": "Rust Reg M-B Foul Play, 75% stochastic vote (30k iters)",
+    "policy": "rust_foulplay",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.2068452380952381,
+    "single_game_sd": 0.45480241654507303,
+    "true_matchup_sd": 0.21483764754649642,
+    "icc": 0.18243135249176867,
+    "decisive_share": 0.2916666666666667,
+    "label_se_49": 0.06497177379215328,
+    "label_se_24": 0.0928361545266799,
+    "split_half_r": 0.4599016172872793,
+    "ci95": {
+      "within_pair_var": [
+        0.17485119047619047,
+        0.23288690476190477
+      ],
+      "single_game_sd": [
+        0.41815211404008285,
+        0.48258357282641184
+      ],
+      "true_matchup_sd": [
+        0.12145597060264697,
+        0.27804345903810007
+      ],
+      "icc": [
+        0.058899218322771514,
+        0.3079525670925993
+      ],
+      "label_se_49": [
+        0.05973601629144041,
+        0.06894051040377312
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.520833333333334,
+    "mean_seconds": 0.9082861981406262,
+    "iterations_per_decision": 28021.749190189727,
+    "fallbacks": 0,
+    "seconds_this_run": 45.46423525000864,
+    "config": {
+      "command": "noise",
+      "policy": "rust_foulplay",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 30000,
+      "workers": 4,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "bc_det",
+    "label": "Behaviour cloning, deterministic argmax",
+    "policy": "bc_det",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.2068452380952381,
+    "single_game_sd": 0.45480241654507303,
+    "true_matchup_sd": 0.2105792501658557,
+    "icc": 0.17653498180881533,
+    "decisive_share": 0.20833333333333334,
+    "label_se_49": 0.06497177379215328,
+    "label_se_24": 0.0928361545266799,
+    "split_half_r": 0.5067927641305427,
+    "ci95": {
+      "within_pair_var": [
+        0.17410714285714288,
+        0.23511904761904767
+      ],
+      "single_game_sd": [
+        0.41726148019814013,
+        0.4848907584384834
+      ],
+      "true_matchup_sd": [
+        0.11977971067349807,
+        0.2720747151447889
+      ],
+      "icc": [
+        0.058205919023557956,
+        0.2938078108941418
+      ],
+      "label_se_49": [
+        0.05960878288544859,
+        0.06927010834835477
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.578125,
+    "mean_seconds": 0.7765766924999995,
+    "iterations_per_decision": 0.0,
+    "fallbacks": 0,
+    "seconds_this_run": 5.228255750000244,
+    "config": {
+      "command": "noise",
+      "policy": "bc_det",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 4,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_foulplay_hybrid",
+    "label": "Rust Reg M-B Foul Play, 2-turn rollout + doubles eval (30k iters)",
+    "policy": "rust_foulplay_hybrid",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.20907738095238096,
+    "single_game_sd": 0.457249801478777,
+    "true_matchup_sd": 0.2093080201723971,
+    "icc": 0.17323867088809997,
+    "decisive_share": 0.25,
+    "label_se_49": 0.06532140021125385,
+    "label_se_24": 0.09333572488432572,
+    "split_half_r": 0.40125193203155124,
+    "ci95": {
+      "within_pair_var": [
+        0.17485119047619047,
+        0.24107142857142858
+      ],
+      "single_game_sd": [
+        0.41815211404008285,
+        0.49099025303098287
+      ],
+      "true_matchup_sd": [
+        0.09389007823455196,
+        0.27891470660593826
+      ],
+      "icc": [
+        0.03565801742709238,
+        0.30611335645864496
+      ],
+      "label_se_49": [
+        0.05973601629144041,
+        0.07014146471871184
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.21875,
+    "mean_seconds": 1.393129784520833,
+    "iterations_per_decision": 28162.097735399286,
+    "fallbacks": 0,
+    "seconds_this_run": 69.96234058399568,
+    "config": {
+      "command": "noise",
+      "policy": "rust_foulplay_hybrid",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 30000,
+      "workers": 4,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "foulplay_det",
+    "label": "Showdown JS Foul Play, deterministic argmax",
+    "policy": "foulplay_det",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.2113095238095238,
+    "single_game_sd": 0.45968415657875766,
+    "true_matchup_sd": 0.2034892318891199,
+    "icc": 0.1638504864311316,
+    "decisive_share": 0.25,
+    "label_se_49": 0.06566916522553681,
+    "label_se_24": 0.09383263553830028,
+    "split_half_r": 0.5921857636494984,
+    "ci95": {
+      "within_pair_var": [
+        0.17857142857142858,
+        0.24255952380952372
+      ],
+      "single_game_sd": [
+        0.4225771273642583,
+        0.4925033236532762
+      ],
+      "true_matchup_sd": [
+        0.08138575615147801,
+        0.26742762318783064
+      ],
+      "icc": [
+        0.02690273626120954,
+        0.28773812200841664
+      ],
+      "label_se_49": [
+        0.0603681610520369,
+        0.07035761766475374
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 7.416666666666667,
+    "mean_seconds": 8.040005656473962,
+    "iterations_per_decision": 227.7558859975217,
+    "fallbacks": 0,
+    "seconds_this_run": 202.43096429199795,
+    "config": {
+      "command": "noise",
+      "policy": "foulplay_det",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 400,
+      "previewMs": 500,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "montecarlo",
+    "label": "Showdown JS Flat Monte Carlo",
+    "policy": "montecarlo",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.20833333333333337,
+    "single_game_sd": 0.45643546458763845,
+    "true_matchup_sd": 0.18825331761805128,
+    "icc": 0.14537854156990243,
+    "decisive_share": 0.16666666666666666,
+    "label_se_49": 0.06520506636966264,
+    "label_se_24": 0.09316949906249125,
+    "split_half_r": 0.3888498276734547,
+    "ci95": {
+      "within_pair_var": [
+        0.1711309523809524,
+        0.2410714285714286
+      ],
+      "single_game_sd": [
+        0.4136797703308108,
+        0.49099025303098287
+      ],
+      "true_matchup_sd": [
+        0.048345423989287054,
+        0.2525427110628479
+      ],
+      "icc": [
+        0.010161386730424379,
+        0.2618031261032833
+      ],
+      "label_se_49": [
+        0.05909711004725869,
+        0.07014146471871184
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.161458333333334,
+    "mean_seconds": 8.685554652078123,
+    "iterations_per_decision": 51.458333333333336,
+    "fallbacks": 0,
+    "seconds_this_run": 226.0290747090039,
+    "config": {
+      "command": "noise",
+      "policy": "montecarlo",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 400,
+      "previewMs": 500,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_foulplay_doubles",
+    "label": "Rust Reg M-B Foul Play, doubles evaluator (30k iters)",
+    "policy": "rust_foulplay_doubles",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.20833333333333334,
+    "single_game_sd": 0.45643546458763845,
+    "true_matchup_sd": 0.1824501122999404,
+    "icc": 0.13776944704779753,
+    "decisive_share": 0.25,
+    "label_se_49": 0.06520506636966264,
+    "label_se_24": 0.09316949906249124,
+    "split_half_r": 0.4829461541857612,
+    "ci95": {
+      "within_pair_var": [
+        0.1644345238095238,
+        0.24404761904761896
+      ],
+      "single_game_sd": [
+        0.4055052697678833,
+        0.4940117600296768
+      ],
+      "true_matchup_sd": [
+        0.0,
+        0.2733942863664224
+      ],
+      "icc": [
+        0.0,
+        0.3057093486617061
+      ],
+      "label_se_49": [
+        0.05792932425255476,
+        0.0705731085756681
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.166666666666666,
+    "mean_seconds": 0.9063351645052088,
+    "iterations_per_decision": 28088.76163206872,
+    "fallbacks": 0,
+    "seconds_this_run": 44.705743667000206,
+    "config": {
+      "command": "noise",
+      "policy": "rust_foulplay_doubles",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 30000,
+      "workers": 4,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "foulplay_hybrid",
+    "label": "Showdown JS Foul Play, 2-turn rollout + doubles eval",
+    "policy": "foulplay_hybrid",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.21651785714285712,
+    "single_game_sd": 0.4653147935998351,
+    "true_matchup_sd": 0.18080257297221944,
+    "icc": 0.13117414162393715,
+    "decisive_share": 0.16666666666666666,
+    "label_se_49": 0.06647354194283359,
+    "label_se_24": 0.09498198450733897,
+    "split_half_r": 0.44847798286716783,
+    "ci95": {
+      "within_pair_var": [
+        0.18154761904761904,
+        0.24330357142857148
+      ],
+      "single_game_sd": [
+        0.4260840516231733,
+        0.49325811846189765
+      ],
+      "true_matchup_sd": [
+        0.06741780518146921,
+        0.24765985489519302
+      ],
+      "icc": [
+        0.018732084527698128,
+        0.25191326530612235
+      ],
+      "label_se_49": [
+        0.060869150231881906,
+        0.07046544549455681
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 6.786458333333333,
+    "mean_seconds": 7.416600337682296,
+    "iterations_per_decision": 88.02390109890109,
+    "fallbacks": 0,
+    "seconds_this_run": 196.9874109999946,
+    "config": {
+      "command": "noise",
+      "policy": "foulplay_hybrid",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 400,
+      "previewMs": 500,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "bc",
+    "label": "Behaviour cloning, stochastic (current baseline)",
+    "policy": "bc",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.2224702380952381,
+    "single_game_sd": 0.471667507991846,
+    "true_matchup_sd": 0.17096236857852462,
+    "icc": 0.11612364243943192,
+    "decisive_share": 0.25,
+    "label_se_49": 0.06738107257026371,
+    "label_se_24": 0.09627872690251078,
+    "split_half_r": 0.19582288473354822,
+    "ci95": {
+      "within_pair_var": [
+        0.1904761904761905,
+        0.2507440476190476
+      ],
+      "single_game_sd": [
+        0.4364357804719848,
+        0.5007434948344788
+      ],
+      "true_matchup_sd": [
+        0.0,
+        0.24202804600244124
+      ],
+      "icc": [
+        0.0,
+        0.23173892177251634
+      ],
+      "label_se_49": [
+        0.062347968638854966,
+        0.0715347849763541
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.90625,
+    "mean_seconds": 0.9004839830625001,
+    "iterations_per_decision": 0.0,
+    "fallbacks": 0,
+    "seconds_this_run": 6.183688750010333,
+    "config": {
+      "command": "noise",
+      "policy": "bc",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 4,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "foulplay_doubles",
+    "label": "Showdown JS Foul Play, doubles evaluator",
+    "policy": "foulplay_doubles",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.2180059523809524,
+    "single_game_sd": 0.46691107545329485,
+    "true_matchup_sd": 0.16793159993499965,
+    "icc": 0.1145419308215353,
+    "decisive_share": 0.25,
+    "label_se_49": 0.06670158220761356,
+    "label_se_24": 0.09530782417622569,
+    "split_half_r": 0.32514996238695837,
+    "ci95": {
+      "within_pair_var": [
+        0.19345238095238093,
+        0.24181547619047625
+      ],
+      "single_game_sd": [
+        0.439832219093123,
+        0.49174737029340204
+      ],
+      "true_matchup_sd": [
+        0.03254933347598454,
+        0.2299827835846449
+      ],
+      "icc": [
+        0.004471752858849629,
+        0.21214480342545738
+      ],
+      "label_se_49": [
+        0.06283317415616042,
+        0.07024962432762887
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 7.166666666666667,
+    "mean_seconds": 7.662385709645833,
+    "iterations_per_decision": 211.48369423428124,
+    "fallbacks": 0,
+    "seconds_this_run": 197.4440763330058,
+    "config": {
+      "command": "noise",
+      "policy": "foulplay_doubles",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 400,
+      "previewMs": 500,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "uct_rollout",
+    "label": "Showdown JS UCT with random playouts",
+    "policy": "uct_rollout",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.2291666666666667,
+    "single_game_sd": 0.4787135538781691,
+    "true_matchup_sd": 0.15160673286261186,
+    "icc": 0.09115401885945214,
+    "decisive_share": 0.16666666666666666,
+    "label_se_49": 0.06838765055402415,
+    "label_se_24": 0.09771699499632146,
+    "split_half_r": 0.5965095881430693,
+    "ci95": {
+      "within_pair_var": [
+        0.20758928571428573,
+        0.24925595238095233
+      ],
+      "single_game_sd": [
+        0.45561967222046695,
+        0.4992553979487376
+      ],
+      "true_matchup_sd": [
+        0.018209515065574524,
+        0.20930802017239716
+      ],
+      "icc": [
+        0.0013206635529070306,
+        0.17520951081660494
+      ],
+      "label_se_49": [
+        0.06508852460292384,
+        0.07132219970696252
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.0,
+    "mean_seconds": 8.508915182546879,
+    "iterations_per_decision": 56.75340798442064,
+    "fallbacks": 0,
+    "seconds_this_run": 227.0112545000011,
+    "config": {
+      "command": "noise",
+      "policy": "uct_rollout",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 400,
+      "previewMs": 500,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "foulplay",
+    "label": "Showdown JS Foul Play, 75% stochastic vote",
+    "policy": "foulplay",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.22767857142857142,
+    "single_game_sd": 0.47715675771026383,
+    "true_matchup_sd": 0.14730476253055158,
+    "icc": 0.08701151289119506,
+    "decisive_share": 0.20833333333333334,
+    "label_se_49": 0.06816525110146626,
+    "label_se_24": 0.09739921530924744,
+    "split_half_r": 0.15785101685321729,
+    "ci95": {
+      "within_pair_var": [
+        0.2038690476190476,
+        0.24776785714285712
+      ],
+      "single_game_sd": [
+        0.451518601631259,
+        0.49776285231308404
+      ],
+      "true_matchup_sd": [
+        0.0,
+        0.2113651036461257
+      ],
+      "icc": [
+        0.0,
+        0.17801503080347061
+      ],
+      "label_se_49": [
+        0.06450265737589414,
+        0.07110897890186915
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 7.239583333333333,
+    "mean_seconds": 7.829507323140626,
+    "iterations_per_decision": 226.02804940813175,
+    "fallbacks": 0,
+    "seconds_this_run": 202.70319066599768,
+    "config": {
+      "command": "noise",
+      "policy": "foulplay",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 400,
+      "previewMs": 500,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "rust_foulplay_joint",
+    "label": "Rust Reg M-B Foul Play, joint-action PUCT (30k iters)",
+    "policy": "rust_foulplay_joint",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.22321428571428573,
+    "single_game_sd": 0.472455591261534,
+    "true_matchup_sd": 0.14139390377539165,
+    "icc": 0.08220271348762967,
+    "decisive_share": 0.20833333333333334,
+    "label_se_49": 0.06749365589450486,
+    "label_se_24": 0.09643959372630745,
+    "split_half_r": 0.18329019145682637,
+    "ci95": {
+      "within_pair_var": [
+        0.18675595238095236,
+        0.2544642857142857
+      ],
+      "single_game_sd": [
+        0.43215269567706316,
+        0.504444531850912
+      ],
+      "true_matchup_sd": [
+        0.0,
+        0.2100023723123422
+      ],
+      "icc": [
+        0.0,
+        0.18982387475538162
+      ],
+      "label_se_49": [
+        0.06173609938243759,
+        0.07206350455013028
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 8.171875,
+    "mean_seconds": 1.4082408873437504,
+    "iterations_per_decision": 28235.29411764706,
+    "fallbacks": 1,
+    "seconds_this_run": 69.25364875000378,
+    "config": {
+      "command": "noise",
+      "policy": "rust_foulplay_joint",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 1000,
+      "previewMs": 1000,
+      "iterations": 30000,
+      "workers": 4,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  },
+  {
+    "key": "foulplay_joint",
+    "label": "Showdown JS Foul Play, joint-action PUCT",
+    "policy": "foulplay_joint",
+    "battles": 192,
+    "pairs": 24,
+    "repeats_per_pair": 8.0,
+    "within_pair_var": 0.23660714285714288,
+    "single_game_sd": 0.4864228025670084,
+    "true_matchup_sd": 0.12353567769918239,
+    "icc": 0.060591465176765225,
+    "decisive_share": 0.125,
+    "label_se_49": 0.06948897179528693,
+    "label_se_24": 0.09929063879531118,
+    "split_half_r": -0.038984058779272496,
+    "ci95": {
+      "within_pair_var": [
+        0.21726190476190474,
+        0.2574404761904761
+      ],
+      "single_game_sd": [
+        0.4661136178679022,
+        0.5073859243125257
+      ],
+      "true_matchup_sd": [
+        0.0,
+        0.18260519104642522
+      ],
+      "icc": [
+        0.0,
+        0.13227037951942514
+      ],
+      "label_se_49": [
+        0.0665876596954146,
+        0.07248370347321796
+      ]
+    },
+    "ties": 0,
+    "mean_turns": 6.161458333333333,
+    "mean_seconds": 6.930931984166669,
+    "iterations_per_decision": 177.18704406186168,
+    "fallbacks": 0,
+    "seconds_this_run": 176.2565178329969,
+    "config": {
+      "command": "noise",
+      "policy": "foulplay_joint",
+      "pairs": 24,
+      "repeats": 8,
+      "seed": 20261123,
+      "shuffle": true,
+      "samples": 1,
+      "ms": 400,
+      "previewMs": 500,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc"
+    }
+  }
+]

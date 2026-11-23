@@ -1,0 +1,324 @@
+[
+  {
+    "x": "foulplay",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 135.0,
+    "x_share": 0.675,
+    "wilson95": [
+      0.6073185684304498,
+      0.736085329498138
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.675,
+    "paired95": [
+      0.612125827113499,
+      0.737874172886501
+    ],
+    "ties": 0,
+    "mean_turns": 7.755,
+    "seconds_this_run": 1358.4970772499946,
+    "config": {
+      "x": "foulplay",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 4,
+      "ms": 1000,
+      "preview_ms": 4000,
+      "workers": 8,
+      "concurrency": 2,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "87644ed71439dfba55db112a8600d26602bc38029ba9d8e479cb74c05a594d66",
+        "foul_play_doubles_runner.cjs": "6052bf753702c636a740257f58469f5f6006daee03978e9196cba2e395882132",
+        "foul_play_doubles_battles.py": "1d10ba240a1425c26cc341f68279350a62bdb7dc78efd23ff2c9be8c4159fb3f",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    },
+    "name": "foulplay-4x-time-vs-bc",
+    "label": "4 samples \u00d7 1 s vs behaviour cloning",
+    "iterations_per_decision": 1520.2872901678656,
+    "fallbacks": 0
+  },
+  {
+    "x": "foulplay",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 125.0,
+    "x_share": 0.625,
+    "wilson95": [
+      0.5561417515728713,
+      0.6891467469475485
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.625,
+    "paired95": [
+      0.5576559414482449,
+      0.6923440585517551
+    ],
+    "ties": 0,
+    "mean_turns": 8.205,
+    "seconds_this_run": 356.34006124999723,
+    "config": {
+      "x": "foulplay",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 1000,
+      "preview_ms": 4000,
+      "workers": 8,
+      "concurrency": 2,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "87644ed71439dfba55db112a8600d26602bc38029ba9d8e479cb74c05a594d66",
+        "foul_play_doubles_runner.cjs": "6052bf753702c636a740257f58469f5f6006daee03978e9196cba2e395882132",
+        "foul_play_doubles_battles.py": "1d10ba240a1425c26cc341f68279350a62bdb7dc78efd23ff2c9be8c4159fb3f",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    },
+    "name": "foulplay-one-deep-tree-vs-bc",
+    "label": "1 sample \u00d7 1 s vs behaviour cloning",
+    "iterations_per_decision": 340.378231292517,
+    "fallbacks": 0
+  },
+  {
+    "x": "foulplay",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 99.0,
+    "x_share": 0.495,
+    "wilson95": [
+      0.4264572195415849,
+      0.5637312405175983
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.495,
+    "paired95": [
+      0.4219617534811695,
+      0.5680382465188305
+    ],
+    "ties": 0,
+    "mean_turns": 8.145,
+    "seconds_this_run": 371.8598068749998,
+    "config": {
+      "x": "foulplay",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 4,
+      "ms": 250,
+      "preview_ms": 1000,
+      "workers": 8,
+      "concurrency": 2,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "87644ed71439dfba55db112a8600d26602bc38029ba9d8e479cb74c05a594d66",
+        "foul_play_doubles_runner.cjs": "6052bf753702c636a740257f58469f5f6006daee03978e9196cba2e395882132",
+        "foul_play_doubles_battles.py": "1d10ba240a1425c26cc341f68279350a62bdb7dc78efd23ff2c9be8c4159fb3f",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    },
+    "name": "foulplay-vs-bc",
+    "label": "4 samples \u00d7 0.25 s vs behaviour cloning",
+    "iterations_per_decision": 562.8072892938496,
+    "fallbacks": 0
+  },
+  {
+    "x": "foulplay",
+    "y": "montecarlo",
+    "battles": 200,
+    "x_points": 104.0,
+    "x_share": 0.52,
+    "wilson95": [
+      0.4510366005581654,
+      0.5882095592051018
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.52,
+    "paired95": [
+      0.4518753845344927,
+      0.5881246154655073
+    ],
+    "ties": 0,
+    "mean_turns": 7.655,
+    "seconds_this_run": 3001.652072750003,
+    "config": {
+      "x": "foulplay",
+      "y": "montecarlo",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 4,
+      "ms": 1000,
+      "preview_ms": 4000,
+      "workers": 8,
+      "concurrency": 2,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "87644ed71439dfba55db112a8600d26602bc38029ba9d8e479cb74c05a594d66",
+        "foul_play_doubles_runner.cjs": "6052bf753702c636a740257f58469f5f6006daee03978e9196cba2e395882132",
+        "foul_play_doubles_battles.py": "1d10ba240a1425c26cc341f68279350a62bdb7dc78efd23ff2c9be8c4159fb3f",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    },
+    "name": "foulplay-4x-vs-montecarlo-4x",
+    "label": "4 samples \u00d7 1 s vs flat Monte Carlo",
+    "iterations_per_decision": 1445.626404494382,
+    "fallbacks": 2
+  },
+  {
+    "x": "foulplay",
+    "y": "montecarlo",
+    "battles": 200,
+    "x_points": 110.0,
+    "x_share": 0.55,
+    "wilson95": [
+      0.48075488574571107,
+      0.6173605136624569
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.55,
+    "paired95": [
+      0.4824761172067635,
+      0.6175238827932366
+    ],
+    "ties": 0,
+    "mean_turns": 7.905,
+    "seconds_this_run": 701.4606237080006,
+    "config": {
+      "x": "foulplay",
+      "y": "montecarlo",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 4,
+      "ms": 250,
+      "preview_ms": 1000,
+      "workers": 8,
+      "concurrency": 2,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "87644ed71439dfba55db112a8600d26602bc38029ba9d8e479cb74c05a594d66",
+        "foul_play_doubles_runner.cjs": "6052bf753702c636a740257f58469f5f6006daee03978e9196cba2e395882132",
+        "foul_play_doubles_battles.py": "1d10ba240a1425c26cc341f68279350a62bdb7dc78efd23ff2c9be8c4159fb3f",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    },
+    "name": "foulplay-vs-montecarlo",
+    "label": "4 samples \u00d7 0.25 s vs flat Monte Carlo",
+    "iterations_per_decision": 381.6157796451914,
+    "fallbacks": 0
+  },
+  {
+    "x": "montecarlo",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 102.0,
+    "x_share": 0.51,
+    "wilson95": [
+      0.441184632709161,
+      0.5784384471724727
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.51,
+    "paired95": [
+      0.44178999747511777,
+      0.5782100025248822
+    ],
+    "ties": 0,
+    "mean_turns": 8.005,
+    "seconds_this_run": 364.2513897089957,
+    "config": {
+      "x": "montecarlo",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 4,
+      "ms": 250,
+      "preview_ms": 1000,
+      "workers": 8,
+      "concurrency": 2,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "87644ed71439dfba55db112a8600d26602bc38029ba9d8e479cb74c05a594d66",
+        "foul_play_doubles_runner.cjs": "6052bf753702c636a740257f58469f5f6006daee03978e9196cba2e395882132",
+        "foul_play_doubles_battles.py": "1d10ba240a1425c26cc341f68279350a62bdb7dc78efd23ff2c9be8c4159fb3f",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    },
+    "name": "montecarlo-vs-bc",
+    "label": "flat Monte Carlo at 4 samples \u00d7 0.25 s vs behaviour cloning",
+    "iterations_per_decision": 100.73710865561694,
+    "fallbacks": 0
+  },
+  {
+    "x": "foulplay",
+    "y": "random",
+    "battles": 200,
+    "x_points": 173.0,
+    "x_share": 0.865,
+    "wilson95": [
+      0.8107074954488287,
+      0.9055349202307972
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.865,
+    "paired95": [
+      0.8150587375312788,
+      0.9149412624687212
+    ],
+    "ties": 0,
+    "mean_turns": 8.68,
+    "seconds_this_run": 394.5882554999989,
+    "config": {
+      "x": "foulplay",
+      "y": "random",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 4,
+      "ms": 250,
+      "preview_ms": 1000,
+      "workers": 8,
+      "concurrency": 2,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "87644ed71439dfba55db112a8600d26602bc38029ba9d8e479cb74c05a594d66",
+        "foul_play_doubles_runner.cjs": "6052bf753702c636a740257f58469f5f6006daee03978e9196cba2e395882132",
+        "foul_play_doubles_battles.py": "1d10ba240a1425c26cc341f68279350a62bdb7dc78efd23ff2c9be8c4159fb3f",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    },
+    "name": "foulplay-vs-random",
+    "label": "4 samples \u00d7 0.25 s vs random play",
+    "iterations_per_decision": 378.8695652173913,
+    "fallbacks": 0
+  }
+]

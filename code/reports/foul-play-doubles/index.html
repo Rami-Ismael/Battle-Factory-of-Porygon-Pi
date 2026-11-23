@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foul Play for doubles, head to head</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:440px}
+</style>
+</head>
+<body>
+<main>
+<h1>Foul Play for doubles, head to head</h1>
+<p class="sub">Foul Play&#x27;s share of points per matchup, by search budget per decision (sampled battles × search time each). 100 pairs of top-50 meta teams, each played twice with the policies swapped; 0.5 is even.</p>
+<div id="chart"></div>
+<p class="note">4 samples × 1 s vs behaviour cloning: 200 battles, 135 points, 1520 search iterations per decision; 1 sample × 1 s vs behaviour cloning: 200 battles, 125 points, 340 search iterations per decision; 4 samples × 0.25 s vs behaviour cloning: 200 battles, 99 points, 563 search iterations per decision; 4 samples × 1 s vs flat Monte Carlo: 200 battles, 104 points, 1446 search iterations per decision; 4 samples × 0.25 s vs flat Monte Carlo: 200 battles, 110 points, 382 search iterations per decision; flat Monte Carlo at 4 samples × 0.25 s vs behaviour cloning: 200 battles, 102 points, 101 search iterations per decision; 4 samples × 0.25 s vs random play: 200 battles, 173 points, 379 search iterations per decision</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": {"left": 330, "right": 40, "top": 30, "bottom": 50}, "tooltip": {"trigger": "item"}, "xAxis": {"type": "value", "min": 0, "max": 1, "name": "share of points (win 1, tie 0.5)", "nameLocation": "middle", "nameGap": 30}, "yAxis": {"type": "category", "data": ["4 samples × 0.25 s vs random play", "flat Monte Carlo at 4 samples × 0.25 s vs behaviour cloning", "4 samples × 0.25 s vs flat Monte Carlo", "4 samples × 1 s vs flat Monte Carlo", "4 samples × 0.25 s vs behaviour cloning", "1 sample × 1 s vs behaviour cloning", "4 samples × 1 s vs behaviour cloning"]}, "series": [{"type": "custom", "name": "95% interval over team pairs", "data": [[0.8150587375312788, 0.9149412624687212, 0], [0.44178999747511777, 0.5782100025248822, 1], [0.4824761172067635, 0.6175238827932366, 2], [0.4518753845344927, 0.5881246154655073, 3], [0.4219617534811695, 0.5680382465188305, 4], [0.5576559414482449, 0.6923440585517551, 5], [0.612125827113499, 0.737874172886501, 6]], "renderItem": function (params, api) {
+      var lo = api.coord([api.value(0), api.value(2)]), hi = api.coord([api.value(1), api.value(2)]);
+      return {type: 'line', shape: {x1: lo[0], y1: lo[1], x2: hi[0], y2: hi[1]},
+              style: {stroke: api.visual('color'), lineWidth: 3, opacity: 0.6}};
+    }, "encode": {"x": [0, 1], "y": 2}, "z": 1}, {"type": "scatter", "name": "share of points", "data": [[0.865, 0], [0.51, 1], [0.55, 2], [0.52, 3], [0.495, 4], [0.625, 5], [0.675, 6]], "symbolSize": 12, "z": 3, "label": {"show": true, "position": "right", "formatter": "{@[0]}"}, "emphasis": {"focus": "series"}, "markLine": {"silent": true, "symbol": "none", "data": [{"xAxis": 0.5}], "label": {"formatter": "even"}, "lineStyle": {"type": "dashed"}}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

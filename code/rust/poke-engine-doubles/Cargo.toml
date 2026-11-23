@@ -1,0 +1,14 @@
+[package]
+name = "poke-engine-doubles"
+version = "0.1.0"
+edition = "2021"
+description = "Fast VGC 2026 Regulation M-B doubles battle simulator and MCTS/Monte Carlo search engine"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
