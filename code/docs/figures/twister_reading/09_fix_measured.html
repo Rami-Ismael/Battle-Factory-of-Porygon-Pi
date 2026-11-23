@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drawing exactly from the target won back half of random order&#x27;s gap, not the 84% reweighting estimated</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:300px}
+</style>
+</head>
+<body>
+<main>
+<h1>Drawing exactly from the target won back half of random order&#x27;s gap, not the 84% reweighting estimated</h1>
+<p class="sub">Mean win rate of random-order teams: as drawn, reweighted to TWISTER&#x27;s target, and drawn exactly from that target by rejection (#358)</p>
+<div id="chart"></div>
+<p class="note">The run&#x27;s share of the gap: 49% [41%, 57%]. Reweighting reuses the 192 grid teams per ask under weights that leave 1-2% effective teams, so a few heavy teams set the estimate. Rejection draws fresh teams with random order and no lookahead until Showdown&#x27;s validator accepts (1.52% of 63,295 tries): exactly the model&#x27;s own random-order distribution among legal teams. Interval: paired bootstrap against species-first, -0.079 [-0.094, -0.064]. Source: issue #358, plain_reject.py, 2026-11-17.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0, "orient": "vertical", "left": 0, "data": ["Random order, as drawn (lookahead)", "Reweighting estimate: 84% of gap", "Exact target, run (#358): 49% of gap", "Species-first order"]}, "tooltip": {"trigger": "item", "valueFormatter": "js:v => v"}, "grid": {"left": 20, "right": 30, "top": 118, "bottom": 40, "containLabel": true}, "xAxis": {"type": "value", "min": 0.3, "max": 0.55, "interval": 0.05, "name": "mean win rate, asks 13/24 to 17/24", "nameLocation": "middle", "nameGap": 28, "axisLabel": {"formatter": "js:v => Math.round(v * 100) + '%'"}}, "yAxis": {"type": "category", "data": ["Linear schedule, guidance 2"], "axisLabel": {"show": false}}, "series": [{"name": "Random order, as drawn (lookahead)", "type": "scatter", "symbol": "circle", "symbolSize": 16, "color": "#e0702a", "emphasis": {"focus": "series"}, "label": {"show": true, "position": "bottom", "formatter": "js:p => (p.value[0] * 100).toFixed(1) + '%'", "fontSize": 12, "color": "inherit"}, "data": [[0.334, 0]]}, {"name": "Reweighting estimate: 84% of gap", "type": "scatter", "symbol": "emptyCircle", "symbolSize": 16, "color": "#6f6e69", "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "formatter": "js:p => (p.value[0] * 100).toFixed(1) + '%'", "fontSize": 12, "color": "inherit"}, "data": [[0.465, 0]]}, {"name": "Exact target, run (#358): 49% of gap", "type": "scatter", "symbol": "diamond", "symbolSize": 16, "color": "#e0702a", "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "formatter": "js:p => (p.value[0] * 100).toFixed(1) + '%'", "fontSize": 12, "color": "inherit"}, "data": [[0.41, 0]]}, {"name": "Species-first order", "type": "scatter", "symbol": "circle", "symbolSize": 16, "color": "#1baf7a", "emphasis": {"focus": "series"}, "label": {"show": true, "position": "bottom", "formatter": "js:p => (p.value[0] * 100).toFixed(1) + '%'", "fontSize": 12, "color": "inherit"}, "data": [[0.49, 0]]}, {"name": "95% interval of the run", "type": "line", "color": "#e0702a", "symbol": "none", "lineStyle": {"width": 3}, "data": [[0.396, 0], [0.426, 0]], "tooltip": {"show": false}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

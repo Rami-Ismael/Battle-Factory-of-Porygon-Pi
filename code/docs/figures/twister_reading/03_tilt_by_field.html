@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random order&#x27;s tilt sits at moves and abilities, the fields drawn before their species</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:240px}
+</style>
+</head>
+<body>
+<main>
+<h1>Random order&#x27;s tilt sits at moves and abilities, the fields drawn before their species</h1>
+<p class="sub">Mean removed log mass per team, split by the type of the field being drawn, guidance 2; species-first rows remove nothing and are left out</p>
+<div id="chart"></div>
+<p class="note"></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": {"left": 10, "right": 30, "top": 40, "bottom": 40, "containLabel": true}, "legend": {"top": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}}, "yAxis": {"type": "category", "data": ["Random-order, linear schedule", "Random-order, per-field schedule"], "inverse": true}, "xAxis": {"type": "value", "name": "mean nats per team", "nameLocation": "middle", "nameGap": 28}, "series": [{"name": "species", "type": "bar", "stack": "t", "emphasis": {"focus": "series"}, "data": [0.131, 0.245]}, {"name": "ability", "type": "bar", "stack": "t", "emphasis": {"focus": "series"}, "data": [4.796, 5.42]}, {"name": "item", "type": "bar", "stack": "t", "emphasis": {"focus": "series"}, "data": [1.75, 1.786]}, {"name": "move", "type": "bar", "stack": "t", "emphasis": {"focus": "series"}, "data": [8.499, 8.782]}, {"name": "Stat Alignment", "type": "bar", "stack": "t", "emphasis": {"focus": "series"}, "data": [-0.0, -0.0]}, {"name": "Stat Points", "type": "bar", "stack": "t", "emphasis": {"focus": "series"}, "data": [0.281, 0.272]}], "color": ["#2a78d6", "#1baf7a", "#6250d6", "#e0702a", "#d6457a", "#6f6e69"]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About two fields in five are filled with a value that was not the model&#x27;s top choice</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:420px}
+</style>
+</head>
+<body>
+<main>
+<h1>About two fields in five are filled with a value that was not the model&#x27;s top choice</h1>
+<p class="sub">Share of filled fields whose drawn value was not the top value of the distribution it was drawn from, by field type</p>
+<div id="chart"></div>
+<p class="note">Reused from the Two Temperatures reading (trace_probe.py), 480 teams per row and guidance (2,880 species draws) at asks 13/24 to 17/24. LLaDA&#x27;s released default (low-confidence remasking at temperature 0) is 0% by construction: it takes the argmax.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": {"left": 10, "right": 20, "top": 70, "bottom": 40, "containLabel": true}, "legend": {"top": 0, "type": "scroll"}, "tooltip": {"trigger": "axis", "valueFormatter": "js:v => (v * 100).toFixed(1) + '%'"}, "xAxis": {"type": "category", "data": ["species", "ability", "item", "move", "Stat Alignment", "Stat Points"]}, "yAxis": {"type": "value", "min": 0, "max": 1, "axisLabel": {"formatter": "js:v => Math.round(v * 100) + '%'"}}, "series": [{"name": "Species-first, per-field schedule (control), guidance 2", "type": "line", "color": "#2a78d6", "lineStyle": {"type": "solid"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.748, 0.045, 0.502, 0.227, 0.453, 0.418]}, {"name": "Species-first, per-field schedule (control), guidance 4", "type": "line", "color": "#2a78d6", "lineStyle": {"type": "dashed"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.704, 0.047, 0.487, 0.22, 0.44, 0.417]}, {"name": "Species-first, per-field schedule (control), guidance 8", "type": "line", "color": "#2a78d6", "lineStyle": {"type": "dotted"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.61, 0.051, 0.461, 0.201, 0.422, 0.419]}, {"name": "Species-first, linear schedule, guidance 2", "type": "line", "color": "#1baf7a", "lineStyle": {"type": "solid"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.736, 0.051, 0.522, 0.231, 0.439, 0.421]}, {"name": "Species-first, linear schedule, guidance 4", "type": "line", "color": "#1baf7a", "lineStyle": {"type": "dashed"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.675, 0.052, 0.507, 0.23, 0.416, 0.424]}, {"name": "Species-first, linear schedule, guidance 8", "type": "line", "color": "#1baf7a", "lineStyle": {"type": "dotted"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.574, 0.044, 0.483, 0.227, 0.376, 0.436]}, {"name": "Species-then-random, linear schedule, guidance 2", "type": "line", "color": "#6250d6", "lineStyle": {"type": "solid"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.721, 0.044, 0.512, 0.247, 0.478, 0.433]}, {"name": "Species-then-random, linear schedule, guidance 4", "type": "line", "color": "#6250d6", "lineStyle": {"type": "dashed"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.668, 0.047, 0.51, 0.235, 0.447, 0.44]}, {"name": "Species-then-random, linear schedule, guidance 8", "type": "line", "color": "#6250d6", "lineStyle": {"type": "dotted"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.577, 0.042, 0.488, 0.232, 0.409, 0.438]}, {"name": "Random-order, linear schedule, guidance 2", "type": "line", "color": "#e0702a", "lineStyle": {"type": "solid"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.245, 0.263, 0.568, 0.392, 0.491, 0.439]}, {"name": "Random-order, linear schedule, guidance 4", "type": "line", "color": "#e0702a", "lineStyle": {"type": "dashed"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.225, 0.265, 0.547, 0.377, 0.468, 0.442]}, {"name": "Random-order, linear schedule, guidance 8", "type": "line", "color": "#e0702a", "lineStyle": {"type": "dotted"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.2, 0.249, 0.527, 0.339, 0.435, 0.437]}, {"name": "Random-order, per-field schedule, guidance 2", "type": "line", "color": "#d6457a", "lineStyle": {"type": "solid"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.273, 0.281, 0.58, 0.403, 0.487, 0.439]}, {"name": "Random-order, per-field schedule, guidance 4", "type": "line", "color": "#d6457a", "lineStyle": {"type": "dashed"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.25, 0.263, 0.556, 0.377, 0.463, 0.435]}, {"name": "Random-order, per-field schedule, guidance 8", "type": "line", "color": "#d6457a", "lineStyle": {"type": "dotted"}, "symbolSize": 6, "emphasis": {"focus": "series"}, "data": [0.219, 0.227, 0.509, 0.334, 0.433, 0.422]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
