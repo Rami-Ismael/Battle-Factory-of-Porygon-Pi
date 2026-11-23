@@ -149,10 +149,24 @@ def note_text(name: str) -> str:
     return ' '.join(re.sub(r'[#>*`\[\]]', ' ', text).split())
 
 
+def oreilly_text(isbn: str, path: str) -> str:
+    """An O'Reilly book's description, or for a chapter link its title, summary bullets and opening paragraphs.
+    The reader page needs a login; the epub API serves the book record and each chapter's preview without one."""
+    api = f'https://learning.oreilly.com/api/v2/epubs/urn:orm:book:{isbn}/'
+    if not re.search(r'\.x?html?$', path) or re.match(r'(?i)(contents|toc|cover|title)', Path(path).name):
+        return re.sub(r'<[^>]+>', ' ', html.unescape(json.loads(get(api)).get('descriptions', {}).get('text/html', '')))
+    doc = get(api + 'files/' + path).decode('utf-8', 'replace')
+    parts = re.findall(r'<(?:h1|li|p)\b[^>]*>(.*?)</(?:h1|li|p)>', doc, re.S | re.I)
+    return html.unescape(' '.join(' '.join(re.sub(r'<[^>]+>', '', p).split()) for p in parts))
+
+
 def page_text(url: str) -> str:
     """A vault note's text, a post's text for an X link, otherwise the page's description or first paragraphs."""
     if url.startswith(WIKI):
         return note_text(url[len(WIKI):])
+    m = re.match(r'https?://(?:learning|www)\.oreilly\.com/library/view/[^/]+/(\d{10,13}X?)/?([^?#]*)', url)
+    if m:
+        return oreilly_text(m.group(1), m.group(2))
     m = re.match(r'https?://(?:x|twitter)\.com/([^/]+)/status/(\d+)', url)
     if m:
         t = json.loads(get(f'https://api.fxtwitter.com/{m.group(1)}/status/{m.group(2)}'))['tweet']
