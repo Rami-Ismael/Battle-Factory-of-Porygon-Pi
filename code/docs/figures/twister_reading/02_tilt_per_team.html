@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Species-first rows carry no tilt; random-order rows carry about 14 nats per team</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:300px}
+</style>
+</head>
+<body>
+<main>
+<h1>Species-first rows carry no tilt; random-order rows carry about 14 nats per team</h1>
+<p class="sub">Per team: how much more likely the sampler made it than the trained model&#x27;s own per-pass distributions, guidance 2, asks 13/24 to 17/24</p>
+<div id="chart"></div>
+<p class="note">For each drawn field, the sampler removes probability the trained model gave (the [MASK] value, the empty first move, values the legal Pokémon construction tables forbid given fields drawn earlier in the same pass, and the lookahead) and renormalises. Summed -log(kept share) over the 84 draws = the log of TWISTER&#x27;s correction weight for that team. Box: 25th to 75th percentile; whiskers: 5th and 95th. 192 teams per ask, the grid&#x27;s own teams redrawn with their seeds and checked identical.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": {"left": 10, "right": 40, "top": 20, "bottom": 40, "containLabel": true}, "yAxis": {"type": "category", "data": ["Species-first, per-field schedule (control)", "Species-first, linear schedule", "Species-then-random, linear schedule", "Random-order, linear schedule", "Random-order, per-field schedule"], "inverse": true}, "xAxis": {"type": "value", "name": "nats the sampler added to the team", "nameLocation": "middle", "nameGap": 28}, "tooltip": {"trigger": "item", "formatter": "js:p => p.name + '<br>5th ' + p.data[1] + ' · median ' + p.data[3] + ' · 95th ' + p.data[5] + ' nats'"}, "series": [{"type": "boxplot", "data": [{"value": [0.0, 0.0, 0.0, 0.0, 0.0], "itemStyle": {"color": "transparent", "borderColor": "#2a78d6", "borderWidth": 2}}, {"value": [0.0, 0.0, 0.0, 0.0, 0.0], "itemStyle": {"color": "transparent", "borderColor": "#1baf7a", "borderWidth": 2}}, {"value": [-0.0, 0.0, 0.0, 0.317, 2.035], "itemStyle": {"color": "transparent", "borderColor": "#6250d6", "borderWidth": 2}}, {"value": [2.974, 7.968, 13.596, 20.166, 36.743], "itemStyle": {"color": "transparent", "borderColor": "#e0702a", "borderWidth": 2}}, {"value": [4.105, 8.516, 15.208, 22.396, 34.659], "itemStyle": {"color": "transparent", "borderColor": "#d6457a", "borderWidth": 2}}]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

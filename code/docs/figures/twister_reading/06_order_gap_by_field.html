@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The model is not one joint distribution: the same held-out team scores 18.2 nats higher species-first</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:330px}
+</style>
+</head>
+<body>
+<main>
+<h1>The model is not one joint distribution: the same held-out team scores 18.2 nats higher species-first</h1>
+<p class="sub">Log-likelihood of 1,024 held-out teams in species-first order minus moves-first order, by field type</p>
+<div id="chart"></div>
+<p class="note">Reused from the Two Temperatures reading (2026-11-14), order_consistency.py. One joint distribution would give 0 in every row. Species-first total minus moves-first total: 18.2 nats per team [17.7, 18.8] on the per-field checkpoint and 12.3 [11.9, 12.7] on the linear one. Species score better when drawn after their moves; moves score far worse when drawn before their species, and the second effect is larger.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": {"left": 10, "right": 50, "top": 40, "bottom": 40, "containLabel": true}, "legend": {"top": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}}, "yAxis": {"type": "category", "data": ["species", "ability", "item", "move", "Stat Alignment", "Stat Points"], "inverse": true}, "xAxis": {"type": "value", "name": "species-first minus moves-first, nats per team", "nameLocation": "middle", "nameGap": 28}, "series": [{"name": "Per-field schedule", "type": "bar", "emphasis": {"focus": "series"}, "color": "#2a78d6", "data": [-16.93, -0.02, -0.19, 35.37, 0.0, 0.0], "label": {"show": true, "position": "right", "formatter": "js:p => (p.value > 0 ? '+' : '') + p.value.toFixed(1)", "fontSize": 11}}, {"name": "Linear schedule", "type": "bar", "emphasis": {"focus": "series"}, "color": "#1baf7a", "data": [-17.49, -0.08, -0.36, 30.26, 0.0, 0.0], "label": {"show": true, "position": "right", "formatter": "js:p => (p.value > 0 ? '+' : '') + p.value.toFixed(1)", "fontSize": 11}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

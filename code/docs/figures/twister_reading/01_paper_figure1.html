@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The paper&#x27;s only bias evidence: uncorrected drift grows with denoising steps; TWISTER pulls it back</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:440px}
+</style>
+</head>
+<body>
+<main>
+<h1>The paper&#x27;s only bias evidence: uncorrected drift grows with denoising steps; TWISTER pulls it back</h1>
+<p class="sub">Total variation distance from rejection sampling against the number of denoising steps, three of the six models</p>
+<div id="chart"></div>
+<p class="note">Re-plotted from the paper&#x27;s Figure 1 (figures/intro/bias-owt.pdf, bias-dreamcoder-instruct.pdf, bias-dream-base.pdf), values read off the rendered plots, accurate to about ±0.005. Constraint: a toy regular language over token classes (&#x27;a.*&#x27;); 40,000 rejection samples and 10,000 constrained samples per point, random remasking, temperature 1 (method-eval.tex:10). No run count or seeds are given; the grey line is the paper&#x27;s split-half noise floor.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": [{"left": "4%", "width": "27%", "top": 70, "bottom": 60, "containLabel": true}, {"left": "37%", "width": "27%", "top": 70, "bottom": 60, "containLabel": true}, {"left": "70%", "width": "27%", "top": 70, "bottom": 60, "containLabel": true}], "xAxis": [{"type": "category", "data": ["1", "2", "4", "8", "16"], "gridIndex": 0, "name": "OWT-130M", "nameLocation": "middle", "nameGap": 30}, {"type": "category", "data": ["1", "2", "4", "8", "16"], "gridIndex": 1, "name": "Dream-Coder-Instruct 7B", "nameLocation": "middle", "nameGap": 30}, {"type": "category", "data": ["1", "2", "4", "8", "16"], "gridIndex": 2, "name": "Dream base 7B", "nameLocation": "middle", "nameGap": 30}], "yAxis": [{"type": "value", "gridIndex": 0, "min": 0, "max": 0.45, "name": "distance", "axisLabel": {"formatter": "{value}"}}, {"type": "value", "gridIndex": 1, "min": 0, "max": 0.45, "name": "", "axisLabel": {"formatter": "{value}"}}, {"type": "value", "gridIndex": 2, "min": 0, "max": 0.45, "name": "", "axisLabel": {"formatter": "{value}"}}], "series": [{"name": "Step-exact decoder, uncorrected (Dang & Ermon, reimplemented)", "type": "line", "xAxisIndex": 0, "yAxisIndex": 0, "data": [0.069, 0.09, 0.131, 0.2, 0.26], "color": "#e0702a", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "TWISTER, 4 particles", "type": "line", "xAxisIndex": 0, "yAxisIndex": 0, "data": [0.069, 0.076, 0.084, 0.106, 0.114], "color": "#2a78d6", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "TWISTER, 8 particles", "type": "line", "xAxisIndex": 0, "yAxisIndex": 0, "data": [0.069, 0.075, 0.08, 0.091, 0.095], "color": "#1baf7a", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "Noise floor: two halves of the rejection samples", "type": "line", "xAxisIndex": 0, "yAxisIndex": 0, "data": [0.089, 0.092, 0.096, 0.1, 0.104], "color": "#6f6e69", "symbolSize": 6, "lineStyle": {"type": "dashed"}, "emphasis": {"focus": "series"}}, {"name": "Step-exact decoder, uncorrected (Dang & Ermon, reimplemented)", "type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [0.111, 0.235, 0.281, 0.349, 0.409], "color": "#e0702a", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "TWISTER, 4 particles", "type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [0.126, 0.138, 0.133, 0.14, 0.18], "color": "#2a78d6", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "TWISTER, 8 particles", "type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [0.137, 0.119, 0.103, 0.113, 0.138], "color": "#1baf7a", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "Noise floor: two halves of the rejection samples", "type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [0.107, 0.067, 0.073, 0.08, 0.081], "color": "#6f6e69", "symbolSize": 6, "lineStyle": {"type": "dashed"}, "emphasis": {"focus": "series"}}, {"name": "Step-exact decoder, uncorrected (Dang & Ermon, reimplemented)", "type": "line", "xAxisIndex": 2, "yAxisIndex": 2, "data": [0.161, 0.161, 0.173, 0.19, 0.223], "color": "#e0702a", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "TWISTER, 4 particles", "type": "line", "xAxisIndex": 2, "yAxisIndex": 2, "data": [0.159, 0.161, 0.17, 0.174, 0.186], "color": "#2a78d6", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "TWISTER, 8 particles", "type": "line", "xAxisIndex": 2, "yAxisIndex": 2, "data": [0.16, 0.159, 0.169, 0.172, 0.175], "color": "#1baf7a", "symbolSize": 6, "lineStyle": {"type": "solid"}, "emphasis": {"focus": "series"}}, {"name": "Noise floor: two halves of the rejection samples", "type": "line", "xAxisIndex": 2, "yAxisIndex": 2, "data": [0.156, 0.159, 0.167, 0.169, 0.166], "color": "#6f6e69", "symbolSize": 6, "lineStyle": {"type": "dashed"}, "emphasis": {"focus": "series"}}], "legend": {"top": 0}, "tooltip": {"trigger": "axis"}}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

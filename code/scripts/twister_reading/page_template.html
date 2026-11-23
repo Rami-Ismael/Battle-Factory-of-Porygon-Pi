@@ -1,0 +1,178 @@
+<title>TWISTER Reading</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column; each section opens with its figure, then two or three lines of prose. */
+:root{--bg:#f7f7f4;--surface:#ffffff;--ink:#141413;--ink2:#55544f;--line:#dedcd4;--accent:#2a78d6;--ok:#14845e;--no:#c2410c;--warn:#a16207;
+--display:"Fraunces",Georgia,serif;--body:"Source Sans 3",-apple-system,"Helvetica Neue",Arial,sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141413;--surface:#1d1d1b;--ink:#f2f1ec;--ink2:#b3b1a8;--line:#34332f;--accent:#6aa7ee;--ok:#4cc99a;--no:#f08a5d;--warn:#e3b341;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141413;--surface:#1d1d1b;--ink:#f2f1ec;--ink2:#b3b1a8;--line:#34332f;--accent:#6aa7ee;--ok:#4cc99a;--no:#f08a5d;--warn:#e3b341;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;padding-block:32px 64px;display:grid;gap:56px}
+header h1{font:600 clamp(28px,4.4vw,44px)/1.1 var(--display);margin:0 0 12px;text-wrap:balance;letter-spacing:-.01em}
+header p{color:var(--ink2);max-width:68ch;margin:0 0 8px}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:16px;font-size:14px}
+nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}
+h2{font:600 24px/1.2 var(--display);margin:0 0 14px;text-wrap:balance}
+section{display:grid;gap:16px;min-width:0}
+.prose{max-width:70ch;color:var(--ink)}.prose p{margin:0 0 10px}
+.fig{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+figcaption{display:grid;gap:2px;margin-bottom:10px}figcaption b{font-size:17px;text-wrap:balance}figcaption span{color:var(--ink2);font-size:14px}
+.chart{width:100%}
+details{margin-top:6px;font-size:13px;color:var(--ink2)}summary{cursor:pointer}details p{margin:6px 0 0;max-width:80ch}
+.fine{font-size:13px;color:var(--ink2);margin:10px 0 0}
+.chip{display:inline-block;font:600 11.5px/1.6 var(--body);letter-spacing:.03em;text-transform:uppercase;padding:0 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.chip.ok{color:var(--ok)}.chip.no{color:var(--no)}.chip.warn{color:var(--warn)}
+.lanes{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}.lane{display:grid;gap:8px;align-content:start;min-width:0}
+.lane h4{margin:0 0 2px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.claim{border-left:3px solid var(--line);padding:6px 10px;display:grid;gap:3px}.claim.ok{border-color:var(--ok)}.claim.no{border-color:var(--no)}.claim.warn{border-color:var(--warn)}
+.claim.gap{border:1px dashed var(--no);border-radius:6px}.claim-t{font-weight:600}.claim-m{font-size:14px;color:var(--ink2)}
+.preds{display:grid;gap:0;overflow-x:auto}
+.pred{display:grid;grid-template-columns:34px minmax(180px,1.6fr) 120px 118px minmax(160px,1.4fr);gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14.5px;min-width:640px}
+.pred.head{font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;border-top:0}
+.pn{font:600 13px var(--mono);color:var(--accent)}.pm{color:var(--ink2);font-variant-numeric:tabular-nums}
+.pc{display:flex;align-items:center;gap:6px}.pc em{font:12px var(--mono);font-style:normal;color:var(--ink2)}
+.bar{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.weak{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.w{border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:6px;align-content:start;min-width:0}.w h4{margin:0;font-size:15px}
+blockquote{margin:0;padding-left:10px;border-left:2px solid var(--accent);font-size:14px}cite{display:block;font:12px var(--mono);color:var(--ink2);margin-top:4px;font-style:normal;overflow-wrap:anywhere}
+.w p{margin:0;font-size:14px}.cost{color:var(--ink2);font-variant-numeric:tabular-nums}
+.fills{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.fills canvas{width:100%;height:auto;display:block}
+.fills .ft{font-size:13.5px;font-weight:600;margin-bottom:4px}.fills .fk{font-size:12px;color:var(--ink2);margin-top:4px}
+.dis{display:grid;gap:10px}.drow{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:12px;align-items:start;padding-top:10px;border-top:1px solid var(--line)}
+.dq{font-weight:600;font-size:14.5px}.dcells{display:flex;flex-wrap:wrap;gap:8px}
+.dcell{display:grid;font-size:13.5px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);border-left-width:4px;min-width:150px}.dcell b{font-size:12.5px}
+.dcell.ok{border-left-color:var(--ok)}.dcell.no{border-left-color:var(--no)}.dcell.warn{border-left-color:var(--warn)}.dcell.self{border-left-color:var(--accent)}
+.funnel{display:grid;gap:8px}.fn{width:max(var(--w),260px);max-width:100%;background:color-mix(in srgb,var(--accent) 16%,transparent);border-left:4px solid var(--accent);padding:8px 12px;font-size:14.5px;box-sizing:border-box}
+.fn b{font:600 18px var(--mono);margin-right:6px}.fn.zero{border-left-color:var(--no);background:color-mix(in srgb,var(--no) 12%,transparent)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:6px;align-content:start;min-width:0}.card p{margin:0;font-size:14px}
+.ct{display:grid}.ct a{font:12px var(--mono);color:var(--accent);text-decoration:none}.card .code{font:12px var(--mono);color:var(--ink2);overflow-wrap:anywhere}
+.voc{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.v{display:grid;gap:4px;padding:10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);text-decoration:none;font-size:14px;align-content:start}.v:hover{border-color:var(--accent)}
+.v span:last-child{color:var(--ink2)}.v .chip{justify-self:start}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:640px){.lanes,.drow{grid-template-columns:1fr}}
+.pipe{display:grid;gap:8px}.pstep{display:grid;gap:3px;border-left:3px solid var(--line);padding:6px 10px}.pstep.ok{border-color:var(--ok)}.pstep.no{border-color:var(--no)}
+.pstep span:not(.chip){font-size:14px;color:var(--ink2)}.pstep .chip{justify-self:start}
+.codes{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}.codes>div{min-width:0}.codes h4{margin:0 0 6px;font-size:14px}
+.codes pre{margin:0;font:12px/1.5 var(--mono);background:color-mix(in srgb,var(--line) 35%,transparent);padding:10px;border-radius:6px;overflow-x:auto;white-space:pre}
+.tline{display:grid;gap:0;border-left:2px solid var(--line);margin-left:6px}
+.tl{display:grid;grid-template-columns:70px minmax(150px,220px) 1fr;gap:12px;padding:6px 0 6px 14px;position:relative;font-size:14.5px}
+.tl:before{content:"";position:absolute;left:-6px;top:12px;width:10px;height:10px;border-radius:50%;background:var(--line)}
+.tl.me:before{background:var(--accent)}.tl.me b{color:var(--accent)}.td{font:12.5px var(--mono);color:var(--ink2)}.tl span:last-child{color:var(--ink2)}
+.exps{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.lede{font-size:18px;max-width:68ch}
+.teaser{margin:20px 0 4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:16px;display:grid;gap:14px}
+.tz-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tz{border-top:4px solid var(--line);padding:8px 10px 4px;display:grid;gap:4px;align-content:start;min-width:0}
+.tz .chip{justify-self:start}.tz.ok{border-top-color:var(--ok)}.tz.no{border-top-color:var(--no)}
+.tz h4{margin:0;font:600 15px var(--body)}.tz .where{font-size:13px;color:var(--ink2)}
+.tz .num{font:600 20px var(--mono)}.tz .num small{font:400 12.5px var(--body);color:var(--ink2);margin-left:4px}
+.tz-line{display:grid;gap:6px}.tz-line .lbl{font-size:13.5px;color:var(--ink2)}
+.tz-track{position:relative;height:30px;border-radius:6px;background:color-mix(in srgb,var(--line) 55%,transparent);overflow:hidden}
+.tz-track i{position:absolute;top:0;bottom:0;display:block}
+.tz-ends{display:flex;justify-content:space-between;font:12.5px var(--mono);color:var(--ink2);gap:8px;flex-wrap:wrap}
+@media (max-width:640px){.tz-flow{grid-template-columns:1fr}}
+
+@media (max-width:640px){.tl{grid-template-columns:1fr;gap:2px}}
+</style>
+<main>
+<header><h1>Does TWISTER say anything about the masking-schedule comparison?</h1>
+<p class="lede">{{LEDE}}</p>
+{{TEASER}}
+<p>Thimmaiah et al., <a href="https://arxiv.org/abs/2609.35609">arXiv 2609.35609</a>, read from its LaTeX source on 2026-11-15 by Haiku subagents; a separate agent tried to refute 13 statements about it without seeing the hypothesis. Quotes and line numbers: <code>code/docs/twister-reading.md</code>.</p>
+<nav><a href="#scope">Scope</a><a href="#pred">Predictions</a><a href="#tilt">The tilt in our teams</a><a href="#joint">The model's consistency</a><a href="#lessons">Experiment design</a><a href="#rule">Decoding rule</a><a href="#dis">Disagreements</a><a href="#adopt">Adoption</a><a href="#exp">Experiments to pick</a><a href="#rel">Relevance</a><a href="#voc">Vocabulary</a></nav></header>
+
+<section id="scope"><h2>1. Scope</h2>{{SCOPE_FIG}}
+<div class="prose"><p>{{P_SCOPE}}</p></div></section>
+
+<section id="pred"><h2>2. Predictions, written before the data</h2>
+<figure class="fig"><figcaption><b>{{PRED_TITLE}}</b><span>Bar = how sure I was; written and hashed (SHA-256 413666d4…) before the redraws or any outcome</span></figcaption>
+<div class="preds"><div class="pred head"><span></span><span>Prediction from the paper</span><span>Confidence</span><span>Verdict</span><span>Measured</span></div>{{PREDS}}</div>
+<p class="fine">Not blind: the earlier Fang and Two Temperatures readings had reported best-of-k, line-up, non-top share and order-gap numbers; and one cell's try count (70 tries, 6 rejected) had been seen. No correction weight had been seen.</p></figure></section>
+
+<section id="tilt"><h2>3. The tilt in our teams, and whether correcting it changes battles</h2>
+{{CHART:00_exact_toy}}
+{{CHART:02_tilt_per_team}}
+{{CHART:03_tilt_by_field}}
+{{CHART:08_tables_vs_lookahead}}
+{{CHART:04_win_by_tilt_decile}}
+{{CHART:05_tempered_correction}}
+{{CHART:09_fix_measured}}
+<div class="prose"><p>{{P_TILT}}</p></div></section>
+
+<section id="joint"><h2>4. The paper's assumption: one model, consistent across orders</h2>
+{{CHART:06_order_gap_by_field}}
+<div class="prose"><p>{{P_JOINT}}</p></div></section>
+
+<section id="lessons"><h2>5. Experiment-design lessons the paper's own evidence supports</h2>
+{{CHART:01_paper_figure1}}
+<div class="weak">{{WEAK}}</div></section>
+
+<section id="rule"><h2>6. The decoding rule, quoted from code</h2>
+{{DEC_FIG}}
+{{CHART:07_non_top_share}}
+<div class="prose"><p>{{P_RULE}}</p></div></section>
+
+<section id="dis"><h2>7. Who blames what for the distorted distribution</h2>
+<figure class="fig"><figcaption><b>Nine papers, four blame local enforcement, none measures it at matched compute</b><span>Each paper's stated cause, its evidence, and its own code checked by hand on GitHub</span></figcaption>
+<div class="dis">{{DIS}}</div><p class="fine">{{SETTLE}}</p></figure></section>
+
+<section id="adopt"><h2>8. Adoption</h2>
+<figure class="fig"><figcaption><b>Seven weeks old, one citer, no code, no default changed</b><span>The constrained-decoding line TWISTER sits in, by arXiv date</span></figcaption>
+<div class="tline">{{ADOPT}}</div></figure>
+<div class="prose"><p>{{P_ADOPT}}</p></div></section>
+
+<section id="exp"><h2>9. Experiments to run (your call; one has run since)</h2>
+{{EXPS}}</section>
+
+<section id="rel"><h2>10. Relevance check</h2>
+{{REL}}</section>
+
+<section id="voc"><h2>11. Vocabulary</h2>
+<figure class="fig"><figcaption><b>Terms this page uses</b><span>Each links to the figure that shows it</span></figcaption><div class="voc">{{VOC}}</div></figure>
+{{GLOSS}}</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const CH = __CH__;
+const DARK = {"#0b0b0b":"#f2f1ee","#1f1f1e":"#f2f1ee","#52514e":"#c3c2b7","#5f5e5a":"#c3c2b7","#6f6e69":"#a9a8a2","#fff":"#161615","#ffffff":"#161615"};
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const swap = o => typeof o === "string" ? (DARK[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const mq = matchMedia("(prefers-color-scheme: dark)");
+const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : mq.matches; };
+let charts = [];
+// Phone width: wrap long category labels, keep axis names inside the chart, stack side-by-side panels.
+function narrow(opt, el) {
+  const each = (a, f) => (Array.isArray(a) ? a : a ? [a] : []).forEach(f);
+  each(opt.yAxis, ax => { if (ax.type === "category") ax.axisLabel = {...(ax.axisLabel || {}), width: 105, overflow: "break", fontSize: 10.5}; });
+  each([].concat(opt.xAxis || [], opt.yAxis || []), ax => { if (ax.name) { ax.nameTextStyle = {fontSize: 10.5}; ax.nameTruncate = {maxWidth: el.clientWidth - 60}; } });
+  if (Array.isArray(opt.grid) && opt.grid.length > 1) {
+    const n = opt.grid.length, h = 260;
+    el.style.height = (110 + n * (h + 70)) + "px";
+    opt.grid = opt.grid.map((g, i) => ({left: 8, right: 16, top: 110 + i * (h + 70), height: h, containLabel: true}));
+    if (Array.isArray(opt.title) && opt.title.length === n)   // panel titles move with their stacked panels
+      opt.title = opt.title.map((tt, i) => ({...tt, top: 110 + i * (h + 70) - 30, textStyle: {...(tt.textStyle || {}), fontSize: 12, width: el.clientWidth - 20, overflow: "break"}}));
+  }
+}
+function draw() {
+  charts.forEach(c => c.dispose()); charts = [];
+  if (!window.echarts) return;
+  const dark = isDark(), ink = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+  document.querySelectorAll("[data-chart]").forEach(el => {
+    const spec = CH[el.dataset.chart]; if (!spec) return;
+    const opt = revive(dark ? swap(spec.option) : spec.option);
+    if (el.clientWidth < 560) narrow(opt, el);
+    const c = echarts.init(el, dark ? "dark" : null, {renderer: "svg"});
+    c.setOption({backgroundColor: "transparent", textStyle: {color: ink}, ...opt}); charts.push(c);
+  });
+}
+mq.addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+addEventListener("resize", () => charts.forEach(c => c.resize()));
+draw();
+</script>
