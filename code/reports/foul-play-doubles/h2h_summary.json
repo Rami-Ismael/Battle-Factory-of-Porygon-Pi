@@ -1,0 +1,722 @@
+[
+  {
+    "key": "rust_foulplay_det_vs_bc",
+    "label": "[30k] Foul Play argmax vs BC (stochastic)",
+    "x": "rust_foulplay_det",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 180.0,
+    "x_share": 0.9,
+    "wilson95": [
+      0.8505931364369146,
+      0.9343300588284289
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.9,
+    "paired95": [
+      0.8606025176418389,
+      0.9393974823581611
+    ],
+    "ties": 0,
+    "mean_turns": 7.03,
+    "seconds_this_run": 16.92722437500197,
+    "config": {
+      "x": "rust_foulplay_det",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_foulplay_joint_vs_bc",
+    "label": "[30k] Foul Play joint PUCT vs BC (stochastic)",
+    "x": "rust_foulplay_joint",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 175.0,
+    "x_share": 0.875,
+    "wilson95": [
+      0.8219846471534161,
+      0.9138808484078432
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.875,
+    "paired95": [
+      0.832350974290854,
+      0.917649025709146
+    ],
+    "ties": 0,
+    "mean_turns": 7.185,
+    "seconds_this_run": 22.415176666996558,
+    "config": {
+      "x": "rust_foulplay_joint",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_foulplay_hybrid_vs_bc",
+    "label": "[30k] Foul Play 2-turn hybrid vs BC (stochastic)",
+    "x": "rust_foulplay_hybrid",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 174.0,
+    "x_share": 0.87,
+    "wilson95": [
+      0.8163353692726989,
+      0.9097185863477437
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.87,
+    "paired95": [
+      0.8225182693294069,
+      0.9174817306705931
+    ],
+    "ties": 0,
+    "mean_turns": 6.96,
+    "seconds_this_run": 16.794356750004226,
+    "config": {
+      "x": "rust_foulplay_hybrid",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_uct_rollout_vs_bc",
+    "label": "[30k] UCT random playouts vs BC (stochastic)",
+    "x": "rust_uct_rollout",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 172.0,
+    "x_share": 0.86,
+    "wilson95": [
+      0.8051000619915237,
+      0.9013308137472852
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.86,
+    "paired95": [
+      0.8157764357342872,
+      0.9042235642657128
+    ],
+    "ties": 0,
+    "mean_turns": 7.7,
+    "seconds_this_run": 30.554469583003083,
+    "config": {
+      "x": "rust_uct_rollout",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_foulplay_doubles_vs_bc",
+    "label": "[30k] Foul Play doubles eval vs BC (stochastic)",
+    "x": "rust_foulplay_doubles",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 169.0,
+    "x_share": 0.845,
+    "wilson95": [
+      0.7883919410627441,
+      0.8886043148536146
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.845,
+    "paired95": [
+      0.7973652830109565,
+      0.8926347169890434
+    ],
+    "ties": 0,
+    "mean_turns": 7.7,
+    "seconds_this_run": 17.095730040993658,
+    "config": {
+      "x": "rust_foulplay_doubles",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_montecarlo_vs_bc",
+    "label": "[30k] Flat Monte Carlo vs BC (stochastic)",
+    "x": "rust_montecarlo",
+    "y": "bc",
+    "battles": 200,
+    "x_points": 169.0,
+    "x_share": 0.845,
+    "wilson95": [
+      0.7883919410627441,
+      0.8886043148536146
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.845,
+    "paired95": [
+      0.7973652830109565,
+      0.8926347169890434
+    ],
+    "ties": 0,
+    "mean_turns": 6.575,
+    "seconds_this_run": 21.757838541991077,
+    "config": {
+      "x": "rust_montecarlo",
+      "y": "bc",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_foulplay_det_vs_bc_det",
+    "label": "[30k] Foul Play argmax vs BC (deterministic)",
+    "x": "rust_foulplay_det",
+    "y": "bc_det",
+    "battles": 200,
+    "x_points": 162.0,
+    "x_share": 0.81,
+    "wilson95": [
+      0.7499864142552062,
+      0.8583290620754351
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.81,
+    "paired95": [
+      0.7512660303408736,
+      0.8687339696591265
+    ],
+    "ties": 0,
+    "mean_turns": 7.705,
+    "seconds_this_run": 10.447413083005813,
+    "config": {
+      "x": "rust_foulplay_det",
+      "y": "bc_det",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_uct_rollout_vs_bc_det",
+    "label": "[30k] UCT random playouts vs BC (deterministic)",
+    "x": "rust_uct_rollout",
+    "y": "bc_det",
+    "battles": 200,
+    "x_points": 162.0,
+    "x_share": 0.81,
+    "wilson95": [
+      0.7499864142552062,
+      0.8583290620754351
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.81,
+    "paired95": [
+      0.7582931495463282,
+      0.8617068504536719
+    ],
+    "ties": 0,
+    "mean_turns": 7.605,
+    "seconds_this_run": 25.455138208999415,
+    "config": {
+      "x": "rust_uct_rollout",
+      "y": "bc_det",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_montecarlo_vs_bc_det",
+    "label": "[30k] Flat Monte Carlo vs BC (deterministic)",
+    "x": "rust_montecarlo",
+    "y": "bc_det",
+    "battles": 200,
+    "x_points": 157.0,
+    "x_share": 0.785,
+    "wilson95": [
+      0.7229757022632792,
+      0.836282074363278
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.785,
+    "paired95": [
+      0.7342876959922173,
+      0.8357123040077827
+    ],
+    "ties": 0,
+    "mean_turns": 7.04,
+    "seconds_this_run": 22.525275834006607,
+    "config": {
+      "x": "rust_montecarlo",
+      "y": "bc_det",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_uct_rollout_vs_rust_montecarlo",
+    "label": "[30k] UCT random playouts vs Flat Monte Carlo",
+    "x": "rust_uct_rollout",
+    "y": "rust_montecarlo",
+    "battles": 200,
+    "x_points": 146.0,
+    "x_share": 0.73,
+    "wilson95": [
+      0.664564384587978,
+      0.7867664526895944
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.73,
+    "paired95": [
+      0.6702182960997921,
+      0.7897817039002079
+    ],
+    "ties": 0,
+    "mean_turns": 6.0,
+    "seconds_this_run": 41.62110987499182,
+    "config": {
+      "x": "rust_uct_rollout",
+      "y": "rust_montecarlo",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_foulplay_det_vs_rust_montecarlo",
+    "label": "[30k] Foul Play argmax vs Flat Monte Carlo",
+    "x": "rust_foulplay_det",
+    "y": "rust_montecarlo",
+    "battles": 200,
+    "x_points": 121.0,
+    "x_share": 0.605,
+    "wilson95": [
+      0.5358822087449843,
+      0.6701601300121683
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.605,
+    "paired95": [
+      0.5487722560303262,
+      0.6612277439696738
+    ],
+    "ties": 0,
+    "mean_turns": 6.715,
+    "seconds_this_run": 27.124950124998577,
+    "config": {
+      "x": "rust_foulplay_det",
+      "y": "rust_montecarlo",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "ms200_rust_uct_rollout_vs_rust_foulplay_doubles",
+    "label": "[200 ms] UCT random playouts vs Foul Play doubles eval",
+    "x": "rust_uct_rollout",
+    "y": "rust_foulplay_doubles",
+    "battles": 200,
+    "x_points": 107.0,
+    "x_share": 0.535,
+    "wilson95": [
+      0.46586521028994954,
+      0.6028155692957681
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.535,
+    "paired95": [
+      0.4754866503389468,
+      0.5945133496610533
+    ],
+    "ties": 0,
+    "mean_turns": 8.6,
+    "seconds_this_run": 120.39641633399879,
+    "config": {
+      "x": "rust_uct_rollout",
+      "y": "rust_foulplay_doubles",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 200,
+      "preview_ms": 300,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "ms200_rust_uct_rollout_vs_rust_foulplay_det",
+    "label": "[200 ms] UCT random playouts vs Foul Play argmax",
+    "x": "rust_uct_rollout",
+    "y": "rust_foulplay_det",
+    "battles": 200,
+    "x_points": 103.0,
+    "x_share": 0.515,
+    "wilson95": [
+      0.44610724474630287,
+      0.5833273750761476
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.515,
+    "paired95": [
+      0.44201490120261094,
+      0.5879850987973891
+    ],
+    "ties": 0,
+    "mean_turns": 8.81,
+    "seconds_this_run": 121.6684931669879,
+    "config": {
+      "x": "rust_uct_rollout",
+      "y": "rust_foulplay_det",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 200,
+      "preview_ms": 300,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_foulplay_det_vs_rust_foulplay_doubles",
+    "label": "[30k] Foul Play argmax vs Foul Play doubles eval",
+    "x": "rust_foulplay_det",
+    "y": "rust_foulplay_doubles",
+    "battles": 200,
+    "x_points": 90.0,
+    "x_share": 0.45,
+    "wilson95": [
+      0.38263948633754313,
+      0.519245114254289
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.45,
+    "paired95": [
+      0.3854133578560215,
+      0.5145866421439785
+    ],
+    "ties": 0,
+    "mean_turns": 8.495,
+    "seconds_this_run": 17.42393695800274,
+    "config": {
+      "x": "rust_foulplay_det",
+      "y": "rust_foulplay_doubles",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "ms200_rust_uct_rollout_vs_rust_foulplay_joint",
+    "label": "[200 ms] UCT random playouts vs Foul Play joint PUCT",
+    "x": "rust_uct_rollout",
+    "y": "rust_foulplay_joint",
+    "battles": 200,
+    "x_points": 88.0,
+    "x_share": 0.44,
+    "wilson95": [
+      0.3729770042058236,
+      0.509284516504375
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.44,
+    "paired95": [
+      0.37279292966487604,
+      0.507207070335124
+    ],
+    "ties": 0,
+    "mean_turns": 8.13,
+    "seconds_this_run": 120.90956241700042,
+    "config": {
+      "x": "rust_uct_rollout",
+      "y": "rust_foulplay_joint",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 200,
+      "preview_ms": 300,
+      "iterations": 0,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  },
+  {
+    "key": "rust_foulplay_det_vs_rust_uct_rollout",
+    "label": "[30k] Foul Play argmax vs UCT random playouts",
+    "x": "rust_foulplay_det",
+    "y": "rust_uct_rollout",
+    "battles": 200,
+    "x_points": 86.0,
+    "x_share": 0.43,
+    "wilson95": [
+      0.36334204488394795,
+      0.49929639594461706
+    ],
+    "complete_pairs": 100,
+    "paired_mean": 0.43,
+    "paired95": [
+      0.36463697644321486,
+      0.49536302355678513
+    ],
+    "ties": 0,
+    "mean_turns": 8.875,
+    "seconds_this_run": 32.824369333000504,
+    "config": {
+      "x": "rust_foulplay_det",
+      "y": "rust_uct_rollout",
+      "pairs": 100,
+      "seed": 20261123,
+      "samples": 1,
+      "ms": 250,
+      "preview_ms": 1000,
+      "iterations": 30000,
+      "workers": 8,
+      "concurrency": 1,
+      "format": "gen9championsvgc2026regmb",
+      "git_head": "9a06c93ac0da9f7688684dbe93b9c88bd87eb9bc",
+      "foul_play_source": "pmariglia/foul-play 8f541f8, poke-engine f7b147f",
+      "bc_checkpoint": "/tmp/bc_100.zip",
+      "opponents": "top-50 meta teams, slots shuffled per pair",
+      "source_sha256": {
+        "foul_play_doubles.cjs": "2643d7ab5cf39f76078195e45057aaa33351976113c4b6c5bd430110ab14621a",
+        "foul_play_doubles_runner.cjs": "ec775acb33ca4096bd14302d694e5aca2a7259db908b63d9e161d9231a204b3f",
+        "foul_play_doubles_battles.py": "dc8f79a62346fdad617813e050946de0a195c227f3e812cd924215dd779858b6",
+        "foul-play-doubles-spreads.json": "563cfee5e3dc88dc1fb6cf861f755c66f3a87dc5f2aa848f661056410091c1b2"
+      }
+    }
+  }
+]

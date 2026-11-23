@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rust Regulation M-B policy trade-offs, head to head</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:634px}
+</style>
+</head>
+<body>
+<main>
+<h1>Rust Regulation M-B policy trade-offs, head to head</h1>
+<p class="sub">Mirrored paired matchups on 100 top-50 meta team pairs (200 battles per row, sides swapped on identical slot shuffles). All search policies use the Rust Reg M-B engine; BC = behaviour cloning.</p>
+<div id="chart"></div>
+<p class="note">[30k] Foul Play argmax vs BC (stochastic): 0.900 (0.86–0.94, n=200) | [30k] Foul Play joint PUCT vs BC (stochastic): 0.875 (0.83–0.92, n=200) | [30k] Foul Play 2-turn hybrid vs BC (stochastic): 0.870 (0.82–0.92, n=200) | [30k] UCT random playouts vs BC (stochastic): 0.860 (0.82–0.90, n=200) | [30k] Foul Play doubles eval vs BC (stochastic): 0.845 (0.80–0.89, n=200) | [30k] Flat Monte Carlo vs BC (stochastic): 0.845 (0.80–0.89, n=200)</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"grid": {"left": 310, "right": 48, "top": 28, "bottom": 48}, "tooltip": {"trigger": "item"}, "xAxis": {"type": "value", "min": 0.2, "max": 1.0, "name": "First policy share of points (0.5 = even)", "nameLocation": "middle", "nameGap": 28}, "yAxis": {"type": "category", "data": ["[30k] Foul Play argmax vs UCT random playouts", "[200 ms] UCT random playouts vs Foul Play joint PUCT", "[30k] Foul Play argmax vs Foul Play doubles eval", "[200 ms] UCT random playouts vs Foul Play argmax", "[200 ms] UCT random playouts vs Foul Play doubles eval", "[30k] Foul Play argmax vs Flat Monte Carlo", "[30k] UCT random playouts vs Flat Monte Carlo", "[30k] Flat Monte Carlo vs BC (deterministic)", "[30k] UCT random playouts vs BC (deterministic)", "[30k] Foul Play argmax vs BC (deterministic)", "[30k] Flat Monte Carlo vs BC (stochastic)", "[30k] Foul Play doubles eval vs BC (stochastic)", "[30k] UCT random playouts vs BC (stochastic)", "[30k] Foul Play 2-turn hybrid vs BC (stochastic)", "[30k] Foul Play joint PUCT vs BC (stochastic)", "[30k] Foul Play argmax vs BC (stochastic)"], "axisLabel": {"fontSize": 11}}, "series": [{"type": "custom", "name": "95% paired interval", "data": [[0.36463697644321486, 0.49536302355678513, 0], [0.37279292966487604, 0.507207070335124, 1], [0.3854133578560215, 0.5145866421439785, 2], [0.44201490120261094, 0.5879850987973891, 3], [0.4754866503389468, 0.5945133496610533, 4], [0.5487722560303262, 0.6612277439696738, 5], [0.6702182960997921, 0.7897817039002079, 6], [0.7342876959922173, 0.8357123040077827, 7], [0.7582931495463282, 0.8617068504536719, 8], [0.7512660303408736, 0.8687339696591265, 9], [0.7973652830109565, 0.8926347169890434, 10], [0.7973652830109565, 0.8926347169890434, 11], [0.8157764357342872, 0.9042235642657128, 12], [0.8225182693294069, 0.9174817306705931, 13], [0.832350974290854, 0.917649025709146, 14], [0.8606025176418389, 0.9393974823581611, 15]], "renderItem": "js:(params, api) => { const lo = api.coord([api.value(0), api.value(2)]), hi = api.coord([api.value(1), api.value(2)]); return {type: 'line', shape: {x1: lo[0], y1: lo[1], x2: hi[0], y2: hi[1]}, style: {stroke: api.visual('color'), lineWidth: 3, opacity: 0.7}}; }", "encode": {"x": [0, 1], "y": 2}, "z": 1}, {"type": "scatter", "name": "Point share", "data": [[0.43, 0], [0.44, 1], [0.45, 2], [0.515, 3], [0.535, 4], [0.605, 5], [0.73, 6], [0.785, 7], [0.81, 8], [0.81, 9], [0.845, 10], [0.845, 11], [0.86, 12], [0.87, 13], [0.875, 14], [0.9, 15]], "symbolSize": 10, "z": 3, "label": {"show": true, "position": "right", "distance": 6, "formatter": "{@[0]}"}, "emphasis": {"focus": "series"}, "markLine": {"silent": true, "symbol": "none", "data": [{"xAxis": 0.5}], "label": {"formatter": "even"}, "lineStyle": {"type": "dashed"}}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
