@@ -230,12 +230,16 @@ def _predict_log_clean(model, tokens, time_tensor, cond_tensor, temperature):
     return {key: F.log_softmax(val.float() / temperature, dim=-1) for key, val in logits_by_key.items()}
 
 
-def _top_predictions_row(log_clean_by_key, batch_size, device):
-    """Extract [B, 84] argmax clean-field token indices from per-field-type log-probabilities."""
+def _top_predictions_and_margin(log_clean_by_key, batch_size, device):
+    """Extract [B, 84] argmax clean-field token indices and top-1 minus top-2 probability margin."""
     top_tokens = torch.empty((batch_size, COLS), dtype=torch.long, device=device)
+    top_margin = torch.empty((batch_size, COLS), dtype=torch.float32, device=device)
     for field_key, cols in FIELD_COLS.items():
-        top_tokens[:, cols] = log_clean_by_key[field_key].argmax(dim=-1)
-    return top_tokens
+        probs = log_clean_by_key[field_key].exp()
+        top2 = torch.topk(probs, k=2, dim=-1)
+        top_tokens[:, cols] = top2.indices[..., 0]
+        top_margin[:, cols] = top2.values[..., 0] - top2.values[..., 1]
+    return top_tokens, top_margin
 
 
 def _guided_top_predictions_row(log_cond, log_uncond, guidance, batch_size, device):
@@ -315,17 +319,28 @@ def sample_uniform(
     for step in range(passes):
         move_t = times[step]
         move_s = times[step + 1]
-        time_batch = torch.full((n,), float(move_t), device=device)
+        t_scalar = float(move_t)
+        time_batch = torch.full((n,), t_scalar, device=device)
         log_cond = _predict_log_clean(model, tokens, time_batch, ask_tensor, temperature) if need_cond else None
         log_uncond = _predict_log_clean(model, tokens, time_batch, null_tensor, temperature) if need_uncond else None
-        top_tokens = _top_predictions_row(log_cond if effective_guidance > 0.0 else log_uncond, n, device)
+        top_tokens, top_margin = _top_predictions_and_margin(
+            log_cond if effective_guidance > 0.0 else log_uncond, n, device
+        )
         guided_top = (
             _guided_top_predictions_row(log_cond, log_uncond, effective_guidance, n, device)
             if (need_cond and need_uncond)
             else top_tokens
         )
         next_tokens = _step_sample_tokens(log_cond, log_uncond, tokens, move_s, move_t, effective_guidance, vocab_sizes)
-        tracker.record_pass(step, tokens, next_tokens, top_tokens, guided_top_tokens=guided_top)
+        tracker.record_pass(
+            step,
+            tokens,
+            next_tokens,
+            top_tokens,
+            guided_top_tokens=guided_top,
+            top_margin=top_margin,
+            time_value=t_scalar,
+        )
         tokens = next_tokens
 
     return uniform_to_table(tokens), tracker

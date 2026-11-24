@@ -254,7 +254,7 @@ _Origin_: the absorbing transition in D3PM (Austin et al. 2021); the weighted cr
 _Avoid_: mask diffusion model, MDM (alone), absorbing diffusion
 
 **Uniform discrete diffusion model**:
-A discrete diffusion model whose forward process replaces each token with a value drawn uniformly from its vocabulary, with no mask token. Pure noise is a random team. Every reverse pass may change any field, including one it already changed, and sampling runs a fixed number of passes because no field is ever finished. The four arms of the uniform discrete diffusion map (#270) are this kind; the default model is not.
+A discrete diffusion model whose forward process replaces each token with a value drawn uniformly from its vocabulary, with no mask token. Pure noise is a random team. Every reverse pass may change any field, including one it already changed, and sampling runs a fixed number of passes because no field is ever finished. The **Uniform, no filter** arm of the uniform discrete diffusion map (#270) is this kind; the default model is not.
 _Origin_: the uniform transition in D3PM (Austin et al. 2021); UDLM, [Schiff et al. 2024](https://arxiv.org/abs/2412.10193), which adds guidance; Duo, [Sahoo et al. 2025](https://s-sahoo.com/duo/), which shows it arises from an underlying Gaussian diffusion.
 _Avoid_: uniform diffusion model (the name until 2026-11-11), uniform-noise model, uniform-state diffusion (the papers' name)
 

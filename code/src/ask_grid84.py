@@ -104,10 +104,11 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
 MODELS["sched_linear_random_reject"] = dict(MODELS["sched_linear_random"], reader="Linear, random order, no lookahead, redrawn until legal",
                                             decoder="random_no_lookahead", max_tries=20_000, seed0=grid_seeds.LEGACY)
 # Map #270 / issue #275: paper-faithful UDLM (Schiff et al. 2024, alpha(t) = 1 - t, unconstrained sampling, Showdown checks after pass K).
+# passes=None until #277 locks K* in {84, 128, 256}: require AG84_PASSES explicitly so no grid silently runs at an unchosen K.
 MODELS["udlm_loglinear_nofilter"] = dict(checkpoint="stat84_udlm_loglinear_es3_cap80", reader="Uniform, no filter",
                                          epochs=dict(labelled_teams=80),
                                          stopped="early stopping on validation loss (patience 3, threshold 0, cap 80)",
-                                         labelled=True, decoder="uniform_nofilter", uniform=True, passes=128,
+                                         labelled=True, decoder="uniform_nofilter", uniform=True, passes=None,
                                          table=DEFAULT_TABLE)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
@@ -190,8 +191,10 @@ def load_sampler(w=None):
     decoder = MODELS[MODEL].get("decoder", "species_first")
     if decoder == "species_first": return w
     if decoder == "uniform_nofilter":
+        if PASSES is None:
+            raise SystemExit(f"{MODEL}: set AG84_PASSES=84|128|256 explicitly until #277 locks K*")
         import uniform_diffusion84 as UM
-        return UM.UniformSampler84(w, passes=PASSES or UM.DEFAULT_PASSES)
+        return UM.UniformSampler84(w, passes=PASSES)
     import sampler84 as S
     if decoder == "species_first_corrected_t": return S.Sampler84(w, decoder)
     if decoder in ("random", "species_then_random", "confidence", "entropy_init"):

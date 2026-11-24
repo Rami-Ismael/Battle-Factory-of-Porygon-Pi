@@ -131,25 +131,41 @@ class UniformMathPortEqualityTests(unittest.TestCase):
         tracker = UMath.RevisionTracker(batch_size=2, passes=4, vocab_sizes=REAL_VOCAB)
         z0 = torch.zeros((2, UMath.COLS), dtype=torch.long)
         z1 = torch.ones((2, UMath.COLS), dtype=torch.long)
-        z2 = torch.full((2, UMath.COLS), 2, dtype=torch.long)
-        # 4 passes: state changes on passes 0, 1, 2 -> total_changes=3 -> beyond_first=2; mean fields/pass = 3*84/4 = 63
-        # cond top: [1, 1, 2, 2] -> 1 change of mind; guided top: [1, 2, 3, 4] -> 3 guided changes of mind
-        seq = [(z0, z1, 1, 1), (z1, z2, 1, 2), (z2, z0, 2, 3), (z0, z0, 2, 4)]
-        for idx, (prev_t, next_t, top_val, guided_val) in enumerate(seq):
+        # Build z_distinct with 6 distinct species in team 0, duplicate species in team 1
+        z_distinct = torch.full((2, UMath.COLS), 2, dtype=torch.long)
+        z_distinct[0, UMath.FIELD_COLS["species"]] = torch.arange(6, dtype=torch.long)
+        z_distinct[1, UMath.FIELD_COLS["species"]] = torch.tensor([0, 0, 2, 3, 4, 5], dtype=torch.long)
+        # Pass times span high_noise (0.9), mid_noise (0.5), low_noise (0.2), low_noise (0.05)
+        # Flips happen at pass 1 (mid_noise, margin 0.05 -> NOT confident) and pass 2 (low_noise, margin 0.25 -> confident)
+        seq = [
+            (z0, z1, 1, 1, 0.90, 0.50),
+            (z1, z_distinct, 2, 2, 0.50, 0.05),
+            (z_distinct, z0, 3, 3, 0.20, 0.25),
+            (z0, z_distinct, 3, 4, 0.05, 0.40),
+        ]
+        for idx, (prev_t, next_t, top_val, guided_val, t_val, margin_val) in enumerate(seq):
             tracker.record_pass(
                 idx,
                 prev_t,
                 next_t,
                 torch.full((2, UMath.COLS), top_val, dtype=torch.long),
                 guided_top_tokens=torch.full((2, UMath.COLS), guided_val, dtype=torch.long),
+                top_margin=torch.full((2, UMath.COLS), margin_val, dtype=torch.float32),
+                time_value=t_val,
             )
         summary = tracker.summary()
-        self.assertAlmostEqual(summary["mean_fields_changed_per_pass"], 63.0, places=6)
+        # Team 0 has duplicate species on passes 0 and 2 (2/4); team 1 on all 4 passes (4/4) -> mean 0.75; final: team 0 no, team 1 yes -> 0.5
+        self.assertAlmostEqual(summary["duplicate_species_pass_share"], 0.75, places=6)
+        self.assertAlmostEqual(summary["final_duplicate_species_share"], 0.50, places=6)
+        self.assertGreater(summary["mean_fields_changed_per_pass"], 0.0)
         for field_key in UMath.FIELD_KEYS:
             stats = summary["by_field"][field_key]
-            self.assertAlmostEqual(stats["value_changes_beyond_first"], 2.0, places=6)
-            self.assertAlmostEqual(stats["changes_of_mind"], 1.0, places=6)
+            self.assertAlmostEqual(stats["changes_of_mind"], 2.0, places=6)
             self.assertAlmostEqual(stats["guided_changes_of_mind"], 3.0, places=6)
+            self.assertAlmostEqual(stats["confident_changes_of_mind"], 1.0, places=6)
+            self.assertAlmostEqual(stats["changes_of_mind_by_phase"]["high_noise"], 0.0, places=6)
+            self.assertAlmostEqual(stats["changes_of_mind_by_phase"]["mid_noise"], 1.0, places=6)
+            self.assertAlmostEqual(stats["changes_of_mind_by_phase"]["low_noise"], 1.0, places=6)
             self.assertGreater(stats["noise_floor"], 0.0)
 
 

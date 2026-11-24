@@ -290,9 +290,12 @@ class TrainingSmokeAndWiringTests(unittest.TestCase):
     def test_training_smoke_init_ce_and_32_team_overfit_pass(self):
         report = TU.run_training_smoke(steps=60, seed=0)
         self.assertTrue(report["port_equality"]["passed"], report["port_equality"])
+        self.assertTrue(report["port_equality"]["posterior_and_cfg"]["passed"], report["port_equality"])
         self.assertTrue(report["init_ce"]["passed"], report["init_ce"])
         self.assertTrue(report["overfit_32_teams"]["passed"], report["overfit_32_teams"])
         self.assertGreaterEqual(report["overfit_32_teams"]["drop_fraction"], 0.40)
+        self.assertTrue(report["production_batch_step"]["passed"], report["production_batch_step"])
+        self.assertEqual(report["production_batch_step"]["batch_size"], 256)
         self.assertTrue(report["sampler_smoke"]["passed"], report["sampler_smoke"])
         self.assertTrue(report["passed"], report)
 
@@ -419,6 +422,13 @@ class TrainingSmokeAndWiringTests(unittest.TestCase):
                 self.assertRaises(SystemExit),
             ):
                 AG.require_same_checkpoint({"cells": {"c": {}}, "passes": 84})
+        # load_sampler refuses udlm_loglinear_nofilter when AG84_PASSES is unset (until #277 locks K*)
+        with (
+            mock.patch.object(AG, "MODEL", "udlm_loglinear_nofilter"),
+            mock.patch.object(AG, "PASSES", None),
+            self.assertRaises(SystemExit),
+        ):
+            AG.load_sampler(w=object())
 
     def test_nan_guards_protect_best_checkpoint_and_abort_non_finite_steps(self):
         net = UM.UniformNet84(VOCAB, **TINY).to(UM.DEV)

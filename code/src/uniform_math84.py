@@ -24,6 +24,8 @@ NAN = float("nan")
 TRAINING_EPS = UP.TRAINING_EPS                           # 1e-3
 SAMPLING_EPS = UP.SAMPLING_EPS                           # 1e-5
 DEFAULT_PASSES = 128
+CONFIDENT_MARGIN = 0.10                                  # top-1 minus top-2 probability margin for confident mind-changes
+PHASE_NAMES = ("high_noise", "mid_noise", "low_noise")   # t > 2/3, 1/3 < t <= 2/3, t <= 1/3
 
 FIELD_KEYS = ("species", "ability", "item", "move", "nature", "stat")
 FIELD_COLS = {
@@ -147,6 +149,22 @@ def cfg_posterior(log_clean_cond, log_clean_uncond, noisy_tokens, move_chance_s,
     return F.softmax(guidance * log_post_cond + (1.0 - guidance) * log_post_uncond, dim=-1)
 
 
+def _phase_for_time(time_value, pass_index, total_passes):
+    """Map reverse-step time t in (0, 1] to high_noise (> 2/3), mid_noise (> 1/3), or low_noise (<= 1/3)."""
+    t_val = (1.0 - pass_index / max(total_passes, 1)) if time_value is None else float(time_value)
+    if t_val > 2.0 / 3.0:
+        return "high_noise"
+    if t_val > 1.0 / 3.0:
+        return "mid_noise"
+    return "low_noise"
+
+
+def _has_duplicate_species(tokens):
+    """Boolean [B]: whether any two of the 6 species columns hold the same species token."""
+    species = tokens[:, FIELD_COLS["species"]].sort(dim=1).values
+    return (species[:, 1:] == species[:, :-1]).any(dim=1)
+
+
 class RevisionTracker:
     """Logs per-pass top predictions and computes the revision numbers across all 84 fields.
 
@@ -157,7 +175,10 @@ class RevisionTracker:
 
     Exploratory diagnostics logged at zero extra network cost:
       - guided_changes_of_mind: flips of argmax(gamma * log x_c + (1 - gamma) * log x_u) under CFG.
-      - mean_fields_changed_per_pass: average number of the 84 fields that change value per pass.
+      - confident_changes_of_mind: flips where the new top-1 probability margin p_(1) - p_(2) >= 0.10.
+      - changes_of_mind_by_phase: changes_of_mind split across high_noise / mid_noise / low_noise passes.
+      - mean_fields_changed_per_pass: average number of the 84 fields changing value per pass.
+      - duplicate_species_pass_share & final_duplicate_species_share: simultaneous-update species collisions.
     """
 
     def __init__(self, batch_size, passes, vocab_sizes, *, eps=SAMPLING_EPS, keep_top_predictions=True):
@@ -168,23 +189,47 @@ class RevisionTracker:
         self.total_value_changes = torch.zeros((batch_size, COLS), dtype=torch.long)
         self.changes_of_mind = torch.zeros((batch_size, COLS), dtype=torch.long)
         self.guided_changes_of_mind = torch.zeros((batch_size, COLS), dtype=torch.long)
+        self.confident_changes_of_mind = torch.zeros((batch_size, COLS), dtype=torch.long)
+        self.changes_of_mind_by_phase = {
+            phase: torch.zeros((batch_size, COLS), dtype=torch.long) for phase in PHASE_NAMES
+        }
+        self.duplicate_species_passes = torch.zeros(batch_size, dtype=torch.long)
+        self.final_duplicate_species = torch.zeros(batch_size, dtype=torch.bool)
         self._prev_top = None
         self._prev_guided_top = None
         self.top_predictions = (
             torch.empty((passes, batch_size, COLS), dtype=torch.int16) if keep_top_predictions else None
         )
 
-    def record_pass(self, pass_index, prev_tokens, next_tokens, top_tokens, guided_top_tokens=None):
-        """Record one reverse step's state transition and top clean-field predictions [B, 84]."""
-        changed = (next_tokens != prev_tokens).to(dtype=torch.long, device="cpu")
-        self.total_value_changes += changed
+    def record_pass(
+        self,
+        pass_index,
+        prev_tokens,
+        next_tokens,
+        top_tokens,
+        guided_top_tokens=None,
+        *,
+        top_margin=None,
+        time_value=None,
+    ):
+        """Record one reverse step's state transition, species-collision state, and top predictions [B, 84]."""
+        self.total_value_changes += (next_tokens != prev_tokens).to(dtype=torch.long, device="cpu")
+        dup_species = _has_duplicate_species(next_tokens).cpu()
+        self.duplicate_species_passes += dup_species.long()
+        self.final_duplicate_species = dup_species
         top_cpu = top_tokens.to(dtype=torch.long, device="cpu")
         guided_cpu = top_cpu if guided_top_tokens is None else guided_top_tokens.to(dtype=torch.long, device="cpu")
         if self.top_predictions is not None:
             self.top_predictions[pass_index] = top_cpu.to(torch.int16)
         if self._prev_top is not None:
-            self.changes_of_mind += (top_cpu != self._prev_top).long()
+            flipped = top_cpu != self._prev_top
+            self.changes_of_mind += flipped.long()
             self.guided_changes_of_mind += (guided_cpu != self._prev_guided_top).long()
+            phase = _phase_for_time(time_value, pass_index, self.passes)
+            self.changes_of_mind_by_phase[phase] += flipped.long()
+            if top_margin is not None:
+                confident = top_margin.to(device="cpu") >= CONFIDENT_MARGIN
+                self.confident_changes_of_mind += (flipped & confident).long()
         self._prev_top = top_cpu
         self._prev_guided_top = guided_cpu
 
@@ -197,7 +242,11 @@ class RevisionTracker:
         beyond_first = self.value_changes_beyond_first().float()
         mind_changes = self.changes_of_mind.float()
         guided_mind = self.guided_changes_of_mind.float()
+        confident_mind = self.confident_changes_of_mind.float()
+        phase_tensors = {phase: tensor.float() for phase, tensor in self.changes_of_mind_by_phase.items()}
         per_pass = self.total_value_changes.float().sum(dim=1) / max(self.passes, 1)
+        dup_pass_share = self.duplicate_species_passes.float() / max(self.passes, 1)
+        final_dup = self.final_duplicate_species.float()
         records = []
         for row_idx in range(self.batch_size):
             records.append(
@@ -205,6 +254,8 @@ class RevisionTracker:
                     passes=self.passes,
                     eps=self.eps,
                     mean_fields_changed_per_pass=float(per_pass[row_idx]),
+                    duplicate_species_pass_share=float(dup_pass_share[row_idx]),
+                    final_duplicate_species=float(final_dup[row_idx]),
                     value_changes_beyond_first={
                         key: float(beyond_first[row_idx, cols].mean()) for key, cols in FIELD_COLS.items()
                     },
@@ -213,6 +264,13 @@ class RevisionTracker:
                     },
                     guided_changes_of_mind={
                         key: float(guided_mind[row_idx, cols].mean()) for key, cols in FIELD_COLS.items()
+                    },
+                    confident_changes_of_mind={
+                        key: float(confident_mind[row_idx, cols].mean()) for key, cols in FIELD_COLS.items()
+                    },
+                    changes_of_mind_by_phase={
+                        phase: {key: float(phase_tensors[phase][row_idx, cols].mean()) for key, cols in FIELD_COLS.items()}
+                        for phase in PHASE_NAMES
                     },
                 )
             )
@@ -223,31 +281,58 @@ class RevisionTracker:
         return summarize_revision_records(self.per_team_records(), self.vocab_sizes, self.passes, eps=self.eps)
 
 
+def _mean_field_value(records, section_key, field_key, fallback_key=None):
+    if not records:
+        return float("nan")
+    values = []
+    for rec in records:
+        section = rec.get(section_key) if section_key in rec else (rec.get(fallback_key) if fallback_key else None)
+        values.append(float("nan") if section is None else section[field_key])
+    return float(np.mean(values))
+
+
+def _mean_phase_values(records, field_key):
+    if not records:
+        return {phase: float("nan") for phase in PHASE_NAMES}
+    return {
+        phase: float(np.mean([rec["changes_of_mind_by_phase"][phase][field_key] for rec in records]))
+        if all("changes_of_mind_by_phase" in rec for rec in records)
+        else float("nan")
+        for phase in PHASE_NAMES
+    }
+
+
 def summarize_revision_records(records, vocab_sizes, passes, *, eps=SAMPLING_EPS):
     """Aggregate per-team revision records into per-field-type means plus the deterministic noise floor."""
     by_field = {}
     for field_key in FIELD_KEYS:
         floor = UP.revision_noise_floor(vocab_sizes[field_key], passes, exponent=1.0, eps=eps)
-        if records:
-            mean_beyond = float(np.mean([rec["value_changes_beyond_first"][field_key] for rec in records]))
-            mean_mind = float(np.mean([rec["changes_of_mind"][field_key] for rec in records]))
-            mean_guided = float(np.mean([rec.get("guided_changes_of_mind", rec["changes_of_mind"])[field_key] for rec in records]))
-        else:
-            mean_beyond = float("nan")
-            mean_mind = float("nan")
-            mean_guided = float("nan")
         by_field[field_key] = dict(
             vocab_size=int(vocab_sizes[field_key]),
-            value_changes_beyond_first=mean_beyond,
+            value_changes_beyond_first=_mean_field_value(records, "value_changes_beyond_first", field_key),
             noise_floor=float(floor),
-            changes_of_mind=mean_mind,
-            guided_changes_of_mind=mean_guided,
+            changes_of_mind=_mean_field_value(records, "changes_of_mind", field_key),
+            guided_changes_of_mind=_mean_field_value(records, "guided_changes_of_mind", field_key, "changes_of_mind"),
+            confident_changes_of_mind=_mean_field_value(records, "confident_changes_of_mind", field_key),
+            changes_of_mind_by_phase=_mean_phase_values(records, field_key),
         )
     mean_changed = float(np.mean([rec["mean_fields_changed_per_pass"] for rec in records])) if records else float("nan")
+    dup_pass = (
+        float(np.mean([rec["duplicate_species_pass_share"] for rec in records]))
+        if records and all("duplicate_species_pass_share" in rec for rec in records)
+        else float("nan")
+    )
+    final_dup = (
+        float(np.mean([rec["final_duplicate_species"] for rec in records]))
+        if records and all("final_duplicate_species" in rec for rec in records)
+        else float("nan")
+    )
     return dict(
         teams=len(records),
         passes=int(passes),
         eps=float(eps),
         mean_fields_changed_per_pass=mean_changed,
+        duplicate_species_pass_share=dup_pass,
+        final_duplicate_species_share=final_dup,
         by_field=by_field,
     )

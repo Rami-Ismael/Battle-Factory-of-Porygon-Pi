@@ -89,18 +89,66 @@ def stamped(model, arm):
     return model
 
 
+def _verify_posterior_and_cfg(real_vocab):
+    """Verify reverse posterior & CFG match verbatim upstream alpha-form and independent Bayes across gamma <= 16."""
+    gen = torch.Generator().manual_seed(275)
+    max_up_diff = 0.0
+    max_bayes_diff = 0.0
+    all_ok = True
+    for vocab_size in real_vocab.values():
+        log_cond = torch.log_softmax(torch.randn(4, 6, vocab_size, generator=gen, dtype=torch.float64), dim=-1)
+        log_uncond = torch.log_softmax(torch.randn(4, 6, vocab_size, generator=gen, dtype=torch.float64), dim=-1)
+        noisy = torch.randint(0, vocab_size, (4, 6), generator=gen)
+        for move_t_val, move_s_val in ((1.0, 1.0 - 1.0 / 128), (0.5, 0.5 - 1.0 / 128), (1.0 / 128, 1e-5)):
+            move_t = torch.full((4, 1, 1), move_t_val, dtype=torch.float64)
+            move_s = torch.full((4, 1, 1), move_s_val, dtype=torch.float64)
+            alpha_t, alpha_s = 1.0 - move_t, 1.0 - move_s
+            cand = UM.reverse_posterior(log_cond.exp(), noisy, move_s, move_t, vocab_size)
+            ref_up = UP.upstream_reverse_posterior(log_cond.exp(), noisy, alpha_s, alpha_t, vocab_size)
+            ref_bayes = UP.bayes_reverse_posterior(log_cond.exp(), noisy, move_s, move_t, vocab_size)
+            max_up_diff = max(max_up_diff, float((cand - ref_up).abs().max()))
+            max_bayes_diff = max(max_bayes_diff, float((cand - ref_bayes).abs().max()))
+            all_ok = all_ok and bool(torch.allclose(cand, ref_up, atol=1e-11, rtol=1e-11))
+            all_ok = all_ok and bool(torch.allclose(cand, ref_bayes, atol=1e-11, rtol=1e-11))
+            for gamma in (0.0, 1.0, 2.0, 4.0, 8.0, 16.0):
+                cfg_cand = UM.cfg_posterior(log_cond, log_uncond, noisy, move_s, move_t, gamma, vocab_size)
+                cfg_up = UP.upstream_cfg_posterior(log_cond, log_uncond, noisy, alpha_s, alpha_t, gamma, vocab_size)
+                max_up_diff = max(max_up_diff, float((cfg_cand - cfg_up).abs().max()))
+                all_ok = all_ok and bool(torch.allclose(cfg_cand, cfg_up, atol=1e-11, rtol=1e-11))
+    return dict(passed=all_ok, max_upstream_diff_f64=max_up_diff, max_bayes_diff_f64=max_bayes_diff)
+
+
 def verify_port_equality(vocab=None):
-    """Run the required pre-training port-equality gate in float32 and float64 (issue #275)."""
+    """Run the required pre-training port-equality gate (loss in f64/f32 + verbatim upstream/Bayes posterior & CFG)."""
     vocab = T.regulation_vocab() if vocab is None else vocab
     real_vocab = UM.real_vocab_sizes(vocab)
     report_f64 = UP.port_equality_check(UM.port_equality_loss, real_vocab, batch_size=8, dtype=torch.float64)
     report_f32 = UP.port_equality_check(UM.port_equality_loss, real_vocab, batch_size=8, dtype=torch.float32)
-    passed = bool(report_f64["passed"] and report_f32["passed"])
-    return dict(passed=passed, float64=report_f64, float32=report_f32)
+    posterior_cfg = _verify_posterior_and_cfg(real_vocab)
+    passed = bool(report_f64["passed"] and report_f32["passed"] and posterior_cfg["passed"])
+    return dict(passed=passed, float64=report_f64, float32=report_f32, posterior_and_cfg=posterior_cfg)
+
+
+def _measure_production_batch_step(vocab, sample_rows, sample_labels, seed=0):
+    """Verify one full-width (d=256, 6-layer) production batch-256 forward+backward step is finite on DEV (MPS)."""
+    torch.manual_seed(seed)
+    net = UM.UniformNet84(vocab, **NET).to(UM.DEV).train()
+    batch_size = RECIPE["batch"]
+    reps = math.ceil(batch_size / len(sample_rows))
+    rows_256 = np.tile(sample_rows, (reps, 1))[:batch_size]
+    labels_256 = np.tile(sample_labels, reps)[:batch_size]
+    clean = UM.table_to_uniform(torch.as_tensor(rows_256, dtype=torch.long, device=UM.DEV))
+    labels_t = torch.as_tensor(labels_256, dtype=torch.float32, device=UM.DEV)
+    loss = UM.batch_loss(net, clean, labels_t, net.vocab_sizes)
+    loss_val = float(loss.detach())
+    loss.backward()
+    grad_norm = float(torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0))
+    ok = math.isfinite(loss_val) and math.isfinite(grad_norm)
+    return dict(device=str(UM.DEV), batch_size=batch_size, loss=loss_val, grad_norm=grad_norm, passed=ok)
 
 
 def run_training_smoke(*, steps=60, seed=0):
-    """Pre-registered #275 smoke probe: port-equality, init CE near ln N_k, 32-team overfit >= 40%, sampler check."""
+    """Pre-registered #275 smoke probe: port-equality, init CE near ln N_k, 32-team overfit >= 40%, batch-256 MPS check, sampler."""
     vocab = T.regulation_vocab()
     corpus = X.setup()[0]
     real_vocab = UM.real_vocab_sizes(vocab)
@@ -118,6 +166,7 @@ def run_training_smoke(*, steps=60, seed=0):
     labels_tensor = torch.as_tensor(sample_labels, dtype=torch.float32, device=UM.DEV)
     init_ce = _measure_init_ce(net, clean_tokens, labels_tensor, real_vocab)
     overfit = _measure_overfit(net, clean_tokens, labels_tensor, real_vocab, steps=steps)
+    prod_batch = _measure_production_batch_step(vocab, sample_rows, sample_labels, seed=seed)
 
     model = UM.UniformModel84(vocab, corpus, [(net.eval(), dict(NET))], info=dict(smoke=True))
     drawn = model.sample(4, ask=0.5, guidance=2.0, passes=16, seed=7)
@@ -125,18 +174,21 @@ def run_training_smoke(*, steps=60, seed=0):
     sampler_ok = bool(
         tuple(drawn.shape) == (4, UM.COLS)
         and (drawn >= 1).all()
+        and math.isfinite(rev_summary["mean_fields_changed_per_pass"])
+        and math.isfinite(rev_summary["duplicate_species_pass_share"])
         and all(
             math.isfinite(rev_summary["by_field"][key]["changes_of_mind"])
             and math.isfinite(rev_summary["by_field"][key]["value_changes_beyond_first"])
             for key in UM.FIELD_KEYS
         )
     )
-    passed = bool(port_report["passed"] and init_ce["passed"] and overfit["passed"] and sampler_ok)
+    passed = bool(port_report["passed"] and init_ce["passed"] and overfit["passed"] and prod_batch["passed"] and sampler_ok)
     return dict(
         passed=passed,
         port_equality=port_report,
         init_ce=init_ce,
         overfit_32_teams=overfit,
+        production_batch_step=prod_batch,
         sampler_smoke=dict(passed=sampler_ok, shape=list(drawn.shape), revisions=rev_summary),
     )
 
