@@ -759,9 +759,11 @@ def run_tracer(args: argparse.Namespace) -> dict[str, Any]:
     base_unchanged_after_train = base_weight_hashes(model) == base_hashes_before
 
     peak_mem_bytes = int(torch.cuda.max_memory_allocated()) if device == 'cuda' else 0
+    gpu_name = torch.cuda.get_device_name(0) if device == 'cuda' else None
     result = {
         'candidate': info,
         'device': device,
+        'gpu_name': gpu_name,
         'dtype': args.dtype,
         'pad_token': resolve_pad_token(tokenizer),
         'pad_id': pad_id,

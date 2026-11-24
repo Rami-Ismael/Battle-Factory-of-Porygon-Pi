@@ -26,8 +26,8 @@ REMOTE_CODE = '/root/code'
 REMOTE_TRAINER = f'{REMOTE_CODE}/scripts/masked_lora_trainer.py'
 REMOTE_DATA = '/tmp/rows.npz'
 REMOTE_OUT = '/tmp/out'
-DEFAULT_GPU = 'L4'
-TIMEOUT_SECONDS = 20 * 60            # 20-minute cap (~$0.27 max on L4 at $0.80/h)
+DEFAULT_GPU: list[str] = ['L4', 'T4', 'A10G']
+TIMEOUT_SECONDS = 20 * 60            # 20-minute cap (~$0.20-$0.38 max across T4/L4/A10G)
 HF_CACHE_VOLUME = 'vgc-hf-cache'
 
 IMAGE_PACKAGES: tuple[str, ...] = (
