@@ -57,55 +57,81 @@ def is_better_val_loss(val_loss_value, best_val_loss):
     return math.isfinite(val_loss_value) and val_loss_value < best_val_loss
 
 
-def corrupt_uniform(clean_tokens, time_values, vocab_sizes, generator=None):
+def vocab_vector(vocab_sizes, device):
+    """[1, 84] tensor of real category counts N_k on device."""
+    vec = torch.empty((1, COLS), dtype=torch.long, device=device)
+    for field_key, cols in FIELD_COLS.items():
+        vec[0, cols] = vocab_sizes[field_key]
+    return vec
+
+
+def corrupt_uniform(clean_tokens, time_values, vocab_sizes, generator=None, *, vocab_vec=None):
     """Apply uniform forward corruption q(z_t | x_0) = Cat((1 - t) x_0 + t u) across all 84 fields.
 
     Corrupted positions are redrawn uniformly from 0..N_k - 1 (which may equal the clean token).
+    When generator is None (training), corrupts all 84 columns in one vectorized pass; when a CPU
+    generator is provided (validation CRN), preserves the per-field draw order bit-for-bit.
     """
     batch_size = clean_tokens.shape[0]
     device = clean_tokens.device
-    noisy_tokens = clean_tokens.clone()
     time_col = time_values.view(batch_size, 1)
+    if generator is None:
+        vvec = vocab_vector(vocab_sizes, device) if vocab_vec is None else vocab_vec
+        draws = torch.rand((batch_size, COLS), device=device)
+        random_tokens = (torch.rand((batch_size, COLS), device=device) * vvec).long().clamp(max=vvec - 1)
+        return torch.where(draws < time_col, random_tokens, clean_tokens)
+    noisy_tokens = clean_tokens.clone()
     for field_key, cols in FIELD_COLS.items():
         width = len(cols)
         vocab_size = vocab_sizes[field_key]
-        if generator is None:
-            draws = torch.rand((batch_size, width), device=device)
-            random_tokens = torch.randint(0, vocab_size, (batch_size, width), device=device)
-        else:
-            draws = torch.rand((batch_size, width), generator=generator)
-            random_tokens = torch.randint(0, vocab_size, (batch_size, width), generator=generator)
+        draws = torch.rand((batch_size, width), generator=generator)
+        random_tokens = torch.randint(0, vocab_size, (batch_size, width), generator=generator)
         corrupt_mask = draws < time_col
         noisy_tokens[:, cols] = torch.where(corrupt_mask, random_tokens.to(device), clean_tokens[:, cols])
     return noisy_tokens
 
 
-def uniform_field_loss(log_clean_probs, noisy_tokens, clean_tokens, time_values, vocab_size):
+def uniform_field_loss(log_clean_probs, noisy_tokens, clean_tokens, time_values, vocab_size, *, check_bounds=True):
     """Continuous-time uniform discrete diffusion loss (Schiff et al. Eq. 19, diffusion.py:563-614).
 
     Requires strictly interior times 0 < t < 1 so alpha(t) = 1 - t > 0 and move_chance = t > 0.
-    Computes move_chance = t directly (never 1 - (1 - t)) for float32/MPS numerical hygiene.
+    Computes move_chance = t directly (never 1 - (1 - t)) and evaluates the clean-bar KL terms
+    analytically without allocating a [B, L, N] one-hot tensor or clean_bar.log().
+    Set check_bounds=False only when the caller has already clamped time_values to (0, 1) to avoid
+    per-field device-to-host syncs on MPS/CUDA.
 
     Returns:
         [B, L] per-position continuous-time diffusion loss in nats.
     """
-    if bool(((time_values <= 0.0) | (time_values >= 1.0) | ~torch.isfinite(time_values)).any()):
+    if check_bounds and bool(((time_values <= 0.0) | (time_values >= 1.0) | ~torch.isfinite(time_values)).any()):
         raise ValueError("uniform_field_loss requires finite time_values strictly inside (0, 1)")
     dtype = log_clean_probs.dtype
-    move_chance = time_values.to(dtype).view(-1, 1, 1)
+    move_chance = time_values.to(dtype).view(-1, 1)
     min_alpha = 1e-6 if dtype == torch.float32 else 1e-12
     alpha_time = (1.0 - move_chance).clamp(min=min_alpha)
-    alpha_time_prime = -1.0
-    clean_one_hot = F.one_hot(clean_tokens, vocab_size).to(dtype)
-    clean_bar = vocab_size * alpha_time * clean_one_hot + move_chance
-    pred_bar = vocab_size * alpha_time * log_clean_probs.exp() + move_chance
-    coefficient = alpha_time_prime / (vocab_size * alpha_time)
-    clean_bar_at_noisy = torch.gather(clean_bar, -1, noisy_tokens[..., None])
-    pred_bar_at_noisy = torch.gather(pred_bar, -1, noisy_tokens[..., None])
+    a_term = vocab_size * alpha_time                                         # N * alpha(t)
+    b_term = a_term + move_chance                                            # N * alpha(t) + t
+    same = noisy_tokens == clean_tokens
+    clean_bar_at_noisy = torch.where(same, b_term, move_chance)
+
+    pred_bar = a_term.unsqueeze(-1) * log_clean_probs.exp() + move_chance.unsqueeze(-1)
+    log_pred_bar = pred_bar.log()
+    pred_bar_at_noisy = torch.gather(pred_bar, -1, noisy_tokens.unsqueeze(-1)).squeeze(-1)
+    log_pred_bar_at_noisy = torch.gather(log_pred_bar, -1, noisy_tokens.unsqueeze(-1)).squeeze(-1)
+    log_pred_bar_at_clean = torch.gather(log_pred_bar, -1, clean_tokens.unsqueeze(-1)).squeeze(-1)
+
+    # Zero-cancellation grouping: sum_v c_v * (log(p_noisy / p_v) + log(c_v / c_noisy))
+    diff_pred_sum = (log_pred_bar_at_noisy.unsqueeze(-1) - log_pred_bar).sum(dim=-1)
+    diff_pred_clean = log_pred_bar_at_noisy - log_pred_bar_at_clean
+    log_b_over_m = torch.log1p(a_term / move_chance)                         # log(1 + N*alpha/t)
+    clean_kl = torch.where(
+        same,
+        -((vocab_size - 1) * move_chance) * log_b_over_m,                    # (N - 1) * t * log(t / B)
+        b_term * log_b_over_m,                                               # B * log(B / t)
+    )
+    second_term = (move_chance * diff_pred_sum + a_term * diff_pred_clean + clean_kl) / clean_bar_at_noisy
     first_term = (vocab_size / clean_bar_at_noisy) - (vocab_size / pred_bar_at_noisy)
-    log_ratio = pred_bar_at_noisy.log() - pred_bar.log() + clean_bar.log() - clean_bar_at_noisy.log()
-    second_term = ((clean_bar / clean_bar_at_noisy) * log_ratio).sum(dim=-1, keepdim=True)
-    return (coefficient * (first_term - second_term)).squeeze(-1)
+    return (-1.0 / a_term) * (first_term - second_term)
 
 
 def port_equality_loss(log_clean_probs, noisy_tokens, clean_tokens, time_values, exponent, vocab_size):

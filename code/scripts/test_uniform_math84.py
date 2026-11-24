@@ -127,6 +127,35 @@ class UniformMathPortEqualityTests(unittest.TestCase):
         self.assertFalse(UMath.is_better_val_loss(float("inf"), math.inf))
         self.assertFalse(UMath.is_better_val_loss(float("-inf"), 1.0))
 
+    def test_unchecked_bounds_and_vectorized_corrupt_uniform(self):
+        gen = torch.Generator().manual_seed(314)
+        times = torch.tensor([1e-3, 0.25, 0.5, 0.999], dtype=torch.float64)
+        for field_key, vocab_size in REAL_VOCAB.items():
+            clean = torch.randint(0, vocab_size, (len(times), 6), generator=gen)
+            noisy = torch.cat([clean[:, :3], ((clean + 1) % vocab_size)[:, 3:]], dim=1)
+            log_probs = F.log_softmax(torch.randn((len(times), 6, vocab_size), generator=gen, dtype=torch.float64), dim=-1)
+            checked = UMath.uniform_field_loss(log_probs, noisy, clean, times, vocab_size, check_bounds=True)
+            unchecked = UMath.uniform_field_loss(log_probs, noisy, clean, times, vocab_size, check_bounds=False)
+            self.assertTrue(torch.equal(checked, unchecked), field_key)
+
+        clean_full = torch.zeros((256, UMath.COLS), dtype=torch.long)
+        t_mid = torch.full((256,), 0.5, dtype=torch.float32)
+        torch.manual_seed(42)
+        noisy_vec = UMath.corrupt_uniform(clean_full, t_mid, REAL_VOCAB, generator=None)
+        self.assertEqual(tuple(noisy_vec.shape), (256, UMath.COLS))
+        for field_key, cols in UMath.FIELD_COLS.items():
+            vals = noisy_vec[:, cols]
+            self.assertTrue(bool((vals >= 0).all() and (vals < REAL_VOCAB[field_key]).all()), field_key)
+        changed_rate = float((noisy_vec != clean_full).float().mean())
+        self.assertGreater(changed_rate, 0.40)
+        self.assertLess(changed_rate, 0.55)
+
+        g1 = torch.Generator().manual_seed(999)
+        g2 = torch.Generator().manual_seed(999)
+        n1 = UMath.corrupt_uniform(clean_full[:8], t_mid[:8], REAL_VOCAB, generator=g1)
+        n2 = UMath.corrupt_uniform(clean_full[:8], t_mid[:8], REAL_VOCAB, generator=g2)
+        self.assertTrue(torch.equal(n1, n2))
+
     def test_revision_tracker_logs_pre_registered_and_exploratory_metrics(self):
         tracker = UMath.RevisionTracker(batch_size=2, passes=4, vocab_sizes=REAL_VOCAB)
         z0 = torch.zeros((2, UMath.COLS), dtype=torch.long)
