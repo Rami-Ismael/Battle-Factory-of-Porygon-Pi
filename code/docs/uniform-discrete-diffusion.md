@@ -165,10 +165,8 @@ Logged inside the reverse sampling loop for all 84 fields across `z^{(0)}, z^{(1
 
 Because **Masked, full filter** mixes clean-field log-probabilities while **Uniform, no filter** mixes reverse posteriors, weight scales are not comparable and every frontier is plotted against ask-versus-got error.
 
-- **Coarse grid (both arms):** `{1, 2, 4, 8}`, plus the unguided baseline (`γ = 0` / no ask, 192 teams × 49 = 9,408 battles).
-  - For **Masked, full filter**, reuse the battled grids from the existing default checkpoint (#385 / stored grids at `w ∈ {1, 2, 4, 8}`, plus any matching grids from diversity map #265).
-  - For **Uniform, no filter**, `γ = 1` comes from #278; #279 adds `γ ∈ {2, 4, 8}` if #277 passes the 5% legality floor.
-- **Bend-point and extension rule (`uniform_preflight84.bend_points_to_add`):** After the coarse grid lands, add up to **2 extra guidance weights per arm** (strict cap, so at most 6 battled guidance strengths per arm):
+- **Coarse grid:** **Uniform, no filter** runs `{1, 2, 4, 8}` plus its unguided baseline (`γ = 0`, 192 teams × 49 = 9,408 battles); `γ = 1` comes from #278 and #279 adds `γ ∈ {2, 4, 8}` if #277 passes the 5% legality floor. **Masked, full filter** is read strictly from its existing stored grids (`w ∈ {1, 2, 4, 8}` and unguided)—**zero new training, sampling, or battles run for the masked control**.
+- **Bend-point and extension rule (`uniform_preflight84.bend_points_to_add`):** After the UDLM coarse grid lands, add up to **2 extra guidance weights for Uniform, no filter** (strict cap, so at most 6 battled guidance strengths total):
   1. **Interior bend / usability bracket:** Between adjacent coarse weights `g_a < g_b`, insert geometric midpoint `round(sqrt(g_a × g_b), 1)` (i.e., `1.4`, `2.8`, or `5.7`) if: (a) `g_a` is usable and `g_b` is not usable (highest priority, bracketing `g_max`), OR (b) `|error(g_b) − error(g_a)| > 0.003`, OR (c) `|within_ask_unique_fraction(g_b) − within_ask_unique_fraction(g_a)| > 0.10`.
   2. **Upper extension:** If `g = 8` is usable AND `error(4) − error(8) ≥ 0.001`, add `g = 16.0`.
   3. If more than 2 candidates qualify, take the top 2 by priority (usability bracket first, then largest normalized error + diversity jump).
@@ -241,11 +239,11 @@ The 3-seed ask-grid budget easily detects the smallest effects worth acting on w
 | --- | --- | --- | ---: | --- |
 | Train `udlm_loglinear` (cap 80, patience 3, scaling #361's 407.7 min on the same 214,055-team table) | #276 | 1 training | 0 | ~6.8 hours |
 | Pass-count table: **Uniform, no filter** × 3 counts (`84, 128, 256`) at `γ = 1`, 3 seeds, asks `1/24..17/24` | #277 | 3 sampling sweeps | 0 | ~25–40 minutes |
-| Unguided baseline (`γ = 0`, 192 teams × 49) for **Uniform, no filter** (+ control if new) | #278 | up to 2 unguided sets | 18,816 | ~4 minutes |
-| Conditional `γ = 1` ask grid (**Uniform, no filter** + control `w = 1` if not already battled) | #278 | up to 2 grids | 432,768 | ~1.3 hours (~40 min/grid) |
-| Coarse guidance sweep (`γ ∈ {2, 4, 8}`, reusing `γ = 1` from #278 and existing control grids at `w ∈ {2, 4, 8}`) | #279 | up to 3 uniform grids | 649,152 | ~2.0 hours battles (+ sampling; 0 if short-circuited) |
-| Bend-point / extension grids (at most 2 added weights per arm) | #279 | up to 4 grids | 865,536 | ~2.7 hours battles (upper bound) |
-| **Total (worst case, UDLM usable + max 2 bend points per arm)** | | **up to 9 new grids** | **~1.97M battles** | **~6.8 h training + ~6.5 h sampling & battles** |
+| Unguided baseline (`γ = 0`, 192 teams × 49) for **Uniform, no filter** | #278 | 1 unguided set | 9,408 | ~2 minutes |
+| Conditional `γ = 1` ask grid for **Uniform, no filter** | #278 | 1 grid | 216,384 | ~40 minutes |
+| Coarse guidance sweep (`γ ∈ {2, 4, 8}`) for **Uniform, no filter** (reusing `γ = 1` from #278; masked control read from stored grids) | #279 | up to 3 grids | 649,152 | ~2.0 hours battles (+ sampling; 0 if short-circuited) |
+| Bend-point / extension grids (at most 2 added weights for **Uniform, no filter**) | #279 | up to 2 grids | 432,768 | ~1.3 hours battles (upper bound) |
+| **Total (worst case, UDLM usable + max 2 bend points; zero new runs on the masked control)** | | **up to 6 new grids** | **~1.31M battles** | **~6.8 h training + ~4.5 h sampling & battles** |
 
 ## What the later tickets take from this
 
