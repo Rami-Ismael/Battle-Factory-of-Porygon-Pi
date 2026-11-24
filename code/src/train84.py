@@ -62,6 +62,11 @@ First-try legality (issue #248). After every epoch the weights a checkpoint woul
 the way the ask grid draws, and Showdown's validator checks each; the epoch's curve entry in the results JSON gains the
 illegal share, its top rejection reasons and the seconds the check took. The draw leaves training's random numbers alone,
 so an arm trains the same model with the check on or off. --legality-teams N changes the 64; 0 turns the check off.
+
+Experiment tracking (Weights & Biases). Every training run mirrors its hyperparameters, per-epoch learning curve and summary
+to Weights & Biases (src/wandb_tracking.py); the local results JSON stays the authoritative record. Pass --no-wandb to turn
+tracking off, or --wandb-mode offline / --wandb-project NAME / --wandb-group GROUP to configure it. Smoke runs disable it
+unless --wandb-mode or WANDB_MODE says otherwise.
 """
 import argparse
 import hashlib
@@ -84,6 +89,7 @@ from ddom_weights import bin_weights
 from label_noise import noise_tag, noise_width
 import diffusion84 as M
 import asked_vs_got as X
+import wandb_tracking as WT
 
 OLDER_TABLE = X.RES / "lossdata84.npz"                  # labels pool listed-order battles and run files; only to reproduce its models
 SHUFFLED_ONLY = X.RES / "lossdata84_shuffled_only.npz"   # labels from shuffled-slot battles only (issue #229)
@@ -176,13 +182,24 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     if net_kw.pop("every_epoch", False):
         (CK / name(arm)).mkdir(exist_ok=True)
         net_kw["on_epoch"] = lambda m, epoch: stamped(m, arm).save(CK / name(arm) / f"{name(arm)}_ep{epoch:02d}.pt")
+    tracker = net_kw.pop("tracker", None)
     recipe = recipe_for(arm, net_kw)
-    m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
-                            legality_teams=LEGALITY_TEAMS, **recipe, **NET, **net_kw)
-    m.info.update(table=DATA_TABLE, ddom_tau=tau, labelled_only=not np.isnan(np.asarray(labels, float)).any(), arm=arm, data_sha256=DATA_SHA, minutes=round((time.perf_counter() - t0) / 60, 1),
-                  val_rows=len(val[0]), val_share=0.02, val_seed=0)
+    labelled_only = not np.isnan(np.asarray(labels, float)).any()
+    if tracker is None:
+        run_meta = dict(arm=arm, table=DATA_TABLE, data_sha256=DATA_SHA, ddom_tau=tau, labelled_only=labelled_only,
+                        val_rows=len(val[0]), val_share=0.02, val_seed=0)
+        tracker = WT.from_cli_args(WANDB_ARGS, name=name(arm), job_type="train", tags=("84-field", arm), config=run_meta, smoke=SMOKE)
+    with tracker:
+        m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
+                                legality_teams=LEGALITY_TEAMS, tracker=tracker, **recipe, **NET, **net_kw)
+        m.info.update(table=DATA_TABLE, ddom_tau=tau, labelled_only=labelled_only, arm=arm, data_sha256=DATA_SHA,
+                      minutes=round((time.perf_counter() - t0) / 60, 1), val_rows=len(val[0]), val_share=0.02, val_seed=0)
+        if meta := tracker.metadata():
+            m.info["wandb"] = meta
+        tracker.log_summary(m.info, stop_reason=stop_reason(m.info), checkpoint_name=out.name)
     m.save(out)
-    json.dump(m.info, open(X.RES / f"{name(arm)}.json", "w"), indent=1, default=float)
+    with open(X.RES / f"{name(arm)}.json", "w") as f:
+        json.dump(m.info, f, indent=1, default=float)
     print(f"[{name(arm)}] done in {m.info['minutes']} min; best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']}"
           f" ({stop_reason(m.info)}) -> {out}", flush=True)
     return m
@@ -264,6 +281,7 @@ def parse_args(argv):
     p.add_argument("--older-table", action="store_true", help="allow an arm that trains on the older table, lossdata84.npz")
     p.add_argument("--legality-teams", type=int, default=64, metavar="N",
                    help="teams the validator checks after every epoch (default 64); 0 turns the check off")
+    WT.add_cli_args(p)
     return p.parse_args(argv)
 
 
@@ -278,8 +296,16 @@ def older_table(arm, allowed):
 
 
 def main(argv):
-    global DATA_SHA, DATA_TABLE, NOISE, LEGALITY_TEAMS
+    global DATA_SHA, DATA_TABLE, NOISE, LEGALITY_TEAMS, WANDB_ARGS
     args = parse_args(argv); NOISE = args.label_noise; LEGALITY_TEAMS = args.legality_teams
+    prev_wandb = WANDB_ARGS; WANDB_ARGS = args
+    try:
+        _run_main(args)
+    finally:
+        WANDB_ARGS = prev_wandb
+
+
+def _run_main(args):
     arm = " ".join(args.arm)
     d = older_table(arm, args.older_table)
     for mod in (M, L, T, SP):
@@ -322,6 +348,7 @@ def main(argv):
 DATA_SHA = DATA_TABLE = None
 NOISE = None                                             # set by --label-noise; None keeps each arm's own width and name
 LEGALITY_TEAMS = 64                                      # set by --legality-teams; teams checked after every epoch (issue #248)
+WANDB_ARGS = None                                        # set by main(); None keeps W&B disabled for direct unit-test calls
 
 if __name__ == "__main__":
     main(sys.argv[1:])

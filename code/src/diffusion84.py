@@ -321,7 +321,7 @@ class Model84:
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
                   warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, legality_teams=0,
-                  table_loss=True, legality_tables=True, legality_copies=False, **net_kw):
+                  table_loss=True, legality_tables=True, legality_copies=False, tracker=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
@@ -339,7 +339,8 @@ class Model84:
         table_loss=False: training and validation loss leave out the mask of the legal Pokémon construction tables and the
         Stat Point budget (issue #361); the rows the tables reject are still dropped. legality_tables=False: the legality
         check draws without that mask, so its illegal share shows what the network learned. legality_copies=True: the check
-        also logs copied_share, the drawn teams identical to a training team (epoch_legality.team_key)."""
+        also logs copied_share, the drawn teams identical to a training team (epoch_legality.team_key).
+        tracker: optional WandbTracker mirroring hyperparameters, per-epoch curves and summary to Weights & Biases."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
@@ -355,17 +356,18 @@ class Model84:
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
                         ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
                         label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel,
-                        legality=EpochLegality(legality_teams, tables=legality_tables, known=known), table_loss=table_loss)
+                        legality=EpochLegality(legality_teams, tables=legality_tables, known=known), table_loss=table_loss, tracker=tracker)
 
     def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
-                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, legality_teams=0):
+                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, legality_teams=0, tracker=None):
         """A new model: this one-member model's weights trained further on 84-field rows; self is unchanged.
         The recipe is train_new's (AdamW, warm-up and cosine decay sized to the cap of `epochs`, EMA, ask dropout,
         label noise on training labels only). Validation loss on val=(rows, labels) is measured before the first epoch
         too, so epoch 0 is the starting weights: if no epoch beats them, early stopping returns them unchanged.
         early_stopping_threshold: the smallest validation-loss gain that resets the patience count, as in train_new.
         watch={name: (rows, labels)}: more validation sets, logged every epoch and never used to stop.
-        legality_teams=K: first-try legality every epoch, epoch 0 included, as in train_new."""
+        legality_teams=K: first-try legality every epoch, epoch 0 included, as in train_new.
+        tracker: optional WandbTracker mirroring hyperparameters, per-epoch curves and summary to Weights & Biases."""
         net_kw = self.nets[0][1]
         start = copy.deepcopy(self.net).to(DEV)
         torch.manual_seed(seed)
@@ -376,17 +378,18 @@ class Model84:
         return type(self)._fit(self.V, None, self.tables, start, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd,
                                warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold,
                                on_best=None, label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, epoch0=True,
-                               like=self, legality=EpochLegality(legality_teams))
+                               like=self, legality=EpochLegality(legality_teams), tracker=tracker)
 
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
              patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None,
-             legality=None, table_loss=True):
+             legality=None, table_loss=True, tracker=None):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
         lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
         relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps.
         legality: an EpochLegality whose fields join every measured entry; its draw leaves training's random numbers untouched.
-        table_loss: as in elbo_terms, for training and validation loss alike."""
+        table_loss: as in elbo_terms, for training and validation loss alike.
+        tracker: optional WandbTracker; started if not already active and finished only if _fit started it."""
         make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
                (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
@@ -401,6 +404,11 @@ class Model84:
         t_start = time.perf_counter()
 
         checked = []                                      # the one model the legality check samples; its network is m
+        own_tracker = tracker is not None and not getattr(tracker, "active", False)
+        if tracker is not None:
+            tracker.start(config=dict(info, wd=wd, warmup=warmup, ema=ema, device=str(DEV),
+                                      n_params=sum(p.numel() for p in net.parameters()),
+                                      val_rows=0 if val is None else len(val[0])))
 
         def measure(m, entry):
             if legality is not None and legality.teams:
@@ -411,49 +419,56 @@ class Model84:
             for name, (vx, vw) in (watch or {}).items():
                 entry[f"{name}_val_loss"] = val_loss(m, tables, vx, vw, sw, table_loss=table_loss)
 
-        if epoch0:
-            m = (avg if avg is not None else net).eval(); entry = dict(epoch=0); measure(m, entry)
-            if val is not None:
-                best, best_sd = entry["val_loss"], {k: v.detach().clone() for k, v in m.state_dict().items()}
-            entry["minutes"] = 0.0; log.append(entry)
-            _print_entry(entry)
-        for p in range(epochs):
-            if relabel is not None:
-                w = relabel(p)
-            net.train(); run = 0.0; nb = 0
-            for b in torch.randperm(len(x), device=DEV).split(batch):
-                loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b],
-                                  table_loss=table_loss)
-                for g in opt.param_groups: g["lr"] = lr_at(step)
-                opt.zero_grad(set_to_none=True); loss.backward()
-                nn.utils.clip_grad_norm_(net.parameters(), 1.0); opt.step(); step += 1
-                if avg is not None:
-                    with torch.no_grad():
-                        dec = min(ema, (1 + step) / (10 + step))
-                        for pe, pn in zip(avg.parameters(), net.parameters()): pe.lerp_(pn, 1 - dec)
-                run += float(loss.detach()); nb += 1
+        try:
+            if epoch0:
+                m = (avg if avg is not None else net).eval(); entry = dict(epoch=0); measure(m, entry)
+                if val is not None:
+                    best, best_sd = entry["val_loss"], {k: v.detach().clone() for k, v in m.state_dict().items()}
+                entry["minutes"] = 0.0; log.append(entry)
+                if tracker is not None: tracker.log_epoch(entry, step=0, best_val_loss=best)
+                _print_entry(entry)
+            for p in range(epochs):
+                if relabel is not None:
+                    w = relabel(p)
+                net.train(); run = 0.0; gnorm = 0.0; nb = 0
+                for b in torch.randperm(len(x), device=DEV).split(batch):
+                    loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b],
+                                      table_loss=table_loss)
+                    for g in opt.param_groups: g["lr"] = lr_at(step)
+                    opt.zero_grad(set_to_none=True); loss.backward()
+                    gnorm += float(nn.utils.clip_grad_norm_(net.parameters(), 1.0)); opt.step(); step += 1
+                    if avg is not None:
+                        with torch.no_grad():
+                            dec = min(ema, (1 + step) / (10 + step))
+                            for pe, pn in zip(avg.parameters(), net.parameters()): pe.lerp_(pn, 1 - dec)
+                    run += float(loss.detach()); nb += 1
+                m = avg if avg is not None else net
+                m.eval()
+                entry = dict(epoch=p + 1, train_loss=run / nb)
+                measure(m, entry)
+                if val is not None and entry["val_loss"] < best:
+                    if best - entry["val_loss"] > threshold: reset_epoch = p + 1
+                    best, best_epoch = entry["val_loss"], p + 1
+                    best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
+                    if on_best is not None: on_best(make(m, dict(best_epoch=best_epoch)), best_epoch)
+                entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
+                if on_epoch is not None: on_epoch(make(m, dict(epoch=p + 1)), p + 1)
+                log.append(entry)
+                if tracker is not None:
+                    tracker.log_epoch(entry, lr=opt.param_groups[0]["lr"], step=step, grad_norm=gnorm / nb, best_val_loss=best)
+                _print_entry(entry)
+                if patience and p + 1 - reset_epoch >= patience: break
+                if stop_after and p + 1 >= stop_after: break
             m = avg if avg is not None else net
-            m.eval()
-            entry = dict(epoch=p + 1, train_loss=run / nb)
-            measure(m, entry)
-            if val is not None and entry["val_loss"] < best:
-                if best - entry["val_loss"] > threshold: reset_epoch = p + 1
-                best, best_epoch = entry["val_loss"], p + 1
-                best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
-                if on_best is not None: on_best(make(m, dict(best_epoch=best_epoch)), best_epoch)
-            entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
-            if on_epoch is not None: on_epoch(make(m, dict(epoch=p + 1)), p + 1)
-            log.append(entry)
-            _print_entry(entry)
-            if patience and p + 1 - reset_epoch >= patience: break
-            if stop_after and p + 1 >= stop_after: break
-        if legality is not None: legality.close()
-        m = avg if avg is not None else net
-        if patience and best_sd is not None: m.load_state_dict(best_sd)
-        trained = [e for e in log if e["epoch"] > 0]
-        info.update(stopped_epoch=len(trained), best_epoch=best_epoch or (0 if epoch0 and val is not None else None),
-                    best_val_loss=None if best == math.inf else best, curves=log)
-        return make(m, {})
+            if patience and best_sd is not None: m.load_state_dict(best_sd)
+            trained = [e for e in log if e["epoch"] > 0]
+            info.update(stopped_epoch=len(trained), best_epoch=best_epoch or (0 if epoch0 and val is not None else None),
+                        best_val_loss=None if best == math.inf else best, curves=log)
+            if tracker is not None: tracker.log_summary(info)
+            return make(m, {})
+        finally:
+            if legality is not None: legality.close()
+            if own_tracker: tracker.finish()
 
     def _with(self, nets, info):
         """A model sharing this one's vocabulary, tables and paste lookups, with other networks."""
