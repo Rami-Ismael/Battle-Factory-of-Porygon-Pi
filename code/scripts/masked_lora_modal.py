@@ -1,6 +1,6 @@
-"""Minimal Modal GPU launcher for the masked LoRA trainer tracer bullet (#408).
+"""Minimal Modal GPU launcher for the masked Low-Rank Adaptation (LoRA) trainer tracer bullet (#408).
 
-Packages only the masked trainer and its dependencies (no block diffusion files and no
+Packages only the masked trainer and its direct dependencies (no block diffusion files and no
 Mask Lab pipeline files), runs `masked_lora_trainer.py` with its unchanged CLI inside one
 Modal GPU container, copies the `--out` results back to the laptop, and stops the container
 as soon as the command exits. #411 extends this launcher for full training runs.
@@ -45,7 +45,6 @@ PACKAGED_FILES: tuple[str, ...] = (
     'scripts/masked_lora_trainer.py',
     'scripts/masked_diffusion_text.py',
     'scripts/masked_diffusion_memory_bench.py',
-    'scripts/count_masked_diffusion_text.py',
     'scripts/mask_paste.py',
     'data/regmb-vocabulary.json',
 )
@@ -57,6 +56,17 @@ def build_remote_command(argv: str) -> list[str]:
     if not tokens:
         raise ValueError('argv must contain a masked_lora_trainer.py subcommand and flags')
     return ['python', REMOTE_TRAINER, *tokens]
+
+
+def extract_out_dir(argv: str, default: Path = Path(REMOTE_OUT)) -> Path:
+    """Read `--out <dir>` or `--out=<dir>` from `argv` so results copy from the requested path."""
+    tokens = shlex.split(argv)
+    for idx, token in enumerate(tokens):
+        if token == '--out' and idx + 1 < len(tokens):
+            return Path(tokens[idx + 1])
+        if token.startswith('--out='):
+            return Path(token.removeprefix('--out='))
+    return default
 
 
 def collect_output_files(out_dir: Path) -> dict[str, bytes]:
@@ -89,19 +99,19 @@ def run_trainer_subprocess(
     *,
     data_bytes: bytes | None = None,
     data_dest: Path = Path(REMOTE_DATA),
-    out_dir: Path = Path(REMOTE_OUT),
-    runner: Any = subprocess.run,
+    out_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Container-side body: stage data bytes, execute trainer CLI, collect outputs."""
     if data_bytes is not None:
         data_dest.parent.mkdir(parents=True, exist_ok=True)
         data_dest.write_bytes(data_bytes)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    target_out = out_dir if out_dir is not None else extract_out_dir(argv)
+    target_out.mkdir(parents=True, exist_ok=True)
     cmd = build_remote_command(argv)
     t0 = time.perf_counter()
-    proc = runner(cmd, cwd=f'{REMOTE_CODE}/scripts', check=False)
+    proc = subprocess.run(cmd, cwd=f'{REMOTE_CODE}/scripts', check=False)
     elapsed = time.perf_counter() - t0
-    files = collect_output_files(out_dir)
+    files = collect_output_files(target_out)
     if proc.returncode != 0:
         raise RuntimeError(f'masked_lora_trainer.py exited with code {proc.returncode}')
     return {'returncode': proc.returncode, 'elapsed_seconds': elapsed, 'files': files}

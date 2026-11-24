@@ -1,8 +1,8 @@
-"""Masked text diffusion LoRA trainer — DiffuGPT small tracer bullet (#408, parent #177).
+"""Masked text diffusion Low-Rank Adaptation (LoRA) trainer — DiffuGPT small tracer bullet (#408, parent #177).
 
 Trains LoRA adapters on a frozen masked text diffusion model using the in-place JSON
-representation from `masked_diffusion_text.training_target` and the MDLM objective from
-ZHZisZZ/dllm at `ca176752fbceec49c6b4777a2c18ae88e4eb10ed`.
+representation from `masked_diffusion_text.training_target` and the Masked Diffusion Language
+Modeling (MDLM) objective from `ZHZisZZ/dllm` at `ca176752fbceec49c6b4777a2c18ae88e4eb10ed`.
 
 Model and adapters
 ------------------
@@ -23,11 +23,11 @@ Pad token and loss-scoring policy (#177 / #408)
   Why: DiffuGPT small ships with `pad_token=None` and only two special tokens in its 50,257-token
   vocabulary (`------------` as mask id 10541 and `<|endoftext|>` as id 50256). Adding a brand-new
   token would resize the frozen base embedding table and tied output head, violating LoRA-only
-  training. Reusing a printable character such as space would merge across BPE token boundaries
-  and collide with real names containing spaces (for example `"Choice Scarf"`), corrupting
-  `masked_diffusion_text.read_filled`. `<|endoftext|>` is a single special token that never merges
-  with adjacent text, never appears inside any Regulation M-B field value, and matches dLLM's
-  `pad_token = eos_token` fallback.
+  training. Reusing a printable character such as space would merge across byte-pair encoding
+  boundaries and collide with real names containing spaces (for example `"Choice Scarf"`),
+  corrupting `masked_diffusion_text.read_filled`. `<|endoftext|>` is a single special token that
+  never merges with adjacent text, never appears inside any Regulation M-B field value, and
+  matches dLLM's `pad_token = eos_token` fallback.
 - **Loss scores slot-pad tokens, and ignores batch right-padding:** Every hidden field slot has
   fixed length equal to the longest Regulation M-B value of that field type in the tokenizer so
   slot length never leaks the answer. During generation the sampler must fill every mask token in
@@ -56,17 +56,27 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-import count_masked_diffusion_text as C
-import mask_paste as M
-import masked_diffusion_memory_bench as B
-import masked_diffusion_text as D
+import mask_paste
+import masked_diffusion_memory_bench as memory_bench
+import masked_diffusion_text as diffusion_text
 
 VOCAB_FILE = Path(__file__).resolve().parents[1] / 'data/regmb-vocabulary.json'
+TEXT_LIMIT = 1024
 MASK_LAB_TASKS: tuple[str, ...] = ('items', 'abilities', 'moves', 'natures', 'stats', 'pokemon')
 LORA_TARGETS: tuple[str, ...] = ('c_attn', 'c_proj', 'c_fc')
-DIFFUGPT_S_KEY = 'diffugpt_s'
 TIME_EPSILON = 1e-3
 WEIGHT_EPS = 1e-6
+
+DIFFUGPT_S_INFO: dict[str, Any] = {
+    'key': 'diffugpt_s',
+    'label': 'DiffuGPT small',
+    'repo': 'diffusionfamily/diffugpt-s',
+    'revision': '391d9850148c0beda355a8874bea958a40164c74',
+    'mask_id': 10541,
+    'mask_token': None,
+    'qwen2_files': False,
+    'start_token': False,
+}
 
 
 @dataclass(frozen=True)
@@ -85,7 +95,7 @@ class EncodedRow:
     labels: list[int]               # token id on hidden slot positions, -100 elsewhere
     slot_pad_mask: list[bool]       # True on eligible positions whose target is the slot pad token
     target_text: str
-    slots: tuple[D.SlotSpan, ...]
+    slots: tuple[diffusion_text.SlotSpan, ...]
     ask: float | None
 
 
@@ -140,13 +150,13 @@ def _display_name(vocab: RegMBVocab, field: str, token_id: int) -> str:
     return vocab.names.get(raw, raw)
 
 
-def decode_team_84(row: Sequence[int] | np.ndarray, vocab: RegMBVocab) -> M.Team:
+def decode_team_84(row: Sequence[int] | np.ndarray, vocab: RegMBVocab) -> mask_paste.Team:
     """Decode one 84-field row from lossdata84_shuffled_labels.npz into a Mask Lab Team."""
     vals = [int(v) for v in row]
-    team: M.Team = []
+    team: mask_paste.Team = []
     for s in range(6):
         base = s * 8
-        stat_points = {stat: vals[48 + s * 6 + j] - 1 for j, stat in enumerate(M.STATS)}
+        stat_points = {stat: vals[48 + s * 6 + j] - 1 for j, stat in enumerate(mask_paste.STATS)}
         team.append({
             'slot': s + 1,
             'species': _display_name(vocab, 'species', vals[base + 0]),
@@ -155,52 +165,47 @@ def decode_team_84(row: Sequence[int] | np.ndarray, vocab: RegMBVocab) -> M.Team
             'moves': [_display_name(vocab, 'move', vals[base + 3 + j]) for j in range(4)],
             'nature': _display_name(vocab, 'nature', vals[base + 7]),
             'statPoints': stat_points,
-            'ivs': dict.fromkeys(M.STATS, 31),
+            'ivs': dict.fromkeys(mask_paste.STATS, 31),
             'level': 50,
         })
     return team
 
 
-def load_training_teams(npz_path: Path, count: int, seed: int, vocab: RegMBVocab) -> list[tuple[M.Team, float | None]]:
-    """Sample `count` training-side (`~all_val`) teams and win rates from an 84-field `.npz` table."""
+def _sample_train_arrays(npz_path: Path, count: int, seed: int, *, sort_indices: bool = False) -> tuple[np.ndarray, np.ndarray]:
+    """Read `count` training-side (`~all_val`) rows and win rates from an 84-field `.npz` table."""
     with np.load(npz_path) as data:
         train_idx = np.flatnonzero(~data['all_val'])
         if count > len(train_idx):
             raise ValueError(f'requested {count} training rows, but {npz_path} has only {len(train_idx)}')
         rng = np.random.default_rng(seed)
         chosen = rng.choice(train_idx, size=count, replace=False)
-        rows = data['all_X'][chosen]
-        win_rates = data['all_W'][chosen]
-    out: list[tuple[M.Team, float | None]] = []
-    for row, w in zip(rows, win_rates, strict=True):
-        ask = float(w) if np.isfinite(w) else None
-        out.append((decode_team_84(row, vocab), ask))
-    return out
+        if sort_indices:
+            chosen = np.sort(chosen)
+        return np.ascontiguousarray(data['all_X'][chosen]), np.ascontiguousarray(data['all_W'][chosen])
+
+
+def load_training_teams(
+    npz_path: Path, count: int, seed: int, vocab: RegMBVocab
+) -> list[tuple[mask_paste.Team, float | None]]:
+    """Sample `count` training-side (`~all_val`) teams and win rates from an 84-field `.npz` table."""
+    rows, win_rates = _sample_train_arrays(npz_path, count, seed)
+    return [(decode_team_84(row, vocab), float(w) if np.isfinite(w) else None)
+            for row, w in zip(rows, win_rates, strict=True)]
 
 
 def slice_training_npz(source_npz: Path, out_npz: Path, count: int, seed: int) -> dict[str, Any]:
-    """Write a small `.npz` with `count` training-side rows (`~all_val`) for compact Modal transfer."""
+    """Write a compact `.npz` holding `count` training-side rows (`~all_val`) for Modal transfer."""
     source_sha = hashlib.sha256(source_npz.read_bytes()).hexdigest()
-    with np.load(source_npz) as data:
-        train_idx = np.flatnonzero(~data['all_val'])
-        if count > len(train_idx):
-            raise ValueError(f'requested {count} rows, only {len(train_idx)} training rows exist')
-        rng = np.random.default_rng(seed)
-        chosen = np.sort(rng.choice(train_idx, size=count, replace=False))
-        arrays = {
-            'all_X': np.ascontiguousarray(data['all_X'][chosen]),
-            'all_W': np.ascontiguousarray(data['all_W'][chosen]),
-            'all_val': np.zeros(count, dtype=bool),
-        }
+    rows, win_rates = _sample_train_arrays(source_npz, count, seed, sort_indices=True)
     out_npz.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(out_npz, **arrays)
+    np.savez_compressed(out_npz, all_X=rows, all_W=win_rates, all_val=np.zeros(count, dtype=bool))
     return {
         'source': str(source_npz),
         'source_sha256': source_sha,
         'out': str(out_npz),
         'count': count,
         'seed': seed,
-        'unlabelled': int(np.isnan(arrays['all_W']).sum()),
+        'unlabelled': int(np.isnan(win_rates).sum()),
     }
 
 
@@ -216,8 +221,8 @@ def _all_paths_for_task(task_kind: str) -> list[str]:
     return [f'team[{s}].{field}' for s in range(6)]
 
 
-def _apply_masked_path(masked_team: M.Team, path_str: str) -> None:
-    parsed = M.parse_path(path_str)
+def _apply_masked_path(masked_team: mask_paste.Team, path_str: str) -> None:
+    parsed = mask_paste.parse_path(path_str)
     slot_idx = parsed[0]
     if len(parsed) == 1:
         masked_team[slot_idx] = None
@@ -231,7 +236,7 @@ def _apply_masked_path(masked_team: M.Team, path_str: str) -> None:
         mon[parsed[1]][parsed[2]] = None
 
 
-def make_mask_lab_task(team: M.Team, task_kind: str, k: int, rng: random.Random) -> dict[str, Any]:
+def make_mask_lab_task(team: mask_paste.Team, task_kind: str, k: int, rng: random.Random) -> dict[str, Any]:
     """Construct one Mask Lab task dict hiding `k` distinct paths of `task_kind` on `team`."""
     candidates = _all_paths_for_task(task_kind)
     if not (1 <= k <= len(candidates)):
@@ -249,11 +254,10 @@ def make_mask_lab_task(team: M.Team, task_kind: str, k: int, rng: random.Random)
     }
 
 
-def sample_mask_lab_task(team: M.Team, rng: random.Random) -> dict[str, Any]:
+def sample_mask_lab_task(team: mask_paste.Team, rng: random.Random) -> dict[str, Any]:
     """Sample one Mask Lab mask uniformly across the 6 task families and each family's valid k."""
     task_kind = rng.choice(MASK_LAB_TASKS)
-    max_k = 24 if task_kind == 'moves' else 6
-    k = rng.randint(1, max_k)
+    k = rng.randint(1, len(_all_paths_for_task(task_kind)))
     return make_mask_lab_task(team, task_kind, k, rng)
 
 
@@ -277,13 +281,13 @@ def build_training_row(
     task: dict[str, Any],
     ask: float | None,
     tokenizer: Any,
-    limit: int = C.LIMIT,
+    limit: int = TEXT_LIMIT,
 ) -> EncodedRow:
     """Build one in-place training row: only hidden slot tokens (including slot pad) are eligible."""
     pad_token = resolve_pad_token(tokenizer)
     pad_id = resolve_pad_id(tokenizer)
-    built = D.in_place_text(task, ask, tokenizer, limit)
-    target_text = D.training_target(task, ask, tokenizer, limit, pad_token)
+    built = diffusion_text.in_place_text(task, ask, tokenizer, limit)
+    target_text = diffusion_text.training_target(task, ask, tokenizer, limit, pad_token)
     input_ids = [int(i) for i in tokenizer(target_text, add_special_tokens=False)['input_ids']]
     eligible = {n for slot in built.slots for n in range(slot.first_token, slot.first_token + slot.length)}
     labels = [input_ids[i] if i in eligible else -100 for i in range(len(input_ids))]
@@ -301,10 +305,10 @@ def build_training_row(
 
 
 def build_dataset_rows(
-    teams: Sequence[tuple[M.Team, float | None]],
+    teams: Sequence[tuple[mask_paste.Team, float | None]],
     tokenizer: Any,
     seed: int,
-    limit: int = C.LIMIT,
+    limit: int = TEXT_LIMIT,
 ) -> list[EncodedRow]:
     rng = random.Random(seed)
     return [build_training_row(sample_mask_lab_task(team, rng), ask, tokenizer, limit) for team, ask in teams]
@@ -377,7 +381,7 @@ def mdlm_loss(
     u_t: torch.Tensor | None = None,
     u_mask: torch.Tensor | None = None,
 ) -> LossBreakdown:
-    """MDLM loss matching ZHZisZZ/dllm@ca176752 MDLMTrainer.compute_loss (LinearAlphaScheduler, token norm)."""
+    """Masked Diffusion Language Modeling loss matching ZHZisZZ/dllm@ca176752 MDLMTrainer.compute_loss."""
     b, seq = input_ids.shape
     maskable_mask = labels != -100
     if right_shift_logits and not bool((labels[:, 0] == -100).all()):
@@ -393,7 +397,7 @@ def mdlm_loss(
 
     logits = logits_fn(noised_input_ids, attention_mask)
     if right_shift_logits:
-        logits = B.shift_right(logits)
+        logits = memory_bench.shift_right(logits)
 
     raw_ce = F.cross_entropy(logits.float().transpose(1, 2), input_ids, reduction='none')
     weighted_nll = raw_ce * weights * masked_mask.to(raw_ce.dtype)
@@ -439,34 +443,23 @@ def _summarize_loss_breakdown(
 
 
 def uniform_random_expected_loss(vocab_size: int, time_epsilon: float = TIME_EPSILON) -> dict[str, float]:
-    """Expected MDLM loss of a uniform-random predictor over `vocab_size` tokens."""
+    """Expected Masked Diffusion Language Modeling loss of a uniform-random predictor over `vocab_size` tokens."""
     log_v = math.log(vocab_size)
-    # Exact expectation of t / (t + 1e-6) for t ~ Uniform[eps, 1]:
     ratio = 1.0 - (WEIGHT_EPS / (1.0 - time_epsilon)) * math.log((1.0 + WEIGHT_EPS) / (time_epsilon + WEIGHT_EPS))
     return {'log_vocab': log_v, 'expected_mdlm_loss': log_v * ratio}
 
 
 # ---------- DiffuGPT small + LoRA ----------
 
-def diffugpt_small_candidate() -> C.Candidate:
-    return next(c for c in C.CANDIDATES if c.key == DIFFUGPT_S_KEY)
-
-
-def apply_diffugpt_lora(
-    model: torch.nn.Module,
-    *,
-    r: int = 32,
-    lora_alpha: int = 64,
-    lora_dropout: float = 0.0,
-) -> torch.nn.Module:
-    """Wrap GPT-2/DiffuGPT with frozen base weights and LoRA on c_attn, c_proj, c_fc (fan_in_fan_out=True)."""
+def apply_diffugpt_lora(model: torch.nn.Module) -> torch.nn.Module:
+    """Wrap DiffuGPT with frozen base weights and LoRA (rank 32, alpha 64) on c_attn, c_proj, c_fc."""
     from peft import LoraConfig, get_peft_model
 
     config = LoraConfig(
-        r=r,
-        lora_alpha=lora_alpha,
+        r=32,
+        lora_alpha=64,
         target_modules=list(LORA_TARGETS),
-        lora_dropout=lora_dropout,
+        lora_dropout=0.0,
         bias='none',
         fan_in_fan_out=True,
     )
@@ -570,22 +563,22 @@ def evaluate_batches(
         for raw_batch in batches:
             batch = raw_batch.to(device)
             attn = bidirectional_padding_mask(batch.valid_mask, dtype=_model_dtype(model))
-            b = mdlm_loss(
+            step_out = mdlm_loss(
                 model_logits_fn(model), batch.input_ids, batch.labels, mask_token_id,
                 attention_mask=attn, slot_pad_mask=batch.slot_pad_mask,
                 right_shift_logits=right_shift_logits, time_epsilon=time_epsilon, generator=gen,
             )
-            totals['weighted_nll'] += b.weighted_nll_sum
-            totals['eligible'] += b.eligible_count
-            totals['masked'] += b.masked_count
-            totals['unweighted_ce'] += b.unweighted_masked_ce_sum
-            totals['val_ce'] += b.value_masked_ce_sum
-            totals['val_masked'] += b.value_masked_count
-            totals['val_weighted_nll'] += b.value_weighted_nll_sum
-            totals['pad_ce'] += b.slot_pad_masked_ce_sum
-            totals['pad_masked'] += b.slot_pad_masked_count
-            totals['pad_weighted_nll'] += b.slot_pad_weighted_nll_sum
-            totals['weight_masked'] += b.weight_masked_sum
+            totals['weighted_nll'] += step_out.weighted_nll_sum
+            totals['eligible'] += step_out.eligible_count
+            totals['masked'] += step_out.masked_count
+            totals['unweighted_ce'] += step_out.unweighted_masked_ce_sum
+            totals['val_ce'] += step_out.value_masked_ce_sum
+            totals['val_masked'] += step_out.value_masked_count
+            totals['val_weighted_nll'] += step_out.value_weighted_nll_sum
+            totals['pad_ce'] += step_out.slot_pad_masked_ce_sum
+            totals['pad_masked'] += step_out.slot_pad_masked_count
+            totals['pad_weighted_nll'] += step_out.slot_pad_weighted_nll_sum
+            totals['weight_masked'] += step_out.weight_masked_sum
     finally:
         model.train(was_training)
 
@@ -651,8 +644,9 @@ def run_overfit_check(
             ev = evaluate_batches(model, [dev_batch], mask_token_id, vocab_size, seed=seed, device=device)
             eval_curve.append({'step': step, 'mdlm_loss': ev['mdlm_loss'],
                                'unweighted_masked_ce': ev['unweighted_masked_ce']})
-            print(f'[overfit] step {step:3d}/{steps}: train={step_losses[-1]:.4f} '
-                  f'fixed_eval={ev["mdlm_loss"]:.4f} ce={ev["unweighted_masked_ce"]:.4f}', flush=True)
+            print(f'[overfit] step {step:3d}/{steps}: train_loss={step_losses[-1]:.4f} '
+                  f'fixed_eval_loss={ev["mdlm_loss"]:.4f} masked_cross_entropy={ev["unweighted_masked_ce"]:.4f}',
+                  flush=True)
     elapsed = time.perf_counter() - t0
     return {
         'rows': int(batch.input_ids.shape[0]),
@@ -667,7 +661,7 @@ def run_overfit_check(
     }
 
 
-def run_few_step_smoke(
+def run_few_step_train(
     model: torch.nn.Module,
     batches: Sequence[Batch],
     mask_token_id: int,
@@ -677,7 +671,7 @@ def run_few_step_smoke(
     seed: int = 2026,
     device: str | torch.device = 'cpu',
 ) -> dict[str, Any]:
-    """Run `steps` training updates across `batches` of in-place rows."""
+    """Run `steps` training updates across `batches` of a few hundred in-place rows (#408)."""
     optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=lr)
     gen = torch.Generator(device=device).manual_seed(seed + 100)
     losses: list[float] = []
@@ -686,7 +680,7 @@ def run_few_step_smoke(
         batch = batches[step % len(batches)].to(device)
         out = train_step(model, optimizer, batch, mask_token_id, generator=gen)
         losses.append(float(out.loss.item()))
-        print(f'[smoke] step {step + 1:3d}/{steps}: loss={losses[-1]:.4f} '
+        print(f'[train] step {step + 1:3d}/{steps}: loss={losses[-1]:.4f} '
               f'masked={out.masked_count}/{out.eligible_count}', flush=True)
     elapsed = time.perf_counter() - t0
     return {
@@ -699,51 +693,21 @@ def run_few_step_smoke(
     }
 
 
-def _dllm_parity_check(model: torch.nn.Module, batch: Batch, mask_token_id: int, device: str | torch.device) -> float:
-    """Cross-check mdlm_loss against the exact dLLM ca176752 equations on one fixed batch."""
-    was_training = model.training
-    model.eval()
-    dev_batch = batch.to(device)
-    b, seq = dev_batch.input_ids.shape
-    gen = torch.Generator(device=device).manual_seed(17)
-    u_t = torch.rand(b, generator=gen, device=device, dtype=torch.float32)
-    u_mask = torch.rand((b, seq), generator=gen, device=device, dtype=torch.float32)
-    attn = bidirectional_padding_mask(dev_batch.valid_mask, dtype=_model_dtype(model))
-    with torch.no_grad():
-        ours = mdlm_loss(
-            model_logits_fn(model), dev_batch.input_ids, dev_batch.labels, mask_token_id,
-            attention_mask=attn, right_shift_logits=True, u_t=u_t, u_mask=u_mask,
-        ).loss
-        # Verbatim dLLM ca176752 formula
-        maskable = dev_batch.labels != -100
-        t = TIME_EPSILON + (1.0 - TIME_EPSILON) * u_t
-        alpha_t = 1.0 - t
-        masked = (u_mask < (1.0 - alpha_t.unsqueeze(1).expand(b, seq))) & maskable
-        noised = torch.where(masked, mask_token_id, dev_batch.input_ids)
-        logits = model(input_ids=noised, attention_mask=attn).logits
-        logits = torch.cat([logits[:, :1], logits[:, :-1]], dim=1)
-        weights = (1.0 / (1.0 - alpha_t + WEIGHT_EPS)).unsqueeze(1).repeat(1, seq)
-        ce = F.cross_entropy(logits.float().transpose(1, 2), dev_batch.input_ids, reduction='none')
-        ref = ((ce * weights * masked.to(ce.dtype)) / maskable.sum().clamp_min(1)).sum()
-    model.train(was_training)
-    diff = float((ours - ref).abs().item())
-    if diff > 1e-6:
-        raise RuntimeError(f'MDLM loss differs from dLLM reference by {diff}')
-    return diff
-
-
 def _resolve_device(device: str) -> str:
     if device != 'auto':
         return device
     return 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-def _load_diffugpt_model_and_tokenizer(device: str, dtype_name: str) -> tuple[torch.nn.Module, Any, dict[str, Any]]:
-    cand = diffugpt_small_candidate()
-    info = B.candidate_info(cand)
-    tokenizer = C.load_tokenizer(cand)
+def load_diffugpt_small_lora(device: str, dtype_name: str) -> tuple[torch.nn.Module, Any, dict[str, Any]]:
+    """Load DiffuGPT small at its pinned revision, check its mask token, and wrap with LoRA."""
+    info = dict(DIFFUGPT_S_INFO)
+    tokenizer = memory_bench.load_tokenizer(info)
+    mask_ids = tokenizer(tokenizer.mask_token, add_special_tokens=False)['input_ids']
+    if mask_ids != [info['mask_id']]:
+        raise ValueError(f"mask token {tokenizer.mask_token!r} tokenized as {mask_ids}, expected [{info['mask_id']}]")
     dtype = getattr(torch, dtype_name)
-    base = B.load_diffugpt(info, dtype=dtype, device=device)
+    base = memory_bench.load_diffugpt(info, dtype=dtype, device=device)
     model = apply_diffugpt_lora(base)
     return model, tokenizer, info
 
@@ -752,30 +716,24 @@ def _chunk_batches(rows: Sequence[EncodedRow], batch_size: int, pad_id: int) -> 
     return [collate_rows(rows[i:i + batch_size], pad_id) for i in range(0, len(rows), batch_size)]
 
 
-def run_tracer(
-    args: argparse.Namespace,
-    *,
-    loader: Callable[[str, str], tuple[torch.nn.Module, Any, dict[str, Any]]] = _load_diffugpt_model_and_tokenizer,
-    team_loader: Callable[[Path, int, int, RegMBVocab], list[tuple[M.Team, float | None]]] = load_training_teams,
-) -> dict[str, Any]:
-    """Run init-loss, dLLM parity check, 8-row overfit, and multi-row smoke training."""
+def run_tracer(args: argparse.Namespace) -> dict[str, Any]:
+    """Run initialization-loss measurement, 8-row overfit, and few-step multi-row training."""
     device = _resolve_device(args.device)
     if device == 'cuda':
         torch.cuda.reset_peak_memory_stats()
-    model, tokenizer, info = loader(device, args.dtype)
+    model, tokenizer, info = load_diffugpt_small_lora(device, args.dtype)
     counts = parameter_counts(model)
     base_hashes_before = base_weight_hashes(model)
     init_lora_state = _snapshot_lora_state(model)
 
     vocab = load_regmb_vocab(VOCAB_FILE)
-    teams = team_loader(args.data, args.rows, args.seed, vocab)
-    rows = build_dataset_rows(teams, tokenizer, seed=args.seed, limit=C.LIMIT)
+    teams = load_training_teams(args.data, args.rows, args.seed, vocab)
+    rows = build_dataset_rows(teams, tokenizer, seed=args.seed, limit=TEXT_LIMIT)
     pad_id = resolve_pad_id(tokenizer)
     mask_id = int(info['mask_id'])
     vocab_size = int(getattr(model.config, 'vocab_size', len(tokenizer)))
 
     batches = _chunk_batches(rows, args.batch_size, pad_id)
-    parity_diff = _dllm_parity_check(model, collate_rows(rows[:min(4, len(rows))], pad_id), mask_id, device)
     init_eval = evaluate_batches(model, batches, mask_id, vocab_size, seed=args.seed, device=device)
 
     overfit_batch = collate_rows(rows[:args.overfit_rows], pad_id)
@@ -795,10 +753,10 @@ def run_tracer(
     base_unchanged_after_overfit = base_weight_hashes(model) == base_hashes_before
 
     _restore_lora_state(model, init_lora_state)
-    smoke = run_few_step_smoke(
+    few_step = run_few_step_train(
         model, batches, mask_id, steps=args.train_steps, lr=args.lr, seed=args.seed, device=device
     )
-    base_unchanged_after_smoke = base_weight_hashes(model) == base_hashes_before
+    base_unchanged_after_train = base_weight_hashes(model) == base_hashes_before
 
     peak_mem_bytes = int(torch.cuda.max_memory_allocated()) if device == 'cuda' else 0
     result = {
@@ -812,13 +770,12 @@ def run_tracer(
         'rows': len(rows),
         'seed': args.seed,
         'parameter_counts': counts,
-        'dllm_parity_max_abs_diff': parity_diff,
         'init_loss': init_eval,
         'overfit': overfit,
         'overfit_lora_tensors_changed': overfit_lora_changed,
         'base_weights_unchanged_after_overfit': base_unchanged_after_overfit,
-        'smoke': smoke,
-        'base_weights_unchanged_after_smoke': base_unchanged_after_smoke,
+        'few_step_train': few_step,
+        'base_weights_unchanged_after_train': base_unchanged_after_train,
         'peak_cuda_bytes': peak_mem_bytes,
     }
     args.out.mkdir(parents=True, exist_ok=True)
@@ -827,16 +784,16 @@ def run_tracer(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description='Masked text diffusion LoRA trainer (#408).')
+    parser = argparse.ArgumentParser(description='Masked text diffusion Low-Rank Adaptation (LoRA) trainer (#408).')
     sub = parser.add_subparsers(dest='command', required=True)
 
-    sl = sub.add_parser('slice-data', help='Extract a compact training-only .npz slice for Modal.')
+    sl = sub.add_parser('slice-data', help='Extract a compact training-only .npz slice for Modal transfer.')
     sl.add_argument('--data', type=Path, required=True)
     sl.add_argument('--out', type=Path, required=True)
     sl.add_argument('--count', type=int, default=256)
     sl.add_argument('--seed', type=int, default=2026)
 
-    tr = sub.add_parser('tracer', help='Run init-loss, dLLM parity, 8-row overfit, and smoke training.')
+    tr = sub.add_parser('tracer', help='Run initialization loss, 8-row overfit, and few-step training.')
     tr.add_argument('--data', type=Path, required=True)
     tr.add_argument('--out', type=Path, required=True)
     tr.add_argument('--rows', type=int, default=256)
@@ -853,23 +810,19 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(
-    argv: Sequence[str] | None = None,
-    *,
-    tracer_runner: Callable[[argparse.Namespace], dict[str, Any]] = run_tracer,
-    slicer: Callable[[Path, Path, int, int], dict[str, Any]] = slice_training_npz,
-) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == 'slice-data':
-        summary = slicer(args.data, args.out, args.count, args.seed)
+        summary = slice_training_npz(args.data, args.out, args.count, args.seed)
         print(json.dumps(summary, indent=2), flush=True)
         return 0
-    result = tracer_runner(args)
+    result = run_tracer(args)
     init = result['init_loss']
     ov = result['overfit']
     print(
-        f"Init MDLM loss: {init['mdlm_loss']:.4f} vs random {init['random_expected_mdlm_loss']:.4f} "
-        f"(matched draw {init['random_matched_draw_loss']:.4f}); "
+        f"Initialization Masked Diffusion Language Modeling (MDLM) loss: {init['mdlm_loss']:.4f} "
+        f"vs uniform random {init['random_expected_mdlm_loss']:.4f} "
+        f"(same-draw random {init['random_matched_draw_loss']:.4f}); "
         f"overfit {ov['rows']} rows x {ov['steps']} steps: "
         f"{ov['initial_fixed_eval']['mdlm_loss']:.4f} -> {ov['final_fixed_eval']['mdlm_loss']:.4f}",
         flush=True,

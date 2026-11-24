@@ -1,4 +1,4 @@
-"""CPU tests for the masked LoRA trainer and its minimal Modal launcher (#408).
+"""CPU tests for the masked Low-Rank Adaptation (LoRA) trainer and its minimal Modal launcher (#408).
 
 No pretrained weights, GPU, Modal account, or vault files are used, so this file
 runs on CPU in CI (listed in code/scripts/ci_tests.txt). Every test that invokes a
@@ -7,9 +7,12 @@ dataset reads, subprocess/Modal execution) to raise so no test can start a real 
 """
 import importlib.util
 import json
+import os
 import random
 import re
+import shutil
 import subprocess
+import sys
 import tempfile
 import types
 import unittest
@@ -20,14 +23,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-import count_masked_diffusion_text as C
-import mask_paste as M
-import masked_diffusion_memory_bench as B
-import masked_diffusion_text as D
-import masked_lora_modal as LM
-import masked_lora_trainer as T
+import mask_paste
+import masked_diffusion_memory_bench as memory_bench
+import masked_diffusion_text as diffusion_text
+import masked_lora_modal as launcher
+import masked_lora_trainer as trainer
 
 HAS_TRANSFORMERS_PEFT = bool(importlib.util.find_spec('transformers') and importlib.util.find_spec('peft'))
+DLLM_CHECKOUT = Path(os.environ.get('DLLM_CA176752_DIR', '/tmp/dllm-ca176752'))
+HAS_UPSTREAM_DLLM = HAS_TRANSFORMERS_PEFT and (DLLM_CHECKOUT / 'dllm/core/trainers/mdlm.py').is_file()
 VOCAB_PATH = Path(__file__).resolve().parents[1] / 'data/regmb-vocabulary.json'
 
 
@@ -43,7 +47,7 @@ class FakeTokenizer:
     pad_token = None
     pattern = r'<\|mask\|>|<\|endoftext\|>|[A-Za-z]+|.'
 
-    def __init__(self, max_vocab: int = 2048) -> None:
+    def __init__(self, max_vocab: int = 4096) -> None:
         self._max_vocab = max_vocab
         self._stoi: dict[str, int] = {self.mask_token: 0, self.eos_token: 1}
         self._itos: list[str] = [self.mask_token, self.eos_token]
@@ -81,8 +85,7 @@ class FakeTokenizer:
 
 def sample_team_row(offset: int = 0) -> np.ndarray:
     """One synthetic valid 84-field row in code/data/regmb-vocabulary.json."""
-    reg = json.loads(VOCAB_PATH.read_text())
-    itos = {k: ['[MASK]', *sorted(set(v))] for k, v in reg['values'].items()}
+    itos = trainer.load_regmb_vocab(VOCAB_PATH).itos
     row = np.zeros(84, dtype=np.int16)
     for s in range(6):
         row[s * 8 + 0] = 1 + (s + offset) % (len(itos['species']) - 1)
@@ -163,21 +166,21 @@ class TinyLoRALM(torch.nn.Module):
 
 class RowAndMaskTest(unittest.TestCase):
     def test_decode_84_field_row_uses_display_names_and_stat_points(self):
-        vocab = T.load_regmb_vocab(VOCAB_PATH)
-        team = T.decode_team_84(sample_team_row(), vocab)
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        team = trainer.decode_team_84(sample_team_row(), vocab)
         self.assertEqual(len(team), 6)
         for i, mon in enumerate(team):
             self.assertEqual(mon['slot'], i + 1)
-            self.assertEqual(tuple(mon['statPoints']), M.STATS)
+            self.assertEqual(tuple(mon['statPoints']), mask_paste.STATS)
             self.assertEqual(sum(mon['statPoints'].values()), 66)
             self.assertEqual(len(mon['moves']), 4)
 
     def test_training_row_marks_only_hidden_slots_eligible_including_slot_padding(self):
-        vocab = T.load_regmb_vocab(VOCAB_PATH)
-        team = T.decode_team_84(sample_team_row(), vocab)
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        team = trainer.decode_team_84(sample_team_row(), vocab)
         tok = FakeTokenizer()
-        task = T.make_mask_lab_task(team, 'items', 2, random.Random(7))
-        row = T.build_training_row(task, 0.55, tok, limit=10_000)
+        task = trainer.make_mask_lab_task(team, 'items', 2, random.Random(7))
+        row = trainer.build_training_row(task, 0.55, tok, limit=10_000)
 
         self.assertEqual(row.labels[0], -100)
         eligible = [i for i, y in enumerate(row.labels) if y != -100]
@@ -187,20 +190,20 @@ class RowAndMaskTest(unittest.TestCase):
         self.assertTrue(len(slot_pad_positions) > 0)
         for i in slot_pad_positions:
             self.assertEqual(row.labels[i], tok.eos_token_id)
-        self.assertEqual(D.read_filled(row.target_text, T.resolve_pad_token(tok), tok.mask_token), team)
+        self.assertEqual(diffusion_text.read_filled(row.target_text, trainer.resolve_pad_token(tok), tok.mask_token), team)
 
     def test_unknown_win_rate_writes_unknown_in_header(self):
-        vocab = T.load_regmb_vocab(VOCAB_PATH)
-        team = T.decode_team_84(sample_team_row(), vocab)
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        team = trainer.decode_team_84(sample_team_row(), vocab)
         tok = FakeTokenizer()
-        task = T.make_mask_lab_task(team, 'abilities', 1, random.Random(3))
-        row = T.build_training_row(task, None, tok, limit=10_000)
+        task = trainer.make_mask_lab_task(team, 'abilities', 1, random.Random(3))
+        row = trainer.build_training_row(task, None, tok, limit=10_000)
         self.assertIn('Target win rate vs top meta teams: unknown.\n', row.target_text)
 
     def test_collate_right_pads_with_ignored_labels_and_valid_mask(self):
-        r1 = T.EncodedRow([10, 11, 12], [-100, 11, -100], [False, True, False], '', (), 0.5)
-        r2 = T.EncodedRow([10, 11, 12, 13, 14], [-100, -100, 12, 13, -100], [False, False, True, True, False], '', (), None)
-        batch = T.collate_rows([r1, r2], batch_pad_id=1)
+        r1 = trainer.EncodedRow([10, 11, 12], [-100, 11, -100], [False, True, False], '', (), 0.5)
+        r2 = trainer.EncodedRow([10, 11, 12, 13, 14], [-100, -100, 12, 13, -100], [False, False, True, True, False], '', (), None)
+        batch = trainer.collate_rows([r1, r2], batch_pad_id=1)
         self.assertEqual(batch.input_ids.tolist(), [[10, 11, 12, 1, 1], [10, 11, 12, 13, 14]])
         self.assertEqual(batch.labels.tolist(), [[-100, 11, -100, -100, -100], [-100, -100, 12, 13, -100]])
         self.assertEqual(batch.valid_mask.tolist(), [[True, True, True, False, False], [True, True, True, True, True]])
@@ -219,7 +222,7 @@ class MDLMLossParityTest(unittest.TestCase):
         labels[3, 1:5] = input_ids[3, 1:5]
         valid_mask = torch.ones((b, seq), dtype=torch.bool)
         valid_mask[0, 12:] = False
-        attn = T.bidirectional_padding_mask(valid_mask, dtype=torch.float32)
+        attn = trainer.bidirectional_padding_mask(valid_mask, dtype=torch.float32)
 
         u_t = torch.tensor([0.12, 0.55, 0.87, 0.03], dtype=torch.float32)
         u_mask = torch.rand((b, seq), generator=torch.Generator().manual_seed(99))
@@ -236,7 +239,7 @@ class MDLMLossParityTest(unittest.TestCase):
                 time_epsilon=1e-3,
                 right_shift_logits=shift,
             )
-            ours = T.mdlm_loss(
+            ours = trainer.mdlm_loss(
                 lambda x, m: model(input_ids=x, attention_mask=m).logits,
                 input_ids,
                 labels,
@@ -249,12 +252,102 @@ class MDLMLossParityTest(unittest.TestCase):
             )
             torch.testing.assert_close(ours.loss, ref, rtol=1e-6, atol=1e-6)
 
+    @unittest.skipUnless(HAS_UPSTREAM_DLLM, 'upstream ZHZisZZ/dllm@ca176752 checkout not present locally')
+    def test_matches_upstream_dllm_mdlm_trainer_compute_loss_directly(self):
+        """Execute unmodified ZHZisZZ/dllm@ca176752 MDLMTrainer.compute_loss on the exact same batch and draws."""
+        import transformers
+        from transformers import GPT2Config, GPT2LMHeadModel
+
+        # Load dllm's LinearAlphaScheduler and MDLMTrainer directly without triggering dllm.core.eval (lm_eval).
+        alpha_spec = importlib.util.spec_from_file_location('dllm_alpha', DLLM_CHECKOUT / 'dllm/core/schedulers/alpha.py')
+        alpha_mod = importlib.util.module_from_spec(alpha_spec)
+        with mock.patch.dict(sys.modules, {'dllm_alpha': alpha_mod}):
+            alpha_spec.loader.exec_module(alpha_mod)
+
+        # Stub only the package namespace entries mdlm.py imports from its own tree.
+        fake_pkg = types.ModuleType('dllm')
+        fake_core = types.ModuleType('dllm.core')
+        fake_sched = types.ModuleType('dllm.core.schedulers')
+        fake_sched.BaseAlphaScheduler = alpha_mod.BaseAlphaScheduler
+        fake_sched.LinearAlphaScheduler = alpha_mod.LinearAlphaScheduler
+        fake_utils = types.ModuleType('dllm.utils')
+        fake_configs = types.ModuleType('dllm.utils.configs')
+        fake_configs.TrainingArguments = transformers.TrainingArguments
+        fake_data = types.ModuleType('dllm.utils.data')
+        fake_data.prepend_bos = _forbid
+        fake_trainers = types.ModuleType('dllm.core.trainers')
+        fake_tutils = types.ModuleType('dllm.core.trainers.utils')
+        fake_tutils.NLLMetric = lambda: None
+        fake_tutils.PPLMetric = lambda: None
+        fake_tutils.OnEvaluateMetricsCallback = lambda **_kw: types.SimpleNamespace(update=lambda **_u: None)
+
+        mdlm_spec = importlib.util.spec_from_file_location(
+            'dllm.core.trainers.mdlm', DLLM_CHECKOUT / 'dllm/core/trainers/mdlm.py'
+        )
+        mdlm_mod = importlib.util.module_from_spec(mdlm_spec)
+        stubs = {
+            'dllm': fake_pkg, 'dllm.core': fake_core, 'dllm.core.schedulers': fake_sched,
+            'dllm.utils': fake_utils, 'dllm.utils.configs': fake_configs, 'dllm.utils.data': fake_data,
+            'dllm.core.trainers': fake_trainers, 'dllm.core.trainers.utils': fake_tutils,
+            'dllm.core.trainers.mdlm': mdlm_mod,
+        }
+        with mock.patch.dict(sys.modules, stubs):
+            mdlm_spec.loader.exec_module(mdlm_mod)
+
+        torch.manual_seed(7)
+        cfg = GPT2Config(vocab_size=64, n_positions=32, n_embd=32, n_layer=2, n_head=4)
+        cfg._attn_implementation = 'sdpa'
+        model = GPT2LMHeadModel(cfg).eval()
+
+        b, seq = 4, 14
+        input_ids = torch.randint(2, 64, (b, seq))
+        labels = torch.full((b, seq), -100, dtype=torch.long)
+        labels[0, 3:9] = input_ids[0, 3:9]
+        labels[1, 2:10] = input_ids[1, 2:10]
+        labels[2, 5:11] = input_ids[2, 5:11]
+        labels[3, 1:6] = input_ids[3, 1:6]
+        valid = torch.ones((b, seq), dtype=torch.bool)
+        valid[0, 11:] = False
+        attn = trainer.bidirectional_padding_mask(valid, torch.float32)
+
+        # Instantiate a lightweight MDLMTrainer object carrying the exact attributes compute_loss reads.
+        upstream = object.__new__(mdlm_mod.MDLMTrainer)
+        upstream.processing_class = types.SimpleNamespace(padding_side='right', mask_token_id=0, bos_token_id=1)
+        upstream.scheduler = alpha_mod.LinearAlphaScheduler()
+        upstream.time_epsilon = 1e-3
+        upstream.loss_weight_type = 'scheduler'
+        upstream.loss_norm_type = 'token'
+        upstream.right_shift_logits = True
+        upstream.meter = types.SimpleNamespace(update=lambda **_kw: None)
+
+        # Run upstream MDLMTrainer.compute_loss with a fixed global torch seed and feed the same draws to ours.
+        torch.manual_seed(2026)
+        u_t = torch.rand(b)
+        u_mask = torch.rand((b, seq))
+
+        torch.manual_seed(2026)
+        upstream_loss = upstream.compute_loss(
+            model, {'input_ids': input_ids, 'labels': labels, 'attention_mask': attn}
+        )
+        ours = trainer.mdlm_loss(
+            trainer.model_logits_fn(model),
+            input_ids,
+            labels,
+            mask_token_id=0,
+            attention_mask=attn,
+            right_shift_logits=True,
+            time_epsilon=1e-3,
+            u_t=u_t,
+            u_mask=u_mask,
+        ).loss
+        torch.testing.assert_close(ours, upstream_loss, rtol=1e-6, atol=1e-6)
+
     def test_zero_masked_tokens_gives_zero_loss_without_nan(self):
         model = TinyLoRALM(vocab_size=20, dim=8, rank=2)
         input_ids = torch.randint(2, 20, (2, 6))
         labels = torch.full((2, 6), -100, dtype=torch.long)
         labels[:, 2:4] = input_ids[:, 2:4]
-        out = T.mdlm_loss(
+        out = trainer.mdlm_loss(
             lambda x, m: model(input_ids=x, attention_mask=m).logits,
             input_ids,
             labels,
@@ -271,17 +364,19 @@ class LoRAWeightInvarianceTest(unittest.TestCase):
     def test_only_lora_weights_change_and_base_weights_keep_sha256(self):
         torch.manual_seed(0)
         model = TinyLoRALM(vocab_size=32, dim=16, rank=4)
-        before_base = T.base_weight_hashes(model)
-        before_lora = T.lora_weight_hashes(model)
+        before_base = trainer.base_weight_hashes(model)
+        before_lora = trainer.lora_weight_hashes(model)
         self.assertTrue(len(before_base) > 0 and len(before_lora) > 0)
 
         input_ids = torch.randint(2, 32, (2, 10))
         labels = torch.full((2, 10), -100, dtype=torch.long)
         labels[:, 3:8] = input_ids[:, 3:8]
-        batch = T.Batch(input_ids, labels, torch.ones((2, 10), dtype=torch.bool), torch.zeros((2, 10), dtype=torch.bool))
+        batch = trainer.Batch(
+            input_ids, labels, torch.ones((2, 10), dtype=torch.bool), torch.zeros((2, 10), dtype=torch.bool)
+        )
 
         opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=1e-2)
-        T.train_step(
+        trainer.train_step(
             model,
             opt,
             batch,
@@ -289,8 +384,8 @@ class LoRAWeightInvarianceTest(unittest.TestCase):
             right_shift_logits=True,
             generator=torch.Generator().manual_seed(123),
         )
-        self.assertEqual(T.base_weight_hashes(model), before_base)
-        after_lora = T.lora_weight_hashes(model)
+        self.assertEqual(trainer.base_weight_hashes(model), before_base)
+        after_lora = trainer.lora_weight_hashes(model)
         for name, digest in before_lora.items():
             self.assertNotEqual(after_lora[name], digest, f'LoRA tensor {name} did not update')
 
@@ -301,19 +396,17 @@ class LoRAWeightInvarianceTest(unittest.TestCase):
         cfg = GPT2Config(vocab_size=64, n_positions=32, n_embd=32, n_layer=2, n_head=4)
         cfg._attn_implementation = 'sdpa'
         base = GPT2LMHeadModel(cfg)
-        model = T.apply_diffugpt_lora(base)
+        model = trainer.apply_diffugpt_lora(base)
 
         trainable = [n for n, p in model.named_parameters() if p.requires_grad]
         self.assertEqual(len(trainable), 2 * 4 * 2)  # 2 layers * 4 projections * (A, B)
-        before_base = T.base_weight_hashes(model)
-        before_lora = T.lora_weight_hashes(model)
+        before_base = trainer.base_weight_hashes(model)
+        before_lora = trainer.lora_weight_hashes(model)
 
-        # Bidirectional attention check: changing a later real token changes position 0's logits,
-        # while changing a batch-padded token (valid_mask=False) leaves all real positions' logits identical.
         model.eval()
         x = torch.tensor([[5, 6, 7, 8, 9, 10, 1, 1]])
         valid = torch.tensor([[True, True, True, True, True, True, False, False]])
-        mask = T.bidirectional_padding_mask(valid, torch.float32)
+        mask = trainer.bidirectional_padding_mask(valid, torch.float32)
         with torch.no_grad():
             base_logits = model(input_ids=x, attention_mask=mask).logits
             x_later_real = x.clone()
@@ -328,23 +421,23 @@ class LoRAWeightInvarianceTest(unittest.TestCase):
         input_ids = torch.randint(2, 64, (2, 12))
         labels = torch.full((2, 12), -100, dtype=torch.long)
         labels[:, 4:10] = input_ids[:, 4:10]
-        batch = T.Batch(input_ids, labels, torch.ones((2, 12), dtype=torch.bool), torch.zeros((2, 12), dtype=torch.bool))
+        batch = trainer.Batch(
+            input_ids, labels, torch.ones((2, 12), dtype=torch.bool), torch.zeros((2, 12), dtype=torch.bool)
+        )
         opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=1e-2)
-        T.train_step(model, opt, batch, mask_token_id=0, right_shift_logits=True,
-                     generator=torch.Generator().manual_seed(7))
+        trainer.train_step(model, opt, batch, mask_token_id=0, right_shift_logits=True,
+                           generator=torch.Generator().manual_seed(7))
 
-        self.assertEqual(T.base_weight_hashes(model), before_base)
-        after_step1 = T.lora_weight_hashes(model)
-        # On step 1, lora_B starts at zero so gradients flow into lora_B first.
+        self.assertEqual(trainer.base_weight_hashes(model), before_base)
+        after_step1 = trainer.lora_weight_hashes(model)
         for name, digest in before_lora.items():
             if 'lora_B' in name:
                 self.assertNotEqual(after_step1[name], digest, f'{name} did not update on step 1')
 
-        # After step 2, every adapter tensor (both lora_A and lora_B) has updated while base weights remain frozen.
-        T.train_step(model, opt, batch, mask_token_id=0, right_shift_logits=True,
-                     generator=torch.Generator().manual_seed(8))
-        self.assertEqual(T.base_weight_hashes(model), before_base)
-        after_step2 = T.lora_weight_hashes(model)
+        trainer.train_step(model, opt, batch, mask_token_id=0, right_shift_logits=True,
+                           generator=torch.Generator().manual_seed(8))
+        self.assertEqual(trainer.base_weight_hashes(model), before_base)
+        after_step2 = trainer.lora_weight_hashes(model)
         for name, digest in before_lora.items():
             self.assertNotEqual(after_step2[name], digest, f'PEFT LoRA tensor {name} did not update')
 
@@ -365,19 +458,19 @@ class EntryPointGuardTest(unittest.TestCase):
             }
 
         with (
-            mock.patch.object(B, 'load_diffugpt', side_effect=_forbid),
-            mock.patch.object(C, 'load_tokenizer', side_effect=_forbid),
-            mock.patch.object(T, 'load_training_teams', side_effect=_forbid),
-            mock.patch.object(T, 'slice_training_npz', side_effect=_forbid),
+            mock.patch.object(memory_bench, 'load_diffugpt', side_effect=_forbid),
+            mock.patch.object(memory_bench, 'load_tokenizer', side_effect=_forbid),
+            mock.patch.object(trainer, 'load_training_teams', side_effect=_forbid),
+            mock.patch.object(trainer, 'slice_training_npz', side_effect=_forbid),
+            mock.patch.object(trainer, 'run_tracer', side_effect=fake_runner),
         ):
-            rc = T.main(['tracer', '--data', '/nonexistent.npz', '--out', '/tmp/unused', '--rows', '16'],
-                        tracer_runner=fake_runner, slicer=_forbid)
+            rc = trainer.main(['tracer', '--data', '/nonexistent.npz', '--out', '/tmp/unused', '--rows', '16'])
         self.assertEqual(rc, 0)
         self.assertEqual(captured, {'data': Path('/nonexistent.npz'), 'rows': 16})
 
     def test_run_tracer_end_to_end_with_mocked_side_effects_and_tiny_model(self):
-        vocab = T.load_regmb_vocab(VOCAB_PATH)
-        synthetic_teams = [(T.decode_team_84(sample_team_row(i), vocab), 0.5 + 0.01 * i if i else None)
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        synthetic_teams = [(trainer.decode_team_84(sample_team_row(i), vocab), 0.5 + 0.01 * i if i else None)
                            for i in range(6)]
         tok = FakeTokenizer(max_vocab=4096)
         torch.manual_seed(0)
@@ -387,28 +480,25 @@ class EntryPointGuardTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             out_dir = Path(tmp) / 'out'
-            args = T.build_parser().parse_args([
+            args = trainer.build_parser().parse_args([
                 'tracer', '--data', '/forbidden/real.npz', '--out', str(out_dir),
                 '--rows', '6', '--overfit-rows', '4', '--overfit-steps', '10',
                 '--eval-every', '5', '--train-steps', '3', '--batch-size', '2',
                 '--overfit-lr', '2e-2', '--lr', '1e-2', '--device', 'cpu',
             ])
             with (
-                mock.patch.object(B, 'load_diffugpt', side_effect=_forbid),
-                mock.patch.object(C, 'load_tokenizer', side_effect=_forbid),
-                mock.patch.object(T, 'load_training_teams', side_effect=_forbid),
-                mock.patch.object(T, 'slice_training_npz', side_effect=_forbid),
+                mock.patch.object(memory_bench, 'load_diffugpt', side_effect=_forbid),
+                mock.patch.object(memory_bench, 'load_tokenizer', side_effect=_forbid),
+                mock.patch.object(trainer, 'slice_training_npz', side_effect=_forbid),
+                mock.patch.object(trainer, 'load_diffugpt_small_lora', return_value=(tiny, tok, fake_info)),
+                mock.patch.object(trainer, 'load_training_teams',
+                                  side_effect=lambda _p, count, _seed, _v: synthetic_teams[:count]),
             ):
-                result = T.run_tracer(
-                    args,
-                    loader=lambda _dev, _dt: (tiny, tok, fake_info),
-                    team_loader=lambda _p, count, _seed, _v: synthetic_teams[:count],
-                )
+                result = trainer.run_tracer(args)
             saved = json.loads((out_dir / 'tracer_results.json').read_text())
             self.assertEqual(saved['rows'], 6)
-            self.assertLess(saved['dllm_parity_max_abs_diff'], 1e-6)
             self.assertTrue(saved['base_weights_unchanged_after_overfit'])
-            self.assertTrue(saved['base_weights_unchanged_after_smoke'])
+            self.assertTrue(saved['base_weights_unchanged_after_train'])
             self.assertGreater(saved['overfit_lora_tensors_changed'], 0)
             self.assertEqual(result['score_slot_pad'], True)
             self.assertEqual(result['score_batch_pad'], False)
@@ -422,75 +512,94 @@ class EntryPointGuardTest(unittest.TestCase):
             all_val = np.array([True, False, True, False, False, False, True, False, False, False])
             np.savez(src, all_X=all_x, all_W=all_w, all_val=all_val)
             with (
-                mock.patch.object(B, 'load_diffugpt', side_effect=_forbid),
-                mock.patch.object(T, 'run_tracer', side_effect=_forbid),
+                mock.patch.object(memory_bench, 'load_diffugpt', side_effect=_forbid),
+                mock.patch.object(trainer, 'run_tracer', side_effect=_forbid),
             ):
-                rc = T.main(['slice-data', '--data', str(src), '--out', str(dst), '--count', '5', '--seed', '1'],
-                            tracer_runner=_forbid)
+                rc = trainer.main(['slice-data', '--data', str(src), '--out', str(dst), '--count', '5', '--seed', '1'])
             self.assertEqual(rc, 0)
             with np.load(dst) as sliced:
                 self.assertEqual(sliced['all_X'].shape, (5, 84))
                 self.assertFalse(bool(sliced['all_val'].any()))
-                # None of the validation rows (0, 2, 6) may appear in the slice
                 val_rows = {all_x[i].tobytes() for i in (0, 2, 6)}
                 for row in sliced['all_X']:
                     self.assertNotIn(row.tobytes(), val_rows)
 
 
 class ModalLauncherTest(unittest.TestCase):
-    def test_packaged_files_exist_and_exclude_block_diffusion_and_masklab(self):
-        for rel in LM.PACKAGED_FILES:
-            self.assertTrue((LM.CODE_DIR / rel).is_file(), f'missing packaged file: {rel}')
-        joined = ' '.join(LM.PACKAGED_FILES)
-        for forbidden in ('textdiff.py', 'textdiff_port.py', 'mask_lab_textdiff.py'):
+    def test_packaged_files_are_self_contained_and_exclude_block_diffusion_and_masklab(self):
+        for rel in launcher.PACKAGED_FILES:
+            self.assertTrue((launcher.CODE_DIR / rel).is_file(), f'missing packaged file: {rel}')
+        joined = ' '.join(launcher.PACKAGED_FILES)
+        for forbidden in ('textdiff.py', 'textdiff_port.py', 'mask_lab_textdiff.py', 'jev_fill.py'):
             self.assertNotIn(forbidden, joined)
 
-    def test_build_remote_command_preserves_trainer_cli(self):
-        cmd = LM.build_remote_command('tracer --data /tmp/rows.npz --out /tmp/out --rows 256')
-        self.assertEqual(cmd, ['python', LM.REMOTE_TRAINER, 'tracer', '--data', '/tmp/rows.npz',
-                               '--out', '/tmp/out', '--rows', '256'])
-        with self.assertRaises(ValueError):
-            LM.build_remote_command('   ')
+        # Copy ONLY PACKAGED_FILES into an isolated directory and prove the trainer imports cleanly there.
+        with tempfile.TemporaryDirectory() as tmp:
+            stage = Path(tmp) / 'code'
+            for rel in launcher.PACKAGED_FILES:
+                dest = stage / rel
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(launcher.CODE_DIR / rel, dest)
+            env = {k: v for k, v in os.environ.items() if k != 'PYTHONPATH'}
+            proc = subprocess.run(
+                [sys.executable, str(stage / 'scripts/masked_lora_trainer.py'), '--help'],
+                cwd=str(stage / 'scripts'),
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn('tracer', proc.stdout)
 
-    def test_run_trainer_subprocess_stages_data_collects_outputs_and_raises_on_failure(self):
+    def test_build_remote_command_and_extract_out_dir(self):
+        cmd = launcher.build_remote_command('tracer --data /tmp/rows.npz --out /tmp/custom_out --rows 256')
+        self.assertEqual(cmd, ['python', launcher.REMOTE_TRAINER, 'tracer', '--data', '/tmp/rows.npz',
+                               '--out', '/tmp/custom_out', '--rows', '256'])
+        self.assertEqual(launcher.extract_out_dir('tracer --out /tmp/custom_out'), Path('/tmp/custom_out'))
+        self.assertEqual(launcher.extract_out_dir('tracer --out=/tmp/eq_out'), Path('/tmp/eq_out'))
+        self.assertEqual(launcher.extract_out_dir('tracer --rows 8'), Path(launcher.REMOTE_OUT))
+        with self.assertRaises(ValueError):
+            launcher.build_remote_command('   ')
+
+    def test_run_trainer_subprocess_respects_custom_out_and_raises_on_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
             data_dest = Path(tmp) / 'rows.npz'
-            out_dir = Path(tmp) / 'out'
+            custom_out = Path(tmp) / 'custom_out'
             seen_cmd: list[str] = []
 
             def fake_run(cmd, *, cwd, check):
                 seen_cmd.extend(cmd)
-                self.assertEqual(cwd, f'{LM.REMOTE_CODE}/scripts')
+                self.assertEqual(cwd, f'{launcher.REMOTE_CODE}/scripts')
                 self.assertFalse(check)
-                (out_dir / 'tracer_results.json').write_text('{"ok": true}')
+                (custom_out / 'tracer_results.json').write_text('{"ok": true}')
                 return types.SimpleNamespace(returncode=0)
 
-            with mock.patch.object(subprocess, 'run', side_effect=_forbid):
-                res = LM.run_trainer_subprocess(
-                    'tracer --data /tmp/rows.npz --out /tmp/out',
+            with mock.patch.object(subprocess, 'run', side_effect=fake_run):
+                res = launcher.run_trainer_subprocess(
+                    f'tracer --data /tmp/rows.npz --out {custom_out}',
                     data_bytes=b'npz-bytes',
                     data_dest=data_dest,
-                    out_dir=out_dir,
-                    runner=fake_run,
                 )
             self.assertEqual(data_dest.read_bytes(), b'npz-bytes')
-            self.assertEqual(seen_cmd[:2], ['python', LM.REMOTE_TRAINER])
+            self.assertEqual(seen_cmd[:2], ['python', launcher.REMOTE_TRAINER])
             self.assertEqual(res['files'], {'tracer_results.json': b'{"ok": true}'})
 
             local_out = Path(tmp) / 'local_out'
-            written = LM.write_output_files(local_out, res['files'])
+            written = launcher.write_output_files(local_out, res['files'])
             self.assertEqual([p.name for p in written], ['tracer_results.json'])
             self.assertEqual((local_out / 'tracer_results.json').read_bytes(), b'{"ok": true}')
 
             with self.assertRaises(ValueError):
-                LM.write_output_files(local_out, {'../escape.txt': b'bad'})
+                launcher.write_output_files(local_out, {'../escape.txt': b'bad'})
 
-            with mock.patch.object(subprocess, 'run', side_effect=_forbid), self.assertRaises(RuntimeError):
-                LM.run_trainer_subprocess(
-                    'tracer --data /tmp/rows.npz --out /tmp/out',
+            with (
+                mock.patch.object(subprocess, 'run', return_value=types.SimpleNamespace(returncode=2)),
+                self.assertRaises(RuntimeError),
+            ):
+                launcher.run_trainer_subprocess(
+                    f'tracer --data /tmp/rows.npz --out {custom_out}',
                     data_dest=data_dest,
-                    out_dir=out_dir,
-                    runner=lambda *_a, **_kw: types.SimpleNamespace(returncode=2),
                 )
 
 
