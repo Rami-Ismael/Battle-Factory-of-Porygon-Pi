@@ -25,8 +25,8 @@ reproduce models trained on the older table, results/lossdata84.npz, whose label
 files. They run only with --older-table, so no training reads those labels by accident.
 
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
-                          | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
-                          | shuffled_per_field | shuffled_linear | shuffled_linear_no_table_loss
+                          | pos_per_field_s0 | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
+                          | shuffled_per_field | shuffled_linear | shuffled_linear_filtered | shuffled_linear_no_table_loss
                           | loop_block_equal_compute | loop_block_equal_epochs | carry_state_equal_compute | carry_state_equal_epochs
 
 The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking schedule where every field
@@ -117,6 +117,9 @@ LINEAR_MASKING_RATE = M.LINEAR_SCHED                     # every field hidden wi
 # Masking-schedule rows: code ID -> the exponents of the masking schedule in training, the only setting that differs
 MASKING_RATE_ARMS = dict(shuffled_per_field=dict(sched=M.PER_FIELD_SCHED), shuffled_linear=dict(sched=LINEAR_MASKING_RATE))
 NAMES.update(shuffled_per_field="stat84_shuffled_noise_per_field_es3_cap80", shuffled_linear="stat84_shuffled_noise_linear_es3_cap80")
+# Issue #385: retrain the default linear checkpoint on the filtered shuffled-only table without wrong-stone teams
+FILTERED_DEFAULT_ARMS = dict(shuffled_linear_filtered=dict(sched=LINEAR_MASKING_RATE))
+NAMES.update(shuffled_linear_filtered="stat84_shuffled_noise_linear_filtered_es3_cap80")
 # No tables in the loss (issue #361): code ID -> what changes from shuffled_linear, the loss mask and the check's draw
 TABLE_LOSS_ARMS = dict(shuffled_linear_no_table_loss=dict(table_loss=False, legality_tables=False, legality_copies=True))
 NAMES.update(shuffled_linear_no_table_loss="stat84_shuffled_noise_linear_no_table_loss_es3_cap80")
@@ -251,6 +254,34 @@ def train_masking_rate_arms(arm):
           early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS[arm])
 
 
+def assert_no_wrong_stones(V, train_rows, val_rows):
+    """Verify with every field visible that neither split holds a wrong-stone (tables-rejected) team (issue #385)."""
+    tables = L.Tables(V, [])
+    train_bad = int(tables.rejects(np.asarray(train_rows, np.int64)[:, :T.COLS48]).sum())
+    val_bad = int(tables.rejects(np.asarray(val_rows, np.int64)[:, :T.COLS48]).sum())
+    if train_bad or val_bad:
+        raise SystemExit(
+            f"wrong-stone check failed (every field visible): {train_bad} training and {val_bad} validation teams rejected"
+        )
+    return dict(method="Tables.rejects (every field visible)", train_rows=int(len(train_rows)),
+                val_rows=int(len(val_rows)), train_rejected=train_bad, val_rejected=val_bad)
+
+
+def train_filtered_default_arms(arm):
+    """Default-checkpoint retrain on the filtered shuffled-only table without wrong-stone teams (issue #385).
+    Same recipe as shuffled_linear; refuses to start if Tables.rejects flags any row on either side."""
+    global DATA_SHA, DATA_TABLE
+    if arm not in FILTERED_DEFAULT_ARMS: return
+    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
+    check = assert_no_wrong_stones(T.regulation_vocab(), d["all_X"][tr], d["all_X"][va])
+    print(f"[{name(arm)}] wrong-stone check ({check['method']}): "
+          f"{check['train_rejected']}/{check['train_rows']} train, {check['val_rejected']}/{check['val_rows']} val rejected",
+          flush=True)
+    train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
+          early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **FILTERED_DEFAULT_ARMS[arm])
+
+
 def train_table_loss_arms(arm):
     """No tables in the loss: shuffled_linear's rows and call with the loss mask off and the legality check drawing without the tables."""
     global DATA_SHA, DATA_TABLE
@@ -338,10 +369,11 @@ def _run_main(args):
                   ddom_tau=dict(ddom_tau01=0.1, ddom_tau03=0.3)[arm])
     train_position_arms(arm)
     train_masking_rate_arms(arm)
+    train_filtered_default_arms(arm)
     train_table_loss_arms(arm)
     train_loop_arms(arm)
     if arm not in ("same loop", "same records", "same mix", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03", "smoke",
-                   *POSITION_ARMS, *MASKING_RATE_ARMS, *TABLE_LOSS_ARMS, *LOOP_ARMS):
+                   *POSITION_ARMS, *MASKING_RATE_ARMS, *FILTERED_DEFAULT_ARMS, *TABLE_LOSS_ARMS, *LOOP_ARMS):
         sys.exit(__doc__)
 
 
