@@ -45,6 +45,7 @@ PACKAGED_FILES: tuple[str, ...] = (
     'scripts/masked_lora_trainer.py',
     'scripts/masked_diffusion_text.py',
     'scripts/masked_diffusion_memory_bench.py',
+    'scripts/masked_diffusion_sampler.py',
     'scripts/mask_paste.py',
     'data/regmb-vocabulary.json',
 )
