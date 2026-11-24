@@ -33,6 +33,7 @@ from typing import Any
 
 import jev_fill
 import masked_diffusion_text as D
+from masked_diffusion_sampler import SHARED_SAMPLER, SamplerSetting, shared_sampler
 
 LIMIT = 1024                        # Masked Qwen3 0.6B was fine-tuned at 1,024 tokens (#162)
 NO_LIMIT = 10**9                    # build every mask in full, then compare with LIMIT
@@ -53,25 +54,47 @@ class Candidate:
     mask_id: int                    # the mask token id #162 found
     mask_token: str | None = None   # set when the tokenizer does not load it (LLaDA)
     qwen2_files: bool = False       # load the repo's vocabulary into Qwen2TokenizerFast (Dream)
-    start_token: bool = False       # put the tokenizer's start token first (DiffuLLaMA: #236 copy test)
+    sampler: SamplerSetting = SHARED_SAMPLER
+
+    @property
+    def start_token(self) -> bool:
+        return self.sampler.start_token
+
+    @property
+    def right_shift(self) -> bool:
+        return self.sampler.right_shift
 
 
 CANDIDATES = (                      # the seven of #162, at the revisions it pinned
     Candidate('qwen3', 'Masked Qwen3 0.6B', 'dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1',
-              'c8d24a3f4adaeef46881b450e1bf7d1005203bd7', 151669),
+              'c8d24a3f4adaeef46881b450e1bf7d1005203bd7', 151669,
+              sampler=shared_sampler()),
     Candidate('qwen25c', 'Masked Qwen2.5 Coder 0.5B', 'dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1',
-              'a284e895a6248256baf2f60502e54aba61b24c1a', 151665),
+              'a284e895a6248256baf2f60502e54aba61b24c1a', 151665,
+              sampler=shared_sampler()),
     Candidate('diffugpt_s', 'DiffuGPT small', 'diffusionfamily/diffugpt-s',
-              '391d9850148c0beda355a8874bea958a40164c74', 10541),
+              '391d9850148c0beda355a8874bea958a40164c74', 10541,
+              sampler=shared_sampler(right_shift=True)),
     Candidate('diffugpt_m', 'DiffuGPT medium', 'diffusionfamily/diffugpt-m',
-              'ce62f89724018390198ded702c4926791cf17c21', 50257),
+              'ce62f89724018390198ded702c4926791cf17c21', 50257,
+              sampler=shared_sampler(right_shift=True)),
     Candidate('diffullama', 'DiffuLLaMA 7B', 'diffusionfamily/diffullama',
-              '31b22850c7b397d6948ea04076099b9ff7110adc', 811, start_token=True),
+              '31b22850c7b397d6948ea04076099b9ff7110adc', 811,
+              sampler=shared_sampler(right_shift=True, start_token=True)),
     Candidate('dream', 'Dream 7B', 'Dream-org/Dream-v0-Base-7B',
-              '6572adb5535263e4d1a337b56942ba48b6dee2a9', 151666, qwen2_files=True),
+              '6572adb5535263e4d1a337b56942ba48b6dee2a9', 151666, qwen2_files=True,
+              sampler=shared_sampler(right_shift=True)),
     Candidate('llada', 'LLaDA 8B', 'GSAI-ML/LLaDA-8B-Base',
-              '0f2787f2d87eac5eed8a087d5ecd24277e6255b2', 126336, mask_token='<|mdm_mask|>'),
+              '0f2787f2d87eac5eed8a087d5ecd24277e6255b2', 126336, mask_token='<|mdm_mask|>',
+              sampler=shared_sampler()),
 )
+
+
+def candidate_by_key(key: str) -> Candidate:
+    for candidate in CANDIDATES:
+        if candidate.key == key:
+            return candidate
+    raise KeyError(f'unknown candidate {key!r}')
 
 
 def load_tokenizer(candidate: Candidate) -> Any:
