@@ -9,8 +9,9 @@ masks ran before it and a stopped run resumes where it stopped.
 Prompts are stacked (#237 to #240); each later ticket adds one entry to PROMPTS:
     inplace_header      Header only, values filled in place: the #168 text, masked_diffusion_text.in_place_text
 
-The sampler is #170's (masked_diffusion_memory_bench.fill): one window, dLLM's linear schedule, most confident masks
-committed first, float32 Gumbel-max. One setting for every prompt and model: SETTING below.
+The sampler is #170's (masked_diffusion_memory_bench.fill), configured by each candidate's SamplerSetting (defaulting
+to today's shared sampler: one window, dLLM's linear schedule, most confident masks first, 128 steps, temperature 1.0,
+float32 Gumbel-max; #392). Every result file records the sampler_setting it used.
 
 A filled mask is judged in four steps; the first that fails is its reason:
     1. parses      the team part is valid JSON with six Pokemon, the six keys in order, and the right value types
@@ -244,9 +245,16 @@ def done_ids(path: Path) -> set[str]:
     return {json.loads(line)['id'] for line in path.read_text().splitlines() if line.strip()}
 
 
+def start_token_id(tokenizer: Any, sampler: SamplerSetting) -> int | None:
+    """The tokenizer's start token id when sampler.start_token is True, else None."""
+    return tokenizer.bos_token_id if sampler.start_token else None
+
+
 def _fill_sampler(sampler: SamplerSetting | None, setting: dict[str, Any],
                   start_id: int | None) -> SamplerSetting:
     if sampler is not None:
+        if sampler.start_token != (start_id is not None):
+            raise ValueError(f'sampler.start_token ({sampler.start_token}) disagrees with start_id ({start_id!r})')
         return sampler
     return replace(SHARED_SAMPLER, steps=setting['steps'], temperature=setting['temperature'],
                    start_token=start_id is not None)
@@ -385,11 +393,29 @@ def run_meta(prompt: Prompt, candidate: Any, tasks: list[dict[str, Any]],
         import jev_fill
         tasks_sha256 = hashlib.sha256((jev_fill.GRIDS[GRID] / 'eval2.tasks.json').read_bytes()).hexdigest()
     active = candidate.sampler if sampler is None else sampler
+    run_setting = {**SETTING, 'steps': active.steps, 'temperature': active.temperature}
     return {'prompt': prompt.code, 'prompt_name': prompt.name, 'candidate': B.candidate_info(candidate),
             'grid': GRID, 'tasks': len(tasks), 'tasks_sha256': tasks_sha256,
-            'ask': D.ask_text(ASK), 'setting': SETTING, 'sampler': B.SAMPLER,
+            'ask': D.ask_text(ASK), 'setting': run_setting, 'sampler': B.SAMPLER,
             'sampler_setting': active.to_dict(), 'environment': environment(),
             'started': time.strftime('%Y-%m-%dT%H:%M:%S%z')}
+
+
+def check_run_meta(meta_path: Path, active: SamplerSetting, right_shift: bool) -> None:
+    """Refuse to resume or redraw into a directory whose run.json was produced with a different sampler setting."""
+    if not meta_path.exists():
+        return
+    existing = json.loads(meta_path.read_text())
+    if 'sampler_setting' in existing:
+        recorded = existing['sampler_setting']
+    else:
+        s = existing.get('setting', SETTING)
+        recorded = replace(
+            SHARED_SAMPLER, steps=s['steps'], temperature=s['temperature'], right_shift=right_shift,
+            start_token=bool(existing.get('candidate', {}).get('start_token', False)),
+        ).to_dict()
+    if recorded != active.to_dict():
+        raise ValueError(f'{meta_path}: existing run used {recorded}, refusing to mix with {active.to_dict()}')
 
 
 def grid_tasks() -> list[dict[str, Any]]:
@@ -415,9 +441,11 @@ def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: 
     out = directory / prompt.code / key
     out.mkdir(parents=True, exist_ok=True)
     meta_path = out / 'run.json'
-    if not meta_path.exists():
+    if meta_path.exists():
+        check_run_meta(meta_path, active, candidate.sampler.right_shift)
+    else:
         meta_path.write_text(json.dumps(run_meta(prompt, candidate, tasks, active), indent=1) + '\n')
-    start_id = tokenizer.bos_token_id if active.start_token else None
+    start_id = start_token_id(tokenizer, active)
     memory = (lambda: torch.mps.driver_allocated_memory()) if device == 'mps' else (lambda: 0)
     validate = Validator()
     forward_for = lambda s: B.make_forward(model, family, SETTING['scope'], s, right_shift=active.right_shift)
@@ -729,7 +757,7 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps',
     tasks = grid_tasks()
     picks = [next(t for t in tasks if t['task'] == kind and t['k'] == k)
              for kind, k in (('items', 1), ('moves', 8), ('pokemon', 2))]
-    start_id = tokenizer.bos_token_id if active.start_token else None
+    start_id = start_token_id(tokenizer, active)
 
     def draw(task: dict[str, Any], seed: int | None = None) -> list[int]:
         c = canvas(task, PROMPTS['inplace_header'], tokenizer, candidate.mask_id, start_id)
@@ -756,8 +784,9 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps',
            'sees_later_tokens': sees, 'repeat_same_tokens': same(first, again),
            'reverse_order_same_tokens': same(first, reverse), 'redraw_same_tokens': same(first, redrawn),
            'environment': environment()}
+    redraw_ok = (out['redraw_same_tokens'] == 1.0) if active.temperature == 0.0 else (out['redraw_same_tokens'] < 1.0)
     out['pass'] = (sees and out['repeat_same_tokens'] >= 0.9 and out['reverse_order_same_tokens'] >= 0.9
-                   and out['redraw_same_tokens'] < 1.0)
+                   and redraw_ok)
     path = directory / 'preflight' / f'gpu-{key}.json'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=1) + '\n')

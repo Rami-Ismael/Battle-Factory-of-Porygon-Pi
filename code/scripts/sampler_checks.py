@@ -278,6 +278,21 @@ def copy_header(info: dict[str, Any], family: str, device: str, start_id: int | 
             'attention': attention, 'sampler_setting': sampler_setting, 'cases': []}
 
 
+def resume_copy_result(out: Path, header: dict[str, Any]) -> dict[str, Any]:
+    """Load an existing copy-check result only when its start token, attention and sampler_setting match header."""
+    if not out.exists():
+        return header
+    existing = json.loads(out.read_text())
+    if existing.get('start_token') != header['start_token'] or existing.get('attention') != header['attention']:
+        raise ValueError(f'{out}: saved copy run used start_token={existing.get("start_token")!r}, '
+                         f'attention={existing.get("attention")!r}; refusing to resume with '
+                         f'start_token={header["start_token"]!r}, attention={header["attention"]!r}')
+    if 'sampler_setting' in existing and existing['sampler_setting'] != header['sampler_setting']:
+        raise ValueError(f'{out}: saved copy run used a different sampler_setting; refusing to resume')
+    existing.setdefault('sampler_setting', header['sampler_setting'])
+    return existing
+
+
 def copy_check(key: str, out: Path, device: str, start_token: bool | None = None, attention: str = 'sdpa',
                limit: int | None = None) -> dict[str, Any]:
     """Check 2 for one candidate. Cases already in out are kept, so a killed run resumes. start_token puts the
@@ -292,12 +307,11 @@ def copy_check(key: str, out: Path, device: str, start_token: bool | None = None
     start_id = tokenizer.bos_token_id if start_token else None
     if start_token and start_id is None:
         raise SystemExit(f"{info['label']}: its tokenizer has no start token")
+    header = copy_header(info, family, device, start_id, attention, base.right_shift)
+    result = resume_copy_result(out, header)
     if device == 'mps':
         torch.mps.set_per_process_memory_fraction(1.0)
     model = B.load_model(info, family, 'native', device, attention)
-    header = copy_header(info, family, device, start_id, attention, base.right_shift)
-    result = json.loads(out.read_text()) if out.exists() else header
-    result.setdefault('sampler_setting', header['sampler_setting'])
     done = {(c['team'], c['path']) for c in result['cases']}
     cases = [(t, case) for t, team in enumerate(copy_teams())
              for case in copy_cases(team, tokenizer, info['mask_id'], start_id)][:limit]
@@ -353,20 +367,35 @@ def dream_own_samples(model: Any, canvas: dict[str, Any], alg: str, steps: int, 
     return samples
 
 
+def resume_dream_result(out: Path, header: dict[str, Any]) -> dict[str, Any]:
+    """Load an existing dream-own result only when its alg, steps, temperature and sampler_setting match header."""
+    if not out.exists():
+        return header
+    existing = json.loads(out.read_text())
+    saved = (existing.get('alg'), existing.get('steps'), float(existing.get('temperature', -1.0)))
+    wanted = (header['alg'], header['steps'], float(header['temperature']))
+    if saved != wanted:
+        raise ValueError(f'{out}: saved Dream run used alg={saved[0]!r}, steps={saved[1]!r}, '
+                         f'temperature={saved[2]!r}; refusing to resume with {wanted!r}')
+    if 'sampler_setting' in existing and existing['sampler_setting'] != header['sampler_setting']:
+        raise ValueError(f'{out}: saved Dream run used a different sampler_setting; refusing to resume')
+    existing.setdefault('sampler_setting', header['sampler_setting'])
+    return existing
+
+
 def dream_own(canvas: dict[str, Any], out: Path, alg: str, steps: int, temperature: float, seeds: Sequence[int]
               ) -> dict[str, Any]:
     """Dream's own sampler on the laptop GPU. Samples already in out are kept, so a killed run resumes."""
     info, family = canvas['candidate'], canvas['family']
     assert family == 'dream', family
+    sampler_setting = dream_own_setting(canvas, alg, steps, temperature)
+    header = {'candidate': info, 'family': family, 'sampler': f"Dream's own diffusion_generate, alg={alg}",
+              'sampler_setting': sampler_setting, 'alg': alg, 'steps': steps, 'temperature': temperature,
+              'environment': B.environment(), 'samples': []}
+    result = resume_dream_result(out, header)
     tokenizer = B.load_tokenizer(info)
     torch.mps.set_per_process_memory_fraction(1.0)
     model = B.load_model(info, family, 'native', 'mps')
-    sampler_setting = dream_own_setting(canvas, alg, steps, temperature)
-    result = json.loads(out.read_text()) if out.exists() else {
-        'candidate': info, 'family': family, 'sampler': f"Dream's own diffusion_generate, alg={alg}",
-        'sampler_setting': sampler_setting, 'alg': alg, 'steps': steps, 'temperature': temperature,
-        'environment': B.environment(), 'samples': []}
-    result.setdefault('sampler_setting', sampler_setting)
 
     def save(samples: list[dict[str, Any]]) -> None:
         result['samples'] = samples

@@ -232,6 +232,33 @@ class TokenIdenticalDefaultTest(unittest.TestCase):
                              setting=c.sampler)
                 self.assertTrue(torch.equal(got, ref), (c.key, scope))
 
+    def test_fill_over_128_masks_exercises_multi_token_128_step_schedule(self):
+        """With 200 masks (> 128), 128 steps commits 1 or 2 tokens per step, separating it from 32 steps and per_mask."""
+        slots = torch.arange(2, 202)
+        x = torch.arange(210).unsqueeze(0) % 6 + 1
+        x[:, slots] = MASK_ID
+        for key in ('qwen3', 'diffugpt_s'):
+            c = C.candidate_by_key(key)
+            family = B.FAMILY[key]
+            model = FakeFamilyModel(family, shifted=c.sampler.right_shift)
+            forward = B.make_forward(model, family, 'slots', slots, right_shift=c.sampler.right_shift)
+            ref_core = ContextModel(shifted=c.sampler.right_shift)
+            ref_forward = lambda inp, m=ref_core, sh=c.sampler.right_shift: (
+                B.shift_right(m(inp)) if sh else m(inp)
+            )[:, slots]
+            ref = reference_shared_fill(ref_forward, x, slots, MASK_ID, 128, 1.0,
+                                        torch.Generator().manual_seed(2026))
+            got = B.fill(forward, x, slots, MASK_ID, generator=torch.Generator().manual_seed(2026),
+                         setting=c.sampler)
+            self.assertTrue(torch.equal(got, ref), key)
+            # Confirm 128 steps actually differs from 32 steps and per_mask on this 200-mask canvas.
+            steps_32 = B.fill(forward, x, slots, MASK_ID, generator=torch.Generator().manual_seed(2026),
+                              setting=replace(c.sampler, steps=32))
+            steps_pm = B.fill(forward, x, slots, MASK_ID, generator=torch.Generator().manual_seed(2026),
+                              setting=replace(c.sampler, steps='per_mask'))
+            self.assertFalse(torch.equal(got, steps_32), key)
+            self.assertFalse(torch.equal(got, steps_pm), key)
+
     def test_fill_greedy_and_per_mask_steps_match_reference(self):
         slots = torch.tensor([1, 2, 5, 6, 7])
         x = torch.tensor([[3, MASK_ID, MASK_ID, 4, 5, MASK_ID, MASK_ID, MASK_ID, 6]])
@@ -243,7 +270,7 @@ class TokenIdenticalDefaultTest(unittest.TestCase):
     def test_inplace_prompt_grid_fill_is_token_identical_under_default_sampler(self):
         tokenizer = FakeTokenizer()
         vocab = len(tokenizer) + 25
-        start_token_id = len(tokenizer) + 10
+        tokenizer.bos_token_id = len(tokenizer) + 10
 
         for key in ('qwen3', 'diffugpt_s', 'diffullama'):
             candidate = C.candidate_by_key(key)
@@ -254,8 +281,11 @@ class TokenIdenticalDefaultTest(unittest.TestCase):
             )
             task = TASKS[0]
             seed = G.mask_seed(G.SETTING['seed'], task['id'])
-            start_id = start_token_id if candidate.sampler.start_token else None
+            start_id = G.start_token_id(tokenizer, candidate.sampler)
+            self.assertEqual(start_id, tokenizer.bos_token_id if key == 'diffullama' else None, key)
             c = G.canvas(task, PROMPT, tokenizer, 0, start_id=start_id)
+            if key == 'diffullama':
+                self.assertEqual(c['ids'][0], tokenizer.bos_token_id)
             x, slots = torch.tensor([c['ids']]), torch.tensor(c['slots'])
             expected = reference_shared_fill(forward_for(slots), x, slots, 0, 128, 1.0,
                                              torch.Generator().manual_seed(seed))[0].tolist()
@@ -267,6 +297,11 @@ class TokenIdenticalDefaultTest(unittest.TestCase):
             self.assertEqual(row_default['slot_ids'], expected_slot_ids, key)
             self.assertEqual(row_explicit['slot_ids'], expected_slot_ids, key)
             self.assertEqual(row_explicit['values'], row_default['values'], key)
+        # Disagreement between sampler.start_token and start_id is rejected.
+        llama = C.candidate_by_key('diffullama')
+        with self.assertRaises(ValueError):
+            G.fill_one(TASKS[0], PROMPT, tokenizer, lambda slots: (lambda inp: torch.zeros(1, len(slots), vocab)),
+                       0, FakeValidator(), G.vocabulary(), 1, start_id=None, sampler=llama.sampler)
 
     def test_copy_fill_case_matches_reference(self):
         ids = [5, 6, 7, 8, 1, 1, 0, 0, 0, 0, 2]
@@ -328,9 +363,15 @@ class RecordedSamplerSettingTest(unittest.TestCase):
         llama = C.candidate_by_key('diffullama')
         copy_res = S.copy_header(B.candidate_info(llama), B.FAMILY[llama.key], 'cpu', 1, 'sdpa',
                                  llama.sampler.right_shift)
-        self.assertEqual(copy_res['sampler_setting']['shift'], S.copy_setting(True, True).to_dict())
-        self.assertEqual(copy_res['sampler_setting']['no_shift'], S.copy_setting(False, True).to_dict())
-        self.assertEqual(MS.SamplerSetting.from_dict(copy_res['sampler_setting']['shift']), S.copy_setting(True, True))
+        expected_shift = {
+            'name': 'shared', 'fill_order': 'confidence', 'masks_left': 'exact_linear', 'steps': 'per_mask',
+            'temperature': 0.0, 'top_p': None, 'block_length': None, 'right_shift': True, 'start_token': True,
+        }
+        expected_no_shift = {**expected_shift, 'right_shift': False}
+        self.assertEqual(copy_res['sampler_setting']['shift'], expected_shift)
+        self.assertEqual(copy_res['sampler_setting']['no_shift'], expected_no_shift)
+        self.assertEqual(MS.SamplerSetting.from_dict(copy_res['sampler_setting']['shift']),
+                         MS.SamplerSetting(**expected_shift))
         self.assertTrue(copy_res['trained_shifted'])
 
         dream = C.candidate_by_key('dream')
@@ -338,6 +379,70 @@ class RecordedSamplerSettingTest(unittest.TestCase):
         dream_setting = S.dream_own_setting(dream_canvas, 'maskgit_plus', 64, 1.0)
         self.assertEqual(dream_setting, {'name': 'dream_own:maskgit_plus', 'alg': 'maskgit_plus', 'steps': 64,
                                          'temperature': 1.0, 'right_shift': True, 'start_token': False})
+
+
+class ResumeProvenanceGuardTest(unittest.TestCase):
+    def test_ladder_refuses_cached_result_from_different_sampler_setting(self):
+        qwen = C.candidate_by_key('qwen3').sampler
+        with tempfile.TemporaryDirectory() as d:
+            path = B.result_path(Path(d), 'qwen3', 'slots', 1)
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps({'status': 'fits', 'sampler_setting': qwen.to_dict()}))
+            self.assertEqual(B.ladder(Path(d), 'qwen3', lambda _: 0, batches=[1], scopes=['slots'],
+                                      expected_sampler=qwen), {'slots': [1]})
+            with self.assertRaises(ValueError):
+                B.ladder(Path(d), 'qwen3', lambda _: 0, batches=[1], scopes=['slots'],
+                         expected_sampler=replace(qwen, steps=64))
+            # Pre-#392 cached file without sampler_setting is checked by steps/temperature too.
+            path.write_text(json.dumps({'status': 'fits', 'family': 'a2d', 'steps': 128, 'temperature': 1.0,
+                                        'candidate': {'start_token': False}}))
+            self.assertEqual(B.ladder(Path(d), 'qwen3', lambda _: 0, batches=[1], scopes=['slots'],
+                                      expected_sampler=qwen), {'slots': [1]})
+            with self.assertRaises(ValueError):
+                B.ladder(Path(d), 'qwen3', lambda _: 0, batches=[1], scopes=['slots'],
+                         expected_sampler=replace(qwen, steps=64))
+
+    def test_inplace_grid_refuses_resume_or_redraw_with_different_sampler_setting(self):
+        candidate = C.candidate_by_key('diffugpt_s')
+        with tempfile.TemporaryDirectory() as d:
+            meta_path = Path(d) / 'run.json'
+            meta_path.write_text(json.dumps(G.run_meta(PROMPT, candidate, TASKS[:1], tasks_sha256='0' * 64)))
+            G.check_run_meta(meta_path, candidate.sampler, candidate.sampler.right_shift)
+            with self.assertRaises(ValueError):
+                G.check_run_meta(meta_path, replace(candidate.sampler, steps='per_mask'), candidate.sampler.right_shift)
+            # Legacy run.json without sampler_setting also refuses a mismatched sampler.
+            legacy = json.loads(meta_path.read_text())
+            del legacy['sampler_setting']
+            meta_path.write_text(json.dumps(legacy))
+            G.check_run_meta(meta_path, candidate.sampler, candidate.sampler.right_shift)
+            with self.assertRaises(ValueError):
+                G.check_run_meta(meta_path, replace(candidate.sampler, temperature=0.0), candidate.sampler.right_shift)
+
+    def test_copy_and_dream_resume_refuse_mismatched_settings_and_do_not_mislabel(self):
+        llama = C.candidate_by_key('diffullama')
+        dream = C.candidate_by_key('dream')
+        with tempfile.TemporaryDirectory() as d:
+            copy_path = Path(d) / 'copy.json'
+            # Legacy no-start-token copy run on disk: resuming with start_token=1 must raise.
+            copy_path.write_text(json.dumps({'start_token': None, 'attention': 'sdpa', 'cases': [{'team': 0}]}))
+            with_start = S.copy_header(B.candidate_info(llama), 'llama', 'cpu', 1, 'sdpa', True)
+            with self.assertRaises(ValueError):
+                S.resume_copy_result(copy_path, with_start)
+            without_start = S.copy_header(B.candidate_info(llama), 'llama', 'cpu', None, 'sdpa', True)
+            resumed = S.resume_copy_result(copy_path, without_start)
+            self.assertFalse(resumed['sampler_setting']['shift']['start_token'])
+
+            dream_path = Path(d) / 'dream.json'
+            dream_canvas = {'candidate': B.candidate_info(dream), 'family': 'dream'}
+            dream_path.write_text(json.dumps({'alg': 'origin', 'steps': 128, 'temperature': 1.0, 'samples': []}))
+            mismatch = {'alg': 'maskgit_plus', 'steps': 128, 'temperature': 1.0,
+                        'sampler_setting': S.dream_own_setting(dream_canvas, 'maskgit_plus', 128, 1.0)}
+            with self.assertRaises(ValueError):
+                S.resume_dream_result(dream_path, mismatch)
+            matching = {'alg': 'origin', 'steps': 128, 'temperature': 1.0,
+                        'sampler_setting': S.dream_own_setting(dream_canvas, 'origin', 128, 1.0)}
+            resumed_dream = S.resume_dream_result(dream_path, matching)
+            self.assertEqual(resumed_dream['sampler_setting']['alg'], 'origin')
 
 
 if __name__ == '__main__':
