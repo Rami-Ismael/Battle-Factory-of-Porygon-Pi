@@ -80,12 +80,12 @@ Every setting names its role and either cites Schiff et al. (2024, `arXiv:2412.1
 | Diffusion noise process | Scientific | Absorbing `[MASK]` (**Masked, full filter**) vs uniform random real token (`q(z_t \| x_0) = Cat(α_t x_0 + (1 − α_t) u)`, no `[MASK]`) | Schiff et al. §2.1 Eq. 1, §4.1; `diffusion.py:473–476` |
 | Legal Pokémon construction filter | Bundled with model family | Full bidirectional in loss and sampling (**Masked, full filter**, existing default) vs **none** in loss or sampling (**Uniform, no filter**, Showdown checks after sampling) | No filter (post-sampling check): Schiff et al. QM9. Full filter on control: **Ours** (audited in #292) |
 | Guidance strength (`w` or `γ`) | Swept | Coarse grid `{1, 2, 4, 8}` per arm + unguided baseline (`γ = 0` / no ask), plus up to 2 bend/extension points per arm | Posterior CFG mixing: Schiff et al. §3.1 Eqs. 6–8 (`diffusion.py:1314–1334`). Grid & bend rule: **Ours** |
-| Reverse pass count `K` | Nuisance (fixed before battles by #277) | Control: 84 (one field per pass). **Uniform, no filter**: smallest `K ∈ {84, 128, 256}` within seed noise of 256 at `γ = 1` on `linspace(1, 1e-5, K+1)` | Grid & no clean-up pass: Schiff et al. `configs/config.yaml:35–41`, `diffusion.py:1115–1209`. Selection rule: **Ours** |
+| Reverse pass count `K` | Nuisance (fixed before battles by #277) | Control: 84 (one field per pass). **Uniform, no filter**: smallest `K ∈ {84, 128, 256}` within seed noise of 256 at `γ = 1` on `linspace(1, 1e-5, K+1)` | Grid & no clean-up pass: Schiff et al. `configs/config.yaml:35–41` (default `128`; QM9 script uses sequence length `32`), `diffusion.py:1115–1209`. Selection rule: **Ours** |
 | Sampling seed | Nuisance | 3 seeds (`1, 2, 3`) per arm and guidance strength, with per-grid `grid_seeds.seed0` base | **Ours** (#353 anti-replay rule) |
-| Masking schedule (`1 − α(t)`) | Fixed (shared across both arms) | UDLM's baseline schedule `α(t) = 1 − t` (`1 − α(t) = t`, `α′(t) = −1`) on all 84 fields | Schiff et al. §4.2, App. D.3 (`diffusion.py:572–573`); identical corruption curve to the control's linear schedule (MD4 App. J.1; LLaDA Eq. 3) |
+| Masking schedule (`1 − α(t)`) | Fixed (shared across both arms) | Self-consistent ideal log-linear schedule `α(t) = 1 − t` (`move_chance = t`, `α′(t) = −1`, `α(1) = 0`) on all 84 fields | Paper Eq. 19 (`diffusion.py:572–573`); differs intentionally from upstream's `LogLinearNoise(eps=1e-3)` which uses `0.999t` in corruption/sampling while hardcoding `α(t) = 1 − t` in the loss |
 | Continuous-time loss | Follows noise process | Control: masked weighted cross-entropy (`diffusion84.elbo_terms`). **Uniform, no filter**: exact continuous-time Eq. 19 (`T = 0`, `zero_recon_loss = True`, `use_simple_ce_loss = False`), averaged over 84 fields | Schiff et al. §4.2 Eqs. 17–19 (`diffusion.py:563–614`) |
-| Time sampling in training | Fixed | Stratified antithetic `t = (u + i/B) mod 1`, shuffled, clamped to `[1e-3, 1 − 1e-3]` so `α(t) > 0` and `1 − α(t) > 0` everywhere | `training.sampling_eps = 1e-3`: Schiff et al. `configs/config.yaml:43–47`, `diffusion.py:449–458`; upper clamp `1 − 1e-3` avoids `1 / α_t` singularity at `t = 1` |
-| Time conditioning & caching | Fixed | Time input `t` fed to network (`tproj`); prediction cache disabled (`use_cache = False`) | Schiff et al. `scripts/train_qm9_guidance.sh:51–66` (`time_conditioning = True`, `sampling.use_cache = False`) |
+| Time sampling in training | Fixed | Stratified antithetic `t = (u + i/B) mod 1`, shuffled, clamped to `[1e-3, 1 − 1e-3]` so `α(t) > 0` and `1 − α(t) > 0` everywhere | `training.sampling_eps = 1e-3`: Schiff et al. `configs/config.yaml:43–47`; shared offset + upper clamp `1 − 1e-3` matches our control (`diffusion84.py:251–252`) instead of upstream's per-stratum jitter affine-mapped to `[1e-3, 1)` |
+| Time conditioning & caching | Fixed | Raw scalar time input `t` fed to network (`tproj`, matching the masked control); prediction cache disabled (`use_cache = False`) | Cache disabled & time conditioning on: Schiff et al. `scripts/train_qm9_guidance.sh:51–66`. Raw `t` into `tproj` (rather than `σ(t)` sinusoidal embedding in `models/dit.py:156–199`): **Ours** (architecture parity with `Net84`) |
 | Network, data, optimizer, dropout, label noise, EMA, stopping | Fixed | `Net84` (`d = 256, nlayer = 6, nhead = 8, dropout = 0.1`, per-field learned pos), real-token embeddings/heads (no `[MASK]` output in uniform), ask dropout `0.15` (paper uses `0.1`), label noise `±1/48` (exact on val), slot shuffling every batch, AdamW `lr = 4e-4`, `wd = 0.01`, `betas = (0.9, 0.98)`, 500 warm-up + cosine decay to 80 epochs, batch `256`, grad clip `1.0`, EMA `0.999`, training seed `0`, validation loss on 4 fixed stratified CRN draws, patience `3`, threshold `0`, cap `80`, every epoch saved | Inherited from the default model (`src/train84.py`, `src/diffusion84.py`); ask dropout `0.15` fixed to match control (map #270 Notes) |
 
 ## Plan
@@ -101,7 +101,7 @@ Sample **Uniform, no filter** (`udlm_loglinear_nofilter`) at `K ∈ {84, 128, 25
 ### 2. Unguided and conditional baseline comparison (#278)
 
 Compare **Masked, full filter** and **Uniform, no filter** at guidance `γ = 1` (conditional, no extra guidance push) at the chosen pass count `K*` with 3 sampling seeds, plus the unguided baseline (`γ = 0`, no ask, 64 teams × 3 seeds = 192 teams per arm):
-- Validation loss bound (each model's own ELBO on the 4,368 validation teams; both absorbing ELBO and uniform continuous-time ELBO are upper bounds on `-log p(x)` in nats per field);
+- Clipped-time validation diffusion loss estimate (`val_loss` on 4 fixed stratified CRN draws over `t ∈ [1e-3, 1 − 1e-3]` on the identical 4,368 filtered validation teams of `lossdata84_shuffled_only.npz`; #278 recomputes the masked control's `val_loss` on those exact 4,368 rows rather than reading a pre-#368 stored value; note that each continuous-time loss covers its own model rather than the discrete `K`-pass sampler, and the masked control's loss includes the legal Pokémon construction filter);
 - First-try legality from Showdown's validator;
 - Ask-versus-got error on asks `1/24` to `17/24` (asks `18/24` to `23/24` apart).
 
@@ -148,7 +148,7 @@ Fixed here before any run (`src/uniform_preflight84.py`):
 Logged inside the reverse sampling loop for all 84 fields across `z^{(0)}, z^{(1)}, ..., z^{(K*)}` (before validator redraws and before Stat Alignment repair), reported at every guidance strength, averaged per field type with **species reported separately** (`species`, `ability`, `item`, `move`, `Stat Alignment`, `Stat Points`):
 
 1. **Value changes beyond the first:** `R_c = max(0, sum_{i=1}^{K*} 1[z^{(i)}_c ≠ z^{(i-1)}_c] − 1)`. **Masked, full filter** scores `0`.
-2. **Fixed-predictor noise floor:** Exact deterministic expectation `E[max(0, C_c − 1)]` from Schiff et al. App. A Eq. 25 for a fixed one-hot predictor starting from uniform initialization over real vocabulary size `N_k`, on UDLM's baseline schedule (`α(t) = 1 − t`, `eps = 1e-5`) and pass count `K*` (`uniform_preflight84.revision_noise_floor`):
+2. **Fixed-predictor noise floor (`γ ≤ 1`):** Exact deterministic expectation `E[max(0, C_c − 1)]` from Schiff et al. App. A Eq. 25 for a fixed one-hot predictor starting from uniform initialization over real vocabulary size `N_k`, on UDLM's baseline schedule (`α(t) = 1 − t`, `eps = 1e-5`) and pass count `K*` (`uniform_preflight84.revision_noise_floor`; applies to unguided / conditional `γ ≤ 1`, not posterior-mixed `γ > 1`):
 
 | Field type | Real vocab `N_k` | 84 passes | 128 passes | 256 passes |
 | --- | ---: | ---: | ---: | ---: |
@@ -159,7 +159,7 @@ Logged inside the reverse sampling loop for all 84 fields across `z^{(0)}, z^{(1
 | Stat Alignment | 26 | 3.822 | 4.225 | 4.889 |
 | Stat Points | 33 | 3.862 | 4.269 | 4.939 |
 
-3. **Changes of mind (headline):** `M_c = sum_{i=1}^{K*-1} 1[top^{(i)}_c ≠ top^{(i-1)}_c]`, where `top^{(i)}_c = argmax_{v} log x_θ(z^{(i)}, t_i, ask)[c, v]` (the conditional clean-field top prediction for `γ > 0`, and the unconditional clean-field top prediction for `γ = 0`). **Masked, full filter** scores `0`.
+3. **Changes of mind (headline):** `M_c = sum_{i=1}^{K*-1} 1[top^{(i)}_c ≠ top^{(i-1)}_c]`, where `top^{(i)}_c = argmax_{v} log x_θ(z^{(i)}, t_i, ask)[c, v]` (the conditional clean-field top prediction for `γ > 0`, and the unconditional clean-field top prediction for `γ = 0`). Note: on **Masked, full filter**, committed fields never change (`R_c = 0`), while the model's argmax on still-unfilled masked fields can still move as earlier fields fill in. Two exploratory diagnostics are logged beside `M_c` at zero extra network cost: **guided changes of mind** (flips of `argmax_v (γ log x_c + (1 − γ) log x_u)`, which directly reflects the guided predictor under `γ ≥ 2`) and **mean fields changed per pass** (explaining simultaneous-update legality vs `K`).
 
 ### 6. Coarse guidance grid and bend-point rule
 
@@ -262,4 +262,7 @@ Two custom additions originally sketched on map #270 were dropped by the owner o
 
 ## Deviations
 
-None yet.
+Pre-training clarifications recorded 2026-11-24 before #276 training starts (from independent #275 code and concept reviews):
+- **Ideal schedule & raw `t` conditioning vs pinned upstream `edb0f8c2`:** We use self-consistent ideal `α(t) = 1 − t` (`move_chance = t`, `α(1) = 0`) across corruption, loss, and reverse sampling, clamped to `t ∈ [1e-3, 1 − 1e-3]` in training with raw scalar `t` into `tproj` (matching `Net84`), whereas upstream `LogLinearNoise(eps=1e-3)` corrupts/samples with `0.999t` while hardcoding `α(t) = 1 − t` in the loss and feeding `σ(t)` to a sinusoidal embedding.
+- **Validation loss wording:** Logged `val_loss` is a clipped-time (`t ∈ [1e-3, 1 − 1e-3]`) continuous-time diffusion loss estimate on 4 CRN draws rather than an exact full-interval likelihood bound; #278 recomputes the masked control's `val_loss` on the identical 4,368 filtered validation rows.
+- **Revision wording & exploratory diagnostics:** Clarified that on **Masked, full filter** committed fields never change (`R_c = 0`), while predictions on unfilled masked fields can still move; added exploratory `guided_changes_of_mind` and `mean_fields_changed_per_pass` alongside the pre-registered revision numbers, and noted the fixed-predictor noise floor assumes `γ ≤ 1`.

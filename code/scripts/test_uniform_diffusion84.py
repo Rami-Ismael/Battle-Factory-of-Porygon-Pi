@@ -162,7 +162,7 @@ class PortEqualityTests(unittest.TestCase):
 
     def test_reverse_posterior_and_cfg_match_upstream_reference(self):
         real_vocab = UM.real_vocab_sizes(VOCAB)
-        for dtype, tol in ((torch.float64, 1e-12), (torch.float32, 1e-6)):
+        for dtype, tol in ((torch.float64, 1e-11), (torch.float32, 1e-5)):
             with self.subTest(dtype=dtype):
                 gen = torch.Generator().manual_seed(42)
                 for field_key, vocab_size in real_vocab.items():
@@ -172,13 +172,16 @@ class PortEqualityTests(unittest.TestCase):
                     for move_t_val, move_s_val in ((1.0, 0.99), (0.5, 0.49), (0.01, 1e-5)):
                         move_t = torch.full((4, 1, 1), move_t_val, dtype=dtype)
                         move_s = torch.full((4, 1, 1), move_s_val, dtype=dtype)
+                        alpha_t, alpha_s = 1.0 - move_t, 1.0 - move_s
                         post_cand = UM.reverse_posterior(log_cond.exp(), noisy, move_s, move_t, vocab_size)
-                        post_ref = UP.uniform_reverse_posterior(log_cond.exp(), noisy, move_s, move_t, vocab_size)
+                        post_ref = UP.upstream_reverse_posterior(log_cond.exp(), noisy, alpha_s, alpha_t, vocab_size)
+                        post_bayes = UP.bayes_reverse_posterior(log_cond.exp(), noisy, move_s, move_t, vocab_size)
                         self.assertTrue(torch.allclose(post_cand, post_ref, atol=tol, rtol=tol), field_key)
+                        self.assertTrue(torch.allclose(post_cand, post_bayes, atol=tol, rtol=tol), field_key)
                         self.assertTrue(torch.allclose(post_cand.sum(dim=-1), torch.ones(4, 6, dtype=dtype), atol=tol))
-                        for gamma in (0.0, 1.0, 2.0, 4.0):
+                        for gamma in (0.0, 1.0, 2.0, 4.0, 8.0, 16.0):
                             cfg_cand = UM.cfg_posterior(log_cond, log_uncond, noisy, move_s, move_t, gamma, vocab_size)
-                            cfg_ref = UP.uniform_cfg_posterior(log_cond, log_uncond, noisy, move_s, move_t, gamma, vocab_size)
+                            cfg_ref = UP.upstream_cfg_posterior(log_cond, log_uncond, noisy, alpha_s, alpha_t, gamma, vocab_size)
                             self.assertTrue(torch.allclose(cfg_cand, cfg_ref, atol=tol, rtol=tol), (field_key, gamma))
                             self.assertTrue(bool((cfg_cand >= 0).all()))
                             self.assertTrue(torch.allclose(cfg_cand.sum(dim=-1), torch.ones(4, 6, dtype=dtype), atol=tol))
@@ -254,6 +257,7 @@ class SamplerAndRevisionsTests(unittest.TestCase):
         self.assertEqual(fake_guided.uncond_calls, 5)
         self.assertEqual(tuple(tracker_guided.top_predictions.shape), (5, 2, UM.COLS))
         self.assertTrue(bool((tracker_guided.changes_of_mind == 2).all()))
+        self.assertTrue(bool((tracker_guided.guided_changes_of_mind == 2).all()))
 
         # Unguided (gamma = 0) must use uncond predictions -> 4 changes of mind
         fake_uncond = _ScriptedTopModel(cond_sched, uncond_sched, self.real_vocab, torch.device("cpu"))
@@ -261,6 +265,7 @@ class SamplerAndRevisionsTests(unittest.TestCase):
         self.assertEqual(fake_uncond.cond_calls, 0)
         self.assertEqual(fake_uncond.uncond_calls, 5)
         self.assertTrue(bool((tracker_uncond.changes_of_mind == 4).all()))
+        self.assertTrue(bool((tracker_uncond.guided_changes_of_mind == 4).all()))
 
     def test_constant_one_hot_predictor_matches_theoretical_noise_floor(self):
         # Verify Monte Carlo value_changes_beyond_first matches uniform_preflight84.revision_noise_floor
@@ -394,7 +399,83 @@ class TrainingSmokeAndWiringTests(unittest.TestCase):
             rev = counts["revisions"][bucket]
             self.assertEqual(rev["teams"], 4)
             self.assertEqual(rev["passes"], 8)
+            self.assertIn("mean_fields_changed_per_pass", rev)
             self.assertEqual(set(rev["by_field"]), set(UM.FIELD_KEYS))
+
+    def test_ask_grid84_pass_counts_have_distinct_identities_and_reject_mismatched_files(self):
+        # Different AG84_PASSES values must produce distinct suffixes, tags, filenames, and seed bases
+        suffixes = [AG.grid_suffix(False, 1.0, str(k)) for k in (84, 128, 256)]
+        self.assertEqual(suffixes, ["_g1_k84", "_g1_k128", "_g1_k256"])
+        self.assertEqual(AG.grid_suffix(False, 2.0, None), "")
+        self.assertEqual(AG.grid_suffix(True, 1.0, "128"), "_unguided_k128")
+        with tempfile.TemporaryDirectory() as tmp:
+            seeds = {grid_seeds.seed0(f"udlm_loglinear_nofilter{s}", Path(tmp) / f"{s}.json") for s in suffixes}
+            self.assertEqual(len(seeds), 3)
+            ckpt = Path(tmp) / "fake.pt"
+            ckpt.write_bytes(b"ckpt")
+            with (
+                mock.patch.object(AG, "checkpoint_path", return_value=ckpt),
+                mock.patch.object(AG, "PASSES", 256),
+                self.assertRaises(SystemExit),
+            ):
+                AG.require_same_checkpoint({"cells": {"c": {}}, "passes": 84})
+
+    def test_nan_guards_protect_best_checkpoint_and_abort_non_finite_steps(self):
+        net = UM.UniformNet84(VOCAB, **TINY).to(UM.DEV)
+        prior_sd = {k: v.detach().clone() for k, v in net.state_dict().items()}
+        state = dict(best=1.0, best_epoch=1, best_sd=prior_sd, reset_epoch=1, step=10)
+        called = []
+        UM._update_best(state, dict(epoch=2, val_loss=float("nan")), net, 0.0, lambda *a: called.append(a), lambda m, e: m)
+        self.assertEqual(state["best"], 1.0)
+        self.assertEqual(state["best_epoch"], 1)
+        self.assertIs(state["best_sd"], prior_sd)
+        self.assertEqual(called, [])
+
+        # Non-finite training loss raises RuntimeError before stepping AdamW or updating EMA
+        opt = torch.optim.AdamW(net.parameters(), lr=1e-3)
+        clean = UM.table_to_uniform(torch.as_tensor(SAMPLE_ROWS[:8], dtype=torch.long, device=UM.DEV))
+        labels = torch.as_tensor(SAMPLE_LABELS[:8], device=UM.DEV)
+        with (
+            mock.patch.object(UM, "batch_loss", return_value=torch.tensor(float("nan"), device=UM.DEV, requires_grad=True)),
+            self.assertRaises(RuntimeError),
+        ):
+            UM._train_epoch(
+                net,
+                None,
+                opt,
+                clean,
+                labels,
+                net.vocab_sizes,
+                epoch_num=1,
+                batch=8,
+                lr_at=lambda _s: 1e-3,
+                step=0,
+                ema=0.0,
+                label_noise=0.0,
+                noise_rng=torch.Generator().manual_seed(0),
+            )
+
+    def test_sampler_domain_guards_and_field_cols_match_lossdown(self):
+        import lossdown as L
+        self.assertEqual(UM.FIELD_COLS, {**L.COLS_BY_KEY, "stat": list(range(UM.STAT0, UM.COLS))})
+        torch.manual_seed(0)
+        model = UM.UniformModel84(VOCAB, CORPUS, [(UM.UniformNet84(VOCAB, **TINY).to(UM.DEV).eval(), dict(TINY))])
+        for bad_kw in (dict(passes=0), dict(eps=0.0), dict(eps=1.0), dict(temperature=0.0)):
+            with self.subTest(bad_kw=bad_kw), self.assertRaises(ValueError):
+                model.sample(2, ask=0.5, **bad_kw)
+
+    def test_full_width_batch_256_step_is_finite_on_device(self):
+        torch.manual_seed(0)
+        net = UM.UniformNet84(VOCAB, **TU.NET).to(UM.DEV).train()
+        repeated_rows = np.tile(SAMPLE_ROWS, (4, 1))[:256]
+        repeated_labels = np.tile(SAMPLE_LABELS, 4)[:256]
+        clean = UM.table_to_uniform(torch.as_tensor(repeated_rows, dtype=torch.long, device=UM.DEV))
+        labels = torch.as_tensor(repeated_labels, device=UM.DEV)
+        loss = UM.batch_loss(net, clean, labels, net.vocab_sizes)
+        self.assertTrue(bool(torch.isfinite(loss)))
+        loss.backward()
+        grad_norm = float(torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0))
+        self.assertTrue(math.isfinite(grad_norm))
 
 
 if __name__ == "__main__":

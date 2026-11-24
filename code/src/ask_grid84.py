@@ -126,8 +126,17 @@ for _row in MODELS.values():                             # every row so far trai
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 UNGUIDED = bool(os.environ.get("AG84_UNGUIDED"))           # one cell per seed with no ask: the row's unguided baseline
 GUIDANCE, KEEP, BATCH, MAX_TRIES, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, MODELS[MODEL].get("max_tries", 1280), 1
-PASSES = int(os.environ["AG84_PASSES"]) if os.environ.get("AG84_PASSES") else MODELS[MODEL].get("passes")
-SUFFIX = "_unguided" if UNGUIDED else "" if GUIDANCE == 2 else f"_g{GUIDANCE:g}"   # guidance 2 keeps the stored names
+PASSES_OVERRIDE = os.environ.get("AG84_PASSES")
+PASSES = int(PASSES_OVERRIDE) if PASSES_OVERRIDE else MODELS[MODEL].get("passes")
+
+
+def grid_suffix(unguided, guidance, passes_override):
+    """Filename, cell-tag, and seed-name suffix: separates guidance weights and explicit pass-count overrides."""
+    base = "_unguided" if unguided else "" if guidance == 2 else f"_g{guidance:g}"
+    return base + (f"_k{int(passes_override)}" if passes_override else "")
+
+
+SUFFIX = grid_suffix(UNGUIDED, GUIDANCE, PASSES_OVERRIDE)   # guidance 2 without AG84_PASSES keeps every stored name
 def ask_numerators(env):
     """The ask numerators k of k/24 to draw: all 23, or the comma-separated ones AG84_ASKS names."""
     return [int(k) for k in env["AG84_ASKS"].split(",")] if env.get("AG84_ASKS") else list(range(1, 24))
@@ -268,10 +277,13 @@ def draw(w, ask, seed):
 
 
 def require_same_checkpoint(out):
-    """Teams already drawn belong to the checkpoint that wrote them: never file them under different weights."""
+    """Teams already drawn belong to the checkpoint and pass count that wrote them: never mix weights or K in one file."""
     sha = hashlib.sha256(checkpoint_path().read_bytes()).hexdigest()
-    if (out.get("cells") or out.get("off_grid")) and out.get("checkpoint_sha256") not in (None, sha):
+    has_data = bool(out.get("cells") or out.get("off_grid"))
+    if has_data and out.get("checkpoint_sha256") not in (None, sha):
         raise SystemExit(f"{MODEL}: this results file holds teams from another checkpoint; move it before drawing more")
+    if has_data and PASSES is not None and out.get("passes") not in (None, PASSES):
+        raise SystemExit(f"{MODEL}: this results file holds teams from passes={out.get('passes')}, not passes={PASSES}")
     return sha
 
 
@@ -319,10 +331,10 @@ def battle():
 
 def offgrid():
     """Generate and battle the asks that are not multiples of 1/24, kept apart from the 23-ask grid."""
-    require_shuffled(); con = MDB.connect(); out = load_out(); require_same_checkpoint(out); w = load_model(); cells = out.setdefault("off_grid", {})
+    require_shuffled(); con = MDB.connect(); out = load_out(); require_same_checkpoint(out); w = load_sampler(); cells = out.setdefault("off_grid", {})
     for seed in SEEDS:
         for ask in OFF_GRID_ASKS:
-            t = f"{MODEL}_a{ask}_s{seed}"
+            t = f"{MODEL}{SUFFIX}_a{ask}_s{seed}" if PASSES_OVERRIDE else f"{MODEL}_a{ask}_s{seed}"
             if "y" in cells.get(t, {}): continue
             if t not in cells:
                 kept, stats, counts = draw(w, ask, seed)
@@ -334,7 +346,7 @@ def offgrid():
 
 def nudge():
     """Share of Pokémon with fewer than four moves at k/24 and just beside it: sampling only, no battles."""
-    out = load_out(); w = load_model(); E = w.V.stoi["move"][""]; rows = {}
+    out = load_out(); w = load_sampler(); E = w.w.V.stoi["move"][""] if hasattr(w, "w") else w.V.stoi["move"][""]; rows = {}
     for k in NUDGE_NUMERATORS:
         for d in NUDGES:
             r = w.sample(16 if SMOKE else 256, ask=k / 24 + d, guidance=GUIDANCE, seed=SEED0).cpu().numpy()

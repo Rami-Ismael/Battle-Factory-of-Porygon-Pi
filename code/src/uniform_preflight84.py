@@ -100,6 +100,49 @@ def generalized_uniform_loss(log_clean_probs, noisy_tokens, clean_tokens, time_v
     return (coefficient * (first_term - second_term)).squeeze(-1)
 
 
+def upstream_reverse_posterior(clean_probs, noisy_tokens, alpha_s, alpha_t, vocab_size):
+    """Verbatim alpha-form reverse posterior from upstream diffusion.py:356-381 (commit edb0f8c2)."""
+    alpha_ratio = alpha_t / alpha_s
+    noisy_one_hot = F.one_hot(noisy_tokens, vocab_size).to(clean_probs.dtype)
+    numerator = (
+        alpha_t * vocab_size * clean_probs * noisy_one_hot
+        + (alpha_ratio - alpha_t) * noisy_one_hot
+        + (alpha_s - alpha_t) * clean_probs
+        + (1.0 - alpha_ratio) * (1.0 - alpha_s) / vocab_size
+    )
+    denominator = alpha_t * vocab_size * torch.gather(clean_probs, -1, noisy_tokens[..., None]) + (1.0 - alpha_t)
+    return numerator / denominator
+
+
+def upstream_cfg_posterior(log_clean_cond, log_clean_uncond, noisy_tokens, alpha_s, alpha_t, gamma, vocab_size):
+    """Verbatim posterior-mixing CFG from upstream diffusion.py:1314-1334 (commit edb0f8c2)."""
+    if gamma == 0.0:
+        return upstream_reverse_posterior(log_clean_uncond.exp(), noisy_tokens, alpha_s, alpha_t, vocab_size)
+    if gamma == 1.0:
+        return upstream_reverse_posterior(log_clean_cond.exp(), noisy_tokens, alpha_s, alpha_t, vocab_size)
+    log_post_uncond = upstream_reverse_posterior(
+        log_clean_uncond.exp(), noisy_tokens, alpha_s, alpha_t, vocab_size
+    ).clamp(min=1e-30).log()
+    log_post_cond = upstream_reverse_posterior(
+        log_clean_cond.exp(), noisy_tokens, alpha_s, alpha_t, vocab_size
+    ).clamp(min=1e-30).log()
+    return F.softmax(gamma * log_post_cond + (1.0 - gamma) * log_post_uncond, dim=-1)
+
+
+def bayes_reverse_posterior(clean_probs, noisy_tokens, move_chance_s, move_chance_t, vocab_size):
+    """Independent Bayes-rule calculation of p_theta(z_s | z_t) proportional to q(z_t | z_s) * p_theta(z_s)."""
+    alpha_s = 1.0 - move_chance_s
+    alpha_t = 1.0 - move_chance_t
+    delta_alpha = move_chance_t - move_chance_s
+    stay_prob = alpha_t / alpha_s
+    jump_prob = delta_alpha / (alpha_s * vocab_size)
+    noisy_one_hot = F.one_hot(noisy_tokens, vocab_size).to(clean_probs.dtype)
+    q_t_given_s = stay_prob * noisy_one_hot + jump_prob
+    p_s = alpha_s * clean_probs + move_chance_s / vocab_size
+    unnormalized = q_t_given_s * p_s
+    return unnormalized / unnormalized.sum(dim=-1, keepdim=True)
+
+
 def uniform_reverse_posterior(clean_probs, noisy_tokens, move_chance_s, move_chance_t, vocab_size):
     """Exact reverse posterior p_theta(z_s | z_t) (Schiff et al. Eq. 15 / diffusion.py:356-381).
 

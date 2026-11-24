@@ -3,19 +3,16 @@
 Faithful port of Schiff et al. (ICLR 2025, arXiv:2412.10193v3, upstream pinned at
 kuleshov-group/discrete-diffusion-guidance@edb0f8c28b7caeb4ea7a06a2fee8d74ab6da1661):
   - Forward uniform corruption (Eq. 1, diffusion.py:473-476): q(z_t | x_0) = Cat(alpha_t x_0 + (1 - alpha_t) u)
-    with log-linear schedule alpha(t) = 1 - t, 1 - alpha(t) = t shared across all 84 fields.
+    with self-consistent ideal log-linear schedule alpha(t) = 1 - t, move_chance(t) = t shared across all 84 fields.
   - Continuous-time uniform loss (Eq. 19, diffusion.py:563-614): T = 0, zero_recon_loss = True,
-    time_conditioning = True, no legal Pokémon construction filter in the loss.
-  - Reverse posterior (Eq. 15, diffusion.py:356-381) and posterior-mixing classifier-free guidance
+    time_conditioning = True (raw scalar t into tproj matching diffusion84.Net84), no legal Pokémon construction filter.
+  - Reverse posterior (Eq. 15, diffusion.py:356-381, Bayes-product form) and posterior-mixing classifier-free guidance
     (Eqs. 6-8, diffusion.py:1314-1334).
   - Unconstrained reverse sampling on linspace(1, 1e-5, K + 1) with no in-loop legality filter,
     no prediction cache, and no clean-up pass. Every pass logs top clean-field predictions for the
-    three revision measures (value changes beyond the first, fixed-predictor noise floor, and changes of mind).
+    revision measures.
 
-Real vocabulary sizes exclude [MASK] (index 0 in the 84-field table encoding):
-  species: 347, ability: 200, item: 149, move: 497, Stat Alignment (nature): 26, Stat Points (stat): 33.
-Table-encoded rows (1..N_k) map to 0-based uniform tokens (0..N_k - 1) via table_to_uniform and back
-via uniform_to_table so Showdown pastes, validator checks, and ask_grid84 work unchanged.
+Pure math and revision tracking live in uniform_math84.py (CI-testable on CPU) and are re-exported here.
 """
 import copy
 import math
@@ -32,23 +29,66 @@ import diffusion84 as M
 import lossdown as L
 import stat_points as SP
 import team84 as T
-import uniform_preflight84 as UP
 from checkpoints import load_checkpoint
 from encode import NSLOT, Vocab
 from epoch_legality import EpochLegality, team_keys
 from hps_generate import slot_to_text
 from label_noise import noisy_labels
+from uniform_math84 import (
+    COLS,
+    DEFAULT_PASSES,
+    FIELD_COLS,
+    FIELD_KEYS,
+    NAN,
+    SAMPLING_EPS,
+    STAT0,
+    TRAINING_EPS,
+    RevisionTracker,
+    cfg_posterior,
+    corrupt_uniform,
+    is_better_val_loss,
+    port_equality_loss,
+    reverse_posterior,
+    summarize_revision_records,
+    table_to_uniform,
+    uniform_field_loss,
+    uniform_to_table,
+)
 
 DEV = L.DEV
-COLS = T.COLS                                            # 84
-STAT0 = T.COLS48                                         # 48
-NAN = float("nan")
-FIELD_KEYS = ("species", "ability", "item", "move", "nature", "stat")
-FIELD_COLS = {**L.COLS_BY_KEY, "stat": list(range(STAT0, COLS))}
-TRAINING_EPS = UP.TRAINING_EPS                           # 1e-3 (Schiff et al. training.sampling_eps)
-SAMPLING_EPS = UP.SAMPLING_EPS                           # 1e-5 (Schiff et al. sampling endpoint)
-DEFAULT_PASSES = 128                                     # Schiff et al. configs/config.yaml default
 CHECKPOINT_KIND = "uniform_discrete_diffusion_84"
+
+__all__ = [
+    "CHECKPOINT_KIND",
+    "COLS",
+    "DEFAULT_PASSES",
+    "DEV",
+    "FIELD_COLS",
+    "FIELD_KEYS",
+    "NAN",
+    "SAMPLING_EPS",
+    "STAT0",
+    "TRAINING_EPS",
+    "RevisionTracker",
+    "UniformModel84",
+    "UniformNet84",
+    "UniformSampler84",
+    "batch_loss",
+    "cfg_posterior",
+    "corrupt_uniform",
+    "elbo_terms",
+    "is_better_val_loss",
+    "per_column_ce",
+    "port_equality_loss",
+    "real_vocab_sizes",
+    "reverse_posterior",
+    "sample_uniform",
+    "summarize_revision_records",
+    "table_to_uniform",
+    "uniform_field_loss",
+    "uniform_to_table",
+    "val_loss",
+]
 
 
 def real_vocab_sizes(vocab):
@@ -58,25 +98,11 @@ def real_vocab_sizes(vocab):
     return sizes
 
 
-def table_to_uniform(table_rows):
-    """Convert 84-field table tokens (1..N_k; 0 is [MASK]) to 0-based real uniform tokens (0..N_k - 1)."""
-    if bool((table_rows < 1).any()):
-        raise ValueError("table_to_uniform received a [MASK] or negative token (< 1)")
-    return table_rows - 1
-
-
-def uniform_to_table(uniform_tokens):
-    """Convert 0-based real uniform tokens (0..N_k - 1) back to 84-field table tokens (1..N_k)."""
-    if bool((uniform_tokens < 0).any()):
-        raise ValueError("uniform_to_table received a negative token (< 0)")
-    return uniform_tokens + 1
-
-
 class UniformNet84(nn.Module):
     """Transformer denoiser over 84 fields with real-token embeddings and heads (no [MASK] token).
 
     Matches diffusion84.Net84's architecture (d=256, nlayer=6, nhead=8, dropout=0.1, learned per-field
-    positions, sinusoidal win-rate conditioning, and continuous time conditioning).
+    positions, sinusoidal win-rate conditioning, and scalar continuous time conditioning).
     """
 
     def __init__(self, vocab, d=256, nhead=8, nlayer=6, dropout=0.1, nfreq=8):
@@ -119,62 +145,6 @@ class UniformNet84(nn.Module):
         return {field_key: self.head[field_key](hidden[:, cols]) for field_key, cols in FIELD_COLS.items()}
 
 
-def corrupt_uniform(clean_tokens, time_values, vocab_sizes, generator=None):
-    """Apply uniform forward corruption q(z_t | x_0) = Cat((1 - t) x_0 + t u) across all 84 fields.
-
-    Corrupted positions are redrawn uniformly from 0..N_k - 1 (which may equal the clean token).
-    """
-    batch_size = clean_tokens.shape[0]
-    device = clean_tokens.device
-    noisy_tokens = clean_tokens.clone()
-    time_col = time_values.view(batch_size, 1)
-    for field_key, cols in FIELD_COLS.items():
-        width = len(cols)
-        vocab_size = vocab_sizes[field_key]
-        if generator is None:
-            draws = torch.rand((batch_size, width), device=device)
-            random_tokens = torch.randint(0, vocab_size, (batch_size, width), device=device)
-        else:
-            draws = torch.rand((batch_size, width), generator=generator)
-            random_tokens = torch.randint(0, vocab_size, (batch_size, width), generator=generator)
-        corrupt_mask = draws < time_col
-        noisy_tokens[:, cols] = torch.where(corrupt_mask, random_tokens.to(device), clean_tokens[:, cols])
-    return noisy_tokens
-
-
-def uniform_field_loss(log_clean_probs, noisy_tokens, clean_tokens, time_values, vocab_size):
-    """Continuous-time uniform discrete diffusion loss (Schiff et al. Eq. 19, diffusion.py:563-614).
-
-    Uses UDLM's baseline log-linear schedule alpha(t) = 1 - t, alpha'(t) = -1, zero_recon_loss = True.
-    Computes move_chance = t directly (never 1 - (1 - t)) for float32/MPS numerical hygiene.
-
-    Returns:
-        [B, L] per-position continuous-time diffusion loss in nats.
-    """
-    dtype = log_clean_probs.dtype
-    move_chance = time_values.to(dtype).view(-1, 1, 1)
-    min_alpha = 1e-6 if dtype == torch.float32 else 1e-12
-    alpha_time = (1.0 - move_chance).clamp(min=min_alpha)
-    alpha_time_prime = -1.0
-    clean_one_hot = F.one_hot(clean_tokens, vocab_size).to(dtype)
-    clean_bar = vocab_size * alpha_time * clean_one_hot + move_chance
-    pred_bar = vocab_size * alpha_time * log_clean_probs.exp() + move_chance
-    coefficient = alpha_time_prime / (vocab_size * alpha_time)
-    clean_bar_at_noisy = torch.gather(clean_bar, -1, noisy_tokens[..., None])
-    pred_bar_at_noisy = torch.gather(pred_bar, -1, noisy_tokens[..., None])
-    first_term = (vocab_size / clean_bar_at_noisy) - (vocab_size / pred_bar_at_noisy)
-    log_ratio = pred_bar_at_noisy.log() - pred_bar.log() + clean_bar.log() - clean_bar_at_noisy.log()
-    second_term = ((clean_bar / clean_bar_at_noisy) * log_ratio).sum(dim=-1, keepdim=True)
-    return (coefficient * (first_term - second_term)).squeeze(-1)
-
-
-def port_equality_loss(log_clean_probs, noisy_tokens, clean_tokens, time_values, exponent, vocab_size):
-    """Callback matching uniform_preflight84.port_equality_check for log-linear noise (exponent == 1.0)."""
-    if float(exponent) != 1.0:
-        raise ValueError(f"UDLM uses only the log-linear schedule (exponent=1.0), got exponent={exponent!r}")
-    return uniform_field_loss(log_clean_probs, noisy_tokens, clean_tokens, time_values, vocab_size)
-
-
 def per_column_ce(logits_by_key, clean_tokens):
     """Cross-entropy [B, 84] of 0-based clean tokens under each field type's logits."""
     ce = torch.zeros(clean_tokens.shape, device=clean_tokens.device, dtype=torch.float32)
@@ -186,7 +156,7 @@ def per_column_ce(logits_by_key, clean_tokens):
 
 
 def elbo_terms(net, clean_tokens, noisy_tokens, time_values, labels, vocab_sizes):
-    """Per-team continuous-time uniform ELBO [B] in nats per field (averaged across all 84 columns).
+    """Per-team continuous-time uniform diffusion loss [B] in nats per field (averaged across all 84 columns).
 
     No legal Pokémon construction filter is applied to logits (Uniform, no filter).
     """
@@ -204,7 +174,7 @@ def elbo_terms(net, clean_tokens, noisy_tokens, time_values, labels, vocab_sizes
 
 
 def batch_loss(net, clean_tokens, labels, vocab_sizes, p_uncond=0.15):
-    """Mean continuous-time uniform ELBO over one training batch with slot shuffling, stratified times, and ask dropout."""
+    """Mean continuous-time uniform loss over one training batch with slot shuffling, stratified times, and ask dropout."""
     batch_size = clean_tokens.shape[0]
     device = clean_tokens.device
     shuffled = M.shuffle_slots(clean_tokens)
@@ -218,7 +188,7 @@ def batch_loss(net, clean_tokens, labels, vocab_sizes, p_uncond=0.15):
 
 @torch.no_grad()
 def val_loss(net, rows_table, labels, vocab_sizes, reps=4, seed=12345, batch=512):
-    """Mean continuous-time uniform ELBO on fixed validation rows with common random numbers (4 stratified draws)."""
+    """Clipped-time continuous-time diffusion loss estimate on fixed validation rows (4 stratified CRN draws)."""
     generator = torch.Generator().manual_seed(seed)
     clean_all = table_to_uniform(torch.as_tensor(np.asarray(rows_table, np.int64)))
     labels_all = torch.as_tensor(np.asarray(labels, np.float32))
@@ -242,121 +212,6 @@ def val_loss(net, rows_table, labels, vocab_sizes, reps=4, seed=12345, batch=512
             )
             total += float(batch_terms.sum())
     return total / (num_rows * reps)
-
-
-def reverse_posterior(clean_probs, noisy_tokens, move_chance_s, move_chance_t, vocab_size):
-    """Exact reverse uniform posterior p_theta(z_s | z_t) (Schiff et al. Eq. 15, diffusion.py:356-381).
-
-    Uses delta_alpha = move_chance_t - move_chance_s directly to avoid float32 cancellation.
-    """
-    alpha_s = 1.0 - move_chance_s
-    alpha_t = 1.0 - move_chance_t
-    alpha_ratio = alpha_t / alpha_s
-    delta_alpha = move_chance_t - move_chance_s
-    noisy_one_hot = F.one_hot(noisy_tokens, vocab_size).to(clean_probs.dtype)
-    numerator = (
-        alpha_t * vocab_size * clean_probs * noisy_one_hot
-        + (alpha_ratio - alpha_t) * noisy_one_hot
-        + delta_alpha * clean_probs
-        + (1.0 - alpha_ratio) * move_chance_s / vocab_size
-    )
-    denominator = alpha_t * vocab_size * torch.gather(clean_probs, -1, noisy_tokens[..., None]) + move_chance_t
-    return numerator / denominator
-
-
-def cfg_posterior(log_clean_cond, log_clean_uncond, noisy_tokens, move_chance_s, move_chance_t, guidance, vocab_size):
-    """Posterior-mixing classifier-free guidance (Schiff et al. Eqs. 6-8, diffusion.py:1314-1334)."""
-    if guidance == 0.0:
-        return reverse_posterior(log_clean_uncond.exp(), noisy_tokens, move_chance_s, move_chance_t, vocab_size)
-    if guidance == 1.0:
-        return reverse_posterior(log_clean_cond.exp(), noisy_tokens, move_chance_s, move_chance_t, vocab_size)
-    log_post_uncond = reverse_posterior(
-        log_clean_uncond.exp(), noisy_tokens, move_chance_s, move_chance_t, vocab_size
-    ).clamp(min=1e-30).log()
-    log_post_cond = reverse_posterior(
-        log_clean_cond.exp(), noisy_tokens, move_chance_s, move_chance_t, vocab_size
-    ).clamp(min=1e-30).log()
-    return F.softmax(guidance * log_post_cond + (1.0 - guidance) * log_post_uncond, dim=-1)
-
-
-class RevisionTracker:
-    """Logs per-pass top predictions and computes the three pre-registered revision numbers across all 84 fields.
-
-    1. Value changes beyond the first: R_c = max(0, sum_{i=1}^{K} 1[z^{(i)}_c != z^{(i-1)}_c] - 1).
-    2. Fixed-predictor noise floor: deterministic E[max(0, C_c - 1)] from uniform_preflight84.revision_noise_floor.
-    3. Changes of mind (headline): M_c = sum_{i=1}^{K-1} 1[top^{(i)}_c != top^{(i-1)}_c].
-    """
-
-    def __init__(self, batch_size, passes, vocab_sizes, *, eps=SAMPLING_EPS, keep_top_predictions=True):
-        self.batch_size = int(batch_size)
-        self.passes = int(passes)
-        self.vocab_sizes = dict(vocab_sizes)
-        self.eps = float(eps)
-        self.total_value_changes = torch.zeros((batch_size, COLS), dtype=torch.long)
-        self.changes_of_mind = torch.zeros((batch_size, COLS), dtype=torch.long)
-        self._prev_top = None
-        self.top_predictions = (
-            torch.empty((passes, batch_size, COLS), dtype=torch.int16) if keep_top_predictions else None
-        )
-
-    def record_pass(self, pass_index, prev_tokens, next_tokens, top_tokens):
-        """Record one reverse step's state transition and top clean-field predictions [B, 84]."""
-        changed = (next_tokens != prev_tokens).to(dtype=torch.long, device="cpu")
-        self.total_value_changes += changed
-        top_cpu = top_tokens.to(dtype=torch.long, device="cpu")
-        if self.top_predictions is not None:
-            self.top_predictions[pass_index] = top_cpu.to(torch.int16)
-        if self._prev_top is not None:
-            self.changes_of_mind += (top_cpu != self._prev_top).long()
-        self._prev_top = top_cpu
-
-    def value_changes_beyond_first(self):
-        """Per-team, per-column value changes beyond the first departure [B, 84]."""
-        return (self.total_value_changes - 1).clamp(min=0)
-
-    def per_team_records(self):
-        """One compact dict per team with per-field-type means, for ask_grid84.draw aggregation."""
-        beyond_first = self.value_changes_beyond_first().float()
-        mind_changes = self.changes_of_mind.float()
-        records = []
-        for row_idx in range(self.batch_size):
-            records.append(
-                dict(
-                    passes=self.passes,
-                    eps=self.eps,
-                    value_changes_beyond_first={
-                        key: float(beyond_first[row_idx, cols].mean()) for key, cols in FIELD_COLS.items()
-                    },
-                    changes_of_mind={
-                        key: float(mind_changes[row_idx, cols].mean()) for key, cols in FIELD_COLS.items()
-                    },
-                )
-            )
-        return records
-
-    def summary(self):
-        """Mean revision metrics by field type alongside the deterministic fixed-predictor noise floor."""
-        return summarize_revision_records(self.per_team_records(), self.vocab_sizes, self.passes, eps=self.eps)
-
-
-def summarize_revision_records(records, vocab_sizes, passes, *, eps=SAMPLING_EPS):
-    """Aggregate per-team revision records into per-field-type means plus the deterministic noise floor."""
-    by_field = {}
-    for field_key in FIELD_KEYS:
-        floor = UP.revision_noise_floor(vocab_sizes[field_key], passes, exponent=1.0, eps=eps)
-        if records:
-            mean_beyond = float(np.mean([rec["value_changes_beyond_first"][field_key] for rec in records]))
-            mean_mind = float(np.mean([rec["changes_of_mind"][field_key] for rec in records]))
-        else:
-            mean_beyond = float("nan")
-            mean_mind = float("nan")
-        by_field[field_key] = dict(
-            vocab_size=int(vocab_sizes[field_key]),
-            value_changes_beyond_first=mean_beyond,
-            noise_floor=float(floor),
-            changes_of_mind=mean_mind,
-        )
-    return dict(teams=len(records), passes=int(passes), eps=float(eps), by_field=by_field)
 
 
 def _uniform_prior(batch_size, vocab_sizes, device):
@@ -383,6 +238,15 @@ def _top_predictions_row(log_clean_by_key, batch_size, device):
     return top_tokens
 
 
+def _guided_top_predictions_row(log_cond, log_uncond, guidance, batch_size, device):
+    """Extract [B, 84] argmax of the tilted clean distribution gamma * log x_c + (1 - gamma) * log x_u."""
+    top_tokens = torch.empty((batch_size, COLS), dtype=torch.long, device=device)
+    for field_key, cols in FIELD_COLS.items():
+        tilted = guidance * log_cond[field_key] + (1.0 - guidance) * log_uncond[field_key]
+        top_tokens[:, cols] = tilted.argmax(dim=-1)
+    return top_tokens
+
+
 def _step_sample_tokens(log_cond, log_uncond, tokens, move_s, move_t, guidance, vocab_sizes):
     """Compute guided/unguided reverse posterior for every field type and draw next tokens [B, 84]."""
     batch_size = tokens.shape[0]
@@ -400,6 +264,15 @@ def _step_sample_tokens(log_cond, log_uncond, tokens, move_s, move_t, guidance, 
         drawn = torch.multinomial(probs.clamp(min=0.0).reshape(-1, vocab_size), 1).reshape(batch_size, len(cols))
         next_tokens[:, cols] = drawn
     return next_tokens
+
+
+def _validate_sampler_args(passes, eps, temperature):
+    if passes < 1:
+        raise ValueError(f"passes must be >= 1, got {passes!r}")
+    if not (0.0 < eps < 1.0):
+        raise ValueError(f"eps must be strictly inside (0, 1), got {eps!r}")
+    if temperature <= 0.0 or not math.isfinite(temperature):
+        raise ValueError(f"temperature must be finite and > 0, got {temperature!r}")
 
 
 @torch.no_grad()
@@ -421,8 +294,7 @@ def sample_uniform(
     No in-loop legal Pokémon construction filter, no prediction cache, and no clean-up pass.
     Returns [n, 84] table-encoded tokens (1..N_k, zero [MASK]).
     """
-    if passes < 1:
-        raise ValueError(f"passes must be >= 1, got {passes!r}")
+    _validate_sampler_args(passes, eps, temperature)
     if seed is not None:
         torch.manual_seed(seed)
     device = next(model.nets[0][0].parameters()).device
@@ -437,19 +309,23 @@ def sample_uniform(
         if revisions is None
         else revisions
     )
+    need_cond = effective_guidance != 0.0
+    need_uncond = effective_guidance != 1.0
 
     for step in range(passes):
         move_t = times[step]
         move_s = times[step + 1]
         time_batch = torch.full((n,), float(move_t), device=device)
-        need_cond = effective_guidance != 0.0
-        need_uncond = effective_guidance != 1.0
         log_cond = _predict_log_clean(model, tokens, time_batch, ask_tensor, temperature) if need_cond else None
         log_uncond = _predict_log_clean(model, tokens, time_batch, null_tensor, temperature) if need_uncond else None
-        top_source = log_cond if effective_guidance > 0.0 else log_uncond
-        top_tokens = _top_predictions_row(top_source, n, device)
+        top_tokens = _top_predictions_row(log_cond if effective_guidance > 0.0 else log_uncond, n, device)
+        guided_top = (
+            _guided_top_predictions_row(log_cond, log_uncond, effective_guidance, n, device)
+            if (need_cond and need_uncond)
+            else top_tokens
+        )
         next_tokens = _step_sample_tokens(log_cond, log_uncond, tokens, move_s, move_t, effective_guidance, vocab_sizes)
-        tracker.record_pass(step, tokens, next_tokens, top_tokens)
+        tracker.record_pass(step, tokens, next_tokens, top_tokens, guided_top_tokens=guided_top)
         tokens = next_tokens
 
     return uniform_to_table(tokens), tracker
@@ -467,19 +343,39 @@ def _print_entry(entry):
     )
 
 
-def _train_epoch(net, avg, optimizer, clean_tokens, labels, vocab_sizes, *, batch, lr_at, step, ema, label_noise, noise_rng):
-    """Run one training epoch of continuous-time uniform diffusion and update EMA weights."""
+def _train_epoch(
+    net,
+    avg,
+    optimizer,
+    clean_tokens,
+    labels,
+    vocab_sizes,
+    *,
+    epoch_num,
+    batch,
+    lr_at,
+    step,
+    ema,
+    label_noise,
+    noise_rng,
+):
+    """Run one training epoch of continuous-time uniform diffusion with non-finite loss/gradient guards."""
     net.train()
     loss_sum, grad_norm_sum, num_batches = 0.0, 0.0, 0
     for indices in torch.randperm(len(clean_tokens), device=DEV).split(batch):
         noisy_w = noisy_labels(labels[indices], label_noise, noise_rng)
         loss = batch_loss(net, clean_tokens[indices], noisy_w, vocab_sizes)
+        loss_val = float(loss.detach())
+        if not math.isfinite(loss_val):
+            raise RuntimeError(f"non-finite training loss at epoch {epoch_num}, step {step}: {loss_val}")
         current_lr = lr_at(step)
         for group in optimizer.param_groups:
             group["lr"] = current_lr
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
-        grad_norm_sum += float(nn.utils.clip_grad_norm_(net.parameters(), 1.0))
+        grad_norm = float(nn.utils.clip_grad_norm_(net.parameters(), 1.0))
+        if not math.isfinite(grad_norm):
+            raise RuntimeError(f"non-finite gradient norm at epoch {epoch_num}, step {step}: {grad_norm}")
         optimizer.step()
         step += 1
         if avg is not None:
@@ -487,7 +383,8 @@ def _train_epoch(net, avg, optimizer, clean_tokens, labels, vocab_sizes, *, batc
                 decay = min(ema, (1 + step) / (10 + step))
                 for avg_param, net_param in zip(avg.parameters(), net.parameters(), strict=True):
                     avg_param.lerp_(net_param, 1.0 - decay)
-        loss_sum += float(loss.detach())
+        loss_sum += loss_val
+        grad_norm_sum += grad_norm
         num_batches += 1
     return loss_sum / num_batches, grad_norm_sum / num_batches, step
 
@@ -567,6 +464,13 @@ class UniformModel84:
             kind=CHECKPOINT_KIND,
             noise_process="uniform",
             schedule="log_linear",
+            schedule_details=dict(
+                alpha="1 - t",
+                move_chance="t",
+                time_input="raw_t",
+                training_time_bounds=[TRAINING_EPS, 1.0 - TRAINING_EPS],
+                sampling_eps=SAMPLING_EPS,
+            ),
             vocab_real_uniform=vocab_sizes,
             n_train=len(clean_tokens),
             dropped_by_tables=int((~keep).sum()),
@@ -675,6 +579,7 @@ class UniformModel84:
             )
         try:
             for epoch_idx in range(epochs):
+                epoch_num = epoch_idx + 1
                 train_loss, grad_norm, state["step"] = _train_epoch(
                     net,
                     avg,
@@ -682,6 +587,7 @@ class UniformModel84:
                     clean_tokens,
                     labels,
                     vocab_sizes,
+                    epoch_num=epoch_num,
                     batch=batch,
                     lr_at=lr_at,
                     step=state["step"],
@@ -691,7 +597,7 @@ class UniformModel84:
                 )
                 eval_net = (avg if avg is not None else net).eval()
                 entry = _evaluate_epoch(
-                    epoch_idx + 1,
+                    epoch_num,
                     train_loss,
                     eval_net,
                     val,
@@ -703,7 +609,7 @@ class UniformModel84:
                 )
                 _update_best(state, entry, eval_net, threshold, on_best, make)
                 if on_epoch is not None:
-                    on_epoch(make(eval_net, dict(epoch=epoch_idx + 1)), epoch_idx + 1)
+                    on_epoch(make(eval_net, dict(epoch=epoch_num)), epoch_num)
                 curves.append(entry)
                 if tracker is not None:
                     tracker.log_epoch(
@@ -714,7 +620,7 @@ class UniformModel84:
                         best_val_loss=state["best"],
                     )
                 _print_entry(entry)
-                if _should_stop(epoch_idx + 1, state["reset_epoch"], patience, stop_after):
+                if _should_stop(epoch_num, state["reset_epoch"], patience, stop_after):
                     break
             final_net = avg if avg is not None else net
             if patience and state["best_sd"] is not None:
@@ -819,13 +725,16 @@ def _evaluate_epoch(epoch_num, train_loss, eval_net, val, vocab_sizes, legality,
             checked.append(make(eval_net, {}))
         entry.update(legality(checked[0]))
     if val is not None:
-        entry["val_loss"] = val_loss(eval_net, val[0], val[1], vocab_sizes)
+        val_value = val_loss(eval_net, val[0], val[1], vocab_sizes)
+        if not math.isfinite(val_value):
+            raise RuntimeError(f"non-finite validation loss at epoch {epoch_num}: {val_value}")
+        entry["val_loss"] = val_value
     entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
     return entry
 
 
 def _update_best(state, entry, eval_net, threshold, on_best, make):
-    if "val_loss" not in entry or entry["val_loss"] >= state["best"]:
+    if "val_loss" not in entry or not is_better_val_loss(entry["val_loss"], state["best"]):
         return
     if state["best"] - entry["val_loss"] > threshold:
         state["reset_epoch"] = entry["epoch"]
