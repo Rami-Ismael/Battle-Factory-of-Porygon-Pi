@@ -1224,7 +1224,7 @@ Shared by every arm: the 84-field model trained on the labelled teams of the shu
 | Linear, species-first | `sched_linear_species_first` |
 | Linear, random order | `sched_linear_random` |
 
-## Uniform discrete diffusion against the default masked model
+## Uniform discrete diffusion against the linear masked default model
 
 Source: [`uniform-discrete-diffusion.md`](uniform-discrete-diffusion.md)
 
@@ -1232,7 +1232,7 @@ Shared by every arm: the 84-field transformer (256 wide, 6 layers, 8 heads) trai
 
 | Reader name | Code ID |
 | --- | --- |
-| Default masked, full filter | `default_masked` |
+| Linear masked, full filter | `linear_masked_filter` |
 | Per-field uniform, one-direction filter | `udlm_per_field_filter` |
 | Per-field uniform, no filter | `udlm_per_field_nofilter` |
 | Log-linear uniform, one-direction filter | `udlm_loglinear_filter` |
