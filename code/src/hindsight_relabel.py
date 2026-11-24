@@ -12,6 +12,7 @@ labelled validation teams the base model held out are logged every epoch to show
 
     /tmp/vgc-pilot/.venv/bin/python src/hindsight_relabel.py train     (from code/; HR_SMOKE=1: plumbing check)
 """
+import argparse
 import hashlib
 import json
 import os
@@ -68,13 +69,15 @@ def encode_teams(V, pastes):
     return np.asarray(rows, np.int64)
 
 
-def train():
+def train(wandb_args=None, tracker=None):
     here = str(Path(__file__).resolve().parent)
     sys.path.insert(0, "/tmp/vgc-pilot/src"); sys.path.insert(0, here)
     import lossdown as L                                 # before diffusion84: its imports put /tmp/vgc-pilot/src first
     sys.path.insert(0, here)
     import asked_vs_got as X
     import diffusion84 as M
+    import wandb_tracking as WT
+    from train84 import stop_reason
     smoke = bool(os.environ.get("HR_SMOKE"))
     grid = json.load(open(RES / f"stat_points_84_{BASE_MODEL}.json"))
     base_path = L.CK / f"{BASE_CHECKPOINT}.pt"
@@ -93,16 +96,34 @@ def train():
         watch = dict(labelled=tuple(a[:64] for a in watch["labelled"])); recipe.update(epochs=1)
     print(f"[{CODE_ID}] {(~val).sum()} relabelled teams to train on, {val.sum()} to stop on; base {base_path.name}", flush=True)
     t0 = time.perf_counter()
-    m = base.fine_tuned(rows[~val], labels[~val], val=(rows[val], labels[val]), watch=watch, **recipe)
     name = ("hrsmoke_" if smoke else "") + CHECKPOINT
-    m.info.update(code_id=CODE_ID, reader="Hindsight-relabeled fine-tune, epoch 21", base_checkpoint=base_path.name, base_sha256=sha,
-                  relabel_source=f"stat_points_84_{BASE_MODEL}.json", relabelled_teams=len(rows), val_share=VAL_SHARE, split_seed=SPLIT_SEED,
-                  relabels_per_ask=per_ask_count(labels), minutes=round((time.perf_counter() - t0) / 60, 2), labelled_only=True)
+    run_meta = dict(code_id=CODE_ID, reader="Hindsight-relabeled fine-tune, epoch 21", base_checkpoint=base_path.name,
+                    base_sha256=sha, relabel_source=f"stat_points_84_{BASE_MODEL}.json", relabelled_teams=len(rows),
+                    val_share=VAL_SHARE, split_seed=SPLIT_SEED, labelled_only=True)
+    if tracker is None:
+        tracker = WT.from_cli_args(wandb_args, name=name, job_type="fine-tune", tags=("84-field", "fine-tune", CODE_ID),
+                                   config=run_meta, smoke=smoke)
+    with tracker:
+        m = base.fine_tuned(rows[~val], labels[~val], val=(rows[val], labels[val]), watch=watch, tracker=tracker, **recipe)
+        m.info.update(**run_meta, relabels_per_ask=per_ask_count(labels), minutes=round((time.perf_counter() - t0) / 60, 2))
+        if meta := tracker.metadata():
+            m.info["wandb"] = meta
+        tracker.log_summary(m.info, stop_reason=stop_reason(m.info), checkpoint_name=f"{name}.pt")
     m.save(L.CK / f"{name}.pt")
-    json.dump({k: v for k, v in m.info.items() if k != "base"}, open(RES / f"{name}.json", "w"), indent=1, default=float)
+    with open(RES / f"{name}.json", "w") as f:
+        json.dump({k: v for k, v in m.info.items() if k != "base"}, f, indent=1, default=float)
     print(f"[{CODE_ID}] best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']}, {m.info['minutes']} min -> {name}.pt", flush=True)
     print("HR_TRAIN_DONE")
 
 
+def parse_args(argv):
+    import wandb_tracking as WT
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("cmd", choices=("train",))
+    WT.add_cli_args(p)
+    return p.parse_args(argv)
+
+
 if __name__ == "__main__":
-    {"train": train}[sys.argv[1]]() if sys.argv[1:] == ["train"] else sys.exit(__doc__)
+    args = parse_args(sys.argv[1:])
+    train(wandb_args=args)

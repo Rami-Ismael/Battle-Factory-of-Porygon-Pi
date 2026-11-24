@@ -13,6 +13,7 @@ network, cap 80 epochs, stop after 3 with no new lowest validation loss, keep th
     /tmp/vgc-pilot/.venv/bin/python src/train65.py smoke          -> preflight training smoke, results/train65_smoke.json
     /tmp/vgc-pilot/.venv/bin/python src/train65.py subset_10_39   -> checkpoint stat65_subset_10_39.pt
 """
+import argparse
 import hashlib
 import json
 import sys
@@ -31,7 +32,8 @@ import diffusion84 as M
 import lossdata65 as D
 import team84 as T
 import asked_vs_got as X
-from train84 import NET
+import wandb_tracking as WT
+from train84 import NET, stop_reason
 from train84 import PER_FIELD_RECIPE as RECIPE   # the 65-field arms keep the per-field masking schedule they started with
 
 DATA = D.OUT / "lossdata65.npz"
@@ -61,7 +63,7 @@ def label_rule(arm, C):
     return full_label(C), lambda p: D.subset_labels(C, np.random.default_rng(SUBSET_SEED + p), lo, hi)[1]
 
 
-def train(arm):
+def train(arm, wandb_args=None, tracker=None):
     d, tr, va, sha = load()
     X84, C = d["X"].astype(np.int64), d["C"]
     labels, each = label_rule(arm, C[tr])
@@ -70,13 +72,21 @@ def train(arm):
     name = f"stat65_{arm}"; out = L.CK / f"{name}.pt"
     print(f"[{name}] {READER[arm]} · {int(tr.sum())} teams · {int(va.sum())} validation teams · cap 80, patience 3", flush=True)
     t0 = time.perf_counter()
-    m = M.Model84.train_new(V, corpus, X84[tr], labels, epochs=80, val=val, patience=3, on_best=lambda m, _p: m.save(out),
-                            labels_each_epoch=each, **RECIPE, **NET)
-    m.info.update(arm=arm, reader=READER[arm], subset=ARMS[arm], subset_seed=SUBSET_SEED, exclude_within=EXCLUDE_WITHIN,
-                  data_sha256=sha, minutes=round((time.perf_counter() - t0) / 60, 1), val_rows=int(va.sum()))
+    run_meta = dict(arm=arm, reader=READER[arm], subset=ARMS[arm], subset_seed=SUBSET_SEED, exclude_within=EXCLUDE_WITHIN,
+                    data_sha256=sha, val_rows=int(va.sum()))
+    if tracker is None:
+        tracker = WT.from_cli_args(wandb_args, name=name, job_type="train", tags=("84-field", "subset-size", arm), config=run_meta)
+    with tracker:
+        m = M.Model84.train_new(V, corpus, X84[tr], labels, epochs=80, val=val, patience=3, on_best=lambda m, _p: m.save(out),
+                                labels_each_epoch=each, tracker=tracker, **RECIPE, **NET)
+        m.info.update(**run_meta, minutes=round((time.perf_counter() - t0) / 60, 1))
+        if meta := tracker.metadata():
+            m.info["wandb"] = meta
+        tracker.log_summary(m.info, stop_reason=stop_reason(m.info), checkpoint_name=out.name)
     m.save(out)
     RES.mkdir(parents=True, exist_ok=True)
-    json.dump(m.info, open(RES / f"{name}.json", "w"), indent=1, default=float)
+    with open(RES / f"{name}.json", "w") as f:
+        json.dump(m.info, f, indent=1, default=float)
     print(f"[{name}] done in {m.info['minutes']} min; best epoch {m.info['best_epoch']}, stopped {m.info['stopped_epoch']} -> {out}")
 
 
@@ -203,10 +213,18 @@ def unguided(model="gen65_subset_39"):
     print(json.dumps(out["got"], indent=1))
 
 
+def parse_args(argv):
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("arm")
+    p.add_argument("rest", nargs="*")
+    WT.add_cli_args(p)
+    return p.parse_args(argv)
+
+
 if __name__ == "__main__":
-    arm = sys.argv[1]
-    if arm == "smoke": smoke()
-    elif arm == "split": split(sys.argv[2])
-    elif arm == "unguided": unguided(*sys.argv[2:3])
-    elif arm in ARMS: train(arm)
+    args = parse_args(sys.argv[1:])
+    if args.arm == "smoke": smoke()
+    elif args.arm == "split": split(args.rest[0])
+    elif args.arm == "unguided": unguided(*args.rest[:1])
+    elif args.arm in ARMS: train(args.arm, wandb_args=args)
     else: raise SystemExit(f"arm must be smoke or one of {sorted(ARMS)}")

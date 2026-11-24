@@ -5,3 +5,4 @@ __pycache__/
 node_modules/
 verify-evidence/
 code/rust/*/target/
+wandb/
