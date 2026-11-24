@@ -14,8 +14,10 @@ kuleshov-group/discrete-diffusion-guidance@edb0f8c28b7caeb4ea7a06a2fee8d74ab6da1
 
 Pure math and revision tracking live in uniform_math84.py (CI-testable on CPU) and are re-exported here.
 """
+import contextlib
 import copy
 import math
+import os
 import time
 
 import numpy as np
@@ -53,10 +55,38 @@ from uniform_math84 import (
     table_to_uniform,
     uniform_field_loss,
     uniform_to_table,
+    vocab_vector,
 )
 
 DEV = L.DEV
 CHECKPOINT_KIND = "uniform_discrete_diffusion_84"
+FINITE_CHECK_EVERY = 32
+
+
+def _resolve_amp(amp, device):
+    """Enable bfloat16 autocast on MPS/CUDA by default unless disabled via amp=False or VGC_AMP=0."""
+    if torch.device(device).type not in ("mps", "cuda"):
+        return False
+    if amp is not None:
+        return bool(amp)
+    return os.environ.get("VGC_AMP", "1").strip().lower() not in ("0", "false", "no", "off")
+
+
+def _amp_context(use_amp, device):
+    dev_type = torch.device(device).type
+    if use_amp and dev_type in ("mps", "cuda"):
+        return torch.amp.autocast(dev_type, dtype=torch.bfloat16)
+    return contextlib.nullcontext()
+
+
+def _make_adamw(params, *, lr, wd, device):
+    """Build AdamW with fused Metal/CUDA kernels when supported (exact same update, ~4x faster on MPS)."""
+    if torch.device(device).type in ("mps", "cuda"):
+        try:
+            return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=(0.9, 0.98), fused=True), True
+        except (RuntimeError, TypeError, ValueError):
+            pass
+    return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=(0.9, 0.98)), False
 
 __all__ = [
     "CHECKPOINT_KIND",
@@ -155,35 +185,45 @@ def per_column_ce(logits_by_key, clean_tokens):
     return ce
 
 
-def elbo_terms(net, clean_tokens, noisy_tokens, time_values, labels, vocab_sizes):
+def elbo_terms(net, clean_tokens, noisy_tokens, time_values, labels, vocab_sizes, *, check_bounds=True, amp=False):
     """Per-team continuous-time uniform diffusion loss [B] in nats per field (averaged across all 84 columns).
 
     No legal Pokémon construction filter is applied to logits (Uniform, no filter).
+    When amp=True on MPS/CUDA, runs the transformer backbone in bfloat16 while computing log_softmax
+    and the Eq. 19 uniform diffusion loss in float32.
     """
-    logits_by_key = net.logits(net(noisy_tokens, time_values, labels))
+    with _amp_context(amp, clean_tokens.device):
+        logits_by_key = net.logits(net(noisy_tokens, time_values, labels))
     first_dtype = next(iter(logits_by_key.values())).dtype
     calc_dtype = torch.float64 if first_dtype == torch.float64 else torch.float32
     total_loss = torch.zeros(clean_tokens.shape[0], device=clean_tokens.device, dtype=calc_dtype)
     for field_key, cols in FIELD_COLS.items():
         log_probs = F.log_softmax(logits_by_key[field_key].to(calc_dtype), dim=-1)
         field_loss = uniform_field_loss(
-            log_probs, noisy_tokens[:, cols], clean_tokens[:, cols], time_values, vocab_sizes[field_key]
+            log_probs,
+            noisy_tokens[:, cols],
+            clean_tokens[:, cols],
+            time_values,
+            vocab_sizes[field_key],
+            check_bounds=check_bounds,
         )
         total_loss = total_loss + field_loss.sum(dim=1)
     return total_loss / COLS
 
 
-def batch_loss(net, clean_tokens, labels, vocab_sizes, p_uncond=0.15):
+def batch_loss(net, clean_tokens, labels, vocab_sizes, p_uncond=0.15, *, amp=False, vocab_vec=None):
     """Mean continuous-time uniform loss over one training batch with slot shuffling, stratified times, and ask dropout."""
     batch_size = clean_tokens.shape[0]
     device = clean_tokens.device
     shuffled = M.shuffle_slots(clean_tokens)
     offsets = (torch.rand(1, device=device) + torch.arange(batch_size, device=device) / batch_size) % 1.0
     time_values = offsets[torch.randperm(batch_size, device=device)].clamp(min=TRAINING_EPS, max=1.0 - TRAINING_EPS)
-    noisy_tokens = corrupt_uniform(shuffled, time_values, vocab_sizes)
+    noisy_tokens = corrupt_uniform(shuffled, time_values, vocab_sizes, vocab_vec=vocab_vec)
     dropped_labels = labels.clone()
     dropped_labels[torch.rand(batch_size, device=device) < p_uncond] = NAN
-    return elbo_terms(net, shuffled, noisy_tokens, time_values, dropped_labels, vocab_sizes).mean()
+    return elbo_terms(
+        net, shuffled, noisy_tokens, time_values, dropped_labels, vocab_sizes, check_bounds=False, amp=amp
+    ).mean()
 
 
 @torch.no_grad()
@@ -373,35 +413,49 @@ def _train_epoch(
     ema,
     label_noise,
     noise_rng,
+    amp=False,
+    vocab_vec=None,
 ):
-    """Run one training epoch of continuous-time uniform diffusion with non-finite loss/gradient guards."""
+    """Run one training epoch of continuous-time uniform diffusion with batched device-side accumulation."""
     net.train()
-    loss_sum, grad_norm_sum, num_batches = 0.0, 0.0, 0
-    for indices in torch.randperm(len(clean_tokens), device=DEV).split(batch):
+    device = clean_tokens.device
+    net_params = list(net.parameters())
+    avg_params = list(avg.parameters()) if avg is not None else None
+    loss_accum = torch.zeros((), device=device, dtype=torch.float32)
+    grad_norm_accum = torch.zeros((), device=device, dtype=torch.float32)
+    num_batches = 0
+    for indices in torch.randperm(len(clean_tokens), device=device).split(batch):
         noisy_w = noisy_labels(labels[indices], label_noise, noise_rng)
-        loss = batch_loss(net, clean_tokens[indices], noisy_w, vocab_sizes)
-        loss_val = float(loss.detach())
-        if not math.isfinite(loss_val):
-            raise RuntimeError(f"non-finite training loss at epoch {epoch_num}, step {step}: {loss_val}")
+        loss = batch_loss(net, clean_tokens[indices], noisy_w, vocab_sizes, amp=amp, vocab_vec=vocab_vec)
         current_lr = lr_at(step)
         for group in optimizer.param_groups:
             group["lr"] = current_lr
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
-        grad_norm = float(nn.utils.clip_grad_norm_(net.parameters(), 1.0))
-        if not math.isfinite(grad_norm):
-            raise RuntimeError(f"non-finite gradient norm at epoch {epoch_num}, step {step}: {grad_norm}")
+        grad_norm_t = nn.utils.clip_grad_norm_(net_params, 1.0)
         optimizer.step()
         step += 1
-        if avg is not None:
+        if avg_params is not None:
             with torch.no_grad():
                 decay = min(ema, (1 + step) / (10 + step))
-                for avg_param, net_param in zip(avg.parameters(), net.parameters(), strict=True):
-                    avg_param.lerp_(net_param, 1.0 - decay)
-        loss_sum += loss_val
-        grad_norm_sum += grad_norm
+                alpha = 1.0 - decay
+                for avg_param, net_param in zip(avg_params, net_params, strict=True):
+                    avg_param.lerp_(net_param, alpha)
+        loss_accum = loss_accum + loss.detach().float()
+        grad_norm_accum = grad_norm_accum + grad_norm_t.detach().float()
         num_batches += 1
-    return loss_sum / num_batches, grad_norm_sum / num_batches, step
+        if num_batches % FINITE_CHECK_EVERY == 0:
+            if not math.isfinite(float(loss_accum)):
+                raise RuntimeError(f"non-finite training loss at epoch {epoch_num}, step {step}")
+            if not math.isfinite(float(grad_norm_accum)):
+                raise RuntimeError(f"non-finite gradient norm at epoch {epoch_num}, step {step}")
+    loss_total = float(loss_accum)
+    grad_total = float(grad_norm_accum)
+    if not math.isfinite(loss_total):
+        raise RuntimeError(f"non-finite training loss at epoch {epoch_num}, step {step}: {loss_total}")
+    if not math.isfinite(grad_total):
+        raise RuntimeError(f"non-finite gradient norm at epoch {epoch_num}, step {step}: {grad_total}")
+    return loss_total / num_batches, grad_total / num_batches, step
 
 
 class UniformModel84:
@@ -466,6 +520,7 @@ class UniformModel84:
         legality_guidance=1.0,
         legality_copies=True,
         tracker=None,
+        amp=None,
         **net_kw,
     ):
         """Train a uniform discrete diffusion model from scratch on 84-field rows."""
@@ -475,6 +530,7 @@ class UniformModel84:
         clean_tokens = table_to_uniform(x_table)
         net = UniformNet84(vocab, **net_kw).to(DEV)
         vocab_sizes = net.vocab_sizes
+        use_amp = _resolve_amp(amp, DEV)
         info = dict(
             kind=CHECKPOINT_KIND,
             noise_process="uniform",
@@ -503,6 +559,7 @@ class UniformModel84:
             legality_guidance=legality_guidance,
             table_loss=False,
             legality_tables=False,
+            amp_dtype="bfloat16" if use_amp else "float32",
         )
         known = team_keys(x_table.cpu().numpy()) if legality_teams and legality_copies else None
         legality = EpochLegality(legality_teams, guidance=legality_guidance, tables=False, known=known)
@@ -533,6 +590,7 @@ class UniformModel84:
             legality=legality,
             legality_passes=legality_passes,
             tracker=tracker,
+            use_amp=use_amp,
         )
 
     @classmethod
@@ -565,6 +623,7 @@ class UniformModel84:
         legality,
         legality_passes,
         tracker,
+        use_amp=False,
     ):
         make = lambda network, extra: cls(
             vocab, corpus, [(network, net_kw)], dict(info, **extra), default_passes=legality_passes
@@ -572,7 +631,9 @@ class UniformModel84:
         avg = copy.deepcopy(net).eval() if ema else None
         total_steps = math.ceil(len(clean_tokens) / batch) * epochs
         warm_steps = min(warmup, max(1, total_steps // 10))
-        optimizer = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=wd, betas=(0.9, 0.98))
+        optimizer, fused_adamw = _make_adamw(net.parameters(), lr=lr, wd=wd, device=clean_tokens.device)
+        info["fused_adamw"] = fused_adamw
+        vocab_vec = vocab_vector(vocab_sizes, clean_tokens.device)
         lr_at = lambda s: lr * min(1.0, (s + 1) / warm_steps) * 0.5 * (1 + math.cos(math.pi * min(s, total_steps) / total_steps))
         noise_rng = torch.Generator().manual_seed(seed + 1)
         curves = [] if log is None else log
@@ -609,6 +670,8 @@ class UniformModel84:
                     ema=ema,
                     label_noise=label_noise,
                     noise_rng=noise_rng,
+                    amp=use_amp,
+                    vocab_vec=vocab_vec,
                 )
                 eval_net = (avg if avg is not None else net).eval()
                 entry = _evaluate_epoch(

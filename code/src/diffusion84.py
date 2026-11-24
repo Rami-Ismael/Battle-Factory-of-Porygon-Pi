@@ -13,9 +13,11 @@ weighting, ask dropout 0.15, AdamW with warm-up and cosine decay, and the struct
 36 Stat Point columns (token = value + 1), exponent 1 like Stat Alignment, decoded after Stat Alignment, and a
 budget mask that keeps each Pokémon's Stat Points at most 32 each and 66 in total.
 """
+import contextlib
 import copy
-import time
 import math
+import os
+import time
 
 import numpy as np
 import torch
@@ -226,26 +228,54 @@ def per_column_ce(lg, x):
     return ce
 
 
-def elbo_terms(net, tables, x, m, t, w, sched, loops=None, self_condition=None, table_loss=True):
+def _resolve_amp(amp, device):
+    """Enable bfloat16 autocast on MPS/CUDA by default unless disabled via amp=False or VGC_AMP=0."""
+    if torch.device(device).type not in ("mps", "cuda"):
+        return False
+    if amp is not None:
+        return bool(amp)
+    return os.environ.get("VGC_AMP", "1").strip().lower() not in ("0", "false", "no", "off")
+
+
+def _amp_context(use_amp, device):
+    dev_type = torch.device(device).type
+    if use_amp and dev_type in ("mps", "cuda"):
+        return torch.amp.autocast(dev_type, dtype=torch.bfloat16)
+    return contextlib.nullcontext()
+
+
+def _make_adamw(params, *, lr, wd, device):
+    """Build AdamW with fused Metal/CUDA kernels when supported (same update, ~4x faster on MPS)."""
+    if torch.device(device).type in ("mps", "cuda"):
+        try:
+            return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=(0.9, 0.98), fused=True), True
+        except (RuntimeError, TypeError, ValueError):
+            pass
+    return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=(0.9, 0.98)), False
+
+
+def elbo_terms(net, tables, x, m, t, w, sched, loops=None, self_condition=None, table_loss=True, *, amp=False):
     """Per-team ELBO [B] of the true tokens x with the fields in m masked, legality-masked as in sampling.
     table_loss=False (issue #361): the logits go to the cross-entropy unmasked, so the network is taught to avoid the
     values the legal Pokémon construction tables and the Stat Point budget forbid instead of never seeing them.
     loops: loop-block count (default the network's loop_max). self_condition (carried-state networks; default True):
     a first pass with a zero state, without gradient, hands its hidden state to the scored second pass (Loopholing §3.2,
-    Algorithm 3); False scores one pass with a zero state."""
+    Algorithm 3); False scores one pass with a zero state.
+    amp=True: runs the transformer forward pass in bfloat16 on MPS/CUDA while keeping the legality mask and cross-entropy in float32."""
     xin = x.masked_fill(m, 0)
     state = None
-    if getattr(net, "carry", False) and (self_condition is None or self_condition):
-        with torch.no_grad(): state = net(xin, t, w, loops=loops).detach()
-    kw = {} if loops is None and state is None else dict(loops=loops, state=state)
-    lg = net.logits(net(xin, t, w, **kw))
+    with _amp_context(amp, x.device):
+        if getattr(net, "carry", False) and (self_condition is None or self_condition):
+            with torch.no_grad(): state = net(xin, t, w, loops=loops).detach()
+        kw = {} if loops is None and state is None else dict(loops=loops, state=state)
+        lg = net.logits(net(xin, t, w, **kw))
     if table_loss:
-        al = allowed(tables, xin); lg = {k: v.masked_fill(~al[k], -1e4) for k, v in lg.items()}
+        al = allowed(tables, xin); lg = {k: v.float().masked_fill(~al[k], -1e4) for k, v in lg.items()}
     ce = per_column_ce(lg, x) * m
     return (ce * sched.view(1, -1) / t.view(-1, 1)).sum(1) / COLS
 
 
-def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None, table_loss=True):
+def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None, table_loss=True, *, amp=False):
     B = x.shape[0]
     x = shuffle_slots(x)
     t = ((torch.rand(1, device=x.device) + torch.arange(B, device=x.device) / B) % 1.0)[torch.randperm(B, device=x.device)]
@@ -258,7 +288,7 @@ def batch_loss(net, tables, x, w, sched, p_uncond=0.15, row_w=None, table_loss=T
     kw = {}                                                     # drawn only for looping networks, so the plain recipe's random stream is unchanged
     if getattr(net, "loop_layers", 0): kw["loops"] = int(torch.randint(1, net.loop_max + 1, (1,)))          # LoopMDM Eq. 5
     if getattr(net, "carry", False): kw["self_condition"] = bool(torch.rand(1) < CARRY_P)                 # Loopholing §3.2, probability p
-    terms = elbo_terms(net, tables, x, m, t, ww, sched, table_loss=table_loss, **kw)
+    terms = elbo_terms(net, tables, x, m, t, ww, sched, table_loss=table_loss, amp=amp, **kw)
     return (terms * row_w).mean() if row_w is not None else terms.mean()
 
 
@@ -321,7 +351,7 @@ class Model84:
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
                   warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, legality_teams=0,
-                  table_loss=True, legality_tables=True, legality_copies=False, tracker=None, **net_kw):
+                  table_loss=True, legality_tables=True, legality_copies=False, tracker=None, amp=None, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
@@ -345,8 +375,10 @@ class Model84:
         tables = L.Tables(V, corpus)
         x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
         net = Net84(V, **net_kw).to(DEV)
+        use_amp = _resolve_amp(amp, DEV)
         info = dict(n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs, patience=patience,
-                    early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw)
+                    early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw,
+                    amp_dtype="bfloat16" if use_amp else "float32")
         info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None, legality_teams=legality_teams)
         if not table_loss: info.update(table_loss=False)          # written only when off, so stored run infos keep their keys
         if legality_teams and not legality_tables: info.update(legality_tables=False)
@@ -356,10 +388,10 @@ class Model84:
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
                         ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
                         label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel,
-                        legality=EpochLegality(legality_teams, tables=legality_tables, known=known), table_loss=table_loss, tracker=tracker)
+                        legality=EpochLegality(legality_teams, tables=legality_tables, known=known), table_loss=table_loss, tracker=tracker, use_amp=use_amp)
 
     def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
-                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, legality_teams=0, tracker=None):
+                   warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, legality_teams=0, tracker=None, amp=None):
         """A new model: this one-member model's weights trained further on 84-field rows; self is unchanged.
         The recipe is train_new's (AdamW, warm-up and cosine decay sized to the cap of `epochs`, EMA, ask dropout,
         label noise on training labels only). Validation loss on val=(rows, labels) is measured before the first epoch
@@ -372,18 +404,19 @@ class Model84:
         start = copy.deepcopy(self.net).to(DEV)
         torch.manual_seed(seed)
         x, w, rw, keep = _training_tensors(self.tables, rows, labels)
+        use_amp = _resolve_amp(amp, DEV)
         info = dict(base=self.info, fine_tune=True, n_train=len(x), dropped_by_tables=int((~keep).sum()), cap=epochs,
                     patience=patience, early_stopping_threshold=early_stopping_threshold, lr=lr, batch=batch, seed=seed, sched=sched, net_kw=net_kw, label_noise=label_noise, stop_after=None,
-                    legality_teams=legality_teams)
+                    legality_teams=legality_teams, amp_dtype="bfloat16" if use_amp else "float32")
         return type(self)._fit(self.V, None, self.tables, start, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd,
                                warmup=warmup, ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold,
                                on_best=None, label_noise=label_noise, stop_after=None, on_epoch=None, net_kw=net_kw, watch=watch, epoch0=True,
-                               like=self, legality=EpochLegality(legality_teams), tracker=tracker)
+                               like=self, legality=EpochLegality(legality_teams), tracker=tracker, use_amp=use_amp)
 
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
              patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None,
-             legality=None, table_loss=True, tracker=None):
+             legality=None, table_loss=True, tracker=None, use_amp=False):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
         lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
         relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps.
@@ -393,9 +426,12 @@ class Model84:
         make = (lambda m, extra: like._with([(m, net_kw)], dict(info, **extra))) if like is not None else \
                (lambda m, extra: cls(V, corpus, [(m, net_kw)], dict(info, **extra)))
         avg = copy.deepcopy(net).eval() if ema else None
+        net_params = list(net.parameters())
+        avg_params = list(avg.parameters()) if avg is not None else None
         sw = sched84(sched).to(DEV)
         steps = math.ceil(len(x) / batch) * epochs; warm = min(warmup, max(1, steps // 10))
-        opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=wd, betas=(0.9, 0.98))
+        opt, fused_adamw = _make_adamw(net_params, lr=lr, wd=wd, device=x.device)
+        info["fused_adamw"] = fused_adamw
         lr_at = lambda s: lr * min(1.0, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(s, steps) / steps))
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
@@ -430,18 +466,23 @@ class Model84:
             for p in range(epochs):
                 if relabel is not None:
                     w = relabel(p)
-                net.train(); run = 0.0; gnorm = 0.0; nb = 0
-                for b in torch.randperm(len(x), device=DEV).split(batch):
+                net.train()
+                run_t = torch.zeros((), device=x.device, dtype=torch.float32)
+                gnorm_t = torch.zeros((), device=x.device, dtype=torch.float32)
+                nb = 0
+                for b in torch.randperm(len(x), device=x.device).split(batch):
                     loss = batch_loss(net, tables, x[b], noisy_labels(w[b], label_noise, noise_rng), sw, row_w=None if rw is None else rw[b],
-                                      table_loss=table_loss)
+                                      table_loss=table_loss, amp=use_amp)
                     for g in opt.param_groups: g["lr"] = lr_at(step)
                     opt.zero_grad(set_to_none=True); loss.backward()
-                    gnorm += float(nn.utils.clip_grad_norm_(net.parameters(), 1.0)); opt.step(); step += 1
-                    if avg is not None:
+                    gnorm_t = gnorm_t + nn.utils.clip_grad_norm_(net_params, 1.0).detach().float()
+                    opt.step(); step += 1
+                    if avg_params is not None:
                         with torch.no_grad():
-                            dec = min(ema, (1 + step) / (10 + step))
-                            for pe, pn in zip(avg.parameters(), net.parameters()): pe.lerp_(pn, 1 - dec)
-                    run += float(loss.detach()); nb += 1
+                            alpha = 1 - min(ema, (1 + step) / (10 + step))
+                            for pe, pn in zip(avg_params, net_params): pe.lerp_(pn, alpha)
+                    run_t = run_t + loss.detach().float(); nb += 1
+                run, gnorm = float(run_t), float(gnorm_t)
                 m = avg if avg is not None else net
                 m.eval()
                 entry = dict(epoch=p + 1, train_loss=run / nb)
