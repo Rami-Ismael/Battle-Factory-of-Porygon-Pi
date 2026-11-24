@@ -1233,7 +1233,5 @@ Shared by every arm: the 84-field transformer (256 wide, 6 layers, 8 heads) trai
 | Reader name | Code ID |
 | --- | --- |
 | Linear masked, full filter | `linear_masked_filter` |
-| Per-field uniform, one-direction filter | `udlm_per_field_filter` |
-| Per-field uniform, no filter | `udlm_per_field_nofilter` |
 | Log-linear uniform, one-direction filter | `udlm_loglinear_filter` |
 | Log-linear uniform, no filter | `udlm_loglinear_nofilter` |
