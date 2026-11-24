@@ -53,3 +53,4 @@ test_inplace_prompt_grid.py
 test_wandb_tracking.py
 test_uniform_preflight84.py
 test_uniform_math84.py
+test_masked_lora_trainer.py
