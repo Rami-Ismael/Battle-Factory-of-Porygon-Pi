@@ -103,6 +103,12 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
 # 64 legal teams need about 6,400 tries, so the row has its own cap. Seed base 7300, the stored random-order row's.
 MODELS["sched_linear_random_reject"] = dict(MODELS["sched_linear_random"], reader="Linear, random order, no lookahead, redrawn until legal",
                                             decoder="random_no_lookahead", max_tries=20_000, seed0=grid_seeds.LEGACY)
+# Map #270 / issue #275: paper-faithful UDLM (Schiff et al. 2024, alpha(t) = 1 - t, unconstrained sampling, Showdown checks after pass K).
+MODELS["udlm_loglinear_nofilter"] = dict(checkpoint="stat84_udlm_loglinear_es3_cap80", reader="Uniform, no filter",
+                                         epochs=dict(labelled_teams=80),
+                                         stopped="early stopping on validation loss (patience 3, threshold 0, cap 80)",
+                                         labelled=True, decoder="uniform_nofilter", uniform=True, passes=128,
+                                         table=DEFAULT_TABLE)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
@@ -120,6 +126,7 @@ for _row in MODELS.values():                             # every row so far trai
 SMOKE = bool(os.environ.get("AG84_SMOKE"))
 UNGUIDED = bool(os.environ.get("AG84_UNGUIDED"))           # one cell per seed with no ask: the row's unguided baseline
 GUIDANCE, KEEP, BATCH, MAX_TRIES, BATTLES_PER_OPPONENT = 1.0 if UNGUIDED else float(os.environ.get("AG84_GUIDANCE", "2")), 64, 96, MODELS[MODEL].get("max_tries", 1280), 1
+PASSES = int(os.environ["AG84_PASSES"]) if os.environ.get("AG84_PASSES") else MODELS[MODEL].get("passes")
 SUFFIX = "_unguided" if UNGUIDED else "" if GUIDANCE == 2 else f"_g{GUIDANCE:g}"   # guidance 2 keeps the stored names
 def ask_numerators(env):
     """The ask numerators k of k/24 to draw: all 23, or the comma-separated ones AG84_ASKS names."""
@@ -161,15 +168,21 @@ def checkpoint_path(): return L.CK / f"{MODELS[MODEL]['checkpoint']}.pt"
 
 
 def load_model():
+    if MODELS[MODEL].get("uniform"):
+        import uniform_diffusion84 as UM
+        return UM.UniformModel84.load(checkpoint_path())
     return M.Model84.load(checkpoint_path())
 
 
 def load_sampler(w=None):
     """The row's decoder, an object with sample() and to_paste(): the model itself in species-first order; for any
-    other decoding order, a configured Sampler84 (sampler84.py)."""
+    other decoding order, a configured Sampler84 (sampler84.py) or UniformSampler84 (uniform_diffusion84.py)."""
     w = w or load_model()
     decoder = MODELS[MODEL].get("decoder", "species_first")
     if decoder == "species_first": return w
+    if decoder == "uniform_nofilter":
+        import uniform_diffusion84 as UM
+        return UM.UniformSampler84(w, passes=PASSES or UM.DEFAULT_PASSES)
     import sampler84 as S
     if decoder == "species_first_corrected_t": return S.Sampler84(w, decoder)
     if decoder in ("random", "species_then_random", "confidence", "entropy_init"):
@@ -199,20 +212,45 @@ def subset_diversity(pastes, seed):
     return dict(effective_species=float(np.mean(eff)), distinct_lineups=float(np.mean(lineups)), top_species_share=float(np.mean(top)))
 
 
+def _batch_meta(w, n_rows):
+    """Extract optional per-team refusal and uniform revision records from the sampler's last batch."""
+    refusals = w.last_refusals if hasattr(w, "last_refusals") else None
+    if refusals is not None and len(refusals) != n_rows:
+        raise ValueError(f"the arm gave {len(refusals)} refusal records for {n_rows} teams; they must pair one to one")
+    tracker = getattr(w, "last_revisions", None)
+    revisions = tracker.per_team_records() if tracker is not None else None
+    if revisions is not None and len(revisions) != n_rows:
+        raise ValueError(f"the arm gave {len(revisions)} revision records for {n_rows} teams; they must pair one to one")
+    return refusals, revisions, tracker
+
+
+def _attach_draw_meta(counts, records_refusals, refusals, tracker, all_revisions, kept_revisions):
+    if records_refusals:
+        counts["refusals"] = refusals
+    if tracker is not None:
+        import uniform_diffusion84 as UM
+        counts["revisions"] = dict(
+            all_tries=UM.summarize_revision_records(all_revisions, tracker.vocab_sizes, tracker.passes, eps=tracker.eps),
+            kept=UM.summarize_revision_records(kept_revisions, tracker.vocab_sizes, tracker.passes, eps=tracker.eps),
+        )
+
+
 def draw(w, ask, seed):
     """Sample until KEEP teams pass Showdown and are not held-out teams, counting every try and every rejection.
-    An arm that keeps last_refusals (remask84's lookahead arms) also gives counts["refusals"]: the record of what the
-    lookahead refused for each kept team, in the order of the pastes."""
+    An arm that keeps last_refusals also gives counts["refusals"]; a uniform sampler keeping last_revisions also gives
+    counts["revisions"] with per-field-type summaries over all tries and over kept teams."""
     torch.manual_seed(SEED0 + seed)
-    val = Validator(); kept, stats, tried, rejected, heldout, reasons, refusals = [], [], 0, 0, 0, Counter(), []
+    val = Validator(); kept, stats, tried, rejected, heldout, reasons = [], [], 0, 0, 0, Counter()
+    refusals, all_rev, kept_rev, last_tracker = [], [], [], None
     records_refusals = hasattr(w, "last_refusals")
     try:
         while len(kept) < KEEP and tried < MAX_TRIES:
-            rows = w.sample(BATCH, ask=ask, guidance=GUIDANCE).cpu().numpy(); records = w.last_refusals if records_refusals else None
-            if records is not None and len(records) != len(rows):
-                raise ValueError(f"the arm gave {len(records)} refusal records for {len(rows)} teams; they must pair one to one")
+            rows = w.sample(BATCH, ask=ask, guidance=GUIDANCE).cpu().numpy()
+            records, rev_records, tracker = _batch_meta(w, len(rows))
+            if tracker is not None: last_tracker = tracker
             for i, r in enumerate(rows):
                 tried += 1
+                if rev_records is not None: all_rev.append(rev_records[i])
                 p, slots = w.to_paste(r, repair=True)
                 err = val(p)
                 if err is not None: rejected += 1; reasons[reason(err)] += 1
@@ -220,11 +258,12 @@ def draw(w, ask, seed):
                 else:
                     kept.append(p); stats.append([(s["species"], s["evs"]) for s in slots])
                     if records is not None: refusals.append(records[i])
+                    if rev_records is not None: kept_rev.append(rev_records[i])
                 if len(kept) >= KEEP or tried >= MAX_TRIES: break
     finally:
         val.close()
     counts = dict(tried=tried, rejected=rejected, heldout_dropped=heldout, legal=(tried - rejected) / max(tried, 1), reasons=reasons.most_common(10))
-    if records_refusals: counts["refusals"] = refusals
+    _attach_draw_meta(counts, records_refusals, refusals, last_tracker, all_rev, kept_rev)
     return kept, stats, counts
 
 
@@ -241,6 +280,7 @@ def gen():
     out.update(reader=MODELS[MODEL]["reader"], epochs_trained=MODELS[MODEL]["epochs"], stopped=MODELS[MODEL]["stopped"],
                checkpoint=checkpoint_path().name, checkpoint_sha256=sha,
                guidance=GUIDANCE, unguided=UNGUIDED, decoder=MODELS[MODEL].get("decoder", "species_first"), keep=KEEP, max_tries=MAX_TRIES, seed0=SEED0)
+    if PASSES is not None: out["passes"] = PASSES
     save(out)
     w = load_sampler()
     for seed in SEEDS:
@@ -389,12 +429,30 @@ def slot_key(s):
     return (s["species"], s["ability"], s["item"], tuple(sorted(s["moves"])), tuple(sorted(s["evs"].items())))
 
 
+def _normalized_parsed_slots(text):
+    """Normalize parse_team_text slots to match team84.decode keys, even when unconstrained Stat Points exceed 66."""
+    parsed = parse_team_text(text, blank_ends_slot=True)
+    return [
+        dict(
+            species=T.norm(s["species"]),
+            ability=T.norm(s["ability"]),
+            item=T.norm(s["item"]),
+            moves=[T.norm(m) for m in s["moves"]],
+            evs=s["evs"],
+        )
+        for s in parsed
+    ]
+
+
 def round_trip(w, rows):
     """Every generated field reaches the paste: re-read the paste, compare everything except the repaired Stat Alignment."""
     bad = 0
     for r in rows:
         p, _ = w.to_paste(r, repair=True)
-        back = T.decode(w.V, T.encode(w.V, parse_team_text(p)))
+        try:
+            back = T.decode(w.V, T.encode(w.V, parse_team_text(p, blank_ends_slot=True)))
+        except ValueError:
+            back = _normalized_parsed_slots(p)
         if sorted(map(str, map(slot_key, T.decode(w.V, r)))) != sorted(map(str, map(slot_key, back))): bad += 1
     return dict(teams=len(rows), mismatched=bad, passed=bad == 0)
 
