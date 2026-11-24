@@ -51,10 +51,13 @@ import subprocess
 import sys
 import time
 from collections.abc import Callable, Iterable, Iterator, Sequence
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import torch
+
+from masked_diffusion_sampler import SAMPLERS, SHARED_SAMPLER, SamplerSetting, StepCount, resolve_sampler
 
 ORDER = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3', 'diffullama', 'dream', 'llada')   # smallest first
 FAMILY = {'diffugpt_s': 'gpt2', 'diffugpt_m': 'gpt2', 'qwen25c': 'a2d', 'qwen3': 'a2d', 'diffullama': 'llama',
@@ -104,16 +107,35 @@ def gumbel_argmax(logits: torch.Tensor, temperature: float, generator: torch.Gen
 Forward = Callable[[torch.Tensor], torch.Tensor]    # canvas [B, L] -> logits [B, L or slots, V]
 
 
+def _resolve_fill_setting(setting: SamplerSetting | None, steps: StepCount | None,
+                          temperature: float | None) -> SamplerSetting:
+    if setting is not None and (steps is not None or temperature is not None):
+        raise ValueError('pass either setting or steps/temperature, not both')
+    active = (setting if setting is not None else replace(
+        SHARED_SAMPLER,
+        steps=SHARED_SAMPLER.steps if steps is None else steps,
+        temperature=SHARED_SAMPLER.temperature if temperature is None else temperature,
+    ))
+    if active.masks_left != 'exact_linear':
+        raise NotImplementedError(f'masks_left {active.masks_left!r} is not implemented yet (#393)')
+    if active.block_length is not None:
+        raise NotImplementedError(f'block_length {active.block_length!r} is not implemented yet (#394)')
+    return active
+
+
 @torch.no_grad()                            # as dLLM's samplers: no activations kept for gradients
-def fill(forward: Forward, canvas: torch.Tensor, slots: torch.Tensor, mask_id: int, steps: int, temperature: float,
-         generator: torch.Generator | None = None, on_step: Callable[[int], None] = lambda _: None) -> torch.Tensor:
+def fill(forward: Forward, canvas: torch.Tensor, slots: torch.Tensor, mask_id: int,
+         steps: StepCount | None = None, temperature: float | None = None,
+         generator: torch.Generator | None = None, on_step: Callable[[int], None] = lambda _: None,
+         *, setting: SamplerSetting | None = None) -> torch.Tensor:
     """Fill the mask tokens at the slot positions of canvas [B, L] in place, one forward per step. forward returns
     logits for every position (scope all) or for the slot positions only, in slot order (scope slots), already
     shifted for a model that predicts from the previous position."""
+    active = _resolve_fill_setting(setting, steps, temperature)
     x = canvas.clone()
-    for j, k in enumerate(schedule(len(slots), steps)):
+    for j, k in enumerate(schedule(len(slots), active.step_count(len(slots)))):
         logits = forward(x).float()
-        x0 = gumbel_argmax(logits, temperature, generator)
+        x0 = gumbel_argmax(logits, active.temperature, generator)
         p = torch.softmax(logits, -1).gather(-1, x0.unsqueeze(-1)).squeeze(-1)
         del logits
         if x0.shape[1] != len(slots):
@@ -140,14 +162,32 @@ def is_over_ceiling(error: BaseException) -> bool:
 def candidate_info(candidate: Any) -> dict[str, Any]:
     return {'key': candidate.key, 'label': candidate.label, 'repo': candidate.repo, 'revision': candidate.revision,
             'mask_id': candidate.mask_id, 'mask_token': candidate.mask_token, 'qwen2_files': candidate.qwen2_files,
-            'start_token': candidate.start_token}
+            'start_token': candidate.sampler.start_token, 'sampler_setting': candidate.sampler.to_dict()}
+
+
+def candidate_sampler(key: str) -> SamplerSetting:
+    """The candidate's default sampler setting from count_masked_diffusion_text.CANDIDATES."""
+    import count_masked_diffusion_text as C
+    return C.candidate_by_key(key).sampler
 
 
 def wants_start_token(key: str) -> bool:
     """Whether the candidate's texts put its start token first: DiffuLLaMA 7B copies nothing without <s> and 168 of
     168 values with it (#236, docs/diffullama-start-token.md)."""
-    import count_masked_diffusion_text as C
-    return next(c for c in C.CANDIDATES if c.key == key).start_token
+    return candidate_sampler(key).start_token
+
+
+def canvas_sampler(canvas: dict[str, Any]) -> SamplerSetting:
+    """The SamplerSetting carried by a benchmark canvas (falling back to shared defaults for pre-#392 canvases)."""
+    info = canvas['candidate']
+    if 'sampler_setting' in info:
+        setting = SamplerSetting.from_dict(info['sampler_setting'])
+    else:
+        setting = replace(SHARED_SAMPLER, right_shift=canvas['family'] in SHIFTED,
+                          start_token=bool(info.get('start_token', False)))
+    if canvas.get('start_token') is not None and not setting.start_token:
+        setting = replace(setting, start_token=True)
+    return setting
 
 
 def with_start_token(canvas: dict[str, Any], start_id: int) -> dict[str, Any]:
@@ -161,7 +201,7 @@ def with_start_token(canvas: dict[str, Any], start_id: int) -> dict[str, Any]:
 
 def build_canvas(candidate: Any, tokenizer: Any, task: dict[str, Any], grid: str) -> dict[str, Any]:
     """The in-place text for task with the candidate's longest ask, as token ids with the slot positions. A candidate
-    marked start_token (DiffuLLaMA) gets its tokenizer's start token first."""
+    whose sampler setting sets start_token (DiffuLLaMA) gets its tokenizer's start token first."""
     import count_masked_diffusion_text as C
     import masked_diffusion_text as D
     ask = C.longest_ask(tokenizer, task)
@@ -172,7 +212,7 @@ def build_canvas(candidate: Any, tokenizer: Any, task: dict[str, Any], grid: str
     canvas = {'candidate': candidate_info(candidate), 'family': FAMILY[candidate.key], 'version': built.version,
               'mask': {'grid': grid, 'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k']},
               'ask': D.ask_text(ask), 'text': built.text, 'ids': ids, 'slots': slots, 'tokens': len(ids)}
-    return with_start_token(canvas, tokenizer.bos_token_id) if candidate.start_token else canvas
+    return with_start_token(canvas, tokenizer.bos_token_id) if candidate.sampler.start_token else canvas
 
 
 def prepare(directory: Path) -> None:
@@ -318,11 +358,12 @@ def full_logits(model: Any, family: str, x: torch.Tensor) -> torch.Tensor:
     return model(input_ids=x).logits
 
 
-def make_forward(model: Any, family: str, scope: str, slots: torch.Tensor) -> Forward:
+def make_forward(model: Any, family: str, scope: str, slots: torch.Tensor,
+                 right_shift: bool | None = None) -> Forward:
     """The sampler's forward for one family and logit scope. Scope slots scores only the positions that predict the
     slots: logits_to_keep on the masked Qwen models, the output layer on those positions for DiffuGPT, DiffuLLaMA
     and Dream, and a hook on LLaDA's final norm, whose forward computes its logits inside."""
-    shifted = family in SHIFTED
+    shifted = (family in SHIFTED) if right_shift is None else right_shift
     if scope == 'all':
         return lambda x: shift_right(full_logits(model, family, x)) if shifted else full_logits(model, family, x)
     keep = slots - 1 if shifted else slots
@@ -335,9 +376,10 @@ def make_forward(model: Any, family: str, scope: str, slots: torch.Tensor) -> Fo
 
 
 @torch.no_grad()
-def sees_later_tokens(model: Any, family: str, canvas: torch.Tensor, slots: torch.Tensor) -> bool:
+def sees_later_tokens(model: Any, family: str, canvas: torch.Tensor, slots: torch.Tensor,
+                      right_shift: bool | None = None) -> bool:
     """Whether the first slot's prediction changes when the text's last token changes: false for a causal model."""
-    forward = make_forward(model, family, 'all', slots)
+    forward = make_forward(model, family, 'all', slots, right_shift=right_shift)
     other = canvas.clone()
     other[0, -1] = (int(canvas[0, -1]) + 1) % 1000
     first = int(slots[0])
@@ -364,8 +406,12 @@ class Meter:
 
 
 def environment() -> dict[str, Any]:
-    import transformers
-    return {'torch': torch.__version__, 'transformers': transformers.__version__, 'python': platform.python_version(),
+    try:
+        import transformers
+        version = transformers.__version__
+    except ImportError:
+        version = None
+    return {'torch': torch.__version__, 'transformers': version, 'python': platform.python_version(),
             'macos': platform.mac_ver()[0], 'machine': platform.machine()}
 
 
@@ -373,18 +419,44 @@ def precision_label(family: str, precision: str) -> str:
     return dtype_name(family) if precision == 'native' else f'int8 weights, {dtype_name(family)} activations'
 
 
-def run(canvas: dict[str, Any], batch: int, scope: str, steps: int, temperature: float, seed: int,
-        precision: str = 'native') -> dict[str, Any]:
+def run_sampler(canvas: dict[str, Any], steps: StepCount | None = None, temperature: float | None = None,
+                sampler_name: str | None = None, sampler: SamplerSetting | None = None) -> SamplerSetting:
+    """Resolve the SamplerSetting for one benchmark run, applying any explicit named or parameter overrides."""
+    active = resolve_sampler(canvas_sampler(canvas) if sampler is None else sampler, sampler_name)
+    if steps is not None:
+        active = replace(active, steps=steps)
+    if temperature is not None:
+        active = replace(active, temperature=temperature)
+    return active
+
+
+def run_header(canvas: dict[str, Any], batch: int, scope: str, setting: SamplerSetting, seed: int,
+               precision: str, ceiling: int) -> dict[str, Any]:
+    """Metadata written into every benchmark run result, including the full sampler setting."""
+    info, family = canvas['candidate'], canvas['family']
+    step_count = setting.step_count(len(canvas['slots']))
+    out: dict[str, Any] = {
+        'candidate': info, 'family': family, 'batch': batch, 'scope': scope, 'steps': step_count,
+        'temperature': setting.temperature, 'seed': seed, 'sampler': SAMPLER,
+        'sampler_setting': setting.to_dict(), 'precision': precision_label(family, precision),
+        'weights': precision, 'prompt_tokens': canvas['tokens'], 'mask_tokens': len(canvas['slots']),
+        'ask': canvas['ask'], 'mask': canvas['mask'], 'version': canvas['version'], 'ceiling': ceiling,
+        'environment': environment(),
+    }
+    if setting.masks_left == 'exact_linear' and setting.block_length is None:
+        out['committed_per_step'] = schedule(len(canvas['slots']), step_count)
+    return out
+
+
+def run(canvas: dict[str, Any], batch: int, scope: str, steps: StepCount | None = None,
+        temperature: float | None = None, seed: int = 2026, precision: str = 'native',
+        sampler: SamplerSetting | None = None) -> dict[str, Any]:
     """One sampler setting. The memory fraction is set before anything touches the GPU."""
     torch.mps.set_per_process_memory_fraction(1.0)
     ceiling = torch.mps.recommended_max_memory()
     info, family = canvas['candidate'], canvas['family']
-    out = {'candidate': info, 'family': family, 'batch': batch, 'scope': scope, 'steps': steps,
-           'temperature': temperature, 'seed': seed, 'sampler': SAMPLER,
-           'precision': precision_label(family, precision), 'weights': precision,
-           'prompt_tokens': canvas['tokens'], 'mask_tokens': len(canvas['slots']), 'ask': canvas['ask'],
-           'mask': canvas['mask'], 'version': canvas['version'], 'ceiling': ceiling, 'environment': environment(),
-           'committed_per_step': schedule(len(canvas['slots']), steps)}
+    active = run_sampler(canvas, steps=steps, temperature=temperature, sampler=sampler)
+    out = run_header(canvas, batch, scope, active, seed, precision, ceiling)
     meter, start = Meter(), time.perf_counter()
     tokenizer = load_tokenizer(info)    # first: it asks the Hub about the repo, and a dropped connection after sampling lost a run
     try:
@@ -393,12 +465,13 @@ def run(canvas: dict[str, Any], batch: int, scope: str, steps: int, temperature:
         out['load_seconds'] = time.perf_counter() - start
         x = torch.tensor([canvas['ids']], device='mps')
         slots = torch.tensor(canvas['slots'], device='mps')
-        out['sees_later_tokens'] = sees_later_tokens(model, family, x, slots)
+        out['sees_later_tokens'] = sees_later_tokens(model, family, x, slots, right_shift=active.right_shift)
         meter.read('checked')
         generator = torch.Generator(device='mps').manual_seed(seed)
         begin = time.perf_counter()
-        filled = fill(make_forward(model, family, scope, slots), x.repeat(batch, 1), slots, info['mask_id'], steps,
-                      temperature, generator, on_step=lambda j: meter.read(f'step {j + 1}'))
+        forward = make_forward(model, family, scope, slots, right_shift=active.right_shift)
+        filled = fill(forward, x.repeat(batch, 1), slots, info['mask_id'], generator=generator,
+                      on_step=lambda j: meter.read(f'step {j + 1}'), setting=active)
         out['sample_seconds'] = time.perf_counter() - begin
         out['seconds_per_team'] = out['sample_seconds'] / batch
         out['filled'] = [tokenizer.decode(row.tolist()) for row in filled.cpu()]
@@ -427,7 +500,8 @@ def first_step(model: Any, family: str, canvas: dict[str, Any], device: str) -> 
     """Log-probabilities at every mask on the unfilled text, the first step every sampler takes, back on the CPU."""
     x = torch.tensor([canvas['ids']], device=device)
     slots = torch.tensor(canvas['slots'], device=device)
-    return torch.log_softmax(make_forward(model, family, 'slots', slots)(x)[0].float(), -1).cpu()
+    right_shift = canvas_sampler(canvas).right_shift
+    return torch.log_softmax(make_forward(model, family, 'slots', slots, right_shift=right_shift)(x)[0].float(), -1).cpu()
 
 
 def agree(canvas: dict[str, Any]) -> dict[str, Any]:
@@ -546,6 +620,51 @@ def report(directory: Path) -> str:
     return '\n'.join(lines)
 
 
+def _ladder_extra(args: argparse.Namespace) -> list[str]:
+    extra = ['--seed', str(args.seed), '--precision', args.precision]
+    if args.sampler is not None:
+        extra += ['--sampler', args.sampler]
+    if args.steps is not None:
+        extra += ['--steps', str(args.steps)]
+    if args.temperature is not None:
+        extra += ['--temperature', str(args.temperature)]
+    return extra
+
+
+def _run_subcommand(args: argparse.Namespace) -> int:
+    if args.command in ('fetch', 'drop'):
+        info = json.loads((args.dir / 'canvas' / f'{args.key}.json').read_text())['candidate']
+        (fetch if args.command == 'fetch' else drop)(info)
+    elif args.command == 'prepare':
+        prepare(args.dir)
+    elif args.command == 'run':
+        canvas = json.loads(args.canvas.read_text())
+        setting = run_sampler(canvas, steps=args.steps, temperature=args.temperature, sampler_name=args.sampler)
+        result = run(canvas, args.batch, args.scope, seed=args.seed, precision=args.precision, sampler=setting)
+        args.out.write_text(json.dumps(result, ensure_ascii=False) + '\n')
+        print(f"{result['candidate']['label']} {result['precision']} {args.scope} batch {args.batch}: "
+              f"{result['status']}, peak {gib(result['peak'])} GiB of {gib(result['ceiling'])}", flush=True)
+        return 0 if result['status'] == 'fits' else OVER
+    elif args.command == 'agree':
+        result = agree(json.loads(args.canvas.read_text()))
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(result) + '\n')
+        print(f"{result['candidate']['label']} int8 against {result['reference']}: most likely token the same at "
+              f"{result['top1_same']:.1%} of {result['mask_tokens']} masks, KL mean {result['kl_mean']:.4f} "
+              f"max {result['kl_max']:.4f} nats", flush=True)
+    elif args.command == 'ladder':
+        batches = [int(b) for b in args.batches.split(',')]
+        fitted = ladder(args.dir, args.key, subprocess_launch, batches, extra=_ladder_extra(args))
+        crashed = crashed_settings(args.dir, args.key, fitted, batches)
+        if crashed:
+            print(f'{args.key}: crashed without a result at {", ".join(crashed)}; fitted {fitted}', flush=True)
+            return 1
+        print(f'{args.key}: batch sizes that fit {fitted}', flush=True)
+    else:
+        print(report(args.dir))
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     sub = parser.add_subparsers(dest='command', required=True)
@@ -556,8 +675,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     one.add_argument('--scope', choices=SCOPES, required=True)
     one.add_argument('--out', type=Path, required=True)
     for p in (one, many := sub.add_parser('ladder')):
-        p.add_argument('--steps', type=int, default=128)
-        p.add_argument('--temperature', type=float, default=1.0)
+        p.add_argument('--sampler', choices=tuple(SAMPLERS), default=None,
+                       help="named sampler setting (default: the canvas candidate's own)")
+        p.add_argument('--steps', type=int, default=None, help="override the sampler setting's step count")
+        p.add_argument('--temperature', type=float, default=None, help="override the sampler setting's temperature")
         p.add_argument('--seed', type=int, default=2026)
         p.add_argument('--precision', choices=PRECISIONS, default='native')
     check = sub.add_parser('agree')
@@ -571,39 +692,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         weights = sub.add_parser(name)
         weights.add_argument('--dir', type=Path, required=True)
         weights.add_argument('--key', choices=ORDER, required=True)
-    args = parser.parse_args(argv)
-    if args.command in ('fetch', 'drop'):
-        info = json.loads((args.dir / 'canvas' / f'{args.key}.json').read_text())['candidate']
-        (fetch if args.command == 'fetch' else drop)(info)
-    elif args.command == 'prepare':
-        prepare(args.dir)
-    elif args.command == 'run':
-        result = run(json.loads(args.canvas.read_text()), args.batch, args.scope, args.steps, args.temperature,
-                     args.seed, args.precision)
-        args.out.write_text(json.dumps(result, ensure_ascii=False) + '\n')
-        print(f"{result['candidate']['label']} {result['precision']} {args.scope} batch {args.batch}: "
-              f"{result['status']}, peak {gib(result['peak'])} GiB of {gib(result['ceiling'])}", flush=True)
-        return 0 if result['status'] == 'fits' else OVER
-    elif args.command == 'agree':
-        result = agree(json.loads(args.canvas.read_text()))
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(json.dumps(result) + '\n')
-        print(f"{result['candidate']['label']} int8 against {result['reference']}: most likely token the same at "
-              f"{result['top1_same']:.1%} of {result['mask_tokens']} masks, KL mean {result['kl_mean']:.4f} "
-              f"max {result['kl_max']:.4f} nats", flush=True)
-    elif args.command == 'ladder':
-        extra = ['--steps', str(args.steps), '--temperature', str(args.temperature), '--seed', str(args.seed),
-                 '--precision', args.precision]
-        fitted = ladder(args.dir, args.key, subprocess_launch, [int(b) for b in args.batches.split(',')], extra=extra)
-        batches = [int(b) for b in args.batches.split(',')]
-        crashed = crashed_settings(args.dir, args.key, fitted, batches)
-        if crashed:
-            print(f'{args.key}: crashed without a result at {", ".join(crashed)}; fitted {fitted}', flush=True)
-            return 1
-        print(f'{args.key}: batch sizes that fit {fitted}', flush=True)
-    else:
-        print(report(args.dir))
-    return 0
+    return _run_subcommand(parser.parse_args(argv))
 
 
 if __name__ == '__main__':

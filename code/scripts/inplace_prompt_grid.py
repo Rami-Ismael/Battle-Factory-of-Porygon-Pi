@@ -47,12 +47,13 @@ import sys
 import time
 from collections import Counter
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
 import masked_diffusion_text as D
 from mask_paste import STATS, Team, json_pieces, team_from_json, team_paste, value_text
+from masked_diffusion_sampler import SAMPLERS, SHARED_SAMPLER, SamplerSetting, resolve_sampler
 
 GRID = 'heldout'
 GRID_SIZE = 270
@@ -243,20 +244,35 @@ def done_ids(path: Path) -> set[str]:
     return {json.loads(line)['id'] for line in path.read_text().splitlines() if line.strip()}
 
 
+def _fill_sampler(sampler: SamplerSetting | None, setting: dict[str, Any],
+                  start_id: int | None) -> SamplerSetting:
+    if sampler is not None:
+        return sampler
+    return replace(SHARED_SAMPLER, steps=setting['steps'], temperature=setting['temperature'],
+                   start_token=start_id is not None)
+
+
 def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: Callable[[Any], Any], mask_id: int,
              validate: Callable[[str], str | None], names: dict[str, frozenset[str]], seed: int, device: str = 'cpu',
              start_id: int | None = None, setting: dict[str, Any] = SETTING,
-             memory: Callable[[], int] = lambda: 0) -> dict[str, Any]:
+             memory: Callable[[], int] = lambda: 0, sampler: SamplerSetting | None = None) -> dict[str, Any]:
     """One draw for one mask with the given seed, judged; a legal draw carries its paste."""
     import torch
 
     import masked_diffusion_memory_bench as B
+    active = _fill_sampler(sampler, setting, start_id)
     c = canvas(task, prompt, tokenizer, mask_id, start_id)
     x = torch.tensor([c['ids']], device=device)
     slots = torch.tensor(c['slots'], device=device)
     generator = torch.Generator(device=device).manual_seed(seed)
+    forwards = 0
+
+    def count_step(_step: int) -> None:
+        nonlocal forwards
+        forwards += 1
+
     begin = time.perf_counter()
-    result = B.fill(forward_for(slots), x, slots, mask_id, setting['steps'], setting['temperature'], generator)
+    result = B.fill(forward_for(slots), x, slots, mask_id, generator=generator, on_step=count_step, setting=active)
     if device == 'mps':
         torch.mps.synchronize()
     seconds = time.perf_counter() - begin
@@ -267,8 +283,8 @@ def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: 
     verdict |= copies(task, c['built'], values)
     row = {'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k'],
            'prompt': prompt.code, 'version': c['built'].version, 'ask': D.ask_text(ASK), 'seed': seed,
-           'prompt_tokens': len(c['ids']), 'mask_tokens': len(c['slots']),
-           'forwards': len(B.schedule(len(c['slots']), setting['steps'])), 'seconds': seconds,
+           'sampler_setting': active.to_dict(), 'prompt_tokens': len(c['ids']), 'mask_tokens': len(c['slots']),
+           'forwards': forwards, 'seconds': seconds,
            'peak_bytes': memory(), 'fields': [s.field for s in c['built'].slots],
            'paths': [s.path for s in c['built'].slots], 'values': values, 'special_dropped': dropped,
            'slot_ids': [[ids[n] for n in span] for span in c['spans']], **verdict}
@@ -280,7 +296,7 @@ def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: 
 def fill_grid(tasks: Iterable[dict[str, Any]], prompt: Prompt, tokenizer: Any, forward_for: Callable[[Any], Any],
               mask_id: int, out: Path, validate: Callable[[str], str | None], device: str = 'cpu',
               start_id: int | None = None, setting: dict[str, Any] = SETTING,
-              memory: Callable[[], int] = lambda: 0) -> int:
+              memory: Callable[[], int] = lambda: 0, sampler: SamplerSetting | None = None) -> int:
     """Fill every task not yet in out (one JSON line each) and return how many were filled. forward_for(slots) is
     the sampler's forward for that mask's slot positions."""
     names, seen, filled = vocabulary(), done_ids(out), 0
@@ -290,7 +306,7 @@ def fill_grid(tasks: Iterable[dict[str, Any]], prompt: Prompt, tokenizer: Any, f
             if task['id'] in seen:
                 continue
             row = fill_one(task, prompt, tokenizer, forward_for, mask_id, validate, names,
-                           mask_seed(setting['seed'], task['id']), device, start_id, setting, memory)
+                           mask_seed(setting['seed'], task['id']), device, start_id, setting, memory, sampler)
             handle.write(json.dumps(row, ensure_ascii=False) + '\n')
             handle.flush()
             filled += 1
@@ -305,7 +321,8 @@ def redraw_seed(seed: int, task_id: str, draw: int) -> int:
 def redraw_grid(tasks: Iterable[dict[str, Any]], first: Path, prompt: Prompt, tokenizer: Any,
                 forward_for: Callable[[Any], Any], mask_id: int, out: Path, validate: Callable[[str], str | None],
                 device: str = 'cpu', start_id: int | None = None, setting: dict[str, Any] = SETTING,
-                memory: Callable[[], int] = lambda: 0, redraws: int = REDRAWS) -> int:
+                memory: Callable[[], int] = lambda: 0, redraws: int = REDRAWS,
+                sampler: SamplerSetting | None = None) -> int:
     """#169's validator loop: a mask whose first try (in first) failed is drawn again, up to redraws more times,
     stopping at its first legal draw. One JSON line per redraw in out, with its draw number; resumes."""
     names = vocabulary()
@@ -327,7 +344,8 @@ def redraw_grid(tasks: Iterable[dict[str, Any]], first: Path, prompt: Prompt, to
                         break
                     continue
                 row = fill_one(task, prompt, tokenizer, forward_for, mask_id, validate, names,
-                               redraw_seed(setting['seed'], task['id'], draw), device, start_id, setting, memory)
+                               redraw_seed(setting['seed'], task['id'], draw), device, start_id, setting, memory,
+                               sampler)
                 row['draw'] = draw
                 handle.write(json.dumps(row, ensure_ascii=False) + '\n')
                 handle.flush()
@@ -352,7 +370,7 @@ def load_candidate(key: str, device: str) -> tuple[Any, Any, Any, str]:
     """(candidate, tokenizer, model, family) at #162's pinned revision, as the #170 benchmark loads it."""
     import count_masked_diffusion_text as C
     import masked_diffusion_memory_bench as B
-    candidate = next(c for c in C.CANDIDATES if c.key == key)
+    candidate = C.candidate_by_key(key)
     info = B.candidate_info(candidate)
     tokenizer = B.load_tokenizer(info)
     family = B.FAMILY[key]
@@ -360,13 +378,17 @@ def load_candidate(key: str, device: str) -> tuple[Any, Any, Any, str]:
     return candidate, tokenizer, model, family
 
 
-def run_meta(prompt: Prompt, candidate: Any, tasks: list[dict[str, Any]]) -> dict[str, Any]:
-    import jev_fill
+def run_meta(prompt: Prompt, candidate: Any, tasks: list[dict[str, Any]],
+             sampler: SamplerSetting | None = None, tasks_sha256: str | None = None) -> dict[str, Any]:
     import masked_diffusion_memory_bench as B
-    tasks_file = jev_fill.GRIDS[GRID] / 'eval2.tasks.json'
+    if tasks_sha256 is None:
+        import jev_fill
+        tasks_sha256 = hashlib.sha256((jev_fill.GRIDS[GRID] / 'eval2.tasks.json').read_bytes()).hexdigest()
+    active = candidate.sampler if sampler is None else sampler
     return {'prompt': prompt.code, 'prompt_name': prompt.name, 'candidate': B.candidate_info(candidate),
-            'grid': GRID, 'tasks': len(tasks), 'tasks_sha256': hashlib.sha256(tasks_file.read_bytes()).hexdigest(),
-            'ask': D.ask_text(ASK), 'setting': SETTING, 'sampler': B.SAMPLER, 'environment': environment(),
+            'grid': GRID, 'tasks': len(tasks), 'tasks_sha256': tasks_sha256,
+            'ask': D.ask_text(ASK), 'setting': SETTING, 'sampler': B.SAMPLER,
+            'sampler_setting': active.to_dict(), 'environment': environment(),
             'started': time.strftime('%Y-%m-%dT%H:%M:%S%z')}
 
 
@@ -378,7 +400,8 @@ def grid_tasks() -> list[dict[str, Any]]:
     return tasks
 
 
-def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: str, redraw: bool = False) -> int:
+def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: str, redraw: bool = False,
+        sampler_name: str | None = None) -> int:
     import torch
 
     import masked_diffusion_memory_bench as B
@@ -388,22 +411,23 @@ def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: 
     if device == 'mps':
         torch.mps.set_per_process_memory_fraction(1.0)
     candidate, tokenizer, model, family = load_candidate(key, device)
+    active = resolve_sampler(candidate.sampler, sampler_name)
     out = directory / prompt.code / key
     out.mkdir(parents=True, exist_ok=True)
     meta_path = out / 'run.json'
     if not meta_path.exists():
-        meta_path.write_text(json.dumps(run_meta(prompt, candidate, tasks), indent=1) + '\n')
-    start_id = tokenizer.bos_token_id if candidate.start_token else None
+        meta_path.write_text(json.dumps(run_meta(prompt, candidate, tasks, active), indent=1) + '\n')
+    start_id = tokenizer.bos_token_id if active.start_token else None
     memory = (lambda: torch.mps.driver_allocated_memory()) if device == 'mps' else (lambda: 0)
     validate = Validator()
-    forward_for = lambda s: B.make_forward(model, family, SETTING['scope'], s)
+    forward_for = lambda s: B.make_forward(model, family, SETTING['scope'], s, right_shift=active.right_shift)
     try:
         if redraw:
             filled = redraw_grid(tasks[:limit], out / 'fills.jsonl', prompt, tokenizer, forward_for, candidate.mask_id,
-                                 out / 'redraws.jsonl', validate, device, start_id, memory=memory)
+                                 out / 'redraws.jsonl', validate, device, start_id, memory=memory, sampler=active)
         else:
             filled = fill_grid(tasks[:limit], prompt, tokenizer, forward_for, candidate.mask_id, out / 'fills.jsonl',
-                               validate, device, start_id, memory=memory)
+                               validate, device, start_id, memory=memory, sampler=active)
     finally:
         validate.close()
     if redraw:
@@ -425,9 +449,9 @@ def legal_teams(prompt_code: str, key: str, directory: Path) -> dict[str, Any]:
     import count_masked_diffusion_text as C
     from showdown_validator import Validator
     prompt, tasks = PROMPTS[prompt_code], {t['id']: t for t in grid_tasks()}
-    candidate = next(c for c in C.CANDIDATES if c.key == key)
+    candidate = C.candidate_by_key(key)
     tokenizer = B.load_tokenizer(B.candidate_info(candidate))
-    start_id = tokenizer.bos_token_id if candidate.start_token else None
+    start_id = tokenizer.bos_token_id if candidate.sampler.start_token else None
     out = directory / prompt.code / key
     final, names, validate = final_draws(out / 'fills.jsonl', out / 'redraws.jsonl'), vocabulary(), Validator()
     teams = {}
@@ -580,9 +604,9 @@ def preflight(out: Path) -> dict[str, Any]:
                               'environment': environment(), 'candidates': {}}
     try:
         for key in SMALL_FOUR:
-            candidate = next(c for c in C.CANDIDATES if c.key == key)
+            candidate = C.candidate_by_key(key)
             tokenizer = C.load_tokenizer(candidate)
-            start_id = tokenizer.bos_token_id if candidate.start_token else None
+            start_id = tokenizer.bos_token_id if candidate.sampler.start_token else None
             rng = random.Random(SETTING['seed'])
             row: dict[str, Any] = {'slot_lengths': D.slot_lengths(tokenizer)}
             ceiling = trip = trip_paste = floor = floor_showdown = built = 0
@@ -690,7 +714,8 @@ def team_from_paste_row(row: dict[str, Any]) -> Team | None:
     return team
 
 
-def gpu_preflight(key: str, directory: Path, device: str = 'mps') -> dict[str, Any]:
+def gpu_preflight(key: str, directory: Path, device: str = 'mps',
+                  sampler_name: str | None = None) -> dict[str, Any]:
     """The probes that need the model, on three masks: attention sees later tokens, the same seed refills the same
     values, running the masks in reverse order changes nothing, and a redraw's seed gives a different fill (#171:
     a redraw that repeats the first try would make the validator loop a no-op)."""
@@ -700,23 +725,24 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps') -> dict[str, A
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
     torch.mps.set_per_process_memory_fraction(1.0)
     candidate, tokenizer, model, family = load_candidate(key, device)
+    active = resolve_sampler(candidate.sampler, sampler_name)
     tasks = grid_tasks()
     picks = [next(t for t in tasks if t['task'] == kind and t['k'] == k)
              for kind, k in (('items', 1), ('moves', 8), ('pokemon', 2))]
-    start_id = tokenizer.bos_token_id if candidate.start_token else None
+    start_id = tokenizer.bos_token_id if active.start_token else None
 
     def draw(task: dict[str, Any], seed: int | None = None) -> list[int]:
         c = canvas(task, PROMPTS['inplace_header'], tokenizer, candidate.mask_id, start_id)
         x, slots = torch.tensor([c['ids']], device=device), torch.tensor(c['slots'], device=device)
         seed = mask_seed(SETTING['seed'], task['id']) if seed is None else seed
         generator = torch.Generator(device=device).manual_seed(seed)
-        filled = B.fill(B.make_forward(model, family, SETTING['scope'], slots), x, slots, candidate.mask_id,
-                        SETTING['steps'], SETTING['temperature'], generator)
+        forward = B.make_forward(model, family, SETTING['scope'], slots, right_shift=active.right_shift)
+        filled = B.fill(forward, x, slots, candidate.mask_id, generator=generator, setting=active)
         return filled[0, slots].cpu().tolist()
 
     c0 = canvas(picks[0], PROMPTS['inplace_header'], tokenizer, candidate.mask_id, start_id)
     sees = B.sees_later_tokens(model, family, torch.tensor([c0['ids']], device=device),
-                               torch.tensor(c0['slots'], device=device))
+                               torch.tensor(c0['slots'], device=device), right_shift=active.right_shift)
     first = [draw(t) for t in picks]
     again = [draw(t) for t in picks]
     reverse = [draw(t) for t in reversed(picks)][::-1]
@@ -726,9 +752,10 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps') -> dict[str, A
         pairs = [(x, y) for p, q in zip(a, b, strict=True) for x, y in zip(p, q, strict=True)]
         return sum(x == y for x, y in pairs) / len(pairs)
 
-    out = {'candidate': key, 'masks': [t['id'] for t in picks], 'sees_later_tokens': sees,
-           'repeat_same_tokens': same(first, again), 'reverse_order_same_tokens': same(first, reverse),
-           'redraw_same_tokens': same(first, redrawn), 'environment': environment()}
+    out = {'candidate': key, 'sampler_setting': active.to_dict(), 'masks': [t['id'] for t in picks],
+           'sees_later_tokens': sees, 'repeat_same_tokens': same(first, again),
+           'reverse_order_same_tokens': same(first, reverse), 'redraw_same_tokens': same(first, redrawn),
+           'environment': environment()}
     out['pass'] = (sees and out['repeat_same_tokens'] >= 0.9 and out['reverse_order_same_tokens'] >= 0.9
                    and out['redraw_same_tokens'] < 1.0)
     path = directory / 'preflight' / f'gpu-{key}.json'
@@ -761,6 +788,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     gpu = sub.add_parser('gpu-preflight')
     gpu.add_argument('--key', choices=SMALL_FOUR, required=True)
     gpu.add_argument('--dir', type=Path, default=OUT)
+    for p in (one, again, gpu):
+        p.add_argument('--sampler', choices=tuple(SAMPLERS), default=None,
+                       help="named sampler setting (default: the candidate's own)")
     rep = sub.add_parser('report')
     rep.add_argument('--dir', type=Path, default=OUT)
     rep.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
@@ -768,14 +798,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == 'preflight':
         return 0 if preflight(args.out)['pass'] else 1
     if args.command == 'run':
-        return run(args.prompt, args.key, args.dir, args.limit, args.device)
+        return run(args.prompt, args.key, args.dir, args.limit, args.device, sampler_name=args.sampler)
     if args.command == 'redraw':
-        return run(args.prompt, args.key, args.dir, args.limit, args.device, redraw=True)
+        return run(args.prompt, args.key, args.dir, args.limit, args.device, redraw=True, sampler_name=args.sampler)
     if args.command == 'teams':
         legal_teams(args.prompt, args.key, args.dir)
         return 0
     if args.command == 'gpu-preflight':
-        return 0 if gpu_preflight(args.key, args.dir)['pass'] else 1
+        return 0 if gpu_preflight(args.key, args.dir, sampler_name=args.sampler)['pass'] else 1
     print(report(args.dir, args.prompt))
     return 0
 

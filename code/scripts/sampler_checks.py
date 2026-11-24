@@ -45,6 +45,7 @@ import re
 import sys
 import time
 from collections.abc import Callable, Sequence
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -53,6 +54,7 @@ import torch
 import masked_diffusion_memory_bench as B
 import masked_diffusion_text as D
 from mask_paste import json_pieces, value_text
+from masked_diffusion_sampler import PER_MASK_STEPS, SHARED_SAMPLER, SamplerSetting
 
 DLLM_COMMIT = 'ca176752fbceec49c6b4777a2c18ae88e4eb10ed'
 LEAKS = re.compile('[":,]')
@@ -173,31 +175,36 @@ def dllm_fill(canvas: dict[str, Any], steps: int, block_size: int | None) -> dic
     model = AutoModelForMaskedLM.from_pretrained(info['repo'], revision=info['revision'], trust_remote_code=True,
                                                  dtype=torch.float32).eval()
     config = MDLMSamplerConfig(steps=steps, temperature=0.0, block_size=block_size, return_dict=True)
+    setting = SamplerSetting(name='dllm_infill', steps=steps, temperature=0.0, block_length=block_size,
+                             right_shift=False, start_token=B.canvas_sampler(canvas).start_token)
     start = time.perf_counter()
     out = MDLMSampler(model=model, tokenizer=tokenizer).infill([canvas['ids']], config)
     return _fill_result('dLLM MDLMSampler.infill', canvas, steps, [h[0].tolist() for h in out.histories],
-                        tokenizer.decode, time.perf_counter() - start, block_size=block_size, dllm=DLLM_COMMIT)
+                        tokenizer.decode, time.perf_counter() - start, sampler_setting=setting,
+                        block_size=block_size, dllm=DLLM_COMMIT)
 
 
 def ours_fill(canvas: dict[str, Any], scope: str, steps: int) -> dict[str, Any]:
     """The benchmark's fill on the canvas, CPU float32, temperature 0, every canvas kept."""
     info, family = canvas['candidate'], canvas['family']
+    setting = replace(B.canvas_sampler(canvas), steps=steps, temperature=0.0)
     tokenizer = B.load_tokenizer(info)
     model = B.load_model(info, family, 'native', 'cpu').float()
     x, slots = torch.tensor([canvas['ids']]), torch.tensor(canvas['slots'])
-    forward, states = recording(B.make_forward(model, family, scope, slots))
+    forward, states = recording(B.make_forward(model, family, scope, slots, right_shift=setting.right_shift))
     start = time.perf_counter()
-    final = B.fill(forward, x, slots, info['mask_id'], steps, 0.0)
+    final = B.fill(forward, x, slots, info['mask_id'], setting=setting)
     return _fill_result(f'ours, logits scored at {scope}', canvas, steps, [s[0].tolist() for s in [*states, final]],
-                        tokenizer.decode, time.perf_counter() - start, scope=scope)
+                        tokenizer.decode, time.perf_counter() - start, sampler_setting=setting, scope=scope)
 
 
 def _fill_result(sampler: str, canvas: dict[str, Any], steps: int, states: list[list[int]],
-                 decode: Callable[[list[int]], str], seconds: float, **extra: Any) -> dict[str, Any]:
-    return {'sampler': sampler, 'candidate': canvas['candidate'], 'steps': steps, 'temperature': 0.0,
-            'device': 'cpu', 'precision': 'float32', 'environment': B.environment(), 'seconds': seconds,
-            'states': states, 'filled': decode(states[-1]), 'values': values_from_ids(canvas['slots'], states[-1], decode),
-            **extra}
+                 decode: Callable[[list[int]], str], seconds: float, *,
+                 sampler_setting: SamplerSetting, **extra: Any) -> dict[str, Any]:
+    return {'sampler': sampler, 'sampler_setting': sampler_setting.to_dict(), 'candidate': canvas['candidate'],
+            'steps': steps, 'temperature': 0.0, 'device': 'cpu', 'precision': 'float32',
+            'environment': B.environment(), 'seconds': seconds, 'states': states, 'filled': decode(states[-1]),
+            'values': values_from_ids(canvas['slots'], states[-1], decode), **extra}
 
 
 # ---------- check 2: does the right shift copy a visible answer ----------
@@ -232,13 +239,18 @@ def copy_cases(team: list[dict[str, Any]], tokenizer: Any, mask_id: int,
     return cases
 
 
+def copy_setting(shift: bool, start_token: bool = False) -> SamplerSetting:
+    """The greedy one-step-per-mask shared setting used by check 2's shift and no-shift arms."""
+    return replace(SHARED_SAMPLER, steps=PER_MASK_STEPS, temperature=0.0, right_shift=shift, start_token=start_token)
+
+
 def fill_case(full_logits: B.Forward, case: dict[str, Any], mask_id: int, shift: bool,
-              device: str = 'cpu') -> list[int]:
+              device: str = 'cpu', start_token: bool = False) -> list[int]:
     """One case filled at temperature 0, one token per step, with or without the right shift."""
     x = torch.tensor([case['ids']], device=device)
     slots = torch.tensor(case['positions'], device=device)
     forward = (lambda t: B.shift_right(full_logits(t))) if shift else full_logits
-    return B.fill(forward, x, slots, mask_id, len(case['positions']), 0.0)[0].tolist()
+    return B.fill(forward, x, slots, mask_id, setting=copy_setting(shift, start_token))[0].tolist()
 
 
 def copied(filled: Sequence[int], case: dict[str, Any]) -> tuple[bool, float]:
@@ -255,6 +267,17 @@ def copy_teams() -> list[list[dict[str, Any]]]:
     return [team[i:i + COPY_POKEMON] for team in teams for i in (0, COPY_POKEMON)]
 
 
+def copy_header(info: dict[str, Any], family: str, device: str, start_id: int | None, attention: str,
+                trained_shifted: bool) -> dict[str, Any]:
+    """Metadata for a check-2 copy run, recording the exact SamplerSetting of both arms."""
+    start_token = start_id is not None
+    sampler_setting = {'shift': copy_setting(True, start_token).to_dict(),
+                       'no_shift': copy_setting(False, start_token).to_dict()}
+    return {'candidate': info, 'family': family, 'trained_shifted': trained_shifted, 'device': device,
+            'precision': B.dtype_name(family), 'environment': B.environment(), 'start_token': start_id,
+            'attention': attention, 'sampler_setting': sampler_setting, 'cases': []}
+
+
 def copy_check(key: str, out: Path, device: str, start_token: bool | None = None, attention: str = 'sdpa',
                limit: int | None = None) -> dict[str, Any]:
     """Check 2 for one candidate. Cases already in out are kept, so a killed run resumes. start_token puts the
@@ -262,19 +285,19 @@ def copy_check(key: str, out: Path, device: str, start_token: bool | None = None
     values, for the repeat probe."""
     canvas = json.loads((Path.home() / 'vgc-data/masked_memory_bench/canvas' / f'{key}.json').read_text())
     info, family = canvas['candidate'], canvas['family']
+    base = B.candidate_sampler(key)
     tokenizer = B.load_tokenizer(info)
     if start_token is None:
-        start_token = B.wants_start_token(key)
+        start_token = base.start_token
     start_id = tokenizer.bos_token_id if start_token else None
     if start_token and start_id is None:
         raise SystemExit(f"{info['label']}: its tokenizer has no start token")
     if device == 'mps':
         torch.mps.set_per_process_memory_fraction(1.0)
     model = B.load_model(info, family, 'native', device, attention)
-    result = json.loads(out.read_text()) if out.exists() else {
-        'candidate': info, 'family': family, 'trained_shifted': family in B.SHIFTED, 'device': device,
-        'precision': B.dtype_name(family), 'environment': B.environment(), 'start_token': start_id,
-        'attention': attention, 'cases': []}
+    header = copy_header(info, family, device, start_id, attention, base.right_shift)
+    result = json.loads(out.read_text()) if out.exists() else header
+    result.setdefault('sampler_setting', header['sampler_setting'])
     done = {(c['team'], c['path']) for c in result['cases']}
     cases = [(t, case) for t, team in enumerate(copy_teams())
              for case in copy_cases(team, tokenizer, info['mask_id'], start_id)][:limit]
@@ -284,7 +307,8 @@ def copy_check(key: str, out: Path, device: str, start_token: bool | None = None
         assert len(case['ids']) <= 1024, len(case['ids'])
         row = {'team': t, 'path': case['path'], 'value': case['value'], 'tokens': len(case['positions'])}
         for shift in (True, False):
-            filled = fill_case(lambda x: B.full_logits(model, family, x), case, info['mask_id'], shift, device)
+            filled = fill_case(lambda x: B.full_logits(model, family, x), case, info['mask_id'], shift, device,
+                               start_token)
             exact, share = copied(filled, case)
             row['shift' if shift else 'no_shift'] = {
                 'exact': exact, 'token_share': share,
@@ -301,6 +325,12 @@ def copy_check(key: str, out: Path, device: str, start_token: bool | None = None
 
 
 # ---------- Dream's own sampler ----------
+
+def dream_own_setting(canvas: dict[str, Any], alg: str, steps: int, temperature: float) -> dict[str, Any]:
+    """Sampler parameters recorded alongside a Dream diffusion_generate run."""
+    return {'name': f'dream_own:{alg}', 'alg': alg, 'steps': steps, 'temperature': float(temperature),
+            'right_shift': True, 'start_token': B.canvas_sampler(canvas).start_token}
+
 
 def dream_own_samples(model: Any, canvas: dict[str, Any], alg: str, steps: int, temperature: float,
                       seeds: Sequence[int], device: str, done: list[dict[str, Any]] | None = None,
@@ -331,9 +361,12 @@ def dream_own(canvas: dict[str, Any], out: Path, alg: str, steps: int, temperatu
     tokenizer = B.load_tokenizer(info)
     torch.mps.set_per_process_memory_fraction(1.0)
     model = B.load_model(info, family, 'native', 'mps')
+    sampler_setting = dream_own_setting(canvas, alg, steps, temperature)
     result = json.loads(out.read_text()) if out.exists() else {
-        'candidate': info, 'family': family, 'sampler': f"Dream's own diffusion_generate, alg={alg}", 'alg': alg,
-        'steps': steps, 'temperature': temperature, 'environment': B.environment(), 'samples': []}
+        'candidate': info, 'family': family, 'sampler': f"Dream's own diffusion_generate, alg={alg}",
+        'sampler_setting': sampler_setting, 'alg': alg, 'steps': steps, 'temperature': temperature,
+        'environment': B.environment(), 'samples': []}
+    result.setdefault('sampler_setting', sampler_setting)
 
     def save(samples: list[dict[str, Any]]) -> None:
         result['samples'] = samples
