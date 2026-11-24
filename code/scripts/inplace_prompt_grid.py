@@ -407,15 +407,32 @@ def check_run_meta(meta_path: Path, active: SamplerSetting, right_shift: bool) -
         return
     existing = json.loads(meta_path.read_text())
     if 'sampler_setting' in existing:
-        recorded = existing['sampler_setting']
+        recorded = SamplerSetting.from_dict(existing['sampler_setting'])
     else:
         s = existing.get('setting', SETTING)
         recorded = replace(
             SHARED_SAMPLER, steps=s['steps'], temperature=s['temperature'], right_shift=right_shift,
             start_token=bool(existing.get('candidate', {}).get('start_token', False)),
-        ).to_dict()
-    if recorded != active.to_dict():
-        raise ValueError(f'{meta_path}: existing run used {recorded}, refusing to mix with {active.to_dict()}')
+        )
+    if recorded != active:
+        raise ValueError(f'{meta_path}: existing run used {recorded.to_dict()}, refusing to mix with '
+                         f'{active.to_dict()}')
+
+
+def check_existing_rows(paths: Sequence[Path], active: SamplerSetting, right_shift: bool,
+                        start_token: bool) -> None:
+    """Refuse to resume or redraw when saved rows (even without run.json) came from a different sampler setting."""
+    legacy_default = replace(SHARED_SAMPLER, steps=SETTING['steps'], temperature=SETTING['temperature'],
+                             right_shift=right_shift, start_token=start_token)
+    for path in paths:
+        if not path.exists():
+            continue
+        for row in read_rows(path):
+            recorded = (SamplerSetting.from_dict(row['sampler_setting']) if 'sampler_setting' in row
+                        else legacy_default)
+            if recorded != active:
+                raise ValueError(f'{path}: row {row.get("id")!r} used {recorded.to_dict()}, refusing to mix with '
+                                 f'{active.to_dict()}')
 
 
 def grid_tasks() -> list[dict[str, Any]]:
@@ -441,9 +458,10 @@ def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: 
     out = directory / prompt.code / key
     out.mkdir(parents=True, exist_ok=True)
     meta_path = out / 'run.json'
-    if meta_path.exists():
-        check_run_meta(meta_path, active, candidate.sampler.right_shift)
-    else:
+    check_run_meta(meta_path, active, candidate.sampler.right_shift)
+    check_existing_rows((out / 'fills.jsonl', out / 'redraws.jsonl'), active,
+                        candidate.sampler.right_shift, candidate.sampler.start_token)
+    if not meta_path.exists():
         meta_path.write_text(json.dumps(run_meta(prompt, candidate, tasks, active), indent=1) + '\n')
     start_id = start_token_id(tokenizer, active)
     memory = (lambda: torch.mps.driver_allocated_memory()) if device == 'mps' else (lambda: 0)

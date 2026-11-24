@@ -7,7 +7,8 @@ Today's shared sampler (SHARED_SAMPLER) is the default for every candidate until
 authors' evaluation sampler:
     fill_order      'confidence' (most confident masks first)
     masks_left      'exact_linear' (ours, dLLM) or 'at_most_linear' (DiffuGPT's evaluation sampler, #393)
-    steps           positive int, or 'per_mask' (one step per masked token)
+    steps           positive int, or 'per_mask' (total steps equal to the masked token count; with block_length in
+                    #394, dLLM's infill divides that total step budget across windows)
     temperature     0.0 (greedy) or positive float (1.0 in today's shared sampler)
     top_p           None (off)
     block_length    None (whole text at once) or positive int (256 in dLLM's evaluation script, #394)

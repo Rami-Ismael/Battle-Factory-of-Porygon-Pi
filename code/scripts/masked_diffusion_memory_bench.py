@@ -531,32 +531,44 @@ def result_path(directory: Path, key: str, scope: str, batch: int) -> Path:
     return directory / 'runs' / key / f'{scope}-batch{batch:03d}.json'
 
 
-def _cached_sampler_setting(result: dict[str, Any]) -> dict[str, Any] | None:
+def _cached_sampler_setting(result: dict[str, Any], expected_sampler: SamplerSetting,
+                            canvas_tokens: int | None = None) -> SamplerSetting | None:
     if 'sampler_setting' in result:
-        return result['sampler_setting']
+        return SamplerSetting.from_dict(result['sampler_setting'])
     if 'steps' not in result and 'temperature' not in result:
         return None
     info = result.get('candidate', {})
+    if 'start_token' in info:
+        has_start = bool(info['start_token'])
+    elif canvas_tokens is not None and result.get('prompt_tokens') == canvas_tokens:
+        has_start = expected_sampler.start_token
+    else:
+        has_start = False
     return replace(
         SHARED_SAMPLER,
         steps=result.get('steps', SHARED_SAMPLER.steps),
         temperature=result.get('temperature', SHARED_SAMPLER.temperature),
         right_shift=result.get('family') in SHIFTED,
-        start_token=bool(info.get('start_token', False)),
-    ).to_dict()
+        start_token=has_start,
+    )
 
 
-def _check_cached_result(path: Path, result: dict[str, Any], expected_sampler: SamplerSetting | None) -> None:
+def _check_cached_result(path: Path, result: dict[str, Any], expected_sampler: SamplerSetting | None,
+                         canvas_tokens: int | None = None) -> None:
     if expected_sampler is None:
         return
-    recorded = _cached_sampler_setting(result)
-    if recorded is not None and recorded != expected_sampler.to_dict():
-        raise ValueError(f'{path}: cached result used {recorded}, refusing to mix with {expected_sampler.to_dict()}')
+    if canvas_tokens is not None and result.get('prompt_tokens') is not None and result['prompt_tokens'] != canvas_tokens:
+        raise ValueError(f'{path}: cached result had {result["prompt_tokens"]} prompt tokens, '
+                         f'expected {canvas_tokens}')
+    recorded = _cached_sampler_setting(result, expected_sampler, canvas_tokens)
+    if recorded is not None and recorded != expected_sampler:
+        raise ValueError(f'{path}: cached result used {recorded.to_dict()}, refusing to mix with '
+                         f'{expected_sampler.to_dict()}')
 
 
 def ladder(directory: Path, key: str, launch: Callable[[list[str]], int], batches: Sequence[int] = BATCHES,
            scopes: Iterable[str] = SCOPES, extra: Sequence[str] = (),
-           expected_sampler: SamplerSetting | None = None) -> dict[str, list[int]]:
+           expected_sampler: SamplerSetting | None = None, canvas_tokens: int | None = None) -> dict[str, list[int]]:
     """Each scope's batch sizes in order, one process each, stopping at the first that does not fit. A setting that
     already has a result is not run again; a cached result from a different sampler setting raises ValueError."""
     fitted: dict[str, list[int]] = {}
@@ -569,7 +581,7 @@ def ladder(directory: Path, key: str, launch: Callable[[list[str]], int], batche
                 launch(['run', '--canvas', str(directory / 'canvas' / f'{key}.json'), '--batch', str(batch),
                         '--scope', scope, '--out', str(path), *extra])
             result = json.loads(path.read_text()) if path.exists() else {}
-            _check_cached_result(path, result, expected_sampler)
+            _check_cached_result(path, result, expected_sampler, canvas_tokens)
             if result.get('status') != 'fits' or not result.get('fits_under_ceiling', True):
                 break
             fitted[scope].append(batch)
@@ -685,10 +697,16 @@ def _run_subcommand(args: argparse.Namespace) -> int:
     elif args.command == 'ladder':
         batches = [int(b) for b in args.batches.split(',')]
         canvas_path = args.dir / 'canvas' / f'{args.key}.json'
-        expected = (run_sampler(json.loads(canvas_path.read_text()), steps=args.steps, temperature=args.temperature,
-                                sampler_name=args.sampler) if canvas_path.exists() else None)
+        if canvas_path.exists():
+            canvas = json.loads(canvas_path.read_text())
+            expected = run_sampler(canvas, steps=args.steps, temperature=args.temperature, sampler_name=args.sampler)
+            canvas_tokens = canvas.get('tokens')
+        else:
+            expected = run_sampler({}, steps=args.steps, temperature=args.temperature, sampler_name=args.sampler,
+                                   sampler=candidate_sampler(args.key))
+            canvas_tokens = None
         fitted = ladder(args.dir, args.key, subprocess_launch, batches, extra=_ladder_extra(args),
-                        expected_sampler=expected)
+                        expected_sampler=expected, canvas_tokens=canvas_tokens)
         crashed = crashed_settings(args.dir, args.key, fitted, batches)
         if crashed:
             print(f'{args.key}: crashed without a result at {", ".join(crashed)}; fitted {fitted}', flush=True)

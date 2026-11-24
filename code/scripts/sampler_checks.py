@@ -279,16 +279,21 @@ def copy_header(info: dict[str, Any], family: str, device: str, start_id: int | 
 
 
 def resume_copy_result(out: Path, header: dict[str, Any]) -> dict[str, Any]:
-    """Load an existing copy-check result only when its start token, attention and sampler_setting match header."""
+    """Load an existing copy-check result only when its start token, attention and sampler_setting match header.
+    Pre-attention #236 files default to 'sdpa'."""
     if not out.exists():
         return header
     existing = json.loads(out.read_text())
-    if existing.get('start_token') != header['start_token'] or existing.get('attention') != header['attention']:
+    saved_attention = existing.get('attention', 'sdpa')
+    if existing.get('start_token') != header['start_token'] or saved_attention != header['attention']:
         raise ValueError(f'{out}: saved copy run used start_token={existing.get("start_token")!r}, '
-                         f'attention={existing.get("attention")!r}; refusing to resume with '
+                         f'attention={saved_attention!r}; refusing to resume with '
                          f'start_token={header["start_token"]!r}, attention={header["attention"]!r}')
-    if 'sampler_setting' in existing and existing['sampler_setting'] != header['sampler_setting']:
-        raise ValueError(f'{out}: saved copy run used a different sampler_setting; refusing to resume')
+    if 'sampler_setting' in existing:
+        saved_settings = {k: SamplerSetting.from_dict(v) for k, v in existing['sampler_setting'].items()}
+        wanted_settings = {k: SamplerSetting.from_dict(v) for k, v in header['sampler_setting'].items()}
+        if saved_settings != wanted_settings:
+            raise ValueError(f'{out}: saved copy run used a different sampler_setting; refusing to resume')
     existing.setdefault('sampler_setting', header['sampler_setting'])
     return existing
 
@@ -367,8 +372,9 @@ def dream_own_samples(model: Any, canvas: dict[str, Any], alg: str, steps: int, 
     return samples
 
 
-def resume_dream_result(out: Path, header: dict[str, Any]) -> dict[str, Any]:
-    """Load an existing dream-own result only when its alg, steps, temperature and sampler_setting match header."""
+def resume_dream_result(out: Path, header: dict[str, Any], canvas_tokens: int | None = None) -> dict[str, Any]:
+    """Load an existing dream-own result only when its alg, steps, temperature, start_token and sampler_setting
+    match header."""
     if not out.exists():
         return header
     existing = json.loads(out.read_text())
@@ -377,8 +383,18 @@ def resume_dream_result(out: Path, header: dict[str, Any]) -> dict[str, Any]:
     if saved != wanted:
         raise ValueError(f'{out}: saved Dream run used alg={saved[0]!r}, steps={saved[1]!r}, '
                          f'temperature={saved[2]!r}; refusing to resume with {wanted!r}')
-    if 'sampler_setting' in existing and existing['sampler_setting'] != header['sampler_setting']:
-        raise ValueError(f'{out}: saved Dream run used a different sampler_setting; refusing to resume')
+    if 'sampler_setting' in existing:
+        if existing['sampler_setting'] != header['sampler_setting']:
+            raise ValueError(f'{out}: saved Dream run used a different sampler_setting; refusing to resume')
+    else:
+        saved_start = bool(existing.get('candidate', {}).get('start_token', False))
+        if saved_start != header['sampler_setting']['start_token']:
+            raise ValueError(f'{out}: saved Dream run had start_token={saved_start!r}; refusing to resume with '
+                             f'start_token={header["sampler_setting"]["start_token"]!r}')
+        samples = existing.get('samples', [])
+        if canvas_tokens is not None and samples and len(samples[0].get('filled_ids', [])) != canvas_tokens:
+            raise ValueError(f'{out}: saved Dream samples have {len(samples[0]["filled_ids"])} tokens, '
+                             f'expected {canvas_tokens}')
     existing.setdefault('sampler_setting', header['sampler_setting'])
     return existing
 
@@ -392,7 +408,7 @@ def dream_own(canvas: dict[str, Any], out: Path, alg: str, steps: int, temperatu
     header = {'candidate': info, 'family': family, 'sampler': f"Dream's own diffusion_generate, alg={alg}",
               'sampler_setting': sampler_setting, 'alg': alg, 'steps': steps, 'temperature': temperature,
               'environment': B.environment(), 'samples': []}
-    result = resume_dream_result(out, header)
+    result = resume_dream_result(out, header, canvas_tokens=len(canvas['ids']))
     tokenizer = B.load_tokenizer(info)
     torch.mps.set_per_process_memory_fraction(1.0)
     model = B.load_model(info, family, 'native', 'mps')

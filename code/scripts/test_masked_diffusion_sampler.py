@@ -401,6 +401,19 @@ class ResumeProvenanceGuardTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 B.ladder(Path(d), 'qwen3', lambda _: 0, batches=[1], scopes=['slots'],
                          expected_sampler=replace(qwen, steps=64))
+            # DiffuLLaMA legacy redraw without candidate.start_token matches 806-token canvas and refuses 805-token one.
+            llama = C.candidate_by_key('diffullama').sampler
+            lpath = B.result_path(Path(d), 'diffullama', 'slots', 1)
+            lpath.parent.mkdir(parents=True)
+            lpath.write_text(json.dumps({'status': 'fits', 'family': 'llama', 'steps': 128, 'temperature': 1.0,
+                                         'prompt_tokens': 806, 'candidate': {'key': 'diffullama'}}))
+            self.assertEqual(B.ladder(Path(d), 'diffullama', lambda _: 0, batches=[1], scopes=['slots'],
+                                      expected_sampler=llama, canvas_tokens=806), {'slots': [1]})
+            lpath.write_text(json.dumps({'status': 'fits', 'family': 'llama', 'steps': 128, 'temperature': 1.0,
+                                         'prompt_tokens': 805, 'candidate': {'key': 'diffullama'}}))
+            with self.assertRaises(ValueError):
+                B.ladder(Path(d), 'diffullama', lambda _: 0, batches=[1], scopes=['slots'],
+                         expected_sampler=llama, canvas_tokens=806)
 
     def test_inplace_grid_refuses_resume_or_redraw_with_different_sampler_setting(self):
         candidate = C.candidate_by_key('diffugpt_s')
@@ -417,31 +430,59 @@ class ResumeProvenanceGuardTest(unittest.TestCase):
             G.check_run_meta(meta_path, candidate.sampler, candidate.sampler.right_shift)
             with self.assertRaises(ValueError):
                 G.check_run_meta(meta_path, replace(candidate.sampler, temperature=0.0), candidate.sampler.right_shift)
+            # Existing fills.jsonl rows without run.json are also checked.
+            fills_path = Path(d) / 'fills.jsonl'
+            fills_path.write_text(json.dumps({'id': 'a1', 'sampler_setting': candidate.sampler.to_dict()}) + '\n')
+            G.check_existing_rows((fills_path,), candidate.sampler, candidate.sampler.right_shift,
+                                  candidate.sampler.start_token)
+            with self.assertRaises(ValueError):
+                G.check_existing_rows((fills_path,), replace(candidate.sampler, steps='per_mask'),
+                                      candidate.sampler.right_shift, candidate.sampler.start_token)
+            # Legacy fills.jsonl row without sampler_setting refuses non-default sampler.
+            fills_path.write_text(json.dumps({'id': 'a1'}) + '\n')
+            G.check_existing_rows((fills_path,), candidate.sampler, candidate.sampler.right_shift,
+                                  candidate.sampler.start_token)
+            with self.assertRaises(ValueError):
+                G.check_existing_rows((fills_path,), replace(candidate.sampler, temperature=0.0),
+                                      candidate.sampler.right_shift, candidate.sampler.start_token)
 
     def test_copy_and_dream_resume_refuse_mismatched_settings_and_do_not_mislabel(self):
         llama = C.candidate_by_key('diffullama')
         dream = C.candidate_by_key('dream')
         with tempfile.TemporaryDirectory() as d:
             copy_path = Path(d) / 'copy.json'
-            # Legacy no-start-token copy run on disk: resuming with start_token=1 must raise.
-            copy_path.write_text(json.dumps({'start_token': None, 'attention': 'sdpa', 'cases': [{'team': 0}]}))
+            # Pre-attention #236 file (neither attention nor sampler_setting): resumes with sdpa, refuses eager or <s>.
+            copy_path.write_text(json.dumps({'start_token': None, 'cases': [{'team': 0}]}))
             with_start = S.copy_header(B.candidate_info(llama), 'llama', 'cpu', 1, 'sdpa', True)
             with self.assertRaises(ValueError):
                 S.resume_copy_result(copy_path, with_start)
+            eager_no_start = S.copy_header(B.candidate_info(llama), 'llama', 'cpu', None, 'eager', True)
+            with self.assertRaises(ValueError):
+                S.resume_copy_result(copy_path, eager_no_start)
             without_start = S.copy_header(B.candidate_info(llama), 'llama', 'cpu', None, 'sdpa', True)
             resumed = S.resume_copy_result(copy_path, without_start)
             self.assertFalse(resumed['sampler_setting']['shift']['start_token'])
 
             dream_path = Path(d) / 'dream.json'
             dream_canvas = {'candidate': B.candidate_info(dream), 'family': 'dream'}
-            dream_path.write_text(json.dumps({'alg': 'origin', 'steps': 128, 'temperature': 1.0, 'samples': []}))
+            dream_path.write_text(json.dumps({'alg': 'origin', 'steps': 128, 'temperature': 1.0,
+                                              'candidate': {'start_token': False},
+                                              'samples': [{'seed': 1, 'filled_ids': [1, 2, 3]}]}))
             mismatch = {'alg': 'maskgit_plus', 'steps': 128, 'temperature': 1.0,
                         'sampler_setting': S.dream_own_setting(dream_canvas, 'maskgit_plus', 128, 1.0)}
             with self.assertRaises(ValueError):
-                S.resume_dream_result(dream_path, mismatch)
+                S.resume_dream_result(dream_path, mismatch, canvas_tokens=3)
+            # Legacy no-start-token Dream file refuses start_token=True or mismatched canvas length.
+            started_dream = {'alg': 'origin', 'steps': 128, 'temperature': 1.0,
+                             'sampler_setting': {**S.dream_own_setting(dream_canvas, 'origin', 128, 1.0),
+                                                 'start_token': True}}
+            with self.assertRaises(ValueError):
+                S.resume_dream_result(dream_path, started_dream, canvas_tokens=4)
             matching = {'alg': 'origin', 'steps': 128, 'temperature': 1.0,
                         'sampler_setting': S.dream_own_setting(dream_canvas, 'origin', 128, 1.0)}
-            resumed_dream = S.resume_dream_result(dream_path, matching)
+            with self.assertRaises(ValueError):
+                S.resume_dream_result(dream_path, matching, canvas_tokens=4)
+            resumed_dream = S.resume_dream_result(dream_path, matching, canvas_tokens=3)
             self.assertEqual(resumed_dream['sampler_setting']['alg'], 'origin')
 
 
