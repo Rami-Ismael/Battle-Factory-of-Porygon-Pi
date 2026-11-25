@@ -243,6 +243,12 @@ def compare_figure(results: dict[str, dict[str, Any]], prompt: str, out: Path) -
                        dark={AFTER_LIGHT: AFTER_DARK, BEFORE_LIGHT: BEFORE_DARK})
 
 
+def same_tokens(rows: list[dict[str, Any]], other: list[dict[str, Any]]) -> int:
+    """Masks whose fill is the same token for token in both runs."""
+    by_id = {r['id']: r['slot_ids'] for r in other}
+    return sum(r['slot_ids'] == by_id.get(r['id']) for r in rows)
+
+
 def compare_comment(directory: Path, prompt: str, url: str) -> str:
     results = compare_results(directory, prompt)
     alt = '; '.join(f"{LABELS[k]}: legal {c['legal']['before']} then {c['legal']['after']} of 270, parses as JSON "
@@ -261,8 +267,16 @@ def compare_comment(directory: Path, prompt: str, url: str) -> str:
                      f"{c['real_species']['before']} → {c['real_species']['after']} of {c['real_species']['of']} | "
                      f"{c['seconds_per_team']['before']:.1f} → {c['seconds_per_team']['after']:.1f} | "
                      f"{top['before']} → {top['after']} |")
-    lines += ['', f"Pre-registration and prediction: `code/docs/{PREREGISTRATION[prompt]}`. Per-model JSON: "
-              f"`~/vgc-data/inplace_prompt_grid/{prompt}/compare.json`."]
+    laptop = {k: G.read_rows(G.OUT / BEFORE / k / 'fills.jsonl') for k in results
+              if directory.resolve() != G.OUT.resolve() and (G.OUT / BEFORE / k / 'fills.jsonl').exists()}
+    if laptop:
+        lines += ['', f"**The device, with the prompt held fixed.** Header-only fills here against {TICKETS[BEFORE]}'s "
+                  'laptop fills of the same masks and seeds: ' + '; '.join(
+                      f"{LABELS[k]} {same_tokens(rows_for(directory, k, BEFORE), laptop[k])}/270 token for token, "
+                      f"legal {sum(r['legal'] for r in rows_for(directory, k, BEFORE))} here and "
+                      f"{sum(r['legal'] for r in laptop[k])} on the laptop" for k in laptop) + '.']
+    lines += ['', f"Pre-registration and prediction: `code/docs/{PREREGISTRATION[prompt]}`. Fills: "
+              f"`{str(directory).replace(str(Path.home()), '~')}/<prompt>/<model>/fills.jsonl`."]
     return '\n'.join(lines) + '\n'
 
 
