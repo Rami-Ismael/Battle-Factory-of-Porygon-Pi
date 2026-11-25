@@ -36,6 +36,7 @@ import team84 as T
 import uniform_diffusion84 as UM
 import uniform_preflight84 as UP
 import wandb_tracking as WT
+from wrong_stone_check import refuse_wrong_stones
 
 SHUFFLED_ONLY = X.RES / "lossdata84_shuffled_only.npz"
 DATA = SHUFFLED_ONLY
@@ -341,6 +342,7 @@ def train_arm(arm):
         raise ValueError(f"unknown uniform arm {arm!r}; choose from {sorted(ARMS)}")
     table = load(SHUFFLED_ONLY)
     check_rows(table)
+    refuse_wrong_stones(table)                           # every field visible; no wrong-stone team trains (#368, #385)
     DATA_SHA, DATA_TABLE = table["sha256"], table["table"]
     has_label = ~np.isnan(table["all_W"])
     train_mask = ~table["all_val"] & has_label
