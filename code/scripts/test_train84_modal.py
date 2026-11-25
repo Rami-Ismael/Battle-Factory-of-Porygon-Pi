@@ -34,6 +34,19 @@ class NamesAndCommandsTests(unittest.TestCase):
         self.assertEqual(cmd[4:], [f"{TM.REMOTE_CODE}/src/train84.py", "shuffled_linear_filtered_gidd_lr",
                                    "--legality-teams", "64", "--wandb-mode", "offline"])
 
+    def test_legality_command_runs_checkpoint_legality_through_boot(self):
+        cmd = TM.legality_command("stat84_shuffled_noise_linear_filtered_es3_cap80")
+        self.assertEqual(cmd[3], TM.BOOT)
+        self.assertEqual(cmd[4:], [f"{TM.REMOTE_CODE}/src/checkpoint_legality.py",
+                                   "stat84_shuffled_noise_linear_filtered_es3_cap80"])
+
+    def test_legality_result_name_matches_checkpoint_legality(self):
+        import checkpoint_legality as CL
+        name = "stat84_shuffled_noise_linear_filtered_es3_cap80"
+        self.assertEqual(TM.legality_result_name(name), CL.result_path(name, tables=False).name)
+        self.assertEqual(TM.legality_result_name(name, 1.0), CL.result_path(name, tables=False, guidance=1.0).name)
+        self.assertEqual(TM.legality_command(name, 1.0)[-2:], ["--guidance", "1"])
+
     def test_smoke_flag_is_the_trainers_env_switch(self):
         self.assertEqual(TM.trainer_env(smoke=True, base={})["S84_SMOKE"], "1")
         self.assertNotIn("S84_SMOKE", TM.trainer_env(smoke=False, base={"S84_SMOKE": "1"}))

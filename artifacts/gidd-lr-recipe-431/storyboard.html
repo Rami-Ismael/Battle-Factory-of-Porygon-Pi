@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning-Rate Storyboard</title>
+<style>
+:root{--fg:var(--foreground,#0b0b0b);--mut:var(--muted-foreground,#6f6e69);--bd:var(--border,#d9d8d3);--teal:#0f766e;--orange:#c2410c;--ok:var(--success,#1f8a5b);--warn:var(--warning,#b7791f)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fg:var(--foreground,#f2f1ee);--mut:var(--muted-foreground,#a9a8a2);--bd:var(--border,#3a3936);--teal:#2bb3a3;--orange:#e0703f}}
+body{margin:0;color:var(--fg);font:14px/1.45 var(--font-sans,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif)}
+ol{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:f}
+li{display:grid;grid-template-columns:34px 1fr;gap:10px;border:1px solid var(--bd);border-radius:var(--radius,10px);padding:12px 14px}
+.n{font:700 18px/1 var(--font-mono,ui-monospace,monospace);color:var(--mut);padding-top:2px}
+.s{font-weight:650;font-size:15px;margin:0 0 6px}
+.row{display:grid;grid-template-columns:78px 1fr;gap:6px;font-size:12.5px;margin:2px 0}
+.row b{color:var(--mut);font-weight:600}
+.held{color:var(--ok)} .miss{color:var(--warn)}
+.tag{display:inline-block;font:600 11px var(--font-mono,ui-monospace,monospace);border:1px solid var(--bd);border-radius:4px;padding:0 5px;margin-top:6px;color:var(--mut)}
+.teaser{border-width:2px}
+.appx{opacity:.8}
+.check{margin:12px 0 0;font-size:12.5px;color:var(--mut)}
+.check b{color:var(--fg)}
+</style>
+</head>
+<body>
+<ol>
+<li class="teaser"><span class="n">T</span><div>
+  <p class="s">One shared learning-rate recipe: the late drop lands at a higher learning rate, and both arms end lower.</p>
+  <div class="row"><b>Shows</b><span>The two schedules, each run's steepest late drop on its own schedule, and three measured results underneath.</span></div>
+  <span class="tag">lr-recipe-teaser.html</span></div></li>
+<li><span class="n">1</span><div>
+  <p class="s">The shared recipe ends lower on both arms, and the gain arrives at the late drop.</p>
+  <div class="row"><b>Expected</b><span>Lower validation loss on both arms.</span></div>
+  <div class="row"><b>Surprise</b><span class="held">Old and new curves match to 0.007 through epoch 40; the whole gain comes at and after the drop.</span></div>
+  <div class="row"><b>Cut</b><span>Dropped the learning-rate panel (it moved to frame 2); a dot marks each drop.</span></div>
+  <span class="tag">lr-recipe-val-loss.html</span></div></li>
+<li><span class="n">2</span><div>
+  <p class="s">The drop lands while the learning rate is still higher: 2.0 against 0.64 (×10⁻⁴) for Uniform.</p>
+  <div class="row"><b>Expected</b><span>Both arms drop earlier.</span></div>
+  <div class="row"><b>Surprise</b><span class="miss">Only Uniform drops earlier (59 → 49). Masked drops later (53 → 55) but at a higher rate (1.0 → 1.5) and twice as deep.</span></div>
+  <div class="row"><b>Cut</b><span>Learning-rate curves plus one dot per run, no legend; the dots are labelled.</span></div>
+  <span class="tag">lr-recipe-cliff-lr.html</span></div></li>
+<li><span class="n">3</span><div>
+  <p class="s">Without the filter, only Uniform learns the rules; the shared recipe takes it from 16% to 44% legal.</p>
+  <div class="row"><b>Expected</b><span>Uniform rises after the drop; Masked near 0, as in #361.</span></div>
+  <div class="row"><b>Surprise</b><span class="miss">Masked reads 0% at every epoch under both recipes: the filter in its loss does all the rule-following.</span></div>
+  <div class="row"><b>Cut</b><span>Masked redrawn without the filter at guidance 1, the same draw as Uniform's; its old flat 100% line is gone.</span></div>
+  <span class="tag">lr-recipe-legality.html</span></div></li>
+<li><span class="n">4</span><div>
+  <p class="s">What still breaks for Uniform at epoch 80: Stat Points over 66 (27%) and repeated species (23%).</p>
+  <div class="row"><b>Expected</b><span>Every rule falls under the shared recipe.</span></div>
+  <div class="row"><b>Surprise</b><span class="held">Every rule did fall; the field-matching rules are now near 0, the team-wide ones are not.</span></div>
+  <div class="row"><b>Cut</b><span>Uniform only (Masked's story is frame 3); grouped bars, since the comparison is between recipes, not over time.</span></div>
+  <span class="tag">lr-recipe-rules-epoch80.html</span></div></li>
+<li class="appx"><span class="n">A</span><div>
+  <p class="s">Appendix: every rule per epoch, one run at a time; Pokémon-to-field matching rules for Uniform.</p>
+  <span class="tag">lr-recipe-all-rules.html</span> <span class="tag">lr-recipe-field-matching.html</span></div></li>
+</ol>
+<p class="check"><b>Two-narrative check.</b> Figures alone: lower loss, a drop at a higher learning rate, Uniform learns the rules and Masked doesn't, two rules left. Words alone: one shared recipe helps both arms through the late drop. Both readings reach the same conclusion. The one place they could split is frame 2, which says "higher", not "earlier", because Masked's drop moved later.</p>
+</body>
+</html>

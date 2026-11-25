@@ -72,33 +72,87 @@ def summary(runs):
     return out
 
 
+LIGHT = {"Uniform, no filter": "#8fc9c1", "Masked, full filter": "#f2b08f"}     # each arm's old-recipe tint
+
+
+def cliff(info, after=30):
+    """(epoch, drop): the epoch, from `after` on, whose validation loss fell most from the epoch before."""
+    curve = info["curves"]
+    return max(((curve[i]["epoch"], curve[i - 1]["val_loss"] - curve[i]["val_loss"]) for i in range(1, len(curve))
+                if curve[i]["epoch"] >= after), key=lambda pair: pair[1])
+
+
 def val_loss_figure(runs, out_dir):
+    """Figure 2: validation loss per epoch, both arms, both recipes, each run's late cliff marked."""
     series = []
     for arm, (old, new) in runs.items():
         for label, info, dash in ((OLD_RECIPE, old, "dashed"), (NEW_RECIPE, new, "solid")):
+            epoch = cliff(info)[0]
+            loss = next(e["val_loss"] for e in info["curves"] if e["epoch"] == epoch)
             series.append({"type": "line", "name": f"{arm} · {label}", "color": COLORS[arm], "symbol": "none",
                            "lineStyle": {"type": dash, "width": 2}, "emphasis": {"focus": "series"},
-                           "data": [[e["epoch"], round(e["val_loss"], 5)] for e in info["curves"]]})
+                           "data": [[e["epoch"], round(e["val_loss"], 5)] for e in info["curves"]],
+                           "markPoint": {"symbol": "circle", "symbolSize": 9, "data": [{"coord": [epoch, round(loss, 5)]}],
+                                         "itemStyle": {"color": COLORS[arm] if dash == "solid" else "#fff",
+                                                       "borderColor": COLORS[arm], "borderWidth": 2},
+                                         "label": {"show": False}}})
+    option = {"tooltip": {"trigger": "axis"}, "legend": {"top": 0, "left": 0, "itemGap": 14},
+              "grid": {"left": 64, "right": 24, "top": 100, "bottom": 72},
+              "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 24},
+              "yAxis": {"type": "value", "scale": True, "name": "validation loss (nats per field)"},
+              "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 14, "bottom": 4}], "series": series}
+    return write_chart(option, Path(out_dir) / "lr-recipe-val-loss.html",
+                       title="The shared recipe ends lower on both arms, and the gain arrives at the late drop",
+                       subtitle="Dashed: old recipe, 4e-4 cosine to 0. Solid: shared GIDD-style recipe, 5e-4 cosine to 5e-5. "
+                                "A dot marks each run's steepest drop after epoch 30. Lower is better.",
+                       note="One training seed per run. Validation loss: 4 fixed draws on 4,368 held-out teams. Old recipe trained on "
+                            "the laptop GPU, shared recipe on a Modal GPU; the curves agree within 0.007 through epoch 40.", height=520)
+
+
+def cliff_lr_figure(runs, out_dir, teaser=False):
+    """Figure 3 (and, with teaser=True, the teaser): the learning rate each recipe gives per epoch, with each run's steepest
+    late drop placed on its own recipe's curve. The teaser adds the measured results under the plot."""
     old_info, new_info = runs["Uniform, no filter"]
+    series = []
     for label, info, dash in ((OLD_RECIPE, old_info, "dashed"), (NEW_RECIPE, new_info, "solid")):
         series.append({"type": "line", "name": f"learning rate · {label}", "color": "#6f6e69", "symbol": "none",
-                       "xAxisIndex": 1, "yAxisIndex": 1, "lineStyle": {"type": dash, "width": 1.5},
-                       "emphasis": {"focus": "series"},
-                       "data": [[i + 1, v] for i, v in enumerate(lr_by_epoch(info))]})
-    option = {
-        "tooltip": {"trigger": "axis"}, "legend": {"top": 0, "left": 0, "itemGap": 14},
-        "grid": [{"left": 64, "right": 24, "top": 104, "height": "46%"}, {"left": 64, "right": 24, "top": "75%", "bottom": 72}],
-        "xAxis": [{"type": "value", "min": 1, "max": 80, "gridIndex": 0, "axisLabel": {"show": False}},
-                  {"type": "value", "min": 1, "max": 80, "gridIndex": 1, "name": "epoch", "nameLocation": "middle", "nameGap": 24}],
-        "yAxis": [{"type": "value", "scale": True, "gridIndex": 0, "name": "validation loss (nats per field)"},
-                  {"type": "value", "gridIndex": 1, "name": "learning rate", "axisLabel": {"formatter": "{value}"}}],
-        "dataZoom": [{"type": "inside", "xAxisIndex": [0, 1]}, {"type": "slider", "xAxisIndex": [0, 1], "height": 14, "bottom": 4}],
-        "series": series,
-    }
-    return write_chart(option, Path(out_dir) / "lr-recipe-val-loss.html",
-                       title="Validation loss under the old and the shared GIDD-style learning-rate recipe",
-                       subtitle="Dashed, old recipe: 4e-4 cosine to 0 (laptop GPU). Solid, shared GIDD-style recipe: 5e-4 cosine to 5e-5 (Modal GPU). Lower is better.",
-                       note="One training seed per run. Validation loss: 4 fixed draws on 4,368 held-out teams.", height=600)
+                       "lineStyle": {"type": dash, "width": 2}, "emphasis": {"focus": "series"},
+                       "data": [[i + 1, round(v * 1e4, 4)] for i, v in enumerate(lr_by_epoch(info))]})
+    for arm, (old, new) in runs.items():
+        short = arm.split(",")[0]
+        for label, info, filled in ((OLD_RECIPE, old, False), (NEW_RECIPE, new, True)):
+            epoch = cliff(info)[0]
+            lr = lr_by_epoch(info)[epoch - 1] * 1e4
+            series.append({"type": "scatter", "name": f"{short} steepest drop · {label}", "symbolSize": 12,
+                           "itemStyle": {"color": COLORS[arm] if filled else "#fff", "borderColor": COLORS[arm], "borderWidth": 2.5},
+                           "label": {"show": True, "position": "right" if short == "Uniform" else "left", "fontSize": 11,
+                                     "formatter": f"{short}, epoch {epoch}"},
+                           "data": [[epoch, round(lr, 3)]]})
+    bottom = 150 if teaser else 56
+    option = {"tooltip": {"trigger": "item"},
+              "grid": {"left": 64, "right": 24, "top": 36, "bottom": bottom},
+              "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 24},
+              "yAxis": {"type": "value", "min": 0, "max": 5.5, "interval": 1, "name": "learning rate (×10⁻⁴)"}, "series": series}
+    if teaser:
+        tiles = [("−0.12 / −0.10", "best validation loss, Uniform / Masked"),
+                 ("16% → 44%", "Uniform drawn teams legal on the first try, no filter"),
+                 ("0% → 0%", "Masked drawn teams legal without the filter, every epoch")]
+        option["graphic"] = [{"type": "group", "left": f"{4 + 33 * i}%", "bottom": 8, "children": [
+            {"type": "text", "style": {"text": big, "fontSize": 26, "fontWeight": 700, "fill": "#0b0b0b"}},
+            {"type": "text", "top": 36, "style": {"text": small, "fontSize": 11.5, "fill": "#52514e", "width": 200, "overflow": "break"}}]}
+            for i, (big, small) in enumerate(tiles)]
+        return write_chart(option, Path(out_dir) / "lr-recipe-teaser.html",
+                           title="One shared learning-rate recipe: the late drop lands at a higher learning rate, both arms end lower",
+                           subtitle="Grey: the learning rate each recipe gives (dashed old 4e-4 to 0, solid shared 5e-4 to 5e-5). "
+                                    "Dots: each run's steepest late drop in validation loss, hollow for the old recipe.",
+                           note="One training seed per run, 80 epochs each, all still improving at the cap. Legality: 64 teams per "
+                                "epoch at guidance 1, drawn without the legal Pokémon construction filter.", height=560)
+    return write_chart(option, Path(out_dir) / "lr-recipe-cliff-lr.html",
+                       title="Under the shared recipe, the late drop lands while the learning rate is still higher",
+                       subtitle="Grey: the learning rate each recipe gives. Dots: each run's steepest late drop in validation loss, "
+                                "hollow for the old recipe. Uniform's drop moved 10 epochs earlier; Masked's moved 2 epochs later.",
+                       note="Steepest drop: the epoch from 30 on whose validation loss fell most from the epoch before. One seed per run.",
+                       height=460)
 
 
 def field_matching_figure(runs, out_dir):
@@ -121,6 +175,115 @@ def field_matching_figure(runs, out_dir):
                        height=500)
 
 
+def unfiltered_curves(runs, results=RESULTS):
+    """{arm: (old entries, new entries)}: per-epoch legality drawn without the legal Pokémon construction filter.
+    Uniform, no filter's training check already drew without it. Masked, full filter's drew through it, so its entries
+    come from the checkpoint_legality.py redraw of its epoch checkpoints, filter off; an arm without both redraws is left out."""
+    out = {}
+    for arm, (old, new) in runs.items():
+        if arm.startswith("Uniform"):
+            out[arm] = (old["curves"], new["curves"])
+            continue
+        paths = [Path(results) / f"{name}_legality_no_tables_g1.json" for name in ARMS[arm]]     # guidance 1, as Uniform's
+        if all(path.exists() for path in paths):
+            out[arm] = tuple(json.loads(path.read_text())["epochs"] for path in paths)
+    return out
+
+
+DRAWS = {"Uniform, no filter": "128 passes over all fields", "Masked, full filter": "one field per pass, species first"}
+
+
+def draw_note(curves):
+    parts = [f"{arm}: {DRAWS[arm]}" for arm in curves]
+    return ("64 teams per epoch at the elite cut and guidance 1, drawn without the legal Pokémon construction filter, the same seed every epoch ("
+            + "; ".join(parts) + "). "
+            + ("Masked, full filter's draws are a redraw of its saved epoch checkpoints with the filter off. "
+               if "Masked, full filter" in curves else "")
+            + "Old recipe: 4e-4 cosine to 0. Shared GIDD-style recipe: 5e-4 cosine to 5e-5.")
+
+
+def legality_figure(curves, out_dir):
+    """First-try legal share per epoch, every arm and recipe, drawn without the filter."""
+    series = []
+    for arm, (old, new) in curves.items():
+        for label, entries, dash in ((OLD_RECIPE, old, "dashed"), (NEW_RECIPE, new, "solid")):
+            series.append({"type": "line", "name": f"{arm} · {label}", "color": COLORS[arm], "symbol": "none",
+                           "lineStyle": {"type": dash, "width": 2}, "emphasis": {"focus": "series"},
+                           "data": [[e["epoch"], round(1 - e["illegal_share"], 4)] for e in entries if "illegal_share" in e]})
+    option = {"tooltip": {"trigger": "axis"}, "legend": {"top": 0, "left": 0, "itemGap": 14},
+              "grid": {"left": 64, "right": 24, "top": 96, "bottom": 72},
+              "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 24},
+              "yAxis": {"type": "value", "min": 0, "max": 1, "name": "legal on the first try"},
+              "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 14, "bottom": 4}], "series": series}
+    return write_chart(option, Path(out_dir) / "lr-recipe-legality.html",
+                       title="Share of 64 drawn teams legal on the first try, every epoch, no filter",
+                       subtitle="Dashed: old recipe. Solid: shared GIDD-style recipe. Every draw skips the legal Pokémon construction filter, so the line shows when the network itself learns the rules. "
+                                "All 214,055 training teams pass that filter, so an illegal team is the model's own.",
+                       note=draw_note(curves), height=500)
+
+
+RULES = ("ability the species can't have", "move the species can't learn", "Stat Points over 66",
+         "species used more than once", "item used more than once", "same move twice on one Pokémon",
+         "wrong Mega Stone", "other item the species can't hold")
+
+
+# Rows of the rule heatmap: the five rules that need each field matched to its own Pokémon, then the three team-wide ones
+HEATMAP_RULES = ("ability the species can't have", "move the species can't learn", "same move twice on one Pokémon",
+                 "wrong Mega Stone", "other item the species can't hold", "species used more than once",
+                 "item used more than once", "Stat Points over 66")
+# Categorical slots 1-8 of the dataviz reference palette, light and dark steps, one per rule in HEATMAP_RULES order
+RULE_LIGHT = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948")
+RULE_DARK = ("#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#0ca30c", "#9085e9", "#e66767")
+
+
+def all_rules_figure(curves, out_dir):
+    """Line chart, one colour per legality rule: share of 64 teams drawn without the filter that break it, per epoch.
+    One run at a time; the switch under the chart picks it."""
+    options, runs = [], []
+    for arm, (old, new) in curves.items():
+        for label, entries in ((OLD_RECIPE, old), (NEW_RECIPE, new)):
+            runs.append(f"{arm.split(',')[0]} · {'old' if label == OLD_RECIPE else 'shared'} recipe")
+            options.append({"series": [{"type": "line", "name": rule, "color": color, "symbol": "none", "lineStyle": {"width": 2},
+                                        "emphasis": {"focus": "series"},
+                                        "data": [[e["epoch"], e["rule_shares"].get(rule, 0)] for e in entries if "rule_shares" in e]}
+                                       for rule, color in zip(HEATMAP_RULES, RULE_LIGHT)]})
+    pct = "js:v => Math.round(v * 100) + '%'"
+    base = {"backgroundColor": "transparent", "tooltip": {"trigger": "axis", "valueFormatter": pct, "order": "valueDesc"},
+            "legend": {"top": 0, "left": 0, "data": list(HEATMAP_RULES), "itemGap": 14},
+            "timeline": {"axisType": "category", "data": runs, "autoPlay": False, "bottom": 0, "left": 70, "right": 70,
+                         "controlStyle": {"show": False}, "label": {"fontSize": 11}},
+            "grid": {"left": 56, "right": 24, "top": 96, "bottom": 104},
+            "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 26},
+            "yAxis": {"type": "value", "min": 0, "max": 1, "axisLabel": {"formatter": pct}}}
+    return write_chart({"baseOption": base, "options": options}, Path(out_dir) / "lr-recipe-all-rules.html",
+                       title="Share of drawn teams breaking each rule, every epoch, no filter",
+                       subtitle="One line per rule; pick the run under the chart. A team can break several rules. No filter means the "
+                                "draws skip the legal Pokémon construction filter; all 214,055 training teams pass it.",
+                       note=draw_note(curves), height=560, dark=dict(zip(RULE_LIGHT, RULE_DARK)))
+
+
+def rules_at_end_figure(curves, out_dir, epoch=80, arm="Uniform, no filter"):
+    """Figure 5: the share of Uniform's drawn teams breaking each rule at the last epoch, old recipe against shared."""
+    series = []
+    for label, entries, color in ((OLD_RECIPE, curves[arm][0], LIGHT[arm]), (NEW_RECIPE, curves[arm][1], COLORS[arm])):
+        last = next(e for e in entries if e["epoch"] == epoch)
+        series.append({"type": "bar", "name": label, "color": color, "barGap": "10%", "barCategoryGap": "30%",
+                       "itemStyle": {"borderRadius": [0, 3, 3, 0]}, "emphasis": {"focus": "series"},
+                       "label": {"show": True, "position": "right", "fontSize": 11,
+                                 "formatter": "js:p => Math.round(p.value * 100) + '%'"},
+                       "data": [round(last["rule_shares"].get(rule, 0), 4) for rule in HEATMAP_RULES]})
+    option = {"legend": {"top": 0, "left": 0},
+              "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "valueFormatter": "js:v => Math.round(v * 100) + '%'"},
+              "grid": {"left": 210, "right": 48, "top": 40, "bottom": 32},
+              "xAxis": {"type": "value", "min": 0, "max": 0.6, "interval": 0.2, "axisLabel": {"formatter": "js:v => Math.round(v * 100) + '%'"}},
+              "yAxis": {"type": "category", "data": list(HEATMAP_RULES), "inverse": True, "axisTick": {"show": False}},
+              "series": series}
+    return write_chart(option, Path(out_dir) / "lr-recipe-rules-epoch80.html",
+                       title=f"Uniform, no filter at epoch {epoch}: Stat Points and repeated species are what still break",
+                       subtitle="Share of 64 drawn teams breaking each rule. Light: old recipe. Dark: shared GIDD-style recipe. Shorter is better.",
+                       note=draw_note({arm: curves[arm]}), height=440, dark={LIGHT[arm]: "#4a5654", COLORS[arm]: "#2bb3a3"})
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, required=True)
@@ -128,7 +291,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     runs = {arm: (load(old, args.results), load(new, args.results)) for arm, (old, new) in ARMS.items()}
     args.out.mkdir(parents=True, exist_ok=True)
-    pages = [val_loss_figure(runs, args.out), field_matching_figure(runs, args.out)]
+    curves = unfiltered_curves(runs, args.results)
+    pages = [cliff_lr_figure(runs, args.out, teaser=True), val_loss_figure(runs, args.out), cliff_lr_figure(runs, args.out),
+             legality_figure(curves, args.out), rules_at_end_figure(curves, args.out),
+             all_rules_figure(curves, args.out), field_matching_figure(runs, args.out)]
     result = summary(runs)
     (args.out / "summary.json").write_text(json.dumps(result, indent=1))
     print(json.dumps(result, indent=1))

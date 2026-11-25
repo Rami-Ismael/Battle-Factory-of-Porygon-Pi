@@ -15,9 +15,15 @@ How the container matches the laptop:
 
 Before any launch: state the estimated cost and the credit left (`modal billing summary`), and wait for the owner.
 
-    modal run code/scripts/train84_modal.py --arm udlm_loglinear_gidd_lr --smoke          # 1 epoch on 512 teams
-    modal run --detach code/scripts/train84_modal.py --arm udlm_loglinear_gidd_lr
-    modal run --detach code/scripts/train84_modal.py --arm shuffled_linear_filtered_gidd_lr
+    modal run code/scripts/train84_modal.py::main --arm udlm_loglinear_gidd_lr --smoke          # 1 epoch on 512 teams
+    modal run --detach code/scripts/train84_modal.py::main --arm udlm_loglinear_gidd_lr
+    modal run --detach code/scripts/train84_modal.py::main --arm shuffled_linear_filtered_gidd_lr
+
+First-try legality of a training's saved epoch checkpoints with the legal Pokémon construction filter off
+(src/checkpoint_legality.py), for an arm whose training check drew through the filter and so read 0 every epoch:
+
+    modal volume put vgc-train84 <checkpoint folder> lossdown/<training>      # unless the training ran here
+    modal run code/scripts/train84_modal.py::legality_main --trainings <training>,<training>
 """
 from __future__ import annotations
 
@@ -136,28 +142,72 @@ runpy.run_path(script, run_name="__main__")
 ''' % (DEVICE_MODULES,)
 
 
-def run_in_container(arm, *, smoke, legality_teams, commit=lambda: None):
-    """Container body: seed the volume's checkpoint folder, run the trainer with its log teed to the volume,
-    then copy the run JSON to the volume."""
+def legality_command(training, guidance=None):
+    """src/checkpoint_legality.py on one training's epoch checkpoints, no legal Pokémon construction filter, through BOOT.
+    guidance None keeps the script's default, the training check's guidance 2."""
+    extra = [] if guidance is None else ["--guidance", f"{guidance:g}"]
+    return [sys.executable, "-u", "-c", BOOT, f"{REMOTE_CODE}/src/checkpoint_legality.py", training, *extra]
+
+
+def legality_result_name(training, guidance=None):
+    """checkpoint_legality.result_path with tables off."""
+    suffix = "" if guidance in (None, 2.0) else f"_g{guidance:g}"
+    return f"{training}_legality_no_tables{suffix}.json"
+
+
+def prepare_volume():
+    """Make the volume's folders and seed its checkpoint folder with the checkpoints lossdown reads at import."""
     volume_dir = Path(VOLUME)
     for sub in ("lossdown", "results", "logs", "wandb"):
         (volume_dir / sub).mkdir(parents=True, exist_ok=True)
     for seed_name in SEED_CHECKPOINTS:
         if not (volume_dir / "lossdown" / seed_name).exists():
             shutil.copy2(Path("/opt/vgc/seed") / seed_name, volume_dir / "lossdown" / seed_name)
-    name = run_name(arm, smoke)
-    log_path = volume_dir / "logs" / f"{name}.log"
-    start_time = time.perf_counter()
+    return volume_dir
+
+
+def stream(command, log_path, env, commit):
+    """Run command with its output teed to log_path, committing the volume every 10 minutes; returns the exit code."""
     with open(log_path, "w") as log:
-        process = subprocess.Popen(trainer_command(arm, legality_teams=legality_teams),
-                                env=trainer_env(smoke=smoke), cwd=REMOTE_CODE, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, text=True, bufsize=1)
+        process = subprocess.Popen(command, env=env, cwd=REMOTE_CODE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, text=True, bufsize=1)
         last_commit = time.monotonic()
         for line in process.stdout:
             sys.stdout.write(line); log.write(line); log.flush()
             if time.monotonic() - last_commit > 600:
                 commit(); last_commit = time.monotonic()
-        exit_code = process.wait()
+        return process.wait()
+
+
+def legality_in_container(trainings, guidance=None, commit=lambda: None):
+    """Container body: no-filter first-try legality of every epoch checkpoint of each training, which must already be
+    in the volume's lossdown folder. Copies each result JSON to the volume's results folder."""
+    volume_dir = prepare_volume()
+    out = {}
+    for training in trainings:
+        if not (volume_dir / "lossdown" / training).is_dir():
+            raise FileNotFoundError(f"{VOLUME_NAME}:/lossdown/{training} is missing; upload it with modal volume put")
+        start_time = time.perf_counter()
+        result = RESULTS / legality_result_name(training, guidance)
+        exit_code = stream(legality_command(training, guidance), volume_dir / "logs" / result.with_suffix(".log").name,
+                           trainer_env(), commit)
+        if result.exists():
+            shutil.copy2(result, volume_dir / "results" / result.name)
+        commit()
+        if exit_code:
+            raise RuntimeError(f"checkpoint_legality.py {training} exited with code {exit_code}")
+        out[training] = round((time.perf_counter() - start_time) / 60, 1)
+    return out
+
+
+def run_in_container(arm, *, smoke, legality_teams, commit=lambda: None):
+    """Container body: seed the volume's checkpoint folder, run the trainer with its log teed to the volume,
+    then copy the run JSON to the volume."""
+    volume_dir = prepare_volume()
+    name = run_name(arm, smoke)
+    log_path = volume_dir / "logs" / f"{name}.log"
+    start_time = time.perf_counter()
+    exit_code = stream(trainer_command(arm, legality_teams=legality_teams), log_path, trainer_env(smoke=smoke), commit)
     run_json = RESULTS / f"{name}.json"
     if run_json.exists():
         shutil.copy2(run_json, volume_dir / "results" / run_json.name)
@@ -197,3 +247,17 @@ if modal is not None:
         print(f"[train84_modal] done in {out['minutes']} min. Fetch with:")
         for cmd in fetch_commands(arm, smoke):
             print("  " + cmd)
+
+    @app.function(image=image, gpu=GPU, cpu=CPU, memory=MEMORY_MB, timeout=2 * 3600, volumes={VOLUME: volume})
+    def check_legality(trainings: list[str], guidance: float | None = None) -> dict:
+        return legality_in_container(trainings, guidance, commit=volume.commit)
+
+    @app.local_entrypoint()
+    def legality_main(trainings: str, guidance: float = 2.0):
+        """trainings: comma-separated checkpoint folder names already on the volume."""
+        names = [t for t in trainings.split(",") if t]
+        print(f"[train84_modal] no-filter legality of {names} at guidance {guidance:g} on {GPU}", flush=True)
+        minutes = check_legality.remote(names, guidance)
+        print(f"[train84_modal] done: {minutes} min. Fetch with:")
+        for name in names:
+            print(f"  modal volume get {VOLUME_NAME} results/{legality_result_name(name, guidance)} '{RESULTS}/'")
