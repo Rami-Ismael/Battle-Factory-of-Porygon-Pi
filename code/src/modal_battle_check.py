@@ -24,6 +24,7 @@ import matchup_db as MDB
 
 RESULTS = Path.home() / "vgc-data/results"
 MARGIN = 0.02            # a mean win-rate shift this large would move a grid's error past the 0.002 luck bar
+ERROR_MARGIN = 0.001     # ask-versus-got error over the checked asks may move by less than half the 0.002 luck bar
 
 
 def main(grid, asks, per_ask):
@@ -34,27 +35,31 @@ def main(grid, asks, per_ask):
     con = MDB.connect()
     if not con.execute("SELECT 1 FROM team_set WHERE set_name='top50' LIMIT 1").fetchone():
         print("seeding the private database's top-50 set", flush=True); MDB.seed(con, top50=Path("/tmp/vgc-pilot/top50_evs.json"))
-    laptop, modal, started = [], [], time.perf_counter()
+    laptop, modal, by_ask, started = [], [], {}, time.perf_counter()
     for ask in asks:
         cell = cells[(ask, 1)]
         pastes, y = cell["pastes"][:per_ask], cell["y"][:per_ask]
         scores = MDB.score_pastes(con, pastes, per_cell=1, seed=int(out["seed0"]) + 1, origin=f"modal_check:{grid}:a{ask}")
-        for s, old in zip(scores, y):
-            if s.get("score") is None or old is None: continue
-            laptop.append(old); modal.append(s["score"])
+        pairs = [(old, s["score"]) for s, old in zip(scores, y) if s.get("score") is not None and old is not None]
+        laptop += [a for a, _ in pairs]; modal += [b for _, b in pairs]
+        by_ask[ask] = (float(np.mean([a for a, _ in pairs])), float(np.mean([b for _, b in pairs])))
         print(f"  ask {ask}/24: {len(pastes)} teams, laptop {np.mean(y):.3f}, modal {np.mean([s['score'] for s in scores]):.3f}", flush=True)
     laptop, modal = np.array(laptop), np.array(modal)
     diff = modal - laptop
     rng = np.random.default_rng(431)
     draws = np.array([diff[rng.integers(0, len(diff), len(diff))].mean() for _ in range(4000)])
     lo, hi = np.percentile(draws, [2.5, 97.5])
+    error = {side: float(np.mean([(by_ask[k][i] - k / 24) ** 2 for k in asks])) for i, side in enumerate(("laptop", "modal"))}
     runner = MDB.modal_runner()
     report = dict(grid=grid, asks=asks, teams=len(diff), laptop=float(laptop.mean()), modal=float(modal.mean()),
                   difference=float(diff.mean()), interval=[float(lo), float(hi)], margin=MARGIN,
-                  passed=bool(lo <= 0 <= hi and -MARGIN < lo and hi < MARGIN), modal_battles=runner.battles,
+                  error_laptop=error["laptop"], error_modal=error["modal"], error_change=error["modal"] - error["laptop"],
+                  passed=bool(lo <= 0 <= hi and -MARGIN < lo and hi < MARGIN and abs(error["modal"] - error["laptop"]) < ERROR_MARGIN),
+                  modal_battles=runner.battles,
                   modal_seconds=round(runner.seconds, 1), wall_seconds=round(time.perf_counter() - started, 1))
     print(json.dumps(report, indent=1))
     print("MODAL_BATTLE_CHECK_DONE", "PASS" if report["passed"] else "FAIL", flush=True)
+    if not report["passed"]: raise SystemExit(1)
     return report
 
 

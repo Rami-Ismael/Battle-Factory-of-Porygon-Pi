@@ -41,6 +41,22 @@ PACKAGES = ("numpy==2.4.4", "stable-baselines3==2.8.0", "gymnasium==1.2.3", "clo
 TORCH = "torch==2.12.0"                 # the laptop venv's version, CPU build
 
 
+def manifest() -> str:
+    """Digest of everything that decides a battle outside the request: this file, the battle worker's sources, the
+    Showdown build and formats, the policy checkpoint and the package pins. The laptop compares it with the deployed
+    app's on every call, so a redeploy with different code cannot slip results into the same cache."""
+    import hashlib
+    sys.path.insert(0, str(LAB))
+    import run as lab
+    digest = hashlib.sha256()
+    for path in [Path(__file__), *(LAB / n for n in ("worker.py", "run.py", "encoder.py", "inference.py")),
+                 VALIDATOR / "config/formats.ts", POLICY]:
+        digest.update(path.name.encode() + b"\0" + Path(path).read_bytes())
+    digest.update(lab.tree_digest(VALIDATOR / "dist").encode())
+    digest.update("|".join((TORCH, *PACKAGES)).encode())
+    return digest.hexdigest()
+
+
 def pack(value) -> bytes:
     return zlib.compress(json.dumps(value).encode(), 6)
 
@@ -103,15 +119,19 @@ class Pool:
         return out
 
 
+_manifest = None
+
+
 def run_in_container(payload: bytes) -> bytes:
-    global _pool
+    global _pool, _manifest
     import hashlib
     shard = unpack(payload)
     if hashlib.sha256(Path("/tmp/bc_100.zip").read_bytes()).hexdigest() != POLICY_SHA256:
         raise ValueError("behaviour-cloning checkpoint differs from the verified policy")
     if _pool is None or _pool.config != shard["config"]:
         _pool = Pool(shard["config"])
-    return pack(_pool.run(shard["requests"]))
+    _manifest = _manifest or manifest()
+    return pack({"manifest": _manifest, "outcomes": _pool.run(shard["requests"])})
 
 
 # ---------------------------------------------------------------- laptop side: called by modal_battle_runner.py
@@ -121,10 +141,11 @@ def call(in_path, out_path):
     import modal
     shards = unpack(Path(in_path).read_bytes())
     function = modal.Function.from_name(APP_NAME, FUNCTION_NAME)
-    outcomes = []
+    manifests, outcomes = set(), []
     for blob in function.map([pack(s) for s in shards], order_outputs=False):
-        outcomes.extend(unpack(blob))
-    Path(out_path).write_bytes(pack(outcomes))
+        part = unpack(blob)
+        manifests.add(part["manifest"]); outcomes.extend(part["outcomes"])
+    Path(out_path).write_bytes(pack({"manifests": sorted(manifests), "outcomes": outcomes}))
 
 
 try:
@@ -154,7 +175,7 @@ if modal is not None:
              .add_local_file(POLICY, str(POLICY)))
     app = modal.App(APP_NAME)
 
-    @app.function(image=image, cpu=CPU, memory=MEMORY_MB, timeout=3600, scaledown_window=600, max_containers=MAX_CONTAINERS)
+    @app.function(image=image, cpu=CPU, memory=MEMORY_MB, timeout=3600, scaledown_window=60, max_containers=MAX_CONTAINERS)
     def run_shard(payload: bytes) -> bytes:
         return run_in_container(payload)
 

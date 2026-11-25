@@ -29,6 +29,7 @@ def main():
         out = Path(tmp); results = out / "results"
         copy_reference_grids(R.RES, results)
         R.check_grid(R.grid_name(R.NEW_ROW, 2), 69, results_dir=results)
+        for guidance in R.GUIDANCES: G.check_opponents(guidance, results)
         summary = R.build_summary(out_json=out / "summary.json", results_dir=results)
         for guidance in R.GUIDANCES:
             pair = summary["by_guidance"][str(guidance)]

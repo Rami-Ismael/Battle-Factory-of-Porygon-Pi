@@ -69,7 +69,37 @@ def measures(pair):
         d = npk["pass_at_8"] - rpk["pass_at_8"]
         rows.append(("Pass@8 (asks 13/24–17/24)", f"{npk['pass_at_8']:.3f}", f"{rpk['pass_at_8']:.3f}", f"{d:+.3f}",
                      by_interval(npk["pass_at_8_interval"], rpk["pass_at_8_interval"], d)))
+        d48 = npk["pass_at_48"] - rpk["pass_at_48"]
+        rows.append(("Pass@48 (asks 13/24–17/24)", f"{npk['pass_at_48']:.3f}", f"{rpk['pass_at_48']:.3f}", f"{d48:+.3f}",
+                     by_interval(npk["pass_at_48_interval"], rpk["pass_at_48_interval"], d48)))
     return rows
+
+
+def check_opponents(guidance, results_dir=None):
+    """Both grids' opponent snapshots list the same 49 meta teams, in the same order, with the same weights: the paired
+    bootstrap shares opponent draws by column position."""
+    import numpy as np
+    results_dir = Path(results_dir or R.RES)
+    snap = [np.load(results_dir / f"masking_rate_rows_opponents_{R.grid_name(row, guidance)}.npz") for row in (R.NEW_ROW, R.REF_ROW)]
+    for key in ("columns", "weights"):
+        if not np.array_equal(snap[0][key], snap[1][key]):
+            raise SystemExit(f"guidance {guidance}: opponent {key} differ between {R.NEW_ROW} and {R.REF_ROW}")
+
+
+def pair_at(guidance):
+    check_opponents(guidance)
+    return R.read_guidance_pair(int(guidance))
+
+
+def build_summary(out_json):
+    """retrain_default_report's summary, with its verdict replaced by this report's flags (which add novel share), so
+    summary.json, the matrix, the final post and the map line agree."""
+    for g in R.GUIDANCES: check_opponents(g)
+    summary = R.build_summary(out_json=out_json)
+    found = [f"guidance {g}: {f}" for g in summary["by_guidance"] for f in flags(summary["by_guidance"][g])]
+    summary.update(findings_beyond_luck=found, all_within_training_luck=not found)
+    Path(out_json).write_text(json.dumps(summary, indent=1))
+    return summary
 
 
 def flags(pair):
@@ -224,11 +254,11 @@ def main(argv=None):
     if cmd == "check-grid":
         R.check_grid(args[1], int(args[2]))
     elif cmd == "grid-figure":
-        print(R.build_grid_figure(R.read_guidance_pair(int(args[1])), args[2]))
+        print(R.build_grid_figure(pair_at(args[1]), args[2]))
     elif cmd == "grid-comment":
-        sys.stdout.write(format_grid_comment(R.read_guidance_pair(int(args[1])), args[2], args[3]))
+        sys.stdout.write(format_grid_comment(pair_at(args[1]), args[2], args[3]))
     elif cmd == "summary":
-        R.build_summary(out_json=Path(args[1]) if len(args) > 1 else SUMMARY_PATH)
+        build_summary(Path(args[1]) if len(args) > 1 else SUMMARY_PATH)
     elif cmd == "final-figure":
         print(build_final_figure(json.loads(Path(args[1]).read_text()), args[2]))
     elif cmd == "final-comment":
