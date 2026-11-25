@@ -7,8 +7,11 @@ container fills both prompts, today's (inplace_header) and the one measured: the
 alone. #237's laptop fills stay the reference row; the report also counts how many of today's-prompt fills match
 them token for token.
 
-Each mask is drawn exactly as inplace_prompt_grid.fill_grid draws it (fill_one, mask_seed, the candidate's sampler
-setting). Showdown does not run on Modal, so every draw streams back as a raw row to
+Each mask is drawn as inplace_prompt_grid.fill_grid draws it (mask_seed, the candidate's sampler setting), batch at a
+time (#443, owner 2026-11-25: batch size 1 is no longer required): the container finds the largest batch that fits
+the GPU at the longest text any prompt makes (inplace_prompt_grid.choose_batch) and fills every prompt at that size,
+in one order, so a pair of prompts is batched alike. Each row keeps its own seed; --batch N fixes the size instead,
+and --batch 1 fills one mask per forward pass as #237 to #239 did. Showdown does not run on Modal, so every draw streams back as a raw row to
 D/<prompt>/<key>/fills-modal-raw.jsonl, and a stopped run resumes. merge judges each raw row on the laptop with
 inplace_prompt_grid.judge (parses, keeps the visible values, Reg M-B names, Showdown) into D/<prompt>/<key>/fills.jsonl.
 
@@ -17,8 +20,8 @@ computed on the laptop (inplace_prompt_grid.fitting_ids) and frozen in FROZEN/da
 fills each prompt's list and merge refuses a raw file that is not exactly that list.
 
 D is INPLACE_RESULTS_DIR (default ~/vgc-data/inplace_prompt_grid/modal-l4; #239 uses modal-l4-239), apart from #237's
-laptop fills. The code the container runs is the
-frozen copy in INPLACE_CODE_DIR (default ~/vgc-data/inplace_prompt_grid/run239; #238 ran from run238).
+laptop fills. The code the container runs is the frozen copy in INPLACE_CODE_DIR (default
+~/vgc-data/inplace_prompt_grid/run443, the first copy with batched fills; #238 ran from run238 and #239 from run239).
 
 Before any Modal launch: state its estimated cost and credit left (`modal billing summary`).
 
@@ -41,7 +44,7 @@ from typing import Any
 HOME = Path.home() / 'vgc-data/inplace_prompt_grid'
 DIRECTORY = Path(os.environ.get('INPLACE_RESULTS_DIR', HOME / 'modal-l4'))     # #239: modal-l4-239, so both
 # prompts without the example are refilled in its containers rather than read from #238's rows
-FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run239'))
+FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run443'))
 TASKS = FROZEN / 'data/eval2.tasks.json'     # the held-out grid, copied out of the iCloud vault into the frozen run
 FITTING = FROZEN / 'data/fitting-ids.json'   # {prompt: [mask ids]} for the prompts that do not fit every mask (#239)
 TASKS_SHA256 = '596b3adc19abea7df6e82d61775b9efdf35dd54b74c77623d49165b0a31e754b'      # #237's grid file
@@ -95,65 +98,96 @@ def pending(prompts: Iterable[str], tasks: list[dict[str, Any]], done: dict[str,
 
 
 def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done: dict[str, list[str]],
-                limit: int | None, only: dict[str, list[str]] | None = None) -> Iterator[str]:
-    """Container side: one probe line, then one raw row per (prompt, mask) as a JSON line."""
+                limit: int | None, only: dict[str, list[str]] | None = None, batch: int | None = None,
+                gpu: str = 'cuda') -> Iterator[str]:
+    """Container side: one probe line, then one raw row per (prompt, mask) as a JSON line, filled batch at a time
+    (#443). batch None takes the largest batch that fits the GPU at the longest text any prompt makes; every prompt
+    uses that one size and the same order (shortest text first under the first prompt), so the prompts of a pair
+    are batched alike."""
     sys.path.insert(0, f'{REMOTE_CODE}/scripts')
     import torch
 
     import inplace_prompt_grid as G
     import masked_diffusion_memory_bench as B
     from masked_diffusion_sampler import resolve_sampler
-    fill = B.fill
-
-    def synced(*args: Any, **kwargs: Any) -> Any:          # time the draw, not just its launch
-        result = fill(*args, **kwargs)
-        torch.cuda.synchronize()
-        return result
-    B.fill = synced
-    candidate, tokenizer, model, family = G.load_candidate(key, 'cuda')
+    candidate, tokenizer, model, family = G.load_candidate(key, gpu)
     active = resolve_sampler(candidate.sampler, None)
     start_id = G.start_token_id(tokenizer, active)
+    row_forward = B.make_row_forward(model, family, right_shift=active.right_shift)
     forward_for = lambda s: B.make_forward(model, family, G.SETTING['scope'], s, right_shift=active.right_shift)
     names = G.vocabulary()
     todo = pending(prompts, tasks[:limit], {p: set(ids) for p, ids in done.items()},
                    {p: set(ids) for p, ids in (only or {}).items()})
-    device = f'cuda {torch.cuda.get_device_name()}'
-
-    def one(prompt: str, task: dict[str, Any]) -> dict[str, Any]:
-        row = G.fill_one(task, G.PROMPTS[prompt], tokenizer, forward_for, candidate.mask_id, lambda _paste: DEFERRED,
-                         names, G.mask_seed(G.SETTING['seed'], task['id']), 'cuda', start_id,
-                         memory=torch.cuda.max_memory_allocated, sampler=active)
-        return row | {'device': device}
-
+    device = f'cuda {torch.cuda.get_device_name()}' if gpu == 'cuda' else gpu
+    memory = torch.cuda.max_memory_allocated if gpu == 'cuda' else (lambda: 0)
+    deferred = lambda _paste: DEFERRED
     probe: dict[str, Any] = {'device': device, 'torch': torch.__version__, 'candidate': key, 'pending': len(todo),
                              'sampler_setting': active.to_dict()}
-    if todo:
-        prompt, task = todo[0]
-        c = G.canvas(task, G.PROMPTS[prompt], tokenizer, candidate.mask_id, start_id)
-        probe['sees_later_tokens'] = B.sees_later_tokens(model, family, torch.tensor([c['ids']], device='cuda'),
-                                                         torch.tensor(c['slots'], device='cuda'),
-                                                         right_shift=active.right_shift)
-        a, b = one(prompt, task), one(prompt, task)
-        same = [x == y for sa, sb in zip(a['slot_ids'], b['slot_ids'], strict=True) for x, y in zip(sa, sb)]
-        probe |= {'mask': task['id'], 'prompt': prompt, 'repeat_same_tokens': sum(same) / len(same)}
-        probe['pass'] = bool(probe['sees_later_tokens']) and probe['repeat_same_tokens'] >= 0.9
+    if not todo:
+        yield json.dumps({'probe': probe})
+        return
+    by_id = {t['id']: t for t in tasks}
+    used = [G.PROMPTS[p] for p in dict.fromkeys(p for p, _ in todo)]
+    longest = G.longest_canvas([by_id[i] for i in {t['id'] for _, t in todo}], used, tokenizer, candidate.mask_id,
+                               start_id)
+    sizing = (G.choose_batch(row_forward, longest, candidate.mask_id, active, gpu) if batch is None
+              else {'batch': batch, 'ladder': [], 'chosen_by': 'given'})
+    order = G.length_order(tasks, G.PROMPTS[prompts[0]], tokenizer, candidate.mask_id, start_id)
+    rank = {i: n for n, i in enumerate(order)}
+    prompt, task = todo[0]
+    c = G.canvas(task, G.PROMPTS[prompt], tokenizer, candidate.mask_id, start_id)
+    probe['sees_later_tokens'] = B.sees_later_tokens(model, family, torch.tensor([c['ids']], device=gpu),
+                                                     torch.tensor(c['slots'], device=gpu),
+                                                     right_shift=active.right_shift)
+    seed = G.mask_seed(G.SETTING['seed'], task['id'])
+    a, b = G.fill_batch([(task, seed), (task, seed)], G.PROMPTS[prompt], tokenizer, row_forward, candidate.mask_id,
+                        deferred, names, gpu, start_id, sampler=active)
+    alone = G.fill_one(task, G.PROMPTS[prompt], tokenizer, forward_for, candidate.mask_id, deferred, names, seed,
+                       gpu, start_id, sampler=active)
+    probe |= {'mask': task['id'], 'prompt': prompt, 'batching': sizing,
+              'repeat_same_tokens': G.token_share(a['slot_ids'], b['slot_ids']),
+              'batch1_same_tokens': G.token_share(a['slot_ids'], alone['slot_ids']),
+              'padding': G.padding_probe(row_forward, G.canvas(by_id[order[0]], G.PROMPTS[prompts[0]], tokenizer,
+                                                               candidate.mask_id, start_id),
+                                         longest, gpu)}
+    probe['pass'] = (bool(probe['sees_later_tokens']) and probe['repeat_same_tokens'] >= 0.9
+                     and probe['padding']['top1_same'] >= G.PADDING_TOP1)
     yield json.dumps({'probe': probe})
-    for prompt, task in todo:
-        yield json.dumps(one(prompt, task), ensure_ascii=False)
+    for code in dict.fromkeys(p for p, _ in todo):
+        mine = sorted((t for p, t in todo if p == code), key=lambda t: rank[t['id']])
+        for chunk in G.batches(mine, sizing['batch']):
+            draws = [(t, G.mask_seed(G.SETTING['seed'], t['id'])) for t in chunk]
+            for row in G.fill_batch(draws, G.PROMPTS[code], tokenizer, row_forward, candidate.mask_id, deferred, names,
+                                    gpu, start_id, memory=memory, sampler=active, batch_size=sizing['batch']):
+                yield json.dumps(row | {'device': device}, ensure_ascii=False)
 
 
-def run_meta(prompt: str, key: str, probe: dict[str, Any]) -> dict[str, Any]:
-    """run.json for one prompt and model, in the shape inplace_prompt_grid.run writes, with the Modal device."""
+def run_meta(prompt: str, key: str, probe: dict[str, Any], batching: dict[str, Any] | None = None) -> dict[str, Any]:
+    """run.json for one prompt and model, in the shape inplace_prompt_grid.run writes, with the Modal device and
+    the batch size the rows were filled at (#443)."""
     import hashlib
     sys.path[:0] = [str(FROZEN / 'scripts'), str(FROZEN / 'src')]
     import count_masked_diffusion_text as C
     import inplace_prompt_grid as G
     candidate = C.candidate_by_key(key)
     tasks = grid_tasks()
-    meta = G.run_meta(G.PROMPTS[prompt], candidate, tasks, tasks_sha256=hashlib.sha256(TASKS.read_bytes()).hexdigest())
+    meta = G.run_meta(G.PROMPTS[prompt], candidate, tasks, tasks_sha256=hashlib.sha256(TASKS.read_bytes()).hexdigest(),
+                      batch=batching)
     meta['setting']['device'] = probe['device']
     meta['environment'] |= {'torch': probe['torch'], 'device': probe['device'], 'judged_on': 'laptop'}
     return meta
+
+
+def batching(raw: list[dict[str, Any]], probe: dict[str, Any]) -> dict[str, Any]:
+    """How the raw rows were batched: one batch size for every row (rows filled before #443 count as 1), with the
+    ladder that chose it when the probe recorded one. Refuses rows filled at more than one size."""
+    sizes = sorted({r.get('batch_size', 1) for r in raw})
+    if len(sizes) != 1:
+        raise ValueError(f'rows filled at batch sizes {sizes}; refill so one run has one batch size')
+    recorded = probe.get('batching') or {}
+    if recorded and recorded.get('batch') != sizes[0]:
+        return {'batch': sizes[0], 'ladder': [], 'chosen_by': 'rows (the last probe was a resume)'}
+    return recorded or {'batch': sizes[0], 'ladder': [], 'chosen_by': 'rows'}
 
 
 def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
@@ -201,7 +235,7 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
     (out / 'fills.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in judged))
     probe = json.loads((directory / 'preflight' / f'modal-gpu-{key}.json').read_text())
     G.gpu_preflight_path(directory, key, prompt).write_text(json.dumps(probe, indent=1) + '\n')
-    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe), indent=1) + '\n')
+    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe, batching(raw, probe)), indent=1) + '\n')
     return {'key': key, 'prompt': prompt, 'masks': len(judged), 'legal': sum(r['legal'] for r in judged)}
 
 
@@ -232,14 +266,15 @@ if modal is not None:
 
     @app.function(image=image, gpu=GPU, timeout=TIMEOUT_SECONDS, volumes={'/root/.cache/huggingface': hf_cache})
     def fill(key: str, prompts: list, tasks: list, done: dict, limit: int | None,
-             only: dict | None = None) -> Iterator[str]:
+             only: dict | None = None, batch: int | None = None) -> Iterator[str]:
         try:
-            yield from fill_remote(key, prompts, tasks, done, limit, only)
+            yield from fill_remote(key, prompts, tasks, done, limit, only, batch)
         finally:
             hf_cache.commit()
 
     @app.local_entrypoint()
-    def main(key: str, prompts: str = 'inplace_header,inplace_instructions', limit: int = 0) -> None:
+    def main(key: str, prompts: str = 'inplace_header,inplace_instructions', limit: int = 0, batch: int = 0) -> None:
+        """batch 0 (the default) takes the largest batch that fits the GPU; any other value fixes it."""
         order = prompts.split(',')
         tasks = grid_tasks()
         done = {p: [r['id'] for r in read_rows(DIRECTORY / p / key / RAW)] for p in order}
@@ -257,7 +292,8 @@ if modal is not None:
             handles[p] = (DIRECTORY / p / key / RAW).open('a')
         begin, made = time.time(), 0
         try:
-            for line in fill.remote_gen(key, order, tasks, done, limit or None, {p: sorted(i) for p, i in only.items()}):
+            for line in fill.remote_gen(key, order, tasks, done, limit or None, {p: sorted(i) for p, i in only.items()},
+                                        batch or None):
                 row = json.loads(line)
                 if 'probe' in row:
                     print(line, flush=True)

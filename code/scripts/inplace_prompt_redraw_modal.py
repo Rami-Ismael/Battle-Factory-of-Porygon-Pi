@@ -1,10 +1,12 @@
 """Redraw today's in-place prompt on the held-out grid on a Modal GPU, then judge the draws on the laptop (#171).
 
 #171's queue redraws every mask that failed its first try up to 4 more times (#169) on the laptop's GPU. This
-moves the drawing for one model to a Modal L4 with the frozen run's own code (D/run171), the same seeds
-(inplace_prompt_grid.redraw_seed) and the same sampler setting. Showdown does not run on Modal, so the container
-cannot tell a legal draw and makes all 4 redraws of each failing mask. Each row streams back to
-D/inplace_header/<key>/redraws-modal-raw.jsonl as it is drawn, so a stopped run resumes.
+moves the drawing for one model to a Modal L4 with the same seeds (inplace_prompt_grid.redraw_seed) and the same
+sampler setting. Showdown does not run on Modal, so the container cannot tell a legal draw and makes all 4 redraws
+of each failing mask, batch at a time (#443): the largest batch that fits the GPU, every draw with its own seed;
+--batch N fixes the size, and --batch 1 draws one at a time as #171 did. Each row streams back to
+D/inplace_header/<key>/redraws-modal-raw.jsonl as it is drawn, so a stopped run resumes. The code the container runs
+is the frozen copy in INPLACE_CODE_DIR (default D/run443, the first with batched fills; #171 ran from D/run171).
 
 merge then judges every raw row on the laptop with the frozen judge (inplace_prompt_grid.judge: parses, keeps the
 visible values, Reg M-B names, Showdown) and appends to redraws.jsonl only the draws #169's loop would have made:
@@ -27,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 DIRECTORY = Path.home() / 'vgc-data/inplace_prompt_grid'
-FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', DIRECTORY / 'run171'))
+FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', DIRECTORY / 'run443'))      # #171 ran from run171
 TASKS = Path.home() / ('Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of '
                        'possible vgc pokemon format to find the right counter to a pokemon team/team_completion_pipeline/'
                        'runs/heldout-starters/'
@@ -44,10 +46,11 @@ IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0',
                   'numpy==2.4.6', 'huggingface_hub==0.36.2')
 PACKAGED_FILES = ('scripts/inplace_prompt_grid.py', 'scripts/masked_diffusion_text.py',
                   'scripts/masked_diffusion_memory_bench.py', 'scripts/count_masked_diffusion_text.py',
-                  'scripts/jev_fill.py', 'scripts/mask_paste.py', 'data/regmb-vocabulary.json')
+                  'scripts/masked_diffusion_sampler.py', 'scripts/jev_fill.py', 'scripts/mask_paste.py',
+                  'data/regmb-vocabulary.json', 'data/pokedex.json', 'data/inplace-example-team.json')
 VERDICT_KEYS = frozenset({'json_parses', 'reads_as_team', 'visible_kept', 'regmb_names', 'showdown_errors',
                           'showdown_accepts', 'legal', 'failed', 'reasons', 'not_regmb', 'recovered',
-                          'copied_visible', 'paste'})
+                          'copied_visible', 'paste', 'rules'})
 
 
 def read_rows(path: Path) -> list[dict[str, Any]]:
@@ -84,40 +87,47 @@ def loop_keeps(judged: Iterable[dict[str, Any]], existing: list[dict[str, Any]])
 
 
 def draw_remote(key: str, tasks: list[dict[str, Any]], first: list[dict[str, Any]], done: list[dict[str, Any]],
-                limit: int | None) -> Iterator[str]:
-    """Container side: a determinism probe line, then one raw row per (mask, draw) as a JSON line."""
+                limit: int | None, batch: int | None = None, gpu: str = 'cuda') -> Iterator[str]:
+    """Container side: a determinism probe line, then one raw row per (mask, draw) as a JSON line, batch at a time
+    (#443): the largest batch that fits the GPU at the longest text, or batch if given. Each draw keeps its own seed
+    (inplace_prompt_grid.redraw_seed)."""
     sys.path.insert(0, f'{REMOTE_CODE}/scripts')
     import torch
 
     import inplace_prompt_grid as G
     import masked_diffusion_memory_bench as B
-    fill = B.fill
-
-    def synced(*args: Any, **kwargs: Any) -> Any:          # time the draw, not just its launch
-        result = fill(*args, **kwargs)
-        torch.cuda.synchronize()
-        return result
-    B.fill = synced
-    candidate, tokenizer, model, _family = G.load_candidate(key, 'cuda')
-    start_id = tokenizer.bos_token_id if candidate.start_token else None
-    forward_for = lambda s: B.make_forward(model, _family, G.SETTING['scope'], s)
+    candidate, tokenizer, model, family = G.load_candidate(key, gpu)
+    active = candidate.sampler
+    start_id = G.start_token_id(tokenizer, active)
+    row_forward = B.make_row_forward(model, family, right_shift=active.right_shift)
     names, prompt = G.vocabulary(), G.PROMPTS[PROMPT]
     todo = pending(tasks[:limit], first, done)
-    device = f'cuda {torch.cuda.get_device_name()}'
-
-    def one(task: dict[str, Any], draw: int) -> dict[str, Any]:
-        row = G.fill_one(task, prompt, tokenizer, forward_for, candidate.mask_id, lambda _paste: DEFERRED, names,
-                         G.redraw_seed(G.SETTING['seed'], task['id'], draw), 'cuda', start_id, G.SETTING,
-                         torch.cuda.max_memory_allocated)
-        return row | {'draw': draw, 'device': device}
-
-    if todo:
-        a, b = one(*todo[0]), one(*todo[0])
-        same = [x == y for sa, sb in zip(a['slot_ids'], b['slot_ids'], strict=True) for x, y in zip(sa, sb)]
-        yield json.dumps({'probe': {'device': device, 'torch': torch.__version__, 'mask': todo[0][0]['id'],
-                                    'repeat_same_tokens': sum(same) / len(same), 'pending': len(todo)}})
-    for task, draw in todo:
-        yield json.dumps(one(task, draw), ensure_ascii=False)
+    device = f'cuda {torch.cuda.get_device_name()}' if gpu == 'cuda' else gpu
+    memory = torch.cuda.max_memory_allocated if gpu == 'cuda' else (lambda: 0)
+    deferred = lambda _paste: DEFERRED
+    if not todo:
+        return
+    longest = G.longest_canvas(list({t['id']: t for t, _ in todo}.values()), [prompt], tokenizer, candidate.mask_id,
+                               start_id)
+    sizing = (G.choose_batch(row_forward, longest, candidate.mask_id, active, gpu) if batch is None
+              else {'batch': batch, 'ladder': [], 'chosen_by': 'given'})
+    task, draw = todo[0]
+    seed = G.redraw_seed(G.SETTING['seed'], task['id'], draw)
+    a, b = G.fill_batch([(task, seed), (task, seed)], prompt, tokenizer, row_forward, candidate.mask_id, deferred,
+                        names, gpu, start_id, sampler=active)
+    yield json.dumps({'probe': {'device': device, 'torch': torch.__version__, 'mask': task['id'],
+                                'repeat_same_tokens': G.token_share(a['slot_ids'], b['slot_ids']),
+                                'pending': len(todo), 'batching': sizing}})
+    rank = {i: n for n, i in enumerate(G.length_order([t for t, _ in todo], prompt, tokenizer, candidate.mask_id,
+                                                      start_id))}
+    ordered = sorted(todo, key=lambda pair: (pair[1], rank[pair[0]['id']]))
+    for chunk in G.batches(ordered, sizing['batch']):
+        draws = [(t, G.redraw_seed(G.SETTING['seed'], t['id'], d)) for t, d in chunk]
+        rows = G.fill_batch(draws, prompt, tokenizer, row_forward, candidate.mask_id, deferred, names, gpu,
+                            start_id, memory=memory, sampler=active,
+                            batch_size=sizing['batch'])
+        for row, (_task, d) in zip(rows, chunk, strict=True):
+            yield json.dumps(row | {'draw': d, 'device': device}, ensure_ascii=False)
 
 
 def merge(key: str, directory: Path = DIRECTORY) -> dict[str, int]:
@@ -172,14 +182,16 @@ if modal is not None:
     app = modal.App('inplace-prompt-redraws')
 
     @app.function(image=image, gpu=GPU, timeout=TIMEOUT_SECONDS, volumes={'/root/.cache/huggingface': hf_cache})
-    def draw(key: str, tasks: list, first: list, done: list, limit: int | None) -> Iterator[str]:
+    def draw(key: str, tasks: list, first: list, done: list, limit: int | None,
+             batch: int | None = None) -> Iterator[str]:
         try:
-            yield from draw_remote(key, tasks, first, done, limit)
+            yield from draw_remote(key, tasks, first, done, limit, batch)
         finally:
             hf_cache.commit()
 
     @app.local_entrypoint()
-    def main(key: str, limit: int = 0) -> None:
+    def main(key: str, limit: int = 0, batch: int = 0) -> None:
+        """batch 0 (the default) takes the largest batch that fits the GPU; any other value fixes it."""
         out = DIRECTORY / PROMPT / key
         tasks = json.loads(TASKS.read_text())['tasks']
         first = read_rows(out / 'fills.jsonl')
@@ -190,7 +202,7 @@ if modal is not None:
             return
         begin, made = time.time(), 0
         with (out / RAW).open('a') as handle:
-            for line in draw.remote_gen(key, tasks, first, done, limit or None):
+            for line in draw.remote_gen(key, tasks, first, done, limit or None, batch or None):
                 if line.startswith('{"probe"'):
                     print(line, flush=True)
                     (out / 'modal-probe.json').write_text(line + '\n')

@@ -2,9 +2,12 @@
 good the filled teams are (#237). Pre-registration: code/docs/inplace-prompt-heldout-baseline.md.
 
 The held-out grid is 270 Mask Lab masks: 5 unmasked teams (ranks 51-100) x 54 cells, items, abilities, Stat
-Alignments, Stat Points and whole Pokemon at 1 to 6 hidden, moves at 1 to 24. Each mask is filled once, at batch
-size 1, with its own seed derived from the run seed and the mask's id, so a mask's draw does not depend on which
-masks ran before it and a stopped run resumes where it stopped.
+Alignments, Stat Points and whole Pokemon at 1 to 6 hidden, moves at 1 to 24. Each mask is filled once with its own
+seed derived from the run seed and the mask's id, so a mask's draw does not depend on which masks ran before it and
+a stopped run resumes where it stopped. #237 to #239 filled one mask per forward pass. From #443 (owner, 2026-11-25:
+batch size 1 is no longer required) run fills a batch of masks per forward pass, the largest batch that fits the
+device: rows are right-padded and grouped shortest text first, and each keeps its own seed, slots and schedule
+(fill_batch, masked_diffusion_memory_bench.fill_rows). The batch size is in run.json's setting.
 
 Prompts are stacked (#237 to #240); each later ticket adds one entry to PROMPTS:
     inplace_header      Header only, values filled in place: the #168 text, masked_diffusion_text.in_place_text
@@ -445,7 +448,14 @@ def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: 
     if device == 'mps':
         torch.mps.synchronize()
     seconds = time.perf_counter() - begin
-    ids = result[0].cpu().tolist()
+    return judged_row(task, prompt, tokenizer, c, result[0].cpu().tolist(), seed, active, forwards, seconds, memory(),
+                      validate, names)
+
+
+def judged_row(task: dict[str, Any], prompt: Prompt, tokenizer: Any, c: dict[str, Any], ids: list[int], seed: int,
+               active: SamplerSetting, forwards: int, seconds: float, peak: int,
+               validate: Callable[[str], str | None], names: dict[str, frozenset[str]]) -> dict[str, Any]:
+    """One filled mask's row: its slot values, the verdict, and how it was drawn."""
     values, dropped = slot_values(tokenizer, ids, c['spans'])
     verdict = judge(task, c['built'], values, validate, names)
     team = verdict.pop('team', None)
@@ -454,7 +464,7 @@ def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: 
            'prompt': prompt.code, 'version': c['built'].version, 'ask': D.ask_text(ASK), 'seed': seed,
            'sampler_setting': active.to_dict(), 'prompt_tokens': len(c['ids']), 'mask_tokens': len(c['slots']),
            'forwards': forwards, 'seconds': seconds,
-           'peak_bytes': memory(), 'fields': [s.field for s in c['built'].slots],
+           'peak_bytes': peak, 'fields': [s.field for s in c['built'].slots],
            'paths': [s.path for s in c['built'].slots], 'values': values, 'special_dropped': dropped,
            'slot_ids': [[ids[n] for n in span] for span in c['spans']], **verdict}
     if verdict['legal']:
@@ -462,23 +472,86 @@ def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: 
     return row
 
 
-def fill_grid(tasks: Iterable[dict[str, Any]], prompt: Prompt, tokenizer: Any, forward_for: Callable[[Any], Any],
+def fill_batch(draws: Sequence[tuple[dict[str, Any], int]], prompt: Prompt, tokenizer: Any, row_forward: Any,
+               mask_id: int, validate: Callable[[str], str | None], names: dict[str, frozenset[str]],
+               device: str = 'cpu', start_id: int | None = None, setting: dict[str, Any] = SETTING,
+               memory: Callable[[], int] = lambda: 0, sampler: SamplerSetting | None = None,
+               batch_size: int | None = None) -> list[dict[str, Any]]:
+    """Many (task, seed) draws in one batch, one forward pass per step (#443), each judged as fill_one judges it.
+    Each row keeps its own seed, slots and schedule, so a row's tokens are the ones fill_one draws for it, up to the
+    model's arithmetic on a padded batch. A row's seconds are its share of the batch's time."""
+    import torch
+
+    import masked_diffusion_memory_bench as B
+    active = _fill_sampler(sampler, setting, start_id)
+    canvases = [canvas(task, prompt, tokenizer, mask_id, start_id) for task, _ in draws]
+    generators = [torch.Generator(device=device).manual_seed(seed) for _, seed in draws]
+    forwards = [0] * len(draws)
+
+    def count_step(live: list[int]) -> None:
+        for n in live:
+            forwards[n] += 1
+
+    begin = time.perf_counter()
+    filled = B.fill_rows(row_forward, [c['ids'] for c in canvases], [c['slots'] for c in canvases], mask_id, active,
+                         generators, device, on_step=count_step)
+    if device == 'mps':
+        torch.mps.synchronize()
+    elif device.startswith('cuda'):
+        torch.cuda.synchronize()
+    seconds = time.perf_counter() - begin
+    peak = memory()
+    rows = []
+    for (task, seed), c, ids, n in zip(draws, canvases, filled, forwards, strict=True):
+        row = judged_row(task, prompt, tokenizer, c, ids, seed, active, n, seconds / len(draws), peak, validate, names)
+        rows.append(row | {'batch_size': batch_size or len(draws), 'batch_rows': len(draws), 'batch_seconds': seconds})
+    return rows
+
+
+def length_order(tasks: Iterable[dict[str, Any]], prompt: Prompt, tokenizer: Any, mask_id: int,
+                 start_id: int | None = None) -> list[str]:
+    """Task ids from the shortest text to the longest under this prompt (ties by id), so a batch of neighbours needs
+    little padding. A paired comparison orders both prompts by the first one, so both get the same batches."""
+    return [t['id'] for t in sorted(tasks, key=lambda t: (len(canvas(t, prompt, tokenizer, mask_id, start_id)['ids']),
+                                                          t['id']))]
+
+
+def batches(items: Sequence[Any], size: int) -> list[list[Any]]:
+    if size < 1:
+        raise ValueError(f'batch size must be at least 1, got {size}')
+    return [list(items[i:i + size]) for i in range(0, len(items), size)]
+
+
+def fill_grid(tasks: Iterable[dict[str, Any]], prompt: Prompt, tokenizer: Any, forward_for: Callable[[Any], Any] | None,
               mask_id: int, out: Path, validate: Callable[[str], str | None], device: str = 'cpu',
               start_id: int | None = None, setting: dict[str, Any] = SETTING,
-              memory: Callable[[], int] = lambda: 0, sampler: SamplerSetting | None = None) -> int:
+              memory: Callable[[], int] = lambda: 0, sampler: SamplerSetting | None = None,
+              row_forward: Any = None, batch: int = 1) -> int:
     """Fill every task not yet in out (one JSON line each) and return how many were filled. forward_for(slots) is
-    the sampler's forward for that mask's slot positions."""
+    the sampler's forward for that mask's slot positions, one mask per forward. With row_forward
+    (masked_diffusion_memory_bench.make_row_forward) the masks are filled batch at a time instead, shortest text
+    first (#443)."""
     names, seen, filled = vocabulary(), done_ids(out), 0
+    todo = [t for t in tasks if t['id'] not in seen]
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open('a') as handle:
-        for task in tasks:
-            if task['id'] in seen:
-                continue
-            row = fill_one(task, prompt, tokenizer, forward_for, mask_id, validate, names,
-                           mask_seed(setting['seed'], task['id']), device, start_id, setting, memory, sampler)
-            handle.write(json.dumps(row, ensure_ascii=False) + '\n')
+        if row_forward is None:
+            for task in todo:
+                row = fill_one(task, prompt, tokenizer, forward_for, mask_id, validate, names,
+                               mask_seed(setting['seed'], task['id']), device, start_id, setting, memory, sampler)
+                handle.write(json.dumps(row, ensure_ascii=False) + '\n')
+                handle.flush()
+                filled += 1
+            return filled
+        by_id = {t['id']: t for t in todo}
+        order = length_order(todo, prompt, tokenizer, mask_id, start_id)
+        for chunk in batches([by_id[i] for i in order], batch):
+            draws = [(t, mask_seed(setting['seed'], t['id'])) for t in chunk]
+            for row in fill_batch(draws, prompt, tokenizer, row_forward, mask_id, validate, names, device, start_id,
+                                  setting, memory, sampler, batch):
+                handle.write(json.dumps(row, ensure_ascii=False) + '\n')
+                filled += 1
             handle.flush()
-            filled += 1
     return filled
 
 
@@ -487,41 +560,152 @@ def redraw_seed(seed: int, task_id: str, draw: int) -> int:
     return mask_seed(seed, task_id) if draw == 0 else mask_seed(seed, f'{task_id}#redraw{draw}')
 
 
+def next_redraw(drawn: dict[int, bool], redraws: int = REDRAWS) -> int | None:
+    """The redraw a failing mask needs next, given {draw: legal} for the redraws it has: the first one missing, or
+    None once one is legal or all are made."""
+    for draw in range(1, redraws + 1):
+        if draw not in drawn:
+            return draw
+        if drawn[draw]:
+            return None
+    return None
+
+
 def redraw_grid(tasks: Iterable[dict[str, Any]], first: Path, prompt: Prompt, tokenizer: Any,
-                forward_for: Callable[[Any], Any], mask_id: int, out: Path, validate: Callable[[str], str | None],
-                device: str = 'cpu', start_id: int | None = None, setting: dict[str, Any] = SETTING,
-                memory: Callable[[], int] = lambda: 0, redraws: int = REDRAWS,
-                sampler: SamplerSetting | None = None) -> int:
+                forward_for: Callable[[Any], Any] | None, mask_id: int, out: Path,
+                validate: Callable[[str], str | None], device: str = 'cpu', start_id: int | None = None,
+                setting: dict[str, Any] = SETTING, memory: Callable[[], int] = lambda: 0, redraws: int = REDRAWS,
+                sampler: SamplerSetting | None = None, row_forward: Any = None, batch: int = 1) -> int:
     """#169's validator loop: a mask whose first try (in first) failed is drawn again, up to redraws more times,
-    stopping at its first legal draw. One JSON line per redraw in out, with its draw number; resumes."""
+    stopping at its first legal draw. One JSON line per redraw in out, with its draw number; resumes. With
+    row_forward the redraws go round by round, each round's draws batch at a time (#443): round d draws every mask
+    whose draws before d all failed, so each mask gets the draws, seeds and stopping point the one-at-a-time loop
+    gives it."""
     names = vocabulary()
     legal = {r['id']: r['legal'] for r in read_rows(first)}
     done: dict[str, dict[int, bool]] = {}
     for r in read_rows(out) if out.exists() else []:
         done.setdefault(r['id'], {})[r['draw']] = r['legal']
+    tasks = list(tasks)
+    missing = [t['id'] for t in tasks if t['id'] not in legal]
+    if missing:
+        raise ValueError(f'{missing[0]} has no first try in {first}')
+    failing = [t for t in tasks if not legal[t['id']]]
     filled = 0
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open('a') as handle:
-        for task in tasks:
-            if task['id'] not in legal:
-                raise ValueError(f"{task['id']} has no first try in {first}")
-            if legal[task['id']]:
-                continue
-            for draw in range(1, redraws + 1):
-                if draw in done.get(task['id'], {}):
-                    if done[task['id']][draw]:
-                        break
-                    continue
-                row = fill_one(task, prompt, tokenizer, forward_for, mask_id, validate, names,
-                               redraw_seed(setting['seed'], task['id'], draw), device, start_id, setting, memory,
-                               sampler)
-                row['draw'] = draw
-                handle.write(json.dumps(row, ensure_ascii=False) + '\n')
-                handle.flush()
-                filled += 1
-                if row['legal']:
-                    break
+        def write(row: dict[str, Any], draw: int) -> None:
+            nonlocal filled
+            row['draw'] = draw
+            handle.write(json.dumps(row, ensure_ascii=False) + '\n')
+            handle.flush()
+            done.setdefault(row['id'], {})[draw] = row['legal']
+            filled += 1
+
+        if row_forward is None:
+            for task in failing:
+                while (draw := next_redraw(done.get(task['id'], {}), redraws)) is not None:
+                    write(fill_one(task, prompt, tokenizer, forward_for, mask_id, validate, names,
+                                   redraw_seed(setting['seed'], task['id'], draw), device, start_id, setting, memory,
+                                   sampler), draw)
+            return filled
+        order = length_order(failing, prompt, tokenizer, mask_id, start_id)
+        by_id = {t['id']: t for t in failing}
+        for draw in range(1, redraws + 1):
+            due = [by_id[i] for i in order if next_redraw(done.get(i, {}), redraws) == draw]
+            for chunk in batches(due, batch):
+                draws = [(t, redraw_seed(setting['seed'], t['id'], draw)) for t in chunk]
+                for row in fill_batch(draws, prompt, tokenizer, row_forward, mask_id, validate, names, device,
+                                      start_id, setting, memory, sampler, batch):
+                    write(row, draw)
     return filled
+
+
+CPU_BATCH = 8               # the CPU has no memory ladder; it is used only by tests and smoke runs
+
+
+def device_memory(device: str) -> tuple[Callable[[], None], Callable[[], int], int]:
+    """(reset the peak, read the peak, the ceiling) for a device. On the laptop the ceiling is
+    torch.mps.recommended_max_memory() (#170) and the reading is the driver's allocation, which holds the peak
+    because the allocator keeps what it has taken."""
+    import torch
+    if device.startswith('cuda'):
+        return (torch.cuda.reset_peak_memory_stats, torch.cuda.max_memory_allocated,
+                torch.cuda.get_device_properties(torch.device(device)).total_memory)
+    if device == 'mps':
+        return (lambda: None), torch.mps.driver_allocated_memory, torch.mps.recommended_max_memory()
+    return (lambda: None), (lambda: 0), 0
+
+
+def choose_batch(row_forward: Any, longest: dict[str, Any], mask_id: int, active: SamplerSetting, device: str,
+                 headroom: float = 0.9) -> dict[str, Any]:
+    """The largest batch that fits the device (#443): masked_diffusion_memory_bench.largest_batch on copies of the
+    longest text the run fills, one step each. Shorter texts only need less. On the CPU, CPU_BATCH."""
+    import torch
+
+    import masked_diffusion_memory_bench as B
+    if device == 'cpu':
+        return {'batch': CPU_BATCH, 'ladder': [], 'longest_tokens': len(longest['ids'])}
+    reset, peak, capacity = device_memory(device)
+    one_step = replace(active, steps=1)
+
+    def peak_at(batch: int) -> int:
+        if device.startswith('cuda'):
+            torch.cuda.empty_cache()
+        reset()
+        B.fill_rows(row_forward, [longest['ids']] * batch, [longest['slots']] * batch, mask_id, one_step,
+                    [None] * batch, device)
+        if device == 'mps':
+            torch.mps.synchronize()
+        return peak()
+
+    try:
+        result = B.largest_batch(peak_at, capacity, headroom=headroom)
+    finally:
+        if device.startswith('cuda'):
+            torch.cuda.empty_cache()
+        elif device == 'mps':
+            torch.mps.empty_cache()
+    return result | {'longest_tokens': len(longest['ids']), 'longest_masks': len(longest['slots'])}
+
+
+PADDING_TOP1 = 0.95         # the padding probe: share of a padded row's slots whose most likely token is unchanged
+
+
+def token_share(a: Sequence[Sequence[int]], b: Sequence[Sequence[int]]) -> float:
+    """The share of slot tokens two fills of one mask agree on."""
+    same = [x == y for sa, sb in zip(a, b, strict=True) for x, y in zip(sa, sb, strict=True)]
+    return sum(same) / len(same) if same else 1.0
+
+
+def padding_probe(row_forward: Any, short: dict[str, Any], long: dict[str, Any], device: str) -> dict[str, Any]:
+    """The first step's logits for the short text alone and right-padded beside the long one: how often the most
+    likely token at a slot is the same, and the largest logit difference. A padding mask that let the padding in
+    would move them far more than the arithmetic of a wider batch does."""
+    import torch
+
+    def first_step(texts: list[dict[str, Any]]) -> torch.Tensor:
+        width, depth = max(len(c['ids']) for c in texts), max(len(c['slots']) for c in texts)
+        x = torch.zeros(len(texts), width, dtype=torch.long)
+        attention = torch.zeros(x.shape, dtype=torch.bool)
+        keep = torch.zeros(len(texts), depth, dtype=torch.long)
+        for n, c in enumerate(texts):
+            x[n, :len(c['ids'])], attention[n, :len(c['ids'])] = torch.tensor(c['ids']), True
+            keep[n, :len(c['slots'])] = torch.tensor(c['slots'])
+        with torch.no_grad():
+            return row_forward(x.to(device), attention.to(device), keep.to(device))[0, :len(texts[0]['slots'])].float()
+
+    alone, padded = first_step([short]), first_step([short, long])
+    return {'short_tokens': len(short['ids']), 'long_tokens': len(long['ids']),
+            'top1_same': float((alone.argmax(-1) == padded.argmax(-1)).float().mean()),
+            'max_logit_difference': float((alone - padded).abs().max())}
+
+
+def longest_canvas(tasks: Iterable[dict[str, Any]], prompts: Iterable[Prompt], tokenizer: Any, mask_id: int,
+                   start_id: int | None) -> dict[str, Any]:
+    """The longest text any of these prompts makes from these tasks, by tokens, then by masks."""
+    texts = [canvas(t, p, tokenizer, mask_id, start_id) for p in prompts for t in tasks]
+    return max(texts, key=lambda c: (len(c['ids']), len(c['slots'])))
 
 
 def final_draws(first: Path, redraws: Path | None) -> dict[str, dict[str, Any]]:
@@ -548,18 +732,22 @@ def load_candidate(key: str, device: str) -> tuple[Any, Any, Any, str]:
 
 
 def run_meta(prompt: Prompt, candidate: Any, tasks: list[dict[str, Any]],
-             sampler: SamplerSetting | None = None, tasks_sha256: str | None = None) -> dict[str, Any]:
+             sampler: SamplerSetting | None = None, tasks_sha256: str | None = None,
+             batch: dict[str, Any] | None = None) -> dict[str, Any]:
+    """run.json: the prompt, model, grid and sampler setting. batch is how the batch size was chosen (#443): the
+    size, and the memory ladder that chose it; the setting's batch is that size, 1 for a one-at-a-time run."""
     import masked_diffusion_memory_bench as B
     if tasks_sha256 is None:
         import jev_fill
         tasks_sha256 = hashlib.sha256((jev_fill.GRIDS[GRID] / 'eval2.tasks.json').read_bytes()).hexdigest()
     active = candidate.sampler if sampler is None else sampler
-    run_setting = {**SETTING, 'steps': active.steps, 'temperature': active.temperature}
+    run_setting = {**SETTING, 'steps': active.steps, 'temperature': active.temperature,
+                   'batch': SETTING['batch'] if batch is None else batch['batch']}
     return {'prompt': prompt.code, 'prompt_name': prompt.name, 'candidate': B.candidate_info(candidate),
             'grid': GRID, 'tasks': len(tasks), 'tasks_sha256': tasks_sha256,
             'ask': D.ask_text(ASK), 'setting': run_setting, 'sampler': B.SAMPLER,
             'sampler_setting': active.to_dict(), 'environment': environment(),
-            'started': time.strftime('%Y-%m-%dT%H:%M:%S%z')}
+            'started': time.strftime('%Y-%m-%dT%H:%M:%S%z'), **({} if batch is None else {'batching': batch})}
 
 
 def check_run_meta(meta_path: Path, active: SamplerSetting, right_shift: bool) -> None:
@@ -605,7 +793,9 @@ def grid_tasks() -> list[dict[str, Any]]:
 
 
 def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: str, redraw: bool = False,
-        sampler_name: str | None = None) -> int:
+        sampler_name: str | None = None, batch: int | None = None) -> int:
+    """Fill (or redraw) the grid with one prompt and model, batch at a time: batch masks per forward pass, or with
+    batch None the largest batch that fits the device (#443)."""
     import torch
 
     import masked_diffusion_memory_bench as B
@@ -622,19 +812,31 @@ def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: 
     check_run_meta(meta_path, active, candidate.sampler.right_shift)
     check_existing_rows((out / 'fills.jsonl', out / 'redraws.jsonl'), active,
                         candidate.sampler.right_shift, candidate.sampler.start_token)
-    if not meta_path.exists():
-        meta_path.write_text(json.dumps(run_meta(prompt, candidate, tasks, active), indent=1) + '\n')
     start_id = start_token_id(tokenizer, active)
+    row_forward = B.make_row_forward(model, family, right_shift=active.right_shift)
+    if batch is None:
+        sizing = choose_batch(row_forward, longest_canvas(tasks[:limit], [prompt], tokenizer, candidate.mask_id,
+                                                          start_id), candidate.mask_id, active, device)
+    else:
+        sizing = {'batch': batch, 'ladder': [], 'chosen_by': 'given'}
+    print(f"{candidate.label}: batch {sizing['batch']} ({json.dumps(sizing['ladder'])})", flush=True)
+    meta = run_meta(prompt, candidate, tasks, active, batch=sizing)
+    if meta_path.exists():
+        meta = json.loads(meta_path.read_text())
+        meta.setdefault('batches', []).append(sizing | {'when': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+                                                        'redraw': redraw})
+    meta_path.write_text(json.dumps(meta, indent=1) + '\n')
     memory = (lambda: torch.mps.driver_allocated_memory()) if device == 'mps' else (lambda: 0)
     validate = Validator()
-    forward_for = lambda s: B.make_forward(model, family, SETTING['scope'], s, right_shift=active.right_shift)
     try:
         if redraw:
-            filled = redraw_grid(tasks[:limit], out / 'fills.jsonl', prompt, tokenizer, forward_for, candidate.mask_id,
-                                 out / 'redraws.jsonl', validate, device, start_id, memory=memory, sampler=active)
+            filled = redraw_grid(tasks[:limit], out / 'fills.jsonl', prompt, tokenizer, None, candidate.mask_id,
+                                 out / 'redraws.jsonl', validate, device, start_id, memory=memory, sampler=active,
+                                 row_forward=row_forward, batch=sizing['batch'])
         else:
-            filled = fill_grid(tasks[:limit], prompt, tokenizer, forward_for, candidate.mask_id, out / 'fills.jsonl',
-                               validate, device, start_id, memory=memory, sampler=active)
+            filled = fill_grid(tasks[:limit], prompt, tokenizer, None, candidate.mask_id, out / 'fills.jsonl',
+                               validate, device, start_id, memory=memory, sampler=active, row_forward=row_forward,
+                               batch=sizing['batch'])
     finally:
         validate.close()
     if redraw:
@@ -1187,6 +1389,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     gpu.add_argument('--key', choices=SMALL_FOUR, required=True)
     gpu.add_argument('--dir', type=Path, default=OUT)
     gpu.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
+    for p in (one, again):
+        p.add_argument('--batch', type=int, default=None,
+                       help='masks per forward pass (default: the largest that fits the device, #443)')
     for p in (one, again, gpu):
         p.add_argument('--sampler', choices=tuple(SAMPLERS), default=None,
                        help="named sampler setting (default: the candidate's own)")
@@ -1212,9 +1417,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(compare(args.dir, args.before, args.after))
         return 0
     if args.command == 'run':
-        return run(args.prompt, args.key, args.dir, args.limit, args.device, sampler_name=args.sampler)
+        return run(args.prompt, args.key, args.dir, args.limit, args.device, sampler_name=args.sampler,
+                   batch=args.batch)
     if args.command == 'redraw':
-        return run(args.prompt, args.key, args.dir, args.limit, args.device, redraw=True, sampler_name=args.sampler)
+        return run(args.prompt, args.key, args.dir, args.limit, args.device, redraw=True, sampler_name=args.sampler,
+                   batch=args.batch)
     if args.command == 'teams':
         legal_teams(args.prompt, args.key, args.dir)
         return 0
