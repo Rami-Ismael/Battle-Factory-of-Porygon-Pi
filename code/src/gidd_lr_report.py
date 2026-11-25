@@ -3,9 +3,9 @@
 Reads the four run JSONs (each arm under the old 4e-4 cosine-to-0 recipe and the new 5e-4 cosine-to-5e-5 recipe) and
 writes two ECharts pages plus a summary JSON:
   lr-recipe-val-loss.html   validation loss by epoch, both arms, both recipes, and the learning rate each recipe gave
-  lr-recipe-slot-binding.html   Uniform, no filter: share of 64 unconstrained teams per epoch that break each
-                            slot-binding rule (ability, move), old recipe against new
-The slot-binding shift epoch is the first epoch whose share of teams with an ability the species can't have falls
+  lr-recipe-field-matching.html   Uniform, no filter: share of 64 unconstrained teams per epoch that break each
+                            Pokémon-to-field matching rule (ability, move), old recipe against new
+The Pokémon-to-field matching shift epoch is the first epoch whose share of teams with an ability the species can't have falls
 below one half (issue #276 read the old run's collapse, 100% -> 3%, at epochs 58-61).
 
     /tmp/vgc-pilot/.venv/bin/python src/gidd_lr_report.py --out ../artifacts/gidd-lr-recipe-431
@@ -101,7 +101,7 @@ def val_loss_figure(runs, out_dir):
                        note="One training seed per run. Validation loss: 4 fixed draws on 4,368 held-out teams.", height=560)
 
 
-def slot_binding_figure(runs, out_dir):
+def field_matching_figure(runs, out_dir):
     old, new = runs["Uniform, no filter"]
     series = []
     for rule, color in ((ABILITY_RULE, "#0f766e"), (MOVE_RULE, "#c2410c")):
@@ -114,8 +114,8 @@ def slot_binding_figure(runs, out_dir):
               "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 28},
               "yAxis": {"type": "value", "min": 0, "max": 1, "name": "share of 64 drawn teams"},
               "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 16, "bottom": 8}], "series": series}
-    return write_chart(option, Path(out_dir) / "lr-recipe-slot-binding.html",
-                       title="Uniform, no filter: when does slot binding click under each recipe?",
+    return write_chart(option, Path(out_dir) / "lr-recipe-field-matching.html",
+                       title="Uniform, no filter: when does Pokémon-to-field matching click under each recipe?",
                        subtitle="Share of 64 teams drawn without the legal Pokémon construction filter that break each rule, every epoch.",
                        note="Draw: guidance 1, 128 passes, the same seed every epoch. Dashed: old recipe. Solid: shared GIDD-style recipe.",
                        height=460)
@@ -128,7 +128,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     runs = {arm: (load(old, args.results), load(new, args.results)) for arm, (old, new) in ARMS.items()}
     args.out.mkdir(parents=True, exist_ok=True)
-    pages = [val_loss_figure(runs, args.out), slot_binding_figure(runs, args.out)]
+    pages = [val_loss_figure(runs, args.out), field_matching_figure(runs, args.out)]
     result = summary(runs)
     (args.out / "summary.json").write_text(json.dumps(result, indent=1))
     print(json.dumps(result, indent=1))
