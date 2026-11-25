@@ -24,6 +24,10 @@ shuffled-slot battles alone (owner, 2026-11-11; src/lossdata84.py --shuffled-onl
 reproduce models trained on the older table, results/lossdata84.npz, whose labels pool listed-order battles and run
 files. They run only with --older-table, so no training reads those labels by accident.
 
+Every table is filtered before training: an arm stops before training if the legal Pokémon construction tables reject
+any row of any group with every field visible, which a wrong-stone team (another species' Mega Stone) fails (owner,
+2026-11-17, #368; #385). The run info records the check as wrong_stone_check; src/wrong_stone_check.py says how to filter.
+
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
                           | pos_per_field_s0 | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
                           | shuffled_per_field | shuffled_linear | shuffled_linear_filtered | shuffled_linear_filtered_gidd_lr
@@ -86,13 +90,13 @@ import lossdown as L                                     # before diffusion84: i
 sys.path.insert(0, str(HERE))
 import stat_points as SP
 import team84 as T
-from team84 import assert_no_wrong_stones
 from ddom_weights import bin_weights
 from label_noise import noise_tag, noise_width
 import diffusion84 as M
 import lr_schedule84 as LS
 import asked_vs_got as X
 import wandb_tracking as WT
+from wrong_stone_check import refuse_wrong_stones
 
 OLDER_TABLE = X.RES / "lossdata84.npz"                  # labels pool listed-order battles and run files; only to reproduce its models
 SHUFFLED_ONLY = X.RES / "lossdata84_shuffled_only.npz"   # labels from shuffled-slot battles only (issue #229)
@@ -155,6 +159,18 @@ def load(path=DATA):
     return d
 
 
+def training_table(path):
+    """The table at path, refused unless it is filtered: legal Stat Points, and no wrong-stone team in any group with
+    every field visible (src/wrong_stone_check.py). Sets what the run info records about the table."""
+    global DATA_SHA, DATA_TABLE, WRONG_STONE_CHECK
+    d = load(path); check_rows(d)
+    WRONG_STONE_CHECK = refuse_wrong_stones(d)
+    DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    print(f"[{d['table']}] wrong-stone check ({WRONG_STONE_CHECK['method']}): 0 of {sum(WRONG_STONE_CHECK['rows'].values())} rows rejected",
+          flush=True)
+    return d
+
+
 def unseen_val(d, rows):
     """The all-teams validation rows that are not among `rows`."""
     seen = {r.tobytes() for r in rows}
@@ -197,13 +213,13 @@ def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     recipe = recipe_for(arm, net_kw)
     labelled_only = not np.isnan(np.asarray(labels, float)).any()
     if tracker is None:
-        run_meta = dict(arm=arm, table=DATA_TABLE, data_sha256=DATA_SHA, ddom_tau=tau, labelled_only=labelled_only,
+        run_meta = dict(arm=arm, table=DATA_TABLE, data_sha256=DATA_SHA, wrong_stone_check=WRONG_STONE_CHECK, ddom_tau=tau, labelled_only=labelled_only,
                         val_rows=len(val[0]), val_share=0.02, val_seed=0)
         tracker = WT.from_cli_args(WANDB_ARGS, name=name(arm), job_type="train", tags=("84-field", arm), config=run_meta, smoke=SMOKE)
     with tracker:
         m = M.Model84.train_new(V, corpus, rows, labels, epochs=epochs, val=val, patience=patience, on_best=on_best,
                                 legality_teams=LEGALITY_TEAMS, tracker=tracker, **recipe, **NET, **net_kw)
-        m.info.update(table=DATA_TABLE, ddom_tau=tau, labelled_only=labelled_only, arm=arm, data_sha256=DATA_SHA,
+        m.info.update(table=DATA_TABLE, wrong_stone_check=WRONG_STONE_CHECK, ddom_tau=tau, labelled_only=labelled_only, arm=arm, data_sha256=DATA_SHA,
                       minutes=round((time.perf_counter() - t0) / 60, 1), val_rows=len(val[0]), val_share=0.02, val_seed=0)
         if meta := tracker.metadata():
             m.info["wandb"] = meta
@@ -228,7 +244,7 @@ def stop_reason(info):
 def stamped(model, arm):
     """The model with its training table written into its run info, so a checkpoint saved during training, the best one
     so far or one epoch's, names the table it trained on. The ask grid reads that name to pick the right training teams."""
-    model.info.update(table=DATA_TABLE, data_sha256=DATA_SHA, arm=arm)
+    model.info.update(table=DATA_TABLE, data_sha256=DATA_SHA, wrong_stone_check=WRONG_STONE_CHECK, arm=arm)
     return model
 
 
@@ -241,9 +257,8 @@ def check_rows(d):
 def train_position_arms(arm):
     """The position-embedding split arms named by arm (all five for smoke), on the shuffled-only table: label noise 1/48,
     patience off so exactly the epoch-21 weights are kept, and only the position option or the training seed changed."""
-    global DATA_SHA, DATA_TABLE
     if arm not in (*POSITION_ARMS, "smoke"): return
-    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    d = training_table(SHUFFLED_ONLY)
     tr = ~d["all_val"]
     for pos_arm, kw in POSITION_ARMS.items():
         if arm in (pos_arm, "smoke"):
@@ -254,9 +269,8 @@ def train_position_arms(arm):
 def train_masking_rate_arms(arm):
     """The masking-schedule training named by arm, on the labelled teams of the shuffled-only table. Both arms get the same rows
     and the default model's recipe with early-stopping threshold 0 and every epoch saved; only sched differs."""
-    global DATA_SHA, DATA_TABLE
     if arm not in MASKING_RATE_ARMS: return
-    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    d = training_table(SHUFFLED_ONLY)
     has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
     train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
           early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS[arm])
@@ -264,24 +278,18 @@ def train_masking_rate_arms(arm):
 
 def train_filtered_default_arms(arm):
     """Default-checkpoint retrain on the filtered shuffled-only table without wrong-stone teams (issue #385).
-    Same recipe as shuffled_linear; refuses to start if Tables.rejects flags any row on either side."""
-    global DATA_SHA, DATA_TABLE
+    Same recipe as shuffled_linear; training_table refuses the table if any row holds a wrong-stone team."""
     if arm not in FILTERED_DEFAULT_ARMS: return
-    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    d = training_table(SHUFFLED_ONLY)
     has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
-    check = assert_no_wrong_stones(T.regulation_vocab(), d["all_X"][tr], d["all_X"][va])
-    print(f"[{name(arm)}] wrong-stone check ({check['method']}): "
-          f"{check['train_rejected']}/{check['train_rows']} train, {check['val_rejected']}/{check['val_rows']} val rejected",
-          flush=True)
     train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
           early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **FILTERED_DEFAULT_ARMS[arm])
 
 
 def train_table_loss_arms(arm):
     """No tables in the loss: shuffled_linear's rows and call with the loss mask off and the legality check drawing without the tables."""
-    global DATA_SHA, DATA_TABLE
     if arm not in TABLE_LOSS_ARMS: return
-    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    d = training_table(SHUFFLED_ONLY)
     has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
     train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
           early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS["shuffled_linear"], **TABLE_LOSS_ARMS[arm])
@@ -290,9 +298,8 @@ def train_table_loss_arms(arm):
 def train_loop_arms(arm):
     """The loop arm named by arm: shuffled_linear's rows and call with one network option added, and for the
     equal-compute arms a cap of equal_compute_cap epochs in place of 80."""
-    global DATA_SHA, DATA_TABLE
     if arm not in LOOP_ARMS: return
-    d = load(SHUFFLED_ONLY); check_rows(d); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]
+    d = training_table(SHUFFLED_ONLY)
     has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
     net = LOOP_ARMS[arm]["net"]
     cap = CONTROL_EPOCHS if LOOP_ARMS[arm]["match"] == "equal_epochs" else equal_compute_cap(net)
@@ -314,11 +321,9 @@ def parse_args(argv):
 def older_table(arm, allowed):
     """The older table, for an arm that reproduces one of its models; None for every other arm. Such an arm stops here
     unless --older-table was passed, before any table is read or any checkpoint written."""
-    global DATA_SHA, DATA_TABLE
     if arm not in OLDER_TABLE_ARMS: return None
     if not allowed: sys.exit(OLDER_TABLE_REFUSAL.format(arm=arm))
-    d = load(OLDER_TABLE); DATA_SHA, DATA_TABLE = d["sha256"], d["table"]; check_rows(d)
-    return d
+    return training_table(OLDER_TABLE)
 
 
 def main(argv):
@@ -372,7 +377,7 @@ def _run_main(args):
         sys.exit(__doc__)
 
 
-DATA_SHA = DATA_TABLE = None
+DATA_SHA = DATA_TABLE = WRONG_STONE_CHECK = None
 NOISE = None                                             # set by --label-noise; None keeps each arm's own width and name
 LEGALITY_TEAMS = 64                                      # set by --legality-teams; teams checked after every epoch (issue #248)
 WANDB_ARGS = None                                        # set by main(); None keeps W&B disabled for direct unit-test calls

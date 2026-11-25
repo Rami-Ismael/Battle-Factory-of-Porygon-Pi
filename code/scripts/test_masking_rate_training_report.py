@@ -60,7 +60,9 @@ class RowSplit(unittest.TestCase):
     def test_the_split_is_the_one_the_masking_rate_trainings_use(self):
         table = fake_table()
         with (mock.patch.object(TR, "train") as train, mock.patch.object(TR, "load", return_value=table),
-              mock.patch.object(TR, "check_rows"), redirect_stdout(io.StringIO())):
+              mock.patch.object(TR, "check_rows"),
+              mock.patch.object(TR, "refuse_wrong_stones", return_value=dict(method="mock", rows=dict(all=6), rejected=0)),
+              redirect_stdout(io.StringIO())):
             TR.main(["shuffled_linear"])
         _arm, rows, labels, (val_rows, val_labels) = train.call_args.args
         training, validation = R.labelled_split(table)

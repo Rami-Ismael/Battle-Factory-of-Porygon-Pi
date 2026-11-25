@@ -72,7 +72,8 @@ class MaskingRateArms(unittest.TestCase):
 
     def run_arm(self, arm):
         with (mock.patch.object(TR, "train") as train, mock.patch.object(TR, "load", return_value=self.fake_table()) as load,
-              mock.patch.object(TR, "check_rows"), redirect_stdout(io.StringIO())):
+              mock.patch.object(TR, "check_rows"), redirect_stdout(io.StringIO()),
+              mock.patch.object(TR, "refuse_wrong_stones", return_value=dict(method="mock", rows=dict(all=6), rejected=0))):
             TR.main([arm])
         return train, load
 
@@ -180,6 +181,53 @@ class AskGridTable(unittest.TestCase):
         self.assertEqual(A.ask_numerators({}), list(range(1, 24)))
         self.assertEqual(A.ask_numerators({"AG84_ASKS": "12"}), [12])
         self.assertEqual(A.ask_numerators({"AG84_ASKS": "6,12"}), [6, 12])
+
+
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
+class FilteredTableOnly(unittest.TestCase):
+    """Every arm trains on a filtered table: no wrong-stone team in any group with every field visible (#368, #385)."""
+
+    TRAINING_FUNCTIONS = dict(pos_per_field_s0=TR.train_position_arms, shuffled_linear=TR.train_masking_rate_arms,
+                              shuffled_linear_filtered=TR.train_filtered_default_arms,
+                              shuffled_linear_no_table_loss=TR.train_table_loss_arms,
+                              loop_block_equal_epochs=TR.train_loop_arms) if HERE else {}
+
+    def test_every_training_function_reads_its_table_through_the_check(self):
+        routed = AssertionError("routed through training_table")
+        for arm, function in self.TRAINING_FUNCTIONS.items():
+            with (self.subTest(arm=arm), mock.patch.object(TR, "training_table", side_effect=routed) as checked,
+                  mock.patch.object(TR, "load", side_effect=AssertionError("read a table without the check")),
+                  mock.patch.object(TR, "train", side_effect=AssertionError("trained before the check")),
+                  self.assertRaises(AssertionError) as stop):
+                function(arm)
+            self.assertIs(stop.exception, routed)
+            checked.assert_called_once_with(TR.SHUFFLED_ONLY)
+        with mock.patch.object(TR, "training_table", return_value="checked") as checked:
+            self.assertEqual(TR.older_table("byepoch", allowed=True), "checked")
+        checked.assert_called_once_with(TR.OLDER_TABLE)
+
+    @unittest.skipUnless(TR.SHUFFLED_ONLY.exists() if HERE else False, "needs the shuffled-only table")
+    def test_the_stored_training_tables_pass(self):
+        for path in (TR.SHUFFLED_ONLY, TR.OLDER_TABLE):
+            with self.subTest(table=path.name), redirect_stdout(io.StringIO()):
+                TR.training_table(path)
+                self.assertEqual(TR.WRONG_STONE_CHECK["rejected"], 0)
+                self.assertGreater(TR.WRONG_STONE_CHECK["rows"]["all"], 200_000)
+
+    @unittest.skipUnless((TR.X.RES / "lossdata84_shuffled_labels.npz").exists() if HERE else False,
+                         "needs the unfiltered shuffled-labels table")
+    def test_real_wrong_stone_teams_are_refused(self):
+        """lossdata84_shuffled_labels.npz predates #368 and still holds wrong-stone teams."""
+        import wrong_stone_check as WS
+        d = TR.load(TR.X.RES / "lossdata84_shuffled_labels.npz")
+        tables = TR.L.Tables(TR.T.regulation_vocab(), [])
+        wrong = tables.rejects(d["all_X"][:, :TR.T.COLS48])
+        self.assertGreater(int(wrong.sum()), 0)
+        table = dict(all_X=d["all_X"][wrong][:3], table="lossdata84_shuffled_labels.npz")
+        with self.assertRaises(SystemExit) as stop:
+            WS.refuse_wrong_stones(table)
+        self.assertIn("3 in all_X", str(stop.exception))
+        self.assertIn("--drop-wrong-stones lossdata84_shuffled_labels", str(stop.exception))
 
 
 if __name__ == "__main__":

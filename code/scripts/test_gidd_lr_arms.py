@@ -27,9 +27,7 @@ if LAPTOP:
     import train_uniform84 as TU
 
 LR_FIELDS = set(LS.GIDD_LR_RECIPE)
-
-
-CLEAN_CHECK = dict(method="mock", train_rows=3, val_rows=1, train_rejected=0, val_rejected=0)
+CHECK_RECORD = dict(method="mock", rows=dict(all=6), rejected=0)   # wrong_stone_check.refuse_wrong_stones's record
 
 
 def fake_table():
@@ -43,8 +41,7 @@ class MaskedFullFilterArmTests(unittest.TestCase):
     def call_for(self, arm):
         with (mock.patch.object(TR, "train") as train, mock.patch.object(TR, "load", return_value=fake_table()),
               mock.patch.object(TR, "check_rows"),
-              mock.patch.object(TR, "assert_no_wrong_stones",
-                                return_value=dict(method="mock", train_rows=3, val_rows=1, train_rejected=0, val_rejected=0)),
+              mock.patch.object(TR, "refuse_wrong_stones", return_value=CHECK_RECORD),
               redirect_stdout(io.StringIO())):
             TR.main([arm])
         train.assert_called_once()
@@ -74,23 +71,24 @@ class UniformNoFilterArmTests(unittest.TestCase):
     def call_for(self, arm):
         with (mock.patch.object(TU, "train") as train, mock.patch.object(TU, "load", return_value=fake_table()),
               mock.patch.object(TU, "check_rows"),
-              mock.patch.object(TU.T, "assert_no_wrong_stones", return_value=CLEAN_CHECK) as guard,
+              mock.patch.object(TU, "refuse_wrong_stones", return_value=CHECK_RECORD) as guard,
               redirect_stdout(io.StringIO())):
             TU.train_arm(arm)
         train.assert_called_once()
         self.guard_args = guard.call_args.args
         return train.call_args
 
-    def test_wrong_stone_guard_sees_the_rows_the_trainer_gets(self):
+    def test_wrong_stone_guard_sees_every_row_the_trainer_gets(self):
         call = self.call_for("udlm_loglinear_gidd_lr")
-        _, guarded_train, guarded_val = self.guard_args
-        np.testing.assert_array_equal(guarded_train, call.args[1])
-        np.testing.assert_array_equal(guarded_val, call.args[3][0])
+        (guarded_table,) = self.guard_args
+        guarded = {row.tobytes() for row in guarded_table["all_X"]}
+        for rows in (call.args[1], call.args[3][0]):
+            self.assertTrue(len(rows) and all(row.tobytes() in guarded for row in rows))
 
     def test_wrong_stone_team_stops_training_before_it_starts(self):
-        refused = SystemExit("wrong-stone check failed (every field visible): 1 training and 0 validation teams rejected")
+        refused = SystemExit("lossdata84_shuffled_only.npz holds wrong-stone teams (1 in all_X)")
         with (mock.patch.object(TU, "train") as train, mock.patch.object(TU, "load", return_value=fake_table()),
-              mock.patch.object(TU, "check_rows"), mock.patch.object(TU.T, "assert_no_wrong_stones", side_effect=refused)):
+              mock.patch.object(TU, "check_rows"), mock.patch.object(TU, "refuse_wrong_stones", side_effect=refused)):
             with self.assertRaises(SystemExit):
                 TU.train_arm("udlm_loglinear")
         train.assert_not_called()
