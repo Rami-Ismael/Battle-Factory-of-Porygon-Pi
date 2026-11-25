@@ -115,6 +115,15 @@ MODELS["udlm_loglinear_nofilter"] = dict(checkpoint="stat84_udlm_loglinear_es3_c
                                          stopped="early stopping on validation loss (patience 3, threshold 0, cap 80)",
                                          labelled=True, decoder="uniform_nofilter", uniform=True, passes=None,
                                          table=DEFAULT_TABLE)
+# Issue #431 / #438: both arms retrained with one shared GIDD-style learning-rate recipe (peak 5e-4, cosine to a 5e-5
+# floor) on a Modal GPU. The masked row draws on seed base 7300, the base its 4e-4 twin's grids record, so the two
+# recipes meet the same random numbers and their differences pair cell by cell.
+GIDD_LR_STOPPED = "early stopping on validation loss (patience 3, threshold 0, cap 80); reached the cap still improving"
+MODELS["shuffled_linear_filtered_gidd_lr"] = dict(MODELS["linear_masked_filter"], checkpoint="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80",
+                                                  reader="Masked, full filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED,
+                                                  seed0=grid_seeds.LEGACY)
+MODELS["udlm_loglinear_gidd_lr"] = dict(MODELS["udlm_loglinear_nofilter"], checkpoint="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80",
+                                        reader="Uniform, no filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
