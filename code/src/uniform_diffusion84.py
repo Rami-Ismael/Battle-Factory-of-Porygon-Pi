@@ -36,6 +36,7 @@ from encode import NSLOT, Vocab
 from epoch_legality import EpochLegality, team_keys
 from hps_generate import slot_to_text
 from label_noise import noisy_labels
+import lr_schedule84 as LS
 from uniform_math84 import (
     COLS,
     DEFAULT_PASSES,
@@ -521,9 +522,14 @@ class UniformModel84:
         legality_copies=True,
         tracker=None,
         amp=None,
+        lr_schedule="cosine",
+        min_lr=0.0,
         **net_kw,
     ):
-        """Train a uniform discrete diffusion model from scratch on 84-field rows."""
+        """Train a uniform discrete diffusion model from scratch on 84-field rows.
+
+        lr_schedule, min_lr: the learning-rate schedule and its floor (lr_schedule84.py); "cosine" decays to 0 as
+        every run before issue #431 did, "gidd_cosine" is GIDD's warm-up then cosine to min_lr."""
         torch.manual_seed(seed)
         tables = L.Tables(vocab, corpus)
         x_table, w_tensor, _row_weights, keep = M._training_tensors(tables, rows, labels)
@@ -561,6 +567,8 @@ class UniformModel84:
             legality_tables=False,
             amp_dtype="bfloat16" if use_amp else "float32",
         )
+        if lr_schedule != "cosine" or min_lr:
+            info.update(lr_schedule=lr_schedule, min_lr=min_lr, warmup=warmup)   # only when not the old default
         known = team_keys(x_table.cpu().numpy()) if legality_teams and legality_copies else None
         legality = EpochLegality(legality_teams, guidance=legality_guidance, tables=False, known=known)
         return cls._fit(
@@ -591,6 +599,8 @@ class UniformModel84:
             legality_passes=legality_passes,
             tracker=tracker,
             use_amp=use_amp,
+            lr_schedule=lr_schedule,
+            min_lr=min_lr,
         )
 
     @classmethod
@@ -624,6 +634,8 @@ class UniformModel84:
         legality_passes,
         tracker,
         use_amp=False,
+        lr_schedule="cosine",
+        min_lr=0.0,
     ):
         make = lambda network, extra: cls(
             vocab, corpus, [(network, net_kw)], dict(info, **extra), default_passes=legality_passes
@@ -634,7 +646,7 @@ class UniformModel84:
         optimizer, fused_adamw = _make_adamw(net.parameters(), lr=lr, wd=wd, device=clean_tokens.device)
         info["fused_adamw"] = fused_adamw
         vocab_vec = vocab_vector(vocab_sizes, clean_tokens.device)
-        lr_at = lambda s: lr * min(1.0, (s + 1) / warm_steps) * 0.5 * (1 + math.cos(math.pi * min(s, total_steps) / total_steps))
+        lr_at = LS.make_lr_at(lr_schedule, peak_lr=lr, total_steps=total_steps, warmup_steps=warm_steps, min_lr=min_lr)
         noise_rng = torch.Generator().manual_seed(seed + 1)
         curves = [] if log is None else log
         state = dict(best=math.inf, best_epoch=0, best_sd=None, reset_epoch=0, step=0)

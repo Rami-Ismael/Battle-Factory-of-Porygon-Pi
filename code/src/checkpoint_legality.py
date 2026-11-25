@@ -54,15 +54,17 @@ def training_keys(info):
     return E.team_keys(d["all_X"][tr].astype(np.int64))
 
 
-def result_path(training, tables):
-    return X.RES / f"{training}_legality_{'tables' if tables else 'no_tables'}.json"
+def result_path(training, tables, guidance=E.GUIDANCE):
+    """A guidance other than the training check's own 2 gets its own file, as _g1 for guidance 1."""
+    suffix = "" if guidance == E.GUIDANCE else f"_g{guidance:g}"
+    return X.RES / f"{training}_legality_{'tables' if tables else 'no_tables'}{suffix}.json"
 
 
-def run(training, tables=False, teams=E.TEAMS, epochs=None, root=L.CK, out=None):
+def run(training, tables=False, teams=E.TEAMS, epochs=None, root=L.CK, out=None, guidance=E.GUIDANCE):
     """Check each epoch checkpoint not yet in the result file; returns the result dict."""
-    out = Path(out or result_path(training, tables))
+    out = Path(out or result_path(training, tables, guidance))
     result = json.loads(out.read_text()) if out.exists() else dict(
-        training=training, tables=tables, teams=teams, ask=E.ASK, guidance=E.GUIDANCE, temperature=E.TEMPERATURE,
+        training=training, tables=tables, teams=teams, ask=E.ASK, guidance=guidance, temperature=E.TEMPERATURE,
         seed=E.SEED, order="species-first", epochs=[])
     if (result["tables"], result["teams"]) != (tables, teams):
         raise SystemExit(f"{out} was written with tables={result['tables']}, teams={result['teams']}; pass the same or remove it")
@@ -76,7 +78,7 @@ def run(training, tables=False, teams=E.TEAMS, epochs=None, root=L.CK, out=None)
             if model is None:
                 model = M.Model84.load(path)                 # builds the tables and paste lookups once
                 kw = model.nets[0][1]
-                check = E.EpochLegality(teams, tables=tables, known=training_keys(model.info))
+                check = E.EpochLegality(teams, guidance=guidance, tables=tables, known=training_keys(model.info))
             else:
                 ck = load_checkpoint(path, map_location="cpu")
                 if len(ck["members"]) != 1 or ck["members"][0]["net_kw"] != kw: raise SystemExit(f"{path.name}: another network")
@@ -97,11 +99,12 @@ def main(argv):
     p.add_argument("training", help="checkpoint folder and name stem, such as stat84_shuffled_noise_linear_es3_cap80")
     p.add_argument("--tables", action="store_true", help="draw with the legal Pokémon construction tables (default off)")
     p.add_argument("--teams", type=int, default=E.TEAMS, help=f"teams per checkpoint (default {E.TEAMS})")
+    p.add_argument("--guidance", type=float, default=E.GUIDANCE, help=f"draw guidance (default {E.GUIDANCE:g}, the training check's)")
     p.add_argument("--epochs", type=lambda s: {int(v) for v in s.split(",")}, help="only these epochs, as 1,40,80")
     a = p.parse_args(argv)
     t0 = time.perf_counter()
-    r = run(a.training, a.tables, a.teams, a.epochs)
-    print(f"{len(r['epochs'])} epochs in {result_path(a.training, a.tables)} · {(time.perf_counter() - t0) / 60:.1f} min")
+    r = run(a.training, a.tables, a.teams, a.epochs, guidance=a.guidance)
+    print(f"{len(r['epochs'])} epochs in {result_path(a.training, a.tables, a.guidance)} · {(time.perf_counter() - t0) / 60:.1f} min")
     print("CHECKPOINT_LEGALITY_DONE")
 
 

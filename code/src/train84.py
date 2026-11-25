@@ -30,7 +30,8 @@ any row of any group with every field visible, which a wrong-stone team (another
 
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
                           | pos_per_field_s0 | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
-                          | shuffled_per_field | shuffled_linear | shuffled_linear_filtered | shuffled_linear_no_table_loss
+                          | shuffled_per_field | shuffled_linear | shuffled_linear_filtered | shuffled_linear_filtered_gidd_lr
+                          | shuffled_linear_no_table_loss
                           | loop_block_equal_compute | loop_block_equal_epochs | carry_state_equal_compute | carry_state_equal_epochs
 
 The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking schedule where every field
@@ -92,6 +93,7 @@ import team84 as T
 from ddom_weights import bin_weights
 from label_noise import noise_tag, noise_width
 import diffusion84 as M
+import lr_schedule84 as LS
 import asked_vs_got as X
 import wandb_tracking as WT
 from wrong_stone_check import refuse_wrong_stones
@@ -125,6 +127,9 @@ NAMES.update(shuffled_per_field="stat84_shuffled_noise_per_field_es3_cap80", shu
 # Issue #385: retrain the default linear checkpoint on the filtered shuffled-only table without wrong-stone teams
 FILTERED_DEFAULT_ARMS = dict(shuffled_linear_filtered=dict(sched=LINEAR_MASKING_RATE))
 NAMES.update(shuffled_linear_filtered="stat84_shuffled_noise_linear_filtered_es3_cap80")
+# Issue #431: shuffled_linear_filtered with one shared GIDD-style learning-rate recipe (peak 5e-4, cosine to the 10% floor 5e-5)
+FILTERED_DEFAULT_ARMS.update(shuffled_linear_filtered_gidd_lr=dict(sched=LINEAR_MASKING_RATE, **LS.GIDD_LR_RECIPE))
+NAMES.update(shuffled_linear_filtered_gidd_lr="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80")
 # No tables in the loss (issue #361): code ID -> what changes from shuffled_linear, the loss mask and the check's draw
 TABLE_LOSS_ARMS = dict(shuffled_linear_no_table_loss=dict(table_loss=False, legality_tables=False, legality_copies=True))
 NAMES.update(shuffled_linear_no_table_loss="stat84_shuffled_noise_linear_no_table_loss_es3_cap80")
@@ -183,9 +188,11 @@ PER_FIELD_ARMS = ("loop", "records", "all", "all_noise", "byepoch", "ddom_tau01"
 
 
 def recipe_for(arm, net_kw):
-    """The training recipe of arm, with the seed and masking schedule taken out of net_kw when the arm sets them."""
+    """The training recipe of arm, with the seed, masking schedule and learning-rate fields (lr_schedule84.GIDD_LR_RECIPE's
+    keys) taken out of net_kw when the arm sets them."""
     base = PER_FIELD_RECIPE if arm in PER_FIELD_ARMS else RECIPE
-    return dict(base, seed=net_kw.pop("seed", base["seed"]), sched=net_kw.pop("sched", base["sched"]))
+    lr_fields = {k: net_kw.pop(k) for k in LS.GIDD_LR_RECIPE if k in net_kw}
+    return dict(base, seed=net_kw.pop("seed", base["seed"]), sched=net_kw.pop("sched", base["sched"]), **lr_fields)
 
 
 def train(arm, rows, labels, val, epochs, patience=None, **net_kw):

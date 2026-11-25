@@ -1,0 +1,84 @@
+{
+ "Uniform, no filter": {
+  "old recipe": {
+   "best_epoch": 80,
+   "stopped_epoch": 80,
+   "best_val_loss": 1.4383895213787372,
+   "final_illegal_share": 0.84375,
+   "final_errors_per_team": 2.578125,
+   "final_rule_shares": {
+    "item used more than once": 0.171875,
+    "wrong Mega Stone": 0.09375,
+    "other item the species can't hold": 0.03125,
+    "species used more than once": 0.34375,
+    "ability the species can't have": 0.0625,
+    "move the species can't learn": 0.359375,
+    "same move twice on one Pok\u00e9mon": 0.15625,
+    "Stat Points over 66": 0.5625
+   },
+   "minutes": 422.3,
+   "ability_shift_epoch": 60,
+   "move_shift_epoch": 65
+  },
+  "shared GIDD-style recipe": {
+   "best_epoch": 80,
+   "stopped_epoch": 80,
+   "best_val_loss": 1.315275136367742,
+   "final_illegal_share": 0.5625,
+   "final_errors_per_team": 1.09375,
+   "final_rule_shares": {
+    "item used more than once": 0.0625,
+    "wrong Mega Stone": 0.015625,
+    "other item the species can't hold": 0.0,
+    "species used more than once": 0.234375,
+    "ability the species can't have": 0.0,
+    "move the species can't learn": 0.140625,
+    "same move twice on one Pok\u00e9mon": 0.015625,
+    "Stat Points over 66": 0.265625
+   },
+   "minutes": 77.6,
+   "ability_shift_epoch": 50,
+   "move_shift_epoch": 51
+  },
+  "best_val_loss_change": -0.12311438501099525
+ },
+ "Masked, full filter": {
+  "old recipe": {
+   "best_epoch": 80,
+   "stopped_epoch": 80,
+   "best_val_loss": 1.3142771161956228,
+   "final_illegal_share": 0.0,
+   "final_errors_per_team": 0.0,
+   "final_rule_shares": {
+    "item used more than once": 0.0,
+    "wrong Mega Stone": 0.0,
+    "other item the species can't hold": 0.0,
+    "species used more than once": 0.0,
+    "ability the species can't have": 0.0,
+    "move the species can't learn": 0.0,
+    "same move twice on one Pok\u00e9mon": 0.0,
+    "Stat Points over 66": 0.0
+   },
+   "minutes": 420.7
+  },
+  "shared GIDD-style recipe": {
+   "best_epoch": 80,
+   "stopped_epoch": 80,
+   "best_val_loss": 1.2137513169438847,
+   "final_illegal_share": 0.0,
+   "final_errors_per_team": 0.0,
+   "final_rule_shares": {
+    "item used more than once": 0.0,
+    "wrong Mega Stone": 0.0,
+    "other item the species can't hold": 0.0,
+    "species used more than once": 0.0,
+    "ability the species can't have": 0.0,
+    "move the species can't learn": 0.0,
+    "same move twice on one Pok\u00e9mon": 0.0,
+    "Stat Points over 66": 0.0
+   },
+   "minutes": 72.4
+  },
+  "best_val_loss_change": -0.1005257992517381
+ }
+}

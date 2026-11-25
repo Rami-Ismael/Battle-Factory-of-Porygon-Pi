@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uniform, no filter at epoch 80: Stat Points and repeated species are what still break</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:440px}
+</style>
+</head>
+<body>
+<main>
+<h1>Uniform, no filter at epoch 80: Stat Points and repeated species are what still break</h1>
+<p class="sub">Share of 64 drawn teams breaking each rule. Light: old recipe. Dark: shared GIDD-style recipe. Shorter is better.</p>
+<div id="chart"></div>
+<p class="note">64 teams per epoch at the elite cut and guidance 1, drawn without the legal Pokémon construction filter, the same seed every epoch (Uniform, no filter: 128 passes over all fields). Old recipe: 4e-4 cosine to 0. Shared GIDD-style recipe: 5e-4 cosine to 5e-5.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"legend": {"top": 0, "left": 0}, "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}, "valueFormatter": "js:v => Math.round(v * 100) + '%'"}, "grid": {"left": 210, "right": 48, "top": 40, "bottom": 32}, "xAxis": {"type": "value", "min": 0, "max": 0.6, "interval": 0.2, "axisLabel": {"formatter": "js:v => Math.round(v * 100) + '%'"}}, "yAxis": {"type": "category", "data": ["ability the species can't have", "move the species can't learn", "same move twice on one Pokémon", "wrong Mega Stone", "other item the species can't hold", "species used more than once", "item used more than once", "Stat Points over 66"], "inverse": true, "axisTick": {"show": false}}, "series": [{"type": "bar", "name": "old recipe", "color": "#8fc9c1", "barGap": "10%", "barCategoryGap": "30%", "itemStyle": {"borderRadius": [0, 3, 3, 0]}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "right", "fontSize": 11, "formatter": "js:p => Math.round(p.value * 100) + '%'"}, "data": [0.0625, 0.3594, 0.1562, 0.0938, 0.0312, 0.3438, 0.1719, 0.5625]}, {"type": "bar", "name": "shared GIDD-style recipe", "color": "#0f766e", "barGap": "10%", "barCategoryGap": "30%", "itemStyle": {"borderRadius": [0, 3, 3, 0]}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "right", "fontSize": 11, "formatter": "js:p => Math.round(p.value * 100) + '%'"}, "data": [0.0, 0.1406, 0.0156, 0.0156, 0.0, 0.2344, 0.0625, 0.2656]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615", "#8fc9c1": "#4a5654", "#0f766e": "#2bb3a3"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

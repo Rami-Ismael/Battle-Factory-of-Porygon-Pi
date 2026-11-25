@@ -8,10 +8,14 @@ One model trains under the clean two-arm comparison (owner decision 2026-11-24):
                    legal Pokémon construction filter, labelled teams of lossdata84_shuffled_only.npz,
                    label noise ±1/48, AdamW lr 4e-4, batch 256, EMA 0.999, patience 3, threshold 0,
                    cap 80 epochs, every epoch saved.
+  udlm_loglinear_gidd_lr   stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80 (issue #431)
+                   udlm_loglinear with lr_schedule84.GIDD_LR_RECIPE: peak 5e-4, 1,000 warm-up steps, cosine
+                   to the 10% floor 5e-5, the same recipe Masked, full filter gets in train84.py.
 
 Commands:
     /tmp/vgc-pilot/.venv/bin/python code/src/train_uniform84.py smoke
     /tmp/vgc-pilot/.venv/bin/python code/src/train_uniform84.py udlm_loglinear
+    /tmp/vgc-pilot/.venv/bin/python code/src/train_uniform84.py udlm_loglinear_gidd_lr   (issue #431; on Modal: scripts/train84_modal.py)
 """
 import argparse
 import hashlib
@@ -37,6 +41,7 @@ import uniform_diffusion84 as UM
 import uniform_preflight84 as UP
 import wandb_tracking as WT
 from wrong_stone_check import refuse_wrong_stones
+import lr_schedule84 as LS
 
 SHUFFLED_ONLY = X.RES / "lossdata84_shuffled_only.npz"
 DATA = SHUFFLED_ONLY
@@ -44,7 +49,8 @@ CK = L.CK
 SMOKE = bool(os.environ.get("S84_SMOKE"))
 NET = dict(d=256, nlayer=6, nhead=8)
 RECIPE = dict(batch=256, lr=4e-4, wd=0.01, warmup=500, ema=0.999, seed=0)
-NAMES = dict(udlm_loglinear="stat84_udlm_loglinear_es3_cap80")
+NAMES = dict(udlm_loglinear="stat84_udlm_loglinear_es3_cap80",
+             udlm_loglinear_gidd_lr="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80")
 ARMS = dict(
     udlm_loglinear=dict(
         epochs=80,
@@ -54,6 +60,13 @@ ARMS = dict(
         every_epoch=True,
     )
 )
+# Issue #431: udlm_loglinear with one shared GIDD-style learning-rate recipe (peak 5e-4, cosine to the 10% floor 5e-5)
+ARMS["udlm_loglinear_gidd_lr"] = dict(ARMS["udlm_loglinear"], recipe=LS.GIDD_LR_RECIPE)
+
+
+def recipe_for(lr_recipe):
+    """RECIPE with an arm's learning-rate fields (lr_schedule84.GIDD_LR_RECIPE's keys) in place of its own; None keeps RECIPE."""
+    return dict(RECIPE, **(lr_recipe or {}))
 
 
 def name(arm):
@@ -274,6 +287,7 @@ def train(arm, rows, labels, val, epochs, patience=3, **train_kw):
             CK / run_name / f"{run_name}_ep{epoch:02d}.pt"
         )
     tracker = train_kw.pop("tracker", None)
+    recipe = recipe_for(train_kw.pop("recipe", None))
     labelled_only = not np.isnan(np.asarray(labels, float)).any()
     if tracker is None:
         run_meta = dict(
@@ -307,7 +321,7 @@ def train(arm, rows, labels, val, epochs, patience=3, **train_kw):
             on_best=on_best,
             legality_teams=LEGALITY_TEAMS,
             tracker=tracker,
-            **RECIPE,
+            **recipe,
             **NET,
             **train_kw,
         )
