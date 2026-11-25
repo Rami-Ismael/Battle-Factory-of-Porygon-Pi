@@ -338,12 +338,24 @@ def fast_runner():
     return _fast
 
 def default_runner():
-    """The runner ensure() uses when the caller passes none: the fast evaluator, or run_jobs
-    when MATCHUP_BACKEND=legacy."""
+    """The runner ensure() uses when the caller passes none: the fast evaluator, Modal when
+    MATCHUP_BACKEND=modal, or run_jobs when MATCHUP_BACKEND=legacy."""
     backend = os.environ.get("MATCHUP_BACKEND", "fast")
     if backend == "legacy": return run_jobs
-    if backend != "fast": raise ValueError(f"MATCHUP_BACKEND must be fast or legacy, not {backend!r}")
+    if backend == "modal": return modal_runner()
+    if backend != "fast": raise ValueError(f"MATCHUP_BACKEND must be fast, modal or legacy, not {backend!r}")
     return fast_runner()
+
+_modal = None
+
+def modal_runner():
+    """Battles on Modal CPU containers (src/modal_battle_runner.py, src/battle_modal.py): the same requests and
+    attribution as the fast evaluator, with only the battles off the laptop (owner, 2026-11-25)."""
+    global _modal
+    if _modal is None:
+        from modal_battle_runner import ModalBattleRunner
+        _modal = ModalBattleRunner(SLOT_ORDER, FAST_RUNNER_DIR)
+    return _modal
 
 run_jobs.slot_order = SLOT_ORDER     # pair_shard.py shuffles through the same slot_order module
 
