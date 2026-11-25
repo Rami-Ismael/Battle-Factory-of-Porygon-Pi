@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uniform, no filter: when does Pokémon-to-field matching click under each recipe?</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:500px}
+</style>
+</head>
+<body>
+<main>
+<h1>Uniform, no filter: when does Pokémon-to-field matching click under each recipe?</h1>
+<p class="sub">Share of 64 teams drawn without the legal Pokémon construction filter that break each rule, every epoch.</p>
+<div id="chart"></div>
+<p class="note">Draw: guidance 1, 128 passes, the same seed every epoch. Dashed, old recipe: 4e-4 cosine to 0. Solid, shared GIDD-style recipe: 5e-4 cosine to 5e-5.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"tooltip": {"trigger": "axis"}, "legend": {"top": 0, "left": 0, "itemGap": 14}, "grid": {"left": 64, "right": 24, "top": 96, "bottom": 72}, "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 24}, "yAxis": {"type": "value", "min": 0, "max": 1, "name": "share of 64 drawn teams"}, "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 14, "bottom": 4}], "series": [{"type": "line", "name": "ability the species can't have · old recipe", "color": "#0f766e", "symbol": "none", "lineStyle": {"type": "dashed", "width": 2}, "emphasis": {"focus": "series"}, "data": [[1, 1.0], [2, 1.0], [3, 1.0], [4, 1.0], [5, 1.0], [6, 1.0], [7, 1.0], [8, 1.0], [9, 1.0], [10, 1.0], [11, 1.0], [12, 1.0], [13, 1.0], [14, 1.0], [15, 1.0], [16, 1.0], [17, 1.0], [18, 1.0], [19, 1.0], [20, 1.0], [21, 1.0], [22, 1.0], [23, 1.0], [24, 1.0], [25, 1.0], [26, 1.0], [27, 1.0], [28, 1.0], [29, 1.0], [30, 1.0], [31, 1.0], [32, 1.0], [33, 1.0], [34, 1.0], [35, 1.0], [36, 1.0], [37, 1.0], [38, 1.0], [39, 1.0], [40, 1.0], [41, 1.0], [42, 1.0], [43, 1.0], [44, 1.0], [45, 1.0], [46, 1.0], [47, 1.0], [48, 1.0], [49, 1.0], [50, 1.0], [51, 1.0], [52, 1.0], [53, 1.0], [54, 1.0], [55, 1.0], [56, 1.0], [57, 1.0], [58, 0.9375], [59, 0.78125], [60, 0.203125], [61, 0.03125], [62, 0.125], [63, 0.109375], [64, 0.09375], [65, 0.046875], [66, 0.03125], [67, 0.015625], [68, 0.015625], [69, 0.015625], [70, 0.0625], [71, 0.078125], [72, 0.078125], [73, 0.109375], [74, 0.0625], [75, 0.0625], [76, 0.0625], [77, 0.078125], [78, 0.0625], [79, 0.0625], [80, 0.0625]]}, {"type": "line", "name": "ability the species can't have · shared GIDD-style recipe", "color": "#0f766e", "symbol": "none", "lineStyle": {"type": "solid", "width": 2}, "emphasis": {"focus": "series"}, "data": [[1, 1.0], [2, 1.0], [3, 1.0], [4, 0.984375], [5, 1.0], [6, 1.0], [7, 1.0], [8, 0.984375], [9, 1.0], [10, 1.0], [11, 1.0], [12, 1.0], [13, 1.0], [14, 1.0], [15, 1.0], [16, 1.0], [17, 1.0], [18, 1.0], [19, 1.0], [20, 1.0], [21, 1.0], [22, 1.0], [23, 1.0], [24, 1.0], [25, 1.0], [26, 0.984375], [27, 0.984375], [28, 0.984375], [29, 1.0], [30, 0.984375], [31, 1.0], [32, 0.984375], [33, 1.0], [34, 1.0], [35, 1.0], [36, 0.984375], [37, 0.984375], [38, 1.0], [39, 0.984375], [40, 0.984375], [41, 0.984375], [42, 0.984375], [43, 0.96875], [44, 0.984375], [45, 0.984375], [46, 1.0], [47, 1.0], [48, 1.0], [49, 0.6875], [50, 0.203125], [51, 0.046875], [52, 0.015625], [53, 0.015625], [54, 0.015625], [55, 0.03125], [56, 0.015625], [57, 0.015625], [58, 0.0], [59, 0.0], [60, 0.0], [61, 0.046875], [62, 0.046875], [63, 0.03125], [64, 0.015625], [65, 0.0], [66, 0.046875], [67, 0.0], [68, 0.0], [69, 0.0], [70, 0.0], [71, 0.0], [72, 0.015625], [73, 0.015625], [74, 0.03125], [75, 0.03125], [76, 0.015625], [77, 0.0], [78, 0.015625], [79, 0.0], [80, 0.0]]}, {"type": "line", "name": "move the species can't learn · old recipe", "color": "#c2410c", "symbol": "none", "lineStyle": {"type": "dashed", "width": 2}, "emphasis": {"focus": "series"}, "data": [[1, 1.0], [2, 1.0], [3, 1.0], [4, 1.0], [5, 1.0], [6, 1.0], [7, 1.0], [8, 1.0], [9, 1.0], [10, 1.0], [11, 1.0], [12, 1.0], [13, 1.0], [14, 1.0], [15, 1.0], [16, 1.0], [17, 1.0], [18, 1.0], [19, 1.0], [20, 1.0], [21, 1.0], [22, 1.0], [23, 1.0], [24, 1.0], [25, 1.0], [26, 1.0], [27, 1.0], [28, 1.0], [29, 1.0], [30, 1.0], [31, 1.0], [32, 1.0], [33, 1.0], [34, 1.0], [35, 1.0], [36, 1.0], [37, 1.0], [38, 1.0], [39, 1.0], [40, 1.0], [41, 1.0], [42, 1.0], [43, 1.0], [44, 1.0], [45, 1.0], [46, 1.0], [47, 1.0], [48, 1.0], [49, 1.0], [50, 1.0], [51, 1.0], [52, 1.0], [53, 1.0], [54, 1.0], [55, 1.0], [56, 1.0], [57, 1.0], [58, 1.0], [59, 1.0], [60, 0.921875], [61, 0.734375], [62, 0.625], [63, 0.546875], [64, 0.53125], [65, 0.4375], [66, 0.4375], [67, 0.46875], [68, 0.5], [69, 0.34375], [70, 0.453125], [71, 0.390625], [72, 0.375], [73, 0.375], [74, 0.3125], [75, 0.328125], [76, 0.34375], [77, 0.359375], [78, 0.328125], [79, 0.34375], [80, 0.359375]]}, {"type": "line", "name": "move the species can't learn · shared GIDD-style recipe", "color": "#c2410c", "symbol": "none", "lineStyle": {"type": "solid", "width": 2}, "emphasis": {"focus": "series"}, "data": [[1, 1.0], [2, 1.0], [3, 1.0], [4, 1.0], [5, 1.0], [6, 1.0], [7, 1.0], [8, 1.0], [9, 1.0], [10, 1.0], [11, 1.0], [12, 1.0], [13, 1.0], [14, 1.0], [15, 1.0], [16, 1.0], [17, 1.0], [18, 1.0], [19, 1.0], [20, 1.0], [21, 1.0], [22, 1.0], [23, 1.0], [24, 1.0], [25, 1.0], [26, 1.0], [27, 1.0], [28, 1.0], [29, 1.0], [30, 1.0], [31, 1.0], [32, 1.0], [33, 1.0], [34, 1.0], [35, 1.0], [36, 1.0], [37, 1.0], [38, 1.0], [39, 1.0], [40, 1.0], [41, 1.0], [42, 1.0], [43, 1.0], [44, 1.0], [45, 1.0], [46, 1.0], [47, 1.0], [48, 1.0], [49, 1.0], [50, 0.796875], [51, 0.453125], [52, 0.3125], [53, 0.359375], [54, 0.296875], [55, 0.265625], [56, 0.21875], [57, 0.21875], [58, 0.203125], [59, 0.21875], [60, 0.234375], [61, 0.265625], [62, 0.234375], [63, 0.25], [64, 0.203125], [65, 0.171875], [66, 0.171875], [67, 0.171875], [68, 0.109375], [69, 0.1875], [70, 0.171875], [71, 0.140625], [72, 0.171875], [73, 0.21875], [74, 0.1875], [75, 0.140625], [76, 0.203125], [77, 0.234375], [78, 0.203125], [79, 0.171875], [80, 0.140625]]}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

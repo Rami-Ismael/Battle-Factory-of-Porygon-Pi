@@ -103,6 +103,11 @@ for _id, _rate, _reader, _decoder in (("sched_species_first", "per_field", "Per-
 # 64 legal teams need about 6,400 tries, so the row has its own cap. Seed base 7300, the stored random-order row's.
 MODELS["sched_linear_random_reject"] = dict(MODELS["sched_linear_random"], reader="Linear, random order, no lookahead, redrawn until legal",
                                             decoder="random_no_lookahead", max_tries=20_000, seed0=grid_seeds.LEGACY)
+# Issue #385 / maps #291 and #270: retrained default checkpoint on the filtered shuffled-only table without wrong-stone teams.
+MODELS["linear_masked_filter"] = dict(checkpoint="stat84_shuffled_noise_linear_filtered_es3_cap80", reader="Linear masked, full filter",
+                                      epochs=dict(labelled_teams=80),
+                                      stopped="early stopping on validation loss (patience 3, threshold 0, cap 80)",
+                                      labelled=True, decoder="species_first", table=DEFAULT_TABLE)
 # Map #270 / issue #275: paper-faithful UDLM (Schiff et al. 2024, alpha(t) = 1 - t, unconstrained sampling, Showdown checks after pass K).
 # passes=None until #277 locks K* in {84, 128, 256}: require AG84_PASSES explicitly so no grid silently runs at an unchosen K.
 MODELS["udlm_loglinear_nofilter"] = dict(checkpoint="stat84_udlm_loglinear_es3_cap80", reader="Uniform, no filter",
