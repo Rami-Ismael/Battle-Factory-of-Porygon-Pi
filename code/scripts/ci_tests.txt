@@ -58,3 +58,4 @@ test_retrain_default_filtered.py
 test_lr_schedule84.py
 test_gidd_lr_arms.py
 test_train84_modal.py
+test_inplace_prompt_redraw_modal.py
