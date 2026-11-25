@@ -49,6 +49,7 @@ KEEP_PER_CELL = 64
 MAX_TRIES = 1280
 LEGALITY_FLOOR = 0.05
 LEGALITY_TOL = 0.02
+MATCHED_SAMPLE_SEED = 438
 
 RES_DIR = Path.home() / "vgc-data/results"
 SUMMARY_PATH = RES_DIR / "udlm_pass_count_g1.json"
@@ -139,7 +140,7 @@ def _summarize_nested_diversity(seed_dicts):
         keys = FIELD_METRIC_KEYS + (("largest_share",) if rep == "composition" else ())
         out[rep] = {}
         for key in keys:
-            vals = [d[rep][key] for d in seed_dicts if d[rep][key] is not None]
+            vals = [d[rep][key] for d in seed_dicts if d is not None and d[rep][key] is not None]
             out[rep][key] = _seed_stats(vals) if vals else None
     return out
 
@@ -256,6 +257,7 @@ def _seed_diversity_metrics(seed_cells, parse_paste, reference, train_lineups):
         pooled_comps.extend(comps)
         if teams:
             ask_div_records.append(_extract_diversity_scalars(DM.measure(teams, reference)))
+        if len(comps) >= 2:
             ask_srds.append(mean_species_replacement_distance(comps))
         if cell.get("div") and cell["div"].get("effective_species") is not None:
             ask_eff.append(float(cell["div"]["effective_species"]))
@@ -276,6 +278,30 @@ def _seed_diversity_metrics(seed_cells, parse_paste, reference, train_lineups):
 
 def _normalize_slot_list(slots):
     return [_normalize_slot(slot) for slot in slots]
+
+
+def matched_lineup_uniqueness(grids, parse_paste):
+    """Compare the same number of teams per ask and seed across all pass counts."""
+    cells = {k: _scored_cells_by_seed(grids[k], SCORED_ASKS, SEEDS) for k in PASS_COUNTS}
+    by_passes = {k: [] for k in PASS_COUNTS}
+    kept_counts = {}
+    for seed in SEEDS:
+        by_seed = {k: [] for k in PASS_COUNTS}
+        for ask in SCORED_ASKS:
+            pastes = {k: cells[k][seed][ask]["pastes"] for k in PASS_COUNTS}
+            size = min(map(len, pastes.values()))
+            kept_counts[f"a{ask:02d}_s{seed}"] = size
+            if not size:
+                continue
+            for k, pool in pastes.items():
+                rng = np.random.default_rng([MATCHED_SAMPLE_SEED, seed, ask, k])
+                indices = rng.choice(len(pool), size, replace=False)
+                keys = {DM.team_keys(_normalize_slot_list(parse_paste(pool[i])))[2] for i in indices}
+                by_seed[k].append(len(keys) / size)
+        for k, values in by_seed.items():
+            if values:
+                by_passes[k].append(float(np.mean(values)))
+    return {k: _seed_stats(values) if values else None for k, values in by_passes.items()}, kept_counts
 
 
 def summarize_grid_data(grid_data, *, expected_passes, parse_paste, reference=None, train_lineups=None):
@@ -395,7 +421,7 @@ def _compare_metric_against_256(vals_k, vals_ref, *, paired, abs_tol=None):
 def select_pass_count(pass_summaries):
     """Apply the pre-registered #277 pass-count selection and legality-floor short-circuit rules.
 
-    Rule (docs/uniform-discrete-diffusion.md, Plan §1):
+    Rule (docs/uniform-discrete-diffusion.md, Plan §1), with matched sample sizes for uniqueness:
       - Short-circuit if first-try legality < 5.0% across all three pass counts {84, 128, 256}.
       - Choose the smallest K* in {84, 128, 256} whose 3-seed mean is within seed noise of K = 256 on:
           1. first-try legality (within 2 percentage points, OR 3 seeds do not agree in sign vs 256);
@@ -413,17 +439,17 @@ def select_pass_count(pass_summaries):
         cand = pass_summaries[k]
         paired = cand.get("seed0") == ref.get("seed0")
         leg = _compare_metric_against_256(cand["legality"]["by_seed"], ref["legality"]["by_seed"], paired=paired, abs_tol=LEGALITY_TOL)
-        uniq = _compare_metric_against_256(
-            cand["within_ask_diversity"]["composition"]["unique_fraction"]["by_seed"],
-            ref["within_ask_diversity"]["composition"]["unique_fraction"]["by_seed"],
-            paired=paired,
-        )
+        uniq = None
+        if cand["matched_lineup_uniqueness"] is not None:
+            uniq = _compare_metric_against_256(
+                cand["matched_lineup_uniqueness"]["by_seed"], ref["matched_lineup_uniqueness"]["by_seed"], paired=paired,
+            )
         srd = _compare_metric_against_256(
             cand["within_ask_species_replacement_distance"]["by_seed"],
             ref["within_ask_species_replacement_distance"]["by_seed"],
             paired=paired,
         )
-        all_ok = bool(leg["within_seed_noise"] and uniq["within_seed_noise"] and srd["within_seed_noise"])
+        all_ok = bool(leg["within_seed_noise"] and uniq and uniq["within_seed_noise"] and srd["within_seed_noise"])
         comparisons[str(k)] = dict(
             passes=k,
             paired_seeds=paired,
@@ -489,17 +515,19 @@ def evaluate_pass_counts(res_dir=RES_DIR, save_path=SUMMARY_PATH, *, model=MODEL
     """Load the three K in {84, 128, 256} guidance-1 grids, tabulate all metrics, and apply the selection rule."""
     reference, train_lineups, table_sha = _build_training_reference()
     parse_paste = _parse_paste_fn()
+    grids = {k: json.loads(grid_path(k, res_dir=res_dir, model=model).read_text()) for k in PASS_COUNTS}
     summaries = {}
     ckpts = set()
     for k in PASS_COUNTS:
-        path = grid_path(k, res_dir=res_dir, model=model)
-        data = json.loads(path.read_text())
         summaries[k] = summarize_grid_data(
-            data, expected_passes=k, parse_paste=parse_paste, reference=reference, train_lineups=train_lineups
+            grids[k], expected_passes=k, parse_paste=parse_paste, reference=reference, train_lineups=train_lineups
         )
         ckpts.add(summaries[k]["checkpoint_sha256"])
     if len(ckpts) != 1:
         raise ValueError(f"pass-count grids came from different checkpoints: {sorted(ckpts)}")
+    matched, kept_counts = matched_lineup_uniqueness(grids, parse_paste)
+    for k, stat in matched.items():
+        summaries[k]["matched_lineup_uniqueness"] = stat
     decision = select_pass_count(summaries)
     report = dict(
         issue=issue,
@@ -517,6 +545,8 @@ def evaluate_pass_counts(res_dir=RES_DIR, save_path=SUMMARY_PATH, *, model=MODEL
         table_sha256=table_sha,
         reference=reference.metadata,
         decision=decision,
+        uniqueness_sample_sizes=kept_counts,
+        uniqueness_sample_seed=MATCHED_SAMPLE_SEED,
         by_passes={str(k): summaries[k] for k in PASS_COUNTS},
     )
     if save_path is not None:
@@ -536,7 +566,8 @@ def _panel_bar_and_seeds(series_name, pass_keys, mean_vals, seed_lists, color_ma
         "emphasis": {"focus": "series"},
         "label": {"show": True, "position": "top", "distance": 6, "fontSize": 12, "fontWeight": "bold"},
         "data": [
-            {"value": round(val, 4), "itemStyle": {"color": color_map[k], "opacity": 0.85, "borderRadius": [4, 4, 0, 0]}}
+            {"value": round(val, 4) if val is not None else None,
+             "itemStyle": {"color": color_map[k], "opacity": 0.85, "borderRadius": [4, 4, 0, 0]}}
             for k, val in zip(pass_keys, mean_vals)
         ],
     }
@@ -562,8 +593,9 @@ def build_selection_figure(report):
 
     leg_means = [100.0 * by_p[str(k)]["legality"]["mean"] for k in PASS_COUNTS]
     leg_seeds = [[100.0 * v for v in by_p[str(k)]["legality"]["by_seed"]] for k in PASS_COUNTS]
-    uniq_means = [by_p[str(k)]["within_ask_diversity"]["composition"]["unique_fraction"]["mean"] for k in PASS_COUNTS]
-    uniq_seeds = [by_p[str(k)]["within_ask_diversity"]["composition"]["unique_fraction"]["by_seed"] for k in PASS_COUNTS]
+    uniq = [by_p[str(k)]["matched_lineup_uniqueness"] for k in PASS_COUNTS]
+    uniq_means = [stat["mean"] if stat else None for stat in uniq]
+    uniq_seeds = [stat["by_seed"] if stat else [] for stat in uniq]
     srd_means = [by_p[str(k)]["within_ask_species_replacement_distance"]["mean"] for k in PASS_COUNTS]
     srd_seeds = [by_p[str(k)]["within_ask_species_replacement_distance"]["by_seed"] for k in PASS_COUNTS]
 
@@ -619,13 +651,14 @@ def build_selection_figure(report):
             f"(legality {leg_means[0]:.1f}%, {leg_means[1]:.1f}%, {leg_means[2]:.1f}%)"
         )
     subtitle = (
-        "3 sampling seeds (black dots) across asks 1/24 to 17/24 (1,088 accepted teams per seed, no battles). "
-        "Shaded band in left panel marks ±2 percentage points around 256 passes; dashed line is the 5% usability floor."
+        "Black dots show sampling seeds across asks 1/24 to 17/24. The shaded band marks ±2 percentage points around "
+        "256 passes. The dashed line marks the 5% legality floor."
     )
     note = (
         "Selection rule (docs/uniform-discrete-diffusion.md): pick the smallest K in {84, 128, 256} within seed noise of "
         "256 passes on first-try legality (±2 pp or mixed seed signs) and within-ask line-up uniqueness and mean species "
-        "replacement distance (< 1 seed standard error or mixed seed signs)."
+        "replacement distance (< 1 seed standard error or mixed seed signs). Uniqueness uses the same number of "
+        "teams per cell at each pass count and drops cells empty at any pass count."
     )
     return option, title, subtitle, note
 
@@ -741,13 +774,19 @@ def _fmt_mean_se(stat, *, pct=False, digits=3):
     return f"{stat['mean']:.{digits}f} ± {stat['se']:.{digits}f}"
 
 
+def _fmt_mean(stat, fmt):
+    return f"{stat['mean']:{fmt}}" if stat is not None else "Unavailable"
+
+
 def format_markdown_tables(report):
     """Return reader-facing Markdown tables covering legality, simultaneous-update diagnostics, diversity, and revisions."""
     by_p = report["by_passes"]
     lines = [
         "### Pass-count comparison at guidance 1 (asks 1/24 to 17/24, 3 seeds, no battles)",
         "",
-        "All rows share **Uniform, no filter** (`udlm_loglinear_nofilter`, checkpoint `stat84_udlm_loglinear_es3_cap80` epoch 80) at guidance `1`, 64 accepted teams per cell (`1,088` teams per seed, `3,264` total per pass count). Values are 3-seed mean ± SE.",
+        f"Uniform, no filter (`{report['arm_id']}`) uses checkpoint `{report['checkpoint']}` at guidance 1. Each cell targets 64 accepted teams.",
+        "Uniqueness for selection uses the smallest kept count per ask and seed across the three pass counts. "
+        "A fixed random seed picks teams without replacement. Cells empty at any pass count are dropped from uniqueness.",
         "",
         "| Pass count | First-try legality | Complete cells | Mean tries / cell | Fields changed / pass | Dup. species pass share | Final dup. species share | Within-ask line-up uniq. | Within-ask species repl. | Pooled novel draw share |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
@@ -755,21 +794,20 @@ def format_markdown_tables(report):
     for k in PASS_COUNTS:
         r = by_p[str(k)]
         rev = r["revisions_all_tries"]
-        wa_comp = r["within_ask_diversity"]["composition"]
         pool_comp = r["pooled_diversity"]["composition"]
         lines.append(
             f"| **{k} passes** | {_fmt_mean_se(r['legality'], pct=True)} | {r['cells_complete']}/{r['cells_expected']} | "
             f"{r['mean_tries_per_cell']:.1f} | {_fmt_mean_se(rev['mean_fields_changed_per_pass'], digits=2)} | "
             f"{_fmt_mean_se(rev['duplicate_species_pass_share'], pct=True)} | "
             f"{_fmt_mean_se(rev['final_duplicate_species_share'], pct=True)} | "
-            f"{_fmt_mean_se(wa_comp['unique_fraction'], digits=3)} | "
+            f"{_fmt_mean_se(r['matched_lineup_uniqueness'], digits=3)} | "
             f"{_fmt_mean_se(r['within_ask_species_replacement_distance'], digits=3)} | "
             f"{_fmt_mean_se(pool_comp['novel_draw_fraction'], pct=True)} |"
         )
 
     lines += [
         "",
-        "### Full `diversity_metrics.py` breakdown (within-ask primary / pooled beside it)",
+        "### Diversity across all kept teams (within-ask / pooled)",
         "",
         "Measured against the `214,055` labelled training teams of `lossdata84_shuffled_only.npz` (3-seed mean ± SE):",
         "",
@@ -781,12 +819,12 @@ def format_markdown_tables(report):
         wa, po = r["within_ask_diversity"], r["pooled_diversity"]
         lines.append(
             f"| **{k} passes** | "
-            f"{wa['categorical_48']['unique_fraction']['mean']:.3f} / {po['categorical_48']['unique_fraction']['mean']:.3f} | "
-            f"{wa['with_spreads']['unique_fraction']['mean']:.3f} / {po['with_spreads']['unique_fraction']['mean']:.3f} | "
-            f"{wa['composition']['unique_fraction']['mean']:.3f} / {po['composition']['unique_fraction']['mean']:.3f} | "
-            f"{wa['composition']['largest_share']['mean']:.3f} / {po['composition']['largest_share']['mean']:.3f} | "
-            f"{100 * wa['composition']['novel_draw_fraction']['mean']:.1f}% / {100 * po['composition']['novel_draw_fraction']['mean']:.1f}% | "
-            f"{100 * wa['composition']['novel_unique_fraction']['mean']:.1f}% / {100 * po['composition']['novel_unique_fraction']['mean']:.1f}% | "
+            f"{_fmt_mean(wa['categorical_48']['unique_fraction'], '.3f')} / {_fmt_mean(po['categorical_48']['unique_fraction'], '.3f')} | "
+            f"{_fmt_mean(wa['with_spreads']['unique_fraction'], '.3f')} / {_fmt_mean(po['with_spreads']['unique_fraction'], '.3f')} | "
+            f"{_fmt_mean(wa['composition']['unique_fraction'], '.3f')} / {_fmt_mean(po['composition']['unique_fraction'], '.3f')} | "
+            f"{_fmt_mean(wa['composition']['largest_share'], '.3f')} / {_fmt_mean(po['composition']['largest_share'], '.3f')} | "
+            f"{_fmt_mean(wa['composition']['novel_draw_fraction'], '.1%')} / {_fmt_mean(po['composition']['novel_draw_fraction'], '.1%')} | "
+            f"{_fmt_mean(wa['composition']['novel_unique_fraction'], '.1%')} / {_fmt_mean(po['composition']['novel_unique_fraction'], '.1%')} | "
             f"{r['within_ask_species_replacement_distance']['mean']:.3f} / {r['pooled_species_replacement_distance']['mean']:.3f} | "
             f"{r['subset_effective_species']['mean']:.2f} |"
         )

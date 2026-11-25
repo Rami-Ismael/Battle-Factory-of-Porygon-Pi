@@ -133,7 +133,7 @@ def load(name, fresh_db=FRESH_DB, battle_db=None):
         rate = data[f"a{c['numerator']:02d}_s{c['seed']}"]
         mine = [t for t in teams if (t["ask"], t["seed"]) == (c["numerator"], c["seed"])]
         if len(rate) != len(mine): raise SystemExit(f"{name} a{c['numerator']:02d}_s{c['seed']}: opponent rows and teams differ")
-        if np.abs(weighted(rate, weights) - np.array([t["y"] for t in mine])).max() > 1e-9: raise SystemExit(f"{name}: snapshot and stored scores differ")
+        if np.abs(weighted(rate, weights) - np.array([t["y"] for t in mine])).max(initial=0) > 1e-9: raise SystemExit(f"{name}: snapshot and stored scores differ")
         cells.setdefault(c["numerator"], {})[c["seed"]] = dict(rate=rate, line_ups=[t["line_up"] for t in mine], tried=c.get("tried"), kept=len(c["pastes"]))
     out = dict(name=name, reader=READER.get(re.sub(r"_g[0-9.]+$", "", name), grid["reader"]), guidance=float(grid["guidance"]), guided=not grid.get("unguided") and float(grid["guidance"]) != 1.0,
                passes=grid.get("passes", PASSES_PER_TRY), weights=weights, cells=cells,
@@ -168,7 +168,7 @@ def successes(grid, definition, counts=None):
     for k, by in grid["cells"].items():
         for s, cell in by.items():
             ok = weighted(cell["rate"], w, counts) >= CUT
-            if definition == HELD: ok = ok & np.stack([held.get(lu, never) for lu in cell["line_ups"]])
+            if definition == HELD and cell["line_ups"]: ok = ok & np.stack([held.get(lu, never) for lu in cell["line_ups"]])
             out[(k, s)] = ok
     return out
 
@@ -220,29 +220,36 @@ def band_result(grid, definition, asks, counts, rng):
                 calls_per_legal_team=calls_per_legal_team(grid, asks)), pkd
 
 
-def read_grid(grid, counts, definitions=None):
+def read_grid(grid, counts, definitions=None, *, allow_short=False):
     """Every band and definition of one loaded grid. Returns (result, {(definition, band): [K, DRAWS] Pass@k draws})."""
     definitions = definitions or ([HELD, ONE_SCORE] if grid["definition"] == HELD else [ONE_SCORE])
     result = dict(name=grid["name"], reader=grid["reader"], guidance=grid["guidance"], definition=grid["definition"],
                   held_line_ups=int(sum(weighted(r[None], grid["weights"])[0] >= CUT for r in grid["candidates"].values())) if grid["definition"] == HELD else None,
                   rebattled_line_ups=len(grid["candidates"]) if grid["definition"] == HELD else None,
                   rebattle_games_per_opponent=grid.get("rebattle_games_per_opponent"), bands={}); draws = {}
-    for d in definitions:
-        for band, asks in BANDS.items():
+    for band, asks in BANDS.items():
+        if allow_short:
+            minimum = min(len(grid["seeds"]) * min(c["kept"] for c in grid["cells"][k].values()) for k in asks)
+            if minimum < 4 * K_MAX:
+                result.setdefault("skipped_bands", {})[band] = f"Bootstrap can draw {minimum} teams at an ask. Pass@{K_MAX} requires {4 * K_MAX}."
+                continue
+        for d in definitions:
             rng = np.random.default_rng([DRAW_SEED, 331, zlib.crc32(grid['name'].encode()), list(BANDS).index(band), definitions.index(d)])   # each grid's own stream, whatever else is read
             result["bands"].setdefault(d, {})[band], draws[(d, band)] = band_result(grid, d, asks, counts, rng)
     return result, draws
 
 
-def read(names):
+def read(names, *, allow_short=False):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     for name in names:
         grid = load(name); counts = MRR.opponent_draws(len(grid["weights"]))
-        result, _ = read_grid(grid, counts)
+        result, _ = read_grid(grid, counts, allow_short=allow_short)
         result.update(k=list(range(1, K_MAX + 1)), draws=DRAWS, draw_seed=DRAW_SEED, cut=CUT)
         json.dump(result, open(OUT_DIR / f"{name}.json", "w"), indent=1)
-        b = result["bands"][result["definition"]]
+        b = result["bands"].get(result["definition"], {})
         print(f"{name}: {result['definition']}, " + ", ".join(f"{band} Pass@1 {v['pass_at_k'][0]:.3f} Pass@{K_MAX} {v['pass_at_k'][-1]:.3f}" for band, v in b.items()))
+        for band, reason in result.get("skipped_bands", {}).items():
+            print(f"{name}: {band} skipped. {reason}")
     print("PASS_AT_K_READ_DONE")
 
 
@@ -461,5 +468,6 @@ def pngs(folder, width=960, scale=2):
 
 
 if __name__ == "__main__":
-    {"read": lambda: read(sys.argv[2:]), "issue331": issue331, "figures": lambda: figures(sys.argv[2]), "pngs": lambda: pngs(sys.argv[2]),
+    {"read": lambda: read([name for name in sys.argv[2:] if name != "--allow-short"], allow_short="--allow-short" in sys.argv[2:]),
+     "issue331": issue331, "figures": lambda: figures(sys.argv[2]), "pngs": lambda: pngs(sys.argv[2]),
      "comment": lambda: print(comment(sys.argv[2]), end="")}[sys.argv[1]]()

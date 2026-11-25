@@ -1,6 +1,7 @@
 """Issue #438: report shared-recipe ask grids and compare both models at equal error."""
 import argparse
 import json
+from itertools import groupby
 from pathlib import Path
 
 import numpy as np
@@ -26,14 +27,47 @@ def uniform_row(passes):
     return f"{UNIFORM_ROW}_k{passes}"
 
 
-def read_grid(row, guidance, results_dir, *, passes=None):
-    name = R.grid_name(row, guidance)
-    R.check_grid(name, len(R.ALL_ASKS) * len(R.SEEDS), results_dir)
+def short_cells(grid):
+    return [
+        {"ask": c["numerator"], "seed": c["seed"], "kept": len(c["pastes"])}
+        for c in sorted(grid["cells"].values(), key=lambda c: (c["numerator"], c["seed"]))
+        if len(c["pastes"]) < 64
+    ]
+
+
+def check_uniform_grid(name, results_dir, *, sampled_only=False):
+    grid = load_full_dial(name, results_dir)
+    short = short_cells(grid)
+    for cell in short:
+        print(f"{name}: ask {cell['ask']}/24 seed {cell['seed']} kept {cell['kept']}/64 teams")
+    print(f"{name}: {len(grid['cells']) - len(short)}/{len(grid['cells'])} cells reached 64 teams")
+    if not sampled_only:
+        for cell in grid["cells"].values():
+            n = len(cell["pastes"])
+            scores = cell.get("y", [])
+            if len(scores) != n or any(y is None or not 0 <= y <= 1 for y in scores) or cell.get("battles", 0) < 49 * n:
+                raise ValueError(f"{name}: missing battles for ask {cell['numerator']}/24 seed {cell['seed']}")
+    return grid
+
+
+def load_full_dial(name, results_dir):
     grid = json.loads((results_dir / f"stat_points_84_{name}.json").read_text())
     cells = list(grid["cells"].values())
     expected = {(ask, seed) for ask in R.ALL_ASKS for seed in R.SEEDS}
-    if {(c["numerator"], c["seed"]) for c in cells} != expected or any(len(c["pastes"]) != 64 for c in cells):
-        raise ValueError(f"{name}: expected asks 1 to 23, seeds 1 to 3, and exactly 64 teams in each cell")
+    if len(cells) != len(expected) or {(c["numerator"], c["seed"]) for c in cells} != expected:
+        raise ValueError(f"{name}: expected one cell per ask and seed across asks 1 to 23 and seeds 1 to 3")
+    if grid.get("keep", 64) != 64 or any(len(c["pastes"]) > 64 for c in cells):
+        raise ValueError(f"{name}: expected a target of 64 teams per cell")
+    return grid
+
+
+def read_grid(row, guidance, results_dir, *, passes=None):
+    name = R.grid_name(row, guidance)
+    if row == MASKED_ROW:
+        R.check_grid(name, len(R.ALL_ASKS) * len(R.SEEDS), results_dir)
+        grid = load_full_dial(name, results_dir)
+    else:
+        grid = check_uniform_grid(name, results_dir)
     if grid["guidance"] != guidance or grid.get("unguided") or (passes is not None and grid.get("passes") != passes):
         raise ValueError(f"{name}: unexpected guidance or pass count in the stored grid")
     return name, grid
@@ -49,7 +83,8 @@ def snapshot(results_dir, name, grid):
             raise ValueError(f"{name}: expected 49 distinct top-50 opponents")
         for cell in grid["cells"].values():
             rates = data[f"a{cell['numerator']:02d}_s{cell['seed']}"]
-            if rates.shape != (64, 49) or not np.allclose(team_scores(rates, weights), cell["y"], atol=1e-9, rtol=0):
+            if (rates.shape != (len(cell["pastes"]), 49) or not np.isfinite(rates).all()
+                    or not np.allclose(team_scores(rates, weights), cell["y"], atol=1e-9, rtol=0)):
                 raise ValueError(f"{name}: opponent snapshot differs from stored scores")
     return path, columns, weights
 
@@ -65,6 +100,8 @@ def lineup_intervals(grid, train_lineups, stream_id):
     novel_draws = np.zeros(R.DRAWS)
     for cell in grid["cells"].values():
         lineups = [line_up(paste) for paste in cell["pastes"]]
+        if not lineups:
+            continue
         ids = [lineup_ids.setdefault(lineup, len(lineup_ids)) for lineup in lineups]
         is_novel = np.array([lineup not in train_lineups for lineup in lineups])
         picks = rng.integers(0, len(lineups), (R.DRAWS, len(lineups)))
@@ -72,6 +109,8 @@ def lineup_intervals(grid, train_lineups, stream_id):
         novel.extend(is_novel)
         novel_draws += is_novel[picks].sum(axis=1)
 
+    if not sampled_cells:
+        return {"novel_share_interval": None, "distinct_line_ups_interval": [0, 0]}
     sampled = np.concatenate(sampled_cells, axis=1)
     sampled.sort(axis=1)
     distinct = 1 + np.count_nonzero(sampled[:, 1:] != sampled[:, :-1], axis=1)
@@ -92,7 +131,9 @@ def measure_grid(row, guidance, results_dir, train_lineups, *, passes=None, oppo
     stream_id = 10 * guidance + int(row == MASKED_ROW)
     counts = R._opponent_draws(len(weights))
     metrics, _ = R.grid_metrics(grid, path, name, guidance, counts, stream_id, train_lineups, results_dir)
-    metrics.update(lineup_intervals(grid, train_lineups, stream_id), passes=grid.get("passes", 84))
+    short = short_cells(grid)
+    metrics.update(lineup_intervals(grid, train_lineups, stream_id), passes=grid.get("passes", 84), short_cells=short,
+                   team_shortfall=sum(64 - c["kept"] for c in short))
     return metrics, (columns, weights)
 
 
@@ -168,7 +209,11 @@ def build_grid_figure(metrics, out_dir):
     got = metrics["got_by_ask"]
     intervals = [metrics["got_by_ask_interval"][str(ask)] for ask in R.ALL_ASKS]
     color = COLORS[UNIFORM]
-    series = band(UNIFORM, color, xs, [v[0] for v in intervals], [v[1] for v in intervals], "uniform")
+    series = []
+    for i, (present, group) in enumerate(groupby(zip(xs, intervals), key=lambda item: item[1] is not None)):
+        if present:
+            x, lower, upper = zip(*[(x, lo, hi) for x, (lo, hi) in group])
+            series.extend(band(UNIFORM, color, x, lower, upper, f"uniform-{i}"))
     series += [
         line_series(UNIFORM, color, [[x, got[str(ask)]] for x, ask in zip(xs, R.ALL_ASKS)]),
         line_series("Got = ask", "#6f6e69", [[0, 0], [1, 1]], symbol="none", silent=True,
@@ -211,12 +256,12 @@ def whiskers(points, metric, color):
 def build_frontier(summary, metric, out_dir):
     label, stem, percent = METRICS[metric]
     series = []
-    points = [p for arm in summary["arms"].values() for p in arm]
-    x_min = min(min(p["error"], *p["error_interval"]) for p in points)
-    x_max = max(max(p["error"], *p["error_interval"]) for p in points)
+    points = [p for arm in summary["arms"].values() for p in arm if p["error"] is not None]
+    x_min = min((min(p["error"], *p["error_interval"]) for p in points), default=0.0)
+    x_max = max((max(p["error"], *p["error_interval"]) for p in points), default=0.01)
     margin = max((x_max - x_min) * 0.09, 0.00005)
     for arm, arm_points in summary["arms"].items():
-        ordered = sorted(arm_points, key=lambda p: p["error"])
+        ordered = sorted((p for p in arm_points if p["error"] is not None), key=lambda p: p["error"])
         color = COLORS[arm]
         series.append(line_series(
             arm, color, [[p["error"], p[metric], p["guidance"]] for p in ordered],
@@ -237,10 +282,13 @@ def build_frontier(summary, metric, out_dir):
                       axisLabel={"formatter": R.PERCENT_AXIS} if percent else {}),
         "series": series,
     }
+    note = "Whiskers show 95% bootstrap intervals. Error uses asks 1/24 to 17/24. The vertical measure pools all 23 asks."
+    if metric == "distinct_line_ups":
+        note += " Counts describe the observed sample sizes, which can differ by grid."
     return write_chart(
         option, out_dir / f"{stem}.html", title=f"{label} at equal ask-versus-got error",
         subtitle="Both models use the shared recipe. Point labels give each model's guidance weight.",
-        note="Whiskers show 95% bootstrap intervals. Error uses asks 1/24 to 17/24. The vertical measure pools all 23 asks.",
+        note=note,
         dark=DARK,
     )
 
@@ -250,7 +298,22 @@ def picture(base, stem, alt):
 
 
 def fmt_metric(value, percent):
+    if value is None:
+        return "Unavailable"
     return f"{value:.1%}" if percent else f"{value:,.0f}"
+
+
+def fmt_estimate(point, key, fmt):
+    value = point[key]
+    return "Unavailable" if value is None else f"{value:{fmt}} {R.fmt_iv(point[f'{key}_interval'], fmt)}"
+
+
+def shortfall_note(point):
+    short = point["short_cells"]
+    if not short:
+        return "All cells reached 64 teams."
+    cells = ", ".join(f"{c['ask']}/24 seed {c['seed']} ({c['kept']}/64)" for c in short)
+    return f"{len(short)} cells were short by {point['team_shortfall']:,} teams total. Short cells were {cells}."
 
 
 def format_grid_comment(metrics, base):
@@ -260,22 +323,26 @@ def format_grid_comment(metrics, base):
         "",
         f"Uniform, no filter used {metrics['passes']} passes with the shared recipe at guidance {guidance}.",
         f"The grid scored {metrics['teams']:,} teams across {metrics['cells']} ask-by-seed cells in {metrics['battles']:,} battles.",
+        shortfall_note(metrics),
         "",
         "| Measure | Result |",
         "| --- | --- |",
-        f"| Ask-versus-got error (asks 1/24 to 17/24) | {metrics['error']:.4f} {R.fmt_iv(metrics['error_interval'])} |",
-        f"| Novel line-up share | {metrics['novel_share']:.1%} {R.fmt_iv(metrics['novel_share_interval'], '.1%')} |",
-        f"| Distinct line-ups | {metrics['distinct_line_ups']:,} {R.fmt_iv(metrics['distinct_line_ups_interval'], ',.0f')} |",
+        f"| Ask-versus-got error (asks 1/24 to 17/24) | {fmt_estimate(metrics, 'error', '.4f')} |",
+        f"| Novel line-up share | {fmt_estimate(metrics, 'novel_share', '.1%')} |",
+        f"| Distinct line-ups | {fmt_estimate(metrics, 'distinct_line_ups', ',.0f')} |",
         f"| First-try legality | {metrics['first_try_legality']:.1%} |",
-        f"| Pooled win rate | {metrics['pooled_win']:.1%} {R.fmt_iv(metrics['pooled_win_interval'], '.1%')} |",
+        f"| Pooled win rate | {fmt_estimate(metrics, 'pooled_win', '.1%')} |",
         "",
         "Line-up measures and pooled win rate use all 23 asks. Brackets show 95% bootstrap intervals.",
         "",
     ])
 
 
-def format_verdict(arms, metric):
-    label, _, percent = METRICS[metric]
+def format_verdict(arms):
+    metric = "novel_share"
+    arms = {arm: [p for p in points if p["error"] is not None] for arm, points in arms.items()}
+    if not all(arms.values()):
+        return ["- The comparison requires a measured error for each model."]
     ranges = [sorted(p["error"] for p in points) for points in arms.values()]
     if max(values[0] for values in ranges) > min(values[-1] for values in ranges):
         return ["- The measured error ranges are disjoint."]
@@ -286,32 +353,33 @@ def format_verdict(arms, metric):
             if verdict is None:
                 continue
             gap = abs(verdict["difference"])
-            amount = f"{100 * gap:.1f} percentage points" if percent else f"{gap:,.0f} line-ups"
+            amount = f"{100 * gap:.1f} percentage points"
             findings.append(
                 f"- {arm} at guidance {point['guidance']} sits **{amount} {verdict['direction']}** "
                 f"the {other} curve at error {point['error']:.4f}."
             )
-    return findings or [f"- The intervals establish no point outside the other curve for {label.lower()}."]
+    return findings or ["- The intervals establish no point outside the other curve for novel line-up share."]
 
 
 def format_final_comment(summary, base):
     lines = [picture(base, stem, f"{label} at equal ask-versus-got error") for label, stem, _ in METRICS.values()]
     lines += ["", f"Uniform, no filter used {summary['uniform_passes']} passes. Both models used the shared learning-rate recipe."]
-    for metric, (label, _, _) in METRICS.items():
-        lines += ["", f"**{label}**", "", *format_verdict(summary["arms"], metric)]
+    lines += ["", "### Novel line-up share at equal error", "", *format_verdict(summary["arms"])]
     lines += [
         "",
         "Comparisons use only the shared range of measured errors. A point clears the other curve when its "
         "vertical 95% interval clears the interpolated interval band over the point's entire horizontal interval. "
         "Reported gaps use the point estimates at equal error. Straight segments join measured points.",
+        "Distinct line-up counts and pooled win rates describe the observed grids. Distinct counts depend on how many teams each grid kept.",
         "",
-        "| Model | Guidance | Error [95% interval] | Novel share | Distinct line-ups | Pooled win rate | Battles |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Model | Guidance | Error [95% interval] | Novel share | Distinct line-ups | Pooled win rate | Teams | Short cells | Teams short | Battles |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for arm, points in summary["arms"].items():
         for p in points:
             values = " | ".join(fmt_metric(p[key], percent) for key, (_, _, percent) in METRICS.items())
-            lines.append(f"| {arm} | {p['guidance']} | {p['error']:.4f} {R.fmt_iv(p['error_interval'])} | {values} | {p['battles']:,} |")
+            lines.append(f"| {arm} | {p['guidance']} | {fmt_estimate(p, 'error', '.4f')} | {values} | "
+                         f"{p['teams']:,} | {len(p['short_cells'])} | {p['team_shortfall']:,} | {p['battles']:,} |")
     lines += [
         "",
         "Each checkpoint has one training seed, and both reached the 80-epoch cap while still improving. "
@@ -330,6 +398,9 @@ def main():
     check = commands.add_parser("check-grid")
     check.add_argument("name")
     check.add_argument("cells", type=int)
+    uniform = commands.add_parser("check-uniform-grid")
+    uniform.add_argument("name")
+    uniform.add_argument("--sampled-only", action="store_true")
     grid = commands.add_parser("grid")
     grid.add_argument("passes", type=int)
     grid.add_argument("guidance", type=int)
@@ -347,6 +418,8 @@ def main():
     args = parser.parse_args()
     if args.command == "check-grid":
         R.check_grid(args.name, args.cells, args.results_dir)
+    elif args.command == "check-uniform-grid":
+        check_uniform_grid(args.name, args.results_dir, sampled_only=args.sampled_only)
     elif args.command == "grid":
         metrics, _ = measure_grid(
             uniform_row(args.passes), args.guidance, args.results_dir, R._train_lineups(), passes=args.passes,

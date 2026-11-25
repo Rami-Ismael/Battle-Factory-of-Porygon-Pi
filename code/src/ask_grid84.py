@@ -123,7 +123,7 @@ MODELS["shuffled_linear_filtered_gidd_lr"] = dict(MODELS["linear_masked_filter"]
                                                   reader="Masked, full filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED,
                                                   seed0=grid_seeds.LEGACY)
 MODELS["udlm_loglinear_gidd_lr"] = dict(MODELS["udlm_loglinear_nofilter"], checkpoint="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80",
-                                        reader="Uniform, no filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED)
+                                        reader="Uniform, no filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED, max_tries=20_000)
 for _passes in (84, 128, 256):
     MODELS[f"udlm_loglinear_gidd_lr_k{_passes}"] = dict(MODELS["udlm_loglinear_gidd_lr"], passes=_passes)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
@@ -342,7 +342,11 @@ def record_scores(cell, scores):
 def battle():
     require_shuffled(); con = MDB.connect(); out = load_out()
     for t, c in out["cells"].items():
-        if "y" in c or not c["pastes"]: continue
+        if "y" in c: continue
+        if not c["pastes"]:
+            if MODEL.startswith("udlm_loglinear_gidd_lr"):
+                record_scores(c, []); save(out)
+            continue
         sc = MDB.score_pastes(con, c["pastes"], per_cell=BATTLES_PER_OPPONENT, seed=SEED0 + c["seed"], origin=f"statpoints84:{t}")
         if not complete(sc): print(f"  {t} INCOMPLETE: left for the next run", flush=True); continue
         record_scores(c, sc); save(out); print(f"  {t:32s} win {np.mean(c['y']):.3f}", flush=True)

@@ -430,6 +430,9 @@ def _bootstrap_grid(opponents_npz, counts, stream_id):
     for k in ALL_ASKS:
         for s in SEEDS:
             rate = data[f"a{k:02d}_s{s}"]                     # teams x opponents, NaN where a battle is missing
+            if not len(rate):
+                draws[(k, s)] = np.zeros(len(counts))
+                continue
             seen = ~np.isnan(rate)
             scores = (np.where(seen, rate, 0.0) @ weights.T) / np.maximum(seen @ weights.T, 1e-12)
             pick = rng.integers(0, len(rate), (DRAWS, len(rate)))
@@ -439,10 +442,21 @@ def _bootstrap_grid(opponents_npz, counts, stream_id):
 
 def _pooled_got_draws(cell_draws, teams_per_cell):
     """Per ask, the three seeds' draws pooled by team count."""
-    return {
-        k: sum(cell_draws[(k, s)] * teams_per_cell[(k, s)] for s in SEEDS) / sum(teams_per_cell[(k, s)] for s in SEEDS)
-        for k in ALL_ASKS
-    }
+    return {k: _pooled_draws(cell_draws, teams_per_cell, [k]) for k in ALL_ASKS}
+
+
+def _grid_error(got, asks):
+    return _ask_error(got, asks) if all(got[k] is not None for k in asks) else None
+
+
+def _mean_if_present(values):
+    return float(np.mean(values)) if values else None
+
+
+def _pooled_draws(cell_draws, teams_per_cell, asks):
+    keys = [(k, s) for k in asks for s in SEEDS]
+    total = sum(teams_per_cell[key] for key in keys)
+    return sum(cell_draws[key] * teams_per_cell[key] for key in keys) / total if total else None
 
 
 def _ask_error(got, asks=SCORED_ASKS):
@@ -452,7 +466,7 @@ def _ask_error(got, asks=SCORED_ASKS):
 
 
 def _interval(arr):
-    return [float(np.quantile(arr, 0.025)), float(np.quantile(arr, 0.975))]
+    return [float(np.quantile(arr, 0.025)), float(np.quantile(arr, 0.975))] if arr is not None else None
 
 
 def _excludes_zero(iv):
@@ -474,7 +488,7 @@ def _line_up_metrics_from_cells(cells, train_lineups):
         distinct_line_ups=len(set(all_lu)),
         within_ask_line_ups_mean_23=float(np.mean([per_ask[k] for k in ALL_ASKS if k in per_ask])),
         within_ask_line_ups_mean_17=float(np.mean([per_ask[k] for k in SCORED_ASKS if k in per_ask])),
-        novel_share=float(np.mean([lu not in train_lineups for lu in all_lu])),
+        novel_share=_mean_if_present([lu not in train_lineups for lu in all_lu]),
         distinct_novel_line_ups=len({lu for lu in all_lu if lu not in train_lineups}),
     )
 
@@ -538,16 +552,17 @@ def grid_metrics(grid, opponents_npz, name, guidance, counts, stream_id, train_l
     cells = list(grid["cells"].values())
     by_cell = {(int(c["numerator"]), int(c["seed"])): c for c in cells}
     teams_per_cell = {key: len(c["pastes"]) for key, c in by_cell.items()}
-    got = {k: float(np.mean([y for s in SEEDS for y in by_cell[(k, s)]["y"]])) for k in ALL_ASKS}
-    got_by_seed = {s: {k: float(np.mean(by_cell[(k, s)]["y"])) for k in ALL_ASKS} for s in SEEDS}
+    got = {k: _mean_if_present([y for s in SEEDS for y in by_cell[(k, s)]["y"]]) for k in ALL_ASKS}
+    got_by_seed = {s: {k: _mean_if_present(by_cell[(k, s)]["y"]) for k in ALL_ASKS} for s in SEEDS}
     tried = sum(int(c["tried"]) for c in cells)
     rejected = sum(int(c["rejected"]) for c in cells)
 
-    got_draws = _pooled_got_draws(_bootstrap_grid(opponents_npz, counts, stream_id), teams_per_cell)
+    cell_draws = _bootstrap_grid(opponents_npz, counts, stream_id)
+    got_draws = _pooled_got_draws(cell_draws, teams_per_cell)
     draws = dict(
-        error=_ask_error(got_draws, SCORED_ASKS),
-        pooled_win=np.mean([got_draws[k] for k in ALL_ASKS], 0),
-        win_top=np.mean([got_draws[k] for k in TOP_ASKS], 0),
+        error=_grid_error(got_draws, SCORED_ASKS),
+        pooled_win=_pooled_draws(cell_draws, teams_per_cell, ALL_ASKS),
+        win_top=_pooled_draws(cell_draws, teams_per_cell, TOP_ASKS),
     )
     metrics = dict(
         name=name,
@@ -558,18 +573,18 @@ def grid_metrics(grid, opponents_npz, name, guidance, counts, stream_id, train_l
         cells=len(cells),
         cells_short_of_64=sum(len(c["pastes"]) < int(grid.get("keep", 64)) for c in cells),
         battles=sum(int(c.get("battles", 0)) for c in cells),
-        error=float(_ask_error(got, SCORED_ASKS)),
+        error=_grid_error(got, SCORED_ASKS),
         error_interval=_interval(draws["error"]),
-        error_by_seed={str(s): float(_ask_error(got_by_seed[s], SCORED_ASKS)) for s in SEEDS},
-        error_asks_18_to_23=float(_ask_error(got, HIGH_ASKS)),
+        error_by_seed={str(s): _grid_error(got_by_seed[s], SCORED_ASKS) for s in SEEDS},
+        error_asks_18_to_23=_grid_error(got, HIGH_ASKS),
         got_by_ask={str(k): got[k] for k in ALL_ASKS},
         got_by_ask_interval={str(k): _interval(got_draws[k]) for k in ALL_ASKS},
-        pooled_win=float(np.mean([y for c in cells for y in c["y"]])),
+        pooled_win=_mean_if_present([y for c in cells for y in c["y"]]),
         pooled_win_interval=_interval(draws["pooled_win"]),
-        win_top_asks=float(np.mean([y for k in TOP_ASKS for s in SEEDS for y in by_cell[(k, s)]["y"]])),
+        win_top_asks=_mean_if_present([y for k in TOP_ASKS for s in SEEDS for y in by_cell[(k, s)]["y"]]),
         win_top_asks_interval=_interval(draws["win_top"]),
         first_try_legality=(tried - rejected) / max(tried, 1),
-        effective_species=float(np.mean([c["div"]["effective_species"] for c in cells if c.get("div")])),
+        effective_species=_mean_if_present([c["div"]["effective_species"] for c in cells if c.get("div")]),
         **_line_up_metrics_from_cells(cells, train_lineups),
         elite_line_up_yield=_elite_yield_summary(name, results_dir),
         pass_at_k=_pass_at_k_summary(name, results_dir),

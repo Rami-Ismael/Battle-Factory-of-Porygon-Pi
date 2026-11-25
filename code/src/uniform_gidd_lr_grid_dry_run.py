@@ -18,12 +18,26 @@ REFERENCE = "linear_masked_filter"
 FIGURE_BASE = "https://example.invalid/figures"
 
 
-def stage_grid(source, results, name, guidance, passes):
+def stage_grid(source, results, name, guidance, passes, *, sizes=None):
     reference = G.R.grid_name(REFERENCE, guidance if guidance != 1 else 2)
     grid = json.loads((source / f"stat_points_84_{reference}.json").read_text())
     grid.update(guidance=guidance, passes=passes)
+    snapshot = "masking_rate_rows_opponents_{}.npz"
+    if sizes:
+        with np.load(source / snapshot.format(reference)) as old:
+            arrays = dict(old)
+        for cell in grid["cells"].values():
+            key = cell["numerator"], cell["seed"]
+            if key in sizes:
+                size = sizes[key]
+                for field in ("pastes", "y", "team_ids", "stat_points"):
+                    cell[field] = cell[field][:size]
+                cell["battles"] = 49 * size
+                arrays[f"a{key[0]:02d}_s{key[1]}"] = arrays[f"a{key[0]:02d}_s{key[1]}"][:size]
+        np.savez_compressed(results / snapshot.format(name), **arrays)
+    else:
+        shutil.copyfile(source / snapshot.format(reference), results / snapshot.format(name))
     (results / f"stat_points_84_{name}.json").write_text(json.dumps(grid))
-    shutil.copyfile(source / f"masking_rate_rows_opponents_{reference}.npz", results / f"masking_rate_rows_opponents_{name}.npz")
 
 
 def replay_existing_reports(source, results):
@@ -35,17 +49,18 @@ def replay_existing_reports(source, results):
     # comes from the stored #385 report so the dry run never opens a battle DB.
     LY.RES, LY.TABLE, LY.LABELLED = results, MRR.TABLE, True
     PAK.RES, PAK.OUT_DIR = results, results / "pass_at_k"
-    stage_grid(source, results, REFERENCE, 2, 84)
+    stage_grid(source, results, REFERENCE, 2, 84, sizes={(13, 1): 0})
     subprocess.run(
         [sys.executable, str(HERE / "ask_grid84.py"), "report"],
         env=dict(os.environ, AG84_MODEL=REFERENCE, AG84_GUIDANCE="2", AG84_RESULTS_DIR=str(results)),
         check=True,
     )
     grid = json.loads((results / f"stat_points_84_{REFERENCE}.json").read_text())
-    assert grid["summary"]["teams"] == 23 * 3 * 64
+    assert grid["summary"]["teams"] == (23 * 3 - 1) * 64
     G.snapshot(results, REFERENCE, grid)
-    PAK.read([REFERENCE])
-    assert json.loads((PAK.OUT_DIR / f"{REFERENCE}.json").read_text())["definition"] == PAK.ONE_SCORE
+    PAK.read([REFERENCE], allow_short=True)
+    pak = json.loads((PAK.OUT_DIR / f"{REFERENCE}.json").read_text())
+    assert pak["definition"] == PAK.ONE_SCORE and list(pak["skipped_bands"]) == ["asks_13_to_17"]
 
     shutil.copyfile(source / f"line_up_yield_{REFERENCE}.json", LY.fresh_path(REFERENCE))
     assert LY.report_model(REFERENCE)["views"]["all_23_asks"]["rebattled"] > 0
@@ -83,7 +98,8 @@ def replay(source, work, out):
     passes = 128
     for row, guidances, count in ((G.uniform_row(passes), G.GUIDANCES, passes), (G.MASKED_ROW, G.R.GUIDANCES, 84)):
         for guidance in guidances:
-            stage_grid(source, results, G.R.grid_name(row, guidance), guidance, count)
+            sizes = {(1, 1): 0, (1, 2): 17} if guidance == 1 else None
+            stage_grid(source, results, G.R.grid_name(row, guidance), guidance, count, sizes=sizes)
     summary = G.build_summary(passes, results)
     (out / "summary.json").write_text(json.dumps(summary, indent=2))
     for uniform, masked in zip(summary["arms"][G.UNIFORM][1:], summary["arms"][G.MASKED]):
@@ -92,13 +108,18 @@ def replay(source, work, out):
     for point in summary["arms"][G.UNIFORM]:
         G.build_grid_figure(point, out)
         comment = G.format_grid_comment(point, FIGURE_BASE)
-        assert comment.startswith("<picture>") and "216,384 battles" in comment
+        assert comment.startswith("<picture>")
+        if point["guidance"] == 1:
+            assert "2 cells were short by 111 teams" in comment
+            assert point["battles"] == (23 * 3 * 64 - 111) * 49
+        else:
+            assert "216,384 battles" in comment
         (out / f"grid-g{point['guidance']}.md").write_text(comment)
     for metric in G.METRICS:
         G.build_frontier(summary, metric, out)
-        assert "establish no point outside" in G.format_verdict(summary["arms"], metric)[0]
     comment = G.format_final_comment(summary, FIGURE_BASE)
     assert comment.startswith("<picture>") and comment.count("<picture>") == len(G.METRICS)
+    assert comment.count("establish no point outside") == 1
     (out / "final-comment.md").write_text(comment)
     check_interval_rule()
     print(f"Stored pass-count selection: {pass_report['decision']['chosen_passes']} passes")
