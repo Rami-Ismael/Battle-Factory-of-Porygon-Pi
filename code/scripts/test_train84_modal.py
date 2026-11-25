@@ -40,12 +40,9 @@ class NamesAndCommandsTests(unittest.TestCase):
         self.assertEqual(cmd[4:], [f"{TM.REMOTE_CODE}/src/checkpoint_legality.py",
                                    "stat84_shuffled_noise_linear_filtered_es3_cap80"])
 
-    def test_legality_result_name_matches_checkpoint_legality(self):
-        import checkpoint_legality as CL
-        name = "stat84_shuffled_noise_linear_filtered_es3_cap80"
-        self.assertEqual(TM.legality_result_name(name), CL.result_path(name, tables=False).name)
-        self.assertEqual(TM.legality_result_name(name, 1.0), CL.result_path(name, tables=False, guidance=1.0).name)
-        self.assertEqual(TM.legality_command(name, 1.0)[-2:], ["--guidance", "1"])
+    def test_legality_command_passes_guidance(self):
+        self.assertEqual(TM.legality_command("stat84_shuffled_noise_linear_filtered_es3_cap80", 1.0)[-2:],
+                         ["--guidance", "1"])
 
     def test_smoke_flag_is_the_trainers_env_switch(self):
         self.assertEqual(TM.trainer_env(smoke=True, base={})["S84_SMOKE"], "1")
@@ -97,6 +94,12 @@ class LaptopTests(unittest.TestCase):
         self.assertEqual(TM.ARMS["shuffled_linear_filtered_gidd_lr"]["checkpoint"], TR.NAMES["shuffled_linear_filtered_gidd_lr"])
         self.assertEqual(TM.CHECKPOINTS, TR.CK)
         self.assertEqual(TM.RESULTS, TR.X.RES)
+
+    def test_legality_result_name_matches_checkpoint_legality(self):
+        import checkpoint_legality as CL  # its corpus import reads /tmp/vgc-pilot/data
+        name = "stat84_shuffled_noise_linear_filtered_es3_cap80"
+        self.assertEqual(TM.legality_result_name(name), CL.result_path(name, tables=False).name)
+        self.assertEqual(TM.legality_result_name(name, 1.0), CL.result_path(name, tables=False, guidance=1.0).name)
 
 
 if __name__ == "__main__":
