@@ -513,6 +513,36 @@ def battle_comment(directory: Path, url: str) -> str:
     return '\n'.join(lines) + '\n'
 
 
+def draw(args: argparse.Namespace) -> None:
+    """The figure the flags name."""
+    if args.rules:
+        rules_figure(args.dir, args.prompt, args.out)
+    elif args.compare:
+        compare_figure(compare_results(args.dir, args.prompt), args.prompt, args.out)
+    elif args.battles:
+        battle_figure(battle_report(args.dir), args.out)
+    elif args.redraw:
+        redraw_figure(final_for(args.dir, args.key), args.key, args.out)
+    elif args.matrix:
+        matrix_figure({k: rows_for(args.dir, k) for k in G.SMALL_FOUR
+                       if (args.dir / 'inplace_header' / k / 'fills.jsonl').exists()}, args.out)
+    else:
+        grid_figure(rows_for(args.dir, args.key, args.prompt), args.key, args.out, args.prompt)
+
+
+def write_comment(args: argparse.Namespace) -> str:
+    """The issue comment the flags name."""
+    if args.compare:
+        return compare_comment(args.dir, args.prompt, args.url)
+    if args.battles:
+        return battle_comment(args.dir, args.url)
+    if args.redraw:
+        return redraw_comment(args.dir, args.key, args.url)
+    if args.matrix:
+        return matrix_comment(args.dir, args.url)
+    return model_comment(args.dir, args.key, args.url, args.prompt)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     sub = parser.add_subparsers(dest='command', required=True)
@@ -529,30 +559,10 @@ def main() -> int:
         p.add_argument('--compare', action='store_true', help=f'#238: --prompt against {BEFORE}, every model')
         p.add_argument('--rules', action='store_true', help='with figure: which rules the fills break, per model')
     args = parser.parse_args()
-    if args.command == 'figure' and args.rules:
-        rules_figure(args.dir, args.prompt, args.out)
-    elif args.command == 'figure' and args.compare:
-        compare_figure(compare_results(args.dir, args.prompt), args.prompt, args.out)
-    elif args.command == 'comment' and args.compare:
-        print(compare_comment(args.dir, args.prompt, args.url), end='')
-    elif args.command == 'figure' and args.battles:
-        battle_figure(battle_report(args.dir), args.out)
-    elif args.command == 'figure' and args.redraw:
-        redraw_figure(final_for(args.dir, args.key), args.key, args.out)
-    elif args.command == 'comment' and args.battles:
-        print(battle_comment(args.dir, args.url), end='')
-    elif args.command == 'comment' and args.redraw:
-        print(redraw_comment(args.dir, args.key, args.url), end='')
-    elif args.command == 'figure':
-        if args.matrix:
-            results = {k: rows_for(args.dir, k) for k in G.SMALL_FOUR
-                       if (args.dir / 'inplace_header' / k / 'fills.jsonl').exists()}
-            matrix_figure(results, args.out)
-        else:
-            grid_figure(rows_for(args.dir, args.key, args.prompt), args.key, args.out, args.prompt)
+    if args.command == 'figure':
+        draw(args)
     else:
-        print(matrix_comment(args.dir, args.url) if args.matrix
-              else model_comment(args.dir, args.key, args.url, args.prompt), end='')
+        print(write_comment(args), end='')
     return 0
 
 
