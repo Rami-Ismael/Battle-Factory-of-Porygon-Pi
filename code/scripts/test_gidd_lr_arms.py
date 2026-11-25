@@ -70,10 +70,28 @@ class MaskedFullFilterArmTests(unittest.TestCase):
 class UniformNoFilterArmTests(unittest.TestCase):
     def call_for(self, arm):
         with (mock.patch.object(TU, "train") as train, mock.patch.object(TU, "load", return_value=fake_table()),
-              mock.patch.object(TU, "check_rows"), mock.patch.object(TU, "refuse_wrong_stones", return_value=CHECK_RECORD)):
+              mock.patch.object(TU, "check_rows"),
+              mock.patch.object(TU, "refuse_wrong_stones", return_value=CHECK_RECORD) as guard,
+              redirect_stdout(io.StringIO())):
             TU.train_arm(arm)
         train.assert_called_once()
+        self.guard_args = guard.call_args.args
         return train.call_args
+
+    def test_wrong_stone_guard_sees_every_row_the_trainer_gets(self):
+        call = self.call_for("udlm_loglinear_gidd_lr")
+        (guarded_table,) = self.guard_args
+        guarded = {row.tobytes() for row in guarded_table["all_X"]}
+        for rows in (call.args[1], call.args[3][0]):
+            self.assertTrue(len(rows) and all(row.tobytes() in guarded for row in rows))
+
+    def test_wrong_stone_team_stops_training_before_it_starts(self):
+        refused = SystemExit("lossdata84_shuffled_only.npz holds wrong-stone teams (1 in all_X)")
+        with (mock.patch.object(TU, "train") as train, mock.patch.object(TU, "load", return_value=fake_table()),
+              mock.patch.object(TU, "check_rows"), mock.patch.object(TU, "refuse_wrong_stones", side_effect=refused)):
+            with self.assertRaises(SystemExit):
+                TU.train_arm("udlm_loglinear")
+        train.assert_not_called()
 
     def test_name_is_new_and_says_the_recipe(self):
         self.assertEqual(TU.NAMES["udlm_loglinear_gidd_lr"], "stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80")
