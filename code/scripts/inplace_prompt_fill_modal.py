@@ -1,5 +1,5 @@
-"""Fill the held-out grid's 270 masks first try on a Modal GPU, under two prompts in one container, then judge the
-fills on the laptop (#238).
+"""Fill the held-out grid's 270 masks first try on a Modal GPU, under several prompts in one container, then judge
+the fills on the laptop (#238, #239).
 
 #238 measures the instructions prompt against today's prompt on the same masks and mask seeds. Owner, 2026-11-25:
 run on Modal, not the laptop GPU. A CUDA generator draws different noise from an MPS one for the same seed, so the
@@ -12,12 +12,19 @@ setting). Showdown does not run on Modal, so every draw streams back as a raw ro
 D/<prompt>/<key>/fills-modal-raw.jsonl, and a stopped run resumes. merge judges each raw row on the laptop with
 inplace_prompt_grid.judge (parses, keeps the visible values, Reg M-B names, Showdown) into D/<prompt>/<key>/fills.jsonl.
 
-D is ~/vgc-data/inplace_prompt_grid/modal-l4, apart from #237's laptop fills. The code the container runs is the
-frozen copy in INPLACE_CODE_DIR (default ~/vgc-data/inplace_prompt_grid/run238).
+#239's example prompts fill only the masks whose text fits under 1,024 tokens for all four models. Those lists are
+computed on the laptop (inplace_prompt_grid.fitting_ids) and frozen in FROZEN/data/fitting-ids.json; the entrypoint
+fills each prompt's list and merge refuses a raw file that is not exactly that list.
+
+D is INPLACE_RESULTS_DIR (default ~/vgc-data/inplace_prompt_grid/modal-l4-239; #238's fills are in modal-l4), apart
+from #237's laptop fills. The code the container runs is the
+frozen copy in INPLACE_CODE_DIR (default ~/vgc-data/inplace_prompt_grid/run239; #238 ran from run238).
 
 Before any Modal launch: state its estimated cost and credit left (`modal billing summary`).
 
     modal run code/scripts/inplace_prompt_fill_modal.py --key qwen3 --prompts inplace_header,inplace_instructions [--limit 3]
+    modal run code/scripts/inplace_prompt_fill_modal.py --key qwen3 \
+        --prompts inplace_header,inplace_instructions,inplace_header_example,inplace_example
     ~/.local/share/vgc-pilot-runtime/venv-dlm/bin/python code/scripts/inplace_prompt_fill_modal.py merge --key qwen3 --prompt inplace_instructions
 """
 from __future__ import annotations
@@ -32,9 +39,11 @@ from pathlib import Path
 from typing import Any
 
 HOME = Path.home() / 'vgc-data/inplace_prompt_grid'
-DIRECTORY = HOME / 'modal-l4'
-FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run238'))
+DIRECTORY = Path(os.environ.get('INPLACE_RESULTS_DIR', HOME / 'modal-l4-239'))     # #238's rows: modal-l4. A new
+# directory per experiment, so its prompts without the example are refilled in its containers, never resumed from #238
+FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run239'))
 TASKS = FROZEN / 'data/eval2.tasks.json'     # the held-out grid, copied out of the iCloud vault into the frozen run
+FITTING = FROZEN / 'data/fitting-ids.json'   # {prompt: [mask ids]} for the prompts that do not fit every mask (#239)
 TASKS_SHA256 = '596b3adc19abea7df6e82d61775b9efdf35dd54b74c77623d49165b0a31e754b'      # #237's grid file
 KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')
 RAW = 'fills-modal-raw.jsonl'
@@ -48,7 +57,7 @@ IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0',
 PACKAGED_FILES = ('scripts/inplace_prompt_grid.py', 'scripts/masked_diffusion_text.py',
                   'scripts/masked_diffusion_memory_bench.py', 'scripts/count_masked_diffusion_text.py',
                   'scripts/masked_diffusion_sampler.py', 'scripts/jev_fill.py', 'scripts/mask_paste.py',
-                  'data/regmb-vocabulary.json', 'data/pokedex.json')
+                  'data/regmb-vocabulary.json', 'data/pokedex.json', 'data/inplace-example-team.json')
 VERDICT_KEYS = frozenset({'json_parses', 'reads_as_team', 'visible_kept', 'regmb_names', 'showdown_errors',
                           'showdown_accepts', 'legal', 'failed', 'reasons', 'not_regmb', 'recovered',
                           'copied_visible', 'paste', 'rules'})
@@ -70,13 +79,23 @@ def read_rows(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()] if path.exists() else []
 
 
-def pending(prompts: Iterable[str], tasks: list[dict[str, Any]], done: dict[str, set[str]]) -> list[tuple[str, dict]]:
-    """(prompt, task) still to fill, prompt by prompt in the order given, minus the masks already drawn."""
-    return [(p, t) for p in prompts for t in tasks if t['id'] not in done.get(p, set())]
+def fitting(path: Path | None = None) -> dict[str, set[str]]:
+    """The frozen mask list of each prompt that does not fit every mask; a prompt not in it fills all 270."""
+    path = path or FITTING
+    return {p: set(ids) for p, ids in json.loads(path.read_text()).items()} if path.exists() else {}
+
+
+def pending(prompts: Iterable[str], tasks: list[dict[str, Any]], done: dict[str, set[str]],
+            only: dict[str, set[str]] | None = None) -> list[tuple[str, dict]]:
+    """(prompt, task) still to fill, prompt by prompt in the order given, minus the masks already drawn and, for a
+    prompt in only, the masks outside its list."""
+    only = only or {}
+    return [(p, t) for p in prompts for t in tasks
+            if t['id'] not in done.get(p, set()) and (p not in only or t['id'] in only[p])]
 
 
 def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done: dict[str, list[str]],
-                limit: int | None) -> Iterator[str]:
+                limit: int | None, only: dict[str, list[str]] | None = None) -> Iterator[str]:
     """Container side: one probe line, then one raw row per (prompt, mask) as a JSON line."""
     sys.path.insert(0, f'{REMOTE_CODE}/scripts')
     import torch
@@ -96,7 +115,8 @@ def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done:
     start_id = G.start_token_id(tokenizer, active)
     forward_for = lambda s: B.make_forward(model, family, G.SETTING['scope'], s, right_shift=active.right_shift)
     names = G.vocabulary()
-    todo = pending(prompts, tasks[:limit], {p: set(ids) for p, ids in done.items()})
+    todo = pending(prompts, tasks[:limit], {p: set(ids) for p, ids in done.items()},
+                   {p: set(ids) for p, ids in (only or {}).items()})
     device = f'cuda {torch.cuda.get_device_name()}'
 
     def one(prompt: str, task: dict[str, Any]) -> dict[str, Any]:
@@ -122,14 +142,14 @@ def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done:
         yield json.dumps(one(prompt, task), ensure_ascii=False)
 
 
-def run_meta(prompt: str, key: str, probe: dict[str, Any]) -> dict[str, Any]:
-    """run.json for one prompt and model, in the shape inplace_prompt_grid.run writes, with the Modal device."""
+def run_meta(prompt: str, key: str, probe: dict[str, Any], tasks: list[dict[str, Any]]) -> dict[str, Any]:
+    """run.json for one prompt and model, in the shape inplace_prompt_grid.run writes, with the Modal device. tasks
+    are the masks the prompt was filled on; tasks_sha256 stays the whole grid file's."""
     import hashlib
     sys.path[:0] = [str(FROZEN / 'scripts'), str(FROZEN / 'src')]
     import count_masked_diffusion_text as C
     import inplace_prompt_grid as G
     candidate = C.candidate_by_key(key)
-    tasks = grid_tasks()
     meta = G.run_meta(G.PROMPTS[prompt], candidate, tasks, tasks_sha256=hashlib.sha256(TASKS.read_bytes()).hexdigest())
     meta['setting']['device'] = probe['device']
     meta['environment'] |= {'torch': probe['torch'], 'device': probe['device'], 'judged_on': 'laptop'}
@@ -148,6 +168,11 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
     out = directory / prompt / key
     raw = read_rows(out / RAW)
     tasks = grid_tasks()
+    only = fitting().get(prompt)
+    if only is not None:
+        if only != set(G.fitting_ids(prompt) or ()):
+            raise ValueError(f'{FITTING}: the frozen list for {prompt} is not the one fitting_ids gives')
+        tasks = [t for t in tasks if t['id'] in only]
     ids = [r['id'] for r in raw]
     if sorted(ids) != sorted(t['id'] for t in tasks):
         raise ValueError(f'{out / RAW}: {len(ids)} rows, {len(set(ids))} distinct masks, not the {len(tasks)} masks')
@@ -176,7 +201,7 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
     (out / 'fills.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in judged))
     probe = json.loads((directory / 'preflight' / f'modal-gpu-{key}.json').read_text())
     G.gpu_preflight_path(directory, key, prompt).write_text(json.dumps(probe, indent=1) + '\n')
-    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe), indent=1) + '\n')
+    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe, tasks), indent=1) + '\n')
     return {'key': key, 'prompt': prompt, 'masks': len(judged), 'legal': sum(r['legal'] for r in judged)}
 
 
@@ -206,9 +231,10 @@ if modal is not None:
     app = modal.App('inplace-prompt-fills')
 
     @app.function(image=image, gpu=GPU, timeout=TIMEOUT_SECONDS, volumes={'/root/.cache/huggingface': hf_cache})
-    def fill(key: str, prompts: list, tasks: list, done: dict, limit: int | None) -> Iterator[str]:
+    def fill(key: str, prompts: list, tasks: list, done: dict, limit: int | None,
+             only: dict | None = None) -> Iterator[str]:
         try:
-            yield from fill_remote(key, prompts, tasks, done, limit)
+            yield from fill_remote(key, prompts, tasks, done, limit, only)
         finally:
             hf_cache.commit()
 
@@ -217,7 +243,11 @@ if modal is not None:
         order = prompts.split(',')
         tasks = grid_tasks()
         done = {p: [r['id'] for r in read_rows(DIRECTORY / p / key / RAW)] for p in order}
-        left = pending(order, tasks[:limit or None], {p: set(ids) for p, ids in done.items()})
+        only = {p: ids for p, ids in fitting().items() if p in order}
+        missing = [p for p in order if p.endswith('_example') and p not in only]
+        if missing:
+            raise SystemExit(f'{FITTING}: no frozen mask list for {missing}')
+        left = pending(order, tasks[:limit or None], {p: set(ids) for p, ids in done.items()}, only)
         print(f'{key}: {len(left)} fills to make on Modal {GPU}', flush=True)
         if not left:
             return
@@ -227,7 +257,7 @@ if modal is not None:
             handles[p] = (DIRECTORY / p / key / RAW).open('a')
         begin, made = time.time(), 0
         try:
-            for line in fill.remote_gen(key, order, tasks, done, limit or None):
+            for line in fill.remote_gen(key, order, tasks, done, limit or None, {p: sorted(i) for p, i in only.items()}):
                 row = json.loads(line)
                 if 'probe' in row:
                     print(line, flush=True)
