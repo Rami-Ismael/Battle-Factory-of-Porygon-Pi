@@ -178,6 +178,43 @@ class ReportAndChecksTests(unittest.TestCase):
         self.assertIn("linear_masked_filter", handoff_md)
 
 
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data (line_up_yield imports the pilot modules)")
+class StepsAfterBattlesTests(unittest.TestCase):
+    """The 11-24 queue trained for 7 hours, battled the guidance 2 grid, then crashed on its figure step:
+    the grid measures passed `teams=` twice. These run every step after the battles on synthetic grids."""
+
+    def test_dry_run_runs_every_step_after_the_battles(self):
+        import retrain_default_dry_run as DRY
+
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
+            written = DRY.run(tmp)
+            summary = json.loads((Path(tmp) / "summary.json").read_text())
+        self.assertEqual(len(written), 1 + len(RDR.GUIDANCES) + 2)  # training curves, one figure per guidance, two final figures
+        self.assertEqual(sorted(summary["by_guidance"]), sorted(str(g) for g in RDR.GUIDANCES))
+
+    def test_grid_metrics_counts_teams_once(self):
+        import retrain_default_dry_run as DRY
+
+        rng = np.random.default_rng(1)
+        with tempfile.TemporaryDirectory() as tmp:
+            grid, opponents = DRY.fake_grid(rng, "x")
+            npz = Path(tmp) / "opponents.npz"
+            np.savez(npz, **opponents)
+            metrics, draws = RDR.grid_metrics(grid, npz, "x", 2, RDR._opponent_draws(DRY.OPPONENTS), 21, set(), results_dir=tmp)
+        self.assertEqual(metrics["teams"], len(RDR.ALL_ASKS) * len(RDR.SEEDS) * DRY.TEAMS_PER_CELL)
+        self.assertEqual(metrics["novel_share"], 1.0)
+        self.assertEqual(set(draws), {"error", "pooled_win", "win_top"})
+
+    @unittest.skipUnless((RDR.RES / f"stat_points_84_{RDR.NEW_ROW}.json").exists(), "needs this laptop's guidance 2 grid")
+    def test_real_guidance_2_grid_reads_and_draws(self):
+        pair = RDR.read_guidance_pair(2)
+        self.assertEqual(pair["filtered"]["teams"], 4416)
+        self.assertEqual(pair["filtered"]["cells_short_of_64"], 0)
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(RDR.build_grid_figure(pair, tmp).exists())
+        self.assertIn("Guidance 2 grid landed", RDR.format_grid_comment(pair, "L", "D"))
+
+
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
 class TrainAndGridWiringTests(unittest.TestCase):
     def fake_table(self):
@@ -201,7 +238,7 @@ class TrainAndGridWiringTests(unittest.TestCase):
                 mock.patch.object(TR, "train") as train,
                 mock.patch.object(TR, "load", return_value=self.fake_table()) as load,
                 mock.patch.object(TR, "check_rows"),
-                mock.patch.object(TR, "assert_no_wrong_stones", return_value=dict(method="mock", train_rows=3, val_rows=1, train_rejected=0, val_rejected=0)),
+                mock.patch.object(TR, "refuse_wrong_stones", return_value=dict(method="mock", rows=dict(all=6), rejected=0)),
                 redirect_stdout(io.StringIO()),
             ):
                 TR.main([arm])
@@ -212,13 +249,16 @@ class TrainAndGridWiringTests(unittest.TestCase):
         for a, b in zip(calls["shuffled_linear"].args[1:], calls["shuffled_linear_filtered"].args[1:], strict=True):
             self.assertEqual(repr(a), repr(b))
 
-    def test_assert_no_wrong_stones_refuses_rejected_rows_on_either_side(self):
+    def test_filtered_arm_refuses_a_table_with_a_wrong_stone_team(self):
         fake_tables = mock.MagicMock()
-        fake_tables.rejects.side_effect = [np.array([False, True, False]), np.array([False])]
-        with mock.patch.object(TR.L, "Tables", return_value=fake_tables):
-            with self.assertRaises(SystemExit) as ctx:
-                TR.assert_no_wrong_stones(None, np.zeros((3, 84), np.int64), np.zeros((1, 84), np.int64))
-        self.assertIn("1 training and 0 validation", str(ctx.exception))
+        fake_tables.rejects.return_value = np.array([False, True, False, False, False, False])
+        with (mock.patch.object(TR, "train") as train, mock.patch.object(TR, "load", return_value=self.fake_table()),
+              mock.patch.object(TR, "check_rows"), mock.patch("wrong_stone_check.L.Tables", return_value=fake_tables),
+              mock.patch("wrong_stone_check.T.regulation_vocab"), self.assertRaises(SystemExit) as ctx):
+            TR.main(["shuffled_linear_filtered"])
+        train.assert_not_called()
+        self.assertIn("1 in all_X", str(ctx.exception))
+        self.assertIn("--drop-wrong-stones lossdata84_shuffled_only", str(ctx.exception))
 
     def test_ask_grid_row_uses_filtered_checkpoint_and_fresh_seeds(self):
         row = A.MODELS["linear_masked_filter"]

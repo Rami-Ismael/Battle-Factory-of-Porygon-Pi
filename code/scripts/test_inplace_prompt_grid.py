@@ -8,6 +8,7 @@ import json
 import re
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 import torch
@@ -90,9 +91,10 @@ class FakeValidator:
         return 'Pikachu has more than 32 Stat Points in HP.' if 'EVs: 99' in paste else None
 
 
-def answer_model(tokenizer, task, vocab_size=None):
+def answer_model(tokenizer, task, prompt=None):
     """A model whose logits at each slot put all weight on the true value's token (padded as training pads)."""
-    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token)
+    statement, example = (None, None) if prompt is None else (prompt.statement, prompt.example)
+    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token, statement, example)
     truth = tokenizer(target, add_special_tokens=False)['input_ids']
 
     def forward_for(slots):
@@ -376,6 +378,299 @@ class PasteRowTest(unittest.TestCase):
         self.assertEqual(team[0]['statPoints']['HP'], 13)
         self.assertEqual(team[0]['nature'], 'Lonely')
         self.assertEqual(blank_slot(1)['level'], team[0]['level'])
+
+
+INSTRUCTIONS = G.PROMPTS['inplace_instructions']
+
+
+class InstructionsPromptTest(unittest.TestCase):
+    """#238: the instructions prompt is today's prompt plus one task statement before the team, nothing else."""
+
+    def test_the_only_difference_is_the_task_statement_before_the_team(self):
+        tokenizer = FakeTokenizer()
+        for task in [*TASKS, make_task('pokemon', 'f6')]:
+            header = PROMPT.build(task, G.ASK, tokenizer, G.LIMIT)
+            added = INSTRUCTIONS.build(task, G.ASK, tokenizer, G.LIMIT)
+            at = header.text.index('\n' + D.TEAM_LABEL) + 1
+            self.assertEqual(added.text, header.text[:at] + D.TASK_STATEMENT + header.text[at:])
+            shift = len(D.TASK_STATEMENT)
+            tokens = len(tokenizer(D.TASK_STATEMENT, add_special_tokens=False)['input_ids'])
+            self.assertEqual([(s.path, s.field, s.length) for s in added.slots],
+                             [(s.path, s.field, s.length) for s in header.slots])
+            self.assertEqual([(s.start, s.end) for s in added.slots],
+                             [(s.start + shift, s.end + shift) for s in header.slots])
+            self.assertEqual([s.first_token for s in added.slots], [s.first_token + tokens for s in header.slots])
+            self.assertEqual(added.part_tokens, header.part_tokens | {'task statement': tokens})
+            self.assertEqual(added.version, D.INSTRUCTIONS_VERSION)
+            self.assertNotEqual(added.version, header.version)
+
+    def test_the_statement_is_one_fixed_text_for_every_model(self):
+        """No model's mask token in it, and it cannot be mistaken for the team label the judge splits on."""
+        self.assertIs(INSTRUCTIONS.statement, D.TASK_STATEMENT)
+        self.assertIsNone(PROMPT.statement)
+        self.assertTrue(D.TASK_STATEMENT.endswith('\n'))
+        self.assertNotIn(D.TEAM_LABEL, D.TASK_STATEMENT)
+        self.assertNotIn('<|', D.TASK_STATEMENT)
+        for word in ('species', 'item', 'ability', 'move', 'Stat Alignment', 'Stat Point', 'Showdown', 'JSON keys'):
+            self.assertIn(word, D.TASK_STATEMENT)
+
+    def test_the_true_values_are_legal_and_a_perfect_model_fills_legally(self):
+        tokenizer = FakeTokenizer()
+        with tempfile.TemporaryDirectory() as d:
+            for task in TASKS:
+                built = G.canvas(task, INSTRUCTIONS, tokenizer, 0)['built']
+                self.assertTrue(G.judge(task, built, G.true_values(task), FakeValidator(), G.vocabulary())['legal'])
+                G.fill_grid([task], INSTRUCTIONS, tokenizer, answer_model(tokenizer, task, INSTRUCTIONS), 0,
+                            Path(d) / 'f.jsonl', FakeValidator())
+            rows = G.read_rows(Path(d) / 'f.jsonl')
+        self.assertEqual([r['legal'] for r in rows], [True, True, True])
+        self.assertEqual({r['prompt'] for r in rows}, {'inplace_instructions'})
+        self.assertEqual({r['version'] for r in rows}, {D.INSTRUCTIONS_VERSION})
+
+    def test_the_round_trip_reads_the_true_values_back_through_the_statement(self):
+        tokenizer = FakeTokenizer()
+        for task in TASKS:
+            c = G.canvas(task, INSTRUCTIONS, tokenizer, 0)
+            values = G.round_trip_values(tokenizer, task, c, None, INSTRUCTIONS)
+            self.assertTrue(G.judge(task, c['built'], values, FakeValidator(), G.vocabulary())['legal'])
+
+    def test_the_statement_costs_the_same_tokens_on_every_mask(self):
+        tokenizer = FakeTokenizer()
+        cost = G.statement_tokens(TASKS, INSTRUCTIONS, tokenizer, 0, None)
+        alone = len(tokenizer(D.TASK_STATEMENT, add_special_tokens=False)['input_ids'])
+        self.assertEqual(cost, {'statement_alone': alone, 'added_min': alone, 'added_max': alone, 'masks': 3})
+
+
+EXAMPLES = {'inplace_header_example': 'inplace_header', 'inplace_example': 'inplace_instructions'}
+
+
+class ExamplePromptTest(unittest.TestCase):
+    """#239: each example prompt is its base prompt plus the fixed example team's line before the team, nothing else.
+    The fake tokenizer spends a token on every JSON character, so these texts run past 1,024 tokens; the limit is
+    raised here, and the real tokenizers' fit is fitting_ids's job."""
+
+    def setUp(self):
+        patch = unittest.mock.patch.object(G, 'LIMIT', 8192)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def test_the_only_difference_from_the_base_is_the_example_team_before_the_team(self):
+        tokenizer = FakeTokenizer()
+        line = D.example_text()
+        tokens = len(tokenizer(line, add_special_tokens=False)['input_ids'])
+        for code, base_code in EXAMPLES.items():
+            prompt, base = G.PROMPTS[code], G.PROMPTS[base_code]
+            self.assertEqual(prompt.base, base_code)
+            self.assertEqual(prompt.statement, base.statement)
+            for task in [*TASKS, make_task('pokemon', 'f6')]:
+                before = base.build(task, G.ASK, tokenizer, G.LIMIT)
+                added = prompt.build(task, G.ASK, tokenizer, G.LIMIT)
+                at = before.text.index('\n' + D.TEAM_LABEL) + 1
+                self.assertEqual(added.text, before.text[:at] + line + before.text[at:])
+                self.assertEqual([(s.path, s.field, s.length) for s in added.slots],
+                                 [(s.path, s.field, s.length) for s in before.slots])
+                self.assertEqual([(s.start, s.end) for s in added.slots],
+                                 [(s.start + len(line), s.end + len(line)) for s in before.slots])
+                self.assertEqual([s.first_token for s in added.slots], [s.first_token + tokens for s in before.slots])
+                self.assertEqual(added.part_tokens, before.part_tokens | {'example team': tokens})
+                self.assertEqual(added.version, before.version + D.EXAMPLE_SUFFIX)
+
+    def test_the_example_is_one_fixed_complete_reg_mb_team_with_no_mask_token(self):
+        team = D.example_team()
+        self.assertEqual([m['species'] for m in team],
+                         ['Maushold-Four', 'Azumarill', 'Mawile', 'Farigiraf', 'Gallade', 'Camerupt'])
+        names = G.vocabulary()
+        for path, value in G.visible_values(team).items():
+            if path[1] in G.NAME_FIELDS:
+                self.assertIn(G.to_id(value), names[path[1]], path)
+        line = D.example_text()
+        self.assertTrue(line.startswith(D.EXAMPLE_LABEL) and line.endswith('\n'))
+        self.assertNotIn(D.TEAM_LABEL, line)
+        self.assertNotIn('<|', line)
+        self.assertEqual(D.team_from_json(line.removeprefix(D.EXAMPLE_LABEL))[0]['species'], 'Maushold-Four')
+        self.assertEqual(G.PROMPTS['inplace_example'].example, G.PROMPTS['inplace_header_example'].example)
+
+    def test_a_perfect_model_fills_legally_and_the_round_trip_reads_back_through_the_example(self):
+        tokenizer = FakeTokenizer()
+        for code in EXAMPLES:
+            prompt = G.PROMPTS[code]
+            with tempfile.TemporaryDirectory() as d:
+                for task in TASKS:
+                    c = G.canvas(task, prompt, tokenizer, 0)
+                    values = G.round_trip_values(tokenizer, task, c, None, prompt)
+                    self.assertTrue(G.judge(task, c['built'], values, FakeValidator(), G.vocabulary())['legal'])
+                    G.fill_grid([task], prompt, tokenizer, answer_model(tokenizer, task, prompt), 0,
+                                Path(d) / 'f.jsonl', FakeValidator())
+                rows = G.read_rows(Path(d) / 'f.jsonl')
+            self.assertEqual([r['legal'] for r in rows], [True, True, True])
+            self.assertEqual({r['version'] for r in rows}, {G.PROMPTS[EXAMPLES[code]].build(
+                TASKS[0], G.ASK, tokenizer, G.LIMIT).version + D.EXAMPLE_SUFFIX})
+
+    def test_the_example_costs_the_same_tokens_on_every_mask(self):
+        tokenizer = FakeTokenizer()
+        alone = len(tokenizer(D.example_text(), add_special_tokens=False)['input_ids'])
+        for code in EXAMPLES:
+            cost = G.example_tokens(TASKS, G.PROMPTS[code], tokenizer, 0, None)
+            self.assertEqual(cost, {'example_alone': alone, 'added_min': alone, 'added_max': alone, 'masks': 3})
+
+    def test_copies_of_the_example_count_same_place_and_same_field_and_skip_blanks(self):
+        example = D.example_team()
+        fill = {'fields': ['item', 'item', 'moves', 'moves', 'statPoints', 'species'],
+                'paths': ['team[0].item', 'team[1].item', 'team[3].moves[3]', 'team[3].moves[0]',
+                          'team[1].statPoints.HP', 'team[2].species'],
+                'values': [example[0]['item'], example[0]['item'], example[3]['moves'][3], 'Protect', '31', ' ']}
+        out = G.example_copies([fill, {'id': 'old', 'fields': ['item'], 'values': ['x']}])
+        self.assertEqual(out['item'], {'same_place': 1, 'same_field': 2, 'filled': 2})
+        self.assertEqual(out['moves'], {'same_place': 1, 'same_field': 2, 'filled': 2})
+        self.assertEqual(out['statPoints'], {'same_place': 1, 'same_field': 0, 'filled': 1})
+        self.assertNotIn('species', out)
+
+    def test_a_run_missing_a_planned_mask_is_refused_even_when_both_miss_it(self):
+        keep = frozenset({'a', 'b', 'c'})
+        self.assertEqual([r['id'] for r in G.on_masks([row('a', True), row('b', False), row('c', False), row('z', True)],
+                                                      keep, 'x')], ['a', 'b', 'c'])
+        with self.assertRaises(ValueError):
+            G.on_masks([row('a', True), row('b', False)], keep, 'x')
+        with self.assertRaises(ValueError):
+            G.on_masks([row('a', True), row('a', True), row('b', False), row('c', False)], keep, 'x')
+        self.assertEqual(len(G.on_masks([row('z', True)], None, 'x')), 1)
+
+    def test_comparisons_use_only_the_masks_every_prompt_fits(self):
+        fit = {'inplace_header_example': frozenset({'a', 'b'}), 'inplace_example': frozenset({'b'})}
+        with unittest.mock.patch.object(G, 'fitting_ids', lambda code: fit.get(code)):
+            self.assertIsNone(G.shared_ids('inplace_header', 'inplace_instructions'))
+            self.assertEqual(G.shared_ids('inplace_header', 'inplace_header_example'), {'a', 'b'})
+            self.assertEqual(G.shared_ids('inplace_header_example', 'inplace_example'), {'b'})
+            self.assertEqual([t['id'] for t in G.prompt_tasks('inplace_example', [{'id': 'a'}, {'id': 'b'}])], ['b'])
+
+
+def row(task_id, legal, failed=None, reasons=(), seconds=1.0, species=None):
+    fields, values = (['species'], [species]) if species is not None else ([], [])
+    return {'id': task_id, 'task': 'items', 'legal': legal, 'failed': None if legal else failed or 'parses',
+            'reasons': list(reasons), 'json_parses': legal or failed != 'parses', 'reads_as_team': legal,
+            'showdown_accepts': legal, 'showdown_errors': [], 'fields': fields, 'values': values, 'recovered': False,
+            'copied_visible': 0, 'prompt_tokens': 10, 'seconds': seconds, 'peak_bytes': 0, 'special_dropped': 0}
+
+
+class CompareTest(unittest.TestCase):
+    def test_mcnemar_counts_only_the_masks_that_changed(self):
+        before = [row('a', True), row('b', False), row('c', False), row('d', True)]
+        after = [row('a', True), row('b', True), row('c', True), row('d', False)]
+        paired = G.paired(before, after)
+        self.assertEqual((paired['gained'], paired['lost'], paired['both'], paired['neither']), (2, 1, 1, 0))
+        self.assertAlmostEqual(paired['p_value'], 1.0)
+
+    def test_mcnemar_exact_p_for_a_one_sided_change(self):
+        before = [row(str(n), False) for n in range(10)]
+        after = [row(str(n), n < 8) for n in range(10)]
+        self.assertAlmostEqual(G.paired(before, after)['p_value'], 2 * 0.5 ** 8)
+
+    def test_rows_are_paired_by_mask_id_and_must_cover_the_same_masks(self):
+        before = [row('a', True), row('b', False)]
+        self.assertEqual(G.paired(before, [row('b', True), row('a', True)])['gained'], 1)
+        with self.assertRaises(ValueError):
+            G.paired(before, [row('a', True)])
+
+    def test_a_mask_twice_in_one_run_is_refused(self):
+        with self.assertRaises(ValueError):
+            G.paired([row('a', True), row('a', False)], [row('a', True)])
+
+    def test_the_comparison_reports_each_measure_before_and_after(self):
+        before = [row('a', False, 'parses', ['Expecting value'], species='Japan'), row('b', False, 'regmb', ['not a Reg M-B item'],
+                                                                       seconds=3.0, species='Pikachu')]
+        after = [row('a', True, seconds=2.0, species='Pikachu'), row('b', False, 'regmb', ['not a Reg M-B item'],
+                                                                     seconds=4.0, species='Japan')]
+        out = G.compare_rows(before, after)
+        self.assertEqual(out['legal'], {'before': 0, 'after': 1, 'of': 2})
+        self.assertEqual(out['json_parses'], {'before': 1, 'after': 2, 'of': 2})
+        self.assertEqual(out['real_species'], {'before': 1, 'after': 1, 'of': 2})
+        self.assertEqual(out['seconds_per_team'], {'before': 2.0, 'after': 3.0})
+        self.assertEqual(out['reasons']['before'], [['Expecting value', 1], ['not a Reg M-B item', 1]])
+        self.assertEqual(out['reasons']['after'], [['not a Reg M-B item', 1]])
+        self.assertEqual(out['paired']['gained'], 1)
+
+
+def clean_team():
+    """Six distinct base species, no Mega Stone, distinct items and moves: breaks none of the team rules."""
+    out = team()
+    for mon, species, item in zip(out, ('Kleavor', 'Sinistcha', 'Archaludon', 'Swampert', 'Froslass', 'Pelipper'),
+                                  ('Choice Scarf', 'Kasib Berry', 'Leftovers', 'Focus Sash', 'Sitrus Berry', 'Life Orb'),
+                                  strict=True):
+        mon['species'], mon['item'] = species, item
+    return out
+
+
+class RuleBreaksTest(unittest.TestCase):
+    """Every filled mask records which rules it breaks (owner, 2026-11-25)."""
+
+    def setUp(self):
+        self.names = G.vocabulary()
+
+    def verdict(self, team, errors=None, visible=True):
+        return {'reads_as_team': team is not None, 'visible_kept': visible, 'showdown_errors': errors or []}
+
+    def test_a_legal_team_breaks_nothing(self):
+        rules = G.rule_breaks(['item'], ['Choice Scarf'], self.names, self.verdict(clean_team()), clean_team())
+        self.assertEqual(set(rules), set(G.RULES))
+        self.assertFalse(any(rules.values()))
+        self.assertIsNone(rules['not a Reg M-B species'])
+
+    def test_every_judged_fill_carries_its_rules(self):
+        task = make_task('items', 'r1')
+        verdict = G.judge(task, G.canvas(task, PROMPT, FakeTokenizer(), 0)['built'], ['Japan","'], FakeValidator(),
+                          self.names)
+        self.assertTrue(verdict['rules']['does not parse as a team'])
+        self.assertTrue(verdict['rules']['not a Reg M-B item'])
+
+    def test_stat_points_over_66_and_over_32_are_read_from_the_team(self):
+        bad = clean_team()
+        bad[0]['statPoints'] = dict(zip(STATS, (32, 32, 3, 0, 0, 0), strict=True))
+        bad[1]['statPoints']['HP'] = 40
+        rules = G.rule_breaks([], [], self.names, self.verdict(bad), bad)
+        self.assertTrue(rules['Stat Points over 66'])
+        self.assertTrue(rules['a Stat Point over 32'])
+        self.assertFalse(rules['item used more than once'])
+
+    def test_item_twice_same_move_twice_and_a_wrong_mega_stone(self):
+        bad = clean_team()
+        bad[1]['item'] = bad[0]['item']
+        bad[2]['moves'][1] = bad[2]['moves'][0]
+        bad[4]['item'] = 'Swampertite'
+        rules = G.rule_breaks([], [], self.names, self.verdict(bad), bad)
+        self.assertTrue(rules['item used more than once'])
+        self.assertTrue(rules['same move twice on one Pokémon'])
+        self.assertTrue(rules['wrong Mega Stone'])
+        bad[3]['species'], bad[4]['species'] = 'Froslass', 'Swampert'
+        self.assertFalse(G.rule_breaks([], [], self.names, self.verdict(bad), bad)['wrong Mega Stone'])
+
+    def test_showdown_messages_map_to_rules_and_the_rest_to_other(self):
+        errors = ["Swampert can't have Swift Swim.", 'Armarouge can\'t learn Kowtow Cleave.',
+                  '"x100" is an invalid ability.', 'Something new went wrong.']
+        rules = G.rule_breaks([], [], self.names, self.verdict(clean_team(), errors), clean_team())
+        for rule in ("ability the species can't have", "move the species can't learn", 'a name Showdown does not know',
+                     'other Showdown error'):
+            self.assertTrue(rules[rule], rule)
+
+    def test_a_fill_that_does_not_parse_judges_only_the_names_it_wrote(self):
+        rules = G.rule_breaks(['item', 'moves'], ['Japan', 'Protect'], self.names, self.verdict(None), None)
+        self.assertTrue(rules['does not parse as a team'])
+        self.assertTrue(rules['not a Reg M-B item'])
+        self.assertFalse(rules['not a Reg M-B move'])
+        self.assertIsNone(rules['not a Reg M-B species'])
+        self.assertIsNone(rules['Stat Points over 66'])
+
+    def test_showdown_rules_wait_for_showdown_on_a_deferred_fill(self):
+        rules = G.rule_breaks([], [], self.names, self.verdict(clean_team(), ['deferred: Showdown judges this fill']),
+                             clean_team())
+        self.assertIsNone(rules["ability the species can't have"])
+        self.assertFalse(rules['Stat Points over 66'])
+
+    def test_counts_use_only_fills_where_a_rule_could_be_judged(self):
+        rows = [{'rules': dict.fromkeys(G.RULES, None) | {'not a Reg M-B item': True}},
+                {'rules': dict.fromkeys(G.RULES, False)}, {'id': 'old'}]
+        counts = G.rule_counts(rows)
+        self.assertEqual(counts['not a Reg M-B item'], {'broken': 1, 'of': 2})
+        self.assertEqual(counts['Stat Points over 66'], {'broken': 0, 'of': 1})
 
 
 if __name__ == '__main__':

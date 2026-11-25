@@ -8,6 +8,8 @@ One model trains under the clean two-arm comparison (owner decision 2026-11-24):
                    legal Pokémon construction filter, labelled teams of lossdata84_shuffled_only.npz,
                    label noise ±1/48, AdamW lr 4e-4, batch 256, EMA 0.999, patience 3, threshold 0,
                    cap 80 epochs, every epoch saved.
+                   Every arm refuses to start if any team in the table holds another Pokémon's
+                   Mega Stone (wrong_stone_check.refuse_wrong_stones, issues #368, #385).
   udlm_loglinear_gidd_lr   stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80 (issue #431)
                    udlm_loglinear with lr_schedule84.GIDD_LR_RECIPE: peak 5e-4, 1,000 warm-up steps, cosine
                    to the 10% floor 5e-5, the same recipe Masked, full filter gets in train84.py.
@@ -40,6 +42,7 @@ import team84 as T
 import uniform_diffusion84 as UM
 import uniform_preflight84 as UP
 import wandb_tracking as WT
+from wrong_stone_check import refuse_wrong_stones
 import lr_schedule84 as LS
 
 SHUFFLED_ONLY = X.RES / "lossdata84_shuffled_only.npz"
@@ -349,12 +352,16 @@ def train(arm, rows, labels, val, epochs, patience=3, **train_kw):
 
 
 def train_arm(arm):
-    """Load labelled rows of the filtered shuffled-only table and train the named uniform arm."""
+    """Load labelled rows of the filtered shuffled-only table and train the named uniform arm. Refuses to start if
+    Tables.rejects flags a wrong-stone team in any group of the table (wrong_stone_check.refuse_wrong_stones, as
+    train84.py does)."""
     global DATA_SHA, DATA_TABLE
     if arm not in ARMS:
         raise ValueError(f"unknown uniform arm {arm!r}; choose from {sorted(ARMS)}")
     table = load(SHUFFLED_ONLY)
     check_rows(table)
+    check = refuse_wrong_stones(table)                   # every field visible; no wrong-stone team trains (#368, #385)
+    print(f"[{name(arm)}] wrong-stone check ({check['method']}): 0 of {sum(check['rows'].values())} rows rejected", flush=True)
     DATA_SHA, DATA_TABLE = table["sha256"], table["table"]
     has_label = ~np.isnan(table["all_W"])
     train_mask = ~table["all_val"] & has_label
