@@ -20,6 +20,7 @@ Searched `experiments-index.md` and `code/docs/` for a task statement in a maske
 | Masked Qwen3 0.6B | 3 → 6 | 4 / 1 (0.38) | 127 → 118 | 7 → 10 |
 
 - **Where the legal masks are.** All 41 legal masks with the statement hide Stat Points, bar one Stat Alignment, as before.
+- **Correction, 2026-11-25 (#239):** DiffuGPT small's drop is the 71-token shift past the 512 tokens it was trained on, not the statement's words. The same header-only text moved 71 positions later gives 9 legal of its 30 Stat Points masks, against 21 unmoved. The explanation below was wrong.
 - **Why DiffuGPT small fell.** All 11 lost masks hide Stat Points. With the statement, 415 of its 630 Stat Point values are numbers (600 without), and 18 of its 30 Stat Points masks fail to parse (6 without), with fills like `[` and `Sp`. Suspects, each with a test, are posted on #238: the stat words in the statement, the 71-token shift in position, and the single seed.
 - **Prediction.** It held on where legal masks sit, on DiffuGPT's parse counts and on real species. It missed DiffuGPT small's drop. It was wrong on Masked Qwen2.5 Coder's parsing, which fell by 20, and on cost: seconds per team did not change on the L4.
 - **The device.** Header-only fills on the L4 match #237's laptop fills token for token on only 1 to 27 of 270 masks, yet legal counts agree within one mask (20/21, 27/26, 4/4, 3/3).

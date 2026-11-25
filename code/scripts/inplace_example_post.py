@@ -154,14 +154,17 @@ def copies_figure(directory: Path, out: Path) -> Path:
                     'itemStyle': {'borderColor': '#fcfcfb', 'borderWidth': 2, 'borderRadius': 3},
                     'emphasis': {'itemStyle': {'borderColor': '#0b0b0b', 'borderWidth': 1}}}],
     }
-    top = max(keys, key=lambda k: copy_share(pairs[k]['copies']['after'], 'moves')[0]
-              / max(1, copy_share(pairs[k]['copies']['after'], 'moves')[1]))
+    def lift(k: str, f: str) -> float:
+        (a, n), (b, m) = copy_share(pairs[k]['copies']['after'], f), copy_share(pairs[k]['copies']['before'], f)
+        return (a / n if n else 0) - (b / m if m else 0)
+    top_key, top_field = max(((k, f) for k in keys for f in COPY_FIELDS), key=lambda kf: lift(*kf))
     note = ("Share of non-blank filled values that repeat the example team: for a name, any of the example's six "
             "values of that field (24 for moves); for a Stat Point number, the example's number in the same Pokémon and "
             "stat. The row without the example is the same count on the header-only prompt's fills of the same masks, "
             f"the rate by chance. Header-only base, {pairs[keys[0]]['masks']} masks. " + SETTING_NOTE)
-    m_hit, m_of = copy_share(pairs[top]['copies']['after'], 'moves')
-    title = (f"{LABELS[top]} copies the example team most: {m_hit} of {m_of} filled moves are one of its moves")
+    (a, n), (b, m) = (copy_share(pairs[top_key]['copies'][side], top_field) for side in ('after', 'before'))
+    title = (f"Copies of the example stay small; the largest rise is {LABELS[top_key]}'s "
+             f"{COPY_NAMES[top_field]}s, {100 * b / m:.0f}% to {100 * a / n:.0f}% matching the example")
     return write_chart(option, out, title=title, subtitle='Which filled values repeat the example team (#239)',
                        note=note, height=110 + 44 * len(rows), dark=SURFACE)
 
@@ -234,6 +237,52 @@ def position_figure(probes: dict[str, Path], out: Path) -> Path:
     return write_chart(option, out, title='Moving the same text 418 positions later takes DiffuGPT small from 21 legal '
                        'fills to 0', subtitle='Why the example team zeroes DiffuGPT small (#239 audit)', note=note,
                        height=360)
+
+
+SHORT_ARMS = {'inplace_header': 'none', 'inplace_instructions': 'stmt', 'inplace_header_example': 'ex',
+              'inplace_example': 'stmt+ex'}
+
+
+def rules_figure(directory: Path, out: Path) -> Path:
+    """Rows: rules; columns: each model under the four prompts; each cell the share of fills breaking the rule, out of
+    the fills where it could be judged, on the masks all four prompts fill."""
+    from inplace_prompt_post import SHORT
+    keys = [k for k in G.SMALL_FOUR if all((directory / p / k / 'fills.jsonl').exists() for p in ARMS)]
+    common = G.shared_ids(*ARMS)
+    columns = [(k, p) for k in keys for p in ARMS]
+    counts = {(k, p): G.rule_counts(rows_for(directory, k, p, common)) for k, p in columns}
+    data = []
+    for y, rule in enumerate(G.RULES):
+        for x, col in enumerate(columns):
+            c = counts[col][rule]
+            share = c['broken'] / c['of'] if c['of'] else None
+            data.append({'value': [x, y, None if share is None else round(100 * share, 1)],
+                         'tip': f"{LABELS[col[0]]}, {ARMS[col[1]]}<br><b>{rule}</b><br>{c['broken']} of {c['of']} fills",
+                         'label': {'color': '#fff' if share and share > 0.55 else '#0b0b0b'}})
+    option = {
+        'tooltip': {'trigger': 'item', 'formatter': 'js:p => p.data.tip'},
+        'grid': {'left': 200, 'right': 8, 'top': 64, 'bottom': 10},
+        'xAxis': [{'type': 'category', 'position': 'top', 'data': [SHORT_ARMS[p] for _, p in columns],
+                   'axisLabel': {'interval': 0, 'fontSize': 10}, 'axisTick': {'show': False}},
+                  {'type': 'category', 'position': 'top', 'offset': 22, 'data': [SHORT[k] for k in keys],
+                   'axisLabel': {'interval': 0, 'fontSize': 12, 'fontWeight': 'bold'},
+                   'axisTick': {'show': True, 'length': 30}, 'axisLine': {'show': False}}],
+        'yAxis': {'type': 'category', 'data': list(G.RULES), 'inverse': True, 'axisLabel': {'fontSize': 11}},
+        'visualMap': {'show': False, 'min': 0, 'max': 100, 'dimension': 2, 'inRange': {'color': [LOW, HIGH]}},
+        'series': [{'type': 'heatmap', 'data': data,
+                    'label': {'show': True, 'fontSize': 9,
+                              'formatter': 'js:p => p.value[2] == null ? "–" : `${Math.round(p.value[2])}`'},
+                    'itemStyle': {'borderColor': '#fcfcfb', 'borderWidth': 1, 'borderRadius': 2},
+                    'emphasis': {'itemStyle': {'borderColor': '#0b0b0b', 'borderWidth': 1}}}],
+    }
+    note = (f'Percent of first-try fills breaking each rule, out of the fills where it could be judged, on the '
+            f'{len(common)} masks all four prompts fill. Columns per model: none = header only, stmt = task statement, '
+            'ex = example team on the header only, stmt+ex = example team on the task statement. A team rule needs a '
+            'fill that parses as a team; a Reg M-B name rule needs a mask hiding that field; – means never judged. '
+            'One fill can break several rules. ' + SETTING_NOTE)
+    return write_chart(option, out, title='With the example team, DiffuGPT small and Masked Qwen2.5 Coder parse less often and DiffuGPT medium overspends Stat Points',
+                       subtitle='Which rules the first-try fills break, by model and prompt (#239)', note=note,
+                       height=130 + 30 * len(G.RULES), dark=SURFACE)
 
 
 def same_as_238(directory: Path, key: str) -> dict[str, tuple[int, int, int, int]]:
@@ -348,6 +397,7 @@ def main() -> int:
         p.add_argument('--dir', type=Path, required=True)
         p.add_argument('--key', choices=G.SMALL_FOUR)
         p.add_argument('--copies', action='store_true')
+        p.add_argument('--rules', action='store_true')
         p.add_argument('--compare', action='store_true')
         p.add_argument('--out', type=Path)
         p.add_argument('--url')
@@ -358,6 +408,8 @@ def main() -> int:
             position_figure({k: Path(v) for k, v in (a.split('=', 1) for a in args.position)}, args.out)
         elif args.copies:
             copies_figure(args.dir, args.out)
+        elif args.rules:
+            rules_figure(args.dir, args.out)
         elif args.compare:
             compare_figure(args.dir, args.out)
         else:
