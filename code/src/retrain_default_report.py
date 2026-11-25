@@ -31,7 +31,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from echarts_chart import band, write_chart  # noqa: E402
+from echarts_chart import band, write_chart
 
 REPO = "Rami-Ismael/Battle-Factory-of-Porygon-Pi"
 ISSUE = "385"
@@ -154,7 +154,7 @@ def verify_table(out_json=None):
         expected_sha256=EXPECTED_TABLE_SHA,
         sha_matches_expected=(sha == EXPECTED_TABLE_SHA),
         method="lossdown.Tables.rejects (every field visible)",
-        total_rows=int(len(all_x)),
+        total_rows=len(all_x),
         labelled_train_rows=int(tr.sum()),
         labelled_val_rows=int(va.sum()),
         all_rejected=all_rej,
@@ -1100,7 +1100,7 @@ def update_map(summary, run_info):
     print(f"updated map #{MAP_ISSUE} Decisions so far", file=sys.stderr)
 
 
-def main(argv=None):
+def main(argv=None):  # noqa: C901
     args = sys.argv[1:] if argv is None else argv
     if not args:
         raise SystemExit(__doc__)

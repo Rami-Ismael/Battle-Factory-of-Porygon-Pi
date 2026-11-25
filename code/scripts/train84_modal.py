@@ -82,7 +82,7 @@ def run_name(arm, smoke=False):
     return (SMOKE_PREFIX if smoke else "") + ARMS[arm]["checkpoint"]
 
 
-def trainer_command(arm, *, smoke=False, legality_teams=64, wandb_mode="offline"):
+def trainer_command(arm, *, legality_teams=64, wandb_mode="offline"):
     """The trainer's own CLI, run through BOOT so its device is CUDA."""
     script = f"{REMOTE_CODE}/{ARMS[arm]['script']}"
     run_name(arm)                                                     # validates arm
@@ -90,7 +90,7 @@ def trainer_command(arm, *, smoke=False, legality_teams=64, wandb_mode="offline"
             "--legality-teams", str(legality_teams), "--wandb-mode", wandb_mode]
 
 
-def trainer_env(arm, *, smoke=False, base=None):
+def trainer_env(*, smoke=False, base=None):
     env = dict(os.environ if base is None else base, HOME=str(HOME), PYTHONUNBUFFERED="1", WANDB_DIR=f"{VOLUME}/wandb")
     if smoke:
         env["S84_SMOKE"] = "1"
@@ -115,10 +115,10 @@ import importlib.abc, os, runpy, sys, torch
 if os.environ.get("TRAIN84_MODAL_REQUIRE_CUDA", "1") == "1":
     assert torch.cuda.is_available(), "no CUDA device in the container"
 GPU_NAME = torch.cuda.get_device_name() if torch.cuda.is_available() else "no CUDA device"
-NAMES = %r
+DEVICE_MODULES = %r
 class CudaDevice(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path=None, target=None):
-        if name not in NAMES: return None
+        if name not in DEVICE_MODULES: return None
         for finder in sys.meta_path:
             if finder is self or not hasattr(finder, "find_spec"): continue
             spec = finder.find_spec(name, path, target)
@@ -139,32 +139,32 @@ runpy.run_path(script, run_name="__main__")
 def run_in_container(arm, *, smoke, legality_teams, commit=lambda: None):
     """Container body: seed the volume's checkpoint folder, run the trainer with its log teed to the volume,
     then copy the run JSON to the volume."""
-    vol = Path(VOLUME)
+    volume_dir = Path(VOLUME)
     for sub in ("lossdown", "results", "logs", "wandb"):
-        (vol / sub).mkdir(parents=True, exist_ok=True)
-    for name in SEED_CHECKPOINTS:
-        if not (vol / "lossdown" / name).exists():
-            shutil.copy2(Path("/opt/vgc/seed") / name, vol / "lossdown" / name)
+        (volume_dir / sub).mkdir(parents=True, exist_ok=True)
+    for seed_name in SEED_CHECKPOINTS:
+        if not (volume_dir / "lossdown" / seed_name).exists():
+            shutil.copy2(Path("/opt/vgc/seed") / seed_name, volume_dir / "lossdown" / seed_name)
     name = run_name(arm, smoke)
-    log_path = vol / "logs" / f"{name}.log"
-    t0 = time.perf_counter()
+    log_path = volume_dir / "logs" / f"{name}.log"
+    start_time = time.perf_counter()
     with open(log_path, "w") as log:
-        proc = subprocess.Popen(trainer_command(arm, smoke=smoke, legality_teams=legality_teams),
-                                env=trainer_env(arm, smoke=smoke), cwd=REMOTE_CODE, stdout=subprocess.PIPE,
+        process = subprocess.Popen(trainer_command(arm, legality_teams=legality_teams),
+                                env=trainer_env(smoke=smoke), cwd=REMOTE_CODE, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, text=True, bufsize=1)
         last_commit = time.monotonic()
-        for line in proc.stdout:
+        for line in process.stdout:
             sys.stdout.write(line); log.write(line); log.flush()
             if time.monotonic() - last_commit > 600:
                 commit(); last_commit = time.monotonic()
-        code = proc.wait()
+        exit_code = process.wait()
     run_json = RESULTS / f"{name}.json"
     if run_json.exists():
-        shutil.copy2(run_json, vol / "results" / run_json.name)
+        shutil.copy2(run_json, volume_dir / "results" / run_json.name)
     commit()
-    if code:
-        raise RuntimeError(f"{ARMS[arm]['script']} {arm} exited with code {code}; log: {VOLUME_NAME}:/logs/{log_path.name}")
-    return dict(arm=arm, run=name, minutes=round((time.perf_counter() - t0) / 60, 1),
+    if exit_code:
+        raise RuntimeError(f"{ARMS[arm]['script']} {arm} exited with code {exit_code}; log: {VOLUME_NAME}:/logs/{log_path.name}")
+    return dict(arm=arm, run=name, minutes=round((time.perf_counter() - start_time) / 60, 1),
                 run_json=run_json.read_text() if run_json.exists() else None)
 
 

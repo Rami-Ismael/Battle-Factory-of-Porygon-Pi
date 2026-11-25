@@ -35,9 +35,9 @@ class NamesAndCommandsTests(unittest.TestCase):
                                    "--legality-teams", "64", "--wandb-mode", "offline"])
 
     def test_smoke_flag_is_the_trainers_env_switch(self):
-        self.assertEqual(TM.trainer_env("udlm_loglinear_gidd_lr", smoke=True, base={})["S84_SMOKE"], "1")
-        self.assertNotIn("S84_SMOKE", TM.trainer_env("udlm_loglinear_gidd_lr", smoke=False, base={"S84_SMOKE": "1"}))
-        self.assertEqual(TM.trainer_env("udlm_loglinear_gidd_lr", base={})["WANDB_DIR"], "/vol/wandb")
+        self.assertEqual(TM.trainer_env(smoke=True, base={})["S84_SMOKE"], "1")
+        self.assertNotIn("S84_SMOKE", TM.trainer_env(smoke=False, base={"S84_SMOKE": "1"}))
+        self.assertEqual(TM.trainer_env(base={})["WANDB_DIR"], "/vol/wandb")
 
     def test_checkpoints_folder_points_at_the_volume(self):
         self.assertIn((TM.CHECKPOINTS, Path("/vol/lossdown")), TM.symlinks())
@@ -46,9 +46,9 @@ class NamesAndCommandsTests(unittest.TestCase):
         self.assertNotIn("T4", TM.GPU)
 
     def test_fetch_commands_name_the_checkpoint_and_epoch_folder(self):
-        cmds = TM.fetch_commands("udlm_loglinear_gidd_lr")
-        self.assertTrue(any("lossdown/stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80.pt" in c for c in cmds))
-        self.assertTrue(any(c.split()[4] == "lossdown/stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80" for c in cmds))
+        commands = TM.fetch_commands("udlm_loglinear_gidd_lr")
+        self.assertTrue(any("lossdown/stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80.pt" in c for c in commands))
+        self.assertTrue(any(c.split()[4] == "lossdown/stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80" for c in commands))
 
 
 class BootTests(unittest.TestCase):

@@ -24,7 +24,7 @@ def make_lr_at(schedule, *, peak_lr, total_steps, warmup_steps, min_lr=0.0):
             1 + math.cos(math.pi * min(s, total_steps) / total_steps))
     if schedule == "gidd_cosine":
         floor = min_lr / peak_lr
-        decay_steps = total_steps - warmup_steps
+        decay_steps = max(1, total_steps - warmup_steps)        # a run no longer than its warm-up
 
         def lr_at(s):
             if s < warmup_steps:

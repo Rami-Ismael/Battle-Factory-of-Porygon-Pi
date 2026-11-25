@@ -20,8 +20,8 @@ import numpy as np
 import repo_paths  # noqa: F401  (src/ first on sys.path)
 import lr_schedule84 as LS
 
-HERE = Path("/tmp/vgc-pilot/data/pokedex.json").exists()
-if HERE:
+LAPTOP = Path("/tmp/vgc-pilot/data/pokedex.json").exists()
+if LAPTOP:
     sys.path.insert(1, "/tmp/vgc-pilot/src")
     import train84 as TR
     import train_uniform84 as TU
@@ -35,7 +35,7 @@ def fake_table():
                 table="lossdata84_shuffled_only.npz")
 
 
-@unittest.skipUnless(HERE, "needs this laptop's /tmp/vgc-pilot data")
+@unittest.skipUnless(LAPTOP, "needs this laptop's /tmp/vgc-pilot data")
 class MaskedFullFilterArmTests(unittest.TestCase):
     def call_for(self, arm):
         with (mock.patch.object(TR, "train") as train, mock.patch.object(TR, "load", return_value=fake_table()),
@@ -66,7 +66,7 @@ class MaskedFullFilterArmTests(unittest.TestCase):
         self.assertEqual(TR.recipe_for("shuffled_linear_filtered", dict(sched=TR.LINEAR_MASKING_RATE)), TR.RECIPE)
 
 
-@unittest.skipUnless(HERE, "needs this laptop's /tmp/vgc-pilot data")
+@unittest.skipUnless(LAPTOP, "needs this laptop's /tmp/vgc-pilot data")
 class UniformNoFilterArmTests(unittest.TestCase):
     def call_for(self, arm):
         with (mock.patch.object(TU, "train") as train, mock.patch.object(TU, "load", return_value=fake_table()),

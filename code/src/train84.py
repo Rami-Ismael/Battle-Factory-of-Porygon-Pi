@@ -270,8 +270,8 @@ def assert_no_wrong_stones(V, train_rows, val_rows):
         raise SystemExit(
             f"wrong-stone check failed (every field visible): {train_bad} training and {val_bad} validation teams rejected"
         )
-    return dict(method="Tables.rejects (every field visible)", train_rows=int(len(train_rows)),
-                val_rows=int(len(val_rows)), train_rejected=train_bad, val_rejected=val_bad)
+    return dict(method="Tables.rejects (every field visible)", train_rows=len(train_rows),
+                val_rows=len(val_rows), train_rejected=train_bad, val_rejected=val_bad)
 
 
 def train_filtered_default_arms(arm):
