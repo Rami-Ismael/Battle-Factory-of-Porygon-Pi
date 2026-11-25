@@ -151,7 +151,7 @@ def model_comment(directory: Path, key: str, url: str, prompt: str = BEFORE) -> 
         source = (TICKETS[BEFORE] if directory.resolve() == G.OUT.resolve()
                   else 'filled in the same Modal container')
         change = [f"- **Against today's prompt** ({source}, the same masks and mask seeds): legal "
-                  f"{c['legal']['before']} → {c['legal']['after']}; {p['gained']} masks turned legal and {p['lost']} "
+                  f"{c['legal']['before']} → {c['legal']['after']}; {p['gained']} turned legal and {p['lost']} "
                   f"stopped being legal (McNemar exact p = {p['p_value']:.3g}). Parses as JSON "
                   f"{c['json_parses']['before']} → {c['json_parses']['after']}; seconds per team "
                   f"{c['seconds_per_team']['before']:.1f} → {c['seconds_per_team']['after']:.1f}."]
@@ -174,8 +174,8 @@ def model_comment(directory: Path, key: str, url: str, prompt: str = BEFORE) -> 
              f"- **Probes before the fill{probe_on}:** attention sees later tokens {probe['sees_later_tokens']}; same seed twice "
              f"{probe['repeat_same_tokens']:.0%} of slot tokens the same; "
              + (f"reverse run order {probe['reverse_order_same_tokens']:.0%} the same." if 'reverse_order_same_tokens'
-                in probe else f"on {probe.get('device', 'the GPU')}; run order cannot matter, since each mask's seed "
-                "comes from its id (CPU test)."),
+                in probe else f"on {probe.get('device', 'the GPU')}; reverse run order checked only on the CPU, with a "
+                "fake model (each mask's seed comes from its id)."),
              '',
              f"<details><summary>Setting</summary>\n\nPrompt `{prompt}` ({PROMPT_TEXT[prompt]}, ask `unknown`), "
              f"{meta['candidate']['repo']} at `{meta['candidate']['revision'][:8]}`, {meta['setting']}, torch "
