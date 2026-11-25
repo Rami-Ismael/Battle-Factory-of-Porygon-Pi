@@ -135,6 +135,9 @@ def model_comment(directory: Path, key: str, url: str, prompt: str = BEFORE) -> 
     lo, hi = s['legal_interval']
     meta = json.loads((directory / prompt / key / 'run.json').read_text())
     probe = json.loads(G.gpu_preflight_path(directory, key, prompt).read_text())
+    where = str(directory).replace(str(Path.home()), '~')
+    probe_on = (f" (run on a `{probe['prompt']}` mask in the same container)"
+                if probe.get('prompt', prompt) != prompt else '')
     steps = Counter(r['failed'] for r in rows)
     top = Counter(reason for r in rows for reason in r['reasons']).most_common(6)
     real = s['real_values']
@@ -145,7 +148,9 @@ def model_comment(directory: Path, key: str, url: str, prompt: str = BEFORE) -> 
     if prompt != BEFORE:
         c = G.compare_rows(rows_for(directory, key, BEFORE), rows)
         p = c['paired']
-        change = [f"- **Against today's prompt** ({TICKETS[BEFORE]}, the same masks and mask seeds): legal "
+        source = (TICKETS[BEFORE] if directory.resolve() == G.OUT.resolve()
+                  else 'filled in the same Modal container')
+        change = [f"- **Against today's prompt** ({source}, the same masks and mask seeds): legal "
                   f"{c['legal']['before']} → {c['legal']['after']}; {p['gained']} masks turned legal and {p['lost']} "
                   f"stopped being legal (McNemar exact p = {p['p_value']:.3g}). Parses as JSON "
                   f"{c['json_parses']['before']} → {c['json_parses']['after']}; seconds per team "
@@ -166,7 +171,7 @@ def model_comment(directory: Path, key: str, url: str, prompt: str = BEFORE) -> 
              f"- **Cost:** prompt {s['prompt_tokens_mean']:.0f} tokens on average (most {s['prompt_tokens_max']}), "
              f"{s['seconds_per_team']:.1f} s per team, {s['seconds_total'] / 3600:.2f} h in all, peak "
              f"{s['peak_gib']:.2f} GiB.",
-             f"- **Probes before the fill:** attention sees later tokens {probe['sees_later_tokens']}; same seed twice "
+             f"- **Probes before the fill{probe_on}:** attention sees later tokens {probe['sees_later_tokens']}; same seed twice "
              f"{probe['repeat_same_tokens']:.0%} of slot tokens the same; "
              + (f"reverse run order {probe['reverse_order_same_tokens']:.0%} the same." if 'reverse_order_same_tokens'
                 in probe else f"on {probe.get('device', 'the GPU')}; run order cannot matter, since each mask's seed "
@@ -176,7 +181,7 @@ def model_comment(directory: Path, key: str, url: str, prompt: str = BEFORE) -> 
              f"{meta['candidate']['repo']} at `{meta['candidate']['revision'][:8]}`, {meta['setting']}, torch "
              f"{meta['environment']['torch']}, transformers {meta['environment']['transformers']}. One fill per mask, "
              f"batch size 1. Grid file SHA-256 `{meta['tasks_sha256'][:12]}`. Fills: "
-             f"`~/vgc-data/inplace_prompt_grid/{prompt}/{key}/fills.jsonl`. Pre-registration: "
+             f"`{where}/{prompt}/{key}/fills.jsonl`. Pre-registration: "
              f"`code/docs/{PREREGISTRATION[prompt]}`.\n\n</details>"]
     return '\n'.join(lines) + '\n'
 
@@ -251,10 +256,16 @@ def same_tokens(rows: list[dict[str, Any]], other: list[dict[str, Any]]) -> int:
 
 def compare_comment(directory: Path, prompt: str, url: str) -> str:
     results = compare_results(directory, prompt)
+    masks = {c['legal']['of'] for c in results.values()}
+    if masks != {270}:
+        raise ValueError(f'a comparison covers {sorted(masks)} masks, not all 270')
+    masks = 270
+    source = (f"{TICKETS[BEFORE]}'s fills of today's prompt" if directory.resolve() == G.OUT.resolve()
+              else "today's-prompt fills made in the same Modal containers")
     alt = '; '.join(f"{LABELS[k]}: legal {c['legal']['before']} then {c['legal']['after']} of 270, parses as JSON "
                     f"{c['json_parses']['before']} then {c['json_parses']['after']}" for k, c in results.items())
     lines = [f'## {compare_headline(results, prompt)}', '', picture(url, f'compare-{prompt}', alt), '',
-             f"Each row pairs {TICKETS[BEFORE]}'s fills of today's prompt with this prompt's fills of the same 270 masks "
+             f"Each row pairs {source} with this prompt's fills of the same {masks} masks "
              'and mask seeds. Gained counts masks legal only with the new prompt, lost those legal only with today\'s; '
              "McNemar's exact test runs on those two counts.", '',
              '| Model | Legal, first try | Gained / lost (p) | Parses as JSON | Real species | Seconds per team | '

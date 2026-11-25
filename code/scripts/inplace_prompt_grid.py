@@ -846,6 +846,9 @@ def gpu_preflight_path(directory: Path, key: str, prompt_code: str = 'inplace_he
 def paired(before: Sequence[dict[str, Any]], after: Sequence[dict[str, Any]]) -> dict[str, Any]:
     """First-try legality of the same masks under two prompts, paired by mask id: masks legal under both, neither,
     only after (gained) and only before (lost), with McNemar's exact two-sided p-value on gained against lost."""
+    for side, rows in (('before', before), ('after', after)):
+        if len({r['id'] for r in rows}) != len(rows):
+            raise ValueError(f'the {side} run has a mask more than once')
     was, now = {r['id']: r['legal'] for r in before}, {r['id']: r['legal'] for r in after}
     if set(was) != set(now):
         raise ValueError(f'the two runs cover different masks: {len(set(was) ^ set(now))} in only one')
@@ -910,7 +913,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     sub = parser.add_subparsers(dest='command', required=True)
     pre = sub.add_parser('preflight')
-    pre.add_argument('--out', type=Path, default=OUT / 'preflight' / 'cpu.json')
+    pre.add_argument('--out', type=Path, help='default preflight/cpu.json, or cpu-<prompt>.json for a later prompt')
     pre.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
     one = sub.add_parser('run')
     one.add_argument('--prompt', choices=PROMPTS, required=True)
@@ -944,7 +947,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     both.add_argument('--after', choices=PROMPTS, required=True)
     args = parser.parse_args(argv)
     if args.command == 'preflight':
-        return 0 if preflight(args.out, args.prompt)['pass'] else 1
+        name = 'cpu.json' if args.prompt == 'inplace_header' else f'cpu-{args.prompt}.json'
+        return 0 if preflight(args.out or OUT / 'preflight' / name, args.prompt)['pass'] else 1
     if args.command == 'compare':
         print(compare(args.dir, args.before, args.after))
         return 0

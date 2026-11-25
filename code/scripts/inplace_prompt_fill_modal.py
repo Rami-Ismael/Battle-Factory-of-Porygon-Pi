@@ -151,6 +151,9 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
     ids = [r['id'] for r in raw]
     if sorted(ids) != sorted(t['id'] for t in tasks):
         raise ValueError(f'{out / RAW}: {len(ids)} rows, {len(set(ids))} distinct masks, not the {len(tasks)} masks')
+    others = sorted({str(r.get('prompt')) for r in raw} - {prompt})
+    if others:
+        raise ValueError(f'{out / RAW}: rows filled with {others}, not {prompt}')
     candidate = C.candidate_by_key(key)
     tokenizer = B.load_tokenizer(B.candidate_info(candidate))
     start_id = G.start_token_id(tokenizer, candidate.sampler)

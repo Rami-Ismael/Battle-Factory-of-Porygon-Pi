@@ -467,6 +467,10 @@ class CompareTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             G.paired(before, [row('a', True)])
 
+    def test_a_mask_twice_in_one_run_is_refused(self):
+        with self.assertRaises(ValueError):
+            G.paired([row('a', True), row('a', False)], [row('a', True)])
+
     def test_the_comparison_reports_each_measure_before_and_after(self):
         before = [row('a', False, 'parses', ['Expecting value'], species='Japan'), row('b', False, 'regmb', ['not a Reg M-B item'],
                                                                        seconds=3.0, species='Pikachu')]

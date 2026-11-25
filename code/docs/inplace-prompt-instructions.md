@@ -59,7 +59,7 @@ Written before any fill. The statement says what goes in a value, but these base
 ## Departures from the ticket
 
 - **Modal L4, not the laptop GPU.** Owner, 2026-11-25: run on Modal today, to keep the laptop's fan down. A CUDA generator draws other noise than an MPS one for the same seed, so the container refills the header-only prompt too and the pair differs in the prompt alone. #237's laptop row stays the reference; the token-for-token match count shows how much the device moves it.
-- **Probes on the L4.** Sees later tokens and same seed twice run in each container before its fills; the run-order probe is covered by the CPU test that a mask's seed comes from its id.
+- **Probes on the L4.** Sees later tokens and same seed twice run in each container before its fills, on the first mask it fills (a header-only mask on a fresh run); both prompts share the container and model. No reverse-order probe on the GPU: each mask's seed comes from its id and its tensors are built fresh, and `test_a_masks_draw_does_not_depend_on_the_masks_before_it` fills masks forward and in reverse with a fake model. GPU nondeterminism across run orders is not measured here.
 
 ## Preflight
 
@@ -68,7 +68,7 @@ Written before any fill. The statement says what goes in a value, but these base
 | Ceiling, round trip, coverage, floor | With the statement, every tokenizer: ceiling 270/270 legal; round trip 270/270 legal and the same paste; all 270 masks build, no unknown tokens; uniform random tokens 0/270 legal (Showdown alone 22 to 24) | pass |
 | Only difference | `test_the_only_difference_is_the_task_statement_before_the_team`: the text is today's with the statement inserted before `Team: `; every slot keeps its field and length and moves by the statement's length | pass |
 | Controls | As #237: the checker is unchanged | pass (#237) |
-| Model probes | Sees later tokens and same seed twice, on the L4, before each model's fills | with the run |
+| Model probes | Sees later tokens and same seed twice, on the L4, before each model's fills (reverse order: CPU test only) | with the run |
 | Separation, training smoke, condition | Skipped, as #237: nothing is trained and the ask is fixed | n/a |
 | Copies | Reported with the result | with the result |
 
