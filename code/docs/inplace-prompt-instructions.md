@@ -23,7 +23,7 @@ Searched `experiments-index.md` and `code/docs/` for a task statement in a maske
 - **Why DiffuGPT small fell.** All 11 lost masks hide Stat Points. With the statement, 415 of its 630 Stat Point values are numbers (600 without), and 18 of its 30 Stat Points masks fail to parse (6 without), with fills like `[` and `Sp`. Suspects, each with a test, are posted on #238: the stat words in the statement, the 71-token shift in position, and the single seed.
 - **Prediction.** It held on where legal masks sit, on DiffuGPT's parse counts and on real species. It missed DiffuGPT small's drop. It was wrong on Masked Qwen2.5 Coder's parsing, which fell by 20, and on cost: seconds per team did not change on the L4.
 - **The device.** Header-only fills on the L4 match #237's laptop fills token for token on only 1 to 27 of 270 masks, yet legal counts agree within one mask (20/21, 27/26, 4/4, 3/3).
-- **What follows.** #239 and #240 are measured against the header-only prompt.
+- **Open for the owner.** #239 as written stacks its example team on this prompt. The proposal on #238 is to build it on the header-only prompt instead; undecided.
 
 Results posted on #238: one comment per model, the four-model comparison and the verdict.
 
