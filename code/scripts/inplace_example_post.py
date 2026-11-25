@@ -70,7 +70,7 @@ def change_words(c: dict[str, Any]) -> str:
 def headline(key: str, pairs: dict[str, dict[str, Any]]) -> str:
     h, s = pairs['inplace_header'], pairs['inplace_instructions']
     return (f"{LABELS[key]}: the example team {change_words(h)} on the header-only prompt "
-            f"and {change_words(s).replace('legal fills ', '')} on the task-statement prompt")
+            f"and {change_words(s).replace('legal fills', 'them')} on the task-statement prompt")
 
 
 def pairs_for(directory: Path, key: str) -> dict[str, dict[str, Any]]:
@@ -206,6 +206,36 @@ def compare_figure(directory: Path, out: Path) -> Path:
                        height=120 + 56 * len(keys), dark=SURFACE)
 
 
+def position_figure(probes: dict[str, Path], out: Path) -> Path:
+    """The audit of DiffuGPT small's collapse: the header-only text of the 30 Stat Points masks, unchanged, with every
+    position id moved later; legal fills per shift, one line per model. Marks where the task statement and the example
+    team move the text."""
+    lines, shifts = [], None
+    for key, path in probes.items():
+        data = json.loads(path.read_text())['by_offset']
+        shifts = sorted(int(k) for k in data)
+        lines.append({'type': 'line', 'name': LABELS[key], 'data': [[x, data[str(x)]['legal']] for x in shifts],
+                      'symbolSize': 8, 'label': {'show': True, 'position': 'top', 'fontSize': 12},
+                      'emphasis': {'focus': 'series'}})
+    lines[0]['markLine'] = {'symbol': 'none', 'label': {'formatter': '{b}', 'position': 'insideStartTop', 'fontSize': 11},
+                            'lineStyle': {'type': 'dashed', 'color': '#8a8a85'},
+                            'data': [{'name': 'statement', 'xAxis': 71},
+                                     {'name': 'example team', 'xAxis': 418},
+                                     {'name': '512-token limit', 'xAxis': 512 - 477}]}
+    option = {'tooltip': {'trigger': 'axis'}, 'legend': {'top': 0},
+              'grid': {'left': 56, 'right': 24, 'top': 64, 'bottom': 50},
+              'xAxis': {'type': 'value', 'min': 0, 'max': 600, 'interval': 100, 'name': 'positions moved later (tokens)',
+                        'nameLocation': 'middle', 'nameGap': 30},
+              'yAxis': {'type': 'value', 'min': 0, 'max': 30, 'name': 'legal of 30', 'nameGap': 18}, 'series': lines}
+    note = ('The same header-only text of the 30 Stat Points masks and the same mask seeds; only the position ids the '
+            'model reads move later, as the task statement (+71) and the example team (+418) move them. These masks\' texts end at token 467 to 477, so a '
+            'shift past 35 puts the slots beyond the 512 tokens DiffuGPT small was trained on (Gong et al. 2024, '
+            'Table 4; DiffuGPT medium was trained on 1,024). Laptop MPS, 128 steps, temperature 1.0.')
+    return write_chart(option, out, title='Moving the same text 418 positions later takes DiffuGPT small from 21 legal '
+                       'fills to 0', subtitle='Why the example team zeroes DiffuGPT small (#239 audit)', note=note,
+                       height=360)
+
+
 def same_as_238(directory: Path, key: str) -> dict[str, tuple[int, int, int, int]]:
     """Per prompt without the example: masks whose fill repeats #238's L4 fill token for token, masks, and each
     run's legal count."""
@@ -321,9 +351,12 @@ def main() -> int:
         p.add_argument('--compare', action='store_true')
         p.add_argument('--out', type=Path)
         p.add_argument('--url')
+        p.add_argument('--position', nargs='*', metavar='KEY=PROBE.json', help='the position audit figure')
     args = parser.parse_args()
     if args.command == 'figure':
-        if args.copies:
+        if args.position:
+            position_figure({k: Path(v) for k, v in (a.split('=', 1) for a in args.position)}, args.out)
+        elif args.copies:
             copies_figure(args.dir, args.out)
         elif args.compare:
             compare_figure(args.dir, args.out)
