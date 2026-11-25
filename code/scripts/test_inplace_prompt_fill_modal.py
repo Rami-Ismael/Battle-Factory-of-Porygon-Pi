@@ -21,6 +21,21 @@ class PendingTest(unittest.TestCase):
                          [('inplace_header', 'b'), ('inplace_instructions', 'a'), ('inplace_instructions', 'b'),
                           ('inplace_instructions', 'c')])
 
+    def test_a_prompt_with_a_mask_list_fills_only_its_masks(self):
+        tasks = [{'id': 'a'}, {'id': 'b'}, {'id': 'c'}]
+        left = M.pending(['inplace_header', 'inplace_example'], tasks, {'inplace_example': {'a'}},
+                         {'inplace_example': {'a', 'c'}})
+        self.assertEqual([(p, t['id']) for p, t in left],
+                         [('inplace_header', 'a'), ('inplace_header', 'b'), ('inplace_header', 'c'),
+                          ('inplace_example', 'c')])
+
+    def test_the_frozen_lists_read_as_sets_and_a_missing_file_as_none(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'fitting-ids.json'
+            self.assertEqual(M.fitting(path), {})
+            path.write_text(json.dumps({'inplace_example': ['b', 'a']}))
+            self.assertEqual(M.fitting(path), {'inplace_example': {'a', 'b'}})
+
     def test_nothing_is_left_once_every_mask_is_drawn(self):
         tasks = [{'id': 'a'}]
         self.assertEqual(M.pending(['inplace_header'], tasks, {'inplace_header': {'a'}}), [])

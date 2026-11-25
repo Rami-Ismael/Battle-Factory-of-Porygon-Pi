@@ -8,6 +8,7 @@ import json
 import re
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 import torch
@@ -92,8 +93,8 @@ class FakeValidator:
 
 def answer_model(tokenizer, task, prompt=None):
     """A model whose logits at each slot put all weight on the true value's token (padded as training pads)."""
-    statement = None if prompt is None else prompt.statement
-    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token, statement)
+    statement, example = (None, None) if prompt is None else (prompt.statement, prompt.example)
+    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token, statement, example)
     truth = tokenizer(target, add_special_tokens=False)['input_ids']
 
     def forward_for(slots):
@@ -438,6 +439,99 @@ class InstructionsPromptTest(unittest.TestCase):
         cost = G.statement_tokens(TASKS, INSTRUCTIONS, tokenizer, 0, None)
         alone = len(tokenizer(D.TASK_STATEMENT, add_special_tokens=False)['input_ids'])
         self.assertEqual(cost, {'statement_alone': alone, 'added_min': alone, 'added_max': alone, 'masks': 3})
+
+
+EXAMPLES = {'inplace_header_example': 'inplace_header', 'inplace_example': 'inplace_instructions'}
+
+
+class ExamplePromptTest(unittest.TestCase):
+    """#239: each example prompt is its base prompt plus the fixed example team's line before the team, nothing else.
+    The fake tokenizer spends a token on every JSON character, so these texts run past 1,024 tokens; the limit is
+    raised here, and the real tokenizers' fit is fitting_ids's job."""
+
+    def setUp(self):
+        patch = unittest.mock.patch.object(G, 'LIMIT', 8192)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def test_the_only_difference_from_the_base_is_the_example_team_before_the_team(self):
+        tokenizer = FakeTokenizer()
+        line = D.example_text()
+        tokens = len(tokenizer(line, add_special_tokens=False)['input_ids'])
+        for code, base_code in EXAMPLES.items():
+            prompt, base = G.PROMPTS[code], G.PROMPTS[base_code]
+            self.assertEqual(prompt.base, base_code)
+            self.assertEqual(prompt.statement, base.statement)
+            for task in [*TASKS, make_task('pokemon', 'f6')]:
+                before = base.build(task, G.ASK, tokenizer, G.LIMIT)
+                added = prompt.build(task, G.ASK, tokenizer, G.LIMIT)
+                at = before.text.index('\n' + D.TEAM_LABEL) + 1
+                self.assertEqual(added.text, before.text[:at] + line + before.text[at:])
+                self.assertEqual([(s.path, s.field, s.length) for s in added.slots],
+                                 [(s.path, s.field, s.length) for s in before.slots])
+                self.assertEqual([(s.start, s.end) for s in added.slots],
+                                 [(s.start + len(line), s.end + len(line)) for s in before.slots])
+                self.assertEqual([s.first_token for s in added.slots], [s.first_token + tokens for s in before.slots])
+                self.assertEqual(added.part_tokens, before.part_tokens | {'example team': tokens})
+                self.assertEqual(added.version, before.version + D.EXAMPLE_SUFFIX)
+
+    def test_the_example_is_one_fixed_complete_reg_mb_team_with_no_mask_token(self):
+        team = D.example_team()
+        self.assertEqual([m['species'] for m in team],
+                         ['Maushold-Four', 'Azumarill', 'Mawile', 'Farigiraf', 'Gallade', 'Camerupt'])
+        names = G.vocabulary()
+        for path, value in G.visible_values(team).items():
+            if path[1] in G.NAME_FIELDS:
+                self.assertIn(G.to_id(value), names[path[1]], path)
+        line = D.example_text()
+        self.assertTrue(line.startswith(D.EXAMPLE_LABEL) and line.endswith('\n'))
+        self.assertNotIn(D.TEAM_LABEL, line)
+        self.assertNotIn('<|', line)
+        self.assertEqual(D.team_from_json(line.removeprefix(D.EXAMPLE_LABEL))[0]['species'], 'Maushold-Four')
+        self.assertEqual(G.PROMPTS['inplace_example'].example, G.PROMPTS['inplace_header_example'].example)
+
+    def test_a_perfect_model_fills_legally_and_the_round_trip_reads_back_through_the_example(self):
+        tokenizer = FakeTokenizer()
+        for code in EXAMPLES:
+            prompt = G.PROMPTS[code]
+            with tempfile.TemporaryDirectory() as d:
+                for task in TASKS:
+                    c = G.canvas(task, prompt, tokenizer, 0)
+                    values = G.round_trip_values(tokenizer, task, c, None, prompt)
+                    self.assertTrue(G.judge(task, c['built'], values, FakeValidator(), G.vocabulary())['legal'])
+                    G.fill_grid([task], prompt, tokenizer, answer_model(tokenizer, task, prompt), 0,
+                                Path(d) / 'f.jsonl', FakeValidator())
+                rows = G.read_rows(Path(d) / 'f.jsonl')
+            self.assertEqual([r['legal'] for r in rows], [True, True, True])
+            self.assertEqual({r['version'] for r in rows}, {G.PROMPTS[EXAMPLES[code]].build(
+                TASKS[0], G.ASK, tokenizer, G.LIMIT).version + D.EXAMPLE_SUFFIX})
+
+    def test_the_example_costs_the_same_tokens_on_every_mask(self):
+        tokenizer = FakeTokenizer()
+        alone = len(tokenizer(D.example_text(), add_special_tokens=False)['input_ids'])
+        for code in EXAMPLES:
+            cost = G.example_tokens(TASKS, G.PROMPTS[code], tokenizer, 0, None)
+            self.assertEqual(cost, {'example_alone': alone, 'added_min': alone, 'added_max': alone, 'masks': 3})
+
+    def test_copies_of_the_example_count_same_place_and_same_field_and_skip_blanks(self):
+        example = D.example_team()
+        fill = {'fields': ['item', 'item', 'moves', 'moves', 'statPoints', 'species'],
+                'paths': ['team[0].item', 'team[1].item', 'team[3].moves[3]', 'team[3].moves[0]',
+                          'team[1].statPoints.HP', 'team[2].species'],
+                'values': [example[0]['item'], example[0]['item'], example[3]['moves'][3], 'Protect', '31', ' ']}
+        out = G.example_copies([fill, {'id': 'old', 'fields': ['item'], 'values': ['x']}])
+        self.assertEqual(out['item'], {'same_place': 1, 'same_field': 2, 'filled': 2})
+        self.assertEqual(out['moves'], {'same_place': 1, 'same_field': 2, 'filled': 2})
+        self.assertEqual(out['statPoints'], {'same_place': 1, 'same_field': 0, 'filled': 1})
+        self.assertNotIn('species', out)
+
+    def test_comparisons_use_only_the_masks_every_prompt_fits(self):
+        fit = {'inplace_header_example': frozenset({'a', 'b'}), 'inplace_example': frozenset({'b'})}
+        with unittest.mock.patch.object(G, 'fitting_ids', lambda code: fit.get(code)):
+            self.assertIsNone(G.shared_ids('inplace_header', 'inplace_instructions'))
+            self.assertEqual(G.shared_ids('inplace_header', 'inplace_header_example'), {'a', 'b'})
+            self.assertEqual(G.shared_ids('inplace_header_example', 'inplace_example'), {'b'})
+            self.assertEqual([t['id'] for t in G.prompt_tasks('inplace_example', [{'id': 'a'}, {'id': 'b'}])], ['b'])
 
 
 def row(task_id, legal, failed=None, reasons=(), seconds=1.0, species=None):

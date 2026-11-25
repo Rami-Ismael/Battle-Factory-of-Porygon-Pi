@@ -10,6 +10,12 @@ Prompts are stacked (#237 to #240); each later ticket adds one entry to PROMPTS:
     inplace_header      Header only, values filled in place: the #168 text, masked_diffusion_text.in_place_text
     inplace_instructions  Task statement added (#238): the same text with masked_diffusion_text.TASK_STATEMENT
                         between the header and the team
+    inplace_header_example  Example team added to the header-only prompt (#239): one fixed legal team
+                        (masked_diffusion_text.example_text) between the header and the team
+    inplace_example     Example team added to the task-statement prompt (#239, the ticket's own arm): the statement,
+                        then the example team, then the team
+An example team costs about 420 tokens, so with it some masks pass the 1,024-token limit; fitting_ids names the masks
+whose text fits for all four small models, and every run, probe and comparison with that prompt uses those alone.
 
 The sampler is #170's (masked_diffusion_memory_bench.fill), configured by each candidate's SamplerSetting (defaulting
 to today's shared sampler: one window, dLLM's linear schedule, most confident masks first, 128 steps, temperature 1.0,
@@ -102,12 +108,21 @@ class Prompt:
     name: str
     build: Callable[..., D.InPlaceText]     # (task, ask, tokenizer, limit) -> the text and its slots
     statement: str | None = None            # the task statement build puts before the team, if any
+    example: str | None = None              # the example team's line build puts before the team, if any
+    base: str | None = None                 # for an example prompt, the prompt it adds the example to
 
 
 PROMPTS = {'inplace_header': Prompt('inplace_header', 'Header only, values filled in place', D.in_place_text),
            'inplace_instructions': Prompt('inplace_instructions', 'Task statement added, values filled in place',
                                           functools.partial(D.in_place_text, statement=D.TASK_STATEMENT),
-                                          D.TASK_STATEMENT)}
+                                          D.TASK_STATEMENT),
+           'inplace_header_example': Prompt('inplace_header_example', 'Example team, header only',
+                                            functools.partial(D.in_place_text, example=D.example_text()),
+                                            None, D.example_text(), 'inplace_header'),
+           'inplace_example': Prompt('inplace_example', 'Example team, task statement',
+                                     functools.partial(D.in_place_text, statement=D.TASK_STATEMENT,
+                                                       example=D.example_text()),
+                                     D.TASK_STATEMENT, D.example_text(), 'inplace_instructions')}
 
 
 def to_id(text: str) -> str:
@@ -141,6 +156,38 @@ def canvas(task: dict[str, Any], prompt: Prompt, tokenizer: Any, mask_id: int, s
     if not all(ids[n] == mask_id for n in flat) or ids.count(mask_id) != len(flat):
         raise ValueError(f"{task['id']}: the mask tokens are not exactly the slots")
     return {'built': built, 'ids': ids, 'spans': spans, 'slots': flat}
+
+
+def fits(task: dict[str, Any], prompt: Prompt, tokenizer: Any, mask_id: int, start_id: int | None) -> bool:
+    """Whether the prompt's text for this mask, start token included, is at most LIMIT tokens in this tokenizer."""
+    try:
+        return len(canvas(task, prompt, tokenizer, mask_id, start_id)['ids']) <= LIMIT
+    except D.TextTooLong:
+        return False
+
+
+@functools.lru_cache(maxsize=8)
+def fitting_ids(prompt_code: str) -> frozenset[str] | None:
+    """The masks whose text fits under LIMIT for every small-four tokenizer with this prompt, or None when the prompt
+    has no example team and every mask fits (#239). One list for all four models, so each arm is the same masks."""
+    prompt = PROMPTS[prompt_code]
+    if prompt.example is None:
+        return None
+    import count_masked_diffusion_text as C
+    tasks, keep = grid_tasks(), None
+    for key in SMALL_FOUR:
+        candidate = C.candidate_by_key(key)
+        tokenizer = C.load_tokenizer(candidate)
+        start_id = tokenizer.bos_token_id if candidate.sampler.start_token else None
+        ok = {t['id'] for t in tasks if fits(t, prompt, tokenizer, candidate.mask_id, start_id)}
+        keep = ok if keep is None else keep & ok
+    return frozenset(keep or ())
+
+
+def prompt_tasks(prompt_code: str, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The masks a prompt is filled on, in grid order: all of them, or for an example prompt those that fit."""
+    keep = fitting_ids(prompt_code)
+    return tasks if keep is None else [t for t in tasks if t['id'] in keep]
 
 
 def slot_values(tokenizer: Any, ids: Sequence[int], spans: Sequence[Sequence[int]]) -> tuple[list[str], int]:
@@ -308,6 +355,36 @@ def copies(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str]) ->
     named = [(s.field, v) for s, v in zip(built.slots, values, strict=True) if s.field in NAME_FIELDS]
     return {'recovered': list(values) == true_values(task),
             'copied_visible': sum(to_id(v) in seen.get(f, set()) and to_id(v) != '' for f, v in named)}
+
+
+def example_copies(rows: Sequence[dict[str, Any]], team: Team | None = None) -> dict[str, dict[str, int]]:
+    """#239: per field, how many filled values equal the example team's value in the same place (same Pokémon number,
+    move number or stat), and, for names, how many equal any of the example's values of that field. Blank fills are
+    not counted. Run on a prompt without the example, the same counts are the chance rate."""
+    from mask_paste import parse_path
+    team = team if team is not None else D.example_team()
+    anywhere: dict[str, set[str]] = {}
+    for path, value in visible_values(team).items():
+        if path[1] in NAME_FIELDS:
+            anywhere.setdefault(path[1], set()).add(to_id(value))
+    out: dict[str, dict[str, int]] = {}
+    for row in rows:
+        if 'paths' not in row:
+            continue
+        for field, path_label, value in zip(row['fields'], row['paths'], row['values'], strict=True):
+            if value.strip() == '':
+                continue
+            parts = path_label.split('.')
+            path = tuple(parse_path('.'.join(parts[:2]))) + ((parts[2],) if len(parts) > 2 else ())
+            here = out.setdefault(field, {'same_place': 0, 'same_field': 0, 'filled': 0})
+            here['filled'] += 1
+            mine = _value_at(team, path)
+            if field in NAME_FIELDS:
+                here['same_place'] += to_id(value) == to_id(str(mine))
+                here['same_field'] += to_id(value) in anywhere.get(field, set())
+            else:
+                here['same_place'] += value.strip() == str(mine)
+    return out
 
 
 # ---------- filling the grid ----------
@@ -534,7 +611,7 @@ def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: 
     import masked_diffusion_memory_bench as B
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
     from showdown_validator import Validator
-    prompt, tasks = PROMPTS[prompt_code], grid_tasks()
+    prompt, tasks = PROMPTS[prompt_code], prompt_tasks(prompt_code, grid_tasks())
     if device == 'mps':
         torch.mps.set_per_process_memory_fraction(1.0)
     candidate, tokenizer, model, family = load_candidate(key, device)
@@ -670,6 +747,7 @@ def summarize(rows: list[dict[str, Any]], names: dict[str, frozenset[str]] | Non
             'seconds_per_team': sum(r['seconds'] for r in rows) / n if n else 0,
             'seconds_total': sum(r['seconds'] for r in rows), 'peak_gib': peak / 2**30,
             'special_tokens_dropped': sum(r['special_dropped'] for r in rows),
+            'example_copies': example_copies(rows),
             'rules': rule_counts(rows)}
 
 
@@ -764,7 +842,7 @@ def round_trip_values(tokenizer: Any, task: dict[str, Any], c: dict[str, Any], s
     """The true values written into the slots as the training target writes them (padded), encoded, then decoded
     from the slot tokens as a model's fill is."""
     pad = tokenizer.pad_token or tokenizer.eos_token
-    target = D.training_target(task, ASK, tokenizer, LIMIT, pad, prompt.statement)
+    target = D.training_target(task, ASK, tokenizer, LIMIT, pad, prompt.statement, prompt.example)
     ids = list(tokenizer(target, add_special_tokens=False)['input_ids'])
     if start_id is not None:
         ids = [start_id, *ids]
@@ -781,15 +859,52 @@ def statement_tokens(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokenizer:
     return {'statement_alone': alone, 'added_min': min(added), 'added_max': max(added), 'masks': len(added)}
 
 
+def example_tokens(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokenizer: Any, mask_id: int,
+                   start_id: int | None) -> dict[str, int]:
+    """What the example team costs in this tokenizer: its line alone, and the fewest and most tokens it adds to a
+    mask's text over the prompt it extends (#239)."""
+    alone = len(tokenizer(prompt.example or '', add_special_tokens=False)['input_ids'])
+    base = PROMPTS[prompt.base or 'inplace_header']
+    added = [len(canvas(t, prompt, tokenizer, mask_id, start_id)['ids'])
+             - len(canvas(t, base, tokenizer, mask_id, start_id)['ids']) for t in tasks]
+    return {'example_alone': alone, 'added_min': min(added), 'added_max': max(added), 'masks': len(added)}
+
+
+def example_team_check(validate: Callable[[str], str | None], names: dict[str, frozenset[str]]) -> dict[str, Any]:
+    """#239: the example team passes the validator and the Reg M-B check, and is none of the grid's unmasked teams
+    and no held-out team."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+    import heldout as H
+    team = D.example_team()
+    named = [(path[1], value) for path, value in visible_values(team).items() if path[1] in NAME_FIELDS]
+    not_regmb = [f'{field} {value}' for field, value in named if value and to_id(value) not in names[field]]
+    error = validate(team_paste(team))
+    sources = {t['source']: t['original'] for t in grid_tasks()}
+    in_grid = any(H.grid_key_team(team) == H.grid_key_team(o) for o in sources.values())
+    out = {'source': json.loads(D.EXAMPLE_TEAM.read_text())['source'], 'species': [m['species'] for m in team],
+           'showdown_error': error, 'not_regmb': not_regmb, 'is_a_grid_team': in_grid,
+           'is_heldout': bool(H.is_heldout_team(team)),
+           'species_shared_with_grid_teams': sorted({m['species'] for m in team}
+                                                    & {m['species'] for o in sources.values() for m in o})}
+    out['pass'] = error is None and not not_regmb and not in_grid and not out['is_heldout']
+    return out
+
+
 def preflight(out: Path, prompt_code: str = 'inplace_header') -> dict[str, Any]:
-    """The probes that need no model: run on every mask with every small-four tokenizer."""
+    """The probes that need no model: run on every mask (for an example prompt, every mask that fits) with every
+    small-four tokenizer."""
     import count_masked_diffusion_text as C
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
     from showdown_validator import Validator
-    tasks, names, prompt = grid_tasks(), vocabulary(), PROMPTS[prompt_code]
+    every, names, prompt = grid_tasks(), vocabulary(), PROMPTS[prompt_code]
+    tasks = prompt_tasks(prompt_code, every)
     validate = Validator()
     result: dict[str, Any] = {'date': time.strftime('%Y-%m-%d'), 'prompt': prompt.code, 'masks': len(tasks),
                               'environment': environment(), 'candidates': {}}
+    if prompt.example is not None:
+        kept = {t['id'] for t in tasks}
+        result['too_long'] = {'masks': len(every) - len(tasks),
+                              'cells': dict(Counter(f"{t['task']} {t['k']}" for t in every if t['id'] not in kept))}
     try:
         for key in SMALL_FOUR:
             candidate = C.candidate_by_key(key)
@@ -823,13 +938,18 @@ def preflight(out: Path, prompt_code: str = 'inplace_header') -> dict[str, Any]:
                     'floor_random_tokens_showdown_accepts': floor_showdown}
             if prompt.statement is not None:
                 row['statement_tokens'] = statement_tokens(tasks, prompt, tokenizer, candidate.mask_id, start_id)
+            if prompt.example is not None:
+                row['example_tokens'] = example_tokens(tasks, prompt, tokenizer, candidate.mask_id, start_id)
             row['pass'] = (ceiling == trip == trip_paste == len(tasks)) and floor < 3 and unknown == 0
             result['candidates'][key] = row
             print(key, json.dumps(row), flush=True)
         result['controls'] = controls(validate, names)
+        if prompt.example is not None:
+            result['example_team'] = example_team_check(validate, names)
     finally:
         validate.close()
-    result['pass'] = all(r['pass'] for r in result['candidates'].values()) and result['controls']['pass']
+    result['pass'] = (all(r['pass'] for r in result['candidates'].values()) and result['controls']['pass']
+                      and result.get('example_team', {'pass': True})['pass'])
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=1) + '\n')
     return result
@@ -1005,19 +1125,29 @@ def compare_rows(before: list[dict[str, Any]], after: list[dict[str, Any]],
             'paired': paired(before, after)}
 
 
+def shared_ids(*prompt_codes: str) -> frozenset[str] | None:
+    """The masks every one of these prompts is filled on, or None when that is the whole grid."""
+    sets = [k for k in map(fitting_ids, prompt_codes) if k is not None]
+    return frozenset.intersection(*sets) if sets else None
+
+
 def compare(directory: Path, before_code: str, after_code: str) -> str:
     import count_masked_diffusion_text as C
     labels = {c.key: c.label for c in C.CANDIDATES}
     results = {}
+    keep = shared_ids(before_code, after_code)
     for key in SMALL_FOUR:
         paths = [directory / code / key / 'fills.jsonl' for code in (before_code, after_code)]
         if all(p.exists() for p in paths):
-            results[key] = compare_rows(read_fills(paths[0]), read_fills(paths[1]))
+            before, after = ([r for r in read_fills(p) if keep is None or r['id'] in keep] for p in paths)
+            results[key] = compare_rows(before, after)
     (directory / after_code).mkdir(parents=True, exist_ok=True)
-    (directory / after_code / 'compare.json').write_text(
-        json.dumps({'before': before_code, 'after': after_code, 'models': results}, indent=1) + '\n')
+    name = 'compare.json' if before_code in ('inplace_header', PROMPTS[after_code].base) else f'compare-{before_code}.json'
+    masks = GRID_SIZE if keep is None else len(keep)
+    (directory / after_code / name).write_text(
+        json.dumps({'before': before_code, 'after': after_code, 'masks': masks, 'models': results}, indent=1) + '\n')
     lines = [f'{PROMPTS[before_code].name} (`{before_code}`) → {PROMPTS[after_code].name} (`{after_code}`). '
-             'Held-out grid, the same 270 masks and mask seeds, first try only.', '',
+             f'Held-out grid, the same {masks} masks and mask seeds, first try only.', '',
              '| Model | Legal, first try | Gained / lost (McNemar p) | Parses as JSON | Real species | '
              'Seconds per team | Most common reasons, after |', '|---|---|---|---|---|---|---|']
     for key, c in results.items():

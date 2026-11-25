@@ -1,0 +1,187 @@
+{
+ "source": "MB756",
+ "source_file": "vgc-bench/teams/reg_mb/MB756.txt",
+ "why": "#239: top-50 meta team, not held out, no species shared with the held-out grid's five unmasked teams; fewest tokens of the four such teams",
+ "team": [
+  {
+   "slot": 1,
+   "species": "Maushold-Four",
+   "item": "Wide Lens",
+   "ability": "Technician",
+   "nature": "Jolly",
+   "moves": [
+    "Population Bomb",
+    "Follow Me",
+    "After You",
+    "Protect"
+   ],
+   "statPoints": {
+    "HP": 0,
+    "Atk": 32,
+    "Def": 1,
+    "SpA": 0,
+    "SpD": 1,
+    "Spe": 32
+   },
+   "ivs": {
+    "HP": 31,
+    "Atk": 31,
+    "Def": 31,
+    "SpA": 31,
+    "SpD": 31,
+    "Spe": 31
+   },
+   "level": 50
+  },
+  {
+   "slot": 2,
+   "species": "Azumarill",
+   "item": "Sitrus Berry",
+   "ability": "Huge Power",
+   "nature": "Brave",
+   "moves": [
+    "Aqua Jet",
+    "Play Rough",
+    "Protect",
+    "Belly Drum"
+   ],
+   "statPoints": {
+    "HP": 31,
+    "Atk": 32,
+    "Def": 0,
+    "SpA": 0,
+    "SpD": 3,
+    "Spe": 0
+   },
+   "ivs": {
+    "HP": 31,
+    "Atk": 31,
+    "Def": 31,
+    "SpA": 31,
+    "SpD": 31,
+    "Spe": 31
+   },
+   "level": 50
+  },
+  {
+   "slot": 3,
+   "species": "Mawile",
+   "item": "Mawilite",
+   "ability": "Hyper Cutter",
+   "nature": "Brave",
+   "moves": [
+    "Play Rough",
+    "Sucker Punch",
+    "Rock Slide",
+    "Protect"
+   ],
+   "statPoints": {
+    "HP": 32,
+    "Atk": 32,
+    "Def": 2,
+    "SpA": 0,
+    "SpD": 0,
+    "Spe": 0
+   },
+   "ivs": {
+    "HP": 31,
+    "Atk": 31,
+    "Def": 31,
+    "SpA": 31,
+    "SpD": 31,
+    "Spe": 31
+   },
+   "level": 50
+  },
+  {
+   "slot": 4,
+   "species": "Farigiraf",
+   "item": "Colbur Berry",
+   "ability": "Armor Tail",
+   "nature": "Sassy",
+   "moves": [
+    "Helping Hand",
+    "Psychic",
+    "Protect",
+    "Trick Room"
+   ],
+   "statPoints": {
+    "HP": 29,
+    "Atk": 0,
+    "Def": 20,
+    "SpA": 0,
+    "SpD": 17,
+    "Spe": 0
+   },
+   "ivs": {
+    "HP": 31,
+    "Atk": 31,
+    "Def": 31,
+    "SpA": 31,
+    "SpD": 31,
+    "Spe": 31
+   },
+   "level": 50
+  },
+  {
+   "slot": 5,
+   "species": "Gallade",
+   "item": "Focus Sash",
+   "ability": "Sharpness",
+   "nature": "Adamant",
+   "moves": [
+    "Sacred Sword",
+    "Psycho Cut",
+    "Leaf Blade",
+    "Protect"
+   ],
+   "statPoints": {
+    "HP": 2,
+    "Atk": 32,
+    "Def": 0,
+    "SpA": 0,
+    "SpD": 0,
+    "Spe": 32
+   },
+   "ivs": {
+    "HP": 31,
+    "Atk": 31,
+    "Def": 31,
+    "SpA": 31,
+    "SpD": 31,
+    "Spe": 31
+   },
+   "level": 50
+  },
+  {
+   "slot": 6,
+   "species": "Camerupt",
+   "item": "Cameruptite",
+   "ability": "Solid Rock",
+   "nature": "Quiet",
+   "moves": [
+    "Heat Wave",
+    "Earth Power",
+    "Protect",
+    "Ancient Power"
+   ],
+   "statPoints": {
+    "HP": 32,
+    "Atk": 0,
+    "Def": 0,
+    "SpA": 32,
+    "SpD": 2,
+    "Spe": 0
+   },
+   "ivs": {
+    "HP": 31,
+    "Atk": 31,
+    "Def": 31,
+    "SpA": 31,
+    "SpD": 31,
+    "Spe": 31
+   },
+   "level": 50
+  }
+ ]
+}
