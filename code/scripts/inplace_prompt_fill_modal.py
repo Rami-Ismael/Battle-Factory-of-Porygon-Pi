@@ -48,10 +48,10 @@ IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0',
 PACKAGED_FILES = ('scripts/inplace_prompt_grid.py', 'scripts/masked_diffusion_text.py',
                   'scripts/masked_diffusion_memory_bench.py', 'scripts/count_masked_diffusion_text.py',
                   'scripts/masked_diffusion_sampler.py', 'scripts/jev_fill.py', 'scripts/mask_paste.py',
-                  'data/regmb-vocabulary.json')
+                  'data/regmb-vocabulary.json', 'data/pokedex.json')
 VERDICT_KEYS = frozenset({'json_parses', 'reads_as_team', 'visible_kept', 'regmb_names', 'showdown_errors',
                           'showdown_accepts', 'legal', 'failed', 'reasons', 'not_regmb', 'recovered',
-                          'copied_visible', 'paste'})
+                          'copied_visible', 'paste', 'rules'})
 
 
 def grid_tasks() -> list[dict[str, Any]]:

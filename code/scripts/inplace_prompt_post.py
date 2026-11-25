@@ -50,7 +50,7 @@ PROMPT_TEXT = {'inplace_header': "#168's text", 'inplace_instructions': "#168's 
 
 
 def rows_for(directory: Path, key: str, prompt: str = 'inplace_header') -> list[dict[str, Any]]:
-    return G.read_rows(directory / prompt / key / 'fills.jsonl')
+    return G.read_fills(directory / prompt / key / 'fills.jsonl')
 
 
 def cell_label(kind: str, k: int) -> str:
@@ -252,6 +252,47 @@ def same_tokens(rows: list[dict[str, Any]], other: list[dict[str, Any]]) -> int:
     """Masks whose fill is the same token for token in both runs."""
     by_id = {r['id']: r['slot_ids'] for r in other}
     return sum(r['slot_ids'] == by_id.get(r['id']) for r in rows)
+
+
+SHORT = {'diffugpt_s': 'DiffuGPT S', 'diffugpt_m': 'DiffuGPT M', 'qwen25c': 'Qwen Coder', 'qwen3': 'Qwen3'}
+
+
+def rules_figure(directory: Path, prompt: str, out: Path) -> Path:
+    """One row per rule, one column per model under each prompt: the share of fills breaking the rule, out of the
+    fills where it could be judged (a team rule needs a fill that parses; a name rule needs a mask hiding that field)."""
+    keys = [k for k in G.SMALL_FOUR if all((directory / p / k / 'fills.jsonl').exists() for p in (BEFORE, prompt))]
+    columns = [(p, k) for k in keys for p in (BEFORE, prompt)]
+    counts = {(p, k): G.rule_counts(rows_for(directory, k, p)) for p, k in columns}
+    data = []
+    for y, rule in enumerate(G.RULES):
+        for x, col in enumerate(columns):
+            c = counts[col][rule]
+            share = c['broken'] / c['of'] if c['of'] else None
+            data.append({'value': [x, y, None if share is None else round(100 * share, 1)],
+                         'tip': f"{LABELS[col[1]]}, {G.PROMPTS[col[0]].name.split(',')[0]}<br><b>{rule}</b><br>"
+                                f"{c['broken']} of {c['of']} fills" + ('' if c['of'] else ' (never judged)'),
+                         'label': {'color': '#fff' if share and share > 0.55 else '#0b0b0b'}})
+    names = [f"{SHORT[k]}<br>{'header' if p == BEFORE else 'statement'}" for p, k in columns]
+    option = {
+        'tooltip': {'trigger': 'item', 'formatter': 'js:p => p.data.tip'},
+        'grid': {'left': 200, 'right': 8, 'top': 44, 'bottom': 10},
+        'xAxis': {'type': 'category', 'position': 'top', 'data': [n.replace('<br>', '\n') for n in names],
+                  'axisLabel': {'interval': 0, 'fontSize': 10, 'lineHeight': 13}},
+        'yAxis': {'type': 'category', 'data': list(G.RULES), 'inverse': True, 'axisLabel': {'fontSize': 12}},
+        'visualMap': {'show': False, 'min': 0, 'max': 100, 'dimension': 2, 'inRange': {'color': ['#e8f1fd', '#0d366b']}},
+        'series': [{'type': 'heatmap', 'data': data,
+                    'label': {'show': True, 'fontSize': 11, 'formatter': 'js:p => p.value[2] == null ? "–" : `${Math.round(p.value[2])}%`'},
+                    'itemStyle': {'borderColor': '#fcfcfb', 'borderWidth': 2, 'borderRadius': 3},
+                    'emphasis': {'itemStyle': {'borderColor': '#0b0b0b', 'borderWidth': 1}}}],
+    }
+    note = ('Share of first-try fills breaking each rule, out of the fills where the rule could be judged: a team '
+            'rule needs a fill that parses as a team, a Reg M-B name rule needs a mask hiding that field. One fill can '
+            'break several rules. Header-only and task-statement fills come from the same Modal container per model, '
+            'on the same 270 masks and mask seeds.')
+    return write_chart(option, out, title='Which rules the first-try fills break, by model and prompt',
+                       subtitle=f'Held-out grid, 270 masks per column ({TICKETS[prompt]})', note=note,
+                       height=120 + 30 * len(G.RULES),
+                       dark={'#fcfcfb': '#161615', '#e8f1fd': '#1b2a3d', '#0d366b': '#cde2fb'})
 
 
 def compare_comment(directory: Path, prompt: str, url: str) -> str:
@@ -486,8 +527,11 @@ def main() -> int:
         p.add_argument('--url')
         p.add_argument('--prompt', choices=G.PROMPTS, default=BEFORE)
         p.add_argument('--compare', action='store_true', help=f'#238: --prompt against {BEFORE}, every model')
+        p.add_argument('--rules', action='store_true', help='with figure: which rules the fills break, per model')
     args = parser.parse_args()
-    if args.command == 'figure' and args.compare:
+    if args.command == 'figure' and args.rules:
+        rules_figure(args.dir, args.prompt, args.out)
+    elif args.command == 'figure' and args.compare:
         compare_figure(compare_results(args.dir, args.prompt), args.prompt, args.out)
     elif args.command == 'comment' and args.compare:
         print(compare_comment(args.dir, args.prompt, args.url), end='')

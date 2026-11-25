@@ -75,6 +75,23 @@ VOCABULARY_KEY = {'species': 'species', 'item': 'item', 'ability': 'ability', 'n
 FIELD_NAMES = {'species': 'species', 'item': 'item', 'ability': 'ability', 'nature': 'Stat Alignment',
                'moves': 'move', 'statPoints': 'Stat Point number'}
 STEPS = ('parses', 'visible', 'regmb', 'showdown')
+# Every rule a filled mask can break, judged on each fill (owner, 2026-11-25: "keep track of that feature for each
+# sample"). The team-building rules follow #361's rule-by-rule table (epoch_legality.RULES), judged here on names.
+# A rule reads None when it cannot be judged: the fill does not parse, the mask hides no value of that field, or
+# Showdown has not run yet (a Modal fill before merge).
+NAME_RULES = {f: f'not a Reg M-B {FIELD_NAMES[f]}' for f in NAME_FIELDS}
+RULES = ('does not parse as a team', 'changed a visible value', *NAME_RULES.values(), 'item used more than once',
+         'wrong Mega Stone', 'species used more than once', "ability the species can't have",
+         "move the species can't learn", 'same move twice on one Pokémon', 'Stat Points over 66',
+         'a Stat Point over 32', 'a name Showdown does not know', 'other Showdown error')
+SHOWDOWN_RULES = ((r"can't have", "ability the species can't have"), (r"can't learn", "move the species can't learn"),
+                  (r'is an invalid|does not exist', 'a name Showdown does not know'),
+                  (r'Item Clause', 'item used more than once'), (r'Species Clause', 'species used more than once'),
+                  (r'multiple copies of', 'same move twice on one Pokémon'),
+                  (r'total Stat Points', 'Stat Points over 66'), (r'more than \d+ Stat Points in', 'a Stat Point over 32'))
+SHOWDOWN_ONLY = ("ability the species can't have", "move the species can't learn", 'a name Showdown does not know',
+                 'other Showdown error')
+DEX = Path(__file__).resolve().parents[1] / 'data/pokedex.json'
 STEP_NAMES = {'parses': 'does not parse as a team', 'visible': 'changed a visible value',
               'regmb': 'wrote a name that is not Reg M-B', 'showdown': 'Showdown rejects it', None: 'legal'}
 
@@ -185,6 +202,61 @@ def reason_group(error: str) -> str:
     return re.sub(r'\d+', 'N', error)
 
 
+@functools.lru_cache(maxsize=1)
+def dex() -> tuple[dict[str, str], dict[str, str]]:
+    """(Mega Stone ID -> the base species ID it belongs to, species ID -> base species ID), from Showdown's
+    pokedex.json in code/data, as corpus.MEGA_STONE_OF builds it."""
+    entries = json.loads(DEX.read_text())
+    stones, base = {}, {}
+    for key, entry in entries.items():
+        if not isinstance(entry, dict):
+            continue
+        base[key] = to_id(entry.get('baseSpecies') or entry.get('name', key))
+        owner = entry.get('changesFrom') or entry.get('baseSpecies')
+        if 'mega' in to_id(entry.get('forme', '')) and entry.get('requiredItem') and owner:
+            stones[to_id(entry['requiredItem'])] = to_id(owner)
+    return stones, base
+
+
+def _twice(ids: Iterable[str]) -> bool:
+    seen = [i for i in ids if i]
+    return len(seen) != len(set(seen))
+
+
+def rule_breaks(fields: Sequence[str], values: Sequence[str], names: dict[str, frozenset[str]],
+                verdict: dict[str, Any], team: Team | None) -> dict[str, bool | None]:
+    """Which of RULES one filled mask breaks. The Reg M-B name rules read the filled values, so they are judged even
+    when the fill does not parse; every other rule needs the parsed team. Six team rules are checked on the team
+    itself; Showdown's messages add the ability, learnset and unknown-name rules, and confirm the others."""
+    out: dict[str, bool | None] = dict.fromkeys(RULES)
+    out['does not parse as a team'] = not verdict['reads_as_team']
+    for field, rule in NAME_RULES.items():
+        filled = [v for f, v in zip(fields, values, strict=True) if f == field]
+        out[rule] = any(to_id(v) not in names[field] for v in filled) if filled else None
+    if team is None:
+        return out
+    stones, base = dex()
+    species = [to_id(mon['species']) for mon in team]
+    out['changed a visible value'] = not verdict['visible_kept']
+    out['item used more than once'] = _twice(to_id(mon['item']) for mon in team)
+    out['wrong Mega Stone'] = any(to_id(mon['item']) in stones and stones[to_id(mon['item'])] != base.get(s, s)
+                                  for mon, s in zip(team, species, strict=True))
+    out['species used more than once'] = _twice(base.get(s, s) for s in species)
+    out['same move twice on one Pokémon'] = any(_twice(to_id(m) for m in mon['moves']) for mon in team)
+    out['Stat Points over 66'] = any(sum(mon['statPoints'].values()) > 66 for mon in team)
+    out['a Stat Point over 32'] = any(v > 32 for mon in team for v in mon['statPoints'].values())
+    errors = verdict['showdown_errors'] or []
+    if any(e.startswith('deferred') for e in errors):
+        return out
+    for rule in SHOWDOWN_ONLY:
+        out[rule] = False
+    for error in errors:
+        hits = [rule for pattern, rule in SHOWDOWN_RULES if re.search(pattern, error)]
+        for rule in hits or ['other Showdown error']:
+            out[rule] = True
+    return out
+
+
 def judge(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str], validate: Callable[[str], str | None],
           names: dict[str, frozenset[str]]) -> dict[str, Any]:
     """One filled mask through the four steps. Every step that can run is recorded; failed is the first that fails."""
@@ -204,6 +276,7 @@ def judge(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str], val
         out['reads_as_team'] = True
     except ValueError as error:
         out['failed'], out['reasons'] = 'parses', [reason_group(str(error))]
+        out['rules'] = rule_breaks(fields, values, names, out, None)
         return out
     changed = [D.value_label(path) for path, value in visible_values(task['masked_team']).items()
                if _value_at(team, path) != value]
@@ -221,6 +294,7 @@ def judge(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str], val
         out['failed'] = 'showdown'
         out['reasons'] = sorted({reason_group(e) for e in out['showdown_errors']})
     out['legal'] = out['failed'] is None
+    out['rules'] = rule_breaks(fields, values, names, out, team)
     return out
 
 
@@ -595,11 +669,58 @@ def summarize(rows: list[dict[str, Any]], names: dict[str, frozenset[str]] | Non
             'prompt_tokens_max': max((r['prompt_tokens'] for r in rows), default=0),
             'seconds_per_team': sum(r['seconds'] for r in rows) / n if n else 0,
             'seconds_total': sum(r['seconds'] for r in rows), 'peak_gib': peak / 2**30,
-            'special_tokens_dropped': sum(r['special_dropped'] for r in rows)}
+            'special_tokens_dropped': sum(r['special_dropped'] for r in rows),
+            'rules': rule_counts(rows)}
+
+
+def rule_counts(rows: Sequence[dict[str, Any]]) -> dict[str, dict[str, int]]:
+    """For each rule, the fills that break it out of the fills where it could be judged. Rows filled before
+    rule_breaks existed carry no 'rules' and are left out; rules_for fills them in."""
+    judged = [r['rules'] for r in rows if r.get('rules')]
+    return {rule: {'broken': sum(bool(j[rule]) for j in judged), 'of': sum(j[rule] is not None for j in judged)}
+            for rule in RULES}
 
 
 def read_rows(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
+def read_fills(path: Path) -> list[dict[str, Any]]:
+    """A fills.jsonl's rows, each with its rule breaks: from the row, or from rules.jsonl beside it for fills judged
+    before rule_breaks existed."""
+    rows = read_rows(path)
+    side = path.with_name('rules.jsonl')
+    if side.exists():
+        rules = {r['id']: r['rules'] for r in read_rows(side)}
+        rows = [r if r.get('rules') else {**r, 'rules': rules.get(r['id'])} for r in rows]
+    return rows
+
+
+def rules_for(directory: Path, prompt_code: str, key: str, tasks: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """Judge every saved fill of one run again from its values and write its rule breaks to rules.jsonl beside
+    fills.jsonl, leaving fills.jsonl as it is. Refuses a fill whose verdict comes out different from the saved one."""
+    import count_masked_diffusion_text as C
+
+    import masked_diffusion_memory_bench as B
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+    from showdown_validator import Validator
+    out = directory / prompt_code / key
+    by_id = {t['id']: t for t in (tasks or grid_tasks())}
+    candidate = C.candidate_by_key(key)
+    tokenizer = B.load_tokenizer(B.candidate_info(candidate))
+    start_id = start_token_id(tokenizer, candidate.sampler)
+    names, validate, lines = vocabulary(), Validator(), []
+    try:
+        for row in read_rows(out / 'fills.jsonl'):
+            c = canvas(by_id[row['id']], PROMPTS[prompt_code], tokenizer, candidate.mask_id, start_id)
+            again = judge(by_id[row['id']], c['built'], row['values'], validate, names)
+            if (again['legal'], again['failed']) != (row['legal'], row['failed']):
+                raise ValueError(f"{out} {row['id']}: judged {again['failed']!r} now, {row['failed']!r} when filled")
+            lines.append(json.dumps({'id': row['id'], 'rules': again['rules']}, ensure_ascii=False))
+    finally:
+        validate.close()
+    (out / 'rules.jsonl').write_text('\n'.join(lines) + '\n')
+    return {'prompt': prompt_code, 'key': key, **rule_counts(read_fills(out / 'fills.jsonl'))}
 
 
 def report(directory: Path, prompt_code: str) -> str:
@@ -609,7 +730,7 @@ def report(directory: Path, prompt_code: str) -> str:
     for key in SMALL_FOUR:
         path = directory / prompt_code / key / 'fills.jsonl'
         if path.exists():
-            results[key] = summarize(read_rows(path))
+            results[key] = summarize(read_fills(path))
     (directory / prompt_code).mkdir(parents=True, exist_ok=True)
     (directory / prompt_code / 'report.json').write_text(json.dumps(results, indent=1) + '\n')
     lines = [f'Prompt: {PROMPTS[prompt_code].name} (`{prompt_code}`). Held-out grid, first try only.', '',
@@ -880,6 +1001,7 @@ def compare_rows(before: list[dict[str, Any]], after: list[dict[str, Any]],
             'first_failed_step': {'before': a['first_failed_step'], 'after': b['first_failed_step']},
             'reasons': {s: [list(x) for x in Counter(r for row in rows for r in row['reasons']).most_common(5)]
                         for s, rows in (('before', before), ('after', after))},
+            'rules': {'before': a['rules'], 'after': b['rules']},
             'paired': paired(before, after)}
 
 
@@ -890,7 +1012,7 @@ def compare(directory: Path, before_code: str, after_code: str) -> str:
     for key in SMALL_FOUR:
         paths = [directory / code / key / 'fills.jsonl' for code in (before_code, after_code)]
         if all(p.exists() for p in paths):
-            results[key] = compare_rows(read_rows(paths[0]), read_rows(paths[1]))
+            results[key] = compare_rows(read_fills(paths[0]), read_fills(paths[1]))
     (directory / after_code).mkdir(parents=True, exist_ok=True)
     (directory / after_code / 'compare.json').write_text(
         json.dumps({'before': before_code, 'after': after_code, 'models': results}, indent=1) + '\n')
@@ -941,6 +1063,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     rep = sub.add_parser('report')
     rep.add_argument('--dir', type=Path, default=OUT)
     rep.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
+    rul = sub.add_parser('rules', help='write rules.jsonl beside a run judged before rule_breaks existed')
+    rul.add_argument('--dir', type=Path, default=OUT)
+    rul.add_argument('--prompt', choices=PROMPTS, required=True)
+    rul.add_argument('--key', choices=SMALL_FOUR, required=True)
     both = sub.add_parser('compare')
     both.add_argument('--dir', type=Path, default=OUT)
     both.add_argument('--before', choices=PROMPTS, default='inplace_header')
@@ -949,6 +1075,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == 'preflight':
         name = 'cpu.json' if args.prompt == 'inplace_header' else f'cpu-{args.prompt}.json'
         return 0 if preflight(args.out or OUT / 'preflight' / name, args.prompt)['pass'] else 1
+    if args.command == 'rules':
+        print(json.dumps(rules_for(args.dir, args.prompt, args.key)))
+        return 0
     if args.command == 'compare':
         print(compare(args.dir, args.before, args.after))
         return 0

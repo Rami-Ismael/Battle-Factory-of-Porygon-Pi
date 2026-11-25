@@ -486,5 +486,88 @@ class CompareTest(unittest.TestCase):
         self.assertEqual(out['paired']['gained'], 1)
 
 
+def clean_team():
+    """Six distinct base species, no Mega Stone, distinct items and moves: breaks none of the team rules."""
+    out = team()
+    for mon, species, item in zip(out, ('Kleavor', 'Sinistcha', 'Archaludon', 'Swampert', 'Froslass', 'Pelipper'),
+                                  ('Choice Scarf', 'Kasib Berry', 'Leftovers', 'Focus Sash', 'Sitrus Berry', 'Life Orb'),
+                                  strict=True):
+        mon['species'], mon['item'] = species, item
+    return out
+
+
+class RuleBreaksTest(unittest.TestCase):
+    """Every filled mask records which rules it breaks (owner, 2026-11-25)."""
+
+    def setUp(self):
+        self.names = G.vocabulary()
+
+    def verdict(self, team, errors=None, visible=True):
+        return {'reads_as_team': team is not None, 'visible_kept': visible, 'showdown_errors': errors or []}
+
+    def test_a_legal_team_breaks_nothing(self):
+        rules = G.rule_breaks(['item'], ['Choice Scarf'], self.names, self.verdict(clean_team()), clean_team())
+        self.assertEqual(set(rules), set(G.RULES))
+        self.assertFalse(any(rules.values()))
+        self.assertIsNone(rules['not a Reg M-B species'])
+
+    def test_every_judged_fill_carries_its_rules(self):
+        task = make_task('items', 'r1')
+        verdict = G.judge(task, G.canvas(task, PROMPT, FakeTokenizer(), 0)['built'], ['Japan","'], FakeValidator(),
+                          self.names)
+        self.assertTrue(verdict['rules']['does not parse as a team'])
+        self.assertTrue(verdict['rules']['not a Reg M-B item'])
+
+    def test_stat_points_over_66_and_over_32_are_read_from_the_team(self):
+        bad = clean_team()
+        bad[0]['statPoints'] = dict(zip(STATS, (32, 32, 3, 0, 0, 0), strict=True))
+        bad[1]['statPoints']['HP'] = 40
+        rules = G.rule_breaks([], [], self.names, self.verdict(bad), bad)
+        self.assertTrue(rules['Stat Points over 66'])
+        self.assertTrue(rules['a Stat Point over 32'])
+        self.assertFalse(rules['item used more than once'])
+
+    def test_item_twice_same_move_twice_and_a_wrong_mega_stone(self):
+        bad = clean_team()
+        bad[1]['item'] = bad[0]['item']
+        bad[2]['moves'][1] = bad[2]['moves'][0]
+        bad[4]['item'] = 'Swampertite'
+        rules = G.rule_breaks([], [], self.names, self.verdict(bad), bad)
+        self.assertTrue(rules['item used more than once'])
+        self.assertTrue(rules['same move twice on one Pokémon'])
+        self.assertTrue(rules['wrong Mega Stone'])
+        bad[3]['species'], bad[4]['species'] = 'Froslass', 'Swampert'
+        self.assertFalse(G.rule_breaks([], [], self.names, self.verdict(bad), bad)['wrong Mega Stone'])
+
+    def test_showdown_messages_map_to_rules_and_the_rest_to_other(self):
+        errors = ["Swampert can't have Swift Swim.", 'Armarouge can\'t learn Kowtow Cleave.',
+                  '"x100" is an invalid ability.', 'Something new went wrong.']
+        rules = G.rule_breaks([], [], self.names, self.verdict(clean_team(), errors), clean_team())
+        for rule in ("ability the species can't have", "move the species can't learn", 'a name Showdown does not know',
+                     'other Showdown error'):
+            self.assertTrue(rules[rule], rule)
+
+    def test_a_fill_that_does_not_parse_judges_only_the_names_it_wrote(self):
+        rules = G.rule_breaks(['item', 'moves'], ['Japan', 'Protect'], self.names, self.verdict(None), None)
+        self.assertTrue(rules['does not parse as a team'])
+        self.assertTrue(rules['not a Reg M-B item'])
+        self.assertFalse(rules['not a Reg M-B move'])
+        self.assertIsNone(rules['not a Reg M-B species'])
+        self.assertIsNone(rules['Stat Points over 66'])
+
+    def test_showdown_rules_wait_for_showdown_on_a_deferred_fill(self):
+        rules = G.rule_breaks([], [], self.names, self.verdict(clean_team(), ['deferred: Showdown judges this fill']),
+                             clean_team())
+        self.assertIsNone(rules["ability the species can't have"])
+        self.assertFalse(rules['Stat Points over 66'])
+
+    def test_counts_use_only_fills_where_a_rule_could_be_judged(self):
+        rows = [{'rules': dict.fromkeys(G.RULES, None) | {'not a Reg M-B item': True}},
+                {'rules': dict.fromkeys(G.RULES, False)}, {'id': 'old'}]
+        counts = G.rule_counts(rows)
+        self.assertEqual(counts['not a Reg M-B item'], {'broken': 1, 'of': 2})
+        self.assertEqual(counts['Stat Points over 66'], {'broken': 0, 'of': 1})
+
+
 if __name__ == '__main__':
     unittest.main()
