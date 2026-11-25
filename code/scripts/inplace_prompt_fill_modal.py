@@ -19,15 +19,15 @@ inplace_prompt_grid.judge (parses, keeps the visible values, Reg M-B names, Show
 computed on the laptop (inplace_prompt_grid.fitting_ids) and frozen in FROZEN/data/fitting-ids.json; the entrypoint
 fills each prompt's list and merge refuses a raw file that is not exactly that list.
 
-D is INPLACE_RESULTS_DIR (default ~/vgc-data/inplace_prompt_grid/modal-l4; #239 uses modal-l4-239), apart from #237's
+D is INPLACE_RESULTS_DIR (default ~/vgc-data/inplace_prompt_grid/modal-l4-443; #238 used modal-l4, #239
+modal-l4-239), apart from #237's
 laptop fills. The code the container runs is the frozen copy in INPLACE_CODE_DIR (default
 ~/vgc-data/inplace_prompt_grid/run443, the first copy with batched fills; #238 ran from run238 and #239 from run239).
 
 Before any Modal launch: state its estimated cost and credit left (`modal billing summary`).
 
-    modal run code/scripts/inplace_prompt_fill_modal.py --key qwen3 --prompts inplace_header,inplace_instructions [--limit 3]
-    modal run code/scripts/inplace_prompt_fill_modal.py --key qwen3 \
-        --prompts inplace_header,inplace_instructions,inplace_header_example,inplace_example
+    modal run code/scripts/inplace_prompt_fill_modal.py --key qwen3 [--prompts inplace_header,inplace_instructions] \
+        [--limit 3] [--batch N]       (default: #239's four prompts, the largest batch that fits)
     ~/.local/share/vgc-pilot-runtime/venv-dlm/bin/python code/scripts/inplace_prompt_fill_modal.py merge --key qwen3 --prompt inplace_instructions
 """
 from __future__ import annotations
@@ -37,18 +37,20 @@ import json
 import os
 import sys
 import time
+from collections import Counter
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Any
 
 HOME = Path.home() / 'vgc-data/inplace_prompt_grid'
-DIRECTORY = Path(os.environ.get('INPLACE_RESULTS_DIR', HOME / 'modal-l4'))     # #239: modal-l4-239, so both
-# prompts without the example are refilled in its containers rather than read from #238's rows
+DIRECTORY = Path(os.environ.get('INPLACE_RESULTS_DIR', HOME / 'modal-l4-443'))   # #238 wrote modal-l4, #239
+# modal-l4-239; the default is #443's batched refill of #239's four prompts, which batched_fills_report reads
 FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run443'))
 TASKS = FROZEN / 'data/eval2.tasks.json'     # the held-out grid, copied out of the iCloud vault into the frozen run
 FITTING = FROZEN / 'data/fitting-ids.json'   # {prompt: [mask ids]} for the prompts that do not fit every mask (#239)
 TASKS_SHA256 = '596b3adc19abea7df6e82d61775b9efdf35dd54b74c77623d49165b0a31e754b'      # #237's grid file
 KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')
+FOUR_PROMPTS = ('inplace_header', 'inplace_instructions', 'inplace_header_example', 'inplace_example')     # #239
 RAW = 'fills-modal-raw.jsonl'
 REMOTE_CODE = '/root/code'
 GPU = 'L4'
@@ -127,39 +129,52 @@ def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done:
         yield json.dumps({'probe': probe})
         return
     by_id = {t['id']: t for t in tasks}
-    used = [G.PROMPTS[p] for p in dict.fromkeys(p for p, _ in todo)]
-    longest = G.longest_canvas([by_id[i] for i in {t['id'] for _, t in todo}], used, tokenizer, candidate.mask_id,
-                               start_id)
-    sizing = (G.choose_batch(row_forward, longest, candidate.mask_id, active, gpu) if batch is None
-              else {'batch': batch, 'ladder': [], 'chosen_by': 'given'})
-    order = G.length_order(tasks, G.PROMPTS[prompts[0]], tokenizer, candidate.mask_id, start_id)
-    rank = {i: n for n, i in enumerate(order)}
+    texts = {(p, t['id']): G.canvas(t, G.PROMPTS[p], tokenizer, candidate.mask_id, start_id) for p, t in todo}
+    longest, most_masks, shortest = G.extreme_texts(texts.values())
+    sizing = (G.choose_batch(row_forward, longest, candidate.mask_id, active, gpu, most_masks=most_masks,
+                             cap=max(Counter(p for p, _ in todo).values()))
+              if batch is None else {'batch': batch, 'ladder': [], 'chosen_by': 'given'})
+    # one grouping for every prompt (inplace_prompt_grid.mask_groups): a mask two prompts share has the same
+    # neighbours under both
+    groups = G.mask_groups(tasks, tokenizer, candidate.mask_id, start_id, sizing['batch'])
     prompt, task = todo[0]
-    c = G.canvas(task, G.PROMPTS[prompt], tokenizer, candidate.mask_id, start_id)
+    c = texts[(prompt, task['id'])]
     probe['sees_later_tokens'] = B.sees_later_tokens(model, family, torch.tensor([c['ids']], device=gpu),
                                                      torch.tensor(c['slots'], device=gpu),
                                                      right_shift=active.right_shift)
     seed = G.mask_seed(G.SETTING['seed'], task['id'])
-    a, b = G.fill_batch([(task, seed), (task, seed)], G.PROMPTS[prompt], tokenizer, row_forward, candidate.mask_id,
-                        deferred, names, gpu, start_id, sampler=active)
+    a, b = G.repeat_draw(task, seed, G.PROMPTS[prompt], tokenizer, row_forward, candidate.mask_id, deferred, names,
+                         gpu, start_id, active, sizing['batch'])
     alone = G.fill_one(task, G.PROMPTS[prompt], tokenizer, forward_for, candidate.mask_id, deferred, names, seed,
                        gpu, start_id, sampler=active)
-    probe |= {'mask': task['id'], 'prompt': prompt, 'batching': sizing,
+    probe |= {'mask': task['id'], 'prompt': prompt, 'batching': sizing, 'grouped_by': G.ORDER_PROMPT,
               'repeat_same_tokens': G.token_share(a['slot_ids'], b['slot_ids']),
               'batch1_same_tokens': G.token_share(a['slot_ids'], alone['slot_ids']),
-              'padding': G.padding_probe(row_forward, G.canvas(by_id[order[0]], G.PROMPTS[prompts[0]], tokenizer,
-                                                               candidate.mask_id, start_id),
-                                         longest, gpu)}
+              'padding': G.padding_probe(row_forward, shortest, longest, gpu)}
     probe['pass'] = (bool(probe['sees_later_tokens']) and probe['repeat_same_tokens'] >= 0.9
                      and probe['padding']['top1_same'] >= G.PADDING_TOP1)
     yield json.dumps({'probe': probe})
     for code in dict.fromkeys(p for p, _ in todo):
-        mine = sorted((t for p, t in todo if p == code), key=lambda t: rank[t['id']])
-        for chunk in G.batches(mine, sizing['batch']):
+        for group in groups:
+            chunk = [by_id[i] for i in group if (code, i) in texts]
+            if not chunk:
+                continue
             draws = [(t, G.mask_seed(G.SETTING['seed'], t['id'])) for t in chunk]
             for row in G.fill_batch(draws, G.PROMPTS[code], tokenizer, row_forward, candidate.mask_id, deferred, names,
                                     gpu, start_id, memory=memory, sampler=active, batch_size=sizing['batch']):
                 yield json.dumps(row | {'device': device}, ensure_ascii=False)
+
+
+def resume_batch(rows: Iterable[dict[str, Any]], batch: int | None) -> int | None:
+    """The batch size a launch must use: the size its raw rows were filled at (rows from before #443 count as 1),
+    so a resumed run keeps one size and its groups; the given size, or None (find it), when nothing is filled yet.
+    Refuses a given size that differs from the rows', and rows at more than one size."""
+    sizes = {r.get('batch_size', 1) for r in rows}
+    if len(sizes) > 1:
+        raise SystemExit(f'raw rows filled at batch sizes {sorted(sizes)}; one run keeps one size')
+    if sizes and batch is not None and batch not in sizes:
+        raise SystemExit(f'raw rows were filled at batch {sizes.pop()}, not {batch}; resume at that size')
+    return sizes.pop() if sizes else batch
 
 
 def run_meta(prompt: str, key: str, probe: dict[str, Any], batching: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -232,10 +247,11 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
             judged.append(new)
     finally:
         validate.close()
-    (out / 'fills.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in judged))
     probe = json.loads((directory / 'preflight' / f'modal-gpu-{key}.json').read_text())
+    sizing = batching(raw, probe)              # refuses mixed batch sizes before anything is written
+    (out / 'fills.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in judged))
     G.gpu_preflight_path(directory, key, prompt).write_text(json.dumps(probe, indent=1) + '\n')
-    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe, batching(raw, probe)), indent=1) + '\n')
+    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe, sizing), indent=1) + '\n')
     return {'key': key, 'prompt': prompt, 'masks': len(judged), 'legal': sum(r['legal'] for r in judged)}
 
 
@@ -273,7 +289,7 @@ if modal is not None:
             hf_cache.commit()
 
     @app.local_entrypoint()
-    def main(key: str, prompts: str = 'inplace_header,inplace_instructions', limit: int = 0, batch: int = 0) -> None:
+    def main(key: str, prompts: str = ','.join(FOUR_PROMPTS), limit: int = 0, batch: int = 0) -> None:
         """batch 0 (the default) takes the largest batch that fits the GPU; any other value fixes it."""
         order = prompts.split(',')
         tasks = grid_tasks()
@@ -283,6 +299,7 @@ if modal is not None:
         if missing:
             raise SystemExit(f'{FITTING}: no frozen mask list for {missing}')
         left = pending(order, tasks[:limit or None], {p: set(ids) for p, ids in done.items()}, only)
+        size = resume_batch((r for p in order for r in read_rows(DIRECTORY / p / key / RAW)), batch or None)
         print(f'{key}: {len(left)} fills to make on Modal {GPU}', flush=True)
         if not left:
             return
@@ -293,7 +310,7 @@ if modal is not None:
         begin, made = time.time(), 0
         try:
             for line in fill.remote_gen(key, order, tasks, done, limit or None, {p: sorted(i) for p, i in only.items()},
-                                        batch or None):
+                                        size):
                 row = json.loads(line)
                 if 'probe' in row:
                     print(line, flush=True)

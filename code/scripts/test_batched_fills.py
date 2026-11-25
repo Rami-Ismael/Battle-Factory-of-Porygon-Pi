@@ -178,19 +178,25 @@ class RowForwardTest(unittest.TestCase):
 
 
 class LargestBatchTest(unittest.TestCase):
-    def test_stops_at_the_ceiling(self):
+    def test_bisects_to_the_largest_size_that_fits(self):
         def peak_at(batch):
-            if batch >= 32:
+            if batch >= 23:
                 raise torch.OutOfMemoryError('CUDA out of memory')
             return batch * 10
         result = B.largest_batch(peak_at, capacity=10_000)
-        self.assertEqual(result['batch'], 16)
-        self.assertEqual(result['ladder'][-1], {'batch': 32, 'status': 'over ceiling'})
+        self.assertEqual(result['batch'], 22)
+        self.assertIn({'batch': 32, 'status': 'over ceiling'}, result['ladder'])
 
     def test_stops_above_the_headroom(self):
         result = B.largest_batch(lambda b: b * 100, capacity=1000, headroom=0.9)
-        self.assertEqual(result['batch'], 8)
-        self.assertEqual(result['ladder'][-1]['status'], 'over headroom')
+        self.assertEqual(result['batch'], 9)
+
+    def test_cap_bounds_the_search(self):
+        tried = []
+        result = B.largest_batch(lambda b: tried.append(b) or 1, capacity=1000, cap=11)
+        self.assertEqual(result['batch'], 11)
+        self.assertEqual(max(tried), 11)
+        self.assertEqual(B.largest_batch(lambda b: 1, capacity=1000)['batch'], B.BATCHES[-1])
 
     def test_other_errors_and_no_fit_raise(self):
         with self.assertRaises(ValueError):
@@ -303,9 +309,46 @@ class BatchedGridTest(unittest.TestCase):
 
     def test_cpu_batch_needs_no_ladder(self):
         tokenizer = FakeTokenizer()
-        longest = G.longest_canvas(TASKS, [PROMPT], tokenizer, MASK_ID, None)
-        self.assertEqual(len(longest['ids']), max(len(G.canvas(t, PROMPT, tokenizer, MASK_ID)['ids']) for t in TASKS))
+        texts = [G.canvas(t, PROMPT, tokenizer, MASK_ID) for t in TASKS]
+        longest, deepest, shortest = G.extreme_texts(texts)
+        self.assertEqual(len(longest['ids']), max(len(c['ids']) for c in texts))
+        self.assertEqual(len(deepest['slots']), max(len(c['slots']) for c in texts))
+        self.assertEqual(len(shortest['ids']), min(len(c['ids']) for c in texts))
         self.assertEqual(G.choose_batch(None, longest, MASK_ID, MS.SHARED_SAMPLER, 'cpu')['batch'], G.CPU_BATCH)
+        self.assertEqual(G.choose_batch(None, longest, MASK_ID, MS.SHARED_SAMPLER, 'cpu', cap=2)['batch'], 2)
+
+    def test_mask_groups_give_shared_masks_the_same_neighbours(self):
+        tokenizer = FakeTokenizer()
+        groups = G.mask_groups(TASKS, tokenizer, MASK_ID, None, 2)
+        self.assertEqual(sorted(i for g in groups for i in g), sorted(t['id'] for t in TASKS))
+        self.assertTrue(all(len(g) <= 2 for g in groups))
+        with tempfile.TemporaryDirectory() as d:            # a prompt missing one mask keeps the others' groups
+            _, rows_forward = noisy_pair(tokenizer)
+            G.fill_grid(TASKS, PROMPT, tokenizer, None, MASK_ID, Path(d) / 'all.jsonl', FakeValidator(),
+                        row_forward=rows_forward, batch=2)
+            G.fill_grid(TASKS[1:], G.PROMPTS['inplace_instructions'], tokenizer, None, MASK_ID,
+                        Path(d) / 'some.jsonl', FakeValidator(), row_forward=rows_forward, batch=2,
+                        group_tasks=TASKS)
+            together = {r['id']: r['batch_rows'] for r in G.read_rows(Path(d) / 'some.jsonl')}
+        self.assertEqual(sum(together.values()), sum(len([i for i in g if i != 'a1']) ** 2 for g in groups))
+
+    def test_resumed_batch_keeps_the_rows_size(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'fills.jsonl'
+            self.assertIsNone(G.resumed_batch([path], None))
+            self.assertEqual(G.resumed_batch([path], 4), 4)
+            path.write_text(json.dumps({'id': 'a', 'batch_size': 8}) + '\n')
+            self.assertEqual(G.resumed_batch([path], None), 8)
+            with self.assertRaises(ValueError):
+                G.resumed_batch([path], 4)
+            path.write_text(json.dumps({'id': 'a', 'batch_size': 8}) + '\n' + json.dumps({'id': 'b'}) + '\n')
+            with self.assertRaises(ValueError):
+                G.resumed_batch([path], None)
+
+    def test_record_batching_puts_the_redraw_size_in_the_setting(self):
+        meta = G.record_batching({'setting': {'batch': 1}}, {'batch': 16, 'ladder': []}, redraw=True)
+        self.assertEqual((meta['setting']['batch'], meta['setting']['redraw_batch']), (1, 16))
+        self.assertEqual(meta['batches'][0]['batch'], 16)
 
 
 class ContainerModel:
@@ -348,10 +391,10 @@ class ContainerTest(unittest.TestCase):
         self.assertEqual(probe['repeat_same_tokens'], 1.0)
         self.assertEqual(probe['batch1_same_tokens'], 1.0)
         self.assertEqual(probe['padding']['top1_same'], 1.0)
-        self.assertEqual(probe['batching']['batch'], G.CPU_BATCH)
+        self.assertEqual(probe['batching']['batch'], min(G.CPU_BATCH, len(TASKS)))     # capped at the fills
         self.assertEqual(sorted((r['prompt'], r['id']) for r in rows),
                          sorted((p, t['id']) for p in prompts for t in TASKS))
-        self.assertEqual({r['batch_size'] for r in rows}, {G.CPU_BATCH})
+        self.assertEqual({r['batch_size'] for r in rows}, {len(TASKS)})
         order = [[r['id'] for r in rows if r['prompt'] == p] for p in prompts]
         self.assertEqual(order[0], order[1])
         with tempfile.TemporaryDirectory() as d:          # each row is the fill fill_grid gives it one at a time
@@ -362,11 +405,43 @@ class ContainerTest(unittest.TestCase):
                 alone = {r['id']: r['slot_ids'] for r in G.read_rows(out)}
                 self.assertEqual({r['id']: r['slot_ids'] for r in rows if r['prompt'] == p}, alone)
 
+    def test_fill_container_never_builds_a_text_outside_a_prompts_mask_list(self):
+        import inplace_prompt_fill_modal as F
+        prompts = ['inplace_header', 'inplace_header_example']
+        build = G.canvas
+
+        def guarded(task, prompt, *args, **kwargs):
+            if prompt.code == 'inplace_header_example' and task['id'] == 'c3':
+                raise AssertionError('built a text the mask list excludes (TextTooLong on the real grid)')
+            return build(task, prompt, *args, **kwargs)
+        with unittest.mock.patch.object(G, 'canvas', guarded), unittest.mock.patch.object(G, 'LIMIT', 4096):
+            lines = [json.loads(x) for x in F.fill_remote('qwen3', prompts, TASKS, {}, None,
+                                                          {'inplace_header_example': ['a1', 'b2']}, batch=2,
+                                                          gpu='cpu')]
+        rows = lines[1:]
+        self.assertEqual(sorted((r['prompt'], r['id']) for r in rows),
+                         sorted([('inplace_header', t['id']) for t in TASKS]
+                                + [('inplace_header_example', 'a1'), ('inplace_header_example', 'b2')]))
+        groups = {p: {r['id']: r['batch_rows'] for r in rows if r['prompt'] == p} for p in prompts}
+        mine = G.mask_groups(TASKS, self.tokenizer, MASK_ID, None, 2)
+        expected = {i: len([j for j in g if j in groups['inplace_header_example']]) for g in mine for i in g}
+        self.assertEqual(groups['inplace_header_example'], {i: expected[i] for i in ('a1', 'b2')})
+
+    def test_resume_keeps_the_raw_rows_batch_size(self):
+        import inplace_prompt_fill_modal as F
+        self.assertIsNone(F.resume_batch([], None))
+        self.assertEqual(F.resume_batch([{'batch_size': 4}], None), 4)
+        self.assertEqual(F.resume_batch([{}], None), 1)
+        with self.assertRaises(SystemExit):
+            F.resume_batch([{'batch_size': 4}], 8)
+        with self.assertRaises(SystemExit):
+            F.resume_batch([{'batch_size': 4}, {}], None)
+
     def test_fill_container_given_batch_and_resume(self):
         import inplace_prompt_fill_modal as F
         lines = [json.loads(x) for x in F.fill_remote('qwen3', ['inplace_header'], TASKS, {'inplace_header': ['a1']},
                                                       None, batch=2, gpu='cpu')]
-        self.assertEqual(lines[0]['probe']['batching'], {'batch': 2, 'ladder': [], 'chosen_by': 'given'})
+        self.assertEqual(lines[0]['probe']['batching']['batch'], 2)
         self.assertEqual(sorted(r['id'] for r in lines[1:]), ['b2', 'c3'])
         self.assertEqual(F.batching([{'batch_size': 2}] * 2, lines[0]['probe'])['batch'], 2)
         with self.assertRaises(ValueError):
@@ -396,17 +471,26 @@ class ReportTest(unittest.TestCase):
         extra = {'id': 'extra', 'legal': True, 'seconds': 1.0, 'batch_size': 16}
         after = [*rows([True, False, True, False, True], 0.5, 16), extra]
         result = R.one_pair(before, after)
-        self.assertEqual((result['masks'], result['legal_batch1'], result['legal_batched']), (5, 3, 3))
+        self.assertEqual((result['masks'], result['legal_one_at_a_time'], result['legal_batched']), (5, 3, 3))
         self.assertEqual((result['gained'], result['lost']), (1, 1))
-        self.assertTrue(result['within_noise'])
-        self.assertAlmostEqual(result['batch1']['fills_per_second'], 1 / 3)
+        self.assertTrue(result['no_difference'])
+        self.assertAlmostEqual(result['one_at_a_time']['fills_per_second'], 1 / 3)
         self.assertAlmostEqual(result['batched']['fills_per_second'], 2.0)
         self.assertAlmostEqual(result['batched']['dollars_per_1000'], 1000 / 2.0 / 3600 * R.L4_DOLLARS_PER_HOUR)
         self.assertEqual(result['batched']['batch'], 16)
         lost = R.one_pair(rows([True] * 12, 1.0, 1), rows([False] * 12, 1.0, 8))
-        self.assertFalse(lost['within_noise'])
+        self.assertFalse(lost['no_difference'])
         with self.assertRaises(ValueError):
             R.batch_size([{'batch_size': 1}, {'batch_size': 4}])
+
+    def test_missing_runs_never_pass(self):
+        import batched_fills_report as R
+        with tempfile.TemporaryDirectory() as d:
+            result = R.report(Path(d) / 'one', Path(d) / 'many')
+        self.assertEqual(result['pairs'], 0)
+        self.assertFalse(result['no_difference_anywhere'])
+        self.assertEqual(len(result['missing']), 2 * len(G.SMALL_FOUR) * len(R.PROMPTS))
+        self.assertTrue(R.verdict(result).startswith('incomplete'))
 
 
 if __name__ == '__main__':

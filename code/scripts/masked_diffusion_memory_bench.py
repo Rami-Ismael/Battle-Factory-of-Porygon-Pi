@@ -209,29 +209,43 @@ def fill_rows(forward: RowForward, rows: Sequence[Sequence[int]], slots: Sequenc
 
 
 def largest_batch(peak_at: Callable[[int], int], capacity: int, batches: Sequence[int] = BATCHES,
-                  headroom: float = 0.9) -> dict[str, Any]:
-    """The ladder of #170 inside one process: batch sizes in order until one goes over the ceiling (an out-of-memory
-    error) or peaks above headroom x capacity. peak_at(b) fills b copies of the longest text for one step and returns
-    the peak bytes; every step after the first has the same shape or a smaller one. Returns the largest batch that
-    fit and every reading."""
+                  headroom: float = 0.9, cap: int | None = None) -> dict[str, Any]:
+    """The ladder of #170 inside one process, then a bisection: batch sizes 1, 2, 4, ... until one goes over the
+    ceiling (an out-of-memory error) or peaks above headroom x capacity, then halving between the last size that fit
+    and the first that did not, so the result is the largest size that fits, not only the largest power of two.
+    peak_at(b) fills a batch of b at the worst shape the run will meet for one step and returns the peak bytes;
+    every step after the first has that shape or a smaller one. cap (the number of fills to make) and the ladder's
+    last size bound the search. Returns the size and every reading."""
     readings: list[dict[str, Any]] = []
-    chosen = None
-    for batch in batches:
+    top = min(batches[-1], cap) if cap is not None else batches[-1]
+
+    def fits(batch: int) -> bool:
         try:
             peak = peak_at(batch)
         except Exception as error:
             if not is_over_ceiling(error):
                 raise
             readings.append({'batch': batch, 'status': 'over ceiling'})
+            return False
+        ok = peak <= headroom * capacity
+        readings.append({'batch': batch, 'peak': peak, 'status': 'fits' if ok else 'over headroom'})
+        return ok
+
+    good, bad = 0, None
+    for batch in [b for b in batches if b < top] + [top]:
+        if not fits(batch):
+            bad = batch
             break
-        fits = peak <= headroom * capacity
-        readings.append({'batch': batch, 'peak': peak, 'status': 'fits' if fits else 'over headroom'})
-        if not fits:
-            break
-        chosen = batch
-    if chosen is None:
+        good = batch
+    if good == 0:
         raise RuntimeError(f'not even batch {batches[0]} fits: {readings}')
-    return {'batch': chosen, 'capacity': capacity, 'headroom': headroom, 'ladder': readings}
+    while bad is not None and bad - good > 1:
+        middle = (good + bad) // 2
+        if fits(middle):
+            good = middle
+        else:
+            bad = middle
+    return {'batch': good, 'capacity': capacity, 'headroom': headroom, 'cap': cap, 'ladder': readings}
 
 
 def shift_right(logits: torch.Tensor) -> torch.Tensor:

@@ -107,16 +107,17 @@ def draw_remote(key: str, tasks: list[dict[str, Any]], first: list[dict[str, Any
     deferred = lambda _paste: DEFERRED
     if not todo:
         return
-    longest = G.longest_canvas(list({t['id']: t for t, _ in todo}.values()), [prompt], tokenizer, candidate.mask_id,
-                               start_id)
-    sizing = (G.choose_batch(row_forward, longest, candidate.mask_id, active, gpu) if batch is None
-              else {'batch': batch, 'ladder': [], 'chosen_by': 'given'})
+    texts = {t['id']: G.canvas(t, prompt, tokenizer, candidate.mask_id, start_id) for t, _ in todo}
+    longest, most_masks, _ = G.extreme_texts(texts.values())
+    sizing = (G.choose_batch(row_forward, longest, candidate.mask_id, active, gpu, most_masks=most_masks,
+                             cap=len(todo))
+              if batch is None else {'batch': batch, 'ladder': [], 'chosen_by': 'given'})
     task, draw = todo[0]
     seed = G.redraw_seed(G.SETTING['seed'], task['id'], draw)
-    a, b = G.fill_batch([(task, seed), (task, seed)], prompt, tokenizer, row_forward, candidate.mask_id, deferred,
-                        names, gpu, start_id, sampler=active)
+    first_draw, second_draw = G.repeat_draw(task, seed, prompt, tokenizer, row_forward, candidate.mask_id, deferred,
+                                            names, gpu, start_id, active, sizing['batch'])
     yield json.dumps({'probe': {'device': device, 'torch': torch.__version__, 'mask': task['id'],
-                                'repeat_same_tokens': G.token_share(a['slot_ids'], b['slot_ids']),
+                                'repeat_same_tokens': G.token_share(first_draw['slot_ids'], second_draw['slot_ids']),
                                 'pending': len(todo), 'batching': sizing}})
     rank = {i: n for n, i in enumerate(G.length_order([t for t, _ in todo], prompt, tokenizer, candidate.mask_id,
                                                       start_id))}
@@ -128,6 +129,25 @@ def draw_remote(key: str, tasks: list[dict[str, Any]], first: list[dict[str, Any
                             batch_size=sizing['batch'])
         for row, (_task, d) in zip(rows, chunk, strict=True):
             yield json.dumps(row | {'draw': d, 'device': device}, ensure_ascii=False)
+
+
+def resume_batch(rows: Iterable[dict[str, Any]], batch: int | None) -> int | None:
+    """The batch size a launch must use: the one its raw rows were drawn at (rows from before #443 count as 1), the
+    given size, or None (find it) when nothing is drawn yet. Refuses a different given size and mixed sizes."""
+    sizes = {r.get('batch_size', 1) for r in rows}
+    if len(sizes) > 1:
+        raise SystemExit(f'raw rows drawn at batch sizes {sorted(sizes)}; one run keeps one size')
+    if sizes and batch is not None and batch not in sizes:
+        raise SystemExit(f'raw rows were drawn at batch {sizes.pop()}, not {batch}; resume at that size')
+    return sizes.pop() if sizes else batch
+
+
+def resume_batching(raw: list[dict[str, Any]], probe: dict[str, Any]) -> dict[str, Any]:
+    """The redraws' batching for run.json: the size every raw row was drawn at, with the probe's ladder when the
+    probe chose that size."""
+    size = resume_batch(raw, None)
+    recorded = probe.get('batching') or {}
+    return recorded if recorded.get('batch') == size else {'batch': size, 'ladder': [], 'chosen_by': 'rows'}
 
 
 def merge(key: str, directory: Path = DIRECTORY) -> dict[str, int]:
@@ -163,6 +183,13 @@ def merge(key: str, directory: Path = DIRECTORY) -> dict[str, int]:
     with (out / 'redraws.jsonl').open('a') as handle:
         for r in kept:
             handle.write(json.dumps(r, ensure_ascii=False) + '\n')
+    meta_path = out / 'run.json'
+    if meta_path.exists() and raw:
+        probe_path = out / 'modal-probe.json'
+        probe = json.loads(probe_path.read_text()).get('probe', {}) if probe_path.exists() else {}
+        sizing = resume_batching(raw, probe)
+        meta_path.write_text(json.dumps(G.record_batching(json.loads(meta_path.read_text()), sizing, redraw=True),
+                                        indent=1) + '\n')
     final = G.final_draws(out / 'fills.jsonl', out / 'redraws.jsonl')
     return {'raw': len(raw), 'appended': len(kept), 'legal_raw': sum(r['legal'] for r in judged),
             'legal_after_redraws': sum(r['legal'] for r in final.values()), 'masks': len(final)}
@@ -197,12 +224,13 @@ if modal is not None:
         first = read_rows(out / 'fills.jsonl')
         done = read_rows(out / 'redraws.jsonl') + read_rows(out / RAW)
         left = pending(tasks[:limit or None], first, done)
+        size = resume_batch(read_rows(out / RAW), batch or None)
         print(f'{key}: {len(left)} draws to make on Modal {GPU}', flush=True)
         if not left:
             return
         begin, made = time.time(), 0
         with (out / RAW).open('a') as handle:
-            for line in draw.remote_gen(key, tasks, first, done, limit or None, batch or None):
+            for line in draw.remote_gen(key, tasks, first, done, limit or None, size):
                 if line.startswith('{"probe"'):
                     print(line, flush=True)
                     (out / 'modal-probe.json').write_text(line + '\n')

@@ -4,7 +4,7 @@
 The batch-1 side is #239's run (one mask per forward pass, ~/vgc-data/inplace_prompt_grid/modal-l4-239); the batched
 side is the same four prompts, masks, mask seeds and sampler setting filled batch at a time
 (~/vgc-data/inplace_prompt_grid/modal-l4-443). Within noise means McNemar's two-sided p is at least ALPHA for that
-model and prompt; the owner dropped token-for-token agreement with batch 1 (2026-11-25), so legal counts are the
+model and prompt (McNemar finds no difference); the owner dropped token-for-token agreement with batch 1 (2026-11-25), so legal counts are the
 check. Speed counts sampling time only, as each row records it (the batch's time shared out over its rows); model
 loading and Showdown are left out of both sides.
 
@@ -30,7 +30,7 @@ LABELS = {'diffugpt_s': 'DiffuGPT small', 'diffugpt_m': 'DiffuGPT medium', 'qwen
 
 def speed(rows: Sequence[dict[str, Any]]) -> dict[str, float]:
     """Fills per second of sampling time and dollars per 1,000 fills at the L4's price."""
-    seconds = sum(r['seconds'] for r in rows)
+    seconds = sum(row['seconds'] for row in rows)
     per_second = len(rows) / seconds if seconds else 0.0
     dollars = 1000 / per_second / 3600 * L4_DOLLARS_PER_HOUR if per_second else 0.0
     return {'fills': len(rows), 'sampling_seconds': seconds, 'fills_per_second': per_second,
@@ -38,97 +38,129 @@ def speed(rows: Sequence[dict[str, Any]]) -> dict[str, float]:
 
 
 def batch_size(rows: Sequence[dict[str, Any]]) -> int:
-    sizes = {r.get('batch_size', 1) for r in rows}
+    sizes = {row.get('batch_size', 1) for row in rows}
     if len(sizes) != 1:
         raise ValueError(f'rows filled at batch sizes {sorted(sizes)}')
     return sizes.pop()
 
 
-def one_pair(before: list[dict[str, Any]], after: list[dict[str, Any]]) -> dict[str, Any]:
-    """One model and prompt: the masks both sides filled, their legal counts, the paired test and each side's speed."""
-    shared = {r['id'] for r in before} & {r['id'] for r in after}
-    before = [r for r in before if r['id'] in shared]
-    after = [r for r in after if r['id'] in shared]
-    test = G.paired(before, after)
-    return {'masks': len(shared), 'legal_batch1': sum(r['legal'] for r in before),
-            'legal_batched': sum(r['legal'] for r in after), **test, 'within_noise': test['p_value'] >= ALPHA,
-            'batch1': speed(before) | {'batch': batch_size(before)},
-            'batched': speed(after) | {'batch': batch_size(after)}}
+def matched(one_at_a_time: list[dict[str, Any]], batched: list[dict[str, Any]]) -> tuple[list, list]:
+    """Both sides cut to the masks both filled."""
+    shared = {row['id'] for row in one_at_a_time} & {row['id'] for row in batched}
+    return [row for row in one_at_a_time if row['id'] in shared], [row for row in batched if row['id'] in shared]
+
+
+def one_pair(one_at_a_time: list[dict[str, Any]], batched: list[dict[str, Any]]) -> dict[str, Any]:
+    """One model and prompt: the masks both sides filled, their legal counts, the paired test and each side's speed.
+    A p-value of at least ALPHA means McNemar's test finds no difference between the two batchings."""
+    one_at_a_time, batched = matched(one_at_a_time, batched)
+    test = G.paired(one_at_a_time, batched)
+    return {'masks': len(one_at_a_time), 'legal_one_at_a_time': sum(row['legal'] for row in one_at_a_time),
+            'legal_batched': sum(row['legal'] for row in batched), **test, 'no_difference': test['p_value'] >= ALPHA,
+            'one_at_a_time': speed(one_at_a_time) | {'batch': batch_size(one_at_a_time)},
+            'batched': speed(batched) | {'batch': batch_size(batched)}}
 
 
 def report(before_dir: Path = BEFORE, after_dir: Path = AFTER) -> dict[str, Any]:
+    """Every model and prompt pair; missing lists the pairs a side has no fills for, and the verdict needs all."""
     models: dict[str, dict[str, Any]] = {}
+    missing: list[str] = []
     for key in G.SMALL_FOUR:
+        sides: dict[str, list[dict[str, Any]]] = {'one_at_a_time': [], 'batched': []}
         for prompt in PROMPTS:
-            paths = [d / prompt / key / 'fills.jsonl' for d in (before_dir, after_dir)]
-            if all(p.exists() for p in paths):
-                models.setdefault(key, {})[prompt] = one_pair(G.read_fills(paths[0]), G.read_fills(paths[1]))
-    for key, prompts in models.items():
-        rows = {side: [r for p in prompts for d in (before_dir if side == 'batch1' else after_dir,)
-                       for r in G.read_fills(d / p / key / 'fills.jsonl')] for side in ('batch1', 'batched')}
-        prompts['all prompts'] = {side: speed(rows[side]) for side in rows}
+            paths = [directory / prompt / key / 'fills.jsonl' for directory in (before_dir, after_dir)]
+            absent = [str(path) for path in paths if not path.exists()]
+            if absent:
+                missing += absent
+                continue
+            one_at_a_time, batched = matched(G.read_fills(paths[0]), G.read_fills(paths[1]))
+            models.setdefault(key, {})[prompt] = one_pair(one_at_a_time, batched)
+            sides['one_at_a_time'] += one_at_a_time
+            sides['batched'] += batched
+        if key in models:
+            models[key]['all prompts'] = {side: speed(rows) for side, rows in sides.items()}
+    pairs = [value for prompts in models.values() for prompt, value in prompts.items() if prompt != 'all prompts']
     return {'before': str(before_dir), 'after': str(after_dir), 'alpha': ALPHA,
-            'l4_dollars_per_hour': L4_DOLLARS_PER_HOUR, 'models': models,
-            'all_within_noise': all(v['within_noise'] for m in models.values() for p, v in m.items()
-                                    if p != 'all prompts')}
+            'l4_dollars_per_hour': L4_DOLLARS_PER_HOUR, 'models': models, 'missing': missing,
+            'pairs': len(pairs), 'no_difference_anywhere': bool(pairs) and not missing
+            and all(value['no_difference'] for value in pairs)}
+
+
+def verdict(result: dict[str, Any]) -> str:
+    if result['missing']:
+        return f"incomplete: {len(result['missing'])} fills files missing"
+    if result['no_difference_anywhere']:
+        return f"McNemar finds no difference for any model and prompt (every p ≥ {ALPHA})"
+    return f"McNemar finds a difference for at least one model and prompt (p < {ALPHA})"
 
 
 def table(result: dict[str, Any]) -> str:
-    lines = ['| Model | Prompt | Masks | Legal, batch 1 | Legal, batched | Gained / lost (McNemar p) | '
-             'Fills per second, batch 1 → batched (batch size) |', '|---|---|---|---|---|---|---|']
+    lines = [f'Verdict: {verdict(result)}.', '',
+             '| Model | Prompt | Masks | Legal, one mask per forward pass | Legal, batched | '
+             'Gained / lost (McNemar p) | Fills per second, one at a time → batched (batch size) |',
+             '|---|---|---|---|---|---|---|']
     for key, prompts in result['models'].items():
-        for prompt, v in prompts.items():
+        for prompt, value in prompts.items():
             if prompt == 'all prompts':
                 continue
-            lines.append(f"| {LABELS[key]} | {G.PROMPTS[prompt].name} | {v['masks']} | {v['legal_batch1']} | "
-                         f"{v['legal_batched']} | {v['gained']} / {v['lost']} (p = {v['p_value']:.2f}) | "
-                         f"{v['batch1']['fills_per_second']:.2f} → {v['batched']['fills_per_second']:.2f} "
-                         f"({v['batched']['batch']}) |")
-    lines += ['', '| Model | Fills per second, batch 1 | Fills per second, batched | Speed-up | '
-              '$ per 1,000 fills, batch 1 | $ per 1,000 fills, batched |', '|---|---|---|---|---|---|']
+            lines.append(f"| {LABELS[key]} | {G.PROMPTS[prompt].name} | {value['masks']} | "
+                         f"{value['legal_one_at_a_time']} | {value['legal_batched']} | "
+                         f"{value['gained']} / {value['lost']} (p = {value['p_value']:.2f}) | "
+                         f"{value['one_at_a_time']['fills_per_second']:.2f} → "
+                         f"{value['batched']['fills_per_second']:.2f} ({value['batched']['batch']}) |")
+    lines += ['', '| Model | Fills per second, one at a time | Fills per second, batched | Speed-up | '
+              '$ per 1,000 fills, one at a time | $ per 1,000 fills, batched |', '|---|---|---|---|---|---|']
     for key, prompts in result['models'].items():
-        one, many = prompts['all prompts']['batch1'], prompts['all prompts']['batched']
-        up = many['fills_per_second'] / one['fills_per_second'] if one['fills_per_second'] else 0.0
-        lines.append(f"| {LABELS[key]} | {one['fills_per_second']:.2f} | {many['fills_per_second']:.2f} | {up:.1f}× | "
-                     f"{one['dollars_per_1000']:.2f} | {many['dollars_per_1000']:.2f} |")
+        alone, batched = prompts['all prompts']['one_at_a_time'], prompts['all prompts']['batched']
+        speedup = batched['fills_per_second'] / alone['fills_per_second'] if alone['fills_per_second'] else 0.0
+        lines.append(f"| {LABELS[key]} | {alone['fills_per_second']:.2f} | {batched['fills_per_second']:.2f} | "
+                     f"{speedup:.1f}× | {alone['dollars_per_1000']:.2f} | {batched['dollars_per_1000']:.2f} |")
+    if result['missing']:
+        lines += ['', 'Missing fills files:', *(f'- `{path}`' for path in result['missing'])]
     return '\n'.join(lines)
 
 
+ONE_AT_A_TIME, BATCHED = 'one mask per forward pass', 'many masks per forward pass'
+
+
 def charts(result: dict[str, Any], out: Path) -> list[Path]:
-    """Two ECharts pages: legal fills per model and prompt at batch 1 and batched, and fills per second per model."""
+    """Two ECharts pages: legal fills per model and prompt under each batching, and fills per second per model."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
     from echarts_chart import write_chart
-    cells = [(key, p) for key, prompts in result['models'].items() for p in prompts if p != 'all prompts']
-    names = [f"{LABELS[k]}\n{G.PROMPTS[p].name}" for k, p in cells]
+    cells = [(key, prompt) for key, prompts in result['models'].items() for prompt in prompts
+             if prompt != 'all prompts']
+    names = [f"{LABELS[key]}\n{G.PROMPTS[prompt].name}" for key, prompt in cells]
     bar = {'type': 'bar', 'emphasis': {'focus': 'series'}, 'label': {'show': True, 'position': 'top'}}
     legal = {'tooltip': {'trigger': 'axis'}, 'legend': {'top': 0},
              'grid': {'left': 48, 'right': 16, 'bottom': 96, 'top': 40, 'containLabel': True},
+             'dataZoom': [{'type': 'inside'}, {'type': 'slider', 'bottom': 8, 'height': 16}],
              'xAxis': {'type': 'category', 'data': names, 'axisLabel': {'interval': 0, 'rotate': 40, 'fontSize': 11}},
              'yAxis': {'type': 'value', 'name': 'legal first-try fills'},
-             'series': [bar | {'name': 'one mask per forward pass', 'color': '#8a8984',
-                               'data': [result['models'][k][p]['legal_batch1'] for k, p in cells]},
-                        bar | {'name': 'batched', 'color': '#2a6fdb',
+             'series': [bar | {'name': ONE_AT_A_TIME, 'color': '#8a8984',
+                               'data': [result['models'][k][p]['legal_one_at_a_time'] for k, p in cells]},
+                        bar | {'name': BATCHED, 'color': '#2a6fdb',
                                'data': [result['models'][k][p]['legal_batched'] for k, p in cells]}]}
     keys = list(result['models'])
+    two_decimals = {'show': True, 'position': 'top', 'formatter': 'js:p => p.value.toFixed(2)'}
     fast = {'tooltip': {'trigger': 'axis'}, 'legend': {'top': 0},
             'grid': {'left': 48, 'right': 16, 'bottom': 40, 'top': 40, 'containLabel': True},
-            'xAxis': {'type': 'category', 'data': [LABELS[k] for k in keys]},
+            'xAxis': {'type': 'category', 'data': [LABELS[key] for key in keys]},
             'yAxis': {'type': 'value', 'name': 'fills per second'},
-            'series': [bar | {'name': 'one mask per forward pass', 'color': '#8a8984',
-                              'label': {'show': True, 'position': 'top', 'formatter': 'js:p => p.value.toFixed(2)'},
-                              'data': [result['models'][k]['all prompts']['batch1']['fills_per_second'] for k in keys]},
-                       bar | {'name': 'batched', 'color': '#2a6fdb',
-                              'label': {'show': True, 'position': 'top', 'formatter': 'js:p => p.value.toFixed(2)'},
+            'series': [bar | {'name': ONE_AT_A_TIME, 'color': '#8a8984', 'label': two_decimals,
+                              'data': [result['models'][k]['all prompts']['one_at_a_time']['fills_per_second']
+                                       for k in keys]},
+                       bar | {'name': BATCHED, 'color': '#2a6fdb', 'label': two_decimals,
                               'data': [result['models'][k]['all prompts']['batched']['fills_per_second']
                                        for k in keys]}]}
-    within = 'every model and prompt within McNemar noise' if result['all_within_noise'] else \
-        'at least one model and prompt outside McNemar noise'
-    return [write_chart(legal, out / 'batched-legal.html', title='Batched fills keep the legal counts',
-                        subtitle=f'Same masks, seeds and sampler on a Modal L4; {within} (p ≥ {ALPHA})',
-                        note='Legal: parses, keeps every visible value, Reg M-B names, and Showdown accepts it.',
+    title = ('Batching leaves the legal counts unchanged' if result['no_difference_anywhere']
+             else 'Legal counts: one mask per forward pass against many')
+    return [write_chart(legal, out / 'batched-legal.html', title=title,
+                        subtitle=f'Same masks, seeds and sampler on a Modal L4; {verdict(result)}',
+                        note=('Legal: the fill parses, keeps every visible value, writes only names allowed in '
+                              'Regulation M-B (the format), and Showdown accepts the team.'),
                         height=480),
             write_chart(fast, out / 'batched-speed.html', title='Fills per second on a Modal L4',
-                        subtitle='Sampling time only, all four prompts together; model loading left out')]
+                        subtitle='Sampling time only, over the masks both batchings filled; model loading left out')]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
