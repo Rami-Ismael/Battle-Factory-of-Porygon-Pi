@@ -18,6 +18,21 @@ def regulation_vocab(member=LOOP_TEAMS_MODEL):
     return Vocab.from_regulation(load_checkpoint(L.CK / f"{member}.pt", map_location="cpu")["regulation"])
 
 
+def assert_no_wrong_stones(V, train_rows, val_rows):
+    """Verify with every field visible that neither split holds a wrong-stone (tables-rejected) team (issues #385, #368).
+    Raises SystemExit naming both counts; returns the counts for the training log."""
+    import lossdown as L
+    tables = L.Tables(V, [])
+    train_bad = int(tables.rejects(np.asarray(train_rows, np.int64)[:, :COLS48]).sum())
+    val_bad = int(tables.rejects(np.asarray(val_rows, np.int64)[:, :COLS48]).sum())
+    if train_bad or val_bad:
+        raise SystemExit(
+            f"wrong-stone check failed (every field visible): {train_bad} training and {val_bad} validation teams rejected"
+        )
+    return dict(method="Tables.rejects (every field visible)", train_rows=len(train_rows),
+                val_rows=len(val_rows), train_rejected=train_bad, val_rejected=val_bad)
+
+
 def encode(V, team):
     """int64 [84]; raises ValueError for a field outside the vocabulary or illegal Stat Points."""
     stat_tokens = SP.tokens_from_stat_points([s.get("evs", {}) for s in canon(team)])
@@ -36,4 +51,4 @@ def decode(V, row):
     return slots
 
 
-__all__ = ["COLS", "COLS48", "SP", "decode", "encode", "norm", "regulation_vocab"]
+__all__ = ["COLS", "COLS48", "SP", "assert_no_wrong_stones", "decode", "encode", "norm", "regulation_vocab"]
