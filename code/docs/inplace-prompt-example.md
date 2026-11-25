@@ -74,6 +74,16 @@ Written before any fill. The example shows 6 real species, 6 items, 6 abilities,
 - **DiffuGPT small on the task-statement base** stays near its 10 legal masks: the statement already cost it the Stat Points masks the example could not restore.
 - **Cost:** seconds per team up 20% to 60% (about 420 more tokens on texts of about 515 to 600); peak memory stays far under the 17.76 GiB ceiling (#238 peaked at 1.51 GiB).
 
+## Figures
+
+Storyboarded before any fill. Built by `code/scripts/inplace_example_post.py`.
+
+| Figure | The sentence it should carry | Expected | Would surprise |
+| --- | --- | --- | --- |
+| One model, 2 × 2 (example team down, base across), legal fills per cell with gained / lost under the example row | Whether the example team moves this model's legal fills, on each base | Both example cells within a few masks of the cell above | A Qwen model gaining 10 or more masks |
+| Copies, models × fields, with and without the example | Which models copy the example's values, and into which fields | Both Qwen models copy items and moves well above the chance row; DiffuGPT near chance | DiffuGPT copying as much as the Qwen models |
+| Four prompts, models × prompts, legal fills | No prompt so far makes any small model write legal teams | No column stands out | One column far above the others for every model |
+
 ## Departures from the ticket
 
 - **Both bases, not only the task statement.** Owner, 2026-11-25: fill the example on the header-only prompt as well as on the task-statement prompt, since #238's statement helped no model. The ticket's comparison (`inplace_example` against `inplace_instructions`) is primary comparison (2).
