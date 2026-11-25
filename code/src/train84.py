@@ -86,6 +86,7 @@ import lossdown as L                                     # before diffusion84: i
 sys.path.insert(0, str(HERE))
 import stat_points as SP
 import team84 as T
+from team84 import assert_no_wrong_stones
 from ddom_weights import bin_weights
 from label_noise import noise_tag, noise_width
 import diffusion84 as M
@@ -259,19 +260,6 @@ def train_masking_rate_arms(arm):
     has = ~np.isnan(d["all_W"]); tr = ~d["all_val"] & has; va = d["all_val"] & has
     train(arm, d["all_X"][tr], d["all_W"][tr], (d["all_X"][va], d["all_W"][va]), epochs=80, patience=3,
           early_stopping_threshold=0.0, label_noise=1 / 48, every_epoch=True, **MASKING_RATE_ARMS[arm])
-
-
-def assert_no_wrong_stones(V, train_rows, val_rows):
-    """Verify with every field visible that neither split holds a wrong-stone (tables-rejected) team (issue #385)."""
-    tables = L.Tables(V, [])
-    train_bad = int(tables.rejects(np.asarray(train_rows, np.int64)[:, :T.COLS48]).sum())
-    val_bad = int(tables.rejects(np.asarray(val_rows, np.int64)[:, :T.COLS48]).sum())
-    if train_bad or val_bad:
-        raise SystemExit(
-            f"wrong-stone check failed (every field visible): {train_bad} training and {val_bad} validation teams rejected"
-        )
-    return dict(method="Tables.rejects (every field visible)", train_rows=len(train_rows),
-                val_rows=len(val_rows), train_rejected=train_bad, val_rejected=val_bad)
 
 
 def train_filtered_default_arms(arm):

@@ -29,6 +29,9 @@ if LAPTOP:
 LR_FIELDS = set(LS.GIDD_LR_RECIPE)
 
 
+CLEAN_CHECK = dict(method="mock", train_rows=3, val_rows=1, train_rejected=0, val_rejected=0)
+
+
 def fake_table():
     return dict(all_X=np.arange(6 * 84).reshape(6, 84) % 5 + 1, all_W=np.array([0.5, np.nan, 0.25, 0.75, np.nan, 0.1]),
                 all_val=np.array([False, False, False, True, True, False]), sha256="e58af7689e62",
@@ -70,10 +73,27 @@ class MaskedFullFilterArmTests(unittest.TestCase):
 class UniformNoFilterArmTests(unittest.TestCase):
     def call_for(self, arm):
         with (mock.patch.object(TU, "train") as train, mock.patch.object(TU, "load", return_value=fake_table()),
-              mock.patch.object(TU, "check_rows")):
+              mock.patch.object(TU, "check_rows"),
+              mock.patch.object(TU.T, "assert_no_wrong_stones", return_value=CLEAN_CHECK) as guard,
+              redirect_stdout(io.StringIO())):
             TU.train_arm(arm)
         train.assert_called_once()
+        self.guard_args = guard.call_args.args
         return train.call_args
+
+    def test_wrong_stone_guard_sees_the_rows_the_trainer_gets(self):
+        call = self.call_for("udlm_loglinear_gidd_lr")
+        _, guarded_train, guarded_val = self.guard_args
+        np.testing.assert_array_equal(guarded_train, call.args[1])
+        np.testing.assert_array_equal(guarded_val, call.args[3][0])
+
+    def test_wrong_stone_team_stops_training_before_it_starts(self):
+        refused = SystemExit("wrong-stone check failed (every field visible): 1 training and 0 validation teams rejected")
+        with (mock.patch.object(TU, "train") as train, mock.patch.object(TU, "load", return_value=fake_table()),
+              mock.patch.object(TU, "check_rows"), mock.patch.object(TU.T, "assert_no_wrong_stones", side_effect=refused)):
+            with self.assertRaises(SystemExit):
+                TU.train_arm("udlm_loglinear")
+        train.assert_not_called()
 
     def test_name_is_new_and_says_the_recipe(self):
         self.assertEqual(TU.NAMES["udlm_loglinear_gidd_lr"], "stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80")
