@@ -36,8 +36,6 @@ SHOWDOWN_STEP_RULES = set(G.SHOWDOWN_ONLY) | set(TEAM_RULES) | {'wrong Mega Ston
 
 def audit_run(directory: Path, prompt: str, key: str, validate: Any, names: dict[str, frozenset[str]],
               tasks: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    import re
-
     import count_masked_diffusion_text as C
     import masked_diffusion_memory_bench as B
     candidate = C.candidate_by_key(key)
@@ -52,43 +50,53 @@ def audit_run(directory: Path, prompt: str, key: str, validate: Any, names: dict
         c = G.canvas(tasks[row['id']], G.PROMPTS[prompt], tokenizer, candidate.mask_id, start_id)
         again = G.judge(tasks[row['id']], c['built'], row['values'], validate, names)
         team = again.pop('team', None)
-        same = all(again[k] == row[k] for k in ('legal', 'failed', 'reasons', 'rules', 'showdown_errors'))
-        if not same:
+        if not all(again[k] == row[k] for k in ('legal', 'failed', 'reasons', 'rules', 'showdown_errors')):
             out['rejudge_mismatch'].append(row['id'])
-        rules = again['rules']
-        broken = [r for r, v in rules.items() if v]
-        for r, v in rules.items():
-            if v is not None:
-                out['judged'][r] += 1
-            if v:
-                out['broken'][r] += 1
-                if len(out['examples'][r]) < 2:
-                    out['examples'][r].append(example(row, again, r))
-        if again['legal'] and broken:
-            out['legal_but_broken'].append((row['id'], broken))
-        if not again['legal'] and not broken:
-            out['illegal_but_clean'].append(row['id'])
-        need = {'parses': {'does not parse as a team'}, 'visible': {'changed a visible value'},
-                'regmb': set(G.NAME_RULES.values()), 'showdown': SHOWDOWN_STEP_RULES}.get(again['failed'], set())
-        if need and not need & set(broken):
-            out['step_without_rule'].append((row['id'], again['failed']))
-        errors = again['showdown_errors']
-        if team is not None and errors is not None:
-            for rule, pattern in TEAM_RULES.items():
-                sd = any(re.search(pattern, e) for e in errors)
-                mine = _own_check(team, rule)
-                if mine != bool(rules[rule]):
-                    out['step_without_rule'].append((row['id'], f'second reading disagrees on {rule}'))
-                agree[rule][('ours', mine, 'showdown', sd)] += 1
-            for e in errors:
-                if not any(re.search(p, e) for p, _ in G.SHOWDOWN_RULES):
-                    out['unmapped'][e] += 1
+        check_rules(row, again, out)
+        if team is not None and again['showdown_errors'] is not None:
+            check_against_showdown(row['id'], team, again, out, agree)
     out['team_vs_showdown'] = {rule: {f"ours {'yes' if a[1] else 'no'}, Showdown {'yes' if a[3] else 'no'}": n
                                       for a, n in c.items()} for rule, c in agree.items()}
     out['unmapped'] = dict(out['unmapped'].most_common(15))
     out['examples'] = dict(out['examples'])
     out['broken'], out['judged'] = dict(out['broken']), dict(out['judged'])
     return out
+
+
+def check_rules(row: dict[str, Any], again: dict[str, Any], out: dict[str, Any]) -> None:
+    """Legal iff clean, the first failed step has its rule, and the per-rule counts and examples."""
+    rules = again['rules']
+    broken = [r for r, v in rules.items() if v]
+    for r, v in rules.items():
+        out['judged'][r] += v is not None
+        if v:
+            out['broken'][r] += 1
+            if len(out['examples'][r]) < 2:
+                out['examples'][r].append(example(row, again))
+    if again['legal'] and broken:
+        out['legal_but_broken'].append((row['id'], broken))
+    if not again['legal'] and not broken:
+        out['illegal_but_clean'].append(row['id'])
+    need = {'parses': {'does not parse as a team'}, 'visible': {'changed a visible value'},
+            'regmb': set(G.NAME_RULES.values()), 'showdown': SHOWDOWN_STEP_RULES}.get(again['failed'], set())
+    if need and not need & set(broken):
+        out['step_without_rule'].append((row['id'], again['failed']))
+
+
+def check_against_showdown(task_id: str, team: list[dict[str, Any]], again: dict[str, Any], out: dict[str, Any],
+                           agree: dict[str, Counter]) -> None:
+    """Our team rules, a second reading of them, and Showdown's message for the same rule; unmapped messages."""
+    import re
+    errors = again['showdown_errors']
+    for rule, pattern in TEAM_RULES.items():
+        sd = any(re.search(pattern, e) for e in errors)
+        mine = _own_check(team, rule)
+        if mine != bool(again['rules'][rule]):
+            out['step_without_rule'].append((task_id, f'second reading disagrees on {rule}'))
+        agree[rule][('ours', mine, 'showdown', sd)] += 1
+    for e in errors:
+        if not any(re.search(p, e) for p, _ in G.SHOWDOWN_RULES):
+            out['unmapped'][e] += 1
 
 
 def _own_check(team: list[dict[str, Any]], rule: str) -> bool:
@@ -108,7 +116,7 @@ def _own_check(team: list[dict[str, Any]], rule: str) -> bool:
     return any(v > 32 for m in team for v in m['statPoints'].values())
 
 
-def example(row: dict[str, Any], verdict: dict[str, Any], rule: str) -> dict[str, Any]:
+def example(row: dict[str, Any], verdict: dict[str, Any]) -> dict[str, Any]:
     named = [f'{p}={v!r}' for p, v in zip(row['paths'], row['values'], strict=True)][:8]
     return {'id': row['id'], 'task': f"{row['task']} {row['k']}", 'filled': named,
             'showdown': (verdict['showdown_errors'] or [])[:3], 'reasons': verdict['reasons'][:3]}
