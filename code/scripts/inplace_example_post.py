@@ -52,7 +52,7 @@ def rows_for(directory: Path, key: str, prompt: str, keep: frozenset[str] | None
 def pair(directory: Path, key: str, before: str, after: str) -> dict[str, Any]:
     """One base's comparison for one model, on the masks both prompts fill, with each side's copy counts."""
     keep = G.shared_ids(before, after)
-    a, b = rows_for(directory, key, before, keep), rows_for(directory, key, after, keep)
+    a, b = (G.on_masks(G.read_fills(directory / p / key / 'fills.jsonl'), keep, f'{p}/{key}') for p in (before, after))
     out = G.compare_rows(a, b)
     out['copies'] = {'before': G.example_copies(a), 'after': G.example_copies(b)}
     out['masks'] = len(a)

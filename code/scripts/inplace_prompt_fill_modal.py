@@ -16,8 +16,8 @@ inplace_prompt_grid.judge (parses, keeps the visible values, Reg M-B names, Show
 computed on the laptop (inplace_prompt_grid.fitting_ids) and frozen in FROZEN/data/fitting-ids.json; the entrypoint
 fills each prompt's list and merge refuses a raw file that is not exactly that list.
 
-D is INPLACE_RESULTS_DIR (default ~/vgc-data/inplace_prompt_grid/modal-l4; #239 uses modal-l4-239), apart from #237's
-laptop fills. The code the container runs is the
+D is INPLACE_RESULTS_DIR (default ~/vgc-data/inplace_prompt_grid/modal-l4-239; #238's fills are in modal-l4), apart
+from #237's laptop fills. The code the container runs is the
 frozen copy in INPLACE_CODE_DIR (default ~/vgc-data/inplace_prompt_grid/run239; #238 ran from run238).
 
 Before any Modal launch: state its estimated cost and credit left (`modal billing summary`).
@@ -39,8 +39,8 @@ from pathlib import Path
 from typing import Any
 
 HOME = Path.home() / 'vgc-data/inplace_prompt_grid'
-DIRECTORY = Path(os.environ.get('INPLACE_RESULTS_DIR', HOME / 'modal-l4'))     # #239: modal-l4-239, so both
-# prompts without the example are refilled in its containers rather than read from #238's rows
+DIRECTORY = Path(os.environ.get('INPLACE_RESULTS_DIR', HOME / 'modal-l4-239'))     # #238's rows: modal-l4. A new
+# directory per experiment, so its prompts without the example are refilled in its containers, never resumed from #238
 FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run239'))
 TASKS = FROZEN / 'data/eval2.tasks.json'     # the held-out grid, copied out of the iCloud vault into the frozen run
 FITTING = FROZEN / 'data/fitting-ids.json'   # {prompt: [mask ids]} for the prompts that do not fit every mask (#239)
@@ -142,14 +142,14 @@ def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done:
         yield json.dumps(one(prompt, task), ensure_ascii=False)
 
 
-def run_meta(prompt: str, key: str, probe: dict[str, Any]) -> dict[str, Any]:
-    """run.json for one prompt and model, in the shape inplace_prompt_grid.run writes, with the Modal device."""
+def run_meta(prompt: str, key: str, probe: dict[str, Any], tasks: list[dict[str, Any]]) -> dict[str, Any]:
+    """run.json for one prompt and model, in the shape inplace_prompt_grid.run writes, with the Modal device. tasks
+    are the masks the prompt was filled on; tasks_sha256 stays the whole grid file's."""
     import hashlib
     sys.path[:0] = [str(FROZEN / 'scripts'), str(FROZEN / 'src')]
     import count_masked_diffusion_text as C
     import inplace_prompt_grid as G
     candidate = C.candidate_by_key(key)
-    tasks = grid_tasks()
     meta = G.run_meta(G.PROMPTS[prompt], candidate, tasks, tasks_sha256=hashlib.sha256(TASKS.read_bytes()).hexdigest())
     meta['setting']['device'] = probe['device']
     meta['environment'] |= {'torch': probe['torch'], 'device': probe['device'], 'judged_on': 'laptop'}
@@ -201,7 +201,7 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
     (out / 'fills.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in judged))
     probe = json.loads((directory / 'preflight' / f'modal-gpu-{key}.json').read_text())
     G.gpu_preflight_path(directory, key, prompt).write_text(json.dumps(probe, indent=1) + '\n')
-    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe), indent=1) + '\n')
+    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe, tasks), indent=1) + '\n')
     return {'key': key, 'prompt': prompt, 'masks': len(judged), 'legal': sum(r['legal'] for r in judged)}
 
 
