@@ -17,6 +17,7 @@ each Stat Point number 2. A slot is exactly the text between a value's quotes, w
 value's tokens cross its quotes; slot_lengths asserts that for the tokenizer it is given.
 
     in_place_text(task, ask, tokenizer, limit)        the text, where its slots sit, its parts' sizes
+    in_place_text(..., statement=TASK_STATEMENT)      the same text with a task statement before the team (#238)
     training_target(task, ask, tokenizer, limit, pad) the same text with the real values, padded
     read_filled(text, pad, mask_token)                a filled text back into a team, by a JSON parser
     check_filled(text, pad, mask_token, validate)     a filled text's legality, with the reason it failed
@@ -42,6 +43,11 @@ from mask_paste import (FORMAT_NAME, RULES, STATS, Piece, Team, ValuePath, json_
                         team_paste, value_text)
 
 VERSION = 'in-place-json-v1-no-meta-teams'      # stored beside every generated team
+# #238: one task statement before the team, worded once for every model. It names no model's mask token.
+TASK_STATEMENT = ('Task: each run of mask tokens in the team below is one hidden value of its field. Fill it with a '
+                  'legal Reg M-B value: a species, item, ability, move, Stat Alignment (nature) or Stat Point number. '
+                  'Write names as Showdown spells them. Leave the JSON keys, quotes and commas as they are.\n')
+INSTRUCTIONS_VERSION = VERSION + '+task-statement-v1'
 ASK_LINE = 'Target win rate vs top meta teams: {ask}.'     # the earlier text fine-tunes' wording
 TEAM_LABEL = 'Team: '
 VOCABULARY = Path(__file__).resolve().parents[1] / 'data/regmb-vocabulary.json'
@@ -85,8 +91,13 @@ def ask_text(ask: float | None) -> str:
     return 'unknown' if ask is None else f'{ask:.2f}'
 
 
-def header_parts(ask: float | None) -> dict[str, str]:
-    return {'format and rules': f'Format: {FORMAT_NAME}.\nRules: {RULES}.\n', 'ask': ASK_LINE.format(ask=ask_text(ask)) + '\n'}
+def header_parts(ask: float | None, statement: str | None = None) -> dict[str, str]:
+    parts = {'format and rules': f'Format: {FORMAT_NAME}.\nRules: {RULES}.\n', 'ask': ASK_LINE.format(ask=ask_text(ask)) + '\n'}
+    if statement is not None:
+        if not statement.endswith('\n') or TEAM_LABEL in statement:
+            raise ValueError('a task statement ends its own line and never holds the team label')
+        parts['task statement'] = statement
+    return parts
 
 
 def value_label(path: ValuePath) -> str:
@@ -199,16 +210,18 @@ def _count_parts(spans: list[tuple[int, int]], parts: dict[str, str]) -> dict[st
     return counts
 
 
-def in_place_text(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer, limit: int) -> InPlaceText:
-    """The text the model fills for one Mask Lab task. Refuses text over limit tokens, naming each part's size."""
+def in_place_text(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer, limit: int,
+                  statement: str | None = None) -> InPlaceText:
+    """The text the model fills for one Mask Lab task, with statement (a task statement) between the header and the
+    team when given. Refuses text over limit tokens, naming each part's size."""
     hidden = hidden_values(task)
     _check_masked_team(task, hidden)
     lengths = slot_lengths(tokenizer)
-    parts = header_parts(ask)
+    parts = header_parts(ask, statement)
+    prefix = sum(map(len, parts.values())) + len(TEAM_LABEL)
     team, where = render(json_pieces(task['masked_team']),
                          lambda path, value: tokenizer.mask_token * lengths[path[1]] if path in hidden else value_text(value))
     parts['team'] = TEAM_LABEL + team
-    prefix = len(parts['format and rules']) + len(parts['ask']) + len(TEAM_LABEL)
     text = ''.join(parts.values())
     spans = offsets(tokenizer, text)
     part_tokens = _count_parts(spans, parts)
@@ -223,13 +236,14 @@ def in_place_text(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer,
             raise ValueError(f'{value_label(path)}: {len(inside)} tokens, not {lengths[path[1]]}; '
                              f'{tokenizer.mask_token!r} is not one token')
         slots.append(SlotSpan(value_label(path), path[1], start, end, inside[0], len(inside)))
-    return InPlaceText(text, tuple(slots), part_tokens)
+    return InPlaceText(text, tuple(slots), part_tokens, VERSION if statement is None else INSTRUCTIONS_VERSION)
 
 
-def training_target(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer, limit: int, pad: str) -> str:
+def training_target(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer, limit: int, pad: str,
+                    statement: str | None = None) -> str:
     """The in-place text with each hidden field's real value in its slot, followed by pad up to the slot length.
     Checked to have the same tokens as the in-place text everywhere outside the slots."""
-    built = in_place_text(task, ask, tokenizer, limit)
+    built = in_place_text(task, ask, tokenizer, limit, statement)
     original = json_pieces(task['original'])
     real = {piece[0]: piece[1] for piece in original if not isinstance(piece, str)}
     counts = value_tokens(tokenizer, original)

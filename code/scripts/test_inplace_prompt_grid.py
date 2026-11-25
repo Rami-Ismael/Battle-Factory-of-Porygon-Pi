@@ -90,9 +90,10 @@ class FakeValidator:
         return 'Pikachu has more than 32 Stat Points in HP.' if 'EVs: 99' in paste else None
 
 
-def answer_model(tokenizer, task, vocab_size=None):
+def answer_model(tokenizer, task, prompt=None):
     """A model whose logits at each slot put all weight on the true value's token (padded as training pads)."""
-    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token)
+    statement = None if prompt is None else prompt.statement
+    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token, statement)
     truth = tokenizer(target, add_special_tokens=False)['input_ids']
 
     def forward_for(slots):
@@ -376,6 +377,109 @@ class PasteRowTest(unittest.TestCase):
         self.assertEqual(team[0]['statPoints']['HP'], 13)
         self.assertEqual(team[0]['nature'], 'Lonely')
         self.assertEqual(blank_slot(1)['level'], team[0]['level'])
+
+
+INSTRUCTIONS = G.PROMPTS['inplace_instructions']
+
+
+class InstructionsPromptTest(unittest.TestCase):
+    """#238: the instructions prompt is today's prompt plus one task statement before the team, nothing else."""
+
+    def test_the_only_difference_is_the_task_statement_before_the_team(self):
+        tokenizer = FakeTokenizer()
+        for task in [*TASKS, make_task('pokemon', 'f6')]:
+            header = PROMPT.build(task, G.ASK, tokenizer, G.LIMIT)
+            added = INSTRUCTIONS.build(task, G.ASK, tokenizer, G.LIMIT)
+            at = header.text.index('\n' + D.TEAM_LABEL) + 1
+            self.assertEqual(added.text, header.text[:at] + D.TASK_STATEMENT + header.text[at:])
+            shift = len(D.TASK_STATEMENT)
+            tokens = len(tokenizer(D.TASK_STATEMENT, add_special_tokens=False)['input_ids'])
+            self.assertEqual([(s.path, s.field, s.length) for s in added.slots],
+                             [(s.path, s.field, s.length) for s in header.slots])
+            self.assertEqual([(s.start, s.end) for s in added.slots],
+                             [(s.start + shift, s.end + shift) for s in header.slots])
+            self.assertEqual([s.first_token for s in added.slots], [s.first_token + tokens for s in header.slots])
+            self.assertEqual(added.part_tokens, header.part_tokens | {'task statement': tokens})
+            self.assertEqual(added.version, D.INSTRUCTIONS_VERSION)
+            self.assertNotEqual(added.version, header.version)
+
+    def test_the_statement_is_one_fixed_text_for_every_model(self):
+        """No model's mask token in it, and it cannot be mistaken for the team label the judge splits on."""
+        self.assertIs(INSTRUCTIONS.statement, D.TASK_STATEMENT)
+        self.assertIsNone(PROMPT.statement)
+        self.assertTrue(D.TASK_STATEMENT.endswith('\n'))
+        self.assertNotIn(D.TEAM_LABEL, D.TASK_STATEMENT)
+        self.assertNotIn('<|', D.TASK_STATEMENT)
+        for word in ('species', 'item', 'ability', 'move', 'Stat Alignment', 'Stat Point', 'Showdown', 'JSON keys'):
+            self.assertIn(word, D.TASK_STATEMENT)
+
+    def test_the_true_values_are_legal_and_a_perfect_model_fills_legally(self):
+        tokenizer = FakeTokenizer()
+        with tempfile.TemporaryDirectory() as d:
+            for task in TASKS:
+                built = G.canvas(task, INSTRUCTIONS, tokenizer, 0)['built']
+                self.assertTrue(G.judge(task, built, G.true_values(task), FakeValidator(), G.vocabulary())['legal'])
+                G.fill_grid([task], INSTRUCTIONS, tokenizer, answer_model(tokenizer, task, INSTRUCTIONS), 0,
+                            Path(d) / 'f.jsonl', FakeValidator())
+            rows = G.read_rows(Path(d) / 'f.jsonl')
+        self.assertEqual([r['legal'] for r in rows], [True, True, True])
+        self.assertEqual({r['prompt'] for r in rows}, {'inplace_instructions'})
+        self.assertEqual({r['version'] for r in rows}, {D.INSTRUCTIONS_VERSION})
+
+    def test_the_round_trip_reads_the_true_values_back_through_the_statement(self):
+        tokenizer = FakeTokenizer()
+        for task in TASKS:
+            c = G.canvas(task, INSTRUCTIONS, tokenizer, 0)
+            values = G.round_trip_values(tokenizer, task, c, None, INSTRUCTIONS)
+            self.assertTrue(G.judge(task, c['built'], values, FakeValidator(), G.vocabulary())['legal'])
+
+    def test_the_statement_costs_the_same_tokens_on_every_mask(self):
+        tokenizer = FakeTokenizer()
+        cost = G.statement_tokens(TASKS, INSTRUCTIONS, tokenizer, 0, None)
+        alone = len(tokenizer(D.TASK_STATEMENT, add_special_tokens=False)['input_ids'])
+        self.assertEqual(cost, {'statement_alone': alone, 'added_min': alone, 'added_max': alone, 'masks': 3})
+
+
+def row(task_id, legal, failed=None, reasons=(), seconds=1.0, species=None):
+    fields, values = (['species'], [species]) if species is not None else ([], [])
+    return {'id': task_id, 'task': 'items', 'legal': legal, 'failed': None if legal else failed or 'parses',
+            'reasons': list(reasons), 'json_parses': legal or failed != 'parses', 'reads_as_team': legal,
+            'showdown_accepts': legal, 'showdown_errors': [], 'fields': fields, 'values': values, 'recovered': False,
+            'copied_visible': 0, 'prompt_tokens': 10, 'seconds': seconds, 'peak_bytes': 0, 'special_dropped': 0}
+
+
+class CompareTest(unittest.TestCase):
+    def test_mcnemar_counts_only_the_masks_that_changed(self):
+        before = [row('a', True), row('b', False), row('c', False), row('d', True)]
+        after = [row('a', True), row('b', True), row('c', True), row('d', False)]
+        paired = G.paired(before, after)
+        self.assertEqual((paired['gained'], paired['lost'], paired['both'], paired['neither']), (2, 1, 1, 0))
+        self.assertAlmostEqual(paired['p_value'], 1.0)
+
+    def test_mcnemar_exact_p_for_a_one_sided_change(self):
+        before = [row(str(n), False) for n in range(10)]
+        after = [row(str(n), n < 8) for n in range(10)]
+        self.assertAlmostEqual(G.paired(before, after)['p_value'], 2 * 0.5 ** 8)
+
+    def test_rows_are_paired_by_mask_id_and_must_cover_the_same_masks(self):
+        before = [row('a', True), row('b', False)]
+        self.assertEqual(G.paired(before, [row('b', True), row('a', True)])['gained'], 1)
+        with self.assertRaises(ValueError):
+            G.paired(before, [row('a', True)])
+
+    def test_the_comparison_reports_each_measure_before_and_after(self):
+        before = [row('a', False, 'parses', ['Expecting value'], species='Japan'), row('b', False, 'regmb', ['not a Reg M-B item'],
+                                                                       seconds=3.0, species='Pikachu')]
+        after = [row('a', True, seconds=2.0, species='Pikachu'), row('b', False, 'regmb', ['not a Reg M-B item'],
+                                                                     seconds=4.0, species='Japan')]
+        out = G.compare_rows(before, after)
+        self.assertEqual(out['legal'], {'before': 0, 'after': 1, 'of': 2})
+        self.assertEqual(out['json_parses'], {'before': 1, 'after': 2, 'of': 2})
+        self.assertEqual(out['real_species'], {'before': 1, 'after': 1, 'of': 2})
+        self.assertEqual(out['seconds_per_team'], {'before': 2.0, 'after': 3.0})
+        self.assertEqual(out['reasons']['before'], [['Expecting value', 1], ['not a Reg M-B item', 1]])
+        self.assertEqual(out['reasons']['after'], [['not a Reg M-B item', 1]])
+        self.assertEqual(out['paired']['gained'], 1)
 
 
 if __name__ == '__main__':

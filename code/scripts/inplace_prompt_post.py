@@ -11,6 +11,10 @@ Two figures, storyboarded in code/docs/inplace-prompt-heldout-baseline.md:
     comment --dir D --matrix --url U          the comment comparing every model
     figure|comment --dir D --key K --redraw   #171: one model's grid after redraws
     figure|comment --dir D --battles          #171: usable win rate of every arm, from battles-report.json
+    figure|comment ... --prompt P             a later prompt's grid or model comment (#238 to #240); its model
+                                              comment adds the paired change from today's prompt
+    figure|comment --dir D --compare --prompt P   #238: every model's legal and parsing count, today's prompt
+                                              against P, and the ticket's before-and-after table
 
 Run with any Python that has the repo's code/scripts and code/src on its path.
 """
@@ -40,6 +44,9 @@ CELL_ORDER += [('moves', k) for k in range(1, 25)]
 TASK_NAMES = {'items': 'item', 'abilities': 'ability', 'natures': 'Stat Alignment', 'stats': 'Stat Points',
               'pokemon': 'whole Pokémon', 'moves': 'move'}
 BAR = 3
+BEFORE = 'inplace_header'
+TICKETS = {'inplace_header': '#237', 'inplace_instructions': '#238'}
+PROMPT_TEXT = {'inplace_header': "#168's text", 'inplace_instructions': "#168's text plus #238's task statement"}
 
 
 def rows_for(directory: Path, key: str, prompt: str = 'inplace_header') -> list[dict[str, Any]]:
@@ -55,7 +62,7 @@ def headline(key: str, s: dict[str, Any]) -> str:
     return f"{LABELS[key]}: {s['legal']} of {s['masks']} masks legal on the first try, so it {verdict} the bar of {BAR}"
 
 
-def grid_figure(rows: list[dict[str, Any]], key: str, out: Path) -> Path:
+def grid_figure(rows: list[dict[str, Any]], key: str, out: Path, prompt: str = BEFORE) -> Path:
     sources = sorted({r['source'] for r in rows})
     data = []
     for r in rows:
@@ -82,11 +89,12 @@ def grid_figure(rows: list[dict[str, Any]], key: str, out: Path) -> Path:
                     'emphasis': {'itemStyle': {'borderColor': '#0b0b0b', 'borderWidth': 1}}}],
     }
     note = ('Each cell is one mask: an unmasked team (rank 51 to 100) with some values hidden, filled once by the '
-            'model with the header-only in-place prompt. The four checks run in order: the filled JSON parses as a '
+            f'model with the prompt "{G.PROMPTS[prompt].name}". The four checks run in order: the filled JSON parses as a '
             'team; every value the mask showed reads back unchanged; every filled name is a Reg M-B species, item, '
             'ability, Stat Alignment or move; Showdown accepts the team. A cell shows the first check it failed. '
             f"128 steps, temperature 1.0, mask seeds from run seed 2026. Showdown alone accepts {s['showdown_accepts']} of 270.")
-    return write_chart(option, out, title=headline(key, s), subtitle='Held-out grid, 270 masks, first try only (#237)',
+    return write_chart(option, out, title=headline(key, s),
+                       subtitle=f'Held-out grid, 270 masks, first try only ({TICKETS[prompt]})',
                        note=note, height=460, dark=dict(zip(LIGHT, DARK, strict=True)) | {'#fcfcfb': '#161615'})
 
 
@@ -121,19 +129,29 @@ def picture(url: str, name: str, alt: str) -> str:
             f'<img src="{url.format(name=name, theme="light")}" width="900" alt="{alt}"></picture>')
 
 
-def model_comment(directory: Path, key: str, url: str) -> str:
-    rows = rows_for(directory, key)
+def model_comment(directory: Path, key: str, url: str, prompt: str = BEFORE) -> str:
+    rows = rows_for(directory, key, prompt)
     s = G.summarize(rows)
     lo, hi = s['legal_interval']
-    meta = json.loads((directory / 'inplace_header' / key / 'run.json').read_text())
-    probe = json.loads((directory / 'preflight' / f'gpu-{key}.json').read_text())
+    meta = json.loads((directory / prompt / key / 'run.json').read_text())
+    probe = json.loads(G.gpu_preflight_path(directory, key, prompt).read_text())
     steps = Counter(r['failed'] for r in rows)
     top = Counter(reason for r in rows for reason in r['reasons']).most_common(6)
     real = s['real_values']
     by_task = ', '.join(f"{TASK_NAMES[t]} {v['legal']}/{v['of']}" for t, v in s['legal_by_task'].items())
     alt = f"{headline(key, s)}. Of 270 masks: " + '; '.join(f'{OUTCOME_LABELS[o]}, {steps[o]}' for o in OUTCOMES) + '.'
     field_line = ', '.join(f"{G.FIELD_NAMES[f]} {v['real']}/{v['of']}" for f, v in real.items())
-    lines = [f'## {headline(key, s)}', '', picture(url, f'grid-{key}', alt), '',
+    change = []
+    if prompt != BEFORE:
+        c = G.compare_rows(rows_for(directory, key, BEFORE), rows)
+        p = c['paired']
+        change = [f"- **Against today's prompt** ({TICKETS[BEFORE]}, the same masks and mask seeds): legal "
+                  f"{c['legal']['before']} → {c['legal']['after']}; {p['gained']} masks turned legal and {p['lost']} "
+                  f"stopped being legal (McNemar exact p = {p['p_value']:.3g}). Parses as JSON "
+                  f"{c['json_parses']['before']} → {c['json_parses']['after']}; seconds per team "
+                  f"{c['seconds_per_team']['before']:.1f} → {c['seconds_per_team']['after']:.1f}."]
+    lines = [f'## {headline(key, s)}', '', picture(url, f'grid-{prompt}-{key}' if prompt != BEFORE else f'grid-{key}', alt),
+             '', *change,
              f"- **Legal on the first try:** {s['legal']}/270, exact 95% interval {lo:.2%} to {hi:.2%}. Legal means all "
              "four checks pass: parses as a team, keeps every shown value, writes only Reg M-B names, Showdown accepts.",
              f"- **Showdown alone accepts** {s['showdown_accepts']}/270. It lets junk Stat Alignments through, which is "
@@ -149,15 +167,102 @@ def model_comment(directory: Path, key: str, url: str) -> str:
              f"{s['seconds_per_team']:.1f} s per team, {s['seconds_total'] / 3600:.2f} h in all, peak "
              f"{s['peak_gib']:.2f} GiB.",
              f"- **Probes before the fill:** attention sees later tokens {probe['sees_later_tokens']}; same seed twice "
-             f"{probe['repeat_same_tokens']:.0%} of slot tokens the same; reverse run order "
-             f"{probe['reverse_order_same_tokens']:.0%} the same.",
+             f"{probe['repeat_same_tokens']:.0%} of slot tokens the same; "
+             + (f"reverse run order {probe['reverse_order_same_tokens']:.0%} the same." if 'reverse_order_same_tokens'
+                in probe else f"on {probe.get('device', 'the GPU')}; run order cannot matter, since each mask's seed "
+                "comes from its id (CPU test)."),
              '',
-             f"<details><summary>Setting</summary>\n\nPrompt `inplace_header` (#168's text, ask `unknown`), "
+             f"<details><summary>Setting</summary>\n\nPrompt `{prompt}` ({PROMPT_TEXT[prompt]}, ask `unknown`), "
              f"{meta['candidate']['repo']} at `{meta['candidate']['revision'][:8]}`, {meta['setting']}, torch "
              f"{meta['environment']['torch']}, transformers {meta['environment']['transformers']}. One fill per mask, "
              f"batch size 1. Grid file SHA-256 `{meta['tasks_sha256'][:12]}`. Fills: "
-             f"`~/vgc-data/inplace_prompt_grid/inplace_header/{key}/fills.jsonl`. Pre-registration: "
-             '`code/docs/inplace-prompt-heldout-baseline.md`.\n\n</details>']
+             f"`~/vgc-data/inplace_prompt_grid/{prompt}/{key}/fills.jsonl`. Pre-registration: "
+             f"`code/docs/{PREREGISTRATION[prompt]}`.\n\n</details>"]
+    return '\n'.join(lines) + '\n'
+
+
+PREREGISTRATION = {'inplace_header': 'inplace-prompt-heldout-baseline.md',
+                   'inplace_instructions': 'inplace-prompt-instructions.md'}
+AFTER_LIGHT, AFTER_DARK = '#2a78d6', '#86b6ef'     # the prompt measured; today's prompt is the grey
+BEFORE_LIGHT, BEFORE_DARK = '#b5b5b0', '#5c5c58'
+
+
+def compare_results(directory: Path, prompt: str) -> dict[str, dict[str, Any]]:
+    return {k: G.compare_rows(rows_for(directory, k, BEFORE), rows_for(directory, k, prompt)) for k in G.SMALL_FOUR
+            if all((directory / p / k / 'fills.jsonl').exists() for p in (BEFORE, prompt))}
+
+
+def compare_headline(results: dict[str, dict[str, Any]], prompt: str) -> str:
+    up = [k for k, c in results.items() if c['legal']['after'] > c['legal']['before']]
+    down = [k for k, c in results.items() if c['legal']['after'] < c['legal']['before']]
+    name = G.PROMPTS[prompt].name.split(',')[0]
+    if not up and not down:
+        return f'{name}: no model changes its legal count'
+    parts = []
+    if up:
+        parts.append(f"more legal masks for {len(up)} of {len(results)} models")
+    if down:
+        parts.append(f"fewer for {', '.join(LABELS[k] for k in down)}")
+    return f"{name}: {' and '.join(parts)}"
+
+
+def compare_figure(results: dict[str, dict[str, Any]], prompt: str, out: Path) -> Path:
+    """Two panels, one row per model: masks legal on the first try, and masks whose fill parses as JSON, today's
+    prompt (grey) against the prompt measured (blue)."""
+    keys = list(results)
+    names = [LABELS[k] for k in keys]
+    series = []
+    for panel, measure in enumerate(('legal', 'json_parses')):
+        for side, color, label in (('before', BEFORE_LIGHT, G.PROMPTS[BEFORE].name.split(',')[0]),
+                                   ('after', AFTER_LIGHT, G.PROMPTS[prompt].name.split(',')[0])):
+            series.append({'type': 'bar', 'name': label, 'xAxisIndex': panel, 'yAxisIndex': panel, 'color': color,
+                           'data': [results[k][measure][side] for k in keys], 'barGap': '10%',
+                           'label': {'show': True, 'position': 'right', 'fontSize': 12},
+                           'emphasis': {'focus': 'series'}})
+    option = {
+        'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'shadow'}},
+        'legend': {'top': 0, 'data': [series[0]['name'], series[1]['name']]},
+        'grid': [{'left': 190, 'right': '54%', 'top': 60, 'bottom': 40},
+                 {'left': '56%', 'right': 40, 'top': 60, 'bottom': 40}],
+        'title': [{'text': 'Legal on the first try', 'left': 190, 'top': 30, 'textStyle': {'fontSize': 13}},
+                  {'text': 'Parses as JSON', 'left': '56%', 'top': 30, 'textStyle': {'fontSize': 13}}],
+        'xAxis': [{'type': 'value', 'gridIndex': 0, 'max': 270, 'name': 'masks of 270', 'nameLocation': 'middle',
+                   'nameGap': 26},
+                  {'type': 'value', 'gridIndex': 1, 'max': 270, 'name': 'masks of 270', 'nameLocation': 'middle',
+                   'nameGap': 26}],
+        'yAxis': [{'type': 'category', 'gridIndex': 0, 'data': names, 'inverse': True},
+                  {'type': 'category', 'gridIndex': 1, 'data': names, 'inverse': True, 'axisLabel': {'show': False}}],
+        'series': series,
+    }
+    note = ('The same 270 held-out masks and mask seeds under both prompts, one first-try fill each, 128 steps, '
+            'temperature 1.0, run seed 2026. Legal means the fill parses as a team, keeps every shown value, writes '
+            'only Reg M-B names and Showdown accepts it.')
+    return write_chart(option, out, title=compare_headline(results, prompt),
+                       subtitle=f'{G.PROMPTS[BEFORE].name} against {G.PROMPTS[prompt].name} ({TICKETS[prompt]})',
+                       note=note, height=150 + 60 * len(keys),
+                       dark={AFTER_LIGHT: AFTER_DARK, BEFORE_LIGHT: BEFORE_DARK})
+
+
+def compare_comment(directory: Path, prompt: str, url: str) -> str:
+    results = compare_results(directory, prompt)
+    alt = '; '.join(f"{LABELS[k]}: legal {c['legal']['before']} then {c['legal']['after']} of 270, parses as JSON "
+                    f"{c['json_parses']['before']} then {c['json_parses']['after']}" for k, c in results.items())
+    lines = [f'## {compare_headline(results, prompt)}', '', picture(url, f'compare-{prompt}', alt), '',
+             f"Each row pairs {TICKETS[BEFORE]}'s fills of today's prompt with this prompt's fills of the same 270 masks "
+             'and mask seeds. Gained counts masks legal only with the new prompt, lost those legal only with today\'s; '
+             "McNemar's exact test runs on those two counts.", '',
+             '| Model | Legal, first try | Gained / lost (p) | Parses as JSON | Real species | Seconds per team | '
+             'Most common reasons, before → after |', '|---|---|---|---|---|---|---|']
+    for k, c in results.items():
+        p = c['paired']
+        top = {side: '; '.join(f'{r} ({n})' for r, n in c['reasons'][side][:2]) for side in ('before', 'after')}
+        lines.append(f"| {LABELS[k]} | {c['legal']['before']} → {c['legal']['after']} | {p['gained']} / {p['lost']} "
+                     f"({p['p_value']:.3g}) | {c['json_parses']['before']} → {c['json_parses']['after']} | "
+                     f"{c['real_species']['before']} → {c['real_species']['after']} of {c['real_species']['of']} | "
+                     f"{c['seconds_per_team']['before']:.1f} → {c['seconds_per_team']['after']:.1f} | "
+                     f"{top['before']} → {top['after']} |")
+    lines += ['', f"Pre-registration and prediction: `code/docs/{PREREGISTRATION[prompt]}`. Per-model JSON: "
+              f"`~/vgc-data/inplace_prompt_grid/{prompt}/compare.json`."]
     return '\n'.join(lines) + '\n'
 
 
@@ -354,8 +459,14 @@ def main() -> int:
         p.add_argument('--battles', action='store_true', help='usable win rate of every arm (#171)')
         p.add_argument('--out', type=Path)
         p.add_argument('--url')
+        p.add_argument('--prompt', choices=G.PROMPTS, default=BEFORE)
+        p.add_argument('--compare', action='store_true', help=f'#238: --prompt against {BEFORE}, every model')
     args = parser.parse_args()
-    if args.command == 'figure' and args.battles:
+    if args.command == 'figure' and args.compare:
+        compare_figure(compare_results(args.dir, args.prompt), args.prompt, args.out)
+    elif args.command == 'comment' and args.compare:
+        print(compare_comment(args.dir, args.prompt, args.url), end='')
+    elif args.command == 'figure' and args.battles:
         battle_figure(battle_report(args.dir), args.out)
     elif args.command == 'figure' and args.redraw:
         redraw_figure(final_for(args.dir, args.key), args.key, args.out)
@@ -369,9 +480,10 @@ def main() -> int:
                        if (args.dir / 'inplace_header' / k / 'fills.jsonl').exists()}
             matrix_figure(results, args.out)
         else:
-            grid_figure(rows_for(args.dir, args.key), args.key, args.out)
+            grid_figure(rows_for(args.dir, args.key, args.prompt), args.key, args.out, args.prompt)
     else:
-        print(matrix_comment(args.dir, args.url) if args.matrix else model_comment(args.dir, args.key, args.url), end='')
+        print(matrix_comment(args.dir, args.url) if args.matrix
+              else model_comment(args.dir, args.key, args.url, args.prompt), end='')
     return 0
 
 

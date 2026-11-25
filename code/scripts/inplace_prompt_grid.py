@@ -8,6 +8,8 @@ masks ran before it and a stopped run resumes where it stopped.
 
 Prompts are stacked (#237 to #240); each later ticket adds one entry to PROMPTS:
     inplace_header      Header only, values filled in place: the #168 text, masked_diffusion_text.in_place_text
+    inplace_instructions  Task statement added (#238): the same text with masked_diffusion_text.TASK_STATEMENT
+                        between the header and the team
 
 The sampler is #170's (masked_diffusion_memory_bench.fill), configured by each candidate's SamplerSetting (defaulting
 to today's shared sampler: one window, dLLM's linear schedule, most confident masks first, 128 steps, temperature 1.0,
@@ -25,19 +27,23 @@ Legal means all four pass. Step 3 exists because Showdown's validator accepts so
 passes it (checked 2026-11-18). The report also counts teams Showdown alone accepts (steps 1, 2 and 4), the count
 #169's bar was written against.
 
-    preflight --out F                         the CPU probes: ceiling, round trip, coverage, controls, floor
+    preflight --out F [--prompt P]            the CPU probes: ceiling, round trip, coverage, controls, floor; with a
+                                              task statement, also its token cost per tokenizer
     run --prompt P --key K --dir D [--limit N] [--device mps]
                                               fill the grid; appends one line per mask to D/P/K/fills.jsonl
     redraw --prompt P --key K --dir D         #169's validator loop for #171: each mask that failed its first try is
                                               drawn up to 4 more times with its own seed per draw, stopping at the
                                               first legal draw; appends to D/P/K/redraws.jsonl
     teams --prompt P --key K --dir D          each mask's first legal draw as a paste, judged again, in teams.json
-    gpu-preflight --key K --dir D             the model probes: sees later tokens, repeat, run order
+    gpu-preflight --key K --dir D [--prompt P]  the model probes: sees later tokens, repeat, run order
     report --dir D [--prompt P]               per prompt and model, as JSON (D/P/report.json) and a Markdown table
+    compare --dir D --before P --after Q      the same masks under two prompts, per model, paired by mask (McNemar),
+                                              as JSON (D/Q/compare.json) and a Markdown table
 
 Run with venv-dlm: ~/.local/share/vgc-pilot-runtime/venv-dlm/bin/python code/scripts/inplace_prompt_grid.py ...
 """
 import argparse
+import functools
 import hashlib
 import json
 import math
@@ -78,9 +84,13 @@ class Prompt:
     code: str
     name: str
     build: Callable[..., D.InPlaceText]     # (task, ask, tokenizer, limit) -> the text and its slots
+    statement: str | None = None            # the task statement build puts before the team, if any
 
 
-PROMPTS = {'inplace_header': Prompt('inplace_header', 'Header only, values filled in place', D.in_place_text)}
+PROMPTS = {'inplace_header': Prompt('inplace_header', 'Header only, values filled in place', D.in_place_text),
+           'inplace_instructions': Prompt('inplace_instructions', 'Task statement added, values filled in place',
+                                          functools.partial(D.in_place_text, statement=D.TASK_STATEMENT),
+                                          D.TASK_STATEMENT)}
 
 
 def to_id(text: str) -> str:
@@ -628,23 +638,34 @@ def random_token_values(tokenizer: Any, c: dict[str, Any], rng: random.Random) -
     return [tokenizer.decode([rng.choice(vocab) for _ in span]) for span in c['spans']]
 
 
-def round_trip_values(tokenizer: Any, task: dict[str, Any], c: dict[str, Any], start_id: int | None) -> list[str]:
+def round_trip_values(tokenizer: Any, task: dict[str, Any], c: dict[str, Any], start_id: int | None,
+                      prompt: Prompt = PROMPTS['inplace_header']) -> list[str]:
     """The true values written into the slots as the training target writes them (padded), encoded, then decoded
     from the slot tokens as a model's fill is."""
     pad = tokenizer.pad_token or tokenizer.eos_token
-    target = D.training_target(task, ASK, tokenizer, LIMIT, pad)
+    target = D.training_target(task, ASK, tokenizer, LIMIT, pad, prompt.statement)
     ids = list(tokenizer(target, add_special_tokens=False)['input_ids'])
     if start_id is not None:
         ids = [start_id, *ids]
     return slot_values(tokenizer, ids, c['spans'])[0]
 
 
-def preflight(out: Path) -> dict[str, Any]:
+def statement_tokens(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokenizer: Any, mask_id: int,
+                     start_id: int | None) -> dict[str, int]:
+    """What the prompt's task statement costs in this tokenizer: its tokens alone, and the fewest and most tokens it
+    adds to a mask's text over today's prompt (#238)."""
+    alone = len(tokenizer(prompt.statement or '', add_special_tokens=False)['input_ids'])
+    added = [len(canvas(t, prompt, tokenizer, mask_id, start_id)['ids'])
+             - len(canvas(t, PROMPTS['inplace_header'], tokenizer, mask_id, start_id)['ids']) for t in tasks]
+    return {'statement_alone': alone, 'added_min': min(added), 'added_max': max(added), 'masks': len(added)}
+
+
+def preflight(out: Path, prompt_code: str = 'inplace_header') -> dict[str, Any]:
     """The probes that need no model: run on every mask with every small-four tokenizer."""
     import count_masked_diffusion_text as C
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
     from showdown_validator import Validator
-    tasks, names, prompt = grid_tasks(), vocabulary(), PROMPTS['inplace_header']
+    tasks, names, prompt = grid_tasks(), vocabulary(), PROMPTS[prompt_code]
     validate = Validator()
     result: dict[str, Any] = {'date': time.strftime('%Y-%m-%d'), 'prompt': prompt.code, 'masks': len(tasks),
                               'environment': environment(), 'candidates': {}}
@@ -664,7 +685,7 @@ def preflight(out: Path) -> dict[str, Any]:
                 if tokenizer.unk_token_id is not None:
                     unknown += c['ids'].count(tokenizer.unk_token_id)
                 ceiling += judge(task, c['built'], true_values(task), validate, names)['legal']
-                values = round_trip_values(tokenizer, task, c, start_id)
+                values = round_trip_values(tokenizer, task, c, start_id, prompt)
                 verdict = judge(task, c['built'], values, validate, names)
                 trip += verdict['legal']
                 same = verdict.get('team') is not None and team_paste(verdict['team']) == team_paste(task['original'])
@@ -679,6 +700,8 @@ def preflight(out: Path) -> dict[str, Any]:
                     'ceiling_legal': ceiling, 'round_trip_legal': trip, 'round_trip_same_paste': trip_paste,
                     'round_trip_misses': trip_misses[:10], 'floor_random_tokens_legal': floor,
                     'floor_random_tokens_showdown_accepts': floor_showdown}
+            if prompt.statement is not None:
+                row['statement_tokens'] = statement_tokens(tasks, prompt, tokenizer, candidate.mask_id, start_id)
             row['pass'] = (ceiling == trip == trip_paste == len(tasks)) and floor < 3 and unknown == 0
             result['candidates'][key] = row
             print(key, json.dumps(row), flush=True)
@@ -760,8 +783,8 @@ def team_from_paste_row(row: dict[str, Any]) -> Team | None:
     return team
 
 
-def gpu_preflight(key: str, directory: Path, device: str = 'mps',
-                  sampler_name: str | None = None) -> dict[str, Any]:
+def gpu_preflight(key: str, directory: Path, device: str = 'mps', sampler_name: str | None = None,
+                  prompt_code: str = 'inplace_header') -> dict[str, Any]:
     """The probes that need the model, on three masks: attention sees later tokens, the same seed refills the same
     values, running the masks in reverse order changes nothing, and a redraw's seed gives a different fill (#171:
     a redraw that repeats the first try would make the validator loop a no-op)."""
@@ -778,7 +801,7 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps',
     start_id = start_token_id(tokenizer, active)
 
     def draw(task: dict[str, Any], seed: int | None = None) -> list[int]:
-        c = canvas(task, PROMPTS['inplace_header'], tokenizer, candidate.mask_id, start_id)
+        c = canvas(task, PROMPTS[prompt_code], tokenizer, candidate.mask_id, start_id)
         x, slots = torch.tensor([c['ids']], device=device), torch.tensor(c['slots'], device=device)
         seed = mask_seed(SETTING['seed'], task['id']) if seed is None else seed
         generator = torch.Generator(device=device).manual_seed(seed)
@@ -786,7 +809,7 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps',
         filled = B.fill(forward, x, slots, candidate.mask_id, generator=generator, setting=active)
         return filled[0, slots].cpu().tolist()
 
-    c0 = canvas(picks[0], PROMPTS['inplace_header'], tokenizer, candidate.mask_id, start_id)
+    c0 = canvas(picks[0], PROMPTS[prompt_code], tokenizer, candidate.mask_id, start_id)
     sees = B.sees_later_tokens(model, family, torch.tensor([c0['ids']], device=device),
                                torch.tensor(c0['slots'], device=device), right_shift=active.right_shift)
     first = [draw(t) for t in picks]
@@ -798,24 +821,97 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps',
         pairs = [(x, y) for p, q in zip(a, b, strict=True) for x, y in zip(p, q, strict=True)]
         return sum(x == y for x, y in pairs) / len(pairs)
 
-    out = {'candidate': key, 'sampler_setting': active.to_dict(), 'masks': [t['id'] for t in picks],
+    out = {'candidate': key, 'prompt': prompt_code, 'sampler_setting': active.to_dict(), 'masks': [t['id'] for t in picks],
            'sees_later_tokens': sees, 'repeat_same_tokens': same(first, again),
            'reverse_order_same_tokens': same(first, reverse), 'redraw_same_tokens': same(first, redrawn),
            'environment': environment()}
     redraw_ok = (out['redraw_same_tokens'] == 1.0) if active.temperature == 0.0 else (out['redraw_same_tokens'] < 1.0)
     out['pass'] = (sees and out['repeat_same_tokens'] >= 0.9 and out['reverse_order_same_tokens'] >= 0.9
                    and redraw_ok)
-    path = directory / 'preflight' / f'gpu-{key}.json'
+    path = gpu_preflight_path(directory, key, prompt_code)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=1) + '\n')
     print(json.dumps(out), flush=True)
     return out
 
 
+def gpu_preflight_path(directory: Path, key: str, prompt_code: str = 'inplace_header') -> Path:
+    """Today's prompt keeps #237's file name; a later prompt's probes sit beside it under the prompt's code."""
+    name = f'gpu-{key}.json' if prompt_code == 'inplace_header' else f'gpu-{prompt_code}-{key}.json'
+    return directory / 'preflight' / name
+
+
+# ---------- two prompts on the same masks (#238 to #240) ----------
+
+def paired(before: Sequence[dict[str, Any]], after: Sequence[dict[str, Any]]) -> dict[str, Any]:
+    """First-try legality of the same masks under two prompts, paired by mask id: masks legal under both, neither,
+    only after (gained) and only before (lost), with McNemar's exact two-sided p-value on gained against lost."""
+    was, now = {r['id']: r['legal'] for r in before}, {r['id']: r['legal'] for r in after}
+    if set(was) != set(now):
+        raise ValueError(f'the two runs cover different masks: {len(set(was) ^ set(now))} in only one')
+    gained = sum(now[i] and not was[i] for i in was)
+    lost = sum(was[i] and not now[i] for i in was)
+    n = gained + lost
+    p_value = 1.0 if n == 0 else min(1.0, 2 * binomial_cdf(min(gained, lost), n, 0.5))
+    return {'both': sum(was[i] and now[i] for i in was), 'neither': sum(not was[i] and not now[i] for i in was),
+            'gained': gained, 'lost': lost, 'p_value': p_value}
+
+
+def compare_rows(before: list[dict[str, Any]], after: list[dict[str, Any]],
+                 names: dict[str, frozenset[str]] | None = None) -> dict[str, Any]:
+    """The ticket's before-and-after measures for one model: first-try legal, JSON parse share, real-species share,
+    seconds per team, the most common reasons, and the paired test."""
+    a, b = summarize(before, names), summarize(after, names)
+
+    def pair(key: str) -> dict[str, int]:
+        return {'before': a[key], 'after': b[key], 'of': a['masks']}
+
+    species = {s: x['real_values'].get('species', {'real': 0, 'of': 0}) for s, x in (('before', a), ('after', b))}
+    return {'legal': pair('legal'), 'json_parses': pair('json_parses'), 'reads_as_team': pair('reads_as_team'),
+            'showdown_accepts': pair('showdown_accepts'),
+            'real_species': {'before': species['before']['real'], 'after': species['after']['real'],
+                             'of': species['before']['of']},
+            'seconds_per_team': {'before': a['seconds_per_team'], 'after': b['seconds_per_team']},
+            'prompt_tokens_mean': {'before': a['prompt_tokens_mean'], 'after': b['prompt_tokens_mean']},
+            'legal_by_task': {'before': a['legal_by_task'], 'after': b['legal_by_task']},
+            'first_failed_step': {'before': a['first_failed_step'], 'after': b['first_failed_step']},
+            'reasons': {s: [list(x) for x in Counter(r for row in rows for r in row['reasons']).most_common(5)]
+                        for s, rows in (('before', before), ('after', after))},
+            'paired': paired(before, after)}
+
+
+def compare(directory: Path, before_code: str, after_code: str) -> str:
+    import count_masked_diffusion_text as C
+    labels = {c.key: c.label for c in C.CANDIDATES}
+    results = {}
+    for key in SMALL_FOUR:
+        paths = [directory / code / key / 'fills.jsonl' for code in (before_code, after_code)]
+        if all(p.exists() for p in paths):
+            results[key] = compare_rows(read_rows(paths[0]), read_rows(paths[1]))
+    (directory / after_code).mkdir(parents=True, exist_ok=True)
+    (directory / after_code / 'compare.json').write_text(
+        json.dumps({'before': before_code, 'after': after_code, 'models': results}, indent=1) + '\n')
+    lines = [f'{PROMPTS[before_code].name} (`{before_code}`) → {PROMPTS[after_code].name} (`{after_code}`). '
+             'Held-out grid, the same 270 masks and mask seeds, first try only.', '',
+             '| Model | Legal, first try | Gained / lost (McNemar p) | Parses as JSON | Real species | '
+             'Seconds per team | Most common reasons, after |', '|---|---|---|---|---|---|---|']
+    for key, c in results.items():
+        p = c['paired']
+        reasons = '; '.join(f'{r} ({n})' for r, n in c['reasons']['after'][:3])
+        lines.append(f"| {labels[key]} | {c['legal']['before']} → {c['legal']['after']} of {c['legal']['of']} | "
+                     f"{p['gained']} / {p['lost']} (p = {p['p_value']:.3g}) | "
+                     f"{c['json_parses']['before']} → {c['json_parses']['after']} | "
+                     f"{c['real_species']['before']} → {c['real_species']['after']} of {c['real_species']['of']} | "
+                     f"{c['seconds_per_team']['before']:.1f} → {c['seconds_per_team']['after']:.1f} | {reasons} |")
+    return '\n'.join(lines)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     sub = parser.add_subparsers(dest='command', required=True)
-    sub.add_parser('preflight').add_argument('--out', type=Path, default=OUT / 'preflight' / 'cpu.json')
+    pre = sub.add_parser('preflight')
+    pre.add_argument('--out', type=Path, default=OUT / 'preflight' / 'cpu.json')
+    pre.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
     one = sub.add_parser('run')
     one.add_argument('--prompt', choices=PROMPTS, required=True)
     one.add_argument('--key', choices=SMALL_FOUR, required=True)
@@ -835,15 +931,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     gpu = sub.add_parser('gpu-preflight')
     gpu.add_argument('--key', choices=SMALL_FOUR, required=True)
     gpu.add_argument('--dir', type=Path, default=OUT)
+    gpu.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
     for p in (one, again, gpu):
         p.add_argument('--sampler', choices=tuple(SAMPLERS), default=None,
                        help="named sampler setting (default: the candidate's own)")
     rep = sub.add_parser('report')
     rep.add_argument('--dir', type=Path, default=OUT)
     rep.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
+    both = sub.add_parser('compare')
+    both.add_argument('--dir', type=Path, default=OUT)
+    both.add_argument('--before', choices=PROMPTS, default='inplace_header')
+    both.add_argument('--after', choices=PROMPTS, required=True)
     args = parser.parse_args(argv)
     if args.command == 'preflight':
-        return 0 if preflight(args.out)['pass'] else 1
+        return 0 if preflight(args.out, args.prompt)['pass'] else 1
+    if args.command == 'compare':
+        print(compare(args.dir, args.before, args.after))
+        return 0
     if args.command == 'run':
         return run(args.prompt, args.key, args.dir, args.limit, args.device, sampler_name=args.sampler)
     if args.command == 'redraw':
@@ -852,7 +956,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         legal_teams(args.prompt, args.key, args.dir)
         return 0
     if args.command == 'gpu-preflight':
-        return 0 if gpu_preflight(args.key, args.dir, sampler_name=args.sampler)['pass'] else 1
+        return 0 if gpu_preflight(args.key, args.dir, sampler_name=args.sampler, prompt_code=args.prompt)['pass'] else 1
     print(report(args.dir, args.prompt))
     return 0
 
