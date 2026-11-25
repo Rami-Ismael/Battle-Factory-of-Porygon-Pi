@@ -16,7 +16,8 @@ inplace_prompt_grid.judge (parses, keeps the visible values, Reg M-B names, Show
 computed on the laptop (inplace_prompt_grid.fitting_ids) and frozen in FROZEN/data/fitting-ids.json; the entrypoint
 fills each prompt's list and merge refuses a raw file that is not exactly that list.
 
-D is ~/vgc-data/inplace_prompt_grid/modal-l4, apart from #237's laptop fills. The code the container runs is the
+D is INPLACE_RESULTS_DIR (default ~/vgc-data/inplace_prompt_grid/modal-l4; #239 uses modal-l4-239), apart from #237's
+laptop fills. The code the container runs is the
 frozen copy in INPLACE_CODE_DIR (default ~/vgc-data/inplace_prompt_grid/run239; #238 ran from run238).
 
 Before any Modal launch: state its estimated cost and credit left (`modal billing summary`).
@@ -38,7 +39,8 @@ from pathlib import Path
 from typing import Any
 
 HOME = Path.home() / 'vgc-data/inplace_prompt_grid'
-DIRECTORY = HOME / 'modal-l4'
+DIRECTORY = Path(os.environ.get('INPLACE_RESULTS_DIR', HOME / 'modal-l4'))     # #239: modal-l4-239, so both
+# prompts without the example are refilled in its containers rather than read from #238's rows
 FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run239'))
 TASKS = FROZEN / 'data/eval2.tasks.json'     # the held-out grid, copied out of the iCloud vault into the frozen run
 FITTING = FROZEN / 'data/fitting-ids.json'   # {prompt: [mask ids]} for the prompts that do not fit every mask (#239)
