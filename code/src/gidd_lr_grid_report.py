@@ -24,14 +24,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import retrain_default_report as R
 from echarts_chart import write_chart
 
-R.ISSUE = "431"
-R.NEW_ROW, R.REF_ROW = "shuffled_linear_filtered_gidd_lr", "linear_masked_filter"
-R.NEW_CK = "stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80"
-R.REF_CK = "stat84_shuffled_noise_linear_filtered_es3_cap80"
-R.NEW_LABEL, R.REF_LABEL = "Masked, full filter, shared recipe", "Masked, full filter, old recipe"
-R.NEW_SHORT, R.REF_SHORT = "Shared recipe", "old recipe"
-R.REF_REDRAW_BASES = {}                                  # both rows draw on 7300; no non-replayed redraw to substitute
-R.BASES_FILE = Path("/nonexistent/gidd-lr-grid-bases.txt")
+COMPARISON = R.GridComparison(
+    issue="431",
+    new_row="shuffled_linear_filtered_gidd_lr",
+    ref_row="linear_masked_filter",
+    new_checkpoint="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80",
+    ref_checkpoint="stat84_shuffled_noise_linear_filtered_es3_cap80",
+    new_label="Masked, full filter, shared recipe",
+    ref_label="Masked, full filter, old recipe",
+    new_short="Shared recipe",
+    ref_short="old recipe",
+    ref_redraw_bases={},  # Both rows draw on 7300.
+)
 NOVEL_LUCK = 0.05                                        # the novel-share gap retrain_default_report flags
 SUMMARY_PATH = R.RES / "gidd_lr_grid_summary.json"
 
@@ -80,26 +84,25 @@ def check_opponents(guidance, results_dir=None):
     bootstrap shares opponent draws by column position."""
     import numpy as np
     results_dir = Path(results_dir or R.RES)
-    snap = [np.load(results_dir / f"masking_rate_rows_opponents_{R.grid_name(row, guidance)}.npz") for row in (R.NEW_ROW, R.REF_ROW)]
-    for key in ("columns", "weights"):
-        if not np.array_equal(snap[0][key], snap[1][key]):
-            raise SystemExit(f"guidance {guidance}: opponent {key} differ between {R.NEW_ROW} and {R.REF_ROW}")
+    new_name = R.grid_name(COMPARISON.new_row, guidance)
+    ref_name = R.grid_name(COMPARISON.ref_row, guidance)
+    with (np.load(results_dir / f"masking_rate_rows_opponents_{new_name}.npz") as new,
+          np.load(results_dir / f"masking_rate_rows_opponents_{ref_name}.npz") as ref):
+        for key in ("columns", "weights"):
+            if not np.array_equal(new[key], ref[key]):
+                raise SystemExit(f"guidance {guidance}: opponent {key} differ between {new_name} and {ref_name}")
 
 
 def pair_at(guidance):
     check_opponents(guidance)
-    return R.read_guidance_pair(int(guidance))
+    return R.read_guidance_pair(int(guidance), comparison=COMPARISON)
 
 
-def build_summary(out_json):
-    """retrain_default_report's summary, with its verdict replaced by this report's flags (which add novel share), so
-    summary.json, the matrix, the final post and the map line agree."""
-    for g in R.GUIDANCES: check_opponents(g)
-    summary = R.build_summary(out_json=out_json)
-    found = [f"guidance {g}: {f}" for g in summary["by_guidance"] for f in flags(summary["by_guidance"][g])]
-    summary.update(findings_beyond_luck=found, all_within_training_luck=not found)
-    Path(out_json).write_text(json.dumps(summary, indent=1))
-    return summary
+def build_summary(out_json, results_dir=R.RES):
+    """Include novel share in the verdict shared by the summary, figures, and posts."""
+    for g in R.GUIDANCES:
+        check_opponents(g, results_dir)
+    return R.build_summary(out_json, results_dir, comparison=COMPARISON, flags_for_pair=flags)
 
 
 def flags(pair):
@@ -116,20 +119,20 @@ def format_grid_comment(pair, fig_light, fig_dark):
     pe, pw = pair["paired"]["error"], pair["paired"]["pooled_win"]
     found = flags(pair)
     status = "differs from the old recipe beyond training luck" if found else "matches the old recipe within training luck"
-    alt = (f"Got against ask at guidance {g} for {R.NEW_LABEL} versus {R.REF_LABEL}: ask-versus-got error "
+    alt = (f"Got against ask at guidance {g} for {COMPARISON.new_label} versus {COMPARISON.ref_label}: ask-versus-got error "
            f"{nm['error']:.4f} vs {rm['error']:.4f} (paired difference {pe['difference']:+.4f})")
     ny, ry = nm.get("elite_line_up_yield") or {}, rm.get("elite_line_up_yield") or {}
     npk, rpk = nm.get("pass_at_k") or {}, rm.get("pass_at_k") or {}
     pak = lambda p: f"{p['pass_at_8']:.3f} / {p['pass_at_48']:.3f}" if p else "n/a"
     lines = [
-        f"**Guidance {g} grid landed for {R.NEW_LABEL} (`{nm['name']}`): it {status}.**",
+        f"**Guidance {g} grid landed for {COMPARISON.new_label} (`{nm['name']}`): it {status}.**",
         "",
         R.picture(fig_light, fig_dark, alt),
         "",
         f"Completeness: `{nm['cells']}/69` cells, **`{nm['cells_short_of_64']}` cells short of 64 teams**, `{nm['teams']:,}` teams, "
         f"`{nm['battles']:,}` battles. Both recipes draw on sampling seed base `{nm['seed0']}` / `{rm['seed0']}`, so each cell meets the same random numbers.",
         "",
-        f"| Measure (guidance {g}) | {R.NEW_LABEL} | {R.REF_LABEL} (#385) | Difference |",
+        f"| Measure (guidance {g}) | {COMPARISON.new_label} | {COMPARISON.ref_label} (#385) | Difference |",
         "| --- | --- | --- | --- |",
         f"| Ask-versus-got error (asks 1/24–17/24) | **{nm['error']:.4f}** {R.fmt_iv(nm['error_interval'])} | {rm['error']:.4f} {R.fmt_iv(rm['error_interval'])} | **{pe['difference']:+.4f}** {R.fmt_iv(pe['interval'], '+.4f')} (luck bar `{R.ERROR_LUCK}`) |",
         f"| Error on asks 18/24–23/24 | `{nm['error_asks_18_to_23']:.4f}` | `{rm['error_asks_18_to_23']:.4f}` | `{nm['error_asks_18_to_23'] - rm['error_asks_18_to_23']:+.4f}` |",
@@ -219,14 +222,14 @@ def build_tradeoff_figure(summary, out_dir):
     """Frame 3: ask-versus-got error against distinct line-ups, one line per recipe through guidance 2, 4 and 8."""
     gs = [str(g) for g in summary["guidances"]]
     series = []
-    for side, label, color, dash in (("filtered", R.NEW_LABEL, NEW_COLOR, "solid"), ("unfiltered", R.REF_LABEL, REF_COLOR, "dashed")):
+    for side, label, color, dash in (("filtered", COMPARISON.new_label, NEW_COLOR, "solid"), ("unfiltered", COMPARISON.ref_label, REF_COLOR, "dashed")):
         pts = [summary["by_guidance"][g][side] for g in gs]
         series.append({"type": "line", "name": label, "color": color, "symbolSize": 9, "lineStyle": {"type": dash, "width": 2.4},
                        "emphasis": {"focus": "series"},
                        "label": {"show": True, "position": "top", "formatter": "js:p => 'g' + p.data[2]"},
                        "data": [[m["distinct_line_ups"], m["error"], g] for m, g in zip(pts, gs)]})
     option = {"animation": False, "grid": {"left": 72, "right": 28, "top": 56, "bottom": 56},
-              "legend": {"top": 0, "data": [R.NEW_LABEL, R.REF_LABEL]}, "tooltip": {"trigger": "item"},
+              "legend": {"top": 0, "data": [COMPARISON.new_label, COMPARISON.ref_label]}, "tooltip": {"trigger": "item"},
               "xAxis": {"type": "value", "scale": True, "name": "Distinct line-ups (pooled, 4,416 teams)", "nameLocation": "middle", "nameGap": 34},
               "yAxis": {"type": "value", "scale": True, "name": "Ask-versus-got error", "nameLocation": "middle", "nameGap": 54,
                         "axisLabel": {"formatter": "js:v => v.toFixed(4)"}},
@@ -333,7 +336,7 @@ def main(argv=None):
     if cmd == "check-grid":
         R.check_grid(args[1], int(args[2]))
     elif cmd == "grid-figure":
-        print(R.build_grid_figure(pair_at(args[1]), args[2]))
+        print(R.build_grid_figure(pair_at(args[1]), args[2], comparison=COMPARISON))
     elif cmd == "grid-comment":
         sys.stdout.write(format_grid_comment(pair_at(args[1]), args[2], args[3]))
     elif cmd == "summary":

@@ -391,7 +391,14 @@ def _compare_metric_against_256(vals_k, vals_ref, *, paired, abs_tol=None):
     """Compare 3-seed metric values for K against K=256 using the pre-registered seed-noise rule."""
     arr_k = np.asarray(vals_k, dtype=float)
     arr_ref = np.asarray(vals_ref, dtype=float)
-    diff = float(np.mean(arr_k) - np.mean(arr_ref))
+    mean_k = _comparison_mean(arr_k)
+    mean_ref = _comparison_mean(arr_ref)
+    if mean_k is None or mean_ref is None:
+        return dict(
+            mean_k=mean_k, mean_256=mean_ref, diff=None, se_diff=None, threshold=abs_tol,
+            signs_agree=False, within_threshold=False, within_seed_noise=False, direction=None,
+        )
+    diff = mean_k - mean_ref
     if paired:
         diffs = arr_k - arr_ref
         se = float(np.std(diffs, ddof=1) / math.sqrt(len(diffs))) if len(diffs) > 1 else 0.0
@@ -406,8 +413,8 @@ def _compare_metric_against_256(vals_k, vals_ref, *, paired, abs_tol=None):
     within_tol = abs(diff) <= threshold if abs_tol is not None else abs(diff) < threshold
     within_noise = bool(within_tol or not signs_agree)
     return dict(
-        mean_k=float(np.mean(arr_k)),
-        mean_256=float(np.mean(arr_ref)),
+        mean_k=mean_k,
+        mean_256=mean_ref,
         diff=diff,
         se_diff=float(se),
         threshold=threshold,
@@ -416,6 +423,10 @@ def _compare_metric_against_256(vals_k, vals_ref, *, paired, abs_tol=None):
         within_seed_noise=within_noise,
         direction="above_256" if diff > 0 else "below_256" if diff < 0 else "equal",
     )
+
+
+def _comparison_mean(values):
+    return float(np.mean(values)) if len(values) == len(SEEDS) and np.isfinite(values).all() else None
 
 
 def select_pass_count(pass_summaries):
@@ -427,6 +438,7 @@ def select_pass_count(pass_summaries):
           1. first-try legality (within 2 percentage points, OR 3 seeds do not agree in sign vs 256);
           2. within-ask composition.unique_fraction (< 1 seed SE, OR 3 seeds do not agree in sign vs 256);
           3. within-ask mean species replacement distance (< 1 seed SE, OR 3 seeds do not agree in sign vs 256).
+      - Both pass counts need a finite measurement for every seed on each metric.
     """
     ref = pass_summaries[256]
     short_circuit = all(pass_summaries[k]["legality"]["mean"] < LEGALITY_FLOOR for k in PASS_COUNTS)

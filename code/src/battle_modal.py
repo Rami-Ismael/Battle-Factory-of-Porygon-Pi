@@ -19,13 +19,14 @@ import sys
 import zlib
 from pathlib import Path
 
+from showdown_validator import SHOWDOWN as VALIDATOR, VGC_BENCH as BENCH
+
 HOME = Path.home()
 RUNTIME = HOME / ".local/share/vgc-pilot-runtime"
 VAULT = HOME / ("Documents/yakumsi-vault/Personal Project/Using Advance method search in the whole search of possible vgc "
                 "pokemon format to find the right counter to a pokemon team")
 LAB = VAULT / "battle_speed_lab"                                     # worker.py, run.py, encoder.py, inference.py
-VALIDATOR = RUNTIME / "validator-913da36"                            # run.SOURCE: the pinned Showdown build
-BENCH = RUNTIME / "unpacked/vgc-bench-d79f9532947ac114dce1dda2456a590afcd375b2"   # worker.BENCH and its cwd
+FAST_RUNNER = VAULT / "team_completion_pipeline/fast_battle_runner.py"
 CORPUS = HOME / "Documents/code/vgc-team-generator-pilot/src/corpus.py"         # worker.py imports dex_entry from here
 POLICY = RUNTIME / "files/bc_100.zip"                                # /tmp/bc_100.zip links here
 POLICY_SHA256 = "57f5edcab415cf6ccc1b6231923c8b66d3b1b7249b6b2562b97531471e4ca60b"   # fast_battle_runner.CHECKPOINT_SHA256
@@ -43,16 +44,21 @@ TORCH = "torch==2.12.0"                 # the laptop venv's version, CPU build
 
 def manifest() -> str:
     """Digest of everything that decides a battle outside the request: this file, the battle worker's sources, the
-    Showdown build and formats, the policy checkpoint and the package pins. The laptop compares it with the deployed
-    app's on every call, so a redeploy with different code cannot slip results into the same cache."""
+    Showdown build and formats, vgc-bench source and data, the policy checkpoint and the package pins. The laptop
+    compares it with the deployed app's on every call, so different code cannot slip results into the same cache."""
     import hashlib
     sys.path.insert(0, str(LAB))
     import run as lab
+    sys.path.insert(0, str(FAST_RUNNER.parent))
+    from fast_battle_runner import python_source_digest
+
     digest = hashlib.sha256()
     for path in [Path(__file__), *(LAB / n for n in ("worker.py", "run.py", "encoder.py", "inference.py")),
                  VALIDATOR / "config/formats.ts", POLICY]:
         digest.update(path.name.encode() + b"\0" + Path(path).read_bytes())
     digest.update(lab.tree_digest(VALIDATOR / "dist").encode())
+    digest.update(python_source_digest(BENCH / "vgc_bench/src").encode())
+    digest.update(lab.tree_digest(BENCH / "data").encode())
     digest.update("|".join((TORCH, *PACKAGES)).encode())
     return digest.hexdigest()
 
@@ -169,10 +175,12 @@ if modal is not None:
                            f"ln -sfn '{RUNTIME / 'teams'}' /tmp/vgc-pilot/vgc-bench/teams")
              .add_local_dir(LAB, str(LAB), ignore=["**/__pycache__/**", "runs/**"])
              .add_local_dir(BENCH, str(BENCH), ignore=["**/__pycache__/**", "**/.git/**"])
+             .add_local_file(FAST_RUNNER, str(FAST_RUNNER))
              .add_local_dir(RUNTIME / "data", str(RUNTIME / "data"))
              .add_local_dir(RUNTIME / "teams", str(RUNTIME / "teams"))
              .add_local_file(CORPUS, str(CORPUS))
-             .add_local_file(POLICY, str(POLICY)))
+             .add_local_file(POLICY, str(POLICY))
+             .add_local_python_source("showdown_validator"))
     app = modal.App(APP_NAME)
 
     @app.function(image=image, cpu=CPU, memory=MEMORY_MB, timeout=3600, scaledown_window=60, max_containers=MAX_CONTAINERS)

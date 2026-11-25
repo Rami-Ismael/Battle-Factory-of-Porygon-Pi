@@ -50,6 +50,32 @@ class UniformGridReview(unittest.TestCase):
         }
         self.assertEqual(U.select_pass_count(summaries)["chosen_passes"], 128)
 
+    def test_pass_selection_requires_finite_measurements_for_all_seeds(self):
+        distance = "within_ask_species_replacement_distance"
+        summaries = {
+            k: {
+                "seed0": 123,
+                "legality": U._seed_stats([0.2] * 3),
+                distance: U._seed_stats([4.0] * 3),
+                "matched_lineup_uniqueness": U._seed_stats([1.0] * 3),
+            }
+            for k in U.PASS_COUNTS
+        }
+        for missing in (float("nan"), float("inf")):
+            with self.subTest(missing=missing):
+                summaries[84][distance]["by_seed"] = [4.0, missing, 4.0]
+                decision = U.select_pass_count(summaries)
+                self.assertEqual(decision["chosen_passes"], 128)
+                self.assertFalse(decision["comparisons_vs_256"]["84"][distance]["within_seed_noise"])
+
+        summaries[256][distance]["by_seed"] = [4.0, float("nan"), 4.0]
+        self.assertEqual(U.select_pass_count(summaries)["chosen_passes"], 256)
+
+        summaries[256][distance]["by_seed"] = [4.0] * 3
+        summaries[84][distance]["by_seed"] = [4.0] * 3
+        summaries[84]["matched_lineup_uniqueness"]["by_seed"] = [1.0] * 2
+        self.assertEqual(U.select_pass_count(summaries)["chosen_passes"], 128)
+
     def test_short_cells_pass_only_when_every_kept_team_has_battles(self):
         with tempfile.TemporaryDirectory() as directory:
             results = Path(directory)
@@ -58,14 +84,41 @@ class UniformGridReview(unittest.TestCase):
                 f"{ask}-{seed}": {"numerator": ask, "seed": seed, "pastes": [], "y": [], "battles": 0}
                 for ask in G.R.ALL_ASKS for seed in G.R.SEEDS
             }
-            cells["1-1"].update(pastes=["one", "two"], y=[0.5, 0.7], battles=98)
+            reference = G.R.grid_name(G.MASKED_ROW, G.R.GUIDANCES[0])
+            np.savez(results / f"masking_rate_rows_opponents_{reference}.npz", columns=np.arange(49))
+            cells["1-1"].update(pastes=["one", "two"], team_ids=[0, 50], y=[0.5, 0.7], battles=97)
             file.write_text(json.dumps({"cells": cells}))
             G.check_uniform_grid("test", results)
+            cells["1-1"]["team_ids"] = [49, 50]
+            file.write_text(json.dumps({"cells": cells}))
+            with self.assertRaisesRegex(ValueError, "missing battles for ask 1/24 seed 1"):
+                G.check_uniform_grid("test", results)
             cells["1-1"]["y"].pop()
             file.write_text(json.dumps({"cells": cells}))
             G.check_uniform_grid("test", results, sampled_only=True)
             with self.assertRaisesRegex(ValueError, "missing battles for ask 1/24 seed 1"):
                 G.check_uniform_grid("test", results)
+
+    def test_snapshot_allows_only_the_self_play_gap(self):
+        cell = {"numerator": 1, "seed": 1, "pastes": ["meta team", "other team"],
+                "team_ids": [0, 50], "y": [0.5, 0.5], "battles": 97}
+        grid = {"cells": {"1-1": cell}}
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory)
+            file = results / "masking_rate_rows_opponents_test.npz"
+            rates = np.full((2, 49), 0.5)
+            rates[0, 0] = np.nan
+            np.savez(file, columns=np.arange(49), weights=np.ones(49), a01_s1=rates)
+            G.snapshot(results, "test", grid)
+
+            for gaps in ([(0, 1)], [(0, 0), (0, 1)], [(0, 0), (1, 0)], []):
+                with self.subTest(gaps=gaps):
+                    rates.fill(0.5)
+                    for row, column in gaps:
+                        rates[row, column] = np.nan
+                    np.savez(file, columns=np.arange(49), weights=np.ones(49), a01_s1=rates)
+                    with self.assertRaisesRegex(ValueError, "opponent snapshot differs"):
+                        G.snapshot(results, "test", grid)
 
     def test_missing_ask_has_no_error_or_win_rate_draw(self):
         sizes = {(k, s): int(k != 1) for k in G.R.ALL_ASKS for s in G.R.SEEDS}

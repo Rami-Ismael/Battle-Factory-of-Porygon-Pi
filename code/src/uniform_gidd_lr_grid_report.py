@@ -42,12 +42,27 @@ def check_uniform_grid(name, results_dir, *, sampled_only=False):
         print(f"{name}: ask {cell['ask']}/24 seed {cell['seed']} kept {cell['kept']}/64 teams")
     print(f"{name}: {len(grid['cells']) - len(short)}/{len(grid['cells'])} cells reached 64 teams")
     if not sampled_only:
-        for cell in grid["cells"].values():
-            n = len(cell["pastes"])
-            scores = cell.get("y", [])
-            if len(scores) != n or any(y is None or not 0 <= y <= 1 for y in scores) or cell.get("battles", 0) < 49 * n:
-                raise ValueError(f"{name}: missing battles for ask {cell['numerator']}/24 seed {cell['seed']}")
+        # The queue checks totals before writing this grid's opponent snapshot.
+        reference = R.grid_name(MASKED_ROW, R.GUIDANCES[0])
+        with np.load(results_dir / f"masking_rate_rows_opponents_{reference}.npz") as data:
+            columns = data["columns"]
+        check_battle_totals(name, grid, columns)
     return grid
+
+
+def check_battle_totals(name, grid, columns):
+    if columns.shape != (49,):
+        raise ValueError(f"{name}: expected 49 distinct top-50 opponents")
+    members = set(columns)
+    if len(members) != 49:
+        raise ValueError(f"{name}: expected 49 distinct top-50 opponents")
+    for cell in grid["cells"].values():
+        n = len(cell["pastes"])
+        teams, scores = cell.get("team_ids", []), cell.get("y", [])
+        eligible = len(members) * n - sum(team in members for team in teams)
+        if (len(teams) != n or len(scores) != n or any(y is None or not 0 <= y <= 1 for y in scores)
+                or cell.get("battles", 0) < eligible):
+            raise ValueError(f"{name}: missing battles for ask {cell['numerator']}/24 seed {cell['seed']}")
 
 
 def load_full_dial(name, results_dir):
@@ -79,11 +94,13 @@ def snapshot(results_dir, name, grid):
     path = results_dir / f"masking_rate_rows_opponents_{name}.npz"
     with np.load(path) as data:
         columns, weights = data["columns"], data["weights"]
-        if len(set(columns)) != 49 or weights.shape != (49,):
+        if weights.shape != (49,):
             raise ValueError(f"{name}: expected 49 distinct top-50 opponents")
+        check_battle_totals(name, grid, columns)
         for cell in grid["cells"].values():
             rates = data[f"a{cell['numerator']:02d}_s{cell['seed']}"]
-            if (rates.shape != (len(cell["pastes"]), 49) or not np.isfinite(rates).all()
+            eligible = np.asarray(cell.get("team_ids", []), dtype=object)[:, None] != columns
+            if (rates.shape != eligible.shape or not np.isfinite(rates[eligible]).all() or not np.isnan(rates[~eligible]).all()
                     or not np.allclose(team_scores(rates, weights), cell["y"], atol=1e-9, rtol=0)):
                 raise ValueError(f"{name}: opponent snapshot differs from stored scores")
     return path, columns, weights
