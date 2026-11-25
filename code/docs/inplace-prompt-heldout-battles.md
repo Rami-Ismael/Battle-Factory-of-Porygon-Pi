@@ -77,3 +77,26 @@ Budget, worst case:
 | Copies | Counted in the report: masks whose fill gives back the unmasked team. 0 of 54 on the first try. |
 | Redraws differ (new) | In the queue, per model before its redraws: the first redraw's seed must change at least one slot token on three masks, or the validator loop would repeat the first try. |
 | Battle setup | Dry run on a scratch database, 2026-11-20: the top-50 columns match the Mask Lab's paste for paste, 54 legal fills (53 distinct), 49 top-50 and 45 held-out opponents. Pass. |
+
+## Departures
+
+- **Masked Qwen redraws ran on a Modal L4, not the laptop GPU (owner, 2026-11-24: "You can run this on modal").** The queue died at the 2026-11-20 reboot after 155 Masked Qwen2.5 Coder redraws. The other 908, and all 1,063 Masked Qwen3 redraws, were drawn on a Modal L4 by `scripts/inplace_prompt_redraw_modal.py` with the frozen run's code, seeds and sampler setting. Showdown does not run on Modal, so the container made all 4 redraws of each failing mask, and the laptop judged them with the frozen judge and kept only the draws #169's loop would have made: up to and including each mask's first legal draw (5 later draws dropped for Masked Qwen2.5 Coder, 5 for Masked Qwen3). A repeated seed gave the same tokens on the L4 (probe, 100%). The same seed on CUDA and on the laptop's GPU need not give the same tokens. So these draws are new draws from the same sampler, not copies of what the laptop would have drawn. The redraw comments' "hours of redraws" add L4 seconds (1.8 and 2.6 s per draw) to laptop seconds, and Modal draws record CUDA peak memory. Cost about $1.20 of Modal credit. Battles stay on the laptop.
+
+## Result
+
+Done 2026-11-25. Redraw comments on #171 for each model; battles: [#171 comment](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/171#issuecomment-7163080801). The claim holds: every small model keeps less usable win rate than Mercury with no reasoning (16.3%).
+
+| Model | Legal within 5 draws | Stat Points masks legal | Usable, top-50 (95% interval) | Minus unmasked team, points | Minus random legal fill, points |
+|---|---|---|---|---|---|
+| DiffuGPT small | 25/270 | 25/30 | 3.9% (3.7 to 4.1) | -5.0 | -3.6 |
+| DiffuGPT medium | 32/270 | 30/30 | 4.8% (4.5 to 5.0) | -6.6 | -4.8 |
+| Masked Qwen2.5 Coder 0.5B | 5/270 | 4/30 | 0.7% (0.3 to 1.1) | -5.5 | -2.5 |
+| Masked Qwen3 0.6B | 6/270 | 6/30 | 1.0% (0.5 to 1.6) | -3.3 | -2.1 |
+
+Against the prediction:
+
+- **Redraws: partly missed.** DiffuGPT medium reached 30 of 30 Stat Points masks, inside 27 to 30; DiffuGPT small reached 25, below it. Both masked Qwen models stayed below 8 (4 and 6). Other kinds stayed under 5 legal per model (at most 2 Stat Alignment masks).
+- **Usable win rate: held.** All four below 6%.
+- **Same masks: held in direction, missed in size.** Every model loses more than the random legal fill on its own legal masks, and DiffuGPT medium and Masked Qwen2.5 Coder lose more than 5 points against the unmasked team.
+
+Controls: unmasked teams won 47.2% here against 47.6% in the Jev re-battle; uniform-legal teams 2.2%.
