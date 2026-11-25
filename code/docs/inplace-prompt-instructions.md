@@ -8,6 +8,25 @@ Runner: `code/scripts/inplace_prompt_fill_modal.py` (fills on a Modal L4, judged
 
 Searched `experiments-index.md` and `code/docs/` for a task statement in a masked diffusion fill prompt: none. #237's fills write JSON keys and quotes into the values (`"species":"1","item":"1"`) and copy stat keys (`SpA`); nothing in that prompt says what belongs inside a value. #237's result: 21, 26, 4 and 3 of 270 legal, 53 of the 54 legal masks on Stat Points masks.
 
+## Result, 2026-11-25
+
+**Refuted for three models and reversed for the fourth.** The task statement raises no model's legal count. DiffuGPT small falls from 20 to 10 legal masks (1 gained, 11 lost, McNemar p = 0.006); the other three changes are within noise. Both rows come from the same Modal L4 container, on the same masks and mask seeds.
+
+| Model | Legal, header only → statement added | Gained / lost (p) | Parses as JSON | Real species |
+| --- | --- | --- | --- | --- |
+| DiffuGPT small | 20 → 10 | 1 / 11 (0.006) | 81 → 76 | 0 → 0 |
+| DiffuGPT medium | 27 → 23 | 2 / 6 (0.29) | 233 → 239 | 0 → 0 |
+| Masked Qwen2.5 Coder 0.5B | 4 → 2 | 0 / 2 (0.5) | 135 → 115 | 0 → 0 |
+| Masked Qwen3 0.6B | 3 → 6 | 4 / 1 (0.38) | 127 → 118 | 7 → 10 |
+
+- **Where the legal masks are.** All 41 legal masks with the statement hide Stat Points, bar one Stat Alignment, as before.
+- **Why DiffuGPT small fell.** All 11 lost masks hide Stat Points. With the statement, 415 of its 630 Stat Point values are numbers (600 without), and 18 of its 30 Stat Points masks fail to parse (6 without), with fills like `[` and `Sp`. Suspects, each with a test, are posted on #238: the stat words in the statement, the 71-token shift in position, and the single seed.
+- **Prediction.** It held on where legal masks sit, on DiffuGPT's parse counts and on real species. It missed DiffuGPT small's drop. It was wrong on Masked Qwen2.5 Coder's parsing, which fell by 20, and on cost: seconds per team did not change on the L4.
+- **The device.** Header-only fills on the L4 match #237's laptop fills token for token on only 1 to 27 of 270 masks, yet legal counts agree within one mask (20/21, 27/26, 4/4, 3/3).
+- **What follows.** #239 and #240 are measured against the header-only prompt.
+
+Results posted on #238: one comment per model, the four-model comparison and the verdict.
+
 ## The statement
 
 Worded once, used unchanged for all four models. It names no model's mask token, so it reads the same to each:
