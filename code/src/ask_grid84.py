@@ -124,6 +124,8 @@ MODELS["shuffled_linear_filtered_gidd_lr"] = dict(MODELS["linear_masked_filter"]
                                                   seed0=grid_seeds.LEGACY)
 MODELS["udlm_loglinear_gidd_lr"] = dict(MODELS["udlm_loglinear_nofilter"], checkpoint="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80",
                                         reader="Uniform, no filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED)
+for _passes in (84, 128, 256):
+    MODELS[f"udlm_loglinear_gidd_lr_k{_passes}"] = dict(MODELS["udlm_loglinear_gidd_lr"], passes=_passes)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
@@ -164,7 +166,7 @@ DIVERSITY_SUBSETS, SUBSET_SIZE = 200, 5
 OFF_GRID_ASKS = [0.3, 0.531, 0.6, 0.7]                   # not multiples of 1/24; the 48-field runs battled these too
 NUDGE_NUMERATORS, NUDGES = (6, 8, 10, 11, 12, 13, 14, 16), (0.0, 0.002, -0.002, 1 / 48)
 if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
-RES = Path.home() / "vgc-data/results"
+RES = Path(os.environ.get("AG84_RESULTS_DIR", Path.home() / "vgc-data/results"))
 SEED_OVERRIDE = os.environ.get("AG84_SEED0")             # a redraw on other seeds, into its own file "..._seed<N>"
 OUT = RES / f"stat_points_84_{MODEL}{SUFFIX}{f'_seed{SEED_OVERRIDE}' if SEED_OVERRIDE else ''}{'_smoke' if SMOKE else ''}.json"
 SEED0 = int(SEED_OVERRIDE) if SEED_OVERRIDE else MODELS[MODEL].get("seed0") or grid_seeds.seed0(f"{MODEL}{SUFFIX}", OUT)   # stored grids keep 7300; new ones their own

@@ -136,14 +136,15 @@ def load(name, fresh_db=FRESH_DB, battle_db=None):
         if np.abs(weighted(rate, weights) - np.array([t["y"] for t in mine])).max() > 1e-9: raise SystemExit(f"{name}: snapshot and stored scores differ")
         cells.setdefault(c["numerator"], {})[c["seed"]] = dict(rate=rate, line_ups=[t["line_up"] for t in mine], tried=c.get("tried"), kept=len(c["pastes"]))
     out = dict(name=name, reader=READER.get(re.sub(r"_g[0-9.]+$", "", name), grid["reader"]), guidance=float(grid["guidance"]), guided=not grid.get("unguided") and float(grid["guidance"]) != 1.0,
-               weights=weights, cells=cells, seeds=sorted({s for by in cells.values() for s in by}), definition=ONE_SCORE, candidates={})
+               passes=grid.get("passes", PASSES_PER_TRY), weights=weights, cells=cells,
+               seeds=sorted({s for by in cells.values() for s in by}), definition=ONE_SCORE, candidates={})
     yield_path = RES / f"line_up_yield_{name}.json"
     if yield_path.exists():
         stored = json.load(open(yield_path)); fresh = {f["paste"]: f["fresh"] for f in stored["fresh"]}
         cand = LY.candidates(teams)                                  # {line-up: its best team over all 23 asks}, as the re-battle chose them
         pastes = [cand[lu]["paste"] for lu in sorted(cand)]
-        rates = fresh_rates(pastes, data["columns"], weights, battle_db or default_battle_db(), fresh_db)
-        if np.abs(weighted(rates, weights) - np.array([fresh[p] for p in pastes])).max() > 1e-9: raise SystemExit(f"{name}: re-battle rates no longer give the stored fresh scores")
+        rates = fresh_rates(pastes, data["columns"], weights, battle_db or default_battle_db(), fresh_db) if pastes else np.empty((0, len(weights)))
+        if not np.allclose(weighted(rates, weights), [fresh[p] for p in pastes], atol=1e-9, rtol=0): raise SystemExit(f"{name}: re-battle rates no longer give the stored fresh scores")
         held = {lu for lu, p in zip(sorted(cand), pastes) if fresh[p] >= CUT}; out_games = stored["per_cell"]
         if held != {tuple(lu) for lu in stored["views"][YIELD_VIEW]["held_line_ups"]}: raise SystemExit(f"{name}: held line-ups differ from line_up_yield's")
         out.update(definition=HELD, candidates={lu: rates[i] for i, lu in enumerate(sorted(cand))}, rebattle_games_per_opponent=out_games)
@@ -205,7 +206,7 @@ def calls_per_legal_team(grid, asks):
     and every try the validator rejected counts. None when the grid stored no try counts."""
     cells = [cell for k in asks for cell in grid["cells"][k].values()]
     if any(cell["tried"] is None for cell in cells): return None
-    return PASSES_PER_TRY * (2 if grid["guided"] else 1) * sum(c["tried"] for c in cells) / sum(c["kept"] for c in cells)
+    return grid.get("passes", PASSES_PER_TRY) * (2 if grid["guided"] else 1) * sum(c["tried"] for c in cells) / sum(c["kept"] for c in cells)
 
 
 def band_result(grid, definition, asks, counts, rng):
@@ -223,8 +224,9 @@ def read_grid(grid, counts, definitions=None):
     """Every band and definition of one loaded grid. Returns (result, {(definition, band): [K, DRAWS] Pass@k draws})."""
     definitions = definitions or ([HELD, ONE_SCORE] if grid["definition"] == HELD else [ONE_SCORE])
     result = dict(name=grid["name"], reader=grid["reader"], guidance=grid["guidance"], definition=grid["definition"],
-                  held_line_ups=int(sum(weighted(r[None], grid["weights"])[0] >= CUT for r in grid["candidates"].values())) if grid["candidates"] else None,
-                  rebattled_line_ups=len(grid["candidates"]) or None, rebattle_games_per_opponent=grid.get("rebattle_games_per_opponent"), bands={}); draws = {}
+                  held_line_ups=int(sum(weighted(r[None], grid["weights"])[0] >= CUT for r in grid["candidates"].values())) if grid["definition"] == HELD else None,
+                  rebattled_line_ups=len(grid["candidates"]) if grid["definition"] == HELD else None,
+                  rebattle_games_per_opponent=grid.get("rebattle_games_per_opponent"), bands={}); draws = {}
     for d in definitions:
         for band, asks in BANDS.items():
             rng = np.random.default_rng([DRAW_SEED, 331, zlib.crc32(grid['name'].encode()), list(BANDS).index(band), definitions.index(d)])   # each grid's own stream, whatever else is read
