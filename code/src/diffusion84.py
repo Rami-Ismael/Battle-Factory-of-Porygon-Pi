@@ -29,6 +29,7 @@ import asked_vs_got as X
 import diffusion as D
 import lossdown as L
 from lookahead import lookahead as lookahead_rule
+import lr_schedule84 as LS
 import stat_points as SP
 from label_noise import noisy_labels
 from epoch_legality import EpochLegality, team_keys
@@ -351,7 +352,7 @@ class Model84:
     @classmethod
     def train_new(cls, V, corpus, rows, labels=None, epochs=2, seed=0, batch=256, lr=4e-4, wd=0.01,
                   warmup=500, ema=0.999, sched=SCHED, log=None, val=None, patience=None, early_stopping_threshold=0.001, on_best=None, label_noise=0.0, stop_after=None, on_epoch=None, row_weights=None, labels_each_epoch=None, legality_teams=0,
-                  table_loss=True, legality_tables=True, legality_copies=False, tracker=None, amp=None, **net_kw):
+                  table_loss=True, legality_tables=True, legality_copies=False, tracker=None, amp=None, lr_schedule="cosine", min_lr=0.0, **net_kw):
         """Train from scratch on 84-field rows. labels: [N] win rates or [N, 1 + mrow] with matchup rows (NaN =
         unlabelled); pass mrow=<columns> in net_kw for the latter. lr 4e-4 is the deployed members' rate.
         val=(rows, labels): validation loss after every epoch (common random numbers). patience=P: stop after P
@@ -370,7 +371,9 @@ class Model84:
         Stat Point budget (issue #361); the rows the tables reject are still dropped. legality_tables=False: the legality
         check draws without that mask, so its illegal share shows what the network learned. legality_copies=True: the check
         also logs copied_share, the drawn teams identical to a training team (epoch_legality.team_key).
-        tracker: optional WandbTracker mirroring hyperparameters, per-epoch curves and summary to Weights & Biases."""
+        tracker: optional WandbTracker mirroring hyperparameters, per-epoch curves and summary to Weights & Biases.
+        lr_schedule, min_lr: the learning-rate schedule and its floor (lr_schedule84.py); "cosine" decays to 0 as every run
+        before issue #431 did, "gidd_cosine" is GIDD's warm-up then cosine to min_lr."""
         torch.manual_seed(seed)
         tables = L.Tables(V, corpus)
         x, w, rw, keep = _training_tensors(tables, rows, labels, row_weights)
@@ -381,6 +384,7 @@ class Model84:
                     amp_dtype="bfloat16" if use_amp else "float32")
         info.update(label_noise=label_noise, stop_after=stop_after, labels_each_epoch=labels_each_epoch is not None, legality_teams=legality_teams)
         if not table_loss: info.update(table_loss=False)          # written only when off, so stored run infos keep their keys
+        if lr_schedule != "cosine" or min_lr: info.update(lr_schedule=lr_schedule, min_lr=min_lr, warmup=warmup)   # likewise, only when not the old default
         if legality_teams and not legality_tables: info.update(legality_tables=False)
         known = team_keys(x.cpu().numpy()) if legality_teams and legality_copies else None
         relabel = None if labels_each_epoch is None else \
@@ -388,7 +392,8 @@ class Model84:
         return cls._fit(V, corpus, tables, net, x, w, rw, info, epochs=epochs, seed=seed, batch=batch, lr=lr, wd=wd, warmup=warmup,
                         ema=ema, sched=sched, log=log, val=val, patience=patience, threshold=early_stopping_threshold, on_best=on_best,
                         label_noise=label_noise, stop_after=stop_after, on_epoch=on_epoch, net_kw=net_kw, relabel=relabel,
-                        legality=EpochLegality(legality_teams, tables=legality_tables, known=known), table_loss=table_loss, tracker=tracker, use_amp=use_amp)
+                        legality=EpochLegality(legality_teams, tables=legality_tables, known=known), table_loss=table_loss, tracker=tracker, use_amp=use_amp,
+                        lr_schedule=lr_schedule, min_lr=min_lr)
 
     def fine_tuned(self, rows, labels, epochs, val, patience=3, early_stopping_threshold=0.001, lr=1e-4, label_noise=0.0, seed=0, batch=256, wd=0.01,
                    warmup=500, ema=0.999, sched=SCHED, watch=None, log=None, legality_teams=0, tracker=None, amp=None):
@@ -416,7 +421,7 @@ class Model84:
     @classmethod
     def _fit(cls, V, corpus, tables, net, x, w, rw, info, *, epochs, seed, batch, lr, wd, warmup, ema, sched, log, val,  # noqa: C901
              patience, threshold, on_best, label_noise, stop_after, on_epoch, net_kw, watch=None, epoch0=False, like=None, relabel=None,
-             legality=None, table_loss=True, tracker=None, use_amp=False):
+             legality=None, table_loss=True, tracker=None, use_amp=False, lr_schedule="cosine", min_lr=0.0):
         """The training loop train_new and fine_tuned share. epoch0=True logs validation loss before any step and
         lets those starting weights be the best epoch. threshold: the validation-loss gain that resets patience. like: a model whose tables and vocabulary the result reuses.
         relabel(e): the kept rows' labels for epoch e (0-based), replacing w before that epoch's steps.
@@ -432,7 +437,7 @@ class Model84:
         steps = math.ceil(len(x) / batch) * epochs; warm = min(warmup, max(1, steps // 10))
         opt, fused_adamw = _make_adamw(net_params, lr=lr, wd=wd, device=x.device)
         info["fused_adamw"] = fused_adamw
-        lr_at = lambda s: lr * min(1.0, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(s, steps) / steps))
+        lr_at = LS.make_lr_at(lr_schedule, peak_lr=lr, total_steps=steps, warmup_steps=warm, min_lr=min_lr)
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
         best, best_epoch, best_sd, step = math.inf, 0, None, 0
